@@ -18,6 +18,7 @@ defmodule LantternWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    resources "/students", StudentController
   end
 
   # Other scopes may use custom stacks.

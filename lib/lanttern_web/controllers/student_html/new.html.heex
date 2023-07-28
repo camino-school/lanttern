@@ -1,0 +1,8 @@
+<.header>
+  New Student
+  <:subtitle>Use this form to manage student records in your database.</:subtitle>
+</.header>
+
+<.student_form changeset={@changeset} action={~p"/students"} />
+
+<.back navigate={~p"/students"}>Back to students</.back>
