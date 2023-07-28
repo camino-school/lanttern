@@ -1,0 +1,8 @@
+<.header>
+  Edit Item <%= @item.id %>
+  <:subtitle>Use this form to manage item records in your database.</:subtitle>
+</.header>
+
+<.item_form changeset={@changeset} action={~p"/curriculum/items/#{@item}"} />
+
+<.back navigate={~p"/curriculum/items"}>Back to items</.back>

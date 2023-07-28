@@ -19,6 +19,7 @@ defmodule LantternWeb.Router do
 
     get "/", PageController, :home
     resources "/students", StudentController
+    resources "/curriculum/items", ItemController
   end
 
   # Other scopes may use custom stacks.
