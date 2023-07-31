@@ -9,31 +9,31 @@ defmodule LantternWeb.CompositionControllerTest do
 
   describe "index" do
     test "lists all compositions", %{conn: conn} do
-      conn = get(conn, ~p"/compositions")
+      conn = get(conn, ~p"/grading/compositions")
       assert html_response(conn, 200) =~ "Listing Compositions"
     end
   end
 
   describe "new composition" do
     test "renders form", %{conn: conn} do
-      conn = get(conn, ~p"/compositions/new")
+      conn = get(conn, ~p"/grading/compositions/new")
       assert html_response(conn, 200) =~ "New Composition"
     end
   end
 
   describe "create composition" do
     test "redirects to show when data is valid", %{conn: conn} do
-      conn = post(conn, ~p"/compositions", composition: @create_attrs)
+      conn = post(conn, ~p"/grading/compositions", composition: @create_attrs)
 
       assert %{id: id} = redirected_params(conn)
-      assert redirected_to(conn) == ~p"/compositions/#{id}"
+      assert redirected_to(conn) == ~p"/grading/compositions/#{id}"
 
-      conn = get(conn, ~p"/compositions/#{id}")
+      conn = get(conn, ~p"/grading/compositions/#{id}")
       assert html_response(conn, 200) =~ "Composition #{id}"
     end
 
     test "renders errors when data is invalid", %{conn: conn} do
-      conn = post(conn, ~p"/compositions", composition: @invalid_attrs)
+      conn = post(conn, ~p"/grading/compositions", composition: @invalid_attrs)
       assert html_response(conn, 200) =~ "New Composition"
     end
   end
@@ -42,7 +42,7 @@ defmodule LantternWeb.CompositionControllerTest do
     setup [:create_composition]
 
     test "renders form for editing chosen composition", %{conn: conn, composition: composition} do
-      conn = get(conn, ~p"/compositions/#{composition}/edit")
+      conn = get(conn, ~p"/grading/compositions/#{composition}/edit")
       assert html_response(conn, 200) =~ "Edit Composition"
     end
   end
@@ -51,15 +51,15 @@ defmodule LantternWeb.CompositionControllerTest do
     setup [:create_composition]
 
     test "redirects when data is valid", %{conn: conn, composition: composition} do
-      conn = put(conn, ~p"/compositions/#{composition}", composition: @update_attrs)
-      assert redirected_to(conn) == ~p"/compositions/#{composition}"
+      conn = put(conn, ~p"/grading/compositions/#{composition}", composition: @update_attrs)
+      assert redirected_to(conn) == ~p"/grading/compositions/#{composition}"
 
-      conn = get(conn, ~p"/compositions/#{composition}")
+      conn = get(conn, ~p"/grading/compositions/#{composition}")
       assert html_response(conn, 200) =~ "some updated name"
     end
 
     test "renders errors when data is invalid", %{conn: conn, composition: composition} do
-      conn = put(conn, ~p"/compositions/#{composition}", composition: @invalid_attrs)
+      conn = put(conn, ~p"/grading/compositions/#{composition}", composition: @invalid_attrs)
       assert html_response(conn, 200) =~ "Edit Composition"
     end
   end
@@ -68,11 +68,11 @@ defmodule LantternWeb.CompositionControllerTest do
     setup [:create_composition]
 
     test "deletes chosen composition", %{conn: conn, composition: composition} do
-      conn = delete(conn, ~p"/compositions/#{composition}")
-      assert redirected_to(conn) == ~p"/compositions"
+      conn = delete(conn, ~p"/grading/compositions/#{composition}")
+      assert redirected_to(conn) == ~p"/grading/compositions"
 
       assert_error_sent 404, fn ->
-        get(conn, ~p"/compositions/#{composition}")
+        get(conn, ~p"/grading/compositions/#{composition}")
       end
     end
   end

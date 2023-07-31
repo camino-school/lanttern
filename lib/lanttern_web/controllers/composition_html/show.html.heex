@@ -2,7 +2,7 @@
   Composition <%= @composition.id %>
   <:subtitle>This is a composition record from your database.</:subtitle>
   <:actions>
-    <.link href={~p"/compositions/#{@composition}/edit"}>
+    <.link href={~p"/grading/compositions/#{@composition}/edit"}>
       <.button>Edit composition</.button>
     </.link>
   </:actions>
@@ -12,4 +12,4 @@
   <:item title="Name"><%= @composition.name %></:item>
 </.list>
 
-<.back navigate={~p"/compositions"}>Back to compositions</.back>
+<.back navigate={~p"/grading/compositions"}>Back to compositions</.back>

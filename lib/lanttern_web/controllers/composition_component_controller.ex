@@ -5,8 +5,8 @@ defmodule LantternWeb.CompositionComponentController do
   alias Lanttern.Grading.CompositionComponent
 
   def index(conn, _params) do
-    grade_composition_components = Grading.list_grade_composition_components()
-    render(conn, :index, grade_composition_components: grade_composition_components)
+    composition_components = Grading.list_composition_components()
+    render(conn, :index, composition_components: composition_components)
   end
 
   def new(conn, _params) do
@@ -20,7 +20,7 @@ defmodule LantternWeb.CompositionComponentController do
       {:ok, composition_component} ->
         conn
         |> put_flash(:info, "Composition component created successfully.")
-        |> redirect(to: ~p"/grade_composition_components/#{composition_component}")
+        |> redirect(to: ~p"/grading/composition_components/#{composition_component}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         options = generate_composition_options()
@@ -52,7 +52,7 @@ defmodule LantternWeb.CompositionComponentController do
       {:ok, composition_component} ->
         conn
         |> put_flash(:info, "Composition component updated successfully.")
-        |> redirect(to: ~p"/grade_composition_components/#{composition_component}")
+        |> redirect(to: ~p"/grading/composition_components/#{composition_component}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         options = generate_composition_options()
@@ -71,7 +71,7 @@ defmodule LantternWeb.CompositionComponentController do
 
     conn
     |> put_flash(:info, "Composition component deleted successfully.")
-    |> redirect(to: ~p"/grade_composition_components")
+    |> redirect(to: ~p"/grading/composition_components")
   end
 
   defp generate_composition_options() do

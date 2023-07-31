@@ -59,16 +59,16 @@ defmodule Lanttern.GradingTest do
     end
   end
 
-  describe "grade_composition_components" do
+  describe "composition_components" do
     alias Lanttern.Grading.CompositionComponent
 
     import Lanttern.GradingFixtures
 
     @invalid_attrs %{name: nil, weight: nil}
 
-    test "list_grade_composition_components/0 returns all grade_composition_components" do
+    test "list_composition_components/0 returns all composition_components" do
       composition_component = composition_component_fixture()
-      assert Grading.list_grade_composition_components() == [composition_component]
+      assert Grading.list_composition_components() == [composition_component]
     end
 
     test "get_composition_component!/1 returns the composition_component with given id" do

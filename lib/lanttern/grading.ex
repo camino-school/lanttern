@@ -105,15 +105,15 @@ defmodule Lanttern.Grading do
   alias Lanttern.Grading.CompositionComponent
 
   @doc """
-  Returns the list of grade_composition_components.
+  Returns the list of composition_components.
 
   ## Examples
 
-      iex> list_grade_composition_components()
+      iex> list_composition_components()
       [%CompositionComponent{}, ...]
 
   """
-  def list_grade_composition_components do
+  def list_composition_components do
     Repo.all(CompositionComponent)
   end
 

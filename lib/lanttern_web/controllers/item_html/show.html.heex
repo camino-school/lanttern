@@ -2,7 +2,7 @@
   Item <%= @item.id %>
   <:subtitle>This is a item record from your database.</:subtitle>
   <:actions>
-    <.link href={~p"/curriculum/items/#{@item}/edit"}>
+    <.link href={~p"/curricula/items/#{@item}/edit"}>
       <.button>Edit item</.button>
     </.link>
   </:actions>
@@ -12,4 +12,4 @@
   <:item title="Name"><%= @item.name %></:item>
 </.list>
 
-<.back navigate={~p"/curriculum/items"}>Back to items</.back>
+<.back navigate={~p"/curricula/items"}>Back to items</.back>
