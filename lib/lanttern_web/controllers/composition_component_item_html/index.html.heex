@@ -12,6 +12,12 @@
   rows={@component_items}
   row_click={&JS.navigate(~p"/grading/component_items/#{&1}")}
 >
+  <:col :let={composition_component_item} label="Component">
+    <%= composition_component_item.component.name %>
+  </:col>
+  <:col :let={composition_component_item} label="Curriculum item">
+    <%= composition_component_item.curriculum_item.name %>
+  </:col>
   <:col :let={composition_component_item} label="Weight">
     <%= composition_component_item.weight %>
   </:col>

@@ -208,6 +208,7 @@ defmodule Lanttern.Grading do
 
   @doc """
   Returns the list of component_items.
+  Optionally preloads associated data.
 
   ## Examples
 
@@ -215,12 +216,14 @@ defmodule Lanttern.Grading do
       [%CompositionComponentItem{}, ...]
 
   """
-  def list_component_items do
+  def list_component_items(preloads \\ []) do
     Repo.all(CompositionComponentItem)
+    |> Repo.preload(preloads)
   end
 
   @doc """
   Gets a single composition_component_item.
+  Optionally preloads associated data.
 
   Raises `Ecto.NoResultsError` if the Composition component item does not exist.
 
@@ -233,7 +236,10 @@ defmodule Lanttern.Grading do
       ** (Ecto.NoResultsError)
 
   """
-  def get_composition_component_item!(id), do: Repo.get!(CompositionComponentItem, id)
+  def get_composition_component_item!(id, preloads \\ []) do
+    Repo.get!(CompositionComponentItem, id)
+    |> Repo.preload(preloads)
+  end
 
   @doc """
   Creates a composition_component_item.
@@ -265,7 +271,10 @@ defmodule Lanttern.Grading do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_composition_component_item(%CompositionComponentItem{} = composition_component_item, attrs) do
+  def update_composition_component_item(
+        %CompositionComponentItem{} = composition_component_item,
+        attrs
+      ) do
     composition_component_item
     |> CompositionComponentItem.changeset(attrs)
     |> Repo.update()
@@ -296,7 +305,10 @@ defmodule Lanttern.Grading do
       %Ecto.Changeset{data: %CompositionComponentItem{}}
 
   """
-  def change_composition_component_item(%CompositionComponentItem{} = composition_component_item, attrs \\ %{}) do
+  def change_composition_component_item(
+        %CompositionComponentItem{} = composition_component_item,
+        attrs \\ %{}
+      ) do
     CompositionComponentItem.changeset(composition_component_item, attrs)
   end
 end
