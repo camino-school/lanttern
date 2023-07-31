@@ -1,0 +1,10 @@
+<.header>
+  New Composition component item
+  <:subtitle>
+    Use this form to manage composition_component_item records in your database.
+  </:subtitle>
+</.header>
+
+<.composition_component_item_form changeset={@changeset} action={~p"/grading/component_items"} />
+
+<.back navigate={~p"/grading/component_items"}>Back to component_items</.back>

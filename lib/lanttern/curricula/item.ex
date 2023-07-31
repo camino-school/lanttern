@@ -5,6 +5,9 @@ defmodule Lanttern.Curricula.Item do
   schema "curriculum_items" do
     field :name, :string
 
+    has_many :grade_composition_component_items, Lanttern.Grading.CompositionComponentItem,
+      foreign_key: :curriculum_item_id
+
     timestamps()
   end
 

@@ -128,4 +128,89 @@ defmodule Lanttern.GradingTest do
       assert %Ecto.Changeset{} = Grading.change_composition_component(composition_component)
     end
   end
+
+  describe "component_items" do
+    alias Lanttern.Grading.CompositionComponentItem
+
+    import Lanttern.GradingFixtures
+    alias Lanttern.CurriculaFixtures
+
+    @invalid_attrs %{weight: nil}
+
+    test "list_component_items/0 returns all component_items" do
+      composition_component_item = composition_component_item_fixture()
+      assert Grading.list_component_items() == [composition_component_item]
+    end
+
+    test "get_composition_component_item!/1 returns the composition_component_item with given id" do
+      composition_component_item = composition_component_item_fixture()
+
+      assert Grading.get_composition_component_item!(composition_component_item.id) ==
+               composition_component_item
+    end
+
+    test "create_composition_component_item/1 with valid data creates a composition_component_item" do
+      component = composition_component_fixture()
+      curriculum_item = CurriculaFixtures.item_fixture()
+
+      valid_attrs = %{
+        weight: 120.5,
+        component_id: component.id,
+        curriculum_item_id: curriculum_item.id
+      }
+
+      assert {:ok, %CompositionComponentItem{} = composition_component_item} =
+               Grading.create_composition_component_item(valid_attrs)
+
+      assert composition_component_item.weight == 120.5
+      assert composition_component_item.component_id == component.id
+      assert composition_component_item.curriculum_item_id == curriculum_item.id
+    end
+
+    test "create_composition_component_item/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} =
+               Grading.create_composition_component_item(@invalid_attrs)
+    end
+
+    test "update_composition_component_item/2 with valid data updates the composition_component_item" do
+      composition_component_item = composition_component_item_fixture()
+      update_attrs = %{weight: 456.7}
+
+      assert {:ok, %CompositionComponentItem{} = composition_component_item} =
+               Grading.update_composition_component_item(composition_component_item, update_attrs)
+
+      assert composition_component_item.weight == 456.7
+    end
+
+    test "update_composition_component_item/2 with invalid data returns error changeset" do
+      composition_component_item = composition_component_item_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Grading.update_composition_component_item(
+                 composition_component_item,
+                 @invalid_attrs
+               )
+
+      assert composition_component_item ==
+               Grading.get_composition_component_item!(composition_component_item.id)
+    end
+
+    test "delete_composition_component_item/1 deletes the composition_component_item" do
+      composition_component_item = composition_component_item_fixture()
+
+      assert {:ok, %CompositionComponentItem{}} =
+               Grading.delete_composition_component_item(composition_component_item)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Grading.get_composition_component_item!(composition_component_item.id)
+      end
+    end
+
+    test "change_composition_component_item/1 returns a composition_component_item changeset" do
+      composition_component_item = composition_component_item_fixture()
+
+      assert %Ecto.Changeset{} =
+               Grading.change_composition_component_item(composition_component_item)
+    end
+  end
 end

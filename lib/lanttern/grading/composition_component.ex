@@ -7,6 +7,7 @@ defmodule Lanttern.Grading.CompositionComponent do
     field :weight, :float
 
     belongs_to :composition, Lanttern.Grading.Composition
+    has_many :items, Lanttern.Grading.CompositionComponentItem, foreign_key: :component_id
 
     timestamps()
   end
