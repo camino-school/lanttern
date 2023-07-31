@@ -1,0 +1,17 @@
+<.simple_form :let={f} for={@changeset} action={@action}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  <.input
+    field={f[:composition_id]}
+    type="select"
+    label="Composition"
+    options={@composition_options}
+    prompt="Select a composition"
+  />
+  <.input field={f[:name]} type="text" label="Name" />
+  <.input field={f[:weight]} type="number" label="Weight" step="any" />
+  <:actions>
+    <.button>Save Composition component</.button>
+  </:actions>
+</.simple_form>

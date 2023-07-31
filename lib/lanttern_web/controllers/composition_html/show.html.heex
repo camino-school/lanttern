@@ -1,0 +1,15 @@
+<.header>
+  Composition <%= @composition.id %>
+  <:subtitle>This is a composition record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/compositions/#{@composition}/edit"}>
+      <.button>Edit composition</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @composition.name %></:item>
+</.list>
+
+<.back navigate={~p"/compositions"}>Back to compositions</.back>
