@@ -7,6 +7,7 @@ defmodule Lanttern.Grading do
   alias Lanttern.Repo
 
   alias Lanttern.Grading.Composition
+  alias Lanttern.Grading.CompositionComponent
 
   @doc """
   Returns the list of compositions.
@@ -102,10 +103,9 @@ defmodule Lanttern.Grading do
     Composition.changeset(composition, attrs)
   end
 
-  alias Lanttern.Grading.CompositionComponent
-
   @doc """
   Returns the list of composition_components.
+  Optionally preloads associated data.
 
   ## Examples
 
@@ -113,12 +113,14 @@ defmodule Lanttern.Grading do
       [%CompositionComponent{}, ...]
 
   """
-  def list_composition_components do
+  def list_composition_components(preloads \\ []) do
     Repo.all(CompositionComponent)
+    |> Repo.preload(preloads)
   end
 
   @doc """
   Gets a single composition_component.
+  Optionally preloads associated data.
 
   Raises `Ecto.NoResultsError` if the Composition component does not exist.
 
@@ -131,7 +133,11 @@ defmodule Lanttern.Grading do
       ** (Ecto.NoResultsError)
 
   """
-  def get_composition_component!(id), do: Repo.get!(CompositionComponent, id)
+  def get_composition_component!(id, preloads \\ []) do
+    CompositionComponent
+    |> Repo.get!(id)
+    |> Repo.preload(preloads)
+  end
 
   @doc """
   Creates a composition_component.

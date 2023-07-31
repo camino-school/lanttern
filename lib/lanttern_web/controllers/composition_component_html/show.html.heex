@@ -11,6 +11,7 @@
 <.list>
   <:item title="Name"><%= @composition_component.name %></:item>
   <:item title="Weight"><%= @composition_component.weight %></:item>
+  <:item title="Parent composition"><%= @composition_component.composition.name %></:item>
 </.list>
 
 <.back navigate={~p"/grading/composition_components"}>Back to composition_components</.back>

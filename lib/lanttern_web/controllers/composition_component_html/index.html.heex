@@ -14,6 +14,9 @@
 >
   <:col :let={composition_component} label="Name"><%= composition_component.name %></:col>
   <:col :let={composition_component} label="Weight"><%= composition_component.weight %></:col>
+  <:col :let={composition_component} label="Parent composition">
+    <%= composition_component.composition.name %>
+  </:col>
   <:action :let={composition_component}>
     <div class="sr-only">
       <.link navigate={~p"/grading/composition_components/#{composition_component}"}>Show</.link>

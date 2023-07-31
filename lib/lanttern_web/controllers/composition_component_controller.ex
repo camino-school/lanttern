@@ -5,7 +5,7 @@ defmodule LantternWeb.CompositionComponentController do
   alias Lanttern.Grading.CompositionComponent
 
   def index(conn, _params) do
-    composition_components = Grading.list_composition_components()
+    composition_components = Grading.list_composition_components(:composition)
     render(conn, :index, composition_components: composition_components)
   end
 
@@ -29,7 +29,7 @@ defmodule LantternWeb.CompositionComponentController do
   end
 
   def show(conn, %{"id" => id}) do
-    composition_component = Grading.get_composition_component!(id)
+    composition_component = Grading.get_composition_component!(id, :composition)
     render(conn, :show, composition_component: composition_component)
   end
 
