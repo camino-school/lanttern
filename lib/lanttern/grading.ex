@@ -407,4 +407,100 @@ defmodule Lanttern.Grading do
   def change_numeric_scale(%NumericScale{} = numeric_scale, attrs \\ %{}) do
     NumericScale.changeset(numeric_scale, attrs)
   end
+
+  alias Lanttern.Grading.OrdinalScale
+
+  @doc """
+  Returns the list of ordinal_scales.
+
+  ## Examples
+
+      iex> list_ordinal_scales()
+      [%OrdinalScale{}, ...]
+
+  """
+  def list_ordinal_scales do
+    Repo.all(OrdinalScale)
+  end
+
+  @doc """
+  Gets a single ordinal_scale.
+
+  Raises `Ecto.NoResultsError` if the Ordinal scale does not exist.
+
+  ## Examples
+
+      iex> get_ordinal_scale!(123)
+      %OrdinalScale{}
+
+      iex> get_ordinal_scale!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_ordinal_scale!(id), do: Repo.get!(OrdinalScale, id)
+
+  @doc """
+  Creates a ordinal_scale.
+
+  ## Examples
+
+      iex> create_ordinal_scale(%{field: value})
+      {:ok, %OrdinalScale{}}
+
+      iex> create_ordinal_scale(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_ordinal_scale(attrs \\ %{}) do
+    %OrdinalScale{}
+    |> OrdinalScale.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a ordinal_scale.
+
+  ## Examples
+
+      iex> update_ordinal_scale(ordinal_scale, %{field: new_value})
+      {:ok, %OrdinalScale{}}
+
+      iex> update_ordinal_scale(ordinal_scale, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_ordinal_scale(%OrdinalScale{} = ordinal_scale, attrs) do
+    ordinal_scale
+    |> OrdinalScale.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a ordinal_scale.
+
+  ## Examples
+
+      iex> delete_ordinal_scale(ordinal_scale)
+      {:ok, %OrdinalScale{}}
+
+      iex> delete_ordinal_scale(ordinal_scale)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_ordinal_scale(%OrdinalScale{} = ordinal_scale) do
+    Repo.delete(ordinal_scale)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking ordinal_scale changes.
+
+  ## Examples
+
+      iex> change_ordinal_scale(ordinal_scale)
+      %Ecto.Changeset{data: %OrdinalScale{}}
+
+  """
+  def change_ordinal_scale(%OrdinalScale{} = ordinal_scale, attrs \\ %{}) do
+    OrdinalScale.changeset(ordinal_scale, attrs)
+  end
 end

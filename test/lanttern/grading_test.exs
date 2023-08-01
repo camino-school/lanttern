@@ -271,4 +271,58 @@ defmodule Lanttern.GradingTest do
       assert %Ecto.Changeset{} = Grading.change_numeric_scale(numeric_scale)
     end
   end
+
+  describe "ordinal_scales" do
+    alias Lanttern.Grading.OrdinalScale
+
+    import Lanttern.GradingFixtures
+
+    @invalid_attrs %{name: nil}
+
+    test "list_ordinal_scales/0 returns all ordinal_scales" do
+      ordinal_scale = ordinal_scale_fixture()
+      assert Grading.list_ordinal_scales() == [ordinal_scale]
+    end
+
+    test "get_ordinal_scale!/1 returns the ordinal_scale with given id" do
+      ordinal_scale = ordinal_scale_fixture()
+      assert Grading.get_ordinal_scale!(ordinal_scale.id) == ordinal_scale
+    end
+
+    test "create_ordinal_scale/1 with valid data creates a ordinal_scale" do
+      valid_attrs = %{name: "some name"}
+
+      assert {:ok, %OrdinalScale{} = ordinal_scale} = Grading.create_ordinal_scale(valid_attrs)
+      assert ordinal_scale.name == "some name"
+    end
+
+    test "create_ordinal_scale/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Grading.create_ordinal_scale(@invalid_attrs)
+    end
+
+    test "update_ordinal_scale/2 with valid data updates the ordinal_scale" do
+      ordinal_scale = ordinal_scale_fixture()
+      update_attrs = %{name: "some updated name"}
+
+      assert {:ok, %OrdinalScale{} = ordinal_scale} = Grading.update_ordinal_scale(ordinal_scale, update_attrs)
+      assert ordinal_scale.name == "some updated name"
+    end
+
+    test "update_ordinal_scale/2 with invalid data returns error changeset" do
+      ordinal_scale = ordinal_scale_fixture()
+      assert {:error, %Ecto.Changeset{}} = Grading.update_ordinal_scale(ordinal_scale, @invalid_attrs)
+      assert ordinal_scale == Grading.get_ordinal_scale!(ordinal_scale.id)
+    end
+
+    test "delete_ordinal_scale/1 deletes the ordinal_scale" do
+      ordinal_scale = ordinal_scale_fixture()
+      assert {:ok, %OrdinalScale{}} = Grading.delete_ordinal_scale(ordinal_scale)
+      assert_raise Ecto.NoResultsError, fn -> Grading.get_ordinal_scale!(ordinal_scale.id) end
+    end
+
+    test "change_ordinal_scale/1 returns a ordinal_scale changeset" do
+      ordinal_scale = ordinal_scale_fixture()
+      assert %Ecto.Changeset{} = Grading.change_ordinal_scale(ordinal_scale)
+    end
+  end
 end

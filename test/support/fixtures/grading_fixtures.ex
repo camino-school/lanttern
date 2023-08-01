@@ -72,4 +72,18 @@ defmodule Lanttern.GradingFixtures do
 
     numeric_scale
   end
+
+  @doc """
+  Generate a ordinal_scale.
+  """
+  def ordinal_scale_fixture(attrs \\ %{}) do
+    {:ok, ordinal_scale} =
+      attrs
+      |> Enum.into(%{
+        name: "some name"
+      })
+      |> Lanttern.Grading.create_ordinal_scale()
+
+    ordinal_scale
+  end
 end
