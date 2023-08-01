@@ -8,6 +8,8 @@ defmodule Lanttern.Grading.Scale do
     field :stop, :float
     field :type, :string
 
+    has_many :ordinal_values, Lanttern.Grading.OrdinalValue
+
     timestamps()
   end
 
@@ -16,7 +18,20 @@ defmodule Lanttern.Grading.Scale do
     scale
     |> cast(attrs, [:name, :type, :start, :stop])
     |> validate_required([:name, :type])
+    |> validate_scale_type()
     |> validate_start_stop()
+  end
+
+  @valid_types ["numeric", "ordinal"]
+  defp validate_scale_type(changeset) do
+    changeset
+    |> validate_change(:type, fn :type, type ->
+      if type in @valid_types do
+        []
+      else
+        [type: ~s(must be "numeric" or "ordinal")]
+      end
+    end)
   end
 
   defp validate_start_stop(%{changes: %{type: "numeric"}} = changeset) do

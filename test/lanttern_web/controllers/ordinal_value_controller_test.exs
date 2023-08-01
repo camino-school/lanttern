@@ -23,7 +23,7 @@ defmodule LantternWeb.OrdinalValueControllerTest do
 
   describe "create ordinal_value" do
     test "redirects to show when data is valid", %{conn: conn} do
-      scale = ordinal_scale_fixture()
+      scale = scale_fixture()
       create_attrs = @create_attrs |> Map.put_new(:scale_id, scale.id)
       conn = post(conn, ~p"/grading/ordinal_values", ordinal_value: create_attrs)
 

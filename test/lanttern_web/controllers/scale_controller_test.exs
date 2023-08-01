@@ -3,8 +3,8 @@ defmodule LantternWeb.ScaleControllerTest do
 
   import Lanttern.GradingFixtures
 
-  @create_attrs %{name: "some name", start: 120.5, stop: 120.5, type: "some type"}
-  @update_attrs %{name: "some updated name", start: 456.7, stop: 456.7, type: "some updated type"}
+  @create_attrs %{name: "some name", start: 120.5, stop: 120.5, type: "numeric"}
+  @update_attrs %{name: "some updated name", start: 456.7, stop: 456.7, type: "numeric"}
   @invalid_attrs %{name: nil, start: nil, stop: nil, type: nil}
 
   describe "index" do

@@ -58,40 +58,27 @@ defmodule Lanttern.GradingFixtures do
   end
 
   @doc """
-  Generate a numeric_scale.
+  Generate a scale.
   """
-  def numeric_scale_fixture(attrs \\ %{}) do
-    {:ok, numeric_scale} =
+  def scale_fixture(attrs \\ %{}) do
+    {:ok, scale} =
       attrs
       |> Enum.into(%{
         name: "some name",
         start: 120.5,
-        stop: 120.5
+        stop: 120.5,
+        type: "numeric"
       })
-      |> Lanttern.Grading.create_numeric_scale()
+      |> Lanttern.Grading.create_scale()
 
-    numeric_scale
-  end
-
-  @doc """
-  Generate a ordinal_scale.
-  """
-  def ordinal_scale_fixture(attrs \\ %{}) do
-    {:ok, ordinal_scale} =
-      attrs
-      |> Enum.into(%{
-        name: "some name"
-      })
-      |> Lanttern.Grading.create_ordinal_scale()
-
-    ordinal_scale
+    scale
   end
 
   @doc """
   Generate a ordinal_value.
   """
   def ordinal_value_fixture(attrs \\ %{}) do
-    scale = ordinal_scale_fixture()
+    scale = scale_fixture()
 
     {:ok, ordinal_value} =
       attrs
@@ -103,22 +90,5 @@ defmodule Lanttern.GradingFixtures do
       |> Lanttern.Grading.create_ordinal_value()
 
     ordinal_value
-  end
-
-  @doc """
-  Generate a scale.
-  """
-  def scale_fixture(attrs \\ %{}) do
-    {:ok, scale} =
-      attrs
-      |> Enum.into(%{
-        name: "some name",
-        start: 120.5,
-        stop: 120.5,
-        type: "some type"
-      })
-      |> Lanttern.Grading.create_scale()
-
-    scale
   end
 end

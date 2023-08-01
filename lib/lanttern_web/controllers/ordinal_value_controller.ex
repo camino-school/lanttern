@@ -75,7 +75,7 @@ defmodule LantternWeb.OrdinalValueController do
   end
 
   defp generate_scale_options() do
-    Grading.list_ordinal_scales()
+    Grading.list_scales(type: "ordinal")
     |> Enum.map(fn s -> ["#{s.name}": s.id] end)
     |> Enum.concat()
   end

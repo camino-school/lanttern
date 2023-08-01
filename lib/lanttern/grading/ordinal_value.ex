@@ -6,7 +6,7 @@ defmodule Lanttern.Grading.OrdinalValue do
     field :name, :string
     field :order, :integer
 
-    belongs_to :scale, Lanttern.Grading.OrdinalScale
+    belongs_to :scale, Lanttern.Grading.Scale
 
     timestamps()
   end

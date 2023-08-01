@@ -214,125 +214,75 @@ defmodule Lanttern.GradingTest do
     end
   end
 
-  describe "numeric_scales" do
-    alias Lanttern.Grading.NumericScale
+  describe "scales" do
+    alias Lanttern.Grading.Scale
 
     import Lanttern.GradingFixtures
 
-    @invalid_attrs %{name: nil, start: nil, stop: nil}
+    @invalid_attrs %{name: nil, start: nil, stop: nil, type: nil}
 
-    test "list_numeric_scales/0 returns all numeric_scales" do
-      numeric_scale = numeric_scale_fixture()
-      assert Grading.list_numeric_scales() == [numeric_scale]
+    @invalid_numeric_attrs %{name: "0 to 10", start: nil, stop: nil, type: "numeric"}
+
+    test "list_scales/0 returns all scales" do
+      scale = scale_fixture()
+      assert Grading.list_scales() == [scale]
     end
 
-    test "get_numeric_scale!/1 returns the numeric_scale with given id" do
-      numeric_scale = numeric_scale_fixture()
-      assert Grading.get_numeric_scale!(numeric_scale.id) == numeric_scale
+    test "get_scale!/1 returns the scale with given id" do
+      scale = scale_fixture()
+      assert Grading.get_scale!(scale.id) == scale
     end
 
-    test "create_numeric_scale/1 with valid data creates a numeric_scale" do
-      valid_attrs = %{name: "some name", start: 120.5, stop: 120.5}
+    test "create_scale/1 with valid data creates a scale" do
+      valid_attrs = %{name: "some name", start: 120.5, stop: 120.5, type: "numeric"}
 
-      assert {:ok, %NumericScale{} = numeric_scale} = Grading.create_numeric_scale(valid_attrs)
-      assert numeric_scale.name == "some name"
-      assert numeric_scale.start == 120.5
-      assert numeric_scale.stop == 120.5
+      assert {:ok, %Scale{} = scale} = Grading.create_scale(valid_attrs)
+      assert scale.name == "some name"
+      assert scale.start == 120.5
+      assert scale.stop == 120.5
+      assert scale.type == "numeric"
     end
 
-    test "create_numeric_scale/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Grading.create_numeric_scale(@invalid_attrs)
+    test "create_scale/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Grading.create_scale(@invalid_attrs)
     end
 
-    test "update_numeric_scale/2 with valid data updates the numeric_scale" do
-      numeric_scale = numeric_scale_fixture()
-      update_attrs = %{name: "some updated name", start: 456.7, stop: 456.7}
-
-      assert {:ok, %NumericScale{} = numeric_scale} =
-               Grading.update_numeric_scale(numeric_scale, update_attrs)
-
-      assert numeric_scale.name == "some updated name"
-      assert numeric_scale.start == 456.7
-      assert numeric_scale.stop == 456.7
+    test "create_scale/1 of type numeric without start and stop returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Grading.create_scale(@invalid_numeric_attrs)
     end
 
-    test "update_numeric_scale/2 with invalid data returns error changeset" do
-      numeric_scale = numeric_scale_fixture()
+    test "update_scale/2 with valid data updates the scale" do
+      scale = scale_fixture()
 
-      assert {:error, %Ecto.Changeset{}} =
-               Grading.update_numeric_scale(numeric_scale, @invalid_attrs)
+      update_attrs = %{
+        name: "some updated name",
+        start: 456.7,
+        stop: 456.7,
+        type: "numeric"
+      }
 
-      assert numeric_scale == Grading.get_numeric_scale!(numeric_scale.id)
+      assert {:ok, %Scale{} = scale} = Grading.update_scale(scale, update_attrs)
+      assert scale.name == "some updated name"
+      assert scale.start == 456.7
+      assert scale.stop == 456.7
+      assert scale.type == "numeric"
     end
 
-    test "delete_numeric_scale/1 deletes the numeric_scale" do
-      numeric_scale = numeric_scale_fixture()
-      assert {:ok, %NumericScale{}} = Grading.delete_numeric_scale(numeric_scale)
-      assert_raise Ecto.NoResultsError, fn -> Grading.get_numeric_scale!(numeric_scale.id) end
+    test "update_scale/2 with invalid data returns error changeset" do
+      scale = scale_fixture()
+      assert {:error, %Ecto.Changeset{}} = Grading.update_scale(scale, @invalid_attrs)
+      assert scale == Grading.get_scale!(scale.id)
     end
 
-    test "change_numeric_scale/1 returns a numeric_scale changeset" do
-      numeric_scale = numeric_scale_fixture()
-      assert %Ecto.Changeset{} = Grading.change_numeric_scale(numeric_scale)
-    end
-  end
-
-  describe "ordinal_scales" do
-    alias Lanttern.Grading.OrdinalScale
-
-    import Lanttern.GradingFixtures
-
-    @invalid_attrs %{name: nil}
-
-    test "list_ordinal_scales/0 returns all ordinal_scales" do
-      ordinal_scale = ordinal_scale_fixture()
-      assert Grading.list_ordinal_scales() == [ordinal_scale]
+    test "delete_scale/1 deletes the scale" do
+      scale = scale_fixture()
+      assert {:ok, %Scale{}} = Grading.delete_scale(scale)
+      assert_raise Ecto.NoResultsError, fn -> Grading.get_scale!(scale.id) end
     end
 
-    test "get_ordinal_scale!/1 returns the ordinal_scale with given id" do
-      ordinal_scale = ordinal_scale_fixture()
-      assert Grading.get_ordinal_scale!(ordinal_scale.id) == ordinal_scale
-    end
-
-    test "create_ordinal_scale/1 with valid data creates a ordinal_scale" do
-      valid_attrs = %{name: "some name"}
-
-      assert {:ok, %OrdinalScale{} = ordinal_scale} = Grading.create_ordinal_scale(valid_attrs)
-      assert ordinal_scale.name == "some name"
-    end
-
-    test "create_ordinal_scale/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Grading.create_ordinal_scale(@invalid_attrs)
-    end
-
-    test "update_ordinal_scale/2 with valid data updates the ordinal_scale" do
-      ordinal_scale = ordinal_scale_fixture()
-      update_attrs = %{name: "some updated name"}
-
-      assert {:ok, %OrdinalScale{} = ordinal_scale} =
-               Grading.update_ordinal_scale(ordinal_scale, update_attrs)
-
-      assert ordinal_scale.name == "some updated name"
-    end
-
-    test "update_ordinal_scale/2 with invalid data returns error changeset" do
-      ordinal_scale = ordinal_scale_fixture()
-
-      assert {:error, %Ecto.Changeset{}} =
-               Grading.update_ordinal_scale(ordinal_scale, @invalid_attrs)
-
-      assert ordinal_scale == Grading.get_ordinal_scale!(ordinal_scale.id)
-    end
-
-    test "delete_ordinal_scale/1 deletes the ordinal_scale" do
-      ordinal_scale = ordinal_scale_fixture()
-      assert {:ok, %OrdinalScale{}} = Grading.delete_ordinal_scale(ordinal_scale)
-      assert_raise Ecto.NoResultsError, fn -> Grading.get_ordinal_scale!(ordinal_scale.id) end
-    end
-
-    test "change_ordinal_scale/1 returns a ordinal_scale changeset" do
-      ordinal_scale = ordinal_scale_fixture()
-      assert %Ecto.Changeset{} = Grading.change_ordinal_scale(ordinal_scale)
+    test "change_scale/1 returns a scale changeset" do
+      scale = scale_fixture()
+      assert %Ecto.Changeset{} = Grading.change_scale(scale)
     end
   end
 
@@ -354,7 +304,7 @@ defmodule Lanttern.GradingTest do
     end
 
     test "create_ordinal_value/1 with valid data creates a ordinal_value" do
-      scale = ordinal_scale_fixture()
+      scale = scale_fixture()
       valid_attrs = %{name: "some name", order: 42, scale_id: scale.id}
 
       assert {:ok, %OrdinalValue{} = ordinal_value} = Grading.create_ordinal_value(valid_attrs)
@@ -396,78 +346,6 @@ defmodule Lanttern.GradingTest do
     test "change_ordinal_value/1 returns a ordinal_value changeset" do
       ordinal_value = ordinal_value_fixture()
       assert %Ecto.Changeset{} = Grading.change_ordinal_value(ordinal_value)
-    end
-  end
-
-  describe "scales" do
-    alias Lanttern.Grading.Scale
-
-    import Lanttern.GradingFixtures
-
-    @invalid_attrs %{name: nil, start: nil, stop: nil, type: nil}
-
-    @invalid_numeric_attrs %{name: "0 to 10", start: nil, stop: nil, type: "numeric"}
-
-    test "list_scales/0 returns all scales" do
-      scale = scale_fixture()
-      assert Grading.list_scales() == [scale]
-    end
-
-    test "get_scale!/1 returns the scale with given id" do
-      scale = scale_fixture()
-      assert Grading.get_scale!(scale.id) == scale
-    end
-
-    test "create_scale/1 with valid data creates a scale" do
-      valid_attrs = %{name: "some name", start: 120.5, stop: 120.5, type: "some type"}
-
-      assert {:ok, %Scale{} = scale} = Grading.create_scale(valid_attrs)
-      assert scale.name == "some name"
-      assert scale.start == 120.5
-      assert scale.stop == 120.5
-      assert scale.type == "some type"
-    end
-
-    test "create_scale/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Grading.create_scale(@invalid_attrs)
-    end
-
-    test "create_scale/1 of type numeric without start and stop returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Grading.create_scale(@invalid_numeric_attrs)
-    end
-
-    test "update_scale/2 with valid data updates the scale" do
-      scale = scale_fixture()
-
-      update_attrs = %{
-        name: "some updated name",
-        start: 456.7,
-        stop: 456.7,
-        type: "some updated type"
-      }
-
-      assert {:ok, %Scale{} = scale} = Grading.update_scale(scale, update_attrs)
-      assert scale.name == "some updated name"
-      assert scale.start == 456.7
-      assert scale.stop == 456.7
-      assert scale.type == "some updated type"
-    end
-
-    test "update_scale/2 with invalid data returns error changeset" do
-      scale = scale_fixture()
-      assert {:error, %Ecto.Changeset{}} = Grading.update_scale(scale, @invalid_attrs)
-      assert scale == Grading.get_scale!(scale.id)
-    end
-
-    test "delete_scale/1 deletes the scale" do
-      scale = scale_fixture()
-      assert {:ok, %Scale{}} = Grading.delete_scale(scale)
-      assert_raise Ecto.NoResultsError, fn -> Grading.get_scale!(scale.id) end
-    end
-
-    test "change_scale/1 returns a scale changeset" do
-      scale = scale_fixture()
-      assert %Ecto.Changeset{} = Grading.change_scale(scale)
     end
   end
 end

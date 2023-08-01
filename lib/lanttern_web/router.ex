@@ -27,8 +27,6 @@ defmodule LantternWeb.Router do
       resources "/compositions", CompositionController
       resources "/composition_components", CompositionComponentController
       resources "/component_items", CompositionComponentItemController
-      resources "/numeric_scales", NumericScaleController
-      resources "/ordinal_scales", OrdinalScaleController
       resources "/ordinal_values", OrdinalValueController
       resources "/scales", ScaleController
     end
