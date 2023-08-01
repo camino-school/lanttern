@@ -1,0 +1,12 @@
+<.header>
+  New Ordinal value
+  <:subtitle>Use this form to manage ordinal_value records in your database.</:subtitle>
+</.header>
+
+<.ordinal_value_form
+  scale_options={@scale_options}
+  changeset={@changeset}
+  action={~p"/grading/ordinal_values"}
+/>
+
+<.back navigate={~p"/grading/ordinal_values"}>Back to ordinal_values</.back>

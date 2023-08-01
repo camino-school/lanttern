@@ -503,4 +503,106 @@ defmodule Lanttern.Grading do
   def change_ordinal_scale(%OrdinalScale{} = ordinal_scale, attrs \\ %{}) do
     OrdinalScale.changeset(ordinal_scale, attrs)
   end
+
+  alias Lanttern.Grading.OrdinalValue
+
+  @doc """
+  Returns the list of ordinal_values.
+  Optionally preloads associated data.
+
+  ## Examples
+
+      iex> list_ordinal_values()
+      [%OrdinalValue{}, ...]
+
+  """
+  def list_ordinal_values(preloads \\ []) do
+    Repo.all(OrdinalValue)
+    |> Repo.preload(preloads)
+  end
+
+  @doc """
+  Gets a single ordinal_value.
+  Optionally preloads associated data.
+
+  Raises `Ecto.NoResultsError` if the Ordinal value does not exist.
+
+  ## Examples
+
+      iex> get_ordinal_value!(123)
+      %OrdinalValue{}
+
+      iex> get_ordinal_value!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_ordinal_value!(id, preloads \\ []) do
+    Repo.get!(OrdinalValue, id)
+    |> Repo.preload(preloads)
+  end
+
+  @doc """
+  Creates a ordinal_value.
+
+  ## Examples
+
+      iex> create_ordinal_value(%{field: value})
+      {:ok, %OrdinalValue{}}
+
+      iex> create_ordinal_value(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_ordinal_value(attrs \\ %{}) do
+    %OrdinalValue{}
+    |> OrdinalValue.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a ordinal_value.
+
+  ## Examples
+
+      iex> update_ordinal_value(ordinal_value, %{field: new_value})
+      {:ok, %OrdinalValue{}}
+
+      iex> update_ordinal_value(ordinal_value, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_ordinal_value(%OrdinalValue{} = ordinal_value, attrs) do
+    ordinal_value
+    |> OrdinalValue.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a ordinal_value.
+
+  ## Examples
+
+      iex> delete_ordinal_value(ordinal_value)
+      {:ok, %OrdinalValue{}}
+
+      iex> delete_ordinal_value(ordinal_value)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_ordinal_value(%OrdinalValue{} = ordinal_value) do
+    Repo.delete(ordinal_value)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking ordinal_value changes.
+
+  ## Examples
+
+      iex> change_ordinal_value(ordinal_value)
+      %Ecto.Changeset{data: %OrdinalValue{}}
+
+  """
+  def change_ordinal_value(%OrdinalValue{} = ordinal_value, attrs \\ %{}) do
+    OrdinalValue.changeset(ordinal_value, attrs)
+  end
 end

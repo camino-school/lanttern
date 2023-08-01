@@ -5,6 +5,8 @@ defmodule Lanttern.Grading.OrdinalScale do
   schema "ordinal_scales" do
     field :name, :string
 
+    has_many :values, Lanttern.Grading.OrdinalValue, foreign_key: :scale_id
+
     timestamps()
   end
 
