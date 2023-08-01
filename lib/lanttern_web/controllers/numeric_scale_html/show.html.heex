@@ -1,0 +1,17 @@
+<.header>
+  Numeric scale <%= @numeric_scale.id %>
+  <:subtitle>This is a numeric_scale record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/grading/numeric_scales/#{@numeric_scale}/edit"}>
+      <.button>Edit numeric_scale</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @numeric_scale.name %></:item>
+  <:item title="Start"><%= @numeric_scale.start %></:item>
+  <:item title="Stop"><%= @numeric_scale.stop %></:item>
+</.list>
+
+<.back navigate={~p"/grading/numeric_scales"}>Back to numeric_scales</.back>

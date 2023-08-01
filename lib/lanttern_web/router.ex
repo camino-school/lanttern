@@ -27,6 +27,7 @@ defmodule LantternWeb.Router do
       resources "/compositions", CompositionController
       resources "/composition_components", CompositionComponentController
       resources "/component_items", CompositionComponentItemController
+      resources "/numeric_scales", NumericScaleController
     end
 
     scope "/schools" do

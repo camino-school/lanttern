@@ -311,4 +311,100 @@ defmodule Lanttern.Grading do
       ) do
     CompositionComponentItem.changeset(composition_component_item, attrs)
   end
+
+  alias Lanttern.Grading.NumericScale
+
+  @doc """
+  Returns the list of numeric_scales.
+
+  ## Examples
+
+      iex> list_numeric_scales()
+      [%NumericScale{}, ...]
+
+  """
+  def list_numeric_scales do
+    Repo.all(NumericScale)
+  end
+
+  @doc """
+  Gets a single numeric_scale.
+
+  Raises `Ecto.NoResultsError` if the Numeric scale does not exist.
+
+  ## Examples
+
+      iex> get_numeric_scale!(123)
+      %NumericScale{}
+
+      iex> get_numeric_scale!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_numeric_scale!(id), do: Repo.get!(NumericScale, id)
+
+  @doc """
+  Creates a numeric_scale.
+
+  ## Examples
+
+      iex> create_numeric_scale(%{field: value})
+      {:ok, %NumericScale{}}
+
+      iex> create_numeric_scale(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_numeric_scale(attrs \\ %{}) do
+    %NumericScale{}
+    |> NumericScale.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a numeric_scale.
+
+  ## Examples
+
+      iex> update_numeric_scale(numeric_scale, %{field: new_value})
+      {:ok, %NumericScale{}}
+
+      iex> update_numeric_scale(numeric_scale, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_numeric_scale(%NumericScale{} = numeric_scale, attrs) do
+    numeric_scale
+    |> NumericScale.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a numeric_scale.
+
+  ## Examples
+
+      iex> delete_numeric_scale(numeric_scale)
+      {:ok, %NumericScale{}}
+
+      iex> delete_numeric_scale(numeric_scale)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_numeric_scale(%NumericScale{} = numeric_scale) do
+    Repo.delete(numeric_scale)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking numeric_scale changes.
+
+  ## Examples
+
+      iex> change_numeric_scale(numeric_scale)
+      %Ecto.Changeset{data: %NumericScale{}}
+
+  """
+  def change_numeric_scale(%NumericScale{} = numeric_scale, attrs \\ %{}) do
+    NumericScale.changeset(numeric_scale, attrs)
+  end
 end

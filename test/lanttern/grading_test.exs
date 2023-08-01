@@ -213,4 +213,62 @@ defmodule Lanttern.GradingTest do
                Grading.change_composition_component_item(composition_component_item)
     end
   end
+
+  describe "numeric_scales" do
+    alias Lanttern.Grading.NumericScale
+
+    import Lanttern.GradingFixtures
+
+    @invalid_attrs %{name: nil, start: nil, stop: nil}
+
+    test "list_numeric_scales/0 returns all numeric_scales" do
+      numeric_scale = numeric_scale_fixture()
+      assert Grading.list_numeric_scales() == [numeric_scale]
+    end
+
+    test "get_numeric_scale!/1 returns the numeric_scale with given id" do
+      numeric_scale = numeric_scale_fixture()
+      assert Grading.get_numeric_scale!(numeric_scale.id) == numeric_scale
+    end
+
+    test "create_numeric_scale/1 with valid data creates a numeric_scale" do
+      valid_attrs = %{name: "some name", start: 120.5, stop: 120.5}
+
+      assert {:ok, %NumericScale{} = numeric_scale} = Grading.create_numeric_scale(valid_attrs)
+      assert numeric_scale.name == "some name"
+      assert numeric_scale.start == 120.5
+      assert numeric_scale.stop == 120.5
+    end
+
+    test "create_numeric_scale/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Grading.create_numeric_scale(@invalid_attrs)
+    end
+
+    test "update_numeric_scale/2 with valid data updates the numeric_scale" do
+      numeric_scale = numeric_scale_fixture()
+      update_attrs = %{name: "some updated name", start: 456.7, stop: 456.7}
+
+      assert {:ok, %NumericScale{} = numeric_scale} = Grading.update_numeric_scale(numeric_scale, update_attrs)
+      assert numeric_scale.name == "some updated name"
+      assert numeric_scale.start == 456.7
+      assert numeric_scale.stop == 456.7
+    end
+
+    test "update_numeric_scale/2 with invalid data returns error changeset" do
+      numeric_scale = numeric_scale_fixture()
+      assert {:error, %Ecto.Changeset{}} = Grading.update_numeric_scale(numeric_scale, @invalid_attrs)
+      assert numeric_scale == Grading.get_numeric_scale!(numeric_scale.id)
+    end
+
+    test "delete_numeric_scale/1 deletes the numeric_scale" do
+      numeric_scale = numeric_scale_fixture()
+      assert {:ok, %NumericScale{}} = Grading.delete_numeric_scale(numeric_scale)
+      assert_raise Ecto.NoResultsError, fn -> Grading.get_numeric_scale!(numeric_scale.id) end
+    end
+
+    test "change_numeric_scale/1 returns a numeric_scale changeset" do
+      numeric_scale = numeric_scale_fixture()
+      assert %Ecto.Changeset{} = Grading.change_numeric_scale(numeric_scale)
+    end
+  end
 end

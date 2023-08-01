@@ -56,4 +56,20 @@ defmodule Lanttern.GradingFixtures do
 
     composition_component_item
   end
+
+  @doc """
+  Generate a numeric_scale.
+  """
+  def numeric_scale_fixture(attrs \\ %{}) do
+    {:ok, numeric_scale} =
+      attrs
+      |> Enum.into(%{
+        name: "some name",
+        start: 120.5,
+        stop: 120.5
+      })
+      |> Lanttern.Grading.create_numeric_scale()
+
+    numeric_scale
+  end
 end
