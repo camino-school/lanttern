@@ -1,0 +1,18 @@
+<.header>
+  Scale <%= @scale.id %>
+  <:subtitle>This is a scale record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/grading/scales/#{@scale}/edit"}>
+      <.button>Edit scale</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @scale.name %></:item>
+  <:item title="Type"><%= @scale.type %></:item>
+  <:item title="Start"><%= @scale.start %></:item>
+  <:item title="Stop"><%= @scale.stop %></:item>
+</.list>
+
+<.back navigate={~p"/grading/scales"}>Back to scales</.back>

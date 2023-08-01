@@ -30,6 +30,7 @@ defmodule LantternWeb.Router do
       resources "/numeric_scales", NumericScaleController
       resources "/ordinal_scales", OrdinalScaleController
       resources "/ordinal_values", OrdinalValueController
+      resources "/scales", ScaleController
     end
 
     scope "/schools" do
