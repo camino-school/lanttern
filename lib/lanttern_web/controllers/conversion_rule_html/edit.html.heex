@@ -1,0 +1,12 @@
+<.header>
+  Edit Conversion rule <%= @conversion_rule.id %>
+  <:subtitle>Use this form to manage conversion_rule records in your database.</:subtitle>
+</.header>
+
+<.conversion_rule_form
+  scale_options={@scale_options}
+  changeset={@changeset}
+  action={~p"/grading/conversion_rules/#{@conversion_rule}"}
+/>
+
+<.back navigate={~p"/grading/conversion_rules"}>Back to conversion_rules</.back>

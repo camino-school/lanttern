@@ -514,4 +514,106 @@ defmodule Lanttern.Grading do
   def change_scale(%Scale{} = scale, attrs \\ %{}) do
     Scale.changeset(scale, attrs)
   end
+
+  alias Lanttern.Grading.ConversionRule
+
+  @doc """
+  Returns the list of conversion_rules.
+  Optionally preloads associated data.
+
+  ## Examples
+
+      iex> list_conversion_rules()
+      [%ConversionRule{}, ...]
+
+  """
+  def list_conversion_rules(preloads \\ []) do
+    Repo.all(ConversionRule)
+    |> Repo.preload(preloads)
+  end
+
+  @doc """
+  Gets a single conversion_rule.
+  Optionally preloads associated data.
+
+  Raises `Ecto.NoResultsError` if the Conversion rule does not exist.
+
+  ## Examples
+
+      iex> get_conversion_rule!(123)
+      %ConversionRule{}
+
+      iex> get_conversion_rule!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_conversion_rule!(id, preloads \\ []) do
+    Repo.get!(ConversionRule, id)
+    |> Repo.preload(preloads)
+  end
+
+  @doc """
+  Creates a conversion_rule.
+
+  ## Examples
+
+      iex> create_conversion_rule(%{field: value})
+      {:ok, %ConversionRule{}}
+
+      iex> create_conversion_rule(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_conversion_rule(attrs \\ %{}) do
+    %ConversionRule{}
+    |> ConversionRule.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a conversion_rule.
+
+  ## Examples
+
+      iex> update_conversion_rule(conversion_rule, %{field: new_value})
+      {:ok, %ConversionRule{}}
+
+      iex> update_conversion_rule(conversion_rule, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_conversion_rule(%ConversionRule{} = conversion_rule, attrs) do
+    conversion_rule
+    |> ConversionRule.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a conversion_rule.
+
+  ## Examples
+
+      iex> delete_conversion_rule(conversion_rule)
+      {:ok, %ConversionRule{}}
+
+      iex> delete_conversion_rule(conversion_rule)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_conversion_rule(%ConversionRule{} = conversion_rule) do
+    Repo.delete(conversion_rule)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking conversion_rule changes.
+
+  ## Examples
+
+      iex> change_conversion_rule(conversion_rule)
+      %Ecto.Changeset{data: %ConversionRule{}}
+
+  """
+  def change_conversion_rule(%ConversionRule{} = conversion_rule, attrs \\ %{}) do
+    ConversionRule.changeset(conversion_rule, attrs)
+  end
 end

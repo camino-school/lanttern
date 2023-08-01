@@ -1,0 +1,18 @@
+<.header>
+  Conversion rule <%= @conversion_rule.id %>
+  <:subtitle>This is a conversion_rule record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/grading/conversion_rules/#{@conversion_rule}/edit"}>
+      <.button>Edit conversion_rule</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @conversion_rule.name %></:item>
+  <:item title="From"><%= @conversion_rule.from_scale.name %></:item>
+  <:item title="To"><%= @conversion_rule.to_scale.name %></:item>
+  <:item title="Conversions"><%= inspect(@conversion_rule.conversions) %></:item>
+</.list>
+
+<.back navigate={~p"/grading/conversion_rules"}>Back to conversion_rules</.back>

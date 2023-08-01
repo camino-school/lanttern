@@ -348,4 +348,106 @@ defmodule Lanttern.GradingTest do
       assert %Ecto.Changeset{} = Grading.change_ordinal_value(ordinal_value)
     end
   end
+
+  describe "conversion_rules" do
+    alias Lanttern.Grading.ConversionRule
+
+    import Lanttern.GradingFixtures
+
+    @invalid_attrs %{name: nil, conversions: nil}
+
+    test "list_conversion_rules/0 returns all conversion_rules" do
+      conversion_rule = conversion_rule_fixture()
+      assert Grading.list_conversion_rules() == [conversion_rule]
+    end
+
+    test "get_conversion_rule!/1 returns the conversion_rule with given id" do
+      conversion_rule = conversion_rule_fixture()
+      assert Grading.get_conversion_rule!(conversion_rule.id) == conversion_rule
+    end
+
+    test "create_conversion_rule/1 with valid data creates a conversion_rule" do
+      from_scale = scale_fixture()
+      to_scale = scale_fixture()
+
+      valid_attrs = %{
+        name: "some name",
+        conversions: %{},
+        from_scale_id: from_scale.id,
+        to_scale_id: to_scale.id
+      }
+
+      assert {:ok, %ConversionRule{} = conversion_rule} =
+               Grading.create_conversion_rule(valid_attrs)
+
+      assert conversion_rule.name == "some name"
+      assert conversion_rule.conversions == %{}
+    end
+
+    test "create_conversion_rule/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Grading.create_conversion_rule(@invalid_attrs)
+    end
+
+    test "create_conversion_rule/1 with same from and to scales returns error changeset" do
+      scale = scale_fixture()
+
+      invalid_attrs = %{
+        name: "some name",
+        conversions: %{},
+        from_scale_id: scale.id,
+        to_scale_id: scale.id
+      }
+
+      assert {:error, %Ecto.Changeset{}} = Grading.create_conversion_rule(invalid_attrs)
+    end
+
+    test "create_conversion_rule/1 with existing from and to scales returns error changeset" do
+      from_scale = scale_fixture()
+      to_scale = scale_fixture()
+
+      attrs = %{
+        name: "some name",
+        conversions: %{},
+        from_scale_id: from_scale.id,
+        to_scale_id: to_scale.id
+      }
+
+      # first create should succeed
+      assert {:ok, %ConversionRule{}} = Grading.create_conversion_rule(attrs)
+
+      # creating with same from and to scales should fail
+      assert {:error, %Ecto.Changeset{}} = Grading.create_conversion_rule(attrs)
+    end
+
+    test "update_conversion_rule/2 with valid data updates the conversion_rule" do
+      conversion_rule = conversion_rule_fixture()
+      update_attrs = %{name: "some updated name", conversions: %{}}
+
+      assert {:ok, %ConversionRule{} = conversion_rule} =
+               Grading.update_conversion_rule(conversion_rule, update_attrs)
+
+      assert conversion_rule.name == "some updated name"
+      assert conversion_rule.conversions == %{}
+    end
+
+    test "update_conversion_rule/2 with invalid data returns error changeset" do
+      conversion_rule = conversion_rule_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Grading.update_conversion_rule(conversion_rule, @invalid_attrs)
+
+      assert conversion_rule == Grading.get_conversion_rule!(conversion_rule.id)
+    end
+
+    test "delete_conversion_rule/1 deletes the conversion_rule" do
+      conversion_rule = conversion_rule_fixture()
+      assert {:ok, %ConversionRule{}} = Grading.delete_conversion_rule(conversion_rule)
+      assert_raise Ecto.NoResultsError, fn -> Grading.get_conversion_rule!(conversion_rule.id) end
+    end
+
+    test "change_conversion_rule/1 returns a conversion_rule changeset" do
+      conversion_rule = conversion_rule_fixture()
+      assert %Ecto.Changeset{} = Grading.change_conversion_rule(conversion_rule)
+    end
+  end
 end
