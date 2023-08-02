@@ -10,14 +10,34 @@ defmodule Lanttern.GradingTest do
 
     @invalid_attrs %{name: nil}
 
-    test "list_compositions/0 returns all compositions" do
+    test "list_compositions/1 returns all compositions" do
       composition = composition_fixture()
       assert Grading.list_compositions() == [composition]
     end
 
-    test "get_composition!/1 returns the composition with given id" do
+    test "list_compositions/1 with prealoads returns all compositions with preloaded data" do
+      scale = scale_fixture()
+
+      composition =
+        composition_fixture(%{final_grade_scale_id: scale.id})
+        |> Map.put(:final_grade_scale, scale)
+
+      assert Grading.list_compositions(:final_grade_scale) == [composition]
+    end
+
+    test "get_composition!/2 returns the composition with given id" do
       composition = composition_fixture()
       assert Grading.get_composition!(composition.id) == composition
+    end
+
+    test "get_composition!/2 with preloads returns the composition with given id and preloaded data" do
+      scale = scale_fixture()
+
+      composition =
+        composition_fixture(%{final_grade_scale_id: scale.id})
+        |> Map.put(:final_grade_scale, scale)
+
+      assert Grading.get_composition!(composition.id, :final_grade_scale) == composition
     end
 
     test "create_composition/1 with valid data creates a composition" do
@@ -68,14 +88,35 @@ defmodule Lanttern.GradingTest do
 
     @invalid_attrs %{name: nil, weight: nil}
 
-    test "list_composition_components/0 returns all composition_components" do
+    test "list_composition_components/1 returns all composition_components" do
       composition_component = composition_component_fixture()
       assert Grading.list_composition_components() == [composition_component]
     end
 
-    test "get_composition_component!/1 returns the composition_component with given id" do
+    test "list_composition_components/1 with preloads returns all composition_components with preloaded data" do
+      composition = composition_fixture()
+
+      composition_component =
+        composition_component_fixture(%{composition_id: composition.id})
+        |> Map.put(:composition, composition)
+
+      assert Grading.list_composition_components(:composition) == [composition_component]
+    end
+
+    test "get_composition_component!/2 returns the composition_component with given id" do
       composition_component = composition_component_fixture()
       assert Grading.get_composition_component!(composition_component.id) == composition_component
+    end
+
+    test "get_composition_component!/2 with preloads returns the composition_component with given id and preloaded data" do
+      composition = composition_fixture()
+
+      composition_component =
+        composition_component_fixture(%{composition_id: composition.id})
+        |> Map.put(:composition, composition)
+
+      assert Grading.get_composition_component!(composition_component.id, :composition) ==
+               composition_component
     end
 
     test "create_composition_component/1 with valid data creates a composition_component" do
@@ -139,15 +180,50 @@ defmodule Lanttern.GradingTest do
 
     @invalid_attrs %{weight: nil}
 
-    test "list_component_items/0 returns all component_items" do
+    test "list_component_items/1 returns all component_items" do
       composition_component_item = composition_component_item_fixture()
       assert Grading.list_component_items() == [composition_component_item]
     end
 
-    test "get_composition_component_item!/1 returns the composition_component_item with given id" do
+    test "list_component_items/1 with preloads returns all component_items with preloaded data" do
+      component = composition_component_fixture()
+      curriculum_item = Lanttern.CurriculaFixtures.item_fixture()
+
+      composition_component_item =
+        composition_component_item_fixture(%{
+          component_id: component.id,
+          curriculum_item_id: curriculum_item.id
+        })
+        |> Map.put(:component, component)
+        |> Map.put(:curriculum_item, curriculum_item)
+
+      assert Grading.list_component_items([:component, :curriculum_item]) ==
+               [composition_component_item]
+    end
+
+    test "get_composition_component_item!/2 returns the composition_component_item with given id" do
       composition_component_item = composition_component_item_fixture()
 
       assert Grading.get_composition_component_item!(composition_component_item.id) ==
+               composition_component_item
+    end
+
+    test "get_composition_component_item!/2 with preloads returns the composition_component_item with given id and preloaded data" do
+      component = composition_component_fixture()
+      curriculum_item = Lanttern.CurriculaFixtures.item_fixture()
+
+      composition_component_item =
+        composition_component_item_fixture(%{
+          component_id: component.id,
+          curriculum_item_id: curriculum_item.id
+        })
+        |> Map.put(:component, component)
+        |> Map.put(:curriculum_item, curriculum_item)
+
+      assert Grading.get_composition_component_item!(
+               composition_component_item.id,
+               [:component, :curriculum_item]
+             ) ==
                composition_component_item
     end
 
@@ -329,14 +405,34 @@ defmodule Lanttern.GradingTest do
 
     @invalid_attrs %{name: nil, order: nil}
 
-    test "list_ordinal_values/0 returns all ordinal_values" do
+    test "list_ordinal_values/1 returns all ordinal_values" do
       ordinal_value = ordinal_value_fixture()
       assert Grading.list_ordinal_values() == [ordinal_value]
     end
 
-    test "get_ordinal_value!/1 returns the ordinal_value with given id" do
+    test "list_ordinal_values/1 with preloads returns all ordinal_values with preloaded data" do
+      scale = scale_fixture()
+
+      ordinal_value =
+        ordinal_value_fixture(%{scale_id: scale.id})
+        |> Map.put(:scale, scale)
+
+      assert Grading.list_ordinal_values(:scale) == [ordinal_value]
+    end
+
+    test "get_ordinal_value!/2 returns the ordinal_value with given id" do
       ordinal_value = ordinal_value_fixture()
       assert Grading.get_ordinal_value!(ordinal_value.id) == ordinal_value
+    end
+
+    test "get_ordinal_value!/2 with preloads returns the ordinal_value with given id and preloaded data" do
+      scale = scale_fixture()
+
+      ordinal_value =
+        ordinal_value_fixture(%{scale_id: scale.id})
+        |> Map.put(:scale, scale)
+
+      assert Grading.get_ordinal_value!(ordinal_value.id, :scale) == ordinal_value
     end
 
     test "create_ordinal_value/1 with valid data creates a ordinal_value" do
