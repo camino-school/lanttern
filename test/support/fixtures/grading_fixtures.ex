@@ -91,24 +91,4 @@ defmodule Lanttern.GradingFixtures do
 
     ordinal_value
   end
-
-  @doc """
-  Generate a conversion_rule.
-  """
-  def conversion_rule_fixture(attrs \\ %{}) do
-    from_scale = scale_fixture()
-    to_scale = scale_fixture()
-
-    {:ok, conversion_rule} =
-      attrs
-      |> Enum.into(%{
-        name: "some name",
-        from_scale_id: from_scale.id,
-        to_scale_id: to_scale.id,
-        conversions: %{}
-      })
-      |> Lanttern.Grading.create_conversion_rule()
-
-    conversion_rule
-  end
 end
