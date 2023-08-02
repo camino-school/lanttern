@@ -1,0 +1,17 @@
+<.simple_form :let={f} for={@changeset} action={@action}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  <.input
+    field={f[:scale_id]}
+    type="select"
+    label="Scale"
+    options={@scale_options}
+    prompt="Select a scale"
+  />
+  <.input field={f[:name]} type="text" label="Name" />
+  <.input field={f[:normalized_value]} type="number" step="0.01" label="Normalized value" />
+  <:actions>
+    <.button>Save Ordinal value</.button>
+  </:actions>
+</.simple_form>

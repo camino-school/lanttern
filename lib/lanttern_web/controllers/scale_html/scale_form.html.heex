@@ -1,0 +1,42 @@
+<.simple_form :let={f} for={@changeset} action={@action}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  <.input field={f[:name]} type="text" label="Name" />
+  <.input
+    field={f[:type]}
+    type="select"
+    label="Type"
+    options={[Numeric: "numeric", Ordinal: "ordinal"]}
+    prompt="Select a scale type"
+  />
+  <.input field={f[:start]} type="number" label="Start" step="any" />
+  <.input field={f[:stop]} type="number" label="Stop" step="any" />
+  <div phx-feedback-for="scale[breakpoints]">
+    <.label>Breakpoints</.label>
+    <%= for n <- 0..4 do %>
+      <input
+        type="number"
+        step="0.01"
+        max="1"
+        name="scale[breakpoints][]"
+        value={Enum.at(f[:breakpoints].value || [], n)}
+        class={[
+          "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6",
+          "phx-no-feedback:border-zinc-300 phx-no-feedback:focus:border-zinc-400"
+        ]}
+      />
+    <% end %>
+    <.error :for={
+      msg <-
+        Enum.map(f[:breakpoints].errors, fn {msg, opts} ->
+          Gettext.dgettext(LantternWeb.Gettext, "errors", msg, opts)
+        end)
+    }>
+      <%= msg %>
+    </.error>
+  </div>
+  <:actions>
+    <.button>Save Scale</.button>
+  </:actions>
+</.simple_form>

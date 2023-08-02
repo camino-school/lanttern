@@ -1,0 +1,12 @@
+<.header>
+  Edit Composition <%= @composition.id %>
+  <:subtitle>Use this form to manage composition records in your database.</:subtitle>
+</.header>
+
+<.composition_form
+  scale_options={@scale_options}
+  changeset={@changeset}
+  action={~p"/grading/compositions/#{@composition}"}
+/>
+
+<.back navigate={~p"/grading/compositions"}>Back to compositions</.back>

@@ -5,7 +5,7 @@ defmodule Lanttern.MixProject do
     [
       app: :lanttern,
       version: "0.1.0",
-      elixir: "~> 1.14",
+      elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -49,7 +49,8 @@ defmodule Lanttern.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
-      {:plug_cowboy, "~> 2.5"}
+      {:plug_cowboy, "~> 2.5"},
+      {:git_hooks, "~> 0.7.3", only: [:dev], runtime: false}
     ]
   end
 

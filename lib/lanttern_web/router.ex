@@ -18,8 +18,22 @@ defmodule LantternWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
-    resources "/students", StudentController
-    resources "/curriculum/items", ItemController
+
+    scope "/curricula" do
+      resources "/items", ItemController
+    end
+
+    scope "/grading" do
+      resources "/compositions", CompositionController
+      resources "/composition_components", CompositionComponentController
+      resources "/component_items", CompositionComponentItemController
+      resources "/ordinal_values", OrdinalValueController
+      resources "/scales", ScaleController
+    end
+
+    scope "/schools" do
+      resources "/students", StudentController
+    end
   end
 
   # Other scopes may use custom stacks.

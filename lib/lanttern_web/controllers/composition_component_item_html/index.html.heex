@@ -1,0 +1,39 @@
+<.header>
+  Listing Component items
+  <:actions>
+    <.link href={~p"/grading/component_items/new"}>
+      <.button>New Composition component item</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="component_items"
+  rows={@component_items}
+  row_click={&JS.navigate(~p"/grading/component_items/#{&1}")}
+>
+  <:col :let={composition_component_item} label="Component">
+    <%= composition_component_item.component.name %>
+  </:col>
+  <:col :let={composition_component_item} label="Curriculum item">
+    <%= composition_component_item.curriculum_item.name %>
+  </:col>
+  <:col :let={composition_component_item} label="Weight">
+    <%= composition_component_item.weight %>
+  </:col>
+  <:action :let={composition_component_item}>
+    <div class="sr-only">
+      <.link navigate={~p"/grading/component_items/#{composition_component_item}"}>Show</.link>
+    </div>
+    <.link navigate={~p"/grading/component_items/#{composition_component_item}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={composition_component_item}>
+    <.link
+      href={~p"/grading/component_items/#{composition_component_item}"}
+      method="delete"
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>

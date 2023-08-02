@@ -1,0 +1,15 @@
+<.header>
+  Edit Composition component item <%= @composition_component_item.id %>
+  <:subtitle>
+    Use this form to manage composition_component_item records in your database.
+  </:subtitle>
+</.header>
+
+<.composition_component_item_form
+  component_options={@component_options}
+  curriculum_item_options={@curriculum_item_options}
+  changeset={@changeset}
+  action={~p"/grading/component_items/#{@composition_component_item}"}
+/>
+
+<.back navigate={~p"/grading/component_items"}>Back to component_items</.back>

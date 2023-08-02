@@ -1,0 +1,33 @@
+<.header>
+  Listing Ordinal values
+  <:actions>
+    <.link href={~p"/grading/ordinal_values/new"}>
+      <.button>New Ordinal value</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="ordinal_values"
+  rows={@ordinal_values}
+  row_click={&JS.navigate(~p"/grading/ordinal_values/#{&1}")}
+>
+  <:col :let={ordinal_value} label="Scale"><%= ordinal_value.scale.name %></:col>
+  <:col :let={ordinal_value} label="Name"><%= ordinal_value.name %></:col>
+  <:col :let={ordinal_value} label="Normalized value"><%= ordinal_value.normalized_value %></:col>
+  <:action :let={ordinal_value}>
+    <div class="sr-only">
+      <.link navigate={~p"/grading/ordinal_values/#{ordinal_value}"}>Show</.link>
+    </div>
+    <.link navigate={~p"/grading/ordinal_values/#{ordinal_value}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={ordinal_value}>
+    <.link
+      href={~p"/grading/ordinal_values/#{ordinal_value}"}
+      method="delete"
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>

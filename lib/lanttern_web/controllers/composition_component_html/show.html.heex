@@ -1,0 +1,17 @@
+<.header>
+  Composition component <%= @composition_component.id %>
+  <:subtitle>This is a composition_component record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/grading/composition_components/#{@composition_component}/edit"}>
+      <.button>Edit composition_component</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @composition_component.name %></:item>
+  <:item title="Weight"><%= @composition_component.weight %></:item>
+  <:item title="Parent composition"><%= @composition_component.composition.name %></:item>
+</.list>
+
+<.back navigate={~p"/grading/composition_components"}>Back to composition_components</.back>
