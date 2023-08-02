@@ -10,7 +10,7 @@
     prompt="Select a scale"
   />
   <.input field={f[:name]} type="text" label="Name" />
-  <.input field={f[:order]} type="number" label="Order" />
+  <.input field={f[:normalized_value]} type="number" step="0.01" label="Normalized value" />
   <:actions>
     <.button>Save Ordinal value</.button>
   </:actions>

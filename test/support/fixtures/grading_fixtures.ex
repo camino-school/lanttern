@@ -84,7 +84,7 @@ defmodule Lanttern.GradingFixtures do
       attrs
       |> Enum.into(%{
         name: "some name",
-        order: 42,
+        normalized_value: 1,
         scale_id: scale.id
       })
       |> Lanttern.Grading.create_ordinal_value()

@@ -223,6 +223,14 @@ defmodule Lanttern.GradingTest do
 
     @invalid_numeric_attrs %{name: "0 to 10", start: nil, stop: nil, type: "numeric"}
 
+    @invalid_breakpoint_attrs %{
+      name: "Letter grades",
+      start: nil,
+      stop: nil,
+      type: "ordinal",
+      breakpoints: [0.5, 1.5]
+    }
+
     test "list_scales/0 returns all scales" do
       scale = scale_fixture()
       assert Grading.list_scales() == [scale]
@@ -234,13 +242,35 @@ defmodule Lanttern.GradingTest do
     end
 
     test "create_scale/1 with valid data creates a scale" do
-      valid_attrs = %{name: "some name", start: 120.5, stop: 120.5, type: "numeric"}
+      valid_attrs = %{
+        name: "some name",
+        start: 120.5,
+        stop: 120.5,
+        type: "numeric",
+        breakpoints: [0.4, 0.8]
+      }
 
       assert {:ok, %Scale{} = scale} = Grading.create_scale(valid_attrs)
       assert scale.name == "some name"
       assert scale.start == 120.5
       assert scale.stop == 120.5
       assert scale.type == "numeric"
+      assert scale.breakpoints == [0.4, 0.8]
+    end
+
+    test "create_scale/1 orders and remove duplications of breakpoints" do
+      valid_attrs = %{
+        name: "some name",
+        start: nil,
+        stop: nil,
+        type: "ordinal",
+        breakpoints: [0.4, 0.8, 0.80, 0.6]
+      }
+
+      assert {:ok, %Scale{} = scale} = Grading.create_scale(valid_attrs)
+      assert scale.name == "some name"
+      assert scale.type == "ordinal"
+      assert scale.breakpoints == [0.4, 0.6, 0.8]
     end
 
     test "create_scale/1 with invalid data returns error changeset" do
@@ -249,6 +279,10 @@ defmodule Lanttern.GradingTest do
 
     test "create_scale/1 of type numeric without start and stop returns error changeset" do
       assert {:error, %Ecto.Changeset{}} = Grading.create_scale(@invalid_numeric_attrs)
+    end
+
+    test "create_scale/1 of with invalid breakpoints returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Grading.create_scale(@invalid_breakpoint_attrs)
     end
 
     test "update_scale/2 with valid data updates the scale" do
@@ -305,11 +339,11 @@ defmodule Lanttern.GradingTest do
 
     test "create_ordinal_value/1 with valid data creates a ordinal_value" do
       scale = scale_fixture()
-      valid_attrs = %{name: "some name", order: 42, scale_id: scale.id}
+      valid_attrs = %{name: "some name", normalized_value: 0.5, scale_id: scale.id}
 
       assert {:ok, %OrdinalValue{} = ordinal_value} = Grading.create_ordinal_value(valid_attrs)
       assert ordinal_value.name == "some name"
-      assert ordinal_value.order == 42
+      assert ordinal_value.normalized_value == 0.5
       assert ordinal_value.scale_id == scale.id
     end
 
@@ -319,13 +353,13 @@ defmodule Lanttern.GradingTest do
 
     test "update_ordinal_value/2 with valid data updates the ordinal_value" do
       ordinal_value = ordinal_value_fixture()
-      update_attrs = %{name: "some updated name", order: 43}
+      update_attrs = %{name: "some updated name", normalized_value: 0.43}
 
       assert {:ok, %OrdinalValue{} = ordinal_value} =
                Grading.update_ordinal_value(ordinal_value, update_attrs)
 
       assert ordinal_value.name == "some updated name"
-      assert ordinal_value.order == 43
+      assert ordinal_value.normalized_value == 0.43
     end
 
     test "update_ordinal_value/2 with invalid data returns error changeset" do

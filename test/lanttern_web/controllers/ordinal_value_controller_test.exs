@@ -3,9 +3,9 @@ defmodule LantternWeb.OrdinalValueControllerTest do
 
   import Lanttern.GradingFixtures
 
-  @create_attrs %{name: "some name", order: 42}
-  @update_attrs %{name: "some updated name", order: 43}
-  @invalid_attrs %{name: nil, order: nil}
+  @create_attrs %{name: "some name", normalized_value: 0.42}
+  @update_attrs %{name: "some updated name", normalized_value: 0.43}
+  @invalid_attrs %{name: nil, normalized_value: nil}
 
   describe "index" do
     test "lists all ordinal_values", %{conn: conn} do

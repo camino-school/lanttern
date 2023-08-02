@@ -14,7 +14,7 @@
 >
   <:col :let={ordinal_value} label="Scale"><%= ordinal_value.scale.name %></:col>
   <:col :let={ordinal_value} label="Name"><%= ordinal_value.name %></:col>
-  <:col :let={ordinal_value} label="Order"><%= ordinal_value.order %></:col>
+  <:col :let={ordinal_value} label="Normalized value"><%= ordinal_value.normalized_value %></:col>
   <:action :let={ordinal_value}>
     <div class="sr-only">
       <.link navigate={~p"/grading/ordinal_values/#{ordinal_value}"}>Show</.link>
