@@ -372,7 +372,7 @@ defmodule Lanttern.GradingTest do
 
       valid_attrs = %{
         name: "some name",
-        conversions: %{},
+        conversions: [],
         from_scale_id: from_scale.id,
         to_scale_id: to_scale.id
       }
@@ -381,7 +381,7 @@ defmodule Lanttern.GradingTest do
                Grading.create_conversion_rule(valid_attrs)
 
       assert conversion_rule.name == "some name"
-      assert conversion_rule.conversions == %{}
+      assert conversion_rule.conversions == []
     end
 
     test "create_conversion_rule/1 with invalid data returns error changeset" do
@@ -419,15 +419,137 @@ defmodule Lanttern.GradingTest do
       assert {:error, %Ecto.Changeset{}} = Grading.create_conversion_rule(attrs)
     end
 
+    test "create_conversion_rule/1 of type o -> n with valid data creates a conversion_rule" do
+      from_scale = scale_fixture(%{type: "ordinal"})
+      ordinal_value_1 = ordinal_value_fixture(%{scale_id: from_scale.id})
+      ordinal_value_2 = ordinal_value_fixture(%{scale_id: from_scale.id})
+      ordinal_value_3 = ordinal_value_fixture(%{scale_id: from_scale.id})
+      to_scale = scale_fixture(%{type: "numeric", start: 0, stop: 1})
+
+      valid_attrs = %{
+        name: "some name",
+        from_scale_id: from_scale.id,
+        to_scale_id: to_scale.id,
+        conversions: [
+          %{from_ordinal_id: ordinal_value_1.id, to_value: 0, __type__: "o_to_n"},
+          %{from_ordinal_id: ordinal_value_2.id, to_value: 0.5, __type__: "o_to_n"},
+          %{from_ordinal_id: ordinal_value_3.id, to_value: 1, __type__: "o_to_n"}
+        ]
+      }
+
+      assert {:ok, %ConversionRule{} = conversion_rule} =
+               Grading.create_conversion_rule(valid_attrs)
+
+      assert conversion_rule.name == "some name"
+
+      [conv_1, conv_2, conv_3] = conversion_rule.conversions
+
+      assert conv_1.from_ordinal_id == ordinal_value_1.id
+      assert conv_1.to_value == 0
+
+      assert conv_2.from_ordinal_id == ordinal_value_2.id
+      assert conv_2.to_value == 0.5
+
+      assert conv_3.from_ordinal_id == ordinal_value_3.id
+      assert conv_3.to_value == 1
+    end
+
+    test "create_conversion_rule/1 of type n -> o with valid data creates a conversion_rule" do
+      from_scale = scale_fixture(%{type: "numeric", start: 0, stop: 1})
+      to_scale = scale_fixture(%{type: "ordinal"})
+      ordinal_value_1 = ordinal_value_fixture(%{scale_id: to_scale.id})
+      ordinal_value_2 = ordinal_value_fixture(%{scale_id: to_scale.id})
+      ordinal_value_3 = ordinal_value_fixture(%{scale_id: to_scale.id})
+
+      valid_attrs =
+        %{
+          name: "some name",
+          from_scale_id: from_scale.id,
+          to_scale_id: to_scale.id,
+          conversions: [
+            %{
+              breakpoints: [0.4, 0.8],
+              ordinal_values_ids: [ordinal_value_1.id, ordinal_value_2.id, ordinal_value_3.id],
+              __type__: "n_to_o"
+            }
+          ]
+        }
+
+      assert {:ok, %ConversionRule{} = conversion_rule} =
+               Grading.create_conversion_rule(valid_attrs)
+
+      assert conversion_rule.name == "some name"
+
+      [conv] = conversion_rule.conversions
+
+      assert conv.breakpoints == [0.4, 0.8]
+
+      assert conv.ordinal_values_ids == [
+               ordinal_value_1.id,
+               ordinal_value_2.id,
+               ordinal_value_3.id
+             ]
+    end
+
+    test "create_conversion_rule/1 of type o -> o with valid data creates a conversion_rule" do
+      from_scale = scale_fixture(%{type: "ordinal"})
+      ordinal_value_1 = ordinal_value_fixture(%{scale_id: from_scale.id})
+      ordinal_value_2 = ordinal_value_fixture(%{scale_id: from_scale.id})
+      ordinal_value_3 = ordinal_value_fixture(%{scale_id: from_scale.id})
+      to_scale = scale_fixture(%{type: "ordinal"})
+      ordinal_value_a = ordinal_value_fixture(%{scale_id: to_scale.id})
+      ordinal_value_b = ordinal_value_fixture(%{scale_id: to_scale.id})
+      ordinal_value_c = ordinal_value_fixture(%{scale_id: to_scale.id})
+
+      valid_attrs = %{
+        name: "some name",
+        from_scale_id: from_scale.id,
+        to_scale_id: to_scale.id,
+        conversions: [
+          %{
+            from_ordinal_id: ordinal_value_1.id,
+            to_ordinal_id: ordinal_value_a.id,
+            __type__: "o_to_o"
+          },
+          %{
+            from_ordinal_id: ordinal_value_2.id,
+            to_ordinal_id: ordinal_value_b.id,
+            __type__: "o_to_o"
+          },
+          %{
+            from_ordinal_id: ordinal_value_3.id,
+            to_ordinal_id: ordinal_value_c.id,
+            __type__: "o_to_o"
+          }
+        ]
+      }
+
+      assert {:ok, %ConversionRule{} = conversion_rule} =
+               Grading.create_conversion_rule(valid_attrs)
+
+      assert conversion_rule.name == "some name"
+
+      [conv_1, conv_2, conv_3] = conversion_rule.conversions
+
+      assert conv_1.from_ordinal_id == ordinal_value_1.id
+      assert conv_1.to_ordinal_id == ordinal_value_a.id
+
+      assert conv_2.from_ordinal_id == ordinal_value_2.id
+      assert conv_2.to_ordinal_id == ordinal_value_b.id
+
+      assert conv_3.from_ordinal_id == ordinal_value_3.id
+      assert conv_3.to_ordinal_id == ordinal_value_c.id
+    end
+
     test "update_conversion_rule/2 with valid data updates the conversion_rule" do
       conversion_rule = conversion_rule_fixture()
-      update_attrs = %{name: "some updated name", conversions: %{}}
+      update_attrs = %{name: "some updated name", conversions: []}
 
       assert {:ok, %ConversionRule{} = conversion_rule} =
                Grading.update_conversion_rule(conversion_rule, update_attrs)
 
       assert conversion_rule.name == "some updated name"
-      assert conversion_rule.conversions == %{}
+      assert conversion_rule.conversions == []
     end
 
     test "update_conversion_rule/2 with invalid data returns error changeset" do
