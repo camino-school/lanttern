@@ -13,6 +13,9 @@
   row_click={&JS.navigate(~p"/grading/compositions/#{&1}")}
 >
   <:col :let={composition} label="Name"><%= composition.name %></:col>
+  <:col :let={composition} label="Final grade scale">
+    <%= composition.final_grade_scale.name %>
+  </:col>
   <:action :let={composition}>
     <div class="sr-only">
       <.link navigate={~p"/grading/compositions/#{composition}"}>Show</.link>

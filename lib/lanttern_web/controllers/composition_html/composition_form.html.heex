@@ -3,6 +3,13 @@
     Oops, something went wrong! Please check the errors below.
   </.error>
   <.input field={f[:name]} type="text" label="Name" />
+  <.input
+    field={f[:final_grade_scale_id]}
+    type="select"
+    label="Final grade scale"
+    options={@scale_options}
+    prompt="Select a scale"
+  />
   <:actions>
     <.button>Save Composition</.button>
   </:actions>

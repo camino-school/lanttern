@@ -23,7 +23,9 @@ defmodule LantternWeb.CompositionControllerTest do
 
   describe "create composition" do
     test "redirects to show when data is valid", %{conn: conn} do
-      conn = post(conn, ~p"/grading/compositions", composition: @create_attrs)
+      scale = scale_fixture()
+      create_attrs = @create_attrs |> Map.put_new(:final_grade_scale_id, scale.id)
+      conn = post(conn, ~p"/grading/compositions", composition: create_attrs)
 
       assert %{id: id} = redirected_params(conn)
       assert redirected_to(conn) == ~p"/grading/compositions/#{id}"

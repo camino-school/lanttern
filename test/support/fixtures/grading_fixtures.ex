@@ -10,10 +10,13 @@ defmodule Lanttern.GradingFixtures do
   Generate a composition.
   """
   def composition_fixture(attrs \\ %{}) do
+    scale = scale_fixture()
+
     {:ok, composition} =
       attrs
       |> Enum.into(%{
-        name: "some name"
+        name: "some name",
+        final_grade_scale_id: scale.id
       })
       |> Lanttern.Grading.create_composition()
 

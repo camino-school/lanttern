@@ -11,6 +11,7 @@ defmodule Lanttern.Grading do
 
   @doc """
   Returns the list of compositions.
+  Optionally preloads associated data.
 
   ## Examples
 
@@ -18,12 +19,14 @@ defmodule Lanttern.Grading do
       [%Composition{}, ...]
 
   """
-  def list_compositions do
+  def list_compositions(preloads \\ []) do
     Repo.all(Composition)
+    |> Repo.preload(preloads)
   end
 
   @doc """
   Gets a single composition.
+  Optionally preloads associated data.
 
   Raises `Ecto.NoResultsError` if the Composition does not exist.
 
@@ -36,7 +39,10 @@ defmodule Lanttern.Grading do
       ** (Ecto.NoResultsError)
 
   """
-  def get_composition!(id), do: Repo.get!(Composition, id)
+  def get_composition!(id, preloads \\ []) do
+    Repo.get!(Composition, id)
+    |> Repo.preload(preloads)
+  end
 
   @doc """
   Creates a composition.

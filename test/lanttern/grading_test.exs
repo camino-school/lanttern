@@ -21,10 +21,12 @@ defmodule Lanttern.GradingTest do
     end
 
     test "create_composition/1 with valid data creates a composition" do
-      valid_attrs = %{name: "some name"}
+      scale = scale_fixture()
+      valid_attrs = %{name: "some name", final_grade_scale_id: scale.id}
 
       assert {:ok, %Composition{} = composition} = Grading.create_composition(valid_attrs)
       assert composition.name == "some name"
+      assert composition.final_grade_scale_id == scale.id
     end
 
     test "create_composition/1 with invalid data returns error changeset" do

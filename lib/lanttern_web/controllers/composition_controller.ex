@@ -5,13 +5,14 @@ defmodule LantternWeb.CompositionController do
   alias Lanttern.Grading.Composition
 
   def index(conn, _params) do
-    compositions = Grading.list_compositions()
+    compositions = Grading.list_compositions(:final_grade_scale)
     render(conn, :index, compositions: compositions)
   end
 
   def new(conn, _params) do
+    options = generate_scale_options()
     changeset = Grading.change_composition(%Composition{})
-    render(conn, :new, changeset: changeset)
+    render(conn, :new, scale_options: options, changeset: changeset)
   end
 
   def create(conn, %{"composition" => composition_params}) do
@@ -22,19 +23,21 @@ defmodule LantternWeb.CompositionController do
         |> redirect(to: ~p"/grading/compositions/#{composition}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, :new, changeset: changeset)
+        options = generate_scale_options()
+        render(conn, :new, scale_options: options, changeset: changeset)
     end
   end
 
   def show(conn, %{"id" => id}) do
-    composition = Grading.get_composition!(id)
+    composition = Grading.get_composition!(id, :final_grade_scale)
     render(conn, :show, composition: composition)
   end
 
   def edit(conn, %{"id" => id}) do
     composition = Grading.get_composition!(id)
+    options = generate_scale_options()
     changeset = Grading.change_composition(composition)
-    render(conn, :edit, composition: composition, changeset: changeset)
+    render(conn, :edit, composition: composition, scale_options: options, changeset: changeset)
   end
 
   def update(conn, %{"id" => id, "composition" => composition_params}) do
@@ -47,7 +50,13 @@ defmodule LantternWeb.CompositionController do
         |> redirect(to: ~p"/grading/compositions/#{composition}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, :edit, composition: composition, changeset: changeset)
+        options = generate_scale_options()
+
+        render(conn, :edit,
+          composition: composition,
+          scale_options: options,
+          changeset: changeset
+        )
     end
   end
 
@@ -58,5 +67,11 @@ defmodule LantternWeb.CompositionController do
     conn
     |> put_flash(:info, "Composition deleted successfully.")
     |> redirect(to: ~p"/grading/compositions")
+  end
+
+  defp generate_scale_options() do
+    Grading.list_scales()
+    |> Enum.map(fn s -> ["#{s.name}": s.id] end)
+    |> Enum.concat()
   end
 end

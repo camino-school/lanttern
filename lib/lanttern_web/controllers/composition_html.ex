@@ -8,6 +8,7 @@ defmodule LantternWeb.CompositionHTML do
   """
   attr :changeset, Ecto.Changeset, required: true
   attr :action, :string, required: true
+  attr :scale_options, :list, required: true
 
   def composition_form(assigns)
 end
