@@ -1,0 +1,31 @@
+<.simple_form :let={f} for={@changeset} action={@action}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  <.input
+    field={f[:assessment_point_id]}
+    type="select"
+    label="Assessment point"
+    options={@assessment_point_options}
+    prompt="Select an assessment point"
+  />
+  <.input
+    field={f[:student_id]}
+    type="select"
+    label="Student"
+    options={@student_options}
+    prompt="Select a student"
+  />
+  <.input field={f[:observation]} type="text" label="Observation" />
+  <.input field={f[:score]} type="number" label="Score" step="any" />
+  <.input
+    field={f[:ordinal_value_id]}
+    type="select"
+    label="Ordinal value"
+    options={@ordinal_value_options}
+    prompt="Select a ordinal value"
+  />
+  <:actions>
+    <.button>Save Assessment point entry</.button>
+  </:actions>
+</.simple_form>

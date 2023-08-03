@@ -86,4 +86,84 @@ defmodule Lanttern.AssessmentsTest do
       assert %Ecto.Changeset{} = Assessments.change_assessment_point(assessment_point)
     end
   end
+
+  describe "assessment_point_entries" do
+    alias Lanttern.Assessments.AssessmentPointEntry
+
+    import Lanttern.AssessmentsFixtures
+
+    @invalid_attrs %{student_id: nil, score: nil}
+
+    test "list_assessment_point_entries/0 returns all assessment_point_entries" do
+      assessment_point_entry = assessment_point_entry_fixture()
+      assert Assessments.list_assessment_point_entries() == [assessment_point_entry]
+    end
+
+    test "get_assessment_point_entry!/1 returns the assessment_point_entry with given id" do
+      assessment_point_entry = assessment_point_entry_fixture()
+
+      assert Assessments.get_assessment_point_entry!(assessment_point_entry.id) ==
+               assessment_point_entry
+    end
+
+    test "create_assessment_point_entry/1 with valid data creates a assessment_point_entry" do
+      assessment_point = assessment_point_fixture()
+      student = Lanttern.SchoolsFixtures.student_fixture()
+
+      valid_attrs = %{
+        assessment_point_id: assessment_point.id,
+        student_id: student.id,
+        observation: "some observation",
+        score: 120.5
+      }
+
+      assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
+               Assessments.create_assessment_point_entry(valid_attrs)
+
+      assert assessment_point_entry.observation == "some observation"
+      assert assessment_point_entry.score == 120.5
+    end
+
+    test "create_assessment_point_entry/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} =
+               Assessments.create_assessment_point_entry(@invalid_attrs)
+    end
+
+    test "update_assessment_point_entry/2 with valid data updates the assessment_point_entry" do
+      assessment_point_entry = assessment_point_entry_fixture()
+      update_attrs = %{observation: "some updated observation", score: 456.7}
+
+      assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
+               Assessments.update_assessment_point_entry(assessment_point_entry, update_attrs)
+
+      assert assessment_point_entry.observation == "some updated observation"
+      assert assessment_point_entry.score == 456.7
+    end
+
+    test "update_assessment_point_entry/2 with invalid data returns error changeset" do
+      assessment_point_entry = assessment_point_entry_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Assessments.update_assessment_point_entry(assessment_point_entry, @invalid_attrs)
+
+      assert assessment_point_entry ==
+               Assessments.get_assessment_point_entry!(assessment_point_entry.id)
+    end
+
+    test "delete_assessment_point_entry/1 deletes the assessment_point_entry" do
+      assessment_point_entry = assessment_point_entry_fixture()
+
+      assert {:ok, %AssessmentPointEntry{}} =
+               Assessments.delete_assessment_point_entry(assessment_point_entry)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Assessments.get_assessment_point_entry!(assessment_point_entry.id)
+      end
+    end
+
+    test "change_assessment_point_entry/1 returns a assessment_point_entry changeset" do
+      assessment_point_entry = assessment_point_entry_fixture()
+      assert %Ecto.Changeset{} = Assessments.change_assessment_point_entry(assessment_point_entry)
+    end
+  end
 end
