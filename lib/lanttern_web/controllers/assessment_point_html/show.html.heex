@@ -1,0 +1,17 @@
+<.header>
+  Assessment point <%= @assessment_point.id %>
+  <:subtitle>This is a assessment record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/assessments/#{@assessment_point}/edit"}>
+      <.button>Edit assessment point</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @assessment_point.name %></:item>
+  <:item title="Date"><%= @assessment_point.date %></:item>
+  <:item title="Description"><%= @assessment_point.description %></:item>
+</.list>
+
+<.back navigate={~p"/assessments"}>Back to assessment points</.back>

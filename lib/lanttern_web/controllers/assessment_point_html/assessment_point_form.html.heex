@@ -1,0 +1,25 @@
+<.simple_form :let={f} for={@changeset} action={@action}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  <.input field={f[:name]} type="text" label="Name" />
+  <.input field={f[:date]} type="datetime-local" label="Date" />
+  <.input field={f[:description]} type="textarea" label="Description" />
+  <.input
+    field={f[:curriculum_item_id]}
+    type="select"
+    label="Curriculum item"
+    options={@curriculum_item_options}
+    prompt="Select a curriculum item"
+  />
+  <.input
+    field={f[:scale_id]}
+    type="select"
+    label="Scale"
+    options={@scale_options}
+    prompt="Select a scale"
+  />
+  <:actions>
+    <.button>Save Assessment point</.button>
+  </:actions>
+</.simple_form>

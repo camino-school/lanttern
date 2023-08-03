@@ -19,6 +19,8 @@ defmodule LantternWeb.Router do
 
     get "/", PageController, :home
 
+    resources "/assessments", AssessmentPointController
+
     scope "/curricula" do
       resources "/items", ItemController
     end
