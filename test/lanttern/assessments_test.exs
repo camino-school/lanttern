@@ -15,9 +15,19 @@ defmodule Lanttern.AssessmentsTest do
       assert Assessments.list_assessment_points() == [assessment_point]
     end
 
-    test "get_assessment_point!/1 returns the assessment point with given id" do
+    test "get_assessment_point!/2 returns the assessment point with given id" do
       assessment_point = assessment_point_fixture()
       assert Assessments.get_assessment_point!(assessment_point.id) == assessment_point
+    end
+
+    test "get_assessment_point!/2 with preloads returns the assessment point with given id and preloaded data" do
+      scale = Lanttern.GradingFixtures.scale_fixture()
+
+      assessment_point =
+        assessment_point_fixture(%{scale_id: scale.id})
+        |> Map.put(:scale, scale)
+
+      assert Assessments.get_assessment_point!(assessment_point.id, :scale) == assessment_point
     end
 
     test "create_assessment_point/1 with valid data creates a assessment point" do
@@ -113,15 +123,54 @@ defmodule Lanttern.AssessmentsTest do
       valid_attrs = %{
         assessment_point_id: assessment_point.id,
         student_id: student.id,
-        observation: "some observation",
-        score: 120.5
+        observation: "some observation"
       }
 
       assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
                Assessments.create_assessment_point_entry(valid_attrs)
 
+      assert assessment_point_entry.assessment_point_id == assessment_point.id
+      assert assessment_point_entry.student_id == student.id
       assert assessment_point_entry.observation == "some observation"
-      assert assessment_point_entry.score == 120.5
+    end
+
+    test "create_assessment_point_entry/1 of type numeric with valid data creates a assessment_point_entry" do
+      scale = Lanttern.GradingFixtures.scale_fixture(%{type: "numeric", start: 0, stop: 1})
+      assessment_point = assessment_point_fixture(%{scale_id: scale.id})
+      student = Lanttern.SchoolsFixtures.student_fixture()
+
+      valid_attrs = %{
+        assessment_point_id: assessment_point.id,
+        student_id: student.id,
+        observation: "some observation",
+        score: 0.5
+      }
+
+      assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
+               Assessments.create_assessment_point_entry(valid_attrs)
+
+      assert assessment_point_entry.assessment_point_id == assessment_point.id
+      assert assessment_point_entry.score == 0.5
+    end
+
+    test "create_assessment_point_entry/1 of type ordinal with valid data creates a assessment_point_entry" do
+      scale = Lanttern.GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ordinal_value = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      assessment_point = assessment_point_fixture(%{scale_id: scale.id})
+      student = Lanttern.SchoolsFixtures.student_fixture()
+
+      valid_attrs = %{
+        assessment_point_id: assessment_point.id,
+        student_id: student.id,
+        observation: "some observation",
+        ordinal_value_id: ordinal_value.id
+      }
+
+      assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
+               Assessments.create_assessment_point_entry(valid_attrs)
+
+      assert assessment_point_entry.assessment_point_id == assessment_point.id
+      assert assessment_point_entry.ordinal_value_id == ordinal_value.id
     end
 
     test "create_assessment_point_entry/1 with invalid data returns error changeset" do
@@ -129,15 +178,46 @@ defmodule Lanttern.AssessmentsTest do
                Assessments.create_assessment_point_entry(@invalid_attrs)
     end
 
+    test "create_assessment_point_entry/1 with score out of scale returns error changeset" do
+      scale = Lanttern.GradingFixtures.scale_fixture(%{type: "numeric", start: 0, stop: 10})
+      assessment_point = assessment_point_fixture(%{scale_id: scale.id})
+      student = Lanttern.SchoolsFixtures.student_fixture()
+
+      attrs = %{
+        assessment_point_id: assessment_point.id,
+        student_id: student.id,
+        score: 11
+      }
+
+      assert {:error, %Ecto.Changeset{}} =
+               Assessments.create_assessment_point_entry(attrs)
+    end
+
+    test "create_assessment_point_entry/1 with ordinal_value out of scale returns error changeset" do
+      scale = Lanttern.GradingFixtures.scale_fixture(%{type: "ordinal"})
+      _ordinal_value = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      other_ordinal_value = Lanttern.GradingFixtures.ordinal_value_fixture()
+      assessment_point = assessment_point_fixture(%{scale_id: scale.id})
+      student = Lanttern.SchoolsFixtures.student_fixture()
+
+      attrs = %{
+        assessment_point_id: assessment_point.id,
+        student_id: student.id,
+        ordinal_value_id: other_ordinal_value.id
+      }
+
+      assert {:error, %Ecto.Changeset{}} =
+               Assessments.create_assessment_point_entry(attrs)
+    end
+
     test "update_assessment_point_entry/2 with valid data updates the assessment_point_entry" do
       assessment_point_entry = assessment_point_entry_fixture()
-      update_attrs = %{observation: "some updated observation", score: 456.7}
+      update_attrs = %{observation: "some updated observation"}
 
       assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
                Assessments.update_assessment_point_entry(assessment_point_entry, update_attrs)
 
       assert assessment_point_entry.observation == "some updated observation"
-      assert assessment_point_entry.score == 456.7
     end
 
     test "update_assessment_point_entry/2 with invalid data returns error changeset" do

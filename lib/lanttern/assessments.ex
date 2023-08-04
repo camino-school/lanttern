@@ -23,6 +23,7 @@ defmodule Lanttern.Assessments do
 
   @doc """
   Gets a single assessment point.
+  Optionally preloads associated data.
 
   Raises `Ecto.NoResultsError` if the AssessmentPoint does not exist.
 
@@ -35,7 +36,10 @@ defmodule Lanttern.Assessments do
       ** (Ecto.NoResultsError)
 
   """
-  def get_assessment_point!(id), do: Repo.get!(AssessmentPoint, id)
+  def get_assessment_point!(id, preloads \\ []) do
+    Repo.get!(AssessmentPoint, id)
+    |> Repo.preload(preloads)
+  end
 
   @doc """
   Creates an assessment point.
@@ -194,7 +198,10 @@ defmodule Lanttern.Assessments do
       %Ecto.Changeset{data: %AssessmentPointEntry{}}
 
   """
-  def change_assessment_point_entry(%AssessmentPointEntry{} = assessment_point_entry, attrs \\ %{}) do
+  def change_assessment_point_entry(
+        %AssessmentPointEntry{} = assessment_point_entry,
+        attrs \\ %{}
+      ) do
     AssessmentPointEntry.changeset(assessment_point_entry, attrs)
   end
 end

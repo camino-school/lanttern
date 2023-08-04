@@ -335,6 +335,12 @@ defmodule Lanttern.Grading do
     |> Repo.preload(preloads)
   end
 
+  def list_ordinal_values_from_scale(scale_id) do
+    OrdinalValue
+    |> where([ov], ov.scale_id == ^scale_id)
+    |> Repo.all()
+  end
+
   @doc """
   Gets a single ordinal_value.
   Optionally preloads associated data.

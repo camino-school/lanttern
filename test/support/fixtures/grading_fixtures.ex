@@ -68,8 +68,8 @@ defmodule Lanttern.GradingFixtures do
       attrs
       |> Enum.into(%{
         name: "some name",
-        start: 120.5,
-        stop: 120.5,
+        start: 0,
+        stop: 100,
         type: "numeric"
       })
       |> Lanttern.Grading.create_scale()

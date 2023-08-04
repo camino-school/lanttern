@@ -3,9 +3,9 @@ defmodule LantternWeb.AssessmentPointEntryControllerTest do
 
   import Lanttern.AssessmentsFixtures
 
-  @create_attrs %{observation: "some observation", score: 120.5}
-  @update_attrs %{observation: "some updated observation", score: 456.7}
-  @invalid_attrs %{student_id: nil, observation: nil, score: nil}
+  @create_attrs %{observation: "some observation"}
+  @update_attrs %{observation: "some updated observation"}
+  @invalid_attrs %{student_id: nil}
 
   describe "index" do
     test "lists all assessment_point_entries", %{conn: conn} do
