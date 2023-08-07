@@ -25,6 +25,8 @@ defmodule LantternWeb.Router do
     get "/", PageController, :home
 
     live "/assessment-points", AssessmentPointsLive
+    live "/assessment-points/explorer", AssessmentPointsExplorerLive
+    live "/assessment-points/:id", AssessmentPointLive
   end
 
   scope "/admin", LantternWeb do
