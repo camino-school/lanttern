@@ -9,14 +9,14 @@ defmodule LantternWeb.OrdinalValueControllerTest do
 
   describe "index" do
     test "lists all ordinal_values", %{conn: conn} do
-      conn = get(conn, ~p"/grading/ordinal_values")
+      conn = get(conn, ~p"/admin/grading/ordinal_values")
       assert html_response(conn, 200) =~ "Listing Ordinal values"
     end
   end
 
   describe "new ordinal_value" do
     test "renders form", %{conn: conn} do
-      conn = get(conn, ~p"/grading/ordinal_values/new")
+      conn = get(conn, ~p"/admin/grading/ordinal_values/new")
       assert html_response(conn, 200) =~ "New Ordinal value"
     end
   end
@@ -25,17 +25,17 @@ defmodule LantternWeb.OrdinalValueControllerTest do
     test "redirects to show when data is valid", %{conn: conn} do
       scale = scale_fixture()
       create_attrs = @create_attrs |> Map.put_new(:scale_id, scale.id)
-      conn = post(conn, ~p"/grading/ordinal_values", ordinal_value: create_attrs)
+      conn = post(conn, ~p"/admin/grading/ordinal_values", ordinal_value: create_attrs)
 
       assert %{id: id} = redirected_params(conn)
-      assert redirected_to(conn) == ~p"/grading/ordinal_values/#{id}"
+      assert redirected_to(conn) == ~p"/admin/grading/ordinal_values/#{id}"
 
-      conn = get(conn, ~p"/grading/ordinal_values/#{id}")
+      conn = get(conn, ~p"/admin/grading/ordinal_values/#{id}")
       assert html_response(conn, 200) =~ "Ordinal value #{id}"
     end
 
     test "renders errors when data is invalid", %{conn: conn} do
-      conn = post(conn, ~p"/grading/ordinal_values", ordinal_value: @invalid_attrs)
+      conn = post(conn, ~p"/admin/grading/ordinal_values", ordinal_value: @invalid_attrs)
       assert html_response(conn, 200) =~ "New Ordinal value"
     end
   end
@@ -47,7 +47,7 @@ defmodule LantternWeb.OrdinalValueControllerTest do
       conn: conn,
       ordinal_value: ordinal_value
     } do
-      conn = get(conn, ~p"/grading/ordinal_values/#{ordinal_value}/edit")
+      conn = get(conn, ~p"/admin/grading/ordinal_values/#{ordinal_value}/edit")
       assert html_response(conn, 200) =~ "Edit Ordinal value"
     end
   end
@@ -56,16 +56,22 @@ defmodule LantternWeb.OrdinalValueControllerTest do
     setup [:create_ordinal_value]
 
     test "redirects when data is valid", %{conn: conn, ordinal_value: ordinal_value} do
-      conn = put(conn, ~p"/grading/ordinal_values/#{ordinal_value}", ordinal_value: @update_attrs)
-      assert redirected_to(conn) == ~p"/grading/ordinal_values/#{ordinal_value}"
+      conn =
+        put(conn, ~p"/admin/grading/ordinal_values/#{ordinal_value}",
+          ordinal_value: @update_attrs
+        )
 
-      conn = get(conn, ~p"/grading/ordinal_values/#{ordinal_value}")
+      assert redirected_to(conn) == ~p"/admin/grading/ordinal_values/#{ordinal_value}"
+
+      conn = get(conn, ~p"/admin/grading/ordinal_values/#{ordinal_value}")
       assert html_response(conn, 200) =~ "some updated name"
     end
 
     test "renders errors when data is invalid", %{conn: conn, ordinal_value: ordinal_value} do
       conn =
-        put(conn, ~p"/grading/ordinal_values/#{ordinal_value}", ordinal_value: @invalid_attrs)
+        put(conn, ~p"/admin/grading/ordinal_values/#{ordinal_value}",
+          ordinal_value: @invalid_attrs
+        )
 
       assert html_response(conn, 200) =~ "Edit Ordinal value"
     end
@@ -75,11 +81,11 @@ defmodule LantternWeb.OrdinalValueControllerTest do
     setup [:create_ordinal_value]
 
     test "deletes chosen ordinal_value", %{conn: conn, ordinal_value: ordinal_value} do
-      conn = delete(conn, ~p"/grading/ordinal_values/#{ordinal_value}")
-      assert redirected_to(conn) == ~p"/grading/ordinal_values"
+      conn = delete(conn, ~p"/admin/grading/ordinal_values/#{ordinal_value}")
+      assert redirected_to(conn) == ~p"/admin/grading/ordinal_values"
 
       assert_error_sent 404, fn ->
-        get(conn, ~p"/grading/ordinal_values/#{ordinal_value}")
+        get(conn, ~p"/admin/grading/ordinal_values/#{ordinal_value}")
       end
     end
   end

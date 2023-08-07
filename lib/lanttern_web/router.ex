@@ -10,6 +10,11 @@ defmodule LantternWeb.Router do
     plug :put_secure_browser_headers
   end
 
+  pipeline :browser_admin do
+    plug :browser
+    plug :put_layout, html: {LantternWeb.Layouts, :admin}
+  end
+
   pipeline :api do
     plug :accepts, ["json"]
   end
@@ -18,6 +23,12 @@ defmodule LantternWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+
+    live "/assessment-points", AssessmentPointsLive
+  end
+
+  scope "/admin", LantternWeb do
+    pipe_through :browser_admin
 
     scope "/assessments" do
       resources "/assessment_points", AssessmentPointController

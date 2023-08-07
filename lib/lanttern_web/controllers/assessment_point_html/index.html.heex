@@ -1,7 +1,7 @@
 <.header>
   Listing Assessment points
   <:actions>
-    <.link href={~p"/assessments/assessment_points/new"}>
+    <.link href={~p"/admin/assessments/assessment_points/new"}>
       <.button>New Assessment point</.button>
     </.link>
   </:actions>
@@ -10,20 +10,22 @@
 <.table
   id="assessment_points"
   rows={@assessment_points}
-  row_click={&JS.navigate(~p"/assessments/assessment_points/#{&1}")}
+  row_click={&JS.navigate(~p"/admin/assessments/assessment_points/#{&1}")}
 >
   <:col :let={assessment_point} label="Name"><%= assessment_point.name %></:col>
   <:col :let={assessment_point} label="Date"><%= assessment_point.date %></:col>
   <:col :let={assessment_point} label="Description"><%= assessment_point.description %></:col>
   <:action :let={assessment_point}>
     <div class="sr-only">
-      <.link navigate={~p"/assessments/assessment_points/#{assessment_point}"}>Show</.link>
+      <.link navigate={~p"/admin/assessments/assessment_points/#{assessment_point}"}>Show</.link>
     </div>
-    <.link navigate={~p"/assessments/assessment_points/#{assessment_point}/edit"}>Edit</.link>
+    <.link navigate={~p"/admin/assessments/assessment_points/#{assessment_point}/edit"}>
+      Edit
+    </.link>
   </:action>
   <:action :let={assessment_point}>
     <.link
-      href={~p"/assessments/assessment_points/#{assessment_point}"}
+      href={~p"/admin/assessments/assessment_points/#{assessment_point}"}
       method="delete"
       data-confirm="Are you sure?"
     >

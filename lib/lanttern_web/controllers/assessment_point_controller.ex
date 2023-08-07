@@ -28,7 +28,7 @@ defmodule LantternWeb.AssessmentPointController do
       {:ok, assessment} ->
         conn
         |> put_flash(:info, "Assessment created successfully.")
-        |> redirect(to: ~p"/assessments/assessment_points/#{assessment}")
+        |> redirect(to: ~p"/admin/assessments/assessment_points/#{assessment}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         curriculum_item_options = generate_curriculum_item_options()
@@ -68,7 +68,7 @@ defmodule LantternWeb.AssessmentPointController do
       {:ok, assessment_point} ->
         conn
         |> put_flash(:info, "Assessment updated successfully.")
-        |> redirect(to: ~p"/assessments/assessment_points/#{assessment_point}")
+        |> redirect(to: ~p"/admin/assessments/assessment_points/#{assessment_point}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         curriculum_item_options = generate_curriculum_item_options()
@@ -89,7 +89,7 @@ defmodule LantternWeb.AssessmentPointController do
 
     conn
     |> put_flash(:info, "Assessment point deleted successfully.")
-    |> redirect(to: ~p"/assessments/assessment_points")
+    |> redirect(to: ~p"/admin/assessments/assessment_points")
   end
 
   defp generate_curriculum_item_options() do

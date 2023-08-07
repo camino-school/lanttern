@@ -2,7 +2,7 @@
   Composition component item <%= @composition_component_item.id %>
   <:subtitle>This is a composition_component_item record from your database.</:subtitle>
   <:actions>
-    <.link href={~p"/grading/component_items/#{@composition_component_item}/edit"}>
+    <.link href={~p"/admin/grading/component_items/#{@composition_component_item}/edit"}>
       <.button>Edit composition_component_item</.button>
     </.link>
   </:actions>
@@ -14,4 +14,4 @@
   <:item title="Weight"><%= @composition_component_item.weight %></:item>
 </.list>
 
-<.back navigate={~p"/grading/component_items"}>Back to component_items</.back>
+<.back navigate={~p"/admin/grading/component_items"}>Back to component_items</.back>

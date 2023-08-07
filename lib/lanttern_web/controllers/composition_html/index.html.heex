@@ -1,7 +1,7 @@
 <.header>
   Listing Compositions
   <:actions>
-    <.link href={~p"/grading/compositions/new"}>
+    <.link href={~p"/admin/grading/compositions/new"}>
       <.button>New Composition</.button>
     </.link>
   </:actions>
@@ -10,7 +10,7 @@
 <.table
   id="compositions"
   rows={@compositions}
-  row_click={&JS.navigate(~p"/grading/compositions/#{&1}")}
+  row_click={&JS.navigate(~p"/admin/grading/compositions/#{&1}")}
 >
   <:col :let={composition} label="Name"><%= composition.name %></:col>
   <:col :let={composition} label="Final grade scale">
@@ -18,13 +18,13 @@
   </:col>
   <:action :let={composition}>
     <div class="sr-only">
-      <.link navigate={~p"/grading/compositions/#{composition}"}>Show</.link>
+      <.link navigate={~p"/admin/grading/compositions/#{composition}"}>Show</.link>
     </div>
-    <.link navigate={~p"/grading/compositions/#{composition}/edit"}>Edit</.link>
+    <.link navigate={~p"/admin/grading/compositions/#{composition}/edit"}>Edit</.link>
   </:action>
   <:action :let={composition}>
     <.link
-      href={~p"/grading/compositions/#{composition}"}
+      href={~p"/admin/grading/compositions/#{composition}"}
       method="delete"
       data-confirm="Are you sure?"
     >

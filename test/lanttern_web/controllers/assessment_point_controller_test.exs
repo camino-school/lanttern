@@ -17,14 +17,14 @@ defmodule LantternWeb.AssessmentPointControllerTest do
 
   describe "index" do
     test "lists all assessment points", %{conn: conn} do
-      conn = get(conn, ~p"/assessments/assessment_points")
+      conn = get(conn, ~p"/admin/assessments/assessment_points")
       assert html_response(conn, 200) =~ "Listing Assessment points"
     end
   end
 
   describe "new assessment point" do
     test "renders form", %{conn: conn} do
-      conn = get(conn, ~p"/assessments/assessment_points/new")
+      conn = get(conn, ~p"/admin/assessments/assessment_points/new")
       assert html_response(conn, 200) =~ "New Assessment"
     end
   end
@@ -39,17 +39,19 @@ defmodule LantternWeb.AssessmentPointControllerTest do
         |> Map.put_new(:curriculum_item_id, curriculum_item.id)
         |> Map.put_new(:scale_id, scale.id)
 
-      conn = post(conn, ~p"/assessments/assessment_points", assessment_point: create_attrs)
+      conn = post(conn, ~p"/admin/assessments/assessment_points", assessment_point: create_attrs)
 
       assert %{id: id} = redirected_params(conn)
-      assert redirected_to(conn) == ~p"/assessments/assessment_points/#{id}"
+      assert redirected_to(conn) == ~p"/admin/assessments/assessment_points/#{id}"
 
-      conn = get(conn, ~p"/assessments/assessment_points/#{id}")
+      conn = get(conn, ~p"/admin/assessments/assessment_points/#{id}")
       assert html_response(conn, 200) =~ "Assessment point #{id}"
     end
 
     test "renders errors when data is invalid", %{conn: conn} do
-      conn = post(conn, ~p"/assessments/assessment_points", assessment_point: @invalid_attrs)
+      conn =
+        post(conn, ~p"/admin/assessments/assessment_points", assessment_point: @invalid_attrs)
+
       assert html_response(conn, 200) =~ "New Assessment"
     end
   end
@@ -61,7 +63,7 @@ defmodule LantternWeb.AssessmentPointControllerTest do
       conn: conn,
       assessment_point: assessment_point
     } do
-      conn = get(conn, ~p"/assessments/assessment_points/#{assessment_point}/edit")
+      conn = get(conn, ~p"/admin/assessments/assessment_points/#{assessment_point}/edit")
       assert html_response(conn, 200) =~ "Edit Assessment"
     end
   end
@@ -71,19 +73,19 @@ defmodule LantternWeb.AssessmentPointControllerTest do
 
     test "redirects when data is valid", %{conn: conn, assessment_point: assessment_point} do
       conn =
-        put(conn, ~p"/assessments/assessment_points/#{assessment_point}",
+        put(conn, ~p"/admin/assessments/assessment_points/#{assessment_point}",
           assessment_point: @update_attrs
         )
 
-      assert redirected_to(conn) == ~p"/assessments/assessment_points/#{assessment_point}"
+      assert redirected_to(conn) == ~p"/admin/assessments/assessment_points/#{assessment_point}"
 
-      conn = get(conn, ~p"/assessments/assessment_points/#{assessment_point}")
+      conn = get(conn, ~p"/admin/assessments/assessment_points/#{assessment_point}")
       assert html_response(conn, 200) =~ "some updated name"
     end
 
     test "renders errors when data is invalid", %{conn: conn, assessment_point: assessment_point} do
       conn =
-        put(conn, ~p"/assessments/assessment_points/#{assessment_point}",
+        put(conn, ~p"/admin/assessments/assessment_points/#{assessment_point}",
           assessment_point: @invalid_attrs
         )
 
@@ -95,11 +97,11 @@ defmodule LantternWeb.AssessmentPointControllerTest do
     setup [:create_assessment]
 
     test "deletes chosen assessment point", %{conn: conn, assessment_point: assessment_point} do
-      conn = delete(conn, ~p"/assessments/assessment_points/#{assessment_point}")
-      assert redirected_to(conn) == ~p"/assessments/assessment_points"
+      conn = delete(conn, ~p"/admin/assessments/assessment_points/#{assessment_point}")
+      assert redirected_to(conn) == ~p"/admin/assessments/assessment_points"
 
       assert_error_sent 404, fn ->
-        get(conn, ~p"/assessments/assessment_points/#{assessment_point}")
+        get(conn, ~p"/admin/assessments/assessment_points/#{assessment_point}")
       end
     end
   end
