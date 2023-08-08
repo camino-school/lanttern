@@ -9,22 +9,32 @@ defmodule LantternWeb.AssessmentPointLive do
   end
 
   def handle_params(%{"id" => id}, _uri, socket) do
-    assessment_point =
+    try do
       Assessments.get_assessment_point!(id, [:curriculum_item, :scale])
+    rescue
+      Ecto.NoResultsError ->
+        socket =
+          socket
+          |> put_flash(:error, "Assessment point id #{id} does not exist")
+          |> redirect(to: ~p"/assessment_points")
 
-    ordinal_values =
-      if assessment_point.scale.type == "ordinal" do
-        Grading.list_ordinal_values_from_scale(assessment_point.scale.id)
-      else
-        nil
-      end
+        {:noreply, socket}
+    else
+      assessment_point ->
+        ordinal_values =
+          if assessment_point.scale.type == "ordinal" do
+            Grading.list_ordinal_values_from_scale(assessment_point.scale.id)
+          else
+            nil
+          end
 
-    socket =
-      socket
-      |> assign(:assessment_point, assessment_point)
-      |> assign(:ordinal_values, ordinal_values)
+        socket =
+          socket
+          |> assign(:assessment_point, assessment_point)
+          |> assign(:ordinal_values, ordinal_values)
 
-    {:noreply, socket}
+        {:noreply, socket}
+    end
   end
 
   def render(assigns) do

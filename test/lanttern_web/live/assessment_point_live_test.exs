@@ -42,17 +42,15 @@ defmodule LantternWeb.AssessmentPointLiveTest do
       assert view |> has_element?("div", scale.name)
     end
 
-    # test "navigation to assessment point details", %{conn: conn} do
-    #   %{id: id, name: name} = assessment_point_fixture()
+    test "redirect to /assessment_points when supplied id does not exist", %{conn: conn} do
+      %{id: id} = AssessmentsFixtures.assessment_point_fixture()
+      wrong_id = "#{id}000000"
 
-    #   {:ok, view, _html} = live(conn, @live_view_path)
+      {:error, {:redirect, %{to: path, flash: flash}}} =
+        live(conn, "#{@live_view_path_base}/#{wrong_id}")
 
-    #   view
-    #   |> element("li > a", name)
-    #   |> render_click()
-
-    #   path = assert_patch(view)
-    #   assert path == "/assessment_points/#{id}"
-    # end
+      assert path == "/assessment_points"
+      assert flash["error"] == "Assessment point id #{wrong_id} does not exist"
+    end
   end
 end
