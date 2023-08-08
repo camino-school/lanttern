@@ -16,7 +16,7 @@ defmodule LantternWeb.AssessmentPointsLive do
           <br /> in <u>this bimester</u>
         </p>
         <.link
-          href={~p"/assessment-points/explorer"}
+          patch={~p"/assessment_points/explorer"}
           class="flex items-center mt-4 font-display font-black text-lg text-slate-400"
         >
           Explore <.icon name="hero-arrow-right" class="text-cyan-400 ml-2" />

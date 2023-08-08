@@ -335,10 +335,22 @@ defmodule Lanttern.Grading do
     |> Repo.preload(preloads)
   end
 
-  def list_ordinal_values_from_scale(scale_id) do
+  @doc """
+  Returns the list of ordinal_values, ordered by `normalized_value`.
+  Optionally preloads associated data.
+
+  ## Examples
+
+      iex> list_ordinal_values(1)
+      [%OrdinalValue{}, ...]
+
+  """
+  def list_ordinal_values_from_scale(scale_id, preloads \\ []) do
     OrdinalValue
     |> where([ov], ov.scale_id == ^scale_id)
+    |> order_by([ov], asc: ov.normalized_value)
     |> Repo.all()
+    |> Repo.preload(preloads)
   end
 
   @doc """
