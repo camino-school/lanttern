@@ -7,6 +7,15 @@ defmodule LantternWeb.CompositionControllerTest do
   @update_attrs %{name: "some updated name"}
   @invalid_attrs %{name: nil}
 
+  setup %{conn: conn} do
+    # log_in user for all test cases
+    conn =
+      conn
+      |> log_in_user(Lanttern.IdentityFixtures.user_fixture())
+
+    [conn: conn]
+  end
+
   describe "index" do
     test "lists all compositions", %{conn: conn} do
       conn = get(conn, ~p"/admin/grading/compositions")
