@@ -19,7 +19,7 @@ defmodule LantternWeb.ItemController do
       {:ok, item} ->
         conn
         |> put_flash(:info, "Item created successfully.")
-        |> redirect(to: ~p"/curricula/items/#{item}")
+        |> redirect(to: ~p"/admin/curricula/items/#{item}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :new, changeset: changeset)
@@ -44,7 +44,7 @@ defmodule LantternWeb.ItemController do
       {:ok, item} ->
         conn
         |> put_flash(:info, "Item updated successfully.")
-        |> redirect(to: ~p"/curricula/items/#{item}")
+        |> redirect(to: ~p"/admin/curricula/items/#{item}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :edit, item: item, changeset: changeset)
@@ -57,6 +57,6 @@ defmodule LantternWeb.ItemController do
 
     conn
     |> put_flash(:info, "Item deleted successfully.")
-    |> redirect(to: ~p"/curricula/items")
+    |> redirect(to: ~p"/admin/curricula/items")
   end
 end

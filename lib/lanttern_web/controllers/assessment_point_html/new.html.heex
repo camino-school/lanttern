@@ -1,0 +1,13 @@
+<.header>
+  New Assessment
+  <:subtitle>Use this form to manage assessment point records in your database.</:subtitle>
+</.header>
+
+<.assessment_point_form
+  curriculum_item_options={@curriculum_item_options}
+  scale_options={@scale_options}
+  changeset={@changeset}
+  action={~p"/admin/assessments/assessment_points"}
+/>
+
+<.back navigate={~p"/admin/assessments/assessment_points"}>Back to assessment points</.back>

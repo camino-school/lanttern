@@ -20,7 +20,7 @@ defmodule LantternWeb.OrdinalValueController do
       {:ok, ordinal_value} ->
         conn
         |> put_flash(:info, "Ordinal value created successfully.")
-        |> redirect(to: ~p"/grading/ordinal_values/#{ordinal_value}")
+        |> redirect(to: ~p"/admin/grading/ordinal_values/#{ordinal_value}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         options = generate_scale_options()
@@ -52,7 +52,7 @@ defmodule LantternWeb.OrdinalValueController do
       {:ok, ordinal_value} ->
         conn
         |> put_flash(:info, "Ordinal value updated successfully.")
-        |> redirect(to: ~p"/grading/ordinal_values/#{ordinal_value}")
+        |> redirect(to: ~p"/admin/grading/ordinal_values/#{ordinal_value}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         options = generate_scale_options()
@@ -71,7 +71,7 @@ defmodule LantternWeb.OrdinalValueController do
 
     conn
     |> put_flash(:info, "Ordinal value deleted successfully.")
-    |> redirect(to: ~p"/grading/ordinal_values")
+    |> redirect(to: ~p"/admin/grading/ordinal_values")
   end
 
   defp generate_scale_options() do

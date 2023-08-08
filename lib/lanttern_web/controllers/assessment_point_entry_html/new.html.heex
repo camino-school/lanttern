@@ -1,0 +1,16 @@
+<.header>
+  New Assessment point entry
+  <:subtitle>Use this form to manage assessment_point_entry records in your database.</:subtitle>
+</.header>
+
+<.assessment_point_entry_form
+  assessment_point_options={@assessment_point_options}
+  student_options={@student_options}
+  ordinal_value_options={@ordinal_value_options}
+  changeset={@changeset}
+  action={~p"/admin/assessments/assessment_point_entries"}
+/>
+
+<.back navigate={~p"/admin/assessments/assessment_point_entries"}>
+  Back to assessment_point_entries
+</.back>

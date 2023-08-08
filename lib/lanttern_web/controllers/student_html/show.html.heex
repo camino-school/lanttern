@@ -2,7 +2,7 @@
   Student <%= @student.id %>
   <:subtitle>This is a student record from your database.</:subtitle>
   <:actions>
-    <.link href={~p"/schools/students/#{@student}/edit"}>
+    <.link href={~p"/admin/schools/students/#{@student}/edit"}>
       <.button>Edit student</.button>
     </.link>
   </:actions>
@@ -12,4 +12,4 @@
   <:item title="Name"><%= @student.name %></:item>
 </.list>
 
-<.back navigate={~p"/schools/students"}>Back to students</.back>
+<.back navigate={~p"/admin/schools/students"}>Back to students</.back>
