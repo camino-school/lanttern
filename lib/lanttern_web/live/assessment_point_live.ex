@@ -9,13 +9,15 @@ defmodule LantternWeb.AssessmentPointLive do
   end
 
   def handle_params(%{"id" => id}, _uri, socket) do
-    IO.inspect(connected?(socket), label: "Connected? -------------------- ")
-
     assessment_point =
-      Assessments.get_assessment_point!(id, [:curriculum_item, scale: :ordinal_values])
+      Assessments.get_assessment_point!(id, [:curriculum_item, :scale])
 
     ordinal_values =
-      Grading.list_ordinal_values_from_scale(assessment_point.scale.id)
+      if assessment_point.scale.type == "ordinal" do
+        Grading.list_ordinal_values_from_scale(assessment_point.scale.id)
+      else
+        nil
+      end
 
     socket =
       socket

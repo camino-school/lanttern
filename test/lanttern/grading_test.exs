@@ -420,14 +420,16 @@ defmodule Lanttern.GradingTest do
       assert Grading.list_ordinal_values(:scale) == [ordinal_value]
     end
 
-    test "list_ordinal_values_from_scale/1 returns all ordinal_values from the specified scale" do
+    test "list_ordinal_values_from_scale/1 returns all ordinal_values from the specified scale ordered by normalized_value" do
       scale = scale_fixture()
-      ordinal_value_1 = ordinal_value_fixture(%{scale_id: scale.id})
-      ordinal_value_2 = ordinal_value_fixture(%{scale_id: scale.id})
+      ordinal_value_1 = ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0})
+      ordinal_value_2 = ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 1})
+      ordinal_value_3 = ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.5})
       _other_ordinal_value = ordinal_value_fixture()
 
       assert Grading.list_ordinal_values_from_scale(scale.id) == [
                ordinal_value_1,
+               ordinal_value_3,
                ordinal_value_2
              ]
     end
