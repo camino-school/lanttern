@@ -12,10 +12,10 @@ defmodule LantternWeb.AssessmentPointLive do
     try do
       Assessments.get_assessment_point!(id, [:curriculum_item, :scale])
     rescue
-      Ecto.NoResultsError ->
+      _ ->
         socket =
           socket
-          |> put_flash(:error, "Assessment point id #{id} does not exist")
+          |> put_flash(:error, "Couldn't find assessment point \"#{id}\"")
           |> redirect(to: ~p"/assessment_points")
 
         {:noreply, socket}

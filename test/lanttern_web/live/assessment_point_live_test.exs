@@ -43,14 +43,23 @@ defmodule LantternWeb.AssessmentPointLiveTest do
     end
 
     test "redirect to /assessment_points when supplied id does not exist", %{conn: conn} do
-      %{id: id} = AssessmentsFixtures.assessment_point_fixture()
-      wrong_id = "#{id}000000"
+      wrong_id = "1000000"
 
       {:error, {:redirect, %{to: path, flash: flash}}} =
         live(conn, "#{@live_view_path_base}/#{wrong_id}")
 
       assert path == "/assessment_points"
-      assert flash["error"] == "Assessment point id #{wrong_id} does not exist"
+      assert flash["error"] == "Couldn't find assessment point \"#{wrong_id}\""
+    end
+
+    test "redirect to /assessment_points when supplied id is string", %{conn: conn} do
+      wrong_id = "abcd"
+
+      {:error, {:redirect, %{to: path, flash: flash}}} =
+        live(conn, "#{@live_view_path_base}/#{wrong_id}")
+
+      assert path == "/assessment_points"
+      assert flash["error"] == "Couldn't find assessment point \"#{wrong_id}\""
     end
   end
 end
