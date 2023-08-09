@@ -11,7 +11,7 @@ defmodule LantternWeb.CompositionControllerTest do
     # log_in user for all test cases
     conn =
       conn
-      |> log_in_user(Lanttern.IdentityFixtures.user_fixture())
+      |> log_in_user(Lanttern.IdentityFixtures.root_admin_fixture())
 
     [conn: conn]
   end

@@ -4,6 +4,8 @@ defmodule Lanttern.IdentityFixtures do
   entities via the `Lanttern.Identity` context.
   """
 
+  import Ecto.Query, only: [from: 2]
+
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
   def valid_user_password, do: "hello world!"
 
@@ -21,6 +23,17 @@ defmodule Lanttern.IdentityFixtures do
       |> Lanttern.Identity.register_user()
 
     user
+  end
+
+  def root_admin_fixture(attrs \\ %{}) do
+    user = user_fixture(attrs)
+
+    # update is_root_admin in DB using query
+    # (we won't add changesets and public API to create a root admin)
+    from(u in Lanttern.Identity.User, where: u.id == ^user.id)
+    |> Lanttern.Repo.update_all(set: [is_root_admin: true])
+
+    user |> Map.put(:is_root_admin, true)
   end
 
   def extract_user_token(fun) do

@@ -211,6 +211,21 @@ defmodule LantternWeb.UserAuth do
     end
   end
 
+  @doc """
+  Used for routes that require root admin permissions.
+  Must be used after `require_authenticated_user/2` (current_user required)
+  """
+  def require_root_admin(%{assigns: %{current_user: current_user}} = conn, _opts) do
+    if current_user.is_root_admin do
+      conn
+    else
+      conn
+      |> put_flash(:error, "You must have root admin privileges to access this page.")
+      |> redirect(to: ~p"/")
+      |> halt()
+    end
+  end
+
   defp put_token_in_session(conn, token) do
     conn
     |> put_session(:user_token, token)

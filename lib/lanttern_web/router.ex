@@ -13,9 +13,9 @@ defmodule LantternWeb.Router do
     plug :fetch_current_user
   end
 
-  pipeline :browser_admin do
-    plug :browser
+  pipeline :admin do
     plug :put_layout, html: {LantternWeb.Layouts, :admin}
+    plug :require_root_admin
   end
 
   pipeline :api do
@@ -33,7 +33,7 @@ defmodule LantternWeb.Router do
   end
 
   scope "/admin", LantternWeb do
-    pipe_through [:browser_admin, :require_authenticated_user]
+    pipe_through [:browser, :require_authenticated_user, :admin]
 
     scope "/assessments" do
       resources "/assessment_points", AssessmentPointController
