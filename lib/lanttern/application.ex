@@ -21,7 +21,7 @@ defmodule Lanttern.Application do
       # Start a worker by calling: Lanttern.Worker.start_link(arg)
       # {Lanttern.Worker, arg},
       # Start Joken JWKS token strategy
-      {Lanttern.GoogleTokenStrategy, time_interval: 60_000}
+      {Lanttern.GoogleTokenStrategy, time_interval: 600_000}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

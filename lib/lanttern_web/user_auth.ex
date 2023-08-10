@@ -108,6 +108,41 @@ defmodule LantternWeb.UserAuth do
     end
   end
 
+  defmodule InvalidGoogleCSRFTokenError do
+    @moduledoc "Error raised when Google CSRF token is invalid."
+
+    defexception [:message]
+
+    @impl true
+    def exception(message) do
+      %InvalidGoogleCSRFTokenError{message: message}
+    end
+  end
+
+  @doc """
+  Verify Google's CSRF token.
+  Reference: https://developers.google.com/identity/gsi/web/guides/verify-google-id-token
+  """
+  def verify_google_csrf_token(conn, _opts) do
+    csrf_token_cookie = conn.req_cookies |> Map.get("g_csrf_token", nil)
+
+    if is_nil(csrf_token_cookie) do
+      raise InvalidGoogleCSRFTokenError, "No CSRF token in Cookie."
+    end
+
+    csrf_token_body = conn.params |> Map.get("g_csrf_token", nil)
+
+    if is_nil(csrf_token_cookie) do
+      raise InvalidGoogleCSRFTokenError, "No CSRF token in post body."
+    end
+
+    if csrf_token_cookie != csrf_token_body do
+      raise InvalidGoogleCSRFTokenError, "Failed to verify double submit cookie."
+    end
+
+    conn
+  end
+
   @doc """
   Handles mounting and authenticating the current_user in LiveViews.
 

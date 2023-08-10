@@ -22,33 +22,11 @@ import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
 
-let hooks = {};
-
-// Sign in with Google callback handler
-
-const GOOGLE_AUTH_CALLBACK_EVENT = "lanttern:google-auth-callback";
-
-window.handleGoogleAuthCallback = (response) => {
-  let googleAuthCallbackEvent = new CustomEvent(GOOGLE_AUTH_CALLBACK_EVENT, {
-    detail: response,
-  });
-  window.dispatchEvent(googleAuthCallbackEvent);
-};
-
-hooks.GoogleAuthCallback = {
-  mounted() {
-    window.addEventListener(GOOGLE_AUTH_CALLBACK_EVENT, (event) => {
-      this.pushEvent("google-auth-callback", event.detail);
-    });
-  },
-};
-
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
 let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
-  hooks,
 });
 
 // Show progress bar on live navigation and form submits

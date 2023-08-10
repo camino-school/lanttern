@@ -34,6 +34,33 @@ defmodule LantternWeb.UserSessionController do
     end
   end
 
+  def google_sign_in(conn, %{"credential" => credential}) do
+    handle_google_sign_in_response(
+      conn,
+      Lanttern.GoogleToken.verify_and_validate(credential)
+    )
+  end
+
+  defp handle_google_sign_in_response(conn, {:ok, claims}) do
+    %{"email" => email, "name" => name} = claims
+
+    if user = Identity.get_user_by_email(email) do
+      conn
+      |> put_flash(:info, "Welcome back #{name}!")
+      |> UserAuth.log_in_user(user)
+    else
+      conn
+      |> put_flash(:error, "User not registered in Lanttern")
+      |> redirect(to: ~p"/users/log_in")
+    end
+  end
+
+  defp handle_google_sign_in_response(conn, {:error, error_reason}) do
+    conn
+    |> put_flash(:error, error_reason[:message])
+    |> redirect(to: ~p"/users/log_in")
+  end
+
   def delete(conn, _params) do
     conn
     |> put_flash(:info, "Logged out successfully.")
