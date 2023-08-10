@@ -111,11 +111,11 @@ defmodule LantternWeb.UserAuth do
   defmodule InvalidGoogleCSRFTokenError do
     @moduledoc "Error raised when Google CSRF token is invalid."
 
-    defexception [:message]
+    defexception [:message, :plug_status]
 
     @impl true
-    def exception(message) do
-      %InvalidGoogleCSRFTokenError{message: message}
+    def exception(message, plug_status \\ 403) do
+      %InvalidGoogleCSRFTokenError{message: message, plug_status: plug_status}
     end
   end
 
