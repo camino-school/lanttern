@@ -17,9 +17,11 @@ defmodule Lanttern.Application do
       # Start Finch
       {Finch, name: Lanttern.Finch},
       # Start the Endpoint (http/https)
-      LantternWeb.Endpoint
+      LantternWeb.Endpoint,
       # Start a worker by calling: Lanttern.Worker.start_link(arg)
-      # {Lanttern.Worker, arg}
+      # {Lanttern.Worker, arg},
+      # Start Joken JWKS token strategy
+      {Lanttern.GoogleTokenStrategy, time_interval: 60_000}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

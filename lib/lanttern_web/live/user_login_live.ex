@@ -30,6 +30,31 @@ defmodule LantternWeb.UserLoginLive do
             Sign in <span aria-hidden="true">→</span>
           </.button>
         </:actions>
+        <:actions>
+          <script src="https://accounts.google.com/gsi/client" async>
+          </script>
+          <div
+            id="g_id_onload"
+            data-client_id={@google_client_id}
+            data-context="signin"
+            data-ux_mode="popup"
+            data-callback="handleGoogleAuthCallback"
+            data-auto_prompt="false"
+            phx-hook="GoogleAuthCallback"
+          >
+          </div>
+
+          <div
+            class="g_id_signin"
+            data-type="standard"
+            data-shape="pill"
+            data-theme="outline"
+            data-text="continue_with"
+            data-size="large"
+            data-logo_alignment="left"
+          >
+          </div>
+        </:actions>
       </.simple_form>
     </div>
     """
@@ -38,6 +63,27 @@ defmodule LantternWeb.UserLoginLive do
   def mount(_params, _session, socket) do
     email = live_flash(socket.assigns.flash, :email)
     form = to_form(%{"email" => email}, as: "user")
-    {:ok, assign(socket, form: form), temporary_assigns: [form: form]}
+
+    google_client_id =
+      Application.get_env(:lanttern, LantternWeb.UserAuth)
+      |> Keyword.get(:google_client_id)
+
+    socket =
+      socket
+      |> assign(form: form)
+      |> assign(google_client_id: google_client_id)
+
+    {:ok, socket, temporary_assigns: [form: form]}
+  end
+
+  def handle_event("google-auth-callback", %{"credential" => credential} = response, socket) do
+    IO.inspect(response)
+    IO.inspect(Lanttern.GoogleToken.verify_and_validate(credential), label: "verify and validate")
+    {:noreply, socket}
+  end
+
+  def handle_event("google-auth-callback", response, socket) do
+    IO.inspect(response, label: "Other responses")
+    {:noreply, socket}
   end
 end
