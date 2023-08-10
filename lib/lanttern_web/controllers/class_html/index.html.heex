@@ -1,0 +1,23 @@
+<.header>
+  Listing Classes
+  <:actions>
+    <.link href={~p"/admin/schools/classes/new"}>
+      <.button>New Class</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table id="classes" rows={@classes} row_click={&JS.navigate(~p"/admin/schools/classes/#{&1}")}>
+  <:col :let={class} label="Name"><%= class.name %></:col>
+  <:action :let={class}>
+    <div class="sr-only">
+      <.link navigate={~p"/admin/schools/classes/#{class}"}>Show</.link>
+    </div>
+    <.link navigate={~p"/admin/schools/classes/#{class}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={class}>
+    <.link href={~p"/admin/schools/classes/#{class}"} method="delete" data-confirm="Are you sure?">
+      Delete
+    </.link>
+  </:action>
+</.table>

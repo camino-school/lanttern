@@ -1,0 +1,8 @@
+<.header>
+  Edit Class <%= @class.id %>
+  <:subtitle>Use this form to manage class records in your database.</:subtitle>
+</.header>
+
+<.class_form changeset={@changeset} action={~p"/admin/schools/classes/#{@class}"} />
+
+<.back navigate={~p"/admin/schools/classes"}>Back to classes</.back>
