@@ -7,6 +7,15 @@ defmodule LantternWeb.ScaleControllerTest do
   @update_attrs %{name: "some updated name", start: 456.7, stop: 456.7, type: "numeric"}
   @invalid_attrs %{name: nil, start: nil, stop: nil, type: nil}
 
+  setup %{conn: conn} do
+    # log_in user for all test cases
+    conn =
+      conn
+      |> log_in_user(Lanttern.IdentityFixtures.root_admin_fixture())
+
+    [conn: conn]
+  end
+
   describe "index" do
     test "lists all scales", %{conn: conn} do
       conn = get(conn, ~p"/admin/grading/scales")
