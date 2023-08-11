@@ -1,10 +1,11 @@
 defmodule LantternWeb.AssessmentPointEntryController do
   use LantternWeb, :controller
 
+  import LantternWeb.AssessmentsHelpers
+  import LantternWeb.GradingHelpers
+  import LantternWeb.SchoolsHelpers
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPointEntry
-  alias Lanttern.Grading
-  alias Lanttern.Schools
 
   def index(conn, _params) do
     assessment_point_entries = Assessments.list_assessment_point_entries()
@@ -103,23 +104,5 @@ defmodule LantternWeb.AssessmentPointEntryController do
     conn
     |> put_flash(:info, "Assessment point entry deleted successfully.")
     |> redirect(to: ~p"/admin/assessments/assessment_point_entries")
-  end
-
-  defp generate_assessment_point_options() do
-    Assessments.list_assessment_points()
-    |> Enum.map(fn ap -> ["#{ap.name}": ap.id] end)
-    |> Enum.concat()
-  end
-
-  defp generate_student_options() do
-    Schools.list_students()
-    |> Enum.map(fn s -> ["#{s.name}": s.id] end)
-    |> Enum.concat()
-  end
-
-  defp generate_ordinal_value_options() do
-    Grading.list_ordinal_values()
-    |> Enum.map(fn ov -> ["#{ov.name}": ov.id] end)
-    |> Enum.concat()
   end
 end

@@ -1,6 +1,7 @@
 defmodule LantternWeb.CompositionController do
   use LantternWeb, :controller
 
+  import LantternWeb.GradingHelpers
   alias Lanttern.Grading
   alias Lanttern.Grading.Composition
 
@@ -67,11 +68,5 @@ defmodule LantternWeb.CompositionController do
     conn
     |> put_flash(:info, "Composition deleted successfully.")
     |> redirect(to: ~p"/admin/grading/compositions")
-  end
-
-  defp generate_scale_options() do
-    Grading.list_scales()
-    |> Enum.map(fn s -> ["#{s.name}": s.id] end)
-    |> Enum.concat()
   end
 end

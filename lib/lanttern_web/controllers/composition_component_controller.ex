@@ -1,6 +1,7 @@
 defmodule LantternWeb.CompositionComponentController do
   use LantternWeb, :controller
 
+  import LantternWeb.GradingHelpers
   alias Lanttern.Grading
   alias Lanttern.Grading.CompositionComponent
 
@@ -72,11 +73,5 @@ defmodule LantternWeb.CompositionComponentController do
     conn
     |> put_flash(:info, "Composition component deleted successfully.")
     |> redirect(to: ~p"/admin/grading/composition_components")
-  end
-
-  defp generate_composition_options() do
-    Grading.list_compositions()
-    |> Enum.map(fn c -> ["#{c.name}": c.id] end)
-    |> Enum.concat()
   end
 end
