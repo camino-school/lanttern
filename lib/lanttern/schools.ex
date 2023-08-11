@@ -69,6 +69,7 @@ defmodule Lanttern.Schools do
   """
   def update_student(%Student{} = student, attrs) do
     student
+    |> Repo.preload(:classes)
     |> Student.changeset(attrs)
     |> Repo.update()
   end
@@ -165,6 +166,7 @@ defmodule Lanttern.Schools do
   """
   def update_class(%Class{} = class, attrs) do
     class
+    |> Repo.preload(:students)
     |> Class.changeset(attrs)
     |> Repo.update()
   end
