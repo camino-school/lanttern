@@ -10,14 +10,26 @@ defmodule Lanttern.SchoolsTest do
 
     @invalid_attrs %{name: nil}
 
-    test "list_students/0 returns all students" do
+    test "list_students/1 returns all students" do
       student = student_fixture()
       assert Schools.list_students() == [student]
     end
 
-    test "get_student!/1 returns the student with given id" do
+    test "list_students/1 with preloads returns all students with preloaded data" do
+      class = class_fixture()
+      student = student_fixture(%{classes_ids: [class.id]})
+      assert Schools.list_students(:classes) == [student |> Map.put(:classes_ids, nil)]
+    end
+
+    test "get_student!/2 returns the student with given id" do
       student = student_fixture()
       assert Schools.get_student!(student.id) == student
+    end
+
+    test "get_student!/2 with preloads returns the student with given id and preloaded data" do
+      class = class_fixture()
+      student = student_fixture(%{classes_ids: [class.id]})
+      assert Schools.get_student!(student.id, :classes) == student |> Map.put(:classes_ids, nil)
     end
 
     test "create_student/1 with valid data creates a student" do
@@ -103,14 +115,26 @@ defmodule Lanttern.SchoolsTest do
 
     @invalid_attrs %{name: nil}
 
-    test "list_classes/0 returns all classes" do
+    test "list_classes/1 returns all classes" do
       class = class_fixture()
       assert Schools.list_classes() == [class]
     end
 
-    test "get_class!/1 returns the class with given id" do
+    test "list_classes/1 with preloads returns all classes with preloaded data" do
+      student = student_fixture()
+      class = class_fixture(%{students_ids: [student.id]})
+      assert Schools.list_classes(:students) == [class |> Map.put(:students_ids, nil)]
+    end
+
+    test "get_class!/2 returns the class with given id" do
       class = class_fixture()
       assert Schools.get_class!(class.id) == class
+    end
+
+    test "get_class!/2 with preloads returns the class with given id and preloaded data" do
+      student = student_fixture()
+      class = class_fixture(%{students_ids: [student.id]})
+      assert Schools.get_class!(class.id, :students) == class |> Map.put(:students_ids, nil)
     end
 
     test "create_class/1 with valid data creates a class" do

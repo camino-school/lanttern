@@ -10,6 +10,11 @@
 
 <.list>
   <:item title="Name"><%= @student.name %></:item>
+  <:item title="Classes">
+    <%= @student.classes
+    |> Enum.map(& &1.name)
+    |> Enum.join(", ") %>
+  </:item>
 </.list>
 
 <.back navigate={~p"/admin/schools/students"}>Back to students</.back>

@@ -12,7 +12,9 @@
 
 alias Lanttern.Repo
 alias Lanttern.Curricula
+alias Lanttern.Identity
 alias Lanttern.Grading
+alias Lanttern.Schools
 
 # ------------------------------
 # curriculum
@@ -122,3 +124,31 @@ Repo.insert!(%Grading.CompositionComponentItem{
   curriculum_item_id: en_lo_1.id,
   weight: 1.0
 })
+
+# ------------------------------
+# school
+# ------------------------------
+
+std_1 = Repo.insert!(%Schools.Student{name: "Bia"})
+std_2 = Repo.insert!(%Schools.Student{name: "Alberto"})
+std_3 = Repo.insert!(%Schools.Student{name: "Zeca"})
+std_4 = Repo.insert!(%Schools.Student{name: "Juju"})
+
+# use changeset to `put_assoc` students
+Schools.Class.changeset(%Schools.Class{}, %{
+  name: "Grade X",
+  students_ids: [std_1.id, std_2.id, std_3.id]
+})
+|> Repo.insert!()
+
+# ------------------------------
+# identity
+# ------------------------------
+
+# use changeset to hash password
+Identity.User.registration_changeset(%Identity.User{}, %{
+  email: System.get_env("ROOT_ADMIN_EMAIL"),
+  password: "asdfasdfasdf"
+})
+|> Ecto.Changeset.put_change(:is_root_admin, true)
+|> Repo.insert!()

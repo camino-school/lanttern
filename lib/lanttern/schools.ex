@@ -10,6 +10,7 @@ defmodule Lanttern.Schools do
 
   @doc """
   Returns the list of students.
+  Optionally preloads associated data.
 
   ## Examples
 
@@ -17,12 +18,14 @@ defmodule Lanttern.Schools do
       [%Student{}, ...]
 
   """
-  def list_students do
+  def list_students(preloads \\ []) do
     Repo.all(Student)
+    |> Repo.preload(preloads)
   end
 
   @doc """
   Gets a single student.
+  Optionally preloads associated data.
 
   Raises `Ecto.NoResultsError` if the Student does not exist.
 
@@ -35,7 +38,10 @@ defmodule Lanttern.Schools do
       ** (Ecto.NoResultsError)
 
   """
-  def get_student!(id), do: Repo.get!(Student, id)
+  def get_student!(id, preloads \\ []) do
+    Repo.get!(Student, id)
+    |> Repo.preload(preloads)
+  end
 
   @doc """
   Creates a student.
@@ -107,6 +113,7 @@ defmodule Lanttern.Schools do
 
   @doc """
   Returns the list of classes.
+  Optionally preloads associated data.
 
   ## Examples
 
@@ -114,12 +121,14 @@ defmodule Lanttern.Schools do
       [%Class{}, ...]
 
   """
-  def list_classes do
+  def list_classes(preloads \\ []) do
     Repo.all(Class)
+    |> Repo.preload(preloads)
   end
 
   @doc """
   Gets a single class.
+  Optionally preloads associated data.
 
   Raises `Ecto.NoResultsError` if the Class does not exist.
 
@@ -132,7 +141,10 @@ defmodule Lanttern.Schools do
       ** (Ecto.NoResultsError)
 
   """
-  def get_class!(id), do: Repo.get!(Class, id)
+  def get_class!(id, preloads \\ []) do
+    Repo.get!(Class, id)
+    |> Repo.preload(preloads)
+  end
 
   @doc """
   Creates a class.
