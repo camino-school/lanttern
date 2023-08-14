@@ -13,7 +13,9 @@
   row_click={&JS.navigate(~p"/admin/assessments/assessment_points/#{&1}")}
 >
   <:col :let={assessment_point} label="Name"><%= assessment_point.name %></:col>
-  <:col :let={assessment_point} label="Date"><%= assessment_point.date %></:col>
+  <:col :let={assessment_point} label="Date">
+    <%= Timex.local(assessment_point.date) |> Timex.format!("{ISO:Extended}") %>
+  </:col>
   <:col :let={assessment_point} label="Description"><%= assessment_point.description %></:col>
   <:action :let={assessment_point}>
     <div class="sr-only">

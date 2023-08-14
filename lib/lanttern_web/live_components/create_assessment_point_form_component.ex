@@ -3,6 +3,11 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
 
   alias Phoenix.LiveView.JS
 
+  alias Lanttern.Assessments
+  alias Lanttern.Assessments.AssessmentPoint
+  alias LantternWeb.CurriculaHelpers
+  alias LantternWeb.GradingHelpers
+
   def render(assigns) do
     ~H"""
     <div>
@@ -33,48 +38,47 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
                   <div class="flex min-h-0 flex-1 flex-col overflow-y-scroll py-6">
                     <div class="px-4 sm:px-6">
                       <div class="flex items-start justify-between">
-                        <h2
-                          class="text-base font-semibold leading-6 text-gray-900"
-                          id="slide-over-title"
-                        >
-                          Panel title
+                        <h2 class="font-display font-black text-3xl" id="slide-over-title">
+                          Create assessment point
                         </h2>
                       </div>
                     </div>
                     <div class="relative mt-6 flex-1 px-4 sm:px-6">
-                      <p>
-                        Consequatur qui est et autem velit consequatur quidem. Ipsa sit reprehenderit totam rerum voluptas dolorem quisquam sit. Nisi molestiae vitae nostrum labore. Distinctio quia fuga et temporibus maxime quas. Maiores deleniti distinctio quas debitis voluptates accusamus.
-
-                        Totam hic eum expedita. Aut sequi tempore aut et sapiente. Quo aut commodi praesentium aut voluptas qui. Corporis et laborum exercitationem itaque magnam rerum fuga. Reprehenderit fugiat ab voluptas autem.
-
-                        Ea ducimus quia pariatur illum. Est qui quibusdam recusandae harum et unde qui consequatur. Praesentium illo exercitationem eum quo tempora.
-
-                        Aliquam consectetur est esse. Facilis id ratione et id ut. Consequatur labore eum quam odio recusandae. In architecto dicta et at est facere. Id temporibus odit nobis et aspernatur qui.
-
-                        Et enim deleniti quo. Id laboriosam dolores aut mollitia id consequatur deleniti. Explicabo quia et rerum. Id perspiciatis et velit saepe ab. Reiciendis reiciendis dolorem consequatur aliquid.
-                      </p>
-                      <p>
-                        Consequatur qui est et autem velit consequatur quidem. Ipsa sit reprehenderit totam rerum voluptas dolorem quisquam sit. Nisi molestiae vitae nostrum labore. Distinctio quia fuga et temporibus maxime quas. Maiores deleniti distinctio quas debitis voluptates accusamus.
-
-                        Totam hic eum expedita. Aut sequi tempore aut et sapiente. Quo aut commodi praesentium aut voluptas qui. Corporis et laborum exercitationem itaque magnam rerum fuga. Reprehenderit fugiat ab voluptas autem.
-
-                        Ea ducimus quia pariatur illum. Est qui quibusdam recusandae harum et unde qui consequatur. Praesentium illo exercitationem eum quo tempora.
-
-                        Aliquam consectetur est esse. Facilis id ratione et id ut. Consequatur labore eum quam odio recusandae. In architecto dicta et at est facere. Id temporibus odit nobis et aspernatur qui.
-
-                        Et enim deleniti quo. Id laboriosam dolores aut mollitia id consequatur deleniti. Explicabo quia et rerum. Id perspiciatis et velit saepe ab. Reiciendis reiciendis dolorem consequatur aliquid.
-                      </p>
-                      <p>
-                        Consequatur qui est et autem velit consequatur quidem. Ipsa sit reprehenderit totam rerum voluptas dolorem quisquam sit. Nisi molestiae vitae nostrum labore. Distinctio quia fuga et temporibus maxime quas. Maiores deleniti distinctio quas debitis voluptates accusamus.
-
-                        Totam hic eum expedita. Aut sequi tempore aut et sapiente. Quo aut commodi praesentium aut voluptas qui. Corporis et laborum exercitationem itaque magnam rerum fuga. Reprehenderit fugiat ab voluptas autem.
-
-                        Ea ducimus quia pariatur illum. Est qui quibusdam recusandae harum et unde qui consequatur. Praesentium illo exercitationem eum quo tempora.
-
-                        Aliquam consectetur est esse. Facilis id ratione et id ut. Consequatur labore eum quam odio recusandae. In architecto dicta et at est facere. Id temporibus odit nobis et aspernatur qui.
-
-                        Et enim deleniti quo. Id laboriosam dolores aut mollitia id consequatur deleniti. Explicabo quia et rerum. Id perspiciatis et velit saepe ab. Reiciendis reiciendis dolorem consequatur aliquid.
-                      </p>
+                      <.form
+                        id="create-assessment-point-form"
+                        for={@form}
+                        phx-change="validate"
+                        phx-submit="save"
+                        phx-target={@myself}
+                      >
+                        <.error :if={@form.source.action == :insert}>
+                          Oops, something went wrong! Please check the errors below.
+                        </.error>
+                        <.input field={@form[:name]} label="Assessment point name" />
+                        <.input
+                          type="textarea"
+                          field={@form[:description]}
+                          label="Decription (optional)"
+                        />
+                        <.input type="datetime-local" field={@form[:datetime_ui]} label="Datetime" />
+                        <.input type="hidden" field={@form[:date]} />
+                        <.input
+                          field={@form[:curriculum_item_id]}
+                          type="select"
+                          label="Curriculum item"
+                          options={@curriculum_item_options}
+                          prompt="Select a curriculum item"
+                        />
+                        <.input
+                          field={@form[:scale_id]}
+                          type="select"
+                          label="Scale"
+                          options={@scale_options}
+                          prompt="Select a scale"
+                        />
+                        <pre>
+                        </pre>
+                      </.form>
                     </div>
                   </div>
                   <div class="flex flex-shrink-0 justify-end px-4 py-4">
@@ -87,6 +91,7 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
                     </button>
                     <button
                       type="submit"
+                      form="create-assessment-point-form"
                       class="ml-4 inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
                     >
                       Save
@@ -100,6 +105,43 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
       </div>
     </div>
     """
+  end
+
+  def mount(socket) do
+    changeset = Assessments.change_assessment_point(%AssessmentPoint{})
+    curriculum_item_options = CurriculaHelpers.generate_curriculum_item_options()
+    scale_options = GradingHelpers.generate_scale_options()
+
+    socket =
+      socket
+      |> assign(%{
+        form: to_form(changeset),
+        curriculum_item_options: curriculum_item_options,
+        scale_options: scale_options
+      })
+
+    {:ok, socket}
+  end
+
+  def handle_event("validate", %{"assessment_point" => params}, socket) do
+    form =
+      %AssessmentPoint{}
+      |> Assessments.change_assessment_point(params)
+      |> Map.put(:action, :validate)
+      |> to_form()
+
+    {:noreply, assign(socket, form: form)}
+  end
+
+  def handle_event("save", %{"assessment_point" => params}, socket) do
+    case Assessments.create_assessment_point(params) do
+      {:ok, assessment_point} ->
+        send(self(), {:assessment_point_created, assessment_point})
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, form: to_form(changeset))}
+    end
   end
 
   def show_create_form() do
