@@ -110,24 +110,37 @@ defmodule LantternWeb.CoreComponents do
     <div
       :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
       id={@id}
-      phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
+      phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide_alert("##{@id}")}
       role="alert"
       class={[
-        "fixed top-2 right-2 w-80 sm:w-96 z-50 rounded-lg p-3 ring-1",
-        @kind == :info && "bg-emerald-50 text-emerald-800 ring-emerald-500 fill-cyan-900",
-        @kind == :error && "bg-rose-50 text-rose-900 shadow-md ring-rose-500 fill-rose-900"
+        "pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1",
+        @kind == :info && "ring-green-500/50",
+        @kind == :error && "bg-rose-50 ring-rose-500/50"
       ]}
       {@rest}
     >
-      <p :if={@title} class="flex items-center gap-1.5 text-sm font-semibold leading-6">
-        <.icon :if={@kind == :info} name="hero-information-circle-mini" class="h-4 w-4" />
-        <.icon :if={@kind == :error} name="hero-exclamation-circle-mini" class="h-4 w-4" />
-        <%= @title %>
-      </p>
-      <p class="mt-2 text-sm leading-5"><%= msg %></p>
-      <button type="button" class="group absolute top-1 right-1 p-2" aria-label={gettext("close")}>
-        <.icon name="hero-x-mark-solid" class="h-5 w-5 opacity-40 group-hover:opacity-70" />
-      </button>
+      <div class="p-4">
+        <div class="flex items-start">
+          <div class="flex-shrink-0">
+            <.icon :if={@kind == :info} name="hero-information-circle" class="h-6 w-6 text-green-500" />
+            <.icon :if={@kind == :error} name="hero-exclamation-circle" class="h-6 w-6 text-rose-500" />
+          </div>
+          <div class="ml-3 w-0 flex-1 pt-0.5">
+            <p :if={@title} class="mb-1 text-sm font-bold"><%= @title %></p>
+            <p class="text-sm text-slate-400"><%= msg %></p>
+          </div>
+          <div class="ml-4 flex flex-shrink-0">
+            <button
+              type="button"
+              class="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              aria-label={gettext("close")}
+            >
+              <span class="sr-only">Close</span>
+              <.icon name="hero-x-mark-mini" />
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
     """
   end
@@ -143,30 +156,38 @@ defmodule LantternWeb.CoreComponents do
 
   def flash_group(assigns) do
     ~H"""
-    <.flash kind={:info} title="Success!" flash={@flash} />
-    <.flash kind={:error} title="Error!" flash={@flash} />
-    <.flash
-      id="client-error"
-      kind={:error}
-      title="We can't find the internet"
-      phx-disconnected={show(".phx-client-error #client-error")}
-      phx-connected={hide("#client-error")}
-      hidden
+    <!-- Global notification live region, render this permanently at the end of the document -->
+    <div
+      aria-live="assertive"
+      class="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
     >
-      Attempting to reconnect <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
-    </.flash>
+      <div class="flex w-full flex-col items-center space-y-4 sm:items-end">
+        <.flash kind={:info} title="Success!" flash={@flash} />
+        <.flash kind={:error} title="Error!" flash={@flash} />
+        <.flash
+          id="client-error"
+          kind={:error}
+          title="We can't find the internet"
+          phx-disconnected={show_alert(".phx-client-error #client-error")}
+          phx-connected={hide_alert("#client-error")}
+          hidden
+        >
+          Attempting to reconnect <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
+        </.flash>
 
-    <.flash
-      id="server-error"
-      kind={:error}
-      title="Something went wrong!"
-      phx-disconnected={show(".phx-server-error #server-error")}
-      phx-connected={hide("#server-error")}
-      hidden
-    >
-      Hang in there while we get back on track
-      <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
-    </.flash>
+        <.flash
+          id="server-error"
+          kind={:error}
+          title="Something went wrong!"
+          phx-disconnected={show_alert(".phx-server-error #server-error")}
+          phx-connected={hide_alert("#server-error")}
+          hidden
+        >
+          Hang in there while we get back on track
+          <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
+        </.flash>
+      </div>
+    </div>
     """
   end
 
@@ -584,11 +605,30 @@ defmodule LantternWeb.CoreComponents do
 
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
-    <span class={[@name, @class]} />
+    <span class={[@name, @class]} aria-hidden="true" />
     """
   end
 
   ## JS Commands
+
+  def show_alert(js \\ %JS{}, selector) do
+    JS.show(js,
+      to: selector,
+      time: 300,
+      transition:
+        {"transform ease-out duration-300 transition-all",
+         "translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2",
+         "translate-y-0 opacity-100 sm:translate-x-0"}
+    )
+  end
+
+  def hide_alert(js \\ %JS{}, selector) do
+    JS.hide(js,
+      to: selector,
+      time: 100,
+      transition: {"transition-all ease-in duration-100", "opacity-100", "opacity-0"}
+    )
+  end
 
   def show(js \\ %JS{}, selector) do
     JS.show(js,
