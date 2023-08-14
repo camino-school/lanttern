@@ -36,7 +36,7 @@ defmodule Lanttern.AssessmentsTest do
 
       valid_attrs = %{
         name: "some name",
-        date: ~U[2023-08-02 15:30:00Z],
+        datetime: ~U[2023-08-02 15:30:00Z],
         description: "some description",
         curriculum_item_id: curriculum_item.id,
         scale_id: scale.id
@@ -46,7 +46,7 @@ defmodule Lanttern.AssessmentsTest do
                Assessments.create_assessment_point(valid_attrs)
 
       assert assessment_point.name == "some name"
-      assert assessment_point.date == ~U[2023-08-02 15:30:00Z]
+      assert assessment_point.datetime == ~U[2023-08-02 15:30:00Z]
       assert assessment_point.description == "some description"
       assert assessment_point.curriculum_item_id == curriculum_item.id
       assert assessment_point.scale_id == scale.id
@@ -61,7 +61,7 @@ defmodule Lanttern.AssessmentsTest do
 
       update_attrs = %{
         name: "some updated name",
-        date: ~U[2023-08-03 15:30:00Z],
+        datetime: ~U[2023-08-03 15:30:00Z],
         description: "some updated description"
       }
 
@@ -69,7 +69,7 @@ defmodule Lanttern.AssessmentsTest do
                Assessments.update_assessment_point(assessment_point, update_attrs)
 
       assert assessment_point.name == "some updated name"
-      assert assessment_point.date == ~U[2023-08-03 15:30:00Z]
+      assert assessment_point.datetime == ~U[2023-08-03 15:30:00Z]
       assert assessment_point.description == "some updated description"
     end
 

@@ -63,7 +63,7 @@ defmodule LantternWeb.AssessmentPointLive do
         </div>
         <div class="flex items-center mt-10">
           <.icon name="hero-calendar" class="text-rose-500 mr-4" />
-          Date: <%= Timex.format!(@assessment_point.date, "{Mshort} {D}, {YYYY}, {h12}:{m} {am}") %>
+          Date: <%= Timex.format!(@assessment_point.datetime, "{Mshort} {D}, {YYYY}, {h12}:{m} {am}") %>
         </div>
         <div class="flex items-center mt-4">
           <.icon name="hero-bookmark" class="text-rose-500 mr-4" />

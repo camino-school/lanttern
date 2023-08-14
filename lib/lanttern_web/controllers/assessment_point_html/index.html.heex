@@ -14,7 +14,7 @@
 >
   <:col :let={assessment_point} label="Name"><%= assessment_point.name %></:col>
   <:col :let={assessment_point} label="Date">
-    <%= Timex.local(assessment_point.date) |> Timex.format!("{ISO:Extended}") %>
+    <%= Timex.local(assessment_point.datetime) |> Timex.format!("{ISO:Extended}") %>
   </:col>
   <:col :let={assessment_point} label="Description"><%= assessment_point.description %></:col>
   <:action :let={assessment_point}>
