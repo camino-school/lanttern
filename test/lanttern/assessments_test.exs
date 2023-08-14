@@ -52,6 +52,36 @@ defmodule Lanttern.AssessmentsTest do
       assert assessment_point.scale_id == scale.id
     end
 
+    test "create_assessment_point/1 with valid data containing classes creates an assessment point with linked classes" do
+      curriculum_item = Lanttern.CurriculaFixtures.item_fixture()
+      scale = Lanttern.GradingFixtures.scale_fixture()
+
+      class_1 = Lanttern.SchoolsFixtures.class_fixture()
+      class_2 = Lanttern.SchoolsFixtures.class_fixture()
+      class_3 = Lanttern.SchoolsFixtures.class_fixture()
+
+      valid_attrs = %{
+        name: "some name",
+        datetime: ~U[2023-08-02 15:30:00Z],
+        description: "some description",
+        curriculum_item_id: curriculum_item.id,
+        scale_id: scale.id,
+        classes_ids: [
+          class_1.id,
+          class_2.id,
+          class_3.id
+        ]
+      }
+
+      assert {:ok, %AssessmentPoint{} = assessment_point} =
+               Assessments.create_assessment_point(valid_attrs)
+
+      assert assessment_point.name == "some name"
+      assert Enum.find(assessment_point.classes, fn c -> c.id == class_1.id end)
+      assert Enum.find(assessment_point.classes, fn c -> c.id == class_2.id end)
+      assert Enum.find(assessment_point.classes, fn c -> c.id == class_3.id end)
+    end
+
     test "create_assessment_point/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} = Assessments.create_assessment_point(@invalid_attrs)
     end
@@ -71,6 +101,26 @@ defmodule Lanttern.AssessmentsTest do
       assert assessment_point.name == "some updated name"
       assert assessment_point.datetime == ~U[2023-08-03 15:30:00Z]
       assert assessment_point.description == "some updated description"
+    end
+
+    test "update_assessment_point/2 with valid data containing classes updates the assessment point" do
+      class_1 = Lanttern.SchoolsFixtures.class_fixture()
+      class_2 = Lanttern.SchoolsFixtures.class_fixture()
+      class_3 = Lanttern.SchoolsFixtures.class_fixture()
+      assessment_point = assessment_point_fixture(%{classes_ids: [class_1.id, class_2.id]})
+
+      update_attrs = %{
+        name: "some updated name",
+        classes_ids: [class_1.id, class_3.id]
+      }
+
+      assert {:ok, %AssessmentPoint{} = assessment_point} =
+               Assessments.update_assessment_point(assessment_point, update_attrs)
+
+      assert assessment_point.name == "some updated name"
+      assert length(assessment_point.classes) == 2
+      assert Enum.find(assessment_point.classes, fn c -> c.id == class_1.id end)
+      assert Enum.find(assessment_point.classes, fn c -> c.id == class_3.id end)
     end
 
     test "update_assessment_point/2 with invalid data returns error changeset" do

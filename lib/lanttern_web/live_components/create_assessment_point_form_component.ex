@@ -7,6 +7,7 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
   alias Lanttern.Assessments.AssessmentPoint
   alias LantternWeb.CurriculaHelpers
   alias LantternWeb.GradingHelpers
+  alias LantternWeb.SchoolsHelpers
 
   def render(assigns) do
     ~H"""
@@ -97,6 +98,14 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
                           options={@scale_options}
                           prompt="Select a scale"
                         />
+                        <.input
+                          field={@form[:classes_ids]}
+                          type="select"
+                          label="Classes"
+                          options={@class_options}
+                          prompt="Select classes"
+                          multiple
+                        />
                         <pre>
                         </pre>
                       </.form>
@@ -133,13 +142,15 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
 
     curriculum_item_options = CurriculaHelpers.generate_curriculum_item_options()
     scale_options = GradingHelpers.generate_scale_options()
+    class_options = SchoolsHelpers.generate_class_options()
 
     socket =
       socket
       |> assign(%{
         form: to_form(changeset),
         curriculum_item_options: curriculum_item_options,
-        scale_options: scale_options
+        scale_options: scale_options,
+        class_options: class_options
       })
 
     {:ok, socket}

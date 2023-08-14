@@ -10,7 +10,7 @@ defmodule LantternWeb.AssessmentPointLive do
 
   def handle_params(%{"id" => id}, _uri, socket) do
     try do
-      Assessments.get_assessment_point!(id, [:curriculum_item, :scale])
+      Assessments.get_assessment_point!(id, [:curriculum_item, :scale, :classes])
     rescue
       _ ->
         socket =
@@ -80,6 +80,10 @@ defmodule LantternWeb.AssessmentPointLive do
           Scale: <%= @assessment_point.scale.name %>
           <.ordinal_values ordinal_values={@ordinal_values} />
         </div>
+        <div :if={length(@assessment_point.classes) > 0} class="flex items-center mt-4">
+          <.icon name="hero-squares-2x2" class="text-rose-500 mr-4" /> Classes:
+          <.classes classes={@assessment_point.classes} />
+        </div>
         <table class="w-full mt-20">
           <thead>
             <tr>
@@ -115,6 +119,20 @@ defmodule LantternWeb.AssessmentPointLive do
       <%= for ov <- @ordinal_values do %>
         <div class="p-1 ml-2 rounded-[1px] font-mono text-xs bg-slate-200">
           <%= ov.name %>
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+
+  attr :classes, :list, required: true
+
+  def classes(assigns) do
+    ~H"""
+    <div class="flex items-center">
+      <%= for c <- @classes do %>
+        <div class="p-1 ml-2 rounded-[1px] font-mono text-xs bg-slate-200">
+          <%= c.name %>
         </div>
       <% end %>
     </div>

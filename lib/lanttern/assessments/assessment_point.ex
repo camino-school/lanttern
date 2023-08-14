@@ -1,6 +1,9 @@
 defmodule Lanttern.Assessments.AssessmentPoint do
   use Ecto.Schema
   import Ecto.Changeset
+  import Ecto.Query, only: [from: 2]
+
+  alias Lanttern.Repo
 
   schema "assessment_points" do
     field :name, :string
@@ -11,9 +14,14 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     field :date, :date, virtual: true
     field :hour, :integer, virtual: true
     field :minute, :integer, virtual: true
+    field :classes_ids, {:array, :id}, virtual: true
 
     belongs_to :curriculum_item, Lanttern.Curricula.Item
     belongs_to :scale, Lanttern.Grading.Scale
+
+    many_to_many :classes, Lanttern.Schools.Class,
+      join_through: "assessment_points_classes",
+      on_replace: :delete
 
     timestamps()
   end
@@ -21,9 +29,10 @@ defmodule Lanttern.Assessments.AssessmentPoint do
   @doc false
   def changeset(assessment, attrs) do
     assessment
-    |> cast(attrs, [:name, :datetime, :description, :curriculum_item_id, :scale_id])
+    |> cast(attrs, [:name, :datetime, :description, :curriculum_item_id, :scale_id, :classes_ids])
     |> validate_required([:name, :curriculum_item_id, :scale_id])
     |> validate_and_build_datetime_from_ui(attrs)
+    |> put_classes()
   end
 
   defp validate_and_build_datetime_from_ui(changeset, attrs) do
@@ -54,5 +63,23 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       {_, _} ->
         changeset
     end
+  end
+
+  defp put_classes(changeset) do
+    put_classes(
+      changeset,
+      get_change(changeset, :classes_ids)
+    )
+  end
+
+  defp put_classes(changeset, nil), do: changeset
+
+  defp put_classes(changeset, classes_ids) do
+    classes =
+      from(c in Lanttern.Schools.Class, where: c.id in ^classes_ids)
+      |> Repo.all()
+
+    changeset
+    |> put_assoc(:classes, classes)
   end
 end
