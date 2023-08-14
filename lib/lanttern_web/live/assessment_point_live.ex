@@ -28,10 +28,17 @@ defmodule LantternWeb.AssessmentPointLive do
             nil
           end
 
+        formatted_datetime =
+          Timex.format!(
+            Timex.local(assessment_point.datetime),
+            "{Mshort} {D}, {YYYY}, {h12}:{m} {am}"
+          )
+
         socket =
           socket
           |> assign(:assessment_point, assessment_point)
           |> assign(:ordinal_values, ordinal_values)
+          |> assign(:formatted_datetime, formatted_datetime)
 
         {:noreply, socket}
     end
@@ -62,8 +69,7 @@ defmodule LantternWeb.AssessmentPointLive do
           </p>
         </div>
         <div class="flex items-center mt-10">
-          <.icon name="hero-calendar" class="text-rose-500 mr-4" />
-          Date: <%= Timex.format!(@assessment_point.datetime, "{Mshort} {D}, {YYYY}, {h12}:{m} {am}") %>
+          <.icon name="hero-calendar" class="text-rose-500 mr-4" /> Date: <%= @formatted_datetime %>
         </div>
         <div class="flex items-center mt-4">
           <.icon name="hero-bookmark" class="text-rose-500 mr-4" />

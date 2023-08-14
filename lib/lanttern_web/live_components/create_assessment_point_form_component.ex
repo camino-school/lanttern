@@ -54,14 +54,35 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
                         <.error :if={@form.source.action == :insert}>
                           Oops, something went wrong! Please check the errors below.
                         </.error>
-                        <.input field={@form[:name]} label="Assessment point name" />
+                        <.input
+                          field={@form[:name]}
+                          label="Assessment point name"
+                          phx-debounce="1500"
+                        />
                         <.input
                           type="textarea"
                           field={@form[:description]}
                           label="Decription (optional)"
                         />
-                        <.input type="datetime-local" field={@form[:datetime_ui]} label="Datetime" />
-                        <.input type="hidden" field={@form[:date]} />
+                        <div class="flex">
+                          <.input type="date" field={@form[:date]} label="Date" phx-debounce="1500" />
+                          <.input
+                            type="number"
+                            min="0"
+                            max="23"
+                            field={@form[:hour]}
+                            label="h"
+                            phx-debounce="1500"
+                          />
+                          <.input
+                            type="number"
+                            min="0"
+                            max="59"
+                            field={@form[:minute]}
+                            label="m"
+                            phx-debounce="1500"
+                          />
+                        </div>
                         <.input
                           field={@form[:curriculum_item_id]}
                           type="select"
@@ -108,7 +129,8 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
   end
 
   def mount(socket) do
-    changeset = Assessments.change_assessment_point(%AssessmentPoint{})
+    changeset = Assessments.new_assessment_point_changeset()
+
     curriculum_item_options = CurriculaHelpers.generate_curriculum_item_options()
     scale_options = GradingHelpers.generate_scale_options()
 
