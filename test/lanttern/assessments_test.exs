@@ -82,6 +82,36 @@ defmodule Lanttern.AssessmentsTest do
       assert Enum.find(assessment_point.classes, fn c -> c.id == class_3.id end)
     end
 
+    test "create_assessment_point/1 with students creates an assessment point with linked assessment point entries for each student" do
+      curriculum_item = Lanttern.CurriculaFixtures.item_fixture()
+      scale = Lanttern.GradingFixtures.scale_fixture()
+
+      student_1 = Lanttern.SchoolsFixtures.student_fixture()
+      student_2 = Lanttern.SchoolsFixtures.student_fixture()
+      student_3 = Lanttern.SchoolsFixtures.student_fixture()
+
+      valid_attrs = %{
+        name: "some name",
+        datetime: ~U[2023-08-02 15:30:00Z],
+        description: "some description",
+        curriculum_item_id: curriculum_item.id,
+        scale_id: scale.id,
+        students_ids: [
+          student_1.id,
+          student_2.id,
+          student_3.id
+        ]
+      }
+
+      assert {:ok, %AssessmentPoint{} = assessment_point} =
+               Assessments.create_assessment_point(valid_attrs)
+
+      assert assessment_point.name == "some name"
+      assert Enum.find(assessment_point.entries, fn e -> e.student_id == student_1.id end)
+      assert Enum.find(assessment_point.entries, fn e -> e.student_id == student_2.id end)
+      assert Enum.find(assessment_point.entries, fn e -> e.student_id == student_3.id end)
+    end
+
     test "create_assessment_point/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} = Assessments.create_assessment_point(@invalid_attrs)
     end

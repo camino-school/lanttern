@@ -55,7 +55,7 @@ defmodule Lanttern.Assessments do
   """
   def create_assessment_point(attrs \\ %{}) do
     %AssessmentPoint{}
-    |> AssessmentPoint.changeset(attrs)
+    |> AssessmentPoint.creation_changeset(attrs)
     |> Repo.insert()
   end
 
