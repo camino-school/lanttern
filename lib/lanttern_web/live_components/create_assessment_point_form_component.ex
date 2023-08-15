@@ -99,15 +99,22 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
                           prompt="Select a scale"
                         />
                         <.input
-                          field={@form[:classes_ids]}
+                          field={@form[:class_id]}
                           type="select"
                           label="Classes"
                           options={@class_options}
                           prompt="Select classes"
-                          multiple
+                          phx-change="class_selected"
+                          phx-target={@myself}
                         />
-                        <pre>
-                        </pre>
+                        <.class_badge
+                          :for={{name, id} <- @selected_classes}
+                          class_id={id}
+                          class_name={name}
+                          myself={@myself}
+                        >
+                          <%= name %>
+                        </.class_badge>
                       </.form>
                     </div>
                   </div>
@@ -123,6 +130,7 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
                       type="submit"
                       form="create-assessment-point-form"
                       class="ml-4 inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+                      phx-disable-with="Saving..."
                     >
                       Save
                     </button>
@@ -143,6 +151,7 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
     curriculum_item_options = CurriculaHelpers.generate_curriculum_item_options()
     scale_options = GradingHelpers.generate_scale_options()
     class_options = SchoolsHelpers.generate_class_options()
+    selected_classes = []
 
     socket =
       socket
@@ -150,10 +159,50 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
         form: to_form(changeset),
         curriculum_item_options: curriculum_item_options,
         scale_options: scale_options,
-        class_options: class_options
+        class_options: class_options,
+        selected_classes: selected_classes
       })
 
     {:ok, socket}
+  end
+
+  def handle_event(
+        "class_selected",
+        %{"assessment_point" => %{"class_id" => class_id}},
+        socket
+      )
+      when class_id != "" do
+    class_id = String.to_integer(class_id)
+
+    added_class =
+      Keyword.filter(
+        socket.assigns.class_options,
+        fn {_key, value} -> value == class_id end
+      )
+
+    socket =
+      socket
+      |> update(:selected_classes, fn selected_classes ->
+        selected_classes |> Keyword.merge(added_class)
+      end)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("class_selected", _params, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_event("class_removed", %{"classid" => class_id}, socket) do
+    class_id = String.to_integer(class_id)
+
+    socket =
+      socket
+      |> update(:selected_classes, fn selected_classes ->
+        selected_classes |> Keyword.filter(fn {_key, value} -> value != class_id end)
+      end)
+
+    {:noreply, socket}
   end
 
   def handle_event("validate", %{"assessment_point" => params}, socket) do
@@ -167,6 +216,12 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
   end
 
   def handle_event("save", %{"assessment_point" => params}, socket) do
+    classes_ids =
+      socket.assigns.selected_classes
+      |> Enum.map(fn {_name, id} -> id end)
+
+    params = Map.put(params, "classes_ids", classes_ids)
+
     case Assessments.create_assessment_point(params) do
       {:ok, assessment_point} ->
         send(self(), {:assessment_point_created, assessment_point})
@@ -175,6 +230,33 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}
     end
+  end
+
+  attr :class_id, :string, required: true
+  attr :class_name, :string, required: true
+  attr :myself, Phoenix.LiveComponent.CID, required: true
+  slot :inner_block, required: true
+
+  def class_badge(assigns) do
+    ~H"""
+    <span
+      id={"badge-##{@class_id}"}
+      class="inline-flex items-center gap-x-0.5 rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600"
+    >
+      <%= @class_name %>
+      <button
+        type="button"
+        class="group relative -mr-1 h-3.5 w-3.5 rounded-sm hover:bg-gray-500/20"
+        phx-click="class_removed"
+        phx-value-classid={@class_id}
+        phx-target={@myself}
+      >
+        <span class="sr-only">Remove</span>
+        <.icon name="hero-x-mark-mini" class="w-3.5 text-gray-700/50 hover:text-gray-700/75" />
+        <span class="absolute -inset-1"></span>
+      </button>
+    </span>
+    """
   end
 
   def show_create_form() do
