@@ -5,6 +5,7 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Schools
   alias LantternWeb.CurriculaHelpers
   alias LantternWeb.GradingHelpers
   alias LantternWeb.SchoolsHelpers
@@ -112,9 +113,22 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
                           class_id={id}
                           class_name={name}
                           myself={@myself}
-                        >
-                          <%= name %>
-                        </.class_badge>
+                        />
+                        <.input
+                          field={@form[:student_id]}
+                          type="select"
+                          label="Students"
+                          options={@student_options}
+                          prompt="Select students"
+                          phx-change="student_selected"
+                          phx-target={@myself}
+                        />
+                        <.student_badge
+                          :for={{name, id} <- @selected_students}
+                          student_id={id}
+                          student_name={name}
+                          myself={@myself}
+                        />
                       </.form>
                     </div>
                   </div>
@@ -152,6 +166,8 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
     scale_options = GradingHelpers.generate_scale_options()
     class_options = SchoolsHelpers.generate_class_options()
     selected_classes = []
+    student_options = SchoolsHelpers.generate_student_options()
+    selected_students = []
 
     socket =
       socket
@@ -160,7 +176,9 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
         curriculum_item_options: curriculum_item_options,
         scale_options: scale_options,
         class_options: class_options,
-        selected_classes: selected_classes
+        selected_classes: selected_classes,
+        student_options: student_options,
+        selected_students: selected_students
       })
 
     {:ok, socket}
@@ -180,10 +198,17 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
         fn {_key, value} -> value == class_id end
       )
 
+    class_students =
+      Schools.list_students(classes_ids: [class_id])
+      |> Enum.map(fn s -> {:"#{s.name}", s.id} end)
+
     socket =
       socket
       |> update(:selected_classes, fn selected_classes ->
         selected_classes |> Keyword.merge(added_class)
+      end)
+      |> update(:selected_students, fn selected_students ->
+        selected_students |> Keyword.merge(class_students)
       end)
 
     {:noreply, socket}
@@ -205,6 +230,45 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
     {:noreply, socket}
   end
 
+  def handle_event(
+        "student_selected",
+        %{"assessment_point" => %{"student_id" => student_id}},
+        socket
+      )
+      when student_id != "" do
+    student_id = String.to_integer(student_id)
+
+    selected_student =
+      Keyword.filter(
+        socket.assigns.student_options,
+        fn {_key, value} -> value == student_id end
+      )
+
+    socket =
+      socket
+      |> update(:selected_students, fn selected_students ->
+        selected_students |> Keyword.merge(selected_student)
+      end)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("student_selected", _params, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_event("student_removed", %{"studentid" => student_id}, socket) do
+    student_id = String.to_integer(student_id)
+
+    socket =
+      socket
+      |> update(:selected_students, fn selected_students ->
+        selected_students |> Keyword.filter(fn {_key, value} -> value != student_id end)
+      end)
+
+    {:noreply, socket}
+  end
+
   def handle_event("validate", %{"assessment_point" => params}, socket) do
     form =
       %AssessmentPoint{}
@@ -220,7 +284,14 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
       socket.assigns.selected_classes
       |> Enum.map(fn {_name, id} -> id end)
 
-    params = Map.put(params, "classes_ids", classes_ids)
+    students_ids =
+      socket.assigns.selected_students
+      |> Enum.map(fn {_name, id} -> id end)
+
+    params =
+      params
+      |> Map.put("classes_ids", classes_ids)
+      |> Map.put("students_ids", students_ids)
 
     case Assessments.create_assessment_point(params) do
       {:ok, assessment_point} ->
@@ -235,7 +306,6 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
   attr :class_id, :string, required: true
   attr :class_name, :string, required: true
   attr :myself, Phoenix.LiveComponent.CID, required: true
-  slot :inner_block, required: true
 
   def class_badge(assigns) do
     ~H"""
@@ -249,6 +319,32 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
         class="group relative -mr-1 h-3.5 w-3.5 rounded-sm hover:bg-gray-500/20"
         phx-click="class_removed"
         phx-value-classid={@class_id}
+        phx-target={@myself}
+      >
+        <span class="sr-only">Remove</span>
+        <.icon name="hero-x-mark-mini" class="w-3.5 text-gray-700/50 hover:text-gray-700/75" />
+        <span class="absolute -inset-1"></span>
+      </button>
+    </span>
+    """
+  end
+
+  attr :student_id, :string, required: true
+  attr :student_name, :string, required: true
+  attr :myself, Phoenix.LiveComponent.CID, required: true
+
+  def student_badge(assigns) do
+    ~H"""
+    <span
+      id={"class-badge-#{@student_id}"}
+      class="inline-flex items-center gap-x-0.5 rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600"
+    >
+      <%= @student_name %>
+      <button
+        type="button"
+        class="group relative -mr-1 h-3.5 w-3.5 rounded-sm hover:bg-gray-500/20"
+        phx-click="student_removed"
+        phx-value-studentid={@student_id}
         phx-target={@myself}
       >
         <span class="sr-only">Remove</span>

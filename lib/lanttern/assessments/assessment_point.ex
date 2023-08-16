@@ -17,6 +17,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     field :minute, :integer, virtual: true
     field :class_id, :id, virtual: true
     field :classes_ids, {:array, :id}, virtual: true
+    field :student_id, :id, virtual: true
     field :students_ids, {:array, :id}, virtual: true
 
     belongs_to :curriculum_item, Lanttern.Curricula.Item

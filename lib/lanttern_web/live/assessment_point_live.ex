@@ -10,7 +10,12 @@ defmodule LantternWeb.AssessmentPointLive do
 
   def handle_params(%{"id" => id}, _uri, socket) do
     try do
-      Assessments.get_assessment_point!(id, [:curriculum_item, :scale, :classes])
+      Assessments.get_assessment_point!(id, [
+        :curriculum_item,
+        :scale,
+        :classes,
+        [entries: [:student]]
+      ])
     rescue
       _ ->
         socket =
@@ -101,8 +106,8 @@ defmodule LantternWeb.AssessmentPointLive do
             </tr>
           </thead>
           <tbody>
-            <%= for i <- 1..9 do %>
-              <.level_row student={%{id: i}} />
+            <%= for e <- @assessment_point.entries do %>
+              <.level_row entry={e} />
             <% end %>
           </tbody>
         </table>
@@ -139,12 +144,12 @@ defmodule LantternWeb.AssessmentPointLive do
     """
   end
 
-  attr :student, :map, required: true
+  attr :entry, :map, required: true
 
   def level_row(assigns) do
     ~H"""
     <tr>
-      <td>Student <%= @student.id %></td>
+      <td>Student <%= @entry.student.name %></td>
       <td>Level</td>
       <td>Obs</td>
     </tr>
