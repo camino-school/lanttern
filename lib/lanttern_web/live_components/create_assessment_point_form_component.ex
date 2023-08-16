@@ -1,7 +1,7 @@
 defmodule LantternWeb.CreateAssessmentPointFormComponent do
   use LantternWeb, :live_component
 
-  alias Phoenix.LiveView.JS
+  import LantternWeb.OverlayComponents
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
@@ -13,154 +13,101 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <div
-        :if={@show}
-        id="create-form"
-        class="relative z-10"
-        aria-labelledby="slide-over-title"
-        role="dialog"
-        aria-modal="true"
-        phx-mounted={show_create_form()}
-        phx-remove={hide_create_form()}
-      >
-        <div
-          id="create-form__backdrop"
-          class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity hidden"
+      <.slide_over :if={@show} id="create-form">
+        <:title>Create assessment point</:title>
+        <.form
+          id="create-assessment-point-form"
+          for={@form}
+          phx-change="validate"
+          phx-submit="save"
+          phx-target={@myself}
         >
-        </div>
-
-        <div class="fixed inset-0 overflow-hidden">
-          <div class="absolute inset-0 overflow-hidden">
-            <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
-              <div
-                id="create-form__panel"
-                class="pointer-events-auto w-screen max-w-xl py-6 transition-translate hidden"
-              >
-                <div class="flex h-full flex-col divide-y divide-gray-200 bg-white shadow-xl rounded-l">
-                  <div class="flex min-h-0 flex-1 flex-col overflow-y-scroll py-6">
-                    <div class="px-4 sm:px-6">
-                      <div class="flex items-start justify-between">
-                        <h2 class="font-display font-black text-3xl" id="slide-over-title">
-                          Create assessment point
-                        </h2>
-                      </div>
-                    </div>
-                    <div class="relative mt-6 flex-1 px-4 sm:px-6">
-                      <.form
-                        id="create-assessment-point-form"
-                        for={@form}
-                        phx-change="validate"
-                        phx-submit="save"
-                        phx-target={@myself}
-                      >
-                        <.error :if={@form.source.action == :insert}>
-                          Oops, something went wrong! Please check the errors below.
-                        </.error>
-                        <.input
-                          field={@form[:name]}
-                          label="Assessment point name"
-                          phx-debounce="1500"
-                        />
-                        <.input
-                          type="textarea"
-                          field={@form[:description]}
-                          label="Decription (optional)"
-                        />
-                        <div class="flex">
-                          <.input type="date" field={@form[:date]} label="Date" phx-debounce="1500" />
-                          <.input
-                            type="number"
-                            min="0"
-                            max="23"
-                            field={@form[:hour]}
-                            label="h"
-                            phx-debounce="1500"
-                          />
-                          <.input
-                            type="number"
-                            min="0"
-                            max="59"
-                            field={@form[:minute]}
-                            label="m"
-                            phx-debounce="1500"
-                          />
-                        </div>
-                        <.input
-                          field={@form[:curriculum_item_id]}
-                          type="select"
-                          label="Curriculum item"
-                          options={@curriculum_item_options}
-                          prompt="Select a curriculum item"
-                        />
-                        <.input
-                          field={@form[:scale_id]}
-                          type="select"
-                          label="Scale"
-                          options={@scale_options}
-                          prompt="Select a scale"
-                        />
-                        <.input
-                          field={@form[:class_id]}
-                          type="select"
-                          label="Classes"
-                          options={@class_options}
-                          prompt="Select classes"
-                          phx-change="class_selected"
-                          phx-target={@myself}
-                        />
-                        <.badge
-                          :for={{name, id} <- @selected_classes}
-                          id={"class-badge-#{id}"}
-                          phx-click="class_removed"
-                          phx-value-id={id}
-                          phx-target={@myself}
-                        >
-                          <%= name %>
-                        </.badge>
-                        <.input
-                          field={@form[:student_id]}
-                          type="select"
-                          label="Students"
-                          options={@student_options}
-                          prompt="Select students"
-                          phx-change="student_selected"
-                          phx-target={@myself}
-                        />
-                        <.badge
-                          :for={{name, id} <- @selected_students}
-                          id={"student-badge-#{id}"}
-                          phx-click="student_removed"
-                          phx-value-id={id}
-                          phx-target={@myself}
-                        >
-                          <%= name %>
-                        </.badge>
-                      </.form>
-                    </div>
-                  </div>
-                  <div class="flex flex-shrink-0 justify-end px-4 py-4">
-                    <button
-                      type="button"
-                      class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:ring-gray-400"
-                      phx-click="hide-create-assessment-point-form"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      form="create-assessment-point-form"
-                      class="ml-4 inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-                      phx-disable-with="Saving..."
-                    >
-                      Save
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <.error :if={@form.source.action == :insert}>
+            Oops, something went wrong! Please check the errors below.
+          </.error>
+          <.input field={@form[:name]} label="Assessment point name" phx-debounce="1500" />
+          <.input type="textarea" field={@form[:description]} label="Decription (optional)" />
+          <div class="flex">
+            <.input type="date" field={@form[:date]} label="Date" phx-debounce="1500" />
+            <.input type="number" min="0" max="23" field={@form[:hour]} label="h" phx-debounce="1500" />
+            <.input
+              type="number"
+              min="0"
+              max="59"
+              field={@form[:minute]}
+              label="m"
+              phx-debounce="1500"
+            />
           </div>
-        </div>
-      </div>
+          <.input
+            field={@form[:curriculum_item_id]}
+            type="select"
+            label="Curriculum item"
+            options={@curriculum_item_options}
+            prompt="Select a curriculum item"
+          />
+          <.input
+            field={@form[:scale_id]}
+            type="select"
+            label="Scale"
+            options={@scale_options}
+            prompt="Select a scale"
+          />
+          <.input
+            field={@form[:class_id]}
+            type="select"
+            label="Classes"
+            options={@class_options}
+            prompt="Select classes"
+            phx-change="class_selected"
+            phx-target={@myself}
+          />
+          <.badge
+            :for={{name, id} <- @selected_classes}
+            id={"class-badge-#{id}"}
+            phx-click="class_removed"
+            phx-value-id={id}
+            phx-target={@myself}
+          >
+            <%= name %>
+          </.badge>
+          <.input
+            field={@form[:student_id]}
+            type="select"
+            label="Students"
+            options={@student_options}
+            prompt="Select students"
+            phx-change="student_selected"
+            phx-target={@myself}
+          />
+          <.badge
+            :for={{name, id} <- @selected_students}
+            id={"student-badge-#{id}"}
+            phx-click="student_removed"
+            phx-value-id={id}
+            phx-target={@myself}
+          >
+            <%= name %>
+          </.badge>
+        </.form>
+        <:actions>
+          <button
+            type="button"
+            class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:ring-gray-400"
+            phx-click="hide-create-assessment-point-form"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="create-assessment-point-form"
+            class="ml-4 inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+            phx-disable-with="Saving..."
+          >
+            Save
+          </button>
+        </:actions>
+      </.slide_over>
     </div>
     """
   end
@@ -325,45 +272,6 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
       </button>
     </span>
     """
-  end
-
-  def show_create_form() do
-    JS.add_class(
-      "overflow-hidden",
-      to: "body"
-    )
-    |> JS.show(
-      to: "#create-form__backdrop",
-      transition: {"ease-in-out duration-500", "opacity-0", "opacity-100"},
-      time: 500
-    )
-    |> JS.show(
-      to: "#create-form__panel",
-      transition: {
-        "ease-in-out duration-500",
-        "translate-x-full",
-        "translate-x-0"
-      },
-      time: 500
-    )
-  end
-
-  def hide_create_form() do
-    JS.remove_class("overflow-hidden", to: "body")
-    |> JS.hide(
-      to: "#create-form__backdrop",
-      transition: {"ease-in-out duration-500", "opacity-100", "opacity-0"},
-      time: 500
-    )
-    |> JS.hide(
-      to: "#create-form__panel",
-      transition: {
-        "ease-in-out duration-500",
-        "translate-x-0",
-        "translate-x-full"
-      },
-      time: 500
-    )
   end
 
   defp extract_from_options(options, id) do
