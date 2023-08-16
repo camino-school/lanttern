@@ -108,12 +108,15 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
                           phx-change="class_selected"
                           phx-target={@myself}
                         />
-                        <.class_badge
+                        <.badge
                           :for={{name, id} <- @selected_classes}
-                          class_id={id}
-                          class_name={name}
-                          myself={@myself}
-                        />
+                          id={"class-badge-#{id}"}
+                          phx-click="class_removed"
+                          phx-value-id={id}
+                          phx-target={@myself}
+                        >
+                          <%= name %>
+                        </.badge>
                         <.input
                           field={@form[:student_id]}
                           type="select"
@@ -123,12 +126,15 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
                           phx-change="student_selected"
                           phx-target={@myself}
                         />
-                        <.student_badge
+                        <.badge
                           :for={{name, id} <- @selected_students}
-                          student_id={id}
-                          student_name={name}
-                          myself={@myself}
-                        />
+                          id={"student-badge-#{id}"}
+                          phx-click="student_removed"
+                          phx-value-id={id}
+                          phx-target={@myself}
+                        >
+                          <%= name %>
+                        </.badge>
                       </.form>
                     </div>
                   </div>
@@ -192,10 +198,10 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
       when class_id != "" do
     class_id = String.to_integer(class_id)
 
-    added_class =
-      Keyword.filter(
+    selected_class =
+      extract_from_options(
         socket.assigns.class_options,
-        fn {_key, value} -> value == class_id end
+        class_id
       )
 
     class_students =
@@ -204,12 +210,8 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
 
     socket =
       socket
-      |> update(:selected_classes, fn selected_classes ->
-        selected_classes |> Keyword.merge(added_class)
-      end)
-      |> update(:selected_students, fn selected_students ->
-        selected_students |> Keyword.merge(class_students)
-      end)
+      |> update(:selected_classes, &Keyword.merge(&1, selected_class))
+      |> update(:selected_students, &Keyword.merge(&1, class_students))
 
     {:noreply, socket}
   end
@@ -218,14 +220,12 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
     {:noreply, socket}
   end
 
-  def handle_event("class_removed", %{"classid" => class_id}, socket) do
+  def handle_event("class_removed", %{"id" => class_id}, socket) do
     class_id = String.to_integer(class_id)
 
     socket =
       socket
-      |> update(:selected_classes, fn selected_classes ->
-        selected_classes |> Keyword.filter(fn {_key, value} -> value != class_id end)
-      end)
+      |> update(:selected_classes, &remove_from_selected(&1, class_id))
 
     {:noreply, socket}
   end
@@ -239,16 +239,14 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
     student_id = String.to_integer(student_id)
 
     selected_student =
-      Keyword.filter(
+      extract_from_options(
         socket.assigns.student_options,
-        fn {_key, value} -> value == student_id end
+        student_id
       )
 
     socket =
       socket
-      |> update(:selected_students, fn selected_students ->
-        selected_students |> Keyword.merge(selected_student)
-      end)
+      |> update(:selected_students, &Keyword.merge(&1, selected_student))
 
     {:noreply, socket}
   end
@@ -257,14 +255,12 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
     {:noreply, socket}
   end
 
-  def handle_event("student_removed", %{"studentid" => student_id}, socket) do
+  def handle_event("student_removed", %{"id" => student_id}, socket) do
     student_id = String.to_integer(student_id)
 
     socket =
       socket
-      |> update(:selected_students, fn selected_students ->
-        selected_students |> Keyword.filter(fn {_key, value} -> value != student_id end)
-      end)
+      |> update(:selected_students, &remove_from_selected(&1, student_id))
 
     {:noreply, socket}
   end
@@ -303,49 +299,25 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
     end
   end
 
-  attr :class_id, :string, required: true
-  attr :class_name, :string, required: true
-  attr :myself, Phoenix.LiveComponent.CID, required: true
+  attr :id, :string
+  attr :class, :string, default: ""
+  attr :rest, :global
+  slot :inner_block, required: true
 
-  def class_badge(assigns) do
+  def badge(assigns) do
     ~H"""
     <span
-      id={"class-badge-#{@class_id}"}
-      class="inline-flex items-center gap-x-0.5 rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600"
+      id={@id}
+      class={[
+        "inline-flex items-center gap-x-0.5 rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600",
+        @class
+      ]}
     >
-      <%= @class_name %>
+      <%= render_slot(@inner_block) %>
       <button
         type="button"
         class="group relative -mr-1 h-3.5 w-3.5 rounded-sm hover:bg-gray-500/20"
-        phx-click="class_removed"
-        phx-value-classid={@class_id}
-        phx-target={@myself}
-      >
-        <span class="sr-only">Remove</span>
-        <.icon name="hero-x-mark-mini" class="w-3.5 text-gray-700/50 hover:text-gray-700/75" />
-        <span class="absolute -inset-1"></span>
-      </button>
-    </span>
-    """
-  end
-
-  attr :student_id, :string, required: true
-  attr :student_name, :string, required: true
-  attr :myself, Phoenix.LiveComponent.CID, required: true
-
-  def student_badge(assigns) do
-    ~H"""
-    <span
-      id={"student-badge-#{@student_id}"}
-      class="inline-flex items-center gap-x-0.5 rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600"
-    >
-      <%= @student_name %>
-      <button
-        type="button"
-        class="group relative -mr-1 h-3.5 w-3.5 rounded-sm hover:bg-gray-500/20"
-        phx-click="student_removed"
-        phx-value-studentid={@student_id}
-        phx-target={@myself}
+        {@rest}
       >
         <span class="sr-only">Remove</span>
         <.icon name="hero-x-mark-mini" class="w-3.5 text-gray-700/50 hover:text-gray-700/75" />
@@ -391,6 +363,20 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
         "translate-x-full"
       },
       time: 500
+    )
+  end
+
+  defp extract_from_options(options, id) do
+    Keyword.filter(
+      options,
+      fn {_key, value} -> value == id end
+    )
+  end
+
+  defp remove_from_selected(selected, id) do
+    Keyword.filter(
+      selected,
+      fn {_key, value} -> value != id end
     )
   end
 end
