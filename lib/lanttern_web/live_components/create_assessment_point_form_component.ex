@@ -310,7 +310,7 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
   def class_badge(assigns) do
     ~H"""
     <span
-      id={"badge-##{@class_id}"}
+      id={"class-badge-#{@class_id}"}
       class="inline-flex items-center gap-x-0.5 rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600"
     >
       <%= @class_name %>
@@ -336,7 +336,7 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
   def student_badge(assigns) do
     ~H"""
     <span
-      id={"class-badge-#{@student_id}"}
+      id={"student-badge-#{@student_id}"}
       class="inline-flex items-center gap-x-0.5 rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600"
     >
       <%= @student_name %>
