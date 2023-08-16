@@ -18,7 +18,25 @@ defmodule Lanttern.SchoolsTest do
     test "list_students/1 with preloads returns all students with preloaded data" do
       class = class_fixture()
       student = student_fixture(%{classes_ids: [class.id]})
-      assert Schools.list_students(:classes) == [student |> Map.put(:classes_ids, nil)]
+
+      assert Schools.list_students(preloads: :classes) == [
+               student |> Map.put(:classes_ids, nil)
+             ]
+    end
+
+    test "list_students/1 with classes_ids opt returns all students filtered by classes" do
+      class_1 = class_fixture()
+      student_1 = student_fixture(%{classes_ids: [class_1.id]})
+      class_2 = class_fixture()
+      student_2 = student_fixture(%{classes_ids: [class_2.id]})
+
+      # extra student for filtering validation
+      student_fixture()
+
+      students = Schools.list_students(classes_ids: [class_1.id, class_2.id])
+      assert length(students) == 2
+      assert Enum.find(students, fn s -> s.id == student_1.id end)
+      assert Enum.find(students, fn s -> s.id == student_2.id end)
     end
 
     test "get_student!/2 returns the student with given id" do
@@ -29,7 +47,9 @@ defmodule Lanttern.SchoolsTest do
     test "get_student!/2 with preloads returns the student with given id and preloaded data" do
       class = class_fixture()
       student = student_fixture(%{classes_ids: [class.id]})
-      assert Schools.get_student!(student.id, :classes) == student |> Map.put(:classes_ids, nil)
+
+      assert Schools.get_student!(student.id, preloads: :classes) ==
+               student |> Map.put(:classes_ids, nil)
     end
 
     test "create_student/1 with valid data creates a student" do
@@ -123,7 +143,7 @@ defmodule Lanttern.SchoolsTest do
     test "list_classes/1 with preloads returns all classes with preloaded data" do
       student = student_fixture()
       class = class_fixture(%{students_ids: [student.id]})
-      assert Schools.list_classes(:students) == [class |> Map.put(:students_ids, nil)]
+      assert Schools.list_classes(preloads: :students) == [class |> Map.put(:students_ids, nil)]
     end
 
     test "get_class!/2 returns the class with given id" do
@@ -134,7 +154,9 @@ defmodule Lanttern.SchoolsTest do
     test "get_class!/2 with preloads returns the class with given id and preloaded data" do
       student = student_fixture()
       class = class_fixture(%{students_ids: [student.id]})
-      assert Schools.get_class!(class.id, :students) == class |> Map.put(:students_ids, nil)
+
+      assert Schools.get_class!(class.id, preloads: :students) ==
+               class |> Map.put(:students_ids, nil)
     end
 
     test "create_class/1 with valid data creates a class" do

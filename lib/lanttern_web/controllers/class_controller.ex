@@ -6,7 +6,7 @@ defmodule LantternWeb.ClassController do
   alias Lanttern.Schools.Class
 
   def index(conn, _params) do
-    classes = Schools.list_classes(:students)
+    classes = Schools.list_classes(preloads: :students)
     render(conn, :index, classes: classes)
   end
 
@@ -30,14 +30,14 @@ defmodule LantternWeb.ClassController do
   end
 
   def show(conn, %{"id" => id}) do
-    class = Schools.get_class!(id, :students)
+    class = Schools.get_class!(id, preloads: :students)
     render(conn, :show, class: class)
   end
 
   def edit(conn, %{"id" => id}) do
     student_options = generate_student_options()
 
-    class = Schools.get_class!(id, :students)
+    class = Schools.get_class!(id, preloads: :students)
 
     # insert existing students_ids
     students_ids = Enum.map(class.students, & &1.id)

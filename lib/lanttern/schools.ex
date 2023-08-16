@@ -4,13 +4,17 @@ defmodule Lanttern.Schools do
   """
 
   import Ecto.Query, warn: false
+  import Lanttern.RepoHelpers
   alias Lanttern.Repo
-
   alias Lanttern.Schools.Student
 
   @doc """
   Returns the list of students.
-  Optionally preloads associated data.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
+  `:classes_ids` – filter students by provided list of ids
 
   ## Examples
 
@@ -18,16 +22,21 @@ defmodule Lanttern.Schools do
       [%Student{}, ...]
 
   """
-  def list_students(preloads \\ []) do
-    Repo.all(Student)
-    |> Repo.preload(preloads)
+  def list_students(opts \\ []) do
+    Student
+    |> maybe_filter_students_by_class(opts)
+    |> Repo.all()
+    |> maybe_preload(opts)
   end
 
   @doc """
   Gets a single student.
-  Optionally preloads associated data.
 
   Raises `Ecto.NoResultsError` if the Student does not exist.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
 
   ## Examples
 
@@ -38,9 +47,9 @@ defmodule Lanttern.Schools do
       ** (Ecto.NoResultsError)
 
   """
-  def get_student!(id, preloads \\ []) do
+  def get_student!(id, opts \\ []) do
     Repo.get!(Student, id)
-    |> Repo.preload(preloads)
+    |> maybe_preload(opts)
   end
 
   @doc """
@@ -113,7 +122,10 @@ defmodule Lanttern.Schools do
 
   @doc """
   Returns the list of classes.
-  Optionally preloads associated data.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
 
   ## Examples
 
@@ -121,16 +133,19 @@ defmodule Lanttern.Schools do
       [%Class{}, ...]
 
   """
-  def list_classes(preloads \\ []) do
+  def list_classes(opts \\ []) do
     Repo.all(Class)
-    |> Repo.preload(preloads)
+    |> maybe_preload(opts)
   end
 
   @doc """
   Gets a single class.
-  Optionally preloads associated data.
 
   Raises `Ecto.NoResultsError` if the Class does not exist.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
 
   ## Examples
 
@@ -141,9 +156,9 @@ defmodule Lanttern.Schools do
       ** (Ecto.NoResultsError)
 
   """
-  def get_class!(id, preloads \\ []) do
+  def get_class!(id, opts \\ []) do
     Repo.get!(Class, id)
-    |> Repo.preload(preloads)
+    |> maybe_preload(opts)
   end
 
   @doc """
@@ -211,4 +226,14 @@ defmodule Lanttern.Schools do
   def change_class(%Class{} = class, attrs \\ %{}) do
     Class.changeset(class, attrs)
   end
+
+  defp maybe_filter_students_by_class(student_query, [classes_ids: classes_ids] = _opts) do
+    from(
+      s in student_query,
+      join: c in assoc(s, :classes),
+      where: c.id in ^classes_ids
+    )
+  end
+
+  defp maybe_filter_students_by_class(student_query, _opts), do: student_query
 end

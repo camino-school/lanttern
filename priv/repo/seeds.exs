@@ -22,16 +22,29 @@ alias Lanttern.Schools
 # school
 # ------------------------------
 
-std_1 = Repo.insert!(%Schools.Student{name: "Bia"})
-std_2 = Repo.insert!(%Schools.Student{name: "Alberto"})
-std_3 = Repo.insert!(%Schools.Student{name: "Zeca"})
-std_4 = Repo.insert!(%Schools.Student{name: "Juju"})
+std_1 = Repo.insert!(%Schools.Student{name: "Std 1"})
+std_2 = Repo.insert!(%Schools.Student{name: "Std 2"})
+std_3 = Repo.insert!(%Schools.Student{name: "Std 3"})
+std_4 = Repo.insert!(%Schools.Student{name: "Std 4"})
+std_5 = Repo.insert!(%Schools.Student{name: "Std 5"})
+std_6 = Repo.insert!(%Schools.Student{name: "Std 6"})
+std_7 = Repo.insert!(%Schools.Student{name: "Std 7"})
+std_8 = Repo.insert!(%Schools.Student{name: "Std 8"})
+std_9 = Repo.insert!(%Schools.Student{name: "Std 9"})
+std_10 = Repo.insert!(%Schools.Student{name: "Std 10"})
 
 # use changeset to `put_assoc` students
 class_1 =
   Schools.Class.changeset(%Schools.Class{}, %{
-    name: "Grade X",
-    students_ids: [std_1.id, std_2.id, std_3.id]
+    name: "Grade 1",
+    students_ids: [std_1.id, std_2.id, std_3.id, std_4.id, std_5.id]
+  })
+  |> Repo.insert!()
+
+class_2 =
+  Schools.Class.changeset(%Schools.Class{}, %{
+    name: "Grade 2",
+    students_ids: [std_6.id, std_7.id, std_8.id, std_9.id, std_10.id]
   })
   |> Repo.insert!()
 
@@ -52,6 +65,17 @@ Identity.User.registration_changeset(%Identity.User{}, %{
 # ------------------------------
 
 en_lo_1 = Repo.insert!(%Curricula.Item{name: "English LO 1"})
+pt_lo_1 = Repo.insert!(%Curricula.Item{name: "Portuguese LO 1"})
+es_lo_1 = Repo.insert!(%Curricula.Item{name: "Spanish LO 1"})
+hs_lo_1 = Repo.insert!(%Curricula.Item{name: "Human Sciences LO 1"})
+sci_lo_1 = Repo.insert!(%Curricula.Item{name: "Science LO 1"})
+tech_lo_1 = Repo.insert!(%Curricula.Item{name: "Technology LO 1"})
+eng_lo_1 = Repo.insert!(%Curricula.Item{name: "Engineering LO 1"})
+math_lo_1 = Repo.insert!(%Curricula.Item{name: "Math LO 1"})
+va_lo_1 = Repo.insert!(%Curricula.Item{name: "Visual Arts LO 1"})
+dra_lo_1 = Repo.insert!(%Curricula.Item{name: "Drama LO 1"})
+mus_lo_1 = Repo.insert!(%Curricula.Item{name: "Music LO 1"})
+mov_lo_1 = Repo.insert!(%Curricula.Item{name: "Movement LO 1"})
 
 # ------------------------------
 # scales
@@ -131,6 +155,12 @@ Repo.insert!(%Grading.OrdinalValue{
   name: "Exceeding",
   normalized_value: 1.0,
   scale_id: camino_levels_scale.id
+})
+
+# 0 to 10
+Repo.insert!(%Grading.Scale{
+  name: "0 to 10",
+  type: "numeric"
 })
 
 # ------------------------------
