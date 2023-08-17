@@ -120,7 +120,8 @@ defmodule LantternWeb.CreateAssessmentPointFormComponentTest do
         }
       })
 
-      {path, _flash} = assert_redirect(view)
+      {path, flash} = assert_redirect(view)
+      assert %{"info" => "Assessment point \"some name\" created!"} = flash
       id = path |> Path.basename() |> String.to_integer()
 
       # assert created assessment point

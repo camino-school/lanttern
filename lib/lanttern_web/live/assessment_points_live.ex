@@ -68,7 +68,7 @@ defmodule LantternWeb.AssessmentPointsLive do
     socket =
       socket
       |> assign(:show_create_form, false)
-      |> put_flash(:info, "Assessment point #{assessment_point.name} created!")
+      |> put_flash(:info, "Assessment point \"#{assessment_point.name}\" created!")
       |> push_navigate(to: ~p"/assessment_points/#{assessment_point.id}")
 
     {:noreply, socket}

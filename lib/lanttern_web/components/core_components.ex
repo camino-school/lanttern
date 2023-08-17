@@ -237,6 +237,7 @@ defmodule LantternWeb.CoreComponents do
   """
   attr :type, :string, default: nil
   attr :class, :string, default: nil
+  attr :theme, :string, default: "default"
   attr :rest, :global, include: ~w(disabled form name value)
 
   slot :inner_block, required: true
@@ -246,8 +247,9 @@ defmodule LantternWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3",
-        "text-sm font-semibold leading-6 text-white active:text-white/80",
+        "phx-submit-loading:opacity-75 rounded-sm py-2 px-2",
+        "font-display text-sm font-bold",
+        button_theme(@theme),
         @class
       ]}
       {@rest}
@@ -255,6 +257,14 @@ defmodule LantternWeb.CoreComponents do
       <%= render_slot(@inner_block) %>
     </button>
     """
+  end
+
+  defp button_theme(theme) do
+    %{
+      "default" => "bg-cyan-400 hover:bg-cyan-300 shadow-sm",
+      "ghost" => "text-slate-400 bg-transparent hover:bg-slate-100"
+    }
+    |> Map.get(theme, "bg-cyan-400 hover:bg-cyan-300")
   end
 
   @doc """
@@ -300,6 +310,8 @@ defmodule LantternWeb.CoreComponents do
   attr :prompt, :string, default: nil, doc: "the prompt for select inputs"
   attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
   attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
+  attr :show_optional, :boolean, default: false, doc: "control the display of optional text"
+  attr :class, :string, default: ""
 
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
@@ -321,7 +333,7 @@ defmodule LantternWeb.CoreComponents do
       assign_new(assigns, :checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
 
     ~H"""
-    <div phx-feedback-for={@name}>
+    <div phx-feedback-for={@name} class={@class}>
       <label class="flex items-center gap-4 text-sm leading-6 text-zinc-600">
         <input type="hidden" name={@name} value="false" />
         <input
@@ -342,12 +354,15 @@ defmodule LantternWeb.CoreComponents do
 
   def input(%{type: "select"} = assigns) do
     ~H"""
-    <div phx-feedback-for={@name}>
-      <.label for={@id}><%= @label %></.label>
+    <div phx-feedback-for={@name} class={@class}>
+      <.label for={@id} show_optional={@show_optional}><%= @label %></.label>
       <select
         id={@id}
         name={@name}
-        class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm"
+        class={[
+          "block w-full rounded-sm border-0 shadown-sm ring-1 ring-slate-200 bg-white sm:text-sm",
+          "focus:ring-2 focus:ring-cyan-400 focus:ring-inset"
+        ]}
         multiple={@multiple}
         {@rest}
       >
@@ -361,16 +376,16 @@ defmodule LantternWeb.CoreComponents do
 
   def input(%{type: "textarea"} = assigns) do
     ~H"""
-    <div phx-feedback-for={@name}>
-      <.label for={@id}><%= @label %></.label>
+    <div phx-feedback-for={@name} class={@class}>
+      <.label for={@id} show_optional={@show_optional}><%= @label %></.label>
       <textarea
         id={@id}
         name={@name}
         class={[
-          "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6",
-          "min-h-[6rem] phx-no-feedback:border-zinc-300 phx-no-feedback:focus:border-zinc-400",
-          @errors == [] && "border-zinc-300 focus:border-zinc-400",
-          @errors != [] && "border-rose-400 focus:border-rose-400"
+          "block w-full min-h-[6rem] rounded-sm border-0 shadow-sm ring-1 ring-slate-200 sm:text-sm sm:leading-6",
+          "focus:ring-2 focus:ring-cyan-400",
+          "phx-no-feedback:ring-slate-200 phx-no-feedback:focus:ring-cyan-400",
+          @errors != [] && "ring-rose-400 focus:ring-rose-400"
         ]}
         {@rest}
       ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
@@ -382,18 +397,18 @@ defmodule LantternWeb.CoreComponents do
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <div phx-feedback-for={@name}>
-      <.label for={@id}><%= @label %></.label>
+    <div phx-feedback-for={@name} class={@class}>
+      <.label for={@id} show_optional={@show_optional}><%= @label %></.label>
       <input
         type={@type}
         name={@name}
         id={@id}
         value={Phoenix.HTML.Form.normalize_value(@type, @value)}
         class={[
-          "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6",
-          "phx-no-feedback:border-zinc-300 phx-no-feedback:focus:border-zinc-400",
-          @errors == [] && "border-zinc-300 focus:border-zinc-400",
-          @errors != [] && "border-rose-400 focus:border-rose-400"
+          "block w-full rounded-sm border-0 shadow-sm ring-1 ring-slate-200 sm:text-sm sm:leading-6",
+          "focus:ring-2 focus:ring-cyan-400 focus:ring-inset",
+          "phx-no-feedback:ring-slate-200 phx-no-feedback:focus:ring-cyan-400",
+          @errors != [] && "ring-rose-400 focus:ring-rose-400"
         ]}
         {@rest}
       />
@@ -406,11 +421,23 @@ defmodule LantternWeb.CoreComponents do
   Renders a label.
   """
   attr :for, :string, default: nil
+  attr :show_optional, :boolean, default: false
   slot :inner_block, required: true
+
+  def label(%{show_optional: true} = assigns) do
+    ~H"""
+    <div class="flex justify-between gap-4 mb-2 text-sm">
+      <label for={@for} class="font-bold">
+        <%= render_slot(@inner_block) %>
+      </label>
+      <span class="text-slate-400">Optional</span>
+    </div>
+    """
+  end
 
   def label(assigns) do
     ~H"""
-    <label for={@for} class="block text-sm font-semibold leading-6 text-zinc-800">
+    <label for={@for} class="block mb-2 text-sm font-bold">
       <%= render_slot(@inner_block) %>
     </label>
     """
@@ -423,8 +450,30 @@ defmodule LantternWeb.CoreComponents do
 
   def error(assigns) do
     ~H"""
-    <p class="mt-3 flex gap-3 text-sm leading-6 text-rose-600 phx-no-feedback:hidden">
-      <.icon name="hero-exclamation-circle-mini" class="mt-0.5 h-5 w-5 flex-none" />
+    <p class="mt-2 flex items-center gap-2 text-xs text-rose-600 phx-no-feedback:hidden">
+      <.icon name="hero-exclamation-circle-mini flex-none" />
+      <%= render_slot(@inner_block) %>
+    </p>
+    """
+  end
+
+  @doc """
+  Generates a generic error message block.
+  """
+  attr :class, :string, default: ""
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def error_block(assigns) do
+    ~H"""
+    <p
+      class={[
+        "flex items-center gap-4 p-4 rounded-sm text-sm text-rose-600 bg-rose-100",
+        @class
+      ]}
+      {@rest}
+    >
+      <.icon name="hero-exclamation-circle" />
       <%= render_slot(@inner_block) %>
     </p>
     """
@@ -701,5 +750,48 @@ defmodule LantternWeb.CoreComponents do
   """
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
+  end
+
+  @doc """
+  Renders a badge.
+  """
+  attr :id, :string, default: nil
+  attr :class, :string, default: nil
+  attr :theme, :string, default: "default"
+  attr :show_remove, :boolean, default: false
+  attr :rest, :global, doc: "use to pass phx-* bindings to the remove button"
+  slot :inner_block, required: true
+
+  def badge(assigns) do
+    ~H"""
+    <span
+      id={@id}
+      class={[
+        "inline-flex items-center gap-x-0.5 rounded-md px-2 py-1 text-xs text-slate-700",
+        badge_theme(@theme),
+        @class
+      ]}
+    >
+      <%= render_slot(@inner_block) %>
+      <button
+        :if={@show_remove}
+        type="button"
+        class="group relative -mr-1 h-3.5 w-3.5 rounded-sm hover:bg-slate-500/20"
+        {@rest}
+      >
+        <span class="sr-only">Remove</span>
+        <.icon name="hero-x-mark-mini" class="w-3.5 text-slate-700/50 hover:text-slate-700/75" />
+        <span class="absolute -inset-1"></span>
+      </button>
+    </span>
+    """
+  end
+
+  defp badge_theme(theme) do
+    %{
+      "default" => "bg-gray-100",
+      "cyan" => "bg-cyan-50"
+    }
+    |> Map.get(theme, "bg-gray-100")
   end
 end

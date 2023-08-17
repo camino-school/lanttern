@@ -22,22 +22,43 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
           phx-submit="save"
           phx-target={@myself}
         >
-          <.error :if={@form.source.action == :insert}>
+          <.error_block :if={@form.source.action == :insert} class="mb-6">
             Oops, something went wrong! Please check the errors below.
-          </.error>
-          <.input field={@form[:name]} label="Assessment point name" phx-debounce="1500" />
-          <.input type="textarea" field={@form[:description]} label="Decription (optional)" />
-          <div class="flex">
+          </.error_block>
+          <.input field={@form[:name]} label="Assessment point name" phx-debounce="1500" class="mb-6" />
+          <.input
+            type="textarea"
+            field={@form[:description]}
+            label="Decription"
+            show_optional
+            class="mb-6"
+          />
+
+          <div class="flex gap-2 mb-6">
             <.input type="date" field={@form[:date]} label="Date" phx-debounce="1500" />
-            <.input type="number" min="0" max="23" field={@form[:hour]} label="h" phx-debounce="1500" />
-            <.input
-              type="number"
-              min="0"
-              max="59"
-              field={@form[:minute]}
-              label="m"
-              phx-debounce="1500"
-            />
+            <div class="flex gap-1">
+              <.input
+                type="number"
+                min="0"
+                max="23"
+                step="1"
+                field={@form[:hour]}
+                label="Hour"
+                phx-debounce="1500"
+                class="w-20"
+              />
+              <span class="mt-9">:</span>
+              <.input
+                type="number"
+                min="0"
+                max="59"
+                step="1"
+                field={@form[:minute]}
+                label="Minute"
+                phx-debounce="1500"
+                class="w-20"
+              />
+            </div>
           </div>
           <.input
             field={@form[:curriculum_item_id]}
@@ -45,6 +66,7 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
             label="Curriculum item"
             options={@curriculum_item_options}
             prompt="Select a curriculum item"
+            class="mb-6"
           />
           <.input
             field={@form[:scale_id]}
@@ -52,25 +74,36 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
             label="Scale"
             options={@scale_options}
             prompt="Select a scale"
+            class="mb-6"
           />
-          <.input
-            field={@form[:class_id]}
-            type="select"
-            label="Classes"
-            options={@class_options}
-            prompt="Select classes"
-            phx-change="class_selected"
-            phx-target={@myself}
-          />
-          <.badge
-            :for={{name, id} <- @selected_classes}
-            id={"class-badge-#{id}"}
-            phx-click="class_removed"
-            phx-value-id={id}
-            phx-target={@myself}
-          >
-            <%= name %>
-          </.badge>
+          <div class="mb-6">
+            <.input
+              field={@form[:class_id]}
+              type="select"
+              label="Classes"
+              options={@class_options}
+              prompt="Select classes"
+              phx-change="class_selected"
+              phx-target={@myself}
+              show_optional
+            />
+            <div class="flex flex-wrap gap-1 mt-2">
+              <.badge :if={length(@selected_classes) == 0}>
+                No classes selected yet
+              </.badge>
+              <.badge
+                :for={{name, id} <- @selected_classes}
+                id={"class-badge-#{id}"}
+                theme="cyan"
+                show_remove
+                phx-click="class_removed"
+                phx-value-id={id}
+                phx-target={@myself}
+              >
+                <%= name %>
+              </.badge>
+            </div>
+          </div>
           <.input
             field={@form[:student_id]}
             type="select"
@@ -79,33 +112,32 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
             prompt="Select students"
             phx-change="student_selected"
             phx-target={@myself}
+            show_optional
           />
-          <.badge
-            :for={{name, id} <- @selected_students}
-            id={"student-badge-#{id}"}
-            phx-click="student_removed"
-            phx-value-id={id}
-            phx-target={@myself}
-          >
-            <%= name %>
-          </.badge>
+          <div class="flex flex-wrap gap-1 mt-2">
+            <.badge :if={length(@selected_students) == 0}>
+              No students selected yet
+            </.badge>
+            <.badge
+              :for={{name, id} <- @selected_students}
+              id={"student-badge-#{id}"}
+              theme="cyan"
+              show_remove
+              phx-click="student_removed"
+              phx-value-id={id}
+              phx-target={@myself}
+            >
+              <%= name %>
+            </.badge>
+          </div>
         </.form>
         <:actions>
-          <button
-            type="button"
-            class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:ring-gray-400"
-            phx-click="hide-create-assessment-point-form"
-          >
+          <.button type="button" theme="ghost" phx-click="hide-create-assessment-point-form">
             Cancel
-          </button>
-          <button
-            type="submit"
-            form="create-assessment-point-form"
-            class="ml-4 inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
-            phx-disable-with="Saving..."
-          >
+          </.button>
+          <.button type="submit" form="create-assessment-point-form" phx-disable-with="Saving...">
             Save
-          </button>
+          </.button>
         </:actions>
       </.slide_over>
     </div>
@@ -244,34 +276,6 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}
     end
-  end
-
-  attr :id, :string
-  attr :class, :string, default: ""
-  attr :rest, :global
-  slot :inner_block, required: true
-
-  def badge(assigns) do
-    ~H"""
-    <span
-      id={@id}
-      class={[
-        "inline-flex items-center gap-x-0.5 rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600",
-        @class
-      ]}
-    >
-      <%= render_slot(@inner_block) %>
-      <button
-        type="button"
-        class="group relative -mr-1 h-3.5 w-3.5 rounded-sm hover:bg-gray-500/20"
-        {@rest}
-      >
-        <span class="sr-only">Remove</span>
-        <.icon name="hero-x-mark-mini" class="w-3.5 text-gray-700/50 hover:text-gray-700/75" />
-        <span class="absolute -inset-1"></span>
-      </button>
-    </span>
-    """
   end
 
   defp extract_from_options(options, id) do

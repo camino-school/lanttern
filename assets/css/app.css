@@ -13,3 +13,9 @@ body {
   radial-gradient(circle at 100% 20%, #FFE4E6 240px, transparent 360px),
   radial-gradient(circle at 85% -25%, #DDD6FE 360px, transparent 480px)
 }
+
+.lanttern-bg-1 {
+  background-image:
+  radial-gradient(circle at 10% 70%, #FEF9C3 160px, transparent 240px),
+  radial-gradient(circle at 30% 120%, #ECFCCB 360px, transparent 480px)
+}
