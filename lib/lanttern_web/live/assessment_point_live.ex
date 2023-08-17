@@ -44,28 +44,28 @@ defmodule LantternWeb.AssessmentPointLive do
           <.icon name="hero-squares-2x2" class="text-rose-500 mr-4" /> Classes:
           <.classes classes={@assessment_point.classes} />
         </div>
-        <table class="w-full mt-20">
-          <thead>
-            <tr>
-              <th></th>
-              <th>
-                <div class="flex items-center font-display font-bold text-slate-400">
-                  <.icon name="hero-view-columns" class="mr-4" /> Level
+        <div class="table w-full mt-20">
+          <div class="table-header-group">
+            <div class="table-row">
+              <div class="table-cell"></div>
+              <div class="table-cell">
+                <div class="flex items-center p-2 font-display font-bold text-slate-400">
+                  <.icon name="hero-view-columns" class="mr-4" /> Marking
                 </div>
-              </th>
-              <th colspan="2">
-                <div class="flex items-center font-display font-bold text-slate-400">
+              </div>
+              <div class="table-cell">
+                <div class="flex items-center p-2 font-display font-bold text-slate-400">
                   <.icon name="hero-pencil-square" class="mr-4" /> Notes and observations
                 </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
+              </div>
+            </div>
+          </div>
+          <div class="table-row-group">
             <%= for f <- @entries_forms do %>
               <.level_row form={f} ordinal_value_options={@ordinal_value_options} />
             <% end %>
-          </tbody>
-        </table>
+          </div>
+        </div>
       </div>
     </div>
     """
@@ -166,25 +166,21 @@ defmodule LantternWeb.AssessmentPointLive do
 
   def level_row(assigns) do
     ~H"""
-    <.form for={@form} phx-submit="save">
-      <tr>
-        <td>Student <%= @form.data.student.name %></td>
-        <td>
-          <select
+    <.form for={@form} phx-change="save" class="table-row">
+      <input type="hidden" name={@form[:id].name} value={@form[:id].value} />
+      <div class="table-cell">Student <%= @form.data.student.name %></div>
+      <div class="table-cell">
+        <div class="p-2">
+          <.select
             name={@form[:ordinal_value_id].name}
-            class={[
-              "block w-full rounded-sm border-0 shadown-sm ring-1 ring-slate-200 bg-white sm:text-sm",
-              "focus:ring-2 focus:ring-cyan-400 focus:ring-inset"
-            ]}
-          >
-            <option value="">—</option>
-            <%= Phoenix.HTML.Form.options_for_select(
-              @ordinal_value_options,
-              @form[:ordinal_value_id].value
-            ) %>
-          </select>
-        </td>
-        <td>
+            prompt="—"
+            options={@ordinal_value_options}
+            value={@form[:ordinal_value_id].value}
+          />
+        </div>
+      </div>
+      <div class="table-cell">
+        <div class="p-2">
           <textarea
             name={@form[:observation].name}
             class={[
@@ -193,15 +189,10 @@ defmodule LantternWeb.AssessmentPointLive do
               "phx-no-feedback:ring-slate-200 phx-no-feedback:focus:ring-cyan-400",
               @form.errors != [] && "ring-rose-400 focus:ring-rose-400"
             ]}
+            phx-debounce="1000"
           ><%= Phoenix.HTML.Form.normalize_value("textarea", @form[:observation].value) %></textarea>
-        </td>
-        <td>
-          <input type="hidden" name={@form[:id].name} value={@form[:id].value} />
-          <.button type="submit">
-            Save
-          </.button>
-        </td>
-      </tr>
+        </div>
+      </div>
     </.form>
     """
   end
@@ -227,7 +218,6 @@ defmodule LantternWeb.AssessmentPointLive do
               end
             end)
           end)
-          |> put_flash(:info, "Entry for #{assessment_point_entry.student.name} saved!")
 
         {:noreply, socket}
 

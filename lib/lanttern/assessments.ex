@@ -230,7 +230,7 @@ defmodule Lanttern.Assessments do
         %AssessmentPointEntry{} = assessment_point_entry,
         attrs \\ %{}
       ) do
-    AssessmentPointEntry.changeset(assessment_point_entry, attrs)
+    AssessmentPointEntry.simple_changeset(assessment_point_entry, attrs)
   end
 
   defp default_hour() do

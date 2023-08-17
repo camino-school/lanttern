@@ -356,19 +356,15 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div phx-feedback-for={@name} class={@class}>
       <.label for={@id} show_optional={@show_optional}><%= @label %></.label>
-      <select
+      <.select
         id={@id}
         name={@name}
-        class={[
-          "block w-full rounded-sm border-0 shadown-sm ring-1 ring-slate-200 bg-white sm:text-sm",
-          "focus:ring-2 focus:ring-cyan-400 focus:ring-inset"
-        ]}
         multiple={@multiple}
+        prompt={@prompt}
+        options={@options}
+        value={@value}
         {@rest}
-      >
-        <option :if={@prompt} value=""><%= @prompt %></option>
-        <%= Phoenix.HTML.Form.options_for_select(@options, @value) %>
-      </select>
+      />
       <.error :for={msg <- @errors}><%= msg %></.error>
     </div>
     """
@@ -378,17 +374,7 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div phx-feedback-for={@name} class={@class}>
       <.label for={@id} show_optional={@show_optional}><%= @label %></.label>
-      <textarea
-        id={@id}
-        name={@name}
-        class={[
-          "block w-full min-h-[6rem] rounded-sm border-0 shadow-sm ring-1 ring-slate-200 sm:text-sm sm:leading-6",
-          "focus:ring-2 focus:ring-cyan-400",
-          "phx-no-feedback:ring-slate-200 phx-no-feedback:focus:ring-cyan-400",
-          @errors != [] && "ring-rose-400 focus:ring-rose-400"
-        ]}
-        {@rest}
-      ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
+      <.textarea id={@id} name={@name} errors={@errors} value={@value} {@rest} />
       <.error :for={msg <- @errors}><%= msg %></.error>
     </div>
     """
@@ -399,19 +385,7 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div phx-feedback-for={@name} class={@class}>
       <.label for={@id} show_optional={@show_optional}><%= @label %></.label>
-      <input
-        type={@type}
-        name={@name}
-        id={@id}
-        value={Phoenix.HTML.Form.normalize_value(@type, @value)}
-        class={[
-          "block w-full rounded-sm border-0 shadow-sm ring-1 ring-slate-200 sm:text-sm sm:leading-6",
-          "focus:ring-2 focus:ring-cyan-400 focus:ring-inset",
-          "phx-no-feedback:ring-slate-200 phx-no-feedback:focus:ring-cyan-400",
-          @errors != [] && "ring-rose-400 focus:ring-rose-400"
-        ]}
-        {@rest}
-      />
+      <.base_input type={@type} name={@name} id={@id} value={@value} errors={@errors} {@rest} />
       <.error :for={msg <- @errors}><%= msg %></.error>
     </div>
     """
@@ -440,6 +414,104 @@ defmodule LantternWeb.CoreComponents do
     <label for={@for} class="block mb-2 text-sm font-bold">
       <%= render_slot(@inner_block) %>
     </label>
+    """
+  end
+
+  @doc """
+  Base select component
+  """
+  attr :id, :any, default: nil
+  attr :name, :any
+  attr :value, :any
+  attr :prompt, :string, default: nil
+  attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
+  attr :multiple, :boolean, default: false
+  attr :class, :string, default: ""
+
+  attr :rest, :global, include: ~w(disabled multiple readonly required)
+
+  def select(assigns) do
+    ~H"""
+    <select
+      id={@id}
+      name={@name}
+      class={[
+        "block w-full rounded-sm border-0 shadown-sm ring-1 ring-slate-200 bg-white sm:text-sm",
+        "focus:ring-2 focus:ring-cyan-400 focus:ring-inset",
+        @class
+      ]}
+      multiple={@multiple}
+      {@rest}
+    >
+      <option :if={@prompt} value=""><%= @prompt %></option>
+      <%= Phoenix.HTML.Form.options_for_select(@options, @value) %>
+    </select>
+    """
+  end
+
+  @doc """
+  Base textarea component
+  """
+  attr :id, :any, default: nil
+  attr :name, :any
+  attr :value, :any
+  attr :errors, :list, default: []
+  attr :class, :string, default: ""
+
+  attr :rest, :global, include: ~w(autocomplete cols disabled maxlength minlength
+                placeholder readonly required rows)
+
+  def textarea(assigns) do
+    ~H"""
+    <textarea
+      id={@id}
+      name={@name}
+      class={[
+        "block w-full min-h-[6rem] rounded-sm border-0 shadow-sm ring-1 ring-slate-200 sm:text-sm sm:leading-6",
+        "focus:ring-2 focus:ring-cyan-400",
+        "phx-no-feedback:ring-slate-200 phx-no-feedback:focus:ring-cyan-400",
+        @class,
+        @errors != [] && "ring-rose-400 focus:ring-rose-400"
+      ]}
+      {@rest}
+    ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
+    """
+  end
+
+  @doc """
+  Base input component
+  """
+  attr :id, :any, default: nil
+  attr :name, :any
+  attr :value, :any
+
+  attr :type, :string,
+    default: "text",
+    values: ~w(color date datetime-local email file hidden month number password
+               range radio search tel text time url week)
+
+  attr :errors, :list, default: []
+  attr :class, :string, default: ""
+
+  attr :rest, :global,
+    include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
+                multiple pattern placeholder readonly required rows size step)
+
+  def base_input(assigns) do
+    ~H"""
+    <input
+      type={@type}
+      name={@name}
+      id={@id}
+      value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+      class={[
+        "block w-full rounded-sm border-0 shadow-sm ring-1 ring-slate-200 sm:text-sm sm:leading-6",
+        "focus:ring-2 focus:ring-cyan-400 focus:ring-inset",
+        "phx-no-feedback:ring-slate-200 phx-no-feedback:focus:ring-cyan-400",
+        @errors != [] && "ring-rose-400 focus:ring-rose-400"
+      ]}
+      {@rest}
+    />
     """
   end
 
