@@ -4,8 +4,8 @@ defmodule Lanttern.Assessments do
   """
 
   import Ecto.Query, warn: false
+  import Lanttern.RepoHelpers
   alias Lanttern.Repo
-
   alias Lanttern.Assessments.AssessmentPoint
 
   @doc """
@@ -177,6 +177,10 @@ defmodule Lanttern.Assessments do
   @doc """
   Updates a assessment_point_entry.
 
+  ### Options:
+
+  `:preloads` – preloads associated data
+
   ## Examples
 
       iex> update_assessment_point_entry(assessment_point_entry, %{field: new_value})
@@ -186,10 +190,15 @@ defmodule Lanttern.Assessments do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_assessment_point_entry(%AssessmentPointEntry{} = assessment_point_entry, attrs) do
+  def update_assessment_point_entry(
+        %AssessmentPointEntry{} = assessment_point_entry,
+        attrs,
+        opts \\ []
+      ) do
     assessment_point_entry
     |> AssessmentPointEntry.changeset(attrs)
     |> Repo.update()
+    |> maybe_preload(opts)
   end
 
   @doc """

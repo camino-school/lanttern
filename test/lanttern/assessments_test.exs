@@ -273,7 +273,7 @@ defmodule Lanttern.AssessmentsTest do
                Assessments.create_assessment_point_entry(attrs)
     end
 
-    test "create_assessment_point_entry/1 with ordinal_value out of scale returns error changeset" do
+    test "create_assestudent = Lanttern.SchoolsFixtures.student_fixture()ssment_point_entry/1 with ordinal_value out of scale returns error changeset" do
       scale = Lanttern.GradingFixtures.scale_fixture(%{type: "ordinal"})
       _ordinal_value = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
       other_ordinal_value = Lanttern.GradingFixtures.ordinal_value_fixture()
@@ -290,7 +290,7 @@ defmodule Lanttern.AssessmentsTest do
                Assessments.create_assessment_point_entry(attrs)
     end
 
-    test "update_assessment_point_entry/2 with valid data updates the assessment_point_entry" do
+    test "update_assessment_point_entry/3 with valid data updates the assessment_point_entry" do
       assessment_point_entry = assessment_point_entry_fixture()
       update_attrs = %{observation: "some updated observation"}
 
@@ -300,7 +300,20 @@ defmodule Lanttern.AssessmentsTest do
       assert assessment_point_entry.observation == "some updated observation"
     end
 
-    test "update_assessment_point_entry/2 with invalid data returns error changeset" do
+    test "update_assessment_point_entry/3 with valid data and preloads updates the assessment_point_entry and return it with preloaded data" do
+      student = Lanttern.SchoolsFixtures.student_fixture()
+      assessment_point_entry = assessment_point_entry_fixture(%{student_id: student.id})
+      update_attrs = %{observation: "some updated observation"}
+
+      assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
+               Assessments.update_assessment_point_entry(assessment_point_entry, update_attrs,
+                 preloads: :student
+               )
+
+      assert assessment_point_entry.student == student
+    end
+
+    test "update_assessment_point_entry/3 with invalid data returns error changeset" do
       assessment_point_entry = assessment_point_entry_fixture()
 
       assert {:error, %Ecto.Changeset{}} =
