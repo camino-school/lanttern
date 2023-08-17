@@ -1,8 +1,6 @@
 defmodule LantternWeb.CreateAssessmentPointFormComponent do
   use LantternWeb, :live_component
 
-  import LantternWeb.OverlayComponents
-
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Schools

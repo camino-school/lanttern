@@ -85,6 +85,7 @@ defmodule LantternWeb do
       import Phoenix.HTML
       # Core UI components and translation
       import LantternWeb.CoreComponents
+      import LantternWeb.OverlayComponents
       import LantternWeb.Gettext
 
       # Shortcut for generating JS commands

@@ -50,19 +50,19 @@ defmodule LantternWeb.CreateAssessmentPointFormComponentTest do
 
       # assert class and students badges are rendered
       assert view
-             |> element("span.rounded-md", class.name)
+             |> element("span.rounded-sm", class.name)
              |> render() =~ class.name
 
       assert view
-             |> element("span.rounded-md", std_1.name)
+             |> element("span.rounded-sm", std_1.name)
              |> render() =~ std_1.name
 
       assert view
-             |> element("span.rounded-md", std_2.name)
+             |> element("span.rounded-sm", std_2.name)
              |> render() =~ std_2.name
 
       assert view
-             |> element("span.rounded-md", std_3.name)
+             |> element("span.rounded-sm", std_3.name)
              |> render() =~ std_3.name
 
       # delete class
@@ -71,7 +71,7 @@ defmodule LantternWeb.CreateAssessmentPointFormComponentTest do
       |> render_click()
 
       refute view
-             |> element("span.rounded-md", class.name)
+             |> element("span.rounded-sm", class.name)
              |> has_element?()
 
       # delete std_3

@@ -120,11 +120,11 @@ defmodule LantternWeb.AssessmentPointLive do
 
   def ordinal_values(assigns) do
     ~H"""
-    <div :if={@ordinal_values} class="flex items-center">
+    <div :if={@ordinal_values} class="flex items-center gap-2 ml-2">
       <%= for ov <- @ordinal_values do %>
-        <div class="p-1 ml-2 rounded-[1px] font-mono text-xs bg-slate-200">
+        <.badge>
           <%= ov.name %>
-        </div>
+        </.badge>
       <% end %>
     </div>
     """
@@ -134,11 +134,11 @@ defmodule LantternWeb.AssessmentPointLive do
 
   def classes(assigns) do
     ~H"""
-    <div class="flex items-center">
+    <div class="flex items-center gap-2 ml-2">
       <%= for c <- @classes do %>
-        <div class="p-1 ml-2 rounded-[1px] font-mono text-xs bg-slate-200">
+        <.badge>
           <%= c.name %>
-        </div>
+        </.badge>
       <% end %>
     </div>
     """

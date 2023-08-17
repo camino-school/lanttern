@@ -767,7 +767,7 @@ defmodule LantternWeb.CoreComponents do
     <span
       id={@id}
       class={[
-        "inline-flex items-center gap-x-0.5 rounded-md px-2 py-1 text-xs text-slate-700",
+        "inline-flex items-center rounded-sm px-2 py-1 font-mono text-xs text-slate-700",
         badge_theme(@theme),
         @class
       ]}
@@ -776,11 +776,11 @@ defmodule LantternWeb.CoreComponents do
       <button
         :if={@show_remove}
         type="button"
-        class="group relative -mr-1 h-3.5 w-3.5 rounded-sm hover:bg-slate-500/20"
+        class="group relative ml-1 -mr-1 h-3.5 w-3.5 rounded-[1px] hover:bg-slate-400/20"
         {@rest}
       >
         <span class="sr-only">Remove</span>
-        <.icon name="hero-x-mark-mini" class="w-3.5 text-slate-700/50 hover:text-slate-700/75" />
+        <.icon name="hero-x-mark-mini" class="w-3.5 text-slate-400 hover:text-slate-700" />
         <span class="absolute -inset-1"></span>
       </button>
     </span>
