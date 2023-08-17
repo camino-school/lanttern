@@ -1,0 +1,12 @@
+<.header>
+  New Class
+  <:subtitle>Use this form to manage class records in your database.</:subtitle>
+</.header>
+
+<.class_form
+  student_options={@student_options}
+  changeset={@changeset}
+  action={~p"/admin/schools/classes"}
+/>
+
+<.back navigate={~p"/admin/schools/classes"}>Back to classes</.back>

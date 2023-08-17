@@ -9,6 +9,11 @@
 
 <.table id="students" rows={@students} row_click={&JS.navigate(~p"/admin/schools/students/#{&1}")}>
   <:col :let={student} label="Name"><%= student.name %></:col>
+  <:col :let={student} label="Classes">
+    <%= student.classes
+    |> Enum.map(& &1.name)
+    |> Enum.join(", ") %>
+  </:col>
   <:action :let={student}>
     <div class="sr-only">
       <.link navigate={~p"/admin/schools/students/#{student}"}>Show</.link>

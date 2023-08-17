@@ -26,7 +26,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
         id: id,
         name: name,
         description: description,
-        date: date
+        datetime: datetime
       } =
         AssessmentsFixtures.assessment_point_fixture(attrs)
 
@@ -36,7 +36,10 @@ defmodule LantternWeb.AssessmentPointLiveTest do
       assert view |> has_element?("p", description)
 
       assert view
-             |> has_element?("div", Timex.format!(date, "{Mshort} {D}, {YYYY}, {h12}:{m} {am}"))
+             |> has_element?(
+               "div",
+               Timex.format!(Timex.local(datetime), "{Mshort} {D}, {YYYY}, {h12}:{m} {am}")
+             )
 
       assert view |> has_element?("div", curriculum_item.name)
       assert view |> has_element?("div", scale.name)

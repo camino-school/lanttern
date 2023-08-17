@@ -1,0 +1,20 @@
+<.header>
+  Class <%= @class.id %>
+  <:subtitle>This is a class record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/admin/schools/classes/#{@class}/edit"}>
+      <.button>Edit class</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @class.name %></:item>
+  <:item title="Students">
+    <%= @class.students
+    |> Enum.map(& &1.name)
+    |> Enum.join(", ") %>
+  </:item>
+</.list>
+
+<.back navigate={~p"/admin/schools/classes"}>Back to classes</.back>

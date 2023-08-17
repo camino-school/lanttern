@@ -22,10 +22,8 @@ defmodule LantternWeb.Router do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
-    # plug :put_root_layout, html: {LantternWeb.Layouts, :root}
     plug :verify_google_csrf_token
     plug :put_secure_browser_headers
-    # plug :fetch_current_user
   end
 
   pipeline :api do
@@ -63,6 +61,7 @@ defmodule LantternWeb.Router do
     end
 
     scope "/schools" do
+      resources "/classes", ClassController
       resources "/students", StudentController
     end
   end

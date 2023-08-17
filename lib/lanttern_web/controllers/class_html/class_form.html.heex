@@ -4,14 +4,14 @@
   </.error>
   <.input field={f[:name]} type="text" label="Name" />
   <.input
-    field={f[:classes_ids]}
+    field={f[:students_ids]}
     type="select"
-    label="Classes"
-    options={@class_options}
-    prompt="Select classes"
+    label="Students"
+    options={@student_options}
+    prompt="Select students"
     multiple
   />
   <:actions>
-    <.button>Save Student</.button>
+    <.button>Save Class</.button>
   </:actions>
 </.simple_form>

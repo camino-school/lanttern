@@ -1,10 +1,10 @@
 defmodule LantternWeb.AssessmentPointController do
   use LantternWeb, :controller
 
+  import LantternWeb.CurriculaHelpers
+  import LantternWeb.GradingHelpers
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
-  alias Lanttern.Curricula
-  alias Lanttern.Grading
 
   def index(conn, _params) do
     assessment_points = Assessments.list_assessment_points()
@@ -90,17 +90,5 @@ defmodule LantternWeb.AssessmentPointController do
     conn
     |> put_flash(:info, "Assessment point deleted successfully.")
     |> redirect(to: ~p"/admin/assessments/assessment_points")
-  end
-
-  defp generate_curriculum_item_options() do
-    Curricula.list_items()
-    |> Enum.map(fn i -> ["#{i.name}": i.id] end)
-    |> Enum.concat()
-  end
-
-  defp generate_scale_options() do
-    Grading.list_scales()
-    |> Enum.map(fn s -> ["#{s.name}": s.id] end)
-    |> Enum.concat()
   end
 end

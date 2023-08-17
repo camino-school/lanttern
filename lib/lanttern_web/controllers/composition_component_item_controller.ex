@@ -1,7 +1,8 @@
 defmodule LantternWeb.CompositionComponentItemController do
   use LantternWeb, :controller
 
-  alias Lanttern.Curricula
+  import LantternWeb.CurriculaHelpers
+  import LantternWeb.GradingHelpers
   alias Lanttern.Grading
   alias Lanttern.Grading.CompositionComponentItem
 
@@ -99,17 +100,5 @@ defmodule LantternWeb.CompositionComponentItemController do
     conn
     |> put_flash(:info, "Composition component item deleted successfully.")
     |> redirect(to: ~p"/admin/grading/component_items")
-  end
-
-  defp generate_component_options() do
-    Grading.list_composition_components()
-    |> Enum.map(fn c -> ["#{c.name}": c.id] end)
-    |> Enum.concat()
-  end
-
-  defp generate_curriculum_item_options() do
-    Curricula.list_items()
-    |> Enum.map(fn i -> ["#{i.name}": i.id] end)
-    |> Enum.concat()
   end
 end

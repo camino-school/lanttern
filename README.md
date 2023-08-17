@@ -14,6 +14,7 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 
 ```
 export GOOGLE_CLIENT_ID="********"
+export ROOT_ADMIN_EMAIL="some.email@example.com"
 ```
 
 ## Learn more

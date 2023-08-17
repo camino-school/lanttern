@@ -1,17 +1,19 @@
 defmodule LantternWeb.StudentController do
   use LantternWeb, :controller
 
+  import LantternWeb.SchoolsHelpers
   alias Lanttern.Schools
   alias Lanttern.Schools.Student
 
   def index(conn, _params) do
-    students = Schools.list_students()
+    students = Schools.list_students(preloads: :classes)
     render(conn, :index, students: students)
   end
 
   def new(conn, _params) do
+    class_options = generate_class_options()
     changeset = Schools.change_student(%Student{})
-    render(conn, :new, changeset: changeset)
+    render(conn, :new, class_options: class_options, changeset: changeset)
   end
 
   def create(conn, %{"student" => student_params}) do
@@ -22,19 +24,26 @@ defmodule LantternWeb.StudentController do
         |> redirect(to: ~p"/admin/schools/students/#{student}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, :new, changeset: changeset)
+        class_options = generate_class_options()
+        render(conn, :new, class_options: class_options, changeset: changeset)
     end
   end
 
   def show(conn, %{"id" => id}) do
-    student = Schools.get_student!(id)
+    student = Schools.get_student!(id, preloads: :classes)
     render(conn, :show, student: student)
   end
 
   def edit(conn, %{"id" => id}) do
-    student = Schools.get_student!(id)
+    class_options = generate_class_options()
+    student = Schools.get_student!(id, preloads: :classes)
+
+    # insert existing classes_ids
+    classes_ids = Enum.map(student.classes, & &1.id)
+    student = student |> Map.put(:classes_ids, classes_ids)
+
     changeset = Schools.change_student(student)
-    render(conn, :edit, student: student, changeset: changeset)
+    render(conn, :edit, class_options: class_options, student: student, changeset: changeset)
   end
 
   def update(conn, %{"id" => id, "student" => student_params}) do
@@ -47,7 +56,8 @@ defmodule LantternWeb.StudentController do
         |> redirect(to: ~p"/admin/schools/students/#{student}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, :edit, student: student, changeset: changeset)
+        class_options = generate_class_options()
+        render(conn, :edit, class_options: class_options, student: student, changeset: changeset)
     end
   end
 

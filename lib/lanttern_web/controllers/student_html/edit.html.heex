@@ -3,6 +3,10 @@
   <:subtitle>Use this form to manage student records in your database.</:subtitle>
 </.header>
 
-<.student_form changeset={@changeset} action={~p"/admin/schools/students/#{@student}"} />
+<.student_form
+  class_options={@class_options}
+  changeset={@changeset}
+  action={~p"/admin/schools/students/#{@student}"}
+/>
 
 <.back navigate={~p"/admin/schools/students"}>Back to students</.back>

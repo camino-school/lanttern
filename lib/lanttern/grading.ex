@@ -443,19 +443,24 @@ defmodule Lanttern.Grading do
   @doc """
   Returns the list of scales.
 
+  Accepts `:type` opts.
+
   ## Examples
 
       iex> list_scales()
       [%Scale{}, ...]
 
   """
-  def list_scales do
-    Repo.all(Scale)
-  end
+
+  def list_scales(opts \\ [])
 
   def list_scales(type: type) do
     from(s in Scale, where: s.type == ^type)
     |> Repo.all()
+  end
+
+  def list_scales(_opts) do
+    Repo.all(Scale)
   end
 
   @doc """

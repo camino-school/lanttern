@@ -1,6 +1,7 @@
 defmodule LantternWeb.OrdinalValueController do
   use LantternWeb, :controller
 
+  import LantternWeb.GradingHelpers
   alias Lanttern.Grading
   alias Lanttern.Grading.OrdinalValue
 
@@ -10,7 +11,7 @@ defmodule LantternWeb.OrdinalValueController do
   end
 
   def new(conn, _params) do
-    options = generate_scale_options()
+    options = generate_scale_options(type: "ordinal")
     changeset = Grading.change_ordinal_value(%OrdinalValue{})
     render(conn, :new, scale_options: options, changeset: changeset)
   end
@@ -23,7 +24,7 @@ defmodule LantternWeb.OrdinalValueController do
         |> redirect(to: ~p"/admin/grading/ordinal_values/#{ordinal_value}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        options = generate_scale_options()
+        options = generate_scale_options(type: "ordinal")
         render(conn, :new, scale_options: options, changeset: changeset)
     end
   end
@@ -35,7 +36,7 @@ defmodule LantternWeb.OrdinalValueController do
 
   def edit(conn, %{"id" => id}) do
     ordinal_value = Grading.get_ordinal_value!(id)
-    options = generate_scale_options()
+    options = generate_scale_options(type: "ordinal")
     changeset = Grading.change_ordinal_value(ordinal_value)
 
     render(conn, :edit,
@@ -55,7 +56,7 @@ defmodule LantternWeb.OrdinalValueController do
         |> redirect(to: ~p"/admin/grading/ordinal_values/#{ordinal_value}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        options = generate_scale_options()
+        options = generate_scale_options(type: "ordinal")
 
         render(conn, :edit,
           ordinal_value: ordinal_value,
@@ -72,11 +73,5 @@ defmodule LantternWeb.OrdinalValueController do
     conn
     |> put_flash(:info, "Ordinal value deleted successfully.")
     |> redirect(to: ~p"/admin/grading/ordinal_values")
-  end
-
-  defp generate_scale_options() do
-    Grading.list_scales(type: "ordinal")
-    |> Enum.map(fn s -> ["#{s.name}": s.id] end)
-    |> Enum.concat()
   end
 end

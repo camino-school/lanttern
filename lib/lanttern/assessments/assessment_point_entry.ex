@@ -13,6 +13,17 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
     timestamps()
   end
 
+  @doc """
+  Blank assessment point entry changeset.
+  To be used during assessment point `creation_changeset`.
+  No `assessment_point_id` requirement (will be create during insert in `cast_assoc`).
+  """
+  def blank_changeset(assessment_point_entry, attrs) do
+    assessment_point_entry
+    |> cast(attrs, [:assessment_point_id, :student_id])
+    |> validate_required([:student_id])
+  end
+
   @doc false
   def changeset(assessment_point_entry, attrs) do
     assessment_point_entry

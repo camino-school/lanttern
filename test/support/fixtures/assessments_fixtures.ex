@@ -15,7 +15,7 @@ defmodule Lanttern.AssessmentsFixtures do
       attrs
       |> Enum.into(%{
         name: "some name",
-        date: ~U[2023-08-02 15:30:00Z],
+        datetime: ~U[2023-08-02 15:30:00Z],
         description: "some description",
         scale_id: scale.id,
         curriculum_item_id: curriculum_item.id
