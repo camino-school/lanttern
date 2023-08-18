@@ -46,10 +46,10 @@ defmodule LantternWeb.AssessmentPointLive do
           <.classes classes={@assessment_point.classes} />
         </div>
         <div class="mt-20">
-          <div class="flex items-center">
+          <div class="flex items-center gap-2">
             <div class="shrink-0 w-1/4"></div>
             <div class={[
-              "flex items-center p-2 font-display font-bold text-slate-400",
+              "flex items-center font-display font-bold text-slate-400",
               if(
                 @assessment_point.scale.type == "ordinal",
                 do: "flex-[2_0]",
@@ -58,7 +58,7 @@ defmodule LantternWeb.AssessmentPointLive do
             ]}>
               <.icon name="hero-view-columns" class="mr-4" /> Marking
             </div>
-            <div class="flex-[2_0] items-center p-2 font-display font-bold text-slate-400">
+            <div class="flex-[2_0] items-center font-display font-bold text-slate-400">
               <.icon name="hero-pencil-square" class="mr-4" /> Notes and observations
             </div>
           </div>
@@ -172,11 +172,11 @@ defmodule LantternWeb.AssessmentPointLive do
 
   def level_row(assigns) do
     ~H"""
-    <.form for={@form} phx-change="save" class="flex items-center">
+    <.form for={@form} phx-change="save" class="flex items-stretch gap-2 mt-4">
       <input type="hidden" name={@form[:id].name} value={@form[:id].value} />
-      <div class="shrink-0 w-1/4 text-sm">Student <%= @form.data.student.name %></div>
+      <div class="self-center shrink-0 w-1/4 text-sm">Student <%= @form.data.student.name %></div>
       <.marking_column scale={@scale} ordinal_value_options={@ordinal_value_options} form={@form} />
-      <div class="flex-[2_0] p-2">
+      <div class="flex-[2_0]">
         <.textarea
           name={@form[:observation].name}
           errors={@form[:observation].errors}
@@ -194,13 +194,13 @@ defmodule LantternWeb.AssessmentPointLive do
 
   def marking_column(%{scale: %{type: "ordinal"}} = assigns) do
     ~H"""
-    <div class="flex-[2_0] self-stretch p-2">
+    <div class="flex-[2_0]">
       <.select
         name={@form[:ordinal_value_id].name}
         prompt="—"
         options={@ordinal_value_options}
         value={@form[:ordinal_value_id].value}
-        class="h-full"
+        class="h-full text-center"
       />
     </div>
     """
@@ -209,14 +209,14 @@ defmodule LantternWeb.AssessmentPointLive do
   # numeric scale
   def marking_column(assigns) do
     ~H"""
-    <div class="flex-[1_0] self-stretch p-2">
+    <div class="flex-[1_0]">
       <.base_input
         name={@form[:score].name}
         errors={@form[:score].errors}
         type="number"
         phx-debounce="1000"
         value={@form[:score].value}
-        class="h-full"
+        class="h-full text-center"
         min={@scale.start}
         max={@scale.stop}
       />
