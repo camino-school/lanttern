@@ -130,14 +130,22 @@ defmodule Lanttern.Assessments do
   @doc """
   Returns the list of assessment_point_entries.
 
+  ### Options:
+
+  `:preloads` – preloads associated data
+  `:assessment_point_id` – filter entries by provided assessment point id
+
   ## Examples
 
       iex> list_assessment_point_entries()
       [%AssessmentPointEntry{}, ...]
 
   """
-  def list_assessment_point_entries do
-    Repo.all(AssessmentPointEntry)
+  def list_assessment_point_entries(opts \\ []) do
+    AssessmentPointEntry
+    |> maybe_filter_entries_by_assessment_point(opts)
+    |> Repo.all()
+    |> maybe_preload(opts)
   end
 
   @doc """
@@ -246,5 +254,19 @@ defmodule Lanttern.Assessments do
       |> Map.get(:minute)
 
     m - Integer.mod(m, 10)
+  end
+
+  defp maybe_filter_entries_by_assessment_point(assessment_point_entry_query, opts) do
+    case Keyword.get(opts, :assessment_point_id) do
+      nil ->
+        assessment_point_entry_query
+
+      assessment_point_id ->
+        from(
+          e in assessment_point_entry_query,
+          join: ap in assoc(e, :assessment_point),
+          where: ap.id == ^assessment_point_id
+        )
+    end
   end
 end

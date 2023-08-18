@@ -184,9 +184,47 @@ defmodule Lanttern.AssessmentsTest do
 
     @invalid_attrs %{student_id: nil, score: nil}
 
-    test "list_assessment_point_entries/0 returns all assessment_point_entries" do
+    test "list_assessment_point_entries/1 returns all assessment_point_entries" do
       assessment_point_entry = assessment_point_entry_fixture()
       assert Assessments.list_assessment_point_entries() == [assessment_point_entry]
+    end
+
+    test "list_assessment_point_entries/1 with opts returns entries as expected" do
+      assessment_point = assessment_point_fixture()
+      student_1 = Lanttern.SchoolsFixtures.student_fixture()
+
+      entry_1 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point.id,
+          student_id: student_1.id
+        })
+
+      student_2 = Lanttern.SchoolsFixtures.student_fixture()
+
+      entry_2 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point.id,
+          student_id: student_2.id
+        })
+
+      # extra entry for filtering validation
+      assessment_point_entry_fixture()
+
+      entries =
+        Assessments.list_assessment_point_entries(
+          preloads: :student,
+          assessment_point_id: assessment_point.id
+        )
+
+      # assert length to check filtering
+      assert length(entries) == 2
+
+      # assert students are preloaded
+      expected_entry_1 = Enum.find(entries, fn e -> e.id == entry_1.id end)
+      assert expected_entry_1.student == student_1
+
+      expected_entry_2 = Enum.find(entries, fn e -> e.id == entry_2.id end)
+      assert expected_entry_2.student == student_2
     end
 
     test "get_assessment_point_entry!/1 returns the assessment_point_entry with given id" do

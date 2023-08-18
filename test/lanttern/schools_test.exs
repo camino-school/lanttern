@@ -15,16 +15,7 @@ defmodule Lanttern.SchoolsTest do
       assert Schools.list_students() == [student]
     end
 
-    test "list_students/1 with preloads returns all students with preloaded data" do
-      class = class_fixture()
-      student = student_fixture(%{classes_ids: [class.id]})
-
-      assert Schools.list_students(preloads: :classes) == [
-               student |> Map.put(:classes_ids, nil)
-             ]
-    end
-
-    test "list_students/1 with classes_ids opt returns all students filtered by classes" do
+    test "list_students/1 with opts returns all students as expected" do
       class_1 = class_fixture()
       student_1 = student_fixture(%{classes_ids: [class_1.id]})
       class_2 = class_fixture()
@@ -33,10 +24,17 @@ defmodule Lanttern.SchoolsTest do
       # extra student for filtering validation
       student_fixture()
 
-      students = Schools.list_students(classes_ids: [class_1.id, class_2.id])
+      students = Schools.list_students(classes_ids: [class_1.id, class_2.id], preloads: :classes)
+
+      # assert length to check filtering
       assert length(students) == 2
-      assert Enum.find(students, fn s -> s.id == student_1.id end)
-      assert Enum.find(students, fn s -> s.id == student_2.id end)
+
+      # assert students are preloaded
+      expected_student_1 = Enum.find(students, fn s -> s.id == student_1.id end)
+      assert expected_student_1.classes == [class_1]
+
+      expected_student_2 = Enum.find(students, fn s -> s.id == student_2.id end)
+      assert expected_student_2.classes == [class_2]
     end
 
     test "get_student!/2 returns the student with given id" do
@@ -48,8 +46,8 @@ defmodule Lanttern.SchoolsTest do
       class = class_fixture()
       student = student_fixture(%{classes_ids: [class.id]})
 
-      assert Schools.get_student!(student.id, preloads: :classes) ==
-               student |> Map.put(:classes_ids, nil)
+      expected_student = Schools.get_student!(student.id, preloads: :classes)
+      assert expected_student.classes == [class]
     end
 
     test "create_student/1 with valid data creates a student" do
@@ -143,7 +141,10 @@ defmodule Lanttern.SchoolsTest do
     test "list_classes/1 with preloads returns all classes with preloaded data" do
       student = student_fixture()
       class = class_fixture(%{students_ids: [student.id]})
-      assert Schools.list_classes(preloads: :students) == [class |> Map.put(:students_ids, nil)]
+
+      [expected_class] = Schools.list_classes(preloads: :students)
+      assert expected_class.id == class.id
+      assert expected_class.students == [student]
     end
 
     test "get_class!/2 returns the class with given id" do
@@ -155,8 +156,8 @@ defmodule Lanttern.SchoolsTest do
       student = student_fixture()
       class = class_fixture(%{students_ids: [student.id]})
 
-      assert Schools.get_class!(class.id, preloads: :students) ==
-               class |> Map.put(:students_ids, nil)
+      expected_class = Schools.get_class!(class.id, preloads: :students)
+      assert expected_class.students == [student]
     end
 
     test "create_class/1 with valid data creates a class" do

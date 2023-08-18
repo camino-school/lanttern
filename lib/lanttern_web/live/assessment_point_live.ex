@@ -3,7 +3,6 @@ defmodule LantternWeb.AssessmentPointLive do
 
   alias Lanttern.Assessments
   alias Lanttern.Grading
-  alias Lanttern.Grading.Scale
 
   def render(assigns) do
     ~H"""
@@ -62,13 +61,14 @@ defmodule LantternWeb.AssessmentPointLive do
               <.icon name="hero-pencil-square" class="mr-4" /> Notes and observations
             </div>
           </div>
-          <%= for f <- @entries_forms do %>
-            <.level_row
-              form={f}
-              ordinal_value_options={@ordinal_value_options}
-              scale={@assessment_point.scale}
-            />
-          <% end %>
+          <.live_component
+            :for={entry <- @entries}
+            module={LantternWeb.AssessmentPointEntryFormLiveComponent}
+            id={entry.id}
+            entry={entry}
+            ordinal_value_options={@ordinal_value_options}
+            scale={@assessment_point.scale}
+          />
         </div>
       </div>
     </div>
@@ -84,19 +84,25 @@ defmodule LantternWeb.AssessmentPointLive do
       Assessments.get_assessment_point!(id, [
         :curriculum_item,
         :scale,
-        :classes,
-        [entries: [:student]]
+        :classes
       ])
     rescue
       _ ->
         socket =
           socket
-          |> put_flash(:error, "Couldn't find assessment point \"#{id}\"")
+          |> put_flash(:error, "Couldn't find assessment point")
           |> redirect(to: ~p"/assessment_points")
 
         {:noreply, socket}
     else
       assessment_point ->
+        entries =
+          Assessments.list_assessment_point_entries(
+            preloads: :student,
+            assessment_point_id: assessment_point.id
+          )
+          |> Enum.sort_by(& &1.student.name)
+
         ordinal_values =
           if assessment_point.scale.type == "ordinal" do
             Grading.list_ordinal_values_from_scale(assessment_point.scale.id)
@@ -117,22 +123,13 @@ defmodule LantternWeb.AssessmentPointLive do
             "{Mshort} {D}, {YYYY}, {h12}:{m} {am}"
           )
 
-        entries_forms =
-          assessment_point.entries
-          |> Enum.sort_by(& &1.student.name)
-          |> Enum.map(fn entry ->
-            entry
-            |> Assessments.change_assessment_point_entry()
-            |> to_form()
-          end)
-
         socket =
           socket
           |> assign(:assessment_point, assessment_point)
+          |> assign(:entries, entries)
           |> assign(:ordinal_values, ordinal_values)
           |> assign(:formatted_datetime, formatted_datetime)
           |> assign(:ordinal_value_options, ordinal_value_options)
-          |> assign(:entries_forms, entries_forms)
 
         {:noreply, socket}
     end
@@ -165,27 +162,52 @@ defmodule LantternWeb.AssessmentPointLive do
     </div>
     """
   end
+end
 
-  attr :scale, Scale, required: true
-  attr :ordinal_value_options, :list
-  attr :form, Phoenix.HTML.Form, required: true
+defmodule LantternWeb.AssessmentPointEntryFormLiveComponent do
+  use LantternWeb, :live_component
 
-  def level_row(assigns) do
+  alias Lanttern.Assessments
+  alias Lanttern.Grading.Scale
+
+  # attr :scale, Scale, required: true
+  # attr :ordinal_value_options, :list
+  # attr :entry, ast entry, required: true
+
+  def render(assigns) do
     ~H"""
-    <.form for={@form} phx-change="save" class="flex items-stretch gap-2 mt-4">
-      <input type="hidden" name={@form[:id].name} value={@form[:id].value} />
-      <div class="self-center shrink-0 w-1/4 text-sm">Student <%= @form.data.student.name %></div>
-      <.marking_column scale={@scale} ordinal_value_options={@ordinal_value_options} form={@form} />
-      <div class="flex-[2_0]">
-        <.textarea
-          name={@form[:observation].name}
-          errors={@form[:observation].errors}
-          phx-debounce="1000"
-          value={@form[:observation].value}
-        />
-      </div>
-    </.form>
+    <div>
+      <.form for={@form} phx-change="save" class="flex items-stretch gap-2 mt-4" phx-target={@myself}>
+        <input type="hidden" name={@form[:id].name} value={@form[:id].value} />
+        <div class="self-center shrink-0 w-1/4 text-sm">Student <%= @entry.student.name %></div>
+        <.marking_column scale={@scale} ordinal_value_options={@ordinal_value_options} form={@form} />
+        <div class="flex-[2_0]">
+          <.textarea
+            name={@form[:observation].name}
+            errors={@form[:observation].errors}
+            phx-debounce="1000"
+            value={@form[:observation].value}
+          />
+        </div>
+      </.form>
+    </div>
     """
+  end
+
+  def update(assigns, socket) do
+    form =
+      assigns.entry
+      |> Assessments.change_assessment_point_entry()
+      |> to_form()
+
+    socket =
+      socket
+      |> assign(:form, form)
+      |> assign(:entry, assigns.entry)
+      |> assign(:scale, assigns.scale)
+      |> assign(:ordinal_value_options, assigns.ordinal_value_options)
+
+    {:ok, socket}
   end
 
   attr :scale, Scale, required: true
@@ -225,26 +247,13 @@ defmodule LantternWeb.AssessmentPointLive do
   end
 
   def handle_event("save", %{"assessment_point_entry" => params}, socket) do
-    assessment_point_entry = Assessments.get_assessment_point_entry!(params["id"])
-
-    case Assessments.update_assessment_point_entry(assessment_point_entry, params,
+    case Assessments.update_assessment_point_entry(socket.assigns.entry, params,
            preloads: :student
          ) do
       {:ok, assessment_point_entry} ->
         socket =
           socket
-          |> update(:entries_forms, fn forms ->
-            forms
-            |> Enum.map(fn form ->
-              if form.data.id == assessment_point_entry.id do
-                assessment_point_entry
-                |> Assessments.change_assessment_point_entry()
-                |> to_form()
-              else
-                form
-              end
-            end)
-          end)
+          |> assign(:entry, assessment_point_entry)
 
         {:noreply, socket}
 

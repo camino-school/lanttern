@@ -7,7 +7,17 @@ defmodule Lanttern.RepoHelpers do
   It's a thin wrapper around `Repo.preload/3` that allows it to be used
   in all functions that support options as keyword lists (specifically the `:preloads` opt)
   """
-  def maybe_preload({:ok, structs_or_struct_or_nil_or_tuple}, [preloads: preloads] = _opts) do
+  def maybe_preload(structs_or_struct_or_nil_or_tuple, opts) do
+    handle_preload(
+      structs_or_struct_or_nil_or_tuple,
+      Keyword.get(opts, :preloads)
+    )
+  end
+
+  defp handle_preload(structs_or_struct_or_nil_or_tuple, nil),
+    do: structs_or_struct_or_nil_or_tuple
+
+  defp handle_preload({:ok, structs_or_struct_or_nil_or_tuple}, preloads) do
     preloaded =
       structs_or_struct_or_nil_or_tuple
       |> Repo.preload(preloads)
@@ -15,13 +25,8 @@ defmodule Lanttern.RepoHelpers do
     {:ok, preloaded}
   end
 
-  def maybe_preload({:error, error}, _opts), do: {:error, error}
-
-  def maybe_preload(structs_or_struct_or_nil_or_tuple, [preloads: preloads] = _opts) do
+  defp handle_preload(structs_or_struct_or_nil_or_tuple, preloads) do
     structs_or_struct_or_nil_or_tuple
     |> Repo.preload(preloads)
   end
-
-  def maybe_preload(structs_or_struct_or_nil_or_tuple, _opts),
-    do: structs_or_struct_or_nil_or_tuple
 end
