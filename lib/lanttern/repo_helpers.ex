@@ -15,6 +15,8 @@ defmodule Lanttern.RepoHelpers do
     {:ok, preloaded}
   end
 
+  def maybe_preload({:error, error}, _opts), do: {:error, error}
+
   def maybe_preload(structs_or_struct_or_nil_or_tuple, [preloads: preloads] = _opts) do
     structs_or_struct_or_nil_or_tuple
     |> Repo.preload(preloads)

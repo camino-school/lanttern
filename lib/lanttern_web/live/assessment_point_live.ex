@@ -3,6 +3,7 @@ defmodule LantternWeb.AssessmentPointLive do
 
   alias Lanttern.Assessments
   alias Lanttern.Grading
+  alias Lanttern.Grading.Scale
 
   def render(assigns) do
     ~H"""
@@ -47,15 +48,26 @@ defmodule LantternWeb.AssessmentPointLive do
         <div class="mt-20">
           <div class="flex items-center">
             <div class="shrink-0 w-1/4"></div>
-            <div class="flex-[1_0] flex items-center p-2 font-display font-bold text-slate-400">
+            <div class={[
+              "flex items-center p-2 font-display font-bold text-slate-400",
+              if(
+                @assessment_point.scale.type == "ordinal",
+                do: "flex-[2_0]",
+                else: "flex-[1_0]"
+              )
+            ]}>
               <.icon name="hero-view-columns" class="mr-4" /> Marking
             </div>
-            <div class="flex-[1_0] items-center p-2 font-display font-bold text-slate-400">
+            <div class="flex-[2_0] items-center p-2 font-display font-bold text-slate-400">
               <.icon name="hero-pencil-square" class="mr-4" /> Notes and observations
             </div>
           </div>
           <%= for f <- @entries_forms do %>
-            <.level_row form={f} ordinal_value_options={@ordinal_value_options} />
+            <.level_row
+              form={f}
+              ordinal_value_options={@ordinal_value_options}
+              scale={@assessment_point.scale}
+            />
           <% end %>
         </div>
       </div>
@@ -154,6 +166,7 @@ defmodule LantternWeb.AssessmentPointLive do
     """
   end
 
+  attr :scale, Scale, required: true
   attr :ordinal_value_options, :list
   attr :form, Phoenix.HTML.Form, required: true
 
@@ -161,25 +174,53 @@ defmodule LantternWeb.AssessmentPointLive do
     ~H"""
     <.form for={@form} phx-change="save" class="flex items-center">
       <input type="hidden" name={@form[:id].name} value={@form[:id].value} />
-      <div class="shrink-0 w-1/4">Student <%= @form.data.student.name %></div>
-      <div class="flex-[1_0] self-stretch p-2">
-        <.select
-          name={@form[:ordinal_value_id].name}
-          prompt="—"
-          options={@ordinal_value_options}
-          value={@form[:ordinal_value_id].value}
-          class="h-full"
-        />
-      </div>
-      <div class="flex-[1_0] p-2">
+      <div class="shrink-0 w-1/4 text-sm">Student <%= @form.data.student.name %></div>
+      <.marking_column scale={@scale} ordinal_value_options={@ordinal_value_options} form={@form} />
+      <div class="flex-[2_0] p-2">
         <.textarea
           name={@form[:observation].name}
-          errors={@form.errors}
+          errors={@form[:observation].errors}
           phx-debounce="1000"
           value={@form[:observation].value}
         />
       </div>
     </.form>
+    """
+  end
+
+  attr :scale, Scale, required: true
+  attr :ordinal_value_options, :list
+  attr :form, Phoenix.HTML.Form, required: true
+
+  def marking_column(%{scale: %{type: "ordinal"}} = assigns) do
+    ~H"""
+    <div class="flex-[2_0] self-stretch p-2">
+      <.select
+        name={@form[:ordinal_value_id].name}
+        prompt="—"
+        options={@ordinal_value_options}
+        value={@form[:ordinal_value_id].value}
+        class="h-full"
+      />
+    </div>
+    """
+  end
+
+  # numeric scale
+  def marking_column(assigns) do
+    ~H"""
+    <div class="flex-[1_0] self-stretch p-2">
+      <.base_input
+        name={@form[:score].name}
+        errors={@form[:score].errors}
+        type="number"
+        phx-debounce="1000"
+        value={@form[:score].value}
+        class="h-full"
+        min={@scale.start}
+        max={@scale.stop}
+      />
+    </div>
     """
   end
 
@@ -204,6 +245,13 @@ defmodule LantternWeb.AssessmentPointLive do
               end
             end)
           end)
+
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{errors: [score: {score_error, _}]} = _changeset} ->
+        socket =
+          socket
+          |> put_flash(:error, score_error)
 
         {:noreply, socket}
 

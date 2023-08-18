@@ -508,6 +508,7 @@ defmodule LantternWeb.CoreComponents do
         "block w-full rounded-sm border-0 shadow-sm ring-1 ring-slate-200 sm:text-sm sm:leading-6",
         "focus:ring-2 focus:ring-cyan-400 focus:ring-inset",
         "phx-no-feedback:ring-slate-200 phx-no-feedback:focus:ring-cyan-400",
+        @class,
         @errors != [] && "ring-rose-400 focus:ring-rose-400"
       ]}
       {@rest}
