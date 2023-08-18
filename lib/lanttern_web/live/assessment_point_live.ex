@@ -44,27 +44,19 @@ defmodule LantternWeb.AssessmentPointLive do
           <.icon name="hero-squares-2x2" class="text-rose-500 mr-4" /> Classes:
           <.classes classes={@assessment_point.classes} />
         </div>
-        <div class="table w-full mt-20">
-          <div class="table-header-group">
-            <div class="table-row">
-              <div class="table-cell"></div>
-              <div class="table-cell">
-                <div class="flex items-center p-2 font-display font-bold text-slate-400">
-                  <.icon name="hero-view-columns" class="mr-4" /> Marking
-                </div>
-              </div>
-              <div class="table-cell">
-                <div class="flex items-center p-2 font-display font-bold text-slate-400">
-                  <.icon name="hero-pencil-square" class="mr-4" /> Notes and observations
-                </div>
-              </div>
+        <div class="mt-20">
+          <div class="flex items-center">
+            <div class="shrink-0 w-1/4"></div>
+            <div class="flex-[1_0] flex items-center p-2 font-display font-bold text-slate-400">
+              <.icon name="hero-view-columns" class="mr-4" /> Marking
+            </div>
+            <div class="flex-[1_0] items-center p-2 font-display font-bold text-slate-400">
+              <.icon name="hero-pencil-square" class="mr-4" /> Notes and observations
             </div>
           </div>
-          <div class="table-row-group">
-            <%= for f <- @entries_forms do %>
-              <.level_row form={f} ordinal_value_options={@ordinal_value_options} />
-            <% end %>
-          </div>
+          <%= for f <- @entries_forms do %>
+            <.level_row form={f} ordinal_value_options={@ordinal_value_options} />
+          <% end %>
         </div>
       </div>
     </div>
@@ -115,6 +107,7 @@ defmodule LantternWeb.AssessmentPointLive do
 
         entries_forms =
           assessment_point.entries
+          |> Enum.sort_by(& &1.student.name)
           |> Enum.map(fn entry ->
             entry
             |> Assessments.change_assessment_point_entry()
@@ -166,32 +159,25 @@ defmodule LantternWeb.AssessmentPointLive do
 
   def level_row(assigns) do
     ~H"""
-    <.form for={@form} phx-change="save" class="table-row">
+    <.form for={@form} phx-change="save" class="flex items-center">
       <input type="hidden" name={@form[:id].name} value={@form[:id].value} />
-      <div class="table-cell">Student <%= @form.data.student.name %></div>
-      <div class="table-cell">
-        <div class="p-2">
-          <.select
-            name={@form[:ordinal_value_id].name}
-            prompt="—"
-            options={@ordinal_value_options}
-            value={@form[:ordinal_value_id].value}
-          />
-        </div>
+      <div class="shrink-0 w-1/4">Student <%= @form.data.student.name %></div>
+      <div class="flex-[1_0] self-stretch p-2">
+        <.select
+          name={@form[:ordinal_value_id].name}
+          prompt="—"
+          options={@ordinal_value_options}
+          value={@form[:ordinal_value_id].value}
+          class="h-full"
+        />
       </div>
-      <div class="table-cell">
-        <div class="p-2">
-          <textarea
-            name={@form[:observation].name}
-            class={[
-              "block w-full min-h-[6rem] rounded-sm border-0 shadow-sm ring-1 ring-slate-200 sm:text-sm sm:leading-6",
-              "focus:ring-2 focus:ring-cyan-400",
-              "phx-no-feedback:ring-slate-200 phx-no-feedback:focus:ring-cyan-400",
-              @form.errors != [] && "ring-rose-400 focus:ring-rose-400"
-            ]}
-            phx-debounce="1000"
-          ><%= Phoenix.HTML.Form.normalize_value("textarea", @form[:observation].value) %></textarea>
-        </div>
+      <div class="flex-[1_0] p-2">
+        <.textarea
+          name={@form[:observation].name}
+          errors={@form.errors}
+          phx-debounce="1000"
+          value={@form[:observation].value}
+        />
       </div>
     </.form>
     """
