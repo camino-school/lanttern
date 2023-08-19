@@ -98,7 +98,7 @@ defmodule LantternWeb.AssessmentPointLive do
       assessment_point ->
         entries =
           Assessments.list_assessment_point_entries(
-            preloads: :student,
+            preloads: [:student, :ordinal_value],
             assessment_point_id: assessment_point.id
           )
           |> Enum.sort_by(& &1.student.name)
@@ -128,8 +128,8 @@ defmodule LantternWeb.AssessmentPointLive do
           |> assign(:assessment_point, assessment_point)
           |> assign(:entries, entries)
           |> assign(:ordinal_values, ordinal_values)
-          |> assign(:formatted_datetime, formatted_datetime)
           |> assign(:ordinal_value_options, ordinal_value_options)
+          |> assign(:formatted_datetime, formatted_datetime)
 
         {:noreply, socket}
     end
@@ -164,45 +164,61 @@ defmodule LantternWeb.AssessmentPointLive do
   end
 end
 
+# I know we shouldn't have 2 modules in the same file,
+# but this live component is meant to be used in this live view only
+# so I'll keep it here for now
+
+# expected external assigns
+# attr :scale, Scale, required: true
+# attr :ordinal_value_options, :list
+# attr :entry, :map, required: true
 defmodule LantternWeb.AssessmentPointEntryFormLiveComponent do
+  alias Lanttern.Assessments.AssessmentPointEntry
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments
+  alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Grading.Scale
-
-  # attr :scale, Scale, required: true
-  # attr :ordinal_value_options, :list
-  # attr :entry, ast entry, required: true
 
   def render(assigns) do
     ~H"""
     <div>
-      <.form for={@form} phx-change="save" class="flex items-stretch gap-2 mt-4" phx-target={@myself}>
-        <input type="hidden" name={@form[:id].name} value={@form[:id].value} />
+      <form phx-change="save" class="flex items-stretch gap-2 mt-4" phx-target={@myself}>
+        <input type="hidden" name="assessment_point_entry[id]" value={@entry.id} />
         <div class="self-center shrink-0 w-1/4 text-sm">Student <%= @entry.student.name %></div>
-        <.marking_column scale={@scale} ordinal_value_options={@ordinal_value_options} form={@form} />
+        <.marking_column
+          scale={@scale}
+          ordinal_value_options={@ordinal_value_options}
+          entry={@entry}
+          style={@ov_style}
+          ov_name={@ov_name}
+        />
         <div class="flex-[2_0]">
           <.textarea
-            name={@form[:observation].name}
-            errors={@form[:observation].errors}
+            name="assessment_point_entry[observation]"
             phx-debounce="1000"
-            value={@form[:observation].value}
+            value={@entry.observation}
           />
         </div>
-      </.form>
+      </form>
     </div>
     """
   end
 
   def update(assigns, socket) do
-    form =
-      assigns.entry
-      |> Assessments.change_assessment_point_entry()
-      |> to_form()
+    {ov_style, ov_name} =
+      case assigns.entry.ordinal_value do
+        %{name: name} = ov ->
+          {get_colors_style(ov), name}
+
+        _ ->
+          {nil, nil}
+      end
 
     socket =
       socket
-      |> assign(:form, form)
+      |> assign(:ov_style, ov_style)
+      |> assign(:ov_name, ov_name)
       |> assign(:entry, assigns.entry)
       |> assign(:scale, assigns.scale)
       |> assign(:ordinal_value_options, assigns.ordinal_value_options)
@@ -212,17 +228,26 @@ defmodule LantternWeb.AssessmentPointEntryFormLiveComponent do
 
   attr :scale, Scale, required: true
   attr :ordinal_value_options, :list
-  attr :form, Phoenix.HTML.Form, required: true
+  attr :style, :string
+  attr :ov_name, :string
+  attr :entry, AssessmentPointEntry, required: true
 
   def marking_column(%{scale: %{type: "ordinal"}} = assigns) do
     ~H"""
-    <div class="flex-[2_0]">
+    <div class="relative flex-[2_0]">
+      <div
+        class="flex items-center justify-center w-full h-full rounded-sm text-sm pointer-events-none"
+        style={@style}
+      >
+        <%= @ov_name || "—" %>
+      </div>
       <.select
-        name={@form[:ordinal_value_id].name}
+        name="assessment_point_entry[ordinal_value_id]"
         prompt="—"
         options={@ordinal_value_options}
-        value={@form[:ordinal_value_id].value}
-        class="h-full text-center"
+        value={@entry.ordinal_value_id}
+        class="absolute inset-0 text-center text-transparent"
+        style="background-color: transparent"
       />
     </div>
     """
@@ -233,11 +258,10 @@ defmodule LantternWeb.AssessmentPointEntryFormLiveComponent do
     ~H"""
     <div class="flex-[1_0]">
       <.base_input
-        name={@form[:score].name}
-        errors={@form[:score].errors}
+        name="assessment_point_entry[score]"
         type="number"
         phx-debounce="1000"
-        value={@form[:score].value}
+        value={@entry.score}
         class="h-full text-center"
         min={@scale.start}
         max={@scale.stop}
@@ -248,11 +272,23 @@ defmodule LantternWeb.AssessmentPointEntryFormLiveComponent do
 
   def handle_event("save", %{"assessment_point_entry" => params}, socket) do
     case Assessments.update_assessment_point_entry(socket.assigns.entry, params,
-           preloads: :student
+           preloads: [:student, :ordinal_value],
+           force_preloads: true
          ) do
       {:ok, assessment_point_entry} ->
+        {ov_style, ov_name} =
+          case assessment_point_entry.ordinal_value do
+            %{name: name} = ov ->
+              {get_colors_style(ov), name}
+
+            _ ->
+              {nil, nil}
+          end
+
         socket =
           socket
+          |> assign(:ov_style, ov_style)
+          |> assign(:ov_name, ov_name)
           |> assign(:entry, assessment_point_entry)
 
         {:noreply, socket}
@@ -272,4 +308,10 @@ defmodule LantternWeb.AssessmentPointEntryFormLiveComponent do
         {:noreply, socket}
     end
   end
+
+  defp get_colors_style(%OrdinalValue{} = ordinal_value) do
+    "background-color: #{ordinal_value.bg_color}; color: #{ordinal_value.text_color}"
+  end
+
+  defp get_colors_style(_), do: ""
 end

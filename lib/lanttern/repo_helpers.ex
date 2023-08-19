@@ -10,23 +10,24 @@ defmodule Lanttern.RepoHelpers do
   def maybe_preload(structs_or_struct_or_nil_or_tuple, opts) do
     handle_preload(
       structs_or_struct_or_nil_or_tuple,
-      Keyword.get(opts, :preloads)
+      Keyword.get(opts, :preloads),
+      Keyword.get(opts, :force_preloads, false)
     )
   end
 
-  defp handle_preload(structs_or_struct_or_nil_or_tuple, nil),
+  defp handle_preload(structs_or_struct_or_nil_or_tuple, nil, _force),
     do: structs_or_struct_or_nil_or_tuple
 
-  defp handle_preload({:ok, structs_or_struct_or_nil_or_tuple}, preloads) do
+  defp handle_preload({:ok, structs_or_struct_or_nil_or_tuple}, preloads, force) do
     preloaded =
       structs_or_struct_or_nil_or_tuple
-      |> Repo.preload(preloads)
+      |> Repo.preload(preloads, force: force)
 
     {:ok, preloaded}
   end
 
-  defp handle_preload(structs_or_struct_or_nil_or_tuple, preloads) do
+  defp handle_preload(structs_or_struct_or_nil_or_tuple, preloads, force) do
     structs_or_struct_or_nil_or_tuple
-    |> Repo.preload(preloads)
+    |> Repo.preload(preloads, force: force)
   end
 end

@@ -188,6 +188,7 @@ defmodule Lanttern.Assessments do
   ### Options:
 
   `:preloads` – preloads associated data
+  `:force_preloads` - force preload. useful for update actions
 
   ## Examples
 
