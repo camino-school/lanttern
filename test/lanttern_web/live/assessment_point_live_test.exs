@@ -172,5 +172,42 @@ defmodule LantternWeb.AssessmentPointLiveTest do
       assert updated_entry.score == 6
       assert updated_entry.observation == "updated observation"
     end
+
+    test "update assessment point entries with invalid data when scale is numeric flashes an error message",
+         %{conn: conn} do
+      curriculum_item = CurriculaFixtures.item_fixture()
+      scale = GradingFixtures.scale_fixture(%{type: "numeric", start: 0, stop: 10})
+
+      assessment_point =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          curriculum_item_id: curriculum_item.id,
+          scale_id: scale.id
+        })
+
+      entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point.id,
+          observation: "initial obs",
+          score: 5
+        })
+
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
+
+      # send change event to form
+      view
+      |> element("form")
+      |> render_change(%{
+        "assessment_point_entry" => %{
+          "score" => "11"
+        }
+      })
+
+      # assert flash message
+      render(view) =~ "score should be between 0.0 and 10.0"
+
+      # assert entry in DB didn't change
+      assert updated_entry = Lanttern.Assessments.get_assessment_point_entry!(entry.id)
+      assert updated_entry.score == 5
+    end
   end
 end

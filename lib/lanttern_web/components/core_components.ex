@@ -467,11 +467,12 @@ defmodule LantternWeb.CoreComponents do
       id={@id}
       name={@name}
       class={[
-        "block w-full min-h-[6rem] rounded-sm border-0 shadow-sm ring-1 ring-slate-200 sm:text-sm sm:leading-6",
-        "focus:ring-2 focus:ring-cyan-400",
+        "block w-full min-h-[6rem] rounded-sm border-0 shadow-sm ring-1 sm:text-sm sm:leading-6",
+        "focus:ring-2 focus:ring-inset",
         "phx-no-feedback:ring-slate-200 phx-no-feedback:focus:ring-cyan-400",
-        @class,
-        @errors != [] && "ring-rose-400 focus:ring-rose-400"
+        @errors == [] && "ring-slate-200 focus:ring-cyan-400",
+        @errors != [] && "ring-rose-400 focus:ring-rose-400",
+        @class
       ]}
       {@rest}
     ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
@@ -505,11 +506,12 @@ defmodule LantternWeb.CoreComponents do
       id={@id}
       value={Phoenix.HTML.Form.normalize_value(@type, @value)}
       class={[
-        "block w-full rounded-sm border-0 shadow-sm ring-1 ring-slate-200 sm:text-sm sm:leading-6",
-        "focus:ring-2 focus:ring-cyan-400 focus:ring-inset",
+        "block w-full rounded-sm border-0 shadow-sm ring-1 sm:text-sm sm:leading-6",
+        "focus:ring-2 focus:ring-inset",
         "phx-no-feedback:ring-slate-200 phx-no-feedback:focus:ring-cyan-400",
-        @class,
-        @errors != [] && "ring-rose-400 focus:ring-rose-400"
+        @errors == [] && "ring-slate-200 focus:ring-cyan-400",
+        @errors != [] && "ring-rose-400 focus:ring-rose-400",
+        @class
       ]}
       {@rest}
     />

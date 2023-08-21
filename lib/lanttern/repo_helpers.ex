@@ -18,6 +18,11 @@ defmodule Lanttern.RepoHelpers do
   defp handle_preload(structs_or_struct_or_nil_or_tuple, nil, _force),
     do: structs_or_struct_or_nil_or_tuple
 
+  # skip if error
+  defp handle_preload({:error, structs_or_struct_or_nil_or_tuple}, _preloads, _force) do
+    {:error, structs_or_struct_or_nil_or_tuple}
+  end
+
   defp handle_preload({:ok, structs_or_struct_or_nil_or_tuple}, preloads, force) do
     preloaded =
       structs_or_struct_or_nil_or_tuple
