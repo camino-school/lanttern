@@ -50,7 +50,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       :students_ids
     ])
     |> validate_required([:name, :curriculum_item_id, :scale_id])
-    |> validate_and_build_datetime_from_ui(attrs)
+    |> validate_and_build_datetime()
     |> put_classes()
     |> cast_entries()
   end
@@ -58,24 +58,39 @@ defmodule Lanttern.Assessments.AssessmentPoint do
   @doc false
   def changeset(assessment, attrs) do
     assessment
-    |> cast(attrs, [:name, :datetime, :description, :curriculum_item_id, :scale_id, :classes_ids])
+    |> cast(attrs, [
+      :name,
+      :datetime,
+      :date,
+      :hour,
+      :minute,
+      :description,
+      :curriculum_item_id,
+      :scale_id,
+      :classes_ids
+    ])
     |> validate_required([:name, :curriculum_item_id, :scale_id])
-    |> validate_and_build_datetime_from_ui(attrs)
+    |> validate_and_build_datetime()
     |> put_classes()
   end
 
-  defp validate_and_build_datetime_from_ui(changeset, attrs) do
+  defp validate_and_build_datetime(changeset) do
     case changeset.changes do
       %{datetime: _datetime} ->
         # skip if there's already a datetime change
         changeset
 
-      _changes ->
+      %{date: _date, hour: _hour, minute: _minute} ->
+        # if there're UI fields changes, build datetime based on UI fields changes
         changeset
-        |> cast(attrs, [:date, :hour, :minute])
         |> validate_number(:hour, greater_than_or_equal_to: 0, less_than: 24)
         |> validate_number(:minute, greater_than_or_equal_to: 0, less_than: 60)
         |> build_datetime_from_ui()
+
+      _changes ->
+        # else, create UI fields from source data
+        changeset
+        |> build_datetime_ui_from_data()
     end
   end
 
@@ -91,6 +106,28 @@ defmodule Lanttern.Assessments.AssessmentPoint do
 
       {_, _} ->
         changeset
+    end
+  end
+
+  defp build_datetime_ui_from_data(changeset) do
+    case get_field(changeset, :datetime) do
+      nil ->
+        changeset
+
+      datetime ->
+        local_datetime = Timex.local(datetime)
+
+        date = local_datetime |> DateTime.to_date()
+        time = local_datetime |> DateTime.to_time()
+
+        attrs = %{
+          date: date,
+          hour: time.hour,
+          minute: time.minute
+        }
+
+        changeset
+        |> cast(attrs, [:date, :hour, :minute])
     end
   end
 

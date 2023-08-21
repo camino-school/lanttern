@@ -21,7 +21,10 @@ defmodule LantternWeb.AssessmentPointLive do
         <.icon name="hero-arrow-left-mini" class="text-cyan-400 mr-2" />
         <span class="underline">Back to explorer</span>
       </.link>
-      <div class="w-full p-6 mt-4 rounded shadow-xl bg-white">
+      <div class="relative w-full p-6 mt-4 rounded shadow-xl bg-white">
+        <.button class="absolute top-2 right-2" theme="ghost" phx-click="update">
+          Edit
+        </.button>
         <div class="max-w-screen-sm">
           <h2 class="font-display font-black text-2xl"><%= @assessment_point.name %></h2>
           <p :if={@assessment_point.description} class="mt-4 text-sm">
@@ -48,17 +51,19 @@ defmodule LantternWeb.AssessmentPointLive do
           <div class="flex items-center gap-2">
             <div class="shrink-0 w-1/4"></div>
             <div class={[
-              "flex items-center font-display font-bold text-slate-400",
+              "flex items-center gap-2 font-display font-bold text-slate-400",
               if(
                 @assessment_point.scale.type == "ordinal",
                 do: "flex-[2_0]",
                 else: "flex-[1_0]"
               )
             ]}>
-              <.icon name="hero-view-columns" class="mr-4" /> Marking
+              <.icon name="hero-view-columns" />
+              <span>Marking</span>
             </div>
-            <div class="flex-[2_0] items-center font-display font-bold text-slate-400">
-              <.icon name="hero-pencil-square" class="mr-4" /> Notes and observations
+            <div class="flex-[2_0] items-center gap-2 font-display font-bold text-slate-400">
+              <.icon name="hero-pencil-square" />
+              <span>Notes and observations</span>
             </div>
           </div>
           <.live_component
@@ -72,6 +77,11 @@ defmodule LantternWeb.AssessmentPointLive do
         </div>
       </div>
     </div>
+    <.live_component
+      module={LantternWeb.AssessmentPointUpdateOverlayComponent}
+      id={@assessment_point_id}
+      show={@is_updating}
+    />
     """
   end
 
@@ -130,9 +140,29 @@ defmodule LantternWeb.AssessmentPointLive do
           |> assign(:ordinal_values, ordinal_values)
           |> assign(:ordinal_value_options, ordinal_value_options)
           |> assign(:formatted_datetime, formatted_datetime)
+          |> assign(:assessment_point_id, id)
+          |> assign(:is_updating, false)
 
         {:noreply, socket}
     end
+  end
+
+  def handle_event("update", _params, socket) do
+    {:noreply, assign(socket, :is_updating, true)}
+  end
+
+  def handle_event("cancel-update-assessment-point", _params, socket) do
+    {:noreply, assign(socket, :is_updating, false)}
+  end
+
+  def handle_info({:assessment_point_updated, assessment_point}, socket) do
+    socket =
+      socket
+      |> assign(:is_updating, false)
+      |> put_flash(:info, "Assessment point updated")
+      |> push_navigate(to: ~p"/assessment_points/#{assessment_point.id}", replace: true)
+
+    {:noreply, socket}
   end
 
   def handle_info(

@@ -162,7 +162,7 @@ defmodule Lanttern.AssessmentsTest do
       assert assessment == Assessments.get_assessment_point!(assessment.id)
     end
 
-    test "delete_assessment_point/1 deletes the assessment" do
+    test "delete_assessment_point/1 deletes the assessment point" do
       assessment_point = assessment_point_fixture()
       assert {:ok, %AssessmentPoint{}} = Assessments.delete_assessment_point(assessment_point)
 
@@ -171,9 +171,14 @@ defmodule Lanttern.AssessmentsTest do
       end
     end
 
-    test "change_assessment_point/1 returns a assessment changeset" do
-      assessment_point = assessment_point_fixture()
-      assert %Ecto.Changeset{} = Assessments.change_assessment_point(assessment_point)
+    test "change_assessment_point/1 returns an assessment point changeset with datetime related virtual fields" do
+      local_datetime = Timex.local(~N[2020-10-01 12:34:56])
+      assessment_point = assessment_point_fixture(%{datetime: local_datetime})
+      changeset = Assessments.change_assessment_point(assessment_point)
+      assert %Ecto.Changeset{} = changeset
+      assert get_field(changeset, :date) == ~D[2020-10-01]
+      assert get_field(changeset, :hour) == 12
+      assert get_field(changeset, :minute) == 34
     end
   end
 

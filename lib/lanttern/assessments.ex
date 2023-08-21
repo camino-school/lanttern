@@ -104,16 +104,13 @@ defmodule Lanttern.Assessments do
 
   """
   def new_assessment_point_changeset() do
-    %AssessmentPoint{}
-    |> change_assessment_point(%{
-      date: Date.utc_today(),
-      hour: default_hour(),
-      minute: default_minute()
-    })
+    %AssessmentPoint{datetime: DateTime.utc_now()}
+    |> change_assessment_point()
   end
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking assessment point changes.
+  Extracts date, hour, and minute virtual fields values from source datetime.
 
   ## Examples
 
@@ -240,21 +237,6 @@ defmodule Lanttern.Assessments do
         attrs \\ %{}
       ) do
     AssessmentPointEntry.simple_changeset(assessment_point_entry, attrs)
-  end
-
-  defp default_hour() do
-    DateTime.utc_now()
-    |> Timex.local()
-    |> Map.get(:hour)
-  end
-
-  defp default_minute() do
-    m =
-      DateTime.utc_now()
-      |> Timex.local()
-      |> Map.get(:minute)
-
-    m - Integer.mod(m, 10)
   end
 
   defp maybe_filter_entries_by_assessment_point(assessment_point_entry_query, opts) do
