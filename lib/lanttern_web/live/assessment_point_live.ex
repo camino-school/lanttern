@@ -141,7 +141,7 @@ defmodule LantternWeb.AssessmentPointLive do
     ~H"""
     <div :if={@ordinal_values} class="flex items-center gap-2 ml-2">
       <%= for ov <- @ordinal_values do %>
-        <.badge>
+        <.badge get_bagde_color_from={ov}>
           <%= ov.name %>
         </.badge>
       <% end %>
@@ -236,7 +236,7 @@ defmodule LantternWeb.AssessmentPointEntryFormLiveComponent do
     ~H"""
     <div class="relative flex-[2_0]">
       <div
-        class="flex items-center justify-center w-full h-full rounded-sm text-sm pointer-events-none"
+        class="flex items-center justify-center w-full h-full rounded-sm font-mono text-sm pointer-events-none"
         style={@style}
       >
         <%= @ov_name || "—" %>
@@ -253,8 +253,7 @@ defmodule LantternWeb.AssessmentPointEntryFormLiveComponent do
     """
   end
 
-  # numeric scale
-  def marking_column(assigns) do
+  def marking_column(%{scale: %{type: "numeric"}} = assigns) do
     ~H"""
     <div class="flex-[1_0]">
       <.base_input
@@ -262,7 +261,7 @@ defmodule LantternWeb.AssessmentPointEntryFormLiveComponent do
         type="number"
         phx-debounce="1000"
         value={@entry.score}
-        class="h-full text-center"
+        class="h-full font-mono text-center"
         min={@scale.start}
         max={@scale.stop}
       />

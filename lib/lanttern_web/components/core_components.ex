@@ -831,6 +831,11 @@ defmodule LantternWeb.CoreComponents do
   attr :id, :string, default: nil
   attr :class, :string, default: nil
   attr :theme, :string, default: "default"
+
+  attr :get_bagde_color_from, :map,
+    default: nil,
+    doc: "map with `:bg_color` and `:text_color` keys"
+
   attr :show_remove, :boolean, default: false
   attr :rest, :global, doc: "use to pass phx-* bindings to the remove button"
   slot :inner_block, required: true
@@ -844,6 +849,7 @@ defmodule LantternWeb.CoreComponents do
         badge_theme(@theme),
         @class
       ]}
+      style={badge_colors_style(@get_bagde_color_from)}
     >
       <%= render_slot(@inner_block) %>
       <button
@@ -867,4 +873,10 @@ defmodule LantternWeb.CoreComponents do
     }
     |> Map.get(theme, "bg-gray-100")
   end
+
+  defp badge_colors_style(%{bg_color: bg_color, text_color: text_color}) do
+    "background-color: #{bg_color}; color: #{text_color}"
+  end
+
+  defp badge_colors_style(_), do: ""
 end
