@@ -236,7 +236,7 @@ defmodule LantternWeb.CoreComponents do
       <.button phx-click="go" class="ml-2">Send!</.button>
   """
   attr :type, :string, default: nil
-  attr :class, :string, default: nil
+  attr :class, :any, default: nil
   attr :theme, :string, default: "default"
   attr :rest, :global, include: ~w(disabled form name value)
 
@@ -311,7 +311,7 @@ defmodule LantternWeb.CoreComponents do
   attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
   attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
   attr :show_optional, :boolean, default: false, doc: "control the display of optional text"
-  attr :class, :string, default: ""
+  attr :class, :any, default: ""
 
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
@@ -426,7 +426,7 @@ defmodule LantternWeb.CoreComponents do
   attr :prompt, :string, default: nil
   attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
   attr :multiple, :boolean, default: false
-  attr :class, :string, default: ""
+  attr :class, :any, default: ""
 
   attr :rest, :global, include: ~w(disabled multiple readonly required)
 
@@ -456,7 +456,7 @@ defmodule LantternWeb.CoreComponents do
   attr :name, :any
   attr :value, :any
   attr :errors, :list, default: []
-  attr :class, :string, default: ""
+  attr :class, :any, default: ""
 
   attr :rest, :global, include: ~w(autocomplete cols disabled maxlength minlength
                 placeholder readonly required rows)
@@ -492,7 +492,7 @@ defmodule LantternWeb.CoreComponents do
                range radio search tel text time url week)
 
   attr :errors, :list, default: []
-  attr :class, :string, default: ""
+  attr :class, :any, default: ""
 
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
@@ -535,7 +535,7 @@ defmodule LantternWeb.CoreComponents do
   @doc """
   Generates a generic error message block.
   """
-  attr :class, :string, default: ""
+  attr :class, :any, default: ""
   attr :rest, :global
   slot :inner_block, required: true
 
@@ -557,7 +557,7 @@ defmodule LantternWeb.CoreComponents do
   @doc """
   Renders a header with title.
   """
-  attr :class, :string, default: nil
+  attr :class, :any, default: nil
 
   slot :inner_block, required: true
   slot :subtitle
@@ -725,7 +725,7 @@ defmodule LantternWeb.CoreComponents do
       <.icon name="hero-arrow-path" class="ml-1 w-3 h-3 animate-spin" />
   """
   attr :name, :string, required: true
-  attr :class, :string, default: nil
+  attr :class, :any, default: nil
 
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
@@ -831,7 +831,7 @@ defmodule LantternWeb.CoreComponents do
   Renders a badge.
   """
   attr :id, :string, default: nil
-  attr :class, :string, default: nil
+  attr :class, :any, default: nil
   attr :theme, :string, default: "default"
 
   attr :get_bagde_color_from, :map,

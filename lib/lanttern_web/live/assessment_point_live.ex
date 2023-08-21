@@ -216,6 +216,7 @@ defmodule LantternWeb.AssessmentPointEntryFormLiveComponent do
             name="assessment_point_entry[observation]"
             phx-debounce="1000"
             value={@form[:observation].value}
+            class={@form[:observation].value == nil && "bg-slate-200"}
           />
         </div>
       </.form>
@@ -263,7 +264,10 @@ defmodule LantternWeb.AssessmentPointEntryFormLiveComponent do
     ~H"""
     <div class="relative flex-[2_0]">
       <div
-        class="flex items-center justify-center w-full h-full rounded-sm font-mono text-sm pointer-events-none"
+        class={[
+          "flex items-center justify-center w-full h-full rounded-sm font-mono text-sm pointer-events-none",
+          @form[:ordinal_value_id].value == nil && "bg-slate-200"
+        ]}
         style={@style}
       >
         <%= @ov_name || "—" %>
@@ -289,7 +293,10 @@ defmodule LantternWeb.AssessmentPointEntryFormLiveComponent do
         phx-debounce="1000"
         value={@form[:score].value}
         errors={@form[:score].errors}
-        class="h-full font-mono text-center"
+        class={[
+          "h-full font-mono text-center",
+          @form[:score].value == nil && "bg-slate-200"
+        ]}
         min={@scale.start}
         max={@scale.stop}
       />
