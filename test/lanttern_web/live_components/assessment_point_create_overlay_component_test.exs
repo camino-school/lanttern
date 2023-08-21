@@ -1,4 +1,4 @@
-defmodule LantternWeb.CreateAssessmentPointFormComponentTest do
+defmodule LantternWeb.AssessmentPointCreateOverlayComponentTest do
   use LantternWeb.ConnCase
 
   @assessment_points_path "/assessment_points"

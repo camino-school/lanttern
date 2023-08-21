@@ -13,13 +13,13 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponent do
       <.slide_over :if={@show}>
         <:title>Update assessment point</:title>
         <.form
-          id="assessment-point-update-form"
+          id="update-assessment-point-form"
           for={@form}
           phx-change="validate"
           phx-submit="save"
           phx-target={@myself}
         >
-          <.error_block :if={@form.source.action == :insert} class="mb-6">
+          <.error_block :if={@form.source.action == :update} class="mb-6">
             Oops, something went wrong! Please check the errors below.
           </.error_block>
           <.input type="hidden" field={@form[:id]} />
@@ -76,10 +76,10 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponent do
           />
         </.form>
         <:actions>
-          <.button type="button" theme="ghost" phx-click="cancel-update-assessment-point">
+          <.button type="button" theme="ghost" phx-click="cancel-assessment-point-update">
             Cancel
           </.button>
-          <.button type="submit" form="assessment-point-update-form" phx-disable-with="Saving...">
+          <.button type="submit" form="update-assessment-point-form" phx-disable-with="Saving...">
             Save
           </.button>
         </:actions>

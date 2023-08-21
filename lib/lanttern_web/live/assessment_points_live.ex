@@ -19,7 +19,7 @@ defmodule LantternWeb.AssessmentPointsLive do
         </.link>
         <button
           class="flex items-center mt-4 font-display font-black text-lg text-slate-400"
-          phx-click="show-create-assessment-point-form"
+          phx-click="create-assessment-point"
         >
           Create assessment point <.icon name="hero-plus" class="text-cyan-400 ml-2" />
         </button>
@@ -37,9 +37,9 @@ defmodule LantternWeb.AssessmentPointsLive do
       </div>
     </div>
     <.live_component
-      module={LantternWeb.CreateAssessmentPointFormComponent}
+      module={LantternWeb.AssessmentPointCreateOverlayComponent}
       id={:new}
-      show={@show_create_form}
+      show={@is_creating_assessment_point}
     />
     """
   end
@@ -53,21 +53,21 @@ defmodule LantternWeb.AssessmentPointsLive do
   end
 
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, :show_create_form, false)}
+    {:ok, assign(socket, :is_creating_assessment_point, false)}
   end
 
-  def handle_event("show-create-assessment-point-form", _params, socket) do
-    {:noreply, assign(socket, :show_create_form, true)}
+  def handle_event("create-assessment-point", _params, socket) do
+    {:noreply, assign(socket, :is_creating_assessment_point, true)}
   end
 
-  def handle_event("hide-create-assessment-point-form", _params, socket) do
-    {:noreply, assign(socket, :show_create_form, false)}
+  def handle_event("cancel-create-assessment-point", _params, socket) do
+    {:noreply, assign(socket, :is_creating_assessment_point, false)}
   end
 
   def handle_info({:assessment_point_created, assessment_point}, socket) do
     socket =
       socket
-      |> assign(:show_create_form, false)
+      |> assign(:is_creating_assessment_point, false)
       |> put_flash(:info, "Assessment point \"#{assessment_point.name}\" created!")
       |> push_navigate(to: ~p"/assessment_points/#{assessment_point.id}")
 
