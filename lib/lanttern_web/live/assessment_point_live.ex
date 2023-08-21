@@ -203,7 +203,9 @@ defmodule LantternWeb.AssessmentPointEntryFormLiveComponent do
     <div>
       <.form for={@form} phx-change="save" class="flex items-stretch gap-2 mt-4" phx-target={@myself}>
         <input type="hidden" name={@form[:id].name} value={@form[:id].value} />
-        <div class="self-center shrink-0 w-1/4 text-sm">Student <%= @student_name %></div>
+        <div class="self-center shrink-0 w-1/4 flex gap-2 items-center text-sm">
+          <.profile_icon profile_name={@student_name} /> <%= @student_name %>
+        </div>
         <.marking_column
           scale={@scale}
           ordinal_value_options={@ordinal_value_options}

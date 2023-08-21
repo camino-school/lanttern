@@ -881,4 +881,42 @@ defmodule LantternWeb.CoreComponents do
   end
 
   defp badge_colors_style(_), do: ""
+
+  @doc """
+  Renders a profile icon.
+  """
+  attr :profile_name, :string, required: true
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def profile_icon(assigns) do
+    ~H"""
+    <div
+      class={[
+        "flex items-center justify-center w-10 h-10 rounded-full font-display text-sm font-bold text-center bg-cyan-50 shadow-lg",
+        @class
+      ]}
+      {@rest}
+    >
+      <%= profile_icon_initials(@profile_name) %>
+    </div>
+    """
+  end
+
+  defp profile_icon_initials(full_name) do
+    case String.split(full_name, ~r{\s}, trim: true) do
+      [] ->
+        ""
+
+      [single_name] ->
+        String.first(single_name)
+
+      names ->
+        [first_initial | other_initials] =
+          names
+          |> Enum.map(&String.first(&1))
+
+        "#{first_initial}#{List.last(other_initials)}"
+    end
+  end
 end
