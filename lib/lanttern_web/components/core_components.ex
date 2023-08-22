@@ -919,4 +919,19 @@ defmodule LantternWeb.CoreComponents do
         "#{first_initial}#{List.last(other_initials)}"
     end
   end
+
+  @doc """
+  Renders a profile icon with name.
+  """
+  attr :profile_name, :string, required: true
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def icon_with_name(assigns) do
+    ~H"""
+    <div class={["flex gap-2 items-center text-sm", @class]}>
+      <.profile_icon profile_name={@profile_name} /> <%= @profile_name %>
+    </div>
+    """
+  end
 end

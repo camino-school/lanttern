@@ -9,9 +9,18 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
   end
 
   def handle_params(_params, _uri, socket) do
-    assessment_points = Assessments.list_assessment_points()
+    %{
+      assessment_points: assessment_points,
+      students_and_entries: students_and_entries
+    } =
+      Assessments.list_students_assessment_points_grid()
 
-    {:noreply, assign(socket, :assessment_points, assessment_points)}
+    socket =
+      socket
+      |> assign(:assessment_points, assessment_points)
+      |> assign(:students_and_entries, students_and_entries)
+
+    {:noreply, socket}
   end
 
   def render(assigns) do
@@ -33,10 +42,17 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
         </button>
       </div>
     </div>
-    <div class="w-full p-20 mt-6 rounded shadow-xl bg-white">
-      <ul>
+    <div class="relative w-full max-h-screen pb-6 mt-6 rounded shadow-xl bg-white overflow-x-auto">
+      <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2">
+        <div class="sticky left-0 z-20 shrink-0 w-40 bg-white"></div>
         <.assessment_point :for={ap <- @assessment_points} assessment_point={ap} />
-      </ul>
+        <div class="shrink-0 w-2"></div>
+      </div>
+      <.student_and_entries
+        :for={{student, entries} <- @students_and_entries}
+        student={student}
+        entries={entries}
+      />
     </div>
     """
   end
@@ -45,11 +61,41 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
 
   def assessment_point(assigns) do
     ~H"""
-    <li>
-      <.link patch={~p"/assessment_points/#{@assessment_point.id}"} class="underline">
+    <div class="shrink-0 w-40 pt-6 pb-2 bg-white">
+      <div class="flex gap-1 items-center mb-1 text-xs text-slate-400">
+        <.icon name="hero-calendar-mini" />
+        <%= Timex.format!(@assessment_point.datetime, "{Mshort} {0D}") %>
+      </div>
+      <.link
+        patch={~p"/assessment_points/#{@assessment_point.id}"}
+        class="text-xs hover:underline line-clamp-2"
+      >
         <%= @assessment_point.name %>
       </.link>
-    </li>
+    </div>
+    """
+  end
+
+  attr :student, Lanttern.Schools.Student, required: true
+  attr :entries, :list, required: true
+
+  def student_and_entries(assigns) do
+    ~H"""
+    <div class="flex items-stretch gap-4 mt-2">
+      <.icon_with_name
+        class="sticky left-0 z-10 shrink-0 w-40 px-6 bg-white"
+        profile_name={@student.name}
+      />
+      <%= for entry <- @entries do %>
+        <div class="shrink-0 w-40 min-h-[3.5rem] p-2 rounded bg-slate-200">
+          <%= if entry == nil do %>
+            —
+          <% else %>
+            <%= "Entry #{entry.id}" %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
     """
   end
 end
