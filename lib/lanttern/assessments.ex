@@ -145,6 +145,20 @@ defmodule Lanttern.Assessments do
     |> maybe_preload(opts)
   end
 
+  defp maybe_filter_entries_by_assessment_point(assessment_point_entry_query, opts) do
+    case Keyword.get(opts, :assessment_point_id) do
+      nil ->
+        assessment_point_entry_query
+
+      assessment_point_id ->
+        from(
+          e in assessment_point_entry_query,
+          join: ap in assoc(e, :assessment_point),
+          where: ap.id == ^assessment_point_id
+        )
+    end
+  end
+
   @doc """
   Gets a single assessment_point_entry.
 
@@ -239,17 +253,54 @@ defmodule Lanttern.Assessments do
     AssessmentPointEntry.simple_changeset(assessment_point_entry, attrs)
   end
 
-  defp maybe_filter_entries_by_assessment_point(assessment_point_entry_query, opts) do
-    case Keyword.get(opts, :assessment_point_id) do
-      nil ->
-        assessment_point_entry_query
+  @doc """
+  Returns a map with two keys:
 
-      assessment_point_id ->
-        from(
-          e in assessment_point_entry_query,
-          join: ap in assoc(e, :assessment_point),
-          where: ap.id == ^assessment_point_id
-        )
-    end
+  - `:assessment_points`: list of assessment points
+  - `:students_and_entries`: list of tuples with student and list of entries
+
+  The entries list for each student have the same order of the assessment points list,
+  and all students have the same number of items, using `nil` when the student
+  is not linked to the assessment point in that position.
+
+  ## Examples
+
+      iex> list_students_assessment_points_grid()
+      %{assessment_points: [%AssessmentPoint{}, ...], students_and_entries: [{%Student{}, [%AssessmentPointEntry{}, ...]}, ...]}
+  """
+  def list_students_assessment_points_grid() do
+    query =
+      from std in Lanttern.Schools.Student,
+        join: ast in AssessmentPoint,
+        on: true,
+        left_join: ent in AssessmentPointEntry,
+        on: ent.student_id == std.id and ent.assessment_point_id == ast.id,
+        order_by: [std.name, ast.datetime],
+        select: {std, ast, ent}
+
+    all = Repo.all(query)
+
+    assessment_points =
+      all
+      |> Enum.map(fn {_std, ast, _ent} -> ast end)
+      |> Enum.uniq()
+
+    entries_by_student =
+      all
+      |> Enum.group_by(
+        fn {std, _ast, _ent} -> std.id end,
+        fn {_std, _ast, ent} -> ent end
+      )
+
+    students_and_entries =
+      all
+      |> Enum.map(fn {std, _ast, _ent} -> std end)
+      |> Enum.uniq()
+      |> Enum.map(fn std -> {std, entries_by_student[std.id]} end)
+
+    %{
+      assessment_points: assessment_points,
+      students_and_entries: students_and_entries
+    }
   end
 end
