@@ -162,7 +162,7 @@ defmodule Lanttern.AssessmentsTest do
       assert assessment == Assessments.get_assessment_point!(assessment.id)
     end
 
-    test "delete_assessment_point/1 deletes the assessment" do
+    test "delete_assessment_point/1 deletes the assessment point" do
       assessment_point = assessment_point_fixture()
       assert {:ok, %AssessmentPoint{}} = Assessments.delete_assessment_point(assessment_point)
 
@@ -171,9 +171,14 @@ defmodule Lanttern.AssessmentsTest do
       end
     end
 
-    test "change_assessment_point/1 returns a assessment changeset" do
-      assessment_point = assessment_point_fixture()
-      assert %Ecto.Changeset{} = Assessments.change_assessment_point(assessment_point)
+    test "change_assessment_point/1 returns an assessment point changeset with datetime related virtual fields" do
+      local_datetime = Timex.local(~N[2020-10-01 12:34:56])
+      assessment_point = assessment_point_fixture(%{datetime: local_datetime})
+      changeset = Assessments.change_assessment_point(assessment_point)
+      assert %Ecto.Changeset{} = changeset
+      assert get_field(changeset, :date) == ~D[2020-10-01]
+      assert get_field(changeset, :hour) == 12
+      assert get_field(changeset, :minute) == 34
     end
   end
 
@@ -184,9 +189,47 @@ defmodule Lanttern.AssessmentsTest do
 
     @invalid_attrs %{student_id: nil, score: nil}
 
-    test "list_assessment_point_entries/0 returns all assessment_point_entries" do
+    test "list_assessment_point_entries/1 returns all assessment_point_entries" do
       assessment_point_entry = assessment_point_entry_fixture()
       assert Assessments.list_assessment_point_entries() == [assessment_point_entry]
+    end
+
+    test "list_assessment_point_entries/1 with opts returns entries as expected" do
+      assessment_point = assessment_point_fixture()
+      student_1 = Lanttern.SchoolsFixtures.student_fixture()
+
+      entry_1 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point.id,
+          student_id: student_1.id
+        })
+
+      student_2 = Lanttern.SchoolsFixtures.student_fixture()
+
+      entry_2 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point.id,
+          student_id: student_2.id
+        })
+
+      # extra entry for filtering validation
+      assessment_point_entry_fixture()
+
+      entries =
+        Assessments.list_assessment_point_entries(
+          preloads: :student,
+          assessment_point_id: assessment_point.id
+        )
+
+      # assert length to check filtering
+      assert length(entries) == 2
+
+      # assert students are preloaded
+      expected_entry_1 = Enum.find(entries, fn e -> e.id == entry_1.id end)
+      assert expected_entry_1.student == student_1
+
+      expected_entry_2 = Enum.find(entries, fn e -> e.id == entry_2.id end)
+      assert expected_entry_2.student == student_2
     end
 
     test "get_assessment_point_entry!/1 returns the assessment_point_entry with given id" do
@@ -273,7 +316,7 @@ defmodule Lanttern.AssessmentsTest do
                Assessments.create_assessment_point_entry(attrs)
     end
 
-    test "create_assessment_point_entry/1 with ordinal_value out of scale returns error changeset" do
+    test "create_assestudent = Lanttern.SchoolsFixtures.student_fixture()ssment_point_entry/1 with ordinal_value out of scale returns error changeset" do
       scale = Lanttern.GradingFixtures.scale_fixture(%{type: "ordinal"})
       _ordinal_value = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
       other_ordinal_value = Lanttern.GradingFixtures.ordinal_value_fixture()
@@ -290,7 +333,7 @@ defmodule Lanttern.AssessmentsTest do
                Assessments.create_assessment_point_entry(attrs)
     end
 
-    test "update_assessment_point_entry/2 with valid data updates the assessment_point_entry" do
+    test "update_assessment_point_entry/3 with valid data updates the assessment_point_entry" do
       assessment_point_entry = assessment_point_entry_fixture()
       update_attrs = %{observation: "some updated observation"}
 
@@ -300,7 +343,20 @@ defmodule Lanttern.AssessmentsTest do
       assert assessment_point_entry.observation == "some updated observation"
     end
 
-    test "update_assessment_point_entry/2 with invalid data returns error changeset" do
+    test "update_assessment_point_entry/3 with valid data and preloads updates the assessment_point_entry and return it with preloaded data" do
+      student = Lanttern.SchoolsFixtures.student_fixture()
+      assessment_point_entry = assessment_point_entry_fixture(%{student_id: student.id})
+      update_attrs = %{observation: "some updated observation"}
+
+      assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
+               Assessments.update_assessment_point_entry(assessment_point_entry, update_attrs,
+                 preloads: :student
+               )
+
+      assert assessment_point_entry.student == student
+    end
+
+    test "update_assessment_point_entry/3 with invalid data returns error changeset" do
       assessment_point_entry = assessment_point_entry_fixture()
 
       assert {:error, %Ecto.Changeset{}} =

@@ -403,7 +403,7 @@ defmodule Lanttern.GradingTest do
 
     import Lanttern.GradingFixtures
 
-    @invalid_attrs %{name: nil, order: nil}
+    @invalid_attrs %{name: nil, normalized_value: nil}
 
     test "list_ordinal_values/1 returns all ordinal_values" do
       ordinal_value = ordinal_value_fixture()
@@ -461,6 +461,34 @@ defmodule Lanttern.GradingTest do
 
     test "create_ordinal_value/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} = Grading.create_ordinal_value(@invalid_attrs)
+    end
+
+    test "create_ordinal_value/1 with invalid bg color returns error changeset" do
+      scale = scale_fixture(%{type: "ordinal"})
+
+      attrs = %{
+        scale_id: scale.id,
+        name: "some name",
+        normalized_value: 1,
+        bg_color: "000000"
+      }
+
+      assert {:error, %Ecto.Changeset{errors: [bg_color: _]}} =
+               Grading.create_ordinal_value(attrs)
+    end
+
+    test "create_ordinal_value/1 with invalid text color returns error changeset" do
+      scale = scale_fixture(%{type: "ordinal"})
+
+      attrs = %{
+        scale_id: scale.id,
+        name: "some name",
+        normalized_value: 1,
+        text_color: "ffffff"
+      }
+
+      assert {:error, %Ecto.Changeset{errors: [text_color: _]}} =
+               Grading.create_ordinal_value(attrs)
     end
 
     test "update_ordinal_value/2 with valid data updates the ordinal_value" do

@@ -7,7 +7,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
 
   @live_view_path_base "/assessment_points"
 
-  describe "Assessment points explorer live view" do
+  describe "Assessment point details live view" do
     test "disconnected and connected mount", %{conn: conn} do
       %{id: id} = AssessmentsFixtures.assessment_point_fixture()
 
@@ -52,7 +52,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
         live(conn, "#{@live_view_path_base}/#{wrong_id}")
 
       assert path == "/assessment_points"
-      assert flash["error"] == "Couldn't find assessment point \"#{wrong_id}\""
+      assert flash["error"] == "Couldn't find assessment point"
     end
 
     test "redirect to /assessment_points when supplied id is string", %{conn: conn} do
@@ -62,7 +62,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
         live(conn, "#{@live_view_path_base}/#{wrong_id}")
 
       assert path == "/assessment_points"
-      assert flash["error"] == "Couldn't find assessment point \"#{wrong_id}\""
+      assert flash["error"] == "Couldn't find assessment point"
     end
   end
 end

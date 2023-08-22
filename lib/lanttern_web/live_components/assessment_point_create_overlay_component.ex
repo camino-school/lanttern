@@ -1,7 +1,5 @@
-defmodule LantternWeb.CreateAssessmentPointFormComponent do
+defmodule LantternWeb.AssessmentPointCreateOverlayComponent do
   use LantternWeb, :live_component
-
-  import LantternWeb.OverlayComponents
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
@@ -132,7 +130,7 @@ defmodule LantternWeb.CreateAssessmentPointFormComponent do
           </div>
         </.form>
         <:actions>
-          <.button type="button" theme="ghost" phx-click="hide-create-assessment-point-form">
+          <.button type="button" theme="ghost" phx-click="cancel-create-assessment-point">
             Cancel
           </.button>
           <.button type="submit" form="create-assessment-point-form" phx-disable-with="Saving...">

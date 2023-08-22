@@ -160,7 +160,9 @@ Repo.insert!(%Grading.OrdinalValue{
 # 0 to 10
 Repo.insert!(%Grading.Scale{
   name: "0 to 10",
-  type: "numeric"
+  type: "numeric",
+  start: 0.0,
+  stop: 10.0
 })
 
 # ------------------------------

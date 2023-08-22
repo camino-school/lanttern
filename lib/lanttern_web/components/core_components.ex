@@ -236,7 +236,7 @@ defmodule LantternWeb.CoreComponents do
       <.button phx-click="go" class="ml-2">Send!</.button>
   """
   attr :type, :string, default: nil
-  attr :class, :string, default: nil
+  attr :class, :any, default: nil
   attr :theme, :string, default: "default"
   attr :rest, :global, include: ~w(disabled form name value)
 
@@ -311,7 +311,7 @@ defmodule LantternWeb.CoreComponents do
   attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
   attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
   attr :show_optional, :boolean, default: false, doc: "control the display of optional text"
-  attr :class, :string, default: ""
+  attr :class, :any, default: ""
 
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
@@ -356,19 +356,15 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div phx-feedback-for={@name} class={@class}>
       <.label for={@id} show_optional={@show_optional}><%= @label %></.label>
-      <select
+      <.select
         id={@id}
         name={@name}
-        class={[
-          "block w-full rounded-sm border-0 shadown-sm ring-1 ring-slate-200 bg-white sm:text-sm",
-          "focus:ring-2 focus:ring-cyan-400 focus:ring-inset"
-        ]}
         multiple={@multiple}
+        prompt={@prompt}
+        options={@options}
+        value={@value}
         {@rest}
-      >
-        <option :if={@prompt} value=""><%= @prompt %></option>
-        <%= Phoenix.HTML.Form.options_for_select(@options, @value) %>
-      </select>
+      />
       <.error :for={msg <- @errors}><%= msg %></.error>
     </div>
     """
@@ -378,17 +374,7 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div phx-feedback-for={@name} class={@class}>
       <.label for={@id} show_optional={@show_optional}><%= @label %></.label>
-      <textarea
-        id={@id}
-        name={@name}
-        class={[
-          "block w-full min-h-[6rem] rounded-sm border-0 shadow-sm ring-1 ring-slate-200 sm:text-sm sm:leading-6",
-          "focus:ring-2 focus:ring-cyan-400",
-          "phx-no-feedback:ring-slate-200 phx-no-feedback:focus:ring-cyan-400",
-          @errors != [] && "ring-rose-400 focus:ring-rose-400"
-        ]}
-        {@rest}
-      ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
+      <.textarea id={@id} name={@name} errors={@errors} value={@value} {@rest} />
       <.error :for={msg <- @errors}><%= msg %></.error>
     </div>
     """
@@ -399,19 +385,7 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div phx-feedback-for={@name} class={@class}>
       <.label for={@id} show_optional={@show_optional}><%= @label %></.label>
-      <input
-        type={@type}
-        name={@name}
-        id={@id}
-        value={Phoenix.HTML.Form.normalize_value(@type, @value)}
-        class={[
-          "block w-full rounded-sm border-0 shadow-sm ring-1 ring-slate-200 sm:text-sm sm:leading-6",
-          "focus:ring-2 focus:ring-cyan-400 focus:ring-inset",
-          "phx-no-feedback:ring-slate-200 phx-no-feedback:focus:ring-cyan-400",
-          @errors != [] && "ring-rose-400 focus:ring-rose-400"
-        ]}
-        {@rest}
-      />
+      <.base_input type={@type} name={@name} id={@id} value={@value} errors={@errors} {@rest} />
       <.error :for={msg <- @errors}><%= msg %></.error>
     </div>
     """
@@ -444,6 +418,107 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Base select component
+  """
+  attr :id, :any, default: nil
+  attr :name, :any
+  attr :value, :any
+  attr :prompt, :string, default: nil
+  attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
+  attr :multiple, :boolean, default: false
+  attr :class, :any, default: ""
+
+  attr :rest, :global, include: ~w(disabled multiple readonly required)
+
+  def select(assigns) do
+    ~H"""
+    <select
+      id={@id}
+      name={@name}
+      class={[
+        "block w-full rounded-sm border-0 shadown-sm ring-1 ring-slate-200 bg-white sm:text-sm",
+        "focus:ring-2 focus:ring-cyan-400 focus:ring-inset",
+        @class
+      ]}
+      multiple={@multiple}
+      {@rest}
+    >
+      <option :if={@prompt} value=""><%= @prompt %></option>
+      <%= Phoenix.HTML.Form.options_for_select(@options, @value) %>
+    </select>
+    """
+  end
+
+  @doc """
+  Base textarea component
+  """
+  attr :id, :any, default: nil
+  attr :name, :any
+  attr :value, :any
+  attr :errors, :list, default: []
+  attr :class, :any, default: ""
+
+  attr :rest, :global, include: ~w(autocomplete cols disabled maxlength minlength
+                placeholder readonly required rows)
+
+  def textarea(assigns) do
+    ~H"""
+    <textarea
+      id={@id}
+      name={@name}
+      class={[
+        "block w-full min-h-[6rem] rounded-sm border-0 shadow-sm ring-1 sm:text-sm sm:leading-6",
+        "focus:ring-2 focus:ring-inset",
+        "phx-no-feedback:ring-slate-200 phx-no-feedback:focus:ring-cyan-400",
+        @errors == [] && "ring-slate-200 focus:ring-cyan-400",
+        @errors != [] && "ring-rose-400 focus:ring-rose-400",
+        @class
+      ]}
+      {@rest}
+    ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
+    """
+  end
+
+  @doc """
+  Base input component
+  """
+  attr :id, :any, default: nil
+  attr :name, :any
+  attr :value, :any
+
+  attr :type, :string,
+    default: "text",
+    values: ~w(color date datetime-local email file hidden month number password
+               range radio search tel text time url week)
+
+  attr :errors, :list, default: []
+  attr :class, :any, default: ""
+
+  attr :rest, :global,
+    include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
+                multiple pattern placeholder readonly required rows size step)
+
+  def base_input(assigns) do
+    ~H"""
+    <input
+      type={@type}
+      name={@name}
+      id={@id}
+      value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+      class={[
+        "block w-full rounded-sm border-0 shadow-sm ring-1 sm:text-sm sm:leading-6",
+        "focus:ring-2 focus:ring-inset",
+        "phx-no-feedback:ring-slate-200 phx-no-feedback:focus:ring-cyan-400",
+        @errors == [] && "ring-slate-200 focus:ring-cyan-400",
+        @errors != [] && "ring-rose-400 focus:ring-rose-400",
+        @class
+      ]}
+      {@rest}
+    />
+    """
+  end
+
+  @doc """
   Generates a generic error message.
   """
   slot :inner_block, required: true
@@ -460,7 +535,7 @@ defmodule LantternWeb.CoreComponents do
   @doc """
   Generates a generic error message block.
   """
-  attr :class, :string, default: ""
+  attr :class, :any, default: ""
   attr :rest, :global
   slot :inner_block, required: true
 
@@ -482,7 +557,7 @@ defmodule LantternWeb.CoreComponents do
   @doc """
   Renders a header with title.
   """
-  attr :class, :string, default: nil
+  attr :class, :any, default: nil
 
   slot :inner_block, required: true
   slot :subtitle
@@ -650,7 +725,7 @@ defmodule LantternWeb.CoreComponents do
       <.icon name="hero-arrow-path" class="ml-1 w-3 h-3 animate-spin" />
   """
   attr :name, :string, required: true
-  attr :class, :string, default: nil
+  attr :class, :any, default: nil
 
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
@@ -756,8 +831,13 @@ defmodule LantternWeb.CoreComponents do
   Renders a badge.
   """
   attr :id, :string, default: nil
-  attr :class, :string, default: nil
+  attr :class, :any, default: nil
   attr :theme, :string, default: "default"
+
+  attr :get_bagde_color_from, :map,
+    default: nil,
+    doc: "map with `:bg_color` and `:text_color` keys"
+
   attr :show_remove, :boolean, default: false
   attr :rest, :global, doc: "use to pass phx-* bindings to the remove button"
   slot :inner_block, required: true
@@ -767,20 +847,21 @@ defmodule LantternWeb.CoreComponents do
     <span
       id={@id}
       class={[
-        "inline-flex items-center gap-x-0.5 rounded-md px-2 py-1 text-xs text-slate-700",
+        "inline-flex items-center rounded-sm px-2 py-1 font-mono text-xs text-slate-700",
         badge_theme(@theme),
         @class
       ]}
+      style={badge_colors_style(@get_bagde_color_from)}
     >
       <%= render_slot(@inner_block) %>
       <button
         :if={@show_remove}
         type="button"
-        class="group relative -mr-1 h-3.5 w-3.5 rounded-sm hover:bg-slate-500/20"
+        class="group relative ml-1 -mr-1 h-3.5 w-3.5 rounded-[1px] hover:bg-slate-400/20"
         {@rest}
       >
         <span class="sr-only">Remove</span>
-        <.icon name="hero-x-mark-mini" class="w-3.5 text-slate-700/50 hover:text-slate-700/75" />
+        <.icon name="hero-x-mark-mini" class="w-3.5 text-slate-400 hover:text-slate-700" />
         <span class="absolute -inset-1"></span>
       </button>
     </span>
@@ -793,5 +874,49 @@ defmodule LantternWeb.CoreComponents do
       "cyan" => "bg-cyan-50"
     }
     |> Map.get(theme, "bg-gray-100")
+  end
+
+  defp badge_colors_style(%{bg_color: bg_color, text_color: text_color}) do
+    "background-color: #{bg_color}; color: #{text_color}"
+  end
+
+  defp badge_colors_style(_), do: ""
+
+  @doc """
+  Renders a profile icon.
+  """
+  attr :profile_name, :string, required: true
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def profile_icon(assigns) do
+    ~H"""
+    <div
+      class={[
+        "flex items-center justify-center w-10 h-10 rounded-full font-display text-sm font-bold text-center bg-cyan-50 shadow-lg",
+        @class
+      ]}
+      {@rest}
+    >
+      <%= profile_icon_initials(@profile_name) %>
+    </div>
+    """
+  end
+
+  defp profile_icon_initials(full_name) do
+    case String.split(full_name, ~r{\s}, trim: true) do
+      [] ->
+        ""
+
+      [single_name] ->
+        String.first(single_name)
+
+      names ->
+        [first_initial | other_initials] =
+          names
+          |> Enum.map(&String.first(&1))
+
+        "#{first_initial}#{List.last(other_initials)}"
+    end
   end
 end

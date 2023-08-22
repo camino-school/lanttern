@@ -88,7 +88,9 @@ defmodule Lanttern.GradingFixtures do
       |> Enum.into(%{
         name: "some name",
         normalized_value: 1,
-        scale_id: scale.id
+        scale_id: scale.id,
+        bg_color: "#000000",
+        text_color: "#ffffff"
       })
       |> Lanttern.Grading.create_ordinal_value()
 

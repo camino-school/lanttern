@@ -227,13 +227,17 @@ defmodule Lanttern.Schools do
     Class.changeset(class, attrs)
   end
 
-  defp maybe_filter_students_by_class(student_query, [classes_ids: classes_ids] = _opts) do
-    from(
-      s in student_query,
-      join: c in assoc(s, :classes),
-      where: c.id in ^classes_ids
-    )
-  end
+  defp maybe_filter_students_by_class(student_query, opts) do
+    case Keyword.get(opts, :classes_ids) do
+      nil ->
+        student_query
 
-  defp maybe_filter_students_by_class(student_query, _opts), do: student_query
+      classes_ids ->
+        from(
+          s in student_query,
+          join: c in assoc(s, :classes),
+          where: c.id in ^classes_ids
+        )
+    end
+  end
 end

@@ -4,8 +4,8 @@ defmodule Lanttern.Assessments do
   """
 
   import Ecto.Query, warn: false
+  import Lanttern.RepoHelpers
   alias Lanttern.Repo
-
   alias Lanttern.Assessments.AssessmentPoint
 
   @doc """
@@ -104,16 +104,13 @@ defmodule Lanttern.Assessments do
 
   """
   def new_assessment_point_changeset() do
-    %AssessmentPoint{}
-    |> change_assessment_point(%{
-      date: Date.utc_today(),
-      hour: default_hour(),
-      minute: default_minute()
-    })
+    %AssessmentPoint{datetime: DateTime.utc_now()}
+    |> change_assessment_point()
   end
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking assessment point changes.
+  Extracts date, hour, and minute virtual fields values from source datetime.
 
   ## Examples
 
@@ -130,14 +127,22 @@ defmodule Lanttern.Assessments do
   @doc """
   Returns the list of assessment_point_entries.
 
+  ### Options:
+
+  `:preloads` – preloads associated data
+  `:assessment_point_id` – filter entries by provided assessment point id
+
   ## Examples
 
       iex> list_assessment_point_entries()
       [%AssessmentPointEntry{}, ...]
 
   """
-  def list_assessment_point_entries do
-    Repo.all(AssessmentPointEntry)
+  def list_assessment_point_entries(opts \\ []) do
+    AssessmentPointEntry
+    |> maybe_filter_entries_by_assessment_point(opts)
+    |> Repo.all()
+    |> maybe_preload(opts)
   end
 
   @doc """
@@ -177,6 +182,11 @@ defmodule Lanttern.Assessments do
   @doc """
   Updates a assessment_point_entry.
 
+  ### Options:
+
+  `:preloads` – preloads associated data
+  `:force_preloads` - force preload. useful for update actions
+
   ## Examples
 
       iex> update_assessment_point_entry(assessment_point_entry, %{field: new_value})
@@ -186,10 +196,15 @@ defmodule Lanttern.Assessments do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_assessment_point_entry(%AssessmentPointEntry{} = assessment_point_entry, attrs) do
+  def update_assessment_point_entry(
+        %AssessmentPointEntry{} = assessment_point_entry,
+        attrs,
+        opts \\ []
+      ) do
     assessment_point_entry
     |> AssessmentPointEntry.changeset(attrs)
     |> Repo.update()
+    |> maybe_preload(opts)
   end
 
   @doc """
@@ -221,21 +236,20 @@ defmodule Lanttern.Assessments do
         %AssessmentPointEntry{} = assessment_point_entry,
         attrs \\ %{}
       ) do
-    AssessmentPointEntry.changeset(assessment_point_entry, attrs)
+    AssessmentPointEntry.simple_changeset(assessment_point_entry, attrs)
   end
 
-  defp default_hour() do
-    DateTime.utc_now()
-    |> Timex.local()
-    |> Map.get(:hour)
-  end
+  defp maybe_filter_entries_by_assessment_point(assessment_point_entry_query, opts) do
+    case Keyword.get(opts, :assessment_point_id) do
+      nil ->
+        assessment_point_entry_query
 
-  defp default_minute() do
-    m =
-      DateTime.utc_now()
-      |> Timex.local()
-      |> Map.get(:minute)
-
-    m - Integer.mod(m, 10)
+      assessment_point_id ->
+        from(
+          e in assessment_point_entry_query,
+          join: ap in assoc(e, :assessment_point),
+          where: ap.id == ^assessment_point_id
+        )
+    end
   end
 end
