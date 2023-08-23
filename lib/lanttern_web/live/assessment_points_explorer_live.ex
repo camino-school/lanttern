@@ -4,25 +4,6 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
 
-  def mount(_params, _session, socket) do
-    {:ok, socket, temporary_assigns: [assessment_points: []]}
-  end
-
-  def handle_params(_params, _uri, socket) do
-    %{
-      assessment_points: assessment_points,
-      students_and_entries: students_and_entries
-    } =
-      Assessments.list_students_assessment_points_grid()
-
-    socket =
-      socket
-      |> assign(:assessment_points, assessment_points)
-      |> assign(:students_and_entries, students_and_entries)
-
-    {:noreply, socket}
-  end
-
   def render(assigns) do
     ~H"""
     <div class="container mx-auto lg:max-w-5xl">
@@ -43,7 +24,7 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
       </div>
     </div>
     <div class="relative w-full max-h-screen pb-6 mt-6 rounded shadow-xl bg-white overflow-x-auto">
-      <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2">
+      <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2 bg-white">
         <div class="sticky left-0 z-20 shrink-0 w-40 bg-white"></div>
         <.assessment_point :for={ap <- @assessment_points} assessment_point={ap} />
         <div class="shrink-0 w-2"></div>
@@ -81,21 +62,68 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
 
   def student_and_entries(assigns) do
     ~H"""
-    <div class="flex items-stretch gap-4 mt-2">
+    <div class="flex items-stretch gap-4">
       <.icon_with_name
         class="sticky left-0 z-10 shrink-0 w-40 px-6 bg-white"
         profile_name={@student.name}
       />
       <%= for entry <- @entries do %>
-        <div class="shrink-0 w-40 min-h-[3.5rem] p-2 rounded bg-slate-200">
+        <div class="shrink-0 w-40 min-h-[4rem] py-1">
           <%= if entry == nil do %>
-            —
+            <.base_input
+              class="w-full h-full rounded-sm font-mono text-center bg-slate-400"
+              value="N/A"
+              name="na"
+              readonly
+            />
           <% else %>
-            <%= "Entry #{entry.id}" %>
+            <.live_component module={LantternWeb.MarkingComponent} id={entry.id} entry={entry} />
           <% end %>
         </div>
       <% end %>
     </div>
     """
+  end
+
+  # lifecycle
+
+  def mount(_params, _session, socket) do
+    {:ok, socket, temporary_assigns: [assessment_points: []]}
+  end
+
+  def handle_params(_params, _uri, socket) do
+    %{
+      assessment_points: assessment_points,
+      students_and_entries: students_and_entries
+    } =
+      Assessments.list_students_assessment_points_grid()
+
+    socket =
+      socket
+      |> assign(:assessment_points, assessment_points)
+      |> assign(:students_and_entries, students_and_entries)
+
+    {:noreply, socket}
+  end
+
+  # info handlers
+
+  def handle_info(
+        {:marking_save_error, %Ecto.Changeset{errors: [score: {score_error, _}]} = _changeset},
+        socket
+      ) do
+    socket =
+      socket
+      |> put_flash(:error, score_error)
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:marking_save_error, _changeset}, socket) do
+    socket =
+      socket
+      |> put_flash(:error, "Something is not right")
+
+    {:noreply, socket}
   end
 end
