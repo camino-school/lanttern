@@ -10,9 +10,37 @@ defmodule Lanttern.AssessmentsTest do
 
     @invalid_attrs %{name: nil, date: nil, description: nil}
 
-    test "list_assessment_points/0 returns all assessments" do
+    test "list_assessment_points/1 returns all assessments" do
       assessment_point = assessment_point_fixture()
       assert Assessments.list_assessment_points() == [assessment_point]
+    end
+
+    test "list_assessment_points/1 with opts returns assessments as expected" do
+      scale = Lanttern.GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ordinal_value = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      assessment_point_1 = assessment_point_fixture(%{scale_id: scale.id})
+      assessment_point_2 = assessment_point_fixture(%{scale_id: scale.id})
+
+      # extra assessment point for filtering validation
+      assessment_point_fixture()
+
+      assessments =
+        Assessments.list_assessment_points(
+          preloads: [scale: :ordinal_values],
+          assessment_points_ids: [assessment_point_1.id, assessment_point_2.id]
+        )
+
+      # assert length to check filtering
+      assert length(assessments) == 2
+
+      # assert scales and ordinal values are preloaded
+      expected_assessment_1 = Enum.find(assessments, fn a -> a.id == assessment_point_1.id end)
+      assert expected_assessment_1.scale_id == scale.id
+      assert expected_assessment_1.scale.ordinal_values == [ordinal_value]
+
+      expected_assessment_2 = Enum.find(assessments, fn a -> a.id == assessment_point_2.id end)
+      assert expected_assessment_2.scale_id == scale.id
+      assert expected_assessment_2.scale.ordinal_values == [ordinal_value]
     end
 
     test "get_assessment_point!/2 returns the assessment point with given id" do
