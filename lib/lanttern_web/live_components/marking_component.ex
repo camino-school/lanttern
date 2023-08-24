@@ -17,7 +17,13 @@ defmodule LantternWeb.MarkingComponent do
   def render(assigns) do
     ~H"""
     <div class="w-full h-full">
-      <.form for={@form} phx-change="save" phx-target={@myself} class="w-full h-full">
+      <.form
+        for={@form}
+        phx-change="save"
+        phx-target={@myself}
+        class="w-full h-full"
+        id={"entry-#{@id}-marking-form"}
+      >
         <input type="hidden" name={@form[:id].name} value={@form[:id].value} />
         <.marking_input
           scale={@scale}
@@ -31,7 +37,7 @@ defmodule LantternWeb.MarkingComponent do
     """
   end
 
-  def update(%{entry: entry}, socket) do
+  def update(%{entry: entry, id: id}, socket) do
     # , scale: scale, ordinal_value_options: ordinal_value_options
     assessment_point = Assessments.get_assessment_point!(entry.assessment_point_id)
     scale = Grading.get_scale!(assessment_point.scale_id)
@@ -63,6 +69,7 @@ defmodule LantternWeb.MarkingComponent do
       |> assign(:form, form)
       |> assign(:scale, scale)
       |> assign(:ordinal_value_options, ordinal_value_options)
+      |> assign(:id, id)
 
     {:ok, socket}
   end
