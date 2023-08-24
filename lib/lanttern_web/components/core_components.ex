@@ -159,7 +159,7 @@ defmodule LantternWeb.CoreComponents do
     <!-- Global notification live region, render this permanently at the end of the document -->
     <div
       aria-live="assertive"
-      class="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
+      class="z-40 pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
     >
       <div class="flex w-full flex-col items-center space-y-4 sm:items-end">
         <.flash kind={:info} title="Success!" flash={@flash} />
@@ -893,7 +893,7 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div
       class={[
-        "flex items-center justify-center w-10 h-10 rounded-full font-display text-sm font-bold text-center bg-cyan-50 shadow-lg",
+        "flex items-center justify-center w-10 h-10 rounded-full font-display text-sm font-bold text-center bg-cyan-50 shadow-md",
         @class
       ]}
       {@rest}
@@ -918,5 +918,20 @@ defmodule LantternWeb.CoreComponents do
 
         "#{first_initial}#{List.last(other_initials)}"
     end
+  end
+
+  @doc """
+  Renders a profile icon with name.
+  """
+  attr :profile_name, :string, required: true
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def icon_with_name(assigns) do
+    ~H"""
+    <div class={["flex gap-2 items-center text-sm", @class]}>
+      <.profile_icon profile_name={@profile_name} /> <%= @profile_name %>
+    </div>
+    """
   end
 end

@@ -2,6 +2,7 @@ defmodule LantternWeb.AssessmentPointLive do
   use LantternWeb, :live_view
 
   alias Lanttern.Assessments
+  alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Grading
 
   def render(assigns) do
@@ -66,13 +67,11 @@ defmodule LantternWeb.AssessmentPointLive do
               <span>Notes and observations</span>
             </div>
           </div>
-          <.live_component
+          <.entry_row
             :for={entry <- @entries}
-            module={LantternWeb.AssessmentPointEntryRowFormComponent}
-            id={entry.id}
             entry={entry}
-            ordinal_value_options={@ordinal_value_options}
-            scale={@assessment_point.scale}
+            student_name={entry.student.name}
+            scale_type={@assessment_point.scale.type}
           />
         </div>
       </div>
@@ -84,6 +83,58 @@ defmodule LantternWeb.AssessmentPointLive do
     />
     """
   end
+
+  attr :ordinal_values, :list, required: true
+
+  def ordinal_values(assigns) do
+    ~H"""
+    <div :if={@ordinal_values} class="flex items-center gap-2 ml-2">
+      <%= for ov <- @ordinal_values do %>
+        <.badge get_bagde_color_from={ov}>
+          <%= ov.name %>
+        </.badge>
+      <% end %>
+    </div>
+    """
+  end
+
+  attr :classes, :list, required: true
+
+  def classes(assigns) do
+    ~H"""
+    <div class="flex items-center gap-2 ml-2">
+      <%= for c <- @classes do %>
+        <.badge>
+          <%= c.name %>
+        </.badge>
+      <% end %>
+    </div>
+    """
+  end
+
+  attr :entry, AssessmentPointEntry, required: true
+  attr :student_name, :string, required: true
+  attr :scale_type, :string, required: true
+
+  def entry_row(assigns) do
+    ~H"""
+    <div class="flex items-stretch gap-2 mt-4">
+      <.icon_with_name class="self-center shrink-0 w-1/4" profile_name={@student_name} />
+      <.live_component
+        module={LantternWeb.AssessmentPointEntryEditorComponent}
+        id={@entry.id}
+        entry={@entry}
+        wrapper_class="flex-1 items-stretch"
+        class="flex items-stretch gap-2"
+      >
+        <:marking_input class={if @scale_type == "numeric", do: "flex-[1_0]", else: "flex-[2_0]"} />
+        <:observation_input class="flex-[2_0]" />
+      </.live_component>
+    </div>
+    """
+  end
+
+  # lifecycle
 
   def mount(_params, _session, socket) do
     {:ok, socket}
@@ -120,13 +171,6 @@ defmodule LantternWeb.AssessmentPointLive do
             nil
           end
 
-        ordinal_value_options =
-          if is_list(ordinal_values) do
-            ordinal_values |> Enum.map(fn ov -> {:"#{ov.name}", ov.id} end)
-          else
-            []
-          end
-
         formatted_datetime =
           Timex.format!(
             Timex.local(assessment_point.datetime),
@@ -138,7 +182,6 @@ defmodule LantternWeb.AssessmentPointLive do
           |> assign(:assessment_point, assessment_point)
           |> assign(:entries, entries)
           |> assign(:ordinal_values, ordinal_values)
-          |> assign(:ordinal_value_options, ordinal_value_options)
           |> assign(:formatted_datetime, formatted_datetime)
           |> assign(:assessment_point_id, id)
           |> assign(:is_updating, false)
@@ -147,6 +190,8 @@ defmodule LantternWeb.AssessmentPointLive do
     end
   end
 
+  # event handlers
+
   def handle_event("update", _params, socket) do
     {:noreply, assign(socket, :is_updating, true)}
   end
@@ -154,6 +199,8 @@ defmodule LantternWeb.AssessmentPointLive do
   def handle_event("cancel-assessment-point-update", _params, socket) do
     {:noreply, assign(socket, :is_updating, false)}
   end
+
+  # info handlers
 
   def handle_info({:assessment_point_updated, assessment_point}, socket) do
     socket =
@@ -166,7 +213,8 @@ defmodule LantternWeb.AssessmentPointLive do
   end
 
   def handle_info(
-        {:save_error, %Ecto.Changeset{errors: [score: {score_error, _}]} = _changeset},
+        {:assessment_point_entry_save_error,
+         %Ecto.Changeset{errors: [score: {score_error, _}]} = _changeset},
         socket
       ) do
     socket =
@@ -176,39 +224,11 @@ defmodule LantternWeb.AssessmentPointLive do
     {:noreply, socket}
   end
 
-  def handle_info({:save_error, _changeset}, socket) do
+  def handle_info({:assessment_point_entry_save_error, _changeset}, socket) do
     socket =
       socket
       |> put_flash(:error, "Something is not right")
 
     {:noreply, socket}
-  end
-
-  attr :ordinal_values, :list, required: true
-
-  def ordinal_values(assigns) do
-    ~H"""
-    <div :if={@ordinal_values} class="flex items-center gap-2 ml-2">
-      <%= for ov <- @ordinal_values do %>
-        <.badge get_bagde_color_from={ov}>
-          <%= ov.name %>
-        </.badge>
-      <% end %>
-    </div>
-    """
-  end
-
-  attr :classes, :list, required: true
-
-  def classes(assigns) do
-    ~H"""
-    <div class="flex items-center gap-2 ml-2">
-      <%= for c <- @classes do %>
-        <.badge>
-          <%= c.name %>
-        </.badge>
-      <% end %>
-    </div>
-    """
   end
 end

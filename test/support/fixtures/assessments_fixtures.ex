@@ -28,7 +28,22 @@ defmodule Lanttern.AssessmentsFixtures do
   @doc """
   Generate a assessment_point_entry.
   """
-  def assessment_point_entry_fixture(attrs \\ %{}) do
+  def assessment_point_entry_fixture(attrs \\ %{})
+
+  def assessment_point_entry_fixture(%{assessment_point_id: _, student_id: _} = attrs) do
+    {:ok, assessment_point_entry} =
+      attrs
+      |> Enum.into(%{
+        observation: "some observation",
+        score: nil,
+        ordinal_value_id: nil
+      })
+      |> Lanttern.Assessments.create_assessment_point_entry()
+
+    assessment_point_entry
+  end
+
+  def assessment_point_entry_fixture(attrs) do
     assessment_point = assessment_point_fixture()
     student = Lanttern.SchoolsFixtures.student_fixture()
 

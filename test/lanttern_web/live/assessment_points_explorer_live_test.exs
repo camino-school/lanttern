@@ -14,24 +14,33 @@ defmodule LantternWeb.AssessmentPointsExplorerLiveTest do
     end
 
     test "display list of links for assessment points", %{conn: conn} do
-      %{name: name_1} = assessment_point_fixture()
-      %{name: name_2} = assessment_point_fixture()
-      %{name: name_3} = assessment_point_fixture()
+      std_1 = Lanttern.SchoolsFixtures.student_fixture()
+      std_2 = Lanttern.SchoolsFixtures.student_fixture()
+      std_3 = Lanttern.SchoolsFixtures.student_fixture()
+
+      ast_1 = assessment_point_fixture()
+      ast_2 = assessment_point_fixture()
+      ast_3 = assessment_point_fixture()
+
+      assessment_point_entry_fixture(%{student_id: std_1.id, assessment_point_id: ast_1.id})
+      assessment_point_entry_fixture(%{student_id: std_2.id, assessment_point_id: ast_2.id})
+      assessment_point_entry_fixture(%{student_id: std_3.id, assessment_point_id: ast_3.id})
 
       {:ok, view, _html} = live(conn, @live_view_path)
 
-      assert view |> has_element?("li > a", name_1)
-      assert view |> has_element?("li > a", name_2)
-      assert view |> has_element?("li > a", name_3)
+      assert view |> has_element?("a", ast_1.name)
+      assert view |> has_element?("a", ast_2.name)
+      assert view |> has_element?("a", ast_3.name)
     end
 
     test "navigation to assessment point details", %{conn: conn} do
-      %{id: id, name: name} = assessment_point_fixture()
+      %{id: id, name: name} = assessment_point_fixture(%{name: "not any name"})
+      assessment_point_entry_fixture(%{assessment_point_id: id})
 
       {:ok, view, _html} = live(conn, @live_view_path)
 
       view
-      |> element("li > a", name)
+      |> element("a", name)
       |> render_click()
 
       path = assert_patch(view)

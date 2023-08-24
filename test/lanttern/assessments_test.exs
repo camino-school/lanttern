@@ -10,9 +10,37 @@ defmodule Lanttern.AssessmentsTest do
 
     @invalid_attrs %{name: nil, date: nil, description: nil}
 
-    test "list_assessment_points/0 returns all assessments" do
+    test "list_assessment_points/1 returns all assessments" do
       assessment_point = assessment_point_fixture()
       assert Assessments.list_assessment_points() == [assessment_point]
+    end
+
+    test "list_assessment_points/1 with opts returns assessments as expected" do
+      scale = Lanttern.GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ordinal_value = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      assessment_point_1 = assessment_point_fixture(%{scale_id: scale.id})
+      assessment_point_2 = assessment_point_fixture(%{scale_id: scale.id})
+
+      # extra assessment point for filtering validation
+      assessment_point_fixture()
+
+      assessments =
+        Assessments.list_assessment_points(
+          preloads: [scale: :ordinal_values],
+          assessment_points_ids: [assessment_point_1.id, assessment_point_2.id]
+        )
+
+      # assert length to check filtering
+      assert length(assessments) == 2
+
+      # assert scales and ordinal values are preloaded
+      expected_assessment_1 = Enum.find(assessments, fn a -> a.id == assessment_point_1.id end)
+      assert expected_assessment_1.scale_id == scale.id
+      assert expected_assessment_1.scale.ordinal_values == [ordinal_value]
+
+      expected_assessment_2 = Enum.find(assessments, fn a -> a.id == assessment_point_2.id end)
+      assert expected_assessment_2.scale_id == scale.id
+      assert expected_assessment_2.scale.ordinal_values == [ordinal_value]
     end
 
     test "get_assessment_point!/2 returns the assessment point with given id" do
@@ -380,6 +408,60 @@ defmodule Lanttern.AssessmentsTest do
     test "change_assessment_point_entry/1 returns a assessment_point_entry changeset" do
       assessment_point_entry = assessment_point_entry_fixture()
       assert %Ecto.Changeset{} = Assessments.change_assessment_point_entry(assessment_point_entry)
+    end
+  end
+
+  describe "assessment points explorer" do
+    import Lanttern.AssessmentsFixtures
+    import Lanttern.SchoolsFixtures
+
+    test "list_students_assessment_points_grid/0 returns a list of students with assessment point entries" do
+      # list is sorted by student name
+      std_1 = student_fixture(%{name: "AAA"})
+      std_2 = student_fixture(%{name: "BBB"})
+      std_3 = student_fixture(%{name: "CCC"})
+
+      # and by assessment point datetime
+      ast_1 = assessment_point_fixture(%{datetime: ~U[2023-08-01 15:30:00Z]})
+      ast_2 = assessment_point_fixture(%{datetime: ~U[2023-08-02 15:30:00Z]})
+      ast_3 = assessment_point_fixture(%{datetime: ~U[2023-08-03 15:30:00Z]})
+
+      #       ast_1 ast_2 ast_3
+      # std_1  [x]   [ ]   [x]
+      # std_2  [ ]   [x]   [x]
+      # std_3  [x]   [ ]   [x]
+
+      std_1_ast_1 =
+        assessment_point_entry_fixture(%{student_id: std_1.id, assessment_point_id: ast_1.id})
+
+      std_1_ast_3 =
+        assessment_point_entry_fixture(%{student_id: std_1.id, assessment_point_id: ast_3.id})
+
+      std_2_ast_2 =
+        assessment_point_entry_fixture(%{student_id: std_2.id, assessment_point_id: ast_2.id})
+
+      std_2_ast_3 =
+        assessment_point_entry_fixture(%{student_id: std_2.id, assessment_point_id: ast_3.id})
+
+      std_3_ast_1 =
+        assessment_point_entry_fixture(%{student_id: std_3.id, assessment_point_id: ast_1.id})
+
+      std_3_ast_3 =
+        assessment_point_entry_fixture(%{student_id: std_3.id, assessment_point_id: ast_3.id})
+
+      %{
+        assessment_points: assessment_points,
+        students_and_entries: students_and_entries
+      } =
+        Assessments.list_students_assessment_points_grid()
+
+      assert assessment_points == [ast_1, ast_2, ast_3]
+
+      assert students_and_entries == [
+               {std_1, [std_1_ast_1, nil, std_1_ast_3]},
+               {std_2, [nil, std_2_ast_2, std_2_ast_3]},
+               {std_3, [std_3_ast_1, nil, std_3_ast_3]}
+             ]
     end
   end
 end
