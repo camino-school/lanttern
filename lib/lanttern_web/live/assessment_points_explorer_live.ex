@@ -77,7 +77,15 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
               readonly
             />
           <% else %>
-            <.live_component module={LantternWeb.MarkingComponent} id={entry.id} entry={entry} />
+            <.live_component
+              module={LantternWeb.AssessmentPointEntryEditorComponent}
+              id={entry.id}
+              entry={entry}
+              class="w-full h-full"
+              wrapper_class="w-full h-full"
+            >
+              <:marking_input class="w-full h-full" />
+            </.live_component>
           <% end %>
         </div>
       <% end %>
@@ -109,7 +117,8 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
   # info handlers
 
   def handle_info(
-        {:marking_save_error, %Ecto.Changeset{errors: [score: {score_error, _}]} = _changeset},
+        {:assessment_point_entry_save_error,
+         %Ecto.Changeset{errors: [score: {score_error, _}]} = _changeset},
         socket
       ) do
     socket =
@@ -119,7 +128,7 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
     {:noreply, socket}
   end
 
-  def handle_info({:marking_save_error, _changeset}, socket) do
+  def handle_info({:assessment_point_entry_save_error, _changeset}, socket) do
     socket =
       socket
       |> put_flash(:error, "Something is not right")

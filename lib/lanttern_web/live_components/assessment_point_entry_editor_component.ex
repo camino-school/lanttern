@@ -1,9 +1,19 @@
-defmodule LantternWeb.MarkingComponent do
+defmodule LantternWeb.AssessmentPointEntryEditorComponent do
   @moduledoc """
   Expected external assigns:
 
   ```elixir
   attr :entry, Lanttern.Assessments.AssessmentPointEntry, required: true
+  attr :wrapper_class, :any, doc: "use it to style the wrapping div"
+  attr :class, :any, doc: "use it to style the form element"
+
+  slot :marking_input do
+    attr :class, :any
+  end
+
+  slot :observation_input do
+    attr :class, :any
+  end
   ```
 
   """
@@ -15,22 +25,35 @@ defmodule LantternWeb.MarkingComponent do
 
   def render(assigns) do
     ~H"""
-    <div class="w-full h-full">
+    <div class={@wrapper_class}>
       <.form
         for={@form}
         phx-change="save"
         phx-target={@myself}
-        class="w-full h-full"
+        class={@class}
         id={"entry-#{@id}-marking-form"}
       >
         <input type="hidden" name={@form[:id].name} value={@form[:id].value} />
-        <.marking_input
-          scale={@scale}
-          ordinal_value_options={@ordinal_value_options}
-          form={@form}
-          style={@ov_style}
-          ov_name={@ov_name}
-        />
+        <%= for marking_input <- @marking_input do %>
+          <.marking_input
+            scale={@scale}
+            ordinal_value_options={@ordinal_value_options}
+            form={@form}
+            style={@ov_style}
+            ov_name={@ov_name}
+            class={Map.get(marking_input, :class, "")}
+          />
+        <% end %>
+        <%= for observation_input <- @observation_input do %>
+          <div class={Map.get(observation_input, :class, "")}>
+            <.textarea
+              name={@form[:observation].name}
+              value={@form[:observation].value}
+              class={@form[:observation].value == nil && "bg-slate-200"}
+              phx-debounce="1000"
+            />
+          </div>
+        <% end %>
       </.form>
     </div>
     """
@@ -39,12 +62,13 @@ defmodule LantternWeb.MarkingComponent do
   attr :scale, Scale, required: true
   attr :ordinal_value_options, :list
   attr :style, :string
+  attr :class, :any
   attr :ov_name, :string
   attr :form, :map, required: true
 
   def marking_input(%{scale: %{type: "ordinal"}} = assigns) do
     ~H"""
-    <div class="relative w-full h-full">
+    <div class={["relative", @class]}>
       <div
         class={[
           "flex items-center justify-center w-full h-full rounded-sm font-mono text-sm pointer-events-none",
@@ -68,7 +92,7 @@ defmodule LantternWeb.MarkingComponent do
 
   def marking_input(%{scale: %{type: "numeric"}} = assigns) do
     ~H"""
-    <div class="w-full h-full">
+    <div class={@class}>
       <.base_input
         name={@form[:score].name}
         type="number"
@@ -107,7 +131,7 @@ defmodule LantternWeb.MarkingComponent do
     end)
   end
 
-  def update(%{entry: entry, id: id, assessment_point: assessment_point}, socket) do
+  def update(%{entry: entry, id: id, assessment_point: assessment_point} = assigns, socket) do
     %{scale: scale} = assessment_point
     %{ordinal_values: ordinal_values} = scale
     ordinal_value_options = Enum.map(ordinal_values, fn ov -> {:"#{ov.name}", ov.id} end)
@@ -138,6 +162,10 @@ defmodule LantternWeb.MarkingComponent do
       |> assign(:scale, scale)
       |> assign(:ordinal_value_options, ordinal_value_options)
       |> assign(:id, id)
+      |> assign(:wrapper_class, Map.get(assigns, :wrapper_class, ""))
+      |> assign(:class, Map.get(assigns, :class, ""))
+      |> assign(:marking_input, Map.get(assigns, :marking_input, []))
+      |> assign(:observation_input, Map.get(assigns, :observation_input, []))
 
     {:ok, socket}
   end
@@ -175,7 +203,7 @@ defmodule LantternWeb.MarkingComponent do
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        send(self(), {:marking_save_error, changeset})
+        send(self(), {:assessment_point_entry_save_error, changeset})
         {:noreply, assign(socket, :form, to_form(changeset))}
     end
   end
