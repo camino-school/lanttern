@@ -56,4 +56,58 @@ defmodule Lanttern.CurriculaTest do
       assert %Ecto.Changeset{} = Curricula.change_item(item)
     end
   end
+
+  describe "curricula" do
+    alias Lanttern.Curricula.Curriculum
+
+    import Lanttern.CurriculaFixtures
+
+    @invalid_attrs %{name: nil}
+
+    test "list_curricula/0 returns all curricula" do
+      curriculum = curriculum_fixture()
+      assert Curricula.list_curricula() == [curriculum]
+    end
+
+    test "get_curriculum!/1 returns the curriculum with given id" do
+      curriculum = curriculum_fixture()
+      assert Curricula.get_curriculum!(curriculum.id) == curriculum
+    end
+
+    test "create_curriculum/1 with valid data creates a curriculum" do
+      valid_attrs = %{name: "some name"}
+
+      assert {:ok, %Curriculum{} = curriculum} = Curricula.create_curriculum(valid_attrs)
+      assert curriculum.name == "some name"
+    end
+
+    test "create_curriculum/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Curricula.create_curriculum(@invalid_attrs)
+    end
+
+    test "update_curriculum/2 with valid data updates the curriculum" do
+      curriculum = curriculum_fixture()
+      update_attrs = %{name: "some updated name"}
+
+      assert {:ok, %Curriculum{} = curriculum} = Curricula.update_curriculum(curriculum, update_attrs)
+      assert curriculum.name == "some updated name"
+    end
+
+    test "update_curriculum/2 with invalid data returns error changeset" do
+      curriculum = curriculum_fixture()
+      assert {:error, %Ecto.Changeset{}} = Curricula.update_curriculum(curriculum, @invalid_attrs)
+      assert curriculum == Curricula.get_curriculum!(curriculum.id)
+    end
+
+    test "delete_curriculum/1 deletes the curriculum" do
+      curriculum = curriculum_fixture()
+      assert {:ok, %Curriculum{}} = Curricula.delete_curriculum(curriculum)
+      assert_raise Ecto.NoResultsError, fn -> Curricula.get_curriculum!(curriculum.id) end
+    end
+
+    test "change_curriculum/1 returns a curriculum changeset" do
+      curriculum = curriculum_fixture()
+      assert %Ecto.Changeset{} = Curricula.change_curriculum(curriculum)
+    end
+  end
 end

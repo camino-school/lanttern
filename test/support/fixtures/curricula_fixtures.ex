@@ -5,6 +5,21 @@ defmodule Lanttern.CurriculaFixtures do
   """
 
   @doc """
+  Generate a curriculum.
+  """
+  def curriculum_fixture(attrs \\ %{}) do
+    {:ok, curriculum} =
+      attrs
+      |> Enum.into(%{
+        name: "some name",
+        code: "some code"
+      })
+      |> Lanttern.Curricula.create_curriculum()
+
+    curriculum
+  end
+
+  @doc """
   Generate a item.
   """
   def item_fixture(attrs \\ %{}) do

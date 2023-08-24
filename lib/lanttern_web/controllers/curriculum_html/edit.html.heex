@@ -1,0 +1,8 @@
+<.header>
+  Edit Curriculum <%= @curriculum.id %>
+  <:subtitle>Use this form to manage curriculum records in your database.</:subtitle>
+</.header>
+
+<.curriculum_form changeset={@changeset} action={~p"/admin/curricula/cur/#{@curriculum}"} />
+
+<.back navigate={~p"/admin/curricula/cur"}>Back to curricula</.back>
