@@ -42,13 +42,17 @@ defmodule Lanttern.CurriculaFixtures do
   """
   def curriculum_item_fixture(attrs \\ %{}) do
     curriculum_component = curriculum_component_fixture()
+    subject = Lanttern.TaxonomyFixtures.subject_fixture()
+    year = Lanttern.TaxonomyFixtures.year_fixture()
 
     {:ok, curriculum_item} =
       attrs
       |> Enum.into(%{
         name: "some name",
         code: "some code",
-        curriculum_component_id: curriculum_component.id
+        curriculum_component_id: curriculum_component.id,
+        subject_id: subject.id,
+        year_id: year.id
       })
       |> Lanttern.Curricula.create_curriculum_item()
 

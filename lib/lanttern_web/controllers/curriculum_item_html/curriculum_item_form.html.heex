@@ -9,6 +9,20 @@
     options={@curriculum_component_options}
     prompt="Select a curriculum component"
   />
+  <.input
+    field={f[:subject_id]}
+    type="select"
+    label="Subject"
+    options={@subject_options}
+    prompt="Select a subject"
+  />
+  <.input
+    field={f[:year_id]}
+    type="select"
+    label="Year"
+    options={@year_options}
+    prompt="Select a year"
+  />
   <.input field={f[:code]} type="text" label="Code" />
   <.input field={f[:name]} type="text" label="Name" />
   <:actions>

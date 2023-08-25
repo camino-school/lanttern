@@ -194,11 +194,15 @@ defmodule Lanttern.CurriculaTest do
 
     test "create_curriculum_item/1 with valid data creates a curriculum item" do
       curriculum_component = curriculum_component_fixture()
+      subject = Lanttern.TaxonomyFixtures.subject_fixture()
+      year = Lanttern.TaxonomyFixtures.year_fixture()
 
       valid_attrs = %{
         name: "some name",
         code: "some code",
-        curriculum_component_id: curriculum_component.id
+        curriculum_component_id: curriculum_component.id,
+        subject_id: subject.id,
+        year_id: year.id
       }
 
       assert {:ok, %CurriculumItem{} = curriculum_item} =

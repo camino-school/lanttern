@@ -33,7 +33,14 @@ defmodule LantternWeb.ItemControllerTest do
   describe "create item" do
     test "redirects to show when data is valid", %{conn: conn} do
       curriculum_component = curriculum_component_fixture()
-      create_attrs = @create_attrs |> Map.put(:curriculum_component_id, curriculum_component.id)
+      subject = Lanttern.TaxonomyFixtures.subject_fixture()
+      year = Lanttern.TaxonomyFixtures.year_fixture()
+
+      create_attrs =
+        @create_attrs
+        |> Map.put(:curriculum_component_id, curriculum_component.id)
+        |> Map.put(:subject_id, subject.id)
+        |> Map.put(:year_id, year.id)
 
       conn = post(conn, ~p"/admin/curricula/curriculum_items", curriculum_item: create_attrs)
 
@@ -41,7 +48,7 @@ defmodule LantternWeb.ItemControllerTest do
       assert redirected_to(conn) == ~p"/admin/curricula/curriculum_items/#{id}"
 
       conn = get(conn, ~p"/admin/curricula/curriculum_items/#{id}")
-      assert html_response(conn, 200) =~ "Item #{id}"
+      assert html_response(conn, 200) =~ "Curriculum Item #{id}"
     end
 
     test "renders errors when data is invalid", %{conn: conn} do

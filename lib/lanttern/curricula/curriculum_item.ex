@@ -8,6 +8,8 @@ defmodule Lanttern.Curricula.CurriculumItem do
 
     has_many :grade_composition_component_items, Lanttern.Grading.CompositionComponentItem
     belongs_to :curriculum_component, Lanttern.Curricula.CurriculumComponent
+    belongs_to :subject, Lanttern.Taxonomy.Subject
+    belongs_to :year, Lanttern.Taxonomy.Year
 
     timestamps()
   end
@@ -15,7 +17,7 @@ defmodule Lanttern.Curricula.CurriculumItem do
   @doc false
   def changeset(curriculum_item, attrs) do
     curriculum_item
-    |> cast(attrs, [:name, :code, :curriculum_component_id])
-    |> validate_required([:name, :curriculum_component_id])
+    |> cast(attrs, [:name, :code, :curriculum_component_id, :subject_id, :year_id])
+    |> validate_required([:name, :curriculum_component_id, :subject_id, :year_id])
   end
 end
