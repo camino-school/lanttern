@@ -3,9 +3,9 @@ defmodule LantternWeb.ItemControllerTest do
 
   import Lanttern.CurriculaFixtures
 
-  @create_attrs %{name: "some name"}
-  @update_attrs %{name: "some updated name"}
-  @invalid_attrs %{name: nil}
+  @create_attrs %{name: "some name", code: "some code"}
+  @update_attrs %{name: "some updated name", code: "some updated code"}
+  @invalid_attrs %{name: nil, code: nil}
 
   setup %{conn: conn} do
     # log_in user for all test cases
@@ -32,7 +32,10 @@ defmodule LantternWeb.ItemControllerTest do
 
   describe "create item" do
     test "redirects to show when data is valid", %{conn: conn} do
-      conn = post(conn, ~p"/admin/curricula/curriculum_items", curriculum_item: @create_attrs)
+      curriculum_component = curriculum_component_fixture()
+      create_attrs = @create_attrs |> Map.put(:curriculum_component_id, curriculum_component.id)
+
+      conn = post(conn, ~p"/admin/curricula/curriculum_items", curriculum_item: create_attrs)
 
       assert %{id: id} = redirected_params(conn)
       assert redirected_to(conn) == ~p"/admin/curricula/curriculum_items/#{id}"

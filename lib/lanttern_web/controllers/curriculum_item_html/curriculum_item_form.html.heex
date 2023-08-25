@@ -2,6 +2,14 @@
   <.error :if={@changeset.action}>
     Oops, something went wrong! Please check the errors below.
   </.error>
+  <.input
+    field={f[:curriculum_component_id]}
+    type="select"
+    label="Curriculum component"
+    options={@curriculum_component_options}
+    prompt="Select a curriculum component"
+  />
+  <.input field={f[:code]} type="text" label="Code" />
   <.input field={f[:name]} type="text" label="Name" />
   <:actions>
     <.button>Save Curriculum Item</.button>

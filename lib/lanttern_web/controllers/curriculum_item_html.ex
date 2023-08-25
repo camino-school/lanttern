@@ -6,6 +6,7 @@ defmodule LantternWeb.CurriculumItemHTML do
   @doc """
   Renders a curriculum item form.
   """
+  attr :curriculum_component_options, :list, required: true
   attr :changeset, Ecto.Changeset, required: true
   attr :action, :string, required: true
 

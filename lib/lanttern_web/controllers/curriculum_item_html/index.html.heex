@@ -13,6 +13,7 @@
   row_click={&JS.navigate(~p"/admin/curricula/curriculum_items/#{&1}")}
 >
   <:col :let={curriculum_item} label="Name"><%= curriculum_item.name %></:col>
+  <:col :let={curriculum_item} label="Code"><%= curriculum_item.code %></:col>
   <:action :let={curriculum_item}>
     <div class="sr-only">
       <.link navigate={~p"/admin/curricula/curriculum_items/#{curriculum_item}"}>Show</.link>

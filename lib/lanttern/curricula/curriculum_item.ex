@@ -4,8 +4,10 @@ defmodule Lanttern.Curricula.CurriculumItem do
 
   schema "curriculum_items" do
     field :name, :string
+    field :code, :string
 
     has_many :grade_composition_component_items, Lanttern.Grading.CompositionComponentItem
+    belongs_to :curriculum_component, Lanttern.Curricula.CurriculumComponent
 
     timestamps()
   end
@@ -13,7 +15,7 @@ defmodule Lanttern.Curricula.CurriculumItem do
   @doc false
   def changeset(curriculum_item, attrs) do
     curriculum_item
-    |> cast(attrs, [:name])
-    |> validate_required([:name])
+    |> cast(attrs, [:name, :code, :curriculum_component_id])
+    |> validate_required([:name, :curriculum_component_id])
   end
 end
