@@ -24,7 +24,7 @@ defmodule LantternWeb.CurriculaHelpers do
       ["item name": 1, ...]
   """
   def generate_curriculum_item_options() do
-    Curricula.list_items()
+    Curricula.list_curriculum_items()
     |> Enum.map(fn i -> ["#{i.name}": i.id] end)
     |> Enum.concat()
   end

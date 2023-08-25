@@ -27,7 +27,7 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponentTest do
     end
 
     test "submit valid form saves and update view", %{conn: conn} do
-      curriculum_item = Lanttern.CurriculaFixtures.item_fixture()
+      curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
       scale = Lanttern.GradingFixtures.scale_fixture()
 
       assessment_point =
@@ -50,7 +50,7 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponentTest do
       assert view |> has_element?("select option[selected][value=#{scale.id}]")
 
       # submit with extra info
-      other_curriculum_item = Lanttern.CurriculaFixtures.item_fixture()
+      other_curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
       other_scale = Lanttern.GradingFixtures.scale_fixture()
 
       view

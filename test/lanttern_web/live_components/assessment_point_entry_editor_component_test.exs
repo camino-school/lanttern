@@ -10,7 +10,7 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponentTest do
 
   describe "Edit assessment point entries in assessment points explorer live view" do
     test "update assessment points", %{conn: conn} do
-      curriculum_item = CurriculaFixtures.item_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
       numeric_scale = GradingFixtures.scale_fixture(%{type: "numeric", start: 0.0, stop: 1.0})
       ordinal_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
       ordinal_value_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: ordinal_scale.id})
@@ -132,7 +132,7 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponentTest do
 
     test "update assessment point entries with invalid data when scale is numeric flashes an error message",
          %{conn: conn} do
-      curriculum_item = CurriculaFixtures.item_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
       scale = GradingFixtures.scale_fixture(%{type: "numeric", start: 0, stop: 10})
 
       assessment_point =
@@ -169,7 +169,7 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponentTest do
 
   describe "Edit assessment point entries in assessment point details live view" do
     test "update assessment point entries when scale is ordinal", %{conn: conn} do
-      curriculum_item = CurriculaFixtures.item_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
       scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
       ordinal_value_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
       ordinal_value_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
@@ -224,7 +224,7 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponentTest do
     end
 
     test "update assessment point entries when scale is numeric", %{conn: conn} do
-      curriculum_item = CurriculaFixtures.item_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
       scale = GradingFixtures.scale_fixture(%{type: "numeric", start: 0, stop: 10})
 
       assessment_point =
@@ -278,7 +278,7 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponentTest do
 
     test "update assessment point entries with invalid data when scale is numeric flashes an error message",
          %{conn: conn} do
-      curriculum_item = CurriculaFixtures.item_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
       scale = GradingFixtures.scale_fixture(%{type: "numeric", start: 0, stop: 10})
 
       assessment_point =

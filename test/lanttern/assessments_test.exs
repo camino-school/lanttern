@@ -59,7 +59,7 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "create_assessment_point/1 with valid data creates a assessment point" do
-      curriculum_item = Lanttern.CurriculaFixtures.item_fixture()
+      curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
       scale = Lanttern.GradingFixtures.scale_fixture()
 
       valid_attrs = %{
@@ -81,7 +81,7 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "create_assessment_point/1 with valid data containing classes creates an assessment point with linked classes" do
-      curriculum_item = Lanttern.CurriculaFixtures.item_fixture()
+      curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
       scale = Lanttern.GradingFixtures.scale_fixture()
 
       class_1 = Lanttern.SchoolsFixtures.class_fixture()
@@ -111,7 +111,7 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "create_assessment_point/1 with students creates an assessment point with linked assessment point entries for each student" do
-      curriculum_item = Lanttern.CurriculaFixtures.item_fixture()
+      curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
       scale = Lanttern.GradingFixtures.scale_fixture()
 
       student_1 = Lanttern.SchoolsFixtures.student_fixture()

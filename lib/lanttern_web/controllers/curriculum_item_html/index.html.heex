@@ -1,0 +1,31 @@
+<.header>
+  Listing Curriculum Items
+  <:actions>
+    <.link href={~p"/admin/curricula/curriculum_items/new"}>
+      <.button>New Curriculum Item</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="curriculum_items"
+  rows={@curriculum_items}
+  row_click={&JS.navigate(~p"/admin/curricula/curriculum_items/#{&1}")}
+>
+  <:col :let={curriculum_item} label="Name"><%= curriculum_item.name %></:col>
+  <:action :let={curriculum_item}>
+    <div class="sr-only">
+      <.link navigate={~p"/admin/curricula/curriculum_items/#{curriculum_item}"}>Show</.link>
+    </div>
+    <.link navigate={~p"/admin/curricula/curriculum_items/#{curriculum_item}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={curriculum_item}>
+    <.link
+      href={~p"/admin/curricula/curriculum_items/#{curriculum_item}"}
+      method="delete"
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>

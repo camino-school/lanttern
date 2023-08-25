@@ -187,7 +187,7 @@ defmodule Lanttern.GradingTest do
 
     test "list_component_items/1 with preloads returns all component_items with preloaded data" do
       component = composition_component_fixture()
-      curriculum_item = Lanttern.CurriculaFixtures.item_fixture()
+      curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
 
       composition_component_item =
         composition_component_item_fixture(%{
@@ -210,7 +210,7 @@ defmodule Lanttern.GradingTest do
 
     test "get_composition_component_item!/2 with preloads returns the composition_component_item with given id and preloaded data" do
       component = composition_component_fixture()
-      curriculum_item = Lanttern.CurriculaFixtures.item_fixture()
+      curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
 
       composition_component_item =
         composition_component_item_fixture(%{
@@ -229,7 +229,7 @@ defmodule Lanttern.GradingTest do
 
     test "create_composition_component_item/1 with valid data creates a composition_component_item" do
       component = composition_component_fixture()
-      curriculum_item = CurriculaFixtures.item_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
 
       valid_attrs = %{
         weight: 120.5,

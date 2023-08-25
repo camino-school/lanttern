@@ -20,7 +20,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     field :student_id, :id, virtual: true
     field :students_ids, {:array, :id}, virtual: true
 
-    belongs_to :curriculum_item, Lanttern.Curricula.Item
+    belongs_to :curriculum_item, Lanttern.Curricula.CurriculumItem
     belongs_to :scale, Lanttern.Grading.Scale
 
     has_many :entries, Lanttern.Assessments.AssessmentPointEntry

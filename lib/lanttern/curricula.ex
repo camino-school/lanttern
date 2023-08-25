@@ -6,103 +6,8 @@ defmodule Lanttern.Curricula do
   import Ecto.Query, warn: false
   alias Lanttern.Repo
 
-  alias Lanttern.Curricula.Item
-
-  @doc """
-  Returns the list of items.
-
-  ## Examples
-
-      iex> list_items()
-      [%Item{}, ...]
-
-  """
-  def list_items do
-    Repo.all(Item)
-  end
-
-  @doc """
-  Gets a single item.
-
-  Raises `Ecto.NoResultsError` if the Item does not exist.
-
-  ## Examples
-
-      iex> get_item!(123)
-      %Item{}
-
-      iex> get_item!(456)
-      ** (Ecto.NoResultsError)
-
-  """
-  def get_item!(id), do: Repo.get!(Item, id)
-
-  @doc """
-  Creates a item.
-
-  ## Examples
-
-      iex> create_item(%{field: value})
-      {:ok, %Item{}}
-
-      iex> create_item(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_item(attrs \\ %{}) do
-    %Item{}
-    |> Item.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  @doc """
-  Updates a item.
-
-  ## Examples
-
-      iex> update_item(item, %{field: new_value})
-      {:ok, %Item{}}
-
-      iex> update_item(item, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_item(%Item{} = item, attrs) do
-    item
-    |> Item.changeset(attrs)
-    |> Repo.update()
-  end
-
-  @doc """
-  Deletes a item.
-
-  ## Examples
-
-      iex> delete_item(item)
-      {:ok, %Item{}}
-
-      iex> delete_item(item)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete_item(%Item{} = item) do
-    Repo.delete(item)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking item changes.
-
-  ## Examples
-
-      iex> change_item(item)
-      %Ecto.Changeset{data: %Item{}}
-
-  """
-  def change_item(%Item{} = item, attrs \\ %{}) do
-    Item.changeset(item, attrs)
-  end
-
   alias Lanttern.Curricula.Curriculum
+  alias Lanttern.Curricula.CurriculumItem
 
   @doc """
   Returns the list of curricula.
@@ -292,5 +197,99 @@ defmodule Lanttern.Curricula do
   """
   def change_curriculum_component(%CurriculumComponent{} = curriculum_component, attrs \\ %{}) do
     CurriculumComponent.changeset(curriculum_component, attrs)
+  end
+
+  @doc """
+  Returns the list of curriculum items.
+
+  ## Examples
+
+      iex> list_curriculum_items()
+      [%CurriculumItem{}, ...]
+
+  """
+  def list_curriculum_items do
+    Repo.all(CurriculumItem)
+  end
+
+  @doc """
+  Gets a single curriculum item.
+
+  Raises `Ecto.NoResultsError` if the Curriculum Item does not exist.
+
+  ## Examples
+
+      iex> get_curriculum_item!(123)
+      %CurriculumItem{}
+
+      iex> get_curriculum_item!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_curriculum_item!(id), do: Repo.get!(CurriculumItem, id)
+
+  @doc """
+  Creates a curriculum item.
+
+  ## Examples
+
+      iex> create_curriculum_item(%{field: value})
+      {:ok, %CurriculumItem{}}
+
+      iex> create_curriculum_item(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_curriculum_item(attrs \\ %{}) do
+    %CurriculumItem{}
+    |> CurriculumItem.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a curriculum item.
+
+  ## Examples
+
+      iex> update_curriculum_item(item, %{field: new_value})
+      {:ok, %CurriculumItem{}}
+
+      iex> update_curriculum_item(item, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_curriculum_item(%CurriculumItem{} = curriculum_item, attrs) do
+    curriculum_item
+    |> CurriculumItem.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a curriculum item.
+
+  ## Examples
+
+      iex> delete_curriculum_item(curriculum_item)
+      {:ok, %CurriculumItem{}}
+
+      iex> delete_curriculum_item(curriculum_item)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_curriculum_item(%CurriculumItem{} = curriculum_item) do
+    Repo.delete(curriculum_item)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking curriculum item changes.
+
+  ## Examples
+
+      iex> change_curriculum_item(curriculum_item)
+      %Ecto.Changeset{data: %CurriculumItem{}}
+
+  """
+  def change_curriculum_item(%CurriculumItem{} = curriculum_item, attrs \\ %{}) do
+    CurriculumItem.changeset(curriculum_item, attrs)
   end
 end

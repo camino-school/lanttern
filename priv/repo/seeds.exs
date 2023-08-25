@@ -64,18 +64,18 @@ Identity.User.registration_changeset(%Identity.User{}, %{
 # curriculum
 # ------------------------------
 
-en_lo_1 = Repo.insert!(%Curricula.Item{name: "English LO 1"})
-pt_lo_1 = Repo.insert!(%Curricula.Item{name: "Portuguese LO 1"})
-es_lo_1 = Repo.insert!(%Curricula.Item{name: "Spanish LO 1"})
-hs_lo_1 = Repo.insert!(%Curricula.Item{name: "Human Sciences LO 1"})
-sci_lo_1 = Repo.insert!(%Curricula.Item{name: "Science LO 1"})
-tech_lo_1 = Repo.insert!(%Curricula.Item{name: "Technology LO 1"})
-eng_lo_1 = Repo.insert!(%Curricula.Item{name: "Engineering LO 1"})
-math_lo_1 = Repo.insert!(%Curricula.Item{name: "Math LO 1"})
-va_lo_1 = Repo.insert!(%Curricula.Item{name: "Visual Arts LO 1"})
-dra_lo_1 = Repo.insert!(%Curricula.Item{name: "Drama LO 1"})
-mus_lo_1 = Repo.insert!(%Curricula.Item{name: "Music LO 1"})
-mov_lo_1 = Repo.insert!(%Curricula.Item{name: "Movement LO 1"})
+en_lo_1 = Repo.insert!(%Curricula.CurriculumItem{name: "English LO 1"})
+pt_lo_1 = Repo.insert!(%Curricula.CurriculumItem{name: "Portuguese LO 1"})
+es_lo_1 = Repo.insert!(%Curricula.CurriculumItem{name: "Spanish LO 1"})
+hs_lo_1 = Repo.insert!(%Curricula.CurriculumItem{name: "Human Sciences LO 1"})
+sci_lo_1 = Repo.insert!(%Curricula.CurriculumItem{name: "Science LO 1"})
+tech_lo_1 = Repo.insert!(%Curricula.CurriculumItem{name: "Technology LO 1"})
+eng_lo_1 = Repo.insert!(%Curricula.CurriculumItem{name: "Engineering LO 1"})
+math_lo_1 = Repo.insert!(%Curricula.CurriculumItem{name: "Math LO 1"})
+va_lo_1 = Repo.insert!(%Curricula.CurriculumItem{name: "Visual Arts LO 1"})
+dra_lo_1 = Repo.insert!(%Curricula.CurriculumItem{name: "Drama LO 1"})
+mus_lo_1 = Repo.insert!(%Curricula.CurriculumItem{name: "Music LO 1"})
+mov_lo_1 = Repo.insert!(%Curricula.CurriculumItem{name: "Movement LO 1"})
 
 # ------------------------------
 # scales

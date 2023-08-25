@@ -34,7 +34,7 @@ defmodule LantternWeb.CompositionComponentItemControllerTest do
   describe "create composition_component_item" do
     test "redirects to show when data is valid", %{conn: conn} do
       component = composition_component_fixture()
-      curriculum_item = CurriculaFixtures.item_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
 
       create_attrs =
         @create_attrs

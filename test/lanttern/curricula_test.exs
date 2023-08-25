@@ -4,56 +4,66 @@ defmodule Lanttern.CurriculaTest do
   alias Lanttern.Curricula
 
   describe "items" do
-    alias Lanttern.Curricula.Item
+    alias Lanttern.Curricula.CurriculumItem
 
     import Lanttern.CurriculaFixtures
 
     @invalid_attrs %{name: nil}
 
-    test "list_items/0 returns all items" do
-      item = item_fixture()
-      assert Curricula.list_items() == [item]
+    test "list_curriculum_items/0 returns all items" do
+      curriculum_item = curriculum_item_fixture()
+      assert Curricula.list_curriculum_items() == [curriculum_item]
     end
 
-    test "get_item!/1 returns the item with given id" do
-      item = item_fixture()
-      assert Curricula.get_item!(item.id) == item
+    test "get_curriculum_item!/1 returns the item with given id" do
+      curriculum_item = curriculum_item_fixture()
+      assert Curricula.get_curriculum_item!(curriculum_item.id) == curriculum_item
     end
 
-    test "create_item/1 with valid data creates a item" do
+    test "create_curriculum_item/1 with valid data creates a curriculum item" do
       valid_attrs = %{name: "some name"}
 
-      assert {:ok, %Item{} = item} = Curricula.create_item(valid_attrs)
-      assert item.name == "some name"
+      assert {:ok, %CurriculumItem{} = curriculum_item} =
+               Curricula.create_curriculum_item(valid_attrs)
+
+      assert curriculum_item.name == "some name"
     end
 
-    test "create_item/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Curricula.create_item(@invalid_attrs)
+    test "create_curriculum_item/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Curricula.create_curriculum_item(@invalid_attrs)
     end
 
-    test "update_item/2 with valid data updates the item" do
-      item = item_fixture()
+    test "update_curriculum_item/2 with valid data updates the item" do
+      curriculum_item = curriculum_item_fixture()
       update_attrs = %{name: "some updated name"}
 
-      assert {:ok, %Item{} = item} = Curricula.update_item(item, update_attrs)
-      assert item.name == "some updated name"
+      assert {:ok, %CurriculumItem{} = curriculum_item} =
+               Curricula.update_curriculum_item(curriculum_item, update_attrs)
+
+      assert curriculum_item.name == "some updated name"
     end
 
-    test "update_item/2 with invalid data returns error changeset" do
-      item = item_fixture()
-      assert {:error, %Ecto.Changeset{}} = Curricula.update_item(item, @invalid_attrs)
-      assert item == Curricula.get_item!(item.id)
+    test "update_curriculum_item/2 with invalid data returns error changeset" do
+      curriculum_item = curriculum_item_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Curricula.update_curriculum_item(curriculum_item, @invalid_attrs)
+
+      assert curriculum_item == Curricula.get_curriculum_item!(curriculum_item.id)
     end
 
-    test "delete_item/1 deletes the item" do
-      item = item_fixture()
-      assert {:ok, %Item{}} = Curricula.delete_item(item)
-      assert_raise Ecto.NoResultsError, fn -> Curricula.get_item!(item.id) end
+    test "delete_curriculum_item/1 deletes the item" do
+      curriculum_item = curriculum_item_fixture()
+      assert {:ok, %CurriculumItem{}} = Curricula.delete_curriculum_item(curriculum_item)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Curricula.get_curriculum_item!(curriculum_item.id)
+      end
     end
 
-    test "change_item/1 returns a item changeset" do
-      item = item_fixture()
-      assert %Ecto.Changeset{} = Curricula.change_item(item)
+    test "change_curriculum_item/1 returns a item changeset" do
+      curriculum_item = curriculum_item_fixture()
+      assert %Ecto.Changeset{} = Curricula.change_curriculum_item(curriculum_item)
     end
   end
 
