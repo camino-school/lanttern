@@ -313,13 +313,15 @@ defmodule Lanttern.CurriculaTest do
       valid_attrs = %{
         curriculum_item_a_id: curriculum_item_a.id,
         curriculum_item_b_id: curriculum_item_b.id,
-        type: "some type"
+        type: "hierarchical"
       }
 
       assert {:ok, %CurriculumRelationship{} = curriculum_relationship} =
                Curricula.create_curriculum_relationship(valid_attrs)
 
-      assert curriculum_relationship.type == "some type"
+      assert curriculum_relationship.type == "hierarchical"
+      assert curriculum_relationship.curriculum_item_a_id == curriculum_item_a.id
+      assert curriculum_relationship.curriculum_item_b_id == curriculum_item_b.id
     end
 
     test "create_curriculum_relationship/1 with invalid data returns error changeset" do
@@ -329,12 +331,12 @@ defmodule Lanttern.CurriculaTest do
 
     test "update_curriculum_relationship/2 with valid data updates the curriculum_relationship" do
       curriculum_relationship = curriculum_relationship_fixture()
-      update_attrs = %{type: "some updated type"}
+      update_attrs = %{type: "hierarchical"}
 
       assert {:ok, %CurriculumRelationship{} = curriculum_relationship} =
                Curricula.update_curriculum_relationship(curriculum_relationship, update_attrs)
 
-      assert curriculum_relationship.type == "some updated type"
+      assert curriculum_relationship.type == "hierarchical"
     end
 
     test "update_curriculum_relationship/2 with invalid data returns error changeset" do

@@ -3,8 +3,8 @@ defmodule LantternWeb.CurriculumRelationshipControllerTest do
 
   import Lanttern.CurriculaFixtures
 
-  @create_attrs %{type: "some type"}
-  @update_attrs %{type: "some updated type"}
+  @create_attrs %{type: "cross"}
+  @update_attrs %{type: "hierarchical"}
   @invalid_attrs %{type: nil}
 
   setup %{conn: conn} do
@@ -92,7 +92,7 @@ defmodule LantternWeb.CurriculumRelationshipControllerTest do
                ~p"/admin/curricula/curriculum_relationships/#{curriculum_relationship}"
 
       conn = get(conn, ~p"/admin/curricula/curriculum_relationships/#{curriculum_relationship}")
-      assert html_response(conn, 200) =~ "some updated type"
+      assert html_response(conn, 200) =~ "hierarchical"
     end
 
     test "renders errors when data is invalid", %{

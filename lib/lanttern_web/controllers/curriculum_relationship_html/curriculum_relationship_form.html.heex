@@ -16,7 +16,13 @@
     options={@curriculum_item_options}
     prompt="Select a curriculum item"
   />
-  <.input field={f[:type]} type="text" label="Type" />
+  <.input
+    field={f[:type]}
+    type="select"
+    label="Relationship type"
+    options={[{"Cross", "cross"}, {"Hierarchical", "hierarchical"}]}
+    prompt="Select a relationship type"
+  />
   <:actions>
     <.button>Save Curriculum relationship</.button>
   </:actions>

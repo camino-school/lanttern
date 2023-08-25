@@ -67,7 +67,7 @@ defmodule Lanttern.CurriculaFixtures do
       |> Enum.into(%{
         curriculum_item_a_id: curriculum_item_a.id,
         curriculum_item_b_id: curriculum_item_b.id,
-        type: "some type"
+        type: "cross"
       })
       |> Lanttern.Curricula.create_curriculum_relationship()
 
