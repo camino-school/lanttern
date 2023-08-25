@@ -285,6 +285,7 @@ defmodule Lanttern.Curricula do
   """
   def update_curriculum_item(%CurriculumItem{} = curriculum_item, attrs) do
     curriculum_item
+    |> Repo.preload([:subjects, :years])
     |> CurriculumItem.changeset(attrs)
     |> Repo.update()
   end

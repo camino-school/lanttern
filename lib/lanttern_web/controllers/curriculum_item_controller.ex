@@ -8,7 +8,7 @@ defmodule LantternWeb.CurriculumItemController do
 
   def index(conn, _params) do
     curriculum_items =
-      Curricula.list_curriculum_items(preloads: [:curriculum_component, :subject, :year])
+      Curricula.list_curriculum_items(preloads: [:curriculum_component, :subjects, :years])
 
     render(conn, :index, curriculum_items: curriculum_items)
   end
@@ -50,16 +50,26 @@ defmodule LantternWeb.CurriculumItemController do
 
   def show(conn, %{"id" => id}) do
     curriculum_item =
-      Curricula.get_curriculum_item!(id, preloads: [:curriculum_component, :subject, :year])
+      Curricula.get_curriculum_item!(id, preloads: [:curriculum_component, :subjects, :years])
 
     render(conn, :show, curriculum_item: curriculum_item)
   end
 
   def edit(conn, %{"id" => id}) do
-    curriculum_item = Curricula.get_curriculum_item!(id)
     curriculum_component_options = generate_curriculum_component_options()
     subject_options = generate_subject_options()
     year_options = generate_year_options()
+
+    curriculum_item = Curricula.get_curriculum_item!(id, preloads: [:subjects, :years])
+
+    # insert existing subjects_ids
+    subjects_ids = Enum.map(curriculum_item.subjects, & &1.id)
+    curriculum_item = curriculum_item |> Map.put(:subjects_ids, subjects_ids)
+
+    # insert existing years_ids
+    years_ids = Enum.map(curriculum_item.years, & &1.id)
+    curriculum_item = curriculum_item |> Map.put(:years_ids, years_ids)
+
     changeset = Curricula.change_curriculum_item(curriculum_item)
 
     render(conn, :edit,

@@ -105,101 +105,115 @@ curriculum_component =
     curriculum_id: curriculum.id
   })
 
+# use changeset to `put_assoc` subjects and years
+
 en_lo =
-  Repo.insert!(%Curricula.CurriculumItem{
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "English LO 1",
     curriculum_component_id: curriculum_component.id,
-    subject_id: sub_en.id,
-    year_id: year_10.id
+    subjects_ids: [sub_en.id],
+    years_ids: [year_10.id]
   })
+  |> Repo.insert!()
 
 pt_lo =
-  Repo.insert!(%Curricula.CurriculumItem{
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Portuguese LO 1",
     curriculum_component_id: curriculum_component.id,
-    subject_id: sub_pt.id,
-    year_id: year_10.id
+    subjects_ids: [sub_pt.id],
+    years_ids: [year_10.id]
   })
+  |> Repo.insert!()
 
 es_lo =
-  Repo.insert!(%Curricula.CurriculumItem{
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Spanish LO 1",
     curriculum_component_id: curriculum_component.id,
-    subject_id: sub_es.id,
-    year_id: year_10.id
+    subjects_ids: [sub_es.id],
+    years_ids: [year_10.id]
   })
+  |> Repo.insert!()
 
 hs_lo =
-  Repo.insert!(%Curricula.CurriculumItem{
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Human Sciences LO 1",
     curriculum_component_id: curriculum_component.id,
-    subject_id: sub_hs.id,
-    year_id: year_10.id
+    subjects_ids: [sub_hs.id],
+    years_ids: [year_10.id]
   })
+  |> Repo.insert!()
 
 sci_lo =
-  Repo.insert!(%Curricula.CurriculumItem{
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Science LO 1",
     curriculum_component_id: curriculum_component.id,
-    subject_id: sub_sci.id,
-    year_id: year_10.id
+    subjects_ids: [sub_sci.id],
+    years_ids: [year_10.id]
   })
+  |> Repo.insert!()
 
 tech_lo =
-  Repo.insert!(%Curricula.CurriculumItem{
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Technology LO 1",
     curriculum_component_id: curriculum_component.id,
-    subject_id: sub_tech.id,
-    year_id: year_10.id
+    subjects_ids: [sub_tech.id],
+    years_ids: [year_10.id]
   })
+  |> Repo.insert!()
 
 eng_lo =
-  Repo.insert!(%Curricula.CurriculumItem{
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Engineering LO 1",
     curriculum_component_id: curriculum_component.id,
-    subject_id: sub_eng.id,
-    year_id: year_10.id
+    subjects_ids: [sub_eng.id],
+    years_ids: [year_10.id]
   })
+  |> Repo.insert!()
 
 math_lo =
-  Repo.insert!(%Curricula.CurriculumItem{
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Math LO 1",
     curriculum_component_id: curriculum_component.id,
-    subject_id: sub_math.id,
-    year_id: year_10.id
+    subjects_ids: [sub_math.id],
+    years_ids: [year_10.id]
   })
+  |> Repo.insert!()
 
 var_lo =
-  Repo.insert!(%Curricula.CurriculumItem{
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Visual Arts LO 1",
     curriculum_component_id: curriculum_component.id,
-    subject_id: sub_var.id,
-    year_id: year_10.id
+    subjects_ids: [sub_var.id],
+    years_ids: [year_10.id]
   })
+  |> Repo.insert!()
 
 dra_lo =
-  Repo.insert!(%Curricula.CurriculumItem{
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Drama LO 1",
     curriculum_component_id: curriculum_component.id,
-    subject_id: sub_dra.id,
-    year_id: year_10.id
+    subjects_ids: [sub_dra.id],
+    years_ids: [year_10.id]
   })
+  |> Repo.insert!()
 
 mus_lo =
-  Repo.insert!(%Curricula.CurriculumItem{
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Music LO 1",
     curriculum_component_id: curriculum_component.id,
-    subject_id: sub_mus.id,
-    year_id: year_10.id
+    subjects_ids: [sub_mus.id],
+    years_ids: [year_10.id]
   })
+  |> Repo.insert!()
 
 mov_lo =
-  Repo.insert!(%Curricula.CurriculumItem{
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Movement LO 1",
     curriculum_component_id: curriculum_component.id,
-    subject_id: sub_mov.id,
-    year_id: year_10.id
+    subjects_ids: [sub_mov.id],
+    years_ids: [year_10.id]
   })
+  |> Repo.insert!()
 
 # ------------------------------
 # scales

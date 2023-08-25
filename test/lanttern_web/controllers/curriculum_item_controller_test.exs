@@ -1,4 +1,4 @@
-defmodule LantternWeb.ItemControllerTest do
+defmodule LantternWeb.CurriculumItemControllerTest do
   use LantternWeb.ConnCase
 
   import Lanttern.CurriculaFixtures
@@ -91,10 +91,10 @@ defmodule LantternWeb.ItemControllerTest do
     end
   end
 
-  describe "delete item" do
+  describe "delete curriculum item" do
     setup [:create_curriculum_item]
 
-    test "deletes chosen item", %{conn: conn, curriculum_item: curriculum_item} do
+    test "deletes chosen curriculum item", %{conn: conn, curriculum_item: curriculum_item} do
       conn = delete(conn, ~p"/admin/curricula/curriculum_items/#{curriculum_item}")
       assert redirected_to(conn) == ~p"/admin/curricula/curriculum_items"
 

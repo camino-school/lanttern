@@ -155,6 +155,7 @@ defmodule Lanttern.CurriculaTest do
     alias Lanttern.Curricula.CurriculumItem
 
     import Lanttern.CurriculaFixtures
+    import Lanttern.TaxonomyFixtures
 
     @invalid_attrs %{name: nil}
 
@@ -165,13 +166,23 @@ defmodule Lanttern.CurriculaTest do
 
     test "list_curriculum_items/1 with preloads returns all curriculum_items with preloaded data" do
       curriculum_component = curriculum_component_fixture()
+      subject = subject_fixture()
+      year = year_fixture()
 
       curriculum_item =
-        curriculum_item_fixture(%{curriculum_component_id: curriculum_component.id})
+        curriculum_item_fixture(%{
+          curriculum_component_id: curriculum_component.id,
+          subjects_ids: [subject.id],
+          years_ids: [year.id]
+        })
 
-      [expected] = Curricula.list_curriculum_items(preloads: :curriculum_component)
+      [expected] =
+        Curricula.list_curriculum_items(preloads: [:curriculum_component, :subjects, :years])
+
       assert expected.id == curriculum_item.id
       assert expected.curriculum_component == curriculum_component
+      assert expected.subjects == [subject]
+      assert expected.years == [year]
     end
 
     test "get_curriculum_item!/2 returns the item with given id" do
@@ -181,28 +192,38 @@ defmodule Lanttern.CurriculaTest do
 
     test "get_curriculum_item!/2 with preloads returns the curriculum_item with given id and preloaded data" do
       curriculum_component = curriculum_component_fixture()
+      subject = subject_fixture()
+      year = year_fixture()
 
       curriculum_item =
-        curriculum_item_fixture(%{curriculum_component_id: curriculum_component.id})
+        curriculum_item_fixture(%{
+          curriculum_component_id: curriculum_component.id,
+          subjects_ids: [subject.id],
+          years_ids: [year.id]
+        })
 
       expected =
-        Curricula.get_curriculum_item!(curriculum_item.id, preloads: :curriculum_component)
+        Curricula.get_curriculum_item!(curriculum_item.id,
+          preloads: [:curriculum_component, :subjects, :years]
+        )
 
       assert expected.id == curriculum_item.id
       assert expected.curriculum_component == curriculum_component
+      assert expected.subjects == [subject]
+      assert expected.years == [year]
     end
 
     test "create_curriculum_item/1 with valid data creates a curriculum item" do
       curriculum_component = curriculum_component_fixture()
-      subject = Lanttern.TaxonomyFixtures.subject_fixture()
-      year = Lanttern.TaxonomyFixtures.year_fixture()
+      subject = subject_fixture()
+      year = year_fixture()
 
       valid_attrs = %{
         name: "some name",
         code: "some code",
         curriculum_component_id: curriculum_component.id,
-        subject_id: subject.id,
-        year_id: year.id
+        subjects_ids: [subject.id],
+        years_ids: [year.id]
       }
 
       assert {:ok, %CurriculumItem{} = curriculum_item} =
@@ -211,6 +232,8 @@ defmodule Lanttern.CurriculaTest do
       assert curriculum_item.name == "some name"
       assert curriculum_item.code == "some code"
       assert curriculum_item.curriculum_component_id == curriculum_component.id
+      assert curriculum_item.subjects == [subject]
+      assert curriculum_item.years == [year]
     end
 
     test "create_curriculum_item/1 with invalid data returns error changeset" do
@@ -225,6 +248,38 @@ defmodule Lanttern.CurriculaTest do
                Curricula.update_curriculum_item(curriculum_item, update_attrs)
 
       assert curriculum_item.name == "some updated name"
+    end
+
+    test "update_curriculum_item/2 with valid data containing subjects and years updates the curriculum item" do
+      subject_1 = subject_fixture()
+      subject_2 = subject_fixture()
+      subject_3 = subject_fixture()
+
+      year_1 = year_fixture()
+      year_2 = year_fixture()
+      year_3 = year_fixture()
+
+      curriculum_item =
+        curriculum_item_fixture(%{
+          subjects_ids: [subject_1.id, subject_2.id],
+          years_ids: [year_1.id, year_2.id]
+        })
+
+      update_attrs = %{
+        name: "some updated name",
+        subjects_ids: [subject_1.id, subject_3.id],
+        years_ids: [year_3.id]
+      }
+
+      assert {:ok, %CurriculumItem{} = curriculum_item} =
+               Curricula.update_curriculum_item(curriculum_item, update_attrs)
+
+      assert curriculum_item.name == "some updated name"
+      assert length(curriculum_item.subjects) == 2
+      assert Enum.find(curriculum_item.subjects, fn s -> s.id == subject_1.id end)
+      assert Enum.find(curriculum_item.subjects, fn s -> s.id == subject_3.id end)
+      assert length(curriculum_item.years) == 1
+      assert Enum.find(curriculum_item.years, fn y -> y.id == year_3.id end)
     end
 
     test "update_curriculum_item/2 with invalid data returns error changeset" do

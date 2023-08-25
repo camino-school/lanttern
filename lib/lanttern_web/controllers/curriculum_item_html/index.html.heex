@@ -17,10 +17,14 @@
     <%= curriculum_item.curriculum_component.name %>
   </:col>
   <:col :let={curriculum_item} label="Subject">
-    <%= curriculum_item.subject.name %>
+    <%= for subject <- curriculum_item.subjects do %>
+      <%= subject.name %>
+    <% end %>
   </:col>
   <:col :let={curriculum_item} label="Year">
-    <%= curriculum_item.year.name %>
+    <%= for year <- curriculum_item.years do %>
+      <%= year.name %>
+    <% end %>
   </:col>
   <:col :let={curriculum_item} label="Name"><%= curriculum_item.name %></:col>
   <:action :let={curriculum_item}>
