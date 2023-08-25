@@ -69,6 +69,11 @@ defmodule LantternWeb.Router do
       resources "/classes", ClassController
       resources "/students", StudentController
     end
+
+    scope "/taxonomy" do
+      resources "/subjects", SubjectController
+      resources "/years", YearController
+    end
   end
 
   # Other scopes may use custom stacks.
