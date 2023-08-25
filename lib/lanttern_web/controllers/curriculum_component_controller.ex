@@ -6,7 +6,7 @@ defmodule LantternWeb.CurriculumComponentController do
   alias Lanttern.Curricula.CurriculumComponent
 
   def index(conn, _params) do
-    curriculum_components = Curricula.list_curriculum_components()
+    curriculum_components = Curricula.list_curriculum_components(preloads: :curriculum)
     render(conn, :index, curriculum_components: curriculum_components)
   end
 
@@ -30,7 +30,7 @@ defmodule LantternWeb.CurriculumComponentController do
   end
 
   def show(conn, %{"id" => id}) do
-    curriculum_component = Curricula.get_curriculum_component!(id)
+    curriculum_component = Curricula.get_curriculum_component!(id, preloads: :curriculum)
     render(conn, :show, curriculum_component: curriculum_component)
   end
 

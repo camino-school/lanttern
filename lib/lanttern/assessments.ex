@@ -6,7 +6,9 @@ defmodule Lanttern.Assessments do
   import Ecto.Query, warn: false
   import Lanttern.RepoHelpers
   alias Lanttern.Repo
+
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Assessments.AssessmentPointEntry
 
   @doc """
   Returns the list of assessment points.
@@ -142,8 +144,6 @@ defmodule Lanttern.Assessments do
   def change_assessment_point(%AssessmentPoint{} = assessment_point, attrs \\ %{}) do
     AssessmentPoint.changeset(assessment_point, attrs)
   end
-
-  alias Lanttern.Assessments.AssessmentPointEntry
 
   @doc """
   Returns the list of assessment_point_entries.

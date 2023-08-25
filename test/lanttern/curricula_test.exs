@@ -66,14 +66,36 @@ defmodule Lanttern.CurriculaTest do
 
     @invalid_attrs %{code: nil, name: nil}
 
-    test "list_curriculum_components/0 returns all curriculum_components" do
+    test "list_curriculum_components/1 returns all curriculum_components" do
       curriculum_component = curriculum_component_fixture()
       assert Curricula.list_curriculum_components() == [curriculum_component]
     end
 
-    test "get_curriculum_component!/1 returns the curriculum_component with given id" do
+    test "list_curriculum_components/1 with preloads returns all curriculum_components with preloaded data" do
+      curriculum = curriculum_fixture()
+
+      curriculum_component = curriculum_component_fixture(%{curriculum_id: curriculum.id})
+
+      [expected] = Curricula.list_curriculum_components(preloads: :curriculum)
+      assert expected.id == curriculum_component.id
+      assert expected.curriculum == curriculum
+    end
+
+    test "get_curriculum_component!/2 returns the curriculum_component with given id" do
       curriculum_component = curriculum_component_fixture()
       assert Curricula.get_curriculum_component!(curriculum_component.id) == curriculum_component
+    end
+
+    test "get_curriculum_component!/2 with preloads returns the curriculum_component with given id and preloaded data" do
+      curriculum = curriculum_fixture()
+
+      curriculum_component = curriculum_component_fixture(%{curriculum_id: curriculum.id})
+
+      expected =
+        Curricula.get_curriculum_component!(curriculum_component.id, preloads: :curriculum)
+
+      assert expected.id == curriculum_component.id
+      assert expected.curriculum == curriculum
     end
 
     test "create_curriculum_component/1 with valid data creates a curriculum_component" do
@@ -136,14 +158,38 @@ defmodule Lanttern.CurriculaTest do
 
     @invalid_attrs %{name: nil}
 
-    test "list_curriculum_items/0 returns all items" do
+    test "list_curriculum_items/1 returns all items" do
       curriculum_item = curriculum_item_fixture()
       assert Curricula.list_curriculum_items() == [curriculum_item]
     end
 
-    test "get_curriculum_item!/1 returns the item with given id" do
+    test "list_curriculum_items/1 with preloads returns all curriculum_items with preloaded data" do
+      curriculum_component = curriculum_component_fixture()
+
+      curriculum_item =
+        curriculum_item_fixture(%{curriculum_component_id: curriculum_component.id})
+
+      [expected] = Curricula.list_curriculum_items(preloads: :curriculum_component)
+      assert expected.id == curriculum_item.id
+      assert expected.curriculum_component == curriculum_component
+    end
+
+    test "get_curriculum_item!/2 returns the item with given id" do
       curriculum_item = curriculum_item_fixture()
       assert Curricula.get_curriculum_item!(curriculum_item.id) == curriculum_item
+    end
+
+    test "get_curriculum_item!/2 with preloads returns the curriculum_item with given id and preloaded data" do
+      curriculum_component = curriculum_component_fixture()
+
+      curriculum_item =
+        curriculum_item_fixture(%{curriculum_component_id: curriculum_component.id})
+
+      expected =
+        Curricula.get_curriculum_item!(curriculum_item.id, preloads: :curriculum_component)
+
+      assert expected.id == curriculum_item.id
+      assert expected.curriculum_component == curriculum_component
     end
 
     test "create_curriculum_item/1 with valid data creates a curriculum item" do

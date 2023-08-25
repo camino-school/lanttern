@@ -4,9 +4,11 @@ defmodule Lanttern.Curricula do
   """
 
   import Ecto.Query, warn: false
+  import Lanttern.RepoHelpers
   alias Lanttern.Repo
 
   alias Lanttern.Curricula.Curriculum
+  alias Lanttern.Curricula.CurriculumComponent
   alias Lanttern.Curricula.CurriculumItem
 
   @doc """
@@ -103,10 +105,12 @@ defmodule Lanttern.Curricula do
     Curriculum.changeset(curriculum, attrs)
   end
 
-  alias Lanttern.Curricula.CurriculumComponent
-
   @doc """
   Returns the list of curriculum_components.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
 
   ## Examples
 
@@ -114,14 +118,19 @@ defmodule Lanttern.Curricula do
       [%CurriculumComponent{}, ...]
 
   """
-  def list_curriculum_components do
+  def list_curriculum_components(opts \\ []) do
     Repo.all(CurriculumComponent)
+    |> maybe_preload(opts)
   end
 
   @doc """
   Gets a single curriculum_component.
 
   Raises `Ecto.NoResultsError` if the Curriculum component does not exist.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
 
   ## Examples
 
@@ -132,7 +141,10 @@ defmodule Lanttern.Curricula do
       ** (Ecto.NoResultsError)
 
   """
-  def get_curriculum_component!(id), do: Repo.get!(CurriculumComponent, id)
+  def get_curriculum_component!(id, opts \\ []) do
+    Repo.get!(CurriculumComponent, id)
+    |> maybe_preload(opts)
+  end
 
   @doc """
   Creates a curriculum_component.
@@ -202,20 +214,29 @@ defmodule Lanttern.Curricula do
   @doc """
   Returns the list of curriculum items.
 
+  ### Options:
+
+  `:preloads` – preloads associated data
+
   ## Examples
 
       iex> list_curriculum_items()
       [%CurriculumItem{}, ...]
 
   """
-  def list_curriculum_items do
+  def list_curriculum_items(opts \\ []) do
     Repo.all(CurriculumItem)
+    |> maybe_preload(opts)
   end
 
   @doc """
   Gets a single curriculum item.
 
   Raises `Ecto.NoResultsError` if the Curriculum Item does not exist.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
 
   ## Examples
 
@@ -226,7 +247,10 @@ defmodule Lanttern.Curricula do
       ** (Ecto.NoResultsError)
 
   """
-  def get_curriculum_item!(id), do: Repo.get!(CurriculumItem, id)
+  def get_curriculum_item!(id, opts \\ []) do
+    Repo.get!(CurriculumItem, id)
+    |> maybe_preload(opts)
+  end
 
   @doc """
   Creates a curriculum item.

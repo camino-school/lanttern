@@ -12,6 +12,9 @@
   rows={@curriculum_components}
   row_click={&JS.navigate(~p"/admin/curricula/curriculum_components/#{&1}")}
 >
+  <:col :let={curriculum_component} label="Curriculum">
+    <%= curriculum_component.curriculum.name %>
+  </:col>
   <:col :let={curriculum_component} label="Name"><%= curriculum_component.name %></:col>
   <:col :let={curriculum_component} label="Code"><%= curriculum_component.code %></:col>
   <:action :let={curriculum_component}>
