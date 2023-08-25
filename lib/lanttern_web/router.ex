@@ -52,6 +52,7 @@ defmodule LantternWeb.Router do
       resources "/cur", CurriculumController
       resources "/curriculum_components", CurriculumComponentController
       resources "/curriculum_items", CurriculumItemController
+      resources "/curriculum_relationships", CurriculumRelationshipController
     end
 
     scope "/grading" do

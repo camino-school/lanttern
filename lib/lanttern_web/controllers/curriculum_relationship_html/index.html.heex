@@ -1,0 +1,43 @@
+<.header>
+  Listing Curriculum relationships
+  <:actions>
+    <.link href={~p"/admin/curricula/curriculum_relationships/new"}>
+      <.button>New Curriculum relationship</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="curriculum_relationships"
+  rows={@curriculum_relationships}
+  row_click={&JS.navigate(~p"/admin/curricula/curriculum_relationships/#{&1}")}
+>
+  <:col :let={curriculum_relationship} label="Item A">
+    <%= curriculum_relationship.curriculum_item_a.name %>
+  </:col>
+  <:col :let={curriculum_relationship} label="Item B">
+    <%= curriculum_relationship.curriculum_item_b.name %>
+  </:col>
+  <:col :let={curriculum_relationship} label="Type"><%= curriculum_relationship.type %></:col>
+  <:action :let={curriculum_relationship}>
+    <div class="sr-only">
+      <.link navigate={~p"/admin/curricula/curriculum_relationships/#{curriculum_relationship}"}>
+        Show
+      </.link>
+    </div>
+    <.link navigate={
+      ~p"/admin/curricula/curriculum_relationships/#{curriculum_relationship}/edit"
+    }>
+      Edit
+    </.link>
+  </:action>
+  <:action :let={curriculum_relationship}>
+    <.link
+      href={~p"/admin/curricula/curriculum_relationships/#{curriculum_relationship}"}
+      method="delete"
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>

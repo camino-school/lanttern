@@ -151,7 +151,7 @@ defmodule Lanttern.CurriculaTest do
     end
   end
 
-  describe "items" do
+  describe "curriculum_items" do
     alias Lanttern.Curricula.CurriculumItem
 
     import Lanttern.CurriculaFixtures
@@ -244,6 +244,123 @@ defmodule Lanttern.CurriculaTest do
     test "change_curriculum_item/1 returns a item changeset" do
       curriculum_item = curriculum_item_fixture()
       assert %Ecto.Changeset{} = Curricula.change_curriculum_item(curriculum_item)
+    end
+  end
+
+  describe "curriculum_relationships" do
+    alias Lanttern.Curricula.CurriculumRelationship
+
+    import Lanttern.CurriculaFixtures
+
+    @invalid_attrs %{type: nil}
+
+    test "list_curriculum_relationships/1 returns all curriculum_relationships" do
+      curriculum_relationship = curriculum_relationship_fixture()
+      assert Curricula.list_curriculum_relationships() == [curriculum_relationship]
+    end
+
+    test "list_curriculum_relationships/1 with preloads returns all curriculum_relationships with preloaded data" do
+      curriculum_item_a = curriculum_item_fixture()
+      curriculum_item_b = curriculum_item_fixture()
+
+      curriculum_relationship =
+        curriculum_relationship_fixture(%{
+          curriculum_item_a_id: curriculum_item_a.id,
+          curriculum_item_b_id: curriculum_item_b.id
+        })
+
+      [expected] =
+        Curricula.list_curriculum_relationships(
+          preloads: [:curriculum_item_a, :curriculum_item_b]
+        )
+
+      assert expected.id == curriculum_relationship.id
+      assert expected.curriculum_item_a == curriculum_item_a
+      assert expected.curriculum_item_b == curriculum_item_b
+    end
+
+    test "get_curriculum_relationship!/2 returns the curriculum_relationship with given id" do
+      curriculum_relationship = curriculum_relationship_fixture()
+
+      assert Curricula.get_curriculum_relationship!(curriculum_relationship.id) ==
+               curriculum_relationship
+    end
+
+    test "get_curriculum_relationship!/2 with preloads returns the curriculum_relationship with given id and preloaded data" do
+      curriculum_item_a = curriculum_item_fixture()
+      curriculum_item_b = curriculum_item_fixture()
+
+      curriculum_relationship =
+        curriculum_relationship_fixture(%{
+          curriculum_item_a_id: curriculum_item_a.id,
+          curriculum_item_b_id: curriculum_item_b.id
+        })
+
+      expected =
+        Curricula.get_curriculum_relationship!(curriculum_relationship.id,
+          preloads: [:curriculum_item_a, :curriculum_item_b]
+        )
+
+      assert expected.id == curriculum_relationship.id
+      assert expected.curriculum_item_a == curriculum_item_a
+      assert expected.curriculum_item_b == curriculum_item_b
+    end
+
+    test "create_curriculum_relationship/1 with valid data creates a curriculum_relationship" do
+      curriculum_item_a = curriculum_item_fixture()
+      curriculum_item_b = curriculum_item_fixture()
+
+      valid_attrs = %{
+        curriculum_item_a_id: curriculum_item_a.id,
+        curriculum_item_b_id: curriculum_item_b.id,
+        type: "some type"
+      }
+
+      assert {:ok, %CurriculumRelationship{} = curriculum_relationship} =
+               Curricula.create_curriculum_relationship(valid_attrs)
+
+      assert curriculum_relationship.type == "some type"
+    end
+
+    test "create_curriculum_relationship/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} =
+               Curricula.create_curriculum_relationship(@invalid_attrs)
+    end
+
+    test "update_curriculum_relationship/2 with valid data updates the curriculum_relationship" do
+      curriculum_relationship = curriculum_relationship_fixture()
+      update_attrs = %{type: "some updated type"}
+
+      assert {:ok, %CurriculumRelationship{} = curriculum_relationship} =
+               Curricula.update_curriculum_relationship(curriculum_relationship, update_attrs)
+
+      assert curriculum_relationship.type == "some updated type"
+    end
+
+    test "update_curriculum_relationship/2 with invalid data returns error changeset" do
+      curriculum_relationship = curriculum_relationship_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Curricula.update_curriculum_relationship(curriculum_relationship, @invalid_attrs)
+
+      assert curriculum_relationship ==
+               Curricula.get_curriculum_relationship!(curriculum_relationship.id)
+    end
+
+    test "delete_curriculum_relationship/1 deletes the curriculum_relationship" do
+      curriculum_relationship = curriculum_relationship_fixture()
+
+      assert {:ok, %CurriculumRelationship{}} =
+               Curricula.delete_curriculum_relationship(curriculum_relationship)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Curricula.get_curriculum_relationship!(curriculum_relationship.id)
+      end
+    end
+
+    test "change_curriculum_relationship/1 returns a curriculum_relationship changeset" do
+      curriculum_relationship = curriculum_relationship_fixture()
+      assert %Ecto.Changeset{} = Curricula.change_curriculum_relationship(curriculum_relationship)
     end
   end
 end

@@ -54,4 +54,23 @@ defmodule Lanttern.CurriculaFixtures do
 
     curriculum_item
   end
+
+  @doc """
+  Generate a curriculum_relationship.
+  """
+  def curriculum_relationship_fixture(attrs \\ %{}) do
+    curriculum_item_a = curriculum_item_fixture()
+    curriculum_item_b = curriculum_item_fixture()
+
+    {:ok, curriculum_relationship} =
+      attrs
+      |> Enum.into(%{
+        curriculum_item_a_id: curriculum_item_a.id,
+        curriculum_item_b_id: curriculum_item_b.id,
+        type: "some type"
+      })
+      |> Lanttern.Curricula.create_curriculum_relationship()
+
+    curriculum_relationship
+  end
 end

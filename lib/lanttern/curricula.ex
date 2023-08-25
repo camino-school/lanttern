@@ -10,6 +10,7 @@ defmodule Lanttern.Curricula do
   alias Lanttern.Curricula.Curriculum
   alias Lanttern.Curricula.CurriculumComponent
   alias Lanttern.Curricula.CurriculumItem
+  alias Lanttern.Curricula.CurriculumRelationship
 
   @doc """
   Returns the list of curricula.
@@ -315,5 +316,114 @@ defmodule Lanttern.Curricula do
   """
   def change_curriculum_item(%CurriculumItem{} = curriculum_item, attrs \\ %{}) do
     CurriculumItem.changeset(curriculum_item, attrs)
+  end
+
+  @doc """
+  Returns the list of curriculum_relationships.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> list_curriculum_relationships()
+      [%CurriculumRelationship{}, ...]
+
+  """
+  def list_curriculum_relationships(opts \\ []) do
+    Repo.all(CurriculumRelationship)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single curriculum_relationship.
+
+  Raises `Ecto.NoResultsError` if the Curriculum relationship does not exist.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> get_curriculum_relationship!(123)
+      %CurriculumRelationship{}
+
+      iex> get_curriculum_relationship!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_curriculum_relationship!(id, opts \\ []) do
+    Repo.get!(CurriculumRelationship, id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Creates a curriculum_relationship.
+
+  ## Examples
+
+      iex> create_curriculum_relationship(%{field: value})
+      {:ok, %CurriculumRelationship{}}
+
+      iex> create_curriculum_relationship(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_curriculum_relationship(attrs \\ %{}) do
+    %CurriculumRelationship{}
+    |> CurriculumRelationship.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a curriculum_relationship.
+
+  ## Examples
+
+      iex> update_curriculum_relationship(curriculum_relationship, %{field: new_value})
+      {:ok, %CurriculumRelationship{}}
+
+      iex> update_curriculum_relationship(curriculum_relationship, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_curriculum_relationship(%CurriculumRelationship{} = curriculum_relationship, attrs) do
+    curriculum_relationship
+    |> CurriculumRelationship.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a curriculum_relationship.
+
+  ## Examples
+
+      iex> delete_curriculum_relationship(curriculum_relationship)
+      {:ok, %CurriculumRelationship{}}
+
+      iex> delete_curriculum_relationship(curriculum_relationship)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_curriculum_relationship(%CurriculumRelationship{} = curriculum_relationship) do
+    Repo.delete(curriculum_relationship)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking curriculum_relationship changes.
+
+  ## Examples
+
+      iex> change_curriculum_relationship(curriculum_relationship)
+      %Ecto.Changeset{data: %CurriculumRelationship{}}
+
+  """
+  def change_curriculum_relationship(
+        %CurriculumRelationship{} = curriculum_relationship,
+        attrs \\ %{}
+      ) do
+    CurriculumRelationship.changeset(curriculum_relationship, attrs)
   end
 end

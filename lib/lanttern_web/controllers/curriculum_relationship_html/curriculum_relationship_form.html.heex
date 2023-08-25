@@ -1,0 +1,23 @@
+<.simple_form :let={f} for={@changeset} action={@action}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  <.input
+    field={f[:curriculum_item_a_id]}
+    type="select"
+    label="Curriculum item A"
+    options={@curriculum_item_options}
+    prompt="Select a curriculum item"
+  />
+  <.input
+    field={f[:curriculum_item_b_id]}
+    type="select"
+    label="Curriculum item B"
+    options={@curriculum_item_options}
+    prompt="Select a curriculum item"
+  />
+  <.input field={f[:type]} type="text" label="Type" />
+  <:actions>
+    <.button>Save Curriculum relationship</.button>
+  </:actions>
+</.simple_form>
