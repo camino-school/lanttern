@@ -1,0 +1,50 @@
+<div class="container mx-auto lg:max-w-5xl">
+  <h1 class="font-display font-black text-3xl">Admin</h1>
+  <div class="grid gap-4 grid-cols-3 mt-12">
+    <div>
+      <h2 class="font-display font-black text-xl">Assessments</h2>
+      <ul>
+        <li><.link href={~p"/admin/assessments/assessment_points"}>Assessment points</.link></li>
+        <li>
+          <.link href={~p"/admin/assessments/assessment_point_entries"}>
+            Assessment point entries
+          </.link>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h2 class="font-display font-black text-xl">Curricula</h2>
+      <ul>
+        <li><.link href={~p"/admin/curricula/cur"}>Curricula</.link></li>
+        <li>
+          <.link href={~p"/admin/curricula/curriculum_components"}>Curriculum components</.link>
+        </li>
+        <li><.link href={~p"/admin/curricula/curriculum_items"}>Curriculum items</.link></li>
+        <li>
+          <.link href={~p"/admin/curricula/curriculum_relationships"}>
+            Curriculum relationships
+          </.link>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h2 class="font-display font-black text-xl">Grading</h2>
+      <ul>
+        <li><.link href={~p"/admin/grading/compositions"}>Compositions</.link></li>
+        <li>
+          <.link href={~p"/admin/grading/composition_components"}>Composition components</.link>
+        </li>
+        <li><.link href={~p"/admin/grading/component_items"}>Component items</.link></li>
+        <li><.link href={~p"/admin/grading/scales"}>Scales</.link></li>
+        <li><.link href={~p"/admin/grading/ordinal_values"}>Ordinal values</.link></li>
+      </ul>
+    </div>
+    <div>
+      <h2 class="font-display font-black text-xl">Schools</h2>
+      <ul>
+        <li><.link href={~p"/admin/schools/classes"}>Classes</.link></li>
+        <li><.link href={~p"/admin/schools/students"}>Students</.link></li>
+      </ul>
+    </div>
+  </div>
+</div>

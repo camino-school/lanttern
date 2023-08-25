@@ -43,6 +43,8 @@ defmodule LantternWeb.Router do
   scope "/admin", LantternWeb do
     pipe_through [:browser, :require_authenticated_user, :admin]
 
+    get "/", AdminController, :home
+
     scope "/assessments" do
       resources "/assessment_points", AssessmentPointController
       resources "/assessment_point_entries", AssessmentPointEntryController
