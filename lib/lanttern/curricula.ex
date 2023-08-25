@@ -197,4 +197,100 @@ defmodule Lanttern.Curricula do
   def change_curriculum(%Curriculum{} = curriculum, attrs \\ %{}) do
     Curriculum.changeset(curriculum, attrs)
   end
+
+  alias Lanttern.Curricula.CurriculumComponent
+
+  @doc """
+  Returns the list of curriculum_components.
+
+  ## Examples
+
+      iex> list_curriculum_components()
+      [%CurriculumComponent{}, ...]
+
+  """
+  def list_curriculum_components do
+    Repo.all(CurriculumComponent)
+  end
+
+  @doc """
+  Gets a single curriculum_component.
+
+  Raises `Ecto.NoResultsError` if the Curriculum component does not exist.
+
+  ## Examples
+
+      iex> get_curriculum_component!(123)
+      %CurriculumComponent{}
+
+      iex> get_curriculum_component!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_curriculum_component!(id), do: Repo.get!(CurriculumComponent, id)
+
+  @doc """
+  Creates a curriculum_component.
+
+  ## Examples
+
+      iex> create_curriculum_component(%{field: value})
+      {:ok, %CurriculumComponent{}}
+
+      iex> create_curriculum_component(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_curriculum_component(attrs \\ %{}) do
+    %CurriculumComponent{}
+    |> CurriculumComponent.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a curriculum_component.
+
+  ## Examples
+
+      iex> update_curriculum_component(curriculum_component, %{field: new_value})
+      {:ok, %CurriculumComponent{}}
+
+      iex> update_curriculum_component(curriculum_component, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_curriculum_component(%CurriculumComponent{} = curriculum_component, attrs) do
+    curriculum_component
+    |> CurriculumComponent.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a curriculum_component.
+
+  ## Examples
+
+      iex> delete_curriculum_component(curriculum_component)
+      {:ok, %CurriculumComponent{}}
+
+      iex> delete_curriculum_component(curriculum_component)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_curriculum_component(%CurriculumComponent{} = curriculum_component) do
+    Repo.delete(curriculum_component)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking curriculum_component changes.
+
+  ## Examples
+
+      iex> change_curriculum_component(curriculum_component)
+      %Ecto.Changeset{data: %CurriculumComponent{}}
+
+  """
+  def change_curriculum_component(%CurriculumComponent{} = curriculum_component, attrs \\ %{}) do
+    CurriculumComponent.changeset(curriculum_component, attrs)
+  end
 end

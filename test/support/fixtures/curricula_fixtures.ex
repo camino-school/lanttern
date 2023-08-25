@@ -32,4 +32,22 @@ defmodule Lanttern.CurriculaFixtures do
 
     item
   end
+
+  @doc """
+  Generate a curriculum_component.
+  """
+  def curriculum_component_fixture(attrs \\ %{}) do
+    curriculum = curriculum_fixture()
+
+    {:ok, curriculum_component} =
+      attrs
+      |> Enum.into(%{
+        code: "some code",
+        name: "some name",
+        curriculum_id: curriculum.id
+      })
+      |> Lanttern.Curricula.create_curriculum_component()
+
+    curriculum_component
+  end
 end

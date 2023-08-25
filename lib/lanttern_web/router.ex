@@ -50,6 +50,7 @@ defmodule LantternWeb.Router do
 
     scope "/curricula" do
       resources "/cur", CurriculumController
+      resources "/curriculum_components", CurriculumComponentController
       resources "/items", ItemController
     end
 
