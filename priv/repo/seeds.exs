@@ -23,36 +23,40 @@ alias Lanttern.Taxonomy
 # taxonomy
 # ------------------------------
 
-year_k1 = Repo.insert!(%Taxonomy.Year{code: "k1", name: "Kindergarten 1"})
-year_k2 = Repo.insert!(%Taxonomy.Year{code: "k2", name: "Kindergarten 2"})
-year_k3 = Repo.insert!(%Taxonomy.Year{code: "k3", name: "Kindergarten 3"})
-year_k4 = Repo.insert!(%Taxonomy.Year{code: "k4", name: "Kindergarten 4"})
-year_k5 = Repo.insert!(%Taxonomy.Year{code: "k5", name: "Kindergarten 5"})
-year_g1 = Repo.insert!(%Taxonomy.Year{code: "g1", name: "Grade 1"})
-year_g2 = Repo.insert!(%Taxonomy.Year{code: "g2", name: "Grade 2"})
-year_g3 = Repo.insert!(%Taxonomy.Year{code: "g3", name: "Grade 3"})
-year_g4 = Repo.insert!(%Taxonomy.Year{code: "g4", name: "Grade 4"})
-year_g5 = Repo.insert!(%Taxonomy.Year{code: "g5", name: "Grade 5"})
-year_g6 = Repo.insert!(%Taxonomy.Year{code: "g6", name: "Grade 6"})
-year_g7 = Repo.insert!(%Taxonomy.Year{code: "g7", name: "Grade 7"})
-year_g8 = Repo.insert!(%Taxonomy.Year{code: "g8", name: "Grade 8"})
-year_g9 = Repo.insert!(%Taxonomy.Year{code: "g9", name: "Grade 9"})
-year_g10 = Repo.insert!(%Taxonomy.Year{code: "g10", name: "Grade 10"})
-year_g11 = Repo.insert!(%Taxonomy.Year{code: "g11", name: "Grade 11"})
-year_g12 = Repo.insert!(%Taxonomy.Year{code: "g12", name: "Grade 12"})
+k1 = Repo.insert!(%Taxonomy.Year{code: "k1", name: "Kindergarten 1"})
+k2 = Repo.insert!(%Taxonomy.Year{code: "k2", name: "Kindergarten 2"})
+k3 = Repo.insert!(%Taxonomy.Year{code: "k3", name: "Kindergarten 3"})
+k4 = Repo.insert!(%Taxonomy.Year{code: "k4", name: "Kindergarten 4"})
+k5 = Repo.insert!(%Taxonomy.Year{code: "k5", name: "Kindergarten 5"})
+g1 = Repo.insert!(%Taxonomy.Year{code: "g1", name: "Grade 1"})
+g2 = Repo.insert!(%Taxonomy.Year{code: "g2", name: "Grade 2"})
+g3 = Repo.insert!(%Taxonomy.Year{code: "g3", name: "Grade 3"})
+g4 = Repo.insert!(%Taxonomy.Year{code: "g4", name: "Grade 4"})
+g5 = Repo.insert!(%Taxonomy.Year{code: "g5", name: "Grade 5"})
+g6 = Repo.insert!(%Taxonomy.Year{code: "g6", name: "Grade 6"})
+g7 = Repo.insert!(%Taxonomy.Year{code: "g7", name: "Grade 7"})
+g8 = Repo.insert!(%Taxonomy.Year{code: "g8", name: "Grade 8"})
+g9 = Repo.insert!(%Taxonomy.Year{code: "g9", name: "Grade 9"})
+g10 = Repo.insert!(%Taxonomy.Year{code: "g10", name: "Grade 10"})
+g11 = Repo.insert!(%Taxonomy.Year{code: "g11", name: "Grade 11"})
+g12 = Repo.insert!(%Taxonomy.Year{code: "g12", name: "Grade 12"})
 
-sub_en = Repo.insert!(%Taxonomy.Subject{name: "English"})
-sub_pt = Repo.insert!(%Taxonomy.Subject{name: "Portuguese"})
-sub_es = Repo.insert!(%Taxonomy.Subject{name: "Spanish"})
-sub_hs = Repo.insert!(%Taxonomy.Subject{name: "Human Sciences"})
-sub_sci = Repo.insert!(%Taxonomy.Subject{name: "Science"})
-sub_tech = Repo.insert!(%Taxonomy.Subject{name: "Technology"})
-sub_eng = Repo.insert!(%Taxonomy.Subject{name: "Engineering"})
-sub_math = Repo.insert!(%Taxonomy.Subject{name: "Math"})
-sub_var = Repo.insert!(%Taxonomy.Subject{name: "Visual Arts"})
-sub_dra = Repo.insert!(%Taxonomy.Subject{name: "Drama"})
-sub_mus = Repo.insert!(%Taxonomy.Subject{name: "Music"})
-sub_mov = Repo.insert!(%Taxonomy.Subject{name: "Movement"})
+engl = Repo.insert!(%Taxonomy.Subject{code: "engl", name: "English"})
+port = Repo.insert!(%Taxonomy.Subject{code: "port", name: "Portuguese"})
+espa = Repo.insert!(%Taxonomy.Subject{code: "espa", name: "Spanish"})
+hsci = Repo.insert!(%Taxonomy.Subject{code: "hsci", name: "Human Sciences"})
+geog = Repo.insert!(%Taxonomy.Subject{code: "geog", name: "Geography"})
+hist = Repo.insert!(%Taxonomy.Subject{code: "hist", name: "History"})
+scie = Repo.insert!(%Taxonomy.Subject{code: "scie", name: "Science"})
+tech = Repo.insert!(%Taxonomy.Subject{code: "tech", name: "Technology"})
+engi = Repo.insert!(%Taxonomy.Subject{code: "engi", name: "Engineering"})
+math = Repo.insert!(%Taxonomy.Subject{code: "math", name: "Math"})
+arts = Repo.insert!(%Taxonomy.Subject{code: "arts", name: "Arts"})
+vart = Repo.insert!(%Taxonomy.Subject{code: "vart", name: "Visual Arts"})
+dram = Repo.insert!(%Taxonomy.Subject{code: "dram", name: "Drama"})
+musi = Repo.insert!(%Taxonomy.Subject{code: "musi", name: "Music"})
+move = Repo.insert!(%Taxonomy.Subject{code: "move", name: "Movement"})
+reli = Repo.insert!(%Taxonomy.Subject{code: "reli", name: "Religion"})
 
 # ------------------------------
 # school
@@ -115,8 +119,8 @@ en_lo =
   Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "English LO 1",
     curriculum_component_id: curriculum_component.id,
-    subjects_ids: [sub_en.id],
-    years_ids: [year_g10.id]
+    subjects_ids: [engl.id],
+    years_ids: [g10.id]
   })
   |> Repo.insert!()
 
@@ -124,8 +128,8 @@ pt_lo =
   Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Portuguese LO 1",
     curriculum_component_id: curriculum_component.id,
-    subjects_ids: [sub_pt.id],
-    years_ids: [year_g10.id]
+    subjects_ids: [port.id],
+    years_ids: [g10.id]
   })
   |> Repo.insert!()
 
@@ -133,8 +137,8 @@ es_lo =
   Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Spanish LO 1",
     curriculum_component_id: curriculum_component.id,
-    subjects_ids: [sub_es.id],
-    years_ids: [year_g10.id]
+    subjects_ids: [espa.id],
+    years_ids: [g10.id]
   })
   |> Repo.insert!()
 
@@ -142,8 +146,8 @@ hs_lo =
   Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Human Sciences LO 1",
     curriculum_component_id: curriculum_component.id,
-    subjects_ids: [sub_hs.id],
-    years_ids: [year_g10.id]
+    subjects_ids: [hsci.id],
+    years_ids: [g10.id]
   })
   |> Repo.insert!()
 
@@ -151,8 +155,8 @@ sci_lo =
   Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Science LO 1",
     curriculum_component_id: curriculum_component.id,
-    subjects_ids: [sub_sci.id],
-    years_ids: [year_g10.id]
+    subjects_ids: [scie.id],
+    years_ids: [g10.id]
   })
   |> Repo.insert!()
 
@@ -160,8 +164,8 @@ tech_lo =
   Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Technology LO 1",
     curriculum_component_id: curriculum_component.id,
-    subjects_ids: [sub_tech.id],
-    years_ids: [year_g10.id]
+    subjects_ids: [tech.id],
+    years_ids: [g10.id]
   })
   |> Repo.insert!()
 
@@ -169,8 +173,8 @@ eng_lo =
   Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Engineering LO 1",
     curriculum_component_id: curriculum_component.id,
-    subjects_ids: [sub_eng.id],
-    years_ids: [year_g10.id]
+    subjects_ids: [engi.id],
+    years_ids: [g10.id]
   })
   |> Repo.insert!()
 
@@ -178,8 +182,8 @@ math_lo =
   Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Math LO 1",
     curriculum_component_id: curriculum_component.id,
-    subjects_ids: [sub_math.id],
-    years_ids: [year_g10.id]
+    subjects_ids: [math.id],
+    years_ids: [g10.id]
   })
   |> Repo.insert!()
 
@@ -187,8 +191,8 @@ var_lo =
   Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Visual Arts LO 1",
     curriculum_component_id: curriculum_component.id,
-    subjects_ids: [sub_var.id],
-    years_ids: [year_g10.id]
+    subjects_ids: [vart.id],
+    years_ids: [g10.id]
   })
   |> Repo.insert!()
 
@@ -196,8 +200,8 @@ dra_lo =
   Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Drama LO 1",
     curriculum_component_id: curriculum_component.id,
-    subjects_ids: [sub_dra.id],
-    years_ids: [year_g10.id]
+    subjects_ids: [dram.id],
+    years_ids: [g10.id]
   })
   |> Repo.insert!()
 
@@ -205,8 +209,8 @@ mus_lo =
   Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Music LO 1",
     curriculum_component_id: curriculum_component.id,
-    subjects_ids: [sub_mus.id],
-    years_ids: [year_g10.id]
+    subjects_ids: [musi.id],
+    years_ids: [g10.id]
   })
   |> Repo.insert!()
 
@@ -214,8 +218,8 @@ mov_lo =
   Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
     name: "Movement LO 1",
     curriculum_component_id: curriculum_component.id,
-    subjects_ids: [sub_mov.id],
-    years_ids: [year_g10.id]
+    subjects_ids: [move.id],
+    years_ids: [g10.id]
   })
   |> Repo.insert!()
 

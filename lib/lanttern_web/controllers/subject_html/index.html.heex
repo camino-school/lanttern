@@ -12,6 +12,7 @@
   rows={@subjects}
   row_click={&JS.navigate(~p"/admin/taxonomy/subjects/#{&1}")}
 >
+  <:col :let={subject} label="Code"><%= subject.code %></:col>
   <:col :let={subject} label="Name"><%= subject.name %></:col>
   <:action :let={subject}>
     <div class="sr-only">

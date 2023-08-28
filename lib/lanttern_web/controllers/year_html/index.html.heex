@@ -8,6 +8,7 @@
 </.header>
 
 <.table id="years" rows={@years} row_click={&JS.navigate(~p"/admin/taxonomy/years/#{&1}")}>
+  <:col :let={year} label="Code"><%= year.code %></:col>
   <:col :let={year} label="Name"><%= year.name %></:col>
   <:action :let={year}>
     <div class="sr-only">
