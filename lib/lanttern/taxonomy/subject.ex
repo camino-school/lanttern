@@ -4,6 +4,7 @@ defmodule Lanttern.Taxonomy.Subject do
 
   schema "subjects" do
     field :name, :string
+    field :code, :string
 
     timestamps()
   end
@@ -11,7 +12,7 @@ defmodule Lanttern.Taxonomy.Subject do
   @doc false
   def changeset(subject, attrs) do
     subject
-    |> cast(attrs, [:name])
+    |> cast(attrs, [:name, :code])
     |> validate_required([:name])
   end
 end

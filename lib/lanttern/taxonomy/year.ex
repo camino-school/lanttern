@@ -4,6 +4,7 @@ defmodule Lanttern.Taxonomy.Year do
 
   schema "years" do
     field :name, :string
+    field :code, :string
 
     timestamps()
   end
@@ -11,7 +12,7 @@ defmodule Lanttern.Taxonomy.Year do
   @doc false
   def changeset(year, attrs) do
     year
-    |> cast(attrs, [:name])
+    |> cast(attrs, [:name, :code])
     |> validate_required([:name])
   end
 end

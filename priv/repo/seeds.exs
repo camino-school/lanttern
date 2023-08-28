@@ -23,19 +23,23 @@ alias Lanttern.Taxonomy
 # taxonomy
 # ------------------------------
 
-year_k = Repo.insert!(%Taxonomy.Year{name: "Kindergarten"})
-year_1 = Repo.insert!(%Taxonomy.Year{name: "Grade 1"})
-year_2 = Repo.insert!(%Taxonomy.Year{name: "Grade 2"})
-year_3 = Repo.insert!(%Taxonomy.Year{name: "Grade 3"})
-year_4 = Repo.insert!(%Taxonomy.Year{name: "Grade 4"})
-year_5 = Repo.insert!(%Taxonomy.Year{name: "Grade 5"})
-year_6 = Repo.insert!(%Taxonomy.Year{name: "Grade 6"})
-year_7 = Repo.insert!(%Taxonomy.Year{name: "Grade 7"})
-year_8 = Repo.insert!(%Taxonomy.Year{name: "Grade 8"})
-year_9 = Repo.insert!(%Taxonomy.Year{name: "Grade 9"})
-year_10 = Repo.insert!(%Taxonomy.Year{name: "Grade 10"})
-year_11 = Repo.insert!(%Taxonomy.Year{name: "Grade 11"})
-year_12 = Repo.insert!(%Taxonomy.Year{name: "Grade 12"})
+year_k1 = Repo.insert!(%Taxonomy.Year{code: "k1", name: "Kindergarten 1"})
+year_k2 = Repo.insert!(%Taxonomy.Year{code: "k2", name: "Kindergarten 2"})
+year_k3 = Repo.insert!(%Taxonomy.Year{code: "k3", name: "Kindergarten 3"})
+year_k4 = Repo.insert!(%Taxonomy.Year{code: "k4", name: "Kindergarten 4"})
+year_k5 = Repo.insert!(%Taxonomy.Year{code: "k5", name: "Kindergarten 5"})
+year_g1 = Repo.insert!(%Taxonomy.Year{code: "g1", name: "Grade 1"})
+year_g2 = Repo.insert!(%Taxonomy.Year{code: "g2", name: "Grade 2"})
+year_g3 = Repo.insert!(%Taxonomy.Year{code: "g3", name: "Grade 3"})
+year_g4 = Repo.insert!(%Taxonomy.Year{code: "g4", name: "Grade 4"})
+year_g5 = Repo.insert!(%Taxonomy.Year{code: "g5", name: "Grade 5"})
+year_g6 = Repo.insert!(%Taxonomy.Year{code: "g6", name: "Grade 6"})
+year_g7 = Repo.insert!(%Taxonomy.Year{code: "g7", name: "Grade 7"})
+year_g8 = Repo.insert!(%Taxonomy.Year{code: "g8", name: "Grade 8"})
+year_g9 = Repo.insert!(%Taxonomy.Year{code: "g9", name: "Grade 9"})
+year_g10 = Repo.insert!(%Taxonomy.Year{code: "g10", name: "Grade 10"})
+year_g11 = Repo.insert!(%Taxonomy.Year{code: "g11", name: "Grade 11"})
+year_g12 = Repo.insert!(%Taxonomy.Year{code: "g12", name: "Grade 12"})
 
 sub_en = Repo.insert!(%Taxonomy.Subject{name: "English"})
 sub_pt = Repo.insert!(%Taxonomy.Subject{name: "Portuguese"})
@@ -112,7 +116,7 @@ en_lo =
     name: "English LO 1",
     curriculum_component_id: curriculum_component.id,
     subjects_ids: [sub_en.id],
-    years_ids: [year_10.id]
+    years_ids: [year_g10.id]
   })
   |> Repo.insert!()
 
@@ -121,7 +125,7 @@ pt_lo =
     name: "Portuguese LO 1",
     curriculum_component_id: curriculum_component.id,
     subjects_ids: [sub_pt.id],
-    years_ids: [year_10.id]
+    years_ids: [year_g10.id]
   })
   |> Repo.insert!()
 
@@ -130,7 +134,7 @@ es_lo =
     name: "Spanish LO 1",
     curriculum_component_id: curriculum_component.id,
     subjects_ids: [sub_es.id],
-    years_ids: [year_10.id]
+    years_ids: [year_g10.id]
   })
   |> Repo.insert!()
 
@@ -139,7 +143,7 @@ hs_lo =
     name: "Human Sciences LO 1",
     curriculum_component_id: curriculum_component.id,
     subjects_ids: [sub_hs.id],
-    years_ids: [year_10.id]
+    years_ids: [year_g10.id]
   })
   |> Repo.insert!()
 
@@ -148,7 +152,7 @@ sci_lo =
     name: "Science LO 1",
     curriculum_component_id: curriculum_component.id,
     subjects_ids: [sub_sci.id],
-    years_ids: [year_10.id]
+    years_ids: [year_g10.id]
   })
   |> Repo.insert!()
 
@@ -157,7 +161,7 @@ tech_lo =
     name: "Technology LO 1",
     curriculum_component_id: curriculum_component.id,
     subjects_ids: [sub_tech.id],
-    years_ids: [year_10.id]
+    years_ids: [year_g10.id]
   })
   |> Repo.insert!()
 
@@ -166,7 +170,7 @@ eng_lo =
     name: "Engineering LO 1",
     curriculum_component_id: curriculum_component.id,
     subjects_ids: [sub_eng.id],
-    years_ids: [year_10.id]
+    years_ids: [year_g10.id]
   })
   |> Repo.insert!()
 
@@ -175,7 +179,7 @@ math_lo =
     name: "Math LO 1",
     curriculum_component_id: curriculum_component.id,
     subjects_ids: [sub_math.id],
-    years_ids: [year_10.id]
+    years_ids: [year_g10.id]
   })
   |> Repo.insert!()
 
@@ -184,7 +188,7 @@ var_lo =
     name: "Visual Arts LO 1",
     curriculum_component_id: curriculum_component.id,
     subjects_ids: [sub_var.id],
-    years_ids: [year_10.id]
+    years_ids: [year_g10.id]
   })
   |> Repo.insert!()
 
@@ -193,7 +197,7 @@ dra_lo =
     name: "Drama LO 1",
     curriculum_component_id: curriculum_component.id,
     subjects_ids: [sub_dra.id],
-    years_ids: [year_10.id]
+    years_ids: [year_g10.id]
   })
   |> Repo.insert!()
 
@@ -202,7 +206,7 @@ mus_lo =
     name: "Music LO 1",
     curriculum_component_id: curriculum_component.id,
     subjects_ids: [sub_mus.id],
-    years_ids: [year_10.id]
+    years_ids: [year_g10.id]
   })
   |> Repo.insert!()
 
@@ -211,7 +215,7 @@ mov_lo =
     name: "Movement LO 1",
     curriculum_component_id: curriculum_component.id,
     subjects_ids: [sub_mov.id],
-    years_ids: [year_10.id]
+    years_ids: [year_g10.id]
   })
   |> Repo.insert!()
 

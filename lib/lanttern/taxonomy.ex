@@ -39,6 +39,22 @@ defmodule Lanttern.Taxonomy do
   def get_subject!(id), do: Repo.get!(Subject, id)
 
   @doc """
+  Gets a single subject using the subject code.
+
+  Raises `Ecto.NoResultsError` if the Subject does not exist.
+
+  ## Examples
+
+      iex> get_subject_by_code!("code")
+      %Subject{}
+
+      iex> get_subject_by_code!("wrong code")
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_subject_by_code!(code), do: Repo.get_by!(Subject, code: code)
+
+  @doc """
   Creates a subject.
 
   ## Examples
@@ -131,6 +147,22 @@ defmodule Lanttern.Taxonomy do
 
   """
   def get_year!(id), do: Repo.get!(Year, id)
+
+  @doc """
+  Gets a single year using the year code.
+
+  Raises `Ecto.NoResultsError` if the Year does not exist.
+
+  ## Examples
+
+      iex> get_year_by_code!("code")
+      %Year{}
+
+      iex> get_year_by_code!("wrong code")
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_year_by_code!(code), do: Repo.get_by!(Year, code: code)
 
   @doc """
   Creates a year.

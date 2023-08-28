@@ -20,6 +20,11 @@ defmodule Lanttern.TaxonomyTest do
       assert Taxonomy.get_subject!(subject.id) == subject
     end
 
+    test "get_subject_by_code!/1 returns the subject with given code" do
+      subject = subject_fixture(%{code: "sub123"})
+      assert Taxonomy.get_subject_by_code!("sub123") == subject
+    end
+
     test "create_subject/1 with valid data creates a subject" do
       valid_attrs = %{name: "some name"}
 
@@ -72,6 +77,11 @@ defmodule Lanttern.TaxonomyTest do
     test "get_year!/1 returns the year with given id" do
       year = year_fixture()
       assert Taxonomy.get_year!(year.id) == year
+    end
+
+    test "get_year_by_code!/1 returns the year with given code" do
+      year = year_fixture(%{code: "y123"})
+      assert Taxonomy.get_year_by_code!("y123") == year
     end
 
     test "create_year/1 with valid data creates a year" do
