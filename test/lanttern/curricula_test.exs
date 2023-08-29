@@ -185,6 +185,20 @@ defmodule Lanttern.CurriculaTest do
       assert expected.years == [year]
     end
 
+    test "search_curriculum_items/2 returns all items matched by search" do
+      curriculum_item_1 = curriculum_item_fixture(%{name: "lorem ipsum xolor sit amet"})
+      curriculum_item_2 = curriculum_item_fixture(%{name: "lorem ipsum dolor sit amet"})
+      curriculum_item_3 = curriculum_item_fixture(%{name: "lorem ipsum doloxxxr sit amet"})
+      _curriculum_item_4 = curriculum_item_fixture(%{name: "lorem ipsum xxxxx sit amet"})
+
+      expected = Curricula.search_curriculum_items("dolor")
+
+      assert length(expected) == 3
+
+      # assert order
+      assert [curriculum_item_2, curriculum_item_3, curriculum_item_1] == expected
+    end
+
     test "get_curriculum_item!/2 returns the item with given id" do
       curriculum_item = curriculum_item_fixture()
       assert Curricula.get_curriculum_item!(curriculum_item.id) == curriculum_item

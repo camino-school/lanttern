@@ -231,6 +231,31 @@ defmodule Lanttern.Curricula do
   end
 
   @doc """
+  Search curriculum items by name.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> list_curriculum_items()
+      [%CurriculumItem{}, ...]
+
+  """
+  def search_curriculum_items(name, opts \\ []) do
+    query =
+      from(
+        ci in CurriculumItem,
+        where: fragment("? <% ?", ^name, ci.name),
+        order_by: {:asc, fragment("? <<-> ?", ^name, ci.name)}
+      )
+
+    Repo.all(query)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
   Gets a single curriculum item.
 
   Raises `Ecto.NoResultsError` if the Curriculum Item does not exist.

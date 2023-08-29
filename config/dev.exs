@@ -1,6 +1,8 @@
 import Config
 
 # Configure your database
+query_args = ["SET pg_trgm.word_similarity_threshold = 0.4", []]
+
 config :lanttern, Lanttern.Repo,
   username: "postgres",
   password: "postgres",
@@ -8,7 +10,8 @@ config :lanttern, Lanttern.Repo,
   database: "lanttern_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
-  pool_size: 10
+  pool_size: 10,
+  after_connect: {Postgrex, :query!, query_args}
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
