@@ -185,6 +185,30 @@ defmodule Lanttern.CurriculaTest do
       assert expected.years == [year]
     end
 
+    test "list_curriculum_items/1 with filters returns all curriculum_items filtered by given fields" do
+      subject = subject_fixture()
+      other_subject = subject_fixture()
+      year = year_fixture()
+      other_year = year_fixture()
+
+      curriculum_item =
+        curriculum_item_fixture(%{
+          subjects_ids: [subject.id],
+          years_ids: [year.id]
+        })
+
+      # create extra items for filtering test
+      curriculum_item_fixture(%{subjects_ids: [subject.id], years_ids: [other_year.id]})
+      curriculum_item_fixture(%{subjects_ids: [other_subject.id], years_ids: [year.id]})
+      curriculum_item_fixture(%{subjects_ids: [other_subject.id], years_ids: [other_year.id]})
+
+      filters = [subject_id: subject.id, year_id: year.id]
+
+      [expected] = Curricula.list_curriculum_items(filters: filters)
+
+      assert expected.id == curriculum_item.id
+    end
+
     test "search_curriculum_items/2 returns all items matched by search" do
       curriculum_item_1 = curriculum_item_fixture(%{name: "lorem ipsum xolor sit amet"})
       curriculum_item_2 = curriculum_item_fixture(%{name: "lorem ipsum dolor sit amet"})
@@ -223,6 +247,47 @@ defmodule Lanttern.CurriculaTest do
       assert expected.curriculum_component == curriculum_component
       assert expected.subjects == [subject]
       assert expected.years == [year]
+    end
+
+    test "search_curriculum_items/2 with filters returns results filtered by given fields" do
+      subject = subject_fixture()
+      other_subject = subject_fixture()
+      year = year_fixture()
+      other_year = year_fixture()
+
+      curriculum_item =
+        curriculum_item_fixture(%{
+          name: "abcde",
+          subjects_ids: [subject.id],
+          years_ids: [year.id]
+        })
+
+      # create extra items for filtering test
+      curriculum_item_fixture(%{
+        name: "abcde",
+        subjects_ids: [subject.id],
+        years_ids: [other_year.id]
+      })
+
+      curriculum_item_fixture(%{
+        name: "abcde",
+        subjects_ids: [other_subject.id],
+        years_ids: [year.id]
+      })
+
+      curriculum_item_fixture(%{
+        name: "abcde",
+        subjects_ids: [other_subject.id],
+        years_ids: [other_year.id]
+      })
+
+      curriculum_item_fixture(%{name: "zzzzz", subjects_ids: [subject.id], years_ids: [year.id]})
+
+      filters = [subject_id: subject.id, year_id: year.id]
+
+      [expected] = Curricula.search_curriculum_items("abcde", filters: filters)
+
+      assert expected.id == curriculum_item.id
     end
 
     test "get_curriculum_item!/2 returns the item with given id" do

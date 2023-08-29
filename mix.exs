@@ -54,7 +54,8 @@ defmodule Lanttern.MixProject do
       {:git_hooks, "~> 0.7.3", only: [:dev], runtime: false},
       {:timex, "~> 3.0"},
       {:joken, "~> 2.5"},
-      {:joken_jwks, "~> 1.6.0"}
+      {:joken_jwks, "~> 1.6.0"},
+      {:flop, "~> 0.22.1"}
     ]
   end
 

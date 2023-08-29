@@ -6,28 +6,65 @@ defmodule LantternWeb.CurriculumItemController do
   alias Lanttern.Curricula
   alias Lanttern.Curricula.CurriculumItem
 
-  def index(conn, %{"q" => ""} = _params),
-    do: redirect(conn, to: ~p"/admin/curricula/curriculum_items")
+  def index(conn, params) do
+    subject_options = generate_subject_options()
+    year_options = generate_year_options()
+    curriculum_items = list_curriculum_items(params)
 
-  def index(conn, %{"q" => query} = _params) do
-    curriculum_items =
-      Curricula.search_curriculum_items(query,
-        preloads: [:curriculum_component, :subjects, :years]
-      )
+    form =
+      params
+      |> Enum.into(%{
+        "q" => "",
+        "subject_id" => "",
+        "year_id" => ""
+      })
+      |> Phoenix.Component.to_form()
 
-    form = Phoenix.Component.to_form(%{"q" => query})
-
-    render(conn, :index, curriculum_items: curriculum_items, form: form)
+    render(conn, :index,
+      curriculum_items: curriculum_items,
+      subject_options: subject_options,
+      year_options: year_options,
+      form: form
+    )
   end
 
-  def index(conn, _params) do
-    curriculum_items =
-      Curricula.list_curriculum_items(preloads: [:curriculum_component, :subjects, :years])
+  defp list_curriculum_items(params) do
+    opts =
+      [preloads: [:curriculum_component, :subjects, :years]]
+      |> maybe_add_filters_to_opts(params)
 
-    form = Phoenix.Component.to_form(%{"q" => ""})
+    case params do
+      %{"q" => query} when is_binary(query) and query != "" ->
+        Curricula.search_curriculum_items(query, opts)
 
-    render(conn, :index, curriculum_items: curriculum_items, form: form)
+      _ ->
+        Curricula.list_curriculum_items(opts)
+    end
   end
+
+  defp maybe_add_filters_to_opts(opts, params) do
+    Enum.reduce(params, opts, &reduce_filter_opts/2)
+  end
+
+  defp reduce_filter_opts({"subject_id", id}, opts) when id != "" do
+    opts
+    |> Keyword.update(
+      :filters,
+      [subject_id: id],
+      &[{:subject_id, id} | &1]
+    )
+  end
+
+  defp reduce_filter_opts({"year_id", id}, opts) when id != "" do
+    opts
+    |> Keyword.update(
+      :filters,
+      [year_id: id],
+      &[{:year_id, id} | &1]
+    )
+  end
+
+  defp reduce_filter_opts(_, opts), do: opts
 
   def new(conn, _params) do
     curriculum_component_options = generate_curriculum_component_options()

@@ -218,6 +218,7 @@ defmodule Lanttern.Curricula do
   ### Options:
 
   `:preloads` – preloads associated data
+  `:filters` – accepts `:subject_id` and `:year_id`
 
   ## Examples
 
@@ -226,7 +227,8 @@ defmodule Lanttern.Curricula do
 
   """
   def list_curriculum_items(opts \\ []) do
-    Repo.all(CurriculumItem)
+    CurriculumItem
+    |> maybe_filter(opts)
     |> maybe_preload(opts)
   end
 
@@ -236,6 +238,7 @@ defmodule Lanttern.Curricula do
   ### Options:
 
   `:preloads` – preloads associated data
+  `:filters` – accepts `:subject_id` and `:year_id`
 
   ## Examples
 
@@ -251,8 +254,58 @@ defmodule Lanttern.Curricula do
         order_by: {:asc, fragment("? <<-> ?", ^name, ci.name)}
       )
 
-    Repo.all(query)
+    query
+    |> maybe_filter(opts)
     |> maybe_preload(opts)
+  end
+
+  # list/search filters
+
+  defp maybe_filter(queryable, opts) do
+    case Keyword.get(opts, :filters) do
+      filters when is_list(filters) and filters != [] ->
+        queryable
+        |> prepare_joins(filters)
+        |> Flop.validate_and_run(%{filters: build_filters_param(filters)}, for: CurriculumItem)
+        |> handle_validate_and_run()
+
+      _ ->
+        Repo.all(queryable)
+    end
+  end
+
+  defp prepare_joins(queryable, filters) do
+    Enum.reduce(filters, queryable, &reduce_joins/2)
+  end
+
+  defp reduce_joins({:subject_id, _id}, queryable) do
+    queryable
+    |> join(:inner, [q], s in assoc(q, :subjects), as: :subjects)
+  end
+
+  defp reduce_joins({:year_id, _id}, queryable) do
+    queryable
+    |> join(:inner, [q], s in assoc(q, :years), as: :years)
+  end
+
+  defp reduce_joins(_, queryable), do: queryable
+
+  defp build_filters_param(filters) do
+    Enum.reduce(filters, [], &reduce_filters_param/2)
+  end
+
+  defp reduce_filters_param({field, id}, filters) do
+    [%{field: field, op: :==, value: id} | filters]
+  end
+
+  defp reduce_filters_param(_, filters), do: filters
+
+  defp handle_validate_and_run({:ok, {result, %Flop.Meta{}}}) do
+    result
+  end
+
+  defp handle_validate_and_run({:error, %Flop.Meta{} = meta}) do
+    raise meta.errors
   end
 
   @doc """

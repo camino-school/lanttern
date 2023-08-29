@@ -5,6 +5,26 @@ defmodule Lanttern.Curricula.CurriculumItem do
 
   alias Lanttern.Repo
 
+  @derive {
+    Flop.Schema,
+    filterable: [:subject_id, :year_id],
+    sortable: [],
+    adapter_opts: [
+      join_fields: [
+        subject_id: [
+          binding: :subjects,
+          field: :id,
+          ecto_type: :id
+        ],
+        year_id: [
+          binding: :years,
+          field: :id,
+          ecto_type: :id
+        ]
+      ]
+    ]
+  }
+
   schema "curriculum_items" do
     field :name, :string
     field :code, :string

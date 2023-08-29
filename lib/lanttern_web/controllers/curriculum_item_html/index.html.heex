@@ -7,9 +7,26 @@
   </:actions>
 </.header>
 
-<.form for={@form} action={~p"/admin/curricula/curriculum_items"} method="get" class="mt-6">
+<.simple_form for={@form} action={~p"/admin/curricula/curriculum_items"} method="get" class="mt-6">
   <.input field={@form[:q]} type="text" label="Search" />
-</.form>
+  <.input
+    field={@form[:year_id]}
+    type="select"
+    label="Year"
+    options={@year_options}
+    prompt="All years"
+  />
+  <.input
+    field={@form[:subject_id]}
+    type="select"
+    label="Subject"
+    options={@subject_options}
+    prompt="All subjects"
+  />
+  <:actions>
+    <.button>Filter</.button>
+  </:actions>
+</.simple_form>
 
 <.table
   id="curriculum_items"

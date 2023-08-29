@@ -2,6 +2,11 @@ defmodule Lanttern.Taxonomy.Subject do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @derive {
+    Flop.Schema,
+    filterable: [:id], sortable: []
+  }
+
   schema "subjects" do
     field :name, :string
     field :code, :string
