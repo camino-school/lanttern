@@ -7,6 +7,10 @@
   </:actions>
 </.header>
 
+<.form for={@form} action={~p"/admin/curricula/curriculum_items"} method="get" class="mt-6">
+  <.input field={@form[:q]} type="text" label="Search" />
+</.form>
+
 <.table
   id="curriculum_items"
   rows={@curriculum_items}

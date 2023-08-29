@@ -199,6 +199,32 @@ defmodule Lanttern.CurriculaTest do
       assert [curriculum_item_2, curriculum_item_3, curriculum_item_1] == expected
     end
 
+    test "search_curriculum_items/2 with preloads returns all search results with preloaded data" do
+      curriculum_component = curriculum_component_fixture()
+      subject = subject_fixture()
+      year = year_fixture()
+
+      curriculum_item =
+        curriculum_item_fixture(%{
+          name: "abcdefg",
+          curriculum_component_id: curriculum_component.id,
+          subjects_ids: [subject.id],
+          years_ids: [year.id]
+        })
+
+      curriculum_item_fixture(%{name: "search won't work here"})
+
+      [expected] =
+        Curricula.search_curriculum_items("abcdefg",
+          preloads: [:curriculum_component, :subjects, :years]
+        )
+
+      assert expected.id == curriculum_item.id
+      assert expected.curriculum_component == curriculum_component
+      assert expected.subjects == [subject]
+      assert expected.years == [year]
+    end
+
     test "get_curriculum_item!/2 returns the item with given id" do
       curriculum_item = curriculum_item_fixture()
       assert Curricula.get_curriculum_item!(curriculum_item.id) == curriculum_item

@@ -6,11 +6,27 @@ defmodule LantternWeb.CurriculumItemController do
   alias Lanttern.Curricula
   alias Lanttern.Curricula.CurriculumItem
 
+  def index(conn, %{"q" => ""} = _params),
+    do: redirect(conn, to: ~p"/admin/curricula/curriculum_items")
+
+  def index(conn, %{"q" => query} = _params) do
+    curriculum_items =
+      Curricula.search_curriculum_items(query,
+        preloads: [:curriculum_component, :subjects, :years]
+      )
+
+    form = Phoenix.Component.to_form(%{"q" => query})
+
+    render(conn, :index, curriculum_items: curriculum_items, form: form)
+  end
+
   def index(conn, _params) do
     curriculum_items =
       Curricula.list_curriculum_items(preloads: [:curriculum_component, :subjects, :years])
 
-    render(conn, :index, curriculum_items: curriculum_items)
+    form = Phoenix.Component.to_form(%{"q" => ""})
+
+    render(conn, :index, curriculum_items: curriculum_items, form: form)
   end
 
   def new(conn, _params) do
