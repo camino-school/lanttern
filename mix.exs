@@ -55,7 +55,8 @@ defmodule Lanttern.MixProject do
       {:timex, "~> 3.0"},
       {:joken, "~> 2.5"},
       {:joken_jwks, "~> 1.6.0"},
-      {:flop, "~> 0.22.1"}
+      {:flop, "~> 0.22.1"},
+      {:faker, "~> 0.17", only: :test}
     ]
   end
 

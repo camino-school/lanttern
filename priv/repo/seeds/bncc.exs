@@ -142,25 +142,25 @@ bncc = Repo.insert!(%Curriculum{code: "bncc", name: "BNCC"})
 # ----- components
 
 # competências
-comp_geral = insert_comp.(%{name: "Competências gerais", curriculum_id: bncc.id})
-comp_ch = insert_comp.(%{name: "Competências específicas de Ciências humanas", curriculum_id: bncc.id})
-comp_er = insert_comp.(%{name: "Competências específicas de Ensino religioso", curriculum_id: bncc.id})
-comp_ling = insert_comp.(%{name: "Competências específicas de Linguagens", curriculum_id: bncc.id})
-comp_ma = insert_comp.(%{name: "Competências específicas de Matemática", curriculum_id: bncc.id})
-comp_ci = insert_comp.(%{name: "Competências específicas de Ciências da natureza", curriculum_id: bncc.id})
-comp_lp = insert_comp.(%{name: "Competências específicas de Língua Portuguesa", curriculum_id: bncc.id})
-comp_ar = insert_comp.(%{name: "Competências específicas de Arte", curriculum_id: bncc.id})
-comp_ef = insert_comp.(%{name: "Competências específicas de Educação Física", curriculum_id: bncc.id})
-comp_li = insert_comp.(%{name: "Competências específicas de Língua Inglesa", curriculum_id: bncc.id})
-comp_ge = insert_comp.(%{name: "Competências específicas de Geografia", curriculum_id: bncc.id})
-comp_hi = insert_comp.(%{name: "Competências específicas de História", curriculum_id: bncc.id})
+comp_geral = insert_comp.(%{code: "bncc_cgeral", name: "Competências gerais", curriculum_id: bncc.id})
+comp_ch = insert_comp.(%{code: "bncc_cch", name: "Competências específicas de Ciências humanas", curriculum_id: bncc.id})
+comp_er = insert_comp.(%{code: "bncc_cer", name: "Competências específicas de Ensino religioso", curriculum_id: bncc.id})
+comp_lg = insert_comp.(%{code: "bncc_clg", name: "Competências específicas de Linguagens", curriculum_id: bncc.id})
+comp_ma = insert_comp.(%{code: "bncc_cma", name: "Competências específicas de Matemática", curriculum_id: bncc.id})
+comp_ci = insert_comp.(%{code: "bncc_cci", name: "Competências específicas de Ciências da natureza", curriculum_id: bncc.id})
+comp_lp = insert_comp.(%{code: "bncc_clp", name: "Competências específicas de Língua Portuguesa", curriculum_id: bncc.id})
+comp_ar = insert_comp.(%{code: "bncc_car", name: "Competências específicas de Arte", curriculum_id: bncc.id})
+comp_ef = insert_comp.(%{code: "bncc_cef", name: "Competências específicas de Educação Física", curriculum_id: bncc.id})
+comp_li = insert_comp.(%{code: "bncc_cli", name: "Competências específicas de Língua Inglesa", curriculum_id: bncc.id})
+comp_ge = insert_comp.(%{code: "bncc_cge", name: "Competências específicas de Geografia", curriculum_id: bncc.id})
+comp_hi = insert_comp.(%{code: "bncc_chi", name: "Competências específicas de História", curriculum_id: bncc.id})
 
 # estrutura (colunas)
-col_ca = insert_comp.(%{name: "Campos de Atuação", curriculum_id: bncc.id})
-col_pl = insert_comp.(%{name: "Práticas de Linguagem", curriculum_id: bncc.id})
-col_ut = insert_comp.(%{name: "Unidades Temáticas", curriculum_id: bncc.id})
-col_oc = insert_comp.(%{name: "Objetos de Conhecimento", curriculum_id: bncc.id})
-col_ha = insert_comp.(%{name: "Habilidades", curriculum_id: bncc.id})
+col_ca = insert_comp.(%{code: "bncc_ca", name: "Campos de Atuação", curriculum_id: bncc.id})
+col_pl = insert_comp.(%{code: "bncc_pl", name: "Práticas de Linguagem", curriculum_id: bncc.id})
+col_ut = insert_comp.(%{code: "bncc_ut", name: "Unidades Temáticas", curriculum_id: bncc.id})
+col_oc = insert_comp.(%{code: "bncc_oc", name: "Objetos de Conhecimento", curriculum_id: bncc.id})
+col_ha = insert_comp.(%{code: "bncc_ha", name: "Habilidades", curriculum_id: bncc.id})
 
 # ----- items and relationships
 
@@ -194,12 +194,12 @@ insert_item.(%{curriculum_component_id: comp_er.id, name: "Analisar as relaçõe
 insert_item.(%{curriculum_component_id: comp_er.id, name: "Debater, problematizar e posicionar-se frente aos discursos e práticas de intolerância, discriminação e violência de cunho religioso, de modo a assegurar os direitos humanos no constante exercício da cidadania e da cultura de paz.", subjects_ids: er})
 
 # Competências específicas de Linguagens
-insert_item.(%{curriculum_component_id: comp_ling.id, name: "Compreender as linguagens como construção humana, histórica, social e cultural, de natureza dinâmica, reconhecendo-as e valorizando-as como formas de significação da realidade e expressão de subjetividades e identidades sociais e culturais.", subjects_ids: ling})
-insert_item.(%{curriculum_component_id: comp_ling.id, name: "Conhecer e explorar diversas práticas de linguagem (artísticas, corporais e linguísticas) em diferentes campos da atividade humana para continuar aprendendo, ampliar suas possibilidades de participação na vida social e colaborar para a construção de uma sociedade mais justa, democrática e inclusiva.", subjects_ids: ling})
-insert_item.(%{curriculum_component_id: comp_ling.id, name: "Utilizar diferentes linguagens – verbal (oral ou visual-motora, como Libras, e escrita), corporal, visual, sonora e digital –, para se expressar e partilhar informações, experiências, ideias e sentimentos em diferentes contextos e produzir sentidos que levem ao diálogo, à resolução de conflitos e à cooperação.", subjects_ids: ling})
-insert_item.(%{curriculum_component_id: comp_ling.id, name: "Utilizar diferentes linguagens para defender pontos de vista que respeitem o outro e promovam os direitos humanos, a consciência socioambiental e o consumo responsável em âmbito local, regional e global, atuando criticamente frente a questões do mundo contemporâneo.", subjects_ids: ling})
-insert_item.(%{curriculum_component_id: comp_ling.id, name: "Desenvolver o senso estético para reconhecer, fruir e respeitar as diversas manifestações artísticas e culturais, das locais às mundiais, inclusive aquelas pertencentes ao patrimônio cultural da humanidade, bem como participar de práticas diversificadas, individuais e coletivas, da produção artístico-cultural, com respeito à diversidade de saberes, identidades e culturas.", subjects_ids: ling})
-insert_item.(%{curriculum_component_id: comp_ling.id, name: "Compreender e utilizar tecnologias digitais de informação e comunicação de forma crítica, significativa, reflexiva e ética nas diversas práticas sociais (incluindo as escolares), para se comunicar por meio das diferentes linguagens e mídias, produzir conhecimentos, resolver problemas e desenvolver projetos autorais e coletivos.", subjects_ids: ling})
+insert_item.(%{curriculum_component_id: comp_lg.id, name: "Compreender as linguagens como construção humana, histórica, social e cultural, de natureza dinâmica, reconhecendo-as e valorizando-as como formas de significação da realidade e expressão de subjetividades e identidades sociais e culturais.", subjects_ids: ling})
+insert_item.(%{curriculum_component_id: comp_lg.id, name: "Conhecer e explorar diversas práticas de linguagem (artísticas, corporais e linguísticas) em diferentes campos da atividade humana para continuar aprendendo, ampliar suas possibilidades de participação na vida social e colaborar para a construção de uma sociedade mais justa, democrática e inclusiva.", subjects_ids: ling})
+insert_item.(%{curriculum_component_id: comp_lg.id, name: "Utilizar diferentes linguagens – verbal (oral ou visual-motora, como Libras, e escrita), corporal, visual, sonora e digital –, para se expressar e partilhar informações, experiências, ideias e sentimentos em diferentes contextos e produzir sentidos que levem ao diálogo, à resolução de conflitos e à cooperação.", subjects_ids: ling})
+insert_item.(%{curriculum_component_id: comp_lg.id, name: "Utilizar diferentes linguagens para defender pontos de vista que respeitem o outro e promovam os direitos humanos, a consciência socioambiental e o consumo responsável em âmbito local, regional e global, atuando criticamente frente a questões do mundo contemporâneo.", subjects_ids: ling})
+insert_item.(%{curriculum_component_id: comp_lg.id, name: "Desenvolver o senso estético para reconhecer, fruir e respeitar as diversas manifestações artísticas e culturais, das locais às mundiais, inclusive aquelas pertencentes ao patrimônio cultural da humanidade, bem como participar de práticas diversificadas, individuais e coletivas, da produção artístico-cultural, com respeito à diversidade de saberes, identidades e culturas.", subjects_ids: ling})
+insert_item.(%{curriculum_component_id: comp_lg.id, name: "Compreender e utilizar tecnologias digitais de informação e comunicação de forma crítica, significativa, reflexiva e ética nas diversas práticas sociais (incluindo as escolares), para se comunicar por meio das diferentes linguagens e mídias, produzir conhecimentos, resolver problemas e desenvolver projetos autorais e coletivos.", subjects_ids: ling})
 
 # Competências específicas de Matemática
 insert_item.(%{curriculum_component_id: comp_ma.id, name: "Reconhecer que a Matemática é uma ciência humana, fruto das necessidades e preocupações de diferentes culturas, em diferentes momentos históricos, e é uma ciência viva, que contribui para solucionar problemas científicos e tecnológicos e para alicerçar descobertas e construções, inclusive com impactos no mundo do trabalho.", subjects_ids: ma})

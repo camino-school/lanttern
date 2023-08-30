@@ -43,6 +43,10 @@ defmodule Lanttern.Curricula.CurriculumItem do
       on_replace: :delete
 
     timestamps()
+
+    # query "helper" virtual fields
+    field :children_id, :id, virtual: true
+    field :component_code, :string, virtual: true
   end
 
   @doc false
