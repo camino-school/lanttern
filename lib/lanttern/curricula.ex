@@ -280,12 +280,12 @@ defmodule Lanttern.Curricula do
 
   defp reduce_joins({:subject_id, _id}, queryable) do
     queryable
-    |> join(:inner, [q], s in assoc(q, :subjects), as: :subjects)
+    |> join(:left, [q], s in assoc(q, :subjects), as: :subjects)
   end
 
   defp reduce_joins({:year_id, _id}, queryable) do
     queryable
-    |> join(:inner, [q], s in assoc(q, :years), as: :years)
+    |> join(:left, [q], s in assoc(q, :years), as: :years)
   end
 
   defp reduce_joins(_, queryable), do: queryable

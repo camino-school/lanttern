@@ -85,7 +85,10 @@ end
 config :lanttern, LantternWeb.UserAuth, google_client_id: System.get_env("GOOGLE_CLIENT_ID")
 
 # Flop
-config :flop, repo: Lanttern.Repo
+config :flop,
+  repo: Lanttern.Repo,
+  default_limit: 1000,
+  max_limit: 1000
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
