@@ -7,10 +7,20 @@ defmodule Lanttern.Curricula.CurriculumItem do
 
   @derive {
     Flop.Schema,
-    filterable: [:subject_id, :year_id],
+    filterable: [:subjects_ids, :years_ids, :subject_id, :year_id],
     sortable: [],
     adapter_opts: [
       join_fields: [
+        subjects_ids: [
+          binding: :subjects,
+          field: :id,
+          ecto_type: :id
+        ],
+        years_ids: [
+          binding: :years,
+          field: :id,
+          ecto_type: :id
+        ],
         subject_id: [
           binding: :subjects,
           field: :id,

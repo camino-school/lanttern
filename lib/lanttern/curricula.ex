@@ -262,15 +262,22 @@ defmodule Lanttern.Curricula do
   # list/search filters
 
   defp maybe_filter(queryable, opts) do
+    filter_fields_and_ops = [
+      subject_id: :==,
+      year_id: :==
+    ]
+
     case Keyword.get(opts, :filters) do
       filters when is_list(filters) and filters != [] ->
         queryable
         |> prepare_joins(filters)
-        |> Flop.validate_and_run(%{filters: build_filters_param(filters)}, for: CurriculumItem)
-        |> handle_validate_and_run()
+        |> handle_flop_validate_and_run(
+          %{filters: build_flop_filters_param(opts, filter_fields_and_ops)},
+          for: CurriculumItem
+        )
 
       _ ->
-        Repo.all(queryable)
+        handle_flop_validate_and_run(queryable)
     end
   end
 
@@ -289,24 +296,6 @@ defmodule Lanttern.Curricula do
   end
 
   defp reduce_joins(_, queryable), do: queryable
-
-  defp build_filters_param(filters) do
-    Enum.reduce(filters, [], &reduce_filters_param/2)
-  end
-
-  defp reduce_filters_param({field, id}, filters) do
-    [%{field: field, op: :==, value: id} | filters]
-  end
-
-  defp reduce_filters_param(_, filters), do: filters
-
-  defp handle_validate_and_run({:ok, {result, %Flop.Meta{}}}) do
-    result
-  end
-
-  defp handle_validate_and_run({:error, %Flop.Meta{} = meta}) do
-    raise meta.errors
-  end
 
   @doc """
   Gets a single curriculum item.

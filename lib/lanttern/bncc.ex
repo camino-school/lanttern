@@ -4,7 +4,8 @@ defmodule Lanttern.BNCC do
   """
 
   import Ecto.Query, warn: false
-  alias Lanttern.Repo
+
+  import Lanttern.RepoHelpers
 
   alias Lanttern.BNCC.HabilidadeBNCCEF
   alias Lanttern.Curricula.CurriculumItem
@@ -52,7 +53,12 @@ defmodule Lanttern.BNCC do
       [%CurriculumItem{}, ...]
 
   """
-  def list_bncc_ef_items() do
+  def list_bncc_ef_items(opts \\ []) do
+    filter_fields_and_ops = [
+      subjects_ids: :in,
+      years_ids: :in
+    ]
+
     # subquery parent items (UT, OC, etc.)
     structure_items =
       from(
@@ -79,15 +85,20 @@ defmodule Lanttern.BNCC do
       join: oc in subquery(structure_items),
       on: oc.children_id == ha.id and oc.component_code == @comp_oc,
       join: su in assoc(ha, :subjects),
+      as: :subjects,
       on: su.code in @ef_subjects_codes,
       join: ye in assoc(ha, :years),
+      as: :years,
       on: ye.code in @ef_years_codes,
       join: cu in assoc(cc, :curriculum),
       where: cu.code == @cur_bncc,
       preload: [subjects: su, years: ye],
       select: {ha, ca, pl, ei, ut, oc}
     )
-    |> Repo.all()
+    |> handle_flop_validate_and_run(
+      %{filters: build_flop_filters_param(opts, filter_fields_and_ops)},
+      for: CurriculumItem
+    )
     |> Enum.map(fn {habilidade, campo_de_atuacao, pratica_de_linguagem, eixo, unidade_tematica,
                     objeto_de_conhecimento} ->
       HabilidadeBNCCEF
