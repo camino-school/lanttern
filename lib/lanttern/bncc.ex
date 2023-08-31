@@ -62,6 +62,11 @@ defmodule Lanttern.BNCC do
       years_ids: :in
     ]
 
+    flop_params = %{
+      filters: build_flop_filters_param(opts, filter_fields_and_ops),
+      order_by: [:code]
+    }
+
     # subquery parent items (UT, OC, etc.)
     structure_items =
       from(
@@ -95,13 +100,11 @@ defmodule Lanttern.BNCC do
       on: ye.code in @ef_years_codes,
       join: cu in assoc(cc, :curriculum),
       where: cu.code == @cur_bncc,
+      order_by: [su.id, ye.id],
       preload: [subjects: su, years: ye],
       select: {ha, ca, pl, ei, ut, oc}
     )
-    |> handle_flop_validate_and_run(
-      %{filters: build_flop_filters_param(opts, filter_fields_and_ops)},
-      for: CurriculumItem
-    )
+    |> handle_flop_validate_and_run(flop_params, for: CurriculumItem)
     |> Enum.map(fn {habilidade, campo_de_atuacao, pratica_de_linguagem, eixo, unidade_tematica,
                     objeto_de_conhecimento} ->
       HabilidadeBNCCEF

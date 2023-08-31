@@ -1,213 +1,124 @@
 defmodule Lanttern.BNCCTest do
   use Lanttern.DataCase
 
-  describe "BNCC" do
+  describe "BNCC EF" do
+    import Lanttern.BNCCFixtures
     import Lanttern.CurriculaFixtures
     import Lanttern.TaxonomyFixtures
 
     alias Lanttern.BNCC
 
     setup do
-      sub_lp = subject_fixture(%{code: "port"})
-      sub_li = subject_fixture(%{code: "engl"})
-      sub_ci = subject_fixture(%{code: "scie"})
+      [sub_lp, sub_ar, sub_ef, sub_li, sub_ma, sub_ci, sub_ge, sub_hi, sub_er] =
+        ["port", "arts", "move", "engl", "math", "scie", "geog", "hist", "reli"]
+        |> Enum.map(fn code -> subject_fixture(%{code: code}) end)
 
-      year_ef1 = year_fixture(%{code: "g1"})
-      year_ef3 = year_fixture(%{code: "g3"})
-      year_ef6 = year_fixture(%{code: "g6"})
+      [year_ef1, year_ef2, year_ef3, year_ef4, year_ef5, year_ef6, year_ef7, year_ef8, year_ef9] =
+        ["g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9"]
+        |> Enum.map(fn code -> year_fixture(%{code: code}) end)
 
-      bncc = curriculum_fixture(%{code: "bncc"})
-
-      comp_ca = curriculum_component_fixture(%{curriculum_id: bncc.id, code: "bncc_ca"})
-      comp_pl = curriculum_component_fixture(%{curriculum_id: bncc.id, code: "bncc_pl"})
-      comp_ei = curriculum_component_fixture(%{curriculum_id: bncc.id, code: "bncc_ei"})
-      comp_ut = curriculum_component_fixture(%{curriculum_id: bncc.id, code: "bncc_ut"})
-      comp_oc = curriculum_component_fixture(%{curriculum_id: bncc.id, code: "bncc_oc"})
-      comp_ha = curriculum_component_fixture(%{curriculum_id: bncc.id, code: "bncc_ha"})
-
-      ca =
-        curriculum_item_fixture(%{subjects_ids: [sub_lp.id], curriculum_component_id: comp_ca.id})
-
-      pl =
-        curriculum_item_fixture(%{subjects_ids: [sub_lp.id], curriculum_component_id: comp_pl.id})
-
-      ei =
-        curriculum_item_fixture(%{subjects_ids: [sub_li.id], curriculum_component_id: comp_ei.id})
-
-      ut_li =
-        curriculum_item_fixture(%{subjects_ids: [sub_ci.id], curriculum_component_id: comp_ut.id})
-
-      ut_ci =
-        curriculum_item_fixture(%{subjects_ids: [sub_ci.id], curriculum_component_id: comp_ut.id})
-
-      oc_lp =
-        curriculum_item_fixture(%{subjects_ids: [sub_lp.id], curriculum_component_id: comp_oc.id})
-
-      oc_li =
-        curriculum_item_fixture(%{subjects_ids: [sub_li.id], curriculum_component_id: comp_oc.id})
-
-      oc_ci =
-        curriculum_item_fixture(%{subjects_ids: [sub_ci.id], curriculum_component_id: comp_oc.id})
-
-      ha_lp_1 =
-        curriculum_item_fixture(%{
+      {ca_lp_1, pl_lp_1, oc_lp_1, ha_lp_1} =
+        habilidade_bncc_ef_lp_fixture(%{
           subjects_ids: [sub_lp.id],
-          years_ids: [year_ef1.id],
-          curriculum_component_id: comp_ha.id
+          years_ids: [year_ef1.id]
         })
 
-      ha_lp_3 =
-        curriculum_item_fixture(%{
+      {ca_lp_3, pl_lp_3, oc_lp_3, ha_lp_3} =
+        habilidade_bncc_ef_lp_fixture(%{
           subjects_ids: [sub_lp.id],
-          years_ids: [year_ef3.id],
-          curriculum_component_id: comp_ha.id
+          years_ids: [year_ef3.id]
         })
 
-      ha_li =
-        curriculum_item_fixture(%{
+      {ei_li, ut_li, oc_li, ha_li} =
+        habilidade_bncc_ef_li_fixture(%{
           subjects_ids: [sub_li.id],
-          years_ids: [year_ef6.id],
-          curriculum_component_id: comp_ha.id
+          years_ids: [year_ef6.id]
         })
 
-      ha_ci =
-        curriculum_item_fixture(%{
+      {ut_ci, oc_ci, ha_ci} =
+        habilidade_bncc_ef_fixture(%{
           subjects_ids: [sub_ci.id],
-          years_ids: [year_ef3.id],
-          curriculum_component_id: comp_ha.id
+          years_ids: [year_ef3.id]
         })
-
-      # extra fixtures for "filtering" test
-      curriculum_item_fixture()
-      curriculum_item_fixture()
-      curriculum_item_fixture()
-
-      # build structure
-
-      # LP - ca > pl > oc > ha
-      curriculum_relationship_fixture(%{
-        curriculum_item_a_id: ca.id,
-        curriculum_item_b_id: ha_lp_1.id,
-        type: "hierarchical"
-      })
-
-      curriculum_relationship_fixture(%{
-        curriculum_item_a_id: pl.id,
-        curriculum_item_b_id: ha_lp_1.id,
-        type: "hierarchical"
-      })
-
-      curriculum_relationship_fixture(%{
-        curriculum_item_a_id: oc_lp.id,
-        curriculum_item_b_id: ha_lp_1.id,
-        type: "hierarchical"
-      })
-
-      curriculum_relationship_fixture(%{
-        curriculum_item_a_id: ca.id,
-        curriculum_item_b_id: ha_lp_3.id,
-        type: "hierarchical"
-      })
-
-      curriculum_relationship_fixture(%{
-        curriculum_item_a_id: pl.id,
-        curriculum_item_b_id: ha_lp_3.id,
-        type: "hierarchical"
-      })
-
-      curriculum_relationship_fixture(%{
-        curriculum_item_a_id: oc_lp.id,
-        curriculum_item_b_id: ha_lp_3.id,
-        type: "hierarchical"
-      })
-
-      # LI - ei > ut > oc > ha
-      curriculum_relationship_fixture(%{
-        curriculum_item_a_id: ei.id,
-        curriculum_item_b_id: ha_li.id,
-        type: "hierarchical"
-      })
-
-      curriculum_relationship_fixture(%{
-        curriculum_item_a_id: ut_li.id,
-        curriculum_item_b_id: ha_li.id,
-        type: "hierarchical"
-      })
-
-      curriculum_relationship_fixture(%{
-        curriculum_item_a_id: oc_li.id,
-        curriculum_item_b_id: ha_li.id,
-        type: "hierarchical"
-      })
-
-      # CI - ut > oc > ha
-      curriculum_relationship_fixture(%{
-        curriculum_item_a_id: ut_ci.id,
-        curriculum_item_b_id: ha_ci.id,
-        type: "hierarchical"
-      })
-
-      curriculum_relationship_fixture(%{
-        curriculum_item_a_id: oc_ci.id,
-        curriculum_item_b_id: ha_ci.id,
-        type: "hierarchical"
-      })
 
       %{
         sub_lp: sub_lp,
+        sub_ar: sub_ar,
+        sub_ef: sub_ef,
         sub_li: sub_li,
+        sub_ma: sub_ma,
         sub_ci: sub_ci,
+        sub_ge: sub_ge,
+        sub_hi: sub_hi,
+        sub_er: sub_er,
         year_ef1: year_ef1,
+        year_ef2: year_ef2,
         year_ef3: year_ef3,
+        year_ef4: year_ef4,
+        year_ef5: year_ef5,
         year_ef6: year_ef6,
-        ca: ca,
-        pl: pl,
-        ei: ei,
-        ut_li: ut_li,
-        ut_ci: ut_ci,
-        oc_lp: oc_lp,
-        oc_li: oc_li,
-        oc_ci: oc_ci,
+        year_ef7: year_ef7,
+        year_ef8: year_ef8,
+        year_ef9: year_ef9,
+        ca_lp_1: ca_lp_1,
+        pl_lp_1: pl_lp_1,
+        oc_lp_1: oc_lp_1,
         ha_lp_1: ha_lp_1,
+        ca_lp_3: ca_lp_3,
+        pl_lp_3: pl_lp_3,
+        oc_lp_3: oc_lp_3,
         ha_lp_3: ha_lp_3,
+        ei_li: ei_li,
+        ut_li: ut_li,
+        oc_li: oc_li,
         ha_li: ha_li,
+        ut_ci: ut_ci,
+        oc_ci: oc_ci,
         ha_ci: ha_ci
       }
     end
 
     test "list_bncc_ef_items/1 returns all EF BNCC curriculum items", %{
-      ca: ca,
-      pl: pl,
-      ei: ei,
-      ut_li: ut_li,
-      ut_ci: ut_ci,
-      oc_lp: oc_lp,
-      oc_li: oc_li,
-      oc_ci: oc_ci,
+      ca_lp_1: ca_lp_1,
+      pl_lp_1: pl_lp_1,
+      oc_lp_1: oc_lp_1,
       ha_lp_1: ha_lp_1,
+      ca_lp_3: ca_lp_3,
+      pl_lp_3: pl_lp_3,
+      oc_lp_3: oc_lp_3,
       ha_lp_3: ha_lp_3,
+      ei_li: ei_li,
+      ut_li: ut_li,
+      oc_li: oc_li,
       ha_li: ha_li,
+      ut_ci: ut_ci,
+      oc_ci: oc_ci,
       ha_ci: ha_ci
     } do
+      # extra fixtures for "filtering" test
+      curriculum_item_fixture()
+      curriculum_item_fixture()
+      curriculum_item_fixture()
+
       # expected
       expected = BNCC.list_bncc_ef_items()
       assert length(expected) == 4
 
       expected_ha_lp_1 = Enum.find(expected, fn ha -> ha.id == ha_lp_1.id end)
       assert expected_ha_lp_1.id == ha_lp_1.id
-      assert expected_ha_lp_1.campo_de_atuacao.id == ca.id
-      assert expected_ha_lp_1.pratica_de_linguagem.id == pl.id
-      assert expected_ha_lp_1.objeto_de_conhecimento.id == oc_lp.id
+      assert expected_ha_lp_1.campo_de_atuacao.id == ca_lp_1.id
+      assert expected_ha_lp_1.pratica_de_linguagem.id == pl_lp_1.id
+      assert expected_ha_lp_1.objeto_de_conhecimento.id == oc_lp_1.id
 
       expected_ha_lp_3 = Enum.find(expected, fn ha -> ha.id == ha_lp_3.id end)
       assert expected_ha_lp_3.id == ha_lp_3.id
-      assert expected_ha_lp_3.campo_de_atuacao.id == ca.id
-      assert expected_ha_lp_3.pratica_de_linguagem.id == pl.id
-      assert expected_ha_lp_3.objeto_de_conhecimento.id == oc_lp.id
+      assert expected_ha_lp_3.campo_de_atuacao.id == ca_lp_3.id
+      assert expected_ha_lp_3.pratica_de_linguagem.id == pl_lp_3.id
+      assert expected_ha_lp_3.objeto_de_conhecimento.id == oc_lp_3.id
 
       expected_ha_li = Enum.find(expected, fn ha -> ha.id == ha_li.id end)
       assert expected_ha_li.id == ha_li.id
-      assert expected_ha_li.eixo.id == ei.id
+      assert expected_ha_li.eixo.id == ei_li.id
       assert expected_ha_li.unidade_tematica.id == ut_li.id
       assert expected_ha_li.objeto_de_conhecimento.id == oc_li.id
 
@@ -223,11 +134,77 @@ defmodule Lanttern.BNCCTest do
            year_ef1: year_ef1,
            ha_lp_1: ha_lp_1
          } do
+      # extra fixtures for "filtering" test
+      curriculum_item_fixture()
+      curriculum_item_fixture()
+      curriculum_item_fixture()
+
       # expected
       [expected] =
         BNCC.list_bncc_ef_items(filters: [subjects_ids: [sub_lp.id], years_ids: [year_ef1.id]])
 
       assert expected.id == ha_lp_1.id
+    end
+
+    test "list_bncc_ef_subjects/0 list all EF BNCC related subjects",
+         %{
+           sub_lp: sub_lp,
+           sub_ar: sub_ar,
+           sub_ef: sub_ef,
+           sub_li: sub_li,
+           sub_ma: sub_ma,
+           sub_ci: sub_ci,
+           sub_ge: sub_ge,
+           sub_hi: sub_hi,
+           sub_er: sub_er
+         } do
+      # extra fixtures for "filtering" test
+      subject_fixture()
+      subject_fixture()
+      subject_fixture()
+
+      expected = BNCC.list_bncc_ef_subjects()
+
+      assert length(expected) == 9
+
+      all_subs = [sub_lp, sub_ar, sub_ef, sub_li, sub_ma, sub_ci, sub_ge, sub_hi, sub_er]
+      assert Enum.all?(expected, fn sub -> sub in all_subs end)
+    end
+
+    test "list_bncc_ef_years/0 list all EF BNCC related years",
+         %{
+           year_ef1: year_ef1,
+           year_ef2: year_ef2,
+           year_ef3: year_ef3,
+           year_ef4: year_ef4,
+           year_ef5: year_ef5,
+           year_ef6: year_ef6,
+           year_ef7: year_ef7,
+           year_ef8: year_ef8,
+           year_ef9: year_ef9
+         } do
+      # extra fixtures for "filtering" test
+      year_fixture()
+      year_fixture()
+      year_fixture()
+
+      expected = BNCC.list_bncc_ef_years()
+
+      assert length(expected) == 9
+
+      all_years = [
+        year_ef1,
+        year_ef2,
+        year_ef3,
+        year_ef4,
+        year_ef5,
+        year_ef6,
+        year_ef7,
+        year_ef8,
+        year_ef9
+      ]
+
+      assert Enum.all?(expected, fn year -> year in all_years end)
     end
   end
 end
