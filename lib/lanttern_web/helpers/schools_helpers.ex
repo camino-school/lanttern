@@ -11,8 +11,7 @@ defmodule LantternWeb.SchoolsHelpers do
   """
   def generate_student_options() do
     Schools.list_students()
-    |> Enum.map(fn s -> ["#{s.name}": s.id] end)
-    |> Enum.concat()
+    |> Enum.map(fn s -> {s.name, s.id} end)
   end
 
   @doc """
@@ -25,7 +24,6 @@ defmodule LantternWeb.SchoolsHelpers do
   """
   def generate_class_options() do
     Schools.list_classes()
-    |> Enum.map(fn s -> ["#{s.name}": s.id] end)
-    |> Enum.concat()
+    |> Enum.map(fn s -> {s.name, s.id} end)
   end
 end

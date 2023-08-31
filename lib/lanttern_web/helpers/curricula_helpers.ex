@@ -11,8 +11,7 @@ defmodule LantternWeb.CurriculaHelpers do
   """
   def generate_curriculum_options() do
     Curricula.list_curricula()
-    |> Enum.map(fn c -> ["#{c.name}": c.id] end)
-    |> Enum.concat()
+    |> Enum.map(fn c -> {c.name, c.id} end)
   end
 
   @doc """
@@ -25,8 +24,7 @@ defmodule LantternWeb.CurriculaHelpers do
   """
   def generate_curriculum_component_options() do
     Curricula.list_curriculum_components()
-    |> Enum.map(fn c -> ["#{c.name}": c.id] end)
-    |> Enum.concat()
+    |> Enum.map(fn c -> {c.name, c.id} end)
   end
 
   @doc """
@@ -39,7 +37,6 @@ defmodule LantternWeb.CurriculaHelpers do
   """
   def generate_curriculum_item_options() do
     Curricula.list_curriculum_items()
-    |> Enum.map(fn i -> ["#{i.name}": i.id] end)
-    |> Enum.concat()
+    |> Enum.map(fn i -> {i.name, i.id} end)
   end
 end

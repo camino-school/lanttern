@@ -11,8 +11,7 @@ defmodule LantternWeb.TaxonomyHelpers do
   """
   def generate_subject_options() do
     Taxonomy.list_subjects()
-    |> Enum.map(fn s -> ["#{s.name}": s.id] end)
-    |> Enum.concat()
+    |> Enum.map(fn s -> {s.name, s.id} end)
   end
 
   @doc """
@@ -25,7 +24,6 @@ defmodule LantternWeb.TaxonomyHelpers do
   """
   def generate_year_options() do
     Taxonomy.list_years()
-    |> Enum.map(fn y -> ["#{y.name}": y.id] end)
-    |> Enum.concat()
+    |> Enum.map(fn y -> {y.name, y.id} end)
   end
 end

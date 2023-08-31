@@ -8,10 +8,11 @@
 /* This file is for your main application CSS */
 
 body {
+  background-attachment: fixed;
   background-image:
   radial-gradient(circle at 100% 160px, #FFE4E6 240px, transparent 360px),
   radial-gradient(circle at 85% -200px, #DDD6FE 360px, transparent 480px),
-  radial-gradient(circle at 15% 96px, #ECFEFF 360px, transparent 480px)
+  radial-gradient(circle at 15% 96px, #ECFEFF 360px, transparent 480px);
 }
 
 .lanttern-bg-1 {

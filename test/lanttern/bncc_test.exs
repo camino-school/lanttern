@@ -8,56 +8,65 @@ defmodule Lanttern.BNCCTest do
     import Lanttern.TaxonomyFixtures
 
     test "list_bncc_ef_items/0 returns all EF BNCC curriculum items" do
-      sub_ar = subject_fixture()
-      sub_ma = subject_fixture()
-      sub_ci = subject_fixture()
+      sub_lp = subject_fixture(%{code: "port"})
+      sub_li = subject_fixture(%{code: "engl"})
+      sub_ci = subject_fixture(%{code: "scie"})
 
-      year_ef1 = year_fixture()
-      year_ef3 = year_fixture()
-      year_ef5 = year_fixture()
+      year_ef1 = year_fixture(%{code: "g1"})
+      year_ef3 = year_fixture(%{code: "g3"})
+      year_ef6 = year_fixture(%{code: "g6"})
 
       bncc = curriculum_fixture(%{code: "bncc"})
 
+      comp_ca = curriculum_component_fixture(%{curriculum_id: bncc.id, code: "bncc_ca"})
+      comp_pl = curriculum_component_fixture(%{curriculum_id: bncc.id, code: "bncc_pl"})
+      comp_ei = curriculum_component_fixture(%{curriculum_id: bncc.id, code: "bncc_ei"})
       comp_ut = curriculum_component_fixture(%{curriculum_id: bncc.id, code: "bncc_ut"})
       comp_oc = curriculum_component_fixture(%{curriculum_id: bncc.id, code: "bncc_oc"})
       comp_ha = curriculum_component_fixture(%{curriculum_id: bncc.id, code: "bncc_ha"})
 
-      ut_1 =
-        curriculum_item_fixture(%{subjects_ids: [sub_ar.id], curriculum_component_id: comp_ut.id})
+      ca =
+        curriculum_item_fixture(%{subjects_ids: [sub_lp.id], curriculum_component_id: comp_ca.id})
 
-      ut_2 =
-        curriculum_item_fixture(%{subjects_ids: [sub_ma.id], curriculum_component_id: comp_ut.id})
+      pl =
+        curriculum_item_fixture(%{subjects_ids: [sub_lp.id], curriculum_component_id: comp_pl.id})
 
-      ut_3 =
+      ei =
+        curriculum_item_fixture(%{subjects_ids: [sub_li.id], curriculum_component_id: comp_ei.id})
+
+      ut_li =
         curriculum_item_fixture(%{subjects_ids: [sub_ci.id], curriculum_component_id: comp_ut.id})
 
-      oc_1 =
-        curriculum_item_fixture(%{subjects_ids: [sub_ar.id], curriculum_component_id: comp_oc.id})
+      ut_ci =
+        curriculum_item_fixture(%{subjects_ids: [sub_ci.id], curriculum_component_id: comp_ut.id})
 
-      oc_2 =
-        curriculum_item_fixture(%{subjects_ids: [sub_ma.id], curriculum_component_id: comp_oc.id})
+      oc_lp =
+        curriculum_item_fixture(%{subjects_ids: [sub_lp.id], curriculum_component_id: comp_oc.id})
 
-      oc_3 =
+      oc_li =
+        curriculum_item_fixture(%{subjects_ids: [sub_li.id], curriculum_component_id: comp_oc.id})
+
+      oc_ci =
         curriculum_item_fixture(%{subjects_ids: [sub_ci.id], curriculum_component_id: comp_oc.id})
 
-      ha_1 =
+      ha_lp =
         curriculum_item_fixture(%{
-          subjects_ids: [sub_ar.id],
+          subjects_ids: [sub_lp.id],
           years_ids: [year_ef1.id],
           curriculum_component_id: comp_ha.id
         })
 
-      ha_2 =
+      ha_li =
         curriculum_item_fixture(%{
-          subjects_ids: [sub_ma.id],
-          years_ids: [year_ef3.id],
+          subjects_ids: [sub_li.id],
+          years_ids: [year_ef6.id],
           curriculum_component_id: comp_ha.id
         })
 
-      ha_3 =
+      ha_ci =
         curriculum_item_fixture(%{
           subjects_ids: [sub_ci.id],
-          years_ids: [year_ef5.id],
+          years_ids: [year_ef3.id],
           curriculum_component_id: comp_ha.id
         })
 
@@ -67,39 +76,55 @@ defmodule Lanttern.BNCCTest do
       curriculum_item_fixture()
 
       # build structure
+
+      # LP - ca > pl > oc > ha
       curriculum_relationship_fixture(%{
-        curriculum_item_a_id: ut_1.id,
-        curriculum_item_b_id: ha_1.id,
+        curriculum_item_a_id: ca.id,
+        curriculum_item_b_id: ha_lp.id,
         type: "hierarchical"
       })
 
       curriculum_relationship_fixture(%{
-        curriculum_item_a_id: oc_1.id,
-        curriculum_item_b_id: ha_1.id,
+        curriculum_item_a_id: pl.id,
+        curriculum_item_b_id: ha_lp.id,
         type: "hierarchical"
       })
 
       curriculum_relationship_fixture(%{
-        curriculum_item_a_id: ut_2.id,
-        curriculum_item_b_id: ha_2.id,
+        curriculum_item_a_id: oc_lp.id,
+        curriculum_item_b_id: ha_lp.id,
+        type: "hierarchical"
+      })
+
+      # LI - ei > ut > oc > ha
+      curriculum_relationship_fixture(%{
+        curriculum_item_a_id: ei.id,
+        curriculum_item_b_id: ha_li.id,
         type: "hierarchical"
       })
 
       curriculum_relationship_fixture(%{
-        curriculum_item_a_id: oc_2.id,
-        curriculum_item_b_id: ha_2.id,
+        curriculum_item_a_id: ut_li.id,
+        curriculum_item_b_id: ha_li.id,
         type: "hierarchical"
       })
 
       curriculum_relationship_fixture(%{
-        curriculum_item_a_id: ut_3.id,
-        curriculum_item_b_id: ha_3.id,
+        curriculum_item_a_id: oc_li.id,
+        curriculum_item_b_id: ha_li.id,
+        type: "hierarchical"
+      })
+
+      # CI - ut > oc > ha
+      curriculum_relationship_fixture(%{
+        curriculum_item_a_id: ut_ci.id,
+        curriculum_item_b_id: ha_ci.id,
         type: "hierarchical"
       })
 
       curriculum_relationship_fixture(%{
-        curriculum_item_a_id: oc_3.id,
-        curriculum_item_b_id: ha_3.id,
+        curriculum_item_a_id: oc_ci.id,
+        curriculum_item_b_id: ha_ci.id,
         type: "hierarchical"
       })
 
@@ -107,20 +132,22 @@ defmodule Lanttern.BNCCTest do
       expected = BNCC.list_bncc_ef_items()
       assert length(expected) == 3
 
-      expected_ha_1 = Enum.find(expected, fn ha -> ha.id == ha_1.id end)
-      assert expected_ha_1.id == ha_1.id
-      assert expected_ha_1.unidade_tematica.id == ut_1.id
-      assert expected_ha_1.objeto_de_conhecimento.id == oc_1.id
+      expected_ha_lp = Enum.find(expected, fn ha -> ha.id == ha_lp.id end)
+      assert expected_ha_lp.id == ha_lp.id
+      assert expected_ha_lp.campo_de_atuacao.id == ca.id
+      assert expected_ha_lp.pratica_de_linguagem.id == pl.id
+      assert expected_ha_lp.objeto_de_conhecimento.id == oc_lp.id
 
-      expected_ha_2 = Enum.find(expected, fn ha -> ha.id == ha_2.id end)
-      assert expected_ha_2.id == ha_2.id
-      assert expected_ha_2.unidade_tematica.id == ut_2.id
-      assert expected_ha_2.objeto_de_conhecimento.id == oc_2.id
+      expected_ha_li = Enum.find(expected, fn ha -> ha.id == ha_li.id end)
+      assert expected_ha_li.id == ha_li.id
+      assert expected_ha_li.eixo.id == ei.id
+      assert expected_ha_li.unidade_tematica.id == ut_li.id
+      assert expected_ha_li.objeto_de_conhecimento.id == oc_li.id
 
-      expected_ha_3 = Enum.find(expected, fn ha -> ha.id == ha_3.id end)
-      assert expected_ha_3.id == ha_3.id
-      assert expected_ha_3.unidade_tematica.id == ut_3.id
-      assert expected_ha_3.objeto_de_conhecimento.id == oc_3.id
+      expected_ha_ci = Enum.find(expected, fn ha -> ha.id == ha_ci.id end)
+      assert expected_ha_ci.id == ha_ci.id
+      assert expected_ha_ci.unidade_tematica.id == ut_ci.id
+      assert expected_ha_ci.objeto_de_conhecimento.id == oc_ci.id
     end
   end
 end
