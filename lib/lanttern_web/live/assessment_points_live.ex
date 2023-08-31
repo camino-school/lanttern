@@ -13,15 +13,15 @@ defmodule LantternWeb.AssessmentPointsLive do
         </p>
         <.link
           patch={~p"/assessment_points/explorer"}
-          class="flex items-center mt-4 font-display font-black text-lg text-slate-400"
+          class="flex items-center mt-4 font-display font-black text-lg text-ltrn-subtle"
         >
-          Explore <.icon name="hero-arrow-right" class="text-cyan-400 ml-2" />
+          Explore <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
         </.link>
         <button
-          class="flex items-center mt-4 font-display font-black text-lg text-slate-400"
+          class="flex items-center mt-4 font-display font-black text-lg text-ltrn-subtle"
           phx-click="create-assessment-point"
         >
-          Create assessment point <.icon name="hero-plus" class="text-cyan-400 ml-2" />
+          Create assessment point <.icon name="hero-plus" class="text-ltrn-primary ml-2" />
         </button>
       </div>
     </div>

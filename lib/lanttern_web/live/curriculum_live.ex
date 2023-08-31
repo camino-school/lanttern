@@ -7,28 +7,40 @@ defmodule LantternWeb.CurriculumLive do
       <h1 class="font-display font-black text-3xl">Curriculum</h1>
       <div class="mt-12">
         <.link
-          patch={~p"/curriculum/bncc"}
-          class="flex items-center font-display font-black text-lg text-slate-400"
+          patch={~p"/curriculum/bncc_ef"}
+          class="flex items-center font-display font-black text-lg text-ltrn-subtle"
         >
-          Aero <.icon name="hero-arrow-right" class="text-cyan-400 ml-2" />
+          Aero <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
         </.link>
         <.link
-          patch={~p"/curriculum/bncc"}
-          class="flex items-center mt-4 font-display font-black text-lg text-slate-400"
+          patch={~p"/curriculum/bncc_ef"}
+          class="flex items-center mt-4 font-display font-black text-lg text-ltrn-subtle"
         >
-          BNCC <.icon name="hero-arrow-right" class="text-cyan-400 ml-2" />
+          BNCC EI <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
         </.link>
         <.link
-          patch={~p"/curriculum/bncc"}
-          class="flex items-center mt-4 font-display font-black text-lg text-slate-400"
+          patch={~p"/curriculum/bncc_ef"}
+          class="flex items-center mt-4 font-display font-black text-lg text-ltrn-subtle"
         >
-          Camino School <.icon name="hero-arrow-right" class="text-cyan-400 ml-2" />
+          BNCC EF <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
         </.link>
         <.link
-          patch={~p"/curriculum/bncc"}
-          class="flex items-center mt-4 font-display font-black text-lg text-slate-400"
+          patch={~p"/curriculum/bncc_ef"}
+          class="flex items-center mt-4 font-display font-black text-lg text-ltrn-subtle"
         >
-          Common Core <.icon name="hero-arrow-right" class="text-cyan-400 ml-2" />
+          BNCC EM <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
+        </.link>
+        <.link
+          patch={~p"/curriculum/bncc_ef"}
+          class="flex items-center mt-4 font-display font-black text-lg text-ltrn-subtle"
+        >
+          Camino School <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
+        </.link>
+        <.link
+          patch={~p"/curriculum/bncc_ef"}
+          class="flex items-center mt-4 font-display font-black text-lg text-ltrn-subtle"
+        >
+          Common Core <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
         </.link>
       </div>
     </div>

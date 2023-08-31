@@ -46,7 +46,7 @@ defmodule LantternWeb.OverlayComponents do
               id="slide-over-panel"
               class="pointer-events-auto w-screen max-w-xl py-6 transition-translate hidden"
             >
-              <div class="flex h-full flex-col divide-y divide-slate-200 bg-white shadow-xl rounded-l">
+              <div class="flex h-full flex-col divide-y divide-ltrn-hairline bg-white shadow-xl rounded-l">
                 <div class="flex min-h-0 flex-1 flex-col overflow-y-scroll py-6 lanttern-bg-1">
                   <div class="px-4 sm:px-6">
                     <div class="flex items-start justify-between">

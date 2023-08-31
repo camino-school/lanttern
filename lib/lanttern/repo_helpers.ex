@@ -49,6 +49,13 @@ defmodule Lanttern.RepoHelpers do
 
   @doc """
   Prepare `:filters` opt to be used as a Flop filter
+
+  ## Examples
+
+      iex> opts = [filters: [a: "a", b: ["b"], c: "c"]]
+      iex> fields_and_ops = [a: :==, b: :in]
+      iex> build_flop_filters_param(opts, fields_and_ops)
+      [[field: :a, op: :==, value: "a"], [field: :b, op: :in value: ["b"]]]
   """
   def build_flop_filters_param(opts \\ [], fields_and_ops \\ []) do
     case Keyword.get(opts, :filters) do

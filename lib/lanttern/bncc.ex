@@ -7,9 +7,12 @@ defmodule Lanttern.BNCC do
 
   import Lanttern.RepoHelpers
 
+  alias Lanttern.Repo
   alias Lanttern.BNCC.HabilidadeBNCCEF
   alias Lanttern.Curricula.CurriculumItem
   alias Lanttern.Curricula.CurriculumRelationship
+  alias Lanttern.Taxonomy.Subject
+  alias Lanttern.Taxonomy.Year
 
   # BNCC related taxonomy]
   @ef_subjects_codes ["port", "arts", "move", "engl", "math", "scie", "geog", "hist", "reli"]
@@ -109,5 +112,39 @@ defmodule Lanttern.BNCC do
       |> Map.put(:unidade_tematica, unidade_tematica)
       |> Map.put(:objeto_de_conhecimento, objeto_de_conhecimento)
     end)
+  end
+
+  @doc """
+  Returns the list of BNCC EF curriculum subjects
+
+  ## Examples
+
+      iex> list_bncc_ef_subjects()
+      [%Subject{}, ...]
+
+  """
+  def list_bncc_ef_subjects() do
+    from(
+      s in Subject,
+      where: s.code in @ef_subjects_codes
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Returns the list of BNCC EF curriculum years
+
+  ## Examples
+
+      iex> list_bncc_ef_years()
+      [%Year{}, ...]
+
+  """
+  def list_bncc_ef_years() do
+    from(
+      y in Year,
+      where: y.code in @ef_years_codes
+    )
+    |> Repo.all()
   end
 end

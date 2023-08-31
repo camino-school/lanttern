@@ -3,6 +3,7 @@
 
 const plugin = require("tailwindcss/plugin");
 const defaultTheme = require("tailwindcss/defaultTheme");
+const colors = require("tailwindcss/colors");
 const fs = require("fs");
 const path = require("path");
 
@@ -11,7 +12,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: "#FD4F00",
+        ltrn: {
+          primary: colors.cyan["400"],
+          text: colors.slate["700"],
+          subtle: colors.slate["400"],
+          hairline: colors.slate["200"],
+        },
       },
       fontFamily: {
         display: ["Montserrat", "sans-serif"],

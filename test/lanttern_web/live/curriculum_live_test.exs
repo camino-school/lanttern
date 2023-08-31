@@ -11,15 +11,15 @@ defmodule LantternWeb.CurriculumLiveTest do
       {:ok, _view, _html} = live(conn)
     end
 
-    test "navigation to bncc", %{conn: conn} do
+    test "navigation to BNCC EF", %{conn: conn} do
       {:ok, view, _html} = live(conn, @live_view_path)
 
       view
-      |> element("a", "BNCC")
+      |> element("a", "BNCC EF")
       |> render_click()
 
       path = assert_patch(view)
-      assert path == "/curriculum/bncc"
+      assert path == "/curriculum/bncc_ef"
     end
   end
 end

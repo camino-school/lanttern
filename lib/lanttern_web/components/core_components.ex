@@ -127,7 +127,7 @@ defmodule LantternWeb.CoreComponents do
           </div>
           <div class="ml-3 w-0 flex-1 pt-0.5">
             <p :if={@title} class="mb-1 text-sm font-bold"><%= @title %></p>
-            <p class="text-sm text-slate-400"><%= msg %></p>
+            <p class="text-sm text-ltrn-subtle"><%= msg %></p>
           </div>
           <div class="ml-4 flex flex-shrink-0">
             <button
@@ -261,10 +261,10 @@ defmodule LantternWeb.CoreComponents do
 
   defp button_theme(theme) do
     %{
-      "default" => "bg-cyan-400 hover:bg-cyan-300 shadow-sm",
-      "ghost" => "text-slate-400 bg-transparent hover:bg-slate-100"
+      "default" => "bg-ltrn-primary hover:bg-cyan-300 shadow-sm",
+      "ghost" => "text-ltrn-subtle bg-transparent hover:bg-slate-100"
     }
-    |> Map.get(theme, "bg-cyan-400 hover:bg-cyan-300")
+    |> Map.get(theme, "bg-ltrn-primary hover:bg-cyan-300")
   end
 
   @doc """
@@ -404,7 +404,7 @@ defmodule LantternWeb.CoreComponents do
       <label for={@for} class="font-bold">
         <%= render_slot(@inner_block) %>
       </label>
-      <span class="text-slate-400">Optional</span>
+      <span class="text-ltrn-subtle">Optional</span>
     </div>
     """
   end
@@ -436,8 +436,8 @@ defmodule LantternWeb.CoreComponents do
       id={@id}
       name={@name}
       class={[
-        "block w-full rounded-sm border-0 shadown-sm ring-1 ring-slate-200 bg-white sm:text-sm",
-        "focus:ring-2 focus:ring-cyan-400 focus:ring-inset",
+        "block w-full rounded-sm border-0 shadown-sm ring-1 ring-ltrn-hairline bg-white sm:text-sm",
+        "focus:ring-2 focus:ring-ltrn-primary focus:ring-inset",
         @class
       ]}
       multiple={@multiple}
@@ -469,8 +469,8 @@ defmodule LantternWeb.CoreComponents do
       class={[
         "block w-full min-h-[6rem] rounded-sm border-0 shadow-sm ring-1 sm:text-sm sm:leading-6",
         "focus:ring-2 focus:ring-inset",
-        "phx-no-feedback:ring-slate-200 phx-no-feedback:focus:ring-cyan-400",
-        @errors == [] && "ring-slate-200 focus:ring-cyan-400",
+        "phx-no-feedback:ring-ltrn-hairline phx-no-feedback:focus:ring-ltrn-primary",
+        @errors == [] && "ring-ltrn-hairline focus:ring-ltrn-primary",
         @errors != [] && "ring-rose-400 focus:ring-rose-400",
         @class
       ]}
@@ -508,8 +508,8 @@ defmodule LantternWeb.CoreComponents do
       class={[
         "block w-full rounded-sm border-0 shadow-sm ring-1 sm:text-sm sm:leading-6",
         "focus:ring-2 focus:ring-inset",
-        "phx-no-feedback:ring-slate-200 phx-no-feedback:focus:ring-cyan-400",
-        @errors == [] && "ring-slate-200 focus:ring-cyan-400",
+        "phx-no-feedback:ring-ltrn-hairline phx-no-feedback:focus:ring-ltrn-primary",
+        @errors == [] && "ring-ltrn-hairline focus:ring-ltrn-primary",
         @errors != [] && "ring-rose-400 focus:ring-rose-400",
         @class
       ]}
@@ -853,11 +853,11 @@ defmodule LantternWeb.CoreComponents do
       <button
         :if={@show_remove}
         type="button"
-        class="group relative ml-1 -mr-1 h-3.5 w-3.5 rounded-[1px] hover:bg-slate-400/20"
+        class="group relative ml-1 -mr-1 h-3.5 w-3.5 rounded-[1px] hover:bg-ltrn-subtle/20"
         {@rest}
       >
         <span class="sr-only">Remove</span>
-        <.icon name="hero-x-mark-mini" class="w-3.5 text-slate-400 hover:text-slate-700" />
+        <.icon name="hero-x-mark-mini" class="w-3.5 text-ltrn-subtle hover:text-slate-700" />
         <span class="absolute -inset-1"></span>
       </button>
     </span>

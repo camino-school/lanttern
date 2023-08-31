@@ -40,7 +40,7 @@ defmodule LantternWeb.Router do
     live "/assessment_points/:id", AssessmentPointLive
 
     live "/curriculum", CurriculumLive
-    live "/curriculum/bncc", CurriculumBNCCLive
+    live "/curriculum/bncc_ef", CurriculumBNCCEFLive
   end
 
   scope "/admin", LantternWeb do
