@@ -32,11 +32,13 @@ defmodule Lanttern.BNCCFixtures do
       curriculum_item_fixture(%{subjects_ids: subjects_ids, curriculum_component_id: comp_oc.id})
 
     ha =
-      curriculum_item_fixture(%{
+      attrs
+      |> Enum.into(%{
         subjects_ids: subjects_ids,
         years_ids: years_ids,
         curriculum_component_id: comp_ha.id
       })
+      |> curriculum_item_fixture()
 
     # build structure
 
@@ -80,11 +82,13 @@ defmodule Lanttern.BNCCFixtures do
       curriculum_item_fixture(%{subjects_ids: subjects_ids, curriculum_component_id: comp_oc.id})
 
     ha =
-      curriculum_item_fixture(%{
+      attrs
+      |> Enum.into(%{
         subjects_ids: subjects_ids,
         years_ids: years_ids,
         curriculum_component_id: comp_ha.id
       })
+      |> curriculum_item_fixture()
 
     # build structure
 
@@ -134,11 +138,13 @@ defmodule Lanttern.BNCCFixtures do
       curriculum_item_fixture(%{subjects_ids: subjects_ids, curriculum_component_id: comp_oc.id})
 
     ha =
-      curriculum_item_fixture(%{
+      attrs
+      |> Enum.into(%{
         subjects_ids: subjects_ids,
         years_ids: years_ids,
         curriculum_component_id: comp_ha.id
       })
+      |> curriculum_item_fixture()
 
     # build structure
 

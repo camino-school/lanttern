@@ -15,15 +15,32 @@ defmodule LantternWeb.CurriculumBNCCEFLive do
     </div>
     <div class="container mx-auto lg:max-w-5xl mt-10">
       <div class="flex items-center text-sm">
-        <p>Exploring: all subjects | all years</p>
-        <button class="flex items-center ml-4 text-ltrn-subtle" phx-click="toggle-filter">
+        <p class="flex items-center gap-2">
+          <%= @items_count %> results in
+          <%= if @current_subjects == [] do %>
+            <.badge>all subjects</.badge>
+          <% else %>
+            <.badge :for={sub <- @current_subjects}>
+              <%= sub.name %>
+            </.badge>
+          <% end %>
+          <span>|</span>
+          <%= if @current_years == [] do %>
+            <.badge>all years</.badge>
+          <% else %>
+            <.badge :for={year <- @current_years}>
+              <%= year.name %>
+            </.badge>
+          <% end %>
+        </p>
+        <button class="flex items-center ml-4 text-ltrn-subtle" phx-click="show-filter">
           <.icon name="hero-funnel-mini" class="text-ltrn-primary mr-2" />
           <span class="underline">Filter</span>
         </button>
       </div>
     </div>
     <div class="relative w-full mt-6 rounded shadow-xl bg-white">
-      <%= if @no_results do %>
+      <%= if @items_count == 0 do %>
         No results
       <% else %>
         <.table id="habilidades-bncc" rows={@streams.habilidades_bncc}>
@@ -71,7 +88,7 @@ defmodule LantternWeb.CurriculumBNCCEFLive do
         </fieldset>
       </.form>
       <:actions>
-        <.button type="button" theme="ghost" phx-click="toggle-filter">
+        <.button type="button" theme="ghost" phx-click="hide-filter">
           Cancel
         </.button>
         <.button type="submit" form="bncc-ef-filters-form" phx-disable-with="Applying filters...">
@@ -121,8 +138,10 @@ defmodule LantternWeb.CurriculumBNCCEFLive do
   end
 
   def handle_params(_params, _uri, socket) do
+    current_subjects = []
+    current_years = []
     habilidades_bncc = BNCC.list_bncc_ef_items()
-    no_results = length(habilidades_bncc) == 0
+    items_count = length(habilidades_bncc)
 
     form =
       %{
@@ -137,7 +156,9 @@ defmodule LantternWeb.CurriculumBNCCEFLive do
     socket =
       socket
       |> stream(:habilidades_bncc, habilidades_bncc)
-      |> assign(:no_results, no_results)
+      |> assign(:current_subjects, current_subjects)
+      |> assign(:current_years, current_years)
+      |> assign(:items_count, items_count)
       |> assign(:is_filtering, false)
       |> assign(:form, form)
       |> assign(:ef_subjects, ef_subjects)
@@ -148,8 +169,32 @@ defmodule LantternWeb.CurriculumBNCCEFLive do
 
   # event handlers
 
-  def handle_event("toggle-filter", _, socket) do
-    {:noreply, update(socket, :is_filtering, &(!&1))}
+  def handle_event("show-filter", _, socket) do
+    subjects_ids =
+      socket.assigns.current_subjects
+      |> Enum.map(&"#{&1.id}")
+
+    years_ids =
+      socket.assigns.current_years
+      |> Enum.map(&"#{&1.id}")
+
+    form =
+      %{
+        "subjects_ids" => subjects_ids,
+        "years_ids" => years_ids
+      }
+      |> Phoenix.Component.to_form()
+
+    socket =
+      socket
+      |> assign(:form, form)
+      |> assign(:is_filtering, true)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("hide-filter", _, socket) do
+    {:noreply, assign(socket, :is_filtering, false)}
   end
 
   def handle_event("validate", _, socket) do
@@ -161,13 +206,35 @@ defmodule LantternWeb.CurriculumBNCCEFLive do
     years_ids = Map.get(params, "years_ids")
     filters = [subjects_ids: subjects_ids, years_ids: years_ids]
 
+    current_subjects =
+      case subjects_ids do
+        nil ->
+          []
+
+        ids ->
+          socket.assigns.ef_subjects
+          |> Enum.filter(&("#{&1.id}" in ids))
+      end
+
+    current_years =
+      case years_ids do
+        nil ->
+          []
+
+        ids ->
+          socket.assigns.ef_years
+          |> Enum.filter(&("#{&1.id}" in ids))
+      end
+
     habilidades_bncc = BNCC.list_bncc_ef_items(filters: filters)
-    no_results = length(habilidades_bncc) == 0
+    items_count = length(habilidades_bncc)
 
     socket =
       socket
       |> stream(:habilidades_bncc, habilidades_bncc, reset: true)
-      |> assign(:no_results, no_results)
+      |> assign(:current_subjects, current_subjects)
+      |> assign(:current_years, current_years)
+      |> assign(:items_count, items_count)
       |> assign(:is_filtering, false)
 
     {:noreply, socket}

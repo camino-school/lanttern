@@ -11,7 +11,7 @@ defmodule Lanttern.TaxonomyFixtures do
     {:ok, subject} =
       attrs
       |> Enum.into(%{
-        name: "some name"
+        name: Faker.Lorem.sentence(5..10)
       })
       |> Lanttern.Taxonomy.create_subject()
 
@@ -25,7 +25,7 @@ defmodule Lanttern.TaxonomyFixtures do
     {:ok, year} =
       attrs
       |> Enum.into(%{
-        name: "some name"
+        name: Faker.Lorem.sentence(5..10)
       })
       |> Lanttern.Taxonomy.create_year()
 
