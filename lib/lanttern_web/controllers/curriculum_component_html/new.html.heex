@@ -1,0 +1,12 @@
+<.header>
+  New Curriculum component
+  <:subtitle>Use this form to manage curriculum_component records in your database.</:subtitle>
+</.header>
+
+<.curriculum_component_form
+  curriculum_options={@curriculum_options}
+  changeset={@changeset}
+  action={~p"/admin/curricula/curriculum_components"}
+/>
+
+<.back navigate={~p"/admin/curricula/curriculum_components"}>Back to curriculum_components</.back>

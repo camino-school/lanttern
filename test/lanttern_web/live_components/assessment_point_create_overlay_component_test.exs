@@ -85,7 +85,7 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponentTest do
     end
 
     test "submit valid form saves and redirect", %{conn: conn} do
-      curriculum_item = Lanttern.CurriculaFixtures.item_fixture()
+      curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
       scale = Lanttern.GradingFixtures.scale_fixture()
       std_1 = Lanttern.SchoolsFixtures.student_fixture(%{name: "std 1"})
       std_2 = Lanttern.SchoolsFixtures.student_fixture(%{name: "std 2"})

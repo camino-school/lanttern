@@ -1,0 +1,24 @@
+<.header>
+  Listing Years
+  <:actions>
+    <.link href={~p"/admin/taxonomy/years/new"}>
+      <.button>New Year</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table id="years" rows={@years} row_click={&JS.navigate(~p"/admin/taxonomy/years/#{&1}")}>
+  <:col :let={year} label="Code"><%= year.code %></:col>
+  <:col :let={year} label="Name"><%= year.name %></:col>
+  <:action :let={year}>
+    <div class="sr-only">
+      <.link navigate={~p"/admin/taxonomy/years/#{year}"}>Show</.link>
+    </div>
+    <.link navigate={~p"/admin/taxonomy/years/#{year}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={year}>
+    <.link href={~p"/admin/taxonomy/years/#{year}"} method="delete" data-confirm="Are you sure?">
+      Delete
+    </.link>
+  </:action>
+</.table>

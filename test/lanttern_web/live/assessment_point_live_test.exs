@@ -18,7 +18,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
     end
 
     test "display assessment point details", %{conn: conn} do
-      curriculum_item = CurriculaFixtures.item_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
       scale = GradingFixtures.scale_fixture()
       attrs = %{curriculum_item_id: curriculum_item.id, scale: scale.id}
 

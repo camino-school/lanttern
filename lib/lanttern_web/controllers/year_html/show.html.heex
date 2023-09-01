@@ -1,0 +1,16 @@
+<.header>
+  Year <%= @year.id %>
+  <:subtitle>This is a year record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/admin/taxonomy/years/#{@year}/edit"}>
+      <.button>Edit year</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Code"><%= @year.code %></:item>
+  <:item title="Name"><%= @year.name %></:item>
+</.list>
+
+<.back navigate={~p"/admin/taxonomy/years"}>Back to years</.back>

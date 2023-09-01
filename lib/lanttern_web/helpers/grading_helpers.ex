@@ -13,8 +13,7 @@ defmodule LantternWeb.GradingHelpers do
   """
   def generate_scale_options(list_opts \\ []) do
     Grading.list_scales(list_opts)
-    |> Enum.map(fn s -> ["#{s.name}": s.id] end)
-    |> Enum.concat()
+    |> Enum.map(fn s -> {s.name, s.id} end)
   end
 
   @doc """
@@ -27,8 +26,7 @@ defmodule LantternWeb.GradingHelpers do
   """
   def generate_ordinal_value_options() do
     Grading.list_ordinal_values()
-    |> Enum.map(fn ov -> ["#{ov.name}": ov.id] end)
-    |> Enum.concat()
+    |> Enum.map(fn ov -> {ov.name, ov.id} end)
   end
 
   @doc """
@@ -41,8 +39,7 @@ defmodule LantternWeb.GradingHelpers do
   """
   def generate_composition_options() do
     Grading.list_compositions()
-    |> Enum.map(fn c -> ["#{c.name}": c.id] end)
-    |> Enum.concat()
+    |> Enum.map(fn c -> {c.name, c.id} end)
   end
 
   @doc """
@@ -55,7 +52,6 @@ defmodule LantternWeb.GradingHelpers do
   """
   def generate_component_options() do
     Grading.list_composition_components()
-    |> Enum.map(fn c -> ["#{c.name}": c.id] end)
-    |> Enum.concat()
+    |> Enum.map(fn c -> {c.name, c.id} end)
   end
 end

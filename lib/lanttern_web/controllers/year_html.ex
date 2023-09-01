@@ -1,13 +1,13 @@
-defmodule LantternWeb.ItemHTML do
+defmodule LantternWeb.YearHTML do
   use LantternWeb, :html
 
-  embed_templates "item_html/*"
+  embed_templates "year_html/*"
 
   @doc """
-  Renders a item form.
+  Renders a year form.
   """
   attr :changeset, Ecto.Changeset, required: true
   attr :action, :string, required: true
 
-  def item_form(assigns)
+  def year_form(assigns)
 end

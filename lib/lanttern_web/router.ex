@@ -38,10 +38,15 @@ defmodule LantternWeb.Router do
     live "/assessment_points", AssessmentPointsLive
     live "/assessment_points/explorer", AssessmentPointsExplorerLive
     live "/assessment_points/:id", AssessmentPointLive
+
+    live "/curriculum", CurriculumLive
+    live "/curriculum/bncc_ef", CurriculumBNCCEFLive
   end
 
   scope "/admin", LantternWeb do
     pipe_through [:browser, :require_authenticated_user, :admin]
+
+    get "/", AdminController, :home
 
     scope "/assessments" do
       resources "/assessment_points", AssessmentPointController
@@ -49,7 +54,10 @@ defmodule LantternWeb.Router do
     end
 
     scope "/curricula" do
-      resources "/items", ItemController
+      resources "/cur", CurriculumController
+      resources "/curriculum_components", CurriculumComponentController
+      resources "/curriculum_items", CurriculumItemController
+      resources "/curriculum_relationships", CurriculumRelationshipController
     end
 
     scope "/grading" do
@@ -63,6 +71,11 @@ defmodule LantternWeb.Router do
     scope "/schools" do
       resources "/classes", ClassController
       resources "/students", StudentController
+    end
+
+    scope "/taxonomy" do
+      resources "/subjects", SubjectController
+      resources "/years", YearController
     end
   end
 

@@ -9,7 +9,7 @@ defmodule Lanttern.AssessmentsFixtures do
   """
   def assessment_point_fixture(attrs \\ %{}) do
     scale = Lanttern.GradingFixtures.scale_fixture()
-    curriculum_item = Lanttern.CurriculaFixtures.item_fixture()
+    curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
 
     {:ok, assessment_point} =
       attrs

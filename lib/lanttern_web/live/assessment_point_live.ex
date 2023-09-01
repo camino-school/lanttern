@@ -9,7 +9,7 @@ defmodule LantternWeb.AssessmentPointLive do
     ~H"""
     <div class="container mx-auto lg:max-w-5xl">
       <h1 class="font-display font-black text-3xl">Assessment point details</h1>
-      <div class="flex items-center mt-2 font-display font-bold text-xs text-slate-400">
+      <div class="flex items-center mt-2 font-display font-bold text-xs text-ltrn-subtle">
         <.link patch={~p"/assessment_points"} class="underline">Assessment points</.link>
         <span class="mx-1">/</span>
         <.link patch={~p"/assessment_points/explorer"} class="underline">Explorer</.link>
@@ -18,8 +18,11 @@ defmodule LantternWeb.AssessmentPointLive do
       </div>
     </div>
     <div class="container mx-auto lg:max-w-5xl mt-10">
-      <.link patch={~p"/assessment_points/explorer"} class="flex items-center text-sm text-slate-400">
-        <.icon name="hero-arrow-left-mini" class="text-cyan-400 mr-2" />
+      <.link
+        patch={~p"/assessment_points/explorer"}
+        class="flex items-center text-sm text-ltrn-subtle"
+      >
+        <.icon name="hero-arrow-left-mini" class="text-ltrn-primary mr-2" />
         <span class="underline">Back to explorer</span>
       </.link>
       <div class="relative w-full p-6 mt-4 rounded shadow-xl bg-white">
@@ -52,7 +55,7 @@ defmodule LantternWeb.AssessmentPointLive do
           <div class="flex items-center gap-2">
             <div class="shrink-0 w-1/4"></div>
             <div class={[
-              "flex items-center gap-2 font-display font-bold text-slate-400",
+              "flex items-center gap-2 font-display font-bold text-ltrn-subtle",
               if(
                 @assessment_point.scale.type == "ordinal",
                 do: "flex-[2_0]",
@@ -62,7 +65,7 @@ defmodule LantternWeb.AssessmentPointLive do
               <.icon name="hero-view-columns" />
               <span>Marking</span>
             </div>
-            <div class="flex-[2_0] items-center gap-2 font-display font-bold text-slate-400">
+            <div class="flex-[2_0] items-center gap-2 font-display font-bold text-ltrn-subtle">
               <.icon name="hero-pencil-square" />
               <span>Notes and observations</span>
             </div>

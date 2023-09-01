@@ -8,7 +8,7 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
     ~H"""
     <div class="container mx-auto lg:max-w-5xl">
       <h1 class="font-display font-black text-3xl">Assessment points explorer</h1>
-      <div class="flex items-center mt-2 font-display font-bold text-xs text-slate-400">
+      <div class="flex items-center mt-2 font-display font-bold text-xs text-ltrn-subtle">
         <.link patch={~p"/assessment_points"} class="underline">Assessment points</.link>
         <span class="mx-1">/</span>
         <span>Explorer</span>
@@ -17,8 +17,8 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
     <div class="container mx-auto lg:max-w-5xl mt-10">
       <div class="flex items-center text-sm">
         <p>Exploring: all disciplines | all grade 4 classes | this bimester</p>
-        <button class="flex items-center ml-4 text-slate-400">
-          <.icon name="hero-funnel-mini" class="text-cyan-400 mr-2" />
+        <button class="flex items-center ml-4 text-ltrn-subtle">
+          <.icon name="hero-funnel-mini" class="text-ltrn-primary mr-2" />
           <span class="underline">Change</span>
         </button>
       </div>
@@ -43,7 +43,7 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
   def assessment_point(assigns) do
     ~H"""
     <div class="shrink-0 w-40 pt-6 pb-2 bg-white">
-      <div class="flex gap-1 items-center mb-1 text-xs text-slate-400">
+      <div class="flex gap-1 items-center mb-1 text-xs text-ltrn-subtle">
         <.icon name="hero-calendar-mini" />
         <%= Timex.format!(@assessment_point.datetime, "{Mshort} {0D}") %>
       </div>
@@ -71,7 +71,7 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
         <div class="shrink-0 w-40 min-h-[4rem] py-1">
           <%= if entry == nil do %>
             <.base_input
-              class="w-full h-full rounded-sm font-mono text-center bg-slate-400"
+              class="w-full h-full rounded-sm font-mono text-center bg-ltrn-subtle"
               value="N/A"
               name="na"
               readonly

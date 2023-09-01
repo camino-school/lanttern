@@ -40,7 +40,7 @@ defmodule LantternWeb.AssessmentPointControllerTest do
 
   describe "create assessment point" do
     test "redirects to show when data is valid", %{conn: conn} do
-      curriculum_item = Lanttern.CurriculaFixtures.item_fixture()
+      curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
       scale = Lanttern.GradingFixtures.scale_fixture()
 
       create_attrs =

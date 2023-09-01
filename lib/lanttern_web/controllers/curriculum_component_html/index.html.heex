@@ -1,0 +1,39 @@
+<.header>
+  Listing Curriculum components
+  <:actions>
+    <.link href={~p"/admin/curricula/curriculum_components/new"}>
+      <.button>New Curriculum component</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="curriculum_components"
+  rows={@curriculum_components}
+  row_click={&JS.navigate(~p"/admin/curricula/curriculum_components/#{&1}")}
+>
+  <:col :let={curriculum_component} label="Curriculum">
+    <%= curriculum_component.curriculum.name %>
+  </:col>
+  <:col :let={curriculum_component} label="Name"><%= curriculum_component.name %></:col>
+  <:col :let={curriculum_component} label="Code"><%= curriculum_component.code %></:col>
+  <:action :let={curriculum_component}>
+    <div class="sr-only">
+      <.link navigate={~p"/admin/curricula/curriculum_components/#{curriculum_component}"}>
+        Show
+      </.link>
+    </div>
+    <.link navigate={~p"/admin/curricula/curriculum_components/#{curriculum_component}/edit"}>
+      Edit
+    </.link>
+  </:action>
+  <:action :let={curriculum_component}>
+    <.link
+      href={~p"/admin/curricula/curriculum_components/#{curriculum_component}"}
+      method="delete"
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>

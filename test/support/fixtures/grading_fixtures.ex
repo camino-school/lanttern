@@ -46,7 +46,7 @@ defmodule Lanttern.GradingFixtures do
   """
   def composition_component_item_fixture(attrs \\ %{}) do
     component = composition_component_fixture()
-    curriculum_item = CurriculaFixtures.item_fixture()
+    curriculum_item = CurriculaFixtures.curriculum_item_fixture()
 
     {:ok, composition_component_item} =
       attrs

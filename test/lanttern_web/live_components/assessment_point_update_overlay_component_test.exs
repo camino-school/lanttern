@@ -27,7 +27,7 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponentTest do
     end
 
     test "submit valid form saves and update view", %{conn: conn} do
-      curriculum_item = Lanttern.CurriculaFixtures.item_fixture()
+      curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
       scale = Lanttern.GradingFixtures.scale_fixture()
 
       assessment_point =
@@ -47,11 +47,16 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponentTest do
       assert view |> has_element?("input[value='#{assessment_point.name}']")
       assert view |> has_element?("textarea", assessment_point.description)
       assert view |> has_element?("select option[selected][value=#{curriculum_item.id}]")
-      assert view |> has_element?("select option[selected][value=#{scale.id}]")
+
+      # TODO: uncomment
+      # scale temporary disabled to avoid breaking UI when assessment already has registered entries
+      # assert view |> has_element?("select option[selected][value=#{scale.id}]")
 
       # submit with extra info
-      other_curriculum_item = Lanttern.CurriculaFixtures.item_fixture()
-      other_scale = Lanttern.GradingFixtures.scale_fixture()
+      other_curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
+      # TODO: uncomment
+      # scale temporary disabled to avoid breaking UI when assessment already has registered entries
+      # other_scale = Lanttern.GradingFixtures.scale_fixture()
 
       view
       |> element("#update-assessment-point-form")
@@ -59,8 +64,10 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponentTest do
         "assessment_point" => %{
           "name" => "updated name",
           "description" => "updated description",
-          "curriculum_item_id" => other_curriculum_item.id,
-          "scale_id" => other_scale.id
+          "curriculum_item_id" => other_curriculum_item.id
+          # TODO: uncomment
+          # scale temporary disabled to avoid breaking UI when assessment already has registered entries
+          # "scale_id" => other_scale.id
         }
       })
 
@@ -74,7 +81,10 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponentTest do
       assert updated.name == "updated name"
       assert updated.description == "updated description"
       assert updated.curriculum_item_id == other_curriculum_item.id
-      assert updated.scale_id == other_scale.id
+
+      # TODO: uncomment
+      # scale temporary disabled to avoid breaking UI when assessment already has registered entries
+      # assert updated.scale_id == other_scale.id
     end
 
     test "submit invalid form prevents save/redirect", %{conn: conn} do

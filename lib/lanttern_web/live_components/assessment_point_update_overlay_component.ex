@@ -66,14 +66,14 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponent do
             prompt="Select a curriculum item"
             class="mb-6"
           />
-          <.input
+          <%!-- <.input
             field={@form[:scale_id]}
             type="select"
             label="Scale"
             options={@scale_options}
             prompt="Select a scale"
             class="mb-6"
-          />
+          /> --%>
         </.form>
         <:actions>
           <.button type="button" theme="ghost" phx-click="cancel-assessment-point-update">

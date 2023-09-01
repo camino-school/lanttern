@@ -1,0 +1,25 @@
+<.simple_form :let={f} for={@changeset} action={@action}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  <.input
+    field={f[:curriculum_component_id]}
+    type="select"
+    label="Curriculum component"
+    options={@curriculum_component_options}
+    prompt="Select a curriculum component"
+  />
+  <.input
+    field={f[:subjects_ids]}
+    type="select"
+    label="Subject"
+    options={@subject_options}
+    multiple
+  />
+  <.input field={f[:years_ids]} type="select" label="Year" options={@year_options} multiple />
+  <.input field={f[:code]} type="text" label="Code" />
+  <.input field={f[:name]} type="text" label="Name" />
+  <:actions>
+    <.button>Save Curriculum Item</.button>
+  </:actions>
+</.simple_form>

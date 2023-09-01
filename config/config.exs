@@ -10,6 +10,10 @@ import Config
 config :lanttern,
   ecto_repos: [Lanttern.Repo]
 
+query_args = ["SET pg_trgm.word_similarity_threshold = 0.4", []]
+
+config :lanttern, Lanttern.Repo, after_connect: {Postgrex, :query!, query_args}
+
 # Configures the endpoint
 config :lanttern, LantternWeb.Endpoint,
   url: [host: "localhost"],
@@ -79,6 +83,12 @@ end
 
 # Authentication config
 config :lanttern, LantternWeb.UserAuth, google_client_id: System.get_env("GOOGLE_CLIENT_ID")
+
+# Flop
+config :flop,
+  repo: Lanttern.Repo,
+  default_limit: 1000,
+  max_limit: 1000
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

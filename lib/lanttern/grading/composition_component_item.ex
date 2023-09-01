@@ -5,7 +5,7 @@ defmodule Lanttern.Grading.CompositionComponentItem do
   schema "grade_composition_component_items" do
     field :weight, :float
 
-    belongs_to :curriculum_item, Lanttern.Curricula.Item
+    belongs_to :curriculum_item, Lanttern.Curricula.CurriculumItem
     belongs_to :component, Lanttern.Grading.CompositionComponent
 
     timestamps()

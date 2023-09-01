@@ -17,6 +17,46 @@ alias Lanttern.Curricula
 alias Lanttern.Identity
 alias Lanttern.Grading
 alias Lanttern.Schools
+alias Lanttern.Taxonomy
+
+# ------------------------------
+# taxonomy
+# ------------------------------
+
+k1 = Repo.insert!(%Taxonomy.Year{code: "k1", name: "Kindergarten 1"})
+k2 = Repo.insert!(%Taxonomy.Year{code: "k2", name: "Kindergarten 2"})
+k3 = Repo.insert!(%Taxonomy.Year{code: "k3", name: "Kindergarten 3"})
+k4 = Repo.insert!(%Taxonomy.Year{code: "k4", name: "Kindergarten 4"})
+k5 = Repo.insert!(%Taxonomy.Year{code: "k5", name: "Kindergarten 5"})
+g1 = Repo.insert!(%Taxonomy.Year{code: "g1", name: "Grade 1"})
+g2 = Repo.insert!(%Taxonomy.Year{code: "g2", name: "Grade 2"})
+g3 = Repo.insert!(%Taxonomy.Year{code: "g3", name: "Grade 3"})
+g4 = Repo.insert!(%Taxonomy.Year{code: "g4", name: "Grade 4"})
+g5 = Repo.insert!(%Taxonomy.Year{code: "g5", name: "Grade 5"})
+g6 = Repo.insert!(%Taxonomy.Year{code: "g6", name: "Grade 6"})
+g7 = Repo.insert!(%Taxonomy.Year{code: "g7", name: "Grade 7"})
+g8 = Repo.insert!(%Taxonomy.Year{code: "g8", name: "Grade 8"})
+g9 = Repo.insert!(%Taxonomy.Year{code: "g9", name: "Grade 9"})
+g10 = Repo.insert!(%Taxonomy.Year{code: "g10", name: "Grade 10"})
+g11 = Repo.insert!(%Taxonomy.Year{code: "g11", name: "Grade 11"})
+g12 = Repo.insert!(%Taxonomy.Year{code: "g12", name: "Grade 12"})
+
+engl = Repo.insert!(%Taxonomy.Subject{code: "engl", name: "English"})
+port = Repo.insert!(%Taxonomy.Subject{code: "port", name: "Portuguese"})
+espa = Repo.insert!(%Taxonomy.Subject{code: "espa", name: "Spanish"})
+hsci = Repo.insert!(%Taxonomy.Subject{code: "hsci", name: "Human Sciences"})
+geog = Repo.insert!(%Taxonomy.Subject{code: "geog", name: "Geography"})
+hist = Repo.insert!(%Taxonomy.Subject{code: "hist", name: "History"})
+scie = Repo.insert!(%Taxonomy.Subject{code: "scie", name: "Science"})
+tech = Repo.insert!(%Taxonomy.Subject{code: "tech", name: "Technology"})
+engi = Repo.insert!(%Taxonomy.Subject{code: "engi", name: "Engineering"})
+math = Repo.insert!(%Taxonomy.Subject{code: "math", name: "Math"})
+arts = Repo.insert!(%Taxonomy.Subject{code: "arts", name: "Arts"})
+vart = Repo.insert!(%Taxonomy.Subject{code: "vart", name: "Visual Arts"})
+dram = Repo.insert!(%Taxonomy.Subject{code: "dram", name: "Drama"})
+musi = Repo.insert!(%Taxonomy.Subject{code: "musi", name: "Music"})
+move = Repo.insert!(%Taxonomy.Subject{code: "move", name: "Movement"})
+reli = Repo.insert!(%Taxonomy.Subject{code: "reli", name: "Religion"})
 
 # ------------------------------
 # school
@@ -64,18 +104,124 @@ Identity.User.registration_changeset(%Identity.User{}, %{
 # curriculum
 # ------------------------------
 
-en_lo_1 = Repo.insert!(%Curricula.Item{name: "English LO 1"})
-pt_lo_1 = Repo.insert!(%Curricula.Item{name: "Portuguese LO 1"})
-es_lo_1 = Repo.insert!(%Curricula.Item{name: "Spanish LO 1"})
-hs_lo_1 = Repo.insert!(%Curricula.Item{name: "Human Sciences LO 1"})
-sci_lo_1 = Repo.insert!(%Curricula.Item{name: "Science LO 1"})
-tech_lo_1 = Repo.insert!(%Curricula.Item{name: "Technology LO 1"})
-eng_lo_1 = Repo.insert!(%Curricula.Item{name: "Engineering LO 1"})
-math_lo_1 = Repo.insert!(%Curricula.Item{name: "Math LO 1"})
-va_lo_1 = Repo.insert!(%Curricula.Item{name: "Visual Arts LO 1"})
-dra_lo_1 = Repo.insert!(%Curricula.Item{name: "Drama LO 1"})
-mus_lo_1 = Repo.insert!(%Curricula.Item{name: "Music LO 1"})
-mov_lo_1 = Repo.insert!(%Curricula.Item{name: "Movement LO 1"})
+curriculum = Repo.insert!(%Curricula.Curriculum{name: "The Curriculum"})
+
+curriculum_component =
+  Repo.insert!(%Curricula.CurriculumComponent{
+    name: "Learning Objective",
+    code: "LO",
+    curriculum_id: curriculum.id
+  })
+
+# use changeset to `put_assoc` subjects and years
+
+en_lo =
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
+    name: "English LO 1",
+    curriculum_component_id: curriculum_component.id,
+    subjects_ids: [engl.id],
+    years_ids: [g10.id]
+  })
+  |> Repo.insert!()
+
+pt_lo =
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
+    name: "Portuguese LO 1",
+    curriculum_component_id: curriculum_component.id,
+    subjects_ids: [port.id],
+    years_ids: [g10.id]
+  })
+  |> Repo.insert!()
+
+es_lo =
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
+    name: "Spanish LO 1",
+    curriculum_component_id: curriculum_component.id,
+    subjects_ids: [espa.id],
+    years_ids: [g10.id]
+  })
+  |> Repo.insert!()
+
+hs_lo =
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
+    name: "Human Sciences LO 1",
+    curriculum_component_id: curriculum_component.id,
+    subjects_ids: [hsci.id],
+    years_ids: [g10.id]
+  })
+  |> Repo.insert!()
+
+sci_lo =
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
+    name: "Science LO 1",
+    curriculum_component_id: curriculum_component.id,
+    subjects_ids: [scie.id],
+    years_ids: [g10.id]
+  })
+  |> Repo.insert!()
+
+tech_lo =
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
+    name: "Technology LO 1",
+    curriculum_component_id: curriculum_component.id,
+    subjects_ids: [tech.id],
+    years_ids: [g10.id]
+  })
+  |> Repo.insert!()
+
+eng_lo =
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
+    name: "Engineering LO 1",
+    curriculum_component_id: curriculum_component.id,
+    subjects_ids: [engi.id],
+    years_ids: [g10.id]
+  })
+  |> Repo.insert!()
+
+math_lo =
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
+    name: "Math LO 1",
+    curriculum_component_id: curriculum_component.id,
+    subjects_ids: [math.id],
+    years_ids: [g10.id]
+  })
+  |> Repo.insert!()
+
+var_lo =
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
+    name: "Visual Arts LO 1",
+    curriculum_component_id: curriculum_component.id,
+    subjects_ids: [vart.id],
+    years_ids: [g10.id]
+  })
+  |> Repo.insert!()
+
+dra_lo =
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
+    name: "Drama LO 1",
+    curriculum_component_id: curriculum_component.id,
+    subjects_ids: [dram.id],
+    years_ids: [g10.id]
+  })
+  |> Repo.insert!()
+
+mus_lo =
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
+    name: "Music LO 1",
+    curriculum_component_id: curriculum_component.id,
+    subjects_ids: [musi.id],
+    years_ids: [g10.id]
+  })
+  |> Repo.insert!()
+
+mov_lo =
+  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
+    name: "Movement LO 1",
+    curriculum_component_id: curriculum_component.id,
+    subjects_ids: [move.id],
+    years_ids: [g10.id]
+  })
+  |> Repo.insert!()
 
 # ------------------------------
 # scales
@@ -92,31 +238,41 @@ letter_grade_scale =
 Repo.insert!(%Grading.OrdinalValue{
   name: "E",
   normalized_value: 0.0,
-  scale_id: letter_grade_scale.id
+  scale_id: letter_grade_scale.id,
+  bg_color: "#2D0808",
+  text_color: "#FFFFFF"
 })
 
 Repo.insert!(%Grading.OrdinalValue{
   name: "D",
   normalized_value: 0.25,
-  scale_id: letter_grade_scale.id
+  scale_id: letter_grade_scale.id,
+  bg_color: "#F28888",
+  text_color: "#F6DFDF"
 })
 
 Repo.insert!(%Grading.OrdinalValue{
   name: "C",
   normalized_value: 0.5,
-  scale_id: letter_grade_scale.id
+  scale_id: letter_grade_scale.id,
+  bg_color: "#FFF48F",
+  text_color: "#756A07"
 })
 
 Repo.insert!(%Grading.OrdinalValue{
   name: "B",
   normalized_value: 0.75,
-  scale_id: letter_grade_scale.id
+  scale_id: letter_grade_scale.id,
+  bg_color: "#5CD9BB",
+  text_color: "#133F34"
 })
 
 Repo.insert!(%Grading.OrdinalValue{
   name: "A",
   normalized_value: 1.0,
-  scale_id: letter_grade_scale.id
+  scale_id: letter_grade_scale.id,
+  bg_color: "#814BF4",
+  text_color: "#D9C8FC"
 })
 
 # Camino Levels
@@ -130,31 +286,41 @@ camino_levels_scale =
 Repo.insert!(%Grading.OrdinalValue{
   name: "Lack of evidence",
   normalized_value: 0.0,
-  scale_id: camino_levels_scale.id
+  scale_id: camino_levels_scale.id,
+  bg_color: "#2D0808",
+  text_color: "#FFFFFF"
 })
 
 Repo.insert!(%Grading.OrdinalValue{
   name: "Emerging",
   normalized_value: 0.4,
-  scale_id: camino_levels_scale.id
+  scale_id: camino_levels_scale.id,
+  bg_color: "#F28888",
+  text_color: "#F6DFDF"
 })
 
 Repo.insert!(%Grading.OrdinalValue{
   name: "Progressing",
   normalized_value: 0.6,
-  scale_id: camino_levels_scale.id
+  scale_id: camino_levels_scale.id,
+  bg_color: "#FFF48F",
+  text_color: "#756A07"
 })
 
 Repo.insert!(%Grading.OrdinalValue{
   name: "Achieving",
   normalized_value: 0.85,
-  scale_id: camino_levels_scale.id
+  scale_id: camino_levels_scale.id,
+  bg_color: "#5CD9BB",
+  text_color: "#133F34"
 })
 
 Repo.insert!(%Grading.OrdinalValue{
   name: "Exceeding",
   normalized_value: 1.0,
-  scale_id: camino_levels_scale.id
+  scale_id: camino_levels_scale.id,
+  bg_color: "#814BF4",
+  text_color: "#D9C8FC"
 })
 
 # 0 to 10
@@ -174,7 +340,7 @@ ap_1 =
     name: "English reading",
     description: "Eius recusandae dolores voluptatem pariatur mollitia voluptatem vel porro.",
     date: DateTime.utc_now(:second),
-    curriculum_item_id: en_lo_1.id,
+    curriculum_item_id: en_lo.id,
     scale_id: camino_levels_scale.id
   })
 
@@ -217,6 +383,6 @@ english_grade_composition_component =
 
 Repo.insert!(%Grading.CompositionComponentItem{
   component_id: english_grade_composition_component.id,
-  curriculum_item_id: en_lo_1.id,
+  curriculum_item_id: en_lo.id,
   weight: 1.0
 })

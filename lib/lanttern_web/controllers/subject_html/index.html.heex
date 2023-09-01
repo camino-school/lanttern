@@ -1,0 +1,32 @@
+<.header>
+  Listing Subjects
+  <:actions>
+    <.link href={~p"/admin/taxonomy/subjects/new"}>
+      <.button>New Subject</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="subjects"
+  rows={@subjects}
+  row_click={&JS.navigate(~p"/admin/taxonomy/subjects/#{&1}")}
+>
+  <:col :let={subject} label="Code"><%= subject.code %></:col>
+  <:col :let={subject} label="Name"><%= subject.name %></:col>
+  <:action :let={subject}>
+    <div class="sr-only">
+      <.link navigate={~p"/admin/taxonomy/subjects/#{subject}"}>Show</.link>
+    </div>
+    <.link navigate={~p"/admin/taxonomy/subjects/#{subject}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={subject}>
+    <.link
+      href={~p"/admin/taxonomy/subjects/#{subject}"}
+      method="delete"
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
