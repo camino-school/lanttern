@@ -61,6 +61,7 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponent do
             module={LantternWeb.CurriculumItemSearchInputComponent}
             id={:new}
             field={@form[:curriculum_item_id]}
+            class="mb-6"
           />
           <.input
             field={@form[:scale_id]}

@@ -46,7 +46,7 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponentTest do
       # validate form rendered with correct initial values
       assert view |> has_element?("input[value='#{assessment_point.name}']")
       assert view |> has_element?("textarea", assessment_point.description)
-      assert view |> has_element?("select option[selected][value=#{curriculum_item.id}]")
+      assert view |> has_element?("input[value=#{curriculum_item.id}]")
 
       # TODO: uncomment
       # scale temporary disabled to avoid breaking UI when assessment already has registered entries

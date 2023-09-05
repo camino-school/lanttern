@@ -7,9 +7,6 @@ const showControls = (input) => {
 const hideControls = (input) => {
   if (input) {
     input.setAttribute("aria-expanded", "false");
-
-    let resetInputId = input.getAttribute("data-reset-value-input");
-    input.value = document.getElementById(resetInputId).value || "";
   }
 };
 
@@ -41,8 +38,6 @@ function autocompleteSearchResults(event) {
   let input = this.el;
   let controlId = input.getAttribute("aria-controls");
   let controls = document.getElementById(controlId);
-  let resetInputId = input.getAttribute("data-reset-value-input");
-  let resetInput = document.getElementById(resetInputId);
 
   // on li mouseenter
   let activateLi = (event) => {
@@ -62,7 +57,6 @@ function autocompleteSearchResults(event) {
 
     // force value change
     input.value = selected.name;
-    resetInput.value = selected.name;
   };
 
   if (event.detail.results.length > 0) {
@@ -97,8 +91,6 @@ function keydownHandler(event) {
   let list = controls.querySelectorAll("li");
   let isShowing = input.getAttribute("aria-expanded") === "true";
   let activeDescendantId = input.getAttribute("aria-activedescendant");
-  let resetInputId = input.getAttribute("data-reset-value-input");
-  let resetInput = document.getElementById(resetInputId);
 
   // handle select with Enter keydown
   if (event.keyCode === 13) {
@@ -116,7 +108,6 @@ function keydownHandler(event) {
 
       // force value change
       input.value = selected.name;
-      resetInput.value = selected.name;
     }
     return;
   }

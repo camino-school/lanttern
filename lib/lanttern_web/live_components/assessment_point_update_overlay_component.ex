@@ -3,7 +3,6 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponent do
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
-  alias LantternWeb.CurriculaHelpers
   alias LantternWeb.GradingHelpers
   alias LantternWeb.SchoolsHelpers
 
@@ -58,12 +57,10 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponent do
               />
             </div>
           </div>
-          <.input
+          <.live_component
+            module={LantternWeb.CurriculumItemSearchInputComponent}
+            id={:new}
             field={@form[:curriculum_item_id]}
-            type="select"
-            label="Curriculum item"
-            options={@curriculum_item_options}
-            prompt="Select a curriculum item"
             class="mb-6"
           />
           <%!-- <.input
@@ -89,7 +86,6 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponent do
   end
 
   def mount(socket) do
-    curriculum_item_options = CurriculaHelpers.generate_curriculum_item_options()
     scale_options = GradingHelpers.generate_scale_options()
     class_options = SchoolsHelpers.generate_class_options()
     selected_classes = []
@@ -100,7 +96,6 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponent do
       socket
       |> assign(%{
         form: nil,
-        curriculum_item_options: curriculum_item_options,
         scale_options: scale_options,
         class_options: class_options,
         selected_classes: selected_classes,
