@@ -52,7 +52,8 @@ defmodule Lanttern.CurriculaFixtures do
       })
       |> Lanttern.Curricula.create_curriculum_item()
 
-    curriculum_item
+    # use get_curriculum_item to retrieve generated searchable field from DB
+    Lanttern.Curricula.get_curriculum_item!(curriculum_item.id)
   end
 
   @doc """

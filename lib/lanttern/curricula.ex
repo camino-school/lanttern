@@ -246,12 +246,14 @@ defmodule Lanttern.Curricula do
       [%CurriculumItem{}, ...]
 
   """
-  def search_curriculum_items(name, opts \\ []) do
+  def search_curriculum_items(search_term, opts \\ []) do
+    ilike_search_term = "%#{search_term}%"
+
     query =
       from(
         ci in CurriculumItem,
-        where: fragment("? <% ?", ^name, ci.name),
-        order_by: {:asc, fragment("? <<-> ?", ^name, ci.name)}
+        where: ilike(ci.searchable, ^ilike_search_term),
+        order_by: {:asc, fragment("? <<<-> ?", ^search_term, ci.searchable)}
       )
 
     query

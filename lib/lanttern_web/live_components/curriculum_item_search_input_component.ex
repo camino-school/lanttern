@@ -9,6 +9,7 @@ defmodule LantternWeb.CurriculumItemSearchInputComponent do
     <div class={@class}>
       <.label for="curriculum-item-search-input">Curriculum item</.label>
       <div phx-feedback-for={@field.name} class="relative">
+        <input name={@field.name} type="hidden" value={@field.value} />
         <.base_input
           id="curriculum-item-search-input"
           name="query"
@@ -74,7 +75,6 @@ defmodule LantternWeb.CurriculumItemSearchInputComponent do
           </li>
         </ul>
       </div>
-      <input name={@field.name} type="hidden" value={@field.value} />
     </div>
     """
   end

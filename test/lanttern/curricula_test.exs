@@ -210,17 +210,39 @@ defmodule Lanttern.CurriculaTest do
     end
 
     test "search_curriculum_items/2 returns all items matched by search" do
-      curriculum_item_1 = curriculum_item_fixture(%{name: "lorem ipsum xolor sit amet"})
+      _curriculum_item_1 = curriculum_item_fixture(%{name: "lorem ipsum xolor sit amet"})
       curriculum_item_2 = curriculum_item_fixture(%{name: "lorem ipsum dolor sit amet"})
-      curriculum_item_3 = curriculum_item_fixture(%{name: "lorem ipsum doloxxxr sit amet"})
+      curriculum_item_3 = curriculum_item_fixture(%{name: "lorem ipsum dolorxxx sit amet"})
       _curriculum_item_4 = curriculum_item_fixture(%{name: "lorem ipsum xxxxx sit amet"})
 
       expected = Curricula.search_curriculum_items("dolor")
 
-      assert length(expected) == 3
+      assert length(expected) == 2
 
       # assert order
-      assert [curriculum_item_2, curriculum_item_3, curriculum_item_1] == expected
+      assert [curriculum_item_2, curriculum_item_3] == expected
+    end
+
+    test "search_curriculum_items/2 with #id returns item with id" do
+      curriculum_item = curriculum_item_fixture()
+      curriculum_item_fixture()
+      curriculum_item_fixture()
+      curriculum_item_fixture()
+
+      [expected] = Curricula.search_curriculum_items("##{curriculum_item.id}")
+
+      assert expected.id == curriculum_item.id
+    end
+
+    test "search_curriculum_items/2 with #code returns item with code" do
+      curriculum_item = curriculum_item_fixture(%{code: "abcd"})
+      curriculum_item_fixture()
+      curriculum_item_fixture()
+      curriculum_item_fixture()
+
+      [expected] = Curricula.search_curriculum_items("(abcd)")
+
+      assert expected.id == curriculum_item.id
     end
 
     test "search_curriculum_items/2 with preloads returns all search results with preloaded data" do
