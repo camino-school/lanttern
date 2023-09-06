@@ -1,13 +1,23 @@
 defmodule LantternWeb.CurriculumItemSearchInputComponent do
-  alias LantternWeb.CoreComponents
   use LantternWeb, :live_component
 
-  # attr :field, Phoenix.HTML.FormField, required: true
+  alias Lanttern.Curricula
+  alias LantternWeb.CoreComponents
 
   def render(assigns) do
     ~H"""
     <div class={@class}>
       <.label for="curriculum-item-search-input">Curriculum item</.label>
+      <p class="mb-2 text-sm">
+        You can search by id adding # before the id
+        <.inline_code>
+          #123
+        </.inline_code>
+        and search by code wrapping it in parenthesis
+        <.inline_code>
+          (ABC123)
+        </.inline_code>
+      </p>
       <div phx-feedback-for={@field.name} class="relative">
         <input name={@field.name} type="hidden" value={@field.value} />
         <.base_input
@@ -22,23 +32,12 @@ defmodule LantternWeb.CurriculumItemSearchInputComponent do
           aria-expanded="false"
           phx-hook="Autocomplete"
           phx-change="search"
-          phx-debounce="200"
+          phx-debounce="500"
           phx-target={@myself}
           phx-update="ignore"
           errors={@errors}
         />
         <.icon name="hero-chevron-up-down" class="absolute top-2.5 right-2.5 text-ltrn-subtle" />
-        <.badge
-          :if={@selected}
-          class="mt-2"
-          theme="cyan"
-          show_remove
-          phx-click="remove_curriculum_item"
-          phx-target={@myself}
-        >
-          <%= @selected %>
-        </.badge>
-        <.error :for={msg <- @errors}><%= msg %></.error>
 
         <ul
           class={[
@@ -62,9 +61,14 @@ defmodule LantternWeb.CurriculumItemSearchInputComponent do
             data-result-id={result.id}
             data-result-name={result.name}
           >
-            <span class="flex-1 truncate group-aria-selected:font-bold" }>
+            <div class="flex-1 truncate group-aria-selected:font-bold" }>
+              <span class="font-bold text-xs">
+                #<%= result.id %>
+                <span :if={result.code}>(<%= result.code %>)</span>
+              </span>
+              <br />
               <%= result.name %>
-            </span>
+            </div>
             <.icon
               name="hero-check"
               class={[
@@ -74,6 +78,22 @@ defmodule LantternWeb.CurriculumItemSearchInputComponent do
             />
           </li>
         </ul>
+
+        <.badge
+          :if={@selected}
+          class="mt-2"
+          theme="cyan"
+          show_remove
+          phx-click="remove_curriculum_item"
+          phx-target={@myself}
+        >
+          <div>
+            #<%= @selected.id %>
+            <span :if={@selected.code}>(<%= @selected.code %>)</span>
+            <%= @selected.name %>
+          </div>
+        </.badge>
+        <.error :for={msg <- @errors}><%= msg %></.error>
       </div>
     </div>
     """
@@ -85,17 +105,24 @@ defmodule LantternWeb.CurriculumItemSearchInputComponent do
     socket =
       socket
       |> stream(:results, [])
-      |> assign(:selected, nil)
 
     {:ok, socket}
   end
 
   def update(assigns, socket) do
+    selected =
+      case assigns.field.value do
+        nil -> nil
+        "" -> nil
+        id -> Curricula.get_curriculum_item!(id)
+      end
+
     socket =
       socket
       |> assign(:class, Map.get(assigns, :class, ""))
       |> assign(:field, assigns.field)
       |> assign(:errors, Enum.map(assigns.field.errors, &CoreComponents.translate_error/1))
+      |> assign(:selected, selected)
 
     {:ok, socket}
   end
@@ -104,31 +131,36 @@ defmodule LantternWeb.CurriculumItemSearchInputComponent do
 
   def handle_event("search", %{"query" => query}, socket) do
     results =
-      [
-        %{id: 1, name: "lorem ipsum"},
-        %{id: 2, name: "lorem ipsum dolor sit amet"},
-        %{
-          id: 3,
-          name: "lorem ipsum consectur blah lorem ipsum consectur blah lorem ipsum consectur blah"
-        },
-        %{id: 4, name: "dolor sit amet"},
-        %{id: 5, name: "zzz"}
-      ]
-      |> Enum.filter(&(query != "" and &1.name =~ query))
+      cond do
+        # search when looking for id
+        query =~ ~r/#[0-9]+\z/ ->
+          Curricula.search_curriculum_items(query)
+
+        # or when more than 3 characters were typed
+        String.length(query) > 3 ->
+          Curricula.search_curriculum_items(query)
+
+        true ->
+          []
+      end
+
+    results_simplified = Enum.map(results, fn ci -> %{id: ci.id} end)
 
     socket =
       socket
       |> stream(:results, results, reset: true)
-      |> push_event("autocomplete_search_results", %{results: results})
+      |> push_event("autocomplete_search_results", %{results: results_simplified})
 
     {:noreply, socket}
   end
 
-  def handle_event("autocomplete_result_select", %{"id" => id, "name" => name}, socket) do
+  def handle_event("autocomplete_result_select", %{"id" => id}, socket) do
+    selected = Curricula.get_curriculum_item!(id)
+
     socket =
       socket
       |> stream(:results, [], reset: true)
-      |> assign(:selected, name)
+      |> assign(:selected, selected)
       |> update(:field, fn field ->
         Map.put(field, :value, id)
       end)

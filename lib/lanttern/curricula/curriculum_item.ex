@@ -38,7 +38,6 @@ defmodule Lanttern.Curricula.CurriculumItem do
   schema "curriculum_items" do
     field :name, :string
     field :code, :string
-    field :searchable, :string
     field :subjects_ids, {:array, :id}, virtual: true
     field :years_ids, {:array, :id}, virtual: true
 

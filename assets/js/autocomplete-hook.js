@@ -92,6 +92,12 @@ function keydownHandler(event) {
   let isShowing = input.getAttribute("aria-expanded") === "true";
   let activeDescendantId = input.getAttribute("aria-activedescendant");
 
+  // handle Escape
+  if (event.keyCode === 27) {
+    hideControls(input);
+    return;
+  }
+
   // handle select with Enter keydown
   if (event.keyCode === 13) {
     event.preventDefault();

@@ -235,6 +235,9 @@ defmodule Lanttern.Curricula do
   @doc """
   Search curriculum items by name.
 
+  User can search by id by adding `#` before the id `#123`
+  and search by code wrapping it in parenthesis `(ABC123)`.
+
   ### Options:
 
   `:preloads` – preloads associated data
@@ -246,14 +249,50 @@ defmodule Lanttern.Curricula do
       [%CurriculumItem{}, ...]
 
   """
-  def search_curriculum_items(search_term, opts \\ []) do
+  def search_curriculum_items(search_term, opts \\ [])
+
+  def search_curriculum_items("#" <> search_term, opts) do
+    if search_term =~ ~r/[0-9]+\z/ do
+      query =
+        from(
+          ci in CurriculumItem,
+          where: ci.id == ^search_term
+        )
+
+      query
+      |> maybe_filter(opts)
+      |> maybe_preload(opts)
+    else
+      search_curriculum_items(search_term, opts)
+    end
+  end
+
+  def search_curriculum_items("(" <> search_term, opts) do
+    case Regex.run(~r/(.+)\)\z/, search_term, capture: :all_but_first) do
+      [code] ->
+        query =
+          from(
+            ci in CurriculumItem,
+            where: ci.code == ^code
+          )
+
+        query
+        |> maybe_filter(opts)
+        |> maybe_preload(opts)
+
+      _ ->
+        search_curriculum_items(search_term, opts)
+    end
+  end
+
+  def search_curriculum_items(search_term, opts) do
     ilike_search_term = "%#{search_term}%"
 
     query =
       from(
         ci in CurriculumItem,
-        where: ilike(ci.searchable, ^ilike_search_term),
-        order_by: {:asc, fragment("? <<<-> ?", ^search_term, ci.searchable)}
+        where: ilike(ci.name, ^ilike_search_term),
+        order_by: {:asc, fragment("? <<-> ?", ^search_term, ci.name)}
       )
 
     query
@@ -269,17 +308,22 @@ defmodule Lanttern.Curricula do
       year_id: :==
     ]
 
+    limit = 10
+
     case Keyword.get(opts, :filters) do
       filters when is_list(filters) and filters != [] ->
         queryable
         |> prepare_joins(filters)
         |> handle_flop_validate_and_run(
-          %{filters: build_flop_filters_param(opts, filter_fields_and_ops)},
+          %{
+            filters: build_flop_filters_param(opts, filter_fields_and_ops),
+            limit: limit
+          },
           for: CurriculumItem
         )
 
       _ ->
-        handle_flop_validate_and_run(queryable)
+        handle_flop_validate_and_run(queryable, %{limit: limit})
     end
   end
 
