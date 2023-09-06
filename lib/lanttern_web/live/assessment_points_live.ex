@@ -4,7 +4,10 @@ defmodule LantternWeb.AssessmentPointsLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto lg:max-w-5xl">
-      <h1 class="font-display font-black text-3xl">Assessment points</h1>
+      <div class="flex items-center justify-between">
+        <h1 class="font-display font-black text-3xl">Assessment points</h1>
+        <.live_component module={LantternWeb.MenuComponent} id={:new} />
+      </div>
       <div class="mt-12">
         <p class="font-display font-bold text-lg">
           I want to explore assessment points<br /> in <u>all disciplines</u>

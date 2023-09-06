@@ -2,7 +2,6 @@ defmodule LantternWeb.CurriculumItemSearchInputComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Curricula
-  alias LantternWeb.CoreComponents
 
   def render(assigns) do
     ~H"""
@@ -121,7 +120,7 @@ defmodule LantternWeb.CurriculumItemSearchInputComponent do
       socket
       |> assign(:class, Map.get(assigns, :class, ""))
       |> assign(:field, assigns.field)
-      |> assign(:errors, Enum.map(assigns.field.errors, &CoreComponents.translate_error/1))
+      |> assign(:errors, Enum.map(assigns.field.errors, &translate_error/1))
       |> assign(:selected, selected)
 
     {:ok, socket}
