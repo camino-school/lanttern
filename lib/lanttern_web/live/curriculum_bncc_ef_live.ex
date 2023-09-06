@@ -44,6 +44,7 @@ defmodule LantternWeb.CurriculumBNCCEFLive do
         No results
       <% else %>
         <.table id="habilidades-bncc" rows={@streams.habilidades_bncc}>
+          <:col :let={{_id, ha}} label="ID">#<%= ha.id %></:col>
           <:col :let={{_id, ha}} label="Code"><%= ha.code %></:col>
           <:col :let={{_id, ha}} label="Campo de Atuação">
             <%= if ha.campo_de_atuacao, do: ha.campo_de_atuacao.name, else: "—" %>

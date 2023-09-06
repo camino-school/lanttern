@@ -879,6 +879,28 @@ defmodule LantternWeb.CoreComponents do
   defp badge_colors_style(_), do: ""
 
   @doc """
+  Renders an inline code block.
+  """
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  slot :inner_block, required: true
+
+  def inline_code(assigns) do
+    ~H"""
+    <span
+      class={[
+        "inline-flex items-center rounded-sm p-1 font-mono text-xs text-ltrn-secondary bg-slate-100",
+        @class
+      ]}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </span>
+    """
+  end
+
+  @doc """
   Renders a profile icon.
   """
   attr :profile_name, :string, required: true

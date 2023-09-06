@@ -4,7 +4,6 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponent do
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Schools
-  alias LantternWeb.CurriculaHelpers
   alias LantternWeb.GradingHelpers
   alias LantternWeb.SchoolsHelpers
 
@@ -58,12 +57,10 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponent do
               />
             </div>
           </div>
-          <.input
+          <.live_component
+            module={LantternWeb.CurriculumItemSearchInputComponent}
+            id={:new}
             field={@form[:curriculum_item_id]}
-            type="select"
-            label="Curriculum item"
-            options={@curriculum_item_options}
-            prompt="Select a curriculum item"
             class="mb-6"
           />
           <.input
@@ -142,10 +139,11 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponent do
     """
   end
 
+  # lifecycle
+
   def mount(socket) do
     changeset = Assessments.new_assessment_point_changeset()
 
-    curriculum_item_options = CurriculaHelpers.generate_curriculum_item_options()
     scale_options = GradingHelpers.generate_scale_options()
     class_options = SchoolsHelpers.generate_class_options()
     selected_classes = []
@@ -156,7 +154,6 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponent do
       socket
       |> assign(%{
         form: to_form(changeset),
-        curriculum_item_options: curriculum_item_options,
         scale_options: scale_options,
         class_options: class_options,
         selected_classes: selected_classes,
@@ -166,6 +163,8 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponent do
 
     {:ok, socket}
   end
+
+  # event handlers
 
   def handle_event(
         "class_selected",

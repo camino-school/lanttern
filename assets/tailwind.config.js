@@ -14,9 +14,18 @@ module.exports = {
       colors: {
         ltrn: {
           primary: colors.cyan["400"],
+          secondary: colors.rose["500"],
           text: colors.slate["700"],
           subtle: colors.slate["400"],
           hairline: colors.slate["200"],
+          mesh: {
+            primary: colors.cyan["200"],
+            cyan: colors.cyan["50"],
+            rose: colors.rose["100"],
+            violet: colors.violet["200"],
+            yellow: colors.yellow["100"],
+            lime: colors.lime["100"],
+          },
         },
       },
       fontFamily: {
