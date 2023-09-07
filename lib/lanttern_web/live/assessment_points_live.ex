@@ -22,7 +22,7 @@ defmodule LantternWeb.AssessmentPointsLive do
         </.link>
         <button
           class="flex items-center mt-4 font-display font-black text-lg text-ltrn-subtle"
-          phx-click="create-assessment-point"
+          phx-click={JS.exec("data-show", to: "#create-assessment-point-overlay")}
         >
           Create assessment point <.icon name="hero-plus" class="text-ltrn-primary ml-2" />
         </button>
@@ -41,8 +41,7 @@ defmodule LantternWeb.AssessmentPointsLive do
     </div>
     <.live_component
       module={LantternWeb.AssessmentPointCreateOverlayComponent}
-      id={:new}
-      show={@is_creating_assessment_point}
+      id="create-assessment-point-overlay"
     />
     """
   end
@@ -56,15 +55,7 @@ defmodule LantternWeb.AssessmentPointsLive do
   end
 
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, :is_creating_assessment_point, false)}
-  end
-
-  def handle_event("create-assessment-point", _params, socket) do
-    {:noreply, assign(socket, :is_creating_assessment_point, true)}
-  end
-
-  def handle_event("cancel-create-assessment-point", _params, socket) do
-    {:noreply, assign(socket, :is_creating_assessment_point, false)}
+    {:ok, socket}
   end
 
   def handle_info({:assessment_point_created, assessment_point}, socket) do

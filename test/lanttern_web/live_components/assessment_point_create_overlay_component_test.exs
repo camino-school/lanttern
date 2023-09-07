@@ -2,24 +2,30 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponentTest do
   use LantternWeb.ConnCase
 
   @assessment_points_path "/assessment_points"
+  @overlay_selector "#create-assessment-point-overlay"
+  @form_selector "#create-assessment-point-form"
 
   describe "Create assessment point form in assessment points live view" do
     test "form shows in live view", %{conn: conn} do
       {:ok, view, _html} = live(conn, @assessment_points_path)
 
-      # confirms overlay is not rendered
-      refute view
-             |> element("h2", "Create assessment point")
-             |> has_element?()
+      # to-do:
+      # after `<.slide_over>` refactor, the HTML is already rendered, just not visible.
+      # in the future we can reimplement client-side interactions tests (using Wallaby, maybe?)
 
-      # click button to render
-      view
-      |> element("button", "Create assessment point")
-      |> render_click()
+      # # confirms overlay is not rendered
+      # refute view
+      #        |> element("h2", "Create assessment point")
+      #        |> has_element?()
+
+      # # click button to render
+      # view
+      # |> element("button", "Create assessment point")
+      # |> render_click()
 
       # assert overlay is rendered
       assert view
-             |> element("h2", "Create assessment point")
+             |> element("#{@overlay_selector} h2", "Create assessment point")
              |> render() =~ "Create assessment point"
     end
 
@@ -38,49 +44,44 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponentTest do
 
       {:ok, view, _html} = live(conn, @assessment_points_path)
 
-      # open overlay
-      view
-      |> element("button", "Create assessment point")
-      |> render_click()
-
       # select class
       view
-      |> element("select", "Select classes")
+      |> element("#{@overlay_selector} select", "Select classes")
       |> render_change(%{"assessment_point" => %{"class_id" => class.id}})
 
       # assert class and students badges are rendered
       assert view
-             |> element("span.rounded-sm", class.name)
+             |> element("#{@overlay_selector} span.rounded-sm", class.name)
              |> render() =~ class.name
 
       assert view
-             |> element("span.rounded-sm", std_1.name)
+             |> element("#{@overlay_selector} span.rounded-sm", std_1.name)
              |> render() =~ std_1.name
 
       assert view
-             |> element("span.rounded-sm", std_2.name)
+             |> element("#{@overlay_selector} span.rounded-sm", std_2.name)
              |> render() =~ std_2.name
 
       assert view
-             |> element("span.rounded-sm", std_3.name)
+             |> element("#{@overlay_selector} span.rounded-sm", std_3.name)
              |> render() =~ std_3.name
 
       # delete class
       view
-      |> element("#class-badge-#{class.id} button")
+      |> element("#{@overlay_selector} #class-badge-#{class.id} button")
       |> render_click()
 
       refute view
-             |> element("span.rounded-sm", class.name)
+             |> element("#{@overlay_selector} span.rounded-sm", class.name)
              |> has_element?()
 
       # delete std_3
       view
-      |> element("#student-badge-#{std_3.id} button")
+      |> element("#{@overlay_selector} #student-badge-#{std_3.id} button")
       |> render_click()
 
       refute view
-             |> element("span.rounded-md", std_3.name)
+             |> element("#{@overlay_selector} span.rounded-md", std_3.name)
              |> has_element?()
     end
 
@@ -99,19 +100,14 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponentTest do
 
       {:ok, view, _html} = live(conn, @assessment_points_path)
 
-      # open overlay
-      view
-      |> element("button", "Create assessment point")
-      |> render_click()
-
       # select class
       view
-      |> element("select", "Select classes")
+      |> element("#{@overlay_selector} select", "Select classes")
       |> render_change(%{"assessment_point" => %{"class_id" => class.id}})
 
       # submit with extra info
       view
-      |> element("#create-assessment-point-form")
+      |> element("#{@overlay_selector} #{@form_selector}")
       |> render_submit(%{
         "assessment_point" => %{
           "name" => "some name",
@@ -142,14 +138,9 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponentTest do
     test "submit invalid form prevents save/redirect", %{conn: conn} do
       {:ok, view, _html} = live(conn, @assessment_points_path)
 
-      # open overlay
-      view
-      |> element("button", "Create assessment point")
-      |> render_click()
-
       # submit
       view
-      |> element("#create-assessment-point-form")
+      |> element("#{@overlay_selector} #{@form_selector}")
       |> render_submit()
 
       assert_raise ArgumentError, fn ->

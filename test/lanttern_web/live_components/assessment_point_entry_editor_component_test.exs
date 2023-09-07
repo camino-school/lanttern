@@ -187,20 +187,22 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponentTest do
           ordinal_value_id: ordinal_value_1.id
         })
 
+      form_selector = "#entry-#{entry.id}-marking-form"
+
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
 
       # validate if ordinal value and observation fields rendered with initial values
       view
-      |> element("select option[selected][value=#{ordinal_value_1.id}]")
+      |> element("#{form_selector} select option[selected][value=#{ordinal_value_1.id}]")
       |> has_element?()
 
       view
-      |> element("textarea", "initial obs")
+      |> element("#{form_selector} textarea", "initial obs")
       |> has_element?()
 
       # send change event to form
       view
-      |> element("form")
+      |> element(form_selector)
       |> render_change(%{
         "assessment_point_entry" => %{
           "ordinal_value_id" => ordinal_value_2.id,
@@ -210,11 +212,11 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponentTest do
 
       # validate if ordinal value and observation fields rendered with updated values
       view
-      |> element("select option[selected][value=#{ordinal_value_2.id}]")
+      |> element("#{form_selector} select option[selected][value=#{ordinal_value_2.id}]")
       |> has_element?()
 
       view
-      |> element("textarea", "updated observation")
+      |> element("#{form_selector} textarea", "updated observation")
       |> has_element?()
 
       # assert updated entry in DB
@@ -240,20 +242,22 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponentTest do
           score: 5
         })
 
+      form_selector = "#entry-#{entry.id}-marking-form"
+
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
 
       # validate if score and observation fields rendered with initial values
       view
-      |> element("input[type=number]", "5")
+      |> element("#{form_selector} input[type=number]", "5")
       |> has_element?()
 
       view
-      |> element("textarea", "initial obs")
+      |> element("#{form_selector} textarea", "initial obs")
       |> has_element?()
 
       # send change event to form
       view
-      |> element("form")
+      |> element(form_selector)
       |> render_change(%{
         "assessment_point_entry" => %{
           "score" => "6",
@@ -263,11 +267,11 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponentTest do
 
       # validate if score and observation fields rendered with updated values
       view
-      |> element("input[type=number]", "6")
+      |> element("#{form_selector} input[type=number]", "6")
       |> has_element?()
 
       view
-      |> element("textarea", "updated observation")
+      |> element("#{form_selector} textarea", "updated observation")
       |> has_element?()
 
       # assert updated entry in DB
@@ -298,7 +302,7 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponentTest do
 
       # send change event to form
       view
-      |> element("form")
+      |> element("#entry-#{entry.id}-marking-form")
       |> render_change(%{
         "assessment_point_entry" => %{
           "score" => "11"

@@ -26,7 +26,11 @@ defmodule LantternWeb.AssessmentPointLive do
         <span class="underline">Back to explorer</span>
       </.link>
       <div class="relative w-full p-6 mt-4 rounded shadow-xl bg-white">
-        <.button class="absolute top-2 right-2" theme="ghost" phx-click="update">
+        <.button
+          class="absolute top-2 right-2"
+          theme="ghost"
+          phx-click={JS.exec("data-show", to: "#update-assessment-point-overlay")}
+        >
           Edit
         </.button>
         <div class="max-w-screen-sm">
@@ -81,8 +85,8 @@ defmodule LantternWeb.AssessmentPointLive do
     </div>
     <.live_component
       module={LantternWeb.AssessmentPointUpdateOverlayComponent}
-      id={@assessment_point_id}
-      show={@is_updating}
+      id="update-assessment-point-overlay"
+      assessment_point={@assessment_point}
     />
     """
   end
@@ -186,7 +190,6 @@ defmodule LantternWeb.AssessmentPointLive do
           |> assign(:entries, entries)
           |> assign(:ordinal_values, ordinal_values)
           |> assign(:formatted_datetime, formatted_datetime)
-          |> assign(:assessment_point_id, id)
           |> assign(:is_updating, false)
 
         {:noreply, socket}

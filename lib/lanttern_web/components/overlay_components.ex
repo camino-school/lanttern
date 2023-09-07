@@ -8,9 +8,16 @@ defmodule LantternWeb.OverlayComponents do
   @doc """
   Renders a slide over.
 
+  To show slide over:
+  - use `JS.exec("data-show", to: "#slideoverid")`
+  - or mount with `show={true}`
+
+  To hide slide over:
+  - use `JS.exec("data-cancel", to: "#slideoverid")`
+
   ## Examples
 
-      <.slide_over>
+      <.slide_over id="slideoverid>
         <:title>Slide over title</:title>
         This is a slide over.
         <:actions>
@@ -19,7 +26,9 @@ defmodule LantternWeb.OverlayComponents do
         </:actions>
       </.slide_over>
   """
-  attr :rest, :global
+  attr :id, :string, required: true
+  attr :show, :boolean, default: false
+  attr :on_cancel, JS, default: %JS{}
   slot :title, required: true
   slot :inner_block, required: true
   slot :actions, required: true
@@ -27,33 +36,41 @@ defmodule LantternWeb.OverlayComponents do
   def slide_over(assigns) do
     ~H"""
     <div
-      class="relative z-10"
-      aria-labelledby="slide-over-title"
-      role="dialog"
-      aria-modal="true"
-      phx-mounted={show_slide_over()}
-      phx-remove={hide_slide_over()}
-      {@rest}
+      id={@id}
+      phx-mounted={@show && JS.exec("data-show")}
+      phx-remove={hide_slide_over(@id)}
+      data-show={show_slide_over(@id)}
+      data-cancel={JS.exec(@on_cancel, "phx-remove")}
+      class="relative z-10 hidden"
     >
-      <div id="slide-over-backdrop" class="fixed inset-0 bg-white/75 transition-opacity hidden"></div>
-
-      <div class="fixed inset-0 overflow-hidden">
+      <div id={"#{@id}-backdrop"} class="fixed inset-0 bg-white/75 transition-opacity" />
+      <div
+        class="fixed inset-0 overflow-hidden"
+        tabindex="0"
+        aria-labelledby={"#{@id}-title"}
+        aria-describedby={"#{@id}-description"}
+        role="dialog"
+        aria-modal="true"
+      >
         <div class="absolute inset-0 overflow-hidden">
           <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
-            <div
-              id="slide-over-panel"
-              class="pointer-events-auto w-screen max-w-xl py-6 transition-translate hidden"
+            <.focus_wrap
+              id={"#{@id}-container"}
+              phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
+              phx-key="escape"
+              phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
+              class="pointer-events-auto w-screen max-w-xl py-6 transition-translate"
             >
               <div class="flex h-full flex-col divide-y divide-ltrn-hairline bg-white shadow-xl rounded-l">
                 <div class="flex min-h-0 flex-1 flex-col overflow-y-scroll py-6 lanttern-bg-1">
                   <div class="px-4 sm:px-6">
                     <div class="flex items-start justify-between">
-                      <h2 class="font-display font-black text-3xl" id="slide-over-title">
+                      <h2 class="font-display font-black text-3xl" id={"#{@id}-title"}>
                         <%= render_slot(@title) %>
                       </h2>
                     </div>
                   </div>
-                  <div class="relative mt-6 flex-1 px-4 sm:px-6">
+                  <div id={"#{@id}-content"} class="relative mt-6 flex-1 px-4 sm:px-6">
                     <%= render_slot(@inner_block) %>
                   </div>
                 </div>
@@ -61,7 +78,7 @@ defmodule LantternWeb.OverlayComponents do
                   <%= render_slot(@actions) %>
                 </div>
               </div>
-            </div>
+            </.focus_wrap>
           </div>
         </div>
       </div>
@@ -69,18 +86,15 @@ defmodule LantternWeb.OverlayComponents do
     """
   end
 
-  defp show_slide_over() do
-    JS.add_class(
-      "overflow-hidden",
-      to: "body"
+  defp show_slide_over(js \\ %JS{}, id) do
+    js
+    |> JS.show(to: "##{id}")
+    |> JS.show(
+      to: "##{id}-backdrop",
+      transition: {"ease-in-out duration-500", "opacity-0", "opacity-100"}
     )
     |> JS.show(
-      to: "#slide-over-backdrop",
-      transition: {"ease-in-out duration-500", "opacity-0", "opacity-100"},
-      time: 500
-    )
-    |> JS.show(
-      to: "#slide-over-panel",
+      to: "##{id}-container",
       transition: {
         "ease-in-out duration-500",
         "translate-x-full",
@@ -88,17 +102,18 @@ defmodule LantternWeb.OverlayComponents do
       },
       time: 500
     )
+    |> JS.add_class("overflow-hidden", to: "body")
+    |> JS.focus_first(to: "##{id}-content")
   end
 
-  defp hide_slide_over() do
-    JS.remove_class("overflow-hidden", to: "body")
+  defp hide_slide_over(js \\ %JS{}, id) do
+    js
     |> JS.hide(
-      to: "#slide-over-backdrop",
-      transition: {"ease-in-out duration-500", "opacity-100", "opacity-0"},
-      time: 500
+      to: "##{id}-backdrop",
+      transition: {"ease-in-out duration-500", "opacity-100", "opacity-0"}
     )
     |> JS.hide(
-      to: "#slide-over-panel",
+      to: "##{id}-container",
       transition: {
         "ease-in-out duration-500",
         "translate-x-0",
@@ -106,6 +121,9 @@ defmodule LantternWeb.OverlayComponents do
       },
       time: 500
     )
+    |> JS.hide(to: "##{id}", transition: {"block", "block", "hidden"})
+    |> JS.remove_class("overflow-hidden", to: "body")
+    |> JS.pop_focus()
   end
 
   @doc """
@@ -139,7 +157,11 @@ defmodule LantternWeb.OverlayComponents do
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
       class="relative z-10 hidden"
     >
-      <div id={"#{@id}-bg"} class="fixed inset-0 bg-white/75 transition-opacity" aria-hidden="true" />
+      <div
+        id={"#{@id}-backdrop"}
+        class="fixed inset-0 bg-white/75 transition-opacity"
+        aria-hidden="true"
+      />
       <div
         class="fixed inset-0 z-10 w-screen overflow-y-auto"
         tabindex="0"
@@ -178,7 +200,7 @@ defmodule LantternWeb.OverlayComponents do
     js
     |> JS.show(to: "##{id}")
     |> JS.show(
-      to: "##{id}-bg",
+      to: "##{id}-backdrop",
       transition: {"transition-all transform ease-out duration-300", "opacity-0", "opacity-100"}
     )
     |> JS.show(
@@ -186,7 +208,8 @@ defmodule LantternWeb.OverlayComponents do
       transition:
         {"transition-all transform ease-out duration-300",
          "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
-         "opacity-100 translate-y-0 sm:scale-100"}
+         "opacity-100 translate-y-0 sm:scale-100"},
+      time: 300
     )
     |> JS.add_class("overflow-hidden", to: "body")
     |> JS.focus_first(to: "##{id}-content")
@@ -195,7 +218,7 @@ defmodule LantternWeb.OverlayComponents do
   defp hide_panel_overlay(js \\ %JS{}, id) do
     js
     |> JS.hide(
-      to: "##{id}-bg",
+      to: "##{id}-backdrop",
       transition: {"transition-all transform ease-in duration-200", "opacity-100", "opacity-0"}
     )
     |> JS.hide(
