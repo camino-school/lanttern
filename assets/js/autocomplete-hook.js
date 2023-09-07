@@ -10,9 +10,19 @@ const hideControls = (input) => {
   }
 };
 
-const pushSelect = (hook, target, selected) => {
+const pushSelect = (hook, input, selected) => {
+  // force visible input value change
+  input.value = selected.name;
+
+  // force hidden input value change and trigger phx-change event
+  const hiddenInput = document.getElementById(
+    input.getAttribute("data-hidden-input-id")
+  );
+  hiddenInput.value = selected.id;
+  hiddenInput.dispatchEvent(new Event("input", { bubbles: true }));
+
   // send event to liveview server
-  hook.pushEventTo(target, "autocomplete_result_select", selected);
+  hook.pushEventTo(input, "autocomplete_result_select", selected);
 };
 
 const setActive = (activeId, input, controls) => {
@@ -54,9 +64,6 @@ function autocompleteSearchResults(event) {
 
     // send event to liveview server
     pushSelect(this, input, selected);
-
-    // force value change
-    input.value = selected.name;
   };
 
   if (event.detail.results.length > 0) {
@@ -67,6 +74,17 @@ function autocompleteSearchResults(event) {
       li.addEventListener("click", selectLi);
     });
   }
+}
+
+function removeCurriculumItem(event) {
+  let input = this.el;
+
+  // force hidden input value change and trigger phx-change event
+  const hiddenInput = document.getElementById(
+    input.getAttribute("data-hidden-input-id")
+  );
+  hiddenInput.value = "";
+  hiddenInput.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
 // on click away
@@ -111,9 +129,6 @@ function keydownHandler(event) {
 
       // send event to liveview server
       pushSelect(this, input, selected);
-
-      // force value change
-      input.value = selected.name;
     }
     return;
   }
@@ -163,6 +178,11 @@ const autocompleteHook = {
     window.addEventListener(
       "phx:autocomplete_search_results",
       autocompleteSearchResults.bind(this)
+    );
+
+    window.addEventListener(
+      "phx:remove_curriculum_item",
+      removeCurriculumItem.bind(this)
     );
 
     window.addEventListener("click", clickAwayHandler.bind(this));

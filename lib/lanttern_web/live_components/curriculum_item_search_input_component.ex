@@ -6,7 +6,7 @@ defmodule LantternWeb.CurriculumItemSearchInputComponent do
   def render(assigns) do
     ~H"""
     <div class={@class}>
-      <.label for="curriculum-item-search-input">Curriculum item</.label>
+      <.label for={@id}>Curriculum item</.label>
       <p class="mb-2 text-sm">
         You can search by id adding # before the id
         <.inline_code>
@@ -18,9 +18,9 @@ defmodule LantternWeb.CurriculumItemSearchInputComponent do
         </.inline_code>
       </p>
       <div phx-feedback-for={@field.name} class="relative">
-        <input name={@field.name} type="hidden" value={@field.value} />
+        <input id={@field.id} name={@field.name} type="hidden" value={@field.value} />
         <.base_input
-          id="curriculum-item-search-input"
+          id={@id}
           name="query"
           type="text"
           value=""
@@ -35,8 +35,15 @@ defmodule LantternWeb.CurriculumItemSearchInputComponent do
           phx-target={@myself}
           phx-update="ignore"
           errors={@errors}
+          data-hidden-input-id={@field.id}
         />
-        <.icon name="hero-chevron-up-down" class="absolute top-2.5 right-2.5 text-ltrn-subtle" />
+        <.icon
+          name="hero-chevron-up-down"
+          class="absolute top-2.5 right-2.5 text-ltrn-subtle peer-phx-change-loading:hidden"
+        />
+        <div class="hidden absolute top-3 right-3 peer-phx-change-loading:block">
+          <.ping />
+        </div>
 
         <ul
           class={[
@@ -108,9 +115,9 @@ defmodule LantternWeb.CurriculumItemSearchInputComponent do
     {:ok, socket}
   end
 
-  def update(assigns, socket) do
+  def update(%{field: field} = assigns, socket) do
     selected =
-      case assigns.field.value do
+      case field.value do
         nil -> nil
         "" -> nil
         id -> Curricula.get_curriculum_item!(id)
@@ -118,9 +125,8 @@ defmodule LantternWeb.CurriculumItemSearchInputComponent do
 
     socket =
       socket
-      |> assign(:class, Map.get(assigns, :class, ""))
-      |> assign(:field, assigns.field)
-      |> assign(:errors, Enum.map(assigns.field.errors, &translate_error/1))
+      |> assign(assigns)
+      |> assign(:errors, Enum.map(field.errors, &translate_error/1))
       |> assign(:selected, selected)
 
     {:ok, socket}
@@ -160,9 +166,6 @@ defmodule LantternWeb.CurriculumItemSearchInputComponent do
       socket
       |> stream(:results, [], reset: true)
       |> assign(:selected, selected)
-      |> update(:field, fn field ->
-        Map.put(field, :value, id)
-      end)
 
     {:noreply, socket}
   end
@@ -171,9 +174,7 @@ defmodule LantternWeb.CurriculumItemSearchInputComponent do
     socket =
       socket
       |> assign(:selected, nil)
-      |> update(:field, fn field ->
-        Map.put(field, :value, nil)
-      end)
+      |> push_event("remove_curriculum_item", %{})
 
     {:noreply, socket}
   end

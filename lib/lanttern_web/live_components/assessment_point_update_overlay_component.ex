@@ -59,7 +59,7 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponent do
           </div>
           <.live_component
             module={LantternWeb.CurriculumItemSearchInputComponent}
-            id={:new}
+            id="update-assessment-point-form-curriculum-item"
             field={@form[:curriculum_item_id]}
             class="mb-6"
           />
@@ -113,8 +113,8 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponent do
 
     socket =
       socket
-      |> assign(:form, to_form(changeset))
       |> assign(assigns)
+      |> assign(:form, to_form(changeset))
 
     {:ok, socket}
   end

@@ -11,8 +11,7 @@ defmodule LantternWeb.MenuComponent do
         aria-label="open menu"
       >
         <.icon name="hero-bars-3 text-ltrn-subtle" />
-        <div class="w-6 h-6 rounded-full bg-ltrn-mesh-primary blur-sm group-hover:blur-none transition-[filter]">
-        </div>
+        <div class="w-6 h-6 rounded-full bg-ltrn-mesh-primary blur-sm group-hover:blur-none transition-[filter]" />
       </button>
       <.panel_overlay id="menu">
         Test

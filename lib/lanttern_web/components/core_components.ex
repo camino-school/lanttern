@@ -952,4 +952,20 @@ defmodule LantternWeb.CoreComponents do
     </div>
     """
   end
+
+  @doc """
+  Renders a ping.
+  """
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def ping(assigns) do
+    ~H"""
+    <span class={["relative flex h-4 w-4", @class]} @rest>
+      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-ltrn-primary opacity-75 blur-[2px]">
+      </span>
+      <span class="relative inline-flex rounded-full h-4 w-4 bg-ltrn-primary blur-sm"></span>
+    </span>
+    """
+  end
 end
