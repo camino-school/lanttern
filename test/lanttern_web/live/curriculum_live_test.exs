@@ -6,7 +6,7 @@ defmodule LantternWeb.CurriculumLiveTest do
   describe "Curriculum live view" do
     test "disconnected and connected mount", %{conn: conn} do
       conn = get(conn, @live_view_path)
-      assert html_response(conn, 200) =~ ~r/<h1 .+>Curriculum<\/h1>/
+      assert html_response(conn, 200) =~ ~r/<h1 .+>\s*Curriculum\s*<\/h1>/
 
       {:ok, _view, _html} = live(conn)
     end
@@ -18,7 +18,7 @@ defmodule LantternWeb.CurriculumLiveTest do
       |> element("a", "BNCC EF")
       |> render_click()
 
-      path = assert_patch(view)
+      {path, _flash} = assert_redirect(view)
       assert path == "/curriculum/bncc_ef"
     end
   end

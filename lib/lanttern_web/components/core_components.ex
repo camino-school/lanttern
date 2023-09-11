@@ -968,4 +968,21 @@ defmodule LantternWeb.CoreComponents do
     </span>
     """
   end
+
+  @doc """
+  Renders a page title with menu button.
+  """
+  attr :class, :any, default: nil
+  slot :inner_block, required: true
+
+  def page_title_with_menu(assigns) do
+    ~H"""
+    <div class={["flex items-center justify-between", @class]}>
+      <h1 class="font-display font-black text-3xl">
+        <%= render_slot(@inner_block) %>
+      </h1>
+      <.live_component module={LantternWeb.MenuComponent} id={:new} />
+    </div>
+    """
+  end
 end

@@ -41,7 +41,7 @@ defmodule LantternWeb.OverlayComponents do
       phx-remove={hide_slide_over(@id)}
       data-show={show_slide_over(@id)}
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
-      class="relative z-10 hidden"
+      class="relative z-30 hidden"
     >
       <div id={"#{@id}-backdrop"} class="fixed inset-0 bg-white/75 transition-opacity" />
       <div
@@ -156,7 +156,7 @@ defmodule LantternWeb.OverlayComponents do
       phx-remove={hide_panel_overlay(@id)}
       data-show={show_panel_overlay(@id)}
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
-      class="relative z-10 hidden"
+      class="relative z-30 hidden"
     >
       <div
         id={"#{@id}-backdrop"}
@@ -164,7 +164,7 @@ defmodule LantternWeb.OverlayComponents do
         aria-hidden="true"
       />
       <div
-        class="fixed inset-0 z-10 w-screen overflow-y-auto"
+        class="fixed inset-0 z-30 w-screen overflow-y-auto"
         tabindex="0"
         aria-labelledby={"#{@id}-title"}
         aria-describedby={"#{@id}-description"}

@@ -1,6 +1,26 @@
 defmodule LantternWeb.MenuComponent do
   use LantternWeb, :live_component
 
+  def mount(socket) do
+    active_nav =
+      cond do
+        socket.view in [
+          LantternWeb.AssessmentPointsLive,
+          LantternWeb.AssessmentPointsExplorerLive,
+          LantternWeb.AssessmentPointLive
+        ] ->
+          :assessment_points
+
+        socket.view in [LantternWeb.CurriculumLive, LantternWeb.CurriculumBNCCEFLive] ->
+          :curriculum
+
+        true ->
+          nil
+      end
+
+    {:ok, assign(socket, :active_nav, active_nav)}
+  end
+
   def render(assigns) do
     ~H"""
     <div>
@@ -20,9 +40,15 @@ defmodule LantternWeb.MenuComponent do
         <div class="flex-1 flex flex-col justify-between">
           <nav>
             <ul class="grid grid-cols-3 gap-px border-b border-ltrn-hairline bg-ltrn-hairline">
-              <.nav_item>Dashboard</.nav_item>
-              <.nav_item>Assessment points</.nav_item>
-              <.nav_item>Curriculum</.nav_item>
+              <.nav_item active={@active_nav == nil} path={~p"/"}>
+                Dashboard
+              </.nav_item>
+              <.nav_item active={@active_nav == :assessment_points} path={~p"/assessment_points"}>
+                Assessment points
+              </.nav_item>
+              <.nav_item active={@active_nav == :curriculum} path={~p"/curriculum"}>
+                Curriculum
+              </.nav_item>
             </ul>
           </nav>
           <h5 class="relative flex items-center ml-6 mb-6 font-display font-black text-3xl text-ltrn-text">
@@ -47,12 +73,26 @@ defmodule LantternWeb.MenuComponent do
     """
   end
 
+  attr :path, :string, required: true
+  attr :active, :boolean, required: true
   slot :inner_block, required: true
 
   def nav_item(assigns) do
     ~H"""
-    <li class="relative p-10 font-display font-black text-lg text-ltrn-subtle underline bg-white">
-      <%= render_slot(@inner_block) %>
+    <li class="bg-white">
+      <.link
+        navigate={@path}
+        class={[
+          "group relative block p-10 font-display font-black text-lg",
+          if(@active, do: "text-ltrn-text", else: "text-ltrn-subtle underline hover:no-underline")
+        ]}
+      >
+        <span class={[
+          "absolute top-2 left-2 block w-6 h-6",
+          if(@active, do: "bg-ltrn-primary", else: "group-hover:bg-ltrn-subtle")
+        ]} />
+        <%= render_slot(@inner_block) %>
+      </.link>
     </li>
     """
   end

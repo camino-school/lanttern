@@ -8,18 +8,18 @@ defmodule LantternWeb.AssessmentPointLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto lg:max-w-5xl">
-      <h1 class="font-display font-black text-3xl">Assessment point details</h1>
+      <.page_title_with_menu>Assessment point details</.page_title_with_menu>
       <div class="flex items-center mt-2 font-display font-bold text-xs text-ltrn-subtle">
-        <.link patch={~p"/assessment_points"} class="underline">Assessment points</.link>
+        <.link navigate={~p"/assessment_points"} class="underline">Assessment points</.link>
         <span class="mx-1">/</span>
-        <.link patch={~p"/assessment_points/explorer"} class="underline">Explorer</.link>
+        <.link navigate={~p"/assessment_points/explorer"} class="underline">Explorer</.link>
         <span class="mx-1">/</span>
         <span>Details</span>
       </div>
     </div>
     <div class="container mx-auto lg:max-w-5xl mt-10">
       <.link
-        patch={~p"/assessment_points/explorer"}
+        navigate={~p"/assessment_points/explorer"}
         class="flex items-center text-sm text-ltrn-subtle"
       >
         <.icon name="hero-arrow-left-mini" class="text-ltrn-primary mr-2" />
