@@ -62,7 +62,7 @@ defmodule LantternWeb.OverlayComponents do
               class="pointer-events-auto w-screen max-w-xl py-6 transition-translate"
             >
               <div class="flex h-full flex-col divide-y divide-ltrn-hairline bg-white shadow-xl rounded-l">
-                <div class="flex min-h-0 flex-1 flex-col overflow-y-scroll py-6 lanttern-bg-1">
+                <div class="flex min-h-0 flex-1 flex-col overflow-y-scroll py-6 ltrn-bg-1">
                   <div class="px-4 sm:px-6">
                     <div class="flex items-start justify-between">
                       <h2 class="font-display font-black text-3xl" id={"#{@id}-title"}>
@@ -143,6 +143,7 @@ defmodule LantternWeb.OverlayComponents do
       </.panel_overlay>
   """
   attr :id, :string, required: true
+  attr :class, :any, default: ""
   attr :show, :boolean, default: false
   attr :on_cancel, JS, default: %JS{}
   slot :inner_block, required: true
@@ -176,7 +177,7 @@ defmodule LantternWeb.OverlayComponents do
             phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
             phx-key="escape"
             phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-            class="relative transform overflow-hidden min-w-full min-h-full rounded bg-white p-10 shadow-xl transition-all"
+            class="relative transform overflow-hidden min-w-full min-h-full rounded bg-white shadow-xl transition-all"
           >
             <button
               phx-click={JS.exec("data-cancel", to: "##{@id}")}
@@ -186,7 +187,7 @@ defmodule LantternWeb.OverlayComponents do
             >
               <.icon name="hero-x-mark" class="w-6 h-6" />
             </button>
-            <div id={"#{@id}-content"}>
+            <div id={"#{@id}-content"} class={@class}>
               <%= render_slot(@inner_block) %>
             </div>
           </.focus_wrap>
