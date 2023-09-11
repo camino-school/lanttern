@@ -4,7 +4,7 @@ defmodule LantternWeb.AssessmentPointsLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto lg:max-w-5xl">
-      <h1 class="font-display font-black text-3xl">Assessment points</h1>
+      <.page_title_with_menu>Assessment points</.page_title_with_menu>
       <div class="mt-12">
         <p class="font-display font-bold text-lg">
           I want to explore assessment points<br /> in <u>all disciplines</u>
@@ -12,14 +12,14 @@ defmodule LantternWeb.AssessmentPointsLive do
           <br /> in <u>this bimester</u>
         </p>
         <.link
-          patch={~p"/assessment_points/explorer"}
+          navigate={~p"/assessment_points/explorer"}
           class="flex items-center mt-4 font-display font-black text-lg text-ltrn-subtle"
         >
           Explore <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
         </.link>
         <button
           class="flex items-center mt-4 font-display font-black text-lg text-ltrn-subtle"
-          phx-click="create-assessment-point"
+          phx-click={JS.exec("data-show", to: "#create-assessment-point-overlay")}
         >
           Create assessment point <.icon name="hero-plus" class="text-ltrn-primary ml-2" />
         </button>
@@ -38,8 +38,7 @@ defmodule LantternWeb.AssessmentPointsLive do
     </div>
     <.live_component
       module={LantternWeb.AssessmentPointCreateOverlayComponent}
-      id={:new}
-      show={@is_creating_assessment_point}
+      id="create-assessment-point-overlay"
     />
     """
   end
@@ -53,15 +52,7 @@ defmodule LantternWeb.AssessmentPointsLive do
   end
 
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, :is_creating_assessment_point, false)}
-  end
-
-  def handle_event("create-assessment-point", _params, socket) do
-    {:noreply, assign(socket, :is_creating_assessment_point, true)}
-  end
-
-  def handle_event("cancel-create-assessment-point", _params, socket) do
-    {:noreply, assign(socket, :is_creating_assessment_point, false)}
+    {:ok, socket}
   end
 
   def handle_info({:assessment_point_created, assessment_point}, socket) do

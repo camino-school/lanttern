@@ -9,7 +9,7 @@ defmodule LantternWeb.CurriculumBNCCEFLiveTest do
 
     test "disconnected and connected mount", %{conn: conn} do
       conn = get(conn, @live_view_path)
-      assert html_response(conn, 200) =~ ~r/<h1 .+>BNCC Ensino Fundamental<\/h1>/
+      assert html_response(conn, 200) =~ ~r/<h1 .+>\s*BNCC Ensino Fundamental\s*<\/h1>/
 
       {:ok, _view, _html} = live(conn)
     end

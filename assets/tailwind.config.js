@@ -63,6 +63,12 @@ module.exports = {
         ".phx-change-loading &",
       ])
     ),
+    plugin(({ addVariant }) =>
+      addVariant(
+        "peer-phx-change-loading",
+        ":merge(.peer).phx-change-loading ~ &"
+      )
+    ),
 
     // Embeds Heroicons (https://heroicons.com) into your app.css bundle
     // See your `CoreComponents.icon/1` for more information.

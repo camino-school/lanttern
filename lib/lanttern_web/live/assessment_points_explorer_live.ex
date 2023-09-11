@@ -7,9 +7,9 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto lg:max-w-5xl">
-      <h1 class="font-display font-black text-3xl">Assessment points explorer</h1>
+      <.page_title_with_menu>Assessment points explorer</.page_title_with_menu>
       <div class="flex items-center mt-2 font-display font-bold text-xs text-ltrn-subtle">
-        <.link patch={~p"/assessment_points"} class="underline">Assessment points</.link>
+        <.link navigate={~p"/assessment_points"} class="underline">Assessment points</.link>
         <span class="mx-1">/</span>
         <span>Explorer</span>
       </div>
@@ -48,7 +48,7 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
         <%= Timex.format!(@assessment_point.datetime, "{Mshort} {0D}") %>
       </div>
       <.link
-        patch={~p"/assessment_points/#{@assessment_point.id}"}
+        navigate={~p"/assessment_points/#{@assessment_point.id}"}
         class="text-xs hover:underline line-clamp-2"
       >
         <%= @assessment_point.name %>

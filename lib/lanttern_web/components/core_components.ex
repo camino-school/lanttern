@@ -952,4 +952,37 @@ defmodule LantternWeb.CoreComponents do
     </div>
     """
   end
+
+  @doc """
+  Renders a ping.
+  """
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def ping(assigns) do
+    ~H"""
+    <span class={["relative flex h-4 w-4", @class]} @rest>
+      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-ltrn-primary opacity-75 blur-[2px]">
+      </span>
+      <span class="relative inline-flex rounded-full h-4 w-4 bg-ltrn-primary blur-sm"></span>
+    </span>
+    """
+  end
+
+  @doc """
+  Renders a page title with menu button.
+  """
+  attr :class, :any, default: nil
+  slot :inner_block, required: true
+
+  def page_title_with_menu(assigns) do
+    ~H"""
+    <div class={["flex items-center justify-between", @class]}>
+      <h1 class="font-display font-black text-3xl">
+        <%= render_slot(@inner_block) %>
+      </h1>
+      <.live_component module={LantternWeb.MenuComponent} id={:new} />
+    </div>
+    """
+  end
 end

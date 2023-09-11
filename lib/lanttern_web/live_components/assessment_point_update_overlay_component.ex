@@ -9,7 +9,7 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <.slide_over :if={@show}>
+      <.slide_over id={@id}>
         <:title>Update assessment point</:title>
         <.form
           id="update-assessment-point-form"
@@ -59,7 +59,7 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponent do
           </div>
           <.live_component
             module={LantternWeb.CurriculumItemSearchInputComponent}
-            id={:new}
+            id="update-assessment-point-form-curriculum-item"
             field={@form[:curriculum_item_id]}
             class="mb-6"
           />
@@ -73,7 +73,7 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponent do
           /> --%>
         </.form>
         <:actions>
-          <.button type="button" theme="ghost" phx-click="cancel-assessment-point-update">
+          <.button type="button" theme="ghost" phx-click={JS.exec("data-cancel", to: "##{@id}")}>
             Cancel
           </.button>
           <.button type="submit" form="update-assessment-point-form" phx-disable-with="Saving...">
@@ -106,14 +106,14 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponent do
     {:ok, socket}
   end
 
-  def update(%{id: id, show: true} = _assigns, socket) do
+  def update(%{assessment_point: assessment_point} = assigns, socket) do
     changeset =
-      Assessments.get_assessment_point!(id)
+      assessment_point
       |> Assessments.change_assessment_point()
 
     socket =
       socket
-      |> assign(:show, true)
+      |> assign(assigns)
       |> assign(:form, to_form(changeset))
 
     {:ok, socket}

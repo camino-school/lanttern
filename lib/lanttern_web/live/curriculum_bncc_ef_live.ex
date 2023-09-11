@@ -6,9 +6,9 @@ defmodule LantternWeb.CurriculumBNCCEFLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto lg:max-w-5xl">
-      <h1 class="font-display font-black text-3xl">BNCC Ensino Fundamental</h1>
+      <.page_title_with_menu>BNCC Ensino Fundamental</.page_title_with_menu>
       <div class="flex items-center mt-2 font-display font-bold text-xs text-ltrn-subtle">
-        <.link patch={~p"/curriculum"} class="underline">Curriculum</.link>
+        <.link navigate={~p"/curriculum"} class="underline">Curriculum</.link>
         <span class="mx-1">/</span>
         <span>BNCC EF</span>
       </div>

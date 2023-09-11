@@ -12,7 +12,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
       %{id: id} = AssessmentsFixtures.assessment_point_fixture()
 
       conn = get(conn, "#{@live_view_path_base}/#{id}")
-      assert html_response(conn, 200) =~ ~r/<h1 .+>Assessment point details<\/h1>/
+      assert html_response(conn, 200) =~ ~r/<h1 .+>\s*Assessment point details\s*<\/h1>/
 
       {:ok, _view, _html} = live(conn)
     end

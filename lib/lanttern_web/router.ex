@@ -35,12 +35,14 @@ defmodule LantternWeb.Router do
 
     get "/", PageController, :home
 
-    live "/assessment_points", AssessmentPointsLive
-    live "/assessment_points/explorer", AssessmentPointsExplorerLive
-    live "/assessment_points/:id", AssessmentPointLive
+    live_session :default do
+      live "/assessment_points", AssessmentPointsLive
+      live "/assessment_points/explorer", AssessmentPointsExplorerLive
+      live "/assessment_points/:id", AssessmentPointLive
 
-    live "/curriculum", CurriculumLive
-    live "/curriculum/bncc_ef", CurriculumBNCCEFLive
+      live "/curriculum", CurriculumLive
+      live "/curriculum/bncc_ef", CurriculumBNCCEFLive
+    end
   end
 
   scope "/admin", LantternWeb do

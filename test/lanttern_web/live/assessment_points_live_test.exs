@@ -6,7 +6,7 @@ defmodule LantternWeb.AssessmentPointsLiveTest do
   describe "Assessment points live view" do
     test "disconnected and connected mount", %{conn: conn} do
       conn = get(conn, @live_view_path)
-      assert html_response(conn, 200) =~ ~r/<h1 .+>Assessment points<\/h1>/
+      assert html_response(conn, 200) =~ ~r/<h1 .+>\s*Assessment points\s*<\/h1>/
 
       {:ok, _view, _html} = live(conn)
     end
@@ -18,7 +18,7 @@ defmodule LantternWeb.AssessmentPointsLiveTest do
       |> element("a", "Explore")
       |> render_click()
 
-      path = assert_patch(view)
+      {path, _flash} = assert_redirect(view)
       assert path == "/assessment_points/explorer"
     end
   end

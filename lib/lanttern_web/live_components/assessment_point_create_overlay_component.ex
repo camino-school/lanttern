@@ -10,7 +10,7 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <.slide_over :if={@show} id="create-form">
+      <.slide_over id={@id}>
         <:title>Create assessment point</:title>
         <.form
           id="create-assessment-point-form"
@@ -59,7 +59,7 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponent do
           </div>
           <.live_component
             module={LantternWeb.CurriculumItemSearchInputComponent}
-            id={:new}
+            id="create-assessment-point-form-curriculum-item"
             field={@form[:curriculum_item_id]}
             class="mb-6"
           />
@@ -127,7 +127,7 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponent do
           </div>
         </.form>
         <:actions>
-          <.button type="button" theme="ghost" phx-click="cancel-create-assessment-point">
+          <.button type="button" theme="ghost" phx-click={JS.exec("data-cancel", to: "##{@id}")}>
             Cancel
           </.button>
           <.button type="submit" form="create-assessment-point-form" phx-disable-with="Saving...">

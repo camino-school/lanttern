@@ -4,25 +4,31 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponentTest do
   import Lanttern.AssessmentsFixtures
 
   @live_view_path_base "/assessment_points"
+  @overlay_selector "#update-assessment-point-overlay"
+  @form_selector "#update-assessment-point-form"
 
   describe "Update assessment point in assessment point details live view" do
     test "overlay shows in live view", %{conn: conn} do
       assessment_point = assessment_point_fixture()
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
 
-      # confirms overlay is not rendered
-      refute view
-             |> element("h2", "Update assessment point")
-             |> has_element?()
+      # to-do:
+      # after `<.slide_over>` refactor, the HTML is already rendered, just not visible.
+      # in the future we can reimplement client-side interactions tests (using Wallaby, maybe?)
 
-      # click button to render
-      view
-      |> element("button", "Edit")
-      |> render_click()
+      # # confirms overlay is not rendered
+      # refute view
+      #        |> element("h2", "Update assessment point")
+      #        |> has_element?()
+
+      # # click button to render
+      # view
+      # |> element("button", "Edit")
+      # |> render_click()
 
       # assert overlay is rendered
       assert view
-             |> element("h2", "Update assessment point")
+             |> element("#{@overlay_selector} h2", "Update assessment point")
              |> render() =~ "Update assessment point"
     end
 
@@ -38,15 +44,10 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponentTest do
 
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
 
-      # open overlay
-      view
-      |> element("button", "Edit")
-      |> render_click()
-
       # validate form rendered with correct initial values
-      assert view |> has_element?("input[value='#{assessment_point.name}']")
-      assert view |> has_element?("textarea", assessment_point.description)
-      assert view |> has_element?("input[value=#{curriculum_item.id}]")
+      assert view |> has_element?("#{@overlay_selector} input[value='#{assessment_point.name}']")
+      assert view |> has_element?("#{@overlay_selector} textarea", assessment_point.description)
+      assert view |> has_element?("#{@overlay_selector} input[value=#{curriculum_item.id}]")
 
       # TODO: uncomment
       # scale temporary disabled to avoid breaking UI when assessment already has registered entries
@@ -59,7 +60,7 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponentTest do
       # other_scale = Lanttern.GradingFixtures.scale_fixture()
 
       view
-      |> element("#update-assessment-point-form")
+      |> element("#{@overlay_selector} #{@form_selector}")
       |> render_submit(%{
         "assessment_point" => %{
           "name" => "updated name",
@@ -91,14 +92,9 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponentTest do
       assessment_point = assessment_point_fixture()
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
 
-      # open overlay
-      view
-      |> element("button", "Edit")
-      |> render_click()
-
       # submit
       assert view
-             |> element("#update-assessment-point-form")
+             |> element("#{@overlay_selector} #{@form_selector}")
              |> render_submit(%{
                "assessment_point" => %{"name" => ""}
              }) =~ "Oops, something went wrong! Please check the errors below."
