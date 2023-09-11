@@ -7,7 +7,7 @@
 
 /* This file is for your main application CSS */
 
-body {
+.ltrn-bg-main {
   background-attachment: fixed;
   background-image:
   radial-gradient(circle at 100% 160px, #FFE4E6 240px, transparent 360px),
@@ -15,13 +15,20 @@ body {
   radial-gradient(circle at 15% 96px, #ECFEFF 360px, transparent 480px);
 }
 
-.ltrn-bg-1 {
+.ltrn-bg-landing {
+  background-image:
+  radial-gradient(circle at 80% 25%, #FFE4E6 240px, transparent 360px),
+  radial-gradient(circle at 60% 0, #CCFBF1 240px, transparent 360px),
+  radial-gradient(circle at 15% 110%, #FFEDD5 360px, transparent 480px);
+}
+
+.ltrn-bg-slide-over {
   background-image:
   radial-gradient(circle at 10% 70%, #FEF9C3 160px, transparent 240px),
   radial-gradient(circle at 30% 120%, #ECFCCB 360px, transparent 480px)
 }
 
-.ltrn-bg-2 {
+.ltrn-bg-menu {
   background-image:
   radial-gradient(circle at 40% 105%, #FEF9C3 200px, transparent 360px),
   radial-gradient(circle at 20% 110%, #ECFCCB 360px, transparent 480px)

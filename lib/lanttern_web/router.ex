@@ -36,6 +36,8 @@ defmodule LantternWeb.Router do
     get "/", PageController, :home
 
     live_session :default do
+      live "/dashboard", DashboardLive
+
       live "/assessment_points", AssessmentPointsLive
       live "/assessment_points/explorer", AssessmentPointsExplorerLive
       live "/assessment_points/:id", AssessmentPointLive

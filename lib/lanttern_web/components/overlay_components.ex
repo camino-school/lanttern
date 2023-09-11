@@ -62,7 +62,7 @@ defmodule LantternWeb.OverlayComponents do
               class="pointer-events-auto w-screen max-w-xl py-6 transition-translate"
             >
               <div class="flex h-full flex-col divide-y divide-ltrn-hairline bg-white shadow-xl rounded-l">
-                <div class="flex min-h-0 flex-1 flex-col overflow-y-scroll py-6 ltrn-bg-1">
+                <div class="flex min-h-0 flex-1 flex-col overflow-y-scroll py-6 ltrn-bg-slide-over">
                   <div class="px-4 sm:px-6">
                     <div class="flex items-start justify-between">
                       <h2 class="font-display font-black text-3xl" id={"#{@id}-title"}>

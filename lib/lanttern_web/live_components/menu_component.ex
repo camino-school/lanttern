@@ -35,7 +35,7 @@ defmodule LantternWeb.MenuComponent do
       </button>
       <.panel_overlay
         id="menu"
-        class="flex items-stretch h-full divide-x divide-ltrn-hairline ltrn-bg-2"
+        class="flex items-stretch h-full divide-x divide-ltrn-hairline ltrn-bg-menu"
       >
         <div class="flex-1 flex flex-col justify-between">
           <nav>
@@ -64,7 +64,11 @@ defmodule LantternWeb.MenuComponent do
             <ul class="font-bold text-lg underline text-ltrn-subtle">
               <li>Change School</li>
               <li>Edit profile</li>
-              <li class="mt-4">Logout</li>
+              <li class="mt-4">
+                <.link href={~p"/users/log_out"} method="delete">
+                  Log out
+                </.link>
+              </li>
             </ul>
           </nav>
         </div>
