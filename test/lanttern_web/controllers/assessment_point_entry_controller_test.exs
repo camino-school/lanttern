@@ -7,14 +7,7 @@ defmodule LantternWeb.AssessmentPointEntryControllerTest do
   @update_attrs %{observation: "some updated observation"}
   @invalid_attrs %{student_id: nil}
 
-  setup %{conn: conn} do
-    # log_in user for all test cases
-    conn =
-      conn
-      |> log_in_user(Lanttern.IdentityFixtures.root_admin_fixture())
-
-    [conn: conn]
-  end
+  setup :register_and_log_in_root_admin
 
   describe "index" do
     test "lists all assessment_point_entries", %{conn: conn} do

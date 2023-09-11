@@ -7,14 +7,7 @@ defmodule LantternWeb.OrdinalValueControllerTest do
   @update_attrs %{name: "some updated name", normalized_value: 0.43}
   @invalid_attrs %{name: nil, normalized_value: nil}
 
-  setup %{conn: conn} do
-    # log_in user for all test cases
-    conn =
-      conn
-      |> log_in_user(Lanttern.IdentityFixtures.root_admin_fixture())
-
-    [conn: conn]
-  end
+  setup :register_and_log_in_root_admin
 
   describe "index" do
     test "lists all ordinal_values", %{conn: conn} do

@@ -5,6 +5,8 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponentTest do
   @overlay_selector "#create-assessment-point-overlay"
   @form_selector "#create-assessment-point-form"
 
+  setup :register_and_log_in_user
+
   describe "Create assessment point form in assessment points live view" do
     test "form shows in live view", %{conn: conn} do
       {:ok, view, _html} = live(conn, @assessment_points_path)

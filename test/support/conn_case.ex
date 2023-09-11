@@ -51,6 +51,19 @@ defmodule LantternWeb.ConnCase do
   end
 
   @doc """
+  Setup helper that registers and logs in root admin.
+
+      setup :register_and_log_in_root_admin
+
+  It stores an updated connection and a registered root
+  admin user in the test context.
+  """
+  def register_and_log_in_root_admin(%{conn: conn}) do
+    root_admin = Lanttern.IdentityFixtures.root_admin_fixture()
+    %{conn: log_in_user(conn, root_admin), user: root_admin}
+  end
+
+  @doc """
   Logs the given `user` into the `conn`.
 
   It returns an updated `conn`.
