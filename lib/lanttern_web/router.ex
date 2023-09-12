@@ -52,6 +52,10 @@ defmodule LantternWeb.Router do
 
     get "/", AdminController, :home
 
+    scope "/identity" do
+      resources "/profiles", ProfileController
+    end
+
     scope "/assessments" do
       resources "/assessment_points", AssessmentPointController
       resources "/assessment_point_entries", AssessmentPointEntryController

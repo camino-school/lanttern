@@ -4,11 +4,34 @@ defmodule Lanttern.Identity do
   """
 
   import Ecto.Query, warn: false
-  alias Lanttern.Repo
 
-  alias Lanttern.Identity.{User, UserToken, UserNotifier}
+  import Lanttern.RepoHelpers
+  alias Lanttern.Repo
+  alias Lanttern.Identity.User
+  alias Lanttern.Identity.UserToken
+  alias Lanttern.Identity.UserNotifier
+  alias Lanttern.Identity.Profile
 
   ## Database getters
+
+  @doc """
+  Returns the list of users.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> list_users()
+      [%User{}, ...]
+
+  """
+  def list_users(opts \\ []) do
+    User
+    |> Repo.all()
+    |> maybe_preload(opts)
+  end
 
   @doc """
   Gets a user by email.
@@ -349,5 +372,113 @@ defmodule Lanttern.Identity do
       {:ok, %{user: user}} -> {:ok, user}
       {:error, :user, changeset, _} -> {:error, changeset}
     end
+  end
+
+  @doc """
+  Returns the list of profiles.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> list_profiles()
+      [%Profile{}, ...]
+
+  """
+  def list_profiles(opts \\ []) do
+    Profile
+    |> Repo.all()
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single profile.
+
+  Raises `Ecto.NoResultsError` if the Profile does not exist.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> get_profile!(123)
+      %Profile{}
+
+      iex> get_profile!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_profile!(id, opts \\ []) do
+    Profile
+    |> Repo.get!(id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Creates a profile.
+
+  ## Examples
+
+      iex> create_profile(%{field: value})
+      {:ok, %Profile{}}
+
+      iex> create_profile(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_profile(attrs \\ %{}) do
+    %Profile{}
+    |> Profile.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a profile.
+
+  ## Examples
+
+      iex> update_profile(profile, %{field: new_value})
+      {:ok, %Profile{}}
+
+      iex> update_profile(profile, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_profile(%Profile{} = profile, attrs) do
+    profile
+    |> Profile.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a profile.
+
+  ## Examples
+
+      iex> delete_profile(profile)
+      {:ok, %Profile{}}
+
+      iex> delete_profile(profile)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_profile(%Profile{} = profile) do
+    Repo.delete(profile)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking profile changes.
+
+  ## Examples
+
+      iex> change_profile(profile)
+      %Ecto.Changeset{data: %Profile{}}
+
+  """
+  def change_profile(%Profile{} = profile, attrs \\ %{}) do
+    Profile.changeset(profile, attrs)
   end
 end

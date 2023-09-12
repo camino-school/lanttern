@@ -39,4 +39,17 @@ defmodule LantternWeb.SchoolsHelpers do
     Schools.list_students()
     |> Enum.map(fn s -> {s.name, s.id} end)
   end
+
+  @doc """
+  Generate list of teachers to use as `Phoenix.HTML.Form.options_for_select/2` arg
+
+  ## Examples
+
+      iex> generate_teacher_options()
+      [{"teacher name", 1}, ...]
+  """
+  def generate_teacher_options() do
+    Schools.list_teachers()
+    |> Enum.map(fn t -> {t.name, t.id} end)
+  end
 end

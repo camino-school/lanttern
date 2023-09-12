@@ -1,0 +1,14 @@
+<.header>
+  Edit Profile <%= @profile.id %>
+  <:subtitle>Use this form to manage profile records in your database.</:subtitle>
+</.header>
+
+<.profile_form
+  user_options={@user_options}
+  student_options={@student_options}
+  teacher_options={@teacher_options}
+  changeset={@changeset}
+  action={~p"/admin/identity/profiles/#{@profile}"}
+/>
+
+<.back navigate={~p"/admin/identity/profiles"}>Back to profiles</.back>
