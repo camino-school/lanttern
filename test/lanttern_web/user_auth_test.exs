@@ -14,7 +14,13 @@ defmodule LantternWeb.UserAuthTest do
       |> Map.replace!(:secret_key_base, LantternWeb.Endpoint.config(:secret_key_base))
       |> init_test_session(%{})
 
-    %{user: user_fixture(), conn: conn}
+    user = user_fixture()
+    school = Lanttern.SchoolsFixtures.school_fixture()
+    teacher = Lanttern.SchoolsFixtures.teacher_fixture(%{school_id: school.id})
+    profile = teacher_profile_fixture(%{user_id: user.id, teacher_id: teacher.id})
+    {:ok, user} = Identity.update_user_current_profile_id(user, profile.id)
+
+    %{user: user, profile: profile, conn: conn}
   end
 
   describe "log_in_user/3" do
@@ -84,13 +90,14 @@ defmodule LantternWeb.UserAuthTest do
   end
 
   describe "fetch_current_user/2" do
-    test "authenticates user from session", %{conn: conn, user: user} do
+    test "authenticates user from session", %{conn: conn, user: user, profile: profile} do
       user_token = Identity.generate_user_session_token(user)
       conn = conn |> put_session(:user_token, user_token) |> UserAuth.fetch_current_user([])
       assert conn.assigns.current_user.id == user.id
+      assert conn.assigns.current_user.current_profile.id == profile.id
     end
 
-    test "authenticates user from cookies", %{conn: conn, user: user} do
+    test "authenticates user from cookies", %{conn: conn, user: user, profile: profile} do
       logged_in_conn =
         conn |> fetch_cookies() |> UserAuth.log_in_user(user, %{"remember_me" => "true"})
 
@@ -103,6 +110,7 @@ defmodule LantternWeb.UserAuthTest do
         |> UserAuth.fetch_current_user([])
 
       assert conn.assigns.current_user.id == user.id
+      assert conn.assigns.current_user.current_profile.id == profile.id
       assert get_session(conn, :user_token) == user_token
 
       assert get_session(conn, :live_socket_id) ==
@@ -118,7 +126,11 @@ defmodule LantternWeb.UserAuthTest do
   end
 
   describe "on_mount: mount_current_user" do
-    test "assigns current_user based on a valid user_token", %{conn: conn, user: user} do
+    test "assigns current_user based on a valid user_token", %{
+      conn: conn,
+      user: user,
+      profile: profile
+    } do
       user_token = Identity.generate_user_session_token(user)
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
@@ -126,6 +138,7 @@ defmodule LantternWeb.UserAuthTest do
         UserAuth.on_mount(:mount_current_user, %{}, session, %LiveView.Socket{})
 
       assert updated_socket.assigns.current_user.id == user.id
+      assert updated_socket.assigns.current_user.current_profile.id == profile.id
     end
 
     test "assigns nil to current_user assign if there isn't a valid user_token", %{conn: conn} do
@@ -149,7 +162,11 @@ defmodule LantternWeb.UserAuthTest do
   end
 
   describe "on_mount: ensure_authenticated" do
-    test "authenticates current_user based on a valid user_token", %{conn: conn, user: user} do
+    test "authenticates current_user based on a valid user_token", %{
+      conn: conn,
+      user: user,
+      profile: profile
+    } do
       user_token = Identity.generate_user_session_token(user)
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
@@ -157,6 +174,7 @@ defmodule LantternWeb.UserAuthTest do
         UserAuth.on_mount(:ensure_authenticated, %{}, session, %LiveView.Socket{})
 
       assert updated_socket.assigns.current_user.id == user.id
+      assert updated_socket.assigns.current_user.current_profile.id == profile.id
     end
 
     test "redirects to login page if there isn't a valid user_token", %{conn: conn} do

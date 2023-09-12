@@ -212,20 +212,6 @@ defmodule Lanttern.Schools do
     Class.changeset(class, attrs)
   end
 
-  defp maybe_filter_students_by_class(student_query, opts) do
-    case Keyword.get(opts, :classes_ids) do
-      nil ->
-        student_query
-
-      classes_ids ->
-        from(
-          s in student_query,
-          join: c in assoc(s, :classes),
-          where: c.id in ^classes_ids
-        )
-    end
-  end
-
   @doc """
   Returns the list of students.
 
@@ -245,6 +231,20 @@ defmodule Lanttern.Schools do
     |> maybe_filter_students_by_class(opts)
     |> Repo.all()
     |> maybe_preload(opts)
+  end
+
+  defp maybe_filter_students_by_class(student_query, opts) do
+    case Keyword.get(opts, :classes_ids) do
+      nil ->
+        student_query
+
+      classes_ids ->
+        from(
+          s in student_query,
+          join: c in assoc(s, :classes),
+          where: c.id in ^classes_ids
+        )
+    end
   end
 
   @doc """

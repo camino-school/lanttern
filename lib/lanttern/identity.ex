@@ -238,6 +238,24 @@ defmodule Lanttern.Identity do
     end
   end
 
+  @doc """
+  Updates the user current profile id.
+
+  ## Examples
+
+      iex> update_user_current_profile_id(user, valid_profile_id)
+      {:ok, %User{}}
+
+      iex> update_user_current_profile_id(user, invalid_profile_id)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_user_current_profile_id(user, profile_id) do
+    user
+    |> User.current_profile_id_changeset(%{current_profile_id: profile_id})
+    |> Repo.update()
+  end
+
   ## Session
 
   @doc """
@@ -251,10 +269,14 @@ defmodule Lanttern.Identity do
 
   @doc """
   Gets the user with the given signed token.
+  Preloads `current_profile`.
   """
   def get_user_by_session_token(token) do
     {:ok, query} = UserToken.verify_session_token_query(token)
-    Repo.one(query)
+
+    query
+    |> Repo.one()
+    |> Repo.preload(current_profile: [teacher: [:school], student: [:school]])
   end
 
   @doc """
@@ -380,6 +402,7 @@ defmodule Lanttern.Identity do
   ### Options:
 
   `:preloads` – preloads associated data
+  `:user_id` – filter profiles by user_id
 
   ## Examples
 
@@ -389,8 +412,22 @@ defmodule Lanttern.Identity do
   """
   def list_profiles(opts \\ []) do
     Profile
+    |> maybe_filter_profiles_by_user_id(opts)
     |> Repo.all()
     |> maybe_preload(opts)
+  end
+
+  defp maybe_filter_profiles_by_user_id(profiles_query, opts) do
+    case Keyword.get(opts, :user_id) do
+      nil ->
+        profiles_query
+
+      user_id ->
+        from(
+          p in profiles_query,
+          where: p.user_id == ^user_id
+        )
+    end
   end
 
   @doc """

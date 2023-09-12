@@ -9,6 +9,8 @@ defmodule Lanttern.Identity.User do
     field :is_root_admin, :boolean
     field :confirmed_at, :naive_datetime
 
+    belongs_to :current_profile, Lanttern.Identity.Profile
+
     timestamps()
   end
 
@@ -120,6 +122,14 @@ defmodule Lanttern.Identity.User do
     |> cast(attrs, [:password])
     |> validate_confirmation(:password, message: "does not match password")
     |> validate_password(opts)
+  end
+
+  @doc """
+  A user changeset for changing the current profile id.
+  """
+  def current_profile_id_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:current_profile_id])
   end
 
   @doc """

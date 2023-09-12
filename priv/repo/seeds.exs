@@ -75,6 +75,7 @@ std_8 = Repo.insert!(%Schools.Student{school_id: school.id, name: "Std 8"})
 std_9 = Repo.insert!(%Schools.Student{school_id: school.id, name: "Std 9"})
 std_10 = Repo.insert!(%Schools.Student{school_id: school.id, name: "Std 10"})
 
+teacher = Repo.insert!(%Schools.Teacher{school_id: school.id, name: "The Teacher"})
 _teacher_1 = Repo.insert!(%Schools.Teacher{school_id: school.id, name: "Teacher 1"})
 _teacher_2 = Repo.insert!(%Schools.Teacher{school_id: school.id, name: "Teacher 2"})
 
@@ -100,12 +101,16 @@ _class_2 =
 # ------------------------------
 
 # use changeset to hash password
-Identity.User.registration_changeset(%Identity.User{}, %{
-  email: System.get_env("ROOT_ADMIN_EMAIL"),
-  password: "asdfasdfasdf"
-})
-|> Ecto.Changeset.put_change(:is_root_admin, true)
-|> Repo.insert!()
+user =
+  Identity.User.registration_changeset(%Identity.User{}, %{
+    email: System.get_env("ROOT_ADMIN_EMAIL"),
+    password: "asdfasdfasdf"
+  })
+  |> Ecto.Changeset.put_change(:is_root_admin, true)
+  |> Repo.insert!()
+
+# then create a teacher profile for the created user
+Repo.insert!(%Identity.Profile{user_id: user.id, teacher_id: teacher.id, type: "teacher"})
 
 # ------------------------------
 # curriculum
