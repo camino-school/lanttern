@@ -11,9 +11,15 @@ defmodule LantternWeb.StudentController do
   end
 
   def new(conn, _params) do
+    school_options = generate_school_options()
     class_options = generate_class_options()
     changeset = Schools.change_student(%Student{})
-    render(conn, :new, class_options: class_options, changeset: changeset)
+
+    render(conn, :new,
+      school_options: school_options,
+      class_options: class_options,
+      changeset: changeset
+    )
   end
 
   def create(conn, %{"student" => student_params}) do
@@ -24,8 +30,14 @@ defmodule LantternWeb.StudentController do
         |> redirect(to: ~p"/admin/schools/students/#{student}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
+        school_options = generate_school_options()
         class_options = generate_class_options()
-        render(conn, :new, class_options: class_options, changeset: changeset)
+
+        render(conn, :new,
+          school_options: school_options,
+          class_options: class_options,
+          changeset: changeset
+        )
     end
   end
 
@@ -35,6 +47,7 @@ defmodule LantternWeb.StudentController do
   end
 
   def edit(conn, %{"id" => id}) do
+    school_options = generate_school_options()
     class_options = generate_class_options()
     student = Schools.get_student!(id, preloads: :classes)
 
@@ -43,7 +56,13 @@ defmodule LantternWeb.StudentController do
     student = student |> Map.put(:classes_ids, classes_ids)
 
     changeset = Schools.change_student(student)
-    render(conn, :edit, class_options: class_options, student: student, changeset: changeset)
+
+    render(conn, :edit,
+      school_options: school_options,
+      class_options: class_options,
+      student: student,
+      changeset: changeset
+    )
   end
 
   def update(conn, %{"id" => id, "student" => student_params}) do
@@ -56,8 +75,15 @@ defmodule LantternWeb.StudentController do
         |> redirect(to: ~p"/admin/schools/students/#{student}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
+        school_options = generate_school_options()
         class_options = generate_class_options()
-        render(conn, :edit, class_options: class_options, student: student, changeset: changeset)
+
+        render(conn, :edit,
+          school_options: school_options,
+          class_options: class_options,
+          student: student,
+          changeset: changeset
+        )
     end
   end
 

@@ -5,17 +5,17 @@ defmodule Lanttern.SchoolsFixtures do
   """
 
   @doc """
-  Generate a student.
+  Generate a school.
   """
-  def student_fixture(attrs \\ %{}) do
-    {:ok, student} =
+  def school_fixture(attrs \\ %{}) do
+    {:ok, school} =
       attrs
       |> Enum.into(%{
-        name: "some name"
+        name: Faker.Lorem.sentence(2..5)
       })
-      |> Lanttern.Schools.create_student()
+      |> Lanttern.Schools.create_school()
 
-    student
+    school
   end
 
   @doc """
@@ -25,7 +25,7 @@ defmodule Lanttern.SchoolsFixtures do
     {:ok, class} =
       attrs
       |> Enum.into(%{
-        name: "some name"
+        name: Faker.Lorem.sentence(2..5)
       })
       |> Lanttern.Schools.create_class()
 
@@ -33,17 +33,33 @@ defmodule Lanttern.SchoolsFixtures do
   end
 
   @doc """
-  Generate a school.
+  Generate a student.
   """
-  def school_fixture(attrs \\ %{}) do
-    {:ok, school} =
+  def student_fixture(attrs \\ %{})
+
+  def student_fixture(%{school_id: _school_id} = attrs) do
+    {:ok, student} =
       attrs
       |> Enum.into(%{
-        name: "some name"
+        name: Faker.Lorem.sentence(2..5)
       })
-      |> Lanttern.Schools.create_school()
+      |> Lanttern.Schools.create_student()
 
-    school
+    student
+  end
+
+  def student_fixture(attrs) do
+    school = school_fixture()
+
+    {:ok, student} =
+      attrs
+      |> Enum.into(%{
+        name: Faker.Lorem.sentence(2..5),
+        school_id: school.id
+      })
+      |> Lanttern.Schools.create_student()
+
+    student
   end
 
   @doc """

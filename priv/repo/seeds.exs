@@ -62,16 +62,21 @@ reli = Repo.insert!(%Taxonomy.Subject{code: "reli", name: "Religion"})
 # school
 # ------------------------------
 
-std_1 = Repo.insert!(%Schools.Student{name: "Std 1"})
-std_2 = Repo.insert!(%Schools.Student{name: "Std 2"})
-std_3 = Repo.insert!(%Schools.Student{name: "Std 3"})
-std_4 = Repo.insert!(%Schools.Student{name: "Std 4"})
-std_5 = Repo.insert!(%Schools.Student{name: "Std 5"})
-std_6 = Repo.insert!(%Schools.Student{name: "Std 6"})
-std_7 = Repo.insert!(%Schools.Student{name: "Std 7"})
-std_8 = Repo.insert!(%Schools.Student{name: "Std 8"})
-std_9 = Repo.insert!(%Schools.Student{name: "Std 9"})
-std_10 = Repo.insert!(%Schools.Student{name: "Std 10"})
+school = Repo.insert!(%Schools.School{name: "The School"})
+
+std_1 = Repo.insert!(%Schools.Student{school_id: school.id, name: "Std 1"})
+std_2 = Repo.insert!(%Schools.Student{school_id: school.id, name: "Std 2"})
+std_3 = Repo.insert!(%Schools.Student{school_id: school.id, name: "Std 3"})
+std_4 = Repo.insert!(%Schools.Student{school_id: school.id, name: "Std 4"})
+std_5 = Repo.insert!(%Schools.Student{school_id: school.id, name: "Std 5"})
+std_6 = Repo.insert!(%Schools.Student{school_id: school.id, name: "Std 6"})
+std_7 = Repo.insert!(%Schools.Student{school_id: school.id, name: "Std 7"})
+std_8 = Repo.insert!(%Schools.Student{school_id: school.id, name: "Std 8"})
+std_9 = Repo.insert!(%Schools.Student{school_id: school.id, name: "Std 9"})
+std_10 = Repo.insert!(%Schools.Student{school_id: school.id, name: "Std 10"})
+
+_teacher_1 = Repo.insert!(%Schools.Teacher{school_id: school.id, name: "Teacher 1"})
+_teacher_2 = Repo.insert!(%Schools.Teacher{school_id: school.id, name: "Teacher 2"})
 
 # use changeset to `put_assoc` students
 class_1 =

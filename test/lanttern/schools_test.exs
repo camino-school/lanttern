@@ -215,18 +215,21 @@ defmodule Lanttern.SchoolsTest do
     end
 
     test "create_student/1 with valid data creates a student" do
-      valid_attrs = %{name: "some name"}
+      school = school_fixture()
+      valid_attrs = %{school_id: school.id, name: "some name"}
 
       assert {:ok, %Student{} = student} = Schools.create_student(valid_attrs)
       assert student.name == "some name"
     end
 
     test "create_student/1 with valid data containing classes creates a student with classes" do
+      school = school_fixture()
       class_1 = class_fixture()
       class_2 = class_fixture()
       class_3 = class_fixture()
 
       valid_attrs = %{
+        school_id: school.id,
         name: "some name",
         classes_ids: [
           class_1.id,
