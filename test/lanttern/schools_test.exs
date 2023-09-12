@@ -180,25 +180,36 @@ defmodule Lanttern.SchoolsTest do
     end
 
     test "list_students/1 with opts returns all students as expected" do
+      school = school_fixture()
       class_1 = class_fixture()
-      student_1 = student_fixture(%{classes_ids: [class_1.id]})
+      student_1 = student_fixture(%{school_id: school.id, classes_ids: [class_1.id]})
       class_2 = class_fixture()
-      student_2 = student_fixture(%{classes_ids: [class_2.id]})
+      student_2 = student_fixture(%{school_id: school.id, classes_ids: [class_2.id]})
 
       # extra student for filtering validation
       student_fixture()
 
-      students = Schools.list_students(classes_ids: [class_1.id, class_2.id], preloads: :classes)
+      expected_students =
+        Schools.list_students(
+          classes_ids: [class_1.id, class_2.id],
+          preloads: [:school, :classes]
+        )
 
       # assert length to check filtering
-      assert length(students) == 2
+      assert length(expected_students) == 2
 
-      # assert students are preloaded
-      expected_student_1 = Enum.find(students, fn s -> s.id == student_1.id end)
-      assert expected_student_1.classes == [class_1]
+      # assert school and classes are preloaded
+      for expected_student <- expected_students do
+        assert expected_student.school == school
 
-      expected_student_2 = Enum.find(students, fn s -> s.id == student_2.id end)
-      assert expected_student_2.classes == [class_2]
+        case expected_student.id do
+          id when id == student_1.id ->
+            assert expected_student.classes == [class_1]
+
+          id when id == student_2.id ->
+            assert expected_student.classes == [class_2]
+        end
+      end
     end
 
     test "get_student!/2 returns the student with given id" do
@@ -207,10 +218,13 @@ defmodule Lanttern.SchoolsTest do
     end
 
     test "get_student!/2 with preloads returns the student with given id and preloaded data" do
+      school = school_fixture()
       class = class_fixture()
-      student = student_fixture(%{classes_ids: [class.id]})
+      student = student_fixture(%{school_id: school.id, classes_ids: [class.id]})
 
-      expected_student = Schools.get_student!(student.id, preloads: :classes)
+      expected_student = Schools.get_student!(student.id, preloads: [:school, :classes])
+      assert expected_student.id == student.id
+      assert expected_student.school == school
       assert expected_student.classes == [class]
     end
 

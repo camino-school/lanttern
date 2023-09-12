@@ -6,7 +6,7 @@ defmodule LantternWeb.StudentController do
   alias Lanttern.Schools.Student
 
   def index(conn, _params) do
-    students = Schools.list_students(preloads: :classes)
+    students = Schools.list_students(preloads: [:school, :classes])
     render(conn, :index, students: students)
   end
 
@@ -42,7 +42,7 @@ defmodule LantternWeb.StudentController do
   end
 
   def show(conn, %{"id" => id}) do
-    student = Schools.get_student!(id, preloads: :classes)
+    student = Schools.get_student!(id, preloads: [:school, :classes])
     render(conn, :show, student: student)
   end
 
