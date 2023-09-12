@@ -70,11 +70,13 @@ defmodule Lanttern.SchoolsTest do
     end
 
     test "list_classes/1 with preloads returns all classes with preloaded data" do
+      school = school_fixture()
       student = student_fixture()
-      class = class_fixture(%{students_ids: [student.id]})
+      class = class_fixture(%{school_id: school.id, students_ids: [student.id]})
 
-      [expected_class] = Schools.list_classes(preloads: :students)
+      [expected_class] = Schools.list_classes(preloads: [:school, :students])
       assert expected_class.id == class.id
+      assert expected_class.school == school
       assert expected_class.students == [student]
     end
 
@@ -84,27 +86,34 @@ defmodule Lanttern.SchoolsTest do
     end
 
     test "get_class!/2 with preloads returns the class with given id and preloaded data" do
+      school = school_fixture()
       student = student_fixture()
-      class = class_fixture(%{students_ids: [student.id]})
+      class = class_fixture(%{school_id: school.id, students_ids: [student.id]})
 
-      expected_class = Schools.get_class!(class.id, preloads: :students)
+      expected_class = Schools.get_class!(class.id, preloads: [:school, :students])
+      assert expected_class.id == class.id
+      assert expected_class.school == school
       assert expected_class.students == [student]
     end
 
     test "create_class/1 with valid data creates a class" do
-      valid_attrs = %{name: "some name"}
+      school = school_fixture()
+      valid_attrs = %{school_id: school.id, name: "some name"}
 
       assert {:ok, %Class{} = class} = Schools.create_class(valid_attrs)
       assert class.name == "some name"
+      assert class.school_id == school.id
     end
 
     test "create_class/1 with valid data containing students creates a class with students" do
+      school = school_fixture()
       student_1 = student_fixture()
       student_2 = student_fixture()
       student_3 = student_fixture()
 
       valid_attrs = %{
         name: "some name",
+        school_id: school.id,
         students_ids: [
           student_1.id,
           student_2.id,
@@ -114,6 +123,7 @@ defmodule Lanttern.SchoolsTest do
 
       assert {:ok, %Class{} = class} = Schools.create_class(valid_attrs)
       assert class.name == "some name"
+      assert class.school_id == school.id
       assert Enum.find(class.students, fn s -> s.id == student_1.id end)
       assert Enum.find(class.students, fn s -> s.id == student_2.id end)
       assert Enum.find(class.students, fn s -> s.id == student_3.id end)

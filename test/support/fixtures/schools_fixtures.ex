@@ -21,10 +21,26 @@ defmodule Lanttern.SchoolsFixtures do
   @doc """
   Generate a class.
   """
-  def class_fixture(attrs \\ %{}) do
+  def class_fixture(attrs \\ %{})
+
+  def class_fixture(%{school_id: _school_id} = attrs) do
     {:ok, class} =
       attrs
       |> Enum.into(%{
+        name: Faker.Lorem.sentence(2..5)
+      })
+      |> Lanttern.Schools.create_class()
+
+    class
+  end
+
+  def class_fixture(attrs) do
+    school = school_fixture()
+
+    {:ok, class} =
+      attrs
+      |> Enum.into(%{
+        school_id: school.id,
         name: Faker.Lorem.sentence(2..5)
       })
       |> Lanttern.Schools.create_class()

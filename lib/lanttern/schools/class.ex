@@ -9,6 +9,8 @@ defmodule Lanttern.Schools.Class do
     field :name, :string
     field :students_ids, {:array, :id}, virtual: true
 
+    belongs_to :school, Lanttern.Schools.School
+
     many_to_many :students, Lanttern.Schools.Student,
       join_through: "classes_students",
       on_replace: :delete
@@ -19,8 +21,8 @@ defmodule Lanttern.Schools.Class do
   @doc false
   def changeset(class, attrs) do
     class
-    |> cast(attrs, [:name, :students_ids])
-    |> validate_required([:name])
+    |> cast(attrs, [:name, :school_id, :students_ids])
+    |> validate_required([:name, :school_id])
     |> put_students()
   end
 

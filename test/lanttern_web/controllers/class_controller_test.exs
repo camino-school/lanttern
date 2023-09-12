@@ -25,7 +25,9 @@ defmodule LantternWeb.ClassControllerTest do
 
   describe "create class" do
     test "redirects to show when data is valid", %{conn: conn} do
-      conn = post(conn, ~p"/admin/schools/classes", class: @create_attrs)
+      school = school_fixture()
+      create_attrs = @create_attrs |> Map.put_new(:school_id, school.id)
+      conn = post(conn, ~p"/admin/schools/classes", class: create_attrs)
 
       assert %{id: id} = redirected_params(conn)
       assert redirected_to(conn) == ~p"/admin/schools/classes/#{id}"
