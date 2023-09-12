@@ -76,6 +76,7 @@ defmodule LantternWeb.Router do
       resources "/schools", SchoolController
       resources "/classes", ClassController
       resources "/students", StudentController
+      resources "/teachers", TeacherController
     end
 
     scope "/taxonomy" do

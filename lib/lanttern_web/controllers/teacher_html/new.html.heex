@@ -1,0 +1,12 @@
+<.header>
+  New Teacher
+  <:subtitle>Use this form to manage teacher records in your database.</:subtitle>
+</.header>
+
+<.teacher_form
+  school_options={@school_options}
+  changeset={@changeset}
+  action={~p"/admin/schools/teachers"}
+/>
+
+<.back navigate={~p"/admin/schools/teachers"}>Back to teachers</.back>

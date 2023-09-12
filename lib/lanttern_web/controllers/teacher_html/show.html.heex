@@ -1,0 +1,16 @@
+<.header>
+  Teacher <%= @teacher.id %>
+  <:subtitle>This is a teacher record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/admin/schools/teachers/#{@teacher}/edit"}>
+      <.button>Edit teacher</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="School"><%= @teacher.school.name %></:item>
+  <:item title="Name"><%= @teacher.name %></:item>
+</.list>
+
+<.back navigate={~p"/admin/schools/teachers"}>Back to teachers</.back>
