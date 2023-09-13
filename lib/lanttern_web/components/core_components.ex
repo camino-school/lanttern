@@ -722,10 +722,11 @@ defmodule LantternWeb.CoreComponents do
   """
   attr :name, :string, required: true
   attr :class, :any, default: nil
+  attr :id, :string, default: nil
 
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
-    <span class={[@name, @class]} aria-hidden="true" />
+    <span class={[@name, @class]} aria-hidden="true" id={@id} />
     """
   end
 
@@ -973,6 +974,7 @@ defmodule LantternWeb.CoreComponents do
   Renders a page title with menu button.
   """
   attr :class, :any, default: nil
+  attr :current_user, :map, required: true
   slot :inner_block, required: true
 
   def page_title_with_menu(assigns) do
@@ -981,7 +983,7 @@ defmodule LantternWeb.CoreComponents do
       <h1 class="font-display font-black text-3xl">
         <%= render_slot(@inner_block) %>
       </h1>
-      <.live_component module={LantternWeb.MenuComponent} id={:new} />
+      <.live_component module={LantternWeb.MenuComponent} id={:new} current_user={@current_user} />
     </div>
     """
   end
