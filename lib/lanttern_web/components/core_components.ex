@@ -722,10 +722,11 @@ defmodule LantternWeb.CoreComponents do
   """
   attr :name, :string, required: true
   attr :class, :any, default: nil
+  attr :id, :string, default: nil
 
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
-    <span class={[@name, @class]} aria-hidden="true" />
+    <span class={[@name, @class]} aria-hidden="true" id={@id} />
     """
   end
 
@@ -981,7 +982,15 @@ defmodule LantternWeb.CoreComponents do
       <h1 class="font-display font-black text-3xl">
         <%= render_slot(@inner_block) %>
       </h1>
-      <.live_component module={LantternWeb.MenuComponent} id={:new} />
+      <button
+        type="button"
+        class="group flex gap-1 items-center p-2 rounded bg-white shadow-xl hover:bg-slate-100"
+        phx-click={JS.exec("data-show", to: "#menu")}
+        aria-label="open menu"
+      >
+        <.icon name="hero-bars-3 text-ltrn-subtle" />
+        <div class="w-6 h-6 rounded-full bg-ltrn-mesh-primary blur-sm group-hover:blur-none transition-[filter]" />
+      </button>
     </div>
     """
   end

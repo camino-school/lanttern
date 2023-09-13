@@ -35,7 +35,14 @@ defmodule LantternWeb.Router do
 
     get "/", PageController, :home
 
-    live_session :default do
+    live_session :authenticated,
+      layout: {LantternWeb.Layouts, :app_logged_in},
+      on_mount: [
+        {LantternWeb.UserAuth, :ensure_authenticated},
+        {LantternWeb.Path, :put_path_in_socket}
+      ] do
+      live "/dashboard", DashboardLive
+
       live "/assessment_points", AssessmentPointsLive
       live "/assessment_points/explorer", AssessmentPointsExplorerLive
       live "/assessment_points/:id", AssessmentPointLive
@@ -49,6 +56,10 @@ defmodule LantternWeb.Router do
     pipe_through [:browser, :require_authenticated_user, :admin]
 
     get "/", AdminController, :home
+
+    scope "/identity" do
+      resources "/profiles", ProfileController
+    end
 
     scope "/assessments" do
       resources "/assessment_points", AssessmentPointController
@@ -71,8 +82,10 @@ defmodule LantternWeb.Router do
     end
 
     scope "/schools" do
+      resources "/schools", SchoolController
       resources "/classes", ClassController
       resources "/students", StudentController
+      resources "/teachers", TeacherController
     end
 
     scope "/taxonomy" do

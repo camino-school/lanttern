@@ -7,14 +7,7 @@ defmodule LantternWeb.CompositionComponentControllerTest do
   @update_attrs %{name: "some updated name", weight: 456.7}
   @invalid_attrs %{name: nil, weight: nil}
 
-  setup %{conn: conn} do
-    # log_in user for all test cases
-    conn =
-      conn
-      |> log_in_user(Lanttern.IdentityFixtures.root_admin_fixture())
-
-    [conn: conn]
-  end
+  setup :register_and_log_in_root_admin
 
   describe "index" do
     test "lists all composition_components", %{conn: conn} do

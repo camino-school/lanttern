@@ -26,6 +26,8 @@ defmodule LantternWeb.UserAuth do
   if you are not using LiveView.
   """
   def log_in_user(conn, user, params \\ %{}) do
+    user = check_current_profile(user)
+
     token = Identity.generate_user_session_token(user)
     user_return_to = get_session(conn, :user_return_to)
 
@@ -35,6 +37,22 @@ defmodule LantternWeb.UserAuth do
     |> maybe_write_remember_me_cookie(token, params)
     |> redirect(to: user_return_to || signed_in_path(conn))
   end
+
+  defp check_current_profile(%{current_profile_id: nil} = user) do
+    # if there's no current_profile_id, list profiles and use first result
+    case Identity.list_profiles(user_id: user.id) do
+      [profile | _rest] ->
+        {:ok, user_with_profile} =
+          Identity.update_user_current_profile_id(user, profile.id)
+
+        user_with_profile
+
+      [] ->
+        user
+    end
+  end
+
+  defp check_current_profile(user), do: user
 
   defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}) do
     put_resp_cookie(conn, @remember_me_cookie, token, @remember_me_options)
@@ -273,5 +291,5 @@ defmodule LantternWeb.UserAuth do
 
   defp maybe_store_return_to(conn), do: conn
 
-  defp signed_in_path(_conn), do: ~p"/"
+  defp signed_in_path(_conn), do: ~p"/dashboard"
 end

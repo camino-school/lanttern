@@ -7,6 +7,8 @@ defmodule LantternWeb.AssessmentPointUpdateOverlayComponentTest do
   @overlay_selector "#update-assessment-point-overlay"
   @form_selector "#update-assessment-point-form"
 
+  setup :register_and_log_in_user
+
   describe "Update assessment point in assessment point details live view" do
     test "overlay shows in live view", %{conn: conn} do
       assessment_point = assessment_point_fixture()

@@ -7,14 +7,7 @@ defmodule LantternWeb.YearControllerTest do
   @update_attrs %{name: "some updated name"}
   @invalid_attrs %{name: nil}
 
-  setup %{conn: conn} do
-    # log_in user for all test cases
-    conn =
-      conn
-      |> log_in_user(Lanttern.IdentityFixtures.root_admin_fixture())
-
-    [conn: conn]
-  end
+  setup :register_and_log_in_root_admin
 
   describe "index" do
     test "lists all years", %{conn: conn} do

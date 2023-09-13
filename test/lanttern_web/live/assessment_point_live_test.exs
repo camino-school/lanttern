@@ -7,6 +7,8 @@ defmodule LantternWeb.AssessmentPointLiveTest do
 
   @live_view_path_base "/assessment_points"
 
+  setup :register_and_log_in_user
+
   describe "Assessment point details live view" do
     test "disconnected and connected mount", %{conn: conn} do
       %{id: id} = AssessmentsFixtures.assessment_point_fixture()

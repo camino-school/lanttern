@@ -3,6 +3,8 @@ defmodule LantternWeb.AssessmentPointsLiveTest do
 
   @live_view_path "/assessment_points"
 
+  setup :register_and_log_in_user
+
   describe "Assessment points live view" do
     test "disconnected and connected mount", %{conn: conn} do
       conn = get(conn, @live_view_path)

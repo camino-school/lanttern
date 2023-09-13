@@ -47,7 +47,30 @@ defmodule LantternWeb.ConnCase do
   """
   def register_and_log_in_user(%{conn: conn}) do
     user = Lanttern.IdentityFixtures.user_fixture()
+
+    # logged in users should always have a current_profile
+    profile = Lanttern.IdentityFixtures.teacher_profile_fixture(%{user_id: user.id})
+    Lanttern.Identity.update_user_current_profile_id(user, profile.id)
+
+    # emulate Identity.get_user_by_session_token/1 to preload profile into user
+    user =
+      Lanttern.Identity.get_user!(user.id)
+      |> Lanttern.Repo.preload(current_profile: [teacher: [:school], student: [:school]])
+
     %{conn: log_in_user(conn, user), user: user}
+  end
+
+  @doc """
+  Setup helper that registers and logs in root admin.
+
+      setup :register_and_log_in_root_admin
+
+  It stores an updated connection and a registered root
+  admin user in the test context.
+  """
+  def register_and_log_in_root_admin(%{conn: conn}) do
+    root_admin = Lanttern.IdentityFixtures.root_admin_fixture()
+    %{conn: log_in_user(conn, root_admin), user: root_admin}
   end
 
   @doc """

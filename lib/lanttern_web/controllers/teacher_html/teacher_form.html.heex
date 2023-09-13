@@ -1,0 +1,16 @@
+<.simple_form :let={f} for={@changeset} action={@action}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  <.input
+    field={f[:school_id]}
+    type="select"
+    label="School"
+    options={@school_options}
+    prompt="Select a school"
+  />
+  <.input field={f[:name]} type="text" label="Name" />
+  <:actions>
+    <.button>Save Teacher</.button>
+  </:actions>
+</.simple_form>

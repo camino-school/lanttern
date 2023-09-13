@@ -2,6 +2,12 @@
   <h1 class="font-display font-black text-3xl">Admin</h1>
   <div class="grid gap-4 grid-cols-3 mt-12">
     <div>
+      <h2 class="font-display font-black text-xl">Identity</h2>
+      <ul>
+        <li><.link href={~p"/admin/identity/profiles"}>Profiles</.link></li>
+      </ul>
+    </div>
+    <div>
       <h2 class="font-display font-black text-xl">Assessments</h2>
       <ul>
         <li><.link href={~p"/admin/assessments/assessment_points"}>Assessment points</.link></li>
@@ -42,8 +48,10 @@
     <div>
       <h2 class="font-display font-black text-xl">Schools</h2>
       <ul>
+        <li><.link href={~p"/admin/schools/schools"}>Schools</.link></li>
         <li><.link href={~p"/admin/schools/classes"}>Classes</.link></li>
         <li><.link href={~p"/admin/schools/students"}>Students</.link></li>
+        <li><.link href={~p"/admin/schools/teachers"}>Teachers</.link></li>
       </ul>
     </div>
     <div>

@@ -10,6 +10,7 @@
 
 <.list>
   <:item title="Name"><%= @class.name %></:item>
+  <:item title="School"><%= @class.school.name %></:item>
   <:item title="Students">
     <%= @class.students
     |> Enum.map(& &1.name)

@@ -7,14 +7,7 @@ defmodule LantternWeb.StudentControllerTest do
   @update_attrs %{name: "some updated name"}
   @invalid_attrs %{name: nil}
 
-  setup %{conn: conn} do
-    # log_in user for all test cases
-    conn =
-      conn
-      |> log_in_user(Lanttern.IdentityFixtures.root_admin_fixture())
-
-    [conn: conn]
-  end
+  setup :register_and_log_in_root_admin
 
   describe "index" do
     test "lists all students", %{conn: conn} do
@@ -32,7 +25,9 @@ defmodule LantternWeb.StudentControllerTest do
 
   describe "create student" do
     test "redirects to show when data is valid", %{conn: conn} do
-      conn = post(conn, ~p"/admin/schools/students", student: @create_attrs)
+      school = school_fixture()
+      create_attrs = @create_attrs |> Map.put_new(:school_id, school.id)
+      conn = post(conn, ~p"/admin/schools/students", student: create_attrs)
 
       assert %{id: id} = redirected_params(conn)
       assert redirected_to(conn) == ~p"/admin/schools/students/#{id}"

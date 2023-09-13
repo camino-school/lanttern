@@ -8,6 +8,7 @@ defmodule LantternWeb.StudentHTML do
   """
   attr :changeset, Ecto.Changeset, required: true
   attr :action, :string, required: true
+  attr :school_options, :list, required: true
   attr :class_options, :list, required: true
 
   def student_form(assigns)

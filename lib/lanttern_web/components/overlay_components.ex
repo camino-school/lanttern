@@ -62,7 +62,7 @@ defmodule LantternWeb.OverlayComponents do
               class="pointer-events-auto w-screen max-w-xl py-6 transition-translate"
             >
               <div class="flex h-full flex-col divide-y divide-ltrn-hairline bg-white shadow-xl rounded-l">
-                <div class="flex min-h-0 flex-1 flex-col overflow-y-scroll py-6 ltrn-bg-1">
+                <div class="flex min-h-0 flex-1 flex-col overflow-y-scroll py-6 ltrn-bg-slide-over">
                   <div class="px-4 sm:px-6">
                     <div class="flex items-start justify-between">
                       <h2 class="font-display font-black text-3xl" id={"#{@id}-title"}>
@@ -171,13 +171,13 @@ defmodule LantternWeb.OverlayComponents do
         role="dialog"
         aria-modal="true"
       >
-        <div class="flex min-h-full items-stretch justify-stretch p-10">
+        <div class="flex h-full items-stretch justify-stretch p-10">
           <.focus_wrap
             id={"#{@id}-container"}
             phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
             phx-key="escape"
             phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-            class="relative transform overflow-hidden min-w-full min-h-full rounded bg-white shadow-xl transition-all"
+            class="relative transform overflow-hidden min-w-full h-full rounded bg-white shadow-xl transition-all"
           >
             <button
               phx-click={JS.exec("data-cancel", to: "##{@id}")}

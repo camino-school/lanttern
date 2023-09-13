@@ -7,14 +7,7 @@ defmodule LantternWeb.CurriculumComponentControllerTest do
   @update_attrs %{code: "some updated code", name: "some updated name"}
   @invalid_attrs %{code: nil, name: nil}
 
-  setup %{conn: conn} do
-    # log_in user for all test cases
-    conn =
-      conn
-      |> log_in_user(Lanttern.IdentityFixtures.root_admin_fixture())
-
-    [conn: conn]
-  end
+  setup :register_and_log_in_root_admin
 
   describe "index" do
     test "lists all curriculum_components", %{conn: conn} do

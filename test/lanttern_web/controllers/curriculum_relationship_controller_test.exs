@@ -7,14 +7,7 @@ defmodule LantternWeb.CurriculumRelationshipControllerTest do
   @update_attrs %{type: "hierarchical"}
   @invalid_attrs %{type: nil}
 
-  setup %{conn: conn} do
-    # log_in user for all test cases
-    conn =
-      conn
-      |> log_in_user(Lanttern.IdentityFixtures.root_admin_fixture())
-
-    [conn: conn]
-  end
+  setup :register_and_log_in_root_admin
 
   describe "index" do
     test "lists all curriculum_relationships", %{conn: conn} do

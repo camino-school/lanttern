@@ -1,0 +1,21 @@
+<.header>
+  Profile <%= @profile.id %>
+  <:subtitle>This is a profile record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/admin/identity/profiles/#{@profile}/edit"}>
+      <.button>Edit profile</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="User"><%= @profile.user.email %></:item>
+  <:item :if={@profile.type == "student"} title="Student">
+    <%= @profile.student.name %>
+  </:item>
+  <:item :if={@profile.type == "teacher"} title="Teacher">
+    <%= @profile.teacher.name %>
+  </:item>
+</.list>
+
+<.back navigate={~p"/admin/identity/profiles"}>Back to profiles</.back>

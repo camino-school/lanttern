@@ -505,4 +505,62 @@ defmodule Lanttern.IdentityTest do
       refute inspect(%User{password: "123456"}) =~ "password: \"123456\""
     end
   end
+
+  describe "profiles" do
+    alias Lanttern.Identity.Profile
+    import Lanttern.SchoolsFixtures
+
+    @invalid_attrs %{type: nil}
+
+    test "list_profiles/0 returns all profiles" do
+      profile = student_profile_fixture()
+      assert Identity.list_profiles() == [profile]
+    end
+
+    test "get_profile!/1 returns the profile with given id" do
+      profile = student_profile_fixture()
+      assert Identity.get_profile!(profile.id) == profile
+    end
+
+    test "create_profile/1 with valid data creates a profile" do
+      user = user_fixture()
+      teacher = teacher_fixture()
+      valid_attrs = %{type: "teacher", user_id: user.id, teacher_id: teacher.id}
+
+      assert {:ok, %Profile{} = profile} = Identity.create_profile(valid_attrs)
+      assert profile.type == "teacher"
+      assert profile.user_id == user.id
+      assert profile.teacher_id == teacher.id
+    end
+
+    test "create_profile/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Identity.create_profile(@invalid_attrs)
+    end
+
+    test "update_profile/2 with valid data updates the profile" do
+      profile = teacher_profile_fixture()
+      teacher = teacher_fixture()
+      update_attrs = %{teacher_id: teacher.id}
+
+      assert {:ok, %Profile{} = profile} = Identity.update_profile(profile, update_attrs)
+      assert profile.teacher_id == teacher.id
+    end
+
+    test "update_profile/2 with invalid data returns error changeset" do
+      profile = student_profile_fixture()
+      assert {:error, %Ecto.Changeset{}} = Identity.update_profile(profile, @invalid_attrs)
+      assert profile == Identity.get_profile!(profile.id)
+    end
+
+    test "delete_profile/1 deletes the profile" do
+      profile = student_profile_fixture()
+      assert {:ok, %Profile{}} = Identity.delete_profile(profile)
+      assert_raise Ecto.NoResultsError, fn -> Identity.get_profile!(profile.id) end
+    end
+
+    test "change_profile/1 returns a profile changeset" do
+      profile = student_profile_fixture()
+      assert %Ecto.Changeset{} = Identity.change_profile(profile)
+    end
+  end
 end

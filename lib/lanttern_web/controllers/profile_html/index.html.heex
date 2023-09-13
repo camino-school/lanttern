@@ -1,0 +1,37 @@
+<.header>
+  Listing Profiles
+  <:actions>
+    <.link href={~p"/admin/identity/profiles/new"}>
+      <.button>New Profile</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="profiles"
+  rows={@profiles}
+  row_click={&JS.navigate(~p"/admin/identity/profiles/#{&1}")}
+>
+  <:col :let={profile} label="User"><%= profile.user.email %></:col>
+  <:col :let={profile} label="Student">
+    <%= if profile.type == "student", do: profile.student.name, else: "—" %>
+  </:col>
+  <:col :let={profile} label="Teacher">
+    <%= if profile.type == "teacher", do: profile.teacher.name, else: "—" %>
+  </:col>
+  <:action :let={profile}>
+    <div class="sr-only">
+      <.link navigate={~p"/admin/identity/profiles/#{profile}"}>Show</.link>
+    </div>
+    <.link navigate={~p"/admin/identity/profiles/#{profile}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={profile}>
+    <.link
+      href={~p"/admin/identity/profiles/#{profile}"}
+      method="delete"
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>

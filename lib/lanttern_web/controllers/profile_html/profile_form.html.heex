@@ -1,0 +1,36 @@
+<.simple_form :let={f} for={@changeset} action={@action}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  <.input
+    field={f[:user_id]}
+    type="select"
+    label="User"
+    options={@user_options}
+    prompt="Select user"
+  />
+  <.input
+    field={f[:type]}
+    type="select"
+    label="Type"
+    options={[{"Student", "student"}, {"Teacher", "teacher"}]}
+    prompt="Select a profile type"
+  />
+  <.input
+    field={f[:student_id]}
+    type="select"
+    label="Student"
+    options={@student_options}
+    prompt="Select student"
+  />
+  <.input
+    field={f[:teacher_id]}
+    type="select"
+    label="Teacher"
+    options={@teacher_options}
+    prompt="Select teacher"
+  />
+  <:actions>
+    <.button>Save Profile</.button>
+  </:actions>
+</.simple_form>
