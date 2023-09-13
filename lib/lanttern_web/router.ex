@@ -35,7 +35,9 @@ defmodule LantternWeb.Router do
 
     get "/", PageController, :home
 
-    live_session :authenticated, on_mount: {LantternWeb.UserAuth, :ensure_authenticated} do
+    live_session :authenticated,
+      layout: {LantternWeb.Layouts, :app_logged_in},
+      on_mount: {LantternWeb.UserAuth, :ensure_authenticated} do
       live "/dashboard", DashboardLive
 
       live "/assessment_points", AssessmentPointsLive

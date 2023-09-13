@@ -63,15 +63,6 @@ defmodule LantternWeb.MenuComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <button
-        type="button"
-        class="group flex gap-1 items-center p-2 rounded bg-white shadow-xl hover:bg-slate-100"
-        phx-click={JS.exec("data-show", to: "#menu")}
-        aria-label="open menu"
-      >
-        <.icon name="hero-bars-3 text-ltrn-subtle" />
-        <div class="w-6 h-6 rounded-full bg-ltrn-mesh-primary blur-sm group-hover:blur-none transition-[filter]" />
-      </button>
       <.panel_overlay
         id="menu"
         class="flex items-stretch h-full divide-x divide-ltrn-hairline ltrn-bg-menu"
@@ -79,7 +70,7 @@ defmodule LantternWeb.MenuComponent do
         <div class="flex-1 flex flex-col justify-between">
           <nav>
             <ul class="grid grid-cols-3 gap-px border-b border-ltrn-hairline bg-ltrn-hairline">
-              <.nav_item active={@active_nav == :dashboard} path={~p"/"}>
+              <.nav_item active={@active_nav == :dashboard} path={~p"/dashboard"}>
                 Dashboard
               </.nav_item>
               <.nav_item active={@active_nav == :assessment_points} path={~p"/assessment_points"}>

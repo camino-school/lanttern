@@ -8,9 +8,7 @@ defmodule LantternWeb.AssessmentPointLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto lg:max-w-5xl">
-      <.page_title_with_menu current_user={@current_user}>
-        Assessment point details
-      </.page_title_with_menu>
+      <.page_title_with_menu>Assessment point details</.page_title_with_menu>
       <div class="flex items-center mt-2 font-display font-bold text-xs text-ltrn-subtle">
         <.link navigate={~p"/assessment_points"} class="underline">Assessment points</.link>
         <span class="mx-1">/</span>

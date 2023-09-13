@@ -4,7 +4,7 @@ defmodule LantternWeb.CurriculumLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto lg:max-w-5xl">
-      <.page_title_with_menu current_user={@current_user}>Curriculum</.page_title_with_menu>
+      <.page_title_with_menu>Curriculum</.page_title_with_menu>
       <div class="mt-12">
         <.link
           navigate={~p"/curriculum/bncc_ef"}

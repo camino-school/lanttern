@@ -6,9 +6,7 @@ defmodule LantternWeb.CurriculumBNCCEFLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto lg:max-w-5xl">
-      <.page_title_with_menu current_user={@current_user}>
-        BNCC Ensino Fundamental
-      </.page_title_with_menu>
+      <.page_title_with_menu>BNCC Ensino Fundamental</.page_title_with_menu>
       <div class="flex items-center mt-2 font-display font-bold text-xs text-ltrn-subtle">
         <.link navigate={~p"/curriculum"} class="underline">Curriculum</.link>
         <span class="mx-1">/</span>

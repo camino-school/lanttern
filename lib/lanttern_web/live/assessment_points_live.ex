@@ -4,7 +4,7 @@ defmodule LantternWeb.AssessmentPointsLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto lg:max-w-5xl">
-      <.page_title_with_menu current_user={@current_user}>Assessment points</.page_title_with_menu>
+      <.page_title_with_menu>Assessment points</.page_title_with_menu>
       <div class="mt-12">
         <p class="font-display font-bold text-lg">
           I want to explore assessment points<br /> in <u>all disciplines</u>

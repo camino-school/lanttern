@@ -4,7 +4,7 @@ defmodule LantternWeb.DashboardLive do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto lg:max-w-5xl">
-      <.page_title_with_menu current_user={@current_user}>Dashboard 🚧</.page_title_with_menu>
+      <.page_title_with_menu>Dashboard 🚧</.page_title_with_menu>
       <div class="mt-40">
         <.link
           navigate={~p"/assessment_points"}
