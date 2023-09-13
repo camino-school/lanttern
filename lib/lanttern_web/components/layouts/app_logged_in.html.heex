@@ -1,5 +1,10 @@
 <main class="min-h-screen p-10 ltrn-bg-main">
   <%= @inner_content %>
-  <.live_component module={LantternWeb.MenuComponent} id={:new} current_user={@current_user} />
+  <.live_component
+    module={LantternWeb.MenuComponent}
+    id={:new}
+    current_user={@current_user}
+    current_path={@current_path}
+  />
 </main>
 <.flash_group flash={@flash} />
