@@ -33,7 +33,7 @@ defmodule LantternWeb.CurriculumBNCCEFLive do
             </.badge>
           <% end %>
         </p>
-        <button class="flex items-center ml-4 text-ltrn-subtle" phx-click="show-filter">
+        <button class="flex items-center ml-4 text-ltrn-subtle" phx-click={show_filter()}>
           <.icon name="hero-funnel-mini" class="text-ltrn-primary mr-2" />
           <span class="underline">Filter</span>
         </button>
@@ -62,9 +62,9 @@ defmodule LantternWeb.CurriculumBNCCEFLive do
         </.table>
       <% end %>
     </div>
-    <.slide_over :if={@is_filtering} id="bncc-ef-filters">
+    <.slide_over id="bncc-ef-filters">
       <:title>Filter Curriculum</:title>
-      <.form id="bncc-ef-filters-form" for={@form} phx-submit="filter" class="flex gap-6">
+      <.form id="bncc-ef-filters-form" for={@form} phx-submit={filter()} class="flex gap-6">
         <fieldset class="flex-1">
           <legend class="text-base font-semibold leading-6 text-ltrn-subtle">Subjects</legend>
           <div class="mt-4 divide-y divide-ltrn-hairline border-b border-t border-ltrn-hairline">
@@ -89,7 +89,11 @@ defmodule LantternWeb.CurriculumBNCCEFLive do
         </fieldset>
       </.form>
       <:actions>
-        <.button type="button" theme="ghost" phx-click="hide-filter">
+        <.button
+          type="button"
+          theme="ghost"
+          phx-click={JS.exec("data-cancel", to: "#bncc-ef-filters")}
+        >
           Cancel
         </.button>
         <.button type="submit" form="bncc-ef-filters-form" phx-disable-with="Applying filters...">
@@ -160,7 +164,6 @@ defmodule LantternWeb.CurriculumBNCCEFLive do
       |> assign(:current_subjects, current_subjects)
       |> assign(:current_years, current_years)
       |> assign(:items_count, items_count)
-      |> assign(:is_filtering, false)
       |> assign(:form, form)
       |> assign(:ef_subjects, ef_subjects)
       |> assign(:ef_years, ef_years)
@@ -189,13 +192,8 @@ defmodule LantternWeb.CurriculumBNCCEFLive do
     socket =
       socket
       |> assign(:form, form)
-      |> assign(:is_filtering, true)
 
     {:noreply, socket}
-  end
-
-  def handle_event("hide-filter", _, socket) do
-    {:noreply, assign(socket, :is_filtering, false)}
   end
 
   def handle_event("validate", _, socket) do
@@ -236,8 +234,21 @@ defmodule LantternWeb.CurriculumBNCCEFLive do
       |> assign(:current_subjects, current_subjects)
       |> assign(:current_years, current_years)
       |> assign(:items_count, items_count)
-      |> assign(:is_filtering, false)
 
     {:noreply, socket}
+  end
+
+  # helpers
+
+  defp show_filter(js \\ %JS{}) do
+    js
+    |> JS.push("show-filter")
+    |> JS.exec("data-show", to: "#bncc-ef-filters")
+  end
+
+  defp filter(js \\ %JS{}) do
+    js
+    |> JS.push("filter")
+    |> JS.exec("data-cancel", to: "#bncc-ef-filters")
   end
 end
