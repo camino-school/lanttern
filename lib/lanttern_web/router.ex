@@ -63,6 +63,7 @@ defmodule LantternWeb.Router do
     # Assessments context
     resources "/assessment_points", AssessmentPointController
     resources "/assessment_point_entries", AssessmentPointEntryController
+    resources "/feedback", FeedbackController
 
     # Curricula context
     resources "/curricula", CurriculumController

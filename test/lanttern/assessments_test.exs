@@ -464,4 +464,89 @@ defmodule Lanttern.AssessmentsTest do
              ]
     end
   end
+
+  describe "feedback" do
+    alias Lanttern.Assessments.Feedback
+
+    import Lanttern.AssessmentsFixtures
+
+    @invalid_attrs %{comment: nil}
+
+    test "list_feedback/1 returns all feedback" do
+      feedback = feedback_fixture()
+      assert Assessments.list_feedback() == [feedback]
+    end
+
+    test "list_feedback/1 with preloads returns feedback with preloaded data" do
+      student = Lanttern.SchoolsFixtures.student_fixture()
+      feedback = feedback_fixture(%{student_id: student.id})
+
+      [expected] = Assessments.list_feedback(preloads: :student)
+
+      # assert student is preloaded
+      assert expected.id == feedback.id
+      assert expected.student.id == student.id
+    end
+
+    test "get_feedback!/2 returns the feedback with given id" do
+      feedback = feedback_fixture()
+      assert Assessments.get_feedback!(feedback.id) == feedback
+    end
+
+    test "get_feedback!/2 with preloads returns feedback with preloaded data" do
+      student = Lanttern.SchoolsFixtures.student_fixture()
+      feedback = feedback_fixture(%{student_id: student.id})
+
+      expected = Assessments.get_feedback!(feedback.id, preloads: :student)
+
+      # assert student is preloaded
+      assert expected.id == feedback.id
+      assert expected.student.id == student.id
+    end
+
+    test "create_feedback/1 with valid data creates a feedback" do
+      assessment_point = assessment_point_fixture()
+      student = Lanttern.SchoolsFixtures.student_fixture()
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+
+      valid_attrs = %{
+        assessment_point_id: assessment_point.id,
+        student_id: student.id,
+        profile_id: profile.id,
+        comment: "some comment"
+      }
+
+      assert {:ok, %Feedback{} = feedback} = Assessments.create_feedback(valid_attrs)
+      assert feedback.comment == "some comment"
+    end
+
+    test "create_feedback/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Assessments.create_feedback(@invalid_attrs)
+    end
+
+    test "update_feedback/2 with valid data updates the feedback" do
+      feedback = feedback_fixture()
+      update_attrs = %{comment: "some updated comment"}
+
+      assert {:ok, %Feedback{} = feedback} = Assessments.update_feedback(feedback, update_attrs)
+      assert feedback.comment == "some updated comment"
+    end
+
+    test "update_feedback/2 with invalid data returns error changeset" do
+      feedback = feedback_fixture()
+      assert {:error, %Ecto.Changeset{}} = Assessments.update_feedback(feedback, @invalid_attrs)
+      assert feedback == Assessments.get_feedback!(feedback.id)
+    end
+
+    test "delete_feedback/1 deletes the feedback" do
+      feedback = feedback_fixture()
+      assert {:ok, %Feedback{}} = Assessments.delete_feedback(feedback)
+      assert_raise Ecto.NoResultsError, fn -> Assessments.get_feedback!(feedback.id) end
+    end
+
+    test "change_feedback/1 returns a feedback changeset" do
+      feedback = feedback_fixture()
+      assert %Ecto.Changeset{} = Assessments.change_feedback(feedback)
+    end
+  end
 end

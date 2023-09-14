@@ -324,4 +324,112 @@ defmodule Lanttern.Assessments do
       students_and_entries: students_and_entries
     }
   end
+
+  alias Lanttern.Assessments.Feedback
+
+  @doc """
+  Returns the list of feedback.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> list_feedback()
+      [%Feedback{}, ...]
+
+  """
+  def list_feedback(opts \\ []) do
+    Repo.all(Feedback)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single feedback.
+
+  Raises `Ecto.NoResultsError` if the Feedback does not exist.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> get_feedback!(123)
+      %Feedback{}
+
+      iex> get_feedback!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_feedback!(id, opts \\ []) do
+    Repo.get!(Feedback, id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Creates a feedback.
+
+  ## Examples
+
+      iex> create_feedback(%{field: value})
+      {:ok, %Feedback{}}
+
+      iex> create_feedback(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_feedback(attrs \\ %{}) do
+    %Feedback{}
+    |> Feedback.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a feedback.
+
+  ## Examples
+
+      iex> update_feedback(feedback, %{field: new_value})
+      {:ok, %Feedback{}}
+
+      iex> update_feedback(feedback, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_feedback(%Feedback{} = feedback, attrs) do
+    feedback
+    |> Feedback.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a feedback.
+
+  ## Examples
+
+      iex> delete_feedback(feedback)
+      {:ok, %Feedback{}}
+
+      iex> delete_feedback(feedback)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_feedback(%Feedback{} = feedback) do
+    Repo.delete(feedback)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking feedback changes.
+
+  ## Examples
+
+      iex> change_feedback(feedback)
+      %Ecto.Changeset{data: %Feedback{}}
+
+  """
+  def change_feedback(%Feedback{} = feedback, attrs \\ %{}) do
+    Feedback.changeset(feedback, attrs)
+  end
 end

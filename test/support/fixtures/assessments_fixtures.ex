@@ -60,4 +60,27 @@ defmodule Lanttern.AssessmentsFixtures do
 
     assessment_point_entry
   end
+
+  @doc """
+  Generate a feedback.
+  """
+  def feedback_fixture(attrs \\ %{}) do
+    assessment_point_id = Map.get(attrs, :assessment_point_id) || assessment_point_fixture().id
+    student_id = Map.get(attrs, :student_id) || Lanttern.SchoolsFixtures.student_fixture().id
+
+    profile_id =
+      Map.get(attrs, :profile_id) || Lanttern.IdentityFixtures.teacher_profile_fixture().id
+
+    {:ok, feedback} =
+      attrs
+      |> Enum.into(%{
+        comment: Faker.Lorem.paragraph(1..5),
+        assessment_point_id: assessment_point_id,
+        student_id: student_id,
+        profile_id: profile_id
+      })
+      |> Lanttern.Assessments.create_feedback()
+
+    feedback
+  end
 end

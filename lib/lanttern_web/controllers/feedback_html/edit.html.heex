@@ -1,0 +1,14 @@
+<.header>
+  Edit Feedback <%= @feedback.id %>
+  <:subtitle>Use this form to manage feedback records in your database.</:subtitle>
+</.header>
+
+<.feedback_form
+  assessment_point_options={@assessment_point_options}
+  student_options={@student_options}
+  profile_options={@profile_options}
+  changeset={@changeset}
+  action={~p"/admin/feedback/#{@feedback}"}
+/>
+
+<.back navigate={~p"/admin/feedback"}>Back to feedback</.back>
