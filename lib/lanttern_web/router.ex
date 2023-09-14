@@ -87,6 +87,9 @@ defmodule LantternWeb.Router do
     # Taxonomy context
     resources "/subjects", SubjectController
     resources "/years", YearController
+
+    # Conversation context
+    resources "/comments", CommentController
   end
 
   # Other scopes may use custom stacks.

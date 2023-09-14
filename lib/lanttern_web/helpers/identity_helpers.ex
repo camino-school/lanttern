@@ -15,6 +15,25 @@ defmodule LantternWeb.IdentityHelpers do
   end
 
   @doc """
+  Generate list of profiles to use as `Phoenix.HTML.Form.options_for_select/2` arg
+
+  ## Examples
+
+      iex> generate_profile_options()
+      [{"Teacher: name", 1}, ...]
+  """
+  def generate_profile_options() do
+    Identity.list_profiles(preloads: [:teacher, :student])
+    |> Enum.map(fn p -> {profile_name(p), p.id} end)
+  end
+
+  defp profile_name(%{type: "teacher", teacher: teacher}),
+    do: "Teacher: #{teacher.name}"
+
+  defp profile_name(%{type: "student", student: student}),
+    do: "Student: #{student.name}"
+
+  @doc """
   Generate list of teacher profiles to use as `Phoenix.HTML.Form.options_for_select/2` arg
 
   ## Examples
