@@ -53,13 +53,13 @@ defmodule LantternWeb.OverlayComponents do
         aria-modal="true"
       >
         <div class="absolute inset-0 overflow-hidden">
-          <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+          <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full">
             <.focus_wrap
               id={"#{@id}-container"}
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
               phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="pointer-events-auto w-screen max-w-xl py-6 transition-translate"
+              class="pointer-events-auto w-screen max-w-xl transition-translate"
             >
               <div class="flex h-full flex-col divide-y divide-ltrn-hairline bg-white shadow-xl rounded-l">
                 <div class="flex min-h-0 flex-1 flex-col overflow-y-scroll py-6 ltrn-bg-slide-over">
