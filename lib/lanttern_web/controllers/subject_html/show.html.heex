@@ -2,7 +2,7 @@
   Subject <%= @subject.id %>
   <:subtitle>This is a subject record from your database.</:subtitle>
   <:actions>
-    <.link href={~p"/admin/taxonomy/subjects/#{@subject}/edit"}>
+    <.link href={~p"/admin/subjects/#{@subject}/edit"}>
       <.button>Edit subject</.button>
     </.link>
   </:actions>
@@ -13,4 +13,4 @@
   <:item title="Name"><%= @subject.name %></:item>
 </.list>
 
-<.back navigate={~p"/admin/taxonomy/subjects"}>Back to subjects</.back>
+<.back navigate={~p"/admin/subjects"}>Back to subjects</.back>

@@ -30,7 +30,7 @@ defmodule LantternWeb.ProfileController do
       {:ok, profile} ->
         conn
         |> put_flash(:info, "Profile created successfully.")
-        |> redirect(to: ~p"/admin/identity/profiles/#{profile}")
+        |> redirect(to: ~p"/admin/profiles/#{profile}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         user_options = generate_user_options()
@@ -74,7 +74,7 @@ defmodule LantternWeb.ProfileController do
       {:ok, profile} ->
         conn
         |> put_flash(:info, "Profile updated successfully.")
-        |> redirect(to: ~p"/admin/identity/profiles/#{profile}")
+        |> redirect(to: ~p"/admin/profiles/#{profile}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         user_options = generate_user_options()
@@ -97,6 +97,6 @@ defmodule LantternWeb.ProfileController do
 
     conn
     |> put_flash(:info, "Profile deleted successfully.")
-    |> redirect(to: ~p"/admin/identity/profiles")
+    |> redirect(to: ~p"/admin/profiles")
   end
 end

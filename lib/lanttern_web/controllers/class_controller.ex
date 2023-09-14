@@ -27,7 +27,7 @@ defmodule LantternWeb.ClassController do
       {:ok, class} ->
         conn
         |> put_flash(:info, "Class created successfully.")
-        |> redirect(to: ~p"/admin/schools/classes/#{class}")
+        |> redirect(to: ~p"/admin/classes/#{class}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         student_options = generate_student_options()
@@ -73,7 +73,7 @@ defmodule LantternWeb.ClassController do
       {:ok, class} ->
         conn
         |> put_flash(:info, "Class updated successfully.")
-        |> redirect(to: ~p"/admin/schools/classes/#{class}")
+        |> redirect(to: ~p"/admin/classes/#{class}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         school_options = generate_school_options()
@@ -94,6 +94,6 @@ defmodule LantternWeb.ClassController do
 
     conn
     |> put_flash(:info, "Class deleted successfully.")
-    |> redirect(to: ~p"/admin/schools/classes")
+    |> redirect(to: ~p"/admin/classes")
   end
 end

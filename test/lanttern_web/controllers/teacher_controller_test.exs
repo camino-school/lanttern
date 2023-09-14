@@ -11,14 +11,14 @@ defmodule LantternWeb.TeacherControllerTest do
 
   describe "index" do
     test "lists all teachers", %{conn: conn} do
-      conn = get(conn, ~p"/admin/schools/teachers")
+      conn = get(conn, ~p"/admin/teachers")
       assert html_response(conn, 200) =~ "Listing Teachers"
     end
   end
 
   describe "new teacher" do
     test "renders form", %{conn: conn} do
-      conn = get(conn, ~p"/admin/schools/teachers/new")
+      conn = get(conn, ~p"/admin/teachers/new")
       assert html_response(conn, 200) =~ "New Teacher"
     end
   end
@@ -27,17 +27,17 @@ defmodule LantternWeb.TeacherControllerTest do
     test "redirects to show when data is valid", %{conn: conn} do
       school = school_fixture()
       create_attrs = @create_attrs |> Map.put_new(:school_id, school.id)
-      conn = post(conn, ~p"/admin/schools/teachers", teacher: create_attrs)
+      conn = post(conn, ~p"/admin/teachers", teacher: create_attrs)
 
       assert %{id: id} = redirected_params(conn)
-      assert redirected_to(conn) == ~p"/admin/schools/teachers/#{id}"
+      assert redirected_to(conn) == ~p"/admin/teachers/#{id}"
 
-      conn = get(conn, ~p"/admin/schools/teachers/#{id}")
+      conn = get(conn, ~p"/admin/teachers/#{id}")
       assert html_response(conn, 200) =~ "Teacher #{id}"
     end
 
     test "renders errors when data is invalid", %{conn: conn} do
-      conn = post(conn, ~p"/admin/schools/teachers", teacher: @invalid_attrs)
+      conn = post(conn, ~p"/admin/teachers", teacher: @invalid_attrs)
       assert html_response(conn, 200) =~ "New Teacher"
     end
   end
@@ -46,7 +46,7 @@ defmodule LantternWeb.TeacherControllerTest do
     setup [:create_teacher]
 
     test "renders form for editing chosen teacher", %{conn: conn, teacher: teacher} do
-      conn = get(conn, ~p"/admin/schools/teachers/#{teacher}/edit")
+      conn = get(conn, ~p"/admin/teachers/#{teacher}/edit")
       assert html_response(conn, 200) =~ "Edit Teacher"
     end
   end
@@ -55,15 +55,15 @@ defmodule LantternWeb.TeacherControllerTest do
     setup [:create_teacher]
 
     test "redirects when data is valid", %{conn: conn, teacher: teacher} do
-      conn = put(conn, ~p"/admin/schools/teachers/#{teacher}", teacher: @update_attrs)
-      assert redirected_to(conn) == ~p"/admin/schools/teachers/#{teacher}"
+      conn = put(conn, ~p"/admin/teachers/#{teacher}", teacher: @update_attrs)
+      assert redirected_to(conn) == ~p"/admin/teachers/#{teacher}"
 
-      conn = get(conn, ~p"/admin/schools/teachers/#{teacher}")
+      conn = get(conn, ~p"/admin/teachers/#{teacher}")
       assert html_response(conn, 200) =~ "some updated name"
     end
 
     test "renders errors when data is invalid", %{conn: conn, teacher: teacher} do
-      conn = put(conn, ~p"/admin/schools/teachers/#{teacher}", teacher: @invalid_attrs)
+      conn = put(conn, ~p"/admin/teachers/#{teacher}", teacher: @invalid_attrs)
       assert html_response(conn, 200) =~ "Edit Teacher"
     end
   end
@@ -72,11 +72,11 @@ defmodule LantternWeb.TeacherControllerTest do
     setup [:create_teacher]
 
     test "deletes chosen teacher", %{conn: conn, teacher: teacher} do
-      conn = delete(conn, ~p"/admin/schools/teachers/#{teacher}")
-      assert redirected_to(conn) == ~p"/admin/schools/teachers"
+      conn = delete(conn, ~p"/admin/teachers/#{teacher}")
+      assert redirected_to(conn) == ~p"/admin/teachers"
 
       assert_error_sent 404, fn ->
-        get(conn, ~p"/admin/schools/teachers/#{teacher}")
+        get(conn, ~p"/admin/teachers/#{teacher}")
       end
     end
   end

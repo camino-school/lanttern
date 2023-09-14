@@ -57,41 +57,35 @@ defmodule LantternWeb.Router do
 
     get "/", AdminController, :home
 
-    scope "/identity" do
-      resources "/profiles", ProfileController
-    end
+    # Identity context
+    resources "/profiles", ProfileController
 
-    scope "/assessments" do
-      resources "/assessment_points", AssessmentPointController
-      resources "/assessment_point_entries", AssessmentPointEntryController
-    end
+    # Assessments context
+    resources "/assessment_points", AssessmentPointController
+    resources "/assessment_point_entries", AssessmentPointEntryController
 
-    scope "/curricula" do
-      resources "/cur", CurriculumController
-      resources "/curriculum_components", CurriculumComponentController
-      resources "/curriculum_items", CurriculumItemController
-      resources "/curriculum_relationships", CurriculumRelationshipController
-    end
+    # Curricula context
+    resources "/curricula", CurriculumController
+    resources "/curriculum_components", CurriculumComponentController
+    resources "/curriculum_items", CurriculumItemController
+    resources "/curriculum_relationships", CurriculumRelationshipController
 
-    scope "/grading" do
-      resources "/compositions", CompositionController
-      resources "/composition_components", CompositionComponentController
-      resources "/component_items", CompositionComponentItemController
-      resources "/ordinal_values", OrdinalValueController
-      resources "/scales", ScaleController
-    end
+    # Grading context
+    resources "/grading_compositions", CompositionController
+    resources "/grading_composition_components", CompositionComponentController
+    resources "/grading_component_items", CompositionComponentItemController
+    resources "/ordinal_values", OrdinalValueController
+    resources "/scales", ScaleController
 
-    scope "/schools" do
-      resources "/schools", SchoolController
-      resources "/classes", ClassController
-      resources "/students", StudentController
-      resources "/teachers", TeacherController
-    end
+    # Schools context
+    resources "/schools", SchoolController
+    resources "/classes", ClassController
+    resources "/students", StudentController
+    resources "/teachers", TeacherController
 
-    scope "/taxonomy" do
-      resources "/subjects", SubjectController
-      resources "/years", YearController
-    end
+    # Taxonomy context
+    resources "/subjects", SubjectController
+    resources "/years", YearController
   end
 
   # Other scopes may use custom stacks.

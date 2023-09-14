@@ -21,7 +21,7 @@ defmodule LantternWeb.CurriculumComponentController do
       {:ok, curriculum_component} ->
         conn
         |> put_flash(:info, "Curriculum component created successfully.")
-        |> redirect(to: ~p"/admin/curricula/curriculum_components/#{curriculum_component}")
+        |> redirect(to: ~p"/admin/curriculum_components/#{curriculum_component}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         options = generate_curriculum_options()
@@ -53,7 +53,7 @@ defmodule LantternWeb.CurriculumComponentController do
       {:ok, curriculum_component} ->
         conn
         |> put_flash(:info, "Curriculum component updated successfully.")
-        |> redirect(to: ~p"/admin/curricula/curriculum_components/#{curriculum_component}")
+        |> redirect(to: ~p"/admin/curriculum_components/#{curriculum_component}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         options = generate_curriculum_options()
@@ -72,6 +72,6 @@ defmodule LantternWeb.CurriculumComponentController do
 
     conn
     |> put_flash(:info, "Curriculum component deleted successfully.")
-    |> redirect(to: ~p"/admin/curricula/curriculum_components")
+    |> redirect(to: ~p"/admin/curriculum_components")
   end
 end

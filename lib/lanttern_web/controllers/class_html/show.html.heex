@@ -2,7 +2,7 @@
   Class <%= @class.id %>
   <:subtitle>This is a class record from your database.</:subtitle>
   <:actions>
-    <.link href={~p"/admin/schools/classes/#{@class}/edit"}>
+    <.link href={~p"/admin/classes/#{@class}/edit"}>
       <.button>Edit class</.button>
     </.link>
   </:actions>
@@ -18,4 +18,4 @@
   </:item>
 </.list>
 
-<.back navigate={~p"/admin/schools/classes"}>Back to classes</.back>
+<.back navigate={~p"/admin/classes"}>Back to classes</.back>

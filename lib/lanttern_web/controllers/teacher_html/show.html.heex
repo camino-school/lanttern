@@ -2,7 +2,7 @@
   Teacher <%= @teacher.id %>
   <:subtitle>This is a teacher record from your database.</:subtitle>
   <:actions>
-    <.link href={~p"/admin/schools/teachers/#{@teacher}/edit"}>
+    <.link href={~p"/admin/teachers/#{@teacher}/edit"}>
       <.button>Edit teacher</.button>
     </.link>
   </:actions>
@@ -13,4 +13,4 @@
   <:item title="Name"><%= @teacher.name %></:item>
 </.list>
 
-<.back navigate={~p"/admin/schools/teachers"}>Back to teachers</.back>
+<.back navigate={~p"/admin/teachers"}>Back to teachers</.back>

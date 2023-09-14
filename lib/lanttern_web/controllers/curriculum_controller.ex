@@ -19,7 +19,7 @@ defmodule LantternWeb.CurriculumController do
       {:ok, curriculum} ->
         conn
         |> put_flash(:info, "Curriculum created successfully.")
-        |> redirect(to: ~p"/admin/curricula/cur/#{curriculum}")
+        |> redirect(to: ~p"/admin/curricula/#{curriculum}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :new, changeset: changeset)
@@ -44,7 +44,7 @@ defmodule LantternWeb.CurriculumController do
       {:ok, curriculum} ->
         conn
         |> put_flash(:info, "Curriculum updated successfully.")
-        |> redirect(to: ~p"/admin/curricula/cur/#{curriculum}")
+        |> redirect(to: ~p"/admin/curricula/#{curriculum}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :edit, curriculum: curriculum, changeset: changeset)
@@ -57,6 +57,6 @@ defmodule LantternWeb.CurriculumController do
 
     conn
     |> put_flash(:info, "Curriculum deleted successfully.")
-    |> redirect(to: ~p"/admin/curricula/cur")
+    |> redirect(to: ~p"/admin/curricula")
   end
 end

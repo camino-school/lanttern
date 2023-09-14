@@ -1,17 +1,13 @@
 <.header>
   Listing Profiles
   <:actions>
-    <.link href={~p"/admin/identity/profiles/new"}>
+    <.link href={~p"/admin/profiles/new"}>
       <.button>New Profile</.button>
     </.link>
   </:actions>
 </.header>
 
-<.table
-  id="profiles"
-  rows={@profiles}
-  row_click={&JS.navigate(~p"/admin/identity/profiles/#{&1}")}
->
+<.table id="profiles" rows={@profiles} row_click={&JS.navigate(~p"/admin/profiles/#{&1}")}>
   <:col :let={profile} label="User"><%= profile.user.email %></:col>
   <:col :let={profile} label="Student">
     <%= if profile.type == "student", do: profile.student.name, else: "—" %>
@@ -21,16 +17,12 @@
   </:col>
   <:action :let={profile}>
     <div class="sr-only">
-      <.link navigate={~p"/admin/identity/profiles/#{profile}"}>Show</.link>
+      <.link navigate={~p"/admin/profiles/#{profile}"}>Show</.link>
     </div>
-    <.link navigate={~p"/admin/identity/profiles/#{profile}/edit"}>Edit</.link>
+    <.link navigate={~p"/admin/profiles/#{profile}/edit"}>Edit</.link>
   </:action>
   <:action :let={profile}>
-    <.link
-      href={~p"/admin/identity/profiles/#{profile}"}
-      method="delete"
-      data-confirm="Are you sure?"
-    >
+    <.link href={~p"/admin/profiles/#{profile}"} method="delete" data-confirm="Are you sure?">
       Delete
     </.link>
   </:action>

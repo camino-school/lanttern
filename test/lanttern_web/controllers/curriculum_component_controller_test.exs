@@ -11,14 +11,14 @@ defmodule LantternWeb.CurriculumComponentControllerTest do
 
   describe "index" do
     test "lists all curriculum_components", %{conn: conn} do
-      conn = get(conn, ~p"/admin/curricula/curriculum_components")
+      conn = get(conn, ~p"/admin/curriculum_components")
       assert html_response(conn, 200) =~ "Listing Curriculum components"
     end
   end
 
   describe "new curriculum_component" do
     test "renders form", %{conn: conn} do
-      conn = get(conn, ~p"/admin/curricula/curriculum_components/new")
+      conn = get(conn, ~p"/admin/curriculum_components/new")
       assert html_response(conn, 200) =~ "New Curriculum component"
     end
   end
@@ -29,20 +29,18 @@ defmodule LantternWeb.CurriculumComponentControllerTest do
       create_attrs = @create_attrs |> Map.put_new(:curriculum_id, curriculum.id)
 
       conn =
-        post(conn, ~p"/admin/curricula/curriculum_components", curriculum_component: create_attrs)
+        post(conn, ~p"/admin/curriculum_components", curriculum_component: create_attrs)
 
       assert %{id: id} = redirected_params(conn)
-      assert redirected_to(conn) == ~p"/admin/curricula/curriculum_components/#{id}"
+      assert redirected_to(conn) == ~p"/admin/curriculum_components/#{id}"
 
-      conn = get(conn, ~p"/admin/curricula/curriculum_components/#{id}")
+      conn = get(conn, ~p"/admin/curriculum_components/#{id}")
       assert html_response(conn, 200) =~ "Curriculum component #{id}"
     end
 
     test "renders errors when data is invalid", %{conn: conn} do
       conn =
-        post(conn, ~p"/admin/curricula/curriculum_components",
-          curriculum_component: @invalid_attrs
-        )
+        post(conn, ~p"/admin/curriculum_components", curriculum_component: @invalid_attrs)
 
       assert html_response(conn, 200) =~ "New Curriculum component"
     end
@@ -55,7 +53,7 @@ defmodule LantternWeb.CurriculumComponentControllerTest do
       conn: conn,
       curriculum_component: curriculum_component
     } do
-      conn = get(conn, ~p"/admin/curricula/curriculum_components/#{curriculum_component}/edit")
+      conn = get(conn, ~p"/admin/curriculum_components/#{curriculum_component}/edit")
       assert html_response(conn, 200) =~ "Edit Curriculum component"
     end
   end
@@ -65,14 +63,14 @@ defmodule LantternWeb.CurriculumComponentControllerTest do
 
     test "redirects when data is valid", %{conn: conn, curriculum_component: curriculum_component} do
       conn =
-        put(conn, ~p"/admin/curricula/curriculum_components/#{curriculum_component}",
+        put(conn, ~p"/admin/curriculum_components/#{curriculum_component}",
           curriculum_component: @update_attrs
         )
 
       assert redirected_to(conn) ==
-               ~p"/admin/curricula/curriculum_components/#{curriculum_component}"
+               ~p"/admin/curriculum_components/#{curriculum_component}"
 
-      conn = get(conn, ~p"/admin/curricula/curriculum_components/#{curriculum_component}")
+      conn = get(conn, ~p"/admin/curriculum_components/#{curriculum_component}")
       assert html_response(conn, 200) =~ "some updated code"
     end
 
@@ -81,7 +79,7 @@ defmodule LantternWeb.CurriculumComponentControllerTest do
       curriculum_component: curriculum_component
     } do
       conn =
-        put(conn, ~p"/admin/curricula/curriculum_components/#{curriculum_component}",
+        put(conn, ~p"/admin/curriculum_components/#{curriculum_component}",
           curriculum_component: @invalid_attrs
         )
 
@@ -96,11 +94,11 @@ defmodule LantternWeb.CurriculumComponentControllerTest do
       conn: conn,
       curriculum_component: curriculum_component
     } do
-      conn = delete(conn, ~p"/admin/curricula/curriculum_components/#{curriculum_component}")
-      assert redirected_to(conn) == ~p"/admin/curricula/curriculum_components"
+      conn = delete(conn, ~p"/admin/curriculum_components/#{curriculum_component}")
+      assert redirected_to(conn) == ~p"/admin/curriculum_components"
 
       assert_error_sent 404, fn ->
-        get(conn, ~p"/admin/curricula/curriculum_components/#{curriculum_component}")
+        get(conn, ~p"/admin/curriculum_components/#{curriculum_component}")
       end
     end
   end

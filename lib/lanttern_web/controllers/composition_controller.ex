@@ -21,7 +21,7 @@ defmodule LantternWeb.CompositionController do
       {:ok, composition} ->
         conn
         |> put_flash(:info, "Composition created successfully.")
-        |> redirect(to: ~p"/admin/grading/compositions/#{composition}")
+        |> redirect(to: ~p"/admin/grading_compositions/#{composition}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         options = generate_scale_options()
@@ -48,7 +48,7 @@ defmodule LantternWeb.CompositionController do
       {:ok, composition} ->
         conn
         |> put_flash(:info, "Composition updated successfully.")
-        |> redirect(to: ~p"/admin/grading/compositions/#{composition}")
+        |> redirect(to: ~p"/admin/grading_compositions/#{composition}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         options = generate_scale_options()
@@ -67,6 +67,6 @@ defmodule LantternWeb.CompositionController do
 
     conn
     |> put_flash(:info, "Composition deleted successfully.")
-    |> redirect(to: ~p"/admin/grading/compositions")
+    |> redirect(to: ~p"/admin/grading_compositions")
   end
 end

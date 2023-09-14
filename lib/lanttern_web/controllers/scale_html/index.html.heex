@@ -1,25 +1,25 @@
 <.header>
   Listing Scales
   <:actions>
-    <.link href={~p"/admin/grading/scales/new"}>
+    <.link href={~p"/admin/scales/new"}>
       <.button>New Scale</.button>
     </.link>
   </:actions>
 </.header>
 
-<.table id="scales" rows={@scales} row_click={&JS.navigate(~p"/admin/grading/scales/#{&1}")}>
+<.table id="scales" rows={@scales} row_click={&JS.navigate(~p"/admin/scales/#{&1}")}>
   <:col :let={scale} label="Name"><%= scale.name %></:col>
   <:col :let={scale} label="Type"><%= scale.type %></:col>
   <:col :let={scale} label="Start"><%= scale.start %></:col>
   <:col :let={scale} label="Stop"><%= scale.stop %></:col>
   <:action :let={scale}>
     <div class="sr-only">
-      <.link navigate={~p"/admin/grading/scales/#{scale}"}>Show</.link>
+      <.link navigate={~p"/admin/scales/#{scale}"}>Show</.link>
     </div>
-    <.link navigate={~p"/admin/grading/scales/#{scale}/edit"}>Edit</.link>
+    <.link navigate={~p"/admin/scales/#{scale}/edit"}>Edit</.link>
   </:action>
   <:action :let={scale}>
-    <.link href={~p"/admin/grading/scales/#{scale}"} method="delete" data-confirm="Are you sure?">
+    <.link href={~p"/admin/scales/#{scale}"} method="delete" data-confirm="Are you sure?">
       Delete
     </.link>
   </:action>

@@ -2,7 +2,7 @@
   Scale <%= @scale.id %>
   <:subtitle>This is a scale record from your database.</:subtitle>
   <:actions>
-    <.link href={~p"/admin/grading/scales/#{@scale}/edit"}>
+    <.link href={~p"/admin/scales/#{@scale}/edit"}>
       <.button>Edit scale</.button>
     </.link>
   </:actions>
@@ -16,4 +16,4 @@
   <:item title="Breakpoints"><%= inspect(@scale.breakpoints) %></:item>
 </.list>
 
-<.back navigate={~p"/admin/grading/scales"}>Back to scales</.back>
+<.back navigate={~p"/admin/scales"}>Back to scales</.back>
