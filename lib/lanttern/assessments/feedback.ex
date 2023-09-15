@@ -8,6 +8,7 @@ defmodule Lanttern.Assessments.Feedback do
     belongs_to :profile, Lanttern.Identity.Profile
     belongs_to :student, Lanttern.Schools.Student
     belongs_to :assessment_point, Lanttern.Assessments.AssessmentPoint
+    belongs_to :completion_comment, Lanttern.Conversation.Comment
 
     many_to_many :comments, Lanttern.Conversation.Comment,
       join_through: "feedback_comments",
@@ -19,7 +20,13 @@ defmodule Lanttern.Assessments.Feedback do
   @doc false
   def changeset(feedback, attrs) do
     feedback
-    |> cast(attrs, [:comment, :profile_id, :student_id, :assessment_point_id])
+    |> cast(attrs, [
+      :comment,
+      :profile_id,
+      :student_id,
+      :assessment_point_id,
+      :completion_comment_id
+    ])
     |> validate_required([:comment, :profile_id, :student_id, :assessment_point_id])
     |> validate_profile_is_of_type_teacher()
     |> unique_constraint([:assessment_point_id, :student_id],

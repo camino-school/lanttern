@@ -118,26 +118,29 @@ defmodule Lanttern.Conversation do
   @doc """
   Creates a feedback comment.
 
+  If `mark_feedback_id_for_completion` is present in `comment_attrs`,
+  will add the created comment to `Feedback`'s `completion_comment`.
+
   ## Examples
 
-      iex> create_feedback_comment(%{comment: "blah", profile_id: 1}, feedback_id)
+      iex> create_feedback_comment(%{comment: "blah", profile_id: 1}, %Feedback{})
       {:ok, %Comment{}}
 
-      iex> create_feedback_comment(%{comment: "blah", profile_id: nil}, feedback_id)
+      iex> create_feedback_comment(%{comment: "blah", profile_id: nil}, %Feedback{})
       {:error, %Ecto.Changeset{}}
 
-      iex> create_feedback_comment(%{comment: "blah", profile_id: 1}, bad_feedback_id)
+      iex> create_feedback_comment(%{comment: "blah", profile_id: 1}, %Feedback{id: nil})
       {:error, "Feedback not found"}
 
   """
-  def create_feedback_comment(comment_attrs, feedback_id) do
+  def create_feedback_comment(comment_attrs, feedback) do
     Repo.transaction(fn ->
       {:ok, comment} = create_comment(comment_attrs)
 
       try do
         {1, _} =
           Repo.insert_all("feedback_comments", [
-            [feedback_id: feedback_id, comment_id: comment.id]
+            [feedback_id: feedback.id, comment_id: comment.id]
           ])
       rescue
         Postgrex.Error -> Repo.rollback("Feedback not found")

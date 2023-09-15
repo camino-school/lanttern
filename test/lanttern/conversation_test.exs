@@ -95,7 +95,7 @@ defmodule Lanttern.ConversationTest do
       }
 
       assert {:ok, %Comment{} = comment} =
-               Conversation.create_feedback_comment(valid_attrs, feedback.id)
+               Conversation.create_feedback_comment(valid_attrs, feedback)
 
       assert comment.comment == valid_attrs.comment
       assert comment.profile_id == profile.id
@@ -119,10 +119,10 @@ defmodule Lanttern.ConversationTest do
       }
 
       assert {:ok, %Comment{} = comment_1} =
-               Conversation.create_feedback_comment(valid_attrs_1, feedback.id)
+               Conversation.create_feedback_comment(valid_attrs_1, feedback)
 
       assert {:ok, %Comment{} = comment_2} =
-               Conversation.create_feedback_comment(valid_attrs_2, feedback.id)
+               Conversation.create_feedback_comment(valid_attrs_2, feedback)
 
       %{comments: expected} = Assessments.get_feedback!(feedback.id, preloads: :comments)
       assert length(expected) == 2
@@ -130,6 +130,29 @@ defmodule Lanttern.ConversationTest do
       for c <- expected do
         c.id in [comment_1.id, comment_2.id]
       end
+    end
+
+    test "create_feedback_comment/2 with mark_feedback_id_for_completion adds completion comment in feedback" do
+      feedback = Lanttern.AssessmentsFixtures.feedback_fixture()
+      profile = Lanttern.IdentityFixtures.student_profile_fixture()
+
+      valid_attrs = %{
+        comment: Faker.Lorem.paragraph(1..5),
+        profile_id: profile.id,
+        mark_feedback_id_for_completion: feedback.id
+      }
+
+      {:ok, %Comment{} = comment} =
+        Conversation.create_feedback_comment(valid_attrs, feedback)
+
+      %{
+        comments: [expected],
+        completion_comment_id: completion_comment_id
+      } =
+        Assessments.get_feedback!(feedback.id, preloads: :comments)
+
+      assert expected.id == comment.id
+      assert completion_comment_id == comment.id
     end
   end
 end
