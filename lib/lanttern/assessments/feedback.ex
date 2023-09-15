@@ -9,6 +9,10 @@ defmodule Lanttern.Assessments.Feedback do
     belongs_to :student, Lanttern.Schools.Student
     belongs_to :assessment_point, Lanttern.Assessments.AssessmentPoint
 
+    many_to_many :comments, Lanttern.Conversation.Comment,
+      join_through: "feedback_comments",
+      on_replace: :delete
+
     timestamps()
   end
 

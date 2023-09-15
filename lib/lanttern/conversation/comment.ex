@@ -15,5 +15,6 @@ defmodule Lanttern.Conversation.Comment do
     comment
     |> cast(attrs, [:comment, :profile_id])
     |> validate_required([:comment, :profile_id])
+    |> foreign_key_constraint(:profile_id, message: "Profile not found")
   end
 end

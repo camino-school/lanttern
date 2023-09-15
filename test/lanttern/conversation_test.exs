@@ -80,4 +80,56 @@ defmodule Lanttern.ConversationTest do
       assert %Ecto.Changeset{} = Conversation.change_comment(comment)
     end
   end
+
+  describe "feedback_comments" do
+    alias Lanttern.Conversation.Comment
+    alias Lanttern.Assessments
+
+    test "create_feedback_comment/2 with valid data creates a comment linked to feedback" do
+      feedback = Lanttern.AssessmentsFixtures.feedback_fixture()
+      profile = Lanttern.IdentityFixtures.student_profile_fixture()
+
+      valid_attrs = %{
+        comment: Faker.Lorem.paragraph(1..5),
+        profile_id: profile.id
+      }
+
+      assert {:ok, %Comment{} = comment} =
+               Conversation.create_feedback_comment(valid_attrs, feedback.id)
+
+      assert comment.comment == valid_attrs.comment
+      assert comment.profile_id == profile.id
+
+      %{comments: [expected]} = Assessments.get_feedback!(feedback.id, preloads: :comments)
+      assert expected.id == comment.id
+    end
+
+    test "create_feedback_comment/2 does not erases existing comments" do
+      feedback = Lanttern.AssessmentsFixtures.feedback_fixture()
+      profile = Lanttern.IdentityFixtures.student_profile_fixture()
+
+      valid_attrs_1 = %{
+        comment: Faker.Lorem.paragraph(1..5),
+        profile_id: profile.id
+      }
+
+      valid_attrs_2 = %{
+        comment: Faker.Lorem.paragraph(1..5),
+        profile_id: profile.id
+      }
+
+      assert {:ok, %Comment{} = comment_1} =
+               Conversation.create_feedback_comment(valid_attrs_1, feedback.id)
+
+      assert {:ok, %Comment{} = comment_2} =
+               Conversation.create_feedback_comment(valid_attrs_2, feedback.id)
+
+      %{comments: expected} = Assessments.get_feedback!(feedback.id, preloads: :comments)
+      assert length(expected) == 2
+
+      for c <- expected do
+        c.id in [comment_1.id, comment_2.id]
+      end
+    end
+  end
 end
