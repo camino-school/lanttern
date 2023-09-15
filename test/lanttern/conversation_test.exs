@@ -87,18 +87,7 @@ defmodule Lanttern.ConversationTest do
 
     test "create_feedback_comment/2 with valid data creates a comment linked to feedback" do
       feedback = Lanttern.AssessmentsFixtures.feedback_fixture()
-      profile = Lanttern.IdentityFixtures.student_profile_fixture()
-
-      valid_attrs = %{
-        comment: Faker.Lorem.paragraph(1..5),
-        profile_id: profile.id
-      }
-
-      assert {:ok, %Comment{} = comment} =
-               Conversation.create_feedback_comment(valid_attrs, feedback)
-
-      assert comment.comment == valid_attrs.comment
-      assert comment.profile_id == profile.id
+      comment = create_feedback_comment_helper(feedback)
 
       %{comments: [expected]} = Assessments.get_feedback!(feedback.id, preloads: :comments)
       assert expected.id == comment.id
@@ -106,23 +95,8 @@ defmodule Lanttern.ConversationTest do
 
     test "create_feedback_comment/2 does not erases existing comments" do
       feedback = Lanttern.AssessmentsFixtures.feedback_fixture()
-      profile = Lanttern.IdentityFixtures.student_profile_fixture()
-
-      valid_attrs_1 = %{
-        comment: Faker.Lorem.paragraph(1..5),
-        profile_id: profile.id
-      }
-
-      valid_attrs_2 = %{
-        comment: Faker.Lorem.paragraph(1..5),
-        profile_id: profile.id
-      }
-
-      assert {:ok, %Comment{} = comment_1} =
-               Conversation.create_feedback_comment(valid_attrs_1, feedback)
-
-      assert {:ok, %Comment{} = comment_2} =
-               Conversation.create_feedback_comment(valid_attrs_2, feedback)
+      comment_1 = create_feedback_comment_helper(feedback)
+      comment_2 = create_feedback_comment_helper(feedback)
 
       %{comments: expected} = Assessments.get_feedback!(feedback.id, preloads: :comments)
       assert length(expected) == 2
@@ -134,16 +108,8 @@ defmodule Lanttern.ConversationTest do
 
     test "create_feedback_comment/2 with mark_feedback_id_for_completion adds completion comment in feedback" do
       feedback = Lanttern.AssessmentsFixtures.feedback_fixture()
-      profile = Lanttern.IdentityFixtures.student_profile_fixture()
-
-      valid_attrs = %{
-        comment: Faker.Lorem.paragraph(1..5),
-        profile_id: profile.id,
-        mark_feedback_id_for_completion: feedback.id
-      }
-
-      {:ok, %Comment{} = comment} =
-        Conversation.create_feedback_comment(valid_attrs, feedback)
+      attrs = %{mark_feedback_id_for_completion: feedback.id}
+      comment = create_feedback_comment_helper(feedback, attrs)
 
       %{
         comments: [expected],
@@ -153,6 +119,51 @@ defmodule Lanttern.ConversationTest do
 
       assert expected.id == comment.id
       assert completion_comment_id == comment.id
+    end
+
+    test "update_comment/2 with mark_feedback_id_for_completion adds completion comment in feedback" do
+      feedback = Lanttern.AssessmentsFixtures.feedback_fixture()
+      comment = create_feedback_comment_helper(feedback) |> Repo.preload(:completed_feedback)
+
+      # update comment with mark_feedback_id_for_completion
+      Conversation.update_comment(comment, %{mark_feedback_id_for_completion: feedback.id})
+
+      %{completion_comment_id: completion_comment_id} = Assessments.get_feedback!(feedback.id)
+      assert completion_comment_id == comment.id
+    end
+
+    test "update_comment/2 with mark_feedback_id_for_completion nil removes completion comment from feedback" do
+      feedback = Lanttern.AssessmentsFixtures.feedback_fixture()
+      attrs = %{mark_feedback_id_for_completion: feedback.id}
+
+      comment =
+        create_feedback_comment_helper(feedback, attrs) |> Repo.preload(:completed_feedback)
+
+      # update comment with nil mark_feedback_id_for_completion
+      Conversation.update_comment(comment, %{mark_feedback_id_for_completion: nil})
+
+      %{completion_comment_id: completion_comment_id} = Assessments.get_feedback!(feedback.id)
+      assert completion_comment_id == nil
+    end
+
+    # wrapper around create_feedback_comment/2 to reduce code repetition
+    defp create_feedback_comment_helper(feedback, attrs \\ %{}) do
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+
+      attrs =
+        attrs
+        |> Enum.into(%{
+          comment: Faker.Lorem.paragraph(1..5),
+          profile_id: profile.id
+        })
+
+      {:ok, %Comment{} = comment} =
+        Conversation.create_feedback_comment(attrs, feedback)
+
+      assert comment.comment == attrs.comment
+      assert comment.profile_id == profile.id
+
+      comment
     end
   end
 end

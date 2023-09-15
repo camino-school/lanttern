@@ -9,7 +9,8 @@ defmodule Lanttern.Conversation.Comment do
     field :mark_feedback_id_for_completion, :id, virtual: true
 
     has_one :completed_feedback, Lanttern.Assessments.Feedback,
-      foreign_key: :completion_comment_id
+      foreign_key: :completion_comment_id,
+      on_replace: :nilify
 
     belongs_to :profile, Lanttern.Identity.Profile
 
@@ -31,7 +32,18 @@ defmodule Lanttern.Conversation.Comment do
     |> handle_feedback_completion(changeset)
   end
 
-  defp handle_feedback_completion(nil, changeset), do: changeset
+  defp handle_feedback_completion(nil, changeset) do
+    # if comment exists and a Feedback references it, remove association
+    with id when not is_nil(id) <- get_field(changeset, :id),
+         feedback when not is_nil(feedback) <-
+           Repo.get_by(Lanttern.Assessments.Feedback, completion_comment_id: id) do
+      changeset
+      |> put_assoc(:completed_feedback, nil)
+    else
+      _ ->
+        changeset
+    end
+  end
 
   defp handle_feedback_completion(feedback_id, changeset) do
     case Repo.get(Lanttern.Assessments.Feedback, feedback_id) do
