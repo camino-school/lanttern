@@ -39,39 +39,33 @@ defmodule LantternWeb.AssessmentPointLive do
             <%= @assessment_point.description %>
           </p>
         </div>
-        <div class="flex items-center mt-10">
-          <.icon name="hero-calendar" class="text-rose-500 mr-4" /> Date: <%= @formatted_datetime %>
-        </div>
-        <div class="flex items-center mt-4">
-          <.icon name="hero-bookmark" class="text-rose-500 mr-4" />
+        <.icon_and_content icon_name="hero-calendar">
+          Date: <%= @formatted_datetime %>
+        </.icon_and_content>
+        <.icon_and_content icon_name="hero-bookmark">
           Curriculum: <%= @assessment_point.curriculum_item.name %>
-        </div>
-        <div class="flex items-center mt-4">
-          <.icon name="hero-view-columns" class="text-rose-500 mr-4" />
+        </.icon_and_content>
+        <.icon_and_content icon_name="hero-view-columns">
           Scale: <%= @assessment_point.scale.name %>
           <.ordinal_values ordinal_values={@ordinal_values} />
-        </div>
-        <div :if={length(@assessment_point.classes) > 0} class="flex items-center mt-4">
-          <.icon name="hero-squares-2x2" class="text-rose-500 mr-4" /> Classes:
+        </.icon_and_content>
+        <.icon_and_content :if={length(@assessment_point.classes) > 0} icon_name="hero-squares-2x2">
           <.classes classes={@assessment_point.classes} />
-        </div>
+        </.icon_and_content>
         <div class="mt-20">
-          <div class="flex items-center gap-2">
-            <div class="shrink-0 w-1/4"></div>
-            <div class={[
-              "flex items-center gap-2 font-display font-bold text-ltrn-subtle",
-              if(
-                @assessment_point.scale.type == "ordinal",
-                do: "flex-[2_0]",
-                else: "flex-[1_0]"
-              )
-            ]}>
+          <div class={"grid #{head_grid_cols_based_on_scale_type(@assessment_point.scale.type)} items-center gap-2"}>
+            <div>&nbsp;</div>
+            <div class="flex items-center gap-2 font-display font-bold text-ltrn-subtle">
               <.icon name="hero-view-columns" />
               <span>Marking</span>
             </div>
-            <div class="flex-[2_0] items-center gap-2 font-display font-bold text-ltrn-subtle">
+            <div class="flex items-center gap-2 font-display font-bold text-ltrn-subtle">
               <.icon name="hero-pencil-square" />
-              <span>Notes and observations</span>
+              <span>Observations</span>
+            </div>
+            <div class="flex items-center gap-2 font-display font-bold text-ltrn-subtle">
+              <.icon name="hero-chat-bubble-left-right" />
+              <span>Feedback</span>
             </div>
           </div>
           <.entry_row
@@ -88,6 +82,23 @@ defmodule LantternWeb.AssessmentPointLive do
       id="update-assessment-point-overlay"
       assessment_point={@assessment_point}
     />
+    """
+  end
+
+  defp head_grid_cols_based_on_scale_type("numeric"),
+    do: "grid-cols-[12rem_minmax(10px,_1fr)_minmax(10px,_2fr)_minmax(10px,_2fr)]"
+
+  defp head_grid_cols_based_on_scale_type("ordinal"),
+    do: "grid-cols-[12rem_minmax(10px,_2fr)_minmax(10px,_2fr)_minmax(10px,_2fr)]"
+
+  attr :icon_name, :string, required: true
+  slot :inner_block, required: true
+
+  def icon_and_content(assigns) do
+    ~H"""
+    <div class="flex items-center mt-10">
+      <.icon name={@icon_name} class="shrink-0 text-rose-500 mr-4" /> <%= render_slot(@inner_block) %>
+    </div>
     """
   end
 
@@ -125,19 +136,80 @@ defmodule LantternWeb.AssessmentPointLive do
 
   def entry_row(assigns) do
     ~H"""
-    <div class="flex items-stretch gap-2 mt-4">
-      <.icon_with_name class="self-center shrink-0 w-1/4" profile_name={@student_name} />
+    <div class={"grid #{row_grid_cols_based_on_scale_type(@scale_type)} gap-2 mt-4"}>
+      <.icon_with_name class="self-center" profile_name={@student_name} />
       <.live_component
         module={LantternWeb.AssessmentPointEntryEditorComponent}
         id={@entry.id}
         entry={@entry}
-        wrapper_class="flex-1 items-stretch"
-        class="flex items-stretch gap-2"
+        class={"grid #{entry_grid_cols_based_on_scale_type(@scale_type)} gap-2"}
       >
-        <:marking_input class={if @scale_type == "numeric", do: "flex-[1_0]", else: "flex-[2_0]"} />
-        <:observation_input class="flex-[2_0]" />
+        <:marking_input />
+        <:observation_input />
       </.live_component>
+      <.feedback_button feedback="complete" />
     </div>
+    """
+  end
+
+  defp row_grid_cols_based_on_scale_type("numeric"),
+    do: "grid-cols-[12rem_minmax(10px,_3fr)_minmax(10px,_2fr)]"
+
+  defp row_grid_cols_based_on_scale_type("ordinal"),
+    do: "grid-cols-[12rem_minmax(10px,_4fr)_minmax(10px,_2fr)]"
+
+  defp entry_grid_cols_based_on_scale_type("numeric"),
+    do: "grid-cols-[minmax(10px,_1fr)_minmax(10px,_2fr)]"
+
+  defp entry_grid_cols_based_on_scale_type("ordinal"),
+    do: "grid-cols-2"
+
+  attr :feedback, :any, default: nil
+
+  def feedback_button(%{feedback: "complete"} = assigns) do
+    # we are using grid here to allow truncate (which is not viable with flex)
+    ~H"""
+    <button
+      type="button"
+      class="grid grid-cols-[1.5rem_minmax(10px,_1fr)] items-center gap-2 px-4 rounded-sm text-xs text-ltrn-subtle bg-white shadow-md"
+    >
+      <.icon name="hero-check-circle" class="w-6 h-6 text-green-500" />
+      <span class="block text-left">
+        <span class="block w-full text-ltrn-text truncate">
+          It would blah It would blah It would blah It would blah It would blah It would blah
+        </span>
+        Completed Sep 03, 2023 🎉
+      </span>
+    </button>
+    """
+  end
+
+  def feedback_button(%{feedback: "pending"} = assigns) do
+    # we are using grid here to allow truncate (which is not viable with flex)
+    ~H"""
+    <button
+      type="button"
+      class="grid grid-cols-[1.5rem_minmax(10px,_1fr)] items-center gap-2 px-4 rounded-sm text-xs text-ltrn-subtle bg-white shadow-md"
+    >
+      <.icon name="hero-check-circle" class="w-6 h-6" />
+      <span class="block text-left">
+        <span class="block w-full text-ltrn-text truncate">
+          It would blah It would blah It would blah It would blah It would blah It would blah
+        </span>
+        Not completed yet
+      </span>
+    </button>
+    """
+  end
+
+  def feedback_button(assigns) do
+    ~H"""
+    <button
+      type="button"
+      class="flex items-center gap-2 px-4 rounded-sm text-xs text-ltrn-subtle bg-ltrn-hairline shadow-md"
+    >
+      <.icon name="hero-x-circle" class="shrink-0 w-6 h-6" /> No feedback
+    </button>
     """
   end
 
