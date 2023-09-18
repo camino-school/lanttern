@@ -4,6 +4,7 @@ defmodule LantternWeb.AssessmentPointLive do
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Grading
+  alias Lanttern.Schools.Student
 
   def render(assigns) do
     ~H"""
@@ -71,7 +72,7 @@ defmodule LantternWeb.AssessmentPointLive do
           <.entry_row
             :for={entry <- @entries}
             entry={entry}
-            student_name={entry.student.name}
+            student={entry.student}
             scale_type={@assessment_point.scale.type}
           />
         </div>
@@ -81,6 +82,13 @@ defmodule LantternWeb.AssessmentPointLive do
       module={LantternWeb.AssessmentPointUpdateOverlayComponent}
       id="update-assessment-point-overlay"
       assessment_point={@assessment_point}
+    />
+    <.live_component
+      module={LantternWeb.FeedbackOverlayComponent}
+      id="feedback-overlay"
+      assessment_point={@assessment_point}
+      show={@show_feedback}
+      on_cancel={JS.push("close-feedback")}
     />
     """
   end
@@ -131,13 +139,13 @@ defmodule LantternWeb.AssessmentPointLive do
   end
 
   attr :entry, AssessmentPointEntry, required: true
-  attr :student_name, :string, required: true
+  attr :student, Student, required: true
   attr :scale_type, :string, required: true
 
   def entry_row(assigns) do
     ~H"""
     <div class={"grid #{row_grid_cols_based_on_scale_type(@scale_type)} gap-2 mt-4"}>
-      <.icon_with_name class="self-center" profile_name={@student_name} />
+      <.icon_with_name class="self-center" profile_name={@student.name} />
       <.live_component
         module={LantternWeb.AssessmentPointEntryEditorComponent}
         id={@entry.id}
@@ -147,7 +155,7 @@ defmodule LantternWeb.AssessmentPointLive do
         <:marking_input />
         <:observation_input />
       </.live_component>
-      <.feedback_button feedback="complete" />
+      <.feedback_button feedback={nil} student_id={@student.id} />
     </div>
     """
   end
@@ -165,50 +173,68 @@ defmodule LantternWeb.AssessmentPointLive do
     do: "grid-cols-2"
 
   attr :feedback, :any, default: nil
+  attr :student_id, :string, required: true
 
-  def feedback_button(%{feedback: "complete"} = assigns) do
-    # we are using grid here to allow truncate (which is not viable with flex)
+  def feedback_button(%{feedback: nil} = assigns) do
     ~H"""
-    <button
-      type="button"
-      class="grid grid-cols-[1.5rem_minmax(10px,_1fr)] items-center gap-2 px-4 rounded-sm text-xs text-ltrn-subtle bg-white shadow-md"
-    >
-      <.icon name="hero-check-circle" class="w-6 h-6 text-green-500" />
-      <span class="block text-left">
-        <span class="block w-full text-ltrn-text truncate">
-          It would blah It would blah It would blah It would blah It would blah It would blah
-        </span>
-        Completed Sep 03, 2023 🎉
-      </span>
-    </button>
+    <.feedback_button_base feedback={@feedback} student_id={@student_id}>
+      <.icon name="hero-x-circle" class="shrink-0 w-6 h-6" /> No feedback
+    </.feedback_button_base>
     """
   end
 
-  def feedback_button(%{feedback: "pending"} = assigns) do
-    # we are using grid here to allow truncate (which is not viable with flex)
+  def feedback_button(%{feedback: %{completion_comment_id: nil}} = assigns) do
     ~H"""
-    <button
-      type="button"
-      class="grid grid-cols-[1.5rem_minmax(10px,_1fr)] items-center gap-2 px-4 rounded-sm text-xs text-ltrn-subtle bg-white shadow-md"
-    >
-      <.icon name="hero-check-circle" class="w-6 h-6" />
-      <span class="block text-left">
-        <span class="block w-full text-ltrn-text truncate">
-          It would blah It would blah It would blah It would blah It would blah It would blah
+    <.feedback_button_base feedback={@feedback} student_id={@student_id}>
+      <.icon name="hero-check-circle" class="shrink-0 w-6 h-6" />
+      <span class="flex-1 block text-left">
+        <span class="w-full text-ltrn-text line-clamp-3">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
         </span>
         Not completed yet
       </span>
-    </button>
+    </.feedback_button_base>
     """
   end
 
-  def feedback_button(assigns) do
+  def feedback_button(%{feedback: %{completion_comment_id: comment_id}} = assigns)
+      when not is_nil(comment_id) do
+    ~H"""
+    <.feedback_button_base feedback={@feedback} student_id={@student_id}>
+      <.icon name="hero-check-circle" class="shrink-0 w-6 h-6 text-green-500" />
+      <span class="flex-1 block text-left">
+        <span class="w-full text-ltrn-text line-clamp-3">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+        </span>
+        Completed Sep 03, 2023 🎉
+      </span>
+    </.feedback_button_base>
+    """
+  end
+
+  attr :feedback, :any, default: nil
+  attr :student_id, :string, required: true
+  slot :inner_block, required: true
+
+  def feedback_button_base(assigns) do
+    feedback_id =
+      case assigns.feedback do
+        %{id: id} -> id
+        _ -> ""
+      end
+
+    assigns =
+      assign(assigns, feedback_id: feedback_id)
+
     ~H"""
     <button
       type="button"
       class="flex items-center gap-2 px-4 rounded-sm text-xs text-ltrn-subtle bg-ltrn-hairline shadow-md"
+      phx-click="open-feedback"
+      phx-value-feedbackid={@feedback_id}
+      phx-value-studentid={@student_id}
     >
-      <.icon name="hero-x-circle" class="shrink-0 w-6 h-6" /> No feedback
+      <%= render_slot(@inner_block) %>
     </button>
     """
   end
@@ -263,6 +289,7 @@ defmodule LantternWeb.AssessmentPointLive do
           |> assign(:ordinal_values, ordinal_values)
           |> assign(:formatted_datetime, formatted_datetime)
           |> assign(:is_updating, false)
+          |> assign(:show_feedback, false)
 
         {:noreply, socket}
     end
@@ -276,6 +303,24 @@ defmodule LantternWeb.AssessmentPointLive do
 
   def handle_event("cancel-assessment-point-update", _params, socket) do
     {:noreply, assign(socket, :is_updating, false)}
+  end
+
+  def handle_event(
+        "open-feedback",
+        %{
+          "feedbackid" => feedback_id,
+          "studentid" => student_id
+        },
+        socket
+      ) do
+    IO.inspect(feedback_id)
+    IO.inspect(socket.assigns.assessment_point.id)
+    IO.inspect(student_id)
+    {:noreply, assign(socket, :show_feedback, true)}
+  end
+
+  def handle_event("close-feedback", _params, socket) do
+    {:noreply, assign(socket, :show_feedback, false)}
   end
 
   # info handlers
