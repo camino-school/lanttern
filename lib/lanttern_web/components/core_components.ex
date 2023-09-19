@@ -915,6 +915,7 @@ defmodule LantternWeb.CoreComponents do
         "flex items-center justify-center w-10 h-10 rounded-full font-display text-sm font-bold text-center bg-cyan-50 shadow-md",
         @class
       ]}
+      title={@profile_name}
       {@rest}
     >
       <%= profile_icon_initials(@profile_name) %>

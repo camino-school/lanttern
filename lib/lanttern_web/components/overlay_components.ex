@@ -71,7 +71,7 @@ defmodule LantternWeb.OverlayComponents do
                       </h2>
                     </div>
                   </div>
-                  <div id={"#{@id}-content"} class="relative mt-6 flex-1 px-4 sm:px-6">
+                  <div id={"#{@id}-content"} class="relative flex-1 p-4 sm:px-6">
                     <%= render_slot(@inner_block) %>
                   </div>
                 </div>

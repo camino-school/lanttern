@@ -9,6 +9,7 @@ defmodule Lanttern.Assessments do
 
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.Assessments.Feedback
 
   @doc """
   Returns the list of assessment points.
@@ -152,6 +153,7 @@ defmodule Lanttern.Assessments do
 
   `:preloads` – preloads associated data
   `:assessment_point_id` – filter entries by provided assessment point id
+  `:load_feedback` - "preloads" the virtual feedback field
 
   ## Examples
 
@@ -162,21 +164,37 @@ defmodule Lanttern.Assessments do
   def list_assessment_point_entries(opts \\ []) do
     AssessmentPointEntry
     |> maybe_filter_entries_by_assessment_point(opts)
+    |> maybe_load_feedback(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
-  defp maybe_filter_entries_by_assessment_point(assessment_point_entry_query, opts) do
+  defp maybe_filter_entries_by_assessment_point(entry_query, opts) do
     case Keyword.get(opts, :assessment_point_id) do
       nil ->
-        assessment_point_entry_query
+        entry_query
 
       assessment_point_id ->
         from(
-          e in assessment_point_entry_query,
+          e in entry_query,
           join: ap in assoc(e, :assessment_point),
           where: ap.id == ^assessment_point_id
         )
+    end
+  end
+
+  defp maybe_load_feedback(entry_query, opts) do
+    case Keyword.get(opts, :load_feedback) do
+      true ->
+        from(
+          e in entry_query,
+          left_join: f in Feedback,
+          on: e.assessment_point_id == f.assessment_point_id and e.student_id == f.student_id,
+          select: %{e | feedback: f}
+        )
+
+      _ ->
+        entry_query
     end
   end
 
@@ -325,8 +343,6 @@ defmodule Lanttern.Assessments do
     }
   end
 
-  alias Lanttern.Assessments.Feedback
-
   @doc """
   Returns the list of feedback.
 
@@ -371,6 +387,10 @@ defmodule Lanttern.Assessments do
   @doc """
   Creates a feedback.
 
+  ### Options:
+
+  `:preloads` – preloads associated data
+
   ## Examples
 
       iex> create_feedback(%{field: value})
@@ -384,6 +404,19 @@ defmodule Lanttern.Assessments do
     %Feedback{}
     |> Feedback.changeset(attrs)
     |> Repo.insert()
+  end
+
+  @doc """
+  See `create_feedback/1`.
+  """
+  def create_feedback(attrs, opts) do
+    with {:ok, feedback} <- create_feedback(attrs) do
+      feedback =
+        feedback
+        |> maybe_preload(opts)
+
+      {:ok, feedback}
+    end
   end
 
   @doc """

@@ -260,6 +260,28 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_entry_2.student == student_2
     end
 
+    test "list_assessment_point_entries/1 with load_feedback returns entries with related feedback" do
+      assessment_point = assessment_point_fixture()
+      student = Lanttern.SchoolsFixtures.student_fixture()
+
+      feedback =
+        feedback_fixture(%{
+          assessment_point_id: assessment_point.id,
+          student_id: student.id
+        })
+
+      entry =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point.id,
+          student_id: student.id
+        })
+
+      [expected] = Assessments.list_assessment_point_entries(load_feedback: true)
+
+      assert expected.id == entry.id
+      assert expected.feedback.id == feedback.id
+    end
+
     test "get_assessment_point_entry!/1 returns the assessment_point_entry with given id" do
       assessment_point_entry = assessment_point_entry_fixture()
 
@@ -518,6 +540,24 @@ defmodule Lanttern.AssessmentsTest do
 
       assert {:ok, %Feedback{} = feedback} = Assessments.create_feedback(valid_attrs)
       assert feedback.comment == "some comment"
+    end
+
+    test "create_feedback/2 with preloads returns created feedback with preloaded data" do
+      assessment_point = assessment_point_fixture()
+      student = Lanttern.SchoolsFixtures.student_fixture()
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+
+      valid_attrs = %{
+        assessment_point_id: assessment_point.id,
+        student_id: student.id,
+        profile_id: profile.id,
+        comment: "some comment"
+      }
+
+      assert {:ok, %Feedback{} = feedback} =
+               Assessments.create_feedback(valid_attrs, preloads: :profile)
+
+      assert feedback.profile.id == profile.id
     end
 
     test "create_feedback/1 with invalid data returns error changeset" do

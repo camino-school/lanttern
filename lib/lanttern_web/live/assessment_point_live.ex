@@ -3,6 +3,7 @@ defmodule LantternWeb.AssessmentPointLive do
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.Assessments.Feedback
   alias Lanttern.Grading
   alias Lanttern.Schools.Student
 
@@ -73,6 +74,7 @@ defmodule LantternWeb.AssessmentPointLive do
             :for={entry <- @entries}
             entry={entry}
             student={entry.student}
+            feedback={entry.feedback}
             scale_type={@assessment_point.scale.type}
           />
         </div>
@@ -86,7 +88,10 @@ defmodule LantternWeb.AssessmentPointLive do
     <.live_component
       module={LantternWeb.FeedbackOverlayComponent}
       id="feedback-overlay"
+      current_user={@current_user}
       assessment_point={@assessment_point}
+      feedback_id={@current_feedback_id}
+      student={@current_feedback_student}
       show={@show_feedback}
       on_cancel={JS.push("close-feedback")}
     />
@@ -140,6 +145,7 @@ defmodule LantternWeb.AssessmentPointLive do
 
   attr :entry, AssessmentPointEntry, required: true
   attr :student, Student, required: true
+  attr :feedback, Feedback, default: nil
   attr :scale_type, :string, required: true
 
   def entry_row(assigns) do
@@ -155,7 +161,7 @@ defmodule LantternWeb.AssessmentPointLive do
         <:marking_input />
         <:observation_input />
       </.live_component>
-      <.feedback_button feedback={nil} student_id={@student.id} />
+      <.feedback_button feedback={@feedback} student_id={@student.id} />
     </div>
     """
   end
@@ -175,21 +181,13 @@ defmodule LantternWeb.AssessmentPointLive do
   attr :feedback, :any, default: nil
   attr :student_id, :string, required: true
 
-  def feedback_button(%{feedback: nil} = assigns) do
-    ~H"""
-    <.feedback_button_base feedback={@feedback} student_id={@student_id}>
-      <.icon name="hero-x-circle" class="shrink-0 w-6 h-6" /> No feedback
-    </.feedback_button_base>
-    """
-  end
-
   def feedback_button(%{feedback: %{completion_comment_id: nil}} = assigns) do
     ~H"""
     <.feedback_button_base feedback={@feedback} student_id={@student_id}>
       <.icon name="hero-check-circle" class="shrink-0 w-6 h-6" />
       <span class="flex-1 block text-left">
         <span class="w-full text-ltrn-text line-clamp-3">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+          <%= @feedback.comment %>
         </span>
         Not completed yet
       </span>
@@ -204,10 +202,18 @@ defmodule LantternWeb.AssessmentPointLive do
       <.icon name="hero-check-circle" class="shrink-0 w-6 h-6 text-green-500" />
       <span class="flex-1 block text-left">
         <span class="w-full text-ltrn-text line-clamp-3">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+          <%= @feedback.comment %>
         </span>
         Completed Sep 03, 2023 🎉
       </span>
+    </.feedback_button_base>
+    """
+  end
+
+  def feedback_button(%{feedback: nil} = assigns) do
+    ~H"""
+    <.feedback_button_base feedback={@feedback} student_id={@student_id}>
+      <.icon name="hero-x-circle" class="shrink-0 w-6 h-6" /> No feedback
     </.feedback_button_base>
     """
   end
@@ -220,7 +226,7 @@ defmodule LantternWeb.AssessmentPointLive do
     feedback_id =
       case assigns.feedback do
         %{id: id} -> id
-        _ -> ""
+        _ -> nil
       end
 
     assigns =
@@ -229,7 +235,10 @@ defmodule LantternWeb.AssessmentPointLive do
     ~H"""
     <button
       type="button"
-      class="flex items-center gap-2 px-4 rounded-sm text-xs text-ltrn-subtle bg-ltrn-hairline shadow-md"
+      class={[
+        "flex items-center gap-2 px-4 rounded-sm text-xs text-ltrn-subtle shadow-md",
+        if(@feedback_id, do: "bg-white", else: "bg-ltrn-hairline")
+      ]}
       phx-click="open-feedback"
       phx-value-feedbackid={@feedback_id}
       phx-value-studentid={@student_id}
@@ -265,8 +274,10 @@ defmodule LantternWeb.AssessmentPointLive do
         entries =
           Assessments.list_assessment_point_entries(
             preloads: [:student, :ordinal_value],
-            assessment_point_id: assessment_point.id
+            assessment_point_id: assessment_point.id,
+            load_feedback: true
           )
+          # to do: move sort to list_assessment_point_entries
           |> Enum.sort_by(& &1.student.name)
 
         ordinal_values =
@@ -289,6 +300,8 @@ defmodule LantternWeb.AssessmentPointLive do
           |> assign(:ordinal_values, ordinal_values)
           |> assign(:formatted_datetime, formatted_datetime)
           |> assign(:is_updating, false)
+          |> assign(:current_feedback_id, nil)
+          |> assign(:current_feedback_student, nil)
           |> assign(:show_feedback, false)
 
         {:noreply, socket}
@@ -305,22 +318,29 @@ defmodule LantternWeb.AssessmentPointLive do
     {:noreply, assign(socket, :is_updating, false)}
   end
 
-  def handle_event(
-        "open-feedback",
-        %{
-          "feedbackid" => feedback_id,
-          "studentid" => student_id
-        },
-        socket
-      ) do
-    IO.inspect(feedback_id)
-    IO.inspect(socket.assigns.assessment_point.id)
-    IO.inspect(student_id)
-    {:noreply, assign(socket, :show_feedback, true)}
+  def handle_event("open-feedback", params, socket) do
+    student =
+      socket.assigns.entries
+      |> Enum.map(&Map.get(&1, :student))
+      |> Enum.find(fn s -> "#{s.id}" == params["studentid"] end)
+
+    socket =
+      socket
+      |> assign(:current_feedback_id, Map.get(params, "feedbackid"))
+      |> assign(:current_feedback_student, student)
+      |> assign(:show_feedback, true)
+
+    {:noreply, socket}
   end
 
   def handle_event("close-feedback", _params, socket) do
-    {:noreply, assign(socket, :show_feedback, false)}
+    socket =
+      socket
+      |> assign(:current_feedback_id, nil)
+      |> assign(:current_feedback_student, nil)
+      |> assign(:show_feedback, false)
+
+    {:noreply, socket}
   end
 
   # info handlers
@@ -354,4 +374,21 @@ defmodule LantternWeb.AssessmentPointLive do
 
     {:noreply, socket}
   end
+
+  def handle_info({:feedback_created, feedback}, socket) do
+    socket =
+      socket
+      |> update(:entries, fn entries ->
+        Enum.map(entries, &update_entry_feedback(&1, feedback))
+      end)
+      |> put_flash(:info, "Feedback created!")
+
+    {:noreply, socket}
+  end
+
+  defp update_entry_feedback(entry, feedback)
+       when entry.student_id == feedback.student_id,
+       do: Map.put(entry, :feedback, feedback)
+
+  defp update_entry_feedback(entry, _feedback), do: entry
 end

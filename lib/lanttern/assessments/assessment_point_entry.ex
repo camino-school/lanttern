@@ -6,6 +6,9 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
     field :observation, :string
     field :score, :float
 
+    # we can get this in query, usign assessment_point_id and student_id
+    field :feedback, :map, virtual: true
+
     belongs_to :assessment_point, Lanttern.Assessments.AssessmentPoint
     belongs_to :student, Lanttern.Schools.Student
     belongs_to :ordinal_value, Lanttern.Grading.OrdinalValue
