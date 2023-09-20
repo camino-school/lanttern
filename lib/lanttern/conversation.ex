@@ -123,24 +123,24 @@ defmodule Lanttern.Conversation do
 
   ## Examples
 
-      iex> create_feedback_comment(%{comment: "blah", profile_id: 1}, %Feedback{})
+      iex> create_feedback_comment(%{comment: "good comment", profile_id: 1}, 1)
       {:ok, %Comment{}}
 
-      iex> create_feedback_comment(%{comment: "blah", profile_id: nil}, %Feedback{})
+      iex> create_feedback_comment(%{comment: "no profile", profile_id: nil}, 1)
       {:error, %Ecto.Changeset{}}
 
-      iex> create_feedback_comment(%{comment: "blah", profile_id: 1}, %Feedback{id: nil})
+      iex> create_feedback_comment(%{comment: "non existing feedback", profile_id: 1}, 2)
       {:error, "Feedback not found"}
 
   """
-  def create_feedback_comment(comment_attrs, feedback) do
+  def create_feedback_comment(comment_attrs, feedback_id) do
     Repo.transaction(fn ->
       {:ok, comment} = create_comment(comment_attrs)
 
       try do
         {1, _} =
           Repo.insert_all("feedback_comments", [
-            [feedback_id: feedback.id, comment_id: comment.id]
+            [feedback_id: feedback_id, comment_id: comment.id]
           ])
       rescue
         Postgrex.Error -> Repo.rollback("Feedback not found")

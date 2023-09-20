@@ -158,7 +158,7 @@ defmodule Lanttern.ConversationTest do
         })
 
       {:ok, %Comment{} = comment} =
-        Conversation.create_feedback_comment(attrs, feedback)
+        Conversation.create_feedback_comment(attrs, feedback.id)
 
       assert comment.comment == attrs.comment
       assert comment.profile_id == profile.id

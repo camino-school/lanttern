@@ -43,21 +43,39 @@ defmodule LantternWeb.FeedbackOverlayComponent do
             </div>
           </div>
         </div>
-        <div :if={@feedback && !@show_feedback_form} class="flex gap-4">
-          <.profile_icon profile_name={@feedback.profile.teacher.name} class="shrink-0" />
-          <div class="flex-1">
-            <span class="block mb-2 text-xs text-ltrn-subtle">
-              <%= Timex.format!(
-                Timex.local(@feedback.inserted_at),
-                "{Mshort} {D}, {YYYY}, {h12}:{m} {am}"
-              ) %>
-            </span>
-            <p class="text-sm"><%= @feedback.comment %></p>
-          </div>
-        </div>
-        <div :if={@show_feedback_form} class="flex gap-4">
-          <.profile_icon profile_name={@profile_name} class="shrink-0" />
-          <.form for={@form} id="feedback-form" class="flex-1" phx-submit="save" phx-target={@myself}>
+        <.user_icon_block
+          :if={@feedback && !@show_feedback_form}
+          profile_name={@feedback.profile.teacher.name}
+        >
+          <span class="block mb-2 text-xs text-ltrn-subtle">
+            <%= Timex.format!(
+              Timex.local(@feedback.inserted_at),
+              "{Mshort} {D}, {YYYY}, {h12}:{m} {am}"
+            ) %>
+          </span>
+          <p class="text-sm"><%= @feedback.comment %></p>
+        </.user_icon_block>
+        <.user_icon_block
+          :for={comment <- @feedback.comments}
+          profile_name={
+            if comment.profile.type == "teacher" do
+              comment.profile.teacher.name
+            else
+              comment.profile.stuent.name
+            end
+          }
+          class="mt-6"
+        >
+          <span class="block mb-2 text-xs text-ltrn-subtle">
+            <%= Timex.format!(
+              Timex.local(comment.inserted_at),
+              "{Mshort} {D}, {YYYY}, {h12}:{m} {am}"
+            ) %>
+          </span>
+          <p class="text-sm"><%= comment.comment %></p>
+        </.user_icon_block>
+        <.user_icon_block :if={@show_feedback_form} profile_name={@profile_name}>
+          <.form for={@form} id="feedback-form" phx-submit="save" phx-target={@myself}>
             <.error_block :if={@form.source.action == :insert} class="mb-6">
               Oops, something went wrong! Please check the errors below.
             </.error_block>
@@ -88,8 +106,31 @@ defmodule LantternWeb.FeedbackOverlayComponent do
             </div>
             <.error :for={{msg, _opts} <- @form[:comment].errors}><%= msg %></.error>
           </.form>
-        </div>
+        </.user_icon_block>
+        <.user_icon_block profile_name={@profile_name} class="mt-10">
+          <.live_component
+            module={LantternWeb.FeedbackCommentFormComponent}
+            id={:new}
+            current_user={@current_user}
+            feedback_id={@feedback_id}
+          />
+        </.user_icon_block>
       </.slide_over>
+    </div>
+    """
+  end
+
+  attr :profile_name, :string, required: true
+  attr :class, :any, default: nil
+  slot :inner_block, required: true
+
+  def user_icon_block(assigns) do
+    ~H"""
+    <div class={["flex gap-4", @class]}>
+      <.profile_icon profile_name={@profile_name} class="shrink-0" />
+      <div class="flex-1">
+        <%= render_slot(@inner_block) %>
+      </div>
     </div>
     """
   end
@@ -153,7 +194,9 @@ defmodule LantternWeb.FeedbackOverlayComponent do
   # open existing feedback
   def update(%{show: true, feedback_id: feedback_id} = assigns, socket) do
     feedback =
-      Assessments.get_feedback!(feedback_id, preloads: [:student, profile: :teacher])
+      Assessments.get_feedback!(feedback_id,
+        preloads: [:student, profile: :teacher, comments: [profile: [:teacher, :student]]]
+      )
 
     socket =
       socket
