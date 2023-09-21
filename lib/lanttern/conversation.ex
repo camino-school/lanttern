@@ -9,6 +9,22 @@ defmodule Lanttern.Conversation do
   alias Lanttern.Repo
   alias Lanttern.Conversation.Comment
 
+  alias Phoenix.PubSub
+
+  @doc """
+  Subscribe to `"conversation"` topic.
+  """
+  def subscribe() do
+    PubSub.subscribe(Lanttern.PubSub, "conversation")
+  end
+
+  @doc """
+  Broadcast a message to `"conversation"` topic.
+  """
+  def broadcast(message) do
+    PubSub.broadcast(Lanttern.PubSub, "conversation", message)
+  end
+
   @doc """
   Returns the list of comments.
 
@@ -148,5 +164,13 @@ defmodule Lanttern.Conversation do
 
       comment
     end)
+    |> case do
+      {:ok, comment} ->
+        broadcast({:feedback_comment_created, comment})
+        {:ok, comment}
+
+      error_tuple ->
+        error_tuple
+    end
   end
 end

@@ -11,6 +11,22 @@ defmodule Lanttern.Assessments do
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.Feedback
 
+  alias Phoenix.PubSub
+
+  @doc """
+  Subscribe to `"assessments"` topic.
+  """
+  def subscribe() do
+    PubSub.subscribe(Lanttern.PubSub, "assessments")
+  end
+
+  @doc """
+  Broadcast a message to `"assessments"` topic.
+  """
+  def broadcast(message) do
+    PubSub.broadcast(Lanttern.PubSub, "assessments", message)
+  end
+
   @doc """
   Returns the list of assessment points.
 
@@ -400,22 +416,18 @@ defmodule Lanttern.Assessments do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_feedback(attrs \\ %{}) do
+  def create_feedback(attrs \\ %{}, opts \\ []) do
     %Feedback{}
     |> Feedback.changeset(attrs)
     |> Repo.insert()
-  end
+    |> maybe_preload(opts)
+    |> case do
+      {:ok, feedback} ->
+        broadcast({:feedback_created, feedback})
+        {:ok, feedback}
 
-  @doc """
-  See `create_feedback/1`.
-  """
-  def create_feedback(attrs, opts) do
-    with {:ok, feedback} <- create_feedback(attrs) do
-      feedback =
-        feedback
-        |> maybe_preload(opts)
-
-      {:ok, feedback}
+      error_tuple ->
+        error_tuple
     end
   end
 

@@ -4,6 +4,7 @@ defmodule LantternWeb.AssessmentPointLive do
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.Feedback
+  alias Lanttern.Conversation
   alias Lanttern.Grading
   alias Lanttern.Schools.Student
 
@@ -213,7 +214,7 @@ defmodule LantternWeb.AssessmentPointLive do
   def feedback_button(%{feedback: nil} = assigns) do
     ~H"""
     <.feedback_button_base feedback={@feedback} student_id={@student_id}>
-      <.icon name="hero-x-circle" class="shrink-0 w-6 h-6" /> No feedback
+      <.icon name="hero-x-circle" class="shrink-0 w-6 h-6" /> No feedback yet
     </.feedback_button_base>
     """
   end
@@ -251,6 +252,11 @@ defmodule LantternWeb.AssessmentPointLive do
   # lifecycle
 
   def mount(_params, _session, socket) do
+    if connected?(socket) do
+      Assessments.subscribe()
+      Conversation.subscribe()
+    end
+
     {:ok, socket}
   end
 
@@ -381,7 +387,16 @@ defmodule LantternWeb.AssessmentPointLive do
       |> update(:entries, fn entries ->
         Enum.map(entries, &update_entry_feedback(&1, feedback))
       end)
-      |> put_flash(:info, "Feedback created!")
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:feedback_comment_created, _comment} = msg, socket) do
+    send_update(
+      LantternWeb.FeedbackOverlayComponent,
+      id: "feedback-overlay",
+      action: msg
+    )
 
     {:noreply, socket}
   end

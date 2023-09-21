@@ -2,15 +2,11 @@ defmodule LantternWeb.FeedbackOverlayComponent do
   @moduledoc """
   Expected external assigns:
 
-  ```elixir
-  attr :assessment_point, AssessmentPoint, required: true
-  attr :current_user, User, required: true
-  attr :feedback, :Feedback, doc: "`nil` when creating feedback"
-  attr :student, Student, required: true
-  attr :on_cancel, JS, default: %JS{}
-  ```
-
-
+      attr :assessment_point, AssessmentPoint, required: true
+      attr :current_user, User, required: true
+      attr :feedback, :Feedback, doc: "`nil` when creating feedback"
+      attr :student, Student, required: true
+      attr :on_cancel, JS, default: %JS{}
 
   """
   use LantternWeb, :live_component
@@ -45,34 +41,26 @@ defmodule LantternWeb.FeedbackOverlayComponent do
         </div>
         <.user_icon_block
           :if={@feedback && !@show_feedback_form}
+          id={"feedback=#{@feedback.id}"}
           profile_name={@feedback.profile.teacher.name}
-        >
-          <span class="block mb-2 text-xs text-ltrn-subtle">
-            <%= Timex.format!(
-              Timex.local(@feedback.inserted_at),
-              "{Mshort} {D}, {YYYY}, {h12}:{m} {am}"
-            ) %>
-          </span>
-          <p class="text-sm"><%= @feedback.comment %></p>
-        </.user_icon_block>
-        <.user_icon_block
-          :for={comment <- @feedback.comments}
-          profile_name={
-            if comment.profile.type == "teacher" do
-              comment.profile.teacher.name
-            else
-              comment.profile.stuent.name
-            end
+          class="hidden"
+          phx-mounted={
+            JS.show(
+              display: "flex",
+              transition: {"ease-out duration-1000", "bg-ltrn-mesh-lime", "bg-transparent"},
+              time: 1000
+            )
           }
-          class="mt-6"
         >
           <span class="block mb-2 text-xs text-ltrn-subtle">
             <%= Timex.format!(
-              Timex.local(comment.inserted_at),
+              @feedback.inserted_at |> Timex.to_datetime() |> Timex.local(),
               "{Mshort} {D}, {YYYY}, {h12}:{m} {am}"
             ) %>
           </span>
-          <p class="text-sm"><%= comment.comment %></p>
+          <p class="text-sm">
+            <%= @feedback.comment %>
+          </p>
         </.user_icon_block>
         <.user_icon_block :if={@show_feedback_form} profile_name={@profile_name}>
           <.form for={@form} id="feedback-form" phx-submit="save" phx-target={@myself}>
@@ -107,14 +95,46 @@ defmodule LantternWeb.FeedbackOverlayComponent do
             <.error :for={{msg, _opts} <- @form[:comment].errors}><%= msg %></.error>
           </.form>
         </.user_icon_block>
-        <.user_icon_block profile_name={@profile_name} class="mt-10">
-          <.live_component
-            module={LantternWeb.FeedbackCommentFormComponent}
-            id={:new}
-            current_user={@current_user}
-            feedback_id={@feedback_id}
-          />
-        </.user_icon_block>
+        <%= if @feedback do %>
+          <%= for comment <- @feedback.comments do %>
+            <.user_icon_block
+              id={"comment-#{comment.id}"}
+              profile_name={
+                if comment.profile.type == "teacher" do
+                  comment.profile.teacher.name
+                else
+                  comment.profile.stuent.name
+                end
+              }
+              class="mt-6 hidden"
+              phx-mounted={
+                JS.show(
+                  display: "flex",
+                  transition: {"ease-out duration-1000", "bg-ltrn-mesh-lime", "bg-transparent"},
+                  time: 1000
+                )
+              }
+            >
+              <span class="block mb-2 text-xs text-ltrn-subtle">
+                <%= Timex.format!(
+                  comment.inserted_at |> Timex.to_datetime() |> Timex.local(),
+                  "{Mshort} {D}, {YYYY}, {h12}:{m} {am}"
+                ) %>
+              </span>
+              <p class="text-sm">
+                <%= comment.comment %>
+              </p>
+            </.user_icon_block>
+          <% end %>
+          <.user_icon_block profile_name={@profile_name} class="mt-10">
+            <.live_component
+              module={LantternWeb.FeedbackCommentFormComponent}
+              id={:new}
+              current_user={@current_user}
+              feedback_id={@feedback_id}
+            />
+          </.user_icon_block>
+        <% end %>
       </.slide_over>
     </div>
     """
@@ -122,11 +142,13 @@ defmodule LantternWeb.FeedbackOverlayComponent do
 
   attr :profile_name, :string, required: true
   attr :class, :any, default: nil
+  attr :id, :string, default: nil
+  attr :rest, :global
   slot :inner_block, required: true
 
   def user_icon_block(assigns) do
     ~H"""
-    <div class={["flex gap-4", @class]}>
+    <div id={@id} class={["flex gap-4", @class]} {@rest}>
       <.profile_icon profile_name={@profile_name} class="shrink-0" />
       <div class="flex-1">
         <%= render_slot(@inner_block) %>
@@ -208,6 +230,16 @@ defmodule LantternWeb.FeedbackOverlayComponent do
     {:ok, socket}
   end
 
+  # comment created (sent via parent send_update)
+  def update(%{action: {:feedback_comment_created, _comment}}, socket) do
+    feedback =
+      Assessments.get_feedback!(socket.assigns.feedback_id,
+        preloads: [:student, profile: :teacher, comments: [profile: [:teacher, :student]]]
+      )
+
+    {:ok, assign(socket, :feedback, feedback)}
+  end
+
   # catch-all / mount update
   def update(assigns, socket) do
     profile_name =
@@ -231,10 +263,10 @@ defmodule LantternWeb.FeedbackOverlayComponent do
   # event handlers
 
   def handle_event("save", %{"feedback" => params}, socket) do
-    case Assessments.create_feedback(params, preloads: [profile: [:teacher]]) do
+    case Assessments.create_feedback(params,
+           preloads: [:student, profile: :teacher, comments: [profile: [:teacher, :student]]]
+         ) do
       {:ok, feedback} ->
-        send(self(), {:feedback_created, feedback})
-
         socket =
           socket
           |> assign(:form, nil)

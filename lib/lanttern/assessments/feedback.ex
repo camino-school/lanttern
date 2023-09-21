@@ -12,7 +12,8 @@ defmodule Lanttern.Assessments.Feedback do
 
     many_to_many :comments, Lanttern.Conversation.Comment,
       join_through: "feedback_comments",
-      on_replace: :delete
+      on_replace: :delete,
+      preload_order: [asc: :inserted_at]
 
     timestamps()
   end
