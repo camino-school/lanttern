@@ -23,25 +23,23 @@ defmodule LantternWeb.FeedbackCommentFormComponent do
         phx-submit="save"
         phx-target={@myself}
       >
+        <.error_block :if={@form.source.action == :insert} class="mb-6">
+          Oops, something went wrong! Please check the errors below.
+        </.error_block>
         <input type="hidden" name={@form[:profile_id].name} value={@form[:profile_id].value} />
-        <div class={[
-          "overflow-hidden rounded-sm shadow-sm ring-1 ring-inset ring-ltrn-hairline bg-white",
-          "focus-within:ring-2 focus-within:ring-ltrn-primary"
-        ]}>
-          <label for={@form[:comment].id} class="sr-only">Add your comment</label>
-          <textarea
-            rows="4"
-            name={@form[:comment].name}
-            id={@form[:comment].id}
-            class="peer block w-full border-0 bg-transparent p-4 placeholder:text-ltrn-subtle focus:ring-0"
-            placeholder="Add your comment..."
-          ><%= Phoenix.HTML.Form.normalize_value("textarea", @form[:comment].value) %></textarea>
-          <div class="flex justify-end w-full p-2 border-t border-ltrn-hairline peer-focus:border-ltrn-primary">
+        <.textarea_with_actions
+          id={@form[:comment].id}
+          name={@form[:comment].name}
+          value={@form[:comment].value}
+          errors={@form[:comment].errors}
+          label="Add your comment..."
+        >
+          <:actions>
             <.button type="submit">
               Save
             </.button>
-          </div>
-        </div>
+          </:actions>
+        </.textarea_with_actions>
         <.error :for={{msg, _opts} <- @form[:comment].errors}><%= msg %></.error>
       </.form>
     </div>

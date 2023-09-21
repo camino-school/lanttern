@@ -74,24 +74,19 @@ defmodule LantternWeb.FeedbackOverlayComponent do
               name={@form[:assessment_point_id].name}
               value={@form[:assessment_point_id].value}
             />
-            <div class={[
-              "overflow-hidden rounded-sm shadow-sm ring-1 ring-inset ring-ltrn-hairline bg-white",
-              "focus-within:ring-2 focus-within:ring-ltrn-primary"
-            ]}>
-              <label for={@form[:comment].id} class="sr-only">Add your feedback</label>
-              <textarea
-                rows="4"
-                name={@form[:comment].name}
-                id={@form[:comment].id}
-                class="peer block w-full border-0 bg-transparent p-4 placeholder:text-ltrn-subtle focus:ring-0"
-                placeholder="Add your feedback..."
-              ><%= Phoenix.HTML.Form.normalize_value("textarea", @form[:comment].value) %></textarea>
-              <div class="flex justify-end w-full p-2 border-t border-ltrn-hairline peer-focus:border-ltrn-primary">
+            <.textarea_with_actions
+              id={@form[:comment].id}
+              name={@form[:comment].name}
+              value={@form[:comment].value}
+              errors={@form[:comment].errors}
+              label="Add your feedback..."
+            >
+              <:actions>
                 <.button type="submit">
                   Send feedback
                 </.button>
-              </div>
-            </div>
+              </:actions>
+            </.textarea_with_actions>
             <.error :for={{msg, _opts} <- @form[:comment].errors}><%= msg %></.error>
           </.form>
         </.user_icon_block>

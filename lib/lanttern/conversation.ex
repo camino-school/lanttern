@@ -151,7 +151,11 @@ defmodule Lanttern.Conversation do
   """
   def create_feedback_comment(comment_attrs, feedback_id) do
     Repo.transaction(fn ->
-      {:ok, comment} = create_comment(comment_attrs)
+      comment =
+        case create_comment(comment_attrs) do
+          {:ok, comment} -> comment
+          {:error, error_changeset} -> Repo.rollback(error_changeset)
+        end
 
       try do
         {1, _} =
