@@ -18,7 +18,7 @@ defmodule LantternWeb.FeedbackCommentFormComponent do
     <div>
       <.form
         for={@form}
-        id={"comment-form-#{@id}"}
+        id={"feedback-comment-form-#{@id}"}
         class="flex-1"
         phx-submit="save"
         phx-target={@myself}
@@ -88,8 +88,7 @@ defmodule LantternWeb.FeedbackCommentFormComponent do
 
     case Conversation.create_feedback_comment(params, feedback_id) do
       {:ok, _comment} ->
-        # send(self(), {:comment_created, comment})
-
+        # create_feedback_comment/2 broadcasts a {:feedback_comment_created, comment} message
         form = empty_form(socket.assigns.current_user.current_profile.id)
 
         {:noreply, assign(socket, :form, form)}

@@ -2,14 +2,16 @@ defmodule LantternWeb.AssessmentPointLiveTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.AssessmentsFixtures
+  alias Lanttern.ConversationFixtures
   alias Lanttern.CurriculaFixtures
   alias Lanttern.GradingFixtures
+  alias Lanttern.SchoolsFixtures
 
   @live_view_path_base "/assessment_points"
 
   setup :register_and_log_in_user
 
-  describe "Assessment point details live view" do
+  describe "Assessment point details live view basic navigation" do
     test "disconnected and connected mount", %{conn: conn} do
       %{id: id} = AssessmentsFixtures.assessment_point_fixture()
 
@@ -65,6 +67,53 @@ defmodule LantternWeb.AssessmentPointLiveTest do
 
       assert path == "/assessment_points"
       assert flash["error"] == "Couldn't find assessment point"
+    end
+  end
+
+  describe "Assessment point details live view feedback" do
+    test "feedback buttons display", %{conn: conn} do
+      assessment_point = AssessmentsFixtures.assessment_point_fixture()
+
+      std_no_feedback = SchoolsFixtures.student_fixture()
+      std_incomplete_feedback = SchoolsFixtures.student_fixture()
+      std_completed_feedback = SchoolsFixtures.student_fixture()
+
+      _entry_no_feedback =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point.id,
+          student_id: std_no_feedback.id
+        })
+
+      _entry_incomplete_feedback =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point.id,
+          student_id: std_incomplete_feedback.id
+        })
+
+      _entry_completed_feedback =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point.id,
+          student_id: std_completed_feedback.id
+        })
+
+      _incomplete_feedback =
+        AssessmentsFixtures.feedback_fixture(%{
+          assessment_point_id: assessment_point.id,
+          student_id: std_incomplete_feedback.id
+        })
+
+      _completed_feedback =
+        AssessmentsFixtures.feedback_fixture(%{
+          assessment_point_id: assessment_point.id,
+          student_id: std_completed_feedback.id,
+          completion_comment_id: ConversationFixtures.comment_fixture().id
+        })
+
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
+
+      assert view |> has_element?("button", "No feedback yet")
+      assert view |> has_element?("button", "Not completed yet")
+      assert view |> has_element?("button", ~r/Completed [A-Z][a-z]{2} [0-9]{2}, [0-9]{4} 🎉/)
     end
   end
 end

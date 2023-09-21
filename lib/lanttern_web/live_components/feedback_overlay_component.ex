@@ -96,36 +96,35 @@ defmodule LantternWeb.FeedbackOverlayComponent do
           </.form>
         </.user_icon_block>
         <%= if @feedback do %>
-          <%= for comment <- @feedback.comments do %>
-            <.user_icon_block
-              id={"comment-#{comment.id}"}
-              profile_name={
-                if comment.profile.type == "teacher" do
-                  comment.profile.teacher.name
-                else
-                  comment.profile.stuent.name
-                end
-              }
-              class="mt-6 hidden"
-              phx-mounted={
-                JS.show(
-                  display: "flex",
-                  transition: {"ease-out duration-1000", "bg-ltrn-mesh-lime", "bg-transparent"},
-                  time: 1000
-                )
-              }
-            >
-              <span class="block mb-2 text-xs text-ltrn-subtle">
-                <%= Timex.format!(
-                  comment.inserted_at |> Timex.to_datetime() |> Timex.local(),
-                  "{Mshort} {D}, {YYYY}, {h12}:{m} {am}"
-                ) %>
-              </span>
-              <p class="text-sm">
-                <%= comment.comment %>
-              </p>
-            </.user_icon_block>
-          <% end %>
+          <.user_icon_block
+            :for={comment <- @feedback.comments}
+            id={"comment-#{comment.id}"}
+            profile_name={
+              if comment.profile.type == "teacher" do
+                comment.profile.teacher.name
+              else
+                comment.profile.stuent.name
+              end
+            }
+            class="mt-6 hidden"
+            phx-mounted={
+              JS.show(
+                display: "flex",
+                transition: {"ease-out duration-1000", "bg-ltrn-mesh-lime", "bg-transparent"},
+                time: 1000
+              )
+            }
+          >
+            <span class="block mb-2 text-xs text-ltrn-subtle">
+              <%= Timex.format!(
+                comment.inserted_at |> Timex.to_datetime() |> Timex.local(),
+                "{Mshort} {D}, {YYYY}, {h12}:{m} {am}"
+              ) %>
+            </span>
+            <p class="text-sm">
+              <%= comment.comment %>
+            </p>
+          </.user_icon_block>
           <.user_icon_block profile_name={@profile_name} class="mt-10">
             <.live_component
               module={LantternWeb.FeedbackCommentFormComponent}

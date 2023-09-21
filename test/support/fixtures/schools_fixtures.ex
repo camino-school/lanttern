@@ -57,7 +57,7 @@ defmodule Lanttern.SchoolsFixtures do
     {:ok, student} =
       attrs
       |> Enum.into(%{
-        name: Faker.Lorem.sentence(2..5)
+        name: "#{Faker.Person.first_name()} #{Faker.Person.last_name()}"
       })
       |> Lanttern.Schools.create_student()
 
@@ -70,7 +70,7 @@ defmodule Lanttern.SchoolsFixtures do
     {:ok, student} =
       attrs
       |> Enum.into(%{
-        name: Faker.Lorem.sentence(2..5),
+        name: "#{Faker.Person.first_name()} #{Faker.Person.last_name()}",
         school_id: school.id
       })
       |> Lanttern.Schools.create_student()
@@ -87,7 +87,7 @@ defmodule Lanttern.SchoolsFixtures do
     {:ok, teacher} =
       attrs
       |> Enum.into(%{
-        name: Faker.Lorem.sentence(2..5)
+        name: "#{Faker.Person.first_name()} #{Faker.Person.last_name()}"
       })
       |> Lanttern.Schools.create_teacher()
 
@@ -100,7 +100,7 @@ defmodule Lanttern.SchoolsFixtures do
     {:ok, teacher} =
       attrs
       |> Enum.into(%{
-        name: Faker.Lorem.sentence(2..5),
+        name: "#{Faker.Person.first_name()} #{Faker.Person.last_name()}",
         school_id: school.id
       })
       |> Lanttern.Schools.create_teacher()
