@@ -1,6 +1,7 @@
 defmodule LantternWeb.AssessmentPointLive do
   use LantternWeb, :live_view
 
+  import LantternWeb.DateTimeHelpers
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.Feedback
@@ -43,7 +44,7 @@ defmodule LantternWeb.AssessmentPointLive do
           </p>
         </div>
         <.icon_and_content icon_name="hero-calendar">
-          Date: <%= @formatted_datetime %>
+          Date: <%= format_local!(@assessment_point.datetime, "{Mshort} {D}, {YYYY}, {h12}:{m} {am}") %>
         </.icon_and_content>
         <.icon_and_content icon_name="hero-bookmark">
           Curriculum: <%= @assessment_point.curriculum_item.name %>
@@ -205,7 +206,7 @@ defmodule LantternWeb.AssessmentPointLive do
         <span class="w-full text-ltrn-text line-clamp-3">
           <%= @feedback.comment %>
         </span>
-        Completed Sep 03, 2023 🎉
+        Completed <%= format_local!(@feedback.completion_comment.inserted_at, "{Mshort} {D}, {YYYY}") %> 🎉
       </span>
     </.feedback_button_base>
     """
@@ -293,18 +294,11 @@ defmodule LantternWeb.AssessmentPointLive do
             nil
           end
 
-        formatted_datetime =
-          Timex.format!(
-            Timex.local(assessment_point.datetime),
-            "{Mshort} {D}, {YYYY}, {h12}:{m} {am}"
-          )
-
         socket =
           socket
           |> assign(:assessment_point, assessment_point)
           |> assign(:entries, entries)
           |> assign(:ordinal_values, ordinal_values)
-          |> assign(:formatted_datetime, formatted_datetime)
           |> assign(:is_updating, false)
           |> assign(:current_feedback_id, nil)
           |> assign(:current_feedback_student, nil)

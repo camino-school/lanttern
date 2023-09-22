@@ -260,14 +260,18 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_entry_2.student == student_2
     end
 
-    test "list_assessment_point_entries/1 with load_feedback returns entries with related feedback" do
+    test "list_assessment_point_entries/1 with load_feedback returns entries with related feedback (+completion comment)" do
       assessment_point = assessment_point_fixture()
       student = Lanttern.SchoolsFixtures.student_fixture()
+
+      comment =
+        Lanttern.ConversationFixtures.comment_fixture(%{assessment_point_id: assessment_point.id})
 
       feedback =
         feedback_fixture(%{
           assessment_point_id: assessment_point.id,
-          student_id: student.id
+          student_id: student.id,
+          completion_comment_id: comment.id
         })
 
       entry =
@@ -280,6 +284,7 @@ defmodule Lanttern.AssessmentsTest do
 
       assert expected.id == entry.id
       assert expected.feedback.id == feedback.id
+      assert expected.feedback.completion_comment.id == comment.id
     end
 
     test "get_assessment_point_entry!/1 returns the assessment_point_entry with given id" do

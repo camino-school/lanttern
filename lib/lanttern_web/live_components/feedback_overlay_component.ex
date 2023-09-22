@@ -11,6 +11,7 @@ defmodule LantternWeb.FeedbackOverlayComponent do
   """
   use LantternWeb, :live_component
 
+  import LantternWeb.DateTimeHelpers
   alias Lanttern.Assessments
   alias Lanttern.Assessments.Feedback
 
@@ -19,7 +20,10 @@ defmodule LantternWeb.FeedbackOverlayComponent do
     <div>
       <.slide_over :if={@show} id={@id} show={@show} on_cancel={Map.get(assigns, :on_cancel, %JS{})}>
         <:title>Feedback</:title>
-        <div class="mt-6 mb-10">
+        <div class="absolute top-4 right-4 flex items-center gap-2 text-xs">
+          <.feedback_status feedback={@feedback} />
+        </div>
+        <div class="mt-5 mb-10">
           <div class="flex items-center gap-4 text-xs">
             <.icon name="hero-users-mini" class="text-ltrn-subtle" />
             <div class="flex items-center gap-1">
@@ -53,10 +57,7 @@ defmodule LantternWeb.FeedbackOverlayComponent do
           }
         >
           <span class="block mb-2 text-xs text-ltrn-subtle">
-            <%= Timex.format!(
-              @feedback.inserted_at |> Timex.to_datetime() |> Timex.local(),
-              "{Mshort} {D}, {YYYY}, {h12}:{m} {am}"
-            ) %>
+            <%= format_local!(@feedback.inserted_at, "{Mshort} {D}, {YYYY}, {h12}:{m} {am}") %>
           </span>
           <p class="text-sm">
             <%= @feedback.comment %>
@@ -111,11 +112,20 @@ defmodule LantternWeb.FeedbackOverlayComponent do
             }
           >
             <span class="block mb-2 text-xs text-ltrn-subtle">
-              <%= Timex.format!(
-                comment.inserted_at |> Timex.to_datetime() |> Timex.local(),
-                "{Mshort} {D}, {YYYY}, {h12}:{m} {am}"
-              ) %>
+              <%= format_local!(comment.inserted_at, "{Mshort} {D}, {YYYY}, {h12}:{m} {am}") %>
             </span>
+            <div
+              :if={@feedback.completion_comment_id == comment.id}
+              class="flex items-center justify-between p-2 mb-2 text-white bg-green-500"
+            >
+              <div class="flex items-center gap-1">
+                <.icon name="hero-check-circle" class="shrink-0 w-6 h-6" />
+                <span class="font-display font-bold text-sm">Marked as complete 🎉</span>
+              </div>
+              <button type="button" class="shrink-0 opacity-50 hover:opacity-100 focus:opacity-100">
+                <.icon name="hero-x-mark" class="w-6 h-6" />
+              </button>
+            </div>
             <p class="text-sm">
               <%= comment.comment %>
             </p>
@@ -126,11 +136,36 @@ defmodule LantternWeb.FeedbackOverlayComponent do
               id={:new}
               current_user={@current_user}
               feedback_id={@feedback_id}
+              hide_mark_for_completion={@feedback.completion_comment_id}
             />
           </.user_icon_block>
         <% end %>
       </.slide_over>
     </div>
+    """
+  end
+
+  attr :feedback, :any
+
+  def feedback_status(%{feedback: nil} = assigns) do
+    ~H"""
+    <.icon name="hero-x-circle" class="shrink-0 w-6 h-6 text-ltrn-subtle" />
+    <span class="text-ltrn-subtle">No feedback yet</span>
+    """
+  end
+
+  def feedback_status(%{feedback: %{completion_comment_id: nil}} = assigns) do
+    ~H"""
+    <.icon name="hero-check-circle" class="shrink-0 w-6 h-6 text-ltrn-subtle" />
+    <span class="text-ltrn-text">Not completed yet</span>
+    """
+  end
+
+  def feedback_status(%{feedback: %{completion_comment_id: comment_id}} = assigns)
+      when not is_nil(comment_id) do
+    ~H"""
+    <.icon name="hero-check-circle" class="shrink-0 w-6 h-6 text-green-500" />
+    <span class="text-ltrn-text">Completed</span>
     """
   end
 
@@ -265,6 +300,7 @@ defmodule LantternWeb.FeedbackOverlayComponent do
           socket
           |> assign(:form, nil)
           |> assign(:show_feedback_form, false)
+          |> assign(:feedback_id, feedback.id)
           |> assign(:feedback, feedback)
 
         {:noreply, socket}

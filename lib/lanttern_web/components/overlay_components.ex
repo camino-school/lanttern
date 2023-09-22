@@ -183,22 +183,18 @@ defmodule LantternWeb.OverlayComponents do
               class="pointer-events-auto w-screen max-w-xl transition-translate"
             >
               <div class="flex h-full flex-col divide-y divide-ltrn-hairline bg-white shadow-xl rounded-l">
-                <div class="flex min-h-0 flex-1 flex-col overflow-y-scroll py-6 ltrn-bg-slide-over">
-                  <div class="px-4 sm:px-6">
-                    <div class="flex items-start justify-between">
-                      <h2 class="font-display font-black text-3xl" id={"#{@id}-title"}>
-                        <%= render_slot(@title) %>
-                      </h2>
-                    </div>
-                  </div>
-                  <div id={"#{@id}-content"} class="relative flex-1 p-4 sm:px-6">
+                <div class="relative flex min-h-0 flex-1 flex-col overflow-y-scroll ltrn-bg-slide-over">
+                  <h2
+                    class="shrink-0 px-4 sm:px-6 py-6 font-display font-black text-3xl"
+                    id={"#{@id}-title"}
+                  >
+                    <%= render_slot(@title) %>
+                  </h2>
+                  <div id={"#{@id}-content"} class="flex-1 p-4 sm:px-6">
                     <%= render_slot(@inner_block) %>
                   </div>
                 </div>
-                <div
-                  :if={render_slot(@actions)}
-                  class="flex flex-shrink-0 justify-end gap-4 px-4 py-4"
-                >
+                <div :if={render_slot(@actions)} class="flex shrink-0 justify-end gap-4 px-4 py-4">
                   <%= render_slot(@actions) %>
                 </div>
               </div>

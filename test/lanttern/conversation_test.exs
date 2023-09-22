@@ -106,9 +106,14 @@ defmodule Lanttern.ConversationTest do
       end
     end
 
-    test "create_feedback_comment/2 with mark_feedback_id_for_completion adds completion comment in feedback" do
+    test "create_feedback_comment/2 with mark_feedback_for_completion adds completion comment in feedback" do
       feedback = Lanttern.AssessmentsFixtures.feedback_fixture()
-      attrs = %{mark_feedback_id_for_completion: feedback.id}
+
+      attrs = %{
+        mark_feedback_for_completion: true,
+        feedback_id_for_completion: feedback.id
+      }
+
       comment = create_feedback_comment_helper(feedback, attrs)
 
       %{
@@ -126,7 +131,10 @@ defmodule Lanttern.ConversationTest do
       comment = create_feedback_comment_helper(feedback) |> Repo.preload(:completed_feedback)
 
       # update comment with mark_feedback_id_for_completion
-      Conversation.update_comment(comment, %{mark_feedback_id_for_completion: feedback.id})
+      Conversation.update_comment(comment, %{
+        mark_feedback_for_completion: true,
+        feedback_id_for_completion: feedback.id
+      })
 
       %{completion_comment_id: completion_comment_id} = Assessments.get_feedback!(feedback.id)
       assert completion_comment_id == comment.id
@@ -134,13 +142,20 @@ defmodule Lanttern.ConversationTest do
 
     test "update_comment/2 with mark_feedback_id_for_completion nil removes completion comment from feedback" do
       feedback = Lanttern.AssessmentsFixtures.feedback_fixture()
-      attrs = %{mark_feedback_id_for_completion: feedback.id}
+
+      attrs = %{
+        mark_feedback_for_completion: true,
+        feedback_id_for_completion: feedback.id
+      }
 
       comment =
         create_feedback_comment_helper(feedback, attrs) |> Repo.preload(:completed_feedback)
 
-      # update comment with nil mark_feedback_id_for_completion
-      Conversation.update_comment(comment, %{mark_feedback_id_for_completion: nil})
+      # update comment with false mark_feedback_for_completion
+      Conversation.update_comment(comment, %{
+        mark_feedback_for_completion: false,
+        feedback_id_for_completion: feedback.id
+      })
 
       %{completion_comment_id: completion_comment_id} = Assessments.get_feedback!(feedback.id)
       assert completion_comment_id == nil

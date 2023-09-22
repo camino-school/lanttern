@@ -10,6 +10,7 @@ defmodule Lanttern.Assessments do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.Feedback
+  alias Lanttern.Conversation.Comment
 
   alias Phoenix.PubSub
 
@@ -206,7 +207,9 @@ defmodule Lanttern.Assessments do
           e in entry_query,
           left_join: f in Feedback,
           on: e.assessment_point_id == f.assessment_point_id and e.student_id == f.student_id,
-          select: %{e | feedback: f}
+          left_join: c in Comment,
+          on: f.completion_comment_id == c.id,
+          preload: [feedback: {f, completion_comment: c}]
         )
 
       _ ->

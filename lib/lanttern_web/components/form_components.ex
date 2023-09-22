@@ -288,7 +288,7 @@ defmodule LantternWeb.FormComponents do
         placeholder={@label}
       ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
       <div class={[
-        "flex justify-end w-full p-2 border-t",
+        "flex justify-end gap-6 w-full p-2 border-t",
         @errors == [] && "border-ltrn-hairline, peer-focus:border-ltrn-primary",
         @errors != [] && "border-rose-400 peer-focus:border-rose-400"
       ]}>
