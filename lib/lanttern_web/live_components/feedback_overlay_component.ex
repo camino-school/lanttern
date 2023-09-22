@@ -122,7 +122,12 @@ defmodule LantternWeb.FeedbackOverlayComponent do
                 <.icon name="hero-check-circle" class="shrink-0 w-6 h-6" />
                 <span class="font-display font-bold text-sm">Marked as complete 🎉</span>
               </div>
-              <button type="button" class="shrink-0 opacity-50 hover:opacity-100 focus:opacity-100">
+              <button
+                type="button"
+                class="shrink-0 opacity-50 hover:opacity-100 focus:opacity-100"
+                phx-click="remove_complete"
+                phx-target={@myself}
+              >
                 <.icon name="hero-x-mark" class="w-6 h-6" />
               </button>
             </div>
@@ -307,6 +312,21 @@ defmodule LantternWeb.FeedbackOverlayComponent do
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}
+    end
+  end
+
+  def handle_event("remove_complete", _params, socket) do
+    socket.assigns.feedback
+    |> Assessments.update_feedback(%{completion_comment_id: nil},
+      preloads: [:student, profile: :teacher, comments: [profile: [:teacher, :student]]]
+    )
+    |> case do
+      {:ok, feedback} ->
+        {:noreply, assign(socket, :feedback, feedback)}
+
+      {:error, %Ecto.Changeset{}} ->
+        # to do: where should we display this error?
+        {:noreply, socket}
     end
   end
 end

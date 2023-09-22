@@ -406,9 +406,9 @@ defmodule Lanttern.Assessments do
   @doc """
   Creates a feedback.
 
-  ### Options:
+  ## Options:
 
-  `:preloads` – preloads associated data
+      - `:preloads` – preloads associated data
 
   ## Examples
 
@@ -437,6 +437,10 @@ defmodule Lanttern.Assessments do
   @doc """
   Updates a feedback.
 
+  ## Options:
+
+      - `:preloads` – preloads associated data
+
   ## Examples
 
       iex> update_feedback(feedback, %{field: new_value})
@@ -446,10 +450,11 @@ defmodule Lanttern.Assessments do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_feedback(%Feedback{} = feedback, attrs) do
+  def update_feedback(%Feedback{} = feedback, attrs, opts \\ []) do
     feedback
     |> Feedback.changeset(attrs)
     |> Repo.update()
+    |> maybe_preload(opts)
   end
 
   @doc """
