@@ -1,6 +1,13 @@
 defmodule LantternWeb.FeedbackOverlayComponent do
   @moduledoc """
-  Expected external assigns:
+  ### PubSub: expected broadcast messages
+
+  All messages should be broadcast to "assessment_point:id" topic, following `{:key, msg}` pattern.
+
+      - `:feedback_created`
+      - `:feedback_updated`
+
+  ### Expected external assigns:
 
       attr :assessment_point, AssessmentPoint, required: true
       attr :current_user, User, required: true
@@ -10,6 +17,7 @@ defmodule LantternWeb.FeedbackOverlayComponent do
 
   """
   use LantternWeb, :live_component
+  alias Phoenix.PubSub
 
   import LantternWeb.DateTimeHelpers
   alias Lanttern.Assessments
@@ -141,6 +149,7 @@ defmodule LantternWeb.FeedbackOverlayComponent do
               id={:new}
               current_user={@current_user}
               feedback_id={@feedback_id}
+              assessment_point_id={@feedback.assessment_point_id}
               hide_mark_for_completion={@feedback.completion_comment_id}
             />
           </.user_icon_block>
@@ -308,6 +317,11 @@ defmodule LantternWeb.FeedbackOverlayComponent do
           |> assign(:feedback_id, feedback.id)
           |> assign(:feedback, feedback)
 
+        broadcast_to_assessment_point(
+          socket.assigns.assessment_point.id,
+          {:feedback_created, feedback}
+        )
+
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -322,6 +336,11 @@ defmodule LantternWeb.FeedbackOverlayComponent do
     )
     |> case do
       {:ok, feedback} ->
+        broadcast_to_assessment_point(
+          socket.assigns.assessment_point.id,
+          {:feedback_updated, feedback}
+        )
+
         {:noreply, assign(socket, :feedback, feedback)}
 
       {:error, %Ecto.Changeset{}} ->
@@ -329,4 +348,7 @@ defmodule LantternWeb.FeedbackOverlayComponent do
         {:noreply, socket}
     end
   end
+
+  defp broadcast_to_assessment_point(assessment_point_id, msg),
+    do: PubSub.broadcast(Lanttern.PubSub, "assessment_point:#{assessment_point_id}", msg)
 end

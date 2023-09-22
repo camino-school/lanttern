@@ -12,22 +12,6 @@ defmodule Lanttern.Assessments do
   alias Lanttern.Assessments.Feedback
   alias Lanttern.Conversation.Comment
 
-  alias Phoenix.PubSub
-
-  @doc """
-  Subscribe to `"assessments"` topic.
-  """
-  def subscribe() do
-    PubSub.subscribe(Lanttern.PubSub, "assessments")
-  end
-
-  @doc """
-  Broadcast a message to `"assessments"` topic.
-  """
-  def broadcast(message) do
-    PubSub.broadcast(Lanttern.PubSub, "assessments", message)
-  end
-
   @doc """
   Returns the list of assessment points.
 
@@ -424,14 +408,6 @@ defmodule Lanttern.Assessments do
     |> Feedback.changeset(attrs)
     |> Repo.insert()
     |> maybe_preload(opts)
-    |> case do
-      {:ok, feedback} ->
-        broadcast({:feedback_created, feedback})
-        {:ok, feedback}
-
-      error_tuple ->
-        error_tuple
-    end
   end
 
   @doc """

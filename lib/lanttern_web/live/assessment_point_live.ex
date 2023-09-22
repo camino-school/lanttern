@@ -1,11 +1,19 @@
 defmodule LantternWeb.AssessmentPointLive do
+  @moduledoc """
+  ### PubSub subscription topics
+
+  - "assessment_point:id" on `handle_params`
+
+  Expected broadcasted messages in `handle_info/2` documentation.
+  """
+
   use LantternWeb, :live_view
+  alias Phoenix.PubSub
 
   import LantternWeb.DateTimeHelpers
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.Feedback
-  alias Lanttern.Conversation
   alias Lanttern.Grading
   alias Lanttern.Schools.Student
 
@@ -252,16 +260,11 @@ defmodule LantternWeb.AssessmentPointLive do
 
   # lifecycle
 
-  def mount(_params, _session, socket) do
+  def handle_params(%{"id" => id}, _uri, socket) do
     if connected?(socket) do
-      Assessments.subscribe()
-      Conversation.subscribe()
+      PubSub.subscribe(Lanttern.PubSub, "assessment_point:#{id}")
     end
 
-    {:ok, socket}
-  end
-
-  def handle_params(%{"id" => id}, _uri, socket) do
     try do
       Assessments.get_assessment_point!(id, [
         :curriculum_item,
@@ -319,6 +322,17 @@ defmodule LantternWeb.AssessmentPointLive do
   end
 
   def handle_event("open-feedback", params, socket) do
+    feedback_id =
+      params
+      |> Map.get("feedbackid")
+      |> case do
+        nil -> nil
+        id -> String.to_integer(id)
+      end
+
+    if feedback_id,
+      do: PubSub.subscribe(Lanttern.PubSub, "feedback:#{feedback_id}")
+
     student =
       socket.assigns.entries
       |> Enum.map(&Map.get(&1, :student))
@@ -326,7 +340,7 @@ defmodule LantternWeb.AssessmentPointLive do
 
     socket =
       socket
-      |> assign(:current_feedback_id, Map.get(params, "feedbackid"))
+      |> assign(:current_feedback_id, feedback_id)
       |> assign(:current_feedback_student, student)
       |> assign(:show_feedback, true)
 
@@ -334,6 +348,9 @@ defmodule LantternWeb.AssessmentPointLive do
   end
 
   def handle_event("close-feedback", _params, socket) do
+    if socket.assigns.current_feedback_id != nil,
+      do: PubSub.unsubscribe(Lanttern.PubSub, "feedback:#{socket.assigns.current_feedback_id}")
+
     socket =
       socket
       |> assign(:current_feedback_id, nil)
@@ -344,6 +361,18 @@ defmodule LantternWeb.AssessmentPointLive do
   end
 
   # info handlers
+
+  @doc """
+  ### Expected messages
+
+  Obs: always following `{:key, msg}` pattern
+
+      - `:assessment_point_updated` — 🔺 Not implemented in PubSub yet
+      - `:assessment_point_entry_save_error` — 🔺 Not implemented in PubSub yet
+      - `:feedback_created`
+      - `:feedback_updated`
+      - `:feedback_comment_created`
+  """
 
   def handle_info({:assessment_point_updated, assessment_point}, socket) do
     socket =
@@ -376,24 +405,56 @@ defmodule LantternWeb.AssessmentPointLive do
   end
 
   def handle_info({:feedback_created, feedback}, socket) do
+    PubSub.subscribe(Lanttern.PubSub, "feedback:#{feedback.id}")
+
     socket =
       socket
-      |> update(:entries, fn entries ->
-        Enum.map(entries, &update_entry_feedback(&1, feedback))
-      end)
+      |> update(:entries, &update_entries(&1, feedback))
+      |> assign(:current_feedback_id, feedback.id)
+      |> assign(:current_feedback_student, feedback.student)
 
     {:noreply, socket}
   end
 
-  def handle_info({:feedback_comment_created, _comment} = msg, socket) do
+  def handle_info({:feedback_updated, feedback}, socket) do
+    socket =
+      socket
+      |> update(:entries, &update_entries(&1, feedback))
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:feedback_comment_created, comment} = msg, socket) do
     send_update(
       LantternWeb.FeedbackOverlayComponent,
       id: "feedback-overlay",
       action: msg
     )
 
+    # if comment completes feedback,
+    # update feedback in entries to reflect
+    # on feedback button
+    socket =
+      case comment.completed_feedback do
+        %Feedback{} = feedback ->
+          socket
+          |> update(
+            :entries,
+            &update_entries(
+              &1,
+              %{feedback | completion_comment: comment}
+            )
+          )
+
+        _ ->
+          socket
+      end
+
     {:noreply, socket}
   end
+
+  defp update_entries(entries, feedback),
+    do: Enum.map(entries, &update_entry_feedback(&1, feedback))
 
   defp update_entry_feedback(entry, feedback)
        when entry.student_id == feedback.student_id,

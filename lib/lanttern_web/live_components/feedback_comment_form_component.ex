@@ -1,13 +1,21 @@
 defmodule LantternWeb.FeedbackCommentFormComponent do
   @moduledoc """
-  Expected external assigns:
+  ### PubSub: expected broadcast messages
+
+  All messages should be broadcast to "assessment_point:id" topic, following `{:key, msg}` pattern.
+
+      - `:comment_created`
+
+  ### Expected external assigns:
 
       attr :current_user, User, required: true
-      attr :feedback_id, :string
+      attr :feedback_id, :integer
+      attr :assessment_point_id, :integer
       attr :hide_mark_for_completion, :boolean, default: false
 
   """
   use LantternWeb, :live_component
+  alias Phoenix.PubSub
 
   alias Lanttern.Conversation
   alias Lanttern.Conversation.Comment
@@ -113,23 +121,19 @@ defmodule LantternWeb.FeedbackCommentFormComponent do
   # event handlers
 
   def handle_event("save", %{"comment" => params}, socket) do
-    # feedback_id type changes depending on its "source"
-    # 1. phx-value-feedbackid from assessment point live view or
-    # 2. feedback.id after feedback creation in overlay live component
-    feedback_id =
-      socket.assigns.feedback_id
-      |> case do
-        id when is_binary(id) -> String.to_integer(id)
-        id -> id
-      end
+    feedback_id = socket.assigns.feedback_id
 
     case Conversation.create_feedback_comment(params, feedback_id) do
-      {:ok, _comment} ->
-        # create_feedback_comment/2 broadcasts a {:feedback_comment_created, comment} message
+      {:ok, comment} ->
+        broadcast_to_assessment_point(
+          socket.assigns.assessment_point_id,
+          {:feedback_comment_created, comment}
+        )
+
         form =
           empty_form(
             socket.assigns.current_user.current_profile.id,
-            socket.assigns.feedback_id
+            feedback_id
           )
 
         {:noreply, assign(socket, :form, form)}
@@ -149,4 +153,7 @@ defmodule LantternWeb.FeedbackCommentFormComponent do
     })
     |> to_form()
   end
+
+  defp broadcast_to_assessment_point(assessment_point_id, msg),
+    do: PubSub.broadcast(Lanttern.PubSub, "assessment_point:#{assessment_point_id}", msg)
 end
