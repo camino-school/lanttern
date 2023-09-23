@@ -44,6 +44,9 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     |> cast(attrs, [
       :name,
       :datetime,
+      :date,
+      :hour,
+      :minute,
       :description,
       :curriculum_item_id,
       :scale_id,

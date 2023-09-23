@@ -52,7 +52,7 @@ defmodule LantternWeb.AssessmentPointLive do
           </p>
         </div>
         <.icon_and_content icon_name="hero-calendar">
-          Date: <%= format_local!(@assessment_point.datetime, "{Mshort} {D}, {YYYY}, {h12}:{m} {am}") %>
+          Date: <%= format_local!(@assessment_point.datetime, "{Mshort} {D}, {YYYY}, {h24}:{m}") %>
         </.icon_and_content>
         <.icon_and_content icon_name="hero-bookmark">
           Curriculum: <%= @assessment_point.curriculum_item.name %>

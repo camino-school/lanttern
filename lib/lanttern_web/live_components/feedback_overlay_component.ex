@@ -65,7 +65,7 @@ defmodule LantternWeb.FeedbackOverlayComponent do
           }
         >
           <span class="block mb-2 text-xs text-ltrn-subtle">
-            <%= format_local!(@feedback.inserted_at, "{Mshort} {D}, {YYYY}, {h12}:{m} {am}") %>
+            <%= format_local!(@feedback.inserted_at, "{Mshort} {D}, {YYYY}, {h24}:{m}") %>
           </span>
           <p class="text-sm">
             <%= @feedback.comment %>
@@ -120,7 +120,7 @@ defmodule LantternWeb.FeedbackOverlayComponent do
             }
           >
             <span class="block mb-2 text-xs text-ltrn-subtle">
-              <%= format_local!(comment.inserted_at, "{Mshort} {D}, {YYYY}, {h12}:{m} {am}") %>
+              <%= format_local!(comment.inserted_at, "{Mshort} {D}, {YYYY}, {h24}:{m}") %>
             </span>
             <div
               :if={@feedback.completion_comment_id == comment.id}
