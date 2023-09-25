@@ -71,6 +71,10 @@ defmodule Lanttern.Conversation do
   @doc """
   Updates a comment.
 
+  ### Options:
+
+  The second argument for `Repo.update/2`.
+
   ## Examples
 
       iex> update_comment(comment, %{field: new_value})
@@ -80,10 +84,10 @@ defmodule Lanttern.Conversation do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_comment(%Comment{} = comment, attrs) do
+  def update_comment(%Comment{} = comment, attrs, opts \\ []) do
     comment
     |> Comment.changeset(attrs)
-    |> Repo.update()
+    |> Repo.update(opts)
   end
 
   @doc """

@@ -101,7 +101,7 @@ _class_2 =
 # ------------------------------
 
 # use changeset to hash password
-user =
+teacher_admin_user =
   Identity.User.registration_changeset(%Identity.User{}, %{
     email: System.get_env("ROOT_ADMIN_EMAIL"),
     password: "asdfasdfasdf"
@@ -110,7 +110,22 @@ user =
   |> Repo.insert!()
 
 # then create a teacher profile for the created user
-Repo.insert!(%Identity.Profile{user_id: user.id, teacher_id: teacher.id, type: "teacher"})
+Repo.insert!(%Identity.Profile{
+  user_id: teacher_admin_user.id,
+  teacher_id: teacher.id,
+  type: "teacher"
+})
+
+# use changeset to hash password
+student_user =
+  Identity.User.registration_changeset(%Identity.User{}, %{
+    email: "student@email.com",
+    password: "asdfasdfasdf"
+  })
+  |> Repo.insert!()
+
+# then create a student profile for the created user
+Repo.insert!(%Identity.Profile{user_id: student_user.id, student_id: std_1.id, type: "student"})
 
 # ------------------------------
 # curriculum

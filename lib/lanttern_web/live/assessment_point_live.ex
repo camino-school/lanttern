@@ -424,7 +424,15 @@ defmodule LantternWeb.AssessmentPointLive do
     {:noreply, socket}
   end
 
-  def handle_info({:feedback_comment_created, comment} = msg, socket) do
+  def handle_info({:feedback_comment_created, _comment} = msg, socket) do
+    send_update_to_feedback_overlay(msg, socket)
+  end
+
+  def handle_info({:feedback_comment_updated, _comment} = msg, socket) do
+    send_update_to_feedback_overlay(msg, socket)
+  end
+
+  defp send_update_to_feedback_overlay({_key, comment} = msg, socket) do
     send_update(
       LantternWeb.FeedbackOverlayComponent,
       id: "feedback-overlay",

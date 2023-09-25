@@ -107,7 +107,7 @@ defmodule LantternWeb.FeedbackOverlayComponent do
               if comment.profile.type == "teacher" do
                 comment.profile.teacher.name
               else
-                comment.profile.stuent.name
+                comment.profile.student.name
               end
             }
             class="mt-6 hidden"
@@ -119,31 +119,54 @@ defmodule LantternWeb.FeedbackOverlayComponent do
               )
             }
           >
-            <span class="block mb-2 text-xs text-ltrn-subtle">
+            <span class="flex items-center gap-2 mb-2 text-xs text-ltrn-subtle">
               <%= format_local!(comment.inserted_at, "{Mshort} {D}, {YYYY}, {h24}:{m}") %>
-            </span>
-            <div
-              :if={@feedback.completion_comment_id == comment.id}
-              class="flex items-center justify-between p-2 mb-2 text-white bg-green-500"
-            >
-              <div class="flex items-center gap-1">
-                <.icon name="hero-check-circle" class="shrink-0 w-6 h-6" />
-                <span class="font-display font-bold text-sm">Marked as complete 🎉</span>
-              </div>
               <button
+                :if={comment.profile_id == @current_user.current_profile_id}
                 type="button"
-                class="shrink-0 opacity-50 hover:opacity-100 focus:opacity-100"
-                phx-click="remove_complete"
+                class="underline"
+                phx-click="edit-comment"
+                phx-value-id={comment.id}
                 phx-target={@myself}
               >
-                <.icon name="hero-x-mark" class="w-6 h-6" />
+                Edit
               </button>
-            </div>
-            <p class="text-sm">
-              <%= comment.comment %>
-            </p>
+            </span>
+            <%= if @edit_comment_id == comment.id do %>
+              <.live_component
+                module={LantternWeb.FeedbackCommentFormComponent}
+                id={comment.id}
+                comment_id={comment.id}
+                current_user={@current_user}
+                feedback_id={@feedback_id}
+                assessment_point_id={@feedback.assessment_point_id}
+                hide_mark_for_completion={@feedback.completion_comment_id}
+                on_cancel_target={@myself}
+              />
+            <% else %>
+              <div
+                :if={@feedback.completion_comment_id == comment.id}
+                class="flex items-center justify-between p-2 mb-2 text-white bg-green-500"
+              >
+                <div class="flex items-center gap-1">
+                  <.icon name="hero-check-circle" class="shrink-0 w-6 h-6" />
+                  <span class="font-display font-bold text-sm">Marked as complete 🎉</span>
+                </div>
+                <button
+                  type="button"
+                  class="shrink-0 opacity-50 hover:opacity-100 focus:opacity-100"
+                  phx-click="remove_complete"
+                  phx-target={@myself}
+                >
+                  <.icon name="hero-x-mark" class="w-6 h-6" />
+                </button>
+              </div>
+              <p class="text-sm">
+                <%= comment.comment %>
+              </p>
+            <% end %>
           </.user_icon_block>
-          <.user_icon_block profile_name={@profile_name} class="mt-10">
+          <.user_icon_block :if={!@edit_comment_id} profile_name={@profile_name} class="mt-10">
             <.live_component
               module={LantternWeb.FeedbackCommentFormComponent}
               id={:new}
@@ -283,6 +306,21 @@ defmodule LantternWeb.FeedbackOverlayComponent do
     {:ok, assign(socket, :feedback, feedback)}
   end
 
+  # comment updated (sent via parent send_update)
+  def update(%{action: {:feedback_comment_updated, _comment}}, socket) do
+    feedback =
+      Assessments.get_feedback!(socket.assigns.feedback_id,
+        preloads: [:student, profile: :teacher, comments: [profile: [:teacher, :student]]]
+      )
+
+    socket =
+      socket
+      |> assign(:feedback, feedback)
+      |> assign(:edit_comment_id, nil)
+
+    {:ok, socket}
+  end
+
   # catch-all / mount update
   def update(assigns, socket) do
     profile_name =
@@ -299,6 +337,7 @@ defmodule LantternWeb.FeedbackOverlayComponent do
       |> assign(:form, nil)
       |> assign(:show_feedback_form, false)
       |> assign(:feedback, nil)
+      |> assign(:edit_comment_id, nil)
 
     {:ok, socket}
   end
@@ -327,6 +366,14 @@ defmodule LantternWeb.FeedbackOverlayComponent do
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}
     end
+  end
+
+  def handle_event("edit-comment", %{"id" => comment_id}, socket) do
+    {:noreply, assign(socket, :edit_comment_id, String.to_integer(comment_id))}
+  end
+
+  def handle_event("feedback_comment_form:cancel", _params, socket) do
+    {:noreply, assign(socket, :edit_comment_id, nil)}
   end
 
   def handle_event("remove_complete", _params, socket) do

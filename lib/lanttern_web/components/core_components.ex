@@ -150,7 +150,7 @@ defmodule LantternWeb.CoreComponents do
   """
   attr :type, :string, default: nil
   attr :class, :any, default: nil
-  attr :theme, :string, default: "default"
+  attr :theme, :string, default: "default", doc: "default | ghost"
   attr :rest, :global, include: ~w(disabled form name value)
 
   slot :inner_block, required: true

@@ -255,7 +255,7 @@ defmodule LantternWeb.FormComponents do
   end
 
   @doc """
-  Textarea with actions slot
+  Textarea with actions
   """
   attr :id, :any, default: nil
   attr :name, :any
@@ -268,6 +268,7 @@ defmodule LantternWeb.FormComponents do
                 placeholder readonly required rows)
 
   slot :actions, required: true
+  slot :actions_left
 
   def textarea_with_actions(assigns) do
     ~H"""
@@ -288,11 +289,16 @@ defmodule LantternWeb.FormComponents do
         placeholder={@label}
       ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
       <div class={[
-        "flex justify-end gap-6 w-full p-2 border-t",
+        "flex items-center justify-between gap-6 w-full p-2 border-t",
         @errors == [] && "border-ltrn-hairline, peer-focus:border-ltrn-primary",
         @errors != [] && "border-rose-400 peer-focus:border-rose-400"
       ]}>
-        <%= render_slot(@actions) %>
+        <div class="flex items-center gap-2">
+          <%= render_slot(@actions_left) %>
+        </div>
+        <div class="flex items-center gap-2">
+          <%= render_slot(@actions) %>
+        </div>
       </div>
     </div>
     """

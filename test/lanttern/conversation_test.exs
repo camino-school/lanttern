@@ -5,7 +5,6 @@ defmodule Lanttern.ConversationTest do
 
   describe "comments" do
     alias Lanttern.Conversation.Comment
-
     import Lanttern.ConversationFixtures
 
     @invalid_attrs %{comment: nil}
@@ -55,7 +54,7 @@ defmodule Lanttern.ConversationTest do
       assert {:error, %Ecto.Changeset{}} = Conversation.create_comment(@invalid_attrs)
     end
 
-    test "update_comment/2 with valid data updates the comment" do
+    test "update_comment/3 with valid data updates the comment" do
       comment = comment_fixture()
       update_attrs = %{comment: "some updated comment"}
 
@@ -63,7 +62,26 @@ defmodule Lanttern.ConversationTest do
       assert comment.comment == "some updated comment"
     end
 
-    test "update_comment/2 with invalid data returns error changeset" do
+    test "update_comment/3 with returning: true returns all comment fields" do
+      comment = comment_fixture()
+
+      # use this comment as first arg, returning only
+      # id, profile_id, and the updated comment field
+      # if we don't specify returning: true
+      comment = %Comment{
+        id: comment.id,
+        profile_id: comment.profile_id
+      }
+
+      update_attrs = %{comment: "some updated comment"}
+
+      assert {:ok, %Comment{} = comment} =
+               Conversation.update_comment(comment, update_attrs, returning: true)
+
+      assert comment.inserted_at != nil
+    end
+
+    test "update_comment/3 with invalid data returns error changeset" do
       comment = comment_fixture()
       assert {:error, %Ecto.Changeset{}} = Conversation.update_comment(comment, @invalid_attrs)
       assert comment == Conversation.get_comment!(comment.id)

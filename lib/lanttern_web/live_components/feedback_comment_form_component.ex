@@ -9,6 +9,8 @@ defmodule LantternWeb.FeedbackCommentFormComponent do
   ### Expected external assigns:
 
       attr :current_user, User, required: true
+      attr :comment_id, :integer, default: nil
+      attr :on_cancel_target, Phoenix.LiveComponent.CID, doc: "required if updating"
       attr :feedback_id, :integer
       attr :assessment_point_id, :integer
       attr :hide_mark_for_completion, :boolean, default: false
@@ -27,12 +29,16 @@ defmodule LantternWeb.FeedbackCommentFormComponent do
         for={@form}
         id={"feedback-comment-form-#{@id}"}
         class="flex-1"
-        phx-submit="save"
+        phx-submit={if @comment_id, do: "update", else: "create"}
         phx-target={@myself}
       >
-        <.error_block :if={@form.source.action == :insert} class="mb-6">
+        <.error_block
+          :if={@form.source.action == :insert || @form.source.action == :update}
+          class="mb-2"
+        >
           Oops, something went wrong! Please check the errors below.
         </.error_block>
+        <input type="hidden" name={@form[:id].name} value={@form[:id].value} />
         <input type="hidden" name={@form[:profile_id].name} value={@form[:profile_id].value} />
         <input
           type="hidden"
@@ -46,8 +52,8 @@ defmodule LantternWeb.FeedbackCommentFormComponent do
           errors={@form[:comment].errors}
           label="Add your comment..."
         >
-          <:actions>
-            <div :if={!@hide_mark_for_completion} class="flex items-center gap-2 text-xs">
+          <:actions_left :if={!@hide_mark_for_completion}>
+            <div class="flex items-center gap-2 text-xs">
               <input
                 id={@form[:mark_feedback_for_completion].id}
                 name={@form[:mark_feedback_for_completion].name}
@@ -62,6 +68,17 @@ defmodule LantternWeb.FeedbackCommentFormComponent do
               />
               <label for={@form[:mark_feedback_for_completion].id}>Mark completed</label>
             </div>
+          </:actions_left>
+          <:actions>
+            <.button
+              :if={@comment_id}
+              type="button"
+              theme="ghost"
+              phx-click="feedback_comment_form:cancel"
+              phx-target={@on_cancel_target}
+            >
+              Cancel
+            </.button>
             <.button type="submit">
               Save
             </.button>
@@ -90,18 +107,18 @@ defmodule LantternWeb.FeedbackCommentFormComponent do
 
   # existing comment
   def update(%{comment_id: comment_id} = assigns, socket) do
-    comment =
-      Conversation.get_comment!(comment_id)
-      |> Map.put(:feedback_id_for_completion, assigns.feedback_id)
-
     form =
-      comment
+      Conversation.get_comment!(comment_id)
+      |> Conversation.change_comment(%{
+        feedback_id_for_completion: assigns.feedback_id
+      })
       |> to_form()
 
     socket =
       socket
       |> assign(assigns)
       |> assign(:form, form)
+      |> assign(:on_cancel_target, Map.get(assigns, :on_cancel_target))
 
     {:ok, socket}
   end
@@ -114,13 +131,15 @@ defmodule LantternWeb.FeedbackCommentFormComponent do
       socket
       |> assign(assigns)
       |> assign(:form, form)
+      |> assign(:comment_id, nil)
+      |> assign(:on_cancel_target, Map.get(assigns, :on_cancel_target))
 
     {:ok, socket}
   end
 
   # event handlers
 
-  def handle_event("save", %{"comment" => params}, socket) do
+  def handle_event("create", %{"comment" => params}, socket) do
     feedback_id = socket.assigns.feedback_id
 
     case Conversation.create_feedback_comment(params, feedback_id) do
@@ -137,6 +156,25 @@ defmodule LantternWeb.FeedbackCommentFormComponent do
           )
 
         {:noreply, assign(socket, :form, form)}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, form: to_form(changeset))}
+    end
+  end
+
+  def handle_event("update", %{"comment" => params}, socket) do
+    comment = %Comment{id: socket.assigns.comment_id}
+
+    # we are use returning: true opt because inserted_at field is required
+    # to render the feedback button after an update with mark_feedback_for_completion: true
+    case Conversation.update_comment(comment, params) do
+      {:ok, comment} ->
+        broadcast_to_assessment_point(
+          socket.assigns.assessment_point_id,
+          {:feedback_comment_updated, comment}
+        )
+
+        {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}
