@@ -167,7 +167,7 @@ defmodule LantternWeb.FeedbackCommentFormComponent do
 
     # we are use returning: true opt because inserted_at field is required
     # to render the feedback button after an update with mark_feedback_for_completion: true
-    case Conversation.update_comment(comment, params) do
+    case Conversation.update_comment(comment, params, returning: true) do
       {:ok, comment} ->
         broadcast_to_assessment_point(
           socket.assigns.assessment_point_id,

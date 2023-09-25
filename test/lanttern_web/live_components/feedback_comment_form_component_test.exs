@@ -125,7 +125,7 @@ defmodule LantternWeb.FeedbackCommentFormComponentTest do
              |> has_element?()
     end
 
-    test "after updating feedback comment using form, feedback is displayed in overlay", %{
+    test "after updating feedback comment using form, updated comment is displayed in overlay", %{
       conn: conn,
       assessment_point: assessment_point,
       user: user,
@@ -158,10 +158,62 @@ defmodule LantternWeb.FeedbackCommentFormComponentTest do
     end
   end
 
+  describe "Delete feedback comment in assessment points live view" do
+    setup [:create_assessment_point_with_feedback, :create_feedback_comment]
+
+    test "delete feedback comment form shows in feedback overlay", %{
+      conn: conn,
+      assessment_point: assessment_point,
+      feedback_comment: feedback_comment
+    } do
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
+
+      # open overlay
+      view
+      |> element("button", "Not completed yet")
+      |> render_click()
+
+      # assert comment is rendered in overlay
+      assert view
+             |> element("#{@overlay_selector} p", feedback_comment.comment)
+             |> has_element?()
+
+      # assert delete comment button is rendered in overlay
+      view
+      |> element("#{@overlay_selector} button", "Delete")
+      |> render_click()
+    end
+
+    test "after deleting feedback comment, comment should be removed from UI", %{
+      conn: conn,
+      assessment_point: assessment_point,
+      feedback_comment: feedback_comment
+    } do
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
+
+      # open overlay
+      view
+      |> element("button", "Not completed yet")
+      |> render_click()
+
+      # assert comment is rendered
+      {:ok, re} = Regex.compile("<p.+>\\s*#{feedback_comment.comment}\\s*</p>")
+      assert render(view) =~ re
+
+      # click delete comment button
+      view
+      |> element("#{@overlay_selector} button", "Delete")
+      |> render_click()
+
+      # refute comment is rendered in a new render(view) to "wait" for brodcast and send_update
+      refute render(view) =~ re
+    end
+  end
+
   defp create_feedback_comment(%{feedback: feedback, user: user}) do
     feedback_comment =
       ConversationFixtures.feedback_comment_fixture(
-        %{profile_id: user.current_profile.id},
+        %{profile_id: user.current_profile.id, comment: "Some regex compile safe string"},
         feedback.id
       )
 

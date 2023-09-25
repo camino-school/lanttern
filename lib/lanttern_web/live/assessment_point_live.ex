@@ -330,9 +330,6 @@ defmodule LantternWeb.AssessmentPointLive do
         id -> String.to_integer(id)
       end
 
-    if feedback_id,
-      do: PubSub.subscribe(Lanttern.PubSub, "feedback:#{feedback_id}")
-
     student =
       socket.assigns.entries
       |> Enum.map(&Map.get(&1, :student))
@@ -348,9 +345,6 @@ defmodule LantternWeb.AssessmentPointLive do
   end
 
   def handle_event("close-feedback", _params, socket) do
-    if socket.assigns.current_feedback_id != nil,
-      do: PubSub.unsubscribe(Lanttern.PubSub, "feedback:#{socket.assigns.current_feedback_id}")
-
     socket =
       socket
       |> assign(:current_feedback_id, nil)
@@ -363,15 +357,62 @@ defmodule LantternWeb.AssessmentPointLive do
   # info handlers
 
   @doc """
-  ### Expected messages
+  Handles sent or broadcasted messages from children Live Components.
 
-  Obs: always following `{:key, msg}` pattern
+  ## Clauses
 
-      - `:assessment_point_updated` — 🔺 Not implemented in PubSub yet
-      - `:assessment_point_entry_save_error` — 🔺 Not implemented in PubSub yet
-      - `:feedback_created`
-      - `:feedback_updated`
-      - `:feedback_comment_created`
+  #### Assessment point update success
+
+  Sent from `LantternWeb.AssessmentPointUpdateOverlayComponent`.
+
+  🔺 Not implemented in PubSub yet
+
+      handle_info({:assessment_point_updated, assessment_point}, socket)
+
+  #### Assessment point entry save error
+
+  Sent from `LantternWeb.AssessmentPointEntryEditorComponent`.
+
+  🔺 Not implemented in PubSub yet
+
+      handle_info({:assessment_point_entry_save_error, %Ecto.Changeset{errors: [score: {score_error, _}]} = _changeset}, socket)
+      handle_info({:assessment_point_entry_save_error, _changeset}, socket)
+
+  #### Feedback created
+
+  Broadcasted to `"assessment_point:id"` from `LantternWeb.FeedbackOverlayComponent`.
+
+      handle_info({:feedback_created, feedback}, socket)
+
+  #### Feedback updated
+
+  Broadcasted to `"assessment_point:id"` from `LantternWeb.FeedbackOverlayComponent`.
+
+      handle_info({:feedback_updated, feedback}, socket)
+
+  ### Feedback comment messages
+
+  All `handle_info()` for feedback comment have to `send_update()` to
+  `FeedbackOverlayComponent`, in order to "trigger" the comment thread
+  update inside the live component.
+
+  #### Feedback comment created
+
+  Broadcasted to `"assessment_point:id"` from `LantternWeb.FeedbackCommentFormComponent`.
+
+      handle_info({:feedback_comment_created, _comment} = msg, socket) do
+
+  #### Feedback comment updated
+
+  Broadcasted to `"assessment_point:id"` from `LantternWeb.FeedbackCommentFormComponent`.
+
+      handle_info({:feedback_comment_updated, _comment} = msg, socket) do
+
+  #### Feedback comment deleted
+
+  Broadcasted to `"assessment_point:id"` from `LantternWeb.FeedbackCommentFormComponent`.
+
+      handle_info({:feedback_comment_deleted, _comment} = msg, socket) do
   """
 
   def handle_info({:assessment_point_updated, assessment_point}, socket) do
@@ -405,8 +446,6 @@ defmodule LantternWeb.AssessmentPointLive do
   end
 
   def handle_info({:feedback_created, feedback}, socket) do
-    PubSub.subscribe(Lanttern.PubSub, "feedback:#{feedback.id}")
-
     socket =
       socket
       |> update(:entries, &update_entries(&1, feedback))
@@ -425,40 +464,81 @@ defmodule LantternWeb.AssessmentPointLive do
   end
 
   def handle_info({:feedback_comment_created, _comment} = msg, socket) do
-    send_update_to_feedback_overlay(msg, socket)
+    send_comment_update_to_feedback_overlay(msg)
+
+    socket =
+      socket
+      |> maybe_update_socket_entries(msg)
+
+    {:noreply, socket}
   end
 
   def handle_info({:feedback_comment_updated, _comment} = msg, socket) do
-    send_update_to_feedback_overlay(msg, socket)
+    send_comment_update_to_feedback_overlay(msg)
+
+    socket =
+      socket
+      |> maybe_update_socket_entries(msg)
+
+    {:noreply, socket}
   end
 
-  defp send_update_to_feedback_overlay({_key, comment} = msg, socket) do
+  def handle_info({:feedback_comment_deleted, _comment} = msg, socket) do
+    send_comment_update_to_feedback_overlay(msg)
+
+    socket =
+      socket
+      |> maybe_update_socket_entries(msg)
+
+    {:noreply, socket}
+  end
+
+  defp send_comment_update_to_feedback_overlay({_key, _comment} = msg) do
     send_update(
       LantternWeb.FeedbackOverlayComponent,
       id: "feedback-overlay",
       action: msg
     )
+  end
 
+  defp maybe_update_socket_entries(socket, {:feedback_comment_deleted, _comment}) do
+    # check if there's some feedback that was
+    # completed by the deleted comment, and
+    # update it's completion_comment if needed
+    current_feedback_id = socket.assigns.current_feedback_id
+
+    socket
+    |> update(
+      :entries,
+      &Enum.map(&1, fn
+        %{feedback: %{id: ^current_feedback_id}} = entry ->
+          entry
+          |> Map.put(:feedback, %{entry.feedback | completion_comment_id: nil})
+
+        entry ->
+          entry
+      end)
+    )
+  end
+
+  defp maybe_update_socket_entries(socket, {_key, comment}) do
     # if comment completes feedback,
     # update feedback in entries to reflect
     # on feedback button
-    socket =
-      case comment.completed_feedback do
-        %Feedback{} = feedback ->
-          socket
-          |> update(
-            :entries,
-            &update_entries(
-              &1,
-              %{feedback | completion_comment: comment}
-            )
+    case comment.completed_feedback do
+      %Feedback{} = feedback ->
+        socket
+        |> update(
+          :entries,
+          &update_entries(
+            &1,
+            %{feedback | completion_comment: comment}
           )
+        )
 
-        _ ->
-          socket
-      end
-
-    {:noreply, socket}
+      _ ->
+        socket
+    end
   end
 
   defp update_entries(entries, feedback),

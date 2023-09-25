@@ -6,6 +6,7 @@ defmodule LantternWeb.FeedbackOverlayComponent do
 
       - `:feedback_created`
       - `:feedback_updated`
+      - `:feedback_comment_deleted`
 
   ### Expected external assigns:
 
@@ -22,6 +23,8 @@ defmodule LantternWeb.FeedbackOverlayComponent do
   import LantternWeb.DateTimeHelpers
   alias Lanttern.Assessments
   alias Lanttern.Assessments.Feedback
+  alias Lanttern.Conversation
+  alias Lanttern.Conversation.Comment
 
   def render(assigns) do
     ~H"""
@@ -118,11 +121,17 @@ defmodule LantternWeb.FeedbackOverlayComponent do
                 time: 1000
               )
             }
+            phx-remove={
+              JS.hide(
+                transition: {"ease-out duration-300", "bg-ltrn-mesh-rose", "bg-transparent"},
+                time: 300
+              )
+            }
           >
-            <span class="flex items-center gap-2 mb-2 text-xs text-ltrn-subtle">
+            <span class="flex items-center gap-4 mb-2 text-xs text-ltrn-subtle">
               <%= format_local!(comment.inserted_at, "{Mshort} {D}, {YYYY}, {h24}:{m}") %>
               <button
-                :if={comment.profile_id == @current_user.current_profile_id}
+                :if={comment.profile_id == @current_user.current_profile_id && !@edit_comment_id}
                 type="button"
                 class="underline"
                 phx-click="edit-comment"
@@ -130,6 +139,16 @@ defmodule LantternWeb.FeedbackOverlayComponent do
                 phx-target={@myself}
               >
                 Edit
+              </button>
+              <button
+                :if={comment.profile_id == @current_user.current_profile_id && !@edit_comment_id}
+                type="button"
+                class="underline"
+                phx-click="delete-comment"
+                phx-value-id={comment.id}
+                phx-target={@myself}
+              >
+                Delete
               </button>
             </span>
             <%= if @edit_comment_id == comment.id do %>
@@ -321,6 +340,16 @@ defmodule LantternWeb.FeedbackOverlayComponent do
     {:ok, socket}
   end
 
+  # comment deleted (sent via parent send_update)
+  def update(%{action: {:feedback_comment_deleted, _comment}}, socket) do
+    feedback =
+      Assessments.get_feedback!(socket.assigns.feedback_id,
+        preloads: [:student, profile: :teacher, comments: [profile: [:teacher, :student]]]
+      )
+
+    {:ok, assign(socket, :feedback, feedback)}
+  end
+
   # catch-all / mount update
   def update(assigns, socket) do
     profile_name =
@@ -374,6 +403,25 @@ defmodule LantternWeb.FeedbackOverlayComponent do
 
   def handle_event("feedback_comment_form:cancel", _params, socket) do
     {:noreply, assign(socket, :edit_comment_id, nil)}
+  end
+
+  def handle_event("delete-comment", %{"id" => comment_id}, socket) do
+    comment_id = comment_id |> String.to_integer()
+    comment = %Comment{id: comment_id}
+
+    case Conversation.delete_comment(comment) do
+      {:ok, comment} ->
+        broadcast_to_assessment_point(
+          socket.assigns.assessment_point.id,
+          {:feedback_comment_deleted, comment}
+        )
+
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{}} ->
+        # to do: where should we display this error?
+        {:noreply, socket}
+    end
   end
 
   def handle_event("remove_complete", _params, socket) do
