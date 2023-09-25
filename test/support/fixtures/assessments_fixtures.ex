@@ -74,7 +74,7 @@ defmodule Lanttern.AssessmentsFixtures do
     {:ok, feedback} =
       attrs
       |> Enum.into(%{
-        comment: Faker.Lorem.paragraph(1..5),
+        comment: "Some feedback comment",
         assessment_point_id: assessment_point_id,
         student_id: student_id,
         profile_id: profile_id

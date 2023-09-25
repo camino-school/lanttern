@@ -186,7 +186,7 @@ defmodule Lanttern.ConversationTest do
       attrs =
         attrs
         |> Enum.into(%{
-          comment: Faker.Lorem.paragraph(1..5),
+          comment: "Some feedback comment",
           profile_id: profile.id
         })
 

@@ -16,7 +16,7 @@ defmodule Lanttern.ConversationFixtures do
     {:ok, comment} =
       attrs
       |> Enum.into(%{
-        comment: Faker.Lorem.paragraph(1..5),
+        comment: "Some comment",
         profile_id: profile_id
       })
       |> Lanttern.Conversation.create_comment()
@@ -40,7 +40,7 @@ defmodule Lanttern.ConversationFixtures do
     {:ok, comment} =
       attrs
       |> Enum.into(%{
-        comment: Faker.Lorem.paragraph(1..5),
+        comment: "Some feedback comment",
         profile_id: profile_id
       })
       |> Conversation.create_feedback_comment(feedback_id)

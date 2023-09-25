@@ -11,8 +11,8 @@ defmodule Lanttern.CurriculaFixtures do
     {:ok, curriculum} =
       attrs
       |> Enum.into(%{
-        code: Faker.String.base64(100),
-        name: Faker.Lorem.sentence(5..10)
+        code: Ecto.UUID.generate(),
+        name: "Some curriculum name"
       })
       |> Lanttern.Curricula.create_curriculum()
 
@@ -28,8 +28,8 @@ defmodule Lanttern.CurriculaFixtures do
     {:ok, curriculum_component} =
       attrs
       |> Enum.into(%{
-        code: Faker.String.base64(100),
-        name: Faker.Lorem.sentence(5..10),
+        code: Ecto.UUID.generate(),
+        name: Ecto.UUID.generate(),
         curriculum_id: curriculum.id
       })
       |> Lanttern.Curricula.create_curriculum_component()
@@ -46,8 +46,8 @@ defmodule Lanttern.CurriculaFixtures do
     {:ok, curriculum_item} =
       attrs
       |> Enum.into(%{
-        code: Faker.String.base64(100),
-        name: Faker.Lorem.sentence(5..10),
+        code: Ecto.UUID.generate(),
+        name: Ecto.UUID.generate(),
         curriculum_component_id: curriculum_component.id
       })
       |> Lanttern.Curricula.create_curriculum_item()
