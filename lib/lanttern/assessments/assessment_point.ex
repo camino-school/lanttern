@@ -24,6 +24,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     belongs_to :scale, Lanttern.Grading.Scale
 
     has_many :entries, Lanttern.Assessments.AssessmentPointEntry
+    has_many :feedbacks, Lanttern.Assessments.Feedback
 
     many_to_many :classes, Lanttern.Schools.Class,
       join_through: "assessment_points_classes",
@@ -43,6 +44,9 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     |> cast(attrs, [
       :name,
       :datetime,
+      :date,
+      :hour,
+      :minute,
       :description,
       :curriculum_item_id,
       :scale_id,

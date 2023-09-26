@@ -71,7 +71,7 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponent do
     <div class={["relative", @class]}>
       <div
         class={[
-          "flex items-center justify-center w-full h-full rounded-sm font-mono text-sm pointer-events-none",
+          "flex items-center justify-center w-full h-full rounded-sm font-mono text-sm pointer-events-none truncate",
           @form[:ordinal_value_id].value == nil && "bg-ltrn-hairline"
         ]}
         style={@style}

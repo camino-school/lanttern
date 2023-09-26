@@ -186,13 +186,9 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponent do
 
     socket =
       socket
-      |> update(:selected_classes, &Keyword.merge(&1, selected_class))
-      |> update(:selected_students, &Keyword.merge(&1, class_students))
+      |> update(:selected_classes, &merge_with_selected(&1, selected_class))
+      |> update(:selected_students, &merge_with_selected(&1, class_students))
 
-    {:noreply, socket}
-  end
-
-  def handle_event("class_selected", _params, socket) do
     {:noreply, socket}
   end
 
@@ -222,12 +218,8 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponent do
 
     socket =
       socket
-      |> update(:selected_students, &Keyword.merge(&1, selected_student))
+      |> update(:selected_students, &merge_with_selected(&1, selected_student))
 
-    {:noreply, socket}
-  end
-
-  def handle_event("student_selected", _params, socket) do
     {:noreply, socket}
   end
 
@@ -276,14 +268,19 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponent do
   end
 
   defp extract_from_options(options, id) do
-    Keyword.filter(
+    Enum.find(
       options,
       fn {_key, value} -> value == id end
     )
   end
 
+  defp merge_with_selected(selected, new) do
+    new = if is_list(new), do: new, else: [new]
+    selected ++ new
+  end
+
   defp remove_from_selected(selected, id) do
-    Keyword.filter(
+    Enum.filter(
       selected,
       fn {_key, value} -> value != id end
     )

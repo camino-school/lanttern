@@ -31,7 +31,7 @@ defmodule LantternWeb.AssessmentPointEntryController do
       {:ok, assessment_point_entry} ->
         conn
         |> put_flash(:info, "Assessment point entry created successfully.")
-        |> redirect(to: ~p"/admin/assessments/assessment_point_entries/#{assessment_point_entry}")
+        |> redirect(to: ~p"/admin/assessment_point_entries/#{assessment_point_entry}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         assessment_point_options = generate_assessment_point_options()
@@ -78,7 +78,7 @@ defmodule LantternWeb.AssessmentPointEntryController do
       {:ok, assessment_point_entry} ->
         conn
         |> put_flash(:info, "Assessment point entry updated successfully.")
-        |> redirect(to: ~p"/admin/assessments/assessment_point_entries/#{assessment_point_entry}")
+        |> redirect(to: ~p"/admin/assessment_point_entries/#{assessment_point_entry}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         assessment_point_options = generate_assessment_point_options()
@@ -103,6 +103,6 @@ defmodule LantternWeb.AssessmentPointEntryController do
 
     conn
     |> put_flash(:info, "Assessment point entry deleted successfully.")
-    |> redirect(to: ~p"/admin/assessments/assessment_point_entries")
+    |> redirect(to: ~p"/admin/assessment_point_entries")
   end
 end

@@ -2,7 +2,7 @@
   Assessment point entry <%= @assessment_point_entry.id %>
   <:subtitle>This is a assessment_point_entry record from your database.</:subtitle>
   <:actions>
-    <.link href={~p"/admin/assessments/assessment_point_entries/#{@assessment_point_entry}/edit"}>
+    <.link href={~p"/admin/assessment_point_entries/#{@assessment_point_entry}/edit"}>
       <.button>Edit assessment_point_entry</.button>
     </.link>
   </:actions>
@@ -13,6 +13,6 @@
   <:item title="Score"><%= @assessment_point_entry.score %></:item>
 </.list>
 
-<.back navigate={~p"/admin/assessments/assessment_point_entries"}>
+<.back navigate={~p"/admin/assessment_point_entries"}>
   Back to assessment_point_entries
 </.back>

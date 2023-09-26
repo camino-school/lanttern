@@ -1,4 +1,25 @@
 defmodule Lanttern.Assessments.AssessmentPointEntry do
+  @moduledoc """
+  ### 🔺 don't use `Repo.preload/3` with `has_one :feedback` association
+
+  There's actually no way Ecto can identify the exactly feedback
+  that is associated to one entry only through schema — thus **using
+  `Repo.preload/3` is not possible**.
+
+  That's because the rule to this association is not based on
+  `AssessmentPointEntry` or `Feedback` ids, but in the fact that
+  both schemas share the same `assessment_point_id` and `student_id`.
+
+  If we just use `Repo.preload/3`, Ecto will get all feedbacks related
+  to the assessment point (using the `has_many :feedbacks` in `AssessmentPoint`)
+  and return the first in the list — which is not what we want.
+
+  BUT, having this `has_one` association is usefull because it allows
+  us to use `Ecto.Query.preload/3` given that we build the correct query
+  for this association.
+
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -9,6 +30,11 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
     belongs_to :assessment_point, Lanttern.Assessments.AssessmentPoint
     belongs_to :student, Lanttern.Schools.Student
     belongs_to :ordinal_value, Lanttern.Grading.OrdinalValue
+
+    # warning: don't use `Repo.preload/3` with this association.
+    # we can get this in query, usign assessment_point_id and student_id
+    # see moduledoc for more information
+    has_one :feedback, through: [:assessment_point, :feedback]
 
     timestamps()
   end

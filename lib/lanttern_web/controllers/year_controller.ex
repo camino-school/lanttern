@@ -19,7 +19,7 @@ defmodule LantternWeb.YearController do
       {:ok, year} ->
         conn
         |> put_flash(:info, "Year created successfully.")
-        |> redirect(to: ~p"/admin/taxonomy/years/#{year}")
+        |> redirect(to: ~p"/admin/years/#{year}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :new, changeset: changeset)
@@ -44,7 +44,7 @@ defmodule LantternWeb.YearController do
       {:ok, year} ->
         conn
         |> put_flash(:info, "Year updated successfully.")
-        |> redirect(to: ~p"/admin/taxonomy/years/#{year}")
+        |> redirect(to: ~p"/admin/years/#{year}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :edit, year: year, changeset: changeset)
@@ -57,6 +57,6 @@ defmodule LantternWeb.YearController do
 
     conn
     |> put_flash(:info, "Year deleted successfully.")
-    |> redirect(to: ~p"/admin/taxonomy/years")
+    |> redirect(to: ~p"/admin/years")
   end
 end

@@ -23,7 +23,7 @@ defmodule LantternWeb.CurriculumRelationshipController do
       {:ok, curriculum_relationship} ->
         conn
         |> put_flash(:info, "Curriculum relationship created successfully.")
-        |> redirect(to: ~p"/admin/curricula/curriculum_relationships/#{curriculum_relationship}")
+        |> redirect(to: ~p"/admin/curriculum_relationships/#{curriculum_relationship}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         options = generate_curriculum_item_options()
@@ -62,7 +62,7 @@ defmodule LantternWeb.CurriculumRelationshipController do
       {:ok, curriculum_relationship} ->
         conn
         |> put_flash(:info, "Curriculum relationship updated successfully.")
-        |> redirect(to: ~p"/admin/curricula/curriculum_relationships/#{curriculum_relationship}")
+        |> redirect(to: ~p"/admin/curriculum_relationships/#{curriculum_relationship}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         options = generate_curriculum_item_options()
@@ -83,6 +83,6 @@ defmodule LantternWeb.CurriculumRelationshipController do
 
     conn
     |> put_flash(:info, "Curriculum relationship deleted successfully.")
-    |> redirect(to: ~p"/admin/curricula/curriculum_relationships")
+    |> redirect(to: ~p"/admin/curriculum_relationships")
   end
 end

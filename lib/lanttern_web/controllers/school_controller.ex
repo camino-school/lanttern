@@ -19,7 +19,7 @@ defmodule LantternWeb.SchoolController do
       {:ok, school} ->
         conn
         |> put_flash(:info, "School created successfully.")
-        |> redirect(to: ~p"/admin/schools/schools/#{school}")
+        |> redirect(to: ~p"/admin/schools/#{school}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :new, changeset: changeset)
@@ -44,7 +44,7 @@ defmodule LantternWeb.SchoolController do
       {:ok, school} ->
         conn
         |> put_flash(:info, "School updated successfully.")
-        |> redirect(to: ~p"/admin/schools/schools/#{school}")
+        |> redirect(to: ~p"/admin/schools/#{school}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :edit, school: school, changeset: changeset)
@@ -57,6 +57,6 @@ defmodule LantternWeb.SchoolController do
 
     conn
     |> put_flash(:info, "School deleted successfully.")
-    |> redirect(to: ~p"/admin/schools/schools")
+    |> redirect(to: ~p"/admin/schools")
   end
 end

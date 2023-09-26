@@ -1,7 +1,7 @@
 <.header>
   Listing Grade composition components
   <:actions>
-    <.link href={~p"/admin/grading/composition_components/new"}>
+    <.link href={~p"/admin/grading_composition_components/new"}>
       <.button>New Composition component</.button>
     </.link>
   </:actions>
@@ -10,7 +10,7 @@
 <.table
   id="composition_components"
   rows={@composition_components}
-  row_click={&JS.navigate(~p"/admin/grading/composition_components/#{&1}")}
+  row_click={&JS.navigate(~p"/admin/grading_composition_components/#{&1}")}
 >
   <:col :let={composition_component} label="Name"><%= composition_component.name %></:col>
   <:col :let={composition_component} label="Weight"><%= composition_component.weight %></:col>
@@ -19,17 +19,17 @@
   </:col>
   <:action :let={composition_component}>
     <div class="sr-only">
-      <.link navigate={~p"/admin/grading/composition_components/#{composition_component}"}>
+      <.link navigate={~p"/admin/grading_composition_components/#{composition_component}"}>
         Show
       </.link>
     </div>
-    <.link navigate={~p"/admin/grading/composition_components/#{composition_component}/edit"}>
+    <.link navigate={~p"/admin/grading_composition_components/#{composition_component}/edit"}>
       Edit
     </.link>
   </:action>
   <:action :let={composition_component}>
     <.link
-      href={~p"/admin/grading/composition_components/#{composition_component}"}
+      href={~p"/admin/grading_composition_components/#{composition_component}"}
       method="delete"
       data-confirm="Are you sure?"
     >

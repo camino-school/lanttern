@@ -11,14 +11,14 @@ defmodule LantternWeb.CurriculumRelationshipControllerTest do
 
   describe "index" do
     test "lists all curriculum_relationships", %{conn: conn} do
-      conn = get(conn, ~p"/admin/curricula/curriculum_relationships")
+      conn = get(conn, ~p"/admin/curriculum_relationships")
       assert html_response(conn, 200) =~ "Listing Curriculum relationships"
     end
   end
 
   describe "new curriculum_relationship" do
     test "renders form", %{conn: conn} do
-      conn = get(conn, ~p"/admin/curricula/curriculum_relationships/new")
+      conn = get(conn, ~p"/admin/curriculum_relationships/new")
       assert html_response(conn, 200) =~ "New Curriculum relationship"
     end
   end
@@ -34,22 +34,18 @@ defmodule LantternWeb.CurriculumRelationshipControllerTest do
         |> Map.put(:curriculum_item_b_id, curriculum_item_b.id)
 
       conn =
-        post(conn, ~p"/admin/curricula/curriculum_relationships",
-          curriculum_relationship: create_attrs
-        )
+        post(conn, ~p"/admin/curriculum_relationships", curriculum_relationship: create_attrs)
 
       assert %{id: id} = redirected_params(conn)
-      assert redirected_to(conn) == ~p"/admin/curricula/curriculum_relationships/#{id}"
+      assert redirected_to(conn) == ~p"/admin/curriculum_relationships/#{id}"
 
-      conn = get(conn, ~p"/admin/curricula/curriculum_relationships/#{id}")
+      conn = get(conn, ~p"/admin/curriculum_relationships/#{id}")
       assert html_response(conn, 200) =~ "Curriculum relationship #{id}"
     end
 
     test "renders errors when data is invalid", %{conn: conn} do
       conn =
-        post(conn, ~p"/admin/curricula/curriculum_relationships",
-          curriculum_relationship: @invalid_attrs
-        )
+        post(conn, ~p"/admin/curriculum_relationships", curriculum_relationship: @invalid_attrs)
 
       assert html_response(conn, 200) =~ "New Curriculum relationship"
     end
@@ -63,7 +59,7 @@ defmodule LantternWeb.CurriculumRelationshipControllerTest do
       curriculum_relationship: curriculum_relationship
     } do
       conn =
-        get(conn, ~p"/admin/curricula/curriculum_relationships/#{curriculum_relationship}/edit")
+        get(conn, ~p"/admin/curriculum_relationships/#{curriculum_relationship}/edit")
 
       assert html_response(conn, 200) =~ "Edit Curriculum relationship"
     end
@@ -77,14 +73,14 @@ defmodule LantternWeb.CurriculumRelationshipControllerTest do
       curriculum_relationship: curriculum_relationship
     } do
       conn =
-        put(conn, ~p"/admin/curricula/curriculum_relationships/#{curriculum_relationship}",
+        put(conn, ~p"/admin/curriculum_relationships/#{curriculum_relationship}",
           curriculum_relationship: @update_attrs
         )
 
       assert redirected_to(conn) ==
-               ~p"/admin/curricula/curriculum_relationships/#{curriculum_relationship}"
+               ~p"/admin/curriculum_relationships/#{curriculum_relationship}"
 
-      conn = get(conn, ~p"/admin/curricula/curriculum_relationships/#{curriculum_relationship}")
+      conn = get(conn, ~p"/admin/curriculum_relationships/#{curriculum_relationship}")
       assert html_response(conn, 200) =~ "hierarchical"
     end
 
@@ -93,7 +89,7 @@ defmodule LantternWeb.CurriculumRelationshipControllerTest do
       curriculum_relationship: curriculum_relationship
     } do
       conn =
-        put(conn, ~p"/admin/curricula/curriculum_relationships/#{curriculum_relationship}",
+        put(conn, ~p"/admin/curriculum_relationships/#{curriculum_relationship}",
           curriculum_relationship: @invalid_attrs
         )
 
@@ -109,12 +105,12 @@ defmodule LantternWeb.CurriculumRelationshipControllerTest do
       curriculum_relationship: curriculum_relationship
     } do
       conn =
-        delete(conn, ~p"/admin/curricula/curriculum_relationships/#{curriculum_relationship}")
+        delete(conn, ~p"/admin/curriculum_relationships/#{curriculum_relationship}")
 
-      assert redirected_to(conn) == ~p"/admin/curricula/curriculum_relationships"
+      assert redirected_to(conn) == ~p"/admin/curriculum_relationships"
 
       assert_error_sent 404, fn ->
-        get(conn, ~p"/admin/curricula/curriculum_relationships/#{curriculum_relationship}")
+        get(conn, ~p"/admin/curriculum_relationships/#{curriculum_relationship}")
       end
     end
   end

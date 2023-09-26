@@ -1,0 +1,30 @@
+<.simple_form :let={f} for={@changeset} action={@action}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  <.input
+    field={f[:assessment_point_id]}
+    type="select"
+    label="Assessment point"
+    options={@assessment_point_options}
+    prompt="Select assessment point"
+  />
+  <.input
+    field={f[:student_id]}
+    type="select"
+    label="Student"
+    options={@student_options}
+    prompt="Select student"
+  />
+  <.input
+    field={f[:profile_id]}
+    type="select"
+    label="Teacher profile"
+    options={@profile_options}
+    prompt="Select profile"
+  />
+  <.input field={f[:comment]} type="text" label="Comment" />
+  <:actions>
+    <.button>Save Feedback</.button>
+  </:actions>
+</.simple_form>

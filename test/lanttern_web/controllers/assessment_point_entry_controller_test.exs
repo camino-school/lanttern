@@ -11,14 +11,14 @@ defmodule LantternWeb.AssessmentPointEntryControllerTest do
 
   describe "index" do
     test "lists all assessment_point_entries", %{conn: conn} do
-      conn = get(conn, ~p"/admin/assessments/assessment_point_entries")
+      conn = get(conn, ~p"/admin/assessment_point_entries")
       assert html_response(conn, 200) =~ "Listing Assessment point entries"
     end
   end
 
   describe "new assessment_point_entry" do
     test "renders form", %{conn: conn} do
-      conn = get(conn, ~p"/admin/assessments/assessment_point_entries/new")
+      conn = get(conn, ~p"/admin/assessment_point_entries/new")
       assert html_response(conn, 200) =~ "New Assessment point entry"
     end
   end
@@ -34,22 +34,18 @@ defmodule LantternWeb.AssessmentPointEntryControllerTest do
         |> Map.put_new(:student_id, student.id)
 
       conn =
-        post(conn, ~p"/admin/assessments/assessment_point_entries",
-          assessment_point_entry: create_attrs
-        )
+        post(conn, ~p"/admin/assessment_point_entries", assessment_point_entry: create_attrs)
 
       assert %{id: id} = redirected_params(conn)
-      assert redirected_to(conn) == ~p"/admin/assessments/assessment_point_entries/#{id}"
+      assert redirected_to(conn) == ~p"/admin/assessment_point_entries/#{id}"
 
-      conn = get(conn, ~p"/admin/assessments/assessment_point_entries/#{id}")
+      conn = get(conn, ~p"/admin/assessment_point_entries/#{id}")
       assert html_response(conn, 200) =~ "Assessment point entry #{id}"
     end
 
     test "renders errors when data is invalid", %{conn: conn} do
       conn =
-        post(conn, ~p"/admin/assessments/assessment_point_entries",
-          assessment_point_entry: @invalid_attrs
-        )
+        post(conn, ~p"/admin/assessment_point_entries", assessment_point_entry: @invalid_attrs)
 
       assert html_response(conn, 200) =~ "New Assessment point entry"
     end
@@ -63,7 +59,7 @@ defmodule LantternWeb.AssessmentPointEntryControllerTest do
       assessment_point_entry: assessment_point_entry
     } do
       conn =
-        get(conn, ~p"/admin/assessments/assessment_point_entries/#{assessment_point_entry}/edit")
+        get(conn, ~p"/admin/assessment_point_entries/#{assessment_point_entry}/edit")
 
       assert html_response(conn, 200) =~ "Edit Assessment point entry"
     end
@@ -77,14 +73,14 @@ defmodule LantternWeb.AssessmentPointEntryControllerTest do
       assessment_point_entry: assessment_point_entry
     } do
       conn =
-        put(conn, ~p"/admin/assessments/assessment_point_entries/#{assessment_point_entry}",
+        put(conn, ~p"/admin/assessment_point_entries/#{assessment_point_entry}",
           assessment_point_entry: @update_attrs
         )
 
       assert redirected_to(conn) ==
-               ~p"/admin/assessments/assessment_point_entries/#{assessment_point_entry}"
+               ~p"/admin/assessment_point_entries/#{assessment_point_entry}"
 
-      conn = get(conn, ~p"/admin/assessments/assessment_point_entries/#{assessment_point_entry}")
+      conn = get(conn, ~p"/admin/assessment_point_entries/#{assessment_point_entry}")
       assert html_response(conn, 200) =~ "some updated observation"
     end
 
@@ -93,7 +89,7 @@ defmodule LantternWeb.AssessmentPointEntryControllerTest do
       assessment_point_entry: assessment_point_entry
     } do
       conn =
-        put(conn, ~p"/admin/assessments/assessment_point_entries/#{assessment_point_entry}",
+        put(conn, ~p"/admin/assessment_point_entries/#{assessment_point_entry}",
           assessment_point_entry: @invalid_attrs
         )
 
@@ -109,12 +105,12 @@ defmodule LantternWeb.AssessmentPointEntryControllerTest do
       assessment_point_entry: assessment_point_entry
     } do
       conn =
-        delete(conn, ~p"/admin/assessments/assessment_point_entries/#{assessment_point_entry}")
+        delete(conn, ~p"/admin/assessment_point_entries/#{assessment_point_entry}")
 
-      assert redirected_to(conn) == ~p"/admin/assessments/assessment_point_entries"
+      assert redirected_to(conn) == ~p"/admin/assessment_point_entries"
 
       assert_error_sent 404, fn ->
-        get(conn, ~p"/admin/assessments/assessment_point_entries/#{assessment_point_entry}")
+        get(conn, ~p"/admin/assessment_point_entries/#{assessment_point_entry}")
       end
     end
   end

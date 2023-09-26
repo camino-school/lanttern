@@ -19,7 +19,7 @@ defmodule LantternWeb.SubjectController do
       {:ok, subject} ->
         conn
         |> put_flash(:info, "Subject created successfully.")
-        |> redirect(to: ~p"/admin/taxonomy/subjects/#{subject}")
+        |> redirect(to: ~p"/admin/subjects/#{subject}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :new, changeset: changeset)
@@ -44,7 +44,7 @@ defmodule LantternWeb.SubjectController do
       {:ok, subject} ->
         conn
         |> put_flash(:info, "Subject updated successfully.")
-        |> redirect(to: ~p"/admin/taxonomy/subjects/#{subject}")
+        |> redirect(to: ~p"/admin/subjects/#{subject}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :edit, subject: subject, changeset: changeset)
@@ -57,6 +57,6 @@ defmodule LantternWeb.SubjectController do
 
     conn
     |> put_flash(:info, "Subject deleted successfully.")
-    |> redirect(to: ~p"/admin/taxonomy/subjects")
+    |> redirect(to: ~p"/admin/subjects")
   end
 end

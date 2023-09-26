@@ -1,0 +1,12 @@
+<.header>
+  Edit Comment <%= @comment.id %>
+  <:subtitle>Use this form to manage comment records in your database.</:subtitle>
+</.header>
+
+<.comment_form
+  profile_options={@profile_options}
+  changeset={@changeset}
+  action={~p"/admin/comments/#{@comment}"}
+/>
+
+<.back navigate={~p"/admin/comments"}>Back to comments</.back>

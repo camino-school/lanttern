@@ -2,7 +2,7 @@
   Curriculum Item <%= @curriculum_item.id %>
   <:subtitle>This is a curriculum item record from your database.</:subtitle>
   <:actions>
-    <.link href={~p"/admin/curricula/curriculum_items/#{@curriculum_item}/edit"}>
+    <.link href={~p"/admin/curriculum_items/#{@curriculum_item}/edit"}>
       <.button>Edit curriculum item</.button>
     </.link>
   </:actions>
@@ -24,4 +24,4 @@
   <:item title="Code"><%= @curriculum_item.code %></:item>
 </.list>
 
-<.back navigate={~p"/admin/curricula/curriculum_items"}>Back to curriculum items</.back>
+<.back navigate={~p"/admin/curriculum_items"}>Back to curriculum items</.back>

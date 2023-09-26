@@ -19,7 +19,7 @@ defmodule LantternWeb.ScaleController do
       {:ok, scale} ->
         conn
         |> put_flash(:info, "Scale created successfully.")
-        |> redirect(to: ~p"/admin/grading/scales/#{scale}")
+        |> redirect(to: ~p"/admin/scales/#{scale}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :new, changeset: changeset)
@@ -44,7 +44,7 @@ defmodule LantternWeb.ScaleController do
       {:ok, scale} ->
         conn
         |> put_flash(:info, "Scale updated successfully.")
-        |> redirect(to: ~p"/admin/grading/scales/#{scale}")
+        |> redirect(to: ~p"/admin/scales/#{scale}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :edit, scale: scale, changeset: changeset)
@@ -57,6 +57,6 @@ defmodule LantternWeb.ScaleController do
 
     conn
     |> put_flash(:info, "Scale deleted successfully.")
-    |> redirect(to: ~p"/admin/grading/scales")
+    |> redirect(to: ~p"/admin/scales")
   end
 end

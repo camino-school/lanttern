@@ -512,9 +512,49 @@ defmodule Lanttern.IdentityTest do
 
     @invalid_attrs %{type: nil}
 
-    test "list_profiles/0 returns all profiles" do
+    test "list_profiles/1 returns all profiles" do
       profile = student_profile_fixture()
       assert Identity.list_profiles() == [profile]
+    end
+
+    test "list_profiles/1 with preloads and filter by type returns all profiles as expected" do
+      teacher = teacher_fixture()
+      teacher_profile = teacher_profile_fixture(%{teacher_id: teacher.id})
+
+      # extra student profile for filtering validation
+      student_profile_fixture()
+
+      # assert only one profile (teacher) is listed
+      assert [expected_profile] =
+               Identity.list_profiles(
+                 type: "teacher",
+                 preloads: :teacher
+               )
+
+      # assert teacher is preloaded
+      assert expected_profile.id == teacher_profile.id
+      assert expected_profile.teacher.id == teacher.id
+    end
+
+    test "list_profiles/1 with filter by user returns all profiles from user" do
+      user = user_fixture()
+      teacher_profile = teacher_profile_fixture(%{user_id: user.id})
+      student_profile = student_profile_fixture(%{user_id: user.id})
+
+      # extra profiles for filtering validation
+      teacher_profile_fixture()
+      student_profile_fixture()
+
+      # assert only one profile (teacher) is listed
+      expected = Identity.list_profiles(user_id: user.id)
+
+      # assert length and correct profiles are returned
+      assert length(expected) == 2
+
+      for expected_profile <- expected do
+        assert expected_profile.id in [teacher_profile.id, student_profile.id]
+        assert expected_profile.user_id == user.id
+      end
     end
 
     test "get_profile!/1 returns the profile with given id" do

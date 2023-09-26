@@ -2,7 +2,7 @@
   Profile <%= @profile.id %>
   <:subtitle>This is a profile record from your database.</:subtitle>
   <:actions>
-    <.link href={~p"/admin/identity/profiles/#{@profile}/edit"}>
+    <.link href={~p"/admin/profiles/#{@profile}/edit"}>
       <.button>Edit profile</.button>
     </.link>
   </:actions>
@@ -18,4 +18,4 @@
   </:item>
 </.list>
 
-<.back navigate={~p"/admin/identity/profiles"}>Back to profiles</.back>
+<.back navigate={~p"/admin/profiles"}>Back to profiles</.back>

@@ -403,6 +403,7 @@ defmodule Lanttern.Identity do
 
   `:preloads` – preloads associated data
   `:user_id` – filter profiles by user_id
+  `:type` – filter profiles by type
 
   ## Examples
 
@@ -412,23 +413,21 @@ defmodule Lanttern.Identity do
   """
   def list_profiles(opts \\ []) do
     Profile
-    |> maybe_filter_profiles_by_user_id(opts)
+    |> maybe_filter_profiles(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
-  defp maybe_filter_profiles_by_user_id(profiles_query, opts) do
-    case Keyword.get(opts, :user_id) do
-      nil ->
-        profiles_query
+  defp maybe_filter_profiles(query, opts),
+    do: Enum.reduce(opts, query, &filter_profiles/2)
 
-      user_id ->
-        from(
-          p in profiles_query,
-          where: p.user_id == ^user_id
-        )
-    end
-  end
+  defp filter_profiles({:user_id, user_id}, query),
+    do: from(p in query, where: p.user_id == ^user_id)
+
+  defp filter_profiles({:type, type}, query),
+    do: from(p in query, where: p.type == ^type)
+
+  defp filter_profiles(_kv, query), do: query
 
   @doc """
   Gets a single profile.

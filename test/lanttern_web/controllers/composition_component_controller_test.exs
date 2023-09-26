@@ -11,14 +11,14 @@ defmodule LantternWeb.CompositionComponentControllerTest do
 
   describe "index" do
     test "lists all composition_components", %{conn: conn} do
-      conn = get(conn, ~p"/admin/grading/composition_components")
+      conn = get(conn, ~p"/admin/grading_composition_components")
       assert html_response(conn, 200) =~ "Listing Grade composition components"
     end
   end
 
   describe "new composition_component" do
     test "renders form", %{conn: conn} do
-      conn = get(conn, ~p"/admin/grading/composition_components/new")
+      conn = get(conn, ~p"/admin/grading_composition_components/new")
       assert html_response(conn, 200) =~ "New Composition component"
     end
   end
@@ -29,18 +29,18 @@ defmodule LantternWeb.CompositionComponentControllerTest do
       create_attrs = @create_attrs |> Map.put_new(:composition_id, composition.id)
 
       conn =
-        post(conn, ~p"/admin/grading/composition_components", composition_component: create_attrs)
+        post(conn, ~p"/admin/grading_composition_components", composition_component: create_attrs)
 
       assert %{id: id} = redirected_params(conn)
-      assert redirected_to(conn) == ~p"/admin/grading/composition_components/#{id}"
+      assert redirected_to(conn) == ~p"/admin/grading_composition_components/#{id}"
 
-      conn = get(conn, ~p"/admin/grading/composition_components/#{id}")
+      conn = get(conn, ~p"/admin/grading_composition_components/#{id}")
       assert html_response(conn, 200) =~ "Composition component #{id}"
     end
 
     test "renders errors when data is invalid", %{conn: conn} do
       conn =
-        post(conn, ~p"/admin/grading/composition_components",
+        post(conn, ~p"/admin/grading_composition_components",
           composition_component: @invalid_attrs
         )
 
@@ -55,7 +55,7 @@ defmodule LantternWeb.CompositionComponentControllerTest do
       conn: conn,
       composition_component: composition_component
     } do
-      conn = get(conn, ~p"/admin/grading/composition_components/#{composition_component}/edit")
+      conn = get(conn, ~p"/admin/grading_composition_components/#{composition_component}/edit")
       assert html_response(conn, 200) =~ "Edit Composition component"
     end
   end
@@ -68,14 +68,14 @@ defmodule LantternWeb.CompositionComponentControllerTest do
       composition_component: composition_component
     } do
       conn =
-        put(conn, ~p"/admin/grading/composition_components/#{composition_component}",
+        put(conn, ~p"/admin/grading_composition_components/#{composition_component}",
           composition_component: @update_attrs
         )
 
       assert redirected_to(conn) ==
-               ~p"/admin/grading/composition_components/#{composition_component}"
+               ~p"/admin/grading_composition_components/#{composition_component}"
 
-      conn = get(conn, ~p"/admin/grading/composition_components/#{composition_component}")
+      conn = get(conn, ~p"/admin/grading_composition_components/#{composition_component}")
       assert html_response(conn, 200) =~ "some updated name"
     end
 
@@ -84,7 +84,7 @@ defmodule LantternWeb.CompositionComponentControllerTest do
       composition_component: composition_component
     } do
       conn =
-        put(conn, ~p"/admin/grading/composition_components/#{composition_component}",
+        put(conn, ~p"/admin/grading_composition_components/#{composition_component}",
           composition_component: @invalid_attrs
         )
 
@@ -99,11 +99,11 @@ defmodule LantternWeb.CompositionComponentControllerTest do
       conn: conn,
       composition_component: composition_component
     } do
-      conn = delete(conn, ~p"/admin/grading/composition_components/#{composition_component}")
-      assert redirected_to(conn) == ~p"/admin/grading/composition_components"
+      conn = delete(conn, ~p"/admin/grading_composition_components/#{composition_component}")
+      assert redirected_to(conn) == ~p"/admin/grading_composition_components"
 
       assert_error_sent 404, fn ->
-        get(conn, ~p"/admin/grading/composition_components/#{composition_component}")
+        get(conn, ~p"/admin/grading_composition_components/#{composition_component}")
       end
     end
   end

@@ -40,7 +40,7 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponentTest do
 
       class =
         Lanttern.SchoolsFixtures.class_fixture(%{
-          name: "some class",
+          name: "class 1",
           students_ids: [std_1.id, std_2.id, std_3.id]
         })
 
@@ -53,37 +53,185 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponentTest do
 
       # assert class and students badges are rendered
       assert view
-             |> element("#{@overlay_selector} span.rounded-sm", class.name)
-             |> render() =~ class.name
+             |> element("#{@overlay_selector} #class-badge-#{class.id}", class.name)
+             |> has_element?()
 
       assert view
-             |> element("#{@overlay_selector} span.rounded-sm", std_1.name)
-             |> render() =~ std_1.name
+             |> element("#{@overlay_selector} #student-badge-#{std_1.id}", std_1.name)
+             |> has_element?()
 
       assert view
-             |> element("#{@overlay_selector} span.rounded-sm", std_2.name)
-             |> render() =~ std_2.name
+             |> element("#{@overlay_selector} #student-badge-#{std_2.id}", std_2.name)
+             |> has_element?()
 
       assert view
-             |> element("#{@overlay_selector} span.rounded-sm", std_3.name)
-             |> render() =~ std_3.name
+             |> element("#{@overlay_selector} #student-badge-#{std_3.id}", std_3.name)
+             |> has_element?()
 
-      # delete class
+      # remove class should not affect students
       view
       |> element("#{@overlay_selector} #class-badge-#{class.id} button")
       |> render_click()
 
       refute view
-             |> element("#{@overlay_selector} span.rounded-sm", class.name)
+             |> element("#{@overlay_selector} #class-badge-#{class.id}", class.name)
              |> has_element?()
 
-      # delete std_3
+      assert view
+             |> element("#{@overlay_selector} #student-badge-#{std_1.id}", std_1.name)
+             |> has_element?()
+
+      assert view
+             |> element("#{@overlay_selector} #student-badge-#{std_2.id}", std_2.name)
+             |> has_element?()
+
+      assert view
+             |> element("#{@overlay_selector} #student-badge-#{std_3.id}", std_3.name)
+             |> has_element?()
+
+      # remove student should not affect other students
       view
       |> element("#{@overlay_selector} #student-badge-#{std_3.id} button")
       |> render_click()
 
+      assert view
+             |> element("#{@overlay_selector} #student-badge-#{std_1.id}", std_1.name)
+             |> has_element?()
+
+      assert view
+             |> element("#{@overlay_selector} #student-badge-#{std_2.id}", std_2.name)
+             |> has_element?()
+
       refute view
-             |> element("#{@overlay_selector} span.rounded-md", std_3.name)
+             |> element("#{@overlay_selector} #student-badge-#{std_3.id}", std_3.name)
+             |> has_element?()
+    end
+
+    test "selecting a class merges the selected class students with already selected students", %{
+      conn: conn
+    } do
+      std_1_1 = Lanttern.SchoolsFixtures.student_fixture(%{name: "std 1-1"})
+      std_1_2 = Lanttern.SchoolsFixtures.student_fixture(%{name: "std 1-2"})
+
+      std_2_1 = Lanttern.SchoolsFixtures.student_fixture(%{name: "std 2-1"})
+      std_2_2 = Lanttern.SchoolsFixtures.student_fixture(%{name: "std 2-2"})
+
+      class_1 =
+        Lanttern.SchoolsFixtures.class_fixture(%{
+          name: "class 1",
+          students_ids: [std_1_1.id, std_1_2.id]
+        })
+
+      class_2 =
+        Lanttern.SchoolsFixtures.class_fixture(%{
+          name: "class 2",
+          students_ids: [std_2_1.id, std_2_2.id]
+        })
+
+      {:ok, view, _html} = live(conn, @assessment_points_path)
+
+      # select class 1 and assert class and students badges are rendered
+      view
+      |> element("#{@overlay_selector} select", "Select classes")
+      |> render_change(%{"assessment_point" => %{"class_id" => class_1.id}})
+
+      assert view
+             |> element("#{@overlay_selector} #class-badge-#{class_1.id}", class_1.name)
+             |> has_element?()
+
+      assert view
+             |> element("#{@overlay_selector} #student-badge-#{std_1_1.id}", std_1_1.name)
+             |> has_element?()
+
+      assert view
+             |> element("#{@overlay_selector} #student-badge-#{std_1_2.id}", std_1_2.name)
+             |> has_element?()
+
+      # select class 2 and assert all class and students badges are rendered
+      view
+      |> element("#{@overlay_selector} select", "Select classes")
+      |> render_change(%{"assessment_point" => %{"class_id" => class_2.id}})
+
+      assert view
+             |> element("#{@overlay_selector} #class-badge-#{class_1.id}", class_1.name)
+             |> has_element?()
+
+      assert view
+             |> element("#{@overlay_selector} #student-badge-#{std_1_1.id}", std_1_1.name)
+             |> has_element?()
+
+      assert view
+             |> element("#{@overlay_selector} #student-badge-#{std_1_2.id}", std_1_2.name)
+             |> has_element?()
+
+      assert view
+             |> element("#{@overlay_selector} #class-badge-#{class_2.id}", class_2.name)
+             |> has_element?()
+
+      assert view
+             |> element("#{@overlay_selector} #student-badge-#{std_2_1.id}", std_2_1.name)
+             |> has_element?()
+
+      assert view
+             |> element("#{@overlay_selector} #student-badge-#{std_2_2.id}", std_2_2.name)
+             |> has_element?()
+    end
+
+    test "selecting a student create students badges, which can be removed", %{
+      conn: conn
+    } do
+      std = Lanttern.SchoolsFixtures.student_fixture(%{name: "std 1"})
+
+      {:ok, view, _html} = live(conn, @assessment_points_path)
+
+      # select student
+      view
+      |> element("#{@overlay_selector} select", "Select students")
+      |> render_change(%{"assessment_point" => %{"student_id" => std.id}})
+
+      # assert student badge is rendered
+      assert view
+             |> element("#{@overlay_selector} #student-badge-#{std.id}", std.name)
+             |> has_element?()
+
+      # remove student
+      view
+      |> element("#{@overlay_selector} #student-badge-#{std.id} button")
+      |> render_click()
+
+      refute view
+             |> element("#{@overlay_selector} #student-badge-#{std.id}", std.name)
+             |> has_element?()
+    end
+
+    test "selecting a student merges the selected student with already selected students", %{
+      conn: conn
+    } do
+      std_1 = Lanttern.SchoolsFixtures.student_fixture(%{name: "std 1"})
+      std_2 = Lanttern.SchoolsFixtures.student_fixture(%{name: "std 2"})
+
+      {:ok, view, _html} = live(conn, @assessment_points_path)
+
+      # select student 1 and assert badge is rendered
+      view
+      |> element("#{@overlay_selector} select", "Select students")
+      |> render_change(%{"assessment_point" => %{"student_id" => std_1.id}})
+
+      assert view
+             |> element("#{@overlay_selector} #student-badge-#{std_1.id}", std_1.name)
+             |> has_element?()
+
+      # select student 2 and assert all students badges are rendered
+      view
+      |> element("#{@overlay_selector} select", "Select students")
+      |> render_change(%{"assessment_point" => %{"student_id" => std_2.id}})
+
+      assert view
+             |> element("#{@overlay_selector} #student-badge-#{std_1.id}", std_1.name)
+             |> has_element?()
+
+      assert view
+             |> element("#{@overlay_selector} #student-badge-#{std_2.id}", std_2.name)
              |> has_element?()
     end
 

@@ -1,27 +1,23 @@
 <.header>
   Listing Curricula
   <:actions>
-    <.link href={~p"/admin/curricula/cur/new"}>
+    <.link href={~p"/admin/curricula/new"}>
       <.button>New Curriculum</.button>
     </.link>
   </:actions>
 </.header>
 
-<.table id="curricula" rows={@curricula} row_click={&JS.navigate(~p"/admin/curricula/cur/#{&1}")}>
+<.table id="curricula" rows={@curricula} row_click={&JS.navigate(~p"/admin/curricula/#{&1}")}>
   <:col :let={curriculum} label="Code"><%= curriculum.code %></:col>
   <:col :let={curriculum} label="Name"><%= curriculum.name %></:col>
   <:action :let={curriculum}>
     <div class="sr-only">
-      <.link navigate={~p"/admin/curricula/cur/#{curriculum}"}>Show</.link>
+      <.link navigate={~p"/admin/curricula/#{curriculum}"}>Show</.link>
     </div>
-    <.link navigate={~p"/admin/curricula/cur/#{curriculum}/edit"}>Edit</.link>
+    <.link navigate={~p"/admin/curricula/#{curriculum}/edit"}>Edit</.link>
   </:action>
   <:action :let={curriculum}>
-    <.link
-      href={~p"/admin/curricula/cur/#{curriculum}"}
-      method="delete"
-      data-confirm="Are you sure?"
-    >
+    <.link href={~p"/admin/curricula/#{curriculum}"} method="delete" data-confirm="Are you sure?">
       Delete
     </.link>
   </:action>

@@ -1,27 +1,23 @@
 <.header>
   Listing Teachers
   <:actions>
-    <.link href={~p"/admin/schools/teachers/new"}>
+    <.link href={~p"/admin/teachers/new"}>
       <.button>New Teacher</.button>
     </.link>
   </:actions>
 </.header>
 
-<.table id="teachers" rows={@teachers} row_click={&JS.navigate(~p"/admin/schools/teachers/#{&1}")}>
+<.table id="teachers" rows={@teachers} row_click={&JS.navigate(~p"/admin/teachers/#{&1}")}>
   <:col :let={teacher} label="School"><%= teacher.school.name %></:col>
   <:col :let={teacher} label="Name"><%= teacher.name %></:col>
   <:action :let={teacher}>
     <div class="sr-only">
-      <.link navigate={~p"/admin/schools/teachers/#{teacher}"}>Show</.link>
+      <.link navigate={~p"/admin/teachers/#{teacher}"}>Show</.link>
     </div>
-    <.link navigate={~p"/admin/schools/teachers/#{teacher}/edit"}>Edit</.link>
+    <.link navigate={~p"/admin/teachers/#{teacher}/edit"}>Edit</.link>
   </:action>
   <:action :let={teacher}>
-    <.link
-      href={~p"/admin/schools/teachers/#{teacher}"}
-      method="delete"
-      data-confirm="Are you sure?"
-    >
+    <.link href={~p"/admin/teachers/#{teacher}"} method="delete" data-confirm="Are you sure?">
       Delete
     </.link>
   </:action>

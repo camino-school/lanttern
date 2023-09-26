@@ -1,9 +1,21 @@
 defmodule LantternWeb.AssessmentPointLive do
-  use LantternWeb, :live_view
+  @moduledoc """
+  ### PubSub subscription topics
 
+  - "assessment_point:id" on `handle_params`
+
+  Expected broadcasted messages in `handle_info/2` documentation.
+  """
+
+  use LantternWeb, :live_view
+  alias Phoenix.PubSub
+
+  import LantternWeb.DateTimeHelpers
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.Assessments.Feedback
   alias Lanttern.Grading
+  alias Lanttern.Schools.Student
 
   def render(assigns) do
     ~H"""
@@ -39,45 +51,40 @@ defmodule LantternWeb.AssessmentPointLive do
             <%= @assessment_point.description %>
           </p>
         </div>
-        <div class="flex items-center mt-10">
-          <.icon name="hero-calendar" class="text-rose-500 mr-4" /> Date: <%= @formatted_datetime %>
-        </div>
-        <div class="flex items-center mt-4">
-          <.icon name="hero-bookmark" class="text-rose-500 mr-4" />
+        <.icon_and_content icon_name="hero-calendar">
+          Date: <%= format_local!(@assessment_point.datetime, "{Mshort} {D}, {YYYY}, {h24}:{m}") %>
+        </.icon_and_content>
+        <.icon_and_content icon_name="hero-bookmark">
           Curriculum: <%= @assessment_point.curriculum_item.name %>
-        </div>
-        <div class="flex items-center mt-4">
-          <.icon name="hero-view-columns" class="text-rose-500 mr-4" />
+        </.icon_and_content>
+        <.icon_and_content icon_name="hero-view-columns">
           Scale: <%= @assessment_point.scale.name %>
           <.ordinal_values ordinal_values={@ordinal_values} />
-        </div>
-        <div :if={length(@assessment_point.classes) > 0} class="flex items-center mt-4">
-          <.icon name="hero-squares-2x2" class="text-rose-500 mr-4" /> Classes:
+        </.icon_and_content>
+        <.icon_and_content :if={length(@assessment_point.classes) > 0} icon_name="hero-squares-2x2">
           <.classes classes={@assessment_point.classes} />
-        </div>
+        </.icon_and_content>
         <div class="mt-20">
-          <div class="flex items-center gap-2">
-            <div class="shrink-0 w-1/4"></div>
-            <div class={[
-              "flex items-center gap-2 font-display font-bold text-ltrn-subtle",
-              if(
-                @assessment_point.scale.type == "ordinal",
-                do: "flex-[2_0]",
-                else: "flex-[1_0]"
-              )
-            ]}>
+          <div class={"grid #{head_grid_cols_based_on_scale_type(@assessment_point.scale.type)} items-center gap-2"}>
+            <div>&nbsp;</div>
+            <div class="flex items-center gap-2 font-display font-bold text-ltrn-subtle">
               <.icon name="hero-view-columns" />
               <span>Marking</span>
             </div>
-            <div class="flex-[2_0] items-center gap-2 font-display font-bold text-ltrn-subtle">
+            <div class="flex items-center gap-2 font-display font-bold text-ltrn-subtle">
               <.icon name="hero-pencil-square" />
-              <span>Notes and observations</span>
+              <span>Observations</span>
+            </div>
+            <div class="flex items-center gap-2 font-display font-bold text-ltrn-subtle">
+              <.icon name="hero-chat-bubble-left-right" />
+              <span>Feedback</span>
             </div>
           </div>
           <.entry_row
             :for={entry <- @entries}
             entry={entry}
-            student_name={entry.student.name}
+            student={entry.student}
+            feedback={entry.feedback}
             scale_type={@assessment_point.scale.type}
           />
         </div>
@@ -88,6 +95,33 @@ defmodule LantternWeb.AssessmentPointLive do
       id="update-assessment-point-overlay"
       assessment_point={@assessment_point}
     />
+    <.live_component
+      module={LantternWeb.FeedbackOverlayComponent}
+      id="feedback-overlay"
+      current_user={@current_user}
+      assessment_point={@assessment_point}
+      feedback_id={@current_feedback_id}
+      student={@current_feedback_student}
+      show={@show_feedback}
+      on_cancel={JS.push("close-feedback")}
+    />
+    """
+  end
+
+  defp head_grid_cols_based_on_scale_type("numeric"),
+    do: "grid-cols-[12rem_minmax(10px,_1fr)_minmax(10px,_2fr)_minmax(10px,_2fr)]"
+
+  defp head_grid_cols_based_on_scale_type("ordinal"),
+    do: "grid-cols-[12rem_minmax(10px,_2fr)_minmax(10px,_2fr)_minmax(10px,_2fr)]"
+
+  attr :icon_name, :string, required: true
+  slot :inner_block, required: true
+
+  def icon_and_content(assigns) do
+    ~H"""
+    <div class="flex items-center mt-10">
+      <.icon name={@icon_name} class="shrink-0 text-rose-500 mr-4" /> <%= render_slot(@inner_block) %>
+    </div>
     """
   end
 
@@ -120,34 +154,117 @@ defmodule LantternWeb.AssessmentPointLive do
   end
 
   attr :entry, AssessmentPointEntry, required: true
-  attr :student_name, :string, required: true
+  attr :student, Student, required: true
+  attr :feedback, Feedback, default: nil
   attr :scale_type, :string, required: true
 
   def entry_row(assigns) do
     ~H"""
-    <div class="flex items-stretch gap-2 mt-4">
-      <.icon_with_name class="self-center shrink-0 w-1/4" profile_name={@student_name} />
+    <div class={"grid #{row_grid_cols_based_on_scale_type(@scale_type)} gap-2 mt-4"}>
+      <.icon_with_name class="self-center" profile_name={@student.name} />
       <.live_component
         module={LantternWeb.AssessmentPointEntryEditorComponent}
         id={@entry.id}
         entry={@entry}
-        wrapper_class="flex-1 items-stretch"
-        class="flex items-stretch gap-2"
+        class={"grid #{entry_grid_cols_based_on_scale_type(@scale_type)} gap-2"}
       >
-        <:marking_input class={if @scale_type == "numeric", do: "flex-[1_0]", else: "flex-[2_0]"} />
-        <:observation_input class="flex-[2_0]" />
+        <:marking_input />
+        <:observation_input />
       </.live_component>
+      <.feedback_button feedback={@feedback} student_id={@student.id} />
     </div>
+    """
+  end
+
+  defp row_grid_cols_based_on_scale_type("numeric"),
+    do: "grid-cols-[12rem_minmax(10px,_3fr)_minmax(10px,_2fr)]"
+
+  defp row_grid_cols_based_on_scale_type("ordinal"),
+    do: "grid-cols-[12rem_minmax(10px,_4fr)_minmax(10px,_2fr)]"
+
+  defp entry_grid_cols_based_on_scale_type("numeric"),
+    do: "grid-cols-[minmax(10px,_1fr)_minmax(10px,_2fr)]"
+
+  defp entry_grid_cols_based_on_scale_type("ordinal"),
+    do: "grid-cols-2"
+
+  attr :feedback, :any, default: nil
+  attr :student_id, :string, required: true
+
+  def feedback_button(%{feedback: %{completion_comment_id: nil}} = assigns) do
+    ~H"""
+    <.feedback_button_base feedback={@feedback} student_id={@student_id}>
+      <.icon name="hero-check-circle" class="shrink-0 w-6 h-6" />
+      <span class="flex-1 block text-left">
+        <span class="w-full text-ltrn-text line-clamp-3">
+          <%= @feedback.comment %>
+        </span>
+        Not completed yet
+      </span>
+    </.feedback_button_base>
+    """
+  end
+
+  def feedback_button(%{feedback: %{completion_comment_id: comment_id}} = assigns)
+      when not is_nil(comment_id) do
+    ~H"""
+    <.feedback_button_base feedback={@feedback} student_id={@student_id}>
+      <.icon name="hero-check-circle" class="shrink-0 w-6 h-6 text-green-500" />
+      <span class="flex-1 block text-left">
+        <span class="w-full text-ltrn-text line-clamp-3">
+          <%= @feedback.comment %>
+        </span>
+        Completed <%= format_local!(@feedback.completion_comment.inserted_at, "{Mshort} {D}, {YYYY}") %> 🎉
+      </span>
+    </.feedback_button_base>
+    """
+  end
+
+  def feedback_button(%{feedback: nil} = assigns) do
+    ~H"""
+    <.feedback_button_base feedback={@feedback} student_id={@student_id}>
+      <.icon name="hero-x-circle" class="shrink-0 w-6 h-6" /> No feedback yet
+    </.feedback_button_base>
+    """
+  end
+
+  attr :feedback, :any, default: nil
+  attr :student_id, :string, required: true
+  slot :inner_block, required: true
+
+  def feedback_button_base(assigns) do
+    feedback_id =
+      case assigns.feedback do
+        %{id: id} -> id
+        _ -> nil
+      end
+
+    assigns =
+      assign(assigns, feedback_id: feedback_id)
+
+    ~H"""
+    <button
+      type="button"
+      class={[
+        "flex items-center gap-2 px-4 rounded-sm text-xs text-ltrn-subtle shadow-md",
+        if(@feedback_id, do: "bg-white", else: "bg-ltrn-hairline")
+      ]}
+      phx-click="open-feedback"
+      phx-value-feedbackid={@feedback_id}
+      phx-value-studentid={@student_id}
+    >
+      <%= render_slot(@inner_block) %>
+    </button>
     """
   end
 
   # lifecycle
 
-  def mount(_params, _session, socket) do
-    {:ok, socket}
-  end
-
   def handle_params(%{"id" => id}, _uri, socket) do
+    if connected?(socket) do
+      PubSub.subscribe(Lanttern.PubSub, "assessment_point:#{id}")
+    end
+
     try do
       Assessments.get_assessment_point!(id, [
         :curriculum_item,
@@ -167,8 +284,10 @@ defmodule LantternWeb.AssessmentPointLive do
         entries =
           Assessments.list_assessment_point_entries(
             preloads: [:student, :ordinal_value],
-            assessment_point_id: assessment_point.id
+            assessment_point_id: assessment_point.id,
+            load_feedback: true
           )
+          # to do: move sort to list_assessment_point_entries
           |> Enum.sort_by(& &1.student.name)
 
         ordinal_values =
@@ -178,19 +297,15 @@ defmodule LantternWeb.AssessmentPointLive do
             nil
           end
 
-        formatted_datetime =
-          Timex.format!(
-            Timex.local(assessment_point.datetime),
-            "{Mshort} {D}, {YYYY}, {h12}:{m} {am}"
-          )
-
         socket =
           socket
           |> assign(:assessment_point, assessment_point)
           |> assign(:entries, entries)
           |> assign(:ordinal_values, ordinal_values)
-          |> assign(:formatted_datetime, formatted_datetime)
           |> assign(:is_updating, false)
+          |> assign(:current_feedback_id, nil)
+          |> assign(:current_feedback_student, nil)
+          |> assign(:show_feedback, false)
 
         {:noreply, socket}
     end
@@ -206,7 +321,99 @@ defmodule LantternWeb.AssessmentPointLive do
     {:noreply, assign(socket, :is_updating, false)}
   end
 
+  def handle_event("open-feedback", params, socket) do
+    feedback_id =
+      params
+      |> Map.get("feedbackid")
+      |> case do
+        nil -> nil
+        id -> String.to_integer(id)
+      end
+
+    student =
+      socket.assigns.entries
+      |> Enum.map(&Map.get(&1, :student))
+      |> Enum.find(fn s -> "#{s.id}" == params["studentid"] end)
+
+    socket =
+      socket
+      |> assign(:current_feedback_id, feedback_id)
+      |> assign(:current_feedback_student, student)
+      |> assign(:show_feedback, true)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("close-feedback", _params, socket) do
+    socket =
+      socket
+      |> assign(:current_feedback_id, nil)
+      |> assign(:current_feedback_student, nil)
+      |> assign(:show_feedback, false)
+
+    {:noreply, socket}
+  end
+
   # info handlers
+
+  @doc """
+  Handles sent or broadcasted messages from children Live Components.
+
+  ## Clauses
+
+  #### Assessment point update success
+
+  Sent from `LantternWeb.AssessmentPointUpdateOverlayComponent`.
+
+  🔺 Not implemented in PubSub yet
+
+      handle_info({:assessment_point_updated, assessment_point}, socket)
+
+  #### Assessment point entry save error
+
+  Sent from `LantternWeb.AssessmentPointEntryEditorComponent`.
+
+  🔺 Not implemented in PubSub yet
+
+      handle_info({:assessment_point_entry_save_error, %Ecto.Changeset{errors: [score: {score_error, _}]} = _changeset}, socket)
+      handle_info({:assessment_point_entry_save_error, _changeset}, socket)
+
+  #### Feedback created
+
+  Broadcasted to `"assessment_point:id"` from `LantternWeb.FeedbackOverlayComponent`.
+
+      handle_info({:feedback_created, feedback}, socket)
+
+  #### Feedback updated
+
+  Broadcasted to `"assessment_point:id"` from `LantternWeb.FeedbackOverlayComponent`.
+
+      handle_info({:feedback_updated, feedback}, socket)
+
+  ### Feedback comment messages
+
+  All `handle_info()` for feedback comment have to `send_update()` to
+  `FeedbackOverlayComponent`, in order to "trigger" the comment thread
+  update inside the live component.
+
+  #### Feedback comment created
+
+  Broadcasted to `"assessment_point:id"` from `LantternWeb.FeedbackCommentFormComponent`.
+
+      handle_info({:feedback_comment_created, _comment} = msg, socket) do
+
+  #### Feedback comment updated
+
+  Broadcasted to `"assessment_point:id"` from `LantternWeb.FeedbackCommentFormComponent`.
+
+      handle_info({:feedback_comment_updated, _comment} = msg, socket) do
+
+  #### Feedback comment deleted
+
+  Broadcasted to `"assessment_point:id"` from `LantternWeb.FeedbackCommentFormComponent`.
+
+      handle_info({:feedback_comment_deleted, _comment} = msg, socket) do
+  """
 
   def handle_info({:assessment_point_updated, assessment_point}, socket) do
     socket =
@@ -237,4 +444,109 @@ defmodule LantternWeb.AssessmentPointLive do
 
     {:noreply, socket}
   end
+
+  def handle_info({:feedback_created, feedback}, socket) do
+    socket =
+      socket
+      |> update(:entries, &update_entries(&1, feedback))
+      |> assign(:current_feedback_id, feedback.id)
+      |> assign(:current_feedback_student, feedback.student)
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:feedback_updated, feedback}, socket) do
+    socket =
+      socket
+      |> update(:entries, &update_entries(&1, feedback))
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:feedback_comment_created, _comment} = msg, socket) do
+    send_comment_update_to_feedback_overlay(msg)
+
+    socket =
+      socket
+      |> maybe_update_socket_entries(msg)
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:feedback_comment_updated, _comment} = msg, socket) do
+    send_comment_update_to_feedback_overlay(msg)
+
+    socket =
+      socket
+      |> maybe_update_socket_entries(msg)
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:feedback_comment_deleted, _comment} = msg, socket) do
+    send_comment_update_to_feedback_overlay(msg)
+
+    socket =
+      socket
+      |> maybe_update_socket_entries(msg)
+
+    {:noreply, socket}
+  end
+
+  defp send_comment_update_to_feedback_overlay({_key, _comment} = msg) do
+    send_update(
+      LantternWeb.FeedbackOverlayComponent,
+      id: "feedback-overlay",
+      action: msg
+    )
+  end
+
+  defp maybe_update_socket_entries(socket, {:feedback_comment_deleted, _comment}) do
+    # check if there's some feedback that was
+    # completed by the deleted comment, and
+    # update it's completion_comment if needed
+    current_feedback_id = socket.assigns.current_feedback_id
+
+    socket
+    |> update(
+      :entries,
+      &Enum.map(&1, fn
+        %{feedback: %{id: ^current_feedback_id}} = entry ->
+          entry
+          |> Map.put(:feedback, %{entry.feedback | completion_comment_id: nil})
+
+        entry ->
+          entry
+      end)
+    )
+  end
+
+  defp maybe_update_socket_entries(socket, {_key, comment}) do
+    # if comment completes feedback,
+    # update feedback in entries to reflect
+    # on feedback button
+    case comment.completed_feedback do
+      %Feedback{} = feedback ->
+        socket
+        |> update(
+          :entries,
+          &update_entries(
+            &1,
+            %{feedback | completion_comment: comment}
+          )
+        )
+
+      _ ->
+        socket
+    end
+  end
+
+  defp update_entries(entries, feedback),
+    do: Enum.map(entries, &update_entry_feedback(&1, feedback))
+
+  defp update_entry_feedback(entry, feedback)
+       when entry.student_id == feedback.student_id,
+       do: Map.put(entry, :feedback, feedback)
+
+  defp update_entry_feedback(entry, _feedback), do: entry
 end

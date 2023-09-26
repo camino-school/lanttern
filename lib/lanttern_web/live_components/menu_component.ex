@@ -40,8 +40,12 @@ defmodule LantternWeb.MenuComponent do
           <nav class="mt-10">
             <ul class="font-bold text-lg text-ltrn-subtle leading-loose">
               <li :if={@current_user.is_root_admin}>
-                <.link href={~p"/admin"} target="_blank" class="underline hover:text-ltrn-text">
-                  Admin
+                <.link
+                  href={~p"/admin"}
+                  target="_blank"
+                  class="flex items-center gap-2 underline hover:text-ltrn-text"
+                >
+                  Admin <.icon name="hero-arrow-top-right-on-square" />
                 </.link>
               </li>
               <li>

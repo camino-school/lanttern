@@ -1,0 +1,16 @@
+<.simple_form :let={f} for={@changeset} action={@action}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  <.input
+    field={f[:profile_id]}
+    type="select"
+    label="Profile"
+    options={@profile_options}
+    prompt="Select profile"
+  />
+  <.input field={f[:comment]} type="textarea" label="Comment" />
+  <:actions>
+    <.button>Save Comment</.button>
+  </:actions>
+</.simple_form>

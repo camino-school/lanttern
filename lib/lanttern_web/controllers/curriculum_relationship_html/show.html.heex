@@ -2,7 +2,7 @@
   Curriculum relationship <%= @curriculum_relationship.id %>
   <:subtitle>This is a curriculum_relationship record from your database.</:subtitle>
   <:actions>
-    <.link href={~p"/admin/curricula/curriculum_relationships/#{@curriculum_relationship}/edit"}>
+    <.link href={~p"/admin/curriculum_relationships/#{@curriculum_relationship}/edit"}>
       <.button>Edit curriculum_relationship</.button>
     </.link>
   </:actions>
@@ -14,6 +14,6 @@
   <:item title="Type"><%= @curriculum_relationship.type %></:item>
 </.list>
 
-<.back navigate={~p"/admin/curricula/curriculum_relationships"}>
+<.back navigate={~p"/admin/curriculum_relationships"}>
   Back to curriculum_relationships
 </.back>
