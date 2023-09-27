@@ -19,7 +19,7 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
     <div class="container mx-auto lg:max-w-5xl mt-10">
       <div class="flex items-center text-sm">
         <p class="flex items-center gap-2">
-          1 result in
+          <%= length(@assessment_points) %> results in
           <%= if @current_classes == [] do %>
             <.badge>all classes</.badge>
           <% else %>
@@ -190,12 +190,6 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
   end
 
   def handle_params(params, _uri, socket) do
-    %{
-      assessment_points: assessment_points,
-      students_and_entries: students_and_entries
-    } =
-      Assessments.list_students_assessment_points_grid()
-
     params_classes_ids =
       case Map.get(params, "classes_ids") do
         ids when is_list(ids) -> ids
@@ -229,6 +223,12 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
         nil -> []
         ids -> subjects |> Enum.filter(&("#{&1.id}" in ids))
       end
+
+    %{
+      assessment_points: assessment_points,
+      students_and_entries: students_and_entries
+    } =
+      Assessments.list_students_assessment_points_grid()
 
     socket =
       socket

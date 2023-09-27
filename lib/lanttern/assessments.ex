@@ -305,45 +305,81 @@ defmodule Lanttern.Assessments do
   and all students have the same number of items, using `nil` when the student
   is not linked to the assessment point in that position.
 
+  ## Options:
+
+    - `:filters` – accepts `:classes_ids`
+
+  ### Filtering by `:classes_ids`
+
+  We expect the function to return all assessment points that happened in the context of the classes,
+  which can include entries from students that are not currently in the class (ex: student moved to another class)
+
   ## Examples
 
       iex> list_students_assessment_points_grid()
       %{assessment_points: [%AssessmentPoint{}, ...], students_and_entries: [{%Student{}, [%AssessmentPointEntry{}, ...]}, ...]}
   """
-  def list_students_assessment_points_grid() do
-    query =
-      from std in Lanttern.Schools.Student,
-        join: ast in AssessmentPoint,
-        on: true,
-        left_join: ent in AssessmentPointEntry,
-        on: ent.student_id == std.id and ent.assessment_point_id == ast.id,
-        order_by: [std.name, ast.datetime],
-        select: {std, ast, ent}
-
-    all = Repo.all(query)
+  def list_students_assessment_points_grid(opts \\ []) do
+    all =
+      from(ast in AssessmentPoint,
+        join: ent in assoc(ast, :entries),
+        as: :entry,
+        join: std in assoc(ent, :student),
+        as: :student
+      )
+      |> filter_by_classes(opts)
+      |> order_and_select()
+      |> Repo.all()
 
     assessment_points =
       all
-      |> Enum.map(fn {_std, ast, _ent} -> ast end)
+      |> Enum.map(fn {ast, _ent, _std} -> ast end)
       |> Enum.uniq()
 
-    entries_by_student =
+    entries =
       all
-      |> Enum.group_by(
-        fn {std, _ast, _ent} -> std.id end,
-        fn {_std, _ast, ent} -> ent end
-      )
+      |> Enum.map(fn {_ast, ent, _std} -> ent end)
+      |> Enum.uniq()
 
     students_and_entries =
       all
-      |> Enum.map(fn {std, _ast, _ent} -> std end)
+      |> Enum.map(fn {_ast, _ent, std} -> std end)
       |> Enum.uniq()
-      |> Enum.map(fn std -> {std, entries_by_student[std.id]} end)
+      |> Enum.sort_by(& &1.name)
+      |> Enum.map(fn std ->
+        {
+          std,
+          assessment_points
+          |> Enum.map(fn ast ->
+            Enum.find(entries, fn entry ->
+              entry.assessment_point_id == ast.id and entry.student_id == std.id
+            end)
+          end)
+        }
+      end)
 
     %{
       assessment_points: assessment_points,
       students_and_entries: students_and_entries
     }
+  end
+
+  defp filter_by_classes(query, opts) do
+    case Keyword.get(opts, :classes_ids) do
+      ids when is_list(ids) and ids != [] ->
+        from ast in query,
+          join: c in assoc(ast, :classes),
+          where: c.id in ^ids
+
+      _ ->
+        query
+    end
+  end
+
+  defp order_and_select(query) do
+    from [ast, entry: ent, student: std] in query,
+      order_by: ast.datetime,
+      select: {ast, ent, std}
   end
 
   @doc """
