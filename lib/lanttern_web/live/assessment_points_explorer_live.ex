@@ -228,7 +228,7 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
       assessment_points: assessment_points,
       students_and_entries: students_and_entries
     } =
-      Assessments.list_students_assessment_points_grid()
+      Assessments.list_students_assessment_points_grid(classes_ids: params_classes_ids)
 
     socket =
       socket
