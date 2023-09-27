@@ -153,7 +153,7 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponentTest do
 
       # send change event to form
       view
-      |> element("form")
+      |> element("form#entry-#{entry.id}-marking-form")
       |> render_change(%{
         "assessment_point_entry" => %{
           "score" => "11"
