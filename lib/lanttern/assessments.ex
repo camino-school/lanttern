@@ -307,12 +307,16 @@ defmodule Lanttern.Assessments do
 
   ## Options:
 
-    - `:filters` – accepts `:classes_ids`
+    - `:filters` – accepts `:classes_ids`, `:subjects_ids`
 
   ### Filtering by `:classes_ids`
 
   We expect the function to return all assessment points that happened in the context of the classes,
   which can include entries from students that are not currently in the class (ex: student moved to another class)
+
+  ### Filtering by `:subjects_ids`
+
+  Inferred from related `curriculum_item`
 
   ## Examples
 
@@ -327,7 +331,7 @@ defmodule Lanttern.Assessments do
         join: std in assoc(ent, :student),
         as: :student
       )
-      |> filter_by_classes(opts)
+      |> apply_grid_filters(opts)
       |> order_and_select()
       |> Repo.all()
 
@@ -364,17 +368,23 @@ defmodule Lanttern.Assessments do
     }
   end
 
-  defp filter_by_classes(query, opts) do
-    case Keyword.get(opts, :classes_ids) do
-      ids when is_list(ids) and ids != [] ->
-        from ast in query,
-          join: c in assoc(ast, :classes),
-          where: c.id in ^ids
+  defp apply_grid_filters(query, opts),
+    do: Enum.reduce(opts, query, &filter_grid/2)
 
-      _ ->
-        query
-    end
+  defp filter_grid({:classes_ids, ids}, query) when is_list(ids) and ids != [] do
+    from ast in query,
+      join: c in assoc(ast, :classes),
+      where: c.id in ^ids
   end
+
+  defp filter_grid({:subjects_ids, ids}, query) when is_list(ids) and ids != [] do
+    from ast in query,
+      join: ci in assoc(ast, :curriculum_item),
+      join: sub in assoc(ci, :subjects),
+      where: sub.id in ^ids
+  end
+
+  defp filter_grid(_opt, query), do: query
 
   defp order_and_select(query) do
     from [ast, entry: ent, student: std] in query,

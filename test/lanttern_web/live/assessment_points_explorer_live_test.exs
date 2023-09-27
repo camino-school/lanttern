@@ -87,6 +87,54 @@ defmodule LantternWeb.AssessmentPointsExplorerLiveTest do
       refute view |> has_element?("div", std_2.name)
     end
 
+    test "filter explorer by subject", %{conn: conn} do
+      # before            | after
+      #       ast_1 ast_2 |       ast_1
+      # std_1  [x]   [ ]  | std_1  [x]
+      # std_2  [ ]   [x]  |
+
+      std_1 = Lanttern.SchoolsFixtures.student_fixture(%{name: "Student AAA"})
+      std_2 = Lanttern.SchoolsFixtures.student_fixture(%{name: "Student BBB"})
+
+      subject = Lanttern.TaxonomyFixtures.subject_fixture()
+
+      curriculum_item =
+        Lanttern.CurriculaFixtures.curriculum_item_fixture(%{subjects_ids: [subject.id]})
+
+      ast_1 =
+        assessment_point_fixture(%{name: "Assessment AAA", curriculum_item_id: curriculum_item.id})
+
+      ast_2 = assessment_point_fixture(%{name: "Assessment BBB"})
+
+      assessment_point_entry_fixture(%{student_id: std_1.id, assessment_point_id: ast_1.id})
+      assessment_point_entry_fixture(%{student_id: std_2.id, assessment_point_id: ast_2.id})
+
+      {:ok, view, _html} = live(conn, @live_view_path)
+
+      assert view |> has_element?("a[href='/assessment_points/#{ast_1.id}']", ast_1.name)
+      assert view |> has_element?("a[href='/assessment_points/#{ast_2.id}']", ast_2.name)
+
+      assert view |> has_element?("div", std_1.name)
+      assert view |> has_element?("div", std_2.name)
+
+      # filter results and assert/refute elements
+      view
+      |> element("#explorer-filters-form")
+      |> render_submit(%{
+        "subjects_ids" => ["#{subject.id}"]
+      })
+
+      {path, _flash} = assert_redirect(view)
+
+      {:ok, view, _html} = live(conn, path)
+
+      assert view |> has_element?("a[href='/assessment_points/#{ast_1.id}']", ast_1.name)
+      refute view |> has_element?("a[href='/assessment_points/#{ast_2.id}']", ast_2.name)
+
+      assert view |> has_element?("div", std_1.name)
+      refute view |> has_element?("div", std_2.name)
+    end
+
     test "navigation to assessment point details", %{conn: conn} do
       %{id: id, name: name} = assessment_point_fixture(%{name: "not any name"})
       assessment_point_entry_fixture(%{assessment_point_id: id})

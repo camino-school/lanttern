@@ -441,6 +441,8 @@ defmodule Lanttern.AssessmentsTest do
   describe "assessment points explorer" do
     import Lanttern.AssessmentsFixtures
     import Lanttern.SchoolsFixtures
+    import Lanttern.TaxonomyFixtures
+    import Lanttern.CurriculaFixtures
 
     test "list_students_assessment_points_grid/1 returns a list of students with assessment point entries" do
       # list is sorted by student name
@@ -491,7 +493,7 @@ defmodule Lanttern.AssessmentsTest do
              ]
     end
 
-    test "list_students_assessment_points_grid/1 with filters returns a filtered list of students with assessment point entries" do
+    test "list_students_assessment_points_grid/1 with class filters returns a filtered list of students with assessment point entries" do
       # expected grid:
       #       ast_1 ast_2 ast_3
       # std_1  [x]   [x]   [x]
@@ -564,6 +566,65 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_s2a1.id == std_2_ast_1.id
       assert expected_s2a2.id == std_2_ast_2.id
       assert expected_s3a3.id == std_3_ast_3.id
+    end
+
+    test "list_students_assessment_points_grid/1 with subject filters returns a filtered list of students with assessment point entries" do
+      # expected grid:
+      #       ast_1 ast_2
+      # std_1  [x]   [ ]
+      # std_2  [ ]   [x]
+
+      subject = subject_fixture()
+      curriculum_item = curriculum_item_fixture(%{subjects_ids: [subject.id]})
+
+      std_1 = student_fixture(%{name: "AAA"})
+      std_2 = student_fixture(%{name: "BBB"})
+
+      ast_1 =
+        assessment_point_fixture(%{
+          datetime: ~U[2023-08-01 15:30:00Z],
+          curriculum_item_id: curriculum_item.id
+        })
+
+      ast_2 =
+        assessment_point_fixture(%{
+          datetime: ~U[2023-08-02 15:30:00Z],
+          curriculum_item_id: curriculum_item.id
+        })
+
+      std_1_ast_1 =
+        assessment_point_entry_fixture(%{student_id: std_1.id, assessment_point_id: ast_1.id})
+
+      std_2_ast_2 =
+        assessment_point_entry_fixture(%{student_id: std_2.id, assessment_point_id: ast_2.id})
+
+      # extra student and assessment points for filter test
+      not_std = student_fixture(%{name: "ZZZ"})
+      not_ast = assessment_point_fixture(%{datetime: ~U[2023-08-04 15:30:00Z]})
+
+      assessment_point_entry_fixture(%{student_id: not_std.id, assessment_point_id: not_ast.id})
+      assessment_point_entry_fixture(%{student_id: std_2.id, assessment_point_id: not_ast.id})
+
+      %{
+        assessment_points: assessment_points,
+        students_and_entries: students_and_entries
+      } =
+        Assessments.list_students_assessment_points_grid(subjects_ids: [subject.id])
+
+      assert [expected_ast_1, expected_ast_2] = assessment_points
+      assert expected_ast_1.id == ast_1.id
+      assert expected_ast_2.id == ast_2.id
+
+      assert [
+               {expected_std_1, [expected_s1a1, nil]},
+               {expected_std_2, [nil, expected_s2a2]}
+             ] = students_and_entries
+
+      assert expected_std_1.id == std_1.id
+      assert expected_std_2.id == std_2.id
+
+      assert expected_s1a1.id == std_1_ast_1.id
+      assert expected_s2a2.id == std_2_ast_2.id
     end
   end
 
