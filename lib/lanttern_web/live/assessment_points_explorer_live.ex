@@ -42,7 +42,11 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
         </button>
       </div>
     </div>
-    <div class="relative w-full max-h-screen pb-6 mt-6 rounded shadow-xl bg-white overflow-x-auto">
+    <div
+      id="assessment-points-explorer-slider"
+      class="relative w-full max-h-screen pb-6 mt-6 rounded shadow-xl bg-white overflow-x-auto"
+      phx-hook="Slider"
+    >
       <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2 bg-white">
         <div class="sticky left-0 z-20 shrink-0 w-40 bg-white"></div>
         <.assessment_point :for={ap <- @assessment_points} assessment_point={ap} />
