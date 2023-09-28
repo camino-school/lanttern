@@ -9,7 +9,18 @@
 </.header>
 
 <.list>
+  <:item title="Profile"><%= profile_name(@assessment_points_filter_view.profile) %></:item>
   <:item title="Name"><%= @assessment_points_filter_view.name %></:item>
+  <:item title="Classes">
+    <div class="flex gap-2">
+      <.badge :for={class <- @assessment_points_filter_view.classes}><%= class.name %></.badge>
+    </div>
+  </:item>
+  <:item title="Subjects">
+    <div class="flex gap-2">
+      <.badge :for={subject <- @assessment_points_filter_view.subjects}><%= subject.name %></.badge>
+    </div>
+  </:item>
 </.list>
 
 <.back navigate={~p"/admin/assessment_points_filter_views"}>Back to assessment_points_filter_views</.back>
