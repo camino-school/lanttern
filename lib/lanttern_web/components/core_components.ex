@@ -548,4 +548,26 @@ defmodule LantternWeb.CoreComponents do
     </div>
     """
   end
+
+  @doc """
+  Renders an empty state block
+  """
+  attr :class, :any, default: nil
+  slot :inner_block, required: true
+
+  def empty_state(assigns) do
+    ~H"""
+    <div class={["text-center", @class]}>
+      <div class="p-10">
+        <div class="animate-pulse h-24 w-24 rounded-full mx-auto bg-ltrn-hairline blur-md"></div>
+      </div>
+      <%!-- <div class="relative flex h-16 w-16 mx-auto">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-ltrn-primary opacity-75 blur-[2px]">
+        </span>
+        <span class="relative inline-flex rounded-full h-16 w-16 bg-ltrn-primary blur-sm"></span>
+      </div> --%>
+      <p class="font-display text-ltrn-subtle"><%= render_slot(@inner_block) %></p>
+    </div>
+    """
+  end
 end

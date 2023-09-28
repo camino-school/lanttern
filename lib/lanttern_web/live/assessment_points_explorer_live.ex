@@ -17,28 +17,25 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
       </div>
     </div>
     <div class="container mx-auto lg:max-w-5xl mt-10">
-      <div class="flex items-center text-sm">
-        <p class="flex items-center gap-2">
-          <%= length(@assessment_points) %> results in
-          <%= if @current_classes == [] do %>
-            <.badge>all classes</.badge>
-          <% else %>
-            <.badge :for={class <- @current_classes}>
-              <%= class.name %>
-            </.badge>
-          <% end %>
-          <span>|</span>
-          <%= if @current_subjects == [] do %>
-            <.badge>all subjects</.badge>
-          <% else %>
-            <.badge :for={sub <- @current_subjects}>
-              <%= sub.name %>
-            </.badge>
-          <% end %>
-        </p>
-        <button class="flex items-center ml-4 text-ltrn-subtle" phx-click={show_filter()}>
-          <.icon name="hero-funnel-mini" class="text-ltrn-primary mr-2" />
-          <span class="underline">Filter</span>
+      <div class="flex items-center gap-4 justify-between">
+        <div class="flex items-center gap-4 text-sm">
+          <p class="flex items-center gap-2">
+            <%= length(@assessment_points) %> results in
+            <.filter_badges items={@current_classes} type="classes" />
+            <span>|</span>
+            <.filter_badges items={@current_subjects} type="subjects" />
+          </p>
+          <button class="flex items-center gap-2 text-ltrn-subtle underline hover:no-underline" phx-click={show_filter()}>
+            <.icon name="hero-funnel-mini" class="text-ltrn-primary" />
+            Filter
+          </button>
+        </div>
+        <button
+          class="shrink-0 flex items-center gap-2 text-sm text-ltrn-subtle underline hover:no-underline"
+          phx-click={JS.exec("data-show", to: "#create-assessment-point-overlay")}
+        >
+          <.icon name="hero-plus-circle-mini" class="text-ltrn-primary" />
+          Add assessment point
         </button>
       </div>
     </div>
@@ -47,16 +44,20 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
       class="relative w-full max-h-screen pb-6 mt-6 rounded shadow-xl bg-white overflow-x-auto"
       phx-hook="Slider"
     >
-      <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2 bg-white">
-        <div class="sticky left-0 z-20 shrink-0 w-40 bg-white"></div>
-        <.assessment_point :for={ap <- @assessment_points} assessment_point={ap} />
-        <div class="shrink-0 w-2"></div>
-      </div>
-      <.student_and_entries
-        :for={{student, entries} <- @students_and_entries}
-        student={student}
-        entries={entries}
-      />
+      <%= if length(@assessment_points) > 0 do %>
+        <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2 bg-white">
+          <div class="sticky left-0 z-20 shrink-0 w-40 bg-white"></div>
+          <.assessment_point :for={ap <- @assessment_points} assessment_point={ap} />
+          <div class="shrink-0 w-2"></div>
+        </div>
+        <.student_and_entries
+          :for={{student, entries} <- @students_and_entries}
+          student={student}
+          entries={entries}
+        />
+      <% else %>
+        <.empty_state>No assessment points found</.empty_state>
+      <% end %>
     </div>
     <.slide_over id="explorer-filters">
       <:title>Filter Assessment Points</:title>
@@ -84,6 +85,15 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
           </div>
         </fieldset>
       </.form>
+      <:actions_left>
+        <.button
+          type="button"
+          theme="ghost"
+          phx-click={clear_filters()}
+        >
+          Clear filters
+        </.button>
+      </:actions_left>
       <:actions>
         <.button
           type="button"
@@ -97,10 +107,47 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
         </.button>
       </:actions>
     </.slide_over>
+    <.live_component
+      module={LantternWeb.AssessmentPointCreateOverlayComponent}
+      id="create-assessment-point-overlay"
+    />
     """
   end
 
   # function components
+
+  attr :items, :list, required: true
+  attr :type, :string, required: true
+
+  def filter_badges(%{items: []} = assigns) do
+    ~H"""
+    <.badge>all <%= @type %></.badge>
+    """
+  end
+
+  def filter_badges(%{items: items} = assigns) when length(items) > 3 do
+    {first_two, rest} = Enum.split(items, 2)
+
+    assigns =
+      assigns
+      |> assign(:items, first_two)
+      |> assign(:rest_length, length(rest))
+
+    ~H"""
+    <.badge :for={item <- @items}>
+      <%= item.name %>
+    </.badge>
+    <.badge><%= "+#{@rest_length} #{@type}" %></.badge>
+    """
+  end
+
+  def filter_badges(assigns) do
+    ~H"""
+    <.badge :for={item <- @items}>
+      <%= item.name %>
+    </.badge>
+    """
+  end
 
   attr :id, :string, required: true
 
@@ -214,7 +261,7 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
       |> Phoenix.Component.to_form()
 
     classes = Schools.list_classes()
-    subjects = Taxonomy.list_subjects()
+    subjects = Taxonomy.list_assessment_points_subjects()
 
     current_classes =
       case params_classes_ids do
@@ -266,6 +313,14 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
     {:noreply, socket}
   end
 
+  def handle_event("clear_filters", _params, socket) do
+    socket =
+      socket
+      |> push_navigate(to: path(socket, ~p"/assessment_points/explorer"))
+
+    {:noreply, socket}
+  end
+
   # info handlers
 
   def handle_info(
@@ -299,6 +354,12 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
   defp filter(js \\ %JS{}) do
     js
     |> JS.push("filter")
+    |> JS.exec("data-cancel", to: "#explorer-filters")
+  end
+
+  defp clear_filters(js \\ %JS{}) do
+    js
+    |> JS.push("clear_filters")
     |> JS.exec("data-cancel", to: "#explorer-filters")
   end
 end

@@ -11,6 +11,9 @@ defmodule Lanttern.Taxonomy.Subject do
     field :name, :string
     field :code, :string
 
+    many_to_many :curriculum_items, Lanttern.Curricula.CurriculumItem,
+      join_through: "curriculum_items_subjects"
+
     timestamps()
   end
 

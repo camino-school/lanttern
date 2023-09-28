@@ -4,6 +4,7 @@ defmodule LantternWeb.AssessmentPointsExplorerLiveTest do
   import Lanttern.AssessmentsFixtures
 
   @live_view_path "/assessment_points/explorer"
+  @slider_id "assessment-points-explorer-slider"
 
   setup :register_and_log_in_user
 
@@ -63,11 +64,11 @@ defmodule LantternWeb.AssessmentPointsExplorerLiveTest do
 
       {:ok, view, _html} = live(conn, @live_view_path)
 
-      assert view |> has_element?("a[href='/assessment_points/#{ast_1.id}']", ast_1.name)
-      assert view |> has_element?("a[href='/assessment_points/#{ast_2.id}']", ast_2.name)
+      assert view |> has_element?("##{@slider_id} a[href='/assessment_points/#{ast_1.id}']", ast_1.name)
+      assert view |> has_element?("##{@slider_id} a[href='/assessment_points/#{ast_2.id}']", ast_2.name)
 
-      assert view |> has_element?("div", std_1.name)
-      assert view |> has_element?("div", std_2.name)
+      assert view |> has_element?("##{@slider_id} div", std_1.name)
+      assert view |> has_element?("##{@slider_id} div", std_2.name)
 
       # filter results and assert/refute elements
       view
@@ -80,11 +81,11 @@ defmodule LantternWeb.AssessmentPointsExplorerLiveTest do
 
       {:ok, view, _html} = live(conn, path)
 
-      assert view |> has_element?("a[href='/assessment_points/#{ast_1.id}']", ast_1.name)
-      refute view |> has_element?("a[href='/assessment_points/#{ast_2.id}']", ast_2.name)
+      assert view |> has_element?("##{@slider_id} a[href='/assessment_points/#{ast_1.id}']", ast_1.name)
+      refute view |> has_element?("##{@slider_id} a[href='/assessment_points/#{ast_2.id}']", ast_2.name)
 
-      assert view |> has_element?("div", std_1.name)
-      refute view |> has_element?("div", std_2.name)
+      assert view |> has_element?("##{@slider_id} div", std_1.name)
+      refute view |> has_element?("##{@slider_id} div", std_2.name)
     end
 
     test "filter explorer by subject", %{conn: conn} do
@@ -128,11 +129,11 @@ defmodule LantternWeb.AssessmentPointsExplorerLiveTest do
 
       {:ok, view, _html} = live(conn, path)
 
-      assert view |> has_element?("a[href='/assessment_points/#{ast_1.id}']", ast_1.name)
-      refute view |> has_element?("a[href='/assessment_points/#{ast_2.id}']", ast_2.name)
+      assert view |> has_element?("##{@slider_id} a[href='/assessment_points/#{ast_1.id}']", ast_1.name)
+      refute view |> has_element?("##{@slider_id} a[href='/assessment_points/#{ast_2.id}']", ast_2.name)
 
-      assert view |> has_element?("div", std_1.name)
-      refute view |> has_element?("div", std_2.name)
+      assert view |> has_element?("##{@slider_id} div", std_1.name)
+      refute view |> has_element?("##{@slider_id} div", std_2.name)
     end
 
     test "navigation to assessment point details", %{conn: conn} do
