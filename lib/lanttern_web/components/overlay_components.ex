@@ -153,6 +153,7 @@ defmodule LantternWeb.OverlayComponents do
   slot :title, required: true
   slot :inner_block, required: true
   slot :actions
+  slot :actions_left
 
   def slide_over(assigns) do
     ~H"""
@@ -194,8 +195,13 @@ defmodule LantternWeb.OverlayComponents do
                     <%= render_slot(@inner_block) %>
                   </div>
                 </div>
-                <div :if={render_slot(@actions)} class="flex shrink-0 justify-end gap-4 px-4 py-4">
-                  <%= render_slot(@actions) %>
+                <div :if={render_slot(@actions)} class="flex shrink-0 justify-between gap-4 p-4">
+                  <div class="flex items-center gap-4">
+                    <%= render_slot(@actions_left) %>
+                  </div>
+                  <div class="flex items-center gap-4">
+                    <%= render_slot(@actions) %>
+                  </div>
                 </div>
               </div>
             </.focus_wrap>

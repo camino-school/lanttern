@@ -23,6 +23,26 @@ defmodule Lanttern.Taxonomy do
   end
 
   @doc """
+  Returns the list of subjects used by assessment points,
+  inferred through assesmsent points's curriculum-item.
+
+  ## Examples
+
+      iex> list_assessment_point_subjects()
+      [%Subject{}, ...]
+
+  """
+  def list_assessment_points_subjects do
+    from(sub in Subject,
+      join: ci in assoc(sub, :curriculum_items),
+      join: ast in assoc(ci, :assessment_points),
+      order_by: sub.name,
+      distinct: true
+    )
+    |> Repo.all()
+  end
+
+  @doc """
   Gets a single subject.
 
   Raises `Ecto.NoResultsError` if the Subject does not exist.

@@ -15,6 +15,27 @@ defmodule Lanttern.TaxonomyTest do
       assert Taxonomy.list_subjects() == [subject]
     end
 
+    test "list_assessment_point_subjects/0 returns all subjects related to assessment points, ordered alphabetically" do
+      subject_1 = subject_fixture(%{name: "AAA"})
+      subject_2 = subject_fixture(%{name: "ZZZ"})
+
+      curriculum_item_1 = Lanttern.CurriculaFixtures.curriculum_item_fixture(%{subjects_ids: [subject_1.id, subject_2.id]})
+      curriculum_item_2 = Lanttern.CurriculaFixtures.curriculum_item_fixture(%{subjects_ids: [subject_2.id]})
+
+      Lanttern.AssessmentsFixtures.assessment_point_fixture(%{curriculum_item_id: curriculum_item_1.id})
+      Lanttern.AssessmentsFixtures.assessment_point_fixture(%{curriculum_item_id: curriculum_item_2.id})
+
+      # extra fixtures for "filter" testing
+      subject_fixture()
+      subject_fixture()
+      Lanttern.CurriculaFixtures.curriculum_item_fixture()
+      Lanttern.CurriculaFixtures.curriculum_item_fixture()
+      Lanttern.AssessmentsFixtures.assessment_point_fixture()
+      Lanttern.AssessmentsFixtures.assessment_point_fixture()
+
+      assert [subject_1, subject_2] == Taxonomy.list_assessment_points_subjects()
+    end
+
     test "get_subject!/1 returns the subject with given id" do
       subject = subject_fixture()
       assert Taxonomy.get_subject!(subject.id) == subject

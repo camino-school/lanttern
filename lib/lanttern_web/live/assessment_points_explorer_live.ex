@@ -3,6 +3,8 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Schools
+  alias Lanttern.Taxonomy
 
   def render(assigns) do
     ~H"""
@@ -15,25 +17,164 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
       </div>
     </div>
     <div class="container mx-auto lg:max-w-5xl mt-10">
-      <div class="flex items-center text-sm">
-        <p>Exploring: all disciplines | all grade 4 classes | this bimester</p>
-        <button class="flex items-center ml-4 text-ltrn-subtle">
-          <.icon name="hero-funnel-mini" class="text-ltrn-primary mr-2" />
-          <span class="underline">Change</span>
+      <div class="flex items-center gap-4 justify-between">
+        <div class="flex items-center gap-4 text-sm">
+          <p class="flex items-center gap-2">
+            <%= length(@assessment_points) %> results in
+            <.filter_badges items={@current_classes} type="classes" />
+            <span>|</span>
+            <.filter_badges items={@current_subjects} type="subjects" />
+          </p>
+          <button class="flex items-center gap-2 text-ltrn-subtle underline hover:no-underline" phx-click={show_filter()}>
+            <.icon name="hero-funnel-mini" class="text-ltrn-primary" />
+            Filter
+          </button>
+        </div>
+        <button
+          class="shrink-0 flex items-center gap-2 text-sm text-ltrn-subtle underline hover:no-underline"
+          phx-click={JS.exec("data-show", to: "#create-assessment-point-overlay")}
+        >
+          <.icon name="hero-plus-circle-mini" class="text-ltrn-primary" />
+          Add assessment point
         </button>
       </div>
     </div>
-    <div class="relative w-full max-h-screen pb-6 mt-6 rounded shadow-xl bg-white overflow-x-auto">
-      <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2 bg-white">
-        <div class="sticky left-0 z-20 shrink-0 w-40 bg-white"></div>
-        <.assessment_point :for={ap <- @assessment_points} assessment_point={ap} />
-        <div class="shrink-0 w-2"></div>
+    <div
+      id="assessment-points-explorer-slider"
+      class="relative w-full max-h-screen pb-6 mt-6 rounded shadow-xl bg-white overflow-x-auto"
+      phx-hook="Slider"
+    >
+      <%= if length(@assessment_points) > 0 do %>
+        <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2 bg-white">
+          <div class="sticky left-0 z-20 shrink-0 w-40 bg-white"></div>
+          <.assessment_point :for={ap <- @assessment_points} assessment_point={ap} />
+          <div class="shrink-0 w-2"></div>
+        </div>
+        <.student_and_entries
+          :for={{student, entries} <- @students_and_entries}
+          student={student}
+          entries={entries}
+        />
+      <% else %>
+        <.empty_state>No assessment points found</.empty_state>
+      <% end %>
+    </div>
+    <.slide_over id="explorer-filters">
+      <:title>Filter Assessment Points</:title>
+      <.form id="explorer-filters-form" for={@form} phx-submit={filter()} class="flex gap-6">
+        <fieldset class="flex-1">
+          <legend class="text-base font-semibold leading-6 text-ltrn-subtle">Classes</legend>
+          <div class="mt-4 divide-y divide-ltrn-hairline border-b border-t border-ltrn-hairline">
+            <.check_field
+              :for={opt <- @classes}
+              id={"class-#{opt.id}"}
+              field={@form[:classes_ids]}
+              opt={opt}
+            />
+          </div>
+        </fieldset>
+        <fieldset class="flex-1">
+          <legend class="text-base font-semibold leading-6 text-ltrn-subtle">Subjects</legend>
+          <div class="mt-4 divide-y divide-ltrn-hairline border-b border-t border-ltrn-hairline">
+            <.check_field
+              :for={opt <- @subjects}
+              id={"subject-#{opt.id}"}
+              field={@form[:subjects_ids]}
+              opt={opt}
+            />
+          </div>
+        </fieldset>
+      </.form>
+      <:actions_left>
+        <.button
+          type="button"
+          theme="ghost"
+          phx-click={clear_filters()}
+        >
+          Clear filters
+        </.button>
+      </:actions_left>
+      <:actions>
+        <.button
+          type="button"
+          theme="ghost"
+          phx-click={JS.exec("data-cancel", to: "#explorer-filters")}
+        >
+          Cancel
+        </.button>
+        <.button type="submit" form="explorer-filters-form" phx-disable-with="Applying filters...">
+          Apply filters
+        </.button>
+      </:actions>
+    </.slide_over>
+    <.live_component
+      module={LantternWeb.AssessmentPointCreateOverlayComponent}
+      id="create-assessment-point-overlay"
+    />
+    """
+  end
+
+  # function components
+
+  attr :items, :list, required: true
+  attr :type, :string, required: true
+
+  def filter_badges(%{items: []} = assigns) do
+    ~H"""
+    <.badge>all <%= @type %></.badge>
+    """
+  end
+
+  def filter_badges(%{items: items} = assigns) when length(items) > 3 do
+    {first_two, rest} = Enum.split(items, 2)
+
+    assigns =
+      assigns
+      |> assign(:items, first_two)
+      |> assign(:rest_length, length(rest))
+
+    ~H"""
+    <.badge :for={item <- @items}>
+      <%= item.name %>
+    </.badge>
+    <.badge><%= "+#{@rest_length} #{@type}" %></.badge>
+    """
+  end
+
+  def filter_badges(assigns) do
+    ~H"""
+    <.badge :for={item <- @items}>
+      <%= item.name %>
+    </.badge>
+    """
+  end
+
+  attr :id, :string, required: true
+
+  attr :opt, :map,
+    required: true,
+    doc: "Instance of `Lanttern.Taxonomy.Subject` or `Lanttern.Schools.Class`"
+
+  attr :field, Phoenix.HTML.FormField, required: true
+
+  def check_field(assigns) do
+    ~H"""
+    <div class="relative flex items-start py-4">
+      <div class="min-w-0 flex-1 text-sm leading-6">
+        <label for={@id} class="select-none text-ltrn-text">
+          <%= @opt.name %>
+        </label>
       </div>
-      <.student_and_entries
-        :for={{student, entries} <- @students_and_entries}
-        student={student}
-        entries={entries}
-      />
+      <div class="ml-3 flex h-6 items-center">
+        <input
+          id={@id}
+          name={@field.name <> "[]"}
+          type="checkbox"
+          value={@opt.id}
+          class="h-4 w-4 rounded border-ltrn-subtle text-ltrn-primary focus:ring-ltrn-primary"
+          checked={"#{@opt.id}" in @field.value}
+        />
+      </div>
     </div>
     """
   end
@@ -99,17 +240,83 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
     {:ok, socket, temporary_assigns: [assessment_points: []]}
   end
 
-  def handle_params(_params, _uri, socket) do
+  def handle_params(params, _uri, socket) do
+    params_classes_ids =
+      case Map.get(params, "classes_ids") do
+        ids when is_list(ids) -> ids
+        _ -> nil
+      end
+
+    params_subjects_ids =
+      case Map.get(params, "subjects_ids") do
+        ids when is_list(ids) -> ids
+        _ -> nil
+      end
+
+    form =
+      %{
+        "classes_ids" => params_classes_ids || [],
+        "subjects_ids" => params_subjects_ids || []
+      }
+      |> Phoenix.Component.to_form()
+
+    classes = Schools.list_classes()
+    subjects = Taxonomy.list_assessment_points_subjects()
+
+    current_classes =
+      case params_classes_ids do
+        nil -> []
+        ids -> classes |> Enum.filter(&("#{&1.id}" in ids))
+      end
+
+    current_subjects =
+      case params_subjects_ids do
+        nil -> []
+        ids -> subjects |> Enum.filter(&("#{&1.id}" in ids))
+      end
+
     %{
       assessment_points: assessment_points,
       students_and_entries: students_and_entries
     } =
-      Assessments.list_students_assessment_points_grid()
+      Assessments.list_students_assessment_points_grid(
+        classes_ids: params_classes_ids,
+        subjects_ids: params_subjects_ids
+      )
 
     socket =
       socket
       |> assign(:assessment_points, assessment_points)
       |> assign(:students_and_entries, students_and_entries)
+      |> assign(:form, form)
+      |> assign(:classes, classes)
+      |> assign(:subjects, subjects)
+      |> assign(:current_classes, current_classes)
+      |> assign(:current_subjects, current_subjects)
+
+    {:noreply, socket}
+  end
+
+  # event handlers
+
+  def handle_event("filter", params, socket) do
+    path_params =
+      %{
+        classes_ids: Map.get(params, "classes_ids"),
+        subjects_ids: Map.get(params, "subjects_ids")
+      }
+
+    socket =
+      socket
+      |> push_navigate(to: path(socket, ~p"/assessment_points/explorer?#{path_params}"))
+
+    {:noreply, socket}
+  end
+
+  def handle_event("clear_filters", _params, socket) do
+    socket =
+      socket
+      |> push_navigate(to: path(socket, ~p"/assessment_points/explorer"))
 
     {:noreply, socket}
   end
@@ -134,5 +341,25 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
       |> put_flash(:error, "Something is not right")
 
     {:noreply, socket}
+  end
+
+  # helpers
+
+  defp show_filter(js \\ %JS{}) do
+    js
+    # |> JS.push("show-filter")
+    |> JS.exec("data-show", to: "#explorer-filters")
+  end
+
+  defp filter(js \\ %JS{}) do
+    js
+    |> JS.push("filter")
+    |> JS.exec("data-cancel", to: "#explorer-filters")
+  end
+
+  defp clear_filters(js \\ %JS{}) do
+    js
+    |> JS.push("clear_filters")
+    |> JS.exec("data-cancel", to: "#explorer-filters")
   end
 end

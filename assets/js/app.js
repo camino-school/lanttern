@@ -22,9 +22,11 @@ import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
 import autocompleteHook from "./autocomplete-hook";
+import sliderHook from "./slider-hook";
 
 let Hooks = {};
 Hooks.Autocomplete = autocompleteHook;
+Hooks.Slider = sliderHook;
 
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")

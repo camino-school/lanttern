@@ -42,6 +42,7 @@ defmodule Lanttern.Curricula.CurriculumItem do
     field :years_ids, {:array, :id}, virtual: true
 
     has_many :grade_composition_component_items, Lanttern.Grading.CompositionComponentItem
+    has_many :assessment_points, Lanttern.Assessments.AssessmentPoint
     belongs_to :curriculum_component, Lanttern.Curricula.CurriculumComponent
 
     many_to_many :subjects, Lanttern.Taxonomy.Subject,
