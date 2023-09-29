@@ -19,28 +19,76 @@ defmodule LantternWeb.DashboardLive do
           Curriculum <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
         </.link>
       </div>
-    </div>
-    <div class="container mx-auto lg:max-w-5xl mt-32">
-      <h2 class="font-display font-black text-2xl">Recent activity</h2>
-      <div cards="mt-12">
-        <.card>
-          Card A
-        </.card>
-        <.card>
-          Card B
-        </.card>
+      <div class="grid grid-cols-3 gap-10 mt-40">
+        <.view_card />
+        <.view_card />
+        <.view_card />
+        <.view_card />
+        <.new_view_card />
       </div>
     </div>
     """
   end
 
-  def card(assigns) do
+  # view components
+
+  def view_card(assigns) do
     ~H"""
-    <div class="w-full p-20 mt-6 rounded shadow-xl bg-white">
-      <%= render_slot(@inner_block) %>
+    <.card_base>
+      <:upper_block>
+        <.link
+          navigate={~p"/assessment_points/explorer"}
+          class="font-display font-black text-2xl line-clamp-3 underline hover:text-ltrn-subtle"
+          title="Grade 2A Portuguese Grade 2A Portuguese Grade 2A Portuguese Grade 2A Portuguese"
+        >
+          Grade 2A
+        </.link>
+      </:upper_block>
+      <:lower_block>
+        <div class="flex flex-wrap gap-2">
+          <.badge>Grade 2A</.badge>
+        </div>
+        <div class="flex flex-wrap gap-2 mt-2">
+          <.badge>Portuguese</.badge>
+        </div>
+      </:lower_block>
+    </.card_base>
+    """
+  end
+
+  def new_view_card(assigns) do
+    ~H"""
+    <.card_base>
+      <:upper_block>
+        <button
+          type="button"
+          class="font-display font-black text-2xl text-ltrn-subtle text-left underline hover:text-ltrn-primary"
+        >
+          Create a<br />new view
+        </button>
+      </:upper_block>
+      <:lower_block>
+        <.icon name="hero-plus-circle" class="w-6 h-6 text-ltrn-primary" />
+      </:lower_block>
+    </.card_base>
+    """
+  end
+
+  slot :upper_block
+  slot :lower_block
+
+  def card_base(assigns) do
+    ~H"""
+    <div class="flex flex-col justify-between min-h-[15rem] p-6 rounded bg-white shadow-xl">
+      <%= render_slot(@upper_block) %>
+      <div class="mt-10">
+        <%= render_slot(@lower_block) %>
+      </div>
     </div>
     """
   end
+
+  # lifecycle
 
   def mount(_params, _session, socket) do
     {:ok, socket}
