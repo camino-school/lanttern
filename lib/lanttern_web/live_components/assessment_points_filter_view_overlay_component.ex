@@ -12,7 +12,7 @@ defmodule LantternWeb.AssessmentPointsFilterViewOverlayComponent do
       attr :current_user, User, required: true
       attr :show, :boolean, required: true
       attr :on_cancel, JS, default: %JS{}
-      attr :view_id, :integer, doc: "For updating views"
+      attr :filter_view_id, :integer, doc: "For updating views"
       attr :topic, :string
   """
 
@@ -25,17 +25,20 @@ defmodule LantternWeb.AssessmentPointsFilterViewOverlayComponent do
     ~H"""
     <div>
       <.slide_over :if={@show} id={@id} show={true} on_cancel={Map.get(assigns, :on_cancel, %JS{})}>
-        <:title>Create assessment points filter view</:title>
+        <:title>
+          <%= if @action == "create", do: "Create", else: "Update" %> assessment points filter view
+        </:title>
         <.form
           id="assessment-points-filter-view-form"
           for={@form}
           phx-change="validate"
-          phx-submit="save"
+          phx-submit={@action}
           phx-target={@myself}
         >
-          <.error_block :if={@form.source.action == :insert} class="mb-6">
+          <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
             Oops, something went wrong! Please check the errors below.
           </.error_block>
+          <.input field={@form[:id]} type="hidden" />
           <.input field={@form[:profile_id]} type="hidden" />
           <.input field={@form[:name]} label="Filter view name" phx-debounce="1500" class="mb-6" />
           <div class="flex gap-6">
@@ -90,37 +93,46 @@ defmodule LantternWeb.AssessmentPointsFilterViewOverlayComponent do
       socket
       |> assign(:classes, classes)
       |> assign(:subjects, subjects)
+      |> assign(:action, "create")
 
     {:ok, socket}
   end
 
-  def update(assigns, socket) do
-    changeset =
-      %AssessmentPointsFilterView{}
-      |> Explorer.change_assessment_points_filter_view(%{
-        profile_id: assigns.current_user.current_profile.id
-      })
+  def update(%{show: true, filter_view_id: id} = assigns, socket) when is_integer(id) do
+    filter_view = Explorer.get_assessment_points_filter_view!(id, preloads: [:classes, :subjects])
 
-    # scale_options = GradingHelpers.generate_scale_options()
-    # class_options = SchoolsHelpers.generate_class_options()
-    # selected_classes = []
-    # student_options = SchoolsHelpers.generate_student_options()
-    # selected_students = []
+    changeset =
+      filter_view
+      |> Map.put(:classes_ids, Enum.map(filter_view.classes, &"#{&1.id}"))
+      |> Map.put(:subjects_ids, Enum.map(filter_view.subjects, &"#{&1.id}"))
+      |> Explorer.change_assessment_points_filter_view()
 
     socket =
       socket
       |> assign(assigns)
-      |> assign(%{
-        form: to_form(changeset)
-        # scale_options: scale_options,
-        # class_options: class_options,
-        # selected_classes: selected_classes,
-        # student_options: student_options,
-        # selected_students: selected_students
-      })
+      |> assign(:form, to_form(changeset))
+      |> assign(:action, "update")
+      |> assign(:filter_view, filter_view)
 
     {:ok, socket}
   end
+
+  def update(%{show: true} = assigns, socket) do
+    changeset =
+      %AssessmentPointsFilterView{profile_id: assigns.current_user.current_profile.id}
+      |> Explorer.change_assessment_points_filter_view()
+
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign(:form, to_form(changeset))
+      |> assign(:action, "create")
+
+    {:ok, socket}
+  end
+
+  def update(assigns, socket),
+    do: {:ok, assign(socket, assigns)}
 
   # event handlers
 
@@ -134,10 +146,32 @@ defmodule LantternWeb.AssessmentPointsFilterViewOverlayComponent do
     {:noreply, assign(socket, form: form)}
   end
 
-  def handle_event("save", %{"assessment_points_filter_view" => params}, socket) do
+  def handle_event("create", %{"assessment_points_filter_view" => params}, socket) do
     case Explorer.create_assessment_points_filter_view(params) do
       {:ok, assessment_points_filter_view} ->
         msg = {:assessment_points_filter_view_created, assessment_points_filter_view}
+
+        if socket.assigns.topic do
+          PubSub.broadcast(Lanttern.PubSub, socket.assigns.topic, msg)
+        end
+
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, form: to_form(changeset))}
+    end
+  end
+
+  def handle_event("update", %{"assessment_points_filter_view" => params}, socket) do
+    # force classes_ids and subjects_ids inclusion to remove filters if needed
+    params =
+      params
+      |> Map.put_new("classes_ids", [])
+      |> Map.put_new("subjects_ids", [])
+
+    case Explorer.update_assessment_points_filter_view(socket.assigns.filter_view, params) do
+      {:ok, assessment_points_filter_view} ->
+        msg = {:assessment_points_filter_view_updated, assessment_points_filter_view}
 
         if socket.assigns.topic do
           PubSub.broadcast(Lanttern.PubSub, socket.assigns.topic, msg)
