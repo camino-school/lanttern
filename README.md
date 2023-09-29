@@ -17,6 +17,11 @@ export GOOGLE_CLIENT_ID="********"
 export ROOT_ADMIN_EMAIL="some.email@example.com"
 ```
 
+## `git_hooks` issue
+
+We need to run `mix git_hooks.install` before commiting for the first time.
+See [this issue](https://github.com/qgadrian/elixir_git_hooks/issues/133)
+
 ## Learn more
 
 - Official website: https://www.phoenixframework.org/

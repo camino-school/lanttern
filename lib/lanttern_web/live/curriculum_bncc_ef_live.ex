@@ -104,38 +104,6 @@ defmodule LantternWeb.CurriculumBNCCEFLive do
     """
   end
 
-  # function components
-
-  attr :id, :string, required: true
-
-  attr :opt, :map,
-    required: true,
-    doc: "Instance of `Lanttern.Taxonomy.Subject` or `Lanttern.Taxonomy.Year`"
-
-  attr :field, Phoenix.HTML.FormField, required: true
-
-  def check_field(assigns) do
-    ~H"""
-    <div class="relative flex items-start py-4">
-      <div class="min-w-0 flex-1 text-sm leading-6">
-        <label for={@id} class="select-none text-ltrn-text">
-          <%= @opt.name %>
-        </label>
-      </div>
-      <div class="ml-3 flex h-6 items-center">
-        <input
-          id={@id}
-          name={@field.name <> "[]"}
-          type="checkbox"
-          value={@opt.id}
-          class="h-4 w-4 rounded border-ltrn-subtle text-ltrn-primary focus:ring-ltrn-primary"
-          checked={"#{@opt.id}" in @field.value}
-        />
-      </div>
-    </div>
-    """
-  end
-
   # lifecycle
 
   def mount(_params, _session, socket) do

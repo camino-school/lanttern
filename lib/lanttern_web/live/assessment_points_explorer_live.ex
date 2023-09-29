@@ -25,17 +25,18 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
             <span>|</span>
             <.filter_badges items={@current_subjects} type="subjects" />
           </p>
-          <button class="flex items-center gap-2 text-ltrn-subtle underline hover:no-underline" phx-click={show_filter()}>
-            <.icon name="hero-funnel-mini" class="text-ltrn-primary" />
-            Filter
+          <button
+            class="flex items-center gap-2 text-ltrn-subtle underline hover:no-underline"
+            phx-click={show_filter()}
+          >
+            <.icon name="hero-funnel-mini" class="text-ltrn-primary" /> Filter
           </button>
         </div>
         <button
           class="shrink-0 flex items-center gap-2 text-sm text-ltrn-subtle underline hover:no-underline"
           phx-click={JS.exec("data-show", to: "#create-assessment-point-overlay")}
         >
-          <.icon name="hero-plus-circle-mini" class="text-ltrn-primary" />
-          Add assessment point
+          <.icon name="hero-plus-circle-mini" class="text-ltrn-primary" /> Add assessment point
         </button>
       </div>
     </div>
@@ -86,11 +87,7 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
         </fieldset>
       </.form>
       <:actions_left>
-        <.button
-          type="button"
-          theme="ghost"
-          phx-click={clear_filters()}
-        >
+        <.button type="button" theme="ghost" phx-click={clear_filters()}>
           Clear filters
         </.button>
       </:actions_left>
@@ -146,36 +143,6 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
     <.badge :for={item <- @items}>
       <%= item.name %>
     </.badge>
-    """
-  end
-
-  attr :id, :string, required: true
-
-  attr :opt, :map,
-    required: true,
-    doc: "Instance of `Lanttern.Taxonomy.Subject` or `Lanttern.Schools.Class`"
-
-  attr :field, Phoenix.HTML.FormField, required: true
-
-  def check_field(assigns) do
-    ~H"""
-    <div class="relative flex items-start py-4">
-      <div class="min-w-0 flex-1 text-sm leading-6">
-        <label for={@id} class="select-none text-ltrn-text">
-          <%= @opt.name %>
-        </label>
-      </div>
-      <div class="ml-3 flex h-6 items-center">
-        <input
-          id={@id}
-          name={@field.name <> "[]"}
-          type="checkbox"
-          value={@opt.id}
-          class="h-4 w-4 rounded border-ltrn-subtle text-ltrn-primary focus:ring-ltrn-primary"
-          checked={"#{@opt.id}" in @field.value}
-        />
-      </div>
-    </div>
     """
   end
 

@@ -1,5 +1,14 @@
 defmodule LantternWeb.DashboardLive do
+  @moduledoc """
+  ### PubSub subscription topics
+
+  - "dashboard:profile_id" on `handle_params`
+
+  Expected broadcasted messages in `handle_info/2` documentation.
+  """
+
   use LantternWeb, :live_view
+  alias Phoenix.PubSub
 
   def render(assigns) do
     ~H"""
@@ -27,6 +36,14 @@ defmodule LantternWeb.DashboardLive do
         <.new_view_card />
       </div>
     </div>
+    <.live_component
+      module={LantternWeb.AssessmentPointsFilterViewOverlayComponent}
+      id="create-assessment-points-filter-view-overlay"
+      current_user={@current_user}
+      show={@show_filter_view_overlay}
+      topic={"dashboard:#{@current_user.current_profile_id}"}
+      on_cancel={JS.push("cancel_filter_view")}
+    />
     """
   end
 
@@ -63,6 +80,7 @@ defmodule LantternWeb.DashboardLive do
         <button
           type="button"
           class="font-display font-black text-2xl text-ltrn-subtle text-left underline hover:text-ltrn-primary"
+          phx-click="add_filter_view"
         >
           Create a<br />new view
         </button>
@@ -91,6 +109,54 @@ defmodule LantternWeb.DashboardLive do
   # lifecycle
 
   def mount(_params, _session, socket) do
+    if connected?(socket) do
+      PubSub.subscribe(
+        Lanttern.PubSub,
+        "dashboard:#{socket.assigns.current_user.current_profile_id}"
+      )
+    end
+
+    socket =
+      socket
+      |> assign(:show_filter_view_overlay, false)
+
     {:ok, socket}
+  end
+
+  # event handlers
+
+  def handle_event("add_filter_view", _params, socket) do
+    {:noreply, assign(socket, :show_filter_view_overlay, true)}
+  end
+
+  def handle_event("cancel_filter_view", _params, socket) do
+    {:noreply, assign(socket, :show_filter_view_overlay, false)}
+  end
+
+  # info handlers
+
+  @doc """
+  Handles sent or broadcasted messages from children Live Components.
+
+  ## Clauses
+
+  #### Assessment points filter view create success
+
+  Broadcasted to `"dashboard:profile_id"` from `LantternWeb.AssessmentPointsFilterViewOverlayComponent`.
+
+      handle_info({:assessment_points_filter_view_created, assessment_points_filter_view}, socket)
+
+  """
+
+  def handle_info(
+        {:assessment_points_filter_view_created, _assessment_points_filter_view},
+        socket
+      ) do
+    socket =
+      socket
+      |> put_flash(:info, "Assessment points filter view created!")
+      |> assign(:show_filter_view_overlay, false)
+
+    {:noreply, socket}
   end
 end
