@@ -15,6 +15,7 @@ defmodule Lanttern.Explorer do
   ## Options
 
       - `:preloads` – preloads associated data
+      - `:profile_id` – filter views by provided assessment point id
 
   ## Examples
 
@@ -23,9 +24,23 @@ defmodule Lanttern.Explorer do
 
   """
   def list_assessment_points_filter_views(opts \\ []) do
-    Repo.all(AssessmentPointsFilterView)
+    AssessmentPointsFilterView
+    |> filter_list_assessment_points_filter_views(opts)
+    |> Repo.all()
     |> maybe_preload(opts)
   end
+
+  defp filter_list_assessment_points_filter_views(queryable, opts) when is_list(opts),
+    do: Enum.reduce(opts, queryable, &filter_list_assessment_points_filter_views/2)
+
+  defp filter_list_assessment_points_filter_views({:profile_id, profile_id}, queryable) do
+    from v in queryable,
+      join: p in assoc(v, :profile),
+      where: p.id == ^profile_id
+  end
+
+  defp filter_list_assessment_points_filter_views(_, queryable),
+    do: queryable
 
   @doc """
   Gets a single assessment_points_filter_view.
@@ -80,7 +95,10 @@ defmodule Lanttern.Explorer do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_assessment_points_filter_view(%AssessmentPointsFilterView{} = assessment_points_filter_view, attrs) do
+  def update_assessment_points_filter_view(
+        %AssessmentPointsFilterView{} = assessment_points_filter_view,
+        attrs
+      ) do
     assessment_points_filter_view
     |> AssessmentPointsFilterView.changeset(attrs)
     |> Repo.update()
@@ -98,7 +116,9 @@ defmodule Lanttern.Explorer do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_assessment_points_filter_view(%AssessmentPointsFilterView{} = assessment_points_filter_view) do
+  def delete_assessment_points_filter_view(
+        %AssessmentPointsFilterView{} = assessment_points_filter_view
+      ) do
     Repo.delete(assessment_points_filter_view)
   end
 
@@ -111,7 +131,10 @@ defmodule Lanttern.Explorer do
       %Ecto.Changeset{data: %AssessmentPointsFilterView{}}
 
   """
-  def change_assessment_points_filter_view(%AssessmentPointsFilterView{} = assessment_points_filter_view, attrs \\ %{}) do
+  def change_assessment_points_filter_view(
+        %AssessmentPointsFilterView{} = assessment_points_filter_view,
+        attrs \\ %{}
+      ) do
     AssessmentPointsFilterView.changeset(assessment_points_filter_view, attrs)
   end
 end
