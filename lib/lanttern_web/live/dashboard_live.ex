@@ -98,63 +98,26 @@ defmodule LantternWeb.DashboardLive do
           >
             <%= @filter_view.name %>
           </.link>
-          <div class="relative shrink-0">
-            <button
-              type="button"
-              class="group w-8 h-8 rounded-full text-center"
-              id={"options-menu-#{@id}-button"}
-              aria-expanded="false"
-              aria-haspopup="true"
-            >
-              <span class="sr-only">Open options</span>
-              <.icon
-                name="hero-ellipsis-horizontal-mini"
-                class="w-5 h-5 text-ltrn-subtle group-hover:text-ltrn-text"
-              />
-            </button>
-            <!--
-          Dropdown menu, show/hide based on menu state.
-
-          Entering: "transition ease-out duration-100"
-            From: "transform opacity-0 scale-95"
-            To: "transform opacity-100 scale-100"
-          Leaving: "transition ease-in duration-75"
-            From: "transform opacity-100 scale-100"
-            To: "transform opacity-0 scale-95"
-        -->
-            <div
-              class="absolute right-0 z-10 mt-1 w-32 origin-top-right rounded-sm bg-white py-2 shadow-lg ring-1 ring-ltrn-hairline focus:outline-none"
-              role="menu"
-              aria-orientation="vertical"
-              aria-labelledby={"options-menu-#{@id}-button"}
-              tabindex="-1"
-            >
-              <!-- Active: "bg-gray-50", Not Active: "" -->
-              <button
-                type="button"
-                class="block px-3 py-1 text-sm leading-6"
-                role="menuitem"
-                tabindex="-1"
-                id={"options-menu-#{@id}-edit"}
+          <.menu_button id={@id}>
+            <:menu_items>
+              <.menu_button_item
+                id={"edit-filter-view-#{@id}"}
                 phx-click="edit_filter_view"
                 phx-value-id={@filter_view.id}
               >
                 Edit
-              </button>
-              <button
-                type="button"
-                class="block px-3 py-1 text-sm text-red-500 leading-6"
-                role="menuitem"
-                tabindex="-1"
-                id={"options-menu-#{@id}-delete"}
+              </.menu_button_item>
+              <.menu_button_item
+                id={"remove-filter-view-#{@id}"}
+                class="text-red-500"
                 phx-click="delete_filter_view"
                 phx-value-id={@filter_view.id}
                 data-confirm="Are you sure?"
               >
                 Delete
-              </button>
-            </div>
-          </div>
+              </.menu_button_item>
+            </:menu_items>
+          </.menu_button>
         </div>
       </:upper_block>
       <:lower_block>
