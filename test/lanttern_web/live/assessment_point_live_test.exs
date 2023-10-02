@@ -113,7 +113,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
 
       assert view |> has_element?("button", "No feedback yet")
       assert view |> has_element?("button", "Not completed yet")
-      assert view |> has_element?("button", ~r/Completed [A-Z][a-z]{2} [0-9]{2}, [0-9]{4} 🎉/)
+      assert view |> has_element?("button", ~r/Completed [A-Z][a-z]{2} [0-9]{1,2}, [0-9]{4} 🎉/)
     end
   end
 end
