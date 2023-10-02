@@ -570,4 +570,64 @@ defmodule LantternWeb.CoreComponents do
     </div>
     """
   end
+
+  @doc """
+  Highlights entring (mounting) elements in DOM.
+
+  ## Opts
+
+      - `:to_classes`: CSS classes to transition to. Defaults to `"bg-transparent"`.
+  """
+  def highlight_mounted(js \\ %JS{})
+
+  def highlight_mounted(opts) when is_list(opts),
+    do: highlight_mounted(%JS{}, opts)
+
+  def highlight_mounted(js),
+    do: highlight_mounted(js, [])
+
+  @doc """
+  See `highlight_mounted/1`.
+  """
+  def highlight_mounted(js, opts) do
+    js
+    |> JS.transition(
+      {
+        "ease-out duration-1000",
+        "bg-ltrn-mesh-lime",
+        Keyword.get(opts, :to_classes, "bg-transparent")
+      },
+      time: 1000
+    )
+  end
+
+  @doc """
+  Highlights exiting (remove) elements in DOM.
+
+  ## Opts
+
+      - `:to_classes`: CSS classes to transition to. Defaults to `"bg-transparent"`.
+  """
+  def highlight_remove(js \\ %JS{})
+
+  def highlight_remove(opts) when is_list(opts),
+    do: highlight_remove(%JS{}, opts)
+
+  def highlight_remove(js),
+    do: highlight_remove(js, [])
+
+  @doc """
+  See `highlight_remove/1`.
+  """
+  def highlight_remove(js, opts) do
+    js
+    |> JS.transition(
+      {
+        "ease-out duration-300",
+        "bg-ltrn-mesh-rose",
+        Keyword.get(opts, :to_classes, "bg-transparent")
+      },
+      time: 300
+    )
+  end
 end

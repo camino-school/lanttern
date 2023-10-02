@@ -29,9 +29,27 @@ defmodule LantternWeb.DashboardLive do
           Curriculum <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
         </.link>
       </div>
+      <div class="flex items-center justify-between pb-6 mt-40 border-b border-ltrn-hairline">
+        <h3 class="font-display font-bold text-2xl">
+          <.link
+            navigate={~p"/assessment_points"}
+            class="inline-block underline hover:text-ltrn-subtle"
+          >
+            Assessment points
+          </.link>
+          filter views
+        </h3>
+        <button
+          type="button"
+          class="shrink-0 flex items-center gap-2 font-display text-base underline hover:text-ltrn-primary"
+          phx-click="add_filter_view"
+        >
+          Create new view <.icon name="hero-plus-circle" class="w-6 h-6 text-ltrn-primary" />
+        </button>
+      </div>
       <div
         id="assessment-points-filter-views"
-        class="grid grid-cols-3 gap-10 mt-40"
+        class="grid grid-cols-3 gap-10 mt-6"
         phx-update="stream"
       >
         <.filter_view_card
@@ -56,29 +74,7 @@ defmodule LantternWeb.DashboardLive do
   # view components
 
   attr :id, :string, required: true
-
-  attr :filter_view, :map,
-    required: true,
-    doc: "We use `%{id: 0}` to \"insert\" a new filter view card in stream"
-
-  def filter_view_card(%{filter_view: %{id: 0}} = assigns) do
-    ~H"""
-    <.card_base id={@id}>
-      <:upper_block>
-        <button
-          type="button"
-          class="font-display font-black text-2xl text-ltrn-subtle text-left underline hover:text-ltrn-primary"
-          phx-click="add_filter_view"
-        >
-          Create a<br />new view
-        </button>
-      </:upper_block>
-      <:lower_block>
-        <.icon name="hero-plus-circle" class="w-6 h-6 text-ltrn-primary" />
-      </:lower_block>
-    </.card_base>
-    """
-  end
+  attr :filter_view, :map, required: true
 
   def filter_view_card(%{filter_view: filter_view} = assigns) do
     assigns =
@@ -162,10 +158,8 @@ defmodule LantternWeb.DashboardLive do
         </div>
       </:upper_block>
       <:lower_block>
-        <div :if={length(@filter_view.classes) > 0} class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap gap-2">
           <.badge :for={class <- @filter_view.classes}><%= class.name %></.badge>
-        </div>
-        <div :if={length(@filter_view.subjects) > 0} class="flex flex-wrap gap-2 mt-2">
           <.badge :for={subject <- @filter_view.subjects}><%= subject.name %></.badge>
         </div>
       </:lower_block>
@@ -179,7 +173,12 @@ defmodule LantternWeb.DashboardLive do
 
   def card_base(assigns) do
     ~H"""
-    <div id={@id} class="flex flex-col justify-between min-h-[15rem] p-6 rounded bg-white shadow-xl">
+    <div
+      id={@id}
+      class="flex flex-col justify-between min-h-[15rem] p-6 rounded shadow-xl"
+      phx-mounted={highlight_mounted(to_classes: "bg-white")}
+      phx-remove={highlight_remove(to_classes: "bg-white")}
+    >
       <%= render_slot(@upper_block) %>
       <div class="mt-10">
         <%= render_slot(@lower_block) %>
@@ -203,7 +202,6 @@ defmodule LantternWeb.DashboardLive do
     socket =
       socket
       |> stream(:assessment_points_filter_views, list_filter_views(profile_id))
-      |> stream_insert(:assessment_points_filter_views, %{id: 0})
       |> assign(:current_filter_view_id, nil)
       |> assign(:show_filter_view_overlay, false)
 
@@ -279,7 +277,6 @@ defmodule LantternWeb.DashboardLive do
         list_filter_views(socket.assigns.current_user.current_profile_id),
         reset: true
       )
-      |> stream_insert(:assessment_points_filter_views, %{id: 0})
       |> put_flash(:info, "Assessment points filter view created.")
       |> assign(:show_filter_view_overlay, false)
 
