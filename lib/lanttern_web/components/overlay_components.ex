@@ -380,8 +380,9 @@ defmodule LantternWeb.OverlayComponents do
         class="group w-8 h-8 rounded-full text-center"
         id={"menu-button-#{@id}-button"}
         aria-haspopup="true"
-        phx-click={open_menu_button(@id)}
+        phx-click={JS.exec("data-open")}
         phx-hook="MenuButton"
+        data-open={open_menu_button(@id)}
         data-cancel={close_menu_button(@id)}
       >
         <span class="sr-only">Open options</span>
