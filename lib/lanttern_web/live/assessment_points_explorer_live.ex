@@ -10,33 +10,26 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
     ~H"""
     <div class="container mx-auto lg:max-w-5xl">
       <.page_title_with_menu>Assessment points explorer</.page_title_with_menu>
-      <div class="flex items-center mt-2 font-display font-bold text-xs text-ltrn-subtle">
-        <.link navigate={~p"/assessment_points"} class="underline">Assessment points</.link>
-        <span class="mx-1">/</span>
-        <span>Explorer</span>
+      <div class="mt-12">
+        <p class="font-display font-bold text-lg">
+          I want to explore assessment points<br /> in
+          <.filter_buttons type="subjects" items={@current_subjects} />, from
+          <.filter_buttons type="classes" items={@current_classes} />
+        </p>
       </div>
     </div>
     <div class="container mx-auto lg:max-w-5xl mt-10">
       <div class="flex items-center gap-4 justify-between">
         <div class="flex items-center gap-4 text-sm">
           <p class="flex items-center gap-2">
-            <%= length(@assessment_points) %> results in
-            <.filter_badges items={@current_classes} type="classes" />
-            <span>|</span>
-            <.filter_badges items={@current_subjects} type="subjects" />
+            Showing <%= length(@assessment_points) %> results
           </p>
-          <button
-            class="flex items-center gap-2 text-ltrn-subtle underline hover:no-underline"
-            phx-click={show_filter()}
-          >
-            <.icon name="hero-funnel-mini" class="text-ltrn-primary" /> Filter
-          </button>
         </div>
         <button
-          class="shrink-0 flex items-center gap-2 text-sm text-ltrn-subtle underline hover:no-underline"
+          class="shrink-0 flex items-center gap-2 text-sm text-ltrn-subtle hover:underline"
           phx-click={JS.exec("data-show", to: "#create-assessment-point-overlay")}
         >
-          <.icon name="hero-plus-circle-mini" class="text-ltrn-primary" /> Add assessment point
+          Create assessment point <.icon name="hero-plus-mini" class="text-ltrn-primary" />
         </button>
       </div>
     </div>
@@ -116,33 +109,35 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
   attr :items, :list, required: true
   attr :type, :string, required: true
 
-  def filter_badges(%{items: []} = assigns) do
+  def filter_buttons(%{items: []} = assigns) do
     ~H"""
-    <.badge>all <%= @type %></.badge>
+    <button type="button" phx-click={show_filter()} class="underline hover:text-ltrn-primary">
+      all <%= @type %>
+    </button>
     """
   end
 
-  def filter_badges(%{items: items} = assigns) when length(items) > 3 do
-    {first_two, rest} = Enum.split(items, 2)
+  def filter_buttons(%{items: items, type: type} = assigns) do
+    items =
+      if length(items) > 3 do
+        {first_two, rest} = Enum.split(items, 2)
 
-    assigns =
-      assigns
-      |> assign(:items, first_two)
-      |> assign(:rest_length, length(rest))
+        first_two
+        |> Enum.map(& &1.name)
+        |> Enum.join(" / ")
+        |> Kernel.<>(" / + #{length(rest)} #{type}")
+      else
+        items
+        |> Enum.map(& &1.name)
+        |> Enum.join(" / ")
+      end
+
+    assigns = assign(assigns, :items, items)
 
     ~H"""
-    <.badge :for={item <- @items}>
-      <%= item.name %>
-    </.badge>
-    <.badge><%= "+#{@rest_length} #{@type}" %></.badge>
-    """
-  end
-
-  def filter_badges(assigns) do
-    ~H"""
-    <.badge :for={item <- @items}>
-      <%= item.name %>
-    </.badge>
+    <button type="button" phx-click={show_filter()} class="underline hover:text-ltrn-primary">
+      <%= @items %>
+    </button>
     """
   end
 
@@ -275,7 +270,7 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
 
     socket =
       socket
-      |> push_navigate(to: path(socket, ~p"/assessment_points/explorer?#{path_params}"))
+      |> push_navigate(to: path(socket, ~p"/assessment_points?#{path_params}"))
 
     {:noreply, socket}
   end
@@ -283,12 +278,21 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
   def handle_event("clear_filters", _params, socket) do
     socket =
       socket
-      |> push_navigate(to: path(socket, ~p"/assessment_points/explorer"))
+      |> push_navigate(to: path(socket, ~p"/assessment_points"))
 
     {:noreply, socket}
   end
 
   # info handlers
+
+  def handle_info({:assessment_point_created, assessment_point}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, "Assessment point \"#{assessment_point.name}\" created!")
+      |> push_navigate(to: ~p"/assessment_points/#{assessment_point.id}")
+
+    {:noreply, socket}
+  end
 
   def handle_info(
         {:assessment_point_entry_save_error,

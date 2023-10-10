@@ -55,7 +55,7 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponentTest do
           student_id: std_2.id
         })
 
-      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/explorer")
+      {:ok, view, _html} = live(conn, @live_view_path_base)
 
       # validate if live components rendered with initial values
       view
@@ -149,7 +149,7 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponentTest do
           score: 5
         })
 
-      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/explorer")
+      {:ok, view, _html} = live(conn, @live_view_path_base)
 
       # send change event to form
       view

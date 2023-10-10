@@ -50,8 +50,8 @@ defmodule LantternWeb.DashboardLiveTest do
       {path, _flash} = assert_redirect(view)
 
       # the order of URL params are not guaranteed. test each param separately
-      # expected format: "/assessment_points/explorer?subjects_ids[]=1&classes_ids[]=1"
-      assert path =~ "/assessment_points/explorer?"
+      # expected format: "/assessment_points?subjects_ids[]=1&classes_ids[]=1"
+      assert path =~ "/assessment_points?"
       assert path =~ "subjects_ids[]=#{subject.id}"
       assert path =~ "classes_ids[]=#{class.id}"
     end
