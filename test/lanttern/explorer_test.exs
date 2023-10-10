@@ -2,6 +2,8 @@ defmodule Lanttern.ExplorerTest do
   use Lanttern.DataCase
 
   alias Lanttern.Explorer
+  alias Lanttern.Repo
+  import Ecto.Query, only: [from: 2]
 
   describe "assessment_points_filter_views" do
     alias Lanttern.Explorer.AssessmentPointsFilterView
@@ -63,12 +65,38 @@ defmodule Lanttern.ExplorerTest do
 
     test "create_assessment_points_filter_view/1 with valid data creates a assessment_points_filter_view" do
       profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
-      valid_attrs = %{name: "some name", profile_id: profile.id}
+      subject = Lanttern.TaxonomyFixtures.subject_fixture()
+      class = Lanttern.SchoolsFixtures.class_fixture()
+
+      valid_attrs = %{
+        name: "some name",
+        profile_id: profile.id,
+        subjects_ids: [subject.id],
+        classes_ids: [class.id]
+      }
 
       assert {:ok, %AssessmentPointsFilterView{} = assessment_points_filter_view} =
                Explorer.create_assessment_points_filter_view(valid_attrs)
 
       assert assessment_points_filter_view.name == "some name"
+
+      # assert subject and class relationship were created
+
+      assert [{assessment_points_filter_view.id, subject.id}] ==
+               from(
+                 vs in "assessment_points_filter_views_subjects",
+                 where: vs.assessment_points_filter_view_id == ^assessment_points_filter_view.id,
+                 select: {vs.assessment_points_filter_view_id, vs.subject_id}
+               )
+               |> Repo.all()
+
+      assert [{assessment_points_filter_view.id, class.id}] ==
+               from(
+                 vc in "assessment_points_filter_views_classes",
+                 where: vc.assessment_points_filter_view_id == ^assessment_points_filter_view.id,
+                 select: {vc.assessment_points_filter_view_id, vc.class_id}
+               )
+               |> Repo.all()
     end
 
     test "create_assessment_points_filter_view/1 with invalid data returns error changeset" do
