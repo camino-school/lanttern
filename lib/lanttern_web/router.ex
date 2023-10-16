@@ -43,8 +43,8 @@ defmodule LantternWeb.Router do
       ] do
       live "/dashboard", DashboardLive
 
-      live "/assessment_points", AssessmentPointsLive
-      live "/assessment_points/explorer", AssessmentPointsExplorerLive
+      # live "/assessment_points", AssessmentPointsLive
+      live "/assessment_points", AssessmentPointsExplorerLive
       live "/assessment_points/:id", AssessmentPointLive
 
       live "/curriculum", CurriculumLive
@@ -90,6 +90,17 @@ defmodule LantternWeb.Router do
 
     # Conversation context
     resources "/comments", CommentController
+
+    # Explorer context
+    live "/assessment_points_filter_views", AssessmentPointsFilterViewLive.Index, :index
+    live "/assessment_points_filter_views/new", AssessmentPointsFilterViewLive.Index, :new
+    live "/assessment_points_filter_views/:id/edit", AssessmentPointsFilterViewLive.Index, :edit
+
+    live "/assessment_points_filter_views/:id", AssessmentPointsFilterViewLive.Show, :show
+
+    live "/assessment_points_filter_views/:id/show/edit",
+         AssessmentPointsFilterViewLive.Show,
+         :edit
   end
 
   # Other scopes may use custom stacks.

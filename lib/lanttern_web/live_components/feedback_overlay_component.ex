@@ -58,14 +58,7 @@ defmodule LantternWeb.FeedbackOverlayComponent do
           :if={@feedback && !@show_feedback_form}
           id={"feedback=#{@feedback.id}"}
           profile_name={@feedback.profile.teacher.name}
-          class="hidden"
-          phx-mounted={
-            JS.show(
-              display: "flex",
-              transition: {"ease-out duration-1000", "bg-ltrn-mesh-lime", "bg-transparent"},
-              time: 1000
-            )
-          }
+          phx-mounted={highlight_mounted()}
         >
           <span class="block mb-2 text-xs text-ltrn-subtle">
             <%= format_local!(@feedback.inserted_at, "{Mshort} {D}, {YYYY}, {h24}:{m}") %>
@@ -113,20 +106,9 @@ defmodule LantternWeb.FeedbackOverlayComponent do
                 comment.profile.student.name
               end
             }
-            class="mt-6 hidden"
-            phx-mounted={
-              JS.show(
-                display: "flex",
-                transition: {"ease-out duration-1000", "bg-ltrn-mesh-lime", "bg-transparent"},
-                time: 1000
-              )
-            }
-            phx-remove={
-              JS.hide(
-                transition: {"ease-out duration-300", "bg-ltrn-mesh-rose", "bg-transparent"},
-                time: 300
-              )
-            }
+            class="mt-6"
+            phx-mounted={highlight_mounted()}
+            phx-remove={highlight_remove()}
           >
             <span class="flex items-center gap-4 mb-2 text-xs text-ltrn-subtle">
               <%= format_local!(comment.inserted_at, "{Mshort} {D}, {YYYY}, {h24}:{m}") %>
@@ -147,6 +129,7 @@ defmodule LantternWeb.FeedbackOverlayComponent do
                 phx-click="delete-comment"
                 phx-value-id={comment.id}
                 phx-target={@myself}
+                data-confirm="Are you sure?"
               >
                 Delete
               </button>

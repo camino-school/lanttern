@@ -360,4 +360,100 @@ defmodule LantternWeb.OverlayComponents do
     |> JS.remove_class("overflow-hidden", to: "body")
     |> JS.pop_focus()
   end
+
+  @doc """
+  Renders a menu button.
+
+  View `menu-button-hook.js` for more information on
+  function component and JS integration.
+
+  """
+
+  attr :id, :string, required: true
+  slot :menu_items, required: true, doc: "Use `<.menu_button_item>` components here"
+
+  def menu_button(assigns) do
+    ~H"""
+    <div class="relative shrink-0">
+      <button
+        type="button"
+        class="group w-8 h-8 rounded-full text-center"
+        id={"menu-button-#{@id}-button"}
+        aria-haspopup="true"
+        phx-click={JS.exec("data-open")}
+        phx-hook="MenuButton"
+        data-open={open_menu_button(@id)}
+        data-cancel={close_menu_button(@id)}
+      >
+        <span class="sr-only">Open options</span>
+        <.icon
+          name="hero-ellipsis-horizontal-mini"
+          class="w-5 h-5 text-ltrn-subtle group-hover:text-ltrn-text"
+        />
+      </button>
+      <div
+        id={"menu-button-#{@id}"}
+        class="hidden absolute right-0 z-10 mt-1 w-32 origin-top-right rounded-sm bg-white py-2 shadow-lg ring-1 ring-ltrn-hairline focus:outline-none"
+        role="menu"
+        aria-orientation="vertical"
+        aria-labelledby={"menu-button-#{@id}-button"}
+        tabindex="-1"
+        phx-window-keydown={JS.exec("data-cancel", to: "#menu-button-#{@id}-button")}
+        phx-key="escape"
+        phx-click-away={JS.exec("data-cancel", to: "#menu-button-#{@id}-button")}
+      >
+        <%= render_slot(@menu_items) %>
+      </div>
+    </div>
+    """
+  end
+
+  defp open_menu_button(id, js \\ %JS{}) do
+    js
+    |> JS.show(
+      to: "#menu-button-#{id}",
+      transition: {
+        "ease-out duration-100",
+        "transform opacity-0 scale-95",
+        "transform opacity-100 scale-100"
+      },
+      time: 100
+    )
+    |> JS.set_attribute({"aria-expanded", "true"})
+  end
+
+  defp close_menu_button(id, js \\ %JS{}) do
+    js
+    |> JS.hide(
+      to: "#menu-button-#{id}",
+      transition: {
+        "ease-out duration-75",
+        "transform opacity-100 scale-100",
+        "transform opacity-0 scale-95"
+      },
+      time: 75
+    )
+    |> JS.remove_attribute("aria-expanded")
+  end
+
+  attr :id, :string, required: true
+  attr :class, :any, default: nil
+  attr :rest, :global, doc: "Use it to pass `phx-` bindings"
+  slot :inner_block, required: true
+
+  def menu_button_item(assigns) do
+    ~H"""
+    <!-- Active: "bg-gray-50", Not Active: "" -->
+    <button
+      id={@id}
+      type="button"
+      class={["block w-full px-3 py-1 text-sm text-left focus:bg-ltrn-hairline", @class]}
+      role="menuitem"
+      tabindex="-1"
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </button>
+    """
+  end
 end

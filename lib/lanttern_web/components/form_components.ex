@@ -344,6 +344,46 @@ defmodule LantternWeb.FormComponents do
   end
 
   @doc """
+  Check field to use in list fields.
+
+  Note that input has `phx-update` attr to avoid form updates
+  conflicts with HTML input control.
+
+  In other words, the checked attr works only on mount - keep this
+  in mind when working with check fields that should start checked.
+  """
+  attr :id, :string, required: true
+
+  attr :opt, :map,
+    required: true,
+    doc: "Check field option. Any map/struct with `:name` attr"
+
+  attr :field, Phoenix.HTML.FormField, required: true
+
+  def check_field(assigns) do
+    ~H"""
+    <div class="relative flex items-start py-4">
+      <div class="min-w-0 flex-1 text-sm leading-6">
+        <label for={@id} class="select-none text-ltrn-text">
+          <%= @opt.name %>
+        </label>
+      </div>
+      <div class="ml-3 flex h-6 items-center">
+        <input
+          id={@id}
+          name={@field.name <> "[]"}
+          type="checkbox"
+          value={@opt.id}
+          class="h-4 w-4 rounded border-ltrn-subtle text-ltrn-primary focus:ring-ltrn-primary"
+          checked={"#{@opt.id}" in (@field.value || [])}
+          phx-update="ignore"
+        />
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
   Generates a generic error message.
   """
   slot :inner_block, required: true

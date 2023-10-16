@@ -112,10 +112,10 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponent do
 
   # lifecycle
 
-  def preload(list_of_assigns) do
+  def update_many(assigns_sockets) do
     assessment_points_ids =
-      list_of_assigns
-      |> Enum.map(fn assigns -> assigns.entry.assessment_point_id end)
+      assigns_sockets
+      |> Enum.map(fn {assigns, _socket} -> assigns.entry.assessment_point_id end)
       |> Enum.uniq()
 
     assessment_points =
@@ -126,12 +126,17 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponent do
       |> Enum.map(fn assessment_point -> {assessment_point.id, assessment_point} end)
       |> Map.new()
 
-    Enum.map(list_of_assigns, fn assigns ->
-      Map.put(assigns, :assessment_point, assessment_points[assigns.entry.assessment_point_id])
+    Enum.map(assigns_sockets, fn {assigns, socket} ->
+      socket
+      |> assign(:assessment_point, assessment_points[assigns.entry.assessment_point_id])
+      |> update_single(assigns)
     end)
   end
 
-  def update(%{entry: entry, id: id, assessment_point: assessment_point} = assigns, socket) do
+  defp update_single(
+         %{assigns: %{assessment_point: assessment_point}} = socket,
+         %{entry: entry, id: id} = assigns
+       ) do
     %{scale: scale} = assessment_point
     %{ordinal_values: ordinal_values} = scale
     ordinal_value_options = Enum.map(ordinal_values, fn ov -> {:"#{ov.name}", ov.id} end)
@@ -154,20 +159,17 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponent do
       |> Assessments.change_assessment_point_entry(%{})
       |> to_form()
 
-    socket =
-      socket
-      |> assign(:ov_style, ov_style)
-      |> assign(:ov_name, ov_name)
-      |> assign(:form, form)
-      |> assign(:scale, scale)
-      |> assign(:ordinal_value_options, ordinal_value_options)
-      |> assign(:id, id)
-      |> assign(:wrapper_class, Map.get(assigns, :wrapper_class, ""))
-      |> assign(:class, Map.get(assigns, :class, ""))
-      |> assign(:marking_input, Map.get(assigns, :marking_input, []))
-      |> assign(:observation_input, Map.get(assigns, :observation_input, []))
-
-    {:ok, socket}
+    socket
+    |> assign(:ov_style, ov_style)
+    |> assign(:ov_name, ov_name)
+    |> assign(:form, form)
+    |> assign(:scale, scale)
+    |> assign(:ordinal_value_options, ordinal_value_options)
+    |> assign(:id, id)
+    |> assign(:wrapper_class, Map.get(assigns, :wrapper_class, ""))
+    |> assign(:class, Map.get(assigns, :class, ""))
+    |> assign(:marking_input, Map.get(assigns, :marking_input, []))
+    |> assign(:observation_input, Map.get(assigns, :observation_input, []))
   end
 
   # event handlers
