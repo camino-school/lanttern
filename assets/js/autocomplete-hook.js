@@ -1,3 +1,7 @@
+// use this map with hook element ids as keys to keep track of abort controllers,
+// which should be used to clean event listeners on destroyed() callback
+const hookAbortControllerMap = {};
+
 const showControls = (input) => {
   if (input) {
     input.setAttribute("aria-expanded", "true");
@@ -70,8 +74,12 @@ function autocompleteSearchResults(event) {
     setActive(`results-${event.detail.results[0].id}`, input, controls);
 
     controls.querySelectorAll("li").forEach((li) => {
-      li.addEventListener("mouseenter", activateLi);
-      li.addEventListener("click", selectLi);
+      li.addEventListener("mouseenter", activateLi, {
+        signal: hookAbortControllerMap[input.id].signal,
+      });
+      li.addEventListener("click", selectLi, {
+        signal: hookAbortControllerMap[input.id].signal,
+      });
     });
   }
 }
@@ -175,19 +183,29 @@ function keydownHandler(event) {
 
 const autocompleteHook = {
   mounted() {
+    hookAbortControllerMap[this.el.id] = new AbortController();
     window.addEventListener(
       "phx:autocomplete_search_results",
-      autocompleteSearchResults.bind(this)
+      autocompleteSearchResults.bind(this),
+      { signal: hookAbortControllerMap[this.el.id].signal }
     );
 
     window.addEventListener(
       "phx:remove_curriculum_item",
-      removeCurriculumItem.bind(this)
+      removeCurriculumItem.bind(this),
+      { signal: hookAbortControllerMap[this.el.id].signal }
     );
 
-    window.addEventListener("click", clickAwayHandler.bind(this));
+    window.addEventListener("click", clickAwayHandler.bind(this), {
+      signal: hookAbortControllerMap[this.el.id].signal,
+    });
 
-    this.el.addEventListener("keydown", keydownHandler.bind(this));
+    this.el.addEventListener("keydown", keydownHandler.bind(this), {
+      signal: hookAbortControllerMap[this.el.id].signal,
+    });
+  },
+  destroyed() {
+    hookAbortControllerMap[this.el.id].abort();
   },
 };
 
