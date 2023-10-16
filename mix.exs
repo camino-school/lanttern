@@ -57,7 +57,8 @@ defmodule Lanttern.MixProject do
       {:joken_jwks, "~> 1.6.0"},
       {:flop, "~> 0.22.1"},
       {:benchee, "~> 1.0", only: :dev},
-      {:ex_doc, "~> 0.27", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.27", only: :dev, runtime: false},
+      {:earmark, "~> 1.4"}
     ]
   end
 

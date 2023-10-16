@@ -242,7 +242,7 @@ defmodule LantternWeb.FormComponents do
       id={@id}
       name={@name}
       class={[
-        "block w-full min-h-[6rem] rounded-sm border-0 shadow-sm ring-1 sm:text-sm sm:leading-6",
+        "block w-full min-h-[10rem] rounded-sm border-0 shadow-sm ring-1 sm:text-sm sm:leading-6",
         "focus:ring-2 focus:ring-inset",
         "phx-no-feedback:ring-ltrn-hairline phx-no-feedback:focus:ring-ltrn-primary",
         @errors == [] && "ring-ltrn-hairline focus:ring-ltrn-primary",

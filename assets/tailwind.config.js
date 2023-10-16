@@ -42,6 +42,7 @@ module.exports = {
     //
     //     <div class="phx-click-loading:animate-ping">
     //
+    require("@tailwindcss/typography"),
     plugin(({ addVariant }) =>
       addVariant("phx-no-feedback", [".phx-no-feedback&", ".phx-no-feedback &"])
     ),
