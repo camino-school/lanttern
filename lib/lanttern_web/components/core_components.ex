@@ -17,6 +17,7 @@ defmodule LantternWeb.CoreComponents do
   use Phoenix.Component
 
   alias Phoenix.LiveView.JS
+  import Phoenix.HTML, only: [raw: 1]
   import LantternWeb.Gettext
 
   @doc """
@@ -567,6 +568,21 @@ defmodule LantternWeb.CoreComponents do
         <span class="relative inline-flex rounded-full h-16 w-16 bg-ltrn-primary blur-sm"></span>
       </div> --%>
       <p class="font-display text-ltrn-subtle"><%= render_slot(@inner_block) %></p>
+    </div>
+    """
+  end
+
+  @doc """
+  Parses markdown text to HTML and renders it
+  """
+  attr :text, :string, required: true
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def markdown(assigns) do
+    ~H"""
+    <div class={["prose prose-slate", @class]} {@rest}>
+      <%= raw(Earmark.as_html!(@text)) %>
     </div>
     """
   end

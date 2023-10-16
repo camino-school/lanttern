@@ -28,9 +28,17 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponent do
             field={@form[:description]}
             label="Decription"
             show_optional
-            class="mb-6"
+            class="mb-1"
           />
-
+          <p class="mb-6 text-sm text-ltrn-subtle">
+            <a
+              href="https://www.markdownguide.org/basic-syntax/"
+              target="_blank"
+              class="hover:text-ltrn-primary"
+            >
+              Markdown supported <.icon name="hero-information-circle" />
+            </a>
+          </p>
           <div class="flex gap-2 mb-6">
             <.input type="date" field={@form[:date]} label="Date" phx-debounce="1500" />
             <div class="flex gap-1">

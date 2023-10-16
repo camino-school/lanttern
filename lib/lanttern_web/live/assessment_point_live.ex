@@ -42,9 +42,11 @@ defmodule LantternWeb.AssessmentPointLive do
         </.button>
         <div class="max-w-screen-sm">
           <h2 class="font-display font-black text-2xl"><%= @assessment_point.name %></h2>
-          <p :if={@assessment_point.description} class="mt-4 text-sm">
-            <%= @assessment_point.description %>
-          </p>
+          <.markdown
+            :if={@assessment_point.description}
+            class="mt-4"
+            text={@assessment_point.description}
+          />
         </div>
         <.icon_and_content icon_name="hero-calendar">
           Date: <%= format_local!(@assessment_point.datetime, "{Mshort} {D}, {YYYY}, {h24}:{m}") %>

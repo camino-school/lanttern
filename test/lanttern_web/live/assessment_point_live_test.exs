@@ -116,4 +116,30 @@ defmodule LantternWeb.AssessmentPointLiveTest do
       assert view |> has_element?("button", ~r/Completed [A-Z][a-z]{2} [0-9]{1,2}, [0-9]{4} 🎉/)
     end
   end
+
+  describe "Assessment point details markdown support" do
+    test "renders HTML correctly", %{conn: conn} do
+      assessment_point =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          description: """
+          paragraph 1 with *italic*
+
+          paragraph 2 with **bold**
+
+          ## h2 heading
+
+          - list item
+          """
+        })
+
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
+
+      assert view |> has_element?("p", "paragraph 1")
+      assert view |> has_element?("em", "italic")
+      assert view |> has_element?("p", "paragraph 2")
+      assert view |> has_element?("strong", "bold")
+      assert view |> has_element?("h2", "h2 heading")
+      assert view |> has_element?("li", "list item")
+    end
+  end
 end

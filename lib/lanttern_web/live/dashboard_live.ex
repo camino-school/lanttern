@@ -47,17 +47,21 @@ defmodule LantternWeb.DashboardLive do
           Create new view <.icon name="hero-plus-circle" class="w-6 h-6 text-ltrn-primary" />
         </button>
       </div>
-      <div
-        id="assessment-points-filter-views"
-        class="grid grid-cols-3 gap-10 mt-6"
-        phx-update="stream"
-      >
-        <.filter_view_card
-          :for={{dom_id, filter_view} <- @streams.assessment_points_filter_views}
-          id={dom_id}
-          filter_view={filter_view}
-        />
-      </div>
+      <%= if @filter_view_count > 0 do %>
+        <div
+          id="assessment-points-filter-views"
+          class="grid grid-cols-3 gap-10 mt-6"
+          phx-update="stream"
+        >
+          <.filter_view_card
+            :for={{dom_id, filter_view} <- @streams.assessment_points_filter_views}
+            id={dom_id}
+            filter_view={filter_view}
+          />
+        </div>
+      <% else %>
+        <.empty_state>You don't have any filter view yet</.empty_state>
+      <% end %>
     </div>
     <.live_component
       module={LantternWeb.AssessmentPointsFilterViewOverlayComponent}
@@ -162,9 +166,13 @@ defmodule LantternWeb.DashboardLive do
       )
     end
 
+    filter_views = list_filter_views(profile_id)
+    filter_view_count = length(filter_views)
+
     socket =
       socket
-      |> stream(:assessment_points_filter_views, list_filter_views(profile_id))
+      |> stream(:assessment_points_filter_views, filter_views)
+      |> assign(:filter_view_count, filter_view_count)
       |> assign(:current_filter_view_id, nil)
       |> assign(:show_filter_view_overlay, false)
 
@@ -191,8 +199,12 @@ defmodule LantternWeb.DashboardLive do
 
     case Explorer.delete_assessment_points_filter_view(assessment_points_filter_view) do
       {:ok, _} ->
-        {:noreply,
-         stream_delete(socket, :assessment_points_filter_views, assessment_points_filter_view)}
+        socket =
+          socket
+          |> stream_delete(:assessment_points_filter_views, assessment_points_filter_view)
+          |> update(:filter_view_count, fn count -> count - 1 end)
+
+        {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = _changeset} ->
         {:noreply, put_flash(socket, :error, "Something is not right")}
@@ -241,6 +253,7 @@ defmodule LantternWeb.DashboardLive do
         reset: true
       )
       |> put_flash(:info, "Assessment points filter view created.")
+      |> update(:filter_view_count, fn count -> count + 1 end)
       |> assign(:show_filter_view_overlay, false)
 
     {:noreply, socket}
