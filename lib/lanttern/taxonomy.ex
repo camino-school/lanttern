@@ -10,7 +10,7 @@ defmodule Lanttern.Taxonomy do
   alias Lanttern.Taxonomy.Year
 
   @doc """
-  Returns the list of subjects.
+  Returns the list of subjects ordered alphabetically.
 
   ## Examples
 
@@ -19,27 +19,42 @@ defmodule Lanttern.Taxonomy do
 
   """
   def list_subjects do
-    Repo.all(Subject)
+    from(
+      sub in Subject,
+      order_by: :name
+    )
+    |> Repo.all()
   end
 
   @doc """
-  Returns the list of subjects used by assessment points,
-  inferred through assesmsent points's curriculum-item.
+  Returns a tuple with two lists of subjects:
+  one comprised of subjects used by assessment points,
+  and another with all the other subjects.
+
+  Inferred through assesmsent points's curriculum-item.
 
   ## Examples
 
       iex> list_assessment_point_subjects()
-      [%Subject{}, ...]
+      {[%Subject{}, ...], [%Subject{}, ...]}
 
   """
   def list_assessment_points_subjects do
-    from(sub in Subject,
-      join: ci in assoc(sub, :curriculum_items),
-      join: ast in assoc(ci, :assessment_points),
-      order_by: sub.name,
-      distinct: true
-    )
-    |> Repo.all()
+    all_subjects =
+      from(sub in Subject,
+        left_join: ci in assoc(sub, :curriculum_items),
+        left_join: ast in assoc(ci, :assessment_points),
+        group_by: sub.id,
+        order_by: sub.name,
+        select: {sub, count(ast.id)}
+      )
+      |> Repo.all()
+      |> Enum.group_by(fn {_subject, ast_count} -> ast_count > 0 end)
+
+    {
+      all_subjects |> Map.get(true, []) |> Enum.map(fn {sub, _} -> sub end),
+      all_subjects |> Map.get(false, []) |> Enum.map(fn {sub, _} -> sub end)
+    }
   end
 
   @doc """

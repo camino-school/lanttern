@@ -69,9 +69,19 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
         </fieldset>
         <fieldset class="flex-1">
           <legend class="text-base font-semibold leading-6 text-ltrn-subtle">Subjects</legend>
-          <div class="mt-4 divide-y divide-ltrn-hairline border-b border-t border-ltrn-hairline">
+          <p class="my-4 text-sm font-semibold text-ltrn-subtle">Used in assessment points</p>
+          <div class="divide-y divide-ltrn-hairline border-b border-t border-ltrn-hairline">
             <.check_field
-              :for={opt <- @subjects}
+              :for={opt <- @subjects_in_assessments}
+              id={"subject-#{opt.id}"}
+              field={@form[:subjects_ids]}
+              opt={opt}
+            />
+          </div>
+          <p class="my-4 text-sm font-semibold text-ltrn-subtle">Others</p>
+          <div class="divide-y divide-ltrn-hairline border-b border-t border-ltrn-hairline">
+            <.check_field
+              :for={opt <- @other_subjects}
               id={"subject-#{opt.id}"}
               field={@form[:subjects_ids]}
               opt={opt}
@@ -223,7 +233,8 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
       |> Phoenix.Component.to_form()
 
     classes = Schools.list_classes()
-    subjects = Taxonomy.list_assessment_points_subjects()
+    {subjects_in_assessments, other_subjects} = Taxonomy.list_assessment_points_subjects()
+    all_subjects = subjects_in_assessments ++ other_subjects
 
     current_classes =
       case params_classes_ids do
@@ -234,7 +245,7 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
     current_subjects =
       case params_subjects_ids do
         nil -> []
-        ids -> subjects |> Enum.filter(&("#{&1.id}" in ids))
+        ids -> all_subjects |> Enum.filter(&("#{&1.id}" in ids))
       end
 
     %{
@@ -252,7 +263,9 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
       |> assign(:students_and_entries, students_and_entries)
       |> assign(:form, form)
       |> assign(:classes, classes)
-      |> assign(:subjects, subjects)
+      |> assign(:subjects_in_assessments, subjects_in_assessments)
+      |> assign(:other_subjects, other_subjects)
+      |> assign(:subjects, all_subjects)
       |> assign(:current_classes, current_classes)
       |> assign(:current_subjects, current_subjects)
 
