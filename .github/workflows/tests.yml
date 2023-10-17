@@ -1,3 +1,5 @@
+name: Lanttern tests
+
 on: push
 
 jobs:
