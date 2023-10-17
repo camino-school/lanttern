@@ -8,7 +8,7 @@ defmodule Lanttern.GoogleToken do
 
   def token_config do
     client_id =
-      Application.get_env(:lanttern, LantternWeb.UserAuth)
+      Application.fetch_env!(:lanttern, LantternWeb.UserAuth)
       |> Keyword.get(:google_client_id)
 
     %{}

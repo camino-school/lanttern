@@ -65,7 +65,7 @@ defmodule LantternWeb.UserLoginLive do
     form = to_form(%{"email" => email}, as: "user")
 
     google_client_id =
-      Application.get_env(:lanttern, LantternWeb.UserAuth)
+      Application.fetch_env!(:lanttern, LantternWeb.UserAuth)
       |> Keyword.get(:google_client_id)
 
     socket =
