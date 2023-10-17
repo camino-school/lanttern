@@ -64,7 +64,14 @@ if config_env() == :prod do
     secret_key_base: secret_key_base
 
   # Authentication config
-  config :lanttern, LantternWeb.UserAuth, google_client_id: System.get_env("GOOGLE_CLIENT_ID")
+  google_client_id =
+    System.get_env("GOOGLE_CLIENT_ID") ||
+      raise """
+      environment variable GOOGLE_CLIENT_ID is missing.
+      For example: 00000-asdf000.apps.googleusercontent.com
+      """
+
+  config :lanttern, LantternWeb.UserAuth, google_client_id: google_client_id
 
   # ## SSL Support
   #
