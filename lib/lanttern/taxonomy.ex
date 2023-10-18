@@ -155,6 +155,27 @@ defmodule Lanttern.Taxonomy do
   end
 
   @doc """
+  Returns a map with subjects codes as string keys and ids as values.
+
+  Useful when we know the subject but we don't know the subject id in the current
+  application env (e.g. curriculum items seeds).
+
+  ## Examples
+
+      iex> generate_subjects_code_id_map()
+      %{"engl" => 1, "port" => 2, ...}
+
+  """
+  def generate_subjects_code_id_map do
+    from(
+      sub in Subject,
+      select: {sub.code, sub.id}
+    )
+    |> Repo.all()
+    |> Enum.into(%{})
+  end
+
+  @doc """
   Returns the list of years.
 
   ## Examples
@@ -262,5 +283,26 @@ defmodule Lanttern.Taxonomy do
   """
   def change_year(%Year{} = year, attrs \\ %{}) do
     Year.changeset(year, attrs)
+  end
+
+  @doc """
+  Returns a map with years codes as string keys and ids as values.
+
+  Useful when we know the year but we don't know the id in the current
+  application env (e.g. curriculum items seeds).
+
+  ## Examples
+
+      iex> generate_years_code_id_map()
+      %{"k1" => 1, "k2" => 2, ...}
+
+  """
+  def generate_years_code_id_map do
+    from(
+      y in Year,
+      select: {y.code, y.id}
+    )
+    |> Repo.all()
+    |> Enum.into(%{})
   end
 end

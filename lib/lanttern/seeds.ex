@@ -35,6 +35,7 @@ defmodule Lanttern.Seeds do
     {"engl", "English"},
     {"port", "Portuguese"},
     {"espa", "Spanish"},
+    {"lang", "Languages"},
     {"hsci", "Human Sciences"},
     {"geog", "Geography"},
     {"hist", "History"},

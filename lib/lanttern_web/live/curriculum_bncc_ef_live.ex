@@ -47,16 +47,16 @@ defmodule LantternWeb.CurriculumBNCCEFLive do
           <:col :let={{_id, ha}} label="ID">#<%= ha.id %></:col>
           <:col :let={{_id, ha}} label="Code"><%= ha.code %></:col>
           <:col :let={{_id, ha}} label="Campo de Atuação">
-            <%= if ha.campo_de_atuacao, do: ha.campo_de_atuacao.name, else: "—" %>
+            <%= ha.campo_de_atuacao || "—" %>
           </:col>
           <:col :let={{_id, ha}} label="Prática de Linguagem">
-            <%= if ha.pratica_de_linguagem, do: ha.pratica_de_linguagem.name, else: "—" %>
+            <%= ha.pratica_de_linguagem || "—" %>
           </:col>
           <:col :let={{_id, ha}} label="Unidade Temática">
-            <%= if ha.unidade_tematica, do: ha.unidade_tematica.name, else: "—" %>
+            <%= ha.unidade_tematica || "—" %>
           </:col>
           <:col :let={{_id, ha}} label="Objeto de Conhecimento">
-            <%= ha.objeto_de_conhecimento.name %>
+            <%= ha.objeto_de_conhecimento %>
           </:col>
           <:col :let={{_id, ha}} label="Habilidade"><%= ha.name %></:col>
         </.table>

@@ -92,6 +92,15 @@ defmodule Lanttern.TaxonomyTest do
       subject = subject_fixture()
       assert %Ecto.Changeset{} = Taxonomy.change_subject(subject)
     end
+
+    test "generate_subjects_code_id_map/0 returns a map with subject code as keys and its ids as value" do
+      sub_1 = subject_fixture(%{code: "abc"})
+      sub_2 = subject_fixture(%{code: "xyz"})
+
+      expected = Taxonomy.generate_subjects_code_id_map()
+      assert expected["abc"] == sub_1.id
+      assert expected["xyz"] == sub_2.id
+    end
   end
 
   describe "years" do
@@ -150,6 +159,15 @@ defmodule Lanttern.TaxonomyTest do
     test "change_year/1 returns a year changeset" do
       year = year_fixture()
       assert %Ecto.Changeset{} = Taxonomy.change_year(year)
+    end
+
+    test "generate_years_code_id_map/0 returns a map with year code as keys and its ids as value" do
+      year_1 = year_fixture(%{code: "abc"})
+      year_2 = year_fixture(%{code: "xyz"})
+
+      expected = Taxonomy.generate_years_code_id_map()
+      assert expected["abc"] == year_1.id
+      assert expected["xyz"] == year_2.id
     end
   end
 end
