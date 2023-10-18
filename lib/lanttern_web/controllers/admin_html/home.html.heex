@@ -71,7 +71,25 @@
     <div>
       <h2 class="font-display font-black text-xl">Explorer</h2>
       <ul>
-        <li><.link href={~p"/admin/assessment_points_filter_views"}>Assessment points filter views</.link></li>
+        <li>
+          <.link href={~p"/admin/assessment_points_filter_views"}>
+            Assessment points filter views
+          </.link>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h2 class="font-display font-black text-xl text-ltrn-subtle">Seeds</h2>
+      <ul>
+        <%= if @has_base_taxonomy do %>
+          <li class="flex items-center text-ltrn-subtle">
+            Base taxonomy seeded <.icon name="hero-check-circle" class="text-green-500" />
+          </li>
+        <% else %>
+          <li>
+            <.link href={~p"/admin/seed_base_taxonomy"} method="post">Seed base taxonomy</.link>
+          </li>
+        <% end %>
       </ul>
     </div>
   </div>
