@@ -1,16 +1,16 @@
 defmodule LantternWeb.AdminController do
   use LantternWeb, :controller
 
-  alias Lanttern.Seeds
+  alias Lanttern.Taxonomy
 
   def home(conn, _params) do
-    has_base_taxonomy = Seeds.check_base_taxonomy()
+    has_base_taxonomy = Taxonomy.check_base_taxonomy()
 
     render(conn, :home, has_base_taxonomy: has_base_taxonomy)
   end
 
   def seed_base_taxonomy(conn, _params) do
-    Seeds.seed_base_taxonomy()
+    Taxonomy.seed_base_taxonomy()
 
     conn =
       conn
