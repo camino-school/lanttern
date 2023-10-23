@@ -2,12 +2,15 @@ defmodule Lanttern.BNCC do
   @moduledoc """
   The BNCC context.
 
-  ## BNCC context codes
+  ## BNCC curriculum and component codes
 
   ### Curriculum
     - `bncc`
 
   ### Components
+    - `bncc_da` "Direitos de aprendizagem"
+    - `bncc_ce` "Campos de experiência"
+    - `bncc_oa` "Objetivos de aprendizagem"
     - `bncc_co` "Competências"
     - `bncc_ca` "Campos de atuação"
     - `bncc_pl` "Práticas de linguagem"
@@ -40,6 +43,9 @@ defmodule Lanttern.BNCC do
   @bncc "bncc"
 
   # component codes
+  @c_da "bncc_da"
+  @c_ce "bncc_ce"
+  @c_oa "bncc_oa"
   @c_co "bncc_co"
   @c_ca "bncc_ca"
   @c_pl "bncc_pl"
@@ -48,37 +54,123 @@ defmodule Lanttern.BNCC do
   @c_oc "bncc_oc"
   @c_ha "bncc_ha"
 
+  # CSV paths
+  @csv_path_da "priv/static/seeds/bncc/direitos_de_aprendizagem.csv"
+  @csv_path_co "priv/static/seeds/bncc/competencias.csv"
+  @csv_path_ei "priv/static/seeds/bncc/ei.csv"
+  @csv_path_ef1 "priv/static/seeds/bncc/ef1.csv"
+  @csv_path_ef2 "priv/static/seeds/bncc/ef2.csv"
+  @csv_path_em "priv/static/seeds/bncc/em.csv"
+  @csv_path_em_lp_co "priv/static/seeds/bncc/em_lp_competencias.csv"
+
   @doc """
-  Create BNCC curriculum and components.
+  Create BNCC curriculum, components, and items.
 
-  Use this function to setup a new environment before importing BNCC items.
+  This function is intended to be run a single time, during
+  environment setup. In case a curriculum with the code "bncc"
+  already exists, the function will not run and will return `:noop`.
+  Else, it'll return `:ok`.
 
-  In case a curriculum with the code "bncc" already exists, the function
-  will use this. In case a component already exists (same `code` and `curriculum_id`),
-  the function will ignore the insertion (using `on_conflict: :nothing`).
+  ## Support (private) functions
+
+  To help with the understading of the whole pipeline, we are documenting
+  the role of the main private functions present in the pipeline.
+
+  ### `generate_subjects_and_years_maps/0`
+
+  This function generates two maps: one for subjects and one for years,
+  comprising of the subjects and years codes as keys, and their ids as values.
+  Those two maps are put inside a general code/id pairs map:
+
+      %{subjects: %{...}, years: %{...}}
+
+  ### `seed_bncc_components/2`
+
+  This function receives the code/id map and BNCC curriculum id as arguments,
+  and insert all curriculum components in DB. It'll add a `:components` key to the
+  code/id map and return it:
+
+      %{components: %{...}, subjects: %{...}, years: %{...}}
+
+  ### `seed_bncc_learning_rights/1`
+
+  Receives the code/id map as argument, and insert all learning rights into DB.
+  It'll return the code/id map for chaining.
+
+  ### `seed_bncc_competencies/1`
+
+  Receives the code/id map as argument, and insert all competencies into DB.
+  It'll return the code/id map for chaining.
+
+  ### `seed_bncc_items/1`
+
+  Receives the code/id map as argument, and insert all items into DB.
+  This function also inserts all BNCC items relationships.
+
+  Returns `:ok`.
+
+  ## Examples
+
+      iex> seed_bncc()
+      :ok
+
+      iex> seed_bncc()
+      :noop
   """
-  def seed_bncc_structure() do
-    %{id: bncc_id} =
-      case Repo.get_by(Curriculum, code: @bncc) do
-        nil -> Repo.insert!(%Curriculum{code: @bncc, name: "BNCC"})
-        bncc -> bncc
-      end
+  def seed_bncc() do
+    case Repo.get_by(Curriculum, code: @bncc) do
+      nil ->
+        %{id: bncc_id} = Repo.insert!(%Curriculum{code: @bncc, name: "BNCC"})
 
-    [
-      {@c_co, "Competências"},
-      {@c_ca, "Campos de Atuação"},
-      {@c_pl, "Práticas de Linguagem"},
-      {@c_ut, "Unidades Temáticas"},
-      {@c_oc, "Objetos de Conhecimento"},
-      {@c_ha, "Habilidades"}
-    ]
-    |> Enum.map(fn {code, name} ->
-      %{code: code, name: name, curriculum_id: bncc_id}
-    end)
-    |> Enum.map(&insert_component/1)
+        generate_subjects_and_years_maps()
+        |> seed_bncc_components(bncc_id)
+        |> seed_bncc_learning_rights()
+        |> seed_bncc_competencies()
+        |> seed_bncc_items()
 
-    :ok
+        :ok
+
+      _bncc ->
+        :noop
+    end
   end
+
+  defp generate_subjects_and_years_maps() do
+    with subjects_code_id_map <- Taxonomy.generate_subjects_code_id_map(),
+         years_code_id_map <- Taxonomy.generate_years_code_id_map() do
+      %{
+        subjects: subjects_code_id_map,
+        years: years_code_id_map
+      }
+    end
+  end
+
+  # Seed BNCC components
+
+  defp seed_bncc_components(code_id_maps, bncc_id) do
+    components_code_id_map =
+      [
+        {bncc_id, @c_da, "Direitos de Aprendizagem"},
+        {bncc_id, @c_ce, "Campos de experiência"},
+        {bncc_id, @c_oa, "Objetivos de Aprendizagem"},
+        {bncc_id, @c_co, "Competências"},
+        {bncc_id, @c_ca, "Campos de Atuação"},
+        {bncc_id, @c_pl, "Práticas de Linguagem"},
+        {bncc_id, @c_ei, "Eixos"},
+        {bncc_id, @c_ut, "Unidades Temáticas"},
+        {bncc_id, @c_oc, "Objetos de Conhecimento"},
+        {bncc_id, @c_ha, "Habilidades"}
+      ]
+      |> Enum.map(&build_component_params/1)
+      |> Enum.map(&insert_component/1)
+      |> build_component_code_id_map()
+
+    code_id_maps
+    |> Map.put(:components, components_code_id_map)
+  end
+
+  defp build_component_params({bncc_id, code, name}),
+    do: %{curriculum_id: bncc_id, code: code, name: name}
 
   defp insert_component(params) do
     %CurriculumComponent{}
@@ -86,32 +178,156 @@ defmodule Lanttern.BNCC do
     |> Repo.insert!(on_conflict: :nothing)
   end
 
-  @doc """
-  Create BNCC competencies based on the csv file in `priv/static/seeds/bncc/competencies.csv`
-  """
-  def seed_bncc_competencies() do
-    with %{id: competencies_component_id} <- Repo.get_by(CurriculumComponent, code: @c_co),
-         path <- Application.app_dir(:lanttern, "priv/static/seeds/bncc/competencies.csv"),
-         {:ok, csv} <- File.read(path),
-         subjects_code_id_map <- Taxonomy.generate_subjects_code_id_map() do
-      competencies =
-        CSV.parse_string(csv)
-        |> Enum.map(fn [name, subjects] ->
-          %{
-            name: name,
-            subjects_ids: get_ids_from_codes(subjects, subjects_code_id_map),
-            curriculum_component_id: competencies_component_id
-          }
-        end)
-        |> Enum.map(&get_or_insert_item/1)
+  defp build_component_code_id_map(components_list) do
+    components_list
+    |> Enum.map(&{&1.code, &1.id})
+    |> Enum.into(%{})
+  end
 
-      {:ok, competencies}
-    end
+  # Seed learning rights
+
+  defp seed_bncc_learning_rights(code_id_maps) do
+    parse_csv_string(@csv_path_da)
+    |> Enum.map(&build_learning_right_params(&1, code_id_maps))
+    |> Enum.map(&get_or_insert_item/1)
+
+    code_id_maps
+  end
+
+  defp build_learning_right_params([name, _subjects, years], code_id_maps) do
+    %{
+      name: name,
+      years_ids: get_ids_from_codes(years, code_id_maps.years),
+      curriculum_component_id: code_id_maps.components[@c_da]
+    }
+  end
+
+  # Seed competencies
+
+  defp seed_bncc_competencies(code_id_maps) do
+    parse_csv_string(@csv_path_co)
+    |> Enum.map(&build_competency_params(&1, code_id_maps))
+    |> Enum.map(&get_or_insert_item/1)
+
+    code_id_maps
+  end
+
+  defp build_competency_params([name, subjects, years], code_id_maps) do
+    %{
+      name: name,
+      subjects_ids: get_ids_from_codes(subjects, code_id_maps.subjects),
+      years_ids: get_ids_from_codes(years, code_id_maps.years),
+      curriculum_component_id: code_id_maps.components[@c_co]
+    }
+  end
+
+  # Seed items
+
+  def seed_bncc_items(code_id_maps) do
+    # EI
+    parse_csv_string(@csv_path_ei)
+    |> Enum.map(&insert_ei_item(&1, code_id_maps))
+
+    # EF and EM
+    [
+      parse_csv_string(@csv_path_ef1),
+      parse_csv_string(@csv_path_ef2),
+      parse_csv_string(@csv_path_em)
+    ]
+    |> Enum.concat()
+    |> Enum.map(&insert_item(&1, code_id_maps))
+
+    # create EM Portuguese and competencies relationships
+    parse_csv_string(@csv_path_em_lp_co)
+    |> Enum.map(&create_em_competency_item_relationship/1)
+  end
+
+  defp insert_ei_item([ce, oa, code, years], code_id_maps) do
+    item_ce =
+      get_or_insert_item(%{
+        curriculum_component_id: code_id_maps.components[@c_ce],
+        name: ce
+      })
+
+    item_oa =
+      get_or_insert_item(%{
+        curriculum_component_id: code_id_maps.components[@c_oa],
+        years_ids: get_ids_from_codes(years, code_id_maps.years),
+        name: oa,
+        code: code
+      })
+
+    insert_relationship(item_ce, item_oa.id)
+  end
+
+  defp insert_item(
+         [ca, pl, ei, ut, oc, ha, code, subjects, years],
+         code_id_maps
+       ) do
+    item_ca =
+      get_or_insert_item(%{
+        curriculum_component_id: code_id_maps.components[@c_ca],
+        name: ca
+      })
+
+    item_pl =
+      get_or_insert_item(%{
+        curriculum_component_id: code_id_maps.components[@c_pl],
+        name: pl
+      })
+
+    item_ei =
+      get_or_insert_item(%{
+        curriculum_component_id: code_id_maps.components[@c_ei],
+        name: ei
+      })
+
+    item_ut =
+      get_or_insert_item(%{
+        curriculum_component_id: code_id_maps.components[@c_ut],
+        name: ut
+      })
+
+    item_oc =
+      get_or_insert_item(%{
+        curriculum_component_id: code_id_maps.components[@c_oc],
+        name: oc
+      })
+
+    item_ha =
+      get_or_insert_item(%{
+        curriculum_component_id: code_id_maps.components[@c_ha],
+        code: code,
+        name: ha,
+        subjects_ids: get_ids_from_codes(subjects, code_id_maps.subjects),
+        years_ids: get_ids_from_codes(years, code_id_maps.years)
+      })
+
+    insert_relationship(item_ca, item_ha.id)
+    insert_relationship(item_pl, item_ha.id)
+    insert_relationship(item_ei, item_ha.id)
+    insert_relationship(item_ut, item_ha.id)
+    insert_relationship(item_oc, item_ha.id)
+  end
+
+  defp create_em_competency_item_relationship([competency, item_code]) do
+    competency = Repo.get_by!(CurriculumItem, name: competency)
+    item = Repo.get_by!(CurriculumItem, code: item_code)
+    insert_relationship(competency, item.id)
+  end
+
+  # Utils
+
+  defp parse_csv_string(path) do
+    with Application.app_dir(:lanttern, path),
+         {:ok, csv} <- File.read(path),
+         do: CSV.parse_string(csv)
   end
 
   defp get_ids_from_codes(codes, code_id_map) do
     codes
     |> String.split(",", trim: true)
+    |> Enum.map(&String.trim/1)
     |> Enum.map(fn code -> code_id_map[code] end)
   end
 
@@ -127,113 +343,6 @@ defmodule Lanttern.BNCC do
       curriculum_item ->
         curriculum_item
     end
-  end
-
-  @doc """
-  Create BNCC EF items based on the csv file in `priv/static/seeds/bncc/ef.csv`
-  """
-  def seed_bncc_ef_items() do
-    with path <- Application.app_dir(:lanttern, "priv/static/seeds/bncc/ef.csv"),
-         {:ok, csv} <- File.read(path) do
-      components_code_id_map = generate_components_code_id_map()
-      subjects_code_id_map = Taxonomy.generate_subjects_code_id_map()
-      years_code_id_map = Taxonomy.generate_years_code_id_map()
-
-      ef_items =
-        CSV.parse_string(csv)
-        |> Enum.map(fn [ca, pl, ei, ut, oc, ha, code, subjects, years] ->
-          insert_bncc_ef_item(
-            %HabilidadeBNCCEF{
-              campo_de_atuacao: ca,
-              pratica_de_linguagem: pl,
-              eixo: ei,
-              unidade_tematica: ut,
-              objeto_de_conhecimento: oc,
-              name: ha,
-              code: code
-            },
-            get_ids_from_codes(subjects, subjects_code_id_map),
-            get_ids_from_codes(years, years_code_id_map),
-            components_code_id_map
-          )
-        end)
-
-      {:ok, ef_items}
-    end
-  end
-
-  defp generate_components_code_id_map() do
-    from(
-      c in CurriculumComponent,
-      select: {c.code, c.id}
-    )
-    |> Repo.all()
-    |> Enum.into(%{})
-  end
-
-  defp insert_bncc_ef_item(
-         %HabilidadeBNCCEF{
-           campo_de_atuacao: ca,
-           pratica_de_linguagem: pl,
-           eixo: ei,
-           unidade_tematica: ut,
-           objeto_de_conhecimento: oc,
-           name: ha,
-           code: code
-         },
-         subjects_ids,
-         years_ids,
-         components_code_id_map
-       ) do
-    item_ca =
-      get_or_insert_item(%{
-        curriculum_component_id: components_code_id_map[@c_ca],
-        name: ca,
-        subjects_ids: subjects_ids
-      })
-
-    item_pl =
-      get_or_insert_item(%{
-        curriculum_component_id: components_code_id_map[@c_pl],
-        name: pl,
-        subjects_ids: subjects_ids
-      })
-
-    item_ei =
-      get_or_insert_item(%{
-        curriculum_component_id: components_code_id_map[@c_ei],
-        name: ei,
-        subjects_ids: subjects_ids
-      })
-
-    item_ut =
-      get_or_insert_item(%{
-        curriculum_component_id: components_code_id_map[@c_ut],
-        name: ut,
-        subjects_ids: subjects_ids
-      })
-
-    item_oc =
-      get_or_insert_item(%{
-        curriculum_component_id: components_code_id_map[@c_oc],
-        name: oc,
-        subjects_ids: subjects_ids
-      })
-
-    item_ha =
-      get_or_insert_item(%{
-        curriculum_component_id: components_code_id_map[@c_ha],
-        code: code,
-        name: ha,
-        subjects_ids: subjects_ids,
-        years_ids: years_ids
-      })
-
-    insert_relationship(item_ca, item_ha.id)
-    insert_relationship(item_pl, item_ha.id)
-    insert_relationship(item_ei, item_ha.id)
-    insert_relationship(item_ut, item_ha.id)
-    insert_relationship(item_oc, item_ha.id)
   end
 
   defp insert_relationship(nil, _), do: nil

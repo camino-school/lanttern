@@ -12,6 +12,7 @@ defmodule Lanttern.Seeds do
   alias Lanttern.Taxonomy.Subject
 
   @years [
+    {"k0", "Kindergarten 0"},
     {"k1", "Kindergarten 1"},
     {"k2", "Kindergarten 2"},
     {"k3", "Kindergarten 3"},
@@ -36,9 +37,10 @@ defmodule Lanttern.Seeds do
     {"port", "Portuguese"},
     {"espa", "Spanish"},
     {"lang", "Languages"},
-    {"hsci", "Human Sciences"},
+    {"hsci", "Human Science"},
     {"geog", "Geography"},
     {"hist", "History"},
+    {"nsci", "Natural Science"},
     {"scie", "Science"},
     {"tech", "Technology"},
     {"engi", "Engineering"},

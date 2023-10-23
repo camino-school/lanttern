@@ -342,3 +342,337 @@ Problemas envolvendo a partição de um todo em duas partes proporcionais","Reso
 ,,,Probabilidade e estatística,Cálculo de probabilidade de eventos equiprováveis,"Determinar a probabilidade de ocorrência de um resultado em eventos aleatórios, quando todos os resultados possíveis têm a mesma chance de ocorrer (equiprováveis).",EF05MA23,math,g5
 ,,,Probabilidade e estatística,"Leitura, coleta, classificação interpretação e representação de dados em tabelas de dupla entrada, gráfico de colunas agrupadas, gráficos pictóricos e gráfico de linhas","Interpretar dados estatísticos apresentados em textos, tabelas e gráficos (colunas ou linhas), referentes a outras áreas do conhecimento ou a outros contextos, como saúde e trânsito, e produzir textos com o objetivo de sintetizar conclusões.",EF05MA24,math,g5
 ,,,Probabilidade e estatística,"Leitura, coleta, classificação interpretação e representação de dados em tabelas de dupla entrada, gráfico de colunas agrupadas, gráficos pictóricos e gráfico de linhas","Realizar pesquisa envolvendo variáveis categóricas e numéricas, organizar dados coletados por meio de tabelas, gráficos de colunas, pictóricos e de linhas, com e sem uso de tecnologias digitais, e apresentar texto escrito sobre a finalidade da pesquisa e a síntese dos resultados.",EF05MA25,math,g5
+,,,Artes visuais,Contextos e práticas,"Identificar e apreciar formas distintas das artes visuais tradicionais e contemporâneas, cultivando a percepção, o imaginário, a capacidade de simbolizar e o repertório imagético.",EF15AR01,arts,"g1, g2, g3, g4, g5"
+,,,Artes visuais,Elementos da linguagem,"Explorar e reconhecer elementos constitutivos das artes visuais (ponto, linha, forma, cor, espaço, movimento etc.).",EF15AR02,arts,"g1, g2, g3, g4, g5"
+,,,Artes visuais,Matrizes estéticas e culturais,"Reconhecer e analisar a influência de distintas matrizes estéticas e culturais das artes visuais nas manifestações artísticas das culturas locais, regionais e nacionais.",EF15AR03,arts,"g1, g2, g3, g4, g5"
+,,,Artes visuais,Materialidades,"Experimentar diferentes formas de expressão artística (desenho, pintura, colagem, quadrinhos, dobradura, escultura, modelagem, instalação, vídeo, fotografia etc.), fazendo uso sustentável de materiais, instrumentos, recursos e técnicas convencionais e não convencionais.",EF15AR04,arts,"g1, g2, g3, g4, g5"
+,,,Artes visuais,Processos de criação,"Experimentar a criação em artes visuais de modo individual, coletivo e colaborativo, explorando diferentes espaços da escola e da comunidade.",EF15AR05,arts,"g1, g2, g3, g4, g5"
+,,,Artes visuais,Processos de criação,"Dialogar sobre a sua criação e as dos colegas, para alcançar sentidos plurais.",EF15AR06,arts,"g1, g2, g3, g4, g5"
+,,,Artes visuais,Sistemas da linguagem,"Reconhecer algumas categorias do sistema das artes visuais (museus, galerias, instituições, artistas, artesãos, curadores etc.).",EF15AR07,arts,"g1, g2, g3, g4, g5"
+,,,Dança,Contextos e práticas,"Experimentar e apreciar formas distintas de manifestações da dança presentes em diferentes contextos, cultivando a percepção, o imaginário, a capacidade de simbolizar e o repertório corporal.",EF15AR08,arts,"g1, g2, g3, g4, g5"
+,,,Dança,Elementos da linguagem,Estabelecer relações entre as partes do corpo e destas com o todo corporal na construção do movimento dançado.,EF15AR09,arts,"g1, g2, g3, g4, g5"
+,,,Dança,Elementos da linguagem,"Experimentar diferentes formas de orientação no espaço (deslocamentos, planos, direções, caminhos etc.) e ritmos de movimento (lento, moderado e rápido) na construção do movimento dançado.",EF15AR10,arts,"g1, g2, g3, g4, g5"
+,,,Dança,Processos de criação,"Criar e improvisar movimentos dançados de modo individual, coletivo e colaborativo, considerando os aspectos estruturais, dinâmicos e expressivos dos elementos constitutivos do movimento, com base nos códigos de dança.",EF15AR11,arts,"g1, g2, g3, g4, g5"
+,,,Dança,Processos de criação,"Discutir, com respeito e sem preconceito, as experiências pessoais e coletivas em dança vivenciadas na escola, como fonte para a construção de vocabulários e repertórios próprios.",EF15AR12,arts,"g1, g2, g3, g4, g5"
+,,,Música,Contextos e práticas,"Identificar e apreciar criticamente diversas formas e gêneros de expressão musical, reconhecendo e analisando os usos e as funções da música em diversos contextos de circulação, em especial, aqueles da vida cotidiana.",EF15AR13,arts,"g1, g2, g3, g4, g5"
+,,,Música,Elementos da linguagem,"Perceber e explorar os elementos constitutivos da música (altura, intensidade, timbre, melodia, ritmo etc.), por meio de jogos, brincadeiras, canções e práticas diversas de composição/criação, execução e apreciação musical.",EF15AR14,arts,"g1, g2, g3, g4, g5"
+,,,Música,Materialidades,"Explorar fontes sonoras diversas, como as existentes no próprio corpo (palmas, voz, percussão corporal), na natureza e em objetos cotidianos, reconhecendo os elementos constitutivos da música e as características de instrumentos musicais variados.",EF15AR15,arts,"g1, g2, g3, g4, g5"
+,,,Música,Notação e registro musical,"Explorar diferentes formas de registro musical não convencional (representação gráfica de sons, partituras criativas etc.), bem como procedimentos e técnicas de registro em áudio e audiovisual, e reconhecer a notação musical convencional.",EF15AR16,arts,"g1, g2, g3, g4, g5"
+,,,Música,Processos de criação,"Experimentar improvisações, composições e sonorização de histórias, entre outros, utilizando vozes, sons corporais e/ou instrumentos musicais convencionais ou não convencionais, de modo individual, coletivo e colaborativo.",EF15AR17,arts,"g1, g2, g3, g4, g5"
+,,,Teatro,Contextos e práticas,"Reconhecer e apreciar formas distintas de manifestações do teatro presentes em diferentes contextos, aprendendo a ver e a ouvir histórias dramatizadas e cultivando a percepção, o imaginário, a capacidade de simbolizar e o repertório ficcional.",EF15AR18,arts,"g1, g2, g3, g4, g5"
+,,,Teatro,Elementos da linguagem,"Descobrir teatralidades na vida cotidiana, identificando elementos teatrais (variadas entonações de voz, diferentes fisicalidades, diversidade de personagens e narrativas etc.).",EF15AR19,arts,"g1, g2, g3, g4, g5"
+,,,Teatro,Processos de criação,"Experimentar o trabalho colaborativo, coletivo e autoral em improvisações teatrais e processos narrativos criativos em teatro, explorando desde a teatralidade dos gestos e das ações do cotidiano até elementos de diferentes matrizes estéticas e culturais.",EF15AR20,arts,"g1, g2, g3, g4, g5"
+,,,Teatro,Processos de criação,"Exercitar a imitação e o faz de conta, ressignificando objetos e fatos e experimentando-se no lugar do outro, ao compor e encenar acontecimentos cênicos, por meio de músicas, imagens, textos ou outros pontos de partida, de forma intencional e reflexiva.",EF15AR21,arts,"g1, g2, g3, g4, g5"
+,,,Teatro,Processos de criação,"Experimentar possibilidades criativas de movimento e de voz na criação de um personagem teatral, discutindo estereótipos.",EF15AR22,arts,"g1, g2, g3, g4, g5"
+,,,Artes integradas,Processos de criação,"Reconhecer e experimentar, em projetos temáticos, as relações processuais entre diversas linguagens artísticas.",EF15AR23,arts,"g1, g2, g3, g4, g5"
+,,,Artes integradas,Matrizes estéticas e culturais,"Caracterizar e experimentar brinquedos, brincadeiras, jogos, danças, canções e histórias de diferentes matrizes estéticas e culturais.",EF15AR24,arts,"g1, g2, g3, g4, g5"
+,,,Artes integradas,Patrimônio cultural,"Conhecer e valorizar o patrimônio cultural, material e imaterial, de culturas diversas, em especial a brasileira, incluindo-se suas matrizes indígenas, africanas e europeias, de diferentes épocas, favorecendo a construção de vocabulário e repertório relativos às diferentes linguagens artísticas.",EF15AR25,arts,"g1, g2, g3, g4, g5"
+,,,Artes integradas,Arte e tecnologia,"Explorar diferentes tecnologias e recursos digitais (multimeios, animações, jogos eletrônicos, gravações em áudio e vídeo, fotografia, softwares etc.) nos processos de criação artística.",EF15AR26,arts,"g1, g2, g3, g4, g5"
+,,,Brincadeiras e jogos,Brincadeiras e jogos da cultura popular presentes no contexto comunitário e regional,"Experimentar, fruir e recriar diferentes brincadeiras e jogos da cultura popular presentes no contexto comunitário e regional, reconhecendo e respeitando as diferenças individuais de desempenho dos colegas.",EF12EF01,move,"g1, g2"
+,,,Brincadeiras e jogos,Brincadeiras e jogos da cultura popular presentes no contexto comunitário e regional,"Explicar, por meio de múltiplas linguagens (corporal, visual, oral e escrita), as brincadeiras e os jogos populares do contexto comunitário e regional, reconhecendo e valorizando a importância desses jogos e brincadeiras para suas culturas de origem.",EF12EF02,move,"g1, g2"
+,,,Brincadeiras e jogos,Brincadeiras e jogos da cultura popular presentes no contexto comunitário e regional,"Planejar e utilizar estratégias para resolver desafios de brincadeiras e jogos populares do contexto comunitário e regional, com base no reconhecimento das características dessas práticas.",EF12EF03,move,"g1, g2"
+,,,Brincadeiras e jogos,Brincadeiras e jogos da cultura popular presentes no contexto comunitário e regional,"Colaborar na proposição e na produção de alternativas para a prática, em outros momentos e espaços, de brincadeiras e jogos e demais práticas corporais tematizadas na escola, produzindo textos (orais, escritos, audiovisuais) para divulgá-las na escola e na comunidade.",EF12EF04,move,"g1, g2"
+,,,Esportes,"Esportes de marca
+Esportes de precisão","Experimentar e fruir, prezando pelo trabalho coletivo e pelo protagonismo, a prática de esportes de marca e de precisão, identificando os elementos comuns a esses esportes.",EF12EF05,move,"g1, g2"
+,,,Esportes,"Esportes de marca
+Esportes de precisão",Discutir a importância da observação das normas e das regras dos esportes de marca e de precisão para assegurar a integridade própria e as dos demais participantes.,EF12EF06,move,"g1, g2"
+,,,Ginásticas,Ginástica geral,"Experimentar, fruir e identificar diferentes elementos básicos da ginástica (equilíbrios, saltos, giros, rotações, acrobacias, com e sem materiais) e da ginástica geral, de forma individual e em pequenos grupos, adotando procedimentos de segurança.",EF12EF07,move,"g1, g2"
+,,,Ginásticas,Ginástica geral,Planejar e utilizar estratégias para a execução de diferentes elementos básicos da ginástica e da ginástica geral.,EF12EF08,move,"g1, g2"
+,,,Ginásticas,Ginástica geral,"Participar da ginástica geral, identificando as potencialidades e os limites do corpo, e respeitando as diferenças individuais e de desempenho corporal.",EF12EF09,move,"g1, g2"
+,,,Ginásticas,Ginástica geral,"Descrever, por meio de múltiplas linguagens (corporal, oral, escrita e audiovisual), as características dos elementos básicos da ginástica e da ginástica geral, identificando a presença desses elementos em distintas práticas corporais.",EF12EF10,move,"g1, g2"
+,,,Danças,Danças do contexto comunitário e regional,"Experimentar e fruir diferentes danças do contexto comunitário e regional (rodas cantadas, brincadeiras rítmicas e expressivas), e recriá-las, respeitando as diferenças individuais e de desempenho corporal.",EF12EF11,move,"g1, g2"
+,,,Danças,Danças do contexto comunitário e regional,"Identificar os elementos constitutivos (ritmo, espaço, gestos) das danças do contexto comunitário e regional, valorizando e respeitando as manifestações de diferentes culturas.",EF12EF12,move,"g1, g2"
+,,,Brincadeiras e jogos,"Brincadeiras e jogos populares do Brasil e do mundo
+Brincadeiras e jogos de matriz indígena e africana","Experimentar e fruir brincadeiras e jogos populares do Brasil e do mundo, incluindo aqueles de matriz indígena e africana, e recriá-los, valorizando a importância desse patrimônio histórico cultural.",EF35EF01,move,"g3, g4, g5"
+,,,Brincadeiras e jogos,"Brincadeiras e jogos populares do Brasil e do mundo
+Brincadeiras e jogos de matriz indígena e africana",Planejar e utilizar estratégias para possibilitar a participação segura de todos os alunos em brincadeiras e jogos populares do Brasil e de matriz indígena e africana.,EF35EF02,move,"g3, g4, g5"
+,,,Brincadeiras e jogos,"Brincadeiras e jogos populares do Brasil e do mundo
+Brincadeiras e jogos de matriz indígena e africana","Descrever, por meio de múltiplas linguagens (corporal, oral, escrita, audiovisual), as brincadeiras e os jogos populares do Brasil e de matriz indígena e africana, explicando suas características e a importância desse patrimônio histórico cultural na preservação das diferentes culturas.",EF35EF03,move,"g3, g4, g5"
+,,,Brincadeiras e jogos,"Brincadeiras e jogos populares do Brasil e do mundo
+Brincadeiras e jogos de matriz indígena e africana","Recriar, individual e coletivamente, e experimentar, na escola e fora dela, brincadeiras e jogos populares do Brasil e do mundo, incluindo aqueles de matriz indígena e africana, e demais práticas corporais tematizadas na escola, adequando-as aos espaços públicos disponíveis.",EF35EF04,move,"g3, g4, g5"
+,,,Esportes,Esportes de campo e taco Esportes de rede/parede Esportes de invasão,"Experimentar e fruir diversos tipos de esportes de campo e taco, rede/parede e invasão, identificando seus elementos comuns e criando estratégias individuais e coletivas básicas para sua execução, prezando pelo trabalho coletivo e pelo protagonismo.",EF35EF05,move,"g3, g4, g5"
+,,,Esportes,Esportes de campo e taco Esportes de rede/parede Esportes de invasão,"Diferenciar os conceitos de jogo e esporte, identificando as características que os constituem na contemporaneidade e suas manifestações (profissional e comunitária/lazer).",EF35EF06,move,"g3, g4, g5"
+,,,Ginásticas,Ginástica geral,"Experimentar e fruir, de forma coletiva, combinações de diferentes elementos da ginástica geral (equilíbrios, saltos, giros, rotações, acrobacias, com e sem materiais), propondo coreografias com diferentes temas do cotidiano.",EF35EF07,move,"g3, g4, g5"
+,,,Ginásticas,Ginástica geral,"Planejar e utilizar estratégias para resolver desafios na execução de elementos básicos de apresentações coletivas de ginástica geral, reconhecendo as potencialidades e os limites do corpo e adotando procedimentos de segurança.",EF35EF08,move,"g3, g4, g5"
+,,,Danças,"Danças do Brasil e do mundo
+Danças de matriz indígena e africana","Experimentar, recriar e fruir danças populares do Brasil e do mundo e danças de matriz indígena e africana, valorizando e respeitando os diferentes sentidos e significados dessas danças em suas culturas de origem.",EF35EF09,move,"g3, g4, g5"
+,,,Danças,"Danças do Brasil e do mundo
+Danças de matriz indígena e africana","Comparar e identificar os elementos constitutivos comuns e diferentes (ritmo, espaço, gestos) em danças populares do Brasil e do mundo e danças de matriz indígena e africana.",EF35EF10,move,"g3, g4, g5"
+,,,Danças,"Danças do Brasil e do mundo
+Danças de matriz indígena e africana","Formular e utilizar estratégias para a execução de elementos constitutivos das danças populares do Brasil e do mundo, e das danças de matriz indígena e africana.",EF35EF11,move,"g3, g4, g5"
+,,,Danças,"Danças do Brasil e do mundo
+Danças de matriz indígena e africana",Identificar situações de injustiça e preconceito geradas e/ou presentes no contexto das danças e demais práticas corporais e discutir alternativas para superá-las.,EF35EF12,move,"g3, g4, g5"
+,,,Lutas,"Lutas do contexto comunitário e regional
+Lutas de matriz indígena e africana","Experimentar, fruir e recriar diferentes lutas presentes no contexto comunitário e regional e lutas de matriz indígena e africana.",EF35EF13,move,"g3, g4, g5"
+,,,Lutas,"Lutas do contexto comunitário e regional
+Lutas de matriz indígena e africana","Planejar e utilizar estratégias básicas das lutas do contexto comunitário e regional e lutas de matriz indígena e africana experimentadas, respeitando o colega como oponente e as normas de segurança.",EF35EF14,move,"g3, g4, g5"
+,,,Lutas,"Lutas do contexto comunitário e regional
+Lutas de matriz indígena e africana","Identificar as características das lutas do contexto comunitário e regional e lutas de matriz indígena e africana, reconhecendo as diferenças entre lutas e brigas e entre lutas e as demais práticas corporais.",EF35EF15,move,"g3, g4, g5"
+,,,Matéria e energia,Características dos materiais,"Comparar características de diferentes materiais presentes em objetos de uso cotidiano, discutindo sua origem, os modos como são descartados e como podem ser usados de forma mais consciente.",EF01CI01,scie,g1
+,,,Vida e evolução,"Corpo humano
+Respeito à diversidade","Localizar, nomear e representar graficamente (por meio de desenhos) partes do corpo humano e explicar suas funções.",EF01CI02,scie,g1
+,,,Vida e evolução,"Corpo humano
+Respeito à diversidade","Discutir as razões pelas quais os hábitos de higiene do corpo (lavar as mãos antes de comer, escovar os dentes, limpar os olhos, o nariz e as orelhas etc.) são necessários para a manutenção da saúde.",EF01CI03,scie,g1
+,,,Vida e evolução,"Corpo humano
+Respeito à diversidade","Comparar características físicas entre os colegas, reconhecendo a diversidade e a importância da valorização, do acolhimento e do respeito às diferenças.",EF01CI04,scie,g1
+,,,Terra e Universo,Escalas de tempo,"Identificar e nomear diferentes escalas de tempo: os períodos diários (manhã, tarde, noite) e a sucessão de dias, semanas, meses e anos.",EF01CI05,scie,g1
+,,,Terra e Universo,Escalas de tempo,Selecionar exemplos de como a sucessão de dias e noites orienta o ritmo de atividades diárias de seres humanos e de outros seres vivos.,EF01CI06,scie,g1
+,,,Matéria e energia,"Propriedades e usos dos materiais
+Prevenção de acidentes domésticos","Identificar de que materiais (metais, madeira, vidro etc.) são feitos os objetos que fazem parte da vida cotidiana, como esses objetos são utilizados e com quais materiais eram produzidos no passado.",EF02CI01,scie,g2
+,,,Matéria e energia,"Propriedades e usos dos materiais
+Prevenção de acidentes domésticos","Propor o uso de diferentes materiais para a construção de objetos de uso cotidiano, tendo em vista algumas propriedades desses materiais (flexibilidade, dureza, transparência etc.).",EF02CI02,scie,g2
+,,,Matéria e energia,"Propriedades e usos dos materiais
+Prevenção de acidentes domésticos","Discutir os cuidados necessários à prevenção de acidentes domésticos (objetos cortantes e inflamáveis, eletricidade, produtos de limpeza, medicamentos etc.).",EF02CI03,scie,g2
+,,,Vida e evolução,"Seres vivos no ambiente
+Plantas","Descrever características de plantas e animais (tamanho, forma, cor, fase da vida, local onde se desenvolvem etc.) que fazem parte de seu cotidiano e relacioná-las ao ambiente em que eles vivem.",EF02CI04,scie,g2
+,,,Vida e evolução,"Seres vivos no ambiente
+Plantas",Investigar a importância da água e da luz para a manutenção da vida de plantas em geral.,EF02CI05,scie,g2
+,,,Vida e evolução,"Seres vivos no ambiente
+Plantas","Identificar as principais partes de uma planta (raiz, caule, folhas, flores e frutos) e a função desempenhada por cada uma delas, e analisar as relações entre as plantas, o ambiente e os demais seres vivos.",EF02CI06,scie,g2
+,,,Terra e Universo,"Movimento aparente do Sol no céu
+O Sol como fonte de luz e calor",Descrever as posições do Sol em diversos horários do dia e associá-las ao tamanho da sombra projetada.,EF02CI07,scie,g2
+,,,Terra e Universo,"Movimento aparente do Sol no céu
+O Sol como fonte de luz e calor","Comparar o efeito da radiação solar (aquecimento e reflexão) em diferentes tipos de superfície (água, areia, solo, superfícies escura, clara e metálica etc.).",EF02CI08,scie,g2
+,,,Matéria e energia,"Produção de som
+Efeitos da luz nos materiais
+Saúde auditiva e visual",Produzir diferentes sons a partir da vibração de variados objetos e identificar variáveis que influem nesse fenômeno.,EF03CI01,scie,g3
+,,,Matéria e energia,"Produção de som
+Efeitos da luz nos materiais
+Saúde auditiva e visual","Experimentar e relatar o que ocorre com a passagem da luz através de objetos transparentes (copos, janelas de vidro, lentes, prismas, água etc.), no contato com superfícies polidas (espelhos) e na intersecção com objetos opacos (paredes, pratos, pessoas e outros objetos de uso cotidiano).",EF03CI02,scie,g3
+,,,Matéria e energia,"Produção de som
+Efeitos da luz nos materiais
+Saúde auditiva e visual",Discutir hábitos necessários para a manutenção da saúde auditiva e visual considerando as condições do ambiente em termos de som e luz.,EF03CI03,scie,g3
+,,,Vida e evolução,Características e desenvolvimento dos animais,"Identificar características sobre o modo de vida (o que comem, como se reproduzem, como se deslocam etc.) dos animais mais comuns no ambiente próximo.",EF03CI04,scie,g3
+,,,Vida e evolução,Características e desenvolvimento dos animais,"Descrever e comunicar as alterações que ocorrem desde o nascimento em animais de diferentes meios terrestres ou aquáticos, inclusive o homem.",EF03CI05,scie,g3
+,,,Vida e evolução,Características e desenvolvimento dos animais,"Comparar alguns animais e organizar grupos com base em características externas comuns (presença de penas, pelos, escamas, bico, garras, antenas, patas etc.).",EF03CI06,scie,g3
+,,,Terra e Universo,"Características da Terra
+Observação do céu
+Usos do solo","Identificar características da Terra (como seu formato esférico, a presença de água, solo etc.), com base na observação, manipulação e comparação de diferentes formas de representação do planeta (mapas, globos, fotografias etc.).",EF03CI07,scie,g3
+,,,Terra e Universo,"Características da Terra
+Observação do céu
+Usos do solo","Observar, identificar e registrar os períodos diários (dia e/ou noite) em que o Sol, demais estrelas, Lua e planetas estão visíveis no céu.",EF03CI08,scie,g3
+,,,Terra e Universo,"Características da Terra
+Observação do céu
+Usos do solo","Comparar diferentes amostras de solo do entorno da escola com base em características como cor, textura, cheiro, tamanho das partículas, permeabilidade etc.",EF03CI09,scie,g3
+,,,Terra e Universo,"Características da Terra
+Observação do céu
+Usos do solo","Identificar os diferentes usos do solo (plantação e extração de materiais, dentre outras possibilidades), reconhecendo a importância do solo para a agricultura e para a vida.",EF03CI10,scie,g3
+,,,Matéria e energia,"Misturas
+Transformações reversíveis e não reversíveis","Identificar misturas na vida diária, com base em suas propriedades físicas observáveis, reconhecendo sua composição.",EF04CI01,scie,g4
+,,,Matéria e energia,"Misturas
+Transformações reversíveis e não reversíveis","Testar e relatar transformações nos materiais do dia a dia quando expostos a diferentes condições (aquecimento, resfriamento, luz e umidade).",EF04CI02,scie,g4
+,,,Matéria e energia,"Misturas
+Transformações reversíveis e não reversíveis","Concluir que algumas mudanças causadas por aquecimento ou resfriamento são reversíveis (como as mudanças de estado físico da água) e outras não (como o cozimento do ovo, a queima do papel etc.).",EF04CI03,scie,g4
+,,,Vida e evolução,"Cadeias alimentares simples
+Microrganismos","Analisar e construir cadeias alimentares simples, reconhecendo a posição ocupada pelos seres vivos nessas cadeias e o papel do Sol como fonte primária de energia na produção de alimentos.",EF04CI04,scie,g4
+,,,Vida e evolução,"Cadeias alimentares simples
+Microrganismos",Descrever e destacar semelhanças e diferenças entre o ciclo da matéria e o fluxo de energia entre os componentes vivos e não vivos de um ecossistema.,EF04CI05,scie,g4
+,,,Vida e evolução,"Cadeias alimentares simples
+Microrganismos","Relacionar a participação de fungos e bactérias no processo de decomposição, reconhecendo a importância ambiental desse processo.",EF04CI06,scie,g4
+,,,Vida e evolução,"Cadeias alimentares simples
+Microrganismos","Verificar a participação de microrganismos na produção de alimentos, combustíveis, medicamentos, entre outros.",EF04CI07,scie,g4
+,,,Vida e evolução,"Cadeias alimentares simples
+Microrganismos","Propor, a partir do conhecimento das formas de transmissão de alguns microrganismos (vírus, bactérias e protozoários), atitudes e medidas adequadas para prevenção de doenças a eles associadas.",EF04CI08,scie,g4
+,,,Terra e Universo,"Pontos cardeais
+Calendários, fenômenos cíclicos e cultura","Identificar os pontos cardeais, com base no registro de diferentes posições relativas do Sol e da sombra de uma vara (gnômon).",EF04CI09,scie,g4
+,,,Terra e Universo,"Pontos cardeais
+Calendários, fenômenos cíclicos e cultura",Comparar as indicações dos pontos cardeais resultantes da observação das sombras de uma vara (gnômon) com aquelas obtidas por meio de uma bússola.,EF04CI10,scie,g4
+,,,Terra e Universo,"Pontos cardeais
+Calendários, fenômenos cíclicos e cultura",Associar os movimentos cíclicos da Lua e da Terra a períodos de tempo regulares e ao uso desse conhecimento para a construção de calendários em diferentes culturas.,EF04CI11,scie,g4
+,,,Matéria e energia,"Propriedades físicas dos materiais
+Ciclo hidrológico
+Consumo consciente
+ Reciclagem","Explorar fenômenos da vida cotidiana que evidenciem propriedades físicas dos materiais – como densidade, condutibilidade térmica e elétrica, respostas a forças magnéticas, solubilidade, respostas a forças mecânicas (dureza, elasticidade etc.), entre outras.",EF05CI01,scie,g5
+,,,Matéria e energia,"Propriedades físicas dos materiais
+Ciclo hidrológico
+Consumo consciente
+ Reciclagem","Aplicar os conhecimentos sobre as mudanças de estado físico da água para explicar o ciclo hidrológico e analisar suas implicações na agricultura, no clima, na geração de energia elétrica, no provimento de água potável e no equilíbrio dos ecossistemas regionais (ou locais).",EF05CI02,scie,g5
+,,,Matéria e energia,"Propriedades físicas dos materiais
+Ciclo hidrológico
+Consumo consciente
+ Reciclagem","Selecionar argumentos que justifiquem a importância da cobertura vegetal para a manutenção do ciclo da água, a conservação dos solos, dos cursos de água e da qualidade do ar atmosférico.",EF05CI03,scie,g5
+,,,Matéria e energia,"Propriedades físicas dos materiais
+Ciclo hidrológico
+Consumo consciente
+ Reciclagem",Identificar os principais usos da água e de outros materiais nas atividades cotidianas para discutir e propor formas sustentáveis de utilização desses recursos.,EF05CI04,scie,g5
+,,,Matéria e energia,"Propriedades físicas dos materiais
+Ciclo hidrológico
+Consumo consciente
+ Reciclagem",Construir propostas coletivas para um consumo mais consciente e criar soluções tecnológicas para o descarte adequado e a reutilização ou reciclagem de materiais consumidos na escola e/ou na vida cotidiana.,EF05CI05,scie,g5
+,,,Vida e evolução,"Nutrição do organismo
+Hábitos alimentares
+Integração entre os sistemas digestório, respiratório e circulatório","Selecionar argumentos que justifiquem por que os sistemas digestório e respiratório são considerados corresponsáveis pelo processo de nutrição do organismo, com base na identificação das funções desses sistemas.",EF05CI06,scie,g5
+,,,Vida e evolução,"Nutrição do organismo
+Hábitos alimentares
+Integração entre os sistemas digestório, respiratório e circulatório","Justificar a relação entre o funcionamento do sistema circulatório, a distribuição dos nutrientes pelo organismo e a eliminação dos resíduos produzidos.",EF05CI07,scie,g5
+,,,Vida e evolução,"Nutrição do organismo
+Hábitos alimentares
+Integração entre os sistemas digestório, respiratório e circulatório","Organizar um cardápio equilibrado com base nas características dos grupos alimentares (nutrientes e calorias) e nas necessidades individuais (atividades realizadas, idade, sexo etc.) para a manutenção da saúde do organismo.",EF05CI08,scie,g5
+,,,Vida e evolução,"Nutrição do organismo
+Hábitos alimentares
+Integração entre os sistemas digestório, respiratório e circulatório","Discutir a ocorrência de distúrbios nutricionais (como obesidade, subnutrição etc.) entre crianças e jovens a partir da análise de seus hábitos (tipos e quantidade de alimento ingerido, prática de atividade física etc.).",EF05CI09,scie,g5
+,,,Terra e Universo,"Constelações e mapas celestes
+Movimento de rotação da Terra
+Periodicidade das fases da Lua
+Instrumentos óticos","Identificar algumas constelações no céu, com o apoio de recursos (como mapas celestes e aplicativos digitais, entre outros), e os períodos do ano em que elas são visíveis no início da noite.",EF05CI10,scie,g5
+,,,Terra e Universo,"Constelações e mapas celestes
+Movimento de rotação da Terra
+Periodicidade das fases da Lua
+Instrumentos óticos",Associar o movimento diário do Sol e das demais estrelas no céu ao movimento de rotação da Terra.,EF05CI11,scie,g5
+,,,Terra e Universo,"Constelações e mapas celestes
+Movimento de rotação da Terra
+Periodicidade das fases da Lua
+Instrumentos óticos","Concluir sobre a periodicidade das fases da Lua, com base na observação e no registro das formas aparentes da Lua no céu ao longo de, pelo menos, dois meses.",EF05CI12,scie,g5
+,,,Terra e Universo,"Constelações e mapas celestes
+Movimento de rotação da Terra
+Periodicidade das fases da Lua
+Instrumentos óticos","Projetar e construir dispositivos para observação à distância (luneta, periscópio etc.), para observação ampliada de objetos (lupas, microscópios) ou para registro de imagens (máquinas fotográficas) e discutir usos sociais desses dispositivos.",EF05CI13,scie,g5
+,,,O sujeito e seu lugar no mundo,O modo de vida das crianças em diferentes lugares,"Descrever características observadas de seus lugares de vivência (moradia, escola etc.) e identificar semelhanças e diferenças entre esses lugares.",EF01GE01,geog,g1
+,,,O sujeito e seu lugar no mundo,O modo de vida das crianças em diferentes lugares,Identificar semelhanças e diferenças entre jogos e brincadeiras de diferentes épocas e lugares.,EF01GE02,geog,g1
+,,,O sujeito e seu lugar no mundo,Situações de convívio em diferentes lugares,"Identificar e relatar semelhanças e diferenças de usos do espaço público (praças, parques) para o lazer e diferentes manifestações.",EF01GE03,geog,g1
+,,,O sujeito e seu lugar no mundo,Situações de convívio em diferentes lugares,"Discutir e elaborar, coletivamente, regras de convívio em diferentes espaços (sala de aula, escola etc.).",EF01GE04,geog,g1
+,,,Conexões e escalas,Ciclos naturais e a vida cotidiana,"Observar e descrever ritmos naturais (dia e noite, variação de temperatura e umidade etc.) em diferentes escalas espaciais e temporais, comparando a sua realidade com outras.",EF01GE05,geog,g1
+,,,Mundo do trabalho,Diferentes tipos de trabalho existentes no seu dia a dia,"Descrever e comparar diferentes tipos de moradia ou objetos de uso cotidiano (brinquedos, roupas, mobiliários), considerando técnicas e materiais utilizados em sua produção.",EF01GE06,geog,g1
+,,,Mundo do trabalho,Diferentes tipos de trabalho existentes no seu dia a dia,Descrever atividades de trabalho relacionadas com o dia a dia da sua comunidade.,EF01GE07,geog,g1
+,,,Formas de representação e pensamento espacial,Pontos de referência,"Criar mapas mentais e desenhos com base em itinerários, contos literários, histórias inventadas e brincadeiras.",EF01GE08,geog,g1
+,,,Formas de representação e pensamento espacial,Pontos de referência,"Elaborar e utilizar mapas simples para localizar elementos do local de vivência, considerando referenciais espaciais (frente e atrás, esquerda e direita, em cima e embaixo, dentro e fora) e tendo o corpo como referência.",EF01GE09,geog,g1
+,,,"Natureza, ambientes e qualidade de vida",Condições de vida nos lugares de vivência,"Descrever características de seus lugares de vivência relacionadas aos ritmos da natureza (chuva, vento, calor etc.).",EF01GE10,geog,g1
+,,,"Natureza, ambientes e qualidade de vida",Condições de vida nos lugares de vivência,"Associar mudanças de vestuário e hábitos alimentares em sua comunidade ao longo do ano, decorrentes da variação de temperatura e umidade no ambiente.",EF01GE11,geog,g1
+,,,O sujeito e seu lugar no mundo,Convivência e interações entre pessoas na comunidade,Descrever a história das migrações no bairro ou comunidade em que vive.,EF02GE01,geog,g2
+,,,O sujeito e seu lugar no mundo,Convivência e interações entre pessoas na comunidade,"Comparar costumes e tradições de diferentes populações inseridas no bairro ou comunidade em que vive, reconhecendo a importância do respeito às diferenças.",EF02GE02,geog,g2
+,,,O sujeito e seu lugar no mundo,Riscos e cuidados nos meios de transporte e de comunicação,"Comparar diferentes meios de transporte e de comunicação, indicando o seu papel na conexão entre lugares, e discutir os riscos para a vida e para o ambiente e seu uso responsável.",EF02GE03,geog,g2
+,,,Conexões e escalas,Experiências da comunidade no tempo e no espaço,"Reconhecer semelhanças e diferenças nos hábitos, nas relações com a natureza e no modo de viver de pessoas em diferentes lugares.",EF02GE04,geog,g2
+,,,Conexões e escalas,Mudanças e permanências,"Analisar mudanças e permanências, comparando imagens de um mesmo lugar em diferentes tempos.",EF02GE05,geog,g2
+,,,Mundo do trabalho,Tipos de trabalho em lugares e tempos diferentes,"Relacionar o dia e a noite a diferentes tipos de atividades sociais (horário escolar, comercial, sono etc.).",EF02GE06,geog,g2
+,,,Mundo do trabalho,Tipos de trabalho em lugares e tempos diferentes,"Descrever as atividades extrativas (minerais, agropecuárias e industriais) de diferentes lugares, identificando os impactos ambientais.",EF02GE07,geog,g2
+,,,Formas de representação e pensamento espacial,"Localização, orientação e representação espacial","Identificar e elaborar diferentes formas de representação (desenhos, mapas mentais, maquetes) para representar componentes da paisagem dos lugares de vivência.",EF02GE08,geog,g2
+,,,Formas de representação e pensamento espacial,"Localização, orientação e representação espacial",Identificar objetos e lugares de vivência (escola e moradia) em imagens aéreas e mapas (visão vertical) e fotografias (visão oblíqua).,EF02GE09,geog,g2
+,,,Formas de representação e pensamento espacial,"Localização, orientação e representação espacial","Aplicar princípios de localização e posição de objetos (referenciais espaciais, como frente e atrás, esquerda e direita, em cima e embaixo, dentro e fora) por meio de representações espaciais da sala de aula e da escola.",EF02GE10,geog,g2
+,,,"Natureza, ambientes e qualidade de vida",Os usos dos recursos naturais: solo e água no campo e na cidade,"Reconhecer a importância do solo e da água para a vida, identificando seus diferentes usos (plantação e extração de materiais, entre outras possibilidades) e os impactos desses usos no cotidiano da cidade e do campo.",EF02GE11,geog,g2
+,,,O sujeito e seu lugar no mundo,A cidade e o campo: aproximações e diferenças,"Identificar e comparar aspectos culturais dos grupos sociais de seus lugares de vivência, seja na cidade, seja no campo.",EF03GE01,geog,g3
+,,,O sujeito e seu lugar no mundo,A cidade e o campo: aproximações e diferenças,"Identificar, em seus lugares de vivência, marcas de contribuição cultural e econômica de grupos de diferentes origens.",EF03GE02,geog,g3
+,,,O sujeito e seu lugar no mundo,A cidade e o campo: aproximações e diferenças,Reconhecer os diferentes modos de vida de povos e comunidades tradicionais em distintos lugares.,EF03GE03,geog,g3
+,,,Conexões e escalas,Paisagens naturais e antrópicas em transformação,"Explicar como os processos naturais e históricos atuam na produção e na mudança das paisagens naturais e antrópicas nos seus lugares de vivência, comparando-os a outros lugares.",EF03GE04,geog,g3
+,,,Mundo do trabalho,Matéria-prima e indústria,"Identificar alimentos, minerais e outros produtos cultivados e extraídos da natureza, comparando as atividades de trabalho em diferentes lugares.",EF03GE05,geog,g3
+,,,Formas de representação e pensamento espacial,Representações cartográficas,Identificar e interpretar imagens bidimensionais e tridimensionais em diferentes tipos de representação cartográfica.,EF03GE06,geog,g3
+,,,Formas de representação e pensamento espacial,Representações cartográficas,Reconhecer e elaborar legendas com símbolos de diversos tipos de representações em diferentes escalas cartográficas.,EF03GE07,geog,g3
+,,,"Natureza, ambientes e qualidade de vida","Produção, circulação e consumo","Relacionar a produção de lixo doméstico ou da escola aos problemas causados pelo consumo excessivo e construir propostas para o consumo consciente, considerando a ampliação de hábitos de redução, reúso e reciclagem/ descarte de materiais consumidos em casa, na escola e/ou no entorno.",EF03GE08,geog,g3
+,,,"Natureza, ambientes e qualidade de vida",Impactos das atividades humanas,"Investigar os usos dos recursos naturais, com destaque para os usos da água em atividades cotidianas (alimentação, higiene, cultivo de plantas etc.), e discutir os problemas ambientais provocados por esses usos.",EF03GE09,geog,g3
+,,,"Natureza, ambientes e qualidade de vida",Impactos das atividades humanas,Identificar os cuidados necessários para utilização da água na agricultura e na geração de energia de modo a garantir a manutenção do provimento de água potável.,EF03GE10,geog,g3
+,,,"Natureza, ambientes e qualidade de vida",Impactos das atividades humanas,"Comparar impactos das atividades econômicas urbanas e rurais sobre o ambiente físico natural, assim como os riscos provenientes do uso de ferramentas e máquinas.",EF03GE11,geog,g3
+,,,O sujeito e seu lugar no mundo,Território e diversidade cultural,"Selecionar, em seus lugares de vivência e em suas histórias familiares e/ou da comunidade, elementos de distintas culturas (indígenas, afro-brasileiras, de outras regiões do país, latino-americanas, europeias, asiáticas etc.), valorizando o que é próprio em cada uma delas e sua contribuição para a formação da cultura local, regional e brasileira.",EF04GE01,geog,g4
+,,,O sujeito e seu lugar no mundo,Processos migratórios no Brasil,Descrever processos migratórios e suas contribuições para a formação da sociedade brasileira.,EF04GE02,geog,g4
+,,,O sujeito e seu lugar no mundo,Instâncias do poder público e canais de participação social,"Distinguir funções e papéis dos órgãos do poder público municipal e canais de participação social na gestão do Município, incluindo a Câmara de Vereadores e Conselhos Municipais.",EF04GE03,geog,g4
+,,,Conexões e escalas,Relação campo e cidade,"Reconhecer especificidades e analisar a interdependência do campo e da cidade, considerando fluxos econômicos, de informações, de ideias e de pessoas.",EF04GE04,geog,g4
+,,,Conexões e escalas,Unidades político-administrativas do Brasil,"Distinguir unidades político-administrativas oficiais nacionais (Distrito, Município, Unidade da Federação e grande região), suas fronteiras e sua hierarquia, localizando seus lugares de vivência.",EF04GE05,geog,g4
+,,,Conexões e escalas,Territórios étnico-culturais,"Identificar e descrever territórios étnico-culturais existentes no Brasil, tais como terras indígenas e de comunidades remanescentes de quilombos, reconhecendo a legitimidade da demarcação desses territórios.",EF04GE06,geog,g4
+,,,Mundo do trabalho,Trabalho no campo e na cidade,Comparar as características do trabalho no campo e na cidade.,EF04GE07,geog,g4
+,,,Mundo do trabalho,"Produção, circulação e consumo","Descrever e discutir o processo de produção (transformação de matérias-primas), circulação e consumo de diferentes produtos.",EF04GE08,geog,g4
+,,,Formas de representação e pensamento espacial,Sistema de orientação,Utilizar as direções cardeais na localização de componentes físicos e humanos nas paisagens rurais e urbanas.,EF04GE09,geog,g4
+,,,Formas de representação e pensamento espacial,Elementos constitutivos dos mapas,"Comparar tipos variados de mapas, identificando suas características, elaboradores, finalidades, diferenças e semelhanças.",EF04GE10,geog,g4
+,,,"Natureza, ambientes e qualidade de vida",Conservação e degradação da natureza,"Identificar as características das paisagens naturais e antrópicas (relevo, cobertura vegetal, rios etc.) no ambiente em que vive, bem como a ação humana na conservação ou degradação dessas áreas.",EF04GE11,geog,g4
+,,,O sujeito e seu lugar no mundo,Dinâmica populacional,"Descrever e analisar dinâmicas populacionais na Unidade da Federação em que vive, estabelecendo relações entre migrações e condições de infraestrutura.",EF05GE01,geog,g5
+,,,O sujeito e seu lugar no mundo,Diferenças étnico-raciais e étnico-culturais e desigualdades sociais,Identificar diferenças étnico-raciais e étnico-culturais e desigualdades sociais entre grupos em diferentes territórios.,EF05GE02,geog,g5
+,,,Conexões e escalas,"Território, redes e urbanização","Identificar as formas e funções das cidades e analisar as mudanças sociais, econômicas e ambientais provocadas pelo seu crescimento.",EF05GE03,geog,g5
+,,,Conexões e escalas,"Território, redes e urbanização",Reconhecer as características da cidade e analisar as interações entre a cidade e o campo e entre cidades na rede urbana.,EF05GE04,geog,g5
+,,,Mundo do trabalho,Trabalho e inovação tecnológica,"Identificar e comparar as mudanças dos tipos de trabalho e desenvolvimento tecnológico na agropecuária, na indústria, no comércio e nos serviços.",EF05GE05,geog,g5
+,,,Mundo do trabalho,Trabalho e inovação tecnológica,Identificar e comparar transformações dos meios de transporte e de comunicação.,EF05GE06,geog,g5
+,,,Mundo do trabalho,Trabalho e inovação tecnológica,"Identificar os diferentes tipos de energia utilizados na produção industrial, agrícola e extrativa e no cotidiano das populações.",EF05GE07,geog,g5
+,,,Formas de representação e pensamento espacial,Mapas e imagens de satélite,"Analisar transformações de paisagens nas cidades, comparando sequência de fotografias, fotografias aéreas e imagens de satélite de épocas diferentes.",EF05GE08,geog,g5
+,,,Formas de representação e pensamento espacial,Representação das cidades e do espaço urbano,"Estabelecer conexões e hierarquias entre diferentes cidades, utilizando mapas temáticos e representações gráficas.",EF05GE09,geog,g5
+,,,"Natureza, ambientes e qualidade de vida",Qualidade ambiental,"Reconhecer e comparar atributos da qualidade ambiental e algumas formas de poluição dos cursos de água e dos oceanos (esgotos, efluentes industriais, marés negras etc.).",EF05GE10,geog,g5
+,,,"Natureza, ambientes e qualidade de vida",Diferentes tipos de poluição,"Identificar e descrever problemas ambientais que ocorrem no entorno da escola e da residência (lixões, indústrias poluentes, destruição do patrimônio histórico etc.), propondo soluções (inclusive tecnológicas) para esses problemas.",EF05GE11,geog,g5
+,,,"Natureza, ambientes e qualidade de vida",Gestão pública da qualidade de vida,"Identificar órgãos do poder público e canais de participação social responsáveis por buscar soluções para a melhoria da qualidade de vida (em áreas como meio ambiente, mobilidade, moradia e direito à cidade) e discutir as propostas implementadas por esses órgãos que afetam a comunidade em que vive.",EF05GE12,geog,g5
+,,,Mundo pessoal: meu lugar no mundo,"As fases da vida e a ideia de temporalidade (passado, presente, futuro)",Identificar aspectos do seu crescimento por meio do registro das lembranças particulares ou de lembranças dos membros de sua família e/ou de sua comunidade.,EF01HI01,hist,g1
+,,,Mundo pessoal: meu lugar no mundo,As diferentes formas de organização da família e da comunidade: os vínculos pessoais e as relações de amizade,Identificar a relação entre as suas histórias e as histórias de sua família e de sua comunidade.,EF01HI02,hist,g1
+,,,Mundo pessoal: meu lugar no mundo,As diferentes formas de organização da família e da comunidade: os vínculos pessoais e as relações de amizade,"Descrever e distinguir os seus papéis e responsabilidades relacionados à família, à escola e à comunidade.",EF01HI03,hist,g1
+,,,Mundo pessoal: meu lugar no mundo,A escola e a diversidade do grupo social envolvido,"Identificar as diferenças entre os variados ambientes em que vive (doméstico, escolar e da comunidade), reconhecendo as especificidades dos hábitos e das regras que os regem.",EF01HI04,hist,g1
+,,,"Mundo pessoal: eu, meu grupo social e meu tempo","A vida em casa, a vida na escola e formas de representação social e espacial: os jogos e brincadeiras como forma de interação social e espacial",Identificar semelhanças e diferenças entre jogos e brincadeiras atuais e de outras épocas e lugares.,EF01HI05,hist,g1
+,,,"Mundo pessoal: eu, meu grupo social e meu tempo",A vida em família: diferentes configurações e vínculos,Conhecer as histórias da família e da escola e identificar o papel desempenhado por diferentes sujeitos em diferentes espaços.,EF01HI06,hist,g1
+,,,"Mundo pessoal: eu, meu grupo social e meu tempo",A vida em família: diferentes configurações e vínculos,Identificar mudanças e permanências nas formas de organização familiar.,EF01HI07,hist,g1
+,,,"Mundo pessoal: eu, meu grupo social e meu tempo","A escola, sua representação espacial, sua história e seu papel na comunidade","Reconhecer o significado das comemorações e festas escolares, diferenciando-as das datas festivas comemoradas no âmbito familiar ou da comunidade.",EF01HI08,hist,g1
+,,,A comunidade e seus registros,"A noção do “Eu” e do “Outro”: comunidade, convivências e interações entre pessoas",Reconhecer espaços de sociabilidade e identificar os motivos que aproximam e separam as pessoas em diferentes grupos sociais ou de parentesco.,EF02HI01,hist,g2
+,,,A comunidade e seus registros,"A noção do “Eu” e do “Outro”: comunidade, convivências e interações entre pessoas",Identificar e descrever práticas e papéis sociais que as pessoas exercem em diferentes comunidades.,EF02HI02,hist,g2
+,,,A comunidade e seus registros,"A noção do “Eu” e do “Outro”: comunidade, convivências e interações entre pessoas","Selecionar situações cotidianas que remetam à percepção de mudança, pertencimento e memória.",EF02HI03,hist,g2
+,,,A comunidade e seus registros,A noção do “Eu” e do “Outro”: registros de experiências pessoais e da comunidade no tempo e no espaço,"Selecionar e compreender o significado de objetos e documentos pessoais como fontes de memórias e histórias nos âmbitos pessoal, familiar, escolar e comunitário.",EF02HI04,hist,g2
+,,,A comunidade e seus registros,Formas de registrar e narrar histórias (marcos de memória materiais e imateriais),"Selecionar objetos e documentos pessoais e de grupos próximos ao seu convívio e compreender sua função, seu uso e seu significado.",EF02HI05,hist,g2
+,,,A comunidade e seus registros,O tempo como medida,"Identificar e organizar, temporalmente, fatos da vida cotidiana, usando noções relacionadas ao tempo (antes, durante, ao mesmo tempo e depois).",EF02HI06,hist,g2
+,,,A comunidade e seus registros,O tempo como medida,"Identificar e utilizar diferentes marcadores do tempo presentes na comunidade, como relógio e calendário.",EF02HI07,hist,g2
+,,,As formas de registrar as experiências da comunidade,"As fontes: relatos orais, objetos, imagens (pinturas, fotografias, vídeos), músicas, escrita, tecnologias digitais de informação e comunicação e inscrições nas paredes, ruas e espaços sociais",Compilar histórias da família e/ou da comunidade registradas em diferentes fontes.,EF02HI08,hist,g2
+,,,As formas de registrar as experiências da comunidade,"As fontes: relatos orais, objetos, imagens (pinturas, fotografias, vídeos), músicas, escrita, tecnologias digitais de informação e comunicação e inscrições nas paredes, ruas e espaços sociais","Identificar objetos e documentos pessoais que remetam à própria experiência no âmbito da família e/ou da comunidade, discutindo as razões pelas quais alguns objetos são preservados e outros são descartados.",EF02HI09,hist,g2
+,,,O trabalho e a sustentabilidade na comunidade,A sobrevivência e a relação com a natureza,"Identificar diferentes formas de trabalho existentes na comunidade em que vive, seus significados, suas especificidades e importância.",EF02HI10,hist,g2
+,,,O trabalho e a sustentabilidade na comunidade,A sobrevivência e a relação com a natureza,Identificar impactos no ambiente causados pelas diferentes formas de trabalho existentes na comunidade em que vive.,EF02HI11,hist,g2
+,,,As pessoas e os grupos que compõem a cidade e o município,"O “Eu”, o “Outro” e os diferentes grupos sociais e étnicos que compõem a cidade e os municípios: os desafios sociais, culturais e ambientais do lugar onde vive","Identificar os grupos populacionais que formam a cidade, o município e a região, as relações estabelecidas entre eles e os eventos que marcam a formação da cidade, como fenômenos migratórios (vida rural/vida urbana), desmatamentos, estabelecimento de grandes empresas etc.",EF03HI01,hist,g3
+,,,As pessoas e os grupos que compõem a cidade e o município,"O “Eu”, o “Outro” e os diferentes grupos sociais e étnicos que compõem a cidade e os municípios: os desafios sociais, culturais e ambientais do lugar onde vive","Selecionar, por meio da consulta de fontes de diferentes naturezas, e registrar acontecimentos ocorridos ao longo do tempo na cidade ou região em que vive.",EF03HI02,hist,g3
+,,,As pessoas e os grupos que compõem a cidade e o município,"O “Eu”, o “Outro” e os diferentes grupos sociais e étnicos que compõem a cidade e os municípios: os desafios sociais, culturais e ambientais do lugar onde vive","Identificar e comparar pontos de vista em relação a eventos significativos do local em que vive, aspectos relacionados a condições sociais e à presença de diferentes grupos sociais e culturais, com especial destaque para as culturas africanas, indígenas e de migrantes.",EF03HI03,hist,g3
+,,,As pessoas e os grupos que compõem a cidade e o município,Os patrimônios históricos e culturais da cidade e/ou do município em que vive,"Identificar os patrimônios históricos e culturais de sua cidade ou região e discutir as razões culturais, sociais e políticas para que assim sejam considerados.",EF03HI04,hist,g3
+,,,O lugar em que vive,"A produção dos marcos da memória: os lugares de memória (ruas, praças, escolas, monumentos, museus etc.)",Identificar os marcos históricos do lugar em que vive e compreender seus significados.,EF03HI05,hist,g3
+,,,O lugar em que vive,"A produção dos marcos da memória: os lugares de memória (ruas, praças, escolas, monumentos, museus etc.)","Identificar os registros de memória na cidade (nomes de ruas, monumentos, edifícios etc.), discutindo os critérios que explicam a escolha desses nomes.",EF03HI06,hist,g3
+,,,O lugar em que vive,A produção dos marcos da memória: formação cultural da população,"Identificar semelhanças e diferenças existentes entre comunidades de sua cidade ou região, e descrever o papel dos diferentes grupos sociais que as formam.",EF03HI07,hist,g3
+,,,O lugar em que vive,"A produção dos marcos da memória: a cidade e o campo, aproximações e diferenças","Identificar modos de vida na cidade e no campo no presente, comparando-os com os do passado.",EF03HI08,hist,g3
+,,,A noção de espaço público e privado,"A cidade, seus espaços públicos e privados e suas áreas de conservação ambiental","Mapear os espaços públicos no lugar em que vive (ruas, praças, escolas, hospitais, prédios da Prefeitura e da Câmara de Vereadores etc.) e identificar suas funções.",EF03HI09,hist,g3
+,,,A noção de espaço público e privado,"A cidade, seus espaços públicos e privados e suas áreas de conservação ambiental","Identificar as diferenças entre o espaço doméstico, os espaços públicos e as áreas de conservação ambiental, compreendendo a importância dessa distinção.",EF03HI10,hist,g3
+,,,A noção de espaço público e privado,"A cidade e suas atividades: trabalho, cultura e lazer","Identificar diferenças entre formas de trabalho realizadas na cidade e no campo, considerando também o uso da tecnologia nesses diferentes contextos.",EF03HI11,hist,g3
+,,,A noção de espaço público e privado,"A cidade e suas atividades: trabalho, cultura e lazer","Comparar as relações de trabalho e lazer do presente com as de outros tempos e espaços, analisando mudanças e permanências.",EF03HI12,hist,g3
+,,,Transformações e permanências nas trajetórias dos grupos humanos,"A ação das pessoas, grupos sociais e comunidades no tempo e no espaço: nomadismo, agricultura, escrita, navegações, indústria, entre outras","Reconhecer a história como resultado da ação do ser humano no tempo e no espaço, com base na identificação de mudanças e permanências ao longo do tempo.",EF04HI01,hist,g4
+,,,Transformações e permanências nas trajetórias dos grupos humanos,"A ação das pessoas, grupos sociais e comunidades no tempo e no espaço: nomadismo, agricultura, escrita, navegações, indústria, entre outras","Identificar mudanças e permanências ao longo do tempo, discutindo os sentidos dos grandes marcos da história da humanidade (nomadismo, desenvolvimento da agricultura e do pastoreio, criação da indústria etc.).",EF04HI02,hist,g4
+,,,Transformações e permanências nas trajetórias dos grupos humanos,O passado e o presente: a noção de permanência e as lentas transformações sociais e culturais,"Identificar as transformações ocorridas na cidade ao longo do tempo e discutir suas interferências nos modos de vida de seus habitantes, tomando como ponto de partida o presente.",EF04HI03,hist,g4
+,,,"Circulação de pessoas, produtos e culturas",A circulação de pessoas e as transformações no meio natural,Identificar as relações entre os indivíduos e a natureza e discutir o significado do nomadismo e da fixação das primeiras comunidades humanas.,EF04HI04,hist,g4
+,,,"Circulação de pessoas, produtos e culturas",A circulação de pessoas e as transformações no meio natural,"Relacionar os processos de ocupação do campo a intervenções na natureza, avaliando os resultados dessas intervenções.",EF04HI05,hist,g4
+,,,"Circulação de pessoas, produtos e culturas",A invenção do comércio e a circulação de produtos,"Identificar as transformações ocorridas nos processos de deslocamento das pessoas e mercadorias, analisando as formas de adaptação ou marginalização.",EF04HI06,hist,g4
+,,,"Circulação de pessoas, produtos e culturas","As rotas terrestres, fluviais e marítimas e seus impactos para a formação de cidades e as transformações do meio natural","Identificar e descrever a importância dos caminhos terrestres, fluviais e marítimos para a dinâmica da vida comercial.",EF04HI07,hist,g4
+,,,"Circulação de pessoas, produtos e culturas",O mundo da tecnologia: a integração de pessoas e as exclusões sociais e culturais,"Identificar as transformações ocorridas nos meios de comunicação (cultura oral, imprensa, rádio, televisão, cinema, internet e demais tecnologias digitais de informação e comunicação) e discutir seus significados para os diferentes grupos ou estratos sociais.",EF04HI08,hist,g4
+,,,As questões históricas relativas às migrações,O surgimento da espécie humana no continente africano e sua expansão pelo mundo,Identificar as motivações dos processos migratórios em diferentes tempos e espaços e avaliar o papel desempenhado pela migração nas regiões de destino.,EF04HI09,hist,g4
+,,,As questões históricas relativas às migrações,"Os processos migratórios para a formação do Brasil: os grupos indígenas, a presença portuguesa e a diáspora forçada dos africanos
+Os processos migratórios do final do século XIX e início do século XX no Brasil 
+As dinâmicas internas de migração no Brasil a partir dos anos 1960",Analisar diferentes fluxos populacionais e suas contribuições para a formação da sociedade brasileira.,EF04HI10,hist,g4
+,,,As questões históricas relativas às migrações,"Os processos migratórios para a formação do Brasil: os grupos indígenas, a presença portuguesa e a diáspora forçada dos africanos
+Os processos migratórios do final do século XIX e início do século XX no Brasil 
+As dinâmicas internas de migração no Brasil a partir dos anos 1960","Analisar, na sociedade em que vive, a existência ou não de mudanças associadas à migração (interna e internacional).",EF04HI11,hist,g4
+,,,Povos e culturas: meu lugar no mundo e meu grupo social,O que forma um povo: do nomadismo aos primeiros povos sedentarizados,"Identificar os processos de formação das culturas e dos povos, relacionando-os com o espaço geográfico ocupado.",EF05HI01,hist,g5
+,,,Povos e culturas: meu lugar no mundo e meu grupo social,As formas de organização social e política: a noção de Estado,Identificar os mecanismos de organização do poder político com vistas à compreensão da ideia de Estado e/ou de outras formas de ordenação social.,EF05HI02,hist,g5
+,,,Povos e culturas: meu lugar no mundo e meu grupo social,O papel das religiões e da cultura para a formação dos povos antigos,Analisar o papel das culturas e das religiões na composição identitária dos povos antigos.,EF05HI03,hist,g5
+,,,Povos e culturas: meu lugar no mundo e meu grupo social,"Cidadania, diversidade cultural e respeito às diferenças sociais, culturais e históricas","Associar a noção de cidadania com os princípios de respeito à diversidade, à pluralidade e aos direitos humanos.",EF05HI04,hist,g5
+,,,Povos e culturas: meu lugar no mundo e meu grupo social,"Cidadania, diversidade cultural e respeito às diferenças sociais, culturais e históricas","Associar o conceito de cidadania à conquista de direitos dos povos e das sociedades, compreendendo-o como conquista histórica.",EF05HI05,hist,g5
+,,,Registros da história: linguagens e culturas,"As tradições orais e a valorização da memória
+O surgimento da escrita e a noção de fonte para a transmissão de saberes, culturas e histórias","Comparar o uso de diferentes linguagens e tecnologias no processo de comunicação e avaliar os significados sociais, políticos e culturais atribuídos a elas.",EF05HI06,hist,g5
+,,,Registros da história: linguagens e culturas,"As tradições orais e a valorização da memória
+O surgimento da escrita e a noção de fonte para a transmissão de saberes, culturas e histórias","Identificar os processos de produção, hierarquização e difusão dos marcos de memória e discutir a presença e/ou a ausência de diferentes grupos que compõem a sociedade na nomeação desses marcos de memória.",EF05HI07,hist,g5
+,,,Registros da história: linguagens e culturas,"As tradições orais e a valorização da memória
+O surgimento da escrita e a noção de fonte para a transmissão de saberes, culturas e histórias","Identificar formas de marcação da passagem do tempo em distintas sociedades, incluindo os povos indígenas originários e os povos africanos.",EF05HI08,hist,g5
+,,,Registros da história: linguagens e culturas,"As tradições orais e a valorização da memória
+O surgimento da escrita e a noção de fonte para a transmissão de saberes, culturas e histórias","Comparar pontos de vista sobre temas que impactam a vida cotidiana no tempo presente, por meio do acesso a diferentes fontes, incluindo orais.",EF05HI09,hist,g5
+,,,Registros da história: linguagens e culturas,Os patrimônios materiais e imateriais da humanidade,Inventariar os patrimônios materiais e imateriais da humanidade e analisar mudanças e permanências desses patrimônios ao longo do tempo.,EF05HI10,hist,g5
+,,,Identidades e alteridades,"O eu, o outro e o nós","Identificar e acolher as semelhanças e diferenças entre o eu, o outro e o nós.",EF01ER01,reli,g1
+,,,Identidades e alteridades,"O eu, o outro e o nós",Reconhecer que o seu nome e o das demais pessoas os identificam e os diferenciam.,EF01ER02,reli,g1
+,,,Identidades e alteridades,Imanência e transcendência,Reconhecer e respeitar as características físicas e subjetivas de cada um.,EF01ER03,reli,g1
+,,,Identidades e alteridades,Imanência e transcendência,Valorizar a diversidade de formas de vida.,EF01ER04,reli,g1
+,,,Manifestações religiosas,"Sentimentos, lembranças, memórias e saberes","Identificar e acolher sentimentos, lembranças, memórias e saberes de cada um.",EF01ER05,reli,g1
+,,,Manifestações religiosas,"Sentimentos, lembranças, memórias e saberes","Identificar as diferentes formas pelas quais as pessoas manifestam sentimentos, ideias, memórias, gostos e crenças em diferentes espaços.",EF01ER06,reli,g1
+,,,Identidades e alteridades,"O eu, a família e o ambiente de convivência",Reconhecer os diferentes espaços de convivência.,EF02ER01,reli,g2
+,,,Identidades e alteridades,"O eu, a família e o ambiente de convivência","Identificar costumes, crenças e formas diversas de viver em variados ambientes de convivência.",EF02ER02,reli,g2
+,,,Identidades e alteridades,Memórias e símbolos,"Identificar as diferentes formas de registro das memórias pessoais, familiares e escolares (fotos, músicas, narrativas, álbuns...).",EF02ER03,reli,g2
+,,,Identidades e alteridades,Memórias e símbolos,Identificar os símbolos presentes nos variados espaços de convivência.,EF02ER04,reli,g2
+,,,Identidades e alteridades,Símbolos religiosos,"Identificar, distinguir e respeitar símbolos religiosos de distintas manifestações, tradições e instituições religiosas.",EF02ER05,reli,g2
+,,,Manifestações religiosas,Alimentos sagrados,"Exemplificar alimentos considerados sagrados por diferentes culturas, tradições e expressões religiosas.",EF02ER06,reli,g2
+,,,Manifestações religiosas,Alimentos sagrados,Identificar significados atribuídos a alimentos em diferentes manifestações e tradições religiosas.,EF02ER07,reli,g2
+,,,Identidades e alteridades,Espaços e territórios religiosos,Identificar e respeitar os diferentes espaços e territórios religiosos de diferentes tradições e movimentos religiosos.,EF03ER01,reli,g3
+,,,Identidades e alteridades,Espaços e territórios religiosos,Caracterizar os espaços e territórios religiosos como locais de realização das práticas celebrativas.,EF03ER02,reli,g3
+,,,Manifestações religiosas,Práticas celebrativas,"Identificar e respeitar práticas celebrativas (cerimônias, orações, festividades, peregrinações, entre outras) de diferentes tradições religiosas.",EF03ER03,reli,g3
+,,,Manifestações religiosas,Práticas celebrativas,Caracterizar as práticas celebrativas como parte integrante do conjunto das manifestações religiosas de diferentes culturas e sociedades.,EF03ER04,reli,g3
+,,,Manifestações religiosas,Indumentárias religiosas,"Reconhecer as indumentárias (roupas, acessórios, símbolos, pinturas corporais) utilizadas em diferentes manifestações e tradições religiosas.",EF03ER05,reli,g3
+,,,Manifestações religiosas,Indumentárias religiosas,Caracterizar as indumentárias como elementos integrantes das identidades religiosas.,EF03ER06,reli,g3
+,,,Manifestações religiosas,Ritos religiosos,"Identificar ritos presentes no cotidiano pessoal, familiar, escolar e comunitário.",EF04ER01,reli,g4
+,,,Manifestações religiosas,Ritos religiosos,Identificar ritos e suas funções em diferentes manifestações e tradições religiosas.,EF04ER02,reli,g4
+,,,Manifestações religiosas,Ritos religiosos,"Caracterizar ritos de iniciação e de passagem em diversos grupos religiosos (nascimento, casamento e morte).",EF04ER03,reli,g4
+,,,Manifestações religiosas,Ritos religiosos,"Identificar as diversas formas de expressão da espiritualidade (orações, cultos, gestos, cantos, dança, meditação) nas diferentes tradições religiosas.",EF04ER04,reli,g4
+,,,Manifestações religiosas,Representações religiosas na arte,"Identificar representações religiosas em diferentes expressões artísticas (pinturas, arquitetura, esculturas, ícones, símbolos, imagens), reconhecendo-as como parte da identidade de diferentes culturas e tradições religiosas.",EF04ER05,reli,g4
+,,,Crenças religiosas e filosofias de vida,Ideia(s) de divindade(s),"Identificar nomes, significados e representações de divindades nos contextos familiar e comunitário.",EF04ER06,reli,g4
+,,,Crenças religiosas e filosofias de vida,Ideia(s) de divindade(s),Reconhecer e respeitar as ideias de divindades de diferentes manifestações e tradições religiosas.,EF04ER07,reli,g4
+,,,Crenças religiosas e filosofias de vida,Narrativas religiosas,Identificar e respeitar acontecimentos sagrados de diferentes culturas e tradições religiosas como recurso para preservar a memória.,EF05ER01,reli,g5
+,,,Crenças religiosas e filosofias de vida,Mitos nas tradições religiosas,Identificar mitos de criação em diferentes culturas e tradições religiosas.,EF05ER02,reli,g5
+,,,Crenças religiosas e filosofias de vida,Mitos nas tradições religiosas,"Reconhecer funções e mensagens religiosas contidas nos mitos de criação (concepções de mundo, natureza, ser humano, divindades, vida e morte).",EF05ER03,reli,g5
+,,,Crenças religiosas e filosofias de vida,Ancestralidade e tradição oral,Reconhecer a importância da tradição oral para preservar memórias e acontecimentos religiosos.,EF05ER04,reli,g5
+,,,Crenças religiosas e filosofias de vida,Ancestralidade e tradição oral,"Identificar elementos da tradição oral nas culturas e religiosidades indígenas, afro-brasileiras, ciganas, entre outras.",EF05ER05,reli,g5
+,,,Crenças religiosas e filosofias de vida,Ancestralidade e tradição oral,Identificar o papel dos sábios e anciãos na comunicação e preservação da tradição oral.,EF05ER06,reli,g5
+,,,Crenças religiosas e filosofias de vida,Ancestralidade e tradição oral,"Reconhecer, em textos orais, ensinamentos relacionados a modos de ser e viver.",EF05ER07,reli,g5
