@@ -57,6 +57,7 @@ defmodule LantternWeb.Router do
 
     get "/", AdminController, :home
     post "/seed_base_taxonomy", AdminController, :seed_base_taxonomy
+    post "/seed_bncc", AdminController, :seed_bncc
 
     # Identity context
     resources "/profiles", ProfileController

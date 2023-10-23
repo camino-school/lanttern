@@ -64,12 +64,22 @@ defmodule Lanttern.BNCC do
   @csv_path_em_lp_co "priv/static/seeds/bncc/em_lp_competencias.csv"
 
   @doc """
+  Check if BNCC curriculum already exists.
+  """
+  def is_bncc_registered?() do
+    case Repo.get_by(Curriculum, code: @bncc) do
+      nil -> false
+      _bncc -> true
+    end
+  end
+
+  @doc """
   Create BNCC curriculum, components, and items.
 
   This function is intended to be run a single time, during
   environment setup. In case a curriculum with the code "bncc"
-  already exists, the function will not run and will return `:noop`.
-  Else, it'll return `:ok`.
+  already exists, the function will not run and will return `{:error, error}`.
+  Else, it'll return `{:ok, bncc_id}`.
 
   ## Support (private) functions
 
@@ -107,15 +117,13 @@ defmodule Lanttern.BNCC do
   Receives the code/id map as argument, and insert all items into DB.
   This function also inserts all BNCC items relationships.
 
-  Returns `:ok`.
-
   ## Examples
 
       iex> seed_bncc()
-      :ok
+      {:ok, true}
 
       iex> seed_bncc()
-      :noop
+      {:error, error}
   """
   def seed_bncc() do
     case Repo.get_by(Curriculum, code: @bncc) do
@@ -128,10 +136,10 @@ defmodule Lanttern.BNCC do
         |> seed_bncc_competencies()
         |> seed_bncc_items()
 
-        :ok
+        {:ok, bncc_id}
 
       _bncc ->
-        :noop
+        {:error, "BNCC curriculum already exists in database"}
     end
   end
 
@@ -223,7 +231,7 @@ defmodule Lanttern.BNCC do
 
   # Seed items
 
-  def seed_bncc_items(code_id_maps) do
+  defp seed_bncc_items(code_id_maps) do
     # EI
     parse_csv_string(@csv_path_ei)
     |> Enum.map(&insert_ei_item(&1, code_id_maps))

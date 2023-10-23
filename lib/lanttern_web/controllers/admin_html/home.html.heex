@@ -90,6 +90,16 @@
             <.link href={~p"/admin/seed_base_taxonomy"} method="post">Seed base taxonomy</.link>
           </li>
         <% end %>
+        <%= if @has_base_taxonomy and @is_bncc_registered do %>
+          <li class="flex items-center text-ltrn-subtle">
+            BNCC seeded <.icon name="hero-check-circle" class="text-green-500" />
+          </li>
+        <% end %>
+        <%= if @has_base_taxonomy and not @is_bncc_registered do %>
+          <li>
+            <.link href={~p"/admin/seed_bncc"} method="post">Seed BNCC</.link>
+          </li>
+        <% end %>
       </ul>
     </div>
   </div>
