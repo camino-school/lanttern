@@ -20,7 +20,7 @@ defmodule LantternWeb.Endpoint do
   plug Plug.Static,
     at: "/",
     from: :lanttern,
-    gzip: false,
+    gzip: true,
     only: LantternWeb.static_paths()
 
   # Code reloading can be explicitly enabled under the
