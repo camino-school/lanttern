@@ -69,12 +69,18 @@ defmodule Lanttern.SchoolsTest do
       assert Schools.list_classes() == [class]
     end
 
-    test "list_classes/1 with preloads returns all classes with preloaded data" do
+    test "list_classes/1 with preloads and school filter returns all classes as expected" do
       school = school_fixture()
       student = student_fixture()
       class = class_fixture(%{school_id: school.id, students_ids: [student.id]})
 
-      [expected_class] = Schools.list_classes(preloads: [:school, :students])
+      # extra classes for school filter validation
+      class_fixture()
+      class_fixture()
+
+      [expected_class] =
+        Schools.list_classes(preloads: [:school, :students], schools_ids: [school.id])
+
       assert expected_class.id == class.id
       assert expected_class.school == school
       assert expected_class.students == [student]

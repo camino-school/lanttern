@@ -17,13 +17,15 @@ defmodule LantternWeb.SchoolsHelpers do
   @doc """
   Generate list of classes to use as `Phoenix.HTML.Form.options_for_select/2` arg
 
+  Accepts `list_opts` arg, which will be forwarded to `Schools.list_classes/1`.
+
   ## Examples
 
       iex> generate_class_options()
       [{"class name", 1}, ...]
   """
-  def generate_class_options() do
-    Schools.list_classes()
+  def generate_class_options(list_opts \\ []) do
+    Schools.list_classes(list_opts)
     |> Enum.map(fn s -> {s.name, s.id} end)
   end
 

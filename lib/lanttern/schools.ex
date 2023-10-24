@@ -111,6 +111,7 @@ defmodule Lanttern.Schools do
   ### Options:
 
   `:preloads` – preloads associated data
+  `:schools_ids` – filter classes by schools
 
   ## Examples
 
@@ -119,8 +120,23 @@ defmodule Lanttern.Schools do
 
   """
   def list_classes(opts \\ []) do
-    Repo.all(Class)
+    Class
+    |> maybe_filter_classes_by_schools(opts)
+    |> Repo.all()
     |> maybe_preload(opts)
+  end
+
+  defp maybe_filter_classes_by_schools(classes_query, opts) do
+    case Keyword.get(opts, :schools_ids) do
+      nil ->
+        classes_query
+
+      schools_ids ->
+        from(
+          c in classes_query,
+          where: c.school_id in ^schools_ids
+        )
+    end
   end
 
   @doc """
