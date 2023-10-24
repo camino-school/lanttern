@@ -327,7 +327,7 @@ defmodule Lanttern.BNCC do
   # Utils
 
   defp parse_csv_string(path) do
-    with Application.app_dir(:lanttern, path),
+    with path <- Application.app_dir(:lanttern, path),
          {:ok, csv} <- File.read(path),
          do: CSV.parse_string(csv)
   end
