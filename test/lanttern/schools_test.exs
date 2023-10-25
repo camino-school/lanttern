@@ -423,38 +423,38 @@ defmodule Lanttern.SchoolsTest do
 
       csv_std_1 = %{
         class_name: "existing class",
-        name: "Student A",
-        email: "student-a@school.com"
+        student_name: "Student A",
+        student_email: "student-a@school.com"
       }
 
       csv_std_2 = %{
         class_name: "existing class",
-        name: "Student A same user",
-        email: "student-a@school.com"
+        student_name: "Student A same user",
+        student_email: "student-a@school.com"
       }
 
       csv_std_3 = %{
         class_name: "mapped to existing class",
-        name: "With existing user email",
-        email: "existing-user@school.com"
+        student_name: "With existing user email",
+        student_email: "existing-user@school.com"
       }
 
       csv_std_4 = %{
         class_name: "mapped to existing class",
-        name: "No email",
-        email: ""
+        student_name: "No email",
+        student_email: ""
       }
 
       csv_std_5 = %{
         class_name: "new class",
-        name: "With new class",
-        email: "student-d@school.com"
+        student_name: "With new class",
+        student_email: "student-d@school.com"
       }
 
       csv_std_6 = %{
         class_name: "new class",
-        name: "",
-        email: "student-x@school.com"
+        student_name: "",
+        student_email: "student-x@school.com"
       }
 
       csv_students = [csv_std_1, csv_std_2, csv_std_3, csv_std_4, csv_std_5, csv_std_6]
@@ -479,34 +479,34 @@ defmodule Lanttern.SchoolsTest do
 
       # assert students and classes
 
-      assert returned_csv_std_1.name == csv_std_1.name
-      assert std_1.name == csv_std_1.name
+      assert returned_csv_std_1.student_name == csv_std_1.student_name
+      assert std_1.name == csv_std_1.student_name
       assert std_1.classes == [class]
       assert get_student_user(std_1.id)
 
-      assert returned_csv_std_2.name == csv_std_2.name
-      assert std_2.name == csv_std_2.name
+      assert returned_csv_std_2.student_name == csv_std_2.student_name
+      assert std_2.name == csv_std_2.student_name
       assert std_2.classes == [class]
       assert get_student_user(std_2.id)
 
       assert get_student_user(std_1.id) == get_student_user(std_2.id)
 
-      assert returned_csv_std_3.name == csv_std_3.name
-      assert std_3.name == csv_std_3.name
+      assert returned_csv_std_3.student_name == csv_std_3.student_name
+      assert std_3.name == csv_std_3.student_name
       assert std_3.classes == [class]
       assert get_student_user(std_3.id).id == user.id
 
-      assert returned_csv_std_4.name == csv_std_4.name
-      assert std_4.name == csv_std_4.name
+      assert returned_csv_std_4.student_name == csv_std_4.student_name
+      assert std_4.name == csv_std_4.student_name
       assert std_4.classes == [class]
       refute get_student_user(std_4.id)
 
-      assert returned_csv_std_5.name == csv_std_5.name
-      assert std_5.name == csv_std_5.name
+      assert returned_csv_std_5.student_name == csv_std_5.student_name
+      assert std_5.name == csv_std_5.student_name
       assert std_5.classes |> hd() |> Map.get(:name) == "new class"
       assert get_student_user(std_5.id)
 
-      assert returned_csv_std_6.name == csv_std_6.name
+      assert returned_csv_std_6.student_name == csv_std_6.student_name
     end
 
     defp get_student_user(student_id) do
