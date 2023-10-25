@@ -23,19 +23,22 @@ defmodule Lanttern.Schools.Student do
     student
     |> cast(attrs, [:name, :school_id, :classes_ids])
     |> validate_required([:name, :school_id])
-    |> put_classes()
+    |> put_classes(attrs)
   end
 
-  defp put_classes(changeset) do
-    put_classes(
+  defp put_classes(changeset, %{classes: classes}) when is_list(classes),
+    do: put_assoc(changeset, :classes, classes)
+
+  defp put_classes(changeset, _attrs) do
+    put_classes_ids(
       changeset,
       get_change(changeset, :classes_ids)
     )
   end
 
-  defp put_classes(changeset, nil), do: changeset
+  defp put_classes_ids(changeset, nil), do: changeset
 
-  defp put_classes(changeset, classes_ids) do
+  defp put_classes_ids(changeset, classes_ids) do
     classes =
       from(c in Lanttern.Schools.Class, where: c.id in ^classes_ids)
       |> Repo.all()

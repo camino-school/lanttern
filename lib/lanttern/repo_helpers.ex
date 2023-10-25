@@ -89,4 +89,13 @@ defmodule Lanttern.RepoHelpers do
   end
 
   defp reduce_filters_param(_, filters, _fields_and_ops), do: filters
+
+  @doc """
+  Create naive timestamps.
+  To be used in `inserted_at` and `updated_at`.
+  """
+  def naive_timestamp() do
+    NaiveDateTime.utc_now()
+    |> NaiveDateTime.truncate(:second)
+  end
 end
