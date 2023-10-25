@@ -27,7 +27,7 @@ defmodule Lanttern.SchoolsFixtures do
     {:ok, class} =
       attrs
       |> Enum.into(%{
-        name: "some class name"
+        name: "some class name #{Ecto.UUID.generate()}"
       })
       |> Lanttern.Schools.create_class()
 
@@ -57,7 +57,7 @@ defmodule Lanttern.SchoolsFixtures do
     {:ok, student} =
       attrs
       |> Enum.into(%{
-        name: "some full name"
+        name: "some full name #{Ecto.UUID.generate()}"
       })
       |> Lanttern.Schools.create_student()
 
@@ -70,7 +70,7 @@ defmodule Lanttern.SchoolsFixtures do
     {:ok, student} =
       attrs
       |> Enum.into(%{
-        name: "some full name",
+        name: "some full name #{Ecto.UUID.generate()}",
         school_id: school.id
       })
       |> Lanttern.Schools.create_student()
@@ -87,7 +87,7 @@ defmodule Lanttern.SchoolsFixtures do
     {:ok, teacher} =
       attrs
       |> Enum.into(%{
-        name: "some full name"
+        name: "some full name #{Ecto.UUID.generate()}"
       })
       |> Lanttern.Schools.create_teacher()
 
@@ -100,7 +100,7 @@ defmodule Lanttern.SchoolsFixtures do
     {:ok, teacher} =
       attrs
       |> Enum.into(%{
-        name: "some full name",
+        name: "some full name #{Ecto.UUID.generate()}",
         school_id: school.id
       })
       |> Lanttern.Schools.create_teacher()

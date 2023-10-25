@@ -429,32 +429,32 @@ defmodule Lanttern.SchoolsTest do
 
       csv_std_2 = %{
         class_name: "existing class",
-        name: "Student A duplicated",
+        name: "Student A same user",
         email: "student-a@school.com"
       }
 
       csv_std_3 = %{
         class_name: "mapped to existing class",
-        name: "Student B",
+        name: "With existing user email",
         email: "existing-user@school.com"
       }
 
       csv_std_4 = %{
         class_name: "mapped to existing class",
-        name: "No email student",
+        name: "No email",
         email: ""
       }
 
       csv_std_5 = %{
         class_name: "new class",
-        name: "Duplicated student",
-        email: "student-c@school.com"
+        name: "With new class",
+        email: "student-d@school.com"
       }
 
       csv_std_6 = %{
         class_name: "new class",
-        name: "Duplicated student",
-        email: "student-c@school.com"
+        name: "",
+        email: "student-x@school.com"
       }
 
       csv_students = [csv_std_1, csv_std_2, csv_std_3, csv_std_4, csv_std_5, csv_std_6]
@@ -474,7 +474,7 @@ defmodule Lanttern.SchoolsTest do
         {returned_csv_std_3, {:ok, std_3}},
         {returned_csv_std_4, {:ok, std_4}},
         {returned_csv_std_5, {:ok, std_5}},
-        {returned_csv_std_6, {:error, "Duplicated student"}}
+        {returned_csv_std_6, {:error, _error}}
       ] = expected
 
       # assert students and classes
@@ -488,6 +488,8 @@ defmodule Lanttern.SchoolsTest do
       assert std_2.name == csv_std_2.name
       assert std_2.classes == [class]
       assert get_student_user(std_2.id)
+
+      assert get_student_user(std_1.id) == get_student_user(std_2.id)
 
       assert returned_csv_std_3.name == csv_std_3.name
       assert std_3.name == csv_std_3.name

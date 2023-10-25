@@ -11,6 +11,8 @@ defmodule Lanttern.Schools do
   alias Lanttern.Schools.Student
   alias Lanttern.Schools.Teacher
   alias Lanttern.Identity
+  alias Lanttern.Identity.User
+  alias Lanttern.Identity.Profile
 
   @doc """
   Returns the list of schools.
@@ -477,112 +479,155 @@ defmodule Lanttern.Schools do
   ## Examples
 
       iex> create_students_from_csv(csv_students, class_name_id_map, school_id)
-      [{csv_student, {:ok, "Student and user profile created"}}, ...]
+      [{csv_student, {:ok, %Student{}}}, ...]
 
   """
   def create_students_from_csv(csv_students, class_name_id_map, school_id) do
     Ecto.Multi.new()
     |> Ecto.Multi.run(:classes, fn _repo, _changes ->
-      insert_and_get_all_classes(class_name_id_map, school_id)
+      insert_csv_classes(class_name_id_map, school_id)
     end)
     |> Ecto.Multi.run(:students, fn _repo, changes ->
-      insert_students(changes, csv_students, school_id)
+      insert_csv_students(changes, csv_students, school_id)
+    end)
+    |> Ecto.Multi.run(:users, fn _repo, _changes ->
+      insert_csv_users(csv_students)
+    end)
+    |> Ecto.Multi.run(:profiles, fn _repo, changes ->
+      insert_csv_profiles(changes, csv_students)
+    end)
+    |> Ecto.Multi.run(:response, fn _repo, changes ->
+      format_response(changes, csv_students)
     end)
     |> Repo.transaction()
     |> case do
-      {:ok, changes} -> {:ok, changes.students}
+      {:ok, changes} -> {:ok, changes.response}
       error_tuple -> error_tuple
     end
   end
 
-  defp insert_and_get_all_classes(class_name_id_map, school_id) do
-    new_classes =
+  defp insert_csv_classes(class_name_id_map, school_id) do
+    name_class_map =
       class_name_id_map
-      |> Enum.filter(fn {_csv_class_name, class_id} -> class_id == "" end)
-      |> Enum.map(fn {csv_class_name, _} ->
+      |> Enum.map(&get_or_insert_csv_class(&1, school_id))
+      |> Enum.into(%{})
+
+    {:ok, name_class_map}
+  end
+
+  defp get_or_insert_csv_class({csv_class_name, ""}, school_id) do
+    {:ok, class} =
+      create_class(%{
+        name: csv_class_name,
+        school_id: school_id
+      })
+
+    {csv_class_name, class}
+  end
+
+  defp get_or_insert_csv_class({csv_class_name, class_id}, _school_id),
+    do: {csv_class_name, get_class!(class_id)}
+
+  defp insert_csv_students(%{classes: name_class_map} = _changes, csv_students, school_id) do
+    name_student_map =
+      csv_students
+      |> Enum.map(&get_or_insert_csv_student(&1, name_class_map, school_id))
+      |> Enum.filter(fn
+        {:ok, _student} -> true
+        {:error, _changeset} -> false
+      end)
+      |> Enum.map(fn {:ok, student} -> {student.name, student} end)
+      |> Enum.into(%{})
+
+    {:ok, name_student_map}
+  end
+
+  defp get_or_insert_csv_student(student, name_class_map, school_id) do
+    case Repo.get_by(Student, name: student.name, school_id: school_id) do
+      nil ->
         %{
-          name: csv_class_name,
+          name: student.name,
           school_id: school_id,
+          classes:
+            case Map.get(name_class_map, student.class_name) do
+              nil -> []
+              class -> [class]
+            end
+        }
+        |> create_student()
+
+      student ->
+        {:ok, student}
+    end
+  end
+
+  defp insert_csv_users(csv_students) do
+    email_user_map =
+      csv_students
+      |> Enum.filter(&(&1.email != ""))
+      |> Enum.map(&get_or_insert_csv_user/1)
+      |> Enum.map(&{&1.email, &1})
+      |> Enum.into(%{})
+
+    {:ok, email_user_map}
+  end
+
+  defp get_or_insert_csv_user(%{email: email}) do
+    case Repo.get_by(User, email: email) do
+      nil ->
+        {:ok, user} =
+          %{
+            email: email,
+            password: Ecto.UUID.generate()
+          }
+          |> Identity.register_user()
+
+        user
+
+      user ->
+        user
+    end
+  end
+
+  defp insert_csv_profiles(changes, csv_students) do
+    %{
+      students: name_student_map,
+      users: email_user_map
+    } = changes
+
+    profiles =
+      csv_students
+      |> Enum.filter(&(&1.email != "" && &1.name != ""))
+      |> Enum.map(
+        &%{
+          type: "student",
+          student_id: Map.get(name_student_map, &1.name).id,
+          user_id: Map.get(email_user_map, &1.email).id,
           inserted_at: naive_timestamp(),
           updated_at: naive_timestamp()
         }
-      end)
+      )
 
-    Repo.insert_all(Class, new_classes, on_conflict: :nothing)
+    Repo.insert_all(Profile, profiles, on_conflict: :nothing)
 
-    school_classes = list_classes(schools_ids: [school_id])
-
-    class_name_class_map =
-      class_name_id_map
-      |> Enum.map(fn {csv_class_name, class_id} ->
-        {
-          csv_class_name,
-          Enum.find(
-            school_classes,
-            &(&1.id == class_id or "#{&1.name}" == "#{csv_class_name}")
-          )
-        }
-      end)
-      |> Enum.into(%{})
-
-    {:ok, class_name_class_map}
+    {:ok, true}
   end
 
-  defp insert_students(%{classes: class_name_class_map} = _changes, csv_students, school_id) do
-    students =
+  defp format_response(changes, csv_students) do
+    %{students: name_student_map} = changes
+
+    response =
       csv_students
       |> Enum.map(
         &{
           &1,
-          Enum.into(&1, %{
-            school_id: school_id,
-            inserted_at: naive_timestamp(),
-            updated_at: naive_timestamp(),
-            classes:
-              case Map.get(class_name_class_map, &1.class_name) do
-                nil -> nil
-                class -> [class]
-              end
-          })
+          case Map.get(name_student_map, &1.name) do
+            nil -> {:error, "No success"}
+            student -> {:ok, student}
+          end
         }
       )
-      |> Enum.map(&get_or_insert_student/1)
 
-    {:ok, students}
-  end
-
-  defp get_or_insert_student({csv_student, %{name: name, school_id: school_id} = student_attrs}) do
-    case Repo.get_by(Student, name: name, school_id: school_id) do
-      nil ->
-        create_student(student_attrs)
-        |> case do
-          {:ok, student} ->
-            create_student_profile(csv_student, student)
-
-          {:error, _changeset} ->
-            {csv_student, {:error, "Couldn't create student"}}
-        end
-
-      _std ->
-        {csv_student, {:error, "Duplicated student"}}
-    end
-  end
-
-  defp create_student_profile(%{email: ""} = csv_student, student),
-    do: {csv_student, {:ok, student}}
-
-  defp create_student_profile(%{email: email} = csv_student, student) do
-    with {:ok, user} <- get_or_insert_user(email),
-         {:ok, _profile} <-
-           Identity.create_profile(%{type: "student", user_id: user.id, student_id: student.id}) do
-      {csv_student, {:ok, student}}
-    end
-  end
-
-  defp get_or_insert_user(email) do
-    case Identity.get_user_by_email(email) do
-      nil -> Identity.register_user(%{email: email, password: Ecto.UUID.generate()})
-      user -> {:ok, user}
-    end
+    {:ok, response}
   end
 end
