@@ -15,9 +15,9 @@ module.exports = {
         ltrn: {
           primary: colors.cyan["400"],
           secondary: colors.rose["500"],
-          text: colors.slate["700"],
+          dark: colors.slate["700"],
           subtle: colors.slate["400"],
-          hairline: colors.slate["200"],
+          lighter: colors.slate["200"],
           mesh: {
             primary: colors.cyan["200"],
             cyan: colors.cyan["50"],

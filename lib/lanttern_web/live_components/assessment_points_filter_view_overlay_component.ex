@@ -44,7 +44,7 @@ defmodule LantternWeb.AssessmentPointsFilterViewOverlayComponent do
           <div class="flex gap-6">
             <fieldset class="flex-1">
               <legend class="text-base font-semibold leading-6 text-ltrn-subtle">Classes</legend>
-              <div class="mt-4 divide-y divide-ltrn-hairline border-b border-t border-ltrn-hairline">
+              <div class="mt-4 divide-y divide-ltrn-lighter border-b border-t border-ltrn-lighter">
                 <.check_field
                   :for={opt <- @classes}
                   id={"class-#{opt.id}"}
@@ -55,7 +55,7 @@ defmodule LantternWeb.AssessmentPointsFilterViewOverlayComponent do
             </fieldset>
             <fieldset class="flex-1">
               <legend class="text-base font-semibold leading-6 text-ltrn-subtle">Subjects</legend>
-              <div class="mt-4 divide-y divide-ltrn-hairline border-b border-t border-ltrn-hairline">
+              <div class="mt-4 divide-y divide-ltrn-lighter border-b border-t border-ltrn-lighter">
                 <.check_field
                   :for={opt <- @subjects}
                   id={"subject-#{opt.id}"}

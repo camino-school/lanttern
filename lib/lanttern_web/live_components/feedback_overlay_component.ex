@@ -196,7 +196,7 @@ defmodule LantternWeb.FeedbackOverlayComponent do
   def feedback_status(%{feedback: %{completion_comment_id: nil}} = assigns) do
     ~H"""
     <.icon name="hero-check-circle" class="shrink-0 w-6 h-6 text-ltrn-subtle" />
-    <span class="text-ltrn-text">Not completed yet</span>
+    <span class="text-ltrn-dark">Not completed yet</span>
     """
   end
 
@@ -204,7 +204,7 @@ defmodule LantternWeb.FeedbackOverlayComponent do
       when not is_nil(comment_id) do
     ~H"""
     <.icon name="hero-check-circle" class="shrink-0 w-6 h-6 text-green-500" />
-    <span class="text-ltrn-text">Completed</span>
+    <span class="text-ltrn-dark">Completed</span>
     """
   end
 

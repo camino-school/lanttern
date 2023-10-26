@@ -67,7 +67,7 @@ defmodule LantternWeb.CurriculumBNCCEFLive do
       <.form id="bncc-ef-filters-form" for={@form} phx-submit={filter()} class="flex gap-6">
         <fieldset class="flex-1">
           <legend class="text-base font-semibold leading-6 text-ltrn-subtle">Subjects</legend>
-          <div class="mt-4 divide-y divide-ltrn-hairline border-b border-t border-ltrn-hairline">
+          <div class="mt-4 divide-y divide-ltrn-lighter border-b border-t border-ltrn-lighter">
             <.check_field
               :for={opt <- @ef_subjects}
               id={"subject-#{opt.id}"}
@@ -78,7 +78,7 @@ defmodule LantternWeb.CurriculumBNCCEFLive do
         </fieldset>
         <fieldset class="flex-1">
           <legend class="text-base font-semibold leading-6 text-ltrn-subtle">Years</legend>
-          <div class="mt-4 divide-y divide-ltrn-hairline border-b border-t border-ltrn-hairline">
+          <div class="mt-4 divide-y divide-ltrn-lighter border-b border-t border-ltrn-lighter">
             <.check_field
               :for={opt <- @ef_years}
               id={"year-#{opt.id}"}

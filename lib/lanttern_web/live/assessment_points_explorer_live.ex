@@ -58,7 +58,7 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
       <.form id="explorer-filters-form" for={@form} phx-submit={filter()} class="flex gap-6">
         <fieldset class="flex-1">
           <legend class="text-base font-semibold leading-6 text-ltrn-subtle">Classes</legend>
-          <div class="mt-4 divide-y divide-ltrn-hairline border-b border-t border-ltrn-hairline">
+          <div class="mt-4 divide-y divide-ltrn-lighter border-b border-t border-ltrn-lighter">
             <.check_field
               :for={opt <- @classes}
               id={"class-#{opt.id}"}
@@ -70,7 +70,7 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
         <fieldset class="flex-1">
           <legend class="text-base font-semibold leading-6 text-ltrn-subtle">Subjects</legend>
           <p class="my-4 text-sm font-semibold text-ltrn-subtle">Used in assessment points</p>
-          <div class="divide-y divide-ltrn-hairline border-b border-t border-ltrn-hairline">
+          <div class="divide-y divide-ltrn-lighter border-b border-t border-ltrn-lighter">
             <.check_field
               :for={opt <- @subjects_in_assessments}
               id={"subject-#{opt.id}"}
@@ -79,7 +79,7 @@ defmodule LantternWeb.AssessmentPointsExplorerLive do
             />
           </div>
           <p class="my-4 text-sm font-semibold text-ltrn-subtle">Others</p>
-          <div class="divide-y divide-ltrn-hairline border-b border-t border-ltrn-hairline">
+          <div class="divide-y divide-ltrn-lighter border-b border-t border-ltrn-lighter">
             <.check_field
               :for={opt <- @other_subjects}
               id={"subject-#{opt.id}"}

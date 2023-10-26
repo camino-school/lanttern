@@ -211,7 +211,7 @@ defmodule LantternWeb.FormComponents do
       id={@id}
       name={@name}
       class={[
-        "block w-full rounded-sm border-0 shadown-sm ring-1 ring-ltrn-hairline bg-white sm:text-sm",
+        "block w-full rounded-sm border-0 shadown-sm ring-1 ring-ltrn-lighter bg-white sm:text-sm",
         "focus:ring-2 focus:ring-ltrn-primary focus:ring-inset",
         @class
       ]}
@@ -244,8 +244,8 @@ defmodule LantternWeb.FormComponents do
       class={[
         "block w-full min-h-[6rem] rounded-sm border-0 shadow-sm ring-1 sm:text-sm sm:leading-6",
         "focus:ring-2 focus:ring-inset",
-        "phx-no-feedback:ring-ltrn-hairline phx-no-feedback:focus:ring-ltrn-primary",
-        @errors == [] && "ring-ltrn-hairline focus:ring-ltrn-primary",
+        "phx-no-feedback:ring-ltrn-lighter phx-no-feedback:focus:ring-ltrn-primary",
+        @errors == [] && "ring-ltrn-lighter focus:ring-ltrn-primary",
         @errors != [] && "ring-rose-400 focus:ring-rose-400",
         @class
       ]}
@@ -275,8 +275,8 @@ defmodule LantternWeb.FormComponents do
     <div class={[
       "overflow-hidden rounded-sm shadow-sm ring-1 ring-inset bg-white",
       "focus-within:ring-2",
-      "phx-no-feedback:ring-ltrn-hairline phx-no-feedback:focus-within:ring-ltrn-primary",
-      @errors == [] && "ring-ltrn-hairline focus-within:ring-ltrn-primary",
+      "phx-no-feedback:ring-ltrn-lighter phx-no-feedback:focus-within:ring-ltrn-primary",
+      @errors == [] && "ring-ltrn-lighter focus-within:ring-ltrn-primary",
       @errors != [] && "ring-rose-400 focus-within:ring-rose-400",
       @class
     ]}>
@@ -290,7 +290,7 @@ defmodule LantternWeb.FormComponents do
       ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
       <div class={[
         "flex items-center justify-between gap-6 w-full p-2 border-t",
-        @errors == [] && "border-ltrn-hairline, peer-focus:border-ltrn-primary",
+        @errors == [] && "border-ltrn-lighter, peer-focus:border-ltrn-primary",
         @errors != [] && "border-rose-400 peer-focus:border-rose-400"
       ]}>
         <div class="flex items-center gap-2">
@@ -333,8 +333,8 @@ defmodule LantternWeb.FormComponents do
       class={[
         "block w-full rounded-sm border-0 shadow-sm ring-1 sm:text-sm sm:leading-6",
         "focus:ring-2 focus:ring-inset",
-        "phx-no-feedback:ring-ltrn-hairline phx-no-feedback:focus:ring-ltrn-primary",
-        @errors == [] && "ring-ltrn-hairline focus:ring-ltrn-primary",
+        "phx-no-feedback:ring-ltrn-lighter phx-no-feedback:focus:ring-ltrn-primary",
+        @errors == [] && "ring-ltrn-lighter focus:ring-ltrn-primary",
         @errors != [] && "ring-rose-400 focus:ring-rose-400",
         @class
       ]}
@@ -364,7 +364,7 @@ defmodule LantternWeb.FormComponents do
     ~H"""
     <div class="relative flex items-start py-4">
       <div class="min-w-0 flex-1 text-sm leading-6">
-        <label for={@id} class="select-none text-ltrn-text">
+        <label for={@id} class="select-none text-ltrn-dark">
           <%= @opt.name %>
         </label>
       </div>

@@ -40,7 +40,7 @@ defmodule LantternWeb.StudentsImportLive do
 
         <div class="flex-[2]">
           <div
-            class="p-4 border border-dashed border-ltrn-hairline rounded-md text-center text-ltrn-subtle"
+            class="p-4 border border-dashed border-ltrn-lighter rounded-md text-center text-ltrn-subtle"
             phx-drop-target={@uploads.csv.ref}
           >
             <div>
@@ -48,7 +48,7 @@ defmodule LantternWeb.StudentsImportLive do
               <div>
                 <label
                   for={@uploads.csv.ref}
-                  class="cursor-pointer text-ltrn-primary hover:text-ltrn-text focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-text"
+                  class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
                 >
                   <span>Upload a file</span>
                   <.live_file_input upload={@uploads.csv} class="sr-only" />
@@ -59,7 +59,7 @@ defmodule LantternWeb.StudentsImportLive do
 
             <div
               :for={entry <- @uploads.csv.entries}
-              class="flex items-center justify-center gap-2 mt-6 text-ltrn-text"
+              class="flex items-center justify-center gap-2 mt-6 text-ltrn-dark"
             >
               <.icon name="hero-document" />
               <%= entry.client_name %>
@@ -135,7 +135,7 @@ defmodule LantternWeb.StudentsImportLive do
           </tr>
         </thead>
         <tbody>
-          <tr :for={row <- @csv_rows} class="border-t border-ltrn-hairline">
+          <tr :for={row <- @csv_rows} class="border-t border-ltrn-lighter">
             <td class="p-2">
               <.class_in_table
                 csv_class_id={@csv_class_name_id_map[row.class_name]}
@@ -176,7 +176,7 @@ defmodule LantternWeb.StudentsImportLive do
           </tr>
         </thead>
         <tbody>
-          <tr :for={{csv_row, status} <- @import_result} class="border-t border-ltrn-hairline">
+          <tr :for={{csv_row, status} <- @import_result} class="border-t border-ltrn-lighter">
             <td class="p-2">
               <.class_in_table
                 csv_class_id={@csv_class_name_id_map[csv_row.class_name]}
@@ -242,7 +242,7 @@ defmodule LantternWeb.StudentsImportLive do
     ]}>
       <span class={[
         "flex items-center justify-center w-8 h-8 rounded-full font-black text-center",
-        if(@active, do: "text-ltrn-white bg-ltrn-primary", else: "text-ltrn-subtle bg-ltrn-hairline")
+        if(@active, do: "text-ltrn-white bg-ltrn-primary", else: "text-ltrn-subtle bg-ltrn-lighter")
       ]}>
         <%= render_slot(@num) %>
       </span>

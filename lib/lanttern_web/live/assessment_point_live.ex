@@ -193,7 +193,7 @@ defmodule LantternWeb.AssessmentPointLive do
     <.feedback_button_base feedback={@feedback} student_id={@student_id}>
       <.icon name="hero-check-circle" class="shrink-0 w-6 h-6" />
       <span class="flex-1 block text-left">
-        <span class="w-full text-ltrn-text line-clamp-3">
+        <span class="w-full text-ltrn-dark line-clamp-3">
           <%= @feedback.comment %>
         </span>
         Not completed yet
@@ -208,7 +208,7 @@ defmodule LantternWeb.AssessmentPointLive do
     <.feedback_button_base feedback={@feedback} student_id={@student_id}>
       <.icon name="hero-check-circle" class="shrink-0 w-6 h-6 text-green-500" />
       <span class="flex-1 block text-left">
-        <span class="w-full text-ltrn-text line-clamp-3">
+        <span class="w-full text-ltrn-dark line-clamp-3">
           <%= @feedback.comment %>
         </span>
         Completed <%= format_local!(@feedback.completion_comment.inserted_at, "{Mshort} {D}, {YYYY}") %> 🎉
@@ -244,7 +244,7 @@ defmodule LantternWeb.AssessmentPointLive do
       type="button"
       class={[
         "flex items-center gap-2 px-4 rounded-sm text-xs text-ltrn-subtle shadow-md",
-        if(@feedback_id, do: "bg-white", else: "bg-ltrn-hairline")
+        if(@feedback_id, do: "bg-white", else: "bg-ltrn-lighter")
       ]}
       phx-click="open-feedback"
       phx-value-feedbackid={@feedback_id}

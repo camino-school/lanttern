@@ -561,7 +561,7 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div class={["text-center", @class]}>
       <div class="p-10">
-        <div class="animate-pulse h-24 w-24 rounded-full mx-auto bg-ltrn-hairline blur-md"></div>
+        <div class="animate-pulse h-24 w-24 rounded-full mx-auto bg-ltrn-lighter blur-md"></div>
       </div>
       <%!-- <div class="relative flex h-16 w-16 mx-auto">
         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-ltrn-primary opacity-75 blur-[2px]">
