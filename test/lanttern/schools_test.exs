@@ -2,11 +2,11 @@ defmodule Lanttern.SchoolsTest do
   use Lanttern.DataCase
 
   alias Lanttern.Schools
+  import Lanttern.SchoolsFixtures
+  import Ecto.Query, only: [from: 2]
 
   describe "schools" do
     alias Lanttern.Schools.School
-
-    import Lanttern.SchoolsFixtures
 
     @invalid_attrs %{name: nil}
 
@@ -60,8 +60,6 @@ defmodule Lanttern.SchoolsTest do
   describe "classes" do
     alias Lanttern.Schools.Class
 
-    import Lanttern.SchoolsFixtures
-
     @invalid_attrs %{name: nil}
 
     test "list_classes/1 returns all classes" do
@@ -69,12 +67,18 @@ defmodule Lanttern.SchoolsTest do
       assert Schools.list_classes() == [class]
     end
 
-    test "list_classes/1 with preloads returns all classes with preloaded data" do
+    test "list_classes/1 with preloads and school filter returns all classes as expected" do
       school = school_fixture()
       student = student_fixture()
       class = class_fixture(%{school_id: school.id, students_ids: [student.id]})
 
-      [expected_class] = Schools.list_classes(preloads: [:school, :students])
+      # extra classes for school filter validation
+      class_fixture()
+      class_fixture()
+
+      [expected_class] =
+        Schools.list_classes(preloads: [:school, :students], schools_ids: [school.id])
+
       assert expected_class.id == class.id
       assert expected_class.school == school
       assert expected_class.students == [student]
@@ -180,8 +184,6 @@ defmodule Lanttern.SchoolsTest do
   describe "students" do
     alias Lanttern.Schools.Student
 
-    import Lanttern.SchoolsFixtures
-
     @invalid_attrs %{name: nil}
 
     test "list_students/1 returns all students" do
@@ -246,7 +248,7 @@ defmodule Lanttern.SchoolsTest do
       assert student.name == "some name"
     end
 
-    test "create_student/1 with valid data containing classes creates a student with classes" do
+    test "create_student/1 with valid data with classes_ids param creates a student with classes" do
       school = school_fixture()
       class_1 = class_fixture()
       class_2 = class_fixture()
@@ -259,6 +261,29 @@ defmodule Lanttern.SchoolsTest do
           class_1.id,
           class_2.id,
           class_3.id
+        ]
+      }
+
+      assert {:ok, %Student{} = student} = Schools.create_student(valid_attrs)
+      assert student.name == "some name"
+      assert Enum.find(student.classes, fn c -> c.id == class_1.id end)
+      assert Enum.find(student.classes, fn c -> c.id == class_2.id end)
+      assert Enum.find(student.classes, fn c -> c.id == class_3.id end)
+    end
+
+    test "create_student/1 with valid data with classes param creates a student with classes" do
+      school = school_fixture()
+      class_1 = class_fixture()
+      class_2 = class_fixture()
+      class_3 = class_fixture()
+
+      valid_attrs = %{
+        school_id: school.id,
+        name: "some name",
+        classes: [
+          class_1,
+          class_2,
+          class_3
         ]
       }
 
@@ -319,8 +344,6 @@ defmodule Lanttern.SchoolsTest do
 
   describe "teachers" do
     alias Lanttern.Schools.Teacher
-
-    import Lanttern.SchoolsFixtures
 
     @invalid_attrs %{name: nil}
 
@@ -389,6 +412,190 @@ defmodule Lanttern.SchoolsTest do
     test "change_teacher/1 returns a teacher changeset" do
       teacher = teacher_fixture()
       assert %Ecto.Changeset{} = Schools.change_teacher(teacher)
+    end
+  end
+
+  describe "csv parsing" do
+    test "create_students_from_csv/3 creates classes and students, and returns a list with the registration status for each row" do
+      school = school_fixture()
+      class = class_fixture(name: "existing class", school_id: school.id)
+      user = Lanttern.IdentityFixtures.user_fixture(email: "existing-user@school.com")
+
+      csv_std_1 = %{
+        class_name: "existing class",
+        name: "Student A",
+        email: "student-a@school.com"
+      }
+
+      csv_std_2 = %{
+        class_name: "existing class",
+        name: "Student A same user",
+        email: "student-a@school.com"
+      }
+
+      csv_std_3 = %{
+        class_name: "mapped to existing class",
+        name: "With existing user email",
+        email: "existing-user@school.com"
+      }
+
+      csv_std_4 = %{
+        class_name: "mapped to existing class",
+        name: "No email",
+        email: ""
+      }
+
+      csv_std_5 = %{
+        class_name: "new class",
+        name: "With new class",
+        email: "student-d@school.com"
+      }
+
+      csv_std_6 = %{
+        class_name: "new class",
+        name: "",
+        email: "student-x@school.com"
+      }
+
+      csv_students = [csv_std_1, csv_std_2, csv_std_3, csv_std_4, csv_std_5, csv_std_6]
+
+      class_name_id_map = %{
+        "existing class" => class.id,
+        "mapped to existing class" => class.id,
+        "new class" => ""
+      }
+
+      {:ok, expected} =
+        Schools.create_students_from_csv(csv_students, class_name_id_map, school.id)
+
+      [
+        {returned_csv_std_1, {:ok, std_1}},
+        {returned_csv_std_2, {:ok, std_2}},
+        {returned_csv_std_3, {:ok, std_3}},
+        {returned_csv_std_4, {:ok, std_4}},
+        {returned_csv_std_5, {:ok, std_5}},
+        {returned_csv_std_6, {:error, _error}}
+      ] = expected
+
+      # assert students and classes
+
+      assert returned_csv_std_1.name == csv_std_1.name
+      assert std_1.name == csv_std_1.name
+      assert std_1.classes == [class]
+      assert get_user(std_1.id, "student")
+
+      assert returned_csv_std_2.name == csv_std_2.name
+      assert std_2.name == csv_std_2.name
+      assert std_2.classes == [class]
+      assert get_user(std_2.id, "student")
+
+      assert get_user(std_1.id, "student") == get_user(std_2.id, "student")
+
+      assert returned_csv_std_3.name == csv_std_3.name
+      assert std_3.name == csv_std_3.name
+      assert std_3.classes == [class]
+      assert get_user(std_3.id, "student").id == user.id
+
+      assert returned_csv_std_4.name == csv_std_4.name
+      assert std_4.name == csv_std_4.name
+      assert std_4.classes == [class]
+      refute get_user(std_4.id, "student")
+
+      assert returned_csv_std_5.name == csv_std_5.name
+      assert std_5.name == csv_std_5.name
+      assert std_5.classes |> hd() |> Map.get(:name) == "new class"
+      assert get_user(std_5.id, "student")
+
+      assert returned_csv_std_6.name == csv_std_6.name
+    end
+
+    test "create_teachers_from_csv/2 creates teachers, and returns a list with the registration status for each row" do
+      school = school_fixture()
+      user = Lanttern.IdentityFixtures.user_fixture(email: "existing-user@school.com")
+
+      csv_teacher_1 = %{
+        name: "Teacher A",
+        email: "teacher-a@school.com"
+      }
+
+      csv_teacher_2 = %{
+        name: "Teacher A same user",
+        email: "teacher-a@school.com"
+      }
+
+      csv_teacher_3 = %{
+        name: "With existing user email",
+        email: "existing-user@school.com"
+      }
+
+      csv_teacher_4 = %{
+        name: "No email",
+        email: ""
+      }
+
+      csv_teacher_5 = %{
+        name: "",
+        email: "teacher-x@school.com"
+      }
+
+      csv_teachers = [csv_teacher_1, csv_teacher_2, csv_teacher_3, csv_teacher_4, csv_teacher_5]
+
+      {:ok, expected} =
+        Schools.create_teachers_from_csv(csv_teachers, school.id)
+
+      [
+        {returned_csv_teacher_1, {:ok, teacher_1}},
+        {returned_csv_teacher_2, {:ok, teacher_2}},
+        {returned_csv_teacher_3, {:ok, teacher_3}},
+        {returned_csv_teacher_4, {:ok, teacher_4}},
+        {returned_csv_teacher_5, {:error, _error}}
+      ] = expected
+
+      # assert students and classes
+
+      assert returned_csv_teacher_1.name == csv_teacher_1.name
+      assert teacher_1.name == csv_teacher_1.name
+      assert get_user(teacher_1.id, "teacher")
+
+      assert returned_csv_teacher_2.name == csv_teacher_2.name
+      assert teacher_2.name == csv_teacher_2.name
+      assert get_user(teacher_2.id, "teacher")
+
+      assert get_user(teacher_1.id, "teacher") == get_user(teacher_2.id, "teacher")
+
+      assert returned_csv_teacher_3.name == csv_teacher_3.name
+      assert teacher_3.name == csv_teacher_3.name
+      assert get_user(teacher_3.id, "teacher").id == user.id
+
+      assert returned_csv_teacher_4.name == csv_teacher_4.name
+      assert teacher_4.name == csv_teacher_4.name
+      refute get_user(teacher_4.id, "teacher")
+
+      assert returned_csv_teacher_5.name == csv_teacher_5.name
+    end
+
+    defp get_user(id, "student") do
+      from(s in Schools.Student,
+        left_join: p in Lanttern.Identity.Profile,
+        on: p.student_id == s.id,
+        left_join: u in Lanttern.Identity.User,
+        on: u.id == p.user_id,
+        where: s.id == ^id,
+        select: u
+      )
+      |> Lanttern.Repo.one!()
+    end
+
+    defp get_user(id, "teacher") do
+      from(t in Schools.Teacher,
+        left_join: p in Lanttern.Identity.Profile,
+        on: p.teacher_id == t.id,
+        left_join: u in Lanttern.Identity.User,
+        on: u.id == p.user_id,
+        where: t.id == ^id,
+        select: u
+      )
+      |> Lanttern.Repo.one!()
     end
   end
 end

@@ -10,6 +10,9 @@ defmodule Lanttern.Schools do
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.Student
   alias Lanttern.Schools.Teacher
+  alias Lanttern.Identity
+  alias Lanttern.Identity.User
+  alias Lanttern.Identity.Profile
 
   @doc """
   Returns the list of schools.
@@ -111,6 +114,7 @@ defmodule Lanttern.Schools do
   ### Options:
 
   `:preloads` – preloads associated data
+  `:schools_ids` – filter classes by schools
 
   ## Examples
 
@@ -119,8 +123,23 @@ defmodule Lanttern.Schools do
 
   """
   def list_classes(opts \\ []) do
-    Repo.all(Class)
+    Class
+    |> maybe_filter_classes_by_schools(opts)
+    |> Repo.all()
     |> maybe_preload(opts)
+  end
+
+  defp maybe_filter_classes_by_schools(classes_query, opts) do
+    case Keyword.get(opts, :schools_ids) do
+      nil ->
+        classes_query
+
+      schools_ids ->
+        from(
+          c in classes_query,
+          where: c.school_id in ^schools_ids
+        )
+    end
   end
 
   @doc """
@@ -441,5 +460,259 @@ defmodule Lanttern.Schools do
   """
   def change_teacher(%Teacher{} = teacher, attrs \\ %{}) do
     Teacher.changeset(teacher, attrs)
+  end
+
+  @doc """
+  Create students, classes, users, and profiles based on CSV data.
+
+  It returns a tuple with the `csv_student` as the first item,
+  and a nested `:ok` or `:error` tuple, with the created student or an error message.
+
+  ### User and profile creation
+
+  If there's no email in the CSV row, user and profile creation is skipped.
+
+  If a user with the email already exists, we create a student profile linked to this user.
+
+  Else, we create a user with the student email and a linked student profile.
+
+  ## Examples
+
+      iex> create_students_from_csv(csv_rows, class_name_id_map, school_id)
+      [{csv_student, {:ok, %Student{}}}, ...]
+
+  """
+  def create_students_from_csv(csv_rows, class_name_id_map, school_id) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.run(:classes, fn _repo, _changes ->
+      insert_csv_classes(class_name_id_map, school_id)
+    end)
+    |> Ecto.Multi.run(:students, fn _repo, changes ->
+      insert_csv_students(changes, csv_rows, school_id)
+    end)
+    |> Ecto.Multi.run(:users, fn _repo, _changes ->
+      insert_csv_users(csv_rows)
+    end)
+    |> Ecto.Multi.run(:profiles, fn _repo, changes ->
+      insert_csv_profiles(changes, csv_rows, "student")
+    end)
+    |> Ecto.Multi.run(:response, fn _repo, changes ->
+      format_response(changes, csv_rows, "student")
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, changes} -> {:ok, changes.response}
+      error_tuple -> error_tuple
+    end
+  end
+
+  defp insert_csv_classes(class_name_id_map, school_id) do
+    name_class_map =
+      class_name_id_map
+      |> Enum.map(&get_or_insert_csv_class(&1, school_id))
+      |> Enum.into(%{})
+
+    {:ok, name_class_map}
+  end
+
+  defp get_or_insert_csv_class({csv_class_name, ""}, school_id) do
+    {:ok, class} =
+      create_class(%{
+        name: csv_class_name,
+        school_id: school_id
+      })
+
+    {csv_class_name, class}
+  end
+
+  defp get_or_insert_csv_class({csv_class_name, class_id}, _school_id),
+    do: {csv_class_name, get_class!(class_id)}
+
+  defp insert_csv_students(%{classes: name_class_map} = _changes, csv_rows, school_id) do
+    name_student_map =
+      csv_rows
+      |> Enum.map(&get_or_insert_csv_student(&1, name_class_map, school_id))
+      |> Enum.filter(fn
+        {:ok, _student} -> true
+        {:error, _changeset} -> false
+      end)
+      |> Enum.map(fn {:ok, student} -> {student.name, student} end)
+      |> Enum.into(%{})
+
+    {:ok, name_student_map}
+  end
+
+  defp get_or_insert_csv_student(csv_row, name_class_map, school_id) do
+    case Repo.get_by(Student, name: csv_row.name, school_id: school_id) do
+      nil ->
+        %{
+          name: csv_row.name,
+          school_id: school_id,
+          classes:
+            case Map.get(name_class_map, csv_row.class_name) do
+              nil -> []
+              class -> [class]
+            end
+        }
+        |> create_student()
+
+      student ->
+        {:ok, student}
+    end
+  end
+
+  @doc """
+  Create teachers, users, and profiles based on CSV data.
+
+  It returns a tuple with the `csv_teacher` as the first item,
+  and a nested `:ok` or `:error` tuple, with the created teacher or an error message.
+
+  ### User and profile creation
+
+  If there's no email in the CSV row, user and profile creation is skipped.
+
+  If a user with the email already exists, we create a teacher profile linked to this user.
+
+  Else, we create a user with the teacher email and a linked teacher profile.
+
+  ## Examples
+
+      iex> create_teachers_from_csv(csv_rows, school_id)
+      [{csv_teacher, {:ok, %Teacher{}}}, ...]
+
+  """
+  def create_teachers_from_csv(csv_rows, school_id) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.run(:teachers, fn _repo, _changes ->
+      insert_csv_teachers(csv_rows, school_id)
+    end)
+    |> Ecto.Multi.run(:users, fn _repo, _changes ->
+      insert_csv_users(csv_rows)
+    end)
+    |> Ecto.Multi.run(:profiles, fn _repo, changes ->
+      insert_csv_profiles(changes, csv_rows, "teacher")
+    end)
+    |> Ecto.Multi.run(:response, fn _repo, changes ->
+      format_response(changes, csv_rows, "teacher")
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, changes} -> {:ok, changes.response}
+      error_tuple -> error_tuple
+    end
+  end
+
+  defp insert_csv_teachers(csv_rows, school_id) do
+    name_teacher_map =
+      csv_rows
+      |> Enum.map(&get_or_insert_csv_teacher(&1, school_id))
+      |> Enum.filter(fn
+        {:ok, _teacher} -> true
+        {:error, _changeset} -> false
+      end)
+      |> Enum.map(fn {:ok, teacher} -> {teacher.name, teacher} end)
+      |> Enum.into(%{})
+
+    {:ok, name_teacher_map}
+  end
+
+  defp get_or_insert_csv_teacher(csv_row, school_id) do
+    case Repo.get_by(Teacher, name: csv_row.name, school_id: school_id) do
+      nil ->
+        %{
+          name: csv_row.name,
+          school_id: school_id
+        }
+        |> create_teacher()
+
+      teacher ->
+        {:ok, teacher}
+    end
+  end
+
+  defp insert_csv_users(csv_rows) do
+    email_user_map =
+      csv_rows
+      |> Enum.filter(&(&1.email != ""))
+      |> Enum.map(&get_or_insert_csv_user/1)
+      |> Enum.map(&{&1.email, &1})
+      |> Enum.into(%{})
+
+    {:ok, email_user_map}
+  end
+
+  defp get_or_insert_csv_user(%{email: email}) do
+    case Repo.get_by(User, email: email) do
+      nil ->
+        {:ok, user} =
+          %{
+            email: email,
+            password: Ecto.UUID.generate()
+          }
+          |> Identity.register_user()
+
+        user
+
+      user ->
+        user
+    end
+  end
+
+  defp insert_csv_profiles(changes, csv_rows, type) do
+    name_schema_map =
+      case type do
+        "student" -> changes.students
+        "teacher" -> changes.teachers
+      end
+
+    email_user_map = changes.users
+
+    profiles =
+      csv_rows
+      |> Enum.filter(&(&1.email != "" && &1.name != ""))
+      |> Enum.map(
+        &%{
+          type: type,
+          teacher_id:
+            if(type == "teacher",
+              do: Map.get(name_schema_map, &1.name).id,
+              else: nil
+            ),
+          student_id:
+            if(type == "student",
+              do: Map.get(name_schema_map, &1.name).id,
+              else: nil
+            ),
+          user_id: Map.get(email_user_map, &1.email).id,
+          inserted_at: naive_timestamp(),
+          updated_at: naive_timestamp()
+        }
+      )
+
+    Repo.insert_all(Profile, profiles, on_conflict: :nothing)
+
+    {:ok, true}
+  end
+
+  defp format_response(changes, csv_rows, type) do
+    name_schema_map =
+      case type do
+        "student" -> changes.students
+        "teacher" -> changes.teachers
+      end
+
+    response =
+      csv_rows
+      |> Enum.map(
+        &{
+          &1,
+          case Map.get(name_schema_map, &1.name) do
+            nil -> {:error, "No success"}
+            schema -> {:ok, schema}
+          end
+        }
+      )
+
+    {:ok, response}
   end
 end

@@ -106,26 +106,26 @@ defmodule Lanttern.BNCCTest do
 
       expected_ha_lp_1 = Enum.find(expected, fn ha -> ha.id == ha_lp_1.id end)
       assert expected_ha_lp_1.id == ha_lp_1.id
-      assert expected_ha_lp_1.campo_de_atuacao.id == ca_lp_1.id
-      assert expected_ha_lp_1.pratica_de_linguagem.id == pl_lp_1.id
-      assert expected_ha_lp_1.objeto_de_conhecimento.id == oc_lp_1.id
+      assert expected_ha_lp_1.campo_de_atuacao == ca_lp_1.name
+      assert expected_ha_lp_1.pratica_de_linguagem == pl_lp_1.name
+      assert expected_ha_lp_1.objeto_de_conhecimento == oc_lp_1.name
 
       expected_ha_lp_3 = Enum.find(expected, fn ha -> ha.id == ha_lp_3.id end)
       assert expected_ha_lp_3.id == ha_lp_3.id
-      assert expected_ha_lp_3.campo_de_atuacao.id == ca_lp_3.id
-      assert expected_ha_lp_3.pratica_de_linguagem.id == pl_lp_3.id
-      assert expected_ha_lp_3.objeto_de_conhecimento.id == oc_lp_3.id
+      assert expected_ha_lp_3.campo_de_atuacao == ca_lp_3.name
+      assert expected_ha_lp_3.pratica_de_linguagem == pl_lp_3.name
+      assert expected_ha_lp_3.objeto_de_conhecimento == oc_lp_3.name
 
       expected_ha_li = Enum.find(expected, fn ha -> ha.id == ha_li.id end)
       assert expected_ha_li.id == ha_li.id
-      assert expected_ha_li.eixo.id == ei_li.id
-      assert expected_ha_li.unidade_tematica.id == ut_li.id
-      assert expected_ha_li.objeto_de_conhecimento.id == oc_li.id
+      assert expected_ha_li.eixo == ei_li.name
+      assert expected_ha_li.unidade_tematica == ut_li.name
+      assert expected_ha_li.objeto_de_conhecimento == oc_li.name
 
       expected_ha_ci = Enum.find(expected, fn ha -> ha.id == ha_ci.id end)
       assert expected_ha_ci.id == ha_ci.id
-      assert expected_ha_ci.unidade_tematica.id == ut_ci.id
-      assert expected_ha_ci.objeto_de_conhecimento.id == oc_ci.id
+      assert expected_ha_ci.unidade_tematica == ut_ci.name
+      assert expected_ha_ci.objeto_de_conhecimento == oc_ci.name
     end
 
     test "list_bncc_ef_items/1 with filters returns EF BNCC curriculum items that match filter criteria",

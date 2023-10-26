@@ -1,4 +1,4 @@
-# Script for populating the database. You can run it as:
+# Script for populating the database. You can run it locally as:
 #
 #     mix run priv/repo/seeds.exs
 #
@@ -23,40 +23,22 @@ alias Lanttern.Taxonomy
 # taxonomy
 # ------------------------------
 
-_k1 = Repo.insert!(%Taxonomy.Year{code: "k1", name: "Kindergarten 1"})
-_k2 = Repo.insert!(%Taxonomy.Year{code: "k2", name: "Kindergarten 2"})
-_k3 = Repo.insert!(%Taxonomy.Year{code: "k3", name: "Kindergarten 3"})
-_k4 = Repo.insert!(%Taxonomy.Year{code: "k4", name: "Kindergarten 4"})
-_k5 = Repo.insert!(%Taxonomy.Year{code: "k5", name: "Kindergarten 5"})
-_g1 = Repo.insert!(%Taxonomy.Year{code: "g1", name: "Grade 1"})
-_g2 = Repo.insert!(%Taxonomy.Year{code: "g2", name: "Grade 2"})
-_g3 = Repo.insert!(%Taxonomy.Year{code: "g3", name: "Grade 3"})
-_g4 = Repo.insert!(%Taxonomy.Year{code: "g4", name: "Grade 4"})
-_g5 = Repo.insert!(%Taxonomy.Year{code: "g5", name: "Grade 5"})
-_g6 = Repo.insert!(%Taxonomy.Year{code: "g6", name: "Grade 6"})
-_g7 = Repo.insert!(%Taxonomy.Year{code: "g7", name: "Grade 7"})
-_g8 = Repo.insert!(%Taxonomy.Year{code: "g8", name: "Grade 8"})
-_g9 = Repo.insert!(%Taxonomy.Year{code: "g9", name: "Grade 9"})
-g10 = Repo.insert!(%Taxonomy.Year{code: "g10", name: "Grade 10"})
-_g11 = Repo.insert!(%Taxonomy.Year{code: "g11", name: "Grade 11"})
-_g12 = Repo.insert!(%Taxonomy.Year{code: "g12", name: "Grade 12"})
+Taxonomy.seed_base_taxonomy()
 
-engl = Repo.insert!(%Taxonomy.Subject{code: "engl", name: "English"})
-port = Repo.insert!(%Taxonomy.Subject{code: "port", name: "Portuguese"})
-espa = Repo.insert!(%Taxonomy.Subject{code: "espa", name: "Spanish"})
-hsci = Repo.insert!(%Taxonomy.Subject{code: "hsci", name: "Human Sciences"})
-_geog = Repo.insert!(%Taxonomy.Subject{code: "geog", name: "Geography"})
-_hist = Repo.insert!(%Taxonomy.Subject{code: "hist", name: "History"})
-scie = Repo.insert!(%Taxonomy.Subject{code: "scie", name: "Science"})
-tech = Repo.insert!(%Taxonomy.Subject{code: "tech", name: "Technology"})
-engi = Repo.insert!(%Taxonomy.Subject{code: "engi", name: "Engineering"})
-math = Repo.insert!(%Taxonomy.Subject{code: "math", name: "Math"})
-_arts = Repo.insert!(%Taxonomy.Subject{code: "arts", name: "Arts"})
-vart = Repo.insert!(%Taxonomy.Subject{code: "vart", name: "Visual Arts"})
-dram = Repo.insert!(%Taxonomy.Subject{code: "dram", name: "Drama"})
-musi = Repo.insert!(%Taxonomy.Subject{code: "musi", name: "Music"})
-move = Repo.insert!(%Taxonomy.Subject{code: "move", name: "Movement"})
-_reli = Repo.insert!(%Taxonomy.Subject{code: "reli", name: "Religion"})
+g10 = Repo.get_by!(Taxonomy.Year, code: "g10")
+
+engl = Repo.get_by!(Taxonomy.Subject, code: "engl")
+port = Repo.get_by!(Taxonomy.Subject, code: "port")
+espa = Repo.get_by!(Taxonomy.Subject, code: "espa")
+hsci = Repo.get_by!(Taxonomy.Subject, code: "hsci")
+scie = Repo.get_by!(Taxonomy.Subject, code: "scie")
+tech = Repo.get_by!(Taxonomy.Subject, code: "tech")
+engi = Repo.get_by!(Taxonomy.Subject, code: "engi")
+math = Repo.get_by!(Taxonomy.Subject, code: "math")
+vart = Repo.get_by!(Taxonomy.Subject, code: "vart")
+dram = Repo.get_by!(Taxonomy.Subject, code: "dram")
+musi = Repo.get_by!(Taxonomy.Subject, code: "musi")
+move = Repo.get_by!(Taxonomy.Subject, code: "move")
 
 # ------------------------------
 # school

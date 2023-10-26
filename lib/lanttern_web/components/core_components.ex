@@ -161,8 +161,8 @@ defmodule LantternWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "phx-submit-loading:opacity-75 rounded-sm py-2 px-2",
-        "font-display text-sm font-bold",
+        "rounded-sm py-2 px-2 font-display text-sm font-bold",
+        "phx-submit-loading:opacity-50 phx-click-loading:opacity-50 phx-click-loading:pointer-events-none",
         button_theme(@theme),
         @class
       ]}
@@ -512,12 +512,13 @@ defmodule LantternWeb.CoreComponents do
   @doc """
   Renders a ping.
   """
+  attr :id, :string, default: nil
   attr :class, :any, default: nil
   attr :rest, :global
 
   def ping(assigns) do
     ~H"""
-    <span class={["relative flex h-4 w-4", @class]} @rest>
+    <span class={["relative flex h-4 w-4", @class]} id={@id} @rest>
       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-ltrn-primary opacity-75 blur-[2px]">
       </span>
       <span class="relative inline-flex rounded-full h-4 w-4 bg-ltrn-primary blur-sm"></span>

@@ -56,6 +56,8 @@ defmodule LantternWeb.Router do
     pipe_through [:browser, :require_authenticated_user, :admin]
 
     get "/", AdminController, :home
+    post "/seed_base_taxonomy", AdminController, :seed_base_taxonomy
+    post "/seed_bncc", AdminController, :seed_bncc
 
     # Identity context
     resources "/profiles", ProfileController
@@ -83,6 +85,8 @@ defmodule LantternWeb.Router do
     resources "/classes", ClassController
     resources "/students", StudentController
     resources "/teachers", TeacherController
+    live "/students_import", StudentsImportLive
+    live "/teachers_import", TeachersImportLive
 
     # Taxonomy context
     resources "/subjects", SubjectController
