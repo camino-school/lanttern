@@ -4,6 +4,7 @@ defmodule Lanttern.Rubrics do
   """
 
   import Ecto.Query, warn: false
+  import Lanttern.RepoHelpers
   alias Lanttern.Repo
 
   alias Lanttern.Rubrics.Rubric
@@ -11,20 +12,29 @@ defmodule Lanttern.Rubrics do
   @doc """
   Returns the list of rubrics.
 
+  ### Options:
+
+  `:preloads` – preloads associated data
+
   ## Examples
 
       iex> list_rubrics()
       [%Rubric{}, ...]
 
   """
-  def list_rubrics do
+  def list_rubrics(opts \\ []) do
     Repo.all(Rubric)
+    |> maybe_preload(opts)
   end
 
   @doc """
   Gets a single rubric.
 
   Raises `Ecto.NoResultsError` if the Rubric does not exist.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
 
   ## Examples
 
@@ -35,10 +45,18 @@ defmodule Lanttern.Rubrics do
       ** (Ecto.NoResultsError)
 
   """
-  def get_rubric!(id), do: Repo.get!(Rubric, id)
+  def get_rubric!(id, opts \\ []) do
+    Rubric
+    |> Repo.get!(id)
+    |> maybe_preload(opts)
+  end
 
   @doc """
   Creates a rubric.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
 
   ## Examples
 
@@ -49,14 +67,19 @@ defmodule Lanttern.Rubrics do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_rubric(attrs \\ %{}) do
+  def create_rubric(attrs \\ %{}, opts \\ []) do
     %Rubric{}
     |> Rubric.changeset(attrs)
     |> Repo.insert()
+    |> maybe_preload(opts)
   end
 
   @doc """
   Updates a rubric.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
 
   ## Examples
 
@@ -67,10 +90,11 @@ defmodule Lanttern.Rubrics do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_rubric(%Rubric{} = rubric, attrs) do
+  def update_rubric(%Rubric{} = rubric, attrs, opts \\ []) do
     rubric
     |> Rubric.changeset(attrs)
     |> Repo.update()
+    |> maybe_preload(opts)
   end
 
   @doc """

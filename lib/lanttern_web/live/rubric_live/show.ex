@@ -13,7 +13,7 @@ defmodule LantternWeb.RubricLive.Show do
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:rubric, Rubrics.get_rubric!(id))}
+     |> assign(:rubric, Rubrics.get_rubric!(id, preloads: :scale))}
   end
 
   defp page_title(:show), do: "Show Rubric"

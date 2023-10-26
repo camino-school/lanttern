@@ -13,6 +13,7 @@
   row_click={fn {_id, rubric} -> JS.navigate(~p"/admin/rubrics/#{rubric}") end}
 >
   <:col :let={{_id, rubric}} label="Criteria"><%= rubric.criteria %></:col>
+  <:col :let={{_id, rubric}} label="Scale"><%= rubric.scale.name %></:col>
   <:col :let={{_id, rubric}} label="Is differentiation"><%= rubric.is_differentiation %></:col>
   <:action :let={{_id, rubric}}>
     <div class="sr-only">

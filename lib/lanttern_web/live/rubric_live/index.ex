@@ -6,7 +6,7 @@ defmodule LantternWeb.RubricLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :rubrics, Rubrics.list_rubrics())}
+    {:ok, stream(socket, :rubrics, Rubrics.list_rubrics(preloads: :scale))}
   end
 
   @impl true
