@@ -105,6 +105,14 @@ defmodule LantternWeb.Router do
     live "/assessment_points_filter_views/:id/show/edit",
          AssessmentPointsFilterViewLive.Show,
          :edit
+
+    # Rubrics context
+    live "/rubrics", RubricLive.Index, :index
+    live "/rubrics/new", RubricLive.Index, :new
+    live "/rubrics/:id/edit", RubricLive.Index, :edit
+
+    live "/rubrics/:id", RubricLive.Show, :show
+    live "/rubrics/:id/show/edit", RubricLive.Show, :edit
   end
 
   # Other scopes may use custom stacks.
