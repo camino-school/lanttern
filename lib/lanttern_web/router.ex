@@ -86,6 +86,7 @@ defmodule LantternWeb.Router do
     resources "/students", StudentController
     resources "/teachers", TeacherController
     live "/students_import", StudentsImportLive
+    live "/teachers_import", TeachersImportLive
 
     # Taxonomy context
     resources "/subjects", SubjectController

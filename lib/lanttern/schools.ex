@@ -494,10 +494,10 @@ defmodule Lanttern.Schools do
       insert_csv_users(csv_rows)
     end)
     |> Ecto.Multi.run(:profiles, fn _repo, changes ->
-      insert_csv_profiles(changes, csv_rows)
+      insert_csv_profiles(changes, csv_rows, "student")
     end)
     |> Ecto.Multi.run(:response, fn _repo, changes ->
-      format_response(changes, csv_rows)
+      format_response(changes, csv_rows, "student")
     end)
     |> Repo.transaction()
     |> case do
@@ -543,10 +543,10 @@ defmodule Lanttern.Schools do
   end
 
   defp get_or_insert_csv_student(csv_row, name_class_map, school_id) do
-    case Repo.get_by(Student, name: csv_row.student_name, school_id: school_id) do
+    case Repo.get_by(Student, name: csv_row.name, school_id: school_id) do
       nil ->
         %{
-          name: csv_row.student_name,
+          name: csv_row.name,
           school_id: school_id,
           classes:
             case Map.get(name_class_map, csv_row.class_name) do
@@ -561,10 +561,79 @@ defmodule Lanttern.Schools do
     end
   end
 
+  @doc """
+  Create teachers, users, and profiles based on CSV data.
+
+  It returns a tuple with the `csv_teacher` as the first item,
+  and a nested `:ok` or `:error` tuple, with the created teacher or an error message.
+
+  ### User and profile creation
+
+  If there's no email in the CSV row, user and profile creation is skipped.
+
+  If a user with the email already exists, we create a teacher profile linked to this user.
+
+  Else, we create a user with the teacher email and a linked teacher profile.
+
+  ## Examples
+
+      iex> create_teachers_from_csv(csv_rows, school_id)
+      [{csv_teacher, {:ok, %Teacher{}}}, ...]
+
+  """
+  def create_teachers_from_csv(csv_rows, school_id) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.run(:teachers, fn _repo, _changes ->
+      insert_csv_teachers(csv_rows, school_id)
+    end)
+    |> Ecto.Multi.run(:users, fn _repo, _changes ->
+      insert_csv_users(csv_rows)
+    end)
+    |> Ecto.Multi.run(:profiles, fn _repo, changes ->
+      insert_csv_profiles(changes, csv_rows, "teacher")
+    end)
+    |> Ecto.Multi.run(:response, fn _repo, changes ->
+      format_response(changes, csv_rows, "teacher")
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, changes} -> {:ok, changes.response}
+      error_tuple -> error_tuple
+    end
+  end
+
+  defp insert_csv_teachers(csv_rows, school_id) do
+    name_teacher_map =
+      csv_rows
+      |> Enum.map(&get_or_insert_csv_teacher(&1, school_id))
+      |> Enum.filter(fn
+        {:ok, _teacher} -> true
+        {:error, _changeset} -> false
+      end)
+      |> Enum.map(fn {:ok, teacher} -> {teacher.name, teacher} end)
+      |> Enum.into(%{})
+
+    {:ok, name_teacher_map}
+  end
+
+  defp get_or_insert_csv_teacher(csv_row, school_id) do
+    case Repo.get_by(Teacher, name: csv_row.name, school_id: school_id) do
+      nil ->
+        %{
+          name: csv_row.name,
+          school_id: school_id
+        }
+        |> create_teacher()
+
+      teacher ->
+        {:ok, teacher}
+    end
+  end
+
   defp insert_csv_users(csv_rows) do
     email_user_map =
       csv_rows
-      |> Enum.filter(&(&1.student_email != ""))
+      |> Enum.filter(&(&1.email != ""))
       |> Enum.map(&get_or_insert_csv_user/1)
       |> Enum.map(&{&1.email, &1})
       |> Enum.into(%{})
@@ -572,7 +641,7 @@ defmodule Lanttern.Schools do
     {:ok, email_user_map}
   end
 
-  defp get_or_insert_csv_user(%{student_email: email}) do
+  defp get_or_insert_csv_user(%{email: email}) do
     case Repo.get_by(User, email: email) do
       nil ->
         {:ok, user} =
@@ -589,20 +658,32 @@ defmodule Lanttern.Schools do
     end
   end
 
-  defp insert_csv_profiles(changes, csv_rows) do
-    %{
-      students: name_student_map,
-      users: email_user_map
-    } = changes
+  defp insert_csv_profiles(changes, csv_rows, type) do
+    name_schema_map =
+      case type do
+        "student" -> changes.students
+        "teacher" -> changes.teachers
+      end
+
+    email_user_map = changes.users
 
     profiles =
       csv_rows
-      |> Enum.filter(&(&1.student_email != "" && &1.student_name != ""))
+      |> Enum.filter(&(&1.email != "" && &1.name != ""))
       |> Enum.map(
         &%{
-          type: "student",
-          student_id: Map.get(name_student_map, &1.student_name).id,
-          user_id: Map.get(email_user_map, &1.student_email).id,
+          type: type,
+          teacher_id:
+            if(type == "teacher",
+              do: Map.get(name_schema_map, &1.name).id,
+              else: nil
+            ),
+          student_id:
+            if(type == "student",
+              do: Map.get(name_schema_map, &1.name).id,
+              else: nil
+            ),
+          user_id: Map.get(email_user_map, &1.email).id,
           inserted_at: naive_timestamp(),
           updated_at: naive_timestamp()
         }
@@ -613,17 +694,21 @@ defmodule Lanttern.Schools do
     {:ok, true}
   end
 
-  defp format_response(changes, csv_rows) do
-    %{students: name_student_map} = changes
+  defp format_response(changes, csv_rows, type) do
+    name_schema_map =
+      case type do
+        "student" -> changes.students
+        "teacher" -> changes.teachers
+      end
 
     response =
       csv_rows
       |> Enum.map(
         &{
           &1,
-          case Map.get(name_student_map, &1.student_name) do
+          case Map.get(name_schema_map, &1.name) do
             nil -> {:error, "No success"}
-            student -> {:ok, student}
+            schema -> {:ok, schema}
           end
         }
       )

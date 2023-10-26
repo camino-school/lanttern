@@ -423,38 +423,38 @@ defmodule Lanttern.SchoolsTest do
 
       csv_std_1 = %{
         class_name: "existing class",
-        student_name: "Student A",
-        student_email: "student-a@school.com"
+        name: "Student A",
+        email: "student-a@school.com"
       }
 
       csv_std_2 = %{
         class_name: "existing class",
-        student_name: "Student A same user",
-        student_email: "student-a@school.com"
+        name: "Student A same user",
+        email: "student-a@school.com"
       }
 
       csv_std_3 = %{
         class_name: "mapped to existing class",
-        student_name: "With existing user email",
-        student_email: "existing-user@school.com"
+        name: "With existing user email",
+        email: "existing-user@school.com"
       }
 
       csv_std_4 = %{
         class_name: "mapped to existing class",
-        student_name: "No email",
-        student_email: ""
+        name: "No email",
+        email: ""
       }
 
       csv_std_5 = %{
         class_name: "new class",
-        student_name: "With new class",
-        student_email: "student-d@school.com"
+        name: "With new class",
+        email: "student-d@school.com"
       }
 
       csv_std_6 = %{
         class_name: "new class",
-        student_name: "",
-        student_email: "student-x@school.com"
+        name: "",
+        email: "student-x@school.com"
       }
 
       csv_students = [csv_std_1, csv_std_2, csv_std_3, csv_std_4, csv_std_5, csv_std_6]
@@ -479,43 +479,120 @@ defmodule Lanttern.SchoolsTest do
 
       # assert students and classes
 
-      assert returned_csv_std_1.student_name == csv_std_1.student_name
-      assert std_1.name == csv_std_1.student_name
+      assert returned_csv_std_1.name == csv_std_1.name
+      assert std_1.name == csv_std_1.name
       assert std_1.classes == [class]
-      assert get_student_user(std_1.id)
+      assert get_user(std_1.id, "student")
 
-      assert returned_csv_std_2.student_name == csv_std_2.student_name
-      assert std_2.name == csv_std_2.student_name
+      assert returned_csv_std_2.name == csv_std_2.name
+      assert std_2.name == csv_std_2.name
       assert std_2.classes == [class]
-      assert get_student_user(std_2.id)
+      assert get_user(std_2.id, "student")
 
-      assert get_student_user(std_1.id) == get_student_user(std_2.id)
+      assert get_user(std_1.id, "student") == get_user(std_2.id, "student")
 
-      assert returned_csv_std_3.student_name == csv_std_3.student_name
-      assert std_3.name == csv_std_3.student_name
+      assert returned_csv_std_3.name == csv_std_3.name
+      assert std_3.name == csv_std_3.name
       assert std_3.classes == [class]
-      assert get_student_user(std_3.id).id == user.id
+      assert get_user(std_3.id, "student").id == user.id
 
-      assert returned_csv_std_4.student_name == csv_std_4.student_name
-      assert std_4.name == csv_std_4.student_name
+      assert returned_csv_std_4.name == csv_std_4.name
+      assert std_4.name == csv_std_4.name
       assert std_4.classes == [class]
-      refute get_student_user(std_4.id)
+      refute get_user(std_4.id, "student")
 
-      assert returned_csv_std_5.student_name == csv_std_5.student_name
-      assert std_5.name == csv_std_5.student_name
+      assert returned_csv_std_5.name == csv_std_5.name
+      assert std_5.name == csv_std_5.name
       assert std_5.classes |> hd() |> Map.get(:name) == "new class"
-      assert get_student_user(std_5.id)
+      assert get_user(std_5.id, "student")
 
-      assert returned_csv_std_6.student_name == csv_std_6.student_name
+      assert returned_csv_std_6.name == csv_std_6.name
     end
 
-    defp get_student_user(student_id) do
+    test "create_teachers_from_csv/2 creates teachers, and returns a list with the registration status for each row" do
+      school = school_fixture()
+      user = Lanttern.IdentityFixtures.user_fixture(email: "existing-user@school.com")
+
+      csv_teacher_1 = %{
+        name: "Teacher A",
+        email: "teacher-a@school.com"
+      }
+
+      csv_teacher_2 = %{
+        name: "Teacher A same user",
+        email: "teacher-a@school.com"
+      }
+
+      csv_teacher_3 = %{
+        name: "With existing user email",
+        email: "existing-user@school.com"
+      }
+
+      csv_teacher_4 = %{
+        name: "No email",
+        email: ""
+      }
+
+      csv_teacher_5 = %{
+        name: "",
+        email: "teacher-x@school.com"
+      }
+
+      csv_teachers = [csv_teacher_1, csv_teacher_2, csv_teacher_3, csv_teacher_4, csv_teacher_5]
+
+      {:ok, expected} =
+        Schools.create_teachers_from_csv(csv_teachers, school.id)
+
+      [
+        {returned_csv_teacher_1, {:ok, teacher_1}},
+        {returned_csv_teacher_2, {:ok, teacher_2}},
+        {returned_csv_teacher_3, {:ok, teacher_3}},
+        {returned_csv_teacher_4, {:ok, teacher_4}},
+        {returned_csv_teacher_5, {:error, _error}}
+      ] = expected
+
+      # assert students and classes
+
+      assert returned_csv_teacher_1.name == csv_teacher_1.name
+      assert teacher_1.name == csv_teacher_1.name
+      assert get_user(teacher_1.id, "teacher")
+
+      assert returned_csv_teacher_2.name == csv_teacher_2.name
+      assert teacher_2.name == csv_teacher_2.name
+      assert get_user(teacher_2.id, "teacher")
+
+      assert get_user(teacher_1.id, "teacher") == get_user(teacher_2.id, "teacher")
+
+      assert returned_csv_teacher_3.name == csv_teacher_3.name
+      assert teacher_3.name == csv_teacher_3.name
+      assert get_user(teacher_3.id, "teacher").id == user.id
+
+      assert returned_csv_teacher_4.name == csv_teacher_4.name
+      assert teacher_4.name == csv_teacher_4.name
+      refute get_user(teacher_4.id, "teacher")
+
+      assert returned_csv_teacher_5.name == csv_teacher_5.name
+    end
+
+    defp get_user(id, "student") do
       from(s in Schools.Student,
         left_join: p in Lanttern.Identity.Profile,
         on: p.student_id == s.id,
         left_join: u in Lanttern.Identity.User,
         on: u.id == p.user_id,
-        where: s.id == ^student_id,
+        where: s.id == ^id,
+        select: u
+      )
+      |> Lanttern.Repo.one!()
+    end
+
+    defp get_user(id, "teacher") do
+      from(t in Schools.Teacher,
+        left_join: p in Lanttern.Identity.Profile,
+        on: p.teacher_id == t.id,
+        left_join: u in Lanttern.Identity.User,
+        on: u.id == p.user_id,
+        where: t.id == ^id,
         select: u
       )
       |> Lanttern.Repo.one!()

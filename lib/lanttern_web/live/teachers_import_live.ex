@@ -1,4 +1,4 @@
-defmodule LantternWeb.StudentsImportLive do
+defmodule LantternWeb.TeachersImportLive do
   use LantternWeb, {:live_view, layout: :admin}
 
   alias NimbleCSV.RFC4180, as: CSV
@@ -11,7 +11,7 @@ defmodule LantternWeb.StudentsImportLive do
     ~H"""
     <div class="container mx-auto lg:max-w-5xl">
       <.header>
-        Import school classes and students
+        Import school teachers
       </.header>
 
       <%= render_state(assigns) %>
@@ -83,45 +83,6 @@ defmodule LantternWeb.StudentsImportLive do
     """
   end
 
-  defp render_state(%{state: "setting_up_classes"} = assigns) do
-    ~H"""
-    <.steps state={@state}>
-      <p class="mb-4">
-        We found <%= length(Map.keys(@csv_class_name_id_map)) %> classes in the CSV file.
-      </p>
-      <p class="mb-4">
-        Select the class you want to link in the dropdown, or select "Create new" to create a new class.
-      </p>
-      <form phx-submit="review">
-        <div class="grid grid-cols-3 gap-10 mb-6">
-          <div
-            :for={{class_in_csv, class_id} <- @csv_class_name_id_map}
-            class="p-6 rounded bg-white shadow-lg"
-          >
-            <p class="flex items-center gap-4 mb-6">
-              <%= class_in_csv %>
-              <%= if class_id != nil do %>
-                <.badge>Existing class</.badge>
-              <% end %>
-            </p>
-            <.select
-              name={class_in_csv}
-              prompt="Create new class"
-              options={@class_options}
-              value={class_id}
-              disabled={class_id != nil}
-            />
-            <%= if class_id != nil do %>
-              <input type="hidden" name={class_in_csv} value={class_id} />
-            <% end %>
-          </div>
-        </div>
-        <.button type="submit">Continue</.button>
-      </form>
-    </.steps>
-    """
-  end
-
   defp render_state(%{state: "reviewing"} = assigns) do
     ~H"""
     <.steps state={@state}>
@@ -129,20 +90,12 @@ defmodule LantternWeb.StudentsImportLive do
       <table class="w-full my-6">
         <thead class="text-left">
           <tr>
-            <th class="p-2">Class</th>
-            <th class="p-2">Student name</th>
-            <th class="p-2">Student email</th>
+            <th class="p-2">Teacher name</th>
+            <th class="p-2">Teacher email</th>
           </tr>
         </thead>
         <tbody>
           <tr :for={row <- @csv_rows} class="border-t border-ltrn-hairline">
-            <td class="p-2">
-              <.class_in_table
-                csv_class_id={@csv_class_name_id_map[row.class_name]}
-                csv_class_name={row.class_name}
-                school_classes={@school_classes}
-              />
-            </td>
             <td class="p-2"><%= row.name %></td>
             <td class="p-2"><%= row.email %></td>
           </tr>
@@ -166,21 +119,13 @@ defmodule LantternWeb.StudentsImportLive do
       <table class="w-full my-6">
         <thead class="text-left">
           <tr>
-            <th class="p-2">Class</th>
-            <th class="p-2">Student name</th>
-            <th class="p-2">Student email</th>
+            <th class="p-2">Teacher name</th>
+            <th class="p-2">Teacher email</th>
             <th class="p-2">Status</th>
           </tr>
         </thead>
         <tbody>
           <tr :for={{csv_row, status} <- @import_result} class="border-t border-ltrn-hairline">
-            <td class="p-2">
-              <.class_in_table
-                csv_class_id={@csv_class_name_id_map[csv_row.class_name]}
-                csv_class_name={csv_row.class_name}
-                school_classes={@school_classes}
-              />
-            </td>
             <td class="p-2"><%= csv_row.name %></td>
             <td class="p-2"><%= csv_row.email %></td>
             <td class="p-2"><.import_status status={status} /></td>
@@ -189,7 +134,7 @@ defmodule LantternWeb.StudentsImportLive do
       </table>
       <div class="flex gap-6">
         <.link href={~p"/admin"} class="underline hover:text-ltrn-subtle">Back to admin home</.link>
-        <.link href={~p"/admin/students_import"} class="underline hover:text-ltrn-subtle">
+        <.link href={~p"/admin/teachers_import"} class="underline hover:text-ltrn-subtle">
           Import new file
         </.link>
       </div>
@@ -207,18 +152,13 @@ defmodule LantternWeb.StudentsImportLive do
       Upload students CSV file
     </.step>
     <%= if @state == "uploading", do: render_slot(@inner_block) %>
-    <.step active={@state == "setting_up_classes"} class="mt-10">
-      <:num>2</:num>
-      Setup classes
-    </.step>
-    <%= if @state == "setting_up_classes", do: render_slot(@inner_block) %>
     <.step active={@state == "reviewing"} class="mt-10">
-      <:num>3</:num>
+      <:num>2</:num>
       Review
     </.step>
     <%= if @state == "reviewing", do: render_slot(@inner_block) %>
     <.step active={@state == "done"} class="mt-10">
-      <:num>4</:num>
+      <:num>3</:num>
       Done
     </.step>
     <%= if @state == "done", do: render_slot(@inner_block) %>
@@ -245,32 +185,6 @@ defmodule LantternWeb.StudentsImportLive do
       </span>
       <%= render_slot(@inner_block) %>
     </div>
-    """
-  end
-
-  attr :csv_class_id, :string, required: true
-  attr :csv_class_name, :string, default: ""
-  attr :school_classes, :list, required: true
-
-  defp class_in_table(%{csv_class_id: ""} = assigns) do
-    ~H"""
-    <%= @csv_class_name %>
-    <.badge>New class</.badge>
-    """
-  end
-
-  defp class_in_table(%{csv_class_id: csv_class_id, school_classes: school_classes} = assigns) do
-    assigns =
-      assign(
-        assigns,
-        :class_name,
-        school_classes
-        |> Enum.find(&("#{&1.id}" == csv_class_id))
-        |> Map.get(:name)
-      )
-
-    ~H"""
-    <%= @class_name %>
     """
   end
 
@@ -337,17 +251,10 @@ defmodule LantternWeb.StudentsImportLive do
   def handle_event("upload", %{"school_id" => school_id}, socket) do
     case parse_upload_entry(socket, hd(socket.assigns.uploads.csv.entries)) do
       {:ok, csv_rows} ->
-        school_classes = Schools.list_classes(schools_ids: [school_id])
-        csv_class_name_id_map = process_csv_classes(csv_rows, school_classes)
-        class_options = SchoolsHelpers.generate_class_options(schools_ids: [school_id])
-
         socket =
           socket
           |> assign(:school_id, school_id)
-          |> assign(:school_classes, school_classes)
-          |> assign(:class_options, class_options)
-          |> assign(:csv_class_name_id_map, csv_class_name_id_map)
-          |> assign(:state, "setting_up_classes")
+          |> assign(:state, "reviewing")
           |> assign(:csv_rows, csv_rows)
 
         {:noreply, socket}
@@ -357,19 +264,9 @@ defmodule LantternWeb.StudentsImportLive do
     end
   end
 
-  def handle_event("review", params, socket) do
-    socket =
-      socket
-      |> assign(:csv_class_name_id_map, params)
-      |> assign(:state, "reviewing")
-
-    {:noreply, socket}
-  end
-
   def handle_event("import", _params, socket) do
-    case Schools.create_students_from_csv(
+    case Schools.create_teachers_from_csv(
            socket.assigns.csv_rows,
-           socket.assigns.csv_class_name_id_map,
            socket.assigns.school_id
          ) do
       {:ok, import_result} ->
@@ -400,9 +297,9 @@ defmodule LantternWeb.StudentsImportLive do
       length(csv) == 0 ->
         {:error, "No entries in CSV"}
 
-      csv |> hd() |> length() != 3 ->
+      csv |> hd() |> length() != 2 ->
         {:error,
-         "Expected 3 columns (class name, student name, and student email), but got #{csv |> hd() |> length()}"}
+         "Expected 2 columns (teacher name and email), but got #{csv |> hd() |> length()}"}
 
       true ->
         {:ok, csv}
@@ -412,9 +309,8 @@ defmodule LantternWeb.StudentsImportLive do
   defp format_csv({:ok, csv}) do
     {
       :ok,
-      Enum.map(csv, fn [class_name, name, email] ->
+      Enum.map(csv, fn [name, email] ->
         %{
-          class_name: String.trim(class_name),
           name: String.trim(name),
           email: String.trim(email)
         }
@@ -423,16 +319,4 @@ defmodule LantternWeb.StudentsImportLive do
   end
 
   defp format_csv({:error, error}), do: {:error, error}
-
-  defp process_csv_classes(csv, school_classes) do
-    csv
-    |> Enum.map(& &1.class_name)
-    |> Enum.uniq()
-    |> Enum.map(&{&1, Enum.find(school_classes, fn c -> c.name == &1 end)})
-    |> Enum.map(fn
-      {name_in_csv, nil} -> {name_in_csv, nil}
-      {name_in_csv, class} -> {name_in_csv, class.id}
-    end)
-    |> Enum.into(%{})
-  end
 end
