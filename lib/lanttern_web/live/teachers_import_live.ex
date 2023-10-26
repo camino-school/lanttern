@@ -105,8 +105,11 @@ defmodule LantternWeb.TeachersImportLive do
         <.button type="button" phx-click={JS.push("import", loading: "#import-loading")}>
           Import
         </.button>
-        <div id="import-loading" class="flex items-center gap-4 text-ltrn-subtle">
-          <.ping class="hidden phx-click-loading:block" /> Processing CSV file...
+        <div
+          id="import-loading"
+          class="hidden items-center gap-4 text-ltrn-subtle phx-click-loading:flex"
+        >
+          <.ping /> Processing CSV file...
         </div>
       </div>
     </.steps>
