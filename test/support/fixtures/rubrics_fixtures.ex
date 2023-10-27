@@ -28,4 +28,27 @@ defmodule Lanttern.RubricsFixtures do
 
   defp scale_id(_attrs),
     do: GradingFixtures.scale_fixture().id
+
+  @doc """
+  Generate a rubric_descriptor.
+  """
+  def rubric_descriptor_fixture(attrs \\ %{}) do
+    scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+    rubric = rubric_fixture(%{scale_id: scale.id})
+    ordinal_value = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+
+    {:ok, rubric_descriptor} =
+      attrs
+      |> Enum.into(%{
+        descriptor: "some descriptor",
+        scale_id: scale.id,
+        scale_type: scale.type,
+        score: nil,
+        rubric_id: rubric.id,
+        ordinal_value_id: ordinal_value.id
+      })
+      |> Lanttern.Rubrics.create_rubric_descriptor()
+
+    rubric_descriptor
+  end
 end

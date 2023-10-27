@@ -125,4 +125,100 @@ defmodule Lanttern.Rubrics do
   def change_rubric(%Rubric{} = rubric, attrs \\ %{}) do
     Rubric.changeset(rubric, attrs)
   end
+
+  alias Lanttern.Rubrics.RubricDescriptor
+
+  @doc """
+  Returns the list of rubric_descriptors.
+
+  ## Examples
+
+      iex> list_rubric_descriptors()
+      [%RubricDescriptor{}, ...]
+
+  """
+  def list_rubric_descriptors do
+    Repo.all(RubricDescriptor)
+  end
+
+  @doc """
+  Gets a single rubric_descriptor.
+
+  Raises `Ecto.NoResultsError` if the Rubric descriptor does not exist.
+
+  ## Examples
+
+      iex> get_rubric_descriptor!(123)
+      %RubricDescriptor{}
+
+      iex> get_rubric_descriptor!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_rubric_descriptor!(id), do: Repo.get!(RubricDescriptor, id)
+
+  @doc """
+  Creates a rubric_descriptor.
+
+  ## Examples
+
+      iex> create_rubric_descriptor(%{field: value})
+      {:ok, %RubricDescriptor{}}
+
+      iex> create_rubric_descriptor(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_rubric_descriptor(attrs \\ %{}) do
+    %RubricDescriptor{}
+    |> RubricDescriptor.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a rubric_descriptor.
+
+  ## Examples
+
+      iex> update_rubric_descriptor(rubric_descriptor, %{field: new_value})
+      {:ok, %RubricDescriptor{}}
+
+      iex> update_rubric_descriptor(rubric_descriptor, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_rubric_descriptor(%RubricDescriptor{} = rubric_descriptor, attrs) do
+    rubric_descriptor
+    |> RubricDescriptor.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a rubric_descriptor.
+
+  ## Examples
+
+      iex> delete_rubric_descriptor(rubric_descriptor)
+      {:ok, %RubricDescriptor{}}
+
+      iex> delete_rubric_descriptor(rubric_descriptor)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_rubric_descriptor(%RubricDescriptor{} = rubric_descriptor) do
+    Repo.delete(rubric_descriptor)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking rubric_descriptor changes.
+
+  ## Examples
+
+      iex> change_rubric_descriptor(rubric_descriptor)
+      %Ecto.Changeset{data: %RubricDescriptor{}}
+
+  """
+  def change_rubric_descriptor(%RubricDescriptor{} = rubric_descriptor, attrs \\ %{}) do
+    RubricDescriptor.changeset(rubric_descriptor, attrs)
+  end
 end
