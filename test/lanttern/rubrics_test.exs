@@ -62,14 +62,14 @@ defmodule Lanttern.RubricsTest do
         criteria: "some criteria with descriptors",
         scale_id: scale.id,
         is_differentiation: true,
-        descriptors: [
-          %{
+        descriptors: %{
+          "0" => %{
             scale_id: scale.id,
             scale_type: scale.type,
             ordinal_value_id: ordinal_value.id,
             descriptor: "some descriptor in rubric"
           }
-        ]
+        }
       }
 
       assert {:ok, %Rubric{} = rubric} = Rubrics.create_rubric(valid_attrs)
@@ -161,8 +161,8 @@ defmodule Lanttern.RubricsTest do
 
       update_attrs = %{
         criteria: "some updated criteria",
-        descriptors: [
-          %{
+        descriptors: %{
+          "0" => %{
             id: descriptor.id,
             rubric_id: rubric.id,
             scale_id: scale.id,
@@ -170,14 +170,14 @@ defmodule Lanttern.RubricsTest do
             ordinal_value_id: ordinal_value_1.id,
             descriptor: "updated descriptor 1"
           },
-          %{
+          "1" => %{
             rubric_id: rubric.id,
             scale_id: scale.id,
             scale_type: scale.type,
             ordinal_value_id: ordinal_value_3.id,
             descriptor: "new descriptor 3"
           }
-        ]
+        }
       }
 
       assert {:ok, %Rubric{} = rubric} = Rubrics.update_rubric(rubric, update_attrs)

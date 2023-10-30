@@ -17,7 +17,7 @@ defmodule LantternWeb.RubricLive.Index do
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
     |> assign(:page_title, "Edit Rubric")
-    |> assign(:rubric, Rubrics.get_rubric!(id))
+    |> assign(:rubric, Rubrics.get_rubric!(id, preloads: :descriptors))
   end
 
   defp apply_action(socket, :new, _params) do

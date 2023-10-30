@@ -12,7 +12,7 @@ defmodule Lanttern.Repo.Migrations.CreateRubricDescriptors do
     create table(:rubric_descriptors) do
       add :descriptor, :text, null: false
 
-      add :rubric_id, references(:rubrics, with: [scale_id: :scale_id], on_delete: :nothing),
+      add :rubric_id, references(:rubrics, with: [scale_id: :scale_id], on_delete: :delete_all),
         null: false
 
       add :scale_id, references(:grading_scales, on_delete: :nothing), null: false

@@ -2,6 +2,7 @@ defmodule LantternWeb.RubricLive.FormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Rubrics
+  alias Lanttern.Grading
   import LantternWeb.GradingHelpers
 
   @impl true
@@ -31,6 +32,16 @@ defmodule LantternWeb.RubricLive.FormComponent do
           phx-change="scale_selected"
         />
         <.input field={@form[:is_differentiation]} type="checkbox" label="Is differentiation" />
+        <.inputs_for :let={ef} field={@form[:descriptors]}>
+          <.input type="hidden" field={ef[:scale_id]} />
+          <.input type="hidden" field={ef[:scale_type]} />
+          <.input type="hidden" field={ef[:ordinal_value_id]} />
+          <.input
+            type="textarea"
+            field={ef[:descriptor]}
+            label={Enum.at(@ordinal_values, ef.index).name}
+          />
+        </.inputs_for>
         <:actions>
           <.button phx-disable-with="Saving...">Save Rubric</.button>
         </:actions>
@@ -43,22 +54,52 @@ defmodule LantternWeb.RubricLive.FormComponent do
   def mount(socket) do
     scale_options = generate_scale_options()
 
-    {:ok, assign(socket, :scale_options, scale_options)}
+    socket =
+      socket
+      |> assign(:scale_options, scale_options)
+      |> assign(:ordinal_values, [])
+
+    {:ok, socket}
   end
 
   @impl true
   def update(%{rubric: rubric} = assigns, socket) do
     changeset = Rubrics.change_rubric(rubric)
+    ordinal_values = Grading.list_ordinal_values(scale_id: rubric.scale_id)
 
     {:ok,
      socket
      |> assign(assigns)
+     |> assign(:ordinal_values, ordinal_values)
      |> assign_form(changeset)}
   end
 
   @impl true
-  def handle_event("scale_selected", params, socket) do
-    IO.inspect(params)
+  def handle_event("scale_selected", %{"rubric" => %{"scale_id" => scale_id}}, socket) do
+    ordinal_values = Grading.list_ordinal_values(scale_id: scale_id)
+
+    descriptors =
+      ordinal_values
+      |> Enum.map(
+        &%{
+          scale_id: &1.scale_id,
+          scale_type: "ordinal",
+          ordinal_value_id: &1.id,
+          descriptor: "—"
+        }
+      )
+
+    changeset =
+      socket.assigns.rubric
+      |> Rubrics.change_rubric(
+        socket.assigns.form.params
+        |> Map.put("descriptors", descriptors)
+      )
+
+    socket =
+      socket
+      |> assign(:ordinal_values, ordinal_values)
+      |> assign_form(changeset)
 
     {:noreply, socket}
   end
