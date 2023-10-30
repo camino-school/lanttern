@@ -289,7 +289,7 @@ defmodule LantternWeb.AssessmentPointLive do
 
         ordinal_values =
           if assessment_point.scale.type == "ordinal" do
-            Grading.list_ordinal_values_from_scale(assessment_point.scale.id)
+            Grading.list_ordinal_values(scale_id: assessment_point.scale.id)
           else
             nil
           end

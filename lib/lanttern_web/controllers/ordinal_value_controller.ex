@@ -6,7 +6,7 @@ defmodule LantternWeb.OrdinalValueController do
   alias Lanttern.Grading.OrdinalValue
 
   def index(conn, _params) do
-    ordinal_values = Grading.list_ordinal_values(:scale)
+    ordinal_values = Grading.list_ordinal_values(preloads: :scale)
     render(conn, :index, ordinal_values: ordinal_values)
   end
 

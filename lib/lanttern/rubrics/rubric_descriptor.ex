@@ -18,7 +18,7 @@ defmodule Lanttern.Rubrics.RubricDescriptor do
   def changeset(rubric_descriptor, attrs) do
     rubric_descriptor
     |> cast(attrs, [:descriptor, :scale_type, :score, :rubric_id, :scale_id, :ordinal_value_id])
-    |> validate_required([:descriptor, :rubric_id, :scale_type, :scale_id])
+    |> validate_required([:descriptor, :scale_type, :scale_id])
     |> foreign_key_constraint(
       :rubric_id,
       name: :rubric_descriptors_rubric_id_fkey,

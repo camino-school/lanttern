@@ -27,6 +27,8 @@ defmodule LantternWeb.RubricLive.FormComponent do
           label="Scale"
           options={@scale_options}
           prompt="Select scale"
+          phx-target={@myself}
+          phx-change="scale_selected"
         />
         <.input field={@form[:is_differentiation]} type="checkbox" label="Is differentiation" />
         <:actions>
@@ -55,6 +57,12 @@ defmodule LantternWeb.RubricLive.FormComponent do
   end
 
   @impl true
+  def handle_event("scale_selected", params, socket) do
+    IO.inspect(params)
+
+    {:noreply, socket}
+  end
+
   def handle_event("validate", %{"rubric" => rubric_params}, socket) do
     changeset =
       socket.assigns.rubric
