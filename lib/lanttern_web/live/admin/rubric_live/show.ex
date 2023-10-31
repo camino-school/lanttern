@@ -1,4 +1,4 @@
-defmodule LantternWeb.RubricLive.Show do
+defmodule LantternWeb.Admin.RubricLive.Show do
   use LantternWeb, {:live_view, layout: :admin}
 
   alias Lanttern.Rubrics

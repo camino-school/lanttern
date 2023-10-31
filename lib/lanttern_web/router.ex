@@ -43,9 +43,10 @@ defmodule LantternWeb.Router do
       ] do
       live "/dashboard", DashboardLive
 
-      # live "/assessment_points", AssessmentPointsLive
       live "/assessment_points", AssessmentPointsExplorerLive
       live "/assessment_points/:id", AssessmentPointLive
+
+      live "/rubrics", RubricsLive.Explorer
 
       live "/curriculum", CurriculumLive
       live "/curriculum/bncc_ef", CurriculumBNCCEFLive
@@ -107,12 +108,12 @@ defmodule LantternWeb.Router do
          :edit
 
     # Rubrics context
-    live "/rubrics", RubricLive.Index, :index
-    live "/rubrics/new", RubricLive.Index, :new
-    live "/rubrics/:id/edit", RubricLive.Index, :edit
+    live "/rubrics", Admin.RubricLive.Index, :index
+    live "/rubrics/new", Admin.RubricLive.Index, :new
+    live "/rubrics/:id/edit", Admin.RubricLive.Index, :edit
 
-    live "/rubrics/:id", RubricLive.Show, :show
-    live "/rubrics/:id/show/edit", RubricLive.Show, :edit
+    live "/rubrics/:id", Admin.RubricLive.Show, :show
+    live "/rubrics/:id/show/edit", Admin.RubricLive.Show, :edit
   end
 
   # Other scopes may use custom stacks.

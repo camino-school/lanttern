@@ -1,4 +1,4 @@
-defmodule LantternWeb.RubricLive.FormComponent do
+defmodule LantternWeb.Admin.RubricLive.FormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Rubrics

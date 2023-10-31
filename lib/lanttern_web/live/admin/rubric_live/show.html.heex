@@ -23,7 +23,7 @@
   on_cancel={JS.patch(~p"/admin/rubrics/#{@rubric}")}
 >
   <.live_component
-    module={LantternWeb.RubricLive.FormComponent}
+    module={LantternWeb.Admin.RubricLive.FormComponent}
     id={@rubric.id}
     title={@page_title}
     action={@live_action}

@@ -1,4 +1,4 @@
-defmodule LantternWeb.RubricLive.Index do
+defmodule LantternWeb.Admin.RubricLive.Index do
   use LantternWeb, {:live_view, layout: :admin}
 
   alias Lanttern.Rubrics
@@ -33,7 +33,7 @@ defmodule LantternWeb.RubricLive.Index do
   end
 
   @impl true
-  def handle_info({LantternWeb.RubricLive.FormComponent, {:saved, rubric}}, socket) do
+  def handle_info({LantternWeb.Admin.RubricLive.FormComponent, {:saved, rubric}}, socket) do
     {:noreply, stream_insert(socket, :rubrics, rubric)}
   end
 

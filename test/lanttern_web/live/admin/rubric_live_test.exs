@@ -1,4 +1,4 @@
-defmodule LantternWeb.RubricLiveTest do
+defmodule LantternWeb.Admin.RubricLiveTest do
   use LantternWeb.ConnCase
 
   import Phoenix.LiveViewTest

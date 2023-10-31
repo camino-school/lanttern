@@ -19,9 +19,14 @@ defmodule LantternWeb.MenuComponent do
               <.nav_item active={@active_nav == :assessment_points} path={~p"/assessment_points"}>
                 Assessment points
               </.nav_item>
+              <.nav_item active={@active_nav == :rubrics} path={~p"/rubrics"}>
+                Rubrics
+              </.nav_item>
               <.nav_item active={@active_nav == :curriculum} path={~p"/curriculum"}>
                 Curriculum
               </.nav_item>
+              <li class="bg-white"></li>
+              <li class="bg-white"></li>
             </ul>
           </nav>
           <h5 class="relative flex items-center ml-6 mb-6 font-display font-black text-3xl text-ltrn-dark">
@@ -198,6 +203,11 @@ defmodule LantternWeb.MenuComponent do
           LantternWeb.AssessmentPointLive
         ] ->
           :assessment_points
+
+        socket.view in [
+          LantternWeb.RubricsLive.Explorer
+        ] ->
+          :rubrics
 
         socket.view in [LantternWeb.CurriculumLive, LantternWeb.CurriculumBNCCEFLive] ->
           :curriculum
