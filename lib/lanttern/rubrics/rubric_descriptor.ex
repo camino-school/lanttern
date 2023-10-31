@@ -39,8 +39,17 @@ defmodule Lanttern.Rubrics.RubricDescriptor do
     |> check_constraint(
       :ordinal_value_id,
       name: :required_scale_type_related_value,
-      message:
-        "Only score is required for numeric scales, and only ordinal_value_id is required for ordinal scales."
+      message: "Ordinal value is required for ordinal scale descriptors."
+    )
+    |> check_constraint(
+      :score,
+      name: :required_scale_type_related_value,
+      message: "Score is required for numeric scale descriptors."
+    )
+    |> unique_constraint(
+      :score,
+      name: :rubric_descriptors_score_rubric_id_index,
+      message: "Two distinct descriptors for the same score is not allowed."
     )
   end
 end

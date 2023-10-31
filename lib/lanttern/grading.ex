@@ -471,6 +471,10 @@ defmodule Lanttern.Grading do
 
   Raises `Ecto.NoResultsError` if the Scale does not exist.
 
+  ### Options:
+
+  `:preloads` – preloads associated data
+
   ## Examples
 
       iex> get_scale!(123)
@@ -480,7 +484,10 @@ defmodule Lanttern.Grading do
       ** (Ecto.NoResultsError)
 
   """
-  def get_scale!(id), do: Repo.get!(Scale, id)
+  def get_scale!(id, opts \\ []) do
+    Repo.get!(Scale, id)
+    |> maybe_preload(opts)
+  end
 
   @doc """
   Creates a scale.

@@ -314,9 +314,21 @@ defmodule Lanttern.GradingTest do
       assert Grading.list_scales() == [scale]
     end
 
-    test "get_scale!/1 returns the scale with given id" do
+    test "get_scale!/2 returns the scale with given id" do
       scale = scale_fixture()
       assert Grading.get_scale!(scale.id) == scale
+    end
+
+    test "get_scale!/2 with preloads returns the scale with given id and preloaded data" do
+      scale = scale_fixture()
+
+      ordinal_value =
+        ordinal_value_fixture(%{scale_id: scale.id})
+        |> Map.put(:scale, scale)
+
+      expected_scale = Grading.get_scale!(scale.id, preloads: :ordinal_values)
+      [expected_ordinal_value] = expected_scale.ordinal_values
+      assert expected_ordinal_value.id == ordinal_value.id
     end
 
     test "create_scale/1 with valid data creates a scale" do
