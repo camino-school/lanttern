@@ -190,6 +190,50 @@ defmodule Lanttern.RubricsTest do
       assert rubric.descriptors |> Enum.find(&(&1.descriptor == "new descriptor 3"))
     end
 
+    test "update_rubric/2 with different scale handle the descriptors correctly" do
+      scale_1 = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      scale_2 = GradingFixtures.scale_fixture(%{type: "ordinal"})
+
+      ordinal_value_1 =
+        GradingFixtures.ordinal_value_fixture(%{scale_id: scale_1.id})
+
+      ordinal_value_2 =
+        GradingFixtures.ordinal_value_fixture(%{scale_id: scale_2.id})
+
+      rubric = rubric_fixture(%{scale_id: scale_1.id})
+
+      _descriptor =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: scale_1.id,
+          scale_type: scale_1.type,
+          ordinal_value_id: ordinal_value_1.id
+        })
+
+      rubric = rubric |> Lanttern.Repo.preload(:descriptors)
+
+      update_attrs = %{
+        criteria: "some updated criteria",
+        scale_id: scale_2.id,
+        descriptors: %{
+          "0" => %{
+            rubric_id: rubric.id,
+            scale_id: scale_2.id,
+            scale_type: scale_2.type,
+            ordinal_value_id: ordinal_value_2.id,
+            descriptor: "different scale descriptor"
+          }
+        }
+      }
+
+      assert {:ok, %Rubric{} = rubric} = Rubrics.update_rubric(rubric, update_attrs)
+
+      assert rubric.criteria == "some updated criteria"
+      assert [expected_descriptor] = rubric.descriptors
+      assert expected_descriptor.descriptor == "different scale descriptor"
+      assert expected_descriptor.scale_id == scale_2.id
+    end
+
     test "update_rubric/2 with invalid data returns error changeset" do
       rubric = rubric_fixture()
       assert {:error, %Ecto.Changeset{}} = Rubrics.update_rubric(rubric, @invalid_attrs)

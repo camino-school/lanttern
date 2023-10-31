@@ -4,10 +4,12 @@ defmodule Lanttern.Rubrics do
   """
 
   import Ecto.Query, warn: false
+
   import Lanttern.RepoHelpers
   alias Lanttern.Repo
 
   alias Lanttern.Rubrics.Rubric
+  alias Lanttern.Rubrics.RubricDescriptor
 
   @doc """
   Returns the list of rubrics.
@@ -77,6 +79,16 @@ defmodule Lanttern.Rubrics do
   @doc """
   Updates a rubric.
 
+  We need to handle rubric scale updates manually to prevent foreign key errors.
+
+  This is because we use overlapping FKs in rubric descriptors to enforce same
+  `scale_id`s in rubric and descriptors, which will raise a DB error if we simply
+  pass the changeset to `Repo.update/2`. To solve this problem, in a multi transaction we:
+
+  1. delete the descriptors that should be deleted
+  2. update only the rubric, changing it's scale id
+  3. finally, update the rubric again casting the descriptors linked to the new scale id
+
   ### Options:
 
   `:preloads` – preloads associated data
@@ -93,9 +105,69 @@ defmodule Lanttern.Rubrics do
   def update_rubric(%Rubric{} = rubric, attrs, opts \\ []) do
     rubric
     |> Rubric.changeset(attrs)
-    |> Repo.update()
-    |> maybe_preload(opts)
+    |> internal_update_rubric(opts)
   end
+
+  defp internal_update_rubric(%Ecto.Changeset{valid?: false} = changeset, _opts),
+    do: {:error, changeset}
+
+  defp internal_update_rubric(%Ecto.Changeset{} = changeset, opts) do
+    case {
+      Ecto.Changeset.get_change(changeset, :scale_id),
+      Ecto.Changeset.get_change(changeset, :descriptors)
+    } do
+      {nil, _} ->
+        changeset
+        |> Repo.update()
+        |> maybe_preload(opts)
+
+      {_, descriptors} when is_nil(descriptors) or descriptors == [] ->
+        changeset
+        |> Repo.update()
+        |> maybe_preload(opts)
+
+      {_, _} ->
+        remove_descriptors_ids =
+          changeset
+          |> Ecto.Changeset.get_change(:descriptors)
+          |> Enum.filter(&(&1.action == :replace))
+          |> Enum.map(&Ecto.Changeset.get_field(&1, :id))
+
+        remove_query =
+          from(d in RubricDescriptor,
+            where: d.id in ^remove_descriptors_ids
+          )
+
+        Ecto.Multi.new()
+        |> Ecto.Multi.delete_all(:delete_descriptors, remove_query)
+        |> Ecto.Multi.update(
+          :update_rubric,
+          changeset |> Ecto.Changeset.delete_change(:descriptors)
+        )
+        |> Ecto.Multi.run(
+          :cast_descriptors,
+          fn _repo, %{update_rubric: rubric} ->
+            rubric
+            |> Map.delete(:descriptors)
+            |> Ecto.Changeset.change(%{
+              descriptors:
+                changeset.changes.descriptors
+                |> Enum.filter(&(&1.action == :insert))
+            })
+            |> Repo.update()
+          end
+        )
+        |> Repo.transaction()
+        |> format_update_rubric_transaction_response()
+        |> maybe_preload(opts)
+    end
+  end
+
+  defp format_update_rubric_transaction_response({:ok, %{cast_descriptors: rubric}}),
+    do: {:ok, rubric}
+
+  defp format_update_rubric_transaction_response({:error, _multi_name, error}),
+    do: {:error, error}
 
   @doc """
   Deletes a rubric.
