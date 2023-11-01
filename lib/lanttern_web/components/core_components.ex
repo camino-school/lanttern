@@ -385,7 +385,7 @@ defmodule LantternWeb.CoreComponents do
   attr :class, :any, default: nil
   attr :theme, :string, default: "default"
 
-  attr :get_bagde_color_from, :map,
+  attr :style_from_ordinal_value, :map,
     default: nil,
     doc: "map with `:bg_color` and `:text_color` keys"
 
@@ -398,11 +398,11 @@ defmodule LantternWeb.CoreComponents do
     <span
       id={@id}
       class={[
-        "inline-flex items-center rounded-sm px-2 py-1 font-mono text-xs text-slate-700",
+        "inline-flex items-center rounded-sm px-2 py-1 font-mono text-xs",
         badge_theme(@theme),
         @class
       ]}
-      style={badge_colors_style(@get_bagde_color_from)}
+      {apply_style_from_ordinal_value(@style_from_ordinal_value)}
     >
       <%= render_slot(@inner_block) %>
       <button
@@ -421,17 +421,24 @@ defmodule LantternWeb.CoreComponents do
 
   defp badge_theme(theme) do
     %{
-      "default" => "bg-gray-100",
-      "cyan" => "bg-cyan-50"
+      "default" => "bg-ltrn-lightest text-ltrn-dark",
+      "secondary" => "bg-ltrn-secondary text-white",
+      "cyan" => "bg-ltrn-mesh-cyan text-ltrn-dark",
+      "dark" => "bg-ltrn-dark text-ltrn-lighter"
     }
-    |> Map.get(theme, "bg-gray-100")
+    |> Map.get(theme, "bg-ltrn-lightest text-ltrn-dark")
   end
 
-  defp badge_colors_style(%{bg_color: bg_color, text_color: text_color}) do
-    "background-color: #{bg_color}; color: #{text_color}"
+  @doc """
+  Creates a style attr based on ordinal values `bg_color` and `text_color`
+  """
+  def apply_style_from_ordinal_value(%{bg_color: bg_color, text_color: text_color}) do
+    %{
+      style: "background-color: #{bg_color}; color: #{text_color}"
+    }
   end
 
-  defp badge_colors_style(_), do: ""
+  def apply_style_from_ordinal_value(_), do: %{}
 
   @doc """
   Renders an inline code block.

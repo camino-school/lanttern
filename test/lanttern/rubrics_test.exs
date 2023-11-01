@@ -25,6 +25,37 @@ defmodule Lanttern.RubricsTest do
       assert expected.scale.id == scale.id
     end
 
+    test "list_full_rubrics/0 returns all rubrics with descriptors preloaded and ordered correctly" do
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})
+      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.2})
+
+      rubric = rubric_fixture(%{scale_id: scale.id})
+
+      descriptor_2 =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_2.id
+        })
+
+      descriptor_1 =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_1.id
+        })
+
+      [expected] = Rubrics.list_full_rubrics()
+      assert expected.id == rubric.id
+
+      [expected_descriptor_1, expected_descriptor_2] = expected.descriptors
+      assert expected_descriptor_1.id == descriptor_1.id
+      assert expected_descriptor_2.id == descriptor_2.id
+    end
+
     test "get_rubric!/2 returns the rubric with given id" do
       rubric = rubric_fixture()
       assert Rubrics.get_rubric!(rubric.id) == rubric
