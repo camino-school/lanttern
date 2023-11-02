@@ -152,6 +152,7 @@ defmodule LantternWeb.CoreComponents do
   attr :type, :string, default: nil
   attr :class, :any, default: nil
   attr :theme, :string, default: "default", doc: "default | ghost"
+  attr :icon_name, :string, default: nil
   attr :rest, :global, include: ~w(disabled form name value)
 
   slot :inner_block, required: true
@@ -161,16 +162,34 @@ defmodule LantternWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "rounded-sm py-2 px-2 font-display text-sm font-bold",
-        "phx-submit-loading:opacity-50 phx-click-loading:opacity-50 phx-click-loading:pointer-events-none",
-        button_theme(@theme),
+        get_button_styles(@theme),
         @class
       ]}
       {@rest}
     >
       <%= render_slot(@inner_block) %>
+      <%= if @icon_name do %>
+        <.icon name={@icon_name} class="w-5 h-5" />
+      <% end %>
     </button>
     """
+  end
+
+  @doc """
+  Returns a list of button styles.
+
+  Meant to be used while styling links as buttons.
+
+  ## Examples
+
+      <.link patch={~p"/somepath"} class={[get_button_styles()]}>Link</.link>
+  """
+  def get_button_styles(theme \\ "default") do
+    [
+      "inline-flex items-center gap-1 rounded-sm py-2 px-2 font-display text-sm font-bold",
+      "phx-submit-loading:opacity-50 phx-click-loading:opacity-50 phx-click-loading:pointer-events-none",
+      button_theme(theme)
+    ]
   end
 
   defp button_theme(theme) do
@@ -592,6 +611,41 @@ defmodule LantternWeb.CoreComponents do
     <div class={["prose prose-slate", @class]} {@rest}>
       <%= raw(Earmark.as_html!(@text)) %>
     </div>
+    """
+  end
+
+  @doc """
+  Toggle component.
+  """
+
+  attr :enabled, :boolean, required: true
+  attr :class, :any, default: nil
+  attr :sr_text, :string, default: nil
+  attr :rest, :global
+
+  def toggle(assigns) do
+    ~H"""
+    <button
+      type="button"
+      class={[
+        "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ltrn-primary focus:ring-offset-2",
+        if(@enabled, do: "bg-ltrn-primary", else: "bg-ltrn-lighter"),
+        @class
+      ]}
+      role="switch"
+      aria-checked="false"
+      {@rest}
+    >
+      <span :if={@sr_text} class="sr-only"><%= @sr_text %></span>
+      <span
+        aria-hidden="true"
+        class={[
+          "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+          if(@enabled, do: "translate-x-5", else: "translate-x-0")
+        ]}
+      >
+      </span>
+    </button>
     """
   end
 

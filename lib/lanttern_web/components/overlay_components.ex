@@ -149,6 +149,7 @@ defmodule LantternWeb.OverlayComponents do
   attr :id, :string, required: true
   attr :show, :boolean, default: false
   attr :on_cancel, JS, default: %JS{}
+  attr :prevent_close_on_click_away, :boolean, default: false
 
   slot :title, required: true
   slot :inner_block, required: true
@@ -180,7 +181,9 @@ defmodule LantternWeb.OverlayComponents do
               id={"#{@id}-container"}
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
-              phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
+              phx-click-away={
+                if not @prevent_close_on_click_away, do: JS.exec("data-cancel", to: "##{@id}")
+              }
               class="pointer-events-auto w-screen max-w-xl transition-translate"
             >
               <div class="flex h-full flex-col divide-y divide-ltrn-lighter bg-white shadow-xl rounded-l">

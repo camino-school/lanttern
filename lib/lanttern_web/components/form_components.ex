@@ -5,6 +5,7 @@ defmodule LantternWeb.FormComponents do
   use Phoenix.Component
 
   import LantternWeb.CoreComponents
+  alias Phoenix.LiveView.JS
 
   @doc """
   Renders a simple form.
@@ -75,7 +76,7 @@ defmodule LantternWeb.FormComponents do
   attr :type, :string,
     default: "text",
     values: ~w(checkbox color date datetime-local email file hidden month number password
-               range radio search select tel text textarea time url week)
+               range radio search select tel text textarea time url week toggle)
 
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
@@ -93,6 +94,7 @@ defmodule LantternWeb.FormComponents do
                 multiple pattern placeholder readonly required rows size step)
 
   slot :inner_block
+  slot :custom_label
 
   def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
     assigns
@@ -127,10 +129,41 @@ defmodule LantternWeb.FormComponents do
     """
   end
 
+  def input(%{type: "toggle", value: value} = assigns) do
+    assigns =
+      assign_new(assigns, :checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
+
+    ~H"""
+    <div phx-feedback-for={@name} class={@class}>
+      <label id={"#{@id}-label"} class="flex items-center gap-4 text-sm leading-6 text-zinc-600">
+        <input type="hidden" name={@name} value="false" />
+        <input
+          type="checkbox"
+          id={@id}
+          name={@name}
+          value="true"
+          checked={@checked}
+          class="hidden"
+          {@rest}
+        />
+        <.toggle enabled={@checked} phx-click={JS.dispatch("click", to: "##{@id}-label")} />
+        <%= @label %>
+      </label>
+      <.error :for={msg <- @errors}><%= msg %></.error>
+    </div>
+    """
+  end
+
   def input(%{type: "select"} = assigns) do
     ~H"""
     <div phx-feedback-for={@name} class={@class}>
-      <.label for={@id} show_optional={@show_optional}><%= @label %></.label>
+      <.label
+        for={@id}
+        show_optional={@show_optional}
+        custom={if @custom_label, do: true, else: false}
+      >
+        <%= @label || render_slot(@custom_label) %>
+      </.label>
       <.select
         id={@id}
         name={@name}
@@ -148,7 +181,13 @@ defmodule LantternWeb.FormComponents do
   def input(%{type: "textarea"} = assigns) do
     ~H"""
     <div phx-feedback-for={@name} class={@class}>
-      <.label for={@id} show_optional={@show_optional}><%= @label %></.label>
+      <.label
+        for={@id}
+        show_optional={@show_optional}
+        custom={if @custom_label, do: true, else: false}
+      >
+        <%= @label || render_slot(@custom_label) %>
+      </.label>
       <.textarea id={@id} name={@name} errors={@errors} value={@value} {@rest} />
       <.error :for={msg <- @errors}><%= msg %></.error>
     </div>
@@ -159,7 +198,13 @@ defmodule LantternWeb.FormComponents do
   def input(assigns) do
     ~H"""
     <div phx-feedback-for={@name} class={@class}>
-      <.label for={@id} show_optional={@show_optional}><%= @label %></.label>
+      <.label
+        for={@id}
+        show_optional={@show_optional}
+        custom={if @custom_label, do: true, else: false}
+      >
+        <%= @label || render_slot(@custom_label) %>
+      </.label>
       <.base_input type={@type} name={@name} id={@id} value={@value} errors={@errors} {@rest} />
       <.error :for={msg <- @errors}><%= msg %></.error>
     </div>
@@ -171,6 +216,7 @@ defmodule LantternWeb.FormComponents do
   """
   attr :for, :string, default: nil
   attr :show_optional, :boolean, default: false
+  attr :custom, :boolean, default: false
   slot :inner_block, required: true
 
   def label(%{show_optional: true} = assigns) do
@@ -181,6 +227,14 @@ defmodule LantternWeb.FormComponents do
       </label>
       <span class="text-ltrn-subtle">Optional</span>
     </div>
+    """
+  end
+
+  def label(%{custom: true} = assigns) do
+    ~H"""
+    <label for={@for} class="block mb-2">
+      <%= render_slot(@inner_block) %>
+    </label>
     """
   end
 
