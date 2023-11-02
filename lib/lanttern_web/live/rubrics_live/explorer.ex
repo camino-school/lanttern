@@ -86,6 +86,19 @@ defmodule LantternWeb.RubricsLive.Explorer do
         rubric={@rubric}
         patch={~p"/rubrics"}
       />
+      <:actions_left>
+        <.button
+          type="button"
+          theme="ghost"
+          phx-click={
+            JS.patch(~p"/rubrics")
+            |> JS.push("delete", value: %{id: @rubric.id})
+          }
+          data-confirm="Are you sure?"
+        >
+          Delete
+        </.button>
+      </:actions_left>
       <:actions>
         <.button type="button" theme="ghost" phx-click={JS.patch(~p"/rubrics")}>
           Cancel
@@ -129,4 +142,13 @@ defmodule LantternWeb.RubricsLive.Explorer do
   end
 
   defp apply_action(socket, :index, _params), do: socket
+
+  # event handlers
+
+  def handle_event("delete", %{"id" => id}, socket) do
+    rubric = Rubrics.get_rubric!(id)
+    {:ok, _} = Rubrics.delete_rubric(rubric)
+
+    {:noreply, stream_delete(socket, :rubrics, rubric)}
+  end
 end

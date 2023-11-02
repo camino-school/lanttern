@@ -1,4 +1,10 @@
 defmodule LantternWeb.RubricsLive.FormComponent do
+  @doc """
+  Rubrics form component.
+
+  This form is used inside a `<.slide_over>` component,
+  where the "submit" button is rendered.
+  """
   use LantternWeb, :live_component
 
   alias Lanttern.Rubrics
