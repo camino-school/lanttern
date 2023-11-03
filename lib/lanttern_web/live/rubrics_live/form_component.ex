@@ -123,6 +123,8 @@ defmodule LantternWeb.RubricsLive.FormComponent do
     """
   end
 
+  # lifecycle
+
   @impl true
   def mount(socket) do
     scale_options = generate_scale_options()
@@ -151,6 +153,8 @@ defmodule LantternWeb.RubricsLive.FormComponent do
      |> assign(:scale, scale)
      |> assign_form(changeset)}
   end
+
+  # event handlers
 
   @impl true
   def handle_event("scale_selected", %{"rubric" => %{"scale_id" => ""}}, socket) do
