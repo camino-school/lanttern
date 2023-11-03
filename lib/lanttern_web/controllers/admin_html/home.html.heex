@@ -1,85 +1,50 @@
 <div class="container mx-auto lg:max-w-5xl">
   <h1 class="font-display font-black text-3xl">Admin</h1>
   <div class="grid gap-4 grid-cols-3 mt-12">
-    <div>
-      <h2 class="font-display font-black text-xl">Identity</h2>
-      <ul>
-        <li><.link href={~p"/admin/profiles"}>Profiles</.link></li>
-      </ul>
-    </div>
-    <div>
-      <h2 class="font-display font-black text-xl">Assessments</h2>
-      <ul>
-        <li><.link href={~p"/admin/assessment_points"}>Assessment points</.link></li>
-        <li>
-          <.link href={~p"/admin/assessment_point_entries"}>
-            Assessment point entries
-          </.link>
-        </li>
-        <li><.link href={~p"/admin/feedback"}>Feedback</.link></li>
-      </ul>
-    </div>
-    <div>
-      <h2 class="font-display font-black text-xl">Curricula</h2>
-      <ul>
-        <li><.link href={~p"/admin/curricula"}>Curricula</.link></li>
-        <li>
-          <.link href={~p"/admin/curriculum_components"}>Curriculum components</.link>
-        </li>
-        <li><.link href={~p"/admin/curriculum_items"}>Curriculum items</.link></li>
-        <li>
-          <.link href={~p"/admin/curriculum_relationships"}>
-            Curriculum relationships
-          </.link>
-        </li>
-      </ul>
-    </div>
-    <div>
-      <h2 class="font-display font-black text-xl">Grading</h2>
-      <ul>
-        <li><.link href={~p"/admin/grading_compositions"}>Compositions</.link></li>
-        <li>
-          <.link href={~p"/admin/grading_composition_components"}>Composition components</.link>
-        </li>
-        <li><.link href={~p"/admin/grading_component_items"}>Component items</.link></li>
-        <li><.link href={~p"/admin/scales"}>Scales</.link></li>
-        <li><.link href={~p"/admin/ordinal_values"}>Ordinal values</.link></li>
-      </ul>
-    </div>
-    <div>
-      <h2 class="font-display font-black text-xl">Schools</h2>
-      <ul>
-        <li><.link href={~p"/admin/schools"}>Schools</.link></li>
-        <li><.link href={~p"/admin/classes"}>Classes</.link></li>
-        <li><.link href={~p"/admin/students"}>Students</.link></li>
-        <li><.link href={~p"/admin/students_import"}>Import students</.link></li>
-        <li><.link href={~p"/admin/teachers"}>Teachers</.link></li>
-        <li><.link href={~p"/admin/teachers_import"}>Import teachers</.link></li>
-      </ul>
-    </div>
-    <div>
-      <h2 class="font-display font-black text-xl">Taxonomy</h2>
-      <ul>
-        <li><.link href={~p"/admin/subjects"}>Subjects</.link></li>
-        <li><.link href={~p"/admin/years"}>Years</.link></li>
-      </ul>
-    </div>
-    <div>
-      <h2 class="font-display font-black text-xl">Conversation</h2>
-      <ul>
-        <li><.link href={~p"/admin/comments"}>Comments</.link></li>
-      </ul>
-    </div>
-    <div>
-      <h2 class="font-display font-black text-xl">Explorer</h2>
-      <ul>
-        <li>
-          <.link href={~p"/admin/assessment_points_filter_views"}>
-            Assessment points filter views
-          </.link>
-        </li>
-      </ul>
-    </div>
+    <.link_list title="Identity">
+      <:item link={~p"/admin/profiles"}>Profiles</:item>
+    </.link_list>
+    <.link_list title="Assessments">
+      <:item link={~p"/admin/assessment_points"}>Assessment points</:item>
+      <:item link={~p"/admin/assessment_point_entries"}>Assessment point entries</:item>
+      <:item link={~p"/admin/feedback"}>Feedback</:item>
+    </.link_list>
+    <.link_list title="Rubrics">
+      <:item link={~p"/admin/rubrics"}>Rubrics</:item>
+    </.link_list>
+    <.link_list title="Curricula">
+      <:item link={~p"/admin/curricula"}>Curricula</:item>
+      <:item link={~p"/admin/curriculum_components"}>Curriculum components</:item>
+      <:item link={~p"/admin/curriculum_items"}>Curriculum items</:item>
+      <:item link={~p"/admin/curriculum_relationships"}>Curriculum relationships</:item>
+    </.link_list>
+    <.link_list title="Grading">
+      <:item link={~p"/admin/grading_compositions"}>Compositions</:item>
+      <:item link={~p"/admin/grading_composition_components"}>Composition components</:item>
+      <:item link={~p"/admin/grading_component_items"}>Component items</:item>
+      <:item link={~p"/admin/scales"}>Scales</:item>
+      <:item link={~p"/admin/ordinal_values"}>Ordinal values</:item>
+    </.link_list>
+    <.link_list title="Schools">
+      <:item link={~p"/admin/schools"}>Schools</:item>
+      <:item link={~p"/admin/classes"}>Classes</:item>
+      <:item link={~p"/admin/students"}>Students</:item>
+      <:item link={~p"/admin/students_import"}>Import students</:item>
+      <:item link={~p"/admin/teachers"}>Teachers</:item>
+      <:item link={~p"/admin/teachers_import"}>Import teachers</:item>
+    </.link_list>
+    <.link_list title="Taxonomy">
+      <:item link={~p"/admin/subjects"}>Subjects</:item>
+      <:item link={~p"/admin/years"}>Years</:item>
+    </.link_list>
+    <.link_list title="Conversation">
+      <:item link={~p"/admin/comments"}>Comments</:item>
+    </.link_list>
+    <.link_list title="Explorer">
+      <:item link={~p"/admin/assessment_points_filter_views"}>
+        Assessment points filter views
+      </:item>
+    </.link_list>
     <div>
       <h2 class="font-display font-black text-xl text-ltrn-subtle">Seeds</h2>
       <ul>

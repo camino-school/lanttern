@@ -98,7 +98,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
 
   defp validate_ordinal_value(changeset, %{type: "ordinal"} = scale) do
     allowed_ordinal_value_ids =
-      Lanttern.Grading.list_ordinal_values_from_scale(scale.id)
+      Lanttern.Grading.list_ordinal_values(scale_id: scale.id)
       |> Enum.map(& &1.id)
 
     changeset

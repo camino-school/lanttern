@@ -1,0 +1,48 @@
+<.header>
+  Listing Rubrics
+  <:actions>
+    <.link patch={~p"/admin/rubrics/new"}>
+      <.button>New Rubric</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="rubrics"
+  rows={@streams.rubrics}
+  row_click={fn {_id, rubric} -> JS.navigate(~p"/admin/rubrics/#{rubric}") end}
+>
+  <:col :let={{_id, rubric}} label="Criteria"><%= rubric.criteria %></:col>
+  <:col :let={{_id, rubric}} label="Scale"><%= rubric.scale.name %></:col>
+  <:col :let={{_id, rubric}} label="Is differentiation"><%= rubric.is_differentiation %></:col>
+  <:action :let={{_id, rubric}}>
+    <div class="sr-only">
+      <.link navigate={~p"/admin/rubrics/#{rubric}"}>Show</.link>
+    </div>
+    <.link patch={~p"/admin/rubrics/#{rubric}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, rubric}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: rubric.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="rubric-modal"
+  show
+  on_cancel={JS.patch(~p"/admin/rubrics")}
+>
+  <.live_component
+    module={LantternWeb.Admin.RubricLive.FormComponent}
+    id={@rubric.id || :new}
+    title={@page_title}
+    action={@live_action}
+    rubric={@rubric}
+    patch={~p"/admin/rubrics"}
+  />
+</.modal>

@@ -314,9 +314,21 @@ defmodule Lanttern.GradingTest do
       assert Grading.list_scales() == [scale]
     end
 
-    test "get_scale!/1 returns the scale with given id" do
+    test "get_scale!/2 returns the scale with given id" do
       scale = scale_fixture()
       assert Grading.get_scale!(scale.id) == scale
+    end
+
+    test "get_scale!/2 with preloads returns the scale with given id and preloaded data" do
+      scale = scale_fixture()
+
+      ordinal_value =
+        ordinal_value_fixture(%{scale_id: scale.id})
+        |> Map.put(:scale, scale)
+
+      expected_scale = Grading.get_scale!(scale.id, preloads: :ordinal_values)
+      [expected_ordinal_value] = expected_scale.ordinal_values
+      assert expected_ordinal_value.id == ordinal_value.id
     end
 
     test "create_scale/1 with valid data creates a scale" do
@@ -417,17 +429,17 @@ defmodule Lanttern.GradingTest do
         ordinal_value_fixture(%{scale_id: scale.id})
         |> Map.put(:scale, scale)
 
-      assert Grading.list_ordinal_values(:scale) == [ordinal_value]
+      assert Grading.list_ordinal_values(preloads: :scale) == [ordinal_value]
     end
 
-    test "list_ordinal_values_from_scale/1 returns all ordinal_values from the specified scale ordered by normalized_value" do
+    test "list_ordinal_values/1 with scale_id returns all ordinal_values from the specified scale ordered by normalized_value" do
       scale = scale_fixture()
       ordinal_value_1 = ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0})
       ordinal_value_2 = ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 1})
       ordinal_value_3 = ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.5})
       _other_ordinal_value = ordinal_value_fixture()
 
-      assert Grading.list_ordinal_values_from_scale(scale.id) == [
+      assert Grading.list_ordinal_values(scale_id: scale.id) == [
                ordinal_value_1,
                ordinal_value_3,
                ordinal_value_2

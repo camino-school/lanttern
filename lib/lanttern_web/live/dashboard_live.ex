@@ -29,7 +29,7 @@ defmodule LantternWeb.DashboardLive do
           Curriculum <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
         </.link>
       </div>
-      <div class="flex items-center justify-between pb-6 mt-40 border-b border-ltrn-hairline">
+      <div class="flex items-center justify-between pb-6 mt-40 border-b border-ltrn-lighter">
         <h3 class="font-display font-bold text-2xl">
           <.link
             navigate={~p"/assessment_points"}

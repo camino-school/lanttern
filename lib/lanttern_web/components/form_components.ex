@@ -5,6 +5,7 @@ defmodule LantternWeb.FormComponents do
   use Phoenix.Component
 
   import LantternWeb.CoreComponents
+  alias Phoenix.LiveView.JS
 
   @doc """
   Renders a simple form.
@@ -75,7 +76,7 @@ defmodule LantternWeb.FormComponents do
   attr :type, :string,
     default: "text",
     values: ~w(checkbox color date datetime-local email file hidden month number password
-               range radio search select tel text textarea time url week)
+               range radio search select tel text textarea time url week toggle)
 
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
@@ -93,6 +94,7 @@ defmodule LantternWeb.FormComponents do
                 multiple pattern placeholder readonly required rows size step)
 
   slot :inner_block
+  slot :custom_label
 
   def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
     assigns
@@ -127,10 +129,41 @@ defmodule LantternWeb.FormComponents do
     """
   end
 
+  def input(%{type: "toggle", value: value} = assigns) do
+    assigns =
+      assign_new(assigns, :checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
+
+    ~H"""
+    <div phx-feedback-for={@name} class={@class}>
+      <label id={"#{@id}-label"} class="flex items-center gap-4 text-sm leading-6 text-zinc-600">
+        <input type="hidden" name={@name} value="false" />
+        <input
+          type="checkbox"
+          id={@id}
+          name={@name}
+          value="true"
+          checked={@checked}
+          class="hidden"
+          {@rest}
+        />
+        <.toggle enabled={@checked} phx-click={JS.dispatch("click", to: "##{@id}-label")} />
+        <%= @label %>
+      </label>
+      <.error :for={msg <- @errors}><%= msg %></.error>
+    </div>
+    """
+  end
+
   def input(%{type: "select"} = assigns) do
     ~H"""
     <div phx-feedback-for={@name} class={@class}>
-      <.label for={@id} show_optional={@show_optional}><%= @label %></.label>
+      <.label
+        for={@id}
+        show_optional={@show_optional}
+        custom={if @custom_label, do: true, else: false}
+      >
+        <%= @label || render_slot(@custom_label) %>
+      </.label>
       <.select
         id={@id}
         name={@name}
@@ -148,7 +181,13 @@ defmodule LantternWeb.FormComponents do
   def input(%{type: "textarea"} = assigns) do
     ~H"""
     <div phx-feedback-for={@name} class={@class}>
-      <.label for={@id} show_optional={@show_optional}><%= @label %></.label>
+      <.label
+        for={@id}
+        show_optional={@show_optional}
+        custom={if @custom_label, do: true, else: false}
+      >
+        <%= @label || render_slot(@custom_label) %>
+      </.label>
       <.textarea id={@id} name={@name} errors={@errors} value={@value} {@rest} />
       <.error :for={msg <- @errors}><%= msg %></.error>
     </div>
@@ -159,7 +198,13 @@ defmodule LantternWeb.FormComponents do
   def input(assigns) do
     ~H"""
     <div phx-feedback-for={@name} class={@class}>
-      <.label for={@id} show_optional={@show_optional}><%= @label %></.label>
+      <.label
+        for={@id}
+        show_optional={@show_optional}
+        custom={if @custom_label, do: true, else: false}
+      >
+        <%= @label || render_slot(@custom_label) %>
+      </.label>
       <.base_input type={@type} name={@name} id={@id} value={@value} errors={@errors} {@rest} />
       <.error :for={msg <- @errors}><%= msg %></.error>
     </div>
@@ -171,6 +216,7 @@ defmodule LantternWeb.FormComponents do
   """
   attr :for, :string, default: nil
   attr :show_optional, :boolean, default: false
+  attr :custom, :boolean, default: false
   slot :inner_block, required: true
 
   def label(%{show_optional: true} = assigns) do
@@ -181,6 +227,14 @@ defmodule LantternWeb.FormComponents do
       </label>
       <span class="text-ltrn-subtle">Optional</span>
     </div>
+    """
+  end
+
+  def label(%{custom: true} = assigns) do
+    ~H"""
+    <label for={@for} class="block mb-2">
+      <%= render_slot(@inner_block) %>
+    </label>
     """
   end
 
@@ -211,7 +265,7 @@ defmodule LantternWeb.FormComponents do
       id={@id}
       name={@name}
       class={[
-        "block w-full rounded-sm border-0 shadown-sm ring-1 ring-ltrn-hairline bg-white sm:text-sm",
+        "block w-full rounded-sm border-0 shadown-sm ring-1 ring-ltrn-lighter bg-white sm:text-sm",
         "focus:ring-2 focus:ring-ltrn-primary focus:ring-inset",
         @class
       ]}
@@ -244,8 +298,8 @@ defmodule LantternWeb.FormComponents do
       class={[
         "block w-full min-h-[6rem] rounded-sm border-0 shadow-sm ring-1 sm:text-sm sm:leading-6",
         "focus:ring-2 focus:ring-inset",
-        "phx-no-feedback:ring-ltrn-hairline phx-no-feedback:focus:ring-ltrn-primary",
-        @errors == [] && "ring-ltrn-hairline focus:ring-ltrn-primary",
+        "phx-no-feedback:ring-ltrn-lighter phx-no-feedback:focus:ring-ltrn-primary",
+        @errors == [] && "ring-ltrn-lighter focus:ring-ltrn-primary",
         @errors != [] && "ring-rose-400 focus:ring-rose-400",
         @class
       ]}
@@ -275,8 +329,8 @@ defmodule LantternWeb.FormComponents do
     <div class={[
       "overflow-hidden rounded-sm shadow-sm ring-1 ring-inset bg-white",
       "focus-within:ring-2",
-      "phx-no-feedback:ring-ltrn-hairline phx-no-feedback:focus-within:ring-ltrn-primary",
-      @errors == [] && "ring-ltrn-hairline focus-within:ring-ltrn-primary",
+      "phx-no-feedback:ring-ltrn-lighter phx-no-feedback:focus-within:ring-ltrn-primary",
+      @errors == [] && "ring-ltrn-lighter focus-within:ring-ltrn-primary",
       @errors != [] && "ring-rose-400 focus-within:ring-rose-400",
       @class
     ]}>
@@ -290,7 +344,7 @@ defmodule LantternWeb.FormComponents do
       ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
       <div class={[
         "flex items-center justify-between gap-6 w-full p-2 border-t",
-        @errors == [] && "border-ltrn-hairline, peer-focus:border-ltrn-primary",
+        @errors == [] && "border-ltrn-lighter, peer-focus:border-ltrn-primary",
         @errors != [] && "border-rose-400 peer-focus:border-rose-400"
       ]}>
         <div class="flex items-center gap-2">
@@ -333,8 +387,8 @@ defmodule LantternWeb.FormComponents do
       class={[
         "block w-full rounded-sm border-0 shadow-sm ring-1 sm:text-sm sm:leading-6",
         "focus:ring-2 focus:ring-inset",
-        "phx-no-feedback:ring-ltrn-hairline phx-no-feedback:focus:ring-ltrn-primary",
-        @errors == [] && "ring-ltrn-hairline focus:ring-ltrn-primary",
+        "phx-no-feedback:ring-ltrn-lighter phx-no-feedback:focus:ring-ltrn-primary",
+        @errors == [] && "ring-ltrn-lighter focus:ring-ltrn-primary",
         @errors != [] && "ring-rose-400 focus:ring-rose-400",
         @class
       ]}
@@ -364,7 +418,7 @@ defmodule LantternWeb.FormComponents do
     ~H"""
     <div class="relative flex items-start py-4">
       <div class="min-w-0 flex-1 text-sm leading-6">
-        <label for={@id} class="select-none text-ltrn-text">
+        <label for={@id} class="select-none text-ltrn-dark">
           <%= @opt.name %>
         </label>
       </div>

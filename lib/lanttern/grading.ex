@@ -8,6 +8,7 @@ defmodule Lanttern.Grading do
 
   alias Lanttern.Grading.Composition
   alias Lanttern.Grading.CompositionComponent
+  import Lanttern.RepoHelpers
 
   @doc """
   Returns the list of compositions.
@@ -322,7 +323,11 @@ defmodule Lanttern.Grading do
 
   @doc """
   Returns the list of ordinal_values.
-  Optionally preloads associated data.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
+  `:scale_id` – filter ordinal values by scale and order results by `normalized_value`
 
   ## Examples
 
@@ -330,27 +335,25 @@ defmodule Lanttern.Grading do
       [%OrdinalValue{}, ...]
 
   """
-  def list_ordinal_values(preloads \\ []) do
-    Repo.all(OrdinalValue)
-    |> Repo.preload(preloads)
+  def list_ordinal_values(opts \\ []) do
+    OrdinalValue
+    |> maybe_filter_ordinal_values_by_scale(opts)
+    |> Repo.all()
+    |> maybe_preload(opts)
   end
 
-  @doc """
-  Returns the list of ordinal_values, ordered by `normalized_value`.
-  Optionally preloads associated data.
+  defp maybe_filter_ordinal_values_by_scale(ordinal_value_query, opts) do
+    case Keyword.get(opts, :scale_id) do
+      nil ->
+        ordinal_value_query
 
-  ## Examples
-
-      iex> list_ordinal_values(1)
-      [%OrdinalValue{}, ...]
-
-  """
-  def list_ordinal_values_from_scale(scale_id, preloads \\ []) do
-    OrdinalValue
-    |> where([ov], ov.scale_id == ^scale_id)
-    |> order_by([ov], asc: ov.normalized_value)
-    |> Repo.all()
-    |> Repo.preload(preloads)
+      scale_id ->
+        from(
+          ov in ordinal_value_query,
+          where: ov.scale_id == ^scale_id,
+          order_by: ov.normalized_value
+        )
+    end
   end
 
   @doc """
@@ -468,6 +471,10 @@ defmodule Lanttern.Grading do
 
   Raises `Ecto.NoResultsError` if the Scale does not exist.
 
+  ### Options:
+
+  `:preloads` – preloads associated data
+
   ## Examples
 
       iex> get_scale!(123)
@@ -477,7 +484,10 @@ defmodule Lanttern.Grading do
       ** (Ecto.NoResultsError)
 
   """
-  def get_scale!(id), do: Repo.get!(Scale, id)
+  def get_scale!(id, opts \\ []) do
+    Repo.get!(Scale, id)
+    |> maybe_preload(opts)
+  end
 
   @doc """
   Creates a scale.

@@ -149,6 +149,7 @@ defmodule LantternWeb.OverlayComponents do
   attr :id, :string, required: true
   attr :show, :boolean, default: false
   attr :on_cancel, JS, default: %JS{}
+  attr :prevent_close_on_click_away, :boolean, default: false
 
   slot :title, required: true
   slot :inner_block, required: true
@@ -180,10 +181,12 @@ defmodule LantternWeb.OverlayComponents do
               id={"#{@id}-container"}
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
               phx-key="escape"
-              phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
+              phx-click-away={
+                if not @prevent_close_on_click_away, do: JS.exec("data-cancel", to: "##{@id}")
+              }
               class="pointer-events-auto w-screen max-w-xl transition-translate"
             >
-              <div class="flex h-full flex-col divide-y divide-ltrn-hairline bg-white shadow-xl rounded-l">
+              <div class="flex h-full flex-col divide-y divide-ltrn-lighter bg-white shadow-xl rounded-l">
                 <div class="relative flex min-h-0 flex-1 flex-col overflow-y-scroll ltrn-bg-slide-over">
                   <h2
                     class="shrink-0 px-4 sm:px-6 py-6 font-display font-black text-3xl"
@@ -388,12 +391,12 @@ defmodule LantternWeb.OverlayComponents do
         <span class="sr-only">Open options</span>
         <.icon
           name="hero-ellipsis-horizontal-mini"
-          class="w-5 h-5 text-ltrn-subtle group-hover:text-ltrn-text"
+          class="w-5 h-5 text-ltrn-subtle group-hover:text-ltrn-dark"
         />
       </button>
       <div
         id={"menu-button-#{@id}"}
-        class="hidden absolute right-0 z-10 mt-1 w-32 origin-top-right rounded-sm bg-white py-2 shadow-lg ring-1 ring-ltrn-hairline focus:outline-none"
+        class="hidden absolute right-0 z-10 mt-1 w-32 origin-top-right rounded-sm bg-white py-2 shadow-lg ring-1 ring-ltrn-lighter focus:outline-none"
         role="menu"
         aria-orientation="vertical"
         aria-labelledby={"menu-button-#{@id}-button"}
@@ -447,7 +450,7 @@ defmodule LantternWeb.OverlayComponents do
     <button
       id={@id}
       type="button"
-      class={["block w-full px-3 py-1 text-sm text-left focus:bg-ltrn-hairline", @class]}
+      class={["block w-full px-3 py-1 text-sm text-left focus:bg-ltrn-lighter", @class]}
       role="menuitem"
       tabindex="-1"
       {@rest}

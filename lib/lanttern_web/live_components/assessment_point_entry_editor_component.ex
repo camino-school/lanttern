@@ -49,7 +49,7 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponent do
             <.textarea
               name={@form[:observation].name}
               value={@form[:observation].value}
-              class={@form[:observation].value == nil && "bg-ltrn-hairline"}
+              class={@form[:observation].value == nil && "bg-ltrn-lighter"}
               phx-debounce="1000"
             />
           </div>
@@ -72,7 +72,7 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponent do
       <div
         class={[
           "flex items-center justify-center w-full h-full rounded-sm font-mono text-sm pointer-events-none truncate",
-          @form[:ordinal_value_id].value == nil && "bg-ltrn-hairline"
+          @form[:ordinal_value_id].value == nil && "bg-ltrn-lighter"
         ]}
         style={@style}
       >
@@ -101,7 +101,7 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponent do
         errors={@form[:score].errors}
         class={[
           "h-full font-mono text-center",
-          @form[:score].value == nil && "bg-ltrn-hairline"
+          @form[:score].value == nil && "bg-ltrn-lighter"
         ]}
         min={@scale.start}
         max={@scale.stop}

@@ -57,7 +57,7 @@ defmodule LantternWeb.CurriculumItemSearchInputComponent do
           <li
             :for={{dom_id, result} <- @streams.results}
             class={[
-              "flex items-center cursor-default select-none py-2 px-3 text-ltrn-text group",
+              "flex items-center cursor-default select-none py-2 px-3 text-ltrn-dark group",
               "data-[active=true]:bg-ltrn-primary"
             ]}
             id={dom_id}

@@ -46,7 +46,7 @@ defmodule LantternWeb.CoreComponents do
       class={[
         "pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1",
         @kind == :info && "ring-green-500/50",
-        @kind == :error && "bg-rose-50 ring-rose-500/50"
+        @kind == :error && "bg-rose-50 ring-ltrn-secondary/50"
       ]}
       {@rest}
     >
@@ -54,7 +54,11 @@ defmodule LantternWeb.CoreComponents do
         <div class="flex items-start">
           <div class="flex-shrink-0">
             <.icon :if={@kind == :info} name="hero-information-circle" class="h-6 w-6 text-green-500" />
-            <.icon :if={@kind == :error} name="hero-exclamation-circle" class="h-6 w-6 text-rose-500" />
+            <.icon
+              :if={@kind == :error}
+              name="hero-exclamation-circle"
+              class="h-6 w-6 text-ltrn-secondary"
+            />
           </div>
           <div class="ml-3 w-0 flex-1 pt-0.5">
             <p :if={@title} class="mb-1 text-sm font-bold"><%= @title %></p>
@@ -152,6 +156,7 @@ defmodule LantternWeb.CoreComponents do
   attr :type, :string, default: nil
   attr :class, :any, default: nil
   attr :theme, :string, default: "default", doc: "default | ghost"
+  attr :icon_name, :string, default: nil
   attr :rest, :global, include: ~w(disabled form name value)
 
   slot :inner_block, required: true
@@ -161,16 +166,34 @@ defmodule LantternWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "rounded-sm py-2 px-2 font-display text-sm font-bold",
-        "phx-submit-loading:opacity-50 phx-click-loading:opacity-50 phx-click-loading:pointer-events-none",
-        button_theme(@theme),
+        get_button_styles(@theme),
         @class
       ]}
       {@rest}
     >
       <%= render_slot(@inner_block) %>
+      <%= if @icon_name do %>
+        <.icon name={@icon_name} class="w-5 h-5" />
+      <% end %>
     </button>
     """
+  end
+
+  @doc """
+  Returns a list of button styles.
+
+  Meant to be used while styling links as buttons.
+
+  ## Examples
+
+      <.link patch={~p"/somepath"} class={[get_button_styles()]}>Link</.link>
+  """
+  def get_button_styles(theme \\ "default") do
+    [
+      "inline-flex items-center gap-1 rounded-sm py-2 px-2 font-display text-sm font-bold",
+      "phx-submit-loading:opacity-50 phx-click-loading:opacity-50 phx-click-loading:pointer-events-none",
+      button_theme(theme)
+    ]
   end
 
   defp button_theme(theme) do
@@ -385,7 +408,7 @@ defmodule LantternWeb.CoreComponents do
   attr :class, :any, default: nil
   attr :theme, :string, default: "default"
 
-  attr :get_bagde_color_from, :map,
+  attr :style_from_ordinal_value, :map,
     default: nil,
     doc: "map with `:bg_color` and `:text_color` keys"
 
@@ -398,11 +421,11 @@ defmodule LantternWeb.CoreComponents do
     <span
       id={@id}
       class={[
-        "inline-flex items-center rounded-sm px-2 py-1 font-mono text-xs text-slate-700",
+        "inline-flex items-center rounded-sm px-2 py-1 font-mono text-xs",
         badge_theme(@theme),
         @class
       ]}
-      style={badge_colors_style(@get_bagde_color_from)}
+      {apply_style_from_ordinal_value(@style_from_ordinal_value)}
     >
       <%= render_slot(@inner_block) %>
       <button
@@ -421,17 +444,24 @@ defmodule LantternWeb.CoreComponents do
 
   defp badge_theme(theme) do
     %{
-      "default" => "bg-gray-100",
-      "cyan" => "bg-cyan-50"
+      "default" => "bg-ltrn-lightest text-ltrn-dark",
+      "secondary" => "bg-ltrn-secondary text-white",
+      "cyan" => "bg-ltrn-mesh-cyan text-ltrn-dark",
+      "dark" => "bg-ltrn-dark text-ltrn-lighter"
     }
-    |> Map.get(theme, "bg-gray-100")
+    |> Map.get(theme, "bg-ltrn-lightest text-ltrn-dark")
   end
 
-  defp badge_colors_style(%{bg_color: bg_color, text_color: text_color}) do
-    "background-color: #{bg_color}; color: #{text_color}"
+  @doc """
+  Creates a style attr based on ordinal values `bg_color` and `text_color`
+  """
+  def apply_style_from_ordinal_value(%{bg_color: bg_color, text_color: text_color}) do
+    %{
+      style: "background-color: #{bg_color}; color: #{text_color}"
+    }
   end
 
-  defp badge_colors_style(_), do: ""
+  def apply_style_from_ordinal_value(_), do: %{}
 
   @doc """
   Renders an inline code block.
@@ -561,7 +591,7 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div class={["text-center", @class]}>
       <div class="p-10">
-        <div class="animate-pulse h-24 w-24 rounded-full mx-auto bg-ltrn-hairline blur-md"></div>
+        <div class="animate-pulse h-24 w-24 rounded-full mx-auto bg-ltrn-lighter blur-md"></div>
       </div>
       <%!-- <div class="relative flex h-16 w-16 mx-auto">
         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-ltrn-primary opacity-75 blur-[2px]">
@@ -585,6 +615,41 @@ defmodule LantternWeb.CoreComponents do
     <div class={["prose prose-slate", @class]} {@rest}>
       <%= raw(Earmark.as_html!(@text)) %>
     </div>
+    """
+  end
+
+  @doc """
+  Toggle component.
+  """
+
+  attr :enabled, :boolean, required: true
+  attr :class, :any, default: nil
+  attr :sr_text, :string, default: nil
+  attr :rest, :global
+
+  def toggle(assigns) do
+    ~H"""
+    <button
+      type="button"
+      class={[
+        "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ltrn-primary focus:ring-offset-2",
+        if(@enabled, do: "bg-ltrn-primary", else: "bg-ltrn-lighter"),
+        @class
+      ]}
+      role="switch"
+      aria-checked="false"
+      {@rest}
+    >
+      <span :if={@sr_text} class="sr-only"><%= @sr_text %></span>
+      <span
+        aria-hidden="true"
+        class={[
+          "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+          if(@enabled, do: "translate-x-5", else: "translate-x-0")
+        ]}
+      >
+      </span>
+    </button>
     """
   end
 

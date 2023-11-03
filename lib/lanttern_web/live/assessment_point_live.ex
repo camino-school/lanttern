@@ -117,7 +117,9 @@ defmodule LantternWeb.AssessmentPointLive do
   def icon_and_content(assigns) do
     ~H"""
     <div class="flex items-center mt-10">
-      <.icon name={@icon_name} class="shrink-0 text-rose-500 mr-4" /> <%= render_slot(@inner_block) %>
+      <.icon name={@icon_name} class="shrink-0 text-ltrn-secondary mr-4" /> <%= render_slot(
+        @inner_block
+      ) %>
     </div>
     """
   end
@@ -128,7 +130,7 @@ defmodule LantternWeb.AssessmentPointLive do
     ~H"""
     <div :if={@ordinal_values} class="flex items-center gap-2 ml-2">
       <%= for ov <- @ordinal_values do %>
-        <.badge get_bagde_color_from={ov}>
+        <.badge style_from_ordinal_value={ov}>
           <%= ov.name %>
         </.badge>
       <% end %>
@@ -193,7 +195,7 @@ defmodule LantternWeb.AssessmentPointLive do
     <.feedback_button_base feedback={@feedback} student_id={@student_id}>
       <.icon name="hero-check-circle" class="shrink-0 w-6 h-6" />
       <span class="flex-1 block text-left">
-        <span class="w-full text-ltrn-text line-clamp-3">
+        <span class="w-full text-ltrn-dark line-clamp-3">
           <%= @feedback.comment %>
         </span>
         Not completed yet
@@ -208,7 +210,7 @@ defmodule LantternWeb.AssessmentPointLive do
     <.feedback_button_base feedback={@feedback} student_id={@student_id}>
       <.icon name="hero-check-circle" class="shrink-0 w-6 h-6 text-green-500" />
       <span class="flex-1 block text-left">
-        <span class="w-full text-ltrn-text line-clamp-3">
+        <span class="w-full text-ltrn-dark line-clamp-3">
           <%= @feedback.comment %>
         </span>
         Completed <%= format_local!(@feedback.completion_comment.inserted_at, "{Mshort} {D}, {YYYY}") %> 🎉
@@ -244,7 +246,7 @@ defmodule LantternWeb.AssessmentPointLive do
       type="button"
       class={[
         "flex items-center gap-2 px-4 rounded-sm text-xs text-ltrn-subtle shadow-md",
-        if(@feedback_id, do: "bg-white", else: "bg-ltrn-hairline")
+        if(@feedback_id, do: "bg-white", else: "bg-ltrn-lighter")
       ]}
       phx-click="open-feedback"
       phx-value-feedbackid={@feedback_id}
@@ -289,7 +291,7 @@ defmodule LantternWeb.AssessmentPointLive do
 
         ordinal_values =
           if assessment_point.scale.type == "ordinal" do
-            Grading.list_ordinal_values_from_scale(assessment_point.scale.id)
+            Grading.list_ordinal_values(scale_id: assessment_point.scale.id)
           else
             nil
           end

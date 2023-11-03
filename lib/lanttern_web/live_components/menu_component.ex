@@ -8,33 +8,38 @@ defmodule LantternWeb.MenuComponent do
     <div>
       <.panel_overlay
         id="menu"
-        class="flex items-stretch h-full divide-x divide-ltrn-hairline ltrn-bg-menu"
+        class="flex items-stretch h-full divide-x divide-ltrn-lighter ltrn-bg-menu"
       >
         <div class="flex-1 flex flex-col justify-between">
           <nav>
-            <ul class="grid grid-cols-3 gap-px border-b border-ltrn-hairline bg-ltrn-hairline">
+            <ul class="grid grid-cols-3 gap-px border-b border-ltrn-lighter bg-ltrn-lighter">
               <.nav_item active={@active_nav == :dashboard} path={~p"/dashboard"}>
                 Dashboard
               </.nav_item>
               <.nav_item active={@active_nav == :assessment_points} path={~p"/assessment_points"}>
                 Assessment points
               </.nav_item>
+              <.nav_item active={@active_nav == :rubrics} path={~p"/rubrics"}>
+                Rubrics
+              </.nav_item>
               <.nav_item active={@active_nav == :curriculum} path={~p"/curriculum"}>
                 Curriculum
               </.nav_item>
+              <li class="bg-white"></li>
+              <li class="bg-white"></li>
             </ul>
           </nav>
-          <h5 class="relative flex items-center ml-6 mb-6 font-display font-black text-3xl text-ltrn-text">
+          <h5 class="relative flex items-center ml-6 mb-6 font-display font-black text-3xl text-ltrn-dark">
             <span class="w-20 h-20 rounded-full bg-ltrn-mesh-primary blur-sm" />
             <span class="relative -ml-10">lanttern</span>
           </h5>
         </div>
         <div class="w-96 p-10 font-display overflow-y-auto">
           <p class="mb-4 font-black text-lg text-ltrn-primary">You're logged in as</p>
-          <p class="font-black text-4xl text-ltrn-text">
+          <p class="font-black text-4xl text-ltrn-dark">
             <%= @profile_name %>
           </p>
-          <p class="mt-2 font-black text-lg text-ltrn-text">
+          <p class="mt-2 font-black text-lg text-ltrn-dark">
             <%= @profile_type %> @ <%= @profile_school %>
           </p>
           <nav class="mt-10">
@@ -43,7 +48,7 @@ defmodule LantternWeb.MenuComponent do
                 <.link
                   href={~p"/admin"}
                   target="_blank"
-                  class="flex items-center gap-2 underline hover:text-ltrn-text"
+                  class="flex items-center gap-2 underline hover:text-ltrn-dark"
                 >
                   Admin <.icon name="hero-arrow-top-right-on-square" />
                 </.link>
@@ -52,12 +57,12 @@ defmodule LantternWeb.MenuComponent do
                 <button
                   type="button"
                   phx-click={toggle_profile_list()}
-                  class="flex items-center gap-2 underline hover:text-ltrn-text"
+                  class="flex items-center gap-2 underline hover:text-ltrn-dark"
                 >
                   Change profile <.icon name="hero-chevron-down" id="profile-list-down-icon" />
                   <.icon name="hero-chevron-up" id="profile-list-up-icon" class="hidden" />
                 </button>
-                <ul id="profile-list" class="hidden mt-2 mb-4 divide-y divide-ltrn-hairline">
+                <ul id="profile-list" class="hidden mt-2 mb-4 divide-y divide-ltrn-lighter">
                   <.profile_item
                     :for={profile <- @profiles}
                     profile={profile}
@@ -74,7 +79,7 @@ defmodule LantternWeb.MenuComponent do
                 <.link
                   href={~p"/users/log_out"}
                   method="delete"
-                  class="underline hover:text-ltrn-text"
+                  class="underline hover:text-ltrn-dark"
                 >
                   Log out
                 </.link>
@@ -98,7 +103,7 @@ defmodule LantternWeb.MenuComponent do
         navigate={@path}
         class={[
           "group relative block p-10 font-display font-black text-lg",
-          if(@active, do: "text-ltrn-text", else: "text-ltrn-subtle underline hover:text-ltrn-text")
+          if(@active, do: "text-ltrn-dark", else: "text-ltrn-subtle underline hover:text-ltrn-dark")
         ]}
       >
         <span class={[
@@ -164,7 +169,7 @@ defmodule LantternWeb.MenuComponent do
         <div>
           <span class={[
             "block font-bold text-sm",
-            if(@active, do: "text-ltrn-text")
+            if(@active, do: "text-ltrn-dark")
           ]}>
             <%= @name %>
           </span>
@@ -198,6 +203,11 @@ defmodule LantternWeb.MenuComponent do
           LantternWeb.AssessmentPointLive
         ] ->
           :assessment_points
+
+        socket.view in [
+          LantternWeb.RubricsLive.Explorer
+        ] ->
+          :rubrics
 
         socket.view in [LantternWeb.CurriculumLive, LantternWeb.CurriculumBNCCEFLive] ->
           :curriculum
