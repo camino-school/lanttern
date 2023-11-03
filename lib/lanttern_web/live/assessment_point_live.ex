@@ -117,7 +117,9 @@ defmodule LantternWeb.AssessmentPointLive do
   def icon_and_content(assigns) do
     ~H"""
     <div class="flex items-center mt-10">
-      <.icon name={@icon_name} class="shrink-0 text-rose-500 mr-4" /> <%= render_slot(@inner_block) %>
+      <.icon name={@icon_name} class="shrink-0 text-ltrn-secondary mr-4" /> <%= render_slot(
+        @inner_block
+      ) %>
     </div>
     """
   end

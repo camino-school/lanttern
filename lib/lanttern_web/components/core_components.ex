@@ -46,7 +46,7 @@ defmodule LantternWeb.CoreComponents do
       class={[
         "pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1",
         @kind == :info && "ring-green-500/50",
-        @kind == :error && "bg-rose-50 ring-rose-500/50"
+        @kind == :error && "bg-rose-50 ring-ltrn-secondary/50"
       ]}
       {@rest}
     >
@@ -54,7 +54,11 @@ defmodule LantternWeb.CoreComponents do
         <div class="flex items-start">
           <div class="flex-shrink-0">
             <.icon :if={@kind == :info} name="hero-information-circle" class="h-6 w-6 text-green-500" />
-            <.icon :if={@kind == :error} name="hero-exclamation-circle" class="h-6 w-6 text-rose-500" />
+            <.icon
+              :if={@kind == :error}
+              name="hero-exclamation-circle"
+              class="h-6 w-6 text-ltrn-secondary"
+            />
           </div>
           <div class="ml-3 w-0 flex-1 pt-0.5">
             <p :if={@title} class="mb-1 text-sm font-bold"><%= @title %></p>

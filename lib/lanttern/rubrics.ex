@@ -32,10 +32,7 @@ defmodule Lanttern.Rubrics do
   @doc """
   Returns the list of rubrics with scale, descriptors, and descriptors ordinal values preloaded.
 
-  Descriptors are ordered using the following rules:
-
-  - when scale type is "ordinal", we use ordinal value's normalized value
-  - when scale type is "numeric", we use descriptor's score
+  View `get_full_rubric!/1` for more details on descriptors sorting.
 
   ## Examples
 
@@ -44,27 +41,9 @@ defmodule Lanttern.Rubrics do
 
   """
   def list_full_rubrics() do
-    from(r in Rubric,
-      join: s in assoc(r, :scale),
-      left_join: d in assoc(r, :descriptors),
-      left_join: ov in assoc(d, :ordinal_value),
-      preload: [:scale, descriptors: :ordinal_value],
-      group_by: r.id
-    )
+    full_rubric_query()
     |> Repo.all()
-    |> Enum.map(fn rubric ->
-      Map.update!(rubric, :descriptors, fn descriptors ->
-        case rubric.scale.type do
-          "numeric" ->
-            descriptors
-            |> Enum.sort_by(& &1.score)
-
-          "ordinal" ->
-            descriptors
-            |> Enum.sort_by(& &1.ordinal_value.normalized_value)
-        end
-      end)
-    end)
+    |> Enum.map(&sort_rubric_descriptors/1)
   end
 
   @doc """
@@ -89,6 +68,51 @@ defmodule Lanttern.Rubrics do
     Rubric
     |> Repo.get!(id)
     |> maybe_preload(opts)
+  end
+
+  @doc """
+  Returns the rubric with scale, descriptors, and descriptors ordinal values preloaded.
+
+  Descriptors are ordered using the following rules:
+
+  - when scale type is "ordinal", we use ordinal value's normalized value
+  - when scale type is "numeric", we use descriptor's score
+
+  ## Examples
+
+      iex> get_full_rubric!(id)
+      %Rubric{}
+
+  """
+  def get_full_rubric!(id) do
+    full_rubric_query()
+    |> Repo.get!(id)
+    |> sort_rubric_descriptors()
+  end
+
+  defp full_rubric_query() do
+    from(r in Rubric,
+      join: s in assoc(r, :scale),
+      left_join: d in assoc(r, :descriptors),
+      left_join: ov in assoc(d, :ordinal_value),
+      preload: [:scale, descriptors: :ordinal_value],
+      group_by: r.id,
+      order_by: r.id
+    )
+  end
+
+  defp sort_rubric_descriptors(rubric) do
+    Map.update!(rubric, :descriptors, fn descriptors ->
+      case rubric.scale.type do
+        "numeric" ->
+          descriptors
+          |> Enum.sort_by(& &1.score)
+
+        "ordinal" ->
+          descriptors
+          |> Enum.sort_by(& &1.ordinal_value.normalized_value)
+      end
+    end)
   end
 
   @doc """

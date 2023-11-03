@@ -283,7 +283,7 @@ defmodule LantternWeb.RubricsLive.FormComponent do
   defp save_rubric(socket, :edit, rubric_params) do
     case Rubrics.update_rubric(socket.assigns.rubric, rubric_params, preloads: :scale) do
       {:ok, rubric} ->
-        notify_parent({:saved, rubric})
+        notify_parent({:updated, rubric})
 
         {:noreply,
          socket
@@ -298,7 +298,7 @@ defmodule LantternWeb.RubricsLive.FormComponent do
   defp save_rubric(socket, :new, rubric_params) do
     case Rubrics.create_rubric(rubric_params, preloads: :scale) do
       {:ok, rubric} ->
-        notify_parent({:saved, rubric})
+        notify_parent({:created, rubric})
 
         {:noreply,
          socket
