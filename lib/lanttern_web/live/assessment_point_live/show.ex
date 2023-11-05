@@ -19,6 +19,7 @@ defmodule LantternWeb.AssessmentPointLive.Show do
   alias Lanttern.Grading
   alias Lanttern.Schools.Student
 
+  alias LantternWeb.AssessmentPointLive.AssessmentPointEntryEditorComponent
   alias LantternWeb.AssessmentPointLive.FeedbackFormComponent
   alias LantternWeb.AssessmentPointLive.FeedbackCommentFormComponent
 
@@ -81,7 +82,7 @@ defmodule LantternWeb.AssessmentPointLive.Show do
     <div class={"grid #{row_grid_cols_based_on_scale_type(@scale_type)} gap-2 mt-4"}>
       <.icon_with_name class="self-center" profile_name={@student.name} />
       <.live_component
-        module={LantternWeb.AssessmentPointEntryEditorComponent}
+        module={AssessmentPointEntryEditorComponent}
         id={@entry.id}
         entry={@entry}
         class={"grid #{entry_grid_cols_based_on_scale_type(@scale_type)} gap-2"}
@@ -409,51 +410,6 @@ defmodule LantternWeb.AssessmentPointLive.Show do
   🔺 Not implemented in PubSub yet
 
       handle_info({:assessment_point_updated, assessment_point}, socket)
-
-  #### Assessment point entry save error
-
-  Sent from `LantternWeb.AssessmentPointEntryEditorComponent`.
-
-  🔺 Not implemented in PubSub yet
-
-      handle_info({:assessment_point_entry_save_error, %Ecto.Changeset{errors: [score: {score_error, _}]} = _changeset}, socket)
-      handle_info({:assessment_point_entry_save_error, _changeset}, socket)
-
-  #### Feedback created
-
-  Broadcasted to `"assessment_point:id"` from `LantternWeb.FeedbackOverlayComponent`.
-
-      handle_info({:feedback_created, feedback}, socket)
-
-  #### Feedback updated
-
-  Broadcasted to `"assessment_point:id"` from `LantternWeb.FeedbackOverlayComponent`.
-
-      handle_info({:feedback_updated, feedback}, socket)
-
-  ### Feedback comment messages
-
-  All `handle_info()` for feedback comment have to `send_update()` to
-  `FeedbackOverlayComponent`, in order to "trigger" the comment thread
-  update inside the live component.
-
-  #### Feedback comment created
-
-  Broadcasted to `"assessment_point:id"` from `LantternWeb.FeedbackCommentFormComponent`.
-
-      handle_info({:feedback_comment_created, _comment} = msg, socket) do
-
-  #### Feedback comment updated
-
-  Broadcasted to `"assessment_point:id"` from `LantternWeb.FeedbackCommentFormComponent`.
-
-      handle_info({:feedback_comment_updated, _comment} = msg, socket) do
-
-  #### Feedback comment deleted
-
-  Broadcasted to `"assessment_point:id"` from `LantternWeb.FeedbackCommentFormComponent`.
-
-      handle_info({:feedback_comment_deleted, _comment} = msg, socket) do
   """
 
   def handle_info({:assessment_point_updated, assessment_point}, socket) do
@@ -467,8 +423,13 @@ defmodule LantternWeb.AssessmentPointLive.Show do
   end
 
   def handle_info(
-        {:assessment_point_entry_save_error,
-         %Ecto.Changeset{errors: [score: {score_error, _}]} = _changeset},
+        {
+          AssessmentPointEntryEditorComponent,
+          {
+            :error,
+            %Ecto.Changeset{errors: [score: {score_error, _}]} = _changeset
+          }
+        },
         socket
       ) do
     socket =
@@ -478,7 +439,7 @@ defmodule LantternWeb.AssessmentPointLive.Show do
     {:noreply, socket}
   end
 
-  def handle_info({:assessment_point_entry_save_error, _changeset}, socket) do
+  def handle_info({AssessmentPointEntryEditorComponent, {:error, _changeset}}, socket) do
     socket =
       socket
       |> put_flash(:error, "Something is not right")

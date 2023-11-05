@@ -6,6 +6,8 @@ defmodule LantternWeb.AssessmentPointLive.Explorer do
   alias Lanttern.Schools
   alias Lanttern.Taxonomy
 
+  alias LantternWeb.AssessmentPointLive.AssessmentPointEntryEditorComponent
+
   # function components
 
   attr :items, :list, required: true
@@ -83,7 +85,7 @@ defmodule LantternWeb.AssessmentPointLive.Explorer do
             />
           <% else %>
             <.live_component
-              module={LantternWeb.AssessmentPointEntryEditorComponent}
+              module={AssessmentPointEntryEditorComponent}
               id={entry.id}
               entry={entry}
               class="w-full h-full"
@@ -200,8 +202,13 @@ defmodule LantternWeb.AssessmentPointLive.Explorer do
   end
 
   def handle_info(
-        {:assessment_point_entry_save_error,
-         %Ecto.Changeset{errors: [score: {score_error, _}]} = _changeset},
+        {
+          AssessmentPointEntryEditorComponent,
+          {
+            :error,
+            %Ecto.Changeset{errors: [score: {score_error, _}]} = _changeset
+          }
+        },
         socket
       ) do
     socket =
@@ -211,7 +218,7 @@ defmodule LantternWeb.AssessmentPointLive.Explorer do
     {:noreply, socket}
   end
 
-  def handle_info({:assessment_point_entry_save_error, _changeset}, socket) do
+  def handle_info({AssessmentPointEntryEditorComponent, {:error, _changeset}}, socket) do
     socket =
       socket
       |> put_flash(:error, "Something is not right")

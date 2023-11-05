@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmentPointEntryEditorComponent do
+defmodule LantternWeb.AssessmentPointLive.AssessmentPointEntryEditorComponent do
   @moduledoc """
   Expected external assigns:
 
@@ -205,7 +205,7 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponent do
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        send(self(), {:assessment_point_entry_save_error, changeset})
+        notify_parent({:error, changeset})
         {:noreply, assign(socket, :form, to_form(changeset))}
     end
   end
@@ -215,4 +215,6 @@ defmodule LantternWeb.AssessmentPointEntryEditorComponent do
   end
 
   defp get_colors_style(_), do: ""
+
+  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end

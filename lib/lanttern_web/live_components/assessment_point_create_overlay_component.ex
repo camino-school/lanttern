@@ -66,7 +66,7 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponent do
             </div>
           </div>
           <.live_component
-            module={LantternWeb.CurriculumItemSearchInputComponent}
+            module={LantternWeb.AssessmetPointLive.CurriculumItemSearchInputComponent}
             id="create-assessment-point-form-curriculum-item"
             field={@form[:curriculum_item_id]}
             class="mb-6"

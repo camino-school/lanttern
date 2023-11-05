@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmentPointEntryEditorComponentTest do
+defmodule LantternWeb.AssessmentPointLive.AssessmentPointEntryEditorComponentTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.AssessmentsFixtures
