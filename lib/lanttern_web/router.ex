@@ -41,17 +41,32 @@ defmodule LantternWeb.Router do
         {LantternWeb.UserAuth, :ensure_authenticated},
         {LantternWeb.Path, :put_path_in_socket}
       ] do
-      live "/dashboard", DashboardLive
+      live "/dashboard", DashboardLive.Index, :index
 
-      live "/assessment_points", AssessmentPointsExplorerLive
-      live "/assessment_points/:id", AssessmentPointLive
+      live "/dashboard/filter_view/new",
+           DashboardLive.Index,
+           :new_filter_view
+
+      live "/dashboard/filter_view/:id/edit",
+           DashboardLive.Index,
+           :edit_filter_view
+
+      live "/assessment_points", AssessmentPointLive.Explorer, :index
+      live "/assessment_points/new", AssessmentPointLive.Explorer, :new
+
+      live "/assessment_points/:id", AssessmentPointLive.Details, :show
+      live "/assessment_points/:id/edit", AssessmentPointLive.Details, :edit
+
+      live "/assessment_points/:id/student/:student_id/feedback",
+           AssessmentPointLive.Details,
+           :feedback
 
       live "/rubrics", RubricsLive.Explorer, :index
       live "/rubrics/new", RubricsLive.Explorer, :new
       live "/rubrics/:id/edit", RubricsLive.Explorer, :edit
 
-      live "/curriculum", CurriculumLive
-      live "/curriculum/bncc_ef", CurriculumBNCCEFLive
+      live "/curriculum", CurriculumLive.Index
+      live "/curriculum/bncc_ef", CurriculumBNCCLive.EF
     end
   end
 
@@ -88,8 +103,8 @@ defmodule LantternWeb.Router do
     resources "/classes", ClassController
     resources "/students", StudentController
     resources "/teachers", TeacherController
-    live "/students_import", StudentsImportLive
-    live "/teachers_import", TeachersImportLive
+    live "/import_students", Admin.SchoolLive.ImportStudents
+    live "/import_teachers", Admin.SchoolLive.ImportTeachers
 
     # Taxonomy context
     resources "/subjects", SubjectController
@@ -99,14 +114,17 @@ defmodule LantternWeb.Router do
     resources "/comments", CommentController
 
     # Explorer context
-    live "/assessment_points_filter_views", AssessmentPointsFilterViewLive.Index, :index
-    live "/assessment_points_filter_views/new", AssessmentPointsFilterViewLive.Index, :new
-    live "/assessment_points_filter_views/:id/edit", AssessmentPointsFilterViewLive.Index, :edit
+    live "/assessment_points_filter_views", Admin.AssessmentPointsFilterViewLive.Index, :index
+    live "/assessment_points_filter_views/new", Admin.AssessmentPointsFilterViewLive.Index, :new
 
-    live "/assessment_points_filter_views/:id", AssessmentPointsFilterViewLive.Show, :show
+    live "/assessment_points_filter_views/:id/edit",
+         Admin.AssessmentPointsFilterViewLive.Index,
+         :edit
+
+    live "/assessment_points_filter_views/:id", Admin.AssessmentPointsFilterViewLive.Show, :show
 
     live "/assessment_points_filter_views/:id/show/edit",
-         AssessmentPointsFilterViewLive.Show,
+         Admin.AssessmentPointsFilterViewLive.Show,
          :edit
 
     # Rubrics context

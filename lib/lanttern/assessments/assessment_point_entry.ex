@@ -76,7 +76,9 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
     # we'll need scale for both numeric and ordinal validations
     # we are querying the data here to avoid unnecessary queries
     assessment_point_id = get_field(changeset, :assessment_point_id)
-    %{scale: scale} = Lanttern.Assessments.get_assessment_point!(assessment_point_id, :scale)
+
+    %{scale: scale} =
+      Lanttern.Assessments.get_assessment_point!(assessment_point_id, preloads: :scale)
 
     changeset
     |> validate_score_value(scale)

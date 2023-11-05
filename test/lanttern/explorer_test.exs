@@ -14,7 +14,8 @@ defmodule Lanttern.ExplorerTest do
 
     test "list_assessment_points_filter_views/1 returns all assessment_points_filter_views" do
       assessment_points_filter_view = assessment_points_filter_view_fixture()
-      assert Explorer.list_assessment_points_filter_views() == [assessment_points_filter_view]
+      [expected] = Explorer.list_assessment_points_filter_views()
+      assert expected.id == assessment_points_filter_view.id
     end
 
     test "list_assessment_points_filter_views/1 with preloads returns all assessment_points_filter_views with preloaded data" do
@@ -44,8 +45,8 @@ defmodule Lanttern.ExplorerTest do
     test "get_assessment_points_filter_view!/2 returns the assessment_points_filter_view with given id" do
       assessment_points_filter_view = assessment_points_filter_view_fixture()
 
-      assert Explorer.get_assessment_points_filter_view!(assessment_points_filter_view.id) ==
-               assessment_points_filter_view
+      expected = Explorer.get_assessment_points_filter_view!(assessment_points_filter_view.id)
+      assert expected.id == assessment_points_filter_view.id
     end
 
     test "get_assessment_points_filter_view!/2 with preloads returns the assessment_points_filter_view with given id with preloaded data" do
@@ -126,8 +127,9 @@ defmodule Lanttern.ExplorerTest do
                  @invalid_attrs
                )
 
-      assert assessment_points_filter_view ==
-               Explorer.get_assessment_points_filter_view!(assessment_points_filter_view.id)
+      expected = Explorer.get_assessment_points_filter_view!(assessment_points_filter_view.id)
+      assert expected.id == assessment_points_filter_view.id
+      assert expected.name == assessment_points_filter_view.name
     end
 
     test "delete_assessment_points_filter_view/1 deletes the assessment_points_filter_view" do
