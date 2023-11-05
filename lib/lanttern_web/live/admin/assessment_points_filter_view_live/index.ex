@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmentPointsFilterViewLive.Index do
+defmodule LantternWeb.Admin.AssessmentPointsFilterViewLive.Index do
   use LantternWeb, {:live_view, layout: :admin}
 
   alias Lanttern.Explorer
@@ -7,7 +7,9 @@ defmodule LantternWeb.AssessmentPointsFilterViewLive.Index do
   @impl true
   def mount(_params, _session, socket) do
     assessment_points_filter_views =
-      Explorer.list_assessment_points_filter_views(preloads: [:classes, :subjects, profile: [:teacher, :student]])
+      Explorer.list_assessment_points_filter_views(
+        preloads: [:classes, :subjects, profile: [:teacher, :student]]
+      )
 
     {:ok, stream(socket, :assessment_points_filter_views, assessment_points_filter_views)}
   end
@@ -20,7 +22,12 @@ defmodule LantternWeb.AssessmentPointsFilterViewLive.Index do
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
     |> assign(:page_title, "Edit Assessment points filter view")
-    |> assign(:assessment_points_filter_view, Explorer.get_assessment_points_filter_view!(id, preloads: [:classes, :subjects, profile: [:teacher, :student]]))
+    |> assign(
+      :assessment_points_filter_view,
+      Explorer.get_assessment_points_filter_view!(id,
+        preloads: [:classes, :subjects, profile: [:teacher, :student]]
+      )
+    )
   end
 
   defp apply_action(socket, :new, _params) do
@@ -36,11 +43,18 @@ defmodule LantternWeb.AssessmentPointsFilterViewLive.Index do
   end
 
   @impl true
-  def handle_info({LantternWeb.AssessmentPointsFilterViewLive.FormComponent, {:saved, assessment_points_filter_view}}, socket) do
+  def handle_info(
+        {LantternWeb.Admin.AssessmentPointsFilterViewLive.FormComponent,
+         {:saved, assessment_points_filter_view}},
+        socket
+      ) do
     assessment_points_filter_view =
-      Explorer.get_assessment_points_filter_view!(assessment_points_filter_view.id, preloads: [:classes, :subjects, profile: [:teacher, :student]])
+      Explorer.get_assessment_points_filter_view!(assessment_points_filter_view.id,
+        preloads: [:classes, :subjects, profile: [:teacher, :student]]
+      )
 
-    {:noreply, stream_insert(socket, :assessment_points_filter_views, assessment_points_filter_view)}
+    {:noreply,
+     stream_insert(socket, :assessment_points_filter_views, assessment_points_filter_view)}
   end
 
   @impl true
@@ -48,7 +62,8 @@ defmodule LantternWeb.AssessmentPointsFilterViewLive.Index do
     assessment_points_filter_view = Explorer.get_assessment_points_filter_view!(id)
     {:ok, _} = Explorer.delete_assessment_points_filter_view(assessment_points_filter_view)
 
-    {:noreply, stream_delete(socket, :assessment_points_filter_views, assessment_points_filter_view)}
+    {:noreply,
+     stream_delete(socket, :assessment_points_filter_views, assessment_points_filter_view)}
   end
 
   def profile_name(%{type: "teacher"} = profile),

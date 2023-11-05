@@ -1,0 +1,59 @@
+<div class="container mx-auto lg:max-w-5xl">
+  <.page_title_with_menu>Dashboard 🚧</.page_title_with_menu>
+  <div class="mt-40">
+    <.link
+      navigate={~p"/assessment_points"}
+      class="flex items-center font-display font-black text-lg text-ltrn-subtle"
+    >
+      Assessment points <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
+    </.link>
+    <.link
+      navigate={~p"/curriculum"}
+      class="flex items-center mt-10 font-display font-black text-lg text-ltrn-subtle"
+    >
+      Curriculum <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
+    </.link>
+  </div>
+  <div class="flex items-center justify-between pb-6 mt-40 border-b border-ltrn-lighter">
+    <h3 class="font-display font-bold text-2xl">
+      <.link
+        navigate={~p"/assessment_points"}
+        class="inline-block underline hover:text-ltrn-subtle"
+      >
+        Assessment points
+      </.link>
+      filter views
+    </h3>
+    <button
+      type="button"
+      class="shrink-0 flex items-center gap-2 font-display text-base underline hover:text-ltrn-primary"
+      phx-click="add_filter_view"
+    >
+      Create new view <.icon name="hero-plus-circle" class="w-6 h-6 text-ltrn-primary" />
+    </button>
+  </div>
+  <%= if @filter_view_count > 0 do %>
+    <div
+      id="assessment-points-filter-views"
+      class="grid grid-cols-3 gap-10 mt-6"
+      phx-update="stream"
+    >
+      <.filter_view_card
+        :for={{dom_id, filter_view} <- @streams.assessment_points_filter_views}
+        id={dom_id}
+        filter_view={filter_view}
+      />
+    </div>
+  <% else %>
+    <.empty_state>You don't have any filter view yet</.empty_state>
+  <% end %>
+</div>
+<.live_component
+  module={LantternWeb.AssessmentPointsFilterViewOverlayComponent}
+  id="create-assessment-points-filter-view-overlay"
+  current_user={@current_user}
+  show={@show_filter_view_overlay}
+  topic={"dashboard:#{@current_user.current_profile_id}"}
+  on_cancel={JS.push("cancel_filter_view")}
+  filter_view_id={@current_filter_view_id}
+/>

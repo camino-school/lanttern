@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmentPointsFilterViewLive.Show do
+defmodule LantternWeb.Admin.AssessmentPointsFilterViewLive.Show do
   use LantternWeb, {:live_view, layout: :admin}
 
   alias Lanttern.Explorer
@@ -11,7 +11,9 @@ defmodule LantternWeb.AssessmentPointsFilterViewLive.Show do
   @impl true
   def handle_params(%{"id" => id}, _, socket) do
     assesment_point_filter_view =
-      Explorer.get_assessment_points_filter_view!(id, preloads: [:classes, :subjects, profile: [:teacher, :student]])
+      Explorer.get_assessment_points_filter_view!(id,
+        preloads: [:classes, :subjects, profile: [:teacher, :student]]
+      )
 
     {:noreply,
      socket

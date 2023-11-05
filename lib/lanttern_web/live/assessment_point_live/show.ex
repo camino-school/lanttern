@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmentPointLive do
+defmodule LantternWeb.AssessmentPointLive.Show do
   @moduledoc """
   ### PubSub subscription topics
 
@@ -16,94 +16,6 @@ defmodule LantternWeb.AssessmentPointLive do
   alias Lanttern.Assessments.Feedback
   alias Lanttern.Grading
   alias Lanttern.Schools.Student
-
-  def render(assigns) do
-    ~H"""
-    <div class="container mx-auto lg:max-w-5xl">
-      <.page_title_with_menu>Assessment point details</.page_title_with_menu>
-      <div class="flex items-center mt-2 font-display font-bold text-xs text-ltrn-subtle">
-        <.link navigate={~p"/assessment_points"} class="underline">Assessment points explorer</.link>
-        <span class="mx-1">/</span>
-        <span>Details</span>
-      </div>
-    </div>
-    <div class="container mx-auto lg:max-w-5xl mt-10">
-      <.link navigate={~p"/assessment_points"} class="flex items-center text-sm text-ltrn-subtle">
-        <.icon name="hero-arrow-left-mini" class="text-ltrn-primary mr-2" />
-        <span class="underline">Back to explorer</span>
-      </.link>
-      <div class="relative w-full p-6 mt-4 rounded shadow-xl bg-white">
-        <.button
-          class="absolute top-2 right-2"
-          theme="ghost"
-          phx-click={JS.exec("data-show", to: "#update-assessment-point-overlay")}
-        >
-          Edit
-        </.button>
-        <div class="max-w-screen-sm">
-          <h2 class="font-display font-black text-2xl"><%= @assessment_point.name %></h2>
-          <.markdown
-            :if={@assessment_point.description}
-            class="mt-4"
-            text={@assessment_point.description}
-          />
-        </div>
-        <.icon_and_content icon_name="hero-calendar">
-          Date: <%= format_local!(@assessment_point.datetime, "{Mshort} {D}, {YYYY}, {h24}:{m}") %>
-        </.icon_and_content>
-        <.icon_and_content icon_name="hero-bookmark">
-          Curriculum: <%= @assessment_point.curriculum_item.name %>
-        </.icon_and_content>
-        <.icon_and_content icon_name="hero-view-columns">
-          Scale: <%= @assessment_point.scale.name %>
-          <.ordinal_values ordinal_values={@ordinal_values} />
-        </.icon_and_content>
-        <.icon_and_content :if={length(@assessment_point.classes) > 0} icon_name="hero-squares-2x2">
-          <.classes classes={@assessment_point.classes} />
-        </.icon_and_content>
-        <div class="mt-20">
-          <div class={"grid #{head_grid_cols_based_on_scale_type(@assessment_point.scale.type)} items-center gap-2"}>
-            <div>&nbsp;</div>
-            <div class="flex items-center gap-2 font-display font-bold text-ltrn-subtle">
-              <.icon name="hero-view-columns" />
-              <span>Marking</span>
-            </div>
-            <div class="flex items-center gap-2 font-display font-bold text-ltrn-subtle">
-              <.icon name="hero-pencil-square" />
-              <span>Observations</span>
-            </div>
-            <div class="flex items-center gap-2 font-display font-bold text-ltrn-subtle">
-              <.icon name="hero-chat-bubble-left-right" />
-              <span>Feedback</span>
-            </div>
-          </div>
-          <.entry_row
-            :for={entry <- @entries}
-            entry={entry}
-            student={entry.student}
-            feedback={entry.feedback}
-            scale_type={@assessment_point.scale.type}
-          />
-        </div>
-      </div>
-    </div>
-    <.live_component
-      module={LantternWeb.AssessmentPointUpdateOverlayComponent}
-      id="update-assessment-point-overlay"
-      assessment_point={@assessment_point}
-    />
-    <.live_component
-      module={LantternWeb.FeedbackOverlayComponent}
-      id="feedback-overlay"
-      current_user={@current_user}
-      assessment_point={@assessment_point}
-      feedback_id={@current_feedback_id}
-      student={@current_feedback_student}
-      show={@show_feedback}
-      on_cancel={JS.push("close-feedback")}
-    />
-    """
-  end
 
   defp head_grid_cols_based_on_scale_type("numeric"),
     do: "grid-cols-[12rem_minmax(10px,_1fr)_minmax(10px,_2fr)_minmax(10px,_2fr)]"

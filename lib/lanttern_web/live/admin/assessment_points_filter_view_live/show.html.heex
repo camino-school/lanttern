@@ -2,7 +2,12 @@
   Assessment points filter view <%= @assessment_points_filter_view.id %>
   <:subtitle>This is a assessment_points_filter_view record from your database.</:subtitle>
   <:actions>
-    <.link patch={~p"/admin/assessment_points_filter_views/#{@assessment_points_filter_view}/show/edit"} phx-click={JS.push_focus()}>
+    <.link
+      patch={
+        ~p"/admin/assessment_points_filter_views/#{@assessment_points_filter_view}/show/edit"
+      }
+      phx-click={JS.push_focus()}
+    >
       <.button>Edit assessment_points_filter_view</.button>
     </.link>
   </:actions>
@@ -18,16 +23,27 @@
   </:item>
   <:item title="Subjects">
     <div class="flex gap-2">
-      <.badge :for={subject <- @assessment_points_filter_view.subjects}><%= subject.name %></.badge>
+      <.badge :for={subject <- @assessment_points_filter_view.subjects}>
+        <%= subject.name %>
+      </.badge>
     </div>
   </:item>
 </.list>
 
-<.back navigate={~p"/admin/assessment_points_filter_views"}>Back to assessment_points_filter_views</.back>
+<.back navigate={~p"/admin/assessment_points_filter_views"}>
+  Back to assessment_points_filter_views
+</.back>
 
-<.modal :if={@live_action == :edit} id="assessment_points_filter_view-modal" show on_cancel={JS.patch(~p"/admin/assessment_points_filter_views/#{@assessment_points_filter_view}")}>
+<.modal
+  :if={@live_action == :edit}
+  id="assessment_points_filter_view-modal"
+  show
+  on_cancel={
+    JS.patch(~p"/admin/assessment_points_filter_views/#{@assessment_points_filter_view}")
+  }
+>
   <.live_component
-    module={LantternWeb.AssessmentPointsFilterViewLive.FormComponent}
+    module={LantternWeb.Admin.AssessmentPointsFilterViewLive.FormComponent}
     id={@assessment_points_filter_view.id}
     title={@page_title}
     action={@live_action}

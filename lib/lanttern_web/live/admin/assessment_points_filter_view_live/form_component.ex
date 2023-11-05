@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmentPointsFilterViewLive.FormComponent do
+defmodule LantternWeb.Admin.AssessmentPointsFilterViewLive.FormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Explorer
@@ -12,7 +12,9 @@ defmodule LantternWeb.AssessmentPointsFilterViewLive.FormComponent do
     <div>
       <.header>
         <%= @title %>
-        <:subtitle>Use this form to manage assessment_points_filter_view records in your database.</:subtitle>
+        <:subtitle>
+          Use this form to manage assessment_points_filter_view records in your database.
+        </:subtitle>
       </.header>
 
       <.simple_form
@@ -71,7 +73,10 @@ defmodule LantternWeb.AssessmentPointsFilterViewLive.FormComponent do
     changeset =
       assessment_points_filter_view
       |> Explorer.change_assessment_points_filter_view()
-      |> Ecto.Changeset.cast(%{subjects_ids: subjects_ids, classes_ids: classes_ids}, [:subjects_ids, :classes_ids])
+      |> Ecto.Changeset.cast(%{subjects_ids: subjects_ids, classes_ids: classes_ids}, [
+        :subjects_ids,
+        :classes_ids
+      ])
 
     profile_options = generate_profile_options()
     subject_options = generate_subject_options()
@@ -87,7 +92,11 @@ defmodule LantternWeb.AssessmentPointsFilterViewLive.FormComponent do
   end
 
   @impl true
-  def handle_event("validate", %{"assessment_points_filter_view" => assessment_points_filter_view_params}, socket) do
+  def handle_event(
+        "validate",
+        %{"assessment_points_filter_view" => assessment_points_filter_view_params},
+        socket
+      ) do
     changeset =
       socket.assigns.assessment_points_filter_view
       |> Explorer.change_assessment_points_filter_view(assessment_points_filter_view_params)
@@ -96,12 +105,23 @@ defmodule LantternWeb.AssessmentPointsFilterViewLive.FormComponent do
     {:noreply, assign_form(socket, changeset)}
   end
 
-  def handle_event("save", %{"assessment_points_filter_view" => assessment_points_filter_view_params}, socket) do
-    save_assessment_points_filter_view(socket, socket.assigns.action, assessment_points_filter_view_params)
+  def handle_event(
+        "save",
+        %{"assessment_points_filter_view" => assessment_points_filter_view_params},
+        socket
+      ) do
+    save_assessment_points_filter_view(
+      socket,
+      socket.assigns.action,
+      assessment_points_filter_view_params
+    )
   end
 
   defp save_assessment_points_filter_view(socket, :edit, assessment_points_filter_view_params) do
-    case Explorer.update_assessment_points_filter_view(socket.assigns.assessment_points_filter_view, assessment_points_filter_view_params) do
+    case Explorer.update_assessment_points_filter_view(
+           socket.assigns.assessment_points_filter_view,
+           assessment_points_filter_view_params
+         ) do
       {:ok, assessment_points_filter_view} ->
         notify_parent({:saved, assessment_points_filter_view})
 

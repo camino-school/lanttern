@@ -10,10 +10,18 @@
 <.table
   id="assessment_points_filter_views"
   rows={@streams.assessment_points_filter_views}
-  row_click={fn {_id, assessment_points_filter_view} -> JS.navigate(~p"/admin/assessment_points_filter_views/#{assessment_points_filter_view}") end}
+  row_click={
+    fn {_id, assessment_points_filter_view} ->
+      JS.navigate(~p"/admin/assessment_points_filter_views/#{assessment_points_filter_view}")
+    end
+  }
 >
-  <:col :let={{_id, assessment_points_filter_view}} label="Profile"><%= profile_name(assessment_points_filter_view.profile) %></:col>
-  <:col :let={{_id, assessment_points_filter_view}} label="Name"><%= assessment_points_filter_view.name %></:col>
+  <:col :let={{_id, assessment_points_filter_view}} label="Profile">
+    <%= profile_name(assessment_points_filter_view.profile) %>
+  </:col>
+  <:col :let={{_id, assessment_points_filter_view}} label="Name">
+    <%= assessment_points_filter_view.name %>
+  </:col>
   <:col :let={{_id, assessment_points_filter_view}} label="Classes">
     <div class="flex gap-2">
       <.badge :for={class <- assessment_points_filter_view.classes}><%= class.name %></.badge>
@@ -21,18 +29,26 @@
   </:col>
   <:col :let={{_id, assessment_points_filter_view}} label="Subjects">
     <div class="flex gap-2">
-      <.badge :for={subject <- assessment_points_filter_view.subjects}><%= subject.name %></.badge>
+      <.badge :for={subject <- assessment_points_filter_view.subjects}>
+        <%= subject.name %>
+      </.badge>
     </div>
   </:col>
   <:action :let={{_id, assessment_points_filter_view}}>
     <div class="sr-only">
-      <.link navigate={~p"/admin/assessment_points_filter_views/#{assessment_points_filter_view}"}>Show</.link>
+      <.link navigate={~p"/admin/assessment_points_filter_views/#{assessment_points_filter_view}"}>
+        Show
+      </.link>
     </div>
-    <.link patch={~p"/admin/assessment_points_filter_views/#{assessment_points_filter_view}/edit"}>Edit</.link>
+    <.link patch={~p"/admin/assessment_points_filter_views/#{assessment_points_filter_view}/edit"}>
+      Edit
+    </.link>
   </:action>
   <:action :let={{id, assessment_points_filter_view}}>
     <.link
-      phx-click={JS.push("delete", value: %{id: assessment_points_filter_view.id}) |> hide("##{id}")}
+      phx-click={
+        JS.push("delete", value: %{id: assessment_points_filter_view.id}) |> hide("##{id}")
+      }
       data-confirm="Are you sure?"
     >
       Delete
@@ -40,9 +56,14 @@
   </:action>
 </.table>
 
-<.modal :if={@live_action in [:new, :edit]} id="assessment_points_filter_view-modal" show on_cancel={JS.patch(~p"/admin/assessment_points_filter_views")}>
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="assessment_points_filter_view-modal"
+  show
+  on_cancel={JS.patch(~p"/admin/assessment_points_filter_views")}
+>
   <.live_component
-    module={LantternWeb.AssessmentPointsFilterViewLive.FormComponent}
+    module={LantternWeb.Admin.AssessmentPointsFilterViewLive.FormComponent}
     id={@assessment_points_filter_view.id || :new}
     title={@page_title}
     action={@live_action}

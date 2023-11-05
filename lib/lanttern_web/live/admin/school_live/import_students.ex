@@ -1,4 +1,4 @@
-defmodule LantternWeb.StudentsImportLive do
+defmodule LantternWeb.Admin.SchoolLive.ImportStudents do
   use LantternWeb, {:live_view, layout: :admin}
 
   alias NimbleCSV.RFC4180, as: CSV
@@ -6,18 +6,7 @@ defmodule LantternWeb.StudentsImportLive do
   alias LantternWeb.SchoolsHelpers
   alias Lanttern.Schools
 
-  @impl true
-  def render(assigns) do
-    ~H"""
-    <div class="container mx-auto lg:max-w-5xl">
-      <.header>
-        Import school classes and students
-      </.header>
-
-      <%= render_state(assigns) %>
-    </div>
-    """
-  end
+  # function components
 
   defp render_state(%{state: "uploading"} = assigns) do
     ~H"""
@@ -192,7 +181,7 @@ defmodule LantternWeb.StudentsImportLive do
       </table>
       <div class="flex gap-6">
         <.link href={~p"/admin"} class="underline hover:text-ltrn-subtle">Back to admin home</.link>
-        <.link href={~p"/admin/students_import"} class="underline hover:text-ltrn-subtle">
+        <.link href={~p"/admin/import_students"} class="underline hover:text-ltrn-subtle">
           Import new file
         </.link>
       </div>
@@ -292,6 +281,8 @@ defmodule LantternWeb.StudentsImportLive do
     """
   end
 
+  # lifecycle
+
   @impl true
   def mount(_params, _session, socket) do
     socket =
@@ -304,6 +295,8 @@ defmodule LantternWeb.StudentsImportLive do
 
     {:ok, socket}
   end
+
+  # event handlers
 
   @impl true
   def handle_event("validate", params, socket) do

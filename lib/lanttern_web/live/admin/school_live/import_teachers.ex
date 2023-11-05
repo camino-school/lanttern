@@ -1,23 +1,10 @@
-defmodule LantternWeb.TeachersImportLive do
+defmodule LantternWeb.Admin.SchoolLive.ImportTeachers do
   use LantternWeb, {:live_view, layout: :admin}
 
   alias NimbleCSV.RFC4180, as: CSV
 
   alias LantternWeb.SchoolsHelpers
   alias Lanttern.Schools
-
-  @impl true
-  def render(assigns) do
-    ~H"""
-    <div class="container mx-auto lg:max-w-5xl">
-      <.header>
-        Import school teachers
-      </.header>
-
-      <%= render_state(assigns) %>
-    </div>
-    """
-  end
 
   defp render_state(%{state: "uploading"} = assigns) do
     ~H"""
@@ -137,7 +124,7 @@ defmodule LantternWeb.TeachersImportLive do
       </table>
       <div class="flex gap-6">
         <.link href={~p"/admin"} class="underline hover:text-ltrn-subtle">Back to admin home</.link>
-        <.link href={~p"/admin/teachers_import"} class="underline hover:text-ltrn-subtle">
+        <.link href={~p"/admin/import_teachers"} class="underline hover:text-ltrn-subtle">
           Import new file
         </.link>
       </div>
