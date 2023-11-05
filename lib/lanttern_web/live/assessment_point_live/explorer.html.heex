@@ -15,12 +15,12 @@
         Showing <%= length(@assessment_points) %> results
       </p>
     </div>
-    <button
+    <.link
       class="shrink-0 flex items-center gap-2 text-sm text-ltrn-subtle hover:underline"
-      phx-click={JS.exec("data-show", to: "#create-assessment-point-overlay")}
+      patch={~p"/assessment_points/new"}
     >
       Create assessment point <.icon name="hero-plus-mini" class="text-ltrn-primary" />
-    </button>
+    </.link>
   </div>
 </div>
 <div
@@ -97,7 +97,24 @@
     </.button>
   </:actions>
 </.slide_over>
-<.live_component
-  module={LantternWeb.AssessmentPointCreateOverlayComponent}
+<.slide_over
+  :if={@live_action == :new}
   id="create-assessment-point-overlay"
-/>
+  show={true}
+  on_cancel={JS.patch(~p"/assessment_points")}
+>
+  <:title>Create assessment point</:title>
+  <.live_component module={AssessmentPointCreateFormComponent} id={:new} />
+  <:actions>
+    <.button
+      type="button"
+      theme="ghost"
+      phx-click={JS.exec("data-cancel", to: "#create-assessment-point-overlay")}
+    >
+      Cancel
+    </.button>
+    <.button type="submit" form="create-assessment-point-form" phx-disable-with="Saving...">
+      Save
+    </.button>
+  </:actions>
+</.slide_over>

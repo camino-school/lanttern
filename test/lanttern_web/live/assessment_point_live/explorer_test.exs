@@ -176,5 +176,24 @@ defmodule LantternWeb.AssessmentPointLive.ExplorerTest do
       {path, _flash} = assert_redirect(view)
       assert path == "/assessment_points/#{id}"
     end
+
+    test "form shows in live view", %{conn: conn} do
+      {:ok, view, _html} = live(conn, @live_view_path)
+
+      # confirms overlay is not rendered
+      refute view
+             |> element("h2", "Create assessment point")
+             |> has_element?()
+
+      # click link to render
+      view
+      |> element("a", "Create assessment point")
+      |> render_click()
+
+      # assert overlay is rendered
+      assert view
+             |> element("#create-assessment-point-overlay h2", "Create assessment point")
+             |> render() =~ "Create assessment point"
+    end
   end
 end

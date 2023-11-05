@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmentPointCreateOverlayComponent do
+defmodule LantternWeb.AssessmentPointLive.AssessmentPointCreateFormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments
@@ -10,139 +10,128 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <.slide_over id={@id}>
-        <:title>Create assessment point</:title>
-        <.form
-          id="create-assessment-point-form"
-          for={@form}
-          phx-change="validate"
-          phx-submit="save"
-          phx-target={@myself}
-        >
-          <.error_block :if={@form.source.action == :insert} class="mb-6">
-            Oops, something went wrong! Please check the errors below.
-          </.error_block>
-          <.input field={@form[:name]} label="Assessment point name" phx-debounce="1500" class="mb-6" />
-          <.input
-            type="textarea"
-            field={@form[:description]}
-            label="Decription"
-            show_optional
-            class="mb-1"
-          />
-          <p class="mb-6 text-sm text-ltrn-subtle">
-            <a
-              href="https://www.markdownguide.org/basic-syntax/"
-              target="_blank"
-              class="hover:text-ltrn-primary"
-            >
-              Markdown supported <.icon name="hero-information-circle" />
-            </a>
-          </p>
-          <div class="flex gap-2 mb-6">
-            <.input type="date" field={@form[:date]} label="Date" phx-debounce="1500" />
-            <div class="flex gap-1">
-              <.input
-                type="number"
-                min="0"
-                max="23"
-                step="1"
-                field={@form[:hour]}
-                label="Hour"
-                phx-debounce="1500"
-                class="w-20"
-              />
-              <span class="mt-9">:</span>
-              <.input
-                type="number"
-                min="0"
-                max="59"
-                step="1"
-                field={@form[:minute]}
-                label="Minute"
-                phx-debounce="1500"
-                class="w-20"
-              />
-            </div>
-          </div>
-          <.live_component
-            module={LantternWeb.AssessmetPointLive.CurriculumItemSearchInputComponent}
-            id="create-assessment-point-form-curriculum-item"
-            field={@form[:curriculum_item_id]}
-            class="mb-6"
-          />
-          <.input
-            field={@form[:scale_id]}
-            type="select"
-            label="Scale"
-            options={@scale_options}
-            prompt="Select a scale"
-            class="mb-6"
-          />
-          <div class="mb-6">
+      <.form
+        id="create-assessment-point-form"
+        for={@form}
+        phx-change="validate"
+        phx-submit="save"
+        phx-target={@myself}
+      >
+        <.error_block :if={@form.source.action == :insert} class="mb-6">
+          Oops, something went wrong! Please check the errors below.
+        </.error_block>
+        <.input field={@form[:name]} label="Assessment point name" phx-debounce="1500" class="mb-6" />
+        <.input
+          type="textarea"
+          field={@form[:description]}
+          label="Decription"
+          show_optional
+          class="mb-1"
+        />
+        <p class="mb-6 text-sm text-ltrn-subtle">
+          <a
+            href="https://www.markdownguide.org/basic-syntax/"
+            target="_blank"
+            class="hover:text-ltrn-primary"
+          >
+            Markdown supported <.icon name="hero-information-circle" />
+          </a>
+        </p>
+        <div class="flex gap-2 mb-6">
+          <.input type="date" field={@form[:date]} label="Date" phx-debounce="1500" />
+          <div class="flex gap-1">
             <.input
-              field={@form[:class_id]}
-              type="select"
-              label="Classes"
-              options={@class_options}
-              prompt="Select classes"
-              phx-change="class_selected"
-              phx-target={@myself}
-              show_optional
+              type="number"
+              min="0"
+              max="23"
+              step="1"
+              field={@form[:hour]}
+              label="Hour"
+              phx-debounce="1500"
+              class="w-20"
             />
-            <div class="flex flex-wrap gap-1 mt-2">
-              <.badge :if={length(@selected_classes) == 0}>
-                No classes selected yet
-              </.badge>
-              <.badge
-                :for={{name, id} <- @selected_classes}
-                id={"class-badge-#{id}"}
-                theme="cyan"
-                show_remove
-                phx-click="class_removed"
-                phx-value-id={id}
-                phx-target={@myself}
-              >
-                <%= name %>
-              </.badge>
-            </div>
+            <span class="mt-9">:</span>
+            <.input
+              type="number"
+              min="0"
+              max="59"
+              step="1"
+              field={@form[:minute]}
+              label="Minute"
+              phx-debounce="1500"
+              class="w-20"
+            />
           </div>
+        </div>
+        <.live_component
+          module={LantternWeb.AssessmetPointLive.CurriculumItemSearchInputComponent}
+          id="create-assessment-point-form-curriculum-item"
+          field={@form[:curriculum_item_id]}
+          class="mb-6"
+        />
+        <.input
+          field={@form[:scale_id]}
+          type="select"
+          label="Scale"
+          options={@scale_options}
+          prompt="Select a scale"
+          class="mb-6"
+        />
+        <div class="mb-6">
           <.input
-            field={@form[:student_id]}
+            field={@form[:class_id]}
             type="select"
-            label="Students"
-            options={@student_options}
-            prompt="Select students"
-            phx-change="student_selected"
+            label="Classes"
+            options={@class_options}
+            prompt="Select classes"
+            phx-change="class_selected"
             phx-target={@myself}
             show_optional
           />
           <div class="flex flex-wrap gap-1 mt-2">
-            <.badge :if={length(@selected_students) == 0}>
-              No students selected yet
+            <.badge :if={length(@selected_classes) == 0}>
+              No classes selected yet
             </.badge>
             <.badge
-              :for={{name, id} <- @selected_students}
-              id={"student-badge-#{id}"}
+              :for={{name, id} <- @selected_classes}
+              id={"class-badge-#{id}"}
               theme="cyan"
               show_remove
-              phx-click="student_removed"
+              phx-click="class_removed"
               phx-value-id={id}
               phx-target={@myself}
             >
               <%= name %>
             </.badge>
           </div>
-        </.form>
-        <:actions>
-          <.button type="button" theme="ghost" phx-click={JS.exec("data-cancel", to: "##{@id}")}>
-            Cancel
-          </.button>
-          <.button type="submit" form="create-assessment-point-form" phx-disable-with="Saving...">
-            Save
-          </.button>
-        </:actions>
-      </.slide_over>
+        </div>
+        <.input
+          field={@form[:student_id]}
+          type="select"
+          label="Students"
+          options={@student_options}
+          prompt="Select students"
+          phx-change="student_selected"
+          phx-target={@myself}
+          show_optional
+        />
+        <div class="flex flex-wrap gap-1 mt-2">
+          <.badge :if={length(@selected_students) == 0}>
+            No students selected yet
+          </.badge>
+          <.badge
+            :for={{name, id} <- @selected_students}
+            id={"student-badge-#{id}"}
+            theme="cyan"
+            show_remove
+            phx-click="student_removed"
+            phx-value-id={id}
+            phx-target={@myself}
+          >
+            <%= name %>
+          </.badge>
+        </div>
+      </.form>
     </div>
     """
   end
@@ -267,7 +256,7 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponent do
 
     case Assessments.create_assessment_point(params) do
       {:ok, assessment_point} ->
-        send(self(), {:assessment_point_created, assessment_point})
+        notify_parent({:created, assessment_point})
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -293,4 +282,6 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponent do
       fn {_key, value} -> value != id end
     )
   end
+
+  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end

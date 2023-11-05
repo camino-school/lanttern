@@ -12,13 +12,15 @@
     <span class="underline">Back to explorer</span>
   </.link>
   <div class="relative w-full p-6 mt-4 rounded shadow-xl bg-white">
-    <.button
-      class="absolute top-2 right-2"
-      theme="ghost"
-      phx-click={JS.exec("data-show", to: "#update-assessment-point-overlay")}
+    <.link
+      class={[
+        "absolute top-2 right-2",
+        get_button_styles("ghost")
+      ]}
+      patch={~p"/assessment_points/#{@assessment_point.id}/edit"}
     >
       Edit
-    </.button>
+    </.link>
     <div class="max-w-screen-sm">
       <h2 class="font-display font-black text-2xl"><%= @assessment_point.name %></h2>
       <.markdown
@@ -66,11 +68,31 @@
     </div>
   </div>
 </div>
-<.live_component
-  module={LantternWeb.AssessmentPointUpdateOverlayComponent}
+<.slide_over
+  :if={@live_action == :edit}
   id="update-assessment-point-overlay"
-  assessment_point={@assessment_point}
-/>
+  show={true}
+  on_cancel={JS.patch(~p"/assessment_points/#{@assessment_point.id}")}
+>
+  <:title>Update assessment point</:title>
+  <.live_component
+    module={AssessmentPointUpdateFormComponent}
+    id={@assessment_point.id}
+    assessment_point={@assessment_point}
+  />
+  <:actions>
+    <.button
+      type="button"
+      theme="ghost"
+      phx-click={JS.exec("data-cancel", to: "#update-assessment-point-overlay")}
+    >
+      Cancel
+    </.button>
+    <.button type="submit" form="update-assessment-point-form" phx-disable-with="Saving...">
+      Save
+    </.button>
+  </:actions>
+</.slide_over>
 <.slide_over
   :if={@live_action == :feedback}
   id="feedback-overlay"

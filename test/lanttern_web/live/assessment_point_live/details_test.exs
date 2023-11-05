@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmentPointLive.ShowTest do
+defmodule LantternWeb.AssessmentPointLive.DetailsTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.Repo
@@ -49,6 +49,26 @@ defmodule LantternWeb.AssessmentPointLive.ShowTest do
 
       assert view |> has_element?("div", curriculum_item.name)
       assert view |> has_element?("div", scale.name)
+    end
+
+    test "overlay shows in live view", %{conn: conn} do
+      assessment_point = AssessmentsFixtures.assessment_point_fixture()
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
+
+      # confirms overlay is not rendered
+      refute view
+             |> element("h2", "Update assessment point")
+             |> has_element?()
+
+      # click button to render
+      view
+      |> element("a", "Edit")
+      |> render_click()
+
+      # assert overlay is rendered
+      assert view
+             |> element("#update-assessment-point-overlay h2", "Update assessment point")
+             |> render() =~ "Update assessment point"
     end
 
     test "redirect to /assessment_points when supplied id does not exist", %{conn: conn} do

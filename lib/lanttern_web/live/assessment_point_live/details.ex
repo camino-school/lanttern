@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmentPointLive.Show do
+defmodule LantternWeb.AssessmentPointLive.Details do
   @moduledoc """
   ### PubSub subscription topics
 
@@ -20,6 +20,7 @@ defmodule LantternWeb.AssessmentPointLive.Show do
   alias Lanttern.Schools.Student
 
   alias LantternWeb.AssessmentPointLive.AssessmentPointEntryEditorComponent
+  alias LantternWeb.AssessmentPointLive.AssessmentPointUpdateFormComponent
   alias LantternWeb.AssessmentPointLive.FeedbackFormComponent
   alias LantternWeb.AssessmentPointLive.FeedbackCommentFormComponent
 
@@ -272,8 +273,6 @@ defmodule LantternWeb.AssessmentPointLive.Show do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  defp apply_action(socket, :show, _params), do: socket
-
   defp apply_action(socket, :feedback, %{"student_id" => student_id}) do
     feedback =
       socket.assigns.entries
@@ -326,6 +325,8 @@ defmodule LantternWeb.AssessmentPointLive.Show do
     |> assign(:edit_comment_id, nil)
     |> stream(:comments, comments)
   end
+
+  defp apply_action(socket, _show_or_edit, _params), do: socket
 
   # event handlers
 
@@ -398,26 +399,12 @@ defmodule LantternWeb.AssessmentPointLive.Show do
 
   # info handlers
 
-  @doc """
-  Handles sent or broadcasted messages from children Live Components.
-
-  ## Clauses
-
-  #### Assessment point update success
-
-  Sent from `LantternWeb.AssessmentPointUpdateOverlayComponent`.
-
-  🔺 Not implemented in PubSub yet
-
-      handle_info({:assessment_point_updated, assessment_point}, socket)
-  """
-
-  def handle_info({:assessment_point_updated, assessment_point}, socket) do
+  def handle_info({AssessmentPointUpdateFormComponent, {:updated, assessment_point}}, socket) do
     socket =
       socket
       |> assign(:is_updating, false)
       |> put_flash(:info, "Assessment point updated!")
-      |> push_navigate(to: ~p"/assessment_points/#{assessment_point.id}", replace: true)
+      |> push_navigate(to: ~p"/assessment_points/#{assessment_point.id}")
 
     {:noreply, socket}
   end

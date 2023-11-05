@@ -51,11 +51,14 @@ defmodule LantternWeb.Router do
            DashboardLive.Index,
            :edit_filter_view
 
-      live "/assessment_points", AssessmentPointLive.Explorer
-      live "/assessment_points/:id", AssessmentPointLive.Show, :show
+      live "/assessment_points", AssessmentPointLive.Explorer, :index
+      live "/assessment_points/new", AssessmentPointLive.Explorer, :new
+
+      live "/assessment_points/:id", AssessmentPointLive.Details, :show
+      live "/assessment_points/:id/edit", AssessmentPointLive.Details, :edit
 
       live "/assessment_points/:id/student/:student_id/feedback",
-           AssessmentPointLive.Show,
+           AssessmentPointLive.Details,
            :feedback
 
       live "/rubrics", RubricsLive.Explorer, :index

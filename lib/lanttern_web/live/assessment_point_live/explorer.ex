@@ -7,6 +7,7 @@ defmodule LantternWeb.AssessmentPointLive.Explorer do
   alias Lanttern.Taxonomy
 
   alias LantternWeb.AssessmentPointLive.AssessmentPointEntryEditorComponent
+  alias LantternWeb.AssessmentPointLive.AssessmentPointCreateFormComponent
 
   # function components
 
@@ -192,14 +193,8 @@ defmodule LantternWeb.AssessmentPointLive.Explorer do
 
   # info handlers
 
-  def handle_info({:assessment_point_created, assessment_point}, socket) do
-    socket =
-      socket
-      |> put_flash(:info, "Assessment point \"#{assessment_point.name}\" created!")
-      |> push_navigate(to: ~p"/assessment_points/#{assessment_point.id}")
-
-    {:noreply, socket}
-  end
+  def handle_info({AssessmentPointCreateFormComponent, {:created, assessment_point}}, socket),
+    do: {:noreply, push_navigate(socket, to: ~p"/assessment_points/#{assessment_point.id}")}
 
   def handle_info(
         {
