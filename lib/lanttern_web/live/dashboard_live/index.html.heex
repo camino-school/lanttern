@@ -24,13 +24,13 @@
       </.link>
       filter views
     </h3>
-    <button
+    <.link
       type="button"
       class="shrink-0 flex items-center gap-2 font-display text-base underline hover:text-ltrn-primary"
-      phx-click="add_filter_view"
+      patch={~p"/dashboard/filter_view/new"}
     >
       Create new view <.icon name="hero-plus-circle" class="w-6 h-6 text-ltrn-primary" />
-    </button>
+    </.link>
   </div>
   <%= if @filter_view_count > 0 do %>
     <div
@@ -39,7 +39,7 @@
       phx-update="stream"
     >
       <.filter_view_card
-        :for={{dom_id, filter_view} <- @streams.assessment_points_filter_views}
+        :for={{dom_id, filter_view} <- @streams.filter_views}
         id={dom_id}
         filter_view={filter_view}
       />
@@ -48,12 +48,29 @@
     <.empty_state>You don't have any filter view yet</.empty_state>
   <% end %>
 </div>
-<.live_component
-  module={LantternWeb.AssessmentPointsFilterViewOverlayComponent}
-  id="create-assessment-points-filter-view-overlay"
-  current_user={@current_user}
-  show={@show_filter_view_overlay}
-  topic={"dashboard:#{@current_user.current_profile_id}"}
-  on_cancel={JS.push("cancel_filter_view")}
-  filter_view_id={@current_filter_view_id}
-/>
+<.slide_over
+  :if={@live_action in [:new_filter_view, :edit_filter_view]}
+  id="assessment-points-filter-view-overlay"
+  show={true}
+  on_cancel={JS.patch(~p"/dashboard")}
+>
+  <:title><%= @filter_view_overlay_title %></:title>
+  <.live_component
+    module={LantternWeb.DashboardLive.FilterViewFormComponent}
+    id={@filter_view.id || :new}
+    action={@live_action}
+    filter_view={@filter_view}
+  />
+  <:actions>
+    <.button
+      type="button"
+      theme="ghost"
+      phx-click={JS.exec("data-cancel", to: "#assessment-points-filter-view-overlay")}
+    >
+      Cancel
+    </.button>
+    <.button type="submit" form="assessment-points-filter-view-form" phx-disable-with="Saving...">
+      Save
+    </.button>
+  </:actions>
+</.slide_over>

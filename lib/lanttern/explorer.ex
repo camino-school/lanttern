@@ -66,7 +66,7 @@ defmodule Lanttern.Explorer do
   end
 
   @doc """
-  Creates a assessment_points_filter_view.
+  Creates an assessment_points_filter_view.
 
   ## Examples
 
@@ -78,7 +78,8 @@ defmodule Lanttern.Explorer do
 
   """
   def create_assessment_points_filter_view(attrs \\ %{}) do
-    %AssessmentPointsFilterView{}
+    # add classes and subjects to force return with preloaded classes/subjects
+    %AssessmentPointsFilterView{classes: [], subjects: []}
     |> AssessmentPointsFilterView.changeset(attrs)
     |> Repo.insert()
   end

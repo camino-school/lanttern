@@ -64,7 +64,7 @@ defmodule LantternWeb.DashboardLiveTest do
 
       # open create modal
       view
-      |> element("button", "Create new view")
+      |> element("a", "Create new view")
       |> render_click()
 
       # submit form
@@ -88,7 +88,7 @@ defmodule LantternWeb.DashboardLiveTest do
 
       # "click" remove
       view
-      |> element("button#remove-filter-view-assessment_points_filter_views-#{filter_view.id}")
+      |> element("button#remove-filter-view-filter_views-#{filter_view.id}")
       |> render_click()
 
       # assert view is removed

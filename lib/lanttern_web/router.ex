@@ -41,7 +41,15 @@ defmodule LantternWeb.Router do
         {LantternWeb.UserAuth, :ensure_authenticated},
         {LantternWeb.Path, :put_path_in_socket}
       ] do
-      live "/dashboard", DashboardLive.Index
+      live "/dashboard", DashboardLive.Index, :index
+
+      live "/dashboard/filter_view/new",
+           DashboardLive.Index,
+           :new_filter_view
+
+      live "/dashboard/filter_view/:id/edit",
+           DashboardLive.Index,
+           :edit_filter_view
 
       live "/assessment_points", AssessmentPointLive.Explorer
       live "/assessment_points/:id", AssessmentPointLive.Show

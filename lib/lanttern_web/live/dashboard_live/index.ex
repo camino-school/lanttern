@@ -1,15 +1,11 @@
 defmodule LantternWeb.DashboardLive.Index do
   @moduledoc """
-  ### PubSub subscription topics
-
-  - "dashboard:profile_id" on `handle_params`
-
-  Expected broadcasted messages in `handle_info/2` documentation.
+  Dashboard live view
   """
 
   use LantternWeb, :live_view
-  alias Phoenix.PubSub
   alias Lanttern.Explorer
+  alias Lanttern.Explorer.AssessmentPointsFilterView
 
   # view components
 
@@ -42,8 +38,7 @@ defmodule LantternWeb.DashboardLive.Index do
             <:menu_items>
               <.menu_button_item
                 id={"edit-filter-view-#{@id}"}
-                phx-click="edit_filter_view"
-                phx-value-id={@filter_view.id}
+                phx-click={JS.patch(~p"/dashboard/filter_view/#{@filter_view.id}/edit")}
               >
                 Edit
               </.menu_button_item>
@@ -95,19 +90,17 @@ defmodule LantternWeb.DashboardLive.Index do
   def mount(_params, _session, socket) do
     profile_id = socket.assigns.current_user.current_profile_id
 
-    if connected?(socket) do
-      PubSub.subscribe(
-        Lanttern.PubSub,
-        "dashboard:#{profile_id}"
+    filter_views =
+      Explorer.list_assessment_points_filter_views(
+        profile_id: profile_id,
+        preloads: [:subjects, :classes]
       )
-    end
 
-    filter_views = list_filter_views(profile_id)
     filter_view_count = length(filter_views)
 
     socket =
       socket
-      |> stream(:assessment_points_filter_views, filter_views)
+      |> stream(:filter_views, filter_views)
       |> assign(:filter_view_count, filter_view_count)
       |> assign(:current_filter_view_id, nil)
       |> assign(:show_filter_view_overlay, false)
@@ -115,20 +108,32 @@ defmodule LantternWeb.DashboardLive.Index do
     {:ok, socket}
   end
 
+  def handle_params(params, _url, socket) do
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+  defp apply_action(socket, :edit_filter_view, %{"id" => id}) do
+    socket
+    |> assign(:filter_view_overlay_title, "Edit assessment points filter view")
+    |> assign(
+      :filter_view,
+      Explorer.get_assessment_points_filter_view!(id, preloads: [:subjects, :classes])
+    )
+  end
+
+  defp apply_action(socket, :new_filter_view, _params) do
+    socket
+    |> assign(:filter_view_overlay_title, "Create assessment points filter view")
+    |> assign(:filter_view, %AssessmentPointsFilterView{
+      profile_id: socket.assigns.current_user.current_profile_id,
+      classes: [],
+      subjects: []
+    })
+  end
+
+  defp apply_action(socket, :index, _params), do: socket
+
   # event handlers
-
-  def handle_event("add_filter_view", _params, socket) do
-    {:noreply, assign(socket, :show_filter_view_overlay, true)}
-  end
-
-  def handle_event("edit_filter_view", %{"id" => filter_view_id} = _params, socket) do
-    socket =
-      socket
-      |> assign(:current_filter_view_id, String.to_integer(filter_view_id))
-      |> assign(:show_filter_view_overlay, true)
-
-    {:noreply, socket}
-  end
 
   def handle_event("delete_filter_view", %{"id" => filter_view_id} = _params, socket) do
     assessment_points_filter_view = Explorer.get_assessment_points_filter_view!(filter_view_id)
@@ -137,7 +142,7 @@ defmodule LantternWeb.DashboardLive.Index do
       {:ok, _} ->
         socket =
           socket
-          |> stream_delete(:assessment_points_filter_views, assessment_points_filter_view)
+          |> stream_delete(:filter_views, assessment_points_filter_view)
           |> update(:filter_view_count, fn count -> count - 1 end)
 
         {:noreply, socket}
@@ -158,66 +163,30 @@ defmodule LantternWeb.DashboardLive.Index do
 
   # info handlers
 
-  @doc """
-  Handles sent or broadcasted messages from children Live Components.
-
-  ## Clauses
-
-  #### Assessment points filter view create success
-
-  Broadcasted to `"dashboard:profile_id"` from `LantternWeb.AssessmentPointsFilterViewOverlayComponent`.
-
-      handle_info({:assessment_points_filter_view_created, assessment_points_filter_view}, socket)
-
-  #### Assessment points filter view update success
-
-  Broadcasted to `"dashboard:profile_id"` from `LantternWeb.AssessmentPointsFilterViewOverlayComponent`.
-
-      handle_info({:assessment_points_filter_view_updated, assessment_points_filter_view}, socket)
-
-  """
-
   def handle_info(
-        {:assessment_points_filter_view_created, _assessment_points_filter_view},
+        {LantternWeb.DashboardLive.FilterViewFormComponent, {:created, filter_view}},
         socket
       ) do
     socket =
       socket
-      |> stream(
-        :assessment_points_filter_views,
-        list_filter_views(socket.assigns.current_user.current_profile_id),
-        reset: true
-      )
+      |> stream_insert(:filter_views, filter_view)
       |> put_flash(:info, "Assessment points filter view created.")
       |> update(:filter_view_count, fn count -> count + 1 end)
-      |> assign(:show_filter_view_overlay, false)
+      |> push_patch(to: ~p"/dashboard")
 
     {:noreply, socket}
   end
 
   def handle_info(
-        {:assessment_points_filter_view_updated, assessment_points_filter_view},
+        {LantternWeb.DashboardLive.FilterViewFormComponent, {:updated, filter_view}},
         socket
       ) do
     socket =
       socket
-      |> stream_insert(
-        :assessment_points_filter_views,
-        assessment_points_filter_view
-      )
+      |> stream_insert(:filter_views, filter_view)
       |> put_flash(:info, "Assessment points filter view updated.")
-      |> assign(:current_filter_view_id, false)
-      |> assign(:show_filter_view_overlay, false)
+      |> push_patch(to: ~p"/dashboard")
 
     {:noreply, socket}
-  end
-
-  # helpers
-
-  defp list_filter_views(profile_id) do
-    Explorer.list_assessment_points_filter_views(
-      profile_id: profile_id,
-      preloads: [:subjects, :classes]
-    )
   end
 end
