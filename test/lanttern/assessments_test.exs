@@ -55,7 +55,8 @@ defmodule Lanttern.AssessmentsTest do
         assessment_point_fixture(%{scale_id: scale.id})
         |> Map.put(:scale, scale)
 
-      assert Assessments.get_assessment_point!(assessment_point.id, :scale) == assessment_point
+      assert Assessments.get_assessment_point!(assessment_point.id, preloads: :scale) ==
+               assessment_point
     end
 
     test "create_assessment_point/1 with valid data creates a assessment point" do

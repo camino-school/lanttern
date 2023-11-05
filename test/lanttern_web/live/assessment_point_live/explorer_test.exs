@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmentPointsExplorerLiveTest do
+defmodule LantternWeb.AssessmentPointLive.ExplorerTest do
   use LantternWeb.ConnCase
 
   import Lanttern.AssessmentsFixtures

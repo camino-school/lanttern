@@ -1,4 +1,4 @@
-defmodule LantternWeb.FeedbackCommentFormComponentTest do
+defmodule LantternWeb.AssessmentPointLive.FeedbackCommentFormComponentTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.Repo
@@ -24,7 +24,7 @@ defmodule LantternWeb.FeedbackCommentFormComponentTest do
 
       # open overlay
       view
-      |> element("button", "Not completed yet")
+      |> element("a", "Not completed yet")
       |> render_click()
 
       # assert form is rendered in overlay
@@ -42,7 +42,7 @@ defmodule LantternWeb.FeedbackCommentFormComponentTest do
 
       # open overlay
       view
-      |> element("button", "Not completed yet")
+      |> element("a", "Not completed yet")
       |> render_click()
 
       # submit form
@@ -105,7 +105,7 @@ defmodule LantternWeb.FeedbackCommentFormComponentTest do
 
       # open overlay
       view
-      |> element("button", "Not completed yet")
+      |> element("a", "Not completed yet")
       |> render_click()
 
       # assert comment is rendered in overlay
@@ -135,7 +135,7 @@ defmodule LantternWeb.FeedbackCommentFormComponentTest do
 
       # open overlay
       view
-      |> element("button", "Not completed yet")
+      |> element("a", "Not completed yet")
       |> render_click()
 
       # click edit comment button
@@ -170,7 +170,7 @@ defmodule LantternWeb.FeedbackCommentFormComponentTest do
 
       # open overlay
       view
-      |> element("button", "Not completed yet")
+      |> element("a", "Not completed yet")
       |> render_click()
 
       # assert comment is rendered in overlay
@@ -193,7 +193,7 @@ defmodule LantternWeb.FeedbackCommentFormComponentTest do
 
       # open overlay
       view
-      |> element("button", "Not completed yet")
+      |> element("a", "Not completed yet")
       |> render_click()
 
       # assert comment is rendered

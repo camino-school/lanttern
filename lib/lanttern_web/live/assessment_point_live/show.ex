@@ -14,8 +14,15 @@ defmodule LantternWeb.AssessmentPointLive.Show do
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.Feedback
+  alias Lanttern.Conversation
+  alias Lanttern.Conversation.Comment
   alias Lanttern.Grading
   alias Lanttern.Schools.Student
+
+  alias LantternWeb.AssessmentPointLive.FeedbackFormComponent
+  alias LantternWeb.AssessmentPointLive.FeedbackCommentFormComponent
+
+  # render helpers and function components
 
   defp head_grid_cols_based_on_scale_type("numeric"),
     do: "grid-cols-[12rem_minmax(10px,_1fr)_minmax(10px,_2fr)_minmax(10px,_2fr)]"
@@ -82,7 +89,11 @@ defmodule LantternWeb.AssessmentPointLive.Show do
         <:marking_input />
         <:observation_input />
       </.live_component>
-      <.feedback_button feedback={@feedback} student_id={@student.id} />
+      <.feedback_button
+        feedback={@feedback}
+        student_id={@student.id}
+        assessment_point_id={@entry.assessment_point_id}
+      />
     </div>
     """
   end
@@ -100,11 +111,16 @@ defmodule LantternWeb.AssessmentPointLive.Show do
     do: "grid-cols-2"
 
   attr :feedback, :any, default: nil
-  attr :student_id, :string, required: true
+  attr :assessment_point_id, :any, required: true
+  attr :student_id, :any, required: true
 
   def feedback_button(%{feedback: %{completion_comment_id: nil}} = assigns) do
     ~H"""
-    <.feedback_button_base feedback={@feedback} student_id={@student_id}>
+    <.feedback_button_base
+      feedback={@feedback}
+      student_id={@student_id}
+      assessment_point_id={@assessment_point_id}
+    >
       <.icon name="hero-check-circle" class="shrink-0 w-6 h-6" />
       <span class="flex-1 block text-left">
         <span class="w-full text-ltrn-dark line-clamp-3">
@@ -119,7 +135,11 @@ defmodule LantternWeb.AssessmentPointLive.Show do
   def feedback_button(%{feedback: %{completion_comment_id: comment_id}} = assigns)
       when not is_nil(comment_id) do
     ~H"""
-    <.feedback_button_base feedback={@feedback} student_id={@student_id}>
+    <.feedback_button_base
+      feedback={@feedback}
+      student_id={@student_id}
+      assessment_point_id={@assessment_point_id}
+    >
       <.icon name="hero-check-circle" class="shrink-0 w-6 h-6 text-green-500" />
       <span class="flex-1 block text-left">
         <span class="w-full text-ltrn-dark line-clamp-3">
@@ -133,14 +153,19 @@ defmodule LantternWeb.AssessmentPointLive.Show do
 
   def feedback_button(%{feedback: nil} = assigns) do
     ~H"""
-    <.feedback_button_base feedback={@feedback} student_id={@student_id}>
+    <.feedback_button_base
+      feedback={@feedback}
+      student_id={@student_id}
+      assessment_point_id={@assessment_point_id}
+    >
       <.icon name="hero-x-circle" class="shrink-0 w-6 h-6" /> No feedback yet
     </.feedback_button_base>
     """
   end
 
   attr :feedback, :any, default: nil
-  attr :student_id, :string, required: true
+  attr :assessment_point_id, :any, required: true
+  attr :student_id, :any, required: true
   slot :inner_block, required: true
 
   def feedback_button_base(assigns) do
@@ -154,34 +179,57 @@ defmodule LantternWeb.AssessmentPointLive.Show do
       assign(assigns, feedback_id: feedback_id)
 
     ~H"""
-    <button
-      type="button"
+    <.link
       class={[
         "flex items-center gap-2 px-4 rounded-sm text-xs text-ltrn-subtle shadow-md",
         if(@feedback_id, do: "bg-white", else: "bg-ltrn-lighter")
       ]}
-      phx-click="open-feedback"
-      phx-value-feedbackid={@feedback_id}
-      phx-value-studentid={@student_id}
+      patch={~p"/assessment_points/#{@assessment_point_id}/student/#{@student_id}/feedback"}
     >
       <%= render_slot(@inner_block) %>
-    </button>
+    </.link>
+    """
+  end
+
+  attr :feedback, :any
+
+  def feedback_status(%{feedback: nil} = assigns) do
+    ~H"""
+    <.icon name="hero-x-circle" class="shrink-0 w-6 h-6 text-ltrn-subtle" />
+    <span class="text-ltrn-subtle">No feedback yet</span>
+    """
+  end
+
+  def feedback_status(%{feedback: %{completion_comment_id: nil}} = assigns) do
+    ~H"""
+    <.icon name="hero-check-circle" class="shrink-0 w-6 h-6 text-ltrn-subtle" />
+    <span class="text-ltrn-dark">Not completed yet</span>
+    """
+  end
+
+  def feedback_status(%{feedback: %{completion_comment_id: comment_id}} = assigns)
+      when not is_nil(comment_id) do
+    ~H"""
+    <.icon name="hero-check-circle" class="shrink-0 w-6 h-6 text-green-500" />
+    <span class="text-ltrn-dark">Completed</span>
     """
   end
 
   # lifecycle
 
-  def handle_params(%{"id" => id}, _uri, socket) do
+  def mount(%{"id" => id}, _session, socket) do
     if connected?(socket) do
       PubSub.subscribe(Lanttern.PubSub, "assessment_point:#{id}")
     end
 
     try do
-      Assessments.get_assessment_point!(id, [
-        :curriculum_item,
-        :scale,
-        :classes
-      ])
+      Assessments.get_assessment_point!(id,
+        preloads: [
+          :curriculum_item,
+          :scale,
+          :classes
+        ]
+      )
     rescue
       _ ->
         socket =
@@ -189,7 +237,7 @@ defmodule LantternWeb.AssessmentPointLive.Show do
           |> put_flash(:error, "Couldn't find assessment point")
           |> redirect(to: ~p"/assessment_points")
 
-        {:noreply, socket}
+        {:ok, socket}
     else
       assessment_point ->
         entries =
@@ -214,12 +262,68 @@ defmodule LantternWeb.AssessmentPointLive.Show do
           |> assign(:entries, entries)
           |> assign(:ordinal_values, ordinal_values)
           |> assign(:is_updating, false)
-          |> assign(:current_feedback_id, nil)
-          |> assign(:current_feedback_student, nil)
-          |> assign(:show_feedback, false)
 
-        {:noreply, socket}
+        {:ok, socket}
     end
+  end
+
+  def handle_params(params, _uri, socket) do
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+  defp apply_action(socket, :show, _params), do: socket
+
+  defp apply_action(socket, :feedback, %{"student_id" => student_id}) do
+    feedback =
+      socket.assigns.entries
+      |> Enum.find(&("#{&1.student.id}" == student_id))
+      |> Map.get(:feedback)
+      |> case do
+        nil ->
+          nil
+
+        feedback ->
+          Assessments.get_feedback!(feedback.id,
+            preloads: [:student, profile: :teacher]
+          )
+      end
+
+    student =
+      socket.assigns.entries
+      |> Enum.map(& &1.student)
+      |> Enum.find(&("#{&1.id}" == student_id))
+
+    profile_name =
+      case socket.assigns.current_user.current_profile.type do
+        "teacher" -> socket.assigns.current_user.current_profile.teacher.name
+        "student" -> socket.assigns.current_user.current_profile.student.name
+      end
+
+    feedback_author_name =
+      case feedback do
+        nil -> profile_name
+        feedback -> feedback.profile.teacher.name
+      end
+
+    comments =
+      case feedback do
+        nil ->
+          []
+
+        feedback ->
+          Conversation.list_comments(
+            feedback_id: feedback.id,
+            preloads: [:completed_feedback, profile: [:teacher, :student]]
+          )
+      end
+
+    socket
+    |> assign(:feedback, feedback)
+    |> assign(:student, student)
+    |> assign(:feedback_author_name, feedback_author_name)
+    |> assign(:profile_name, profile_name)
+    |> assign(:edit_comment_id, nil)
+    |> stream(:comments, comments)
   end
 
   # event handlers
@@ -232,37 +336,63 @@ defmodule LantternWeb.AssessmentPointLive.Show do
     {:noreply, assign(socket, :is_updating, false)}
   end
 
-  def handle_event("open-feedback", params, socket) do
-    feedback_id =
-      params
-      |> Map.get("feedbackid")
-      |> case do
-        nil -> nil
-        id -> String.to_integer(id)
-      end
-
-    student =
-      socket.assigns.entries
-      |> Enum.map(&Map.get(&1, :student))
-      |> Enum.find(fn s -> "#{s.id}" == params["studentid"] end)
+  def handle_event("edit_comment", %{"id" => id}, socket) do
+    comment =
+      Conversation.get_comment!(
+        id,
+        preloads: [:completed_feedback, profile: [:teacher, :student]]
+      )
 
     socket =
       socket
-      |> assign(:current_feedback_id, feedback_id)
-      |> assign(:current_feedback_student, student)
-      |> assign(:show_feedback, true)
+      |> assign(:edit_comment_id, id)
+      # we need this to force view update
+      |> stream_insert(:comments, comment)
 
     {:noreply, socket}
   end
 
-  def handle_event("close-feedback", _params, socket) do
-    socket =
-      socket
-      |> assign(:current_feedback_id, nil)
-      |> assign(:current_feedback_student, nil)
-      |> assign(:show_feedback, false)
+  def handle_event("delete_comment", %{"id" => id, "is_completion" => is_completion}, socket) do
+    case Conversation.delete_comment(%Comment{id: id}) do
+      {:ok, comment} ->
+        socket =
+          socket
+          |> update(:feedback, fn feedback ->
+            if is_completion do
+              feedback
+              |> Map.put(:completion_comment_id, nil)
+              |> Map.put(:completion_comment, nil)
+            else
+              feedback
+            end
+          end)
+          |> maybe_update_socket_entries({:feedback_comment_deleted, comment})
+          |> stream_delete(:comments, comment)
 
-    {:noreply, socket}
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{}} ->
+        # to do: where should we display this error?
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event("remove_complete", _params, socket) do
+    socket.assigns.feedback
+    |> Assessments.update_feedback(%{completion_comment_id: nil})
+    |> case do
+      {:ok, feedback} ->
+        socket =
+          socket
+          |> assign(:feedback, feedback)
+          |> update(:entries, &update_entries(&1, feedback))
+
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{}} ->
+        # to do: where should we display this error?
+        {:noreply, socket}
+    end
   end
 
   # info handlers
@@ -356,67 +486,80 @@ defmodule LantternWeb.AssessmentPointLive.Show do
     {:noreply, socket}
   end
 
-  def handle_info({:feedback_created, feedback}, socket) do
+  def handle_info({FeedbackFormComponent, {:created, feedback}}, socket) do
     socket =
       socket
       |> update(:entries, &update_entries(&1, feedback))
-      |> assign(:current_feedback_id, feedback.id)
-      |> assign(:current_feedback_student, feedback.student)
+      |> assign(:feedback, feedback)
 
     {:noreply, socket}
   end
 
-  def handle_info({:feedback_updated, feedback}, socket) do
+  def handle_info({FeedbackCommentFormComponent, {:created, comment}}, socket) do
     socket =
       socket
-      |> update(:entries, &update_entries(&1, feedback))
+      |> stream_insert(:comments, comment)
+      |> maybe_update_feedback(comment, socket.assigns.feedback)
+      |> maybe_update_socket_entries({:created, comment})
 
     {:noreply, socket}
   end
 
-  def handle_info({:feedback_comment_created, _comment} = msg, socket) do
-    send_comment_update_to_feedback_overlay(msg)
-
+  def handle_info({FeedbackCommentFormComponent, {:updated, comment}}, socket) do
     socket =
       socket
-      |> maybe_update_socket_entries(msg)
+      |> stream_insert(:comments, comment)
+      |> maybe_update_feedback(comment, socket.assigns.feedback)
+      |> maybe_update_socket_entries({:created, comment})
+      |> assign(:edit_comment_id, nil)
 
     {:noreply, socket}
   end
 
-  def handle_info({:feedback_comment_updated, _comment} = msg, socket) do
-    send_comment_update_to_feedback_overlay(msg)
-
+  def handle_info({FeedbackCommentFormComponent, {:cancel, comment}}, socket) do
     socket =
       socket
-      |> maybe_update_socket_entries(msg)
+      |> stream_insert(:comments, comment)
+      |> assign(:edit_comment_id, nil)
 
     {:noreply, socket}
   end
 
-  def handle_info({:feedback_comment_deleted, _comment} = msg, socket) do
-    send_comment_update_to_feedback_overlay(msg)
-
-    socket =
-      socket
-      |> maybe_update_socket_entries(msg)
-
-    {:noreply, socket}
-  end
-
-  defp send_comment_update_to_feedback_overlay({_key, _comment} = msg) do
-    send_update(
-      LantternWeb.FeedbackOverlayComponent,
-      id: "feedback-overlay",
-      action: msg
+  # comment was completing feedback, but completion was unchecked
+  defp maybe_update_feedback(
+         socket,
+         %{id: comment_id, completed_feedback: nil} = _comment,
+         %{completion_comment_id: completion_comment_id} = _feedback
+       )
+       when comment_id == completion_comment_id do
+    update(
+      socket,
+      :feedback,
+      &(&1
+        |> Map.put(:completion_comment_id, nil)
+        |> Map.put(:completion_comment, nil))
     )
   end
+
+  # comment is completing feedback
+  defp maybe_update_feedback(socket, %{completed_feedback: %Feedback{}} = comment, _feedback) do
+    update(
+      socket,
+      :feedback,
+      &(&1
+        |> Map.put(:completion_comment_id, comment.id)
+        |> Map.put(:completion_comment, comment))
+    )
+  end
+
+  # comment is not completion, and feedback is not completed
+  defp maybe_update_feedback(socket, _comment, _feedback), do: socket
 
   defp maybe_update_socket_entries(socket, {:feedback_comment_deleted, _comment}) do
     # check if there's some feedback that was
     # completed by the deleted comment, and
     # update it's completion_comment if needed
-    current_feedback_id = socket.assigns.current_feedback_id
+    current_feedback_id = socket.assigns.feedback.id
 
     socket
     |> update(

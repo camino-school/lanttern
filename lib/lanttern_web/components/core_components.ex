@@ -539,6 +539,26 @@ defmodule LantternWeb.CoreComponents do
     """
   end
 
+  attr :profile_name, :string, required: true
+  attr :class, :any, default: nil
+  attr :id, :string, default: nil
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  @doc """
+  Renders a block with a profile icon.
+  """
+  def user_icon_block(assigns) do
+    ~H"""
+    <div id={@id} class={["flex gap-4", @class]} {@rest}>
+      <.profile_icon profile_name={@profile_name} class="shrink-0" />
+      <div class="flex-1">
+        <%= render_slot(@inner_block) %>
+      </div>
+    </div>
+    """
+  end
+
   @doc """
   Renders a ping.
   """

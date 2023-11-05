@@ -48,9 +48,12 @@ defmodule Lanttern.Assessments do
 
   @doc """
   Gets a single assessment point.
-  Optionally preloads associated data.
 
   Raises `Ecto.NoResultsError` if the AssessmentPoint does not exist.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
 
   ## Examples
 
@@ -61,9 +64,10 @@ defmodule Lanttern.Assessments do
       ** (Ecto.NoResultsError)
 
   """
-  def get_assessment_point!(id, preloads \\ []) do
-    Repo.get!(AssessmentPoint, id)
-    |> Repo.preload(preloads)
+  def get_assessment_point!(id, opts \\ []) do
+    AssessmentPoint
+    |> Repo.get!(id)
+    |> maybe_preload(opts)
   end
 
   @doc """

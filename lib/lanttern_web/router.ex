@@ -52,7 +52,11 @@ defmodule LantternWeb.Router do
            :edit_filter_view
 
       live "/assessment_points", AssessmentPointLive.Explorer
-      live "/assessment_points/:id", AssessmentPointLive.Show
+      live "/assessment_points/:id", AssessmentPointLive.Show, :show
+
+      live "/assessment_points/:id/student/:student_id/feedback",
+           AssessmentPointLive.Show,
+           :feedback
 
       live "/rubrics", RubricsLive.Explorer, :index
       live "/rubrics/new", RubricsLive.Explorer, :new

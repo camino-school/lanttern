@@ -1,6 +1,7 @@
-defmodule LantternWeb.AssessmentPointLiveTest do
+defmodule LantternWeb.AssessmentPointLive.ShowTest do
   use LantternWeb.ConnCase
 
+  alias Lanttern.Repo
   alias Lanttern.AssessmentsFixtures
   alias Lanttern.ConversationFixtures
   alias Lanttern.CurriculaFixtures
@@ -8,6 +9,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
   alias Lanttern.SchoolsFixtures
 
   @live_view_path_base "/assessment_points"
+  @overlay_selector "#feedback-overlay"
 
   setup :register_and_log_in_user
 
@@ -111,9 +113,146 @@ defmodule LantternWeb.AssessmentPointLiveTest do
 
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
 
-      assert view |> has_element?("button", "No feedback yet")
-      assert view |> has_element?("button", "Not completed yet")
-      assert view |> has_element?("button", ~r/Completed [A-Z][a-z]{2} [0-9]{1,2}, [0-9]{4} 🎉/)
+      assert view |> has_element?("a", "No feedback yet")
+      assert view |> has_element?("a", "Not completed yet")
+      assert view |> has_element?("a", ~r/Completed [A-Z][a-z]{2} [0-9]{1,2}, [0-9]{4} 🎉/)
+    end
+  end
+
+  describe "Create new feedback in assessment points live view" do
+    setup :create_assessment_point_without_feedback
+
+    test "feedback overlay shows in live view", %{conn: conn, assessment_point: assessment_point} do
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
+
+      # confirms overlay is not rendered
+      refute view
+             |> element("#{@overlay_selector} h2", "Feedback")
+             |> has_element?()
+
+      # click link to render
+      view
+      |> element("a", "No feedback yet")
+      |> render_click()
+
+      # assert overlay is rendered
+      assert view
+             |> element("#{@overlay_selector} h2", "Feedback")
+             |> has_element?()
+    end
+
+    test "from/to is based on the current user", %{
+      conn: conn,
+      assessment_point: assessment_point,
+      user: user,
+      student: student
+    } do
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
+
+      # open overlay
+      view
+      |> element("a", "No feedback yet")
+      |> render_click()
+
+      # assert from/to is correct
+      {:ok, regex} =
+        Regex.compile("From.+#{user.current_profile.teacher.name}.+To.+#{student.name}", "s")
+
+      assert view
+             |> element("#{@overlay_selector}", regex)
+             |> has_element?()
+    end
+
+    defp create_assessment_point_without_feedback(_) do
+      assessment_point = AssessmentsFixtures.assessment_point_fixture()
+
+      # create assessment point entry to render the student row,
+      # which contains the feedback button
+      student = SchoolsFixtures.student_fixture()
+
+      _assessment_point_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point.id,
+          student_id: student.id
+        })
+
+      %{
+        assessment_point: assessment_point,
+        student: student
+      }
+    end
+  end
+
+  describe "Display existing feedback in assessment points live view" do
+    setup :create_assessment_point_with_feedback
+
+    test "feedback overlay shows in live view", %{conn: conn, assessment_point: assessment_point} do
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
+
+      # confirms overlay is not rendered
+      refute view
+             |> element("#{@overlay_selector} h2", "Feedback")
+             |> has_element?()
+
+      # click link to render
+      view
+      |> element("a", "Not completed yet")
+      |> render_click()
+
+      # assert overlay is rendered
+      assert view
+             |> element("#{@overlay_selector} h2", "Feedback")
+             |> has_element?()
+    end
+
+    test "from/to is based on the existing feedback", %{
+      conn: conn,
+      assessment_point: assessment_point,
+      teacher: teacher,
+      student: student
+    } do
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
+
+      # open overlay
+      view
+      |> element("a", "Not completed yet")
+      |> render_click()
+
+      # assert from/to is correct
+      {:ok, regex} =
+        Regex.compile("From.+#{teacher.name}.+To.+#{student.name}", "s")
+
+      assert view
+             |> element("#{@overlay_selector}", regex)
+             |> has_element?()
+    end
+
+    defp create_assessment_point_with_feedback(_) do
+      assessment_point = AssessmentsFixtures.assessment_point_fixture()
+      student = SchoolsFixtures.student_fixture()
+
+      # create assessment point entry to render the student row,
+      # which contains the feedback button
+
+      _assessment_point_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point.id,
+          student_id: student.id
+        })
+
+      feedback =
+        AssessmentsFixtures.feedback_fixture(%{
+          assessment_point_id: assessment_point.id,
+          student_id: student.id
+        })
+        |> Repo.preload(profile: :teacher)
+
+      %{
+        assessment_point: assessment_point,
+        student: student,
+        teacher: feedback.profile.teacher,
+        feedback: feedback
+      }
     end
   end
 

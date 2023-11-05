@@ -71,13 +71,156 @@
   id="update-assessment-point-overlay"
   assessment_point={@assessment_point}
 />
-<.live_component
-  module={LantternWeb.FeedbackOverlayComponent}
+<.slide_over
+  :if={@live_action == :feedback}
   id="feedback-overlay"
-  current_user={@current_user}
-  assessment_point={@assessment_point}
-  feedback_id={@current_feedback_id}
-  student={@current_feedback_student}
-  show={@show_feedback}
-  on_cancel={JS.push("close-feedback")}
-/>
+  show={true}
+  on_cancel={JS.patch(~p"/assessment_points/#{@assessment_point.id}")}
+>
+  <:title>Feedback</:title>
+  <div class="absolute top-4 right-4 flex items-center gap-2 text-xs">
+    <.feedback_status feedback={@feedback} />
+  </div>
+  <div class="mt-5 mb-10">
+    <div class="flex items-center gap-4 text-xs">
+      <.icon name="hero-users-mini" class="text-ltrn-subtle" />
+      <div class="flex items-center gap-1">
+        From
+        <.badge><%= @feedback_author_name %></.badge>
+      </div>
+      <div class="flex items-center gap-1">
+        To
+        <.badge><%= if @student, do: @student.name %></.badge>
+      </div>
+    </div>
+    <div class="flex items-center gap-4 mt-4 text-xs">
+      <.icon name="hero-bookmark-square-mini" class="text-ltrn-subtle" />
+      <div class="flex items-center gap-1">
+        In the context of
+        <.badge><%= @assessment_point.name %></.badge>
+      </div>
+    </div>
+  </div>
+  <.user_icon_block
+    :if={@feedback}
+    id={"feedback=#{@feedback.id}"}
+    profile_name={@feedback.profile.teacher.name}
+    phx-mounted={highlight_mounted()}
+  >
+    <span class="block mb-2 text-xs text-ltrn-subtle">
+      <%= format_local!(@feedback.inserted_at, "{Mshort} {D}, {YYYY}, {h24}:{m}") %>
+    </span>
+    <p class="text-sm">
+      <%= @feedback.comment %>
+    </p>
+  </.user_icon_block>
+  <.user_icon_block :if={!@feedback} profile_name={@profile_name}>
+    <.live_component
+      module={FeedbackFormComponent}
+      id={:new}
+      feedback={
+        %Feedback{
+          profile_id: @current_user.current_profile.id,
+          student_id: @student.id,
+          assessment_point_id: @assessment_point.id
+        }
+      }
+    />
+  </.user_icon_block>
+  <%= if @feedback do %>
+    <div id="feedback-comments2" phx-update="stream">
+      <.user_icon_block
+        :for={{dom_id, comment} <- @streams.comments}
+        id={dom_id}
+        profile_name={
+          if comment.profile.type == "teacher" do
+            comment.profile.teacher.name
+          else
+            comment.profile.student.name
+          end
+        }
+        class="mt-6"
+        phx-mounted={highlight_mounted()}
+        phx-remove={highlight_remove()}
+      >
+        <span class="flex items-center gap-4 mb-2 text-xs text-ltrn-subtle">
+          <%= format_local!(comment.inserted_at, "{Mshort} {D}, {YYYY}, {h24}:{m}") %>
+          <button
+            :if={comment.profile_id == @current_user.current_profile_id}
+            type="button"
+            class="underline"
+            phx-click={JS.push("edit_comment", value: %{id: comment.id})}
+          >
+            Edit
+          </button>
+          <button
+            :if={comment.profile_id == @current_user.current_profile_id}
+            type="button"
+            class="underline"
+            phx-click={
+              JS.push(
+                "delete_comment",
+                value: %{
+                  id: comment.id,
+                  is_completion: @feedback.completion_comment_id == comment.id
+                }
+              )
+            }
+            data-confirm="Are you sure?"
+          >
+            Delete
+          </button>
+        </span>
+        <%= if @edit_comment_id == comment.id do %>
+          <.live_component
+            module={FeedbackCommentFormComponent}
+            id={comment.id}
+            comment={
+              comment
+              |> Map.put(:feedback_id_for_completion, @feedback.id)
+            }
+            feedback={@feedback}
+          />
+        <% else %>
+          <div
+            :if={@feedback.completion_comment_id == comment.id}
+            class="flex items-center justify-between p-2 mb-2 text-white bg-green-500"
+            id={"#{dom_id}-completion"}
+          >
+            <div class="flex items-center gap-1">
+              <.icon name="hero-check-circle" class="shrink-0 w-6 h-6" />
+              <span class="font-display font-bold text-sm">Marked as complete 🎉</span>
+            </div>
+            <button
+              type="button"
+              class="shrink-0 opacity-50 hover:opacity-100 focus:opacity-100"
+              phx-click={
+                JS.hide(to: "##{dom_id}-completion")
+                |> JS.push("remove_complete")
+              }
+              data-confirm="Are you sure?"
+            >
+              <.icon name="hero-x-mark" class="w-6 h-6" />
+            </button>
+          </div>
+          <p class="text-sm">
+            <%= comment.comment %>
+          </p>
+        <% end %>
+      </.user_icon_block>
+    </div>
+    <.user_icon_block :if={@edit_comment_id == nil} profile_name={@profile_name} class="mt-10">
+      <.live_component
+        module={FeedbackCommentFormComponent}
+        id={:new}
+        comment={
+          %Comment{
+            profile_id: @current_user.current_profile.id,
+            feedback_id_for_completion: @feedback.id
+          }
+        }
+        feedback={@feedback}
+      />
+    </.user_icon_block>
+  <% end %>
+</.slide_over>

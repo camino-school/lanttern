@@ -341,6 +341,7 @@ defmodule LantternWeb.FormComponents do
         id={@id}
         class="peer block w-full border-0 bg-transparent p-4 placeholder:text-ltrn-subtle focus:ring-0"
         placeholder={@label}
+        {@rest}
       ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
       <div class={[
         "flex items-center justify-between gap-6 w-full p-2 border-t",

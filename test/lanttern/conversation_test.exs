@@ -25,6 +25,21 @@ defmodule Lanttern.ConversationTest do
       assert expected.profile.id == profile.id
     end
 
+    test "list_comments/1 with feedback_id and preloads returns all feedback comments with preloaded data" do
+      feedback = Lanttern.AssessmentsFixtures.feedback_fixture()
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      feedback_comment = feedback_comment_fixture(%{profile_id: profile.id}, feedback.id)
+
+      # other comments for filter testing
+      comment_fixture()
+      comment_fixture()
+
+      [expected] = Conversation.list_comments(preloads: :profile, feedback_id: feedback.id)
+
+      assert expected.id == feedback_comment.id
+      assert expected.profile.id == profile.id
+    end
+
     test "get_comment!/2 returns the comment with given id" do
       comment = comment_fixture()
       assert Conversation.get_comment!(comment.id) == comment

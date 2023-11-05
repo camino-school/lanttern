@@ -15,6 +15,10 @@ defmodule Lanttern.Conversation.Comment do
 
     belongs_to :profile, Lanttern.Identity.Profile
 
+    many_to_many :feedback, Lanttern.Assessments.Feedback,
+      join_through: "feedback_comments",
+      on_replace: :delete
+
     timestamps()
   end
 
@@ -39,7 +43,8 @@ defmodule Lanttern.Conversation.Comment do
   end
 
   defp handle_feedback_completion(true, changeset) do
-    feedback_id = get_change(changeset, :feedback_id_for_completion)
+    feedback_id =
+      get_field(changeset, :feedback_id_for_completion)
 
     case Repo.get(Lanttern.Assessments.Feedback, feedback_id) do
       nil ->

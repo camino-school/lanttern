@@ -272,7 +272,7 @@ defmodule LantternWeb.AssessmentPointCreateOverlayComponentTest do
 
       # assert created assessment point
       assert assessment_point =
-               Lanttern.Assessments.get_assessment_point!(id, [:entries, :classes])
+               Lanttern.Assessments.get_assessment_point!(id, preloads: [:entries, :classes])
 
       assert assessment_point.name == "some name"
       assert assessment_point.curriculum_item_id == curriculum_item.id
