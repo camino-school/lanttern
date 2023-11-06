@@ -363,6 +363,7 @@ defmodule LantternWeb.AssessmentPointLive.Details do
       socket
       |> assign(:rubric, nil)
       |> assign(:has_rubric_change, has_rubric_change)
+      |> assign(:is_creating_rubric, false)
 
     {:noreply, socket}
   end
@@ -382,6 +383,7 @@ defmodule LantternWeb.AssessmentPointLive.Details do
       socket
       |> assign(:rubric, Rubrics.get_full_rubric!(rubric_id))
       |> assign(:has_rubric_change, has_rubric_change)
+      |> assign(:is_creating_rubric, false)
 
     {:noreply, socket}
   end
@@ -398,6 +400,7 @@ defmodule LantternWeb.AssessmentPointLive.Details do
         socket =
           socket
           |> assign(:has_rubric_change, false)
+          |> assign(:is_creating_rubric, false)
           |> update(:assessment_point, &Map.put(&1, :rubric_id, rubric_id))
 
         {:noreply, socket}
@@ -510,6 +513,23 @@ defmodule LantternWeb.AssessmentPointLive.Details do
       |> assign(:feedback, feedback)
 
     {:noreply, socket}
+  end
+
+  def handle_info({LantternWeb.RubricsLive.FormComponent, {:created, rubric}}, socket) do
+    assessment_point = socket.assigns.assessment_point
+
+    assessment_point
+    |> Assessments.update_assessment_point(%{
+      rubric_id: rubric.id
+    })
+    |> case do
+      {:ok, _assessment_point} ->
+        {:noreply,
+         push_navigate(socket, to: ~p"/assessment_points/#{assessment_point.id}/rubrics")}
+
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, "Something went wrong")}
+    end
   end
 
   def handle_info({FeedbackCommentFormComponent, {:created, comment}}, socket) do

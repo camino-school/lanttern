@@ -120,9 +120,15 @@
       phx-change="assessment_point_rubric_selected"
       class="flex-1"
     />
-    <.button :if={@has_rubric_change} type="submit" class="shrink-0">Save</.button>
+    <.button
+      type="submit"
+      disabled={!@has_rubric_change || @is_creating_rubric}
+      class={["shrink-0", if(!@has_rubric_change || @is_creating_rubric, do: "hidden")]}
+    >
+      Save
+    </.button>
   </form>
-  <%= if @rubric do %>
+  <%= if @rubric && !@is_creating_rubric do %>
     <h4 class="mt-10 -mb-2 font-display font-black text-xl text-ltrn-subtle">Descriptors</h4>
     <div :for={descriptor <- @rubric.descriptors} class="mt-8">
       <%= if descriptor.scale_type == "ordinal" do %>
@@ -137,6 +143,20 @@
       <.markdown class="mt-2" text={descriptor.descriptor} />
     </div>
   <% end %>
+  <.live_component
+    :if={@is_creating_rubric}
+    module={LantternWeb.RubricsLive.FormComponent}
+    id={:new}
+    action={:new}
+    rubric={
+      %Lanttern.Rubrics.Rubric{
+        scale_id: @assessment_point.scale_id
+      }
+    }
+    hide_diff_and_scale
+    show_submit
+    class="mt-6"
+  />
 </.slide_over>
 <.slide_over
   :if={@live_action == :feedback}

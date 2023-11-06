@@ -14,14 +14,14 @@ defmodule LantternWeb.RubricsLive.FormComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div>
+    <div class={@class}>
       <.form for={@form} id="rubric-form" phx-target={@myself} phx-change="validate" phx-submit="save">
         <.input field={@form[:criteria]} type="text" label="Criteria" phx-debounce="1500" />
         <.input
           field={@form[:is_differentiation]}
           type="toggle"
           label="Is differentiation"
-          class="mt-6"
+          class={["mt-6", if(@hide_diff_and_scale, do: "hidden")]}
         />
         <.input
           field={@form[:scale_id]}
@@ -31,9 +31,12 @@ defmodule LantternWeb.RubricsLive.FormComponent do
           prompt="Select scale"
           phx-target={@myself}
           phx-change="scale_selected"
-          class="mt-6"
+          class={["mt-6", if(@hide_diff_and_scale, do: "hidden")]}
         />
         <.descriptors_fields scale={@scale} field={@form[:descriptors]} myself={@myself} />
+        <div class={["flex justify-end mt-6", if(!@show_submit, do: "hidden")]}>
+          <.button type="submit">Save</.button>
+        </div>
       </.form>
     </div>
     """
@@ -52,6 +55,7 @@ defmodule LantternWeb.RubricsLive.FormComponent do
   defp descriptors_fields(%{scale: %{type: "ordinal"}} = assigns) do
     ~H"""
     <h5 class="mt-10 font-display font-black text-ltrn-subtle">Descriptors</h5>
+    <.markdown_supported />
     <.inputs_for :let={ef} field={@field}>
       <.input type="hidden" field={ef[:scale_id]} />
       <.input type="hidden" field={ef[:scale_type]} />
@@ -71,6 +75,7 @@ defmodule LantternWeb.RubricsLive.FormComponent do
   defp descriptors_fields(%{scale: %{type: "numeric"}} = assigns) do
     ~H"""
     <h5 class="mt-10 font-display font-black text-ltrn-subtle">Descriptors</h5>
+    <.markdown_supported />
     <.inputs_for :let={ef} field={@field}>
       <div class="flex gap-6">
         <div class="flex-1">
@@ -96,6 +101,20 @@ defmodule LantternWeb.RubricsLive.FormComponent do
     <label class={[get_button_styles("ghost"), "mt-6"]}>
       <input type="checkbox" name="rubric[add_descriptor]" class="hidden" /> Add descriptor
     </label>
+    """
+  end
+
+  defp markdown_supported(assigns) do
+    ~H"""
+    <p class="mt-2 mb-6 text-sm text-ltrn-subtle">
+      <a
+        href="https://www.markdownguide.org/basic-syntax/"
+        target="_blank"
+        class="hover:text-ltrn-primary"
+      >
+        Markdown supported in descriptors <.icon name="hero-information-circle" />
+      </a>
+    </p>
     """
   end
 
@@ -133,18 +152,36 @@ defmodule LantternWeb.RubricsLive.FormComponent do
       socket
       |> assign(:scale_options, scale_options)
       |> assign(:scale, nil)
+      |> assign(:hide_diff_and_scale, false)
+      |> assign(:class, nil)
+      |> assign(:patch, nil)
+      |> assign(:show_submit, false)
 
     {:ok, socket}
   end
 
   @impl true
   def update(%{rubric: rubric} = assigns, socket) do
-    changeset = Rubrics.change_rubric(rubric)
-
     scale =
       case rubric.scale_id do
         nil -> nil
         scale_id -> Grading.get_scale!(scale_id, preloads: :ordinal_values)
+      end
+
+    changeset =
+      case {rubric.id, scale} do
+        {nil, nil} ->
+          Rubrics.change_rubric(rubric)
+
+        {nil, scale} ->
+          # if scale is selected and rubric is new, generate empty descriptors
+          Rubrics.change_rubric(
+            rubric,
+            %{"descriptors" => generate_new_descriptors(scale)}
+          )
+
+        _ ->
+          Rubrics.change_rubric(rubric)
       end
 
     {:ok,
@@ -178,30 +215,7 @@ defmodule LantternWeb.RubricsLive.FormComponent do
 
   def handle_event("scale_selected", %{"rubric" => %{"scale_id" => scale_id}}, socket) do
     scale = Grading.get_scale!(scale_id, preloads: :ordinal_values)
-
-    descriptors =
-      case scale.type do
-        "ordinal" ->
-          scale.ordinal_values
-          |> Enum.map(
-            &%{
-              scale_id: &1.scale_id,
-              scale_type: scale.type,
-              ordinal_value_id: &1.id,
-              descriptor: "—"
-            }
-          )
-
-        "numeric" ->
-          %{
-            "0" =>
-              blank_numeric_descriptor(scale)
-              |> Map.put("score", scale.start),
-            "1" =>
-              blank_numeric_descriptor(scale)
-              |> Map.put("score", scale.stop)
-          }
-      end
+    descriptors = generate_new_descriptors(scale)
 
     changeset =
       socket.assigns.rubric
@@ -275,6 +289,31 @@ defmodule LantternWeb.RubricsLive.FormComponent do
     save_rubric(socket, socket.assigns.action, rubric_params)
   end
 
+  defp generate_new_descriptors(scale) do
+    case scale.type do
+      "ordinal" ->
+        scale.ordinal_values
+        |> Enum.map(
+          &%{
+            scale_id: &1.scale_id,
+            scale_type: scale.type,
+            ordinal_value_id: &1.id,
+            descriptor: "—"
+          }
+        )
+
+      "numeric" ->
+        %{
+          "0" =>
+            blank_numeric_descriptor(scale)
+            |> Map.put("score", scale.start),
+          "1" =>
+            blank_numeric_descriptor(scale)
+            |> Map.put("score", scale.stop)
+        }
+    end
+  end
+
   defp blank_numeric_descriptor(scale) do
     %{
       "scale_id" => scale.id,
@@ -292,7 +331,7 @@ defmodule LantternWeb.RubricsLive.FormComponent do
         {:noreply,
          socket
          |> put_flash(:info, "Rubric updated successfully")
-         |> push_patch(to: socket.assigns.patch)}
+         |> maybe_push_patch(socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
@@ -307,12 +346,15 @@ defmodule LantternWeb.RubricsLive.FormComponent do
         {:noreply,
          socket
          |> put_flash(:info, "Rubric created successfully")
-         |> push_patch(to: socket.assigns.patch)}
+         |> maybe_push_patch(socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
     end
   end
+
+  defp maybe_push_patch(socket, nil), do: socket
+  defp maybe_push_patch(socket, patch_assign), do: push_patch(socket, to: patch_assign)
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     assign(socket, :form, to_form(changeset))
