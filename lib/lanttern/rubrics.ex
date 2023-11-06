@@ -17,6 +17,8 @@ defmodule Lanttern.Rubrics do
   ### Options:
 
   `:preloads` – preloads associated data
+  `:is_differentiation` – filter results by differentiation flag
+  `:scale_id` – filter results by scale
 
   ## Examples
 
@@ -25,8 +27,37 @@ defmodule Lanttern.Rubrics do
 
   """
   def list_rubrics(opts \\ []) do
-    Repo.all(Rubric)
+    Rubric
+    |> maybe_filter_by_differentiation_flag(opts)
+    |> maybe_filter_by_scale(opts)
+    |> Repo.all()
     |> maybe_preload(opts)
+  end
+
+  defp maybe_filter_by_differentiation_flag(rubrics_query, opts) do
+    case Keyword.get(opts, :is_differentiation) do
+      nil ->
+        rubrics_query
+
+      is_differentiation ->
+        from(
+          r in rubrics_query,
+          where: r.is_differentiation == ^is_differentiation
+        )
+    end
+  end
+
+  defp maybe_filter_by_scale(rubrics_query, opts) do
+    case Keyword.get(opts, :scale_id) do
+      nil ->
+        rubrics_query
+
+      scale_id ->
+        from(
+          r in rubrics_query,
+          where: r.scale_id == ^scale_id
+        )
+    end
   end
 
   @doc """

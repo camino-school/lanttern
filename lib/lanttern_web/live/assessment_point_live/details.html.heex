@@ -42,7 +42,11 @@
         class={get_badge_button_styles()}
         patch={~p"/assessment_points/#{@assessment_point.id}/rubrics"}
       >
-        Add rubrics <.icon name="hero-plus-circle-mini" class={get_badge_icon_styles()} />
+        <%= if @assessment_point.rubric_id do %>
+          View rubrics <.icon name="hero-eye-mini" class={get_badge_icon_styles()} />
+        <% else %>
+          Add rubrics <.icon name="hero-plus-circle-mini" class={get_badge_icon_styles()} />
+        <% end %>
       </.link>
     </.icon_and_content>
     <.icon_and_content :if={length(@assessment_point.classes) > 0} icon_name="hero-squares-2x2">
@@ -106,7 +110,31 @@
   on_cancel={JS.patch(~p"/assessment_points/#{@assessment_point.id}")}
 >
   <:title>Assessment point rubrics</:title>
-  TBD
+  <form id="assessment-point-rubric-form">
+    <.input
+      field={@assessment_point_rubric_form[:rubric_id]}
+      type="select"
+      label="Rubric"
+      options={@rubric_options}
+      prompt="Create new"
+      phx-change="assessment_point_rubric_selected"
+    />
+  </form>
+  <%= if @rubric do %>
+    <h4 class="mt-10 -mb-2 font-display font-black text-xl text-ltrn-subtle">Descriptors</h4>
+    <div :for={descriptor <- @rubric.descriptors} class="mt-8">
+      <%= if descriptor.scale_type == "ordinal" do %>
+        <.badge style_from_ordinal_value={descriptor.ordinal_value}>
+          <%= descriptor.ordinal_value.name %>
+        </.badge>
+      <% else %>
+        <.badge>
+          <%= descriptor.score %>
+        </.badge>
+      <% end %>
+      <.markdown class="mt-2" text={descriptor.descriptor} />
+    </div>
+  <% end %>
 </.slide_over>
 <.slide_over
   :if={@live_action == :feedback}

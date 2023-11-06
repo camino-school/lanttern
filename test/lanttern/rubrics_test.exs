@@ -25,6 +25,18 @@ defmodule Lanttern.RubricsTest do
       assert expected.scale.id == scale.id
     end
 
+    test "list_rubrics/1 with scale_id and is_differentiation opts returns all rubrics filtered" do
+      scale = GradingFixtures.scale_fixture()
+
+      rubric = rubric_fixture(%{scale_id: scale.id, is_differentiation: true})
+
+      # extra rubrics for filtering test
+      rubric_fixture(%{scale_id: scale.id, is_differentiation: false})
+      rubric_fixture(%{is_differentiation: true})
+
+      assert [rubric] == Rubrics.list_rubrics(scale_id: scale.id, is_differentiation: true)
+    end
+
     test "list_full_rubrics/0 returns all rubrics with descriptors preloaded and ordered correctly" do
       scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
       ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})

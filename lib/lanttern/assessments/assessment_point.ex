@@ -22,6 +22,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
 
     belongs_to :curriculum_item, Lanttern.Curricula.CurriculumItem
     belongs_to :scale, Lanttern.Grading.Scale
+    belongs_to :rubric, Lanttern.Rubrics.Rubric
 
     has_many :entries, Lanttern.Assessments.AssessmentPointEntry
     has_many :feedbacks, Lanttern.Assessments.Feedback
@@ -50,6 +51,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       :description,
       :curriculum_item_id,
       :scale_id,
+      :rubric_id,
       :classes_ids,
       :students_ids
     ])
@@ -71,6 +73,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       :description,
       :curriculum_item_id,
       :scale_id,
+      :rubric_id,
       :classes_ids
     ])
     |> validate_required([:name, :curriculum_item_id, :scale_id])

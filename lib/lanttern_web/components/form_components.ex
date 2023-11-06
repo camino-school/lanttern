@@ -160,7 +160,7 @@ defmodule LantternWeb.FormComponents do
       <.label
         for={@id}
         show_optional={@show_optional}
-        custom={if @custom_label, do: true, else: false}
+        custom={if @custom_label == [], do: false, else: true}
       >
         <%= @label || render_slot(@custom_label) %>
       </.label>
@@ -184,7 +184,7 @@ defmodule LantternWeb.FormComponents do
       <.label
         for={@id}
         show_optional={@show_optional}
-        custom={if @custom_label, do: true, else: false}
+        custom={if @custom_label == [], do: false, else: true}
       >
         <%= @label || render_slot(@custom_label) %>
       </.label>
@@ -201,7 +201,7 @@ defmodule LantternWeb.FormComponents do
       <.label
         for={@id}
         show_optional={@show_optional}
-        custom={if @custom_label, do: true, else: false}
+        custom={if @custom_label == [], do: false, else: true}
       >
         <%= @label || render_slot(@custom_label) %>
       </.label>
