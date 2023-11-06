@@ -205,6 +205,73 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Renders a badge button.
+
+  ## Examples
+
+      <.badge_button>Send!</.badge_button>
+      <.badge_button phx-click="go" class="ml-2">Send!</.badge_button>
+  """
+  attr :id, :string, default: nil
+  attr :type, :string, default: "button"
+  attr :class, :any, default: nil
+  attr :theme, :string, default: "default", doc: "default | ghost"
+  attr :icon_name, :string, default: nil
+  attr :rest, :global, include: ~w(disabled form name value)
+
+  slot :inner_block, required: true
+
+  def badge_button(assigns) do
+    ~H"""
+    <button
+      id={@id}
+      type={@type}
+      class={[
+        get_badge_button_styles(@theme),
+        @class
+      ]}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+      <%= if @icon_name do %>
+        <.icon name={@icon_name} class={["w-3.5 h-3.5", badge_icon_theme(@theme)]} />
+      <% end %>
+    </button>
+    """
+  end
+
+  @doc """
+  Returns a list of badge button styles.
+
+  Meant to be used while styling links as badge buttons.
+
+  ## Examples
+
+      <.link patch={~p"/somepath"} class={[get_badge_button_styles()]}>Link</.link>
+  """
+  def get_badge_button_styles(theme \\ "default") do
+    [
+      "inline-flex items-center gap-1 rounded-full px-2 py-1 font-mono text-xs shadow",
+      badge_theme(theme, true)
+    ]
+  end
+
+  @doc """
+  Returns a list of badge icon styles.
+
+  Meant to be used with `get_badge_button_styles/1`.
+
+  ## Examples
+
+      <.link patch={~p"/somepath"} class={get_badge_button_styles()}>
+        Link
+        <.icon name="hero-plus-mini" class={get_badge_icon_styles()} />
+      </.link>
+  """
+  def get_badge_icon_styles(theme \\ "default"),
+    do: ["w-3.5 h-3.5", badge_icon_theme(theme)]
+
+  @doc """
   Renders a header with title.
   """
   attr :class, :any, default: nil
@@ -421,7 +488,7 @@ defmodule LantternWeb.CoreComponents do
     <span
       id={@id}
       class={[
-        "inline-flex items-center rounded-sm px-2 py-1 font-mono text-xs",
+        "inline-flex items-center rounded-sm px-1 py-1 font-mono text-xs",
         badge_theme(@theme),
         @class
       ]}
@@ -431,7 +498,7 @@ defmodule LantternWeb.CoreComponents do
       <button
         :if={@show_remove}
         type="button"
-        class="group relative ml-1 -mr-1 h-3.5 w-3.5 rounded-[1px] hover:bg-ltrn-subtle/20"
+        class="group relative ml-1 h-3.5 w-3.5 rounded-[1px] hover:bg-ltrn-subtle/20"
         {@rest}
       >
         <span class="sr-only">Remove</span>
@@ -442,14 +509,30 @@ defmodule LantternWeb.CoreComponents do
     """
   end
 
-  defp badge_theme(theme) do
+  defp badge_theme(theme, with_hover \\ false) do
     %{
-      "default" => "bg-ltrn-lightest text-ltrn-dark",
-      "secondary" => "bg-ltrn-secondary text-white",
-      "cyan" => "bg-ltrn-mesh-cyan text-ltrn-dark",
-      "dark" => "bg-ltrn-dark text-ltrn-lighter"
+      "default" =>
+        "bg-ltrn-lightest text-ltrn-dark #{if with_hover, do: "hover:bg-ltrn-lightest/50"}",
+      "secondary" =>
+        "bg-ltrn-secondary text-white #{if with_hover, do: "hover:bg-ltrn-secondary/50"}",
+      "cyan" =>
+        "bg-ltrn-mesh-cyan text-ltrn-dark #{if with_hover, do: "hover:bg-ltrn-mesh-cyan/50"}",
+      "dark" => "bg-ltrn-dark text-ltrn-lighter #{if with_hover, do: "hover:bg-ltrn-dark/50"}"
     }
-    |> Map.get(theme, "bg-ltrn-lightest text-ltrn-dark")
+    |> Map.get(
+      theme,
+      "bg-ltrn-lightest text-ltrn-dark #{if with_hover, do: "hover:bg-ltrn-lightest/50"}"
+    )
+  end
+
+  defp badge_icon_theme(theme) do
+    %{
+      "default" => "text-ltrn-subtle",
+      "secondary" => "text-white",
+      "cyan" => "text-ltrn-subtle",
+      "dark" => "text-ltrn-lighter"
+    }
+    |> Map.get(theme, "text-ltrn-subtle")
   end
 
   @doc """

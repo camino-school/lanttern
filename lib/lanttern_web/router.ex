@@ -56,6 +56,7 @@ defmodule LantternWeb.Router do
 
       live "/assessment_points/:id", AssessmentPointLive.Details, :show
       live "/assessment_points/:id/edit", AssessmentPointLive.Details, :edit
+      live "/assessment_points/:id/rubrics", AssessmentPointLive.Details, :rubrics
 
       live "/assessment_points/:id/student/:student_id/feedback",
            AssessmentPointLive.Details,

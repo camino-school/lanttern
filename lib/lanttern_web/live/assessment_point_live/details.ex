@@ -1,12 +1,4 @@
 defmodule LantternWeb.AssessmentPointLive.Details do
-  @moduledoc """
-  ### PubSub subscription topics
-
-  - "assessment_point:id" on `handle_params`
-
-  Expected broadcasted messages in `handle_info/2` documentation.
-  """
-
   use LantternWeb, :live_view
   alias Phoenix.PubSub
 
@@ -37,10 +29,8 @@ defmodule LantternWeb.AssessmentPointLive.Details do
 
   def icon_and_content(assigns) do
     ~H"""
-    <div class="flex items-center mt-10">
-      <.icon name={@icon_name} class="shrink-0 text-ltrn-secondary mr-4" /> <%= render_slot(
-        @inner_block
-      ) %>
+    <div class="flex items-center gap-4 mt-10">
+      <.icon name={@icon_name} class="shrink-0 text-ltrn-secondary" /> <%= render_slot(@inner_block) %>
     </div>
     """
   end
