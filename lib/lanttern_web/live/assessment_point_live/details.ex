@@ -267,26 +267,34 @@ defmodule LantternWeb.AssessmentPointLive.Details do
   end
 
   defp apply_action(socket, :rubrics, _params) do
-    rubric =
-      case socket.assigns.assessment_point.rubric_id do
-        nil -> nil
-        rubric_id -> Rubrics.get_full_rubric!(rubric_id)
+    %{
+      rubric_id: rubric_id,
+      scale_id: scale_id
+    } = socket.assigns.assessment_point
+
+    {rubric, is_creating} =
+      case rubric_id do
+        nil -> {nil, true}
+        rubric_id -> {Rubrics.get_full_rubric!(rubric_id), false}
       end
 
     rubric_options =
-      generate_rubric_options(
-        is_differentiation: false,
-        scale_id: socket.assigns.assessment_point.scale_id
-      )
+      [
+        {"Create new rubric", "new"}
+        | generate_rubric_options(
+            is_differentiation: false,
+            scale_id: scale_id
+          )
+      ]
 
     assessment_point_rubric_form =
-      %{
-        "rubric_id" => socket.assigns.assessment_point.rubric_id
-      }
+      %{"rubric_id" => rubric_id}
       |> to_form()
 
     socket
     |> assign(:rubric, rubric)
+    |> assign(:is_creating_rubric, is_creating)
+    |> assign(:has_rubric_change, false)
     |> assign(:rubric_options, rubric_options)
     |> assign(:assessment_point_rubric_form, assessment_point_rubric_form)
   end
@@ -349,30 +357,47 @@ defmodule LantternWeb.AssessmentPointLive.Details do
   # event handlers
 
   def handle_event("assessment_point_rubric_selected", %{"rubric_id" => ""}, socket) do
-    case Assessments.update_assessment_point(socket.assigns.assessment_point, %{
-           rubric_id: nil
-         }) do
-      {:ok, _assessment_point} ->
-        socket =
-          socket
-          |> assign(:rubric, nil)
-          |> update(:assessment_point, &Map.put(&1, :rubric_id, nil))
+    has_rubric_change = socket.assigns.assessment_point.rubric_id != nil
 
-        {:noreply, socket}
+    socket =
+      socket
+      |> assign(:rubric, nil)
+      |> assign(:has_rubric_change, has_rubric_change)
 
-      {:error, _changeset} ->
-        {:noreply, put_flash(socket, :error, "Something went wrong")}
-    end
+    {:noreply, socket}
+  end
+
+  def handle_event("assessment_point_rubric_selected", %{"rubric_id" => "new"}, socket) do
+    socket =
+      socket
+      |> assign(:is_creating_rubric, true)
+
+    {:noreply, socket}
   end
 
   def handle_event("assessment_point_rubric_selected", %{"rubric_id" => rubric_id}, socket) do
-    case Assessments.update_assessment_point(socket.assigns.assessment_point, %{
-           rubric_id: rubric_id
-         }) do
+    has_rubric_change = rubric_id != "#{socket.assigns.assessment_point.rubric_id}"
+
+    socket =
+      socket
+      |> assign(:rubric, Rubrics.get_full_rubric!(rubric_id))
+      |> assign(:has_rubric_change, has_rubric_change)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("save_rubric", %{"rubric_id" => rubric_id}, socket) do
+    rubric_id = if rubric_id == "", do: nil, else: rubric_id
+
+    socket.assigns.assessment_point
+    |> Assessments.update_assessment_point(%{
+      rubric_id: rubric_id
+    })
+    |> case do
       {:ok, _assessment_point} ->
         socket =
           socket
-          |> assign(:rubric, Rubrics.get_full_rubric!(rubric_id))
+          |> assign(:has_rubric_change, false)
           |> update(:assessment_point, &Map.put(&1, :rubric_id, rubric_id))
 
         {:noreply, socket}

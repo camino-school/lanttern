@@ -110,15 +110,17 @@
   on_cancel={JS.patch(~p"/assessment_points/#{@assessment_point.id}")}
 >
   <:title>Assessment point rubrics</:title>
-  <form id="assessment-point-rubric-form">
+  <form id="assessment-point-rubric-form" class="flex items-end gap-2" phx-submit="save_rubric">
     <.input
       field={@assessment_point_rubric_form[:rubric_id]}
       type="select"
       label="Rubric"
       options={@rubric_options}
-      prompt="Create new"
+      prompt="No rubric"
       phx-change="assessment_point_rubric_selected"
+      class="flex-1"
     />
+    <.button :if={@has_rubric_change} type="submit" class="shrink-0">Save</.button>
   </form>
   <%= if @rubric do %>
     <h4 class="mt-10 -mb-2 font-display font-black text-xl text-ltrn-subtle">Descriptors</h4>
