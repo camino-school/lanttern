@@ -572,6 +572,8 @@ defmodule LantternWeb.CoreComponents do
   Renders a profile icon.
   """
   attr :profile_name, :string, required: true
+  attr :size, :string, default: "normal", doc: "xs | sm | normal"
+  attr :theme, :string, default: "cyan", doc: "cyan | subtle"
   attr :class, :any, default: nil
   attr :rest, :global
 
@@ -579,7 +581,9 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div
       class={[
-        "flex items-center justify-center w-10 h-10 rounded-full font-display text-sm font-bold text-center bg-cyan-50 shadow-md",
+        "flex items-center justify-center rounded-full font-display font-bold text-center  shadow-md",
+        profile_icon_size_style(@size),
+        profile_icon_theme_style(@theme),
         @class
       ]}
       title={@profile_name}
@@ -589,6 +593,13 @@ defmodule LantternWeb.CoreComponents do
     </div>
     """
   end
+
+  defp profile_icon_size_style("xs"), do: "w-6 h-6 text-xs"
+  defp profile_icon_size_style("sm"), do: "w-8 h-8 text-xs"
+  defp profile_icon_size_style(_normal), do: "w-10 h-10 text-sm"
+
+  defp profile_icon_theme_style("subtle"), do: "text-ltrn-subtle bg-ltrn-lighter"
+  defp profile_icon_theme_style(_cyan), do: "text-ltrn-dark bg-ltrn-mesh-primary"
 
   defp profile_icon_initials(full_name) do
     case String.split(full_name, ~r{\s}, trim: true) do
