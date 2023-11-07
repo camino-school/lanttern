@@ -1,9 +1,7 @@
 defmodule LantternWeb.AssessmentPointLive.Details do
   use LantternWeb, :live_view
-  alias Phoenix.PubSub
 
   import LantternWeb.DateTimeHelpers
-  import LantternWeb.RubricsHelpers
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPointEntry
@@ -11,11 +9,11 @@ defmodule LantternWeb.AssessmentPointLive.Details do
   alias Lanttern.Conversation
   alias Lanttern.Conversation.Comment
   alias Lanttern.Grading
-  alias Lanttern.Rubrics
   alias Lanttern.Schools.Student
 
   alias LantternWeb.AssessmentPointLive.AssessmentPointEntryEditorComponent
   alias LantternWeb.AssessmentPointLive.AssessmentPointUpdateFormComponent
+  alias LantternWeb.AssessmentPointLive.RubricsOverlayComponent
   alias LantternWeb.AssessmentPointLive.FeedbackFormComponent
   alias LantternWeb.AssessmentPointLive.FeedbackCommentFormComponent
 
@@ -213,10 +211,6 @@ defmodule LantternWeb.AssessmentPointLive.Details do
   # lifecycle
 
   def mount(%{"id" => id}, _session, socket) do
-    if connected?(socket) do
-      PubSub.subscribe(Lanttern.PubSub, "assessment_point:#{id}")
-    end
-
     try do
       Assessments.get_assessment_point!(id,
         preloads: [
@@ -264,39 +258,6 @@ defmodule LantternWeb.AssessmentPointLive.Details do
 
   def handle_params(params, _uri, socket) do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
-  end
-
-  defp apply_action(socket, :rubrics, _params) do
-    %{
-      rubric_id: rubric_id,
-      scale_id: scale_id
-    } = socket.assigns.assessment_point
-
-    rubric =
-      case rubric_id do
-        nil -> nil
-        rubric_id -> Rubrics.get_full_rubric!(rubric_id)
-      end
-
-    rubric_options =
-      [
-        {"Create new rubric", "new"}
-        | generate_rubric_options(
-            is_differentiation: false,
-            scale_id: scale_id
-          )
-      ]
-
-    assessment_point_rubric_form =
-      %{"rubric_id" => rubric_id}
-      |> to_form()
-
-    socket
-    |> assign(:rubric, rubric)
-    |> assign(:is_creating_rubric, false)
-    |> assign(:has_rubric_change, false)
-    |> assign(:rubric_options, rubric_options)
-    |> assign(:assessment_point_rubric_form, assessment_point_rubric_form)
   end
 
   defp apply_action(socket, :feedback, %{"student_id" => student_id}) do
@@ -352,63 +313,9 @@ defmodule LantternWeb.AssessmentPointLive.Details do
     |> stream(:comments, comments)
   end
 
-  defp apply_action(socket, _show_or_edit, _params), do: socket
+  defp apply_action(socket, _live_action, _params), do: socket
 
   # event handlers
-
-  def handle_event("assessment_point_rubric_selected", %{"rubric_id" => ""}, socket) do
-    has_rubric_change = socket.assigns.assessment_point.rubric_id != nil
-
-    socket =
-      socket
-      |> assign(:rubric, nil)
-      |> assign(:has_rubric_change, has_rubric_change)
-      |> assign(:is_creating_rubric, false)
-
-    {:noreply, socket}
-  end
-
-  def handle_event("assessment_point_rubric_selected", %{"rubric_id" => "new"}, socket) do
-    socket =
-      socket
-      |> assign(:is_creating_rubric, true)
-
-    {:noreply, socket}
-  end
-
-  def handle_event("assessment_point_rubric_selected", %{"rubric_id" => rubric_id}, socket) do
-    has_rubric_change = rubric_id != "#{socket.assigns.assessment_point.rubric_id}"
-
-    socket =
-      socket
-      |> assign(:rubric, Rubrics.get_full_rubric!(rubric_id))
-      |> assign(:has_rubric_change, has_rubric_change)
-      |> assign(:is_creating_rubric, false)
-
-    {:noreply, socket}
-  end
-
-  def handle_event("save_rubric", %{"rubric_id" => rubric_id}, socket) do
-    rubric_id = if rubric_id == "", do: nil, else: rubric_id
-
-    socket.assigns.assessment_point
-    |> Assessments.update_assessment_point(%{
-      rubric_id: rubric_id
-    })
-    |> case do
-      {:ok, _assessment_point} ->
-        socket =
-          socket
-          |> assign(:has_rubric_change, false)
-          |> assign(:is_creating_rubric, false)
-          |> update(:assessment_point, &Map.put(&1, :rubric_id, rubric_id))
-
-        {:noreply, socket}
-
-      {:error, _changeset} ->
-        {:noreply, put_flash(socket, :error, "Something went wrong")}
-    end
-  end
 
   def handle_event("edit_comment", %{"id" => id}, socket) do
     comment =
@@ -506,6 +413,21 @@ defmodule LantternWeb.AssessmentPointLive.Details do
     {:noreply, socket}
   end
 
+  def handle_info({RubricsOverlayComponent, {:rubric_linked, rubric_id}}, socket) do
+    {:noreply, update(socket, :assessment_point, &Map.put(&1, :rubric_id, rubric_id))}
+  end
+
+  def handle_info({RubricsOverlayComponent, {:new_rubric_linked, _rubric_id}}, socket) do
+    {:noreply,
+     push_navigate(socket,
+       to: ~p"/assessment_points/#{socket.assigns.assessment_point.id}/rubrics"
+     )}
+  end
+
+  def handle_info({RubricsOverlayComponent, {:error, error_msg}}, socket) do
+    {:noreply, put_flash(socket, :error, error_msg)}
+  end
+
   def handle_info({FeedbackFormComponent, {:created, feedback}}, socket) do
     socket =
       socket
@@ -513,23 +435,6 @@ defmodule LantternWeb.AssessmentPointLive.Details do
       |> assign(:feedback, feedback)
 
     {:noreply, socket}
-  end
-
-  def handle_info({LantternWeb.RubricsLive.FormComponent, {:created, rubric}}, socket) do
-    assessment_point = socket.assigns.assessment_point
-
-    assessment_point
-    |> Assessments.update_assessment_point(%{
-      rubric_id: rubric.id
-    })
-    |> case do
-      {:ok, _assessment_point} ->
-        {:noreply,
-         push_navigate(socket, to: ~p"/assessment_points/#{assessment_point.id}/rubrics")}
-
-      {:error, _changeset} ->
-        {:noreply, put_flash(socket, :error, "Something went wrong")}
-    end
   end
 
   def handle_info({FeedbackCommentFormComponent, {:created, comment}}, socket) do

@@ -156,6 +156,7 @@ defmodule LantternWeb.RubricsLive.FormComponent do
       |> assign(:class, nil)
       |> assign(:patch, nil)
       |> assign(:show_submit, false)
+      |> assign(:notify_parent, true)
 
     {:ok, socket}
   end
@@ -326,7 +327,7 @@ defmodule LantternWeb.RubricsLive.FormComponent do
   defp save_rubric(socket, :edit, rubric_params) do
     case Rubrics.update_rubric(socket.assigns.rubric, rubric_params, preloads: :scale) do
       {:ok, rubric} ->
-        notify_parent({:updated, rubric})
+        notify(socket.assigns, {:updated, rubric})
 
         {:noreply,
          socket
@@ -341,7 +342,7 @@ defmodule LantternWeb.RubricsLive.FormComponent do
   defp save_rubric(socket, :new, rubric_params) do
     case Rubrics.create_rubric(rubric_params, preloads: :scale) do
       {:ok, rubric} ->
-        notify_parent({:created, rubric})
+        notify(socket.assigns, {:created, rubric})
 
         {:noreply,
          socket
@@ -360,5 +361,18 @@ defmodule LantternWeb.RubricsLive.FormComponent do
     assign(socket, :form, to_form(changeset))
   end
 
-  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+  defp notify(assigns, msg) do
+    maybe_notify_parent(assigns, msg)
+    maybe_notify_component(assigns, msg)
+  end
+
+  defp maybe_notify_parent(%{notify_parent: true}, msg), do: send(self(), {__MODULE__, msg})
+
+  defp maybe_notify_parent(_assigns, _msg), do: nil
+
+  defp maybe_notify_component(%{notify_component: %Phoenix.LiveComponent.CID{} = cid}, msg) do
+    send_update(cid, action: {__MODULE__, msg})
+  end
+
+  defp maybe_notify_component(_assigns, _msg), do: nil
 end

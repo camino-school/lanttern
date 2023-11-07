@@ -103,62 +103,12 @@
     </.button>
   </:actions>
 </.slide_over>
-<.slide_over
+<.live_component
   :if={@live_action == :rubrics}
-  id="rubrics-overlay"
-  show={true}
-  on_cancel={JS.patch(~p"/assessment_points/#{@assessment_point.id}")}
->
-  <:title>Assessment point rubrics</:title>
-  <form id="assessment-point-rubric-form" class="flex items-end gap-2" phx-submit="save_rubric">
-    <.input
-      field={@assessment_point_rubric_form[:rubric_id]}
-      type="select"
-      label="Rubric"
-      options={@rubric_options}
-      prompt="No rubric"
-      phx-change="assessment_point_rubric_selected"
-      class="flex-1"
-    />
-    <.button
-      type="submit"
-      disabled={!@has_rubric_change || @is_creating_rubric}
-      class={["shrink-0", if(!@has_rubric_change || @is_creating_rubric, do: "hidden")]}
-    >
-      Save
-    </.button>
-  </form>
-  <%= if @rubric && !@is_creating_rubric do %>
-    <h4 class="mt-10 -mb-2 font-display font-black text-xl text-ltrn-subtle">Descriptors</h4>
-    <div :for={descriptor <- @rubric.descriptors} class="mt-8">
-      <%= if descriptor.scale_type == "ordinal" do %>
-        <.badge style_from_ordinal_value={descriptor.ordinal_value}>
-          <%= descriptor.ordinal_value.name %>
-        </.badge>
-      <% else %>
-        <.badge>
-          <%= descriptor.score %>
-        </.badge>
-      <% end %>
-      <.markdown class="mt-2" text={descriptor.descriptor} />
-    </div>
-  <% end %>
-  <.live_component
-    :if={@is_creating_rubric}
-    module={LantternWeb.RubricsLive.FormComponent}
-    id={:new}
-    action={:new}
-    rubric={
-      %Lanttern.Rubrics.Rubric{
-        scale_id: @assessment_point.scale_id,
-        is_differentiation: false
-      }
-    }
-    hide_diff_and_scale
-    show_submit
-    class="mt-6"
-  />
-</.slide_over>
+  module={RubricsOverlayComponent}
+  id={@assessment_point.id}
+  assessment_point={@assessment_point}
+/>
 <.slide_over
   :if={@live_action == :feedback}
   id="feedback-overlay"
