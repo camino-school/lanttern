@@ -272,10 +272,10 @@ defmodule LantternWeb.AssessmentPointLive.Details do
       scale_id: scale_id
     } = socket.assigns.assessment_point
 
-    {rubric, is_creating} =
+    rubric =
       case rubric_id do
-        nil -> {nil, true}
-        rubric_id -> {Rubrics.get_full_rubric!(rubric_id), false}
+        nil -> nil
+        rubric_id -> Rubrics.get_full_rubric!(rubric_id)
       end
 
     rubric_options =
@@ -293,7 +293,7 @@ defmodule LantternWeb.AssessmentPointLive.Details do
 
     socket
     |> assign(:rubric, rubric)
-    |> assign(:is_creating_rubric, is_creating)
+    |> assign(:is_creating_rubric, false)
     |> assign(:has_rubric_change, false)
     |> assign(:rubric_options, rubric_options)
     |> assign(:assessment_point_rubric_form, assessment_point_rubric_form)

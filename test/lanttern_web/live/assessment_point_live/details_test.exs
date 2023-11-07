@@ -92,6 +92,141 @@ defmodule LantternWeb.AssessmentPointLive.DetailsTest do
     end
   end
 
+  describe "Assessment point details rubrics" do
+    test "rubrics overlay shows in live view", %{conn: conn} do
+      assessment_point = AssessmentsFixtures.assessment_point_fixture()
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
+
+      # confirms overlay is not rendered
+      refute view
+             |> element("h2", "Assessment point rubrics")
+             |> has_element?()
+
+      # click button to render
+      view
+      |> element("a", "Add rubrics")
+      |> render_click()
+
+      # assert overlay is rendered
+      assert_patch(view)
+
+      assert view
+             |> element("#rubrics-overlay h2", "Assessment point rubrics")
+             |> has_element?()
+    end
+
+    test "rubrics descriptors show in overlay", %{conn: conn} do
+      scale = Lanttern.GradingFixtures.scale_fixture(%{type: "numeric"})
+      rubric = Lanttern.RubricsFixtures.rubric_fixture(%{scale_id: scale.id})
+
+      descriptor =
+        Lanttern.RubricsFixtures.rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          score: 50
+        })
+
+      assessment_point =
+        AssessmentsFixtures.assessment_point_fixture(%{rubric_id: rubric.id, scale_id: scale.id})
+
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}/rubrics")
+
+      assert view
+             |> element("#rubrics-overlay p", descriptor.descriptor)
+             |> has_element?()
+    end
+
+    test "link assessment point to existing rubric in overlay", %{conn: conn} do
+      scale = Lanttern.GradingFixtures.scale_fixture(%{type: "numeric"})
+      rubric = Lanttern.RubricsFixtures.rubric_fixture(%{scale_id: scale.id})
+
+      descriptor =
+        Lanttern.RubricsFixtures.rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          score: 50
+        })
+
+      assessment_point =
+        AssessmentsFixtures.assessment_point_fixture(%{scale_id: scale.id})
+
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}/rubrics")
+
+      view
+      |> element("#assessment-point-rubric-form select#rubric_id")
+      |> render_change(%{"rubric_id" => rubric.id})
+
+      view
+      |> element("#assessment-point-rubric-form")
+      |> render_submit(%{
+        "rubric_id" => rubric.id
+      })
+
+      assert view
+             |> element("#rubrics-overlay p", descriptor.descriptor)
+             |> has_element?()
+
+      # assert in DB
+      expected = Repo.get(Lanttern.Assessments.AssessmentPoint, assessment_point.id)
+      assert expected.rubric_id == rubric.id
+    end
+
+    test "create and link rubric to assessment point in overlay", %{conn: conn} do
+      scale = Lanttern.GradingFixtures.scale_fixture(%{type: "numeric"})
+
+      assessment_point =
+        AssessmentsFixtures.assessment_point_fixture(%{scale_id: scale.id})
+
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}/rubrics")
+
+      view
+      |> element("#assessment-point-rubric-form select#rubric_id")
+      |> render_change(%{"rubric_id" => "new"})
+
+      view
+      |> element("#rubric-form")
+      |> render_submit(%{
+        "rubric" => %{
+          "criteria" => "new rubric abc",
+          "scale_id" => scale.id,
+          "is_differentiation" => false,
+          "descriptors" => %{
+            "0" => %{
+              "scale_id" => scale.id,
+              "scale_type" => scale.type,
+              "score" => 0.0,
+              "descriptor" => "0 descriptor abc"
+            },
+            "1" => %{
+              "scale_id" => scale.id,
+              "scale_type" => scale.type,
+              "score" => 100.0,
+              "descriptor" => "100 descriptor abc"
+            }
+          }
+        }
+      })
+
+      {path, _flash} = assert_redirect(view)
+
+      {:ok, view, _html} = live(conn, path)
+
+      assert view
+             |> element("#rubrics-overlay p", "0 descriptor abc")
+             |> has_element?()
+
+      assert view
+             |> element("#rubrics-overlay p", "100 descriptor abc")
+             |> has_element?()
+
+      # assert in DB
+      expected = Repo.get(Lanttern.Assessments.AssessmentPoint, assessment_point.id)
+      assert expected.rubric_id != nil
+    end
+  end
+
   describe "Assessment point details live view feedback" do
     test "feedback buttons display", %{conn: conn} do
       assessment_point = AssessmentsFixtures.assessment_point_fixture()
