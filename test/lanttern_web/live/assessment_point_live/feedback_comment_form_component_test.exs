@@ -66,7 +66,8 @@ defmodule LantternWeb.AssessmentPointLive.FeedbackCommentFormComponentTest do
   end
 
   defp create_assessment_point_with_feedback(_) do
-    assessment_point = AssessmentsFixtures.assessment_point_fixture()
+    scale = Lanttern.GradingFixtures.scale_fixture()
+    assessment_point = AssessmentsFixtures.assessment_point_fixture(%{scale_id: scale.id})
     student = SchoolsFixtures.student_fixture()
 
     # create assessment point entry to render the student row,
@@ -75,7 +76,9 @@ defmodule LantternWeb.AssessmentPointLive.FeedbackCommentFormComponentTest do
     _assessment_point_entry =
       AssessmentsFixtures.assessment_point_entry_fixture(%{
         assessment_point_id: assessment_point.id,
-        student_id: student.id
+        student_id: student.id,
+        scale_id: scale.id,
+        scale_type: scale.type
       })
 
     feedback =

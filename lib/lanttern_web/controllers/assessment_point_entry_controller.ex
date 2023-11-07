@@ -27,6 +27,22 @@ defmodule LantternWeb.AssessmentPointEntryController do
   end
 
   def create(conn, %{"assessment_point_entry" => assessment_point_entry_params}) do
+    scale =
+      case Map.get(assessment_point_entry_params, "assessment_point_id") do
+        nil ->
+          nil
+
+        assessment_point_id ->
+          assessment_point_id
+          |> Assessments.get_assessment_point!(preloads: :scale)
+          |> Map.get(:scale)
+      end
+
+    assessment_point_entry_params =
+      assessment_point_entry_params
+      |> Map.put("scale_id", scale && scale.id)
+      |> Map.put("scale_type", scale && scale.type)
+
     case Assessments.create_assessment_point_entry(assessment_point_entry_params) do
       {:ok, assessment_point_entry} ->
         conn

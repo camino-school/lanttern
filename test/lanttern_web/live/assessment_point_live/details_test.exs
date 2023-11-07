@@ -229,7 +229,8 @@ defmodule LantternWeb.AssessmentPointLive.DetailsTest do
 
   describe "Assessment point details live view feedback" do
     test "feedback buttons display", %{conn: conn} do
-      assessment_point = AssessmentsFixtures.assessment_point_fixture()
+      scale = Lanttern.GradingFixtures.scale_fixture()
+      assessment_point = AssessmentsFixtures.assessment_point_fixture(%{scale_id: scale.id})
 
       std_no_feedback = SchoolsFixtures.student_fixture()
       std_incomplete_feedback = SchoolsFixtures.student_fixture()
@@ -238,19 +239,25 @@ defmodule LantternWeb.AssessmentPointLive.DetailsTest do
       _entry_no_feedback =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           assessment_point_id: assessment_point.id,
-          student_id: std_no_feedback.id
+          student_id: std_no_feedback.id,
+          scale_id: scale.id,
+          scale_type: scale.type
         })
 
       _entry_incomplete_feedback =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           assessment_point_id: assessment_point.id,
-          student_id: std_incomplete_feedback.id
+          student_id: std_incomplete_feedback.id,
+          scale_id: scale.id,
+          scale_type: scale.type
         })
 
       _entry_completed_feedback =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           assessment_point_id: assessment_point.id,
-          student_id: std_completed_feedback.id
+          student_id: std_completed_feedback.id,
+          scale_id: scale.id,
+          scale_type: scale.type
         })
 
       _incomplete_feedback =
@@ -319,7 +326,8 @@ defmodule LantternWeb.AssessmentPointLive.DetailsTest do
     end
 
     defp create_assessment_point_without_feedback(_) do
-      assessment_point = AssessmentsFixtures.assessment_point_fixture()
+      scale = Lanttern.GradingFixtures.scale_fixture()
+      assessment_point = AssessmentsFixtures.assessment_point_fixture(%{scale_id: scale.id})
 
       # create assessment point entry to render the student row,
       # which contains the feedback button
@@ -328,7 +336,9 @@ defmodule LantternWeb.AssessmentPointLive.DetailsTest do
       _assessment_point_entry =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           assessment_point_id: assessment_point.id,
-          student_id: student.id
+          student_id: student.id,
+          scale_id: scale.id,
+          scale_type: scale.type
         })
 
       %{
@@ -383,7 +393,8 @@ defmodule LantternWeb.AssessmentPointLive.DetailsTest do
     end
 
     defp create_assessment_point_with_feedback(_) do
-      assessment_point = AssessmentsFixtures.assessment_point_fixture()
+      scale = Lanttern.GradingFixtures.scale_fixture()
+      assessment_point = AssessmentsFixtures.assessment_point_fixture(%{scale_id: scale.id})
       student = SchoolsFixtures.student_fixture()
 
       # create assessment point entry to render the student row,
@@ -392,7 +403,9 @@ defmodule LantternWeb.AssessmentPointLive.DetailsTest do
       _assessment_point_entry =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           assessment_point_id: assessment_point.id,
-          student_id: student.id
+          student_id: student.id,
+          scale_id: scale.id,
+          scale_type: scale.type
         })
 
       feedback =

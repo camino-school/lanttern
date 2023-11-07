@@ -224,13 +224,16 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "list_assessment_point_entries/1 with opts returns entries as expected" do
-      assessment_point = assessment_point_fixture()
+      scale = Lanttern.GradingFixtures.scale_fixture()
+      assessment_point = assessment_point_fixture(%{scale_id: scale.id})
       student_1 = Lanttern.SchoolsFixtures.student_fixture()
 
       entry_1 =
         assessment_point_entry_fixture(%{
           assessment_point_id: assessment_point.id,
-          student_id: student_1.id
+          student_id: student_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type
         })
 
       student_2 = Lanttern.SchoolsFixtures.student_fixture()
@@ -238,7 +241,9 @@ defmodule Lanttern.AssessmentsTest do
       entry_2 =
         assessment_point_entry_fixture(%{
           assessment_point_id: assessment_point.id,
-          student_id: student_2.id
+          student_id: student_2.id,
+          scale_id: scale.id,
+          scale_type: scale.type
         })
 
       # extra entry for filtering validation
@@ -262,7 +267,8 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "list_assessment_point_entries/1 with load_feedback returns entries with related feedback (+completion comment)" do
-      assessment_point = assessment_point_fixture()
+      scale = Lanttern.GradingFixtures.scale_fixture()
+      assessment_point = assessment_point_fixture(%{scale_id: scale.id})
       student = Lanttern.SchoolsFixtures.student_fixture()
 
       comment =
@@ -278,7 +284,9 @@ defmodule Lanttern.AssessmentsTest do
       entry =
         assessment_point_entry_fixture(%{
           assessment_point_id: assessment_point.id,
-          student_id: student.id
+          student_id: student.id,
+          scale_id: scale.id,
+          scale_type: scale.type
         })
 
       [expected] = Assessments.list_assessment_point_entries(load_feedback: true)
@@ -296,13 +304,16 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "create_assessment_point_entry/1 with valid data creates a assessment_point_entry" do
-      assessment_point = assessment_point_fixture()
+      scale = Lanttern.GradingFixtures.scale_fixture()
+      assessment_point = assessment_point_fixture(%{scale_id: scale.id})
       student = Lanttern.SchoolsFixtures.student_fixture()
 
       valid_attrs = %{
         assessment_point_id: assessment_point.id,
         student_id: student.id,
-        observation: "some observation"
+        observation: "some observation",
+        scale_id: scale.id,
+        scale_type: scale.type
       }
 
       assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
@@ -322,7 +333,9 @@ defmodule Lanttern.AssessmentsTest do
         assessment_point_id: assessment_point.id,
         student_id: student.id,
         observation: "some observation",
-        score: 0.5
+        score: 0.5,
+        scale_id: scale.id,
+        scale_type: scale.type
       }
 
       assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
@@ -342,7 +355,9 @@ defmodule Lanttern.AssessmentsTest do
         assessment_point_id: assessment_point.id,
         student_id: student.id,
         observation: "some observation",
-        ordinal_value_id: ordinal_value.id
+        ordinal_value_id: ordinal_value.id,
+        scale_id: scale.id,
+        scale_type: scale.type
       }
 
       assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
@@ -451,10 +466,12 @@ defmodule Lanttern.AssessmentsTest do
       std_2 = student_fixture(%{name: "BBB"})
       std_3 = student_fixture(%{name: "CCC"})
 
+      scale = Lanttern.GradingFixtures.scale_fixture()
+
       # and by assessment point datetime
-      ast_1 = assessment_point_fixture(%{datetime: ~U[2023-08-01 15:30:00Z]})
-      ast_2 = assessment_point_fixture(%{datetime: ~U[2023-08-02 15:30:00Z]})
-      ast_3 = assessment_point_fixture(%{datetime: ~U[2023-08-03 15:30:00Z]})
+      ast_1 = assessment_point_fixture(%{scale_id: scale.id, datetime: ~U[2023-08-01 15:30:00Z]})
+      ast_2 = assessment_point_fixture(%{scale_id: scale.id, datetime: ~U[2023-08-02 15:30:00Z]})
+      ast_3 = assessment_point_fixture(%{scale_id: scale.id, datetime: ~U[2023-08-03 15:30:00Z]})
 
       #       ast_1 ast_2 ast_3
       # std_1  [x]   [ ]   [x]
@@ -462,22 +479,52 @@ defmodule Lanttern.AssessmentsTest do
       # std_3  [x]   [ ]   [x]
 
       std_1_ast_1 =
-        assessment_point_entry_fixture(%{student_id: std_1.id, assessment_point_id: ast_1.id})
+        assessment_point_entry_fixture(%{
+          student_id: std_1.id,
+          assessment_point_id: ast_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
 
       std_1_ast_3 =
-        assessment_point_entry_fixture(%{student_id: std_1.id, assessment_point_id: ast_3.id})
+        assessment_point_entry_fixture(%{
+          student_id: std_1.id,
+          assessment_point_id: ast_3.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
 
       std_2_ast_2 =
-        assessment_point_entry_fixture(%{student_id: std_2.id, assessment_point_id: ast_2.id})
+        assessment_point_entry_fixture(%{
+          student_id: std_2.id,
+          assessment_point_id: ast_2.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
 
       std_2_ast_3 =
-        assessment_point_entry_fixture(%{student_id: std_2.id, assessment_point_id: ast_3.id})
+        assessment_point_entry_fixture(%{
+          student_id: std_2.id,
+          assessment_point_id: ast_3.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
 
       std_3_ast_1 =
-        assessment_point_entry_fixture(%{student_id: std_3.id, assessment_point_id: ast_1.id})
+        assessment_point_entry_fixture(%{
+          student_id: std_3.id,
+          assessment_point_id: ast_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
 
       std_3_ast_3 =
-        assessment_point_entry_fixture(%{student_id: std_3.id, assessment_point_id: ast_3.id})
+        assessment_point_entry_fixture(%{
+          student_id: std_3.id,
+          assessment_point_id: ast_3.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
 
       %{
         assessment_points: assessment_points,
@@ -506,39 +553,94 @@ defmodule Lanttern.AssessmentsTest do
       std_2 = student_fixture(%{name: "BBB"})
       std_3 = student_fixture(%{name: "CCC", classes_ids: [class.id]})
 
+      scale = Lanttern.GradingFixtures.scale_fixture()
+
       ast_1 =
-        assessment_point_fixture(%{datetime: ~U[2023-08-01 15:30:00Z], classes_ids: [class.id]})
+        assessment_point_fixture(%{
+          scale_id: scale.id,
+          datetime: ~U[2023-08-01 15:30:00Z],
+          classes_ids: [class.id]
+        })
 
       ast_2 =
-        assessment_point_fixture(%{datetime: ~U[2023-08-02 15:30:00Z], classes_ids: [class.id]})
+        assessment_point_fixture(%{
+          scale_id: scale.id,
+          datetime: ~U[2023-08-02 15:30:00Z],
+          classes_ids: [class.id]
+        })
 
       ast_3 =
-        assessment_point_fixture(%{datetime: ~U[2023-08-03 15:30:00Z], classes_ids: [class.id]})
+        assessment_point_fixture(%{
+          scale_id: scale.id,
+          datetime: ~U[2023-08-03 15:30:00Z],
+          classes_ids: [class.id]
+        })
 
       std_1_ast_1 =
-        assessment_point_entry_fixture(%{student_id: std_1.id, assessment_point_id: ast_1.id})
+        assessment_point_entry_fixture(%{
+          student_id: std_1.id,
+          assessment_point_id: ast_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
 
       std_1_ast_2 =
-        assessment_point_entry_fixture(%{student_id: std_1.id, assessment_point_id: ast_2.id})
+        assessment_point_entry_fixture(%{
+          student_id: std_1.id,
+          assessment_point_id: ast_2.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
 
       std_1_ast_3 =
-        assessment_point_entry_fixture(%{student_id: std_1.id, assessment_point_id: ast_3.id})
+        assessment_point_entry_fixture(%{
+          student_id: std_1.id,
+          assessment_point_id: ast_3.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
 
       std_2_ast_1 =
-        assessment_point_entry_fixture(%{student_id: std_2.id, assessment_point_id: ast_1.id})
+        assessment_point_entry_fixture(%{
+          student_id: std_2.id,
+          assessment_point_id: ast_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
 
       std_2_ast_2 =
-        assessment_point_entry_fixture(%{student_id: std_2.id, assessment_point_id: ast_2.id})
+        assessment_point_entry_fixture(%{
+          student_id: std_2.id,
+          assessment_point_id: ast_2.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
 
       std_3_ast_3 =
-        assessment_point_entry_fixture(%{student_id: std_3.id, assessment_point_id: ast_3.id})
+        assessment_point_entry_fixture(%{
+          student_id: std_3.id,
+          assessment_point_id: ast_3.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
 
       # extra student and assessment points for filter test
       not_std = student_fixture(%{name: "ZZZ"})
       not_ast = assessment_point_fixture(%{datetime: ~U[2023-08-04 15:30:00Z]})
 
-      assessment_point_entry_fixture(%{student_id: not_std.id, assessment_point_id: not_ast.id})
-      assessment_point_entry_fixture(%{student_id: std_3.id, assessment_point_id: not_ast.id})
+      assessment_point_entry_fixture(%{
+        student_id: not_std.id,
+        assessment_point_id: not_ast.id,
+        scale_id: scale.id,
+        scale_type: scale.type
+      })
+
+      assessment_point_entry_fixture(%{
+        student_id: std_3.id,
+        assessment_point_id: not_ast.id,
+        scale_id: scale.id,
+        scale_type: scale.type
+      })
 
       %{
         assessment_points: assessment_points,
@@ -581,30 +683,57 @@ defmodule Lanttern.AssessmentsTest do
       std_1 = student_fixture(%{name: "AAA"})
       std_2 = student_fixture(%{name: "BBB"})
 
+      scale = Lanttern.GradingFixtures.scale_fixture()
+
       ast_1 =
         assessment_point_fixture(%{
           datetime: ~U[2023-08-01 15:30:00Z],
-          curriculum_item_id: curriculum_item.id
+          curriculum_item_id: curriculum_item.id,
+          scale_id: scale.id
         })
 
       ast_2 =
         assessment_point_fixture(%{
           datetime: ~U[2023-08-02 15:30:00Z],
-          curriculum_item_id: curriculum_item.id
+          curriculum_item_id: curriculum_item.id,
+          scale_id: scale.id
         })
 
       std_1_ast_1 =
-        assessment_point_entry_fixture(%{student_id: std_1.id, assessment_point_id: ast_1.id})
+        assessment_point_entry_fixture(%{
+          student_id: std_1.id,
+          assessment_point_id: ast_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
 
       std_2_ast_2 =
-        assessment_point_entry_fixture(%{student_id: std_2.id, assessment_point_id: ast_2.id})
+        assessment_point_entry_fixture(%{
+          student_id: std_2.id,
+          assessment_point_id: ast_2.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
 
       # extra student and assessment points for filter test
       not_std = student_fixture(%{name: "ZZZ"})
-      not_ast = assessment_point_fixture(%{datetime: ~U[2023-08-04 15:30:00Z]})
 
-      assessment_point_entry_fixture(%{student_id: not_std.id, assessment_point_id: not_ast.id})
-      assessment_point_entry_fixture(%{student_id: std_2.id, assessment_point_id: not_ast.id})
+      not_ast =
+        assessment_point_fixture(%{datetime: ~U[2023-08-04 15:30:00Z], scale_id: scale.id})
+
+      assessment_point_entry_fixture(%{
+        student_id: not_std.id,
+        assessment_point_id: not_ast.id,
+        scale_id: scale.id,
+        scale_type: scale.type
+      })
+
+      assessment_point_entry_fixture(%{
+        student_id: std_2.id,
+        assessment_point_id: not_ast.id,
+        scale_id: scale.id,
+        scale_type: scale.type
+      })
 
       %{
         assessment_points: assessment_points,

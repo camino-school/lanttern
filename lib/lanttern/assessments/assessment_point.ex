@@ -156,10 +156,22 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     |> put_assoc(:classes, classes)
   end
 
-  defp cast_entries(%{changes: %{students_ids: students_ids}} = changeset) do
+  defp cast_entries(%{valid?: true, changes: %{students_ids: students_ids}} = changeset) do
+    scale =
+      get_field(changeset, :scale_id)
+      |> Lanttern.Grading.get_scale!()
+
     entries_params =
       %{
-        entries: Enum.map(students_ids, &%{student_id: &1})
+        entries:
+          Enum.map(
+            students_ids,
+            &%{
+              student_id: &1,
+              scale_id: scale.id,
+              scale_type: scale.type
+            }
+          )
       }
 
     changeset

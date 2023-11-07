@@ -44,7 +44,8 @@ defmodule Lanttern.AssessmentsFixtures do
   end
 
   def assessment_point_entry_fixture(attrs) do
-    assessment_point = assessment_point_fixture()
+    scale = Lanttern.GradingFixtures.scale_fixture()
+    assessment_point = assessment_point_fixture(%{scale_id: scale.id})
     student = Lanttern.SchoolsFixtures.student_fixture()
 
     {:ok, assessment_point_entry} =
@@ -54,7 +55,9 @@ defmodule Lanttern.AssessmentsFixtures do
         student_id: student.id,
         observation: "some observation",
         score: nil,
-        ordinal_value_id: nil
+        ordinal_value_id: nil,
+        scale_id: scale.id,
+        scale_type: scale.type
       })
       |> Lanttern.Assessments.create_assessment_point_entry()
 
