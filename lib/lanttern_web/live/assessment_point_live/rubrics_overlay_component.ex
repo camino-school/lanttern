@@ -6,6 +6,7 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
   alias Lanttern.Rubrics
   alias Lanttern.Rubrics.Rubric
   alias LantternWeb.RubricsLive.FormComponent, as: RubricsFormComponent
+  alias LantternWeb.AssessmentPointLive.DifferentiationRubricComponent
 
   def render(assigns) do
     ~H"""
@@ -63,58 +64,25 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
             <h4 class="-mb-2 font-display font-black text-xl text-ltrn-subtle">Descriptors</h4>
             <.rubric_descriptors descriptors={@rubric.descriptors} class="mt-8" />
           </section>
-          <section :if={!@has_rubric_change} class="pb-10 mt-10">
+          <section :if={!@has_rubric_change} id="differentiation-rubrics-section" class="pb-10 mt-10">
             <h4 class="-mb-2 font-display font-black text-xl text-ltrn-subtle">Differentiation</h4>
             <div role="tablist" class="flex items-center gap-2 mt-6">
               <.person_tab
                 :for={entry <- @entries}
-                aria-controls={"student-#{entry.student.id}-differentiation-panel"}
+                aria-controls={"entry-#{entry.id}-differentiation-panel"}
                 person={entry.student}
-                is_current={entry.student.id == @current_student_id}
-                phx-click={JS.push("select_student", value: %{id: entry.student.id})}
-                phx-target={@myself}
+                container_selector="#differentiation-rubrics-section"
+                theme={if entry.differentiation_rubric_id != nil, do: "cyan", else: "subtle"}
               />
             </div>
-            <div
+            <.live_component
               :for={entry <- @entries}
-              id={"student-#{entry.student.id}-differentiation-panel"}
-              role="tabpanel"
-              class={["mt-6", if(@current_student_id != entry.student.id, do: "hidden")]}
-            >
-              <form
-                id={"student-#{entry.student.id}-rubric-form"}
-                class="flex items-end gap-2"
-                phx-submit="save_differentiation_rubric"
-                phx-target={@myself}
-              >
-                <.input
-                  field={@students_rubric_forms["#{entry.student.id}"][:rubric_id]}
-                  type="select"
-                  label="Rubric"
-                  options={@diff_rubric_options}
-                  prompt="No differentiation rubric"
-                  phx-change="differentiation_rubric_selected"
-                  phx-target={@myself}
-                  class="flex-1"
-                />
-                <%!-- <.button
-                  type="submit"
-                  disabled={!@has_rubric_change || @is_creating_rubric}
-                  class={["shrink-0", if(!@has_rubric_change || @is_creating_rubric, do: "hidden")]}
-                >
-                  Save
-                </.button> --%>
-              </form>
-              <section :if={@students_rubrics["#{entry.student.id}"]} class="mt-8">
-                <h5 class="-mb-2 font-display font-black text-lg text-ltrn-subtle">
-                  Differentiation descriptors
-                </h5>
-                <.rubric_descriptors
-                  descriptors={@students_rubrics["#{entry.student.id}"].descriptors}
-                  class="mt-6"
-                />
-              </section>
-            </div>
+              module={DifferentiationRubricComponent}
+              id={"entry-#{entry.id}"}
+              entry={entry}
+              rubric_options={@diff_rubric_options}
+              notify_component={@myself}
+            />
           </section>
         <% end %>
       </.slide_over>
@@ -153,7 +121,7 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
      |> assign(:has_rubric_change, false)}
   end
 
-  def update(%{assessment_point: assessment_point, entries: entries} = assigns, socket) do
+  def update(%{assessment_point: assessment_point} = assigns, socket) do
     rubric =
       case assessment_point.rubric_id do
         nil -> nil
@@ -182,48 +150,13 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
       %{"rubric_id" => assessment_point.rubric_id}
       |> to_form()
 
-    current_student_id =
-      case entries do
-        [] -> nil
-        [entry | _rest] -> entry.student.id
-      end
-
-    students_rubric_forms =
-      entries
-      |> Enum.map(fn entry ->
-        {
-          "#{entry.student.id}",
-          to_form(%{"rubric_id" => entry.differentiation_rubric_id})
-        }
-      end)
-      |> Enum.into(%{})
-
-    # this map is n+1, but for now it's ok.
-    # in real life, the number of differentiation rubrics
-    # per assessment point shouldn't be that big
-    students_rubrics =
-      entries
-      |> Enum.map(fn entry ->
-        {
-          "#{entry.student.id}",
-          case entry.differentiation_rubric_id do
-            nil -> nil
-            id -> Rubrics.get_full_rubric!(id)
-          end
-        }
-      end)
-      |> Enum.into(%{})
-
     {:ok,
      socket
      |> assign(assigns)
      |> assign(:rubric, rubric)
      |> assign(:rubric_options, rubric_options)
      |> assign(:diff_rubric_options, diff_rubric_options)
-     |> assign(:assessment_point_rubric_form, assessment_point_rubric_form)
-     |> assign(:students_rubric_forms, students_rubric_forms)
-     |> assign(:students_rubrics, students_rubrics)
-     |> assign(:current_student_id, current_student_id)}
+     |> assign(:assessment_point_rubric_form, assessment_point_rubric_form)}
   end
 
   def update(%{action: {RubricsFormComponent, {:created, rubric}}}, socket) do
@@ -242,6 +175,45 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
         notify_parent({:error, "Couldn't link rubric to assessment point"})
         {:ok, socket}
     end
+  end
+
+  def update(
+        %{action: {DifferentiationRubricComponent, {:diff_rubric_linked, entry_id, rubric_id}}},
+        socket
+      ) do
+    entries =
+      socket.assigns.entries
+      |> Enum.map(fn
+        %{id: ^entry_id} = entry -> Map.put(entry, :differentiation_rubric_id, rubric_id)
+        entry -> entry
+      end)
+
+    {:ok,
+     socket
+     |> assign(:entries, entries)}
+  end
+
+  def update(
+        %{
+          action: {DifferentiationRubricComponent, {:new_diff_rubric_linked, entry_id, rubric}}
+        },
+        socket
+      ) do
+    entries =
+      socket.assigns.entries
+      |> Enum.map(fn
+        %{id: ^entry_id} = entry -> Map.put(entry, :differentiation_rubric_id, rubric.id)
+        entry -> entry
+      end)
+
+    diff_rubric_options =
+      socket.assigns.diff_rubric_options
+      |> List.insert_at(-1, {"(##{rubric.id}) #{rubric.criteria}", rubric.id})
+
+    {:ok,
+     socket
+     |> assign(:entries, entries)
+     |> assign(:diff_rubric_options, diff_rubric_options)}
   end
 
   # event handlers
@@ -301,55 +273,6 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
         {:noreply, socket}
     end
   end
-
-  def handle_event("select_student", %{"id" => student_id}, socket) do
-    {:noreply, assign(socket, :current_student_id, student_id)}
-  end
-
-  def handle_event("differentiation_rubric_selected", %{"rubric_id" => ""}, socket) do
-    {:noreply, socket}
-  end
-
-  def handle_event("differentiation_rubric_selected", %{"rubric_id" => "new"}, socket) do
-    {:noreply, socket}
-  end
-
-  def handle_event("differentiation_rubric_selected", %{"rubric_id" => rubric_id}, socket) do
-    # has_rubric_change = rubric_id != "#{socket.assigns.assessment_point.rubric_id}"
-
-    socket =
-      socket
-      |> update(
-        :students_rubrics,
-        &(&1
-          |> Map.put(
-            "#{socket.assigns.current_student_id}",
-            Rubrics.get_full_rubric!(rubric_id)
-          ))
-      )
-
-    {:noreply, socket}
-  end
-
-  # def handle_event("assessment_point_rubric_selected", %{"rubric_id" => ""}, socket) do
-  #   has_rubric_change = socket.assigns.assessment_point.rubric_id != nil
-
-  #   socket =
-  #     socket
-  #     |> assign(:rubric, nil)
-  #     |> assign(:has_rubric_change, has_rubric_change)
-  #     |> assign(:is_creating_rubric, false)
-
-  #   {:noreply, socket}
-  # end
-
-  # def handle_event("assessment_point_rubric_selected", %{"rubric_id" => "new"}, socket) do
-  #   socket =
-  #     socket
-  #     |> assign(:is_creating_rubric, true)
-
-  #   {:noreply, socket}
-  # end
 
   # helpers
 

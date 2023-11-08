@@ -14,6 +14,7 @@ defmodule LantternWeb.AssessmentPointLive.Details do
   alias LantternWeb.AssessmentPointLive.AssessmentPointEntryEditorComponent
   alias LantternWeb.AssessmentPointLive.AssessmentPointUpdateFormComponent
   alias LantternWeb.AssessmentPointLive.RubricsOverlayComponent
+  alias LantternWeb.AssessmentPointLive.DifferentiationRubricComponent
   alias LantternWeb.AssessmentPointLive.FeedbackFormComponent
   alias LantternWeb.AssessmentPointLive.FeedbackCommentFormComponent
 
@@ -424,9 +425,11 @@ defmodule LantternWeb.AssessmentPointLive.Details do
      )}
   end
 
-  def handle_info({RubricsOverlayComponent, {:error, error_msg}}, socket) do
-    {:noreply, put_flash(socket, :error, error_msg)}
-  end
+  def handle_info({RubricsOverlayComponent, {:error, error_msg}}, socket),
+    do: {:noreply, put_flash(socket, :error, error_msg)}
+
+  def handle_info({DifferentiationRubricComponent, {:error, error_msg}}, socket),
+    do: {:noreply, put_flash(socket, :error, error_msg)}
 
   def handle_info({FeedbackFormComponent, {:created, feedback}}, socket) do
     socket =
