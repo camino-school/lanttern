@@ -99,12 +99,7 @@ defmodule LantternWeb.RubricsLive.RubricSearchInputComponent do
         id -> id
       end
 
-    search_opts =
-      case Map.get(assigns, :is_differentiation) do
-        "true" -> [is_differentiation: true]
-        "false" -> [is_differentiation: false]
-        _ -> []
-      end
+    search_opts = Map.get(assigns, :search_opts, [])
 
     {:ok,
      socket

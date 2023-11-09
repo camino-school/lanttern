@@ -31,7 +31,7 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
             id="assessment-point-rubric-search"
             selected_id={nil}
             notify_component={@myself}
-            is_differentiation="false"
+            search_opts={[is_differentiation: false, scale_id: @assessment_point.scale_id]}
             class="mt-6"
           />
         <% end %>
