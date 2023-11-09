@@ -17,6 +17,8 @@ defmodule Lanttern.Rubrics do
   ### Options:
 
   `:preloads` – preloads associated data
+  `:is_differentiation` – filter results by differentiation flag
+  `:scale_id` – filter results by scale
 
   ## Examples
 
@@ -25,7 +27,9 @@ defmodule Lanttern.Rubrics do
 
   """
   def list_rubrics(opts \\ []) do
-    Repo.all(Rubric)
+    Rubric
+    |> apply_filters(opts)
+    |> Repo.all()
     |> maybe_preload(opts)
   end
 
@@ -44,6 +48,49 @@ defmodule Lanttern.Rubrics do
     full_rubric_query()
     |> Repo.all()
     |> Enum.map(&sort_rubric_descriptors/1)
+  end
+
+  @doc """
+  Search rubrics by criteria.
+
+  User can search by id by adding `#` before the id `#123`.
+
+  ### Options:
+
+  `:is_differentiation` – filter results by differentiation flag
+  `:scale_id` – filter results by scale
+
+  ## Examples
+
+      iex> search_rubrics("understanding")
+      [%Rubric{}, ...]
+
+  """
+  def search_rubrics(search_term, opts \\ [])
+
+  def search_rubrics("#" <> search_term, opts) do
+    if search_term =~ ~r/[0-9]+\z/ do
+      from(
+        r in Rubric,
+        where: r.id == ^search_term
+      )
+      |> apply_filters(opts)
+      |> Repo.all()
+    else
+      search_rubrics(search_term, opts)
+    end
+  end
+
+  def search_rubrics(search_term, opts) do
+    ilike_search_term = "%#{search_term}%"
+
+    from(
+      r in Rubric,
+      where: ilike(r.criteria, ^ilike_search_term),
+      order_by: {:asc, fragment("? <<-> ?", ^search_term, r.criteria)}
+    )
+    |> apply_filters(opts)
+    |> Repo.all()
   end
 
   @doc """
@@ -355,4 +402,28 @@ defmodule Lanttern.Rubrics do
   def change_rubric_descriptor(%RubricDescriptor{} = rubric_descriptor, attrs \\ %{}) do
     RubricDescriptor.changeset(rubric_descriptor, attrs)
   end
+
+  # helpers
+
+  defp apply_filters(rubrics_query, opts) do
+    Enum.reduce(opts, rubrics_query, fn {opt, value}, query ->
+      maybe_filter(query, opt, value)
+    end)
+  end
+
+  defp maybe_filter(rubrics_query, :is_differentiation, is_differentiation) do
+    from(
+      r in rubrics_query,
+      where: r.is_differentiation == ^is_differentiation
+    )
+  end
+
+  defp maybe_filter(rubrics_query, :scale_id, scale_id) do
+    from(
+      r in rubrics_query,
+      where: r.scale_id == ^scale_id
+    )
+  end
+
+  defp maybe_filter(rubrics_query, _opt, _value), do: rubrics_query
 end

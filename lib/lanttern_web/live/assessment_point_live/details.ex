@@ -1,16 +1,8 @@
 defmodule LantternWeb.AssessmentPointLive.Details do
-  @moduledoc """
-  ### PubSub subscription topics
-
-  - "assessment_point:id" on `handle_params`
-
-  Expected broadcasted messages in `handle_info/2` documentation.
-  """
-
   use LantternWeb, :live_view
-  alias Phoenix.PubSub
 
   import LantternWeb.DateTimeHelpers
+
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.Feedback
@@ -21,6 +13,8 @@ defmodule LantternWeb.AssessmentPointLive.Details do
 
   alias LantternWeb.AssessmentPointLive.AssessmentPointEntryEditorComponent
   alias LantternWeb.AssessmentPointLive.AssessmentPointUpdateFormComponent
+  alias LantternWeb.AssessmentPointLive.RubricsOverlayComponent
+  alias LantternWeb.AssessmentPointLive.DifferentiationRubricComponent
   alias LantternWeb.AssessmentPointLive.FeedbackFormComponent
   alias LantternWeb.AssessmentPointLive.FeedbackCommentFormComponent
 
@@ -37,10 +31,8 @@ defmodule LantternWeb.AssessmentPointLive.Details do
 
   def icon_and_content(assigns) do
     ~H"""
-    <div class="flex items-center mt-10">
-      <.icon name={@icon_name} class="shrink-0 text-ltrn-secondary mr-4" /> <%= render_slot(
-        @inner_block
-      ) %>
+    <div class="flex items-center gap-4 mt-10">
+      <.icon name={@icon_name} class="shrink-0 text-ltrn-secondary" /> <%= render_slot(@inner_block) %>
     </div>
     """
   end
@@ -220,10 +212,6 @@ defmodule LantternWeb.AssessmentPointLive.Details do
   # lifecycle
 
   def mount(%{"id" => id}, _session, socket) do
-    if connected?(socket) do
-      PubSub.subscribe(Lanttern.PubSub, "assessment_point:#{id}")
-    end
-
     try do
       Assessments.get_assessment_point!(id,
         preloads: [
@@ -326,17 +314,9 @@ defmodule LantternWeb.AssessmentPointLive.Details do
     |> stream(:comments, comments)
   end
 
-  defp apply_action(socket, _show_or_edit, _params), do: socket
+  defp apply_action(socket, _live_action, _params), do: socket
 
   # event handlers
-
-  def handle_event("update", _params, socket) do
-    {:noreply, assign(socket, :is_updating, true)}
-  end
-
-  def handle_event("cancel-assessment-point-update", _params, socket) do
-    {:noreply, assign(socket, :is_updating, false)}
-  end
 
   def handle_event("edit_comment", %{"id" => id}, socket) do
     comment =
@@ -433,6 +413,16 @@ defmodule LantternWeb.AssessmentPointLive.Details do
 
     {:noreply, socket}
   end
+
+  def handle_info({RubricsOverlayComponent, {:rubric_linked, rubric_id}}, socket) do
+    {:noreply, update(socket, :assessment_point, &Map.put(&1, :rubric_id, rubric_id))}
+  end
+
+  def handle_info({RubricsOverlayComponent, {:error, error_msg}}, socket),
+    do: {:noreply, put_flash(socket, :error, error_msg)}
+
+  def handle_info({DifferentiationRubricComponent, {:error, error_msg}}, socket),
+    do: {:noreply, put_flash(socket, :error, error_msg)}
 
   def handle_info({FeedbackFormComponent, {:created, feedback}}, socket) do
     socket =

@@ -25,6 +25,18 @@ defmodule Lanttern.RubricsTest do
       assert expected.scale.id == scale.id
     end
 
+    test "list_rubrics/1 with scale_id and is_differentiation opts returns all rubrics filtered" do
+      scale = GradingFixtures.scale_fixture()
+
+      rubric = rubric_fixture(%{scale_id: scale.id, is_differentiation: true})
+
+      # extra rubrics for filtering test
+      rubric_fixture(%{scale_id: scale.id, is_differentiation: false})
+      rubric_fixture(%{is_differentiation: true})
+
+      assert [rubric] == Rubrics.list_rubrics(scale_id: scale.id, is_differentiation: true)
+    end
+
     test "list_full_rubrics/0 returns all rubrics with descriptors preloaded and ordered correctly" do
       scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
       ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})
@@ -54,6 +66,41 @@ defmodule Lanttern.RubricsTest do
       [expected_descriptor_1, expected_descriptor_2] = expected.descriptors
       assert expected_descriptor_1.id == descriptor_1.id
       assert expected_descriptor_2.id == descriptor_2.id
+    end
+
+    test "search_rubrics/2 returns all rubrics matched by search" do
+      _rubric_1 = rubric_fixture(%{criteria: "lorem ipsum xolor sit amet"})
+      rubric_2 = rubric_fixture(%{criteria: "lorem ipsum dolor sit amet"})
+      rubric_3 = rubric_fixture(%{criteria: "lorem ipsum dolorxxx sit amet"})
+      _rubric_4 = rubric_fixture(%{criteria: "lorem ipsum xxxxx sit amet"})
+
+      expected = Rubrics.search_rubrics("dolor")
+
+      assert length(expected) == 2
+
+      # assert order
+      assert [rubric_2, rubric_3] == expected
+    end
+
+    test "search_rubrics/2 with #id returns item with id" do
+      rubric = rubric_fixture()
+      rubric_fixture()
+      rubric_fixture()
+      rubric_fixture()
+
+      [expected] = Rubrics.search_rubrics("##{rubric.id}")
+
+      assert expected.id == rubric.id
+    end
+
+    test "search_rubrics/2 with is_differentiation opt returns results filtered by differentiation flag" do
+      rubric = rubric_fixture(%{criteria: "abcde", is_differentiation: true})
+
+      # create extra items for filtering test
+      rubric_fixture(%{criteria: "abcde", is_differentiation: false})
+      rubric_fixture(%{criteria: "zzzzz", is_differentiation: true})
+
+      assert [rubric] == Rubrics.search_rubrics("abcde", is_differentiation: true)
     end
 
     test "get_rubric!/2 returns the rubric with given id" do

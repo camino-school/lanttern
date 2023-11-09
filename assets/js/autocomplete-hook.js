@@ -19,11 +19,13 @@ const pushSelect = (hook, input, selected) => {
   input.value = selected.name;
 
   // force hidden input value change and trigger phx-change event
-  const hiddenInput = document.getElementById(
-    input.getAttribute("data-hidden-input-id")
-  );
-  hiddenInput.value = selected.id;
-  hiddenInput.dispatchEvent(new Event("input", { bubbles: true }));
+  if (input.getAttribute("data-hidden-input-id")) {
+    const hiddenInput = document.getElementById(
+      input.getAttribute("data-hidden-input-id")
+    );
+    hiddenInput.value = selected.id;
+    hiddenInput.dispatchEvent(new Event("input", { bubbles: true }));
+  }
 
   // send event to liveview server
   hook.pushEventTo(input, "autocomplete_result_select", selected);
@@ -49,19 +51,19 @@ const setActive = (activeId, input, controls) => {
 };
 
 function autocompleteSearchResults(event) {
-  let input = this.el;
-  let controlId = input.getAttribute("aria-controls");
-  let controls = document.getElementById(controlId);
+  const input = this.el;
+  const controlId = input.getAttribute("aria-controls");
+  const controls = document.getElementById(controlId);
 
   // on li mouseenter
-  let activateLi = (event) => {
+  const activateLi = (event) => {
     setActive(event.target.id, input, controls);
   };
 
   // on li click
-  let selectLi = (event) => {
-    let targetParentLi = event.target.closest("li");
-    let selected = {
+  const selectLi = (event) => {
+    const targetParentLi = event.target.closest("li");
+    const selected = {
       id: targetParentLi.getAttribute("data-result-id"),
       name: targetParentLi.getAttribute("data-result-name"),
     };
@@ -84,22 +86,24 @@ function autocompleteSearchResults(event) {
   }
 }
 
-function removeCurriculumItem(event) {
-  let input = this.el;
+function clearSelectedItem(event) {
+  const input = this.el;
 
   // force hidden input value change and trigger phx-change event
-  const hiddenInput = document.getElementById(
-    input.getAttribute("data-hidden-input-id")
-  );
-  hiddenInput.value = "";
-  hiddenInput.dispatchEvent(new Event("input", { bubbles: true }));
+  if (input.getAttribute("data-hidden-input-id")) {
+    const hiddenInput = document.getElementById(
+      input.getAttribute("data-hidden-input-id")
+    );
+    hiddenInput.value = "";
+    hiddenInput.dispatchEvent(new Event("input", { bubbles: true }));
+  }
 }
 
 // on click away
 function clickAwayHandler(event) {
-  let input = this.el;
-  let controlId = input.getAttribute("aria-controls");
-  let controls = document.getElementById(controlId);
+  const input = this.el;
+  const controlId = input.getAttribute("aria-controls");
+  const controls = document.getElementById(controlId);
 
   if (
     event.target.id !== input.id &&
@@ -111,11 +115,11 @@ function clickAwayHandler(event) {
 
 // on keydown
 function keydownHandler(event) {
-  let input = this.el;
-  let controlId = input.getAttribute("aria-controls");
-  let controls = document.getElementById(controlId);
-  let list = controls.querySelectorAll("li");
-  let isShowing = input.getAttribute("aria-expanded") === "true";
+  const input = this.el;
+  const controlId = input.getAttribute("aria-controls");
+  const controls = document.getElementById(controlId);
+  const list = controls.querySelectorAll("li");
+  const isShowing = input.getAttribute("aria-expanded") === "true";
   let activeDescendantId = input.getAttribute("aria-activedescendant");
 
   // handle Escape
@@ -129,8 +133,8 @@ function keydownHandler(event) {
     event.preventDefault();
     // if controls are visible and there's a active descendant, select it
     if (isShowing && activeDescendantId) {
-      let active = document.getElementById(activeDescendantId);
-      let selected = {
+      const active = document.getElementById(activeDescendantId);
+      const selected = {
         id: active.getAttribute("data-result-id"),
         name: active.getAttribute("data-result-name"),
       };
@@ -167,14 +171,14 @@ function keydownHandler(event) {
         event.keyCode === 40 &&
         indexOfActive < list.length - 1
       ) {
-        let newActiveDescendantId = list[indexOfActive + 1].id;
+        const newActiveDescendantId = list[indexOfActive + 1].id;
         setActive(newActiveDescendantId, input, controls);
       } else if (
         indexOfActive !== -1 &&
         event.keyCode === 38 &&
         indexOfActive > 0
       ) {
-        let newActiveDescendantId = list[indexOfActive - 1].id;
+        const newActiveDescendantId = list[indexOfActive - 1].id;
         setActive(newActiveDescendantId, input, controls);
       }
     }
@@ -183,16 +187,17 @@ function keydownHandler(event) {
 
 const autocompleteHook = {
   mounted() {
-    hookAbortControllerMap[this.el.id] = new AbortController();
+    const id = this.el.id
+    hookAbortControllerMap[id] = new AbortController();
     window.addEventListener(
-      "phx:autocomplete_search_results",
+      `phx:autocomplete_search_results:${id}`,
       autocompleteSearchResults.bind(this),
       { signal: hookAbortControllerMap[this.el.id].signal }
     );
 
     window.addEventListener(
-      "phx:remove_curriculum_item",
-      removeCurriculumItem.bind(this),
+      `phx:clear_selected_item:${id}`,
+      clearSelectedItem.bind(this),
       { signal: hookAbortControllerMap[this.el.id].signal }
     );
 

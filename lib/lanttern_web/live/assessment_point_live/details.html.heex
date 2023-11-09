@@ -38,6 +38,16 @@
     <.icon_and_content icon_name="hero-view-columns">
       Scale: <%= @assessment_point.scale.name %>
       <.ordinal_values ordinal_values={@ordinal_values} />
+      <.link
+        class={get_badge_button_styles()}
+        patch={~p"/assessment_points/#{@assessment_point.id}/rubrics"}
+      >
+        <%= if @assessment_point.rubric_id do %>
+          View rubrics <.icon name="hero-eye-mini" class={get_badge_icon_styles()} />
+        <% else %>
+          Add rubrics <.icon name="hero-plus-circle-mini" class={get_badge_icon_styles()} />
+        <% end %>
+      </.link>
     </.icon_and_content>
     <.icon_and_content :if={length(@assessment_point.classes) > 0} icon_name="hero-squares-2x2">
       <.classes classes={@assessment_point.classes} />
@@ -93,6 +103,13 @@
     </.button>
   </:actions>
 </.slide_over>
+<.live_component
+  :if={@live_action == :rubrics}
+  module={RubricsOverlayComponent}
+  id={@assessment_point.id}
+  assessment_point={@assessment_point}
+  entries={@entries}
+/>
 <.slide_over
   :if={@live_action == :feedback}
   id="feedback-overlay"

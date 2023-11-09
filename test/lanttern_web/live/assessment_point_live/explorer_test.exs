@@ -27,13 +27,32 @@ defmodule LantternWeb.AssessmentPointLive.ExplorerTest do
       std_2 = Lanttern.SchoolsFixtures.student_fixture(%{name: "Student BBB"})
       std_3 = Lanttern.SchoolsFixtures.student_fixture(%{name: "Student CCC"})
 
-      ast_1 = assessment_point_fixture(%{name: "Assessment AAA"})
-      ast_2 = assessment_point_fixture(%{name: "Assessment BBB"})
-      ast_3 = assessment_point_fixture(%{name: "Assessment CCC"})
+      scale = Lanttern.GradingFixtures.scale_fixture()
 
-      assessment_point_entry_fixture(%{student_id: std_1.id, assessment_point_id: ast_1.id})
-      assessment_point_entry_fixture(%{student_id: std_2.id, assessment_point_id: ast_2.id})
-      assessment_point_entry_fixture(%{student_id: std_3.id, assessment_point_id: ast_3.id})
+      ast_1 = assessment_point_fixture(%{name: "Assessment AAA", scale_id: scale.id})
+      ast_2 = assessment_point_fixture(%{name: "Assessment BBB", scale_id: scale.id})
+      ast_3 = assessment_point_fixture(%{name: "Assessment CCC", scale_id: scale.id})
+
+      assessment_point_entry_fixture(%{
+        student_id: std_1.id,
+        assessment_point_id: ast_1.id,
+        scale_id: scale.id,
+        scale_type: scale.type
+      })
+
+      assessment_point_entry_fixture(%{
+        student_id: std_2.id,
+        assessment_point_id: ast_2.id,
+        scale_id: scale.id,
+        scale_type: scale.type
+      })
+
+      assessment_point_entry_fixture(%{
+        student_id: std_3.id,
+        assessment_point_id: ast_3.id,
+        scale_id: scale.id,
+        scale_type: scale.type
+      })
 
       {:ok, view, _html} = live(conn, @live_view_path)
 
@@ -56,11 +75,30 @@ defmodule LantternWeb.AssessmentPointLive.ExplorerTest do
       std_1 = Lanttern.SchoolsFixtures.student_fixture(%{name: "Student AAA"})
       std_2 = Lanttern.SchoolsFixtures.student_fixture(%{name: "Student BBB"})
 
-      ast_1 = assessment_point_fixture(%{name: "Assessment AAA", classes_ids: [class.id]})
-      ast_2 = assessment_point_fixture(%{name: "Assessment BBB"})
+      scale = Lanttern.GradingFixtures.scale_fixture()
 
-      assessment_point_entry_fixture(%{student_id: std_1.id, assessment_point_id: ast_1.id})
-      assessment_point_entry_fixture(%{student_id: std_2.id, assessment_point_id: ast_2.id})
+      ast_1 =
+        assessment_point_fixture(%{
+          scale_id: scale.id,
+          name: "Assessment AAA",
+          classes_ids: [class.id]
+        })
+
+      ast_2 = assessment_point_fixture(%{scale_id: scale.id, name: "Assessment BBB"})
+
+      assessment_point_entry_fixture(%{
+        student_id: std_1.id,
+        assessment_point_id: ast_1.id,
+        scale_id: scale.id,
+        scale_type: scale.type
+      })
+
+      assessment_point_entry_fixture(%{
+        student_id: std_2.id,
+        assessment_point_id: ast_2.id,
+        scale_id: scale.id,
+        scale_type: scale.type
+      })
 
       {:ok, view, _html} = live(conn, @live_view_path)
 
@@ -120,13 +158,30 @@ defmodule LantternWeb.AssessmentPointLive.ExplorerTest do
       curriculum_item =
         Lanttern.CurriculaFixtures.curriculum_item_fixture(%{subjects_ids: [subject.id]})
 
+      scale = Lanttern.GradingFixtures.scale_fixture()
+
       ast_1 =
-        assessment_point_fixture(%{name: "Assessment AAA", curriculum_item_id: curriculum_item.id})
+        assessment_point_fixture(%{
+          name: "Assessment AAA",
+          curriculum_item_id: curriculum_item.id,
+          scale_id: scale.id
+        })
 
-      ast_2 = assessment_point_fixture(%{name: "Assessment BBB"})
+      ast_2 = assessment_point_fixture(%{name: "Assessment BBB", scale_id: scale.id})
 
-      assessment_point_entry_fixture(%{student_id: std_1.id, assessment_point_id: ast_1.id})
-      assessment_point_entry_fixture(%{student_id: std_2.id, assessment_point_id: ast_2.id})
+      assessment_point_entry_fixture(%{
+        student_id: std_1.id,
+        assessment_point_id: ast_1.id,
+        scale_id: scale.id,
+        scale_type: scale.type
+      })
+
+      assessment_point_entry_fixture(%{
+        student_id: std_2.id,
+        assessment_point_id: ast_2.id,
+        scale_id: scale.id,
+        scale_type: scale.type
+      })
 
       {:ok, view, _html} = live(conn, @live_view_path)
 

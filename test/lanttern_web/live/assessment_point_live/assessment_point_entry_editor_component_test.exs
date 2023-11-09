@@ -38,21 +38,27 @@ defmodule LantternWeb.AssessmentPointLive.AssessmentPointEntryEditorComponentTes
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           assessment_point_id: assessment_point_ordinal.id,
           ordinal_value_id: ordinal_value_1.id,
-          student_id: std_1.id
+          student_id: std_1.id,
+          scale_id: ordinal_scale.id,
+          scale_type: ordinal_scale.type
         })
 
       entry_ordinal_3 =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           assessment_point_id: assessment_point_ordinal.id,
           ordinal_value_id: ordinal_value_3.id,
-          student_id: std_3.id
+          student_id: std_3.id,
+          scale_id: ordinal_scale.id,
+          scale_type: ordinal_scale.type
         })
 
       entry_numeric_2 =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           assessment_point_id: assessment_point_numeric.id,
           score: 0.5,
-          student_id: std_2.id
+          student_id: std_2.id,
+          scale_id: numeric_scale.id,
+          scale_type: numeric_scale.type
         })
 
       {:ok, view, _html} = live(conn, @live_view_path_base)
@@ -146,7 +152,9 @@ defmodule LantternWeb.AssessmentPointLive.AssessmentPointEntryEditorComponentTes
       entry =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           assessment_point_id: assessment_point.id,
-          score: 5
+          score: 5,
+          scale_id: scale.id,
+          scale_type: scale.type
         })
 
       {:ok, view, _html} = live(conn, @live_view_path_base)
@@ -186,7 +194,9 @@ defmodule LantternWeb.AssessmentPointLive.AssessmentPointEntryEditorComponentTes
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           assessment_point_id: assessment_point.id,
           observation: "initial obs",
-          ordinal_value_id: ordinal_value_1.id
+          ordinal_value_id: ordinal_value_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type
         })
 
       form_selector = "#entry-#{entry.id}-marking-form"
@@ -297,7 +307,9 @@ defmodule LantternWeb.AssessmentPointLive.AssessmentPointEntryEditorComponentTes
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           assessment_point_id: assessment_point.id,
           observation: "initial obs",
-          score: 5
+          score: 5,
+          scale_id: scale.id,
+          scale_type: scale.type
         })
 
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")

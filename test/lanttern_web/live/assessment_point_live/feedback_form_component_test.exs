@@ -48,7 +48,8 @@ defmodule LantternWeb.FeedbackOverlayComponentTest do
     end
 
     defp create_assessment_point_without_feedback(_) do
-      assessment_point = AssessmentsFixtures.assessment_point_fixture()
+      scale = Lanttern.GradingFixtures.scale_fixture()
+      assessment_point = AssessmentsFixtures.assessment_point_fixture(%{scale_id: scale.id})
 
       # create assessment point entry to render the student row,
       # which contains the feedback button
@@ -57,6 +58,8 @@ defmodule LantternWeb.FeedbackOverlayComponentTest do
       _assessment_point_entry =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           assessment_point_id: assessment_point.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
           student_id: student.id
         })
 

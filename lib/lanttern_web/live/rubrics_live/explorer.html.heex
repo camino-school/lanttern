@@ -61,7 +61,7 @@
   :if={@live_action in [:new, :edit]}
   id="rubric-form-overlay"
   show={true}
-  prevent_close_on_click_away
+  on_cancel={JS.patch(~p"/rubrics")}
 >
   <:title><%= @overlay_title %></:title>
   <.live_component
@@ -85,7 +85,11 @@
     </.button>
   </:actions_left>
   <:actions>
-    <.button type="button" theme="ghost" phx-click={JS.patch(~p"/rubrics")}>
+    <.button
+      type="button"
+      theme="ghost"
+      phx-click={JS.exec("data-cancel", to: "#rubric-form-overlay")}
+    >
       Cancel
     </.button>
     <.button type="submit" form="rubric-form" phx-disable-with="Saving...">

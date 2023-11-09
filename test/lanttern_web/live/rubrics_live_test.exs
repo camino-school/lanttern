@@ -78,7 +78,7 @@ defmodule LantternWeb.RubricsLiveTest do
 
       # submit form and assert patch
       view
-      |> element("#rubric-form")
+      |> element("#rubric-form-new")
       |> render_submit(%{
         "rubric" => %{
           "criteria" => "new rubric abc",
@@ -132,7 +132,7 @@ defmodule LantternWeb.RubricsLiveTest do
 
       # submit form and assert patch
       view
-      |> element("#rubric-form")
+      |> element("#rubric-form-#{rubric_num.id}")
       |> render_submit(%{
         "rubric" => %{
           "id" => rubric_num.id,
