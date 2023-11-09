@@ -45,7 +45,7 @@ defmodule LantternWeb.NavigationComponents do
       {@rest}
     >
       <.profile_icon profile_name={@person.name} size="xs" theme={@theme} />
-      <span class="pr-1 text-xs">
+      <span class="max-w-[7rem] pr-1 text-xs truncate">
         <%= @person.name %>
       </span>
     </button>

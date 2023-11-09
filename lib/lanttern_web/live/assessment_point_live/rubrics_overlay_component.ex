@@ -72,7 +72,7 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
         </section>
         <section :if={!@is_creating_rubric} id="differentiation-rubrics-section" class="pb-10 mt-10">
           <h4 class="-mb-2 font-display font-black text-xl text-ltrn-subtle">Differentiation</h4>
-          <div role="tablist" class="flex items-center gap-2 mt-6">
+          <div role="tablist" class="flex flex-wrap items-center gap-2 mt-6">
             <.person_tab
               :for={entry <- @entries}
               aria-controls={"entry-#{entry.id}-differentiation-panel"}
