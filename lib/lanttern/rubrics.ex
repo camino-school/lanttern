@@ -34,32 +34,6 @@ defmodule Lanttern.Rubrics do
     |> maybe_preload(opts)
   end
 
-  defp maybe_filter_by_differentiation_flag(rubrics_query, opts) do
-    case Keyword.get(opts, :is_differentiation) do
-      nil ->
-        rubrics_query
-
-      is_differentiation ->
-        from(
-          r in rubrics_query,
-          where: r.is_differentiation == ^is_differentiation
-        )
-    end
-  end
-
-  defp maybe_filter_by_scale(rubrics_query, opts) do
-    case Keyword.get(opts, :scale_id) do
-      nil ->
-        rubrics_query
-
-      scale_id ->
-        from(
-          r in rubrics_query,
-          where: r.scale_id == ^scale_id
-        )
-    end
-  end
-
   @doc """
   Returns the list of rubrics with scale, descriptors, and descriptors ordinal values preloaded.
 
@@ -75,6 +49,48 @@ defmodule Lanttern.Rubrics do
     full_rubric_query()
     |> Repo.all()
     |> Enum.map(&sort_rubric_descriptors/1)
+  end
+
+  @doc """
+  Search rubrics by criteria.
+
+  User can search by id by adding `#` before the id `#123`.
+
+  ### Options:
+
+  `:is_differentiation` – filter results by differentiation flag
+
+  ## Examples
+
+      iex> search_rubrics("understanding")
+      [%Rubric{}, ...]
+
+  """
+  def search_rubrics(search_term, opts \\ [])
+
+  def search_rubrics("#" <> search_term, opts) do
+    if search_term =~ ~r/[0-9]+\z/ do
+      from(
+        r in Rubric,
+        where: r.id == ^search_term
+      )
+      |> maybe_filter_by_differentiation_flag(opts)
+      |> Repo.all()
+    else
+      search_rubrics(search_term, opts)
+    end
+  end
+
+  def search_rubrics(search_term, opts) do
+    ilike_search_term = "%#{search_term}%"
+
+    from(
+      r in Rubric,
+      where: ilike(r.criteria, ^ilike_search_term),
+      order_by: {:asc, fragment("? <<-> ?", ^search_term, r.criteria)}
+    )
+    |> maybe_filter_by_differentiation_flag(opts)
+    |> Repo.all()
   end
 
   @doc """
@@ -385,5 +401,33 @@ defmodule Lanttern.Rubrics do
   """
   def change_rubric_descriptor(%RubricDescriptor{} = rubric_descriptor, attrs \\ %{}) do
     RubricDescriptor.changeset(rubric_descriptor, attrs)
+  end
+
+  # helpers
+
+  defp maybe_filter_by_differentiation_flag(rubrics_query, opts) do
+    case Keyword.get(opts, :is_differentiation) do
+      nil ->
+        rubrics_query
+
+      is_differentiation ->
+        from(
+          r in rubrics_query,
+          where: r.is_differentiation == ^is_differentiation
+        )
+    end
+  end
+
+  defp maybe_filter_by_scale(rubrics_query, opts) do
+    case Keyword.get(opts, :scale_id) do
+      nil ->
+        rubrics_query
+
+      scale_id ->
+        from(
+          r in rubrics_query,
+          where: r.scale_id == ^scale_id
+        )
+    end
   end
 end

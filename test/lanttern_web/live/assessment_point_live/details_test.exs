@@ -155,14 +155,8 @@ defmodule LantternWeb.AssessmentPointLive.DetailsTest do
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}/rubrics")
 
       view
-      |> element("#assessment-point-rubric-form select#rubric_id")
-      |> render_change(%{"rubric_id" => rubric.id})
-
-      view
-      |> element("#assessment-point-rubric-form")
-      |> render_submit(%{
-        "rubric_id" => rubric.id
-      })
+      |> element("#assessment-point-rubric-search")
+      |> render_hook("autocomplete_result_select", %{"id" => "#{rubric.id}"})
 
       assert view
              |> element("#rubrics-overlay p", descriptor.descriptor)
@@ -182,8 +176,8 @@ defmodule LantternWeb.AssessmentPointLive.DetailsTest do
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}/rubrics")
 
       view
-      |> element("#assessment-point-rubric-form select#rubric_id")
-      |> render_change(%{"rubric_id" => "new"})
+      |> element("button", "create a new rubric")
+      |> render_click()
 
       view
       |> element("#rubric-form")
@@ -208,10 +202,6 @@ defmodule LantternWeb.AssessmentPointLive.DetailsTest do
           }
         }
       })
-
-      {path, _flash} = assert_redirect(view)
-
-      {:ok, view, _html} = live(conn, path)
 
       assert view
              |> element("#rubrics-overlay p", "0 descriptor abc")

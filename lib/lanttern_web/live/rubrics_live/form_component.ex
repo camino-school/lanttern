@@ -34,7 +34,8 @@ defmodule LantternWeb.RubricsLive.FormComponent do
           class={["mt-6", if(@hide_diff_and_scale, do: "hidden")]}
         />
         <.descriptors_fields scale={@scale} field={@form[:descriptors]} myself={@myself} />
-        <div class={["flex justify-end mt-6", if(!@show_submit, do: "hidden")]}>
+        <div class={["flex justify-end gap-2 mt-6", if(!@show_buttons, do: "hidden")]}>
+          <.button type="button" theme="ghost">Cancel</.button>
           <.button type="submit">Save</.button>
         </div>
       </.form>
@@ -155,7 +156,7 @@ defmodule LantternWeb.RubricsLive.FormComponent do
       |> assign(:hide_diff_and_scale, false)
       |> assign(:class, nil)
       |> assign(:patch, nil)
-      |> assign(:show_submit, false)
+      |> assign(:show_buttons, false)
       |> assign(:notify_parent, true)
 
     {:ok, socket}

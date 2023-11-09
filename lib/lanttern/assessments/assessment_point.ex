@@ -79,6 +79,12 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     |> validate_required([:name, :curriculum_item_id, :scale_id])
     |> validate_and_build_datetime()
     |> put_classes()
+    |> foreign_key_constraint(
+      :rubric_id,
+      name: :assessment_points_rubric_id_fkey,
+      message:
+        "Error linking rubric. Check if it exists and uses the same scale used in the assessment point."
+    )
   end
 
   defp validate_and_build_datetime(changeset) do

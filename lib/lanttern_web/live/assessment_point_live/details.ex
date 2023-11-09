@@ -418,13 +418,6 @@ defmodule LantternWeb.AssessmentPointLive.Details do
     {:noreply, update(socket, :assessment_point, &Map.put(&1, :rubric_id, rubric_id))}
   end
 
-  def handle_info({RubricsOverlayComponent, {:new_rubric_linked, _rubric_id}}, socket) do
-    {:noreply,
-     push_navigate(socket,
-       to: ~p"/assessment_points/#{socket.assigns.assessment_point.id}/rubrics"
-     )}
-  end
-
   def handle_info({RubricsOverlayComponent, {:error, error_msg}}, socket),
     do: {:noreply, put_flash(socket, :error, error_msg)}
 
