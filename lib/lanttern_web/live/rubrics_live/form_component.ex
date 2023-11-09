@@ -15,7 +15,13 @@ defmodule LantternWeb.RubricsLive.FormComponent do
   def render(assigns) do
     ~H"""
     <div class={@class}>
-      <.form for={@form} id="rubric-form" phx-target={@myself} phx-change="validate" phx-submit="save">
+      <.form
+        for={@form}
+        id={"rubric-form-#{@id}"}
+        phx-target={@myself}
+        phx-change="validate"
+        phx-submit="save"
+      >
         <.input field={@form[:criteria]} type="text" label="Criteria" phx-debounce="1500" />
         <.input
           field={@form[:is_differentiation]}
@@ -34,8 +40,8 @@ defmodule LantternWeb.RubricsLive.FormComponent do
           class={["mt-6", if(@hide_diff_and_scale, do: "hidden")]}
         />
         <.descriptors_fields scale={@scale} field={@form[:descriptors]} myself={@myself} />
-        <div class={["flex justify-end gap-2 mt-6", if(!@show_buttons, do: "hidden")]}>
-          <.button type="button" theme="ghost">Cancel</.button>
+        <div :if={@show_buttons} class="flex justify-end gap-2 mt-6">
+          <.button type="button" theme="ghost" phx-click={@on_cancel}>Cancel</.button>
           <.button type="submit">Save</.button>
         </div>
       </.form>

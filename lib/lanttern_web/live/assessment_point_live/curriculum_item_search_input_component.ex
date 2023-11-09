@@ -154,7 +154,9 @@ defmodule LantternWeb.AssessmetPointLive.CurriculumItemSearchInputComponent do
     socket =
       socket
       |> stream(:results, results, reset: true)
-      |> push_event("autocomplete_search_results", %{results: results_simplified})
+      |> push_event("autocomplete_search_results:#{socket.assigns.id}", %{
+        results: results_simplified
+      })
 
     {:noreply, socket}
   end
@@ -174,7 +176,7 @@ defmodule LantternWeb.AssessmetPointLive.CurriculumItemSearchInputComponent do
     socket =
       socket
       |> assign(:selected, nil)
-      |> push_event("clear_selected_item", %{})
+      |> push_event("clear_selected_item:#{socket.assigns.id}", %{})
 
     {:noreply, socket}
   end

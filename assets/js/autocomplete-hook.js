@@ -187,15 +187,16 @@ function keydownHandler(event) {
 
 const autocompleteHook = {
   mounted() {
-    hookAbortControllerMap[this.el.id] = new AbortController();
+    const id = this.el.id
+    hookAbortControllerMap[id] = new AbortController();
     window.addEventListener(
-      "phx:autocomplete_search_results",
+      `phx:autocomplete_search_results:${id}`,
       autocompleteSearchResults.bind(this),
       { signal: hookAbortControllerMap[this.el.id].signal }
     );
 
     window.addEventListener(
-      "phx:clear_selected_item",
+      `phx:clear_selected_item:${id}`,
       clearSelectedItem.bind(this),
       { signal: hookAbortControllerMap[this.el.id].signal }
     );

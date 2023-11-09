@@ -180,7 +180,7 @@ defmodule LantternWeb.AssessmentPointLive.DetailsTest do
       |> render_click()
 
       view
-      |> element("#rubric-form")
+      |> element("#rubric-form-new")
       |> render_submit(%{
         "rubric" => %{
           "criteria" => "new rubric abc",
@@ -214,6 +214,138 @@ defmodule LantternWeb.AssessmentPointLive.DetailsTest do
       # assert in DB
       expected = Repo.get(Lanttern.Assessments.AssessmentPoint, assessment_point.id)
       assert expected.rubric_id != nil
+    end
+  end
+
+  describe "Assessment point details differentiation rubrics" do
+    test "differentiation rubrics descriptors show in overlay", %{conn: conn} do
+      scale = Lanttern.GradingFixtures.scale_fixture(%{type: "numeric"})
+
+      rubric =
+        Lanttern.RubricsFixtures.rubric_fixture(%{scale_id: scale.id, is_differentiation: true})
+
+      descriptor =
+        Lanttern.RubricsFixtures.rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          score: 50
+        })
+
+      assessment_point =
+        AssessmentsFixtures.assessment_point_fixture(%{scale_id: scale.id})
+
+      _entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          differentiation_rubric_id: rubric.id
+        })
+
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}/rubrics")
+
+      assert view
+             |> element("#rubrics-overlay p", descriptor.descriptor)
+             |> has_element?()
+    end
+
+    test "link assessment point entry to existing rubric in overlay", %{conn: conn} do
+      scale = Lanttern.GradingFixtures.scale_fixture(%{type: "numeric"})
+
+      rubric =
+        Lanttern.RubricsFixtures.rubric_fixture(%{scale_id: scale.id, is_differentiation: true})
+
+      descriptor =
+        Lanttern.RubricsFixtures.rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          score: 50
+        })
+
+      assessment_point =
+        AssessmentsFixtures.assessment_point_fixture(%{scale_id: scale.id})
+
+      entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}/rubrics")
+
+      view
+      |> element("#entry-#{entry.id}-rubric-search")
+      |> render_hook("autocomplete_result_select", %{"id" => "#{rubric.id}"})
+
+      assert view
+             |> element("#rubrics-overlay p", descriptor.descriptor)
+             |> has_element?()
+
+      # assert in DB
+      expected = Repo.get(Lanttern.Assessments.AssessmentPointEntry, entry.id)
+      assert expected.differentiation_rubric_id == rubric.id
+    end
+
+    test "create and link differentiation rubric to assessment point entry in overlay", %{
+      conn: conn
+    } do
+      scale =
+        Lanttern.GradingFixtures.scale_fixture(%{type: "numeric", is_differenatiation: true})
+
+      assessment_point =
+        AssessmentsFixtures.assessment_point_fixture(%{scale_id: scale.id})
+
+      entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}/rubrics")
+
+      view
+      |> element("button", "create a new differentiation rubric")
+      |> render_click()
+
+      view
+      |> element("#rubric-form-entry-#{entry.id}")
+      |> render_submit(%{
+        "rubric" => %{
+          "criteria" => "new rubric abc",
+          "scale_id" => scale.id,
+          "is_differentiation" => false,
+          "descriptors" => %{
+            "0" => %{
+              "scale_id" => scale.id,
+              "scale_type" => scale.type,
+              "score" => 0.0,
+              "descriptor" => "0 descriptor abc"
+            },
+            "1" => %{
+              "scale_id" => scale.id,
+              "scale_type" => scale.type,
+              "score" => 100.0,
+              "descriptor" => "100 descriptor abc"
+            }
+          }
+        }
+      })
+
+      assert view
+             |> element("#rubrics-overlay p", "0 descriptor abc")
+             |> has_element?()
+
+      assert view
+             |> element("#rubrics-overlay p", "100 descriptor abc")
+             |> has_element?()
+
+      # assert in DB
+      expected = Repo.get(Lanttern.Assessments.AssessmentPointEntry, entry.id)
+      assert expected.differentiation_rubric_id != nil
     end
   end
 

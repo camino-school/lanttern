@@ -5,35 +5,35 @@ defmodule LantternWeb.AssessmentPointLive.DifferentiationRubricComponent do
   alias Lanttern.Rubrics
   alias Lanttern.Rubrics.Rubric
   alias LantternWeb.RubricsLive.FormComponent, as: RubricsFormComponent
+  alias LantternWeb.RubricsLive.RubricSearchInputComponent
 
   def render(assigns) do
     ~H"""
     <div id={"entry-#{@entry.id}-differentiation-panel"} role="tabpanel" class="mt-6 hidden">
-      <.form
-        id={"entry-#{@entry.id}-rubric-form"}
-        for={@form}
-        class="flex items-end gap-2"
-        phx-change="rubric_selected"
-        phx-submit="save_rubric"
-        phx-target={@myself}
-      >
-        <.input
-          field={@form[:rubric_id]}
-          type="select"
-          label="Rubric"
-          options={@rubric_options}
-          prompt="No differentiation rubric"
-          class="flex-1"
+      <%= if !@rubric && !@is_creating_rubric do %>
+        <p class="font-display font-bold text-lg">
+          Use an existing differentiation rubric (<.link
+            href={~p"/rubrics"}
+            class="underline"
+            target="_blank"
+          >explore</.link>)<br /> or
+          <button type="button" phx-click="create_new" phx-target={@myself} class="underline">
+            create a new differentiation rubric
+          </button>
+        </p>
+        <.live_component
+          module={RubricSearchInputComponent}
+          id={"entry-#{@entry.id}-rubric-search"}
+          selected_id={nil}
+          notify_component={@myself}
+          search_opts={[is_differentiation: true, scale_id: @entry.scale_id]}
+          class="mt-6"
         />
-        <.button
-          type="submit"
-          disabled={!@has_rubric_change || @is_creating_rubric}
-          class={["shrink-0", if(!@has_rubric_change || @is_creating_rubric, do: "hidden")]}
-        >
-          Save
-        </.button>
-      </.form>
+      <% end %>
       <%= if @is_creating_rubric do %>
+        <h4 class="-mb-2 font-display font-black text-xl text-ltrn-subtle">
+          Create new differentiation rubric
+        </h4>
         <.live_component
           module={RubricsFormComponent}
           id={"entry-#{@entry.id}"}
@@ -45,20 +45,31 @@ defmodule LantternWeb.AssessmentPointLive.DifferentiationRubricComponent do
             }
           }
           hide_diff_and_scale
-          show_submit
+          show_buttons
+          on_cancel={JS.push("cancel_create_new", target: @myself)}
           notify_component={@myself}
           notify_parent={false}
           class="mt-6"
         />
       <% end %>
-      <%= if @rubric && !@is_creating_rubric do %>
-        <section class="mt-8">
-          <h5 class="-mb-2 font-display font-black text-lg text-ltrn-subtle">
-            Differentiation descriptors
-          </h5>
-          <.rubric_descriptors descriptors={@rubric.descriptors} class="mt-6" />
-        </section>
-      <% end %>
+      <section :if={@rubric && !@is_creating_rubric} class="mt-8">
+        <div class="flex items-baseline gap-4 mb-4 text-ltrn-subtle">
+          <h4 class="font-display font-black text-xl">Criteria</h4>
+          <button
+            type="button"
+            phx-click="remove_rubric"
+            phx-target={@myself}
+            class="text-sm underline"
+          >
+            Remove rubric
+          </button>
+        </div>
+        <p class="font-display font-bold"><%= @rubric.criteria %></p>
+        <h5 class="mt-10 -mb-2 font-display font-black text-lg text-ltrn-subtle">
+          Differentiation descriptors
+        </h5>
+        <.rubric_descriptors descriptors={@rubric.descriptors} class="mt-6" />
+      </section>
     </div>
     """
   end
@@ -90,8 +101,7 @@ defmodule LantternWeb.AssessmentPointLive.DifferentiationRubricComponent do
   def mount(socket) do
     {:ok,
      socket
-     |> assign(:is_creating_rubric, false)
-     |> assign(:has_rubric_change, false)}
+     |> assign(:is_creating_rubric, false)}
   end
 
   def update(%{entry: entry} = assigns, socket) do
@@ -103,78 +113,36 @@ defmodule LantternWeb.AssessmentPointLive.DifferentiationRubricComponent do
         rubric_id -> Rubrics.get_full_rubric!(rubric_id)
       end
 
-    form =
-      %{"rubric_id" => entry.differentiation_rubric_id}
-      |> to_form(as: :entry_rubric)
-
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:rubric, rubric)
-     |> assign(:form, form)}
+     |> assign(:rubric, rubric)}
   end
 
+  def update(%{action: {RubricSearchInputComponent, {:selected, rubric_id}}}, socket),
+    do: {:ok, link_rubric_to_entry_and_notify(socket, rubric_id)}
+
   def update(%{action: {RubricsFormComponent, {:created, rubric}}}, socket) do
-    entry = socket.assigns.entry
-
-    entry
-    |> Assessments.update_assessment_point_entry(%{
-      differentiation_rubric_id: rubric.id
-    })
-    |> case do
-      {:ok, assessment_point_entry} ->
-        notify_component(
-          socket.assigns.notify_component,
-          {:new_diff_rubric_linked, assessment_point_entry.id, rubric}
-        )
-
-        {:ok,
-         socket
-         |> assign(:rubric, Rubrics.get_full_rubric!(rubric.id))
-         |> assign(:form, to_form(%{"rubric_id" => rubric.id}, as: :entry_rubric))
-         |> assign(:is_creating_rubric, false)
-         |> assign(:has_rubric_change, false)}
-
-      {:error, _changeset} ->
-        notify_parent({:error, "Couldn't link rubric to assessment point"})
-        {:ok, socket}
-    end
+    {:ok,
+     socket
+     |> link_rubric_to_entry_and_notify(rubric.id)
+     |> assign(:is_creating_rubric, false)}
   end
 
   # event handlers
 
-  def handle_event("rubric_selected", %{"entry_rubric" => %{"rubric_id" => ""}}, socket) do
-    has_rubric_change = socket.assigns.entry.differentiation_rubric_id != nil
+  def handle_event("create_new", _params, socket),
+    do: {:noreply, assign(socket, :is_creating_rubric, true)}
 
-    {:noreply,
-     socket
-     |> assign(:rubric, nil)
-     |> assign(:has_rubric_change, has_rubric_change)
-     |> assign(:is_creating_rubric, false)
-     |> assign(:form, to_form(%{"rubric_id" => ""}, as: :entry_rubric))}
-  end
+  def handle_event("cancel_create_new", _params, socket),
+    do: {:noreply, assign(socket, :is_creating_rubric, false)}
 
-  def handle_event("rubric_selected", %{"entry_rubric" => %{"rubric_id" => "new"}}, socket) do
-    {:noreply,
-     socket
-     |> assign(:is_creating_rubric, true)
-     |> assign(:form, to_form(%{"rubric_id" => "new"}, as: :entry_rubric))}
-  end
+  def handle_event("remove_rubric", _params, socket),
+    do: {:noreply, link_rubric_to_entry_and_notify(socket, nil)}
 
-  def handle_event("rubric_selected", %{"entry_rubric" => %{"rubric_id" => rubric_id}}, socket) do
-    has_rubric_change = rubric_id != "#{socket.assigns.entry.differentiation_rubric_id}"
+  # helpers
 
-    {:noreply,
-     socket
-     |> assign(:rubric, Rubrics.get_full_rubric!(rubric_id))
-     |> assign(:has_rubric_change, has_rubric_change)
-     |> assign(:is_creating_rubric, false)
-     |> assign(:form, to_form(%{"rubric_id" => "new"}, as: :entry_rubric))}
-  end
-
-  def handle_event("save_rubric", %{"entry_rubric" => %{"rubric_id" => rubric_id}}, socket) do
-    rubric_id = if rubric_id == "", do: nil, else: rubric_id
-
+  defp link_rubric_to_entry_and_notify(socket, rubric_id) do
     socket.assigns.entry
     |> Assessments.update_assessment_point_entry(%{
       differentiation_rubric_id: rubric_id
@@ -186,20 +154,14 @@ defmodule LantternWeb.AssessmentPointLive.DifferentiationRubricComponent do
           {:diff_rubric_linked, assessment_point_entry.id, rubric_id}
         )
 
-        socket =
-          socket
-          |> assign(:has_rubric_change, false)
-          |> assign(:is_creating_rubric, false)
-
-        {:noreply, socket}
+        socket
+        |> assign(:rubric, rubric_id && Rubrics.get_full_rubric!(rubric_id))
 
       {:error, _changeset} ->
         notify_parent({:error, "Couldn't link differentiation rubric to assessment point entry"})
-        {:noreply, socket}
+        socket
     end
   end
-
-  # helpers
 
   defp notify_component(cid, msg), do: send_update(cid, action: {__MODULE__, msg})
 

@@ -1,7 +1,6 @@
 defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
   use LantternWeb, :live_component
 
-  import LantternWeb.RubricsHelpers
   alias Lanttern.Assessments
   alias Lanttern.Rubrics
   alias Lanttern.Rubrics.Rubric
@@ -49,6 +48,7 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
             }
             hide_diff_and_scale
             show_buttons
+            on_cancel={JS.push("cancel_create_new", target: @myself)}
             notify_component={@myself}
             notify_parent={false}
             class="mt-6"
@@ -86,7 +86,6 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
             module={DifferentiationRubricComponent}
             id={"entry-#{entry.id}"}
             entry={entry}
-            rubric_options={@diff_rubric_options}
             notify_component={@myself}
           />
         </section>
@@ -132,20 +131,10 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
         rubric_id -> Rubrics.get_full_rubric!(rubric_id)
       end
 
-    diff_rubric_options =
-      [
-        {"Create new differentiation rubric", "new"}
-        | generate_rubric_options(
-            is_differentiation: true,
-            scale_id: assessment_point.scale_id
-          )
-      ]
-
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:rubric, rubric)
-     |> assign(:diff_rubric_options, diff_rubric_options)}
+     |> assign(:rubric, rubric)}
   end
 
   def update(%{action: {RubricSearchInputComponent, {:selected, rubric_id}}}, socket),
@@ -174,28 +163,18 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
      |> assign(:entries, entries)}
   end
 
-  def update(
-        %{
-          action: {DifferentiationRubricComponent, {:new_diff_rubric_linked, entry_id, rubric}}
-        },
-        socket
-      ) do
-    entries =
-      socket.assigns.entries
-      |> Enum.map(fn
-        %{id: ^entry_id} = entry -> Map.put(entry, :differentiation_rubric_id, rubric.id)
-        entry -> entry
-      end)
+  # event handlers
 
-    diff_rubric_options =
-      socket.assigns.diff_rubric_options
-      |> List.insert_at(-1, {"(##{rubric.id}) #{rubric.criteria}", rubric.id})
+  def handle_event("create_new", _params, socket),
+    do: {:noreply, assign(socket, :is_creating_rubric, true)}
 
-    {:ok,
-     socket
-     |> assign(:entries, entries)
-     |> assign(:diff_rubric_options, diff_rubric_options)}
-  end
+  def handle_event("cancel_create_new", _params, socket),
+    do: {:noreply, assign(socket, :is_creating_rubric, false)}
+
+  def handle_event("remove_rubric", _params, socket),
+    do: {:noreply, link_rubric_to_assessment_and_notify_parent(socket, nil)}
+
+  # helpers
 
   defp link_rubric_to_assessment_and_notify_parent(socket, rubric_id) do
     socket.assigns.assessment_point
@@ -207,37 +186,13 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
         notify_parent({:rubric_linked, rubric_id})
 
         socket
-        |> assign(:rubric, Rubrics.get_full_rubric!(rubric_id))
+        |> assign(:rubric, rubric_id && Rubrics.get_full_rubric!(rubric_id))
 
       {:error, _changeset} ->
         notify_parent({:error, "Couldn't link rubric to assessment point"})
         socket
     end
   end
-
-  # event handlers
-
-  def handle_event("create_new", _params, socket),
-    do: {:noreply, assign(socket, :is_creating_rubric, true)}
-
-  def handle_event("cancel_create_new", _params, socket),
-    do: {:noreply, assign(socket, :is_creating_rubric, false)}
-
-  def handle_event("remove_rubric", _params, socket) do
-    socket.assigns.assessment_point
-    |> Assessments.update_assessment_point(%{rubric_id: nil})
-    |> case do
-      {:ok, _assessment_point} ->
-        notify_parent({:rubric_linked, nil})
-        {:noreply, assign(socket, :rubric, nil)}
-
-      {:error, _changeset} ->
-        notify_parent({:error, "Couldn't remove rubric from assessment point"})
-        {:noreply, socket}
-    end
-  end
-
-  # helpers
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end

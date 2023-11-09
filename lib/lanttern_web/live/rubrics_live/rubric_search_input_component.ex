@@ -21,7 +21,7 @@ defmodule LantternWeb.RubricsLive.RubricSearchInputComponent do
           class="peer pr-10"
           role="combobox"
           autocomplete="off"
-          aria-controls="rubric-search-controls"
+          aria-controls={"rubric-search-controls-#{@id}"}
           aria-expanded="false"
           phx-hook="Autocomplete"
           phx-change="search"
@@ -42,7 +42,7 @@ defmodule LantternWeb.RubricsLive.RubricSearchInputComponent do
             "absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm hidden",
             "peer-aria-expanded:block"
           ]}
-          id="rubric-search-controls"
+          id={"rubric-search-controls-#{@id}"}
           role="listbox"
           phx-update="stream"
         >
@@ -130,7 +130,9 @@ defmodule LantternWeb.RubricsLive.RubricSearchInputComponent do
     socket =
       socket
       |> stream(:rubrics, rubrics, reset: true)
-      |> push_event("autocomplete_search_results", %{results: results_simplified})
+      |> push_event("autocomplete_search_results:#{socket.assigns.id}", %{
+        results: results_simplified
+      })
 
     {:noreply, socket}
   end
