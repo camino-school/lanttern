@@ -21,27 +21,12 @@ defmodule Lanttern.SchoolsFixtures do
   @doc """
   Generate a class.
   """
-  def class_fixture(attrs \\ %{})
-
-  def class_fixture(%{school_id: _school_id} = attrs) do
+  def class_fixture(attrs \\ %{}) do
     {:ok, class} =
       attrs
       |> Enum.into(%{
+        school_id: school_id(attrs),
         name: "some class name #{Ecto.UUID.generate()}"
-      })
-      |> Lanttern.Schools.create_class()
-
-    class
-  end
-
-  def class_fixture(attrs) do
-    school = school_fixture()
-
-    {:ok, class} =
-      attrs
-      |> Enum.into(%{
-        school_id: school.id,
-        name: "some class name"
       })
       |> Lanttern.Schools.create_class()
 
@@ -51,27 +36,12 @@ defmodule Lanttern.SchoolsFixtures do
   @doc """
   Generate a student.
   """
-  def student_fixture(attrs \\ %{})
-
-  def student_fixture(%{school_id: _school_id} = attrs) do
+  def student_fixture(attrs \\ %{}) do
     {:ok, student} =
       attrs
       |> Enum.into(%{
+        school_id: school_id(attrs),
         name: "some full name #{Ecto.UUID.generate()}"
-      })
-      |> Lanttern.Schools.create_student()
-
-    student
-  end
-
-  def student_fixture(attrs) do
-    school = school_fixture()
-
-    {:ok, student} =
-      attrs
-      |> Enum.into(%{
-        name: "some full name #{Ecto.UUID.generate()}",
-        school_id: school.id
       })
       |> Lanttern.Schools.create_student()
 
@@ -81,12 +51,11 @@ defmodule Lanttern.SchoolsFixtures do
   @doc """
   Generate a teacher.
   """
-  def teacher_fixture(attrs \\ %{})
-
-  def teacher_fixture(%{school_id: _school_id} = attrs) do
+  def teacher_fixture(attrs \\ %{}) do
     {:ok, teacher} =
       attrs
       |> Enum.into(%{
+        school_id: school_id(attrs),
         name: "some full name #{Ecto.UUID.generate()}"
       })
       |> Lanttern.Schools.create_teacher()
@@ -94,17 +63,28 @@ defmodule Lanttern.SchoolsFixtures do
     teacher
   end
 
-  def teacher_fixture(attrs) do
-    school = school_fixture()
-
-    {:ok, teacher} =
+  @doc """
+  Generate a cycle.
+  """
+  def cycle_fixture(attrs \\ %{}) do
+    {:ok, cycle} =
       attrs
       |> Enum.into(%{
-        name: "some full name #{Ecto.UUID.generate()}",
-        school_id: school.id
+        school_id: school_id(attrs),
+        name: "some name",
+        start_at: ~D[2023-11-09],
+        end_at: ~D[2024-11-09]
       })
-      |> Lanttern.Schools.create_teacher()
+      |> Lanttern.Schools.create_cycle()
 
-    teacher
+    cycle
   end
+
+  # helpers
+
+  defp school_id(%{school_id: school_id} = _attrs),
+    do: school_id
+
+  defp school_id(_attrs),
+    do: school_fixture().id
 end

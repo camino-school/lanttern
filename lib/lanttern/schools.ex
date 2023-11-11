@@ -715,4 +715,100 @@ defmodule Lanttern.Schools do
 
     {:ok, response}
   end
+
+  alias Lanttern.Schools.Cycle
+
+  @doc """
+  Returns the list of school_cycles.
+
+  ## Examples
+
+      iex> list_school_cycles()
+      [%Cycle{}, ...]
+
+  """
+  def list_school_cycles do
+    Repo.all(Cycle)
+  end
+
+  @doc """
+  Gets a single cycle.
+
+  Raises `Ecto.NoResultsError` if the Cycle does not exist.
+
+  ## Examples
+
+      iex> get_cycle!(123)
+      %Cycle{}
+
+      iex> get_cycle!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_cycle!(id), do: Repo.get!(Cycle, id)
+
+  @doc """
+  Creates a cycle.
+
+  ## Examples
+
+      iex> create_cycle(%{field: value})
+      {:ok, %Cycle{}}
+
+      iex> create_cycle(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_cycle(attrs \\ %{}) do
+    %Cycle{}
+    |> Cycle.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a cycle.
+
+  ## Examples
+
+      iex> update_cycle(cycle, %{field: new_value})
+      {:ok, %Cycle{}}
+
+      iex> update_cycle(cycle, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_cycle(%Cycle{} = cycle, attrs) do
+    cycle
+    |> Cycle.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a cycle.
+
+  ## Examples
+
+      iex> delete_cycle(cycle)
+      {:ok, %Cycle{}}
+
+      iex> delete_cycle(cycle)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_cycle(%Cycle{} = cycle) do
+    Repo.delete(cycle)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking cycle changes.
+
+  ## Examples
+
+      iex> change_cycle(cycle)
+      %Ecto.Changeset{data: %Cycle{}}
+
+  """
+  def change_cycle(%Cycle{} = cycle, attrs \\ %{}) do
+    Cycle.changeset(cycle, attrs)
+  end
 end
