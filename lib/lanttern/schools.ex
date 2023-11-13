@@ -231,6 +231,33 @@ defmodule Lanttern.Schools do
   end
 
   @doc """
+  Returns the list of user's school classes.
+
+  The list is sorted by cycle end date (desc), class year (asc, TBD), and class name (asc).
+
+  ## Examples
+
+      iex> list_user_classes()
+      [%Class{}, ...]
+
+  """
+  def list_user_classes(%{current_profile: %{teacher: %{school_id: school_id}}} = _current_user) do
+    from(
+      cl in Class,
+      join: cy in assoc(cl, :cycle),
+      left_join: s in assoc(cl, :students),
+      group_by: [cl.id, cy.end_at],
+      order_by: [desc: cy.end_at, asc: cl.name],
+      where: cl.school_id == ^school_id,
+      preload: [:cycle, :students]
+    )
+    |> Repo.all()
+  end
+
+  def list_user_classes(_current_user),
+    do: {:error, "User not allowed to list classes"}
+
+  @doc """
   Gets a single class.
 
   Raises `Ecto.NoResultsError` if the Class does not exist.

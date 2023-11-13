@@ -165,6 +165,37 @@ defmodule Lanttern.SchoolsTest do
       assert expected_class.students == [student]
     end
 
+    test "list_user_classes/1 returns all classes from user's school with preloaded data and correct order" do
+      school = school_fixture()
+      class_b = class_fixture(%{school_id: school.id, name: "BBB"})
+      class_a = class_fixture(%{school_id: school.id, name: "AAA"})
+      teacher = teacher_fixture(%{school_id: school.id})
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture(%{teacher_id: teacher.id})
+      user = %{current_profile: Lanttern.Identity.get_profile!(profile.id, preloads: :teacher)}
+
+      # extra classes for school filter validation
+      class_fixture()
+      class_fixture()
+
+      [expected_a, expected_b] = Schools.list_user_classes(user)
+
+      assert expected_a.id == class_a.id
+      assert expected_b.id == class_b.id
+    end
+
+    test "list_user_classes/1 returns error tuple when user is student" do
+      school = school_fixture()
+      student = student_fixture(%{school_id: school.id})
+      profile = Lanttern.IdentityFixtures.student_profile_fixture(%{student_id: student.id})
+
+      user = %{
+        current_profile:
+          Lanttern.Identity.get_profile!(profile.id, preloads: [:teacher, :student])
+      }
+
+      assert {:error, "User not allowed to list classes"} == Schools.list_user_classes(user)
+    end
+
     test "get_class!/2 returns the class with given id" do
       class = class_fixture()
       assert Schools.get_class!(class.id) == class
