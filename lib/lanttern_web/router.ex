@@ -52,6 +52,7 @@ defmodule LantternWeb.Router do
            :edit_filter_view
 
       live "/school", SchoolLive.Show, :show
+      live "/school/class/:id", SchoolLive.Class, :class
 
       live "/assessment_points", AssessmentPointLive.Explorer, :index
       live "/assessment_points/new", AssessmentPointLive.Explorer, :new

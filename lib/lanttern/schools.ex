@@ -260,7 +260,7 @@ defmodule Lanttern.Schools do
   @doc """
   Gets a single class.
 
-  Raises `Ecto.NoResultsError` if the Class does not exist.
+  Returns nil if the Class does not exist.
 
   ### Options:
 
@@ -272,8 +272,18 @@ defmodule Lanttern.Schools do
       %Class{}
 
       iex> get_class!(456)
-      ** (Ecto.NoResultsError)
+      nil
 
+  """
+  def get_class(id, opts \\ []) do
+    Repo.get(Class, id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single class.
+
+  Same as `get_class/2`, but raises `Ecto.NoResultsError` if the Class does not exist.
   """
   def get_class!(id, opts \\ []) do
     Repo.get!(Class, id)

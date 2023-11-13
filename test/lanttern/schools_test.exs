@@ -196,6 +196,16 @@ defmodule Lanttern.SchoolsTest do
       assert {:error, "User not allowed to list classes"} == Schools.list_user_classes(user)
     end
 
+    test "get_class/2 returns the class with given id" do
+      class = class_fixture()
+      assert Schools.get_class(class.id) == class
+    end
+
+    test "get_class/2 returns nil if class with given id does not exist" do
+      class_fixture()
+      assert Schools.get_class(99999) == nil
+    end
+
     test "get_class!/2 returns the class with given id" do
       class = class_fixture()
       assert Schools.get_class!(class.id) == class

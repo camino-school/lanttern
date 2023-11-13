@@ -19,10 +19,8 @@ defmodule LantternWeb.SchoolLive.ShowTest do
       {:ok, _view, _html} = live(conn)
     end
 
-    test "list classes", %{conn: conn} do
-      conn = get(conn, @live_view_path)
-
-      school = conn.assigns.current_user.current_profile.teacher.school
+    test "list classes", %{conn: conn, user: user} do
+      school = user.current_profile.teacher.school
       class = SchoolsFixtures.class_fixture(%{school_id: school.id, name: "school abc"})
 
       {:ok, view, _html} = live(conn, @live_view_path)

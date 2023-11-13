@@ -1,44 +1,12 @@
-defmodule LantternWeb.SchoolLive.Show do
+defmodule LantternWeb.SchoolLive.Class do
   use LantternWeb, :live_view
 
   alias Lanttern.Schools
 
-  # function components
-
-  attr :students, :list, required: true
-
-  def class_students(%{students: students} = assigns) when length(students) > 5 do
-    assigns =
-      assigns
-      |> assign(:len, "+ #{length(students) - 3} students")
-      |> assign(:students, students |> Enum.take(3))
-
-    ~H"""
-    <div class="flex flex-wrap items-center gap-1">
-      <.person_badge :for={std <- @students} person={std} theme="cyan" />
-      <span><%= @len %></span>
-    </div>
-    """
-  end
-
-  def class_students(%{students: []} = assigns) do
-    ~H"""
-    No students in this class
-    """
-  end
-
-  def class_students(assigns) do
-    ~H"""
-    <div class="flex flex-wrap gap-1">
-      <.person_badge :for={std <- @students} person={std} theme="cyan" />
-    </div>
-    """
-  end
-
   # lifecycle
 
   def mount(_params, _session, socket) do
-    school =
+    user_school =
       case socket.assigns.current_user.current_profile.type do
         "student" ->
           socket.assigns.current_user.current_profile.student.school
@@ -47,29 +15,28 @@ defmodule LantternWeb.SchoolLive.Show do
           socket.assigns.current_user.current_profile.teacher.school
       end
 
-    classes = Schools.list_user_classes(socket.assigns.current_user)
-
     {:ok,
      socket
-     |> assign(:school, school)
-     |> stream(:classes, classes)}
+     |> assign(:user_school, user_school)}
   end
 
   def handle_params(params, _url, socket) do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  # defp apply_action(socket, :edit, %{"id" => id}) do
-  #   socket
-  #   |> assign(:overlay_title, "Edit rubric")
-  #   |> assign(:rubric, Rubrics.get_rubric!(id, preloads: :descriptors))
-  # end
+  defp apply_action(socket, :class, %{"id" => id}) do
+    case Schools.get_class(id, preloads: :students) do
+      class when is_nil(class) or class.school_id != socket.assigns.user_school.id ->
+        socket
+        |> put_flash(:error, "Couldn't find class")
+        |> redirect(to: ~p"/school")
 
-  # defp apply_action(socket, :new, _params) do
-  #   socket
-  #   |> assign(:overlay_title, "Create Rubric")
-  #   |> assign(:rubric, %Rubric{})
-  # end
+      class ->
+        socket
+        |> assign(:class_name, class.name)
+        |> stream(:students, class.students)
+    end
+  end
 
   defp apply_action(socket, _live_action, _params), do: socket
 

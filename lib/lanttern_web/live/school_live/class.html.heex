@@ -1,0 +1,23 @@
+<div class="container mx-auto lg:max-w-5xl">
+  <.page_title_with_menu><%= @class_name %></.page_title_with_menu>
+  <.breadcrumbs class="mt-2">
+    <:item link={~p"/school"}>School</:item>
+    <:item>Class</:item>
+  </.breadcrumbs>
+
+  <h3 class="mt-10 font-display font-bold text-2xl">
+    Students
+  </h3>
+  <div id="students" phx-update="stream" class="grid grid-cols-3 gap-10 mt-6">
+    <div
+      :for={{dom_id, student} <- @streams.students}
+      id={dom_id}
+      class="flex gap-4 p-6 rounded bg-white shadow-xl"
+    >
+      <span class="flex-1 font-display font-black text-2xl">
+        <%= student.name %>
+      </span>
+      <.profile_icon profile_name={student.name} class="-mt-2 -mr-2" />
+    </div>
+  </div>
+</div>

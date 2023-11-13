@@ -200,7 +200,8 @@ defmodule LantternWeb.MenuComponent do
           :dashboard
 
         socket.view in [
-          LantternWeb.SchoolLive.Show
+          LantternWeb.SchoolLive.Show,
+          LantternWeb.SchoolLive.Class
         ] ->
           :school
 

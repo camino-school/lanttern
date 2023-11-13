@@ -671,7 +671,7 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div
       class={[
-        "flex items-center justify-center rounded-full font-display font-bold text-center  shadow-md",
+        "shrink-0 flex items-center justify-center rounded-full font-display font-bold text-center  shadow-md",
         profile_icon_size_style(@size),
         profile_icon_theme_style(@theme),
         @class

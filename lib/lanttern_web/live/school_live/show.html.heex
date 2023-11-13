@@ -13,7 +13,11 @@
     </.link> --%>
   </div>
 
-  <.stream_table id="classes" stream={@streams.classes}>
+  <.stream_table
+    id="classes"
+    stream={@streams.classes}
+    row_click={&JS.navigate(~p"/school/class/#{&1}")}
+  >
     <:col :let={class} label="Class"><%= class.name %></:col>
     <:col :let={class} label="Students">
       <.class_students students={class.students} />
