@@ -19,13 +19,49 @@ defmodule Lanttern.SchoolsFixtures do
   end
 
   @doc """
+  Generate a cycle.
+  """
+  def cycle_fixture(attrs \\ %{}) do
+    {:ok, cycle} =
+      attrs
+      |> Enum.into(%{
+        school_id: maybe_gen_school_id(attrs),
+        name: "some name",
+        start_at: ~D[2023-11-09],
+        end_at: ~D[2024-11-09]
+      })
+      |> Lanttern.Schools.create_cycle()
+
+    cycle
+  end
+
+  @doc """
   Generate a class.
   """
-  def class_fixture(attrs \\ %{}) do
+  def class_fixture(attrs \\ %{})
+
+  def class_fixture(%{cycle_id: cycle_id} = attrs) do
     {:ok, class} =
       attrs
       |> Enum.into(%{
-        school_id: school_id(attrs),
+        school_id: maybe_gen_school_id(attrs),
+        cycle_id: cycle_id,
+        name: "some class name #{Ecto.UUID.generate()}"
+      })
+      |> Lanttern.Schools.create_class()
+
+    class
+  end
+
+  def class_fixture(attrs) do
+    school_id = maybe_gen_school_id(attrs)
+    cycle = cycle_fixture(%{school_id: school_id})
+
+    {:ok, class} =
+      attrs
+      |> Enum.into(%{
+        school_id: school_id,
+        cycle_id: cycle.id,
         name: "some class name #{Ecto.UUID.generate()}"
       })
       |> Lanttern.Schools.create_class()
@@ -40,7 +76,7 @@ defmodule Lanttern.SchoolsFixtures do
     {:ok, student} =
       attrs
       |> Enum.into(%{
-        school_id: school_id(attrs),
+        school_id: maybe_gen_school_id(attrs),
         name: "some full name #{Ecto.UUID.generate()}"
       })
       |> Lanttern.Schools.create_student()
@@ -55,7 +91,7 @@ defmodule Lanttern.SchoolsFixtures do
     {:ok, teacher} =
       attrs
       |> Enum.into(%{
-        school_id: school_id(attrs),
+        school_id: maybe_gen_school_id(attrs),
         name: "some full name #{Ecto.UUID.generate()}"
       })
       |> Lanttern.Schools.create_teacher()
@@ -63,28 +99,11 @@ defmodule Lanttern.SchoolsFixtures do
     teacher
   end
 
-  @doc """
-  Generate a cycle.
-  """
-  def cycle_fixture(attrs \\ %{}) do
-    {:ok, cycle} =
-      attrs
-      |> Enum.into(%{
-        school_id: school_id(attrs),
-        name: "some name",
-        start_at: ~D[2023-11-09],
-        end_at: ~D[2024-11-09]
-      })
-      |> Lanttern.Schools.create_cycle()
-
-    cycle
-  end
-
   # helpers
 
-  defp school_id(%{school_id: school_id} = _attrs),
+  defp maybe_gen_school_id(%{school_id: school_id} = _attrs),
     do: school_id
 
-  defp school_id(_attrs),
+  defp maybe_gen_school_id(_attrs),
     do: school_fixture().id
 end

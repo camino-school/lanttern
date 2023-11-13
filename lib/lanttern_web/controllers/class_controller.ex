@@ -6,7 +6,7 @@ defmodule LantternWeb.ClassController do
   alias Lanttern.Schools.Class
 
   def index(conn, _params) do
-    classes = Schools.list_classes(preloads: [:school, :students])
+    classes = Schools.list_classes(preloads: [:school, :cycle, :students])
     render(conn, :index, classes: classes)
   end
 
@@ -14,9 +14,11 @@ defmodule LantternWeb.ClassController do
     changeset = Schools.change_class(%Class{})
     student_options = generate_student_options()
     school_options = generate_school_options()
+    cycle_options = generate_cycle_options()
 
     render(conn, :new,
       school_options: school_options,
+      cycle_options: cycle_options,
       student_options: student_options,
       changeset: changeset
     )
@@ -32,9 +34,11 @@ defmodule LantternWeb.ClassController do
       {:error, %Ecto.Changeset{} = changeset} ->
         student_options = generate_student_options()
         school_options = generate_school_options()
+        cycle_options = generate_cycle_options()
 
         render(conn, :new,
           school_options: school_options,
+          cycle_options: cycle_options,
           student_options: student_options,
           changeset: changeset
         )
@@ -42,13 +46,14 @@ defmodule LantternWeb.ClassController do
   end
 
   def show(conn, %{"id" => id}) do
-    class = Schools.get_class!(id, preloads: [:school, :students])
+    class = Schools.get_class!(id, preloads: [:school, :cycle, :students])
     render(conn, :show, class: class)
   end
 
   def edit(conn, %{"id" => id}) do
     school_options = generate_school_options()
     student_options = generate_student_options()
+    cycle_options = generate_cycle_options()
 
     class = Schools.get_class!(id, preloads: :students)
 
@@ -61,6 +66,7 @@ defmodule LantternWeb.ClassController do
     render(conn, :edit,
       class: class,
       school_options: school_options,
+      cycle_options: cycle_options,
       student_options: student_options,
       changeset: changeset
     )
@@ -77,11 +83,13 @@ defmodule LantternWeb.ClassController do
 
       {:error, %Ecto.Changeset{} = changeset} ->
         school_options = generate_school_options()
+        cycle_options = generate_cycle_options()
         student_options = generate_student_options()
 
         render(conn, :edit,
           class: class,
           school_options: school_options,
+          cycle_options: cycle_options,
           student_options: student_options,
           changeset: changeset
         )

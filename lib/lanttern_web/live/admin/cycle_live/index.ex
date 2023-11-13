@@ -6,7 +6,7 @@ defmodule LantternWeb.Admin.CycleLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :school_cycles, Schools.list_school_cycles())}
+    {:ok, stream(socket, :school_cycles, Schools.list_cycles())}
   end
 
   @impl true

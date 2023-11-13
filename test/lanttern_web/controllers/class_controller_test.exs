@@ -3,7 +3,6 @@ defmodule LantternWeb.ClassControllerTest do
 
   import Lanttern.SchoolsFixtures
 
-  @create_attrs %{name: "some name"}
   @update_attrs %{name: "some updated name"}
   @invalid_attrs %{name: nil}
 
@@ -26,7 +25,8 @@ defmodule LantternWeb.ClassControllerTest do
   describe "create class" do
     test "redirects to show when data is valid", %{conn: conn} do
       school = school_fixture()
-      create_attrs = @create_attrs |> Map.put_new(:school_id, school.id)
+      cycle = cycle_fixture(%{school_id: school.id})
+      create_attrs = %{name: "some name", school_id: school.id, cycle_id: cycle.id}
       conn = post(conn, ~p"/admin/classes", class: create_attrs)
 
       assert %{id: id} = redirected_params(conn)

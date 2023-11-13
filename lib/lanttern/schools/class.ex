@@ -10,6 +10,7 @@ defmodule Lanttern.Schools.Class do
     field :students_ids, {:array, :id}, virtual: true
 
     belongs_to :school, Lanttern.Schools.School
+    belongs_to :cycle, Lanttern.Schools.Cycle
 
     many_to_many :students, Lanttern.Schools.Student,
       join_through: "classes_students",
@@ -21,8 +22,13 @@ defmodule Lanttern.Schools.Class do
   @doc false
   def changeset(class, attrs) do
     class
-    |> cast(attrs, [:name, :school_id, :students_ids])
-    |> validate_required([:name, :school_id])
+    |> cast(attrs, [:name, :school_id, :students_ids, :cycle_id])
+    |> validate_required([:name, :school_id, :cycle_id])
+    |> foreign_key_constraint(
+      :cycle_id,
+      name: :classes_cycle_id_fkey,
+      message: "Check if the cycle exists and belongs to the same school"
+    )
     |> put_students()
   end
 

@@ -57,6 +57,87 @@ defmodule Lanttern.SchoolsTest do
     end
   end
 
+  describe "school_cycles" do
+    alias Lanttern.Schools.Cycle
+
+    import Lanttern.SchoolsFixtures
+
+    @invalid_attrs %{name: nil, start_at: nil, end_at: nil}
+
+    test "list_cycles/1 returns all school_cycles" do
+      cycle = cycle_fixture()
+      assert Schools.list_cycles() == [cycle]
+    end
+
+    test "list_cycles/1 with school filter returns all cycles as expected" do
+      school = school_fixture()
+      cycle = cycle_fixture(%{school_id: school.id})
+
+      # extra cycles for school filter validation
+      class_fixture()
+      class_fixture()
+
+      assert [cycle] == Schools.list_cycles(schools_ids: [school.id])
+    end
+
+    test "get_cycle!/1 returns the cycle with given id" do
+      cycle = cycle_fixture()
+      assert Schools.get_cycle!(cycle.id) == cycle
+    end
+
+    test "create_cycle/1 with valid data creates a cycle" do
+      school = school_fixture()
+
+      valid_attrs = %{
+        name: "some name",
+        start_at: ~D[2023-11-09],
+        end_at: ~D[2023-12-09],
+        school_id: school.id
+      }
+
+      assert {:ok, %Cycle{} = cycle} = Schools.create_cycle(valid_attrs)
+      assert cycle.name == "some name"
+      assert cycle.start_at == ~D[2023-11-09]
+      assert cycle.end_at == ~D[2023-12-09]
+    end
+
+    test "create_cycle/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Schools.create_cycle(@invalid_attrs)
+    end
+
+    test "update_cycle/2 with valid data updates the cycle" do
+      cycle = cycle_fixture()
+
+      update_attrs = %{
+        name: "some updated name",
+        start_at: ~D[2023-11-10],
+        end_at: ~D[2023-12-10]
+      }
+
+      assert {:ok, %Cycle{} = cycle} = Schools.update_cycle(cycle, update_attrs)
+      assert cycle.name == "some updated name"
+      assert cycle.start_at == ~D[2023-11-10]
+      assert cycle.end_at == ~D[2023-12-10]
+    end
+
+    test "update_cycle/2 with invalid data returns error changeset" do
+      cycle = cycle_fixture()
+      assert {:error, %Ecto.Changeset{}} = Schools.update_cycle(cycle, @invalid_attrs)
+      assert cycle == Schools.get_cycle!(cycle.id)
+    end
+
+    test "delete_cycle/1 deletes the cycle" do
+      cycle = cycle_fixture()
+      assert {:ok, %Cycle{}} = Schools.delete_cycle(cycle)
+      assert_raise Ecto.NoResultsError, fn -> Schools.get_cycle!(cycle.id) end
+    end
+
+    test "change_cycle/1 returns a cycle changeset" do
+      cycle = cycle_fixture()
+      assert %Ecto.Changeset{} = Schools.change_cycle(cycle)
+    end
+  end
+
   describe "classes" do
     alias Lanttern.Schools.Class
 
@@ -102,7 +183,8 @@ defmodule Lanttern.SchoolsTest do
 
     test "create_class/1 with valid data creates a class" do
       school = school_fixture()
-      valid_attrs = %{school_id: school.id, name: "some name"}
+      cycle = cycle_fixture(%{school_id: school.id})
+      valid_attrs = %{school_id: school.id, cycle_id: cycle.id, name: "some name"}
 
       assert {:ok, %Class{} = class} = Schools.create_class(valid_attrs)
       assert class.name == "some name"
@@ -111,6 +193,7 @@ defmodule Lanttern.SchoolsTest do
 
     test "create_class/1 with valid data containing students creates a class with students" do
       school = school_fixture()
+      cycle = cycle_fixture(%{school_id: school.id})
       student_1 = student_fixture()
       student_2 = student_fixture()
       student_3 = student_fixture()
@@ -118,6 +201,7 @@ defmodule Lanttern.SchoolsTest do
       valid_attrs = %{
         name: "some name",
         school_id: school.id,
+        cycle_id: cycle.id,
         students_ids: [
           student_1.id,
           student_2.id,
@@ -418,7 +502,8 @@ defmodule Lanttern.SchoolsTest do
   describe "csv parsing" do
     test "create_students_from_csv/3 creates classes and students, and returns a list with the registration status for each row" do
       school = school_fixture()
-      class = class_fixture(name: "existing class", school_id: school.id)
+      cycle = cycle_fixture(%{school_id: school.id})
+      class = class_fixture(name: "existing class", school_id: school.id, cycle_id: cycle.id)
       user = Lanttern.IdentityFixtures.user_fixture(email: "existing-user@school.com")
 
       csv_std_1 = %{
@@ -466,7 +551,7 @@ defmodule Lanttern.SchoolsTest do
       }
 
       {:ok, expected} =
-        Schools.create_students_from_csv(csv_students, class_name_id_map, school.id)
+        Schools.create_students_from_csv(csv_students, class_name_id_map, school.id, cycle.id)
 
       [
         {returned_csv_std_1, {:ok, std_1}},
@@ -596,76 +681,6 @@ defmodule Lanttern.SchoolsTest do
         select: u
       )
       |> Lanttern.Repo.one!()
-    end
-  end
-
-  describe "school_cycles" do
-    alias Lanttern.Schools.Cycle
-
-    import Lanttern.SchoolsFixtures
-
-    @invalid_attrs %{name: nil, start_at: nil, end_at: nil}
-
-    test "list_school_cycles/0 returns all school_cycles" do
-      cycle = cycle_fixture()
-      assert Schools.list_school_cycles() == [cycle]
-    end
-
-    test "get_cycle!/1 returns the cycle with given id" do
-      cycle = cycle_fixture()
-      assert Schools.get_cycle!(cycle.id) == cycle
-    end
-
-    test "create_cycle/1 with valid data creates a cycle" do
-      school = school_fixture()
-
-      valid_attrs = %{
-        name: "some name",
-        start_at: ~D[2023-11-09],
-        end_at: ~D[2023-12-09],
-        school_id: school.id
-      }
-
-      assert {:ok, %Cycle{} = cycle} = Schools.create_cycle(valid_attrs)
-      assert cycle.name == "some name"
-      assert cycle.start_at == ~D[2023-11-09]
-      assert cycle.end_at == ~D[2023-12-09]
-    end
-
-    test "create_cycle/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Schools.create_cycle(@invalid_attrs)
-    end
-
-    test "update_cycle/2 with valid data updates the cycle" do
-      cycle = cycle_fixture()
-
-      update_attrs = %{
-        name: "some updated name",
-        start_at: ~D[2023-11-10],
-        end_at: ~D[2023-12-10]
-      }
-
-      assert {:ok, %Cycle{} = cycle} = Schools.update_cycle(cycle, update_attrs)
-      assert cycle.name == "some updated name"
-      assert cycle.start_at == ~D[2023-11-10]
-      assert cycle.end_at == ~D[2023-12-10]
-    end
-
-    test "update_cycle/2 with invalid data returns error changeset" do
-      cycle = cycle_fixture()
-      assert {:error, %Ecto.Changeset{}} = Schools.update_cycle(cycle, @invalid_attrs)
-      assert cycle == Schools.get_cycle!(cycle.id)
-    end
-
-    test "delete_cycle/1 deletes the cycle" do
-      cycle = cycle_fixture()
-      assert {:ok, %Cycle{}} = Schools.delete_cycle(cycle)
-      assert_raise Ecto.NoResultsError, fn -> Schools.get_cycle!(cycle.id) end
-    end
-
-    test "change_cycle/1 returns a cycle changeset" do
-      cycle = cycle_fixture()
-      assert %Ecto.Changeset{} = Schools.change_cycle(cycle)
     end
   end
 end
