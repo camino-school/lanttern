@@ -8,12 +8,20 @@ defmodule Lanttern.Schools.Class do
   schema "classes" do
     field :name, :string
     field :students_ids, {:array, :id}, virtual: true
+    field :years_ids, {:array, :id}, virtual: true
 
     belongs_to :school, Lanttern.Schools.School
+    belongs_to :cycle, Lanttern.Schools.Cycle
 
     many_to_many :students, Lanttern.Schools.Student,
       join_through: "classes_students",
-      on_replace: :delete
+      on_replace: :delete,
+      preload_order: [asc: :name]
+
+    many_to_many :years, Lanttern.Taxonomy.Year,
+      join_through: "classes_years",
+      on_replace: :delete,
+      preload_order: [asc: :id]
 
     timestamps()
   end
@@ -21,9 +29,15 @@ defmodule Lanttern.Schools.Class do
   @doc false
   def changeset(class, attrs) do
     class
-    |> cast(attrs, [:name, :school_id, :students_ids])
-    |> validate_required([:name, :school_id])
+    |> cast(attrs, [:name, :school_id, :students_ids, :years_ids, :cycle_id])
+    |> validate_required([:name, :school_id, :cycle_id])
+    |> foreign_key_constraint(
+      :cycle_id,
+      name: :classes_cycle_id_fkey,
+      message: "Check if the cycle exists and belongs to the same school"
+    )
     |> put_students()
+    |> put_years()
   end
 
   defp put_students(changeset) do
@@ -42,5 +56,23 @@ defmodule Lanttern.Schools.Class do
 
     changeset
     |> put_assoc(:students, students)
+  end
+
+  defp put_years(changeset) do
+    put_years(
+      changeset,
+      get_change(changeset, :years_ids)
+    )
+  end
+
+  defp put_years(changeset, nil), do: changeset
+
+  defp put_years(changeset, years_ids) do
+    years =
+      from(y in Lanttern.Taxonomy.Year, where: y.id in ^years_ids)
+      |> Repo.all()
+
+    changeset
+    |> put_assoc(:years, years)
   end
 end

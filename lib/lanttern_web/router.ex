@@ -51,6 +51,10 @@ defmodule LantternWeb.Router do
            DashboardLive.Index,
            :edit_filter_view
 
+      live "/school", SchoolLive.Show, :show
+      live "/school/class/:id", SchoolLive.Class, :show
+      live "/school/student/:id", SchoolLive.Student, :show
+
       live "/assessment_points", AssessmentPointLive.Explorer, :index
       live "/assessment_points/new", AssessmentPointLive.Explorer, :new
 
@@ -104,8 +108,16 @@ defmodule LantternWeb.Router do
     resources "/classes", ClassController
     resources "/students", StudentController
     resources "/teachers", TeacherController
+
     live "/import_students", Admin.SchoolLive.ImportStudents
     live "/import_teachers", Admin.SchoolLive.ImportTeachers
+
+    live "/school_cycles", Admin.CycleLive.Index, :index
+    live "/school_cycles/new", Admin.CycleLive.Index, :new
+
+    live "/school_cycles/:id/edit", Admin.CycleLive.Index, :edit
+    live "/school_cycles/:id", Admin.CycleLive.Show, :show
+    live "/school_cycles/:id/show/edit", Admin.CycleLive.Show, :edit
 
     # Taxonomy context
     resources "/subjects", SubjectController

@@ -9,6 +9,21 @@
     options={@school_options}
     prompt="Select school"
   />
+  <.input
+    field={f[:cycle_id]}
+    type="select"
+    label="Cycle"
+    options={@cycle_options}
+    prompt="Select cycle"
+  />
+  <.input
+    field={f[:years_ids]}
+    type="select"
+    label="Years"
+    options={@year_options}
+    prompt="Select years"
+    multiple
+  />
   <.input field={f[:name]} type="text" label="Name" />
   <.input
     field={f[:students_ids]}

@@ -9,6 +9,8 @@ defmodule LantternWeb.ClassHTML do
   attr :changeset, Ecto.Changeset, required: true
   attr :action, :string, required: true
   attr :school_options, :list, required: true
+  attr :year_options, :list, required: true
+  attr :cycle_options, :list, required: true
   attr :student_options, :list, required: true
 
   def class_form(assigns)

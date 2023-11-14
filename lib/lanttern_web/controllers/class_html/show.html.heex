@@ -11,6 +11,12 @@
 <.list>
   <:item title="Name"><%= @class.name %></:item>
   <:item title="School"><%= @class.school.name %></:item>
+  <:item title="Cycle"><%= @class.cycle.name %></:item>
+  <:item title="Years">
+    <%= @class.years
+    |> Enum.map(& &1.name)
+    |> Enum.join(", ") %>
+  </:item>
   <:item title="Students">
     <%= @class.students
     |> Enum.map(& &1.name)

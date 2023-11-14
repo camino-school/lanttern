@@ -13,7 +13,8 @@ defmodule Lanttern.Schools.Student do
 
     many_to_many :classes, Lanttern.Schools.Class,
       join_through: "classes_students",
-      on_replace: :delete
+      on_replace: :delete,
+      preload_order: [asc: :name]
 
     timestamps()
   end

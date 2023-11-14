@@ -54,4 +54,35 @@ defmodule LantternWeb.NavigationComponents do
 
   defp person_tab_theme_style("cyan"), do: "text-ltrn-dark bg-ltrn-mesh-cyan"
   defp person_tab_theme_style(_subtle), do: "text-ltrn-subtle bg-ltrn-lighter"
+
+  @doc """
+  Renders a breadcrumb.
+
+  ## Examples
+
+      <.person_tab person={student} />
+
+  """
+  attr :class, :any, default: nil
+
+  slot :item, required: true do
+    attr :link, :string
+  end
+
+  def breadcrumbs(assigns) do
+    ~H"""
+    <nav class={@class}>
+      <ol class="flex items-center gap-2 font-display font-bold text-sm text-ltrn-subtle">
+        <li :for={{item, i} <- Enum.with_index(@item)}>
+          <span :if={i > 0}>/</span>
+          <%= if Map.get(item, :link) do %>
+            <.link navigate={item.link} class="underline"><%= render_slot(item) %></.link>
+          <% else %>
+            <span><%= render_slot(item) %></span>
+          <% end %>
+        </li>
+      </ol>
+    </nav>
+    """
+  end
 end

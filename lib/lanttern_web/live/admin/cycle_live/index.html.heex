@@ -1,0 +1,48 @@
+<.header>
+  Listing School cycles
+  <:actions>
+    <.link patch={~p"/admin/school_cycles/new"}>
+      <.button>New Cycle</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="school_cycles"
+  rows={@streams.school_cycles}
+  row_click={fn {_id, cycle} -> JS.navigate(~p"/admin/school_cycles/#{cycle}") end}
+>
+  <:col :let={{_id, cycle}} label="Name"><%= cycle.name %></:col>
+  <:col :let={{_id, cycle}} label="Start at"><%= cycle.start_at %></:col>
+  <:col :let={{_id, cycle}} label="End at"><%= cycle.end_at %></:col>
+  <:action :let={{_id, cycle}}>
+    <div class="sr-only">
+      <.link navigate={~p"/admin/school_cycles/#{cycle}"}>Show</.link>
+    </div>
+    <.link patch={~p"/admin/school_cycles/#{cycle}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, cycle}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: cycle.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="cycle-modal"
+  show
+  on_cancel={JS.patch(~p"/admin/school_cycles")}
+>
+  <.live_component
+    module={LantternWeb.Admin.CycleLive.FormComponent}
+    id={@cycle.id || :new}
+    title={@page_title}
+    action={@live_action}
+    cycle={@cycle}
+    patch={~p"/admin/school_cycles"}
+  />
+</.modal>

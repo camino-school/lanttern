@@ -15,6 +15,21 @@ defmodule LantternWeb.SchoolsHelpers do
   end
 
   @doc """
+  Generate list of cycles to use as `Phoenix.HTML.Form.options_for_select/2` arg
+
+  Accepts `list_opts` arg, which will be forwarded to `Schools.list_cycles/1`.
+
+  ## Examples
+
+      iex> generate_cycle_options()
+      [{"cycle name", 1}, ...]
+  """
+  def generate_cycle_options(list_opts \\ []) do
+    Schools.list_cycles(list_opts)
+    |> Enum.map(fn c -> {c.name, c.id} end)
+  end
+
+  @doc """
   Generate list of classes to use as `Phoenix.HTML.Form.options_for_select/2` arg
 
   Accepts `list_opts` arg, which will be forwarded to `Schools.list_classes/1`.

@@ -18,15 +18,23 @@ defmodule LantternWeb.Admin.SchoolLive.ImportStudents do
         phx-change="validate"
         class="flex items-start gap-10"
       >
-        <.input
-          field={@form[:school_id]}
-          type="select"
-          label="Select school"
-          options={@school_options}
-          prompt="No school selected"
-          class="flex-1"
-        />
-
+        <div class="flex-1">
+          <.input
+            field={@form[:school_id]}
+            type="select"
+            label="Select school"
+            options={@school_options}
+            prompt="No school selected"
+            class="mb-4"
+          />
+          <.input
+            field={@form[:cycle_id]}
+            type="select"
+            label="Select cycle"
+            options={@cycle_options}
+            prompt="No cycle selected"
+          />
+        </div>
         <div class="flex-[2]">
           <div
             class="p-4 border border-dashed border-ltrn-lighter rounded-md text-center text-ltrn-subtle"
@@ -288,9 +296,10 @@ defmodule LantternWeb.Admin.SchoolLive.ImportStudents do
     socket =
       socket
       |> assign(:state, "uploading")
-      |> assign(:form, to_form(%{"school_id" => "", "csv" => ""}))
+      |> assign(:form, to_form(%{"school_id" => "", "cycle_id" => "", "csv" => ""}))
       |> assign(:csv_error, nil)
       |> assign(:school_options, SchoolsHelpers.generate_school_options())
+      |> assign(:cycle_options, [])
       |> allow_upload(:csv, accept: ~w(.csv), max_entries: 1)
 
     {:ok, socket}
@@ -299,8 +308,32 @@ defmodule LantternWeb.Admin.SchoolLive.ImportStudents do
   # event handlers
 
   @impl true
+  def handle_event(
+        "validate",
+        %{"_target" => ["school_id"], "school_id" => ""} = params,
+        socket
+      ) do
+    {:noreply,
+     socket
+     |> assign(:cycle_options, [])
+     # without this assign the input fields are reset
+     |> assign(:form, to_form(params |> Map.put("cycle_id", "")))}
+  end
+
+  def handle_event(
+        "validate",
+        %{"_target" => ["school_id"], "school_id" => school_id} = params,
+        socket
+      ) do
+    {:noreply,
+     socket
+     |> assign(:cycle_options, SchoolsHelpers.generate_cycle_options(schools_ids: [school_id]))
+     # without this assign the input fields are reset
+     |> assign(:form, to_form(params))}
+  end
+
   def handle_event("validate", params, socket) do
-    # without this assign the school_id field is reset
+    # without this assign the input fields are reset
     {:noreply, assign(socket, :form, to_form(params))}
   end
 
@@ -320,6 +353,16 @@ defmodule LantternWeb.Admin.SchoolLive.ImportStudents do
     {:noreply, socket}
   end
 
+  def handle_event("upload", %{"cycle_id" => ""} = params, socket) do
+    errors = [cycle_id: {"Can't be blank", []}]
+
+    socket =
+      socket
+      |> assign(:form, to_form(params, errors: errors))
+
+    {:noreply, socket}
+  end
+
   def handle_event("upload", params, %{assigns: %{uploads: %{csv: %{entries: []}}}} = socket) do
     errors = [csv: "Can't be blank"]
 
@@ -330,7 +373,7 @@ defmodule LantternWeb.Admin.SchoolLive.ImportStudents do
     {:noreply, socket}
   end
 
-  def handle_event("upload", %{"school_id" => school_id}, socket) do
+  def handle_event("upload", %{"school_id" => school_id, "cycle_id" => cycle_id}, socket) do
     case parse_upload_entry(socket, hd(socket.assigns.uploads.csv.entries)) do
       {:ok, csv_rows} ->
         school_classes = Schools.list_classes(schools_ids: [school_id])
@@ -340,6 +383,7 @@ defmodule LantternWeb.Admin.SchoolLive.ImportStudents do
         socket =
           socket
           |> assign(:school_id, school_id)
+          |> assign(:cycle_id, cycle_id)
           |> assign(:school_classes, school_classes)
           |> assign(:class_options, class_options)
           |> assign(:csv_class_name_id_map, csv_class_name_id_map)
@@ -366,7 +410,8 @@ defmodule LantternWeb.Admin.SchoolLive.ImportStudents do
     case Schools.create_students_from_csv(
            socket.assigns.csv_rows,
            socket.assigns.csv_class_name_id_map,
-           socket.assigns.school_id
+           socket.assigns.school_id,
+           socket.assigns.cycle_id
          ) do
       {:ok, import_result} ->
         socket =

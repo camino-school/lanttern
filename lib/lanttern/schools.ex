@@ -7,6 +7,7 @@ defmodule Lanttern.Schools do
   import Lanttern.RepoHelpers
   alias Lanttern.Repo
   alias Lanttern.Schools.School
+  alias Lanttern.Schools.Cycle
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.Student
   alias Lanttern.Schools.Teacher
@@ -109,6 +110,106 @@ defmodule Lanttern.Schools do
   end
 
   @doc """
+  Returns the list of school cycles.
+
+  ### Options:
+
+  `:schools_ids` – filter classes by schools
+
+  ## Examples
+
+      iex> list_cycles()
+      [%Cycle{}, ...]
+
+  """
+  def list_cycles(opts \\ []) do
+    Cycle
+    |> maybe_filter_by_schools(opts)
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a single cycle.
+
+  Raises `Ecto.NoResultsError` if the Cycle does not exist.
+
+  ## Examples
+
+      iex> get_cycle!(123)
+      %Cycle{}
+
+      iex> get_cycle!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_cycle!(id), do: Repo.get!(Cycle, id)
+
+  @doc """
+  Creates a cycle.
+
+  ## Examples
+
+      iex> create_cycle(%{field: value})
+      {:ok, %Cycle{}}
+
+      iex> create_cycle(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_cycle(attrs \\ %{}) do
+    %Cycle{}
+    |> Cycle.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a cycle.
+
+  ## Examples
+
+      iex> update_cycle(cycle, %{field: new_value})
+      {:ok, %Cycle{}}
+
+      iex> update_cycle(cycle, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_cycle(%Cycle{} = cycle, attrs) do
+    cycle
+    |> Cycle.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a cycle.
+
+  ## Examples
+
+      iex> delete_cycle(cycle)
+      {:ok, %Cycle{}}
+
+      iex> delete_cycle(cycle)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_cycle(%Cycle{} = cycle) do
+    Repo.delete(cycle)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking cycle changes.
+
+  ## Examples
+
+      iex> change_cycle(cycle)
+      %Ecto.Changeset{data: %Cycle{}}
+
+  """
+  def change_cycle(%Cycle{} = cycle, attrs \\ %{}) do
+    Cycle.changeset(cycle, attrs)
+  end
+
+  @doc """
   Returns the list of classes.
 
   ### Options:
@@ -124,28 +225,43 @@ defmodule Lanttern.Schools do
   """
   def list_classes(opts \\ []) do
     Class
-    |> maybe_filter_classes_by_schools(opts)
+    |> maybe_filter_by_schools(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
-  defp maybe_filter_classes_by_schools(classes_query, opts) do
-    case Keyword.get(opts, :schools_ids) do
-      nil ->
-        classes_query
+  @doc """
+  Returns the list of user's school classes.
 
-      schools_ids ->
-        from(
-          c in classes_query,
-          where: c.school_id in ^schools_ids
-        )
-    end
+  The list is sorted by cycle end date (desc), class year (asc), and class name (asc).
+
+  ## Examples
+
+      iex> list_user_classes()
+      [%Class{}, ...]
+
+  """
+  def list_user_classes(%{current_profile: %{teacher: %{school_id: school_id}}} = _current_user) do
+    from(
+      cl in Class,
+      join: cy in assoc(cl, :cycle),
+      left_join: s in assoc(cl, :students),
+      left_join: y in assoc(cl, :years),
+      group_by: [cl.id, cy.end_at],
+      order_by: [desc: cy.end_at, asc: min(y.id), asc: cl.name],
+      where: cl.school_id == ^school_id,
+      preload: [:cycle, :students, :years]
+    )
+    |> Repo.all()
   end
+
+  def list_user_classes(_current_user),
+    do: {:error, "User not allowed to list classes"}
 
   @doc """
   Gets a single class.
 
-  Raises `Ecto.NoResultsError` if the Class does not exist.
+  Returns nil if the Class does not exist.
 
   ### Options:
 
@@ -157,8 +273,18 @@ defmodule Lanttern.Schools do
       %Class{}
 
       iex> get_class!(456)
-      ** (Ecto.NoResultsError)
+      nil
 
+  """
+  def get_class(id, opts \\ []) do
+    Repo.get(Class, id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single class.
+
+  Same as `get_class/2`, but raises `Ecto.NoResultsError` if the Class does not exist.
   """
   def get_class!(id, opts \\ []) do
     Repo.get!(Class, id)
@@ -197,7 +323,7 @@ defmodule Lanttern.Schools do
   """
   def update_class(%Class{} = class, attrs) do
     class
-    |> Repo.preload(:students)
+    |> Repo.preload([:students, :years])
     |> Class.changeset(attrs)
     |> Repo.update()
   end
@@ -269,7 +395,7 @@ defmodule Lanttern.Schools do
   @doc """
   Gets a single student.
 
-  Raises `Ecto.NoResultsError` if the Student does not exist.
+  Returns `nil` if the Student does not exist.
 
   ### Options:
 
@@ -277,12 +403,22 @@ defmodule Lanttern.Schools do
 
   ## Examples
 
-      iex> get_student!(123)
+      iex> get_student(123)
       %Student{}
 
-      iex> get_student!(456)
-      ** (Ecto.NoResultsError)
+      iex> get_student(456)
+      nil
 
+  """
+  def get_student(id, opts \\ []) do
+    Repo.get(Student, id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single student.
+
+  Same as `get_student/2`, but raises `Ecto.NoResultsError` if the Student does not exist.
   """
   def get_student!(id, opts \\ []) do
     Repo.get!(Student, id)
@@ -482,10 +618,10 @@ defmodule Lanttern.Schools do
       [{csv_student, {:ok, %Student{}}}, ...]
 
   """
-  def create_students_from_csv(csv_rows, class_name_id_map, school_id) do
+  def create_students_from_csv(csv_rows, class_name_id_map, school_id, cycle_id) do
     Ecto.Multi.new()
     |> Ecto.Multi.run(:classes, fn _repo, _changes ->
-      insert_csv_classes(class_name_id_map, school_id)
+      insert_csv_classes(class_name_id_map, school_id, cycle_id)
     end)
     |> Ecto.Multi.run(:students, fn _repo, changes ->
       insert_csv_students(changes, csv_rows, school_id)
@@ -506,26 +642,27 @@ defmodule Lanttern.Schools do
     end
   end
 
-  defp insert_csv_classes(class_name_id_map, school_id) do
+  defp insert_csv_classes(class_name_id_map, school_id, cycle_id) do
     name_class_map =
       class_name_id_map
-      |> Enum.map(&get_or_insert_csv_class(&1, school_id))
+      |> Enum.map(&get_or_insert_csv_class(&1, school_id, cycle_id))
       |> Enum.into(%{})
 
     {:ok, name_class_map}
   end
 
-  defp get_or_insert_csv_class({csv_class_name, ""}, school_id) do
+  defp get_or_insert_csv_class({csv_class_name, ""}, school_id, cycle_id) do
     {:ok, class} =
       create_class(%{
         name: csv_class_name,
-        school_id: school_id
+        school_id: school_id,
+        cycle_id: cycle_id
       })
 
     {csv_class_name, class}
   end
 
-  defp get_or_insert_csv_class({csv_class_name, class_id}, _school_id),
+  defp get_or_insert_csv_class({csv_class_name, class_id}, _school_id, _cycle_id),
     do: {csv_class_name, get_class!(class_id)}
 
   defp insert_csv_students(%{classes: name_class_map} = _changes, csv_rows, school_id) do
@@ -714,5 +851,20 @@ defmodule Lanttern.Schools do
       )
 
     {:ok, response}
+  end
+
+  # Helpers
+
+  defp maybe_filter_by_schools(query, opts) do
+    case Keyword.get(opts, :schools_ids) do
+      nil ->
+        query
+
+      schools_ids ->
+        from(
+          q in query,
+          where: q.school_id in ^schools_ids
+        )
+    end
   end
 end

@@ -368,6 +368,62 @@ defmodule LantternWeb.CoreComponents do
     """
   end
 
+  @doc ~S"""
+  Renders a table with generic styling.
+
+  ## Examples
+
+      <.stream_table id="users" rows={@users}>
+        <:col :let={user} label="id"><%= user.id %></:col>
+        <:col :let={user} label="username"><%= user.username %></:col>
+      </.stream_table>
+  """
+  attr :id, :string, required: true
+  attr :stream, Phoenix.LiveView.LiveStream, required: true
+  attr :row_click, :any, default: nil, doc: "the function for handling phx-click on each row"
+
+  slot :col, required: true do
+    attr :label, :string
+  end
+
+  slot :action, doc: "the slot for showing user actions in the last table column"
+
+  def stream_table(assigns) do
+    ~H"""
+    <table class="w-[40rem] sm:w-full">
+      <thead class="text-sm text-left text-ltrn-dark">
+        <tr>
+          <th :for={col <- @col} class="py-4 px-2 font-bold"><%= col[:label] %></th>
+          <th :if={@action != []} class="relative p-2 pb-4">
+            <span class="sr-only"><%= gettext("Actions") %></span>
+          </th>
+        </tr>
+      </thead>
+      <tbody id={@id} phx-update="stream" class="text-sm">
+        <tr :for={{row_id, row} <- @stream} id={row_id} class="group hover:bg-white hover:shadow-md">
+          <td
+            :for={col <- @col}
+            phx-click={@row_click && @row_click.(row)}
+            class={["p-2", @row_click && "hover:cursor-pointer"]}
+          >
+            <%= render_slot(col, row) %>
+          </td>
+          <td :if={@action != []} class="relative w-14 p-2">
+            <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
+              <span
+                :for={action <- @action}
+                class="relative font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
+              >
+                <%= render_slot(action, row) %>
+              </span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    """
+  end
+
   @doc """
   Renders a data list.
 
@@ -536,6 +592,40 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Renders a student or teacher badge.
+
+  ## Examples
+
+      <.person_badge person={student} />
+
+  """
+  attr :id, :string, default: nil
+  attr :person, :map, required: true
+  attr :theme, :string, default: "subtle", doc: "subtle | cyan"
+  attr :rest, :global
+
+  def person_badge(assigns) do
+    ~H"""
+    <span
+      id={@id}
+      class={[
+        "flex items-center gap-2 p-1 rounded-full",
+        person_badge_theme_style(@theme)
+      ]}
+      {@rest}
+    >
+      <.profile_icon profile_name={@person.name} size="xs" theme={@theme} />
+      <span class="max-w-[7rem] pr-1 text-xs truncate">
+        <%= @person.name %>
+      </span>
+    </span>
+    """
+  end
+
+  defp person_badge_theme_style("cyan"), do: "text-ltrn-dark bg-ltrn-mesh-cyan"
+  defp person_badge_theme_style(_subtle), do: "text-ltrn-subtle bg-ltrn-lighter"
+
+  @doc """
   Creates a style attr based on ordinal values `bg_color` and `text_color`
   """
   def apply_style_from_ordinal_value(%{bg_color: bg_color, text_color: text_color}) do
@@ -581,7 +671,7 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div
       class={[
-        "flex items-center justify-center rounded-full font-display font-bold text-center  shadow-md",
+        "shrink-0 flex items-center justify-center rounded-full font-display font-bold text-center  shadow-md",
         profile_icon_size_style(@size),
         profile_icon_theme_style(@theme),
         @class

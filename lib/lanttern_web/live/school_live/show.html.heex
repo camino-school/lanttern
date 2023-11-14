@@ -1,0 +1,32 @@
+<div class="container mx-auto lg:max-w-5xl">
+  <.page_title_with_menu><%= @school.name %></.page_title_with_menu>
+  <div class="flex items-center justify-between pb-6 mt-10 border-b border-ltrn-lighter">
+    <h3 class="font-display font-bold text-2xl">
+      All classes
+    </h3>
+    <%!-- <.link
+      type="button"
+      class="shrink-0 flex items-center gap-2 font-display text-base underline hover:text-ltrn-primary"
+      patch={~p"/school/new_class"}
+    >
+      Create new class <.icon name="hero-plus-circle" class="w-6 h-6 text-ltrn-primary" />
+    </.link> --%>
+  </div>
+
+  <.stream_table
+    id="classes"
+    stream={@streams.classes}
+    row_click={&JS.navigate(~p"/school/class/#{&1}")}
+  >
+    <:col :let={class} label="Class"><%= class.name %></:col>
+    <:col :let={class} label="Students">
+      <.class_students students={class.students} />
+    </:col>
+    <:col :let={class} label="Years">
+      <%= class.years
+      |> Enum.map(& &1.name)
+      |> Enum.join(", ") %>
+    </:col>
+    <:col :let={class} label="Cycle"><%= class.cycle.name %></:col>
+  </.stream_table>
+</div>

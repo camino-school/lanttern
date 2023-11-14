@@ -57,6 +57,87 @@ defmodule Lanttern.SchoolsTest do
     end
   end
 
+  describe "school_cycles" do
+    alias Lanttern.Schools.Cycle
+
+    import Lanttern.SchoolsFixtures
+
+    @invalid_attrs %{name: nil, start_at: nil, end_at: nil}
+
+    test "list_cycles/1 returns all school_cycles" do
+      cycle = cycle_fixture()
+      assert Schools.list_cycles() == [cycle]
+    end
+
+    test "list_cycles/1 with school filter returns all cycles as expected" do
+      school = school_fixture()
+      cycle = cycle_fixture(%{school_id: school.id})
+
+      # extra cycles for school filter validation
+      class_fixture()
+      class_fixture()
+
+      assert [cycle] == Schools.list_cycles(schools_ids: [school.id])
+    end
+
+    test "get_cycle!/1 returns the cycle with given id" do
+      cycle = cycle_fixture()
+      assert Schools.get_cycle!(cycle.id) == cycle
+    end
+
+    test "create_cycle/1 with valid data creates a cycle" do
+      school = school_fixture()
+
+      valid_attrs = %{
+        name: "some name",
+        start_at: ~D[2023-11-09],
+        end_at: ~D[2023-12-09],
+        school_id: school.id
+      }
+
+      assert {:ok, %Cycle{} = cycle} = Schools.create_cycle(valid_attrs)
+      assert cycle.name == "some name"
+      assert cycle.start_at == ~D[2023-11-09]
+      assert cycle.end_at == ~D[2023-12-09]
+    end
+
+    test "create_cycle/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Schools.create_cycle(@invalid_attrs)
+    end
+
+    test "update_cycle/2 with valid data updates the cycle" do
+      cycle = cycle_fixture()
+
+      update_attrs = %{
+        name: "some updated name",
+        start_at: ~D[2023-11-10],
+        end_at: ~D[2023-12-10]
+      }
+
+      assert {:ok, %Cycle{} = cycle} = Schools.update_cycle(cycle, update_attrs)
+      assert cycle.name == "some updated name"
+      assert cycle.start_at == ~D[2023-11-10]
+      assert cycle.end_at == ~D[2023-12-10]
+    end
+
+    test "update_cycle/2 with invalid data returns error changeset" do
+      cycle = cycle_fixture()
+      assert {:error, %Ecto.Changeset{}} = Schools.update_cycle(cycle, @invalid_attrs)
+      assert cycle == Schools.get_cycle!(cycle.id)
+    end
+
+    test "delete_cycle/1 deletes the cycle" do
+      cycle = cycle_fixture()
+      assert {:ok, %Cycle{}} = Schools.delete_cycle(cycle)
+      assert_raise Ecto.NoResultsError, fn -> Schools.get_cycle!(cycle.id) end
+    end
+
+    test "change_cycle/1 returns a cycle changeset" do
+      cycle = cycle_fixture()
+      assert %Ecto.Changeset{} = Schools.change_cycle(cycle)
+    end
+  end
+
   describe "classes" do
     alias Lanttern.Schools.Class
 
@@ -70,18 +151,63 @@ defmodule Lanttern.SchoolsTest do
     test "list_classes/1 with preloads and school filter returns all classes as expected" do
       school = school_fixture()
       student = student_fixture()
-      class = class_fixture(%{school_id: school.id, students_ids: [student.id]})
+      year = Lanttern.TaxonomyFixtures.year_fixture()
+
+      class =
+        class_fixture(%{school_id: school.id, students_ids: [student.id], years_ids: [year.id]})
 
       # extra classes for school filter validation
       class_fixture()
       class_fixture()
 
       [expected_class] =
-        Schools.list_classes(preloads: [:school, :students], schools_ids: [school.id])
+        Schools.list_classes(preloads: [:school, :students, :years], schools_ids: [school.id])
 
       assert expected_class.id == class.id
       assert expected_class.school == school
       assert expected_class.students == [student]
+      assert expected_class.years == [year]
+    end
+
+    test "list_user_classes/1 returns all classes from user's school with preloaded data and correct order" do
+      school = school_fixture()
+      class_b = class_fixture(%{school_id: school.id, name: "BBB"})
+      class_a = class_fixture(%{school_id: school.id, name: "AAA"})
+      teacher = teacher_fixture(%{school_id: school.id})
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture(%{teacher_id: teacher.id})
+      user = %{current_profile: Lanttern.Identity.get_profile!(profile.id, preloads: :teacher)}
+
+      # extra classes for school filter validation
+      class_fixture()
+      class_fixture()
+
+      [expected_a, expected_b] = Schools.list_user_classes(user)
+
+      assert expected_a.id == class_a.id
+      assert expected_b.id == class_b.id
+    end
+
+    test "list_user_classes/1 returns error tuple when user is student" do
+      school = school_fixture()
+      student = student_fixture(%{school_id: school.id})
+      profile = Lanttern.IdentityFixtures.student_profile_fixture(%{student_id: student.id})
+
+      user = %{
+        current_profile:
+          Lanttern.Identity.get_profile!(profile.id, preloads: [:teacher, :student])
+      }
+
+      assert {:error, "User not allowed to list classes"} == Schools.list_user_classes(user)
+    end
+
+    test "get_class/2 returns the class with given id" do
+      class = class_fixture()
+      assert Schools.get_class(class.id) == class
+    end
+
+    test "get_class/2 returns nil if class with given id does not exist" do
+      class_fixture()
+      assert Schools.get_class(99999) == nil
     end
 
     test "get_class!/2 returns the class with given id" do
@@ -102,7 +228,8 @@ defmodule Lanttern.SchoolsTest do
 
     test "create_class/1 with valid data creates a class" do
       school = school_fixture()
-      valid_attrs = %{school_id: school.id, name: "some name"}
+      cycle = cycle_fixture(%{school_id: school.id})
+      valid_attrs = %{school_id: school.id, cycle_id: cycle.id, name: "some name"}
 
       assert {:ok, %Class{} = class} = Schools.create_class(valid_attrs)
       assert class.name == "some name"
@@ -111,6 +238,7 @@ defmodule Lanttern.SchoolsTest do
 
     test "create_class/1 with valid data containing students creates a class with students" do
       school = school_fixture()
+      cycle = cycle_fixture(%{school_id: school.id})
       student_1 = student_fixture()
       student_2 = student_fixture()
       student_3 = student_fixture()
@@ -118,6 +246,7 @@ defmodule Lanttern.SchoolsTest do
       valid_attrs = %{
         name: "some name",
         school_id: school.id,
+        cycle_id: cycle.id,
         students_ids: [
           student_1.id,
           student_2.id,
@@ -222,6 +351,16 @@ defmodule Lanttern.SchoolsTest do
             assert expected_student.classes == [class_2]
         end
       end
+    end
+
+    test "get_student/2 returns the student with given id" do
+      student = student_fixture()
+      assert Schools.get_student(student.id) == student
+    end
+
+    test "get_student/2 returns nil if student with given id does not exist" do
+      student_fixture()
+      assert Schools.get_student(99999) == nil
     end
 
     test "get_student!/2 returns the student with given id" do
@@ -418,7 +557,8 @@ defmodule Lanttern.SchoolsTest do
   describe "csv parsing" do
     test "create_students_from_csv/3 creates classes and students, and returns a list with the registration status for each row" do
       school = school_fixture()
-      class = class_fixture(name: "existing class", school_id: school.id)
+      cycle = cycle_fixture(%{school_id: school.id})
+      class = class_fixture(name: "existing class", school_id: school.id, cycle_id: cycle.id)
       user = Lanttern.IdentityFixtures.user_fixture(email: "existing-user@school.com")
 
       csv_std_1 = %{
@@ -466,7 +606,7 @@ defmodule Lanttern.SchoolsTest do
       }
 
       {:ok, expected} =
-        Schools.create_students_from_csv(csv_students, class_name_id_map, school.id)
+        Schools.create_students_from_csv(csv_students, class_name_id_map, school.id, cycle.id)
 
       [
         {returned_csv_std_1, {:ok, std_1}},

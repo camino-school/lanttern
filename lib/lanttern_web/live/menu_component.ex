@@ -16,6 +16,9 @@ defmodule LantternWeb.MenuComponent do
               <.nav_item active={@active_nav == :dashboard} path={~p"/dashboard"}>
                 Dashboard
               </.nav_item>
+              <.nav_item active={@active_nav == :school} path={~p"/school"}>
+                School
+              </.nav_item>
               <.nav_item active={@active_nav == :assessment_points} path={~p"/assessment_points"}>
                 Assessment points
               </.nav_item>
@@ -47,10 +50,9 @@ defmodule LantternWeb.MenuComponent do
               <li :if={@current_user.is_root_admin}>
                 <.link
                   href={~p"/admin"}
-                  target="_blank"
                   class="flex items-center gap-2 underline hover:text-ltrn-dark"
                 >
-                  Admin <.icon name="hero-arrow-top-right-on-square" />
+                  Admin
                 </.link>
               </li>
               <li>
@@ -100,7 +102,7 @@ defmodule LantternWeb.MenuComponent do
     ~H"""
     <li class="bg-white">
       <.link
-        navigate={@path}
+        patch={@path}
         class={[
           "group relative block p-10 font-display font-black text-lg",
           if(@active, do: "text-ltrn-dark", else: "text-ltrn-subtle underline hover:text-ltrn-dark")
@@ -198,9 +200,15 @@ defmodule LantternWeb.MenuComponent do
           :dashboard
 
         socket.view in [
-          LantternWeb.AssessmentPointsLive,
-          LantternWeb.AssessmentPointsExplorerLive,
-          LantternWeb.AssessmentPointLive
+          LantternWeb.SchoolLive.Show,
+          LantternWeb.SchoolLive.Class,
+          LantternWeb.SchoolLive.Student
+        ] ->
+          :school
+
+        socket.view in [
+          LantternWeb.AssessmentPointLive.Explorer,
+          LantternWeb.AssessmentPointLive.Details
         ] ->
           :assessment_points
 
