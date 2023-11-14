@@ -201,14 +201,14 @@ defmodule LantternWeb.MenuComponent do
 
         socket.view in [
           LantternWeb.SchoolLive.Show,
-          LantternWeb.SchoolLive.Class
+          LantternWeb.SchoolLive.Class,
+          LantternWeb.SchoolLive.Student
         ] ->
           :school
 
         socket.view in [
-          LantternWeb.AssessmentPointsLive,
-          LantternWeb.AssessmentPointsExplorerLive,
-          LantternWeb.AssessmentPointLive
+          LantternWeb.AssessmentPointLive.Explorer,
+          LantternWeb.AssessmentPointLive.Details
         ] ->
           :assessment_points
 

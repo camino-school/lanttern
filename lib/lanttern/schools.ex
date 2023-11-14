@@ -394,7 +394,7 @@ defmodule Lanttern.Schools do
   @doc """
   Gets a single student.
 
-  Raises `Ecto.NoResultsError` if the Student does not exist.
+  Returns `nil` if the Student does not exist.
 
   ### Options:
 
@@ -402,12 +402,22 @@ defmodule Lanttern.Schools do
 
   ## Examples
 
-      iex> get_student!(123)
+      iex> get_student(123)
       %Student{}
 
-      iex> get_student!(456)
-      ** (Ecto.NoResultsError)
+      iex> get_student(456)
+      nil
 
+  """
+  def get_student(id, opts \\ []) do
+    Repo.get(Student, id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single student.
+
+  Same as `get_student/2`, but raises `Ecto.NoResultsError` if the Student does not exist.
   """
   def get_student!(id, opts \\ []) do
     Repo.get!(Student, id)

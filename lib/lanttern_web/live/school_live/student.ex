@@ -1,4 +1,4 @@
-defmodule LantternWeb.SchoolLive.Class do
+defmodule LantternWeb.SchoolLive.Student do
   use LantternWeb, :live_view
 
   alias Lanttern.Schools
@@ -25,16 +25,16 @@ defmodule LantternWeb.SchoolLive.Class do
   end
 
   defp apply_action(socket, :show, %{"id" => id}) do
-    case Schools.get_class(id, preloads: :students) do
-      class when is_nil(class) or class.school_id != socket.assigns.user_school.id ->
+    case Schools.get_student(id, preloads: [classes: :cycle]) do
+      student when is_nil(student) or student.school_id != socket.assigns.user_school.id ->
         socket
-        |> put_flash(:error, "Couldn't find class")
+        |> put_flash(:error, "Couldn't find student")
         |> redirect(to: ~p"/school")
 
-      class ->
+      student ->
         socket
-        |> assign(:class_name, class.name)
-        |> stream(:students, class.students)
+        |> assign(:student_name, student.name)
+        |> stream(:classes, student.classes)
     end
   end
 

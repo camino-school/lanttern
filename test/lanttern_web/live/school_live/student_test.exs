@@ -1,0 +1,60 @@
+defmodule LantternWeb.SchoolLive.StudentTest do
+  use LantternWeb.ConnCase
+
+  alias Lanttern.SchoolsFixtures
+
+  @live_view_base_path "/school/student"
+
+  setup [:register_and_log_in_user]
+
+  describe "Student live view basic navigation" do
+    test "disconnected and connected mount", %{conn: conn, user: user} do
+      school = user.current_profile.teacher.school
+
+      student =
+        SchoolsFixtures.student_fixture(%{school_id: school.id, name: "some student abc xyz"})
+
+      conn = get(conn, "#{@live_view_base_path}/#{student.id}")
+
+      assert html_response(conn, 200) =~ ~r/<h1 .+>\s*some student abc xyz\s*<\/h1>/
+
+      {:ok, _view, _html} = live(conn)
+    end
+
+    test "list classes", %{conn: conn, user: user} do
+      school = user.current_profile.teacher.school
+      class_b = SchoolsFixtures.class_fixture(%{school_id: school.id, name: "bbb"})
+      class_a = SchoolsFixtures.class_fixture(%{school_id: school.id, name: "aaa"})
+
+      student =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id,
+          classes_ids: [class_a.id, class_b.id]
+        })
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{student.id}")
+
+      assert view |> has_element?("a", class_a.name)
+      assert view |> has_element?("a", class_b.name)
+    end
+
+    test "navigate to class", %{conn: conn, user: user} do
+      school = user.current_profile.teacher.school
+      class = SchoolsFixtures.class_fixture(%{school_id: school.id})
+
+      student =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id,
+          classes_ids: [class.id]
+        })
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{student.id}")
+
+      view
+      |> element("a", class.name)
+      |> render_click()
+
+      assert_patch(view, "/school/class/#{class.id}")
+    end
+  end
+end

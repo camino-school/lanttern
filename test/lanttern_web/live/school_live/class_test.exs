@@ -7,7 +7,7 @@ defmodule LantternWeb.SchoolLive.ClassTest do
 
   setup [:register_and_log_in_user]
 
-  describe "School live view basic navigation" do
+  describe "Class live view basic navigation" do
     test "disconnected and connected mount", %{conn: conn, user: user} do
       school = user.current_profile.teacher.school
       class = SchoolsFixtures.class_fixture(%{school_id: school.id, name: "some class abc xyz"})
@@ -28,8 +28,27 @@ defmodule LantternWeb.SchoolLive.ClassTest do
 
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{class.id}")
 
-      assert view |> has_element?("span", std_a.name)
-      assert view |> has_element?("span", std_b.name)
+      assert view |> has_element?("a", std_a.name)
+      assert view |> has_element?("a", std_b.name)
+    end
+
+    test "navigate to student", %{conn: conn, user: user} do
+      school = user.current_profile.teacher.school
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+
+      class =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school.id,
+          students_ids: [student.id]
+        })
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{class.id}")
+
+      view
+      |> element("a", student.name)
+      |> render_click()
+
+      assert_patch(view, "/school/student/#{student.id}")
     end
   end
 end
