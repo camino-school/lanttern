@@ -59,49 +59,5 @@ defmodule LantternWeb.SchoolLive.Show do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  # defp apply_action(socket, :edit, %{"id" => id}) do
-  #   socket
-  #   |> assign(:overlay_title, "Edit rubric")
-  #   |> assign(:rubric, Rubrics.get_rubric!(id, preloads: :descriptors))
-  # end
-
-  # defp apply_action(socket, :new, _params) do
-  #   socket
-  #   |> assign(:overlay_title, "Create Rubric")
-  #   |> assign(:rubric, %Rubric{})
-  # end
-
   defp apply_action(socket, _live_action, _params), do: socket
-
-  # # event handlers
-
-  # def handle_event("delete", %{"id" => id}, socket) do
-  #   rubric = Rubrics.get_rubric!(id)
-  #   {:ok, _} = Rubrics.delete_rubric(rubric)
-
-  #   socket =
-  #     socket
-  #     |> stream_delete(:rubrics, rubric)
-  #     |> update(:results, &(&1 - 1))
-
-  #   {:noreply, socket}
-  # end
-
-  # # info handlers
-
-  # def handle_info({LantternWeb.RubricsLive.FormComponent, {:created, rubric}}, socket) do
-  #   rubric = Rubrics.get_full_rubric!(rubric.id)
-
-  #   socket =
-  #     socket
-  #     |> stream_insert(:rubrics, rubric)
-  #     |> update(:results, &(&1 + 1))
-
-  #   {:noreply, socket}
-  # end
-
-  # def handle_info({LantternWeb.RubricsLive.FormComponent, {:updated, rubric}}, socket) do
-  #   rubric = Rubrics.get_full_rubric!(rubric.id)
-  #   {:noreply, stream_insert(socket, :rubrics, rubric)}
-  # end
 end

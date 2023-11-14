@@ -25,7 +25,7 @@ defmodule LantternWeb.SchoolLive.Student do
   end
 
   defp apply_action(socket, :show, %{"id" => id}) do
-    case Schools.get_student(id, preloads: [classes: :cycle]) do
+    case Schools.get_student(id, preloads: [classes: [:cycle, :years]]) do
       student when is_nil(student) or student.school_id != socket.assigns.user_school.id ->
         socket
         |> put_flash(:error, "Couldn't find student")

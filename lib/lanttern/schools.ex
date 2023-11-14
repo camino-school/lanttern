@@ -233,7 +233,7 @@ defmodule Lanttern.Schools do
   @doc """
   Returns the list of user's school classes.
 
-  The list is sorted by cycle end date (desc), class year (asc, TBD), and class name (asc).
+  The list is sorted by cycle end date (desc), class year (asc), and class name (asc).
 
   ## Examples
 
@@ -246,10 +246,11 @@ defmodule Lanttern.Schools do
       cl in Class,
       join: cy in assoc(cl, :cycle),
       left_join: s in assoc(cl, :students),
+      left_join: y in assoc(cl, :years),
       group_by: [cl.id, cy.end_at],
-      order_by: [desc: cy.end_at, asc: cl.name],
+      order_by: [desc: cy.end_at, asc: min(y.id), asc: cl.name],
       where: cl.school_id == ^school_id,
-      preload: [:cycle, :students]
+      preload: [:cycle, :students, :years]
     )
     |> Repo.all()
   end
@@ -322,7 +323,7 @@ defmodule Lanttern.Schools do
   """
   def update_class(%Class{} = class, attrs) do
     class
-    |> Repo.preload(:students)
+    |> Repo.preload([:students, :years])
     |> Class.changeset(attrs)
     |> Repo.update()
   end

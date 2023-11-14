@@ -2,11 +2,12 @@ defmodule LantternWeb.ClassController do
   use LantternWeb, :controller
 
   import LantternWeb.SchoolsHelpers
+  import LantternWeb.TaxonomyHelpers
   alias Lanttern.Schools
   alias Lanttern.Schools.Class
 
   def index(conn, _params) do
-    classes = Schools.list_classes(preloads: [:school, :cycle, :students])
+    classes = Schools.list_classes(preloads: [:school, :cycle, :years, :students])
     render(conn, :index, classes: classes)
   end
 
@@ -15,10 +16,12 @@ defmodule LantternWeb.ClassController do
     student_options = generate_student_options()
     school_options = generate_school_options()
     cycle_options = generate_cycle_options()
+    year_options = generate_year_options()
 
     render(conn, :new,
       school_options: school_options,
       cycle_options: cycle_options,
+      year_options: year_options,
       student_options: student_options,
       changeset: changeset
     )
@@ -35,10 +38,12 @@ defmodule LantternWeb.ClassController do
         student_options = generate_student_options()
         school_options = generate_school_options()
         cycle_options = generate_cycle_options()
+        year_options = generate_year_options()
 
         render(conn, :new,
           school_options: school_options,
           cycle_options: cycle_options,
+          year_options: year_options,
           student_options: student_options,
           changeset: changeset
         )
@@ -46,7 +51,7 @@ defmodule LantternWeb.ClassController do
   end
 
   def show(conn, %{"id" => id}) do
-    class = Schools.get_class!(id, preloads: [:school, :cycle, :students])
+    class = Schools.get_class!(id, preloads: [:school, :cycle, :years, :students])
     render(conn, :show, class: class)
   end
 
@@ -54,12 +59,18 @@ defmodule LantternWeb.ClassController do
     school_options = generate_school_options()
     student_options = generate_student_options()
     cycle_options = generate_cycle_options()
+    year_options = generate_year_options()
 
-    class = Schools.get_class!(id, preloads: :students)
+    class = Schools.get_class!(id, preloads: [:students, :years])
 
-    # insert existing students_ids
+    # insert existing students_ids and years
     students_ids = Enum.map(class.students, & &1.id)
-    class = class |> Map.put(:students_ids, students_ids)
+    years_ids = Enum.map(class.years, & &1.id)
+
+    class =
+      class
+      |> Map.put(:students_ids, students_ids)
+      |> Map.put(:years_ids, years_ids)
 
     changeset = Schools.change_class(class)
 
@@ -67,6 +78,7 @@ defmodule LantternWeb.ClassController do
       class: class,
       school_options: school_options,
       cycle_options: cycle_options,
+      year_options: year_options,
       student_options: student_options,
       changeset: changeset
     )
@@ -84,12 +96,14 @@ defmodule LantternWeb.ClassController do
       {:error, %Ecto.Changeset{} = changeset} ->
         school_options = generate_school_options()
         cycle_options = generate_cycle_options()
+        year_options = generate_year_options()
         student_options = generate_student_options()
 
         render(conn, :edit,
           class: class,
           school_options: school_options,
           cycle_options: cycle_options,
+          year_options: year_options,
           student_options: student_options,
           changeset: changeset
         )

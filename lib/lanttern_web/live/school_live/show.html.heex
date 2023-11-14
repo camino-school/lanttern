@@ -22,6 +22,11 @@
     <:col :let={class} label="Students">
       <.class_students students={class.students} />
     </:col>
+    <:col :let={class} label="Years">
+      <%= class.years
+      |> Enum.map(& &1.name)
+      |> Enum.join(", ") %>
+    </:col>
     <:col :let={class} label="Cycle"><%= class.cycle.name %></:col>
   </.stream_table>
 </div>

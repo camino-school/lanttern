@@ -20,7 +20,10 @@
       >
         <%= class.name %>
       </.link>
-      <.badge class="mt-6"><%= class.cycle.name %></.badge>
+      <div class="flex flex-wrap gap-2 mt-6">
+        <.badge><%= class.cycle.name %></.badge>
+        <.badge :for={year <- class.years}><%= year.name %></.badge>
+      </div>
     </div>
   </div>
 </div>

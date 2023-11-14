@@ -151,18 +151,22 @@ defmodule Lanttern.SchoolsTest do
     test "list_classes/1 with preloads and school filter returns all classes as expected" do
       school = school_fixture()
       student = student_fixture()
-      class = class_fixture(%{school_id: school.id, students_ids: [student.id]})
+      year = Lanttern.TaxonomyFixtures.year_fixture()
+
+      class =
+        class_fixture(%{school_id: school.id, students_ids: [student.id], years_ids: [year.id]})
 
       # extra classes for school filter validation
       class_fixture()
       class_fixture()
 
       [expected_class] =
-        Schools.list_classes(preloads: [:school, :students], schools_ids: [school.id])
+        Schools.list_classes(preloads: [:school, :students, :years], schools_ids: [school.id])
 
       assert expected_class.id == class.id
       assert expected_class.school == school
       assert expected_class.students == [student]
+      assert expected_class.years == [year]
     end
 
     test "list_user_classes/1 returns all classes from user's school with preloaded data and correct order" do
