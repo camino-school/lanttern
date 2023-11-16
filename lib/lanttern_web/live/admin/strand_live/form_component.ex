@@ -2,6 +2,7 @@ defmodule LantternWeb.Admin.StrandLive.FormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.LearningContext
+  import LantternWeb.TaxonomyHelpers
 
   @impl true
   def render(assigns) do
@@ -21,6 +22,22 @@ defmodule LantternWeb.Admin.StrandLive.FormComponent do
       >
         <.input field={@form[:name]} type="text" label="Name" />
         <.input field={@form[:description]} type="text" label="Description" />
+        <.input
+          field={@form[:subjects_ids]}
+          type="select"
+          label="Subjects"
+          prompt="Select subjects"
+          options={@subject_options}
+          multiple
+        />
+        <.input
+          field={@form[:years_ids]}
+          type="select"
+          label="Years"
+          prompt="Select years"
+          options={@year_options}
+          multiple
+        />
         <:actions>
           <.button phx-disable-with="Saving...">Save Strand</.button>
         </:actions>
@@ -30,13 +47,30 @@ defmodule LantternWeb.Admin.StrandLive.FormComponent do
   end
 
   @impl true
+  def mount(socket) do
+    {:ok,
+     socket
+     |> assign(:subject_options, generate_subject_options())
+     |> assign(:year_options, generate_year_options())}
+  end
+
+  @impl true
   def update(%{strand: strand} = assigns, socket) do
-    changeset = LearningContext.change_strand(strand)
+    changeset =
+      strand
+      |> set_virtual_fields()
+      |> LearningContext.change_strand()
 
     {:ok,
      socket
      |> assign(assigns)
      |> assign_form(changeset)}
+  end
+
+  defp set_virtual_fields(strand) do
+    strand
+    |> Map.put(:subjects_ids, strand.subjects |> Enum.map(& &1.id))
+    |> Map.put(:years_ids, strand.years |> Enum.map(& &1.id))
   end
 
   @impl true
@@ -69,7 +103,7 @@ defmodule LantternWeb.Admin.StrandLive.FormComponent do
   end
 
   defp save_strand(socket, :new, strand_params) do
-    case LearningContext.create_strand(strand_params) do
+    case LearningContext.create_strand(strand_params, preloads: [:subjects, :years]) do
       {:ok, strand} ->
         notify_parent({:saved, strand})
 

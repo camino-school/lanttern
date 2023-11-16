@@ -11,6 +11,16 @@
 <.list>
   <:item title="Name"><%= @strand.name %></:item>
   <:item title="Description"><%= @strand.description %></:item>
+  <:item title="Subjects">
+    <%= @strand.subjects
+    |> Enum.map(& &1.name)
+    |> Enum.join(", ") %>
+  </:item>
+  <:item title="Years">
+    <%= @strand.years
+    |> Enum.map(& &1.name)
+    |> Enum.join(", ") %>
+  </:item>
 </.list>
 
 <.back navigate={~p"/admin/strands"}>Back to strands</.back>

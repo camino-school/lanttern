@@ -7,25 +7,58 @@ defmodule Lanttern.LearningContextTest do
     alias Lanttern.LearningContext.Strand
 
     import Lanttern.LearningContextFixtures
+    import Lanttern.TaxonomyFixtures
 
     @invalid_attrs %{name: nil, description: nil}
 
-    test "list_strands/0 returns all strands" do
+    test "list_strands/1 returns all strands" do
       strand = strand_fixture()
       assert LearningContext.list_strands() == [strand]
     end
 
-    test "get_strand!/1 returns the strand with given id" do
+    test "list_strands/1 with preloads returns all strands with preloaded data" do
+      subject = subject_fixture()
+      year = year_fixture()
+      strand = strand_fixture(%{subjects_ids: [subject.id], years_ids: [year.id]})
+
+      [expected] = LearningContext.list_strands(preloads: [:subjects, :years])
+      assert expected.id == strand.id
+      assert expected.subjects == [subject]
+      assert expected.years == [year]
+    end
+
+    test "get_strand!/2 returns the strand with given id" do
       strand = strand_fixture()
       assert LearningContext.get_strand!(strand.id) == strand
     end
 
+    test "get_strand!/2 with preloads returns the strand with given id and preloaded data" do
+      subject = subject_fixture()
+      year = year_fixture()
+      strand = strand_fixture(%{subjects_ids: [subject.id], years_ids: [year.id]})
+
+      expected = LearningContext.get_strand!(strand.id, preloads: [:subjects, :years])
+      assert expected.id == strand.id
+      assert expected.subjects == [subject]
+      assert expected.years == [year]
+    end
+
     test "create_strand/1 with valid data creates a strand" do
-      valid_attrs = %{name: "some name", description: "some description"}
+      subject = subject_fixture()
+      year = year_fixture()
+
+      valid_attrs = %{
+        name: "some name",
+        description: "some description",
+        subjects_ids: [subject.id],
+        years_ids: [year.id]
+      }
 
       assert {:ok, %Strand{} = strand} = LearningContext.create_strand(valid_attrs)
       assert strand.name == "some name"
       assert strand.description == "some description"
+      assert strand.subjects == [subject]
+      assert strand.years == [year]
     end
 
     test "create_strand/1 with invalid data returns error changeset" do
@@ -33,12 +66,30 @@ defmodule Lanttern.LearningContextTest do
     end
 
     test "update_strand/2 with valid data updates the strand" do
-      strand = strand_fixture()
-      update_attrs = %{name: "some updated name", description: "some updated description"}
+      subject = subject_fixture()
+      year_1 = year_fixture()
+      year_2 = year_fixture()
+
+      # subject is irrevelant, should be replaced
+      # year is revelant, we'll keep it after update
+      strand =
+        strand_fixture(%{
+          subjects_ids: [subject_fixture().id],
+          years_ids: [year_1.id]
+        })
+
+      update_attrs = %{
+        name: "some updated name",
+        description: "some updated description",
+        subjects_ids: [subject.id],
+        years_ids: [year_1.id, year_2.id]
+      }
 
       assert {:ok, %Strand{} = strand} = LearningContext.update_strand(strand, update_attrs)
       assert strand.name == "some updated name"
       assert strand.description == "some updated description"
+      assert strand.subjects == [subject]
+      assert strand.years == [year_1, year_2] || strand.years == [year_2, year_1]
     end
 
     test "update_strand/2 with invalid data returns error changeset" do

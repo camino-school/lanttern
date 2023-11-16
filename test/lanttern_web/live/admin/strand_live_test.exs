@@ -4,9 +4,26 @@ defmodule LantternWeb.Admin.StrandLiveTest do
   import Phoenix.LiveViewTest
   import Lanttern.LearningContextFixtures
 
-  @create_attrs %{name: "some name", description: "some description"}
-  @update_attrs %{name: "some updated name", description: "some updated description"}
-  @invalid_attrs %{name: nil, description: nil}
+  @create_attrs %{
+    name: "some name",
+    description: "some description",
+    subjects_ids: [],
+    years_ids: []
+  }
+
+  @update_attrs %{
+    name: "some updated name",
+    description: "some updated description",
+    subjects_ids: [],
+    years_ids: []
+  }
+
+  @invalid_attrs %{
+    name: nil,
+    description: nil,
+    subjects_ids: [],
+    years_ids: []
+  }
 
   defp create_strand(_) do
     strand = strand_fixture()

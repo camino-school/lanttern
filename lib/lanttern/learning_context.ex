@@ -7,9 +7,14 @@ defmodule Lanttern.LearningContext do
   alias Lanttern.Repo
 
   alias Lanttern.LearningContext.Strand
+  import Lanttern.RepoHelpers
 
   @doc """
   Returns the list of strands.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
 
   ## Examples
 
@@ -17,14 +22,19 @@ defmodule Lanttern.LearningContext do
       [%Strand{}, ...]
 
   """
-  def list_strands do
+  def list_strands(opts \\ []) do
     Repo.all(Strand)
+    |> maybe_preload(opts)
   end
 
   @doc """
   Gets a single strand.
 
   Raises `Ecto.NoResultsError` if the Strand does not exist.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
 
   ## Examples
 
@@ -35,10 +45,17 @@ defmodule Lanttern.LearningContext do
       ** (Ecto.NoResultsError)
 
   """
-  def get_strand!(id), do: Repo.get!(Strand, id)
+  def get_strand!(id, opts \\ []) do
+    Repo.get!(Strand, id)
+    |> maybe_preload(opts)
+  end
 
   @doc """
   Creates a strand.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
 
   ## Examples
 
@@ -49,10 +66,11 @@ defmodule Lanttern.LearningContext do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_strand(attrs \\ %{}) do
+  def create_strand(attrs \\ %{}, opts \\ []) do
     %Strand{}
     |> Strand.changeset(attrs)
     |> Repo.insert()
+    |> maybe_preload(opts)
   end
 
   @doc """

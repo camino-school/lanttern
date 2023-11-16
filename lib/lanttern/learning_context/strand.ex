@@ -2,9 +2,21 @@ defmodule Lanttern.LearningContext.Strand do
   use Ecto.Schema
   import Ecto.Changeset
 
+  import Lanttern.SchemaHelpers
+
   schema "strands" do
     field :name, :string
     field :description, :string
+    field :subjects_ids, {:array, :id}, virtual: true
+    field :years_ids, {:array, :id}, virtual: true
+
+    many_to_many :subjects, Lanttern.Taxonomy.Subject,
+      join_through: "strands_subjects",
+      on_replace: :delete
+
+    many_to_many :years, Lanttern.Taxonomy.Year,
+      join_through: "strands_years",
+      on_replace: :delete
 
     timestamps()
   end
@@ -12,7 +24,9 @@ defmodule Lanttern.LearningContext.Strand do
   @doc false
   def changeset(strand, attrs) do
     strand
-    |> cast(attrs, [:name, :description])
+    |> cast(attrs, [:name, :description, :subjects_ids, :years_ids])
     |> validate_required([:name, :description])
+    |> put_subjects()
+    |> put_years()
   end
 end

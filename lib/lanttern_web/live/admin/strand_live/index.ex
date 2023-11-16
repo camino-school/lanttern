@@ -6,7 +6,7 @@ defmodule LantternWeb.Admin.StrandLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :strands, LearningContext.list_strands())}
+    {:ok, stream(socket, :strands, LearningContext.list_strands(preloads: [:subjects, :years]))}
   end
 
   @impl true
@@ -17,13 +17,13 @@ defmodule LantternWeb.Admin.StrandLive.Index do
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
     |> assign(:page_title, "Edit Strand")
-    |> assign(:strand, LearningContext.get_strand!(id))
+    |> assign(:strand, LearningContext.get_strand!(id, preloads: [:subjects, :years]))
   end
 
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(:page_title, "New Strand")
-    |> assign(:strand, %Strand{})
+    |> assign(:strand, %Strand{subjects: [], years: []})
   end
 
   defp apply_action(socket, :index, _params) do

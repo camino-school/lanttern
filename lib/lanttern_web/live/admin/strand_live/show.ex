@@ -13,7 +13,7 @@ defmodule LantternWeb.Admin.StrandLive.Show do
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:strand, LearningContext.get_strand!(id))}
+     |> assign(:strand, LearningContext.get_strand!(id, preloads: [:subjects, :years]))}
   end
 
   defp page_title(:show), do: "Show Strand"
