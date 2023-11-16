@@ -8,6 +8,7 @@ defmodule Lanttern.LearningContextTest do
 
     import Lanttern.LearningContextFixtures
     import Lanttern.TaxonomyFixtures
+    import Lanttern.CurriculaFixtures
 
     @invalid_attrs %{name: nil, description: nil}
 
@@ -44,12 +45,18 @@ defmodule Lanttern.LearningContextTest do
     end
 
     test "create_strand/1 with valid data creates a strand" do
+      curriculum_item_1 = curriculum_item_fixture()
+      curriculum_item_2 = curriculum_item_fixture()
       subject = subject_fixture()
       year = year_fixture()
 
       valid_attrs = %{
         name: "some name",
         description: "some description",
+        curriculum_items: [
+          %{curriculum_item_id: curriculum_item_1.id},
+          %{curriculum_item_id: curriculum_item_2.id}
+        ],
         subjects_ids: [subject.id],
         years_ids: [year.id]
       }
@@ -59,6 +66,14 @@ defmodule Lanttern.LearningContextTest do
       assert strand.description == "some description"
       assert strand.subjects == [subject]
       assert strand.years == [year]
+
+      [expected_strand_curriculum_item_1, expected_strand_curriculum_item_2] =
+        strand.curriculum_items
+
+      assert expected_strand_curriculum_item_1.curriculum_item_id == curriculum_item_1.id
+      assert expected_strand_curriculum_item_1.position == 0
+      assert expected_strand_curriculum_item_2.curriculum_item_id == curriculum_item_2.id
+      assert expected_strand_curriculum_item_2.position == 1
     end
 
     test "create_strand/1 with invalid data returns error changeset" do
@@ -90,6 +105,39 @@ defmodule Lanttern.LearningContextTest do
       assert strand.description == "some updated description"
       assert strand.subjects == [subject]
       assert strand.years == [year_1, year_2] || strand.years == [year_2, year_1]
+    end
+
+    test "update_strand/2 with curriculum items works as expected" do
+      curriculum_item_1 = curriculum_item_fixture()
+      curriculum_item_2 = curriculum_item_fixture()
+      curriculum_item_3 = curriculum_item_fixture()
+
+      # strand starts with [ci_1, ci_2]
+      # and updates to [ci_3, ci_1]
+      strand =
+        strand_fixture(%{
+          curriculum_items: [
+            %{curriculum_item_id: curriculum_item_1.id},
+            %{curriculum_item_id: curriculum_item_2.id}
+          ]
+        })
+
+      update_attrs = %{
+        curriculum_items: [
+          %{curriculum_item_id: curriculum_item_3.id},
+          %{curriculum_item_id: curriculum_item_1.id}
+        ]
+      }
+
+      assert {:ok, %Strand{} = strand} = LearningContext.update_strand(strand, update_attrs)
+
+      [expected_ci_3, expected_ci_1] =
+        strand.curriculum_items
+
+      assert expected_ci_3.curriculum_item_id == curriculum_item_3.id
+      assert expected_ci_3.position == 0
+      assert expected_ci_1.curriculum_item_id == curriculum_item_1.id
+      assert expected_ci_1.position == 1
     end
 
     test "update_strand/2 with invalid data returns error changeset" do

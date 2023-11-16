@@ -15,8 +15,14 @@ const hideControls = (input) => {
 };
 
 const pushSelect = (hook, input, selected) => {
-  // force visible input value change
-  input.value = selected.name;
+  if (input.getAttribute("data-refocus-on-select") === "true") {
+    // clear input
+    input.value = "";
+    input.focus()
+  } else {
+    // force visible input value change
+    input.value = selected.name;
+  }
 
   // force hidden input value change and trigger phx-change event
   if (input.getAttribute("data-hidden-input-id")) {

@@ -76,6 +76,10 @@ defmodule Lanttern.LearningContext do
   @doc """
   Updates a strand.
 
+  ### Options:
+
+  `:preloads` – preloads associated data
+
   ## Examples
 
       iex> update_strand(strand, %{field: new_value})
@@ -85,10 +89,11 @@ defmodule Lanttern.LearningContext do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_strand(%Strand{} = strand, attrs) do
+  def update_strand(%Strand{} = strand, attrs, opts \\ []) do
     strand
     |> Strand.changeset(attrs)
     |> Repo.update()
+    |> maybe_preload(opts)
   end
 
   @doc """

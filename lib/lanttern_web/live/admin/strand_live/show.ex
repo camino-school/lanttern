@@ -1,5 +1,5 @@
 defmodule LantternWeb.Admin.StrandLive.Show do
-  use LantternWeb, :live_view
+  use LantternWeb, {:live_view, layout: :admin}
 
   alias Lanttern.LearningContext
 
@@ -13,7 +13,13 @@ defmodule LantternWeb.Admin.StrandLive.Show do
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:strand, LearningContext.get_strand!(id, preloads: [:subjects, :years]))}
+     |> assign(
+       :strand,
+       LearningContext.get_strand!(
+         id,
+         preloads: [:subjects, :years, curriculum_items: [curriculum_item: :curriculum_component]]
+       )
+     )}
   end
 
   defp page_title(:show), do: "Show Strand"

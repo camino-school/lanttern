@@ -7,8 +7,13 @@ defmodule Lanttern.LearningContext.Strand do
   schema "strands" do
     field :name, :string
     field :description, :string
+    field :curriculum_items_ids, {:array, :id}, virtual: true
     field :subjects_ids, {:array, :id}, virtual: true
     field :years_ids, {:array, :id}, virtual: true
+
+    has_many :curriculum_items, Lanttern.LearningContext.StrandCurriculumItem,
+      on_replace: :delete,
+      preload_order: [asc: :position]
 
     many_to_many :subjects, Lanttern.Taxonomy.Subject,
       join_through: "strands_subjects",
@@ -26,7 +31,16 @@ defmodule Lanttern.LearningContext.Strand do
     strand
     |> cast(attrs, [:name, :description, :subjects_ids, :years_ids])
     |> validate_required([:name, :description])
+    |> cast_assoc(:curriculum_items, with: &child_changeset/3)
     |> put_subjects()
     |> put_years()
+  end
+
+  defp child_changeset(child, changes, position) do
+    child
+    |> change(
+      changes
+      |> Map.put(:position, position)
+    )
   end
 end
