@@ -1,0 +1,32 @@
+<.header>
+  Strand <%= @strand.id %>
+  <:subtitle>This is a strand record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/admin/strands/#{@strand}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit strand</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @strand.name %></:item>
+  <:item title="Description"><%= @strand.description %></:item>
+</.list>
+
+<.back navigate={~p"/admin/strands"}>Back to strands</.back>
+
+<.modal
+  :if={@live_action == :edit}
+  id="strand-modal"
+  show
+  on_cancel={JS.patch(~p"/admin/strands/#{@strand}")}
+>
+  <.live_component
+    module={LantternWeb.Admin.StrandLive.FormComponent}
+    id={@strand.id}
+    title={@page_title}
+    action={@live_action}
+    strand={@strand}
+    patch={~p"/admin/strands/#{@strand}"}
+  />
+</.modal>

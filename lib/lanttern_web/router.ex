@@ -147,6 +147,14 @@ defmodule LantternWeb.Router do
 
     live "/rubrics/:id", Admin.RubricLive.Show, :show
     live "/rubrics/:id/show/edit", Admin.RubricLive.Show, :edit
+
+    # Learning Context context
+    live "/strands", Admin.StrandLive.Index, :index
+    live "/strands/new", Admin.StrandLive.Index, :new
+    live "/strands/:id/edit", Admin.StrandLive.Index, :edit
+
+    live "/strands/:id", Admin.StrandLive.Show, :show
+    live "/strands/:id/show/edit", Admin.StrandLive.Show, :edit
   end
 
   # Other scopes may use custom stacks.
