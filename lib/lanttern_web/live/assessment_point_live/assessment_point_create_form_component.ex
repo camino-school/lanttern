@@ -7,6 +7,8 @@ defmodule LantternWeb.AssessmentPointLive.AssessmentPointCreateFormComponent do
   alias LantternWeb.GradingHelpers
   alias LantternWeb.SchoolsHelpers
 
+  alias LantternWeb.CurriculumLive.CurriculumItemSearchComponent
+
   def render(assigns) do
     ~H"""
     <div>
@@ -63,12 +65,30 @@ defmodule LantternWeb.AssessmentPointLive.AssessmentPointCreateFormComponent do
             />
           </div>
         </div>
-        <.live_component
-          module={LantternWeb.AssessmetPointLive.CurriculumItemSearchInputComponent}
-          id="create-assessment-point-form-curriculum-item"
-          field={@form[:curriculum_item_id]}
-          class="mb-6"
-        />
+        <.input field={@form[:curriculum_item_id]} type="hidden" label="Curriculum item" />
+        <div class="mt-1 mb-6">
+          <.live_component
+            module={CurriculumItemSearchComponent}
+            id="create-assessment-point-form-curriculum-item-search"
+            notify_component={@myself}
+          />
+          <.badge
+            :if={@selected_curriculum_item}
+            class="mt-2"
+            theme="cyan"
+            show_remove
+            phx-click="remove_curriculum_item"
+            phx-target={@myself}
+          >
+            <div>
+              #<%= @selected_curriculum_item.id %>
+              <span :if={@selected_curriculum_item.code}>
+                (<%= @selected_curriculum_item.code %>)
+              </span>
+              <%= @selected_curriculum_item.name %>
+            </div>
+          </.badge>
+        </div>
         <.input
           field={@form[:scale_id]}
           type="select"
@@ -155,13 +175,52 @@ defmodule LantternWeb.AssessmentPointLive.AssessmentPointCreateFormComponent do
         class_options: class_options,
         selected_classes: selected_classes,
         student_options: student_options,
-        selected_students: selected_students
+        selected_students: selected_students,
+        selected_curriculum_item: nil
       })
 
     {:ok, socket}
   end
 
+  def update(%{action: {CurriculumItemSearchComponent, {:selected, curriculum_item}}}, socket) do
+    # basically a manual "validate" event to update curriculum_item id
+    params =
+      socket.assigns.form.params
+      |> Map.put("curriculum_item_id", curriculum_item.id)
+
+    form =
+      %AssessmentPoint{}
+      |> Assessments.change_assessment_point(params)
+      |> Map.put(:action, :validate)
+      |> to_form()
+
+    {:ok,
+     socket
+     |> assign(:selected_curriculum_item, curriculum_item)
+     |> assign(:form, form)}
+  end
+
+  def update(assigns, socket), do: {:ok, assign(socket, assigns)}
+
   # event handlers
+
+  def handle_event("remove_curriculum_item", _params, socket) do
+    # basically a manual "validate" event to update curriculum_item id
+    params =
+      socket.assigns.form.params
+      |> Map.put("curriculum_item_id", nil)
+
+    form =
+      %AssessmentPoint{}
+      |> Assessments.change_assessment_point(params)
+      |> Map.put(:action, :validate)
+      |> to_form()
+
+    {:noreply,
+     socket
+     |> assign(:selected_curriculum_item, nil)
+     |> assign(:form, form)}
+  end
 
   def handle_event(
         "class_selected",

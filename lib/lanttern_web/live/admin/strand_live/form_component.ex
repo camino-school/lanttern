@@ -43,6 +43,7 @@ defmodule LantternWeb.Admin.StrandLive.FormComponent do
           module={CurriculumItemSearchComponent}
           id="curriculum-item-search"
           notify_component={@myself}
+          refocus_on_select="true"
         />
         <div
           :for={curriculum_item <- @curriculum_items}

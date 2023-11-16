@@ -32,7 +32,7 @@ defmodule LantternWeb.CurriculumLive.CurriculumItemSearchComponent do
           phx-debounce="500"
           phx-target={@myself}
           phx-update="ignore"
-          data-refocus-on-select="true"
+          data-refocus-on-select={@refocus_on_select}
         />
         <.icon
           name="hero-chevron-up-down"
@@ -92,6 +92,7 @@ defmodule LantternWeb.CurriculumLive.CurriculumItemSearchComponent do
     socket =
       socket
       |> assign(:class, nil)
+      |> assign(:refocus_on_select, "false")
       |> stream(:results, [])
 
     {:ok, socket}

@@ -24,15 +24,6 @@ const pushSelect = (hook, input, selected) => {
     input.value = selected.name;
   }
 
-  // force hidden input value change and trigger phx-change event
-  if (input.getAttribute("data-hidden-input-id")) {
-    const hiddenInput = document.getElementById(
-      input.getAttribute("data-hidden-input-id")
-    );
-    hiddenInput.value = selected.id;
-    hiddenInput.dispatchEvent(new Event("input", { bubbles: true }));
-  }
-
   // send event to liveview server
   hook.pushEventTo(input, "autocomplete_result_select", selected);
 };
@@ -89,19 +80,6 @@ function autocompleteSearchResults(event) {
         signal: hookAbortControllerMap[input.id].signal,
       });
     });
-  }
-}
-
-function clearSelectedItem(event) {
-  const input = this.el;
-
-  // force hidden input value change and trigger phx-change event
-  if (input.getAttribute("data-hidden-input-id")) {
-    const hiddenInput = document.getElementById(
-      input.getAttribute("data-hidden-input-id")
-    );
-    hiddenInput.value = "";
-    hiddenInput.dispatchEvent(new Event("input", { bubbles: true }));
   }
 }
 
@@ -198,12 +176,6 @@ const autocompleteHook = {
     window.addEventListener(
       `phx:autocomplete_search_results:${id}`,
       autocompleteSearchResults.bind(this),
-      { signal: hookAbortControllerMap[this.el.id].signal }
-    );
-
-    window.addEventListener(
-      `phx:clear_selected_item:${id}`,
-      clearSelectedItem.bind(this),
       { signal: hookAbortControllerMap[this.el.id].signal }
     );
 
