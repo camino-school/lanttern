@@ -2,11 +2,11 @@ defmodule Lanttern.LearningContextTest do
   use Lanttern.DataCase
 
   alias Lanttern.LearningContext
+  import Lanttern.LearningContextFixtures
 
   describe "strands" do
     alias Lanttern.LearningContext.Strand
 
-    import Lanttern.LearningContextFixtures
     import Lanttern.TaxonomyFixtures
     import Lanttern.CurriculaFixtures
 
@@ -155,6 +155,95 @@ defmodule Lanttern.LearningContextTest do
     test "change_strand/1 returns a strand changeset" do
       strand = strand_fixture()
       assert %Ecto.Changeset{} = LearningContext.change_strand(strand)
+    end
+  end
+
+  describe "activities" do
+    alias Lanttern.LearningContext.Activity
+
+    @invalid_attrs %{name: nil, position: nil, description: nil}
+
+    test "list_activities/1 returns all activities" do
+      activity = activity_fixture()
+      assert LearningContext.list_activities() == [activity]
+    end
+
+    test "list_activities/1 with preloads returns all activities with preloaded data" do
+      strand = strand_fixture()
+      activity = activity_fixture(%{strand_id: strand.id})
+
+      [expected] = LearningContext.list_activities(preloads: :strand)
+      assert expected.id == activity.id
+      assert expected.strand == strand
+    end
+
+    test "get_activity!/2 returns the activity with given id" do
+      activity = activity_fixture()
+      assert LearningContext.get_activity!(activity.id) == activity
+    end
+
+    test "get_activity!/2 with preloads returns the activity with given id and preloaded data" do
+      strand = strand_fixture()
+      activity = activity_fixture(%{strand_id: strand.id})
+
+      expected = LearningContext.get_activity!(activity.id, preloads: :strand)
+      assert expected.id == activity.id
+      assert expected.strand == strand
+    end
+
+    test "create_activity/1 with valid data creates a activity" do
+      valid_attrs = %{
+        name: "some name",
+        position: 42,
+        description: "some description",
+        strand_id: strand_fixture().id
+      }
+
+      assert {:ok, %Activity{} = activity} = LearningContext.create_activity(valid_attrs)
+      assert activity.name == "some name"
+      assert activity.position == 42
+      assert activity.description == "some description"
+    end
+
+    test "create_activity/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = LearningContext.create_activity(@invalid_attrs)
+    end
+
+    test "update_activity/2 with valid data updates the activity" do
+      activity = activity_fixture()
+
+      update_attrs = %{
+        name: "some updated name",
+        position: 43,
+        description: "some updated description"
+      }
+
+      assert {:ok, %Activity{} = activity} =
+               LearningContext.update_activity(activity, update_attrs)
+
+      assert activity.name == "some updated name"
+      assert activity.position == 43
+      assert activity.description == "some updated description"
+    end
+
+    test "update_activity/2 with invalid data returns error changeset" do
+      activity = activity_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               LearningContext.update_activity(activity, @invalid_attrs)
+
+      assert activity == LearningContext.get_activity!(activity.id)
+    end
+
+    test "delete_activity/1 deletes the activity" do
+      activity = activity_fixture()
+      assert {:ok, %Activity{}} = LearningContext.delete_activity(activity)
+      assert_raise Ecto.NoResultsError, fn -> LearningContext.get_activity!(activity.id) end
+    end
+
+    test "change_activity/1 returns a activity changeset" do
+      activity = activity_fixture()
+      assert %Ecto.Changeset{} = LearningContext.change_activity(activity)
     end
   end
 end

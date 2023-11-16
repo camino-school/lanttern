@@ -1,0 +1,34 @@
+<.header>
+  Activity <%= @activity.id %>
+  <:subtitle>This is a activity record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/admin/activities/#{@activity}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit activity</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Strand"><%= @activity.strand.name %></:item>
+  <:item title="Name"><%= @activity.name %></:item>
+  <:item title="Description"><%= @activity.description %></:item>
+  <:item title="Position"><%= @activity.position %></:item>
+</.list>
+
+<.back navigate={~p"/admin/activities"}>Back to activities</.back>
+
+<.modal
+  :if={@live_action == :edit}
+  id="activity-modal"
+  show
+  on_cancel={JS.patch(~p"/admin/activities/#{@activity}")}
+>
+  <.live_component
+    module={LantternWeb.Admin.ActivityLive.FormComponent}
+    id={@activity.id}
+    title={@page_title}
+    action={@live_action}
+    activity={@activity}
+    patch={~p"/admin/activities/#{@activity}"}
+  />
+</.modal>

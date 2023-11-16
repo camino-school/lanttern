@@ -4,10 +4,10 @@ defmodule Lanttern.LearningContext do
   """
 
   import Ecto.Query, warn: false
+  import Lanttern.RepoHelpers
   alias Lanttern.Repo
 
   alias Lanttern.LearningContext.Strand
-  import Lanttern.RepoHelpers
 
   @doc """
   Returns the list of strands.
@@ -123,5 +123,123 @@ defmodule Lanttern.LearningContext do
   """
   def change_strand(%Strand{} = strand, attrs \\ %{}) do
     Strand.changeset(strand, attrs)
+  end
+
+  alias Lanttern.LearningContext.Activity
+
+  @doc """
+  Returns the list of activities.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> list_activities()
+      [%Activity{}, ...]
+
+  """
+  def list_activities(opts \\ []) do
+    Repo.all(Activity)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single activity.
+
+  Raises `Ecto.NoResultsError` if the Activity does not exist.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> get_activity!(123)
+      %Activity{}
+
+      iex> get_activity!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_activity!(id, opts \\ []) do
+    Repo.get!(Activity, id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Creates a activity.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> create_activity(%{field: value})
+      {:ok, %Activity{}}
+
+      iex> create_activity(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_activity(attrs \\ %{}, opts \\ []) do
+    %Activity{}
+    |> Activity.changeset(attrs)
+    |> Repo.insert()
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Updates a activity.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> update_activity(activity, %{field: new_value})
+      {:ok, %Activity{}}
+
+      iex> update_activity(activity, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_activity(%Activity{} = activity, attrs, opts \\ []) do
+    activity
+    |> Activity.changeset(attrs)
+    |> Repo.update()
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Deletes a activity.
+
+  ## Examples
+
+      iex> delete_activity(activity)
+      {:ok, %Activity{}}
+
+      iex> delete_activity(activity)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_activity(%Activity{} = activity) do
+    Repo.delete(activity)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking activity changes.
+
+  ## Examples
+
+      iex> change_activity(activity)
+      %Ecto.Changeset{data: %Activity{}}
+
+  """
+  def change_activity(%Activity{} = activity, attrs \\ %{}) do
+    Activity.changeset(activity, attrs)
   end
 end
