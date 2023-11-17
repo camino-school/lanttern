@@ -13,6 +13,11 @@
   <:item title="Name"><%= @activity.name %></:item>
   <:item title="Description"><%= @activity.description %></:item>
   <:item title="Position"><%= @activity.position %></:item>
+  <:item title="Curriculum items">
+    <%= @activity.curriculum_items
+    |> Enum.map(& &1.curriculum_item.name)
+    |> Enum.join(", ") %>
+  </:item>
 </.list>
 
 <.back navigate={~p"/admin/activities"}>Back to activities</.back>

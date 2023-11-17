@@ -1,12 +1,19 @@
 defmodule LantternWeb.Admin.ActivityLive.Index do
-  use LantternWeb, :live_view
+  use LantternWeb, {:live_view, layout: :admin}
 
   alias Lanttern.LearningContext
   alias Lanttern.LearningContext.Activity
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :activities, LearningContext.list_activities(preloads: :strand))}
+    {:ok,
+     stream(
+       socket,
+       :activities,
+       LearningContext.list_activities(
+         preloads: [:strand, curriculum_items: [curriculum_item: :curriculum_component]]
+       )
+     )}
   end
 
   @impl true
@@ -17,13 +24,18 @@ defmodule LantternWeb.Admin.ActivityLive.Index do
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
     |> assign(:page_title, "Edit Activity")
-    |> assign(:activity, LearningContext.get_activity!(id))
+    |> assign(
+      :activity,
+      LearningContext.get_activity!(id,
+        preloads: [curriculum_items: [curriculum_item: :curriculum_component]]
+      )
+    )
   end
 
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(:page_title, "New Activity")
-    |> assign(:activity, %Activity{})
+    |> assign(:activity, %Activity{curriculum_items: []})
   end
 
   defp apply_action(socket, :index, _params) do

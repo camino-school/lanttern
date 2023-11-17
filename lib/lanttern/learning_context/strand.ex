@@ -31,16 +31,8 @@ defmodule Lanttern.LearningContext.Strand do
     strand
     |> cast(attrs, [:name, :description, :subjects_ids, :years_ids])
     |> validate_required([:name, :description])
-    |> cast_assoc(:curriculum_items, with: &child_changeset/3)
+    |> cast_assoc(:curriculum_items, with: &child_position_changeset/3)
     |> put_subjects()
     |> put_years()
-  end
-
-  defp child_changeset(child, changes, position) do
-    child
-    |> change(
-      changes
-      |> Map.put(:position, position)
-    )
   end
 end

@@ -161,6 +161,8 @@ defmodule Lanttern.LearningContextTest do
   describe "activities" do
     alias Lanttern.LearningContext.Activity
 
+    import Lanttern.CurriculaFixtures
+
     @invalid_attrs %{name: nil, position: nil, description: nil}
 
     test "list_activities/1 returns all activities" do
@@ -192,17 +194,32 @@ defmodule Lanttern.LearningContextTest do
     end
 
     test "create_activity/1 with valid data creates a activity" do
+      curriculum_item_1 = curriculum_item_fixture()
+      curriculum_item_2 = curriculum_item_fixture()
+
       valid_attrs = %{
         name: "some name",
         position: 42,
         description: "some description",
-        strand_id: strand_fixture().id
+        strand_id: strand_fixture().id,
+        curriculum_items: [
+          %{curriculum_item_id: curriculum_item_1.id},
+          %{curriculum_item_id: curriculum_item_2.id}
+        ]
       }
 
       assert {:ok, %Activity{} = activity} = LearningContext.create_activity(valid_attrs)
       assert activity.name == "some name"
       assert activity.position == 42
       assert activity.description == "some description"
+
+      [expected_activity_curriculum_item_1, expected_activity_curriculum_item_2] =
+        activity.curriculum_items
+
+      assert expected_activity_curriculum_item_1.curriculum_item_id == curriculum_item_1.id
+      assert expected_activity_curriculum_item_1.position == 0
+      assert expected_activity_curriculum_item_2.curriculum_item_id == curriculum_item_2.id
+      assert expected_activity_curriculum_item_2.position == 1
     end
 
     test "create_activity/1 with invalid data returns error changeset" do

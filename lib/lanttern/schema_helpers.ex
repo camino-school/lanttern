@@ -50,4 +50,21 @@ defmodule Lanttern.SchemaHelpers do
     changeset
     |> put_assoc(:years, years)
   end
+
+  @doc """
+  Set `:position` in child changeset.
+
+  Example:
+
+      changeset
+      |> cast_assoc(:list_field, with: &child_changeset/3)
+
+  """
+  def child_position_changeset(child, changes, position) do
+    child
+    |> change(
+      changes
+      |> Map.put(:position, position)
+    )
+  end
 end
