@@ -161,6 +161,7 @@ defmodule Lanttern.LearningContextTest do
   describe "activities" do
     alias Lanttern.LearningContext.Activity
 
+    import Lanttern.TaxonomyFixtures
     import Lanttern.CurriculaFixtures
 
     @invalid_attrs %{name: nil, position: nil, description: nil}
@@ -172,11 +173,13 @@ defmodule Lanttern.LearningContextTest do
 
     test "list_activities/1 with preloads returns all activities with preloaded data" do
       strand = strand_fixture()
-      activity = activity_fixture(%{strand_id: strand.id})
+      subject = subject_fixture()
+      activity = activity_fixture(%{strand_id: strand.id, subjects_ids: [subject.id]})
 
-      [expected] = LearningContext.list_activities(preloads: :strand)
+      [expected] = LearningContext.list_activities(preloads: [:subjects, :strand])
       assert expected.id == activity.id
       assert expected.strand == strand
+      assert expected.subjects == [subject]
     end
 
     test "get_activity!/2 returns the activity with given id" do
@@ -186,14 +189,17 @@ defmodule Lanttern.LearningContextTest do
 
     test "get_activity!/2 with preloads returns the activity with given id and preloaded data" do
       strand = strand_fixture()
-      activity = activity_fixture(%{strand_id: strand.id})
+      subject = subject_fixture()
+      activity = activity_fixture(%{strand_id: strand.id, subjects_ids: [subject.id]})
 
-      expected = LearningContext.get_activity!(activity.id, preloads: :strand)
+      expected = LearningContext.get_activity!(activity.id, preloads: [:strand, :subjects])
       assert expected.id == activity.id
       assert expected.strand == strand
+      assert expected.subjects == [subject]
     end
 
     test "create_activity/1 with valid data creates a activity" do
+      subject = subject_fixture()
       curriculum_item_1 = curriculum_item_fixture()
       curriculum_item_2 = curriculum_item_fixture()
 
@@ -202,6 +208,7 @@ defmodule Lanttern.LearningContextTest do
         position: 42,
         description: "some description",
         strand_id: strand_fixture().id,
+        subjects_ids: [subject.id],
         curriculum_items: [
           %{curriculum_item_id: curriculum_item_1.id},
           %{curriculum_item_id: curriculum_item_2.id}
@@ -212,6 +219,7 @@ defmodule Lanttern.LearningContextTest do
       assert activity.name == "some name"
       assert activity.position == 42
       assert activity.description == "some description"
+      assert activity.subjects == [subject]
 
       [expected_activity_curriculum_item_1, expected_activity_curriculum_item_2] =
         activity.curriculum_items
@@ -227,12 +235,14 @@ defmodule Lanttern.LearningContextTest do
     end
 
     test "update_activity/2 with valid data updates the activity" do
-      activity = activity_fixture()
+      activity = activity_fixture(%{subjects_ids: [subject_fixture().id]})
+      subject = subject_fixture()
 
       update_attrs = %{
         name: "some updated name",
         position: 43,
-        description: "some updated description"
+        description: "some updated description",
+        subjects_ids: [subject.id]
       }
 
       assert {:ok, %Activity{} = activity} =
@@ -241,6 +251,7 @@ defmodule Lanttern.LearningContextTest do
       assert activity.name == "some updated name"
       assert activity.position == 43
       assert activity.description == "some updated description"
+      assert activity.subjects == [subject]
     end
 
     test "update_activity/2 with invalid data returns error changeset" do

@@ -7,7 +7,6 @@ defmodule Lanttern.LearningContext.Strand do
   schema "strands" do
     field :name, :string
     field :description, :string
-    field :curriculum_items_ids, {:array, :id}, virtual: true
     field :subjects_ids, {:array, :id}, virtual: true
     field :years_ids, {:array, :id}, virtual: true
 

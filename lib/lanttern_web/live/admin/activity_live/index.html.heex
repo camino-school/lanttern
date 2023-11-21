@@ -16,6 +16,11 @@
   <:col :let={{_id, activity}} label="Name"><%= activity.name %></:col>
   <:col :let={{_id, activity}} label="Description"><%= activity.description %></:col>
   <:col :let={{_id, activity}} label="Position"><%= activity.position %></:col>
+  <:col :let={{_id, strand}} label="Subjects">
+    <%= strand.subjects
+    |> Enum.map(& &1.name)
+    |> Enum.join(", ") %>
+  </:col>
   <:col :let={{_id, strand}} label="Curriculum items">
     <%= strand.curriculum_items
     |> Enum.map(& &1.curriculum_item.name)

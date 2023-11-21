@@ -4,6 +4,7 @@ defmodule LantternWeb.Admin.ActivityLive.FormComponent do
   alias Lanttern.LearningContext
   alias LantternWeb.CurriculumLive.CurriculumItemSearchComponent
   import LantternWeb.LearningContextHelpers
+  import LantternWeb.TaxonomyHelpers
 
   @impl true
   def render(assigns) do
@@ -27,6 +28,14 @@ defmodule LantternWeb.Admin.ActivityLive.FormComponent do
           label="Strand"
           prompt="Select strand"
           options={@strand_options}
+        />
+        <.input
+          field={@form[:subjects_ids]}
+          type="select"
+          label="Subjects"
+          prompt="Select subjects"
+          options={@subject_options}
+          multiple
         />
         <.input field={@form[:name]} type="text" label="Name" />
         <.input field={@form[:description]} type="text" label="Description" />
@@ -70,12 +79,16 @@ defmodule LantternWeb.Admin.ActivityLive.FormComponent do
     {:ok,
      socket
      |> assign(:curriculum_items, [])
-     |> assign(:strand_options, generate_strand_options())}
+     |> assign(:strand_options, generate_strand_options())
+     |> assign(:subject_options, generate_subject_options())}
   end
 
   @impl true
   def update(%{activity: activity} = assigns, socket) do
-    changeset = LearningContext.change_activity(activity)
+    changeset =
+      activity
+      |> set_virtual_fields()
+      |> LearningContext.change_activity()
 
     {:ok,
      socket
@@ -92,6 +105,11 @@ defmodule LantternWeb.Admin.ActivityLive.FormComponent do
     {:ok,
      socket
      |> update(:curriculum_items, &(&1 ++ [curriculum_item]))}
+  end
+
+  defp set_virtual_fields(activity) do
+    activity
+    |> Map.put(:subjects_ids, activity.subjects |> Enum.map(& &1.id))
   end
 
   # event handlers
@@ -144,7 +162,7 @@ defmodule LantternWeb.Admin.ActivityLive.FormComponent do
 
   defp save_activity(socket, :new, activity_params) do
     case LearningContext.create_activity(activity_params,
-           preloads: [:strand, curriculum_items: :curriculum_item]
+           preloads: [:strand, :subjects, curriculum_items: :curriculum_item]
          ) do
       {:ok, activity} ->
         notify_parent({:saved, activity})

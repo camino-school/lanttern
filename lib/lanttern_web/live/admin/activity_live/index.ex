@@ -11,7 +11,11 @@ defmodule LantternWeb.Admin.ActivityLive.Index do
        socket,
        :activities,
        LearningContext.list_activities(
-         preloads: [:strand, curriculum_items: [curriculum_item: :curriculum_component]]
+         preloads: [
+           :strand,
+           :subjects,
+           curriculum_items: [curriculum_item: :curriculum_component]
+         ]
        )
      )}
   end
@@ -27,7 +31,7 @@ defmodule LantternWeb.Admin.ActivityLive.Index do
     |> assign(
       :activity,
       LearningContext.get_activity!(id,
-        preloads: [curriculum_items: [curriculum_item: :curriculum_component]]
+        preloads: [:subjects, curriculum_items: [curriculum_item: :curriculum_component]]
       )
     )
   end
@@ -35,7 +39,7 @@ defmodule LantternWeb.Admin.ActivityLive.Index do
   defp apply_action(socket, :new, _params) do
     socket
     |> assign(:page_title, "New Activity")
-    |> assign(:activity, %Activity{curriculum_items: []})
+    |> assign(:activity, %Activity{curriculum_items: [], subjects: []})
   end
 
   defp apply_action(socket, :index, _params) do

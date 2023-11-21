@@ -16,7 +16,11 @@ defmodule LantternWeb.Admin.ActivityLive.Show do
      |> assign(
        :activity,
        LearningContext.get_activity!(id,
-         preloads: [:strand, curriculum_items: [curriculum_item: :curriculum_component]]
+         preloads: [
+           :strand,
+           :subjects,
+           curriculum_items: [curriculum_item: :curriculum_component]
+         ]
        )
      )}
   end
