@@ -64,6 +64,7 @@ defmodule LantternWeb.NavigationComponents do
 
   """
   attr :class, :any, default: nil
+  attr :item_class, :any, default: nil
 
   slot :item, required: true do
     attr :link, :string
@@ -73,7 +74,7 @@ defmodule LantternWeb.NavigationComponents do
     ~H"""
     <nav class={@class}>
       <ol class="flex items-center gap-2 font-display font-bold text-sm text-ltrn-subtle">
-        <li :for={{item, i} <- Enum.with_index(@item)}>
+        <li :for={{item, i} <- Enum.with_index(@item)} class={@item_class}>
           <span :if={i > 0}>/</span>
           <%= if Map.get(item, :link) do %>
             <.link navigate={item.link} class="underline"><%= render_slot(item) %></.link>

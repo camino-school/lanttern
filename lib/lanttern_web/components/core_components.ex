@@ -296,6 +296,29 @@ defmodule LantternWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a page cover.
+  """
+  attr :rest, :global
+  slot :inner_block, required: true
+  slot :top, required: true
+
+  def cover(assigns) do
+    ~H"""
+    <div class="relative h-[40rem] bg-cover bg-center bg-ltrn-lighter" {@rest}>
+      <div class="absolute top-1/4 inset-x-0 bottom-0 bg-gradient-to-b from-ltrn-mesh-cyan/0 to-ltrn-mesh-cyan" />
+      <div class="relative flex flex-col justify-between container h-full pt-10 pb-12 mx-auto lg:max-w-5xl">
+        <div>
+          <%= render_slot(@top) %>
+        </div>
+        <div>
+          <%= render_slot(@inner_block) %>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
   @doc ~S"""
   Renders a table with generic styling.
 
@@ -772,16 +795,30 @@ defmodule LantternWeb.CoreComponents do
       <h1 class="font-display font-black text-3xl">
         <%= render_slot(@inner_block) %>
       </h1>
-      <button
-        type="button"
-        class="group flex gap-1 items-center p-2 rounded bg-white shadow-xl hover:bg-slate-100"
-        phx-click={JS.exec("data-show", to: "#menu")}
-        aria-label="open menu"
-      >
-        <.icon name="hero-bars-3 text-ltrn-subtle" />
-        <div class="w-6 h-6 rounded-full bg-ltrn-mesh-primary blur-sm group-hover:blur-none transition-[filter]" />
-      </button>
+      <.nav_menu_button />
     </div>
+    """
+  end
+
+  @doc """
+  Renders the nav menu button.
+  """
+  attr :class, :any, default: nil
+
+  def nav_menu_button(assigns) do
+    ~H"""
+    <button
+      type="button"
+      class={[
+        "group flex gap-1 items-center p-2 rounded bg-white shadow-xl hover:bg-slate-100",
+        @class
+      ]}
+      phx-click={JS.exec("data-show", to: "#menu")}
+      aria-label="open menu"
+    >
+      <.icon name="hero-bars-3 text-ltrn-subtle" />
+      <div class="w-6 h-6 rounded-full bg-ltrn-mesh-primary blur-sm group-hover:blur-none transition-[filter]" />
+    </button>
     """
   end
 

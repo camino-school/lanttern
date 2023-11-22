@@ -1,0 +1,19 @@
+<.cover style="background-image: url(https://images.unsplash.com/photo-1529476488885-3159d45ab78b?q=80&w=1280&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)">
+  <:top>
+    <div class="flex items-center justify-between">
+      <.breadcrumbs class="mt-2" item_class="text-white">
+        <:item link={~p"/strands"}>Strands</:item>
+        <:item>Details</:item>
+      </.breadcrumbs>
+      <.nav_menu_button />
+    </div>
+  </:top>
+  <h1 class="font-display font-black text-5xl"><%= @strand.name %></h1>
+  <div class="flex flex-wrap gap-2 mt-6">
+    <.badge :for={subject <- @strand.subjects} theme="dark"><%= subject.name %></.badge>
+    <.badge :for={year <- @strand.years} theme="dark"><%= year.name %></.badge>
+  </div>
+</.cover>
+<div class="container py-10 mx-auto lg:max-w-5xl">
+  <.markdown text={@strand.description} />
+</div>

@@ -16,6 +16,9 @@ defmodule LantternWeb.MenuComponent do
               <.nav_item active={@active_nav == :dashboard} path={~p"/dashboard"}>
                 Dashboard
               </.nav_item>
+              <.nav_item active={@active_nav == :strands} path={~p"/strands"}>
+                Strands
+              </.nav_item>
               <.nav_item active={@active_nav == :school} path={~p"/school"}>
                 School
               </.nav_item>
@@ -198,6 +201,12 @@ defmodule LantternWeb.MenuComponent do
       cond do
         socket.view == LantternWeb.DashboardLive ->
           :dashboard
+
+        socket.view in [
+          LantternWeb.StrandLive.List,
+          LantternWeb.StrandLive.Details
+        ] ->
+          :strands
 
         socket.view in [
           LantternWeb.SchoolLive.Show,

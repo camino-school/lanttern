@@ -30,7 +30,7 @@ defmodule Lanttern.LearningContext do
   @doc """
   Gets a single strand.
 
-  Raises `Ecto.NoResultsError` if the Strand does not exist.
+  Returns nil if the strand does not exist.
 
   ### Options:
 
@@ -38,12 +38,22 @@ defmodule Lanttern.LearningContext do
 
   ## Examples
 
-      iex> get_strand!(123)
+      iex> get_strand(123)
       %Strand{}
 
-      iex> get_strand!(456)
-      ** (Ecto.NoResultsError)
+      iex> get_strand(456)
+      nil
 
+  """
+  def get_strand(id, opts \\ []) do
+    Repo.get(Strand, id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single strand.
+
+  Same as `get_strand/2`, but raises `Ecto.NoResultsError` if the strand does not exist.
   """
   def get_strand!(id, opts \\ []) do
     Repo.get!(Strand, id)
