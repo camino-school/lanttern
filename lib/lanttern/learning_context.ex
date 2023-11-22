@@ -143,6 +143,7 @@ defmodule Lanttern.LearningContext do
   ### Options:
 
   `:preloads` – preloads associated data
+  `:strands_ids` – filter activities by strands
 
   ## Examples
 
@@ -151,7 +152,12 @@ defmodule Lanttern.LearningContext do
 
   """
   def list_activities(opts \\ []) do
-    Repo.all(Activity)
+    from(
+      a in Activity,
+      order_by: [asc: a.position]
+    )
+    |> maybe_filter_by_strands(opts)
+    |> Repo.all()
     |> maybe_preload(opts)
   end
 
@@ -251,5 +257,20 @@ defmodule Lanttern.LearningContext do
   """
   def change_activity(%Activity{} = activity, attrs \\ %{}) do
     Activity.changeset(activity, attrs)
+  end
+
+  # Helpers
+
+  defp maybe_filter_by_strands(query, opts) do
+    case Keyword.get(opts, :strands_ids) do
+      nil ->
+        query
+
+      strands_ids ->
+        from(
+          q in query,
+          where: q.strand_id in ^strands_ids
+        )
+    end
   end
 end

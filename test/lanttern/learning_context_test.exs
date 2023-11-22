@@ -182,6 +182,20 @@ defmodule Lanttern.LearningContextTest do
       assert expected.subjects == [subject]
     end
 
+    test "list_activities/1 with strands filter returns activities filtered" do
+      strand = strand_fixture()
+      subject = subject_fixture()
+      activity = activity_fixture(%{strand_id: strand.id, subjects_ids: [subject.id]})
+
+      # extra activities for filter testing
+      activity_fixture()
+      activity_fixture()
+
+      [expected] = LearningContext.list_activities(strands_ids: [strand.id], preloads: :subjects)
+      assert expected.id == activity.id
+      assert expected.subjects == [subject]
+    end
+
     test "get_activity!/2 returns the activity with given id" do
       activity = activity_fixture()
       assert LearningContext.get_activity!(activity.id) == activity

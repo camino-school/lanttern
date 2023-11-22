@@ -8,6 +8,50 @@ defmodule LantternWeb.NavigationComponents do
   import LantternWeb.CoreComponents
 
   @doc """
+  Renders navigation tabs.
+
+  ## Examples
+
+      <.nav_tabs>
+        <:tab patch={~p"/home"}>Home</:tab>
+        <:tab patch={~p"/page-1"} is_current="true">Page 1</:tab>
+        <:tab patch={~p"/page-2"}>Page 2</:tab>
+      </.nav_tabs>
+
+  """
+  attr :class, :any, default: nil
+
+  slot :tab, required: true do
+    attr :patch, :string, required: true
+    attr :is_current, :string
+  end
+
+  def nav_tabs(assigns) do
+    ~H"""
+    <nav class={["flex gap-10", @class]}>
+      <%= for tab <- @tab do %>
+        <.link
+          patch={tab.patch}
+          class={[
+            "relative shrink-0 py-5 font-display text-base whitespace-nowrap",
+            if(Map.get(tab, :is_current) == "true",
+              do: "font-bold",
+              else: "hover:text-ltrn-subtle"
+            )
+          ]}
+        >
+          <%= render_slot(tab) %>
+          <span
+            :if={Map.get(tab, :is_current) == "true"}
+            class="absolute h-2 bg-ltrn-primary inset-x-0 bottom-0"
+          />
+        </.link>
+      <% end %>
+    </nav>
+    """
+  end
+
+  @doc """
   Renders a student or teacher tab.
 
   ## Examples

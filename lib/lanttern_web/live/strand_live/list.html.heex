@@ -21,7 +21,7 @@
       />
       <div class="flex flex-col gap-6 p-6">
         <.link
-          patch={~p"/strands/#{strand}"}
+          navigate={~p"/strands/#{strand}"}
           class="font-display font-black text-3xl underline line-clamp-3"
         >
           <%= strand.name %>
@@ -30,8 +30,8 @@
           <.badge :for={subject <- strand.subjects}><%= subject.name %></.badge>
           <.badge :for={year <- strand.years}><%= year.name %></.badge>
         </div>
-        <div class="max-h-32">
-          <.markdown text={strand.description} />
+        <div class="line-clamp-6">
+          <.markdown text={strand.description} class="prose-sm" />
         </div>
       </div>
     </div>

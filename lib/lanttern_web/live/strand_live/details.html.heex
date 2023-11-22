@@ -14,6 +14,57 @@
     <.badge :for={year <- @strand.years} theme="dark"><%= year.name %></.badge>
   </div>
 </.cover>
-<div class="container py-10 mx-auto lg:max-w-5xl">
-  <.markdown text={@strand.description} />
+<div class="sticky top-0 border-b border-ltrn-lighter bg-white">
+  <.nav_tabs class="container mx-auto lg:max-w-5xl">
+    <:tab
+      patch={~p"/strands/#{@strand.id}?#{%{tab: "about"}}"}
+      is_current={@current_tab == :about && "true"}
+    >
+      About & Curriculum
+    </:tab>
+    <:tab
+      patch={~p"/strands/#{@strand.id}?#{%{tab: "activities"}}"}
+      is_current={@current_tab == :activities && "true"}
+    >
+      Actvities
+    </:tab>
+    <:tab
+      patch={~p"/strands/#{@strand.id}?#{%{tab: "assessment"}}"}
+      is_current={@current_tab == :assessment && "true"}
+    >
+      Assessment
+    </:tab>
+    <:tab
+      patch={~p"/strands/#{@strand.id}?#{%{tab: "notes"}}"}
+      is_current={@current_tab == :notes && "true"}
+    >
+      My notes
+    </:tab>
+  </.nav_tabs>
+</div>
+<div class="ltrn-bg-main-local">
+  <.live_component
+    :if={@current_tab == :about}
+    module={DetailsTabs.About}
+    id="strand-details-about"
+    strand={@strand}
+  />
+  <.live_component
+    :if={@current_tab == :activities}
+    module={DetailsTabs.Activities}
+    id="strand-details-activities"
+    strand={@strand}
+  />
+  <.live_component
+    :if={@current_tab == :assessment}
+    module={DetailsTabs.Assessment}
+    id="strand-details-assessment"
+    strand={@strand}
+  />
+  <.live_component
+    :if={@current_tab == :notes}
+    module={DetailsTabs.Notes}
+    id="strand-details-notes"
+    strand={@strand}
+  />
 </div>

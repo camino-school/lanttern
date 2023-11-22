@@ -306,7 +306,7 @@ defmodule LantternWeb.CoreComponents do
   def cover(assigns) do
     ~H"""
     <div class="relative h-[40rem] bg-cover bg-center bg-ltrn-lighter" {@rest}>
-      <div class="absolute top-1/4 inset-x-0 bottom-0 bg-gradient-to-b from-ltrn-mesh-cyan/0 to-ltrn-mesh-cyan" />
+      <div class="absolute top-1/4 inset-x-0 bottom-0 bg-gradient-to-b from-ltrn-mesh-lime/0 to-ltrn-mesh-lime" />
       <div class="relative flex flex-col justify-between container h-full pt-10 pb-12 mx-auto lg:max-w-5xl">
         <div>
           <%= render_slot(@top) %>

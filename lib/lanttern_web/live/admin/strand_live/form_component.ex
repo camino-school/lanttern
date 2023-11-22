@@ -22,7 +22,7 @@ defmodule LantternWeb.Admin.StrandLive.FormComponent do
         phx-submit="save"
       >
         <.input field={@form[:name]} type="text" label="Name" />
-        <.input field={@form[:description]} type="text" label="Description" />
+        <.input field={@form[:description]} type="textarea" label="Description" />
         <.input
           field={@form[:subjects_ids]}
           type="select"

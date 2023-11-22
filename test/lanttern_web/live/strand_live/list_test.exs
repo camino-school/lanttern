@@ -38,7 +38,7 @@ defmodule LantternWeb.StrandLive.ListTest do
       |> element("a", strand.name)
       |> render_click()
 
-      assert_patch(view, "#{@live_view_path}/#{strand.id}")
+      assert_redirect(view, "#{@live_view_path}/#{strand.id}")
     end
   end
 end
