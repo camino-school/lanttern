@@ -68,6 +68,7 @@ defmodule LantternWeb.Router do
 
       live "/strands", StrandLive.List, :index
       live "/strands/:id", StrandLive.Details, :show
+      live "/strands/activity/:id", StrandLive.Activity, :show
 
       live "/rubrics", RubricsLive.Explorer, :index
       live "/rubrics/new", RubricsLive.Explorer, :new

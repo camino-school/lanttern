@@ -1,4 +1,4 @@
-defmodule LantternWeb.StrandLive.DetailsTabs.Assessment do
+defmodule LantternWeb.StrandLive.ActivityTabs.Assessment do
   use LantternWeb, :live_component
 
   @impl true

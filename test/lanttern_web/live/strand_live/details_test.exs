@@ -35,5 +35,56 @@ defmodule LantternWeb.StrandLive.DetailsTest do
       assert view |> has_element?("span", subject.name)
       assert view |> has_element?("span", year.name)
     end
+
+    test "strand tab navigation", %{conn: conn} do
+      strand = LearningContextFixtures.strand_fixture(%{description: "strand description abc"})
+
+      _activity =
+        LearningContextFixtures.activity_fixture(%{name: "activity abc", strand_id: strand.id})
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}")
+
+      assert view |> has_element?("p", "strand description abc")
+
+      # activities tab
+
+      view
+      |> element("#strand-nav-tabs a", "Activities")
+      |> render_click()
+
+      assert_patch(view)
+
+      assert view |> has_element?("a", "activity abc")
+
+      # assessment tab
+
+      view
+      |> element("#strand-nav-tabs a", "Assessment")
+      |> render_click()
+
+      assert_patch(view)
+
+      assert view |> has_element?("div", "Assessment TBD")
+
+      # notes tab
+
+      view
+      |> element("#strand-nav-tabs a", "My notes")
+      |> render_click()
+
+      assert_patch(view)
+
+      assert view |> has_element?("div", "Notes TBD")
+
+      # back to about tab
+
+      view
+      |> element("#strand-nav-tabs a", "About & Curriculum")
+      |> render_click()
+
+      assert_patch(view)
+
+      assert view |> has_element?("p", "strand description abc")
+    end
   end
 end

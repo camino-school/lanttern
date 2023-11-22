@@ -15,7 +15,7 @@
   </div>
 </.cover>
 <div class="sticky top-0 border-b border-ltrn-lighter bg-white">
-  <.nav_tabs class="container mx-auto lg:max-w-5xl">
+  <.nav_tabs class="container mx-auto lg:max-w-5xl" id="strand-nav-tabs">
     <:tab
       patch={~p"/strands/#{@strand.id}?#{%{tab: "about"}}"}
       is_current={@current_tab == :about && "true"}
@@ -26,7 +26,7 @@
       patch={~p"/strands/#{@strand.id}?#{%{tab: "activities"}}"}
       is_current={@current_tab == :activities && "true"}
     >
-      Actvities
+      Activities
     </:tab>
     <:tab
       patch={~p"/strands/#{@strand.id}?#{%{tab: "assessment"}}"}

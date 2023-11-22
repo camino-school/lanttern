@@ -30,7 +30,7 @@ defmodule Lanttern.LearningContext do
   @doc """
   Gets a single strand.
 
-  Returns nil if the strand does not exist.
+  Returns `nil` if the strand does not exist.
 
   ### Options:
 
@@ -164,7 +164,7 @@ defmodule Lanttern.LearningContext do
   @doc """
   Gets a single activity.
 
-  Raises `Ecto.NoResultsError` if the Activity does not exist.
+  Returns `nil` if the Activity does not exist.
 
   ### Options:
 
@@ -176,7 +176,18 @@ defmodule Lanttern.LearningContext do
       %Activity{}
 
       iex> get_activity!(456)
-      ** (Ecto.NoResultsError)
+      nil
+
+  """
+  def get_activity(id, opts \\ []) do
+    Repo.get(Activity, id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single activity.
+
+  Same as `get_activity/2`, but raises `Ecto.NoResultsError` if the Activity does not exist.
 
   """
   def get_activity!(id, opts \\ []) do

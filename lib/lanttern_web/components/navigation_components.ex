@@ -19,6 +19,7 @@ defmodule LantternWeb.NavigationComponents do
       </.nav_tabs>
 
   """
+  attr :id, :string, default: nil
   attr :class, :any, default: nil
 
   slot :tab, required: true do
@@ -28,7 +29,7 @@ defmodule LantternWeb.NavigationComponents do
 
   def nav_tabs(assigns) do
     ~H"""
-    <nav class={["flex gap-10", @class]}>
+    <nav class={["flex gap-10", @class]} id={@id}>
       <%= for tab <- @tab do %>
         <.link
           patch={tab.patch}

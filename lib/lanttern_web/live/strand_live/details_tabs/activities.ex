@@ -12,7 +12,7 @@ defmodule LantternWeb.StrandLive.DetailsTabs.Activities do
         class="flex flex-col gap-6 p-6 mt-6 rounded shadow-xl bg-white"
         id={dom_id}
       >
-        <.link navigate={~p"/strands/#{@strand.id}"} class="font-display font-black text-xl">
+        <.link navigate={~p"/strands/activity/#{activity.id}"} class="font-display font-black text-xl">
           <%= "#{activity.position}." %>
           <span class="underline"><%= activity.name %></span>
         </.link>

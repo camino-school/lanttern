@@ -5,7 +5,7 @@ defmodule LantternWeb.StrandLive.DetailsTabs.Notes do
   def render(assigns) do
     ~H"""
     <div class="container py-10 mx-auto lg:max-w-5xl">
-      Notes
+      Notes TBD
     </div>
     """
   end

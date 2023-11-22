@@ -1,11 +1,11 @@
-defmodule LantternWeb.StrandLive.DetailsTabs.Assessment do
+defmodule LantternWeb.StrandLive.ActivityTabs.Details do
   use LantternWeb, :live_component
 
   @impl true
   def render(assigns) do
     ~H"""
     <div class="container py-10 mx-auto lg:max-w-5xl">
-      Assessment TBD
+      <.markdown text={@activity.description} />
     </div>
     """
   end

@@ -1,0 +1,67 @@
+<.cover style="background-image: url(https://images.unsplash.com/photo-1529476488885-3159d45ab78b?q=80&w=1280&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)">
+  <:top>
+    <div class="flex items-center justify-between">
+      <.breadcrumbs class="mt-2" item_class="text-white">
+        <:item link={~p"/strands"}>Strands</:item>
+        <:item link={~p"/strands/#{@activity.strand}"}>Details</:item>
+        <:item>Activity</:item>
+      </.breadcrumbs>
+      <.nav_menu_button />
+    </div>
+  </:top>
+  <div class="flex items-center gap-2 mb-4">
+    <.icon name="hero-arrow-left" class="w-6 h-6" />
+    <.link
+      navigate={~p"/strands/#{@activity.strand}"}
+      class="font-display font-black text-lg underline"
+    >
+      <%= @activity.strand.name %>
+    </.link>
+  </div>
+  <h1 class="font-display font-black text-5xl"><%= @activity.name %></h1>
+  <div class="flex flex-wrap gap-2 mt-6">
+    <.badge :for={subject <- @activity.subjects} theme="dark"><%= subject.name %></.badge>
+  </div>
+</.cover>
+<div class="sticky top-0 border-b border-ltrn-lighter bg-white">
+  <.nav_tabs class="container mx-auto lg:max-w-5xl" id="activity-nav-tabs">
+    <:tab
+      patch={~p"/strands/activity/#{@activity.id}?#{%{tab: "details"}}"}
+      is_current={@current_tab == :details && "true"}
+    >
+      Details & Curriculum
+    </:tab>
+    <:tab
+      patch={~p"/strands/activity/#{@activity.id}?#{%{tab: "assessment"}}"}
+      is_current={@current_tab == :assessment && "true"}
+    >
+      Assessment
+    </:tab>
+    <:tab
+      patch={~p"/strands/activity/#{@activity.id}?#{%{tab: "notes"}}"}
+      is_current={@current_tab == :notes && "true"}
+    >
+      My notes
+    </:tab>
+  </.nav_tabs>
+</div>
+<div class="ltrn-bg-main-local">
+  <.live_component
+    :if={@current_tab == :details}
+    module={ActivityTabs.Details}
+    id="activity-details-details"
+    activity={@activity}
+  />
+  <.live_component
+    :if={@current_tab == :assessment}
+    module={ActivityTabs.Assessment}
+    id="activity-details-assessment"
+    activity={@activity}
+  />
+  <.live_component
+    :if={@current_tab == :notes}
+    module={ActivityTabs.Notes}
+    id="activity-details-notes"
+    activity={@activity}
+  />
+</div>
