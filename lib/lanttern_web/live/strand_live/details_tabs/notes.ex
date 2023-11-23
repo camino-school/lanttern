@@ -26,7 +26,7 @@ defmodule LantternWeb.StrandLive.DetailsTabs.Notes do
                 phx-target={@myself}
                 data-confirm="Are you sure?"
               >
-                Delete comment
+                Delete note
               </.button>
             </:actions_left>
             <:actions>
@@ -43,7 +43,7 @@ defmodule LantternWeb.StrandLive.DetailsTabs.Notes do
       <% else %>
         <%= if @note do %>
           <div class="flex items-center justify-between mb-10">
-            <h3 class="font-display font-bold text-xl">My notes (visible only to you)</h3>
+            <h3 class="font-display font-bold text-xl">My strand notes (visible only to you)</h3>
             <.button type="button" theme="ghost" phx-click="edit" phx-target={@myself}>
               Edit
             </.button>
@@ -60,6 +60,21 @@ defmodule LantternWeb.StrandLive.DetailsTabs.Notes do
             >
               Add a strand note
             </button>
+          </div>
+        <% end %>
+        <%= if length(@activities_notes) > 0 do %>
+          <h4 class="mt-10 font-display font-bold text-lg">Other notes in this strand</h4>
+          <div :for={note <- @activities_notes} class="mt-6">
+            <.link
+              navigate={~p"/strands/activity/#{note.activity.id}?tab=notes"}
+              class="font-display text-base"
+            >
+              <%= "Activity #{note.activity.position}:" %>
+              <span class="underline"><%= note.activity.name %></span>
+            </.link>
+            <div class="mt-4 line-clamp-4">
+              <.markdown text={note.description} class="prose-sm" />
+            </div>
           </div>
         <% end %>
       <% end %>
@@ -79,6 +94,9 @@ defmodule LantternWeb.StrandLive.DetailsTabs.Notes do
     note =
       Personalization.get_user_note(user, strand_id: strand.id)
 
+    activities_notes =
+      Personalization.list_user_notes(user, strand_id: strand.id)
+
     form =
       case note do
         nil -> Personalization.change_note(%Note{})
@@ -90,6 +108,7 @@ defmodule LantternWeb.StrandLive.DetailsTabs.Notes do
      socket
      |> assign(assigns)
      |> assign(:note, note)
+     |> assign(:activities_notes, activities_notes)
      |> assign(:form, form)}
   end
 

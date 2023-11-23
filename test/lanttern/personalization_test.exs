@@ -129,6 +129,23 @@ defmodule Lanttern.PersonalizationTest do
       assert {:error, %Ecto.Changeset{}} =
                Personalization.create_strand_note(%{current_profile: author}, strand.id, attrs)
     end
+
+    test "list_user_notes/2 returns all user activities notes in a strand" do
+      author = teacher_profile_fixture()
+      strand = strand_fixture()
+      activity_1 = activity_fixture(%{strand_id: strand.id, position: 1})
+      note_1 = activity_note_fixture(%{current_profile: author}, activity_1.id)
+      activity_2 = activity_fixture(%{strand_id: strand.id, position: 2})
+      note_2 = activity_note_fixture(%{current_profile: author}, activity_2.id)
+
+      assert [expected_1, expected_2] =
+               Personalization.list_user_notes(%{current_profile: author}, strand_id: strand.id)
+
+      assert expected_1.id == note_1.id
+      assert expected_1.activity.id == activity_1.id
+      assert expected_2.id == note_2.id
+      assert expected_2.activity.id == activity_2.id
+    end
   end
 
   describe "activity notes" do

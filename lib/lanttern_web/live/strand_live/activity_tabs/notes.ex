@@ -26,7 +26,7 @@ defmodule LantternWeb.StrandLive.ActivityTabs.Notes do
                 phx-target={@myself}
                 data-confirm="Are you sure?"
               >
-                Delete comment
+                Delete note
               </.button>
             </:actions_left>
             <:actions>
@@ -43,7 +43,7 @@ defmodule LantternWeb.StrandLive.ActivityTabs.Notes do
       <% else %>
         <%= if @note do %>
           <div class="flex items-center justify-between mb-10">
-            <h3 class="font-display font-bold text-xl">My notes (visible only to you)</h3>
+            <h3 class="font-display font-bold text-xl">My activity notes (visible only to you)</h3>
             <.button type="button" theme="ghost" phx-click="edit" phx-target={@myself}>
               Edit
             </.button>

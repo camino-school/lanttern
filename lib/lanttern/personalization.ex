@@ -31,6 +31,34 @@ defmodule Lanttern.Personalization do
   end
 
   @doc """
+  Returns the list of user notes.
+
+  ### Options (required):
+
+  `:strand_id` – list all activities notes for given strand. with preloaded activity and ordered by its position
+
+  ## Examples
+
+      iex> list_user_notes(user, opts)
+      [%Note{}, ...]
+
+  """
+  def list_user_notes(%{current_profile: profile} = _user, strand_id: strand_id) do
+    from(
+      n in Note,
+      join: an in ActivityNoteRelationship,
+      on: an.note_id == n.id,
+      join: a in Activity,
+      on: a.id == an.activity_id,
+      where: n.author_id == ^profile.id,
+      where: a.strand_id == ^strand_id,
+      order_by: a.position,
+      select: %{n | activity: a}
+    )
+    |> Repo.all()
+  end
+
+  @doc """
   Gets a single note.
 
   Raises `Ecto.NoResultsError` if the Note does not exist.

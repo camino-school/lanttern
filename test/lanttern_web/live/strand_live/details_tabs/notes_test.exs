@@ -9,7 +9,7 @@ defmodule LantternWeb.StrandLive.DetailsTabs.NotesTest do
   setup [:register_and_log_in_user]
 
   describe "Strands notes" do
-    test "display existing note", %{conn: conn, user: user} do
+    test "display existing strand and activities note", %{conn: conn, user: user} do
       strand = LearningContextFixtures.strand_fixture()
 
       note =
@@ -17,8 +17,26 @@ defmodule LantternWeb.StrandLive.DetailsTabs.NotesTest do
           "description" => "strand note desc abc"
         })
 
+      activity_1 = LearningContextFixtures.activity_fixture(%{strand_id: strand.id, position: 1})
+
+      activity_note_1 =
+        PersonalizationFixtures.activity_note_fixture(user, activity_1.id, %{
+          "description" => "activity 1 note desc abc"
+        })
+
+      activity_2 = LearningContextFixtures.activity_fixture(%{strand_id: strand.id, position: 2})
+
+      activity_note_2 =
+        PersonalizationFixtures.activity_note_fixture(user, activity_2.id, %{
+          "description" => "activity 2 note desc abc"
+        })
+
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}?tab=notes")
       assert view |> has_element?("p", note.description)
+      assert view |> has_element?("a", activity_1.name)
+      assert view |> has_element?("p", activity_note_1.description)
+      assert view |> has_element?("a", activity_2.name)
+      assert view |> has_element?("p", activity_note_2.description)
     end
 
     test "create note", %{conn: conn} do
