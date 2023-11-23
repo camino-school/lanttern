@@ -1,0 +1,40 @@
+<.header>
+  Note <%= @note.id %>
+  <:subtitle>This is a note record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/admin/notes/#{@note}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit note</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Author">
+    <%= case @note.author.type do
+      "teacher" ->
+        "Teacher: #{@note.author.teacher.name}"
+
+      "student" ->
+        "Student: #{@note.author.student.name}"
+    end %>
+  </:item>
+  <:item title="Description"><%= @note.description %></:item>
+</.list>
+
+<.back navigate={~p"/admin/notes"}>Back to notes</.back>
+
+<.modal
+  :if={@live_action == :edit}
+  id="note-modal"
+  show
+  on_cancel={JS.patch(~p"/admin/notes/#{@note}")}
+>
+  <.live_component
+    module={LantternWeb.Admin.NoteLive.FormComponent}
+    id={@note.id}
+    title={@page_title}
+    action={@live_action}
+    note={@note}
+    patch={~p"/admin/notes/#{@note}"}
+  />
+</.modal>
