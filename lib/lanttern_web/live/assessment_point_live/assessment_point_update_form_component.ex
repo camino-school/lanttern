@@ -2,9 +2,10 @@ defmodule LantternWeb.AssessmentPointLive.AssessmentPointUpdateFormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments
-  alias Lanttern.Assessments.AssessmentPoint
   alias LantternWeb.GradingHelpers
   alias LantternWeb.SchoolsHelpers
+
+  alias LantternWeb.CurriculumLive.CurriculumItemSearchComponent
 
   def render(assigns) do
     ~H"""
@@ -64,12 +65,30 @@ defmodule LantternWeb.AssessmentPointLive.AssessmentPointUpdateFormComponent do
             />
           </div>
         </div>
-        <.live_component
-          module={LantternWeb.AssessmetPointLive.CurriculumItemSearchInputComponent}
-          id="update-assessment-point-form-curriculum-item"
-          field={@form[:curriculum_item_id]}
-          class="mb-6"
-        />
+        <.input field={@form[:curriculum_item_id]} type="hidden" label="Curriculum item" />
+        <div class="mt-1 mb-6">
+          <.live_component
+            module={CurriculumItemSearchComponent}
+            id="update-assessment-point-form-curriculum-item-search"
+            notify_component={@myself}
+          />
+          <.badge
+            :if={@selected_curriculum_item}
+            class="mt-2"
+            theme="cyan"
+            show_remove
+            phx-click="remove_curriculum_item"
+            phx-target={@myself}
+          >
+            <div>
+              #<%= @selected_curriculum_item.id %>
+              <span :if={@selected_curriculum_item.code}>
+                (<%= @selected_curriculum_item.code %>)
+              </span>
+              <%= @selected_curriculum_item.name %>
+            </div>
+          </.badge>
+        </div>
         <%!-- <.input
           field={@form[:scale_id]}
           type="select"
@@ -98,7 +117,8 @@ defmodule LantternWeb.AssessmentPointLive.AssessmentPointUpdateFormComponent do
         class_options: class_options,
         selected_classes: selected_classes,
         student_options: student_options,
-        selected_students: selected_students
+        selected_students: selected_students,
+        selected_curriculum_item: nil
       })
 
     {:ok, socket}
@@ -109,30 +129,66 @@ defmodule LantternWeb.AssessmentPointLive.AssessmentPointUpdateFormComponent do
       assessment_point
       |> Assessments.change_assessment_point()
 
-    socket =
-      socket
-      |> assign(assigns)
-      |> assign(:form, to_form(changeset))
+    selected_curriculum_item =
+      case assessment_point.curriculum_item_id do
+        id when is_integer(id) -> Lanttern.Curricula.get_curriculum_item!(id)
+        _ -> nil
+      end
 
-    {:ok, socket}
+    {:ok,
+     socket
+     |> assign(assigns)
+     |> assign(:form, to_form(changeset))
+     |> assign(:selected_curriculum_item, selected_curriculum_item)}
+  end
+
+  def update(%{action: {CurriculumItemSearchComponent, {:selected, curriculum_item}}}, socket) do
+    # basically a manual "validate" event to update curriculum_item id
+    params =
+      socket.assigns.form.params
+      |> Map.put("curriculum_item_id", curriculum_item.id)
+
+    form =
+      socket.assigns.assessment_point
+      |> Assessments.change_assessment_point(params)
+      |> Map.put(:action, :validate)
+      |> to_form()
+
+    {:ok,
+     socket
+     |> assign(:selected_curriculum_item, curriculum_item)
+     |> assign(:form, form)}
   end
 
   def update(assigns, socket) do
-    socket =
-      Enum.reduce(
-        assigns,
-        socket,
-        fn {key, value}, socket ->
-          assign(socket, key, value)
-        end
-      )
+    {:ok,
+     socket
+     |> assign(assigns)}
+  end
 
-    {:ok, socket}
+  # event handlers
+
+  def handle_event("remove_curriculum_item", _params, socket) do
+    # basically a manual "validate" event to update curriculum_item id
+    params =
+      socket.assigns.form.params
+      |> Map.put("curriculum_item_id", nil)
+
+    form =
+      socket.assigns.assessment_point
+      |> Assessments.change_assessment_point(params)
+      |> Map.put(:action, :validate)
+      |> to_form()
+
+    {:noreply,
+     socket
+     |> assign(:selected_curriculum_item, nil)
+     |> assign(:form, form)}
   end
 
   def handle_event("validate", %{"assessment_point" => params}, socket) do
     form =
-      %AssessmentPoint{}
+      socket.assigns.assessment_point
       |> Assessments.change_assessment_point(params)
       |> Map.put(:action, :validate)
       |> to_form()

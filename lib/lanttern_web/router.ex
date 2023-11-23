@@ -66,6 +66,10 @@ defmodule LantternWeb.Router do
            AssessmentPointLive.Details,
            :feedback
 
+      live "/strands", StrandLive.List, :index
+      live "/strands/:id", StrandLive.Details, :show
+      live "/strands/activity/:id", StrandLive.Activity, :show
+
       live "/rubrics", RubricsLive.Explorer, :index
       live "/rubrics/new", RubricsLive.Explorer, :new
       live "/rubrics/:id/edit", RubricsLive.Explorer, :edit
@@ -147,6 +151,21 @@ defmodule LantternWeb.Router do
 
     live "/rubrics/:id", Admin.RubricLive.Show, :show
     live "/rubrics/:id/show/edit", Admin.RubricLive.Show, :edit
+
+    # Learning Context context
+    live "/strands", Admin.StrandLive.Index, :index
+    live "/strands/new", Admin.StrandLive.Index, :new
+    live "/strands/:id/edit", Admin.StrandLive.Index, :edit
+
+    live "/strands/:id", Admin.StrandLive.Show, :show
+    live "/strands/:id/show/edit", Admin.StrandLive.Show, :edit
+
+    live "/activities", Admin.ActivityLive.Index, :index
+    live "/activities/new", Admin.ActivityLive.Index, :new
+    live "/activities/:id/edit", Admin.ActivityLive.Index, :edit
+
+    live "/activities/:id", Admin.ActivityLive.Show, :show
+    live "/activities/:id/show/edit", Admin.ActivityLive.Show, :edit
   end
 
   # Other scopes may use custom stacks.

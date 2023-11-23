@@ -15,16 +15,13 @@ const hideControls = (input) => {
 };
 
 const pushSelect = (hook, input, selected) => {
-  // force visible input value change
-  input.value = selected.name;
-
-  // force hidden input value change and trigger phx-change event
-  if (input.getAttribute("data-hidden-input-id")) {
-    const hiddenInput = document.getElementById(
-      input.getAttribute("data-hidden-input-id")
-    );
-    hiddenInput.value = selected.id;
-    hiddenInput.dispatchEvent(new Event("input", { bubbles: true }));
+  if (input.getAttribute("data-refocus-on-select") === "true") {
+    // clear input
+    input.value = "";
+    input.focus()
+  } else {
+    // force visible input value change
+    input.value = selected.name;
   }
 
   // send event to liveview server
@@ -83,19 +80,6 @@ function autocompleteSearchResults(event) {
         signal: hookAbortControllerMap[input.id].signal,
       });
     });
-  }
-}
-
-function clearSelectedItem(event) {
-  const input = this.el;
-
-  // force hidden input value change and trigger phx-change event
-  if (input.getAttribute("data-hidden-input-id")) {
-    const hiddenInput = document.getElementById(
-      input.getAttribute("data-hidden-input-id")
-    );
-    hiddenInput.value = "";
-    hiddenInput.dispatchEvent(new Event("input", { bubbles: true }));
   }
 }
 
@@ -192,12 +176,6 @@ const autocompleteHook = {
     window.addEventListener(
       `phx:autocomplete_search_results:${id}`,
       autocompleteSearchResults.bind(this),
-      { signal: hookAbortControllerMap[this.el.id].signal }
-    );
-
-    window.addEventListener(
-      `phx:clear_selected_item:${id}`,
-      clearSelectedItem.bind(this),
       { signal: hookAbortControllerMap[this.el.id].signal }
     );
 

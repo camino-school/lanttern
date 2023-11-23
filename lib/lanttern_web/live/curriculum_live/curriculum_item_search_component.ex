@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmetPointLive.CurriculumItemSearchInputComponent do
+defmodule LantternWeb.CurriculumLive.CurriculumItemSearchComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Curricula
@@ -6,7 +6,6 @@ defmodule LantternWeb.AssessmetPointLive.CurriculumItemSearchInputComponent do
   def render(assigns) do
     ~H"""
     <div class={@class}>
-      <.label for={@id}>Curriculum item</.label>
       <p class="mb-2 text-sm">
         You can search by id adding # before the id
         <.inline_code>
@@ -17,8 +16,7 @@ defmodule LantternWeb.AssessmetPointLive.CurriculumItemSearchInputComponent do
           (ABC123)
         </.inline_code>
       </p>
-      <div phx-feedback-for={@field.name} class="relative">
-        <input id={@field.id} name={@field.name} type="hidden" value={@field.value} />
+      <div class="relative">
         <.base_input
           id={@id}
           name="query"
@@ -34,8 +32,7 @@ defmodule LantternWeb.AssessmetPointLive.CurriculumItemSearchInputComponent do
           phx-debounce="500"
           phx-target={@myself}
           phx-update="ignore"
-          errors={@errors}
-          data-hidden-input-id={@field.id}
+          data-refocus-on-select={@refocus_on_select}
         />
         <.icon
           name="hero-chevron-up-down"
@@ -62,7 +59,7 @@ defmodule LantternWeb.AssessmetPointLive.CurriculumItemSearchInputComponent do
             ]}
             id={dom_id}
             role="option"
-            aria-selected={if @field.value == "#{result.id}", do: "true", else: "false"}
+            aria-selected="false"
             tabindex="-1"
             data-result-id={result.id}
             data-result-name={result.name}
@@ -84,22 +81,6 @@ defmodule LantternWeb.AssessmetPointLive.CurriculumItemSearchInputComponent do
             />
           </li>
         </ul>
-
-        <.badge
-          :if={@selected}
-          class="mt-2"
-          theme="cyan"
-          show_remove
-          phx-click="remove_curriculum_item"
-          phx-target={@myself}
-        >
-          <div>
-            #<%= @selected.id %>
-            <span :if={@selected.code}>(<%= @selected.code %>)</span>
-            <%= @selected.name %>
-          </div>
-        </.badge>
-        <.error :for={msg <- @errors}><%= msg %></.error>
       </div>
     </div>
     """
@@ -110,24 +91,9 @@ defmodule LantternWeb.AssessmetPointLive.CurriculumItemSearchInputComponent do
   def mount(socket) do
     socket =
       socket
+      |> assign(:class, nil)
+      |> assign(:refocus_on_select, "false")
       |> stream(:results, [])
-
-    {:ok, socket}
-  end
-
-  def update(%{field: field} = assigns, socket) do
-    selected =
-      case field.value do
-        nil -> nil
-        "" -> nil
-        id -> Curricula.get_curriculum_item!(id)
-      end
-
-    socket =
-      socket
-      |> assign(assigns)
-      |> assign(:errors, Enum.map(field.errors, &translate_error/1))
-      |> assign(:selected, selected)
 
     {:ok, socket}
   end
@@ -162,21 +128,12 @@ defmodule LantternWeb.AssessmetPointLive.CurriculumItemSearchInputComponent do
   end
 
   def handle_event("autocomplete_result_select", %{"id" => id}, socket) do
-    selected = Curricula.get_curriculum_item!(id)
+    selected = Curricula.get_curriculum_item!(id, preloads: :curriculum_component)
+    send_update(socket.assigns.notify_component, action: {__MODULE__, {:selected, selected}})
 
     socket =
       socket
       |> stream(:results, [], reset: true)
-      |> assign(:selected, selected)
-
-    {:noreply, socket}
-  end
-
-  def handle_event("remove_curriculum_item", _params, socket) do
-    socket =
-      socket
-      |> assign(:selected, nil)
-      |> push_event("clear_selected_item:#{socket.assigns.id}", %{})
 
     {:noreply, socket}
   end

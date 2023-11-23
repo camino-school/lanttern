@@ -1,9 +1,8 @@
 defmodule Lanttern.Curricula.CurriculumItem do
   use Ecto.Schema
   import Ecto.Changeset
-  import Ecto.Query, only: [from: 2]
 
-  alias Lanttern.Repo
+  import Lanttern.SchemaHelpers
 
   @derive {
     Flop.Schema,
@@ -67,41 +66,5 @@ defmodule Lanttern.Curricula.CurriculumItem do
     |> validate_required([:name, :curriculum_component_id])
     |> put_subjects()
     |> put_years()
-  end
-
-  defp put_subjects(changeset) do
-    put_subjects(
-      changeset,
-      get_change(changeset, :subjects_ids)
-    )
-  end
-
-  defp put_subjects(changeset, nil), do: changeset
-
-  defp put_subjects(changeset, subjects_ids) do
-    subjects =
-      from(s in Lanttern.Taxonomy.Subject, where: s.id in ^subjects_ids)
-      |> Repo.all()
-
-    changeset
-    |> put_assoc(:subjects, subjects)
-  end
-
-  defp put_years(changeset) do
-    put_years(
-      changeset,
-      get_change(changeset, :years_ids)
-    )
-  end
-
-  defp put_years(changeset, nil), do: changeset
-
-  defp put_years(changeset, years_ids) do
-    years =
-      from(y in Lanttern.Taxonomy.Year, where: y.id in ^years_ids)
-      |> Repo.all()
-
-    changeset
-    |> put_assoc(:years, years)
   end
 end

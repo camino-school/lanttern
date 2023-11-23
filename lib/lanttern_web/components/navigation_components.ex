@@ -8,6 +8,51 @@ defmodule LantternWeb.NavigationComponents do
   import LantternWeb.CoreComponents
 
   @doc """
+  Renders navigation tabs.
+
+  ## Examples
+
+      <.nav_tabs>
+        <:tab patch={~p"/home"}>Home</:tab>
+        <:tab patch={~p"/page-1"} is_current="true">Page 1</:tab>
+        <:tab patch={~p"/page-2"}>Page 2</:tab>
+      </.nav_tabs>
+
+  """
+  attr :id, :string, default: nil
+  attr :class, :any, default: nil
+
+  slot :tab, required: true do
+    attr :patch, :string, required: true
+    attr :is_current, :string
+  end
+
+  def nav_tabs(assigns) do
+    ~H"""
+    <nav class={["flex gap-10", @class]} id={@id}>
+      <%= for tab <- @tab do %>
+        <.link
+          patch={tab.patch}
+          class={[
+            "relative shrink-0 py-5 font-display text-base whitespace-nowrap",
+            if(Map.get(tab, :is_current) == "true",
+              do: "font-bold",
+              else: "hover:text-ltrn-subtle"
+            )
+          ]}
+        >
+          <%= render_slot(tab) %>
+          <span
+            :if={Map.get(tab, :is_current) == "true"}
+            class="absolute h-2 bg-ltrn-primary inset-x-0 bottom-0"
+          />
+        </.link>
+      <% end %>
+    </nav>
+    """
+  end
+
+  @doc """
   Renders a student or teacher tab.
 
   ## Examples
@@ -64,6 +109,7 @@ defmodule LantternWeb.NavigationComponents do
 
   """
   attr :class, :any, default: nil
+  attr :item_class, :any, default: nil
 
   slot :item, required: true do
     attr :link, :string
@@ -73,7 +119,7 @@ defmodule LantternWeb.NavigationComponents do
     ~H"""
     <nav class={@class}>
       <ol class="flex items-center gap-2 font-display font-bold text-sm text-ltrn-subtle">
-        <li :for={{item, i} <- Enum.with_index(@item)}>
+        <li :for={{item, i} <- Enum.with_index(@item)} class={@item_class}>
           <span :if={i > 0}>/</span>
           <%= if Map.get(item, :link) do %>
             <.link navigate={item.link} class="underline"><%= render_slot(item) %></.link>
