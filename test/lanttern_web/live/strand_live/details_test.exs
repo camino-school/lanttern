@@ -78,7 +78,7 @@ defmodule LantternWeb.StrandLive.DetailsTest do
 
       assert_patch(view)
 
-      assert view |> has_element?("div", "Notes TBD")
+      assert view |> has_element?("button", "Add a strand note")
 
       # back to about tab
 

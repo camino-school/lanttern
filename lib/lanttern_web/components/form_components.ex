@@ -317,6 +317,7 @@ defmodule LantternWeb.FormComponents do
   attr :label, :string
   attr :errors, :list, default: []
   attr :class, :any, default: nil
+  attr :rows, :string, default: "4"
 
   attr :rest, :global, include: ~w(autocomplete cols disabled maxlength minlength
                 placeholder readonly required rows)
@@ -336,7 +337,7 @@ defmodule LantternWeb.FormComponents do
     ]}>
       <label for={@id} class="sr-only"><%= @label %></label>
       <textarea
-        rows="4"
+        rows={@rows}
         name={@name}
         id={@id}
         class="peer block w-full border-0 bg-transparent p-4 placeholder:text-ltrn-subtle focus:ring-0"
@@ -479,5 +480,25 @@ defmodule LantternWeb.FormComponents do
   """
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
+  end
+
+  @doc """
+  Renders a markdown supported message.
+  """
+  attr :message, :string, default: "Markdown supported"
+  attr :class, :any, default: nil
+
+  def markdown_supported(assigns) do
+    ~H"""
+    <p class={["text-sm text-ltrn-subtle", @class]}>
+      <a
+        href="https://www.markdownguide.org/basic-syntax/"
+        target="_blank"
+        class="hover:text-ltrn-primary"
+      >
+        <%= @message %> <.icon name="hero-information-circle" />
+      </a>
+    </p>
+    """
   end
 end

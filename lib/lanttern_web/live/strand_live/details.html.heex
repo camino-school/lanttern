@@ -37,6 +37,7 @@
     <:tab
       patch={~p"/strands/#{@strand.id}?#{%{tab: "notes"}}"}
       is_current={@current_tab == :notes && "true"}
+      icon_name="hero-eye-slash"
     >
       My notes
     </:tab>
@@ -66,5 +67,6 @@
     module={DetailsTabs.Notes}
     id="strand-details-notes"
     strand={@strand}
+    current_user={@current_user}
   />
 </div>

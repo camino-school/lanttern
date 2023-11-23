@@ -166,6 +166,14 @@ defmodule LantternWeb.Router do
 
     live "/activities/:id", Admin.ActivityLive.Show, :show
     live "/activities/:id/show/edit", Admin.ActivityLive.Show, :edit
+
+    # Personalization context
+    live "/notes", Admin.NoteLive.Index, :index
+    live "/notes/new", Admin.NoteLive.Index, :new
+    live "/notes/:id/edit", Admin.NoteLive.Index, :edit
+
+    live "/notes/:id", Admin.NoteLive.Show, :show
+    live "/notes/:id/show/edit", Admin.NoteLive.Show, :edit
   end
 
   # Other scopes may use custom stacks.
