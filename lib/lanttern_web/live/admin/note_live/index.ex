@@ -1,5 +1,5 @@
 defmodule LantternWeb.Admin.NoteLive.Index do
-  use LantternWeb, :live_view
+  use LantternWeb, {:live_view, layout: :admin}
 
   alias Lanttern.Personalization
   alias Lanttern.Personalization.Note

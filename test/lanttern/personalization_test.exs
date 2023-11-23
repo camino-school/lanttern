@@ -77,4 +77,118 @@ defmodule Lanttern.PersonalizationTest do
       assert %Ecto.Changeset{} = Personalization.change_note(note)
     end
   end
+
+  describe "strand notes" do
+    alias Lanttern.Personalization.Note
+
+    import Lanttern.PersonalizationFixtures
+    import Lanttern.IdentityFixtures
+    import Lanttern.LearningContextFixtures
+
+    test "create_strand_note/2 with valid data creates a note linked to a strand" do
+      author = teacher_profile_fixture()
+      strand = strand_fixture()
+      valid_attrs = %{description: "some strand note"}
+
+      assert {:ok, %Note{} = note} =
+               Personalization.create_strand_note(
+                 %{current_profile: author},
+                 strand.id,
+                 valid_attrs
+               )
+
+      assert note.author_id == author.id
+      assert note.description == "some strand note"
+
+      expected =
+        Personalization.get_user_note(%{current_profile: author}, strand_id: strand.id)
+
+      assert expected.id == note.id
+    end
+
+    test "create_strand_note/2 with invalid data returns error changeset" do
+      strand = strand_fixture()
+      invalid_attrs = %{description: "some strand note"}
+
+      assert {:error, %Ecto.Changeset{}} =
+               Personalization.create_strand_note(
+                 %{current_profile: nil},
+                 strand.id,
+                 invalid_attrs
+               )
+    end
+
+    test "create_strand_note/2 prevents multiple notes in the same strand" do
+      author = teacher_profile_fixture()
+      strand = strand_fixture()
+      attrs = %{author_id: author.id, description: "some strand note"}
+
+      assert {:ok, %Note{}} =
+               Personalization.create_strand_note(%{current_profile: author}, strand.id, attrs)
+
+      assert {:error, %Ecto.Changeset{}} =
+               Personalization.create_strand_note(%{current_profile: author}, strand.id, attrs)
+    end
+  end
+
+  describe "activity notes" do
+    alias Lanttern.Personalization.Note
+
+    import Lanttern.PersonalizationFixtures
+    import Lanttern.IdentityFixtures
+    import Lanttern.LearningContextFixtures
+
+    test "create_activity_note/2 with valid data creates a note linked to a activity" do
+      author = teacher_profile_fixture()
+      activity = activity_fixture()
+      valid_attrs = %{author_id: author.id, description: "some activity note"}
+
+      assert {:ok, %Note{} = note} =
+               Personalization.create_activity_note(
+                 %{current_profile: author},
+                 activity.id,
+                 valid_attrs
+               )
+
+      assert note.author_id == author.id
+      assert note.description == "some activity note"
+
+      expected =
+        Personalization.get_user_note(%{current_profile: author}, activity_id: activity.id)
+
+      assert expected.id == note.id
+    end
+
+    test "create_activity_note/2 with invalid data returns error changeset" do
+      activity = activity_fixture()
+      invalid_attrs = %{description: "some activity note"}
+
+      assert {:error, %Ecto.Changeset{}} =
+               Personalization.create_activity_note(
+                 %{current_profile: nil},
+                 activity.id,
+                 invalid_attrs
+               )
+    end
+
+    test "create_activity_note/2 prevents multiple notes in the same activity" do
+      author = teacher_profile_fixture()
+      activity = activity_fixture()
+      attrs = %{author_id: author.id, description: "some activity note"}
+
+      assert {:ok, %Note{}} =
+               Personalization.create_activity_note(
+                 %{current_profile: author},
+                 activity.id,
+                 attrs
+               )
+
+      assert {:error, %Ecto.Changeset{}} =
+               Personalization.create_activity_note(
+                 %{current_profile: author},
+                 activity.id,
+                 attrs
+               )
+    end
+  end
 end

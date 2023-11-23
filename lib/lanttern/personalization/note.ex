@@ -5,6 +5,11 @@ defmodule Lanttern.Personalization.Note do
   schema "notes" do
     field :description, :string
 
+    # notes can be linked to strands/activities
+    # we use this virtual field to "preload" strand or activity in notes
+    field :strand, :map, virtual: true
+    field :activity, :map, virtual: true
+
     belongs_to :author, Lanttern.Identity.Profile
 
     timestamps()
