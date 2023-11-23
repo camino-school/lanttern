@@ -37,6 +37,22 @@ defmodule Lanttern.PersonalizationFixtures do
     note
   end
 
+  @doc """
+  Generate an activity note.
+  """
+  def activity_note_fixture(user, activity_id, attrs \\ %{}) do
+    attrs =
+      attrs
+      |> Enum.into(%{
+        "description" => "some description"
+      })
+
+    {:ok, note} =
+      Lanttern.Personalization.create_activity_note(user, activity_id, attrs)
+
+    note
+  end
+
   # helpers
 
   defp maybe_gen_author_id(%{author_id: author_id} = _attrs),

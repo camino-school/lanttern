@@ -181,7 +181,7 @@ defmodule Lanttern.Personalization do
   def create_activity_note(%{current_profile: profile} = _user, activity_id, attrs \\ %{}) do
     insert_query =
       %Note{}
-      |> Note.changeset(Map.put(attrs, :author_id, profile && profile.id))
+      |> Note.changeset(Map.put(attrs, "author_id", profile && profile.id))
 
     Ecto.Multi.new()
     |> Ecto.Multi.insert(:insert_note, insert_query)

@@ -141,7 +141,7 @@ defmodule Lanttern.PersonalizationTest do
     test "create_activity_note/2 with valid data creates a note linked to a activity" do
       author = teacher_profile_fixture()
       activity = activity_fixture()
-      valid_attrs = %{author_id: author.id, description: "some activity note"}
+      valid_attrs = %{"author_id" => author.id, "description" => "some activity note"}
 
       assert {:ok, %Note{} = note} =
                Personalization.create_activity_note(
@@ -161,7 +161,7 @@ defmodule Lanttern.PersonalizationTest do
 
     test "create_activity_note/2 with invalid data returns error changeset" do
       activity = activity_fixture()
-      invalid_attrs = %{description: "some activity note"}
+      invalid_attrs = %{"description" => "some activity note"}
 
       assert {:error, %Ecto.Changeset{}} =
                Personalization.create_activity_note(
@@ -174,7 +174,7 @@ defmodule Lanttern.PersonalizationTest do
     test "create_activity_note/2 prevents multiple notes in the same activity" do
       author = teacher_profile_fixture()
       activity = activity_fixture()
-      attrs = %{author_id: author.id, description: "some activity note"}
+      attrs = %{"author_id" => author.id, "description" => "some activity note"}
 
       assert {:ok, %Note{}} =
                Personalization.create_activity_note(
