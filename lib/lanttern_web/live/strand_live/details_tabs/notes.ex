@@ -109,10 +109,10 @@ defmodule LantternWeb.StrandLive.DetailsTabs.Notes do
   end
 
   def handle_event("save", %{"note" => params}, socket) do
-    Personalization.create_strand_note(
-      socket.assigns.current_user,
-      socket.assigns.strand.id,
-      params
+    save_note(
+      socket.assigns.note,
+      params,
+      socket
     )
     |> case do
       {:ok, note} ->
@@ -137,5 +137,22 @@ defmodule LantternWeb.StrandLive.DetailsTabs.Notes do
      |> assign(:is_editing, false)
      |> assign(:note, nil)
      |> assign(:form, Personalization.change_note(%Note{}) |> to_form())}
+  end
+
+  # helpers
+
+  defp save_note(nil, params, socket) do
+    Personalization.create_strand_note(
+      socket.assigns.current_user,
+      socket.assigns.strand.id,
+      params
+    )
+  end
+
+  defp save_note(note, params, _socket) do
+    Personalization.update_note(
+      note,
+      params
+    )
   end
 end
