@@ -21,6 +21,22 @@ defmodule Lanttern.PersonalizationFixtures do
     note
   end
 
+  @doc """
+  Generate a strand note.
+  """
+  def strand_note_fixture(user, strand_id, attrs \\ %{}) do
+    attrs =
+      attrs
+      |> Enum.into(%{
+        "description" => "some description"
+      })
+
+    {:ok, note} =
+      Lanttern.Personalization.create_strand_note(user, strand_id, attrs)
+
+    note
+  end
+
   # helpers
 
   defp maybe_gen_author_id(%{author_id: author_id} = _attrs),

@@ -480,4 +480,24 @@ defmodule LantternWeb.FormComponents do
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
   end
+
+  @doc """
+  Renders a markdown supported message.
+  """
+  attr :message, :string, default: "Markdown supported"
+  attr :class, :any, default: nil
+
+  def markdown_supported(assigns) do
+    ~H"""
+    <p class={["text-sm text-ltrn-subtle", @class]}>
+      <a
+        href="https://www.markdownguide.org/basic-syntax/"
+        target="_blank"
+        class="hover:text-ltrn-primary"
+      >
+        <%= @message %> <.icon name="hero-information-circle" />
+      </a>
+    </p>
+    """
+  end
 end

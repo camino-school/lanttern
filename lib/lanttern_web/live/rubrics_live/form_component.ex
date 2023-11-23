@@ -62,7 +62,7 @@ defmodule LantternWeb.RubricsLive.FormComponent do
   defp descriptors_fields(%{scale: %{type: "ordinal"}} = assigns) do
     ~H"""
     <h5 class="mt-10 font-display font-black text-ltrn-subtle">Descriptors</h5>
-    <.markdown_supported />
+    <.markdown_supported class="mt-2 mb-6" message="Markdown supported in descriptors" />
     <.inputs_for :let={ef} field={@field}>
       <.input type="hidden" field={ef[:scale_id]} />
       <.input type="hidden" field={ef[:scale_type]} />
@@ -82,7 +82,7 @@ defmodule LantternWeb.RubricsLive.FormComponent do
   defp descriptors_fields(%{scale: %{type: "numeric"}} = assigns) do
     ~H"""
     <h5 class="mt-10 font-display font-black text-ltrn-subtle">Descriptors</h5>
-    <.markdown_supported />
+    <.markdown_supported class="mt-2 mb-6" message="Markdown supported in descriptors" />
     <.inputs_for :let={ef} field={@field}>
       <div class="flex gap-6">
         <div class="flex-1">
@@ -108,20 +108,6 @@ defmodule LantternWeb.RubricsLive.FormComponent do
     <label class={[get_button_styles("ghost"), "mt-6"]}>
       <input type="checkbox" name="rubric[add_descriptor]" class="hidden" /> Add descriptor
     </label>
-    """
-  end
-
-  defp markdown_supported(assigns) do
-    ~H"""
-    <p class="mt-2 mb-6 text-sm text-ltrn-subtle">
-      <a
-        href="https://www.markdownguide.org/basic-syntax/"
-        target="_blank"
-        class="hover:text-ltrn-primary"
-      >
-        Markdown supported in descriptors <.icon name="hero-information-circle" />
-      </a>
-    </p>
     """
   end
 

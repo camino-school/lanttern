@@ -88,7 +88,7 @@ defmodule Lanttern.PersonalizationTest do
     test "create_strand_note/2 with valid data creates a note linked to a strand" do
       author = teacher_profile_fixture()
       strand = strand_fixture()
-      valid_attrs = %{description: "some strand note"}
+      valid_attrs = %{"description" => "some strand note"}
 
       assert {:ok, %Note{} = note} =
                Personalization.create_strand_note(
@@ -108,7 +108,7 @@ defmodule Lanttern.PersonalizationTest do
 
     test "create_strand_note/2 with invalid data returns error changeset" do
       strand = strand_fixture()
-      invalid_attrs = %{description: "some strand note"}
+      invalid_attrs = %{"description" => "some strand note"}
 
       assert {:error, %Ecto.Changeset{}} =
                Personalization.create_strand_note(
@@ -121,7 +121,7 @@ defmodule Lanttern.PersonalizationTest do
     test "create_strand_note/2 prevents multiple notes in the same strand" do
       author = teacher_profile_fixture()
       strand = strand_fixture()
-      attrs = %{author_id: author.id, description: "some strand note"}
+      attrs = %{"author_id" => author.id, "description" => "some strand note"}
 
       assert {:ok, %Note{}} =
                Personalization.create_strand_note(%{current_profile: author}, strand.id, attrs)

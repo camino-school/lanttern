@@ -29,15 +29,7 @@ defmodule LantternWeb.AssessmentPointLive.AssessmentPointUpdateFormComponent do
           show_optional
           class="mb-1"
         />
-        <p class="mb-6 text-sm text-ltrn-subtle">
-          <a
-            href="https://www.markdownguide.org/basic-syntax/"
-            target="_blank"
-            class="hover:text-ltrn-primary"
-          >
-            Markdown supported <.icon name="hero-information-circle" />
-          </a>
-        </p>
+        <.markdown_supported class="mb-6" />
 
         <div class="flex gap-2 mb-6">
           <.input type="date" field={@form[:date]} label="Date" phx-debounce="1500" />
