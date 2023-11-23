@@ -17,6 +17,7 @@ defmodule LantternWeb.StrandLive.DetailsTabs.Notes do
             value={@form[:description].value}
             errors={@form[:description].errors}
             label="Add your notes..."
+            rows="10"
           >
             <:actions_left :if={@note}>
               <.button

@@ -317,6 +317,7 @@ defmodule LantternWeb.FormComponents do
   attr :label, :string
   attr :errors, :list, default: []
   attr :class, :any, default: nil
+  attr :rows, :string, default: "4"
 
   attr :rest, :global, include: ~w(autocomplete cols disabled maxlength minlength
                 placeholder readonly required rows)
@@ -336,7 +337,7 @@ defmodule LantternWeb.FormComponents do
     ]}>
       <label for={@id} class="sr-only"><%= @label %></label>
       <textarea
-        rows="4"
+        rows={@rows}
         name={@name}
         id={@id}
         class="peer block w-full border-0 bg-transparent p-4 placeholder:text-ltrn-subtle focus:ring-0"
