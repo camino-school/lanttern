@@ -12,9 +12,13 @@ defmodule Lanttern.LearningContext.Activity do
 
     belongs_to :strand, Lanttern.LearningContext.Strand
 
-    has_many :curriculum_items, Lanttern.LearningContext.ActivityCurriculumItem,
-      on_replace: :delete,
-      preload_order: [asc: :position]
+    has_many :activity_assessment_points, Lanttern.Assessments.ActivityAssessmentPoint
+
+    has_many :assessment_points,
+      through: [:activity_assessment_points, :assessment_point]
+
+    has_many :curriculum_items,
+      through: [:activity_assessment_points, :assessment_point, :curriculum_item]
 
     many_to_many :subjects, Lanttern.Taxonomy.Subject,
       join_through: "activities_subjects",
@@ -28,7 +32,6 @@ defmodule Lanttern.LearningContext.Activity do
     activity
     |> cast(attrs, [:name, :description, :position, :strand_id, :subjects_ids])
     |> validate_required([:name, :description, :position, :strand_id])
-    |> cast_assoc(:curriculum_items, with: &child_position_changeset/3)
     |> put_subjects()
   end
 end

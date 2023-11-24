@@ -19,7 +19,7 @@ defmodule LantternWeb.Admin.ActivityLive.Show do
          preloads: [
            :strand,
            :subjects,
-           curriculum_items: [curriculum_item: :curriculum_component]
+           curriculum_items: :curriculum_component
          ]
        )
      )}

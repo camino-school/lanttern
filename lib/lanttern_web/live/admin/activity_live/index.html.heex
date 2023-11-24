@@ -23,7 +23,7 @@
   </:col>
   <:col :let={{_id, strand}} label="Curriculum items">
     <%= strand.curriculum_items
-    |> Enum.map(& &1.curriculum_item.name)
+    |> Enum.map(& &1.name)
     |> Enum.join(", ") %>
   </:col>
   <:action :let={{_id, activity}}>
