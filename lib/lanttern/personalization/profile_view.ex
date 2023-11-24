@@ -1,11 +1,11 @@
-defmodule Lanttern.Explorer.AssessmentPointsFilterView do
+defmodule Lanttern.Personalization.ProfileView do
   use Ecto.Schema
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]
 
   alias Lanttern.Repo
 
-  schema "assessment_points_filter_views" do
+  schema "profile_views" do
     field :name, :string
     field :classes_ids, {:array, :id}, virtual: true
     field :subjects_ids, {:array, :id}, virtual: true
@@ -13,12 +13,12 @@ defmodule Lanttern.Explorer.AssessmentPointsFilterView do
     belongs_to :profile, Lanttern.Identity.Profile
 
     many_to_many :subjects, Lanttern.Taxonomy.Subject,
-      join_through: "assessment_points_filter_views_subjects",
+      join_through: "profile_views_subjects",
       on_replace: :delete,
       preload_order: [asc: :name]
 
     many_to_many :classes, Lanttern.Schools.Class,
-      join_through: "assessment_points_filter_views_classes",
+      join_through: "profile_views_classes",
       on_replace: :delete,
       preload_order: [asc: :name]
 
@@ -26,8 +26,8 @@ defmodule Lanttern.Explorer.AssessmentPointsFilterView do
   end
 
   @doc false
-  def changeset(assessment_points_filter_view, attrs) do
-    assessment_points_filter_view
+  def changeset(profile_view, attrs) do
+    profile_view
     |> cast(attrs, [:name, :profile_id, :classes_ids, :subjects_ids])
     |> validate_required([:name, :profile_id])
     |> put_classes()

@@ -138,20 +138,6 @@ defmodule LantternWeb.Router do
     # Conversation context
     resources "/comments", CommentController
 
-    # Explorer context
-    live "/assessment_points_filter_views", Admin.AssessmentPointsFilterViewLive.Index, :index
-    live "/assessment_points_filter_views/new", Admin.AssessmentPointsFilterViewLive.Index, :new
-
-    live "/assessment_points_filter_views/:id/edit",
-         Admin.AssessmentPointsFilterViewLive.Index,
-         :edit
-
-    live "/assessment_points_filter_views/:id", Admin.AssessmentPointsFilterViewLive.Show, :show
-
-    live "/assessment_points_filter_views/:id/show/edit",
-         Admin.AssessmentPointsFilterViewLive.Show,
-         :edit
-
     # Rubrics context
     live "/rubrics", Admin.RubricLive.Index, :index
     live "/rubrics/new", Admin.RubricLive.Index, :new
@@ -182,6 +168,19 @@ defmodule LantternWeb.Router do
 
     live "/notes/:id", Admin.NoteLive.Show, :show
     live "/notes/:id/show/edit", Admin.NoteLive.Show, :edit
+
+    live "/profile_views", Admin.ProfileViewLive.Index, :index
+    live "/profile_views/new", Admin.ProfileViewLive.Index, :new
+
+    live "/profile_views/:id/edit",
+         Admin.ProfileViewLive.Index,
+         :edit
+
+    live "/profile_views/:id", Admin.ProfileViewLive.Show, :show
+
+    live "/profile_views/:id/show/edit",
+         Admin.ProfileViewLive.Show,
+         :edit
   end
 
   # Other scopes may use custom stacks.

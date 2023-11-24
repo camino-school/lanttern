@@ -1,7 +1,7 @@
 defmodule LantternWeb.DashboardLiveTest do
   use LantternWeb.ConnCase
 
-  alias Lanttern.ExplorerFixtures
+  alias Lanttern.PersonalizationFixtures
   alias Lanttern.SchoolsFixtures
   alias Lanttern.TaxonomyFixtures
 
@@ -71,7 +71,7 @@ defmodule LantternWeb.DashboardLiveTest do
       view
       |> element(@form_selector)
       |> render_submit(%{
-        "assessment_points_filter_view" => %{
+        "profile_view" => %{
           "name" => "Create filter view XYZ",
           "profile_id" => profile.id,
           "subjects_ids" => [create_subject.id],
@@ -103,7 +103,7 @@ defmodule LantternWeb.DashboardLiveTest do
     class = SchoolsFixtures.class_fixture(%{name: "class for filter view"})
 
     filter_view =
-      ExplorerFixtures.assessment_points_filter_view_fixture(%{
+      PersonalizationFixtures.profile_view_fixture(%{
         name: "Filter view in dashboard",
         subjects_ids: [subject.id],
         classes_ids: [class.id],

@@ -1,0 +1,71 @@
+<.header>
+  Listing Profile views
+  <:actions>
+    <.link patch={~p"/admin/profile_views/new"}>
+      <.button>New Profile view</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="profile_views"
+  rows={@streams.profile_views}
+  row_click={
+    fn {_id, profile_view} ->
+      JS.navigate(~p"/admin/profile_views/#{profile_view}")
+    end
+  }
+>
+  <:col :let={{_id, profile_view}} label="Profile">
+    <%= profile_name(profile_view.profile) %>
+  </:col>
+  <:col :let={{_id, profile_view}} label="Name">
+    <%= profile_view.name %>
+  </:col>
+  <:col :let={{_id, profile_view}} label="Classes">
+    <div class="flex gap-2">
+      <.badge :for={class <- profile_view.classes}><%= class.name %></.badge>
+    </div>
+  </:col>
+  <:col :let={{_id, profile_view}} label="Subjects">
+    <div class="flex gap-2">
+      <.badge :for={subject <- profile_view.subjects}>
+        <%= subject.name %>
+      </.badge>
+    </div>
+  </:col>
+  <:action :let={{_id, profile_view}}>
+    <div class="sr-only">
+      <.link navigate={~p"/admin/profile_views/#{profile_view}"}>
+        Show
+      </.link>
+    </div>
+    <.link patch={~p"/admin/profile_views/#{profile_view}/edit"}>
+      Edit
+    </.link>
+  </:action>
+  <:action :let={{id, profile_view}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: profile_view.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="profile_view-modal"
+  show
+  on_cancel={JS.patch(~p"/admin/profile_views")}
+>
+  <.live_component
+    module={LantternWeb.Admin.ProfileViewLive.FormComponent}
+    id={@profile_view.id || :new}
+    title={@page_title}
+    action={@live_action}
+    profile_view={@profile_view}
+    patch={~p"/admin/profile_views"}
+  />
+</.modal>

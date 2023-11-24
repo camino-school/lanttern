@@ -1,0 +1,46 @@
+<.header>
+  Profile view <%= @profile_view.id %>
+  <:subtitle>This is a profile_view record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/admin/profile_views/#{@profile_view}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit profile_view</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Profile"><%= profile_name(@profile_view.profile) %></:item>
+  <:item title="Name"><%= @profile_view.name %></:item>
+  <:item title="Classes">
+    <div class="flex gap-2">
+      <.badge :for={class <- @profile_view.classes}><%= class.name %></.badge>
+    </div>
+  </:item>
+  <:item title="Subjects">
+    <div class="flex gap-2">
+      <.badge :for={subject <- @profile_view.subjects}>
+        <%= subject.name %>
+      </.badge>
+    </div>
+  </:item>
+</.list>
+
+<.back navigate={~p"/admin/profile_views"}>
+  Back to profile_views
+</.back>
+
+<.modal
+  :if={@live_action == :edit}
+  id="profile_view-modal"
+  show
+  on_cancel={JS.patch(~p"/admin/profile_views/#{@profile_view}")}
+>
+  <.live_component
+    module={LantternWeb.Admin.ProfileViewLive.FormComponent}
+    id={@profile_view.id}
+    title={@page_title}
+    action={@live_action}
+    profile_view={@profile_view}
+    patch={~p"/admin/profile_views/#{@profile_view}"}
+  />
+</.modal>
