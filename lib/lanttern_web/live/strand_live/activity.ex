@@ -4,6 +4,8 @@ defmodule LantternWeb.StrandLive.Activity do
   alias Lanttern.LearningContext
   alias LantternWeb.StrandLive.ActivityTabs
 
+  alias LantternWeb.AssessmentPointLive.ActivityAssessmentPointFormComponent
+
   @tabs %{
     "details" => :details,
     "assessment" => :assessment,
@@ -19,17 +21,20 @@ defmodule LantternWeb.StrandLive.Activity do
   def handle_params(params, _url, socket) do
     {:noreply,
      socket
-     |> set_current_tab(params)
+     |> set_current_tab(params, socket.assigns.live_action)
      |> apply_action(socket.assigns.live_action, params)}
   end
 
-  defp set_current_tab(socket, %{"tab" => tab}),
+  defp set_current_tab(socket, _params, :new_assessment_point),
+    do: assign(socket, :current_tab, @tabs["assessment"])
+
+  defp set_current_tab(socket, %{"tab" => tab}, _live_action),
     do: assign(socket, :current_tab, Map.get(@tabs, tab, :details))
 
-  defp set_current_tab(socket, _params),
+  defp set_current_tab(socket, _params, _live_action),
     do: assign(socket, :current_tab, :details)
 
-  defp apply_action(%{assigns: %{activity: nil}} = socket, :show, %{"id" => id}) do
+  defp apply_action(%{assigns: %{activity: nil}} = socket, _live_action, %{"id" => id}) do
     # pattern match assigned activity to prevent unnecessary get_activity calls
     # (during handle_params triggered by tab change for example)
 
@@ -46,4 +51,12 @@ defmodule LantternWeb.StrandLive.Activity do
   end
 
   defp apply_action(socket, _live_action, _params), do: socket
+
+  # info handlers
+
+  def handle_info({ActivityAssessmentPointFormComponent, {:created, _assessment_point}}, socket) do
+    {:noreply,
+     socket
+     |> push_patch(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
+  end
 end

@@ -211,6 +211,82 @@ defmodule Lanttern.AssessmentsTest do
     end
   end
 
+  describe "activity assessment points" do
+    alias Lanttern.Assessments.AssessmentPoint
+
+    import Lanttern.AssessmentsFixtures
+    alias Lanttern.LearningContextFixtures
+    alias Lanttern.CurriculaFixtures
+    alias Lanttern.GradingFixtures
+
+    test "create_activity_assessment_point/2 with valid data creates an assessment point linked to a activity" do
+      activity = LearningContextFixtures.activity_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      scale = GradingFixtures.scale_fixture()
+
+      valid_attrs = %{
+        name: "some assessment point name abc",
+        curriculum_item_id: curriculum_item.id,
+        scale_id: scale.id
+      }
+
+      assert {:ok, %AssessmentPoint{} = assessment_point} =
+               Assessments.create_activity_assessment_point(activity.id, valid_attrs)
+
+      assert assessment_point.name == "some assessment point name abc"
+      assert assessment_point.curriculum_item_id == curriculum_item.id
+      assert assessment_point.scale_id == scale.id
+
+      [expected] =
+        Assessments.list_activity_assessment_points(activity.id)
+
+      assert expected.id == assessment_point.id
+    end
+
+    test "create_activity_assessment_point/2 with invalid data returns error changeset" do
+      activity = LearningContextFixtures.activity_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      scale = GradingFixtures.scale_fixture()
+
+      # no name (required)
+      invalid_attrs = %{
+        curriculum_item_id: curriculum_item.id,
+        scale_id: scale.id
+      }
+
+      assert {:error, %Ecto.Changeset{}} =
+               Assessments.create_activity_assessment_point(activity.id, invalid_attrs)
+    end
+
+    test "list_activity_assessment_points/2 returns all assessment points in a given activity" do
+      activity = LearningContextFixtures.activity_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      scale = GradingFixtures.scale_fixture()
+
+      valid_attrs = %{
+        name: "some assessment point name abc",
+        curriculum_item_id: curriculum_item.id,
+        scale_id: scale.id
+      }
+
+      assessment_point_1 = activity_assessment_point_fixture(activity.id, valid_attrs)
+      assessment_point_2 = activity_assessment_point_fixture(activity.id, valid_attrs)
+      assessment_point_3 = activity_assessment_point_fixture(activity.id, valid_attrs)
+
+      # extra assessment points for "filter" assertion
+      other_activity = LearningContextFixtures.activity_fixture()
+      activity_assessment_point_fixture(other_activity.id, valid_attrs)
+      assessment_point_fixture()
+
+      assert [expected_1, expected_2, expected_3] =
+               Assessments.list_activity_assessment_points(activity.id)
+
+      assert expected_1.id == assessment_point_1.id
+      assert expected_2.id == assessment_point_2.id
+      assert expected_3.id == assessment_point_3.id
+    end
+  end
+
   describe "assessment_point_entries" do
     alias Lanttern.Assessments.AssessmentPointEntry
 

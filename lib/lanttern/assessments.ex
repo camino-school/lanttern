@@ -8,9 +8,11 @@ defmodule Lanttern.Assessments do
   alias Lanttern.Repo
 
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Assessments.ActivityAssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.Feedback
   alias Lanttern.Conversation.Comment
+  alias Lanttern.LearningContext.Activity
 
   @doc """
   Returns the list of assessment points.
@@ -44,6 +46,28 @@ defmodule Lanttern.Assessments do
           where: a.id in ^assessment_points_ids
         )
     end
+  end
+
+  @doc """
+  Returns the list of activity assessment points, ordered by its position.
+
+  ## Examples
+
+      iex> list_activity_assessment_points(1)
+      [%AssessmentPoint{}, ...]
+
+  """
+  def list_activity_assessment_points(activity_id) do
+    from(
+      ap in AssessmentPoint,
+      join: aap in ActivityAssessmentPoint,
+      on: aap.assessment_point_id == ap.id,
+      join: a in Activity,
+      on: a.id == aap.activity_id,
+      where: a.id == ^activity_id,
+      order_by: aap.position
+    )
+    |> Repo.all()
   end
 
   @doc """
@@ -86,6 +110,51 @@ defmodule Lanttern.Assessments do
     %AssessmentPoint{}
     |> AssessmentPoint.creation_changeset(attrs)
     |> Repo.insert()
+  end
+
+  @doc """
+  Creates an activity assessment point.
+
+  ## Examples
+
+      iex> create_activity_assessment_point(activity_id, %{field: value})
+      {:ok, %AssessmentPoint{}}
+
+      iex> create_activity_assessment_point(activity_id, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_activity_assessment_point(activity_id, attrs \\ %{}) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(
+      :insert_assessment_point,
+      %AssessmentPoint{}
+      |> AssessmentPoint.changeset(attrs)
+    )
+    |> Ecto.Multi.run(
+      :link_activity,
+      fn _repo, %{insert_assessment_point: assessment_point} ->
+        position =
+          from(aap in ActivityAssessmentPoint,
+            where: aap.activity_id == ^activity_id,
+            select: count()
+          )
+          |> Repo.one()
+
+        %ActivityAssessmentPoint{}
+        |> ActivityAssessmentPoint.changeset(%{
+          assessment_point_id: assessment_point.id,
+          activity_id: activity_id,
+          position: position
+        })
+        |> Repo.insert()
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:error, _multi, changeset, _changes} -> {:error, changeset}
+      {:ok, %{insert_assessment_point: assessment_point}} -> {:ok, assessment_point}
+    end
   end
 
   @doc """
