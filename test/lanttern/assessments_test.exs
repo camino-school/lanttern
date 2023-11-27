@@ -218,6 +218,7 @@ defmodule Lanttern.AssessmentsTest do
     alias Lanttern.LearningContextFixtures
     alias Lanttern.CurriculaFixtures
     alias Lanttern.GradingFixtures
+    alias Lanttern.SchoolsFixtures
 
     test "create_activity_assessment_point/2 with valid data creates an assessment point linked to a activity" do
       activity = LearningContextFixtures.activity_fixture()
@@ -284,6 +285,75 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_1.id == assessment_point_1.id
       assert expected_2.id == assessment_point_2.id
       assert expected_3.id == assessment_point_3.id
+    end
+
+    test "build_activity_assessment_grid/1 returns the activity assessment grid" do
+      activity = LearningContextFixtures.activity_fixture()
+      curriculum_item_1 = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item_2 = CurriculaFixtures.curriculum_item_fixture()
+      scale = GradingFixtures.scale_fixture()
+
+      assessment_point_1 =
+        activity_assessment_point_fixture(
+          activity.id,
+          %{
+            name: "some assessment point name abc",
+            curriculum_item_id: curriculum_item_1.id,
+            scale_id: scale.id
+          }
+        )
+
+      assessment_point_2 =
+        activity_assessment_point_fixture(
+          activity.id,
+          %{
+            name: "some assessment point name xyz",
+            curriculum_item_id: curriculum_item_2.id,
+            scale_id: scale.id
+          }
+        )
+
+      student_a = SchoolsFixtures.student_fixture(%{name: "AAA"})
+      student_b = SchoolsFixtures.student_fixture(%{name: "BBB"})
+      student_c = SchoolsFixtures.student_fixture(%{name: "CCC"})
+
+      entry_1_a =
+        assessment_point_entry_fixture(%{
+          student_id: student_a.id,
+          assessment_point_id: assessment_point_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      entry_1_b =
+        assessment_point_entry_fixture(%{
+          student_id: student_b.id,
+          assessment_point_id: assessment_point_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      entry_2_c =
+        assessment_point_entry_fixture(%{
+          student_id: student_c.id,
+          assessment_point_id: assessment_point_2.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      assert %Lanttern.Assessments.ActivityAssessmentGrid{
+               assessment_points: [expected_ap_1, expected_ap_2],
+               students_assessments: [
+                 {^student_a, [^entry_1_a, nil]},
+                 {^student_b, [^entry_1_b, nil]},
+                 {^student_c, [nil, ^entry_2_c]}
+               ]
+             } = Assessments.build_activity_assessment_grid(activity.id)
+
+      assert expected_ap_1.id == assessment_point_1.id
+      assert expected_ap_1.curriculum_item.id == curriculum_item_1.id
+      assert expected_ap_2.id == assessment_point_2.id
+      assert expected_ap_2.curriculum_item.id == curriculum_item_2.id
     end
   end
 

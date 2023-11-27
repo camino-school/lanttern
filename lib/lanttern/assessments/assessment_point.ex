@@ -24,6 +24,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     belongs_to :scale, Lanttern.Grading.Scale
     belongs_to :rubric, Lanttern.Rubrics.Rubric
 
+    has_many :activity_assessment_points, Lanttern.Assessments.ActivityAssessmentPoint
     has_many :entries, Lanttern.Assessments.AssessmentPointEntry
     has_many :feedbacks, Lanttern.Assessments.Feedback
 

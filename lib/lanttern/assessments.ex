@@ -11,8 +11,10 @@ defmodule Lanttern.Assessments do
   alias Lanttern.Assessments.ActivityAssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.Feedback
+  alias Lanttern.Assessments.ActivityAssessmentGrid
   alias Lanttern.Conversation.Comment
   alias Lanttern.LearningContext.Activity
+  alias Lanttern.Schools.Student
 
   @doc """
   Returns the list of assessment points.
@@ -579,5 +581,59 @@ defmodule Lanttern.Assessments do
   """
   def change_feedback(%Feedback{} = feedback, attrs \\ %{}) do
     Feedback.changeset(feedback, attrs)
+  end
+
+  @doc """
+  Returns the `%ActivityAssessmentGrid{}` of the given activity
+
+  """
+
+  @spec build_activity_assessment_grid(integer()) :: ActivityAssessmentGrid.t()
+
+  def build_activity_assessment_grid(activity_id) do
+    results =
+      from(
+        ap in AssessmentPoint,
+        join: ci in assoc(ap, :curriculum_item),
+        join: aap in assoc(ap, :activity_assessment_points),
+        join: a in assoc(aap, :activity),
+        join: s in Student,
+        on: true,
+        left_join: e in AssessmentPointEntry,
+        on: e.student_id == s.id and e.assessment_point_id == ap.id,
+        where: a.id == ^activity_id,
+        order_by: [s.name, aap.position],
+        preload: [curriculum_item: ci],
+        select: {s, ap, e}
+      )
+      |> Repo.all()
+
+    assessment_points =
+      results
+      |> Enum.map(fn {_, ap, _} -> ap end)
+      |> Enum.uniq()
+
+    grouped_entries =
+      results
+      |> Enum.map(fn {s, _, e} -> {s, e} end)
+      |> Enum.group_by(fn {s, _e} -> s.id end)
+      |> Enum.map(fn {s_id, list} ->
+        {
+          s_id,
+          list |> Enum.map(fn {_s, e} -> e end)
+        }
+      end)
+      |> Enum.into(%{})
+
+    students_assessments =
+      results
+      |> Enum.map(fn {s, _, _} -> s end)
+      |> Enum.uniq()
+      |> Enum.map(&{&1, grouped_entries[&1.id]})
+
+    %ActivityAssessmentGrid{
+      assessment_points: assessment_points,
+      students_assessments: students_assessments
+    }
   end
 end
