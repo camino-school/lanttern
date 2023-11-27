@@ -213,6 +213,25 @@ defmodule Lanttern.Curricula do
   end
 
   @doc """
+  Returns the list of curriculum items linked to the given strand.
+
+  ## Examples
+
+      iex> list_strand_curriculum_items(1)
+      [%CurriculumItem{}, ...]
+
+  """
+  def list_strand_curriculum_items(strand_id) do
+    from(
+      ci in CurriculumItem,
+      join: sci in assoc(ci, :strand_links),
+      where: sci.strand_id == ^strand_id,
+      order_by: sci.position
+    )
+    |> Repo.all()
+  end
+
+  @doc """
   Returns the list of curriculum items.
 
   ### Options:

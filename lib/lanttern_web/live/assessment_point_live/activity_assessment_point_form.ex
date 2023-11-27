@@ -1,11 +1,10 @@
 defmodule LantternWeb.AssessmentPointLive.ActivityAssessmentPointFormComponent do
+  alias Lanttern.Curricula
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
   alias LantternWeb.GradingHelpers
-
-  alias LantternWeb.CurriculumLive.CurriculumItemSearchComponent
 
   def render(assigns) do
     ~H"""
@@ -21,30 +20,13 @@ defmodule LantternWeb.AssessmentPointLive.ActivityAssessmentPointFormComponent d
           Oops, something went wrong! Please check the errors below.
         </.error_block>
         <.input field={@form[:name]} label="Assessment point name" phx-debounce="1500" class="mb-6" />
-        <.input field={@form[:curriculum_item_id]} type="hidden" label="Curriculum item" />
-        <div class="mt-1 mb-6">
-          <.live_component
-            module={CurriculumItemSearchComponent}
-            id="create-assessment-point-form-curriculum-item-search"
-            notify_component={@myself}
-          />
-          <.badge
-            :if={@selected_curriculum_item}
-            class="mt-2"
-            theme="cyan"
-            show_remove
-            phx-click="remove_curriculum_item"
-            phx-target={@myself}
-          >
-            <div>
-              #<%= @selected_curriculum_item.id %>
-              <span :if={@selected_curriculum_item.code}>
-                (<%= @selected_curriculum_item.code %>)
-              </span>
-              <%= @selected_curriculum_item.name %>
-            </div>
-          </.badge>
-        </div>
+        <.input
+          field={@form[:curriculum_item_id]}
+          type="radio"
+          options={@curriculum_item_options}
+          prompt="Select curriculum item"
+          class="mb-6"
+        />
         <.input
           field={@form[:scale_id]}
           type="select"
@@ -73,6 +55,17 @@ defmodule LantternWeb.AssessmentPointLive.ActivityAssessmentPointFormComponent d
       })
 
     {:ok, socket}
+  end
+
+  def update(%{strand_id: strand_id} = assigns, socket) do
+    curriculum_item_options =
+      Curricula.list_strand_curriculum_items(strand_id)
+      |> Enum.map(&{&1.name, &1.id})
+
+    {:ok,
+     socket
+     |> assign(assigns)
+     |> assign(:curriculum_item_options, curriculum_item_options)}
   end
 
   def update(%{action: {CurriculumItemSearchComponent, {:selected, curriculum_item}}}, socket) do

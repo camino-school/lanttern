@@ -551,4 +551,31 @@ defmodule Lanttern.CurriculaTest do
       assert %Ecto.Changeset{} = Curricula.change_curriculum_relationship(curriculum_relationship)
     end
   end
+
+  describe "strand curriculum items" do
+    import Lanttern.CurriculaFixtures
+    import Lanttern.LearningContextFixtures
+
+    test "list_strand_curriculum_items/1 returns all items linked to the given strand" do
+      # create items "inverted" to test order by position
+      curriculum_item_2 = curriculum_item_fixture()
+      curriculum_item_1 = curriculum_item_fixture()
+
+      strand =
+        strand_fixture(%{
+          curriculum_items: [
+            %{curriculum_item_id: curriculum_item_1.id},
+            %{curriculum_item_id: curriculum_item_2.id}
+          ]
+        })
+
+      # extra curriculum items for testing
+      curriculum_item_fixture()
+      other_curriculum_item = curriculum_item_fixture()
+      strand_fixture(%{curriculum_items: [%{curriculum_item_id: other_curriculum_item.id}]})
+
+      assert [curriculum_item_1, curriculum_item_2] ==
+               Curricula.list_strand_curriculum_items(strand.id)
+    end
+  end
 end

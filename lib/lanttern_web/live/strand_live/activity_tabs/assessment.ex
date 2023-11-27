@@ -28,6 +28,7 @@ defmodule LantternWeb.StrandLive.ActivityTabs.Assessment do
           module={ActivityAssessmentPointFormComponent}
           id={:new}
           activity_id={@activity.id}
+          strand_id={@activity.strand_id}
           notify_component={@myself}
         />
         <:actions>

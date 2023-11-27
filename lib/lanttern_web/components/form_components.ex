@@ -178,6 +178,25 @@ defmodule LantternWeb.FormComponents do
     """
   end
 
+  def input(%{type: "radio"} = assigns) do
+    ~H"""
+    <fieldset phx-feedback-for={@name} class={@class}>
+      <legend class="text-sm font-bold"><%= @prompt %></legend>
+      <div :for={{label, value} <- @options} class="flex items-center gap-2 mt-4 text-sm">
+        <input
+          id={"#{@name}-option-#{value}"}
+          name={@name}
+          type="radio"
+          value={value}
+          checked={@value == value}
+        />
+        <label for={"#{@name}-option-#{value}"}><%= label %></label>
+      </div>
+      <.error :for={msg <- @errors}><%= msg %></.error>
+    </fieldset>
+    """
+  end
+
   def input(%{type: "textarea"} = assigns) do
     ~H"""
     <div phx-feedback-for={@name} class={@class}>

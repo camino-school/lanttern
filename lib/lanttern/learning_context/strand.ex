@@ -10,7 +10,7 @@ defmodule Lanttern.LearningContext.Strand do
     field :subjects_ids, {:array, :id}, virtual: true
     field :years_ids, {:array, :id}, virtual: true
 
-    has_many :curriculum_items, Lanttern.LearningContext.StrandCurriculumItem,
+    has_many :curriculum_items, Lanttern.Curricula.StrandCurriculumItem,
       on_replace: :delete,
       preload_order: [asc: :position]
 
