@@ -291,7 +291,8 @@ defmodule Lanttern.AssessmentsTest do
       activity = LearningContextFixtures.activity_fixture()
       curriculum_item_1 = CurriculaFixtures.curriculum_item_fixture()
       curriculum_item_2 = CurriculaFixtures.curriculum_item_fixture()
-      scale = GradingFixtures.scale_fixture()
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ordinal_value = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
 
       assessment_point_1 =
         activity_assessment_point_fixture(
@@ -343,7 +344,7 @@ defmodule Lanttern.AssessmentsTest do
 
       assert %Lanttern.Assessments.ActivityAssessmentGrid{
                assessment_points: [expected_ap_1, expected_ap_2],
-               students_assessments: [
+               students_entries: [
                  {^student_a, [^entry_1_a, nil]},
                  {^student_b, [^entry_1_b, nil]},
                  {^student_c, [nil, ^entry_2_c]}
@@ -352,8 +353,13 @@ defmodule Lanttern.AssessmentsTest do
 
       assert expected_ap_1.id == assessment_point_1.id
       assert expected_ap_1.curriculum_item.id == curriculum_item_1.id
+      assert expected_ap_1.scale.id == scale.id
+      assert expected_ap_1.scale.ordinal_values == [ordinal_value]
+
       assert expected_ap_2.id == assessment_point_2.id
       assert expected_ap_2.curriculum_item.id == curriculum_item_2.id
+      assert expected_ap_2.scale.id == scale.id
+      assert expected_ap_2.scale.ordinal_values == [ordinal_value]
     end
   end
 
@@ -491,7 +497,7 @@ defmodule Lanttern.AssessmentsTest do
       assert assessment_point_entry.score == 0.5
     end
 
-    test "create_assessment_point_entry/1 of type ordinal with valid data creates a assessment_point_entry" do
+    test "create_assessment_point_entry/1 of type ordinal with valid data and preloads creates a assessment_point_entry and return it with preloaded data" do
       scale = Lanttern.GradingFixtures.scale_fixture(%{type: "ordinal"})
       ordinal_value = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
       assessment_point = assessment_point_fixture(%{scale_id: scale.id})
@@ -507,10 +513,10 @@ defmodule Lanttern.AssessmentsTest do
       }
 
       assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
-               Assessments.create_assessment_point_entry(valid_attrs)
+               Assessments.create_assessment_point_entry(valid_attrs, preloads: :ordinal_value)
 
       assert assessment_point_entry.assessment_point_id == assessment_point.id
-      assert assessment_point_entry.ordinal_value_id == ordinal_value.id
+      assert assessment_point_entry.ordinal_value.id == ordinal_value.id
     end
 
     test "create_assessment_point_entry/1 with invalid data returns error changeset" do

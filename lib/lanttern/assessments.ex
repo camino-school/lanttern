@@ -293,7 +293,11 @@ defmodule Lanttern.Assessments do
   def get_assessment_point_entry!(id), do: Repo.get!(AssessmentPointEntry, id)
 
   @doc """
-  Creates a assessment_point_entry.
+  Creates an assessment_point_entry.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
 
   ## Examples
 
@@ -304,10 +308,11 @@ defmodule Lanttern.Assessments do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_assessment_point_entry(attrs \\ %{}) do
+  def create_assessment_point_entry(attrs \\ %{}, opts \\ []) do
     %AssessmentPointEntry{}
     |> AssessmentPointEntry.changeset(attrs)
     |> Repo.insert()
+    |> maybe_preload(opts)
   end
 
   @doc """
@@ -594,17 +599,19 @@ defmodule Lanttern.Assessments do
     results =
       from(
         ap in AssessmentPoint,
+        join: sc in assoc(ap, :scale),
+        left_join: ov in assoc(sc, :ordinal_values),
         join: ci in assoc(ap, :curriculum_item),
         join: aap in assoc(ap, :activity_assessment_points),
         join: a in assoc(aap, :activity),
-        join: s in Student,
+        join: std in Student,
         on: true,
         left_join: e in AssessmentPointEntry,
-        on: e.student_id == s.id and e.assessment_point_id == ap.id,
+        on: e.student_id == std.id and e.assessment_point_id == ap.id,
         where: a.id == ^activity_id,
-        order_by: [s.name, aap.position],
-        preload: [curriculum_item: ci],
-        select: {s, ap, e}
+        order_by: [std.name, aap.position],
+        preload: [curriculum_item: ci, scale: {sc, ordinal_values: ov}],
+        select: {std, ap, e}
       )
       |> Repo.all()
 
@@ -625,7 +632,7 @@ defmodule Lanttern.Assessments do
       end)
       |> Enum.into(%{})
 
-    students_assessments =
+    students_entries =
       results
       |> Enum.map(fn {s, _, _} -> s end)
       |> Enum.uniq()
@@ -633,7 +640,7 @@ defmodule Lanttern.Assessments do
 
     %ActivityAssessmentGrid{
       assessment_points: assessment_points,
-      students_assessments: students_assessments
+      students_entries: students_entries
     }
   end
 end
