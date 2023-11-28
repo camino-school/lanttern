@@ -1,4 +1,4 @@
-defmodule LantternWeb.StrandLive.DetailsTabs.Activities do
+defmodule LantternWeb.StrandLive.DetailsTabs.ActivitiesComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.LearningContext

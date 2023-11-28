@@ -200,6 +200,18 @@ defmodule Lanttern.AssessmentsTest do
       end
     end
 
+    test "delete_assessment_point_and_entries/1 deletes the assessment point and all related entries" do
+      assessment_point = assessment_point_fixture()
+      _entry = assessment_point_entry_fixture(%{assessment_point_id: assessment_point.id})
+
+      assert {:ok, %{delete_assessment_point: %AssessmentPoint{}}} =
+               Assessments.delete_assessment_point_and_entries(assessment_point)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Assessments.get_assessment_point!(assessment_point.id)
+      end
+    end
+
     test "change_assessment_point/1 returns an assessment point changeset with datetime related virtual fields" do
       local_datetime = Timex.local(~N[2020-10-01 12:34:56])
       assessment_point = assessment_point_fixture(%{datetime: local_datetime})
@@ -287,12 +299,11 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_3.id == assessment_point_3.id
     end
 
-    test "build_activity_assessment_grid/1 returns the activity assessment grid" do
+    test "list_activity_students_entries/1 returns students and their assessment point entries for the given activty" do
       activity = LearningContextFixtures.activity_fixture()
       curriculum_item_1 = CurriculaFixtures.curriculum_item_fixture()
       curriculum_item_2 = CurriculaFixtures.curriculum_item_fixture()
       scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ordinal_value = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
 
       assessment_point_1 =
         activity_assessment_point_fixture(
@@ -342,24 +353,11 @@ defmodule Lanttern.AssessmentsTest do
           scale_type: scale.type
         })
 
-      assert %Lanttern.Assessments.ActivityAssessmentGrid{
-               assessment_points: [expected_ap_1, expected_ap_2],
-               students_entries: [
-                 {^student_a, [^entry_1_a, nil]},
-                 {^student_b, [^entry_1_b, nil]},
-                 {^student_c, [nil, ^entry_2_c]}
-               ]
-             } = Assessments.build_activity_assessment_grid(activity.id)
-
-      assert expected_ap_1.id == assessment_point_1.id
-      assert expected_ap_1.curriculum_item.id == curriculum_item_1.id
-      assert expected_ap_1.scale.id == scale.id
-      assert expected_ap_1.scale.ordinal_values == [ordinal_value]
-
-      assert expected_ap_2.id == assessment_point_2.id
-      assert expected_ap_2.curriculum_item.id == curriculum_item_2.id
-      assert expected_ap_2.scale.id == scale.id
-      assert expected_ap_2.scale.ordinal_values == [ordinal_value]
+      assert [
+               {student_a, [entry_1_a, nil]},
+               {student_b, [entry_1_b, nil]},
+               {student_c, [nil, entry_2_c]}
+             ] == Assessments.list_activity_students_entries(activity.id)
     end
   end
 

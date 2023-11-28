@@ -1,4 +1,4 @@
-defmodule LantternWeb.StrandLive.DetailsTabs.About do
+defmodule LantternWeb.StrandLive.DetailsTabs.AboutComponent do
   use LantternWeb, :live_component
 
   @impl true

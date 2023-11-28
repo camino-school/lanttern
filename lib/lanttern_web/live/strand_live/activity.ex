@@ -21,12 +21,23 @@ defmodule LantternWeb.StrandLive.Activity do
   def handle_params(params, _url, socket) do
     {:noreply,
      socket
+     |> assign(:assessment_point_id, nil)
      |> set_current_tab(params, socket.assigns.live_action)
      |> apply_action(socket.assigns.live_action, params)}
   end
 
   defp set_current_tab(socket, _params, :new_assessment_point),
     do: assign(socket, :current_tab, @tabs["assessment"])
+
+  defp set_current_tab(
+         socket,
+         %{"assessment_point_id" => assessment_point_id},
+         :edit_assessment_point
+       ) do
+    socket
+    |> assign(:current_tab, @tabs["assessment"])
+    |> assign(:assessment_point_id, assessment_point_id)
+  end
 
   defp set_current_tab(socket, %{"tab" => tab}, _live_action),
     do: assign(socket, :current_tab, Map.get(@tabs, tab, :details))
@@ -54,7 +65,22 @@ defmodule LantternWeb.StrandLive.Activity do
 
   # info handlers
 
+  def handle_info(
+        {ActivityTabs.AssessmentComponent, {:assessment_point_deleted, _assessment_point}},
+        socket
+      ) do
+    {:noreply,
+     socket
+     |> push_patch(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
+  end
+
   def handle_info({ActivityAssessmentPointFormComponent, {:created, _assessment_point}}, socket) do
+    {:noreply,
+     socket
+     |> push_patch(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
+  end
+
+  def handle_info({ActivityAssessmentPointFormComponent, {:updated, _assessment_point}}, socket) do
     {:noreply,
      socket
      |> push_patch(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}

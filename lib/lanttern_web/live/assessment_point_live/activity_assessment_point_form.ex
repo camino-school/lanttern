@@ -19,6 +19,7 @@ defmodule LantternWeb.AssessmentPointLive.ActivityAssessmentPointFormComponent d
         <.error_block :if={@form.source.action == :insert} class="mb-6">
           Oops, something went wrong! Please check the errors below.
         </.error_block>
+        <.input field={@form[:id]} type="hidden" />
         <.input field={@form[:name]} label="Assessment point name" phx-debounce="1500" class="mb-6" />
         <.input
           field={@form[:curriculum_item_id]}
@@ -43,13 +44,11 @@ defmodule LantternWeb.AssessmentPointLive.ActivityAssessmentPointFormComponent d
   # lifecycle
 
   def mount(socket) do
-    changeset = Assessments.new_assessment_point_changeset()
     scale_options = GradingHelpers.generate_scale_options()
 
     socket =
       socket
       |> assign(%{
-        form: to_form(changeset),
         scale_options: scale_options,
         selected_curriculum_item: nil
       })
@@ -57,14 +56,17 @@ defmodule LantternWeb.AssessmentPointLive.ActivityAssessmentPointFormComponent d
     {:ok, socket}
   end
 
-  def update(%{strand_id: strand_id} = assigns, socket) do
+  def update(%{assessment_point: assessment_point, strand_id: strand_id} = assigns, socket) do
     curriculum_item_options =
       Curricula.list_strand_curriculum_items(strand_id)
       |> Enum.map(&{&1.name, &1.id})
 
+    # changeset = Assessments.new_assessment_point_changeset()
+
     {:ok,
      socket
      |> assign(assigns)
+     |> assign(:form, to_form(Assessments.change_assessment_point(assessment_point)))
      |> assign(:curriculum_item_options, curriculum_item_options)}
   end
 
@@ -119,9 +121,29 @@ defmodule LantternWeb.AssessmentPointLive.ActivityAssessmentPointFormComponent d
   end
 
   def handle_event("save", %{"assessment_point" => params}, socket) do
+    case params["id"] do
+      "" -> save(:new, params, socket)
+      _id -> save(:edit, params, socket)
+    end
+  end
+
+  defp save(:new, params, socket) do
     case Assessments.create_activity_assessment_point(socket.assigns.activity_id, params) do
       {:ok, assessment_point} ->
         msg = {:created, assessment_point}
+        notify_parent(msg)
+        maybe_notify_component(msg, socket.assigns)
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, form: to_form(changeset))}
+    end
+  end
+
+  defp save(:edit, params, socket) do
+    case Assessments.update_assessment_point(socket.assigns.assessment_point, params) do
+      {:ok, assessment_point} ->
+        msg = {:updated, assessment_point}
         notify_parent(msg)
         maybe_notify_component(msg, socket.assigns)
         {:noreply, socket}

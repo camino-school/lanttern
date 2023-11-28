@@ -169,10 +169,12 @@ defmodule LantternWeb.AssessmentPointLive.EntryEditorComponent do
       params["ordinal_value_id"],
       params["score"]
     } do
-      {nil, _, _, _} -> save(:new, entry, params, socket)
-      {entry, "ordinal", "", _} -> save(:delete, entry, params, socket)
-      {entry, "numeric", _, ""} -> save(:delete, entry, params, socket)
-      {_entry, _, _, _} -> save(:edit, entry, params, socket)
+      {nil, "ordinal", ov_id, _} when ov_id != "" -> save(:new, entry, params, socket)
+      {nil, "numeric", _, score} when score != "" -> save(:new, entry, params, socket)
+      {entry, "ordinal", "", _} when not is_nil(entry) -> save(:delete, entry, params, socket)
+      {entry, "numeric", _, ""} when not is_nil(entry) -> save(:delete, entry, params, socket)
+      {entry, _, _, _} when not is_nil(entry) -> save(:edit, entry, params, socket)
+      _ -> {:noreply, socket}
     end
   end
 
@@ -182,7 +184,6 @@ defmodule LantternWeb.AssessmentPointLive.EntryEditorComponent do
         {:noreply, handle_create_update_success(assessment_point_entry, socket)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        notify_parent({:error, changeset})
         {:noreply, assign(socket, :form, to_form(changeset))}
     end
   end
@@ -196,7 +197,6 @@ defmodule LantternWeb.AssessmentPointLive.EntryEditorComponent do
         {:noreply, handle_create_update_success(assessment_point_entry, socket)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        notify_parent({:error, changeset})
         {:noreply, assign(socket, :form, to_form(changeset))}
     end
   end
@@ -216,7 +216,6 @@ defmodule LantternWeb.AssessmentPointLive.EntryEditorComponent do
          |> assign(:form, form)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        notify_parent({:error, changeset})
         {:noreply, assign(socket, :form, to_form(changeset))}
     end
   end
@@ -237,6 +236,7 @@ defmodule LantternWeb.AssessmentPointLive.EntryEditorComponent do
       |> to_form()
 
     socket
+    |> assign(:entry, assessment_point_entry)
     |> assign(:ov_style, ov_style)
     |> assign(:ov_name, ov_name)
     |> assign(:form, form)
@@ -249,8 +249,6 @@ defmodule LantternWeb.AssessmentPointLive.EntryEditorComponent do
   end
 
   defp get_colors_style(_), do: ""
-
-  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 
   defp new_assessment_point_entry(assessment_point, student_id) do
     %AssessmentPointEntry{

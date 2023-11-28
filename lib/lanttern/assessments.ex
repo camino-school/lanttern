@@ -11,7 +11,6 @@ defmodule Lanttern.Assessments do
   alias Lanttern.Assessments.ActivityAssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.Feedback
-  alias Lanttern.Assessments.ActivityAssessmentGrid
   alias Lanttern.Conversation.Comment
   alias Lanttern.LearningContext.Activity
   alias Lanttern.Schools.Student
@@ -70,12 +69,55 @@ defmodule Lanttern.Assessments do
       order_by: aap.position
     )
     |> Repo.all()
+    |> Repo.preload(scale: :ordinal_values)
+  end
+
+  @doc """
+  Returns the list of the assessment point entries for every student in the given activity.
+
+  Entries are ordered by `ActivityAssessmentPoint` position,
+  which is the same order used by `list_activity_assessment_points/1`.
+  """
+
+  @spec list_activity_students_entries(integer()) :: [{Student.t(), [AssessmentPointEntry.t()]}]
+
+  def list_activity_students_entries(activity_id) do
+    results =
+      from(
+        ap in AssessmentPoint,
+        join: aap in assoc(ap, :activity_assessment_points),
+        join: s in Student,
+        on: true,
+        left_join: e in AssessmentPointEntry,
+        on: e.student_id == s.id and e.assessment_point_id == ap.id,
+        where: aap.activity_id == ^activity_id,
+        # where: s.id < 10,
+        order_by: [s.name, aap.position],
+        select: {s, e}
+      )
+      |> Repo.all()
+
+    grouped_entries =
+      results
+      |> Enum.group_by(fn {s, _e} -> s.id end)
+      |> Enum.map(fn {s_id, list} ->
+        {
+          s_id,
+          list |> Enum.map(fn {_s, e} -> e end)
+        }
+      end)
+      |> Enum.into(%{})
+
+    results
+    |> Enum.map(fn {s, _} -> s end)
+    |> Enum.uniq()
+    |> Enum.map(&{&1, grouped_entries[&1.id]})
   end
 
   @doc """
   Gets a single assessment point.
 
-  Raises `Ecto.NoResultsError` if the AssessmentPoint does not exist.
+  Returns nil if the AssessmentPoint does not exist.
 
   ### Options:
 
@@ -89,6 +131,17 @@ defmodule Lanttern.Assessments do
       iex> get_assessment_point!(456)
       ** (Ecto.NoResultsError)
 
+  """
+  def get_assessment_point(id, opts \\ []) do
+    AssessmentPoint
+    |> Repo.get(id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single assessment point.
+
+  Same as `get_assessment_point/2`, but raises `Ecto.NoResultsError` if the AssessmentPoint does not exist.
   """
   def get_assessment_point!(id, opts \\ []) do
     AssessmentPoint
@@ -190,7 +243,34 @@ defmodule Lanttern.Assessments do
 
   """
   def delete_assessment_point(%AssessmentPoint{} = assessment_point) do
-    Repo.delete(assessment_point)
+    assessment_point
+    |> AssessmentPoint.delete_changeset()
+    |> Repo.delete()
+  end
+
+  @doc """
+  Deletes an assessment point and related entries.
+
+  ## Examples
+
+      iex> delete_assessment_point_and_entries(assessment_point)
+      {:ok, %AssessmentPoint{}}
+
+      iex> delete_assessment_point_and_entries(assessment_point)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_assessment_point_and_entries(%AssessmentPoint{} = assessment_point) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.delete_all(
+      :delete_entries,
+      from(
+        e in AssessmentPointEntry,
+        where: e.assessment_point_id == ^assessment_point.id
+      )
+    )
+    |> Ecto.Multi.delete(:delete_assessment_point, assessment_point)
+    |> Repo.transaction()
   end
 
   @doc """
@@ -586,61 +666,5 @@ defmodule Lanttern.Assessments do
   """
   def change_feedback(%Feedback{} = feedback, attrs \\ %{}) do
     Feedback.changeset(feedback, attrs)
-  end
-
-  @doc """
-  Returns the `%ActivityAssessmentGrid{}` of the given activity
-
-  """
-
-  @spec build_activity_assessment_grid(integer()) :: ActivityAssessmentGrid.t()
-
-  def build_activity_assessment_grid(activity_id) do
-    results =
-      from(
-        ap in AssessmentPoint,
-        join: sc in assoc(ap, :scale),
-        left_join: ov in assoc(sc, :ordinal_values),
-        join: ci in assoc(ap, :curriculum_item),
-        join: aap in assoc(ap, :activity_assessment_points),
-        join: a in assoc(aap, :activity),
-        join: std in Student,
-        on: true,
-        left_join: e in AssessmentPointEntry,
-        on: e.student_id == std.id and e.assessment_point_id == ap.id,
-        where: a.id == ^activity_id,
-        order_by: [std.name, aap.position],
-        preload: [curriculum_item: ci, scale: {sc, ordinal_values: ov}],
-        select: {std, ap, e}
-      )
-      |> Repo.all()
-
-    assessment_points =
-      results
-      |> Enum.map(fn {_, ap, _} -> ap end)
-      |> Enum.uniq()
-
-    grouped_entries =
-      results
-      |> Enum.map(fn {s, _, e} -> {s, e} end)
-      |> Enum.group_by(fn {s, _e} -> s.id end)
-      |> Enum.map(fn {s_id, list} ->
-        {
-          s_id,
-          list |> Enum.map(fn {_s, e} -> e end)
-        }
-      end)
-      |> Enum.into(%{})
-
-    students_entries =
-      results
-      |> Enum.map(fn {s, _, _} -> s end)
-      |> Enum.uniq()
-      |> Enum.map(&{&1, grouped_entries[&1.id]})
-
-    %ActivityAssessmentGrid{
-      assessment_points: assessment_points,
-      students_entries: students_entries
-    }
   end
 end
