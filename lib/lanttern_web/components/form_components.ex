@@ -188,7 +188,7 @@ defmodule LantternWeb.FormComponents do
           name={@name}
           type="radio"
           value={value}
-          checked={@value == value}
+          checked={"#{@value}" == "#{value}"}
         />
         <label for={"#{@name}-option-#{value}"}><%= label %></label>
       </div>

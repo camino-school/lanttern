@@ -23,7 +23,7 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
       >
         <%= if @assessment_points_count > 0 do %>
           <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2 bg-white">
-            <div class="sticky left-0 z-20 shrink-0 w-40 bg-white"></div>
+            <div class="sticky left-0 z-20 shrink-0 w-60 bg-white"></div>
             <div id="activity-assessment-points" phx-update="stream" class="shrink-0 flex gap-4">
               <.assessment_point
                 :for={{dom_id, {ap, i}} <- @streams.assessment_points}
@@ -144,7 +144,7 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
     ~H"""
     <div class="flex items-stretch gap-4" id={@id}>
       <.icon_with_name
-        class="sticky left-0 z-10 shrink-0 w-40 px-6 bg-white"
+        class="sticky left-0 z-10 shrink-0 w-60 px-6 bg-white"
         profile_name={@student.name}
       />
       <%= for {entry, assessment_point} <- @entries do %>

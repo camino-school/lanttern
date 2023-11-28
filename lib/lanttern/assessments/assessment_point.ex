@@ -86,6 +86,12 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       message:
         "Error linking rubric. Check if it exists and uses the same scale used in the assessment point."
     )
+    |> foreign_key_constraint(
+      :scale_id,
+      name: :assessment_point_entries_scale_id_fkey,
+      message:
+        "You may already have some entries for this assessment point. Changing the scale when entries exist is not allowed, as it would cause data loss."
+    )
   end
 
   defp validate_and_build_datetime(changeset) do

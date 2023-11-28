@@ -91,7 +91,6 @@ defmodule Lanttern.Assessments do
         left_join: e in AssessmentPointEntry,
         on: e.student_id == s.id and e.assessment_point_id == ap.id,
         where: aap.activity_id == ^activity_id,
-        # where: s.id < 10,
         order_by: [s.name, aap.position],
         select: {s, e}
       )

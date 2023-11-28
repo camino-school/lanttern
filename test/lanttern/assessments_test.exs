@@ -202,7 +202,12 @@ defmodule Lanttern.AssessmentsTest do
 
     test "delete_assessment_point_and_entries/1 deletes the assessment point and all related entries" do
       assessment_point = assessment_point_fixture()
-      _entry = assessment_point_entry_fixture(%{assessment_point_id: assessment_point.id})
+
+      _entry =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point.id,
+          scale_id: assessment_point.scale_id
+        })
 
       assert {:ok, %{delete_assessment_point: %AssessmentPoint{}}} =
                Assessments.delete_assessment_point_and_entries(assessment_point)
@@ -776,7 +781,9 @@ defmodule Lanttern.AssessmentsTest do
 
       # extra student and assessment points for filter test
       not_std = student_fixture(%{name: "ZZZ"})
-      not_ast = assessment_point_fixture(%{datetime: ~U[2023-08-04 15:30:00Z]})
+
+      not_ast =
+        assessment_point_fixture(%{scale_id: scale.id, datetime: ~U[2023-08-04 15:30:00Z]})
 
       assessment_point_entry_fixture(%{
         student_id: not_std.id,

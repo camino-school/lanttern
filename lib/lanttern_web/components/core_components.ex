@@ -741,7 +741,8 @@ defmodule LantternWeb.CoreComponents do
   def icon_with_name(assigns) do
     ~H"""
     <div class={["flex gap-2 items-center text-sm", @class]}>
-      <.profile_icon profile_name={@profile_name} /> <%= @profile_name %>
+      <.profile_icon profile_name={@profile_name} />
+      <span class="line-clamp-2"><%= @profile_name %></span>
     </div>
     """
   end

@@ -250,6 +250,7 @@ defmodule LantternWeb.AssessmentPointLive.AssessmentPointEntryEditorComponentTes
       entry =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           assessment_point_id: assessment_point.id,
+          scale_id: scale.id,
           observation: "initial obs",
           score: 5
         })
