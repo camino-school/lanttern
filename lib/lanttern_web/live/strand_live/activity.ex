@@ -71,18 +71,27 @@ defmodule LantternWeb.StrandLive.Activity do
       ) do
     {:noreply,
      socket
-     |> push_patch(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
+     |> push_navigate(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
+  end
+
+  def handle_info(
+        {ActivityTabs.AssessmentComponent, {:assessment_points_reordered, _assessment_point}},
+        socket
+      ) do
+    {:noreply,
+     socket
+     |> push_navigate(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
   end
 
   def handle_info({ActivityAssessmentPointFormComponent, {:created, _assessment_point}}, socket) do
     {:noreply,
      socket
-     |> push_patch(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
+     |> push_navigate(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
   end
 
   def handle_info({ActivityAssessmentPointFormComponent, {:updated, _assessment_point}}, socket) do
     {:noreply,
      socket
-     |> push_patch(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
+     |> push_navigate(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
   end
 end

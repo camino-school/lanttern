@@ -364,6 +364,39 @@ defmodule Lanttern.AssessmentsTest do
                {student_c, [nil, entry_2_c]}
              ] == Assessments.list_activity_students_entries(activity.id)
     end
+
+    test "update_activity_assessment_points_positions/2 update activity assessment points position based on list order" do
+      activity = LearningContextFixtures.activity_fixture()
+      assessment_point_1 = activity_assessment_point_fixture(activity.id)
+      assessment_point_2 = activity_assessment_point_fixture(activity.id)
+      assessment_point_3 = activity_assessment_point_fixture(activity.id)
+      assessment_point_4 = activity_assessment_point_fixture(activity.id)
+
+      sorted_assessment_points_ids =
+        [
+          assessment_point_2.id,
+          assessment_point_3.id,
+          assessment_point_1.id,
+          assessment_point_4.id
+        ]
+
+      assert {:ok,
+              [
+                expected_ap_2,
+                expected_ap_3,
+                expected_ap_1,
+                expected_ap_4
+              ]} =
+               Assessments.update_activity_assessment_points_positions(
+                 activity.id,
+                 sorted_assessment_points_ids
+               )
+
+      assert expected_ap_1.id == assessment_point_1.id
+      assert expected_ap_2.id == assessment_point_2.id
+      assert expected_ap_3.id == assessment_point_3.id
+      assert expected_ap_4.id == assessment_point_4.id
+    end
   end
 
   describe "assessment_point_entries" do

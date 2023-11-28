@@ -12,9 +12,17 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
     <div>
       <div class="container py-10 mx-auto lg:max-w-5xl">
         Assessment TBD
-        <.link patch={~p"/strands/activity/#{@activity}/assessment_point/new"}>
-          Add
-        </.link>
+        <div class="flex gap-6">
+          <.link patch={~p"/strands/activity/#{@activity}/assessment_point/new"}>
+            Add
+          </.link>
+          <button
+            type="button"
+            phx-click={JS.exec("data-show", to: "#activity-assessment-points-order-overlay")}
+          >
+            Reorder
+          </button>
+        </div>
       </div>
       <div
         id="activity-assessment-points-slider"
@@ -112,6 +120,50 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
           </.button>
         </:actions>
       </.slide_over>
+      <.slide_over id="activity-assessment-points-order-overlay">
+        <:title>Assessment Points Order</:title>
+        <ol>
+          <li
+            :for={{assessment_point, i} <- @sortable_assessment_points}
+            id={"sortable-assessment-point-#{assessment_point.id}"}
+            class="mb-4"
+          >
+            <div class="flex items-center gap-2">
+              <span class="flex-1"><%= "#{i + 1}. #{assessment_point.name}" %></span>
+              <div class="shrink-0 flex justify-between w-20">
+                <.icon_button
+                  type="button"
+                  name="hero-arrow-down-mini"
+                  theme="ghost"
+                  disabled={i + 1 == @assessment_points_count}
+                  phx-click={JS.push("assessment_point_position_inc", value: %{index: i})}
+                  phx-target={@myself}
+                />
+                <.icon_button
+                  type="button"
+                  name="hero-arrow-up-mini"
+                  theme="ghost"
+                  disabled={i == 0}
+                  phx-click={JS.push("assessment_point_position_dec", value: %{index: i})}
+                  phx-target={@myself}
+                />
+              </div>
+            </div>
+          </li>
+        </ol>
+        <:actions>
+          <.button
+            type="button"
+            theme="ghost"
+            phx-click={JS.exec("data-cancel", to: "#activity-assessment-points-order-overlay")}
+          >
+            Cancel
+          </.button>
+          <.button type="button" phx-click="save_order" phx-target={@myself}>
+            Save
+          </.button>
+        </:actions>
+      </.slide_over>
     </div>
     """
   end
@@ -187,24 +239,6 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
   end
 
   @impl true
-  def update(
-        %{action: {ActivityAssessmentPointFormComponent, {:created, assessment_point}}},
-        socket
-      ) do
-    {:ok,
-     socket
-     |> stream_insert(:assessment_points, assessment_point)}
-  end
-
-  def update(
-        %{action: {ActivityAssessmentPointFormComponent, {:updated, assessment_point}}},
-        socket
-      ) do
-    {:ok,
-     socket
-     |> stream_insert(:assessment_points, assessment_point)}
-  end
-
   def update(%{activity: activity, assessment_point_id: assessment_point_id} = assigns, socket) do
     {:ok,
      socket
@@ -212,6 +246,8 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
      |> set_assessment_point(assessment_point_id)
      |> maybe_list(activity.id)}
   end
+
+  def update(_assigns, socket), do: {:ok, socket}
 
   defp set_assessment_point(socket, nil) do
     socket
@@ -231,7 +267,7 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
   end
 
   defp maybe_list(
-         %{assigns: %{assessment_points: _, students_entries_assessment_points: _}} = socket,
+         %{assigns: %{assessment_points_count: _}} = socket,
          _activity_id
        ),
        do: socket
@@ -254,6 +290,7 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
     |> stream(:assessment_points, Enum.with_index(assessment_points))
     |> stream(:students_entries_assessment_points, students_entries_assessment_points)
     |> assign(:assessment_points_count, length(assessment_points))
+    |> assign(:sortable_assessment_points, Enum.with_index(assessment_points))
   end
 
   # event handlers
@@ -263,13 +300,7 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
     case Assessments.delete_assessment_point(socket.assigns.assessment_point) do
       {:ok, assessment_point} ->
         notify_parent({:assessment_point_deleted, assessment_point})
-
-        {:noreply,
-         socket
-         |> stream_delete_by_dom_id(
-           :assessment_points,
-           "assessment-point-#{assessment_point.id}"
-         )}
+        {:noreply, socket}
 
       {:error, _changeset} ->
         # we may have more error types, but for now we are handling only this one
@@ -284,14 +315,7 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
     case Assessments.delete_assessment_point_and_entries(socket.assigns.assessment_point) do
       {:ok, _} ->
         notify_parent({:assessment_point_deleted, socket.assigns.assessment_point})
-
-        {:noreply,
-         socket
-         |> assign(:delete_assessment_point_error, nil)
-         |> stream_delete_by_dom_id(
-           :assessment_points,
-           "assessment-point-#{socket.assigns.assessment_point.id}"
-         )}
+        {:noreply, socket}
 
       {:error, _} ->
         {:noreply, socket}
@@ -304,7 +328,55 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
      |> assign(:delete_assessment_point_error, nil)}
   end
 
+  def handle_event("assessment_point_position_inc", %{"index" => i}, socket) do
+    sortable_assessment_points =
+      socket.assigns.sortable_assessment_points
+      |> Enum.map(fn {ap, _i} -> ap end)
+      |> swap(i, i + 1)
+      |> Enum.with_index()
+
+    {:noreply, assign(socket, :sortable_assessment_points, sortable_assessment_points)}
+  end
+
+  def handle_event("assessment_point_position_dec", %{"index" => i}, socket) do
+    sortable_assessment_points =
+      socket.assigns.sortable_assessment_points
+      |> Enum.map(fn {ap, _i} -> ap end)
+      |> swap(i, i - 1)
+      |> Enum.with_index()
+
+    {:noreply, assign(socket, :sortable_assessment_points, sortable_assessment_points)}
+  end
+
+  def handle_event("save_order", _, socket) do
+    assessment_points_ids =
+      socket.assigns.sortable_assessment_points
+      |> Enum.map(fn {ap, _i} -> ap.id end)
+
+    case Assessments.update_activity_assessment_points_positions(
+           socket.assigns.activity.id,
+           assessment_points_ids
+         ) do
+      {:ok, assessment_points} ->
+        notify_parent({:assessment_points_reordered, assessment_points})
+        {:noreply, socket}
+
+      {:error, _} ->
+        {:noreply, socket}
+    end
+  end
+
   # helpers
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+
+  # https://elixirforum.com/t/swap-elements-in-a-list/34471/4
+  defp swap(a, i1, i2) do
+    e1 = Enum.at(a, i1)
+    e2 = Enum.at(a, i2)
+
+    a
+    |> List.replace_at(i1, e2)
+    |> List.replace_at(i2, e1)
+  end
 end
