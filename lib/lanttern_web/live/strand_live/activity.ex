@@ -49,7 +49,9 @@ defmodule LantternWeb.StrandLive.Activity do
     # pattern match assigned activity to prevent unnecessary get_activity calls
     # (during handle_params triggered by tab change for example)
 
-    case LearningContext.get_activity(id, preloads: [:strand, :subjects]) do
+    case LearningContext.get_activity(id,
+           preloads: [:strand, :subjects, curriculum_items: :curriculum_component]
+         ) do
       activity when is_nil(activity) ->
         socket
         |> put_flash(:error, "Couldn't find activity")
