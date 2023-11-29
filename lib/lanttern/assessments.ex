@@ -586,16 +586,35 @@ defmodule Lanttern.Assessments do
 
   Entries are ordered by `ActivityAssessmentPoint` position,
   which is the same order used by `list_activity_assessment_points/1`.
+
+  ## Options:
+
+      - `:classes_ids` – filter entries by classes
   """
 
-  @spec list_activity_students_entries(integer()) :: [{Student.t(), [AssessmentPointEntry.t()]}]
+  @spec list_activity_students_entries(integer(), Keyword.t()) :: [
+          {Student.t(), [AssessmentPointEntry.t()]}
+        ]
 
-  def list_activity_students_entries(activity_id) do
+  def list_activity_students_entries(activity_id, opts \\ []) do
+    students_query =
+      case Keyword.get(opts, :classes_ids) do
+        nil ->
+          from(s in Student)
+
+        classes_ids ->
+          from(
+            s in Student,
+            join: c in assoc(s, :classes),
+            where: c.id in ^classes_ids
+          )
+      end
+
     results =
       from(
         ap in AssessmentPoint,
         join: aap in assoc(ap, :activity_assessment_points),
-        join: s in Student,
+        join: s in subquery(students_query),
         on: true,
         left_join: e in AssessmentPointEntry,
         on: e.student_id == s.id and e.assessment_point_id == ap.id,

@@ -12,7 +12,7 @@
   <div class="flex items-center gap-2 mb-4">
     <.icon name="hero-arrow-left" class="w-6 h-6" />
     <.link
-      navigate={~p"/strands/#{@activity.strand}"}
+      navigate={~p"/strands/#{@activity.strand}?tab=activities"}
       class="font-display font-black text-lg underline"
     >
       <%= @activity.strand.name %>
@@ -60,6 +60,8 @@
     activity={@activity}
     live_action={@live_action}
     assessment_point_id={@assessment_point_id}
+    params={@params}
+    current_user={@current_user}
   />
   <.live_component
     :if={@current_tab == :notes}

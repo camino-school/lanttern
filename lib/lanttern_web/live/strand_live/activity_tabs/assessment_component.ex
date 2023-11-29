@@ -3,57 +3,113 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Schools
+
   alias LantternWeb.AssessmentPointLive.ActivityAssessmentPointFormComponent
   alias LantternWeb.AssessmentPointLive.EntryEditorComponent
+  alias LantternWeb.SchoolLive.ClassFilterFormComponent
 
   @impl true
   def render(assigns) do
     ~H"""
-    <div>
-      <div class="container py-10 mx-auto lg:max-w-5xl">
-        Assessment TBD
-        <div class="flex gap-6">
-          <.link patch={~p"/strands/activity/#{@activity}/assessment_point/new"}>
-            Add
-          </.link>
-          <button
-            type="button"
-            phx-click={JS.exec("data-show", to: "#activity-assessment-points-order-overlay")}
-          >
-            Reorder
-          </button>
+    <div class="p-10">
+      <div class="container mx-auto lg:max-w-5xl">
+        <div class="flex items-end justify-between">
+          <%= if @classes do %>
+            <p class="font-display font-bold text-2xl">
+              Assessing
+              <button
+                type="button"
+                class="underline hover:text-ltrn-subtle"
+                phx-click={JS.exec("data-show", to: "#classes-filter-overlay")}
+              >
+                <%= @classes
+                |> Enum.map(& &1.name)
+                |> Enum.join(", ") %>
+              </button>
+            </p>
+          <% else %>
+            <p class="font-display font-bold text-2xl">
+              <button
+                type="button"
+                class="underline hover:text-ltrn-subtle"
+                phx-click={JS.exec("data-show", to: "#classes-filter-overlay")}
+              >
+                Select a class
+              </button>
+              to view assessment points
+            </p>
+          <% end %>
+          <div class="shrink-0 flex items-center gap-6 font-display text-base underline">
+            <button
+              :if={@assessment_points_count > 1}
+              type="button"
+              phx-click={JS.exec("data-show", to: "#activity-assessment-points-order-overlay")}
+              class="flex gap-2 hover:text-ltrn-primary"
+            >
+              Reorder <.icon name="hero-arrows-up-down" class="w-6 h-6 text-ltrn-primary" />
+            </button>
+            <.link
+              patch={~p"/strands/activity/#{@activity}/assessment_point/new"}
+              class="flex gap-2 hover:text-ltrn-primary"
+            >
+              Create assessment point
+              <.icon name="hero-plus-circle" class="w-6 h-6 text-ltrn-primary" />
+            </.link>
+          </div>
+        </div>
+        <%!-- if no assessment points, render empty state --%>
+        <div :if={@assessment_points_count == 0} class="p-10 mt-4 rounded shadow-xl bg-white">
+          <.empty_state>No assessment points for this activity yet</.empty_state>
+        </div>
+        <%!-- if no class filter is select, just render assessment points --%>
+        <div
+          :if={!@classes && @assessment_points_count > 0}
+          class="p-10 mt-4 rounded shadow-xl bg-white"
+        >
+          <ol phx-update="stream" id="assessment-points-no-class" class="flex flex-col gap-4">
+            <li
+              :for={{dom_id, {assessment_point, i}} <- @streams.assessment_points}
+              id={"no-class-#{dom_id}"}
+            >
+              <.link
+                patch={~p"/strands/activity/#{@activity}/assessment_point/#{assessment_point}"}
+                class="hover:underline"
+              >
+                <%= "#{i + 1}. #{assessment_point.name}" %>
+              </.link>
+            </li>
+          </ol>
         </div>
       </div>
+      <%!-- show entries only with class filter selected --%>
       <div
+        :if={@classes && @assessment_points_count > 0}
         id="activity-assessment-points-slider"
         class="relative w-full max-h-screen pb-6 mt-6 rounded shadow-xl bg-white overflow-x-auto"
         phx-hook="Slider"
       >
-        <%= if @assessment_points_count > 0 do %>
-          <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2 bg-white">
-            <div class="sticky left-0 z-20 shrink-0 w-60 bg-white"></div>
-            <div id="activity-assessment-points" phx-update="stream" class="shrink-0 flex gap-4">
-              <.assessment_point
-                :for={{dom_id, {ap, i}} <- @streams.assessment_points}
-                assessment_point={ap}
-                activity_id={@activity.id}
-                index={i}
-                id={dom_id}
-              />
-            </div>
-            <div class="shrink-0 w-2"></div>
-          </div>
-          <div phx-update="stream" id="students-entries">
-            <.student_and_entries
-              :for={{dom_id, {student, entries}} <- @streams.students_entries_assessment_points}
-              student={student}
-              entries={entries}
+        <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2 bg-white">
+          <div class="sticky left-0 z-20 shrink-0 w-60 bg-white"></div>
+          <div id="activity-assessment-points" phx-update="stream" class="shrink-0 flex gap-4">
+            <.assessment_point
+              :for={{dom_id, {ap, i}} <- @streams.assessment_points}
+              assessment_point={ap}
+              activity_id={@activity.id}
+              index={i}
               id={dom_id}
             />
           </div>
-        <% else %>
-          <.empty_state>No assessment points for this activity yet</.empty_state>
-        <% end %>
+          <div class="shrink-0 w-2"></div>
+        </div>
+        <div phx-update="stream" id="students-entries">
+          <.student_and_entries
+            :for={{dom_id, {student, entries}} <- @streams.students_entries_assessment_points}
+            student={student}
+            entries={entries}
+            id={dom_id}
+          />
+        </div>
       </div>
       <.slide_over
         :if={@live_action in [:new_assessment_point, :edit_assessment_point]}
@@ -120,7 +176,33 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
           </.button>
         </:actions>
       </.slide_over>
-      <.slide_over id="activity-assessment-points-order-overlay">
+      <.slide_over id="classes-filter-overlay">
+        <:title>Classes</:title>
+        <.live_component
+          module={ClassFilterFormComponent}
+          id={:filter}
+          current_user={@current_user}
+          notify_component={@myself}
+          classes_ids={@classes_ids}
+        />
+        <:actions>
+          <.button
+            type="button"
+            theme="ghost"
+            phx-click={JS.exec("data-cancel", to: "#classes-filter-overlay")}
+          >
+            Cancel
+          </.button>
+          <.button
+            type="submit"
+            form="class-filter-form"
+            phx-click={JS.exec("data-cancel", to: "#classes-filter-overlay")}
+          >
+            Select
+          </.button>
+        </:actions>
+      </.slide_over>
+      <.slide_over :if={@assessment_points_count > 1} id="activity-assessment-points-order-overlay">
         <:title>Assessment Points Order</:title>
         <ol>
           <li
@@ -235,26 +317,35 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
        :students_entries_assessment_points,
        dom_id: fn {student, _entries} -> "student-#{student.id}" end
      )
-     |> assign(:delete_assessment_point_error, nil)}
+     |> assign(:delete_assessment_point_error, nil)
+     |> assign(:classes, nil)
+     |> assign(:classes_ids, [])}
   end
 
   @impl true
+  def update(%{action: {ClassFilterFormComponent, {:save, params}}}, socket) do
+    classes_ids = Map.get(params, "classes_ids")
+    notify_parent({:apply_class_filters, classes_ids})
+    {:ok, socket}
+  end
+
   def update(%{activity: activity, assessment_point_id: assessment_point_id} = assigns, socket) do
     {:ok,
      socket
      |> assign(assigns)
-     |> set_assessment_point(assessment_point_id)
-     |> maybe_list(activity.id)}
+     |> assign_assessment_point(assessment_point_id)
+     |> assign_classes(assigns.params)
+     |> core_assigns(activity.id)}
   end
 
   def update(_assigns, socket), do: {:ok, socket}
 
-  defp set_assessment_point(socket, nil) do
+  defp assign_assessment_point(socket, nil) do
     socket
     |> assign(:assessment_point, %AssessmentPoint{datetime: DateTime.utc_now()})
   end
 
-  defp set_assessment_point(socket, assessment_point_id) do
+  defp assign_assessment_point(socket, assessment_point_id) do
     case Assessments.get_assessment_point(assessment_point_id) do
       nil ->
         socket
@@ -266,15 +357,19 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
     end
   end
 
-  defp maybe_list(
+  defp core_assigns(
          %{assigns: %{assessment_points_count: _}} = socket,
          _activity_id
        ),
        do: socket
 
-  defp maybe_list(socket, activity_id) do
+  defp core_assigns(socket, activity_id) do
     assessment_points = Assessments.list_activity_assessment_points(activity_id)
-    students_entries = Assessments.list_activity_students_entries(activity_id)
+
+    students_entries =
+      Assessments.list_activity_students_entries(activity_id,
+        classes_ids: socket.assigns.classes_ids
+      )
 
     # zip assessment points with entries
     students_entries_assessment_points =
@@ -292,6 +387,20 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
     |> assign(:assessment_points_count, length(assessment_points))
     |> assign(:sortable_assessment_points, Enum.with_index(assessment_points))
   end
+
+  defp assign_classes(socket, %{"classes_ids" => classes_ids}) do
+    socket
+    |> assign(:classes_ids, classes_ids)
+    |> assign(
+      :classes,
+      Schools.list_user_classes(
+        socket.assigns.current_user,
+        classes_ids: classes_ids
+      )
+    )
+  end
+
+  defp assign_classes(socket, _params), do: socket
 
   # event handlers
 

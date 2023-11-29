@@ -235,13 +235,19 @@ defmodule Lanttern.Schools do
 
   The list is sorted by cycle end date (desc), class year (asc), and class name (asc).
 
+  ## Options:
+
+      - `:classes_ids` – filter results
+
   ## Examples
 
       iex> list_user_classes()
       [%Class{}, ...]
 
   """
-  def list_user_classes(%{current_profile: %{teacher: %{school_id: school_id}}} = _current_user) do
+  def list_user_classes(current_user, opts \\ [])
+
+  def list_user_classes(%{current_profile: %{teacher: %{school_id: school_id}}}, opts) do
     from(
       cl in Class,
       join: cy in assoc(cl, :cycle),
@@ -249,14 +255,25 @@ defmodule Lanttern.Schools do
       left_join: y in assoc(cl, :years),
       group_by: [cl.id, cy.end_at],
       order_by: [desc: cy.end_at, asc: min(y.id), asc: cl.name],
-      where: cl.school_id == ^school_id,
-      preload: [:cycle, :students, :years]
+      where: [school_id: ^school_id]
     )
+    |> apply_list_user_classes_opts(opts)
     |> Repo.all()
   end
 
-  def list_user_classes(_current_user),
+  def list_user_classes(_current_user, _opts),
     do: {:error, "User not allowed to list classes"}
+
+  defp apply_list_user_classes_opts(query, opts),
+    do: Enum.reduce(opts, query, &apply_list_user_classes_opt/2)
+
+  defp apply_list_user_classes_opt({:classes_ids, classes_ids}, query),
+    do: from(cl in query, where: cl.id in ^classes_ids)
+
+  defp apply_list_user_classes_opt({:preload, true}, query),
+    do: from(cl in query, preload: [:cycle, :students, :years])
+
+  defp apply_list_user_classes_opt(_, query), do: query
 
   @doc """
   Gets a single class.

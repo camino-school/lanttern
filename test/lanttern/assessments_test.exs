@@ -330,8 +330,9 @@ defmodule Lanttern.AssessmentsTest do
           }
         )
 
-      student_a = SchoolsFixtures.student_fixture(%{name: "AAA"})
-      student_b = SchoolsFixtures.student_fixture(%{name: "BBB"})
+      class = SchoolsFixtures.class_fixture()
+      student_a = SchoolsFixtures.student_fixture(%{name: "AAA", classes_ids: [class.id]})
+      student_b = SchoolsFixtures.student_fixture(%{name: "BBB", classes_ids: [class.id]})
       student_c = SchoolsFixtures.student_fixture(%{name: "CCC"})
 
       entry_1_a =
@@ -342,15 +343,15 @@ defmodule Lanttern.AssessmentsTest do
           scale_type: scale.type
         })
 
-      entry_1_b =
+      entry_2_b =
         assessment_point_entry_fixture(%{
           student_id: student_b.id,
-          assessment_point_id: assessment_point_1.id,
+          assessment_point_id: assessment_point_2.id,
           scale_id: scale.id,
           scale_type: scale.type
         })
 
-      entry_2_c =
+      _entry_2_c =
         assessment_point_entry_fixture(%{
           student_id: student_c.id,
           assessment_point_id: assessment_point_2.id,
@@ -359,10 +360,12 @@ defmodule Lanttern.AssessmentsTest do
         })
 
       assert [
-               {student_a, [entry_1_a, nil]},
-               {student_b, [entry_1_b, nil]},
-               {student_c, [nil, entry_2_c]}
-             ] == Assessments.list_activity_students_entries(activity.id)
+               {expected_std_a, [^entry_1_a, nil]},
+               {expected_std_b, [nil, ^entry_2_b]}
+             ] = Assessments.list_activity_students_entries(activity.id, classes_ids: [class.id])
+
+      assert expected_std_a.id == student_a.id
+      assert expected_std_b.id == student_b.id
     end
 
     test "update_activity_assessment_points_positions/2 update activity assessment points position based on list order" do

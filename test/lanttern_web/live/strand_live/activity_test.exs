@@ -54,7 +54,8 @@ defmodule LantternWeb.StrandLive.ActivityTest do
 
       assert_patch(view)
 
-      assert view |> has_element?("div", "Assessment TBD")
+      assert view |> has_element?("button", "Select a class")
+      assert view |> has_element?("p", "to view assessment points")
 
       # notes tab
 

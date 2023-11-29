@@ -21,6 +21,7 @@ defmodule LantternWeb.StrandLive.Activity do
   def handle_params(params, _url, socket) do
     {:noreply,
      socket
+     |> assign(:params, params)
      |> assign(:assessment_point_id, nil)
      |> set_current_tab(params, socket.assigns.live_action)
      |> apply_action(socket.assigns.live_action, params)}
@@ -66,6 +67,18 @@ defmodule LantternWeb.StrandLive.Activity do
   defp apply_action(socket, _live_action, _params), do: socket
 
   # info handlers
+
+  def handle_info(
+        {ActivityTabs.AssessmentComponent, {:apply_class_filters, classes_ids}},
+        socket
+      ) do
+    {:noreply,
+     socket
+     |> push_navigate(
+       to:
+         ~p"/strands/activity/#{socket.assigns.activity}?#{%{tab: "assessment", classes_ids: classes_ids}}"
+     )}
+  end
 
   def handle_info(
         {ActivityTabs.AssessmentComponent, {:assessment_point_deleted, _assessment_point}},
