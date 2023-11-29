@@ -23,7 +23,7 @@
     <.badge :for={subject <- @activity.subjects} theme="dark"><%= subject.name %></.badge>
   </div>
 </.cover>
-<div class="sticky top-0 border-b border-ltrn-lighter bg-white">
+<div class="sticky top-0 z-30 border-b border-ltrn-lighter bg-white">
   <.nav_tabs class="container mx-auto lg:max-w-5xl" id="activity-nav-tabs">
     <:tab
       patch={~p"/strands/activity/#{@activity}?#{%{tab: "details"}}"}

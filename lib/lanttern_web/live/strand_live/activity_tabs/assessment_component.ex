@@ -14,13 +14,13 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
     ~H"""
     <div class="p-10">
       <div class="container mx-auto lg:max-w-5xl">
-        <div class="flex items-end justify-between">
+        <div class="flex items-end justify-between gap-6">
           <%= if @classes do %>
             <p class="font-display font-bold text-2xl">
               Assessing
               <button
                 type="button"
-                class="underline hover:text-ltrn-subtle"
+                class="inline text-left underline hover:text-ltrn-subtle"
                 phx-click={JS.exec("data-show", to: "#classes-filter-overlay")}
               >
                 <%= @classes
@@ -37,22 +37,19 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
               >
                 Select a class
               </button>
-              to view assessment points
+              to assess students
             </p>
           <% end %>
-          <div class="shrink-0 flex items-center gap-6 font-display text-base underline">
+          <div class="shrink-0 flex items-center gap-6 font-display text-sm">
             <button
               :if={@assessment_points_count > 1}
               type="button"
               phx-click={JS.exec("data-show", to: "#activity-assessment-points-order-overlay")}
-              class="flex gap-2 hover:text-ltrn-primary"
+              class="flex gap-2"
             >
               Reorder <.icon name="hero-arrows-up-down" class="w-6 h-6 text-ltrn-primary" />
             </button>
-            <.link
-              patch={~p"/strands/activity/#{@activity}/assessment_point/new"}
-              class="flex gap-2 hover:text-ltrn-primary"
-            >
+            <.link patch={~p"/strands/activity/#{@activity}/assessment_point/new"} class="flex gap-2">
               Create assessment point
               <.icon name="hero-plus-circle" class="w-6 h-6 text-ltrn-primary" />
             </.link>
@@ -90,8 +87,12 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
         phx-hook="Slider"
       >
         <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2 bg-white">
-          <div class="sticky left-0 z-20 shrink-0 w-60 bg-white"></div>
-          <div id="activity-assessment-points" phx-update="stream" class="shrink-0 flex gap-4">
+          <div class="sticky left-0 shrink-0 w-60 bg-white"></div>
+          <div
+            id="activity-assessment-points"
+            phx-update="stream"
+            class="shrink-0 flex gap-4 bg-white"
+          >
             <.assessment_point
               :for={{dom_id, {ap, i}} <- @streams.assessment_points}
               assessment_point={ap}
@@ -259,7 +260,7 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
 
   def assessment_point(assigns) do
     ~H"""
-    <div class="shrink-0 w-40 pt-6 pb-2 bg-white" id={@id}>
+    <div class="shrink-0 w-40 pt-6 pb-2" id={@id}>
       <.link
         patch={~p"/strands/activity/#{@activity_id}/assessment_point/#{@assessment_point}"}
         class="text-xs hover:underline line-clamp-2"

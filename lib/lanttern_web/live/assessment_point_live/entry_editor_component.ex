@@ -30,11 +30,6 @@ defmodule LantternWeb.AssessmentPointLive.EntryEditorComponent do
         class={@class}
         id={"entry-#{@id}-marking-form"}
       >
-        <.input type="hidden" field={@form[:id]} />
-        <.input type="hidden" field={@form[:student_id]} />
-        <.input type="hidden" field={@form[:assessment_point_id]} />
-        <.input type="hidden" field={@form[:scale_id]} />
-        <.input type="hidden" field={@form[:scale_type]} />
         <%= for marking_input <- @marking_input do %>
           <.marking_input
             scale={@assessment_point.scale}
@@ -107,20 +102,16 @@ defmodule LantternWeb.AssessmentPointLive.EntryEditorComponent do
         %{
           student: student,
           assessment_point: assessment_point,
-          entry: entry,
-          id: id
+          entry: entry
         } = assigns,
         socket
       ) do
     %{scale: %{ordinal_values: ordinal_values}} = assessment_point
-
     ordinal_value_options = Enum.map(ordinal_values, fn ov -> {:"#{ov.name}", ov.id} end)
+    entry = entry || new_assessment_point_entry(assessment_point, student.id)
 
     {ov_style, ov_name} =
       case entry do
-        nil ->
-          {nil, nil}
-
         %{ordinal_value_id: nil} ->
           {nil, nil}
 
@@ -133,20 +124,14 @@ defmodule LantternWeb.AssessmentPointLive.EntryEditorComponent do
       end
 
     form =
-      case entry do
-        nil ->
-          new_assessment_point_entry(assessment_point, student.id)
-
-        entry ->
-          entry
-      end
+      entry
       |> Assessments.change_assessment_point_entry()
       |> to_form()
 
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:id, id)
+     |> assign(:entry, entry)
      |> assign(:ov_style, ov_style)
      |> assign(:ov_name, ov_name)
      |> assign(:form, form)
@@ -163,17 +148,28 @@ defmodule LantternWeb.AssessmentPointLive.EntryEditorComponent do
         %{"assessment_point_entry" => params},
         %{assigns: %{entry: entry}} = socket
       ) do
+    entry_params =
+      entry
+      |> Map.from_struct()
+      |> Map.take([:student_id, :assessment_point_id, :scale_id, :scale_type])
+      |> Map.new(fn {k, v} -> {to_string(k), v} end)
+
+    # add extra fields from entry
+    params =
+      params
+      |> Enum.into(entry_params)
+
     case {
-      entry,
-      params["scale_type"],
+      entry.id,
+      entry.scale_type,
       params["ordinal_value_id"],
       params["score"]
     } do
       {nil, "ordinal", ov_id, _} when ov_id != "" -> save(:new, entry, params, socket)
       {nil, "numeric", _, score} when score != "" -> save(:new, entry, params, socket)
-      {entry, "ordinal", "", _} when not is_nil(entry) -> save(:delete, entry, params, socket)
-      {entry, "numeric", _, ""} when not is_nil(entry) -> save(:delete, entry, params, socket)
-      {entry, _, _, _} when not is_nil(entry) -> save(:edit, entry, params, socket)
+      {id, "ordinal", "", _} when not is_nil(id) -> save(:delete, entry, params, socket)
+      {id, "numeric", _, ""} when not is_nil(id) -> save(:delete, entry, params, socket)
+      {id, _, _, _} when not is_nil(id) -> save(:edit, entry, params, socket)
       _ -> {:noreply, socket}
     end
   end
@@ -204,8 +200,11 @@ defmodule LantternWeb.AssessmentPointLive.EntryEditorComponent do
   defp save(:delete, entry, _params, socket) do
     case Assessments.delete_assessment_point_entry(entry) do
       {:ok, _assessment_point_entry} ->
-        form =
+        new_entry =
           new_assessment_point_entry(socket.assigns.assessment_point, socket.assigns.student.id)
+
+        form =
+          new_entry
           |> Assessments.change_assessment_point_entry()
           |> to_form()
 
@@ -213,7 +212,8 @@ defmodule LantternWeb.AssessmentPointLive.EntryEditorComponent do
          socket
          |> assign(:ov_style, nil)
          |> assign(:ov_name, nil)
-         |> assign(:form, form)}
+         |> assign(:form, form)
+         |> assign(:entry, new_entry)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}

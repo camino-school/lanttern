@@ -12,6 +12,8 @@ defmodule Lanttern.Curricula do
   alias Lanttern.Curricula.CurriculumItem
   alias Lanttern.Curricula.CurriculumRelationship
 
+  alias Lanttern.LearningContext.Activity
+
   @doc """
   Returns the list of curricula.
 
@@ -213,6 +215,26 @@ defmodule Lanttern.Curricula do
   end
 
   @doc """
+  Returns the list of curriculum items.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
+  `:filters` – accepts `:subject_id` and `:year_id`
+
+  ## Examples
+
+      iex> list_curriculum_items()
+      [%CurriculumItem{}, ...]
+
+  """
+  def list_curriculum_items(opts \\ []) do
+    CurriculumItem
+    |> maybe_filter(opts)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
   Returns the list of curriculum items linked to the given strand.
 
   ## Examples
@@ -232,22 +254,28 @@ defmodule Lanttern.Curricula do
   end
 
   @doc """
-  Returns the list of curriculum items.
+  Returns the list of curriculum items linked to the given activity.
 
-  ### Options:
+  ## Options:
 
-  `:preloads` – preloads associated data
-  `:filters` – accepts `:subject_id` and `:year_id`
+      - `:preloads` – preloads associated data
 
   ## Examples
 
-      iex> list_curriculum_items()
+      iex> list_activity_curriculum_items(1)
       [%CurriculumItem{}, ...]
 
   """
-  def list_curriculum_items(opts \\ []) do
-    CurriculumItem
-    |> maybe_filter(opts)
+  def list_activity_curriculum_items(activity_id, opts \\ []) do
+    from(
+      a in Activity,
+      join: ci in assoc(a, :curriculum_items),
+      where: a.id == ^activity_id,
+      order_by: ci.name,
+      distinct: ci.id,
+      select: ci
+    )
+    |> Repo.all()
     |> maybe_preload(opts)
   end
 

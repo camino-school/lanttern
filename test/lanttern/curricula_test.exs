@@ -578,4 +578,36 @@ defmodule Lanttern.CurriculaTest do
                Curricula.list_strand_curriculum_items(strand.id)
     end
   end
+
+  describe "activity curriculum items" do
+    import Lanttern.AssessmentsFixtures
+    import Lanttern.CurriculaFixtures
+    import Lanttern.LearningContextFixtures
+
+    test "list_activity_curriculum_items/2 returns all items linked to the given activity" do
+      curriculum_item_a = curriculum_item_fixture(%{name: "AAA"})
+      curriculum_item_b = curriculum_item_fixture(%{name: "BBB"})
+
+      activity = activity_fixture()
+
+      activity_assessment_point_fixture(activity.id, %{curriculum_item_id: curriculum_item_a.id})
+      activity_assessment_point_fixture(activity.id, %{curriculum_item_id: curriculum_item_b.id})
+
+      # extra curriculum items for testing
+      curriculum_item_fixture()
+      other_curriculum_item = curriculum_item_fixture()
+      other_activity = activity_fixture()
+
+      activity_assessment_point_fixture(
+        other_activity.id,
+        %{curriculum_items: [%{curriculum_item_id: other_curriculum_item.id}]}
+      )
+
+      assert [expected_ci_a, expected_ci_b] =
+               Curricula.list_activity_curriculum_items(activity.id)
+
+      assert expected_ci_a.id == curriculum_item_a.id
+      assert expected_ci_b.id == curriculum_item_b.id
+    end
+  end
 end

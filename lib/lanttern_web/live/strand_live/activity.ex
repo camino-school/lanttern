@@ -51,7 +51,7 @@ defmodule LantternWeb.StrandLive.Activity do
     # (during handle_params triggered by tab change for example)
 
     case LearningContext.get_activity(id,
-           preloads: [:strand, :subjects, curriculum_items: :curriculum_component]
+           preloads: [:strand, :subjects]
          ) do
       activity when is_nil(activity) ->
         socket
