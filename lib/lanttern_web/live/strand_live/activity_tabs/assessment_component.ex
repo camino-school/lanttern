@@ -40,19 +40,22 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
               to assess students
             </p>
           <% end %>
-          <div class="shrink-0 flex items-center gap-6 font-display text-sm">
-            <button
+          <div class="shrink-0 flex items-center gap-6">
+            <.collection_action
               :if={@assessment_points_count > 1}
               type="button"
               phx-click={JS.exec("data-show", to: "#activity-assessment-points-order-overlay")}
-              class="flex gap-2"
+              icon_name="hero-arrows-up-down"
             >
-              Reorder <.icon name="hero-arrows-up-down" class="w-6 h-6 text-ltrn-primary" />
-            </button>
-            <.link patch={~p"/strands/activity/#{@activity}/assessment_point/new"} class="flex gap-2">
+              Reorder
+            </.collection_action>
+            <.collection_action
+              type="link"
+              patch={~p"/strands/activity/#{@activity}/assessment_point/new"}
+              icon_name="hero-plus-circle"
+            >
               Create assessment point
-              <.icon name="hero-plus-circle" class="w-6 h-6 text-ltrn-primary" />
-            </.link>
+            </.collection_action>
           </div>
         </div>
         <%!-- if no assessment points, render empty state --%>

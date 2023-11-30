@@ -5,12 +5,9 @@
       I want to explore strands in<br />
       <span class="underline">all subjects and all years</span>
     </p>
-    <.link
-      class="shrink-0 flex items-center gap-2 font-display text-base underline hover:text-ltrn-primary"
-      patch={~p"/strands/new"}
-    >
-      Create new strand <.icon name="hero-plus-circle" class="w-6 h-6 text-ltrn-primary" />
-    </.link>
+    <.collection_action type="link" patch={~p"/strands/new"} icon_name="hero-plus-circle">
+      Create new strand
+    </.collection_action>
   </div>
   <div id="strands-list" phx-update="stream" class="grid grid-cols-3 gap-10 mt-12">
     <div

@@ -24,13 +24,13 @@
       </.link>
       filter views
     </h3>
-    <.link
-      type="button"
-      class="shrink-0 flex items-center gap-2 font-display text-base underline hover:text-ltrn-primary"
+    <.collection_action
+      type="link"
       patch={~p"/dashboard/filter_view/new"}
+      icon_name="hero-plus-circle"
     >
-      Create new view <.icon name="hero-plus-circle" class="w-6 h-6 text-ltrn-primary" />
-    </.link>
+      Create new view
+    </.collection_action>
   </div>
   <%= if @filter_view_count > 0 do %>
     <div
