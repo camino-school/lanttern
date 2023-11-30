@@ -1,4 +1,4 @@
-defmodule Lanttern.LearningContext.StrandCurriculumItem do
+defmodule Lanttern.Curricula.StrandCurriculumItem do
   use Ecto.Schema
   import Ecto.Changeset
 

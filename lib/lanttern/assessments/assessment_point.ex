@@ -24,6 +24,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     belongs_to :scale, Lanttern.Grading.Scale
     belongs_to :rubric, Lanttern.Rubrics.Rubric
 
+    has_many :activity_assessment_points, Lanttern.Assessments.ActivityAssessmentPoint
     has_many :entries, Lanttern.Assessments.AssessmentPointEntry
     has_many :feedbacks, Lanttern.Assessments.Feedback
 
@@ -84,6 +85,12 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       name: :assessment_points_rubric_id_fkey,
       message:
         "Error linking rubric. Check if it exists and uses the same scale used in the assessment point."
+    )
+    |> foreign_key_constraint(
+      :scale_id,
+      name: :assessment_point_entries_scale_id_fkey,
+      message:
+        "You may already have some entries for this assessment point. Changing the scale when entries exist is not allowed, as it would cause data loss."
     )
   end
 
@@ -186,4 +193,14 @@ defmodule Lanttern.Assessments.AssessmentPoint do
   end
 
   defp cast_entries(changeset), do: changeset
+
+  def delete_changeset(assessment) do
+    assessment
+    |> cast(%{}, [])
+    |> foreign_key_constraint(
+      :id,
+      name: :assessment_point_entries_assessment_point_id_fkey,
+      message: "This jfalskflsealfesal."
+    )
+  end
 end

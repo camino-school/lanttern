@@ -214,19 +214,13 @@ defmodule Lanttern.LearningContextTest do
 
     test "create_activity/1 with valid data creates a activity" do
       subject = subject_fixture()
-      curriculum_item_1 = curriculum_item_fixture()
-      curriculum_item_2 = curriculum_item_fixture()
 
       valid_attrs = %{
         name: "some name",
         position: 42,
         description: "some description",
         strand_id: strand_fixture().id,
-        subjects_ids: [subject.id],
-        curriculum_items: [
-          %{curriculum_item_id: curriculum_item_1.id},
-          %{curriculum_item_id: curriculum_item_2.id}
-        ]
+        subjects_ids: [subject.id]
       }
 
       assert {:ok, %Activity{} = activity} = LearningContext.create_activity(valid_attrs)
@@ -234,14 +228,6 @@ defmodule Lanttern.LearningContextTest do
       assert activity.position == 42
       assert activity.description == "some description"
       assert activity.subjects == [subject]
-
-      [expected_activity_curriculum_item_1, expected_activity_curriculum_item_2] =
-        activity.curriculum_items
-
-      assert expected_activity_curriculum_item_1.curriculum_item_id == curriculum_item_1.id
-      assert expected_activity_curriculum_item_1.position == 0
-      assert expected_activity_curriculum_item_2.curriculum_item_id == curriculum_item_2.id
-      assert expected_activity_curriculum_item_2.position == 1
     end
 
     test "create_activity/1 with invalid data returns error changeset" do

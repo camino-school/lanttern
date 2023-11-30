@@ -219,8 +219,10 @@ defmodule LantternWeb.AssessmentPointLive.ExplorerTest do
     end
 
     test "navigation to assessment point details", %{conn: conn} do
-      %{id: id, name: name} = assessment_point_fixture(%{name: "not any name"})
-      assessment_point_entry_fixture(%{assessment_point_id: id})
+      %{id: id, name: name, scale_id: scale_id} =
+        assessment_point_fixture(%{name: "not any name"})
+
+      assessment_point_entry_fixture(%{assessment_point_id: id, scale_id: scale_id})
 
       {:ok, view, _html} = live(conn, @live_view_path)
 

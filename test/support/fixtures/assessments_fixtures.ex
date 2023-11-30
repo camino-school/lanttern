@@ -4,23 +4,41 @@ defmodule Lanttern.AssessmentsFixtures do
   entities via the `Lanttern.Assessments` context.
   """
 
+  import Lanttern.GradingFixtures
+  import Lanttern.CurriculaFixtures
+
   @doc """
-  Generate a assessment point.
+  Generate an assessment point.
   """
   def assessment_point_fixture(attrs \\ %{}) do
-    scale = Lanttern.GradingFixtures.scale_fixture()
-    curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
-
     {:ok, assessment_point} =
       attrs
       |> Enum.into(%{
         name: "some name",
         datetime: ~U[2023-08-02 15:30:00Z],
         description: "some description",
-        scale_id: scale.id,
-        curriculum_item_id: curriculum_item.id
+        scale_id: maybe_gen_scale_id(attrs),
+        curriculum_item_id: maybe_gen_curriculum_item_id(attrs)
       })
       |> Lanttern.Assessments.create_assessment_point()
+
+    assessment_point
+  end
+
+  @doc """
+  Generate an activity assessment point.
+  """
+  def activity_assessment_point_fixture(activity_id, attrs \\ %{}) do
+    attrs =
+      attrs
+      |> Enum.into(%{
+        name: "some name",
+        scale_id: maybe_gen_scale_id(attrs),
+        curriculum_item_id: maybe_gen_curriculum_item_id(attrs)
+      })
+
+    {:ok, assessment_point} =
+      Lanttern.Assessments.create_activity_assessment_point(activity_id, attrs)
 
     assessment_point
   end
@@ -86,4 +104,18 @@ defmodule Lanttern.AssessmentsFixtures do
 
     feedback
   end
+
+  # helpers
+
+  defp maybe_gen_scale_id(%{scale_id: scale_id} = _attrs),
+    do: scale_id
+
+  defp maybe_gen_scale_id(_attrs),
+    do: scale_fixture().id
+
+  defp maybe_gen_curriculum_item_id(%{curriculum_item_id: curriculum_item_id} = _attrs),
+    do: curriculum_item_id
+
+  defp maybe_gen_curriculum_item_id(_attrs),
+    do: curriculum_item_fixture().id
 end

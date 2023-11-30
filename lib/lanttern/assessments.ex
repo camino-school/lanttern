@@ -8,9 +8,12 @@ defmodule Lanttern.Assessments do
   alias Lanttern.Repo
 
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Assessments.ActivityAssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.Feedback
   alias Lanttern.Conversation.Comment
+  alias Lanttern.LearningContext.Activity
+  alias Lanttern.Schools.Student
 
   @doc """
   Returns the list of assessment points.
@@ -49,7 +52,7 @@ defmodule Lanttern.Assessments do
   @doc """
   Gets a single assessment point.
 
-  Raises `Ecto.NoResultsError` if the AssessmentPoint does not exist.
+  Returns nil if the AssessmentPoint does not exist.
 
   ### Options:
 
@@ -63,6 +66,17 @@ defmodule Lanttern.Assessments do
       iex> get_assessment_point!(456)
       ** (Ecto.NoResultsError)
 
+  """
+  def get_assessment_point(id, opts \\ []) do
+    AssessmentPoint
+    |> Repo.get(id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single assessment point.
+
+  Same as `get_assessment_point/2`, but raises `Ecto.NoResultsError` if the AssessmentPoint does not exist.
   """
   def get_assessment_point!(id, opts \\ []) do
     AssessmentPoint
@@ -119,7 +133,34 @@ defmodule Lanttern.Assessments do
 
   """
   def delete_assessment_point(%AssessmentPoint{} = assessment_point) do
-    Repo.delete(assessment_point)
+    assessment_point
+    |> AssessmentPoint.delete_changeset()
+    |> Repo.delete()
+  end
+
+  @doc """
+  Deletes an assessment point and related entries.
+
+  ## Examples
+
+      iex> delete_assessment_point_and_entries(assessment_point)
+      {:ok, %AssessmentPoint{}}
+
+      iex> delete_assessment_point_and_entries(assessment_point)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_assessment_point_and_entries(%AssessmentPoint{} = assessment_point) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.delete_all(
+      :delete_entries,
+      from(
+        e in AssessmentPointEntry,
+        where: e.assessment_point_id == ^assessment_point.id
+      )
+    )
+    |> Ecto.Multi.delete(:delete_assessment_point, assessment_point)
+    |> Repo.transaction()
   end
 
   @doc """
@@ -222,7 +263,11 @@ defmodule Lanttern.Assessments do
   def get_assessment_point_entry!(id), do: Repo.get!(AssessmentPointEntry, id)
 
   @doc """
-  Creates a assessment_point_entry.
+  Creates an assessment_point_entry.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
 
   ## Examples
 
@@ -233,10 +278,11 @@ defmodule Lanttern.Assessments do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_assessment_point_entry(attrs \\ %{}) do
+  def create_assessment_point_entry(attrs \\ %{}, opts \\ []) do
     %AssessmentPointEntry{}
     |> AssessmentPointEntry.changeset(attrs)
     |> Repo.insert()
+    |> maybe_preload(opts)
   end
 
   @doc """
@@ -510,5 +556,170 @@ defmodule Lanttern.Assessments do
   """
   def change_feedback(%Feedback{} = feedback, attrs \\ %{}) do
     Feedback.changeset(feedback, attrs)
+  end
+
+  @doc """
+  Returns the list of activity assessment points, ordered by its position.
+
+  ## Examples
+
+      iex> list_activity_assessment_points(1)
+      [%AssessmentPoint{}, ...]
+
+  """
+  def list_activity_assessment_points(activity_id) do
+    from(
+      ap in AssessmentPoint,
+      join: aap in ActivityAssessmentPoint,
+      on: aap.assessment_point_id == ap.id,
+      join: a in Activity,
+      on: a.id == aap.activity_id,
+      where: a.id == ^activity_id,
+      order_by: aap.position
+    )
+    |> Repo.all()
+    |> Repo.preload(scale: :ordinal_values)
+  end
+
+  @doc """
+  Returns the list of the assessment point entries for every student in the given activity.
+
+  Entries are ordered by `ActivityAssessmentPoint` position,
+  which is the same order used by `list_activity_assessment_points/1`.
+
+  ## Options:
+
+      - `:classes_ids` – filter entries by classes
+  """
+
+  @spec list_activity_students_entries(integer(), Keyword.t()) :: [
+          {Student.t(), [AssessmentPointEntry.t()]}
+        ]
+
+  def list_activity_students_entries(activity_id, opts \\ []) do
+    students_query =
+      case Keyword.get(opts, :classes_ids) do
+        nil ->
+          from(s in Student)
+
+        classes_ids ->
+          from(
+            s in Student,
+            join: c in assoc(s, :classes),
+            where: c.id in ^classes_ids
+          )
+      end
+
+    results =
+      from(
+        ap in AssessmentPoint,
+        join: aap in assoc(ap, :activity_assessment_points),
+        join: s in subquery(students_query),
+        on: true,
+        left_join: e in AssessmentPointEntry,
+        on: e.student_id == s.id and e.assessment_point_id == ap.id,
+        where: aap.activity_id == ^activity_id,
+        order_by: [s.name, aap.position],
+        select: {s, e}
+      )
+      |> Repo.all()
+
+    grouped_entries =
+      results
+      |> Enum.group_by(fn {s, _e} -> s.id end)
+      |> Enum.map(fn {s_id, list} ->
+        {
+          s_id,
+          list |> Enum.map(fn {_s, e} -> e end)
+        }
+      end)
+      |> Enum.into(%{})
+
+    results
+    |> Enum.map(fn {s, _} -> s end)
+    |> Enum.uniq()
+    |> Enum.map(&{&1, grouped_entries[&1.id]})
+  end
+
+  @doc """
+  Creates an activity assessment point.
+
+  ## Examples
+
+      iex> create_activity_assessment_point(activity_id, %{field: value})
+      {:ok, %AssessmentPoint{}}
+
+      iex> create_activity_assessment_point(activity_id, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_activity_assessment_point(activity_id, attrs \\ %{}) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(
+      :insert_assessment_point,
+      %AssessmentPoint{}
+      |> AssessmentPoint.changeset(attrs)
+    )
+    |> Ecto.Multi.run(
+      :link_activity,
+      fn _repo, %{insert_assessment_point: assessment_point} ->
+        position =
+          from(aap in ActivityAssessmentPoint,
+            where: aap.activity_id == ^activity_id,
+            select: count()
+          )
+          |> Repo.one()
+
+        %ActivityAssessmentPoint{}
+        |> ActivityAssessmentPoint.changeset(%{
+          assessment_point_id: assessment_point.id,
+          activity_id: activity_id,
+          position: position
+        })
+        |> Repo.insert()
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:error, _multi, changeset, _changes} -> {:error, changeset}
+      {:ok, %{insert_assessment_point: assessment_point}} -> {:ok, assessment_point}
+    end
+  end
+
+  @doc """
+  Update activity assessment points positions based on ids list order.
+
+  ## Examples
+
+      iex> update_activity_assessment_points_positions(activity_id, [3, 2, 1])
+      {:ok, [%AssessmentPoint{}, ...]}
+
+  """
+  def update_activity_assessment_points_positions(activity_id, assessment_points_ids) do
+    assessment_points_ids
+    |> Enum.with_index()
+    |> Enum.reduce(
+      Ecto.Multi.new(),
+      fn {id, i}, multi ->
+        multi
+        |> Ecto.Multi.update_all(
+          "update-#{id}",
+          from(
+            aap in ActivityAssessmentPoint,
+            where: aap.assessment_point_id == ^id,
+            where: aap.activity_id == ^activity_id
+          ),
+          set: [position: i]
+        )
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:ok, _} ->
+        {:ok, list_activity_assessment_points(activity_id)}
+
+      _ ->
+        {:error, "Something went wrong"}
+    end
   end
 end

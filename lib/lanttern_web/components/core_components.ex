@@ -180,6 +180,34 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Renders an icon button.
+
+  ## Examples
+
+      <.icon_button name="hero-x-mark" />
+  """
+  attr :type, :string, default: nil
+  attr :class, :any, default: nil
+  attr :theme, :string, default: "default", doc: "default | ghost"
+  attr :name, :string, required: true
+  attr :rest, :global, include: ~w(disabled form name value)
+
+  def icon_button(assigns) do
+    ~H"""
+    <button
+      type={@type}
+      class={[
+        get_button_styles(@theme),
+        @class
+      ]}
+      {@rest}
+    >
+      <.icon name={@name} class="w-5 h-5" />
+    </button>
+    """
+  end
+
+  @doc """
   Returns a list of button styles.
 
   Meant to be used while styling links as buttons.
@@ -199,7 +227,10 @@ defmodule LantternWeb.CoreComponents do
   defp button_theme(theme) do
     %{
       "default" => "bg-ltrn-primary hover:bg-cyan-300 shadow-sm",
-      "ghost" => "text-ltrn-subtle bg-transparent hover:bg-slate-100"
+      "ghost" => [
+        "text-ltrn-subtle bg-transparent hover:bg-slate-100",
+        "disabled:text-ltrn-lighter disabled"
+      ]
     }
     |> Map.get(theme, "bg-ltrn-primary hover:bg-cyan-300")
   end
@@ -741,7 +772,8 @@ defmodule LantternWeb.CoreComponents do
   def icon_with_name(assigns) do
     ~H"""
     <div class={["flex gap-2 items-center text-sm", @class]}>
-      <.profile_icon profile_name={@profile_name} /> <%= @profile_name %>
+      <.profile_icon profile_name={@profile_name} />
+      <span class="line-clamp-2"><%= @profile_name %></span>
     </div>
     """
   end

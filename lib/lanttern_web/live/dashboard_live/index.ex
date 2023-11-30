@@ -4,8 +4,8 @@ defmodule LantternWeb.DashboardLive.Index do
   """
 
   use LantternWeb, :live_view
-  alias Lanttern.Explorer
-  alias Lanttern.Explorer.AssessmentPointsFilterView
+  alias Lanttern.Personalization
+  alias Lanttern.Personalization.ProfileView
 
   # view components
 
@@ -91,7 +91,7 @@ defmodule LantternWeb.DashboardLive.Index do
     profile_id = socket.assigns.current_user.current_profile_id
 
     filter_views =
-      Explorer.list_assessment_points_filter_views(
+      Personalization.list_profile_views(
         profile_id: profile_id,
         preloads: [:subjects, :classes]
       )
@@ -117,14 +117,14 @@ defmodule LantternWeb.DashboardLive.Index do
     |> assign(:filter_view_overlay_title, "Edit assessment points filter view")
     |> assign(
       :filter_view,
-      Explorer.get_assessment_points_filter_view!(id, preloads: [:subjects, :classes])
+      Personalization.get_profile_view!(id, preloads: [:subjects, :classes])
     )
   end
 
   defp apply_action(socket, :new_filter_view, _params) do
     socket
     |> assign(:filter_view_overlay_title, "Create assessment points filter view")
-    |> assign(:filter_view, %AssessmentPointsFilterView{
+    |> assign(:filter_view, %ProfileView{
       profile_id: socket.assigns.current_user.current_profile_id,
       classes: [],
       subjects: []
@@ -136,13 +136,13 @@ defmodule LantternWeb.DashboardLive.Index do
   # event handlers
 
   def handle_event("delete_filter_view", %{"id" => filter_view_id} = _params, socket) do
-    assessment_points_filter_view = Explorer.get_assessment_points_filter_view!(filter_view_id)
+    profile_view = Personalization.get_profile_view!(filter_view_id)
 
-    case Explorer.delete_assessment_points_filter_view(assessment_points_filter_view) do
+    case Personalization.delete_profile_view(profile_view) do
       {:ok, _} ->
         socket =
           socket
-          |> stream_delete(:filter_views, assessment_points_filter_view)
+          |> stream_delete(:filter_views, profile_view)
           |> update(:filter_view_count, fn count -> count - 1 end)
 
         {:noreply, socket}
@@ -170,7 +170,7 @@ defmodule LantternWeb.DashboardLive.Index do
     socket =
       socket
       |> stream_insert(:filter_views, filter_view)
-      |> put_flash(:info, "Assessment points filter view created.")
+      |> put_flash(:info, "Profile view created.")
       |> update(:filter_view_count, fn count -> count + 1 end)
       |> push_patch(to: ~p"/dashboard")
 
@@ -184,7 +184,7 @@ defmodule LantternWeb.DashboardLive.Index do
     socket =
       socket
       |> stream_insert(:filter_views, filter_view)
-      |> put_flash(:info, "Assessment points filter view updated.")
+      |> put_flash(:info, "Profile view updated.")
       |> push_patch(to: ~p"/dashboard")
 
     {:noreply, socket}

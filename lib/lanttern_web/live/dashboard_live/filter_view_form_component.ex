@@ -1,14 +1,14 @@
 defmodule LantternWeb.DashboardLive.FilterViewFormComponent do
   @moduledoc """
-  Assessment points filter view form component.
+  Profile view form component.
 
   This form is used inside a `<.slide_over>` component,
   where the "submit" button is rendered.
   """
 
   use LantternWeb, :live_component
-  alias Lanttern.Explorer
-  alias Lanttern.Explorer.AssessmentPointsFilterView
+  alias Lanttern.Personalization
+  alias Lanttern.Personalization.ProfileView
 
   def render(assigns) do
     ~H"""
@@ -75,7 +75,7 @@ defmodule LantternWeb.DashboardLive.FilterViewFormComponent do
       filter_view
       |> Map.put(:classes_ids, Enum.map(filter_view.classes, &"#{&1.id}"))
       |> Map.put(:subjects_ids, Enum.map(filter_view.subjects, &"#{&1.id}"))
-      |> Explorer.change_assessment_points_filter_view()
+      |> Personalization.change_profile_view()
 
     socket =
       socket
@@ -91,23 +91,23 @@ defmodule LantternWeb.DashboardLive.FilterViewFormComponent do
 
   # event handlers
 
-  def handle_event("validate", %{"assessment_points_filter_view" => params}, socket) do
+  def handle_event("validate", %{"profile_view" => params}, socket) do
     form =
-      %AssessmentPointsFilterView{}
-      |> Explorer.change_assessment_points_filter_view(params)
+      %ProfileView{}
+      |> Personalization.change_profile_view(params)
       |> Map.put(:action, :validate)
       |> to_form()
 
     {:noreply, assign(socket, form: form)}
   end
 
-  def handle_event("save", %{"assessment_points_filter_view" => params}, socket),
+  def handle_event("save", %{"profile_view" => params}, socket),
     do: save_filter_view(socket, socket.assigns.action, params)
 
   defp save_filter_view(socket, :new_filter_view, params) do
-    case Explorer.create_assessment_points_filter_view(params) do
-      {:ok, assessment_points_filter_view} ->
-        notify_parent({:created, assessment_points_filter_view})
+    case Personalization.create_profile_view(params) do
+      {:ok, profile_view} ->
+        notify_parent({:created, profile_view})
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -122,9 +122,9 @@ defmodule LantternWeb.DashboardLive.FilterViewFormComponent do
       |> Map.put_new("classes_ids", [])
       |> Map.put_new("subjects_ids", [])
 
-    case Explorer.update_assessment_points_filter_view(socket.assigns.filter_view, params) do
-      {:ok, assessment_points_filter_view} ->
-        notify_parent({:updated, assessment_points_filter_view})
+    case Personalization.update_profile_view(socket.assigns.filter_view, params) do
+      {:ok, profile_view} ->
+        notify_parent({:updated, profile_view})
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->

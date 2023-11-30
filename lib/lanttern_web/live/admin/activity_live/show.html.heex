@@ -20,7 +20,7 @@
   </:item>
   <:item title="Curriculum items">
     <%= @activity.curriculum_items
-    |> Enum.map(& &1.curriculum_item.name)
+    |> Enum.map(& &1.name)
     |> Enum.join(", ") %>
   </:item>
 </.list>

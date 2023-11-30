@@ -47,7 +47,7 @@ defmodule LantternWeb.SchoolLive.Show do
           socket.assigns.current_user.current_profile.teacher.school
       end
 
-    classes = Schools.list_user_classes(socket.assigns.current_user)
+    classes = Schools.list_user_classes(socket.assigns.current_user, preload: true)
 
     {:ok,
      socket

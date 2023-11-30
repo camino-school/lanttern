@@ -1,7 +1,7 @@
-defmodule LantternWeb.Admin.AssessmentPointsFilterViewLive.FormComponent do
+defmodule LantternWeb.Admin.ProfileViewLive.FormComponent do
   use LantternWeb, :live_component
 
-  alias Lanttern.Explorer
+  alias Lanttern.Personalization
   import LantternWeb.IdentityHelpers
   import LantternWeb.SchoolsHelpers
   import LantternWeb.TaxonomyHelpers
@@ -13,13 +13,13 @@ defmodule LantternWeb.Admin.AssessmentPointsFilterViewLive.FormComponent do
       <.header>
         <%= @title %>
         <:subtitle>
-          Use this form to manage assessment_points_filter_view records in your database.
+          Use this form to manage profile_view records in your database.
         </:subtitle>
       </.header>
 
       <.simple_form
         for={@form}
-        id="assessment_points_filter_view-form"
+        id="profile_view-form"
         phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
@@ -49,7 +49,7 @@ defmodule LantternWeb.Admin.AssessmentPointsFilterViewLive.FormComponent do
           multiple
         />
         <:actions>
-          <.button phx-disable-with="Saving...">Save Assessment points filter view</.button>
+          <.button phx-disable-with="Saving...">Save Profile view</.button>
         </:actions>
       </.simple_form>
     </div>
@@ -57,22 +57,22 @@ defmodule LantternWeb.Admin.AssessmentPointsFilterViewLive.FormComponent do
   end
 
   @impl true
-  def update(%{assessment_points_filter_view: assessment_points_filter_view} = assigns, socket) do
+  def update(%{profile_view: profile_view} = assigns, socket) do
     subjects_ids =
-      case assessment_points_filter_view.subjects do
+      case profile_view.subjects do
         subjects when is_list(subjects) -> subjects |> Enum.map(& &1.id)
         _ -> []
       end
 
     classes_ids =
-      case assessment_points_filter_view.classes do
+      case profile_view.classes do
         classes when is_list(classes) -> classes |> Enum.map(& &1.id)
         _ -> []
       end
 
     changeset =
-      assessment_points_filter_view
-      |> Explorer.change_assessment_points_filter_view()
+      profile_view
+      |> Personalization.change_profile_view()
       |> Ecto.Changeset.cast(%{subjects_ids: subjects_ids, classes_ids: classes_ids}, [
         :subjects_ids,
         :classes_ids
@@ -94,12 +94,12 @@ defmodule LantternWeb.Admin.AssessmentPointsFilterViewLive.FormComponent do
   @impl true
   def handle_event(
         "validate",
-        %{"assessment_points_filter_view" => assessment_points_filter_view_params},
+        %{"profile_view" => profile_view_params},
         socket
       ) do
     changeset =
-      socket.assigns.assessment_points_filter_view
-      |> Explorer.change_assessment_points_filter_view(assessment_points_filter_view_params)
+      socket.assigns.profile_view
+      |> Personalization.change_profile_view(profile_view_params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}
@@ -107,27 +107,27 @@ defmodule LantternWeb.Admin.AssessmentPointsFilterViewLive.FormComponent do
 
   def handle_event(
         "save",
-        %{"assessment_points_filter_view" => assessment_points_filter_view_params},
+        %{"profile_view" => profile_view_params},
         socket
       ) do
-    save_assessment_points_filter_view(
+    save_profile_view(
       socket,
       socket.assigns.action,
-      assessment_points_filter_view_params
+      profile_view_params
     )
   end
 
-  defp save_assessment_points_filter_view(socket, :edit, assessment_points_filter_view_params) do
-    case Explorer.update_assessment_points_filter_view(
-           socket.assigns.assessment_points_filter_view,
-           assessment_points_filter_view_params
+  defp save_profile_view(socket, :edit, profile_view_params) do
+    case Personalization.update_profile_view(
+           socket.assigns.profile_view,
+           profile_view_params
          ) do
-      {:ok, assessment_points_filter_view} ->
-        notify_parent({:saved, assessment_points_filter_view})
+      {:ok, profile_view} ->
+        notify_parent({:saved, profile_view})
 
         {:noreply,
          socket
-         |> put_flash(:info, "Assessment points filter view updated successfully")
+         |> put_flash(:info, "Profile view updated successfully")
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -135,14 +135,14 @@ defmodule LantternWeb.Admin.AssessmentPointsFilterViewLive.FormComponent do
     end
   end
 
-  defp save_assessment_points_filter_view(socket, :new, assessment_points_filter_view_params) do
-    case Explorer.create_assessment_points_filter_view(assessment_points_filter_view_params) do
-      {:ok, assessment_points_filter_view} ->
-        notify_parent({:saved, assessment_points_filter_view})
+  defp save_profile_view(socket, :new, profile_view_params) do
+    case Personalization.create_profile_view(profile_view_params) do
+      {:ok, profile_view} ->
+        notify_parent({:saved, profile_view})
 
         {:noreply,
          socket
-         |> put_flash(:info, "Assessment points filter view created successfully")
+         |> put_flash(:info, "Profile view created successfully")
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->

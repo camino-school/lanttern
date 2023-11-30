@@ -14,7 +14,7 @@ defmodule LantternWeb.Admin.ActivityLive.Index do
          preloads: [
            :strand,
            :subjects,
-           curriculum_items: [curriculum_item: :curriculum_component]
+           curriculum_items: :curriculum_component
          ]
        )
      )}
@@ -31,7 +31,7 @@ defmodule LantternWeb.Admin.ActivityLive.Index do
     |> assign(
       :activity,
       LearningContext.get_activity!(id,
-        preloads: [:subjects, curriculum_items: [curriculum_item: :curriculum_component]]
+        preloads: [:subjects, curriculum_items: :curriculum_component]
       )
     )
   end

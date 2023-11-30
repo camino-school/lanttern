@@ -12,7 +12,7 @@
   <div class="flex items-center gap-2 mb-4">
     <.icon name="hero-arrow-left" class="w-6 h-6" />
     <.link
-      navigate={~p"/strands/#{@activity.strand}"}
+      navigate={~p"/strands/#{@activity.strand}?tab=activities"}
       class="font-display font-black text-lg underline"
     >
       <%= @activity.strand.name %>
@@ -23,22 +23,22 @@
     <.badge :for={subject <- @activity.subjects} theme="dark"><%= subject.name %></.badge>
   </div>
 </.cover>
-<div class="sticky top-0 border-b border-ltrn-lighter bg-white">
+<div class="sticky top-0 z-30 border-b border-ltrn-lighter bg-white">
   <.nav_tabs class="container mx-auto lg:max-w-5xl" id="activity-nav-tabs">
     <:tab
-      patch={~p"/strands/activity/#{@activity.id}?#{%{tab: "details"}}"}
+      patch={~p"/strands/activity/#{@activity}?#{%{tab: "details"}}"}
       is_current={@current_tab == :details && "true"}
     >
       Details & Curriculum
     </:tab>
     <:tab
-      patch={~p"/strands/activity/#{@activity.id}?#{%{tab: "assessment"}}"}
+      patch={~p"/strands/activity/#{@activity}?#{%{tab: "assessment"}}"}
       is_current={@current_tab == :assessment && "true"}
     >
       Assessment
     </:tab>
     <:tab
-      patch={~p"/strands/activity/#{@activity.id}?#{%{tab: "notes"}}"}
+      patch={~p"/strands/activity/#{@activity}?#{%{tab: "notes"}}"}
       is_current={@current_tab == :notes && "true"}
       icon_name="hero-eye-slash"
     >
@@ -49,19 +49,23 @@
 <div class="ltrn-bg-main-local">
   <.live_component
     :if={@current_tab == :details}
-    module={ActivityTabs.Details}
+    module={ActivityTabs.DetailsComponent}
     id="activity-details-details"
     activity={@activity}
   />
   <.live_component
     :if={@current_tab == :assessment}
-    module={ActivityTabs.Assessment}
+    module={ActivityTabs.AssessmentComponent}
     id="activity-details-assessment"
     activity={@activity}
+    live_action={@live_action}
+    assessment_point_id={@assessment_point_id}
+    params={@params}
+    current_user={@current_user}
   />
   <.live_component
     :if={@current_tab == :notes}
-    module={ActivityTabs.Notes}
+    module={ActivityTabs.NotesComponent}
     id="activity-details-notes"
     activity={@activity}
     current_user={@current_user}

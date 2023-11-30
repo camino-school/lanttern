@@ -1,4 +1,4 @@
-defmodule LantternWeb.StrandLive.ActivityTabs.Notes do
+defmodule LantternWeb.StrandLive.DetailsTabs.NotesComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Personalization
@@ -9,7 +9,7 @@ defmodule LantternWeb.StrandLive.ActivityTabs.Notes do
     ~H"""
     <div class="container py-10 mx-auto lg:max-w-5xl">
       <%= if @is_editing do %>
-        <.form for={@form} phx-submit="save" phx-target={@myself} id="activity-note-form">
+        <.form for={@form} phx-submit="save" phx-target={@myself} id="strand-note-form">
           <.markdown_supported class="mb-6" />
           <.textarea_with_actions
             id={@form[:description].id}
@@ -44,14 +44,14 @@ defmodule LantternWeb.StrandLive.ActivityTabs.Notes do
       <% else %>
         <%= if @note do %>
           <div class="flex items-center justify-between mb-10">
-            <h3 class="font-display font-bold text-xl">My activity notes (visible only to you)</h3>
+            <h3 class="font-display font-bold text-xl">My strand notes (visible only to you)</h3>
             <.button type="button" theme="ghost" phx-click="edit" phx-target={@myself}>
               Edit
             </.button>
           </div>
           <.markdown text={@note.description} />
         <% else %>
-          <.empty_state>You don't have any notes for this activity yet</.empty_state>
+          <.empty_state>You don't have any notes for this strand yet</.empty_state>
           <div class="mt-6 text-center">
             <button
               type="button"
@@ -59,8 +59,23 @@ defmodule LantternWeb.StrandLive.ActivityTabs.Notes do
               phx-click="edit"
               phx-target={@myself}
             >
-              Add an activity note
+              Add a strand note
             </button>
+          </div>
+        <% end %>
+        <%= if length(@activities_notes) > 0 do %>
+          <h4 class="mt-10 font-display font-bold text-lg">Other notes in this strand</h4>
+          <div :for={note <- @activities_notes} class="mt-6">
+            <.link
+              navigate={~p"/strands/activity/#{note.activity.id}?tab=notes"}
+              class="font-display text-base"
+            >
+              <%= "Activity #{note.activity.position}:" %>
+              <span class="underline"><%= note.activity.name %></span>
+            </.link>
+            <div class="mt-4 line-clamp-4">
+              <.markdown text={note.description} class="prose-sm" />
+            </div>
           </div>
         <% end %>
       <% end %>
@@ -76,9 +91,12 @@ defmodule LantternWeb.StrandLive.ActivityTabs.Notes do
   end
 
   @impl true
-  def update(%{current_user: user, activity: activity} = assigns, socket) do
+  def update(%{current_user: user, strand: strand} = assigns, socket) do
     note =
-      Personalization.get_user_note(user, activity_id: activity.id)
+      Personalization.get_user_note(user, strand_id: strand.id)
+
+    activities_notes =
+      Personalization.list_user_notes(user, strand_id: strand.id)
 
     form =
       case note do
@@ -91,6 +109,7 @@ defmodule LantternWeb.StrandLive.ActivityTabs.Notes do
      socket
      |> assign(assigns)
      |> assign(:note, note)
+     |> assign(:activities_notes, activities_notes)
      |> assign(:form, form)}
   end
 
@@ -143,9 +162,9 @@ defmodule LantternWeb.StrandLive.ActivityTabs.Notes do
   # helpers
 
   defp save_note(nil, params, socket) do
-    Personalization.create_activity_note(
+    Personalization.create_strand_note(
       socket.assigns.current_user,
-      socket.assigns.activity.id,
+      socket.assigns.strand.id,
       params
     )
   end
