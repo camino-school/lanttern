@@ -40,5 +40,43 @@ defmodule LantternWeb.StrandLive.ListTest do
 
       assert_redirect(view, "#{@live_view_path}/#{strand.id}")
     end
+
+    test "create strand", %{conn: conn} do
+      subject = TaxonomyFixtures.subject_fixture(%{name: "subject abc"})
+      year = TaxonomyFixtures.year_fixture(%{name: "year abc"})
+
+      {:ok, view, _html} = live(conn, @live_view_path)
+
+      # open create strand overlay
+      view |> element("a", "Create new strand") |> render_click()
+      assert_patch(view, "/strands/new")
+      assert view |> has_element?("h2", "New strand")
+
+      # add subject
+      view
+      |> element("#strand-form #strand_subject_id")
+      |> render_change(%{"strand" => %{"subject_id" => subject.id}})
+
+      # add year
+      view
+      |> element("#strand-form #strand_year_id")
+      |> render_change(%{"strand" => %{"year_id" => year.id}})
+
+      # submit form with valid field
+      view
+      |> element("#strand-form")
+      |> render_submit(%{
+        "strand" => %{
+          "name" => "strand name abc",
+          "description" => "description abc"
+        }
+      })
+
+      assert_patch(view, "/strands")
+
+      assert view |> has_element?("a", "strand name abc")
+      assert view |> has_element?("span", subject.name)
+      assert view |> has_element?("span", year.name)
+    end
   end
 end
