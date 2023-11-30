@@ -5,9 +5,12 @@
       I want to explore strands in<br />
       <span class="underline">all subjects and all years</span>
     </p>
-    <p class="shrink-0 flex items-center gap-2 font-display text-base underline hover:text-ltrn-primary">
+    <.link
+      class="shrink-0 flex items-center gap-2 font-display text-base underline hover:text-ltrn-primary"
+      patch={~p"/strands/new"}
+    >
       Create new strand <.icon name="hero-plus-circle" class="w-6 h-6 text-ltrn-primary" />
-    </p>
+    </.link>
   </div>
   <div id="strands-list" phx-update="stream" class="grid grid-cols-3 gap-10 mt-12">
     <div
@@ -36,4 +39,32 @@
       </div>
     </div>
   </div>
+  <.slide_over
+    :if={@live_action in [:new, :edit]}
+    id="strand-form-overlay"
+    show={true}
+    on_cancel={JS.patch(~p"/strands")}
+  >
+    <:title>New strand</:title>
+    <.live_component
+      module={StrandFormComponent}
+      id={:new}
+      strand={%Strand{curriculum_items: [], subjects: [], years: []}}
+      action={:new}
+      patch={~p"/strands"}
+      notify_parent
+    />
+    <:actions>
+      <.button
+        type="button"
+        theme="ghost"
+        phx-click={JS.exec("data-cancel", to: "#strand-form-overlay")}
+      >
+        Cancel
+      </.button>
+      <.button type="submit" form="strand-form">
+        Save
+      </.button>
+    </:actions>
+  </.slide_over>
 </div>

@@ -45,7 +45,7 @@ defmodule LantternWeb.Admin.StrandLive.Index do
   end
 
   @impl true
-  def handle_info({LantternWeb.Admin.StrandLive.FormComponent, {:saved, strand}}, socket) do
+  def handle_info({LantternWeb.StrandLive.StrandFormComponent, {:saved, strand}}, socket) do
     {:noreply, stream_insert(socket, :strands, strand)}
   end
 

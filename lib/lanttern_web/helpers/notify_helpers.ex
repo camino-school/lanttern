@@ -1,4 +1,4 @@
-defmodule LantternWeb.Helpers.NotifyHelpers do
+defmodule LantternWeb.NotifyHelpers do
   def notify_parent(module, msg, %{notify_parent: true}),
     do: send(self(), {module, msg})
 

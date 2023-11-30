@@ -6,23 +6,17 @@ defmodule LantternWeb.Admin.StrandLiveTest do
 
   @create_attrs %{
     name: "some name",
-    description: "some description",
-    subjects_ids: [],
-    years_ids: []
+    description: "some description"
   }
 
   @update_attrs %{
     name: "some updated name",
-    description: "some updated description",
-    subjects_ids: [],
-    years_ids: []
+    description: "some updated description"
   }
 
   @invalid_attrs %{
     name: nil,
-    description: nil,
-    subjects_ids: [],
-    years_ids: []
+    description: nil
   }
 
   defp create_strand(_) do

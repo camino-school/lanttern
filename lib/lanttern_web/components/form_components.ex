@@ -158,6 +158,7 @@ defmodule LantternWeb.FormComponents do
     ~H"""
     <div phx-feedback-for={@name} class={@class}>
       <.label
+        :if={@label || @custom_label != []}
         for={@id}
         show_optional={@show_optional}
         custom={if @custom_label == [], do: false, else: true}
@@ -201,6 +202,7 @@ defmodule LantternWeb.FormComponents do
     ~H"""
     <div phx-feedback-for={@name} class={@class}>
       <.label
+        :if={@label || @custom_label != []}
         for={@id}
         show_optional={@show_optional}
         custom={if @custom_label == [], do: false, else: true}
@@ -218,6 +220,7 @@ defmodule LantternWeb.FormComponents do
     ~H"""
     <div phx-feedback-for={@name} class={@class}>
       <.label
+        :if={@label || @custom_label != []}
         for={@id}
         show_optional={@show_optional}
         custom={if @custom_label == [], do: false, else: true}
