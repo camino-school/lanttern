@@ -5,9 +5,10 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Schools
 
+  # shared components
   alias LantternWeb.AssessmentPointLive.ActivityAssessmentPointFormComponent
   alias LantternWeb.AssessmentPointLive.EntryEditorComponent
-  alias LantternWeb.SchoolLive.ClassFilterFormComponent
+  alias LantternWeb.Schools.ClassFilterFormComponent
 
   @impl true
   def render(assigns) do

@@ -1,4 +1,4 @@
-defmodule LantternWeb.SchoolLive.Student do
+defmodule LantternWeb.StudentLive do
   use LantternWeb, :live_view
 
   alias Lanttern.Schools

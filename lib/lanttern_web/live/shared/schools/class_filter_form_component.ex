@@ -1,4 +1,4 @@
-defmodule LantternWeb.SchoolLive.ClassFilterFormComponent do
+defmodule LantternWeb.Schools.ClassFilterFormComponent do
   @moduledoc """
   Class filter form component.
 

@@ -1,4 +1,4 @@
-defmodule LantternWeb.SchoolLive.StudentTest do
+defmodule LantternWeb.StudentLiveTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.SchoolsFixtures
