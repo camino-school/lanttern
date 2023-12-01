@@ -1,4 +1,4 @@
-defmodule LantternWeb.DashboardLive.Index do
+defmodule LantternWeb.DashboardLive do
   @moduledoc """
   Dashboard live view
   """
@@ -7,7 +7,8 @@ defmodule LantternWeb.DashboardLive.Index do
   alias Lanttern.Personalization
   alias Lanttern.Personalization.ProfileView
 
-  # view components
+  # shared components
+  alias LantternWeb.Personalization.ProfileViewFormComponent
 
   attr :id, :string, required: true
   attr :filter_view, :map, required: true
@@ -164,7 +165,7 @@ defmodule LantternWeb.DashboardLive.Index do
   # info handlers
 
   def handle_info(
-        {LantternWeb.DashboardLive.FilterViewFormComponent, {:created, filter_view}},
+        {ProfileViewFormComponent, {:created, filter_view}},
         socket
       ) do
     socket =
@@ -178,7 +179,7 @@ defmodule LantternWeb.DashboardLive.Index do
   end
 
   def handle_info(
-        {LantternWeb.DashboardLive.FilterViewFormComponent, {:updated, filter_view}},
+        {ProfileViewFormComponent, {:updated, filter_view}},
         socket
       ) do
     socket =

@@ -1,4 +1,4 @@
-defmodule LantternWeb.DashboardLive.FilterViewFormComponent do
+defmodule LantternWeb.Personalization.ProfileViewFormComponent do
   @moduledoc """
   Profile view form component.
 
