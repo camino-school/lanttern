@@ -123,8 +123,8 @@ defmodule LantternWeb.Router do
     resources "/students", StudentController
     resources "/teachers", TeacherController
 
-    live "/import_students", Admin.SchoolLive.ImportStudents
-    live "/import_teachers", Admin.SchoolLive.ImportTeachers
+    live "/import_students", Admin.ImportStudentsLive
+    live "/import_teachers", Admin.ImportTeachersLive
 
     live "/school_cycles", Admin.CycleLive.Index, :index
     live "/school_cycles/new", Admin.CycleLive.Index, :new

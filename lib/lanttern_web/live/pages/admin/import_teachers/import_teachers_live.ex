@@ -1,4 +1,4 @@
-defmodule LantternWeb.Admin.SchoolLive.ImportTeachers do
+defmodule LantternWeb.Admin.ImportTeachersLive do
   use LantternWeb, {:live_view, layout: :admin}
 
   alias NimbleCSV.RFC4180, as: CSV
