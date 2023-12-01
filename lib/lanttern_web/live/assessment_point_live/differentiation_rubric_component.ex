@@ -4,8 +4,10 @@ defmodule LantternWeb.AssessmentPointLive.DifferentiationRubricComponent do
   alias Lanttern.Assessments
   alias Lanttern.Rubrics
   alias Lanttern.Rubrics.Rubric
-  alias LantternWeb.RubricsLive.FormComponent, as: RubricsFormComponent
-  alias LantternWeb.RubricsLive.RubricSearchInputComponent
+
+  # shared components
+  alias LantternWeb.Rubrics.RubricFormComponent
+  alias LantternWeb.Rubrics.RubricSearchInputComponent
 
   def render(assigns) do
     ~H"""
@@ -35,7 +37,7 @@ defmodule LantternWeb.AssessmentPointLive.DifferentiationRubricComponent do
           Create new differentiation rubric
         </h4>
         <.live_component
-          module={RubricsFormComponent}
+          module={RubricFormComponent}
           id={"entry-#{@entry.id}"}
           action={:new}
           rubric={
@@ -122,7 +124,7 @@ defmodule LantternWeb.AssessmentPointLive.DifferentiationRubricComponent do
   def update(%{action: {RubricSearchInputComponent, {:selected, rubric_id}}}, socket),
     do: {:ok, link_rubric_to_entry_and_notify(socket, rubric_id)}
 
-  def update(%{action: {RubricsFormComponent, {:created, rubric}}}, socket) do
+  def update(%{action: {RubricFormComponent, {:created, rubric}}}, socket) do
     {:ok,
      socket
      |> link_rubric_to_entry_and_notify(rubric.id)

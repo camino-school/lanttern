@@ -1,4 +1,4 @@
-defmodule LantternWeb.RubricsLive.FormComponent do
+defmodule LantternWeb.Rubrics.RubricFormComponent do
   @doc """
   Rubrics form component.
 

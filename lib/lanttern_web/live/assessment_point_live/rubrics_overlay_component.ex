@@ -4,9 +4,11 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
   alias Lanttern.Assessments
   alias Lanttern.Rubrics
   alias Lanttern.Rubrics.Rubric
-  alias LantternWeb.RubricsLive.FormComponent, as: RubricsFormComponent
   alias LantternWeb.AssessmentPointLive.DifferentiationRubricComponent
-  alias LantternWeb.RubricsLive.RubricSearchInputComponent
+
+  # shared components
+  alias LantternWeb.Rubrics.RubricFormComponent
+  alias LantternWeb.Rubrics.RubricSearchInputComponent
 
   def render(assigns) do
     ~H"""
@@ -37,7 +39,7 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
         <%= if @is_creating_rubric do %>
           <h4 class="-mb-2 font-display font-black text-xl text-ltrn-subtle">Create new rubric</h4>
           <.live_component
-            module={RubricsFormComponent}
+            module={RubricFormComponent}
             id={:new}
             action={:new}
             rubric={
@@ -140,7 +142,7 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
   def update(%{action: {RubricSearchInputComponent, {:selected, rubric_id}}}, socket),
     do: {:ok, link_rubric_to_assessment_and_notify_parent(socket, rubric_id)}
 
-  def update(%{action: {RubricsFormComponent, {:created, rubric}}}, socket) do
+  def update(%{action: {RubricFormComponent, {:created, rubric}}}, socket) do
     {:ok,
      socket
      |> link_rubric_to_assessment_and_notify_parent(rubric.id)

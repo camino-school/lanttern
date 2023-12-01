@@ -1,4 +1,4 @@
-defmodule LantternWeb.RubricsLive.Explorer do
+defmodule LantternWeb.RubricsLive do
   use LantternWeb, :live_view
 
   alias Lanttern.Rubrics
@@ -52,7 +52,7 @@ defmodule LantternWeb.RubricsLive.Explorer do
 
   # info handlers
 
-  def handle_info({LantternWeb.RubricsLive.FormComponent, {:created, rubric}}, socket) do
+  def handle_info({LantternWeb.Rubrics.RubricFormComponent, {:created, rubric}}, socket) do
     rubric = Rubrics.get_full_rubric!(rubric.id)
 
     socket =
@@ -63,7 +63,7 @@ defmodule LantternWeb.RubricsLive.Explorer do
     {:noreply, socket}
   end
 
-  def handle_info({LantternWeb.RubricsLive.FormComponent, {:updated, rubric}}, socket) do
+  def handle_info({LantternWeb.Rubrics.RubricFormComponent, {:updated, rubric}}, socket) do
     rubric = Rubrics.get_full_rubric!(rubric.id)
     {:noreply, stream_insert(socket, :rubrics, rubric)}
   end

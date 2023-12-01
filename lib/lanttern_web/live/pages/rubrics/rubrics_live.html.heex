@@ -62,13 +62,13 @@
 >
   <:title><%= @overlay_title %></:title>
   <.live_component
-    module={LantternWeb.RubricsLive.FormComponent}
+    module={LantternWeb.Rubrics.RubricFormComponent}
     id={@rubric.id || :new}
     action={@live_action}
     rubric={@rubric}
     patch={~p"/rubrics"}
   />
-  <:actions_left>
+  <:actions_left :if={@rubric.id}>
     <.button
       type="button"
       theme="ghost"
@@ -89,7 +89,7 @@
     >
       Cancel
     </.button>
-    <.button type="submit" form="rubric-form" phx-disable-with="Saving...">
+    <.button type="submit" form={"rubric-form-#{@rubric.id || :new}"} phx-disable-with="Saving...">
       Save
     </.button>
   </:actions>

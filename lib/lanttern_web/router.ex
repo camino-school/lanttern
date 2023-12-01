@@ -80,9 +80,9 @@ defmodule LantternWeb.Router do
            ActivityLive,
            :edit_assessment_point
 
-      live "/rubrics", RubricsLive.Explorer, :index
-      live "/rubrics/new", RubricsLive.Explorer, :new
-      live "/rubrics/:id/edit", RubricsLive.Explorer, :edit
+      live "/rubrics", RubricsLive, :index
+      live "/rubrics/new", RubricsLive, :new
+      live "/rubrics/:id/edit", RubricsLive, :edit
 
       live "/curriculum", CurriculumLive.Index
       live "/curriculum/bncc_ef", CurriculumBNCCLive.EF

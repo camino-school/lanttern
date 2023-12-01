@@ -1,4 +1,4 @@
-defmodule LantternWeb.RubricsLive.RubricSearchInputComponent do
+defmodule LantternWeb.Rubrics.RubricSearchInputComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Rubrics
