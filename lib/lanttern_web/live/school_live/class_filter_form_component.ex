@@ -46,9 +46,16 @@ defmodule LantternWeb.SchoolLive.ClassFilterFormComponent do
   # event handlers
 
   def handle_event("save", params, socket) do
-    params = Map.get(params, "classes", %{"classes_ids" => []})
-    notify_parent(__MODULE__, {:save, params}, socket.assigns)
-    notify_component(__MODULE__, {:save, params}, socket.assigns)
-    {:noreply, socket}
+    classes_ids =
+      params
+      |> Map.get("classes", %{"classes_ids" => []})
+      |> Map.get("classes_ids")
+
+    notify_parent(__MODULE__, {:save, classes_ids}, socket.assigns)
+    notify_component(__MODULE__, {:save, classes_ids}, socket.assigns)
+
+    {:noreply,
+     socket
+     |> handle_navigation(classes_ids)}
   end
 end

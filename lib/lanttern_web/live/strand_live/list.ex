@@ -12,9 +12,11 @@ defmodule LantternWeb.StrandLive.List do
   @impl true
   def mount(_params, _session, socket) do
     strands = LearningContext.list_strands(preloads: [:subjects, :years])
+    strands_count = length(strands)
 
     {:ok,
      socket
+     |> assign(:strands_count, strands_count)
      |> stream(:strands, strands)}
   end
 

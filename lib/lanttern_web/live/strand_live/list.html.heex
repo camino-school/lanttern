@@ -9,33 +9,37 @@
       Create new strand
     </.collection_action>
   </div>
-  <div id="strands-list" phx-update="stream" class="grid grid-cols-3 gap-10 mt-12">
-    <div
-      :for={{dom_id, strand} <- @streams.strands}
-      class="rounded shadow-xl bg-white"
-      id={dom_id}
-    >
+  <%= if @strands_count == 0 do %>
+    <.empty_state>No strands created yet</.empty_state>
+  <% else %>
+    <div id="strands-list" phx-update="stream" class="grid grid-cols-3 gap-10 mt-12">
       <div
-        class="w-full h-40 bg-center bg-cover"
-        style="background-image: url(https://images.unsplash.com/photo-1529476488885-3159d45ab78b?q=80&w=320&auto=format&fit=crop)"
-      />
-      <div class="flex flex-col gap-6 p-6">
-        <.link
-          navigate={~p"/strands/#{strand}"}
-          class="font-display font-black text-3xl underline line-clamp-3"
-        >
-          <%= strand.name %>
-        </.link>
-        <div class="flex flex-wrap gap-2">
-          <.badge :for={subject <- strand.subjects}><%= subject.name %></.badge>
-          <.badge :for={year <- strand.years}><%= year.name %></.badge>
-        </div>
-        <div class="line-clamp-6">
-          <.markdown text={strand.description} class="prose-sm" />
+        :for={{dom_id, strand} <- @streams.strands}
+        class="rounded shadow-xl bg-white"
+        id={dom_id}
+      >
+        <div
+          class="w-full h-40 bg-center bg-cover"
+          style="background-image: url(https://images.unsplash.com/photo-1529476488885-3159d45ab78b?q=80&w=320&auto=format&fit=crop)"
+        />
+        <div class="flex flex-col gap-6 p-6">
+          <.link
+            navigate={~p"/strands/#{strand}"}
+            class="font-display font-black text-3xl underline line-clamp-3"
+          >
+            <%= strand.name %>
+          </.link>
+          <div class="flex flex-wrap gap-2">
+            <.badge :for={subject <- strand.subjects}><%= subject.name %></.badge>
+            <.badge :for={year <- strand.years}><%= year.name %></.badge>
+          </div>
+          <div class="line-clamp-6">
+            <.markdown text={strand.description} class="prose-sm" />
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  <% end %>
   <.slide_over
     :if={@live_action == :new}
     id="strand-form-overlay"
@@ -48,8 +52,7 @@
       id={:new}
       strand={%Strand{curriculum_items: [], subjects: [], years: []}}
       action={:new}
-      patch={~p"/strands"}
-      notify_parent
+      navigate={fn strand -> ~p"/strands/#{strand}" end}
     />
     <:actions>
       <.button

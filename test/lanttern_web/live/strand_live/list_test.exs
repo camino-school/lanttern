@@ -43,6 +43,8 @@ defmodule LantternWeb.StrandLive.ListTest do
   end
 
   describe "Strand management" do
+    alias Lanttern.LearningContext.Strand
+
     test "create strand", %{conn: conn} do
       subject = TaxonomyFixtures.subject_fixture(%{name: "subject abc"})
       year = TaxonomyFixtures.year_fixture(%{name: "year abc"})
@@ -74,11 +76,20 @@ defmodule LantternWeb.StrandLive.ListTest do
         }
       })
 
-      assert_patch(view, "/strands")
+      {path, _flash} = assert_redirect(view)
 
-      assert view |> has_element?("a", "strand name abc")
-      assert view |> has_element?("span", subject.name)
-      assert view |> has_element?("span", year.name)
+      [_, strand_id] =
+        ~r".+\/(\d+)\z"
+        |> Regex.run(path)
+
+      strand =
+        Strand
+        |> Lanttern.Repo.get!(strand_id)
+        |> Lanttern.Repo.preload([:subjects, :years])
+
+      assert strand.name == "strand name abc"
+      assert strand.subjects == [subject]
+      assert strand.years == [year]
     end
   end
 end

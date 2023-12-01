@@ -61,10 +61,19 @@ teacher = Repo.insert!(%Schools.Teacher{school_id: school.id, name: "The Teacher
 _teacher_1 = Repo.insert!(%Schools.Teacher{school_id: school.id, name: "Teacher 1"})
 _teacher_2 = Repo.insert!(%Schools.Teacher{school_id: school.id, name: "Teacher 2"})
 
+cycle =
+  Repo.insert!(%Schools.Cycle{
+    school_id: school.id,
+    name: "2024",
+    start_at: ~D[2024-01-01],
+    end_at: ~D[2024-12-31]
+  })
+
 # use changeset to `put_assoc` students
 _class_1 =
   Schools.Class.changeset(%Schools.Class{}, %{
     school_id: school.id,
+    cycle_id: cycle.id,
     name: "Grade 1",
     students_ids: [std_1.id, std_2.id, std_3.id, std_4.id, std_5.id]
   })
@@ -73,6 +82,7 @@ _class_1 =
 _class_2 =
   Schools.Class.changeset(%Schools.Class{}, %{
     school_id: school.id,
+    cycle_id: cycle.id,
     name: "Grade 2",
     students_ids: [std_6.id, std_7.id, std_8.id, std_9.id, std_10.id]
   })
@@ -355,22 +365,30 @@ ap_1 =
 
 Repo.insert!(%Assessments.AssessmentPointEntry{
   student_id: std_1.id,
-  assessment_point_id: ap_1.id
+  assessment_point_id: ap_1.id,
+  scale_id: camino_levels_scale.id,
+  scale_type: camino_levels_scale.type
 })
 
 Repo.insert!(%Assessments.AssessmentPointEntry{
   student_id: std_2.id,
-  assessment_point_id: ap_1.id
+  assessment_point_id: ap_1.id,
+  scale_id: camino_levels_scale.id,
+  scale_type: camino_levels_scale.type
 })
 
 Repo.insert!(%Assessments.AssessmentPointEntry{
   student_id: std_3.id,
-  assessment_point_id: ap_1.id
+  assessment_point_id: ap_1.id,
+  scale_id: camino_levels_scale.id,
+  scale_type: camino_levels_scale.type
 })
 
 Repo.insert!(%Assessments.AssessmentPointEntry{
   student_id: std_4.id,
-  assessment_point_id: ap_1.id
+  assessment_point_id: ap_1.id,
+  scale_id: camino_levels_scale.id,
+  scale_type: camino_levels_scale.type
 })
 
 # ------------------------------

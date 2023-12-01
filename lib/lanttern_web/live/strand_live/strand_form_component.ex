@@ -17,8 +17,14 @@ defmodule LantternWeb.StrandLive.StrandFormComponent do
         <.error_block :if={@form.source.action == :insert} class="mb-6">
           Oops, something went wrong! Please check the errors below.
         </.error_block>
-        <.input field={@form[:name]} type="text" label="Name" class="mb-6" />
-        <.input field={@form[:description]} type="textarea" label="Description" class="mb-1" />
+        <.input field={@form[:name]} type="text" label="Name" class="mb-6" phx-debounce="1500" />
+        <.input
+          field={@form[:description]}
+          type="textarea"
+          label="Description"
+          class="mb-1"
+          phx-debounce="1500"
+        />
         <.markdown_supported class="mb-6" />
         <.live_component
           module={MultiSelectComponent}
@@ -227,7 +233,7 @@ defmodule LantternWeb.StrandLive.StrandFormComponent do
         {:noreply,
          socket
          |> put_flash(:info, "Strand updated successfully")
-         |> push_patch(to: socket.assigns.patch)}
+         |> handle_navigation(strand)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
@@ -244,7 +250,7 @@ defmodule LantternWeb.StrandLive.StrandFormComponent do
         {:noreply,
          socket
          |> put_flash(:info, "Strand created successfully")
-         |> push_patch(to: socket.assigns.patch)}
+         |> handle_navigation(strand)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}

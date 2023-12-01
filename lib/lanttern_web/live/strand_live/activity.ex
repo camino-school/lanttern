@@ -6,7 +6,6 @@ defmodule LantternWeb.StrandLive.Activity do
 
   # live components
   alias LantternWeb.StrandLive.ActivityFormComponent
-  alias LantternWeb.AssessmentPointLive.ActivityAssessmentPointFormComponent
 
   @tabs %{
     "details" => :details,
@@ -96,47 +95,5 @@ defmodule LantternWeb.StrandLive.Activity do
   @impl true
   def handle_info({ActivityFormComponent, {:saved, activity}}, socket) do
     {:noreply, assign(socket, :activity, activity)}
-  end
-
-  def handle_info(
-        {ActivityTabs.AssessmentComponent, {:apply_class_filters, classes_ids}},
-        socket
-      ) do
-    {:noreply,
-     socket
-     |> push_navigate(
-       to:
-         ~p"/strands/activity/#{socket.assigns.activity}?#{%{tab: "assessment", classes_ids: classes_ids}}"
-     )}
-  end
-
-  def handle_info(
-        {ActivityTabs.AssessmentComponent, {:assessment_point_deleted, _assessment_point}},
-        socket
-      ) do
-    {:noreply,
-     socket
-     |> push_navigate(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
-  end
-
-  def handle_info(
-        {ActivityTabs.AssessmentComponent, {:assessment_points_reordered, _assessment_point}},
-        socket
-      ) do
-    {:noreply,
-     socket
-     |> push_navigate(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
-  end
-
-  def handle_info({ActivityAssessmentPointFormComponent, {:created, _assessment_point}}, socket) do
-    {:noreply,
-     socket
-     |> push_navigate(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
-  end
-
-  def handle_info({ActivityAssessmentPointFormComponent, {:updated, _assessment_point}}, socket) do
-    {:noreply,
-     socket
-     |> push_navigate(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
   end
 end

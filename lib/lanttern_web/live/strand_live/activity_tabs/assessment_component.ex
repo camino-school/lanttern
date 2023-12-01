@@ -129,6 +129,7 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
           strand_id={@activity.strand_id}
           notify_component={@myself}
           assessment_point={@assessment_point}
+          navigate={~p"/strands/activity/#{@activity}?tab=assessment"}
         />
         <div
           :if={@delete_assessment_point_error}
@@ -188,6 +189,12 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
           current_user={@current_user}
           notify_component={@myself}
           classes_ids={@classes_ids}
+          navigate={
+            fn classes_ids ->
+              url_params = %{tab: "assessment", classes_ids: classes_ids}
+              ~p"/strands/activity/#{@activity}?#{url_params}"
+            end
+          }
         />
         <:actions>
           <.button
@@ -212,34 +219,34 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
           <li
             :for={{assessment_point, i} <- @sortable_assessment_points}
             id={"sortable-assessment-point-#{assessment_point.id}"}
-            class="mb-4"
+            class="flex items-center gap-4 mb-4"
           >
-            <div class="flex items-center gap-2">
-              <span class="flex-1"><%= "#{i + 1}. #{assessment_point.name}" %></span>
-              <div class="shrink-0 flex justify-between w-20">
-                <.icon_button
-                  type="button"
-                  sr_text="Move assessment point down"
-                  name="hero-chevron-down-mini"
-                  theme="ghost"
-                  rounded
-                  size="sm"
-                  disabled={i + 1 == @assessment_points_count}
-                  phx-click={JS.push("assessment_point_position_inc", value: %{index: i})}
-                  phx-target={@myself}
-                />
-                <.icon_button
-                  type="button"
-                  sr_text="Move assessment point up"
-                  name="hero-chevron-up-mini"
-                  theme="ghost"
-                  rounded
-                  size="sm"
-                  disabled={i == 0}
-                  phx-click={JS.push("assessment_point_position_dec", value: %{index: i})}
-                  phx-target={@myself}
-                />
-              </div>
+            <div class="flex-1 flex items-start p-4 rounded bg-white shadow-lg">
+              <%= "#{i + 1}. #{assessment_point.name}" %>
+            </div>
+            <div class="shrink-0 flex flex-col gap-2">
+              <.icon_button
+                type="button"
+                sr_text="Move assessment point up"
+                name="hero-chevron-up-mini"
+                theme="ghost"
+                rounded
+                size="sm"
+                disabled={i == 0}
+                phx-click={JS.push("assessment_point_position", value: %{from: i, to: i - 1})}
+                phx-target={@myself}
+              />
+              <.icon_button
+                type="button"
+                sr_text="Move assessment point down"
+                name="hero-chevron-down-mini"
+                theme="ghost"
+                rounded
+                size="sm"
+                disabled={i + 1 == @assessment_points_count}
+                phx-click={JS.push("assessment_point_position", value: %{from: i, to: i + 1})}
+                phx-target={@myself}
+              />
             </div>
           </li>
         </ol>
@@ -333,12 +340,6 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
   end
 
   @impl true
-  def update(%{action: {ClassFilterFormComponent, {:save, params}}}, socket) do
-    classes_ids = Map.get(params, "classes_ids")
-    notify_parent({:apply_class_filters, classes_ids})
-    {:ok, socket}
-  end
-
   def update(%{activity: activity, assessment_point_id: assessment_point_id} = assigns, socket) do
     {:ok,
      socket
@@ -417,9 +418,10 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
   @impl true
   def handle_event("delete_assessment_point", _params, socket) do
     case Assessments.delete_assessment_point(socket.assigns.assessment_point) do
-      {:ok, assessment_point} ->
-        notify_parent({:assessment_point_deleted, assessment_point})
-        {:noreply, socket}
+      {:ok, _assessment_point} ->
+        {:noreply,
+         socket
+         |> push_navigate(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
 
       {:error, _changeset} ->
         # we may have more error types, but for now we are handling only this one
@@ -433,8 +435,9 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
   def handle_event("delete_assessment_point_and_entries", _, socket) do
     case Assessments.delete_assessment_point_and_entries(socket.assigns.assessment_point) do
       {:ok, _} ->
-        notify_parent({:assessment_point_deleted, socket.assigns.assessment_point})
-        {:noreply, socket}
+        {:noreply,
+         socket
+         |> push_navigate(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
 
       {:error, _} ->
         {:noreply, socket}
@@ -447,21 +450,11 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
      |> assign(:delete_assessment_point_error, nil)}
   end
 
-  def handle_event("assessment_point_position_inc", %{"index" => i}, socket) do
+  def handle_event("assessment_point_position", %{"from" => i, "to" => j}, socket) do
     sortable_assessment_points =
       socket.assigns.sortable_assessment_points
       |> Enum.map(fn {ap, _i} -> ap end)
-      |> swap(i, i + 1)
-      |> Enum.with_index()
-
-    {:noreply, assign(socket, :sortable_assessment_points, sortable_assessment_points)}
-  end
-
-  def handle_event("assessment_point_position_dec", %{"index" => i}, socket) do
-    sortable_assessment_points =
-      socket.assigns.sortable_assessment_points
-      |> Enum.map(fn {ap, _i} -> ap end)
-      |> swap(i, i - 1)
+      |> swap(i, j)
       |> Enum.with_index()
 
     {:noreply, assign(socket, :sortable_assessment_points, sortable_assessment_points)}
@@ -476,9 +469,10 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
            socket.assigns.activity.id,
            assessment_points_ids
          ) do
-      {:ok, assessment_points} ->
-        notify_parent({:assessment_points_reordered, assessment_points})
-        {:noreply, socket}
+      {:ok, _assessment_points} ->
+        {:noreply,
+         socket
+         |> push_navigate(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
 
       {:error, _} ->
         {:noreply, socket}
@@ -486,8 +480,6 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
   end
 
   # helpers
-
-  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 
   # https://elixirforum.com/t/swap-elements-in-a-list/34471/4
   defp swap(a, i1, i2) do
