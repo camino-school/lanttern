@@ -214,10 +214,36 @@ defmodule Lanttern.LearningContext do
 
   """
   def create_activity(attrs \\ %{}, opts \\ []) do
+    attrs = set_activity_position_attr(attrs)
+
     %Activity{}
     |> Activity.changeset(attrs)
     |> Repo.insert()
     |> maybe_preload(opts)
+  end
+
+  defp set_activity_position_attr(%{"position" => _} = attrs), do: attrs
+
+  defp set_activity_position_attr(%{position: _} = attrs), do: attrs
+
+  defp set_activity_position_attr(attrs) do
+    strand_id = attrs[:strand_id] || attrs["strand_id"]
+
+    position =
+      from(
+        a in Activity,
+        where: a.strand_id == ^strand_id,
+        select: count()
+      )
+      |> Repo.one()
+
+    cond do
+      not is_nil(attrs[:strand_id]) ->
+        Map.put(attrs, :position, position)
+
+      not is_nil(attrs["strand_id"]) ->
+        Map.put(attrs, "position", position)
+    end
   end
 
   @doc """

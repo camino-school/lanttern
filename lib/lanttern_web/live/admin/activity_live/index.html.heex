@@ -48,12 +48,19 @@
   show
   on_cancel={JS.patch(~p"/admin/activities")}
 >
+  <.header>
+    <%= @page_title %>
+    <:subtitle>Use this form to manage activity records in your database.</:subtitle>
+  </.header>
   <.live_component
-    module={LantternWeb.Admin.ActivityLive.FormComponent}
+    module={LantternWeb.StrandLive.ActivityFormComponent}
     id={@activity.id || :new}
-    title={@page_title}
     action={@live_action}
     activity={@activity}
     patch={~p"/admin/activities"}
+    class="mt-6"
+    is_admin
+    notify_parent
+    save_preloads={[:strand, :curriculum_items]}
   />
 </.modal>

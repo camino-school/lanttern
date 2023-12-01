@@ -8,7 +8,6 @@ defmodule LantternWeb.SchoolLive.ClassFilterFormComponent do
 
   use LantternWeb, :live_component
   alias Lanttern.Schools
-  import LantternWeb.NotifyHelpers
 
   def render(assigns) do
     ~H"""

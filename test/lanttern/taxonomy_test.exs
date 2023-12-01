@@ -5,8 +5,9 @@ defmodule Lanttern.TaxonomyTest do
 
   describe "subjects" do
     alias Lanttern.Taxonomy.Subject
-
     import Lanttern.TaxonomyFixtures
+
+    alias Lanttern.LearningContextFixtures
 
     @invalid_attrs %{name: nil}
 
@@ -45,6 +46,20 @@ defmodule Lanttern.TaxonomyTest do
 
       assert {[subject_1, subject_2], [no_subject_1, no_subject_2]} ==
                Taxonomy.list_assessment_points_subjects()
+    end
+
+    test "list_strand_subjects/1 returns all subjects linked to the given strand" do
+      subject_a = subject_fixture(%{name: "AAA"})
+      subject_b = subject_fixture(%{name: "BBB"})
+
+      strand =
+        LearningContextFixtures.strand_fixture(%{subjects_ids: [subject_a.id, subject_b.id]})
+
+      # extra subjects for filter test
+      other_subject = subject_fixture()
+      LearningContextFixtures.strand_fixture(%{subjects_ids: [other_subject.id]})
+
+      assert Taxonomy.list_strand_subjects(strand.id) == [subject_a, subject_b]
     end
 
     test "get_subject!/1 returns the subject with given id" do

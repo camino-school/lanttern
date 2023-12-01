@@ -25,18 +25,21 @@ defmodule LantternWeb.StrandLive.Details do
   def handle_params(params, _url, socket) do
     {:noreply,
      socket
-     |> set_current_tab(params)
+     |> set_current_tab(params, socket.assigns.live_action)
      |> apply_action(socket.assigns.live_action, params)}
   end
 
-  defp set_current_tab(socket, %{"tab" => tab}),
+  defp set_current_tab(socket, _params, :new_activity),
+    do: assign(socket, :current_tab, @tabs["activities"])
+
+  defp set_current_tab(socket, %{"tab" => tab}, _live_action),
     do: assign(socket, :current_tab, Map.get(@tabs, tab, :about))
 
-  defp set_current_tab(socket, _params),
+  defp set_current_tab(socket, _params, _live_action),
     do: assign(socket, :current_tab, :about)
 
   defp apply_action(%{assigns: %{strand: nil}} = socket, live_action, %{"id" => id})
-       when live_action in [:show, :edit] do
+       when live_action in [:show, :edit, :new_activity] do
     # pattern match assigned strand to prevent unnecessary get_strand calls
     # (during handle_params triggered by tab change for example)
 

@@ -9,6 +9,8 @@ defmodule Lanttern.Taxonomy do
   alias Lanttern.Taxonomy.Subject
   alias Lanttern.Taxonomy.Year
 
+  alias Lanttern.LearningContext.Strand
+
   @years [
     {"k0", "Kindergarten 0"},
     {"k1", "Kindergarten 1"},
@@ -145,6 +147,25 @@ defmodule Lanttern.Taxonomy do
       all_subjects |> Map.get(true, []) |> Enum.map(fn {sub, _} -> sub end),
       all_subjects |> Map.get(false, []) |> Enum.map(fn {sub, _} -> sub end)
     }
+  end
+
+  @doc """
+  Returns the list of strand subjects ordered alphabetically.
+
+  ## Examples
+
+      iex> list_strand_subjects(1)
+      {[%Subject{}, ...], [%Subject{}, ...]}
+
+  """
+  def list_strand_subjects(strand_id) do
+    from(st in Strand,
+      join: sub in assoc(st, :subjects),
+      where: st.id == ^strand_id,
+      order_by: sub.name,
+      select: sub
+    )
+    |> Repo.all()
   end
 
   @doc """

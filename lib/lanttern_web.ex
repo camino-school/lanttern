@@ -64,6 +64,8 @@ defmodule LantternWeb do
     quote do
       use Phoenix.LiveComponent
 
+      import LantternWeb.LiveComponentHelpers
+
       unquote(html_helpers())
     end
   end

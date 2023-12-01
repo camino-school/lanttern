@@ -4,7 +4,6 @@ defmodule LantternWeb.StrandLive.StrandFormComponent do
   alias Lanttern.LearningContext
   alias Lanttern.Curricula
   import LantternWeb.TaxonomyHelpers
-  import LantternWeb.NotifyHelpers
 
   # live components
   alias LantternWeb.CurriculumLive.CurriculumItemSearchComponent

@@ -1,8 +1,6 @@
 defmodule LantternWeb.SharedLive.MultiSelectComponent do
   use LantternWeb, :live_component
 
-  import LantternWeb.NotifyHelpers
-
   @impl true
   def render(assigns) do
     ~H"""
