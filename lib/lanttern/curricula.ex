@@ -237,13 +237,17 @@ defmodule Lanttern.Curricula do
   @doc """
   Returns the list of curriculum items linked to the given strand.
 
+  ## Options:
+
+      - `:preloads` – preloads associated data
+
   ## Examples
 
       iex> list_strand_curriculum_items(1)
       [%CurriculumItem{}, ...]
 
   """
-  def list_strand_curriculum_items(strand_id) do
+  def list_strand_curriculum_items(strand_id, opts \\ []) do
     from(
       ci in CurriculumItem,
       join: sci in assoc(ci, :strand_links),
@@ -251,6 +255,7 @@ defmodule Lanttern.Curricula do
       order_by: sci.position
     )
     |> Repo.all()
+    |> maybe_preload(opts)
   end
 
   @doc """

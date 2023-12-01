@@ -6,6 +6,9 @@ defmodule LantternWeb.CurriculumLive.CurriculumItemSearchComponent do
   def render(assigns) do
     ~H"""
     <div class={@class}>
+      <.label :if={@label} for={@id}>
+        <%= @label %>
+      </.label>
       <p class="mb-2 text-sm">
         You can search by id adding # before the id
         <.inline_code>
@@ -91,6 +94,7 @@ defmodule LantternWeb.CurriculumLive.CurriculumItemSearchComponent do
   def mount(socket) do
     socket =
       socket
+      |> assign(:label, nil)
       |> assign(:class, nil)
       |> assign(:refocus_on_select, "false")
       |> stream(:results, [])

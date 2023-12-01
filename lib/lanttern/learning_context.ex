@@ -119,7 +119,9 @@ defmodule Lanttern.LearningContext do
 
   """
   def delete_strand(%Strand{} = strand) do
-    Repo.delete(strand)
+    strand
+    |> Strand.delete_changeset()
+    |> Repo.delete()
   end
 
   @doc """
@@ -212,10 +214,43 @@ defmodule Lanttern.LearningContext do
 
   """
   def create_activity(attrs \\ %{}, opts \\ []) do
+    attrs = set_activity_position_attr(attrs)
+
     %Activity{}
     |> Activity.changeset(attrs)
     |> Repo.insert()
     |> maybe_preload(opts)
+  end
+
+  defp set_activity_position_attr(%{"position" => _} = attrs), do: attrs
+
+  defp set_activity_position_attr(%{position: _} = attrs), do: attrs
+
+  defp set_activity_position_attr(attrs) do
+    strand_id = attrs[:strand_id] || attrs["strand_id"]
+
+    positions =
+      from(
+        a in Activity,
+        where: a.strand_id == ^strand_id,
+        select: a.position,
+        order_by: [desc: a.position]
+      )
+      |> Repo.all()
+
+    position =
+      case Enum.at(positions, 0) do
+        nil -> 0
+        pos -> pos + 1
+      end
+
+    cond do
+      not is_nil(attrs[:strand_id]) ->
+        Map.put(attrs, :position, position)
+
+      not is_nil(attrs["strand_id"]) ->
+        Map.put(attrs, "position", position)
+    end
   end
 
   @doc """
@@ -254,7 +289,9 @@ defmodule Lanttern.LearningContext do
 
   """
   def delete_activity(%Activity{} = activity) do
-    Repo.delete(activity)
+    activity
+    |> Activity.delete_changeset()
+    |> Repo.delete()
   end
 
   @doc """

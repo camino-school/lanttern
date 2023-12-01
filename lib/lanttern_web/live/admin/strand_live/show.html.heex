@@ -22,9 +22,7 @@
     |> Enum.join(", ") %>
   </:item>
   <:item title="Curriculum items">
-    <%= @strand.curriculum_items
-    |> Enum.map(& &1.curriculum_item.name)
-    |> Enum.join(", ") %>
+    <%= length(@strand.curriculum_items) %>
   </:item>
 </.list>
 
@@ -36,12 +34,17 @@
   show
   on_cancel={JS.patch(~p"/admin/strands/#{@strand}")}
 >
+  <.header>
+    <%= @page_title %>
+    <:subtitle>Use this form to manage strand records in your database.</:subtitle>
+  </.header>
   <.live_component
-    module={LantternWeb.Admin.StrandLive.FormComponent}
+    module={LantternWeb.StrandLive.StrandFormComponent}
     id={@strand.id}
-    title={@page_title}
-    action={@live_action}
     strand={@strand}
+    action={@live_action}
     patch={~p"/admin/strands/#{@strand}"}
+    notify_parent
+    show_actions
   />
 </.modal>

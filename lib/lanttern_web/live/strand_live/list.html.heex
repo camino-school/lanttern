@@ -5,35 +5,66 @@
       I want to explore strands in<br />
       <span class="underline">all subjects and all years</span>
     </p>
-    <p class="shrink-0 flex items-center gap-2 font-display text-base underline hover:text-ltrn-primary">
-      Create new strand <.icon name="hero-plus-circle" class="w-6 h-6 text-ltrn-primary" />
-    </p>
+    <.collection_action type="link" patch={~p"/strands/new"} icon_name="hero-plus-circle">
+      Create new strand
+    </.collection_action>
   </div>
-  <div id="strands-list" phx-update="stream" class="grid grid-cols-3 gap-10 mt-12">
-    <div
-      :for={{dom_id, strand} <- @streams.strands}
-      class="rounded shadow-xl bg-white"
-      id={dom_id}
-    >
+  <%= if @strands_count == 0 do %>
+    <.empty_state>No strands created yet</.empty_state>
+  <% else %>
+    <div id="strands-list" phx-update="stream" class="grid grid-cols-3 gap-10 mt-12">
       <div
-        class="w-full h-40 bg-center bg-cover"
-        style="background-image: url(https://images.unsplash.com/photo-1529476488885-3159d45ab78b?q=80&w=320&auto=format&fit=crop)"
-      />
-      <div class="flex flex-col gap-6 p-6">
-        <.link
-          navigate={~p"/strands/#{strand}"}
-          class="font-display font-black text-3xl underline line-clamp-3"
-        >
-          <%= strand.name %>
-        </.link>
-        <div class="flex flex-wrap gap-2">
-          <.badge :for={subject <- strand.subjects}><%= subject.name %></.badge>
-          <.badge :for={year <- strand.years}><%= year.name %></.badge>
-        </div>
-        <div class="line-clamp-6">
-          <.markdown text={strand.description} class="prose-sm" />
+        :for={{dom_id, strand} <- @streams.strands}
+        class="rounded shadow-xl bg-white"
+        id={dom_id}
+      >
+        <div
+          class="w-full h-40 bg-center bg-cover"
+          style="background-image: url(https://images.unsplash.com/photo-1529476488885-3159d45ab78b?q=80&w=320&auto=format&fit=crop)"
+        />
+        <div class="flex flex-col gap-6 p-6">
+          <.link
+            navigate={~p"/strands/#{strand}"}
+            class="font-display font-black text-3xl underline line-clamp-3"
+          >
+            <%= strand.name %>
+          </.link>
+          <div class="flex flex-wrap gap-2">
+            <.badge :for={subject <- strand.subjects}><%= subject.name %></.badge>
+            <.badge :for={year <- strand.years}><%= year.name %></.badge>
+          </div>
+          <div class="line-clamp-6">
+            <.markdown text={strand.description} class="prose-sm" />
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  <% end %>
+  <.slide_over
+    :if={@live_action == :new}
+    id="strand-form-overlay"
+    show={true}
+    on_cancel={JS.patch(~p"/strands")}
+  >
+    <:title>New strand</:title>
+    <.live_component
+      module={StrandFormComponent}
+      id={:new}
+      strand={%Strand{curriculum_items: [], subjects: [], years: []}}
+      action={:new}
+      navigate={fn strand -> ~p"/strands/#{strand}" end}
+    />
+    <:actions>
+      <.button
+        type="button"
+        theme="ghost"
+        phx-click={JS.exec("data-cancel", to: "#strand-form-overlay")}
+      >
+        Cancel
+      </.button>
+      <.button type="submit" form="strand-form">
+        Save
+      </.button>
+    </:actions>
+  </.slide_over>
 </div>

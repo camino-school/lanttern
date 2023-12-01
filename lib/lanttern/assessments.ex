@@ -663,12 +663,20 @@ defmodule Lanttern.Assessments do
     |> Ecto.Multi.run(
       :link_activity,
       fn _repo, %{insert_assessment_point: assessment_point} ->
-        position =
-          from(aap in ActivityAssessmentPoint,
+        positions =
+          from(
+            aap in ActivityAssessmentPoint,
             where: aap.activity_id == ^activity_id,
-            select: count()
+            select: aap.position,
+            order_by: [desc: aap.position]
           )
-          |> Repo.one()
+          |> Repo.all()
+
+        position =
+          case Enum.at(positions, 0) do
+            nil -> 0
+            pos -> pos + 1
+          end
 
         %ActivityAssessmentPoint{}
         |> ActivityAssessmentPoint.changeset(%{

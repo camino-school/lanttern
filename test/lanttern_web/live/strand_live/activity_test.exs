@@ -78,4 +78,50 @@ defmodule LantternWeb.StrandLive.ActivityTest do
       assert view |> has_element?("p", "activity description abc")
     end
   end
+
+  describe "Activity management" do
+    test "edit activity", %{conn: conn} do
+      subject = TaxonomyFixtures.subject_fixture(%{name: "subject abc"})
+      strand = LearningContextFixtures.strand_fixture(%{subjects_ids: [subject.id]})
+
+      activity =
+        LearningContextFixtures.activity_fixture(%{strand_id: strand.id, name: "activity abc"})
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{activity.id}/edit")
+
+      assert view
+             |> has_element?("h2", "Edit activity")
+
+      # add subject
+      view
+      |> element("#activity-form #activity_subject_id")
+      |> render_change(%{"activity" => %{"subject_id" => subject.id}})
+
+      # submit form with valid field
+      view
+      |> element("#activity-form")
+      |> render_submit(%{
+        "activity" => %{
+          "name" => "activity name xyz"
+        }
+      })
+
+      assert_patch(view, "#{@live_view_base_path}/#{activity.id}")
+
+      assert view |> has_element?("h1", "activity name xyz")
+      assert view |> has_element?("span", subject.name)
+    end
+
+    test "delete activity", %{conn: conn} do
+      activity = LearningContextFixtures.activity_fixture()
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{activity.id}")
+
+      view
+      |> element("button#remove-activity-#{activity.id}")
+      |> render_click()
+
+      assert_redirect(view, "/strands/#{activity.strand_id}?tab=activities")
+    end
+  end
 end

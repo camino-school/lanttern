@@ -446,7 +446,6 @@ defmodule LantternWeb.OverlayComponents do
 
   def menu_button_item(assigns) do
     ~H"""
-    <!-- Active: "bg-gray-50", Not Active: "" -->
     <button
       id={@id}
       type="button"

@@ -10,9 +10,7 @@ defmodule LantternWeb.Admin.StrandLive.Index do
      stream(
        socket,
        :strands,
-       LearningContext.list_strands(
-         preloads: [:subjects, :years, curriculum_items: [curriculum_item: :curriculum_component]]
-       )
+       LearningContext.list_strands(preloads: [:subjects, :years, :curriculum_items])
      )}
   end
 
@@ -27,7 +25,7 @@ defmodule LantternWeb.Admin.StrandLive.Index do
     |> assign(
       :strand,
       LearningContext.get_strand!(id,
-        preloads: [:subjects, :years, curriculum_items: [curriculum_item: :curriculum_component]]
+        preloads: [:subjects, :years, :curriculum_items]
       )
     )
   end
@@ -45,7 +43,7 @@ defmodule LantternWeb.Admin.StrandLive.Index do
   end
 
   @impl true
-  def handle_info({LantternWeb.Admin.StrandLive.FormComponent, {:saved, strand}}, socket) do
+  def handle_info({LantternWeb.StrandLive.StrandFormComponent, {:saved, strand}}, socket) do
     {:noreply, stream_insert(socket, :strands, strand)}
   end
 

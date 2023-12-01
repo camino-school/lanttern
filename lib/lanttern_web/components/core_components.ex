@@ -156,6 +156,8 @@ defmodule LantternWeb.CoreComponents do
   attr :type, :string, default: nil
   attr :class, :any, default: nil
   attr :theme, :string, default: "default", doc: "default | ghost"
+  attr :size, :string, default: "normal", doc: "sm | normal"
+  attr :rounded, :boolean, default: false
   attr :icon_name, :string, default: nil
   attr :rest, :global, include: ~w(disabled form name value)
 
@@ -166,7 +168,7 @@ defmodule LantternWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        get_button_styles(@theme),
+        get_button_styles(@theme, @size, @rounded),
         @class
       ]}
       {@rest}
@@ -186,10 +188,13 @@ defmodule LantternWeb.CoreComponents do
 
       <.icon_button name="hero-x-mark" />
   """
-  attr :type, :string, default: nil
+  attr :type, :string, default: "button"
   attr :class, :any, default: nil
   attr :theme, :string, default: "default", doc: "default | ghost"
+  attr :size, :string, default: "normal", doc: "sm | normal"
+  attr :rounded, :boolean, default: false
   attr :name, :string, required: true
+  attr :sr_text, :string, required: true
   attr :rest, :global, include: ~w(disabled form name value)
 
   def icon_button(assigns) do
@@ -197,11 +202,12 @@ defmodule LantternWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        get_button_styles(@theme),
+        get_button_styles(@theme, @size, @rounded),
         @class
       ]}
       {@rest}
     >
+      <span class="sr-only"><%= @sr_text %></span>
       <.icon name={@name} class="w-5 h-5" />
     </button>
     """
@@ -216,9 +222,11 @@ defmodule LantternWeb.CoreComponents do
 
       <.link patch={~p"/somepath"} class={[get_button_styles()]}>Link</.link>
   """
-  def get_button_styles(theme \\ "default") do
+  def get_button_styles(theme \\ "default", size \\ "normal", rounded \\ false) do
     [
-      "inline-flex items-center gap-1 rounded-sm py-2 px-2 font-display text-sm font-bold",
+      "inline-flex items-center gap-1 font-display text-sm font-bold",
+      if(size == "sm", do: "p-1", else: "p-2"),
+      if(rounded, do: "rounded-full", else: "rounded-sm"),
       "phx-submit-loading:opacity-50 phx-click-loading:opacity-50 phx-click-loading:pointer-events-none",
       button_theme(theme)
     ]
@@ -925,6 +933,42 @@ defmodule LantternWeb.CoreComponents do
     </button>
     """
   end
+
+  @doc """
+  Renders a `<button>` or `<.link>` with icon.
+
+  Usually used in the context of a collection (e.g. to add a new item to a list).
+  """
+
+  attr :class, :any, default: nil
+  attr :type, :string, required: true, doc: "link | button"
+  attr :icon_name, :string, default: nil
+  attr :patch, :string, doc: "use with type=\"link\""
+  attr :rest, :global
+
+  slot :inner_block, required: true
+
+  def collection_action(%{type: "button"} = assigns) do
+    ~H"""
+    <button type="button" class={[collection_action_styles(), @class]} {@rest}>
+      <%= render_slot(@inner_block) %>
+      <.icon :if={@icon_name} name={@icon_name} class="w-6 h-6 text-ltrn-primary" />
+    </button>
+    """
+  end
+
+  def collection_action(%{type: "link"} = assigns) do
+    ~H"""
+    <.link patch={@patch} class={[collection_action_styles(), @class]}>
+      <%= render_slot(@inner_block) %>
+      <.icon :if={@icon_name} name={@icon_name} class="w-6 h-6 text-ltrn-primary" />
+    </.link>
+    """
+  end
+
+  defp collection_action_styles(),
+    do:
+      "shrink-0 flex items-center gap-2 font-display text-sm text-ltrn-dark hover:text-ltrn-subtle"
 
   @doc """
   Highlights entring (mounting) elements in DOM.

@@ -15,12 +15,13 @@
         Showing <%= length(@assessment_points) %> results
       </p>
     </div>
-    <.link
-      class="shrink-0 flex items-center gap-2 text-sm text-ltrn-subtle hover:underline"
+    <.collection_action
+      type="link"
       patch={~p"/assessment_points/new"}
+      icon_name="hero-plus-circle"
     >
-      Create assessment point <.icon name="hero-plus-mini" class="text-ltrn-primary" />
-    </.link>
+      Create assessment point
+    </.collection_action>
   </div>
 </div>
 <div

@@ -129,11 +129,10 @@ defmodule LantternWeb.AssessmentPointLive.ActivityAssessmentPointFormComponent d
 
   defp save(:new, params, socket) do
     case Assessments.create_activity_assessment_point(socket.assigns.activity_id, params) do
-      {:ok, assessment_point} ->
-        msg = {:created, assessment_point}
-        notify_parent(msg)
-        maybe_notify_component(msg, socket.assigns)
-        {:noreply, socket}
+      {:ok, _assessment_point} ->
+        {:noreply,
+         socket
+         |> handle_navigation()}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}
@@ -142,23 +141,13 @@ defmodule LantternWeb.AssessmentPointLive.ActivityAssessmentPointFormComponent d
 
   defp save(:edit, params, socket) do
     case Assessments.update_assessment_point(socket.assigns.assessment_point, params) do
-      {:ok, assessment_point} ->
-        msg = {:updated, assessment_point}
-        notify_parent(msg)
-        maybe_notify_component(msg, socket.assigns)
-        {:noreply, socket}
+      {:ok, _assessment_point} ->
+        {:noreply,
+         socket
+         |> handle_navigation()}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}
     end
   end
-
-  # helpers
-
-  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
-
-  defp maybe_notify_component(msg, %{notify_component: %Phoenix.LiveComponent.CID{} = cid}),
-    do: send_update(cid, action: {__MODULE__, msg})
-
-  defp maybe_notify_component(_msg, _assigns), do: nil
 end

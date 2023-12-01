@@ -7,7 +7,9 @@ defmodule Lanttern.LearningContext.Strand do
   schema "strands" do
     field :name, :string
     field :description, :string
+    field :subject_id, :id, virtual: true
     field :subjects_ids, {:array, :id}, virtual: true
+    field :year_id, :id, virtual: true
     field :years_ids, {:array, :id}, virtual: true
 
     has_many :curriculum_items, Lanttern.Curricula.StrandCurriculumItem,
@@ -33,5 +35,15 @@ defmodule Lanttern.LearningContext.Strand do
     |> cast_assoc(:curriculum_items, with: &child_position_changeset/3)
     |> put_subjects()
     |> put_years()
+  end
+
+  def delete_changeset(strand) do
+    strand
+    |> cast(%{}, [])
+    |> foreign_key_constraint(
+      :id,
+      name: :activities_strand_id_fkey,
+      message: "Strand has linked activities."
+    )
   end
 end

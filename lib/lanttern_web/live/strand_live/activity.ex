@@ -4,7 +4,8 @@ defmodule LantternWeb.StrandLive.Activity do
   alias Lanttern.LearningContext
   alias LantternWeb.StrandLive.ActivityTabs
 
-  alias LantternWeb.AssessmentPointLive.ActivityAssessmentPointFormComponent
+  # live components
+  alias LantternWeb.StrandLive.ActivityFormComponent
 
   @tabs %{
     "details" => :details,
@@ -14,10 +15,12 @@ defmodule LantternWeb.StrandLive.Activity do
 
   # lifecycle
 
+  @impl true
   def mount(_params, _session, socket) do
     {:ok, assign(socket, :activity, nil), layout: {LantternWeb.Layouts, :app_logged_in_blank}}
   end
 
+  @impl true
   def handle_params(params, _url, socket) do
     {:noreply,
      socket
@@ -66,47 +69,31 @@ defmodule LantternWeb.StrandLive.Activity do
 
   defp apply_action(socket, _live_action, _params), do: socket
 
+  # event handlers
+
+  @impl true
+  def handle_event("delete_activity", _params, socket) do
+    case LearningContext.delete_activity(socket.assigns.activity) do
+      {:ok, _activity} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Activity deleted")
+         |> push_navigate(to: ~p"/strands/#{socket.assigns.activity.strand}?tab=activities")}
+
+      {:error, _changeset} ->
+        {:noreply,
+         socket
+         |> put_flash(
+           :error,
+           "Activity has linked assessments. Deleting it would cause some data loss."
+         )}
+    end
+  end
+
   # info handlers
 
-  def handle_info(
-        {ActivityTabs.AssessmentComponent, {:apply_class_filters, classes_ids}},
-        socket
-      ) do
-    {:noreply,
-     socket
-     |> push_navigate(
-       to:
-         ~p"/strands/activity/#{socket.assigns.activity}?#{%{tab: "assessment", classes_ids: classes_ids}}"
-     )}
-  end
-
-  def handle_info(
-        {ActivityTabs.AssessmentComponent, {:assessment_point_deleted, _assessment_point}},
-        socket
-      ) do
-    {:noreply,
-     socket
-     |> push_navigate(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
-  end
-
-  def handle_info(
-        {ActivityTabs.AssessmentComponent, {:assessment_points_reordered, _assessment_point}},
-        socket
-      ) do
-    {:noreply,
-     socket
-     |> push_navigate(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
-  end
-
-  def handle_info({ActivityAssessmentPointFormComponent, {:created, _assessment_point}}, socket) do
-    {:noreply,
-     socket
-     |> push_navigate(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
-  end
-
-  def handle_info({ActivityAssessmentPointFormComponent, {:updated, _assessment_point}}, socket) do
-    {:noreply,
-     socket
-     |> push_navigate(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
+  @impl true
+  def handle_info({ActivityFormComponent, {:saved, activity}}, socket) do
+    {:noreply, assign(socket, :activity, activity)}
   end
 end
