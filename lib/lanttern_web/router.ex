@@ -41,53 +41,51 @@ defmodule LantternWeb.Router do
         {LantternWeb.UserAuth, :ensure_authenticated},
         {LantternWeb.Path, :put_path_in_socket}
       ] do
-      live "/dashboard", DashboardLive.Index, :index
+      live "/dashboard", DashboardLive, :index
 
       live "/dashboard/filter_view/new",
-           DashboardLive.Index,
+           DashboardLive,
            :new_filter_view
 
       live "/dashboard/filter_view/:id/edit",
-           DashboardLive.Index,
+           DashboardLive,
            :edit_filter_view
 
-      live "/school", SchoolLive.Show, :show
-      live "/school/class/:id", SchoolLive.Class, :show
-      live "/school/student/:id", SchoolLive.Student, :show
+      live "/school", SchoolLive, :show
+      live "/school/class/:id", ClassLive, :show
+      live "/school/student/:id", StudentLive, :show
 
-      live "/assessment_points", AssessmentPointLive.Explorer, :index
-      live "/assessment_points/new", AssessmentPointLive.Explorer, :new
+      live "/assessment_points", AssessmentPointsLive, :index
+      live "/assessment_points/new", AssessmentPointsLive, :new
 
-      live "/assessment_points/:id", AssessmentPointLive.Details, :show
-      live "/assessment_points/:id/edit", AssessmentPointLive.Details, :edit
-      live "/assessment_points/:id/rubrics", AssessmentPointLive.Details, :rubrics
+      live "/assessment_points/:id", AssessmentPointLive, :show
+      live "/assessment_points/:id/edit", AssessmentPointLive, :edit
+      live "/assessment_points/:id/rubrics", AssessmentPointLive, :rubrics
 
       live "/assessment_points/:id/student/:student_id/feedback",
-           AssessmentPointLive.Details,
+           AssessmentPointLive,
            :feedback
 
-      live "/strands", StrandLive.List, :index
-      live "/strands/new", StrandLive.List, :new
-      live "/strands/:id", StrandLive.Details, :show
-      live "/strands/:id/edit", StrandLive.Details, :edit
-      live "/strands/:id/new_activity", StrandLive.Details, :new_activity
-      live "/strands/activity/:id", StrandLive.Activity, :show
-      live "/strands/activity/:id/edit", StrandLive.Activity, :edit
+      live "/strands", StrandsLive, :index
+      live "/strands/new", StrandsLive, :new
+      live "/strands/:id", StrandLive, :show
+      live "/strands/:id/edit", StrandLive, :edit
+      live "/strands/:id/new_activity", StrandLive, :new_activity
+      live "/strands/activity/:id", ActivityLive, :show
+      live "/strands/activity/:id/edit", ActivityLive, :edit
 
-      live "/strands/activity/:id/assessment_point/new",
-           StrandLive.Activity,
-           :new_assessment_point
+      live "/strands/activity/:id/assessment_point/new", ActivityLive, :new_assessment_point
 
       live "/strands/activity/:id/assessment_point/:assessment_point_id",
-           StrandLive.Activity,
+           ActivityLive,
            :edit_assessment_point
 
-      live "/rubrics", RubricsLive.Explorer, :index
-      live "/rubrics/new", RubricsLive.Explorer, :new
-      live "/rubrics/:id/edit", RubricsLive.Explorer, :edit
+      live "/rubrics", RubricsLive, :index
+      live "/rubrics/new", RubricsLive, :new
+      live "/rubrics/:id/edit", RubricsLive, :edit
 
-      live "/curriculum", CurriculumLive.Index
-      live "/curriculum/bncc_ef", CurriculumBNCCLive.EF
+      live "/curriculum", CurriculumLive, :index
+      live "/curriculum/bncc_ef", BnccEfLive, :index
     end
   end
 
@@ -125,8 +123,8 @@ defmodule LantternWeb.Router do
     resources "/students", StudentController
     resources "/teachers", TeacherController
 
-    live "/import_students", Admin.SchoolLive.ImportStudents
-    live "/import_teachers", Admin.SchoolLive.ImportTeachers
+    live "/import_students", Admin.ImportStudentsLive
+    live "/import_teachers", Admin.ImportTeachersLive
 
     live "/school_cycles", Admin.CycleLive.Index, :index
     live "/school_cycles/new", Admin.CycleLive.Index, :new

@@ -1,0 +1,121 @@
+<.cover style="background-image: url(https://images.unsplash.com/photo-1529476488885-3159d45ab78b?q=80&w=1280&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)">
+  <:top>
+    <div class="flex items-center justify-between">
+      <.breadcrumbs class="mt-2" item_class="text-white">
+        <:item link={~p"/strands"}>Strands</:item>
+        <:item link={~p"/strands/#{@activity.strand}"}>Details</:item>
+        <:item>Activity</:item>
+      </.breadcrumbs>
+      <.nav_menu_button />
+    </div>
+  </:top>
+  <div class="flex items-center gap-2 mb-4">
+    <.icon name="hero-arrow-left" class="w-6 h-6" />
+    <.link
+      navigate={~p"/strands/#{@activity.strand}?tab=activities"}
+      class="font-display font-black text-lg underline"
+    >
+      <%= @activity.strand.name %>
+    </.link>
+  </div>
+  <h1 class="font-display font-black text-5xl"><%= @activity.name %></h1>
+  <div class="flex flex-wrap gap-2 mt-6">
+    <.badge :for={subject <- @activity.subjects} theme="dark"><%= subject.name %></.badge>
+  </div>
+</.cover>
+<div class="sticky top-0 z-30 border-b border-ltrn-lighter bg-white">
+  <div class="flex items-center justify-between container lg:max-w-5xl mx-auto">
+    <.nav_tabs id="activity-nav-tabs">
+      <:tab
+        patch={~p"/strands/activity/#{@activity}?#{%{tab: "details"}}"}
+        is_current={@current_tab == :details && "true"}
+      >
+        Details & Curriculum
+      </:tab>
+      <:tab
+        patch={~p"/strands/activity/#{@activity}?#{%{tab: "assessment"}}"}
+        is_current={@current_tab == :assessment && "true"}
+      >
+        Assessment
+      </:tab>
+      <:tab
+        patch={~p"/strands/activity/#{@activity}?#{%{tab: "notes"}}"}
+        is_current={@current_tab == :notes && "true"}
+        icon_name="hero-eye-slash"
+      >
+        My notes
+      </:tab>
+    </.nav_tabs>
+    <.menu_button id={"activity-#{@activity.id}"}>
+      <:menu_items>
+        <.menu_button_item
+          id={"edit-activity-#{@activity.id}"}
+          phx-click={JS.patch(~p"/strands/activity/#{@activity}/edit")}
+        >
+          Edit activity
+        </.menu_button_item>
+        <.menu_button_item
+          id={"remove-activity-#{@activity.id}"}
+          class="text-red-500"
+          phx-click="delete_activity"
+          data-confirm="Are you sure?"
+        >
+          Delete
+        </.menu_button_item>
+      </:menu_items>
+    </.menu_button>
+  </div>
+</div>
+<div class="ltrn-bg-main-local">
+  <.live_component
+    :if={@current_tab == :details}
+    module={DetailsComponent}
+    id="activity-details-details"
+    activity={@activity}
+  />
+  <.live_component
+    :if={@current_tab == :assessment}
+    module={AssessmentComponent}
+    id="activity-details-assessment"
+    activity={@activity}
+    live_action={@live_action}
+    assessment_point_id={@assessment_point_id}
+    params={@params}
+    current_user={@current_user}
+  />
+  <.live_component
+    :if={@current_tab == :notes}
+    module={NotesComponent}
+    id="activity-details-notes"
+    activity={@activity}
+    current_user={@current_user}
+  />
+</div>
+<.slide_over
+  :if={@live_action == :edit}
+  id="activity-form-overlay"
+  show={true}
+  on_cancel={JS.patch(~p"/strands/activity/#{@activity}")}
+>
+  <:title>Edit activity</:title>
+  <.live_component
+    module={ActivityFormComponent}
+    id={@activity.id}
+    activity={@activity}
+    action={@live_action}
+    patch={~p"/strands/activity/#{@activity}"}
+    notify_parent
+  />
+  <:actions>
+    <.button
+      type="button"
+      theme="ghost"
+      phx-click={JS.exec("data-cancel", to: "#activity-form-overlay")}
+    >
+      Cancel
+    </.button>
+    <.button type="submit" form="activity-form">
+      Save
+    </.button>
+  </:actions>
+</.slide_over>
