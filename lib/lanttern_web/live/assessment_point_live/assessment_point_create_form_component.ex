@@ -7,7 +7,7 @@ defmodule LantternWeb.AssessmentPointLive.AssessmentPointCreateFormComponent do
   alias LantternWeb.GradingHelpers
   alias LantternWeb.SchoolsHelpers
 
-  alias LantternWeb.CurriculumLive.CurriculumItemSearchComponent
+  alias LantternWeb.Curricula.CurriculumItemSearchComponent
 
   def render(assigns) do
     ~H"""

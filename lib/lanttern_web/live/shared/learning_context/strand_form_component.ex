@@ -6,7 +6,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
   import LantternWeb.TaxonomyHelpers
 
   # live components
-  alias LantternWeb.CurriculumLive.CurriculumItemSearchComponent
+  alias LantternWeb.Curricula.CurriculumItemSearchComponent
   alias LantternWeb.Form.MultiSelectComponent
 
   @impl true

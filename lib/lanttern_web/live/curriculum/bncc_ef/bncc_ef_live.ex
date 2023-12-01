@@ -1,4 +1,4 @@
-defmodule LantternWeb.CurriculumBNCCLive.EF do
+defmodule LantternWeb.BnccEfLive do
   use LantternWeb, :live_view
 
   alias Lanttern.BNCC

@@ -1,4 +1,4 @@
-defmodule LantternWeb.CurriculumBNCCEFLiveTest do
+defmodule LantternWeb.BnccEfLiveTest do
   use LantternWeb.ConnCase
 
   @live_view_path "/curriculum/bncc_ef"

@@ -1,4 +1,4 @@
-defmodule LantternWeb.CurriculumLive.CurriculumItemSearchComponent do
+defmodule LantternWeb.Curricula.CurriculumItemSearchComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Curricula

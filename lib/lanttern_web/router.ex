@@ -84,8 +84,8 @@ defmodule LantternWeb.Router do
       live "/rubrics/new", RubricsLive, :new
       live "/rubrics/:id/edit", RubricsLive, :edit
 
-      live "/curriculum", CurriculumLive.Index
-      live "/curriculum/bncc_ef", CurriculumBNCCLive.EF
+      live "/curriculum", CurriculumLive, :index
+      live "/curriculum/bncc_ef", BnccEfLive, :index
     end
   end
 
