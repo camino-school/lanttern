@@ -34,4 +34,14 @@ defmodule Lanttern.LearningContext.Activity do
     |> validate_required([:name, :description, :position, :strand_id])
     |> put_subjects()
   end
+
+  def delete_changeset(activity) do
+    activity
+    |> cast(%{}, [])
+    |> foreign_key_constraint(
+      :id,
+      name: :activities_assessment_points_activity_id_fkey,
+      message: "Activity has linked assessment points."
+    )
+  end
 end

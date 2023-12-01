@@ -229,13 +229,20 @@ defmodule Lanttern.LearningContext do
   defp set_activity_position_attr(attrs) do
     strand_id = attrs[:strand_id] || attrs["strand_id"]
 
-    position =
+    positions =
       from(
         a in Activity,
         where: a.strand_id == ^strand_id,
-        select: count()
+        select: a.position,
+        order_by: [desc: a.position]
       )
-      |> Repo.one()
+      |> Repo.all()
+
+    position =
+      case Enum.at(positions, 0) do
+        nil -> 0
+        pos -> pos + 1
+      end
 
     cond do
       not is_nil(attrs[:strand_id]) ->
@@ -282,7 +289,9 @@ defmodule Lanttern.LearningContext do
 
   """
   def delete_activity(%Activity{} = activity) do
-    Repo.delete(activity)
+    activity
+    |> Activity.delete_changeset()
+    |> Repo.delete()
   end
 
   @doc """

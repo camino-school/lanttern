@@ -24,27 +24,47 @@
   </div>
 </.cover>
 <div class="sticky top-0 z-30 border-b border-ltrn-lighter bg-white">
-  <.nav_tabs class="container mx-auto lg:max-w-5xl" id="activity-nav-tabs">
-    <:tab
-      patch={~p"/strands/activity/#{@activity}?#{%{tab: "details"}}"}
-      is_current={@current_tab == :details && "true"}
-    >
-      Details & Curriculum
-    </:tab>
-    <:tab
-      patch={~p"/strands/activity/#{@activity}?#{%{tab: "assessment"}}"}
-      is_current={@current_tab == :assessment && "true"}
-    >
-      Assessment
-    </:tab>
-    <:tab
-      patch={~p"/strands/activity/#{@activity}?#{%{tab: "notes"}}"}
-      is_current={@current_tab == :notes && "true"}
-      icon_name="hero-eye-slash"
-    >
-      My notes
-    </:tab>
-  </.nav_tabs>
+  <div class="flex items-center justify-between container lg:max-w-5xl mx-auto">
+    <.nav_tabs id="activity-nav-tabs">
+      <:tab
+        patch={~p"/strands/activity/#{@activity}?#{%{tab: "details"}}"}
+        is_current={@current_tab == :details && "true"}
+      >
+        Details & Curriculum
+      </:tab>
+      <:tab
+        patch={~p"/strands/activity/#{@activity}?#{%{tab: "assessment"}}"}
+        is_current={@current_tab == :assessment && "true"}
+      >
+        Assessment
+      </:tab>
+      <:tab
+        patch={~p"/strands/activity/#{@activity}?#{%{tab: "notes"}}"}
+        is_current={@current_tab == :notes && "true"}
+        icon_name="hero-eye-slash"
+      >
+        My notes
+      </:tab>
+    </.nav_tabs>
+    <.menu_button id={"activity-#{@activity.id}"}>
+      <:menu_items>
+        <.menu_button_item
+          id={"edit-activity-#{@activity.id}"}
+          phx-click={JS.patch(~p"/strands/activity/#{@activity}/edit")}
+        >
+          Edit activity
+        </.menu_button_item>
+        <.menu_button_item
+          id={"remove-activity-#{@activity.id}"}
+          class="text-red-500"
+          phx-click="delete_activity"
+          data-confirm="Are you sure?"
+        >
+          Delete
+        </.menu_button_item>
+      </:menu_items>
+    </.menu_button>
+  </div>
 </div>
 <div class="ltrn-bg-main-local">
   <.live_component
@@ -71,3 +91,31 @@
     current_user={@current_user}
   />
 </div>
+<.slide_over
+  :if={@live_action == :edit}
+  id="activity-form-overlay"
+  show={true}
+  on_cancel={JS.patch(~p"/strands/activity/#{@activity}")}
+>
+  <:title>Edit activity</:title>
+  <.live_component
+    module={ActivityFormComponent}
+    id={@activity.id}
+    activity={@activity}
+    action={@live_action}
+    patch={~p"/strands/activity/#{@activity}"}
+    notify_parent
+  />
+  <:actions>
+    <.button
+      type="button"
+      theme="ghost"
+      phx-click={JS.exec("data-cancel", to: "#activity-form-overlay")}
+    >
+      Cancel
+    </.button>
+    <.button type="submit" form="activity-form">
+      Save
+    </.button>
+  </:actions>
+</.slide_over>
