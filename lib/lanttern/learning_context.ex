@@ -119,7 +119,9 @@ defmodule Lanttern.LearningContext do
 
   """
   def delete_strand(%Strand{} = strand) do
-    Repo.delete(strand)
+    strand
+    |> Strand.delete_changeset()
+    |> Repo.delete()
   end
 
   @doc """

@@ -17,7 +17,7 @@ defmodule LantternWeb.Admin.StrandLive.Show do
        :strand,
        LearningContext.get_strand!(
          id,
-         preloads: [:subjects, :years, curriculum_items: [curriculum_item: :curriculum_component]]
+         preloads: [:subjects, :years, :curriculum_items]
        )
      )}
   end

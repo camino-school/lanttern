@@ -36,4 +36,14 @@ defmodule Lanttern.LearningContext.Strand do
     |> put_subjects()
     |> put_years()
   end
+
+  def delete_changeset(strand) do
+    strand
+    |> cast(%{}, [])
+    |> foreign_key_constraint(
+      :id,
+      name: :activities_strand_id_fkey,
+      message: "Strand has linked activities."
+    )
+  end
 end

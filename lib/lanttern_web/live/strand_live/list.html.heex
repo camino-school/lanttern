@@ -37,7 +37,7 @@
     </div>
   </div>
   <.slide_over
-    :if={@live_action in [:new, :edit]}
+    :if={@live_action == :new}
     id="strand-form-overlay"
     show={true}
     on_cancel={JS.patch(~p"/strands")}

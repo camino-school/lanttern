@@ -40,7 +40,9 @@ defmodule LantternWeb.StrandLive.ListTest do
 
       assert_redirect(view, "#{@live_view_path}/#{strand.id}")
     end
+  end
 
+  describe "Strand management" do
     test "create strand", %{conn: conn} do
       subject = TaxonomyFixtures.subject_fixture(%{name: "subject abc"})
       year = TaxonomyFixtures.year_fixture(%{name: "year abc"})

@@ -200,7 +200,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     |> foreign_key_constraint(
       :id,
       name: :assessment_point_entries_assessment_point_id_fkey,
-      message: "This jfalskflsealfesal."
+      message: "Assessment point has linked entries."
     )
   end
 end

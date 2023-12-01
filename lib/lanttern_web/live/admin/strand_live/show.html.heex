@@ -22,9 +22,7 @@
     |> Enum.join(", ") %>
   </:item>
   <:item title="Curriculum items">
-    <%= @strand.curriculum_items
-    |> Enum.map(& &1.curriculum_item.name)
-    |> Enum.join(", ") %>
+    <%= length(@strand.curriculum_items) %>
   </:item>
 </.list>
 

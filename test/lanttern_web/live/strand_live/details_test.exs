@@ -9,7 +9,7 @@ defmodule LantternWeb.StrandLive.DetailsTest do
 
   setup [:register_and_log_in_user]
 
-  describe "Strands live view basic navigation" do
+  describe "Strand details live view basic navigation" do
     test "disconnected and connected mount", %{conn: conn} do
       strand = LearningContextFixtures.strand_fixture(%{name: "strand abc"})
       conn = get(conn, "#{@live_view_base_path}/#{strand.id}")
@@ -89,6 +89,56 @@ defmodule LantternWeb.StrandLive.DetailsTest do
       assert_patch(view)
 
       assert view |> has_element?("p", "strand description abc")
+    end
+  end
+
+  describe "Strand management" do
+    test "edit strand", %{conn: conn} do
+      strand = LearningContextFixtures.strand_fixture(%{name: "strand abc"})
+      subject = TaxonomyFixtures.subject_fixture(%{name: "subject abc"})
+      year = TaxonomyFixtures.year_fixture(%{name: "year abc"})
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}/edit")
+
+      assert view
+             |> has_element?("h2", "Edit strand")
+
+      # add subject
+      view
+      |> element("#strand-form #strand_subject_id")
+      |> render_change(%{"strand" => %{"subject_id" => subject.id}})
+
+      # add year
+      view
+      |> element("#strand-form #strand_year_id")
+      |> render_change(%{"strand" => %{"year_id" => year.id}})
+
+      # submit form with valid field
+      view
+      |> element("#strand-form")
+      |> render_submit(%{
+        "strand" => %{
+          "name" => "strand name xyz"
+        }
+      })
+
+      assert_patch(view, "#{@live_view_base_path}/#{strand.id}")
+
+      assert view |> has_element?("h1", "strand name xyz")
+      assert view |> has_element?("span", subject.name)
+      assert view |> has_element?("span", year.name)
+    end
+
+    test "delete strand", %{conn: conn} do
+      strand = LearningContextFixtures.strand_fixture()
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}")
+
+      view
+      |> element("button#remove-strand-#{strand.id}")
+      |> render_click()
+
+      assert_redirect(view, "/strands")
     end
   end
 end

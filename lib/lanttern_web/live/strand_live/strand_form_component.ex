@@ -2,6 +2,7 @@ defmodule LantternWeb.StrandLive.StrandFormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.LearningContext
+  alias Lanttern.Curricula
   import LantternWeb.TaxonomyHelpers
   import LantternWeb.NotifyHelpers
 
@@ -98,7 +99,13 @@ defmodule LantternWeb.StrandLive.StrandFormComponent do
   def update(%{strand: strand} = assigns, socket) do
     selected_subjects_ids = strand.subjects |> Enum.map(& &1.id)
     selected_years_ids = strand.years |> Enum.map(& &1.id)
-    curriculum_items = strand.curriculum_items |> Enum.map(& &1.curriculum_item)
+
+    curriculum_items =
+      case strand.id do
+        nil -> []
+        id -> Curricula.list_strand_curriculum_items(id, preloads: :curriculum_component)
+      end
+
     changeset = LearningContext.change_strand(strand)
 
     {:ok,
