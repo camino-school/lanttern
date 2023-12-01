@@ -1,4 +1,4 @@
-defmodule LantternWeb.StrandLive.ActivityFormComponent do
+defmodule LantternWeb.LearningContext.ActivityFormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.LearningContext
@@ -7,7 +7,7 @@ defmodule LantternWeb.StrandLive.ActivityFormComponent do
   import LantternWeb.TaxonomyHelpers
 
   # live components
-  alias LantternWeb.SharedLive.MultiSelectComponent
+  alias LantternWeb.Form.MultiSelectComponent
 
   @impl true
   def render(assigns) do

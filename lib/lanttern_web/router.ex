@@ -66,20 +66,18 @@ defmodule LantternWeb.Router do
            AssessmentPointLive.Details,
            :feedback
 
-      live "/strands", StrandLive.List, :index
-      live "/strands/new", StrandLive.List, :new
-      live "/strands/:id", StrandLive.Details, :show
-      live "/strands/:id/edit", StrandLive.Details, :edit
-      live "/strands/:id/new_activity", StrandLive.Details, :new_activity
-      live "/strands/activity/:id", StrandLive.Activity, :show
-      live "/strands/activity/:id/edit", StrandLive.Activity, :edit
+      live "/strands", StrandsLive, :index
+      live "/strands/new", StrandsLive, :new
+      live "/strands/:id", StrandLive, :show
+      live "/strands/:id/edit", StrandLive, :edit
+      live "/strands/:id/new_activity", StrandLive, :new_activity
+      live "/strands/activity/:id", ActivityLive, :show
+      live "/strands/activity/:id/edit", ActivityLive, :edit
 
-      live "/strands/activity/:id/assessment_point/new",
-           StrandLive.Activity,
-           :new_assessment_point
+      live "/strands/activity/:id/assessment_point/new", ActivityLive, :new_assessment_point
 
       live "/strands/activity/:id/assessment_point/:assessment_point_id",
-           StrandLive.Activity,
+           ActivityLive,
            :edit_assessment_point
 
       live "/rubrics", RubricsLive.Explorer, :index

@@ -1,11 +1,15 @@
-defmodule LantternWeb.StrandLive.Activity do
+defmodule LantternWeb.ActivityLive do
   use LantternWeb, :live_view
 
   alias Lanttern.LearningContext
-  alias LantternWeb.StrandLive.ActivityTabs
 
-  # live components
-  alias LantternWeb.StrandLive.ActivityFormComponent
+  # page components
+  alias LantternWeb.ActivityLive.DetailsComponent
+  alias LantternWeb.ActivityLive.AssessmentComponent
+  alias LantternWeb.ActivityLive.NotesComponent
+
+  # shared components
+  alias LantternWeb.LearningContext.ActivityFormComponent
 
   @tabs %{
     "details" => :details,

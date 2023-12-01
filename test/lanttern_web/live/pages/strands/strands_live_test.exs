@@ -1,4 +1,4 @@
-defmodule LantternWeb.StrandLive.ListTest do
+defmodule LantternWeb.StrandsLiveTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.LearningContextFixtures

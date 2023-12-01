@@ -1,11 +1,11 @@
-defmodule LantternWeb.StrandLive.List do
+defmodule LantternWeb.StrandsLive do
   use LantternWeb, :live_view
 
   alias Lanttern.LearningContext
   alias Lanttern.LearningContext.Strand
 
   # live components
-  alias LantternWeb.StrandLive.StrandFormComponent
+  alias LantternWeb.LearningContext.StrandFormComponent
 
   # lifecycle
 

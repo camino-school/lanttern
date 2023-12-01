@@ -69,13 +69,13 @@
 <div class="ltrn-bg-main-local">
   <.live_component
     :if={@current_tab == :details}
-    module={ActivityTabs.DetailsComponent}
+    module={DetailsComponent}
     id="activity-details-details"
     activity={@activity}
   />
   <.live_component
     :if={@current_tab == :assessment}
-    module={ActivityTabs.AssessmentComponent}
+    module={AssessmentComponent}
     id="activity-details-assessment"
     activity={@activity}
     live_action={@live_action}
@@ -85,7 +85,7 @@
   />
   <.live_component
     :if={@current_tab == :notes}
-    module={ActivityTabs.NotesComponent}
+    module={NotesComponent}
     id="activity-details-notes"
     activity={@activity}
     current_user={@current_user}

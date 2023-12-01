@@ -4,6 +4,8 @@ defmodule LantternWeb.Admin.StrandLive.Index do
   alias Lanttern.LearningContext
   alias Lanttern.LearningContext.Strand
 
+  alias LantternWeb.LearningContext.StrandFormComponent
+
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
@@ -43,7 +45,7 @@ defmodule LantternWeb.Admin.StrandLive.Index do
   end
 
   @impl true
-  def handle_info({LantternWeb.StrandLive.StrandFormComponent, {:saved, strand}}, socket) do
+  def handle_info({StrandFormComponent, {:saved, strand}}, socket) do
     {:noreply, stream_insert(socket, :strands, strand)}
   end
 

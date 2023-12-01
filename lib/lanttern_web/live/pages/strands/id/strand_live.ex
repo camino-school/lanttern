@@ -1,11 +1,16 @@
-defmodule LantternWeb.StrandLive.Details do
+defmodule LantternWeb.StrandLive do
   use LantternWeb, :live_view
 
   alias Lanttern.LearningContext
 
-  # live components
-  alias LantternWeb.StrandLive.StrandFormComponent
-  alias LantternWeb.StrandLive.DetailsTabs
+  # page components
+  alias LantternWeb.StrandLive.AboutComponent
+  alias LantternWeb.StrandLive.ActivitiesComponent
+  alias LantternWeb.StrandLive.AssessmentComponent
+  alias LantternWeb.StrandLive.NotesComponent
+
+  # shared components
+  alias LantternWeb.LearningContext.StrandFormComponent
 
   @tabs %{
     "about" => :about,

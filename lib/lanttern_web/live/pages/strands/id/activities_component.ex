@@ -1,11 +1,11 @@
-defmodule LantternWeb.StrandLive.DetailsTabs.ActivitiesComponent do
+defmodule LantternWeb.StrandLive.ActivitiesComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.LearningContext
   alias Lanttern.LearningContext.Activity
 
   # live components
-  alias LantternWeb.StrandLive.ActivityFormComponent
+  alias LantternWeb.LearningContext.ActivityFormComponent
 
   @impl true
   def render(assigns) do

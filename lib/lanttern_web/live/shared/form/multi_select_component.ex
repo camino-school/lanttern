@@ -1,4 +1,4 @@
-defmodule LantternWeb.SharedLive.MultiSelectComponent do
+defmodule LantternWeb.Form.MultiSelectComponent do
   use LantternWeb, :live_component
 
   @impl true

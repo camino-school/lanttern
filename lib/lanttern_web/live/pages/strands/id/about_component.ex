@@ -1,4 +1,4 @@
-defmodule LantternWeb.StrandLive.ActivityTabs.DetailsComponent do
+defmodule LantternWeb.StrandLive.AboutComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Curricula
@@ -7,7 +7,7 @@ defmodule LantternWeb.StrandLive.ActivityTabs.DetailsComponent do
   def render(assigns) do
     ~H"""
     <div class="container py-10 mx-auto lg:max-w-5xl">
-      <.markdown text={@activity.description} />
+      <.markdown text={@strand.description} />
       <h3 class="mt-16 font-display font-black text-3xl">Curriculum</h3>
       <div :for={curriculum_item <- @curriculum_items} class="mt-6">
         <.badge theme="dark"><%= curriculum_item.curriculum_component.name %></.badge>
@@ -17,14 +17,15 @@ defmodule LantternWeb.StrandLive.ActivityTabs.DetailsComponent do
     """
   end
 
+  # lifecycle
   @impl true
-  def update(%{activity: activity} = assigns, socket) do
+  def update(%{strand: strand} = assigns, socket) do
     {:ok,
      socket
      |> assign(assigns)
      |> assign(
        :curriculum_items,
-       Curricula.list_activity_curriculum_items(activity.id, preloads: :curriculum_component)
+       Curricula.list_strand_curriculum_items(strand.id, preloads: :curriculum_component)
      )}
   end
 end

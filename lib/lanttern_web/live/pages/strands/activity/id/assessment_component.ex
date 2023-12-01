@@ -1,4 +1,4 @@
-defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
+defmodule LantternWeb.ActivityLive.AssessmentComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments

@@ -1,4 +1,4 @@
-defmodule LantternWeb.StrandLive.ActivityTabs.NotesTest do
+defmodule LantternWeb.ActivityLive.NotesComponentTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.LearningContextFixtures

@@ -1,4 +1,4 @@
-defmodule LantternWeb.StrandLive.DetailsTabs.NotesComponent do
+defmodule LantternWeb.StrandLive.NotesComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Personalization

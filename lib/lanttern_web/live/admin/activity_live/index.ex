@@ -49,7 +49,7 @@ defmodule LantternWeb.Admin.ActivityLive.Index do
   end
 
   @impl true
-  def handle_info({LantternWeb.StrandLive.ActivityFormComponent, {:saved, activity}}, socket) do
+  def handle_info({LantternWeb.LearningContext.ActivityFormComponent, {:saved, activity}}, socket) do
     {:noreply, stream_insert(socket, :activities, activity)}
   end
 
