@@ -55,24 +55,52 @@ defmodule LantternWeb.StrandLive.StrandFormComponent do
           label="Curriculum"
         />
         <div
-          :for={curriculum_item <- @curriculum_items}
+          :for={{curriculum_item, i} <- @curriculum_items}
           id={"curriculum-item-#{curriculum_item.id}"}
-          class="flex items-start mt-6 p-4 rounded bg-white shadow-lg"
+          class="flex items-center gap-4 mt-6"
         >
-          <div class="flex-1 text-sm">
-            <span class="block mb-1 text-xs font-bold">
-              <%= "##{curriculum_item.id} #{curriculum_item.curriculum_component.name}" %>
-            </span>
-            <%= curriculum_item.name %>
+          <div class="flex-1 flex items-start p-4 rounded bg-white shadow-lg">
+            <div class="flex-1 text-sm">
+              <span class="block mb-1 text-xs font-bold">
+                <%= "##{curriculum_item.id} #{curriculum_item.curriculum_component.name}" %>
+              </span>
+              <%= curriculum_item.name %>
+            </div>
+            <.icon_button
+              type="button"
+              sr_text="Remove curriculum item"
+              name="hero-x-mark-mini"
+              theme="ghost"
+              rounded
+              size="sm"
+              phx-click={JS.push("remove_curriculum_item", value: %{id: curriculum_item.id})}
+              phx-target={@myself}
+            />
           </div>
-          <button
-            type="button"
-            class="shrink-0 p-1 rounded-full bg-ltrn-hairline"
-            phx-click={JS.push("remove_curriculum_item", value: %{id: curriculum_item.id})}
-            phx-target={@myself}
-          >
-            <.icon name="hero-x-mark" />
-          </button>
+          <div class="shrink-0 flex flex-col gap-2">
+            <.icon_button
+              type="button"
+              sr_text="Move curriculum item up"
+              name="hero-chevron-up-mini"
+              theme="ghost"
+              rounded
+              size="sm"
+              disabled={i == 0}
+              phx-click={JS.push("curriculum_item_position", value: %{from: i, to: i - 1})}
+              phx-target={@myself}
+            />
+            <.icon_button
+              type="button"
+              sr_text="Move curriculum item down"
+              name="hero-chevron-down-mini"
+              theme="ghost"
+              rounded
+              size="sm"
+              disabled={i + 1 == length(@curriculum_items)}
+              phx-click={JS.push("curriculum_item_position", value: %{from: i, to: i + 1})}
+              phx-target={@myself}
+            />
+          </div>
         </div>
         <div :if={@show_actions} class="flex justify-end mt-6">
           <.button type="submit" phx-disable-with="Saving...">Save Strand</.button>
@@ -102,8 +130,12 @@ defmodule LantternWeb.StrandLive.StrandFormComponent do
 
     curriculum_items =
       case strand.id do
-        nil -> []
-        id -> Curricula.list_strand_curriculum_items(id, preloads: :curriculum_component)
+        nil ->
+          []
+
+        id ->
+          Curricula.list_strand_curriculum_items(id, preloads: :curriculum_component)
+          |> Enum.with_index()
       end
 
     changeset = LearningContext.change_strand(strand)
@@ -126,9 +158,21 @@ defmodule LantternWeb.StrandLive.StrandFormComponent do
   end
 
   def update(%{action: {CurriculumItemSearchComponent, {:selected, curriculum_item}}}, socket) do
+    curriculum_items =
+      socket.assigns.curriculum_items
+      |> Enum.find(fn {ci, _i} -> ci.id == curriculum_item.id end)
+      |> case do
+        nil ->
+          socket.assigns.curriculum_items ++
+            [{curriculum_item, length(socket.assigns.curriculum_items)}]
+
+        _ ->
+          socket.assigns.curriculum_items
+      end
+
     {:ok,
      socket
-     |> update(:curriculum_items, &(&1 ++ [curriculum_item]))}
+     |> assign(:curriculum_items, curriculum_items)}
   end
 
   # event handlers
@@ -137,7 +181,17 @@ defmodule LantternWeb.StrandLive.StrandFormComponent do
   def handle_event("remove_curriculum_item", %{"id" => id}, socket) do
     {:noreply,
      socket
-     |> update(:curriculum_items, &Enum.filter(&1, fn ci -> ci.id != id end))}
+     |> update(:curriculum_items, &Enum.filter(&1, fn {ci, _i} -> ci.id != id end))}
+  end
+
+  def handle_event("curriculum_item_position", %{"from" => i, "to" => j}, socket) do
+    curriculum_items =
+      socket.assigns.curriculum_items
+      |> Enum.map(fn {ap, _i} -> ap end)
+      |> swap(i, j)
+      |> Enum.with_index()
+
+    {:noreply, assign(socket, :curriculum_items, curriculum_items)}
   end
 
   def handle_event("validate", %{"strand" => strand_params}, socket) do
@@ -158,7 +212,7 @@ defmodule LantternWeb.StrandLive.StrandFormComponent do
       |> Map.put(
         "curriculum_items",
         socket.assigns.curriculum_items
-        |> Enum.map(&%{curriculum_item_id: &1.id})
+        |> Enum.map(fn {ci, _i} -> %{curriculum_item_id: ci.id} end)
       )
 
     save_strand(socket, socket.assigns.action, strand_params)
@@ -202,5 +256,15 @@ defmodule LantternWeb.StrandLive.StrandFormComponent do
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     assign(socket, :form, to_form(changeset))
+  end
+
+  # https://elixirforum.com/t/swap-elements-in-a-list/34471/4
+  defp swap(a, i1, i2) do
+    e1 = Enum.at(a, i1)
+    e2 = Enum.at(a, i2)
+
+    a
+    |> List.replace_at(i1, e2)
+    |> List.replace_at(i2, e1)
   end
 end

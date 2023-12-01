@@ -219,16 +219,22 @@ defmodule LantternWeb.StrandLive.ActivityTabs.AssessmentComponent do
               <div class="shrink-0 flex justify-between w-20">
                 <.icon_button
                   type="button"
-                  name="hero-arrow-down-mini"
+                  sr_text="Move assessment point down"
+                  name="hero-chevron-down-mini"
                   theme="ghost"
+                  rounded
+                  size="sm"
                   disabled={i + 1 == @assessment_points_count}
                   phx-click={JS.push("assessment_point_position_inc", value: %{index: i})}
                   phx-target={@myself}
                 />
                 <.icon_button
                   type="button"
-                  name="hero-arrow-up-mini"
+                  sr_text="Move assessment point up"
+                  name="hero-chevron-up-mini"
                   theme="ghost"
+                  rounded
+                  size="sm"
                   disabled={i == 0}
                   phx-click={JS.push("assessment_point_position_dec", value: %{index: i})}
                   phx-target={@myself}
