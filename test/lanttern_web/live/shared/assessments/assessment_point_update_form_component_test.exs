@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmentPointLive.AssessmentPointUpdateFormComponentTest do
+defmodule LantternWeb.Assessments.AssessmentPointUpdateFormComponentTest do
   use LantternWeb.ConnCase
 
   import Lanttern.AssessmentsFixtures

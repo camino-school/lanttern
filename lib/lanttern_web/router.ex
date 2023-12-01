@@ -55,15 +55,15 @@ defmodule LantternWeb.Router do
       live "/school/class/:id", ClassLive, :show
       live "/school/student/:id", StudentLive, :show
 
-      live "/assessment_points", AssessmentPointLive.Explorer, :index
-      live "/assessment_points/new", AssessmentPointLive.Explorer, :new
+      live "/assessment_points", AssessmentPointsLive, :index
+      live "/assessment_points/new", AssessmentPointsLive, :new
 
-      live "/assessment_points/:id", AssessmentPointLive.Details, :show
-      live "/assessment_points/:id/edit", AssessmentPointLive.Details, :edit
-      live "/assessment_points/:id/rubrics", AssessmentPointLive.Details, :rubrics
+      live "/assessment_points/:id", AssessmentPointLive, :show
+      live "/assessment_points/:id/edit", AssessmentPointLive, :edit
+      live "/assessment_points/:id/rubrics", AssessmentPointLive, :rubrics
 
       live "/assessment_points/:id/student/:student_id/feedback",
-           AssessmentPointLive.Details,
+           AssessmentPointLive,
            :feedback
 
       live "/strands", StrandsLive, :index

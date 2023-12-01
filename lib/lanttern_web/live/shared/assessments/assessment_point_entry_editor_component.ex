@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmentPointLive.AssessmentPointEntryEditorComponent do
+defmodule LantternWeb.Assessments.AssessmentPointEntryEditorComponent do
   @moduledoc """
   Expected external assigns:
 

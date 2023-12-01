@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmentPointLive.Details do
+defmodule LantternWeb.AssessmentPointLive do
   use LantternWeb, :live_view
 
   import LantternWeb.DateTimeHelpers
@@ -11,12 +11,15 @@ defmodule LantternWeb.AssessmentPointLive.Details do
   alias Lanttern.Grading
   alias Lanttern.Schools.Student
 
-  alias LantternWeb.AssessmentPointLive.AssessmentPointEntryEditorComponent
-  alias LantternWeb.AssessmentPointLive.AssessmentPointUpdateFormComponent
+  # page components
   alias LantternWeb.AssessmentPointLive.RubricsOverlayComponent
   alias LantternWeb.AssessmentPointLive.DifferentiationRubricComponent
-  alias LantternWeb.AssessmentPointLive.FeedbackFormComponent
-  alias LantternWeb.AssessmentPointLive.FeedbackCommentFormComponent
+
+  # shared components
+  alias LantternWeb.Assessments.AssessmentPointEntryEditorComponent
+  alias LantternWeb.Assessments.AssessmentPointUpdateFormComponent
+  alias LantternWeb.Assessments.FeedbackFormComponent
+  alias LantternWeb.Assessments.FeedbackCommentFormComponent
 
   # render helpers and function components
 

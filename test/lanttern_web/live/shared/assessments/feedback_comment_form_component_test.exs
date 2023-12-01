@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmentPointLive.FeedbackCommentFormComponentTest do
+defmodule LantternWeb.Assessments.FeedbackCommentFormComponentTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.Repo

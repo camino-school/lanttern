@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmentPointLive.FeedbackFormComponent do
+defmodule LantternWeb.Assessments.FeedbackFormComponent do
   @moduledoc """
   ### Expected external assigns:
 

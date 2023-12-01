@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmentPointLive.AssessmentPointUpdateFormComponent do
+defmodule LantternWeb.Assessments.AssessmentPointUpdateFormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments

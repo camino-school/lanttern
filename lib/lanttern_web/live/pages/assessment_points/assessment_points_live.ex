@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmentPointLive.Explorer do
+defmodule LantternWeb.AssessmentPointsLive do
   use LantternWeb, :live_view
 
   alias Lanttern.Assessments
@@ -6,8 +6,9 @@ defmodule LantternWeb.AssessmentPointLive.Explorer do
   alias Lanttern.Schools
   alias Lanttern.Taxonomy
 
-  alias LantternWeb.AssessmentPointLive.AssessmentPointEntryEditorComponent
-  alias LantternWeb.AssessmentPointLive.AssessmentPointCreateFormComponent
+  # shared components
+  alias LantternWeb.Assessments.AssessmentPointEntryEditorComponent
+  alias LantternWeb.Assessments.AssessmentPointCreateFormComponent
 
   # function components
 

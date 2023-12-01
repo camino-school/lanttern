@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmentPointLive.AssessmentPointCreateFormComponentTest do
+defmodule LantternWeb.Assessments.AssessmentPointCreateFormComponentTest do
   use LantternWeb.ConnCase
 
   @live_view_path "/assessment_points/new"

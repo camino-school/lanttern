@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmentPointLive.DetailsTest do
+defmodule LantternWeb.AssessmentPointLiveTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.Repo

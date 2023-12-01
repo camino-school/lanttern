@@ -1,4 +1,4 @@
-defmodule LantternWeb.AssessmentPointLive.FeedbackCommentFormComponent do
+defmodule LantternWeb.Assessments.FeedbackCommentFormComponent do
   @moduledoc """
   ### PubSub: expected broadcast messages
 
