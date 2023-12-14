@@ -440,7 +440,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
 
       # assert from/to is correct
       {:ok, regex} =
-        Regex.compile("From.+#{user.current_profile.teacher.name}.+To.+#{student.name}", "s")
+        Regex.compile("From.+#{user.current_profile.name}.+To.+#{student.name}", "s")
 
       assert view
              |> element("#{@overlay_selector}", regex)

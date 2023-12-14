@@ -9,10 +9,10 @@ defmodule LantternWeb.StudentLiveTest do
 
   describe "Student live view basic navigation" do
     test "disconnected and connected mount", %{conn: conn, user: user} do
-      school = user.current_profile.teacher.school
+      school_id = user.current_profile.school_id
 
       student =
-        SchoolsFixtures.student_fixture(%{school_id: school.id, name: "some student abc xyz"})
+        SchoolsFixtures.student_fixture(%{school_id: school_id, name: "some student abc xyz"})
 
       conn = get(conn, "#{@live_view_base_path}/#{student.id}")
 
@@ -22,13 +22,13 @@ defmodule LantternWeb.StudentLiveTest do
     end
 
     test "list classes", %{conn: conn, user: user} do
-      school = user.current_profile.teacher.school
-      class_b = SchoolsFixtures.class_fixture(%{school_id: school.id, name: "bbb"})
-      class_a = SchoolsFixtures.class_fixture(%{school_id: school.id, name: "aaa"})
+      school_id = user.current_profile.school_id
+      class_b = SchoolsFixtures.class_fixture(%{school_id: school_id, name: "bbb"})
+      class_a = SchoolsFixtures.class_fixture(%{school_id: school_id, name: "aaa"})
 
       student =
         SchoolsFixtures.student_fixture(%{
-          school_id: school.id,
+          school_id: school_id,
           classes_ids: [class_a.id, class_b.id]
         })
 
@@ -39,12 +39,12 @@ defmodule LantternWeb.StudentLiveTest do
     end
 
     test "navigate to class", %{conn: conn, user: user} do
-      school = user.current_profile.teacher.school
-      class = SchoolsFixtures.class_fixture(%{school_id: school.id})
+      school_id = user.current_profile.school_id
+      class = SchoolsFixtures.class_fixture(%{school_id: school_id})
 
       student =
         SchoolsFixtures.student_fixture(%{
-          school_id: school.id,
+          school_id: school_id,
           classes_ids: [class.id]
         })
 

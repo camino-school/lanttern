@@ -284,15 +284,9 @@ defmodule LantternWeb.AssessmentPointLive do
       |> Enum.map(& &1.student)
       |> Enum.find(&("#{&1.id}" == student_id))
 
-    profile_name =
-      case socket.assigns.current_user.current_profile.type do
-        "teacher" -> socket.assigns.current_user.current_profile.teacher.name
-        "student" -> socket.assigns.current_user.current_profile.student.name
-      end
-
     feedback_author_name =
       case feedback do
-        nil -> profile_name
+        nil -> socket.assigns.current_user.current_profile.name
         feedback -> feedback.profile.teacher.name
       end
 
@@ -312,7 +306,6 @@ defmodule LantternWeb.AssessmentPointLive do
     |> assign(:feedback, feedback)
     |> assign(:student, student)
     |> assign(:feedback_author_name, feedback_author_name)
-    |> assign(:profile_name, profile_name)
     |> assign(:edit_comment_id, nil)
     |> stream(:comments, comments)
   end

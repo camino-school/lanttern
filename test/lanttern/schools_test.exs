@@ -175,7 +175,15 @@ defmodule Lanttern.SchoolsTest do
       class_a = class_fixture(%{school_id: school.id, name: "AAA"})
       teacher = teacher_fixture(%{school_id: school.id})
       profile = Lanttern.IdentityFixtures.teacher_profile_fixture(%{teacher_id: teacher.id})
-      user = %{current_profile: Lanttern.Identity.get_profile!(profile.id, preloads: :teacher)}
+
+      user =
+        %{current_profile: Lanttern.Identity.get_profile!(profile.id, preloads: :teacher)}
+        |> Map.update!(:current_profile, fn profile ->
+          %{
+            profile
+            | school_id: profile.teacher.school_id
+          }
+        end)
 
       # extra classes for school filter validation
       class_fixture()

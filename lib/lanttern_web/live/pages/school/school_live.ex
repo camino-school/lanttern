@@ -38,21 +38,9 @@ defmodule LantternWeb.SchoolLive do
   # lifecycle
 
   def mount(_params, _session, socket) do
-    school =
-      case socket.assigns.current_user.current_profile.type do
-        "student" ->
-          socket.assigns.current_user.current_profile.student.school
-
-        "teacher" ->
-          socket.assigns.current_user.current_profile.teacher.school
-      end
-
-    classes = Schools.list_user_classes(socket.assigns.current_user, preload: true)
-
     {:ok,
      socket
-     |> assign(:school, school)
-     |> stream(:classes, classes)}
+     |> stream(:classes, Schools.list_user_classes(socket.assigns.current_user, preload: true))}
   end
 
   def handle_params(params, _url, socket) do

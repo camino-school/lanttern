@@ -56,6 +56,15 @@ defmodule LantternWeb.ConnCase do
     user =
       Lanttern.Identity.get_user!(user.id)
       |> Lanttern.Repo.preload(current_profile: [teacher: [:school], student: [:school]])
+      |> Map.update!(:current_profile, fn profile ->
+        %Lanttern.Identity.Profile{
+          id: profile.id,
+          name: profile.teacher.name,
+          type: "teacher",
+          school_id: profile.teacher.school.id,
+          school_name: profile.teacher.school.name
+        }
+      end)
 
     %{conn: log_in_user(conn, user), user: user}
   end

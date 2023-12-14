@@ -247,7 +247,7 @@ defmodule Lanttern.Schools do
   """
   def list_user_classes(current_user, opts \\ [])
 
-  def list_user_classes(%{current_profile: %{teacher: %{school_id: school_id}}}, opts) do
+  def list_user_classes(%{current_profile: %{type: "teacher", school_id: school_id}}, opts) do
     from(
       cl in Class,
       join: cy in assoc(cl, :cycle),
