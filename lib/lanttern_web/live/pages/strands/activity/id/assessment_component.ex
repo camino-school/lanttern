@@ -6,7 +6,7 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
   alias Lanttern.Schools
 
   # shared components
-  alias LantternWeb.AssessmentPointLive.EntryEditorComponent
+  alias LantternWeb.Assessments.EntryEditorComponent
   alias LantternWeb.Assessments.ActivityAssessmentPointFormComponent
   alias LantternWeb.Schools.ClassFilterFormComponent
 
