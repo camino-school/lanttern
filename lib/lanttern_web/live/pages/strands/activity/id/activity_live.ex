@@ -32,7 +32,7 @@ defmodule LantternWeb.ActivityLive do
       socket,
       [:classes_ids],
       &handle_assigns/2,
-      fn params -> ~p"/strands/activity/#{params["id"]}/?#{params}" end
+      fn params -> ~p"/strands/activity/#{params["id"]}/?#{Map.drop(params, ["id"])}" end
     )
   end
 

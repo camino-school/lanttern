@@ -124,4 +124,32 @@ defmodule LantternWeb.ActivityLiveTest do
       assert_redirect(view, "/strands/#{activity.strand_id}?tab=activities")
     end
   end
+
+  describe "Assessment class filter persistence" do
+    test "persist class filter in activity assessment tab", %{conn: conn} do
+      strand = LearningContextFixtures.strand_fixture()
+      activity = LearningContextFixtures.activity_fixture(%{strand_id: strand.id})
+      class = Lanttern.SchoolsFixtures.class_fixture(%{name: "class filter abc"})
+
+      {:ok, view, _html} =
+        live(
+          conn,
+          "#{@live_view_base_path}/#{activity.id}?tab=assessment&classes_ids[]=#{class.id}"
+        )
+
+      view
+      |> element("#activity-nav-tabs a", "Details & Curriculum")
+      |> render_click()
+
+      assert_patch(view, "#{@live_view_base_path}/#{activity.id}?tab=details")
+
+      view
+      |> element("#activity-nav-tabs a", "Assessment")
+      |> render_click()
+
+      # expect to patch to assessment tab, then patch again adding class_ids params
+      assert_patch(view, "#{@live_view_base_path}/#{activity.id}?tab=assessment")
+      assert_patch(view) =~ "classes_ids[]=#{class.id}"
+    end
+  end
 end
