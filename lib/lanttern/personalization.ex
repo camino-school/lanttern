@@ -415,6 +415,23 @@ defmodule Lanttern.Personalization do
   end
 
   @doc """
+  Get profile settings.
+
+  Returns `nil` if profile has no settings.
+
+  ## Examples
+
+      iex> get_profile_settings(profile_id)
+      %ProfileSettings{}
+
+      iex> get_profile_settings(profile_id)
+      nil
+
+  """
+  def get_profile_settings(profile_id),
+    do: Repo.get_by(ProfileSettings, profile_id: profile_id)
+
+  @doc """
   Set current profile filters.
 
   If there's no profile setting, this function creates one.
@@ -428,9 +445,10 @@ defmodule Lanttern.Personalization do
       {:error, %Ecto.Changeset{}}
 
   """
-  def set_profile_current_filters(current_user, attrs \\ %{})
+  def set_profile_current_filters(%{current_profile: %{id: profile_id}}, attrs \\ %{}),
+    do: insert_settings_or_update_filters(get_profile_settings(profile_id), profile_id, attrs)
 
-  def set_profile_current_filters(%{current_profile: %{id: profile_id, settings: nil}}, attrs) do
+  defp insert_settings_or_update_filters(nil, profile_id, attrs) do
     %ProfileSettings{}
     |> ProfileSettings.changeset(%{
       profile_id: profile_id,
@@ -439,7 +457,7 @@ defmodule Lanttern.Personalization do
     |> Repo.insert()
   end
 
-  def set_profile_current_filters(%{current_profile: %{settings: profile_settings}}, attrs) do
+  defp insert_settings_or_update_filters(profile_settings, _, attrs) do
     profile_settings
     |> ProfileSettings.changeset(%{
       current_filters:
@@ -449,5 +467,71 @@ defmodule Lanttern.Personalization do
         end
     })
     |> Repo.update()
+  end
+
+  @doc """
+  Sync params with profile filters and returns the updated params.
+
+  This function updates the profile settings if there's some value in params for the given filters,
+  or sets param values based on the profile filters — effectively allowing filter persistence between
+  sessions.
+
+  Returns a tuple with `{:noop, params}` when there's no params change, or `{:updated, params}` otherwise.
+
+  ## Examples
+
+      iex> sync_params_and_profile_filters(params, user, [:classes_ids])
+      {:noop, %{"classes_ids" => ["1", "2", "3"]}}
+
+      iex> sync_params_and_profile_filters(params, user, [:classes_ids])
+      {:updated, %{"classes_ids" => ["4", "5", "6"]}}
+
+  """
+  def sync_params_and_profile_filters(
+        params,
+        %{current_profile: %{id: profile_id}} = _user,
+        filters \\ []
+      ) do
+    case get_profile_settings(profile_id) do
+      nil ->
+        # update profile current filters
+        profile_filters =
+          Enum.reduce(filters, %{}, fn atom_filter, profile_filters ->
+            str_filter = Atom.to_string(atom_filter)
+            Map.put(profile_filters, atom_filter, params[str_filter])
+          end)
+
+        insert_settings_or_update_filters(nil, profile_id, profile_filters)
+
+        # return params as is
+        {:noop, params}
+
+      profile_settings ->
+        current_filters = profile_settings.current_filters || %{}
+
+        Enum.reduce(filters, {:noop, params}, fn atom_filter, {op, params} ->
+          str_filter = Atom.to_string(atom_filter)
+
+          case {params[str_filter], Map.get(current_filters, atom_filter)} do
+            {nil, nil} ->
+              {op, params}
+
+            {nil, filter} when is_list(filter) ->
+              params =
+                Map.put(
+                  params,
+                  str_filter,
+                  Enum.map(filter, &"#{&1}")
+                )
+
+              {:updated, params}
+
+            {param, _filter} ->
+              profile_filters = Map.put(%{}, atom_filter, param)
+              insert_settings_or_update_filters(profile_settings, profile_id, profile_filters)
+              {op, params}
+          end
+        end)
+    end
   end
 end
