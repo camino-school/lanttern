@@ -152,7 +152,7 @@
       <%= @feedback.comment %>
     </p>
   </.user_icon_block>
-  <.user_icon_block :if={!@feedback} profile_name={@profile_name}>
+  <.user_icon_block :if={!@feedback} profile_name={@current_user.current_profile.name}>
     <.live_component
       module={FeedbackFormComponent}
       id={:new}
@@ -247,7 +247,11 @@
         <% end %>
       </.user_icon_block>
     </div>
-    <.user_icon_block :if={@edit_comment_id == nil} profile_name={@profile_name} class="mt-10">
+    <.user_icon_block
+      :if={@edit_comment_id == nil}
+      profile_name={@current_user.current_profile.name}
+      class="mt-10"
+    >
       <.live_component
         module={FeedbackCommentFormComponent}
         id={:new}

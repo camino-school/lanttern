@@ -6,8 +6,8 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
   alias Lanttern.Schools
 
   # shared components
-  alias LantternWeb.AssessmentPointLive.ActivityAssessmentPointFormComponent
-  alias LantternWeb.AssessmentPointLive.EntryEditorComponent
+  alias LantternWeb.Assessments.EntryEditorComponent
+  alias LantternWeb.Assessments.ActivityAssessmentPointFormComponent
   alias LantternWeb.Schools.ClassFilterFormComponent
 
   @impl true
@@ -68,6 +68,7 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
           :if={!@classes && @assessment_points_count > 0}
           class="p-10 mt-4 rounded shadow-xl bg-white"
         >
+          <p class="mb-6 font-bold text-ltrn-subtle">Current assessment points</p>
           <ol phx-update="stream" id="assessment-points-no-class" class="flex flex-col gap-4">
             <li
               :for={{dom_id, {assessment_point, i}} <- @streams.assessment_points}

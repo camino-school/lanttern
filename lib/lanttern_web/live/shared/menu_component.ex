@@ -43,10 +43,10 @@ defmodule LantternWeb.MenuComponent do
         <div class="w-96 p-10 font-display overflow-y-auto">
           <p class="mb-4 font-black text-lg text-ltrn-primary">You're logged in as</p>
           <p class="font-black text-4xl text-ltrn-dark">
-            <%= @profile_name %>
+            <%= @current_profile.name %>
           </p>
           <p class="mt-2 font-black text-lg text-ltrn-dark">
-            <%= @profile_type %> @ <%= @profile_school %>
+            <%= String.capitalize(@current_profile.type) %> @ <%= @current_profile.school_name %>
           </p>
           <nav class="mt-10">
             <ul class="font-bold text-lg text-ltrn-subtle leading-loose">
@@ -126,37 +126,29 @@ defmodule LantternWeb.MenuComponent do
   attr :rest, :global, doc: "use to pass phx-* bindings to change profile button"
 
   def profile_item(%{profile: profile, current_profile_id: current_profile_id} = assigns) do
-    {id, type, name, school} =
+    {name, school} =
       case profile.type do
         "student" ->
           {
-            profile.id,
-            "Student",
             profile.student.name,
             profile.student.school.name
           }
 
         "teacher" ->
           {
-            profile.id,
-            "Teacher",
             profile.teacher.name,
             profile.teacher.school.name
           }
       end
 
-    active = id == current_profile_id
-
     assigns =
       assigns
-      |> assign(:id, id)
-      |> assign(:type, type)
       |> assign(:name, name)
       |> assign(:school, school)
-      |> assign(:active, active)
+      |> assign(:active, profile.id == current_profile_id)
 
     ~H"""
-    <li id={"profile-#{@id}"}>
+    <li id={"profile-#{@profile.id}"}>
       <button
         type="button"
         class="group flex items-center gap-2 w-full py-2 text-left text-ltrn-subtle leading-none"
@@ -179,7 +171,7 @@ defmodule LantternWeb.MenuComponent do
             <%= @name %>
           </span>
           <span class="font-sans font-normal text-xs">
-            <%= @type %> @ <%= @school %>
+            <%= String.capitalize(@profile.type) %> @ <%= @school %>
           </span>
         </div>
       </button>
@@ -237,23 +229,6 @@ defmodule LantternWeb.MenuComponent do
   end
 
   def update(%{current_user: current_user} = assigns, socket) do
-    {type, name, school} =
-      case current_user.current_profile.type do
-        "student" ->
-          {
-            "Student",
-            current_user.current_profile.student.name,
-            current_user.current_profile.student.school.name
-          }
-
-        "teacher" ->
-          {
-            "Teacher",
-            current_user.current_profile.teacher.name,
-            current_user.current_profile.teacher.school.name
-          }
-      end
-
     profiles =
       Identity.list_profiles(
         user_id: current_user.id,
@@ -263,9 +238,7 @@ defmodule LantternWeb.MenuComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign(:profile_type, type)
-      |> assign(:profile_name, name)
-      |> assign(:profile_school, school)
+      |> assign(:current_profile, current_user.current_profile)
       |> assign(:profiles, profiles)
 
     {:ok, socket}

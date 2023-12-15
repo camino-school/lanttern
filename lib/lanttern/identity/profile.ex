@@ -5,9 +5,17 @@ defmodule Lanttern.Identity.Profile do
   schema "profiles" do
     field :type, :string
 
+    # used to optimize session user, avoiding
+    # student, teacher, and school structs preloads
+    field :name, :string, virtual: true
+    field :school_id, :id, virtual: true
+    field :school_name, :string, virtual: true
+
     belongs_to :user, Lanttern.Identity.User
     belongs_to :student, Lanttern.Schools.Student
     belongs_to :teacher, Lanttern.Schools.Teacher
+
+    has_one :settings, Lanttern.Personalization.ProfileSettings
 
     timestamps()
   end

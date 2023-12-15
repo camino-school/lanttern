@@ -56,6 +56,8 @@ defmodule LantternWeb do
       use Phoenix.LiveView,
         layout: {LantternWeb.Layouts, unquote(layout)}
 
+      import LantternWeb.LiveViewHelpers
+
       unquote(html_helpers())
     end
   end

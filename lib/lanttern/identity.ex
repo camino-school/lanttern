@@ -277,7 +277,33 @@ defmodule Lanttern.Identity do
     query
     |> Repo.one()
     |> Repo.preload(current_profile: [teacher: [:school], student: [:school]])
+    |> case do
+      nil -> nil
+      user -> Map.update!(user, :current_profile, &build_flat_profile/1)
+    end
   end
+
+  defp build_flat_profile(%{type: "teacher", teacher: teacher} = profile) do
+    %Profile{
+      id: profile.id,
+      name: teacher.name,
+      type: "teacher",
+      school_id: teacher.school.id,
+      school_name: teacher.school.name
+    }
+  end
+
+  defp build_flat_profile(%{type: "student", student: student} = profile) do
+    %Profile{
+      id: profile.id,
+      name: student.name,
+      type: "student",
+      school_id: student.school.id,
+      school_name: student.school.name
+    }
+  end
+
+  defp build_flat_profile(profile), do: profile
 
   @doc """
   Deletes the signed token with the given context.
