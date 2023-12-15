@@ -15,6 +15,8 @@ defmodule Lanttern.Identity.Profile do
     belongs_to :student, Lanttern.Schools.Student
     belongs_to :teacher, Lanttern.Schools.Teacher
 
+    has_one :settings, Lanttern.Personalization.ProfileSettings
+
     timestamps()
   end
 

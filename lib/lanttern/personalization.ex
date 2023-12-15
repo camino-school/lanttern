@@ -12,6 +12,7 @@ defmodule Lanttern.Personalization do
   alias Lanttern.Personalization.ActivityNoteRelationship
   alias Lanttern.LearningContext.Activity
   alias Lanttern.Personalization.ProfileView
+  alias Lanttern.Personalization.ProfileSettings
 
   @doc """
   Returns the list of notes.
@@ -342,7 +343,7 @@ defmodule Lanttern.Personalization do
   end
 
   @doc """
-  Creates an profile_view.
+  Creates a profile_view.
 
   ## Examples
 
@@ -411,5 +412,42 @@ defmodule Lanttern.Personalization do
         attrs \\ %{}
       ) do
     ProfileView.changeset(profile_view, attrs)
+  end
+
+  @doc """
+  Set current profile filters.
+
+  If there's no profile setting, this function creates one.
+
+  ## Examples
+
+      iex> set_profile_current_filters(user, %{classes_ids: [1], subjects_ids: [2]})
+      {:ok, %ProfileSettings{}}
+
+      iex> set_profile_current_filters(user, %{classes_ids: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def set_profile_current_filters(current_user, attrs \\ %{})
+
+  def set_profile_current_filters(%{current_profile: %{id: profile_id, settings: nil}}, attrs) do
+    %ProfileSettings{}
+    |> ProfileSettings.changeset(%{
+      profile_id: profile_id,
+      current_filters: attrs
+    })
+    |> Repo.insert()
+  end
+
+  def set_profile_current_filters(%{current_profile: %{settings: profile_settings}}, attrs) do
+    profile_settings
+    |> ProfileSettings.changeset(%{
+      current_filters:
+        case profile_settings.current_filters do
+          nil -> attrs
+          current_filters -> Map.from_struct(current_filters) |> Map.merge(attrs)
+        end
+    })
+    |> Repo.update()
   end
 end

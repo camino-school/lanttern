@@ -354,4 +354,60 @@ defmodule Lanttern.PersonalizationTest do
                Personalization.change_profile_view(profile_view)
     end
   end
+
+  describe "profile_settings" do
+    alias Lanttern.Personalization.ProfileSettings
+
+    import Lanttern.PersonalizationFixtures
+    import Lanttern.IdentityFixtures
+
+    test "set_profile_current_filters/2 sets current filters in profile settings" do
+      current_profile =
+        teacher_profile_fixture()
+        |> Map.put(:settings, nil)
+
+      subjects_ids = [1, 2, 3]
+      classes_ids = [4, 5, 6]
+
+      assert {:ok, %ProfileSettings{} = settings} =
+               Personalization.set_profile_current_filters(
+                 %{current_profile: current_profile},
+                 %{
+                   subjects_ids: subjects_ids,
+                   classes_ids: classes_ids
+                 }
+               )
+
+      assert settings.current_filters.subjects_ids == subjects_ids
+      assert settings.current_filters.classes_ids == classes_ids
+    end
+
+    test "set_profile_current_filters/2 with only one type of filter keeps the other filters as is" do
+      current_profile =
+        teacher_profile_fixture()
+        |> Map.put(:settings, nil)
+
+      # create profile settings with classes ids
+      {:ok, %ProfileSettings{} = settings} =
+        Personalization.set_profile_current_filters(
+          %{current_profile: current_profile},
+          %{classes_ids: [4, 5, 6]}
+        )
+
+      current_profile =
+        current_profile
+        |> Map.put(:settings, settings)
+
+      subjects_ids = [1, 2, 3]
+
+      assert {:ok, %ProfileSettings{} = settings} =
+               Personalization.set_profile_current_filters(
+                 %{current_profile: current_profile},
+                 %{subjects_ids: subjects_ids}
+               )
+
+      assert settings.current_filters.subjects_ids == subjects_ids
+      assert settings.current_filters.classes_ids == [4, 5, 6]
+    end
+  end
 end
