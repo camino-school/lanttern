@@ -27,11 +27,25 @@ defmodule LantternWeb.StrandLive do
   end
 
   @impl true
-  def handle_params(params, _url, socket) do
-    {:noreply,
-     socket
-     |> set_current_tab(params, socket.assigns.live_action)
-     |> apply_action(socket.assigns.live_action, params)}
+  def handle_params(%{"tab" => "assessment"} = params, _url, socket) do
+    # when in assessment tab, sync classes_ids filter with profile
+    handle_params_and_profile_filters_sync(
+      params,
+      socket,
+      [:classes_ids],
+      &handle_assigns/2,
+      fn params -> ~p"/strands/#{params["id"]}/?#{Map.drop(params, ["id"])}" end
+    )
+  end
+
+  def handle_params(params, _url, socket),
+    do: {:noreply, handle_assigns(socket, params)}
+
+  defp handle_assigns(socket, params) do
+    socket
+    |> assign(:params, params)
+    |> set_current_tab(params, socket.assigns.live_action)
+    |> apply_action(socket.assigns.live_action, params)
   end
 
   defp set_current_tab(socket, _params, :new_activity),

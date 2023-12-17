@@ -82,6 +82,8 @@
     module={AssessmentComponent}
     id="strand-details-assessment"
     strand={@strand}
+    params={@params}
+    current_user={@current_user}
   />
   <.live_component
     :if={@current_tab == :notes}
