@@ -166,7 +166,14 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       />
       <%= for entry <- @entries do %>
         <div
-          class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full text-sm bg-ltrn-lighter"
+          class={[
+            "shrink-0 flex items-center justify-center w-14 h-14 rounded-full text-sm",
+            if(
+              not is_nil(entry),
+              do: "text-ltrn-dark bg-white shadow-md",
+              else: "text-ltrn-subtle bg-ltrn-lighter"
+            )
+          ]}
           style={get_colors_style(entry, @scale_ov_map)}
         >
           <%= get_entry_value(entry, @scale_ov_map) %>

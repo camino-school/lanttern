@@ -339,13 +339,25 @@ defmodule LantternWeb.CoreComponents do
   Renders a page cover.
   """
   attr :rest, :global
+  attr :size, :string, default: "lg", doc: "sm | lg"
+  attr :theme, :string, default: "primary"
   slot :inner_block, required: true
   slot :top, required: true
 
   def cover(assigns) do
     ~H"""
-    <div class="relative h-[40rem] bg-cover bg-center bg-ltrn-lighter" {@rest}>
-      <div class="absolute top-1/4 inset-x-0 bottom-0 bg-gradient-to-b from-ltrn-mesh-lime/0 to-ltrn-mesh-lime" />
+    <div
+      class={[
+        "relative bg-cover bg-center bg-ltrn-lighter",
+        if(@size == "sm", do: "h-96", else: "h-[40rem]")
+      ]}
+      {@rest}
+    >
+      <div class={[
+        "absolute inset-x-0 bottom-0 bg-gradient-to-b",
+        cover_overlay(@theme),
+        if(@size == "sm", do: "top-0", else: "top-1/4")
+      ]} />
       <div class="relative flex flex-col justify-between container h-full pt-10 pb-12 mx-auto lg:max-w-5xl">
         <div>
           <%= render_slot(@top) %>
@@ -357,6 +369,12 @@ defmodule LantternWeb.CoreComponents do
     </div>
     """
   end
+
+  defp cover_overlay("violet"),
+    do: "from-ltrn-mesh-violet/0 to-ltrn-mesh-violet"
+
+  defp cover_overlay(_primary),
+    do: "from-ltrn-mesh-primary/0 to-ltrn-mesh-primary"
 
   @doc ~S"""
   Renders a table with generic styling.
