@@ -277,6 +277,43 @@ defmodule Lanttern.LearningContext do
   end
 
   @doc """
+  Update strand activities positions based on ids list order.
+
+  ## Examples
+
+      iex> update_strand_activities_positions(strand_id, [3, 2, 1])
+      {:ok, [%Activity{}, ...]}
+
+  """
+  def update_strand_activities_positions(strand_id, activities_ids) do
+    activities_ids
+    |> Enum.with_index()
+    |> Enum.reduce(
+      Ecto.Multi.new(),
+      fn {id, i}, multi ->
+        multi
+        |> Ecto.Multi.update_all(
+          "update-#{id}",
+          from(
+            a in Activity,
+            where: a.id == ^id,
+            where: a.strand_id == ^strand_id
+          ),
+          set: [position: i]
+        )
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:ok, _} ->
+        {:ok, list_activities(strands_ids: [strand_id])}
+
+      _ ->
+        {:error, "Something went wrong"}
+    end
+  end
+
+  @doc """
   Deletes a activity.
 
   ## Examples

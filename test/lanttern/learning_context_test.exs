@@ -263,6 +263,39 @@ defmodule Lanttern.LearningContextTest do
       assert activity == LearningContext.get_activity!(activity.id)
     end
 
+    test "update_strand_activities_positions/2 update strand activities position based on list order" do
+      strand = strand_fixture()
+      activity_1 = activity_fixture(%{strand_id: strand.id})
+      activity_2 = activity_fixture(%{strand_id: strand.id})
+      activity_3 = activity_fixture(%{strand_id: strand.id})
+      activity_4 = activity_fixture(%{strand_id: strand.id})
+
+      sorted_activities_ids =
+        [
+          activity_2.id,
+          activity_3.id,
+          activity_1.id,
+          activity_4.id
+        ]
+
+      assert {:ok,
+              [
+                expected_2,
+                expected_3,
+                expected_1,
+                expected_4
+              ]} =
+               LearningContext.update_strand_activities_positions(
+                 strand.id,
+                 sorted_activities_ids
+               )
+
+      assert expected_1.id == activity_1.id
+      assert expected_2.id == activity_2.id
+      assert expected_3.id == activity_3.id
+      assert expected_4.id == activity_4.id
+    end
+
     test "delete_activity/1 deletes the activity" do
       activity = activity_fixture()
       assert {:ok, %Activity{}} = LearningContext.delete_activity(activity)
