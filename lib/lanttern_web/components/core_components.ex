@@ -370,10 +370,10 @@ defmodule LantternWeb.CoreComponents do
     """
   end
 
-  defp cover_overlay("violet"),
-    do: "from-ltrn-mesh-violet/0 to-ltrn-mesh-violet"
+  defp cover_overlay("lime"),
+    do: "from-ltrn-mesh-lime/0 to-ltrn-mesh-lime"
 
-  defp cover_overlay(_primary),
+  defp cover_overlay(_),
     do: "from-ltrn-mesh-primary/0 to-ltrn-mesh-primary"
 
   @doc ~S"""

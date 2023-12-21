@@ -44,13 +44,18 @@ defmodule LantternWeb.StrandLive.ActivitiesComponent do
             class="flex flex-col gap-6 p-6 rounded shadow-xl bg-white"
             id={dom_id}
           >
-            <.link
-              navigate={~p"/strands/activity/#{activity.id}"}
-              class="font-display font-black text-xl"
-            >
-              <%= "#{i + 1}." %>
-              <span class="underline"><%= activity.name %></span>
-            </.link>
+            <div class="flex items-center justify-between gap-6">
+              <.link
+                navigate={~p"/strands/activity/#{activity.id}"}
+                class="font-display font-black text-xl"
+              >
+                <%= "#{i + 1}." %>
+                <span class="underline"><%= activity.name %></span>
+              </.link>
+              <div class="shrink-0 flex gap-2">
+                <.badge :for={subject <- activity.subjects}><%= subject.name %></.badge>
+              </div>
+            </div>
             <div class="line-clamp-6">
               <.markdown text={activity.description} class="prose-sm" />
             </div>
@@ -170,7 +175,7 @@ defmodule LantternWeb.StrandLive.ActivitiesComponent do
   @impl true
   def update(assigns, socket) do
     activities =
-      LearningContext.list_activities(strands_ids: [assigns.strand.id])
+      LearningContext.list_activities(strands_ids: [assigns.strand.id], preloads: :subjects)
       |> Enum.with_index()
 
     {:ok,
