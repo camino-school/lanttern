@@ -228,6 +228,135 @@ defmodule Lanttern.AssessmentsTest do
     end
   end
 
+  describe "strand assessment points" do
+    alias Lanttern.Assessments.AssessmentPoint
+
+    import Lanttern.AssessmentsFixtures
+    alias Lanttern.LearningContextFixtures
+    alias Lanttern.CurriculaFixtures
+    alias Lanttern.GradingFixtures
+    alias Lanttern.SchoolsFixtures
+
+    test "list_strand_assessment_points/1 returns all assessment points in a given strand" do
+      strand = LearningContextFixtures.strand_fixture()
+      activity_1 = LearningContextFixtures.activity_fixture(%{strand_id: strand.id, position: 1})
+      activity_2 = LearningContextFixtures.activity_fixture(%{strand_id: strand.id, position: 2})
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      scale = GradingFixtures.scale_fixture()
+
+      valid_attrs = %{
+        name: "some assessment point name abc",
+        curriculum_item_id: curriculum_item.id,
+        scale_id: scale.id
+      }
+
+      assessment_point_1_1 = activity_assessment_point_fixture(activity_1.id, valid_attrs)
+      assessment_point_1_2 = activity_assessment_point_fixture(activity_1.id, valid_attrs)
+      assessment_point_2_1 = activity_assessment_point_fixture(activity_2.id, valid_attrs)
+      assessment_point_2_2 = activity_assessment_point_fixture(activity_2.id, valid_attrs)
+
+      # extra assessment points for "filter" assertion
+      other_activity = LearningContextFixtures.activity_fixture()
+      activity_assessment_point_fixture(other_activity.id, valid_attrs)
+      assessment_point_fixture()
+
+      assert [expected_1, expected_2, expected_3, expected_4] =
+               Assessments.list_strand_assessment_points(strand.id)
+
+      assert expected_1.id == assessment_point_1_1.id
+      assert expected_2.id == assessment_point_1_2.id
+      assert expected_3.id == assessment_point_2_1.id
+      assert expected_4.id == assessment_point_2_2.id
+    end
+
+    test "list_strand_students_entries/1 returns students and their assessment point entries for the given strand" do
+      strand = LearningContextFixtures.strand_fixture()
+      activity_1 = LearningContextFixtures.activity_fixture(%{strand_id: strand.id, position: 1})
+      activity_2 = LearningContextFixtures.activity_fixture(%{strand_id: strand.id, position: 2})
+      curriculum_item_1 = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item_2 = CurriculaFixtures.curriculum_item_fixture()
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+
+      assessment_point_1_1 =
+        activity_assessment_point_fixture(
+          activity_1.id,
+          %{
+            name: "some assessment point name abc",
+            curriculum_item_id: curriculum_item_1.id,
+            scale_id: scale.id
+          }
+        )
+
+      assessment_point_2_1 =
+        activity_assessment_point_fixture(
+          activity_2.id,
+          %{
+            name: "some assessment point name hij",
+            curriculum_item_id: curriculum_item_1.id,
+            scale_id: scale.id
+          }
+        )
+
+      assessment_point_2_2 =
+        activity_assessment_point_fixture(
+          activity_2.id,
+          %{
+            name: "some assessment point name xyz",
+            curriculum_item_id: curriculum_item_2.id,
+            scale_id: scale.id
+          }
+        )
+
+      class = SchoolsFixtures.class_fixture()
+      student_a = SchoolsFixtures.student_fixture(%{name: "AAA", classes_ids: [class.id]})
+      student_b = SchoolsFixtures.student_fixture(%{name: "BBB", classes_ids: [class.id]})
+      student_c = SchoolsFixtures.student_fixture(%{name: "CCC", classes_ids: [class.id]})
+      student_d = SchoolsFixtures.student_fixture(%{name: "DDD"})
+
+      entry_1_1_a =
+        assessment_point_entry_fixture(%{
+          student_id: student_a.id,
+          assessment_point_id: assessment_point_1_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      entry_2_1_b =
+        assessment_point_entry_fixture(%{
+          student_id: student_b.id,
+          assessment_point_id: assessment_point_2_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      entry_2_2_c =
+        assessment_point_entry_fixture(%{
+          student_id: student_c.id,
+          assessment_point_id: assessment_point_2_2.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      _entry_2_2_d =
+        assessment_point_entry_fixture(%{
+          student_id: student_d.id,
+          assessment_point_id: assessment_point_2_2.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      assert [
+               {expected_std_a, [^entry_1_1_a, nil, nil]},
+               {expected_std_b, [nil, ^entry_2_1_b, nil]},
+               {expected_std_c, [nil, nil, ^entry_2_2_c]}
+             ] = Assessments.list_strand_students_entries(strand.id, classes_ids: [class.id])
+
+      assert expected_std_a.id == student_a.id
+      assert expected_std_b.id == student_b.id
+      assert expected_std_c.id == student_c.id
+    end
+  end
+
   describe "activity assessment points" do
     alias Lanttern.Assessments.AssessmentPoint
 

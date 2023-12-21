@@ -14,7 +14,7 @@
     <.badge :for={year <- @strand.years} theme="dark"><%= year.name %></.badge>
   </div>
 </.cover>
-<div class="sticky top-0 border-b border-ltrn-lighter bg-white">
+<div class="sticky z-30 top-0 border-b border-ltrn-lighter bg-white">
   <div class="flex items-center justify-between container lg:max-w-5xl mx-auto">
     <.nav_tabs id="strand-nav-tabs">
       <:tab
@@ -82,6 +82,8 @@
     module={AssessmentComponent}
     id="strand-details-assessment"
     strand={@strand}
+    params={@params}
+    current_user={@current_user}
   />
   <.live_component
     :if={@current_tab == :notes}
