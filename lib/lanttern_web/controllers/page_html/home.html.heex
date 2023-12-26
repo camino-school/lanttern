@@ -31,41 +31,80 @@
   </div>
 </div>
 <main class="relative">
-  <nav class="sticky top-0 z-10 w-full bg-white/90">
+  <nav class="sticky top-0 z-10 w-full bg-white/90" id="nav" phx-hook="NavScrollspy">
     <ol class="flex items-stretch w-full text-ltrn-subtle">
       <li class="flex-[1-0] flex items-stretch">
         <a
           href="#assessment-points"
           class={[
             "group block w-full text-center pt-6 px-6 pb-3 border-b-2 border-ltrn-lighter",
-            "aria-current:border-ltrn-primary aria-current:text-ltrn-dark aria-current:bg-ltrn-lightest"
+            "aria-current:border-ltrn-primary aria-current:text-ltrn-dark aria-current:bg-ltrn-lightest hover:text-ltrn-dark"
           ]}
-          aria-current="true"
         >
-          <span class="block mb-4 text-center font-display font-black text-2xl group-aria-current:text-ltrn-primary">
+          <span class="block mb-4 text-center font-display font-black text-2xl group-aria-current:text-ltrn-primary group-hover:text-ltrn-primary">
             1
           </span>
           Assessment points,<br />feedback, and<br />comment tracking
         </a>
       </li>
-      <li class="flex-[1-0] text-center pt-6 px-6 pb-3 border-b-2 border-ltrn-lighter">
-        <span class="block mb-4 text-center font-display font-black text-2xl">2</span>
-        Differentiation<br />and inclusion
+      <li class="flex-[1-0] flex items-stretch">
+        <a
+          href="#differentiation"
+          class={[
+            "group block w-full text-center pt-6 px-6 pb-3 border-b-2 border-ltrn-lighter",
+            "aria-current:border-ltrn-primary aria-current:text-ltrn-dark aria-current:bg-ltrn-lightest hover:text-ltrn-dark"
+          ]}
+        >
+          <span class="block mb-4 text-center font-display font-black text-2xl group-aria-current:text-ltrn-primary group-hover:text-ltrn-primary">
+            2
+          </span>
+          Differentiation<br />and inclusion
+        </a>
       </li>
-      <li class="flex-[1-0] text-center pt-6 px-6 pb-3 border-b-2 border-ltrn-lighter">
-        <span class="block mb-4 text-center font-display font-black text-2xl">3</span>
-        Planning and<br />documentation
+      <li class="flex-[1-0] flex items-stretch">
+        <a
+          href="#planning"
+          class={[
+            "group block w-full text-center pt-6 px-6 pb-3 border-b-2 border-ltrn-lighter",
+            "aria-current:border-ltrn-primary aria-current:text-ltrn-dark aria-current:bg-ltrn-lightest hover:text-ltrn-dark"
+          ]}
+        >
+          <span class="block mb-4 text-center font-display font-black text-2xl group-aria-current:text-ltrn-primary group-hover:text-ltrn-primary">
+            3
+          </span>
+          Planning and<br />documentation
+        </a>
       </li>
-      <li class="flex-[1-0] text-center pt-6 px-6 pb-3 border-b-2 border-ltrn-lighter">
-        <span class="block mb-4 text-center font-display font-black text-2xl">4</span>
-        Curriculum<br />intelligence
+      <li class="flex-[1-0] flex items-stretch">
+        <a
+          href="#curriculum"
+          class={[
+            "group block w-full text-center pt-6 px-6 pb-3 border-b-2 border-ltrn-lighter",
+            "aria-current:border-ltrn-primary aria-current:text-ltrn-dark aria-current:bg-ltrn-lightest hover:text-ltrn-dark"
+          ]}
+        >
+          <span class="block mb-4 text-center font-display font-black text-2xl group-aria-current:text-ltrn-primary group-hover:text-ltrn-primary">
+            4
+          </span>
+          Curriculum<br />intelligence
+        </a>
       </li>
-      <li class="flex-[1-0] text-center pt-6 px-6 pb-3 border-b-2 border-ltrn-lighter">
-        <span class="block mb-4 text-center font-display font-black text-2xl">5</span>
-        Artificial<br />intelligence<br />
-        <span class="inline-flex px-3 py-1 mt-2 rounded-full font-bold text-sm text-white bg-ltrn-primary">
-          Soon
-        </span>
+      <li class="flex-[1-0] flex items-stretch">
+        <a
+          href="#ai"
+          class={[
+            "group block w-full text-center pt-6 px-6 pb-3 border-b-2 border-ltrn-lighter",
+            "aria-current:border-ltrn-primary aria-current:text-ltrn-dark aria-current:bg-ltrn-lightest hover:text-ltrn-dark"
+          ]}
+        >
+          <span class="block mb-4 text-center font-display font-black text-2xl group-aria-current:text-ltrn-primary group-hover:text-ltrn-primary">
+            5
+          </span>
+          Artificial<br />intelligence<br />
+          <span class="inline-flex px-3 py-1 mt-2 rounded-full font-bold text-sm text-white bg-ltrn-primary">
+            Soon
+          </span>
+        </a>
       </li>
     </ol>
   </nav>
@@ -84,7 +123,7 @@
       </div>
     </div>
   </section>
-  <section class="py-40">
+  <section class="py-40" id="differentiation">
     <div class="max-w-3xl mx-auto">
       <h2 class="inline-flex items-center gap-4 p-4 border-2 border-ltrn-primary rounded-full font-display font-black text-lg">
         2. <span class="w-[2px] h-7 bg-ltrn-primary" /> Differentiation and inclusion
@@ -101,7 +140,7 @@
       </div>
     </div>
   </section>
-  <section class="py-40 bg-ltrn-lighter">
+  <section class="py-40 bg-ltrn-lighter" id="planning">
     <div class="max-w-3xl mx-auto">
       <h2 class="inline-flex items-center gap-4 p-4 border-2 border-ltrn-primary rounded-full font-display font-black text-lg">
         3. <span class="w-[2px] h-7 bg-ltrn-primary" /> Planning and documentation
@@ -115,7 +154,7 @@
       </div>
     </div>
   </section>
-  <section class="py-40">
+  <section class="py-40" id="curriculum">
     <div class="max-w-3xl mx-auto">
       <h2 class="inline-flex items-center gap-4 p-4 border-2 border-ltrn-primary rounded-full font-display font-black text-lg">
         4. <span class="w-[2px] h-7 bg-ltrn-primary" /> Curriculum intelligence
@@ -129,7 +168,7 @@
       </div>
     </div>
   </section>
-  <section class="py-40 bg-ltrn-dark">
+  <section class="py-40 bg-ltrn-dark" id="ai">
     <div class="max-w-3xl mx-auto text-white">
       <h2 class="inline-flex items-center gap-4 p-4 border-2 border-ltrn-primary rounded-full font-display font-black text-lg">
         5. <span class="w-[2px] h-7 bg-ltrn-primary" /> Artificial intelligence

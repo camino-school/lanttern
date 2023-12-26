@@ -23,11 +23,13 @@ import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
 import autocompleteHook from "./autocomplete-hook";
 import menuButtonrHook from "./menu-button-hook";
+import navScrollspyHook from "./nav-scrollspy-hook";
 import sliderHook from "./slider-hook";
 
 let Hooks = {};
 Hooks.Autocomplete = autocompleteHook;
 Hooks.MenuButton = menuButtonrHook;
+Hooks.NavScrollspy = navScrollspyHook;
 Hooks.Slider = sliderHook;
 
 let csrfToken = document
