@@ -175,10 +175,10 @@
         </li>
       </ol>
     </nav>
-    <section class="px-10 py-40 bg-ltrn-lighter" id="assessment-points">
+    <section class="relative px-10 pt-40 bg-ltrn-lighter overflow-x-hidden" id="assessment-points">
       <div class="max-w-3xl mx-auto">
         <h2 class={[
-          "flex items-center gap-4 font-display font-black text-lg",
+          "flex items-center gap-4 max-w-md font-display font-black text-lg",
           "md:inline-flex md:p-4 md:border-2 md:rounded-full md:border-ltrn-primary"
         ]}>
           1. <span class="w-[2px] self-stretch bg-ltrn-primary" />
@@ -192,8 +192,202 @@
           </p>
         </div>
       </div>
+      <div class="isolate relative z-10 w-screen pr-10 pb-20 mt-20 -ml-10 overflow-x-auto ">
+        <div class="flex flex-col gap-4 w-fit p-10 rounded bg-white shadow-lg">
+          <div class="flex items-center gap-4 text-ltrn-subtle underline">
+            <div class="shrink-0 w-48" />
+            <div class="flex-[1_0] flex items-center justify-center gap-2 truncate">
+              1. Intro & Pre-assessment
+            </div>
+            <div class="flex-[1_0] flex items-center justify-center gap-2 truncate">
+              2. Research and validation
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <.icon_with_name profile_name="Adrian Jones" class="shrink-0 w-48" />
+            <div class="flex-[1_0] flex items-center justify-center gap-2">
+              <div class="scale-90 shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#fff48f] text-[#756a07]">
+                Pro
+              </div>
+              <div class="scale-95 shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#5cd9bb] text-[#052c22]">
+                Ach
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#814bf4] text-[#efe9fc]">
+                Exc
+              </div>
+            </div>
+            <div class="flex-[1_0] flex items-center justify-center gap-2">
+              <div class="scale-95 shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#5cd9bb] text-[#052c22]">
+                Ach
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code text-ltrn-subtle bg-ltrn-lighter">
+                —
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code text-ltrn-subtle bg-ltrn-lighter">
+                —
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <.icon_with_name profile_name="Fernanda Silva" class="shrink-0 w-48" />
+            <div class="flex-[1_0] flex items-center justify-center gap-2">
+              <div class="scale-95 shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#5cd9bb] text-[#052c22]">
+                Ach
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#814bf4] text-[#efe9fc]">
+                Exc
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#814bf4] text-[#efe9fc]">
+                Exc
+              </div>
+            </div>
+            <div class="flex-[1_0] flex items-center justify-center gap-2">
+              <div class="scale-95 shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#5cd9bb] text-[#052c22]">
+                Ach
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code text-ltrn-subtle bg-ltrn-lighter">
+                —
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code text-ltrn-subtle bg-ltrn-lighter">
+                —
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <.icon_with_name profile_name="José Delauren" class="shrink-0 w-48" />
+            <div class="flex-[1_0] flex items-center justify-center gap-2">
+              <div class="scale-75 shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#000] text-[#fff]">
+                Lac
+              </div>
+              <div class="scale-[0.8] shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#f28888] text-[#f6dfdf]">
+                Eme
+              </div>
+              <div class="scale-90 shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#fff48f] text-[#756a07]">
+                Pro
+              </div>
+            </div>
+            <div class="flex-[1_0] flex items-center justify-center gap-2">
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code text-ltrn-subtle bg-ltrn-lighter">
+                —
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code text-ltrn-subtle bg-ltrn-lighter">
+                —
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code text-ltrn-subtle bg-ltrn-lighter">
+                —
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <.icon_with_name profile_name="Vicky Kawashita" class="shrink-0 w-48" />
+            <div class="flex-[1_0] flex items-center justify-center gap-2">
+              <div class="scale-90 shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#fff48f] text-[#756a07]">
+                Pro
+              </div>
+              <div class="scale-95 shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#5cd9bb] text-[#052c22]">
+                Ach
+              </div>
+              <div class="scale-95 shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#5cd9bb] text-[#052c22]">
+                Ach
+              </div>
+            </div>
+            <div class="flex-[1_0] flex items-center justify-center gap-2">
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code text-ltrn-subtle bg-ltrn-lighter">
+                —
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code text-ltrn-subtle bg-ltrn-lighter">
+                —
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code text-ltrn-subtle bg-ltrn-lighter">
+                —
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class={[
+        "hidden absolute top-10 -right-[480px] w-[640px] p-6 rounded bg-white shadow-xl ltrn-bg-slide-over",
+        "sm:block lg:-right-[240px]"
+      ]}>
+        <div class="font-display font-black text-3xl">
+          Feedback
+        </div>
+        <div class="mt-5 mb-10">
+          <div class="flex items-center gap-4 text-xs">
+            <.icon name="hero-users-mini" class="text-ltrn-subtle" />
+            <div class="flex items-center gap-1">
+              From
+              <.badge>Mr. Souza</.badge>
+            </div>
+            <div class="flex items-center gap-1">
+              To
+              <.badge>Adrian Jones</.badge>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 mt-4 text-xs">
+            <.icon name="hero-bookmark-square-mini" class="text-ltrn-subtle" />
+            <div class="flex items-center gap-1">
+              In the context of
+              <.badge>Ancient Civilizations — World Building</.badge>
+            </div>
+          </div>
+        </div>
+        <.user_icon_block profile_name="Mr. Souza">
+          <span class="block mb-2 text-xs text-ltrn-subtle">
+            10/09/2023 08:10
+          </span>
+          <p class="text-sm">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+          </p>
+        </.user_icon_block>
+        <.user_icon_block profile_name="Adrian Jones" theme="rose" class="mt-6">
+          <span class="flex items-center gap-4 mb-2 text-xs text-ltrn-subtle">
+            10/09/2023 08:10
+          </span>
+          <p class="text-sm">
+            Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+          </p>
+        </.user_icon_block>
+        <.user_icon_block profile_name="Mr. Souza" class="mt-6">
+          <span class="flex items-center gap-4 mb-2 text-xs text-ltrn-subtle">
+            10/09/2023 08:10
+          </span>
+          <div class="flex items-center justify-between p-2 mb-2 text-white bg-green-500">
+            <div class="flex items-center gap-1">
+              <.icon name="hero-check-circle" class="shrink-0 w-6 h-6" />
+              <span class="font-display font-bold text-sm">Marked as complete 🎉</span>
+            </div>
+            <button type="button" class="shrink-0 opacity-50 hover:opacity-100 focus:opacity-100">
+              <.icon name="hero-x-mark" class="w-6 h-6" />
+            </button>
+          </div>
+          <p class="text-sm">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+          </p>
+        </.user_icon_block>
+        <.user_icon_block profile_name="Mr. Souza" class="mt-10">
+          <form class="flex-1">
+            <.textarea_with_actions
+              id="feedback-comment-id"
+              name="feedback-comment"
+              value={nil}
+              errors={[]}
+              label="Add your comment..."
+            >
+              <:actions>
+                <.button type="button" theme="ghost">
+                  Cancel
+                </.button>
+                <.button type="submit" disabled>
+                  Save
+                </.button>
+              </:actions>
+            </.textarea_with_actions>
+          </form>
+        </.user_icon_block>
+      </div>
     </section>
-    <section class="relative pt-40 px-10 overflow-hidden" id="differentiation">
+    <section class="relative pt-60 px-10 -mt-40 bg-white overflow-hidden" id="differentiation">
       <div class="max-w-3xl mx-auto">
         <h2 class={[
           "flex items-center gap-4 font-display font-black text-lg",
@@ -214,7 +408,7 @@
       </div>
       <div class={[
         "isolate relative z-10 w-screen py-20 px-6 -mx-10 overflow-x-auto",
-        "lg:max-w-[64rem] lg:px-0 lg:mx-auto"
+        "lg:max-w-[64rem] lg:px-0 lg:mx-auto lg:overflow-x-visible"
       ]}>
         <div class="min-w-[640px] p-6 rounded shadow-2xl bg-white">
           <div class="flex items-start justify-between gap-4 mb-4">
@@ -499,7 +693,7 @@
             <div class="shrink-0 flex items-center justify-center w-10 h-10 rounded-full text-sm bg-ltrn-mesh-yellow">
               ME
             </div>
-            <div class="flex-1 md:max-w-md p-6 rounded-lg italic text-xl bg-ltrn-mesh-yellow">
+            <div class="flex-1 md:max-w-md p-6 rounded-lg italic text-lg md:text-xl bg-ltrn-mesh-yellow">
               Hey Lanttern, can you show me the history of Fernanda’s 2024 ELA reading assessments, highlighting the skills that she still needs to improve before the end of the cycle?
             </div>
           </div>
@@ -508,7 +702,7 @@
             <div class="relative shrink-0 flex items-center justify-center w-10 h-10 rounded-full text-sm bg-ltrn-mesh-primary">
               LN
             </div>
-            <div class="relative flex-1 md:max-w-md p-6 rounded-lg italic text-xl bg-ltrn-mesh-primary">
+            <div class="relative flex-1 md:max-w-md p-6 rounded-lg italic text-lg md:text-xl bg-ltrn-mesh-primary">
               Sure! Wait a moment (a couple of months), while I’m learning to analyze Fernanda’s 2024 ELA reading assessments and build a learning plan suggestion for her...
             </div>
           </div>
