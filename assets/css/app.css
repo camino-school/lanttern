@@ -41,3 +41,47 @@
     radial-gradient(circle at 40% 105%, #FEF9C3 200px, transparent 360px),
     radial-gradient(circle at 20% 110%, #ECFCCB 360px, transparent 480px)
 }
+
+/* landing page animations */
+
+#cover-spot-1 {
+  animation: 8s ease-in-out 2s infinite alternate landing-cover-spot-1;
+}
+
+#cover-spot-2 {
+  animation: 6s ease-in-out 1s infinite alternate landing-cover-spot-2;
+}
+
+#cover-spot-3 {
+  animation: 4s ease-in-out 0s infinite alternate landing-cover-spot-3;
+}
+
+@keyframes landing-cover-spot-1 {
+  from {
+    transform: translate(0, 0);
+  }
+
+  to {
+    transform: translate(100vw, 100%);
+  }
+}
+
+@keyframes landing-cover-spot-2 {
+  from {
+    transform: translate(0, 0);
+  }
+
+  to {
+    transform: translate(-100vw, 50%);
+  }
+}
+
+@keyframes landing-cover-spot-3 {
+  from {
+    transform: translate(0, 0);
+  }
+
+  to {
+    transform: translate(-60vw, -100%);
+  }
+}
