@@ -23,13 +23,62 @@
       </p>
     </hgroup>
   </header>
-  <div class="px-10 py-40 bg-ltrn-lighter">
+  <div id="active-learning" class="relative px-10 py-40">
     <div class="max-w-3xl mx-auto">
       <p class="font-display font-black text-2xl">
         We believe that students learn best when they are actively engaged in the learning process
       </p>
-      <p class="mt-10 text-xl">(And we are not alone)</p>
+      <p class="mt-10 text-xl">
+        (And
+        <a
+          href="https://journals.physiology.org/doi/full/10.1152/advan.00014.2014"
+          target="_blank"
+          class="underline inline-block ml-1 hover:text-ltrn-subtle"
+        >
+          we
+        </a>
+        <a
+          href="https://link.springer.com/chapter/10.1007/0-306-48125-1_3"
+          target="_blank"
+          class="underline inline-block ml-1 hover:text-ltrn-subtle"
+        >
+          are
+        </a>
+        <a
+          href="https://www.amazon.com/How-We-Learn-Brains-Machine/dp/0525559884"
+          target="_blank"
+          class="underline inline-block ml-1 hover:text-ltrn-subtle"
+        >
+          not
+        </a>
+        <a
+          href="https://teaching.berkeley.edu/teaching-guides/running-your-course/active-learning"
+          target="_blank"
+          class="underline inline-block ml-1 hover:text-ltrn-subtle"
+        >
+          alone
+        </a>
+        )
+      </p>
     </div>
+    <p class="absolute right-2 bottom-2 text-xs text-right text-ltrn-subtle">
+      Photo by
+      <a
+        href="https://unsplash.com/@vantaymedia?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+        target="_blank"
+        class="underline"
+      >
+        Van Tay Media
+      </a>
+      on
+      <a
+        href="https://unsplash.com/photos/meeting-of-people-TOBRTuE_uXA?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+        target="_blank"
+        class="underline"
+      >
+        Unsplash
+      </a>
+    </p>
   </div>
   <div class="px-10 py-40">
     <div class="max-w-3xl mx-auto">
@@ -46,7 +95,7 @@
   </div>
   <main class="relative">
     <nav
-      class="sticky top-0 z-10 hidden w-full bg-white/90 lg:block"
+      class="sticky top-0 z-20 hidden w-full bg-white/90 lg:block"
       id="nav"
       phx-hook="NavScrollspy"
     >
@@ -126,19 +175,16 @@
         </li>
       </ol>
     </nav>
-    <section class="md:px-10 md:py-40 bg-ltrn-lighter" id="assessment-points">
+    <section class="px-10 py-40 bg-ltrn-lighter" id="assessment-points">
       <div class="max-w-3xl mx-auto">
         <h2 class={[
-          "flex items-center gap-4 py-4 px-10 md:px-4 border-b-2 border-ltrn-primary font-display font-black text-lg",
-          "md:inline-flex md:border-2 md:rounded-full"
+          "flex items-center gap-4 font-display font-black text-lg",
+          "md:inline-flex md:p-4 md:border-2 md:rounded-full md:border-ltrn-primary"
         ]}>
           1. <span class="w-[2px] self-stretch bg-ltrn-primary" />
           Assessment points, feedback, and comments tracking
         </h2>
-        <div class={[
-          "max-w-md px-10 pb-40 mt-10 text-xl",
-          "md:px-0 md:pb-0"
-        ]}>
+        <div class="max-w-md mt-10 text-xl">
           <p>Assessment points are Lanttern's core elements.</p>
           <br />
           <p>
@@ -147,18 +193,15 @@
         </div>
       </div>
     </section>
-    <section class="md:px-10 md:py-40" id="differentiation">
+    <section class="relative pt-40 px-10 overflow-hidden" id="differentiation">
       <div class="max-w-3xl mx-auto">
         <h2 class={[
-          "flex items-center gap-4 py-4 px-10 md:px-4 border-b-2 border-ltrn-primary font-display font-black text-lg",
-          "md:inline-flex md:border-2 md:rounded-full"
+          "flex items-center gap-4 font-display font-black text-lg",
+          "md:inline-flex md:p-4 md:border-2 md:rounded-full md:border-ltrn-primary"
         ]}>
           2. <span class="w-[2px] self-stretch bg-ltrn-primary" /> Differentiation and inclusion
         </h2>
-        <div class={[
-          "px-10 pb-40 mt-10 text-xl",
-          "md:px-0 md:pb-0"
-        ]}>
+        <div class="mt-10 text-xl">
           <p>
             Every brain is unique.<br /> Every student has a unique learning path.<br />
             Diversity and inclusion are key for a 21st century education.
@@ -169,19 +212,105 @@
           </p>
         </div>
       </div>
+      <div class={[
+        "isolate relative z-10 w-screen py-20 px-6 -mx-10 overflow-x-auto",
+        "lg:max-w-[64rem] lg:px-0 lg:mx-auto"
+      ]}>
+        <div class="min-w-[640px] p-6 rounded shadow-2xl bg-white">
+          <div class="flex items-start justify-between gap-4 mb-4">
+            <div class="flex-1">
+              <p class="flex items-center gap-2">
+                <.badge>#42</.badge>
+                <span class="font-display font-black text-lg">
+                  Criteria: prototyping — differentiation rubric made for Fernanda
+                </span>
+              </p>
+              <div class="flex items-center gap-4 mt-4 text-base">
+                <.icon name="hero-view-columns" class="shrink-0 text-ltrn-secondary" />
+                Camino School Levels
+              </div>
+            </div>
+            <div class="shrink-0 flex items-center gap-2">
+              <.badge theme="secondary">Differentiation</.badge>
+            </div>
+          </div>
+          <div class="flex items-stretch gap-2">
+            <div class="flex-[1_0] flex flex-col items-start gap-2">
+              <.badge
+                style_from_ordinal_value={%{bg_color: "#000", text_color: "#fff"}}
+                class="truncate"
+              >
+                Lack of evidence
+              </.badge>
+              <div class="prose prose-sm flex-1 w-full p-2 border border-ltrn-lighter rounded-sm bg-ltrn-lightest">
+                <p>—</p>
+              </div>
+            </div>
+            <div class="flex-[1_0] flex flex-col items-start gap-2">
+              <.badge
+                style_from_ordinal_value={%{bg_color: "#f28888", text_color: "#f6dfdf"}}
+                class="truncate"
+              >
+                Emerging
+              </.badge>
+              <div class="prose prose-sm flex-1 w-full p-2 border border-ltrn-lighter rounded-sm bg-ltrn-lightest">
+                <p class="line-clamp-5">
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Elit eget gravida cum sociis natoque penatibus.
+                </p>
+              </div>
+            </div>
+            <div class="flex-[1_0] flex flex-col items-start gap-2">
+              <.badge
+                style_from_ordinal_value={%{bg_color: "#fff48f", text_color: "#756a07"}}
+                class="truncate"
+              >
+                Progressing
+              </.badge>
+              <div class="prose prose-sm flex-1 w-full p-2 border border-ltrn-lighter rounded-sm bg-ltrn-lightest">
+                <p class="line-clamp-5">
+                  Suspendisse ultrices gravida dictum fusce ut. Volutpat odio facilisis mauris sit amet massa. Netus et malesuada fames ac. Vestibulum sed arcu non odio euismod lacinia at quis risus. Vel risus commodo viverra maecenas.
+                </p>
+              </div>
+            </div>
+            <div class="flex-[1_0] flex flex-col items-start gap-2">
+              <.badge
+                style_from_ordinal_value={%{bg_color: "#5cd9bb", text_color: "#052c22"}}
+                class="truncate"
+              >
+                Achieving
+              </.badge>
+              <div class="prose prose-sm flex-1 w-full p-2 border border-ltrn-lighter rounded-sm bg-ltrn-lightest">
+                <p class="line-clamp-5">
+                  Ullamcorper velit sed ullamcorper morbi. Eu feugiat pretium nibh ipsum consequat nisl vel. Et tortor consequat id porta nibh venenatis. At quis risus sed vulputate odio ut enim. Dictum at tempor commodo ullamcorper a lacus vestibulum sed arcu. Massa sed elementum tempus egestas.
+                </p>
+              </div>
+            </div>
+            <div class="flex-[1_0] flex flex-col items-start gap-2">
+              <.badge
+                style_from_ordinal_value={%{bg_color: "#814bf4", text_color: "#efe9fc"}}
+                class="truncate"
+              >
+                Exceeding
+              </.badge>
+              <div class="prose prose-sm flex-1 w-full p-2 border border-ltrn-lighter rounded-sm bg-ltrn-lightest">
+                <p class="line-clamp-5">
+                  Blandit aliquam etiam erat velit scelerisque in dictum non consectetur. In nisl nisi scelerisque eu ultrices. Amet mauris commodo quis imperdiet massa tincidunt.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
-    <section class="md:px-10 md:py-40 bg-ltrn-lighter" id="planning">
+    <section class="relative px-10 pt-40 md:pt-60 -mt-40 bg-ltrn-lighter" id="planning">
       <div class="max-w-3xl mx-auto">
         <h2 class={[
-          "flex items-center gap-4 py-4 px-10 md:px-4 border-b-2 border-ltrn-primary font-display font-black text-lg",
-          "md:inline-flex md:border-2 md:rounded-full"
+          "flex items-center gap-4 font-display font-black text-lg",
+          "md:inline-flex md:p-4 md:border-2 md:rounded-full md:border-ltrn-primary"
         ]}>
           3. <span class="w-[2px] self-stretch bg-ltrn-primary" /> Planning and documentation
         </h2>
-        <div class={[
-          "px-10 pb-40 mt-10 text-xl",
-          "md:px-0 md:pb-0"
-        ]}>
+        <div class="mt-10 text-xl">
           <p>Lanttern uses strands and activities to give context to learning.</p>
           <br />
           <p>
@@ -189,19 +318,156 @@
           </p>
         </div>
       </div>
+      <div class={[
+        "isolate relative z-10 flex items-end gap-10 w-screen py-20 px-6 -mx-10 overflow-x-auto",
+        "lg:max-w-[64rem] lg:px-0 lg:mx-auto"
+      ]}>
+        <div class="flex-1 shrink-0 min-w-[15rem] rounded mb-32 shadow-xl bg-white overflow-hidden">
+          <div
+            class="w-full h-40 bg-center bg-cover"
+            style="background-image: url(/images/strand1.jpg)"
+          />
+          <div class="flex flex-col gap-6 p-6">
+            <p class="font-display font-black text-3xl underline">
+              Reading fluency tracking
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <.badge theme="dark">English Language Arts</.badge>
+              <.badge theme="dark">Grade 2</.badge>
+            </div>
+            <div class="prose prose-sm">
+              <p>
+                Photo by
+                <a
+                  href="https://unsplash.com/@eliottreyna?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+                  target="_blank"
+                >
+                  Eliott Reyna
+                </a>
+                on
+                <a
+                  href="https://unsplash.com/photos/woman-reading-book-kcT-7cirBEw?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+                  target="_blank"
+                >
+                  Unsplash
+                </a>
+              </p>
+              <p>In dolor consequatur et est. Necessitatibus nostrum in dicta nam qui.</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex-1 shrink-0 min-w-[15rem] rounded shadow-xl bg-white overflow-hidden">
+          <div
+            class="w-full h-40 bg-center bg-cover"
+            style="background-image: url(/images/strand2.jpg)"
+          />
+          <div class="flex flex-col gap-6 p-6">
+            <p class="font-display font-black text-3xl underline">
+              Ancient Civilizations — World Building
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <.badge theme="dark">History</.badge>
+              <.badge theme="dark">Geography</.badge>
+              <.badge theme="dark">Grade 7</.badge>
+            </div>
+            <div class="prose prose-sm">
+              <p>
+                Photo by
+                <a
+                  href="https://unsplash.com/@tomas_nz?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+                  target="_blank"
+                >
+                  Tomas Sobek
+                </a>
+                on
+                <a
+                  href="https://unsplash.com/photos/landscape-photography-of-mountain-EKNe678ktEY?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+                  target="_blank"
+                >
+                  Unsplash
+                </a>
+              </p>
+              <p>
+                Rerum nobis asperiores molestias explicabo. Harum est quis dignissimos a et. Laborum...
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="flex-1 shrink-0 min-w-[15rem] rounded mb-8 shadow-xl bg-white overflow-hidden">
+          <div
+            class="w-full h-40 bg-center bg-cover"
+            style="background-image: url(/images/strand3.jpg)"
+          />
+          <div class="flex flex-col gap-6 p-6">
+            <p class="font-display font-black text-3xl underline">
+              Expressions end of cycle presentation
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <.badge theme="dark">Drama</.badge>
+              <.badge theme="dark">Movement</.badge>
+              <.badge theme="dark">Music</.badge>
+              <.badge theme="dark">Visual Arts</.badge>
+              <.badge theme="dark">Grade 9</.badge>
+            </div>
+            <div class="prose prose-sm">
+              <p>
+                Photo by
+                <a
+                  href="https://unsplash.com/@allecgomes?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+                  target="_blank"
+                >
+                  Allec Gomes
+                </a>
+                on
+                <a
+                  href="https://unsplash.com/photos/vacant-brown-wooden-armless-chair-9xpnmt41NKM?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+                  target="_blank"
+                >
+                  Unsplash
+                </a>
+              </p>
+              <p>In dolor consequatur et est. Necessitatibus nostrum in dicta nam qui.</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
-    <section class="md:px-10 md:py-40" id="curriculum">
-      <div class="max-w-3xl mx-auto">
+    <section class="relative px-10 py-40 md:pt-60 -mt-40 bg-white overflow-hidden" id="curriculum">
+      <div class="absolute inset-y-0 left-full md:left-3/4 right-0">
+        <div
+          id="curriculum-spot-1"
+          class="absolute top-1/2 w-[120px] h-[416px] -mt-[208px] -ml-[60px]"
+        >
+          <div class="w-[120px] h-[120px] rounded-full bg-ltrn-mesh-lime blur-[16px]" />
+        </div>
+        <div
+          id="curriculum-spot-2"
+          class="absolute top-1/2 w-[160px] h-[576px] -mt-[288px] -ml-[80px]"
+        >
+          <div class="w-[160px] h-[160px] rounded-full bg-ltrn-mesh-rose blur-[16px]" />
+        </div>
+        <div
+          id="curriculum-spot-3"
+          class="absolute top-1/2 w-[144px] h-[688px] -mt-[344px] -ml-[72px]"
+        >
+          <div class="w-[144px] h-[144px] rounded-full bg-ltrn-mesh-yellow blur-[16px]" />
+        </div>
+        <div
+          id="curriculum-spot-4"
+          class="absolute top-1/2 w-[80px] h-[712px] -mt-[356px] -ml-[40px]"
+        >
+          <div class="w-[80px] h-[80px] rounded-full bg-ltrn-mesh-violet blur-[16px]" />
+        </div>
+        <div class="absolute top-1/2 w-[240px] h-[240px] -mt-[120px] -ml-[120px] rounded-full bg-ltrn-mesh-primary blur-[24px]" />
+      </div>
+      <div class="relative z-10 max-w-3xl mx-auto">
         <h2 class={[
-          "flex items-center gap-4 py-4 px-10 md:px-4 border-b-2 border-ltrn-primary font-display font-black text-lg",
-          "md:inline-flex md:border-2 md:rounded-full"
+          "flex items-center gap-4 font-display font-black text-lg",
+          "md:inline-flex md:p-4 md:border-2 md:rounded-full md:border-ltrn-primary"
         ]}>
           4. <span class="w-[2px] self-stretch bg-ltrn-primary" /> Curriculum intelligence
         </h2>
-        <div class={[
-          "px-10 pb-40 max-w-md mt-10 text-xl",
-          "md:px-0 md:pb-0"
-        ]}>
+        <div class="max-w-md mt-10 text-xl">
           <p>Curriculum is at the root of Lanttern's metadata and taxonomy system.</p>
           <br />
           <p>
@@ -210,19 +476,16 @@
         </div>
       </div>
     </section>
-    <section class="md:px-10 md:py-40 bg-ltrn-dark" id="ai">
+    <section class="px-10 py-40 bg-ltrn-dark overflow-hidden" id="ai">
       <div class="max-w-3xl mx-auto text-white">
         <h2 class={[
-          "flex items-center gap-4 py-4 px-10 md:px-4 border-b-2 border-ltrn-primary font-display font-black text-lg",
-          "md:inline-flex md:border-2 md:rounded-full"
+          "flex items-center gap-4 font-display font-black text-lg",
+          "md:inline-flex md:p-4 md:border-2 md:rounded-full md:border-ltrn-primary"
         ]}>
           5. <span class="w-[2px] self-stretch bg-ltrn-primary" /> Artificial intelligence
           <span class="flex px-3 py-1 rounded-full font-bold text-sm bg-ltrn-primary">Soon</span>
         </h2>
-        <div class={[
-          "px-10 pb-40 mt-10 text-xl",
-          "md:px-0 md:pb-0"
-        ]}>
+        <div class="mt-10 text-xl">
           <p>
             Lanttern's long term goal is to become an AI copilot, helping educators create individualized learning plans for every student — including the usual “under the radar” learner —, helping with operational tasks, and supporting decision making with data informed suggestions.
           </p>
@@ -230,6 +493,25 @@
           <p>
             For learners, Lanttern copilot will help students' metacognition, presenting relevant learning data and encouraging students to reflect on their own learning process, essential to learning to learn — also known as "metalearning".
           </p>
+        </div>
+        <div class="mt-20 font-display font-bold text-ltrn-dark">
+          <div class="relative z-10 flex items-start gap-4">
+            <div class="shrink-0 flex items-center justify-center w-10 h-10 rounded-full text-sm bg-ltrn-mesh-yellow">
+              ME
+            </div>
+            <div class="flex-1 md:max-w-md p-6 rounded-lg italic text-xl bg-ltrn-mesh-yellow">
+              Hey Lanttern, can you show me the history of Fernanda’s 2024 ELA reading assessments, highlighting the skills that she still needs to improve before the end of the cycle?
+            </div>
+          </div>
+          <div class="relative flex flex-row-reverse items-start gap-4 mt-6">
+            <div class="absolute top-[-240px] right-[-240px] w-[480px] h-[480px] bg-white blur-[160px]" />
+            <div class="relative shrink-0 flex items-center justify-center w-10 h-10 rounded-full text-sm bg-ltrn-mesh-primary">
+              LN
+            </div>
+            <div class="relative flex-1 md:max-w-md p-6 rounded-lg italic text-xl bg-ltrn-mesh-primary">
+              Sure! Wait a moment (a couple of months), while I’m learning to analyze Fernanda’s 2024 ELA reading assessments and build a learning plan suggestion for her...
+            </div>
+          </div>
         </div>
       </div>
     </section>

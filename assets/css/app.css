@@ -42,7 +42,7 @@
     radial-gradient(circle at 20% 110%, #ECFCCB 360px, transparent 480px)
 }
 
-/* landing page animations */
+/* landing page */
 
 #cover-spot-1 {
   animation: 8s ease-in-out 2s infinite alternate landing-cover-spot-1;
@@ -83,5 +83,39 @@
 
   to {
     transform: translate(-60vw, -100%);
+  }
+}
+
+#active-learning {
+  background-size: cover;
+  background-position: center;
+  background-image:
+    linear-gradient(0deg, rgba(236, 254, 255, 0.8), rgba(236, 254, 255, 0.8)),
+    url('/images/active-learning-bg.jpg');
+}
+
+#curriculum-spot-1 {
+  animation: 8s linear 0s infinite normal spin;
+}
+
+#curriculum-spot-2 {
+  animation: 10s linear 2s infinite reverse spin;
+}
+
+#curriculum-spot-3 {
+  animation: 8s linear 1s infinite normal spin;
+}
+
+#curriculum-spot-4 {
+  animation: 10s linear 3s infinite reverse spin;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
   }
 }
