@@ -1,65 +1,814 @@
-<div class="flex items-center justify-center h-full min-h-screen ltrn-bg-landing">
-  <div class="relative">
-    <span class="block w-80 h-80 rounded-full bg-ltrn-mesh-primary blur-lg" />
-    <div class="absolute top-32 left-40">
-      <hgroup class="font-display">
-        <h1 class="mb-2 font-black text-5xl">lanttern</h1>
-        <p class="text-3xl">
-          Visualizing<br /> learning<br /> patterns
-        </p>
-      </hgroup>
-      <ul class="mt-10">
-        <%= if @current_user do %>
-          <%!-- <li class="text-[0.8125rem] leading-6 text-zinc-900">
-            <%= @current_user.email %>
-          </li>
-          <li>
-            <.link
-              href={~p"/users/settings"}
-              class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
-            >
-              Settings
-            </.link>
-          </li>
-          <li>
-            <.link
-              href={~p"/users/log_out"}
-              method="delete"
-              class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
-            >
-              Log out
-            </.link>
-          </li> --%>
-          <li>
-            <.link
-              href={~p"/dashboard"}
-              class="flex items-center font-display font-black text-lg text-ltrn-subtle"
-            >
-              <span class="underline hover:no-underline hover:text-ltrn-dark">Dashboard 🚧</span>
-              <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
-            </.link>
-          </li>
-        <% else %>
-          <%!-- <li>
-            <.link
-              href={~p"/users/register"}
-              class="text-[0.8125rem] leading-6 text-zinc-900 font-semibold hover:text-zinc-700"
-            >
-              Register
-            </.link>
-          </li> --%>
-          <li>
-            <.link
-              href={~p"/users/log_in"}
-              class="flex items-center font-display font-black text-lg text-ltrn-subtle"
-            >
-              <span class="underline hover:no-underline hover:text-ltrn-dark">Sign in</span>
-              <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
-            </.link>
-          </li>
-        <% end %>
-      </ul>
+<div id="landing">
+  <header class="relative px-10 bg-ltrn-dark overflow-hidden">
+    <div
+      id="cover-spot-1"
+      class="absolute left-[-37vw] top-[-37vw] w-[75vw] h-[75vw] rounded-full bg-ltrn-mesh-primary blur-[15vw]"
+    />
+    <div
+      id="cover-spot-2"
+      class="absolute right-[-30vw] top-[-30vw] w-[60vw] h-[60vw] rounded-full bg-ltrn-mesh-violet blur-[15vw]"
+    />
+    <div
+      id="cover-spot-3"
+      class="absolute right-[-37vw] bottom-[-37vw] w-[75vw] h-[75vw] rounded-full bg-ltrn-mesh-lime blur-[15vw]"
+    />
+    <hgroup class="relative z-10 flex flex-col justify-center max-w-3xl min-h-[90vh] py-20 mx-auto font-display">
+      <h1 class="font-black text-6xl md:text-7xl text-ltrn-dark">Lanttern</h1>
+      <p class="mt-6 font-display text-3xl md:text-4xl text-white shadow-sm">
+        An open source <br class="hidden md:inline" />platform built to help
+        <br class="hidden md:inline" />learners and educators <br />
+        <strong class="font-black">
+          visualize learning <br class="hidden md:inline" />patterns
+        </strong>
+      </p>
+    </hgroup>
+    <a
+      href="/dashboard"
+      class="absolute top-4 right-4 md:top-10 md:right-10 group flex gap-2 items-center p-2 rounded bg-white shadow-xl hover:bg-slate-100"
+    >
+      <span class="font-display font-bold text-sm text-ltrn-subtle group-hover:text-ltrn-dark">
+        Go to app
+      </span>
+      <div class="w-6 h-6 rounded-full bg-ltrn-mesh-primary blur-sm group-hover:blur-none transition-[filter]" />
+    </a>
+  </header>
+  <div id="active-learning" class="relative px-10 py-40">
+    <div class="max-w-3xl mx-auto">
+      <p class="font-display font-black text-2xl">
+        We believe that students learn best when they are actively engaged in the learning process
+      </p>
+      <p class="mt-10 text-xl">
+        (And
+        <a
+          href="https://journals.physiology.org/doi/full/10.1152/advan.00014.2014"
+          target="_blank"
+          class="underline inline-block ml-1 hover:text-ltrn-subtle"
+        >
+          we
+        </a>
+        <a
+          href="https://link.springer.com/chapter/10.1007/0-306-48125-1_3"
+          target="_blank"
+          class="underline inline-block ml-1 hover:text-ltrn-subtle"
+        >
+          are
+        </a>
+        <a
+          href="https://www.amazon.com/How-We-Learn-Brains-Machine/dp/0525559884"
+          target="_blank"
+          class="underline inline-block ml-1 hover:text-ltrn-subtle"
+        >
+          not
+        </a>
+        <a
+          href="https://teaching.berkeley.edu/teaching-guides/running-your-course/active-learning"
+          target="_blank"
+          class="underline inline-block ml-1 hover:text-ltrn-subtle"
+        >
+          alone
+        </a>
+        )
+      </p>
+    </div>
+    <p class="absolute right-2 bottom-2 text-xs text-right text-ltrn-subtle">
+      Photo by
+      <a
+        href="https://unsplash.com/@vantaymedia?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+        target="_blank"
+        class="underline"
+      >
+        Van Tay Media
+      </a>
+      on
+      <a
+        href="https://unsplash.com/photos/meeting-of-people-TOBRTuE_uXA?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+        target="_blank"
+        class="underline"
+      >
+        Unsplash
+      </a>
+    </p>
+  </div>
+  <div class="px-10 py-40">
+    <div class="max-w-3xl mx-auto">
+      <p class="font-display font-black text-2xl">
+        If students are always (or most of the time) building / prototyping / researching / creating / doing something, it means they can be always (or most of the time) being assessed and receiving (hopefully effective) feedback.
+      </p>
+      <p class="mt-8 font-display font-black text-2xl">
+        That's why we went for an assessment-first approach.
+      </p>
+      <p class="mt-10 text-xl">
+        Ok, but you might be wondering... what does it look like in practice?
+      </p>
     </div>
   </div>
+  <main class="relative">
+    <nav
+      class="sticky top-0 z-20 hidden w-full bg-white/90 lg:block"
+      id="nav"
+      phx-hook="NavScrollspy"
+    >
+      <ol class="flex items-stretch w-full text-ltrn-subtle">
+        <li class="flex-[1-0] flex items-stretch">
+          <a
+            href="#assessment-points"
+            class={[
+              "group block w-full text-center pt-6 px-6 pb-3 border-b-2 border-ltrn-lighter",
+              "aria-current:border-ltrn-primary aria-current:text-ltrn-dark aria-current:bg-ltrn-lightest hover:text-ltrn-dark"
+            ]}
+          >
+            <span class="block mb-4 text-center font-display font-black text-2xl group-aria-current:text-ltrn-primary group-hover:text-ltrn-primary">
+              1
+            </span>
+            Assessment points,<br />feedback, and<br />comment tracking
+          </a>
+        </li>
+        <li class="flex-[1-0] flex items-stretch">
+          <a
+            href="#differentiation"
+            class={[
+              "group block w-full text-center pt-6 px-6 pb-3 border-b-2 border-ltrn-lighter",
+              "aria-current:border-ltrn-primary aria-current:text-ltrn-dark aria-current:bg-ltrn-lightest hover:text-ltrn-dark"
+            ]}
+          >
+            <span class="block mb-4 text-center font-display font-black text-2xl group-aria-current:text-ltrn-primary group-hover:text-ltrn-primary">
+              2
+            </span>
+            Differentiation<br />and inclusion
+          </a>
+        </li>
+        <li class="flex-[1-0] flex items-stretch">
+          <a
+            href="#planning"
+            class={[
+              "group block w-full text-center pt-6 px-6 pb-3 border-b-2 border-ltrn-lighter",
+              "aria-current:border-ltrn-primary aria-current:text-ltrn-dark aria-current:bg-ltrn-lightest hover:text-ltrn-dark"
+            ]}
+          >
+            <span class="block mb-4 text-center font-display font-black text-2xl group-aria-current:text-ltrn-primary group-hover:text-ltrn-primary">
+              3
+            </span>
+            Planning and<br />documentation
+          </a>
+        </li>
+        <li class="flex-[1-0] flex items-stretch">
+          <a
+            href="#curriculum"
+            class={[
+              "group block w-full text-center pt-6 px-6 pb-3 border-b-2 border-ltrn-lighter",
+              "aria-current:border-ltrn-primary aria-current:text-ltrn-dark aria-current:bg-ltrn-lightest hover:text-ltrn-dark"
+            ]}
+          >
+            <span class="block mb-4 text-center font-display font-black text-2xl group-aria-current:text-ltrn-primary group-hover:text-ltrn-primary">
+              4
+            </span>
+            Curriculum<br />intelligence
+          </a>
+        </li>
+        <li class="flex-[1-0] flex items-stretch">
+          <a
+            href="#ai"
+            class={[
+              "group block w-full text-center pt-6 px-6 pb-3 border-b-2 border-ltrn-lighter",
+              "aria-current:border-ltrn-primary aria-current:text-ltrn-dark aria-current:bg-ltrn-lightest hover:text-ltrn-dark"
+            ]}
+          >
+            <span class="block mb-4 text-center font-display font-black text-2xl group-aria-current:text-ltrn-primary group-hover:text-ltrn-primary">
+              5
+            </span>
+            Artificial<br />intelligence<br />
+            <span class="inline-flex px-3 py-1 mt-2 rounded-full font-bold text-sm text-white bg-ltrn-primary">
+              Soon
+            </span>
+          </a>
+        </li>
+      </ol>
+    </nav>
+    <section class="relative px-10 pt-40 bg-ltrn-lighter overflow-x-hidden" id="assessment-points">
+      <div class="max-w-3xl mx-auto">
+        <h2 class={[
+          "flex items-center gap-4 max-w-md font-display font-black text-lg",
+          "md:inline-flex md:p-4 md:border-2 md:rounded-full md:border-ltrn-primary"
+        ]}>
+          1. <span class="w-[2px] self-stretch bg-ltrn-primary" />
+          Assessment points, feedback, and comments tracking
+        </h2>
+        <div class="max-w-md mt-10 text-xl">
+          <p>Assessment points are Lanttern's core elements.</p>
+          <br />
+          <p>
+            They are always linked to learning contexts (strands or activities), curriculum, and can be enriched with comments and feedback — allowing students and educators to explore learning patterns, discuss about learning strategies, and reflect on teaching practices.
+          </p>
+        </div>
+      </div>
+      <div class="isolate relative z-10 w-screen pr-10 pb-20 mt-20 -ml-10 overflow-x-auto ">
+        <div class="flex flex-col gap-4 w-fit p-10 rounded bg-white shadow-lg">
+          <div class="flex items-center gap-4 text-ltrn-subtle underline">
+            <div class="shrink-0 w-48" />
+            <div class="flex-[1_0] flex items-center justify-center gap-2 truncate">
+              1. Intro & Pre-assessment
+            </div>
+            <div class="flex-[1_0] flex items-center justify-center gap-2 truncate">
+              2. Research and validation
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <.icon_with_name profile_name="Adrian Jones" class="shrink-0 w-48" />
+            <div class="flex-[1_0] flex items-center justify-center gap-2">
+              <div class="scale-90 shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#fff48f] text-[#756a07]">
+                Pro
+              </div>
+              <div class="scale-95 shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#5cd9bb] text-[#052c22]">
+                Ach
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#814bf4] text-[#efe9fc]">
+                Exc
+              </div>
+            </div>
+            <div class="flex-[1_0] flex items-center justify-center gap-2">
+              <div class="scale-95 shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#5cd9bb] text-[#052c22]">
+                Ach
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code text-ltrn-subtle bg-ltrn-lighter">
+                —
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code text-ltrn-subtle bg-ltrn-lighter">
+                —
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <.icon_with_name profile_name="Fernanda Silva" class="shrink-0 w-48" />
+            <div class="flex-[1_0] flex items-center justify-center gap-2">
+              <div class="scale-95 shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#5cd9bb] text-[#052c22]">
+                Ach
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#814bf4] text-[#efe9fc]">
+                Exc
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#814bf4] text-[#efe9fc]">
+                Exc
+              </div>
+            </div>
+            <div class="flex-[1_0] flex items-center justify-center gap-2">
+              <div class="scale-95 shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#5cd9bb] text-[#052c22]">
+                Ach
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code text-ltrn-subtle bg-ltrn-lighter">
+                —
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code text-ltrn-subtle bg-ltrn-lighter">
+                —
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <.icon_with_name profile_name="José Delauren" class="shrink-0 w-48" />
+            <div class="flex-[1_0] flex items-center justify-center gap-2">
+              <div class="scale-75 shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#000] text-[#fff]">
+                Lac
+              </div>
+              <div class="scale-[0.8] shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#f28888] text-[#f6dfdf]">
+                Eme
+              </div>
+              <div class="scale-90 shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#fff48f] text-[#756a07]">
+                Pro
+              </div>
+            </div>
+            <div class="flex-[1_0] flex items-center justify-center gap-2">
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code text-ltrn-subtle bg-ltrn-lighter">
+                —
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code text-ltrn-subtle bg-ltrn-lighter">
+                —
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code text-ltrn-subtle bg-ltrn-lighter">
+                —
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <.icon_with_name profile_name="Vicky Kawashita" class="shrink-0 w-48" />
+            <div class="flex-[1_0] flex items-center justify-center gap-2">
+              <div class="scale-90 shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#fff48f] text-[#756a07]">
+                Pro
+              </div>
+              <div class="scale-95 shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#5cd9bb] text-[#052c22]">
+                Ach
+              </div>
+              <div class="scale-95 shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code bg-[#5cd9bb] text-[#052c22]">
+                Ach
+              </div>
+            </div>
+            <div class="flex-[1_0] flex items-center justify-center gap-2">
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code text-ltrn-subtle bg-ltrn-lighter">
+                —
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code text-ltrn-subtle bg-ltrn-lighter">
+                —
+              </div>
+              <div class="shrink-0 flex items-center justify-center w-14 h-14 rounded-full font-code text-ltrn-subtle bg-ltrn-lighter">
+                —
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class={[
+        "hidden absolute top-10 -right-[480px] w-[640px] p-6 rounded bg-white shadow-xl ltrn-bg-slide-over",
+        "sm:block lg:-right-[240px]"
+      ]}>
+        <div class="font-display font-black text-3xl">
+          Feedback
+        </div>
+        <div class="mt-5 mb-10">
+          <div class="flex items-center gap-4 text-xs">
+            <.icon name="hero-users-mini" class="text-ltrn-subtle" />
+            <div class="flex items-center gap-1">
+              From
+              <.badge>Mr. Souza</.badge>
+            </div>
+            <div class="flex items-center gap-1">
+              To
+              <.badge>Adrian Jones</.badge>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 mt-4 text-xs">
+            <.icon name="hero-bookmark-square-mini" class="text-ltrn-subtle" />
+            <div class="flex items-center gap-1">
+              In the context of
+              <.badge>Ancient Civilizations — World Building</.badge>
+            </div>
+          </div>
+        </div>
+        <.user_icon_block profile_name="Mr. Souza">
+          <span class="block mb-2 text-xs text-ltrn-subtle">
+            10/09/2023 08:10
+          </span>
+          <p class="text-sm">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+          </p>
+        </.user_icon_block>
+        <.user_icon_block profile_name="Adrian Jones" theme="rose" class="mt-6">
+          <span class="flex items-center gap-4 mb-2 text-xs text-ltrn-subtle">
+            10/09/2023 08:10
+          </span>
+          <p class="text-sm">
+            Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+          </p>
+        </.user_icon_block>
+        <.user_icon_block profile_name="Mr. Souza" class="mt-6">
+          <span class="flex items-center gap-4 mb-2 text-xs text-ltrn-subtle">
+            10/09/2023 08:10
+          </span>
+          <div class="flex items-center justify-between p-2 mb-2 text-white bg-green-500">
+            <div class="flex items-center gap-1">
+              <.icon name="hero-check-circle" class="shrink-0 w-6 h-6" />
+              <span class="font-display font-bold text-sm">Marked as complete 🎉</span>
+            </div>
+            <button type="button" class="shrink-0 opacity-50 hover:opacity-100 focus:opacity-100">
+              <.icon name="hero-x-mark" class="w-6 h-6" />
+            </button>
+          </div>
+          <p class="text-sm">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+          </p>
+        </.user_icon_block>
+        <.user_icon_block profile_name="Mr. Souza" class="mt-10">
+          <form class="flex-1">
+            <.textarea_with_actions
+              id="feedback-comment-id"
+              name="feedback-comment"
+              value={nil}
+              errors={[]}
+              label="Add your comment..."
+            >
+              <:actions>
+                <.button type="button" theme="ghost">
+                  Cancel
+                </.button>
+                <.button type="submit" disabled>
+                  Save
+                </.button>
+              </:actions>
+            </.textarea_with_actions>
+          </form>
+        </.user_icon_block>
+      </div>
+    </section>
+    <section class="relative pt-60 px-10 -mt-40 bg-white overflow-hidden" id="differentiation">
+      <div class="max-w-3xl mx-auto">
+        <h2 class={[
+          "flex items-center gap-4 font-display font-black text-lg",
+          "md:inline-flex md:p-4 md:border-2 md:rounded-full md:border-ltrn-primary"
+        ]}>
+          2. <span class="w-[2px] self-stretch bg-ltrn-primary" /> Differentiation and inclusion
+        </h2>
+        <div class="mt-10 text-xl">
+          <p>
+            Every brain is unique.<br /> Every student has a unique learning path.<br />
+            Diversity and inclusion are key for a 21st century education.
+          </p>
+          <br />
+          <p>
+            Lanttern encourages an individualized and inclusive education approach by providing support to assessment and curriculum adaptation, differentiation rubrics, and special needs pedagogical documentation.
+          </p>
+        </div>
+      </div>
+      <div class={[
+        "isolate relative z-10 w-screen py-20 px-6 -mx-10 overflow-x-auto",
+        "lg:max-w-[64rem] lg:px-0 lg:mx-auto lg:overflow-x-visible"
+      ]}>
+        <div class="min-w-[640px] p-6 rounded shadow-2xl bg-white">
+          <div class="flex items-start justify-between gap-4 mb-4">
+            <div class="flex-1">
+              <p class="flex items-center gap-2">
+                <.badge>#42</.badge>
+                <span class="font-display font-black text-lg">
+                  Criteria: prototyping — differentiation rubric made for Fernanda
+                </span>
+              </p>
+              <div class="flex items-center gap-4 mt-4 text-base">
+                <.icon name="hero-view-columns" class="shrink-0 text-ltrn-secondary" />
+                Camino School Levels
+              </div>
+            </div>
+            <div class="shrink-0 flex items-center gap-2">
+              <.badge theme="secondary">Differentiation</.badge>
+            </div>
+          </div>
+          <div class="flex items-stretch gap-2">
+            <div class="flex-[1_0] flex flex-col items-start gap-2">
+              <.badge
+                style_from_ordinal_value={%{bg_color: "#000", text_color: "#fff"}}
+                class="truncate"
+              >
+                Lack of evidence
+              </.badge>
+              <div class="prose prose-sm flex-1 w-full p-2 border border-ltrn-lighter rounded-sm bg-ltrn-lightest">
+                <p>—</p>
+              </div>
+            </div>
+            <div class="flex-[1_0] flex flex-col items-start gap-2">
+              <.badge
+                style_from_ordinal_value={%{bg_color: "#f28888", text_color: "#f6dfdf"}}
+                class="truncate"
+              >
+                Emerging
+              </.badge>
+              <div class="prose prose-sm flex-1 w-full p-2 border border-ltrn-lighter rounded-sm bg-ltrn-lightest">
+                <p class="line-clamp-5">
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Elit eget gravida cum sociis natoque penatibus.
+                </p>
+              </div>
+            </div>
+            <div class="flex-[1_0] flex flex-col items-start gap-2">
+              <.badge
+                style_from_ordinal_value={%{bg_color: "#fff48f", text_color: "#756a07"}}
+                class="truncate"
+              >
+                Progressing
+              </.badge>
+              <div class="prose prose-sm flex-1 w-full p-2 border border-ltrn-lighter rounded-sm bg-ltrn-lightest">
+                <p class="line-clamp-5">
+                  Suspendisse ultrices gravida dictum fusce ut. Volutpat odio facilisis mauris sit amet massa. Netus et malesuada fames ac. Vestibulum sed arcu non odio euismod lacinia at quis risus. Vel risus commodo viverra maecenas.
+                </p>
+              </div>
+            </div>
+            <div class="flex-[1_0] flex flex-col items-start gap-2">
+              <.badge
+                style_from_ordinal_value={%{bg_color: "#5cd9bb", text_color: "#052c22"}}
+                class="truncate"
+              >
+                Achieving
+              </.badge>
+              <div class="prose prose-sm flex-1 w-full p-2 border border-ltrn-lighter rounded-sm bg-ltrn-lightest">
+                <p class="line-clamp-5">
+                  Ullamcorper velit sed ullamcorper morbi. Eu feugiat pretium nibh ipsum consequat nisl vel. Et tortor consequat id porta nibh venenatis. At quis risus sed vulputate odio ut enim. Dictum at tempor commodo ullamcorper a lacus vestibulum sed arcu. Massa sed elementum tempus egestas.
+                </p>
+              </div>
+            </div>
+            <div class="flex-[1_0] flex flex-col items-start gap-2">
+              <.badge
+                style_from_ordinal_value={%{bg_color: "#814bf4", text_color: "#efe9fc"}}
+                class="truncate"
+              >
+                Exceeding
+              </.badge>
+              <div class="prose prose-sm flex-1 w-full p-2 border border-ltrn-lighter rounded-sm bg-ltrn-lightest">
+                <p class="line-clamp-5">
+                  Blandit aliquam etiam erat velit scelerisque in dictum non consectetur. In nisl nisi scelerisque eu ultrices. Amet mauris commodo quis imperdiet massa tincidunt.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="relative px-10 pt-40 md:pt-60 -mt-40 bg-ltrn-lighter" id="planning">
+      <div class="max-w-3xl mx-auto">
+        <h2 class={[
+          "flex items-center gap-4 font-display font-black text-lg",
+          "md:inline-flex md:p-4 md:border-2 md:rounded-full md:border-ltrn-primary"
+        ]}>
+          3. <span class="w-[2px] self-stretch bg-ltrn-primary" /> Planning and documentation
+        </h2>
+        <div class="mt-10 text-xl">
+          <p>Lanttern uses strands and activities to give context to learning.</p>
+          <br />
+          <p>
+            We help teachers and educational designers in making their intentions visible through pedagogical documentation, enabling deep conversations about teaching practices in the school community.
+          </p>
+        </div>
+      </div>
+      <div class={[
+        "isolate relative z-10 flex items-end gap-10 w-screen py-20 px-6 -mx-10 overflow-x-auto",
+        "lg:max-w-[64rem] lg:px-0 lg:mx-auto"
+      ]}>
+        <div class="flex-1 shrink-0 min-w-[15rem] rounded mb-32 shadow-xl bg-white overflow-hidden">
+          <div
+            class="w-full h-40 bg-center bg-cover"
+            style="background-image: url(/images/strand1.jpg)"
+          />
+          <div class="flex flex-col gap-6 p-6">
+            <p class="font-display font-black text-3xl underline">
+              Reading fluency tracking
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <.badge theme="dark">English Language Arts</.badge>
+              <.badge theme="dark">Grade 2</.badge>
+            </div>
+            <div class="prose prose-sm">
+              <p>
+                Photo by
+                <a
+                  href="https://unsplash.com/@eliottreyna?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+                  target="_blank"
+                >
+                  Eliott Reyna
+                </a>
+                on
+                <a
+                  href="https://unsplash.com/photos/woman-reading-book-kcT-7cirBEw?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+                  target="_blank"
+                >
+                  Unsplash
+                </a>
+              </p>
+              <p>In dolor consequatur et est. Necessitatibus nostrum in dicta nam qui.</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex-1 shrink-0 min-w-[15rem] rounded shadow-xl bg-white overflow-hidden">
+          <div
+            class="w-full h-40 bg-center bg-cover"
+            style="background-image: url(/images/strand2.jpg)"
+          />
+          <div class="flex flex-col gap-6 p-6">
+            <p class="font-display font-black text-3xl underline">
+              Ancient Civilizations — World Building
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <.badge theme="dark">History</.badge>
+              <.badge theme="dark">Geography</.badge>
+              <.badge theme="dark">Grade 7</.badge>
+            </div>
+            <div class="prose prose-sm">
+              <p>
+                Photo by
+                <a
+                  href="https://unsplash.com/@tomas_nz?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+                  target="_blank"
+                >
+                  Tomas Sobek
+                </a>
+                on
+                <a
+                  href="https://unsplash.com/photos/landscape-photography-of-mountain-EKNe678ktEY?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+                  target="_blank"
+                >
+                  Unsplash
+                </a>
+              </p>
+              <p>
+                Rerum nobis asperiores molestias explicabo. Harum est quis dignissimos a et. Laborum...
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="flex-1 shrink-0 min-w-[15rem] rounded mb-8 shadow-xl bg-white overflow-hidden">
+          <div
+            class="w-full h-40 bg-center bg-cover"
+            style="background-image: url(/images/strand3.jpg)"
+          />
+          <div class="flex flex-col gap-6 p-6">
+            <p class="font-display font-black text-3xl underline">
+              Expressions end of cycle presentation
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <.badge theme="dark">Drama</.badge>
+              <.badge theme="dark">Movement</.badge>
+              <.badge theme="dark">Music</.badge>
+              <.badge theme="dark">Visual Arts</.badge>
+              <.badge theme="dark">Grade 9</.badge>
+            </div>
+            <div class="prose prose-sm">
+              <p>
+                Photo by
+                <a
+                  href="https://unsplash.com/@allecgomes?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+                  target="_blank"
+                >
+                  Allec Gomes
+                </a>
+                on
+                <a
+                  href="https://unsplash.com/photos/vacant-brown-wooden-armless-chair-9xpnmt41NKM?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+                  target="_blank"
+                >
+                  Unsplash
+                </a>
+              </p>
+              <p>In dolor consequatur et est. Necessitatibus nostrum in dicta nam qui.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="relative px-10 py-40 md:pt-60 -mt-40 bg-white overflow-hidden" id="curriculum">
+      <div class="absolute inset-y-0 left-full md:left-3/4 right-0">
+        <div
+          id="curriculum-spot-1"
+          class="absolute top-1/2 w-[120px] h-[416px] -mt-[208px] -ml-[60px]"
+        >
+          <div class="w-[120px] h-[120px] rounded-full bg-ltrn-mesh-lime blur-[16px]" />
+        </div>
+        <div
+          id="curriculum-spot-2"
+          class="absolute top-1/2 w-[160px] h-[576px] -mt-[288px] -ml-[80px]"
+        >
+          <div class="w-[160px] h-[160px] rounded-full bg-ltrn-mesh-rose blur-[16px]" />
+        </div>
+        <div
+          id="curriculum-spot-3"
+          class="absolute top-1/2 w-[144px] h-[688px] -mt-[344px] -ml-[72px]"
+        >
+          <div class="w-[144px] h-[144px] rounded-full bg-ltrn-mesh-yellow blur-[16px]" />
+        </div>
+        <div
+          id="curriculum-spot-4"
+          class="absolute top-1/2 w-[80px] h-[712px] -mt-[356px] -ml-[40px]"
+        >
+          <div class="w-[80px] h-[80px] rounded-full bg-ltrn-mesh-violet blur-[16px]" />
+        </div>
+        <div class="absolute top-1/2 w-[240px] h-[240px] -mt-[120px] -ml-[120px] rounded-full bg-ltrn-mesh-primary blur-[24px]" />
+      </div>
+      <div class="relative z-10 max-w-3xl mx-auto">
+        <h2 class={[
+          "flex items-center gap-4 font-display font-black text-lg",
+          "md:inline-flex md:p-4 md:border-2 md:rounded-full md:border-ltrn-primary"
+        ]}>
+          4. <span class="w-[2px] self-stretch bg-ltrn-primary" /> Curriculum intelligence
+        </h2>
+        <div class="max-w-md mt-10 text-xl">
+          <p>Curriculum is at the root of Lanttern's metadata and taxonomy system.</p>
+          <br />
+          <p>
+            We developed a flexible curriculum engine which supports and honors existing curricula intelligence, and we enforce curriculum tagging for almost everything that happens inside Lanttern, creating data points for analyzing students development through curriculum lens.
+          </p>
+        </div>
+      </div>
+    </section>
+    <section class="px-10 py-40 bg-ltrn-dark overflow-hidden" id="ai">
+      <div class="max-w-3xl mx-auto text-white">
+        <h2 class={[
+          "flex items-center gap-4 font-display font-black text-lg",
+          "md:inline-flex md:p-4 md:border-2 md:rounded-full md:border-ltrn-primary"
+        ]}>
+          5. <span class="w-[2px] self-stretch bg-ltrn-primary" /> Artificial intelligence
+          <span class="flex px-3 py-1 rounded-full font-bold text-sm bg-ltrn-primary">Soon</span>
+        </h2>
+        <div class="mt-10 text-xl">
+          <p>
+            Lanttern's long term goal is to become an AI copilot, helping educators create individualized learning plans for every student — including the usual “under the radar” learner —, helping with operational tasks, and supporting decision making with data informed suggestions.
+          </p>
+          <br />
+          <p>
+            For learners, Lanttern copilot will help students' metacognition, presenting relevant learning data and encouraging students to reflect on their own learning process, essential to learning to learn — also known as "metalearning".
+          </p>
+        </div>
+        <div class="mt-20 font-display font-bold text-ltrn-dark">
+          <div class="relative z-10 flex items-start gap-4">
+            <div class="shrink-0 flex items-center justify-center w-10 h-10 rounded-full text-sm bg-ltrn-mesh-yellow">
+              ME
+            </div>
+            <div class="flex-1 md:max-w-md p-6 rounded-lg italic text-lg md:text-xl bg-ltrn-mesh-yellow">
+              Hey Lanttern, can you show me the history of Fernanda’s 2024 ELA reading assessments, highlighting the skills that she still needs to improve before the end of the cycle?
+            </div>
+          </div>
+          <div class="relative flex flex-row-reverse items-start gap-4 mt-6">
+            <div class="absolute top-[-240px] right-[-240px] w-[480px] h-[480px] bg-white blur-[160px]" />
+            <div class="relative shrink-0 flex items-center justify-center w-10 h-10 rounded-full text-sm bg-ltrn-mesh-primary">
+              LN
+            </div>
+            <div class="relative flex-1 md:max-w-md p-6 rounded-lg italic text-lg md:text-xl bg-ltrn-mesh-primary">
+              Sure! Wait a moment (a couple of months), while I’m learning to analyze Fernanda’s 2024 ELA reading assessments and build a learning plan suggestion for her...
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <section class="pt-40 bg-ltrn-lighter">
+    <div class="max-w-3xl px-10 md:px-6 mx-auto">
+      <h2 class="font-display font-black text-2xl">
+        Love it! What are the available plans and pricing?
+      </h2>
+      <div class="mt-10 text-xl">
+        <p>Patience is a virtue.</p>
+        <br />
+        <p>
+          Lanttern is still under development, and its first stable version is scheduled to be released late 2024. That being said, our repository is public and the project is licensed under MIT — if you feel adventurous, just go there, clone the repo and try it on your own.
+        </p>
+        <br />
+        <p>Here's what we have under development:</p>
+      </div>
+    </div>
+    <div class={[
+      "px-4 mt-12",
+      "lg:flex lg:items-stretch lg:gap-10 lg:max-w-[64rem] lg:px-0 lg:mx-auto"
+    ]}>
+      <div class={[
+        "isolate max-w-3xl py-10 px-6 mx-auto rounded-lg bg-white shadow-lg",
+        "lg:flex-1 lg:px-10"
+      ]}>
+        <h3 class="font-display font-black text-2xl text-ltrn-primary">Open source</h3>
+        <div class="mt-10 text-xl">
+          <p>
+            Lanttern is part of Camino School Open Source inititative, and as such, is being developed and implemented at Camino School since July 2023.
+          </p>
+          <br />
+          <p>
+            We're planning to open for external contributors in late 2024, as soon as we reach our MVP.
+          </p>
+          <br />
+          <p>
+            <strong class="font-display font-black">
+              Follow the development process in our <a
+                href="https://github.com/camino-school/lanttern"
+                target="_blank"
+                class="underline hover:text-ltrn-subtle"
+              >Github repository</a>, and
+              <a
+                href="mailto:eric.endo@caminoschool.com.br"
+                class="underline hover:text-ltrn-subtle"
+              >
+                get in touch
+              </a>
+              if you're interested in sponsor Lanttern development.
+            </strong>
+          </p>
+        </div>
+      </div>
+      <div class={[
+        "isolate max-w-3xl py-10 px-6 mt-10 mx-auto rounded-lg bg-ltrn-dark shadow-lg",
+        "lg:flex-1 lg:px-10 lg:mt-0"
+      ]}>
+        <h3 class="font-display font-black text-2xl text-ltrn-primary">Bright</h3>
+        <div class="mt-10 text-xl text-white">
+          <p>Bright is Lanttern's commercial version.</p>
+          <br />
+          <p>
+            If you don't want to worry about maintaining Lanttern in a cloud (or local) server, we got you covered.
+          </p>
+          <br />
+          <p>
+            You'll also get exclusive access to our support team, which will help you implement Lanttern at your school.
+          </p>
+          <br />
+          <p>
+            Did we mention that you'll also get access to all Camino and other partner schools' curriculum, strands, and activities?
+          </p>
+          <p class="font-display font-black mt-10">
+            <a href="#" class="underline hover:text-ltrn-subtle">Join the waitlist</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <footer class="pt-64 lg:pt-[25rem] pb-20 -mt-20 bg-white ltrn-bg-main-local">
+    <h4 class="w-fit mx-auto">
+      <a href="https://www.caminoschoolopensource.com/" target="_blank">
+        <img
+          src="/images/camino-open-source.png"
+          alt="Camino Open Source"
+          class="w-[240px] h-[240px]"
+        />
+      </a>
+    </h4>
+    <div class="lg:flex lg:gap-10 w-fit mt-20 mx-auto text-center">
+      <a href="#" class="underline">Privacy policy</a>
+      <p class="mt-4 lg:mt-0">Copyright © 2023 Camino School</p>
+    </div>
+  </footer>
 </div>
-<.flash_group flash={@flash} />

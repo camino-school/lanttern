@@ -34,6 +34,9 @@ module.exports = {
         mono: ['"Source Code Pro"', ...defaultTheme.fontFamily.mono],
         sans: ['"Open Sans"', ...defaultTheme.fontFamily.sans],
       },
+      aria: {
+        current: 'current="true"'
+      },
     },
   },
   plugins: [

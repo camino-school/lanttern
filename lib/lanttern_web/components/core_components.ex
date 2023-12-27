@@ -743,7 +743,7 @@ defmodule LantternWeb.CoreComponents do
   """
   attr :profile_name, :string, required: true
   attr :size, :string, default: "normal", doc: "xs | sm | normal"
-  attr :theme, :string, default: "cyan", doc: "cyan | subtle"
+  attr :theme, :string, default: "cyan", doc: "cyan | rose | subtle"
   attr :class, :any, default: nil
   attr :rest, :global
 
@@ -769,6 +769,7 @@ defmodule LantternWeb.CoreComponents do
   defp profile_icon_size_style(_normal), do: "w-10 h-10 text-sm"
 
   defp profile_icon_theme_style("subtle"), do: "text-ltrn-subtle bg-ltrn-lighter"
+  defp profile_icon_theme_style("rose"), do: "text-ltrn-dark bg-ltrn-mesh-rose"
   defp profile_icon_theme_style(_cyan), do: "text-ltrn-dark bg-ltrn-mesh-primary"
 
   defp profile_icon_initials(full_name) do
@@ -807,6 +808,7 @@ defmodule LantternWeb.CoreComponents do
   attr :profile_name, :string, required: true
   attr :class, :any, default: nil
   attr :id, :string, default: nil
+  attr :theme, :string, default: "cyan"
   attr :rest, :global
   slot :inner_block, required: true
 
@@ -816,7 +818,7 @@ defmodule LantternWeb.CoreComponents do
   def user_icon_block(assigns) do
     ~H"""
     <div id={@id} class={["flex gap-4", @class]} {@rest}>
-      <.profile_icon profile_name={@profile_name} class="shrink-0" />
+      <.profile_icon profile_name={@profile_name} class="shrink-0" theme={@theme} />
       <div class="flex-1">
         <%= render_slot(@inner_block) %>
       </div>
