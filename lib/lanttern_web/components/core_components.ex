@@ -235,6 +235,7 @@ defmodule LantternWeb.CoreComponents do
   defp button_theme(theme) do
     %{
       "default" => "bg-ltrn-primary hover:bg-cyan-300 shadow-sm",
+      "white" => "bg-white hover:bg-ltrn-lightest shadow-sm",
       "ghost" => [
         "text-ltrn-subtle bg-transparent hover:bg-slate-100",
         "disabled:text-ltrn-lighter disabled"
