@@ -175,7 +175,8 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
      |> allow_upload(:cover,
        accept: ~w(.jpg .jpeg .png),
        max_file_size: 3_000_000,
-       max_entries: 1
+       max_entries: 1,
+       external: &supabase_upload/2
      )}
   end
 
@@ -254,9 +255,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
     {:noreply, assign(socket, :curriculum_items, curriculum_items)}
   end
 
-  def handle_event("validate", %{"strand" => strand_params} = params, socket) do
-    IO.inspect(params)
-
+  def handle_event("validate", %{"strand" => strand_params}, socket) do
     changeset =
       socket.assigns.strand
       |> LearningContext.change_strand(strand_params)
@@ -266,9 +265,22 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
   end
 
   def handle_event("save", %{"strand" => strand_params}, socket) do
-    # add curriculum_items, subjects_ids, and years_ids to params
+    cover_image_url =
+      consume_uploaded_entries(socket, :cover, fn %{config: config, fields: fields}, _entry ->
+        image_url =
+          "#{config.project_url}/storage/v1/object/public/#{fields.bucket}/#{fields.path}"
+
+        {:ok, image_url}
+      end)
+      |> case do
+        [] -> nil
+        [image_url] -> image_url
+      end
+
+    # add cover, curriculum_items, subjects_ids, and years_ids to params
     strand_params =
       strand_params
+      |> Map.put("cover_image_url", cover_image_url)
       |> Map.put("subjects_ids", socket.assigns.selected_subjects_ids)
       |> Map.put("years_ids", socket.assigns.selected_years_ids)
       |> Map.put(
@@ -328,5 +340,26 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
     a
     |> List.replace_at(i1, e2)
     |> List.replace_at(i2, e1)
+  end
+
+  # based on https://hexdocs.pm/phoenix_live_view/uploads-external.html#direct-to-s3
+  defp supabase_upload(entry, socket) do
+    config = %{
+      project_url: System.fetch_env!("SUPABASE_PROJECT_URL"),
+      secret_api_key: System.fetch_env!("SUPABASE_PROJECT_SECRET_API_KEY")
+    }
+
+    fields = %{
+      bucket: "covers",
+      path: "#{Ecto.UUID.generate()}-#{entry.client_name}"
+    }
+
+    meta = %{
+      uploader: "Supabase",
+      config: config,
+      fields: fields
+    }
+
+    {:ok, meta, socket}
   end
 end
