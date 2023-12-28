@@ -18,6 +18,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
           Oops, something went wrong! Please check the errors below.
         </.error_block>
         <div
+          :if={!@strand.cover_image_url || @is_replacing_cover}
           class={[
             "p-4 border border-dashed border-ltrn-lighter rounded-md mb-6 text-center text-ltrn-subtle",
             if(@uploads.cover.entries != [], do: "hidden")
@@ -35,8 +36,32 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
                 <.live_file_input upload={@uploads.cover} class="sr-only" />
               </label>
               <span>or drag and drop here</span>
+              <button
+                :if={@is_replacing_cover}
+                type="button"
+                phx-click="cancel-replace-cover"
+                phx-target={@myself}
+                class="mt-4"
+              >
+                Cancel cover replacement
+              </button>
             </div>
           </div>
+        </div>
+        <div :if={@strand.cover_image_url && !@is_replacing_cover} class="relative mb-6">
+          <div class="flex items-center justify-center w-full h-60 bg-ltrn-subtle overflow-hidden">
+            <img src={@strand.cover_image_url} alt="Cover image" class="w-full" />
+          </div>
+          <.icon_button
+            type="button"
+            name="hero-x-mark"
+            theme="white"
+            rounded
+            phx-click="replace-cover"
+            sr_text="Replace image"
+            class="absolute top-2 right-2"
+            phx-target={@myself}
+          />
         </div>
         <div :for={entry <- @uploads.cover.entries} class="relative mb-6">
           <div
@@ -172,9 +197,10 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
      |> assign(:show_actions, false)
      |> assign(:subject_options, generate_subject_options())
      |> assign(:year_options, generate_year_options())
+     |> assign(:is_replacing_cover, false)
      |> allow_upload(:cover,
        accept: ~w(.jpg .jpeg .png),
-       max_file_size: 3_000_000,
+       max_file_size: 1_000_000,
        max_entries: 1,
        external: &supabase_upload/2
      )}
@@ -239,6 +265,14 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
     {:noreply, cancel_upload(socket, :cover, ref)}
   end
 
+  def handle_event("replace-cover", _, socket) do
+    {:noreply, assign(socket, :is_replacing_cover, true)}
+  end
+
+  def handle_event("cancel-replace-cover", _, socket) do
+    {:noreply, assign(socket, :is_replacing_cover, false)}
+  end
+
   def handle_event("remove_curriculum_item", %{"id" => id}, socket) do
     {:noreply,
      socket
@@ -268,7 +302,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
     cover_image_url =
       consume_uploaded_entries(socket, :cover, fn %{config: config, fields: fields}, _entry ->
         image_url =
-          "#{config.project_url}/storage/v1/object/public/#{fields.bucket}/#{fields.path}"
+          "#{config.project_url}/storage/v1/object/public/#{fields.bucket}/#{URI.encode(fields.path)}"
 
         {:ok, image_url}
       end)
@@ -280,7 +314,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
     # add cover, curriculum_items, subjects_ids, and years_ids to params
     strand_params =
       strand_params
-      |> Map.put("cover_image_url", cover_image_url)
+      |> Map.put("cover_image_url", cover_image_url || socket.assigns.strand.cover_image_url)
       |> Map.put("subjects_ids", socket.assigns.selected_subjects_ids)
       |> Map.put("years_ids", socket.assigns.selected_years_ids)
       |> Map.put(
@@ -346,7 +380,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
   defp supabase_upload(entry, socket) do
     config = %{
       project_url: System.fetch_env!("SUPABASE_PROJECT_URL"),
-      secret_api_key: System.fetch_env!("SUPABASE_PROJECT_SECRET_API_KEY")
+      secret_api_key: System.fetch_env!("SUPABASE_PROJECT_API_KEY")
     }
 
     fields = %{
