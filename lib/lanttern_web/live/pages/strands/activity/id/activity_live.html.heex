@@ -1,7 +1,7 @@
 <.cover
   size="sm"
   theme="lime"
-  style="background-image: url(https://images.unsplash.com/photo-1529476488885-3159d45ab78b?q=80&w=1280&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)"
+  style={"background-image: url(#{@activity.strand.cover_image_url || "/images/cover-placeholder.jpg"})"}
 >
   <:top>
     <div class="flex items-center justify-between">

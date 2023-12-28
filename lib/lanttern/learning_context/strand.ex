@@ -7,6 +7,7 @@ defmodule Lanttern.LearningContext.Strand do
   schema "strands" do
     field :name, :string
     field :description, :string
+    field :cover_image_url, :string
     field :subject_id, :id, virtual: true
     field :subjects_ids, {:array, :id}, virtual: true
     field :year_id, :id, virtual: true
@@ -30,7 +31,7 @@ defmodule Lanttern.LearningContext.Strand do
   @doc false
   def changeset(strand, attrs) do
     strand
-    |> cast(attrs, [:name, :description, :subjects_ids, :years_ids])
+    |> cast(attrs, [:name, :description, :cover_image_url, :subjects_ids, :years_ids])
     |> validate_required([:name, :description])
     |> cast_assoc(:curriculum_items, with: &child_position_changeset/3)
     |> put_subjects()
