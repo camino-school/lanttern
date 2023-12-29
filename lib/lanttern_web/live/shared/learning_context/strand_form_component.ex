@@ -3,6 +3,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
 
   alias Lanttern.LearningContext
   alias Lanttern.Curricula
+  alias LantternWeb.SupabaseHelpers
   import LantternWeb.TaxonomyHelpers
 
   # live components
@@ -201,8 +202,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
      |> allow_upload(:cover,
        accept: ~w(.jpg .jpeg .png),
        max_file_size: 1_000_000,
-       max_entries: 1,
-       external: &supabase_upload/2
+       max_entries: 1
      )}
   end
 
@@ -300,9 +300,17 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
 
   def handle_event("save", %{"strand" => strand_params}, socket) do
     cover_image_url =
-      consume_uploaded_entries(socket, :cover, fn %{config: config, fields: fields}, _entry ->
+      consume_uploaded_entries(socket, :cover, fn %{path: file_path}, entry ->
+        {:ok, object} =
+          SupabaseHelpers.upload_object(
+            "covers",
+            "#{Ecto.UUID.generate()}-#{entry.client_name}",
+            file_path,
+            %{content_type: entry.client_type}
+          )
+
         image_url =
-          "#{config.project_url}/storage/v1/object/public/#{fields.bucket}/#{URI.encode(fields.path)}"
+          "#{SupabaseHelpers.config().base_url}/storage/v1/object/public/#{URI.encode(object["Key"])}"
 
         {:ok, image_url}
       end)
@@ -374,26 +382,5 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
     a
     |> List.replace_at(i1, e2)
     |> List.replace_at(i2, e1)
-  end
-
-  # based on https://hexdocs.pm/phoenix_live_view/uploads-external.html#direct-to-s3
-  defp supabase_upload(entry, socket) do
-    config = %{
-      project_url: System.fetch_env!("SUPABASE_PROJECT_URL"),
-      secret_api_key: System.fetch_env!("SUPABASE_PROJECT_API_KEY")
-    }
-
-    fields = %{
-      bucket: "covers",
-      path: "#{Ecto.UUID.generate()}-#{entry.client_name}"
-    }
-
-    meta = %{
-      uploader: "Supabase",
-      config: config,
-      fields: fields
-    }
-
-    {:ok, meta, socket}
   end
 end

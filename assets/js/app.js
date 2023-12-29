@@ -25,8 +25,6 @@ import autocompleteHook from "./autocomplete-hook";
 import menuButtonrHook from "./menu-button-hook";
 import navScrollspyHook from "./nav-scrollspy-hook";
 import sliderHook from "./slider-hook";
-// for uploading to external services
-import Uploaders from "./uploaders"
 
 let Hooks = {};
 Hooks.Autocomplete = autocompleteHook;
@@ -39,8 +37,7 @@ let csrfToken = document
   .getAttribute("content");
 let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
-  hooks: Hooks,
-  uploaders: Uploaders
+  hooks: Hooks
 });
 
 // Show progress bar on live navigation and form submits
