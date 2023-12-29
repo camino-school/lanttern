@@ -15,12 +15,12 @@
     <div id="strands-list" phx-update="stream" class="grid grid-cols-3 gap-10 mt-12">
       <div
         :for={{dom_id, strand} <- @streams.strands}
-        class="rounded shadow-xl bg-white"
+        class="rounded shadow-xl bg-white overflow-hidden"
         id={dom_id}
       >
         <div
           class="w-full h-40 bg-center bg-cover"
-          style="background-image: url(https://images.unsplash.com/photo-1529476488885-3159d45ab78b?q=80&w=320&auto=format&fit=crop)"
+          style={"background-image: url(#{strand.cover_image_url || "/images/cover-placeholder-sm.jpg"}?width=400&height=200)"}
         />
         <div class="flex flex-col gap-6 p-6">
           <.link

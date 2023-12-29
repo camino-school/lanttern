@@ -168,6 +168,7 @@ defmodule LantternWeb.CoreComponents do
     <button
       type={@type}
       class={[
+        "group",
         get_button_styles(@theme, @size, @rounded),
         @class
       ]}
@@ -177,6 +178,7 @@ defmodule LantternWeb.CoreComponents do
       <%= if @icon_name do %>
         <.icon name={@icon_name} class="w-5 h-5" />
       <% end %>
+      <.spinner class="hidden group-phx-submit-loading:block" />
     </button>
     """
   end
@@ -235,6 +237,7 @@ defmodule LantternWeb.CoreComponents do
   defp button_theme(theme) do
     %{
       "default" => "bg-ltrn-primary hover:bg-cyan-300 shadow-sm",
+      "white" => "bg-white hover:bg-ltrn-lightest shadow-sm",
       "ghost" => [
         "text-ltrn-subtle bg-transparent hover:bg-slate-100",
         "disabled:text-ltrn-lighter disabled"
@@ -840,6 +843,34 @@ defmodule LantternWeb.CoreComponents do
       </span>
       <span class="relative inline-flex rounded-full h-4 w-4 bg-ltrn-primary blur-sm"></span>
     </span>
+    """
+  end
+
+  @doc """
+  Renders a spinner.
+  """
+  attr :class, :any, default: nil
+
+  def spinner(assigns) do
+    ~H"""
+    <svg
+      class={[
+        "animate-spin h-5 w-5",
+        @class
+      ]}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+      </circle>
+      <path
+        class="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      >
+      </path>
+    </svg>
     """
   end
 

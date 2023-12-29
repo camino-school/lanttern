@@ -63,6 +63,12 @@ module.exports = {
       ])
     ),
     plugin(({ addVariant }) =>
+      addVariant(
+        "group-phx-submit-loading",
+        ":merge(.group).phx-submit-loading &",
+      )
+    ),
+    plugin(({ addVariant }) =>
       addVariant("phx-change-loading", [
         ".phx-change-loading&",
         ".phx-change-loading &",

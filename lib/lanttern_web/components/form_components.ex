@@ -484,16 +484,18 @@ defmodule LantternWeb.FormComponents do
 
   def error_block(assigns) do
     ~H"""
-    <p
+    <div
       class={[
         "flex items-center gap-4 p-4 rounded-sm text-sm text-rose-600 bg-rose-100",
         @class
       ]}
       {@rest}
     >
-      <.icon name="hero-exclamation-circle" />
-      <%= render_slot(@inner_block) %>
-    </p>
+      <.icon name="hero-exclamation-circle" class="shrink-0" />
+      <div class="flex-1">
+        <%= render_slot(@inner_block) %>
+      </div>
+    </div>
     """
   end
 
