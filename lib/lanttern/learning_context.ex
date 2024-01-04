@@ -10,25 +10,32 @@ defmodule Lanttern.LearningContext do
   alias Lanttern.LearningContext.Strand
 
   @doc """
-  Returns the list of strands.
+  Returns the list of strands ordered alphabetically.
 
   ### Options:
 
   `:preloads` – preloads associated data
+  `:first` – number of results after cursor. defaults to 10
+  `:after` – the cursor to list results after
 
   ## Examples
 
       iex> list_strands()
-      [%Strand{}, ...]
+      {[%Strand{}, ...], %Flop.Meta{}}
 
   """
   def list_strands(opts \\ []) do
-    from(
-      s in Strand,
-      order_by: :name
-    )
-    |> Repo.all()
-    |> maybe_preload(opts)
+    params = %{
+      order_by: [:name],
+      first: Keyword.get(opts, :first, 10),
+      after: Keyword.get(opts, :after)
+    }
+
+    {:ok, {results, meta}} =
+      from(s in Strand)
+      |> Flop.validate_and_run(params)
+
+    {results |> maybe_preload(opts), meta}
   end
 
   @doc """

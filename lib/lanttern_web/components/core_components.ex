@@ -176,9 +176,12 @@ defmodule LantternWeb.CoreComponents do
     >
       <%= render_slot(@inner_block) %>
       <%= if @icon_name do %>
-        <.icon name={@icon_name} class="w-5 h-5" />
+        <.icon
+          name={@icon_name}
+          class="w-5 h-5 group-phx-submit-loading:hidden group-phx-click-loading:hidden"
+        />
       <% end %>
-      <.spinner class="hidden group-phx-submit-loading:block" />
+      <.spinner class="hidden group-phx-submit-loading:block group-phx-click-loading:block" />
     </button>
     """
   end

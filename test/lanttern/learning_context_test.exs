@@ -17,7 +17,31 @@ defmodule Lanttern.LearningContextTest do
       strand_c = strand_fixture(%{name: "CCC"})
       strand_b = strand_fixture(%{name: "BBB"})
 
-      assert LearningContext.list_strands() == [strand_a, strand_b, strand_c]
+      {results, _meta} = LearningContext.list_strands()
+      assert results == [strand_a, strand_b, strand_c]
+    end
+
+    test "list_strands/1 with pagination opts returns all strands ordered alphabetically and paginated" do
+      strand_a = strand_fixture(%{name: "AAA"})
+      strand_c = strand_fixture(%{name: "CCC"})
+      strand_b = strand_fixture(%{name: "BBB"})
+      strand_d = strand_fixture(%{name: "DDD"})
+      strand_e = strand_fixture(%{name: "EEE"})
+      strand_f = strand_fixture(%{name: "FFF"})
+
+      {results, meta} = LearningContext.list_strands(first: 5)
+
+      assert results == [
+               strand_a,
+               strand_b,
+               strand_c,
+               strand_d,
+               strand_e
+             ]
+
+      {results, _meta} = LearningContext.list_strands(first: 5, after: meta.end_cursor)
+
+      assert results == [strand_f]
     end
 
     test "list_strands/1 with preloads returns all strands with preloaded data" do
@@ -25,7 +49,7 @@ defmodule Lanttern.LearningContextTest do
       year = year_fixture()
       strand = strand_fixture(%{subjects_ids: [subject.id], years_ids: [year.id]})
 
-      [expected] = LearningContext.list_strands(preloads: [:subjects, :years])
+      {[expected], _meta} = LearningContext.list_strands(preloads: [:subjects, :years])
       assert expected.id == strand.id
       assert expected.subjects == [subject]
       assert expected.years == [year]

@@ -11,20 +11,19 @@ defmodule LantternWeb.StrandsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    strands = LearningContext.list_strands(preloads: [:subjects, :years])
-    strands_count = length(strands)
+    {:ok, load_strands(socket)}
+  end
 
-    {:ok,
-     socket
-     |> assign(:strands_count, strands_count)
-     |> stream(:strands, strands)}
+  @impl true
+  def handle_params(_params, _url, socket) do
+    {:noreply, socket}
   end
 
   # event handlers
 
   @impl true
-  def handle_params(_params, _url, socket) do
-    {:noreply, socket}
+  def handle_event("load-more", _params, socket) do
+    {:noreply, load_strands(socket)}
   end
 
   # info handlers
@@ -32,5 +31,23 @@ defmodule LantternWeb.StrandsLive do
   @impl true
   def handle_info({StrandFormComponent, {:saved, strand}}, socket) do
     {:noreply, stream_insert(socket, :strands, strand)}
+  end
+
+  # helpers
+
+  defp load_strands(socket) do
+    {strands, meta} =
+      LearningContext.list_strands(
+        preloads: [:subjects, :years],
+        after: socket.assigns[:end_cursor]
+      )
+
+    strands_count = length(strands)
+
+    socket
+    |> stream(:strands, strands)
+    |> assign(:strands_count, strands_count)
+    |> assign(:end_cursor, meta.end_cursor)
+    |> assign(:has_next_page, meta.has_next_page?)
   end
 end

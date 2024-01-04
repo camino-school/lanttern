@@ -39,6 +39,11 @@
         </div>
       </div>
     </div>
+    <div :if={@has_next_page} class="mt-10 text-center">
+      <.button type="button" theme="ghost" phx-click="load-more">
+        Load more strands
+      </.button>
+    </div>
   <% end %>
   <.slide_over
     :if={@live_action == :new}
