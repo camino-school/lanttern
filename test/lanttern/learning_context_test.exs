@@ -12,9 +12,12 @@ defmodule Lanttern.LearningContextTest do
 
     @invalid_attrs %{name: nil, description: nil}
 
-    test "list_strands/1 returns all strands" do
-      strand = strand_fixture()
-      assert LearningContext.list_strands() == [strand]
+    test "list_strands/1 returns all strands ordered alphabetically" do
+      strand_a = strand_fixture(%{name: "AAA"})
+      strand_c = strand_fixture(%{name: "CCC"})
+      strand_b = strand_fixture(%{name: "BBB"})
+
+      assert LearningContext.list_strands() == [strand_a, strand_b, strand_c]
     end
 
     test "list_strands/1 with preloads returns all strands with preloaded data" do

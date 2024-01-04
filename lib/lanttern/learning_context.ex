@@ -23,7 +23,11 @@ defmodule Lanttern.LearningContext do
 
   """
   def list_strands(opts \\ []) do
-    Repo.all(Strand)
+    from(
+      s in Strand,
+      order_by: :name
+    )
+    |> Repo.all()
     |> maybe_preload(opts)
   end
 
