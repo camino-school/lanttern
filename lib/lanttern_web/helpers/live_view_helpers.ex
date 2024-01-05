@@ -15,8 +15,8 @@ defmodule LantternWeb.LiveViewHelpers do
   according to `handle_assigns` param.
   """
   def handle_params_and_profile_filters_sync(
-        params,
         socket,
+        params,
         filters,
         handle_assigns,
         handle_update_params
@@ -27,12 +27,11 @@ defmodule LantternWeb.LiveViewHelpers do
            filters
          ) do
       {:noop, _} ->
-        {:noreply, handle_assigns.(socket, params)}
+        handle_assigns.(socket, params)
 
       {:updated, params} ->
-        {:noreply,
-         socket
-         |> Phoenix.LiveView.push_patch(to: handle_update_params.(params), replace: true)}
+        socket
+        |> Phoenix.LiveView.push_patch(to: handle_update_params.(params), replace: true)
     end
   end
 end

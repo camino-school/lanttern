@@ -14,9 +14,11 @@ defmodule Lanttern.LearningContext do
 
   ### Options:
 
-  `:preloads` – preloads associated data
-  `:first` – number of results after cursor. defaults to 10
-  `:after` – the cursor to list results after
+      - `:subjects_ids` – filter strands by subjects
+      - `:years_ids` – filter strands by years
+      - `:first` – number of results after cursor. defaults to 10
+      - `:after` – the cursor to list results after
+      - `:preloads` – preloads associated data
 
   ## Examples
 
@@ -33,6 +35,7 @@ defmodule Lanttern.LearningContext do
 
     {:ok, {results, meta}} =
       from(s in Strand)
+      |> filter_strands(opts)
       |> Flop.validate_and_run(params)
 
     {results |> maybe_preload(opts), meta}
@@ -155,8 +158,8 @@ defmodule Lanttern.LearningContext do
 
   ### Options:
 
-  `:preloads` – preloads associated data
-  `:strands_ids` – filter activities by strands
+      - `:preloads` – preloads associated data
+      - `:strands_ids` – filter activities by strands
 
   ## Examples
 
@@ -356,6 +359,29 @@ defmodule Lanttern.LearningContext do
   end
 
   # Helpers
+
+  defp filter_strands(strands_query, opts) do
+    Enum.reduce(opts, strands_query, &apply_strands_filter/2)
+  end
+
+  defp apply_strands_filter({:subjects_ids, subjects_ids}, strands_query)
+       when subjects_ids != [] do
+    from(
+      s in strands_query,
+      join: sub in assoc(s, :subjects),
+      where: sub.id in ^subjects_ids
+    )
+  end
+
+  defp apply_strands_filter({:years_ids, years_ids}, strands_query) when years_ids != [] do
+    from(
+      s in strands_query,
+      join: y in assoc(s, :years),
+      where: y.id in ^years_ids
+    )
+  end
+
+  defp apply_strands_filter(_opt, query), do: query
 
   defp maybe_filter_by_strands(query, opts) do
     case Keyword.get(opts, :strands_ids) do

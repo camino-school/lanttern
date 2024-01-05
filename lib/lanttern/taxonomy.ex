@@ -104,17 +104,22 @@ defmodule Lanttern.Taxonomy do
   @doc """
   Returns the list of subjects ordered alphabetically.
 
-  ## Examples
+  ### Options:
+
+      - `:ids` – filter list by ids
+
+  ### Examples
 
       iex> list_subjects()
       [%Subject{}, ...]
 
   """
-  def list_subjects do
+  def list_subjects(opts \\ []) do
     from(
       sub in Subject,
       order_by: :name
     )
+    |> filter_by_id(opts)
     |> Repo.all()
   end
 
@@ -289,14 +294,23 @@ defmodule Lanttern.Taxonomy do
   @doc """
   Returns the list of years.
 
-  ## Examples
+  ### Options:
+
+      - `:ids` – filter list by ids
+
+  ### Examples
 
       iex> list_years()
       [%Year{}, ...]
 
   """
-  def list_years do
-    Repo.all(Year)
+  def list_years(opts \\ []) do
+    from(
+      y in Year,
+      order_by: :id
+    )
+    |> filter_by_id(opts)
+    |> Repo.all()
   end
 
   @doc """
@@ -415,5 +429,20 @@ defmodule Lanttern.Taxonomy do
     )
     |> Repo.all()
     |> Enum.into(%{})
+  end
+
+  # Helpers
+
+  defp filter_by_id(query, opts) do
+    case Keyword.get(opts, :ids) do
+      nil ->
+        query
+
+      ids ->
+        from(
+          q in query,
+          where: q.id in ^ids
+        )
+    end
   end
 end

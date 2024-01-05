@@ -44,12 +44,23 @@ defmodule Lanttern.LearningContextTest do
       assert results == [strand_f]
     end
 
-    test "list_strands/1 with preloads returns all strands with preloaded data" do
+    test "list_strands/1 with preloads and filters returns all filtered strands with preloaded data" do
       subject = subject_fixture()
       year = year_fixture()
       strand = strand_fixture(%{subjects_ids: [subject.id], years_ids: [year.id]})
 
-      {[expected], _meta} = LearningContext.list_strands(preloads: [:subjects, :years])
+      # extra strands for filtering
+      strand_fixture()
+      strand_fixture(%{subjects_ids: [subject.id]})
+      strand_fixture(%{years_ids: [year.id]})
+
+      {[expected], _meta} =
+        LearningContext.list_strands(
+          subjects_ids: [subject.id],
+          years_ids: [year.id],
+          preloads: [:subjects, :years]
+        )
+
       assert expected.id == strand.id
       assert expected.subjects == [subject]
       assert expected.years == [year]

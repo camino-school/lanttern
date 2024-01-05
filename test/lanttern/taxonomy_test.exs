@@ -11,9 +11,20 @@ defmodule Lanttern.TaxonomyTest do
 
     @invalid_attrs %{name: nil}
 
-    test "list_subjects/0 returns all subjects" do
+    test "list_subjects/1 returns all subjects" do
       subject = subject_fixture()
       assert Taxonomy.list_subjects() == [subject]
+    end
+
+    test "list_subjects/1 with ids filter returns subjects ordered alphabetically and filtered by id" do
+      subject_a = subject_fixture(%{name: "AAA"})
+      subject_b = subject_fixture(%{name: "BBB"})
+
+      # extra subjects for filtering
+      subject_fixture()
+      subject_fixture()
+
+      assert Taxonomy.list_subjects(ids: [subject_a.id, subject_b.id]) == [subject_a, subject_b]
     end
 
     test "list_assessment_point_subjects/0 returns all subjects ordered alphabetically and separated in two lists: related and not related to assessment points" do
@@ -125,9 +136,20 @@ defmodule Lanttern.TaxonomyTest do
 
     @invalid_attrs %{name: nil}
 
-    test "list_years/0 returns all years" do
+    test "list_years/1 returns all years" do
       year = year_fixture()
       assert Taxonomy.list_years() == [year]
+    end
+
+    test "list_years/1 with ids filter returns years ordered and filtered by id" do
+      year_1 = year_fixture()
+      year_2 = year_fixture()
+
+      # extra years for filtering
+      year_fixture()
+      year_fixture()
+
+      assert Taxonomy.list_years(ids: [year_1.id, year_2.id]) == [year_1, year_2]
     end
 
     test "get_year!/1 returns the year with given id" do

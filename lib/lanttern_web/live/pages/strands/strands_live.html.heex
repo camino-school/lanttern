@@ -3,14 +3,15 @@
   <div class="flex items-end justify-between mt-12">
     <p class="font-display font-bold text-lg">
       I want to explore strands in<br />
-      <span class="underline">all subjects and all years</span>
+      <.filter_buttons type="years" items={@current_years} />,
+      <.filter_buttons type="subjects" items={@current_subjects} />
     </p>
     <.collection_action type="link" patch={~p"/strands/new"} icon_name="hero-plus-circle">
       Create new strand
     </.collection_action>
   </div>
   <%= if @strands_count == 0 do %>
-    <.empty_state>No strands created yet</.empty_state>
+    <.empty_state>No strands created for selected years and subjects</.empty_state>
   <% else %>
     <div id="strands-list" phx-update="stream" class="grid grid-cols-3 gap-10 mt-12">
       <div
@@ -45,31 +46,75 @@
       </.button>
     </div>
   <% end %>
-  <.slide_over
-    :if={@live_action == :new}
-    id="strand-form-overlay"
-    show={true}
-    on_cancel={JS.patch(~p"/strands")}
-  >
-    <:title>New strand</:title>
-    <.live_component
-      module={StrandFormComponent}
-      id={:new}
-      strand={%Strand{curriculum_items: [], subjects: [], years: []}}
-      action={:new}
-      navigate={fn strand -> ~p"/strands/#{strand}" end}
-    />
-    <:actions>
-      <.button
-        type="button"
-        theme="ghost"
-        phx-click={JS.exec("data-cancel", to: "#strand-form-overlay")}
-      >
-        Cancel
-      </.button>
-      <.button type="submit" form="strand-form">
-        Save
-      </.button>
-    </:actions>
-  </.slide_over>
 </div>
+<.slide_over id="strands-filters">
+  <:title>Filter Strands</:title>
+  <.form id="strands-filters-form" for={@form} phx-submit={filter()} class="flex gap-6">
+    <fieldset class="flex-1">
+      <legend class="text-base font-semibold leading-6 text-ltrn-subtle">Years</legend>
+      <div class="mt-4 divide-y divide-ltrn-lighter border-b border-t border-ltrn-lighter">
+        <.check_field
+          :for={opt <- @years}
+          id={"year-#{opt.id}"}
+          field={@form[:years_ids]}
+          opt={opt}
+        />
+      </div>
+    </fieldset>
+    <fieldset class="flex-1">
+      <legend class="text-base font-semibold leading-6 text-ltrn-subtle">Subjects</legend>
+      <div class="mt-4 divide-y divide-ltrn-lighter border-b border-t border-ltrn-lighter">
+        <.check_field
+          :for={opt <- @subjects}
+          id={"subject-#{opt.id}"}
+          field={@form[:subjects_ids]}
+          opt={opt}
+        />
+      </div>
+    </fieldset>
+  </.form>
+  <:actions_left>
+    <.button type="button" theme="ghost" phx-click={clear_filters()}>
+      Clear filters
+    </.button>
+  </:actions_left>
+  <:actions>
+    <.button
+      type="button"
+      theme="ghost"
+      phx-click={JS.exec("data-cancel", to: "#strands-filters")}
+    >
+      Cancel
+    </.button>
+    <.button type="submit" form="strands-filters-form" phx-disable-with="Applying filters...">
+      Apply filters
+    </.button>
+  </:actions>
+</.slide_over>
+<.slide_over
+  :if={@live_action == :new}
+  id="strand-form-overlay"
+  show={true}
+  on_cancel={JS.patch(~p"/strands")}
+>
+  <:title>New strand</:title>
+  <.live_component
+    module={StrandFormComponent}
+    id={:new}
+    strand={%Strand{curriculum_items: [], subjects: [], years: []}}
+    action={:new}
+    navigate={fn strand -> ~p"/strands/#{strand}" end}
+  />
+  <:actions>
+    <.button
+      type="button"
+      theme="ghost"
+      phx-click={JS.exec("data-cancel", to: "#strand-form-overlay")}
+    >
+      Cancel
+    </.button>
+    <.button type="submit" form="strand-form">
+      Save
+    </.button>
+  </:actions>
+</.slide_over>
