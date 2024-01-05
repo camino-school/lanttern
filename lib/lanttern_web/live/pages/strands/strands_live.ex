@@ -51,6 +51,7 @@ defmodule LantternWeb.StrandsLive do
   def mount(_params, _session, socket) do
     {:ok,
      socket
+     |> assign(:is_creating_strand, false)
      |> assign(:current_subjects, [])
      |> assign(:current_years, [])}
   end
@@ -73,6 +74,14 @@ defmodule LantternWeb.StrandsLive do
   # event handlers
 
   @impl true
+  def handle_event("create-strand", _params, socket) do
+    {:noreply, assign(socket, :is_creating_strand, true)}
+  end
+
+  def handle_event("cancel-strand-creation", _params, socket) do
+    {:noreply, assign(socket, :is_creating_strand, false)}
+  end
+
   def handle_event("load-more", _params, socket) do
     {:noreply, load_strands(socket)}
   end
@@ -99,13 +108,6 @@ defmodule LantternWeb.StrandsLive do
     {:noreply,
      socket
      |> push_navigate(to: path(socket, ~p"/strands?#{params}"))}
-  end
-
-  # info handlers
-
-  @impl true
-  def handle_info({StrandFormComponent, {:saved, strand}}, socket) do
-    {:noreply, stream_insert(socket, :strands, strand)}
   end
 
   # helpers

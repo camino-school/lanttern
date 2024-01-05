@@ -6,7 +6,7 @@
       <.filter_buttons type="years" items={@current_years} />,
       <.filter_buttons type="subjects" items={@current_subjects} />
     </p>
-    <.collection_action type="link" patch={~p"/strands/new"} icon_name="hero-plus-circle">
+    <.collection_action type="button" icon_name="hero-plus-circle" phx-click="create-strand">
       Create new strand
     </.collection_action>
   </div>
@@ -92,16 +92,22 @@
   </:actions>
 </.slide_over>
 <.slide_over
-  :if={@live_action == :new}
+  :if={@is_creating_strand}
   id="strand-form-overlay"
   show={true}
-  on_cancel={JS.patch(~p"/strands")}
+  on_cancel={JS.push("cancel-strand-creation")}
 >
   <:title>New strand</:title>
   <.live_component
     module={StrandFormComponent}
     id={:new}
-    strand={%Strand{curriculum_items: [], subjects: [], years: []}}
+    strand={
+      %Strand{
+        curriculum_items: [],
+        subjects: @current_subjects,
+        years: @current_years
+      }
+    }
     action={:new}
     navigate={fn strand -> ~p"/strands/#{strand}" end}
   />
