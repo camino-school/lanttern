@@ -196,6 +196,80 @@ defmodule Lanttern.LearningContextTest do
     end
   end
 
+  describe "starred strands" do
+    alias Lanttern.LearningContext.Strand
+
+    import Lanttern.IdentityFixtures
+    import Lanttern.TaxonomyFixtures
+    import Lanttern.CurriculaFixtures
+
+    @invalid_attrs %{name: nil, description: nil}
+
+    test "list_starred_strands/1 returns all starred strands ordered alphabetically" do
+      profile = teacher_profile_fixture()
+      strand_b = strand_fixture(%{name: "BBB"})
+      strand_a = strand_fixture(%{name: "AAA"})
+
+      # extra strand to test filtering
+      strand_fixture()
+
+      # star strands a and b
+      LearningContext.star_strand(strand_a.id, profile.id)
+      LearningContext.star_strand(strand_b.id, profile.id)
+
+      assert [strand_a, strand_b] == LearningContext.list_starred_strands(profile.id)
+    end
+
+    test "list_strands/1 with preloads and filters returns all filtered strands with preloaded data" do
+      profile = teacher_profile_fixture()
+      subject = subject_fixture()
+      year = year_fixture()
+      strand = strand_fixture(%{subjects_ids: [subject.id], years_ids: [year.id]})
+
+      # extra strands for filtering
+      other_strand = strand_fixture()
+      strand_fixture(%{subjects_ids: [subject.id], years_ids: [year.id]})
+
+      # star strand
+      LearningContext.star_strand(strand.id, profile.id)
+      LearningContext.star_strand(other_strand.id, profile.id)
+
+      [expected] =
+        LearningContext.list_starred_strands(
+          profile.id,
+          subjects_ids: [subject.id],
+          years_ids: [year.id],
+          preloads: [:subjects, :years]
+        )
+
+      assert expected.id == strand.id
+      assert expected.subjects == [subject]
+      assert expected.years == [year]
+    end
+
+    test "star_strand/2 and unstar_strand/2 functions as expected" do
+      profile = teacher_profile_fixture()
+      strand_a = strand_fixture(%{name: "AAA"})
+      strand_b = strand_fixture(%{name: "BBB"})
+
+      # empty list before starring
+      assert [] == LearningContext.list_starred_strands(profile.id)
+
+      # star and list again
+      LearningContext.star_strand(strand_a.id, profile.id)
+      LearningContext.star_strand(strand_b.id, profile.id)
+      assert [strand_a, strand_b] == LearningContext.list_starred_strands(profile.id)
+
+      # staring an already starred strand shouldn't cause any change
+      assert {:ok, _starred_strand} = LearningContext.star_strand(strand_a.id, profile.id)
+      assert [strand_a, strand_b] == LearningContext.list_starred_strands(profile.id)
+
+      # unstar and list
+      LearningContext.unstar_strand(strand_a.id, profile.id)
+      assert [strand_b] == LearningContext.list_starred_strands(profile.id)
+    end
+  end
+
   describe "activities" do
     alias Lanttern.LearningContext.Activity
 

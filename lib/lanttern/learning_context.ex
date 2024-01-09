@@ -8,6 +8,8 @@ defmodule Lanttern.LearningContext do
   alias Lanttern.Repo
 
   alias Lanttern.LearningContext.Strand
+  alias Lanttern.LearningContext.StarredStrand
+  alias Lanttern.LearningContext.Activity
 
   @doc """
   Returns the list of strands ordered alphabetically.
@@ -151,7 +153,79 @@ defmodule Lanttern.LearningContext do
     Strand.changeset(strand, attrs)
   end
 
-  alias Lanttern.LearningContext.Activity
+  @doc """
+  Returns the list of profile starred strands ordered alphabetically.
+
+  ### Options:
+      - `:subjects_ids` – filter strands by subjects
+      - `:years_ids` – filter strands by years
+      - `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> list_starred_strands(profile_id)
+      [%Strand{}, ...]
+
+  """
+  def list_starred_strands(profile_id, opts \\ []) do
+    strands_query =
+      from(
+        s in Strand,
+        order_by: s.name
+      )
+      |> filter_strands(opts)
+
+    from(
+      s in strands_query,
+      join: ss in StarredStrand,
+      on: ss.strand_id == s.id,
+      where: ss.profile_id == ^profile_id,
+      select: s
+    )
+    |> Repo.all()
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Marks the strand as starred for the given profile.
+
+  ## Examples
+
+      iex> star_strand(strand_id, profile_id)
+      {:ok, %StarredStrand{}}
+
+      iex> star_strand(bad_strand_id, profile_id)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def star_strand(strand_id, profile_id) do
+    case Repo.get_by(StarredStrand, strand_id: strand_id, profile_id: profile_id) do
+      nil ->
+        %StarredStrand{}
+        |> StarredStrand.changeset(%{strand_id: strand_id, profile_id: profile_id})
+        |> Repo.insert()
+
+      starred_strand ->
+        {:ok, starred_strand}
+    end
+  end
+
+  @doc """
+  Removes the strand from profile starred strands.
+
+  ## Examples
+
+      iex> unstar_strand(strand_id, profile_id)
+      {:ok, %StarredStrand{}}
+
+      iex> unstar_strand(bad_strand_id, profile_id)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def unstar_strand(strand_id, profile_id) do
+    Repo.get_by(StarredStrand, strand_id: strand_id, profile_id: profile_id)
+    |> Repo.delete()
+  end
 
   @doc """
   Returns the list of activities.
