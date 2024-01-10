@@ -446,29 +446,31 @@ defmodule Lanttern.PersonalizationTest do
     test "sync_params_and_profile_filters/3 adds params to filters and filters to params" do
       current_profile = teacher_profile_fixture()
 
-      # create profile settings with classes ids
+      # create profile settings with classes and years ids
       Personalization.set_profile_current_filters(
         %{current_profile: current_profile},
-        %{classes_ids: [4, 5, 6]}
+        %{classes_ids: [4, 5, 6], years_ids: [7, 8, 9]}
       )
 
-      params = %{"foo" => "bar", "subjects_ids" => ["1", "2", "3"]}
+      params = %{"foo" => "bar", "subjects_ids" => ["1", "2", "3"], "years_ids" => ""}
 
       {:updated, expected} =
         Personalization.sync_params_and_profile_filters(
           params,
           %{current_profile: current_profile},
-          [:classes_ids, :subjects_ids]
+          [:classes_ids, :subjects_ids, :years_ids]
         )
 
       assert expected["foo"] == "bar"
       assert expected["subjects_ids"] == ["1", "2", "3"]
       assert expected["classes_ids"] == ["4", "5", "6"]
+      assert expected["years_ids"] == ""
 
       profile_settings = Personalization.get_profile_settings(current_profile.id)
 
       assert profile_settings.current_filters.subjects_ids == [1, 2, 3]
       assert profile_settings.current_filters.classes_ids == [4, 5, 6]
+      assert profile_settings.current_filters.years_ids == []
     end
   end
 end

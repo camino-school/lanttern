@@ -12,6 +12,7 @@ defmodule Lanttern.LearningContext.Strand do
     field :subjects_ids, {:array, :id}, virtual: true
     field :year_id, :id, virtual: true
     field :years_ids, {:array, :id}, virtual: true
+    field :is_starred, :boolean, virtual: true
 
     has_many :curriculum_items, Lanttern.Curricula.StrandCurriculumItem,
       on_replace: :delete,

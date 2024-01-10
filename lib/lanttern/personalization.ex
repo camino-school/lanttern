@@ -495,13 +495,13 @@ defmodule Lanttern.Personalization do
     case get_profile_settings(profile_id) do
       nil ->
         # update profile current filters
-        profile_filters =
-          Enum.reduce(filters, %{}, fn atom_filter, profile_filters ->
+        attrs =
+          Enum.reduce(filters, %{}, fn atom_filter, attrs ->
             str_filter = Atom.to_string(atom_filter)
-            Map.put(profile_filters, atom_filter, params[str_filter])
+            Map.put(attrs, atom_filter, params[str_filter])
           end)
 
-        insert_settings_or_update_filters(nil, profile_id, profile_filters)
+        insert_settings_or_update_filters(nil, profile_id, attrs)
 
         # return params as is
         {:noop, params}
@@ -509,29 +509,42 @@ defmodule Lanttern.Personalization do
       profile_settings ->
         current_filters = profile_settings.current_filters || %{}
 
-        Enum.reduce(filters, {:noop, params}, fn atom_filter, {op, params} ->
-          str_filter = Atom.to_string(atom_filter)
+        {op, params, attrs} =
+          Enum.reduce(filters, {:noop, params, %{}}, fn atom_filter, {op, params, attrs} ->
+            str_filter = Atom.to_string(atom_filter)
 
-          case {params[str_filter], Map.get(current_filters, atom_filter)} do
-            {nil, nil} ->
-              {op, params}
+            case {params[str_filter], Map.get(current_filters, atom_filter)} do
+              {nil, nil} ->
+                {op, params, attrs}
 
-            {nil, filter} when is_list(filter) ->
-              params =
-                Map.put(
-                  params,
-                  str_filter,
-                  Enum.map(filter, &"#{&1}")
-                )
+              {nil, []} ->
+                {op, params, attrs}
 
-              {:updated, params}
+              {nil, filter} when is_list(filter) ->
+                params =
+                  Map.put(
+                    params,
+                    str_filter,
+                    Enum.map(filter, &"#{&1}")
+                  )
 
-            {param, _filter} ->
-              profile_filters = Map.put(%{}, atom_filter, param)
-              insert_settings_or_update_filters(profile_settings, profile_id, profile_filters)
-              {op, params}
-          end
-        end)
+                {:updated, params, attrs}
+
+              {"", _filter} ->
+                attrs = Map.put(attrs, atom_filter, [])
+                {op, params, attrs}
+
+              {param, _filter} ->
+                attrs = Map.put(attrs, atom_filter, param)
+                {op, params, attrs}
+            end
+          end)
+
+        if attrs != %{} do
+          insert_settings_or_update_filters(profile_settings, profile_id, attrs)
+        end
+
+        {op, params}
     end
   end
 end

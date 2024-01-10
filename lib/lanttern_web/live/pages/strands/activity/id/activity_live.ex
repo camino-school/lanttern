@@ -27,13 +27,14 @@ defmodule LantternWeb.ActivityLive do
   @impl true
   def handle_params(%{"tab" => "assessment"} = params, _url, socket) do
     # when in assessment tab, sync classes_ids filter with profile
-    handle_params_and_profile_filters_sync(
-      params,
-      socket,
-      [:classes_ids],
-      &handle_assigns/2,
-      fn params -> ~p"/strands/activity/#{params["id"]}/?#{Map.drop(params, ["id"])}" end
-    )
+    {:noreply,
+     handle_params_and_profile_filters_sync(
+       socket,
+       params,
+       [:classes_ids],
+       &handle_assigns/2,
+       fn params -> ~p"/strands/activity/#{params["id"]}/?#{Map.drop(params, ["id"])}" end
+     )}
   end
 
   def handle_params(params, _url, socket),

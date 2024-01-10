@@ -8,6 +8,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
     embeds_one :current_filters, CurrentFilters, on_replace: :delete, primary_key: false do
       field :classes_ids, {:array, :id}
       field :subjects_ids, {:array, :id}
+      field :years_ids, {:array, :id}
     end
 
     timestamps()
@@ -23,6 +24,6 @@ defmodule Lanttern.Personalization.ProfileSettings do
 
   defp current_filters_changeset(current_filters, attrs) do
     current_filters
-    |> cast(attrs, [:classes_ids, :subjects_ids])
+    |> cast(attrs, [:classes_ids, :subjects_ids, :years_ids])
   end
 end

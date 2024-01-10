@@ -57,6 +57,12 @@ module.exports = {
       ])
     ),
     plugin(({ addVariant }) =>
+      addVariant(
+        "group-phx-click-loading",
+        ":merge(.group).phx-click-loading &",
+      )
+    ),
+    plugin(({ addVariant }) =>
       addVariant("phx-submit-loading", [
         ".phx-submit-loading&",
         ".phx-submit-loading &",

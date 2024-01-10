@@ -12,20 +12,75 @@ defmodule Lanttern.LearningContextTest do
 
     @invalid_attrs %{name: nil, description: nil}
 
-    test "list_strands/1 returns all strands" do
-      strand = strand_fixture()
-      assert LearningContext.list_strands() == [strand]
+    test "list_strands/1 returns all strands ordered alphabetically" do
+      strand_a = strand_fixture(%{name: "AAA"})
+      strand_c = strand_fixture(%{name: "CCC"})
+      strand_b = strand_fixture(%{name: "BBB"})
+
+      {results, _meta} = LearningContext.list_strands()
+      assert results == [strand_a, strand_b, strand_c]
     end
 
-    test "list_strands/1 with preloads returns all strands with preloaded data" do
+    test "list_strands/1 with pagination opts returns all strands ordered alphabetically and paginated" do
+      strand_a = strand_fixture(%{name: "AAA"})
+      strand_c = strand_fixture(%{name: "CCC"})
+      strand_b = strand_fixture(%{name: "BBB"})
+      strand_d = strand_fixture(%{name: "DDD"})
+      strand_e = strand_fixture(%{name: "EEE"})
+      strand_f = strand_fixture(%{name: "FFF"})
+
+      {results, meta} = LearningContext.list_strands(first: 5)
+
+      assert results == [
+               strand_a,
+               strand_b,
+               strand_c,
+               strand_d,
+               strand_e
+             ]
+
+      {results, _meta} = LearningContext.list_strands(first: 5, after: meta.end_cursor)
+
+      assert results == [strand_f]
+    end
+
+    test "list_strands/1 with preloads and filters returns all filtered strands with preloaded data" do
       subject = subject_fixture()
       year = year_fixture()
       strand = strand_fixture(%{subjects_ids: [subject.id], years_ids: [year.id]})
 
-      [expected] = LearningContext.list_strands(preloads: [:subjects, :years])
+      # extra strands for filtering
+      strand_fixture()
+      strand_fixture(%{subjects_ids: [subject.id]})
+      strand_fixture(%{years_ids: [year.id]})
+
+      {[expected], _meta} =
+        LearningContext.list_strands(
+          subjects_ids: [subject.id],
+          years_ids: [year.id],
+          preloads: [:subjects, :years]
+        )
+
       assert expected.id == strand.id
       assert expected.subjects == [subject]
       assert expected.years == [year]
+    end
+
+    test "list_strands/1 with show_starred_for_profile_id returns all strands with is_starred field" do
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      strand_a = strand_fixture(%{name: "AAA"})
+      strand_b = strand_fixture(%{name: "BBB"})
+
+      # star strand a
+      LearningContext.star_strand(strand_a.id, profile.id)
+
+      {[expected_a, expected_b], _meta} =
+        LearningContext.list_strands(show_starred_for_profile_id: profile.id)
+
+      assert expected_a.id == strand_a.id
+      assert expected_a.is_starred == true
+      assert expected_b.id == strand_b.id
+      assert expected_b.is_starred == false
     end
 
     test "get_strand!/2 returns the strand with given id" do
@@ -155,6 +210,80 @@ defmodule Lanttern.LearningContextTest do
     test "change_strand/1 returns a strand changeset" do
       strand = strand_fixture()
       assert %Ecto.Changeset{} = LearningContext.change_strand(strand)
+    end
+  end
+
+  describe "starred strands" do
+    alias Lanttern.LearningContext.Strand
+
+    import Lanttern.IdentityFixtures
+    import Lanttern.TaxonomyFixtures
+    import Lanttern.CurriculaFixtures
+
+    @invalid_attrs %{name: nil, description: nil}
+
+    test "list_starred_strands/1 returns all starred strands ordered alphabetically" do
+      profile = teacher_profile_fixture()
+      strand_b = strand_fixture(%{name: "BBB"}) |> Map.put(:is_starred, true)
+      strand_a = strand_fixture(%{name: "AAA"}) |> Map.put(:is_starred, true)
+
+      # extra strand to test filtering
+      strand_fixture()
+
+      # star strands a and b
+      LearningContext.star_strand(strand_a.id, profile.id)
+      LearningContext.star_strand(strand_b.id, profile.id)
+
+      assert [strand_a, strand_b] == LearningContext.list_starred_strands(profile.id)
+    end
+
+    test "list_strands/1 with preloads and filters returns all filtered strands with preloaded data" do
+      profile = teacher_profile_fixture()
+      subject = subject_fixture()
+      year = year_fixture()
+      strand = strand_fixture(%{subjects_ids: [subject.id], years_ids: [year.id]})
+
+      # extra strands for filtering
+      other_strand = strand_fixture()
+      strand_fixture(%{subjects_ids: [subject.id], years_ids: [year.id]})
+
+      # star strand
+      LearningContext.star_strand(strand.id, profile.id)
+      LearningContext.star_strand(other_strand.id, profile.id)
+
+      [expected] =
+        LearningContext.list_starred_strands(
+          profile.id,
+          subjects_ids: [subject.id],
+          years_ids: [year.id],
+          preloads: [:subjects, :years]
+        )
+
+      assert expected.id == strand.id
+      assert expected.subjects == [subject]
+      assert expected.years == [year]
+    end
+
+    test "star_strand/2 and unstar_strand/2 functions as expected" do
+      profile = teacher_profile_fixture()
+      strand_a = strand_fixture(%{name: "AAA"}) |> Map.put(:is_starred, true)
+      strand_b = strand_fixture(%{name: "BBB"}) |> Map.put(:is_starred, true)
+
+      # empty list before starring
+      assert [] == LearningContext.list_starred_strands(profile.id)
+
+      # star and list again
+      LearningContext.star_strand(strand_a.id, profile.id)
+      LearningContext.star_strand(strand_b.id, profile.id)
+      assert [strand_a, strand_b] == LearningContext.list_starred_strands(profile.id)
+
+      # staring an already starred strand shouldn't cause any change
+      assert {:ok, _starred_strand} = LearningContext.star_strand(strand_a.id, profile.id)
+      assert [strand_a, strand_b] == LearningContext.list_starred_strands(profile.id)
+
+      # unstar and list
+      LearningContext.unstar_strand(strand_a.id, profile.id)
+      assert [strand_b] == LearningContext.list_starred_strands(profile.id)
     end
   end
 

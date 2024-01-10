@@ -52,8 +52,7 @@ defmodule LantternWeb.StrandsLiveTest do
       {:ok, view, _html} = live(conn, @live_view_path)
 
       # open create strand overlay
-      view |> element("a", "Create new strand") |> render_click()
-      assert_patch(view, "/strands/new")
+      view |> element("button", "Create new strand") |> render_click()
       assert view |> has_element?("h2", "New strand")
 
       # add subject
