@@ -13,33 +13,31 @@
   <%= if @strands_count == 0 do %>
     <.empty_state>No strands created for selected years and subjects</.empty_state>
   <% else %>
-    <div id="strands-list" phx-update="stream" class="grid grid-cols-3 gap-10 mt-12">
-      <div
-        :for={{dom_id, strand} <- @streams.strands}
-        class="rounded shadow-xl bg-white overflow-hidden"
-        id={dom_id}
-      >
-        <div
-          class="w-full h-40 bg-center bg-cover"
-          style={"background-image: url(#{strand.cover_image_url || "/images/cover-placeholder-sm.jpg"}?width=400&height=200)"}
-        />
-        <div class="flex flex-col gap-6 p-6">
-          <.link
-            navigate={~p"/strands/#{strand}"}
-            class="font-display font-black text-3xl underline line-clamp-3"
-          >
-            <%= strand.name %>
-          </.link>
-          <div class="flex flex-wrap gap-2">
-            <.badge :for={subject <- strand.subjects}><%= subject.name %></.badge>
-            <.badge :for={year <- strand.years}><%= year.name %></.badge>
-          </div>
-          <div class="line-clamp-6">
-            <.markdown text={strand.description} class="prose-sm" />
-          </div>
-        </div>
-      </div>
-    </div>
+    <%= if @starred_strands_count > 0 do %>
+      <p class="flex items-center gap-2 mt-10 font-display font-bold">
+        <.icon name="hero-star-solid" class="text-ltrn-primary" /> Your starred strands
+        <button
+          type="button"
+          aria-label="Toggle starred strands"
+          class="text-ltrn-subtle hover:text-ltrn-dark"
+          phx-click={
+            JS.toggle(to: "#starred-strands-list", display: "grid")
+            |> JS.toggle(to: "#toggle-starred-strands-list-icon-down")
+            |> JS.toggle(to: "#toggle-starred-strands-list-icon-up")
+          }
+        >
+          <.icon
+            name="hero-chevron-down-mini"
+            id="toggle-starred-strands-list-icon-down"
+            class="hidden"
+          />
+          <.icon name="hero-chevron-up-mini" id="toggle-starred-strands-list-icon-up" />
+        </button>
+      </p>
+      <.strands_grid id="starred-strands-list" strands={@streams.starred_strands} />
+      <p class="mt-10 font-display font-bold">All strands</p>
+    <% end %>
+    <.strands_grid id="strands-list" strands={@streams.strands} />
     <div :if={@has_next_page} class="mt-10 text-center">
       <.button type="button" theme="ghost" phx-click="load-more">
         Load more strands

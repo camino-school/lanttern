@@ -66,6 +66,23 @@ defmodule Lanttern.LearningContextTest do
       assert expected.years == [year]
     end
 
+    test "list_strands/1 with show_starred_for_profile_id returns all strands with is_starred field" do
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      strand_a = strand_fixture(%{name: "AAA"})
+      strand_b = strand_fixture(%{name: "BBB"})
+
+      # star strand a
+      LearningContext.star_strand(strand_a.id, profile.id)
+
+      {[expected_a, expected_b], _meta} =
+        LearningContext.list_strands(show_starred_for_profile_id: profile.id)
+
+      assert expected_a.id == strand_a.id
+      assert expected_a.is_starred == true
+      assert expected_b.id == strand_b.id
+      assert expected_b.is_starred == false
+    end
+
     test "get_strand!/2 returns the strand with given id" do
       strand = strand_fixture()
       assert LearningContext.get_strand!(strand.id) == strand
@@ -207,8 +224,8 @@ defmodule Lanttern.LearningContextTest do
 
     test "list_starred_strands/1 returns all starred strands ordered alphabetically" do
       profile = teacher_profile_fixture()
-      strand_b = strand_fixture(%{name: "BBB"})
-      strand_a = strand_fixture(%{name: "AAA"})
+      strand_b = strand_fixture(%{name: "BBB"}) |> Map.put(:is_starred, true)
+      strand_a = strand_fixture(%{name: "AAA"}) |> Map.put(:is_starred, true)
 
       # extra strand to test filtering
       strand_fixture()
@@ -249,8 +266,8 @@ defmodule Lanttern.LearningContextTest do
 
     test "star_strand/2 and unstar_strand/2 functions as expected" do
       profile = teacher_profile_fixture()
-      strand_a = strand_fixture(%{name: "AAA"})
-      strand_b = strand_fixture(%{name: "BBB"})
+      strand_a = strand_fixture(%{name: "AAA"}) |> Map.put(:is_starred, true)
+      strand_b = strand_fixture(%{name: "BBB"}) |> Map.put(:is_starred, true)
 
       # empty list before starring
       assert [] == LearningContext.list_starred_strands(profile.id)

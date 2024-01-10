@@ -21,6 +21,7 @@ defmodule Lanttern.LearningContext do
       - `:first` – number of results after cursor. defaults to 10
       - `:after` – the cursor to list results after
       - `:preloads` – preloads associated data
+      - `:show_starred_for_profile_id` - handles `is_starred` field
 
   ## Examples
 
@@ -38,6 +39,7 @@ defmodule Lanttern.LearningContext do
     {:ok, {results, meta}} =
       from(s in Strand)
       |> filter_strands(opts)
+      |> handle_is_starred(Keyword.get(opts, :show_starred_for_profile_id))
       |> Flop.validate_and_run(params)
 
     {results |> maybe_preload(opts), meta}
@@ -180,7 +182,7 @@ defmodule Lanttern.LearningContext do
       join: ss in StarredStrand,
       on: ss.strand_id == s.id,
       where: ss.profile_id == ^profile_id,
-      select: s
+      select: %{s | is_starred: true}
     )
     |> Repo.all()
     |> maybe_preload(opts)
@@ -456,6 +458,17 @@ defmodule Lanttern.LearningContext do
   end
 
   defp apply_strands_filter(_opt, query), do: query
+
+  defp handle_is_starred(strands_query, nil), do: strands_query
+
+  defp handle_is_starred(strands_query, profile_id) do
+    from(
+      s in strands_query,
+      left_join: ss in StarredStrand,
+      on: ss.profile_id == ^profile_id and ss.strand_id == s.id,
+      select: %{s | is_starred: not is_nil(ss)}
+    )
+  end
 
   defp maybe_filter_by_strands(query, opts) do
     case Keyword.get(opts, :strands_ids) do

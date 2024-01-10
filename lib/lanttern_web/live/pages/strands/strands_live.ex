@@ -45,6 +45,58 @@ defmodule LantternWeb.StrandsLive do
     """
   end
 
+  attr :id, :string, required: true
+  attr :strands, :list, required: true
+
+  def strands_grid(assigns) do
+    ~H"""
+    <div id={@id} phx-update="stream" class="grid grid-cols-3 gap-10 mt-12">
+      <div
+        :for={{dom_id, strand} <- @strands}
+        class="rounded shadow-xl bg-white overflow-hidden"
+        id={dom_id}
+      >
+        <div
+          class="relative w-full h-40 bg-center bg-cover"
+          style={"background-image: url(#{strand.cover_image_url || "/images/cover-placeholder-sm.jpg"}?width=400&height=200)"}
+        >
+          <button
+            type="button"
+            aria-label="Star strand"
+            class="absolute top-2 right-2 flex items-center justify-center w-8 h-8 rounded-full hover:bg-white hover:shadow-md"
+            phx-click={
+              JS.push(
+                if(strand.is_starred, do: "unstar-strand", else: "star-strand"),
+                value: %{id: strand.id, name: strand.name}
+              )
+            }
+          >
+            <.icon
+              name="hero-star-mini"
+              class={if(strand.is_starred, do: "text-ltrn-primary", else: "text-ltrn-lighter")}
+            />
+          </button>
+        </div>
+        <div class="flex flex-col gap-6 p-6">
+          <.link
+            navigate={~p"/strands/#{strand}"}
+            class="font-display font-black text-3xl underline line-clamp-3"
+          >
+            <%= strand.name %>
+          </.link>
+          <div class="flex flex-wrap gap-2">
+            <.badge :for={subject <- strand.subjects}><%= subject.name %></.badge>
+            <.badge :for={year <- strand.years}><%= year.name %></.badge>
+          </div>
+          <div class="line-clamp-3">
+            <.markdown text={strand.description} class="prose-sm" />
+          </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
   # lifecycle
 
   @impl true
@@ -84,6 +136,28 @@ defmodule LantternWeb.StrandsLive do
 
   def handle_event("load-more", _params, socket) do
     {:noreply, load_strands(socket)}
+  end
+
+  def handle_event("star-strand", %{"id" => id, "name" => name}, socket) do
+    profile_id = socket.assigns.current_user.current_profile.id
+
+    with {:ok, _} <- LearningContext.star_strand(id, profile_id) do
+      {:noreply,
+       socket
+       |> put_flash(:info, "\"#{name}\" added to your starred strands")
+       |> push_navigate(to: ~p"/strands", replace: true)}
+    end
+  end
+
+  def handle_event("unstar-strand", %{"id" => id, "name" => name}, socket) do
+    profile_id = socket.assigns.current_user.current_profile.id
+
+    with {:ok, _} <- LearningContext.unstar_strand(id, profile_id) do
+      {:noreply,
+       socket
+       |> put_flash(:info, "\"#{name}\" removed from your starred strands")
+       |> push_navigate(to: ~p"/strands", replace: true)}
+    end
   end
 
   def handle_event("filter", params, socket) do
@@ -173,16 +247,29 @@ defmodule LantternWeb.StrandsLive do
         preloads: [:subjects, :years],
         after: socket.assigns[:end_cursor],
         subjects_ids: subjects_ids,
-        years_ids: years_ids
+        years_ids: years_ids,
+        show_starred_for_profile_id: socket.assigns.current_user.current_profile.id
       )
 
     strands_count = length(strands)
+
+    starred_strands =
+      LearningContext.list_starred_strands(
+        socket.assigns.current_user.current_profile.id,
+        preloads: [:subjects, :years],
+        subjects_ids: subjects_ids,
+        years_ids: years_ids
+      )
+
+    starred_strands_count = length(starred_strands)
 
     socket
     |> stream(:strands, strands)
     |> assign(:strands_count, strands_count)
     |> assign(:end_cursor, meta.end_cursor)
     |> assign(:has_next_page, meta.has_next_page?)
+    |> stream(:starred_strands, starred_strands)
+    |> assign(:starred_strands_count, starred_strands_count)
   end
 
   defp show_filter(js \\ %JS{}) do
