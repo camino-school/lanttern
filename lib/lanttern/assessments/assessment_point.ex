@@ -10,6 +10,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     field :name, :string
     field :datetime, :utc_datetime
     field :description, :string
+    field :position, :integer, default: 0
 
     # create assessment point UI fields
     field :date, :date, virtual: true
@@ -23,8 +24,8 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     belongs_to :curriculum_item, Lanttern.Curricula.CurriculumItem
     belongs_to :scale, Lanttern.Grading.Scale
     belongs_to :rubric, Lanttern.Rubrics.Rubric
+    belongs_to :activity, Lanttern.LearningContext.Activity
 
-    has_many :activity_assessment_points, Lanttern.Assessments.ActivityAssessmentPoint
     has_many :entries, Lanttern.Assessments.AssessmentPointEntry
     has_many :feedbacks, Lanttern.Assessments.Feedback
 
@@ -50,9 +51,11 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       :hour,
       :minute,
       :description,
+      :position,
       :curriculum_item_id,
       :scale_id,
       :rubric_id,
+      :activity_id,
       :classes_ids,
       :students_ids
     ])
@@ -72,9 +75,11 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       :hour,
       :minute,
       :description,
+      :position,
       :curriculum_item_id,
       :scale_id,
       :rubric_id,
+      :activity_id,
       :classes_ids
     ])
     |> validate_required([:name, :curriculum_item_id, :scale_id])

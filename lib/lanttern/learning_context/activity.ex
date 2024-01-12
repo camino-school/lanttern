@@ -12,13 +12,10 @@ defmodule Lanttern.LearningContext.Activity do
 
     belongs_to :strand, Lanttern.LearningContext.Strand
 
-    has_many :activity_assessment_points, Lanttern.Assessments.ActivityAssessmentPoint
-
-    has_many :assessment_points,
-      through: [:activity_assessment_points, :assessment_point]
+    has_many :assessment_points, Lanttern.Assessments.AssessmentPoint
 
     has_many :curriculum_items,
-      through: [:activity_assessment_points, :assessment_point, :curriculum_item]
+      through: [:assessment_points, :curriculum_item]
 
     many_to_many :subjects, Lanttern.Taxonomy.Subject,
       join_through: "activities_subjects",
