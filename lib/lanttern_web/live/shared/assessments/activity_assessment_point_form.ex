@@ -128,7 +128,7 @@ defmodule LantternWeb.Assessments.ActivityAssessmentPointFormComponent do
   end
 
   defp save(:new, params, socket) do
-    case Assessments.create_activity_assessment_point(socket.assigns.activity_id, params) do
+    case Assessments.create_assessment_point(params, activity_id: socket.assigns.activity_id) do
       {:ok, _assessment_point} ->
         {:noreply,
          socket

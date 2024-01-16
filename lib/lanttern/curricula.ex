@@ -304,7 +304,7 @@ defmodule Lanttern.Curricula do
   def search_curriculum_items(search_term, opts \\ [])
 
   def search_curriculum_items("#" <> search_term, opts) do
-    if search_term =~ ~r/[0-9]+\z/ do
+    if search_term =~ ~r/^[0-9]+\z/ do
       query =
         from(
           ci in CurriculumItem,

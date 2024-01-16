@@ -377,7 +377,11 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
        do: socket
 
   defp core_assigns(socket, activity_id) do
-    assessment_points = Assessments.list_activity_assessment_points(activity_id)
+    assessment_points =
+      Assessments.list_assessment_points(
+        activities_ids: [activity_id],
+        preloads: [scale: :ordinal_values]
+      )
 
     students_entries =
       Assessments.list_activity_students_entries(activity_id,

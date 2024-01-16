@@ -246,7 +246,11 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
        do: socket
 
   defp core_assigns(socket, strand_id) do
-    assessment_points = Assessments.list_strand_assessment_points(strand_id)
+    assessment_points =
+      Assessments.list_assessment_points(
+        activities_from_strand_id: strand_id,
+        preloads: [scale: :ordinal_values]
+      )
 
     scale_ov_map =
       assessment_points

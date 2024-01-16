@@ -590,17 +590,22 @@ defmodule Lanttern.CurriculaTest do
 
       activity = activity_fixture()
 
-      activity_assessment_point_fixture(activity.id, %{curriculum_item_id: curriculum_item_a.id})
-      activity_assessment_point_fixture(activity.id, %{curriculum_item_id: curriculum_item_b.id})
+      assessment_point_fixture(%{curriculum_item_id: curriculum_item_a.id},
+        activity_id: activity.id
+      )
+
+      assessment_point_fixture(%{curriculum_item_id: curriculum_item_b.id},
+        activity_id: activity.id
+      )
 
       # extra curriculum items for testing
       curriculum_item_fixture()
       other_curriculum_item = curriculum_item_fixture()
       other_activity = activity_fixture()
 
-      activity_assessment_point_fixture(
-        other_activity.id,
-        %{curriculum_items: [%{curriculum_item_id: other_curriculum_item.id}]}
+      assessment_point_fixture(
+        %{curriculum_items: [%{curriculum_item_id: other_curriculum_item.id}]},
+        activity_id: other_activity.id
       )
 
       assert [expected_ci_a, expected_ci_b] =
