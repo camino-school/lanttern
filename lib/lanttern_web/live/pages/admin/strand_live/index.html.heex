@@ -24,9 +24,6 @@
     |> Enum.map(& &1.name)
     |> Enum.join(", ") %>
   </:col>
-  <:col :let={{_id, strand}} label="Curriculum items">
-    <%= length(strand.curriculum_items) %>
-  </:col>
   <:action :let={{_id, strand}}>
     <div class="sr-only">
       <.link navigate={~p"/admin/strands/#{strand}"}>Show</.link>

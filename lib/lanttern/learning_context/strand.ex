@@ -16,10 +16,6 @@ defmodule Lanttern.LearningContext.Strand do
 
     has_many :activities, Lanttern.LearningContext.Activity
 
-    has_many :curriculum_items, Lanttern.Curricula.StrandCurriculumItem,
-      on_replace: :delete,
-      preload_order: [asc: :position]
-
     many_to_many :subjects, Lanttern.Taxonomy.Subject,
       join_through: "strands_subjects",
       on_replace: :delete
@@ -36,7 +32,6 @@ defmodule Lanttern.LearningContext.Strand do
     strand
     |> cast(attrs, [:name, :description, :cover_image_url, :subjects_ids, :years_ids])
     |> validate_required([:name, :description])
-    |> cast_assoc(:curriculum_items, with: &child_position_changeset/3)
     |> put_subjects()
     |> put_years()
   end

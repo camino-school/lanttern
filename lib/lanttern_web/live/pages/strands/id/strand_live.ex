@@ -62,7 +62,7 @@ defmodule LantternWeb.StrandLive do
     # pattern match assigned strand to prevent unnecessary get_strand calls
     # (during handle_params triggered by tab change for example)
 
-    case LearningContext.get_strand(id, preloads: [:subjects, :years, :curriculum_items]) do
+    case LearningContext.get_strand(id, preloads: [:subjects, :years]) do
       strand when is_nil(strand) ->
         socket
         |> put_flash(:error, "Couldn't find strand")
