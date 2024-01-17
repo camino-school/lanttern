@@ -17,34 +17,71 @@ defmodule LantternWeb.StrandLive.AboutComponent do
         <h3 class="mt-16 font-display font-black text-3xl">Goals</h3>
         <div class="shrink-0 flex items-center gap-6">
           <.collection_action
-            :if={@curriculum_items > 1}
+            :if={@has_goal_position_change}
             type="button"
-            phx-click={JS.exec("data-show", to: "#strand-curriculum-order-overlay")}
-            icon_name="hero-arrows-up-down"
+            icon_name="hero-check-circle"
+            phx-click="save_order"
+            phx-target={@myself}
+            class="font-bold"
           >
-            Reorder
+            Save new order
           </.collection_action>
           <.collection_action
             type="button"
+            icon_name="hero-plus-circle"
             phx-click="new_goal"
             phx-target={@myself}
-            icon_name="hero-plus-circle"
           >
             Add strand goal
           </.collection_action>
         </div>
       </div>
-      <h3 class="mt-16 font-display font-black text-3xl">Curriculum</h3>
-      <div :for={curriculum_item <- @curriculum_items} class="mt-6">
-        <.badge theme="dark"><%= curriculum_item.curriculum_component.name %></.badge>
-        <p class="mt-4"><%= curriculum_item.name %></p>
-        <button
-          type="button"
-          phx-click={JS.push("edit_goal", value: %{id: curriculum_item.assessment_point_id})}
-          phx-target={@myself}
-        >
-          Edit
-        </button>
+      <p class="mt-4">
+        Under the hood, goals in Lanttern are defined by assessment points linked directly to the strand — when adding goals, we are adding assessment points which, in turn, hold the curriculum items we'll want to assess along the strand course.
+      </p>
+      <div :for={{curriculum_item, i} <- @curriculum_items} class="mt-6">
+        <div class="flex-1 flex items-stretch gap-6 p-6 rounded bg-white shadow-lg">
+          <div class="flex-1">
+            <div class="flex items-center gap-4">
+              <p class="font-display font-bold text-sm">
+                <%= curriculum_item.curriculum_component.name %>
+              </p>
+              <.button
+                type="button"
+                theme="ghost"
+                phx-click={JS.push("edit_goal", value: %{id: curriculum_item.assessment_point_id})}
+                phx-target={@myself}
+              >
+                Edit
+              </.button>
+            </div>
+            <p class="mt-4"><%= curriculum_item.name %></p>
+          </div>
+          <div class="shrink-0 flex flex-col justify-center gap-2">
+            <.icon_button
+              type="button"
+              sr_text="Move curriculum item up"
+              name="hero-chevron-up-mini"
+              theme="ghost"
+              rounded
+              size="sm"
+              disabled={i == 0}
+              phx-click={JS.push("swap_goal_position", value: %{from: i, to: i - 1})}
+              phx-target={@myself}
+            />
+            <.icon_button
+              type="button"
+              sr_text="Move curriculum item down"
+              name="hero-chevron-down-mini"
+              theme="ghost"
+              rounded
+              size="sm"
+              disabled={i + 1 == length(@curriculum_items)}
+              phx-click={JS.push("swap_goal_position", value: %{from: i, to: i + 1})}
+              phx-target={@myself}
+            />
+          </div>
+        </div>
       </div>
       <.slide_over
         :if={@live_action in [:new_goal, :edit_goal]}
@@ -121,7 +158,8 @@ defmodule LantternWeb.StrandLive.AboutComponent do
     {:ok,
      socket
      |> assign(:assessment_point, %AssessmentPoint{datetime: DateTime.utc_now()})
-     |> assign(:delete_assessment_point_error, nil)}
+     |> assign(:delete_assessment_point_error, nil)
+     |> assign(:has_goal_position_change, false)}
   end
 
   @impl true
@@ -132,6 +170,7 @@ defmodule LantternWeb.StrandLive.AboutComponent do
      |> assign(
        :curriculum_items,
        Curricula.list_strand_curriculum_items(strand.id, preloads: :curriculum_component)
+       |> Enum.with_index()
      )}
   end
 
@@ -188,44 +227,42 @@ defmodule LantternWeb.StrandLive.AboutComponent do
      |> assign(:delete_assessment_point_error, nil)}
   end
 
-  # def handle_event("assessment_point_position", %{"from" => i, "to" => j}, socket) do
-  #   sortable_assessment_points =
-  #     socket.assigns.sortable_assessment_points
-  #     |> Enum.map(fn {ap, _i} -> ap end)
-  #     |> swap(i, j)
-  #     |> Enum.with_index()
+  def handle_event("swap_goal_position", %{"from" => i, "to" => j}, socket) do
+    curriculum_items =
+      socket.assigns.curriculum_items
+      |> Enum.map(fn {ap, _i} -> ap end)
+      |> swap(i, j)
+      |> Enum.with_index()
 
-  #   {:noreply, assign(socket, :sortable_assessment_points, sortable_assessment_points)}
-  # end
+    {:noreply,
+     socket
+     |> assign(:curriculum_items, curriculum_items)
+     |> assign(:has_goal_position_change, true)}
+  end
 
-  # def handle_event("save_order", _, socket) do
-  #   assessment_points_ids =
-  #     socket.assigns.sortable_assessment_points
-  #     |> Enum.map(fn {ap, _i} -> ap.id end)
+  def handle_event("save_order", _, socket) do
+    assessment_points_ids =
+      socket.assigns.curriculum_items
+      |> Enum.map(fn {ci, _i} -> ci.assessment_point_id end)
 
-  #   case Assessments.update_activity_assessment_points_positions(
-  #          socket.assigns.activity.id,
-  #          assessment_points_ids
-  #        ) do
-  #     {:ok, _assessment_points} ->
-  #       {:noreply,
-  #        socket
-  #        |> push_navigate(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
+    case Assessments.update_assessment_points_positions(assessment_points_ids) do
+      {:ok, _assessment_points} ->
+        {:noreply, assign(socket, :has_goal_position_change, false)}
 
-  #     {:error, _} ->
-  #       {:noreply, socket}
-  #   end
-  # end
+      {:error, msg} ->
+        {:noreply, put_flash(socket, :error, msg)}
+    end
+  end
 
-  # # helpers
+  # helpers
 
-  # # https://elixirforum.com/t/swap-elements-in-a-list/34471/4
-  # defp swap(a, i1, i2) do
-  #   e1 = Enum.at(a, i1)
-  #   e2 = Enum.at(a, i2)
+  # https://elixirforum.com/t/swap-elements-in-a-list/34471/4
+  defp swap(a, i1, i2) do
+    e1 = Enum.at(a, i1)
+    e2 = Enum.at(a, i2)
 
-  #   a
-  #   |> List.replace_at(i1, e2)
-  #   |> List.replace_at(i2, e1)
-  # end
+    a
+    |> List.replace_at(i1, e2)
+    |> List.replace_at(i2, e1)
+  end
 end

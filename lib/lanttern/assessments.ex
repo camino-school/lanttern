@@ -769,15 +769,15 @@ defmodule Lanttern.Assessments do
   end
 
   @doc """
-  Update activity assessment points positions based on ids list order.
+  Update assessment points positions based on ids list order.
 
   ## Examples
 
-      iex> update_activity_assessment_points_positions(activity_id, [3, 2, 1])
+      iex> update_assessment_points_positions([3, 2, 1])
       {:ok, [%AssessmentPoint{}, ...]}
 
   """
-  def update_activity_assessment_points_positions(activity_id, assessment_points_ids) do
+  def update_assessment_points_positions(assessment_points_ids) do
     assessment_points_ids
     |> Enum.with_index()
     |> Enum.reduce(
@@ -797,7 +797,7 @@ defmodule Lanttern.Assessments do
     |> Repo.transaction()
     |> case do
       {:ok, _} ->
-        {:ok, list_assessment_points(activities_ids: [activity_id])}
+        {:ok, list_assessment_points(assessment_points_ids: assessment_points_ids)}
 
       _ ->
         {:error, "Something went wrong"}

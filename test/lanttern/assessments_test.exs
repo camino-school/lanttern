@@ -506,7 +506,7 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_std_b.id == student_b.id
     end
 
-    test "update_activity_assessment_points_positions/2 update activity assessment points position based on list order" do
+    test "update_assessment_points_positions/1 update assessment points position based on list order" do
       activity = LearningContextFixtures.activity_fixture()
       assessment_point_1 = assessment_point_fixture(%{}, activity_id: activity.id)
       assessment_point_2 = assessment_point_fixture(%{}, activity_id: activity.id)
@@ -528,10 +528,7 @@ defmodule Lanttern.AssessmentsTest do
                 expected_ap_1,
                 expected_ap_4
               ]} =
-               Assessments.update_activity_assessment_points_positions(
-                 activity.id,
-                 sorted_assessment_points_ids
-               )
+               Assessments.update_assessment_points_positions(sorted_assessment_points_ids)
 
       assert expected_ap_1.id == assessment_point_1.id
       assert expected_ap_2.id == assessment_point_2.id

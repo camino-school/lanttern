@@ -471,10 +471,7 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
       socket.assigns.sortable_assessment_points
       |> Enum.map(fn {ap, _i} -> ap.id end)
 
-    case Assessments.update_activity_assessment_points_positions(
-           socket.assigns.activity.id,
-           assessment_points_ids
-         ) do
+    case Assessments.update_assessment_points_positions(assessment_points_ids) do
       {:ok, _assessment_points} ->
         {:noreply,
          socket
