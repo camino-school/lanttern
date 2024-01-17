@@ -250,9 +250,10 @@ defmodule Lanttern.Curricula do
   def list_strand_curriculum_items(strand_id, opts \\ []) do
     from(
       ci in CurriculumItem,
-      join: sci in assoc(ci, :strand_links),
-      where: sci.strand_id == ^strand_id,
-      order_by: sci.position
+      join: ap in assoc(ci, :assessment_points),
+      where: ap.strand_id == ^strand_id,
+      order_by: ap.position,
+      select: %{ci | assessment_point_id: ap.id}
     )
     |> Repo.all()
     |> maybe_preload(opts)

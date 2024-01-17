@@ -6,7 +6,7 @@ defmodule Lanttern.Repo.Migrations.AddStrandIdToAssessmentPoints do
       add :strand_id, references(:strands)
     end
 
-    create index(:assessment_points, [:strand_id])
+    create unique_index(:assessment_points, [:strand_id, :curriculum_item_id])
 
     # the assessment point can't belong
     # to an activity and a strand at the same time

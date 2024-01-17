@@ -88,6 +88,9 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     |> validate_required([:name, :curriculum_item_id, :scale_id])
     |> validate_and_build_datetime()
     |> put_classes()
+    |> unique_constraint([:strand_id, :curriculum_item_id],
+      message: "Curriculum item already added to this strand"
+    )
     |> foreign_key_constraint(
       :rubric_id,
       name: :assessment_points_rubric_id_fkey,
