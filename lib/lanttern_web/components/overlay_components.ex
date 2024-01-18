@@ -272,7 +272,7 @@ defmodule LantternWeb.OverlayComponents do
       </.panel_overlay>
   """
   attr :id, :string, required: true
-  attr :class, :any, default: ""
+  attr :class, :any, default: nil
   attr :show, :boolean, default: false
   attr :on_cancel, JS, default: %JS{}
   slot :inner_block, required: true

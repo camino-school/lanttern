@@ -1,6 +1,7 @@
 defmodule LantternWeb.StrandLiveTest do
   use LantternWeb.ConnCase
 
+  alias Lanttern.AssessmentsFixtures
   alias Lanttern.CurriculaFixtures
   alias Lanttern.LearningContextFixtures
   alias Lanttern.TaxonomyFixtures
@@ -28,9 +29,13 @@ defmodule LantternWeb.StrandLiveTest do
         LearningContextFixtures.strand_fixture(%{
           name: "strand abc",
           subjects_ids: [subject.id],
-          years_ids: [year.id],
-          curriculum_items: [%{curriculum_item_id: curriculum_item.id}]
+          years_ids: [year.id]
         })
+
+      AssessmentsFixtures.assessment_point_fixture(%{
+        strand_id: strand.id,
+        curriculum_item_id: curriculum_item.id
+      })
 
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}")
 
@@ -84,7 +89,7 @@ defmodule LantternWeb.StrandLiveTest do
       # back to about tab
 
       view
-      |> element("#strand-nav-tabs a", "About & Curriculum")
+      |> element("#strand-nav-tabs a", "About")
       |> render_click()
 
       assert_patch(view)

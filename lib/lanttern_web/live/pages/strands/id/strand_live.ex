@@ -58,12 +58,11 @@ defmodule LantternWeb.StrandLive do
   defp set_current_tab(socket, _params, _live_action),
     do: assign(socket, :current_tab, :about)
 
-  defp apply_action(%{assigns: %{strand: nil}} = socket, live_action, %{"id" => id})
-       when live_action in [:show, :edit, :new_activity] do
+  defp apply_action(%{assigns: %{strand: nil}} = socket, _live_action, %{"id" => id}) do
     # pattern match assigned strand to prevent unnecessary get_strand calls
     # (during handle_params triggered by tab change for example)
 
-    case LearningContext.get_strand(id, preloads: [:subjects, :years, :curriculum_items]) do
+    case LearningContext.get_strand(id, preloads: [:subjects, :years]) do
       strand when is_nil(strand) ->
         socket
         |> put_flash(:error, "Couldn't find strand")

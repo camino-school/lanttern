@@ -39,10 +39,10 @@ defmodule Lanttern.Curricula.CurriculumItem do
     field :code, :string
     field :subjects_ids, {:array, :id}, virtual: true
     field :years_ids, {:array, :id}, virtual: true
+    field :assessment_point_id, :id, virtual: true
 
     has_many :grade_composition_component_items, Lanttern.Grading.CompositionComponentItem
     has_many :assessment_points, Lanttern.Assessments.AssessmentPoint
-    has_many :strand_links, Lanttern.Curricula.StrandCurriculumItem
     belongs_to :curriculum_component, Lanttern.Curricula.CurriculumComponent
 
     many_to_many :subjects, Lanttern.Taxonomy.Subject,

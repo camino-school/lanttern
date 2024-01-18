@@ -26,24 +26,6 @@ defmodule Lanttern.AssessmentsFixtures do
   end
 
   @doc """
-  Generate an activity assessment point.
-  """
-  def activity_assessment_point_fixture(activity_id, attrs \\ %{}) do
-    attrs =
-      attrs
-      |> Enum.into(%{
-        name: "some name",
-        scale_id: maybe_gen_scale_id(attrs),
-        curriculum_item_id: maybe_gen_curriculum_item_id(attrs)
-      })
-
-    {:ok, assessment_point} =
-      Lanttern.Assessments.create_activity_assessment_point(activity_id, attrs)
-
-    assessment_point
-  end
-
-  @doc """
   Generate a assessment_point_entry.
   """
   def assessment_point_entry_fixture(attrs \\ %{})

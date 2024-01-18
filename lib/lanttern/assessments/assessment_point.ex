@@ -10,6 +10,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     field :name, :string
     field :datetime, :utc_datetime
     field :description, :string
+    field :position, :integer, default: 0
 
     # create assessment point UI fields
     field :date, :date, virtual: true
@@ -23,8 +24,9 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     belongs_to :curriculum_item, Lanttern.Curricula.CurriculumItem
     belongs_to :scale, Lanttern.Grading.Scale
     belongs_to :rubric, Lanttern.Rubrics.Rubric
+    belongs_to :activity, Lanttern.LearningContext.Activity
+    belongs_to :strand, Lanttern.LearningContext.Strand
 
-    has_many :activity_assessment_points, Lanttern.Assessments.ActivityAssessmentPoint
     has_many :entries, Lanttern.Assessments.AssessmentPointEntry
     has_many :feedbacks, Lanttern.Assessments.Feedback
 
@@ -33,33 +35,6 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       on_replace: :delete
 
     timestamps()
-  end
-
-  @doc """
-  An assessment point changeset for registration.
-
-  The main difference between this and the (update) `changeset/2` is that
-  in the creation process, we can create entries based on the virtual `students_ids` field.
-  """
-  def creation_changeset(assessment, attrs) do
-    assessment
-    |> cast(attrs, [
-      :name,
-      :datetime,
-      :date,
-      :hour,
-      :minute,
-      :description,
-      :curriculum_item_id,
-      :scale_id,
-      :rubric_id,
-      :classes_ids,
-      :students_ids
-    ])
-    |> validate_required([:name, :curriculum_item_id, :scale_id])
-    |> validate_and_build_datetime()
-    |> put_classes()
-    |> cast_entries()
   end
 
   @doc false
@@ -72,14 +47,22 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       :hour,
       :minute,
       :description,
+      :position,
       :curriculum_item_id,
       :scale_id,
       :rubric_id,
-      :classes_ids
+      :activity_id,
+      :strand_id,
+      :classes_ids,
+      :students_ids
     ])
     |> validate_required([:name, :curriculum_item_id, :scale_id])
     |> validate_and_build_datetime()
     |> put_classes()
+    |> cast_entries()
+    |> unique_constraint([:strand_id, :curriculum_item_id],
+      message: "Curriculum item already added to this strand"
+    )
     |> foreign_key_constraint(
       :rubric_id,
       name: :assessment_points_rubric_id_fkey,

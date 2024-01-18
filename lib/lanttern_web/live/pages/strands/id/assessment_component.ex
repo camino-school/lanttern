@@ -134,16 +134,10 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   attr :index, :integer, required: true
 
   def assessment_point(assigns) do
-    [activity_assessment_point] = assigns.assessment_point.activity_assessment_points
-
-    assigns =
-      assigns
-      |> assign(:activity_id, activity_assessment_point.activity_id)
-
     ~H"""
     <div class="shrink-0 w-14 pt-6 pb-2 truncate" id={@id}>
       <.link
-        navigate={~p"/strands/activity/#{@activity_id}?tab=assessment"}
+        navigate={~p"/strands/activity/#{@assessment_point.activity_id}?tab=assessment"}
         class="text-xs hover:underline"
       >
         <%= "#{@index + 1}. #{@assessment_point.name}" %>
@@ -252,7 +246,11 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
        do: socket
 
   defp core_assigns(socket, strand_id) do
-    assessment_points = Assessments.list_strand_assessment_points(strand_id)
+    assessment_points =
+      Assessments.list_assessment_points(
+        activities_from_strand_id: strand_id,
+        preloads: [scale: :ordinal_values]
+      )
 
     scale_ov_map =
       assessment_points

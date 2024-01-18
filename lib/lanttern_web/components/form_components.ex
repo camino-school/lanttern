@@ -87,7 +87,7 @@ defmodule LantternWeb.FormComponents do
   attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
   attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
   attr :show_optional, :boolean, default: false, doc: "control the display of optional text"
-  attr :class, :any, default: ""
+  attr :class, :any, default: nil
 
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
@@ -277,7 +277,7 @@ defmodule LantternWeb.FormComponents do
   attr :prompt, :string, default: nil
   attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
   attr :multiple, :boolean, default: false
-  attr :class, :any, default: ""
+  attr :class, :any, default: nil
 
   attr :rest, :global, include: ~w(disabled multiple readonly required)
 
@@ -307,7 +307,7 @@ defmodule LantternWeb.FormComponents do
   attr :name, :any
   attr :value, :any
   attr :errors, :list, default: []
-  attr :class, :any, default: ""
+  attr :class, :any, default: nil
 
   attr :rest, :global, include: ~w(autocomplete cols disabled maxlength minlength
                 placeholder readonly required rows)
@@ -395,7 +395,7 @@ defmodule LantternWeb.FormComponents do
                range radio search tel text time url week)
 
   attr :errors, :list, default: []
-  attr :class, :any, default: ""
+  attr :class, :any, default: nil
 
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
@@ -476,9 +476,29 @@ defmodule LantternWeb.FormComponents do
   end
 
   @doc """
+  Generates error messages for the specified field.
+
+  Use this when you want to display field errors in the interface without using `<.input>`.
+  """
+  attr :field, Phoenix.HTML.FormField, required: true
+  attr :class, :any, default: nil
+
+  def errors(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
+    assigns =
+      assigns
+      |> assign(:errors, Enum.map(field.errors, &translate_error(&1)))
+
+    ~H"""
+    <div class={@class}>
+      <.error :for={msg <- @errors}><%= msg %></.error>
+    </div>
+    """
+  end
+
+  @doc """
   Generates a generic error message block.
   """
-  attr :class, :any, default: ""
+  attr :class, :any, default: nil
   attr :rest, :global
   slot :inner_block, required: true
 

@@ -8,11 +8,9 @@ defmodule Lanttern.Assessments do
   alias Lanttern.Repo
 
   alias Lanttern.Assessments.AssessmentPoint
-  alias Lanttern.Assessments.ActivityAssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.Feedback
   alias Lanttern.Conversation.Comment
-  alias Lanttern.LearningContext.Activity
   alias Lanttern.Schools.Student
 
   @doc """
@@ -22,6 +20,9 @@ defmodule Lanttern.Assessments do
 
   `:preloads` – preloads associated data
   `:assessment_points_ids` – filter result by provided assessment points ids
+  `:activities_ids` – filter result by provided activities ids
+  `:activities_from_strand_id` – filter result by activities from provided strand id
+  `:strand_id` – filter result by provided strand id
 
   ## Examples
 
@@ -31,20 +32,58 @@ defmodule Lanttern.Assessments do
   """
   def list_assessment_points(opts \\ []) do
     AssessmentPoint
-    |> maybe_filter_by_assessment_points_ids(opts)
+    |> filter_assessment_points(opts)
+    |> order_assessment_points(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
-  defp maybe_filter_by_assessment_points_ids(assessment_point_query, opts) do
-    case Keyword.get(opts, :assessment_points_ids) do
-      nil ->
-        assessment_point_query
+  defp filter_assessment_points(queryable, opts) do
+    Enum.reduce(opts, queryable, &apply_assessment_points_filter/2)
+  end
 
-      assessment_points_ids ->
+  defp apply_assessment_points_filter({:assessment_points_ids, ids}, queryable),
+    do: from(ap in queryable, where: ap.id in ^ids)
+
+  defp apply_assessment_points_filter({:activities_ids, ids}, queryable),
+    do: from(ap in queryable, where: ap.activity_id in ^ids)
+
+  defp apply_assessment_points_filter({:activities_from_strand_id, id}, queryable) do
+    from(
+      ap in queryable,
+      join: a in assoc(ap, :activity),
+      as: :activity,
+      where: a.strand_id == ^id
+    )
+  end
+
+  defp apply_assessment_points_filter({:strands_ids, ids}, queryable),
+    do: from(ap in queryable, where: ap.strand_id in ^ids)
+
+  defp apply_assessment_points_filter(_, queryable), do: queryable
+
+  defp order_assessment_points(queryable, opts) do
+    activities_ids = Keyword.get(opts, :activities_ids)
+    strand_id = Keyword.get(opts, :activities_from_strand_id)
+
+    cond do
+      activities_ids ->
         from(
-          a in assessment_point_query,
-          where: a.id in ^assessment_points_ids
+          ap in queryable,
+          join: a in assoc(ap, :activity),
+          order_by: [a.position, ap.position]
+        )
+
+      strand_id ->
+        from(
+          [ap, activity: a] in queryable,
+          order_by: [a.position, ap.position]
+        )
+
+      true ->
+        from(
+          ap in queryable,
+          order_by: ap.position
         )
     end
   end
@@ -87,6 +126,9 @@ defmodule Lanttern.Assessments do
   @doc """
   Creates an assessment point.
 
+  The function handles the position field based on the learning context (activity or strand),
+  appending (position = greater position in context + 1) the assessment point to the context.
+
   ## Examples
 
       iex> create_assessment_point(%{field: value})
@@ -97,10 +139,54 @@ defmodule Lanttern.Assessments do
 
   """
   def create_assessment_point(attrs \\ %{}) do
+    position =
+      from(
+        ap in AssessmentPoint,
+        select: ap.position,
+        order_by: [desc: ap.position],
+        limit: 1
+      )
+      |> filter_assessment_points_by_context(attrs)
+      |> Repo.one()
+      |> case do
+        nil -> 0
+        pos -> pos + 1
+      end
+
+    attrs =
+      case Map.keys(attrs) |> hd() do
+        key when is_atom(key) ->
+          attrs
+          |> Map.put(:position, position)
+
+        _ ->
+          attrs
+          |> Map.put("position", position)
+      end
+
     %AssessmentPoint{}
-    |> AssessmentPoint.creation_changeset(attrs)
+    |> AssessmentPoint.changeset(attrs)
     |> Repo.insert()
   end
+
+  defp filter_assessment_points_by_context(query, %{activity_id: activity_id})
+       when not is_nil(activity_id) and activity_id != "",
+       do: from(q in query, where: q.activity_id == ^activity_id)
+
+  defp filter_assessment_points_by_context(query, %{"activity_id" => activity_id})
+       when not is_nil(activity_id) and activity_id != "",
+       do: from(q in query, where: q.activity_id == ^activity_id)
+
+  defp filter_assessment_points_by_context(query, %{strand_id: strand_id})
+       when not is_nil(strand_id) and strand_id != "",
+       do: from(q in query, where: q.strand_id == ^strand_id)
+
+  defp filter_assessment_points_by_context(query, %{"strand_id" => strand_id})
+       when not is_nil(strand_id) and strand_id != "",
+       do: from(q in query, where: q.strand_id == ^strand_id)
+
+  defp filter_assessment_points_by_context(query, _),
+    do: from(q in query, where: false)
 
   @doc """
   Updates a assessment point.
@@ -559,34 +645,10 @@ defmodule Lanttern.Assessments do
   end
 
   @doc """
-  Returns the list of strand assessment points, ordered by its position.
-
-  ## Examples
-
-      iex> list_strand_assessment_points(1)
-      [%AssessmentPoint{}, ...]
-
-  """
-  def list_strand_assessment_points(strand_id) do
-    from(
-      ap in AssessmentPoint,
-      join: aap in ActivityAssessmentPoint,
-      on: aap.assessment_point_id == ap.id,
-      join: a in Activity,
-      on: a.id == aap.activity_id,
-      join: s in assoc(a, :strand),
-      where: s.id == ^strand_id,
-      order_by: [a.position, aap.position],
-      preload: [activity_assessment_points: aap, scale: :ordinal_values]
-    )
-    |> Repo.all()
-  end
-
-  @doc """
   Returns the list of the assessment point entries for every student in the given strand.
 
-  Entries are ordered by `Activity` and `ActivityAssessmentPoint` positions,
-  which is the same order used by `list_strand_assessment_points/1`.
+  Entries are ordered by `Activity` and `AssessmentPoint` positions,
+  which is the same order used by `list_strand_assessment_points/1` with `order_by_activities = true` opt.
 
   ## Options:
 
@@ -614,14 +676,13 @@ defmodule Lanttern.Assessments do
     results =
       from(
         ap in AssessmentPoint,
-        join: aap in assoc(ap, :activity_assessment_points),
-        join: a in assoc(aap, :activity),
+        join: a in assoc(ap, :activity),
         join: s in subquery(students_query),
         on: true,
         left_join: e in AssessmentPointEntry,
         on: e.student_id == s.id and e.assessment_point_id == ap.id,
         where: a.strand_id == ^strand_id,
-        order_by: [s.name, a.position, aap.position],
+        order_by: [s.name, a.position, ap.position],
         select: {s, e}
       )
       |> Repo.all()
@@ -644,33 +705,10 @@ defmodule Lanttern.Assessments do
   end
 
   @doc """
-  Returns the list of activity assessment points, ordered by its position.
-
-  ## Examples
-
-      iex> list_activity_assessment_points(1)
-      [%AssessmentPoint{}, ...]
-
-  """
-  def list_activity_assessment_points(activity_id) do
-    from(
-      ap in AssessmentPoint,
-      join: aap in ActivityAssessmentPoint,
-      on: aap.assessment_point_id == ap.id,
-      join: a in Activity,
-      on: a.id == aap.activity_id,
-      where: a.id == ^activity_id,
-      order_by: aap.position,
-      preload: [scale: :ordinal_values]
-    )
-    |> Repo.all()
-  end
-
-  @doc """
   Returns the list of the assessment point entries for every student in the given activity.
 
-  Entries are ordered by `ActivityAssessmentPoint` position,
-  which is the same order used by `list_activity_assessment_points/1`.
+  Entries are ordered by `AssessmentPoint` position,
+  which is the same order used by `list_assessment_points/1`.
 
   ## Options:
 
@@ -698,13 +736,12 @@ defmodule Lanttern.Assessments do
     results =
       from(
         ap in AssessmentPoint,
-        join: aap in assoc(ap, :activity_assessment_points),
         join: s in subquery(students_query),
         on: true,
         left_join: e in AssessmentPointEntry,
         on: e.student_id == s.id and e.assessment_point_id == ap.id,
-        where: aap.activity_id == ^activity_id,
-        order_by: [s.name, aap.position],
+        where: ap.activity_id == ^activity_id,
+        order_by: [s.name, ap.position],
         select: {s, e}
       )
       |> Repo.all()
@@ -727,68 +764,15 @@ defmodule Lanttern.Assessments do
   end
 
   @doc """
-  Creates an activity assessment point.
+  Update assessment points positions based on ids list order.
 
   ## Examples
 
-      iex> create_activity_assessment_point(activity_id, %{field: value})
-      {:ok, %AssessmentPoint{}}
-
-      iex> create_activity_assessment_point(activity_id, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_activity_assessment_point(activity_id, attrs \\ %{}) do
-    Ecto.Multi.new()
-    |> Ecto.Multi.insert(
-      :insert_assessment_point,
-      %AssessmentPoint{}
-      |> AssessmentPoint.changeset(attrs)
-    )
-    |> Ecto.Multi.run(
-      :link_activity,
-      fn _repo, %{insert_assessment_point: assessment_point} ->
-        positions =
-          from(
-            aap in ActivityAssessmentPoint,
-            where: aap.activity_id == ^activity_id,
-            select: aap.position,
-            order_by: [desc: aap.position]
-          )
-          |> Repo.all()
-
-        position =
-          case Enum.at(positions, 0) do
-            nil -> 0
-            pos -> pos + 1
-          end
-
-        %ActivityAssessmentPoint{}
-        |> ActivityAssessmentPoint.changeset(%{
-          assessment_point_id: assessment_point.id,
-          activity_id: activity_id,
-          position: position
-        })
-        |> Repo.insert()
-      end
-    )
-    |> Repo.transaction()
-    |> case do
-      {:error, _multi, changeset, _changes} -> {:error, changeset}
-      {:ok, %{insert_assessment_point: assessment_point}} -> {:ok, assessment_point}
-    end
-  end
-
-  @doc """
-  Update activity assessment points positions based on ids list order.
-
-  ## Examples
-
-      iex> update_activity_assessment_points_positions(activity_id, [3, 2, 1])
+      iex> update_assessment_points_positions([3, 2, 1])
       {:ok, [%AssessmentPoint{}, ...]}
 
   """
-  def update_activity_assessment_points_positions(activity_id, assessment_points_ids) do
+  def update_assessment_points_positions(assessment_points_ids) do
     assessment_points_ids
     |> Enum.with_index()
     |> Enum.reduce(
@@ -798,9 +782,8 @@ defmodule Lanttern.Assessments do
         |> Ecto.Multi.update_all(
           "update-#{id}",
           from(
-            aap in ActivityAssessmentPoint,
-            where: aap.assessment_point_id == ^id,
-            where: aap.activity_id == ^activity_id
+            ap in AssessmentPoint,
+            where: ap.id == ^id
           ),
           set: [position: i]
         )
@@ -809,7 +792,7 @@ defmodule Lanttern.Assessments do
     |> Repo.transaction()
     |> case do
       {:ok, _} ->
-        {:ok, list_activity_assessment_points(activity_id)}
+        {:ok, list_assessment_points(assessment_points_ids: assessment_points_ids)}
 
       _ ->
         {:error, "Something went wrong"}

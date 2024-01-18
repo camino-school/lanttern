@@ -21,9 +21,6 @@
     |> Enum.map(& &1.name)
     |> Enum.join(", ") %>
   </:item>
-  <:item title="Curriculum items">
-    <%= length(@strand.curriculum_items) %>
-  </:item>
 </.list>
 
 <.back navigate={~p"/admin/strands"}>Back to strands</.back>
