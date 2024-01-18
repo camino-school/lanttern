@@ -22,38 +22,42 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
           Oops, something went wrong! Please check the errors below.
         </.error_block>
         <.input field={@form[:id]} type="hidden" />
+        <.input field={@form[:activity_id]} type="hidden" />
         <.input field={@form[:name]} label="Assessment point name" phx-debounce="1500" class="mb-6" />
-        <.live_component
-          module={CurriculumItemSearchComponent}
-          id="curriculum-item-search"
-          notify_component={@myself}
-          label="Curriculum"
-        />
-        <div class="flex flex-wrap gap-1 mt-2 mb-6">
-          <%= if @selected_curriculum_item do %>
-            <.badge
-              theme="cyan"
-              show_remove
-              phx-click={JS.push("remove_curriculum_item")}
-              phx-target={@myself}
-            >
-              <%= @selected_curriculum_item.name %>
-            </.badge>
-          <% else %>
-            <.badge>
-              No curriculum item selected
-            </.badge>
-          <% end %>
-        </div>
-        <.input field={@form[:curriculum_item_id]} type="hidden" class="mb-6" />
-        <.errors field={@form[:strand_id]} class="mb-6" />
-        <%!-- <.input
-          field={@form[:curriculum_item_id]}
-          type="radio"
-          options={@curriculum_item_options}
-          prompt="Select curriculum item"
-          class="mb-6"
-        /> --%>
+        <%= if @curriculum_from_strand_id do %>
+          <.input
+            field={@form[:curriculum_item_id]}
+            type="radio"
+            options={@curriculum_item_options}
+            prompt="Select curriculum item"
+            class="mb-6"
+          />
+        <% else %>
+          <.live_component
+            module={CurriculumItemSearchComponent}
+            id="curriculum-item-search"
+            notify_component={@myself}
+            label="Curriculum"
+          />
+          <div class="flex flex-wrap gap-1 mt-2 mb-6">
+            <%= if @selected_curriculum_item do %>
+              <.badge
+                theme="cyan"
+                show_remove
+                phx-click={JS.push("remove_curriculum_item")}
+                phx-target={@myself}
+              >
+                <%= @selected_curriculum_item.name %>
+              </.badge>
+            <% else %>
+              <.badge>
+                No curriculum item selected
+              </.badge>
+            <% end %>
+          </div>
+          <.input field={@form[:curriculum_item_id]} type="hidden" class="mb-6" />
+        <% end %>
+        <.input field={@form[:strand_id]} type="hidden" class="mb-6" />
         <.input
           field={@form[:scale_id]}
           type="select"
@@ -76,13 +80,14 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
       socket
       |> assign(%{
         scale_options: scale_options,
-        selected_curriculum_item: nil
+        selected_curriculum_item: nil,
+        curriculum_from_strand_id: nil
       })
 
     {:ok, socket}
   end
 
-  def update(%{assessment_point: assessment_point, strand_id: strand_id} = assigns, socket) do
+  def update(%{assessment_point: assessment_point} = assigns, socket) do
     curriculum_item =
       case assessment_point.curriculum_item_id do
         nil -> nil
@@ -90,17 +95,34 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
       end
 
     curriculum_item_options =
-      Curricula.list_strand_curriculum_items(strand_id)
-      |> Enum.map(&{&1.name, &1.id})
+      case assigns do
+        %{curriculum_from_strand_id: strand_id} ->
+          Curricula.list_strand_curriculum_items(strand_id)
+          |> Enum.map(&{&1.name, &1.id})
 
-    # changeset = Assessments.new_assessment_point_changeset()
+        _ ->
+          nil
+      end
+
+    # for cases when we have existing assessment points using curriculum items
+    # that were removed from strand, we add one extra curriculum item option
+    # using the current assessment point curriculum item
+    curriculum_item_options =
+      case {assigns, curriculum_item} do
+        {%{curriculum_from_strand_id: _}, ci} when not is_nil(ci) ->
+          (curriculum_item_options ++ [{ci.name, ci.id}])
+          |> Enum.uniq()
+
+        _ ->
+          curriculum_item_options
+      end
 
     {:ok,
      socket
      |> assign(assigns)
      |> assign(:form, to_form(Assessments.change_assessment_point(assessment_point)))
-     |> assign(:curriculum_item_options, curriculum_item_options)
-     |> assign(:selected_curriculum_item, curriculum_item)}
+     |> assign(:selected_curriculum_item, curriculum_item)
+     |> assign(:curriculum_item_options, curriculum_item_options)}
   end
 
   def update(%{action: {CurriculumItemSearchComponent, {:selected, curriculum_item}}}, socket) do
@@ -161,13 +183,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
   end
 
   defp save(:new, params, socket) do
-    opts =
-      case socket.assigns do
-        %{strand_id: strand_id} -> [strand_id: strand_id]
-        %{activity_id: activity_id} -> [activity_id: activity_id]
-      end
-
-    case Assessments.create_assessment_point(params, opts) do
+    case Assessments.create_assessment_point(params) do
       {:ok, _assessment_point} ->
         {:noreply,
          socket

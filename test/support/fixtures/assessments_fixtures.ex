@@ -10,7 +10,7 @@ defmodule Lanttern.AssessmentsFixtures do
   @doc """
   Generate an assessment point.
   """
-  def assessment_point_fixture(attrs \\ %{}, opts \\ []) do
+  def assessment_point_fixture(attrs \\ %{}) do
     {:ok, assessment_point} =
       attrs
       |> Enum.into(%{
@@ -20,7 +20,7 @@ defmodule Lanttern.AssessmentsFixtures do
         scale_id: maybe_gen_scale_id(attrs),
         curriculum_item_id: maybe_gen_curriculum_item_id(attrs)
       })
-      |> Lanttern.Assessments.create_assessment_point(opts)
+      |> Lanttern.Assessments.create_assessment_point()
 
     assessment_point
   end

@@ -565,24 +565,24 @@ defmodule Lanttern.CurriculaTest do
 
       strand = strand_fixture()
 
-      AssessmentsFixtures.assessment_point_fixture(
-        %{curriculum_item_id: curriculum_item_1.id},
-        strand_id: strand.id
-      )
+      AssessmentsFixtures.assessment_point_fixture(%{
+        strand_id: strand.id,
+        curriculum_item_id: curriculum_item_1.id
+      })
 
-      AssessmentsFixtures.assessment_point_fixture(
-        %{curriculum_item_id: curriculum_item_2.id},
-        strand_id: strand.id
-      )
+      AssessmentsFixtures.assessment_point_fixture(%{
+        strand_id: strand.id,
+        curriculum_item_id: curriculum_item_2.id
+      })
 
       # extra curriculum items for testing
       curriculum_item_fixture()
       other_curriculum_item = curriculum_item_fixture()
 
-      AssessmentsFixtures.assessment_point_fixture(
-        %{curriculum_item_id: other_curriculum_item.id},
-        strand_id: strand_fixture().id
-      )
+      AssessmentsFixtures.assessment_point_fixture(%{
+        strand_id: strand_fixture().id,
+        curriculum_item_id: other_curriculum_item.id
+      })
 
       assert [expected_1, expected_2] = Curricula.list_strand_curriculum_items(strand.id)
       assert curriculum_item_1.id == expected_1.id
@@ -601,23 +601,25 @@ defmodule Lanttern.CurriculaTest do
 
       activity = activity_fixture()
 
-      assessment_point_fixture(%{curriculum_item_id: curriculum_item_a.id},
-        activity_id: activity.id
-      )
+      assessment_point_fixture(%{
+        activity_id: activity.id,
+        curriculum_item_id: curriculum_item_a.id
+      })
 
-      assessment_point_fixture(%{curriculum_item_id: curriculum_item_b.id},
-        activity_id: activity.id
-      )
+      assessment_point_fixture(%{
+        activity_id: activity.id,
+        curriculum_item_id: curriculum_item_b.id
+      })
 
       # extra curriculum items for testing
       curriculum_item_fixture()
       other_curriculum_item = curriculum_item_fixture()
       other_activity = activity_fixture()
 
-      assessment_point_fixture(
-        %{curriculum_items: [%{curriculum_item_id: other_curriculum_item.id}]},
-        activity_id: other_activity.id
-      )
+      assessment_point_fixture(%{
+        activity_id: other_activity.id,
+        curriculum_items: [%{curriculum_item_id: other_curriculum_item.id}]
+      })
 
       assert [expected_ci_a, expected_ci_b] =
                Curricula.list_activity_curriculum_items(activity.id)

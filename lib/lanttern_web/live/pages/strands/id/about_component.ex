@@ -24,7 +24,7 @@ defmodule LantternWeb.StrandLive.AboutComponent do
             phx-target={@myself}
             class="font-bold"
           >
-            Save new order
+            Save updated order
           </.collection_action>
           <.collection_action
             type="button"
@@ -157,7 +157,6 @@ defmodule LantternWeb.StrandLive.AboutComponent do
   def mount(socket) do
     {:ok,
      socket
-     |> assign(:assessment_point, %AssessmentPoint{datetime: DateTime.utc_now()})
      |> assign(:delete_assessment_point_error, nil)
      |> assign(:has_goal_position_change, false)}
   end
@@ -167,11 +166,16 @@ defmodule LantternWeb.StrandLive.AboutComponent do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(
-       :curriculum_items,
+     |> assign_new(:assessment_point, fn ->
+       %AssessmentPoint{
+         strand_id: strand.id,
+         datetime: DateTime.utc_now()
+       }
+     end)
+     |> assign_new(:curriculum_items, fn ->
        Curricula.list_strand_curriculum_items(strand.id, preloads: :curriculum_component)
        |> Enum.with_index()
-     )}
+     end)}
   end
 
   # event handlers
@@ -180,7 +184,10 @@ defmodule LantternWeb.StrandLive.AboutComponent do
   def handle_event("new_goal", _params, socket) do
     {:noreply,
      socket
-     |> assign(:assessment_point, %AssessmentPoint{datetime: DateTime.utc_now()})
+     |> assign(:assessment_point, %AssessmentPoint{
+       strand_id: socket.assigns.strand.id,
+       datetime: DateTime.utc_now()
+     })
      |> push_patch(to: ~p"/strands/#{socket.assigns.strand}/goal/new")}
   end
 

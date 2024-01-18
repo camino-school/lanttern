@@ -44,7 +44,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
 
   @doc """
   Blank assessment point entry changeset.
-  To be used during assessment point `creation_changeset`.
+  To be used during assessment point `changeset`.
   No `assessment_point_id` requirement (will be created during insert in `cast_assoc`).
   """
   def blank_changeset(assessment_point_entry, attrs) do

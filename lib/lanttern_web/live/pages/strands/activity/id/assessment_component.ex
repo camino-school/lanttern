@@ -7,7 +7,7 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
 
   # shared components
   alias LantternWeb.Assessments.EntryEditorComponent
-  alias LantternWeb.Assessments.ActivityAssessmentPointFormComponent
+  alias LantternWeb.Assessments.AssessmentPointFormComponent
   alias LantternWeb.Schools.ClassFilterFormComponent
 
   @impl true
@@ -125,10 +125,9 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
       >
         <:title>Assessment Point</:title>
         <.live_component
-          module={ActivityAssessmentPointFormComponent}
+          module={AssessmentPointFormComponent}
           id={Map.get(@assessment_point, :id) || :new}
-          activity_id={@activity.id}
-          strand_id={@activity.strand_id}
+          curriculum_from_strand_id={@activity.strand_id}
           notify_component={@myself}
           assessment_point={@assessment_point}
           navigate={~p"/strands/activity/#{@activity}?tab=assessment"}
@@ -178,7 +177,7 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
           >
             Cancel
           </.button>
-          <.button type="submit" form="activity-assessment-point-form" phx-disable-with="Saving...">
+          <.button type="submit" form="assessment-point-form" phx-disable-with="Saving...">
             Save
           </.button>
         </:actions>
@@ -355,7 +354,10 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
 
   defp assign_assessment_point(socket, nil) do
     socket
-    |> assign(:assessment_point, %AssessmentPoint{datetime: DateTime.utc_now()})
+    |> assign(:assessment_point, %AssessmentPoint{
+      activity_id: socket.assigns.activity.id,
+      datetime: DateTime.utc_now()
+    })
   end
 
   defp assign_assessment_point(socket, assessment_point_id) do

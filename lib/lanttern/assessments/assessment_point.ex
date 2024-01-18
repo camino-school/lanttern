@@ -37,13 +37,8 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     timestamps()
   end
 
-  @doc """
-  An assessment point changeset for registration.
-
-  The main difference between this and the (update) `changeset/2` is that
-  in the creation process, we can create entries based on the virtual `students_ids` field.
-  """
-  def creation_changeset(assessment, attrs) do
+  @doc false
+  def changeset(assessment, attrs) do
     assessment
     |> cast(attrs, [
       :name,
@@ -65,29 +60,6 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     |> validate_and_build_datetime()
     |> put_classes()
     |> cast_entries()
-  end
-
-  @doc false
-  def changeset(assessment, attrs) do
-    assessment
-    |> cast(attrs, [
-      :name,
-      :datetime,
-      :date,
-      :hour,
-      :minute,
-      :description,
-      :position,
-      :curriculum_item_id,
-      :scale_id,
-      :rubric_id,
-      :activity_id,
-      :strand_id,
-      :classes_ids
-    ])
-    |> validate_required([:name, :curriculum_item_id, :scale_id])
-    |> validate_and_build_datetime()
-    |> put_classes()
     |> unique_constraint([:strand_id, :curriculum_item_id],
       message: "Curriculum item already added to this strand"
     )

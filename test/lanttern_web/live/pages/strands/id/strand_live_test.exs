@@ -32,10 +32,10 @@ defmodule LantternWeb.StrandLiveTest do
           years_ids: [year.id]
         })
 
-      AssessmentsFixtures.assessment_point_fixture(
-        %{curriculum_item_id: curriculum_item.id},
-        strand_id: strand.id
-      )
+      AssessmentsFixtures.assessment_point_fixture(%{
+        strand_id: strand.id,
+        curriculum_item_id: curriculum_item.id
+      })
 
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}")
 

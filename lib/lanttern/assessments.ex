@@ -126,10 +126,8 @@ defmodule Lanttern.Assessments do
   @doc """
   Creates an assessment point.
 
-  ## Options
-
-      - `activity_id` - creates an assessment point in an activity context
-      - `strand_id` - creates an assessment point in a strand context
+  The function handles the position field based on the learning context (activity or strand),
+  appending (position = greater position in context + 1) the assessment point to the context.
 
   ## Examples
 
@@ -140,15 +138,7 @@ defmodule Lanttern.Assessments do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_assessment_point(attrs \\ %{}, opts \\ [])
-
-  def create_assessment_point(attrs, [] = _opts) do
-    %AssessmentPoint{}
-    |> AssessmentPoint.creation_changeset(attrs)
-    |> Repo.insert()
-  end
-
-  def create_assessment_point(attrs, opts) do
+  def create_assessment_point(attrs \\ %{}) do
     position =
       from(
         ap in AssessmentPoint,
@@ -156,17 +146,11 @@ defmodule Lanttern.Assessments do
         order_by: [desc: ap.position],
         limit: 1
       )
-      |> filter_assessment_points_by_context(opts)
+      |> filter_assessment_points_by_context(attrs)
       |> Repo.one()
       |> case do
         nil -> 0
         pos -> pos + 1
-      end
-
-    {context_field_id, context_id} =
-      case opts do
-        [activity_id: id] -> {:activity_id, id}
-        [strand_id: id] -> {:strand_id, id}
       end
 
     attrs =
@@ -174,12 +158,10 @@ defmodule Lanttern.Assessments do
         key when is_atom(key) ->
           attrs
           |> Map.put(:position, position)
-          |> Map.put(context_field_id, context_id)
 
         _ ->
           attrs
           |> Map.put("position", position)
-          |> Map.put(Atom.to_string(context_field_id), context_id)
       end
 
     %AssessmentPoint{}
@@ -187,11 +169,24 @@ defmodule Lanttern.Assessments do
     |> Repo.insert()
   end
 
-  defp filter_assessment_points_by_context(query, activity_id: activity_id),
-    do: from(q in query, where: q.activity_id == ^activity_id)
+  defp filter_assessment_points_by_context(query, %{activity_id: activity_id})
+       when not is_nil(activity_id) and activity_id != "",
+       do: from(q in query, where: q.activity_id == ^activity_id)
 
-  defp filter_assessment_points_by_context(query, strand_id: strand_id),
-    do: from(q in query, where: q.strand_id == ^strand_id)
+  defp filter_assessment_points_by_context(query, %{"activity_id" => activity_id})
+       when not is_nil(activity_id) and activity_id != "",
+       do: from(q in query, where: q.activity_id == ^activity_id)
+
+  defp filter_assessment_points_by_context(query, %{strand_id: strand_id})
+       when not is_nil(strand_id) and strand_id != "",
+       do: from(q in query, where: q.strand_id == ^strand_id)
+
+  defp filter_assessment_points_by_context(query, %{"strand_id" => strand_id})
+       when not is_nil(strand_id) and strand_id != "",
+       do: from(q in query, where: q.strand_id == ^strand_id)
+
+  defp filter_assessment_points_by_context(query, _),
+    do: from(q in query, where: false)
 
   @doc """
   Updates a assessment point.
