@@ -4,6 +4,8 @@ defmodule LantternWeb.RubricsLive do
   alias Lanttern.Rubrics
   alias Lanttern.Rubrics.Rubric
 
+  import LantternWeb.RubricsComponents
+
   # lifecycle
 
   def mount(_params, _session, socket) do

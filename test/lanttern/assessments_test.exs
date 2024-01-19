@@ -1195,4 +1195,30 @@ defmodule Lanttern.AssessmentsTest do
       assert %Ecto.Changeset{} = Assessments.change_feedback(feedback)
     end
   end
+
+  describe "assessment point rubrics" do
+    alias Lanttern.Rubrics.Rubric
+    import Lanttern.AssessmentsFixtures
+
+    test "create_assessment_point_rubric/3 with valid data creates a rubric linked to the given assessment point" do
+      assessment_point = assessment_point_fixture()
+
+      valid_attrs = %{
+        criteria: "some criteria",
+        scale_id: assessment_point.scale_id
+      }
+
+      assert {:ok, %Rubric{} = rubric} =
+               Assessments.create_assessment_point_rubric(assessment_point.id, valid_attrs,
+                 preloads: :scale
+               )
+
+      assert rubric.criteria == "some criteria"
+      assert rubric.scale.id == assessment_point.scale_id
+
+      # get updated assessment point
+      assessment_point = Assessments.get_assessment_point(assessment_point.id)
+      assert assessment_point.rubric_id == rubric.id
+    end
+  end
 end

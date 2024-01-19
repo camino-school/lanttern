@@ -33,24 +33,7 @@
           </.link>
         </div>
       </div>
-      <div class="flex items-stretch gap-2">
-        <div
-          :for={descriptor <- rubric.descriptors}
-          class="flex-[1_0] flex flex-col items-start gap-2"
-        >
-          <%= if descriptor.scale_type == "numeric" do %>
-            <.badge theme="dark"><%= descriptor.score %></.badge>
-          <% else %>
-            <.badge style_from_ordinal_value={descriptor.ordinal_value}>
-              <%= descriptor.ordinal_value.name %>
-            </.badge>
-          <% end %>
-          <.markdown
-            text={descriptor.descriptor}
-            class="prose-sm flex-1 w-full p-2 border border-ltrn-lighter rounded-sm bg-ltrn-lightest"
-          />
-        </div>
-      </div>
+      <.rubric_descriptors rubric={rubric} />
     </div>
   </div>
 </div>

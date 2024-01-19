@@ -73,6 +73,7 @@ defmodule LantternWeb.Router do
       live "/strands/:id/goal/new", StrandLive, :new_goal
       live "/strands/:id/goal/edit", StrandLive, :edit_goal
       live "/strands/:id/new_activity", StrandLive, :new_activity
+      live "/strands/:id/manage_rubric", StrandLive, :manage_rubric
       live "/strands/activity/:id", ActivityLive, :show
       live "/strands/activity/:id/edit", ActivityLive, :edit
 

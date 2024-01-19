@@ -6,6 +6,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   alias Lanttern.Schools
 
   # shared components
+  alias LantternWeb.StrandLive.StrandRubricsComponent
   alias LantternWeb.Schools.ClassFilterFormComponent
 
   @impl true
@@ -90,6 +91,12 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
           />
         </div>
       </div>
+      <.live_component
+        module={StrandRubricsComponent}
+        id={:strand_rubrics}
+        strand={@strand}
+        live_action={@live_action}
+      />
       <.slide_over id="classes-filter-overlay">
         <:title>Classes</:title>
         <.live_component
@@ -211,30 +218,34 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
 
   @impl true
   def mount(socket) do
-    {:ok,
-     socket
-     |> stream_configure(
-       :assessment_points,
-       dom_id: fn
-         {ap, _index} -> "assessment-point-#{ap.id}"
-         _ -> ""
-       end
-     )
-     |> stream_configure(
-       :students_entries,
-       dom_id: fn {student, _entries} -> "student-#{student.id}" end
-     )
-     |> assign(:classes, nil)
-     |> assign(:classes_ids, [])}
+    socket =
+      socket
+      |> stream_configure(
+        :assessment_points,
+        dom_id: fn
+          {ap, _index} -> "assessment-point-#{ap.id}"
+          _ -> ""
+        end
+      )
+      |> stream_configure(
+        :students_entries,
+        dom_id: fn {student, _entries} -> "student-#{student.id}" end
+      )
+      |> assign(:classes, nil)
+      |> assign(:classes_ids, [])
+
+    {:ok, socket}
   end
 
   @impl true
   def update(%{strand: strand} = assigns, socket) do
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign_classes(assigns.params)
-     |> core_assigns(strand.id)}
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign_classes(assigns.params)
+      |> core_assigns(strand.id)
+
+    {:ok, socket}
   end
 
   def update(_assigns, socket), do: {:ok, socket}

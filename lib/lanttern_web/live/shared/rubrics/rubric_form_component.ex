@@ -8,6 +8,7 @@ defmodule LantternWeb.Rubrics.RubricFormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Rubrics
+  alias Lanttern.Assessments
   alias Lanttern.Grading
   import LantternWeb.GradingHelpers
 
@@ -22,6 +23,7 @@ defmodule LantternWeb.Rubrics.RubricFormComponent do
         phx-change="validate"
         phx-submit="save"
       >
+        <.input field={@form[:id]} type="hidden" />
         <.input field={@form[:criteria]} type="text" label="Criteria" phx-debounce="1500" />
         <.input
           field={@form[:is_differentiation]}
@@ -147,9 +149,9 @@ defmodule LantternWeb.Rubrics.RubricFormComponent do
       |> assign(:scale, nil)
       |> assign(:hide_diff_and_scale, false)
       |> assign(:class, nil)
-      |> assign(:patch, nil)
       |> assign(:show_buttons, false)
       |> assign(:notify_parent, true)
+      |> assign(:link_to_assessment_point_id, nil)
 
     {:ok, socket}
   end
@@ -280,7 +282,13 @@ defmodule LantternWeb.Rubrics.RubricFormComponent do
       rubric_params
       |> Map.put_new("descriptors", %{})
 
-    save_rubric(socket, socket.assigns.action, rubric_params)
+    action =
+      case rubric_params["id"] do
+        "" -> :new
+        _id -> :edit
+      end
+
+    save_rubric(socket, action, rubric_params)
   end
 
   defp generate_new_descriptors(scale) do
@@ -325,7 +333,7 @@ defmodule LantternWeb.Rubrics.RubricFormComponent do
         {:noreply,
          socket
          |> put_flash(:info, "Rubric updated successfully")
-         |> maybe_push_patch(socket.assigns.patch)}
+         |> handle_navigation()}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
@@ -333,22 +341,33 @@ defmodule LantternWeb.Rubrics.RubricFormComponent do
   end
 
   defp save_rubric(socket, :new, rubric_params) do
-    case Rubrics.create_rubric(rubric_params, preloads: :scale) do
+    case socket.assigns.link_to_assessment_point_id do
+      nil ->
+        Rubrics.create_rubric(rubric_params, preloads: :scale)
+
+      assessment_point_id ->
+        Assessments.create_assessment_point_rubric(assessment_point_id, rubric_params,
+          preloads: :scale
+        )
+    end
+    |> case do
       {:ok, rubric} ->
         notify(socket.assigns, {:created, rubric})
 
         {:noreply,
          socket
          |> put_flash(:info, "Rubric created successfully")
-         |> maybe_push_patch(socket.assigns.patch)}
+         |> handle_navigation()}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
+
+      {:error, msg} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, msg)}
     end
   end
-
-  defp maybe_push_patch(socket, nil), do: socket
-  defp maybe_push_patch(socket, patch_assign), do: push_patch(socket, to: patch_assign)
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     assign(socket, :form, to_form(changeset))

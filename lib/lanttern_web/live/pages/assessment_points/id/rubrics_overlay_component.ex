@@ -41,13 +41,13 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
           <.live_component
             module={RubricFormComponent}
             id={:new}
-            action={:new}
             rubric={
               %Rubric{
                 scale_id: @assessment_point.scale_id,
                 is_differentiation: false
               }
             }
+            link_to_assessment_point_id={@assessment_point.id}
             hide_diff_and_scale
             show_buttons
             on_cancel={JS.push("cancel_create_new", target: @myself)}
@@ -143,9 +143,11 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
     do: {:ok, link_rubric_to_assessment_and_notify_parent(socket, rubric_id)}
 
   def update(%{action: {RubricFormComponent, {:created, rubric}}}, socket) do
+    notify_parent({:rubric_linked, rubric.id})
+
     {:ok,
      socket
-     |> link_rubric_to_assessment_and_notify_parent(rubric.id)
+     |> assign(:rubric, Rubrics.get_full_rubric!(rubric.id))
      |> assign(:is_creating_rubric, false)}
   end
 

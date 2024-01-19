@@ -39,7 +39,6 @@ defmodule LantternWeb.AssessmentPointLive.DifferentiationRubricComponent do
         <.live_component
           module={RubricFormComponent}
           id={"entry-#{@entry.id}"}
-          action={:new}
           rubric={
             %Rubric{
               scale_id: @entry.scale_id,
