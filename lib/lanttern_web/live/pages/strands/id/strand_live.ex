@@ -34,7 +34,7 @@ defmodule LantternWeb.StrandLive do
   # prevent user from navigating directly to nested views
 
   defp maybe_redirect(%{assigns: %{live_action: live_action}} = socket, params)
-       when live_action == :manage_rubric,
+       when live_action in [:manage_rubric, :diff_rubric],
        do: redirect(socket, to: ~p"/strands/#{params["id"]}?tab=assessment")
 
   defp maybe_redirect(socket, _params), do: socket
@@ -69,7 +69,7 @@ defmodule LantternWeb.StrandLive do
     do: assign(socket, :current_tab, Map.get(@tabs, tab, :about))
 
   defp set_current_tab(socket, _params, live_action)
-       when live_action in [:manage_rubric],
+       when live_action in [:manage_rubric, :diff_rubric],
        do: assign(socket, :current_tab, :assessment)
 
   defp set_current_tab(socket, _params, _live_action),

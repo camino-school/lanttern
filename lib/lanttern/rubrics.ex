@@ -38,17 +38,51 @@ defmodule Lanttern.Rubrics do
 
   View `get_full_rubric!/1` for more details on descriptors sorting.
 
+  ## Options
+
+      - `assessment_points_ids` - filter rubrics by linked assessment points
+      - `parent_rubrics_ids` - filter differentiation rubrics by parent rubrics
+      - `students_ids` - filter rubrics by linked students
+
   ## Examples
 
       iex> list_full_rubrics()
       [%Rubric{}, ...]
 
   """
-  def list_full_rubrics() do
+  def list_full_rubrics(opts \\ []) do
     full_rubric_query()
+    |> filter_rubrics(opts)
     |> Repo.all()
-    |> Enum.map(&sort_rubric_descriptors/1)
   end
+
+  defp filter_rubrics(queryable, opts) do
+    Enum.reduce(opts, queryable, &apply_rubrics_filter/2)
+  end
+
+  defp apply_rubrics_filter({:rubrics_ids, ids}, queryable),
+    do: from(ap in queryable, where: ap.id in ^ids)
+
+  defp apply_rubrics_filter({:parent_rubrics_ids, ids}, queryable),
+    do: from(ap in queryable, where: ap.diff_for_rubric_id in ^ids)
+
+  defp apply_rubrics_filter({:assessment_points_ids, ids}, queryable) do
+    from(
+      r in queryable,
+      join: ap in assoc(r, :assessment_points),
+      where: ap.id in ^ids
+    )
+  end
+
+  defp apply_rubrics_filter({:students_ids, ids}, queryable) do
+    from(
+      r in queryable,
+      join: s in assoc(r, :students),
+      where: s.id in ^ids
+    )
+  end
+
+  defp apply_rubrics_filter(_, queryable), do: queryable
 
   @doc """
   Search rubrics by criteria.
@@ -134,32 +168,29 @@ defmodule Lanttern.Rubrics do
   def get_full_rubric!(id) do
     full_rubric_query()
     |> Repo.get!(id)
-    |> sort_rubric_descriptors()
   end
 
-  defp full_rubric_query() do
+  @doc """
+  Query used to load rubrics with descriptors
+  ordered using the following rules:
+
+  - when scale type is "ordinal", we use ordinal value's normalized value
+  - when scale type is "numeric", we use descriptor's score
+  """
+  def full_rubric_query() do
+    descriptors_query =
+      from(
+        d in RubricDescriptor,
+        left_join: ov in assoc(d, :ordinal_value),
+        order_by: [d.score, ov.normalized_value],
+        preload: [ordinal_value: ov]
+      )
+
     from(r in Rubric,
       join: s in assoc(r, :scale),
-      left_join: d in assoc(r, :descriptors),
-      left_join: ov in assoc(d, :ordinal_value),
-      preload: [:scale, descriptors: :ordinal_value],
-      group_by: r.id,
+      preload: [scale: s, descriptors: ^descriptors_query],
       order_by: r.id
     )
-  end
-
-  defp sort_rubric_descriptors(rubric) do
-    Map.update!(rubric, :descriptors, fn descriptors ->
-      case rubric.scale.type do
-        "numeric" ->
-          descriptors
-          |> Enum.sort_by(& &1.score)
-
-        "ordinal" ->
-          descriptors
-          |> Enum.sort_by(& &1.ordinal_value.normalized_value)
-      end
-    end)
   end
 
   @doc """
@@ -291,7 +322,9 @@ defmodule Lanttern.Rubrics do
 
   """
   def delete_rubric(%Rubric{} = rubric) do
-    Repo.delete(rubric)
+    rubric
+    |> Rubric.changeset(%{})
+    |> Repo.delete()
   end
 
   @doc """
@@ -401,6 +434,107 @@ defmodule Lanttern.Rubrics do
   """
   def change_rubric_descriptor(%RubricDescriptor{} = rubric_descriptor, attrs \\ %{}) do
     RubricDescriptor.changeset(rubric_descriptor, attrs)
+  end
+
+  @doc """
+  Links a differentiation rubric to a student.
+
+  ## Examples
+
+      iex> link_rubric_to_student(%Rubric{}, 1)
+      :ok
+
+      iex> link_rubric_to_student(%Rubric{}, 1)
+      {:error, "Error message"}
+
+  """
+  def link_rubric_to_student(%Rubric{diff_for_rubric_id: nil}, _student_id),
+    do: {:error, "Only differentiation rubrics can be linked to students"}
+
+  def link_rubric_to_student(%Rubric{id: rubric_id}, student_id) do
+    from("differentiation_rubrics_students",
+      where: [rubric_id: ^rubric_id, student_id: ^student_id],
+      select: true
+    )
+    |> Repo.one()
+    |> case do
+      nil ->
+        {1, _} =
+          Repo.insert_all(
+            "differentiation_rubrics_students",
+            [[rubric_id: rubric_id, student_id: student_id]]
+          )
+
+        :ok
+
+      _ ->
+        # rubric already linked to student
+        :ok
+    end
+  end
+
+  @doc """
+  Unlinks a rubric from a student.
+
+  ## Examples
+
+      iex> unlink_rubric_from_student(%Rubric{}, 1)
+      :ok
+
+      iex> unlink_rubric_from_student(%Rubric{}, 1)
+      {:error, "Error message"}
+
+  """
+  def unlink_rubric_from_student(%Rubric{id: rubric_id}, student_id) do
+    from("differentiation_rubrics_students",
+      where: [rubric_id: ^rubric_id, student_id: ^student_id]
+    )
+    |> Repo.delete_all()
+
+    :ok
+  end
+
+  @doc """
+  Creates a differentiation rubric and link it to the student.
+
+  This function executes `create_rubric/2` and `link_rubric_to_student/2`
+  inside a single transaction.
+
+  ## Options
+
+      - view `create_rubric/2` for opts
+
+  ## Examples
+
+      iex> create_diff_rubric_for_student(1, %{})
+      {:ok, %Rubric{}}
+
+      iex> create_diff_rubric_for_student(1, %{})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_diff_rubric_for_student(student_id, attrs \\ %{}, opts \\ []) do
+    Repo.transaction(fn ->
+      rubric =
+        case create_rubric(attrs, opts) do
+          {:ok, rubric} -> rubric
+          {:error, error_changeset} -> Repo.rollback(error_changeset)
+        end
+
+      case link_rubric_to_student(rubric, student_id) do
+        :ok ->
+          :ok
+
+        {:error, msg} ->
+          rubric
+          |> change_rubric(%{})
+          |> Ecto.Changeset.add_error(:diff_for_rubric_id, msg)
+          |> Map.put(:action, :insert)
+          |> Repo.rollback()
+      end
+
+      rubric
+    end)
   end
 
   # helpers

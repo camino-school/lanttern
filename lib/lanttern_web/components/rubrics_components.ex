@@ -9,7 +9,27 @@ defmodule LantternWeb.RubricsComponents do
   Renders rubric descriptors.
   """
   attr :rubric, Rubric, required: true, doc: "Requires descriptors + ordinal_value preloads"
+  attr :direction, :string, default: "horizontal", doc: "horizontal | vertical"
   attr :class, :any, default: nil
+
+  def rubric_descriptors(%{direction: "vertical"} = assigns) do
+    ~H"""
+    <div class={["flex flex-col gap-8", @class]}>
+      <div :for={descriptor <- @rubric.descriptors}>
+        <%= if descriptor.scale_type == "ordinal" do %>
+          <.badge style_from_ordinal_value={descriptor.ordinal_value}>
+            <%= descriptor.ordinal_value.name %>
+          </.badge>
+        <% else %>
+          <.badge>
+            <%= descriptor.score %>
+          </.badge>
+        <% end %>
+        <.markdown class="mt-2" text={descriptor.descriptor} />
+      </div>
+    </div>
+    """
+  end
 
   def rubric_descriptors(assigns) do
     ~H"""

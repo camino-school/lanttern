@@ -20,6 +20,7 @@ defmodule Lanttern.Assessments do
   ### Options:
 
   `:preloads` – preloads associated data
+  `:preload_full_rubrics` – boolean, preloads full associated rubrics using `Rubrics.full_rubric_query/0`
   `:assessment_points_ids` – filter result by provided assessment points ids
   `:activities_ids` – filter result by provided activities ids
   `:activities_from_strand_id` – filter result by activities from provided strand id
@@ -33,11 +34,21 @@ defmodule Lanttern.Assessments do
   """
   def list_assessment_points(opts \\ []) do
     AssessmentPoint
+    |> maybe_preload_full_rubrics(Keyword.get(opts, :preload_full_rubrics))
     |> filter_assessment_points(opts)
     |> order_assessment_points(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
+
+  defp maybe_preload_full_rubrics(queryable, true) do
+    from(
+      ap in queryable,
+      preload: [rubric: ^Rubrics.full_rubric_query()]
+    )
+  end
+
+  defp maybe_preload_full_rubrics(queryable, nil), do: queryable
 
   defp filter_assessment_points(queryable, opts) do
     Enum.reduce(opts, queryable, &apply_assessment_points_filter/2)

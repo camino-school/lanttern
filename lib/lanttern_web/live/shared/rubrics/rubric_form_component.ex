@@ -23,7 +23,11 @@ defmodule LantternWeb.Rubrics.RubricFormComponent do
         phx-change="validate"
         phx-submit="save"
       >
+        <.error_block :if={@form.source.action == :insert} class="mb-6">
+          Oops, something went wrong! Please check the errors below.
+        </.error_block>
         <.input field={@form[:id]} type="hidden" />
+        <.input field={@form[:diff_for_rubric_id]} type="hidden" />
         <.input field={@form[:criteria]} type="text" label="Criteria" phx-debounce="1500" />
         <.input
           field={@form[:is_differentiation]}
@@ -341,14 +345,15 @@ defmodule LantternWeb.Rubrics.RubricFormComponent do
   end
 
   defp save_rubric(socket, :new, rubric_params) do
-    case socket.assigns.link_to_assessment_point_id do
-      nil ->
-        Rubrics.create_rubric(rubric_params, preloads: :scale)
+    case socket.assigns do
+      %{diff_for_student_id: student_id} when not is_nil(student_id) ->
+        Rubrics.create_diff_rubric_for_student(student_id, rubric_params)
 
-      assessment_point_id ->
-        Assessments.create_assessment_point_rubric(assessment_point_id, rubric_params,
-          preloads: :scale
-        )
+      %{link_to_assessment_point_id: assessment_point_id} when not is_nil(assessment_point_id) ->
+        Assessments.create_assessment_point_rubric(assessment_point_id, rubric_params)
+
+      _ ->
+        Rubrics.create_rubric(rubric_params, preloads: :scale)
     end
     |> case do
       {:ok, rubric} ->

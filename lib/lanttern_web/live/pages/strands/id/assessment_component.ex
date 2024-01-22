@@ -96,6 +96,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         id={:strand_rubrics}
         strand={@strand}
         live_action={@live_action}
+        params={@params}
       />
       <.slide_over id="classes-filter-overlay">
         <:title>Classes</:title>
