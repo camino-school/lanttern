@@ -361,6 +361,51 @@ defmodule Lanttern.SchoolsTest do
       end
     end
 
+    test "list_students/1 with diff rubrics opts returns all students as expected" do
+      student_1 = student_fixture(%{name: "AAA"})
+      student_2 = student_fixture(%{name: "BBB"})
+
+      strand = Lanttern.LearningContextFixtures.strand_fixture()
+      scale = Lanttern.GradingFixtures.scale_fixture()
+      parent_rubric = Lanttern.RubricsFixtures.rubric_fixture(%{scale_id: scale.id})
+
+      Lanttern.Rubrics.create_diff_rubric_for_student(student_1.id, %{
+        criteria: "diff rubric for std 1",
+        scale_id: scale.id,
+        diff_for_rubric_id: parent_rubric.id
+      })
+
+      Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+        strand_id: strand.id,
+        rubric_id: parent_rubric.id
+      })
+
+      # other rubrics for testing
+      other_strand = Lanttern.LearningContextFixtures.strand_fixture()
+      other_parent_rubric = Lanttern.RubricsFixtures.rubric_fixture(%{scale_id: scale.id})
+
+      Lanttern.Rubrics.create_diff_rubric_for_student(student_2.id, %{
+        criteria: "diff rubric for std 2",
+        scale_id: scale.id,
+        diff_for_rubric_id: other_parent_rubric.id
+      })
+
+      Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+        strand_id: other_strand.id,
+        rubric_id: other_parent_rubric.id
+      })
+
+      # assert
+      [expected_1, expected_2] =
+        Schools.list_students(check_diff_rubrics_for_strand_id: strand.id)
+
+      assert expected_1.id == student_1.id
+      assert expected_1.has_diff_rubric
+
+      assert expected_2.id == student_2.id
+      assert !expected_2.has_diff_rubric
+    end
+
     test "get_student/2 returns the student with given id" do
       student = student_fixture()
       assert Schools.get_student(student.id) == student

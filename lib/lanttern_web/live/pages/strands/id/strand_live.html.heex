@@ -24,16 +24,16 @@
         About
       </:tab>
       <:tab
-        patch={~p"/strands/#{@strand}?#{%{tab: "activities"}}"}
-        is_current={@current_tab == :activities && "true"}
-      >
-        Activities
-      </:tab>
-      <:tab
         patch={~p"/strands/#{@strand}?#{%{tab: "assessment"}}"}
         is_current={@current_tab == :assessment && "true"}
       >
         Assessment
+      </:tab>
+      <:tab
+        patch={~p"/strands/#{@strand}?#{%{tab: "activities"}}"}
+        is_current={@current_tab == :activities && "true"}
+      >
+        Activities
       </:tab>
       <:tab
         patch={~p"/strands/#{@strand}?#{%{tab: "notes"}}"}
@@ -72,19 +72,19 @@
     live_action={@live_action}
   />
   <.live_component
-    :if={@current_tab == :activities}
-    module={ActivitiesComponent}
-    id="strand-details-activities"
-    strand={@strand}
-    live_action={@live_action}
-  />
-  <.live_component
     :if={@current_tab == :assessment}
     module={AssessmentComponent}
     id="strand-details-assessment"
     strand={@strand}
     params={@params}
     current_user={@current_user}
+    live_action={@live_action}
+  />
+  <.live_component
+    :if={@current_tab == :activities}
+    module={ActivitiesComponent}
+    id="strand-details-activities"
+    strand={@strand}
     live_action={@live_action}
   />
   <.live_component

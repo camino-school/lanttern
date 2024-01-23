@@ -95,6 +95,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
             container_selector="#differentiation-rubrics-section"
             on_click={JS.push("load_diff_rubrics", value: %{student_id: student.id})}
             phx-target={@myself}
+            theme={if student.has_diff_rubric, do: "cyan", else: "subtle"}
           />
         </div>
         <div
@@ -294,7 +295,10 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
       |> assign_new(:students, fn ->
         case assigns.params do
           %{"classes_ids" => classes_ids} when is_list(classes_ids) and classes_ids != [] ->
-            Schools.list_students(classes_ids: classes_ids)
+            Schools.list_students(
+              classes_ids: classes_ids,
+              check_diff_rubrics_for_strand_id: strand.id
+            )
 
           _ ->
             []

@@ -14,8 +14,7 @@ defmodule Lanttern.Rubrics.Rubric do
     has_many :assessment_points, Lanttern.Assessments.AssessmentPoint
 
     many_to_many :students, Lanttern.Schools.Student,
-      join_through: "differentiation_rubrics_students",
-      on_replace: :delete
+      join_through: "differentiation_rubrics_students"
 
     timestamps()
   end

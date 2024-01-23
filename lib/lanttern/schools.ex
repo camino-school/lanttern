@@ -381,6 +381,7 @@ defmodule Lanttern.Schools do
 
   `:preloads` – preloads associated data
   `:classes_ids` – filter students by provided list of ids
+  `:check_diff_rubrics_for_strand_id` - used to check if student has any differentiation rubric for given strand id
 
   ## Examples
 
@@ -389,24 +390,49 @@ defmodule Lanttern.Schools do
 
   """
   def list_students(opts \\ []) do
-    Student
-    |> maybe_filter_students_by_class(opts)
+    from(
+      s in Student,
+      order_by: s.name
+    )
+    |> filter_students(opts)
+    |> load_has_diff_rubric_flag(Keyword.get(opts, :check_diff_rubrics_for_strand_id))
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
-  defp maybe_filter_students_by_class(student_query, opts) do
-    case Keyword.get(opts, :classes_ids) do
-      nil ->
-        student_query
+  defp filter_students(queryable, opts),
+    do: Enum.reduce(opts, queryable, &apply_students_filter/2)
 
-      classes_ids ->
-        from(
-          s in student_query,
-          join: c in assoc(s, :classes),
-          where: c.id in ^classes_ids
-        )
-    end
+  defp apply_students_filter({:classes_ids, ids}, queryable) do
+    from(
+      s in queryable,
+      join: c in assoc(s, :classes),
+      where: c.id in ^ids
+    )
+  end
+
+  defp apply_students_filter(_, queryable), do: queryable
+
+  defp load_has_diff_rubric_flag(queryable, nil), do: queryable
+
+  defp load_has_diff_rubric_flag(queryable, strand_id) do
+    has_diff_query =
+      from(
+        s in Student,
+        left_join: dr in assoc(s, :diff_rubrics),
+        left_join: r in assoc(dr, :parent_rubric),
+        left_join: ap in Lanttern.Assessments.AssessmentPoint,
+        on: ap.rubric_id == r.id and ap.strand_id == ^strand_id,
+        group_by: s.id,
+        select: %{student_id: s.id, has_diff_rubric: count(ap) > 0}
+      )
+
+    from(
+      s in queryable,
+      join: d in subquery(has_diff_query),
+      on: d.student_id == s.id,
+      select: %{s | has_diff_rubric: d.has_diff_rubric}
+    )
   end
 
   @doc """
