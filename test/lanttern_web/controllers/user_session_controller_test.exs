@@ -1,11 +1,11 @@
 defmodule LantternWeb.UserSessionControllerTest do
   use LantternWeb.ConnCase, async: true
 
-  import Lanttern.IdentityFixtures
+  # import Lanttern.IdentityFixtures
 
-  setup do
-    %{user: user_fixture()}
-  end
+  # setup do
+  #   %{user: user_fixture()}
+  # end
 
   # describe "POST /users/log_in" do
   #   test "logs the user in", %{conn: conn, user: user} do
@@ -96,8 +96,12 @@ defmodule LantternWeb.UserSessionControllerTest do
   # end
 
   describe "DELETE /users/log_out" do
-    test "logs the user out", %{conn: conn, user: user} do
-      conn = conn |> log_in_user(user) |> delete(~p"/users/log_out")
+    test "logs the user out", %{conn: conn} do
+      conn =
+        register_and_log_in_user(%{conn: conn})
+        |> Map.get(:conn)
+        |> delete(~p"/users/log_out")
+
       assert redirected_to(conn) == ~p"/"
       refute get_session(conn, :user_token)
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Logged out successfully"

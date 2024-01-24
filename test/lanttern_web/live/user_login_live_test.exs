@@ -2,7 +2,7 @@ defmodule LantternWeb.UserLoginLiveTest do
   use LantternWeb.ConnCase
 
   import Phoenix.LiveViewTest
-  import Lanttern.IdentityFixtures
+  # import Lanttern.IdentityFixtures
 
   describe "Log in page" do
     # test "renders log in page", %{conn: conn} do
@@ -22,8 +22,8 @@ defmodule LantternWeb.UserLoginLiveTest do
 
     test "redirects if already logged in", %{conn: conn} do
       result =
-        conn
-        |> log_in_user(user_fixture())
+        register_and_log_in_user(%{conn: conn})
+        |> Map.get(:conn)
         |> live(~p"/users/log_in")
         |> follow_redirect(conn, "/dashboard")
 
