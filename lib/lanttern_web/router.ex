@@ -100,6 +100,7 @@ defmodule LantternWeb.Router do
     post "/seed_bncc", AdminController, :seed_bncc
 
     # Identity context
+    resources "/users", UserController
     resources "/profiles", ProfileController
 
     # Assessments context
