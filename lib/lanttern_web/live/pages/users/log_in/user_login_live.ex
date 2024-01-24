@@ -3,8 +3,41 @@ defmodule LantternWeb.UserLoginLive do
 
   def render(assigns) do
     ~H"""
-    <div class="mx-auto max-w-sm">
-      <.header class="text-center">
+    <div class="mx-auto max-w-sm py-20">
+      <h1 class="font-display font-black text-5xl leading-tight">
+        Lanttern<br />sign in
+      </h1>
+      <p class="mt-10 text-lg">
+        Check if your school is using
+        <a href={~p"/"} class="font-display font-bold underline hover:text-ltrn-subtle">Lanttern</a>
+        and your Google Account is registered before signing in.
+      </p>
+      <div id="g_id_signin_container" class="mt-20" phx-update="ignore">
+        <script src="https://accounts.google.com/gsi/client" async>
+        </script>
+        <div
+          id="g_id_onload"
+          data-client_id={@google_client_id}
+          data-context="signin"
+          data-ux_mode="popup"
+          data-login_uri={~p"/users/google_sign_in"}
+          data-nonce=""
+          data-auto_prompt="false"
+        >
+        </div>
+        <div
+          class="g_id_signin"
+          data-type="standard"
+          data-shape="pill"
+          data-theme="outline"
+          data-text="signin_with"
+          data-size="large"
+          data-logo_alignment="left"
+        >
+        </div>
+      </div>
+
+      <%!-- <.header class="text-center">
         Sign in to account
         <:subtitle>
           Don't have an account?
@@ -30,32 +63,7 @@ defmodule LantternWeb.UserLoginLive do
             Sign in <span aria-hidden="true">→</span>
           </.button>
         </:actions>
-      </.simple_form>
-
-      <div id="g_id_signin_container" class="flex justify-center mt-10" phx-update="ignore">
-        <script src="https://accounts.google.com/gsi/client" async>
-        </script>
-        <div
-          id="g_id_onload"
-          data-client_id={@google_client_id}
-          data-context="signin"
-          data-ux_mode="popup"
-          data-login_uri={~p"/users/google_sign_in"}
-          data-nonce=""
-          data-auto_prompt="false"
-        >
-        </div>
-        <div
-          class="g_id_signin"
-          data-type="standard"
-          data-shape="pill"
-          data-theme="outline"
-          data-text="signin_with"
-          data-size="large"
-          data-logo_alignment="left"
-        >
-        </div>
-      </div>
+      </.simple_form> --%>
     </div>
     """
   end

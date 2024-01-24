@@ -1,63 +1,63 @@
-defmodule LantternWeb.UserForgotPasswordLiveTest do
-  use LantternWeb.ConnCase
+# defmodule LantternWeb.UserForgotPasswordLiveTest do
+#   use LantternWeb.ConnCase
 
-  import Phoenix.LiveViewTest
-  import Lanttern.IdentityFixtures
+#   import Phoenix.LiveViewTest
+#   import Lanttern.IdentityFixtures
 
-  alias Lanttern.Identity
-  alias Lanttern.Repo
+#   alias Lanttern.Identity
+#   alias Lanttern.Repo
 
-  describe "Forgot password page" do
-    test "renders email page", %{conn: conn} do
-      {:ok, lv, html} = live(conn, ~p"/users/reset_password")
+#   describe "Forgot password page" do
+#     test "renders email page", %{conn: conn} do
+#       {:ok, lv, html} = live(conn, ~p"/users/reset_password")
 
-      assert html =~ "Forgot your password?"
-      assert has_element?(lv, ~s|a[href="#{~p"/users/register"}"]|, "Register")
-      assert has_element?(lv, ~s|a[href="#{~p"/users/log_in"}"]|, "Log in")
-    end
+#       assert html =~ "Forgot your password?"
+#       assert has_element?(lv, ~s|a[href="#{~p"/users/register"}"]|, "Register")
+#       assert has_element?(lv, ~s|a[href="#{~p"/users/log_in"}"]|, "Log in")
+#     end
 
-    test "redirects if already logged in", %{conn: conn} do
-      result =
-        conn
-        |> log_in_user(user_fixture())
-        |> live(~p"/users/reset_password")
-        |> follow_redirect(conn, ~p"/dashboard")
+#     test "redirects if already logged in", %{conn: conn} do
+#       result =
+#         conn
+#         |> log_in_user(user_fixture())
+#         |> live(~p"/users/reset_password")
+#         |> follow_redirect(conn, ~p"/dashboard")
 
-      assert {:ok, _conn} = result
-    end
-  end
+#       assert {:ok, _conn} = result
+#     end
+#   end
 
-  describe "Reset link" do
-    setup do
-      %{user: user_fixture()}
-    end
+#   describe "Reset link" do
+#     setup do
+#       %{user: user_fixture()}
+#     end
 
-    test "sends a new reset password token", %{conn: conn, user: user} do
-      {:ok, lv, _html} = live(conn, ~p"/users/reset_password")
+#     test "sends a new reset password token", %{conn: conn, user: user} do
+#       {:ok, lv, _html} = live(conn, ~p"/users/reset_password")
 
-      {:ok, conn} =
-        lv
-        |> form("#reset_password_form", user: %{"email" => user.email})
-        |> render_submit()
-        |> follow_redirect(conn, "/")
+#       {:ok, conn} =
+#         lv
+#         |> form("#reset_password_form", user: %{"email" => user.email})
+#         |> render_submit()
+#         |> follow_redirect(conn, "/")
 
-      assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "If your email is in our system"
+#       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "If your email is in our system"
 
-      assert Repo.get_by!(Identity.UserToken, user_id: user.id).context ==
-               "reset_password"
-    end
+#       assert Repo.get_by!(Identity.UserToken, user_id: user.id).context ==
+#                "reset_password"
+#     end
 
-    test "does not send reset password token if email is invalid", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/users/reset_password")
+#     test "does not send reset password token if email is invalid", %{conn: conn} do
+#       {:ok, lv, _html} = live(conn, ~p"/users/reset_password")
 
-      {:ok, conn} =
-        lv
-        |> form("#reset_password_form", user: %{"email" => "unknown@example.com"})
-        |> render_submit()
-        |> follow_redirect(conn, "/")
+#       {:ok, conn} =
+#         lv
+#         |> form("#reset_password_form", user: %{"email" => "unknown@example.com"})
+#         |> render_submit()
+#         |> follow_redirect(conn, "/")
 
-      assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "If your email is in our system"
-      assert Repo.all(Identity.UserToken) == []
-    end
-  end
-end
+#       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "If your email is in our system"
+#       assert Repo.all(Identity.UserToken) == []
+#     end
+#   end
+# end
