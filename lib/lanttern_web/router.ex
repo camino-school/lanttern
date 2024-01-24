@@ -100,6 +100,7 @@ defmodule LantternWeb.Router do
     post "/seed_bncc", AdminController, :seed_bncc
 
     # Identity context
+    resources "/users", UserController
     resources "/profiles", ProfileController
 
     # Assessments context
@@ -217,10 +218,10 @@ defmodule LantternWeb.Router do
 
     live_session :redirect_if_user_is_authenticated,
       on_mount: [{LantternWeb.UserAuth, :redirect_if_user_is_authenticated}] do
-      live "/users/register", UserRegistrationLive, :new
+      # live "/users/register", UserRegistrationLive, :new
       live "/users/log_in", UserLoginLive, :new
-      live "/users/reset_password", UserForgotPasswordLive, :new
-      live "/users/reset_password/:token", UserResetPasswordLive, :edit
+      # live "/users/reset_password", UserForgotPasswordLive, :new
+      # live "/users/reset_password/:token", UserResetPasswordLive, :edit
     end
 
     post "/users/log_in", UserSessionController, :create
@@ -232,25 +233,25 @@ defmodule LantternWeb.Router do
     post "/users/google_sign_in", UserSessionController, :google_sign_in
   end
 
-  scope "/", LantternWeb do
-    pipe_through [:browser, :require_authenticated_user]
+  # scope "/", LantternWeb do
+  #   pipe_through [:browser, :require_authenticated_user]
 
-    live_session :require_authenticated_user,
-      on_mount: [{LantternWeb.UserAuth, :ensure_authenticated}] do
-      live "/users/settings", UserSettingsLive, :edit
-      live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
-    end
-  end
+  #   live_session :require_authenticated_user,
+  #     on_mount: [{LantternWeb.UserAuth, :ensure_authenticated}] do
+  #     live "/users/settings", UserSettingsLive, :edit
+  #     live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
+  #   end
+  # end
 
   scope "/", LantternWeb do
     pipe_through [:browser]
 
     delete "/users/log_out", UserSessionController, :delete
 
-    live_session :current_user,
-      on_mount: [{LantternWeb.UserAuth, :mount_current_user}] do
-      live "/users/confirm/:token", UserConfirmationLive, :edit
-      live "/users/confirm", UserConfirmationInstructionsLive, :new
-    end
+    # live_session :current_user,
+    #   on_mount: [{LantternWeb.UserAuth, :mount_current_user}] do
+    #   live "/users/confirm/:token", UserConfirmationLive, :edit
+    #   live "/users/confirm", UserConfirmationInstructionsLive, :new
+    # end
   end
 end

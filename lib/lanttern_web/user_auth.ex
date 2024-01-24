@@ -5,6 +5,7 @@ defmodule LantternWeb.UserAuth do
   import Phoenix.Controller
 
   alias Lanttern.Identity
+  alias Lanttern.Identity.User
 
   # Make the remember me cookie valid for 60 days.
   # If you want bump or reduce this value, also change
@@ -24,35 +25,43 @@ defmodule LantternWeb.UserAuth do
   so LiveView sessions are identified and automatically
   disconnected on log out. The line can be safely removed
   if you are not using LiveView.
+
+  For the specific case when there's no profile
+  linked to the user, we log the user out.
   """
   def log_in_user(conn, user, params \\ %{}) do
-    user = check_current_profile(user)
+    with {:ok, user} <- check_current_profile(user) do
+      token = Identity.generate_user_session_token(user)
+      user_return_to = get_session(conn, :user_return_to)
 
-    token = Identity.generate_user_session_token(user)
-    user_return_to = get_session(conn, :user_return_to)
-
-    conn
-    |> renew_session()
-    |> put_token_in_session(token)
-    |> maybe_write_remember_me_cookie(token, params)
-    |> redirect(to: user_return_to || signed_in_path(conn))
-  end
-
-  defp check_current_profile(%{current_profile_id: nil} = user) do
-    # if there's no current_profile_id, list profiles and use first result
-    case Identity.list_profiles(user_id: user.id) do
-      [profile | _rest] ->
-        {:ok, user_with_profile} =
-          Identity.update_user_current_profile_id(user, profile.id)
-
-        user_with_profile
-
-      [] ->
-        user
+      conn
+      |> renew_session()
+      |> put_token_in_session(token)
+      |> maybe_write_remember_me_cookie(token, params)
+      |> redirect(to: user_return_to || signed_in_path(conn))
+    else
+      :error ->
+        conn
+        |> put_flash(
+          :error,
+          "There's no profile linked to your user. Check with your Lanttern admin."
+        )
+        |> log_out_user()
     end
   end
 
-  defp check_current_profile(user), do: user
+  defp check_current_profile(%{current_profile_id: nil, is_root_admin: false} = user) do
+    # if there's no current_profile_id, list profiles and use first result
+    case Identity.list_profiles(user_id: user.id) do
+      [profile | _rest] ->
+        Identity.update_user_current_profile_id(user, profile.id)
+
+      [] ->
+        :error
+    end
+  end
+
+  defp check_current_profile(user), do: {:ok, user}
 
   defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}) do
     put_resp_cookie(conn, @remember_me_cookie, token, @remember_me_options)
@@ -109,9 +118,20 @@ defmodule LantternWeb.UserAuth do
   def fetch_current_user(conn, _opts) do
     {user_token, conn} = ensure_user_token(conn)
 
-    user = user_token && Identity.get_user_by_session_token(user_token)
+    case user_token && Identity.get_user_by_session_token(user_token) do
+      # if for some reason we reach this point
+      # without a user profile, log out
+      %User{current_profile: nil, is_root_admin: false} ->
+        conn
+        |> put_flash(
+          :error,
+          "There's no profile linked to your user. Check with your Lanttern admin."
+        )
+        |> log_out_user()
 
-    assign(conn, :current_user, user)
+      user ->
+        assign(conn, :current_user, user)
+    end
   end
 
   defp ensure_user_token(conn) do

@@ -132,6 +132,26 @@ defmodule Lanttern.Identity do
   end
 
   @doc """
+  Updates an user email.
+
+  This function should be use only in admin (and maybe it should be removed
+  or refactored in the near future, adding more security guards).
+
+  ## Examples
+
+      iex> admin_update_user_email(user, %{"email => "email@blah.com"})
+      {:ok, %User{}}
+
+      iex> admin_update_user_email(user, %{"email => "bad_email@blah.com"})
+      {:error, %Ecto.Changeset{}}
+  """
+  def admin_update_user_email(user, params) do
+    user
+    |> User.email_changeset(params)
+    |> Repo.update()
+  end
+
+  @doc """
   Emulates that the email will change without actually changing
   it in the database.
 
@@ -420,6 +440,25 @@ defmodule Lanttern.Identity do
       {:ok, %{user: user}} -> {:ok, user}
       {:error, :user, changeset, _} -> {:error, changeset}
     end
+  end
+
+  @doc """
+  Deletes a user.
+
+  This function should be used only in admin (and maybe it should be removed
+  or refactored in the near future, adding more security guards).
+
+  ## Examples
+
+      iex> admin_delete_user(user)
+      {:ok, %User{}}
+
+      iex> admin_delete_user(user)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def admin_delete_user(%User{} = user) do
+    Repo.delete(user)
   end
 
   @doc """
