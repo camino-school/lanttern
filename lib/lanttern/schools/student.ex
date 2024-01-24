@@ -8,6 +8,7 @@ defmodule Lanttern.Schools.Student do
   schema "students" do
     field :name, :string
     field :classes_ids, {:array, :id}, virtual: true
+    field :has_diff_rubric, :boolean, virtual: true, default: false
 
     belongs_to :school, Lanttern.Schools.School
 
@@ -15,6 +16,9 @@ defmodule Lanttern.Schools.Student do
       join_through: "classes_students",
       on_replace: :delete,
       preload_order: [asc: :name]
+
+    many_to_many :diff_rubrics, Lanttern.Rubrics.Rubric,
+      join_through: "differentiation_rubrics_students"
 
     timestamps()
   end

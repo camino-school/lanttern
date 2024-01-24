@@ -40,7 +40,7 @@ defmodule LantternWeb.StrandLive.AboutComponent do
         Under the hood, goals in Lanttern are defined by assessment points linked directly to the strand — when adding goals, we are adding assessment points which, in turn, hold the curriculum items we'll want to assess along the strand course.
       </p>
       <div :for={{curriculum_item, i} <- @curriculum_items} class="mt-6">
-        <div class="flex-1 flex items-stretch gap-6 p-6 rounded bg-white shadow-lg">
+        <div class="flex items-stretch gap-6 p-6 rounded bg-white shadow-lg">
           <div class="flex-1">
             <div class="flex items-center gap-4">
               <p class="font-display font-bold text-sm">

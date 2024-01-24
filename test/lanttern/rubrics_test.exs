@@ -7,6 +7,8 @@ defmodule Lanttern.RubricsTest do
 
   describe "rubrics" do
     alias Lanttern.Rubrics.Rubric
+    import Lanttern.AssessmentsFixtures
+    import Lanttern.SchoolsFixtures
 
     @invalid_attrs %{criteria: nil, is_differentiation: nil}
 
@@ -37,7 +39,7 @@ defmodule Lanttern.RubricsTest do
       assert [rubric] == Rubrics.list_rubrics(scale_id: scale.id, is_differentiation: true)
     end
 
-    test "list_full_rubrics/0 returns all rubrics with descriptors preloaded and ordered correctly" do
+    test "list_full_rubrics/1 returns all rubrics with descriptors preloaded and ordered correctly" do
       scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
       ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})
       ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.2})
@@ -61,6 +63,94 @@ defmodule Lanttern.RubricsTest do
         })
 
       [expected] = Rubrics.list_full_rubrics()
+      assert expected.id == rubric.id
+
+      [expected_descriptor_1, expected_descriptor_2] = expected.descriptors
+      assert expected_descriptor_1.id == descriptor_1.id
+      assert expected_descriptor_2.id == descriptor_2.id
+    end
+
+    test "list_full_rubrics/1 with assessment_points_ids opts returns all filtered rubrics with descriptors preloaded and ordered correctly" do
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})
+      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.2})
+
+      rubric = rubric_fixture(%{scale_id: scale.id})
+
+      descriptor_2 =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_2.id
+        })
+
+      descriptor_1 =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_1.id
+        })
+
+      assessment_point = assessment_point_fixture(%{rubric_id: rubric.id})
+
+      # extra fixtures for filter test
+      rubric_fixture(%{scale_id: scale.id})
+      assessment_point_fixture(%{rubric_id: rubric.id})
+
+      [expected] = Rubrics.list_full_rubrics(assessment_points_ids: [assessment_point.id])
+      assert expected.id == rubric.id
+
+      [expected_descriptor_1, expected_descriptor_2] = expected.descriptors
+      assert expected_descriptor_1.id == descriptor_1.id
+      assert expected_descriptor_2.id == descriptor_2.id
+    end
+
+    test "list_full_rubrics/1 with students_ids and parent_rubrics_ids opts returns all filtered rubrics with descriptors preloaded and ordered correctly" do
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})
+      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.2})
+
+      parent_rubric = rubric_fixture(%{scale_id: scale.id})
+      rubric = rubric_fixture(%{scale_id: scale.id, diff_for_rubric_id: parent_rubric.id})
+
+      descriptor_2 =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_2.id
+        })
+
+      descriptor_1 =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_1.id
+        })
+
+      student = student_fixture()
+      Rubrics.link_rubric_to_student(rubric, student.id)
+
+      # extra fixtures for filter test
+      rubric_fixture(%{scale_id: scale.id})
+      other_student = student_fixture()
+      Rubrics.link_rubric_to_student(rubric, other_student.id)
+      other_parent_rubric = rubric_fixture(%{scale_id: scale.id})
+
+      other_rubric =
+        rubric_fixture(%{scale_id: scale.id, diff_for_rubric_id: other_parent_rubric.id})
+
+      Rubrics.link_rubric_to_student(other_rubric, student.id)
+
+      [expected] =
+        Rubrics.list_full_rubrics(
+          students_ids: [student.id],
+          parent_rubrics_ids: [parent_rubric.id]
+        )
+
       assert expected.id == rubric.id
 
       [expected_descriptor_1, expected_descriptor_2] = expected.descriptors
@@ -358,6 +448,74 @@ defmodule Lanttern.RubricsTest do
     test "change_rubric/1 returns a rubric changeset" do
       rubric = rubric_fixture()
       assert %Ecto.Changeset{} = Rubrics.change_rubric(rubric)
+    end
+  end
+
+  describe "differentiation rubrics" do
+    alias Lanttern.Rubrics.Rubric
+    import Lanttern.SchoolsFixtures
+
+    test "link_rubric_to_student/2 links the differentiation rubric to the student" do
+      student = student_fixture()
+      parent_rubric = rubric_fixture()
+      diff_rubric = rubric_fixture(%{diff_for_rubric_id: parent_rubric.id})
+
+      assert Rubrics.link_rubric_to_student(diff_rubric, student.id) == :ok
+      expected = Rubrics.get_rubric!(diff_rubric.id, preloads: :students)
+      assert expected.students == [student]
+
+      # when linking the rubric to a student twice, it should return :ok
+      # (the function handles this duplication internally, avoiding a second insert)
+      assert Rubrics.link_rubric_to_student(diff_rubric, student.id) == :ok
+      expected = Rubrics.get_rubric!(diff_rubric.id, preloads: :students)
+      assert expected.students == [student]
+
+      # only diff rubrics can be linked to students
+      assert Rubrics.link_rubric_to_student(parent_rubric, student.id) ==
+               {:error, "Only differentiation rubrics can be linked to students"}
+
+      expected = Rubrics.get_rubric!(parent_rubric.id, preloads: :students)
+      assert expected.students == []
+    end
+
+    test "unlink_rubric_from_student/2 unlinks the rubric from the student" do
+      student = student_fixture()
+      rubric = rubric_fixture()
+      diff_rubric = rubric_fixture(%{diff_for_rubric_id: rubric.id})
+
+      assert Rubrics.link_rubric_to_student(diff_rubric, student.id) == :ok
+      expected = Rubrics.get_rubric!(diff_rubric.id, preloads: :students)
+      assert expected.students == [student]
+
+      assert Rubrics.unlink_rubric_from_student(diff_rubric, student.id) == :ok
+      expected = Rubrics.get_rubric!(diff_rubric.id, preloads: :students)
+      assert expected.students == []
+
+      # when trying to unlink rubrics and students that are not linked
+      # the function returns ok and nothing changes
+      assert Rubrics.unlink_rubric_from_student(rubric, student.id) == :ok
+    end
+
+    test "create_diff_rubric_for_student/3 creates a differentiation rubric and links it the student" do
+      student = student_fixture()
+      parent_rubric = rubric_fixture()
+      scale = GradingFixtures.scale_fixture()
+
+      valid_attrs = %{
+        criteria: "diff rubric criteria",
+        scale_id: scale.id,
+        diff_for_rubric_id: parent_rubric.id
+      }
+
+      assert {:ok, %Rubric{} = rubric} =
+               Rubrics.create_diff_rubric_for_student(student.id, valid_attrs)
+
+      assert rubric.criteria == "diff rubric criteria"
+      assert rubric.scale_id == scale.id
+      assert rubric.diff_for_rubric_id == parent_rubric.id
+
+      expected = Rubrics.get_rubric!(rubric.id, preloads: :students)
+      assert expected.students == [student]
     end
   end
 

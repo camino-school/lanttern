@@ -66,6 +66,7 @@ defmodule LantternWeb.NavigationComponents do
   attr :person, :map, required: true
   attr :container_selector, :string, required: true
   attr :theme, :string, default: "subtle", doc: "subtle | cyan"
+  attr :on_click, JS, default: %JS{}
   attr :rest, :global, doc: "aria-controls is required"
 
   def person_tab(assigns) do
@@ -82,7 +83,8 @@ defmodule LantternWeb.NavigationComponents do
         person_tab_theme_style(@theme)
       ]}
       phx-click={
-        JS.hide(to: "#{@container_selector} div[role=tabpanel]")
+        @on_click
+        |> JS.hide(to: "#{@container_selector} div[role=tabpanel]")
         |> JS.set_attribute({"aria-selected", "false"},
           to: "#{@container_selector} button[role=tab]"
         )

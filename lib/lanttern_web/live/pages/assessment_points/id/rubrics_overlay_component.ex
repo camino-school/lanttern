@@ -7,6 +7,7 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
   alias LantternWeb.AssessmentPointLive.DifferentiationRubricComponent
 
   # shared components
+  import LantternWeb.RubricsComponents
   alias LantternWeb.Rubrics.RubricFormComponent
   alias LantternWeb.Rubrics.RubricSearchInputComponent
 
@@ -41,13 +42,13 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
           <.live_component
             module={RubricFormComponent}
             id={:new}
-            action={:new}
             rubric={
               %Rubric{
                 scale_id: @assessment_point.scale_id,
                 is_differentiation: false
               }
             }
+            link_to_assessment_point_id={@assessment_point.id}
             hide_diff_and_scale
             show_buttons
             on_cancel={JS.push("cancel_create_new", target: @myself)}
@@ -70,7 +71,7 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
           </div>
           <p class="font-display font-bold"><%= @rubric.criteria %></p>
           <h4 class="mt-10 -mb-2 font-display font-black text-xl text-ltrn-subtle">Descriptors</h4>
-          <.rubric_descriptors descriptors={@rubric.descriptors} class="mt-8" />
+          <.rubric_descriptors rubric={@rubric} class="mt-8" direction="vertical" />
         </section>
         <section :if={!@is_creating_rubric} id="differentiation-rubrics-section" class="pb-10 mt-10">
           <h4 class="-mb-2 font-display font-black text-xl text-ltrn-subtle">Differentiation</h4>
@@ -92,28 +93,6 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
           />
         </section>
       </.slide_over>
-    </div>
-    """
-  end
-
-  # function components
-
-  attr :descriptors, :list, required: true
-  attr :class, :any, default: nil
-
-  defp rubric_descriptors(assigns) do
-    ~H"""
-    <div :for={descriptor <- @descriptors} class={@class}>
-      <%= if descriptor.scale_type == "ordinal" do %>
-        <.badge style_from_ordinal_value={descriptor.ordinal_value}>
-          <%= descriptor.ordinal_value.name %>
-        </.badge>
-      <% else %>
-        <.badge>
-          <%= descriptor.score %>
-        </.badge>
-      <% end %>
-      <.markdown class="mt-2" text={descriptor.descriptor} />
     </div>
     """
   end
@@ -143,9 +122,11 @@ defmodule LantternWeb.AssessmentPointLive.RubricsOverlayComponent do
     do: {:ok, link_rubric_to_assessment_and_notify_parent(socket, rubric_id)}
 
   def update(%{action: {RubricFormComponent, {:created, rubric}}}, socket) do
+    notify_parent({:rubric_linked, rubric.id})
+
     {:ok,
      socket
-     |> link_rubric_to_assessment_and_notify_parent(rubric.id)
+     |> assign(:rubric, Rubrics.get_full_rubric!(rubric.id))
      |> assign(:is_creating_rubric, false)}
   end
 

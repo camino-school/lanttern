@@ -11,6 +11,7 @@ defmodule Lanttern.Assessments do
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.Feedback
   alias Lanttern.Conversation.Comment
+  alias Lanttern.Rubrics
   alias Lanttern.Schools.Student
 
   @doc """
@@ -19,6 +20,7 @@ defmodule Lanttern.Assessments do
   ### Options:
 
   `:preloads` – preloads associated data
+  `:preload_full_rubrics` – boolean, preloads full associated rubrics using `Rubrics.full_rubric_query/0`
   `:assessment_points_ids` – filter result by provided assessment points ids
   `:activities_ids` – filter result by provided activities ids
   `:activities_from_strand_id` – filter result by activities from provided strand id
@@ -32,11 +34,21 @@ defmodule Lanttern.Assessments do
   """
   def list_assessment_points(opts \\ []) do
     AssessmentPoint
+    |> maybe_preload_full_rubrics(Keyword.get(opts, :preload_full_rubrics))
     |> filter_assessment_points(opts)
     |> order_assessment_points(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
+
+  defp maybe_preload_full_rubrics(queryable, true) do
+    from(
+      ap in queryable,
+      preload: [rubric: ^Rubrics.full_rubric_query()]
+    )
+  end
+
+  defp maybe_preload_full_rubrics(queryable, nil), do: queryable
 
   defp filter_assessment_points(queryable, opts) do
     Enum.reduce(opts, queryable, &apply_assessment_points_filter/2)
@@ -57,8 +69,8 @@ defmodule Lanttern.Assessments do
     )
   end
 
-  defp apply_assessment_points_filter({:strands_ids, ids}, queryable),
-    do: from(ap in queryable, where: ap.strand_id in ^ids)
+  defp apply_assessment_points_filter({:strand_id, id}, queryable),
+    do: from(ap in queryable, where: ap.strand_id == ^id)
 
   defp apply_assessment_points_filter(_, queryable), do: queryable
 
@@ -797,5 +809,56 @@ defmodule Lanttern.Assessments do
       _ ->
         {:error, "Something went wrong"}
     end
+  end
+
+  @doc """
+  Creates a rubric and link it to the given assessment point.
+
+  It's a wrapper around `Rubrics.create_rubric/2` with an assessment point update
+  in the same transaction (avoiding "orphans" rubrics).
+
+  If some error happens during rubric creation, it returns a tuple with `:error` and rubric
+  error changeset. If the error happens elsewhere, it returns a tuple with `:error` and a message.
+
+  ## Options
+
+      - View `Rubrics.create_rubric/2`
+
+  ## Examples
+
+      iex> create_assessment_point_rubric(1, %{field: value})
+      {:ok, %AssessmentPointEntry{}}
+
+      iex> create_assessment_point_rubric(2, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+      iex> create_assessment_point_rubric(999, %{field: value})
+      {:ok, "Assessment point not found"}
+
+  """
+  def create_assessment_point_rubric(assessment_point_id, attrs \\ %{}, opts \\ []) do
+    Repo.transaction(fn ->
+      rubric =
+        case Rubrics.create_rubric(attrs, opts) do
+          {:ok, rubric} -> rubric
+          {:error, error_changeset} -> Repo.rollback(error_changeset)
+        end
+
+      assessment_point =
+        case get_assessment_point(assessment_point_id) do
+          nil -> Repo.rollback("Assessment point not found")
+          assessment_point -> assessment_point
+        end
+
+      case update_assessment_point(assessment_point, %{rubric_id: rubric.id}) do
+        {:ok, _assessment_point} ->
+          :ok
+
+        {:error, _error_changeset} ->
+          Repo.rollback("Error linking rubric to the assessment point")
+      end
+
+      rubric
+    end)
   end
 end

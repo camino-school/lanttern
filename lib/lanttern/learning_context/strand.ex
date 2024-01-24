@@ -15,6 +15,7 @@ defmodule Lanttern.LearningContext.Strand do
     field :is_starred, :boolean, virtual: true
 
     has_many :activities, Lanttern.LearningContext.Activity
+    has_many :assessment_points, Lanttern.Assessments.AssessmentPoint
 
     many_to_many :subjects, Lanttern.Taxonomy.Subject,
       join_through: "strands_subjects",

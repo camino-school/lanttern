@@ -22,9 +22,22 @@ defmodule LantternWeb.StrandLive do
   # lifecycle
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok, assign(socket, :strand, nil), layout: {LantternWeb.Layouts, :app_logged_in_blank}}
+  def mount(params, _session, socket) do
+    socket =
+      socket
+      |> assign(:strand, nil)
+      |> maybe_redirect(params)
+
+    {:ok, socket, layout: {LantternWeb.Layouts, :app_logged_in_blank}}
   end
+
+  # prevent user from navigating directly to nested views
+
+  defp maybe_redirect(%{assigns: %{live_action: live_action}} = socket, params)
+       when live_action in [:manage_rubric],
+       do: redirect(socket, to: ~p"/strands/#{params["id"]}?tab=assessment")
+
+  defp maybe_redirect(socket, _params), do: socket
 
   @impl true
   def handle_params(%{"tab" => "assessment"} = params, _url, socket) do
@@ -54,6 +67,10 @@ defmodule LantternWeb.StrandLive do
 
   defp set_current_tab(socket, %{"tab" => tab}, _live_action),
     do: assign(socket, :current_tab, Map.get(@tabs, tab, :about))
+
+  defp set_current_tab(socket, _params, live_action)
+       when live_action in [:manage_rubric],
+       do: assign(socket, :current_tab, :assessment)
 
   defp set_current_tab(socket, _params, _live_action),
     do: assign(socket, :current_tab, :about)
