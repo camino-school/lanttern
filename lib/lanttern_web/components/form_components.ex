@@ -499,6 +499,7 @@ defmodule LantternWeb.FormComponents do
   Generates a generic error message block.
   """
   attr :class, :any, default: nil
+  attr :on_dismiss, JS, default: nil
   attr :rest, :global
   slot :inner_block, required: true
 
@@ -515,6 +516,16 @@ defmodule LantternWeb.FormComponents do
       <div class="flex-1">
         <%= render_slot(@inner_block) %>
       </div>
+      <.icon_button
+        :if={@on_dismiss}
+        name="hero-x-mark"
+        sr_text="Dismiss"
+        size="sm"
+        theme="ghost"
+        rounded
+        class="shrink-0"
+        phx-click={@on_dismiss}
+      />
     </div>
     """
   end

@@ -304,23 +304,17 @@ defmodule Lanttern.Identity do
   end
 
   defp build_flat_profile(%{type: "teacher", teacher: teacher} = profile) do
-    %Profile{
-      id: profile.id,
-      name: teacher.name,
-      type: "teacher",
-      school_id: teacher.school.id,
-      school_name: teacher.school.name
-    }
+    profile
+    |> Map.put(:name, teacher.name)
+    |> Map.put(:school_id, teacher.school.id)
+    |> Map.put(:school_name, teacher.school.name)
   end
 
   defp build_flat_profile(%{type: "student", student: student} = profile) do
-    %Profile{
-      id: profile.id,
-      name: student.name,
-      type: "student",
-      school_id: student.school.id,
-      school_name: student.school.name
-    }
+    profile
+    |> Map.put(:name, student.name)
+    |> Map.put(:school_id, student.school.id)
+    |> Map.put(:school_name, student.school.name)
   end
 
   defp build_flat_profile(profile), do: profile

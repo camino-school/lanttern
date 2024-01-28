@@ -129,6 +129,13 @@ defmodule LantternWeb.UserAuth do
         )
         |> log_out_user()
 
+      # need to check later if this is needed for "dead" views.
+      # for live views, we set the locale using on_mount hook
+      # (see LantternWeb.Localization)
+      %User{current_profile: %{current_locale: current_locale}} = user ->
+        Gettext.put_locale(LantternWeb.Gettext, current_locale)
+        assign(conn, :current_user, user)
+
       user ->
         assign(conn, :current_user, user)
     end

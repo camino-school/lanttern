@@ -1,0 +1,75 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: lib/lanttern_web/components/core_components.ex:422
+#: lib/lanttern_web/components/core_components.ex:484
+#, elixir-autogen, elixir-format
+msgid "Actions"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:26
+#, elixir-autogen, elixir-format
+msgid "Assessment points"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:32
+#, elixir-autogen, elixir-format
+msgid "Curriculum"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:17
+#, elixir-autogen, elixir-format
+msgid "Dashboard"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:29
+#, elixir-autogen, elixir-format
+msgid "Rubrics"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:23
+#, elixir-autogen, elixir-format
+msgid "School"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:20
+#, elixir-autogen, elixir-format
+msgid "Strands"
+msgstr ""
+
+#: lib/lanttern_web/components/core_components.ex:71
+#: lib/lanttern_web/components/overlay_components.ex:65
+#: lib/lanttern_web/components/overlay_components.ex:315
+#, elixir-autogen, elixir-format
+msgid "close"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:69
+#, elixir-autogen, elixir-format
+msgid "Change profile"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:99
+#, elixir-autogen, elixir-format
+msgid "Language:"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:92
+#, elixir-autogen, elixir-format
+msgid "Log out"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:45
+#, elixir-autogen, elixir-format
+msgid "You're logged in as"
+msgstr ""

@@ -1,0 +1,75 @@
+## This file is a PO Template file.
+##
+## "msgid"s here are often extracted from source code.
+## Add new messages manually only if they're dynamic
+## messages that can't be statically extracted.
+##
+## Run "mix gettext.extract" to bring this file up to
+## date. Leave "msgstr"s empty as changing them here has no
+## effect: edit them in PO (.po) files instead.
+#
+msgid ""
+msgstr ""
+
+#: lib/lanttern_web/components/core_components.ex:422
+#: lib/lanttern_web/components/core_components.ex:484
+#, elixir-autogen, elixir-format
+msgid "Actions"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:26
+#, elixir-autogen, elixir-format
+msgid "Assessment points"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:32
+#, elixir-autogen, elixir-format
+msgid "Curriculum"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:17
+#, elixir-autogen, elixir-format
+msgid "Dashboard"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:29
+#, elixir-autogen, elixir-format
+msgid "Rubrics"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:23
+#, elixir-autogen, elixir-format
+msgid "School"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:20
+#, elixir-autogen, elixir-format
+msgid "Strands"
+msgstr ""
+
+#: lib/lanttern_web/components/core_components.ex:71
+#: lib/lanttern_web/components/overlay_components.ex:65
+#: lib/lanttern_web/components/overlay_components.ex:315
+#, elixir-autogen, elixir-format
+msgid "close"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:69
+#, elixir-autogen, elixir-format
+msgid "Change profile"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:99
+#, elixir-autogen, elixir-format
+msgid "Language:"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:92
+#, elixir-autogen, elixir-format
+msgid "Log out"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:45
+#, elixir-autogen, elixir-format
+msgid "You're logged in as"
+msgstr ""
