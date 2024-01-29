@@ -1,0 +1,846 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: pt_BR\n"
+"Plural-Forms: nplurals=2; plural=(n>1);\n"
+
+#: lib/lanttern_web/components/core_components.ex:423
+#: lib/lanttern_web/components/core_components.ex:485
+#, elixir-autogen, elixir-format
+msgid "Actions"
+msgstr "Ações"
+
+#: lib/lanttern_web/live/shared/menu_component.ex:26
+#, elixir-autogen, elixir-format
+msgid "Assessment points"
+msgstr "Pontos de avaliação"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/details_component.ex:11
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:45
+#: lib/lanttern_web/live/shared/menu_component.ex:32
+#, elixir-autogen, elixir-format
+msgid "Curriculum"
+msgstr "Currículo"
+
+#: lib/lanttern_web/live/shared/menu_component.ex:17
+#, elixir-autogen, elixir-format
+msgid "Dashboard"
+msgstr "Dashboard"
+
+#: lib/lanttern_web/live/shared/menu_component.ex:29
+#, elixir-autogen, elixir-format
+msgid "Rubrics"
+msgstr "Rubricas"
+
+#: lib/lanttern_web/live/shared/menu_component.ex:23
+#, elixir-autogen, elixir-format
+msgid "School"
+msgstr "Escola"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:9
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:5
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:2
+#: lib/lanttern_web/live/shared/menu_component.ex:20
+#, elixir-autogen, elixir-format
+msgid "Strands"
+msgstr "Trilhas"
+
+#: lib/lanttern_web/components/core_components.ex:71
+#: lib/lanttern_web/components/overlay_components.ex:65
+#: lib/lanttern_web/components/overlay_components.ex:315
+#, elixir-autogen, elixir-format
+msgid "close"
+msgstr "fechar"
+
+#: lib/lanttern_web/live/shared/menu_component.ex:73
+#, elixir-autogen, elixir-format
+msgid "Change profile"
+msgstr "Alterar perfil"
+
+#: lib/lanttern_web/live/shared/menu_component.ex:103
+#, elixir-autogen, elixir-format
+msgid "Language:"
+msgstr "Idioma:"
+
+#: lib/lanttern_web/live/shared/menu_component.ex:96
+#, elixir-autogen, elixir-format
+msgid "Log out"
+msgstr "Sair"
+
+#: lib/lanttern_web/live/shared/menu_component.ex:45
+#, elixir-autogen, elixir-format
+msgid "You're logged in as"
+msgstr "Você está acessando como"
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:42
+#, elixir-autogen, elixir-format
+msgid "All strands"
+msgstr "Todas as trilhas"
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:100
+#, elixir-autogen, elixir-format
+msgid "Apply filters"
+msgstr "Aplicar filtros"
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:98
+#, elixir-autogen, elixir-format
+msgid "Applying filters..."
+msgstr "Aplicando filtros..."
+
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:121
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:178
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:206
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:260
+#: lib/lanttern_web/live/pages/strands/activity/id/notes_component.ex:35
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:146
+#: lib/lanttern_web/live/pages/strands/id/activities_component.ex:89
+#: lib/lanttern_web/live/pages/strands/id/activities_component.ex:155
+#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:122
+#: lib/lanttern_web/live/pages/strands/id/notes_component.ex:35
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:123
+#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:238
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:93
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:129
+#: lib/lanttern_web/live/shared/rubrics/rubric_form_component.ex:51
+#, elixir-autogen, elixir-format
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:84
+#, elixir-autogen, elixir-format
+msgid "Clear filters"
+msgstr "Limpar filtros"
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:10
+#, elixir-autogen, elixir-format
+msgid "Create new strand"
+msgstr "Criar nova trilha"
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:53
+#, elixir-autogen, elixir-format
+msgid "Filter Strands"
+msgstr "Filtar Trilhas"
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:5
+#, elixir-autogen, elixir-format
+msgid "I want to explore strands in"
+msgstr "Quero explorar trilhas em"
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:47
+#, elixir-autogen, elixir-format
+msgid "Load more strands"
+msgstr "Carregar mais trilhas"
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:110
+#, elixir-autogen, elixir-format
+msgid "New strand"
+msgstr "Nova trilha"
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:15
+#, elixir-autogen, elixir-format
+msgid "No strands created for selected years and subjects"
+msgstr "Nenhuma trilha criadas para os anos e componentes selecionados"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:124
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:181
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:263
+#: lib/lanttern_web/live/pages/strands/activity/id/notes_component.ex:38
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:149
+#: lib/lanttern_web/live/pages/strands/id/activities_component.ex:92
+#: lib/lanttern_web/live/pages/strands/id/activities_component.ex:158
+#: lib/lanttern_web/live/pages/strands/id/notes_component.ex:38
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:126
+#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:245
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:132
+#: lib/lanttern_web/live/shared/rubrics/rubric_form_component.ex:53
+#, elixir-autogen, elixir-format
+msgid "Save"
+msgstr "Salvar"
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:70
+#: lib/lanttern_web/live/shared/learning_context/activity_form_component.ex:57
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:112
+#, elixir-autogen, elixir-format
+msgid "Subjects"
+msgstr "Componentes"
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:25
+#, elixir-autogen, elixir-format
+msgid "Toggle starred strands"
+msgstr "Alternar trilhas favoritas"
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:57
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:125
+#, elixir-autogen, elixir-format
+msgid "Years"
+msgstr "Anos"
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:20
+#, elixir-autogen, elixir-format
+msgid "Your starred strands"
+msgstr "Suas trilhas favoritas"
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:45
+#, elixir-autogen, elixir-format
+msgid "Cancel cover replacement"
+msgstr "Cancelar substituição da capa"
+
+#: lib/lanttern_web/live/shared/learning_context/activity_form_component.ex:45
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:100
+#, elixir-autogen, elixir-format
+msgid "Description"
+msgstr "Descrição"
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:73
+#, elixir-autogen, elixir-format
+msgid "File \"%{file}\" is invalid."
+msgstr "O arquivo \"%{file}\" é inválido."
+
+#: lib/lanttern_web/live/shared/learning_context/activity_form_component.ex:38
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:93
+#, elixir-autogen, elixir-format
+msgid "Name"
+msgstr "Nome"
+
+#: lib/lanttern_web/live/shared/learning_context/activity_form_component.ex:59
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:114
+#, elixir-autogen, elixir-format
+msgid "No subject selected"
+msgstr "Nenhum componente selecionado"
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:127
+#, elixir-autogen, elixir-format
+msgid "No year selected"
+msgstr "Nenhum ano selecionado"
+
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:22
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:17
+#: lib/lanttern_web/live/shared/rubrics/rubric_form_component.ex:27
+#, elixir-autogen, elixir-format
+msgid "Oops, something went wrong! Please check the errors below."
+msgstr "Oops, algo deu errado! Por favor, confira os erros abaixo."
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:60
+#, elixir-autogen, elixir-format
+msgid "Replace image"
+msgstr "Alterar imagem"
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:133
+#, elixir-autogen, elixir-format
+msgid "Save Strand"
+msgstr "Salvar Trilha"
+
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:148
+#: lib/lanttern_web/live/shared/learning_context/activity_form_component.ex:65
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:132
+#, elixir-autogen, elixir-format
+msgid "Saving..."
+msgstr "Salvando..."
+
+#: lib/lanttern_web/live/shared/learning_context/activity_form_component.ex:58
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:113
+#, elixir-autogen, elixir-format
+msgid "Select subject"
+msgstr "Selecionar componente"
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:126
+#, elixir-autogen, elixir-format
+msgid "Select year"
+msgstr "Selecionar ano"
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:260
+#, elixir-autogen, elixir-format
+msgid "Strand created successfully"
+msgstr "Trilha criada com sucesso"
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:243
+#, elixir-autogen, elixir-format
+msgid "Strand updated successfully"
+msgstr "Trilha atualizada com sucesso"
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:34
+#, elixir-autogen, elixir-format
+msgid "Upload a cover image file"
+msgstr "Faça o upload de um arquivo de imagem de capa"
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:85
+#, elixir-autogen, elixir-format
+msgid "cancel"
+msgstr "cancelar"
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:37
+#, elixir-autogen, elixir-format
+msgid "or drag and drop here"
+msgstr "ou arraste e solte aqui"
+
+#: lib/lanttern_web/components/core_components.ex:110
+#, elixir-autogen, elixir-format
+msgid "Attempting to reconnect"
+msgstr "Tentando reconectar"
+
+#: lib/lanttern_web/components/core_components.ex:101
+#, elixir-autogen, elixir-format
+msgid "Error!"
+msgstr "Erro!"
+
+#: lib/lanttern_web/components/core_components.ex:122
+#, elixir-autogen, elixir-format
+msgid "Hang in there while we get back on track"
+msgstr "Aguente firme enquanto nos reconectamos"
+
+#: lib/lanttern_web/components/form_components.ex:552
+#, elixir-autogen, elixir-format
+msgid "Markdown supported"
+msgstr "Suporta Markdown"
+
+#: lib/lanttern_web/components/core_components.ex:100
+#, elixir-autogen, elixir-format
+msgid "Success!"
+msgstr "Sucesso!"
+
+#: lib/lanttern_web/components/core_components.ex:105
+#, elixir-autogen, elixir-format
+msgid "We can't find the internet"
+msgstr "Não conseguimos nos conectar"
+
+#: lib/lanttern_web/components/core_components.ex:117
+#, elixir-autogen, elixir-format
+msgid "Something went wrong!"
+msgstr "Algo deu errado!"
+
+#: lib/lanttern_web/live/pages/strands/strands_live.ex:20
+#, elixir-autogen, elixir-format
+msgid "all %{type}"
+msgstr "todos %{type}"
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:7
+#, elixir-autogen, elixir-format
+msgid "subjects"
+msgstr "componentes"
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:6
+#, elixir-autogen, elixir-format
+msgid "years"
+msgstr "anos"
+
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:28
+#, elixir-autogen, elixir-format
+msgid "About"
+msgstr "Sobre"
+
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:40
+#, elixir-autogen, elixir-format
+msgid "Activities"
+msgstr "Atividades"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:45
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:34
+#, elixir-autogen, elixir-format
+msgid "Assessment"
+msgstr "Avaliação"
+
+#: lib/lanttern_web/live/pages/strands/id/strand_live.ex:85
+#, elixir-autogen, elixir-format
+msgid "Couldn't find strand"
+msgstr "Não foi possível encontrar a trilha"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:69
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:169
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:137
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:64
+#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:229
+#, elixir-autogen, elixir-format
+msgid "Delete"
+msgstr "Deletar"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:10
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:6
+#, elixir-autogen, elixir-format
+msgid "Details"
+msgstr "Detalhes"
+
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:56
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:108
+#, elixir-autogen, elixir-format
+msgid "Edit strand"
+msgstr "Editar trilha"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:52
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:47
+#, elixir-autogen, elixir-format
+msgid "My notes"
+msgstr "Minhas anotações"
+
+#: lib/lanttern_web/live/pages/strands/id/strand_live.ex:104
+#, elixir-autogen, elixir-format
+msgid "Strand deleted"
+msgstr "Trilha deletada"
+
+#: lib/lanttern_web/live/pages/strands/id/notes_component.ex:64
+#, elixir-autogen, elixir-format
+msgid "Add a strand note"
+msgstr "Adicionar uma anotação da trilha"
+
+#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:171
+#, elixir-autogen, elixir-format
+msgid "Add diff"
+msgstr "Adicionar diferenciação"
+
+#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:69
+#, elixir-autogen, elixir-format
+msgid "Add rubric"
+msgstr "Adicionar rubrica"
+
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:35
+#, elixir-autogen, elixir-format
+msgid "Add strand goal"
+msgstr "Adicionar objetivo da trilha"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/notes_component.ex:19
+#: lib/lanttern_web/live/pages/strands/id/notes_component.ex:19
+#, elixir-autogen, elixir-format
+msgid "Add your notes..."
+msgstr "Adicione suas anotações..."
+
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:67
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:145
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:167
+#: lib/lanttern_web/live/pages/strands/activity/id/notes_component.ex:28
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:113
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:135
+#: lib/lanttern_web/live/pages/strands/id/notes_component.ex:28
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:62
+#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:227
+#, elixir-autogen, elixir-format
+msgid "Are you sure?"
+msgstr "Você tem certeza?"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:186
+#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:102
+#: lib/lanttern_web/live/shared/schools/class_filter_form_component.ex:19
+#, elixir-autogen, elixir-format
+msgid "Classes"
+msgstr "Turmas"
+
+#: lib/lanttern_web/live/pages/strands/id/activities_component.ex:32
+#, elixir-autogen, elixir-format
+msgid "Create new activity"
+msgstr "Criar nova atividade"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:71
+#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:53
+#, elixir-autogen, elixir-format
+msgid "Current assessment points"
+msgstr "Pontos de avaliação atuais"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/notes_component.ex:30
+#: lib/lanttern_web/live/pages/strands/id/notes_component.ex:30
+#, elixir-autogen, elixir-format
+msgid "Delete note"
+msgstr "Deletar anotação"
+
+#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:90
+#, elixir-autogen, elixir-format
+msgid "Differentiation"
+msgstr "Diferenciação"
+
+#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:209
+#, elixir-autogen, elixir-format
+msgid "Differentiation for %{name}"
+msgstr "Diferenciação para %{name}"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/notes_component.ex:51
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:57
+#: lib/lanttern_web/live/pages/strands/id/notes_component.ex:51
+#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:265
+#, elixir-autogen, elixir-format
+msgid "Edit"
+msgstr "Editar"
+
+#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:17
+#, elixir-autogen, elixir-format
+msgid "Goal rubrics"
+msgstr "Rubricas de objetivo"
+
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:17
+#, elixir-autogen, elixir-format
+msgid "Goals"
+msgstr "Objetivos"
+
+#: lib/lanttern_web/live/pages/strands/id/activities_component.ex:137
+#, elixir-autogen, elixir-format
+msgid "Move activity down"
+msgstr "Mover atividade para baixo"
+
+#: lib/lanttern_web/live/pages/strands/id/activities_component.ex:126
+#, elixir-autogen, elixir-format
+msgid "Move activity up"
+msgstr "Mover atividade para cima"
+
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:76
+#, elixir-autogen, elixir-format
+msgid "Move curriculum item down"
+msgstr "Mover item curricular para baixo"
+
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:65
+#, elixir-autogen, elixir-format
+msgid "Move curriculum item up"
+msgstr "Mover item curricular para cima"
+
+#: lib/lanttern_web/live/pages/strands/id/notes_component.ex:48
+#, elixir-autogen, elixir-format
+msgid "My strand notes (visible only to you)"
+msgstr "Minhas anotações sobre a trilha (visível somente para mim)"
+
+#: lib/lanttern_web/live/pages/strands/id/activities_component.ex:73
+#, elixir-autogen, elixir-format
+msgid "New activity"
+msgstr "Nova atividade"
+
+#: lib/lanttern_web/live/pages/strands/id/activities_component.ex:38
+#, elixir-autogen, elixir-format
+msgid "No activities for this strand yet"
+msgstr "Nenhuma atividade para esta trilha ainda"
+
+#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:46
+#, elixir-autogen, elixir-format
+msgid "No assessment points for this strand yet"
+msgstr "Nenhum ponto de avaliação para esta trilha ainda"
+
+#: lib/lanttern_web/live/pages/strands/id/notes_component.ex:70
+#, elixir-autogen, elixir-format
+msgid "Other notes in this strand"
+msgstr "Outras anotações nesta trilha"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:51
+#: lib/lanttern_web/live/pages/strands/id/activities_component.ex:25
+#, elixir-autogen, elixir-format
+msgid "Reorder"
+msgstr "Reordenar"
+
+#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:201
+#, elixir-autogen, elixir-format
+msgid "Rubric"
+msgstr "Rubrica"
+
+#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:263
+#, elixir-autogen, elixir-format
+msgid "Rubric criteria:"
+msgstr "Critério da rubrica:"
+
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:27
+#, elixir-autogen, elixir-format
+msgid "Save updated order"
+msgstr "Salvar ordem atualizada"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:213
+#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:129
+#, elixir-autogen, elixir-format
+msgid "Select"
+msgstr "Selecionar"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:39
+#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:38
+#, elixir-autogen, elixir-format
+msgid "Select a class"
+msgstr "Selecione uma turma"
+
+#: lib/lanttern_web/live/pages/strands/id/activities_component.ex:113
+#, elixir-autogen, elixir-format
+msgid "Strand Activities Order"
+msgstr "Ordem das Atividades da Trilha"
+
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:94
+#, elixir-autogen, elixir-format
+msgid "Strand Goal"
+msgstr "Objetivo da Trilha"
+
+#: lib/lanttern_web/live/pages/strands/id/activities_component.ex:16
+#, elixir-autogen, elixir-format
+msgid "Strand activities"
+msgstr "Atividades da trilha"
+
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:215
+#, elixir-autogen, elixir-format
+msgid "This goal already have some entries. Deleting it will cause data loss."
+msgstr "Este objetivo já possui alguns registros. Deletá-lo irá causar perda de dados."
+
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:40
+#, elixir-autogen, elixir-format
+msgid "Under the hood, goals in Lanttern are defined by assessment points linked directly to the strand — when adding goals, we are adding assessment points which, in turn, hold the curriculum items we'll want to assess along the strand course."
+msgstr "Por baixo dos panos, objetivos no Lanttern são definidos por pontos de avaliação vinculados diretamente à trilha — ao adicionar objetivos, nós estamos adicionando pontos de avaliação que, por sua vez, contém os itens curriculares que nós queremos avaliar ao longo da trilha."
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:148
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:116
+#, elixir-autogen, elixir-format
+msgid "Understood. Delete anyway"
+msgstr "Compreendo. Deletar mesmo assim"
+
+#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:20
+#, elixir-autogen, elixir-format
+msgid "Viewing"
+msgstr "Visualizando"
+
+#: lib/lanttern_web/live/pages/strands/id/notes_component.ex:56
+#, elixir-autogen, elixir-format
+msgid "You don't have any notes for this strand yet"
+msgstr "Você ainda não poussui anotações para esta trilha"
+
+#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:36
+#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:127
+#, elixir-autogen, elixir-format
+msgid "collapse"
+msgstr "fechar"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:157
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:125
+#, elixir-autogen, elixir-format
+msgid "dismiss"
+msgstr "dispensar"
+
+#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:50
+#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:145
+#, elixir-autogen, elixir-format
+msgid "expand"
+msgstr "expandir"
+
+#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:40
+#, elixir-autogen, elixir-format
+msgid "to view students assessments"
+msgstr "para visualizar avaliações dos estudantes"
+
+#: lib/lanttern_web/live/shared/learning_context/activity_form_component.ex:167
+#, elixir-autogen, elixir-format
+msgid "Activity created successfully"
+msgstr "Atividade criada com sucesso"
+
+#: lib/lanttern_web/live/shared/learning_context/activity_form_component.ex:150
+#, elixir-autogen, elixir-format
+msgid "Activity updated successfully"
+msgstr "Atividade atualizada com sucesso"
+
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:28
+#, elixir-autogen, elixir-format
+msgid "Assessment point name"
+msgstr "Nome do pontos de avaliação"
+
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:59
+#, elixir-autogen, elixir-format
+msgid "No curriculum item selected"
+msgstr "Nenhum item curricular selecionado"
+
+#: lib/lanttern_web/live/shared/learning_context/activity_form_component.ex:63
+#, elixir-autogen, elixir-format
+msgid "Position"
+msgstr "Posição"
+
+#: lib/lanttern_web/live/shared/learning_context/activity_form_component.ex:66
+#, elixir-autogen, elixir-format
+msgid "Save activity"
+msgstr "Salvar atividade"
+
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:69
+#: lib/lanttern_web/live/shared/rubrics/rubric_form_component.ex:41
+#, elixir-autogen, elixir-format
+msgid "Scale"
+msgstr "Escala"
+
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:71
+#, elixir-autogen, elixir-format
+msgid "Select a scale"
+msgstr "Selecione uma escala"
+
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:37
+#, elixir-autogen, elixir-format
+msgid "Select curriculum item"
+msgstr "Selecionar item curricular"
+
+#: lib/lanttern_web/live/shared/learning_context/activity_form_component.ex:28
+#, elixir-autogen, elixir-format
+msgid "Select strand"
+msgstr "Selecionar trilha"
+
+#: lib/lanttern_web/live/shared/learning_context/activity_form_component.ex:27
+#, elixir-autogen, elixir-format
+msgid "Strand"
+msgstr "Trilha"
+
+#: lib/lanttern_web/live/shared/curricula/curriculum_item_search_component.ex:13
+#, elixir-autogen, elixir-format
+msgid "You can search by id adding # before the id"
+msgstr "Você pode buscar pelo id adicionando # antes do id"
+
+#: lib/lanttern_web/live/shared/curricula/curriculum_item_search_component.ex:17
+#, elixir-autogen, elixir-format
+msgid "and search by code wrapping it in parenthesis"
+msgstr "e buscar pelo código colocando parênteses"
+
+#: lib/lanttern_web/live/shared/rubrics/rubric_form_component.ex:117
+#, elixir-autogen, elixir-format
+msgid "Add descriptor"
+msgstr "Adicionar descritor"
+
+#: lib/lanttern_web/live/shared/rubrics/rubric_form_component.ex:31
+#, elixir-autogen, elixir-format
+msgid "Criteria"
+msgstr "Critério"
+
+#: lib/lanttern_web/live/shared/rubrics/rubric_form_component.ex:72
+#: lib/lanttern_web/live/shared/rubrics/rubric_form_component.ex:92
+#, elixir-autogen, elixir-format
+msgid "Descriptors"
+msgstr "Descritores"
+
+#: lib/lanttern_web/live/shared/rubrics/rubric_form_component.ex:35
+#, elixir-autogen, elixir-format
+msgid "Is differentiation"
+msgstr "É diferenciação"
+
+#: lib/lanttern_web/live/shared/rubrics/rubric_form_component.ex:368
+#, elixir-autogen, elixir-format
+msgid "Rubric created successfully"
+msgstr "Rubrica criada com sucesso"
+
+#: lib/lanttern_web/live/shared/rubrics/rubric_form_component.ex:343
+#, elixir-autogen, elixir-format
+msgid "Rubric updated successfully"
+msgstr "Rubrica atualizada com sucesso"
+
+#: lib/lanttern_web/live/shared/rubrics/rubric_form_component.ex:104
+#, elixir-autogen, elixir-format
+msgid "Score"
+msgstr "Score"
+
+#: lib/lanttern_web/live/shared/rubrics/rubric_form_component.ex:66
+#, elixir-autogen, elixir-format
+msgid "Select a scale to create descriptors"
+msgstr "Selecione uma escala para criar descritores"
+
+#: lib/lanttern_web/live/shared/rubrics/rubric_form_component.ex:43
+#, elixir-autogen, elixir-format
+msgid "Select scale"
+msgstr "Selecione uma escala"
+
+#: lib/lanttern_web/live/shared/rubrics/rubric_form_component.ex:73
+#: lib/lanttern_web/live/shared/rubrics/rubric_form_component.ex:93
+#, elixir-autogen, elixir-format
+msgid "Markdown supported in descriptors"
+msgstr "Suporta Markdown nos descritores"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:11
+#, elixir-autogen, elixir-format
+msgid "Activity"
+msgstr "Atividade"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.ex:98
+#, elixir-autogen, elixir-format
+msgid "Activity deleted"
+msgstr "Atividade deletada"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.ex:106
+#, elixir-autogen, elixir-format
+msgid "Activity has linked assessments. Deleting it would cause some data loss."
+msgstr "Atividade com avaliações conectadas. Deletá-la causaria perda de dados."
+
+#: lib/lanttern_web/live/pages/strands/activity/id/notes_component.ex:66
+#, elixir-autogen, elixir-format
+msgid "Add an activity note"
+msgstr "Adicionar anotações da atividade"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:21
+#, elixir-autogen, elixir-format
+msgid "Assessing"
+msgstr "Avaliando"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:126
+#, elixir-autogen, elixir-format
+msgid "Assessment Point"
+msgstr "Ponto de Avaliação"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:218
+#, elixir-autogen, elixir-format
+msgid "Assessment Points Order"
+msgstr "Ordem dos Pontos de Avaliação"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.ex:79
+#, elixir-autogen, elixir-format
+msgid "Couldn't find activity"
+msgstr "Não foi possível encontrar a atividade"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:58
+#, elixir-autogen, elixir-format
+msgid "Create assessment point"
+msgstr "Criar ponto de avaliação"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:39
+#, elixir-autogen, elixir-format
+msgid "Details & Curriculum"
+msgstr "Detalhes & Currículo"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:61
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:106
+#, elixir-autogen, elixir-format
+msgid "Edit activity"
+msgstr "Editar atividade"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:242
+#, elixir-autogen, elixir-format
+msgid "Move assessment point down"
+msgstr "Mover ponto de avaliação para baixo"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:231
+#, elixir-autogen, elixir-format
+msgid "Move assessment point up"
+msgstr "Mover ponto de avaliação para cima"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/notes_component.ex:48
+#, elixir-autogen, elixir-format
+msgid "My activity notes (visible only to you)"
+msgstr "Minhas anotações sobre a atividade (visível somente para mim)"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:64
+#, elixir-autogen, elixir-format
+msgid "No assessment points for this activity yet"
+msgstr "Nenhum ponto de avaliação para esta atividade ainda"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:437
+#, elixir-autogen, elixir-format
+msgid "This assessment point already have some entries. Deleting it will cause data loss."
+msgstr "Este ponto de avaliação já possui alguns registros. Deletá-lo irá causar perda de dados."
+
+#: lib/lanttern_web/live/pages/strands/activity/id/notes_component.ex:57
+#, elixir-autogen, elixir-format
+msgid "You don't have any notes for this activity yet"
+msgstr "Você ainda não poussui anotações para esta atividade"
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:41
+#, elixir-autogen, elixir-format
+msgid "to assess students"
+msgstr "para avaliar estudantes"
+
+#: lib/lanttern/learning_context/activity.ex:42
+#, elixir-autogen, elixir-format
+msgid "Activity has linked assessment points."
+msgstr "Atividade possui pontos de avaliação conectados."
+
+#: lib/lanttern_web/live/pages/strands/id/strand_live.ex:112
+#, elixir-autogen, elixir-format
+msgid "Strand has linked activities and/or assessment points (goals). Deleting it would cause some data loss."
+msgstr "Trilha com atividades e/ou pontos de avaliação (objetivos) conectados. Deletá-la causaria perda de dados."
+
+#: lib/lanttern/learning_context/strand.ex:47
+#, elixir-autogen, elixir-format
+msgid "Strand has linked activities."
+msgstr "Trilha possui atividades conectadas."
+
+#: lib/lanttern/learning_context/strand.ex:52
+#, elixir-autogen, elixir-format
+msgid "Strand has linked assessment points."
+msgstr "Trilha possui pontos de avaliação conectados."

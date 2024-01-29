@@ -14,25 +14,25 @@ defmodule LantternWeb.MenuComponent do
           <nav>
             <ul class="grid grid-cols-3 gap-px border-b border-ltrn-lighter bg-ltrn-lighter">
               <.nav_item active={@active_nav == :dashboard} path={~p"/dashboard"}>
-                Dashboard
+                <%= gettext("Dashboard") %>
               </.nav_item>
               <.nav_item active={@active_nav == :strands} path={~p"/strands"}>
-                Strands
+                <%= gettext("Strands") %>
               </.nav_item>
               <.nav_item active={@active_nav == :school} path={~p"/school"}>
-                School
+                <%= gettext("School") %>
               </.nav_item>
               <.nav_item active={@active_nav == :assessment_points} path={~p"/assessment_points"}>
-                Assessment points
+                <%= gettext("Assessment points") %>
               </.nav_item>
               <.nav_item active={@active_nav == :rubrics} path={~p"/rubrics"}>
-                Rubrics
+                <%= gettext("Rubrics") %>
               </.nav_item>
               <.nav_item active={@active_nav == :curriculum} path={~p"/curriculum"}>
-                Curriculum
+                <%= gettext("Curriculum") %>
               </.nav_item>
-              <li class="bg-white"></li>
-              <li class="bg-white"></li>
+              <%!-- use this li as placeholder when nav items % 3 != 0--%>
+              <%!-- <li class="bg-white"></li>--%>
             </ul>
           </nav>
           <h5 class="relative flex items-center ml-6 mb-6 font-display font-black text-3xl text-ltrn-dark">
@@ -40,13 +40,19 @@ defmodule LantternWeb.MenuComponent do
             <span class="relative -ml-10">lanttern</span>
           </h5>
         </div>
-        <div class="w-96 p-10 font-display overflow-y-auto">
-          <p class="mb-4 font-black text-lg text-ltrn-primary">You're logged in as</p>
+        <div class="flex flex-col w-96 p-10 font-display overflow-y-auto">
+          <p class="mb-4 font-black text-lg text-ltrn-primary">
+            <%= gettext("You're logged in as") %>
+          </p>
           <p class="font-black text-4xl text-ltrn-dark">
             <%= @current_profile.name %>
           </p>
           <p class="mt-2 font-black text-lg text-ltrn-dark">
-            <%= String.capitalize(@current_profile.type) %> @ <%= @current_profile.school_name %>
+            <%= Gettext.dgettext(
+              LantternWeb.Gettext,
+              "schools",
+              String.capitalize(@current_profile.type)
+            ) %> @ <%= @current_profile.school_name %>
           </p>
           <nav class="mt-10">
             <ul class="font-bold text-lg text-ltrn-subtle leading-loose">
@@ -64,7 +70,8 @@ defmodule LantternWeb.MenuComponent do
                   phx-click={toggle_profile_list()}
                   class="flex items-center gap-2 underline hover:text-ltrn-dark"
                 >
-                  Change profile <.icon name="hero-chevron-down" id="profile-list-down-icon" />
+                  <%= gettext("Change profile") %>
+                  <.icon name="hero-chevron-down" id="profile-list-down-icon" />
                   <.icon name="hero-chevron-up" id="profile-list-up-icon" class="hidden" />
                 </button>
                 <ul id="profile-list" class="hidden mt-2 mb-4 divide-y divide-ltrn-lighter">
@@ -86,11 +93,38 @@ defmodule LantternWeb.MenuComponent do
                   method="delete"
                   class="underline hover:text-ltrn-dark"
                 >
-                  Log out
+                  <%= gettext("Log out") %>
                 </.link>
               </li>
             </ul>
           </nav>
+          <span class="flex-1" />
+          <div class="flex items-center gap-4 font-bold text-sm text-ltrn-subtle leading-loose">
+            <span><%= gettext("Language:") %></span>
+            <.lang_button
+              is_current={@current_user.current_profile.current_locale == "en"}
+              phx-click="set_locale"
+              phx-value-locale="en"
+              phx-target={@myself}
+            >
+              EN
+            </.lang_button>
+            <.lang_button
+              is_current={@current_user.current_profile.current_locale == "pt_BR"}
+              phx-click="set_locale"
+              phx-value-locale="pt_BR"
+              phx-target={@myself}
+            >
+              PT-BR
+            </.lang_button>
+          </div>
+          <.error_block
+            :if={@locale_error}
+            on_dismiss={JS.push("dismiss_locale_error", target: @myself)}
+            class="mt-4"
+          >
+            <%= @locale_error %>
+          </.error_block>
         </div>
       </.panel_overlay>
     </div>
@@ -171,7 +205,7 @@ defmodule LantternWeb.MenuComponent do
             <%= @name %>
           </span>
           <span class="font-sans font-normal text-xs">
-            <%= String.capitalize(@profile.type) %> @ <%= @school %>
+            <%= Gettext.dgettext(LantternWeb.Gettext, "schools", String.capitalize(@profile.type)) %> @ <%= @school %>
           </span>
         </div>
       </button>
@@ -184,6 +218,22 @@ defmodule LantternWeb.MenuComponent do
     |> JS.toggle(to: "#profile-list")
     |> JS.toggle(to: "#profile-list-down-icon")
     |> JS.toggle(to: "#profile-list-up-icon")
+  end
+
+  attr :is_current, :boolean, required: true
+  attr :rest, :global, doc: "use to pass phx-* bindings to change profile button"
+  slot :inner_block, required: true
+
+  def lang_button(assigns) do
+    ~H"""
+    <button
+      type="button"
+      class={if(@is_current, do: "text-ltrn-dark", else: "hover:underline")}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </button>
+    """
   end
 
   # lifecycle
@@ -225,7 +275,12 @@ defmodule LantternWeb.MenuComponent do
           nil
       end
 
-    {:ok, assign(socket, :active_nav, active_nav)}
+    socket =
+      socket
+      |> assign(:locale_error, nil)
+      |> assign(:active_nav, active_nav)
+
+    {:ok, socket}
   end
 
   def update(%{current_user: current_user} = assigns, socket) do
@@ -251,5 +306,26 @@ defmodule LantternWeb.MenuComponent do
     Identity.update_user_current_profile_id(user, profile_id)
 
     {:noreply, push_navigate(socket, to: socket.assigns.current_path, replace: true)}
+  end
+
+  def handle_event("set_locale", %{"locale" => locale}, socket) do
+    Identity.update_profile(
+      socket.assigns.current_user.current_profile,
+      %{current_locale: locale}
+    )
+    |> case do
+      {:ok, _profile} ->
+        {:noreply, redirect(socket, to: socket.assigns.current_path)}
+
+      {:error, %Ecto.Changeset{errors: [current_locale: {error_msg, _}]}} ->
+        {:noreply, assign(socket, :locale_error, error_msg)}
+
+      {:error, _} ->
+        {:noreply, assign(socket, :locale_error, "Something went wrong")}
+    end
+  end
+
+  def handle_event("dismiss_locale_error", _params, socket) do
+    {:noreply, assign(socket, :locale_error, nil)}
   end
 end

@@ -14,7 +14,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
   def render(assigns) do
     ~H"""
     <div class="container mx-auto lg:max-w-5xl">
-      <h3 class="mt-16 font-display font-black text-3xl">Goal rubrics</h3>
+      <h3 class="mt-16 font-display font-black text-3xl"><%= gettext("Goal rubrics") %></h3>
       <div
         :for={assessment_point <- @assessment_points}
         id={"strand-assessment-point-#{assessment_point.id}"}
@@ -33,7 +33,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                 name="hero-arrows-pointing-in"
                 theme="ghost"
                 rounded
-                sr_text="collapse"
+                sr_text={gettext("collapse")}
                 phx-click={
                   JS.toggle(to: "#goal-rubric-#{assessment_point.rubric_id}")
                   |> JS.toggle(
@@ -47,7 +47,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                 class="hidden"
                 theme="ghost"
                 rounded
-                sr_text="expand"
+                sr_text={gettext("expand")}
                 phx-click={
                   JS.toggle(to: "#goal-rubric-#{assessment_point.rubric_id}")
                   |> JS.toggle(
@@ -66,7 +66,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                 }
                 phx-target={@myself}
               >
-                Add rubric
+                <%= gettext("Add rubric") %>
               </.button>
             <% end %>
           </div>
@@ -86,7 +86,9 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
         </div>
       </div>
       <section id="differentiation-rubrics-section" class="pb-10 mt-10">
-        <h4 class="-mb-2 font-display font-black text-xl text-ltrn-subtle">Differentiation</h4>
+        <h4 class="-mb-2 font-display font-black text-xl text-ltrn-subtle">
+          <%= gettext("Differentiation") %>
+        </h4>
         <div role="tablist" class="flex flex-wrap items-center gap-2 mt-6">
           <.person_tab
             :for={student <- @students}
@@ -122,7 +124,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                     name="hero-arrows-pointing-in"
                     theme="ghost"
                     rounded
-                    sr_text="collapse"
+                    sr_text={gettext("collapse")}
                     phx-click={
                       JS.toggle(
                         to:
@@ -140,7 +142,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                     class="hidden"
                     theme="ghost"
                     rounded
-                    sr_text="expand"
+                    sr_text={gettext("expand")}
                     phx-click={
                       JS.toggle(
                         to:
@@ -166,7 +168,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                     }
                     phx-target={@myself}
                   >
-                    Add diff
+                    <%= gettext("Add diff") %>
                   </.button>
                 <% end %>
               </div>
@@ -196,7 +198,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
         show={true}
         on_cancel={JS.patch(~p"/strands/#{@strand}?tab=assessment")}
       >
-        <:title>Rubric</:title>
+        <:title><%= gettext("Rubric") %></:title>
         <p>
           <strong class="inline-block mr-2 font-display font-bold">
             <%= @assessment_point.curriculum_item.curriculum_component.name %>
@@ -204,7 +206,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
           <%= @assessment_point.curriculum_item.name %>
         </p>
         <p :if={@student} class="mt-6 font-display font-bold">
-          Differentiation for <%= @student.name %>
+          <%= gettext("Differentiation for %{name}", name: @student.name) %>
         </p>
         <.live_component
           module={RubricFormComponent}
@@ -222,9 +224,9 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
             theme="ghost"
             phx-click="delete_rubric"
             phx-target={@myself}
-            data-confirm="Are you sure?"
+            data-confirm={gettext("Are you sure?")}
           >
-            Delete
+            <%= gettext("Delete") %>
           </.button>
         </:actions_left>
         <:actions>
@@ -233,14 +235,14 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
             theme="ghost"
             phx-click={JS.exec("data-cancel", to: "#rubric-form-overlay")}
           >
-            Cancel
+            <%= gettext("Cancel") %>
           </.button>
           <.button
             type="submit"
             form={"rubric-form-#{@rubric.id || :new}"}
             phx-disable-with="Saving..."
           >
-            Save
+            <%= gettext("Save") %>
           </.button>
         </:actions>
       </.slide_over>
@@ -258,9 +260,9 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
     ~H"""
     <div class={@class} id={@id}>
       <p class="mb-6 font-display font-black">
-        Rubric criteria: <%= @rubric.criteria %>
+        <%= gettext("Rubric criteria:") %> <%= @rubric.criteria %>
         <button class="ml-2 underline text-ltrn-subtle hover:text-ltrn-dark" phx-click={@on_edit}>
-          Edit
+          <%= gettext("Edit") %>
         </button>
       </p>
       <.rubric_descriptors rubric={@rubric} />
@@ -418,7 +420,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
       {:error, _changeset} ->
         socket =
           socket
-          |> put_flash(:error, "Something went wrong")
+          |> put_flash(:error, dgettext("errors", "Something went wrong"))
           |> push_patch(to: ~p"/strands/#{socket.assigns.strand}/rubric/manage")
 
         {:noreply, socket}

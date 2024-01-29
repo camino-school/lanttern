@@ -15,7 +15,9 @@ defmodule LantternWeb.Schools.ClassFilterFormComponent do
       <.form id="class-filter-form" for={@form} phx-submit="save" phx-target={@myself}>
         <div class="flex gap-6">
           <fieldset class="flex-1">
-            <legend class="text-base font-semibold leading-6 text-ltrn-subtle">Classes</legend>
+            <legend class="text-base font-semibold leading-6 text-ltrn-subtle">
+              <%= gettext("Classes") %>
+            </legend>
             <div class="mt-4 divide-y divide-ltrn-lighter border-b border-t border-ltrn-lighter">
               <.check_field
                 :for={opt <- @classes}

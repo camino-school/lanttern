@@ -12,10 +12,21 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 
 ## `.env` expected variables
 
-```
+```bash
 export GOOGLE_CLIENT_ID="********"
 export ROOT_ADMIN_EMAIL="some.email@example.com"
 ```
+
+## Localization
+
+We use [Gettext](https://hexdocs.pm/gettext/Gettext.html) for localization.
+
+```bash
+mix gettext.extract # to extract gettext() calls to .pot
+mix gettext.merge priv/gettext # to update all locale-specific .po
+```
+
+Currently supported locales are `en` (default) and `pt_BR`.
 
 ## `git_hooks` issue
 
@@ -24,8 +35,8 @@ See [this issue](https://github.com/qgadrian/elixir_git_hooks/issues/133)
 
 ## Learn more
 
-- Official website: https://www.phoenixframework.org/
-- Guides: https://hexdocs.pm/phoenix/overview.html
-- Docs: https://hexdocs.pm/phoenix
-- Forum: https://elixirforum.com/c/phoenix-forum
-- Source: https://github.com/phoenixframework/phoenix
+- Official website: <https://www.phoenixframework.org/>
+- Guides: <https://hexdocs.pm/phoenix/overview.html>
+- Docs: <https://hexdocs.pm/phoenix>
+- Forum: <https://elixirforum.com/c/phoenix-forum>
+- Source: <https://github.com/phoenixframework/phoenix>

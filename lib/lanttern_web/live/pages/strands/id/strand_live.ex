@@ -82,7 +82,7 @@ defmodule LantternWeb.StrandLive do
     case LearningContext.get_strand(id, preloads: [:subjects, :years]) do
       strand when is_nil(strand) ->
         socket
-        |> put_flash(:error, "Couldn't find strand")
+        |> put_flash(:error, gettext("Couldn't find strand"))
         |> redirect(to: ~p"/strands")
 
       strand ->
@@ -101,7 +101,7 @@ defmodule LantternWeb.StrandLive do
       {:ok, _strand} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Strand deleted")
+         |> put_flash(:info, gettext("Strand deleted"))
          |> push_navigate(to: ~p"/strands")}
 
       {:error, _changeset} ->
@@ -109,7 +109,9 @@ defmodule LantternWeb.StrandLive do
          socket
          |> put_flash(
            :error,
-           "Strand has linked activities. Deleting it would cause some data loss."
+           gettext(
+             "Strand has linked activities and/or assessment points (goals). Deleting it would cause some data loss."
+           )
          )}
     end
   end

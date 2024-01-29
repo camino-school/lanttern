@@ -97,28 +97,29 @@ defmodule LantternWeb.CoreComponents do
       class="z-40 pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
     >
       <div class="flex w-full flex-col items-center space-y-4 sm:items-end">
-        <.flash kind={:info} title="Success!" flash={@flash} />
-        <.flash kind={:error} title="Error!" flash={@flash} />
+        <.flash kind={:info} title={gettext("Success!")} flash={@flash} />
+        <.flash kind={:error} title={gettext("Error!")} flash={@flash} />
         <.flash
           id="client-error"
           kind={:error}
-          title="We can't find the internet"
+          title={gettext("We can't find the internet")}
           phx-disconnected={show_alert(".phx-client-error #client-error")}
           phx-connected={hide_alert("#client-error")}
           hidden
         >
-          Attempting to reconnect <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
+          <%= gettext("Attempting to reconnect") %>
+          <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
         </.flash>
 
         <.flash
           id="server-error"
           kind={:error}
-          title="Something went wrong!"
+          title={gettext("Something went wrong!")}
           phx-disconnected={show_alert(".phx-server-error #server-error")}
           phx-connected={hide_alert("#server-error")}
           hidden
         >
-          Hang in there while we get back on track
+          <%= gettext("Hang in there while we get back on track") %>
           <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
         </.flash>
       </div>

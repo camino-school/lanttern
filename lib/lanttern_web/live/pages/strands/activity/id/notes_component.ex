@@ -16,7 +16,7 @@ defmodule LantternWeb.ActivityLive.NotesComponent do
             name={@form[:description].name}
             value={@form[:description].value}
             errors={@form[:description].errors}
-            label="Add your notes..."
+            label={gettext("Add your notes...")}
             rows="10"
           >
             <:actions_left :if={@note}>
@@ -25,17 +25,17 @@ defmodule LantternWeb.ActivityLive.NotesComponent do
                 theme="ghost"
                 phx-click="delete"
                 phx-target={@myself}
-                data-confirm="Are you sure?"
+                data-confirm={gettext("Are you sure?")}
               >
-                Delete note
+                <%= gettext("Delete note") %>
               </.button>
             </:actions_left>
             <:actions>
               <.button type="button" theme="ghost" phx-click="cancel_edit" phx-target={@myself}>
-                Cancel
+                <%= gettext("Cancel") %>
               </.button>
               <.button type="submit">
-                Save
+                <%= gettext("Save") %>
               </.button>
             </:actions>
           </.textarea_with_actions>
@@ -44,14 +44,18 @@ defmodule LantternWeb.ActivityLive.NotesComponent do
       <% else %>
         <%= if @note do %>
           <div class="flex items-center justify-between mb-10">
-            <h3 class="font-display font-bold text-xl">My activity notes (visible only to you)</h3>
+            <h3 class="font-display font-bold text-xl">
+              <%= gettext("My activity notes (visible only to you)") %>
+            </h3>
             <.button type="button" theme="ghost" phx-click="edit" phx-target={@myself}>
-              Edit
+              <%= gettext("Edit") %>
             </.button>
           </div>
           <.markdown text={@note.description} />
         <% else %>
-          <.empty_state>You don't have any notes for this activity yet</.empty_state>
+          <.empty_state>
+            <%= gettext("You don't have any notes for this activity yet") %>
+          </.empty_state>
           <div class="mt-6 text-center">
             <button
               type="button"
@@ -59,7 +63,7 @@ defmodule LantternWeb.ActivityLive.NotesComponent do
               phx-click="edit"
               phx-target={@myself}
             >
-              Add an activity note
+              <%= gettext("Add an activity note") %>
             </button>
           </div>
         <% end %>

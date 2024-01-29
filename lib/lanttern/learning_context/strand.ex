@@ -2,6 +2,7 @@ defmodule Lanttern.LearningContext.Strand do
   use Ecto.Schema
   import Ecto.Changeset
 
+  import LantternWeb.Gettext
   import Lanttern.SchemaHelpers
 
   schema "strands" do
@@ -43,7 +44,12 @@ defmodule Lanttern.LearningContext.Strand do
     |> foreign_key_constraint(
       :id,
       name: :activities_strand_id_fkey,
-      message: "Strand has linked activities."
+      message: gettext("Strand has linked activities.")
+    )
+    |> foreign_key_constraint(
+      :id,
+      name: :assessment_points_strand_id_fkey,
+      message: gettext("Strand has linked assessment points.")
     )
   end
 end

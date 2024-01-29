@@ -6,6 +6,7 @@ defmodule LantternWeb.FormComponents do
 
   import LantternWeb.CoreComponents
   alias Phoenix.LiveView.JS
+  import LantternWeb.Gettext
 
   @doc """
   Renders a simple form.
@@ -434,7 +435,7 @@ defmodule LantternWeb.FormComponents do
 
   attr :opt, :map,
     required: true,
-    doc: "Check field option. Any map/struct with `:name` attr"
+    doc: "Check field option. Any map/struct with `:id` and `:name` attrs"
 
   attr :field, Phoenix.HTML.FormField, required: true
 
@@ -499,6 +500,7 @@ defmodule LantternWeb.FormComponents do
   Generates a generic error message block.
   """
   attr :class, :any, default: nil
+  attr :on_dismiss, JS, default: nil
   attr :rest, :global
   slot :inner_block, required: true
 
@@ -515,6 +517,16 @@ defmodule LantternWeb.FormComponents do
       <div class="flex-1">
         <%= render_slot(@inner_block) %>
       </div>
+      <.icon_button
+        :if={@on_dismiss}
+        name="hero-x-mark"
+        sr_text="Dismiss"
+        size="sm"
+        theme="ghost"
+        rounded
+        class="shrink-0"
+        phx-click={@on_dismiss}
+      />
     </div>
     """
   end
@@ -529,10 +541,17 @@ defmodule LantternWeb.FormComponents do
   @doc """
   Renders a markdown supported message.
   """
-  attr :message, :string, default: "Markdown supported"
+  attr :message, :string
   attr :class, :any, default: nil
 
   def markdown_supported(assigns) do
+    assigns =
+      assigns
+      |> assign(
+        :message,
+        Map.get(assigns, :message, gettext("Markdown supported"))
+      )
+
     ~H"""
     <p class={["text-sm text-ltrn-subtle", @class]}>
       <a

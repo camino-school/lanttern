@@ -4,6 +4,7 @@ defmodule Lanttern.Identity.Profile do
 
   schema "profiles" do
     field :type, :string
+    field :current_locale, :string, default: "en"
 
     # used to optimize session user, avoiding
     # student, teacher, and school structs preloads
@@ -23,8 +24,9 @@ defmodule Lanttern.Identity.Profile do
   @doc false
   def changeset(profile, attrs) do
     profile
-    |> cast(attrs, [:type, :user_id, :teacher_id, :student_id])
+    |> cast(attrs, [:type, :user_id, :teacher_id, :student_id, :current_locale])
     |> validate_required([:type, :user_id])
+    |> validate_inclusion(:current_locale, ["en", "pt_BR"], message: "Locale not supported")
     |> validate_type_id()
   end
 

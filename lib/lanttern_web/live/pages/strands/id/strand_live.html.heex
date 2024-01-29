@@ -2,16 +2,20 @@
   <:top>
     <div class="flex items-center justify-between">
       <.breadcrumbs class="mt-2" item_class="text-white drop-shadow-sm">
-        <:item link={~p"/strands"}>Strands</:item>
-        <:item>Details</:item>
+        <:item link={~p"/strands"}><%= gettext("Strands") %></:item>
+        <:item><%= gettext("Details") %></:item>
       </.breadcrumbs>
       <.nav_menu_button />
     </div>
   </:top>
   <h1 class="font-display font-black text-5xl"><%= @strand.name %></h1>
   <div class="flex flex-wrap gap-2 mt-6">
-    <.badge :for={subject <- @strand.subjects} theme="dark"><%= subject.name %></.badge>
-    <.badge :for={year <- @strand.years} theme="dark"><%= year.name %></.badge>
+    <.badge :for={subject <- @strand.subjects} theme="dark">
+      <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
+    </.badge>
+    <.badge :for={year <- @strand.years} theme="dark">
+      <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", year.name) %>
+    </.badge>
   </div>
 </.cover>
 <div class="sticky z-30 top-0 border-b border-ltrn-lighter bg-white">
@@ -21,26 +25,26 @@
         patch={~p"/strands/#{@strand}?#{%{tab: "about"}}"}
         is_current={@current_tab == :about && "true"}
       >
-        About
+        <%= gettext("About") %>
       </:tab>
       <:tab
         patch={~p"/strands/#{@strand}?#{%{tab: "assessment"}}"}
         is_current={@current_tab == :assessment && "true"}
       >
-        Assessment
+        <%= gettext("Assessment") %>
       </:tab>
       <:tab
         patch={~p"/strands/#{@strand}?#{%{tab: "activities"}}"}
         is_current={@current_tab == :activities && "true"}
       >
-        Activities
+        <%= gettext("Activities") %>
       </:tab>
       <:tab
         patch={~p"/strands/#{@strand}?#{%{tab: "notes"}}"}
         is_current={@current_tab == :notes && "true"}
         icon_name="hero-eye-slash"
       >
-        My notes
+        <%= gettext("My notes") %>
       </:tab>
     </.nav_tabs>
     <.menu_button id={@strand.id}>
@@ -49,15 +53,15 @@
           id={"edit-strand-#{@strand.id}"}
           phx-click={JS.patch(~p"/strands/#{@strand}/edit")}
         >
-          Edit strand
+          <%= gettext("Edit strand") %>
         </.menu_button_item>
         <.menu_button_item
           id={"remove-strand-#{@strand.id}"}
           class="text-red-500"
           phx-click="delete_strand"
-          data-confirm="Are you sure?"
+          data-confirm={gettext("Are you sure?")}
         >
-          Delete
+          <%= gettext("Delete") %>
         </.menu_button_item>
       </:menu_items>
     </.menu_button>
@@ -101,7 +105,7 @@
   show={true}
   on_cancel={JS.patch(~p"/strands/#{@strand}")}
 >
-  <:title>Edit strand</:title>
+  <:title><%= gettext("Edit strand") %></:title>
   <.live_component
     module={StrandFormComponent}
     id={@strand.id}
@@ -116,10 +120,10 @@
       theme="ghost"
       phx-click={JS.exec("data-cancel", to: "#strand-form-overlay")}
     >
-      Cancel
+      <%= gettext("Cancel") %>
     </.button>
     <.button type="submit" form="strand-form">
-      Save
+      <%= gettext("Save") %>
     </.button>
   </:actions>
 </.slide_over>

@@ -17,7 +17,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         <div class="flex items-end justify-between gap-6">
           <%= if @classes do %>
             <p class="font-display font-bold text-2xl">
-              Viewing
+              <%= gettext("Viewing") %>
               <button
                 type="button"
                 class="inline text-left underline hover:text-ltrn-subtle"
@@ -35,22 +35,22 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                 class="underline hover:text-ltrn-subtle"
                 phx-click={JS.exec("data-show", to: "#classes-filter-overlay")}
               >
-                Select a class
+                <%= gettext("Select a class") %>
               </button>
-              to view students assessments
+              <%= gettext("to view students assessments") %>
             </p>
           <% end %>
         </div>
         <%!-- if no assessment points, render empty state --%>
         <div :if={@assessment_points_count == 0} class="p-10 mt-4 rounded shadow-xl bg-white">
-          <.empty_state>No assessment points for this strand yet</.empty_state>
+          <.empty_state><%= gettext("No assessment points for this strand yet") %></.empty_state>
         </div>
         <%!-- if no class filter is select, just render assessment points --%>
         <div
           :if={!@classes && @assessment_points_count > 0}
           class="p-10 mt-4 rounded shadow-xl bg-white"
         >
-          <p class="mb-6 font-bold text-ltrn-subtle">Current assessment points</p>
+          <p class="mb-6 font-bold text-ltrn-subtle"><%= gettext("Current assessment points") %></p>
           <ol phx-update="stream" id="assessment-points-no-class" class="flex flex-col gap-4">
             <li
               :for={{dom_id, {assessment_point, i}} <- @streams.assessment_points}
@@ -99,7 +99,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         params={@params}
       />
       <.slide_over id="classes-filter-overlay">
-        <:title>Classes</:title>
+        <:title><%= gettext("Classes") %></:title>
         <.live_component
           module={ClassFilterFormComponent}
           id={:filter}
@@ -119,14 +119,14 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
             theme="ghost"
             phx-click={JS.exec("data-cancel", to: "#classes-filter-overlay")}
           >
-            Cancel
+            <%= gettext("Cancel") %>
           </.button>
           <.button
             type="submit"
             form="class-filter-form"
             phx-click={JS.exec("data-cancel", to: "#classes-filter-overlay")}
           >
-            Select
+            <%= gettext("Select") %>
           </.button>
         </:actions>
       </.slide_over>

@@ -4,6 +4,7 @@ defmodule LantternWeb.StrandsLive do
   alias Lanttern.LearningContext
   alias Lanttern.LearningContext.Strand
   alias Lanttern.Taxonomy
+  import LantternWeb.LocalizationHelpers
 
   # live components
   alias LantternWeb.LearningContext.StrandFormComponent
@@ -16,7 +17,7 @@ defmodule LantternWeb.StrandsLive do
   def filter_buttons(%{items: []} = assigns) do
     ~H"""
     <button type="button" phx-click={show_filter()} class="underline hover:text-ltrn-primary">
-      all <%= @type %>
+      <%= gettext("all %{type}", type: @type) %>
     </button>
     """
   end
@@ -85,8 +86,12 @@ defmodule LantternWeb.StrandsLive do
             <%= strand.name %>
           </.link>
           <div class="flex flex-wrap gap-2">
-            <.badge :for={subject <- strand.subjects}><%= subject.name %></.badge>
-            <.badge :for={year <- strand.years}><%= year.name %></.badge>
+            <.badge :for={subject <- strand.subjects}>
+              <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
+            </.badge>
+            <.badge :for={year <- strand.years}>
+              <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", year.name) %>
+            </.badge>
           </div>
           <div class="line-clamp-3">
             <.markdown text={strand.description} class="prose-sm" />
@@ -112,8 +117,11 @@ defmodule LantternWeb.StrandsLive do
   def handle_params(params, _url, socket) do
     {:noreply,
      socket
-     |> assign(:subjects, Taxonomy.list_subjects())
-     |> assign(:years, Taxonomy.list_years())
+     |> assign(
+       :subjects,
+       Taxonomy.list_subjects() |> translate_struct_list("taxonomy", :name, reorder: true)
+     )
+     |> assign(:years, Taxonomy.list_years() |> translate_struct_list("taxonomy"))
      # sync subjects_ids and years_ids filters with profile
      |> handle_params_and_profile_filters_sync(
        params,

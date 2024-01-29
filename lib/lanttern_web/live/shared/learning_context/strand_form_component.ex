@@ -14,7 +14,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
     <div class={@class}>
       <.form for={@form} id="strand-form" phx-target={@myself} phx-change="validate" phx-submit="save">
         <.error_block :if={@form.source.action == :insert} class="mb-6">
-          Oops, something went wrong! Please check the errors below.
+          <%= gettext("Oops, something went wrong! Please check the errors below.") %>
         </.error_block>
         <div
           :if={!@strand.cover_image_url || @is_replacing_cover}
@@ -31,10 +31,10 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
                 for={@uploads.cover.ref}
                 class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
               >
-                <span>Upload a cover image file</span>
+                <span><%= gettext("Upload a cover image file") %></span>
                 <.live_file_input upload={@uploads.cover} class="sr-only" />
               </label>
-              <span>or drag and drop here</span>
+              <span><%= gettext("or drag and drop here") %></span>
               <button
                 :if={@is_replacing_cover}
                 type="button"
@@ -42,7 +42,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
                 phx-target={@myself}
                 class="mt-4"
               >
-                Cancel cover replacement
+                <%= gettext("Cancel cover replacement") %>
               </button>
             </div>
           </div>
@@ -57,7 +57,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
             theme="white"
             rounded
             phx-click="replace-cover"
-            sr_text="Replace image"
+            sr_text={gettext("Replace image")}
             class="absolute top-2 right-2"
             phx-target={@myself}
           />
@@ -70,7 +70,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
             <.live_img_preview entry={entry} class="w-full" />
           </div>
           <.error_block :if={!entry.valid?} class="p-6 border border-red-500 rounded">
-            <p><%= "File \"#{entry.client_name}\" is invalid." %></p>
+            <p><%= gettext("File \"%{file}\" is invalid.", file: entry.client_name) %></p>
             <%= for err <- upload_errors(@uploads.cover, entry) do %>
               <%= error_to_string(@uploads.cover, err) %>
             <% end %>
@@ -82,16 +82,22 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
             rounded
             phx-click="cancel-upload"
             phx-value-ref={entry.ref}
-            sr_text="cancel"
+            sr_text={gettext("cancel")}
             class="absolute top-2 right-2"
             phx-target={@myself}
           />
         </div>
-        <.input field={@form[:name]} type="text" label="Name" class="mb-6" phx-debounce="1500" />
+        <.input
+          field={@form[:name]}
+          type="text"
+          label={gettext("Name")}
+          class="mb-6"
+          phx-debounce="1500"
+        />
         <.input
           field={@form[:description]}
           type="textarea"
-          label="Description"
+          label={gettext("Description")}
           class="mb-1"
           phx-debounce="1500"
         />
@@ -103,9 +109,9 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
           multi_field={:subjects_ids}
           options={@subject_options}
           selected_ids={@selected_subjects_ids}
-          label="Subjects"
-          prompt="Select subject"
-          empty_message="No subject selected"
+          label={gettext("Subjects")}
+          prompt={gettext("Select subject")}
+          empty_message={gettext("No subject selected")}
           class="mb-6"
           notify_component={@myself}
         />
@@ -116,14 +122,16 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
           multi_field={:years_ids}
           options={@year_options}
           selected_ids={@selected_years_ids}
-          label="Years"
-          prompt="Select year"
-          empty_message="No year selected"
+          label={gettext("Years")}
+          prompt={gettext("Select year")}
+          empty_message={gettext("No year selected")}
           class="mb-6"
           notify_component={@myself}
         />
         <div :if={@show_actions} class="flex justify-end mt-6">
-          <.button type="submit" phx-disable-with="Saving...">Save Strand</.button>
+          <.button type="submit" phx-disable-with={gettext("Saving...")}>
+            <%= gettext("Save Strand") %>
+          </.button>
         </div>
       </.form>
     </div>
@@ -232,7 +240,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
 
         {:noreply,
          socket
-         |> put_flash(:info, "Strand updated successfully")
+         |> put_flash(:info, gettext("Strand updated successfully"))
          |> handle_navigation(strand)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -249,7 +257,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
 
         {:noreply,
          socket
-         |> put_flash(:info, "Strand created successfully")
+         |> put_flash(:info, gettext("Strand created successfully"))
          |> handle_navigation(strand)}
 
       {:error, %Ecto.Changeset{} = changeset} ->

@@ -10,11 +10,11 @@ defmodule LantternWeb.Curricula.CurriculumItemSearchComponent do
         <%= @label %>
       </.label>
       <p class="mb-2 text-sm">
-        You can search by id adding # before the id
+        <%= gettext("You can search by id adding # before the id") %>
         <.inline_code>
           #123
         </.inline_code>
-        and search by code wrapping it in parenthesis
+        <%= gettext("and search by code wrapping it in parenthesis") %>
         <.inline_code>
           (ABC123)
         </.inline_code>
