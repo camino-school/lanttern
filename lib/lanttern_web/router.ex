@@ -2,6 +2,7 @@ defmodule LantternWeb.Router do
   use LantternWeb, :router
 
   import LantternWeb.UserAuth
+  import LantternWeb.LocalizationHelpers
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -11,6 +12,7 @@ defmodule LantternWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_user
+    plug :put_locale
   end
 
   pipeline :admin do

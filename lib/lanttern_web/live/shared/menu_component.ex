@@ -315,7 +315,7 @@ defmodule LantternWeb.MenuComponent do
     )
     |> case do
       {:ok, _profile} ->
-        {:noreply, push_navigate(socket, to: socket.assigns.current_path, replace: true)}
+        {:noreply, redirect(socket, to: socket.assigns.current_path)}
 
       {:error, %Ecto.Changeset{errors: [current_locale: {error_msg, _}]}} ->
         {:noreply, assign(socket, :locale_error, error_msg)}
