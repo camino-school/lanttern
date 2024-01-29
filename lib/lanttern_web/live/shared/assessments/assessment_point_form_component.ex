@@ -19,17 +19,22 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
         phx-target={@myself}
       >
         <.error_block :if={@form.source.action == :insert} class="mb-6">
-          Oops, something went wrong! Please check the errors below.
+          <%= gettext("Oops, something went wrong! Please check the errors below.") %>
         </.error_block>
         <.input field={@form[:id]} type="hidden" />
         <.input field={@form[:activity_id]} type="hidden" />
-        <.input field={@form[:name]} label="Assessment point name" phx-debounce="1500" class="mb-6" />
+        <.input
+          field={@form[:name]}
+          label={gettext("Assessment point name")}
+          phx-debounce="1500"
+          class="mb-6"
+        />
         <%= if @curriculum_from_strand_id do %>
           <.input
             field={@form[:curriculum_item_id]}
             type="radio"
             options={@curriculum_item_options}
-            prompt="Select curriculum item"
+            prompt={gettext("Select curriculum item")}
             class="mb-6"
           />
         <% else %>
@@ -37,7 +42,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
             module={CurriculumItemSearchComponent}
             id="curriculum-item-search"
             notify_component={@myself}
-            label="Curriculum"
+            label={gettext("Curriculum")}
           />
           <div class="flex flex-wrap gap-1 mt-2 mb-6">
             <%= if @selected_curriculum_item do %>
@@ -51,7 +56,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
               </.badge>
             <% else %>
               <.badge>
-                No curriculum item selected
+                <%= gettext("No curriculum item selected") %>
               </.badge>
             <% end %>
           </div>
@@ -61,9 +66,9 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
         <.input
           field={@form[:scale_id]}
           type="select"
-          label="Scale"
+          label={gettext("Scale")}
           options={@scale_options}
-          prompt="Select a scale"
+          prompt={gettext("Select a scale")}
           class="mb-6"
         />
       </.form>

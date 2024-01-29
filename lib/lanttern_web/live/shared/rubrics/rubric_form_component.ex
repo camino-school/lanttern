@@ -24,31 +24,33 @@ defmodule LantternWeb.Rubrics.RubricFormComponent do
         phx-submit="save"
       >
         <.error_block :if={@form.source.action == :insert} class="mb-6">
-          Oops, something went wrong! Please check the errors below.
+          <%= gettext("Oops, something went wrong! Please check the errors below.") %>
         </.error_block>
         <.input field={@form[:id]} type="hidden" />
         <.input field={@form[:diff_for_rubric_id]} type="hidden" />
-        <.input field={@form[:criteria]} type="text" label="Criteria" phx-debounce="1500" />
+        <.input field={@form[:criteria]} type="text" label={gettext("Criteria")} phx-debounce="1500" />
         <.input
           field={@form[:is_differentiation]}
           type="toggle"
-          label="Is differentiation"
+          label={gettext("Is differentiation")}
           class={["mt-6", if(@hide_diff_and_scale, do: "hidden")]}
         />
         <.input
           field={@form[:scale_id]}
           type="select"
-          label="Scale"
+          label={gettext("Scale")}
           options={@scale_options}
-          prompt="Select scale"
+          prompt={gettext("Select scale")}
           phx-target={@myself}
           phx-change="scale_selected"
           class={["mt-6", if(@hide_diff_and_scale, do: "hidden")]}
         />
         <.descriptors_fields scale={@scale} field={@form[:descriptors]} myself={@myself} />
         <div :if={@show_buttons} class="flex justify-end gap-2 mt-6">
-          <.button type="button" theme="ghost" phx-click={@on_cancel}>Cancel</.button>
-          <.button type="submit">Save</.button>
+          <.button type="button" theme="ghost" phx-click={@on_cancel}>
+            <%= gettext("Cancel") %>
+          </.button>
+          <.button type="submit"><%= gettext("Save") %></.button>
         </div>
       </.form>
     </div>
@@ -61,14 +63,14 @@ defmodule LantternWeb.Rubrics.RubricFormComponent do
 
   defp descriptors_fields(%{scale: nil} = assigns) do
     ~H"""
-    <p class="mt-6 text-ltrn-subtle">Select a scale to create descriptors</p>
+    <p class="mt-6 text-ltrn-subtle"><%= gettext("Select a scale to create descriptors") %></p>
     """
   end
 
   defp descriptors_fields(%{scale: %{type: "ordinal"}} = assigns) do
     ~H"""
-    <h5 class="mt-10 font-display font-black text-ltrn-subtle">Descriptors</h5>
-    <.markdown_supported class="mt-2 mb-6" message="Markdown supported in descriptors" />
+    <h5 class="mt-10 font-display font-black text-ltrn-subtle"><%= gettext("Descriptors") %></h5>
+    <.markdown_supported class="mt-2 mb-6" message={gettext("Markdown supported in descriptors")} />
     <.inputs_for :let={ef} field={@field}>
       <.input type="hidden" field={ef[:scale_id]} />
       <.input type="hidden" field={ef[:scale_type]} />
@@ -87,8 +89,8 @@ defmodule LantternWeb.Rubrics.RubricFormComponent do
 
   defp descriptors_fields(%{scale: %{type: "numeric"}} = assigns) do
     ~H"""
-    <h5 class="mt-10 font-display font-black text-ltrn-subtle">Descriptors</h5>
-    <.markdown_supported class="mt-2 mb-6" message="Markdown supported in descriptors" />
+    <h5 class="mt-10 font-display font-black text-ltrn-subtle"><%= gettext("Descriptors") %></h5>
+    <.markdown_supported class="mt-2 mb-6" message={gettext("Markdown supported in descriptors")} />
     <.inputs_for :let={ef} field={@field}>
       <div class="flex gap-6">
         <div class="flex-1">
@@ -99,7 +101,7 @@ defmodule LantternWeb.Rubrics.RubricFormComponent do
             min={@scale.start}
             max={@scale.stop}
             field={ef[:score]}
-            label="Score"
+            label={gettext("Score")}
             class="mt-6"
           />
           <.input type="textarea" field={ef[:descriptor]} />
@@ -112,7 +114,9 @@ defmodule LantternWeb.Rubrics.RubricFormComponent do
     </.inputs_for>
 
     <label class={[get_button_styles("ghost"), "mt-6"]}>
-      <input type="checkbox" name="rubric[add_descriptor]" class="hidden" /> Add descriptor
+      <input type="checkbox" name="rubric[add_descriptor]" class="hidden" /> <%= gettext(
+        "Add descriptor"
+      ) %>
     </label>
     """
   end
@@ -336,7 +340,7 @@ defmodule LantternWeb.Rubrics.RubricFormComponent do
 
         {:noreply,
          socket
-         |> put_flash(:info, "Rubric updated successfully")
+         |> put_flash(:info, gettext("Rubric updated successfully"))
          |> handle_navigation()}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -361,7 +365,7 @@ defmodule LantternWeb.Rubrics.RubricFormComponent do
 
         {:noreply,
          socket
-         |> put_flash(:info, "Rubric created successfully")
+         |> put_flash(:info, gettext("Rubric created successfully"))
          |> handle_navigation()}
 
       {:error, %Ecto.Changeset{} = changeset} ->

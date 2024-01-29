@@ -24,19 +24,25 @@ defmodule LantternWeb.LearningContext.ActivityFormComponent do
           <.input
             field={@form[:strand_id]}
             type="select"
-            label="Strand"
-            prompt="Select strand"
+            label={gettext("Strand")}
+            prompt={gettext("Select strand")}
             options={@strand_options}
             class="mb-6"
           />
         <% else %>
           <.input field={@form[:strand_id]} type="hidden" />
         <% end %>
-        <.input field={@form[:name]} type="text" label="Name" class="mb-6" phx-debounce="1500" />
+        <.input
+          field={@form[:name]}
+          type="text"
+          label={gettext("Name")}
+          class="mb-6"
+          phx-debounce="1500"
+        />
         <.input
           field={@form[:description]}
           type="textarea"
-          label="Description"
+          label={gettext("Description")}
           class="mb-1"
           phx-debounce="1500"
         />
@@ -48,15 +54,17 @@ defmodule LantternWeb.LearningContext.ActivityFormComponent do
           multi_field={:subjects_ids}
           options={@subject_options}
           selected_ids={@selected_subjects_ids}
-          label="Subjects"
-          prompt="Select subject"
-          empty_message="No subject selected"
+          label={gettext("Subjects")}
+          prompt={gettext("Select subject")}
+          empty_message={gettext("No subject selected")}
           notify_component={@myself}
         />
         <div :if={@is_admin} class="mt-6">
-          <.input field={@form[:position]} type="number" label="Position" class="mb-6" />
+          <.input field={@form[:position]} type="number" label={gettext("Position")} class="mb-6" />
           <div class="flex justify-end">
-            <.button type="submit" phx-disable-with="Saving...">Save activity</.button>
+            <.button type="submit" phx-disable-with={gettext("Saving...")}>
+              <%= gettext("Save activity") %>
+            </.button>
           </div>
         </div>
       </.form>
@@ -139,7 +147,7 @@ defmodule LantternWeb.LearningContext.ActivityFormComponent do
 
         {:noreply,
          socket
-         |> put_flash(:info, "Activity updated successfully")
+         |> put_flash(:info, gettext("Activity updated successfully"))
          |> handle_navigation(activity)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -156,7 +164,7 @@ defmodule LantternWeb.LearningContext.ActivityFormComponent do
 
         {:noreply,
          socket
-         |> put_flash(:info, "Activity created successfully")
+         |> put_flash(:info, gettext("Activity created successfully"))
          |> handle_navigation(activity)}
 
       {:error, %Ecto.Changeset{} = changeset} ->

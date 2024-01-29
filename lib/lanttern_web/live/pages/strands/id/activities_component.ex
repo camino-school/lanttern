@@ -13,7 +13,7 @@ defmodule LantternWeb.StrandLive.ActivitiesComponent do
     <div class="container py-10 mx-auto lg:max-w-5xl">
       <div class="flex items-end justify-between mb-4">
         <h3 class="font-display font-bold text-lg">
-          Strand activities
+          <%= gettext("Strand activities") %>
         </h3>
         <div class="shrink-0 flex items-center gap-6">
           <.collection_action
@@ -22,20 +22,20 @@ defmodule LantternWeb.StrandLive.ActivitiesComponent do
             phx-click={JS.exec("data-show", to: "#strand-activities-order-overlay")}
             icon_name="hero-arrows-up-down"
           >
-            Reorder
+            <%= gettext("Reorder") %>
           </.collection_action>
           <.collection_action
             type="link"
             patch={~p"/strands/#{@strand}/new_activity"}
             icon_name="hero-plus-circle"
           >
-            Create new activity
+            <%= gettext("Create new activity") %>
           </.collection_action>
         </div>
       </div>
       <%= if @activities_count == 0 do %>
         <div class="p-10 rounded shadow-xl bg-white">
-          <.empty_state>No activities for this strand yet</.empty_state>
+          <.empty_state><%= gettext("No activities for this strand yet") %></.empty_state>
         </div>
       <% else %>
         <div phx-update="stream" id="strand-activities" class="flex flex-col gap-4">
@@ -53,7 +53,9 @@ defmodule LantternWeb.StrandLive.ActivitiesComponent do
                 <span class="underline"><%= activity.name %></span>
               </.link>
               <div class="shrink-0 flex gap-2">
-                <.badge :for={subject <- activity.subjects}><%= subject.name %></.badge>
+                <.badge :for={subject <- activity.subjects}>
+                  <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
+                </.badge>
               </div>
             </div>
             <div class="line-clamp-6">
@@ -68,7 +70,7 @@ defmodule LantternWeb.StrandLive.ActivitiesComponent do
         show={true}
         on_cancel={JS.patch(~p"/strands/#{@strand}?tab=activities")}
       >
-        <:title>New activity</:title>
+        <:title><%= gettext("New activity") %></:title>
         <.live_component
           module={ActivityFormComponent}
           id={:new}
@@ -84,10 +86,10 @@ defmodule LantternWeb.StrandLive.ActivitiesComponent do
             theme="ghost"
             phx-click={JS.exec("data-cancel", to: "#activity-form-overlay")}
           >
-            Cancel
+            <%= gettext("Cancel") %>
           </.button>
           <.button type="submit" form="activity-form">
-            Save
+            <%= gettext("Save") %>
           </.button>
         </:actions>
       </.slide_over>
@@ -108,7 +110,7 @@ defmodule LantternWeb.StrandLive.ActivitiesComponent do
   def reorder_overlay(assigns) do
     ~H"""
     <.slide_over id="strand-activities-order-overlay">
-      <:title>Strand Activities Order</:title>
+      <:title><%= gettext("Strand Activities Order") %></:title>
       <ol>
         <li
           :for={{activity, i} <- @sortable_activities}
@@ -121,7 +123,7 @@ defmodule LantternWeb.StrandLive.ActivitiesComponent do
           <div class="shrink-0 flex flex-col gap-2">
             <.icon_button
               type="button"
-              sr_text="Move activity up"
+              sr_text={gettext("Move activity up")}
               name="hero-chevron-up-mini"
               theme="ghost"
               rounded
@@ -132,7 +134,7 @@ defmodule LantternWeb.StrandLive.ActivitiesComponent do
             />
             <.icon_button
               type="button"
-              sr_text="Move activity down"
+              sr_text={gettext("Move activity down")}
               name="hero-chevron-down-mini"
               theme="ghost"
               rounded
@@ -150,10 +152,10 @@ defmodule LantternWeb.StrandLive.ActivitiesComponent do
           theme="ghost"
           phx-click={JS.exec("data-cancel", to: "#strand-activities-order-overlay")}
         >
-          Cancel
+          <%= gettext("Cancel") %>
         </.button>
         <.button type="button" phx-click="save_order" phx-target={@myself}>
-          Save
+          <%= gettext("Save") %>
         </.button>
       </:actions>
     </.slide_over>
