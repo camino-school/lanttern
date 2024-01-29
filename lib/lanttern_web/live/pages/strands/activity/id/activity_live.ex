@@ -76,7 +76,7 @@ defmodule LantternWeb.ActivityLive do
          ) do
       activity when is_nil(activity) ->
         socket
-        |> put_flash(:error, "Couldn't find activity")
+        |> put_flash(:error, gettext("Couldn't find activity"))
         |> redirect(to: ~p"/strands")
 
       activity ->
@@ -95,7 +95,7 @@ defmodule LantternWeb.ActivityLive do
       {:ok, _activity} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Activity deleted")
+         |> put_flash(:info, gettext("Activity deleted"))
          |> push_navigate(to: ~p"/strands/#{socket.assigns.activity.strand}?tab=activities")}
 
       {:error, _changeset} ->
@@ -103,7 +103,7 @@ defmodule LantternWeb.ActivityLive do
          socket
          |> put_flash(
            :error,
-           "Activity has linked assessments. Deleting it would cause some data loss."
+           gettext("Activity has linked assessments. Deleting it would cause some data loss.")
          )}
     end
   end

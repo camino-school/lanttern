@@ -22,6 +22,7 @@ msgstr ""
 msgid "Assessment points"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/strands/activity/id/details_component.ex:11
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:45
 #: lib/lanttern_web/live/shared/menu_component.ex:32
 #, elixir-autogen, elixir-format
@@ -43,6 +44,7 @@ msgstr ""
 msgid "School"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:9
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:5
 #: lib/lanttern_web/live/pages/strands/strands_live.html.heex:2
 #: lib/lanttern_web/live/shared/menu_component.ex:20
@@ -92,6 +94,11 @@ msgstr ""
 msgid "Applying filters..."
 msgstr ""
 
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:121
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:178
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:206
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:260
+#: lib/lanttern_web/live/pages/strands/activity/id/notes_component.ex:35
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:146
 #: lib/lanttern_web/live/pages/strands/id/activities_component.ex:89
 #: lib/lanttern_web/live/pages/strands/id/activities_component.ex:155
@@ -141,6 +148,10 @@ msgstr ""
 msgid "No strands created for selected years and subjects"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:124
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:181
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:263
+#: lib/lanttern_web/live/pages/strands/activity/id/notes_component.ex:38
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:149
 #: lib/lanttern_web/live/pages/strands/id/activities_component.ex:92
 #: lib/lanttern_web/live/pages/strands/id/activities_component.ex:158
@@ -329,6 +340,7 @@ msgstr ""
 msgid "Activities"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:45
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:34
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Assessment"
@@ -339,6 +351,8 @@ msgstr ""
 msgid "Couldn't find strand"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:69
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:169
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:137
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:64
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:229
@@ -346,6 +360,7 @@ msgstr ""
 msgid "Delete"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:10
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:6
 #, elixir-autogen, elixir-format
 msgid "Details"
@@ -357,6 +372,7 @@ msgstr ""
 msgid "Edit strand"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:52
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:47
 #, elixir-autogen, elixir-format
 msgid "My notes"
@@ -365,11 +381,6 @@ msgstr ""
 #: lib/lanttern_web/live/pages/strands/id/strand_live.ex:104
 #, elixir-autogen, elixir-format
 msgid "Strand deleted"
-msgstr ""
-
-#: lib/lanttern_web/live/pages/strands/id/strand_live.ex:112
-#, elixir-autogen, elixir-format
-msgid "Strand has linked activities. Deleting it would cause some data loss."
 msgstr ""
 
 #: lib/lanttern_web/live/pages/strands/id/notes_component.ex:64
@@ -392,19 +403,26 @@ msgstr ""
 msgid "Add strand goal"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/strands/activity/id/notes_component.ex:19
 #: lib/lanttern_web/live/pages/strands/id/notes_component.ex:19
 #, elixir-autogen, elixir-format
 msgid "Add your notes..."
 msgstr ""
 
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:67
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:145
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:167
+#: lib/lanttern_web/live/pages/strands/activity/id/notes_component.ex:28
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:113
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:135
 #: lib/lanttern_web/live/pages/strands/id/notes_component.ex:28
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:62
+#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:227
 #, elixir-autogen, elixir-format
 msgid "Are you sure?"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:186
 #: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:102
 #: lib/lanttern_web/live/shared/schools/class_filter_form_component.ex:19
 #, elixir-autogen, elixir-format
@@ -416,11 +434,13 @@ msgstr ""
 msgid "Create new activity"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:71
 #: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:53
 #, elixir-autogen, elixir-format
 msgid "Current assessment points"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/strands/activity/id/notes_component.ex:30
 #: lib/lanttern_web/live/pages/strands/id/notes_component.ex:30
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Delete note"
@@ -436,6 +456,7 @@ msgstr ""
 msgid "Differentiation for %{name}"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/strands/activity/id/notes_component.ex:51
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:57
 #: lib/lanttern_web/live/pages/strands/id/notes_component.ex:51
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:265
@@ -498,6 +519,7 @@ msgstr ""
 msgid "Other notes in this strand"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:51
 #: lib/lanttern_web/live/pages/strands/id/activities_component.ex:25
 #, elixir-autogen, elixir-format
 msgid "Reorder"
@@ -518,11 +540,13 @@ msgstr ""
 msgid "Save updated order"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:213
 #: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:129
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Select"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:39
 #: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:38
 #, elixir-autogen, elixir-format
 msgid "Select a class"
@@ -553,6 +577,7 @@ msgstr ""
 msgid "Under the hood, goals in Lanttern are defined by assessment points linked directly to the strand — when adding goals, we are adding assessment points which, in turn, hold the curriculum items we'll want to assess along the strand course."
 msgstr ""
 
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:148
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:116
 #, elixir-autogen, elixir-format
 msgid "Understood. Delete anyway"
@@ -574,6 +599,7 @@ msgstr ""
 msgid "collapse"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:157
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:125
 #, elixir-autogen, elixir-format
 msgid "dismiss"
@@ -706,4 +732,115 @@ msgstr ""
 #: lib/lanttern_web/live/shared/rubrics/rubric_form_component.ex:93
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Markdown supported in descriptors"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:11
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Activity"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.ex:98
+#, elixir-autogen, elixir-format
+msgid "Activity deleted"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.ex:106
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Activity has linked assessments. Deleting it would cause some data loss."
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/activity/id/notes_component.ex:66
+#, elixir-autogen, elixir-format
+msgid "Add an activity note"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:21
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Assessing"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:126
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Assessment Point"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:218
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Assessment Points Order"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.ex:79
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Couldn't find activity"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:58
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Create assessment point"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:39
+#, elixir-autogen, elixir-format
+msgid "Details & Curriculum"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:61
+#: lib/lanttern_web/live/pages/strands/activity/id/activity_live.html.heex:106
+#, elixir-autogen, elixir-format
+msgid "Edit activity"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:242
+#, elixir-autogen, elixir-format
+msgid "Move assessment point down"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:231
+#, elixir-autogen, elixir-format
+msgid "Move assessment point up"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/activity/id/notes_component.ex:48
+#, elixir-autogen, elixir-format, fuzzy
+msgid "My activity notes (visible only to you)"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:64
+#, elixir-autogen, elixir-format, fuzzy
+msgid "No assessment points for this activity yet"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:437
+#, elixir-autogen, elixir-format, fuzzy
+msgid "This assessment point already have some entries. Deleting it will cause data loss."
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/activity/id/notes_component.ex:57
+#, elixir-autogen, elixir-format, fuzzy
+msgid "You don't have any notes for this activity yet"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/activity/id/assessment_component.ex:41
+#, elixir-autogen, elixir-format
+msgid "to assess students"
+msgstr ""
+
+#: lib/lanttern/learning_context/activity.ex:42
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Activity has linked assessment points."
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/id/strand_live.ex:112
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Strand has linked activities and/or assessment points (goals). Deleting it would cause some data loss."
+msgstr ""
+
+#: lib/lanttern/learning_context/strand.ex:47
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Strand has linked activities."
+msgstr ""
+
+#: lib/lanttern/learning_context/strand.ex:52
+#, elixir-autogen, elixir-format
+msgid "Strand has linked assessment points."
 msgstr ""

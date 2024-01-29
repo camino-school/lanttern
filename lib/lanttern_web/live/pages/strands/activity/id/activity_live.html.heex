@@ -6,9 +6,9 @@
   <:top>
     <div class="flex items-center justify-between">
       <.breadcrumbs class="mt-2" item_class="text-white">
-        <:item link={~p"/strands"}>Strands</:item>
-        <:item link={~p"/strands/#{@activity.strand}"}>Details</:item>
-        <:item>Activity</:item>
+        <:item link={~p"/strands"}><%= gettext("Strands") %></:item>
+        <:item link={~p"/strands/#{@activity.strand}"}><%= gettext("Details") %></:item>
+        <:item><%= gettext("Activity") %></:item>
       </.breadcrumbs>
       <.nav_menu_button />
     </div>
@@ -24,7 +24,9 @@
   </div>
   <h1 class="font-display font-black text-5xl"><%= @activity.name %></h1>
   <div class="flex flex-wrap gap-2 mt-6">
-    <.badge :for={subject <- @activity.subjects} theme="dark"><%= subject.name %></.badge>
+    <.badge :for={subject <- @activity.subjects} theme="dark">
+      <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
+    </.badge>
   </div>
 </.cover>
 <div class="sticky top-0 z-30 border-b border-ltrn-lighter bg-white">
@@ -34,20 +36,20 @@
         patch={~p"/strands/activity/#{@activity}?#{%{tab: "details"}}"}
         is_current={@current_tab == :details && "true"}
       >
-        Details & Curriculum
+        <%= gettext("Details & Curriculum") %>
       </:tab>
       <:tab
         patch={~p"/strands/activity/#{@activity}?#{%{tab: "assessment"}}"}
         is_current={@current_tab == :assessment && "true"}
       >
-        Assessment
+        <%= gettext("Assessment") %>
       </:tab>
       <:tab
         patch={~p"/strands/activity/#{@activity}?#{%{tab: "notes"}}"}
         is_current={@current_tab == :notes && "true"}
         icon_name="hero-eye-slash"
       >
-        My notes
+        <%= gettext("My notes") %>
       </:tab>
     </.nav_tabs>
     <.menu_button id={"activity-#{@activity.id}"}>
@@ -56,15 +58,15 @@
           id={"edit-activity-#{@activity.id}"}
           phx-click={JS.patch(~p"/strands/activity/#{@activity}/edit")}
         >
-          Edit activity
+          <%= gettext("Edit activity") %>
         </.menu_button_item>
         <.menu_button_item
           id={"remove-activity-#{@activity.id}"}
           class="text-red-500"
           phx-click="delete_activity"
-          data-confirm="Are you sure?"
+          data-confirm={gettext("Are you sure?")}
         >
-          Delete
+          <%= gettext("Delete") %>
         </.menu_button_item>
       </:menu_items>
     </.menu_button>
@@ -101,7 +103,7 @@
   show={true}
   on_cancel={JS.patch(~p"/strands/activity/#{@activity}")}
 >
-  <:title>Edit activity</:title>
+  <:title><%= gettext("Edit activity") %></:title>
   <.live_component
     module={ActivityFormComponent}
     id={@activity.id}
@@ -116,10 +118,10 @@
       theme="ghost"
       phx-click={JS.exec("data-cancel", to: "#activity-form-overlay")}
     >
-      Cancel
+      <%= gettext("Cancel") %>
     </.button>
     <.button type="submit" form="activity-form">
-      Save
+      <%= gettext("Save") %>
     </.button>
   </:actions>
 </.slide_over>

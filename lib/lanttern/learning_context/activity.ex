@@ -2,6 +2,7 @@ defmodule Lanttern.LearningContext.Activity do
   use Ecto.Schema
   import Ecto.Changeset
 
+  import LantternWeb.Gettext
   import Lanttern.SchemaHelpers
 
   schema "activities" do
@@ -37,8 +38,8 @@ defmodule Lanttern.LearningContext.Activity do
     |> cast(%{}, [])
     |> foreign_key_constraint(
       :id,
-      name: :activities_assessment_points_activity_id_fkey,
-      message: "Activity has linked assessment points."
+      name: :assessment_points_activity_id_fkey,
+      message: gettext("Activity has linked assessment points.")
     )
   end
 end

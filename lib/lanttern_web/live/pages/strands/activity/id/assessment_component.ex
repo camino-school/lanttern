@@ -18,7 +18,7 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
         <div class="flex items-end justify-between gap-6">
           <%= if @classes do %>
             <p class="font-display font-bold text-2xl">
-              Assessing
+              <%= gettext("Assessing") %>
               <button
                 type="button"
                 class="inline text-left underline hover:text-ltrn-subtle"
@@ -36,9 +36,9 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
                 class="underline hover:text-ltrn-subtle"
                 phx-click={JS.exec("data-show", to: "#classes-filter-overlay")}
               >
-                Select a class
+                <%= gettext("Select a class") %>
               </button>
-              to assess students
+              <%= gettext("to assess students") %>
             </p>
           <% end %>
           <div class="shrink-0 flex items-center gap-6">
@@ -48,27 +48,27 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
               phx-click={JS.exec("data-show", to: "#activity-assessment-points-order-overlay")}
               icon_name="hero-arrows-up-down"
             >
-              Reorder
+              <%= gettext("Reorder") %>
             </.collection_action>
             <.collection_action
               type="link"
               patch={~p"/strands/activity/#{@activity}/assessment_point/new"}
               icon_name="hero-plus-circle"
             >
-              Create assessment point
+              <%= gettext("Create assessment point") %>
             </.collection_action>
           </div>
         </div>
         <%!-- if no assessment points, render empty state --%>
         <div :if={@assessment_points_count == 0} class="p-10 mt-4 rounded shadow-xl bg-white">
-          <.empty_state>No assessment points for this activity yet</.empty_state>
+          <.empty_state><%= gettext("No assessment points for this activity yet") %></.empty_state>
         </div>
         <%!-- if no class filter is select, just render assessment points --%>
         <div
           :if={!@classes && @assessment_points_count > 0}
           class="p-10 mt-4 rounded shadow-xl bg-white"
         >
-          <p class="mb-6 font-bold text-ltrn-subtle">Current assessment points</p>
+          <p class="mb-6 font-bold text-ltrn-subtle"><%= gettext("Current assessment points") %></p>
           <ol phx-update="stream" id="assessment-points-no-class" class="flex flex-col gap-4">
             <li
               :for={{dom_id, {assessment_point, i}} <- @streams.assessment_points}
@@ -123,7 +123,7 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
         show={true}
         on_cancel={JS.patch(~p"/strands/activity/#{@activity}?tab=assessment")}
       >
-        <:title>Assessment Point</:title>
+        <:title><%= gettext("Assessment Point") %></:title>
         <.live_component
           module={AssessmentPointFormComponent}
           id={Map.get(@assessment_point, :id) || :new}
@@ -142,10 +142,10 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
               type="button"
               phx-click="delete_assessment_point_and_entries"
               phx-target={@myself}
-              data-confirm="Are you sure?"
+              data-confirm={gettext("Are you sure?")}
               class="mt-4 font-display font-bold underline"
             >
-              Understood. Delete anyway
+              <%= gettext("Understood. Delete anyway") %>
             </button>
           </div>
           <button
@@ -154,7 +154,7 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
             phx-target={@myself}
             class="shrink-0"
           >
-            <span class="sr-only">dismiss</span>
+            <span class="sr-only"><%= gettext("dismiss") %></span>
             <.icon name="hero-x-mark" />
           </button>
         </div>
@@ -164,9 +164,9 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
             theme="ghost"
             phx-click="delete_assessment_point"
             phx-target={@myself}
-            data-confirm="Are you sure?"
+            data-confirm={gettext("Are you sure?")}
           >
-            Delete
+            <%= gettext("Delete") %>
           </.button>
         </:actions_left>
         <:actions>
@@ -175,15 +175,15 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
             theme="ghost"
             phx-click={JS.exec("data-cancel", to: "#assessment-point-form-overlay")}
           >
-            Cancel
+            <%= gettext("Cancel") %>
           </.button>
           <.button type="submit" form="assessment-point-form" phx-disable-with="Saving...">
-            Save
+            <%= gettext("Save") %>
           </.button>
         </:actions>
       </.slide_over>
       <.slide_over id="classes-filter-overlay">
-        <:title>Classes</:title>
+        <:title><%= gettext("Classes") %></:title>
         <.live_component
           module={ClassFilterFormComponent}
           id={:filter}
@@ -203,19 +203,19 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
             theme="ghost"
             phx-click={JS.exec("data-cancel", to: "#classes-filter-overlay")}
           >
-            Cancel
+            <%= gettext("Cancel") %>
           </.button>
           <.button
             type="submit"
             form="class-filter-form"
             phx-click={JS.exec("data-cancel", to: "#classes-filter-overlay")}
           >
-            Select
+            <%= gettext("Select") %>
           </.button>
         </:actions>
       </.slide_over>
       <.slide_over :if={@assessment_points_count > 1} id="activity-assessment-points-order-overlay">
-        <:title>Assessment Points Order</:title>
+        <:title><%= gettext("Assessment Points Order") %></:title>
         <ol>
           <li
             :for={{assessment_point, i} <- @sortable_assessment_points}
@@ -228,7 +228,7 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
             <div class="shrink-0 flex flex-col gap-2">
               <.icon_button
                 type="button"
-                sr_text="Move assessment point up"
+                sr_text={gettext("Move assessment point up")}
                 name="hero-chevron-up-mini"
                 theme="ghost"
                 rounded
@@ -239,7 +239,7 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
               />
               <.icon_button
                 type="button"
-                sr_text="Move assessment point down"
+                sr_text={gettext("Move assessment point down")}
                 name="hero-chevron-down-mini"
                 theme="ghost"
                 rounded
@@ -257,10 +257,10 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
             theme="ghost"
             phx-click={JS.exec("data-cancel", to: "#activity-assessment-points-order-overlay")}
           >
-            Cancel
+            <%= gettext("Cancel") %>
           </.button>
           <.button type="button" phx-click="save_order" phx-target={@myself}>
-            Save
+            <%= gettext("Save") %>
           </.button>
         </:actions>
       </.slide_over>
@@ -434,7 +434,9 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
       {:error, _changeset} ->
         # we may have more error types, but for now we are handling only this one
         message =
-          "This assessment point already have some entries. Deleting it will cause data loss."
+          gettext(
+            "This assessment point already have some entries. Deleting it will cause data loss."
+          )
 
         {:noreply, socket |> assign(:delete_assessment_point_error, message)}
     end

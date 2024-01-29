@@ -109,7 +109,9 @@ defmodule LantternWeb.StrandLive do
          socket
          |> put_flash(
            :error,
-           gettext("Strand has linked activities. Deleting it would cause some data loss.")
+           gettext(
+             "Strand has linked activities and/or assessment points (goals). Deleting it would cause some data loss."
+           )
          )}
     end
   end
