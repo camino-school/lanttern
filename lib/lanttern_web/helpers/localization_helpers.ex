@@ -1,5 +1,9 @@
-defmodule LantternWeb.Localization do
+defmodule LantternWeb.LocalizationHelpers do
   @moduledoc """
+  Set of reusable helpers for localization
+  """
+
+  @doc """
   Live view hooks for restoring user location.
 
   1. If `"locale"` is present in params, we use this
@@ -7,7 +11,6 @@ defmodule LantternWeb.Localization do
   3. Else, just skip it (use default locale)
 
   """
-
   def on_mount(:default, %{"locale" => locale}, _session, socket) do
     Gettext.put_locale(LantternWeb.Gettext, locale)
     {:cont, socket}
@@ -34,4 +37,27 @@ defmodule LantternWeb.Localization do
   # catch-all case
   def on_mount(:default, _params, _session, socket),
     do: {:cont, socket}
+
+  @doc """
+  Translate dynamic, domain generate lists (e.g. list of subjects, list of years).
+
+  ## Options:
+
+      - `reorder` - boolean. (Re)orders the list based on translated fields
+  """
+  def translate_struct_list(list, domain, field \\ :name, opts \\ []) do
+    Enum.map(list, fn item ->
+      Map.put(
+        item,
+        field,
+        Gettext.dgettext(LantternWeb.Gettext, domain, Map.get(item, field))
+      )
+    end)
+    |> reorder(field, opts)
+  end
+
+  defp reorder(list, field, reorder: true),
+    do: Enum.sort_by(list, &Map.get(&1, field))
+
+  defp reorder(list, _field, _opts), do: list
 end

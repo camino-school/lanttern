@@ -1,0 +1,122 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: pt_BR\n"
+"Plural-Forms: nplurals=2; plural=(n>1);\n"
+
+## Years
+msgid "Kindergarten 0"
+msgstr "EI 0 Anos"
+
+msgid "Kindergarten 1"
+msgstr "EI 1 Ano"
+
+msgid "Kindergarten 2"
+msgstr "EI 2 Anos"
+
+msgid "Kindergarten 3"
+msgstr "EI 3 Anos"
+
+msgid "Kindergarten 4"
+msgstr "EI 4 Anos"
+
+msgid "Kindergarten 5"
+msgstr "EI 5 Anos"
+
+msgid "Grade 1"
+msgstr "1º Ano EF"
+
+msgid "Grade 2"
+msgstr "2º Ano EF"
+
+msgid "Grade 3"
+msgstr "3º Ano EF"
+
+msgid "Grade 4"
+msgstr "4º Ano EF"
+
+msgid "Grade 5"
+msgstr "5º Ano EF"
+
+msgid "Grade 6"
+msgstr "6º Ano EF"
+
+msgid "Grade 7"
+msgstr "7º Ano EF"
+
+msgid "Grade 8"
+msgstr "8º Ano EF"
+
+msgid "Grade 9"
+msgstr "9º Ano EF"
+
+msgid "Grade 10"
+msgstr "1ª Série EM"
+
+msgid "Grade 11"
+msgstr "2ª Série EM"
+
+msgid "Grade 12"
+msgstr "3ª Série EM"
+
+## Subjects
+msgid "Arts"
+msgstr "Artes"
+
+msgid "Drama"
+msgstr "Teatro"
+
+msgid "Engineering"
+msgstr "Engenharia"
+
+msgid "English"
+msgstr "Língua Inglesa"
+
+msgid "Geography"
+msgstr "Geografia"
+
+msgid "History"
+msgstr "História"
+
+msgid "Human Science"
+msgstr "Ciências Humanas"
+
+msgid "Languages"
+msgstr "Linguagens"
+
+msgid "Math"
+msgstr "Matemática"
+
+msgid "Movement"
+msgstr "Educação Física"
+
+msgid "Music"
+msgstr "Música"
+
+msgid "Natural Science"
+msgstr "Ciências da Natureza"
+
+msgid "Portuguese"
+msgstr "Língua Portuguesa"
+
+msgid "Religion"
+msgstr "Religião"
+
+msgid "Science"
+msgstr "Ciências"
+
+msgid "Spanish"
+msgstr "Língua Espanhola"
+
+msgid "Technology"
+msgstr "Tecnologia"
+
+msgid "Visual Arts"
+msgstr "Artes Visuais"

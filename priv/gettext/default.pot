@@ -11,8 +11,8 @@
 msgid ""
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:422
-#: lib/lanttern_web/components/core_components.ex:484
+#: lib/lanttern_web/components/core_components.ex:423
+#: lib/lanttern_web/components/core_components.ex:485
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr ""
@@ -42,6 +42,7 @@ msgstr ""
 msgid "School"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:2
 #: lib/lanttern_web/live/shared/menu_component.ex:20
 #, elixir-autogen, elixir-format
 msgid "Strands"
@@ -54,17 +55,17 @@ msgstr ""
 msgid "close"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/menu_component.ex:69
+#: lib/lanttern_web/live/shared/menu_component.ex:73
 #, elixir-autogen, elixir-format
 msgid "Change profile"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/menu_component.ex:99
+#: lib/lanttern_web/live/shared/menu_component.ex:103
 #, elixir-autogen, elixir-format
 msgid "Language:"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/menu_component.ex:92
+#: lib/lanttern_web/live/shared/menu_component.ex:96
 #, elixir-autogen, elixir-format
 msgid "Log out"
 msgstr ""
@@ -72,4 +73,222 @@ msgstr ""
 #: lib/lanttern_web/live/shared/menu_component.ex:45
 #, elixir-autogen, elixir-format
 msgid "You're logged in as"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:42
+#, elixir-autogen, elixir-format
+msgid "All strands"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:100
+#, elixir-autogen, elixir-format
+msgid "Apply filters"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:98
+#, elixir-autogen, elixir-format
+msgid "Applying filters..."
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:93
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:129
+#, elixir-autogen, elixir-format
+msgid "Cancel"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:84
+#, elixir-autogen, elixir-format
+msgid "Clear filters"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:10
+#, elixir-autogen, elixir-format
+msgid "Create new strand"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:53
+#, elixir-autogen, elixir-format
+msgid "Filter Strands"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:5
+#, elixir-autogen, elixir-format
+msgid "I want to explore strands in"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:47
+#, elixir-autogen, elixir-format
+msgid "Load more strands"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:110
+#, elixir-autogen, elixir-format
+msgid "New strand"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:15
+#, elixir-autogen, elixir-format
+msgid "No strands created for selected years and subjects"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:132
+#, elixir-autogen, elixir-format
+msgid "Save"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:70
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:112
+#, elixir-autogen, elixir-format
+msgid "Subjects"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:25
+#, elixir-autogen, elixir-format
+msgid "Toggle starred strands"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:57
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:125
+#, elixir-autogen, elixir-format
+msgid "Years"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:20
+#, elixir-autogen, elixir-format
+msgid "Your starred strands"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:45
+#, elixir-autogen, elixir-format
+msgid "Cancel cover replacement"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:100
+#, elixir-autogen, elixir-format
+msgid "Description"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:73
+#, elixir-autogen, elixir-format
+msgid "File \"%{file}\" is invalid."
+msgstr ""
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:93
+#, elixir-autogen, elixir-format
+msgid "Name"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:114
+#, elixir-autogen, elixir-format
+msgid "No subject selected"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:127
+#, elixir-autogen, elixir-format
+msgid "No year selected"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:17
+#, elixir-autogen, elixir-format
+msgid "Oops, something went wrong! Please check the errors below."
+msgstr ""
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:60
+#, elixir-autogen, elixir-format
+msgid "Replace image"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:133
+#, elixir-autogen, elixir-format
+msgid "Save Strand"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:132
+#, elixir-autogen, elixir-format
+msgid "Saving..."
+msgstr ""
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:113
+#, elixir-autogen, elixir-format
+msgid "Select subject"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:126
+#, elixir-autogen, elixir-format
+msgid "Select year"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:260
+#, elixir-autogen, elixir-format
+msgid "Strand created successfully"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:243
+#, elixir-autogen, elixir-format
+msgid "Strand updated successfully"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:34
+#, elixir-autogen, elixir-format
+msgid "Upload a cover image file"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:85
+#, elixir-autogen, elixir-format
+msgid "cancel"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:37
+#, elixir-autogen, elixir-format
+msgid "or drag and drop here"
+msgstr ""
+
+#: lib/lanttern_web/components/core_components.ex:110
+#, elixir-autogen, elixir-format
+msgid "Attempting to reconnect"
+msgstr ""
+
+#: lib/lanttern_web/components/core_components.ex:101
+#, elixir-autogen, elixir-format
+msgid "Error!"
+msgstr ""
+
+#: lib/lanttern_web/components/core_components.ex:122
+#, elixir-autogen, elixir-format
+msgid "Hang in there while we get back on track"
+msgstr ""
+
+#: lib/lanttern_web/components/form_components.ex:552
+#, elixir-autogen, elixir-format
+msgid "Markdown supported"
+msgstr ""
+
+#: lib/lanttern_web/components/core_components.ex:100
+#, elixir-autogen, elixir-format
+msgid "Success!"
+msgstr ""
+
+#: lib/lanttern_web/components/core_components.ex:105
+#, elixir-autogen, elixir-format
+msgid "We can't find the internet"
+msgstr ""
+
+#: lib/lanttern_web/components/core_components.ex:117
+#, elixir-autogen, elixir-format
+msgid "Something went wrong!"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/strands_live.ex:19
+#, elixir-autogen, elixir-format
+msgid "all %{type}"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:7
+#, elixir-autogen, elixir-format
+msgid "subjects"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/strands_live.html.heex:6
+#, elixir-autogen, elixir-format
+msgid "years"
 msgstr ""
