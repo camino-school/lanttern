@@ -1,7 +1,7 @@
 defmodule LantternWeb.Admin.MomentCardLive.FormComponent do
   use LantternWeb, :live_component
 
-  alias Lanttern.Moments
+  alias Lanttern.LearningContext
 
   @impl true
   def render(assigns) do
@@ -33,7 +33,7 @@ defmodule LantternWeb.Admin.MomentCardLive.FormComponent do
 
   @impl true
   def update(%{moment_card: moment_card} = assigns, socket) do
-    changeset = Moments.change_moment_card(moment_card)
+    changeset = LearningContext.change_moment_card(moment_card)
 
     {:ok,
      socket
@@ -45,7 +45,7 @@ defmodule LantternWeb.Admin.MomentCardLive.FormComponent do
   def handle_event("validate", %{"moment_card" => moment_card_params}, socket) do
     changeset =
       socket.assigns.moment_card
-      |> Moments.change_moment_card(moment_card_params)
+      |> LearningContext.change_moment_card(moment_card_params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}
@@ -56,7 +56,7 @@ defmodule LantternWeb.Admin.MomentCardLive.FormComponent do
   end
 
   defp save_moment_card(socket, :edit, moment_card_params) do
-    case Moments.update_moment_card(socket.assigns.moment_card, moment_card_params) do
+    case LearningContext.update_moment_card(socket.assigns.moment_card, moment_card_params) do
       {:ok, moment_card} ->
         notify_parent({:saved, moment_card})
 
@@ -71,7 +71,7 @@ defmodule LantternWeb.Admin.MomentCardLive.FormComponent do
   end
 
   defp save_moment_card(socket, :new, moment_card_params) do
-    case Moments.create_moment_card(moment_card_params) do
+    case LearningContext.create_moment_card(moment_card_params) do
       {:ok, moment_card} ->
         notify_parent({:saved, moment_card})
 

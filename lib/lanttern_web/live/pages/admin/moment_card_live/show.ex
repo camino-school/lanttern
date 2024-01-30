@@ -1,7 +1,7 @@
 defmodule LantternWeb.Admin.MomentCardLive.Show do
   use LantternWeb, {:live_view, layout: :admin}
 
-  alias Lanttern.Moments
+  alias Lanttern.LearningContext
 
   @impl true
   def mount(_params, _session, socket) do
@@ -13,7 +13,7 @@ defmodule LantternWeb.Admin.MomentCardLive.Show do
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:moment_card, Moments.get_moment_card!(id))}
+     |> assign(:moment_card, LearningContext.get_moment_card!(id))}
   end
 
   defp page_title(:show), do: "Show Moment card"

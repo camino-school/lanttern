@@ -1,4 +1,4 @@
-defmodule Lanttern.Moments.MomentCard do
+defmodule Lanttern.LearningContext.MomentCard do
   use Ecto.Schema
   import Ecto.Changeset
 

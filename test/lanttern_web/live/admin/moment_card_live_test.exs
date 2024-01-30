@@ -2,7 +2,7 @@ defmodule LantternWeb.Admin.MomentCardLiveTest do
   use LantternWeb.ConnCase
 
   import Phoenix.LiveViewTest
-  import Lanttern.MomentsFixtures
+  import Lanttern.LearningContextFixtures
 
   @update_attrs %{
     name: "some updated name",
