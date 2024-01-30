@@ -20,10 +20,10 @@ defmodule Lanttern.LearningContextFixtures do
   end
 
   @doc """
-  Generate an activity.
+  Generate an moment.
   """
-  def activity_fixture(attrs \\ %{}) do
-    {:ok, activity} =
+  def moment_fixture(attrs \\ %{}) do
+    {:ok, moment} =
       attrs
       |> Enum.into(%{
         name: "some name",
@@ -31,9 +31,9 @@ defmodule Lanttern.LearningContextFixtures do
         description: "some description",
         strand_id: maybe_gen_strand_id(attrs)
       })
-      |> Lanttern.LearningContext.create_activity()
+      |> Lanttern.LearningContext.create_moment()
 
-    activity
+    moment
   end
 
   # helpers

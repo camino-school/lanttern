@@ -1,4 +1,4 @@
-defmodule LantternWeb.ActivityLive.DetailsComponent do
+defmodule LantternWeb.MomentLive.DetailsComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Curricula
@@ -7,7 +7,7 @@ defmodule LantternWeb.ActivityLive.DetailsComponent do
   def render(assigns) do
     ~H"""
     <div class="container py-10 mx-auto lg:max-w-5xl">
-      <.markdown text={@activity.description} />
+      <.markdown text={@moment.description} />
       <h3 class="mt-16 font-display font-black text-3xl"><%= gettext("Curriculum") %></h3>
       <div :for={curriculum_item <- @curriculum_items} class="mt-6">
         <.badge theme="dark"><%= curriculum_item.curriculum_component.name %></.badge>
@@ -18,13 +18,13 @@ defmodule LantternWeb.ActivityLive.DetailsComponent do
   end
 
   @impl true
-  def update(%{activity: activity} = assigns, socket) do
+  def update(%{moment: moment} = assigns, socket) do
     {:ok,
      socket
      |> assign(assigns)
      |> assign(
        :curriculum_items,
-       Curricula.list_activity_curriculum_items(activity.id, preloads: :curriculum_component)
+       Curricula.list_moment_curriculum_items(moment.id, preloads: :curriculum_component)
      )}
   end
 end

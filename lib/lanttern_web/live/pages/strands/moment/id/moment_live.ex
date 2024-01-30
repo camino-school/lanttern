@@ -1,15 +1,15 @@
-defmodule LantternWeb.ActivityLive do
+defmodule LantternWeb.MomentLive do
   use LantternWeb, :live_view
 
   alias Lanttern.LearningContext
 
   # page components
-  alias LantternWeb.ActivityLive.DetailsComponent
-  alias LantternWeb.ActivityLive.AssessmentComponent
-  alias LantternWeb.ActivityLive.NotesComponent
+  alias LantternWeb.MomentLive.DetailsComponent
+  alias LantternWeb.MomentLive.AssessmentComponent
+  alias LantternWeb.MomentLive.NotesComponent
 
   # shared components
-  alias LantternWeb.LearningContext.ActivityFormComponent
+  alias LantternWeb.LearningContext.MomentFormComponent
 
   @tabs %{
     "details" => :details,
@@ -21,7 +21,7 @@ defmodule LantternWeb.ActivityLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, :activity, nil), layout: {LantternWeb.Layouts, :app_logged_in_blank}}
+    {:ok, assign(socket, :moment, nil), layout: {LantternWeb.Layouts, :app_logged_in_blank}}
   end
 
   @impl true
@@ -33,7 +33,7 @@ defmodule LantternWeb.ActivityLive do
        params,
        [:classes_ids],
        &handle_assigns/2,
-       fn params -> ~p"/strands/activity/#{params["id"]}/?#{Map.drop(params, ["id"])}" end
+       fn params -> ~p"/strands/moment/#{params["id"]}/?#{Map.drop(params, ["id"])}" end
      )}
   end
 
@@ -67,21 +67,21 @@ defmodule LantternWeb.ActivityLive do
   defp set_current_tab(socket, _params, _live_action),
     do: assign(socket, :current_tab, :details)
 
-  defp apply_action(%{assigns: %{activity: nil}} = socket, _live_action, %{"id" => id}) do
-    # pattern match assigned activity to prevent unnecessary get_activity calls
+  defp apply_action(%{assigns: %{moment: nil}} = socket, _live_action, %{"id" => id}) do
+    # pattern match assigned moment to prevent unnecessary get_moment calls
     # (during handle_params triggered by tab change for example)
 
-    case LearningContext.get_activity(id,
+    case LearningContext.get_moment(id,
            preloads: [:strand, :subjects]
          ) do
-      activity when is_nil(activity) ->
+      moment when is_nil(moment) ->
         socket
-        |> put_flash(:error, gettext("Couldn't find activity"))
+        |> put_flash(:error, gettext("Couldn't find moment"))
         |> redirect(to: ~p"/strands")
 
-      activity ->
+      moment ->
         socket
-        |> assign(:activity, activity)
+        |> assign(:moment, moment)
     end
   end
 
@@ -90,20 +90,20 @@ defmodule LantternWeb.ActivityLive do
   # event handlers
 
   @impl true
-  def handle_event("delete_activity", _params, socket) do
-    case LearningContext.delete_activity(socket.assigns.activity) do
-      {:ok, _activity} ->
+  def handle_event("delete_moment", _params, socket) do
+    case LearningContext.delete_moment(socket.assigns.moment) do
+      {:ok, _moment} ->
         {:noreply,
          socket
-         |> put_flash(:info, gettext("Activity deleted"))
-         |> push_navigate(to: ~p"/strands/#{socket.assigns.activity.strand}?tab=activities")}
+         |> put_flash(:info, gettext("Moment deleted"))
+         |> push_navigate(to: ~p"/strands/#{socket.assigns.moment.strand}?tab=moments")}
 
       {:error, _changeset} ->
         {:noreply,
          socket
          |> put_flash(
            :error,
-           gettext("Activity has linked assessments. Deleting it would cause some data loss.")
+           gettext("Moment has linked assessments. Deleting it would cause some data loss.")
          )}
     end
   end
@@ -111,7 +111,7 @@ defmodule LantternWeb.ActivityLive do
   # info handlers
 
   @impl true
-  def handle_info({ActivityFormComponent, {:saved, activity}}, socket) do
-    {:noreply, assign(socket, :activity, activity)}
+  def handle_info({MomentFormComponent, {:saved, moment}}, socket) do
+    {:noreply, assign(socket, :moment, moment)}
   end
 end

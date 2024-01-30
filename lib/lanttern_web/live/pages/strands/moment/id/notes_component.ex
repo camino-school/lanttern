@@ -1,4 +1,4 @@
-defmodule LantternWeb.ActivityLive.NotesComponent do
+defmodule LantternWeb.MomentLive.NotesComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Personalization
@@ -9,7 +9,7 @@ defmodule LantternWeb.ActivityLive.NotesComponent do
     ~H"""
     <div class="container py-10 mx-auto lg:max-w-5xl">
       <%= if @is_editing do %>
-        <.form for={@form} phx-submit="save" phx-target={@myself} id="activity-note-form">
+        <.form for={@form} phx-submit="save" phx-target={@myself} id="moment-note-form">
           <.markdown_supported class="mb-6" />
           <.textarea_with_actions
             id={@form[:description].id}
@@ -45,7 +45,7 @@ defmodule LantternWeb.ActivityLive.NotesComponent do
         <%= if @note do %>
           <div class="flex items-center justify-between mb-10">
             <h3 class="font-display font-bold text-xl">
-              <%= gettext("My activity notes (visible only to you)") %>
+              <%= gettext("My moment notes (visible only to you)") %>
             </h3>
             <.button type="button" theme="ghost" phx-click="edit" phx-target={@myself}>
               <%= gettext("Edit") %>
@@ -54,7 +54,7 @@ defmodule LantternWeb.ActivityLive.NotesComponent do
           <.markdown text={@note.description} />
         <% else %>
           <.empty_state>
-            <%= gettext("You don't have any notes for this activity yet") %>
+            <%= gettext("You don't have any notes for this moment yet") %>
           </.empty_state>
           <div class="mt-6 text-center">
             <button
@@ -63,7 +63,7 @@ defmodule LantternWeb.ActivityLive.NotesComponent do
               phx-click="edit"
               phx-target={@myself}
             >
-              <%= gettext("Add an activity note") %>
+              <%= gettext("Add an moment note") %>
             </button>
           </div>
         <% end %>
@@ -80,9 +80,9 @@ defmodule LantternWeb.ActivityLive.NotesComponent do
   end
 
   @impl true
-  def update(%{current_user: user, activity: activity} = assigns, socket) do
+  def update(%{current_user: user, moment: moment} = assigns, socket) do
     note =
-      Personalization.get_user_note(user, activity_id: activity.id)
+      Personalization.get_user_note(user, moment_id: moment.id)
 
     form =
       case note do
@@ -147,9 +147,9 @@ defmodule LantternWeb.ActivityLive.NotesComponent do
   # helpers
 
   defp save_note(nil, params, socket) do
-    Personalization.create_activity_note(
+    Personalization.create_moment_note(
       socket.assigns.current_user,
-      socket.assigns.activity.id,
+      socket.assigns.moment.id,
       params
     )
   end

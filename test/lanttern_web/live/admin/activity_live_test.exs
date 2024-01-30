@@ -1,4 +1,4 @@
-defmodule LantternWeb.Admin.ActivityLiveTest do
+defmodule LantternWeb.Admin.MomentLiveTest do
   use LantternWeb.ConnCase
 
   import Phoenix.LiveViewTest
@@ -11,34 +11,34 @@ defmodule LantternWeb.Admin.ActivityLiveTest do
   }
   @invalid_attrs %{name: nil, position: nil, description: nil}
 
-  defp create_activity(_) do
-    activity = activity_fixture()
-    %{activity: activity}
+  defp create_moment(_) do
+    moment = moment_fixture()
+    %{moment: moment}
   end
 
   setup :register_and_log_in_root_admin
 
   describe "Index" do
-    setup [:create_activity]
+    setup [:create_moment]
 
-    test "lists all activities", %{conn: conn, activity: activity} do
-      {:ok, _index_live, html} = live(conn, ~p"/admin/activities")
+    test "lists all moments", %{conn: conn, moment: moment} do
+      {:ok, _index_live, html} = live(conn, ~p"/admin/moments")
 
-      assert html =~ "Listing Activities"
-      assert html =~ activity.name
+      assert html =~ "Listing Moments"
+      assert html =~ moment.name
     end
 
-    test "saves new activity", %{conn: conn} do
+    test "saves new moment", %{conn: conn} do
       strand = strand_fixture()
-      {:ok, index_live, _html} = live(conn, ~p"/admin/activities")
+      {:ok, index_live, _html} = live(conn, ~p"/admin/moments")
 
-      assert index_live |> element("a", "New Activity") |> render_click() =~
-               "New Activity"
+      assert index_live |> element("a", "New Moment") |> render_click() =~
+               "New Moment"
 
-      assert_patch(index_live, ~p"/admin/activities/new")
+      assert_patch(index_live, ~p"/admin/moments/new")
 
       assert index_live
-             |> form("#activity-form", activity: @invalid_attrs)
+             |> form("#moment-form", moment: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"
 
       create_attrs = %{
@@ -49,77 +49,77 @@ defmodule LantternWeb.Admin.ActivityLiveTest do
       }
 
       assert index_live
-             |> form("#activity-form", activity: create_attrs)
+             |> form("#moment-form", moment: create_attrs)
              |> render_submit()
 
-      assert_patch(index_live, ~p"/admin/activities")
+      assert_patch(index_live, ~p"/admin/moments")
 
       html = render(index_live)
-      assert html =~ "Activity created successfully"
+      assert html =~ "Moment created successfully"
       assert html =~ "some name"
     end
 
-    test "updates activity in listing", %{conn: conn, activity: activity} do
-      {:ok, index_live, _html} = live(conn, ~p"/admin/activities")
+    test "updates moment in listing", %{conn: conn, moment: moment} do
+      {:ok, index_live, _html} = live(conn, ~p"/admin/moments")
 
-      assert index_live |> element("#activities-#{activity.id} a", "Edit") |> render_click() =~
-               "Edit Activity"
+      assert index_live |> element("#moments-#{moment.id} a", "Edit") |> render_click() =~
+               "Edit Moment"
 
-      assert_patch(index_live, ~p"/admin/activities/#{activity}/edit")
+      assert_patch(index_live, ~p"/admin/moments/#{moment}/edit")
 
       assert index_live
-             |> form("#activity-form", activity: @invalid_attrs)
+             |> form("#moment-form", moment: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"
 
       assert index_live
-             |> form("#activity-form", activity: @update_attrs)
+             |> form("#moment-form", moment: @update_attrs)
              |> render_submit()
 
-      assert_patch(index_live, ~p"/admin/activities")
+      assert_patch(index_live, ~p"/admin/moments")
 
       html = render(index_live)
-      assert html =~ "Activity updated successfully"
+      assert html =~ "Moment updated successfully"
       assert html =~ "some updated name"
     end
 
-    test "deletes activity in listing", %{conn: conn, activity: activity} do
-      {:ok, index_live, _html} = live(conn, ~p"/admin/activities")
+    test "deletes moment in listing", %{conn: conn, moment: moment} do
+      {:ok, index_live, _html} = live(conn, ~p"/admin/moments")
 
-      assert index_live |> element("#activities-#{activity.id} a", "Delete") |> render_click()
-      refute has_element?(index_live, "#activities-#{activity.id}")
+      assert index_live |> element("#moments-#{moment.id} a", "Delete") |> render_click()
+      refute has_element?(index_live, "#moments-#{moment.id}")
     end
   end
 
   describe "Show" do
-    setup [:create_activity]
+    setup [:create_moment]
 
-    test "displays activity", %{conn: conn, activity: activity} do
-      {:ok, _show_live, html} = live(conn, ~p"/admin/activities/#{activity}")
+    test "displays moment", %{conn: conn, moment: moment} do
+      {:ok, _show_live, html} = live(conn, ~p"/admin/moments/#{moment}")
 
-      assert html =~ "Show Activity"
-      assert html =~ activity.name
+      assert html =~ "Show Moment"
+      assert html =~ moment.name
     end
 
-    test "updates activity within modal", %{conn: conn, activity: activity} do
-      {:ok, show_live, _html} = live(conn, ~p"/admin/activities/#{activity}")
+    test "updates moment within modal", %{conn: conn, moment: moment} do
+      {:ok, show_live, _html} = live(conn, ~p"/admin/moments/#{moment}")
 
       assert show_live |> element("a", "Edit") |> render_click() =~
-               "Edit Activity"
+               "Edit Moment"
 
-      assert_patch(show_live, ~p"/admin/activities/#{activity}/show/edit")
+      assert_patch(show_live, ~p"/admin/moments/#{moment}/show/edit")
 
       assert show_live
-             |> form("#activity-form", activity: @invalid_attrs)
+             |> form("#moment-form", moment: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"
 
       assert show_live
-             |> form("#activity-form", activity: @update_attrs)
+             |> form("#moment-form", moment: @update_attrs)
              |> render_submit()
 
-      assert_patch(show_live, ~p"/admin/activities/#{activity}")
+      assert_patch(show_live, ~p"/admin/moments/#{moment}")
 
       html = render(show_live)
-      assert html =~ "Activity updated successfully"
+      assert html =~ "Moment updated successfully"
       assert html =~ "some updated name"
     end
   end

@@ -1,4 +1,4 @@
-defmodule LantternWeb.Admin.ActivityLive.Show do
+defmodule LantternWeb.Admin.MomentLive.Show do
   use LantternWeb, {:live_view, layout: :admin}
 
   alias Lanttern.LearningContext
@@ -14,8 +14,8 @@ defmodule LantternWeb.Admin.ActivityLive.Show do
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
      |> assign(
-       :activity,
-       LearningContext.get_activity!(id,
+       :moment,
+       LearningContext.get_moment!(id,
          preloads: [
            :strand,
            :subjects,
@@ -25,6 +25,6 @@ defmodule LantternWeb.Admin.ActivityLive.Show do
      )}
   end
 
-  defp page_title(:show), do: "Show Activity"
-  defp page_title(:edit), do: "Edit Activity"
+  defp page_title(:show), do: "Show Moment"
+  defp page_title(:edit), do: "Edit Moment"
 end

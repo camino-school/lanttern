@@ -237,32 +237,32 @@ defmodule Lanttern.AssessmentsTest do
     alias Lanttern.GradingFixtures
     alias Lanttern.SchoolsFixtures
 
-    test "list_assessment_points/1 returns all assessment points for activities in a given strand" do
+    test "list_assessment_points/1 returns all assessment points for moments in a given strand" do
       strand = LearningContextFixtures.strand_fixture()
-      activity_1 = LearningContextFixtures.activity_fixture(%{strand_id: strand.id, position: 1})
-      activity_2 = LearningContextFixtures.activity_fixture(%{strand_id: strand.id, position: 2})
+      moment_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id, position: 1})
+      moment_2 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id, position: 2})
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
       scale = GradingFixtures.scale_fixture()
 
       valid_attrs = %{
-        activity_id: nil,
+        moment_id: nil,
         name: "some assessment point name abc",
         curriculum_item_id: curriculum_item.id,
         scale_id: scale.id
       }
 
-      assessment_point_1_1 = assessment_point_fixture(%{valid_attrs | activity_id: activity_1.id})
-      assessment_point_1_2 = assessment_point_fixture(%{valid_attrs | activity_id: activity_1.id})
-      assessment_point_2_1 = assessment_point_fixture(%{valid_attrs | activity_id: activity_2.id})
-      assessment_point_2_2 = assessment_point_fixture(%{valid_attrs | activity_id: activity_2.id})
+      assessment_point_1_1 = assessment_point_fixture(%{valid_attrs | moment_id: moment_1.id})
+      assessment_point_1_2 = assessment_point_fixture(%{valid_attrs | moment_id: moment_1.id})
+      assessment_point_2_1 = assessment_point_fixture(%{valid_attrs | moment_id: moment_2.id})
+      assessment_point_2_2 = assessment_point_fixture(%{valid_attrs | moment_id: moment_2.id})
 
       # extra assessment points for "filter" assertion
-      other_activity = LearningContextFixtures.activity_fixture()
-      assessment_point_fixture(%{valid_attrs | activity_id: other_activity.id})
+      other_moment = LearningContextFixtures.moment_fixture()
+      assessment_point_fixture(%{valid_attrs | moment_id: other_moment.id})
       assessment_point_fixture()
 
       assert [expected_1, expected_2, expected_3, expected_4] =
-               Assessments.list_assessment_points(activities_from_strand_id: strand.id)
+               Assessments.list_assessment_points(moments_from_strand_id: strand.id)
 
       assert expected_1.id == assessment_point_1_1.id
       assert expected_2.id == assessment_point_1_2.id
@@ -272,15 +272,15 @@ defmodule Lanttern.AssessmentsTest do
 
     test "list_strand_students_entries/1 returns students and their assessment point entries for the given strand" do
       strand = LearningContextFixtures.strand_fixture()
-      activity_1 = LearningContextFixtures.activity_fixture(%{strand_id: strand.id, position: 1})
-      activity_2 = LearningContextFixtures.activity_fixture(%{strand_id: strand.id, position: 2})
+      moment_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id, position: 1})
+      moment_2 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id, position: 2})
       curriculum_item_1 = CurriculaFixtures.curriculum_item_fixture()
       curriculum_item_2 = CurriculaFixtures.curriculum_item_fixture()
       scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
 
       assessment_point_1_1 =
         assessment_point_fixture(%{
-          activity_id: activity_1.id,
+          moment_id: moment_1.id,
           name: "some assessment point name abc",
           curriculum_item_id: curriculum_item_1.id,
           scale_id: scale.id
@@ -288,7 +288,7 @@ defmodule Lanttern.AssessmentsTest do
 
       assessment_point_2_1 =
         assessment_point_fixture(%{
-          activity_id: activity_2.id,
+          moment_id: moment_2.id,
           name: "some assessment point name hij",
           curriculum_item_id: curriculum_item_1.id,
           scale_id: scale.id
@@ -296,7 +296,7 @@ defmodule Lanttern.AssessmentsTest do
 
       assessment_point_2_2 =
         assessment_point_fixture(%{
-          activity_id: activity_2.id,
+          moment_id: moment_2.id,
           name: "some assessment point name xyz",
           curriculum_item_id: curriculum_item_2.id,
           scale_id: scale.id
@@ -377,7 +377,7 @@ defmodule Lanttern.AssessmentsTest do
     end
   end
 
-  describe "activity assessment points" do
+  describe "moment assessment points" do
     alias Lanttern.Assessments.AssessmentPoint
 
     import Lanttern.AssessmentsFixtures
@@ -386,13 +386,13 @@ defmodule Lanttern.AssessmentsTest do
     alias Lanttern.GradingFixtures
     alias Lanttern.SchoolsFixtures
 
-    test "create_assessment_point/2 with valid data creates an assessment point linked to a activity" do
-      activity = LearningContextFixtures.activity_fixture()
+    test "create_assessment_point/2 with valid data creates an assessment point linked to a moment" do
+      moment = LearningContextFixtures.moment_fixture()
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
       scale = GradingFixtures.scale_fixture()
 
       valid_attrs = %{
-        activity_id: activity.id,
+        moment_id: moment.id,
         name: "some assessment point name abc",
         curriculum_item_id: curriculum_item.id,
         scale_id: scale.id
@@ -406,18 +406,18 @@ defmodule Lanttern.AssessmentsTest do
       assert assessment_point.scale_id == scale.id
 
       [expected] =
-        Assessments.list_assessment_points(activities_ids: [activity.id])
+        Assessments.list_assessment_points(moments_ids: [moment.id])
 
       assert expected.id == assessment_point.id
     end
 
-    test "list_assessment_points/1 with activities filter returns all assessment points in a given activity" do
-      activity = LearningContextFixtures.activity_fixture()
+    test "list_assessment_points/1 with moments filter returns all assessment points in a given moment" do
+      moment = LearningContextFixtures.moment_fixture()
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
       scale = GradingFixtures.scale_fixture()
 
       valid_attrs = %{
-        activity_id: activity.id,
+        moment_id: moment.id,
         name: "some assessment point name abc",
         curriculum_item_id: curriculum_item.id,
         scale_id: scale.id
@@ -428,27 +428,27 @@ defmodule Lanttern.AssessmentsTest do
       assessment_point_3 = assessment_point_fixture(valid_attrs)
 
       # extra assessment points for "filter" assertion
-      other_activity = LearningContextFixtures.activity_fixture()
-      assessment_point_fixture(%{valid_attrs | activity_id: other_activity.id})
+      other_moment = LearningContextFixtures.moment_fixture()
+      assessment_point_fixture(%{valid_attrs | moment_id: other_moment.id})
       assessment_point_fixture()
 
       assert [expected_1, expected_2, expected_3] =
-               Assessments.list_assessment_points(activities_ids: [activity.id])
+               Assessments.list_assessment_points(moments_ids: [moment.id])
 
       assert expected_1.id == assessment_point_1.id
       assert expected_2.id == assessment_point_2.id
       assert expected_3.id == assessment_point_3.id
     end
 
-    test "list_activity_students_entries/1 returns students and their assessment point entries for the given activty" do
-      activity = LearningContextFixtures.activity_fixture()
+    test "list_moment_students_entries/1 returns students and their assessment point entries for the given activty" do
+      moment = LearningContextFixtures.moment_fixture()
       curriculum_item_1 = CurriculaFixtures.curriculum_item_fixture()
       curriculum_item_2 = CurriculaFixtures.curriculum_item_fixture()
       scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
 
       assessment_point_1 =
         assessment_point_fixture(%{
-          activity_id: activity.id,
+          moment_id: moment.id,
           name: "some assessment point name abc",
           curriculum_item_id: curriculum_item_1.id,
           scale_id: scale.id
@@ -456,7 +456,7 @@ defmodule Lanttern.AssessmentsTest do
 
       assessment_point_2 =
         assessment_point_fixture(%{
-          activity_id: activity.id,
+          moment_id: moment.id,
           name: "some assessment point name xyz",
           curriculum_item_id: curriculum_item_2.id,
           scale_id: scale.id
@@ -494,18 +494,18 @@ defmodule Lanttern.AssessmentsTest do
       assert [
                {expected_std_a, [^entry_1_a, nil]},
                {expected_std_b, [nil, ^entry_2_b]}
-             ] = Assessments.list_activity_students_entries(activity.id, classes_ids: [class.id])
+             ] = Assessments.list_moment_students_entries(moment.id, classes_ids: [class.id])
 
       assert expected_std_a.id == student_a.id
       assert expected_std_b.id == student_b.id
     end
 
     test "update_assessment_points_positions/1 update assessment points position based on list order" do
-      activity = LearningContextFixtures.activity_fixture()
-      assessment_point_1 = assessment_point_fixture(%{activity_id: activity.id})
-      assessment_point_2 = assessment_point_fixture(%{activity_id: activity.id})
-      assessment_point_3 = assessment_point_fixture(%{activity_id: activity.id})
-      assessment_point_4 = assessment_point_fixture(%{activity_id: activity.id})
+      moment = LearningContextFixtures.moment_fixture()
+      assessment_point_1 = assessment_point_fixture(%{moment_id: moment.id})
+      assessment_point_2 = assessment_point_fixture(%{moment_id: moment.id})
+      assessment_point_3 = assessment_point_fixture(%{moment_id: moment.id})
+      assessment_point_4 = assessment_point_fixture(%{moment_id: moment.id})
 
       sorted_assessment_points_ids =
         [

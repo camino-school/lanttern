@@ -130,80 +130,80 @@ defmodule Lanttern.PersonalizationTest do
                Personalization.create_strand_note(%{current_profile: author}, strand.id, attrs)
     end
 
-    test "list_user_notes/2 returns all user activities notes in a strand" do
+    test "list_user_notes/2 returns all user moments notes in a strand" do
       author = teacher_profile_fixture()
       strand = strand_fixture()
-      activity_1 = activity_fixture(%{strand_id: strand.id, position: 1})
-      note_1 = activity_note_fixture(%{current_profile: author}, activity_1.id)
-      activity_2 = activity_fixture(%{strand_id: strand.id, position: 2})
-      note_2 = activity_note_fixture(%{current_profile: author}, activity_2.id)
+      moment_1 = moment_fixture(%{strand_id: strand.id, position: 1})
+      note_1 = moment_note_fixture(%{current_profile: author}, moment_1.id)
+      moment_2 = moment_fixture(%{strand_id: strand.id, position: 2})
+      note_2 = moment_note_fixture(%{current_profile: author}, moment_2.id)
 
       assert [expected_1, expected_2] =
                Personalization.list_user_notes(%{current_profile: author}, strand_id: strand.id)
 
       assert expected_1.id == note_1.id
-      assert expected_1.activity.id == activity_1.id
+      assert expected_1.moment.id == moment_1.id
       assert expected_2.id == note_2.id
-      assert expected_2.activity.id == activity_2.id
+      assert expected_2.moment.id == moment_2.id
     end
   end
 
-  describe "activity notes" do
+  describe "moment notes" do
     alias Lanttern.Personalization.Note
 
     import Lanttern.PersonalizationFixtures
     import Lanttern.IdentityFixtures
     import Lanttern.LearningContextFixtures
 
-    test "create_activity_note/2 with valid data creates a note linked to a activity" do
+    test "create_moment_note/2 with valid data creates a note linked to a moment" do
       author = teacher_profile_fixture()
-      activity = activity_fixture()
-      valid_attrs = %{"author_id" => author.id, "description" => "some activity note"}
+      moment = moment_fixture()
+      valid_attrs = %{"author_id" => author.id, "description" => "some moment note"}
 
       assert {:ok, %Note{} = note} =
-               Personalization.create_activity_note(
+               Personalization.create_moment_note(
                  %{current_profile: author},
-                 activity.id,
+                 moment.id,
                  valid_attrs
                )
 
       assert note.author_id == author.id
-      assert note.description == "some activity note"
+      assert note.description == "some moment note"
 
       expected =
-        Personalization.get_user_note(%{current_profile: author}, activity_id: activity.id)
+        Personalization.get_user_note(%{current_profile: author}, moment_id: moment.id)
 
       assert expected.id == note.id
     end
 
-    test "create_activity_note/2 with invalid data returns error changeset" do
-      activity = activity_fixture()
-      invalid_attrs = %{"description" => "some activity note"}
+    test "create_moment_note/2 with invalid data returns error changeset" do
+      moment = moment_fixture()
+      invalid_attrs = %{"description" => "some moment note"}
 
       assert {:error, %Ecto.Changeset{}} =
-               Personalization.create_activity_note(
+               Personalization.create_moment_note(
                  %{current_profile: nil},
-                 activity.id,
+                 moment.id,
                  invalid_attrs
                )
     end
 
-    test "create_activity_note/2 prevents multiple notes in the same activity" do
+    test "create_moment_note/2 prevents multiple notes in the same moment" do
       author = teacher_profile_fixture()
-      activity = activity_fixture()
-      attrs = %{"author_id" => author.id, "description" => "some activity note"}
+      moment = moment_fixture()
+      attrs = %{"author_id" => author.id, "description" => "some moment note"}
 
       assert {:ok, %Note{}} =
-               Personalization.create_activity_note(
+               Personalization.create_moment_note(
                  %{current_profile: author},
-                 activity.id,
+                 moment.id,
                  attrs
                )
 
       assert {:error, %Ecto.Changeset{}} =
-               Personalization.create_activity_note(
+               Personalization.create_moment_note(
                  %{current_profile: author},
-                 activity.id,
+                 moment.id,
                  attrs
                )
     end

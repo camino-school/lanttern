@@ -1,16 +1,16 @@
-defmodule LantternWeb.Admin.ActivityLive.Index do
+defmodule LantternWeb.Admin.MomentLive.Index do
   use LantternWeb, {:live_view, layout: :admin}
 
   alias Lanttern.LearningContext
-  alias Lanttern.LearningContext.Activity
+  alias Lanttern.LearningContext.Moment
 
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
      stream(
        socket,
-       :activities,
-       LearningContext.list_activities(
+       :moments,
+       LearningContext.list_moments(
          preloads: [
            :strand,
            :subjects,
@@ -27,10 +27,10 @@ defmodule LantternWeb.Admin.ActivityLive.Index do
 
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
-    |> assign(:page_title, "Edit Activity")
+    |> assign(:page_title, "Edit Moment")
     |> assign(
-      :activity,
-      LearningContext.get_activity!(id,
+      :moment,
+      LearningContext.get_moment!(id,
         preloads: [:subjects, curriculum_items: :curriculum_component]
       )
     )
@@ -38,26 +38,26 @@ defmodule LantternWeb.Admin.ActivityLive.Index do
 
   defp apply_action(socket, :new, _params) do
     socket
-    |> assign(:page_title, "New Activity")
-    |> assign(:activity, %Activity{curriculum_items: [], subjects: []})
+    |> assign(:page_title, "New Moment")
+    |> assign(:moment, %Moment{curriculum_items: [], subjects: []})
   end
 
   defp apply_action(socket, :index, _params) do
     socket
-    |> assign(:page_title, "Listing Activities")
-    |> assign(:activity, nil)
+    |> assign(:page_title, "Listing Moments")
+    |> assign(:moment, nil)
   end
 
   @impl true
-  def handle_info({LantternWeb.LearningContext.ActivityFormComponent, {:saved, activity}}, socket) do
-    {:noreply, stream_insert(socket, :activities, activity)}
+  def handle_info({LantternWeb.LearningContext.MomentFormComponent, {:saved, moment}}, socket) do
+    {:noreply, stream_insert(socket, :moments, moment)}
   end
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    activity = LearningContext.get_activity!(id)
-    {:ok, _} = LearningContext.delete_activity(activity)
+    moment = LearningContext.get_moment!(id)
+    {:ok, _} = LearningContext.delete_moment(moment)
 
-    {:noreply, stream_delete(socket, :activities, activity)}
+    {:noreply, stream_delete(socket, :moments, moment)}
   end
 end

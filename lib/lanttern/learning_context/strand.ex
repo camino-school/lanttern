@@ -15,7 +15,7 @@ defmodule Lanttern.LearningContext.Strand do
     field :years_ids, {:array, :id}, virtual: true
     field :is_starred, :boolean, virtual: true
 
-    has_many :activities, Lanttern.LearningContext.Activity
+    has_many :moments, Lanttern.LearningContext.Moment
     has_many :assessment_points, Lanttern.Assessments.AssessmentPoint
 
     many_to_many :subjects, Lanttern.Taxonomy.Subject,
@@ -43,8 +43,8 @@ defmodule Lanttern.LearningContext.Strand do
     |> cast(%{}, [])
     |> foreign_key_constraint(
       :id,
-      name: :activities_strand_id_fkey,
-      message: gettext("Strand has linked activities.")
+      name: :moments_strand_id_fkey,
+      message: gettext("Strand has linked moments.")
     )
     |> foreign_key_constraint(
       :id,

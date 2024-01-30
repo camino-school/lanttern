@@ -9,8 +9,8 @@ defmodule Lanttern.Personalization do
   alias Lanttern.Personalization.Note
   alias Lanttern.Personalization.StrandNoteRelationship
   alias Lanttern.LearningContext.Strand
-  alias Lanttern.Personalization.ActivityNoteRelationship
-  alias Lanttern.LearningContext.Activity
+  alias Lanttern.Personalization.MomentNoteRelationship
+  alias Lanttern.LearningContext.Moment
   alias Lanttern.Personalization.ProfileView
   alias Lanttern.Personalization.ProfileSettings
 
@@ -37,7 +37,7 @@ defmodule Lanttern.Personalization do
 
   ### Options (required):
 
-  `:strand_id` – list all activities notes for given strand. with preloaded activity and ordered by its position
+  `:strand_id` – list all moments notes for given strand. with preloaded moment and ordered by its position
 
   ## Examples
 
@@ -48,14 +48,14 @@ defmodule Lanttern.Personalization do
   def list_user_notes(%{current_profile: profile} = _user, strand_id: strand_id) do
     from(
       n in Note,
-      join: an in ActivityNoteRelationship,
-      on: an.note_id == n.id,
-      join: a in Activity,
-      on: a.id == an.activity_id,
+      join: mn in MomentNoteRelationship,
+      on: mn.note_id == n.id,
+      join: m in Moment,
+      on: m.id == mn.moment_id,
       where: n.author_id == ^profile.id,
-      where: a.strand_id == ^strand_id,
-      order_by: a.position,
-      select: %{n | activity: a}
+      where: m.strand_id == ^strand_id,
+      order_by: m.position,
+      select: %{n | moment: m}
     )
     |> Repo.all()
   end
@@ -92,7 +92,7 @@ defmodule Lanttern.Personalization do
 
   `:strand_id` – get user strand note with preloaded strand
 
-  `:activity_id` – get user activity note with preloaded activity
+  `:moment_id` – get user moment note with preloaded moment
 
   ## Examples
 
@@ -119,17 +119,17 @@ defmodule Lanttern.Personalization do
     Repo.one(query)
   end
 
-  def get_user_note(%{current_profile: profile} = _user, activity_id: activity_id) do
+  def get_user_note(%{current_profile: profile} = _user, moment_id: moment_id) do
     query =
       from(
         n in Note,
-        join: an in ActivityNoteRelationship,
-        on: an.note_id == n.id,
-        join: a in Activity,
-        on: a.id == an.activity_id,
+        join: mn in MomentNoteRelationship,
+        on: mn.note_id == n.id,
+        join: m in Moment,
+        on: m.id == mn.moment_id,
         where: n.author_id == ^profile.id,
-        where: a.id == ^activity_id,
-        select: %{n | activity: a}
+        where: m.id == ^moment_id,
+        select: %{n | moment: m}
       )
 
     Repo.one(query)
@@ -197,18 +197,18 @@ defmodule Lanttern.Personalization do
   end
 
   @doc """
-  Creates a user activity note.
+  Creates a user moment note.
 
   ## Examples
 
-      iex> create_activity_note(user, 1, %{field: value})
+      iex> create_moment_note(user, 1, %{field: value})
       {:ok, %Note{}}
 
-      iex> create_activity_note(user, 1, %{field: bad_value})
+      iex> create_moment_note(user, 1, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_activity_note(%{current_profile: profile} = _user, activity_id, attrs \\ %{}) do
+  def create_moment_note(%{current_profile: profile} = _user, moment_id, attrs \\ %{}) do
     insert_query =
       %Note{}
       |> Note.changeset(Map.put(attrs, "author_id", profile && profile.id))
@@ -216,13 +216,13 @@ defmodule Lanttern.Personalization do
     Ecto.Multi.new()
     |> Ecto.Multi.insert(:insert_note, insert_query)
     |> Ecto.Multi.run(
-      :link_activity,
+      :link_moment,
       fn _repo, %{insert_note: note} ->
-        %ActivityNoteRelationship{}
-        |> ActivityNoteRelationship.changeset(%{
+        %MomentNoteRelationship{}
+        |> MomentNoteRelationship.changeset(%{
           note_id: note.id,
           author_id: note.author_id,
-          activity_id: activity_id
+          moment_id: moment_id
         })
         |> Repo.insert()
       end
