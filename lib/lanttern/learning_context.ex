@@ -319,43 +319,41 @@ defmodule Lanttern.LearningContext do
 
   """
   def create_moment(attrs \\ %{}, opts \\ []) do
-    attrs = set_moment_position_attr(attrs)
-
     %Moment{}
     |> Moment.changeset(attrs)
+    |> set_moment_position()
     |> Repo.insert()
     |> maybe_preload(opts)
   end
 
-  defp set_moment_position_attr(%{"position" => _} = attrs), do: attrs
+  # skip if not valid
+  defp set_moment_position(%Ecto.Changeset{valid?: false} = changeset),
+    do: changeset
 
-  defp set_moment_position_attr(%{position: _} = attrs), do: attrs
+  # skip if changeset already has position change
+  defp set_moment_position(%Ecto.Changeset{changes: %{position: _position}} = changeset),
+    do: changeset
 
-  defp set_moment_position_attr(attrs) do
-    strand_id = attrs[:strand_id] || attrs["strand_id"]
+  defp set_moment_position(%Ecto.Changeset{} = changeset) do
+    strand_id =
+      Ecto.Changeset.get_field(changeset, :strand_id)
 
-    positions =
+    position =
       from(
         m in Moment,
         where: m.strand_id == ^strand_id,
         select: m.position,
-        order_by: [desc: m.position]
+        order_by: [desc: m.position],
+        limit: 1
       )
-      |> Repo.all()
-
-    position =
-      case Enum.at(positions, 0) do
+      |> Repo.one()
+      |> case do
         nil -> 0
         pos -> pos + 1
       end
 
-    cond do
-      not is_nil(attrs[:strand_id]) ->
-        Map.put(attrs, :position, position)
-
-      not is_nil(attrs["strand_id"]) ->
-        Map.put(attrs, "position", position)
-    end
+    changeset
+    |> Ecto.Changeset.put_change(:position, position)
   end
 
   @doc """
@@ -452,15 +450,37 @@ defmodule Lanttern.LearningContext do
   @doc """
   Returns the list of moment_cards.
 
+  ## Options:
+
+        - `:ids` – filter cards by ids
+        - `:moments_ids` – filter cards by moment
+
   ## Examples
 
       iex> list_moment_cards()
       [%MomentCard{}, ...]
 
   """
-  def list_moment_cards do
-    Repo.all(MomentCard)
+  def list_moment_cards(opts \\ []) do
+    from(
+      c in MomentCard,
+      order_by: c.position
+    )
+    |> filter_moment_cards(opts)
+    |> Repo.all()
   end
+
+  defp filter_moment_cards(queryable, opts) do
+    Enum.reduce(opts, queryable, &apply_moment_cards_filter/2)
+  end
+
+  defp apply_moment_cards_filter({:ids, ids}, queryable),
+    do: from(c in queryable, where: c.id in ^ids)
+
+  defp apply_moment_cards_filter({:moments_ids, ids}, queryable),
+    do: from(c in queryable, where: c.moment_id in ^ids)
+
+  defp apply_moment_cards_filter(_, queryable), do: queryable
 
   @doc """
   Gets a single moment_card.
@@ -493,7 +513,38 @@ defmodule Lanttern.LearningContext do
   def create_moment_card(attrs \\ %{}) do
     %MomentCard{}
     |> MomentCard.changeset(attrs)
+    |> set_moment_card_position()
     |> Repo.insert()
+  end
+
+  # skip if not valid
+  defp set_moment_card_position(%Ecto.Changeset{valid?: false} = changeset),
+    do: changeset
+
+  # skip if changeset already has position change
+  defp set_moment_card_position(%Ecto.Changeset{changes: %{position: _position}} = changeset),
+    do: changeset
+
+  defp set_moment_card_position(%Ecto.Changeset{} = changeset) do
+    moment_id =
+      Ecto.Changeset.get_field(changeset, :moment_id)
+
+    position =
+      from(
+        c in MomentCard,
+        where: c.moment_id == ^moment_id,
+        select: c.position,
+        order_by: [desc: c.position],
+        limit: 1
+      )
+      |> Repo.one()
+      |> case do
+        nil -> 0
+        pos -> pos + 1
+      end
+
+    changeset
+    |> Ecto.Changeset.put_change(:position, position)
   end
 
   @doc """
@@ -512,6 +563,42 @@ defmodule Lanttern.LearningContext do
     moment_card
     |> MomentCard.changeset(attrs)
     |> Repo.update()
+  end
+
+  @doc """
+  Update moment cards positions based on ids list order.
+
+  ## Examples
+
+      iex> update_moment_cards_positions([3, 2, 1])
+      {:ok, [%AssessmentPoint{}, ...]}
+
+  """
+  def update_moment_cards_positions(moment_cards_ids) do
+    moment_cards_ids
+    |> Enum.with_index()
+    |> Enum.reduce(
+      Ecto.Multi.new(),
+      fn {id, i}, multi ->
+        multi
+        |> Ecto.Multi.update_all(
+          "update-#{id}",
+          from(
+            c in MomentCard,
+            where: c.id == ^id
+          ),
+          set: [position: i]
+        )
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:ok, _} ->
+        {:ok, list_moment_cards(ids: moment_cards_ids)}
+
+      _ ->
+        {:error, "Something went wrong"}
+    end
   end
 
   @doc """

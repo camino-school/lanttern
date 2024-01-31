@@ -4,25 +4,40 @@ defmodule LantternWeb.MomentLive do
   alias Lanttern.LearningContext
 
   # page components
-  alias LantternWeb.MomentLive.DetailsComponent
+  alias LantternWeb.MomentLive.OverviewComponent
   alias LantternWeb.MomentLive.AssessmentComponent
+  alias LantternWeb.MomentLive.CardsComponent
   alias LantternWeb.MomentLive.NotesComponent
 
   # shared components
   alias LantternWeb.LearningContext.MomentFormComponent
 
   @tabs %{
-    "details" => :details,
+    "overview" => :overview,
     "assessment" => :assessment,
+    "cards" => :cards,
     "notes" => :notes
   }
 
   # lifecycle
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok, assign(socket, :moment, nil), layout: {LantternWeb.Layouts, :app_logged_in_blank}}
+  def mount(params, _session, socket) do
+    socket =
+      socket
+      |> assign(:moment, nil)
+      |> maybe_redirect(params)
+
+    {:ok, socket, layout: {LantternWeb.Layouts, :app_logged_in_blank}}
   end
+
+  # prevent user from navigating directly to nested views
+
+  defp maybe_redirect(%{assigns: %{live_action: live_action}} = socket, params)
+       when live_action in [:edit_card],
+       do: redirect(socket, to: ~p"/strands/moment/#{params["id"]}?tab=cards")
+
+  defp maybe_redirect(socket, _params), do: socket
 
   @impl true
   def handle_params(%{"tab" => "assessment"} = params, _url, socket) do
@@ -61,11 +76,14 @@ defmodule LantternWeb.MomentLive do
     |> assign(:assessment_point_id, assessment_point_id)
   end
 
+  defp set_current_tab(socket, _params, :edit_card),
+    do: assign(socket, :current_tab, @tabs["cards"])
+
   defp set_current_tab(socket, %{"tab" => tab}, _live_action),
-    do: assign(socket, :current_tab, Map.get(@tabs, tab, :details))
+    do: assign(socket, :current_tab, Map.get(@tabs, tab, :overview))
 
   defp set_current_tab(socket, _params, _live_action),
-    do: assign(socket, :current_tab, :details)
+    do: assign(socket, :current_tab, :overview)
 
   defp apply_action(%{assigns: %{moment: nil}} = socket, _live_action, %{"id" => id}) do
     # pattern match assigned moment to prevent unnecessary get_moment calls

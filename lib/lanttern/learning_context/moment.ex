@@ -7,7 +7,7 @@ defmodule Lanttern.LearningContext.Moment do
 
   schema "moments" do
     field :name, :string
-    field :position, :integer
+    field :position, :integer, default: 0
     field :description, :string
     field :subjects_ids, {:array, :id}, virtual: true
 

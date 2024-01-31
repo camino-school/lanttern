@@ -78,6 +78,7 @@ defmodule LantternWeb.Router do
       live "/strands/:id/rubric/manage", StrandLive, :manage_rubric
       live "/strands/moment/:id", MomentLive, :show
       live "/strands/moment/:id/edit", MomentLive, :edit
+      live "/strands/moment/:id/edit_card", MomentLive, :edit_card
 
       live "/strands/moment/:id/assessment_point/new", MomentLive, :new_assessment_point
 

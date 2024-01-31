@@ -70,7 +70,7 @@ defmodule LantternWeb.MomentLiveTest do
       # back to details tab
 
       view
-      |> element("#moment-nav-tabs a", "Details & Curriculum")
+      |> element("#moment-nav-tabs a", "Overview")
       |> render_click()
 
       assert_patch(view)
@@ -138,10 +138,10 @@ defmodule LantternWeb.MomentLiveTest do
         )
 
       view
-      |> element("#moment-nav-tabs a", "Details & Curriculum")
+      |> element("#moment-nav-tabs a", "Overview")
       |> render_click()
 
-      assert_patch(view, "#{@live_view_base_path}/#{moment.id}?tab=details")
+      assert_patch(view, "#{@live_view_base_path}/#{moment.id}?tab=overview")
 
       view
       |> element("#moment-nav-tabs a", "Assessment")

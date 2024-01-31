@@ -394,9 +394,24 @@ defmodule Lanttern.LearningContextTest do
 
     @invalid_attrs %{name: nil, position: nil, description: nil}
 
-    test "list_moment_cards/0 returns all moment_cards" do
+    test "list_moment_cards/1 returns all moment_cards" do
       moment_card = moment_card_fixture()
       assert LearningContext.list_moment_cards() == [moment_card]
+    end
+
+    test "list_moment_cards/1 with moments filter returns moment cards filtered and ordered by position" do
+      moment = moment_fixture()
+
+      # create moment card should handle positioning
+      moment_card_1 = moment_card_fixture(%{moment_id: moment.id})
+      moment_card_2 = moment_card_fixture(%{moment_id: moment.id})
+
+      # extra moment cards for filter testing
+      moment_card_fixture()
+      moment_card_fixture()
+
+      assert [moment_card_1, moment_card_2] ==
+               LearningContext.list_moment_cards(moments_ids: [moment.id])
     end
 
     test "get_moment_card!/1 returns the moment_card with given id" do

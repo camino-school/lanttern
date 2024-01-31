@@ -1,4 +1,4 @@
-defmodule LantternWeb.MomentLive.DetailsComponent do
+defmodule LantternWeb.MomentLive.OverviewComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Curricula

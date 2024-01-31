@@ -33,16 +33,22 @@
   <div class="flex items-center justify-between container lg:max-w-5xl mx-auto">
     <.nav_tabs id="moment-nav-tabs">
       <:tab
-        patch={~p"/strands/moment/#{@moment}?#{%{tab: "details"}}"}
-        is_current={@current_tab == :details && "true"}
+        patch={~p"/strands/moment/#{@moment}?#{%{tab: "overview"}}"}
+        is_current={@current_tab == :overview && "true"}
       >
-        <%= gettext("Details & Curriculum") %>
+        <%= gettext("Overview") %>
       </:tab>
       <:tab
         patch={~p"/strands/moment/#{@moment}?#{%{tab: "assessment"}}"}
         is_current={@current_tab == :assessment && "true"}
       >
         <%= gettext("Assessment") %>
+      </:tab>
+      <:tab
+        patch={~p"/strands/moment/#{@moment}?#{%{tab: "cards"}}"}
+        is_current={@current_tab == :cards && "true"}
+      >
+        <%= gettext("Cards") %>
       </:tab>
       <:tab
         patch={~p"/strands/moment/#{@moment}?#{%{tab: "notes"}}"}
@@ -74,9 +80,9 @@
 </div>
 <div class="ltrn-bg-main-local">
   <.live_component
-    :if={@current_tab == :details}
-    module={DetailsComponent}
-    id="moment-details-details"
+    :if={@current_tab == :overview}
+    module={OverviewComponent}
+    id="moment-details-overview"
     moment={@moment}
   />
   <.live_component
@@ -88,6 +94,13 @@
     assessment_point_id={@assessment_point_id}
     params={@params}
     current_user={@current_user}
+  />
+  <.live_component
+    :if={@current_tab == :cards}
+    module={CardsComponent}
+    id="moment-details-cards"
+    moment={@moment}
+    live_action={@live_action}
   />
   <.live_component
     :if={@current_tab == :notes}

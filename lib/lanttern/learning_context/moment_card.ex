@@ -4,7 +4,7 @@ defmodule Lanttern.LearningContext.MomentCard do
 
   schema "moment_cards" do
     field :name, :string
-    field :position, :integer
+    field :position, :integer, default: 0
     field :description, :string
 
     belongs_to :moment, Lanttern.LearningContext.Moment
