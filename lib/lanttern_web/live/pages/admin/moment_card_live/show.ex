@@ -3,6 +3,9 @@ defmodule LantternWeb.Admin.MomentCardLive.Show do
 
   alias Lanttern.LearningContext
 
+  # shared components
+  alias LantternWeb.LearningContext.MomentCardFormComponent
+
   @impl true
   def mount(_params, _session, socket) do
     {:ok, socket}

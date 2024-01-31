@@ -22,12 +22,17 @@
   show
   on_cancel={JS.patch(~p"/admin/moment_cards/#{@moment_card}")}
 >
+  <.header>
+    <%= @page_title %>
+    <:subtitle>Use this form to manage moment_card records in your database.</:subtitle>
+  </.header>
   <.live_component
-    module={LantternWeb.Admin.MomentCardLive.FormComponent}
+    module={MomentCardFormComponent}
     id={@moment_card.id}
-    title={@page_title}
-    action={@live_action}
     moment_card={@moment_card}
     patch={~p"/admin/moment_cards/#{@moment_card}"}
+    is_admin
+    notify_parent
+    class="mt-6"
   />
 </.modal>

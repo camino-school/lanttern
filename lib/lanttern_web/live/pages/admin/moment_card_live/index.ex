@@ -4,6 +4,9 @@ defmodule LantternWeb.Admin.MomentCardLive.Index do
   alias Lanttern.LearningContext
   alias Lanttern.LearningContext.MomentCard
 
+  # shared components
+  alias LantternWeb.LearningContext.MomentCardFormComponent
+
   @impl true
   def mount(_params, _session, socket) do
     {:ok, stream(socket, :moment_cards, LearningContext.list_moment_cards())}
@@ -33,7 +36,7 @@ defmodule LantternWeb.Admin.MomentCardLive.Index do
   end
 
   @impl true
-  def handle_info({LantternWeb.Admin.MomentCardLive.FormComponent, {:saved, moment_card}}, socket) do
+  def handle_info({MomentCardFormComponent, {:saved, moment_card}}, socket) do
     {:noreply, stream_insert(socket, :moment_cards, moment_card)}
   end
 

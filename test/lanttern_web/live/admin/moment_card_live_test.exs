@@ -29,6 +29,8 @@ defmodule LantternWeb.Admin.MomentCardLiveTest do
     end
 
     test "saves new moment_card", %{conn: conn} do
+      moment = Lanttern.LearningContextFixtures.moment_fixture()
+
       {:ok, index_live, _html} = live(conn, ~p"/admin/moment_cards")
 
       assert index_live |> element("a", "New Moment card") |> render_click() =~
@@ -37,18 +39,18 @@ defmodule LantternWeb.Admin.MomentCardLiveTest do
       assert_patch(index_live, ~p"/admin/moment_cards/new")
 
       assert index_live
-             |> form("#moment_card-form", moment_card: @invalid_attrs)
+             |> form("#moment-card-form", moment_card: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"
 
       create_attrs = %{
         name: "some name",
         position: 42,
         description: "some description",
-        moment_id: Lanttern.LearningContextFixtures.moment_fixture().id
+        moment_id: moment.id
       }
 
       assert index_live
-             |> form("#moment_card-form", moment_card: create_attrs)
+             |> form("#moment-card-form", moment_card: create_attrs)
              |> render_submit()
 
       assert_patch(index_live, ~p"/admin/moment_cards")
@@ -67,11 +69,11 @@ defmodule LantternWeb.Admin.MomentCardLiveTest do
       assert_patch(index_live, ~p"/admin/moment_cards/#{moment_card}/edit")
 
       assert index_live
-             |> form("#moment_card-form", moment_card: @invalid_attrs)
+             |> form("#moment-card-form", moment_card: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"
 
       assert index_live
-             |> form("#moment_card-form", moment_card: @update_attrs)
+             |> form("#moment-card-form", moment_card: @update_attrs)
              |> render_submit()
 
       assert_patch(index_live, ~p"/admin/moment_cards")
@@ -111,11 +113,11 @@ defmodule LantternWeb.Admin.MomentCardLiveTest do
       assert_patch(show_live, ~p"/admin/moment_cards/#{moment_card}/show/edit")
 
       assert show_live
-             |> form("#moment_card-form", moment_card: @invalid_attrs)
+             |> form("#moment-card-form", moment_card: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"
 
       assert show_live
-             |> form("#moment_card-form", moment_card: @update_attrs)
+             |> form("#moment-card-form", moment_card: @update_attrs)
              |> render_submit()
 
       assert_patch(show_live, ~p"/admin/moment_cards/#{moment_card}")
