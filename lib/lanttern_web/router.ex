@@ -74,15 +74,16 @@ defmodule LantternWeb.Router do
       live "/strands/:id/edit", StrandLive, :edit
       live "/strands/:id/goal/new", StrandLive, :new_goal
       live "/strands/:id/goal/edit", StrandLive, :edit_goal
-      live "/strands/:id/new_activity", StrandLive, :new_activity
+      live "/strands/:id/new_moment", StrandLive, :new_moment
       live "/strands/:id/rubric/manage", StrandLive, :manage_rubric
-      live "/strands/activity/:id", ActivityLive, :show
-      live "/strands/activity/:id/edit", ActivityLive, :edit
+      live "/strands/moment/:id", MomentLive, :show
+      live "/strands/moment/:id/edit", MomentLive, :edit
+      live "/strands/moment/:id/edit_card", MomentLive, :edit_card
 
-      live "/strands/activity/:id/assessment_point/new", ActivityLive, :new_assessment_point
+      live "/strands/moment/:id/assessment_point/new", MomentLive, :new_assessment_point
 
-      live "/strands/activity/:id/assessment_point/:assessment_point_id",
-           ActivityLive,
+      live "/strands/moment/:id/assessment_point/:assessment_point_id",
+           MomentLive,
            :edit_assessment_point
 
       live "/rubrics", RubricsLive, :index
@@ -162,12 +163,19 @@ defmodule LantternWeb.Router do
     live "/strands/:id", Admin.StrandLive.Show, :show
     live "/strands/:id/show/edit", Admin.StrandLive.Show, :edit
 
-    live "/activities", Admin.ActivityLive.Index, :index
-    live "/activities/new", Admin.ActivityLive.Index, :new
-    live "/activities/:id/edit", Admin.ActivityLive.Index, :edit
+    live "/moments", Admin.MomentLive.Index, :index
+    live "/moments/new", Admin.MomentLive.Index, :new
+    live "/moments/:id/edit", Admin.MomentLive.Index, :edit
 
-    live "/activities/:id", Admin.ActivityLive.Show, :show
-    live "/activities/:id/show/edit", Admin.ActivityLive.Show, :edit
+    live "/moments/:id", Admin.MomentLive.Show, :show
+    live "/moments/:id/show/edit", Admin.MomentLive.Show, :edit
+
+    live "/moment_cards", Admin.MomentCardLive.Index, :index
+    live "/moment_cards/new", Admin.MomentCardLive.Index, :new
+    live "/moment_cards/:id/edit", Admin.MomentCardLive.Index, :edit
+
+    live "/moment_cards/:id", Admin.MomentCardLive.Show, :show
+    live "/moment_cards/:id/show/edit", Admin.MomentCardLive.Show, :edit
 
     # Personalization context
     live "/notes", Admin.NoteLive.Index, :index

@@ -9,7 +9,7 @@ defmodule LantternWeb.StrandLive.NotesComponentTest do
   setup [:register_and_log_in_user]
 
   describe "Strands notes" do
-    test "display existing strand and activities note", %{conn: conn, user: user} do
+    test "display existing strand and moments note", %{conn: conn, user: user} do
       strand = LearningContextFixtures.strand_fixture()
 
       note =
@@ -17,26 +17,26 @@ defmodule LantternWeb.StrandLive.NotesComponentTest do
           "description" => "strand note desc abc"
         })
 
-      activity_1 = LearningContextFixtures.activity_fixture(%{strand_id: strand.id, position: 1})
+      moment_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id, position: 1})
 
-      activity_note_1 =
-        PersonalizationFixtures.activity_note_fixture(user, activity_1.id, %{
-          "description" => "activity 1 note desc abc"
+      moment_note_1 =
+        PersonalizationFixtures.moment_note_fixture(user, moment_1.id, %{
+          "description" => "moment 1 note desc abc"
         })
 
-      activity_2 = LearningContextFixtures.activity_fixture(%{strand_id: strand.id, position: 2})
+      moment_2 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id, position: 2})
 
-      activity_note_2 =
-        PersonalizationFixtures.activity_note_fixture(user, activity_2.id, %{
-          "description" => "activity 2 note desc abc"
+      moment_note_2 =
+        PersonalizationFixtures.moment_note_fixture(user, moment_2.id, %{
+          "description" => "moment 2 note desc abc"
         })
 
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}?tab=notes")
       assert view |> has_element?("p", note.description)
-      assert view |> has_element?("a", activity_1.name)
-      assert view |> has_element?("p", activity_note_1.description)
-      assert view |> has_element?("a", activity_2.name)
-      assert view |> has_element?("p", activity_note_2.description)
+      assert view |> has_element?("a", moment_1.name)
+      assert view |> has_element?("p", moment_note_1.description)
+      assert view |> has_element?("a", moment_2.name)
+      assert view |> has_element?("p", moment_note_2.description)
     end
 
     test "create note", %{conn: conn} do

@@ -238,60 +238,60 @@ defmodule Lanttern.LearningContextTest do
     end
   end
 
-  describe "activities" do
-    alias Lanttern.LearningContext.Activity
+  describe "moments" do
+    alias Lanttern.LearningContext.Moment
 
     import Lanttern.TaxonomyFixtures
 
     @invalid_attrs %{name: nil, position: nil, description: nil}
 
-    test "list_activities/1 returns all activities" do
-      activity = activity_fixture()
-      assert LearningContext.list_activities() == [activity]
+    test "list_moments/1 returns all moments" do
+      moment = moment_fixture()
+      assert LearningContext.list_moments() == [moment]
     end
 
-    test "list_activities/1 with preloads returns all activities with preloaded data" do
+    test "list_moments/1 with preloads returns all moments with preloaded data" do
       strand = strand_fixture()
       subject = subject_fixture()
-      activity = activity_fixture(%{strand_id: strand.id, subjects_ids: [subject.id]})
+      moment = moment_fixture(%{strand_id: strand.id, subjects_ids: [subject.id]})
 
-      [expected] = LearningContext.list_activities(preloads: [:subjects, :strand])
-      assert expected.id == activity.id
+      [expected] = LearningContext.list_moments(preloads: [:subjects, :strand])
+      assert expected.id == moment.id
       assert expected.strand == strand
       assert expected.subjects == [subject]
     end
 
-    test "list_activities/1 with strands filter returns activities filtered" do
+    test "list_moments/1 with strands filter returns moments filtered" do
       strand = strand_fixture()
       subject = subject_fixture()
-      activity = activity_fixture(%{strand_id: strand.id, subjects_ids: [subject.id]})
+      moment = moment_fixture(%{strand_id: strand.id, subjects_ids: [subject.id]})
 
-      # extra activities for filter testing
-      activity_fixture()
-      activity_fixture()
+      # extra moments for filter testing
+      moment_fixture()
+      moment_fixture()
 
-      [expected] = LearningContext.list_activities(strands_ids: [strand.id], preloads: :subjects)
-      assert expected.id == activity.id
+      [expected] = LearningContext.list_moments(strands_ids: [strand.id], preloads: :subjects)
+      assert expected.id == moment.id
       assert expected.subjects == [subject]
     end
 
-    test "get_activity!/2 returns the activity with given id" do
-      activity = activity_fixture()
-      assert LearningContext.get_activity!(activity.id) == activity
+    test "get_moment!/2 returns the moment with given id" do
+      moment = moment_fixture()
+      assert LearningContext.get_moment!(moment.id) == moment
     end
 
-    test "get_activity!/2 with preloads returns the activity with given id and preloaded data" do
+    test "get_moment!/2 with preloads returns the moment with given id and preloaded data" do
       strand = strand_fixture()
       subject = subject_fixture()
-      activity = activity_fixture(%{strand_id: strand.id, subjects_ids: [subject.id]})
+      moment = moment_fixture(%{strand_id: strand.id, subjects_ids: [subject.id]})
 
-      expected = LearningContext.get_activity!(activity.id, preloads: [:strand, :subjects])
-      assert expected.id == activity.id
+      expected = LearningContext.get_moment!(moment.id, preloads: [:strand, :subjects])
+      assert expected.id == moment.id
       assert expected.strand == strand
       assert expected.subjects == [subject]
     end
 
-    test "create_activity/1 with valid data creates a activity" do
+    test "create_moment/1 with valid data creates a moment" do
       subject = subject_fixture()
 
       valid_attrs = %{
@@ -302,19 +302,19 @@ defmodule Lanttern.LearningContextTest do
         subjects_ids: [subject.id]
       }
 
-      assert {:ok, %Activity{} = activity} = LearningContext.create_activity(valid_attrs)
-      assert activity.name == "some name"
-      assert activity.position == 42
-      assert activity.description == "some description"
-      assert activity.subjects == [subject]
+      assert {:ok, %Moment{} = moment} = LearningContext.create_moment(valid_attrs)
+      assert moment.name == "some name"
+      assert moment.position == 42
+      assert moment.description == "some description"
+      assert moment.subjects == [subject]
     end
 
-    test "create_activity/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = LearningContext.create_activity(@invalid_attrs)
+    test "create_moment/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = LearningContext.create_moment(@invalid_attrs)
     end
 
-    test "update_activity/2 with valid data updates the activity" do
-      activity = activity_fixture(%{subjects_ids: [subject_fixture().id]})
+    test "update_moment/2 with valid data updates the moment" do
+      moment = moment_fixture(%{subjects_ids: [subject_fixture().id]})
       subject = subject_fixture()
 
       update_attrs = %{
@@ -324,37 +324,37 @@ defmodule Lanttern.LearningContextTest do
         subjects_ids: [subject.id]
       }
 
-      assert {:ok, %Activity{} = activity} =
-               LearningContext.update_activity(activity, update_attrs)
+      assert {:ok, %Moment{} = moment} =
+               LearningContext.update_moment(moment, update_attrs)
 
-      assert activity.name == "some updated name"
-      assert activity.position == 43
-      assert activity.description == "some updated description"
-      assert activity.subjects == [subject]
+      assert moment.name == "some updated name"
+      assert moment.position == 43
+      assert moment.description == "some updated description"
+      assert moment.subjects == [subject]
     end
 
-    test "update_activity/2 with invalid data returns error changeset" do
-      activity = activity_fixture()
+    test "update_moment/2 with invalid data returns error changeset" do
+      moment = moment_fixture()
 
       assert {:error, %Ecto.Changeset{}} =
-               LearningContext.update_activity(activity, @invalid_attrs)
+               LearningContext.update_moment(moment, @invalid_attrs)
 
-      assert activity == LearningContext.get_activity!(activity.id)
+      assert moment == LearningContext.get_moment!(moment.id)
     end
 
-    test "update_strand_activities_positions/2 update strand activities position based on list order" do
+    test "update_strand_moments_positions/2 update strand moments position based on list order" do
       strand = strand_fixture()
-      activity_1 = activity_fixture(%{strand_id: strand.id})
-      activity_2 = activity_fixture(%{strand_id: strand.id})
-      activity_3 = activity_fixture(%{strand_id: strand.id})
-      activity_4 = activity_fixture(%{strand_id: strand.id})
+      moment_1 = moment_fixture(%{strand_id: strand.id})
+      moment_2 = moment_fixture(%{strand_id: strand.id})
+      moment_3 = moment_fixture(%{strand_id: strand.id})
+      moment_4 = moment_fixture(%{strand_id: strand.id})
 
-      sorted_activities_ids =
+      sorted_moments_ids =
         [
-          activity_2.id,
-          activity_3.id,
-          activity_1.id,
-          activity_4.id
+          moment_2.id,
+          moment_3.id,
+          moment_1.id,
+          moment_4.id
         ]
 
       assert {:ok,
@@ -364,26 +364,117 @@ defmodule Lanttern.LearningContextTest do
                 expected_1,
                 expected_4
               ]} =
-               LearningContext.update_strand_activities_positions(
+               LearningContext.update_strand_moments_positions(
                  strand.id,
-                 sorted_activities_ids
+                 sorted_moments_ids
                )
 
-      assert expected_1.id == activity_1.id
-      assert expected_2.id == activity_2.id
-      assert expected_3.id == activity_3.id
-      assert expected_4.id == activity_4.id
+      assert expected_1.id == moment_1.id
+      assert expected_2.id == moment_2.id
+      assert expected_3.id == moment_3.id
+      assert expected_4.id == moment_4.id
     end
 
-    test "delete_activity/1 deletes the activity" do
-      activity = activity_fixture()
-      assert {:ok, %Activity{}} = LearningContext.delete_activity(activity)
-      assert_raise Ecto.NoResultsError, fn -> LearningContext.get_activity!(activity.id) end
+    test "delete_moment/1 deletes the moment" do
+      moment = moment_fixture()
+      assert {:ok, %Moment{}} = LearningContext.delete_moment(moment)
+      assert_raise Ecto.NoResultsError, fn -> LearningContext.get_moment!(moment.id) end
     end
 
-    test "change_activity/1 returns a activity changeset" do
-      activity = activity_fixture()
-      assert %Ecto.Changeset{} = LearningContext.change_activity(activity)
+    test "change_moment/1 returns a moment changeset" do
+      moment = moment_fixture()
+      assert %Ecto.Changeset{} = LearningContext.change_moment(moment)
+    end
+  end
+
+  describe "moment_cards" do
+    alias Lanttern.LearningContext.MomentCard
+
+    import Lanttern.LearningContextFixtures
+
+    @invalid_attrs %{name: nil, position: nil, description: nil}
+
+    test "list_moment_cards/1 returns all moment_cards" do
+      moment_card = moment_card_fixture()
+      assert LearningContext.list_moment_cards() == [moment_card]
+    end
+
+    test "list_moment_cards/1 with moments filter returns moment cards filtered and ordered by position" do
+      moment = moment_fixture()
+
+      # create moment card should handle positioning
+      moment_card_1 = moment_card_fixture(%{moment_id: moment.id})
+      moment_card_2 = moment_card_fixture(%{moment_id: moment.id})
+
+      # extra moment cards for filter testing
+      moment_card_fixture()
+      moment_card_fixture()
+
+      assert [moment_card_1, moment_card_2] ==
+               LearningContext.list_moment_cards(moments_ids: [moment.id])
+    end
+
+    test "get_moment_card!/1 returns the moment_card with given id" do
+      moment_card = moment_card_fixture()
+      assert LearningContext.get_moment_card!(moment_card.id) == moment_card
+    end
+
+    test "create_moment_card/1 with valid data creates a moment_card" do
+      moment = moment_fixture()
+
+      valid_attrs = %{
+        name: "some name",
+        position: 42,
+        description: "some description",
+        moment_id: moment.id
+      }
+
+      assert {:ok, %MomentCard{} = moment_card} = LearningContext.create_moment_card(valid_attrs)
+      assert moment_card.name == "some name"
+      assert moment_card.position == 42
+      assert moment_card.description == "some description"
+      assert moment_card.moment_id == moment.id
+    end
+
+    test "create_moment_card/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = LearningContext.create_moment_card(@invalid_attrs)
+    end
+
+    test "update_moment_card/2 with valid data updates the moment_card" do
+      moment_card = moment_card_fixture()
+
+      update_attrs = %{
+        name: "some updated name",
+        position: 43,
+        description: "some updated description"
+      }
+
+      assert {:ok, %MomentCard{} = moment_card} =
+               LearningContext.update_moment_card(moment_card, update_attrs)
+
+      assert moment_card.name == "some updated name"
+      assert moment_card.position == 43
+      assert moment_card.description == "some updated description"
+    end
+
+    test "update_moment_card/2 with invalid data returns error changeset" do
+      moment_card = moment_card_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               LearningContext.update_moment_card(moment_card, @invalid_attrs)
+
+      assert moment_card == LearningContext.get_moment_card!(moment_card.id)
+    end
+
+    test "delete_moment_card/1 deletes the moment_card" do
+      moment_card = moment_card_fixture()
+      assert {:ok, %MomentCard{}} = LearningContext.delete_moment_card(moment_card)
+      assert_raise Ecto.NoResultsError, fn -> LearningContext.get_moment_card!(moment_card.id) end
+    end
+
+    test "change_moment_card/1 returns a moment_card changeset" do
+      moment_card = moment_card_fixture()
+      assert %Ecto.Changeset{} = LearningContext.change_moment_card(moment_card)
     end
   end
 end

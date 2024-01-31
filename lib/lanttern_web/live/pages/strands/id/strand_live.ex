@@ -5,7 +5,7 @@ defmodule LantternWeb.StrandLive do
 
   # page components
   alias LantternWeb.StrandLive.AboutComponent
-  alias LantternWeb.StrandLive.ActivitiesComponent
+  alias LantternWeb.StrandLive.MomentsComponent
   alias LantternWeb.StrandLive.AssessmentComponent
   alias LantternWeb.StrandLive.NotesComponent
 
@@ -14,7 +14,7 @@ defmodule LantternWeb.StrandLive do
 
   @tabs %{
     "about" => :about,
-    "activities" => :activities,
+    "moments" => :moments,
     "assessment" => :assessment,
     "notes" => :notes
   }
@@ -62,8 +62,8 @@ defmodule LantternWeb.StrandLive do
     |> apply_action(socket.assigns.live_action, params)
   end
 
-  defp set_current_tab(socket, _params, :new_activity),
-    do: assign(socket, :current_tab, @tabs["activities"])
+  defp set_current_tab(socket, _params, :new_moment),
+    do: assign(socket, :current_tab, @tabs["moments"])
 
   defp set_current_tab(socket, %{"tab" => tab}, _live_action),
     do: assign(socket, :current_tab, Map.get(@tabs, tab, :about))
@@ -110,7 +110,7 @@ defmodule LantternWeb.StrandLive do
          |> put_flash(
            :error,
            gettext(
-             "Strand has linked activities and/or assessment points (goals). Deleting it would cause some data loss."
+             "Strand has linked moments and/or assessment points (goals). Deleting it would cause some data loss."
            )
          )}
     end

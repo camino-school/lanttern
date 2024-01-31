@@ -590,39 +590,39 @@ defmodule Lanttern.CurriculaTest do
     end
   end
 
-  describe "activity curriculum items" do
+  describe "moment curriculum items" do
     import Lanttern.AssessmentsFixtures
     import Lanttern.CurriculaFixtures
     import Lanttern.LearningContextFixtures
 
-    test "list_activity_curriculum_items/2 returns all items linked to the given activity" do
+    test "list_moment_curriculum_items/2 returns all items linked to the given moment" do
       curriculum_item_a = curriculum_item_fixture(%{name: "AAA"})
       curriculum_item_b = curriculum_item_fixture(%{name: "BBB"})
 
-      activity = activity_fixture()
+      moment = moment_fixture()
 
       assessment_point_fixture(%{
-        activity_id: activity.id,
+        moment_id: moment.id,
         curriculum_item_id: curriculum_item_a.id
       })
 
       assessment_point_fixture(%{
-        activity_id: activity.id,
+        moment_id: moment.id,
         curriculum_item_id: curriculum_item_b.id
       })
 
       # extra curriculum items for testing
       curriculum_item_fixture()
       other_curriculum_item = curriculum_item_fixture()
-      other_activity = activity_fixture()
+      other_moment = moment_fixture()
 
       assessment_point_fixture(%{
-        activity_id: other_activity.id,
+        moment_id: other_moment.id,
         curriculum_items: [%{curriculum_item_id: other_curriculum_item.id}]
       })
 
       assert [expected_ci_a, expected_ci_b] =
-               Curricula.list_activity_curriculum_items(activity.id)
+               Curricula.list_moment_curriculum_items(moment.id)
 
       assert expected_ci_a.id == curriculum_item_a.id
       assert expected_ci_b.id == curriculum_item_b.id

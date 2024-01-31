@@ -1,4 +1,4 @@
-defmodule LantternWeb.ActivityLive.AssessmentComponent do
+defmodule LantternWeb.MomentLive.AssessmentComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments
@@ -45,14 +45,14 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
             <.collection_action
               :if={@assessment_points_count > 1}
               type="button"
-              phx-click={JS.exec("data-show", to: "#activity-assessment-points-order-overlay")}
+              phx-click={JS.exec("data-show", to: "#moment-assessment-points-order-overlay")}
               icon_name="hero-arrows-up-down"
             >
               <%= gettext("Reorder") %>
             </.collection_action>
             <.collection_action
               type="link"
-              patch={~p"/strands/activity/#{@activity}/assessment_point/new"}
+              patch={~p"/strands/moment/#{@moment}/assessment_point/new"}
               icon_name="hero-plus-circle"
             >
               <%= gettext("Create assessment point") %>
@@ -61,7 +61,7 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
         </div>
         <%!-- if no assessment points, render empty state --%>
         <div :if={@assessment_points_count == 0} class="p-10 mt-4 rounded shadow-xl bg-white">
-          <.empty_state><%= gettext("No assessment points for this activity yet") %></.empty_state>
+          <.empty_state><%= gettext("No assessment points for this moment yet") %></.empty_state>
         </div>
         <%!-- if no class filter is select, just render assessment points --%>
         <div
@@ -75,7 +75,7 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
               id={"no-class-#{dom_id}"}
             >
               <.link
-                patch={~p"/strands/activity/#{@activity}/assessment_point/#{assessment_point}"}
+                patch={~p"/strands/moment/#{@moment}/assessment_point/#{assessment_point}"}
                 class="hover:underline"
               >
                 <%= "#{i + 1}. #{assessment_point.name}" %>
@@ -87,21 +87,17 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
       <%!-- show entries only with class filter selected --%>
       <div
         :if={@classes && @assessment_points_count > 0}
-        id="activity-assessment-points-slider"
+        id="moment-assessment-points-slider"
         class="relative w-full max-h-screen pb-6 mt-6 rounded shadow-xl bg-white overflow-x-auto"
         phx-hook="Slider"
       >
         <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2 bg-white">
           <div class="sticky left-0 shrink-0 w-60 bg-white"></div>
-          <div
-            id="activity-assessment-points"
-            phx-update="stream"
-            class="shrink-0 flex gap-4 bg-white"
-          >
+          <div id="moment-assessment-points" phx-update="stream" class="shrink-0 flex gap-4 bg-white">
             <.assessment_point
               :for={{dom_id, {ap, i}} <- @streams.assessment_points}
               assessment_point={ap}
-              activity_id={@activity.id}
+              moment_id={@moment.id}
               index={i}
               id={dom_id}
             />
@@ -121,16 +117,16 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
         :if={@live_action in [:new_assessment_point, :edit_assessment_point]}
         id="assessment-point-form-overlay"
         show={true}
-        on_cancel={JS.patch(~p"/strands/activity/#{@activity}?tab=assessment")}
+        on_cancel={JS.patch(~p"/strands/moment/#{@moment}?tab=assessment")}
       >
         <:title><%= gettext("Assessment Point") %></:title>
         <.live_component
           module={AssessmentPointFormComponent}
           id={Map.get(@assessment_point, :id) || :new}
-          curriculum_from_strand_id={@activity.strand_id}
+          curriculum_from_strand_id={@moment.strand_id}
           notify_component={@myself}
           assessment_point={@assessment_point}
-          navigate={~p"/strands/activity/#{@activity}?tab=assessment"}
+          navigate={~p"/strands/moment/#{@moment}?tab=assessment"}
         />
         <div
           :if={@delete_assessment_point_error}
@@ -193,7 +189,7 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
           navigate={
             fn classes_ids ->
               url_params = %{tab: "assessment", classes_ids: classes_ids}
-              ~p"/strands/activity/#{@activity}?#{url_params}"
+              ~p"/strands/moment/#{@moment}?#{url_params}"
             end
           }
         />
@@ -214,7 +210,7 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
           </.button>
         </:actions>
       </.slide_over>
-      <.slide_over :if={@assessment_points_count > 1} id="activity-assessment-points-order-overlay">
+      <.slide_over :if={@assessment_points_count > 1} id="moment-assessment-points-order-overlay">
         <:title><%= gettext("Assessment Points Order") %></:title>
         <ol>
           <li
@@ -255,7 +251,7 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
           <.button
             type="button"
             theme="ghost"
-            phx-click={JS.exec("data-cancel", to: "#activity-assessment-points-order-overlay")}
+            phx-click={JS.exec("data-cancel", to: "#moment-assessment-points-order-overlay")}
           >
             <%= gettext("Cancel") %>
           </.button>
@@ -272,14 +268,14 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
 
   attr :id, :string, required: true
   attr :assessment_point, AssessmentPoint, required: true
-  attr :activity_id, :integer, required: true
+  attr :moment_id, :integer, required: true
   attr :index, :integer, required: true
 
   def assessment_point(assigns) do
     ~H"""
     <div class="shrink-0 w-40 pt-6 pb-2" id={@id}>
       <.link
-        patch={~p"/strands/activity/#{@activity_id}/assessment_point/#{@assessment_point}"}
+        patch={~p"/strands/moment/#{@moment_id}/assessment_point/#{@assessment_point}"}
         class="text-xs hover:underline line-clamp-2"
       >
         <%= "#{@index + 1}. #{@assessment_point.name}" %>
@@ -341,13 +337,13 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
   end
 
   @impl true
-  def update(%{activity: activity, assessment_point_id: assessment_point_id} = assigns, socket) do
+  def update(%{moment: moment, assessment_point_id: assessment_point_id} = assigns, socket) do
     {:ok,
      socket
      |> assign(assigns)
      |> assign_assessment_point(assessment_point_id)
      |> assign_classes(assigns.params)
-     |> core_assigns(activity.id)}
+     |> core_assigns(moment.id)}
   end
 
   def update(_assigns, socket), do: {:ok, socket}
@@ -355,7 +351,7 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
   defp assign_assessment_point(socket, nil) do
     socket
     |> assign(:assessment_point, %AssessmentPoint{
-      activity_id: socket.assigns.activity.id,
+      moment_id: socket.assigns.moment.id,
       datetime: DateTime.utc_now()
     })
   end
@@ -374,19 +370,19 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
 
   defp core_assigns(
          %{assigns: %{assessment_points_count: _}} = socket,
-         _activity_id
+         _moment_id
        ),
        do: socket
 
-  defp core_assigns(socket, activity_id) do
+  defp core_assigns(socket, moment_id) do
     assessment_points =
       Assessments.list_assessment_points(
-        activities_ids: [activity_id],
+        moments_ids: [moment_id],
         preloads: [scale: :ordinal_values]
       )
 
     students_entries =
-      Assessments.list_activity_students_entries(activity_id,
+      Assessments.list_moment_students_entries(moment_id,
         classes_ids: socket.assigns.classes_ids
       )
 
@@ -429,7 +425,7 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
       {:ok, _assessment_point} ->
         {:noreply,
          socket
-         |> push_navigate(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
+         |> push_navigate(to: ~p"/strands/moment/#{socket.assigns.moment}?tab=assessment")}
 
       {:error, _changeset} ->
         # we may have more error types, but for now we are handling only this one
@@ -447,7 +443,7 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
       {:ok, _} ->
         {:noreply,
          socket
-         |> push_navigate(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
+         |> push_navigate(to: ~p"/strands/moment/#{socket.assigns.moment}?tab=assessment")}
 
       {:error, _} ->
         {:noreply, socket}
@@ -479,7 +475,7 @@ defmodule LantternWeb.ActivityLive.AssessmentComponent do
       {:ok, _assessment_points} ->
         {:noreply,
          socket
-         |> push_navigate(to: ~p"/strands/activity/#{socket.assigns.activity}?tab=assessment")}
+         |> push_navigate(to: ~p"/strands/moment/#{socket.assigns.moment}?tab=assessment")}
 
       {:error, _} ->
         {:noreply, socket}

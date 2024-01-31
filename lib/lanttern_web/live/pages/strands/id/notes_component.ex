@@ -65,17 +65,17 @@ defmodule LantternWeb.StrandLive.NotesComponent do
             </button>
           </div>
         <% end %>
-        <%= if length(@activities_notes) > 0 do %>
+        <%= if length(@moments_notes) > 0 do %>
           <h4 class="mt-10 font-display font-bold text-lg">
             <%= gettext("Other notes in this strand") %>
           </h4>
-          <div :for={note <- @activities_notes} class="mt-6">
+          <div :for={note <- @moments_notes} class="mt-6">
             <.link
-              navigate={~p"/strands/activity/#{note.activity.id}?tab=notes"}
+              navigate={~p"/strands/moment/#{note.moment.id}?tab=notes"}
               class="font-display text-base"
             >
-              <%= "Activity #{note.activity.position}:" %>
-              <span class="underline"><%= note.activity.name %></span>
+              <%= "Moment #{note.moment.position}:" %>
+              <span class="underline"><%= note.moment.name %></span>
             </.link>
             <div class="mt-4 line-clamp-4">
               <.markdown text={note.description} class="prose-sm" />
@@ -99,7 +99,7 @@ defmodule LantternWeb.StrandLive.NotesComponent do
     note =
       Personalization.get_user_note(user, strand_id: strand.id)
 
-    activities_notes =
+    moments_notes =
       Personalization.list_user_notes(user, strand_id: strand.id)
 
     form =
@@ -113,7 +113,7 @@ defmodule LantternWeb.StrandLive.NotesComponent do
      socket
      |> assign(assigns)
      |> assign(:note, note)
-     |> assign(:activities_notes, activities_notes)
+     |> assign(:moments_notes, moments_notes)
      |> assign(:form, form)}
   end
 

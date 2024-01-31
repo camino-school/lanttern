@@ -1,13 +1,13 @@
-defmodule Lanttern.LearningContext.Activity do
+defmodule Lanttern.LearningContext.Moment do
   use Ecto.Schema
   import Ecto.Changeset
 
   import LantternWeb.Gettext
   import Lanttern.SchemaHelpers
 
-  schema "activities" do
+  schema "moments" do
     field :name, :string
-    field :position, :integer
+    field :position, :integer, default: 0
     field :description, :string
     field :subjects_ids, {:array, :id}, virtual: true
 
@@ -19,27 +19,27 @@ defmodule Lanttern.LearningContext.Activity do
       through: [:assessment_points, :curriculum_item]
 
     many_to_many :subjects, Lanttern.Taxonomy.Subject,
-      join_through: "activities_subjects",
+      join_through: "moments_subjects",
       on_replace: :delete
 
     timestamps()
   end
 
   @doc false
-  def changeset(activity, attrs) do
-    activity
+  def changeset(moment, attrs) do
+    moment
     |> cast(attrs, [:name, :description, :position, :strand_id, :subjects_ids])
     |> validate_required([:name, :description, :position, :strand_id])
     |> put_subjects()
   end
 
-  def delete_changeset(activity) do
-    activity
+  def delete_changeset(moment) do
+    moment
     |> cast(%{}, [])
     |> foreign_key_constraint(
       :id,
-      name: :assessment_points_activity_id_fkey,
-      message: gettext("Activity has linked assessment points.")
+      name: :assessment_points_moment_id_fkey,
+      message: gettext("Moment has linked assessment points.")
     )
   end
 end

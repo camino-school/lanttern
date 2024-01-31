@@ -12,7 +12,7 @@ defmodule Lanttern.Curricula do
   alias Lanttern.Curricula.CurriculumItem
   alias Lanttern.Curricula.CurriculumRelationship
 
-  alias Lanttern.LearningContext.Activity
+  alias Lanttern.LearningContext.Moment
 
   @doc """
   Returns the list of curricula.
@@ -260,7 +260,7 @@ defmodule Lanttern.Curricula do
   end
 
   @doc """
-  Returns the list of curriculum items linked to the given activity.
+  Returns the list of curriculum items linked to the given moment.
 
   ## Options:
 
@@ -268,15 +268,15 @@ defmodule Lanttern.Curricula do
 
   ## Examples
 
-      iex> list_activity_curriculum_items(1)
+      iex> list_moment_curriculum_items(1)
       [%CurriculumItem{}, ...]
 
   """
-  def list_activity_curriculum_items(activity_id, opts \\ []) do
+  def list_moment_curriculum_items(moment_id, opts \\ []) do
     from(
-      a in Activity,
-      join: ci in assoc(a, :curriculum_items),
-      where: a.id == ^activity_id,
+      m in Moment,
+      join: ci in assoc(m, :curriculum_items),
+      where: m.id == ^moment_id,
       order_by: ci.name,
       distinct: ci.id,
       select: ci

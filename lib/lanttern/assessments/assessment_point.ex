@@ -2,6 +2,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
   use Ecto.Schema
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]
+  import LantternWeb.Gettext
 
   alias Lanttern.Repo
   alias Lanttern.Assessments.AssessmentPointEntry
@@ -24,7 +25,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     belongs_to :curriculum_item, Lanttern.Curricula.CurriculumItem
     belongs_to :scale, Lanttern.Grading.Scale
     belongs_to :rubric, Lanttern.Rubrics.Rubric
-    belongs_to :activity, Lanttern.LearningContext.Activity
+    belongs_to :moment, Lanttern.LearningContext.Moment
     belongs_to :strand, Lanttern.LearningContext.Strand
 
     has_many :entries, Lanttern.Assessments.AssessmentPointEntry
@@ -51,7 +52,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       :curriculum_item_id,
       :scale_id,
       :rubric_id,
-      :activity_id,
+      :moment_id,
       :strand_id,
       :classes_ids,
       :students_ids
@@ -61,19 +62,23 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     |> put_classes()
     |> cast_entries()
     |> unique_constraint([:strand_id, :curriculum_item_id],
-      message: "Curriculum item already added to this strand"
+      message: gettext("Curriculum item already added to this strand")
     )
     |> foreign_key_constraint(
       :rubric_id,
       name: :assessment_points_rubric_id_fkey,
       message:
-        "Error linking rubric. Check if it exists and uses the same scale used in the assessment point."
+        gettext(
+          "Error linking rubric. Check if it exists and uses the same scale used in the assessment point."
+        )
     )
     |> foreign_key_constraint(
       :scale_id,
       name: :assessment_point_entries_scale_id_fkey,
       message:
-        "You may already have some entries for this assessment point. Changing the scale when entries exist is not allowed, as it would cause data loss."
+        gettext(
+          "You may already have some entries for this assessment point. Changing the scale when entries exist is not allowed, as it would cause data loss."
+        )
     )
   end
 
@@ -183,7 +188,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     |> foreign_key_constraint(
       :id,
       name: :assessment_point_entries_assessment_point_id_fkey,
-      message: "Assessment point has linked entries."
+      message: gettext("Assessment point has linked entries.")
     )
   end
 end

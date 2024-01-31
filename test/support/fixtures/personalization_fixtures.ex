@@ -38,9 +38,9 @@ defmodule Lanttern.PersonalizationFixtures do
   end
 
   @doc """
-  Generate an activity note.
+  Generate a moment note.
   """
-  def activity_note_fixture(user, activity_id, attrs \\ %{}) do
+  def moment_note_fixture(user, moment_id, attrs \\ %{}) do
     attrs =
       attrs
       |> Enum.into(%{
@@ -48,7 +48,7 @@ defmodule Lanttern.PersonalizationFixtures do
       })
 
     {:ok, note} =
-      Lanttern.Personalization.create_activity_note(user, activity_id, attrs)
+      Lanttern.Personalization.create_moment_note(user, moment_id, attrs)
 
     note
   end

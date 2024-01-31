@@ -48,22 +48,22 @@ defmodule LantternWeb.StrandLiveTest do
     test "strand tab navigation", %{conn: conn} do
       strand = LearningContextFixtures.strand_fixture(%{description: "strand description abc"})
 
-      _activity =
-        LearningContextFixtures.activity_fixture(%{name: "activity abc", strand_id: strand.id})
+      _moment =
+        LearningContextFixtures.moment_fixture(%{name: "moment abc", strand_id: strand.id})
 
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}")
 
       assert view |> has_element?("p", "strand description abc")
 
-      # activities tab
+      # moments tab
 
       view
-      |> element("#strand-nav-tabs a", "Activities")
+      |> element("#strand-nav-tabs a", "Moments")
       |> render_click()
 
       assert_patch(view)
 
-      assert view |> has_element?("a", "activity abc")
+      assert view |> has_element?("a", "moment abc")
 
       # assessment tab
 
@@ -148,49 +148,49 @@ defmodule LantternWeb.StrandLiveTest do
     end
   end
 
-  describe "Activity management" do
-    alias Lanttern.LearningContext.Activity
+  describe "Moment management" do
+    alias Lanttern.LearningContext.Moment
 
-    test "create activity", %{conn: conn} do
+    test "create moment", %{conn: conn} do
       subject = TaxonomyFixtures.subject_fixture(%{name: "subject abc"})
       strand = LearningContextFixtures.strand_fixture(%{subjects_ids: [subject.id]})
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}?tab=activities")
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}?tab=moments")
 
-      # open create activity overlay
-      view |> element("a", "Create new activity") |> render_click()
-      assert_patch(view, "#{@live_view_base_path}/#{strand.id}/new_activity")
-      assert view |> has_element?("h2", "New activity")
+      # open create moment overlay
+      view |> element("a", "Create new moment") |> render_click()
+      assert_patch(view, "#{@live_view_base_path}/#{strand.id}/new_moment")
+      assert view |> has_element?("h2", "New moment")
 
       # add subject
       view
-      |> element("#activity-form #activity_subject_id")
-      |> render_change(%{"activity" => %{"subject_id" => subject.id}})
+      |> element("#moment-form #moment_subject_id")
+      |> render_change(%{"moment" => %{"subject_id" => subject.id}})
 
       # submit form with valid fields
       view
-      |> element("#activity-form")
+      |> element("#moment-form")
       |> render_submit(%{
-        "activity" => %{
+        "moment" => %{
           "strand_id" => strand.id,
-          "name" => "activity name abc",
+          "name" => "moment name abc",
           "description" => "description abc"
         }
       })
 
       {path, _flash} = assert_redirect(view)
 
-      [_, activity_id] =
+      [_, moment_id] =
         ~r".+\/(\d+)\z"
         |> Regex.run(path)
 
-      activity =
-        Activity
-        |> Lanttern.Repo.get!(activity_id)
+      moment =
+        Moment
+        |> Lanttern.Repo.get!(moment_id)
         |> Lanttern.Repo.preload(:subjects)
 
-      assert activity.name == "activity name abc"
-      assert activity.subjects == [subject]
+      assert moment.name == "moment name abc"
+      assert moment.subjects == [subject]
     end
   end
 end

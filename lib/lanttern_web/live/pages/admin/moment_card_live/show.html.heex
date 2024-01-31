@@ -1,0 +1,38 @@
+<.header>
+  Moment card <%= @moment_card.id %>
+  <:subtitle>This is a moment_card record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/admin/moment_cards/#{@moment_card}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit moment_card</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @moment_card.name %></:item>
+  <:item title="Description"><%= @moment_card.description %></:item>
+  <:item title="Position"><%= @moment_card.position %></:item>
+</.list>
+
+<.back navigate={~p"/admin/moment_cards"}>Back to moment_cards</.back>
+
+<.modal
+  :if={@live_action == :edit}
+  id="moment_card-modal"
+  show
+  on_cancel={JS.patch(~p"/admin/moment_cards/#{@moment_card}")}
+>
+  <.header>
+    <%= @page_title %>
+    <:subtitle>Use this form to manage moment_card records in your database.</:subtitle>
+  </.header>
+  <.live_component
+    module={MomentCardFormComponent}
+    id={@moment_card.id}
+    moment_card={@moment_card}
+    patch={~p"/admin/moment_cards/#{@moment_card}"}
+    is_admin
+    notify_parent
+    class="mt-6"
+  />
+</.modal>

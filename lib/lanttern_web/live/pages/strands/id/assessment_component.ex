@@ -145,7 +145,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     ~H"""
     <div class="shrink-0 w-14 pt-6 pb-2 truncate" id={@id}>
       <.link
-        navigate={~p"/strands/activity/#{@assessment_point.activity_id}?tab=assessment"}
+        navigate={~p"/strands/moment/#{@assessment_point.moment_id}?tab=assessment"}
         class="text-xs hover:underline"
       >
         <%= "#{@index + 1}. #{@assessment_point.name}" %>
@@ -260,7 +260,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   defp core_assigns(socket, strand_id) do
     assessment_points =
       Assessments.list_assessment_points(
-        activities_from_strand_id: strand_id,
+        moments_from_strand_id: strand_id,
         preloads: [scale: :ordinal_values]
       )
 

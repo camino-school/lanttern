@@ -1,4 +1,4 @@
-defmodule LantternWeb.LearningContext.ActivityFormComponent do
+defmodule LantternWeb.LearningContext.MomentFormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.LearningContext
@@ -13,13 +13,7 @@ defmodule LantternWeb.LearningContext.ActivityFormComponent do
   def render(assigns) do
     ~H"""
     <div class={@class}>
-      <.form
-        for={@form}
-        id="activity-form"
-        phx-target={@myself}
-        phx-change="validate"
-        phx-submit="save"
-      >
+      <.form for={@form} id="moment-form" phx-target={@myself} phx-change="validate" phx-submit="save">
         <%= if @is_admin do %>
           <.input
             field={@form[:strand_id]}
@@ -49,7 +43,7 @@ defmodule LantternWeb.LearningContext.ActivityFormComponent do
         <.markdown_supported class="mb-6" />
         <.live_component
           module={MultiSelectComponent}
-          id="activity-subjects-select"
+          id="moment-subjects-select"
           field={@form[:subject_id]}
           multi_field={:subjects_ids}
           options={@subject_options}
@@ -63,7 +57,7 @@ defmodule LantternWeb.LearningContext.ActivityFormComponent do
           <.input field={@form[:position]} type="number" label={gettext("Position")} class="mb-6" />
           <div class="flex justify-end">
             <.button type="submit" phx-disable-with={gettext("Saving...")}>
-              <%= gettext("Save activity") %>
+              <%= gettext("Save moment") %>
             </.button>
           </div>
         </div>
@@ -82,10 +76,10 @@ defmodule LantternWeb.LearningContext.ActivityFormComponent do
   end
 
   @impl true
-  def update(%{activity: activity, is_admin: true} = assigns, socket) do
-    selected_subjects_ids = activity.subjects |> Enum.map(& &1.id)
+  def update(%{moment: moment, is_admin: true} = assigns, socket) do
+    selected_subjects_ids = moment.subjects |> Enum.map(& &1.id)
 
-    changeset = LearningContext.change_activity(activity)
+    changeset = LearningContext.change_moment(moment)
 
     {:ok,
      socket
@@ -96,13 +90,13 @@ defmodule LantternWeb.LearningContext.ActivityFormComponent do
      |> assign_form(changeset)}
   end
 
-  def update(%{activity: activity} = assigns, socket) do
-    selected_subjects_ids = activity.subjects |> Enum.map(& &1.id)
+  def update(%{moment: moment} = assigns, socket) do
+    selected_subjects_ids = moment.subjects |> Enum.map(& &1.id)
 
-    changeset = LearningContext.change_activity(activity)
+    changeset = LearningContext.change_moment(moment)
 
     subject_options =
-      Taxonomy.list_strand_subjects(activity.strand_id)
+      Taxonomy.list_strand_subjects(moment.strand_id)
       |> Enum.map(&{&1.name, &1.id})
 
     {:ok,
@@ -120,52 +114,52 @@ defmodule LantternWeb.LearningContext.ActivityFormComponent do
   # event handlers
 
   @impl true
-  def handle_event("validate", %{"activity" => activity_params}, socket) do
+  def handle_event("validate", %{"moment" => moment_params}, socket) do
     changeset =
-      socket.assigns.activity
-      |> LearningContext.change_activity(activity_params)
+      socket.assigns.moment
+      |> LearningContext.change_moment(moment_params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}
   end
 
-  def handle_event("save", %{"activity" => activity_params}, socket) do
+  def handle_event("save", %{"moment" => moment_params}, socket) do
     # add subjects_ids to params
-    activity_params =
-      activity_params
+    moment_params =
+      moment_params
       |> Map.put("subjects_ids", socket.assigns.selected_subjects_ids)
 
-    save_activity(socket, socket.assigns.action, activity_params)
+    save_moment(socket, socket.assigns.action, moment_params)
   end
 
-  defp save_activity(socket, :edit, activity_params) do
-    case LearningContext.update_activity(socket.assigns.activity, activity_params,
+  defp save_moment(socket, :edit, moment_params) do
+    case LearningContext.update_moment(socket.assigns.moment, moment_params,
            preloads: socket.assigns.save_preloads
          ) do
-      {:ok, activity} ->
-        notify_parent(__MODULE__, {:saved, activity}, socket.assigns)
+      {:ok, moment} ->
+        notify_parent(__MODULE__, {:saved, moment}, socket.assigns)
 
         {:noreply,
          socket
-         |> put_flash(:info, gettext("Activity updated successfully"))
-         |> handle_navigation(activity)}
+         |> put_flash(:info, gettext("Moment updated successfully"))
+         |> handle_navigation(moment)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
     end
   end
 
-  defp save_activity(socket, :new, activity_params) do
-    case LearningContext.create_activity(activity_params,
+  defp save_moment(socket, :new, moment_params) do
+    case LearningContext.create_moment(moment_params,
            preloads: socket.assigns.save_preloads
          ) do
-      {:ok, activity} ->
-        notify_parent(__MODULE__, {:saved, activity}, socket.assigns)
+      {:ok, moment} ->
+        notify_parent(__MODULE__, {:saved, moment}, socket.assigns)
 
         {:noreply,
          socket
-         |> put_flash(:info, gettext("Activity created successfully"))
-         |> handle_navigation(activity)}
+         |> put_flash(:info, gettext("Moment created successfully"))
+         |> handle_navigation(moment)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}

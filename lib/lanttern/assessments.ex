@@ -22,8 +22,8 @@ defmodule Lanttern.Assessments do
   `:preloads` – preloads associated data
   `:preload_full_rubrics` – boolean, preloads full associated rubrics using `Rubrics.full_rubric_query/0`
   `:assessment_points_ids` – filter result by provided assessment points ids
-  `:activities_ids` – filter result by provided activities ids
-  `:activities_from_strand_id` – filter result by activities from provided strand id
+  `:moments_ids` – filter result by provided moments ids
+  `:moments_from_strand_id` – filter result by moments from provided strand id
   `:strand_id` – filter result by provided strand id
 
   ## Examples
@@ -57,15 +57,15 @@ defmodule Lanttern.Assessments do
   defp apply_assessment_points_filter({:assessment_points_ids, ids}, queryable),
     do: from(ap in queryable, where: ap.id in ^ids)
 
-  defp apply_assessment_points_filter({:activities_ids, ids}, queryable),
-    do: from(ap in queryable, where: ap.activity_id in ^ids)
+  defp apply_assessment_points_filter({:moments_ids, ids}, queryable),
+    do: from(ap in queryable, where: ap.moment_id in ^ids)
 
-  defp apply_assessment_points_filter({:activities_from_strand_id, id}, queryable) do
+  defp apply_assessment_points_filter({:moments_from_strand_id, id}, queryable) do
     from(
       ap in queryable,
-      join: a in assoc(ap, :activity),
-      as: :activity,
-      where: a.strand_id == ^id
+      join: m in assoc(ap, :moment),
+      as: :moment,
+      where: m.strand_id == ^id
     )
   end
 
@@ -75,21 +75,21 @@ defmodule Lanttern.Assessments do
   defp apply_assessment_points_filter(_, queryable), do: queryable
 
   defp order_assessment_points(queryable, opts) do
-    activities_ids = Keyword.get(opts, :activities_ids)
-    strand_id = Keyword.get(opts, :activities_from_strand_id)
+    moments_ids = Keyword.get(opts, :moments_ids)
+    strand_id = Keyword.get(opts, :moments_from_strand_id)
 
     cond do
-      activities_ids ->
+      moments_ids ->
         from(
           ap in queryable,
-          join: a in assoc(ap, :activity),
-          order_by: [a.position, ap.position]
+          join: m in assoc(ap, :moment),
+          order_by: [m.position, ap.position]
         )
 
       strand_id ->
         from(
-          [ap, activity: a] in queryable,
-          order_by: [a.position, ap.position]
+          [ap, moment: m] in queryable,
+          order_by: [m.position, ap.position]
         )
 
       true ->
@@ -138,7 +138,7 @@ defmodule Lanttern.Assessments do
   @doc """
   Creates an assessment point.
 
-  The function handles the position field based on the learning context (activity or strand),
+  The function handles the position field based on the learning context (moment or strand),
   appending (position = greater position in context + 1) the assessment point to the context.
 
   ## Examples
@@ -181,13 +181,13 @@ defmodule Lanttern.Assessments do
     |> Repo.insert()
   end
 
-  defp filter_assessment_points_by_context(query, %{activity_id: activity_id})
-       when not is_nil(activity_id) and activity_id != "",
-       do: from(q in query, where: q.activity_id == ^activity_id)
+  defp filter_assessment_points_by_context(query, %{moment_id: moment_id})
+       when not is_nil(moment_id) and moment_id != "",
+       do: from(q in query, where: q.moment_id == ^moment_id)
 
-  defp filter_assessment_points_by_context(query, %{"activity_id" => activity_id})
-       when not is_nil(activity_id) and activity_id != "",
-       do: from(q in query, where: q.activity_id == ^activity_id)
+  defp filter_assessment_points_by_context(query, %{"moment_id" => moment_id})
+       when not is_nil(moment_id) and moment_id != "",
+       do: from(q in query, where: q.moment_id == ^moment_id)
 
   defp filter_assessment_points_by_context(query, %{strand_id: strand_id})
        when not is_nil(strand_id) and strand_id != "",
@@ -659,8 +659,7 @@ defmodule Lanttern.Assessments do
   @doc """
   Returns the list of the assessment point entries for every student in the given strand.
 
-  Entries are ordered by `Activity` and `AssessmentPoint` positions,
-  which is the same order used by `list_strand_assessment_points/1` with `order_by_activities = true` opt.
+  Entries are ordered by `Moment` and `AssessmentPoint` positions.
 
   ## Options:
 
@@ -688,13 +687,13 @@ defmodule Lanttern.Assessments do
     results =
       from(
         ap in AssessmentPoint,
-        join: a in assoc(ap, :activity),
+        join: m in assoc(ap, :moment),
         join: s in subquery(students_query),
         on: true,
         left_join: e in AssessmentPointEntry,
         on: e.student_id == s.id and e.assessment_point_id == ap.id,
-        where: a.strand_id == ^strand_id,
-        order_by: [s.name, a.position, ap.position],
+        where: m.strand_id == ^strand_id,
+        order_by: [s.name, m.position, ap.position],
         select: {s, e}
       )
       |> Repo.all()
@@ -717,7 +716,7 @@ defmodule Lanttern.Assessments do
   end
 
   @doc """
-  Returns the list of the assessment point entries for every student in the given activity.
+  Returns the list of the assessment point entries for every student in the given moment.
 
   Entries are ordered by `AssessmentPoint` position,
   which is the same order used by `list_assessment_points/1`.
@@ -727,11 +726,11 @@ defmodule Lanttern.Assessments do
       - `:classes_ids` – filter entries by classes
   """
 
-  @spec list_activity_students_entries(integer(), Keyword.t()) :: [
+  @spec list_moment_students_entries(integer(), Keyword.t()) :: [
           {Student.t(), [AssessmentPointEntry.t()]}
         ]
 
-  def list_activity_students_entries(activity_id, opts \\ []) do
+  def list_moment_students_entries(moment_id, opts \\ []) do
     students_query =
       case Keyword.get(opts, :classes_ids) do
         nil ->
@@ -752,7 +751,7 @@ defmodule Lanttern.Assessments do
         on: true,
         left_join: e in AssessmentPointEntry,
         on: e.student_id == s.id and e.assessment_point_id == ap.id,
-        where: ap.activity_id == ^activity_id,
+        where: ap.moment_id == ^moment_id,
         order_by: [s.name, ap.position],
         select: {s, e}
       )

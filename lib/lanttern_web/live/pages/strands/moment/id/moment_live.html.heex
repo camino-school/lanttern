@@ -1,14 +1,14 @@
 <.cover
   size="sm"
   theme="lime"
-  style={"background-image: url(#{@activity.strand.cover_image_url || "/images/cover-placeholder.jpg"}?width=1280&height=640)"}
+  style={"background-image: url(#{@moment.strand.cover_image_url || "/images/cover-placeholder.jpg"}?width=1280&height=640)"}
 >
   <:top>
     <div class="flex items-center justify-between">
       <.breadcrumbs class="mt-2" item_class="text-white">
         <:item link={~p"/strands"}><%= gettext("Strands") %></:item>
-        <:item link={~p"/strands/#{@activity.strand}"}><%= gettext("Details") %></:item>
-        <:item><%= gettext("Activity") %></:item>
+        <:item link={~p"/strands/#{@moment.strand}"}><%= gettext("Details") %></:item>
+        <:item><%= gettext("Moment") %></:item>
       </.breadcrumbs>
       <.nav_menu_button />
     </div>
@@ -16,54 +16,60 @@
   <div class="flex items-center gap-2 mb-4">
     <.icon name="hero-arrow-left" class="w-6 h-6" />
     <.link
-      navigate={~p"/strands/#{@activity.strand}?tab=activities"}
+      navigate={~p"/strands/#{@moment.strand}?tab=moments"}
       class="font-display font-black text-lg underline"
     >
-      <%= @activity.strand.name %>
+      <%= @moment.strand.name %>
     </.link>
   </div>
-  <h1 class="font-display font-black text-5xl"><%= @activity.name %></h1>
+  <h1 class="font-display font-black text-5xl"><%= @moment.name %></h1>
   <div class="flex flex-wrap gap-2 mt-6">
-    <.badge :for={subject <- @activity.subjects} theme="dark">
+    <.badge :for={subject <- @moment.subjects} theme="dark">
       <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
     </.badge>
   </div>
 </.cover>
 <div class="sticky top-0 z-30 border-b border-ltrn-lighter bg-white">
   <div class="flex items-center justify-between container lg:max-w-5xl mx-auto">
-    <.nav_tabs id="activity-nav-tabs">
+    <.nav_tabs id="moment-nav-tabs">
       <:tab
-        patch={~p"/strands/activity/#{@activity}?#{%{tab: "details"}}"}
-        is_current={@current_tab == :details && "true"}
+        patch={~p"/strands/moment/#{@moment}?#{%{tab: "overview"}}"}
+        is_current={@current_tab == :overview && "true"}
       >
-        <%= gettext("Details & Curriculum") %>
+        <%= gettext("Overview") %>
       </:tab>
       <:tab
-        patch={~p"/strands/activity/#{@activity}?#{%{tab: "assessment"}}"}
+        patch={~p"/strands/moment/#{@moment}?#{%{tab: "assessment"}}"}
         is_current={@current_tab == :assessment && "true"}
       >
         <%= gettext("Assessment") %>
       </:tab>
       <:tab
-        patch={~p"/strands/activity/#{@activity}?#{%{tab: "notes"}}"}
+        patch={~p"/strands/moment/#{@moment}?#{%{tab: "cards"}}"}
+        is_current={@current_tab == :cards && "true"}
+      >
+        <%= gettext("Cards") %>
+      </:tab>
+      <:tab
+        patch={~p"/strands/moment/#{@moment}?#{%{tab: "notes"}}"}
         is_current={@current_tab == :notes && "true"}
         icon_name="hero-eye-slash"
       >
         <%= gettext("My notes") %>
       </:tab>
     </.nav_tabs>
-    <.menu_button id={"activity-#{@activity.id}"}>
+    <.menu_button id={"moment-#{@moment.id}"}>
       <:menu_items>
         <.menu_button_item
-          id={"edit-activity-#{@activity.id}"}
-          phx-click={JS.patch(~p"/strands/activity/#{@activity}/edit")}
+          id={"edit-moment-#{@moment.id}"}
+          phx-click={JS.patch(~p"/strands/moment/#{@moment}/edit")}
         >
-          <%= gettext("Edit activity") %>
+          <%= gettext("Edit moment") %>
         </.menu_button_item>
         <.menu_button_item
-          id={"remove-activity-#{@activity.id}"}
+          id={"remove-moment-#{@moment.id}"}
           class="text-red-500"
-          phx-click="delete_activity"
+          phx-click="delete_moment"
           data-confirm={gettext("Are you sure?")}
         >
           <%= gettext("Delete") %>
@@ -74,53 +80,60 @@
 </div>
 <div class="ltrn-bg-main-local">
   <.live_component
-    :if={@current_tab == :details}
-    module={DetailsComponent}
-    id="activity-details-details"
-    activity={@activity}
+    :if={@current_tab == :overview}
+    module={OverviewComponent}
+    id="moment-details-overview"
+    moment={@moment}
   />
   <.live_component
     :if={@current_tab == :assessment}
     module={AssessmentComponent}
-    id="activity-details-assessment"
-    activity={@activity}
+    id="moment-details-assessment"
+    moment={@moment}
     live_action={@live_action}
     assessment_point_id={@assessment_point_id}
     params={@params}
     current_user={@current_user}
   />
   <.live_component
+    :if={@current_tab == :cards}
+    module={CardsComponent}
+    id="moment-details-cards"
+    moment={@moment}
+    live_action={@live_action}
+  />
+  <.live_component
     :if={@current_tab == :notes}
     module={NotesComponent}
-    id="activity-details-notes"
-    activity={@activity}
+    id="moment-details-notes"
+    moment={@moment}
     current_user={@current_user}
   />
 </div>
 <.slide_over
   :if={@live_action == :edit}
-  id="activity-form-overlay"
+  id="moment-form-overlay"
   show={true}
-  on_cancel={JS.patch(~p"/strands/activity/#{@activity}")}
+  on_cancel={JS.patch(~p"/strands/moment/#{@moment}")}
 >
-  <:title><%= gettext("Edit activity") %></:title>
+  <:title><%= gettext("Edit moment") %></:title>
   <.live_component
-    module={ActivityFormComponent}
-    id={@activity.id}
-    activity={@activity}
+    module={MomentFormComponent}
+    id={@moment.id}
+    moment={@moment}
     action={@live_action}
-    patch={~p"/strands/activity/#{@activity}"}
+    patch={~p"/strands/moment/#{@moment}"}
     notify_parent
   />
   <:actions>
     <.button
       type="button"
       theme="ghost"
-      phx-click={JS.exec("data-cancel", to: "#activity-form-overlay")}
+      phx-click={JS.exec("data-cancel", to: "#moment-form-overlay")}
     >
       <%= gettext("Cancel") %>
     </.button>
-    <.button type="submit" form="activity-form">
+    <.button type="submit" form="moment-form">
       <%= gettext("Save") %>
     </.button>
   </:actions>

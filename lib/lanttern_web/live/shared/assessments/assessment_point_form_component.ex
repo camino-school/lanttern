@@ -22,7 +22,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
           <%= gettext("Oops, something went wrong! Please check the errors below.") %>
         </.error_block>
         <.input field={@form[:id]} type="hidden" />
-        <.input field={@form[:activity_id]} type="hidden" />
+        <.input field={@form[:moment_id]} type="hidden" />
         <.input
           field={@form[:name]}
           label={gettext("Assessment point name")}

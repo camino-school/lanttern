@@ -20,10 +20,10 @@ defmodule Lanttern.LearningContextFixtures do
   end
 
   @doc """
-  Generate an activity.
+  Generate an moment.
   """
-  def activity_fixture(attrs \\ %{}) do
-    {:ok, activity} =
+  def moment_fixture(attrs \\ %{}) do
+    {:ok, moment} =
       attrs
       |> Enum.into(%{
         name: "some name",
@@ -31,16 +31,36 @@ defmodule Lanttern.LearningContextFixtures do
         description: "some description",
         strand_id: maybe_gen_strand_id(attrs)
       })
-      |> Lanttern.LearningContext.create_activity()
+      |> Lanttern.LearningContext.create_moment()
 
-    activity
+    moment
   end
-
-  # helpers
 
   defp maybe_gen_strand_id(%{strand_id: strand_id} = _attrs),
     do: strand_id
 
   defp maybe_gen_strand_id(_attrs),
     do: strand_fixture().id
+
+  @doc """
+  Generate a moment_card.
+  """
+  def moment_card_fixture(attrs \\ %{}) do
+    {:ok, moment_card} =
+      attrs
+      |> Enum.into(%{
+        name: "some name",
+        description: "some description",
+        moment_id: maybe_gen_moment_id(attrs)
+      })
+      |> Lanttern.LearningContext.create_moment_card()
+
+    moment_card
+  end
+
+  defp maybe_gen_moment_id(%{moment_id: moment_id} = _attrs),
+    do: moment_id
+
+  defp maybe_gen_moment_id(_attrs),
+    do: moment_fixture().id
 end

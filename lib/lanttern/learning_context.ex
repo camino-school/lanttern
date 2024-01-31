@@ -5,11 +5,13 @@ defmodule Lanttern.LearningContext do
 
   import Ecto.Query, warn: false
   import Lanttern.RepoHelpers
+  import LantternWeb.Gettext
   alias Lanttern.Repo
 
   alias Lanttern.LearningContext.Strand
   alias Lanttern.LearningContext.StarredStrand
-  alias Lanttern.LearningContext.Activity
+  alias Lanttern.LearningContext.Moment
+  alias Lanttern.LearningContext.MomentCard
 
   @doc """
   Returns the list of strands ordered alphabetically.
@@ -230,121 +232,46 @@ defmodule Lanttern.LearningContext do
   end
 
   @doc """
-  Returns the list of activities.
+  Returns the list of moments.
 
   ### Options:
 
       - `:preloads` – preloads associated data
-      - `:strands_ids` – filter activities by strands
+      - `:strands_ids` – filter moments by strands
 
   ## Examples
 
-      iex> list_activities()
-      [%Activity{}, ...]
+      iex> list_moments()
+      [%Moment{}, ...]
 
   """
-  def list_activities(opts \\ []) do
+  def list_moments(opts \\ []) do
     from(
-      a in Activity,
-      order_by: [asc: a.position]
+      m in Moment,
+      order_by: [asc: m.position]
     )
     |> maybe_filter_by_strands(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
-  @doc """
-  Gets a single activity.
+  defp maybe_filter_by_strands(query, opts) do
+    case Keyword.get(opts, :strands_ids) do
+      nil ->
+        query
 
-  Returns `nil` if the Activity does not exist.
-
-  ### Options:
-
-  `:preloads` – preloads associated data
-
-  ## Examples
-
-      iex> get_activity!(123)
-      %Activity{}
-
-      iex> get_activity!(456)
-      nil
-
-  """
-  def get_activity(id, opts \\ []) do
-    Repo.get(Activity, id)
-    |> maybe_preload(opts)
-  end
-
-  @doc """
-  Gets a single activity.
-
-  Same as `get_activity/2`, but raises `Ecto.NoResultsError` if the Activity does not exist.
-
-  """
-  def get_activity!(id, opts \\ []) do
-    Repo.get!(Activity, id)
-    |> maybe_preload(opts)
-  end
-
-  @doc """
-  Creates a activity.
-
-  ### Options:
-
-  `:preloads` – preloads associated data
-
-  ## Examples
-
-      iex> create_activity(%{field: value})
-      {:ok, %Activity{}}
-
-      iex> create_activity(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_activity(attrs \\ %{}, opts \\ []) do
-    attrs = set_activity_position_attr(attrs)
-
-    %Activity{}
-    |> Activity.changeset(attrs)
-    |> Repo.insert()
-    |> maybe_preload(opts)
-  end
-
-  defp set_activity_position_attr(%{"position" => _} = attrs), do: attrs
-
-  defp set_activity_position_attr(%{position: _} = attrs), do: attrs
-
-  defp set_activity_position_attr(attrs) do
-    strand_id = attrs[:strand_id] || attrs["strand_id"]
-
-    positions =
-      from(
-        a in Activity,
-        where: a.strand_id == ^strand_id,
-        select: a.position,
-        order_by: [desc: a.position]
-      )
-      |> Repo.all()
-
-    position =
-      case Enum.at(positions, 0) do
-        nil -> 0
-        pos -> pos + 1
-      end
-
-    cond do
-      not is_nil(attrs[:strand_id]) ->
-        Map.put(attrs, :position, position)
-
-      not is_nil(attrs["strand_id"]) ->
-        Map.put(attrs, "position", position)
+      strands_ids ->
+        from(
+          q in query,
+          where: q.strand_id in ^strands_ids
+        )
     end
   end
 
   @doc """
-  Updates a activity.
+  Gets a single moment.
+
+  Returns `nil` if the Moment does not exist.
 
   ### Options:
 
@@ -352,31 +279,117 @@ defmodule Lanttern.LearningContext do
 
   ## Examples
 
-      iex> update_activity(activity, %{field: new_value})
-      {:ok, %Activity{}}
+      iex> get_moment!(123)
+      %Moment{}
 
-      iex> update_activity(activity, %{field: bad_value})
+      iex> get_moment!(456)
+      nil
+
+  """
+  def get_moment(id, opts \\ []) do
+    Repo.get(Moment, id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single moment.
+
+  Same as `get_moment/2`, but raises `Ecto.NoResultsError` if the Moment does not exist.
+
+  """
+  def get_moment!(id, opts \\ []) do
+    Repo.get!(Moment, id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Creates a moment.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> create_moment(%{field: value})
+      {:ok, %Moment{}}
+
+      iex> create_moment(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_activity(%Activity{} = activity, attrs, opts \\ []) do
-    activity
-    |> Activity.changeset(attrs)
+  def create_moment(attrs \\ %{}, opts \\ []) do
+    %Moment{}
+    |> Moment.changeset(attrs)
+    |> set_moment_position()
+    |> Repo.insert()
+    |> maybe_preload(opts)
+  end
+
+  # skip if not valid
+  defp set_moment_position(%Ecto.Changeset{valid?: false} = changeset),
+    do: changeset
+
+  # skip if changeset already has position change
+  defp set_moment_position(%Ecto.Changeset{changes: %{position: _position}} = changeset),
+    do: changeset
+
+  defp set_moment_position(%Ecto.Changeset{} = changeset) do
+    strand_id =
+      Ecto.Changeset.get_field(changeset, :strand_id)
+
+    position =
+      from(
+        m in Moment,
+        where: m.strand_id == ^strand_id,
+        select: m.position,
+        order_by: [desc: m.position],
+        limit: 1
+      )
+      |> Repo.one()
+      |> case do
+        nil -> 0
+        pos -> pos + 1
+      end
+
+    changeset
+    |> Ecto.Changeset.put_change(:position, position)
+  end
+
+  @doc """
+  Updates a moment.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> update_moment(moment, %{field: new_value})
+      {:ok, %Moment{}}
+
+      iex> update_moment(moment, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_moment(%Moment{} = moment, attrs, opts \\ []) do
+    moment
+    |> Moment.changeset(attrs)
     |> Repo.update()
     |> maybe_preload(opts)
   end
 
   @doc """
-  Update strand activities positions based on ids list order.
+  Update strand moments positions based on ids list order.
 
   ## Examples
 
-      iex> update_strand_activities_positions(strand_id, [3, 2, 1])
-      {:ok, [%Activity{}, ...]}
+      iex> update_strand_moments_positions(strand_id, [3, 2, 1])
+      {:ok, [%Moment{}, ...]}
 
   """
-  def update_strand_activities_positions(strand_id, activities_ids) do
-    activities_ids
+  def update_strand_moments_positions(strand_id, moments_ids) do
+    moments_ids
     |> Enum.with_index()
     |> Enum.reduce(
       Ecto.Multi.new(),
@@ -385,9 +398,9 @@ defmodule Lanttern.LearningContext do
         |> Ecto.Multi.update_all(
           "update-#{id}",
           from(
-            a in Activity,
-            where: a.id == ^id,
-            where: a.strand_id == ^strand_id
+            m in Moment,
+            where: m.id == ^id,
+            where: m.strand_id == ^strand_id
           ),
           set: [position: i]
         )
@@ -396,7 +409,192 @@ defmodule Lanttern.LearningContext do
     |> Repo.transaction()
     |> case do
       {:ok, _} ->
-        {:ok, list_activities(strands_ids: [strand_id])}
+        {:ok, list_moments(strands_ids: [strand_id])}
+
+      _ ->
+        {:error, gettext("Something went wrong")}
+    end
+  end
+
+  @doc """
+  Deletes a moment.
+
+  ## Examples
+
+      iex> delete_moment(moment)
+      {:ok, %Moment{}}
+
+      iex> delete_moment(moment)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_moment(%Moment{} = moment) do
+    moment
+    |> Moment.delete_changeset()
+    |> Repo.delete()
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking moment changes.
+
+  ## Examples
+
+      iex> change_moment(moment)
+      %Ecto.Changeset{data: %Moment{}}
+
+  """
+  def change_moment(%Moment{} = moment, attrs \\ %{}) do
+    Moment.changeset(moment, attrs)
+  end
+
+  @doc """
+  Returns the list of moment_cards.
+
+  ## Options:
+
+        - `:ids` – filter cards by ids
+        - `:moments_ids` – filter cards by moment
+
+  ## Examples
+
+      iex> list_moment_cards()
+      [%MomentCard{}, ...]
+
+  """
+  def list_moment_cards(opts \\ []) do
+    from(
+      c in MomentCard,
+      order_by: c.position
+    )
+    |> filter_moment_cards(opts)
+    |> Repo.all()
+  end
+
+  defp filter_moment_cards(queryable, opts) do
+    Enum.reduce(opts, queryable, &apply_moment_cards_filter/2)
+  end
+
+  defp apply_moment_cards_filter({:ids, ids}, queryable),
+    do: from(c in queryable, where: c.id in ^ids)
+
+  defp apply_moment_cards_filter({:moments_ids, ids}, queryable),
+    do: from(c in queryable, where: c.moment_id in ^ids)
+
+  defp apply_moment_cards_filter(_, queryable), do: queryable
+
+  @doc """
+  Gets a single moment_card.
+
+  Raises `Ecto.NoResultsError` if the Moment card does not exist.
+
+  ## Examples
+
+      iex> get_moment_card!(123)
+      %MomentCard{}
+
+      iex> get_moment_card!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_moment_card!(id), do: Repo.get!(MomentCard, id)
+
+  @doc """
+  Creates a moment_card.
+
+  ## Examples
+
+      iex> create_moment_card(%{field: value})
+      {:ok, %MomentCard{}}
+
+      iex> create_moment_card(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_moment_card(attrs \\ %{}) do
+    %MomentCard{}
+    |> MomentCard.changeset(attrs)
+    |> set_moment_card_position()
+    |> Repo.insert()
+  end
+
+  # skip if not valid
+  defp set_moment_card_position(%Ecto.Changeset{valid?: false} = changeset),
+    do: changeset
+
+  # skip if changeset already has position change
+  defp set_moment_card_position(%Ecto.Changeset{changes: %{position: _position}} = changeset),
+    do: changeset
+
+  defp set_moment_card_position(%Ecto.Changeset{} = changeset) do
+    moment_id =
+      Ecto.Changeset.get_field(changeset, :moment_id)
+
+    position =
+      from(
+        c in MomentCard,
+        where: c.moment_id == ^moment_id,
+        select: c.position,
+        order_by: [desc: c.position],
+        limit: 1
+      )
+      |> Repo.one()
+      |> case do
+        nil -> 0
+        pos -> pos + 1
+      end
+
+    changeset
+    |> Ecto.Changeset.put_change(:position, position)
+  end
+
+  @doc """
+  Updates a moment_card.
+
+  ## Examples
+
+      iex> update_moment_card(moment_card, %{field: new_value})
+      {:ok, %MomentCard{}}
+
+      iex> update_moment_card(moment_card, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_moment_card(%MomentCard{} = moment_card, attrs) do
+    moment_card
+    |> MomentCard.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Update moment cards positions based on ids list order.
+
+  ## Examples
+
+      iex> update_moment_cards_positions([3, 2, 1])
+      {:ok, [%AssessmentPoint{}, ...]}
+
+  """
+  def update_moment_cards_positions(moment_cards_ids) do
+    moment_cards_ids
+    |> Enum.with_index()
+    |> Enum.reduce(
+      Ecto.Multi.new(),
+      fn {id, i}, multi ->
+        multi
+        |> Ecto.Multi.update_all(
+          "update-#{id}",
+          from(
+            c in MomentCard,
+            where: c.id == ^id
+          ),
+          set: [position: i]
+        )
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:ok, _} ->
+        {:ok, list_moment_cards(ids: moment_cards_ids)}
 
       _ ->
         {:error, "Something went wrong"}
@@ -404,34 +602,32 @@ defmodule Lanttern.LearningContext do
   end
 
   @doc """
-  Deletes a activity.
+  Deletes a moment_card.
 
   ## Examples
 
-      iex> delete_activity(activity)
-      {:ok, %Activity{}}
+      iex> delete_moment_card(moment_card)
+      {:ok, %MomentCard{}}
 
-      iex> delete_activity(activity)
+      iex> delete_moment_card(moment_card)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_activity(%Activity{} = activity) do
-    activity
-    |> Activity.delete_changeset()
-    |> Repo.delete()
+  def delete_moment_card(%MomentCard{} = moment_card) do
+    Repo.delete(moment_card)
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for tracking activity changes.
+  Returns an `%Ecto.Changeset{}` for tracking moment_card changes.
 
   ## Examples
 
-      iex> change_activity(activity)
-      %Ecto.Changeset{data: %Activity{}}
+      iex> change_moment_card(moment_card)
+      %Ecto.Changeset{data: %MomentCard{}}
 
   """
-  def change_activity(%Activity{} = activity, attrs \\ %{}) do
-    Activity.changeset(activity, attrs)
+  def change_moment_card(%MomentCard{} = moment_card, attrs \\ %{}) do
+    MomentCard.changeset(moment_card, attrs)
   end
 
   # Helpers
@@ -468,18 +664,5 @@ defmodule Lanttern.LearningContext do
       on: ss.profile_id == ^profile_id and ss.strand_id == s.id,
       select: %{s | is_starred: not is_nil(ss)}
     )
-  end
-
-  defp maybe_filter_by_strands(query, opts) do
-    case Keyword.get(opts, :strands_ids) do
-      nil ->
-        query
-
-      strands_ids ->
-        from(
-          q in query,
-          where: q.strand_id in ^strands_ids
-        )
-    end
   end
 end
