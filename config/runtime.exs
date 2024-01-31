@@ -30,7 +30,9 @@ if config_env() == :prod do
 
   cert =
     System.get_env("DATABASE_SSL_CERT")
+    |> IO.inspect(label: "before pem_decode")
     |> :public_key.pem_decode()
+    |> IO.inspect(label: "after pem_decode")
     |> hd()
     |> elem(1)
 

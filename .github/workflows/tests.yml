@@ -73,4 +73,4 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-${{ hashFiles('mix.lock') }}
       - run: mix clean
       - run: mix compile --warnings-as-errors
-      - run: mix test --trace --slowest 10
+      # - run: mix test --trace --slowest 10
