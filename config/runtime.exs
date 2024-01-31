@@ -28,14 +28,13 @@ if config_env() == :prod do
       For example: ecto://USER:PASS@HOST/DATABASE
       """
 
+  # SSL CERT is broken in 2 pieces because of the limit
+  # (System.get_env("DATABASE_SSL_CERT_1") <> System.get_env("DATABASE_SSL_CERT_2"))
   cert =
-    (System.get_env("DATABASE_SSL_CERT_1") <>
-       System.get_env("DATABASE_SSL_CERT_2"))
-    |> IO.inspect(label: "before string replace")
+    System.get_env("DATABASE_SSL_CERT")
+    |> IO.inspect(label: "check cert")
     |> String.replace("\\n", "\n")
-    |> IO.inspect(label: "before pem_decode")
     |> :public_key.pem_decode()
-    |> IO.inspect(label: "after pem_decode")
     |> hd()
     |> elem(1)
 
@@ -45,6 +44,7 @@ if config_env() == :prod do
     url: database_url,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
     socket_options: maybe_ipv6,
+    start_apps_before_migration: [:ssl],
     ssl: true,
     ssl_opts: [
       verify: :verify_peer,
