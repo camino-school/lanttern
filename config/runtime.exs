@@ -31,6 +31,8 @@ if config_env() == :prod do
   cert =
     (System.get_env("DATABASE_SSL_CERT_1") <>
        System.get_env("DATABASE_SSL_CERT_2"))
+    |> IO.inspect(label: "before string replace")
+    |> String.replace("\\n", "\n")
     |> IO.inspect(label: "before pem_decode")
     |> :public_key.pem_decode()
     |> IO.inspect(label: "after pem_decode")
