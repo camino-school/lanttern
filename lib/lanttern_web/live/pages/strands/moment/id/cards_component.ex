@@ -40,13 +40,13 @@ defmodule LantternWeb.MomentLive.CardsComponent do
       <div :if={@moment_cards == []} class="p-10 mt-10 rounded shadow-xl bg-white">
         <.empty_state><%= gettext("No cards for this moment yet") %></.empty_state>
       </div>
-      <div :for={{moment_card, i} <- @moment_cards} class="mt-6">
+      <div :for={{moment_card, i} <- @moment_cards} class="mt-6" id={"moment-card-#{moment_card.id}"}>
         <div class="flex items-stretch gap-6 p-6 rounded bg-white shadow-lg">
           <div class="flex-1">
             <div class="flex items-center gap-4">
-              <p class="font-display font-bold text-sm">
+              <h5 class="font-display font-bold text-sm">
                 <%= moment_card.name %>
-              </p>
+              </h5>
               <.button
                 type="button"
                 theme="ghost"
