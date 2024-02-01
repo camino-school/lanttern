@@ -19,7 +19,8 @@ import Config
 if System.get_env("PHX_SERVER") do
   config :lanttern, LantternWeb.Endpoint,
     server: true,
-    url: [host: System.get_env("URL_HOST")]
+    url: [host: System.get_env("URL_HOST")],
+    check_origin: true
 end
 
 if config_env() == :prod do
