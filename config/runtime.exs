@@ -21,6 +21,8 @@ if System.get_env("PHX_SERVER") do
 end
 
 if config_env() == :prod do
+  # https://pspdfkit.com/blog/2022/using-ssl-postgresql-connections-elixir/
+
   database_url =
     System.get_env("DATABASE_URL") ||
       raise """
@@ -28,15 +30,13 @@ if config_env() == :prod do
       For example: ecto://USER:PASS@HOST/DATABASE
       """
 
-  # SSL CERT is broken in 2 pieces because of the limit
-  # (System.get_env("DATABASE_SSL_CERT_1") <> System.get_env("DATABASE_SSL_CERT_2"))
-  cert =
+  database_host = System.get_env("DATABASE_HOST")
+
+  der_certs =
     System.get_env("DATABASE_SSL_CERT")
-    |> IO.inspect(label: "check cert")
     |> String.replace("\\n", "\n")
     |> :public_key.pem_decode()
-    |> hd()
-    |> elem(1)
+    |> Enum.map(fn {_, der, _} -> der end)
 
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
@@ -48,7 +48,8 @@ if config_env() == :prod do
     ssl: true,
     ssl_opts: [
       verify: :verify_peer,
-      cacerts: [cert]
+      cacerts: der_certs,
+      server_name_indication: to_charlist(database_host)
     ]
 
   # The secret key base is used to sign/encrypt cookies and other secrets.
