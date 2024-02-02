@@ -1,0 +1,27 @@
+name: Fly Deploy Prod
+
+on:
+  workflow_run:
+    workflows: [Deploy app]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      deployProd:
+        description: 'Deploy in prod?'
+        required: true
+        type: boolean
+
+jobs:
+  production-deploy:
+    name: Deploy app in production
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' && inputs.deployProd }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
