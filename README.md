@@ -33,6 +33,35 @@ Currently supported locales are `en` (default) and `pt_BR`.
 We need to run `mix git_hooks.install` before commiting for the first time.
 See [this issue](https://github.com/qgadrian/elixir_git_hooks/issues/133)
 
+## Deployment
+
+We're currently running Lanttern on [fly.io](https://fly.io), connected to a managed [Supabase](https://supabase.com/) Postgresql database, and we use [GitHub Actions](https://docs.github.com/en/actions) for automation.
+
+The main secrets/env vars that we need for this are the following:
+
+### On GitHub
+
+- `FLY_API_TOKEN` for each **environment**
+
+### On fly.io
+
+#### From Supabase
+
+- `DATABASE_HOST` - used in repo's `ssl_opts` `server_name_indication`
+- `DATABASE_SSL_CERT` - using `\n` string for line breaks
+- `DATABASE_URL`
+- `SUPABASE_PROJECT_API_KEY` - used for Supabase client (interface with Storage)
+- `SUPABASE_PROJECT_URL` - also used for Supabase client (interface with Storage)
+
+#### From Google
+
+- `GOOGLE_CLIENT_ID`
+
+#### Others
+
+- `PHX_HOST` - e.g. `lanttern.org`
+- `SECRET_KEY_BASE` - Phoenix generated
+
 ## Learn more
 
 - Official website: <https://www.phoenixframework.org/>
