@@ -1,20 +1,19 @@
-name: Fly Deploy
+name: Fly Deploy Manual
 
 on:
-  workflow_run:
-    workflows: [Lanttern tests]
-    types:
-      - completed
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deploy environment'
+        type: environment
+        required: true
 
 jobs:
   deploy:
-    name: Deploy app
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.workflow_run.head_branch }}
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: flyctl deploy --remote-only
         env:

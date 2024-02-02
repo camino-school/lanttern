@@ -19,7 +19,7 @@ defmodule Lanttern.MixProject do
   def application do
     [
       mod: {Lanttern.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :ssl]
     ]
   end
 
