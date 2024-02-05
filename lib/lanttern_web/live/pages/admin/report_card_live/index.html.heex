@@ -1,0 +1,51 @@
+<.header>
+  Listing Report cards
+  <:actions>
+    <.link patch={~p"/admin/report_cards/new"}>
+      <.button>New Report card</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="report_cards"
+  rows={@streams.report_cards}
+  row_click={fn {_id, report_card} -> JS.navigate(~p"/admin/report_cards/#{report_card}") end}
+>
+  <:col :let={{_id, report_card}} label="Name"><%= report_card.name %></:col>
+  <:col :let={{_id, report_card}} label="Description"><%= report_card.description %></:col>
+  <:action :let={{_id, report_card}}>
+    <div class="sr-only">
+      <.link navigate={~p"/admin/report_cards/#{report_card}"}>Show</.link>
+    </div>
+    <.link patch={~p"/admin/report_cards/#{report_card}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, report_card}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: report_card.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="report_card-modal"
+  show
+  on_cancel={JS.patch(~p"/admin/report_cards")}
+>
+  <.header>
+    <%= @page_title %>
+    <:subtitle>Use this form to manage report_card records in your database.</:subtitle>
+  </.header>
+  <.live_component
+    module={LantternWeb.Reporting.ReportCardFormComponent}
+    id={@report_card.id || :new}
+    report_card={@report_card}
+    patch={~p"/admin/report_cards"}
+    class="mt-6"
+    notify_parent
+  />
+</.modal>
