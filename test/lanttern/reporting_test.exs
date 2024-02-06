@@ -15,9 +15,19 @@ defmodule Lanttern.ReportingTest do
       assert Reporting.list_report_cards() == [report_card]
     end
 
-    test "get_report_card!/1 returns the report_card with given id" do
+    test "get_report_card!/2 returns the report_card with given id" do
       report_card = report_card_fixture()
       assert Reporting.get_report_card!(report_card.id) == report_card
+    end
+
+    test "get_report_card!/2 with preloads returns the report_card with given id and preloaded data" do
+      report_card = report_card_fixture()
+      strand_report = strand_report_fixture(%{report_card_id: report_card.id})
+
+      expected = Reporting.get_report_card!(report_card.id, preloads: :strand_reports)
+
+      assert expected.id == report_card.id
+      assert expected.strand_reports == [strand_report]
     end
 
     test "create_report_card/1 with valid data creates a report_card" do

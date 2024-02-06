@@ -5,6 +5,7 @@ defmodule Lanttern.Reporting do
 
   import Ecto.Query, warn: false
   alias Lanttern.Repo
+  import Lanttern.RepoHelpers
 
   alias Lanttern.Reporting.ReportCard
 
@@ -26,6 +27,10 @@ defmodule Lanttern.Reporting do
 
   Raises `Ecto.NoResultsError` if the Report card does not exist.
 
+  ## Options:
+
+      - `:preloads` – preloads associated data
+
   ## Examples
 
       iex> get_report_card!(123)
@@ -35,7 +40,11 @@ defmodule Lanttern.Reporting do
       ** (Ecto.NoResultsError)
 
   """
-  def get_report_card!(id), do: Repo.get!(ReportCard, id)
+  def get_report_card!(id, opts \\ []) do
+    ReportCard
+    |> Repo.get!(id)
+    |> maybe_preload(opts)
+  end
 
   @doc """
   Creates a report_card.

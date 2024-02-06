@@ -11,6 +11,20 @@
       Delete
     </.button>
   </div>
+  <p class="mt-10">Strand reports</p>
+  <%= if length(@report_card.strand_reports) == 0 do %>
+    <.empty_state>No strands linked to this report yet</.empty_state>
+  <% else %>
+    <div
+      :for={strand_report <- @report_card.strand_reports}
+      id={"strand-report-#{strand_report.id}"}
+    >
+      <%= strand_report.strand.name %>
+    </div>
+  <% end %>
+  <.button type="button" phx-click="add_strand">
+    Add strand to report
+  </.button>
 </div>
 <.slide_over
   :if={@live_action == :edit}
@@ -35,6 +49,33 @@
       <%= gettext("Cancel") %>
     </.button>
     <.button type="submit" form="report-card-form">
+      <%= gettext("Save") %>
+    </.button>
+  </:actions>
+</.slide_over>
+<.slide_over
+  :if={@live_action == :edit_strand_report}
+  id="strand-report-form-overlay"
+  show={true}
+  on_cancel={JS.patch(~p"/reporting/#{@report_card}")}
+>
+  <:title><%= gettext("Edit strand report") %></:title>
+  <.live_component
+    module={StrandReportFormComponent}
+    id={@strand_report.id || :new}
+    strand_report={@strand_report}
+    navigate={~p"/reporting/#{@report_card}"}
+    hide_submit
+  />
+  <:actions>
+    <.button
+      type="button"
+      theme="ghost"
+      phx-click={JS.exec("data-cancel", to: "#strand-report-form-overlay")}
+    >
+      <%= gettext("Cancel") %>
+    </.button>
+    <.button type="submit" form="strand-report-form">
       <%= gettext("Save") %>
     </.button>
   </:actions>
