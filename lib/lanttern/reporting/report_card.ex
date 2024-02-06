@@ -15,6 +15,6 @@ defmodule Lanttern.Reporting.ReportCard do
   def changeset(report_card, attrs) do
     report_card
     |> cast(attrs, [:name, :description, :school_cycle_id])
-    |> validate_required([:name, :description, :school_cycle_id])
+    |> validate_required([:name, :school_cycle_id])
   end
 end

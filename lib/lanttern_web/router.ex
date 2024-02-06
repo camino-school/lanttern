@@ -92,6 +92,11 @@ defmodule LantternWeb.Router do
 
       live "/curriculum", CurriculumLive, :index
       live "/curriculum/bncc_ef", BnccEfLive, :index
+
+      live "/reporting", ReportCardsLive, :index
+      live "/reporting/new", ReportCardsLive, :new
+      live "/reporting/:id", ReportCardLive, :show
+      live "/reporting/:id/edit", ReportCardLive, :edit
     end
   end
 

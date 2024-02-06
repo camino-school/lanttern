@@ -41,11 +41,11 @@ defmodule LantternWeb.Admin.ReportCardLiveTest do
       }
 
       assert index_live
-             |> form("#report_card-form", report_card: @invalid_attrs)
+             |> form("#report-card-form", report_card: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"
 
       assert index_live
-             |> form("#report_card-form", report_card: create_attrs)
+             |> form("#report-card-form", report_card: create_attrs)
              |> render_submit()
 
       assert_patch(index_live, ~p"/admin/report_cards")
@@ -64,11 +64,11 @@ defmodule LantternWeb.Admin.ReportCardLiveTest do
       assert_patch(index_live, ~p"/admin/report_cards/#{report_card}/edit")
 
       assert index_live
-             |> form("#report_card-form", report_card: @invalid_attrs)
+             |> form("#report-card-form", report_card: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"
 
       assert index_live
-             |> form("#report_card-form", report_card: @update_attrs)
+             |> form("#report-card-form", report_card: @update_attrs)
              |> render_submit()
 
       assert_patch(index_live, ~p"/admin/report_cards")
@@ -108,11 +108,11 @@ defmodule LantternWeb.Admin.ReportCardLiveTest do
       assert_patch(show_live, ~p"/admin/report_cards/#{report_card}/show/edit")
 
       assert show_live
-             |> form("#report_card-form", report_card: @invalid_attrs)
+             |> form("#report-card-form", report_card: @invalid_attrs)
              |> render_change() =~ "can&#39;t be blank"
 
       assert show_live
-             |> form("#report_card-form", report_card: @update_attrs)
+             |> form("#report-card-form", report_card: @update_attrs)
              |> render_submit()
 
       assert_patch(show_live, ~p"/admin/report_cards/#{report_card}")

@@ -31,8 +31,12 @@ defmodule LantternWeb.MenuComponent do
               <.nav_item active={@active_nav == :curriculum} path={~p"/curriculum"}>
                 <%= gettext("Curriculum") %>
               </.nav_item>
+              <.nav_item active={@active_nav == :reporting} path={~p"/reporting"}>
+                <%= gettext("Reporting") %>
+              </.nav_item>
               <%!-- use this li as placeholder when nav items % 3 != 0--%>
-              <%!-- <li class="bg-white"></li>--%>
+              <li class="bg-white"></li>
+              <li class="bg-white"></li>
             </ul>
           </nav>
           <h5 class="relative flex items-center ml-6 mb-6 font-display font-black text-3xl text-ltrn-dark">
@@ -270,6 +274,9 @@ defmodule LantternWeb.MenuComponent do
 
         socket.view in [LantternWeb.CurriculumLive, LantternWeb.CurriculumBNCCEFLive] ->
           :curriculum
+
+        socket.view in [LantternWeb.ReportCardsLive, LantternWeb.ReportCardLive] ->
+          :reporting
 
         true ->
           nil

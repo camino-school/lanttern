@@ -10,7 +10,7 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
     <div class={@class}>
       <.form
         for={@form}
-        id="report_card-form"
+        id="report-card-form"
         phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
@@ -34,11 +34,14 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
         <.input
           field={@form[:description]}
           type="textarea"
-          label={gettext("Description")}
-          class="mb-6"
+          label={gettext("Description (optional)")}
           phx-debounce="1500"
+          class="mb-1"
         />
-        <.button phx-disable-with={gettext("Saving...")}><%= gettext("Save Report card") %></.button>
+        <.markdown_supported class={if !@hide_submit, do: "mb-6"} />
+        <.button :if={!@hide_submit} phx-disable-with={gettext("Saving...")}>
+          <%= gettext("Save Report card") %>
+        </.button>
       </.form>
     </div>
     """
@@ -52,6 +55,7 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
       socket
       |> assign(:class, nil)
       |> assign(:cycle_options, cycle_options)
+      |> assign(:hide_submit, false)
 
     {:ok, socket}
   end
@@ -60,10 +64,12 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
   def update(%{report_card: report_card} = assigns, socket) do
     changeset = Reporting.change_report_card(report_card)
 
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign_form(changeset)}
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign_form(changeset)
+
+    {:ok, socket}
   end
 
   @impl true
