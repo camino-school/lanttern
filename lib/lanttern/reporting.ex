@@ -206,4 +206,100 @@ defmodule Lanttern.Reporting do
   def change_strand_report(%StrandReport{} = strand_report, attrs \\ %{}) do
     StrandReport.changeset(strand_report, attrs)
   end
+
+  alias Lanttern.Reporting.StudentReportCard
+
+  @doc """
+  Returns the list of student_report_cards.
+
+  ## Examples
+
+      iex> list_student_report_cards()
+      [%StudentReportCard{}, ...]
+
+  """
+  def list_student_report_cards do
+    Repo.all(StudentReportCard)
+  end
+
+  @doc """
+  Gets a single student_report_card.
+
+  Raises `Ecto.NoResultsError` if the Student report card does not exist.
+
+  ## Examples
+
+      iex> get_student_report_card!(123)
+      %StudentReportCard{}
+
+      iex> get_student_report_card!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_student_report_card!(id), do: Repo.get!(StudentReportCard, id)
+
+  @doc """
+  Creates a student_report_card.
+
+  ## Examples
+
+      iex> create_student_report_card(%{field: value})
+      {:ok, %StudentReportCard{}}
+
+      iex> create_student_report_card(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_student_report_card(attrs \\ %{}) do
+    %StudentReportCard{}
+    |> StudentReportCard.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a student_report_card.
+
+  ## Examples
+
+      iex> update_student_report_card(student_report_card, %{field: new_value})
+      {:ok, %StudentReportCard{}}
+
+      iex> update_student_report_card(student_report_card, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_student_report_card(%StudentReportCard{} = student_report_card, attrs) do
+    student_report_card
+    |> StudentReportCard.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a student_report_card.
+
+  ## Examples
+
+      iex> delete_student_report_card(student_report_card)
+      {:ok, %StudentReportCard{}}
+
+      iex> delete_student_report_card(student_report_card)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_student_report_card(%StudentReportCard{} = student_report_card) do
+    Repo.delete(student_report_card)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking student_report_card changes.
+
+  ## Examples
+
+      iex> change_student_report_card(student_report_card)
+      %Ecto.Changeset{data: %StudentReportCard{}}
+
+  """
+  def change_student_report_card(%StudentReportCard{} = student_report_card, attrs \\ %{}) do
+    StudentReportCard.changeset(student_report_card, attrs)
+  end
 end

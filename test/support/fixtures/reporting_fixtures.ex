@@ -54,4 +54,27 @@ defmodule Lanttern.ReportingFixtures do
 
   defp maybe_gen_strand_id(_attrs),
     do: Lanttern.LearningContextFixtures.strand_fixture().id
+
+  @doc """
+  Generate a student_report_card.
+  """
+  def student_report_card_fixture(attrs \\ %{}) do
+    {:ok, student_report_card} =
+      attrs
+      |> Enum.into(%{
+        report_card_id: maybe_gen_report_card_id(attrs),
+        student_id: maybe_gen_student_id(attrs),
+        comment: "some comment",
+        footnote: "some footnote"
+      })
+      |> Lanttern.Reporting.create_student_report_card()
+
+    student_report_card
+  end
+
+  defp maybe_gen_student_id(%{student_id: student_id} = _attrs),
+    do: student_id
+
+  defp maybe_gen_student_id(_attrs),
+    do: Lanttern.SchoolsFixtures.student_fixture().id
 end

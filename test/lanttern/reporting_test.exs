@@ -146,4 +146,82 @@ defmodule Lanttern.ReportingTest do
       assert %Ecto.Changeset{} = Reporting.change_strand_report(strand_report)
     end
   end
+
+  describe "student_report_cards" do
+    alias Lanttern.Reporting.StudentReportCard
+
+    import Lanttern.ReportingFixtures
+
+    @invalid_attrs %{report_card_id: nil, comment: nil, footnote: nil}
+
+    test "list_student_report_cards/0 returns all student_report_cards" do
+      student_report_card = student_report_card_fixture()
+      assert Reporting.list_student_report_cards() == [student_report_card]
+    end
+
+    test "get_student_report_card!/1 returns the student_report_card with given id" do
+      student_report_card = student_report_card_fixture()
+      assert Reporting.get_student_report_card!(student_report_card.id) == student_report_card
+    end
+
+    test "create_student_report_card/1 with valid data creates a student_report_card" do
+      report_card = report_card_fixture()
+      student = Lanttern.SchoolsFixtures.student_fixture()
+
+      valid_attrs = %{
+        report_card_id: report_card.id,
+        student_id: student.id,
+        comment: "some comment",
+        footnote: "some footnote"
+      }
+
+      assert {:ok, %StudentReportCard{} = student_report_card} =
+               Reporting.create_student_report_card(valid_attrs)
+
+      assert student_report_card.report_card_id == report_card.id
+      assert student_report_card.student_id == student.id
+      assert student_report_card.comment == "some comment"
+      assert student_report_card.footnote == "some footnote"
+    end
+
+    test "create_student_report_card/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Reporting.create_student_report_card(@invalid_attrs)
+    end
+
+    test "update_student_report_card/2 with valid data updates the student_report_card" do
+      student_report_card = student_report_card_fixture()
+      update_attrs = %{comment: "some updated comment", footnote: "some updated footnote"}
+
+      assert {:ok, %StudentReportCard{} = student_report_card} =
+               Reporting.update_student_report_card(student_report_card, update_attrs)
+
+      assert student_report_card.comment == "some updated comment"
+      assert student_report_card.footnote == "some updated footnote"
+    end
+
+    test "update_student_report_card/2 with invalid data returns error changeset" do
+      student_report_card = student_report_card_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Reporting.update_student_report_card(student_report_card, @invalid_attrs)
+
+      assert student_report_card == Reporting.get_student_report_card!(student_report_card.id)
+    end
+
+    test "delete_student_report_card/1 deletes the student_report_card" do
+      student_report_card = student_report_card_fixture()
+
+      assert {:ok, %StudentReportCard{}} =
+               Reporting.delete_student_report_card(student_report_card)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Reporting.get_student_report_card!(student_report_card.id)
+      end
+    end
+
+    test "change_student_report_card/1 returns a student_report_card changeset" do
+      student_report_card = student_report_card_fixture()
+      assert %Ecto.Changeset{} = Reporting.change_student_report_card(student_report_card)
+    end
+  end
 end

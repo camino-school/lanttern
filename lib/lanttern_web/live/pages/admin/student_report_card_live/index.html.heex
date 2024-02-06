@@ -1,0 +1,65 @@
+<.header>
+  Listing Student report cards
+  <:actions>
+    <.link patch={~p"/admin/student_report_cards/new"}>
+      <.button>New Student report card</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="student_report_cards"
+  rows={@streams.student_report_cards}
+  row_click={
+    fn {_id, student_report_card} ->
+      JS.navigate(~p"/admin/student_report_cards/#{student_report_card}")
+    end
+  }
+>
+  <:col :let={{_id, student_report_card}} label="Report card id">
+    #<%= student_report_card.report_card_id %>
+  </:col>
+  <:col :let={{_id, student_report_card}} label="Student id">
+    #<%= student_report_card.student_id %>
+  </:col>
+  <:col :let={{_id, student_report_card}} label="Comment">
+    <%= student_report_card.comment %>
+  </:col>
+  <:col :let={{_id, student_report_card}} label="Footnote">
+    <%= student_report_card.footnote %>
+  </:col>
+  <:action :let={{_id, student_report_card}}>
+    <div class="sr-only">
+      <.link navigate={~p"/admin/student_report_cards/#{student_report_card}"}>Show</.link>
+    </div>
+    <.link patch={~p"/admin/student_report_cards/#{student_report_card}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, student_report_card}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: student_report_card.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="student_report_card-modal"
+  show
+  on_cancel={JS.patch(~p"/admin/student_report_cards")}
+>
+  <.header>
+    <%= @page_title %>
+    <:subtitle>Use this form to manage student_report_card records in your database.</:subtitle>
+  </.header>
+  <.live_component
+    module={LantternWeb.Reporting.StudentReportCardFormComponent}
+    id={@student_report_card.id || :new}
+    student_report_card={@student_report_card}
+    patch={~p"/admin/student_report_cards"}
+    class="mt-6"
+    notify_parent
+  />
+</.modal>

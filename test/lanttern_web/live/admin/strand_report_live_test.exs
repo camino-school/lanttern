@@ -1,4 +1,4 @@
-defmodule LantternWeb.StrandReportLiveTest do
+defmodule LantternWeb.Admin.StrandReportLiveTest do
   use LantternWeb.ConnCase
 
   import Phoenix.LiveViewTest

@@ -218,6 +218,13 @@ defmodule LantternWeb.Router do
 
     live "/strand_reports/:id", Admin.StrandReportLive.Show, :show
     live "/strand_reports/:id/show/edit", Admin.StrandReportLive.Show, :edit
+
+    live "/student_report_cards", Admin.StudentReportCardLive.Index, :index
+    live "/student_report_cards/new", Admin.StudentReportCardLive.Index, :new
+    live "/student_report_cards/:id/edit", Admin.StudentReportCardLive.Index, :edit
+
+    live "/student_report_cards/:id", Admin.StudentReportCardLive.Show, :show
+    live "/student_report_cards/:id/show/edit", Admin.StudentReportCardLive.Show, :edit
   end
 
   # Other scopes may use custom stacks.
