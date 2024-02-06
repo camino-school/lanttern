@@ -12,6 +12,7 @@
   rows={@streams.report_cards}
   row_click={fn {_id, report_card} -> JS.navigate(~p"/admin/report_cards/#{report_card}") end}
 >
+  <:col :let={{_id, report_card}} label="Id">#<%= report_card.id %></:col>
   <:col :let={{_id, report_card}} label="Name"><%= report_card.name %></:col>
   <:col :let={{_id, report_card}} label="Description"><%= report_card.description %></:col>
   <:action :let={{_id, report_card}}>

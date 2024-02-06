@@ -25,4 +25,33 @@ defmodule Lanttern.ReportingFixtures do
 
   defp maybe_gen_school_cycle_id(_attrs),
     do: Lanttern.SchoolsFixtures.cycle_fixture().id
+
+  @doc """
+  Generate a strand_report.
+  """
+  def strand_report_fixture(attrs \\ %{}) do
+    {:ok, strand_report} =
+      attrs
+      |> Enum.into(%{
+        report_card_id: maybe_gen_report_card_id(attrs),
+        strand_id: maybe_gen_strand_id(attrs),
+        description: "some description",
+        position: 0
+      })
+      |> Lanttern.Reporting.create_strand_report()
+
+    strand_report
+  end
+
+  defp maybe_gen_report_card_id(%{report_card_id: report_card_id} = _attrs),
+    do: report_card_id
+
+  defp maybe_gen_report_card_id(_attrs),
+    do: report_card_fixture().id
+
+  defp maybe_gen_strand_id(%{strand_id: strand_id} = _attrs),
+    do: strand_id
+
+  defp maybe_gen_strand_id(_attrs),
+    do: Lanttern.LearningContextFixtures.strand_fixture().id
 end

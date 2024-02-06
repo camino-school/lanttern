@@ -101,4 +101,100 @@ defmodule Lanttern.Reporting do
   def change_report_card(%ReportCard{} = report_card, attrs \\ %{}) do
     ReportCard.changeset(report_card, attrs)
   end
+
+  alias Lanttern.Reporting.StrandReport
+
+  @doc """
+  Returns the list of strand_reports.
+
+  ## Examples
+
+      iex> list_strand_reports()
+      [%StrandReport{}, ...]
+
+  """
+  def list_strand_reports do
+    Repo.all(StrandReport)
+  end
+
+  @doc """
+  Gets a single strand_report.
+
+  Raises `Ecto.NoResultsError` if the Strand report does not exist.
+
+  ## Examples
+
+      iex> get_strand_report!(123)
+      %StrandReport{}
+
+      iex> get_strand_report!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_strand_report!(id), do: Repo.get!(StrandReport, id)
+
+  @doc """
+  Creates a strand_report.
+
+  ## Examples
+
+      iex> create_strand_report(%{field: value})
+      {:ok, %StrandReport{}}
+
+      iex> create_strand_report(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_strand_report(attrs \\ %{}) do
+    %StrandReport{}
+    |> StrandReport.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a strand_report.
+
+  ## Examples
+
+      iex> update_strand_report(strand_report, %{field: new_value})
+      {:ok, %StrandReport{}}
+
+      iex> update_strand_report(strand_report, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_strand_report(%StrandReport{} = strand_report, attrs) do
+    strand_report
+    |> StrandReport.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a strand_report.
+
+  ## Examples
+
+      iex> delete_strand_report(strand_report)
+      {:ok, %StrandReport{}}
+
+      iex> delete_strand_report(strand_report)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_strand_report(%StrandReport{} = strand_report) do
+    Repo.delete(strand_report)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking strand_report changes.
+
+  ## Examples
+
+      iex> change_strand_report(strand_report)
+      %Ecto.Changeset{data: %StrandReport{}}
+
+  """
+  def change_strand_report(%StrandReport{} = strand_report, attrs \\ %{}) do
+    StrandReport.changeset(strand_report, attrs)
+  end
 end

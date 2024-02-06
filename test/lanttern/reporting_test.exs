@@ -69,4 +69,71 @@ defmodule Lanttern.ReportingTest do
       assert %Ecto.Changeset{} = Reporting.change_report_card(report_card)
     end
   end
+
+  describe "strand_reports" do
+    alias Lanttern.Reporting.StrandReport
+
+    import Lanttern.ReportingFixtures
+
+    @invalid_attrs %{report_card_id: nil}
+
+    test "list_strand_reports/0 returns all strand_reports" do
+      strand_report = strand_report_fixture()
+      assert Reporting.list_strand_reports() == [strand_report]
+    end
+
+    test "get_strand_report!/1 returns the strand_report with given id" do
+      strand_report = strand_report_fixture()
+      assert Reporting.get_strand_report!(strand_report.id) == strand_report
+    end
+
+    test "create_strand_report/1 with valid data creates a strand_report" do
+      report_card = report_card_fixture()
+      strand = Lanttern.LearningContextFixtures.strand_fixture()
+
+      valid_attrs = %{
+        report_card_id: report_card.id,
+        strand_id: strand.id,
+        description: "some description",
+        position: 1
+      }
+
+      assert {:ok, %StrandReport{} = strand_report} = Reporting.create_strand_report(valid_attrs)
+      assert strand_report.description == "some description"
+    end
+
+    test "create_strand_report/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Reporting.create_strand_report(@invalid_attrs)
+    end
+
+    test "update_strand_report/2 with valid data updates the strand_report" do
+      strand_report = strand_report_fixture()
+      update_attrs = %{description: "some updated description"}
+
+      assert {:ok, %StrandReport{} = strand_report} =
+               Reporting.update_strand_report(strand_report, update_attrs)
+
+      assert strand_report.description == "some updated description"
+    end
+
+    test "update_strand_report/2 with invalid data returns error changeset" do
+      strand_report = strand_report_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Reporting.update_strand_report(strand_report, @invalid_attrs)
+
+      assert strand_report == Reporting.get_strand_report!(strand_report.id)
+    end
+
+    test "delete_strand_report/1 deletes the strand_report" do
+      strand_report = strand_report_fixture()
+      assert {:ok, %StrandReport{}} = Reporting.delete_strand_report(strand_report)
+      assert_raise Ecto.NoResultsError, fn -> Reporting.get_strand_report!(strand_report.id) end
+    end
+
+    test "change_strand_report/1 returns a strand_report changeset" do
+      strand_report = strand_report_fixture()
+      assert %Ecto.Changeset{} = Reporting.change_strand_report(strand_report)
+    end
+  end
 end

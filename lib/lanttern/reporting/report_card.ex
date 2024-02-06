@@ -8,6 +8,8 @@ defmodule Lanttern.Reporting.ReportCard do
 
     belongs_to :school_cycle, Lanttern.Schools.Cycle
 
+    has_many :strand_reports, Lanttern.Reporting.StrandReport
+
     timestamps()
   end
 
