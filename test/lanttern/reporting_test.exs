@@ -164,6 +164,17 @@ defmodule Lanttern.ReportingTest do
       assert Reporting.get_student_report_card!(student_report_card.id) == student_report_card
     end
 
+    test "get_student_report_card!/2 with preloads returns the student report card with given id and preloaded data" do
+      report_card = report_card_fixture()
+      student_report_card = student_report_card_fixture(%{report_card_id: report_card.id})
+
+      expected =
+        Reporting.get_student_report_card!(student_report_card.id, preloads: :report_card)
+
+      assert expected.id == student_report_card.id
+      assert expected.report_card == report_card
+    end
+
     test "create_student_report_card/1 with valid data creates a student_report_card" do
       report_card = report_card_fixture()
       student = Lanttern.SchoolsFixtures.student_fixture()

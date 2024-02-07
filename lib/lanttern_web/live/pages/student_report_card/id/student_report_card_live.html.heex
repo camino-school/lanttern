@@ -1,0 +1,85 @@
+<.cover style={"background-image: url(#{"/images/cover-placeholder.jpg"}?width=1280&height=640)"}>
+  <:top>
+    <div class="flex items-center justify-between">
+      <.breadcrumbs class="mt-2" with_bg>
+        <:item><%= gettext("Student report card") %></:item>
+      </.breadcrumbs>
+      <.nav_menu_button />
+    </div>
+  </:top>
+  <h1 class="font-display font-black text-5xl"><%= @student_report_card.student.name %></h1>
+  <h2 class="mt-2 font-display font-black text-2xl">
+    <%= @student_report_card.report_card.name %>
+  </h2>
+  <.badge theme="dark" class="mt-6">
+    <%= gettext("Cycle") %>: <%= @student_report_card.report_card.school_cycle.name %>
+  </.badge>
+</.cover>
+<%!-- <div class="sticky z-30 top-0 border-b border-ltrn-lighter bg-white">
+  <div class="flex items-center justify-between container lg:max-w-5xl mx-auto">
+    <.nav_tabs id="strand-nav-tabs">
+      <:tab
+        patch={~p"/strands/#{@strand}?#{%{tab: "about"}}"}
+        is_current={@current_tab == :about && "true"}
+      >
+        <%= gettext("About") %>
+      </:tab>
+      <:tab
+        patch={~p"/strands/#{@strand}?#{%{tab: "assessment"}}"}
+        is_current={@current_tab == :assessment && "true"}
+      >
+        <%= gettext("Assessment") %>
+      </:tab>
+      <:tab
+        patch={~p"/strands/#{@strand}?#{%{tab: "moments"}}"}
+        is_current={@current_tab == :moments && "true"}
+      >
+        <%= gettext("Moments") %>
+      </:tab>
+      <:tab
+        patch={~p"/strands/#{@strand}?#{%{tab: "notes"}}"}
+        is_current={@current_tab == :notes && "true"}
+        icon_name="hero-eye-slash"
+      >
+        <%= gettext("My notes") %>
+      </:tab>
+    </.nav_tabs>
+    <.menu_button id={@strand.id}>
+      <:menu_items>
+        <.menu_button_item
+          id={"edit-strand-#{@strand.id}"}
+          phx-click={JS.patch(~p"/strands/#{@strand}/edit")}
+        >
+          <%= gettext("Edit strand") %>
+        </.menu_button_item>
+        <.menu_button_item
+          id={"remove-strand-#{@strand.id}"}
+          class="text-red-500"
+          phx-click="delete_strand"
+          data-confirm={gettext("Are you sure?")}
+        >
+          <%= gettext("Delete") %>
+        </.menu_button_item>
+      </:menu_items>
+    </.menu_button>
+  </div>
+</div> --%>
+<div class="ltrn-bg-main-local">
+  <div class="container py-10 mx-auto lg:max-w-5xl">
+    <.markdown text={@student_report_card.comment} />
+    <h3 class="mt-10 font-display font-black text-2xl">Strand reports</h3>
+    <div class="grid grid-cols-3 gap-10 mt-10">
+      <.strand_card
+        :for={strand_report <- @student_report_card.report_card.strand_reports}
+        id={"strand-report-#{strand_report.id}"}
+        strand={strand_report.strand}
+        navigate={~p"/strands/#{strand_report.strand}"}
+        hide_description
+      >
+        TBD Strand goals assessment viz
+      </.strand_card>
+    </div>
+    <h3 class="mt-10 font-display font-black text-2xl">Grade reports</h3>
+    <p>🚧 TBD</p>
+  </div>
+</div>

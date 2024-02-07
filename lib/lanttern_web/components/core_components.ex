@@ -948,7 +948,7 @@ defmodule LantternWeb.CoreComponents do
 
   def markdown(assigns) do
     ~H"""
-    <div class={["prose prose-slate", @class]} {@rest}>
+    <div :if={@text} class={["prose prose-slate", @class]} {@rest}>
       <%= raw(Earmark.as_html!(@text)) %>
     </div>
     """

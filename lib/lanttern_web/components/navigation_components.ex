@@ -113,6 +113,7 @@ defmodule LantternWeb.NavigationComponents do
 
   """
   attr :class, :any, default: nil
+  attr :with_bg, :boolean, default: false
   attr :item_class, :any, default: nil
 
   slot :item, required: true do
@@ -122,8 +123,14 @@ defmodule LantternWeb.NavigationComponents do
   def breadcrumbs(assigns) do
     ~H"""
     <nav class={@class}>
-      <ol class="flex items-center gap-2 font-display font-bold text-sm text-ltrn-subtle">
-        <li :for={{item, i} <- Enum.with_index(@item)} class={@item_class}>
+      <ol class={[
+        "flex items-center gap-2 font-display font-bold text-sm text-ltrn-subtle",
+        if(@with_bg, do: "p-2 rounded-full bg-ltrn-dark/50")
+      ]}>
+        <li
+          :for={{item, i} <- Enum.with_index(@item)}
+          class={[@item_class, if(@with_bg, do: "text-white drop-shadow-sm")]}
+        >
           <span :if={i > 0}>/</span>
           <%= if Map.get(item, :link) do %>
             <.link navigate={item.link} class="underline"><%= render_slot(item) %></.link>

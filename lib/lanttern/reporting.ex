@@ -227,6 +227,10 @@ defmodule Lanttern.Reporting do
 
   Raises `Ecto.NoResultsError` if the Student report card does not exist.
 
+  ## Options:
+
+      - `:preloads` – preloads associated data
+
   ## Examples
 
       iex> get_student_report_card!(123)
@@ -236,7 +240,11 @@ defmodule Lanttern.Reporting do
       ** (Ecto.NoResultsError)
 
   """
-  def get_student_report_card!(id), do: Repo.get!(StudentReportCard, id)
+  def get_student_report_card!(id, opts \\ []) do
+    StudentReportCard
+    |> Repo.get!(id)
+    |> maybe_preload(opts)
+  end
 
   @doc """
   Creates a student_report_card.
