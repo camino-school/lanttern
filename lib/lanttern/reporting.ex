@@ -10,7 +10,14 @@ defmodule Lanttern.Reporting do
   alias Lanttern.Reporting.ReportCard
 
   @doc """
-  Returns the list of report_cards.
+  Returns the list of report cards.
+
+  Report cards are ordered by cycle end date (desc) and name (asc)
+
+  ## Options:
+
+      - `:preloads` – preloads associated data
+      - `:strands_ids` – filter report cards by strands
 
   ## Examples
 
@@ -18,9 +25,31 @@ defmodule Lanttern.Reporting do
       [%ReportCard{}, ...]
 
   """
-  def list_report_cards do
-    Repo.all(ReportCard)
+  def list_report_cards(opts \\ []) do
+    from(rc in ReportCard,
+      join: sc in assoc(rc, :school_cycle),
+      order_by: [desc: sc.end_at, asc: rc.name]
+    )
+    |> filter_report_cards(opts)
+    |> Repo.all()
+    |> maybe_preload(opts)
   end
+
+  defp filter_report_cards(queryable, opts) do
+    Enum.reduce(opts, queryable, &apply_report_cards_filter/2)
+  end
+
+  defp apply_report_cards_filter({:strands_ids, ids}, queryable) do
+    from(
+      rc in queryable,
+      join: sr in assoc(rc, :strand_reports),
+      join: s in assoc(sr, :strand),
+      where: s.id in ^ids
+    )
+  end
+
+  defp apply_report_cards_filter(_, queryable),
+    do: queryable
 
   @doc """
   Gets a single report_card.

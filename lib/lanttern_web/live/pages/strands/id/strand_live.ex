@@ -5,8 +5,9 @@ defmodule LantternWeb.StrandLive do
 
   # page components
   alias LantternWeb.StrandLive.AboutComponent
-  alias LantternWeb.StrandLive.MomentsComponent
   alias LantternWeb.StrandLive.AssessmentComponent
+  alias LantternWeb.StrandLive.MomentsComponent
+  alias LantternWeb.StrandLive.ReportingComponent
   alias LantternWeb.StrandLive.NotesComponent
 
   # shared components
@@ -14,8 +15,9 @@ defmodule LantternWeb.StrandLive do
 
   @tabs %{
     "about" => :about,
-    "moments" => :moments,
     "assessment" => :assessment,
+    "moments" => :moments,
+    "reporting" => :reporting,
     "notes" => :notes
   }
 

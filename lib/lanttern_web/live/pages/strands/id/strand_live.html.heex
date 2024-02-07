@@ -1,7 +1,7 @@
 <.cover style={"background-image: url(#{@strand.cover_image_url || "/images/cover-placeholder.jpg"}?width=1280&height=640)"}>
   <:top>
     <div class="flex items-center justify-between">
-      <.breadcrumbs class="mt-2" item_class="text-white drop-shadow-sm">
+      <.breadcrumbs class="mt-2" with_bg>
         <:item link={~p"/strands"}><%= gettext("Strands") %></:item>
         <:item><%= gettext("Details") %></:item>
       </.breadcrumbs>
@@ -38,6 +38,13 @@
         is_current={@current_tab == :moments && "true"}
       >
         <%= gettext("Moments") %>
+      </:tab>
+      <:tab
+        patch={~p"/strands/#{@strand}?#{%{tab: "reporting"}}"}
+        is_current={@current_tab == :reporting && "true"}
+        icon_name="hero-users"
+      >
+        <%= gettext("Reporting") %>
       </:tab>
       <:tab
         patch={~p"/strands/#{@strand}?#{%{tab: "notes"}}"}
@@ -88,6 +95,13 @@
     :if={@current_tab == :moments}
     module={MomentsComponent}
     id="strand-details-moments"
+    strand={@strand}
+    live_action={@live_action}
+  />
+  <.live_component
+    :if={@current_tab == :reporting}
+    module={ReportingComponent}
+    id="strand-details-reporting"
     strand={@strand}
     live_action={@live_action}
   />

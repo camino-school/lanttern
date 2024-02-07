@@ -13,13 +13,14 @@
       <%= gettext("No report cards created yet") %>
     </.empty_state>
   <% else %>
-    <ul phx-update="stream" id="report-cards-list">
-      <li :for={{dom_id, report_card} <- @streams.report_cards} id={dom_id}>
-        <.link navigate={~p"/reporting/#{report_card}"} class="underline">
-          <%= report_card.name %>
-        </.link>
-      </li>
-    </ul>
+    <div phx-update="stream" id="report-cards-grid" class="grid grid-cols-3 gap-10 mt-12">
+      <.report_card_card
+        :for={{dom_id, report_card} <- @streams.report_cards}
+        id={dom_id}
+        report_card={report_card}
+        navigate={~p"/reporting/#{report_card}"}
+      />
+    </div>
   <% end %>
 </div>
 <.slide_over

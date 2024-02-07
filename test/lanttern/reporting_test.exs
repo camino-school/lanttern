@@ -10,9 +10,33 @@ defmodule Lanttern.ReportingTest do
 
     @invalid_attrs %{name: nil, description: nil}
 
-    test "list_report_cards/0 returns all report_cards" do
+    test "list_report_cards/1 returns all report_cards" do
       report_card = report_card_fixture()
       assert Reporting.list_report_cards() == [report_card]
+    end
+
+    test "list_report_cards/1 with preloads returns all report_cards with preloaded data" do
+      school_cycle = Lanttern.SchoolsFixtures.cycle_fixture()
+      report_card = report_card_fixture(%{school_cycle_id: school_cycle.id})
+
+      [expected] = Reporting.list_report_cards(preloads: :school_cycle)
+
+      assert expected.id == report_card.id
+      assert expected.school_cycle.id == school_cycle.id
+    end
+
+    test "list_report_cards/1 with filters returns all filtered report_cards" do
+      report_card = report_card_fixture()
+      strand = Lanttern.LearningContextFixtures.strand_fixture()
+      strand_report_fixture(%{report_card_id: report_card.id, strand_id: strand.id})
+
+      # extra report cards for filtering test
+      report_card_fixture()
+      strand_report_fixture()
+
+      [expected] = Reporting.list_report_cards(strands_ids: [strand.id])
+
+      assert expected.id == report_card.id
     end
 
     test "get_report_card!/2 returns the report_card with given id" do

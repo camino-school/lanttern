@@ -7,6 +7,9 @@ defmodule LantternWeb.ReportCardsLive do
   # live components
   alias LantternWeb.Reporting.ReportCardFormComponent
 
+  # shared components
+  import LantternWeb.ReportingComponents
+
   # lifecycle
 
   @impl true
@@ -28,7 +31,7 @@ defmodule LantternWeb.ReportCardsLive do
 
   @impl true
   def handle_params(_params, _url, socket) do
-    report_cards = Reporting.list_report_cards()
+    report_cards = Reporting.list_report_cards(preloads: :school_cycle)
     report_cards_count = length(report_cards)
 
     socket =
