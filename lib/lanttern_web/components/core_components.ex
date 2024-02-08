@@ -1026,6 +1026,61 @@ defmodule LantternWeb.CoreComponents do
       "shrink-0 flex items-center gap-2 font-display text-sm text-ltrn-dark hover:text-ltrn-subtle"
 
   @doc """
+  Renders a tooltip.
+
+  Tooltip parent should have `"group relative"` class.
+  """
+
+  attr :h_pos, :string, default: "left", doc: "left | center | right"
+  attr :v_pos, :string, default: "top", doc: "top | bottom"
+  attr :class, :any, default: nil
+
+  slot :inner_block, required: true
+
+  def tooltip(assigns) do
+    assigns =
+      assigns
+      |> assign(:tooltip_pos_class, get_tooltip_pos_class(assigns))
+      |> assign(:inner_pos_class, get_tooltip_inner_pos_class(assigns))
+
+    ~H"""
+    <div class={[
+      "pointer-events-none absolute w-80 max-w-max p-2 rounded text-sm bg-ltrn-dark text-white",
+      "opacity-0 transition-opacity group-hover:opacity-100",
+      @tooltip_pos_class,
+      @class
+    ]}>
+      <div class={[
+        "relative",
+        @inner_pos_class
+      ]}>
+        <%= render_slot(@inner_block) %>
+      </div>
+    </div>
+    """
+  end
+
+  defp get_tooltip_pos_class(assigns) do
+    v_class =
+      case assigns do
+        %{v_pos: "bottom"} -> "top-full mt-2"
+        _v_pos_top -> "bottom-full mb-2"
+      end
+
+    h_class =
+      case assigns do
+        %{h_pos: "center"} -> "left-1/2"
+        %{h_pos: "right"} -> "right-0"
+        _h_pos_left -> "left-0"
+      end
+
+    v_class <> " " <> h_class
+  end
+
+  defp get_tooltip_inner_pos_class(%{h_pos: "center"}), do: "-left-1/2"
+  defp get_tooltip_inner_pos_class(_assigns), do: ""
+
+  @doc """
   Highlights entring (mounting) elements in DOM.
 
   ## Opts

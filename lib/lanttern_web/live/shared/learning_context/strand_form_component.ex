@@ -95,6 +95,15 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
           phx-debounce="1500"
         />
         <.input
+          field={@form[:type]}
+          type="text"
+          label={gettext("Type")}
+          class="mb-6"
+          phx-debounce="1500"
+          help_text={gettext("E.g. project, unit, course, etc.")}
+          show_optional
+        />
+        <.input
           field={@form[:description]}
           type="textarea"
           label={gettext("Description")}

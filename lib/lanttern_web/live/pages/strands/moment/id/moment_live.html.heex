@@ -5,7 +5,7 @@
 >
   <:top>
     <div class="flex items-center justify-between">
-      <.breadcrumbs class="mt-2" item_class="text-white">
+      <.breadcrumbs with_bg>
         <:item link={~p"/strands"}><%= gettext("Strands") %></:item>
         <:item link={~p"/strands/#{@moment.strand}"}><%= gettext("Details") %></:item>
         <:item><%= gettext("Moment") %></:item>
@@ -20,6 +20,7 @@
       class="font-display font-black text-lg underline"
     >
       <%= @moment.strand.name %>
+      <span :if={@moment.strand.type}>(<%= @moment.strand.type %>)</span>
     </.link>
   </div>
   <h1 class="font-display font-black text-5xl"><%= @moment.name %></h1>

@@ -46,15 +46,20 @@ defmodule LantternWeb.LearningContextComponents do
         </button>
       </div>
       <div class="flex flex-col gap-6 p-6">
-        <h5 class="font-display font-black text-3xl line-clamp-3">
-          <%= if @navigate do %>
-            <.link navigate={@navigate} class="underline hover:text-ltrn-subtle">
+        <div>
+          <h5 class="font-display font-black text-3xl line-clamp-3">
+            <%= if @navigate do %>
+              <.link navigate={@navigate} class="underline hover:text-ltrn-subtle">
+                <%= @strand.name %>
+              </.link>
+            <% else %>
               <%= @strand.name %>
-            </.link>
-          <% else %>
-            <%= @strand.name %>
-          <% end %>
-        </h5>
+            <% end %>
+          </h5>
+          <p :if={@strand.type} class="mt-2 font-display font-black text-base text-ltrn-primary">
+            <%= @strand.type %>
+          </p>
+        </div>
         <div class="flex flex-wrap gap-2">
           <.badge :for={subject <- @strand.subjects}>
             <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
