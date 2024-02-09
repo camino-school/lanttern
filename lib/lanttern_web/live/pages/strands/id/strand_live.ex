@@ -42,8 +42,9 @@ defmodule LantternWeb.StrandLive do
   defp maybe_redirect(socket, _params), do: socket
 
   @impl true
-  def handle_params(%{"tab" => "assessment"} = params, _url, socket) do
-    # when in assessment tab, sync classes_ids filter with profile
+  def handle_params(%{"tab" => tab} = params, _url, socket)
+      when tab in ["assessment", "reporting"] do
+    # when in assessment or reporting tab, sync classes_ids filter with profile
     {:noreply,
      handle_params_and_profile_filters_sync(
        socket,

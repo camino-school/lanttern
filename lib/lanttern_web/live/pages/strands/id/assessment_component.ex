@@ -7,7 +7,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
 
   # shared components
   alias LantternWeb.StrandLive.StrandRubricsComponent
-  alias LantternWeb.Schools.ClassFilterFormComponent
+  import LantternWeb.SchoolsComponents
 
   @impl true
   def render(assigns) do
@@ -98,38 +98,18 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         live_action={@live_action}
         params={@params}
       />
-      <.slide_over id="classes-filter-overlay">
-        <:title><%= gettext("Classes") %></:title>
-        <.live_component
-          module={ClassFilterFormComponent}
-          id={:filter}
-          current_user={@current_user}
-          notify_component={@myself}
-          classes_ids={@classes_ids}
-          navigate={
-            fn classes_ids ->
-              url_params = %{tab: "assessment", classes_ids: classes_ids}
-              ~p"/strands/#{@strand}?#{url_params}"
-            end
-          }
-        />
-        <:actions>
-          <.button
-            type="button"
-            theme="ghost"
-            phx-click={JS.exec("data-cancel", to: "#classes-filter-overlay")}
-          >
-            <%= gettext("Cancel") %>
-          </.button>
-          <.button
-            type="submit"
-            form="class-filter-form"
-            phx-click={JS.exec("data-cancel", to: "#classes-filter-overlay")}
-          >
-            <%= gettext("Select") %>
-          </.button>
-        </:actions>
-      </.slide_over>
+      <.class_selection_overlay
+        id="classes-filter-overlay"
+        current_user={@current_user}
+        classes_ids={@classes_ids}
+        navigate={
+          fn classes_ids ->
+            url_params = %{tab: "assessment", classes_ids: classes_ids}
+            ~p"/strands/#{@strand}?#{url_params}"
+          end
+        }
+        on_clear={JS.navigate(~p"/strands/#{@strand}?tab=assessment&classes_ids=")}
+      />
     </div>
     """
   end
@@ -299,7 +279,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     |> assign(:scale_ov_map, scale_ov_map)
   end
 
-  defp assign_classes(socket, %{"classes_ids" => classes_ids}) do
+  defp assign_classes(socket, %{"classes_ids" => classes_ids}) when is_list(classes_ids) do
     socket
     |> assign(:classes_ids, classes_ids)
     |> assign(

@@ -716,6 +716,64 @@ defmodule Lanttern.Assessments do
   end
 
   @doc """
+  Returns the list of strand goals entries for every student in the given strand.
+
+  Entries are ordered by `AssessmentPoint` positions.
+
+  ## Options:
+
+      - `:classes_ids` – filter entries by classes
+  """
+
+  @spec list_strand_goals_students_entries(integer(), Keyword.t()) :: [
+          {Student.t(), [AssessmentPointEntry.t()]}
+        ]
+
+  def list_strand_goals_students_entries(strand_id, opts \\ []) do
+    students_query =
+      case Keyword.get(opts, :classes_ids) do
+        nil ->
+          from(s in Student)
+
+        classes_ids ->
+          from(
+            s in Student,
+            join: c in assoc(s, :classes),
+            where: c.id in ^classes_ids
+          )
+      end
+
+    results =
+      from(
+        ap in AssessmentPoint,
+        join: s in subquery(students_query),
+        on: true,
+        left_join: e in AssessmentPointEntry,
+        on: e.student_id == s.id and e.assessment_point_id == ap.id,
+        where: ap.strand_id == ^strand_id,
+        order_by: [s.name, ap.position],
+        select: {s, e}
+      )
+      |> Repo.all()
+
+    grouped_entries =
+      results
+      |> Enum.group_by(fn {s, _e} -> s.id end)
+      |> Enum.map(fn {s_id, list} ->
+        {
+          s_id,
+          list |> Enum.map(fn {_s, e} -> e end)
+        }
+      end)
+      |> Enum.into(%{})
+
+    results
+    |> Enum.map(fn {s, _} -> s end)
+    |> Enum.uniq()
+    |> Enum.map(&{&1, grouped_entries[&1.id]})
+  end
+
+  @doc """
   Returns the list of the assessment point entries for every student in the given moment.
 
   Entries are ordered by `AssessmentPoint` position,

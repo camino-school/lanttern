@@ -26,18 +26,21 @@ defmodule LantternWeb.LiveComponentHelpers do
   """
   def handle_navigation(socket, arg \\ %{})
 
-  def handle_navigation(%{assigns: %{patch: patch}} = socket, arg) when is_function(patch),
-    do: Phoenix.LiveView.push_patch(socket, to: patch.(arg))
+  def handle_navigation(%{assigns: %{patch: patch}} = socket, arg)
+      when is_function(patch),
+      do: Phoenix.LiveView.push_patch(socket, to: patch.(arg))
 
-  def handle_navigation(%{assigns: %{patch: patch}} = socket, _arg),
-    do: Phoenix.LiveView.push_patch(socket, to: patch)
+  def handle_navigation(%{assigns: %{patch: patch}} = socket, _arg)
+      when is_binary(patch),
+      do: Phoenix.LiveView.push_patch(socket, to: patch)
 
   def handle_navigation(%{assigns: %{navigate: navigate}} = socket, arg)
       when is_function(navigate),
       do: Phoenix.LiveView.push_navigate(socket, to: navigate.(arg))
 
-  def handle_navigation(%{assigns: %{navigate: navigate}} = socket, _arg),
-    do: Phoenix.LiveView.push_navigate(socket, to: navigate)
+  def handle_navigation(%{assigns: %{navigate: navigate}} = socket, _arg)
+      when is_binary(navigate),
+      do: Phoenix.LiveView.push_navigate(socket, to: navigate)
 
   def handle_navigation(socket, _arg), do: socket
 
