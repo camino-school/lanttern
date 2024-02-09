@@ -3,8 +3,10 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Reporting
   alias Lanttern.Schools
+  alias Lanttern.Schools.Student
 
   # shared components
   import LantternWeb.ReportingComponents
@@ -66,30 +68,46 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
       <div
         :if={@classes && @assessment_points_count > 0}
         id="strand-assessment-points-slider"
-        class="relative w-full max-h-screen pb-6 mt-6 rounded shadow-xl bg-white overflow-x-auto"
+        class="relative w-full max-h-screen mt-6 rounded shadow-xl bg-white overflow-x-auto"
         phx-hook="Slider"
       >
-        <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2 bg-white">
-          <div class="sticky left-0 shrink-0 w-60 bg-white"></div>
-          <div id="strand-assessment-points" phx-update="stream" class="shrink-0 flex gap-4 bg-white">
-            <.assessment_point
-              :for={{dom_id, {ap, i}} <- @streams.assessment_points}
-              assessment_point={ap}
-              strand_id={@strand.id}
-              index={i}
+        <div
+          class="relative grid w-max"
+          style={"grid-template-columns: 240px repeat(#{@assessment_points_count}, minmax(240px, 1fr))"}
+        >
+          <div
+            class="sticky top-0 z-10 grid grid-cols-subgrid bg-white"
+            style={"grid-column: span #{@assessment_points_count + 1} / span #{@assessment_points_count + 1}"}
+          >
+            <div class="sticky left-0 bg-white"></div>
+            <div
+              id="grid-assessment-points"
+              phx-update="stream"
+              class="grid grid-cols-subgrid"
+              style={"grid-column: span #{@assessment_points_count} / span #{@assessment_points_count}"}
+            >
+              <.assessment_point
+                :for={{dom_id, {assessment_point, i}} <- @streams.assessment_points}
+                id={dom_id}
+                assessment_point={assessment_point}
+                index={i}
+              />
+            </div>
+          </div>
+          <div
+            id="grid-student-entries"
+            phx-update="stream"
+            class="grid grid-cols-subgrid"
+            style={"grid-column: span #{@assessment_points_count + 1} / span #{@assessment_points_count + 1}"}
+          >
+            <.student_entries
+              :for={{dom_id, {student, entries}} <- @streams.students_entries}
               id={dom_id}
+              student={student}
+              entries={entries}
+              scale_ov_map={@scale_ov_map}
             />
           </div>
-          <div class="shrink-0 w-2"></div>
-        </div>
-        <div phx-update="stream" id="students-entries" class="flex flex-col gap-4">
-          <.student_and_entries
-            :for={{dom_id, {student, entries}} <- @streams.students_entries}
-            student={student}
-            entries={entries}
-            scale_ov_map={@scale_ov_map}
-            id={dom_id}
-          />
         </div>
       </div>
       <div class="container py-10 mx-auto lg:max-w-5xl">
@@ -136,44 +154,56 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
 
   attr :id, :string, required: true
   attr :assessment_point, AssessmentPoint, required: true
-  attr :strand_id, :integer, required: true
   attr :index, :integer, required: true
 
   def assessment_point(assigns) do
     ~H"""
-    <div class="shrink-0 w-14 pt-6 pb-2 truncate" id={@id}>
-      <%= "#{@index + 1}. #{@assessment_point.name}" %>
+    <div id={@id} class="max-w-80 p-6 text-sm">
+      <%= "#{@index + 1}. #{@assessment_point.curriculum_item.name}" %>
     </div>
     """
   end
 
   attr :id, :string, required: true
-  attr :student, Lanttern.Schools.Student, required: true
+  attr :student, Student, required: true
   attr :entries, :list, required: true
   attr :scale_ov_map, :map, required: true
 
-  def student_and_entries(assigns) do
+  def student_entries(assigns) do
     ~H"""
-    <div class="flex items-stretch gap-4" id={@id}>
-      <.icon_with_name
-        class="sticky left-0 z-10 shrink-0 w-60 px-6 bg-white"
-        profile_name={@student.name}
-      />
-      <%= for entry <- @entries do %>
+    <div
+      id={@id}
+      class="grid grid-cols-subgrid"
+      style={"grid-column: span #{length(@entries) + 1} / span #{length(@entries) + 1}"}
+    >
+      <div class="sticky left-0 p-6 bg-white">
+        <.icon_with_name profile_name={@student.name} />
+      </div>
+      <div :for={entry <- @entries} class="p-6">
         <div
           class={[
-            "shrink-0 flex items-center justify-center w-14 h-14 rounded-full text-sm",
-            if(
-              not is_nil(entry),
-              do: "text-ltrn-dark bg-white shadow-md",
-              else: "text-ltrn-subtle bg-ltrn-lighter"
-            )
+            "flex items-center justify-center w-14 h-14 rounded-full text-sm",
+            "text-ltrn-subtle bg-ltrn-lighter"
           ]}
           style={get_colors_style(entry, @scale_ov_map)}
         >
           <%= get_entry_value(entry, @scale_ov_map) %>
         </div>
-      <% end %>
+      </div>
+    </div>
+    """
+  end
+
+  def entry(%{entry: %AssessmentPointEntry{}} = assigns) do
+    ~H"""
+    <div
+      class={[
+        "flex items-center justify-center w-14 h-14 rounded-full text-sm",
+        "text-ltrn-dark bg-white shadow-md"
+      ]}
+      style={get_colors_style(@entry, @scale_ov_map)}
+    >
+      <%= get_entry_value(@entry, @scale_ov_map) %>
     </div>
     """
   end
@@ -261,7 +291,9 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
 
   defp assign_classes(socket, _params), do: socket
 
-  defp assign_assessment_points(%{assigns: %{strand: strand}} = socket) do
+  defp assign_assessment_points(socket) do
+    %{assigns: %{strand: strand}} = socket
+
     assessment_points =
       Assessments.list_assessment_points(
         strand_id: strand.id,
@@ -299,7 +331,9 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
     |> assign(:scale_ov_map, scale_ov_map)
   end
 
-  defp assign_students_entries(%{assigns: %{strand: strand, classes_ids: classes_ids}} = socket) do
+  defp assign_students_entries(socket) do
+    %{assigns: %{strand: strand, classes_ids: classes_ids}} = socket
+
     students_entries =
       Assessments.list_strand_goals_students_entries(strand.id,
         classes_ids: classes_ids
