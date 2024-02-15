@@ -63,7 +63,14 @@
       </div>
     <% end %>
   </header>
-  <div id="active-learning" class="relative px-10 py-40">
+  <div
+    class="relative px-10 py-40 md:py-60 bg-cover bg-center"
+    style="
+      background-image:
+      linear-gradient(0deg, rgba(236, 254, 255, 0.8), rgba(236, 254, 255, 0.8)),
+      url('/images/active-learning-bg.jpg')
+    "
+  >
     <div class="max-w-3xl mx-auto">
       <p class="font-display font-black text-2xl">
         We believe that students learn best when they are actively engaged in the learning process
@@ -103,20 +110,8 @@
     </div>
     <p class="absolute right-2 bottom-2 text-xs text-right text-ltrn-subtle">
       Photo by
-      <a
-        href="https://unsplash.com/@vantaymedia?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
-        target="_blank"
-        class="underline"
-      >
-        Van Tay Media
-      </a>
-      on
-      <a
-        href="https://unsplash.com/photos/meeting-of-people-TOBRTuE_uXA?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
-        target="_blank"
-        class="underline"
-      >
-        Unsplash
+      <a href="https://caminoschool.com.br" target="_blank" class="underline">
+        Camino School
       </a>
     </p>
   </div>
@@ -559,7 +554,7 @@
         <div class="flex-1 shrink-0 min-w-[15rem] rounded mb-32 shadow-xl bg-white overflow-hidden">
           <div
             class="w-full h-40 bg-center bg-cover"
-            style="background-image: url(/images/strand1.jpg)"
+            style="background-image: url(/images/strand-reading.jpg)"
           />
           <div class="flex flex-col gap-6 p-6">
             <p class="font-display font-black text-3xl underline">
@@ -572,18 +567,8 @@
             <div class="prose prose-sm">
               <p>
                 Photo by
-                <a
-                  href="https://unsplash.com/@eliottreyna?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
-                  target="_blank"
-                >
-                  Eliott Reyna
-                </a>
-                on
-                <a
-                  href="https://unsplash.com/photos/woman-reading-book-kcT-7cirBEw?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
-                  target="_blank"
-                >
-                  Unsplash
+                <a href="https://caminoschool.com.br" target="_blank">
+                  Camino School
                 </a>
               </p>
               <p>In dolor consequatur et est. Necessitatibus nostrum in dicta nam qui.</p>
@@ -750,6 +735,17 @@
       </div>
     </section>
   </main>
+  <div
+    class="relative h-screen bg-cover bg-center bg-fixed"
+    style="background-image: url('/images/landing-break.jpg')"
+  >
+    <p class="absolute right-2 bottom-2 text-xs text-right text-white">
+      Photo by
+      <a href="https://caminoschool.com.br" target="_blank" class="underline">
+        Camino School
+      </a>
+    </p>
+  </div>
   <section class="pt-40 bg-ltrn-lighter">
     <div class="max-w-3xl px-10 md:px-6 mx-auto">
       <h2 class="font-display font-black text-2xl">
@@ -821,7 +817,13 @@
             Did we mention that you'll also get access to all Camino and other partner schools' curriculum, strands, and moments?
           </p>
           <p class="font-display font-black mt-10">
-            <a href="#" class="underline hover:text-ltrn-subtle">Join the waitlist</a>
+            <a
+              href="https://forms.gle/WwQjevKRzKV1dRB38"
+              target="_blank"
+              class="underline hover:text-ltrn-subtle"
+            >
+              Join the waitlist
+            </a>
           </p>
         </div>
       </div>
@@ -838,8 +840,23 @@
       </a>
     </h4>
     <div class="lg:flex lg:gap-10 w-fit mt-20 mx-auto text-center">
-      <a href="#" class="underline">Privacy policy</a>
-      <p class="mt-4 lg:mt-0">Copyright © 2023 Camino School</p>
+      <p class="text-ltrn-subtle">
+        <span class="underline text-ltrn-dark">Privacy policy</span> (🚧 under development)
+      </p>
+      <p class="mt-4 lg:mt-0">Copyright © 2024 Camino School</p>
     </div>
   </footer>
+  <div
+    id="preview-warning"
+    class="fixed z-50 bottom-0 inset-x-0 p-4 text-white text-sm text-center bg-ltrn-dark"
+  >
+    🚧 This is a preview. Lanttern official release is scheduled for late 2024.
+    <button
+      type="button"
+      class="ml-2 text-ltrn-subtle underline hover:text-white"
+      phx-click={JS.hide(to: "#preview-warning")}
+    >
+      Dismiss
+    </button>
+  </div>
 </div>
