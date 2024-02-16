@@ -3,12 +3,12 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
-  alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Reporting
   alias Lanttern.Schools
   alias Lanttern.Schools.Student
 
   # shared components
+  alias LantternWeb.Assessments.EntryEditorComponent
   import LantternWeb.ReportingComponents
   import LantternWeb.SchoolsComponents
 
@@ -20,7 +20,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
         <div class="flex items-end justify-between gap-6">
           <%= if @classes do %>
             <p class="font-display font-bold text-2xl">
-              <%= gettext("Viewing") %>
+              <%= gettext("Final strand goals assessment for") %>
               <button
                 type="button"
                 class="inline text-left underline hover:text-ltrn-subtle"
@@ -76,7 +76,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
           style={"grid-template-columns: 240px repeat(#{@assessment_points_count}, minmax(240px, 1fr))"}
         >
           <div
-            class="sticky top-0 z-10 grid grid-cols-subgrid bg-white"
+            class="sticky top-0 z-20 grid grid-cols-subgrid bg-white"
             style={"grid-column: span #{@assessment_points_count + 1} / span #{@assessment_points_count + 1}"}
           >
             <div class="sticky left-0 bg-white"></div>
@@ -97,7 +97,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
           <div
             id="grid-student-entries"
             phx-update="stream"
-            class="grid grid-cols-subgrid"
+            class="grid grid-cols-subgrid pb-4 pr-4"
             style={"grid-column: span #{@assessment_points_count + 1} / span #{@assessment_points_count + 1}"}
           >
             <.student_entries
@@ -158,7 +158,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
 
   def assessment_point(assigns) do
     ~H"""
-    <div id={@id} class="max-w-80 p-6 text-sm">
+    <div id={@id} class="max-w-80 pt-6 px-2 pb-2 text-sm">
       <%= "#{@index + 1}. #{@assessment_point.curriculum_item.name}" %>
     </div>
     """
@@ -176,67 +176,25 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
       class="grid grid-cols-subgrid"
       style={"grid-column: span #{length(@entries) + 1} / span #{length(@entries) + 1}"}
     >
-      <div class="sticky left-0 p-6 bg-white">
+      <div class="sticky left-0 z-10 pl-6 py-2 pr-2 bg-white">
         <.icon_with_name profile_name={@student.name} />
       </div>
-      <div :for={entry <- @entries} class="p-6">
-        <div
-          class={[
-            "flex items-center justify-center w-14 h-14 rounded-full text-sm",
-            "text-ltrn-subtle bg-ltrn-lighter"
-          ]}
-          style={get_colors_style(entry, @scale_ov_map)}
+      <div :for={{entry, assessment_point} <- @entries} class="p-2">
+        <.live_component
+          module={EntryEditorComponent}
+          id={"student-#{@student.id}-entry-for-#{assessment_point.id}"}
+          student={@student}
+          assessment_point={assessment_point}
+          entry={entry}
+          class="w-full h-full"
+          wrapper_class="w-full h-full"
         >
-          <%= get_entry_value(entry, @scale_ov_map) %>
-        </div>
+          <:marking_input class="w-full h-full" />
+        </.live_component>
       </div>
     </div>
     """
   end
-
-  def entry(%{entry: %AssessmentPointEntry{}} = assigns) do
-    ~H"""
-    <div
-      class={[
-        "flex items-center justify-center w-14 h-14 rounded-full text-sm",
-        "text-ltrn-dark bg-white shadow-md"
-      ]}
-      style={get_colors_style(@entry, @scale_ov_map)}
-    >
-      <%= get_entry_value(@entry, @scale_ov_map) %>
-    </div>
-    """
-  end
-
-  defp get_entry_value(nil, _),
-    do: "—"
-
-  defp get_entry_value(%{scale_type: "ordinal", ordinal_value_id: nil}, _),
-    do: "—"
-
-  defp get_entry_value(
-         %{scale_type: "ordinal", ordinal_value_id: ov_id} = entry,
-         scale_ov_map
-       ) do
-    scale_ov_map[entry.scale_id][ov_id].name
-    |> String.slice(0..2)
-  end
-
-  defp get_entry_value(%{scale_type: "numeric", score: nil}, _),
-    do: "—"
-
-  defp get_entry_value(%{scale_type: "numeric", score: score}, _),
-    do: score
-
-  defp get_colors_style(
-         %{scale_type: "ordinal", ordinal_value_id: ov_id} = entry,
-         scale_ov_map
-       )
-       when not is_nil(ov_id) do
-    scale_ov_map[entry.scale_id][ov_id].style
-  end
-
-  defp get_colors_style(_, _), do: ""
 
   # lifecycle
 
@@ -271,8 +229,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
         Reporting.list_report_cards(preloads: :school_cycle, strands_ids: [assigns.strand.id])
       )
       |> assign_classes(assigns.params)
-      |> assign_assessment_points()
-      |> assign_students_entries()
+      |> assign_assessment_points_and_student_entries()
 
     {:ok, socket}
   end
@@ -291,8 +248,8 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
 
   defp assign_classes(socket, _params), do: socket
 
-  defp assign_assessment_points(socket) do
-    %{assigns: %{strand: strand}} = socket
+  defp assign_assessment_points_and_student_entries(socket) do
+    %{assigns: %{strand: strand, classes_ids: classes_ids}} = socket
 
     assessment_points =
       Assessments.list_assessment_points(
@@ -325,21 +282,23 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
       end)
       |> Enum.into(%{})
 
-    socket
-    |> stream(:assessment_points, assessment_points |> Enum.with_index())
-    |> assign(:assessment_points_count, length(assessment_points))
-    |> assign(:scale_ov_map, scale_ov_map)
-  end
-
-  defp assign_students_entries(socket) do
-    %{assigns: %{strand: strand, classes_ids: classes_ids}} = socket
-
+    # zip assessment points with entries
     students_entries =
       Assessments.list_strand_goals_students_entries(strand.id,
         classes_ids: classes_ids
       )
+      |> Enum.map(fn {student, entries} ->
+        {
+          student,
+          Enum.zip(entries, assessment_points)
+        }
+      end)
 
-    stream(socket, :students_entries, students_entries)
+    socket
+    |> stream(:assessment_points, assessment_points |> Enum.with_index())
+    |> assign(:assessment_points_count, length(assessment_points))
+    |> assign(:scale_ov_map, scale_ov_map)
+    |> stream(:students_entries, students_entries)
   end
 
   # event handlers
