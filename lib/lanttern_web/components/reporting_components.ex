@@ -3,6 +3,7 @@ defmodule LantternWeb.ReportingComponents do
 
   import LantternWeb.Gettext
   import LantternWeb.CoreComponents
+  import LantternWeb.GradingComponents
 
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Grading.Scale
@@ -80,13 +81,19 @@ defmodule LantternWeb.ReportingComponents do
   def report_scale(%{scale: %{type: "numeric"}} = assigns) do
     ~H"""
     <div
+      id={@id}
       class={[
         "relative flex items-center justify-between rounded-full h-10 px-8 bg-ltrn-lighter",
         @class
       ]}
-      id={@id}
+      {apply_gradient_from_scale(@scale)}
     >
-      <div class="absolute left-4 text-sm text-ltrn-subtle"><%= @scale.start %></div>
+      <div
+        class="absolute left-4 text-sm text-ltrn-subtle"
+        style={if @scale.start_text_color, do: "color: #{@scale.start_text_color}"}
+      >
+        <%= @scale.start %>
+      </div>
       <div :if={@entry && @entry.score} class="relative z-10 flex-1 flex items-center h-full">
         <div
           class="absolute flex items-center justify-center w-16 h-16 rounded-full -ml-8 font-display font-black text-lg bg-white shadow-lg"
@@ -95,7 +102,12 @@ defmodule LantternWeb.ReportingComponents do
           <%= @entry.score %>
         </div>
       </div>
-      <div class="absolute right-4 text-sm text-right text-ltrn-subtle"><%= @scale.stop %></div>
+      <div
+        class="absolute right-4 text-sm text-right text-ltrn-subtle"
+        style={if @scale.stop_text_color, do: "color: #{@scale.stop_text_color}"}
+      >
+        <%= @scale.stop %>
+      </div>
     </div>
     """
   end

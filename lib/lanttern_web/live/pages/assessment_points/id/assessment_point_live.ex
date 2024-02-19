@@ -20,6 +20,7 @@ defmodule LantternWeb.AssessmentPointLive do
   alias LantternWeb.Assessments.AssessmentPointUpdateFormComponent
   alias LantternWeb.Assessments.FeedbackFormComponent
   alias LantternWeb.Assessments.FeedbackCommentFormComponent
+  import LantternWeb.GradingComponents
 
   # render helpers and function components
 
@@ -46,9 +47,9 @@ defmodule LantternWeb.AssessmentPointLive do
     ~H"""
     <div :if={@ordinal_values} class="flex items-center gap-2 ml-2">
       <%= for ov <- @ordinal_values do %>
-        <.badge style_from_ordinal_value={ov}>
+        <.ordinal_value_badge ordinal_value={ov}>
           <%= ov.name %>
-        </.badge>
+        </.ordinal_value_badge>
       <% end %>
     </div>
     """

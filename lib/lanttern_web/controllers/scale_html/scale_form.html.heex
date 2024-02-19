@@ -11,7 +11,15 @@
     prompt="Select a scale type"
   />
   <.input field={f[:start]} type="number" label="Start" step="any" />
+  <div class="flex gap-6">
+    <.input field={f[:start_bg_color]} type="text" label="Start background color" />
+    <.input field={f[:start_text_color]} type="text" label="Start text color" />
+  </div>
   <.input field={f[:stop]} type="number" label="Stop" step="any" />
+  <div class="flex gap-6">
+    <.input field={f[:stop_bg_color]} type="text" label="Stop background color" />
+    <.input field={f[:stop_text_color]} type="text" label="Stop text color" />
+  </div>
   <div phx-feedback-for="scale[breakpoints]">
     <.label>Breakpoints</.label>
     <%= for n <- 0..4 do %>

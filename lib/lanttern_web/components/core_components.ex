@@ -616,12 +616,8 @@ defmodule LantternWeb.CoreComponents do
   """
   attr :id, :string, default: nil
   attr :class, :any, default: nil
+  attr :style, :string, default: nil
   attr :theme, :string, default: "default"
-
-  attr :style_from_ordinal_value, :map,
-    default: nil,
-    doc: "map with `:bg_color` and `:text_color` keys"
-
   attr :show_remove, :boolean, default: false
   attr :rest, :global, doc: "use to pass phx-* bindings to the remove button"
   slot :inner_block, required: true
@@ -635,7 +631,7 @@ defmodule LantternWeb.CoreComponents do
         badge_theme(@theme),
         @class
       ]}
-      {apply_style_from_ordinal_value(@style_from_ordinal_value)}
+      style={@style}
     >
       <%= render_slot(@inner_block) %>
       <button
@@ -711,17 +707,6 @@ defmodule LantternWeb.CoreComponents do
 
   defp person_badge_theme_style("cyan"), do: "text-ltrn-dark bg-ltrn-mesh-cyan"
   defp person_badge_theme_style(_subtle), do: "text-ltrn-subtle bg-ltrn-lighter"
-
-  @doc """
-  Creates a style attr based on ordinal values `bg_color` and `text_color`
-  """
-  def apply_style_from_ordinal_value(%{bg_color: bg_color, text_color: text_color}) do
-    %{
-      style: "background-color: #{bg_color}; color: #{text_color}"
-    }
-  end
-
-  def apply_style_from_ordinal_value(_), do: %{}
 
   @doc """
   Renders an inline code block.
