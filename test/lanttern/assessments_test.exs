@@ -1308,6 +1308,7 @@ defmodule Lanttern.AssessmentsTest do
     alias Lanttern.CurriculaFixtures
     alias Lanttern.GradingFixtures
     alias Lanttern.LearningContextFixtures
+    alias Lanttern.RubricsFixtures
     alias Lanttern.SchoolsFixtures
     alias Lanttern.TaxonomyFixtures
 
@@ -1344,12 +1345,22 @@ defmodule Lanttern.AssessmentsTest do
       ordinal_value = GradingFixtures.ordinal_value_fixture(%{scale_id: ordinal_scale.id})
       numeric_scale = GradingFixtures.scale_fixture(%{type: "numeric"})
 
+      rubric = RubricsFixtures.rubric_fixture(%{scale_id: ordinal_scale.id})
+
+      rubric_descriptor =
+        RubricsFixtures.rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: ordinal_scale.id,
+          ordinal_value_id: ordinal_value.id
+        })
+
       assessment_point_1 =
         assessment_point_fixture(%{
           position: 1,
           curriculum_item_id: curriculum_item_1.id,
           scale_id: ordinal_scale.id,
-          strand_id: strand.id
+          strand_id: strand.id,
+          rubric_id: rubric.id
         })
 
       assessment_point_2 =
@@ -1401,6 +1412,8 @@ defmodule Lanttern.AssessmentsTest do
 
       assert expected_ap_1.id == assessment_point_1.id
       assert expected_ap_1.scale.id == ordinal_scale.id
+      assert expected_ap_1.rubric.id == rubric.id
+      assert expected_ap_1.rubric.descriptors == [rubric_descriptor]
       assert expected_ap_1.scale.ordinal_values == [ordinal_value]
       assert expected_ap_1.curriculum_item.id == curriculum_item_1.id
       assert expected_ap_1.curriculum_item.curriculum_component.id == curriculum_component_1.id

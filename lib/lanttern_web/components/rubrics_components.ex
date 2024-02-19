@@ -45,7 +45,8 @@ defmodule LantternWeb.RubricsComponents do
         <% end %>
         <.markdown
           text={descriptor.descriptor}
-          class="prose-sm flex-1 w-full p-2 border border-ltrn-lighter rounded-sm bg-ltrn-lightest"
+          size="sm"
+          class="flex-1 w-full p-2 border border-ltrn-lighter rounded-sm bg-ltrn-lightest"
         />
       </div>
     </div>

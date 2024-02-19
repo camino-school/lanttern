@@ -96,7 +96,7 @@
     <div class="mt-10">
       <div
         :for={
-          {%{curriculum_item: curriculum_item, scale: scale}, entry} <-
+          {%{curriculum_item: curriculum_item, scale: scale, rubric: rubric}, entry} <-
             @strand_goals_student_entries
         }
         class="p-6 rounded mt-4 bg-white shadow"
@@ -119,7 +119,7 @@
             <%= subject.name %>
           </.badge>
         </div>
-        <.report_scale class="mt-10" scale={scale} entry={entry} />
+        <.report_scale class="mt-10" scale={scale} entry={entry} rubric={rubric} />
       </div>
     </div>
   </div>

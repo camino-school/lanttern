@@ -928,12 +928,21 @@ defmodule LantternWeb.CoreComponents do
   Parses markdown text to HTML and renders it
   """
   attr :text, :string, required: true
+  attr :theme, :string, default: "slate"
+  attr :size, :string, default: "base"
   attr :class, :any, default: nil
   attr :rest, :global
 
   def markdown(assigns) do
     ~H"""
-    <div :if={@text} class={["prose prose-slate", @class]} {@rest}>
+    <div
+      :if={@text}
+      class={[
+        "prose prose-#{@theme} prose-#{@size}",
+        @class
+      ]}
+      {@rest}
+    >
       <%= raw(Earmark.as_html!(@text)) %>
     </div>
     """

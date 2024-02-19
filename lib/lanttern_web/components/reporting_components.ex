@@ -8,6 +8,7 @@ defmodule LantternWeb.ReportingComponents do
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Grading.Scale
   alias Lanttern.Reporting.ReportCard
+  alias Lanttern.Rubrics.Rubric
 
   @doc """
   Renders a report card card (yes, card card, 2x).
@@ -54,25 +55,43 @@ defmodule LantternWeb.ReportingComponents do
   Renders a scale.
   """
   attr :scale, Scale, required: true, doc: "Requires `ordinal_values` preload"
+  attr :rubric, Rubric, default: nil, doc: "Requires `descriptors` preload"
   attr :entry, AssessmentPointEntry, default: nil
   attr :id, :string, default: nil
   attr :class, :any, default: nil
 
   def report_scale(%{scale: %{type: "ordinal"}} = assigns) do
+    active_ordinal_value =
+      assigns.scale.ordinal_values
+      |> Enum.find(&(assigns.entry && assigns.entry.ordinal_value_id == &1.id))
+
+    assigns = assign(assigns, :active_ordinal_value, active_ordinal_value)
+
     ~H"""
-    <div
-      class={[
-        "flex items-center gap-1",
-        @class
-      ]}
-      id={@id}
-    >
-      <div
-        :for={ordinal_value <- @scale.ordinal_values}
-        class="flex-1 shrink-0 p-2 first:rounded-l last:rounded-r text-sm text-center text-ltrn-subtle bg-ltrn-lighter"
-        {if @entry && @entry.ordinal_value_id == ordinal_value.id, do: apply_style_from_ordinal_value(ordinal_value), else: %{}}
-      >
-        <%= ordinal_value.name %>
+    <div class={@class} id={@id}>
+      <div class="flex items-stretch gap-1">
+        <div
+          :for={ordinal_value <- @scale.ordinal_values}
+          class={[
+            "flex-1 shrink-0 p-2 font-mono text-sm text-center text-ltrn-subtle bg-ltrn-lighter",
+            if(@rubric,
+              do: "first:rounded-tl last:rounded-tr",
+              else: "first:rounded-l last:rounded-r"
+            )
+          ]}
+          {if @entry && @entry.ordinal_value_id == ordinal_value.id, do: apply_style_from_ordinal_value(ordinal_value), else: %{}}
+        >
+          <%= ordinal_value.name %>
+        </div>
+      </div>
+      <div :if={@rubric} class="flex items-stretch gap-1 mt-1">
+        <.markdown
+          :for={descriptor <- @rubric.descriptors}
+          class="flex-1 shrink-0 p-4 first:rounded-bl last:rounded-br bg-ltrn-lighter"
+          text={descriptor.descriptor}
+          size="sm"
+          {if @active_ordinal_value && @active_ordinal_value.id == descriptor.ordinal_value_id, do: apply_style_from_ordinal_value(@active_ordinal_value), else: %{style: "color: #94a3b8"}}
+        />
       </div>
     </div>
     """
@@ -83,27 +102,27 @@ defmodule LantternWeb.ReportingComponents do
     <div
       id={@id}
       class={[
-        "relative flex items-center justify-between rounded-full h-10 px-8 bg-ltrn-lighter",
+        "relative flex items-center justify-between rounded h-10 px-4 font-mono text-sm text-ltrn-subtle bg-ltrn-lighter",
         @class
       ]}
       {apply_gradient_from_scale(@scale)}
     >
       <div
-        class="absolute left-4 text-sm text-ltrn-subtle"
+        class="absolute left-4"
         style={if @scale.start_text_color, do: "color: #{@scale.start_text_color}"}
       >
         <%= @scale.start %>
       </div>
       <div :if={@entry && @entry.score} class="relative z-10 flex-1 flex items-center h-full">
         <div
-          class="absolute flex items-center justify-center w-16 h-16 rounded-full -ml-8 font-display font-black text-lg bg-white shadow-lg"
+          class="absolute flex items-center justify-center w-16 h-16 rounded-full -ml-8 font-bold text-lg text-ltrn-dark bg-white shadow-lg"
           style={"left: #{(@entry.score - @scale.start) * 100 / (@scale.stop - @scale.start)}%"}
         >
           <%= @entry.score %>
         </div>
       </div>
       <div
-        class="absolute right-4 text-sm text-right text-ltrn-subtle"
+        class="absolute right-4 text-right"
         style={if @scale.stop_text_color, do: "color: #{@scale.stop_text_color}"}
       >
         <%= @scale.stop %>

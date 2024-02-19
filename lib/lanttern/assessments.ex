@@ -782,6 +782,7 @@ defmodule Lanttern.Assessments do
 
   Assessment point preloads:
   - scale with ordinal values
+  - rubric with descriptors
   - curriculum item with curriculum component, subjects, and years
   """
 
@@ -794,6 +795,9 @@ defmodule Lanttern.Assessments do
       ap in AssessmentPoint,
       join: s in assoc(ap, :scale),
       left_join: ov in assoc(s, :ordinal_values),
+      left_join: r in assoc(ap, :rubric),
+      left_join: rd in assoc(r, :descriptors),
+      left_join: rd_ov in assoc(rd, :ordinal_value),
       join: ci in assoc(ap, :curriculum_item),
       join: cc in assoc(ci, :curriculum_component),
       join: e in AssessmentPointEntry,
@@ -801,10 +805,15 @@ defmodule Lanttern.Assessments do
       left_join: sub in assoc(ci, :subjects),
       left_join: y in assoc(ci, :years),
       where: ap.strand_id == ^strand_id,
-      order_by: ap.position,
+      order_by: [
+        asc: ap.position,
+        asc: ov.normalized_value,
+        asc: rd_ov.normalized_value
+      ],
       select: {ap, e},
       preload: [
         scale: {s, ordinal_values: ov},
+        rubric: {r, descriptors: rd},
         curriculum_item: {ci, curriculum_component: cc, subjects: sub, years: y}
       ]
     )

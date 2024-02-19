@@ -78,7 +78,7 @@ defmodule LantternWeb.StrandLive.NotesComponent do
               <span class="underline"><%= note.moment.name %></span>
             </.link>
             <div class="mt-4 line-clamp-4">
-              <.markdown text={note.description} class="prose-sm" />
+              <.markdown text={note.description} size="sm" />
             </div>
           </div>
         <% end %>
