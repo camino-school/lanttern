@@ -774,6 +774,44 @@ defmodule Lanttern.Assessments do
   end
 
   @doc """
+  Returns the list of strand goals and entries for the given student and strand.
+
+  Assessment points without entries are ignored.
+
+  Ordered by `AssessmentPoint` positions.
+
+  Assessment point preloads:
+  - scale with ordinal values
+  - curriculum item with curriculum component, subjects, and years
+  """
+
+  @spec list_strand_goals_student_entries(integer(), integer()) :: [
+          {AssessmentPoint.t(), AssessmentPointEntry.t()}
+        ]
+
+  def list_strand_goals_student_entries(student_id, strand_id) do
+    from(
+      ap in AssessmentPoint,
+      join: s in assoc(ap, :scale),
+      left_join: ov in assoc(s, :ordinal_values),
+      join: ci in assoc(ap, :curriculum_item),
+      join: cc in assoc(ci, :curriculum_component),
+      join: e in AssessmentPointEntry,
+      on: e.assessment_point_id == ap.id and e.student_id == ^student_id,
+      left_join: sub in assoc(ci, :subjects),
+      left_join: y in assoc(ci, :years),
+      where: ap.strand_id == ^strand_id,
+      order_by: ap.position,
+      select: {ap, e},
+      preload: [
+        scale: {s, ordinal_values: ov},
+        curriculum_item: {ci, curriculum_component: cc, subjects: sub, years: y}
+      ]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
   Returns the list of the assessment point entries for every student in the given moment.
 
   Entries are ordered by `AssessmentPoint` position,

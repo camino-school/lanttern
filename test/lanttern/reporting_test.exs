@@ -116,9 +116,20 @@ defmodule Lanttern.ReportingTest do
       assert Reporting.list_strand_reports() == [strand_report]
     end
 
-    test "get_strand_report!/1 returns the strand_report with given id" do
+    test "get_strand_report!/2 returns the strand_report with given id" do
       strand_report = strand_report_fixture()
       assert Reporting.get_strand_report!(strand_report.id) == strand_report
+    end
+
+    test "get_strand_report!/2 with preloads returns the strand report with given id and preloaded data" do
+      strand = Lanttern.LearningContextFixtures.strand_fixture()
+      strand_report = strand_report_fixture(%{strand_id: strand.id})
+
+      expected =
+        Reporting.get_strand_report!(strand_report.id, preloads: :strand)
+
+      assert expected.id == strand_report.id
+      assert expected.strand == strand
     end
 
     test "create_strand_report/1 with valid data creates a strand_report" do

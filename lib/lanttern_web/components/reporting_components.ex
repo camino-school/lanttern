@@ -4,6 +4,8 @@ defmodule LantternWeb.ReportingComponents do
   import LantternWeb.Gettext
   import LantternWeb.CoreComponents
 
+  alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.Grading.Scale
   alias Lanttern.Reporting.ReportCard
 
   @doc """
@@ -43,6 +45,57 @@ defmodule LantternWeb.ReportingComponents do
           </.badge>
         </div>
       </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a scale.
+  """
+  attr :scale, Scale, required: true, doc: "Requires `ordinal_values` preload"
+  attr :entry, AssessmentPointEntry, default: nil
+  attr :id, :string, default: nil
+  attr :class, :any, default: nil
+
+  def report_scale(%{scale: %{type: "ordinal"}} = assigns) do
+    ~H"""
+    <div
+      class={[
+        "flex items-center gap-1",
+        @class
+      ]}
+      id={@id}
+    >
+      <div
+        :for={ordinal_value <- @scale.ordinal_values}
+        class="flex-1 shrink-0 p-2 first:rounded-l last:rounded-r text-sm text-center text-ltrn-subtle bg-ltrn-lighter"
+        {if @entry && @entry.ordinal_value_id == ordinal_value.id, do: apply_style_from_ordinal_value(ordinal_value), else: %{}}
+      >
+        <%= ordinal_value.name %>
+      </div>
+    </div>
+    """
+  end
+
+  def report_scale(%{scale: %{type: "numeric"}} = assigns) do
+    ~H"""
+    <div
+      class={[
+        "relative flex items-center justify-between rounded-full h-10 px-8 bg-ltrn-lighter",
+        @class
+      ]}
+      id={@id}
+    >
+      <div class="absolute left-4 text-sm text-ltrn-subtle"><%= @scale.start %></div>
+      <div :if={@entry && @entry.score} class="relative z-10 flex-1 flex items-center h-full">
+        <div
+          class="absolute flex items-center justify-center w-16 h-16 rounded-full -ml-8 font-display font-black text-lg bg-white shadow-lg"
+          style={"left: #{(@entry.score - @scale.start) * 100 / (@scale.stop - @scale.start)}%"}
+        >
+          <%= @entry.score %>
+        </div>
+      </div>
+      <div class="absolute right-4 text-sm text-right text-ltrn-subtle"><%= @scale.stop %></div>
     </div>
     """
   end

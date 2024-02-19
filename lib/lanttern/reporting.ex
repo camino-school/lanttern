@@ -160,6 +160,10 @@ defmodule Lanttern.Reporting do
 
   Raises `Ecto.NoResultsError` if the Strand report does not exist.
 
+  ## Options:
+
+      - `:preloads` – preloads associated data
+
   ## Examples
 
       iex> get_strand_report!(123)
@@ -169,7 +173,11 @@ defmodule Lanttern.Reporting do
       ** (Ecto.NoResultsError)
 
   """
-  def get_strand_report!(id), do: Repo.get!(StrandReport, id)
+  def get_strand_report!(id, opts \\ []) do
+    StrandReport
+    |> Repo.get!(id)
+    |> maybe_preload(opts)
+  end
 
   @doc """
   Creates a strand_report.

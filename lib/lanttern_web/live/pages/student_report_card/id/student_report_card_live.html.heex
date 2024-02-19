@@ -73,7 +73,7 @@
         :for={strand_report <- @student_report_card.report_card.strand_reports}
         id={"strand-report-#{strand_report.id}"}
         strand={strand_report.strand}
-        navigate={~p"/strands/#{strand_report.strand}"}
+        navigate={~p"/student_report_card/#{@student_report_card}/strand/#{strand_report}"}
         hide_description
       >
         TBD Strand goals assessment viz
