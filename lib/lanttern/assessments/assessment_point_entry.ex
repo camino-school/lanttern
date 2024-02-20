@@ -25,6 +25,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
 
   schema "assessment_point_entries" do
     field :observation, :string
+    field :report_note, :string
     field :score, :float
     field :scale_type, :string
 
@@ -78,6 +79,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
     assessment_point_entry
     |> cast(attrs, [
       :observation,
+      :report_note,
       :score,
       :assessment_point_id,
       :student_id,

@@ -120,6 +120,12 @@
           </.badge>
         </div>
         <.report_scale class="mt-10" scale={scale} entry={entry} rubric={rubric} />
+        <.markdown
+          :if={entry && entry.report_note}
+          text={entry.report_note}
+          size="sm"
+          class="max-w-none p-4 rounded mt-4 bg-ltrn-mesh-cyan"
+        />
       </div>
     </div>
   </div>
