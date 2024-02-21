@@ -6,6 +6,7 @@ defmodule LantternWeb.AssessmentPointLive.DifferentiationRubricComponent do
   alias Lanttern.Rubrics.Rubric
 
   # shared components
+  import LantternWeb.GradingComponents
   alias LantternWeb.Rubrics.RubricFormComponent
   alias LantternWeb.Rubrics.RubricSearchInputComponent
 
@@ -84,9 +85,9 @@ defmodule LantternWeb.AssessmentPointLive.DifferentiationRubricComponent do
     ~H"""
     <div :for={descriptor <- @descriptors} class={@class}>
       <%= if descriptor.scale_type == "ordinal" do %>
-        <.badge style_from_ordinal_value={descriptor.ordinal_value}>
+        <.ordinal_value_badge ordinal_value={descriptor.ordinal_value}>
           <%= descriptor.ordinal_value.name %>
-        </.badge>
+        </.ordinal_value_badge>
       <% else %>
         <.badge>
           <%= descriptor.score %>

@@ -1,0 +1,132 @@
+<.cover
+  size="sm"
+  theme="lime"
+  style={"background-image: url(#{"/images/cover-placeholder.jpg"}?width=1280&height=640)"}
+>
+  <:top>
+    <div class="flex items-center justify-between">
+      <.breadcrumbs with_bg>
+        <:item link={~p"/student_report_card/#{@student_report_card}"}>
+          <%= gettext("Student report card") %>
+        </:item>
+        <:item><%= gettext("Strand report") %></:item>
+      </.breadcrumbs>
+      <.nav_menu_button />
+    </div>
+  </:top>
+  <div class="flex items-center gap-2 mb-4">
+    <.icon name="hero-arrow-left" class="w-6 h-6" />
+    <.link
+      navigate={~p"/student_report_card/#{@student_report_card}"}
+      class="font-display font-black text-lg underline"
+    >
+      <%= @student_report_card.student.name %> (<%= @student_report_card.report_card.name %>)
+    </.link>
+  </div>
+  <hgroup class="font-display font-black">
+    <h1 class="text-5xl"><%= @strand_report.strand.name %></h1>
+    <p :if={@strand_report.strand.type} class="mt-2 text-3xl">
+      <%= @strand_report.strand.type %>
+    </p>
+  </hgroup>
+  <div class="flex flex-wrap gap-2 mt-6">
+    <.badge theme="dark">
+      <%= gettext("Cycle") %>: <%= @student_report_card.report_card.school_cycle.name %>
+    </.badge>
+    <.badge :for={subject <- @strand_report.strand.subjects}>
+      <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
+    </.badge>
+    <.badge :for={year <- @strand_report.strand.years}>
+      <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", year.name) %>
+    </.badge>
+  </div>
+</.cover>
+<%!-- <div class="sticky z-30 top-0 border-b border-ltrn-lighter bg-white">
+  <div class="flex items-center justify-between container lg:max-w-5xl mx-auto">
+    <.nav_tabs id="strand-nav-tabs">
+      <:tab
+        patch={~p"/strands/#{@strand}?#{%{tab: "about"}}"}
+        is_current={@current_tab == :about && "true"}
+      >
+        <%= gettext("About") %>
+      </:tab>
+      <:tab
+        patch={~p"/strands/#{@strand}?#{%{tab: "assessment"}}"}
+        is_current={@current_tab == :assessment && "true"}
+      >
+        <%= gettext("Assessment") %>
+      </:tab>
+      <:tab
+        patch={~p"/strands/#{@strand}?#{%{tab: "moments"}}"}
+        is_current={@current_tab == :moments && "true"}
+      >
+        <%= gettext("Moments") %>
+      </:tab>
+      <:tab
+        patch={~p"/strands/#{@strand}?#{%{tab: "notes"}}"}
+        is_current={@current_tab == :notes && "true"}
+        icon_name="hero-eye-slash"
+      >
+        <%= gettext("My notes") %>
+      </:tab>
+    </.nav_tabs>
+    <.menu_button id={@strand.id}>
+      <:menu_items>
+        <.menu_button_item
+          id={"edit-strand-#{@strand.id}"}
+          phx-click={JS.patch(~p"/strands/#{@strand}/edit")}
+        >
+          <%= gettext("Edit strand") %>
+        </.menu_button_item>
+        <.menu_button_item
+          id={"remove-strand-#{@strand.id}"}
+          class="text-red-500"
+          phx-click="delete_strand"
+          data-confirm={gettext("Are you sure?")}
+        >
+          <%= gettext("Delete") %>
+        </.menu_button_item>
+      </:menu_items>
+    </.menu_button>
+  </div>
+</div> --%>
+<div class="ltrn-bg-main-local">
+  <div class="container py-10 mx-auto lg:max-w-5xl">
+    <.markdown text={@strand_report.description} />
+    <div class="mt-10">
+      <div
+        :for={
+          {%{curriculum_item: curriculum_item, scale: scale, rubric: rubric}, entry} <-
+            @strand_goals_student_entries
+        }
+        class="p-6 rounded mt-4 bg-white shadow"
+      >
+        <p class="font-display font-bold text-sm mb-2">
+          <%= curriculum_item.curriculum_component.name %>
+        </p>
+        <%= curriculum_item.name %>
+        <div
+          :if={
+            curriculum_item.code ||
+              curriculum_item.subjects != []
+          }
+          class="flex items-center gap-2 mt-4"
+        >
+          <.badge :if={curriculum_item.code} theme="dark">
+            <%= curriculum_item.code %>
+          </.badge>
+          <.badge :for={subject <- curriculum_item.subjects}>
+            <%= subject.name %>
+          </.badge>
+        </div>
+        <.report_scale class="mt-10" scale={scale} entry={entry} rubric={rubric} />
+        <.markdown
+          :if={entry && entry.report_note}
+          text={entry.report_note}
+          size="sm"
+          class="max-w-none p-4 rounded mt-4 bg-ltrn-mesh-cyan"
+        />
+      </div>
+    </div>
+  </div>
+</div>

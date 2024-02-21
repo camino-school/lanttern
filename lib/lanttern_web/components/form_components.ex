@@ -86,6 +86,7 @@ defmodule LantternWeb.FormComponents do
   attr :checked, :boolean, doc: "the checked flag for checkbox inputs"
   attr :prompt, :string, default: nil, doc: "the prompt for select inputs"
   attr :options, :list, doc: "the options to pass to Phoenix.HTML.Form.options_for_select/2"
+  attr :help_text, :string, default: nil, doc: "render a tooltip with some extra instructions"
   attr :multiple, :boolean, default: false, doc: "the multiple flag for select inputs"
   attr :show_optional, :boolean, default: false, doc: "control the display of optional text"
   attr :class, :any, default: nil
@@ -224,6 +225,7 @@ defmodule LantternWeb.FormComponents do
         :if={@label || @custom_label != []}
         for={@id}
         show_optional={@show_optional}
+        help_text={@help_text}
         custom={if @custom_label == [], do: false, else: true}
       >
         <%= @label || render_slot(@custom_label) %>
@@ -238,6 +240,7 @@ defmodule LantternWeb.FormComponents do
   Renders a label.
   """
   attr :for, :string, default: nil
+  attr :help_text, :string, default: nil, doc: "render a tooltip with some extra instructions"
   attr :show_optional, :boolean, default: false
   attr :custom, :boolean, default: false
   slot :inner_block, required: true
@@ -246,6 +249,7 @@ defmodule LantternWeb.FormComponents do
     ~H"""
     <div class="flex justify-between gap-4 mb-2 text-sm">
       <label for={@for} class="font-bold">
+        <.help_tooltip text={@help_text} class="inline-block font-normal" />
         <%= render_slot(@inner_block) %>
       </label>
       <span class="text-ltrn-subtle">Optional</span>
@@ -256,6 +260,7 @@ defmodule LantternWeb.FormComponents do
   def label(%{custom: true} = assigns) do
     ~H"""
     <label for={@for} class="block mb-2">
+      <.help_tooltip text={@help_text} class="inline-block font-normal" />
       <%= render_slot(@inner_block) %>
     </label>
     """
@@ -263,9 +268,26 @@ defmodule LantternWeb.FormComponents do
 
   def label(assigns) do
     ~H"""
-    <label for={@for} class="block mb-2 text-sm font-bold">
+    <label for={@for} class="mb-2 text-sm font-bold">
+      <.help_tooltip text={@help_text} class="inline-block font-normal" />
       <%= render_slot(@inner_block) %>
     </label>
+    """
+  end
+
+  @doc """
+  Renders a help tooltip.
+  """
+
+  attr :text, :string, required: true
+  attr :class, :any, default: nil
+
+  def help_tooltip(assigns) do
+    ~H"""
+    <div :if={@text} class={["group relative", @class]}>
+      <.icon name="hero-question-mark-circle" class={@class} />
+      <.tooltip><%= @text %></.tooltip>
+    </div>
     """
   end
 

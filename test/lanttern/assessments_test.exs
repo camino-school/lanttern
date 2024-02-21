@@ -351,6 +351,87 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_std_c.id == student_c.id
     end
 
+    test "list_strand_goals_students_entries/1 returns students and their goals entries for the given strand" do
+      strand = LearningContextFixtures.strand_fixture()
+      curriculum_item_1 = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item_2 = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item_3 = CurriculaFixtures.curriculum_item_fixture()
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+
+      assessment_point_goal_1 =
+        assessment_point_fixture(%{
+          strand_id: strand.id,
+          position: 1,
+          curriculum_item_id: curriculum_item_1.id,
+          scale_id: scale.id
+        })
+
+      assessment_point_goal_2 =
+        assessment_point_fixture(%{
+          strand_id: strand.id,
+          position: 2,
+          curriculum_item_id: curriculum_item_2.id,
+          scale_id: scale.id
+        })
+
+      assessment_point_goal_3 =
+        assessment_point_fixture(%{
+          strand_id: strand.id,
+          position: 3,
+          curriculum_item_id: curriculum_item_3.id,
+          scale_id: scale.id
+        })
+
+      class = SchoolsFixtures.class_fixture()
+      student_a = SchoolsFixtures.student_fixture(%{name: "AAA", classes_ids: [class.id]})
+      student_b = SchoolsFixtures.student_fixture(%{name: "BBB", classes_ids: [class.id]})
+      student_c = SchoolsFixtures.student_fixture(%{name: "CCC", classes_ids: [class.id]})
+      student_d = SchoolsFixtures.student_fixture(%{name: "DDD"})
+
+      entry_1_a =
+        assessment_point_entry_fixture(%{
+          student_id: student_a.id,
+          assessment_point_id: assessment_point_goal_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      entry_2_b =
+        assessment_point_entry_fixture(%{
+          student_id: student_b.id,
+          assessment_point_id: assessment_point_goal_2.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      entry_3_c =
+        assessment_point_entry_fixture(%{
+          student_id: student_c.id,
+          assessment_point_id: assessment_point_goal_3.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      _entry_3_d =
+        assessment_point_entry_fixture(%{
+          student_id: student_d.id,
+          assessment_point_id: assessment_point_goal_3.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      assert [
+               {expected_std_a, [^entry_1_a, nil, nil]},
+               {expected_std_b, [nil, ^entry_2_b, nil]},
+               {expected_std_c, [nil, nil, ^entry_3_c]}
+             ] =
+               Assessments.list_strand_goals_students_entries(strand.id, classes_ids: [class.id])
+
+      assert expected_std_a.id == student_a.id
+      assert expected_std_b.id == student_b.id
+      assert expected_std_c.id == student_c.id
+    end
+
     test "create_assessment_point/2 with valid data creates an assessment point linked to a strand" do
       strand = LearningContextFixtures.strand_fixture()
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
@@ -1219,6 +1300,136 @@ defmodule Lanttern.AssessmentsTest do
       # get updated assessment point
       assessment_point = Assessments.get_assessment_point(assessment_point.id)
       assert assessment_point.rubric_id == rubric.id
+    end
+  end
+
+  describe "student strand report assessments" do
+    import Lanttern.AssessmentsFixtures
+    alias Lanttern.CurriculaFixtures
+    alias Lanttern.GradingFixtures
+    alias Lanttern.LearningContextFixtures
+    alias Lanttern.RubricsFixtures
+    alias Lanttern.SchoolsFixtures
+    alias Lanttern.TaxonomyFixtures
+
+    test "list_strand_goals_student_entries/2 returns the list of strand goals with student assessments" do
+      strand = LearningContextFixtures.strand_fixture()
+      subject_1 = TaxonomyFixtures.subject_fixture()
+      subject_2 = TaxonomyFixtures.subject_fixture()
+      year = TaxonomyFixtures.year_fixture()
+
+      curriculum_component_1 = CurriculaFixtures.curriculum_component_fixture()
+      curriculum_component_2 = CurriculaFixtures.curriculum_component_fixture()
+      curriculum_component_3 = CurriculaFixtures.curriculum_component_fixture()
+
+      curriculum_item_1 =
+        CurriculaFixtures.curriculum_item_fixture(%{
+          curriculum_component_id: curriculum_component_1.id,
+          subjects_ids: [subject_1.id],
+          years_ids: [year.id]
+        })
+
+      curriculum_item_2 =
+        CurriculaFixtures.curriculum_item_fixture(%{
+          curriculum_component_id: curriculum_component_2.id,
+          subjects_ids: [subject_2.id],
+          years_ids: [year.id]
+        })
+
+      curriculum_item_3 =
+        CurriculaFixtures.curriculum_item_fixture(%{
+          curriculum_component_id: curriculum_component_3.id
+        })
+
+      ordinal_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ordinal_value = GradingFixtures.ordinal_value_fixture(%{scale_id: ordinal_scale.id})
+      numeric_scale = GradingFixtures.scale_fixture(%{type: "numeric"})
+
+      rubric = RubricsFixtures.rubric_fixture(%{scale_id: ordinal_scale.id})
+
+      rubric_descriptor =
+        RubricsFixtures.rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: ordinal_scale.id,
+          ordinal_value_id: ordinal_value.id
+        })
+
+      assessment_point_1 =
+        assessment_point_fixture(%{
+          position: 1,
+          curriculum_item_id: curriculum_item_1.id,
+          scale_id: ordinal_scale.id,
+          strand_id: strand.id,
+          rubric_id: rubric.id
+        })
+
+      assessment_point_2 =
+        assessment_point_fixture(%{
+          position: 2,
+          curriculum_item_id: curriculum_item_2.id,
+          scale_id: numeric_scale.id,
+          strand_id: strand.id
+        })
+
+      assessment_point_3 =
+        assessment_point_fixture(%{
+          position: 3,
+          curriculum_item_id: curriculum_item_3.id,
+          scale_id: ordinal_scale.id,
+          strand_id: strand.id
+        })
+
+      student = SchoolsFixtures.student_fixture()
+
+      entry_1 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point_1.id,
+          student_id: student.id,
+          scale_id: ordinal_scale.id,
+          scale_type: ordinal_scale.type
+        })
+
+      entry_2 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point_2.id,
+          student_id: student.id,
+          scale_id: numeric_scale.id,
+          scale_type: numeric_scale.type
+        })
+
+      # extra entry for different student (test student join)
+      _other_entry =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point_3.id,
+          scale_id: ordinal_scale.id,
+          scale_type: ordinal_scale.type
+        })
+
+      assert [
+               {expected_ap_1, expected_entry_1},
+               {expected_ap_2, expected_entry_2}
+             ] = Assessments.list_strand_goals_student_entries(student.id, strand.id)
+
+      assert expected_ap_1.id == assessment_point_1.id
+      assert expected_ap_1.scale.id == ordinal_scale.id
+      assert expected_ap_1.rubric.id == rubric.id
+      assert expected_ap_1.rubric.descriptors == [rubric_descriptor]
+      assert expected_ap_1.scale.ordinal_values == [ordinal_value]
+      assert expected_ap_1.curriculum_item.id == curriculum_item_1.id
+      assert expected_ap_1.curriculum_item.curriculum_component.id == curriculum_component_1.id
+      assert expected_ap_1.curriculum_item.subjects == [subject_1]
+      assert expected_ap_1.curriculum_item.years == [year]
+      assert expected_ap_1.curriculum_item.id == curriculum_item_1.id
+      assert expected_entry_1.id == entry_1.id
+
+      assert expected_ap_2.id == assessment_point_2.id
+      assert expected_ap_2.scale.id == numeric_scale.id
+      assert expected_ap_2.scale.ordinal_values == []
+      assert expected_ap_2.curriculum_item.id == curriculum_item_2.id
+      assert expected_ap_2.curriculum_item.curriculum_component.id == curriculum_component_2.id
+      assert expected_ap_2.curriculum_item.subjects == [subject_2]
+      assert expected_ap_2.curriculum_item.years == [year]
+      assert expected_entry_2.id == entry_2.id
     end
   end
 end

@@ -2,6 +2,7 @@ defmodule LantternWeb.RubricsComponents do
   use Phoenix.Component
 
   import LantternWeb.CoreComponents
+  import LantternWeb.GradingComponents
 
   alias Lanttern.Rubrics.Rubric
 
@@ -17,9 +18,9 @@ defmodule LantternWeb.RubricsComponents do
     <div class={["flex flex-col gap-8", @class]}>
       <div :for={descriptor <- @rubric.descriptors}>
         <%= if descriptor.scale_type == "ordinal" do %>
-          <.badge style_from_ordinal_value={descriptor.ordinal_value}>
+          <.ordinal_value_badge ordinal_value={descriptor.ordinal_value}>
             <%= descriptor.ordinal_value.name %>
-          </.badge>
+          </.ordinal_value_badge>
         <% else %>
           <.badge>
             <%= descriptor.score %>
@@ -38,13 +39,14 @@ defmodule LantternWeb.RubricsComponents do
         <%= if descriptor.scale_type == "numeric" do %>
           <.badge theme="dark"><%= descriptor.score %></.badge>
         <% else %>
-          <.badge style_from_ordinal_value={descriptor.ordinal_value}>
+          <.ordinal_value_badge ordinal_value={descriptor.ordinal_value}>
             <%= descriptor.ordinal_value.name %>
-          </.badge>
+          </.ordinal_value_badge>
         <% end %>
         <.markdown
           text={descriptor.descriptor}
-          class="prose-sm flex-1 w-full p-2 border border-ltrn-lighter rounded-sm bg-ltrn-lightest"
+          size="sm"
+          class="flex-1 w-full p-2 border border-ltrn-lighter rounded-sm bg-ltrn-lightest"
         />
       </div>
     </div>

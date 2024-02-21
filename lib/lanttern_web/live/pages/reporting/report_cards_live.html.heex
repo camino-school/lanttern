@@ -1,0 +1,52 @@
+<div class="container mx-auto lg:max-w-5xl">
+  <.page_title_with_menu><%= gettext("Report Cards") %></.page_title_with_menu>
+  <div class="flex items-end justify-between mt-12">
+    <p class="font-display font-bold text-lg">
+      <%= gettext("Viewing report cards") %>
+    </p>
+    <.collection_action type="link" icon_name="hero-plus-circle" patch={~p"/reporting/new"}>
+      <%= gettext("Create new report card") %>
+    </.collection_action>
+  </div>
+  <%= if @report_cards_count == 0 do %>
+    <.empty_state>
+      <%= gettext("No report cards created yet") %>
+    </.empty_state>
+  <% else %>
+    <div phx-update="stream" id="report-cards-grid" class="grid grid-cols-3 gap-10 mt-12">
+      <.report_card_card
+        :for={{dom_id, report_card} <- @streams.report_cards}
+        id={dom_id}
+        report_card={report_card}
+        navigate={~p"/reporting/#{report_card}"}
+      />
+    </div>
+  <% end %>
+</div>
+<.slide_over
+  :if={@live_action == :new}
+  id="report-card-form-overlay"
+  show={true}
+  on_cancel={JS.patch(~p"/reporting")}
+>
+  <:title><%= gettext("New report card") %></:title>
+  <.live_component
+    module={ReportCardFormComponent}
+    id={:new}
+    report_card={%ReportCard{}}
+    navigate={fn _report_card -> ~p"/reporting" end}
+    hide_submit
+  />
+  <:actions>
+    <.button
+      type="button"
+      theme="ghost"
+      phx-click={JS.exec("data-cancel", to: "#report-card-form-overlay")}
+    >
+      <%= gettext("Cancel") %>
+    </.button>
+    <.button type="submit" form="report-card-form">
+      <%= gettext("Save") %>
+    </.button>
+  </:actions>
+</.slide_over>

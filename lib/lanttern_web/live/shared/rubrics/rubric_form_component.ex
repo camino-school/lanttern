@@ -12,6 +12,9 @@ defmodule LantternWeb.Rubrics.RubricFormComponent do
   alias Lanttern.Grading
   import LantternWeb.GradingHelpers
 
+  # shared components
+  import LantternWeb.GradingComponents
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -139,9 +142,9 @@ defmodule LantternWeb.Rubrics.RubricFormComponent do
       )
 
     ~H"""
-    <.badge style_from_ordinal_value={@ordinal_value}>
+    <.ordinal_value_badge ordinal_value={@ordinal_value}>
       <%= @ordinal_value.name %>
-    </.badge>
+    </.ordinal_value_badge>
     """
   end
 

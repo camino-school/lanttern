@@ -92,6 +92,17 @@ defmodule LantternWeb.Router do
 
       live "/curriculum", CurriculumLive, :index
       live "/curriculum/bncc_ef", BnccEfLive, :index
+
+      # reporting
+
+      live "/reporting", ReportCardsLive, :index
+      live "/reporting/new", ReportCardsLive, :new
+      live "/reporting/:id", ReportCardLive, :show
+      live "/reporting/:id/edit_strand_report", ReportCardLive, :edit_strand_report
+      live "/reporting/:id/edit", ReportCardLive, :edit
+
+      live "/student_report_card/:id", StudentReportCardLive, :show
+      live "/student_report_card/:id/strand/:strand_report_id", StudentStrandReportLive, :show
     end
   end
 
@@ -197,6 +208,28 @@ defmodule LantternWeb.Router do
     live "/profile_views/:id/show/edit",
          Admin.ProfileViewLive.Show,
          :edit
+
+    # Reporting context
+    live "/report_cards", Admin.ReportCardLive.Index, :index
+    live "/report_cards/new", Admin.ReportCardLive.Index, :new
+    live "/report_cards/:id/edit", Admin.ReportCardLive.Index, :edit
+
+    live "/report_cards/:id", Admin.ReportCardLive.Show, :show
+    live "/report_cards/:id/show/edit", Admin.ReportCardLive.Show, :edit
+
+    live "/strand_reports", Admin.StrandReportLive.Index, :index
+    live "/strand_reports/new", Admin.StrandReportLive.Index, :new
+    live "/strand_reports/:id/edit", Admin.StrandReportLive.Index, :edit
+
+    live "/strand_reports/:id", Admin.StrandReportLive.Show, :show
+    live "/strand_reports/:id/show/edit", Admin.StrandReportLive.Show, :edit
+
+    live "/student_report_cards", Admin.StudentReportCardLive.Index, :index
+    live "/student_report_cards/new", Admin.StudentReportCardLive.Index, :new
+    live "/student_report_cards/:id/edit", Admin.StudentReportCardLive.Index, :edit
+
+    live "/student_report_cards/:id", Admin.StudentReportCardLive.Show, :show
+    live "/student_report_cards/:id/show/edit", Admin.StudentReportCardLive.Show, :edit
   end
 
   # Other scopes may use custom stacks.

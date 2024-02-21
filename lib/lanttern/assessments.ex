@@ -716,6 +716,111 @@ defmodule Lanttern.Assessments do
   end
 
   @doc """
+  Returns the list of strand goals entries for every student in the given strand.
+
+  Entries are ordered by `AssessmentPoint` positions.
+
+  ## Options:
+
+      - `:classes_ids` – filter entries by classes
+  """
+
+  @spec list_strand_goals_students_entries(integer(), Keyword.t()) :: [
+          {Student.t(), [AssessmentPointEntry.t()]}
+        ]
+
+  def list_strand_goals_students_entries(strand_id, opts \\ []) do
+    students_query =
+      case Keyword.get(opts, :classes_ids) do
+        nil ->
+          from(s in Student)
+
+        classes_ids ->
+          from(
+            s in Student,
+            join: c in assoc(s, :classes),
+            where: c.id in ^classes_ids
+          )
+      end
+
+    results =
+      from(
+        ap in AssessmentPoint,
+        join: s in subquery(students_query),
+        on: true,
+        left_join: e in AssessmentPointEntry,
+        on: e.student_id == s.id and e.assessment_point_id == ap.id,
+        where: ap.strand_id == ^strand_id,
+        order_by: [s.name, ap.position],
+        select: {s, e}
+      )
+      |> Repo.all()
+
+    grouped_entries =
+      results
+      |> Enum.group_by(fn {s, _e} -> s.id end)
+      |> Enum.map(fn {s_id, list} ->
+        {
+          s_id,
+          list |> Enum.map(fn {_s, e} -> e end)
+        }
+      end)
+      |> Enum.into(%{})
+
+    results
+    |> Enum.map(fn {s, _} -> s end)
+    |> Enum.uniq()
+    |> Enum.map(&{&1, grouped_entries[&1.id]})
+  end
+
+  @doc """
+  Returns the list of strand goals and entries for the given student and strand.
+
+  Assessment points without entries are ignored.
+
+  Ordered by `AssessmentPoint` positions.
+
+  Assessment point preloads:
+  - scale with ordinal values
+  - rubric with descriptors
+  - curriculum item with curriculum component, subjects, and years
+  """
+
+  @spec list_strand_goals_student_entries(integer(), integer()) :: [
+          {AssessmentPoint.t(), AssessmentPointEntry.t()}
+        ]
+
+  def list_strand_goals_student_entries(student_id, strand_id) do
+    from(
+      ap in AssessmentPoint,
+      join: s in assoc(ap, :scale),
+      left_join: ov in assoc(s, :ordinal_values),
+      left_join: r in assoc(ap, :rubric),
+      left_join: rd in assoc(r, :descriptors),
+      left_join: rd_ov in assoc(rd, :ordinal_value),
+      join: ci in assoc(ap, :curriculum_item),
+      join: cc in assoc(ci, :curriculum_component),
+      join: e in AssessmentPointEntry,
+      on: e.assessment_point_id == ap.id and e.student_id == ^student_id,
+      left_join: sub in assoc(ci, :subjects),
+      left_join: y in assoc(ci, :years),
+      where: ap.strand_id == ^strand_id,
+      order_by: [
+        asc: ap.position,
+        asc: ov.normalized_value,
+        asc: rd_ov.normalized_value
+      ],
+      select: {ap, e},
+      preload: [
+        scale: {s, ordinal_values: ov},
+        rubric: {r, descriptors: rd},
+        curriculum_item: {ci, curriculum_component: cc, subjects: sub, years: y}
+      ]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
   Returns the list of the assessment point entries for every student in the given moment.
 
   Entries are ordered by `AssessmentPoint` position,

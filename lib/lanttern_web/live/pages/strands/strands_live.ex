@@ -9,6 +9,9 @@ defmodule LantternWeb.StrandsLive do
   # live components
   alias LantternWeb.LearningContext.StrandFormComponent
 
+  # shared components
+  import LantternWeb.LearningContextComponents
+
   # function components
 
   attr :items, :list, required: true
@@ -52,52 +55,18 @@ defmodule LantternWeb.StrandsLive do
   def strands_grid(assigns) do
     ~H"""
     <div id={@id} phx-update="stream" class="grid grid-cols-3 gap-10 mt-12">
-      <div
+      <.strand_card
         :for={{dom_id, strand} <- @strands}
-        class="rounded shadow-xl bg-white overflow-hidden"
         id={dom_id}
-      >
-        <div
-          class="relative w-full h-40 bg-center bg-cover"
-          style={"background-image: url(#{strand.cover_image_url || "/images/cover-placeholder-sm.jpg"}?width=400&height=200)"}
-        >
-          <button
-            type="button"
-            aria-label="Star strand"
-            class="absolute top-2 right-2 flex items-center justify-center w-8 h-8 rounded-full hover:bg-white hover:shadow-md"
-            phx-click={
-              JS.push(
-                if(strand.is_starred, do: "unstar-strand", else: "star-strand"),
-                value: %{id: strand.id, name: strand.name}
-              )
-            }
-          >
-            <.icon
-              name="hero-star-mini"
-              class={if(strand.is_starred, do: "text-ltrn-primary", else: "text-ltrn-lighter")}
-            />
-          </button>
-        </div>
-        <div class="flex flex-col gap-6 p-6">
-          <.link
-            navigate={~p"/strands/#{strand}"}
-            class="font-display font-black text-3xl underline line-clamp-3"
-          >
-            <%= strand.name %>
-          </.link>
-          <div class="flex flex-wrap gap-2">
-            <.badge :for={subject <- strand.subjects}>
-              <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
-            </.badge>
-            <.badge :for={year <- strand.years}>
-              <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", year.name) %>
-            </.badge>
-          </div>
-          <div class="line-clamp-3">
-            <.markdown text={strand.description} class="prose-sm" />
-          </div>
-        </div>
-      </div>
+        strand={strand}
+        on_star_click={
+          JS.push(
+            if(strand.is_starred, do: "unstar-strand", else: "star-strand"),
+            value: %{id: strand.id, name: strand.name}
+          )
+        }
+        navigate={~p"/strands/#{strand}"}
+      />
     </div>
     """
   end

@@ -59,7 +59,7 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
               </div>
             </div>
             <div class="line-clamp-6">
-              <.markdown text={moment.description} class="prose-sm" />
+              <.markdown text={moment.description} size="sm" />
             </div>
           </div>
         </div>

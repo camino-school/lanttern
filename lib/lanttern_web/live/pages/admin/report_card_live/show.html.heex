@@ -1,0 +1,36 @@
+<.header>
+  Report card <%= @report_card.id %>
+  <:subtitle>This is a report_card record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/admin/report_cards/#{@report_card}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit report_card</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Id">#<%= @report_card.id %></:item>
+  <:item title="Name"><%= @report_card.name %></:item>
+  <:item title="Description"><%= @report_card.description %></:item>
+</.list>
+
+<.back navigate={~p"/admin/report_cards"}>Back to report_cards</.back>
+
+<.modal
+  :if={@live_action == :edit}
+  id="report_card-modal"
+  show
+  on_cancel={JS.patch(~p"/admin/report_cards/#{@report_card}")}
+>
+  <.header>
+    <%= @page_title %>
+    <:subtitle>Use this form to manage report_card records in your database.</:subtitle>
+  </.header>
+  <.live_component
+    module={LantternWeb.Reporting.ReportCardFormComponent}
+    id={@report_card.id}
+    report_card={@report_card}
+    patch={~p"/admin/report_cards/#{@report_card}"}
+    class="mt-6"
+  />
+</.modal>
