@@ -12,6 +12,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     field :datetime, :utc_datetime
     field :description, :string
     field :position, :integer, default: 0
+    field :is_differentiation, :boolean, default: false
 
     # create assessment point UI fields
     field :date, :date, virtual: true
@@ -49,6 +50,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       :minute,
       :description,
       :position,
+      :is_differentiation,
       :curriculum_item_id,
       :scale_id,
       :rubric_id,

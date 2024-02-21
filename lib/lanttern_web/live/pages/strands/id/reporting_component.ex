@@ -159,7 +159,10 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
   def assessment_point(assigns) do
     ~H"""
     <div id={@id} class="max-w-80 pt-6 px-2 pb-2 text-sm">
-      <%= "#{@index + 1}. #{@assessment_point.curriculum_item.name}" %>
+      <div class={if @assessment_point.is_differentiation, do: "p-2 rounded bg-ltrn-diff-light"}>
+        <%= "#{@index + 1}. #{@assessment_point.curriculum_item.name}" %>
+        <span :if={@assessment_point.is_differentiation}>(<%= gettext("Differentiation") %>)</span>
+      </div>
     </div>
     """
   end

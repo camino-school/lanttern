@@ -253,7 +253,7 @@ defmodule Lanttern.Curricula do
       join: ap in assoc(ci, :assessment_points),
       where: ap.strand_id == ^strand_id,
       order_by: ap.position,
-      select: %{ci | assessment_point_id: ap.id}
+      select: %{ci | assessment_point_id: ap.id, is_differentiation: ap.is_differentiation}
     )
     |> Repo.all()
     |> maybe_preload(opts)

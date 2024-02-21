@@ -42,11 +42,17 @@ defmodule LantternWeb.StrandLive.AboutComponent do
         ) %>
       </p>
       <div :for={{curriculum_item, i} <- @curriculum_items} class="mt-6">
-        <div class="flex items-stretch gap-6 p-6 rounded bg-white shadow-lg">
+        <div class={[
+          "flex items-stretch gap-6 p-6 rounded",
+          if(curriculum_item.is_differentiation, do: "bg-ltrn-diff-light", else: "bg-white shadow-lg")
+        ]}>
           <div class="flex-1">
             <div class="flex items-center gap-4">
               <p class="font-display font-bold text-sm">
                 <%= curriculum_item.curriculum_component.name %>
+                <span :if={curriculum_item.is_differentiation}>
+                  (<%= gettext("Differentiation") %>)
+                </span>
               </p>
               <.button
                 type="button"
@@ -165,19 +171,21 @@ defmodule LantternWeb.StrandLive.AboutComponent do
 
   @impl true
   def update(%{strand: strand} = assigns, socket) do
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign_new(:assessment_point, fn ->
-       %AssessmentPoint{
-         strand_id: strand.id,
-         datetime: DateTime.utc_now()
-       }
-     end)
-     |> assign_new(:curriculum_items, fn ->
-       Curricula.list_strand_curriculum_items(strand.id, preloads: :curriculum_component)
-       |> Enum.with_index()
-     end)}
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign_new(:assessment_point, fn ->
+        %AssessmentPoint{
+          strand_id: strand.id,
+          datetime: DateTime.utc_now()
+        }
+      end)
+      |> assign_new(:curriculum_items, fn ->
+        Curricula.list_strand_curriculum_items(strand.id, preloads: :curriculum_component)
+        |> Enum.with_index()
+      end)
+
+    {:ok, socket}
   end
 
   # event handlers

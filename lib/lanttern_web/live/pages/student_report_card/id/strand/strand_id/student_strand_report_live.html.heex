@@ -96,7 +96,13 @@
     <div class="mt-10">
       <div
         :for={
-          {%{curriculum_item: curriculum_item, scale: scale, rubric: rubric}, entry} <-
+          {%{
+             is_differentiation: is_diff,
+             curriculum_item: curriculum_item,
+             scale: scale,
+             rubric: rubric
+           },
+           entry} <-
             @strand_goals_student_entries
         }
         class="p-6 rounded mt-4 bg-white shadow"
@@ -114,6 +120,9 @@
         >
           <.badge :if={curriculum_item.code} theme="dark">
             <%= curriculum_item.code %>
+          </.badge>
+          <.badge :if={is_diff} theme="diff">
+            <%= gettext("Differentiation") %>
           </.badge>
           <.badge :for={subject <- curriculum_item.subjects}>
             <%= subject.name %>
