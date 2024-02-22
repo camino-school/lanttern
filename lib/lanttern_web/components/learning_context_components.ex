@@ -71,8 +71,8 @@ defmodule LantternWeb.LearningContextComponents do
         <div :if={!@hide_description} class="line-clamp-3">
           <.markdown text={@strand.description} size="sm" />
         </div>
-        <%= render_slot(@inner_block) %>
       </div>
+      <%= render_slot(@inner_block) %>
     </div>
     """
   end

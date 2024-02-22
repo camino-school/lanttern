@@ -9,6 +9,8 @@ defmodule Lanttern.Reporting do
 
   alias Lanttern.Reporting.ReportCard
 
+  alias Lanttern.Assessments.AssessmentPointEntry
+
   @doc """
   Returns the list of report cards.
 
@@ -346,5 +348,64 @@ defmodule Lanttern.Reporting do
   """
   def change_student_report_card(%StudentReportCard{} = student_report_card, attrs \\ %{}) do
     StudentReportCard.changeset(student_report_card, attrs)
+  end
+
+  @doc """
+  Returns the list of strand reports linked to the report card, with assessment entries.
+
+  **Preloaded data:**
+
+  - strand reports: strand with subjects and years
+  - assessment entries: assessment point, scale, and ordinal value
+
+  ## Examples
+
+      iex> list_student_report_card_strand_reports_and_entries(student_report_card)
+      [{%StrandReport{}, [%AssessmentPointEntry{}, ...]}, ...]
+
+  """
+  @spec list_student_report_card_strand_reports_and_entries(StudentReportCard.t()) :: [
+          {StrandReport.t(), [AssessmentPointEntry.t()]}
+        ]
+
+  def list_student_report_card_strand_reports_and_entries(
+        %StudentReportCard{} = student_report_card
+      ) do
+    %{
+      report_card_id: report_card_id,
+      student_id: student_id
+    } = student_report_card
+
+    strand_reports =
+      from(sr in StrandReport,
+        join: s in assoc(sr, :strand),
+        left_join: sub in assoc(s, :subjects),
+        left_join: y in assoc(s, :years),
+        where: sr.report_card_id == ^report_card_id,
+        order_by: sr.position,
+        preload: [strand: {s, [subjects: sub, years: y]}]
+      )
+      |> Repo.all()
+
+    ast_entries_map =
+      from(e in AssessmentPointEntry,
+        join: sc in assoc(e, :scale),
+        left_join: ov in assoc(e, :ordinal_value),
+        join: ap in assoc(e, :assessment_point),
+        join: s in assoc(ap, :strand),
+        join: sr in assoc(s, :strand_reports),
+        where: sr.report_card_id == ^report_card_id and e.student_id == ^student_id,
+        order_by: ap.position,
+        preload: [scale: sc, ordinal_value: ov],
+        select: {sr.id, e}
+      )
+      |> Repo.all()
+      |> Enum.group_by(
+        fn {strand_report_id, _} -> strand_report_id end,
+        fn {_, entry} -> entry end
+      )
+
+    strand_reports
+    |> Enum.map(&{&1, Map.get(ast_entries_map, &1.id, [])})
   end
 end

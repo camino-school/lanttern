@@ -18,6 +18,7 @@ defmodule Lanttern.LearningContext.Strand do
 
     has_many :moments, Lanttern.LearningContext.Moment
     has_many :assessment_points, Lanttern.Assessments.AssessmentPoint
+    has_many :strand_reports, Lanttern.Reporting.StrandReport
 
     many_to_many :subjects, Lanttern.Taxonomy.Subject,
       join_through: "strands_subjects",

@@ -270,4 +270,135 @@ defmodule Lanttern.ReportingTest do
       assert %Ecto.Changeset{} = Reporting.change_student_report_card(student_report_card)
     end
   end
+
+  describe "student strand reports" do
+    import Lanttern.ReportingFixtures
+
+    alias Lanttern.AssessmentsFixtures
+    alias Lanttern.GradingFixtures
+    alias Lanttern.LearningContextFixtures
+    alias Lanttern.SchoolsFixtures
+    alias Lanttern.TaxonomyFixtures
+
+    test "list_student_report_card_strand_reports_and_entries/1 returns the list of the strands in the report with the student assessment point entries" do
+      report_card = report_card_fixture()
+
+      subject_1 = TaxonomyFixtures.subject_fixture()
+      subject_2 = TaxonomyFixtures.subject_fixture()
+      year = TaxonomyFixtures.year_fixture()
+
+      strand_1 =
+        LearningContextFixtures.strand_fixture(%{
+          subjects_ids: [subject_1.id],
+          years_ids: [year.id]
+        })
+
+      strand_2 =
+        LearningContextFixtures.strand_fixture(%{
+          subjects_ids: [subject_2.id],
+          years_ids: [year.id]
+        })
+
+      strand_1_report =
+        strand_report_fixture(%{
+          report_card_id: report_card.id,
+          strand_id: strand_1.id,
+          position: 1
+        })
+
+      strand_2_report =
+        strand_report_fixture(%{
+          report_card_id: report_card.id,
+          strand_id: strand_2.id,
+          position: 2
+        })
+
+      student = SchoolsFixtures.student_fixture()
+
+      student_report_card =
+        student_report_card_fixture(%{report_card_id: report_card.id, student_id: student.id})
+
+      n_scale = GradingFixtures.scale_fixture(%{type: "numeric", start: 0, stop: 10})
+      o_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: o_scale.id})
+      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: o_scale.id})
+
+      assessment_point_1_1 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand_1.id,
+          scale_id: o_scale.id
+        })
+
+      assessment_point_1_2 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand_1.id,
+          scale_id: o_scale.id
+        })
+
+      assessment_point_2_1 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand_2.id,
+          scale_id: n_scale.id
+        })
+
+      assessment_point_1_1_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point_1_1.id,
+          scale_id: o_scale.id,
+          scale_type: o_scale.type,
+          ordinal_value_id: ov_1.id
+        })
+
+      assessment_point_1_2_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point_1_2.id,
+          scale_id: o_scale.id,
+          scale_type: o_scale.type,
+          ordinal_value_id: ov_2.id
+        })
+
+      assessment_point_2_1_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point_2_1.id,
+          scale_id: n_scale.id,
+          scale_type: n_scale.type,
+          score: 5
+        })
+
+      assert [
+               {expected_strand_1_report, [expected_entry_1_1, expected_entry_1_2]},
+               {expected_strand_2_report, [expected_entry_2_1]}
+             ] =
+               Reporting.list_student_report_card_strand_reports_and_entries(student_report_card)
+
+      # strand 1 assertions
+
+      assert expected_strand_1_report.id == strand_1_report.id
+      assert expected_strand_1_report.strand.id == strand_1.id
+      assert expected_strand_1_report.strand.subjects == [subject_1]
+      assert expected_strand_1_report.strand.years == [year]
+
+      assert expected_entry_1_1.id == assessment_point_1_1_entry.id
+      assert expected_entry_1_1.scale == o_scale
+      assert expected_entry_1_1.ordinal_value == ov_1
+
+      assert expected_entry_1_2.id == assessment_point_1_2_entry.id
+      assert expected_entry_1_2.scale == o_scale
+      assert expected_entry_1_2.ordinal_value == ov_2
+
+      # strand 2 assertions
+
+      assert expected_strand_2_report.id == strand_2_report.id
+      assert expected_strand_2_report.strand.id == strand_2.id
+      assert expected_strand_2_report.strand.subjects == [subject_2]
+      assert expected_strand_2_report.strand.years == [year]
+
+      assert expected_entry_2_1.id == assessment_point_2_1_entry.id
+      assert expected_entry_2_1.scale == n_scale
+      assert expected_entry_2_1.score == 5
+    end
+  end
 end
