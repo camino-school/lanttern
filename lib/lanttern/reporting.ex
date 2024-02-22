@@ -9,6 +9,9 @@ defmodule Lanttern.Reporting do
 
   alias Lanttern.Reporting.ReportCard
 
+  alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.LearningContext.Strand
+
   @doc """
   Returns the list of report cards.
 
@@ -346,5 +349,55 @@ defmodule Lanttern.Reporting do
   """
   def change_student_report_card(%StudentReportCard{} = student_report_card, attrs \\ %{}) do
     StudentReportCard.changeset(student_report_card, attrs)
+  end
+
+  @doc """
+  Returns the list of strands linked to the report card, with assessment entries.
+
+  **Preloaded data:**
+
+  - strand: subjects and years
+  - assessment entries: assessment point, scale, and ordinal value
+
+  ## Examples
+
+      iex> list_student_strand_reports(student_report_card)
+      [{%Strand{}, [%AssessmentPointEntry{}, ...]}, ...]
+
+  """
+  @spec list_student_strand_reports(StudentReportCard.t()) :: [
+          {Strand.t(), [AssessmentPointEntry.t()]}
+        ]
+
+  def list_student_strand_reports(%StudentReportCard{} = student_report_card) do
+    %{
+      report_card_id: report_card_id,
+      student_id: student_id
+    } = student_report_card
+
+    strands =
+      from(s in Strand,
+        join: sr in assoc(s, :strand_reports),
+        where: sr.report_card_id == ^report_card_id,
+        order_by: sr.position
+      )
+      |> Repo.all()
+      |> maybe_preload(preloads: [:subjects, :years])
+
+    ast_entries_map =
+      from(e in AssessmentPointEntry,
+        join: ap in assoc(e, :assessment_point),
+        join: s in assoc(ap, :strand),
+        join: sr in assoc(s, :strand_reports),
+        where: sr.report_card_id == ^report_card_id and e.student_id == ^student_id,
+        order_by: ap.position,
+        preload: [assessment_point: ap]
+      )
+      |> Repo.all()
+      |> maybe_preload(preloads: [:scale, :ordinal_value])
+      |> Enum.group_by(& &1.assessment_point.strand_id)
+
+    strands
+    |> Enum.map(&{&1, Map.get(ast_entries_map, &1.id, [])})
   end
 end
