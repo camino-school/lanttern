@@ -158,4 +158,20 @@ defmodule LantternWeb.ReportingComponents do
     </.badge>
     """
   end
+
+  attr :footnote, :string, required: true
+  attr :class, :any, default: nil
+
+  def footnote(assigns) do
+    ~H"""
+    <div :if={@footnote} class={["p-10 bg-ltrn-diff-light", @class]}>
+      <div class="container mx-auto lg:max-w-5xl">
+        <div class="flex items-center justify-center w-10 h-10 rounded-full mb-6 text-ltrn-diff-light bg-ltrn-diff-highlight">
+          <.icon name="hero-document-text" />
+        </div>
+        <.markdown text={@footnote} size="sm" />
+      </div>
+    </div>
+    """
+  end
 end
