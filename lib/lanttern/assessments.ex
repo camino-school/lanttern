@@ -782,7 +782,7 @@ defmodule Lanttern.Assessments do
 
   Assessment point preloads:
   - scale with ordinal values
-  - rubric with descriptors
+  - rubric with descriptors and differentiation rubric linked to the given student
   - curriculum item with curriculum component, subjects, and years
   """
 
@@ -797,7 +797,13 @@ defmodule Lanttern.Assessments do
       left_join: ov in assoc(s, :ordinal_values),
       left_join: r in assoc(ap, :rubric),
       left_join: rd in assoc(r, :descriptors),
-      left_join: rd_ov in assoc(rd, :ordinal_value),
+      left_join: rdov in assoc(rd, :ordinal_value),
+      left_join: diff_r in Rubrics.Rubric,
+      on: diff_r.diff_for_rubric_id == r.id,
+      left_join: diff_r_s in "differentiation_rubrics_students",
+      on: diff_r_s.rubric_id == diff_r.id and diff_r_s.student_id == ^student_id,
+      left_join: diff_rd in assoc(diff_r, :descriptors),
+      left_join: diff_rdov in assoc(diff_rd, :ordinal_value),
       join: ci in assoc(ap, :curriculum_item),
       join: cc in assoc(ci, :curriculum_component),
       join: e in AssessmentPointEntry,
@@ -808,12 +814,13 @@ defmodule Lanttern.Assessments do
       order_by: [
         asc: ap.position,
         asc: ov.normalized_value,
-        asc: rd_ov.normalized_value
+        asc: rdov.normalized_value,
+        asc: diff_rdov.normalized_value
       ],
       select: {ap, e},
       preload: [
         scale: {s, ordinal_values: ov},
-        rubric: {r, descriptors: rd},
+        rubric: {r, descriptors: rd, differentiation_rubrics: {diff_r, descriptors: diff_rd}},
         curriculum_item: {ci, curriculum_component: cc, subjects: sub, years: y}
       ]
     )

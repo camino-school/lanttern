@@ -16,6 +16,7 @@ module.exports = {
           primary: colors.cyan["400"],
           secondary: colors.rose["500"],
           diff: {
+            dark: colors.purple["800"],
             highlight: colors.purple["600"],
             light: colors.purple["100"],
           },

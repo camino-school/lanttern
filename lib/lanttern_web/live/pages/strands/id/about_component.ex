@@ -42,17 +42,14 @@ defmodule LantternWeb.StrandLive.AboutComponent do
         ) %>
       </p>
       <div :for={{curriculum_item, i} <- @curriculum_items} class="mt-6">
-        <div class={[
-          "flex items-stretch gap-6 p-6 rounded",
-          if(curriculum_item.is_differentiation, do: "bg-ltrn-diff-light", else: "bg-white shadow-lg")
-        ]}>
+        <div class="flex items-stretch gap-6 p-6 rounded bg-white shadow-lg">
           <div class="flex-1">
             <div class="flex items-center gap-4">
+              <.badge :if={curriculum_item.is_differentiation} theme="diff">
+                <%= gettext("Differentiation") %>
+              </.badge>
               <p class="font-display font-bold text-sm">
                 <%= curriculum_item.curriculum_component.name %>
-                <span :if={curriculum_item.is_differentiation}>
-                  (<%= gettext("Differentiation") %>)
-                </span>
               </p>
               <.button
                 type="button"

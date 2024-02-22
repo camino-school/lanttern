@@ -750,7 +750,7 @@ defmodule LantternWeb.CoreComponents do
       class={[
         "shrink-0 flex items-center justify-center rounded-full font-display font-bold text-center  shadow-md",
         profile_icon_size_style(@size),
-        profile_icon_theme_style(@theme),
+        profile_icon_theme(@theme),
         @class
       ]}
       title={@profile_name}
@@ -765,9 +765,15 @@ defmodule LantternWeb.CoreComponents do
   defp profile_icon_size_style("sm"), do: "w-8 h-8 text-xs"
   defp profile_icon_size_style(_normal), do: "w-10 h-10 text-sm"
 
-  defp profile_icon_theme_style("subtle"), do: "text-ltrn-subtle bg-ltrn-lighter"
-  defp profile_icon_theme_style("rose"), do: "text-ltrn-dark bg-ltrn-mesh-rose"
-  defp profile_icon_theme_style(_cyan), do: "text-ltrn-dark bg-ltrn-mesh-primary"
+  @profile_icon_themes %{
+    "default" => "text-ltrn-subtle bg-ltrn-lighter",
+    "cyan" => "text-ltrn-dark bg-ltrn-mesh-primary",
+    "rose" => "text-ltrn-dark bg-ltrn-mesh-rose",
+    "diff" => "text-ltrn-diff-light bg-ltrn-diff-highlight"
+  }
+
+  defp profile_icon_theme(theme),
+    do: Map.get(@profile_icon_themes, theme, @profile_icon_themes["default"])
 
   defp profile_icon_initials(full_name) do
     case String.split(full_name, ~r{\s}, trim: true) do

@@ -18,72 +18,70 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
       <div
         :for={assessment_point <- @assessment_points}
         id={"strand-assessment-point-#{assessment_point.id}"}
-        class="mt-6"
+        class="p-6 rounded mt-6 shadow-lg bg-white"
       >
-        <div class="p-6 rounded bg-white shadow-lg">
-          <div class="flex items-center gap-4">
-            <p class="flex-1 text-sm">
-              <strong class="inline-block mr-2 font-display font-bold">
-                <%= assessment_point.curriculum_item.curriculum_component.name %>
-              </strong>
-              <%= assessment_point.curriculum_item.name %>
-            </p>
-            <%= if assessment_point.rubric do %>
-              <.icon_button
-                name="hero-arrows-pointing-in"
-                theme="ghost"
-                rounded
-                sr_text={gettext("collapse")}
-                phx-click={
-                  JS.toggle(to: "#goal-rubric-#{assessment_point.rubric_id}")
-                  |> JS.toggle(
-                    to: "#strand-assessment-point-#{assessment_point.id} [data-toggle=true]"
-                  )
-                }
-                data-toggle="true"
-              />
-              <.icon_button
-                name="hero-arrows-pointing-out"
-                class="hidden"
-                theme="ghost"
-                rounded
-                sr_text={gettext("expand")}
-                phx-click={
-                  JS.toggle(to: "#goal-rubric-#{assessment_point.rubric_id}")
-                  |> JS.toggle(
-                    to: "#strand-assessment-point-#{assessment_point.id} [data-toggle=true]"
-                  )
-                }
-                data-toggle="true"
-              />
-            <% else %>
-              <.button
-                theme="ghost"
-                phx-click={
-                  JS.push("new_rubric",
-                    value: %{assessment_point_id: assessment_point.id}
-                  )
-                }
-                phx-target={@myself}
-              >
-                <%= gettext("Add rubric") %>
-              </.button>
-            <% end %>
-          </div>
-          <.rubric
-            :if={assessment_point.rubric}
-            class="pt-6 border-t border-ltrn-lighter mt-6"
-            id={"goal-rubric-#{assessment_point.rubric_id}"}
-            assessment_point_id={assessment_point.id}
-            rubric={assessment_point.rubric}
-            on_edit={
-              JS.push("edit_rubric",
-                value: %{assessment_point_id: assessment_point.id},
-                target: @myself
-              )
-            }
-          />
+        <div class="flex items-center gap-4">
+          <p class="flex-1 text-sm">
+            <.badge :if={assessment_point.is_differentiation} theme="diff" class="mr-2">
+              <%= gettext("Diff") %>
+            </.badge>
+            <strong class="inline-block mr-2 font-display font-bold">
+              <%= assessment_point.curriculum_item.curriculum_component.name %>
+            </strong>
+            <%= assessment_point.curriculum_item.name %>
+          </p>
+          <%= if assessment_point.rubric do %>
+            <.icon_button
+              name="hero-arrows-pointing-in"
+              theme="ghost"
+              rounded
+              sr_text={gettext("collapse")}
+              phx-click={
+                JS.toggle(to: "#goal-rubric-#{assessment_point.rubric_id}")
+                |> JS.toggle(to: "#strand-assessment-point-#{assessment_point.id} [data-toggle=true]")
+              }
+              data-toggle="true"
+            />
+            <.icon_button
+              name="hero-arrows-pointing-out"
+              class="hidden"
+              theme="ghost"
+              rounded
+              sr_text={gettext("expand")}
+              phx-click={
+                JS.toggle(to: "#goal-rubric-#{assessment_point.rubric_id}")
+                |> JS.toggle(to: "#strand-assessment-point-#{assessment_point.id} [data-toggle=true]")
+              }
+              data-toggle="true"
+            />
+          <% else %>
+            <.button
+              theme="ghost"
+              phx-click={
+                JS.push("new_rubric",
+                  value: %{assessment_point_id: assessment_point.id}
+                )
+              }
+              phx-target={@myself}
+            >
+              <%= gettext("Add rubric") %>
+            </.button>
+          <% end %>
         </div>
+        <.rubric
+          :if={assessment_point.rubric}
+          class="pt-6 border-t border-ltrn-lighter mt-6"
+          id={"goal-rubric-#{assessment_point.rubric_id}"}
+          assessment_point_id={assessment_point.id}
+          rubric={assessment_point.rubric}
+          criteria_text={gettext("Rubric criteria")}
+          on_edit={
+            JS.push("edit_rubric",
+              value: %{assessment_point_id: assessment_point.id},
+              target: @myself
+            )
+          }
+        />
       </div>
       <section id="differentiation-rubrics-section" class="pb-10 mt-10">
         <h4 class="-mb-2 font-display font-black text-xl text-ltrn-subtle">
@@ -97,7 +95,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
             container_selector="#differentiation-rubrics-section"
             on_click={JS.push("load_diff_rubrics", value: %{student_id: student.id})}
             phx-target={@myself}
-            theme={if student.has_diff_rubric, do: "cyan", else: "subtle"}
+            theme={if student.has_diff_rubric, do: "diff", else: "default"}
           />
         </div>
         <div
@@ -109,86 +107,93 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
           <div
             :for={assessment_point <- @assessment_points_with_rubrics}
             id={"strand-assessment-point-#{student.id}-#{assessment_point.id}"}
-            class="mt-6"
+            class={[
+              "p-6 rounded mt-6 bg-white shadow-lg",
+              if(@students_diff_rubrics_map[student.id][assessment_point.id],
+                do: "border border-ltrn-diff-highlight"
+              )
+            ]}
           >
-            <div class="p-6 rounded bg-white shadow-lg">
-              <div class="flex items-center gap-4">
-                <p class="flex-1 text-sm">
-                  <strong class="inline-block mr-2 font-display font-bold">
-                    <%= assessment_point.curriculum_item.curriculum_component.name %>
-                  </strong>
-                  <%= assessment_point.curriculum_item.name %>
-                </p>
-                <%= if @students_diff_rubrics_map[student.id][assessment_point.id] do %>
-                  <.icon_button
-                    name="hero-arrows-pointing-in"
-                    theme="ghost"
-                    rounded
-                    sr_text={gettext("collapse")}
-                    phx-click={
-                      JS.toggle(
-                        to:
-                          "#goal-rubric-#{@students_diff_rubrics_map[student.id][assessment_point.id].id}"
-                      )
-                      |> JS.toggle(
-                        to:
-                          "#strand-assessment-point-#{student.id}-#{assessment_point.id} [data-toggle=true]"
-                      )
-                    }
-                    data-toggle="true"
-                  />
-                  <.icon_button
-                    name="hero-arrows-pointing-out"
-                    class="hidden"
-                    theme="ghost"
-                    rounded
-                    sr_text={gettext("expand")}
-                    phx-click={
-                      JS.toggle(
-                        to:
-                          "#goal-rubric-#{@students_diff_rubrics_map[student.id][assessment_point.id].id}"
-                      )
-                      |> JS.toggle(
-                        to:
-                          "#strand-assessment-point-#{student.id}-#{assessment_point.id} [data-toggle=true]"
-                      )
-                    }
-                    data-toggle="true"
-                  />
-                <% else %>
-                  <.button
-                    theme="ghost"
-                    phx-click={
-                      JS.push("new_diff_rubric",
-                        value: %{
-                          assessment_point_id: assessment_point.id,
-                          student_id: student.id
-                        }
-                      )
-                    }
-                    phx-target={@myself}
-                  >
-                    <%= gettext("Add diff") %>
-                  </.button>
-                <% end %>
-              </div>
-              <.rubric
-                :if={@students_diff_rubrics_map[student.id][assessment_point.id]}
-                class="pt-6 border-t border-ltrn-lighter mt-6"
-                id={"goal-rubric-#{@students_diff_rubrics_map[student.id][assessment_point.id].id}"}
-                assessment_point_id={assessment_point.id}
-                rubric={@students_diff_rubrics_map[student.id][assessment_point.id]}
-                on_edit={
-                  JS.push("edit_diff_rubric",
-                    value: %{
-                      assessment_point_id: assessment_point.id,
-                      student_id: student.id
-                    },
-                    target: @myself
-                  )
-                }
-              />
+            <div class="flex items-center gap-4">
+              <p class="flex-1 text-sm">
+                <.badge :if={assessment_point.is_differentiation} theme="diff" class="mr-2">
+                  <%= gettext("Diff") %>
+                </.badge>
+                <strong class="inline-block mr-2 font-display font-bold">
+                  <%= assessment_point.curriculum_item.curriculum_component.name %>
+                </strong>
+                <%= assessment_point.curriculum_item.name %>
+              </p>
+              <%= if @students_diff_rubrics_map[student.id][assessment_point.id] do %>
+                <.icon_button
+                  name="hero-arrows-pointing-in"
+                  theme="ghost"
+                  rounded
+                  sr_text={gettext("collapse")}
+                  phx-click={
+                    JS.toggle(
+                      to:
+                        "#goal-rubric-#{@students_diff_rubrics_map[student.id][assessment_point.id].id}"
+                    )
+                    |> JS.toggle(
+                      to:
+                        "#strand-assessment-point-#{student.id}-#{assessment_point.id} [data-toggle=true]"
+                    )
+                  }
+                  data-toggle="true"
+                />
+                <.icon_button
+                  name="hero-arrows-pointing-out"
+                  class="hidden"
+                  theme="ghost"
+                  rounded
+                  sr_text={gettext("expand")}
+                  phx-click={
+                    JS.toggle(
+                      to:
+                        "#goal-rubric-#{@students_diff_rubrics_map[student.id][assessment_point.id].id}"
+                    )
+                    |> JS.toggle(
+                      to:
+                        "#strand-assessment-point-#{student.id}-#{assessment_point.id} [data-toggle=true]"
+                    )
+                  }
+                  data-toggle="true"
+                />
+              <% else %>
+                <.button
+                  theme="ghost"
+                  phx-click={
+                    JS.push("new_diff_rubric",
+                      value: %{
+                        assessment_point_id: assessment_point.id,
+                        student_id: student.id
+                      }
+                    )
+                  }
+                  phx-target={@myself}
+                >
+                  <%= gettext("Add diff") %>
+                </.button>
+              <% end %>
             </div>
+            <.rubric
+              :if={@students_diff_rubrics_map[student.id][assessment_point.id]}
+              class="pt-6 border-t border-ltrn-lighter mt-6"
+              id={"goal-rubric-#{@students_diff_rubrics_map[student.id][assessment_point.id].id}"}
+              assessment_point_id={assessment_point.id}
+              rubric={@students_diff_rubrics_map[student.id][assessment_point.id]}
+              criteria_text={gettext("Differentiation rubric criteria")}
+              on_edit={
+                JS.push("edit_diff_rubric",
+                  value: %{
+                    assessment_point_id: assessment_point.id,
+                    student_id: student.id
+                  },
+                  target: @myself
+                )
+              }
+            />
           </div>
         </div>
       </section>
@@ -251,6 +256,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
   end
 
   attr :assessment_point_id, :integer, required: true
+  attr :criteria_text, :string, required: true
   attr :class, :any, default: nil
   attr :id, :string, required: true
   attr :rubric, :any, required: true
@@ -260,7 +266,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
     ~H"""
     <div class={@class} id={@id}>
       <p class="mb-6 font-display font-black">
-        <%= gettext("Rubric criteria:") %> <%= @rubric.criteria %>
+        <%= @criteria_text %>: <%= @rubric.criteria %>
         <button class="ml-2 underline text-ltrn-subtle hover:text-ltrn-dark" phx-click={@on_edit}>
           <%= gettext("Edit") %>
         </button>

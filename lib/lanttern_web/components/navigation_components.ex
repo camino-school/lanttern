@@ -65,7 +65,7 @@ defmodule LantternWeb.NavigationComponents do
   attr :id, :string, default: nil
   attr :person, :map, required: true
   attr :container_selector, :string, required: true
-  attr :theme, :string, default: "subtle", doc: "subtle | cyan"
+  attr :theme, :string, default: "default", doc: "default | cyan | diff"
   attr :on_click, JS, default: %JS{}
   attr :rest, :global, doc: "aria-controls is required"
 
@@ -80,7 +80,7 @@ defmodule LantternWeb.NavigationComponents do
       class={[
         "flex items-center gap-2 p-1 rounded-full focus:outline-ltrn-primary",
         "aria-selected:outline aria-selected:outline-2 aria-selected:outline-ltrn-dark",
-        person_tab_theme_style(@theme)
+        person_tab_theme(@theme)
       ]}
       phx-click={
         @on_click
@@ -101,8 +101,14 @@ defmodule LantternWeb.NavigationComponents do
     """
   end
 
-  defp person_tab_theme_style("cyan"), do: "text-ltrn-dark bg-ltrn-mesh-cyan"
-  defp person_tab_theme_style(_subtle), do: "text-ltrn-subtle bg-ltrn-lighter"
+  @person_tab_themes %{
+    "default" => "text-ltrn-subtle bg-ltrn-lighter",
+    "cyan" => "text-ltrn-dark bg-ltrn-mesh-cyan",
+    "diff" => "text-ltrn-diff-highlight bg-ltrn-diff-light"
+  }
+
+  defp person_tab_theme(theme),
+    do: Map.get(@person_tab_themes, theme, @person_tab_themes["default"])
 
   @doc """
   Renders a breadcrumb.
