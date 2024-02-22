@@ -130,4 +130,32 @@ defmodule LantternWeb.ReportingComponents do
     </div>
     """
   end
+
+  @doc """
+  Renders an assessment point entry preview.
+  """
+  attr :entry, AssessmentPointEntry,
+    required: true,
+    doc: "Requires `scale` and `ordinal_value` preloads"
+
+  # attr :scale, Scale, required: true, doc: "Requires `ordinal_values` preload"
+  # attr :rubric, Rubric, default: nil, doc: "Requires `descriptors` preload"
+  attr :id, :string, default: nil
+  attr :class, :any, default: nil
+
+  def assessment_point_entry_preview(%{entry: %{scale: %{type: "ordinal"}}} = assigns) do
+    ~H"""
+    <.ordinal_value_badge ordinal_value={@entry.ordinal_value} class={@class} id={@id}>
+      <%= String.slice(@entry.ordinal_value.name, 0..2) %>
+    </.ordinal_value_badge>
+    """
+  end
+
+  def assessment_point_entry_preview(%{entry: %{scale: %{type: "numeric"}}} = assigns) do
+    ~H"""
+    <.badge class={@class} id={@id}>
+      <%= @entry.score %>
+    </.badge>
+    """
+  end
 end

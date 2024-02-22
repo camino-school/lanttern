@@ -10,21 +10,21 @@ defmodule LantternWeb.StudentReportCardLive do
 
   # shared components
   import LantternWeb.LearningContextComponents
+  import LantternWeb.ReportingComponents
 
   # lifecycle
 
   @impl true
   def mount(_params, _session, socket) do
+    socket =
+      socket
+      |> stream_configure(
+        :strand_reports_and_entries,
+        dom_id: fn {strand_report, _entries} -> "strand-report-#{strand_report.id}" end
+      )
+
     {:ok, socket, layout: {LantternWeb.Layouts, :app_logged_in_blank}}
   end
-
-  # # prevent user from navigating directly to nested views
-
-  # defp maybe_redirect(%{assigns: %{live_action: live_action}} = socket, params)
-  #      when live_action in [:edit, :edit_strand_report],
-  #      do: redirect(socket, to: ~p"/reporting/#{params["id"]}")
-
-  # defp maybe_redirect(socket, _params), do: socket
 
   @impl true
   def handle_params(%{"id" => id}, _url, socket) do
@@ -32,13 +32,17 @@ defmodule LantternWeb.StudentReportCardLive do
       Reporting.get_student_report_card!(id,
         preloads: [
           :student,
-          report_card: [:school_cycle, strand_reports: [strand: [:subjects, :years]]]
+          report_card: :school_cycle
         ]
       )
+
+    strand_reports_and_entries =
+      Reporting.list_student_report_card_strand_reports_and_entries(student_report_card)
 
     socket =
       socket
       |> assign(:student_report_card, student_report_card)
+      |> stream(:strand_reports_and_entries, strand_reports_and_entries)
 
     {:noreply, socket}
   end

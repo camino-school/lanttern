@@ -280,7 +280,7 @@ defmodule Lanttern.ReportingTest do
     alias Lanttern.SchoolsFixtures
     alias Lanttern.TaxonomyFixtures
 
-    test "list_student_strand_reports/1 returns the list of the strands in the report with the student assessment point entries" do
+    test "list_student_report_card_strand_reports_and_entries/1 returns the list of the strands in the report with the student assessment point entries" do
       report_card = report_card_fixture()
 
       subject_1 = TaxonomyFixtures.subject_fixture()
@@ -299,14 +299,14 @@ defmodule Lanttern.ReportingTest do
           years_ids: [year.id]
         })
 
-      _strand_1_report =
+      strand_1_report =
         strand_report_fixture(%{
           report_card_id: report_card.id,
           strand_id: strand_1.id,
           position: 1
         })
 
-      _strand_2_report =
+      strand_2_report =
         strand_report_fixture(%{
           report_card_id: report_card.id,
           strand_id: strand_2.id,
@@ -369,15 +369,17 @@ defmodule Lanttern.ReportingTest do
         })
 
       assert [
-               {expected_strand_1, [expected_entry_1_1, expected_entry_1_2]},
-               {expected_strand_2, [expected_entry_2_1]}
-             ] = Reporting.list_student_strand_reports(student_report_card)
+               {expected_strand_1_report, [expected_entry_1_1, expected_entry_1_2]},
+               {expected_strand_2_report, [expected_entry_2_1]}
+             ] =
+               Reporting.list_student_report_card_strand_reports_and_entries(student_report_card)
 
       # strand 1 assertions
 
-      assert expected_strand_1.id == strand_1.id
-      assert expected_strand_1.subjects == [subject_1]
-      assert expected_strand_1.years == [year]
+      assert expected_strand_1_report.id == strand_1_report.id
+      assert expected_strand_1_report.strand.id == strand_1.id
+      assert expected_strand_1_report.strand.subjects == [subject_1]
+      assert expected_strand_1_report.strand.years == [year]
 
       assert expected_entry_1_1.id == assessment_point_1_1_entry.id
       assert expected_entry_1_1.scale == o_scale
@@ -389,9 +391,10 @@ defmodule Lanttern.ReportingTest do
 
       # strand 2 assertions
 
-      assert expected_strand_2.id == strand_2.id
-      assert expected_strand_2.subjects == [subject_2]
-      assert expected_strand_2.years == [year]
+      assert expected_strand_2_report.id == strand_2_report.id
+      assert expected_strand_2_report.strand.id == strand_2.id
+      assert expected_strand_2_report.strand.subjects == [subject_2]
+      assert expected_strand_2_report.strand.years == [year]
 
       assert expected_entry_2_1.id == assessment_point_2_1_entry.id
       assert expected_entry_2_1.scale == n_scale
