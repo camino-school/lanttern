@@ -71,6 +71,19 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
           prompt={gettext("Select a scale")}
           class="mb-6"
         />
+        <div class="p-4 rounded mb-6 bg-ltrn-diff-light">
+          <.input
+            field={@form[:is_differentiation]}
+            type="toggle"
+            theme="diff"
+            label={gettext("Differentiation")}
+          />
+          <p class="mt-4 text-sm">
+            <%= gettext(
+              "Use the differentiation flag above when creating assessment points related to a curriculum level differentiation."
+            ) %>
+          </p>
+        </div>
       </.form>
     </div>
     """

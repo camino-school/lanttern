@@ -15,6 +15,11 @@ module.exports = {
         ltrn: {
           primary: colors.cyan["400"],
           secondary: colors.rose["500"],
+          diff: {
+            dark: colors.purple["800"],
+            highlight: colors.purple["600"],
+            light: colors.purple["100"],
+          },
           dark: colors.slate["700"],
           subtle: colors.slate["400"],
           lighter: colors.slate["200"],

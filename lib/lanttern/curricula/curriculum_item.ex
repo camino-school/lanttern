@@ -41,6 +41,10 @@ defmodule Lanttern.Curricula.CurriculumItem do
     field :years_ids, {:array, :id}, virtual: true
     field :assessment_point_id, :id, virtual: true
 
+    # we use this when listing curriculum items as goals
+    # reflecting the parent assessment_point is_differentiation flag
+    field :is_differentiation, :boolean, virtual: true, default: false
+
     has_many :grade_composition_component_items, Lanttern.Grading.CompositionComponentItem
     has_many :assessment_points, Lanttern.Assessments.AssessmentPoint
     belongs_to :curriculum_component, Lanttern.Curricula.CurriculumComponent

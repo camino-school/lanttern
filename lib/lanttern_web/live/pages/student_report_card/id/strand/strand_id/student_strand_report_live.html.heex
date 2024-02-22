@@ -41,62 +41,19 @@
     </.badge>
   </div>
 </.cover>
-<%!-- <div class="sticky z-30 top-0 border-b border-ltrn-lighter bg-white">
-  <div class="flex items-center justify-between container lg:max-w-5xl mx-auto">
-    <.nav_tabs id="strand-nav-tabs">
-      <:tab
-        patch={~p"/strands/#{@strand}?#{%{tab: "about"}}"}
-        is_current={@current_tab == :about && "true"}
-      >
-        <%= gettext("About") %>
-      </:tab>
-      <:tab
-        patch={~p"/strands/#{@strand}?#{%{tab: "assessment"}}"}
-        is_current={@current_tab == :assessment && "true"}
-      >
-        <%= gettext("Assessment") %>
-      </:tab>
-      <:tab
-        patch={~p"/strands/#{@strand}?#{%{tab: "moments"}}"}
-        is_current={@current_tab == :moments && "true"}
-      >
-        <%= gettext("Moments") %>
-      </:tab>
-      <:tab
-        patch={~p"/strands/#{@strand}?#{%{tab: "notes"}}"}
-        is_current={@current_tab == :notes && "true"}
-        icon_name="hero-eye-slash"
-      >
-        <%= gettext("My notes") %>
-      </:tab>
-    </.nav_tabs>
-    <.menu_button id={@strand.id}>
-      <:menu_items>
-        <.menu_button_item
-          id={"edit-strand-#{@strand.id}"}
-          phx-click={JS.patch(~p"/strands/#{@strand}/edit")}
-        >
-          <%= gettext("Edit strand") %>
-        </.menu_button_item>
-        <.menu_button_item
-          id={"remove-strand-#{@strand.id}"}
-          class="text-red-500"
-          phx-click="delete_strand"
-          data-confirm={gettext("Are you sure?")}
-        >
-          <%= gettext("Delete") %>
-        </.menu_button_item>
-      </:menu_items>
-    </.menu_button>
-  </div>
-</div> --%>
 <div class="ltrn-bg-main-local">
   <div class="container py-10 mx-auto lg:max-w-5xl">
     <.markdown text={@strand_report.description} />
     <div class="mt-10">
       <div
         :for={
-          {%{curriculum_item: curriculum_item, scale: scale, rubric: rubric}, entry} <-
+          {%{
+             is_differentiation: is_diff,
+             curriculum_item: curriculum_item,
+             scale: scale,
+             rubric: rubric
+           },
+           entry} <-
             @strand_goals_student_entries
         }
         class="p-6 rounded mt-4 bg-white shadow"
@@ -115,11 +72,27 @@
           <.badge :if={curriculum_item.code} theme="dark">
             <%= curriculum_item.code %>
           </.badge>
+          <.badge :if={is_diff} theme="diff">
+            <%= gettext("Curriculum differentiation") %>
+          </.badge>
+          <.badge :if={rubric && length(rubric.differentiation_rubrics) > 0} theme="diff">
+            <%= gettext("Differentiation rubric") %>
+          </.badge>
           <.badge :for={subject <- curriculum_item.subjects}>
             <%= subject.name %>
           </.badge>
         </div>
-        <.report_scale class="mt-10" scale={scale} entry={entry} rubric={rubric} />
+        <.report_scale
+          class="mt-10"
+          scale={scale}
+          entry={entry}
+          rubric={
+            case rubric && rubric.differentiation_rubrics do
+              [diff_rubric] -> diff_rubric
+              _ -> rubric
+            end
+          }
+        />
         <.markdown
           :if={entry && entry.report_note}
           text={entry.report_note}

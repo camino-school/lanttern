@@ -238,16 +238,18 @@ defmodule LantternWeb.CoreComponents do
     ]
   end
 
+  @button_themes %{
+    "default" => "bg-ltrn-primary hover:bg-cyan-300 shadow-sm",
+    "white" => "bg-white hover:bg-ltrn-lightest shadow-sm",
+    "ghost" => [
+      "text-ltrn-subtle bg-transparent hover:bg-slate-100",
+      "disabled:text-ltrn-lighter disabled"
+    ]
+  }
+
   defp button_theme(theme) do
-    %{
-      "default" => "bg-ltrn-primary hover:bg-cyan-300 shadow-sm",
-      "white" => "bg-white hover:bg-ltrn-lightest shadow-sm",
-      "ghost" => [
-        "text-ltrn-subtle bg-transparent hover:bg-slate-100",
-        "disabled:text-ltrn-lighter disabled"
-      ]
-    }
-    |> Map.get(theme, "bg-ltrn-primary hover:bg-cyan-300")
+    @button_themes
+    |> Map.get(theme, @button_themes["default"])
   end
 
   @doc """
@@ -648,31 +650,34 @@ defmodule LantternWeb.CoreComponents do
     """
   end
 
+  @badge_themes %{
+    "default" => "bg-ltrn-lightest text-ltrn-dark",
+    "secondary" => "bg-ltrn-secondary text-white",
+    "cyan" => "bg-ltrn-mesh-cyan text-ltrn-dark",
+    "dark" => "bg-ltrn-dark text-ltrn-lighter",
+    "diff" => "bg-ltrn-diff-light text-ltrn-diff-highlight"
+  }
+
+  @badge_themes_hover %{
+    "default" => "hover:bg-ltrn-lightest/50",
+    "secondary" => "hover:bg-ltrn-secondary/50",
+    "cyan" => "hover:bg-ltrn-mesh-cyan/50",
+    "dark" => "hover:bg-ltrn-dark/50"
+  }
+
   defp badge_theme(theme, with_hover \\ false) do
-    %{
-      "default" =>
-        "bg-ltrn-lightest text-ltrn-dark #{if with_hover, do: "hover:bg-ltrn-lightest/50"}",
-      "secondary" =>
-        "bg-ltrn-secondary text-white #{if with_hover, do: "hover:bg-ltrn-secondary/50"}",
-      "cyan" =>
-        "bg-ltrn-mesh-cyan text-ltrn-dark #{if with_hover, do: "hover:bg-ltrn-mesh-cyan/50"}",
-      "dark" => "bg-ltrn-dark text-ltrn-lighter #{if with_hover, do: "hover:bg-ltrn-dark/50"}"
-    }
-    |> Map.get(
-      theme,
-      "bg-ltrn-lightest text-ltrn-dark #{if with_hover, do: "hover:bg-ltrn-lightest/50"}"
-    )
+    "#{Map.get(@badge_themes, theme, @badge_themes["default"])} #{if with_hover, do: Map.get(@badge_themes_hover, theme, @badge_themes_hover["default"])}"
   end
 
-  defp badge_icon_theme(theme) do
-    %{
-      "default" => "text-ltrn-subtle",
-      "secondary" => "text-white",
-      "cyan" => "text-ltrn-subtle",
-      "dark" => "text-ltrn-lighter"
-    }
-    |> Map.get(theme, "text-ltrn-subtle")
-  end
+  @badge_icon_themes %{
+    "default" => "text-ltrn-subtle",
+    "secondary" => "text-white",
+    "cyan" => "text-ltrn-subtle",
+    "dark" => "text-ltrn-lighter"
+  }
+
+  defp badge_icon_theme(theme),
+    do: Map.get(@badge_icon_themes, theme, @badge_icon_themes["default"])
 
   @doc """
   Renders a student or teacher badge.
@@ -745,7 +750,7 @@ defmodule LantternWeb.CoreComponents do
       class={[
         "shrink-0 flex items-center justify-center rounded-full font-display font-bold text-center  shadow-md",
         profile_icon_size_style(@size),
-        profile_icon_theme_style(@theme),
+        profile_icon_theme(@theme),
         @class
       ]}
       title={@profile_name}
@@ -760,9 +765,15 @@ defmodule LantternWeb.CoreComponents do
   defp profile_icon_size_style("sm"), do: "w-8 h-8 text-xs"
   defp profile_icon_size_style(_normal), do: "w-10 h-10 text-sm"
 
-  defp profile_icon_theme_style("subtle"), do: "text-ltrn-subtle bg-ltrn-lighter"
-  defp profile_icon_theme_style("rose"), do: "text-ltrn-dark bg-ltrn-mesh-rose"
-  defp profile_icon_theme_style(_cyan), do: "text-ltrn-dark bg-ltrn-mesh-primary"
+  @profile_icon_themes %{
+    "default" => "text-ltrn-subtle bg-ltrn-lighter",
+    "cyan" => "text-ltrn-dark bg-ltrn-mesh-primary",
+    "rose" => "text-ltrn-dark bg-ltrn-mesh-rose",
+    "diff" => "text-ltrn-diff-light bg-ltrn-diff-highlight"
+  }
+
+  defp profile_icon_theme(theme),
+    do: Map.get(@profile_icon_themes, theme, @profile_icon_themes["default"])
 
   defp profile_icon_initials(full_name) do
     case String.split(full_name, ~r{\s}, trim: true) do
@@ -955,6 +966,7 @@ defmodule LantternWeb.CoreComponents do
   attr :enabled, :boolean, required: true
   attr :class, :any, default: nil
   attr :sr_text, :string, default: nil
+  attr :theme, :string, default: "default"
   attr :rest, :global
 
   def toggle(assigns) do
@@ -962,8 +974,9 @@ defmodule LantternWeb.CoreComponents do
     <button
       type="button"
       class={[
-        "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-ltrn-primary focus:ring-offset-2",
-        if(@enabled, do: "bg-ltrn-primary", else: "bg-ltrn-lighter"),
+        "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2",
+        toggle_theme(@theme),
+        if(@enabled, do: toggle_enabled_theme(@theme), else: toggle_disabled_theme(@theme)),
         @class
       ]}
       role="switch"
@@ -982,6 +995,29 @@ defmodule LantternWeb.CoreComponents do
     </button>
     """
   end
+
+  @toggle_themes %{
+    "default" => "focus:ring-ltrn-primary",
+    "diff" => "focus:ring-ltrn-diff-highlight"
+  }
+
+  defp toggle_theme(theme),
+    do: Map.get(@toggle_themes, theme, @toggle_themes["default"])
+
+  @toggle_enabled_themes %{
+    "default" => "bg-ltrn-primary",
+    "diff" => "bg-ltrn-diff-highlight"
+  }
+
+  defp toggle_enabled_theme(theme),
+    do: Map.get(@toggle_enabled_themes, theme, @toggle_enabled_themes["default"])
+
+  @toggle_disabled_themes %{
+    "default" => "bg-ltrn-lighter"
+  }
+
+  defp toggle_disabled_theme(theme),
+    do: Map.get(@toggle_disabled_themes, theme, @toggle_disabled_themes["default"])
 
   @doc """
   Renders a `<button>` or `<.link>` with icon.

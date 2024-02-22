@@ -91,6 +91,10 @@ defmodule LantternWeb.FormComponents do
   attr :show_optional, :boolean, default: false, doc: "control the display of optional text"
   attr :class, :any, default: nil
 
+  attr :theme, :string,
+    default: nil,
+    doc: "Used to modify underlying input components (e.g. toggle)"
+
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
                 multiple pattern placeholder readonly required rows size step)
@@ -148,7 +152,11 @@ defmodule LantternWeb.FormComponents do
           class="hidden"
           {@rest}
         />
-        <.toggle enabled={@checked} phx-click={JS.dispatch("click", to: "##{@id}-label")} />
+        <.toggle
+          theme={@theme}
+          enabled={@checked}
+          phx-click={JS.dispatch("click", to: "##{@id}-label")}
+        />
         <%= @label %>
       </label>
       <.error :for={msg <- @errors}><%= msg %></.error>

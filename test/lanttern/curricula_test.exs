@@ -562,6 +562,7 @@ defmodule Lanttern.CurriculaTest do
       # create items "inverted" to test order by position
       curriculum_item_2 = curriculum_item_fixture()
       curriculum_item_1 = curriculum_item_fixture()
+      curriculum_item_diff = curriculum_item_fixture()
 
       strand = strand_fixture()
 
@@ -575,6 +576,12 @@ defmodule Lanttern.CurriculaTest do
         curriculum_item_id: curriculum_item_2.id
       })
 
+      AssessmentsFixtures.assessment_point_fixture(%{
+        strand_id: strand.id,
+        curriculum_item_id: curriculum_item_diff.id,
+        is_differentiation: true
+      })
+
       # extra curriculum items for testing
       curriculum_item_fixture()
       other_curriculum_item = curriculum_item_fixture()
@@ -584,9 +591,13 @@ defmodule Lanttern.CurriculaTest do
         curriculum_item_id: other_curriculum_item.id
       })
 
-      assert [expected_1, expected_2] = Curricula.list_strand_curriculum_items(strand.id)
+      assert [expected_1, expected_2, expected_diff] =
+               Curricula.list_strand_curriculum_items(strand.id)
+
       assert curriculum_item_1.id == expected_1.id
       assert curriculum_item_2.id == expected_2.id
+      assert curriculum_item_diff.id == expected_diff.id
+      assert expected_diff.is_differentiation
     end
   end
 
