@@ -17,6 +17,13 @@ defmodule LantternWeb.ReportCardsLive do
     socket =
       socket
       |> maybe_redirect(params)
+      |> stream_configure(
+        :cycles_and_report_cards,
+        dom_id: fn
+          {cycle, _report_cards} -> "cycle-#{cycle.id}"
+          _ -> ""
+        end
+      )
 
     {:ok, socket}
   end
@@ -31,13 +38,13 @@ defmodule LantternWeb.ReportCardsLive do
 
   @impl true
   def handle_params(_params, _url, socket) do
-    report_cards = Reporting.list_report_cards(preloads: :school_cycle)
-    report_cards_count = length(report_cards)
+    cycles_and_report_cards = Reporting.list_report_cards_by_cycle()
+    has_report_cards = length(cycles_and_report_cards) > 0
 
     socket =
       socket
-      |> stream(:report_cards, report_cards)
-      |> assign(:report_cards_count, report_cards_count)
+      |> stream(:cycles_and_report_cards, cycles_and_report_cards)
+      |> assign(:has_report_cards, has_report_cards)
 
     {:noreply, socket}
   end

@@ -10,6 +10,8 @@ defmodule Lanttern.Reporting do
   alias Lanttern.Reporting.ReportCard
 
   alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.Schools
+  alias Lanttern.Schools.Cycle
 
   @doc """
   Returns the list of report cards.
@@ -52,6 +54,33 @@ defmodule Lanttern.Reporting do
 
   defp apply_report_cards_filter(_, queryable),
     do: queryable
+
+  @doc """
+  Returns the list of report cards, grouped by cycle.
+
+  Cycles are ordered by end date (desc), and report cards
+  in each group ordered by name (asc) — it's the same order
+  returned by `list_report_cards/1`, which is used internally.
+
+  ## Examples
+
+      iex> list_report_cards_by_cycle()
+      [{%Cycle{}, [%ReportCard{}, ...]}, ...]
+
+  """
+
+  @spec list_report_cards_by_cycle() :: [
+          {Cycle.t(), [ReportCard.t()]}
+        ]
+  def list_report_cards_by_cycle() do
+    report_cards_by_cycle_map =
+      list_report_cards()
+      |> Enum.group_by(& &1.school_cycle_id)
+
+    Schools.list_cycles(order_by: [desc: :end_at])
+    |> Enum.map(&{&1, Map.get(report_cards_by_cycle_map, &1.id)})
+    |> Enum.filter(fn {_cycle, report_cards} -> not is_nil(report_cards) end)
+  end
 
   @doc """
   Gets a single report_card.

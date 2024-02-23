@@ -7,6 +7,7 @@ defmodule Lanttern.ReportingTest do
     alias Lanttern.Reporting.ReportCard
 
     import Lanttern.ReportingFixtures
+    alias Lanttern.SchoolsFixtures
 
     @invalid_attrs %{name: nil, description: nil}
 
@@ -37,6 +38,40 @@ defmodule Lanttern.ReportingTest do
       [expected] = Reporting.list_report_cards(strands_ids: [strand.id])
 
       assert expected.id == report_card.id
+    end
+
+    test "list_report_cards_by_cycle/0 returns report_cards grouped by cycle" do
+      school = SchoolsFixtures.school_fixture()
+
+      cycle_2024 =
+        SchoolsFixtures.cycle_fixture(%{
+          school_id: school.id,
+          start_at: ~D[2024-01-01],
+          end_at: ~D[2024-12-31]
+        })
+
+      cycle_2023 =
+        SchoolsFixtures.cycle_fixture(%{
+          school_id: school.id,
+          start_at: ~D[2023-01-01],
+          end_at: ~D[2023-12-31]
+        })
+
+      report_card_2024_1 = report_card_fixture(%{school_cycle_id: cycle_2024.id, name: "AAA"})
+      report_card_2024_2 = report_card_fixture(%{school_cycle_id: cycle_2024.id, name: "BBB"})
+      report_card_2023_1 = report_card_fixture(%{school_cycle_id: cycle_2023.id})
+
+      assert [
+               {expected_cycle_2024, [expected_report_2024_1, expected_report_2024_2]},
+               {expected_cycle_2023, [expected_report_2023_1]}
+             ] = Reporting.list_report_cards_by_cycle()
+
+      assert expected_cycle_2024.id == cycle_2024.id
+      assert expected_report_2024_1.id == report_card_2024_1.id
+      assert expected_report_2024_2.id == report_card_2024_2.id
+
+      assert expected_cycle_2023.id == cycle_2023.id
+      assert expected_report_2023_1.id == report_card_2023_1.id
     end
 
     test "get_report_card!/2 returns the report_card with given id" do

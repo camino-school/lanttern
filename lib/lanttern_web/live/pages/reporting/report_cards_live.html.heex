@@ -8,19 +8,28 @@
       <%= gettext("Create new report card") %>
     </.collection_action>
   </div>
-  <%= if @report_cards_count == 0 do %>
+  <%= if @has_report_cards do %>
+    <div phx-update="stream" id="cycle-report-cards-grid">
+      <div
+        :for={{dom_id, {cycle, report_cards}} <- @streams.cycles_and_report_cards}
+        id={dom_id}
+        class="mt-12"
+      >
+        <h6 class="font-display font-bold"><%= cycle.name %></h6>
+        <div class="grid grid-cols-3 gap-10 mt-10">
+          <.report_card_card
+            :for={report_card <- report_cards}
+            id={"report-card-#{report_card.id}"}
+            report_card={report_card}
+            navigate={~p"/reporting/#{report_card}"}
+          />
+        </div>
+      </div>
+    </div>
+  <% else %>
     <.empty_state>
       <%= gettext("No report cards created yet") %>
     </.empty_state>
-  <% else %>
-    <div phx-update="stream" id="report-cards-grid" class="grid grid-cols-3 gap-10 mt-12">
-      <.report_card_card
-        :for={{dom_id, report_card} <- @streams.report_cards}
-        id={dom_id}
-        report_card={report_card}
-        navigate={~p"/reporting/#{report_card}"}
-      />
-    </div>
   <% end %>
 </div>
 <.slide_over

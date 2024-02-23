@@ -80,6 +80,23 @@ defmodule Lanttern.SchoolsTest do
       assert [cycle] == Schools.list_cycles(schools_ids: [school.id])
     end
 
+    test "list_cycles/1 with order opt returns all cycles ordered" do
+      cycle_2024_c =
+        cycle_fixture(%{start_at: ~D[2024-01-01], end_at: ~D[2024-12-31], name: "CCC"})
+
+      cycle_2023_a =
+        cycle_fixture(%{start_at: ~D[2023-01-01], end_at: ~D[2023-12-31], name: "AAA"})
+
+      cycle_2022_b =
+        cycle_fixture(%{start_at: ~D[2022-01-01], end_at: ~D[2022-12-31], name: "BBB"})
+
+      assert [cycle_2022_b, cycle_2023_a, cycle_2024_c] ==
+               Schools.list_cycles(order_by: [asc: :end_at])
+
+      assert [cycle_2024_c, cycle_2022_b, cycle_2023_a] ==
+               Schools.list_cycles(order_by: [desc: :name])
+    end
+
     test "get_cycle!/1 returns the cycle with given id" do
       cycle = cycle_fixture()
       assert Schools.get_cycle!(cycle.id) == cycle
