@@ -1,0 +1,92 @@
+<.cover style={"background-image: url(#{"/images/cover-placeholder.jpg"}?width=1280&height=640)"}>
+  <:top>
+    <div class="flex items-center justify-between">
+      <.breadcrumbs with_bg>
+        <:item link={~p"/report_cards"}><%= gettext("Reporting") %></:item>
+        <:item><%= gettext("Report card") %></:item>
+      </.breadcrumbs>
+      <.nav_menu_button />
+    </div>
+  </:top>
+  <h1 class="font-display font-black text-5xl"><%= @report_card.name %></h1>
+  <.badge theme="dark" class="mt-6">
+    <%= gettext("Cycle") %>: <%= @report_card.school_cycle.name %>
+  </.badge>
+</.cover>
+<div class="sticky z-30 top-0 border-b border-ltrn-lighter bg-white">
+  <div class="flex items-center justify-between container lg:max-w-5xl mx-auto">
+    <.nav_tabs id="strand-nav-tabs">
+      <:tab
+        patch={~p"/report_cards/#{@report_card}?#{%{tab: "students"}}"}
+        is_current={@current_tab == :students && "true"}
+      >
+        <%= gettext("Students") %>
+      </:tab>
+      <:tab
+        patch={~p"/report_cards/#{@report_card}?#{%{tab: "strands"}}"}
+        is_current={@current_tab == :strands && "true"}
+      >
+        <%= gettext("Strands") %>
+      </:tab>
+    </.nav_tabs>
+    <.menu_button id={@report_card.id}>
+      <:menu_items>
+        <.menu_button_item
+          id={"edit-report-card-#{@report_card.id}"}
+          phx-click={JS.patch(~p"/report_cards/#{@report_card}/edit")}
+        >
+          <%= gettext("Edit report card") %>
+        </.menu_button_item>
+        <.menu_button_item
+          id={"remove-report-card-#{@report_card.id}"}
+          class="text-red-500"
+          phx-click="delete_report_card"
+          data-confirm={gettext("Are you sure?")}
+        >
+          <%= gettext("Delete") %>
+        </.menu_button_item>
+      </:menu_items>
+    </.menu_button>
+  </div>
+</div>
+<div class="ltrn-bg-main-local">
+  <div :if={@current_tab == :students} class="container mx-auto lg:max-w-5xl">
+    TBD
+  </div>
+  <div :if={@current_tab == :strands} class="container mx-auto lg:max-w-5xl">
+    <.markdown text={@report_card.description} />
+    <.live_component
+      module={StrandsReportsComponent}
+      id="report-card-strands-reports"
+      report_card={@report_card}
+      live_action={@live_action}
+    />
+  </div>
+</div>
+<.slide_over
+  :if={@live_action == :edit}
+  id="report-card-form-overlay"
+  show={true}
+  on_cancel={JS.patch(~p"/report_cards/#{@report_card}")}
+>
+  <:title><%= gettext("Edit card") %></:title>
+  <.live_component
+    module={ReportCardFormComponent}
+    id={@report_card.id}
+    report_card={@report_card}
+    navigate={~p"/report_cards/#{@report_card}"}
+    hide_submit
+  />
+  <:actions>
+    <.button
+      type="button"
+      theme="ghost"
+      phx-click={JS.exec("data-cancel", to: "#report-card-form-overlay")}
+    >
+      <%= gettext("Cancel") %>
+    </.button>
+    <.button type="submit" form="report-card-form">
+      <%= gettext("Save") %>
+    </.button>
+  </:actions>
+</.slide_over>

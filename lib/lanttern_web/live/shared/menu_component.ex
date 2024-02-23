@@ -31,7 +31,7 @@ defmodule LantternWeb.MenuComponent do
               <.nav_item active={@active_nav == :curriculum} path={~p"/curriculum"}>
                 <%= gettext("Curriculum") %>
               </.nav_item>
-              <.nav_item active={@active_nav == :reporting} path={~p"/reporting"}>
+              <.nav_item active={@active_nav == :reporting} path={~p"/report_cards"}>
                 <%= gettext("Reporting") %>
               </.nav_item>
               <%!-- use this li as placeholder when nav items % 3 != 0--%>

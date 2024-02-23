@@ -32,7 +32,7 @@ defmodule LantternWeb.ReportCardsLive do
 
   defp maybe_redirect(%{assigns: %{live_action: live_action}} = socket, _params)
        when live_action in [:new],
-       do: redirect(socket, to: ~p"/reporting")
+       do: redirect(socket, to: ~p"/report_cards")
 
   defp maybe_redirect(socket, _params), do: socket
 

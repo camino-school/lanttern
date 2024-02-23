@@ -174,7 +174,13 @@ defmodule Lanttern.Reporting do
   alias Lanttern.Reporting.StrandReport
 
   @doc """
-  Returns the list of strand_reports.
+  Returns the list of strand reports.
+
+  Reports are ordered by position.
+
+  ## Options
+
+      - `:report_card_id` - filter strand reports by report card
 
   ## Examples
 
@@ -182,9 +188,28 @@ defmodule Lanttern.Reporting do
       [%StrandReport{}, ...]
 
   """
-  def list_strand_reports do
-    Repo.all(StrandReport)
+  @spec list_strand_reports(Keyword.t()) :: [StrandReport.t()]
+
+  def list_strand_reports(opts \\ []) do
+    from(sr in StrandReport,
+      order_by: sr.position
+    )
+    |> apply_list_strand_reports_opts(opts)
+    |> Repo.all()
   end
+
+  defp apply_list_strand_reports_opts(queryable, []), do: queryable
+
+  defp apply_list_strand_reports_opts(queryable, [{:report_card_id, report_card_id} | opts]) do
+    from(
+      sr in queryable,
+      where: sr.report_card_id == ^report_card_id
+    )
+    |> apply_list_strand_reports_opts(opts)
+  end
+
+  defp apply_list_strand_reports_opts(queryable, [_opt | opts]),
+    do: apply_list_strand_reports_opts(queryable, opts)
 
   @doc """
   Gets a single strand_report.

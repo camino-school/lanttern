@@ -130,7 +130,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
             :for={{dom_id, report_card} <- @streams.report_cards}
             id={dom_id}
             report_card={report_card}
-            navigate={~p"/reporting/#{report_card}"}
+            navigate={~p"/report_cards/#{report_card}"}
           />
         </div>
         <.class_selection_overlay

@@ -4,7 +4,7 @@ defmodule LantternWeb.ReportCardsLiveTest do
   import Lanttern.ReportingFixtures
   alias Lanttern.SchoolsFixtures
 
-  @live_view_path "/reporting"
+  @live_view_path "/report_cards"
 
   setup [:register_and_log_in_user]
 

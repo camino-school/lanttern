@@ -146,9 +146,24 @@ defmodule Lanttern.ReportingTest do
 
     @invalid_attrs %{report_card_id: nil}
 
-    test "list_strand_reports/0 returns all strand_reports" do
+    test "list_strand_reports/1 returns all strand_reports" do
       strand_report = strand_report_fixture()
       assert Reporting.list_strand_reports() == [strand_report]
+    end
+
+    test "list_strand_reports/1 with report card filter returns all strand_reports filtered by report card" do
+      report_card = report_card_fixture()
+
+      strand_report_1 = strand_report_fixture(%{report_card_id: report_card.id})
+      strand_report_2 = strand_report_fixture(%{report_card_id: report_card.id})
+
+      # extra strand report fixture to test filter
+      strand_report_fixture()
+
+      assert Reporting.list_strand_reports(report_card_id: report_card.id) == [
+               strand_report_1,
+               strand_report_2
+             ]
     end
 
     test "get_strand_report!/2 returns the strand_report with given id" do

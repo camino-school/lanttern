@@ -18,7 +18,7 @@ defmodule Lanttern.Reporting.StrandReport do
   def changeset(strand_report, attrs) do
     strand_report
     |> cast(attrs, [:description, :position, :report_card_id, :strand_id])
-    |> validate_required([:position, :report_card_id, :strand_id])
+    |> validate_required([:report_card_id, :strand_id])
     |> unique_constraint([:strand_id, :report_card_id],
       message: gettext("Strand already linked to report card")
     )
