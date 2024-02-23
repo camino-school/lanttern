@@ -151,6 +151,15 @@ defmodule Lanttern.ReportingTest do
       assert Reporting.list_strand_reports() == [strand_report]
     end
 
+    test "list_strand_reports/1 with preloads returns all strand_reports with preloaded data" do
+      report_card = report_card_fixture()
+      strand_report = strand_report_fixture(%{report_card_id: report_card.id})
+
+      assert [expected_strand_report] = Reporting.list_strand_reports(preloads: :report_card)
+      assert expected_strand_report.id == strand_report.id
+      assert expected_strand_report.report_card.id == report_card.id
+    end
+
     test "list_strand_reports/1 with report card filter returns all strand_reports filtered by report card" do
       report_card = report_card_fixture()
 

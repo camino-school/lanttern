@@ -180,6 +180,7 @@ defmodule Lanttern.Reporting do
 
   ## Options
 
+      - `:preloads` – preloads associated data
       - `:report_card_id` - filter strand reports by report card
 
   ## Examples
@@ -196,6 +197,7 @@ defmodule Lanttern.Reporting do
     )
     |> apply_list_strand_reports_opts(opts)
     |> Repo.all()
+    |> maybe_preload(opts)
   end
 
   defp apply_list_strand_reports_opts(queryable, []), do: queryable

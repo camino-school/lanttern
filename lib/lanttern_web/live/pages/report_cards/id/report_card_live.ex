@@ -38,7 +38,7 @@ defmodule LantternWeb.ReportCardLive do
   @impl true
   def handle_params(%{"id" => id} = params, _url, socket) do
     report_card =
-      Reporting.get_report_card!(id, preloads: [:school_cycle, strand_reports: :strand])
+      Reporting.get_report_card!(id, preloads: :school_cycle)
 
     socket =
       socket

@@ -6,6 +6,7 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
 
   # shared components
   alias LantternWeb.Reporting.StrandReportFormComponent
+  import LantternWeb.LearningContextComponents
 
   @impl true
   def render(assigns) do
@@ -13,7 +14,7 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
     <div class="container py-10 mx-auto lg:max-w-5xl">
       <div class="flex items-end justify-between mb-4">
         <h3 class="font-display font-bold text-lg">
-          <%= gettext("Strands reports") %>
+          <%= gettext("Strands linked to report") %>
         </h3>
         <div class="shrink-0 flex items-center gap-6">
           <%!-- <.collection_action
@@ -30,19 +31,22 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
             phx-target={@myself}
             icon_name="hero-plus-circle"
           >
-            <%= gettext("Add strand to report") %>
+            <%= gettext("Link strand") %>
           </.collection_action>
         </div>
       </div>
-      <%= if length(@report_card.strand_reports) == 0 do %>
-        <.empty_state>No strands linked to this report yet</.empty_state>
-      <% else %>
-        <div
-          :for={strand_report <- @report_card.strand_reports}
-          id={"strand-report-#{strand_report.id}"}
-        >
-          <%= strand_report.strand.name %>
+      <%= if @has_strands_reports do %>
+        <div class="grid grid-cols-3 gap-10 mt-10">
+          <.strand_card
+            :for={{dom_id, strand_report} <- @streams.strands_reports}
+            id={dom_id}
+            strand={strand_report.strand}
+            navigate={~p"/strands/#{strand_report.strand}?tab=reporting"}
+            hide_description
+          />
         </div>
+      <% else %>
+        <.empty_state><%= gettext("No strands linked to this report yet") %></.empty_state>
       <% end %>
       <.slide_over
         :if={@live_action == :edit_strand_report}
@@ -83,13 +87,17 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
 
   @impl true
   def update(assigns, socket) do
+    strands_reports =
+      Reporting.list_strand_reports(
+        report_card_id: assigns.report_card.id,
+        preloads: [strand: [:subjects, :years]]
+      )
+
     socket =
       socket
       |> assign(assigns)
-      |> stream(
-        :strand_reports,
-        Reporting.list_strand_reports(report_card_id: assigns.report_card.id)
-      )
+      |> stream(:strands_reports, strands_reports)
+      |> assign(:has_strands_reports, length(strands_reports) > 0)
 
     {:ok, socket}
   end
