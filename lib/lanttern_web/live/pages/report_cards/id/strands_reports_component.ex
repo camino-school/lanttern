@@ -20,17 +20,15 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
         </h3>
         <div class="shrink-0 flex items-center gap-6">
           <.collection_action
-            type="button"
-            phx-click={JS.exec("data-show", to: "#strands-reports-reorder-overlay")}
-            phx-target={@myself}
+            type="link"
+            patch={~p"/report_cards/#{@report_card}?tab=strands&is_reordering=true"}
             icon_name="hero-arrows-up-down"
           >
             <%= gettext("Reorder") %>
           </.collection_action>
           <.collection_action
-            type="button"
-            phx-click="add_strand"
-            phx-target={@myself}
+            type="link"
+            patch={~p"/report_cards/#{@report_card}?tab=strands&is_creating_strand_report=true"}
             icon_name="hero-plus-circle"
           >
             <%= gettext("Link strand") %>
@@ -43,15 +41,32 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
             :for={{dom_id, strand_report} <- @streams.strands_reports}
             id={dom_id}
             strand={strand_report.strand}
-            navigate={~p"/strands/#{strand_report.strand}?tab=reporting"}
+            open_in_new_link={~p"/strands/#{strand_report.strand}?tab=reporting"}
             hide_description
-          />
+          >
+            <:bottom_content>
+              <div class="flex gap-2 p-6">
+                <.button type="button" icon_name="hero-eye"><%= gettext("Preview") %></.button>
+                <.button
+                  type="button"
+                  theme="ghost"
+                  phx-click={
+                    JS.patch(
+                      ~p"/report_cards/#{@report_card}?tab=strands&is_editing_strand_report=#{strand_report.id}"
+                    )
+                  }
+                >
+                  <%= gettext("Edit") %>
+                </.button>
+              </div>
+            </:bottom_content>
+          </.strand_card>
         </div>
       <% else %>
         <.empty_state><%= gettext("No strands linked to this report yet") %></.empty_state>
       <% end %>
       <.slide_over
-        :if={@live_action == :edit_strand_report}
+        :if={@show_strand_report_form}
         id="strand-report-form-overlay"
         show={true}
         on_cancel={JS.patch(~p"/report_cards/#{@report_card}?tab=strands")}
@@ -61,9 +76,20 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
           module={StrandReportFormComponent}
           id={@strand_report.id || :new}
           strand_report={@strand_report}
-          navigate={~p"/report_cards/#{@report_card}"}
+          navigate={~p"/report_cards/#{@report_card}?tab=strands"}
           hide_submit
         />
+        <:actions_left :if={@strand_report.id}>
+          <.button
+            type="button"
+            theme="ghost"
+            phx-click="delete_strand_report"
+            phx-target={@myself}
+            data-confirm={gettext("Are you sure?")}
+          >
+            <%= gettext("Delete") %>
+          </.button>
+        </:actions_left>
         <:actions>
           <.button
             type="button"
@@ -77,7 +103,12 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
           </.button>
         </:actions>
       </.slide_over>
-      <.slide_over id="strands-reports-reorder-overlay">
+      <.slide_over
+        :if={@is_reordering}
+        id="strands-reports-reorder-overlay"
+        show={true}
+        on_cancel={JS.patch(~p"/report_cards/#{@report_card}?tab=strands")}
+      >
         <:title><%= gettext("Reorder strands reports") %></:title>
         <ol>
           <li
@@ -128,12 +159,23 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
 
   # lifecycle
   @impl true
-  def mount(socket) do
-    {:ok, assign(socket, :is_reordering, false)}
+  def update(assigns, socket) do
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign_strands_reports(assigns)
+      |> assign_show_strand_report_form(assigns)
+      |> assign_is_reordering(assigns)
+
+    {:ok, socket}
   end
 
-  @impl true
-  def update(assigns, socket) do
+  # fetch strands reports and assign only if the assigns do not exist
+  # (something like assign_new, but for multiple assigns)
+  defp assign_strands_reports(%{assigns: %{streams: %{strands_reports: _}}} = socket, _),
+    do: socket
+
+  defp assign_strands_reports(socket, assigns) do
     strands_reports =
       Reporting.list_strands_reports(
         report_card_id: assigns.report_card.id,
@@ -146,76 +188,77 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
       |> Enum.map(&%{id: &1.id, name: &1.strand.name, type: &1.strand.type})
       |> Enum.with_index()
 
-    socket =
-      socket
-      |> assign(assigns)
-      |> stream(:strands_reports, strands_reports)
-      |> assign(:sortable_strands_reports, sortable_strands_reports)
-      |> assign(:has_strands_reports, length(strands_reports) > 0)
-
-    {:ok, socket}
+    socket
+    |> assign(assigns)
+    |> stream(:strands_reports, strands_reports)
+    |> assign(:sortable_strands_reports, sortable_strands_reports)
+    |> assign(:has_strands_reports, length(strands_reports) > 0)
   end
+
+  defp assign_show_strand_report_form(socket, %{
+         params: %{"is_creating_strand_report" => "true"}
+       }) do
+    strand_report = %StrandReport{
+      report_card_id: socket.assigns.report_card.id
+    }
+
+    socket
+    |> assign(:strand_report, strand_report)
+    |> assign(:show_strand_report_form, true)
+  end
+
+  defp assign_show_strand_report_form(socket, %{
+         params: %{"is_editing_strand_report" => id}
+       }) do
+    report_card_id = socket.assigns.report_card.id
+
+    cond do
+      String.match?(id, ~r/[0-9]+/) ->
+        case Reporting.get_strand_report(id) do
+          %StrandReport{report_card_id: ^report_card_id} = strand_report ->
+            socket
+            |> assign(:strand_report, strand_report)
+            |> assign(:show_strand_report_form, true)
+
+          _ ->
+            assign(socket, :show_strand_report_form, false)
+        end
+
+      true ->
+        assign(socket, :show_strand_report_form, false)
+    end
+  end
+
+  defp assign_show_strand_report_form(socket, _),
+    do: assign(socket, :show_strand_report_form, false)
+
+  defp assign_is_reordering(socket, %{params: %{"is_reordering" => "true"}}),
+    do: assign(socket, :is_reordering, true)
+
+  defp assign_is_reordering(socket, _),
+    do: assign(socket, :is_reordering, false)
 
   # event handlers
 
   @impl true
-  def handle_event("add_strand", _params, socket) do
-    report_card = socket.assigns.report_card
+  def handle_event("delete_strand_report", _params, socket) do
+    case Reporting.delete_strand_report(socket.assigns.strand_report) do
+      {:ok, _strand_report} ->
+        socket =
+          socket
+          |> put_flash(:info, gettext("Strand report deleted"))
+          |> push_navigate(to: ~p"/report_cards")
 
-    strand_report = %StrandReport{
-      report_card_id: report_card.id
-    }
+        {:noreply, socket}
 
-    socket =
-      socket
-      |> assign(:strand_report, strand_report)
-      |> push_patch(to: ~p"/report_cards/#{report_card}/edit_strand_report")
+      {:error, _changeset} ->
+        socket =
+          socket
+          |> put_flash(:error, gettext("Error deleting strand report"))
 
-    {:noreply, socket}
+        {:noreply, socket}
+    end
   end
-
-  # def handle_event("edit_goal", %{"id" => assessment_point_id}, socket) do
-  #   assessment_point = Assessments.get_assessment_point(assessment_point_id)
-
-  #   {:noreply,
-  #    socket
-  #    |> assign(:assessment_point, assessment_point)
-  #    |> push_patch(to: ~p"/strands/#{socket.assigns.strand}/goal/edit")}
-  # end
-
-  # def handle_event("delete_assessment_point", _params, socket) do
-  #   case Assessments.delete_assessment_point(socket.assigns.assessment_point) do
-  #     {:ok, _assessment_point} ->
-  #       {:noreply,
-  #        socket
-  #        |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}?tab=about")}
-
-  #     {:error, _changeset} ->
-  #       # we may have more error types, but for now we are handling only this one
-  #       message =
-  #         gettext("This goal already have some entries. Deleting it will cause data loss.")
-
-  #       {:noreply, socket |> assign(:delete_assessment_point_error, message)}
-  #   end
-  # end
-
-  # def handle_event("delete_assessment_point_and_entries", _, socket) do
-  #   case Assessments.delete_assessment_point_and_entries(socket.assigns.assessment_point) do
-  #     {:ok, _} ->
-  #       {:noreply,
-  #        socket
-  #        |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}?tab=about")}
-
-  #     {:error, _} ->
-  #       {:noreply, socket}
-  #   end
-  # end
-
-  # def handle_event("dismiss_assessment_point_error", _, socket) do
-  #   {:noreply,
-  #    socket
-  #    |> assign(:delete_assessment_point_error, nil)}
-  # end
 
   def handle_event("swap_strands_reports_position", %{"from" => i, "to" => j}, socket) do
     sortable_strands_reports =

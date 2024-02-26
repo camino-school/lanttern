@@ -217,7 +217,7 @@ defmodule Lanttern.Reporting do
   @doc """
   Gets a single strand_report.
 
-  Raises `Ecto.NoResultsError` if the Strand report does not exist.
+  Returns `nil` if the Strand report does not exist.
 
   ## Options:
 
@@ -225,12 +225,23 @@ defmodule Lanttern.Reporting do
 
   ## Examples
 
-      iex> get_strand_report!(123)
+      iex> get_strand_report(123)
       %StrandReport{}
 
-      iex> get_strand_report!(456)
-      ** (Ecto.NoResultsError)
+      iex> get_strand_report(456)
+      nil
 
+  """
+  def get_strand_report(id, opts \\ []) do
+    StrandReport
+    |> Repo.get(id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single strand_report.
+
+  Same as `get_strand_report/2`, but raises `Ecto.NoResultsError` if the Strand report does not exist.
   """
   def get_strand_report!(id, opts \\ []) do
     StrandReport
