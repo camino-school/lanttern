@@ -4,6 +4,8 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
   alias Lanttern.LearningContext
   alias Lanttern.LearningContext.Moment
 
+  import Lanttern.Utils, only: [swap: 3]
+
   # live components
   alias LantternWeb.LearningContext.MomentFormComponent
 
@@ -112,38 +114,17 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
     <.slide_over id="strand-moments-order-overlay">
       <:title><%= gettext("Strand Moments Order") %></:title>
       <ol>
-        <li
-          :for={{moment, i} <- @sortable_moments}
-          id={"sortable-moment-#{moment.id}"}
-          class="flex items-center gap-4 mb-4"
-        >
-          <div class="flex-1 flex items-start p-4 rounded bg-white shadow-lg">
+        <li :for={{moment, i} <- @sortable_moments} id={"sortable-moment-#{moment.id}"} class="mb-4">
+          <.sortable_card
+            is_move_up_disabled={i == 0}
+            on_move_up={JS.push("set_moment_position", value: %{from: i, to: i - 1}, target: @myself)}
+            is_move_down_disabled={i + 1 == @moments_count}
+            on_move_down={
+              JS.push("set_moment_position", value: %{from: i, to: i + 1}, target: @myself)
+            }
+          >
             <%= "#{i + 1}. #{moment.name}" %>
-          </div>
-          <div class="shrink-0 flex flex-col gap-2">
-            <.icon_button
-              type="button"
-              sr_text={gettext("Move moment up")}
-              name="hero-chevron-up-mini"
-              theme="ghost"
-              rounded
-              size="sm"
-              disabled={i == 0}
-              phx-click={JS.push("set_moment_position", value: %{from: i, to: i - 1})}
-              phx-target={@myself}
-            />
-            <.icon_button
-              type="button"
-              sr_text={gettext("Move moment down")}
-              name="hero-chevron-down-mini"
-              theme="ghost"
-              rounded
-              size="sm"
-              disabled={i + 1 == @moments_count}
-              phx-click={JS.push("set_moment_position", value: %{from: i, to: i + 1})}
-              phx-target={@myself}
-            />
-          </div>
+          </.sortable_card>
         </li>
       </ol>
       <:actions>
@@ -218,17 +199,5 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
       {:error, _} ->
         {:noreply, socket}
     end
-  end
-
-  # helpers
-
-  # https://elixirforum.com/t/swap-elements-in-a-list/34471/4
-  defp swap(a, i1, i2) do
-    e1 = Enum.at(a, i1)
-    e2 = Enum.at(a, i2)
-
-    a
-    |> List.replace_at(i1, e2)
-    |> List.replace_at(i2, e1)
   end
 end

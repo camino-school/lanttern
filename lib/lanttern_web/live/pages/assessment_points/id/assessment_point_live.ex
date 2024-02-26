@@ -77,7 +77,7 @@ defmodule LantternWeb.AssessmentPointLive do
   def entry_row(assigns) do
     ~H"""
     <div class={"grid #{row_grid_cols_based_on_scale_type(@scale_type)} gap-2 mt-4"}>
-      <.icon_with_name class="self-center" profile_name={@student.name} />
+      <.profile_icon_with_name class="self-center" profile_name={@student.name} />
       <.live_component
         module={AssessmentPointEntryEditorComponent}
         id={@entry.id}

@@ -72,7 +72,7 @@ defmodule LantternWeb.AssessmentPointsLive do
   def student_and_entries(assigns) do
     ~H"""
     <div class="flex items-stretch gap-4">
-      <.icon_with_name
+      <.profile_icon_with_name
         class="sticky left-0 z-10 shrink-0 w-40 px-6 bg-white"
         profile_name={@student.name}
       />

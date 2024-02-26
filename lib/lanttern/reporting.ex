@@ -6,6 +6,7 @@ defmodule Lanttern.Reporting do
   import Ecto.Query, warn: false
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
+  import LantternWeb.Gettext
 
   alias Lanttern.Reporting.ReportCard
 
@@ -185,33 +186,33 @@ defmodule Lanttern.Reporting do
 
   ## Examples
 
-      iex> list_strand_reports()
+      iex> list_strands_reports()
       [%StrandReport{}, ...]
 
   """
-  @spec list_strand_reports(Keyword.t()) :: [StrandReport.t()]
+  @spec list_strands_reports(Keyword.t()) :: [StrandReport.t()]
 
-  def list_strand_reports(opts \\ []) do
+  def list_strands_reports(opts \\ []) do
     from(sr in StrandReport,
       order_by: sr.position
     )
-    |> apply_list_strand_reports_opts(opts)
+    |> apply_list_strands_reports_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
-  defp apply_list_strand_reports_opts(queryable, []), do: queryable
+  defp apply_list_strands_reports_opts(queryable, []), do: queryable
 
-  defp apply_list_strand_reports_opts(queryable, [{:report_card_id, report_card_id} | opts]) do
+  defp apply_list_strands_reports_opts(queryable, [{:report_card_id, report_card_id} | opts]) do
     from(
       sr in queryable,
       where: sr.report_card_id == ^report_card_id
     )
-    |> apply_list_strand_reports_opts(opts)
+    |> apply_list_strands_reports_opts(opts)
   end
 
-  defp apply_list_strand_reports_opts(queryable, [_opt | opts]),
-    do: apply_list_strand_reports_opts(queryable, opts)
+  defp apply_list_strands_reports_opts(queryable, [_opt | opts]),
+    do: apply_list_strands_reports_opts(queryable, opts)
 
   @doc """
   Gets a single strand_report.
@@ -271,6 +272,40 @@ defmodule Lanttern.Reporting do
     strand_report
     |> StrandReport.changeset(attrs)
     |> Repo.update()
+  end
+
+  @doc """
+  Update strands reports positions based on ids list order.
+
+  ## Examples
+
+      iex> update_strands_reports_positions([3, 2, 1])
+      :ok
+
+  """
+  @spec update_strands_reports_positions([integer()]) :: :ok | {:error, String.t()}
+  def update_strands_reports_positions(strands_reports_ids) do
+    strands_reports_ids
+    |> Enum.with_index()
+    |> Enum.reduce(
+      Ecto.Multi.new(),
+      fn {id, i}, multi ->
+        multi
+        |> Ecto.Multi.update_all(
+          "update-#{id}",
+          from(
+            sr in StrandReport,
+            where: sr.id == ^id
+          ),
+          set: [position: i]
+        )
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:ok, _} -> :ok
+      _ -> {:error, gettext("Something went wrong")}
+    end
   end
 
   @doc """

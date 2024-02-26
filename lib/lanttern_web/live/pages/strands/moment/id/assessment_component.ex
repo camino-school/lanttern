@@ -5,6 +5,8 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Schools
 
+  import Lanttern.Utils, only: [swap: 3]
+
   # shared components
   alias LantternWeb.Assessments.EntryEditorComponent
   alias LantternWeb.Assessments.AssessmentPointFormComponent
@@ -291,7 +293,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
   def student_and_entries(assigns) do
     ~H"""
     <div class="flex items-stretch gap-4" id={@id}>
-      <.icon_with_name
+      <.profile_icon_with_name
         class="sticky left-0 z-10 shrink-0 w-60 px-6 bg-white"
         profile_name={@student.name}
       />
@@ -480,17 +482,5 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
       {:error, _} ->
         {:noreply, socket}
     end
-  end
-
-  # helpers
-
-  # https://elixirforum.com/t/swap-elements-in-a-list/34471/4
-  defp swap(a, i1, i2) do
-    e1 = Enum.at(a, i1)
-    e2 = Enum.at(a, i2)
-
-    a
-    |> List.replace_at(i1, e2)
-    |> List.replace_at(i2, e1)
   end
 end

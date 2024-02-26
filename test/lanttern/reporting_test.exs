@@ -146,21 +146,21 @@ defmodule Lanttern.ReportingTest do
 
     @invalid_attrs %{report_card_id: nil}
 
-    test "list_strand_reports/1 returns all strand_reports" do
+    test "list_strands_reports/1 returns all strand_reports" do
       strand_report = strand_report_fixture()
-      assert Reporting.list_strand_reports() == [strand_report]
+      assert Reporting.list_strands_reports() == [strand_report]
     end
 
-    test "list_strand_reports/1 with preloads returns all strand_reports with preloaded data" do
+    test "list_strands_reports/1 with preloads returns all strand_reports with preloaded data" do
       report_card = report_card_fixture()
       strand_report = strand_report_fixture(%{report_card_id: report_card.id})
 
-      assert [expected_strand_report] = Reporting.list_strand_reports(preloads: :report_card)
+      assert [expected_strand_report] = Reporting.list_strands_reports(preloads: :report_card)
       assert expected_strand_report.id == strand_report.id
       assert expected_strand_report.report_card.id == report_card.id
     end
 
-    test "list_strand_reports/1 with report card filter returns all strand_reports filtered by report card" do
+    test "list_strands_reports/1 with report card filter returns all strand_reports filtered by report card" do
       report_card = report_card_fixture()
 
       strand_report_1 = strand_report_fixture(%{report_card_id: report_card.id})
@@ -169,7 +169,7 @@ defmodule Lanttern.ReportingTest do
       # extra strand report fixture to test filter
       strand_report_fixture()
 
-      assert Reporting.list_strand_reports(report_card_id: report_card.id) == [
+      assert Reporting.list_strands_reports(report_card_id: report_card.id) == [
                strand_report_1,
                strand_report_2
              ]
@@ -227,6 +227,37 @@ defmodule Lanttern.ReportingTest do
                Reporting.update_strand_report(strand_report, @invalid_attrs)
 
       assert strand_report == Reporting.get_strand_report!(strand_report.id)
+    end
+
+    test "update_strands_reports_positions/1 update strands reports positions based on list order" do
+      report_card = report_card_fixture()
+      strand_report_1 = strand_report_fixture(%{report_card_id: report_card.id, position: 1})
+      strand_report_2 = strand_report_fixture(%{report_card_id: report_card.id, position: 2})
+      strand_report_3 = strand_report_fixture(%{report_card_id: report_card.id, position: 3})
+      strand_report_4 = strand_report_fixture(%{report_card_id: report_card.id, position: 4})
+
+      sorted_strands_reports_ids =
+        [
+          strand_report_2.id,
+          strand_report_3.id,
+          strand_report_1.id,
+          strand_report_4.id
+        ]
+
+      assert :ok == Reporting.update_strands_reports_positions(sorted_strands_reports_ids)
+
+      assert [
+               expected_sr_2,
+               expected_sr_3,
+               expected_sr_1,
+               expected_sr_4
+             ] =
+               Reporting.list_strands_reports(report_card_id: report_card.id)
+
+      assert expected_sr_1.id == strand_report_1.id
+      assert expected_sr_2.id == strand_report_2.id
+      assert expected_sr_3.id == strand_report_3.id
+      assert expected_sr_4.id == strand_report_4.id
     end
 
     test "delete_strand_report/1 deletes the strand_report" do

@@ -142,7 +142,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   def student_and_entries(assigns) do
     ~H"""
     <div class="flex items-stretch gap-4" id={@id}>
-      <.icon_with_name
+      <.profile_icon_with_name
         class="sticky left-0 z-10 shrink-0 w-60 px-6 bg-white"
         profile_name={@student.name}
       />

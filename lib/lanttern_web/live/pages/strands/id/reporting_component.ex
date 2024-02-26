@@ -180,7 +180,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
       style={"grid-column: span #{length(@entries) + 1} / span #{length(@entries) + 1}"}
     >
       <div class="sticky left-0 z-10 pl-6 py-2 pr-2 bg-white">
-        <.icon_with_name profile_name={@student.name} />
+        <.profile_icon_with_name profile_name={@student.name} />
       </div>
       <div :for={{entry, assessment_point} <- @entries} class="p-2">
         <.live_component
