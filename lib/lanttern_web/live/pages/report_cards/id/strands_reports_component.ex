@@ -1,4 +1,5 @@
 defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
+  alias Lanttern.LearningContext
   use LantternWeb, :live_component
 
   alias Lanttern.Reporting
@@ -7,6 +8,7 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
   import Lanttern.Utils, only: [swap: 3]
 
   # shared components
+  alias LantternWeb.LearningContext.StrandSearchComponent
   alias LantternWeb.Reporting.StrandReportFormComponent
   import LantternWeb.LearningContextComponents
 
@@ -71,15 +73,45 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
         show={true}
         on_cancel={JS.patch(~p"/report_cards/#{@report_card}?tab=strands")}
       >
-        <:title><%= gettext("Create strand report") %></:title>
-        <.live_component
-          module={StrandReportFormComponent}
-          id={@strand_report.id || :new}
-          strand_report={@strand_report}
-          navigate={~p"/report_cards/#{@report_card}?tab=strands"}
-          hide_submit
-        />
-        <:actions_left :if={@strand_report.id}>
+        <:title><%= @form_overlay_title %></:title>
+        <%= if @strand do %>
+          <div class="flex items-center gap-4 p-4 mb-6 rounded font-display bg-white shadow-lg">
+            <div class="flex-1">
+              <p class="font-black"><%= @strand.name %></p>
+              <p :if={@strand.type} class="text-sm text-ltrn-subtle"><%= @strand.type %></p>
+              <div class="flex flex-wrap gap-1 mt-4">
+                <.badge :for={subject <- @strand.subjects}><%= subject.name %></.badge>
+                <.badge :for={year <- @strand.years}><%= year.name %></.badge>
+              </div>
+            </div>
+            <button
+              :if={!@strand_report.id}
+              type="button"
+              class="shrink-0 block text-ltrn-subtle hover:text-ltrn-dark"
+              phx-click="remove_strand"
+              phx-target={@myself}
+            >
+              <.icon name="hero-x-circle" class="w-10 h-10" />
+            </button>
+          </div>
+          <.live_component
+            module={StrandReportFormComponent}
+            id={@strand_report.id || :new}
+            strand_report={@strand_report}
+            navigate={~p"/report_cards/#{@report_card}?tab=strands"}
+            hide_submit
+          />
+        <% else %>
+          <p class="mb-2"><%= gettext("Which strand do you want to link to this report?") %></p>
+          <.live_component
+            module={StrandSearchComponent}
+            id="strand-search"
+            render_form
+            selected_strands_ids={@selected_strands_ids}
+            notify_component={@myself}
+          />
+        <% end %>
+        <:actions_left :if={@strand && @strand_report.id}>
           <.button
             type="button"
             theme="ghost"
@@ -98,7 +130,7 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
           >
             <%= gettext("Cancel") %>
           </.button>
-          <.button type="submit" form="strand-report-form">
+          <.button type="submit" form="strand-report-form" disabled={!@strand}>
             <%= gettext("Save") %>
           </.button>
         </:actions>
@@ -159,6 +191,22 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
 
   # lifecycle
   @impl true
+  def update(%{action: {StrandSearchComponent, {:strand_selected, id}}}, socket) do
+    strand = LearningContext.get_strand(id, preloads: [:subjects, :years])
+
+    strand_report = %StrandReport{
+      report_card_id: socket.assigns.report_card.id,
+      strand_id: strand.id
+    }
+
+    socket =
+      socket
+      |> assign(:strand, strand)
+      |> assign(:strand_report, strand_report)
+
+    {:ok, socket}
+  end
+
   def update(assigns, socket) do
     socket =
       socket
@@ -188,22 +236,24 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
       |> Enum.map(&%{id: &1.id, name: &1.strand.name, type: &1.strand.type})
       |> Enum.with_index()
 
+    selected_strands_ids =
+      strands_reports
+      |> Enum.map(& &1.strand_id)
+
     socket
     |> assign(assigns)
     |> stream(:strands_reports, strands_reports)
     |> assign(:sortable_strands_reports, sortable_strands_reports)
     |> assign(:has_strands_reports, length(strands_reports) > 0)
+    |> assign(:selected_strands_ids, selected_strands_ids)
   end
 
   defp assign_show_strand_report_form(socket, %{
          params: %{"is_creating_strand_report" => "true"}
        }) do
-    strand_report = %StrandReport{
-      report_card_id: socket.assigns.report_card.id
-    }
-
     socket
-    |> assign(:strand_report, strand_report)
+    |> assign(:strand, nil)
+    |> assign(:form_overlay_title, gettext("Create strand report"))
     |> assign(:show_strand_report_form, true)
   end
 
@@ -214,10 +264,14 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
 
     cond do
       String.match?(id, ~r/[0-9]+/) ->
-        case Reporting.get_strand_report(id) do
+        case Reporting.get_strand_report(id, preloads: [strand: [:subjects, :years]]) do
           %StrandReport{report_card_id: ^report_card_id} = strand_report ->
+            strand = strand_report.strand
+
             socket
+            |> assign(:form_overlay_title, gettext("Edit strand report"))
             |> assign(:strand_report, strand_report)
+            |> assign(:strand, strand)
             |> assign(:show_strand_report_form, true)
 
           _ ->
@@ -241,13 +295,17 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
   # event handlers
 
   @impl true
+  def handle_event("remove_strand", _, socket) do
+    {:noreply, assign(socket, :strand, nil)}
+  end
+
   def handle_event("delete_strand_report", _params, socket) do
     case Reporting.delete_strand_report(socket.assigns.strand_report) do
       {:ok, _strand_report} ->
         socket =
           socket
           |> put_flash(:info, gettext("Strand report deleted"))
-          |> push_navigate(to: ~p"/report_cards")
+          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=strands")
 
         {:noreply, socket}
 

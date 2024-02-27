@@ -264,7 +264,38 @@ defmodule Lanttern.Reporting do
   def create_strand_report(attrs \\ %{}) do
     %StrandReport{}
     |> StrandReport.changeset(attrs)
+    |> set_strand_report_position()
     |> Repo.insert()
+  end
+
+  # skip if not valid
+  defp set_strand_report_position(%Ecto.Changeset{valid?: false} = changeset),
+    do: changeset
+
+  # skip if changeset already has position change
+  defp set_strand_report_position(%Ecto.Changeset{changes: %{position: _position}} = changeset),
+    do: changeset
+
+  defp set_strand_report_position(%Ecto.Changeset{} = changeset) do
+    report_card_id =
+      Ecto.Changeset.get_field(changeset, :report_card_id)
+
+    position =
+      from(
+        sr in StrandReport,
+        where: sr.report_card_id == ^report_card_id,
+        select: sr.position,
+        order_by: [desc: sr.position],
+        limit: 1
+      )
+      |> Repo.one()
+      |> case do
+        nil -> 0
+        pos -> pos + 1
+      end
+
+    changeset
+    |> Ecto.Changeset.put_change(:position, position)
   end
 
   @doc """
