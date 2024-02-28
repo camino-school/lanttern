@@ -4,37 +4,46 @@
     <p class="font-display font-bold text-lg">
       <%= gettext("Viewing report cards") %>
     </p>
-    <.collection_action type="link" icon_name="hero-plus-circle" patch={~p"/reporting/new"}>
+    <.collection_action type="link" icon_name="hero-plus-circle" patch={~p"/report_cards/new"}>
       <%= gettext("Create new report card") %>
     </.collection_action>
   </div>
-  <%= if @report_cards_count == 0 do %>
+  <%= if @has_report_cards do %>
+    <div phx-update="stream" id="cycle-report-cards-grid">
+      <div
+        :for={{dom_id, {cycle, report_cards}} <- @streams.cycles_and_report_cards}
+        id={dom_id}
+        class="mt-12"
+      >
+        <h6 class="font-display font-bold"><%= cycle.name %></h6>
+        <div class="grid grid-cols-3 gap-10 mt-10">
+          <.report_card_card
+            :for={report_card <- report_cards}
+            id={"report-card-#{report_card.id}"}
+            report_card={report_card}
+            navigate={~p"/report_cards/#{report_card}"}
+          />
+        </div>
+      </div>
+    </div>
+  <% else %>
     <.empty_state>
       <%= gettext("No report cards created yet") %>
     </.empty_state>
-  <% else %>
-    <div phx-update="stream" id="report-cards-grid" class="grid grid-cols-3 gap-10 mt-12">
-      <.report_card_card
-        :for={{dom_id, report_card} <- @streams.report_cards}
-        id={dom_id}
-        report_card={report_card}
-        navigate={~p"/reporting/#{report_card}"}
-      />
-    </div>
   <% end %>
 </div>
 <.slide_over
   :if={@live_action == :new}
   id="report-card-form-overlay"
   show={true}
-  on_cancel={JS.patch(~p"/reporting")}
+  on_cancel={JS.patch(~p"/report_cards")}
 >
   <:title><%= gettext("New report card") %></:title>
   <.live_component
     module={ReportCardFormComponent}
     id={:new}
     report_card={%ReportCard{}}
-    navigate={fn _report_card -> ~p"/reporting" end}
+    navigate={fn _report_card -> ~p"/report_cards" end}
     hide_submit
   />
   <:actions>

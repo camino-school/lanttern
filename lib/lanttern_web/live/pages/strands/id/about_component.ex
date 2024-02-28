@@ -5,6 +5,8 @@ defmodule LantternWeb.StrandLive.AboutComponent do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Curricula
 
+  import Lanttern.Utils, only: [swap: 3]
+
   # shared components
   alias LantternWeb.Assessments.AssessmentPointFormComponent
 
@@ -266,17 +268,5 @@ defmodule LantternWeb.StrandLive.AboutComponent do
       {:error, msg} ->
         {:noreply, put_flash(socket, :error, msg)}
     end
-  end
-
-  # helpers
-
-  # https://elixirforum.com/t/swap-elements-in-a-list/34471/4
-  defp swap(a, i1, i2) do
-    e1 = Enum.at(a, i1)
-    e2 = Enum.at(a, i2)
-
-    a
-    |> List.replace_at(i1, e2)
-    |> List.replace_at(i2, e1)
   end
 end

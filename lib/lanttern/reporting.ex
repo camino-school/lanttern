@@ -6,10 +6,16 @@ defmodule Lanttern.Reporting do
   import Ecto.Query, warn: false
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
+  import LantternWeb.Gettext
 
   alias Lanttern.Reporting.ReportCard
+  alias Lanttern.Reporting.StudentReportCard
 
   alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.Schools
+  alias Lanttern.Schools.Class
+  alias Lanttern.Schools.Cycle
+  alias Lanttern.Schools.Student
 
   @doc """
   Returns the list of report cards.
@@ -52,6 +58,33 @@ defmodule Lanttern.Reporting do
 
   defp apply_report_cards_filter(_, queryable),
     do: queryable
+
+  @doc """
+  Returns the list of report cards, grouped by cycle.
+
+  Cycles are ordered by end date (desc), and report cards
+  in each group ordered by name (asc) — it's the same order
+  returned by `list_report_cards/1`, which is used internally.
+
+  ## Examples
+
+      iex> list_report_cards_by_cycle()
+      [{%Cycle{}, [%ReportCard{}, ...]}, ...]
+
+  """
+
+  @spec list_report_cards_by_cycle() :: [
+          {Cycle.t(), [ReportCard.t()]}
+        ]
+  def list_report_cards_by_cycle() do
+    report_cards_by_cycle_map =
+      list_report_cards()
+      |> Enum.group_by(& &1.school_cycle_id)
+
+    Schools.list_cycles(order_by: [desc: :end_at])
+    |> Enum.map(&{&1, Map.get(report_cards_by_cycle_map, &1.id)})
+    |> Enum.filter(fn {_cycle, report_cards} -> not is_nil(report_cards) end)
+  end
 
   @doc """
   Gets a single report_card.
@@ -145,22 +178,49 @@ defmodule Lanttern.Reporting do
   alias Lanttern.Reporting.StrandReport
 
   @doc """
-  Returns the list of strand_reports.
+  Returns the list of strand reports.
+
+  Reports are ordered by position.
+
+  ## Options
+
+      - `:preloads` – preloads associated data
+      - `:report_card_id` - filter strand reports by report card
 
   ## Examples
 
-      iex> list_strand_reports()
+      iex> list_strands_reports()
       [%StrandReport{}, ...]
 
   """
-  def list_strand_reports do
-    Repo.all(StrandReport)
+  @spec list_strands_reports(Keyword.t()) :: [StrandReport.t()]
+
+  def list_strands_reports(opts \\ []) do
+    from(sr in StrandReport,
+      order_by: sr.position
+    )
+    |> apply_list_strands_reports_opts(opts)
+    |> Repo.all()
+    |> maybe_preload(opts)
   end
+
+  defp apply_list_strands_reports_opts(queryable, []), do: queryable
+
+  defp apply_list_strands_reports_opts(queryable, [{:report_card_id, report_card_id} | opts]) do
+    from(
+      sr in queryable,
+      where: sr.report_card_id == ^report_card_id
+    )
+    |> apply_list_strands_reports_opts(opts)
+  end
+
+  defp apply_list_strands_reports_opts(queryable, [_opt | opts]),
+    do: apply_list_strands_reports_opts(queryable, opts)
 
   @doc """
   Gets a single strand_report.
 
-  Raises `Ecto.NoResultsError` if the Strand report does not exist.
+  Returns `nil` if the Strand report does not exist.
 
   ## Options:
 
@@ -168,12 +228,23 @@ defmodule Lanttern.Reporting do
 
   ## Examples
 
-      iex> get_strand_report!(123)
+      iex> get_strand_report(123)
       %StrandReport{}
 
-      iex> get_strand_report!(456)
-      ** (Ecto.NoResultsError)
+      iex> get_strand_report(456)
+      nil
 
+  """
+  def get_strand_report(id, opts \\ []) do
+    StrandReport
+    |> Repo.get(id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single strand_report.
+
+  Same as `get_strand_report/2`, but raises `Ecto.NoResultsError` if the Strand report does not exist.
   """
   def get_strand_report!(id, opts \\ []) do
     StrandReport
@@ -196,7 +267,38 @@ defmodule Lanttern.Reporting do
   def create_strand_report(attrs \\ %{}) do
     %StrandReport{}
     |> StrandReport.changeset(attrs)
+    |> set_strand_report_position()
     |> Repo.insert()
+  end
+
+  # skip if not valid
+  defp set_strand_report_position(%Ecto.Changeset{valid?: false} = changeset),
+    do: changeset
+
+  # skip if changeset already has position change
+  defp set_strand_report_position(%Ecto.Changeset{changes: %{position: _position}} = changeset),
+    do: changeset
+
+  defp set_strand_report_position(%Ecto.Changeset{} = changeset) do
+    report_card_id =
+      Ecto.Changeset.get_field(changeset, :report_card_id)
+
+    position =
+      from(
+        sr in StrandReport,
+        where: sr.report_card_id == ^report_card_id,
+        select: sr.position,
+        order_by: [desc: sr.position],
+        limit: 1
+      )
+      |> Repo.one()
+      |> case do
+        nil -> 0
+        pos -> pos + 1
+      end
+
+    changeset
+    |> Ecto.Changeset.put_change(:position, position)
   end
 
   @doc """
@@ -215,6 +317,40 @@ defmodule Lanttern.Reporting do
     strand_report
     |> StrandReport.changeset(attrs)
     |> Repo.update()
+  end
+
+  @doc """
+  Update strands reports positions based on ids list order.
+
+  ## Examples
+
+      iex> update_strands_reports_positions([3, 2, 1])
+      :ok
+
+  """
+  @spec update_strands_reports_positions([integer()]) :: :ok | {:error, String.t()}
+  def update_strands_reports_positions(strands_reports_ids) do
+    strands_reports_ids
+    |> Enum.with_index()
+    |> Enum.reduce(
+      Ecto.Multi.new(),
+      fn {id, i}, multi ->
+        multi
+        |> Ecto.Multi.update_all(
+          "update-#{id}",
+          from(
+            sr in StrandReport,
+            where: sr.id == ^id
+          ),
+          set: [position: i]
+        )
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:ok, _} -> :ok
+      _ -> {:error, gettext("Something went wrong")}
+    end
   end
 
   @doc """
@@ -262,9 +398,55 @@ defmodule Lanttern.Reporting do
   end
 
   @doc """
-  Gets a single student_report_card.
+  Returns the list of all students and their report cards linked to the
+  given base report card.
 
-  Raises `Ecto.NoResultsError` if the Student report card does not exist.
+  Results are ordered by class name, and them by student name.
+
+  ## Options
+
+      - `:classes_ids` - filter results by given classes
+
+  ## Examples
+
+      iex> list_students_for_report_card()
+      [{%Student{}, %Class{}, %StudentReportCard{}}, ...]
+
+  """
+  @spec list_students_for_report_card(integer(), Keyword.t()) :: [
+          {Student.t(), Class.t() | nil, StudentReportCard.t() | nil}
+        ]
+  def list_students_for_report_card(report_card_id, opts \\ []) do
+    from(s in Student,
+      left_join: c in assoc(s, :classes),
+      as: :class,
+      left_join: sr in StudentReportCard,
+      on: sr.student_id == s.id and sr.report_card_id == ^report_card_id,
+      select: {s, c, sr},
+      order_by: [asc: c.name, asc: s.name]
+    )
+    |> apply_list_students_for_report_card_opts(opts)
+    |> Repo.all()
+  end
+
+  defp apply_list_students_for_report_card_opts(queryable, []), do: queryable
+
+  defp apply_list_students_for_report_card_opts(queryable, [{:classes_ids, classes_ids} | opts])
+       when is_list(classes_ids) and classes_ids != [] do
+    from(
+      [s, class: c] in queryable,
+      where: c.id in ^classes_ids
+    )
+    |> apply_list_students_for_report_card_opts(opts)
+  end
+
+  defp apply_list_students_for_report_card_opts(queryable, [_opt | opts]),
+    do: apply_list_students_for_report_card_opts(queryable, opts)
+
+  @doc """
+  Gets a single student report card.
+
+  Returns `nil` if the Student report card does not exist.
 
   ## Options:
 
@@ -278,6 +460,17 @@ defmodule Lanttern.Reporting do
       iex> get_student_report_card!(456)
       ** (Ecto.NoResultsError)
 
+  """
+  def get_student_report_card(id, opts \\ []) do
+    StudentReportCard
+    |> Repo.get(id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single student report card.
+
+  Same as `get_student_report_card/2`, but raises `Ecto.NoResultsError` if the student report card does not exist.
   """
   def get_student_report_card!(id, opts \\ []) do
     StudentReportCard

@@ -14,11 +14,23 @@ defmodule LantternWeb.Reporting.StudentReportCardFormComponent do
         phx-change="validate"
         phx-submit="save"
       >
-        <.input field={@form[:report_card_id]} type="number" label="Report card id" class="mb-6" />
-        <.input field={@form[:student_id]} type="number" label="Student id" class="mb-6" />
-        <.input field={@form[:comment]} type="textarea" label="Comment" class="mb-1" />
+        <.input
+          :if={@is_admin}
+          field={@form[:report_card_id]}
+          type="number"
+          label="Report card id"
+          class="mb-6"
+        />
+        <.input
+          :if={@is_admin}
+          field={@form[:student_id]}
+          type="number"
+          label="Student id"
+          class="mb-6"
+        />
+        <.input field={@form[:comment]} type="textarea" label="Comment" class="mb-1" show_optional />
         <.markdown_supported class="mb-6" />
-        <.input field={@form[:footnote]} type="textarea" label="Footnote" class="mb-1" />
+        <.input field={@form[:footnote]} type="textarea" label="Footnote" class="mb-1" show_optional />
         <.markdown_supported class={if !@hide_submit, do: "mb-6"} />
         <.button :if={!@hide_submit} phx-disable-with="Saving...">Save Student report card</.button>
       </.form>
@@ -33,6 +45,7 @@ defmodule LantternWeb.Reporting.StudentReportCardFormComponent do
     socket =
       socket
       |> assign(:class, nil)
+      |> assign(:is_admin, false)
       |> assign(:hide_submit, false)
 
     {:ok, socket}
@@ -59,6 +72,18 @@ defmodule LantternWeb.Reporting.StudentReportCardFormComponent do
   end
 
   def handle_event("save", %{"student_report_card" => student_report_card_params}, socket) do
+    student_report_card_params =
+      case socket.assigns.is_admin do
+        true ->
+          student_report_card_params
+
+        false ->
+          student_report_card_params
+          |> Map.put("id", socket.assigns.student_report_card.id)
+          |> Map.put("report_card_id", socket.assigns.student_report_card.report_card_id)
+          |> Map.put("student_id", socket.assigns.student_report_card.student_id)
+      end
+
     save_student_report_card(
       socket,
       socket.assigns.student_report_card.id,

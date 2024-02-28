@@ -7,7 +7,7 @@ defmodule LantternWeb.Admin.StrandReportLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :strand_reports, Reporting.list_strand_reports())}
+    {:ok, stream(socket, :strand_reports, Reporting.list_strands_reports())}
   end
 
   @impl true

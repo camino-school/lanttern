@@ -15,19 +15,33 @@ defmodule LantternWeb.Reporting.StrandReportFormComponent do
         phx-submit="save"
       >
         <.input
+          :if={@is_admin}
           field={@form[:report_card_id]}
           type="number"
           label={gettext("Report card id")}
           class="mb-6"
         />
-        <.input field={@form[:strand_id]} type="number" label={gettext("Strand id")} class="mb-6" />
-        <.input field={@form[:position]} type="number" label={gettext("Position")} class="mb-6" />
+        <.input
+          :if={@is_admin}
+          field={@form[:strand_id]}
+          type="number"
+          label={gettext("Strand id")}
+          class="mb-6"
+        />
+        <.input
+          :if={@is_admin}
+          field={@form[:position]}
+          type="number"
+          label={gettext("Position")}
+          class="mb-6"
+        />
         <.input
           field={@form[:description]}
           type="textarea"
-          label={gettext("Description (optional)")}
+          label={gettext("Description")}
           phx-debounce="1500"
           class="mb-1"
+          show_optional
         />
         <.markdown_supported class={if !@hide_submit, do: "mb-6"} />
         <.button :if={!@hide_submit} type="submit" phx-disable-with={gettext("Saving...")}>
@@ -45,6 +59,7 @@ defmodule LantternWeb.Reporting.StrandReportFormComponent do
     socket =
       socket
       |> assign(:class, nil)
+      |> assign(:is_admin, false)
       |> assign(:hide_submit, false)
 
     {:ok, socket}
@@ -71,6 +86,18 @@ defmodule LantternWeb.Reporting.StrandReportFormComponent do
   end
 
   def handle_event("save", %{"strand_report" => strand_report_params}, socket) do
+    strand_report_params =
+      case socket.assigns.is_admin do
+        true ->
+          strand_report_params
+
+        false ->
+          strand_report_params
+          |> Map.put("id", socket.assigns.strand_report.id)
+          |> Map.put("report_card_id", socket.assigns.strand_report.report_card_id)
+          |> Map.put("strand_id", socket.assigns.strand_report.strand_id)
+      end
+
     save_strand_report(socket, socket.assigns.strand_report.id, strand_report_params)
   end
 

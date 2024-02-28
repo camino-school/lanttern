@@ -30,7 +30,7 @@ defmodule LantternWeb.SchoolsComponents do
         navigate={@navigate}
         patch={@patch}
         notify_parent={@notify_parent}
-        notify_component={@notify_parent}
+        notify_component={@notify_component}
       />
       <:actions_left :if={@on_clear}>
         <.button type="button" theme="ghost" phx-click={@on_clear}>

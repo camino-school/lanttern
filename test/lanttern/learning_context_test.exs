@@ -82,6 +82,20 @@ defmodule Lanttern.LearningContextTest do
       assert expected_b.is_starred == false
     end
 
+    test "search_strands/2 returns all items matched by search" do
+      _strand_1 = strand_fixture(%{name: "lorem ipsum xolor sit amet"})
+      strand_2 = strand_fixture(%{name: "lorem ipsum dolor sit amet"})
+      strand_3 = strand_fixture(%{name: "lorem ipsum dolorxxx sit amet"})
+      _strand_4 = strand_fixture(%{name: "lorem ipsum xxxxx sit amet"})
+
+      expected = LearningContext.search_strands("dolor")
+
+      assert length(expected) == 2
+
+      # assert order
+      assert [strand_2, strand_3] == expected
+    end
+
     test "get_strand!/2 returns the strand with given id" do
       strand = strand_fixture()
       assert LearningContext.get_strand!(strand.id) == strand

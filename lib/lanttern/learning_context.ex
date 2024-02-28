@@ -48,6 +48,31 @@ defmodule Lanttern.LearningContext do
   end
 
   @doc """
+  Search strands by name.
+
+  ## Options
+
+      `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> search_strands()
+      [%Strand{}, ...]
+
+  """
+  def search_strands(search_term, opts \\ []) do
+    ilike_search_term = "%#{search_term}%"
+
+    from(
+      s in Strand,
+      where: ilike(s.name, ^ilike_search_term),
+      order_by: {:asc, fragment("? <<-> ?", ^search_term, s.name)}
+    )
+    |> Repo.all()
+    |> maybe_preload(opts)
+  end
+
+  @doc """
   Gets a single strand.
 
   Returns `nil` if the strand does not exist.

@@ -36,7 +36,15 @@ defmodule LantternWeb.Schools.ClassFilterFormComponent do
   # lifecycle
 
   def update(%{current_user: current_user} = assigns, socket) do
-    classes_ids = Map.get(assigns, :classes_ids, [])
+    classes_ids =
+      Map.get(assigns, :classes_ids, [])
+
+    # convert ids to string if needed
+    classes_ids =
+      case Enum.all?(classes_ids, &is_integer(&1)) do
+        true -> Enum.map(classes_ids, &"#{&1}")
+        false -> classes_ids
+      end
 
     {:ok,
      socket

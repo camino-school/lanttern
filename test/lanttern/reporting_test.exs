@@ -7,6 +7,7 @@ defmodule Lanttern.ReportingTest do
     alias Lanttern.Reporting.ReportCard
 
     import Lanttern.ReportingFixtures
+    alias Lanttern.SchoolsFixtures
 
     @invalid_attrs %{name: nil, description: nil}
 
@@ -37,6 +38,40 @@ defmodule Lanttern.ReportingTest do
       [expected] = Reporting.list_report_cards(strands_ids: [strand.id])
 
       assert expected.id == report_card.id
+    end
+
+    test "list_report_cards_by_cycle/0 returns report_cards grouped by cycle" do
+      school = SchoolsFixtures.school_fixture()
+
+      cycle_2024 =
+        SchoolsFixtures.cycle_fixture(%{
+          school_id: school.id,
+          start_at: ~D[2024-01-01],
+          end_at: ~D[2024-12-31]
+        })
+
+      cycle_2023 =
+        SchoolsFixtures.cycle_fixture(%{
+          school_id: school.id,
+          start_at: ~D[2023-01-01],
+          end_at: ~D[2023-12-31]
+        })
+
+      report_card_2024_1 = report_card_fixture(%{school_cycle_id: cycle_2024.id, name: "AAA"})
+      report_card_2024_2 = report_card_fixture(%{school_cycle_id: cycle_2024.id, name: "BBB"})
+      report_card_2023_1 = report_card_fixture(%{school_cycle_id: cycle_2023.id})
+
+      assert [
+               {expected_cycle_2024, [expected_report_2024_1, expected_report_2024_2]},
+               {expected_cycle_2023, [expected_report_2023_1]}
+             ] = Reporting.list_report_cards_by_cycle()
+
+      assert expected_cycle_2024.id == cycle_2024.id
+      assert expected_report_2024_1.id == report_card_2024_1.id
+      assert expected_report_2024_2.id == report_card_2024_2.id
+
+      assert expected_cycle_2023.id == cycle_2023.id
+      assert expected_report_2023_1.id == report_card_2023_1.id
     end
 
     test "get_report_card!/2 returns the report_card with given id" do
@@ -111,9 +146,33 @@ defmodule Lanttern.ReportingTest do
 
     @invalid_attrs %{report_card_id: nil}
 
-    test "list_strand_reports/0 returns all strand_reports" do
+    test "list_strands_reports/1 returns all strand_reports" do
       strand_report = strand_report_fixture()
-      assert Reporting.list_strand_reports() == [strand_report]
+      assert Reporting.list_strands_reports() == [strand_report]
+    end
+
+    test "list_strands_reports/1 with preloads returns all strand_reports with preloaded data" do
+      report_card = report_card_fixture()
+      strand_report = strand_report_fixture(%{report_card_id: report_card.id})
+
+      assert [expected_strand_report] = Reporting.list_strands_reports(preloads: :report_card)
+      assert expected_strand_report.id == strand_report.id
+      assert expected_strand_report.report_card.id == report_card.id
+    end
+
+    test "list_strands_reports/1 with report card filter returns all strand_reports filtered by report card" do
+      report_card = report_card_fixture()
+
+      strand_report_1 = strand_report_fixture(%{report_card_id: report_card.id})
+      strand_report_2 = strand_report_fixture(%{report_card_id: report_card.id})
+
+      # extra strand report fixture to test filter
+      strand_report_fixture()
+
+      assert Reporting.list_strands_reports(report_card_id: report_card.id) == [
+               strand_report_1,
+               strand_report_2
+             ]
     end
 
     test "get_strand_report!/2 returns the strand_report with given id" do
@@ -170,6 +229,37 @@ defmodule Lanttern.ReportingTest do
       assert strand_report == Reporting.get_strand_report!(strand_report.id)
     end
 
+    test "update_strands_reports_positions/1 update strands reports positions based on list order" do
+      report_card = report_card_fixture()
+      strand_report_1 = strand_report_fixture(%{report_card_id: report_card.id, position: 1})
+      strand_report_2 = strand_report_fixture(%{report_card_id: report_card.id, position: 2})
+      strand_report_3 = strand_report_fixture(%{report_card_id: report_card.id, position: 3})
+      strand_report_4 = strand_report_fixture(%{report_card_id: report_card.id, position: 4})
+
+      sorted_strands_reports_ids =
+        [
+          strand_report_2.id,
+          strand_report_3.id,
+          strand_report_1.id,
+          strand_report_4.id
+        ]
+
+      assert :ok == Reporting.update_strands_reports_positions(sorted_strands_reports_ids)
+
+      assert [
+               expected_sr_2,
+               expected_sr_3,
+               expected_sr_1,
+               expected_sr_4
+             ] =
+               Reporting.list_strands_reports(report_card_id: report_card.id)
+
+      assert expected_sr_1.id == strand_report_1.id
+      assert expected_sr_2.id == strand_report_2.id
+      assert expected_sr_3.id == strand_report_3.id
+      assert expected_sr_4.id == strand_report_4.id
+    end
+
     test "delete_strand_report/1 deletes the strand_report" do
       strand_report = strand_report_fixture()
       assert {:ok, %StrandReport{}} = Reporting.delete_strand_report(strand_report)
@@ -187,11 +277,96 @@ defmodule Lanttern.ReportingTest do
 
     import Lanttern.ReportingFixtures
 
+    alias Lanttern.SchoolsFixtures
+
     @invalid_attrs %{report_card_id: nil, comment: nil, footnote: nil}
 
     test "list_student_report_cards/0 returns all student_report_cards" do
       student_report_card = student_report_card_fixture()
       assert Reporting.list_student_report_cards() == [student_report_card]
+    end
+
+    test "list_students_for_report_card/2 returns all students with class and linked report cards" do
+      school = SchoolsFixtures.school_fixture()
+      class_a = SchoolsFixtures.class_fixture(%{name: "AAA", school_id: school.id})
+
+      student_a_a =
+        SchoolsFixtures.student_fixture(%{
+          name: "AAA",
+          school_id: school.id,
+          classes_ids: [class_a.id]
+        })
+
+      student_a_b =
+        SchoolsFixtures.student_fixture(%{
+          name: "BBB",
+          school_id: school.id,
+          classes_ids: [class_a.id]
+        })
+
+      class_j = SchoolsFixtures.class_fixture(%{name: "JJJ", school_id: school.id})
+
+      student_j_j =
+        SchoolsFixtures.student_fixture(%{
+          name: "JJJ",
+          school_id: school.id,
+          classes_ids: [class_j.id]
+        })
+
+      student_j_k =
+        SchoolsFixtures.student_fixture(%{
+          name: "KKK",
+          school_id: school.id,
+          classes_ids: [class_j.id]
+        })
+
+      report_card = report_card_fixture()
+
+      student_a_a_report_card =
+        student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_a_a.id})
+
+      student_a_b_report_card =
+        student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_a_b.id})
+
+      student_j_j_report_card =
+        student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_j_j.id})
+
+      # other fixtures for filter testing
+      other_class = SchoolsFixtures.class_fixture(%{school_id: school.id})
+
+      other_student =
+        SchoolsFixtures.student_fixture(%{school_id: school.id, classes_ids: [other_class.id]})
+
+      _other_student_report_card =
+        student_report_card_fixture(%{
+          report_card_id: report_card.id,
+          student_id: other_student.id
+        })
+
+      assert [
+               {expected_student_a_a, expected_class_a_a, expected_student_a_a_report_card},
+               {expected_student_a_b, expected_class_a_b, expected_student_a_b_report_card},
+               {expected_student_j_j, expected_class_j_j, expected_student_j_j_report_card},
+               {expected_student_j_k, expected_class_j_k, nil}
+             ] =
+               Reporting.list_students_for_report_card(report_card.id,
+                 classes_ids: [class_a.id, class_j.id]
+               )
+
+      assert expected_student_a_a.id == student_a_a.id
+      assert expected_class_a_a.id == class_a.id
+      assert expected_student_a_a_report_card.id == student_a_a_report_card.id
+
+      assert expected_student_a_b.id == student_a_b.id
+      assert expected_class_a_b.id == class_a.id
+      assert expected_student_a_b_report_card.id == student_a_b_report_card.id
+
+      assert expected_student_j_j.id == student_j_j.id
+      assert expected_class_j_j.id == class_j.id
+      assert expected_student_j_j_report_card.id == student_j_j_report_card.id
+
+      assert expected_student_j_k.id == student_j_k.id
+      assert expected_class_j_k.id == class_j.id
     end
 
     test "get_student_report_card!/1 returns the student_report_card with given id" do

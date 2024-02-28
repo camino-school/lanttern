@@ -112,9 +112,10 @@ defmodule Lanttern.Schools do
   @doc """
   Returns the list of school cycles.
 
-  ### Options:
+  ## Options:
 
-  `:schools_ids` – filter classes by schools
+      - `:schools_ids` – filter classes by schools
+      - `:order_by` - an order by query expression ([ref](https://hexdocs.pm/ecto/Ecto.Query.html#order_by/3))
 
   ## Examples
 
@@ -125,7 +126,15 @@ defmodule Lanttern.Schools do
   def list_cycles(opts \\ []) do
     Cycle
     |> maybe_filter_by_schools(opts)
+    |> order_cycles(Keyword.get(opts, :order_by))
     |> Repo.all()
+  end
+
+  defp order_cycles(queryable, nil), do: queryable
+
+  defp order_cycles(queryable, order_by_expression) do
+    from c in queryable,
+      order_by: ^order_by_expression
   end
 
   @doc """
