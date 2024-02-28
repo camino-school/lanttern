@@ -51,7 +51,13 @@
 </div>
 <div class="ltrn-bg-main-local">
   <div :if={@current_tab == :students} class="container mx-auto lg:max-w-5xl">
-    TBD
+    <.live_component
+      module={StudentsComponent}
+      id="report-card-students"
+      report_card={@report_card}
+      current_user={@current_user}
+      params={@params}
+    />
   </div>
   <div :if={@current_tab == :strands} class="container mx-auto lg:max-w-5xl">
     <.markdown text={@report_card.description} />

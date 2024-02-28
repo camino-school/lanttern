@@ -277,11 +277,96 @@ defmodule Lanttern.ReportingTest do
 
     import Lanttern.ReportingFixtures
 
+    alias Lanttern.SchoolsFixtures
+
     @invalid_attrs %{report_card_id: nil, comment: nil, footnote: nil}
 
     test "list_student_report_cards/0 returns all student_report_cards" do
       student_report_card = student_report_card_fixture()
       assert Reporting.list_student_report_cards() == [student_report_card]
+    end
+
+    test "list_students_for_report_card/2 returns all students with class and linked report cards" do
+      school = SchoolsFixtures.school_fixture()
+      class_a = SchoolsFixtures.class_fixture(%{name: "AAA", school_id: school.id})
+
+      student_a_a =
+        SchoolsFixtures.student_fixture(%{
+          name: "AAA",
+          school_id: school.id,
+          classes_ids: [class_a.id]
+        })
+
+      student_a_b =
+        SchoolsFixtures.student_fixture(%{
+          name: "BBB",
+          school_id: school.id,
+          classes_ids: [class_a.id]
+        })
+
+      class_j = SchoolsFixtures.class_fixture(%{name: "JJJ", school_id: school.id})
+
+      student_j_j =
+        SchoolsFixtures.student_fixture(%{
+          name: "JJJ",
+          school_id: school.id,
+          classes_ids: [class_j.id]
+        })
+
+      student_j_k =
+        SchoolsFixtures.student_fixture(%{
+          name: "KKK",
+          school_id: school.id,
+          classes_ids: [class_j.id]
+        })
+
+      report_card = report_card_fixture()
+
+      student_a_a_report_card =
+        student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_a_a.id})
+
+      student_a_b_report_card =
+        student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_a_b.id})
+
+      student_j_j_report_card =
+        student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_j_j.id})
+
+      # other fixtures for filter testing
+      other_class = SchoolsFixtures.class_fixture(%{school_id: school.id})
+
+      other_student =
+        SchoolsFixtures.student_fixture(%{school_id: school.id, classes_ids: [other_class.id]})
+
+      _other_student_report_card =
+        student_report_card_fixture(%{
+          report_card_id: report_card.id,
+          student_id: other_student.id
+        })
+
+      assert [
+               {expected_student_a_a, expected_class_a_a, expected_student_a_a_report_card},
+               {expected_student_a_b, expected_class_a_b, expected_student_a_b_report_card},
+               {expected_student_j_j, expected_class_j_j, expected_student_j_j_report_card},
+               {expected_student_j_k, expected_class_j_k, nil}
+             ] =
+               Reporting.list_students_for_report_card(report_card.id,
+                 classes_ids: [class_a.id, class_j.id]
+               )
+
+      assert expected_student_a_a.id == student_a_a.id
+      assert expected_class_a_a.id == class_a.id
+      assert expected_student_a_a_report_card.id == student_a_a_report_card.id
+
+      assert expected_student_a_b.id == student_a_b.id
+      assert expected_class_a_b.id == class_a.id
+      assert expected_student_a_b_report_card.id == student_a_b_report_card.id
+
+      assert expected_student_j_j.id == student_j_j.id
+      assert expected_class_j_j.id == class_j.id
+      assert expected_student_j_j_report_card.id == student_j_j_report_card.id
+
+      assert expected_student_j_k.id == student_j_k.id
+      assert expected_class_j_k.id == class_j.id
     end
 
     test "get_student_report_card!/1 returns the student_report_card with given id" do

@@ -4,6 +4,7 @@ defmodule LantternWeb.ReportCardLive do
   alias Lanttern.Reporting
 
   # page components
+  alias __MODULE__.StudentsComponent
   alias __MODULE__.StrandsReportsComponent
 
   # shared components
@@ -37,13 +38,12 @@ defmodule LantternWeb.ReportCardLive do
 
   @impl true
   def handle_params(%{"id" => id} = params, _url, socket) do
-    report_card =
-      Reporting.get_report_card!(id, preloads: :school_cycle)
-
     socket =
       socket
       |> assign(:params, params)
-      |> assign(:report_card, report_card)
+      |> assign_new(:report_card, fn ->
+        Reporting.get_report_card!(id, preloads: :school_cycle)
+      end)
       |> set_current_tab(params, socket.assigns.live_action)
 
     {:noreply, socket}

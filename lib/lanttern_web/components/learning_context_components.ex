@@ -12,6 +12,7 @@ defmodule LantternWeb.LearningContextComponents do
   """
   attr :strand, Strand, required: true, doc: "Requires subjects + years preloads"
   attr :on_star_click, JS, default: nil
+  attr :on_edit, JS, default: nil
   attr :navigate, :string, default: nil
   attr :open_in_new_link, :string, default: nil
   attr :hide_description, :boolean, default: false
@@ -33,18 +34,23 @@ defmodule LantternWeb.LearningContextComponents do
         class="shrink-0 relative w-full h-40 bg-center bg-cover"
         style={"background-image: url(#{@strand.cover_image_url || "/images/cover-placeholder-sm.jpg"}?width=400&height=200)"}
       >
-        <button
-          :if={@on_star_click}
-          type="button"
-          aria-label={gettext("Star strand")}
-          class="absolute top-2 right-2 flex items-center justify-center w-8 h-8 rounded-full hover:bg-white hover:shadow-md"
-          phx-click={@on_star_click}
-        >
-          <.icon
-            name="hero-star-mini"
-            class={if(@strand.is_starred, do: "text-ltrn-primary", else: "text-ltrn-lighter")}
-          />
-        </button>
+        <div :if={@on_star_click || @on_edit} class="absolute top-2 right-2 flex items-center gap-2">
+          <.button :if={@on_edit} type="button" theme="ghost" size="sm" phx-click={@on_edit}>
+            <%= gettext("Edit") %>
+          </.button>
+          <button
+            :if={@on_star_click}
+            type="button"
+            aria-label={gettext("Star strand")}
+            class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-white hover:shadow-md"
+            phx-click={@on_star_click}
+          >
+            <.icon
+              name="hero-star-mini"
+              class={if(@strand.is_starred, do: "text-ltrn-primary", else: "text-ltrn-lighter")}
+            />
+          </button>
+        </div>
       </div>
       <div class={[
         "flex flex-col gap-6 p-6",

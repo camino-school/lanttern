@@ -229,8 +229,8 @@ defmodule LantternWeb.CoreComponents do
   """
   def get_button_styles(theme \\ "default", size \\ "normal", rounded \\ false) do
     [
-      "inline-flex items-center gap-1 font-display text-sm font-bold",
-      if(size == "sm", do: "p-1", else: "p-2"),
+      "inline-flex items-center font-display text-sm font-bold",
+      if(size == "sm", do: "gap-1 p-1", else: "gap-2 p-2"),
       if(rounded, do: "rounded-full", else: "rounded-sm"),
       "phx-submit-loading:opacity-50 phx-click-loading:opacity-50 phx-click-loading:pointer-events-none",
       button_theme(theme)
@@ -815,7 +815,7 @@ defmodule LantternWeb.CoreComponents do
   defp profile_icon_size_style(_normal), do: "w-10 h-10 text-sm"
 
   @profile_icon_themes %{
-    "default" => "text-ltrn-subtle bg-ltrn-lighter",
+    "subtle" => "text-ltrn-subtle bg-ltrn-lighter",
     "cyan" => "text-ltrn-dark bg-ltrn-mesh-primary",
     "rose" => "text-ltrn-dark bg-ltrn-mesh-rose",
     "diff" => "text-ltrn-diff-light bg-ltrn-diff-highlight"
@@ -845,13 +845,14 @@ defmodule LantternWeb.CoreComponents do
   Renders a profile icon with name.
   """
   attr :profile_name, :string, required: true
+  attr :theme, :string, default: "cyan"
   attr :class, :any, default: nil
   attr :rest, :global
 
   def profile_icon_with_name(assigns) do
     ~H"""
     <div class={["flex gap-2 items-center text-sm", @class]}>
-      <.profile_icon profile_name={@profile_name} />
+      <.profile_icon profile_name={@profile_name} theme={@theme} />
       <span class="line-clamp-2"><%= @profile_name %></span>
     </div>
     """

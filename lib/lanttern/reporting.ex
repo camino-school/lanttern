@@ -9,10 +9,13 @@ defmodule Lanttern.Reporting do
   import LantternWeb.Gettext
 
   alias Lanttern.Reporting.ReportCard
+  alias Lanttern.Reporting.StudentReportCard
 
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Schools
+  alias Lanttern.Schools.Class
   alias Lanttern.Schools.Cycle
+  alias Lanttern.Schools.Student
 
   @doc """
   Returns the list of report cards.
@@ -395,9 +398,55 @@ defmodule Lanttern.Reporting do
   end
 
   @doc """
-  Gets a single student_report_card.
+  Returns the list of all students and their report cards linked to the
+  given base report card.
 
-  Raises `Ecto.NoResultsError` if the Student report card does not exist.
+  Results are ordered by class name, and them by student name.
+
+  ## Options
+
+      - `:classes_ids` - filter results by given classes
+
+  ## Examples
+
+      iex> list_students_for_report_card()
+      [{%Student{}, %Class{}, %StudentReportCard{}}, ...]
+
+  """
+  @spec list_students_for_report_card(integer(), Keyword.t()) :: [
+          {Student.t(), Class.t() | nil, StudentReportCard.t() | nil}
+        ]
+  def list_students_for_report_card(report_card_id, opts \\ []) do
+    from(s in Student,
+      left_join: c in assoc(s, :classes),
+      as: :class,
+      left_join: sr in StudentReportCard,
+      on: sr.student_id == s.id and sr.report_card_id == ^report_card_id,
+      select: {s, c, sr},
+      order_by: [asc: c.name, asc: s.name]
+    )
+    |> apply_list_students_for_report_card_opts(opts)
+    |> Repo.all()
+  end
+
+  defp apply_list_students_for_report_card_opts(queryable, []), do: queryable
+
+  defp apply_list_students_for_report_card_opts(queryable, [{:classes_ids, classes_ids} | opts])
+       when is_list(classes_ids) and classes_ids != [] do
+    from(
+      [s, class: c] in queryable,
+      where: c.id in ^classes_ids
+    )
+    |> apply_list_students_for_report_card_opts(opts)
+  end
+
+  defp apply_list_students_for_report_card_opts(queryable, [_opt | opts]),
+    do: apply_list_students_for_report_card_opts(queryable, opts)
+
+  @doc """
+  Gets a single student report card.
+
+  Returns `nil` if the Student report card does not exist.
 
   ## Options:
 
@@ -411,6 +460,17 @@ defmodule Lanttern.Reporting do
       iex> get_student_report_card!(456)
       ** (Ecto.NoResultsError)
 
+  """
+  def get_student_report_card(id, opts \\ []) do
+    StudentReportCard
+    |> Repo.get(id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single student report card.
+
+  Same as `get_student_report_card/2`, but raises `Ecto.NoResultsError` if the student report card does not exist.
   """
   def get_student_report_card!(id, opts \\ []) do
     StudentReportCard

@@ -38,9 +38,10 @@ defmodule LantternWeb.Reporting.StrandReportFormComponent do
         <.input
           field={@form[:description]}
           type="textarea"
-          label={gettext("Description (optional)")}
+          label={gettext("Description")}
           phx-debounce="1500"
           class="mb-1"
+          show_optional
         />
         <.markdown_supported class={if !@hide_submit, do: "mb-6"} />
         <.button :if={!@hide_submit} type="submit" phx-disable-with={gettext("Saving...")}>

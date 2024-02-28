@@ -45,24 +45,12 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
             strand={strand_report.strand}
             open_in_new_link={~p"/strands/#{strand_report.strand}?tab=reporting"}
             hide_description
-          >
-            <:bottom_content>
-              <div class="flex gap-2 p-6">
-                <.button type="button" icon_name="hero-eye"><%= gettext("Preview") %></.button>
-                <.button
-                  type="button"
-                  theme="ghost"
-                  phx-click={
-                    JS.patch(
-                      ~p"/report_cards/#{@report_card}?tab=strands&is_editing_strand_report=#{strand_report.id}"
-                    )
-                  }
-                >
-                  <%= gettext("Edit") %>
-                </.button>
-              </div>
-            </:bottom_content>
-          </.strand_card>
+            on_edit={
+              JS.patch(
+                ~p"/report_cards/#{@report_card}?tab=strands&is_editing_strand_report=#{strand_report.id}"
+              )
+            }
+          />
         </div>
       <% else %>
         <.empty_state><%= gettext("No strands linked to this report yet") %></.empty_state>
