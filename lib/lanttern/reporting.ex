@@ -675,6 +675,22 @@ defmodule Lanttern.Reporting do
     do: Utils.update_positions(ReportCardGradeSubject, report_card_grades_subjects_ids)
 
   @doc """
+  Deletes a report card grade subject.
+
+  ## Examples
+
+      iex> delete_report_card_grade_subject(report_card_grade_subject)
+      {:ok, %ReportCardGradeSubject{}}
+
+      iex> delete_report_card_grade_subject(report_card_grade_subject)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_report_card_grade_subject(%ReportCardGradeSubject{} = report_card_grade_subject) do
+    Repo.delete(report_card_grade_subject)
+  end
+
+  @doc """
   Returns the list of report card grades cycles.
 
   Results are ordered asc by cycle `end_at` and desc by cycle `start_at`, and have preloaded school cycles.
@@ -717,5 +733,21 @@ defmodule Lanttern.Reporting do
     %ReportCardGradeCycle{}
     |> ReportCardGradeCycle.changeset(attrs)
     |> Repo.insert()
+  end
+
+  @doc """
+  Deletes a report card grade cycle.
+
+  ## Examples
+
+      iex> delete_report_card_grade_cycle(report_card_grade_cycle)
+      {:ok, %ReportCardGradeCycle{}}
+
+      iex> delete_report_card_grade_cycle(report_card_grade_cycle)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_report_card_grade_cycle(%ReportCardGradeCycle{} = report_card_grade_cycle) do
+    Repo.delete(report_card_grade_cycle)
   end
 end

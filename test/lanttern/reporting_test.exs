@@ -1,6 +1,7 @@
 defmodule Lanttern.ReportingTest do
   use Lanttern.DataCase
 
+  alias Lanttern.Repo
   alias Lanttern.Reporting
 
   describe "report_cards" do
@@ -690,6 +691,17 @@ defmodule Lanttern.ReportingTest do
       assert expected_rcgs_4.id == report_card_grade_subject_4.id
     end
 
+    test "delete_report_card_grade_subject/1 deletes the report_card_grade_subject" do
+      report_card_grade_subject = report_card_grade_subject_fixture()
+
+      assert {:ok, %ReportCardGradeSubject{}} =
+               Reporting.delete_report_card_grade_subject(report_card_grade_subject)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Repo.get!(ReportCardGradeSubject, report_card_grade_subject.id)
+      end
+    end
+
     test "list_report_card_grades_cycles/1 returns all report card grades cycles ordered by dates and preloaded cycles" do
       report_card = report_card_fixture()
 
@@ -747,6 +759,17 @@ defmodule Lanttern.ReportingTest do
 
       assert report_card_grade_cycle.report_card_id == report_card.id
       assert report_card_grade_cycle.school_cycle_id == school_cycle.id
+    end
+
+    test "delete_report_card_grade_cycle/1 deletes the report_card_grade_cycle" do
+      report_card_grade_cycle = report_card_grade_cycle_fixture()
+
+      assert {:ok, %ReportCardGradeCycle{}} =
+               Reporting.delete_report_card_grade_cycle(report_card_grade_cycle)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Repo.get!(ReportCardGradeCycle, report_card_grade_cycle.id)
+      end
     end
   end
 end
