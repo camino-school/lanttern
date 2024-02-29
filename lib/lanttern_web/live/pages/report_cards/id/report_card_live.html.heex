@@ -28,6 +28,12 @@
       >
         <%= gettext("Strands") %>
       </:tab>
+      <:tab
+        patch={~p"/report_cards/#{@report_card}?#{%{tab: "grades"}}"}
+        is_current={@current_tab == :grades && "true"}
+      >
+        <%= gettext("Grades") %>
+      </:tab>
     </.nav_tabs>
     <.menu_button id={@report_card.id}>
       <:menu_items>
@@ -50,16 +56,15 @@
   </div>
 </div>
 <div class="ltrn-bg-main-local">
-  <div :if={@current_tab == :students} class="container mx-auto lg:max-w-5xl">
-    <.live_component
-      module={StudentsComponent}
-      id="report-card-students"
-      report_card={@report_card}
-      current_user={@current_user}
-      params={@params}
-    />
-  </div>
-  <div :if={@current_tab == :strands} class="container mx-auto lg:max-w-5xl">
+  <.live_component
+    :if={@current_tab == :students}
+    module={StudentsComponent}
+    id="report-card-students"
+    report_card={@report_card}
+    current_user={@current_user}
+    params={@params}
+  />
+  <div :if={@current_tab == :strands}>
     <.markdown text={@report_card.description} />
     <.live_component
       module={StrandsReportsComponent}
@@ -68,6 +73,14 @@
       params={@params}
     />
   </div>
+  <.live_component
+    :if={@current_tab == :grades}
+    module={GradesComponent}
+    id="report-card-grades"
+    report_card={@report_card}
+    current_user={@current_user}
+    params={@params}
+  />
 </div>
 <.slide_over
   :if={@live_action == :edit}

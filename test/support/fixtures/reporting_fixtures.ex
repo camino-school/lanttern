@@ -77,4 +77,40 @@ defmodule Lanttern.ReportingFixtures do
 
   defp maybe_gen_student_id(_attrs),
     do: Lanttern.SchoolsFixtures.student_fixture().id
+
+  @doc """
+  Generate a report_card_grade_subject.
+  """
+  def report_card_grade_subject_fixture(attrs \\ %{}) do
+    {:ok, report_card_grade_subject} =
+      attrs
+      |> Enum.into(%{
+        report_card_id: maybe_gen_report_card_id(attrs),
+        subject_id: maybe_gen_subject_id(attrs)
+      })
+      |> Lanttern.Reporting.add_subject_to_report_card_grades()
+
+    report_card_grade_subject
+  end
+
+  defp maybe_gen_subject_id(%{subject_id: subject_id} = _attrs),
+    do: subject_id
+
+  defp maybe_gen_subject_id(_attrs),
+    do: Lanttern.TaxonomyFixtures.subject_fixture().id
+
+  @doc """
+  Generate a report_card_grade_cycle.
+  """
+  def report_card_grade_cycle_fixture(attrs \\ %{}) do
+    {:ok, report_card_grade_cycle} =
+      attrs
+      |> Enum.into(%{
+        report_card_id: maybe_gen_report_card_id(attrs),
+        school_cycle_id: maybe_gen_school_cycle_id(attrs)
+      })
+      |> Lanttern.Reporting.add_cycle_to_report_card_grades()
+
+    report_card_grade_cycle
+  end
 end

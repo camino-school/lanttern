@@ -6,13 +6,15 @@ defmodule LantternWeb.ReportCardLive do
   # page components
   alias __MODULE__.StudentsComponent
   alias __MODULE__.StrandsReportsComponent
+  alias __MODULE__.GradesComponent
 
   # shared components
   alias LantternWeb.Reporting.ReportCardFormComponent
 
   @tabs %{
     "students" => :students,
-    "strands" => :strands
+    "strands" => :strands,
+    "grades" => :grades
   }
 
   # lifecycle

@@ -576,4 +576,177 @@ defmodule Lanttern.ReportingTest do
       assert expected_entry_2_1.score == 5
     end
   end
+
+  describe "report card grade subject and cycle" do
+    alias Lanttern.Reporting.ReportCardGradeSubject
+    alias Lanttern.Reporting.ReportCardGradeCycle
+
+    import Lanttern.ReportingFixtures
+    alias Lanttern.SchoolsFixtures
+    alias Lanttern.TaxonomyFixtures
+
+    test "list_report_card_grades_subjects/1 returns all report card grades subjects ordered by position and subjects preloaded" do
+      report_card = report_card_fixture()
+      subject_1 = TaxonomyFixtures.subject_fixture()
+      subject_2 = TaxonomyFixtures.subject_fixture()
+
+      report_card_grade_subject_1 =
+        report_card_grade_subject_fixture(%{
+          report_card_id: report_card.id,
+          subject_id: subject_1.id
+        })
+
+      report_card_grade_subject_2 =
+        report_card_grade_subject_fixture(%{
+          report_card_id: report_card.id,
+          subject_id: subject_2.id
+        })
+
+      assert [expected_rcgs_1, expected_rcgs_2] =
+               Reporting.list_report_card_grades_subjects(report_card.id)
+
+      assert expected_rcgs_1.id == report_card_grade_subject_1.id
+      assert expected_rcgs_1.subject.id == subject_1.id
+
+      assert expected_rcgs_2.id == report_card_grade_subject_2.id
+      assert expected_rcgs_2.subject.id == subject_2.id
+    end
+
+    test "add_subject_to_report_card_grades/1 with valid data creates a report card grade subject" do
+      report_card = report_card_fixture()
+      subject = TaxonomyFixtures.subject_fixture()
+
+      valid_attrs = %{
+        report_card_id: report_card.id,
+        subject_id: subject.id
+      }
+
+      assert {:ok, %ReportCardGradeSubject{} = report_card_grade_subject} =
+               Reporting.add_subject_to_report_card_grades(valid_attrs)
+
+      assert report_card_grade_subject.report_card_id == report_card.id
+      assert report_card_grade_subject.subject_id == subject.id
+      assert report_card_grade_subject.position == 0
+
+      # insert one more report card grade subject in a different report card to test position auto increment scope
+
+      # extra fixture in different report card
+      report_card_grade_subject_fixture()
+
+      subject = TaxonomyFixtures.subject_fixture()
+
+      valid_attrs = %{
+        report_card_id: report_card.id,
+        subject_id: subject.id
+      }
+
+      assert {:ok, %ReportCardGradeSubject{} = report_card_grade_subject} =
+               Reporting.add_subject_to_report_card_grades(valid_attrs)
+
+      assert report_card_grade_subject.report_card_id == report_card.id
+      assert report_card_grade_subject.subject_id == subject.id
+      assert report_card_grade_subject.position == 1
+    end
+
+    test "update_report_card_grades_subjects_positions/1 update report card grades subjects positions based on list order" do
+      report_card = report_card_fixture()
+
+      report_card_grade_subject_1 =
+        report_card_grade_subject_fixture(%{report_card_id: report_card.id})
+
+      report_card_grade_subject_2 =
+        report_card_grade_subject_fixture(%{report_card_id: report_card.id})
+
+      report_card_grade_subject_3 =
+        report_card_grade_subject_fixture(%{report_card_id: report_card.id})
+
+      report_card_grade_subject_4 =
+        report_card_grade_subject_fixture(%{report_card_id: report_card.id})
+
+      sorted_report_card_grades_subjects_ids =
+        [
+          report_card_grade_subject_2.id,
+          report_card_grade_subject_3.id,
+          report_card_grade_subject_1.id,
+          report_card_grade_subject_4.id
+        ]
+
+      assert :ok ==
+               Reporting.update_report_card_grades_subjects_positions(
+                 sorted_report_card_grades_subjects_ids
+               )
+
+      assert [
+               expected_rcgs_2,
+               expected_rcgs_3,
+               expected_rcgs_1,
+               expected_rcgs_4
+             ] =
+               Reporting.list_report_card_grades_subjects(report_card.id)
+
+      assert expected_rcgs_1.id == report_card_grade_subject_1.id
+      assert expected_rcgs_2.id == report_card_grade_subject_2.id
+      assert expected_rcgs_3.id == report_card_grade_subject_3.id
+      assert expected_rcgs_4.id == report_card_grade_subject_4.id
+    end
+
+    test "list_report_card_grades_cycles/1 returns all report card grades cycles ordered by dates and preloaded cycles" do
+      report_card = report_card_fixture()
+
+      cycle_2023 =
+        SchoolsFixtures.cycle_fixture(%{start_at: ~D[2023-01-01], end_at: ~D[2023-12-31]})
+
+      cycle_2024_q4 =
+        SchoolsFixtures.cycle_fixture(%{start_at: ~D[2024-09-01], end_at: ~D[2024-12-31]})
+
+      cycle_2024 =
+        SchoolsFixtures.cycle_fixture(%{start_at: ~D[2024-01-01], end_at: ~D[2024-12-31]})
+
+      report_card_grade_cycle_2023 =
+        report_card_grade_cycle_fixture(%{
+          report_card_id: report_card.id,
+          school_cycle_id: cycle_2023.id
+        })
+
+      report_card_grade_cycle_2024_q4 =
+        report_card_grade_cycle_fixture(%{
+          report_card_id: report_card.id,
+          school_cycle_id: cycle_2024_q4.id
+        })
+
+      report_card_grade_cycle_2024 =
+        report_card_grade_cycle_fixture(%{
+          report_card_id: report_card.id,
+          school_cycle_id: cycle_2024.id
+        })
+
+      assert [expected_rcgc_2023, expected_rcgc_2024_q4, expected_rcgc_2024] =
+               Reporting.list_report_card_grades_cycles(report_card.id)
+
+      assert expected_rcgc_2023.id == report_card_grade_cycle_2023.id
+      assert expected_rcgc_2023.school_cycle.id == cycle_2023.id
+
+      assert expected_rcgc_2024_q4.id == report_card_grade_cycle_2024_q4.id
+      assert expected_rcgc_2024_q4.school_cycle.id == cycle_2024_q4.id
+
+      assert expected_rcgc_2024.id == report_card_grade_cycle_2024.id
+      assert expected_rcgc_2024.school_cycle.id == cycle_2024.id
+    end
+
+    test "add_cycle_to_report_card_grades/1 with valid data creates a report card grade cycle" do
+      report_card = report_card_fixture()
+      school_cycle = SchoolsFixtures.cycle_fixture()
+
+      valid_attrs = %{
+        report_card_id: report_card.id,
+        school_cycle_id: school_cycle.id
+      }
+
+      assert {:ok, %ReportCardGradeCycle{} = report_card_grade_cycle} =
+               Reporting.add_cycle_to_report_card_grades(valid_attrs)
+
+      assert report_card_grade_cycle.report_card_id == report_card.id
+      assert report_card_grade_cycle.school_cycle_id == school_cycle.id
+    end
+  end
 end

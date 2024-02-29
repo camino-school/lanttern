@@ -41,7 +41,7 @@ defmodule LantternWeb.MenuComponent do
           </nav>
           <h5 class="relative flex items-center ml-6 mb-6 font-display font-black text-3xl text-ltrn-dark">
             <span class="w-20 h-20 rounded-full bg-ltrn-mesh-primary blur-sm" />
-            <span class="relative -ml-10">lanttern</span>
+            <span class="relative -ml-10">Lanttern</span>
           </h5>
         </div>
         <div class="flex flex-col w-96 p-10 font-display overflow-y-auto">

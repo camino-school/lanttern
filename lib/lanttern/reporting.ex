@@ -6,10 +6,12 @@ defmodule Lanttern.Reporting do
   import Ecto.Query, warn: false
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
-  import LantternWeb.Gettext
+  alias Lanttern.Utils
 
   alias Lanttern.Reporting.ReportCard
   alias Lanttern.Reporting.StudentReportCard
+  alias Lanttern.Reporting.ReportCardGradeSubject
+  alias Lanttern.Reporting.ReportCardGradeCycle
 
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Schools
@@ -329,29 +331,8 @@ defmodule Lanttern.Reporting do
 
   """
   @spec update_strands_reports_positions([integer()]) :: :ok | {:error, String.t()}
-  def update_strands_reports_positions(strands_reports_ids) do
-    strands_reports_ids
-    |> Enum.with_index()
-    |> Enum.reduce(
-      Ecto.Multi.new(),
-      fn {id, i}, multi ->
-        multi
-        |> Ecto.Multi.update_all(
-          "update-#{id}",
-          from(
-            sr in StrandReport,
-            where: sr.id == ^id
-          ),
-          set: [position: i]
-        )
-      end
-    )
-    |> Repo.transaction()
-    |> case do
-      {:ok, _} -> :ok
-      _ -> {:error, gettext("Something went wrong")}
-    end
-  end
+  def update_strands_reports_positions(strands_reports_ids),
+    do: Utils.update_positions(StrandReport, strands_reports_ids)
 
   @doc """
   Deletes a strand_report.
@@ -600,5 +581,141 @@ defmodule Lanttern.Reporting do
 
     strand_reports
     |> Enum.map(&{&1, Map.get(ast_entries_map, &1.id, [])})
+  end
+
+  @doc """
+  Returns the list of report card grades subjects.
+
+  Results are ordered by position and preloaded subjects.
+
+  ## Examples
+
+      iex> list_report_card_grades_subjects(1)
+      [%ReportCardGradeSubject{}, ...]
+
+  """
+  @spec list_report_card_grades_subjects(report_card_id :: integer()) :: [
+          ReportCardGradeSubject.t()
+        ]
+
+  def list_report_card_grades_subjects(report_card_id) do
+    from(rcgs in ReportCardGradeSubject,
+      order_by: rcgs.position,
+      join: s in assoc(rcgs, :subject),
+      preload: [subject: s],
+      where: rcgs.report_card_id == ^report_card_id
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Add a subject to a report card grades section.
+
+  ## Examples
+
+      iex> add_subject_to_report_card_grades(%{field: value})
+      {:ok, %ReportCardGradeSubject{}}
+
+      iex> add_subject_to_report_card_grades(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+  """
+
+  @spec add_subject_to_report_card_grades(map()) ::
+          {:ok, ReportCardGradeSubject.t()} | {:error, Ecto.Changeset.t()}
+  def add_subject_to_report_card_grades(attrs \\ %{}) do
+    %ReportCardGradeSubject{}
+    |> ReportCardGradeSubject.changeset(attrs)
+    |> set_report_card_grade_subject_position()
+    |> Repo.insert()
+  end
+
+  # skip if not valid
+  defp set_report_card_grade_subject_position(%Ecto.Changeset{valid?: false} = changeset),
+    do: changeset
+
+  # skip if changeset already has position change
+  defp set_report_card_grade_subject_position(
+         %Ecto.Changeset{changes: %{position: _position}} = changeset
+       ),
+       do: changeset
+
+  defp set_report_card_grade_subject_position(%Ecto.Changeset{} = changeset) do
+    report_card_id =
+      Ecto.Changeset.get_field(changeset, :report_card_id)
+
+    position =
+      from(
+        rcgs in ReportCardGradeSubject,
+        where: rcgs.report_card_id == ^report_card_id,
+        select: rcgs.position,
+        order_by: [desc: rcgs.position],
+        limit: 1
+      )
+      |> Repo.one()
+      |> case do
+        nil -> 0
+        pos -> pos + 1
+      end
+
+    changeset
+    |> Ecto.Changeset.put_change(:position, position)
+  end
+
+  @doc """
+  Update report card grades subjects positions based on ids list order.
+
+  ## Examples
+
+      iex> update_report_card_grades_subjects_positions([3, 2, 1])
+      :ok
+
+  """
+  @spec update_report_card_grades_subjects_positions([integer()]) :: :ok | {:error, String.t()}
+  def update_report_card_grades_subjects_positions(report_card_grades_subjects_ids),
+    do: Utils.update_positions(ReportCardGradeSubject, report_card_grades_subjects_ids)
+
+  @doc """
+  Returns the list of report card grades cycles.
+
+  Results are ordered asc by cycle `end_at` and desc by cycle `start_at`, and have preloaded school cycles.
+
+  ## Examples
+
+      iex> list_report_card_grades_cycles(1)
+      [%ReportCardGradeCycle{}, ...]
+
+  """
+  @spec list_report_card_grades_cycles(report_card_id :: integer()) :: [
+          ReportCardGradeCycle.t()
+        ]
+
+  def list_report_card_grades_cycles(report_card_id) do
+    from(rcgc in ReportCardGradeCycle,
+      join: sc in assoc(rcgc, :school_cycle),
+      preload: [school_cycle: sc],
+      where: rcgc.report_card_id == ^report_card_id,
+      order_by: [asc: sc.end_at, desc: sc.start_at]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Add a cycle to a report card grades section.
+
+  ## Examples
+
+      iex> add_cycle_to_report_card_grades(%{field: value})
+      {:ok, %ReportCardGradeCycle{}}
+
+      iex> add_cycle_to_report_card_grades(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+  """
+
+  @spec add_cycle_to_report_card_grades(map()) ::
+          {:ok, ReportCardGradeCycle.t()} | {:error, Ecto.Changeset.t()}
+  def add_cycle_to_report_card_grades(attrs \\ %{}) do
+    %ReportCardGradeCycle{}
+    |> ReportCardGradeCycle.changeset(attrs)
+    |> Repo.insert()
   end
 end
