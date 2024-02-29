@@ -45,15 +45,6 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
           </div>
         </div>
         <div class="p-4 rounded mt-10 bg-white shadow-lg">
-          <.button
-            :if={@has_grades_subjects_order_change}
-            theme="ghost"
-            phx-click="save_grade_report_subject_order_changes"
-            phx-target={@myself}
-            class="w-full mb-4 justify-center"
-          >
-            <%= gettext("Save grade report subjects order changes") %>
-          </.button>
           <.grades_grid
             sortable_grades_subjects={@sortable_grades_subjects}
             grades_cycles={@grades_cycles}
@@ -75,7 +66,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
     grid_template_columns_style =
       case length(assigns.grades_cycles) do
         n when n > 1 ->
-          "grid-template-columns: 160px repeat(#{n} minmax(0, 1fr))"
+          "grid-template-columns: 160px repeat(#{n}, minmax(0, 1fr))"
 
         _ ->
           "grid-template-columns: 160px minmax(0, 1fr)"
@@ -92,11 +83,24 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
       |> assign(:grid_template_columns_style, grid_template_columns_style)
       |> assign(:grid_column_style, grid_column_style)
       |> assign(:has_subjects, length(assigns.sortable_grades_subjects) > 0)
+      |> assign(:has_cycles, length(assigns.grades_cycles) > 0)
 
     ~H"""
-    <div class="grid gap-1" style={@grid_template_columns_style}>
-      <div>Grades</div>
-      <div class="rounded bg-ltrn-lighter">Add cycles</div>
+    <div class="grid gap-1 text-sm" style={@grid_template_columns_style}>
+      <div></div>
+      <%= if @has_cycles do %>
+        <div
+          :for={grade_cycle <- @grades_cycles}
+          id={"grid-header-cycle-#{grade_cycle.id}"}
+          class="p-4 rounded text-center bg-white shadow-lg"
+        >
+          <%= grade_cycle.school_cycle.name %>
+        </div>
+      <% else %>
+        <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lightest">
+          <%= gettext("Use the buttons above to add cycles to this grid") %>
+        </div>
+      <% end %>
       <%= if @has_subjects do %>
         <div
           :for={{grade_subject, i} <- @sortable_grades_subjects}
@@ -122,12 +126,30 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
           >
             <%= grade_subject.subject.name %>
           </.sortable_card>
-          <div class="rounded bg-ltrn-lighter">TBD</div>
+          <%= if @has_cycles do %>
+            <div
+              :for={_grade_cycle <- @grades_cycles}
+              class="rounded border border-ltrn-lighter bg-ltrn-lightest"
+            >
+            </div>
+          <% else %>
+            <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+          <% end %>
         </div>
       <% else %>
         <div class="grid grid-cols-subgrid" style={@grid_column_style}>
-          <div class="rounded bg-ltrn-lighter">Add subjects</div>
-          <div class="rounded bg-ltrn-lighter">TBD</div>
+          <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lightest">
+            <%= gettext("Use the buttons above to add subjects to this grid") %>
+          </div>
+          <%= if @has_cycles do %>
+            <div
+              :for={_grade_cycle <- @grades_cycles}
+              class="rounded border border-ltrn-lighter bg-ltrn-lightest"
+            >
+            </div>
+          <% else %>
+            <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+          <% end %>
         </div>
       <% end %>
       <%!-- <p>Subjects</p>
@@ -211,24 +233,14 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
       |> swap(i, j)
       |> Enum.with_index()
 
-    socket =
-      socket
-      |> assign(:has_grades_subjects_order_change, true)
-      |> assign(:sortable_grades_subjects, sortable_grades_subjects)
-
-    {:noreply, socket}
-  end
-
-  def handle_event("save_grade_report_subject_order_changes", _, socket) do
-    socket.assigns.sortable_grades_subjects
+    sortable_grades_subjects
     |> Enum.map(fn {grade_subject, _i} -> grade_subject.id end)
     |> Reporting.update_report_card_grades_subjects_positions()
     |> case do
       :ok ->
         socket =
           socket
-          |> assign(:has_grades_subjects_order_change, false)
-          |> put_flash(:info, gettext("Order changes saved succesfully!"))
+          |> assign(:sortable_grades_subjects, sortable_grades_subjects)
 
         {:noreply, socket}
 
