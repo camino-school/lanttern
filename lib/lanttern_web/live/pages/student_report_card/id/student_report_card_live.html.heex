@@ -24,7 +24,7 @@
         :for={{dom_id, {strand_report, entries}} <- @streams.strand_reports_and_entries}
         id={dom_id}
         strand={strand_report.strand}
-        navigate={~p"/student_report_card/#{@student_report_card}/strand/#{strand_report}"}
+        navigate={~p"/student_report_card/#{@student_report_card}/strand_report/#{strand_report}"}
         hide_description
       >
         <:bottom_content :if={entries != []}>

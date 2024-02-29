@@ -101,7 +101,10 @@ defmodule LantternWeb.Router do
       live "/report_cards/:id/edit", ReportCardLive, :edit
 
       live "/student_report_card/:id", StudentReportCardLive, :show
-      live "/student_report_card/:id/strand/:strand_report_id", StudentStrandReportLive, :show
+
+      live "/student_report_card/:id/strand_report/:strand_report_id",
+           StudentStrandReportLive,
+           :show
     end
   end
 
