@@ -4,12 +4,27 @@ defmodule Lanttern.Reporting.StrandReport do
 
   import LantternWeb.Gettext
 
+  alias Lanttern.Reporting.ReportCard
+  alias Lanttern.LearningContext.Strand
+
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          description: String.t(),
+          position: non_neg_integer(),
+          report_card: ReportCard.t(),
+          report_card_id: pos_integer(),
+          strand: Strand.t(),
+          strand_id: pos_integer(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   schema "strand_reports" do
     field :description, :string
     field :position, :integer, default: 0
 
-    belongs_to :report_card, Lanttern.Reporting.ReportCard
-    belongs_to :strand, Lanttern.LearningContext.Strand
+    belongs_to :report_card, ReportCard
+    belongs_to :strand, Strand
 
     timestamps()
   end

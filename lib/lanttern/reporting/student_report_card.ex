@@ -4,12 +4,27 @@ defmodule Lanttern.Reporting.StudentReportCard do
 
   import LantternWeb.Gettext
 
+  alias Lanttern.Reporting.ReportCard
+  alias Lanttern.Schools.Student
+
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          comment: String.t(),
+          footnote: String.t(),
+          report_card: ReportCard.t(),
+          report_card_id: pos_integer(),
+          student: Student.t(),
+          student_id: pos_integer(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   schema "student_report_cards" do
     field :comment, :string
     field :footnote, :string
 
-    belongs_to :report_card, Lanttern.Reporting.ReportCard
-    belongs_to :student, Lanttern.Schools.Student
+    belongs_to :report_card, ReportCard
+    belongs_to :student, Student
 
     timestamps()
   end

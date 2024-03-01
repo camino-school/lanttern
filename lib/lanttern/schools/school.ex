@@ -2,6 +2,13 @@ defmodule Lanttern.Schools.School do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          name: String.t(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   schema "schools" do
     field :name, :string
 

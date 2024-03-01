@@ -10,57 +10,180 @@
     <:item><%= gettext("Component") %></:item>
   </.breadcrumbs>
   <section class="mt-10">
-    <h2 class="mb-6 font-display font-bold text-2xl"><%= gettext("Curriculum items") %></h2>
+    <h2 class="mb-2 font-display font-black text-2xl"><%= gettext("Curriculum items") %></h2>
+    <p class="flex flex-wrap gap-2 mb-6">
+      <%= ngettext(
+        "Showing 1 result for",
+        "Showing %{count} results for",
+        @curriculum_items_count
+      ) %>
+      <%= if length(@selected_subjects) == 0 do %>
+        <.badge><%= gettext("all subjects") %></.badge>
+      <% else %>
+        <.badge :for={subject <- @selected_subjects}><%= subject.name %></.badge>
+      <% end %>
+      <%= gettext("and") %>
+      <%= if length(@selected_years) == 0 do %>
+        <.badge><%= gettext("all years") %></.badge>
+      <% else %>
+        <.badge :for={year <- @selected_years}><%= year.name %></.badge>
+      <% end %>
+    </p>
     <div class="grid grid-cols-[repeat(2,_max-content)_minmax(200px,_2fr)_repeat(2,_minmax(0,_1fr))] gap-y-2">
-      <div class="p-2"><%= gettext("Code") %></div>
-      <div class="p-2"><%= gettext("Item") %></div>
-      <div class="p-2"><%= gettext("Subjects") %></div>
-      <div class="p-2"><%= gettext("Years") %></div>
-      <ul
-        id="curriculum-items-table"
-        class="grid grid-cols-subgrid col-span-5"
-        phx-update="stream"
-      >
-        <li
-          :for={{dom_id, curriculum_item} <- @streams.curriculum_items}
-          id={dom_id}
-          class="grid grid-cols-subgrid col-span-5 py-2 rounded hover:bg-ltrn-mesh-yellow"
-        >
-          <div class="p-2">
-            <.badge theme="dark">
-              #<%= curriculum_item.id %>
-            </.badge>
-          </div>
-          <div class="p-2">
-            <%= if curriculum_item.code do %>
-              <.badge theme="dark">
-                (<%= curriculum_item.code %>)
-              </.badge>
+      <div class="sticky top-0 grid grid-cols-subgrid col-span-5 rounded font-display font-bold text-sm bg-white shadow">
+        <div class="p-4">Id</div>
+        <div class="p-4"><%= gettext("Code") %></div>
+        <div class="p-4"><%= gettext("Item") %></div>
+        <div class="p-4">
+          <button
+            type="button"
+            class="flex items-center gap-2 hover:text-ltrn-subtle"
+            phx-click="show_subjects_filter"
+          >
+            <%= gettext("Subjects") %>
+            <%= if length(@selected_subjects_ids) > 0 do %>
+              <.icon name="hero-funnel-solid" class="text-ltrn-primary" />
             <% else %>
-              <span class="text-ltrn-subtle">—</span>
+              <.icon name="hero-funnel" class="text-ltrn-subtle" />
             <% end %>
-          </div>
-          <div class="p-2 text-sm">
-            <%= curriculum_item.name %>
-          </div>
-          <div class="flex flex-wrap items-start gap-1 p-2">
-            <.badge :for={subject <- curriculum_item.subjects}>
-              <%= subject.name %>
-            </.badge>
-          </div>
-          <div class="flex flex-wrap items-start gap-1 p-2">
-            <.badge :for={year <- curriculum_item.years}>
-              <%= year.name %>
-            </.badge>
-          </div>
-        </li>
-      </ul>
+          </button>
+        </div>
+        <div class="p-4">
+          <button
+            type="button"
+            class="flex items-center gap-2 hover:text-ltrn-subtle"
+            phx-click="show_years_filter"
+          >
+            <%= gettext("Years") %>
+            <%= if length(@selected_years_ids) > 0 do %>
+              <.icon name="hero-funnel-solid" class="text-ltrn-primary" />
+            <% else %>
+              <.icon name="hero-funnel" class="text-ltrn-subtle" />
+            <% end %>
+          </button>
+        </div>
+      </div>
+      <%= if @curriculum_items_count == 0 do %>
+        <div class="col-span-5 p-10 rounded bg-white shadow">
+          <.empty_state>
+            <%= gettext("No curriculum items found for selected filters.") %>
+          </.empty_state>
+        </div>
+      <% else %>
+        <ul
+          id="curriculum-items-table"
+          class="grid grid-cols-subgrid col-span-5"
+          phx-update="stream"
+        >
+          <li
+            :for={{dom_id, curriculum_item} <- @streams.curriculum_items}
+            id={dom_id}
+            class="grid grid-cols-subgrid col-span-5 py-2 rounded hover:bg-ltrn-mesh-yellow"
+          >
+            <div class="p-4">
+              <.badge theme="dark">
+                #<%= curriculum_item.id %>
+              </.badge>
+            </div>
+            <div class="p-4">
+              <%= if curriculum_item.code do %>
+                <.badge theme="dark">
+                  (<%= curriculum_item.code %>)
+                </.badge>
+              <% else %>
+                <span class="text-ltrn-subtle">—</span>
+              <% end %>
+            </div>
+            <div class="p-4 text-sm">
+              <%= curriculum_item.name %>
+            </div>
+            <div class="flex flex-wrap items-start gap-1 p-4">
+              <.badge :for={subject <- curriculum_item.subjects}>
+                <%= subject.name %>
+              </.badge>
+            </div>
+            <div class="flex flex-wrap items-start gap-1 p-4">
+              <.badge :for={year <- curriculum_item.years}>
+                <%= year.name %>
+              </.badge>
+            </div>
+          </li>
+        </ul>
+      <% end %>
     </div>
   </section>
   <section :if={@curriculum_component.description} class="mt-10">
-    <h2 class="mb-6 font-display font-bold text-2xl">
+    <h2 class="mb-6 font-display font-black text-2xl">
       <%= gettext("About the curriculum component") %>
     </h2>
     <.markdown text={@curriculum_component.description} />
   </section>
 </.container>
+<.modal
+  :if={@show_subjects_filter}
+  id="subjects-filter-modal"
+  show
+  on_cancel={JS.push("hide_subjects_filter")}
+>
+  <h5 class="font-display font-black text-xl">
+    <%= gettext("Filter curriculum items by subject") %>
+  </h5>
+  <div class="flex flex-wrap gap-2 mt-6">
+    <.badge_button
+      :for={subject <- @subjects}
+      theme={if subject.id in @selected_subjects_ids, do: "cyan", else: "default"}
+      icon_name={
+        if subject.id in @selected_subjects_ids, do: "hero-check-mini", else: "hero-plus-mini"
+      }
+      phx-click={JS.push("toggle_subject_id", value: %{id: subject.id})}
+    >
+      <%= subject.name %>
+    </.badge_button>
+  </div>
+  <div class="flex justify-between gap-2 mt-10">
+    <.button type="button" theme="ghost" phx-click="clear_subjects_filter">
+      <%= gettext("Clear filters") %>
+    </.button>
+    <div class="flex gap-2">
+      <.button type="button" theme="ghost" phx-click="hide_subjects_filter">
+        <%= gettext("Cancel") %>
+      </.button>
+      <.button type="button" phx-click="save_selected_subjects_ids">
+        <%= gettext("Apply") %>
+      </.button>
+    </div>
+  </div>
+</.modal>
+<.modal
+  :if={@show_years_filter}
+  id="years-filter-modal"
+  show
+  on_cancel={JS.push("hide_years_filter")}
+>
+  <h5 class="font-display font-black text-xl">
+    <%= gettext("Filter curriculum items by year") %>
+  </h5>
+  <div class="flex flex-wrap gap-2 mt-6">
+    <.badge_button
+      :for={year <- @years}
+      theme={if year.id in @selected_years_ids, do: "cyan", else: "default"}
+      icon_name={if year.id in @selected_years_ids, do: "hero-check-mini", else: "hero-plus-mini"}
+      phx-click={JS.push("toggle_year_id", value: %{id: year.id})}
+    >
+      <%= year.name %>
+    </.badge_button>
+  </div>
+  <div class="flex justify-between gap-2 mt-10">
+    <.button type="button" theme="ghost" phx-click="clear_years_filter">
+      <%= gettext("Clear filters") %>
+    </.button>
+    <div class="flex gap-2">
+      <.button type="button" theme="ghost" phx-click="hide_years_filter">
+        <%= gettext("Cancel") %>
+      </.button>
+      <.button type="button" phx-click="save_selected_years_ids">
+        <%= gettext("Apply") %>
+      </.button>
+    </div>
+  </div>
+</.modal>

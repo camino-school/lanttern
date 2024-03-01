@@ -3,19 +3,35 @@ defmodule Lanttern.Conversation.Comment do
   import Ecto.Changeset
   alias Lanttern.Repo
 
+  alias Lanttern.Assessments.Feedback
+  alias Lanttern.Identity.Profile
+
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          comment: String.t(),
+          mark_feedback_for_completion: boolean(),
+          feedback_id_for_completion: pos_integer(),
+          completed_feedback: Feedback.t(),
+          profile: Profile.t(),
+          profile_id: pos_integer(),
+          feedback: [Feedback.t()],
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   schema "comments" do
     field :comment, :string
 
     field :mark_feedback_for_completion, :boolean, virtual: true
     field :feedback_id_for_completion, :id, virtual: true
 
-    has_one :completed_feedback, Lanttern.Assessments.Feedback,
+    has_one :completed_feedback, Feedback,
       foreign_key: :completion_comment_id,
       on_replace: :nilify
 
-    belongs_to :profile, Lanttern.Identity.Profile
+    belongs_to :profile, Profile
 
-    many_to_many :feedback, Lanttern.Assessments.Feedback,
+    many_to_many :feedback, Feedback,
       join_through: "feedback_comments",
       on_replace: :delete
 
@@ -46,7 +62,7 @@ defmodule Lanttern.Conversation.Comment do
     feedback_id =
       get_field(changeset, :feedback_id_for_completion)
 
-    case Repo.get(Lanttern.Assessments.Feedback, feedback_id) do
+    case Repo.get(Feedback, feedback_id) do
       nil ->
         changeset
         |> add_error(:completed_feedback, "Feedback not found")
@@ -64,7 +80,7 @@ defmodule Lanttern.Conversation.Comment do
          comment_id when not is_nil(comment_id) <-
            get_field(changeset, :id),
          feedback when not is_nil(feedback) <-
-           Repo.get_by(Lanttern.Assessments.Feedback,
+           Repo.get_by(Feedback,
              id: feedback_id,
              completion_comment_id: comment_id
            ) do

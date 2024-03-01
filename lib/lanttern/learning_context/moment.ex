@@ -5,20 +5,40 @@ defmodule Lanttern.LearningContext.Moment do
   import LantternWeb.Gettext
   import Lanttern.SchemaHelpers
 
+  alias Lanttern.Curricula.CurriculumItem
+  alias Lanttern.LearningContext.Strand
+  alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Taxonomy.Subject
+
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          name: String.t(),
+          position: non_neg_integer(),
+          description: String.t(),
+          subjects_ids: [pos_integer()],
+          strand: Strand.t(),
+          strand_id: pos_integer(),
+          assessment_points: [AssessmentPoint.t()],
+          curriculum_items: [CurriculumItem.t()],
+          subjects: [Subject.t()],
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   schema "moments" do
     field :name, :string
     field :position, :integer, default: 0
     field :description, :string
     field :subjects_ids, {:array, :id}, virtual: true
 
-    belongs_to :strand, Lanttern.LearningContext.Strand
+    belongs_to :strand, Strand
 
-    has_many :assessment_points, Lanttern.Assessments.AssessmentPoint
+    has_many :assessment_points, AssessmentPoint
 
     has_many :curriculum_items,
       through: [:assessment_points, :curriculum_item]
 
-    many_to_many :subjects, Lanttern.Taxonomy.Subject,
+    many_to_many :subjects, Subject,
       join_through: "moments_subjects",
       on_replace: :delete
 

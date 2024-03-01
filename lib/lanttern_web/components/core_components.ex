@@ -1099,7 +1099,7 @@ defmodule LantternWeb.CoreComponents do
       </.stream_table>
   """
   attr :id, :string, required: true
-  attr :stream, Phoenix.LiveView.LiveStream, required: true
+  attr :stream, :any, required: true
   attr :row_click, :any, default: nil, doc: "the function for handling phx-click on each row"
 
   slot :col, required: true do

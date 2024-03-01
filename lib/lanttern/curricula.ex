@@ -241,24 +241,30 @@ defmodule Lanttern.Curricula do
   @doc """
   Returns the list of curriculum items.
 
-  Subjects and years are always preloaded.
-
   Results are ordered by `subject.name`, `year.id`, and `code`.
 
   ## Options:
 
-      - `:preloads` – preloads associated data
-      - `:subjects_ids` – filter by subjects
-      - `:years_ids` – filter by years
-      - `:components_ids` – filter by curriculum components
-      - `:base_query` - used in conjunction with `search_curriculum_items/2`
+  - `:preloads` – preloads associated data (subjects and years are always preloaded *)
+  - `:subjects_ids` – filter by subjects
+  - `:years_ids` – filter by years
+  - `:components_ids` – filter by curriculum components
+  - `:base_query` - used in conjunction with `search_curriculum_items/2`
 
   ## Examples
 
       iex> list_curriculum_items()
       [%CurriculumItem{}, ...]
 
+  #### * About subjects and years preload
+
+  We don't preload in query because the list would be incomplete.
+
+  E.g. if the curriculum item has subjects `A`, `B`, and `C`, and we're filtering by
+  `B`, preloading in query would show only subject `B`.
+
   """
+  @spec list_curriculum_items(Keyword.t()) :: [CurriculumItem.t()]
   def list_curriculum_items(opts \\ []) do
     queryable = Keyword.get(opts, :base_query, CurriculumItem)
 
@@ -267,18 +273,18 @@ defmodule Lanttern.Curricula do
       as: :subject,
       left_join: y in assoc(ci, :years),
       as: :year,
-      preload: [subjects: s, years: y],
       order_by: [asc: s.name, asc: y.id, asc: ci.code]
     )
     |> apply_list_curriculum_items_opts(opts)
-    # |> maybe_filter(opts)
     |> Repo.all()
+    |> maybe_preload(preloads: [:subjects, :years])
     |> maybe_preload(opts)
   end
 
   defp apply_list_curriculum_items_opts(queryable, []), do: queryable
 
-  defp apply_list_curriculum_items_opts(queryable, [{:subjects_ids, subjects_ids} | opts]) do
+  defp apply_list_curriculum_items_opts(queryable, [{:subjects_ids, subjects_ids} | opts])
+       when is_list(subjects_ids) and subjects_ids != [] do
     from(
       [ci, subject: s] in queryable,
       where: s.id in ^subjects_ids
@@ -286,7 +292,8 @@ defmodule Lanttern.Curricula do
     |> apply_list_curriculum_items_opts(opts)
   end
 
-  defp apply_list_curriculum_items_opts(queryable, [{:years_ids, years_ids} | opts]) do
+  defp apply_list_curriculum_items_opts(queryable, [{:years_ids, years_ids} | opts])
+       when is_list(years_ids) and years_ids != [] do
     from(
       [ci, year: y] in queryable,
       where: y.id in ^years_ids
