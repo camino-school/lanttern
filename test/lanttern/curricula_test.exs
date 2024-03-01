@@ -11,9 +11,12 @@ defmodule Lanttern.CurriculaTest do
 
     @invalid_attrs %{name: nil}
 
-    test "list_curricula/0 returns all curricula" do
-      curriculum = curriculum_fixture()
-      assert Curricula.list_curricula() == [curriculum]
+    test "list_curricula/0 returns all curricula ordered alphabetically" do
+      curriculum_b = curriculum_fixture(%{name: "BBB"})
+      curriculum_a = curriculum_fixture(%{name: "AAA"})
+      curriculum_c = curriculum_fixture(%{name: "CCC"})
+
+      assert Curricula.list_curricula() == [curriculum_a, curriculum_b, curriculum_c]
     end
 
     test "get_curriculum!/1 returns the curriculum with given id" do
@@ -67,9 +70,16 @@ defmodule Lanttern.CurriculaTest do
 
     @invalid_attrs %{code: nil, name: nil}
 
-    test "list_curriculum_components/1 returns all curriculum_components" do
-      curriculum_component = curriculum_component_fixture()
-      assert Curricula.list_curriculum_components() == [curriculum_component]
+    test "list_curriculum_components/1 returns all curriculum_components ordered by position" do
+      curriculum_component_2 = curriculum_component_fixture(%{position: 2})
+      curriculum_component_1 = curriculum_component_fixture(%{position: 1})
+      curriculum_component_3 = curriculum_component_fixture(%{position: 3})
+
+      assert Curricula.list_curriculum_components() == [
+               curriculum_component_1,
+               curriculum_component_2,
+               curriculum_component_3
+             ]
     end
 
     test "list_curriculum_components/1 with preloads returns all curriculum_components with preloaded data" do
@@ -80,6 +90,17 @@ defmodule Lanttern.CurriculaTest do
       [expected] = Curricula.list_curriculum_components(preloads: :curriculum)
       assert expected.id == curriculum_component.id
       assert expected.curriculum == curriculum
+    end
+
+    test "list_curriculum_components/1 with curricula filter returns only curriculum_components for given curricula" do
+      curriculum = curriculum_fixture()
+      curriculum_component = curriculum_component_fixture(%{curriculum_id: curriculum.id})
+
+      # extra curriculum component for filter test
+      curriculum_component_fixture()
+
+      [expected] = Curricula.list_curriculum_components(curricula_ids: [curriculum.id])
+      assert expected.id == curriculum_component.id
     end
 
     test "get_curriculum_component!/2 returns the curriculum_component with given id" do

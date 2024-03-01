@@ -1,0 +1,27 @@
+<.container>
+  <.page_title_with_menu><%= @curriculum.name %></.page_title_with_menu>
+  <.breadcrumbs class="mt-2">
+    <:item link={~p"/curriculum"}>Curriculum</:item>
+    <:item><%= gettext("Details") %></:item>
+  </.breadcrumbs>
+  <section class="mt-10">
+    <h2 class="mb-6 font-display font-bold text-2xl"><%= gettext("Curriculum components") %></h2>
+    <ul id="curriculum-components-grid" class="grid grid-cols-3 gap-4" phx-update="stream">
+      <li
+        :for={{dom_id, curriculum_component} <- @streams.curriculum_components}
+        id={dom_id}
+        class="p-4 rounded bg-white shadow-lg"
+      >
+        <.badge :if={curriculum_component.code} class="mb-2">
+          <%= curriculum_component.code %>
+        </.badge>
+        <br />
+        <span class="font-display font-bold"><%= curriculum_component.name %></span>
+      </li>
+    </ul>
+  </section>
+  <section :if={@curriculum.description} class="mt-10">
+    <h2 class="mb-6 font-display font-bold text-2xl"><%= gettext("About the curriculum") %></h2>
+    <.markdown text={@curriculum.description} />
+  </section>
+</.container>

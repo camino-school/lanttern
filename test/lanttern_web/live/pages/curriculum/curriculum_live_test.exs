@@ -1,6 +1,8 @@
 defmodule LantternWeb.CurriculumLiveTest do
   use LantternWeb.ConnCase
 
+  import Lanttern.CurriculaFixtures
+
   @live_view_path "/curriculum"
 
   setup :register_and_log_in_user
@@ -13,15 +15,20 @@ defmodule LantternWeb.CurriculumLiveTest do
       {:ok, _view, _html} = live(conn)
     end
 
-    test "navigation to BNCC EF", %{conn: conn} do
+    test "listing curricula", %{conn: conn} do
+      curriculum = curriculum_fixture(%{name: "Some curriculum AAA"})
+      curriculum_fixture(%{name: "Some curriculum BBB"})
+
       {:ok, view, _html} = live(conn, @live_view_path)
 
       view
-      |> element("a", "BNCC EF")
+      |> has_element?("a", "Some curriculum BBB")
+
+      view
+      |> element("a", "Some curriculum AAA")
       |> render_click()
 
-      {path, _flash} = assert_redirect(view)
-      assert path == "/curriculum/bncc_ef"
+      assert_redirect(view, ~p"/curriculum/#{curriculum}")
     end
   end
 end

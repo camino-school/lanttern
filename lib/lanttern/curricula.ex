@@ -24,7 +24,11 @@ defmodule Lanttern.Curricula do
 
   """
   def list_curricula do
-    Repo.all(Curriculum)
+    from(
+      c in Curriculum,
+      order_by: :name
+    )
+    |> Repo.all()
   end
 
   @doc """
@@ -111,9 +115,12 @@ defmodule Lanttern.Curricula do
   @doc """
   Returns the list of curriculum_components.
 
-  ### Options:
+  Ordered by position.
 
-  `:preloads` – preloads associated data
+  ## Options:
+
+      - `:preloads` – preloads associated data
+      - `:curricula_ids` – filter results by curriculum
 
   ## Examples
 
@@ -122,9 +129,26 @@ defmodule Lanttern.Curricula do
 
   """
   def list_curriculum_components(opts \\ []) do
-    Repo.all(CurriculumComponent)
+    from(cc in CurriculumComponent,
+      order_by: :position
+    )
+    |> apply_list_curriculum_components_opts(opts)
+    |> Repo.all()
     |> maybe_preload(opts)
   end
+
+  defp apply_list_curriculum_components_opts(queryable, []), do: queryable
+
+  defp apply_list_curriculum_components_opts(queryable, [{:curricula_ids, curricula_ids} | opts]) do
+    from(
+      cc in queryable,
+      where: cc.curriculum_id in ^curricula_ids
+    )
+    |> apply_list_curriculum_components_opts(opts)
+  end
+
+  defp apply_list_curriculum_components_opts(queryable, [_opt | opts]),
+    do: apply_list_curriculum_components_opts(queryable, opts)
 
   @doc """
   Gets a single curriculum_component.

@@ -10,8 +10,28 @@
 
 <.list>
   <:item title="Curriculum"><%= @curriculum_component.curriculum.name %></:item>
-  <:item title="Name"><%= @curriculum_component.name %></:item>
   <:item title="Code"><%= @curriculum_component.code %></:item>
+  <:item title="Name"><%= @curriculum_component.name %></:item>
+  <:item title="Description"><%= @curriculum_component.description %></:item>
+  <:item title="Position"><%= @curriculum_component.position %></:item>
+  <:item title="Colors">
+    <.badge style={
+      [
+        if(@curriculum_component.bg_color,
+          do: "background-color: #{@curriculum_component.bg_color};",
+          else: ""
+        ),
+        if(@curriculum_component.text_color,
+          do: "color: #{@curriculum_component.text_color};",
+          else: ""
+        )
+      ]
+      |> Enum.join(" ")
+    }>
+      bg: <%= @curriculum_component.bg_color || "—" %> / text: <%= @curriculum_component.text_color ||
+        "—" %>
+    </.badge>
+  </:item>
 </.list>
 
 <.back navigate={~p"/admin/curriculum_components"}>Back to curriculum_components</.back>
