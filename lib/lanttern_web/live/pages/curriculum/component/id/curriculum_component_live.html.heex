@@ -1,61 +1,66 @@
 <.container>
-  <.page_title_with_menu>Curriculum</.page_title_with_menu>
-  <ul phx-update="stream" id="curricula-list">
-    <li
-      :for={{dom_id, curriculum} <- @streams.curricula}
-      id={dom_id}
-      class="p-6 rounded mt-10 bg-white shadow-lg"
-    >
-      <div class="flex items-center gap-4">
-        <h5 class="font-display font-black">
-          <%= curriculum.name %>
-        </h5>
-        <.badge :if={curriculum.code} theme="dark">
-          <%= curriculum.code %>
-        </.badge>
-      </div>
-      <.markdown
-        :if={curriculum.description}
-        text={curriculum.description}
-        size="sm"
-        class="max-w-none mt-6"
-      />
-    </li>
-  </ul>
-  <.link
-    navigate={~p"/curriculum/bncc_ef"}
-    class="flex items-center font-display font-black text-lg text-ltrn-subtle"
-  >
-    Aero <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
-  </.link>
-  <.link
-    navigate={~p"/curriculum/bncc_ef"}
-    class="flex items-center mt-4 font-display font-black text-lg text-ltrn-subtle"
-  >
-    BNCC EI <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
-  </.link>
-  <.link
-    navigate={~p"/curriculum/bncc_ef"}
-    class="flex items-center mt-4 font-display font-black text-lg text-ltrn-subtle"
-  >
-    BNCC EF <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
-  </.link>
-  <.link
-    navigate={~p"/curriculum/bncc_ef"}
-    class="flex items-center mt-4 font-display font-black text-lg text-ltrn-subtle"
-  >
-    BNCC EM <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
-  </.link>
-  <.link
-    navigate={~p"/curriculum/bncc_ef"}
-    class="flex items-center mt-4 font-display font-black text-lg text-ltrn-subtle"
-  >
-    Camino School <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
-  </.link>
-  <.link
-    navigate={~p"/curriculum/bncc_ef"}
-    class="flex items-center mt-4 font-display font-black text-lg text-ltrn-subtle"
-  >
-    Common Core <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
-  </.link>
+  <.page_title_with_menu>
+    <%= "#{@curriculum_component.curriculum.name}: #{@curriculum_component.name}" %>
+  </.page_title_with_menu>
+  <.breadcrumbs class="mt-2">
+    <:item link={~p"/curriculum"}>Curriculum</:item>
+    <:item link={~p"/curriculum/#{@curriculum_component.curriculum}"}>
+      <%= gettext("Details") %>
+    </:item>
+    <:item><%= gettext("Component") %></:item>
+  </.breadcrumbs>
+  <section class="mt-10">
+    <h2 class="mb-6 font-display font-bold text-2xl"><%= gettext("Curriculum items") %></h2>
+    <div class="grid grid-cols-[repeat(2,_max-content)_minmax(200px,_2fr)_repeat(2,_minmax(0,_1fr))] gap-y-2">
+      <div class="p-2"><%= gettext("Code") %></div>
+      <div class="p-2"><%= gettext("Item") %></div>
+      <div class="p-2"><%= gettext("Subjects") %></div>
+      <div class="p-2"><%= gettext("Years") %></div>
+      <ul
+        id="curriculum-items-table"
+        class="grid grid-cols-subgrid col-span-5"
+        phx-update="stream"
+      >
+        <li
+          :for={{dom_id, curriculum_item} <- @streams.curriculum_items}
+          id={dom_id}
+          class="grid grid-cols-subgrid col-span-5 py-2 rounded hover:bg-ltrn-mesh-yellow"
+        >
+          <div class="p-2">
+            <.badge theme="dark">
+              #<%= curriculum_item.id %>
+            </.badge>
+          </div>
+          <div class="p-2">
+            <%= if curriculum_item.code do %>
+              <.badge theme="dark">
+                (<%= curriculum_item.code %>)
+              </.badge>
+            <% else %>
+              <span class="text-ltrn-subtle">—</span>
+            <% end %>
+          </div>
+          <div class="p-2 text-sm">
+            <%= curriculum_item.name %>
+          </div>
+          <div class="flex flex-wrap items-start gap-1 p-2">
+            <.badge :for={subject <- curriculum_item.subjects}>
+              <%= subject.name %>
+            </.badge>
+          </div>
+          <div class="flex flex-wrap items-start gap-1 p-2">
+            <.badge :for={year <- curriculum_item.years}>
+              <%= year.name %>
+            </.badge>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </section>
+  <section :if={@curriculum_component.description} class="mt-10">
+    <h2 class="mb-6 font-display font-bold text-2xl">
+      <%= gettext("About the curriculum component") %>
+    </h2>
+    <.markdown text={@curriculum_component.description} />
+  </section>
 </.container>

@@ -4,36 +4,6 @@ defmodule Lanttern.Curricula.CurriculumItem do
 
   import Lanttern.SchemaHelpers
 
-  @derive {
-    Flop.Schema,
-    filterable: [:subjects_ids, :years_ids, :subject_id, :year_id],
-    sortable: [:code],
-    adapter_opts: [
-      join_fields: [
-        subjects_ids: [
-          binding: :subjects,
-          field: :id,
-          ecto_type: :id
-        ],
-        years_ids: [
-          binding: :years,
-          field: :id,
-          ecto_type: :id
-        ],
-        subject_id: [
-          binding: :subjects,
-          field: :id,
-          ecto_type: :id
-        ],
-        year_id: [
-          binding: :years,
-          field: :id,
-          ecto_type: :id
-        ]
-      ]
-    ]
-  }
-
   schema "curriculum_items" do
     field :name, :string
     field :code, :string

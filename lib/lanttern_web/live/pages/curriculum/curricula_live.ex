@@ -3,6 +3,7 @@ defmodule LantternWeb.CurriculaLive do
 
   alias Lanttern.Curricula
 
+  @impl true
   def mount(_params, _session, socket) do
     socket =
       socket

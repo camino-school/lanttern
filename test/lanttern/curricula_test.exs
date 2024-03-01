@@ -183,7 +183,8 @@ defmodule Lanttern.CurriculaTest do
 
     test "list_curriculum_items/1 returns all items" do
       curriculum_item = curriculum_item_fixture()
-      assert Curricula.list_curriculum_items() == [curriculum_item]
+      assert [expected] = Curricula.list_curriculum_items()
+      assert expected.id == curriculum_item.id
     end
 
     test "list_curriculum_items/1 with preloads returns all curriculum_items with preloaded data" do
@@ -207,6 +208,20 @@ defmodule Lanttern.CurriculaTest do
       assert expected.years == [year]
     end
 
+    test "list_curriculum_items/1 with component filters returns all curriculum_items of the given components" do
+      curriculum_component = curriculum_component_fixture()
+
+      curriculum_item =
+        curriculum_item_fixture(%{curriculum_component_id: curriculum_component.id})
+
+      # extra fixtures for filter test
+
+      [expected] =
+        Curricula.list_curriculum_items(components_ids: [curriculum_component.id])
+
+      assert expected.id == curriculum_item.id
+    end
+
     test "list_curriculum_items/1 with filters returns all curriculum_items filtered by given fields" do
       subject = subject_fixture()
       other_subject = subject_fixture()
@@ -224,9 +239,8 @@ defmodule Lanttern.CurriculaTest do
       curriculum_item_fixture(%{subjects_ids: [other_subject.id], years_ids: [year.id]})
       curriculum_item_fixture(%{subjects_ids: [other_subject.id], years_ids: [other_year.id]})
 
-      filters = [subject_id: subject.id, year_id: year.id]
-
-      [expected] = Curricula.list_curriculum_items(filters: filters)
+      [expected] =
+        Curricula.list_curriculum_items(subjects_ids: [subject.id], years_ids: [year.id])
 
       assert expected.id == curriculum_item.id
     end
@@ -237,12 +251,11 @@ defmodule Lanttern.CurriculaTest do
       curriculum_item_3 = curriculum_item_fixture(%{name: "lorem ipsum dolorxxx sit amet"})
       _curriculum_item_4 = curriculum_item_fixture(%{name: "lorem ipsum xxxxx sit amet"})
 
-      expected = Curricula.search_curriculum_items("dolor")
+      assert [expected_curriculum_item_2, expected_curriculum_item_3] =
+               Curricula.search_curriculum_items("dolor")
 
-      assert length(expected) == 2
-
-      # assert order
-      assert [curriculum_item_2, curriculum_item_3] == expected
+      assert expected_curriculum_item_2.id == curriculum_item_2.id
+      assert expected_curriculum_item_3.id == curriculum_item_3.id
     end
 
     test "search_curriculum_items/2 with #id returns item with id" do
@@ -327,9 +340,11 @@ defmodule Lanttern.CurriculaTest do
 
       curriculum_item_fixture(%{name: "zzzzz", subjects_ids: [subject.id], years_ids: [year.id]})
 
-      filters = [subject_id: subject.id, year_id: year.id]
-
-      [expected] = Curricula.search_curriculum_items("abcde", filters: filters)
+      [expected] =
+        Curricula.search_curriculum_items("abcde",
+          subjects_ids: [subject.id],
+          years_ids: [year.id]
+        )
 
       assert expected.id == curriculum_item.id
     end

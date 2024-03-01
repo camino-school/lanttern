@@ -3,11 +3,19 @@ defmodule LantternWeb.CurriculumComponentLive do
 
   alias Lanttern.Curricula
 
-  def mount(_params, _session, socket) do
+  @impl true
+  def handle_params(%{"id" => id}, _uri, socket) do
     socket =
       socket
-      |> stream(:curricula, Curricula.list_curricula())
+      |> assign(
+        :curriculum_component,
+        Curricula.get_curriculum_component!(id, preloads: :curriculum)
+      )
+      |> stream(
+        :curriculum_items,
+        Curricula.list_curriculum_items(components_ids: [id])
+      )
 
-    {:ok, socket}
+    {:noreply, socket}
   end
 end

@@ -70,7 +70,6 @@ defmodule LantternWeb.BnccEfLive do
   def handle_event("filter", params, socket) do
     subjects_ids = Map.get(params, "subjects_ids")
     years_ids = Map.get(params, "years_ids")
-    filters = [subjects_ids: subjects_ids, years_ids: years_ids]
 
     current_subjects =
       case subjects_ids do
@@ -92,7 +91,7 @@ defmodule LantternWeb.BnccEfLive do
           |> Enum.filter(&("#{&1.id}" in ids))
       end
 
-    habilidades_bncc = BNCC.list_bncc_ef_items(filters: filters)
+    habilidades_bncc = BNCC.list_bncc_ef_items(subjects_ids: subjects_ids, years_ids: years_ids)
     items_count = length(habilidades_bncc)
 
     socket =

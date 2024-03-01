@@ -155,9 +155,9 @@ defmodule Lanttern.Curricula do
 
   Raises `Ecto.NoResultsError` if the Curriculum component does not exist.
 
-  ### Options:
+  ## Options:
 
-  `:preloads` – preloads associated data
+      - `:preloads` – preloads associated data
 
   ## Examples
 
@@ -241,10 +241,17 @@ defmodule Lanttern.Curricula do
   @doc """
   Returns the list of curriculum items.
 
-  ### Options:
+  Subjects and years are always preloaded.
 
-  `:preloads` – preloads associated data
-  `:filters` – accepts `:subject_id` and `:year_id`
+  Results are ordered by `subject.name`, `year.id`, and `code`.
+
+  ## Options:
+
+      - `:preloads` – preloads associated data
+      - `:subjects_ids` – filter by subjects
+      - `:years_ids` – filter by years
+      - `:components_ids` – filter by curriculum components
+      - `:base_query` - used in conjunction with `search_curriculum_items/2`
 
   ## Examples
 
@@ -253,10 +260,50 @@ defmodule Lanttern.Curricula do
 
   """
   def list_curriculum_items(opts \\ []) do
-    CurriculumItem
-    |> maybe_filter(opts)
+    queryable = Keyword.get(opts, :base_query, CurriculumItem)
+
+    from(ci in queryable,
+      left_join: s in assoc(ci, :subjects),
+      as: :subject,
+      left_join: y in assoc(ci, :years),
+      as: :year,
+      preload: [subjects: s, years: y],
+      order_by: [asc: s.name, asc: y.id, asc: ci.code]
+    )
+    |> apply_list_curriculum_items_opts(opts)
+    # |> maybe_filter(opts)
+    |> Repo.all()
     |> maybe_preload(opts)
   end
+
+  defp apply_list_curriculum_items_opts(queryable, []), do: queryable
+
+  defp apply_list_curriculum_items_opts(queryable, [{:subjects_ids, subjects_ids} | opts]) do
+    from(
+      [ci, subject: s] in queryable,
+      where: s.id in ^subjects_ids
+    )
+    |> apply_list_curriculum_items_opts(opts)
+  end
+
+  defp apply_list_curriculum_items_opts(queryable, [{:years_ids, years_ids} | opts]) do
+    from(
+      [ci, year: y] in queryable,
+      where: y.id in ^years_ids
+    )
+    |> apply_list_curriculum_items_opts(opts)
+  end
+
+  defp apply_list_curriculum_items_opts(queryable, [{:components_ids, components_ids} | opts]) do
+    from(
+      ci in queryable,
+      where: ci.curriculum_component_id in ^components_ids
+    )
+    |> apply_list_curriculum_items_opts(opts)
+  end
+
+  defp apply_list_curriculum_items_opts(queryable, [_opt | opts]),
+    do: apply_list_curriculum_items_opts(queryable, opts)
 
   @doc """
   Returns the list of curriculum items linked to the given strand.
@@ -315,10 +362,9 @@ defmodule Lanttern.Curricula do
   User can search by id by adding `#` before the id `#123`
   and search by code wrapping it in parenthesis `(ABC123)`.
 
-  ### Options:
+  ## Options:
 
-  `:preloads` – preloads associated data
-  `:filters` – accepts `:subject_id` and `:year_id`
+  View `list_curriculum_items/1` for `opts`
 
   ## Examples
 
@@ -336,9 +382,8 @@ defmodule Lanttern.Curricula do
           where: ci.id == ^search_term
         )
 
-      query
-      |> maybe_filter(opts)
-      |> maybe_preload(opts)
+      [{:base_query, query} | opts]
+      |> list_curriculum_items()
     else
       search_curriculum_items(search_term, opts)
     end
@@ -353,9 +398,8 @@ defmodule Lanttern.Curricula do
             where: ci.code == ^code
           )
 
-        query
-        |> maybe_filter(opts)
-        |> maybe_preload(opts)
+        [{:base_query, query} | opts]
+        |> list_curriculum_items()
 
       _ ->
         search_curriculum_items(search_term, opts)
@@ -372,53 +416,9 @@ defmodule Lanttern.Curricula do
         order_by: {:asc, fragment("? <<-> ?", ^search_term, ci.name)}
       )
 
-    query
-    |> maybe_filter(opts)
-    |> maybe_preload(opts)
+    [{:base_query, query} | opts]
+    |> list_curriculum_items()
   end
-
-  # list/search filters
-
-  defp maybe_filter(queryable, opts) do
-    filter_fields_and_ops = [
-      subject_id: :==,
-      year_id: :==
-    ]
-
-    limit = 10
-
-    case Keyword.get(opts, :filters) do
-      filters when is_list(filters) and filters != [] ->
-        queryable
-        |> prepare_joins(filters)
-        |> handle_flop_validate_and_run(
-          %{
-            filters: build_flop_filters_param(opts, filter_fields_and_ops),
-            limit: limit
-          },
-          for: CurriculumItem
-        )
-
-      _ ->
-        handle_flop_validate_and_run(queryable, %{limit: limit})
-    end
-  end
-
-  defp prepare_joins(queryable, filters) do
-    Enum.reduce(filters, queryable, &reduce_joins/2)
-  end
-
-  defp reduce_joins({:subject_id, _id}, queryable) do
-    queryable
-    |> join(:left, [q], s in assoc(q, :subjects), as: :subjects)
-  end
-
-  defp reduce_joins({:year_id, _id}, queryable) do
-    queryable
-    |> join(:left, [q], s in assoc(q, :years), as: :years)
-  end
-
-  defp reduce_joins(_, queryable), do: queryable
 
   @doc """
   Gets a single curriculum item.

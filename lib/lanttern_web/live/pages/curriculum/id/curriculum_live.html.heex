@@ -16,7 +16,12 @@
           <%= curriculum_component.code %>
         </.badge>
         <br />
-        <span class="font-display font-bold"><%= curriculum_component.name %></span>
+        <.link
+          navigate={~p"/curriculum/component/#{curriculum_component}"}
+          class="font-display font-bold hover:underline"
+        >
+          <%= curriculum_component.name %>
+        </.link>
       </li>
     </ul>
   </section>
