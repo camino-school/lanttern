@@ -5,6 +5,32 @@ defmodule Lanttern.LearningContext.Strand do
   import LantternWeb.Gettext
   import Lanttern.SchemaHelpers
 
+  alias Lanttern.LearningContext.Moment
+  alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Reporting.StrandReport
+  alias Lanttern.Taxonomy.Subject
+  alias Lanttern.Taxonomy.Year
+
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          name: String.t(),
+          type: String.t(),
+          description: String.t(),
+          cover_image_url: String.t(),
+          subject_id: pos_integer(),
+          subjects_ids: [pos_integer()],
+          year_id: pos_integer(),
+          years_ids: [pos_integer()],
+          is_starred: boolean(),
+          moments: [Moment.t()],
+          assessment_points: [AssessmentPoint.t()],
+          strand_reports: [StrandReport.t()],
+          subjects: [Subject.t()],
+          years: [Year.t()],
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   schema "strands" do
     field :name, :string
     field :type, :string
@@ -16,15 +42,15 @@ defmodule Lanttern.LearningContext.Strand do
     field :years_ids, {:array, :id}, virtual: true
     field :is_starred, :boolean, virtual: true
 
-    has_many :moments, Lanttern.LearningContext.Moment
-    has_many :assessment_points, Lanttern.Assessments.AssessmentPoint
-    has_many :strand_reports, Lanttern.Reporting.StrandReport
+    has_many :moments, Moment
+    has_many :assessment_points, AssessmentPoint
+    has_many :strand_reports, StrandReport
 
-    many_to_many :subjects, Lanttern.Taxonomy.Subject,
+    many_to_many :subjects, Subject,
       join_through: "strands_subjects",
       on_replace: :delete
 
-    many_to_many :years, Lanttern.Taxonomy.Year,
+    many_to_many :years, Year,
       join_through: "strands_years",
       on_replace: :delete
 

@@ -5,20 +5,36 @@ defmodule Lanttern.Schools.Student do
 
   alias Lanttern.Repo
 
+  alias Lanttern.Rubrics.Rubric
+  alias Lanttern.Schools.School
+  alias Lanttern.Schools.Class
+
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          name: String.t(),
+          classes_ids: [pos_integer()],
+          has_diff_rubric: boolean(),
+          school: School.t(),
+          school_id: pos_integer(),
+          classes: [Class.t()],
+          diff_rubrics: [Rubric.t()],
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   schema "students" do
     field :name, :string
     field :classes_ids, {:array, :id}, virtual: true
     field :has_diff_rubric, :boolean, virtual: true, default: false
 
-    belongs_to :school, Lanttern.Schools.School
+    belongs_to :school, School
 
-    many_to_many :classes, Lanttern.Schools.Class,
+    many_to_many :classes, Class,
       join_through: "classes_students",
       on_replace: :delete,
       preload_order: [asc: :name]
 
-    many_to_many :diff_rubrics, Lanttern.Rubrics.Rubric,
-      join_through: "differentiation_rubrics_students"
+    many_to_many :diff_rubrics, Rubric, join_through: "differentiation_rubrics_students"
 
     timestamps()
   end
@@ -45,7 +61,7 @@ defmodule Lanttern.Schools.Student do
 
   defp put_classes_ids(changeset, classes_ids) do
     classes =
-      from(c in Lanttern.Schools.Class, where: c.id in ^classes_ids)
+      from(c in Class, where: c.id in ^classes_ids)
       |> Repo.all()
 
     changeset

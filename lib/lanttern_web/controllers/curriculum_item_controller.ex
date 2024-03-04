@@ -30,7 +30,7 @@ defmodule LantternWeb.CurriculumItemController do
 
   defp list_curriculum_items(params) do
     opts =
-      [preloads: [:curriculum_component, :subjects, :years]]
+      [preloads: :curriculum_component]
       |> maybe_add_filters_to_opts(params)
 
     case params do
@@ -46,23 +46,11 @@ defmodule LantternWeb.CurriculumItemController do
     Enum.reduce(params, opts, &reduce_filter_opts/2)
   end
 
-  defp reduce_filter_opts({"subject_id", id}, opts) when id != "" do
-    opts
-    |> Keyword.update(
-      :filters,
-      [subject_id: id],
-      &[{:subject_id, id} | &1]
-    )
-  end
+  defp reduce_filter_opts({"subject_id", id}, opts) when id != "",
+    do: [{:subjects_ids, [id]} | opts]
 
-  defp reduce_filter_opts({"year_id", id}, opts) when id != "" do
-    opts
-    |> Keyword.update(
-      :filters,
-      [year_id: id],
-      &[{:year_id, id} | &1]
-    )
-  end
+  defp reduce_filter_opts({"year_id", id}, opts) when id != "",
+    do: [{:years_ids, [id]} | opts]
 
   defp reduce_filter_opts(_, opts), do: opts
 

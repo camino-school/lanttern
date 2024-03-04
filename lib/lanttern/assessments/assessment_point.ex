@@ -5,7 +5,46 @@ defmodule Lanttern.Assessments.AssessmentPoint do
   import LantternWeb.Gettext
 
   alias Lanttern.Repo
+
   alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.Assessments.Feedback
+  alias Lanttern.Curricula.CurriculumItem
+  alias Lanttern.Grading.Scale
+  alias Lanttern.LearningContext.Moment
+  alias Lanttern.LearningContext.Strand
+  alias Lanttern.Rubrics.Rubric
+  alias Lanttern.Schools.Class
+
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          name: String.t(),
+          datetime: DateTime.t(),
+          description: String.t(),
+          position: non_neg_integer(),
+          is_differentiation: boolean(),
+          date: Date.t(),
+          hour: non_neg_integer(),
+          minute: non_neg_integer(),
+          class_id: pos_integer(),
+          classes_ids: [pos_integer()],
+          student_id: pos_integer(),
+          students_ids: [pos_integer()],
+          curriculum_item: CurriculumItem.t(),
+          curriculum_item_id: pos_integer(),
+          scale: Scale.t(),
+          scale_id: pos_integer(),
+          rubric: Rubric.t(),
+          rubric_id: pos_integer(),
+          moment: Moment.t(),
+          moment_id: pos_integer(),
+          strand: Strand.t(),
+          strand_id: pos_integer(),
+          entries: [AssessmentPointEntry.t()],
+          feedbacks: [Feedback.t()],
+          classes: [Class.t()],
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
 
   schema "assessment_points" do
     field :name, :string
@@ -23,16 +62,16 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     field :student_id, :id, virtual: true
     field :students_ids, {:array, :id}, virtual: true
 
-    belongs_to :curriculum_item, Lanttern.Curricula.CurriculumItem
-    belongs_to :scale, Lanttern.Grading.Scale
-    belongs_to :rubric, Lanttern.Rubrics.Rubric
-    belongs_to :moment, Lanttern.LearningContext.Moment
-    belongs_to :strand, Lanttern.LearningContext.Strand
+    belongs_to :curriculum_item, CurriculumItem
+    belongs_to :scale, Scale
+    belongs_to :rubric, Rubric
+    belongs_to :moment, Moment
+    belongs_to :strand, Strand
 
-    has_many :entries, Lanttern.Assessments.AssessmentPointEntry
-    has_many :feedbacks, Lanttern.Assessments.Feedback
+    has_many :entries, AssessmentPointEntry
+    has_many :feedbacks, Feedback
 
-    many_to_many :classes, Lanttern.Schools.Class,
+    many_to_many :classes, Class,
       join_through: "assessment_points_classes",
       on_replace: :delete
 

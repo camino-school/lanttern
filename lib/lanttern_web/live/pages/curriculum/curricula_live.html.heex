@@ -1,0 +1,27 @@
+<.container>
+  <.page_title_with_menu>Curriculum</.page_title_with_menu>
+  <ul phx-update="stream" id="curricula-list">
+    <li
+      :for={{dom_id, curriculum} <- @streams.curricula}
+      id={dom_id}
+      class="p-6 rounded mt-10 bg-white shadow-lg"
+    >
+      <div class="flex items-center gap-4">
+        <h5 class="font-display font-black">
+          <.link navigate={~p"/curriculum/#{curriculum}"} class="hover:underline">
+            <%= curriculum.name %>
+          </.link>
+        </h5>
+        <.badge :if={curriculum.code} theme="dark">
+          <%= curriculum.code %>
+        </.badge>
+      </div>
+      <.markdown
+        :if={curriculum.description}
+        text={curriculum.description}
+        size="sm"
+        class="max-w-none mt-6"
+      />
+    </li>
+  </ul>
+</.container>

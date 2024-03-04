@@ -4,35 +4,28 @@ defmodule Lanttern.Curricula.CurriculumItem do
 
   import Lanttern.SchemaHelpers
 
-  @derive {
-    Flop.Schema,
-    filterable: [:subjects_ids, :years_ids, :subject_id, :year_id],
-    sortable: [:code],
-    adapter_opts: [
-      join_fields: [
-        subjects_ids: [
-          binding: :subjects,
-          field: :id,
-          ecto_type: :id
-        ],
-        years_ids: [
-          binding: :years,
-          field: :id,
-          ecto_type: :id
-        ],
-        subject_id: [
-          binding: :subjects,
-          field: :id,
-          ecto_type: :id
-        ],
-        year_id: [
-          binding: :years,
-          field: :id,
-          ecto_type: :id
-        ]
-      ]
-    ]
-  }
+  alias Lanttern.Taxonomy.Subject
+  alias Lanttern.Taxonomy.Year
+
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          name: String.t(),
+          code: String.t(),
+          subjects_ids: [pos_integer()],
+          years_ids: [pos_integer()],
+          assessment_point_id: pos_integer(),
+          is_differentiation: boolean(),
+          grade_composition_component_items: [map()],
+          assessment_points: [map()],
+          curriculum_component: map(),
+          curriculum_component_id: pos_integer(),
+          subjects: [Subject.t()],
+          years: [Year.t()],
+          children_id: pos_integer(),
+          component_code: String.t(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
 
   schema "curriculum_items" do
     field :name, :string
@@ -49,11 +42,11 @@ defmodule Lanttern.Curricula.CurriculumItem do
     has_many :assessment_points, Lanttern.Assessments.AssessmentPoint
     belongs_to :curriculum_component, Lanttern.Curricula.CurriculumComponent
 
-    many_to_many :subjects, Lanttern.Taxonomy.Subject,
+    many_to_many :subjects, Subject,
       join_through: "curriculum_items_subjects",
       on_replace: :delete
 
-    many_to_many :years, Lanttern.Taxonomy.Year,
+    many_to_many :years, Year,
       join_through: "curriculum_items_years",
       on_replace: :delete
 

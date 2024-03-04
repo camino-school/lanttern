@@ -2,11 +2,24 @@ defmodule Lanttern.Schools.Cycle do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.Schools.School
+
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          name: String.t(),
+          start_at: Date.t(),
+          end_at: Date.t(),
+          school: School.t(),
+          school_id: pos_integer(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   schema "school_cycles" do
     field :name, :string
     field :start_at, :date
     field :end_at, :date
-    belongs_to :school, Lanttern.Schools.School
+    belongs_to :school, School
 
     timestamps()
   end

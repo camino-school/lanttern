@@ -272,7 +272,12 @@ defmodule LantternWeb.MenuComponent do
         ] ->
           :rubrics
 
-        socket.view in [LantternWeb.CurriculumLive, LantternWeb.CurriculumBNCCEFLive] ->
+        socket.view in [
+          LantternWeb.CurriculaLive,
+          LantternWeb.CurriculumLive,
+          LantternWeb.CurriculumComponentLive,
+          LantternWeb.CurriculumBNCCEFLive
+        ] ->
           :curriculum
 
         socket.view in [LantternWeb.ReportCardsLive, LantternWeb.ReportCardLive] ->

@@ -5,6 +5,7 @@ defmodule Lanttern.Curricula.Curriculum do
   schema "curricula" do
     field :name, :string
     field :code, :string
+    field :description, :string
 
     timestamps()
   end
@@ -12,7 +13,7 @@ defmodule Lanttern.Curricula.Curriculum do
   @doc false
   def changeset(curriculum, attrs) do
     curriculum
-    |> cast(attrs, [:name, :code])
+    |> cast(attrs, [:name, :code, :description])
     |> validate_required([:name])
   end
 end

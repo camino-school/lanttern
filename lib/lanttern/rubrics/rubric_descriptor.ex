@@ -2,14 +2,33 @@ defmodule Lanttern.Rubrics.RubricDescriptor do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.Rubrics.Rubric
+  alias Lanttern.Grading.Scale
+  alias Lanttern.Grading.OrdinalValue
+
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          descriptor: String.t(),
+          scale_type: String.t(),
+          score: float(),
+          rubric: Rubric.t(),
+          rubric_id: pos_integer(),
+          scale: Scale.t(),
+          scale_id: pos_integer(),
+          ordinal_value: OrdinalValue.t(),
+          ordinal_value_id: pos_integer(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   schema "rubric_descriptors" do
     field :descriptor, :string
     field :scale_type, :string
     field :score, :float
 
-    belongs_to :rubric, Lanttern.Rubrics.Rubric
-    belongs_to :scale, Lanttern.Grading.Scale
-    belongs_to :ordinal_value, Lanttern.Grading.OrdinalValue
+    belongs_to :rubric, Rubric
+    belongs_to :scale, Scale
+    belongs_to :ordinal_value, OrdinalValue
 
     timestamps()
   end

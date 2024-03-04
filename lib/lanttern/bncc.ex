@@ -23,8 +23,6 @@ defmodule Lanttern.BNCC do
   import Ecto.Query, warn: false
   alias NimbleCSV.RFC4180, as: CSV
 
-  import Lanttern.RepoHelpers
-
   alias Lanttern.Repo
   alias Lanttern.BNCC.HabilidadeBNCCEF
   alias Lanttern.Curricula.Curriculum
@@ -370,9 +368,10 @@ defmodule Lanttern.BNCC do
   Returns the list of "Habilidades BNCC" with full BNCC structure thread.
   Specific for grades 1 to 9.
 
-  ### Options:
+  ## Options:
 
-  `:filters` – accepts `:subjects_ids` and `:years_ids`
+      - `:subjects_ids` – filter results by subjects
+      - `:years_ids` – filter results by years
 
   ## Examples
 
@@ -381,16 +380,6 @@ defmodule Lanttern.BNCC do
 
   """
   def list_bncc_ef_items(opts \\ []) do
-    filter_fields_and_ops = [
-      subjects_ids: :in,
-      years_ids: :in
-    ]
-
-    flop_params = %{
-      filters: build_flop_filters_param(opts, filter_fields_and_ops),
-      order_by: [:code]
-    }
-
     # subquery parent items (UT, OC, etc.)
     structure_items =
       from(
@@ -428,7 +417,8 @@ defmodule Lanttern.BNCC do
       preload: [subjects: su, years: ye],
       select: {ha, ca.name, pl.name, ei.name, ut.name, oc.name}
     )
-    |> handle_flop_validate_and_run(flop_params, for: CurriculumItem)
+    |> apply_list_bncc_ef_items_opts(opts)
+    |> Repo.all()
     |> Enum.map(fn {habilidade, campo_de_atuacao, pratica_de_linguagem, eixo, unidade_tematica,
                     objeto_de_conhecimento} ->
       HabilidadeBNCCEF
@@ -440,6 +430,29 @@ defmodule Lanttern.BNCC do
       |> Map.put(:objeto_de_conhecimento, objeto_de_conhecimento)
     end)
   end
+
+  defp apply_list_bncc_ef_items_opts(queryable, []), do: queryable
+
+  defp apply_list_bncc_ef_items_opts(queryable, [{:subjects_ids, subjects_ids} | opts])
+       when is_list(subjects_ids) do
+    from(
+      [ha, subjects: su] in queryable,
+      where: su.id in ^subjects_ids
+    )
+    |> apply_list_bncc_ef_items_opts(opts)
+  end
+
+  defp apply_list_bncc_ef_items_opts(queryable, [{:years_ids, years_ids} | opts])
+       when is_list(years_ids) do
+    from(
+      [su, years: ye] in queryable,
+      where: ye.id in ^years_ids
+    )
+    |> apply_list_bncc_ef_items_opts(opts)
+  end
+
+  defp apply_list_bncc_ef_items_opts(queryable, [_opt | opts]),
+    do: apply_list_bncc_ef_items_opts(queryable, opts)
 
   @doc """
   Returns the list of BNCC EF curriculum subjects

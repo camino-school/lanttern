@@ -141,7 +141,7 @@ defmodule Lanttern.BNCCTest do
 
       # expected
       [expected] =
-        BNCC.list_bncc_ef_items(filters: [subjects_ids: [sub_lp.id], years_ids: [year_ef1.id]])
+        BNCC.list_bncc_ef_items(subjects_ids: [sub_lp.id], years_ids: [year_ef1.id])
 
       assert expected.id == ha_lp_1.id
     end

@@ -5,20 +5,40 @@ defmodule Lanttern.Schools.Class do
 
   alias Lanttern.Repo
 
+  alias Lanttern.Schools.Cycle
+  alias Lanttern.Schools.School
+  alias Lanttern.Schools.Student
+  alias Lanttern.Taxonomy.Year
+
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          name: String.t(),
+          students_ids: [pos_integer()],
+          years_ids: [pos_integer()],
+          school: School.t(),
+          school_id: pos_integer(),
+          cycle: Cycle.t(),
+          cycle_id: pos_integer(),
+          students: [Student.t()],
+          years: [Year.t()],
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   schema "classes" do
     field :name, :string
     field :students_ids, {:array, :id}, virtual: true
     field :years_ids, {:array, :id}, virtual: true
 
-    belongs_to :school, Lanttern.Schools.School
-    belongs_to :cycle, Lanttern.Schools.Cycle
+    belongs_to :school, School
+    belongs_to :cycle, Cycle
 
-    many_to_many :students, Lanttern.Schools.Student,
+    many_to_many :students, Student,
       join_through: "classes_students",
       on_replace: :delete,
       preload_order: [asc: :name]
 
-    many_to_many :years, Lanttern.Taxonomy.Year,
+    many_to_many :years, Year,
       join_through: "classes_years",
       on_replace: :delete,
       preload_order: [asc: :id]
@@ -51,7 +71,7 @@ defmodule Lanttern.Schools.Class do
 
   defp put_students(changeset, students_ids) do
     students =
-      from(s in Lanttern.Schools.Student, where: s.id in ^students_ids)
+      from(s in Student, where: s.id in ^students_ids)
       |> Repo.all()
 
     changeset
@@ -69,7 +89,7 @@ defmodule Lanttern.Schools.Class do
 
   defp put_years(changeset, years_ids) do
     years =
-      from(y in Lanttern.Taxonomy.Year, where: y.id in ^years_ids)
+      from(y in Year, where: y.id in ^years_ids)
       |> Repo.all()
 
     changeset
