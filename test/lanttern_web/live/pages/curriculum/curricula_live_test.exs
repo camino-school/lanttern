@@ -1,4 +1,4 @@
-defmodule LantternWeb.CurriculumLiveTest do
+defmodule LantternWeb.CurriculaLiveTest do
   use LantternWeb.ConnCase
 
   import Lanttern.CurriculaFixtures

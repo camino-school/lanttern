@@ -10,8 +10,11 @@ defmodule LantternWeb.CurriculumComponentLive do
     subjects = Taxonomy.list_subjects()
     years = Taxonomy.list_years()
 
-    %{current_filters: current_filters} =
-      Personalization.get_profile_settings(socket.assigns.current_user.current_profile_id)
+    current_filters =
+      case Personalization.get_profile_settings(socket.assigns.current_user.current_profile_id) do
+        %{current_filters: current_filters} -> current_filters
+        _ -> %{}
+      end
 
     selected_subjects_ids = Map.get(current_filters, :subjects_ids, [])
     selected_years_ids = Map.get(current_filters, :years_ids, [])
