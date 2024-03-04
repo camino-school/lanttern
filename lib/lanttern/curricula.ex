@@ -430,19 +430,30 @@ defmodule Lanttern.Curricula do
   @doc """
   Gets a single curriculum item.
 
-  Raises `Ecto.NoResultsError` if the Curriculum Item does not exist.
+  Returns `nil` if the Curriculum Item does not exist.
 
-  ### Options:
+  ## Options:
 
-  `:preloads` – preloads associated data
+  - `:preloads` – preloads associated data
 
   ## Examples
 
-      iex> get_curriculum_item!(123)
+      iex> get_curriculum_item(123)
       %CurriculumItem{}
 
-      iex> get_curriculum_item!(456)
-      ** (Ecto.NoResultsError)
+      iex> get_curriculum_item(456)
+      nil
+
+  """
+  def get_curriculum_item(id, opts \\ []) do
+    Repo.get(CurriculumItem, id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single curriculum item.
+
+  Same as `get_curriculum_item/2`, but raises `Ecto.NoResultsError` if the Curriculum Item does not exist.
 
   """
   def get_curriculum_item!(id, opts \\ []) do
