@@ -50,13 +50,18 @@ defmodule LantternWeb.UserAuth do
     end
   end
 
-  defp check_current_profile(%{current_profile_id: nil, is_root_admin: false} = user) do
+  defp check_current_profile(%{current_profile_id: nil, is_root_admin: is_root_admin} = user) do
     # if there's no current_profile_id, list profiles and use first result
-    case Identity.list_profiles(user_id: user.id) do
-      [profile | _rest] ->
+    case {Identity.list_profiles(user_id: user.id), is_root_admin} do
+      {[profile | _rest], _} ->
         Identity.update_user_current_profile_id(user, profile.id)
 
-      [] ->
+      {[], true} ->
+        # if user does not have a profile but is root admin, allow login anyway
+        # (user can use the admin area to create and link profiles)
+        {:ok, user}
+
+      {[], false} ->
         :error
     end
   end
