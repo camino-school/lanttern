@@ -8,6 +8,8 @@ defmodule LantternWeb.CurriculumComponentLive do
 
   # shared components
   alias LantternWeb.Curricula.CurriculumItemFormComponent
+  alias LantternWeb.Taxonomy.SubjectPickerComponent
+  alias LantternWeb.Taxonomy.YearPickerComponent
 
   @impl true
   def mount(_params, _session, socket) do
@@ -73,7 +75,9 @@ defmodule LantternWeb.CurriculumComponentLive do
   defp assign_show_curriculum_item_form(socket, %{"is_creating_curriculum_item" => "true"}) do
     socket
     |> assign(:curriculum_item, %CurriculumItem{
-      curriculum_component_id: socket.assigns.curriculum_component.id
+      curriculum_component_id: socket.assigns.curriculum_component.id,
+      subjects: socket.assigns.selected_subjects,
+      years: socket.assigns.selected_years
     })
     |> assign(:form_overlay_title, gettext("Add curriculum item"))
     |> assign(:show_curriculum_item_form, true)

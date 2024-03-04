@@ -5,8 +5,9 @@ defmodule LantternWeb.Curricula.CurriculumItemFormComponent do
   # alias Lanttern.Taxonomy
   # import LantternWeb.TaxonomyHelpers
 
-  # # live components
-  # alias LantternWeb.Form.MultiSelectComponent
+  # live components
+  alias LantternWeb.Taxonomy.YearPickerComponent
+  alias LantternWeb.Taxonomy.SubjectPickerComponent
 
   @impl true
   def render(assigns) do
@@ -34,18 +35,24 @@ defmodule LantternWeb.Curricula.CurriculumItemFormComponent do
           class="mb-6"
           phx-debounce="1500"
         />
-        <%!-- <.live_component
-          module={MultiSelectComponent}
-          id="curriculum-item-subjects-select"
-          field={@form[:subject_id]}
-          multi_field={:subjects_ids}
-          options={@subject_options}
-          selected_ids={@selected_subjects_ids}
-          label={gettext("Subjects")}
-          prompt={gettext("Select subject")}
-          empty_message={gettext("No subject selected")}
-          notify_component={@myself}
-        /> --%>
+        <div class="mb-6">
+          <.label><%= gettext("Subjects") %></.label>
+          <.live_component
+            module={SubjectPickerComponent}
+            id="curriculum-item-subjects-select"
+            on_select={&JS.push("toggle_subject", value: %{"id" => &1}, target: @myself)}
+            selected_ids={@selected_subjects_ids}
+          />
+        </div>
+        <div class="mb-6">
+          <.label><%= gettext("Years") %></.label>
+          <.live_component
+            module={YearPickerComponent}
+            id="curriculum-item-years-select"
+            on_select={&JS.push("toggle_year", value: %{"id" => &1}, target: @myself)}
+            selected_ids={@selected_years_ids}
+          />
+        </div>
         <.button :if={!@hide_submit} type="submit" phx-disable-with={gettext("Saving...")}>
           <%= gettext("Save curriculum item") %>
         </.button>
@@ -69,15 +76,55 @@ defmodule LantternWeb.Curricula.CurriculumItemFormComponent do
   def update(%{curriculum_item: curriculum_item} = assigns, socket) do
     changeset = Curricula.change_curriculum_item(curriculum_item)
 
+    subjects_ids =
+      curriculum_item
+      |> Map.get(:subjects, [])
+      |> Enum.map(& &1.id)
+
+    years_ids =
+      curriculum_item
+      |> Map.get(:years, [])
+      |> Enum.map(& &1.id)
+
     socket =
       socket
       |> assign(assigns)
+      |> assign(:selected_subjects_ids, subjects_ids)
+      |> assign(:selected_years_ids, years_ids)
       |> assign_form(changeset)
 
     {:ok, socket}
   end
 
   @impl true
+  def handle_event("toggle_subject", %{"id" => id}, socket) do
+    selected_subjects_ids =
+      case id in socket.assigns.selected_subjects_ids do
+        true ->
+          socket.assigns.selected_subjects_ids
+          |> Enum.filter(&(&1 != id))
+
+        false ->
+          [id | socket.assigns.selected_subjects_ids]
+      end
+
+    {:noreply, assign(socket, :selected_subjects_ids, selected_subjects_ids)}
+  end
+
+  def handle_event("toggle_year", %{"id" => id}, socket) do
+    selected_years_ids =
+      case id in socket.assigns.selected_years_ids do
+        true ->
+          socket.assigns.selected_years_ids
+          |> Enum.filter(&(&1 != id))
+
+        false ->
+          [id | socket.assigns.selected_years_ids]
+      end
+
+    {:noreply, assign(socket, :selected_years_ids, selected_years_ids)}
+  end
+
   def handle_event("validate", %{"curriculum_item" => curriculum_item_params}, socket) do
     changeset =
       socket.assigns.curriculum_item
@@ -99,6 +146,14 @@ defmodule LantternWeb.Curricula.CurriculumItemFormComponent do
           |> Map.put(
             "curriculum_component_id",
             socket.assigns.curriculum_item.curriculum_component_id
+          )
+          |> Map.put(
+            "subjects_ids",
+            socket.assigns.selected_subjects_ids
+          )
+          |> Map.put(
+            "years_ids",
+            socket.assigns.selected_years_ids
           )
       end
 

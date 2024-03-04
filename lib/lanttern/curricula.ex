@@ -273,7 +273,8 @@ defmodule Lanttern.Curricula do
       as: :subject,
       left_join: y in assoc(ci, :years),
       as: :year,
-      order_by: [asc: s.name, asc: y.id, asc: ci.code]
+      group_by: ci.id,
+      order_by: [asc: min(s.name), asc: min(y.id), asc: ci.code]
     )
     |> apply_list_curriculum_items_opts(opts)
     |> Repo.all()

@@ -276,7 +276,7 @@ defmodule LantternWeb.FormComponents do
 
   def label(assigns) do
     ~H"""
-    <label for={@for} class="mb-2 text-sm font-bold">
+    <label for={@for} class="block mb-2 text-sm font-bold">
       <.help_tooltip text={@help_text} class="inline-block font-normal" />
       <%= render_slot(@inner_block) %>
     </label>

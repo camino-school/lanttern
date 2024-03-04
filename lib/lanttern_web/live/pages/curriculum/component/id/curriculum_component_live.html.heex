@@ -158,18 +158,13 @@
   <h5 class="font-display font-black text-xl">
     <%= gettext("Filter curriculum items by subject") %>
   </h5>
-  <div class="flex flex-wrap gap-2 mt-6">
-    <.badge_button
-      :for={subject <- @subjects}
-      theme={if subject.id in @selected_subjects_ids, do: "cyan", else: "default"}
-      icon_name={
-        if subject.id in @selected_subjects_ids, do: "hero-check-mini", else: "hero-plus-mini"
-      }
-      phx-click={JS.push("toggle_subject_id", value: %{id: subject.id})}
-    >
-      <%= subject.name %>
-    </.badge_button>
-  </div>
+  <.live_component
+    module={SubjectPickerComponent}
+    id="curriculum-item-subjects-filter"
+    on_select={&JS.push("toggle_subject_id", value: %{"id" => &1})}
+    selected_ids={@selected_subjects_ids}
+    class="mt-6"
+  />
   <div class="flex justify-between gap-2 mt-10">
     <.button type="button" theme="ghost" phx-click="clear_subjects_filter">
       <%= gettext("Clear filters") %>
@@ -193,16 +188,13 @@
   <h5 class="font-display font-black text-xl">
     <%= gettext("Filter curriculum items by year") %>
   </h5>
-  <div class="flex flex-wrap gap-2 mt-6">
-    <.badge_button
-      :for={year <- @years}
-      theme={if year.id in @selected_years_ids, do: "cyan", else: "default"}
-      icon_name={if year.id in @selected_years_ids, do: "hero-check-mini", else: "hero-plus-mini"}
-      phx-click={JS.push("toggle_year_id", value: %{id: year.id})}
-    >
-      <%= year.name %>
-    </.badge_button>
-  </div>
+  <.live_component
+    module={YearPickerComponent}
+    id="curriculum-item-years-filter"
+    on_select={&JS.push("toggle_year_id", value: %{"id" => &1})}
+    selected_ids={@selected_years_ids}
+    class="mt-6"
+  />
   <div class="flex justify-between gap-2 mt-10">
     <.button type="button" theme="ghost" phx-click="clear_years_filter">
       <%= gettext("Clear filters") %>
@@ -224,6 +216,15 @@
   on_cancel={JS.patch(~p"/curriculum/component/#{@curriculum_component}")}
 >
   <:title><%= @form_overlay_title %></:title>
+  <.label><%= gettext("Curriculum component") %></.label>
+  <div class="p-4 rounded mb-6 bg-white shadow-lg">
+    <.badge :if={@curriculum_component.code} class="mb-2">
+      <%= @curriculum_component.code %>
+    </.badge>
+    <div class="font-display font-bold">
+      <%= @curriculum_component.name %>
+    </div>
+  </div>
   <.live_component
     module={CurriculumItemFormComponent}
     id={@curriculum_item.id || :new}
@@ -231,43 +232,6 @@
     navigate={~p"/curriculum/component/#{@curriculum_component}"}
     hide_submit
   />
-  <%!-- <%= if @strand do %>
-    <div class="flex items-center gap-4 p-4 mb-6 rounded font-display bg-white shadow-lg">
-      <div class="flex-1">
-        <p class="font-black"><%= @strand.name %></p>
-        <p :if={@strand.type} class="text-sm text-ltrn-subtle"><%= @strand.type %></p>
-        <div class="flex flex-wrap gap-1 mt-4">
-          <.badge :for={subject <- @strand.subjects}><%= subject.name %></.badge>
-          <.badge :for={year <- @strand.years}><%= year.name %></.badge>
-        </div>
-      </div>
-      <button
-        :if={!@curriculum_item.id}
-        type="button"
-        class="shrink-0 block text-ltrn-subtle hover:text-ltrn-dark"
-        phx-click="remove_strand"
-        phx-target={@myself}
-      >
-        <.icon name="hero-x-circle" class="w-10 h-10" />
-      </button>
-    </div>
-    <.live_component
-      module={StrandReportFormComponent}
-      id={@curriculum_item.id || :new}
-      curriculum_item={@curriculum_item}
-      navigate={~p"/report_cards/#{@report_card}?tab=strands"}
-      hide_submit
-    />
-  <% else %>
-    <p class="mb-2"><%= gettext("Which strand do you want to link to this report?") %></p>
-    <.live_component
-      module={StrandSearchComponent}
-      id="strand-search"
-      render_form
-      selected_strands_ids={@selected_strands_ids}
-      notify_component={@myself}
-    />
-  <% end %> --%>
   <:actions_left :if={@curriculum_item.id}>
     <.button
       type="button"
