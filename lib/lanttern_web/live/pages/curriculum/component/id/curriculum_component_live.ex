@@ -4,7 +4,8 @@ defmodule LantternWeb.CurriculumComponentLive do
   alias Lanttern.Curricula
   alias Lanttern.Curricula.CurriculumItem
   alias Lanttern.Personalization
-  alias Lanttern.Taxonomy
+
+  import LantternWeb.PersonalizationHelpers
 
   # shared components
   alias LantternWeb.Curricula.CurriculumItemFormComponent
@@ -13,29 +14,9 @@ defmodule LantternWeb.CurriculumComponentLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    subjects = Taxonomy.list_subjects()
-    years = Taxonomy.list_years()
-
-    current_filters =
-      case Personalization.get_profile_settings(socket.assigns.current_user.current_profile_id) do
-        %{current_filters: current_filters} -> current_filters
-        _ -> %{}
-      end
-
-    selected_subjects_ids = Map.get(current_filters, :subjects_ids) || []
-    selected_years_ids = Map.get(current_filters, :years_ids) || []
-
-    selected_subjects = Enum.filter(subjects, &(&1.id in selected_subjects_ids))
-    selected_years = Enum.filter(years, &(&1.id in selected_years_ids))
-
     socket =
       socket
-      |> assign(:subjects, subjects)
-      |> assign(:years, years)
-      |> assign(:selected_subjects_ids, selected_subjects_ids)
-      |> assign(:selected_years_ids, selected_years_ids)
-      |> assign(:selected_subjects, selected_subjects)
-      |> assign(:selected_years, selected_years)
+      |> assign_user_filters([:subjects, :years], socket.assigns.current_user)
       |> assign(:show_subjects_filter, false)
       |> assign(:show_years_filter, false)
 

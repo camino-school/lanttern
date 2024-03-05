@@ -3,14 +3,17 @@ defmodule LantternWeb.StrandsLive do
 
   alias Lanttern.LearningContext
   alias Lanttern.LearningContext.Strand
-  alias Lanttern.Taxonomy
-  import LantternWeb.LocalizationHelpers
+  alias Lanttern.Personalization
+
+  import LantternWeb.PersonalizationHelpers
 
   # live components
   alias LantternWeb.LearningContext.StrandFormComponent
 
   # shared components
   import LantternWeb.LearningContextComponents
+  alias LantternWeb.Taxonomy.SubjectPickerComponent
+  alias LantternWeb.Taxonomy.YearPickerComponent
 
   # function components
 
@@ -75,149 +78,21 @@ defmodule LantternWeb.StrandsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok,
-     socket
-     |> assign(:is_creating_strand, false)
-     |> assign(:current_subjects, [])
-     |> assign(:current_years, [])}
+    socket =
+      socket
+      |> assign_user_filters([:subjects, :years], socket.assigns.current_user)
+      |> assign(:is_creating_strand, false)
+      |> stream_strands()
+
+    {:ok, socket}
   end
 
-  @impl true
-  def handle_params(params, _url, socket) do
-    {:noreply,
-     socket
-     |> assign(
-       :subjects,
-       Taxonomy.list_subjects() |> translate_struct_list("taxonomy", :name, reorder: true)
-     )
-     |> assign(:years, Taxonomy.list_years() |> translate_struct_list("taxonomy"))
-     # sync subjects_ids and years_ids filters with profile
-     |> handle_params_and_profile_filters_sync(
-       params,
-       [:subjects_ids, :years_ids],
-       &handle_assigns/2,
-       fn params -> ~p"/strands?#{params}" end
-     )}
-  end
-
-  # event handlers
-
-  @impl true
-  def handle_event("create-strand", _params, socket) do
-    {:noreply, assign(socket, :is_creating_strand, true)}
-  end
-
-  def handle_event("cancel-strand-creation", _params, socket) do
-    {:noreply, assign(socket, :is_creating_strand, false)}
-  end
-
-  def handle_event("load-more", _params, socket) do
-    {:noreply, load_strands(socket)}
-  end
-
-  def handle_event("star-strand", %{"id" => id, "name" => name}, socket) do
-    profile_id = socket.assigns.current_user.current_profile.id
-
-    with {:ok, _} <- LearningContext.star_strand(id, profile_id) do
-      {:noreply,
-       socket
-       |> put_flash(:info, "\"#{name}\" added to your starred strands")
-       |> push_navigate(to: ~p"/strands", replace: true)}
-    end
-  end
-
-  def handle_event("unstar-strand", %{"id" => id, "name" => name}, socket) do
-    profile_id = socket.assigns.current_user.current_profile.id
-
-    with {:ok, _} <- LearningContext.unstar_strand(id, profile_id) do
-      {:noreply,
-       socket
-       |> put_flash(:info, "\"#{name}\" removed from your starred strands")
-       |> push_navigate(to: ~p"/strands", replace: true)}
-    end
-  end
-
-  def handle_event("filter", params, socket) do
-    # enforce years and subjects in params,
-    # required to clear profile filters when none is selected
-    params = %{
-      subjects_ids: Map.get(params, "subjects_ids"),
-      years_ids: Map.get(params, "years_ids")
-    }
-
-    {:noreply,
-     socket
-     |> push_navigate(to: ~p"/strands?#{params}")}
-  end
-
-  def handle_event("clear-filters", _params, socket) do
-    params = %{
-      subjects_ids: nil,
-      years_ids: nil
-    }
-
-    {:noreply,
-     socket
-     |> push_navigate(to: path(socket, ~p"/strands?#{params}"))}
-  end
-
-  # helpers
-
-  defp handle_assigns(socket, params) do
-    params_years_ids =
-      case Map.get(params, "years_ids") do
-        ids when is_list(ids) -> ids
-        _ -> nil
-      end
-
-    params_subjects_ids =
-      case Map.get(params, "subjects_ids") do
-        ids when is_list(ids) -> ids
-        _ -> nil
-      end
-
-    form =
-      %{
-        "years_ids" => params_years_ids || [],
-        "subjects_ids" => params_subjects_ids || []
-      }
-      |> Phoenix.Component.to_form()
-
-    socket
-    |> assign_subjects(params)
-    |> assign_years(params)
-    |> assign(:form, form)
-    |> load_strands()
-  end
-
-  defp assign_subjects(socket, %{"subjects_ids" => subjects_ids}) when subjects_ids != "" do
-    current_subjects =
-      socket.assigns.subjects
-      |> Enum.filter(&("#{&1.id}" in subjects_ids))
-
-    assign(socket, :current_subjects, current_subjects)
-  end
-
-  defp assign_subjects(socket, _params), do: socket
-
-  defp assign_years(socket, %{"years_ids" => years_ids}) when years_ids != "" do
-    current_years =
-      socket.assigns.years
-      |> Enum.filter(&("#{&1.id}" in years_ids))
-
-    assign(socket, :current_years, current_years)
-  end
-
-  defp assign_years(socket, _params), do: socket
-
-  defp load_strands(socket) do
-    subjects_ids =
-      socket.assigns.current_subjects
-      |> Enum.map(& &1.id)
-
-    years_ids =
-      socket.assigns.current_years
-      |> Enum.map(& &1.id)
+  defp stream_strands(socket) do
+    %{
+      selected_subjects_ids: subjects_ids,
+      selected_years_ids: years_ids
+    } =
+      socket.assigns
 
     {strands, meta} =
       LearningContext.list_strands(
@@ -249,21 +124,91 @@ defmodule LantternWeb.StrandsLive do
     |> assign(:starred_strands_count, starred_strands_count)
   end
 
-  defp show_filter(js \\ %JS{}) do
-    js
-    # |> JS.push("show-filter")
-    |> JS.exec("data-show", to: "#strands-filters")
+  # event handlers
+
+  @impl true
+  def handle_event("create-strand", _params, socket),
+    do: {:noreply, assign(socket, :is_creating_strand, true)}
+
+  def handle_event("cancel-strand-creation", _params, socket),
+    do: {:noreply, assign(socket, :is_creating_strand, false)}
+
+  def handle_event("load-more", _params, socket),
+    do: {:noreply, stream_strands(socket)}
+
+  def handle_event("star-strand", %{"id" => id, "name" => name}, socket) do
+    profile_id = socket.assigns.current_user.current_profile.id
+
+    with {:ok, _} <- LearningContext.star_strand(id, profile_id) do
+      {:noreply,
+       socket
+       |> put_flash(:info, "\"#{name}\" added to your starred strands")
+       |> push_navigate(to: ~p"/strands", replace: true)}
+    end
   end
 
-  defp filter(js \\ %JS{}) do
-    js
-    |> JS.push("filter")
-    |> JS.exec("data-cancel", to: "#strands-filters")
+  def handle_event("unstar-strand", %{"id" => id, "name" => name}, socket) do
+    profile_id = socket.assigns.current_user.current_profile.id
+
+    with {:ok, _} <- LearningContext.unstar_strand(id, profile_id) do
+      {:noreply,
+       socket
+       |> put_flash(:info, "\"#{name}\" removed from your starred strands")
+       |> push_navigate(to: ~p"/strands", replace: true)}
+    end
   end
 
-  defp clear_filters(js \\ %JS{}) do
-    js
-    |> JS.push("clear-filters")
-    |> JS.exec("data-cancel", to: "#strands-filters")
+  def handle_event("toggle_subject_id", %{"id" => id}, socket) do
+    selected_subjects_ids =
+      case id in socket.assigns.selected_subjects_ids do
+        true ->
+          socket.assigns.selected_subjects_ids
+          |> Enum.filter(&(&1 != id))
+
+        false ->
+          [id | socket.assigns.selected_subjects_ids]
+      end
+
+    {:noreply, assign(socket, :selected_subjects_ids, selected_subjects_ids)}
   end
+
+  def handle_event("toggle_year_id", %{"id" => id}, socket) do
+    selected_years_ids =
+      case id in socket.assigns.selected_years_ids do
+        true ->
+          socket.assigns.selected_years_ids
+          |> Enum.filter(&(&1 != id))
+
+        false ->
+          [id | socket.assigns.selected_years_ids]
+      end
+
+    {:noreply, assign(socket, :selected_years_ids, selected_years_ids)}
+  end
+
+  def handle_event("clear_filters", _, socket) do
+    Personalization.set_profile_current_filters(
+      socket.assigns.current_user,
+      %{subjects_ids: [], years_ids: []}
+    )
+
+    {:noreply, push_navigate(socket, to: ~p"/strands")}
+  end
+
+  def handle_event("apply_filters", _, socket) do
+    Personalization.set_profile_current_filters(
+      socket.assigns.current_user,
+      %{
+        subjects_ids: socket.assigns.selected_subjects_ids,
+        years_ids: socket.assigns.selected_years_ids
+      }
+    )
+
+    {:noreply, push_navigate(socket, to: ~p"/strands")}
+  end
+
+  # helpers
+
+  defp show_filter(js \\ %JS{}),
+    do: js |> JS.exec("data-show", to: "#strands-filters")
 end

@@ -3,8 +3,8 @@
   <div class="flex items-end justify-between mt-12">
     <p class="font-display font-bold text-lg">
       <%= gettext("I want to explore strands in") %><br />
-      <.filter_buttons type={gettext("years")} items={@current_years} />,
-      <.filter_buttons type={gettext("subjects")} items={@current_subjects} />
+      <.filter_buttons type={gettext("years")} items={@selected_years} />,
+      <.filter_buttons type={gettext("subjects")} items={@selected_subjects} />
     </p>
     <.collection_action type="button" icon_name="hero-plus-circle" phx-click="create-strand">
       <%= gettext("Create new strand") %>
@@ -51,36 +51,28 @@
 </div>
 <.slide_over id="strands-filters">
   <:title><%= gettext("Filter Strands") %></:title>
-  <.form id="strands-filters-form" for={@form} phx-submit={filter()} class="flex gap-6">
-    <fieldset class="flex-1">
-      <legend class="text-base font-semibold leading-6 text-ltrn-subtle">
-        <%= gettext("Years") %>
-      </legend>
-      <div class="mt-4 divide-y divide-ltrn-lighter border-b border-t border-ltrn-lighter">
-        <.check_field
-          :for={opt <- @years}
-          id={"year-#{opt.id}"}
-          field={@form[:years_ids]}
-          opt={opt}
-        />
-      </div>
-    </fieldset>
-    <fieldset class="flex-1">
-      <legend class="text-base font-semibold leading-6 text-ltrn-subtle">
-        <%= gettext("Subjects") %>
-      </legend>
-      <div class="mt-4 divide-y divide-ltrn-lighter border-b border-t border-ltrn-lighter">
-        <.check_field
-          :for={opt <- @subjects}
-          id={"subject-#{opt.id}"}
-          field={@form[:subjects_ids]}
-          opt={opt}
-        />
-      </div>
-    </fieldset>
-  </.form>
+  <h5 class="font-display font-black text-lg">
+    <%= gettext("By subject") %>
+  </h5>
+  <.live_component
+    module={SubjectPickerComponent}
+    id="curriculum-item-subjects-filter"
+    on_select={&JS.push("toggle_subject_id", value: %{"id" => &1})}
+    selected_ids={@selected_subjects_ids}
+    class="mt-4"
+  />
+  <h5 class="mt-10 font-display font-black text-lg">
+    <%= gettext("By year") %>
+  </h5>
+  <.live_component
+    module={YearPickerComponent}
+    id="curriculum-item-years-filter"
+    on_select={&JS.push("toggle_year_id", value: %{"id" => &1})}
+    selected_ids={@selected_years_ids}
+    class="mt-4"
+  />
   <:actions_left>
-    <.button type="button" theme="ghost" phx-click={clear_filters()}>
+    <.button type="button" theme="ghost" phx-click="clear_filters">
       <%= gettext("Clear filters") %>
     </.button>
   </:actions_left>
@@ -93,9 +85,9 @@
       <%= gettext("Cancel") %>
     </.button>
     <.button
-      type="submit"
-      form="strands-filters-form"
+      type="button"
       phx-disable-with={gettext("Applying filters...")}
+      phx-click="apply_filters"
     >
       <%= gettext("Apply filters") %>
     </.button>
@@ -113,8 +105,8 @@
     id={:new}
     strand={
       %Strand{
-        subjects: @current_subjects,
-        years: @current_years
+        subjects: @selected_subjects,
+        years: @selected_years
       }
     }
     action={:new}
