@@ -22,8 +22,8 @@ defmodule LantternWeb.CurriculumComponentLive do
         _ -> %{}
       end
 
-    selected_subjects_ids = Map.get(current_filters, :subjects_ids, [])
-    selected_years_ids = Map.get(current_filters, :years_ids, [])
+    selected_subjects_ids = Map.get(current_filters, :subjects_ids) || []
+    selected_years_ids = Map.get(current_filters, :years_ids) || []
 
     selected_subjects = Enum.filter(subjects, &(&1.id in selected_subjects_ids))
     selected_years = Enum.filter(years, &(&1.id in selected_years_ids))
