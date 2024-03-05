@@ -2,6 +2,21 @@ defmodule Lanttern.Identity.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.Identity.Profile
+
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          email: String.t(),
+          password: String.t(),
+          hashed_password: String.t(),
+          is_root_admin: boolean(),
+          confirmed_at: NaiveDateTime.t(),
+          current_profile: Profile.t(),
+          current_profile_id: pos_integer(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   schema "users" do
     field :email, :string
     field :password, :string, virtual: true, redact: true
@@ -9,7 +24,7 @@ defmodule Lanttern.Identity.User do
     field :is_root_admin, :boolean
     field :confirmed_at, :naive_datetime
 
-    belongs_to :current_profile, Lanttern.Identity.Profile
+    belongs_to :current_profile, Profile
 
     timestamps()
   end

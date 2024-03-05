@@ -37,60 +37,6 @@ defmodule Lanttern.RepoHelpers do
   end
 
   @doc """
-  Thin wrapper around `Flop.validate_and_run!/3` to handle tupple return
-  """
-  def handle_flop_validate_and_run(queryable, map_or_flop \\ %{}, opts \\ []) do
-    {result, %Flop.Meta{}} =
-      queryable
-      |> Flop.validate_and_run!(map_or_flop, opts)
-
-    result
-  end
-
-  @doc """
-  Prepare `:filters` opt to be used as a Flop filter
-
-  ## Examples
-
-      iex> opts = [filters: [a: "a", b: ["b"], c: "c"]]
-      iex> fields_and_ops = [a: :==, b: :in]
-      iex> build_flop_filters_param(opts, fields_and_ops)
-      [[field: :a, op: :==, value: "a"], [field: :b, op: :in value: ["b"]]]
-  """
-  def build_flop_filters_param(opts \\ [], fields_and_ops \\ []) do
-    case Keyword.get(opts, :filters) do
-      filters when is_list(filters) ->
-        Enum.reduce(
-          filters,
-          [],
-          fn kv, filters ->
-            reduce_filters_param(kv, filters, fields_and_ops)
-          end
-        )
-
-      _ ->
-        []
-    end
-  end
-
-  defp reduce_filters_param({field, value}, filters, fields_and_ops) do
-    if field in Keyword.keys(fields_and_ops) do
-      [
-        %{
-          field: field,
-          op: Keyword.get(fields_and_ops, field),
-          value: value
-        }
-        | filters
-      ]
-    else
-      filters
-    end
-  end
-
-  defp reduce_filters_param(_, filters, _fields_and_ops), do: filters
-
-  @doc """
   Create naive timestamps.
   To be used in `inserted_at` and `updated_at`.
   """

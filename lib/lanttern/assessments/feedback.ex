@@ -2,15 +2,36 @@ defmodule Lanttern.Assessments.Feedback do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.Identity.Profile
+  alias Lanttern.Schools.Student
+  alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Conversation.Comment
+
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          comment: String.t(),
+          profile: Profile.t(),
+          profile_id: pos_integer(),
+          student: Student.t(),
+          student_id: pos_integer(),
+          assessment_point: AssessmentPoint.t(),
+          assessment_point_id: pos_integer(),
+          completion_comment: Comment.t(),
+          completion_comment_id: pos_integer(),
+          comments: [Comment.t()],
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   schema "feedback" do
     field :comment, :string
 
-    belongs_to :profile, Lanttern.Identity.Profile
-    belongs_to :student, Lanttern.Schools.Student
-    belongs_to :assessment_point, Lanttern.Assessments.AssessmentPoint
-    belongs_to :completion_comment, Lanttern.Conversation.Comment
+    belongs_to :profile, Profile
+    belongs_to :student, Student
+    belongs_to :assessment_point, AssessmentPoint
+    belongs_to :completion_comment, Comment
 
-    many_to_many :comments, Lanttern.Conversation.Comment,
+    many_to_many :comments, Comment,
       join_through: "feedback_comments",
       on_replace: :delete,
       preload_order: [asc: :inserted_at]

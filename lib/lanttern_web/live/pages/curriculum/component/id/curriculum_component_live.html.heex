@@ -1,0 +1,257 @@
+<.container>
+  <.page_title_with_menu>
+    <%= "#{@curriculum_component.curriculum.name}: #{@curriculum_component.name}" %>
+  </.page_title_with_menu>
+  <.breadcrumbs class="mt-2">
+    <:item link={~p"/curriculum"}>Curriculum</:item>
+    <:item link={~p"/curriculum/#{@curriculum_component.curriculum}"}>
+      <%= gettext("Details") %>
+    </:item>
+    <:item><%= gettext("Component") %></:item>
+  </.breadcrumbs>
+  <section class="mt-10">
+    <div class="flex items-end gap-6 mb-6">
+      <div class="flex-1">
+        <h2 class="mb-2 font-display font-black text-2xl"><%= gettext("Curriculum items") %></h2>
+        <p class="flex flex-wrap gap-2">
+          <%= ngettext(
+            "Showing 1 result for",
+            "Showing %{count} results for",
+            @curriculum_items_count
+          ) %>
+          <%= if length(@selected_subjects) == 0 do %>
+            <.badge><%= gettext("all subjects") %></.badge>
+          <% else %>
+            <.badge :for={subject <- @selected_subjects}><%= subject.name %></.badge>
+          <% end %>
+          <%= gettext("and") %>
+          <%= if length(@selected_years) == 0 do %>
+            <.badge><%= gettext("all years") %></.badge>
+          <% else %>
+            <.badge :for={year <- @selected_years}><%= year.name %></.badge>
+          <% end %>
+        </p>
+      </div>
+      <.collection_action
+        type="link"
+        patch={
+          ~p"/curriculum/component/#{@curriculum_component}?is_creating_curriculum_item=true"
+        }
+        icon_name="hero-plus-circle"
+      >
+        Add curriculum item
+      </.collection_action>
+    </div>
+    <div class="grid grid-cols-[repeat(2,_max-content)_minmax(200px,_2fr)_repeat(2,_minmax(0,_1fr))_max-content] gap-y-2">
+      <div class="sticky top-0 grid grid-cols-subgrid col-span-6 rounded font-display font-bold text-sm bg-white shadow">
+        <div class="p-4">Id</div>
+        <div class="p-4"><%= gettext("Code") %></div>
+        <div class="p-4"><%= gettext("Item") %></div>
+        <div class="p-4">
+          <button
+            type="button"
+            class="flex items-center gap-2 hover:text-ltrn-subtle"
+            phx-click="show_subjects_filter"
+          >
+            <%= gettext("Subjects") %>
+            <%= if length(@selected_subjects_ids) > 0 do %>
+              <.icon name="hero-funnel-solid" class="text-ltrn-primary" />
+            <% else %>
+              <.icon name="hero-funnel" class="text-ltrn-subtle" />
+            <% end %>
+          </button>
+        </div>
+        <div class="p-4">
+          <button
+            type="button"
+            class="flex items-center gap-2 hover:text-ltrn-subtle"
+            phx-click="show_years_filter"
+          >
+            <%= gettext("Years") %>
+            <%= if length(@selected_years_ids) > 0 do %>
+              <.icon name="hero-funnel-solid" class="text-ltrn-primary" />
+            <% else %>
+              <.icon name="hero-funnel" class="text-ltrn-subtle" />
+            <% end %>
+          </button>
+        </div>
+        <div>
+          <%!-- actions column --%>
+        </div>
+      </div>
+      <%= if @curriculum_items_count == 0 do %>
+        <div class="col-span-5 p-10 rounded bg-white shadow">
+          <.empty_state>
+            <%= gettext("No curriculum items found for selected filters.") %>
+          </.empty_state>
+        </div>
+      <% else %>
+        <ul
+          id="curriculum-items-table"
+          class="grid grid-cols-subgrid col-span-6"
+          phx-update="stream"
+        >
+          <li
+            :for={{dom_id, curriculum_item} <- @streams.curriculum_items}
+            id={dom_id}
+            class="grid grid-cols-subgrid col-span-6 py-2 rounded hover:bg-ltrn-mesh-yellow"
+          >
+            <div class="p-4">
+              <.badge theme="dark">
+                #<%= curriculum_item.id %>
+              </.badge>
+            </div>
+            <div class="p-4">
+              <%= if curriculum_item.code do %>
+                <.badge theme="dark">
+                  (<%= curriculum_item.code %>)
+                </.badge>
+              <% else %>
+                <span class="text-ltrn-subtle">—</span>
+              <% end %>
+            </div>
+            <div class="p-4 text-sm">
+              <%= curriculum_item.name %>
+            </div>
+            <div class="flex flex-wrap items-start gap-1 p-4">
+              <.badge :for={subject <- curriculum_item.subjects}>
+                <%= subject.name %>
+              </.badge>
+            </div>
+            <div class="flex flex-wrap items-start gap-1 p-4">
+              <.badge :for={year <- curriculum_item.years}>
+                <%= year.name %>
+              </.badge>
+            </div>
+            <div class="p-4">
+              <.icon_button
+                type="button"
+                sr_text={gettext("Edit curriculum item")}
+                name="hero-pencil-mini"
+                size="sm"
+                theme="ghost"
+                phx-click={
+                  JS.patch(
+                    ~p"/curriculum/component/#{@curriculum_component}?is_editing_curriculum_item=#{curriculum_item.id}"
+                  )
+                }
+              />
+            </div>
+          </li>
+        </ul>
+      <% end %>
+    </div>
+  </section>
+  <section :if={@curriculum_component.description} class="mt-10">
+    <h2 class="mb-6 font-display font-black text-2xl">
+      <%= gettext("About the curriculum component") %>
+    </h2>
+    <.markdown text={@curriculum_component.description} />
+  </section>
+</.container>
+<.modal
+  :if={@show_subjects_filter}
+  id="subjects-filter-modal"
+  show
+  on_cancel={JS.push("hide_subjects_filter")}
+>
+  <h5 class="font-display font-black text-xl">
+    <%= gettext("Filter curriculum items by subject") %>
+  </h5>
+  <.live_component
+    module={SubjectPickerComponent}
+    id="curriculum-item-subjects-filter"
+    on_select={&JS.push("toggle_subject_id", value: %{"id" => &1})}
+    selected_ids={@selected_subjects_ids}
+    class="mt-6"
+  />
+  <div class="flex justify-between gap-2 mt-10">
+    <.button type="button" theme="ghost" phx-click="clear_subjects_filter">
+      <%= gettext("Clear filters") %>
+    </.button>
+    <div class="flex gap-2">
+      <.button type="button" theme="ghost" phx-click="hide_subjects_filter">
+        <%= gettext("Cancel") %>
+      </.button>
+      <.button type="button" phx-click="save_selected_subjects_ids">
+        <%= gettext("Apply") %>
+      </.button>
+    </div>
+  </div>
+</.modal>
+<.modal
+  :if={@show_years_filter}
+  id="years-filter-modal"
+  show
+  on_cancel={JS.push("hide_years_filter")}
+>
+  <h5 class="font-display font-black text-xl">
+    <%= gettext("Filter curriculum items by year") %>
+  </h5>
+  <.live_component
+    module={YearPickerComponent}
+    id="curriculum-item-years-filter"
+    on_select={&JS.push("toggle_year_id", value: %{"id" => &1})}
+    selected_ids={@selected_years_ids}
+    class="mt-6"
+  />
+  <div class="flex justify-between gap-2 mt-10">
+    <.button type="button" theme="ghost" phx-click="clear_years_filter">
+      <%= gettext("Clear filters") %>
+    </.button>
+    <div class="flex gap-2">
+      <.button type="button" theme="ghost" phx-click="hide_years_filter">
+        <%= gettext("Cancel") %>
+      </.button>
+      <.button type="button" phx-click="save_selected_years_ids">
+        <%= gettext("Apply") %>
+      </.button>
+    </div>
+  </div>
+</.modal>
+<.slide_over
+  :if={@show_curriculum_item_form}
+  id="curriculum-item-form-overlay"
+  show={true}
+  on_cancel={JS.patch(~p"/curriculum/component/#{@curriculum_component}")}
+>
+  <:title><%= @form_overlay_title %></:title>
+  <.label><%= gettext("Curriculum component") %></.label>
+  <div class="p-4 rounded mb-6 bg-white shadow-lg">
+    <.badge :if={@curriculum_component.code} class="mb-2">
+      <%= @curriculum_component.code %>
+    </.badge>
+    <div class="font-display font-bold">
+      <%= @curriculum_component.name %>
+    </div>
+  </div>
+  <.live_component
+    module={CurriculumItemFormComponent}
+    id={@curriculum_item.id || :new}
+    curriculum_item={@curriculum_item}
+    navigate={~p"/curriculum/component/#{@curriculum_component}"}
+    hide_submit
+  />
+  <:actions_left :if={@curriculum_item.id}>
+    <.button
+      type="button"
+      theme="ghost"
+      phx-click="delete_curriculum_item"
+      data-confirm={gettext("Are you sure?")}
+    >
+      <%= gettext("Delete") %>
+    </.button>
+  </:actions_left>
+  <:actions>
+    <.button
+      type="button"
+      theme="ghost"
+      phx-click={JS.exec("data-cancel", to: "#curriculum-item-form-overlay")}
+    >
+      <%= gettext("Cancel") %>
+    </.button>
+    <.button type="submit" form="curriculum-item-form">
+      <%= gettext("Save") %>
+    </.button>
+  </:actions>
+</.slide_over>

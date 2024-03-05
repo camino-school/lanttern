@@ -15,8 +15,30 @@
   <:col :let={curriculum_component} label="Curriculum">
     <%= curriculum_component.curriculum.name %>
   </:col>
-  <:col :let={curriculum_component} label="Name"><%= curriculum_component.name %></:col>
   <:col :let={curriculum_component} label="Code"><%= curriculum_component.code %></:col>
+  <:col :let={curriculum_component} label="Name"><%= curriculum_component.name %></:col>
+  <:col :let={curriculum_component} label="Description">
+    <%= curriculum_component.description %>
+  </:col>
+  <:col :let={curriculum_component} label="Position"><%= curriculum_component.position %></:col>
+  <:col :let={curriculum_component} label="Colors">
+    <.badge style={
+      [
+        if(curriculum_component.bg_color,
+          do: "background-color: #{curriculum_component.bg_color};",
+          else: ""
+        ),
+        if(curriculum_component.text_color,
+          do: "color: #{curriculum_component.text_color};",
+          else: ""
+        )
+      ]
+      |> Enum.join(" ")
+    }>
+      bg: <%= curriculum_component.bg_color || "—" %> / text: <%= curriculum_component.text_color ||
+        "—" %>
+    </.badge>
+  </:col>
   <:action :let={curriculum_component}>
     <div class="sr-only">
       <.link navigate={~p"/admin/curriculum_components/#{curriculum_component}"}>

@@ -2,6 +2,24 @@ defmodule Lanttern.Grading.Scale do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.Grading.OrdinalValue
+
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          name: String.t(),
+          type: String.t(),
+          start: float(),
+          start_bg_color: String.t(),
+          start_text_color: String.t(),
+          stop: float(),
+          stop_bg_color: String.t(),
+          stop_text_color: String.t(),
+          breakpoints: [float()],
+          ordinal_values: [OrdinalValue.t()],
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   schema "grading_scales" do
     field :name, :string
     field :type, :string
@@ -13,7 +31,7 @@ defmodule Lanttern.Grading.Scale do
     field :stop_text_color, :string
     field :breakpoints, {:array, :float}
 
-    has_many :ordinal_values, Lanttern.Grading.OrdinalValue
+    has_many :ordinal_values, OrdinalValue
 
     timestamps()
   end

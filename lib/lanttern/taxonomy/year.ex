@@ -2,10 +2,13 @@ defmodule Lanttern.Taxonomy.Year do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @derive {
-    Flop.Schema,
-    filterable: [:id], sortable: []
-  }
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          name: String.t(),
+          code: String.t(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
 
   schema "years" do
     field :name, :string

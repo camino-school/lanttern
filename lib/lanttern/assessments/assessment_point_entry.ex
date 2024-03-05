@@ -23,17 +23,45 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Assessments.Feedback
+  alias Lanttern.Schools.Student
+  alias Lanttern.Grading.Scale
+  alias Lanttern.Grading.OrdinalValue
+  alias Lanttern.Rubrics.Rubric
+
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          observation: String.t(),
+          report_note: String.t(),
+          score: float(),
+          scale_type: String.t(),
+          assessment_point: AssessmentPoint.t(),
+          assessment_point_id: pos_integer(),
+          student: Student.t(),
+          student_id: pos_integer(),
+          scale: Scale.t(),
+          scale_id: pos_integer(),
+          ordinal_value: OrdinalValue.t(),
+          ordinal_value_id: pos_integer(),
+          differentiation_rubric: Rubric.t(),
+          differentiation_rubric_id: pos_integer(),
+          feedback: Feedback.t(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   schema "assessment_point_entries" do
     field :observation, :string
     field :report_note, :string
     field :score, :float
     field :scale_type, :string
 
-    belongs_to :assessment_point, Lanttern.Assessments.AssessmentPoint
-    belongs_to :student, Lanttern.Schools.Student
-    belongs_to :scale, Lanttern.Grading.Scale
-    belongs_to :ordinal_value, Lanttern.Grading.OrdinalValue
-    belongs_to :differentiation_rubric, Lanttern.Rubrics.Rubric
+    belongs_to :assessment_point, AssessmentPoint
+    belongs_to :student, Student
+    belongs_to :scale, Scale
+    belongs_to :ordinal_value, OrdinalValue
+    belongs_to :differentiation_rubric, Rubric
 
     # warning: don't use `Repo.preload/3` with this association.
     # we can get this in query, usign assessment_point_id and student_id

@@ -2,13 +2,27 @@ defmodule Lanttern.Grading.OrdinalValue do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.Grading.Scale
+
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          name: String.t(),
+          normalized_value: float(),
+          bg_color: String.t(),
+          text_color: String.t(),
+          scale: Scale.t(),
+          scale_id: pos_integer(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   schema "ordinal_values" do
     field :name, :string
     field :normalized_value, :float
     field :bg_color, :string
     field :text_color, :string
 
-    belongs_to :scale, Lanttern.Grading.Scale
+    belongs_to :scale, Scale
 
     timestamps()
   end
