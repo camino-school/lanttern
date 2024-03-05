@@ -1347,6 +1347,14 @@ defmodule Lanttern.AssessmentsTest do
 
       rubric = RubricsFixtures.rubric_fixture(%{scale_id: ordinal_scale.id})
 
+      # create diff rubric to test query consistency
+      # (only diff rubrics of the student should be loaded)
+      _diff_rubric =
+        RubricsFixtures.rubric_fixture(%{
+          scale_id: ordinal_scale.id,
+          diff_for_rubric_id: rubric.id
+        })
+
       rubric_descriptor =
         RubricsFixtures.rubric_descriptor_fixture(%{
           rubric_id: rubric.id,
@@ -1414,6 +1422,7 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_ap_1.scale.id == ordinal_scale.id
       assert expected_ap_1.rubric.id == rubric.id
       assert expected_ap_1.rubric.descriptors == [rubric_descriptor]
+      assert expected_ap_1.rubric.differentiation_rubrics == []
       assert expected_ap_1.scale.ordinal_values == [ordinal_value]
       assert expected_ap_1.curriculum_item.id == curriculum_item_1.id
       assert expected_ap_1.curriculum_item.curriculum_component.id == curriculum_component_1.id
