@@ -9,7 +9,7 @@ defmodule LantternWeb.Taxonomy.YearPickerComponent do
     <div class={["flex flex-wrap gap-2", @class]}>
       <.badge_button
         :for={year <- @years}
-        theme={if year.id in @selected_ids, do: "cyan", else: "default"}
+        theme={if year.id in @selected_ids, do: "primary", else: "default"}
         icon_name={if year.id in @selected_ids, do: "hero-check-mini", else: "hero-plus-mini"}
         phx-click={@on_select.(year.id)}
       >

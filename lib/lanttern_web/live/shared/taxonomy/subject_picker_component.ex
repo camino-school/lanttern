@@ -9,7 +9,7 @@ defmodule LantternWeb.Taxonomy.SubjectPickerComponent do
     <div class={["flex flex-wrap gap-2", @class]}>
       <.badge_button
         :for={subject <- @subjects}
-        theme={if subject.id in @selected_ids, do: "cyan", else: "default"}
+        theme={if subject.id in @selected_ids, do: "primary", else: "default"}
         icon_name={if subject.id in @selected_ids, do: "hero-check-mini", else: "hero-plus-mini"}
         phx-click={@on_select.(subject.id)}
       >

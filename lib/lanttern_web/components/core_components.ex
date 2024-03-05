@@ -83,7 +83,7 @@ defmodule LantternWeb.CoreComponents do
 
   @badge_themes %{
     "default" => "bg-ltrn-lightest text-ltrn-dark",
-    "primary" => "bg-ltrn-primary text-white",
+    "primary" => "bg-ltrn-primary text-ltrn-dark",
     "secondary" => "bg-ltrn-secondary text-white",
     "cyan" => "bg-ltrn-mesh-cyan text-ltrn-dark",
     "dark" => "bg-ltrn-dark text-ltrn-lighter",
@@ -104,7 +104,7 @@ defmodule LantternWeb.CoreComponents do
 
   @badge_icon_themes %{
     "default" => "text-ltrn-subtle",
-    "primary" => "text-ltrn-mesh-cyan",
+    "primary" => "text-ltrn-dark",
     "secondary" => "text-white",
     "cyan" => "text-ltrn-subtle",
     "dark" => "text-ltrn-lighter"
