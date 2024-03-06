@@ -10,12 +10,14 @@ defmodule LantternWeb.ReportingComponents do
   alias Lanttern.Reporting.ReportCard
   alias Lanttern.Rubrics.Rubric
   alias Lanttern.Schools.Cycle
+  alias Lanttern.Taxonomy.Year
 
   @doc """
   Renders a report card card (yes, card card, 2x).
   """
   attr :report_card, ReportCard, required: true
   attr :cycle, Cycle, default: nil
+  attr :year, Year, default: nil
   attr :navigate, :string, default: nil
   attr :id, :string, default: nil
   attr :class, :any, default: nil
@@ -43,9 +45,12 @@ defmodule LantternWeb.ReportingComponents do
             <%= @report_card.name %>
           <% end %>
         </h5>
-        <div :if={@cycle} class="flex flex-wrap gap-2">
-          <.badge>
+        <div :if={@cycle || @report_card.year} class="flex flex-wrap gap-2">
+          <.badge :if={@cycle}>
             <%= gettext("Cycle") %>: <%= @cycle.name %>
+          </.badge>
+          <.badge :if={@year}>
+            <%= @year.name %>
           </.badge>
         </div>
       </div>

@@ -3,8 +3,16 @@
   <div class="flex items-end justify-between mt-12">
     <p class="font-display font-bold text-lg">
       <%= gettext("I want to explore strands in") %><br />
-      <.filter_buttons type={gettext("years")} items={@selected_years} />,
-      <.filter_buttons type={gettext("subjects")} items={@selected_subjects} />
+      <.filter_text_button
+        type={gettext("years")}
+        items={@selected_years}
+        on_click={JS.exec("data-show", to: "#strands-filters")}
+      />,
+      <.filter_text_button
+        type={gettext("subjects")}
+        items={@selected_subjects}
+        on_click={JS.exec("data-show", to: "#strands-filters")}
+      />
     </p>
     <.collection_action type="button" icon_name="hero-plus-circle" phx-click="create-strand">
       <%= gettext("Create new strand") %>
@@ -55,9 +63,10 @@
     <%= gettext("By subject") %>
   </h5>
   <.live_component
-    module={SubjectPickerComponent}
-    id="curriculum-item-subjects-filter"
+    module={BadgeButtonPickerComponent}
+    id="strands-subjects-filter"
     on_select={&JS.push("toggle_subject_id", value: %{"id" => &1})}
+    items={@subjects}
     selected_ids={@selected_subjects_ids}
     class="mt-4"
   />
@@ -65,9 +74,10 @@
     <%= gettext("By year") %>
   </h5>
   <.live_component
-    module={YearPickerComponent}
-    id="curriculum-item-years-filter"
+    module={BadgeButtonPickerComponent}
+    id="strands-years-filter"
     on_select={&JS.push("toggle_year_id", value: %{"id" => &1})}
+    items={@years}
     selected_ids={@selected_years_ids}
     class="mt-4"
   />

@@ -13,7 +13,8 @@ defmodule Lanttern.ReportingFixtures do
       |> Enum.into(%{
         name: "some name",
         description: "some description",
-        school_cycle_id: maybe_gen_school_cycle_id(attrs)
+        school_cycle_id: maybe_gen_school_cycle_id(attrs),
+        year_id: maybe_gen_year_id(attrs)
       })
       |> Lanttern.Reporting.create_report_card()
 
@@ -25,6 +26,12 @@ defmodule Lanttern.ReportingFixtures do
 
   defp maybe_gen_school_cycle_id(_attrs),
     do: Lanttern.SchoolsFixtures.cycle_fixture().id
+
+  defp maybe_gen_year_id(%{year_id: year_id} = _attrs),
+    do: year_id
+
+  defp maybe_gen_year_id(_attrs),
+    do: Lanttern.TaxonomyFixtures.year_fixture().id
 
   @doc """
   Generate a strand_report.

@@ -249,26 +249,27 @@ defmodule LantternWeb.MenuComponent do
           :dashboard
 
         socket.view in [
-          LantternWeb.StrandLive.List,
-          LantternWeb.StrandLive.Details
+          LantternWeb.StrandsLive,
+          LantternWeb.StrandLive,
+          LantternWeb.MomentLive
         ] ->
           :strands
 
         socket.view in [
-          LantternWeb.SchoolLive.Show,
-          LantternWeb.SchoolLive.Class,
-          LantternWeb.SchoolLive.Student
+          LantternWeb.SchoolLive,
+          LantternWeb.ClassLive,
+          LantternWeb.StudentLive
         ] ->
           :school
 
         socket.view in [
-          LantternWeb.AssessmentPointLive.Explorer,
-          LantternWeb.AssessmentPointLive.Details
+          LantternWeb.AssessmentPointsLive,
+          LantternWeb.AssessmentPointLive
         ] ->
           :assessment_points
 
         socket.view in [
-          LantternWeb.RubricsLive.Explorer
+          LantternWeb.RubricsLive
         ] ->
           :rubrics
 

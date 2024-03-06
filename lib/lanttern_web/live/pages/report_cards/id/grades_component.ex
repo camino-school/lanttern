@@ -172,7 +172,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
     socket =
       socket
       |> assign(:subjects, Taxonomy.list_subjects())
-      |> assign(:cycles, Schools.list_cycles(order_by: [asc: :end_at, desc: :start_at]))
+      |> assign(:cycles, Schools.list_cycles())
       |> assign(:has_grades_subjects_order_change, false)
 
     {:ok, socket}

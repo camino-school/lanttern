@@ -9,9 +9,14 @@
     </div>
   </:top>
   <h1 class="font-display font-black text-5xl"><%= @report_card.name %></h1>
-  <.badge theme="dark" class="mt-6">
-    <%= gettext("Cycle") %>: <%= @report_card.school_cycle.name %>
-  </.badge>
+  <div class="flex gap-2 mt-6">
+    <.badge theme="dark">
+      <%= gettext("Cycle") %>: <%= @report_card.school_cycle.name %>
+    </.badge>
+    <.badge theme="dark">
+      <%= @report_card.year.name %>
+    </.badge>
+  </div>
 </.cover>
 <div class="sticky z-30 top-0 border-b border-ltrn-lighter bg-white">
   <div class="flex items-center justify-between container lg:max-w-5xl mx-auto">

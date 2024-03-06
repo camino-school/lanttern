@@ -27,7 +27,7 @@ defmodule Lanttern.ReportingTest do
       assert expected.school_cycle.id == school_cycle.id
     end
 
-    test "list_report_cards/1 with filters returns all filtered report_cards" do
+    test "list_report_cards/1 with strand filters returns all filtered report_cards" do
       report_card = report_card_fixture()
       strand = Lanttern.LearningContextFixtures.strand_fixture()
       strand_report_fixture(%{report_card_id: report_card.id, strand_id: strand.id})
@@ -37,6 +37,21 @@ defmodule Lanttern.ReportingTest do
       strand_report_fixture()
 
       [expected] = Reporting.list_report_cards(strands_ids: [strand.id])
+
+      assert expected.id == report_card.id
+    end
+
+    test "list_report_cards/1 with year/cycle filters returns all filtered report_cards" do
+      year = Lanttern.TaxonomyFixtures.year_fixture()
+      cycle = Lanttern.SchoolsFixtures.cycle_fixture()
+      report_card = report_card_fixture(%{school_cycle_id: cycle.id, year_id: year.id})
+
+      # extra report cards for filtering test
+      report_card_fixture()
+      report_card_fixture(%{year_id: year.id})
+      report_card_fixture(%{school_cycle_id: cycle.id})
+
+      [expected] = Reporting.list_report_cards(years_ids: [year.id], cycles_ids: [cycle.id])
 
       assert expected.id == report_card.id
     end
@@ -92,11 +107,13 @@ defmodule Lanttern.ReportingTest do
 
     test "create_report_card/1 with valid data creates a report_card" do
       school_cycle = Lanttern.SchoolsFixtures.cycle_fixture()
+      year = Lanttern.TaxonomyFixtures.year_fixture()
 
       valid_attrs = %{
         name: "some name",
         description: "some description",
-        school_cycle_id: school_cycle.id
+        school_cycle_id: school_cycle.id,
+        year_id: year.id
       }
 
       assert {:ok, %ReportCard{} = report_card} = Reporting.create_report_card(valid_attrs)

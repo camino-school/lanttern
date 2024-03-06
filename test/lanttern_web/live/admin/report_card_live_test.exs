@@ -26,6 +26,7 @@ defmodule LantternWeb.Admin.ReportCardLiveTest do
 
     test "saves new report_card", %{conn: conn} do
       school_cycle = Lanttern.SchoolsFixtures.cycle_fixture()
+      year = Lanttern.TaxonomyFixtures.year_fixture()
 
       {:ok, index_live, _html} = live(conn, ~p"/admin/report_cards")
 
@@ -37,7 +38,8 @@ defmodule LantternWeb.Admin.ReportCardLiveTest do
       create_attrs = %{
         name: "some name",
         description: "some description",
-        school_cycle_id: school_cycle.id
+        school_cycle_id: school_cycle.id,
+        year_id: year.id
       }
 
       assert index_live

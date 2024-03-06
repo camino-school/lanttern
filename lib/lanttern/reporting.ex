@@ -26,8 +26,10 @@ defmodule Lanttern.Reporting do
 
   ## Options:
 
-      - `:preloads` – preloads associated data
-      - `:strands_ids` – filter report cards by strands
+  - `:preloads` – preloads associated data
+  - `:strands_ids` – filter report cards by strands
+  - `:cycles_ids` - filter report cards by cycles
+  - `:years_ids` - filter report cards by year
 
   ## Examples
 
@@ -38,28 +40,40 @@ defmodule Lanttern.Reporting do
   def list_report_cards(opts \\ []) do
     from(rc in ReportCard,
       join: sc in assoc(rc, :school_cycle),
-      order_by: [desc: sc.end_at, asc: rc.name]
+      order_by: [desc: sc.end_at, asc: sc.start_at, asc: rc.name]
     )
-    |> filter_report_cards(opts)
+    |> apply_list_report_cards_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
-  defp filter_report_cards(queryable, opts) do
-    Enum.reduce(opts, queryable, &apply_report_cards_filter/2)
-  end
+  defp apply_list_report_cards_opts(queryable, []), do: queryable
 
-  defp apply_report_cards_filter({:strands_ids, ids}, queryable) do
+  defp apply_list_report_cards_opts(queryable, [{:strands_ids, ids} | opts])
+       when is_list(ids) and ids != [] do
     from(
       rc in queryable,
       join: sr in assoc(rc, :strand_reports),
       join: s in assoc(sr, :strand),
       where: s.id in ^ids
     )
+    |> apply_list_report_cards_opts(opts)
   end
 
-  defp apply_report_cards_filter(_, queryable),
-    do: queryable
+  defp apply_list_report_cards_opts(queryable, [{:cycles_ids, ids} | opts])
+       when is_list(ids) and ids != [] do
+    from(rc in queryable, where: rc.school_cycle_id in ^ids)
+    |> apply_list_report_cards_opts(opts)
+  end
+
+  defp apply_list_report_cards_opts(queryable, [{:years_ids, ids} | opts])
+       when is_list(ids) and ids != [] do
+    from(rc in queryable, where: rc.year_id in ^ids)
+    |> apply_list_report_cards_opts(opts)
+  end
+
+  defp apply_list_report_cards_opts(queryable, [_ | opts]),
+    do: apply_list_report_cards_opts(queryable, opts)
 
   @doc """
   Returns the list of report cards, grouped by cycle.
@@ -68,6 +82,8 @@ defmodule Lanttern.Reporting do
   in each group ordered by name (asc) — it's the same order
   returned by `list_report_cards/1`, which is used internally.
 
+  See `list_report_cards/1` for options.
+
   ## Examples
 
       iex> list_report_cards_by_cycle()
@@ -75,12 +91,12 @@ defmodule Lanttern.Reporting do
 
   """
 
-  @spec list_report_cards_by_cycle() :: [
+  @spec list_report_cards_by_cycle(Keyword.t()) :: [
           {Cycle.t(), [ReportCard.t()]}
         ]
-  def list_report_cards_by_cycle() do
+  def list_report_cards_by_cycle(opts \\ []) do
     report_cards_by_cycle_map =
-      list_report_cards()
+      list_report_cards(opts)
       |> Enum.group_by(& &1.school_cycle_id)
 
     Schools.list_cycles(order_by: [desc: :end_at])

@@ -3,7 +3,6 @@ defmodule LantternWeb.StrandsLive do
 
   alias Lanttern.LearningContext
   alias Lanttern.LearningContext.Strand
-  alias Lanttern.Personalization
 
   import LantternWeb.PersonalizationHelpers
 
@@ -12,45 +11,9 @@ defmodule LantternWeb.StrandsLive do
 
   # shared components
   import LantternWeb.LearningContextComponents
-  alias LantternWeb.Taxonomy.SubjectPickerComponent
-  alias LantternWeb.Taxonomy.YearPickerComponent
+  alias LantternWeb.BadgeButtonPickerComponent
 
   # function components
-
-  attr :items, :list, required: true
-  attr :type, :string, required: true
-
-  def filter_buttons(%{items: []} = assigns) do
-    ~H"""
-    <button type="button" phx-click={show_filter()} class="underline hover:text-ltrn-primary">
-      <%= gettext("all %{type}", type: @type) %>
-    </button>
-    """
-  end
-
-  def filter_buttons(%{items: items, type: type} = assigns) do
-    items =
-      if length(items) > 3 do
-        {first_two, rest} = Enum.split(items, 2)
-
-        first_two
-        |> Enum.map(& &1.name)
-        |> Enum.join(" / ")
-        |> Kernel.<>(" / + #{length(rest)} #{type}")
-      else
-        items
-        |> Enum.map(& &1.name)
-        |> Enum.join(" / ")
-      end
-
-    assigns = assign(assigns, :items, items)
-
-    ~H"""
-    <button type="button" phx-click={show_filter()} class="underline hover:text-ltrn-primary">
-      <%= @items %>
-    </button>
-    """
-  end
 
   attr :id, :string, required: true
   attr :strands, :list, required: true
@@ -80,7 +43,10 @@ defmodule LantternWeb.StrandsLive do
   def mount(_params, _session, socket) do
     socket =
       socket
-      |> assign_user_filters([:subjects, :years], socket.assigns.current_user)
+      |> assign_user_filters(
+        [:subjects, :years],
+        socket.assigns.current_user
+      )
       |> assign(:is_creating_strand, false)
       |> stream_strands()
 
@@ -158,57 +124,27 @@ defmodule LantternWeb.StrandsLive do
     end
   end
 
-  def handle_event("toggle_subject_id", %{"id" => id}, socket) do
-    selected_subjects_ids =
-      case id in socket.assigns.selected_subjects_ids do
-        true ->
-          socket.assigns.selected_subjects_ids
-          |> Enum.filter(&(&1 != id))
+  def handle_event("toggle_subject_id", %{"id" => id}, socket),
+    do: {:noreply, handle_filter_toggle(socket, :subjects, id)}
 
-        false ->
-          [id | socket.assigns.selected_subjects_ids]
-      end
-
-    {:noreply, assign(socket, :selected_subjects_ids, selected_subjects_ids)}
-  end
-
-  def handle_event("toggle_year_id", %{"id" => id}, socket) do
-    selected_years_ids =
-      case id in socket.assigns.selected_years_ids do
-        true ->
-          socket.assigns.selected_years_ids
-          |> Enum.filter(&(&1 != id))
-
-        false ->
-          [id | socket.assigns.selected_years_ids]
-      end
-
-    {:noreply, assign(socket, :selected_years_ids, selected_years_ids)}
-  end
+  def handle_event("toggle_year_id", %{"id" => id}, socket),
+    do: {:noreply, handle_filter_toggle(socket, :years, id)}
 
   def handle_event("clear_filters", _, socket) do
-    Personalization.set_profile_current_filters(
+    clear_profile_filters(
       socket.assigns.current_user,
-      %{subjects_ids: [], years_ids: []}
+      [:subjects, :years]
     )
 
     {:noreply, push_navigate(socket, to: ~p"/strands")}
   end
 
   def handle_event("apply_filters", _, socket) do
-    Personalization.set_profile_current_filters(
-      socket.assigns.current_user,
-      %{
-        subjects_ids: socket.assigns.selected_subjects_ids,
-        years_ids: socket.assigns.selected_years_ids
-      }
-    )
+    socket =
+      socket
+      |> save_profile_filters(socket.assigns.current_user, [:subjects, :years])
+      |> push_navigate(to: ~p"/strands")
 
-    {:noreply, push_navigate(socket, to: ~p"/strands")}
+    {:noreply, socket}
   end
-
-  # helpers
-
-  defp show_filter(js \\ %JS{}),
-    do: js |> JS.exec("data-show", to: "#strands-filters")
 end

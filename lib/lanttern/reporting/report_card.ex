@@ -4,6 +4,7 @@ defmodule Lanttern.Reporting.ReportCard do
 
   alias Lanttern.Reporting.StrandReport
   alias Lanttern.Schools.Cycle
+  alias Lanttern.Taxonomy.Year
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -11,6 +12,8 @@ defmodule Lanttern.Reporting.ReportCard do
           description: String.t(),
           school_cycle: Cycle.t(),
           school_cycle_id: pos_integer(),
+          year: Year.t(),
+          year_id: pos_integer(),
           strand_reports: [StrandReport.t()],
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
@@ -21,6 +24,7 @@ defmodule Lanttern.Reporting.ReportCard do
     field :description, :string
 
     belongs_to :school_cycle, Cycle
+    belongs_to :year, Year
 
     has_many :strand_reports, StrandReport, preload_order: [asc: :position]
 
@@ -30,7 +34,7 @@ defmodule Lanttern.Reporting.ReportCard do
   @doc false
   def changeset(report_card, attrs) do
     report_card
-    |> cast(attrs, [:name, :description, :school_cycle_id])
-    |> validate_required([:name, :school_cycle_id])
+    |> cast(attrs, [:name, :description, :school_cycle_id, :year_id])
+    |> validate_required([:name, :school_cycle_id, :year_id])
   end
 end

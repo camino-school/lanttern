@@ -44,7 +44,7 @@ defmodule LantternWeb.ReportCardLive do
       socket
       |> assign(:params, params)
       |> assign_new(:report_card, fn ->
-        Reporting.get_report_card!(id, preloads: :school_cycle)
+        Reporting.get_report_card!(id, preloads: [:school_cycle, :year])
       end)
       |> set_current_tab(params, socket.assigns.live_action)
 

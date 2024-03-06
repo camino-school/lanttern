@@ -381,6 +381,56 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Renders a filter text button.
+  """
+
+  attr :items, :list, required: true
+  attr :item_key, :any, default: :name
+  attr :type, :string, required: true
+  attr :max_items, :integer, default: 3
+  attr :class, :any, default: nil
+  attr :on_click, JS, default: %JS{}
+
+  def filter_text_button(%{items: []} = assigns) do
+    ~H"""
+    <button type="button" phx-click={@on_click} class={["underline hover:text-ltrn-primary", @class]}>
+      <%= gettext("all %{type}", type: @type) %>
+    </button>
+    """
+  end
+
+  def filter_text_button(assigns) do
+    %{
+      items: items,
+      type: type,
+      max_items: max_items,
+      item_key: item_key
+    } = assigns
+
+    items =
+      if length(items) > max_items do
+        {initial, rest} = Enum.split(items, max_items - 1)
+
+        initial
+        |> Enum.map(&Map.get(&1, item_key))
+        |> Enum.join(" / ")
+        |> Kernel.<>(" / + #{length(rest)} #{type}")
+      else
+        items
+        |> Enum.map(&Map.get(&1, item_key))
+        |> Enum.join(" / ")
+      end
+
+    assigns = assign(assigns, :items, items)
+
+    ~H"""
+    <button type="button" phx-click={@on_click} class={["underline hover:text-ltrn-primary", @class]}>
+      <%= @items %>
+    </button>
+    """
+  end
+
+  @doc """
   Renders flash notices.
 
   ## Examples

@@ -9,8 +9,7 @@ defmodule LantternWeb.CurriculumComponentLive do
 
   # shared components
   alias LantternWeb.Curricula.CurriculumItemFormComponent
-  alias LantternWeb.Taxonomy.SubjectPickerComponent
-  alias LantternWeb.Taxonomy.YearPickerComponent
+  alias LantternWeb.BadgeButtonPickerComponent
 
   @impl true
   def mount(_params, _session, socket) do

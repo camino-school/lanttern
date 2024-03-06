@@ -159,9 +159,10 @@
     <%= gettext("Filter curriculum items by subject") %>
   </h5>
   <.live_component
-    module={SubjectPickerComponent}
+    module={BadgeButtonPickerComponent}
     id="curriculum-item-subjects-filter"
     on_select={&JS.push("toggle_subject_id", value: %{"id" => &1})}
+    items={@subjects}
     selected_ids={@selected_subjects_ids}
     class="mt-6"
   />
@@ -189,9 +190,10 @@
     <%= gettext("Filter curriculum items by year") %>
   </h5>
   <.live_component
-    module={YearPickerComponent}
+    module={BadgeButtonPickerComponent}
     id="curriculum-item-years-filter"
     on_select={&JS.push("toggle_year_id", value: %{"id" => &1})}
+    items={@years}
     selected_ids={@selected_years_ids}
     class="mt-6"
   />

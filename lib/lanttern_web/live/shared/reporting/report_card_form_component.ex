@@ -3,6 +3,7 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
 
   alias Lanttern.Reporting
   alias LantternWeb.SchoolsHelpers
+  alias LantternWeb.TaxonomyHelpers
 
   @impl true
   def render(assigns) do
@@ -21,6 +22,15 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
           label={gettext("Cycle")}
           options={@cycle_options}
           prompt={gettext("Select cycle")}
+          phx-target={@myself}
+          class="mb-6"
+        />
+        <.input
+          field={@form[:year_id]}
+          type="select"
+          label={gettext("Year")}
+          options={@year_options}
+          prompt={gettext("Select year")}
           phx-target={@myself}
           class="mb-6"
         />
@@ -50,11 +60,13 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
   @impl true
   def mount(socket) do
     cycle_options = SchoolsHelpers.generate_cycle_options()
+    year_options = TaxonomyHelpers.generate_year_options()
 
     socket =
       socket
       |> assign(:class, nil)
       |> assign(:cycle_options, cycle_options)
+      |> assign(:year_options, year_options)
       |> assign(:hide_submit, false)
 
     {:ok, socket}
