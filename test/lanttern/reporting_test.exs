@@ -789,4 +789,88 @@ defmodule Lanttern.ReportingTest do
       end
     end
   end
+
+  describe "grade_reports" do
+    alias Lanttern.Reporting.GradeReport
+
+    import Lanttern.ReportingFixtures
+    alias Lanttern.SchoolsFixtures
+
+    @invalid_attrs %{info: "blah", scale_id: nil}
+
+    test "list_grade_reports/1 returns all grade_reports" do
+      grade_report = grade_report_fixture()
+      assert Reporting.list_grade_reports() == [grade_report]
+    end
+
+    test "get_grade_report!/2 returns the grade_report with given id" do
+      grade_report = grade_report_fixture()
+      assert Reporting.get_grade_report!(grade_report.id) == grade_report
+    end
+
+    test "get_grade_report!/2 with preloads returns the grade report with given id and preloaded data" do
+      school_cycle = SchoolsFixtures.cycle_fixture()
+      grade_report = grade_report_fixture(%{school_cycle_id: school_cycle.id})
+
+      expected = Reporting.get_grade_report!(grade_report.id, preloads: :school_cycle)
+
+      assert expected.id == grade_report.id
+      assert expected.school_cycle == school_cycle
+    end
+
+    test "create_grade_report/1 with valid data creates a grade_report" do
+      school_cycle = Lanttern.SchoolsFixtures.cycle_fixture()
+      subject = Lanttern.TaxonomyFixtures.subject_fixture()
+      year = Lanttern.TaxonomyFixtures.year_fixture()
+      scale = Lanttern.GradingFixtures.scale_fixture()
+
+      valid_attrs = %{
+        school_cycle_id: school_cycle.id,
+        subject_id: subject.id,
+        year_id: year.id,
+        scale_id: scale.id
+      }
+
+      assert {:ok, %GradeReport{} = grade_report} = Reporting.create_grade_report(valid_attrs)
+      assert grade_report.school_cycle_id == school_cycle.id
+      assert grade_report.subject_id == subject.id
+      assert grade_report.year_id == year.id
+      assert grade_report.scale_id == scale.id
+    end
+
+    test "create_grade_report/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Reporting.create_grade_report(@invalid_attrs)
+    end
+
+    test "update_grade_report/2 with valid data updates the grade_report" do
+      grade_report = grade_report_fixture()
+      update_attrs = %{info: "some updated info", is_differentiation: "true"}
+
+      assert {:ok, %GradeReport{} = grade_report} =
+               Reporting.update_grade_report(grade_report, update_attrs)
+
+      assert grade_report.info == "some updated info"
+      assert grade_report.is_differentiation
+    end
+
+    test "update_grade_report/2 with invalid data returns error changeset" do
+      grade_report = grade_report_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Reporting.update_grade_report(grade_report, @invalid_attrs)
+
+      assert grade_report == Reporting.get_grade_report!(grade_report.id)
+    end
+
+    test "delete_grade_report/1 deletes the grade_report" do
+      grade_report = grade_report_fixture()
+      assert {:ok, %GradeReport{}} = Reporting.delete_grade_report(grade_report)
+      assert_raise Ecto.NoResultsError, fn -> Reporting.get_grade_report!(grade_report.id) end
+    end
+
+    test "change_report_card/1 returns a report_card changeset" do
+      report_card = report_card_fixture()
+      assert %Ecto.Changeset{} = Reporting.change_report_card(report_card)
+    end
+  end
 end

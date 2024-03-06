@@ -120,4 +120,28 @@ defmodule Lanttern.ReportingFixtures do
 
     report_card_grade_cycle
   end
+
+  @doc """
+  Generate a grade report.
+  """
+  def grade_report_fixture(attrs \\ %{}) do
+    {:ok, grade_report} =
+      attrs
+      |> Enum.into(%{
+        info: "some info",
+        school_cycle_id: maybe_gen_school_cycle_id(attrs),
+        subject_id: maybe_gen_subject_id(attrs),
+        year_id: maybe_gen_year_id(attrs),
+        scale_id: maybe_gen_scale_id(attrs)
+      })
+      |> Lanttern.Reporting.create_grade_report()
+
+    grade_report
+  end
+
+  defp maybe_gen_scale_id(%{scale_id: scale_id} = _attrs),
+    do: scale_id
+
+  defp maybe_gen_scale_id(_attrs),
+    do: Lanttern.GradingFixtures.scale_fixture().id
 end

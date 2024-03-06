@@ -9,9 +9,11 @@ defmodule Lanttern.Reporting do
   alias Lanttern.Utils
 
   alias Lanttern.Reporting.ReportCard
+  alias Lanttern.Reporting.StrandReport
   alias Lanttern.Reporting.StudentReportCard
   alias Lanttern.Reporting.ReportCardGradeSubject
   alias Lanttern.Reporting.ReportCardGradeCycle
+  alias Lanttern.Reporting.GradeReport
 
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Schools
@@ -192,8 +194,6 @@ defmodule Lanttern.Reporting do
   def change_report_card(%ReportCard{} = report_card, attrs \\ %{}) do
     ReportCard.changeset(report_card, attrs)
   end
-
-  alias Lanttern.Reporting.StrandReport
 
   @doc """
   Returns the list of strand reports.
@@ -378,8 +378,6 @@ defmodule Lanttern.Reporting do
   def change_strand_report(%StrandReport{} = strand_report, attrs \\ %{}) do
     StrandReport.changeset(strand_report, attrs)
   end
-
-  alias Lanttern.Reporting.StudentReportCard
 
   @doc """
   Returns the list of student_report_cards.
@@ -765,5 +763,113 @@ defmodule Lanttern.Reporting do
   """
   def delete_report_card_grade_cycle(%ReportCardGradeCycle{} = report_card_grade_cycle) do
     Repo.delete(report_card_grade_cycle)
+  end
+
+  @doc """
+  Returns the list of grade reports.
+
+  ## Options
+
+  - `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> list_grade_reports()
+      [%GradeReport{}, ...]
+
+  """
+  def list_grade_reports(opts \\ []) do
+    GradeReport
+    |> Repo.all()
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single grade report.
+
+  Raises `Ecto.NoResultsError` if the grade report does not exist.
+
+  ## Options:
+
+  - `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> get_grade_report!(123)
+      %GradeReport{}
+
+      iex> get_grade_report!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_grade_report!(id, opts \\ []) do
+    GradeReport
+    |> Repo.get!(id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Creates a grade report.
+
+  ## Examples
+
+      iex> create_grade_report(%{field: value})
+      {:ok, %GradeReport{}}
+
+      iex> create_grade_report(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_grade_report(attrs \\ %{}) do
+    %GradeReport{}
+    |> GradeReport.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a grade report.
+
+  ## Examples
+
+      iex> update_grade_report(grade_report, %{field: new_value})
+      {:ok, %ReportCard{}}
+
+      iex> update_grade_report(grade_report, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_grade_report(%GradeReport{} = grade_report, attrs) do
+    grade_report
+    |> GradeReport.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a grade report.
+
+  ## Examples
+
+      iex> delete_grade_report(grade_report)
+      {:ok, %ReportCard{}}
+
+      iex> delete_grade_report(grade_report)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_grade_report(%GradeReport{} = grade_report) do
+    Repo.delete(grade_report)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking grade report changes.
+
+  ## Examples
+
+      iex> change_grade_report(grade_report)
+      %Ecto.Changeset{data: %ReportCard{}}
+
+  """
+  def change_grade_report(%GradeReport{} = grade_report, attrs \\ %{}) do
+    GradeReport.changeset(grade_report, attrs)
   end
 end
