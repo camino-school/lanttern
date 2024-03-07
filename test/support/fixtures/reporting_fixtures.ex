@@ -128,10 +128,9 @@ defmodule Lanttern.ReportingFixtures do
     {:ok, grade_report} =
       attrs
       |> Enum.into(%{
+        name: "some name",
         info: "some info",
         school_cycle_id: maybe_gen_school_cycle_id(attrs),
-        subject_id: maybe_gen_subject_id(attrs),
-        year_id: maybe_gen_year_id(attrs),
         scale_id: maybe_gen_scale_id(attrs)
       })
       |> Lanttern.Reporting.create_grade_report()

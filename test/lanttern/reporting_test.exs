@@ -820,21 +820,17 @@ defmodule Lanttern.ReportingTest do
 
     test "create_grade_report/1 with valid data creates a grade_report" do
       school_cycle = Lanttern.SchoolsFixtures.cycle_fixture()
-      subject = Lanttern.TaxonomyFixtures.subject_fixture()
-      year = Lanttern.TaxonomyFixtures.year_fixture()
       scale = Lanttern.GradingFixtures.scale_fixture()
 
       valid_attrs = %{
+        name: "grade report name abc",
         school_cycle_id: school_cycle.id,
-        subject_id: subject.id,
-        year_id: year.id,
         scale_id: scale.id
       }
 
       assert {:ok, %GradeReport{} = grade_report} = Reporting.create_grade_report(valid_attrs)
+      assert grade_report.name == "grade report name abc"
       assert grade_report.school_cycle_id == school_cycle.id
-      assert grade_report.subject_id == subject.id
-      assert grade_report.year_id == year.id
       assert grade_report.scale_id == scale.id
     end
 
