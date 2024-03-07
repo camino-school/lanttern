@@ -787,11 +787,31 @@ defmodule Lanttern.Reporting do
   @doc """
   Gets a single grade report.
 
-  Raises `Ecto.NoResultsError` if the grade report does not exist.
+  Returns `nil` if the grade report does not exist.
 
   ## Options:
 
   - `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> get_grade_report!(123)
+      %GradeReport{}
+
+      iex> get_grade_report!(456)
+      nil
+
+  """
+  def get_grade_report(id, opts \\ []) do
+    GradeReport
+    |> Repo.get(id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single grade report.
+
+  Same as `get_grade_report/2`, but raises `Ecto.NoResultsError` if the grade report does not exist.
 
   ## Examples
 

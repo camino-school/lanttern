@@ -31,11 +31,13 @@ defmodule LantternWeb.MenuComponent do
               <.nav_item active={@active_nav == :curriculum} path={~p"/curriculum"}>
                 <%= gettext("Curriculum") %>
               </.nav_item>
-              <.nav_item active={@active_nav == :reporting} path={~p"/report_cards"}>
-                <%= gettext("Reporting") %>
+              <.nav_item active={@active_nav == :report_cards} path={~p"/report_cards"}>
+                <%= gettext("Report cards") %>
+              </.nav_item>
+              <.nav_item active={@active_nav == :grading} path={~p"/grading"}>
+                <%= gettext("Grading") %>
               </.nav_item>
               <%!-- use this li as placeholder when nav items % 3 != 0--%>
-              <li class="bg-white"></li>
               <li class="bg-white"></li>
             </ul>
           </nav>
@@ -282,7 +284,10 @@ defmodule LantternWeb.MenuComponent do
           :curriculum
 
         socket.view in [LantternWeb.ReportCardsLive, LantternWeb.ReportCardLive] ->
-          :reporting
+          :report_cards
+
+        socket.view in [LantternWeb.GradeReportsLive] ->
+          :grading
 
         true ->
           nil

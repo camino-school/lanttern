@@ -95,7 +95,7 @@ defmodule LantternWeb.Router do
       live "/curriculum/:id", CurriculumLive, :show
       live "/curriculum/component/:id", CurriculumComponentLive, :show
 
-      # reporting
+      # report cards
 
       live "/report_cards", ReportCardsLive, :index
       live "/report_cards/new", ReportCardsLive, :new
@@ -107,6 +107,10 @@ defmodule LantternWeb.Router do
       live "/student_report_card/:id/strand_report/:strand_report_id",
            StudentStrandReportLive,
            :show
+
+      # grading
+
+      live "/grading", GradeReportsLive, :index
     end
   end
 
