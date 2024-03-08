@@ -795,12 +795,82 @@ defmodule Lanttern.ReportingTest do
 
     import Lanttern.ReportingFixtures
     alias Lanttern.SchoolsFixtures
+    alias Lanttern.TaxonomyFixtures
 
     @invalid_attrs %{info: "blah", scale_id: nil}
 
     test "list_grades_reports/1 returns all grades_reports" do
       grades_report = grades_report_fixture()
       assert Reporting.list_grades_reports() == [grades_report]
+    end
+
+    test "list_grades_reports/1 with load grid opt returns all grades_reports with linked and ordered cycles and subjects" do
+      cycle_2024_1 =
+        SchoolsFixtures.cycle_fixture(%{start_at: ~D[2024-01-01], end_at: ~D[2024-06-30]})
+
+      cycle_2024_2 =
+        SchoolsFixtures.cycle_fixture(%{start_at: ~D[2024-07-01], end_at: ~D[2024-12-31]})
+
+      subject_a = TaxonomyFixtures.subject_fixture()
+      subject_b = TaxonomyFixtures.subject_fixture()
+      subject_c = TaxonomyFixtures.subject_fixture()
+
+      grades_report = grades_report_fixture()
+
+      grades_report_cycle_2024_1 =
+        grades_report_cycle_fixture(%{
+          grades_report_id: grades_report.id,
+          school_cycle_id: cycle_2024_1.id
+        })
+
+      grades_report_cycle_2024_2 =
+        grades_report_cycle_fixture(%{
+          grades_report_id: grades_report.id,
+          school_cycle_id: cycle_2024_2.id
+        })
+
+      # subjects order c, b, a
+
+      grades_report_subject_c =
+        grades_report_subject_fixture(%{
+          grades_report_id: grades_report.id,
+          subject_id: subject_c.id
+        })
+
+      grades_report_subject_b =
+        grades_report_subject_fixture(%{
+          grades_report_id: grades_report.id,
+          subject_id: subject_b.id
+        })
+
+      grades_report_subject_a =
+        grades_report_subject_fixture(%{
+          grades_report_id: grades_report.id,
+          subject_id: subject_a.id
+        })
+
+      assert [expected_grades_report] = Reporting.list_grades_reports(load_grid: true)
+      assert expected_grades_report.id == grades_report.id
+
+      # check cycles
+      assert [expected_grc_2024_1, expected_grc_2024_2] =
+               expected_grades_report.grades_report_cycles
+
+      assert expected_grc_2024_1.id == grades_report_cycle_2024_1.id
+      assert expected_grc_2024_1.school_cycle.id == cycle_2024_1.id
+      assert expected_grc_2024_2.id == grades_report_cycle_2024_2.id
+      assert expected_grc_2024_2.school_cycle.id == cycle_2024_2.id
+
+      # check subjects
+      assert [expected_grs_c, expected_grs_b, expected_grs_a] =
+               expected_grades_report.grades_report_subjects
+
+      assert expected_grs_a.id == grades_report_subject_a.id
+      assert expected_grs_a.subject.id == subject_a.id
+      assert expected_grs_b.id == grades_report_subject_b.id
+      assert expected_grs_b.subject.id == subject_b.id
+      assert expected_grs_c.id == grades_report_subject_c.id
+      assert expected_grs_c.subject.id == subject_c.id
     end
 
     test "get_grades_report!/2 returns the grades_report with given id" do

@@ -51,11 +51,7 @@
           </div>
         </div>
         <.markdown :if={grades_report.info} text={grades_report.info} class="mb-6" size="sm" />
-        <.grades_report_grid
-          grades_report_id={grades_report.id}
-          grades_report_subjects={[]}
-          grades_report_cycles={[]}
-        />
+        <.grades_report_grid grades_report={grades_report} />
       </div>
     </div>
   <% else %>

@@ -4,6 +4,8 @@ defmodule Lanttern.Reporting.GradesReport do
 
   alias Lanttern.Grading.Scale
   alias Lanttern.Schools.Cycle
+  alias Lanttern.Reporting.GradesReportCycle
+  alias Lanttern.Reporting.GradesReportSubject
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -14,6 +16,8 @@ defmodule Lanttern.Reporting.GradesReport do
           school_cycle_id: pos_integer(),
           scale: Scale.t(),
           scale_id: pos_integer(),
+          grades_report_cycles: [GradesReportCycle.t()],
+          grades_report_subjects: [GradesReportSubject.t()],
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -25,6 +29,9 @@ defmodule Lanttern.Reporting.GradesReport do
 
     belongs_to :school_cycle, Cycle
     belongs_to :scale, Scale
+
+    has_many :grades_report_cycles, GradesReportCycle
+    has_many :grades_report_subjects, GradesReportSubject
 
     timestamps()
   end

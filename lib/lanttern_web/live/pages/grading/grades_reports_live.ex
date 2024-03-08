@@ -15,32 +15,35 @@ defmodule LantternWeb.GradesReportsLive do
 
   # function components
 
-  attr :grades_report_id, :integer, required: true
-  attr :grades_report_subjects, :list, required: true
-  attr :grades_report_cycles, :list, required: true
+  attr :grades_report, GradesReport, required: true
 
   def grades_report_grid(assigns) do
+    %{
+      grades_report_cycles: grades_report_cycles,
+      grades_report_subjects: grades_report_subjects
+    } = assigns.grades_report
+
     grid_template_columns_style =
-      case length(assigns.grades_report_cycles) do
-        n when n > 1 ->
-          "grid-template-columns: 160px repeat(#{n}, minmax(0, 1fr))"
+      case length(grades_report_cycles) do
+        n when n > 0 ->
+          "grid-template-columns: 160px repeat(#{n + 1}, minmax(0, 1fr))"
 
         _ ->
           "grid-template-columns: 160px minmax(0, 1fr)"
       end
 
     grid_column_style =
-      case length(assigns.grades_report_cycles) do
+      case length(grades_report_cycles) do
         0 -> "grid-column: span 2 / span 2"
-        n -> "grid-column: span #{n + 1} / span #{n + 1}"
+        n -> "grid-column: span #{n + 2} / span #{n + 2}"
       end
 
     assigns =
       assigns
       |> assign(:grid_template_columns_style, grid_template_columns_style)
       |> assign(:grid_column_style, grid_column_style)
-      |> assign(:has_subjects, length(assigns.grades_report_subjects) > 0)
-      |> assign(:has_cycles, length(assigns.grades_report_cycles) > 0)
+      |> assign(:has_subjects, length(grades_report_subjects) > 0)
+      |> assign(:has_cycles, length(grades_report_cycles) > 0)
 
     ~H"""
     <div class="grid gap-1 text-sm" style={@grid_template_columns_style}>
@@ -48,17 +51,20 @@ defmodule LantternWeb.GradesReportsLive do
         type="button"
         theme="ghost"
         icon_name="hero-cog-6-tooth-mini"
-        phx-click={JS.patch(~p"/grading?is_editing_grid=#{@grades_report_id}")}
+        phx-click={JS.patch(~p"/grading?is_editing_grid=#{@grades_report.id}")}
       >
         <%= gettext("Setup") %>
       </.button>
       <%= if @has_cycles do %>
         <div
-          :for={grades_report_cycle <- @grades_report_cycles}
+          :for={grades_report_cycle <- @grades_report.grades_report_cycles}
           id={"grid-header-cycle-#{grades_report_cycle.id}"}
           class="p-4 rounded text-center bg-white shadow-lg"
         >
           <%= grades_report_cycle.school_cycle.name %>
+        </div>
+        <div class="p-4 rounded text-center bg-white shadow-lg">
+          <%= @grades_report.school_cycle.name %>
         </div>
       <% else %>
         <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lightest">
@@ -67,7 +73,7 @@ defmodule LantternWeb.GradesReportsLive do
       <% end %>
       <%= if @has_subjects do %>
         <div
-          :for={grades_report_subject <- @grades_report_subjects}
+          :for={grades_report_subject <- @grades_report.grades_report_subjects}
           id={"grade-report-subject-#{grades_report_subject.id}"}
           class="grid grid-cols-subgrid"
           style={@grid_column_style}
@@ -77,10 +83,11 @@ defmodule LantternWeb.GradesReportsLive do
           </div>
           <%= if @has_cycles do %>
             <div
-              :for={_grade_cycle <- @grades_report_cycles}
+              :for={_grade_cycle <- @grades_report.grades_report_cycles}
               class="rounded border border-ltrn-lighter bg-ltrn-lightest"
             >
             </div>
+            <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
           <% else %>
             <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
           <% end %>
@@ -92,10 +99,11 @@ defmodule LantternWeb.GradesReportsLive do
           </div>
           <%= if @has_cycles do %>
             <div
-              :for={_grade_cycle <- @grades_report_cycles}
+              :for={_grade_cycle <- @grades_report.grades_report_cycles}
               class="rounded border border-ltrn-lighter bg-ltrn-lightest"
             >
             </div>
+            <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
           <% else %>
             <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
           <% end %>
@@ -110,7 +118,10 @@ defmodule LantternWeb.GradesReportsLive do
   @impl true
   def handle_params(params, _uri, socket) do
     grades_reports =
-      Reporting.list_grades_reports(preloads: [:school_cycle, [scale: :ordinal_values]])
+      Reporting.list_grades_reports(
+        preloads: [:school_cycle, [scale: :ordinal_values]],
+        load_grid: true
+      )
 
     socket =
       socket
