@@ -31,17 +31,19 @@ defmodule LantternWeb.MenuComponent do
               <.nav_item active={@active_nav == :curriculum} path={~p"/curriculum"}>
                 <%= gettext("Curriculum") %>
               </.nav_item>
-              <.nav_item active={@active_nav == :reporting} path={~p"/report_cards"}>
-                <%= gettext("Reporting") %>
+              <.nav_item active={@active_nav == :report_cards} path={~p"/report_cards"}>
+                <%= gettext("Report cards") %>
+              </.nav_item>
+              <.nav_item active={@active_nav == :grading} path={~p"/grading"}>
+                <%= gettext("Grading") %>
               </.nav_item>
               <%!-- use this li as placeholder when nav items % 3 != 0--%>
-              <li class="bg-white"></li>
               <li class="bg-white"></li>
             </ul>
           </nav>
           <h5 class="relative flex items-center ml-6 mb-6 font-display font-black text-3xl text-ltrn-dark">
             <span class="w-20 h-20 rounded-full bg-ltrn-mesh-primary blur-sm" />
-            <span class="relative -ml-10">lanttern</span>
+            <span class="relative -ml-10">Lanttern</span>
           </h5>
         </div>
         <div class="flex flex-col w-96 p-10 font-display overflow-y-auto">
@@ -249,26 +251,27 @@ defmodule LantternWeb.MenuComponent do
           :dashboard
 
         socket.view in [
-          LantternWeb.StrandLive.List,
-          LantternWeb.StrandLive.Details
+          LantternWeb.StrandsLive,
+          LantternWeb.StrandLive,
+          LantternWeb.MomentLive
         ] ->
           :strands
 
         socket.view in [
-          LantternWeb.SchoolLive.Show,
-          LantternWeb.SchoolLive.Class,
-          LantternWeb.SchoolLive.Student
+          LantternWeb.SchoolLive,
+          LantternWeb.ClassLive,
+          LantternWeb.StudentLive
         ] ->
           :school
 
         socket.view in [
-          LantternWeb.AssessmentPointLive.Explorer,
-          LantternWeb.AssessmentPointLive.Details
+          LantternWeb.AssessmentPointsLive,
+          LantternWeb.AssessmentPointLive
         ] ->
           :assessment_points
 
         socket.view in [
-          LantternWeb.RubricsLive.Explorer
+          LantternWeb.RubricsLive
         ] ->
           :rubrics
 
@@ -281,7 +284,10 @@ defmodule LantternWeb.MenuComponent do
           :curriculum
 
         socket.view in [LantternWeb.ReportCardsLive, LantternWeb.ReportCardLive] ->
-          :reporting
+          :report_cards
+
+        socket.view in [LantternWeb.GradesReportsLive] ->
+          :grading
 
         true ->
           nil

@@ -2,7 +2,9 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Reporting
+  alias LantternWeb.ReportingHelpers
   alias LantternWeb.SchoolsHelpers
+  alias LantternWeb.TaxonomyHelpers
 
   @impl true
   def render(assigns) do
@@ -25,6 +27,15 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
           class="mb-6"
         />
         <.input
+          field={@form[:year_id]}
+          type="select"
+          label={gettext("Year")}
+          options={@year_options}
+          prompt={gettext("Select year")}
+          phx-target={@myself}
+          class="mb-6"
+        />
+        <.input
           field={@form[:name]}
           type="text"
           label={gettext("Name")}
@@ -38,7 +49,16 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
           phx-debounce="1500"
           class="mb-1"
         />
-        <.markdown_supported class={if !@hide_submit, do: "mb-6"} />
+        <.markdown_supported class="mb-6" />
+        <.input
+          field={@form[:grades_report_id]}
+          type="select"
+          label={gettext("Grades report")}
+          options={@grades_report_options}
+          prompt={gettext("Select grades report")}
+          phx-target={@myself}
+          class={if !@hide_submit, do: "mb-6"}
+        />
         <.button :if={!@hide_submit} phx-disable-with={gettext("Saving...")}>
           <%= gettext("Save Report card") %>
         </.button>
@@ -50,11 +70,15 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
   @impl true
   def mount(socket) do
     cycle_options = SchoolsHelpers.generate_cycle_options()
+    year_options = TaxonomyHelpers.generate_year_options()
+    grades_report_options = ReportingHelpers.generate_grades_report_options()
 
     socket =
       socket
       |> assign(:class, nil)
       |> assign(:cycle_options, cycle_options)
+      |> assign(:year_options, year_options)
+      |> assign(:grades_report_options, grades_report_options)
       |> assign(:hide_submit, false)
 
     {:ok, socket}

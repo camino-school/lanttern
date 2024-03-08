@@ -114,7 +114,7 @@ defmodule Lanttern.Schools do
 
   ## Options:
 
-      - `:schools_ids` – filter classes by schools
+      - `:schools_ids` – filter cycles by schools
       - `:order_by` - an order by query expression ([ref](https://hexdocs.pm/ecto/Ecto.Query.html#order_by/3))
 
   ## Examples
@@ -130,7 +130,10 @@ defmodule Lanttern.Schools do
     |> Repo.all()
   end
 
-  defp order_cycles(queryable, nil), do: queryable
+  defp order_cycles(queryable, nil) do
+    from c in queryable,
+      order_by: [asc: :end_at, desc: :start_at]
+  end
 
   defp order_cycles(queryable, order_by_expression) do
     from c in queryable,

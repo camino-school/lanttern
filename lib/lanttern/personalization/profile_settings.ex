@@ -16,7 +16,8 @@ defmodule Lanttern.Personalization.ProfileSettings do
   @type current_filters() :: %__MODULE__.CurrentFilters{
           classes_ids: [pos_integer()],
           subjects_ids: [pos_integer()],
-          years_ids: [pos_integer()]
+          years_ids: [pos_integer()],
+          cycles_ids: [pos_integer()]
         }
 
   schema "profile_settings" do
@@ -26,6 +27,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
       field :classes_ids, {:array, :id}
       field :subjects_ids, {:array, :id}
       field :years_ids, {:array, :id}
+      field :cycles_ids, {:array, :id}
     end
 
     timestamps()
@@ -41,6 +43,6 @@ defmodule Lanttern.Personalization.ProfileSettings do
 
   defp current_filters_changeset(current_filters, attrs) do
     current_filters
-    |> cast(attrs, [:classes_ids, :subjects_ids, :years_ids])
+    |> cast(attrs, [:classes_ids, :subjects_ids, :years_ids, :cycles_ids])
   end
 end

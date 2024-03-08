@@ -83,6 +83,7 @@ defmodule LantternWeb.CoreComponents do
 
   @badge_themes %{
     "default" => "bg-ltrn-lightest text-ltrn-dark",
+    "primary" => "bg-ltrn-primary text-ltrn-dark",
     "secondary" => "bg-ltrn-secondary text-white",
     "cyan" => "bg-ltrn-mesh-cyan text-ltrn-dark",
     "dark" => "bg-ltrn-dark text-ltrn-lighter",
@@ -91,6 +92,7 @@ defmodule LantternWeb.CoreComponents do
 
   @badge_themes_hover %{
     "default" => "hover:bg-ltrn-lightest/50",
+    "primary" => "hover:bg-ltrn-primary/50",
     "secondary" => "hover:bg-ltrn-secondary/50",
     "cyan" => "hover:bg-ltrn-mesh-cyan/50",
     "dark" => "hover:bg-ltrn-dark/50"
@@ -102,6 +104,7 @@ defmodule LantternWeb.CoreComponents do
 
   @badge_icon_themes %{
     "default" => "text-ltrn-subtle",
+    "primary" => "text-ltrn-dark",
     "secondary" => "text-white",
     "cyan" => "text-ltrn-subtle",
     "dark" => "text-ltrn-lighter"
@@ -229,7 +232,7 @@ defmodule LantternWeb.CoreComponents do
   """
   def get_button_styles(theme \\ "default", size \\ "normal", rounded \\ false) do
     [
-      "inline-flex items-center font-display text-sm font-bold",
+      "inline-flex items-center justify-center font-display text-sm font-bold",
       if(size == "sm", do: "gap-1 p-1", else: "gap-2 p-2"),
       if(rounded, do: "rounded-full", else: "rounded-sm"),
       "phx-submit-loading:opacity-50 phx-click-loading:opacity-50 phx-click-loading:pointer-events-none",
@@ -374,6 +377,56 @@ defmodule LantternWeb.CoreComponents do
       </div> --%>
       <p class="font-display text-ltrn-subtle"><%= render_slot(@inner_block) %></p>
     </div>
+    """
+  end
+
+  @doc """
+  Renders a filter text button.
+  """
+
+  attr :items, :list, required: true
+  attr :item_key, :any, default: :name
+  attr :type, :string, required: true
+  attr :max_items, :integer, default: 3
+  attr :class, :any, default: nil
+  attr :on_click, JS, default: %JS{}
+
+  def filter_text_button(%{items: []} = assigns) do
+    ~H"""
+    <button type="button" phx-click={@on_click} class={["underline hover:text-ltrn-primary", @class]}>
+      <%= gettext("all %{type}", type: @type) %>
+    </button>
+    """
+  end
+
+  def filter_text_button(assigns) do
+    %{
+      items: items,
+      type: type,
+      max_items: max_items,
+      item_key: item_key
+    } = assigns
+
+    items =
+      if length(items) > max_items do
+        {initial, rest} = Enum.split(items, max_items - 1)
+
+        initial
+        |> Enum.map(&Map.get(&1, item_key))
+        |> Enum.join(" / ")
+        |> Kernel.<>(" / + #{length(rest)} #{type}")
+      else
+        items
+        |> Enum.map(&Map.get(&1, item_key))
+        |> Enum.join(" / ")
+      end
+
+    assigns = assign(assigns, :items, items)
+
+    ~H"""
+    <button type="button" phx-click={@on_click} class={["underline hover:text-ltrn-primary", @class]}>
+      <%= @items %>
+    </button>
     """
   end
 
@@ -976,6 +1029,7 @@ defmodule LantternWeb.CoreComponents do
   @doc """
   Renders a sortable card
   """
+  attr :id, :string, default: nil
   attr :class, :any, default: nil
   attr :is_move_up_disabled, :boolean, default: false
   attr :on_move_up, JS, required: true
@@ -986,7 +1040,7 @@ defmodule LantternWeb.CoreComponents do
 
   def sortable_card(assigns) do
     ~H"""
-    <div class={["flex items-center p-4 rounded bg-white shadow-lg", @class]}>
+    <div id={@id} class={["flex items-center gap-4 p-4 rounded bg-white shadow-lg", @class]}>
       <div class="flex-1">
         <%= render_slot(@inner_block) %>
       </div>

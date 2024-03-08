@@ -2,12 +2,10 @@ defmodule LantternWeb.Curricula.CurriculumItemFormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Curricula
-  # alias Lanttern.Taxonomy
-  # import LantternWeb.TaxonomyHelpers
+  alias Lanttern.Taxonomy
 
   # live components
-  alias LantternWeb.Taxonomy.YearPickerComponent
-  alias LantternWeb.Taxonomy.SubjectPickerComponent
+  alias LantternWeb.BadgeButtonPickerComponent
 
   @impl true
   def render(assigns) do
@@ -38,18 +36,20 @@ defmodule LantternWeb.Curricula.CurriculumItemFormComponent do
         <div class="mb-6">
           <.label><%= gettext("Subjects") %></.label>
           <.live_component
-            module={SubjectPickerComponent}
+            module={BadgeButtonPickerComponent}
             id="curriculum-item-subjects-select"
             on_select={&JS.push("toggle_subject", value: %{"id" => &1}, target: @myself)}
+            items={@subjects}
             selected_ids={@selected_subjects_ids}
           />
         </div>
         <div class="mb-6">
           <.label><%= gettext("Years") %></.label>
           <.live_component
-            module={YearPickerComponent}
+            module={BadgeButtonPickerComponent}
             id="curriculum-item-years-select"
             on_select={&JS.push("toggle_year", value: %{"id" => &1}, target: @myself)}
+            items={@years}
             selected_ids={@selected_years_ids}
           />
         </div>
@@ -76,12 +76,12 @@ defmodule LantternWeb.Curricula.CurriculumItemFormComponent do
   def update(%{curriculum_item: curriculum_item} = assigns, socket) do
     changeset = Curricula.change_curriculum_item(curriculum_item)
 
-    subjects_ids =
+    selected_subjects_ids =
       curriculum_item
       |> Map.get(:subjects, [])
       |> Enum.map(& &1.id)
 
-    years_ids =
+    selected_years_ids =
       curriculum_item
       |> Map.get(:years, [])
       |> Enum.map(& &1.id)
@@ -89,8 +89,10 @@ defmodule LantternWeb.Curricula.CurriculumItemFormComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign(:selected_subjects_ids, subjects_ids)
-      |> assign(:selected_years_ids, years_ids)
+      |> assign(:subjects, Taxonomy.list_subjects())
+      |> assign(:selected_subjects_ids, selected_subjects_ids)
+      |> assign(:years, Taxonomy.list_years())
+      |> assign(:selected_years_ids, selected_years_ids)
       |> assign_form(changeset)
 
     {:ok, socket}
