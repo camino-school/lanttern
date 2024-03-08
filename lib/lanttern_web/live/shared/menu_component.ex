@@ -286,7 +286,7 @@ defmodule LantternWeb.MenuComponent do
         socket.view in [LantternWeb.ReportCardsLive, LantternWeb.ReportCardLive] ->
           :report_cards
 
-        socket.view in [LantternWeb.GradeReportsLive] ->
+        socket.view in [LantternWeb.GradesReportsLive] ->
           :grading
 
         true ->

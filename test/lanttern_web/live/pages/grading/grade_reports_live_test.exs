@@ -1,4 +1,4 @@
-defmodule LantternWeb.GradeReportsLiveTest do
+defmodule LantternWeb.GradesReportsLiveTest do
   use LantternWeb.ConnCase
 
   import Lanttern.ReportingFixtures
@@ -13,7 +13,7 @@ defmodule LantternWeb.GradeReportsLiveTest do
     test "disconnected and connected mount", %{conn: conn} do
       conn = get(conn, @live_view_path)
 
-      assert html_response(conn, 200) =~ ~r"<h1 .+>\s*Grade reports\s*<\/h1>"
+      assert html_response(conn, 200) =~ ~r"<h1 .+>\s*Grades reports\s*<\/h1>"
 
       {:ok, _view, _html} = live(conn)
     end
@@ -25,8 +25,8 @@ defmodule LantternWeb.GradeReportsLiveTest do
       _ordinal_value =
         GradingFixtures.ordinal_value_fixture(%{name: "Ordinal value A", scale_id: scale.id})
 
-      _grade_report =
-        grade_report_fixture(%{
+      _grades_report =
+        grades_report_fixture(%{
           name: "Some grade report ABC",
           info: "Some info XYZ",
           school_cycle_id: cycle.id,

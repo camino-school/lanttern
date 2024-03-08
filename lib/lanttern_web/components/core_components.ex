@@ -232,7 +232,7 @@ defmodule LantternWeb.CoreComponents do
   """
   def get_button_styles(theme \\ "default", size \\ "normal", rounded \\ false) do
     [
-      "inline-flex items-center font-display text-sm font-bold",
+      "inline-flex items-center justify-center font-display text-sm font-bold",
       if(size == "sm", do: "gap-1 p-1", else: "gap-2 p-2"),
       if(rounded, do: "rounded-full", else: "rounded-sm"),
       "phx-submit-loading:opacity-50 phx-click-loading:opacity-50 phx-click-loading:pointer-events-none",
@@ -1029,6 +1029,7 @@ defmodule LantternWeb.CoreComponents do
   @doc """
   Renders a sortable card
   """
+  attr :id, :string, default: nil
   attr :class, :any, default: nil
   attr :is_move_up_disabled, :boolean, default: false
   attr :on_move_up, JS, required: true
@@ -1039,7 +1040,7 @@ defmodule LantternWeb.CoreComponents do
 
   def sortable_card(assigns) do
     ~H"""
-    <div class={["flex items-center gap-4 p-4 rounded bg-white shadow-lg", @class]}>
+    <div id={@id} class={["flex items-center gap-4 p-4 rounded bg-white shadow-lg", @class]}>
       <div class="flex-1">
         <%= render_slot(@inner_block) %>
       </div>

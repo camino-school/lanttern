@@ -124,8 +124,8 @@ defmodule Lanttern.ReportingFixtures do
   @doc """
   Generate a grade report.
   """
-  def grade_report_fixture(attrs \\ %{}) do
-    {:ok, grade_report} =
+  def grades_report_fixture(attrs \\ %{}) do
+    {:ok, grades_report} =
       attrs
       |> Enum.into(%{
         name: "some name",
@@ -133,9 +133,9 @@ defmodule Lanttern.ReportingFixtures do
         school_cycle_id: maybe_gen_school_cycle_id(attrs),
         scale_id: maybe_gen_scale_id(attrs)
       })
-      |> Lanttern.Reporting.create_grade_report()
+      |> Lanttern.Reporting.create_grades_report()
 
-    grade_report
+    grades_report
   end
 
   defp maybe_gen_scale_id(%{scale_id: scale_id} = _attrs),
@@ -143,4 +143,40 @@ defmodule Lanttern.ReportingFixtures do
 
   defp maybe_gen_scale_id(_attrs),
     do: Lanttern.GradingFixtures.scale_fixture().id
+
+  @doc """
+  Generate a grades_report_subject.
+  """
+  def grades_report_subject_fixture(attrs \\ %{}) do
+    {:ok, grades_report_subject} =
+      attrs
+      |> Enum.into(%{
+        grades_report_id: maybe_gen_grades_report_id(attrs),
+        subject_id: maybe_gen_subject_id(attrs)
+      })
+      |> Lanttern.Reporting.add_subject_to_grades_report()
+
+    grades_report_subject
+  end
+
+  defp maybe_gen_grades_report_id(%{grades_report_id: grades_report_id} = _attrs),
+    do: grades_report_id
+
+  defp maybe_gen_grades_report_id(_attrs),
+    do: grades_report_fixture().id
+
+  @doc """
+  Generate a grades_report_cycle.
+  """
+  def grades_report_cycle_fixture(attrs \\ %{}) do
+    {:ok, grades_report_cycle} =
+      attrs
+      |> Enum.into(%{
+        grades_report_id: maybe_gen_grades_report_id(attrs),
+        school_cycle_id: maybe_gen_school_cycle_id(attrs)
+      })
+      |> Lanttern.Reporting.add_cycle_to_grades_report()
+
+    grades_report_cycle
+  end
 end

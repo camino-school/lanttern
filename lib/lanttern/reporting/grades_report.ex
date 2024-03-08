@@ -1,4 +1,4 @@
-defmodule Lanttern.Reporting.GradeReport do
+defmodule Lanttern.Reporting.GradesReport do
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -18,7 +18,7 @@ defmodule Lanttern.Reporting.GradeReport do
           updated_at: DateTime.t()
         }
 
-  schema "grade_reports" do
+  schema "grades_reports" do
     field :name, :string
     field :info, :string
     field :is_differentiation, :boolean, default: false
@@ -30,8 +30,8 @@ defmodule Lanttern.Reporting.GradeReport do
   end
 
   @doc false
-  def changeset(grade_report, attrs) do
-    grade_report
+  def changeset(grades_report, attrs) do
+    grades_report
     |> cast(attrs, [:name, :info, :is_differentiation, :school_cycle_id, :scale_id])
     |> validate_required([:name, :school_cycle_id, :scale_id])
   end

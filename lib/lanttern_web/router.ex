@@ -110,7 +110,7 @@ defmodule LantternWeb.Router do
 
       # grading
 
-      live "/grading", GradeReportsLive, :index
+      live "/grading", GradesReportsLive, :index
     end
   end
 

@@ -13,7 +13,9 @@ defmodule Lanttern.Reporting do
   alias Lanttern.Reporting.StudentReportCard
   alias Lanttern.Reporting.ReportCardGradeSubject
   alias Lanttern.Reporting.ReportCardGradeCycle
-  alias Lanttern.Reporting.GradeReport
+  alias Lanttern.Reporting.GradesReport
+  alias Lanttern.Reporting.GradesReportSubject
+  alias Lanttern.Reporting.GradesReportCycle
 
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Schools
@@ -774,12 +776,12 @@ defmodule Lanttern.Reporting do
 
   ## Examples
 
-      iex> list_grade_reports()
-      [%GradeReport{}, ...]
+      iex> list_grades_reports()
+      [%GradesReport{}, ...]
 
   """
-  def list_grade_reports(opts \\ []) do
-    GradeReport
+  def list_grades_reports(opts \\ []) do
+    GradesReport
     |> Repo.all()
     |> maybe_preload(opts)
   end
@@ -795,15 +797,15 @@ defmodule Lanttern.Reporting do
 
   ## Examples
 
-      iex> get_grade_report!(123)
-      %GradeReport{}
+      iex> get_grades_report!(123)
+      %GradesReport{}
 
-      iex> get_grade_report!(456)
+      iex> get_grades_report!(456)
       nil
 
   """
-  def get_grade_report(id, opts \\ []) do
-    GradeReport
+  def get_grades_report(id, opts \\ []) do
+    GradesReport
     |> Repo.get(id)
     |> maybe_preload(opts)
   end
@@ -811,19 +813,19 @@ defmodule Lanttern.Reporting do
   @doc """
   Gets a single grade report.
 
-  Same as `get_grade_report/2`, but raises `Ecto.NoResultsError` if the grade report does not exist.
+  Same as `get_grades_report/2`, but raises `Ecto.NoResultsError` if the grade report does not exist.
 
   ## Examples
 
-      iex> get_grade_report!(123)
-      %GradeReport{}
+      iex> get_grades_report!(123)
+      %GradesReport{}
 
-      iex> get_grade_report!(456)
+      iex> get_grades_report!(456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_grade_report!(id, opts \\ []) do
-    GradeReport
+  def get_grades_report!(id, opts \\ []) do
+    GradesReport
     |> Repo.get!(id)
     |> maybe_preload(opts)
   end
@@ -833,16 +835,16 @@ defmodule Lanttern.Reporting do
 
   ## Examples
 
-      iex> create_grade_report(%{field: value})
-      {:ok, %GradeReport{}}
+      iex> create_grades_report(%{field: value})
+      {:ok, %GradesReport{}}
 
-      iex> create_grade_report(%{field: bad_value})
+      iex> create_grades_report(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_grade_report(attrs \\ %{}) do
-    %GradeReport{}
-    |> GradeReport.changeset(attrs)
+  def create_grades_report(attrs \\ %{}) do
+    %GradesReport{}
+    |> GradesReport.changeset(attrs)
     |> Repo.insert()
   end
 
@@ -851,16 +853,16 @@ defmodule Lanttern.Reporting do
 
   ## Examples
 
-      iex> update_grade_report(grade_report, %{field: new_value})
+      iex> update_grades_report(grades_report, %{field: new_value})
       {:ok, %ReportCard{}}
 
-      iex> update_grade_report(grade_report, %{field: bad_value})
+      iex> update_grades_report(grades_report, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_grade_report(%GradeReport{} = grade_report, attrs) do
-    grade_report
-    |> GradeReport.changeset(attrs)
+  def update_grades_report(%GradesReport{} = grades_report, attrs) do
+    grades_report
+    |> GradesReport.changeset(attrs)
     |> Repo.update()
   end
 
@@ -869,15 +871,15 @@ defmodule Lanttern.Reporting do
 
   ## Examples
 
-      iex> delete_grade_report(grade_report)
+      iex> delete_grades_report(grades_report)
       {:ok, %ReportCard{}}
 
-      iex> delete_grade_report(grade_report)
+      iex> delete_grades_report(grades_report)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_grade_report(%GradeReport{} = grade_report) do
-    Repo.delete(grade_report)
+  def delete_grades_report(%GradesReport{} = grades_report) do
+    Repo.delete(grades_report)
   end
 
   @doc """
@@ -885,11 +887,200 @@ defmodule Lanttern.Reporting do
 
   ## Examples
 
-      iex> change_grade_report(grade_report)
+      iex> change_grades_report(grades_report)
       %Ecto.Changeset{data: %ReportCard{}}
 
   """
-  def change_grade_report(%GradeReport{} = grade_report, attrs \\ %{}) do
-    GradeReport.changeset(grade_report, attrs)
+  def change_grades_report(%GradesReport{} = grades_report, attrs \\ %{}) do
+    GradesReport.changeset(grades_report, attrs)
   end
+
+  @doc """
+  Returns the list of grades report subjects.
+
+  Results are ordered by position and preloaded subjects.
+
+  ## Examples
+
+      iex> list_grades_report_subjects(1)
+      [%GradesReportSubject{}, ...]
+
+  """
+  @spec list_grades_report_subjects(grades_report_id :: integer()) :: [
+          GradesReportSubject.t()
+        ]
+
+  def list_grades_report_subjects(grades_report_id) do
+    from(grs in GradesReportSubject,
+      order_by: grs.position,
+      join: s in assoc(grs, :subject),
+      preload: [subject: s],
+      where: grs.grades_report_id == ^grades_report_id
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Add a subject to a grades report.
+
+  Result has subject preloaded.
+
+  ## Examples
+
+      iex> add_subject_to_grades_report(%{field: value})
+      {:ok, %GradesReportSubject{}}
+
+      iex> add_subject_to_grades_report(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+  """
+
+  @spec add_subject_to_grades_report(map()) ::
+          {:ok, GradesReportSubject.t()} | {:error, Ecto.Changeset.t()}
+
+  def add_subject_to_grades_report(attrs \\ %{}) do
+    %GradesReportSubject{}
+    |> GradesReportSubject.changeset(attrs)
+    |> set_grades_report_subject_position()
+    |> Repo.insert()
+    |> maybe_preload(preloads: :subject)
+  end
+
+  # skip if not valid
+  defp set_grades_report_subject_position(%Ecto.Changeset{valid?: false} = changeset),
+    do: changeset
+
+  # skip if changeset already has position change
+  defp set_grades_report_subject_position(
+         %Ecto.Changeset{changes: %{position: _position}} = changeset
+       ),
+       do: changeset
+
+  defp set_grades_report_subject_position(%Ecto.Changeset{} = changeset) do
+    grades_report_id =
+      Ecto.Changeset.get_field(changeset, :grades_report_id)
+
+    position =
+      from(
+        grs in GradesReportSubject,
+        where: grs.grades_report_id == ^grades_report_id,
+        select: grs.position,
+        order_by: [desc: grs.position],
+        limit: 1
+      )
+      |> Repo.one()
+      |> case do
+        nil -> 0
+        pos -> pos + 1
+      end
+
+    changeset
+    |> Ecto.Changeset.put_change(:position, position)
+  end
+
+  @doc """
+  Update grades report subjects positions based on ids list order.
+
+  ## Examples
+
+  iex> update_grades_report_subjects_positions([3, 2, 1])
+  :ok
+
+  """
+  @spec update_grades_report_subjects_positions([integer()]) :: :ok | {:error, String.t()}
+  def update_grades_report_subjects_positions(grades_report_subjects_ids),
+    do: Utils.update_positions(GradesReportSubject, grades_report_subjects_ids)
+
+  @doc """
+  Deletes a grades report subject.
+
+  ## Examples
+
+      iex> delete_grades_report_subject(grades_report_subject)
+      {:ok, %GradesReportSubject{}}
+
+      iex> delete_grades_report_subject(grades_report_subject)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_grades_report_subject(%GradesReportSubject{} = grades_report_subject),
+    do: Repo.delete(grades_report_subject)
+
+  @doc """
+  Returns the list of grades report cycles.
+
+  Results are ordered asc by cycle `end_at` and desc by cycle `start_at`, and have preloaded school cycles.
+
+  ## Examples
+
+  iex> list_grades_report_cycles(1)
+  [%GradesReportCycle{}, ...]
+
+  """
+  @spec list_grades_report_cycles(grades_report_id :: integer()) :: [
+          GradesReportCycle.t()
+        ]
+
+  def list_grades_report_cycles(grades_report_id) do
+    from(grc in GradesReportCycle,
+      join: sc in assoc(grc, :school_cycle),
+      preload: [school_cycle: sc],
+      where: grc.grades_report_id == ^grades_report_id,
+      order_by: [asc: sc.end_at, desc: sc.start_at]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Add a cycle to a grades report.
+
+  ## Examples
+
+    iex> add_cycle_to_grades_report(%{field: value})
+    {:ok, %GradesReportCycle{}}
+
+    iex> add_cycle_to_grades_report(%{field: bad_value})
+    {:error, %Ecto.Changeset{}}
+  """
+
+  @spec add_cycle_to_grades_report(map()) ::
+          {:ok, GradesReportCycle.t()} | {:error, Ecto.Changeset.t()}
+
+  def add_cycle_to_grades_report(attrs \\ %{}) do
+    %GradesReportCycle{}
+    |> GradesReportCycle.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a grades_report_cycle.
+
+  ## Examples
+
+      iex> update_grades_report_cycle(grades_report_cycle, %{field: new_value})
+      {:ok, %GradesReportCycle{}}
+
+      iex> update_grades_report_cycle(grades_report_cycle, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_grades_report_cycle(%GradesReportCycle{} = grades_report_cycle, attrs) do
+    grades_report_cycle
+    |> GradesReportCycle.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a grades report cycle.
+
+  ## Examples
+
+    iex> delete_grades_report_cycle(grades_report_cycle)
+    {:ok, %GradesReportCycle{}}
+
+    iex> delete_grades_report_cycle(grades_report_cycle)
+    {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_grades_report_cycle(%GradesReportCycle{} = grades_report_cycle),
+    do: Repo.delete(grades_report_cycle)
 end

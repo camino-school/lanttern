@@ -1,4 +1,4 @@
-defmodule LantternWeb.Reporting.GradeReportFormComponent do
+defmodule LantternWeb.Reporting.GradesReportFormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Reporting
@@ -36,11 +36,19 @@ defmodule LantternWeb.Reporting.GradeReportFormComponent do
         <.input
           field={@form[:school_cycle_id]}
           type="select"
-          label="Cycle"
+          label="Parent cycle"
           options={@cycle_options}
           prompt="Select a cycle"
           class="mb-6"
-        />
+        >
+          <:description>
+            <p>
+              <%= gettext(
+                "The parent cycle grade is calculated based on it's children cycles. E.g. 2024 grade is based on 2024 Q1, Q2, Q3, and Q4 grades."
+              ) %>
+            </p>
+          </:description>
+        </.input>
         <.input
           field={@form[:scale_id]}
           type="select"
@@ -73,8 +81,8 @@ defmodule LantternWeb.Reporting.GradeReportFormComponent do
   end
 
   @impl true
-  def update(%{grade_report: grade_report} = assigns, socket) do
-    changeset = Reporting.change_grade_report(grade_report)
+  def update(%{grades_report: grades_report} = assigns, socket) do
+    changeset = Reporting.change_grades_report(grades_report)
 
     socket =
       socket
@@ -85,28 +93,28 @@ defmodule LantternWeb.Reporting.GradeReportFormComponent do
   end
 
   @impl true
-  def handle_event("validate", %{"grade_report" => grade_report_params}, socket) do
+  def handle_event("validate", %{"grades_report" => grades_report_params}, socket) do
     changeset =
-      socket.assigns.grade_report
-      |> Reporting.change_grade_report(grade_report_params)
+      socket.assigns.grades_report
+      |> Reporting.change_grades_report(grades_report_params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}
   end
 
-  def handle_event("save", %{"grade_report" => grade_report_params}, socket) do
-    save_grade_report(socket, socket.assigns.grade_report.id, grade_report_params)
+  def handle_event("save", %{"grades_report" => grades_report_params}, socket) do
+    save_grades_report(socket, socket.assigns.grades_report.id, grades_report_params)
   end
 
-  defp save_grade_report(socket, nil, grade_report_params) do
-    case Reporting.create_grade_report(grade_report_params) do
-      {:ok, grade_report} ->
-        notify_parent(__MODULE__, {:saved, grade_report}, socket.assigns)
+  defp save_grades_report(socket, nil, grades_report_params) do
+    case Reporting.create_grades_report(grades_report_params) do
+      {:ok, grades_report} ->
+        notify_parent(__MODULE__, {:saved, grades_report}, socket.assigns)
 
         socket =
           socket
-          |> put_flash(:info, "Grade report created successfully")
-          |> handle_navigation(grade_report)
+          |> put_flash(:info, gettext("Grades report created successfully"))
+          |> handle_navigation(grades_report)
 
         {:noreply, socket}
 
@@ -115,15 +123,15 @@ defmodule LantternWeb.Reporting.GradeReportFormComponent do
     end
   end
 
-  defp save_grade_report(socket, _grade_report_id, grade_report_params) do
-    case Reporting.update_grade_report(socket.assigns.grade_report, grade_report_params) do
-      {:ok, grade_report} ->
-        notify_parent(__MODULE__, {:saved, grade_report}, socket.assigns)
+  defp save_grades_report(socket, _grades_report_id, grades_report_params) do
+    case Reporting.update_grades_report(socket.assigns.grades_report, grades_report_params) do
+      {:ok, grades_report} ->
+        notify_parent(__MODULE__, {:saved, grades_report}, socket.assigns)
 
         socket =
           socket
-          |> put_flash(:info, "Grade report updated successfully")
-          |> handle_navigation(grade_report)
+          |> put_flash(:info, gettext("Grades report updated successfully"))
+          |> handle_navigation(grades_report)
 
         {:noreply, socket}
 

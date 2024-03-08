@@ -99,8 +99,10 @@ defmodule LantternWeb.FormComponents do
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
                 multiple pattern placeholder readonly required rows size step)
 
-  slot :inner_block
   slot :custom_label
+
+  slot :description,
+    doc: "works for type select, textarea and text variations (e.g. number, email)"
 
   def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
     assigns
@@ -175,6 +177,9 @@ defmodule LantternWeb.FormComponents do
       >
         <%= @label || render_slot(@custom_label) %>
       </.label>
+      <div :if={@description != []} class="mb-2 text-sm">
+        <%= render_slot(@description) %>
+      </div>
       <.select
         id={@id}
         name={@name}
@@ -219,6 +224,9 @@ defmodule LantternWeb.FormComponents do
       >
         <%= @label || render_slot(@custom_label) %>
       </.label>
+      <div :if={@description != []} class="mb-2 text-sm">
+        <%= render_slot(@description) %>
+      </div>
       <.textarea id={@id} name={@name} errors={@errors} value={@value} {@rest} />
       <.error :for={msg <- @errors}><%= msg %></.error>
     </div>
@@ -238,6 +246,9 @@ defmodule LantternWeb.FormComponents do
       >
         <%= @label || render_slot(@custom_label) %>
       </.label>
+      <div :if={@description != []} class="mb-2 text-sm">
+        <%= render_slot(@description) %>
+      </div>
       <.base_input type={@type} name={@name} id={@id} value={@value} errors={@errors} {@rest} />
       <.error :for={msg <- @errors}><%= msg %></.error>
     </div>

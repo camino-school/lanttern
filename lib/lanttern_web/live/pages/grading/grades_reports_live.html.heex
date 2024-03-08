@@ -1,48 +1,48 @@
 <div class="container mx-auto lg:max-w-5xl">
-  <.page_title_with_menu><%= gettext("Grade reports") %></.page_title_with_menu>
+  <.page_title_with_menu><%= gettext("Grades reports") %></.page_title_with_menu>
   <div class="flex items-end justify-between mt-12">
     <p class="font-display font-bold text-lg">
-      <%= gettext("Viewing all grade reports") %>
+      <%= gettext("Viewing all grades reports") %>
     </p>
     <.collection_action
       type="link"
       icon_name="hero-plus-circle"
       patch={~p"/grading?is_creating=true"}
     >
-      <%= gettext("Create new grade report") %>
+      <%= gettext("Create new grades report") %>
     </.collection_action>
   </div>
-  <%= if @has_grade_reports do %>
+  <%= if @has_grades_reports do %>
     <div phx-update="stream" id="grade-reports-grid">
       <div
-        :for={{dom_id, grade_report} <- @streams.grade_reports}
+        :for={{dom_id, grades_report} <- @streams.grades_reports}
         id={dom_id}
         class="p-6 rounded mt-12 bg-white shadow-lg"
       >
-        <div class="flex items-center justify-between gap-6">
-          <h3 class="font-display font-black text-2xl"><%= grade_report.name %></h3>
+        <div class="flex items-center justify-between gap-6 mb-6">
+          <h3 class="font-display font-black text-2xl"><%= grades_report.name %></h3>
           <.button
             type="button"
             theme="ghost"
             icon_name="hero-pencil-mini"
-            phx-click={JS.patch(~p"/grading?is_editing=#{grade_report.id}")}
+            phx-click={JS.patch(~p"/grading?is_editing=#{grades_report.id}")}
           >
             <%= gettext("Edit") %>
           </.button>
         </div>
-        <div class="flex items-center gap-6 mt-6">
+        <div class="flex items-center gap-6 mb-6">
           <div class="flex items-center gap-2">
             <.icon name="hero-calendar" class="w-6 h-6 shrink-0 text-ltrn-subtle" />
-            <%= gettext("Cycle") %>: <%= grade_report.school_cycle.name %>
+            <%= gettext("Cycle") %>: <%= grades_report.school_cycle.name %>
           </div>
           <div class="flex items-center gap-2">
             <.icon name="hero-view-columns" class="w-6 h-6 shrink-0 text-ltrn-subtle" />
-            <%= gettext("Scale") %>: <%= grade_report.scale.name %>
+            <%= gettext("Scale") %>: <%= grades_report.scale.name %>
             <div
-              :if={grade_report.scale.ordinal_values != []}
+              :if={grades_report.scale.ordinal_values != []}
               class="flex items-center gap-2 ml-2"
             >
-              <%= for ov <- grade_report.scale.ordinal_values do %>
+              <%= for ov <- grades_report.scale.ordinal_values do %>
                 <.ordinal_value_badge ordinal_value={ov}>
                   <%= ov.name %>
                 </.ordinal_value_badge>
@@ -50,7 +50,12 @@
             </div>
           </div>
         </div>
-        <.markdown :if={grade_report.info} text={grade_report.info} class="mt-6" size="sm" />
+        <.markdown :if={grades_report.info} text={grades_report.info} class="mb-6" size="sm" />
+        <.grades_report_grid
+          grades_report_id={grades_report.id}
+          grades_report_subjects={[]}
+          grades_report_cycles={[]}
+        />
       </div>
     </div>
   <% else %>
@@ -60,24 +65,24 @@
   <% end %>
 </div>
 <.slide_over
-  :if={@show_grade_report_form}
+  :if={@show_grades_report_form}
   id="grade-report-form-overlay"
   show={true}
   on_cancel={JS.patch(~p"/grading")}
 >
   <:title><%= @form_overlay_title %></:title>
   <.live_component
-    module={GradeReportFormComponent}
-    id={@grade_report.id || :new}
-    grade_report={@grade_report}
-    navigate={fn _report_card -> ~p"/grading" end}
+    module={GradesReportFormComponent}
+    id={@grades_report.id || :new}
+    grades_report={@grades_report}
+    navigate={fn _ -> ~p"/grading" end}
     hide_submit
   />
-  <:actions_left :if={@grade_report.id}>
+  <:actions_left :if={@grades_report.id}>
     <.button
       type="button"
       theme="ghost"
-      phx-click="delete_grade_report"
+      phx-click="delete_grades_report"
       data-confirm={gettext("Are you sure?")}
     >
       <%= gettext("Delete") %>
@@ -96,3 +101,10 @@
     </.button>
   </:actions>
 </.slide_over>
+<.live_component
+  :if={@show_grades_report_grid_editor}
+  module={GradesReportGridSetupOverlayComponent}
+  id="grades-report-grid-overlay"
+  grades_report={@grades_report}
+  on_cancel={JS.patch(~p"/grading")}
+/>
