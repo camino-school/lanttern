@@ -20,23 +20,9 @@ defmodule LantternWeb.ReportCardLive do
   # lifecycle
 
   @impl true
-  def mount(params, _session, socket) do
-    socket =
-      socket
-      |> maybe_redirect(params)
-
+  def mount(_params, _session, socket) do
     {:ok, socket, layout: {LantternWeb.Layouts, :app_logged_in_blank}}
   end
-
-  # prevent user from navigating directly to nested views
-
-  defp maybe_redirect(%{assigns: %{live_action: :edit}} = socket, params),
-    do: redirect(socket, to: ~p"/report_cards/#{params["id"]}?tab=students")
-
-  defp maybe_redirect(%{assigns: %{live_action: :edit_strand_report}} = socket, params),
-    do: redirect(socket, to: ~p"/report_cards/#{params["id"]}?tab=strands")
-
-  defp maybe_redirect(socket, _params), do: socket
 
   @impl true
   def handle_params(%{"id" => id} = params, _url, socket) do
@@ -46,19 +32,23 @@ defmodule LantternWeb.ReportCardLive do
       |> assign_new(:report_card, fn ->
         Reporting.get_report_card!(id, preloads: [:school_cycle, :year])
       end)
-      |> set_current_tab(params, socket.assigns.live_action)
+      |> assign_current_tab(params)
+      |> assign_is_editing(params)
 
     {:noreply, socket}
   end
 
-  defp set_current_tab(socket, _params, :edit_strand_report),
-    do: assign(socket, :current_tab, @tabs["strands"])
-
-  defp set_current_tab(socket, %{"tab" => tab}, _live_action),
+  defp assign_current_tab(socket, %{"tab" => tab}),
     do: assign(socket, :current_tab, Map.get(@tabs, tab, :students))
 
-  defp set_current_tab(socket, _params, _live_action),
+  defp assign_current_tab(socket, _params),
     do: assign(socket, :current_tab, :students)
+
+  defp assign_is_editing(socket, %{"is_editing" => "true"}),
+    do: assign(socket, :is_editing, true)
+
+  defp assign_is_editing(socket, _),
+    do: assign(socket, :is_editing, false)
 
   # event handlers
 

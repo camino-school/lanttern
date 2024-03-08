@@ -44,7 +44,9 @@
       <:menu_items>
         <.menu_button_item
           id={"edit-report-card-#{@report_card.id}"}
-          phx-click={JS.patch(~p"/report_cards/#{@report_card}/edit")}
+          phx-click={
+            JS.patch(~p"/report_cards/#{@report_card}?tab=#{@current_tab}&is_editing=true")
+          }
         >
           <%= gettext("Edit report card") %>
         </.menu_button_item>
@@ -88,17 +90,17 @@
   />
 </div>
 <.slide_over
-  :if={@live_action == :edit}
+  :if={@is_editing}
   id="report-card-form-overlay"
   show={true}
-  on_cancel={JS.patch(~p"/report_cards/#{@report_card}")}
+  on_cancel={JS.patch(~p"/report_cards/#{@report_card}?tab=#{@current_tab}")}
 >
   <:title><%= gettext("Edit card") %></:title>
   <.live_component
     module={ReportCardFormComponent}
     id={@report_card.id}
     report_card={@report_card}
-    navigate={~p"/report_cards/#{@report_card}"}
+    navigate={~p"/report_cards/#{@report_card}?tab=#{@current_tab}"}
     hide_submit
   />
   <:actions>
