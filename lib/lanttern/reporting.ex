@@ -773,7 +773,7 @@ defmodule Lanttern.Reporting do
   ## Options
 
   - `:preloads` – preloads associated data
-  - `:load_grid` – (bool) preloads grades report cycles (with cycle preloaded) ordered by end_at, and grades report subjects (with subject preloaded) ordered by position
+  - `:load_grid` – (bool) preloads school cycle and grades report cycles/subjects (with school cycle/subject preloaded)
 
   ## Examples
 
@@ -790,24 +790,28 @@ defmodule Lanttern.Reporting do
 
   defp apply_list_grades_reports_opts(queryable, []), do: queryable
 
-  defp apply_list_grades_reports_opts(queryable, [{:load_grid, true} | opts]) do
-    from(
-      gr in queryable,
-      left_join: grc in assoc(gr, :grades_report_cycles),
-      left_join: sc in assoc(grc, :school_cycle),
-      left_join: grs in assoc(gr, :grades_report_subjects),
-      left_join: s in assoc(grs, :subject),
-      order_by: [asc: sc.end_at, desc: sc.start_at, asc: grs.position],
-      preload: [
-        grades_report_cycles: {grc, [school_cycle: sc]},
-        grades_report_subjects: {grs, [subject: s]}
-      ]
-    )
-    |> apply_list_grades_reports_opts(opts)
-  end
+  defp apply_list_grades_reports_opts(queryable, [{:load_grid, true} | opts]),
+    do: apply_list_grades_reports_opts(grid_query(queryable), opts)
 
   defp apply_list_grades_reports_opts(queryable, [_ | opts]),
     do: apply_list_grades_reports_opts(queryable, opts)
+
+  defp grid_query(queryable) do
+    from(
+      gr in queryable,
+      join: sc in assoc(gr, :school_cycle),
+      left_join: grc in assoc(gr, :grades_report_cycles),
+      left_join: grc_sc in assoc(grc, :school_cycle),
+      left_join: grs in assoc(gr, :grades_report_subjects),
+      left_join: grs_s in assoc(grs, :subject),
+      order_by: [asc: grc_sc.end_at, desc: grc_sc.start_at, asc: grs.position],
+      preload: [
+        school_cycle: sc,
+        grades_report_cycles: {grc, [school_cycle: grc_sc]},
+        grades_report_subjects: {grs, [subject: grs_s]}
+      ]
+    )
+  end
 
   @doc """
   Gets a single grade report.
@@ -817,6 +821,7 @@ defmodule Lanttern.Reporting do
   ## Options:
 
   - `:preloads` – preloads associated data
+  - `:load_grid` – (bool) preloads school cycle and grades report cycles/subjects (with school cycle/subject preloaded)
 
   ## Examples
 
@@ -829,9 +834,18 @@ defmodule Lanttern.Reporting do
   """
   def get_grades_report(id, opts \\ []) do
     GradesReport
+    |> apply_get_grades_report_opts(opts)
     |> Repo.get(id)
     |> maybe_preload(opts)
   end
+
+  defp apply_get_grades_report_opts(queryable, []), do: queryable
+
+  defp apply_get_grades_report_opts(queryable, [{:load_grid, true} | opts]),
+    do: apply_get_grades_report_opts(grid_query(queryable), opts)
+
+  defp apply_get_grades_report_opts(queryable, [_ | opts]),
+    do: apply_get_grades_report_opts(queryable, opts)
 
   @doc """
   Gets a single grade report.
@@ -849,6 +863,7 @@ defmodule Lanttern.Reporting do
   """
   def get_grades_report!(id, opts \\ []) do
     GradesReport
+    |> apply_get_grades_report_opts(opts)
     |> Repo.get!(id)
     |> maybe_preload(opts)
   end

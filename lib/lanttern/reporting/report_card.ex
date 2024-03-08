@@ -3,6 +3,7 @@ defmodule Lanttern.Reporting.ReportCard do
   import Ecto.Changeset
 
   alias Lanttern.Reporting.StrandReport
+  alias Lanttern.Reporting.GradesReport
   alias Lanttern.Schools.Cycle
   alias Lanttern.Taxonomy.Year
 
@@ -14,6 +15,8 @@ defmodule Lanttern.Reporting.ReportCard do
           school_cycle_id: pos_integer(),
           year: Year.t(),
           year_id: pos_integer(),
+          grades_report: GradesReport.t(),
+          grades_report_id: pos_integer(),
           strand_reports: [StrandReport.t()],
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
@@ -25,6 +28,7 @@ defmodule Lanttern.Reporting.ReportCard do
 
     belongs_to :school_cycle, Cycle
     belongs_to :year, Year
+    belongs_to :grades_report, GradesReport
 
     has_many :strand_reports, StrandReport, preload_order: [asc: :position]
 
@@ -34,7 +38,7 @@ defmodule Lanttern.Reporting.ReportCard do
   @doc false
   def changeset(report_card, attrs) do
     report_card
-    |> cast(attrs, [:name, :description, :school_cycle_id, :year_id])
+    |> cast(attrs, [:name, :description, :school_cycle_id, :year_id, :grades_report_id])
     |> validate_required([:name, :school_cycle_id, :year_id])
   end
 end

@@ -8,6 +8,7 @@ defmodule LantternWeb.ReportingComponents do
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Grading.Scale
   alias Lanttern.Reporting.ReportCard
+  alias Lanttern.Reporting.GradesReport
   alias Lanttern.Rubrics.Rubric
   alias Lanttern.Schools.Cycle
   alias Lanttern.Taxonomy.Year
@@ -178,6 +179,112 @@ defmodule LantternWeb.ReportingComponents do
         </div>
         <.markdown text={@footnote} size="sm" />
       </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a grades report grid.
+
+  Expects `[:school_cycle, grades_report_cycles: :school_cycle, grades_report_subjects: :subject]` preloads.
+  """
+
+  attr :grades_report, GradesReport, required: true
+  attr :class, :any, default: nil
+  attr :id, :string, default: nil
+  attr :on_setup, JS, default: nil
+
+  def grades_report_grid(assigns) do
+    %{
+      grades_report_cycles: grades_report_cycles,
+      grades_report_subjects: grades_report_subjects
+    } = assigns.grades_report
+
+    grid_template_columns_style =
+      case length(grades_report_cycles) do
+        n when n > 0 ->
+          "grid-template-columns: 160px repeat(#{n + 1}, minmax(0, 1fr))"
+
+        _ ->
+          "grid-template-columns: 160px minmax(0, 1fr)"
+      end
+
+    grid_column_style =
+      case length(grades_report_cycles) do
+        0 -> "grid-column: span 2 / span 2"
+        n -> "grid-column: span #{n + 2} / span #{n + 2}"
+      end
+
+    assigns =
+      assigns
+      |> assign(:grid_template_columns_style, grid_template_columns_style)
+      |> assign(:grid_column_style, grid_column_style)
+      |> assign(:has_subjects, length(grades_report_subjects) > 0)
+      |> assign(:has_cycles, length(grades_report_cycles) > 0)
+
+    ~H"""
+    <div id={@id} class={["grid gap-1 text-sm", @class]} style={@grid_template_columns_style}>
+      <%= if @on_setup do %>
+        <.button type="button" theme="ghost" icon_name="hero-cog-6-tooth-mini" phx-click={@on_setup}>
+          <%= gettext("Setup") %>
+        </.button>
+      <% else %>
+        <div />
+      <% end %>
+      <%= if @has_cycles do %>
+        <div
+          :for={grades_report_cycle <- @grades_report.grades_report_cycles}
+          id={"grid-header-cycle-#{grades_report_cycle.id}"}
+          class="p-4 rounded text-center bg-white shadow-lg"
+        >
+          <%= grades_report_cycle.school_cycle.name %>
+        </div>
+        <div class="p-4 rounded text-center bg-white shadow-lg">
+          <%= @grades_report.school_cycle.name %>
+        </div>
+      <% else %>
+        <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lightest">
+          <%= gettext("No cycles linked to this grades report") %>
+        </div>
+      <% end %>
+      <%= if @has_subjects do %>
+        <div
+          :for={grades_report_subject <- @grades_report.grades_report_subjects}
+          id={"grade-report-subject-#{grades_report_subject.id}"}
+          class="grid grid-cols-subgrid"
+          style={@grid_column_style}
+        >
+          <div class="p-4 rounded bg-white shadow-lg">
+            <%= grades_report_subject.subject.name %>
+          </div>
+          <%= if @has_cycles do %>
+            <div
+              :for={_grade_cycle <- @grades_report.grades_report_cycles}
+              class="rounded border border-ltrn-lighter bg-ltrn-lightest"
+            >
+            </div>
+            <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+          <% else %>
+            <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="grid grid-cols-subgrid" style={@grid_column_style}>
+          <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lightest">
+            <%= gettext("No subjects linked to this grades report") %>
+          </div>
+          <%= if @has_cycles do %>
+            <div
+              :for={_grade_cycle <- @grades_report.grades_report_cycles}
+              class="rounded border border-ltrn-lighter bg-ltrn-lightest"
+            >
+            </div>
+            <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+          <% else %>
+            <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+          <% end %>
+        </div>
+      <% end %>
     </div>
     """
   end
