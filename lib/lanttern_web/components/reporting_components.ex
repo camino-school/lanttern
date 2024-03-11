@@ -1,5 +1,6 @@
 defmodule LantternWeb.ReportingComponents do
   use Phoenix.Component
+  alias Phoenix.LiveView.JS
 
   import LantternWeb.Gettext
   import LantternWeb.CoreComponents
@@ -193,6 +194,8 @@ defmodule LantternWeb.ReportingComponents do
   attr :class, :any, default: nil
   attr :id, :string, default: nil
   attr :on_setup, JS, default: nil
+  attr :report_card_cycle_id, :integer, default: nil
+  attr :on_composition_click, JS, default: nil
 
   def grades_report_grid(assigns) do
     %{
@@ -235,7 +238,13 @@ defmodule LantternWeb.ReportingComponents do
         <div
           :for={grades_report_cycle <- @grades_report.grades_report_cycles}
           id={"grid-header-cycle-#{grades_report_cycle.id}"}
-          class="p-4 rounded text-center bg-white shadow-lg"
+          class={[
+            "p-4 rounded text-center shadow-lg",
+            if(@report_card_cycle_id == grades_report_cycle.school_cycle_id,
+              do: "font-bold bg-ltrn-mesh-cyan",
+              else: "bg-white"
+            )
+          ]}
         >
           <%= grades_report_cycle.school_cycle.name %>
         </div>
@@ -258,11 +267,14 @@ defmodule LantternWeb.ReportingComponents do
             <%= grades_report_subject.subject.name %>
           </div>
           <%= if @has_cycles do %>
-            <div
-              :for={_grade_cycle <- @grades_report.grades_report_cycles}
-              class="rounded border border-ltrn-lighter bg-ltrn-lightest"
-            >
-            </div>
+            <.grades_report_grid_cell
+              :for={grades_report_cycle <- @grades_report.grades_report_cycles}
+              on_click={
+                @report_card_cycle_id == grades_report_cycle.school_cycle_id &&
+                  @on_composition_click
+              }
+              subject_id={grades_report_subject.subject_id}
+            />
             <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
           <% else %>
             <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
@@ -274,11 +286,9 @@ defmodule LantternWeb.ReportingComponents do
             <%= gettext("No subjects linked to this grades report") %>
           </div>
           <%= if @has_cycles do %>
-            <div
-              :for={_grade_cycle <- @grades_report.grades_report_cycles}
-              class="rounded border border-ltrn-lighter bg-ltrn-lightest"
-            >
-            </div>
+            <.grades_report_grid_cell :for={
+              _grades_report_cycle <- @grades_report.grades_report_cycles
+            } />
             <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
           <% else %>
             <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
@@ -286,6 +296,30 @@ defmodule LantternWeb.ReportingComponents do
         </div>
       <% end %>
     </div>
+    """
+  end
+
+  attr :on_click, JS
+  attr :subject_id, :integer
+
+  defp grades_report_grid_cell(%{on_click: %JS{}} = assigns) do
+    ~H"""
+    <.button
+      type="button"
+      theme="ghost"
+      icon_name="hero-calculator-mini"
+      phx-click={@on_click}
+      phx-value-subjectid={@subject_id}
+      class="border border-ltrn-lighter"
+    >
+      <%= gettext("Comp") %>
+    </.button>
+    """
+  end
+
+  defp grades_report_grid_cell(assigns) do
+    ~H"""
+    <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
     """
   end
 end

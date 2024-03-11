@@ -1069,7 +1069,6 @@ defmodule Lanttern.ReportingTest do
       subject = Lanttern.TaxonomyFixtures.subject_fixture()
 
       valid_attrs = %{
-        position: 42,
         weight: 120.5,
         report_card_id: report_card.id,
         assessment_point_id: assessment_point.id,
@@ -1079,8 +1078,10 @@ defmodule Lanttern.ReportingTest do
       assert {:ok, %GradeComponent{} = grade_component} =
                Reporting.create_grade_component(valid_attrs)
 
-      assert grade_component.position == 42
       assert grade_component.weight == 120.5
+      assert grade_component.report_card_id == report_card.id
+      assert grade_component.assessment_point_id == assessment_point.id
+      assert grade_component.subject_id == subject.id
     end
 
     test "create_grade_component/1 with invalid data returns error changeset" do
@@ -1119,6 +1120,183 @@ defmodule Lanttern.ReportingTest do
     test "change_grade_component/1 returns a grade_component changeset" do
       grade_component = grade_component_fixture()
       assert %Ecto.Changeset{} = Reporting.change_grade_component(grade_component)
+    end
+  end
+
+  describe "extra" do
+    import Lanttern.ReportingFixtures
+    alias Lanttern.AssessmentsFixtures
+    alias Lanttern.CurriculaFixtures
+    alias Lanttern.LearningContextFixtures
+    alias Lanttern.TaxonomyFixtures
+
+    test "list_report_card_assessment_points/1 returns all report card's assessment points" do
+      report_card = report_card_fixture()
+
+      strand_1 = LearningContextFixtures.strand_fixture()
+      strand_2 = LearningContextFixtures.strand_fixture()
+
+      cur_component_1 = CurriculaFixtures.curriculum_component_fixture()
+      cur_component_2 = CurriculaFixtures.curriculum_component_fixture()
+
+      ci_1_1 =
+        CurriculaFixtures.curriculum_item_fixture(curriculum_component_id: cur_component_1.id)
+
+      ci_1_2 =
+        CurriculaFixtures.curriculum_item_fixture(curriculum_component_id: cur_component_1.id)
+
+      ci_2_1 =
+        CurriculaFixtures.curriculum_item_fixture(curriculum_component_id: cur_component_2.id)
+
+      ci_2_2 =
+        CurriculaFixtures.curriculum_item_fixture(curriculum_component_id: cur_component_2.id)
+
+      ast_point_1_1 =
+        AssessmentsFixtures.assessment_point_fixture(
+          strand_id: strand_1.id,
+          curriculum_item_id: ci_1_1.id
+        )
+
+      ast_point_1_2 =
+        AssessmentsFixtures.assessment_point_fixture(
+          strand_id: strand_1.id,
+          curriculum_item_id: ci_1_2.id
+        )
+
+      ast_point_2_1 =
+        AssessmentsFixtures.assessment_point_fixture(
+          strand_id: strand_2.id,
+          curriculum_item_id: ci_2_1.id
+        )
+
+      ast_point_2_2 =
+        AssessmentsFixtures.assessment_point_fixture(
+          strand_id: strand_2.id,
+          curriculum_item_id: ci_2_2.id
+        )
+
+      _strand_report_1 =
+        strand_report_fixture(%{report_card_id: report_card.id, strand_id: strand_1.id})
+
+      _strand_report_2 =
+        strand_report_fixture(%{report_card_id: report_card.id, strand_id: strand_2.id})
+
+      # extra fixtures to test filter
+      other_report_card = report_card_fixture()
+      other_strand = LearningContextFixtures.strand_fixture()
+      _other_ast_point = AssessmentsFixtures.assessment_point_fixture(strand_id: other_strand.id)
+
+      _other_strand_report =
+        strand_report_fixture(%{report_card_id: other_report_card.id, strand_id: other_strand.id})
+
+      assert [
+               expected_ast_point_1_1,
+               expected_ast_point_1_2,
+               expected_ast_point_2_1,
+               expected_ast_point_2_2
+             ] = Reporting.list_report_card_assessment_points(report_card.id)
+
+      assert expected_ast_point_1_1.id == ast_point_1_1.id
+      assert expected_ast_point_1_1.strand.id == strand_1.id
+      assert expected_ast_point_1_1.curriculum_item.id == ci_1_1.id
+      assert expected_ast_point_1_1.curriculum_item.curriculum_component.id == cur_component_1.id
+
+      assert expected_ast_point_1_2.id == ast_point_1_2.id
+      assert expected_ast_point_1_2.strand.id == strand_1.id
+      assert expected_ast_point_1_2.curriculum_item.id == ci_1_2.id
+      assert expected_ast_point_1_2.curriculum_item.curriculum_component.id == cur_component_1.id
+
+      assert expected_ast_point_2_1.id == ast_point_2_1.id
+      assert expected_ast_point_2_1.strand.id == strand_2.id
+      assert expected_ast_point_2_1.curriculum_item.id == ci_2_1.id
+      assert expected_ast_point_2_1.curriculum_item.curriculum_component.id == cur_component_2.id
+
+      assert expected_ast_point_2_2.id == ast_point_2_2.id
+      assert expected_ast_point_2_2.strand.id == strand_2.id
+      assert expected_ast_point_2_2.curriculum_item.id == ci_2_2.id
+      assert expected_ast_point_2_2.curriculum_item.curriculum_component.id == cur_component_2.id
+    end
+
+    test "list_report_card_subject_grade_composition/2 returns all report card's subject grade composition assessment points" do
+      report_card = report_card_fixture()
+      strand = LearningContextFixtures.strand_fixture()
+
+      _strand_report =
+        strand_report_fixture(%{report_card_id: report_card.id, strand_id: strand.id})
+
+      cur_component = CurriculaFixtures.curriculum_component_fixture()
+
+      ci_1 =
+        CurriculaFixtures.curriculum_item_fixture(curriculum_component_id: cur_component.id)
+
+      ci_2 =
+        CurriculaFixtures.curriculum_item_fixture(curriculum_component_id: cur_component.id)
+
+      ast_point_1 =
+        AssessmentsFixtures.assessment_point_fixture(
+          strand_id: strand.id,
+          curriculum_item_id: ci_1.id
+        )
+
+      ast_point_2 =
+        AssessmentsFixtures.assessment_point_fixture(
+          strand_id: strand.id,
+          curriculum_item_id: ci_2.id
+        )
+
+      subject = TaxonomyFixtures.subject_fixture()
+
+      grade_component_1 =
+        grade_component_fixture(%{
+          weight: 2.0,
+          report_card_id: report_card.id,
+          assessment_point_id: ast_point_1.id,
+          subject_id: subject.id
+        })
+
+      grade_component_2 =
+        grade_component_fixture(%{
+          weight: 1.0,
+          report_card_id: report_card.id,
+          assessment_point_id: ast_point_2.id,
+          subject_id: subject.id
+        })
+
+      # extra fixtures to test filter
+      other_report_card = report_card_fixture()
+      other_strand = LearningContextFixtures.strand_fixture()
+
+      _other_strand_report =
+        strand_report_fixture(%{report_card_id: other_report_card.id, strand_id: other_strand.id})
+
+      other_ast_point = AssessmentsFixtures.assessment_point_fixture(strand_id: other_strand.id)
+      other_subject = TaxonomyFixtures.subject_fixture()
+
+      _other_grade_component =
+        grade_component_fixture(%{
+          report_card_id: other_report_card.id,
+          assessment_point_id: other_ast_point.id,
+          subject_id: other_subject.id
+        })
+
+      assert [expected_grade_component_1, expected_grade_component_2] =
+               Reporting.list_report_card_subject_grade_composition(report_card.id, subject.id)
+
+      assert expected_grade_component_1.id == grade_component_1.id
+      assert expected_grade_component_1.assessment_point.id == ast_point_1.id
+      assert expected_grade_component_1.assessment_point.strand.id == strand.id
+      assert expected_grade_component_1.assessment_point.curriculum_item.id == ci_1.id
+
+      assert expected_grade_component_1.assessment_point.curriculum_item.curriculum_component.id ==
+               cur_component.id
+
+      assert expected_grade_component_2.id == grade_component_2.id
+      assert expected_grade_component_2.assessment_point.id == ast_point_2.id
+      assert expected_grade_component_2.assessment_point.strand.id == strand.id
+      assert expected_grade_component_2.assessment_point.curriculum_item.id == ci_2.id
+
+      assert expected_grade_component_2.assessment_point.curriculum_item.curriculum_component.id ==
+               cur_component.id
     end
   end
 end

@@ -1,5 +1,6 @@
 defmodule Lanttern.RepoHelpers do
   alias Lanttern.Repo
+  import Ecto.Query, only: [from: 2]
 
   @doc """
   Preload associated data based on provided values.
@@ -43,5 +44,35 @@ defmodule Lanttern.RepoHelpers do
   def naive_timestamp() do
     NaiveDateTime.utc_now()
     |> NaiveDateTime.truncate(:second)
+  end
+
+  @doc """
+  Set the position in attrs for new entries, based on existing items in schema.
+  """
+  @spec set_position_in_attrs(Ecto.Queryable.t(), attrs :: map()) :: map()
+  def set_position_in_attrs(queryable, attrs) do
+    position =
+      from(
+        q in queryable,
+        select: q.position,
+        order_by: [desc: q.position],
+        limit: 1
+      )
+      |> Repo.one()
+      |> case do
+        nil -> 0
+        pos -> pos + 1
+      end
+
+    cond do
+      Enum.all?(attrs, fn {key, _value} -> is_atom(key) end) ->
+        Map.put(attrs, :position, position)
+
+      Enum.all?(attrs, fn {key, _value} -> is_binary(key) end) ->
+        Map.put(attrs, "position", position)
+
+      true ->
+        raise("Mixed atom and string keys in attr")
+    end
   end
 end
