@@ -1045,4 +1045,80 @@ defmodule Lanttern.ReportingTest do
       end
     end
   end
+
+  describe "grade_components" do
+    alias Lanttern.Reporting.GradeComponent
+
+    import Lanttern.ReportingFixtures
+
+    @invalid_attrs %{position: nil, weight: nil}
+
+    test "list_grade_components/0 returns all grade_components" do
+      grade_component = grade_component_fixture()
+      assert Reporting.list_grade_components() == [grade_component]
+    end
+
+    test "get_grade_component!/1 returns the grade_component with given id" do
+      grade_component = grade_component_fixture()
+      assert Reporting.get_grade_component!(grade_component.id) == grade_component
+    end
+
+    test "create_grade_component/1 with valid data creates a grade_component" do
+      report_card = report_card_fixture()
+      assessment_point = Lanttern.AssessmentsFixtures.assessment_point_fixture()
+      subject = Lanttern.TaxonomyFixtures.subject_fixture()
+
+      valid_attrs = %{
+        position: 42,
+        weight: 120.5,
+        report_card_id: report_card.id,
+        assessment_point_id: assessment_point.id,
+        subject_id: subject.id
+      }
+
+      assert {:ok, %GradeComponent{} = grade_component} =
+               Reporting.create_grade_component(valid_attrs)
+
+      assert grade_component.position == 42
+      assert grade_component.weight == 120.5
+    end
+
+    test "create_grade_component/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Reporting.create_grade_component(@invalid_attrs)
+    end
+
+    test "update_grade_component/2 with valid data updates the grade_component" do
+      grade_component = grade_component_fixture()
+      update_attrs = %{position: 43, weight: 456.7}
+
+      assert {:ok, %GradeComponent{} = grade_component} =
+               Reporting.update_grade_component(grade_component, update_attrs)
+
+      assert grade_component.position == 43
+      assert grade_component.weight == 456.7
+    end
+
+    test "update_grade_component/2 with invalid data returns error changeset" do
+      grade_component = grade_component_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Reporting.update_grade_component(grade_component, @invalid_attrs)
+
+      assert grade_component == Reporting.get_grade_component!(grade_component.id)
+    end
+
+    test "delete_grade_component/1 deletes the grade_component" do
+      grade_component = grade_component_fixture()
+      assert {:ok, %GradeComponent{}} = Reporting.delete_grade_component(grade_component)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Reporting.get_grade_component!(grade_component.id)
+      end
+    end
+
+    test "change_grade_component/1 returns a grade_component changeset" do
+      grade_component = grade_component_fixture()
+      assert %Ecto.Changeset{} = Reporting.change_grade_component(grade_component)
+    end
+  end
 end

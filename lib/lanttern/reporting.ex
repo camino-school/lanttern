@@ -951,4 +951,100 @@ defmodule Lanttern.Reporting do
   """
   def delete_grades_report_cycle(%GradesReportCycle{} = grades_report_cycle),
     do: Repo.delete(grades_report_cycle)
+
+  alias Lanttern.Reporting.GradeComponent
+
+  @doc """
+  Returns the list of grade_components.
+
+  ## Examples
+
+      iex> list_grade_components()
+      [%GradeComponent{}, ...]
+
+  """
+  def list_grade_components do
+    Repo.all(GradeComponent)
+  end
+
+  @doc """
+  Gets a single grade_component.
+
+  Raises `Ecto.NoResultsError` if the Grade component does not exist.
+
+  ## Examples
+
+      iex> get_grade_component!(123)
+      %GradeComponent{}
+
+      iex> get_grade_component!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_grade_component!(id), do: Repo.get!(GradeComponent, id)
+
+  @doc """
+  Creates a grade_component.
+
+  ## Examples
+
+      iex> create_grade_component(%{field: value})
+      {:ok, %GradeComponent{}}
+
+      iex> create_grade_component(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_grade_component(attrs \\ %{}) do
+    %GradeComponent{}
+    |> GradeComponent.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a grade_component.
+
+  ## Examples
+
+      iex> update_grade_component(grade_component, %{field: new_value})
+      {:ok, %GradeComponent{}}
+
+      iex> update_grade_component(grade_component, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_grade_component(%GradeComponent{} = grade_component, attrs) do
+    grade_component
+    |> GradeComponent.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a grade_component.
+
+  ## Examples
+
+      iex> delete_grade_component(grade_component)
+      {:ok, %GradeComponent{}}
+
+      iex> delete_grade_component(grade_component)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_grade_component(%GradeComponent{} = grade_component) do
+    Repo.delete(grade_component)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking grade_component changes.
+
+  ## Examples
+
+      iex> change_grade_component(grade_component)
+      %Ecto.Changeset{data: %GradeComponent{}}
+
+  """
+  def change_grade_component(%GradeComponent{} = grade_component, attrs \\ %{}) do
+    GradeComponent.changeset(grade_component, attrs)
+  end
 end
