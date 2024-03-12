@@ -3,6 +3,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Reporting
+  alias Lanttern.Reporting.GradeComponent
 
   # shared
   import LantternWeb.ReportingComponents
@@ -44,78 +45,132 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
             <%= gettext("No assesment points in this grade composition") %>
           </.empty_state>
         <% else %>
+          <div class="grid grid-cols-[minmax(0,_1fr)_repeat(2,_max-content)] gap-4">
+            <div class="grid grid-cols-subgrid col-span-3 px-4 py-2 rounded mt-4 text-sm text-ltrn-subtle bg-ltrn-lighter">
+              <div><%= gettext("Strand goal") %></div>
+              <div class="text-right"><%= gettext("Weight") %></div>
+            </div>
+            <.grade_component_form
+              :for={grade_component <- @grade_composition}
+              id={"report-card-grade-component-#{grade_component.id}"}
+              grade_component={grade_component}
+              myself={@myself}
+            />
+          </div>
+        <% end %>
+        <h5 class="mt-10 font-display font-bold">
+          <%= gettext("All report card strands' goals") %>
+        </h5>
+        <%= for assessment_point <- @assessment_points, assessment_point.id not in @grade_composition_assessment_point_ids do %>
           <div
-            :for={grade_component <- @grade_composition}
-            id={"report-card-grade-component-#{grade_component.id}"}
+            id={"report-card-assessment-point-#{assessment_point.id}"}
             class="flex items-center gap-4 p-4 rounded mt-4 bg-white shadow-lg"
           >
             <div class="flex-1">
               <p class="text-xs">
-                <%= grade_component.assessment_point.strand.name %>
-                <span :if={grade_component.assessment_point.strand.type}>
-                  (<%= grade_component.assessment_point.strand.type %>)
+                <%= assessment_point.strand.name %>
+                <span :if={assessment_point.strand.type}>
+                  (<%= assessment_point.strand.type %>)
                 </span>
               </p>
               <p class="mt-2 text-sm">
-                <.badge>
-                  <%= grade_component.assessment_point.curriculum_item.curriculum_component.name %>
-                </.badge>
-                <%= grade_component.assessment_point.curriculum_item.name %>
+                <.badge><%= assessment_point.curriculum_item.curriculum_component.name %></.badge>
+                <%= assessment_point.curriculum_item.name %>
               </p>
             </div>
-            <.button
+            <.icon_button
               type="button"
               theme="ghost"
+              name="hero-plus"
               phx-click={
-                JS.push("delete_grade_component_from_composition",
-                  value: %{id: grade_component.id},
+                JS.push("add_assessment_point_to_grade_comp",
+                  value: %{id: assessment_point.id},
                   target: @myself
                 )
               }
-            >
-              Remove
-            </.button>
+              sr_text={gettext("Add to grade composition")}
+              rounded
+            />
           </div>
         <% end %>
-        <h5 class="mt-10 font-display font-bold">
-          <%= gettext("All report card assessment points") %>
-        </h5>
-        <div
-          :for={assessment_point <- @assessment_points}
-          id={"report-card-assessment-point-#{assessment_point.id}"}
-          class="flex items-center gap-4 p-4 rounded mt-4 bg-white shadow-lg"
-        >
-          <div class="flex-1">
-            <p class="text-xs">
-              <%= assessment_point.strand.name %>
-              <span :if={assessment_point.strand.type}>
-                (<%= assessment_point.strand.type %>)
-              </span>
-            </p>
-            <p class="mt-2 text-sm">
-              <.badge><%= assessment_point.curriculum_item.curriculum_component.name %></.badge>
-              <%= assessment_point.curriculum_item.name %>
-            </p>
-          </div>
-          <.button
-            type="button"
-            theme="ghost"
-            phx-click={
-              JS.push("add_assessment_point_to_grade_comp",
-                value: %{id: assessment_point.id},
-                target: @myself
-              )
-            }
-          >
-            Add
-          </.button>
-        </div>
       </.slide_over>
     </div>
     """
   end
 
+  attr :id, :string, required: true
+  attr :grade_component, GradeComponent, required: true
+  attr :myself, :any, required: true
+
+  def grade_component_form(assigns) do
+    form =
+      assigns.grade_component
+      |> GradeComponent.changeset(%{})
+      |> to_form()
+
+    assigns =
+      assigns
+      |> assign(:form, form)
+
+    ~H"""
+    <.form
+      id={@id}
+      for={@form}
+      class="grid grid-cols-subgrid col-span-3 items-center p-4 rounded mt-4 bg-white shadow-lg"
+      phx-change={JS.push("update_grade_component", target: @myself)}
+      phx-value-id={@grade_component.id}
+    >
+      <div>
+        <p class="text-xs">
+          <%= @grade_component.assessment_point.strand.name %>
+          <span :if={@grade_component.assessment_point.strand.type}>
+            (<%= @grade_component.assessment_point.strand.type %>)
+          </span>
+        </p>
+        <p class="mt-2 text-sm">
+          <.badge>
+            <%= @grade_component.assessment_point.curriculum_item.curriculum_component.name %>
+          </.badge>
+          <%= @grade_component.assessment_point.curriculum_item.name %>
+        </p>
+      </div>
+      <input
+        type="number"
+        name={@form[:weight].name}
+        value={@form[:weight].value}
+        step="0.01"
+        min="0"
+        phx-debounce="1500"
+        class="w-20 rounded-sm border-none text-right text-sm bg-ltrn-lightest"
+      />
+      <.icon_button
+        type="button"
+        theme="ghost"
+        name="hero-x-mark"
+        phx-click={
+          JS.push("delete_grade_component_from_composition",
+            value: %{id: @grade_component.id},
+            target: @myself
+          )
+        }
+        sr_text={gettext("Remove")}
+        rounded
+      />
+    </.form>
+    """
+  end
+
   # lifecycle
+
+  @impl true
+  def mount(socket) do
+    socket =
+      socket
+      |> assign(:grade_composition, [])
+      |> assign(:grade_composition_assessment_point_ids, [])
+
+    {:ok, socket}
+  end
 
   @impl true
   def update(assigns, socket) do
@@ -142,17 +197,21 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
 
       case subject_id in subjects_ids do
         true ->
+          grade_composition =
+            Reporting.list_report_card_subject_grade_composition(
+              socket.assigns.report_card.id,
+              subject_id
+            )
+
           socket
           |> assign(:is_editing_grade_composition, true)
           |> assign_new(:assessment_points, fn ->
             Reporting.list_report_card_assessment_points(socket.assigns.report_card.id)
           end)
+          |> assign(:grade_composition, grade_composition)
           |> assign(
-            :grade_composition,
-            Reporting.list_report_card_subject_grade_composition(
-              socket.assigns.report_card.id,
-              subject_id
-            )
+            :grade_composition_assessment_point_ids,
+            Enum.map(grade_composition, & &1.assessment_point_id)
           )
 
         _ ->
@@ -189,14 +248,18 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
     |> Reporting.create_grade_component()
     |> case do
       {:ok, _grade_component} ->
+        grade_composition =
+          Reporting.list_report_card_subject_grade_composition(
+            socket.assigns.report_card.id,
+            subject_id
+          )
+
         socket =
           socket
+          |> assign(:grade_composition, grade_composition)
           |> assign(
-            :grade_composition,
-            Reporting.list_report_card_subject_grade_composition(
-              socket.assigns.report_card.id,
-              subject_id
-            )
+            :grade_composition_assessment_point_ids,
+            Enum.map(grade_composition, & &1.assessment_point_id)
           )
 
         {:noreply, socket}
@@ -206,17 +269,36 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
     end
   end
 
+  def handle_event("update_grade_component", %{"id" => id, "grade_component" => params}, socket) do
+    socket.assigns.grade_composition
+    |> Enum.find(&("#{&1.id}" == id))
+    |> Reporting.update_grade_component(params)
+    |> case do
+      {:ok, _grades_component} ->
+        {:noreply, socket}
+
+      {:error, _changeset} ->
+        {:noreply,
+         put_flash(socket, :error, gettext("Error updating grades report cycle weight"))}
+    end
+  end
+
   def handle_event("delete_grade_component_from_composition", %{"id" => id}, socket) do
     socket.assigns.grade_composition
     |> Enum.find(&(&1.id == id))
     |> Reporting.delete_grade_component()
     |> case do
       {:ok, _grade_component} ->
+        grade_composition =
+          socket.assigns.grade_composition
+          |> Enum.filter(&(&1.id != id))
+
         socket =
           socket
-          |> update(
-            :grade_composition,
-            &Enum.filter(&1, fn gc -> gc.id != id end)
+          |> assign(:grade_composition, grade_composition)
+          |> assign(
+            :grade_composition_assessment_point_ids,
+            Enum.map(grade_composition, & &1.assessment_point_id)
           )
 
         {:noreply, socket}
