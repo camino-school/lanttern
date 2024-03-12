@@ -1108,6 +1108,50 @@ defmodule Lanttern.ReportingTest do
       assert grade_component == Reporting.get_grade_component!(grade_component.id)
     end
 
+    test "update_grade_components_positions/1 update grade components positions based on list order" do
+      report_card = report_card_fixture()
+      subject = Lanttern.TaxonomyFixtures.subject_fixture()
+
+      grade_component_1 =
+        grade_component_fixture(%{
+          report_card_id: report_card.id,
+          subject_id: subject.id
+        })
+
+      grade_component_2 =
+        grade_component_fixture(%{
+          report_card_id: report_card.id,
+          subject_id: subject.id
+        })
+
+      grade_component_3 =
+        grade_component_fixture(%{
+          report_card_id: report_card.id,
+          subject_id: subject.id
+        })
+
+      grade_component_4 =
+        grade_component_fixture(%{
+          report_card_id: report_card.id,
+          subject_id: subject.id
+        })
+
+      sorted_grade_components_ids =
+        [
+          grade_component_2.id,
+          grade_component_3.id,
+          grade_component_1.id,
+          grade_component_4.id
+        ]
+
+      assert :ok == Reporting.update_grade_components_positions(sorted_grade_components_ids)
+
+      assert Reporting.get_grade_component!(grade_component_2.id).position == 0
+      assert Reporting.get_grade_component!(grade_component_3.id).position == 1
+      assert Reporting.get_grade_component!(grade_component_1.id).position == 2
+      assert Reporting.get_grade_component!(grade_component_4.id).position == 3
+    end
+
     test "delete_grade_component/1 deletes the grade_component" do
       grade_component = grade_component_fixture()
       assert {:ok, %GradeComponent{}} = Reporting.delete_grade_component(grade_component)

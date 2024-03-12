@@ -5,6 +5,8 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
   alias Lanttern.Reporting
   alias Lanttern.Reporting.GradeComponent
 
+  import Lanttern.Utils, only: [swap: 3]
+
   # shared
   import LantternWeb.ReportingComponents
 
@@ -40,21 +42,23 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
         on_cancel={JS.patch(~p"/report_cards/#{@report_card}?tab=grades")}
       >
         <:title><%= gettext("Edit grade composition") %></:title>
-        <%= if length(@grade_composition) == 0 do %>
+        <%= if length(@indexed_grade_components) == 0 do %>
           <.empty_state>
             <%= gettext("No assesment points in this grade composition") %>
           </.empty_state>
         <% else %>
-          <div class="grid grid-cols-[minmax(0,_1fr)_repeat(2,_max-content)] gap-4">
+          <div class="grid grid-cols-[minmax(0,_1fr)_repeat(2,_max-content)] gap-x-4 gap-y-2">
             <div class="grid grid-cols-subgrid col-span-3 px-4 py-2 rounded mt-4 text-sm text-ltrn-subtle bg-ltrn-lighter">
               <div><%= gettext("Strand goal") %></div>
               <div class="text-right"><%= gettext("Weight") %></div>
             </div>
             <.grade_component_form
-              :for={grade_component <- @grade_composition}
+              :for={{grade_component, i} <- @indexed_grade_components}
               id={"report-card-grade-component-#{grade_component.id}"}
               grade_component={grade_component}
               myself={@myself}
+              index={i}
+              is_last={i + 1 == length(@indexed_grade_components)}
             />
           </div>
         <% end %>
@@ -64,7 +68,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
         <%= for assessment_point <- @assessment_points, assessment_point.id not in @grade_composition_assessment_point_ids do %>
           <div
             id={"report-card-assessment-point-#{assessment_point.id}"}
-            class="flex items-center gap-4 p-4 rounded mt-4 bg-white shadow-lg"
+            class="flex items-center gap-4 p-4 rounded mt-2 bg-white shadow-lg"
           >
             <div class="flex-1">
               <p class="text-xs">
@@ -100,6 +104,8 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
 
   attr :id, :string, required: true
   attr :grade_component, GradeComponent, required: true
+  attr :index, :integer, required: true
+  attr :is_last, :boolean, required: true
   attr :myself, :any, required: true
 
   def grade_component_form(assigns) do
@@ -116,7 +122,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
     <.form
       id={@id}
       for={@form}
-      class="grid grid-cols-subgrid col-span-3 items-center p-4 rounded mt-4 bg-white shadow-lg"
+      class="grid grid-cols-subgrid col-span-3 items-center p-4 rounded bg-white shadow-lg"
       phx-change={JS.push("update_grade_component", target: @myself)}
       phx-value-id={@grade_component.id}
     >
@@ -143,19 +149,51 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
         phx-debounce="1500"
         class="w-20 rounded-sm border-none text-right text-sm bg-ltrn-lightest"
       />
-      <.icon_button
-        type="button"
-        theme="ghost"
-        name="hero-x-mark"
-        phx-click={
-          JS.push("delete_grade_component_from_composition",
-            value: %{id: @grade_component.id},
-            target: @myself
-          )
-        }
-        sr_text={gettext("Remove")}
-        rounded
-      />
+      <div class="flex flex-col items-center gap-1">
+        <.icon_button
+          type="button"
+          sr_text={gettext("Move up")}
+          name="hero-chevron-up-mini"
+          theme="ghost"
+          rounded
+          size="sm"
+          phx-click={
+            JS.push("swap_grade_components_position",
+              value: %{from: @index, to: @index - 1},
+              target: @myself
+            )
+          }
+          disabled={@index == 0}
+        />
+        <.icon_button
+          type="button"
+          theme="ghost"
+          name="hero-x-mark"
+          phx-click={
+            JS.push("delete_grade_component_from_composition",
+              value: %{id: @grade_component.id},
+              target: @myself
+            )
+          }
+          sr_text={gettext("Remove")}
+          rounded
+        />
+        <.icon_button
+          type="button"
+          sr_text={gettext("Move down")}
+          name="hero-chevron-down-mini"
+          theme="ghost"
+          rounded
+          size="sm"
+          phx-click={
+            JS.push("swap_grade_components_position",
+              value: %{from: @index, to: @index + 1},
+              target: @myself
+            )
+          }
+          disabled={@is_last}
+        />
+      </div>
     </.form>
     """
   end
@@ -166,7 +204,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
   def mount(socket) do
     socket =
       socket
-      |> assign(:grade_composition, [])
+      |> assign(:indexed_grade_components, [])
       |> assign(:grade_composition_assessment_point_ids, [])
 
     {:ok, socket}
@@ -197,7 +235,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
 
       case subject_id in subjects_ids do
         true ->
-          grade_composition =
+          grade_components =
             Reporting.list_report_card_subject_grade_composition(
               socket.assigns.report_card.id,
               subject_id
@@ -208,10 +246,10 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
           |> assign_new(:assessment_points, fn ->
             Reporting.list_report_card_assessment_points(socket.assigns.report_card.id)
           end)
-          |> assign(:grade_composition, grade_composition)
+          |> assign(:indexed_grade_components, Enum.with_index(grade_components))
           |> assign(
             :grade_composition_assessment_point_ids,
-            Enum.map(grade_composition, & &1.assessment_point_id)
+            Enum.map(grade_components, & &1.assessment_point_id)
           )
 
         _ ->
@@ -248,7 +286,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
     |> Reporting.create_grade_component()
     |> case do
       {:ok, _grade_component} ->
-        grade_composition =
+        grade_components =
           Reporting.list_report_card_subject_grade_composition(
             socket.assigns.report_card.id,
             subject_id
@@ -256,10 +294,10 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
 
         socket =
           socket
-          |> assign(:grade_composition, grade_composition)
+          |> assign(:indexed_grade_components, Enum.with_index(grade_components))
           |> assign(
             :grade_composition_assessment_point_ids,
-            Enum.map(grade_composition, & &1.assessment_point_id)
+            Enum.map(grade_components, & &1.assessment_point_id)
           )
 
         {:noreply, socket}
@@ -270,7 +308,8 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
   end
 
   def handle_event("update_grade_component", %{"id" => id, "grade_component" => params}, socket) do
-    socket.assigns.grade_composition
+    socket.assigns.indexed_grade_components
+    |> Enum.map(fn {grade_component, _i} -> grade_component end)
     |> Enum.find(&("#{&1.id}" == id))
     |> Reporting.update_grade_component(params)
     |> case do
@@ -284,27 +323,55 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
   end
 
   def handle_event("delete_grade_component_from_composition", %{"id" => id}, socket) do
-    socket.assigns.grade_composition
+    socket.assigns.indexed_grade_components
+    |> Enum.map(fn {grade_component, _i} -> grade_component end)
     |> Enum.find(&(&1.id == id))
     |> Reporting.delete_grade_component()
     |> case do
       {:ok, _grade_component} ->
-        grade_composition =
-          socket.assigns.grade_composition
+        indexed_grade_components =
+          socket.assigns.indexed_grade_components
+          |> Enum.map(fn {grade_component, _i} -> grade_component end)
           |> Enum.filter(&(&1.id != id))
+          |> Enum.with_index()
 
         socket =
           socket
-          |> assign(:grade_composition, grade_composition)
+          |> assign(:indexed_grade_components, indexed_grade_components)
           |> assign(
             :grade_composition_assessment_point_ids,
-            Enum.map(grade_composition, & &1.assessment_point_id)
+            Enum.map(indexed_grade_components, fn {grade_component, _i} ->
+              grade_component.assessment_point_id
+            end)
           )
 
         {:noreply, socket}
 
       {:error, _changeset} ->
         {:noreply, socket}
+    end
+  end
+
+  def handle_event("swap_grade_components_position", %{"from" => i, "to" => j}, socket) do
+    indexed_grade_components =
+      socket.assigns.indexed_grade_components
+      |> Enum.map(fn {grade_component, _i} -> grade_component end)
+      |> swap(i, j)
+      |> Enum.with_index()
+
+    indexed_grade_components
+    |> Enum.map(fn {grade_component, _i} -> grade_component.id end)
+    |> Reporting.update_grade_components_positions()
+    |> case do
+      :ok ->
+        socket =
+          socket
+          |> assign(:indexed_grade_components, indexed_grade_components)
+
+        {:noreply, socket}
+
+      {:error, msg} ->
+        {:noreply, put_flash(socket, :error, msg)}
     end
   end
 end

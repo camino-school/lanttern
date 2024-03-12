@@ -2,6 +2,8 @@ defmodule Lanttern.RepoHelpers do
   alias Lanttern.Repo
   import Ecto.Query, only: [from: 2]
 
+  import LantternWeb.Gettext
+
   @doc """
   Preload associated data based on provided values.
 
@@ -73,6 +75,40 @@ defmodule Lanttern.RepoHelpers do
 
       true ->
         raise("Mixed atom and string keys in attr")
+    end
+  end
+
+  @doc """
+  Update schema positions based on ids list order.
+
+  ## Examples
+
+      iex> update_positions(queryable, [3, 2, 1])
+      :ok
+
+  """
+  @spec update_positions(Ecto.Queryable.t(), [integer()]) :: :ok | {:error, String.t()}
+  def update_positions(queryable, ids) do
+    ids
+    |> Enum.with_index()
+    |> Enum.reduce(
+      Ecto.Multi.new(),
+      fn {id, i}, multi ->
+        multi
+        |> Ecto.Multi.update_all(
+          "update-#{id}",
+          from(
+            q in queryable,
+            where: q.id == ^id
+          ),
+          set: [position: i]
+        )
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:ok, _} -> :ok
+      _ -> {:error, gettext("Something went wrong")}
     end
   end
 end

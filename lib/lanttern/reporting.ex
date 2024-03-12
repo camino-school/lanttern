@@ -6,7 +6,6 @@ defmodule Lanttern.Reporting do
   import Ecto.Query, warn: false
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
-  alias Lanttern.Utils
 
   alias Lanttern.Reporting.ReportCard
   alias Lanttern.Reporting.StrandReport
@@ -350,7 +349,7 @@ defmodule Lanttern.Reporting do
   """
   @spec update_strands_reports_positions([integer()]) :: :ok | {:error, String.t()}
   def update_strands_reports_positions(strands_reports_ids),
-    do: Utils.update_positions(StrandReport, strands_reports_ids)
+    do: update_positions(StrandReport, strands_reports_ids)
 
   @doc """
   Deletes a strand_report.
@@ -858,7 +857,7 @@ defmodule Lanttern.Reporting do
   """
   @spec update_grades_report_subjects_positions([integer()]) :: :ok | {:error, String.t()}
   def update_grades_report_subjects_positions(grades_report_subjects_ids),
-    do: Utils.update_positions(GradesReportSubject, grades_report_subjects_ids)
+    do: update_positions(GradesReportSubject, grades_report_subjects_ids)
 
   @doc """
   Deletes a grades report subject.
@@ -1036,6 +1035,19 @@ defmodule Lanttern.Reporting do
     |> GradeComponent.changeset(attrs)
     |> Repo.update()
   end
+
+  @doc """
+  Update grade components positions based on ids list order.
+
+  ## Examples
+
+      iex> update_grade_components_positions([3, 2, 1])
+      :ok
+
+  """
+  @spec update_grade_components_positions([integer()]) :: :ok | {:error, String.t()}
+  def update_grade_components_positions(grade_components_ids),
+    do: update_positions(GradeComponent, grade_components_ids)
 
   @doc """
   Deletes a grade_component.
