@@ -160,7 +160,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
      |> assign(:is_replacing_cover, false)
      |> allow_upload(:cover,
        accept: ~w(.jpg .jpeg .png),
-       max_file_size: 1_000_000,
+       max_file_size: 5_000_000,
        max_entries: 1
      )}
   end

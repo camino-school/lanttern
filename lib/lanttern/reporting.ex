@@ -6,7 +6,6 @@ defmodule Lanttern.Reporting do
   import Ecto.Query, warn: false
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
-  alias Lanttern.Utils
 
   alias Lanttern.Reporting.ReportCard
   alias Lanttern.Reporting.StrandReport
@@ -14,7 +13,9 @@ defmodule Lanttern.Reporting do
   alias Lanttern.Reporting.GradesReport
   alias Lanttern.Reporting.GradesReportSubject
   alias Lanttern.Reporting.GradesReportCycle
+  alias Lanttern.Reporting.GradeComponent
 
+  alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Schools
   alias Lanttern.Schools.Class
@@ -348,7 +349,7 @@ defmodule Lanttern.Reporting do
   """
   @spec update_strands_reports_positions([integer()]) :: :ok | {:error, String.t()}
   def update_strands_reports_positions(strands_reports_ids),
-    do: Utils.update_positions(StrandReport, strands_reports_ids)
+    do: update_positions(StrandReport, strands_reports_ids)
 
   @doc """
   Deletes a strand_report.
@@ -856,7 +857,7 @@ defmodule Lanttern.Reporting do
   """
   @spec update_grades_report_subjects_positions([integer()]) :: :ok | {:error, String.t()}
   def update_grades_report_subjects_positions(grades_report_subjects_ids),
-    do: Utils.update_positions(GradesReportSubject, grades_report_subjects_ids)
+    do: update_positions(GradesReportSubject, grades_report_subjects_ids)
 
   @doc """
   Deletes a grades report subject.
@@ -951,4 +952,190 @@ defmodule Lanttern.Reporting do
   """
   def delete_grades_report_cycle(%GradesReportCycle{} = grades_report_cycle),
     do: Repo.delete(grades_report_cycle)
+
+  @doc """
+  Returns the list of grade_components.
+
+  ## Examples
+
+      iex> list_grade_components()
+      [%GradeComponent{}, ...]
+
+  """
+  def list_grade_components do
+    Repo.all(GradeComponent)
+  end
+
+  @doc """
+  Gets a single grade_component.
+
+  Raises `Ecto.NoResultsError` if the Grade component does not exist.
+
+  ## Examples
+
+      iex> get_grade_component!(123)
+      %GradeComponent{}
+
+      iex> get_grade_component!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_grade_component!(id), do: Repo.get!(GradeComponent, id)
+
+  @doc """
+  Creates a grade_component.
+
+  ## Examples
+
+      iex> create_grade_component(%{field: value})
+      {:ok, %GradeComponent{}}
+
+      iex> create_grade_component(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_grade_component(attrs \\ %{}) do
+    queryable =
+      case attrs do
+        %{report_card_id: report_card_id, subject_id: subject_id} ->
+          from(gc in GradeComponent,
+            where: gc.report_card_id == ^report_card_id and gc.subject_id == ^subject_id
+          )
+
+        %{"report_card_id" => report_card_id, "subject_id" => subject_id} ->
+          from(gc in GradeComponent,
+            where: gc.report_card_id == ^report_card_id and gc.subject_id == ^subject_id
+          )
+
+        _ ->
+          GradeComponent
+      end
+
+    attrs = set_position_in_attrs(queryable, attrs)
+
+    %GradeComponent{}
+    |> GradeComponent.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a grade_component.
+
+  ## Examples
+
+      iex> update_grade_component(grade_component, %{field: new_value})
+      {:ok, %GradeComponent{}}
+
+      iex> update_grade_component(grade_component, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_grade_component(%GradeComponent{} = grade_component, attrs) do
+    grade_component
+    |> GradeComponent.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Update grade components positions based on ids list order.
+
+  ## Examples
+
+      iex> update_grade_components_positions([3, 2, 1])
+      :ok
+
+  """
+  @spec update_grade_components_positions([integer()]) :: :ok | {:error, String.t()}
+  def update_grade_components_positions(grade_components_ids),
+    do: update_positions(GradeComponent, grade_components_ids)
+
+  @doc """
+  Deletes a grade_component.
+
+  ## Examples
+
+      iex> delete_grade_component(grade_component)
+      {:ok, %GradeComponent{}}
+
+      iex> delete_grade_component(grade_component)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_grade_component(%GradeComponent{} = grade_component) do
+    Repo.delete(grade_component)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking grade_component changes.
+
+  ## Examples
+
+      iex> change_grade_component(grade_component)
+      %Ecto.Changeset{data: %GradeComponent{}}
+
+  """
+  def change_grade_component(%GradeComponent{} = grade_component, attrs \\ %{}) do
+    GradeComponent.changeset(grade_component, attrs)
+  end
+
+  @doc """
+  Returns a list of all assessment points linked to the report card.
+
+  Results are ordered by strand report card and strand goals position.
+
+  Preloads `:strand` and `curriculum_item: :curriculum_component`.
+
+  ## Examples
+
+      iex> list_report_card_assessment_points(report_card_id)
+      [%AssessmentPoint{}, ...]
+
+  """
+  @spec list_report_card_assessment_points(integer()) :: [AssessmentPoint.t()]
+  def list_report_card_assessment_points(report_card_id) do
+    from(ap in AssessmentPoint,
+      join: s in assoc(ap, :strand),
+      join: sr in assoc(s, :strand_reports),
+      join: ci in assoc(ap, :curriculum_item),
+      join: cc in assoc(ci, :curriculum_component),
+      where: sr.report_card_id == ^report_card_id,
+      order_by: [asc: sr.position, asc: ap.position],
+      preload: [strand: s, curriculum_item: {ci, curriculum_component: cc}]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Returns a list of all grade components that are linked
+  to the given subject and report card.
+
+  Results are ordered by grade component position.
+
+  Preloads `assessment_point: [:strand, curriculum_item: :curriculum_component]`.
+
+  ## Examples
+
+      iex> list_report_card_subject_grade_composition(report_card_id, subject_id)
+      [%GradeComponent{}, ...]
+
+  """
+  @spec list_report_card_subject_grade_composition(
+          report_card_id :: integer(),
+          subject_id :: integer()
+        ) :: [GradeComponent.t()]
+  def list_report_card_subject_grade_composition(report_card_id, subject_id) do
+    from(gc in GradeComponent,
+      join: ap in assoc(gc, :assessment_point),
+      join: s in assoc(ap, :strand),
+      join: sr in assoc(s, :strand_reports),
+      join: ci in assoc(ap, :curriculum_item),
+      join: cc in assoc(ci, :curriculum_component),
+      where: sr.report_card_id == ^report_card_id and gc.subject_id == ^subject_id,
+      order_by: gc.position,
+      preload: [
+        assessment_point: {ap, strand: s, curriculum_item: {ci, curriculum_component: cc}}
+      ]
+    )
+    |> Repo.all()
+  end
 end

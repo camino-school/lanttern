@@ -12,6 +12,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
   alias Lanttern.Grading.Scale
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
+  alias Lanttern.Reporting.GradeComponent
   alias Lanttern.Rubrics.Rubric
   alias Lanttern.Schools.Class
 
@@ -41,6 +42,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
           strand_id: pos_integer(),
           entries: [AssessmentPointEntry.t()],
           feedbacks: [Feedback.t()],
+          grade_components: [GradeComponent.t()],
           classes: [Class.t()],
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
@@ -70,6 +72,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
 
     has_many :entries, AssessmentPointEntry
     has_many :feedbacks, Feedback
+    has_many :grade_components, GradeComponent
 
     many_to_many :classes, Class,
       join_through: "assessment_points_classes",

@@ -151,54 +151,34 @@ defmodule Lanttern.Assessments do
 
   """
   def create_assessment_point(attrs \\ %{}) do
-    position =
-      from(
-        ap in AssessmentPoint,
-        select: ap.position,
-        order_by: [desc: ap.position],
-        limit: 1
-      )
-      |> filter_assessment_points_by_context(attrs)
-      |> Repo.one()
-      |> case do
-        nil -> 0
-        pos -> pos + 1
-      end
-
     attrs =
-      case Map.keys(attrs) |> hd() do
-        key when is_atom(key) ->
-          attrs
-          |> Map.put(:position, position)
-
-        _ ->
-          attrs
-          |> Map.put("position", position)
-      end
+      AssessmentPoint
+      |> filter_assessment_points_by_context(attrs)
+      |> set_position_in_attrs(attrs)
 
     %AssessmentPoint{}
     |> AssessmentPoint.changeset(attrs)
     |> Repo.insert()
   end
 
-  defp filter_assessment_points_by_context(query, %{moment_id: moment_id})
+  defp filter_assessment_points_by_context(queryable, %{moment_id: moment_id})
        when not is_nil(moment_id) and moment_id != "",
-       do: from(q in query, where: q.moment_id == ^moment_id)
+       do: from(q in queryable, where: q.moment_id == ^moment_id)
 
-  defp filter_assessment_points_by_context(query, %{"moment_id" => moment_id})
+  defp filter_assessment_points_by_context(queryable, %{"moment_id" => moment_id})
        when not is_nil(moment_id) and moment_id != "",
-       do: from(q in query, where: q.moment_id == ^moment_id)
+       do: from(q in queryable, where: q.moment_id == ^moment_id)
 
-  defp filter_assessment_points_by_context(query, %{strand_id: strand_id})
+  defp filter_assessment_points_by_context(queryable, %{strand_id: strand_id})
        when not is_nil(strand_id) and strand_id != "",
-       do: from(q in query, where: q.strand_id == ^strand_id)
+       do: from(q in queryable, where: q.strand_id == ^strand_id)
 
-  defp filter_assessment_points_by_context(query, %{"strand_id" => strand_id})
+  defp filter_assessment_points_by_context(queryable, %{"strand_id" => strand_id})
        when not is_nil(strand_id) and strand_id != "",
-       do: from(q in query, where: q.strand_id == ^strand_id)
+       do: from(q in queryable, where: q.strand_id == ^strand_id)
 
-  defp filter_assessment_points_by_context(query, _),
-    do: from(q in query, where: false)
+  defp filter_assessment_points_by_context(queryable, _),
+    do: from(q in queryable, where: false)
 
   @doc """
   Updates a assessment point.
