@@ -17,7 +17,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
           <%= gettext("Oops, something went wrong! Please check the errors below.") %>
         </.error_block>
         <div
-          :if={!@strand.cover_image_url || @is_replacing_cover}
+          :if={!@strand.cover_image_url || @is_removing_cover}
           class={[
             "p-4 border border-dashed border-ltrn-lighter rounded-md mb-6 text-center text-ltrn-subtle",
             if(@uploads.cover.entries != [], do: "hidden")
@@ -36,18 +36,18 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
               </label>
               <span><%= gettext("or drag and drop here") %></span>
               <button
-                :if={@is_replacing_cover}
+                :if={@is_removing_cover}
                 type="button"
                 phx-click="cancel-replace-cover"
                 phx-target={@myself}
                 class="mt-4"
               >
-                <%= gettext("Cancel cover replacement") %>
+                <%= gettext("Cancel cover removal") %>
               </button>
             </div>
           </div>
         </div>
-        <div :if={@strand.cover_image_url && !@is_replacing_cover} class="relative mb-6">
+        <div :if={@strand.cover_image_url && !@is_removing_cover} class="relative mb-6">
           <div class="flex items-center justify-center w-full h-60 bg-ltrn-subtle overflow-hidden">
             <img src={@strand.cover_image_url} alt="Cover image" class="w-full" />
           </div>
@@ -157,7 +157,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
      |> assign(:show_actions, false)
      |> assign(:subject_options, generate_subject_options())
      |> assign(:year_options, generate_year_options())
-     |> assign(:is_replacing_cover, false)
+     |> assign(:is_removing_cover, false)
      |> allow_upload(:cover,
        accept: ~w(.jpg .jpeg .png),
        max_file_size: 5_000_000,
@@ -195,11 +195,11 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
   end
 
   def handle_event("replace-cover", _, socket) do
-    {:noreply, assign(socket, :is_replacing_cover, true)}
+    {:noreply, assign(socket, :is_removing_cover, true)}
   end
 
   def handle_event("cancel-replace-cover", _, socket) do
-    {:noreply, assign(socket, :is_replacing_cover, false)}
+    {:noreply, assign(socket, :is_removing_cover, false)}
   end
 
   def handle_event("validate", %{"strand" => strand_params}, socket) do
@@ -232,10 +232,18 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
         [image_url] -> image_url
       end
 
+    # besides "consumed" cover image, we should also consider is_removing_cover flag
+    cover_image_url =
+      cond do
+        cover_image_url -> cover_image_url
+        socket.assigns.is_removing_cover -> nil
+        true -> socket.assigns.strand.cover_image_url
+      end
+
     # add cover, subjects_ids, and years_ids to params
     strand_params =
       strand_params
-      |> Map.put("cover_image_url", cover_image_url || socket.assigns.strand.cover_image_url)
+      |> Map.put("cover_image_url", cover_image_url)
       |> Map.put("subjects_ids", socket.assigns.selected_subjects_ids)
       |> Map.put("years_ids", socket.assigns.selected_years_ids)
 
