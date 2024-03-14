@@ -4,9 +4,6 @@ defmodule Lanttern.AssessmentsFixtures do
   entities via the `Lanttern.Assessments` context.
   """
 
-  import Lanttern.GradingFixtures
-  import Lanttern.CurriculaFixtures
-
   @doc """
   Generate an assessment point.
   """
@@ -17,8 +14,8 @@ defmodule Lanttern.AssessmentsFixtures do
         name: "some name",
         datetime: ~U[2023-08-02 15:30:00Z],
         description: "some description",
-        scale_id: maybe_gen_scale_id(attrs),
-        curriculum_item_id: maybe_gen_curriculum_item_id(attrs)
+        scale_id: Lanttern.GradingFixtures.maybe_gen_scale_id(attrs),
+        curriculum_item_id: Lanttern.CurriculaFixtures.maybe_gen_curriculum_item_id(attrs)
       })
       |> Lanttern.Assessments.create_assessment_point()
 
@@ -87,17 +84,11 @@ defmodule Lanttern.AssessmentsFixtures do
     feedback
   end
 
-  # helpers
+  # generator helpers
 
-  defp maybe_gen_scale_id(%{scale_id: scale_id} = _attrs),
-    do: scale_id
+  def maybe_gen_assessment_point_id(%{assessment_point_id: assessment_point_id} = _attrs),
+    do: assessment_point_id
 
-  defp maybe_gen_scale_id(_attrs),
-    do: scale_fixture().id
-
-  defp maybe_gen_curriculum_item_id(%{curriculum_item_id: curriculum_item_id} = _attrs),
-    do: curriculum_item_id
-
-  defp maybe_gen_curriculum_item_id(_attrs),
-    do: curriculum_item_fixture().id
+  def maybe_gen_assessment_point_id(_attrs),
+    do: assessment_point_fixture().id
 end

@@ -73,4 +73,12 @@ defmodule Lanttern.CurriculaFixtures do
 
     curriculum_relationship
   end
+
+  # generator helpers
+
+  def maybe_gen_curriculum_item_id(%{curriculum_item_id: curriculum_item_id} = _attrs),
+    do: curriculum_item_id
+
+  def maybe_gen_curriculum_item_id(_attrs),
+    do: curriculum_item_fixture().id
 end
