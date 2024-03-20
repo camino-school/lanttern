@@ -232,7 +232,7 @@ defmodule LantternWeb.CoreComponents do
   """
   def get_button_styles(theme \\ "default", size \\ "normal", rounded \\ false) do
     [
-      "inline-flex items-center justify-center font-display text-sm font-bold",
+      "inline-flex items-center justify-center font-display text-sm font-bold disabled:cursor-not-allowed",
       if(size == "sm", do: "gap-1 p-1", else: "gap-2 p-2"),
       if(rounded, do: "rounded-full", else: "rounded-sm"),
       "phx-submit-loading:opacity-50 phx-click-loading:opacity-50 phx-click-loading:pointer-events-none",
@@ -241,7 +241,10 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @button_themes %{
-    "default" => "bg-ltrn-primary hover:bg-cyan-300 shadow-sm",
+    "default" => [
+      "bg-ltrn-primary hover:bg-cyan-300 shadow-sm",
+      "disabled:text-ltrn-subtle disabled:bg-ltrn-mesh-cyan disabled:shadow-none"
+    ],
     "white" => "bg-white hover:bg-ltrn-lightest shadow-sm",
     "ghost" => [
       "text-ltrn-subtle bg-transparent hover:bg-slate-100",

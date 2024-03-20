@@ -6,6 +6,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
   alias Lanttern.Reporting.GradeComponent
 
   import Lanttern.Utils, only: [swap: 3]
+  import LantternWeb.PersonalizationHelpers
 
   # shared
   import LantternWeb.ReportingComponents
@@ -34,6 +35,24 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
             </.empty_state>
           <% end %>
         </div>
+      </div>
+      <div class="container mx-auto lg:max-w-5xl mt-10">
+        <p class="font-display font-bold text-2xl">
+          <%= gettext("Viewing") %>
+          <button
+            type="button"
+            class="inline text-left underline hover:text-ltrn-subtle"
+            phx-click={JS.exec("data-show", to: "#global-filters")}
+          >
+            <%= if length(@selected_classes) > 0 do
+              @selected_classes
+              |> Enum.map(& &1.name)
+              |> Enum.join(", ")
+            else
+              gettext("all classes")
+            end %>
+          </button>
+        </p>
       </div>
       <.slide_over
         :if={@is_editing_grade_composition}
@@ -222,6 +241,10 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
         end
       end)
       |> assign_is_editing_grade_composition(assigns)
+      |> assign_user_filters(
+        [:classes],
+        assigns.current_user
+      )
 
     {:ok, socket}
   end

@@ -11,7 +11,6 @@ defmodule LantternWeb.StrandsLive do
 
   # shared components
   import LantternWeb.LearningContextComponents
-  alias LantternWeb.BadgeButtonPickerComponent
 
   # function components
 
@@ -122,29 +121,5 @@ defmodule LantternWeb.StrandsLive do
        |> put_flash(:info, "\"#{name}\" removed from your starred strands")
        |> push_navigate(to: ~p"/strands", replace: true)}
     end
-  end
-
-  def handle_event("toggle_subject_id", %{"id" => id}, socket),
-    do: {:noreply, handle_filter_toggle(socket, :subjects, id)}
-
-  def handle_event("toggle_year_id", %{"id" => id}, socket),
-    do: {:noreply, handle_filter_toggle(socket, :years, id)}
-
-  def handle_event("clear_filters", _, socket) do
-    clear_profile_filters(
-      socket.assigns.current_user,
-      [:subjects, :years]
-    )
-
-    {:noreply, push_navigate(socket, to: ~p"/strands")}
-  end
-
-  def handle_event("apply_filters", _, socket) do
-    socket =
-      socket
-      |> save_profile_filters(socket.assigns.current_user, [:subjects, :years])
-      |> push_navigate(to: ~p"/strands")
-
-    {:noreply, socket}
   end
 end
