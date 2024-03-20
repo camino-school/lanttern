@@ -4,6 +4,7 @@ defmodule Lanttern.GradesReports do
   """
 
   import Ecto.Query, warn: false
+  alias Lanttern.Schools.Student
   alias Lanttern.Repo
 
   alias Lanttern.Assessments.AssessmentPointEntry
@@ -288,5 +289,50 @@ defmodule Lanttern.GradesReports do
       select: {s, gr}
     )
     |> Repo.one!()
+  end
+
+  @doc """
+  Returns a map in the format
+
+      %{
+        student_id => %{
+          subject_id => %StudentGradeReportEntry{},
+          # other subjects ids...
+        }
+        # other students ids...
+      }
+
+  for the given students, grades report and cycle.
+  """
+  @spec build_students_grades_map(
+          student_ids :: [integer()],
+          grades_report_id :: integer(),
+          cycle_id :: integer()
+        ) :: %{}
+  def build_students_grades_map(students_ids, grades_report_id, cycle_id) do
+    from(
+      std in Student,
+      join: grs in GradesReportSubject,
+      on: true,
+      join: grc in GradesReportCycle,
+      on: grc.grades_report_id == grs.grades_report_id,
+      left_join: sgre in StudentGradeReportEntry,
+      on:
+        sgre.grades_report_cycle_id == grc.id and
+          sgre.grades_report_subject_id == grs.id and
+          sgre.student_id == std.id,
+      where: std.id in ^students_ids,
+      where: grc.grades_report_id == ^grades_report_id,
+      where: grc.school_cycle_id == ^cycle_id,
+      select: {std.id, grs.id, sgre}
+    )
+    |> Repo.all()
+    |> Enum.reduce(%{}, fn {std_id, grs_id, sgre}, acc ->
+      std_map =
+        Map.get(acc, std_id, %{})
+        |> Map.put(grs_id, sgre)
+
+      Map.put(acc, std_id, std_map)
+    end)
   end
 end

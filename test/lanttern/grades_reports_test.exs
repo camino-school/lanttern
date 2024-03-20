@@ -774,4 +774,126 @@ defmodule Lanttern.GradesReportsTest do
              )
     end
   end
+
+  describe "students grades display" do
+    alias Lanttern.GradesReports.StudentGradeReportEntry
+
+    import Lanttern.GradesReportsFixtures
+    alias Lanttern.AssessmentsFixtures
+    alias Lanttern.GradingFixtures
+    alias Lanttern.LearningContextFixtures
+    alias Lanttern.ReportingFixtures
+    alias Lanttern.SchoolsFixtures
+    alias Lanttern.TaxonomyFixtures
+
+    test "build_students_grades_map/2 returns the correct map" do
+      # expected structure
+      #       | sub 1     | sub 2     | sub 3
+      # std 1 | entry_1_1 | entry_1_2 | entry_1_3
+      # sub 2 | entry_2_1 | nil       | nil
+      # sub 3 | entry_3_1 | entry_3_2 | nil
+
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+
+      cycle = SchoolsFixtures.cycle_fixture()
+      grades_report = ReportingFixtures.grades_report_fixture(%{scale_id: scale.id})
+
+      grades_report_cycle =
+        ReportingFixtures.grades_report_cycle_fixture(%{
+          school_cycle_id: cycle.id,
+          grades_report_id: grades_report.id
+        })
+
+      grades_report_subject_1 =
+        ReportingFixtures.grades_report_subject_fixture(%{
+          grades_report_id: grades_report.id
+        })
+
+      grades_report_subject_2 =
+        ReportingFixtures.grades_report_subject_fixture(%{
+          grades_report_id: grades_report.id
+        })
+
+      grades_report_subject_3 =
+        ReportingFixtures.grades_report_subject_fixture(%{
+          grades_report_id: grades_report.id
+        })
+
+      std_1 = SchoolsFixtures.student_fixture()
+      std_2 = SchoolsFixtures.student_fixture()
+      std_3 = SchoolsFixtures.student_fixture()
+
+      entry_1_1 =
+        student_grade_report_entry_fixture(%{
+          student_id: std_1.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_1.id
+        })
+
+      entry_1_2 =
+        student_grade_report_entry_fixture(%{
+          student_id: std_1.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_2.id
+        })
+
+      entry_1_3 =
+        student_grade_report_entry_fixture(%{
+          student_id: std_1.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_3.id
+        })
+
+      entry_2_1 =
+        student_grade_report_entry_fixture(%{
+          student_id: std_2.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_1.id
+        })
+
+      entry_3_1 =
+        student_grade_report_entry_fixture(%{
+          student_id: std_3.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_1.id
+        })
+
+      entry_3_2 =
+        student_grade_report_entry_fixture(%{
+          student_id: std_3.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_2.id
+        })
+
+      # extra fixtures for query test (TBD)
+
+      assert expected =
+               GradesReports.build_students_grades_map(
+                 [std_1.id, std_2.id, std_3.id],
+                 grades_report.id,
+                 cycle.id
+               )
+
+      assert expected_std_1 = Map.get(expected, std_1.id)
+      assert Map.get(expected_std_1, grades_report_subject_1.id) == entry_1_1
+      assert Map.get(expected_std_1, grades_report_subject_2.id) == entry_1_2
+      assert Map.get(expected_std_1, grades_report_subject_3.id) == entry_1_3
+
+      assert expected_std_2 = Map.get(expected, std_2.id)
+      assert Map.get(expected_std_2, grades_report_subject_1.id) == entry_2_1
+      refute Map.fetch!(expected_std_2, grades_report_subject_2.id)
+      refute Map.fetch!(expected_std_2, grades_report_subject_3.id)
+
+      assert expected_std_3 = Map.get(expected, std_3.id)
+      assert Map.get(expected_std_3, grades_report_subject_1.id) == entry_3_1
+      assert Map.get(expected_std_3, grades_report_subject_2.id) == entry_3_2
+      refute Map.fetch!(expected_std_3, grades_report_subject_3.id)
+    end
+  end
 end

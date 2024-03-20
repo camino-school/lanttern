@@ -322,4 +322,101 @@ defmodule LantternWeb.ReportingComponents do
     <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
     """
   end
+
+  @doc """
+  Renders a student grades grid for a given cycle.
+  """
+
+  attr :students, :list, required: true
+  attr :grades_report_subjects, :list, required: true
+  attr :students_grades_map, :map, required: true
+  attr :class, :any, default: nil
+  attr :id, :string, default: nil
+
+  def student_grades_grid(assigns) do
+    %{
+      students: students,
+      grades_report_subjects: grades_report_subjects
+    } = assigns
+
+    grid_template_columns_style =
+      case length(grades_report_subjects) do
+        n when n > 0 ->
+          "grid-template-columns: 160px repeat(#{n}, minmax(0, 1fr))"
+
+        _ ->
+          "grid-template-columns: 160px minmax(0, 1fr)"
+      end
+
+    grid_column_style =
+      case length(grades_report_subjects) do
+        0 -> "grid-column: span 2 / span 2"
+        n -> "grid-column: span #{n + 1} / span #{n + 1}"
+      end
+
+    assigns =
+      assigns
+      |> assign(:grid_template_columns_style, grid_template_columns_style)
+      |> assign(:grid_column_style, grid_column_style)
+      |> assign(:has_subjects, length(grades_report_subjects) > 0)
+      |> assign(:has_students, length(students) > 0)
+
+    ~H"""
+    <div id={@id} class={["grid gap-1 text-sm", @class]} style={@grid_template_columns_style}>
+      <.button type="button" theme="ghost" icon_name="hero-cog-6-tooth-mini" phx-click={%JS{}}>
+        <%= gettext("Calculate") %>
+      </.button>
+      <%= if @has_subjects do %>
+        <div
+          :for={grades_report_subject <- @grades_report_subjects}
+          id={"students-grades-grid-header-subject-#{grades_report_subject.id}"}
+          class="p-4 rounded text-center bg-white shadow-lg"
+        >
+          <%= grades_report_subject.subject.name %>
+        </div>
+      <% else %>
+        <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lightest">
+          <%= gettext("No cycles linked to this grades report") %>
+        </div>
+      <% end %>
+      <%= if @has_students do %>
+        <div
+          :for={student <- @students}
+          id={"students-grades-grid-student-#{student.id}"}
+          class="grid grid-cols-subgrid"
+          style={@grid_column_style}
+        >
+          <div class="p-4 rounded bg-white shadow-lg">
+            <%= student.name %>
+          </div>
+          <%= if @has_subjects do %>
+            <.student_grades_grid_cell
+              :for={grades_report_subject <- @grades_report_subjects}
+              student_grade_report_entry={@students_grades_map[student.id][grades_report_subject.id]}
+            />
+          <% else %>
+            <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="grid grid-cols-subgrid" style={@grid_column_style}>
+          <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lightest">
+            <%= gettext("No students linked to this grades report") %>
+          </div>
+          <%= if @has_subjects do %>
+            <.grades_report_grid_cell :for={_grades_report_subject <- @grades_report_subjects} />
+          <% else %>
+            <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+
+  defp student_grades_grid_cell(assigns) do
+    ~H"""
+    <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+    """
+  end
 end

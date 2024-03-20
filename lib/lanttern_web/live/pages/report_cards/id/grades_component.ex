@@ -2,8 +2,10 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
   alias Lanttern.Reporting.GradesReport
   use LantternWeb, :live_component
 
+  alias Lanttern.GradesReports
   alias Lanttern.Reporting
   alias Lanttern.Reporting.GradeComponent
+  alias Lanttern.Schools
 
   import Lanttern.Utils, only: [swap: 3]
   import LantternWeb.PersonalizationHelpers
@@ -53,6 +55,13 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
             end %>
           </button>
         </p>
+      </div>
+      <div>
+        <.student_grades_grid
+          students={@students}
+          grades_report_subjects={@grades_report.grades_report_subjects}
+          students_grades_map={@students_grades_map}
+        />
       </div>
       <.slide_over
         :if={@is_editing_grade_composition}
@@ -241,10 +250,8 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
         end
       end)
       |> assign_is_editing_grade_composition(assigns)
-      |> assign_user_filters(
-        [:classes],
-        assigns.current_user
-      )
+      |> assign_user_filters([:classes], assigns.current_user)
+      |> assign_students_grades_grid()
 
     {:ok, socket}
   end
@@ -285,6 +292,22 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
 
   defp assign_is_editing_grade_composition(socket, _),
     do: assign(socket, :is_editing_grade_composition, false)
+
+  defp assign_students_grades_grid(socket) do
+    students =
+      Schools.list_students(classes_ids: socket.assigns.selected_classes_ids)
+
+    students_grades_map =
+      GradesReports.build_students_grades_map(
+        Enum.map(students, & &1.id),
+        socket.assigns.grades_report.id,
+        socket.assigns.report_card.school_cycle_id
+      )
+
+    socket
+    |> assign(:students, students)
+    |> assign(:students_grades_map, students_grades_map)
+  end
 
   @impl true
   def handle_event("edit_subject_grade_composition", %{"subjectid" => subject_id}, socket) do
