@@ -117,6 +117,12 @@ defmodule Lanttern.GradesReports do
 
   @doc """
   Calculate student grade for given grades report cycle and subject.
+
+  Uses a third elemente in the `:ok` returned tuple:
+  - `:created` when the `StudentGradeReportEntry` is created
+  - `:updated` when the `StudentGradeReportEntry` is updated
+  - `:deleted` when the `StudentGradeReportEntry` is deleted (always `nil` in the second element)
+  - `:noop` when the nothing is created, updated, or deleted (always `nil` in the second element)
   """
   @spec calculate_student_grade(
           student_id :: integer(),
@@ -124,7 +130,8 @@ defmodule Lanttern.GradesReports do
           grades_report_cycle_id :: integer(),
           grades_report_subject_id :: integer()
         ) ::
-          {:ok, StudentGradeReportEntry.t() | nil} | {:error, Ecto.Changeset.t()}
+          {:ok, StudentGradeReportEntry.t() | nil, :created | :updated | :deleted | :noop}
+          | {:error, Ecto.Changeset.t()}
   def calculate_student_grade(
         student_id,
         grades_report_id,
@@ -177,11 +184,15 @@ defmodule Lanttern.GradesReports do
       grades_report_subject_id: grades_report_subject_id
     )
     |> case do
-      nil -> nil
-      sgre -> delete_student_grade_report_entry(sgre)
-    end
+      nil ->
+        {:ok, nil, :noop}
 
-    {:ok, nil}
+      sgre ->
+        case delete_student_grade_report_entry(sgre) do
+          {:ok, _} -> {:ok, nil, :deleted}
+          error_tuple -> error_tuple
+        end
+    end
   end
 
   defp handle_student_grades_report_entry_creation(
@@ -226,8 +237,17 @@ defmodule Lanttern.GradesReports do
       grades_report_subject_id: grades_report_subject_id
     )
     |> case do
-      nil -> create_student_grade_report_entry(attrs)
-      sgre -> update_student_grade_report_entry(sgre, attrs)
+      nil ->
+        case create_student_grade_report_entry(attrs) do
+          {:ok, sgre} -> {:ok, sgre, :created}
+          error_tuple -> error_tuple
+        end
+
+      sgre ->
+        case update_student_grade_report_entry(sgre, attrs) do
+          {:ok, sgre} -> {:ok, sgre, :updated}
+          error_tuple -> error_tuple
+        end
     end
   end
 
@@ -245,7 +265,8 @@ defmodule Lanttern.GradesReports do
           grades_report_id :: integer(),
           grades_report_cycle_id :: integer()
         ) ::
-          {:ok, [StudentGradeReportEntry.t() | nil]} | {:error, Ecto.Changeset.t()}
+          {:ok, %{created: integer(), updated: integer(), deleted: integer(), noop: integer()}}
+          | {:error, Ecto.Changeset.t()}
   def calculate_student_grades(student_id, grades_report_id, grades_report_cycle_id) do
     # get grades report scale and all report subjects
     %{
@@ -304,7 +325,7 @@ defmodule Lanttern.GradesReports do
          grades_report_id,
          grades_report_cycle_id,
          scale,
-         results \\ []
+         results \\ %{created: 0, updated: 0, deleted: 0, noop: 0}
        )
 
   defp handle_grades_report_subject_entries_and_grade_components(
@@ -336,14 +357,14 @@ defmodule Lanttern.GradesReports do
       scale
     )
     |> case do
-      {:ok, result} ->
+      {:ok, _result, operation} ->
         handle_grades_report_subject_entries_and_grade_components(
           grades_report_subject_entries_grade_components,
           student_id,
           grades_report_id,
           grades_report_cycle_id,
           scale,
-          [result | results]
+          Map.update!(results, operation, &(&1 + 1))
         )
 
       {:error, changeset} ->
@@ -422,7 +443,7 @@ defmodule Lanttern.GradesReports do
          grades_report_cycle_id,
          grades_report_subject_id,
          scale,
-         results \\ []
+         results \\ %{created: 0, updated: 0, deleted: 0, noop: 0}
        )
 
   defp handle_students_entries_and_grade_components(
@@ -454,14 +475,14 @@ defmodule Lanttern.GradesReports do
       scale
     )
     |> case do
-      {:ok, result} ->
+      {:ok, _result, operation} ->
         handle_students_entries_and_grade_components(
           student_entries_grade_components,
           grades_report_id,
           grades_report_cycle_id,
           grades_report_subject_id,
           scale,
-          [result | results]
+          Map.update!(results, operation, &(&1 + 1))
         )
 
       {:error, changeset} ->

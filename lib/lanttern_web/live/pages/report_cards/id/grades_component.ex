@@ -67,6 +67,14 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
                 )
               end
             }
+            on_calculate_subject={
+              fn grades_report_subject_id ->
+                JS.push("calculate_subject",
+                  value: %{grades_report_subject_id: grades_report_subject_id},
+                  target: @myself
+                )
+              end
+            }
             on_calculate_cell={
               fn student_id, grades_report_subject_id ->
                 JS.push("calculate_cell",
@@ -464,7 +472,36 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
       |> case do
         {:ok, _} ->
           socket
-          |> put_flash(:info, gettext("Grades calculated succesfully"))
+          |> put_flash(:info, gettext("Student grades calculated succesfully"))
+          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=grades")
+
+        {:error, _} ->
+          put_flash(socket, :error, gettext("Something went wrong"))
+      end
+
+    {:noreply, socket}
+  end
+
+  def handle_event("calculate_subject", params, socket) do
+    %{
+      "grades_report_subject_id" => grades_report_subject_id
+    } = params
+
+    students_ids =
+      socket.assigns.students
+      |> Enum.map(& &1.id)
+
+    socket =
+      GradesReports.calculate_subject_grades(
+        students_ids,
+        socket.assigns.grades_report.id,
+        socket.assigns.current_grades_report_cycle.id,
+        grades_report_subject_id
+      )
+      |> case do
+        {:ok, _} ->
+          socket
+          |> put_flash(:info, gettext("Subject grades calculated succesfully"))
           |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=grades")
 
         {:error, _} ->
@@ -488,7 +525,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
         grades_report_subject_id
       )
       |> case do
-        {:ok, _} ->
+        {:ok, _, _} ->
           socket
           |> put_flash(:info, gettext("Grade calculated succesfully"))
           |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=grades")

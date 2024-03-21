@@ -335,11 +335,16 @@ defmodule LantternWeb.ReportingComponents do
   attr :id, :string, default: nil
 
   attr :on_calculate_student, :any,
-    required: true,
+    default: nil,
     doc: "the function to trigger when clicking on calculate student. args: `student_id`"
 
+  attr :on_calculate_subject, :any,
+    default: nil,
+    doc:
+      "the function to trigger when clicking on calculate subject. args: `grades_report_subject_id`"
+
   attr :on_calculate_cell, :any,
-    required: true,
+    default: nil,
     doc:
       "the function to trigger when clicking on calculate cell. args: `student_id`, `grades_report_subject_id`"
 
@@ -380,9 +385,18 @@ defmodule LantternWeb.ReportingComponents do
         <div
           :for={grades_report_subject <- @grades_report_subjects}
           id={"students-grades-grid-header-subject-#{grades_report_subject.id}"}
-          class="p-4 rounded text-center bg-white shadow-lg"
+          class="flex items-center justify-center gap-2 p-4 rounded text-center bg-white shadow-lg"
         >
           <%= grades_report_subject.subject.name %>
+          <.icon_button
+            :if={@on_calculate_subject}
+            name="hero-arrow-path-mini"
+            theme="white"
+            rounded
+            size="sm"
+            sr_text={gettext("Calculate subject grades")}
+            phx-click={@on_calculate_subject.(grades_report_subject.id)}
+          />
         </div>
       <% else %>
         <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lightest">
@@ -401,6 +415,7 @@ defmodule LantternWeb.ReportingComponents do
               <%= student.name %>
             </span>
             <.icon_button
+              :if={@on_calculate_student}
               name="hero-arrow-path-mini"
               theme="white"
               rounded
@@ -440,7 +455,7 @@ defmodule LantternWeb.ReportingComponents do
   attr :student_grade_report_entry, StudentGradeReportEntry, default: nil
   attr :student_id, :integer, default: nil
   attr :grades_report_subject_id, :integer, default: nil
-  attr :on_calculate_cell, :any, default: nil
+  attr :on_calculate_cell, :any, required: true
 
   defp student_grades_grid_cell(
          %{student_grade_report_entry: %StudentGradeReportEntry{}} = assigns
@@ -449,6 +464,7 @@ defmodule LantternWeb.ReportingComponents do
     <div class="flex items-center justify-center gap-2 rounded border border-ltrn-lighter bg-ltrn-lightest">
       <%= @student_grade_report_entry.ordinal_value.name %>
       <.icon_button
+        :if={@on_calculate_cell}
         name="hero-arrow-path-mini"
         theme="white"
         rounded
@@ -465,6 +481,7 @@ defmodule LantternWeb.ReportingComponents do
     <div class="flex items-center justify-center gap-2 rounded border border-ltrn-lighter bg-ltrn-lightest">
       —
       <.icon_button
+        :if={@on_calculate_cell}
         name="hero-arrow-path-mini"
         theme="white"
         rounded

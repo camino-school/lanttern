@@ -342,7 +342,8 @@ defmodule Lanttern.GradesReportsTest do
                 student_id: ^expected_std_id,
                 normalized_value: 0.69167,
                 ordinal_value_id: ^expected_ov_id
-              }} =
+              },
+              :created} =
                GradesReports.calculate_student_grade(
                  std_1.id,
                  grades_report.id,
@@ -388,7 +389,8 @@ defmodule Lanttern.GradesReportsTest do
                 student_id: ^expected_std_id,
                 normalized_value: 0.925,
                 ordinal_value_id: ^expected_ov_id
-              }} =
+              },
+              :created} =
                GradesReports.calculate_student_grade(
                  std_2.id,
                  grades_report.id,
@@ -435,7 +437,8 @@ defmodule Lanttern.GradesReportsTest do
                 student_id: ^expected_std_id,
                 normalized_value: 0.56667,
                 ordinal_value_id: ^expected_ov_id
-              }} =
+              },
+              :created} =
                GradesReports.calculate_student_grade(
                  std_3.id,
                  grades_report.id,
@@ -451,7 +454,8 @@ defmodule Lanttern.GradesReportsTest do
                 student_id: ^expected_std_id,
                 normalized_value: 0.56667,
                 ordinal_value_id: ^expected_ov_id
-              }} =
+              },
+              :updated} =
                GradesReports.calculate_student_grade(
                  std_3.id,
                  grades_report.id,
@@ -468,7 +472,7 @@ defmodule Lanttern.GradesReportsTest do
       Assessments.delete_assessment_point_entry(entry_3_2)
       Assessments.delete_assessment_point_entry(entry_3_diff)
 
-      assert {:ok, nil} =
+      assert {:ok, nil, :deleted} =
                GradesReports.calculate_student_grade(
                  std_3.id,
                  grades_report.id,
@@ -483,7 +487,7 @@ defmodule Lanttern.GradesReportsTest do
       std_4 = SchoolsFixtures.student_fixture()
 
       # when there's no assessment point entries, return {:ok, nil}
-      assert {:ok, nil} =
+      assert {:ok, nil, :noop} =
                GradesReports.calculate_student_grade(
                  std_4.id,
                  grades_report.id,
@@ -642,7 +646,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id
         })
 
-      _grades_report_subject_4 =
+      grades_report_subject_4 =
         ReportingFixtures.grades_report_subject_fixture(%{
           subject_id: subject_4.id,
           grades_report_id: grades_report.id
@@ -818,7 +822,7 @@ defmodule Lanttern.GradesReportsTest do
       # extra cases setup
 
       # UPDATE CASE - pre calculate subject 3
-      {:ok, %{id: student_grade_report_entry_3_id}} =
+      {:ok, %{id: student_grade_report_entry_3_id}, :created} =
         GradesReports.calculate_student_grade(
           std.id,
           grades_report.id,
@@ -827,7 +831,7 @@ defmodule Lanttern.GradesReportsTest do
         )
 
       # UPDATE + EMPTY - pre calculate subject 1, then delete entries
-      {:ok, %{id: student_grade_report_entry_1_id}} =
+      {:ok, %{id: student_grade_report_entry_1_id}, :created} =
         GradesReports.calculate_student_grade(
           std.id,
           grades_report.id,
@@ -841,36 +845,57 @@ defmodule Lanttern.GradesReportsTest do
 
       # assert
 
-      assert {:ok, student_grade_report_entries} =
+      assert {:ok, %{created: 1, updated: 1, deleted: 1, noop: 1}} =
                GradesReports.calculate_student_grades(
                  std.id,
                  grades_report.id,
                  grades_report_cycle.id
                )
 
-      # expect 2 nil -> sub 1 and sub 4
-      assert Enum.filter(student_grade_report_entries, &is_nil/1) |> length() == 2
-
-      # remove nil
-      student_grade_report_entries = Enum.filter(student_grade_report_entries, &(not is_nil(&1)))
-
-      assert Enum.find(
-               student_grade_report_entries,
-               &(&1.student_id == std.id and &1.normalized_value == 0.85 and
-                   &1.ordinal_value_id == ov_b.id and
-                   &1.grades_report_subject_id == grades_report_subject_2.id)
-             )
-
-      assert Enum.find(
-               student_grade_report_entries,
-               &(&1.student_id == std.id and &1.normalized_value == 0.4 and
-                   &1.ordinal_value_id == ov_e.id and
-                   &1.grades_report_subject_id == grades_report_subject_3.id and
-                   &1.id == student_grade_report_entry_3_id)
-             )
-
-      # previously calculated sub 1 should not exist anymore
+      # sub 1 - previously calculated should not exist anymore
       assert Repo.get(StudentGradeReportEntry, student_grade_report_entry_1_id) |> is_nil()
+
+      # sub 2
+      expected_student_id = std.id
+      expected_ordinal_value_id = ov_b.id
+
+      assert %{
+               student_id: ^expected_student_id,
+               normalized_value: 0.85,
+               ordinal_value_id: ^expected_ordinal_value_id
+             } =
+               Repo.get_by(
+                 StudentGradeReportEntry,
+                 student_id: std.id,
+                 grades_report_cycle_id: grades_report_cycle.id,
+                 grades_report_subject_id: grades_report_subject_2.id
+               )
+
+      # sub 3
+      expected_ordinal_value_id = ov_e.id
+      expected_grades_report_cycle_id = grades_report_cycle.id
+      expected_grades_report_subject_id = grades_report_subject_3.id
+
+      assert %{
+               student_id: ^expected_student_id,
+               normalized_value: 0.4,
+               ordinal_value_id: ^expected_ordinal_value_id,
+               grades_report_cycle_id: ^expected_grades_report_cycle_id,
+               grades_report_subject_id: ^expected_grades_report_subject_id
+             } =
+               Repo.get(
+                 StudentGradeReportEntry,
+                 student_grade_report_entry_3_id
+               )
+
+      # sub 4 - should not exist
+      assert Repo.get_by(
+               StudentGradeReportEntry,
+               student_id: std.id,
+               grades_report_cycle_id: grades_report_cycle.id,
+               grades_report_subject_id: grades_report_subject_4.id
+             )
+             |> is_nil()
     end
 
     test "calculate_subject_grades/4 returns the correct student grades report entries for given cycle and subject" do
@@ -1107,7 +1132,7 @@ defmodule Lanttern.GradesReportsTest do
       # extra cases setup
 
       # UPDATE CASE - pre calculate student 3
-      {:ok, %{id: student_3_grade_report_entry_id}} =
+      {:ok, %{id: student_3_grade_report_entry_id}, :created} =
         GradesReports.calculate_student_grade(
           std_3.id,
           grades_report.id,
@@ -1116,7 +1141,7 @@ defmodule Lanttern.GradesReportsTest do
         )
 
       # UPDATE + EMPTY - pre calculate student 1, then delete entries
-      {:ok, %{id: student_1_grade_report_entry_id}} =
+      {:ok, %{id: student_1_grade_report_entry_id}, :created} =
         GradesReports.calculate_student_grade(
           std_1.id,
           grades_report.id,
@@ -1130,7 +1155,7 @@ defmodule Lanttern.GradesReportsTest do
 
       # assert
 
-      assert {:ok, student_grade_report_entries} =
+      assert {:ok, %{created: 1, updated: 1, deleted: 1, noop: 1}} =
                GradesReports.calculate_subject_grades(
                  [std_1.id, std_2.id, std_3.id, std_4.id],
                  grades_report.id,
@@ -1138,29 +1163,49 @@ defmodule Lanttern.GradesReportsTest do
                  grades_report_subject.id
                )
 
-      # expect 2 nil -> student 1 and student 4
-      assert Enum.filter(student_grade_report_entries, &is_nil/1) |> length() == 2
-
-      # remove nil
-      student_grade_report_entries = Enum.filter(student_grade_report_entries, &(not is_nil(&1)))
-
-      assert Enum.find(
-               student_grade_report_entries,
-               &(&1.student_id == std_2.id and &1.normalized_value == 0.85 and
-                   &1.ordinal_value_id == ov_b.id and
-                   &1.grades_report_subject_id == grades_report_subject.id)
-             )
-
-      assert Enum.find(
-               student_grade_report_entries,
-               &(&1.student_id == std_3.id and &1.normalized_value == 0.4 and
-                   &1.ordinal_value_id == ov_e.id and
-                   &1.grades_report_subject_id == grades_report_subject.id and
-                   &1.id == student_3_grade_report_entry_id)
-             )
-
-      # previously calculated student 1 should not exist anymore
+      # std 1 - previously calculated should not exist anymore
       assert Repo.get(StudentGradeReportEntry, student_1_grade_report_entry_id) |> is_nil()
+
+      # sub 2
+      expected_ordinal_value_id = ov_b.id
+
+      assert %{
+               normalized_value: 0.85,
+               ordinal_value_id: ^expected_ordinal_value_id
+             } =
+               Repo.get_by(
+                 StudentGradeReportEntry,
+                 student_id: std_2.id,
+                 grades_report_cycle_id: grades_report_cycle.id,
+                 grades_report_subject_id: grades_report_subject.id
+               )
+
+      # sub 3
+      expected_student_id = std_3.id
+      expected_ordinal_value_id = ov_e.id
+      expected_grades_report_cycle_id = grades_report_cycle.id
+      expected_grades_report_subject_id = grades_report_subject.id
+
+      assert %{
+               normalized_value: 0.4,
+               student_id: ^expected_student_id,
+               ordinal_value_id: ^expected_ordinal_value_id,
+               grades_report_cycle_id: ^expected_grades_report_cycle_id,
+               grades_report_subject_id: ^expected_grades_report_subject_id
+             } =
+               Repo.get(
+                 StudentGradeReportEntry,
+                 student_3_grade_report_entry_id
+               )
+
+      # sub 4 - should not exist
+      assert Repo.get_by(
+               StudentGradeReportEntry,
+               student_id: std_4.id,
+               grades_report_cycle_id: grades_report_cycle.id,
+               grades_report_subject_id: grades_report_subject.id
+             )
+             |> is_nil()
     end
   end
 
