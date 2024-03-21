@@ -4,6 +4,7 @@ defmodule Lanttern.GradesReports do
   """
 
   import Ecto.Query, warn: false
+  alias Lanttern.Reporting
   alias Lanttern.Schools.Student
   alias Lanttern.Repo
 
@@ -115,41 +116,85 @@ defmodule Lanttern.GradesReports do
   end
 
   @doc """
-  Calculate student grade based for given grades report cycle and subject.
+  Calculate student grade for given grades report cycle and subject.
   """
   @spec calculate_student_grade(
           student_id :: integer(),
+          grades_report_id :: integer(),
           grades_report_cycle_id :: integer(),
           grades_report_subject_id :: integer()
         ) ::
-          {:ok, StudentGradeReportEntry.t()} | {:error, Ecto.Changeset.t()}
-  def calculate_student_grade(student_id, grades_report_cycle_id, grades_report_subject_id) do
-    entries_grade_components_and_assessment_points =
-      from(
-        e in AssessmentPointEntry,
-        join: s in assoc(e, :scale),
-        left_join: ov in assoc(e, :ordinal_value),
-        join: ap in assoc(e, :assessment_point),
-        join: gc in assoc(ap, :grade_components),
-        join: rc in assoc(gc, :report_card),
-        join: gr in assoc(rc, :grades_report),
-        join: grc in assoc(gr, :grades_report_cycles),
-        join: grs in GradesReportSubject,
-        on: grs.grades_report_id == gr.id and grs.subject_id == gc.subject_id,
-        where: e.student_id == ^student_id,
-        where: grc.id == ^grades_report_cycle_id,
-        where: grs.id == ^grades_report_subject_id,
-        preload: [ordinal_value: ov, scale: s],
-        select: {e, gc}
-      )
-      |> Repo.all()
+          {:ok, StudentGradeReportEntry.t() | nil} | {:error, Ecto.Changeset.t()}
+  def calculate_student_grade(
+        student_id,
+        grades_report_id,
+        grades_report_cycle_id,
+        grades_report_subject_id
+      ) do
+    # get grades report scale
+    %{scale: scale} = Reporting.get_grades_report!(grades_report_id, preloads: :scale)
 
-    {scale, grades_report} =
-      get_scale_and_grades_report_from_grades_report_cycle(grades_report_cycle_id)
+    from(
+      e in AssessmentPointEntry,
+      join: s in assoc(e, :scale),
+      left_join: ov in assoc(e, :ordinal_value),
+      join: ap in assoc(e, :assessment_point),
+      join: gc in assoc(ap, :grade_components),
+      join: rc in assoc(gc, :report_card),
+      join: gr in assoc(rc, :grades_report),
+      join: grc in assoc(gr, :grades_report_cycles),
+      join: grs in GradesReportSubject,
+      on: grs.grades_report_id == gr.id and grs.subject_id == gc.subject_id,
+      where: e.student_id == ^student_id,
+      where: gr.id == ^grades_report_id,
+      where: grc.id == ^grades_report_cycle_id,
+      where: grs.id == ^grades_report_subject_id,
+      preload: [ordinal_value: ov, scale: s],
+      select: {e, gc}
+    )
+    |> Repo.all()
+    |> handle_student_grades_report_entry_creation(
+      student_id,
+      grades_report_id,
+      grades_report_cycle_id,
+      grades_report_subject_id,
+      scale
+    )
+  end
 
+  defp handle_student_grades_report_entry_creation(
+         [],
+         student_id,
+         _grades_report_id,
+         grades_report_cycle_id,
+         grades_report_subject_id,
+         _scale
+       ) do
+    # delete existing student grade report entry if needed
+    Repo.get_by(StudentGradeReportEntry,
+      student_id: student_id,
+      grades_report_cycle_id: grades_report_cycle_id,
+      grades_report_subject_id: grades_report_subject_id
+    )
+    |> case do
+      nil -> nil
+      sgre -> delete_student_grade_report_entry(sgre)
+    end
+
+    {:ok, nil}
+  end
+
+  defp handle_student_grades_report_entry_creation(
+         entries_and_grade_components,
+         student_id,
+         grades_report_id,
+         grades_report_cycle_id,
+         grades_report_subject_id,
+         scale
+       ) do
     # calculate the weighted average
     {sumprod, sumweight} =
-      entries_grade_components_and_assessment_points
+      entries_and_grade_components
       |> Enum.reduce({0, 0}, fn {e, gc}, {sumprod, sumweight} ->
         {get_normalized_value_from_entry(e) * gc.weight + sumprod, gc.weight + sumweight}
       end)
@@ -157,34 +202,59 @@ defmodule Lanttern.GradesReports do
     normalized_avg = Float.round(sumprod / sumweight, 5)
     scale_value = Grading.convert_normalized_value_to_scale_value(normalized_avg, scale)
 
-    # setup student grade report entry attrs and create
-    case scale_value do
-      %OrdinalValue{} = ordinal_value ->
-        %{ordinal_value_id: ordinal_value.id}
+    # setup student grade report entry attrs
+    attrs =
+      case scale_value do
+        %OrdinalValue{} = ordinal_value ->
+          %{ordinal_value_id: ordinal_value.id}
 
-      score ->
-        %{score: score}
-    end
-    |> Enum.into(%{
+        score ->
+          %{score: score}
+      end
+      |> Enum.into(%{
+        student_id: student_id,
+        normalized_value: normalized_avg,
+        grades_report_id: grades_report_id,
+        grades_report_cycle_id: grades_report_cycle_id,
+        grades_report_subject_id: grades_report_subject_id
+      })
+
+    # create or update existing student grade report entry
+    Repo.get_by(StudentGradeReportEntry,
       student_id: student_id,
-      normalized_value: normalized_avg,
-      grades_report_id: grades_report.id,
       grades_report_cycle_id: grades_report_cycle_id,
       grades_report_subject_id: grades_report_subject_id
-    })
-    |> create_student_grade_report_entry()
+    )
+    |> case do
+      nil -> create_student_grade_report_entry(attrs)
+      sgre -> update_student_grade_report_entry(sgre, attrs)
+    end
   end
+
+  defp get_normalized_value_from_entry(%AssessmentPointEntry{scale_type: "ordinal"} = entry),
+    do: entry.ordinal_value.normalized_value
+
+  defp get_normalized_value_from_entry(%AssessmentPointEntry{scale_type: "numeric"} = entry),
+    do: (entry.score - entry.scale.start) / (entry.scale.stop - entry.scale.start)
 
   @doc """
   Calculate student grades for all subjects in given grades report cycle.
   """
   @spec calculate_student_grades(
           student_id :: integer(),
+          grades_report_id :: integer(),
           grades_report_cycle_id :: integer()
         ) ::
-          {:ok, [StudentGradeReportEntry.t()]} | {:error, Ecto.Changeset.t()}
-  def calculate_student_grades(student_id, grades_report_cycle_id) do
-    entries_grade_components_and_grades_report_subject =
+          {:ok, [StudentGradeReportEntry.t() | nil]} | {:error, Ecto.Changeset.t()}
+  def calculate_student_grades(student_id, grades_report_id, grades_report_cycle_id) do
+    # get grades report scale and all report subjects
+    %{
+      scale: scale,
+      grades_report_subjects: grades_report_subjects
+    } =
+      Reporting.get_grades_report!(grades_report_id, preloads: [:scale, :grades_report_subjects])
+
+    grades_report_subject_entries_grade_components =
       from(
         e in AssessmentPointEntry,
         join: s in assoc(e, :scale),
@@ -199,96 +269,86 @@ defmodule Lanttern.GradesReports do
         where: e.student_id == ^student_id,
         where: grc.id == ^grades_report_cycle_id,
         preload: [ordinal_value: ov, scale: s],
-        select: {e, gc, grs}
+        select: {e, gc, grs.id}
       )
       |> Repo.all()
-
-    {scale, grades_report} =
-      get_scale_and_grades_report_from_grades_report_cycle(grades_report_cycle_id)
-
-    # group entries by grades report subject,
-    # calculate normalized values for each group,
-    # and get scale value conversion
-    grades_report_subjects_n_values_and_scale_values =
-      entries_grade_components_and_grades_report_subject
-      |> Enum.group_by(fn {_e, _gc, grs} -> grs.id end)
-      |> Enum.map(fn {grs_id, e_gc_grs_list} ->
-        # calculate the weighted average
-        {sumprod, sumweight} =
-          e_gc_grs_list
-          |> Enum.reduce({0, 0}, fn {e, gc, _grs}, {sumprod, sumweight} ->
-            {get_normalized_value_from_entry(e) * gc.weight + sumprod, gc.weight + sumweight}
-          end)
-
-        normalized_avg = Float.round(sumprod / sumweight, 5)
-        scale_value = Grading.convert_normalized_value_to_scale_value(normalized_avg, scale)
-
-        {grs_id, normalized_avg, scale_value}
-      end)
+      |> Enum.group_by(
+        fn {_e, _gc, grs_id} -> grs_id end,
+        fn {e, gc, _grs_id} -> {e, gc} end
+      )
 
     Repo.transaction(fn ->
-      %{
-        student_id: student_id,
-        grades_report_id: grades_report.id,
-        grades_report_cycle_id: grades_report_cycle_id
-      }
-      |> do_create_student_grade_report_entry(grades_report_subjects_n_values_and_scale_values)
+      grades_report_subjects
+      |> Enum.map(fn grades_report_subject ->
+        {
+          grades_report_subject.id,
+          Map.get(
+            grades_report_subject_entries_grade_components,
+            grades_report_subject.id,
+            []
+          )
+        }
+      end)
+      |> handle_grades_report_subject_entries_and_grade_components(
+        student_id,
+        grades_report_id,
+        grades_report_cycle_id,
+        scale
+      )
     end)
   end
 
-  defp do_create_student_grade_report_entry(base_map, grsid_nv_sv_list, entries \\ [])
+  defp handle_grades_report_subject_entries_and_grade_components(
+         grades_report_subject_entries_grade_components,
+         student_id,
+         grades_report_id,
+         grades_report_cycle_id,
+         scale,
+         results \\ []
+       )
 
-  defp do_create_student_grade_report_entry(_base_map, [], entries), do: entries
+  defp handle_grades_report_subject_entries_and_grade_components(
+         [],
+         _student_id,
+         _grades_report_id,
+         _grades_report_cycle_id,
+         _scale,
+         results
+       ),
+       do: results
 
-  defp do_create_student_grade_report_entry(
-         %{} = base_map,
+  defp handle_grades_report_subject_entries_and_grade_components(
          [
-           {grs_id, normalized_value, scale_value} | grsid_nv_sv_list
+           {grs_id, entries_and_grade_components} | grades_report_subject_entries_grade_components
          ],
-         entries
+         student_id,
+         grades_report_id,
+         grades_report_cycle_id,
+         scale,
+         results
        ) do
-    # setup student grade report entry attrs and create
-    case scale_value do
-      %OrdinalValue{} = ordinal_value ->
-        %{ordinal_value_id: ordinal_value.id}
-
-      score ->
-        %{score: score}
-    end
-    |> Enum.into(%{
-      normalized_value: normalized_value,
-      grades_report_subject_id: grs_id
-    })
-    |> Enum.into(base_map)
-    |> create_student_grade_report_entry()
+    handle_student_grades_report_entry_creation(
+      entries_and_grade_components,
+      student_id,
+      grades_report_id,
+      grades_report_cycle_id,
+      grs_id,
+      scale
+    )
     |> case do
-      {:ok, student_grade_report_entry} ->
-        do_create_student_grade_report_entry(base_map, grsid_nv_sv_list, [
-          student_grade_report_entry | entries
-        ])
+      {:ok, result} ->
+        handle_grades_report_subject_entries_and_grade_components(
+          grades_report_subject_entries_grade_components,
+          student_id,
+          grades_report_id,
+          grades_report_cycle_id,
+          scale,
+          [result | results]
+        )
 
       {:error, changeset} ->
         Repo.rollback(changeset)
     end
-  end
-
-  # helpers
-
-  defp get_normalized_value_from_entry(%AssessmentPointEntry{scale_type: "ordinal"} = entry),
-    do: entry.ordinal_value.normalized_value
-
-  defp get_normalized_value_from_entry(%AssessmentPointEntry{scale_type: "numeric"} = entry),
-    do: (entry.score - entry.scale.start) / (entry.scale.stop - entry.scale.start)
-
-  defp get_scale_and_grades_report_from_grades_report_cycle(grades_report_cycle_id) do
-    from(
-      grc in GradesReportCycle,
-      join: gr in assoc(grc, :grades_report),
-      join: s in assoc(gr, :scale),
-      where: grc.id == ^grades_report_cycle_id,
-      select: {s, gr}
-    )
-    |> Repo.one!()
   end
 
   @doc """
@@ -303,6 +363,8 @@ defmodule Lanttern.GradesReports do
       }
 
   for the given students, grades report and cycle.
+
+  Ordinal values preloaded (manually) in student grade report entry.
   """
   @spec build_students_grades_map(
           student_ids :: [integer()],
@@ -321,13 +383,22 @@ defmodule Lanttern.GradesReports do
         sgre.grades_report_cycle_id == grc.id and
           sgre.grades_report_subject_id == grs.id and
           sgre.student_id == std.id,
+      left_join: ov in assoc(sgre, :ordinal_value),
       where: std.id in ^students_ids,
       where: grc.grades_report_id == ^grades_report_id,
       where: grc.school_cycle_id == ^cycle_id,
-      select: {std.id, grs.id, sgre}
+      select: {std.id, grs.id, sgre, ov}
     )
     |> Repo.all()
-    |> Enum.reduce(%{}, fn {std_id, grs_id, sgre}, acc ->
+    |> Enum.reduce(%{}, fn {std_id, grs_id, sgre, ov}, acc ->
+      # "preload" ordinal value in student grade report entry
+      sgre =
+        case sgre do
+          nil -> nil
+          sgre -> %{sgre | ordinal_value: ov}
+        end
+
+      # build student map
       std_map =
         Map.get(acc, std_id, %{})
         |> Map.put(grs_id, sgre)

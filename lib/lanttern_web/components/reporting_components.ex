@@ -1,5 +1,6 @@
 defmodule LantternWeb.ReportingComponents do
   use Phoenix.Component
+  alias Lanttern.GradesReports.StudentGradeReportEntry
   alias Phoenix.LiveView.JS
 
   import LantternWeb.Gettext
@@ -333,6 +334,15 @@ defmodule LantternWeb.ReportingComponents do
   attr :class, :any, default: nil
   attr :id, :string, default: nil
 
+  attr :on_calculate_student, :any,
+    required: true,
+    doc: "the function to trigger when clicking on calculate student. args: `student_id`"
+
+  attr :on_calculate_cell, :any,
+    required: true,
+    doc:
+      "the function to trigger when clicking on calculate cell. args: `student_id`, `grades_report_subject_id`"
+
   def student_grades_grid(assigns) do
     %{
       students: students,
@@ -386,13 +396,24 @@ defmodule LantternWeb.ReportingComponents do
           class="grid grid-cols-subgrid"
           style={@grid_column_style}
         >
-          <div class="p-4 rounded bg-white shadow-lg">
+          <div class="flex items-center gap-2 p-4 rounded bg-white shadow-lg">
             <%= student.name %>
+            <.icon_button
+              name="hero-arrow-path-mini"
+              theme="white"
+              rounded
+              size="sm"
+              sr_text={gettext("Calculate student grades")}
+              phx-click={@on_calculate_student.(student.id)}
+            />
           </div>
           <%= if @has_subjects do %>
             <.student_grades_grid_cell
               :for={grades_report_subject <- @grades_report_subjects}
               student_grade_report_entry={@students_grades_map[student.id][grades_report_subject.id]}
+              on_calculate_cell={@on_calculate_cell}
+              grades_report_subject_id={grades_report_subject.id}
+              student_id={student.id}
             />
           <% else %>
             <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
@@ -414,9 +435,42 @@ defmodule LantternWeb.ReportingComponents do
     """
   end
 
+  attr :student_grade_report_entry, StudentGradeReportEntry, default: nil
+  attr :student_id, :integer, default: nil
+  attr :grades_report_subject_id, :integer, default: nil
+  attr :on_calculate_cell, :any, default: nil
+
+  defp student_grades_grid_cell(
+         %{student_grade_report_entry: %StudentGradeReportEntry{}} = assigns
+       ) do
+    ~H"""
+    <div class="flex items-center justify-center gap-2 rounded border border-ltrn-lighter bg-ltrn-lightest">
+      <%= @student_grade_report_entry.ordinal_value.name %>
+      <.icon_button
+        name="hero-arrow-path-mini"
+        theme="white"
+        rounded
+        size="sm"
+        sr_text={gettext("Recalculate grade")}
+        phx-click={@on_calculate_cell.(@student_id, @grades_report_subject_id)}
+      />
+    </div>
+    """
+  end
+
   defp student_grades_grid_cell(assigns) do
     ~H"""
-    <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+    <div class="flex items-center justify-center gap-2 rounded border border-ltrn-lighter bg-ltrn-lightest">
+      —
+      <.icon_button
+        name="hero-arrow-path-mini"
+        theme="white"
+        rounded
+        size="sm"
+        sr_text={gettext("Calculate grade")}
+        phx-click={@on_calculate_cell.(@student_id, @grades_report_subject_id)}
+      />
+    </div>
     """
   end
 end

@@ -29,39 +29,54 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
               on_composition_click={JS.push("edit_subject_grade_composition", target: @myself)}
             />
           <% else %>
-            <h3 class="mb-4 font-display font-bold text-2xl">
-              <%= gettext("Grades report grid") %>
-            </h3>
             <.empty_state>
               <%= gettext("No grades report linked to this report card.") %>
             </.empty_state>
           <% end %>
         </div>
       </div>
-      <div class="container mx-auto lg:max-w-5xl mt-10">
-        <p class="font-display font-bold text-2xl">
-          <%= gettext("Viewing") %>
-          <button
-            type="button"
-            class="inline text-left underline hover:text-ltrn-subtle"
-            phx-click={JS.exec("data-show", to: "#global-filters")}
-          >
-            <%= if length(@selected_classes) > 0 do
-              @selected_classes
-              |> Enum.map(& &1.name)
-              |> Enum.join(", ")
-            else
-              gettext("all classes")
-            end %>
-          </button>
-        </p>
-      </div>
-      <div>
-        <.student_grades_grid
-          students={@students}
-          grades_report_subjects={@grades_report.grades_report_subjects}
-          students_grades_map={@students_grades_map}
-        />
+      <div :if={@grades_report}>
+        <div class="container mx-auto lg:max-w-5xl mt-10">
+          <p class="font-display font-bold text-2xl">
+            <%= gettext("Viewing") %>
+            <button
+              type="button"
+              class="inline text-left underline hover:text-ltrn-subtle"
+              phx-click={JS.exec("data-show", to: "#global-filters")}
+            >
+              <%= if length(@selected_classes) > 0 do
+                @selected_classes
+                |> Enum.map(& &1.name)
+                |> Enum.join(", ")
+              else
+                gettext("all classes")
+              end %>
+            </button>
+          </p>
+        </div>
+        <div>
+          <.student_grades_grid
+            students={@students}
+            grades_report_subjects={@grades_report.grades_report_subjects}
+            students_grades_map={@students_grades_map}
+            on_calculate_student={
+              fn student_id ->
+                JS.push("calculate_student",
+                  value: %{student_id: student_id},
+                  target: @myself
+                )
+              end
+            }
+            on_calculate_cell={
+              fn student_id, grades_report_subject_id ->
+                JS.push("calculate_cell",
+                  value: %{student_id: student_id, grades_report_subject_id: grades_report_subject_id},
+                  target: @myself
+                )
+              end
+            }
+          />
+        </div>
       </div>
       <.slide_over
         :if={@is_editing_grade_composition}
@@ -249,6 +264,14 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
           id -> Reporting.get_grades_report(id, load_grid: true)
         end
       end)
+      |> assign_new(:current_grades_report_cycle, fn
+        %{grades_report: nil} ->
+          nil
+
+        %{report_card: report_card, grades_report: grades_report} ->
+          grades_report.grades_report_cycles
+          |> Enum.find(&(&1.school_cycle_id == report_card.school_cycle_id))
+      end)
       |> assign_is_editing_grade_composition(assigns)
       |> assign_user_filters([:classes], assigns.current_user)
       |> assign_students_grades_grid()
@@ -298,11 +321,17 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
       Schools.list_students(classes_ids: socket.assigns.selected_classes_ids)
 
     students_grades_map =
-      GradesReports.build_students_grades_map(
-        Enum.map(students, & &1.id),
-        socket.assigns.grades_report.id,
-        socket.assigns.report_card.school_cycle_id
-      )
+      case socket.assigns.grades_report do
+        nil ->
+          nil
+
+        grades_report ->
+          GradesReports.build_students_grades_map(
+            Enum.map(students, & &1.id),
+            grades_report.id,
+            socket.assigns.report_card.school_cycle_id
+          )
+      end
 
     socket
     |> assign(:students, students)
@@ -419,5 +448,55 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
       {:error, msg} ->
         {:noreply, put_flash(socket, :error, msg)}
     end
+  end
+
+  def handle_event("calculate_student", params, socket) do
+    %{
+      "student_id" => student_id
+    } = params
+
+    socket =
+      GradesReports.calculate_student_grades(
+        student_id,
+        socket.assigns.grades_report.id,
+        socket.assigns.current_grades_report_cycle.id
+      )
+      |> case do
+        {:ok, _} ->
+          socket
+          |> put_flash(:info, gettext("Grades calculated succesfully"))
+          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=grades")
+
+        {:error, _} ->
+          put_flash(socket, :error, gettext("Something went wrong"))
+      end
+
+    {:noreply, socket}
+  end
+
+  def handle_event("calculate_cell", params, socket) do
+    %{
+      "grades_report_subject_id" => grades_report_subject_id,
+      "student_id" => student_id
+    } = params
+
+    socket =
+      GradesReports.calculate_student_grade(
+        student_id,
+        socket.assigns.grades_report.id,
+        socket.assigns.current_grades_report_cycle.id,
+        grades_report_subject_id
+      )
+      |> case do
+        {:ok, _} ->
+          socket
+          |> put_flash(:info, gettext("Grade calculated succesfully"))
+          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=grades")
+
+        {:error, _} ->
+          put_flash(socket, :error, gettext("Something went wrong"))
+      end
+
+    {:noreply, socket}
   end
 end

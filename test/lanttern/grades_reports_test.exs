@@ -112,6 +112,7 @@ defmodule Lanttern.GradesReportsTest do
     alias Lanttern.GradesReports.StudentGradeReportEntry
 
     import Lanttern.GradesReportsFixtures
+    alias Lanttern.Assessments
     alias Lanttern.AssessmentsFixtures
     alias Lanttern.GradingFixtures
     alias Lanttern.LearningContextFixtures
@@ -137,6 +138,11 @@ defmodule Lanttern.GradesReportsTest do
       # eme - pro - ach = 0.69167 = C
       # ach - ach - exc = 0.92500 = A
       # eme - pro - pro = 0.56667 = D (use diff in ap3)
+      #
+      # extra test cases
+      # update - running the function for an existing student/subject/cycle should update it
+      # nil - when there's no entries, it should return {:ok, nil}
+      # nil + update - when there's no entries but there's an existing student/subject/cycle, delete it
 
       marking_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
 
@@ -339,6 +345,7 @@ defmodule Lanttern.GradesReportsTest do
               }} =
                GradesReports.calculate_student_grade(
                  std_1.id,
+                 grades_report.id,
                  grades_report_cycle.id,
                  grades_report_subject.id
                )
@@ -384,6 +391,7 @@ defmodule Lanttern.GradesReportsTest do
               }} =
                GradesReports.calculate_student_grade(
                  std_2.id,
+                 grades_report.id,
                  grades_report_cycle.id,
                  grades_report_subject.id
                )
@@ -391,7 +399,7 @@ defmodule Lanttern.GradesReportsTest do
       # case 3 (diff)
       std_3 = SchoolsFixtures.student_fixture()
 
-      _entry_3_1 =
+      entry_3_1 =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           student_id: std_3.id,
           assessment_point_id: goal_1.id,
@@ -400,7 +408,7 @@ defmodule Lanttern.GradesReportsTest do
           ordinal_value_id: ov_eme.id
         })
 
-      _entry_3_2 =
+      entry_3_2 =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           student_id: std_3.id,
           assessment_point_id: goal_2.id,
@@ -409,7 +417,7 @@ defmodule Lanttern.GradesReportsTest do
           ordinal_value_id: ov_pro.id
         })
 
-      _entry_3_diff =
+      entry_3_diff =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           student_id: std_3.id,
           assessment_point_id: goal_diff.id,
@@ -423,12 +431,62 @@ defmodule Lanttern.GradesReportsTest do
 
       assert {:ok,
               %StudentGradeReportEntry{
+                id: sgre_3_id,
                 student_id: ^expected_std_id,
                 normalized_value: 0.56667,
                 ordinal_value_id: ^expected_ov_id
               }} =
                GradesReports.calculate_student_grade(
                  std_3.id,
+                 grades_report.id,
+                 grades_report_cycle.id,
+                 grades_report_subject.id
+               )
+
+      # UPDATE CASE
+      # when calculating for an existing student/cycle/subject, update the entry
+      assert {:ok,
+              %StudentGradeReportEntry{
+                id: ^sgre_3_id,
+                student_id: ^expected_std_id,
+                normalized_value: 0.56667,
+                ordinal_value_id: ^expected_ov_id
+              }} =
+               GradesReports.calculate_student_grade(
+                 std_3.id,
+                 grades_report.id,
+                 grades_report_cycle.id,
+                 grades_report_subject.id
+               )
+
+      # UPDATE + EMPTY CASE
+      # when calculating for an existing student/cycle/subject,
+      # that is now empty, delete the entry
+
+      # delete std 3 entries
+      Assessments.delete_assessment_point_entry(entry_3_1)
+      Assessments.delete_assessment_point_entry(entry_3_2)
+      Assessments.delete_assessment_point_entry(entry_3_diff)
+
+      assert {:ok, nil} =
+               GradesReports.calculate_student_grade(
+                 std_3.id,
+                 grades_report.id,
+                 grades_report_cycle.id,
+                 grades_report_subject.id
+               )
+
+      assert Repo.get(StudentGradeReportEntry, sgre_3_id) |> is_nil()
+
+      # EMPTY CASE
+      # case 4 (no entries)
+      std_4 = SchoolsFixtures.student_fixture()
+
+      # when there's no assessment point entries, return {:ok, nil}
+      assert {:ok, nil} =
+               GradesReports.calculate_student_grade(
+                 std_4.id,
+                 grades_report.id,
                  grades_report_cycle.id,
                  grades_report_subject.id
                )
@@ -446,12 +504,16 @@ defmodule Lanttern.GradesReportsTest do
       # ordinal scale, 5 levels A, B, C, D, E (1.0, 0.85, 0.7, 0.5, 0)
       # breakpoints: E - 0.5 - D - 0.6 - C - 0.8 - B - 0.9 - A
       #
-      # compositions (same for each strand): ap1 = w1, ap2 = w2, ap3 = w3
+      # compositions (same for each subject): ap1 = w1, ap2 = w2, ap3 = w3
       #
       # test cases (in ap order)
-      # exc - ach - pro = 0.75000 = C
+      # exc - ach - pro = 0.75000 = C (actually irrelevant, will be delete to test update + no entries case)
       # eme - ach - exc = 0.85000 = B
       # eme - eme - eme = 0.40000 = E
+      #
+      # no entries case: there's a 4th subject without entries. it should return nil
+      # update case: subject 3 will be pre calculated. the function should update the std grade report entry
+      # update + no entries case: when there's no entries but an existing student grades report entry, delete it
 
       marking_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
 
@@ -482,7 +544,7 @@ defmodule Lanttern.GradesReportsTest do
           normalized_value: 0.85
         })
 
-      ov_c =
+      _ov_c =
         GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.7})
 
       _ov_d =
@@ -552,6 +614,7 @@ defmodule Lanttern.GradesReportsTest do
       subject_1 = TaxonomyFixtures.subject_fixture()
       subject_2 = TaxonomyFixtures.subject_fixture()
       subject_3 = TaxonomyFixtures.subject_fixture()
+      subject_4 = TaxonomyFixtures.subject_fixture()
       cycle = SchoolsFixtures.cycle_fixture()
       grades_report = ReportingFixtures.grades_report_fixture(%{scale_id: grading_scale.id})
 
@@ -576,6 +639,12 @@ defmodule Lanttern.GradesReportsTest do
       grades_report_subject_3 =
         ReportingFixtures.grades_report_subject_fixture(%{
           subject_id: subject_3.id,
+          grades_report_id: grades_report.id
+        })
+
+      _grades_report_subject_4 =
+        ReportingFixtures.grades_report_subject_fixture(%{
+          subject_id: subject_4.id,
           grades_report_id: grades_report.id
         })
 
@@ -661,7 +730,7 @@ defmodule Lanttern.GradesReportsTest do
 
       # subject 1
 
-      _entry_1_1 =
+      entry_1_1 =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           student_id: std.id,
           assessment_point_id: goal_1_1.id,
@@ -670,7 +739,7 @@ defmodule Lanttern.GradesReportsTest do
           ordinal_value_id: ov_exc.id
         })
 
-      _entry_1_2 =
+      entry_1_2 =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           student_id: std.id,
           assessment_point_id: goal_1_2.id,
@@ -679,7 +748,7 @@ defmodule Lanttern.GradesReportsTest do
           ordinal_value_id: ov_ach.id
         })
 
-      _entry_1_3 =
+      entry_1_3 =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           student_id: std.id,
           assessment_point_id: goal_1_3.id,
@@ -746,18 +815,44 @@ defmodule Lanttern.GradesReportsTest do
           ordinal_value_id: ov_eme.id
         })
 
+      # extra cases setup
+
+      # UPDATE CASE - pre calculate subject 3
+      {:ok, %{id: student_grade_report_entry_3_id}} =
+        GradesReports.calculate_student_grade(
+          std.id,
+          grades_report.id,
+          grades_report_cycle.id,
+          grades_report_subject_3.id
+        )
+
+      # UPDATE + EMPTY - pre calculate subject 1, then delete entries
+      {:ok, %{id: student_grade_report_entry_1_id}} =
+        GradesReports.calculate_student_grade(
+          std.id,
+          grades_report.id,
+          grades_report_cycle.id,
+          grades_report_subject_1.id
+        )
+
+      Assessments.delete_assessment_point_entry(entry_1_1)
+      Assessments.delete_assessment_point_entry(entry_1_2)
+      Assessments.delete_assessment_point_entry(entry_1_3)
+
+      # assert
+
       assert {:ok, student_grade_report_entries} =
                GradesReports.calculate_student_grades(
                  std.id,
+                 grades_report.id,
                  grades_report_cycle.id
                )
 
-      assert Enum.find(
-               student_grade_report_entries,
-               &(&1.student_id == std.id and &1.normalized_value == 0.75 and
-                   &1.ordinal_value_id == ov_c.id and
-                   &1.grades_report_subject_id == grades_report_subject_1.id)
-             )
+      # expect 2 nil -> sub 1 and sub 4
+      assert Enum.filter(student_grade_report_entries, &is_nil/1) |> length() == 2
+
+      # remove nil
+      student_grade_report_entries = Enum.filter(student_grade_report_entries, &(not is_nil(&1)))
 
       assert Enum.find(
                student_grade_report_entries,
@@ -770,8 +865,12 @@ defmodule Lanttern.GradesReportsTest do
                student_grade_report_entries,
                &(&1.student_id == std.id and &1.normalized_value == 0.4 and
                    &1.ordinal_value_id == ov_e.id and
-                   &1.grades_report_subject_id == grades_report_subject_3.id)
+                   &1.grades_report_subject_id == grades_report_subject_3.id and
+                   &1.id == student_grade_report_entry_3_id)
              )
+
+      # previously calculated sub 1 should not exist anymore
+      assert Repo.get(StudentGradeReportEntry, student_grade_report_entry_1_id) |> is_nil()
     end
   end
 
@@ -794,6 +893,7 @@ defmodule Lanttern.GradesReportsTest do
       # sub 3 | entry_3_1 | entry_3_2 | nil
 
       scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
 
       cycle = SchoolsFixtures.cycle_fixture()
       grades_report = ReportingFixtures.grades_report_fixture(%{scale_id: scale.id})
@@ -828,7 +928,8 @@ defmodule Lanttern.GradesReportsTest do
           student_id: std_1.id,
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grades_report_cycle.id,
-          grades_report_subject_id: grades_report_subject_1.id
+          grades_report_subject_id: grades_report_subject_1.id,
+          ordinal_value_id: ov.id
         })
 
       entry_1_2 =
@@ -880,20 +981,32 @@ defmodule Lanttern.GradesReportsTest do
                  cycle.id
                )
 
-      assert expected_std_1 = Map.get(expected, std_1.id)
-      assert Map.get(expected_std_1, grades_report_subject_1.id) == entry_1_1
-      assert Map.get(expected_std_1, grades_report_subject_2.id) == entry_1_2
-      assert Map.get(expected_std_1, grades_report_subject_3.id) == entry_1_3
+      assert expected_std_1 = expected[std_1.id]
+      assert expected_entry_1_1 = expected_std_1[grades_report_subject_1.id]
+      assert expected_entry_1_1.id == entry_1_1.id
+      assert expected_entry_1_1.ordinal_value.id == ov.id
+      assert expected_entry_1_2 = expected_std_1[grades_report_subject_2.id]
+      assert expected_entry_1_2.id == entry_1_2.id
+      assert is_nil(expected_entry_1_2.ordinal_value)
+      assert expected_entry_1_3 = expected_std_1[grades_report_subject_3.id]
+      assert expected_entry_1_3.id == entry_1_3.id
+      assert is_nil(expected_entry_1_3.ordinal_value)
 
-      assert expected_std_2 = Map.get(expected, std_2.id)
-      assert Map.get(expected_std_2, grades_report_subject_1.id) == entry_2_1
-      refute Map.fetch!(expected_std_2, grades_report_subject_2.id)
-      refute Map.fetch!(expected_std_2, grades_report_subject_3.id)
+      assert expected_std_2 = expected[std_2.id]
+      assert expected_entry_2_1 = expected_std_2[grades_report_subject_1.id]
+      assert expected_entry_2_1.id == entry_2_1.id
+      assert is_nil(expected_entry_2_1.ordinal_value)
+      assert is_nil(expected_std_2[grades_report_subject_2.id])
+      assert is_nil(expected_std_2[grades_report_subject_3.id])
 
-      assert expected_std_3 = Map.get(expected, std_3.id)
-      assert Map.get(expected_std_3, grades_report_subject_1.id) == entry_3_1
-      assert Map.get(expected_std_3, grades_report_subject_2.id) == entry_3_2
-      refute Map.fetch!(expected_std_3, grades_report_subject_3.id)
+      assert expected_std_3 = expected[std_3.id]
+      assert expected_entry_3_1 = expected_std_3[grades_report_subject_1.id]
+      assert expected_entry_3_1.id == entry_3_1.id
+      assert is_nil(expected_entry_3_1.ordinal_value)
+      assert expected_entry_3_2 = expected_std_3[grades_report_subject_2.id]
+      assert expected_entry_3_2.id == entry_3_2.id
+      assert is_nil(expected_entry_3_2.ordinal_value)
+      assert is_nil(expected_std_3[grades_report_subject_3.id])
     end
   end
 end
