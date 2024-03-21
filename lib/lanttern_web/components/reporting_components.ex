@@ -352,10 +352,10 @@ defmodule LantternWeb.ReportingComponents do
     grid_template_columns_style =
       case length(grades_report_subjects) do
         n when n > 0 ->
-          "grid-template-columns: 160px repeat(#{n}, minmax(0, 1fr))"
+          "grid-template-columns: 200px repeat(#{n}, minmax(0, 1fr))"
 
         _ ->
-          "grid-template-columns: 160px minmax(0, 1fr)"
+          "grid-template-columns: 200px minmax(0, 1fr)"
       end
 
     grid_column_style =
@@ -397,7 +397,9 @@ defmodule LantternWeb.ReportingComponents do
           style={@grid_column_style}
         >
           <div class="flex items-center gap-2 p-4 rounded bg-white shadow-lg">
-            <%= student.name %>
+            <span class="flex-1 truncate">
+              <%= student.name %>
+            </span>
             <.icon_button
               name="hero-arrow-path-mini"
               theme="white"
