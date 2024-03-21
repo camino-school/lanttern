@@ -381,7 +381,8 @@ defmodule Lanttern.GradesReports do
           grades_report_cycle_id :: integer(),
           grades_report_subject_id :: integer()
         ) ::
-          {:ok, [StudentGradeReportEntry.t() | nil]} | {:error, Ecto.Changeset.t()}
+          {:ok, %{created: integer(), updated: integer(), deleted: integer(), noop: integer()}}
+          | {:error, Ecto.Changeset.t()}
   def calculate_subject_grades(
         students_ids,
         grades_report_id,
@@ -481,6 +482,127 @@ defmodule Lanttern.GradesReports do
           grades_report_id,
           grades_report_cycle_id,
           grades_report_subject_id,
+          scale,
+          Map.update!(results, operation, &(&1 + 1))
+        )
+
+      {:error, changeset} ->
+        Repo.rollback(changeset)
+    end
+  end
+
+  @doc """
+  Calculate all grades for given students and grades report cycle.
+  """
+  @spec calculate_cycle_grades(
+          students_ids :: [integer()],
+          grades_report_id :: integer(),
+          grades_report_cycle_id :: integer()
+        ) ::
+          {:ok, %{created: integer(), updated: integer(), deleted: integer(), noop: integer()}}
+          | {:error, Ecto.Changeset.t()}
+  def calculate_cycle_grades(
+        students_ids,
+        grades_report_id,
+        grades_report_cycle_id
+      ) do
+    # get grades report scale and all report subjects
+    %{
+      scale: scale,
+      grades_report_subjects: grades_report_subjects
+    } =
+      Reporting.get_grades_report!(grades_report_id, preloads: [:scale, :grades_report_subjects])
+
+    students_grades_report_subject_entries_grade_components =
+      from(
+        e in AssessmentPointEntry,
+        join: s in assoc(e, :scale),
+        left_join: ov in assoc(e, :ordinal_value),
+        join: ap in assoc(e, :assessment_point),
+        join: gc in assoc(ap, :grade_components),
+        join: rc in assoc(gc, :report_card),
+        join: gr in assoc(rc, :grades_report),
+        join: grc in assoc(gr, :grades_report_cycles),
+        join: grs in GradesReportSubject,
+        on: grs.grades_report_id == gr.id and grs.subject_id == gc.subject_id,
+        where: e.student_id in ^students_ids,
+        where: gr.id == ^grades_report_id,
+        where: grc.id == ^grades_report_cycle_id,
+        preload: [ordinal_value: ov, scale: s],
+        select: {e, gc, grs.id, e.student_id}
+      )
+      |> Repo.all()
+      |> Enum.group_by(
+        fn {_e, _gc, grs_id, std_id} -> "#{std_id}_#{grs_id}" end,
+        fn {e, gc, _grs_id, _std_id} -> {e, gc} end
+      )
+
+    Repo.transaction(fn ->
+      students_ids
+      |> Enum.flat_map(fn student_id ->
+        grades_report_subjects
+        |> Enum.map(&{student_id, &1.id})
+      end)
+      |> Enum.map(fn {std_id, grs_id} ->
+        {
+          std_id,
+          grs_id,
+          Map.get(
+            students_grades_report_subject_entries_grade_components,
+            "#{std_id}_#{grs_id}",
+            []
+          )
+        }
+      end)
+      |> handle_students_grades_report_subjects_entries_and_grade_components(
+        grades_report_id,
+        grades_report_cycle_id,
+        scale
+      )
+    end)
+  end
+
+  defp handle_students_grades_report_subjects_entries_and_grade_components(
+         student_grades_report_subject_entries_and_grade_components,
+         grades_report_id,
+         grades_report_cycle_id,
+         scale,
+         results \\ %{created: 0, updated: 0, deleted: 0, noop: 0}
+       )
+
+  defp handle_students_grades_report_subjects_entries_and_grade_components(
+         [],
+         _grades_report_id,
+         _grades_report_cycle_id,
+         _scale,
+         results
+       ),
+       do: results
+
+  defp handle_students_grades_report_subjects_entries_and_grade_components(
+         [
+           {std_id, grs_id, entries_and_grade_components}
+           | student_grades_report_subject_entries_and_grade_components
+         ],
+         grades_report_id,
+         grades_report_cycle_id,
+         scale,
+         results
+       ) do
+    handle_student_grades_report_entry_creation(
+      entries_and_grade_components,
+      std_id,
+      grades_report_id,
+      grades_report_cycle_id,
+      grs_id,
+      scale
+    )
+    |> case do
+      {:ok, _result, operation} ->
+        handle_students_grades_report_subjects_entries_and_grade_components(
+          student_grades_report_subject_entries_and_grade_components,
+          grades_report_id,
+          grades_report_cycle_id,
           scale,
           Map.update!(results, operation, &(&1 + 1))
         )

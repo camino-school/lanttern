@@ -59,6 +59,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
             students={@students}
             grades_report_subjects={@grades_report.grades_report_subjects}
             students_grades_map={@students_grades_map}
+            on_calculate_cycle={fn -> JS.push("calculate_cycle", target: @myself) end}
             on_calculate_student={
               fn student_id ->
                 JS.push("calculate_student",
@@ -458,6 +459,30 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
     end
   end
 
+  def handle_event("calculate_cycle", _params, socket) do
+    students_ids =
+      socket.assigns.students
+      |> Enum.map(& &1.id)
+
+    socket =
+      GradesReports.calculate_cycle_grades(
+        students_ids,
+        socket.assigns.grades_report.id,
+        socket.assigns.current_grades_report_cycle.id
+      )
+      |> case do
+        {:ok, _} ->
+          socket
+          |> put_flash(:info, gettext("Grades calculated succesfully"))
+          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=grades")
+
+        {:error, _} ->
+          put_flash(socket, :error, gettext("Something went wrong"))
+      end
+
+    {:noreply, socket}
+  end
+
   def handle_event("calculate_student", params, socket) do
     %{
       "student_id" => student_id
@@ -525,6 +550,11 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
         grades_report_subject_id
       )
       |> case do
+        {:ok, nil, _} ->
+          socket
+          |> put_flash(:error, gettext("No assessment point entries for this grade composition"))
+          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=grades")
+
         {:ok, _, _} ->
           socket
           |> put_flash(:info, gettext("Grade calculated succesfully"))

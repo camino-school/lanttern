@@ -334,6 +334,10 @@ defmodule LantternWeb.ReportingComponents do
   attr :class, :any, default: nil
   attr :id, :string, default: nil
 
+  attr :on_calculate_cycle, :any,
+    default: nil,
+    doc: "the function to trigger when clicking on calculate all"
+
   attr :on_calculate_student, :any,
     default: nil,
     doc: "the function to trigger when clicking on calculate student. args: `student_id`"
@@ -378,16 +382,27 @@ defmodule LantternWeb.ReportingComponents do
 
     ~H"""
     <div id={@id} class={["grid gap-1 text-sm", @class]} style={@grid_template_columns_style}>
-      <.button type="button" theme="ghost" icon_name="hero-cog-6-tooth-mini" phx-click={%JS{}}>
-        <%= gettext("Calculate") %>
-      </.button>
+      <%= if @on_calculate_cycle do %>
+        <.button
+          type="button"
+          theme="ghost"
+          icon_name="hero-arrow-path-mini"
+          phx-click={@on_calculate_cycle.()}
+        >
+          <%= gettext("Calculate all") %>
+        </.button>
+      <% else %>
+        <div></div>
+      <% end %>
       <%= if @has_subjects do %>
         <div
           :for={grades_report_subject <- @grades_report_subjects}
           id={"students-grades-grid-header-subject-#{grades_report_subject.id}"}
           class="flex items-center justify-center gap-2 p-4 rounded text-center bg-white shadow-lg"
         >
-          <%= grades_report_subject.subject.name %>
+          <span class="flex-1 truncate">
+            <%= grades_report_subject.subject.name %>
+          </span>
           <.icon_button
             :if={@on_calculate_subject}
             name="hero-arrow-path-mini"
@@ -482,7 +497,7 @@ defmodule LantternWeb.ReportingComponents do
       —
       <.icon_button
         :if={@on_calculate_cell}
-        name="hero-arrow-path-mini"
+        name="hero-plus-mini"
         theme="white"
         rounded
         size="sm"
