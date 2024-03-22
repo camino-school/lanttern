@@ -471,13 +471,20 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
         socket.assigns.current_grades_report_cycle.id
       )
       |> case do
-        {:ok, _} ->
+        {:ok, results} ->
           socket
-          |> put_flash(:info, gettext("Grades calculated succesfully"))
+          |> put_flash(
+            :info,
+            "#{gettext("Grades calculated succesfully")}. #{build_calculation_results_message(results)}"
+          )
           |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=grades")
 
-        {:error, _} ->
-          put_flash(socket, :error, gettext("Something went wrong"))
+        {:error, _, results} ->
+          put_flash(
+            socket,
+            :error,
+            "#{gettext("Something went wrong")}. #{gettext("Partial results")}: #{build_calculation_results_message(results)}"
+          )
       end
 
     {:noreply, socket}
@@ -495,13 +502,20 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
         socket.assigns.current_grades_report_cycle.id
       )
       |> case do
-        {:ok, _} ->
+        {:ok, results} ->
           socket
-          |> put_flash(:info, gettext("Student grades calculated succesfully"))
+          |> put_flash(
+            :info,
+            "#{gettext("Student grades calculated succesfully")}. #{build_calculation_results_message(results)}"
+          )
           |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=grades")
 
-        {:error, _} ->
-          put_flash(socket, :error, gettext("Something went wrong"))
+        {:error, _, results} ->
+          put_flash(
+            socket,
+            :error,
+            "#{gettext("Something went wrong")}. #{gettext("Partial results")}: #{build_calculation_results_message(results)}"
+          )
       end
 
     {:noreply, socket}
@@ -524,13 +538,20 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
         grades_report_subject_id
       )
       |> case do
-        {:ok, _} ->
+        {:ok, results} ->
           socket
-          |> put_flash(:info, gettext("Subject grades calculated succesfully"))
+          |> put_flash(
+            :info,
+            "#{gettext("Subject grades calculated succesfully")}. #{build_calculation_results_message(results)}"
+          )
           |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=grades")
 
-        {:error, _} ->
-          put_flash(socket, :error, gettext("Something went wrong"))
+        {:error, _, results} ->
+          put_flash(
+            socket,
+            :error,
+            "#{gettext("Something went wrong")}. #{gettext("Partial results")}: #{build_calculation_results_message(results)}"
+          )
       end
 
     {:noreply, socket}
@@ -565,5 +586,42 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
       end
 
     {:noreply, socket}
+  end
+
+  # helper
+
+  defp build_calculation_results_message(%{} = results),
+    do: build_calculation_results_message(Enum.map(results, & &1), [])
+
+  defp build_calculation_results_message([], msgs),
+    do: Enum.join(msgs, ", ")
+
+  defp build_calculation_results_message([{_operation, 0} | results], msgs),
+    do: build_calculation_results_message(results, msgs)
+
+  defp build_calculation_results_message([{:created, count} | results], msgs) do
+    msg = ngettext("1 grade created", "%{count} grades created", count)
+    build_calculation_results_message(results, [msg | msgs])
+  end
+
+  defp build_calculation_results_message([{:updated, count} | results], msgs) do
+    msg = ngettext("1 grade updated", "%{count} grades updated", count)
+    build_calculation_results_message(results, [msg | msgs])
+  end
+
+  defp build_calculation_results_message([{:deleted, count} | results], msgs) do
+    msg = ngettext("1 grade removed", "%{count} grades removed", count)
+    build_calculation_results_message(results, [msg | msgs])
+  end
+
+  defp build_calculation_results_message([{:noop, count} | results], msgs) do
+    msg =
+      ngettext(
+        "1 grade calculation skipped (no assessment point entries)",
+        "%{count} grades skipped (no assessment point entries)",
+        count
+      )
+
+    build_calculation_results_message(results, [msg | msgs])
   end
 end

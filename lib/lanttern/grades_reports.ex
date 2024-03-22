@@ -257,6 +257,13 @@ defmodule Lanttern.GradesReports do
   defp get_normalized_value_from_entry(%AssessmentPointEntry{scale_type: "numeric"} = entry),
     do: (entry.score - entry.scale.start) / (entry.scale.stop - entry.scale.start)
 
+  @type batch_calculation_results() :: %{
+          created: integer(),
+          updated: integer(),
+          deleted: integer(),
+          noop: integer()
+        }
+
   @doc """
   Calculate student grades for all subjects in given grades report cycle.
   """
@@ -265,8 +272,8 @@ defmodule Lanttern.GradesReports do
           grades_report_id :: integer(),
           grades_report_cycle_id :: integer()
         ) ::
-          {:ok, %{created: integer(), updated: integer(), deleted: integer(), noop: integer()}}
-          | {:error, Ecto.Changeset.t()}
+          {:ok, batch_calculation_results()}
+          | {:error, Ecto.Changeset.t(), batch_calculation_results()}
   def calculate_student_grades(student_id, grades_report_id, grades_report_cycle_id) do
     # get grades report scale and all report subjects
     %{
@@ -298,25 +305,23 @@ defmodule Lanttern.GradesReports do
         fn {e, gc, _grs_id} -> {e, gc} end
       )
 
-    Repo.transaction(fn ->
-      grades_report_subjects
-      |> Enum.map(fn grades_report_subject ->
-        {
+    grades_report_subjects
+    |> Enum.map(fn grades_report_subject ->
+      {
+        grades_report_subject.id,
+        Map.get(
+          grades_report_subject_entries_grade_components,
           grades_report_subject.id,
-          Map.get(
-            grades_report_subject_entries_grade_components,
-            grades_report_subject.id,
-            []
-          )
-        }
-      end)
-      |> handle_grades_report_subject_entries_and_grade_components(
-        student_id,
-        grades_report_id,
-        grades_report_cycle_id,
-        scale
-      )
+          []
+        )
+      }
     end)
+    |> handle_grades_report_subject_entries_and_grade_components(
+      student_id,
+      grades_report_id,
+      grades_report_cycle_id,
+      scale
+    )
   end
 
   defp handle_grades_report_subject_entries_and_grade_components(
@@ -336,7 +341,7 @@ defmodule Lanttern.GradesReports do
          _scale,
          results
        ),
-       do: results
+       do: {:ok, results}
 
   defp handle_grades_report_subject_entries_and_grade_components(
          [
@@ -368,7 +373,7 @@ defmodule Lanttern.GradesReports do
         )
 
       {:error, changeset} ->
-        Repo.rollback(changeset)
+        {:error, changeset, results}
     end
   end
 
@@ -381,8 +386,8 @@ defmodule Lanttern.GradesReports do
           grades_report_cycle_id :: integer(),
           grades_report_subject_id :: integer()
         ) ::
-          {:ok, %{created: integer(), updated: integer(), deleted: integer(), noop: integer()}}
-          | {:error, Ecto.Changeset.t()}
+          {:ok, batch_calculation_results()}
+          | {:error, Ecto.Changeset.t(), batch_calculation_results()}
   def calculate_subject_grades(
         students_ids,
         grades_report_id,
@@ -417,25 +422,23 @@ defmodule Lanttern.GradesReports do
         fn {e, gc, _std_id} -> {e, gc} end
       )
 
-    Repo.transaction(fn ->
-      students_ids
-      |> Enum.map(fn student_id ->
-        {
+    students_ids
+    |> Enum.map(fn student_id ->
+      {
+        student_id,
+        Map.get(
+          students_entries_grade_components,
           student_id,
-          Map.get(
-            students_entries_grade_components,
-            student_id,
-            []
-          )
-        }
-      end)
-      |> handle_students_entries_and_grade_components(
-        grades_report_id,
-        grades_report_cycle_id,
-        grades_report_subject_id,
-        scale
-      )
+          []
+        )
+      }
     end)
+    |> handle_students_entries_and_grade_components(
+      grades_report_id,
+      grades_report_cycle_id,
+      grades_report_subject_id,
+      scale
+    )
   end
 
   defp handle_students_entries_and_grade_components(
@@ -455,7 +458,7 @@ defmodule Lanttern.GradesReports do
          _scale,
          results
        ),
-       do: results
+       do: {:ok, results}
 
   defp handle_students_entries_and_grade_components(
          [
@@ -487,7 +490,7 @@ defmodule Lanttern.GradesReports do
         )
 
       {:error, changeset} ->
-        Repo.rollback(changeset)
+        {:error, changeset, results}
     end
   end
 
@@ -499,8 +502,8 @@ defmodule Lanttern.GradesReports do
           grades_report_id :: integer(),
           grades_report_cycle_id :: integer()
         ) ::
-          {:ok, %{created: integer(), updated: integer(), deleted: integer(), noop: integer()}}
-          | {:error, Ecto.Changeset.t()}
+          {:ok, batch_calculation_results()}
+          | {:error, Ecto.Changeset.t(), batch_calculation_results()}
   def calculate_cycle_grades(
         students_ids,
         grades_report_id,
@@ -537,29 +540,27 @@ defmodule Lanttern.GradesReports do
         fn {e, gc, _grs_id, _std_id} -> {e, gc} end
       )
 
-    Repo.transaction(fn ->
-      students_ids
-      |> Enum.flat_map(fn student_id ->
-        grades_report_subjects
-        |> Enum.map(&{student_id, &1.id})
-      end)
-      |> Enum.map(fn {std_id, grs_id} ->
-        {
-          std_id,
-          grs_id,
-          Map.get(
-            students_grades_report_subject_entries_grade_components,
-            "#{std_id}_#{grs_id}",
-            []
-          )
-        }
-      end)
-      |> handle_students_grades_report_subjects_entries_and_grade_components(
-        grades_report_id,
-        grades_report_cycle_id,
-        scale
-      )
+    students_ids
+    |> Enum.flat_map(fn student_id ->
+      grades_report_subjects
+      |> Enum.map(&{student_id, &1.id})
     end)
+    |> Enum.map(fn {std_id, grs_id} ->
+      {
+        std_id,
+        grs_id,
+        Map.get(
+          students_grades_report_subject_entries_grade_components,
+          "#{std_id}_#{grs_id}",
+          []
+        )
+      }
+    end)
+    |> handle_students_grades_report_subjects_entries_and_grade_components(
+      grades_report_id,
+      grades_report_cycle_id,
+      scale
+    )
   end
 
   defp handle_students_grades_report_subjects_entries_and_grade_components(
@@ -577,7 +578,7 @@ defmodule Lanttern.GradesReports do
          _scale,
          results
        ),
-       do: results
+       do: {:ok, results}
 
   defp handle_students_grades_report_subjects_entries_and_grade_components(
          [
@@ -608,7 +609,7 @@ defmodule Lanttern.GradesReports do
         )
 
       {:error, changeset} ->
-        Repo.rollback(changeset)
+        {:error, changeset, results}
     end
   end
 
