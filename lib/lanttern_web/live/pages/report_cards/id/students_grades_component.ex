@@ -117,6 +117,70 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           navigate={~p"/report_cards/#{@report_card}?tab=grades"}
           hide_submit
         />
+        <div class="py-10">
+          <h6 class="font-display font-bold"><%= gettext("Grade composition") %></h6>
+          <p class="mt-4 mb-6 text-sm">
+            <%= gettext(
+              "Lanttern automatic grade calculation info based on configured grade composition"
+            ) %> (<%= Timex.local(@student_grade_report_entry.composition_datetime)
+            |> Timex.format!("{0D}/{0M}/{YYYY} {h24}:{m}") %>).
+          </p>
+          <table class="rounded font-mono text-xs bg-ltrn-lightest">
+            <thead>
+              <tr>
+                <th class="p-2 text-left"><%= gettext("Strand") %></th>
+                <th class="p-2 text-left"><%= gettext("Curriculum") %></th>
+                <th class="p-2 text-left"><%= gettext("Assessment") %></th>
+                <th class="p-2 text-right"><%= gettext("Weight") %></th>
+                <th class="p-2 text-right"><%= gettext("Normalized value") %></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr :for={component <- @student_grade_report_entry.composition}>
+                <td class="p-2">
+                  <span :if={component.strand_type}>
+                    (<%= component.strand_type %>)
+                  </span>
+                  <%= component.strand_name %>
+                </td>
+                <td class="p-2">
+                  (<%= component.curriculum_component_name %>) <%= component.curriculum_item_name %>
+                </td>
+                <td class="p-2">
+                  <%= component.ordinal_value_name ||
+                    :erlang.float_to_binary(component.score, decimals: 2) %>
+                </td>
+                <td class="p-2 text-right">
+                  <%= :erlang.float_to_binary(component.weight, decimals: 1) %>
+                </td>
+                <td class="p-2 text-right">
+                  <%= :erlang.float_to_binary(
+                    component.normalized_value,
+                    decimals: 2
+                  ) %>
+                </td>
+              </tr>
+              <tr class="font-bold bg-ltrn-lighter">
+                <td colspan="2" class="p-2">
+                  <%= gettext("Final grade") %>
+                </td>
+                <td class="p-2">
+                  <%= @student_grade_report_entry.composition_ordinal_value_name ||
+                    :erlang.float_to_binary(
+                      @student_grade_report_entry.composition_score,
+                      decimals: 2
+                    ) %>
+                </td>
+                <td colspan="2" class="p-2 text-right">
+                  <%= :erlang.float_to_binary(
+                    @student_grade_report_entry.normalized_value,
+                    decimals: 2
+                  ) %>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <:actions_left>
           <.button
             type="button"

@@ -154,6 +154,9 @@ defmodule Lanttern.GradesReports do
       join: s in assoc(e, :scale),
       left_join: ov in assoc(e, :ordinal_value),
       join: ap in assoc(e, :assessment_point),
+      join: st in assoc(ap, :strand),
+      join: ci in assoc(ap, :curriculum_item),
+      join: cc in assoc(ci, :curriculum_component),
       join: gc in assoc(ap, :grade_components),
       join: rc in assoc(gc, :report_card),
       join: gr in assoc(rc, :grades_report),
@@ -164,8 +167,9 @@ defmodule Lanttern.GradesReports do
       where: gr.id == ^grades_report_id,
       where: grc.id == ^grades_report_cycle_id,
       where: grs.id == ^grades_report_subject_id,
+      order_by: gc.position,
       preload: [ordinal_value: ov, scale: s],
-      select: {e, gc}
+      select: {e, gc, %{curriculum_item: ci, curriculum_component: cc, strand: st}}
     )
     |> Repo.all()
     |> handle_student_grades_report_entry_creation(
@@ -211,11 +215,32 @@ defmodule Lanttern.GradesReports do
          grades_report_subject_id,
          scale
        ) do
-    # calculate the weighted average
-    {sumprod, sumweight} =
+    # calculate the weighted average and build composition metadata
+    {sumprod, sumweight, composition} =
       entries_and_grade_components
-      |> Enum.reduce({0, 0}, fn {e, gc}, {sumprod, sumweight} ->
-        {get_normalized_value_from_entry(e) * gc.weight + sumprod, gc.weight + sumweight}
+      |> Enum.reduce({0, 0, []}, fn {e, gc, metadata}, {sumprod, sumweight, composition} ->
+        entry_normalized_value = get_normalized_value_from_entry(e)
+
+        comp_component = %{
+          strand_id: metadata.strand.id,
+          strand_name: metadata.strand.name,
+          strand_type: metadata.strand.type,
+          curriculum_item_id: metadata.curriculum_item.id,
+          curriculum_item_name: metadata.curriculum_item.name,
+          curriculum_component_id: metadata.curriculum_component.id,
+          curriculum_component_name: metadata.curriculum_component.name,
+          ordinal_value_id: if(e.ordinal_value, do: e.ordinal_value.id),
+          ordinal_value_name: if(e.ordinal_value, do: e.ordinal_value.name),
+          weight: gc.weight,
+          score: e.score,
+          normalized_value: entry_normalized_value
+        }
+
+        {
+          entry_normalized_value * gc.weight + sumprod,
+          gc.weight + sumweight,
+          composition ++ [comp_component]
+        }
       end)
 
     normalized_avg = Float.round(sumprod / sumweight, 5)
@@ -225,17 +250,25 @@ defmodule Lanttern.GradesReports do
     attrs =
       case scale_value do
         %OrdinalValue{} = ordinal_value ->
-          %{ordinal_value_id: ordinal_value.id}
+          %{
+            ordinal_value_id: ordinal_value.id,
+            composition_ordinal_value_name: ordinal_value.name
+          }
 
         score ->
-          %{score: score}
+          %{
+            score: score,
+            composition_score: score
+          }
       end
       |> Enum.into(%{
         student_id: student_id,
         normalized_value: normalized_avg,
         grades_report_id: grades_report_id,
         grades_report_cycle_id: grades_report_cycle_id,
-        grades_report_subject_id: grades_report_subject_id
+        grades_report_subject_id: grades_report_subject_id,
+        composition: composition,
+        composition_datetime: DateTime.utc_now()
       })
 
     # create or update existing student grade report entry
@@ -296,6 +329,9 @@ defmodule Lanttern.GradesReports do
         join: s in assoc(e, :scale),
         left_join: ov in assoc(e, :ordinal_value),
         join: ap in assoc(e, :assessment_point),
+        join: st in assoc(ap, :strand),
+        join: ci in assoc(ap, :curriculum_item),
+        join: cc in assoc(ci, :curriculum_component),
         join: gc in assoc(ap, :grade_components),
         join: rc in assoc(gc, :report_card),
         join: gr in assoc(rc, :grades_report),
@@ -304,13 +340,14 @@ defmodule Lanttern.GradesReports do
         on: grs.grades_report_id == gr.id and grs.subject_id == gc.subject_id,
         where: e.student_id == ^student_id,
         where: grc.id == ^grades_report_cycle_id,
+        order_by: gc.position,
         preload: [ordinal_value: ov, scale: s],
-        select: {e, gc, grs.id}
+        select: {e, gc, %{curriculum_item: ci, curriculum_component: cc, strand: st}, grs.id}
       )
       |> Repo.all()
       |> Enum.group_by(
-        fn {_e, _gc, grs_id} -> grs_id end,
-        fn {e, gc, _grs_id} -> {e, gc} end
+        fn {_e, _gc, _metadata, grs_id} -> grs_id end,
+        fn {e, gc, metadata, _grs_id} -> {e, gc, metadata} end
       )
 
     grades_report_subjects
@@ -411,6 +448,9 @@ defmodule Lanttern.GradesReports do
         join: s in assoc(e, :scale),
         left_join: ov in assoc(e, :ordinal_value),
         join: ap in assoc(e, :assessment_point),
+        join: st in assoc(ap, :strand),
+        join: ci in assoc(ap, :curriculum_item),
+        join: cc in assoc(ci, :curriculum_component),
         join: gc in assoc(ap, :grade_components),
         join: rc in assoc(gc, :report_card),
         join: gr in assoc(rc, :grades_report),
@@ -421,13 +461,15 @@ defmodule Lanttern.GradesReports do
         where: gr.id == ^grades_report_id,
         where: grc.id == ^grades_report_cycle_id,
         where: grs.id == ^grades_report_subject_id,
+        order_by: gc.position,
         preload: [ordinal_value: ov, scale: s],
-        select: {e, gc, e.student_id}
+        select:
+          {e, gc, %{curriculum_item: ci, curriculum_component: cc, strand: st}, e.student_id}
       )
       |> Repo.all()
       |> Enum.group_by(
-        fn {_e, _gc, std_id} -> std_id end,
-        fn {e, gc, _std_id} -> {e, gc} end
+        fn {_e, _gc, _metadata, std_id} -> std_id end,
+        fn {e, gc, metadata, _std_id} -> {e, gc, metadata} end
       )
 
     students_ids
@@ -530,6 +572,9 @@ defmodule Lanttern.GradesReports do
         join: s in assoc(e, :scale),
         left_join: ov in assoc(e, :ordinal_value),
         join: ap in assoc(e, :assessment_point),
+        join: st in assoc(ap, :strand),
+        join: ci in assoc(ap, :curriculum_item),
+        join: cc in assoc(ci, :curriculum_component),
         join: gc in assoc(ap, :grade_components),
         join: rc in assoc(gc, :report_card),
         join: gr in assoc(rc, :grades_report),
@@ -539,13 +584,16 @@ defmodule Lanttern.GradesReports do
         where: e.student_id in ^students_ids,
         where: gr.id == ^grades_report_id,
         where: grc.id == ^grades_report_cycle_id,
+        order_by: gc.position,
         preload: [ordinal_value: ov, scale: s],
-        select: {e, gc, grs.id, e.student_id}
+        select:
+          {e, gc, %{curriculum_item: ci, curriculum_component: cc, strand: st}, grs.id,
+           e.student_id}
       )
       |> Repo.all()
       |> Enum.group_by(
-        fn {_e, _gc, grs_id, std_id} -> "#{std_id}_#{grs_id}" end,
-        fn {e, gc, _grs_id, _std_id} -> {e, gc} end
+        fn {_e, _gc, _metadata, grs_id, std_id} -> "#{std_id}_#{grs_id}" end,
+        fn {e, gc, metadata, _grs_id, _std_id} -> {e, gc, metadata} end
       )
 
     students_ids

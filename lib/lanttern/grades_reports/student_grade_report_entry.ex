@@ -13,6 +13,9 @@ defmodule Lanttern.GradesReports.StudentGradeReportEntry do
           comment: String.t(),
           normalized_value: float(),
           score: float(),
+          composition_ordinal_value_name: String.t(),
+          composition_score: float(),
+          composition_datetime: DateTime.t(),
           student: Student.t(),
           student_id: pos_integer(),
           grades_report: GradesReport.t(),
@@ -31,12 +34,33 @@ defmodule Lanttern.GradesReports.StudentGradeReportEntry do
     field :comment, :string
     field :normalized_value, :float
     field :score, :float
+    field :composition_ordinal_value_name, :string
+    field :composition_score, :float
+    field :composition_datetime, :utc_datetime
 
     belongs_to :student, Student
     belongs_to :grades_report, GradesReport
     belongs_to :grades_report_cycle, GradesReportCycle
     belongs_to :grades_report_subject, GradesReportSubject
     belongs_to :ordinal_value, OrdinalValue
+
+    embeds_many :composition, CompositionComponent, on_replace: :delete, primary_key: false do
+      field :strand_id, :id
+      field :strand_name, :string
+      field :strand_type, :string
+
+      field :curriculum_item_id, :id
+      field :curriculum_item_name, :string
+      field :curriculum_component_id, :id
+      field :curriculum_component_name, :string
+
+      field :ordinal_value_id, :id
+      field :ordinal_value_name, :string
+
+      field :score, :float
+      field :normalized_value, :float
+      field :weight, :float
+    end
 
     timestamps()
   end
@@ -48,6 +72,9 @@ defmodule Lanttern.GradesReports.StudentGradeReportEntry do
       :comment,
       :normalized_value,
       :score,
+      :composition_ordinal_value_name,
+      :composition_score,
+      :composition_datetime,
       :student_id,
       :grades_report_id,
       :grades_report_cycle_id,
@@ -60,6 +87,25 @@ defmodule Lanttern.GradesReports.StudentGradeReportEntry do
       :grades_report_id,
       :grades_report_cycle_id,
       :grades_report_subject_id
+    ])
+    |> cast_embed(:composition, with: &composition_component_changeset/2)
+  end
+
+  defp composition_component_changeset(schema, params) do
+    schema
+    |> cast(params, [
+      :strand_id,
+      :curriculum_item_id,
+      :curriculum_component_id,
+      :ordinal_value_id,
+      :strand_name,
+      :strand_type,
+      :curriculum_item_name,
+      :curriculum_component_name,
+      :weight,
+      :ordinal_value_name,
+      :score,
+      :normalized_value
     ])
   end
 end
