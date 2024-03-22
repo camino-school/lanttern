@@ -2,6 +2,7 @@ defmodule LantternWeb.GradesReports.StudentGradeReportEntryFormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.GradesReports
+  alias Lanttern.Grading
 
   @impl true
   def render(assigns) do
@@ -14,6 +15,22 @@ defmodule LantternWeb.GradesReports.StudentGradeReportEntryFormComponent do
         phx-change="validate"
         phx-submit="save"
       >
+        <.input
+          :if={@scale_type == "ordinal"}
+          field={@form[:ordinal_value_id]}
+          type="select"
+          label={gettext("Level")}
+          options={@ordinal_value_options}
+          prompt={gettext("Select a level")}
+          class="mb-6"
+        />
+        <.input
+          :if={@scale_type == "numeric"}
+          field={@form[:score]}
+          type="number"
+          label={gettext("Score")}
+          class="mb-6"
+        />
         <.input
           field={@form[:comment]}
           type="textarea"
@@ -42,12 +59,25 @@ defmodule LantternWeb.GradesReports.StudentGradeReportEntryFormComponent do
   end
 
   @impl true
-  def update(%{student_grade_report_entry: student_grade_report_entry} = assigns, socket) do
+  def update(assigns, socket) do
+    %{
+      student_grade_report_entry: student_grade_report_entry,
+      scale_id: scale_id
+    } = assigns
+
     changeset = GradesReports.change_student_grade_report_entry(student_grade_report_entry)
+
+    scale = Grading.get_scale!(scale_id, preloads: :ordinal_values)
+
+    ordinal_value_options =
+      scale.ordinal_values
+      |> Enum.map(&{&1.name, &1.id})
 
     socket =
       socket
       |> assign(assigns)
+      |> assign(:ordinal_value_options, ordinal_value_options)
+      |> assign(:scale_type, scale.type)
       |> assign_form(changeset)
 
     {:ok, socket}

@@ -113,6 +113,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           module={StudentGradeReportEntryFormComponent}
           id={@student_grade_report_entry.id}
           student_grade_report_entry={@student_grade_report_entry}
+          scale_id={@grades_report.scale_id}
           navigate={~p"/report_cards/#{@report_card}?tab=grades"}
           hide_submit
         />
