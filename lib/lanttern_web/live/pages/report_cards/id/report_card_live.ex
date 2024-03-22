@@ -7,6 +7,7 @@ defmodule LantternWeb.ReportCardLive do
   alias __MODULE__.StudentsComponent
   alias __MODULE__.StrandsReportsComponent
   alias __MODULE__.GradesComponent
+  alias __MODULE__.StudentsGradesComponent
 
   # shared components
   alias LantternWeb.Reporting.ReportCardFormComponent

@@ -245,7 +245,7 @@ defmodule LantternWeb.CoreComponents do
       "bg-ltrn-primary hover:bg-cyan-300 shadow-sm",
       "disabled:text-ltrn-subtle disabled:bg-ltrn-mesh-cyan disabled:shadow-none"
     ],
-    "white" => "bg-white hover:bg-ltrn-lightest shadow-sm",
+    "white" => "text-ltrn-dark bg-white hover:bg-ltrn-lightest shadow-sm",
     "ghost" => [
       "text-ltrn-subtle bg-transparent hover:bg-slate-100",
       "disabled:text-ltrn-lighter disabled"
@@ -929,13 +929,14 @@ defmodule LantternWeb.CoreComponents do
   """
   attr :profile_name, :string, required: true
   attr :theme, :string, default: "cyan"
+  attr :icon_size, :string, default: "normal"
   attr :class, :any, default: nil
   attr :rest, :global
 
   def profile_icon_with_name(assigns) do
     ~H"""
     <div class={["flex gap-2 items-center text-sm", @class]}>
-      <.profile_icon profile_name={@profile_name} theme={@theme} />
+      <.profile_icon profile_name={@profile_name} theme={@theme} size={@icon_size} />
       <span class="line-clamp-2"><%= @profile_name %></span>
     </div>
     """

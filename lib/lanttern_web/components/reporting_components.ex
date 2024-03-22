@@ -352,7 +352,7 @@ defmodule LantternWeb.ReportingComponents do
     doc:
       "the function to trigger when clicking on calculate cell. args: `student_id`, `grades_report_subject_id`"
 
-  def student_grades_grid(assigns) do
+  def students_grades_grid(assigns) do
     %{
       students: students,
       grades_report_subjects: grades_report_subjects
@@ -398,7 +398,7 @@ defmodule LantternWeb.ReportingComponents do
         <div
           :for={grades_report_subject <- @grades_report_subjects}
           id={"students-grades-grid-header-subject-#{grades_report_subject.id}"}
-          class="flex items-center justify-center gap-2 p-4 rounded text-center bg-white shadow-lg"
+          class="flex items-center justify-center gap-2 p-2 rounded text-center bg-white shadow-lg"
         >
           <span class="flex-1 truncate">
             <%= grades_report_subject.subject.name %>
@@ -414,7 +414,7 @@ defmodule LantternWeb.ReportingComponents do
           />
         </div>
       <% else %>
-        <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lightest">
+        <div class="p-2 rounded text-ltrn-subtle bg-ltrn-lightest">
           <%= gettext("No cycles linked to this grades report") %>
         </div>
       <% end %>
@@ -425,10 +425,11 @@ defmodule LantternWeb.ReportingComponents do
           class="grid grid-cols-subgrid"
           style={@grid_column_style}
         >
-          <div class="flex items-center gap-2 p-4 rounded bg-white shadow-lg">
-            <span class="flex-1 truncate">
+          <div class="flex items-center gap-2 px-2 py-4 rounded bg-white shadow-lg">
+            <.profile_icon_with_name profile_name={student.name} icon_size="sm" class="flex-1" />
+            <%!-- <span class="flex-1 truncate">
               <%= student.name %>
-            </span>
+            </span> --%>
             <.icon_button
               :if={@on_calculate_student}
               name="hero-arrow-path-mini"
@@ -440,7 +441,7 @@ defmodule LantternWeb.ReportingComponents do
             />
           </div>
           <%= if @has_subjects do %>
-            <.student_grades_grid_cell
+            <.students_grades_grid_cell
               :for={grades_report_subject <- @grades_report_subjects}
               student_grade_report_entry={@students_grades_map[student.id][grades_report_subject.id]}
               on_calculate_cell={@on_calculate_cell}
@@ -472,7 +473,33 @@ defmodule LantternWeb.ReportingComponents do
   attr :grades_report_subject_id, :integer, default: nil
   attr :on_calculate_cell, :any, required: true
 
-  defp student_grades_grid_cell(
+  defp students_grades_grid_cell(
+         %{student_grade_report_entry: %StudentGradeReportEntry{ordinal_value: ordinal_value}} =
+           assigns
+       )
+       when not is_nil(ordinal_value) do
+    ~H"""
+    <div class="flex items-center justify-center gap-2 p-1 rounded border border-ltrn-lighter bg-ltrn-lightest">
+      <div
+        class="flex-1 self-stretch flex items-center justify-center rounded-sm"
+        {apply_style_from_ordinal_value(@student_grade_report_entry.ordinal_value)}
+      >
+        <%= @student_grade_report_entry.ordinal_value.name %>
+      </div>
+      <.icon_button
+        :if={@on_calculate_cell}
+        name="hero-arrow-path-mini"
+        theme="white"
+        rounded
+        size="sm"
+        sr_text={gettext("Recalculate grade")}
+        phx-click={@on_calculate_cell.(@student_id, @grades_report_subject_id)}
+      />
+    </div>
+    """
+  end
+
+  defp students_grades_grid_cell(
          %{student_grade_report_entry: %StudentGradeReportEntry{}} = assigns
        ) do
     ~H"""
@@ -491,10 +518,10 @@ defmodule LantternWeb.ReportingComponents do
     """
   end
 
-  defp student_grades_grid_cell(assigns) do
+  defp students_grades_grid_cell(assigns) do
     ~H"""
-    <div class="flex items-center justify-center gap-2 rounded border border-ltrn-lighter bg-ltrn-lightest">
-      —
+    <div class="flex items-center justify-center gap-2 rounded border border-ltrn-lighter text-ltrn-subtle bg-ltrn-lightest">
+      N/A
       <.icon_button
         :if={@on_calculate_cell}
         name="hero-plus-mini"

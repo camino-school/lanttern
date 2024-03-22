@@ -1,0 +1,315 @@
+defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
+  use LantternWeb, :live_component
+
+  alias Lanttern.GradesReports
+  alias Lanttern.Reporting
+  alias Lanttern.Schools
+
+  import LantternWeb.PersonalizationHelpers
+
+  # shared
+  import LantternWeb.ReportingComponents
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <div class="py-10">
+      <%= if @selected_classes == [] do %>
+        <div class="container mx-auto lg:max-w-5xl">
+          <p class="font-display font-bold text-2xl">
+            <%= gettext("Select a") %>
+            <button
+              type="button"
+              class="inline text-left underline hover:text-ltrn-subtle"
+              phx-click={JS.exec("data-show", to: "#students-grades-filters")}
+            >
+              <%= gettext("class") %>
+            </button>
+            <%= gettext("to view students grades") %>
+          </p>
+        </div>
+      <% else %>
+        <div :if={@grades_report}>
+          <div class="container mx-auto lg:max-w-5xl">
+            <p class="font-display font-bold text-2xl">
+              <%= gettext("Viewing") %>
+              <button
+                type="button"
+                class="inline text-left underline hover:text-ltrn-subtle"
+                phx-click={JS.exec("data-show", to: "#students-grades-filters")}
+              >
+                <%= if length(@selected_classes) > 0 do
+                  @selected_classes
+                  |> Enum.map(& &1.name)
+                  |> Enum.join(", ")
+                else
+                  gettext("all classes")
+                end %>
+              </button>
+            </p>
+          </div>
+          <div class="p-6">
+            <.students_grades_grid
+              students={@students}
+              grades_report_subjects={@grades_report.grades_report_subjects}
+              students_grades_map={@students_grades_map}
+              on_calculate_cycle={fn -> JS.push("calculate_cycle", target: @myself) end}
+              on_calculate_student={
+                fn student_id ->
+                  JS.push("calculate_student",
+                    value: %{student_id: student_id},
+                    target: @myself
+                  )
+                end
+              }
+              on_calculate_subject={
+                fn grades_report_subject_id ->
+                  JS.push("calculate_subject",
+                    value: %{grades_report_subject_id: grades_report_subject_id},
+                    target: @myself
+                  )
+                end
+              }
+              on_calculate_cell={
+                fn student_id, grades_report_subject_id ->
+                  JS.push("calculate_cell",
+                    value: %{
+                      student_id: student_id,
+                      grades_report_subject_id: grades_report_subject_id
+                    },
+                    target: @myself
+                  )
+                end
+              }
+            />
+          </div>
+        </div>
+      <% end %>
+      <.live_component
+        module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
+        id="students-grades-filters"
+        current_user={@current_user}
+        title={gettext("Students grades filter")}
+        filters={[:classes]}
+        navigate={~p"/report_cards/#{@report_card}?tab=grades"}
+      />
+    </div>
+    """
+  end
+
+  # lifecycle
+
+  @impl true
+  def update(assigns, socket) do
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign_new(:grades_report, fn %{report_card: report_card} ->
+        case report_card.grades_report_id do
+          nil -> nil
+          id -> Reporting.get_grades_report(id, load_grid: true)
+        end
+      end)
+      |> assign_new(:current_grades_report_cycle, fn
+        %{grades_report: nil} ->
+          nil
+
+        %{report_card: report_card, grades_report: grades_report} ->
+          grades_report.grades_report_cycles
+          |> Enum.find(&(&1.school_cycle_id == report_card.school_cycle_id))
+      end)
+      |> assign_user_filters([:classes], assigns.current_user)
+      |> assign_students_grades_grid()
+
+    {:ok, socket}
+  end
+
+  defp assign_students_grades_grid(socket) do
+    students =
+      Schools.list_students(classes_ids: socket.assigns.selected_classes_ids)
+
+    students_grades_map =
+      case socket.assigns.grades_report do
+        nil ->
+          nil
+
+        grades_report ->
+          GradesReports.build_students_grades_map(
+            Enum.map(students, & &1.id),
+            grades_report.id,
+            socket.assigns.report_card.school_cycle_id
+          )
+      end
+
+    socket
+    |> assign(:students, students)
+    |> assign(:students_grades_map, students_grades_map)
+  end
+
+  @impl true
+  def handle_event("calculate_cycle", _params, socket) do
+    students_ids =
+      socket.assigns.students
+      |> Enum.map(& &1.id)
+
+    socket =
+      GradesReports.calculate_cycle_grades(
+        students_ids,
+        socket.assigns.grades_report.id,
+        socket.assigns.current_grades_report_cycle.id
+      )
+      |> case do
+        {:ok, results} ->
+          socket
+          |> put_flash(
+            :info,
+            "#{gettext("Grades calculated succesfully")}. #{build_calculation_results_message(results)}"
+          )
+          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=grades")
+
+        {:error, _, results} ->
+          put_flash(
+            socket,
+            :error,
+            "#{gettext("Something went wrong")}. #{gettext("Partial results")}: #{build_calculation_results_message(results)}"
+          )
+      end
+
+    {:noreply, socket}
+  end
+
+  def handle_event("calculate_student", params, socket) do
+    %{
+      "student_id" => student_id
+    } = params
+
+    socket =
+      GradesReports.calculate_student_grades(
+        student_id,
+        socket.assigns.grades_report.id,
+        socket.assigns.current_grades_report_cycle.id
+      )
+      |> case do
+        {:ok, results} ->
+          socket
+          |> put_flash(
+            :info,
+            "#{gettext("Student grades calculated succesfully")}. #{build_calculation_results_message(results)}"
+          )
+          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=grades")
+
+        {:error, _, results} ->
+          put_flash(
+            socket,
+            :error,
+            "#{gettext("Something went wrong")}. #{gettext("Partial results")}: #{build_calculation_results_message(results)}"
+          )
+      end
+
+    {:noreply, socket}
+  end
+
+  def handle_event("calculate_subject", params, socket) do
+    %{
+      "grades_report_subject_id" => grades_report_subject_id
+    } = params
+
+    students_ids =
+      socket.assigns.students
+      |> Enum.map(& &1.id)
+
+    socket =
+      GradesReports.calculate_subject_grades(
+        students_ids,
+        socket.assigns.grades_report.id,
+        socket.assigns.current_grades_report_cycle.id,
+        grades_report_subject_id
+      )
+      |> case do
+        {:ok, results} ->
+          socket
+          |> put_flash(
+            :info,
+            "#{gettext("Subject grades calculated succesfully")}. #{build_calculation_results_message(results)}"
+          )
+          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=grades")
+
+        {:error, _, results} ->
+          put_flash(
+            socket,
+            :error,
+            "#{gettext("Something went wrong")}. #{gettext("Partial results")}: #{build_calculation_results_message(results)}"
+          )
+      end
+
+    {:noreply, socket}
+  end
+
+  def handle_event("calculate_cell", params, socket) do
+    %{
+      "grades_report_subject_id" => grades_report_subject_id,
+      "student_id" => student_id
+    } = params
+
+    socket =
+      GradesReports.calculate_student_grade(
+        student_id,
+        socket.assigns.grades_report.id,
+        socket.assigns.current_grades_report_cycle.id,
+        grades_report_subject_id
+      )
+      |> case do
+        {:ok, nil, _} ->
+          socket
+          |> put_flash(:error, gettext("No assessment point entries for this grade composition"))
+          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=grades")
+
+        {:ok, _, _} ->
+          socket
+          |> put_flash(:info, gettext("Grade calculated succesfully"))
+          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=grades")
+
+        {:error, _} ->
+          put_flash(socket, :error, gettext("Something went wrong"))
+      end
+
+    {:noreply, socket}
+  end
+
+  # helper
+
+  defp build_calculation_results_message(%{} = results),
+    do: build_calculation_results_message(Enum.map(results, & &1), [])
+
+  defp build_calculation_results_message([], msgs),
+    do: Enum.join(msgs, ", ")
+
+  defp build_calculation_results_message([{_operation, 0} | results], msgs),
+    do: build_calculation_results_message(results, msgs)
+
+  defp build_calculation_results_message([{:created, count} | results], msgs) do
+    msg = ngettext("1 grade created", "%{count} grades created", count)
+    build_calculation_results_message(results, [msg | msgs])
+  end
+
+  defp build_calculation_results_message([{:updated, count} | results], msgs) do
+    msg = ngettext("1 grade updated", "%{count} grades updated", count)
+    build_calculation_results_message(results, [msg | msgs])
+  end
+
+  defp build_calculation_results_message([{:deleted, count} | results], msgs) do
+    msg = ngettext("1 grade removed", "%{count} grades removed", count)
+    build_calculation_results_message(results, [msg | msgs])
+  end
+
+  defp build_calculation_results_message([{:noop, count} | results], msgs) do
+    msg =
+      ngettext(
+        "1 grade calculation skipped (no assessment point entries)",
+        "%{count} grades skipped (no assessment point entries)",
+        count
+      )
+
+    build_calculation_results_message(results, [msg | msgs])
+  end
+end
