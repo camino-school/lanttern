@@ -778,6 +778,22 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Renders metadata (basically icon + text).
+  """
+  attr :icon_name, :string, default: nil
+  attr :class, :any, default: nil
+  slot :inner_block, required: true
+
+  def metadata(assigns) do
+    ~H"""
+    <div class={["flex items-center gap-2", @class]}>
+      <.icon :if={@icon_name} name={@icon_name} class="w-6 h-6 text-ltrn-subtle" />
+      <div class="text-sm"><%= render_slot(@inner_block) %></div>
+    </div>
+    """
+  end
+
+  @doc """
   Renders the nav menu button.
   """
   attr :class, :any, default: nil

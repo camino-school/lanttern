@@ -15,11 +15,24 @@ defmodule Lanttern.GradesReportsTest do
       assert GradesReports.list_student_grade_report_entries() == [student_grade_report_entry]
     end
 
-    test "get_student_grade_report_entry!/1 returns the student_grade_report_entry with given id" do
+    test "get_student_grade_report_entry!/2 returns the student_grade_report_entry with given id" do
       student_grade_report_entry = student_grade_report_entry_fixture()
 
       assert GradesReports.get_student_grade_report_entry!(student_grade_report_entry.id) ==
                student_grade_report_entry
+    end
+
+    test "get_student_grade_report_entry!/2 with preloads returns the student_grade_report_entry with given id and preloaded data" do
+      student = Lanttern.SchoolsFixtures.student_fixture()
+      student_grade_report_entry = student_grade_report_entry_fixture(%{student_id: student.id})
+
+      assert expected_student_grade_report_entry =
+               GradesReports.get_student_grade_report_entry!(student_grade_report_entry.id,
+                 preloads: :student
+               )
+
+      assert expected_student_grade_report_entry.id == student_grade_report_entry.id
+      assert expected_student_grade_report_entry.student.id == student.id
     end
 
     test "create_student_grade_report_entry/1 with valid data creates a student_grade_report_entry" do

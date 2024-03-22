@@ -7,6 +7,7 @@ defmodule Lanttern.GradesReports do
   alias Lanttern.Reporting
   alias Lanttern.Schools.Student
   alias Lanttern.Repo
+  import Lanttern.RepoHelpers
 
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.GradesReports.StudentGradeReportEntry
@@ -33,6 +34,10 @@ defmodule Lanttern.GradesReports do
 
   Raises `Ecto.NoResultsError` if the Student grade report entry does not exist.
 
+  ## Options
+
+  - `:preloads` – preloads associated data
+
   ## Examples
 
       iex> get_student_grade_report_entry!(123)
@@ -42,7 +47,10 @@ defmodule Lanttern.GradesReports do
       ** (Ecto.NoResultsError)
 
   """
-  def get_student_grade_report_entry!(id), do: Repo.get!(StudentGradeReportEntry, id)
+  def get_student_grade_report_entry!(id, opts \\ []) do
+    Repo.get!(StudentGradeReportEntry, id)
+    |> maybe_preload(opts)
+  end
 
   @doc """
   Creates a student_grade_report_entry.

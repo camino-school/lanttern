@@ -352,6 +352,10 @@ defmodule LantternWeb.ReportingComponents do
     doc:
       "the function to trigger when clicking on calculate cell. args: `student_id`, `grades_report_subject_id`"
 
+  attr :on_entry_click, :any,
+    default: nil,
+    doc: "the function to trigger when clicking on student grades report entry. args: `sgre_id`"
+
   def students_grades_grid(assigns) do
     %{
       students: students,
@@ -398,7 +402,7 @@ defmodule LantternWeb.ReportingComponents do
         <div
           :for={grades_report_subject <- @grades_report_subjects}
           id={"students-grades-grid-header-subject-#{grades_report_subject.id}"}
-          class="flex items-center justify-center gap-2 p-2 rounded text-center bg-white shadow-lg"
+          class="flex items-center justify-center gap-2 px-1 py-4 rounded text-center bg-white shadow-lg"
         >
           <span class="flex-1 truncate">
             <%= grades_report_subject.subject.name %>
@@ -445,6 +449,7 @@ defmodule LantternWeb.ReportingComponents do
               :for={grades_report_subject <- @grades_report_subjects}
               student_grade_report_entry={@students_grades_map[student.id][grades_report_subject.id]}
               on_calculate_cell={@on_calculate_cell}
+              on_entry_click={@on_entry_click}
               grades_report_subject_id={grades_report_subject.id}
               student_id={student.id}
             />
@@ -472,6 +477,7 @@ defmodule LantternWeb.ReportingComponents do
   attr :student_id, :integer, default: nil
   attr :grades_report_subject_id, :integer, default: nil
   attr :on_calculate_cell, :any, required: true
+  attr :on_entry_click, :any, required: true
 
   defp students_grades_grid_cell(
          %{student_grade_report_entry: %StudentGradeReportEntry{ordinal_value: ordinal_value}} =
@@ -480,12 +486,13 @@ defmodule LantternWeb.ReportingComponents do
        when not is_nil(ordinal_value) do
     ~H"""
     <div class="flex items-center justify-center gap-2 p-1 rounded border border-ltrn-lighter bg-ltrn-lightest">
-      <div
+      <button
         class="flex-1 self-stretch flex items-center justify-center rounded-sm"
         {apply_style_from_ordinal_value(@student_grade_report_entry.ordinal_value)}
+        phx-click={if(@on_entry_click, do: @on_entry_click.(@student_grade_report_entry.id))}
       >
         <%= @student_grade_report_entry.ordinal_value.name %>
-      </div>
+      </button>
       <.icon_button
         :if={@on_calculate_cell}
         name="hero-arrow-path-mini"
@@ -520,8 +527,8 @@ defmodule LantternWeb.ReportingComponents do
 
   defp students_grades_grid_cell(assigns) do
     ~H"""
-    <div class="flex items-center justify-center gap-2 rounded border border-ltrn-lighter text-ltrn-subtle bg-ltrn-lightest">
-      N/A
+    <div class="flex items-center justify-center gap-2 p-1 rounded border border-ltrn-lighter text-ltrn-subtle bg-ltrn-lightest">
+      <div class="flex-1 text-center">N/A</div>
       <.icon_button
         :if={@on_calculate_cell}
         name="hero-plus-mini"
