@@ -8,7 +8,7 @@ defmodule Lanttern.GradesReportsTest do
 
     import Lanttern.GradesReportsFixtures
 
-    @invalid_attrs %{comment: nil, normalized_value: nil, score: nil}
+    @invalid_attrs %{comment: nil, composition_normalized_value: nil, score: nil}
 
     test "list_student_grade_report_entries/0 returns all student_grade_report_entries" do
       student_grade_report_entry = student_grade_report_entry_fixture()
@@ -51,7 +51,7 @@ defmodule Lanttern.GradesReportsTest do
 
       valid_attrs = %{
         comment: "some comment",
-        normalized_value: 0.5,
+        composition_normalized_value: 0.5,
         student_id: student.id,
         grades_report_id: grades_report.id,
         grades_report_cycle_id: grades_report_cycle.id,
@@ -62,7 +62,7 @@ defmodule Lanttern.GradesReportsTest do
                GradesReports.create_student_grade_report_entry(valid_attrs)
 
       assert student_grade_report_entry.comment == "some comment"
-      assert student_grade_report_entry.normalized_value == 0.5
+      assert student_grade_report_entry.composition_normalized_value == 0.5
       assert student_grade_report_entry.student_id == student.id
       assert student_grade_report_entry.grades_report_id == grades_report.id
       assert student_grade_report_entry.grades_report_cycle_id == grades_report_cycle.id
@@ -76,7 +76,12 @@ defmodule Lanttern.GradesReportsTest do
 
     test "update_student_grade_report_entry/2 with valid data updates the student_grade_report_entry" do
       student_grade_report_entry = student_grade_report_entry_fixture()
-      update_attrs = %{comment: "some updated comment", normalized_value: 0.7, score: 456.7}
+
+      update_attrs = %{
+        comment: "some updated comment",
+        composition_normalized_value: 0.7,
+        score: 456.7
+      }
 
       assert {:ok, %StudentGradeReportEntry{} = student_grade_report_entry} =
                GradesReports.update_student_grade_report_entry(
@@ -85,7 +90,7 @@ defmodule Lanttern.GradesReportsTest do
                )
 
       assert student_grade_report_entry.comment == "some updated comment"
-      assert student_grade_report_entry.normalized_value == 0.7
+      assert student_grade_report_entry.composition_normalized_value == 0.7
       assert student_grade_report_entry.score == 456.7
     end
 
@@ -353,7 +358,7 @@ defmodule Lanttern.GradesReportsTest do
       assert {:ok,
               %StudentGradeReportEntry{
                 student_id: ^expected_std_id,
-                normalized_value: 0.69167,
+                composition_normalized_value: 0.69167,
                 ordinal_value_id: ^expected_ov_id
               },
               :created} =
@@ -400,7 +405,7 @@ defmodule Lanttern.GradesReportsTest do
       assert {:ok,
               %StudentGradeReportEntry{
                 student_id: ^expected_std_id,
-                normalized_value: 0.925,
+                composition_normalized_value: 0.925,
                 ordinal_value_id: ^expected_ov_id
               },
               :created} =
@@ -448,7 +453,7 @@ defmodule Lanttern.GradesReportsTest do
               %StudentGradeReportEntry{
                 id: sgre_3_id,
                 student_id: ^expected_std_id,
-                normalized_value: 0.56667,
+                composition_normalized_value: 0.56667,
                 ordinal_value_id: ^expected_ov_id
               },
               :created} =
@@ -465,7 +470,7 @@ defmodule Lanttern.GradesReportsTest do
               %StudentGradeReportEntry{
                 id: ^sgre_3_id,
                 student_id: ^expected_std_id,
-                normalized_value: 0.56667,
+                composition_normalized_value: 0.56667,
                 ordinal_value_id: ^expected_ov_id
               },
               :updated} =
@@ -874,7 +879,7 @@ defmodule Lanttern.GradesReportsTest do
 
       assert %{
                student_id: ^expected_student_id,
-               normalized_value: 0.85,
+               composition_normalized_value: 0.85,
                ordinal_value_id: ^expected_ordinal_value_id
              } =
                Repo.get_by(
@@ -891,7 +896,7 @@ defmodule Lanttern.GradesReportsTest do
 
       assert %{
                student_id: ^expected_student_id,
-               normalized_value: 0.4,
+               composition_normalized_value: 0.4,
                ordinal_value_id: ^expected_ordinal_value_id,
                grades_report_cycle_id: ^expected_grades_report_cycle_id,
                grades_report_subject_id: ^expected_grades_report_subject_id
@@ -1183,7 +1188,7 @@ defmodule Lanttern.GradesReportsTest do
       expected_ordinal_value_id = ov_b.id
 
       assert %{
-               normalized_value: 0.85,
+               composition_normalized_value: 0.85,
                ordinal_value_id: ^expected_ordinal_value_id
              } =
                Repo.get_by(
@@ -1200,7 +1205,7 @@ defmodule Lanttern.GradesReportsTest do
       expected_grades_report_subject_id = grades_report_subject.id
 
       assert %{
-               normalized_value: 0.4,
+               composition_normalized_value: 0.4,
                student_id: ^expected_student_id,
                ordinal_value_id: ^expected_ordinal_value_id,
                grades_report_cycle_id: ^expected_grades_report_cycle_id,
@@ -1592,7 +1597,7 @@ defmodule Lanttern.GradesReportsTest do
       expected_ordinal_value_id = ov_b.id
 
       assert %{
-               normalized_value: 0.85,
+               composition_normalized_value: 0.85,
                ordinal_value_id: ^expected_ordinal_value_id
              } =
                Repo.get_by(
@@ -1609,7 +1614,7 @@ defmodule Lanttern.GradesReportsTest do
       expected_grades_report_subject_id = grades_report_subject_3.id
 
       assert %{
-               normalized_value: 0.4,
+               composition_normalized_value: 0.4,
                student_id: ^expected_student_id,
                ordinal_value_id: ^expected_ordinal_value_id,
                grades_report_cycle_id: ^expected_grades_report_cycle_id,

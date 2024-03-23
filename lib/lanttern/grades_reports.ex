@@ -252,7 +252,7 @@ defmodule Lanttern.GradesReports do
         %OrdinalValue{} = ordinal_value ->
           %{
             ordinal_value_id: ordinal_value.id,
-            composition_ordinal_value_name: ordinal_value.name
+            composition_ordinal_value_id: ordinal_value.id
           }
 
         score ->
@@ -263,11 +263,11 @@ defmodule Lanttern.GradesReports do
       end
       |> Enum.into(%{
         student_id: student_id,
-        normalized_value: normalized_avg,
         grades_report_id: grades_report_id,
         grades_report_cycle_id: grades_report_cycle_id,
         grades_report_subject_id: grades_report_subject_id,
         composition: composition,
+        composition_normalized_value: normalized_avg,
         composition_datetime: DateTime.utc_now()
       })
 

@@ -484,8 +484,21 @@ defmodule LantternWeb.ReportingComponents do
            assigns
        )
        when not is_nil(ordinal_value) do
+    bg_class =
+      if assigns.student_grade_report_entry.ordinal_value_id ==
+           assigns.student_grade_report_entry.composition_ordinal_value_id,
+         do: "border-ltrn-lighter bg-ltrn-lightest",
+         else: "border-ltrn-secondary bg-ltrn-mesh-rose"
+
+    assigns =
+      assigns
+      |> assign(:bg_class, bg_class)
+
     ~H"""
-    <div class="flex items-center justify-center gap-2 p-1 rounded border border-ltrn-lighter bg-ltrn-lightest">
+    <div class={[
+      "relative flex items-center justify-center gap-2 p-1 border rounded",
+      @bg_class
+    ]}>
       <button
         class="flex-1 self-stretch flex items-center justify-center rounded-sm"
         {apply_style_from_ordinal_value(@student_grade_report_entry.ordinal_value)}
@@ -502,6 +515,12 @@ defmodule LantternWeb.ReportingComponents do
         sr_text={gettext("Recalculate grade")}
         phx-click={@on_calculate_cell.(@student_id, @grades_report_subject_id)}
       />
+      <div
+        :if={@student_grade_report_entry.comment}
+        class="absolute top-1 right-1 w-2 h-2 rounded-full bg-ltrn-dark"
+      >
+        <span class="sr-only"><%= gettext("Entry with comments") %></span>
+      </div>
     </div>
     """
   end
@@ -509,9 +528,22 @@ defmodule LantternWeb.ReportingComponents do
   defp students_grades_grid_cell(
          %{student_grade_report_entry: %StudentGradeReportEntry{}} = assigns
        ) do
+    bg_class =
+      if assigns.student_grade_report_entry.score ==
+           assigns.student_grade_report_entry.composition_score,
+         do: "bg-ltrn-lightest",
+         else: "bg-ltrn-mesh-yellow"
+
+    assigns =
+      assigns
+      |> assign(:bg_class, bg_class)
+
     ~H"""
-    <div class="flex items-center justify-center gap-2 rounded border border-ltrn-lighter bg-ltrn-lightest">
-      <%= @student_grade_report_entry.ordinal_value.name %>
+    <div class={[
+      "flex items-center justify-center gap-2 rounded border border-ltrn-lighter",
+      @bg_class
+    ]}>
+      <%= @student_grade_report_entry.score %>
       <.icon_button
         :if={@on_calculate_cell}
         name="hero-arrow-path-mini"

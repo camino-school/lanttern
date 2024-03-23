@@ -47,7 +47,7 @@ defmodule Lanttern.GradesReportsFixtures do
         grades_report_cycle_id: grades_report_cycle_id,
         grades_report_subject_id: grades_report_subject_id,
         comment: "some comment",
-        normalized_value: 0.5,
+        composition_normalized_value: 0.5,
         score: 120.5
       })
       |> Lanttern.GradesReports.create_student_grade_report_entry()

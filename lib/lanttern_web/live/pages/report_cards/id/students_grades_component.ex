@@ -165,15 +165,20 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
                   <%= gettext("Final grade") %>
                 </td>
                 <td class="p-2">
-                  <%= @student_grade_report_entry.composition_ordinal_value_name ||
-                    :erlang.float_to_binary(
-                      @student_grade_report_entry.composition_score,
-                      decimals: 2
-                    ) %>
+                  <%= case @student_grade_report_entry.composition_ordinal_value do
+                    nil ->
+                      :erlang.float_to_binary(
+                        @student_grade_report_entry.composition_score,
+                        decimals: 2
+                      )
+
+                    ov ->
+                      ov.name
+                  end %>
                 </td>
                 <td colspan="2" class="p-2 text-right">
                   <%= :erlang.float_to_binary(
-                    @student_grade_report_entry.normalized_value,
+                    @student_grade_report_entry.composition_normalized_value,
                     decimals: 2
                   ) %>
                 </td>
@@ -253,7 +258,12 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
     student_grade_report_entry =
       GradesReports.get_student_grade_report_entry!(
         student_grade_report_entry_id,
-        preloads: [:student, grades_report_subject: :subject, grades_report_cycle: :school_cycle]
+        preloads: [
+          :student,
+          :composition_ordinal_value,
+          grades_report_subject: :subject,
+          grades_report_cycle: :school_cycle
+        ]
       )
 
     case student_grade_report_entry.grades_report_cycle_id == current_grades_report_cycle.id do

@@ -11,11 +11,7 @@ defmodule Lanttern.GradesReports.StudentGradeReportEntry do
   @type t :: %__MODULE__{
           id: pos_integer(),
           comment: String.t(),
-          normalized_value: float(),
           score: float(),
-          composition_ordinal_value_name: String.t(),
-          composition_score: float(),
-          composition_datetime: DateTime.t(),
           student: Student.t(),
           student_id: pos_integer(),
           grades_report: GradesReport.t(),
@@ -26,23 +22,30 @@ defmodule Lanttern.GradesReports.StudentGradeReportEntry do
           grades_report_subject_id: pos_integer(),
           ordinal_value: OrdinalValue.t(),
           ordinal_value_id: pos_integer(),
+          composition_normalized_value: float(),
+          composition_ordinal_value: OrdinalValue.t(),
+          composition_ordinal_value_id: pos_integer(),
+          composition_score: float(),
+          composition_datetime: DateTime.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
 
   schema "student_grade_report_entries" do
     field :comment, :string
-    field :normalized_value, :float
     field :score, :float
-    field :composition_ordinal_value_name, :string
-    field :composition_score, :float
-    field :composition_datetime, :utc_datetime
 
     belongs_to :student, Student
     belongs_to :grades_report, GradesReport
     belongs_to :grades_report_cycle, GradesReportCycle
     belongs_to :grades_report_subject, GradesReportSubject
     belongs_to :ordinal_value, OrdinalValue
+
+    # composition related fields
+    field :composition_normalized_value, :float
+    belongs_to :composition_ordinal_value, OrdinalValue
+    field :composition_score, :float
+    field :composition_datetime, :utc_datetime
 
     embeds_many :composition, CompositionComponent, on_replace: :delete, primary_key: false do
       field :strand_id, :id
@@ -70,23 +73,23 @@ defmodule Lanttern.GradesReports.StudentGradeReportEntry do
     student_grade_report_entry
     |> cast(attrs, [
       :comment,
-      :normalized_value,
       :score,
-      :composition_ordinal_value_name,
-      :composition_score,
-      :composition_datetime,
       :student_id,
       :grades_report_id,
       :grades_report_cycle_id,
       :grades_report_subject_id,
-      :ordinal_value_id
+      :ordinal_value_id,
+      :composition_normalized_value,
+      :composition_ordinal_value_id,
+      :composition_score,
+      :composition_datetime
     ])
     |> validate_required([
-      :normalized_value,
       :student_id,
       :grades_report_id,
       :grades_report_cycle_id,
-      :grades_report_subject_id
+      :grades_report_subject_id,
+      :composition_normalized_value
     ])
     |> cast_embed(:composition, with: &composition_component_changeset/2)
   end
