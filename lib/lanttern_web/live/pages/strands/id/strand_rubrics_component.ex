@@ -83,7 +83,11 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
           }
         />
       </div>
-      <section id="differentiation-rubrics-section" class="pb-10 mt-10">
+      <section
+        :if={@selected_classes_ids != []}
+        id="differentiation-rubrics-section"
+        class="pb-10 mt-10"
+      >
         <h4 class="-mb-2 font-display font-black text-xl text-ltrn-subtle">
           <%= gettext("Differentiation") %>
         </h4>
@@ -301,8 +305,8 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
         )
       end)
       |> assign_new(:students, fn ->
-        case assigns.params do
-          %{"classes_ids" => classes_ids} when is_list(classes_ids) and classes_ids != [] ->
+        case assigns.selected_classes_ids do
+          classes_ids when is_list(classes_ids) and classes_ids != [] ->
             Schools.list_students(
               classes_ids: classes_ids,
               check_diff_rubrics_for_strand_id: strand.id
