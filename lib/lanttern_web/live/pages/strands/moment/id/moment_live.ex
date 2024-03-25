@@ -40,27 +40,14 @@ defmodule LantternWeb.MomentLive do
   defp maybe_redirect(socket, _params), do: socket
 
   @impl true
-  def handle_params(%{"tab" => "assessment"} = params, _url, socket) do
-    # when in assessment tab, sync classes_ids filter with profile
-    {:noreply,
-     handle_params_and_profile_filters_sync(
-       socket,
-       params,
-       [:classes_ids],
-       &handle_assigns/2,
-       fn params -> ~p"/strands/moment/#{params["id"]}/?#{Map.drop(params, ["id"])}" end
-     )}
-  end
+  def handle_params(params, _url, socket) do
+    socket =
+      socket
+      |> assign(:assessment_point_id, nil)
+      |> set_current_tab(params, socket.assigns.live_action)
+      |> apply_action(socket.assigns.live_action, params)
 
-  def handle_params(params, _url, socket),
-    do: {:noreply, handle_assigns(socket, params)}
-
-  defp handle_assigns(socket, params) do
-    socket
-    |> assign(:params, params)
-    |> assign(:assessment_point_id, nil)
-    |> set_current_tab(params, socket.assigns.live_action)
-    |> apply_action(socket.assigns.live_action, params)
+    {:noreply, socket}
   end
 
   defp set_current_tab(socket, _params, :new_assessment_point),

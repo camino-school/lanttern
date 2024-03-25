@@ -6,12 +6,12 @@
       <.filter_text_button
         type={gettext("years")}
         items={@selected_years}
-        on_click={JS.exec("data-show", to: "#strands-filters")}
+        on_click={JS.exec("data-show", to: "#strands-year-filters")}
       />,
       <.filter_text_button
         type={gettext("subjects")}
         items={@selected_subjects}
-        on_click={JS.exec("data-show", to: "#strands-filters")}
+        on_click={JS.exec("data-show", to: "#strands-subject-filters")}
       />
     </p>
     <.collection_action type="button" icon_name="hero-plus-circle" phx-click="create-strand">
@@ -91,9 +91,17 @@
 </.slide_over>
 <.live_component
   module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
-  id="strands-filters"
+  id="strands-year-filters"
   current_user={@current_user}
-  title={gettext("Strands filters")}
-  filters={[:years, :subjects]}
+  title={gettext("Strands year filters")}
+  filter_type={:years}
+  navigate={~p"/strands"}
+/>
+<.live_component
+  module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
+  id="strands-subject-filters"
+  current_user={@current_user}
+  title={gettext("Strands subject filters")}
+  filter_type={:subjects}
   navigate={~p"/strands"}
 />

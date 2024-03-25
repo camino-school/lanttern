@@ -3,11 +3,11 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
-  alias Lanttern.Schools
+
+  import LantternWeb.PersonalizationHelpers
 
   # shared components
   alias LantternWeb.StrandLive.StrandRubricsComponent
-  import LantternWeb.SchoolsComponents
 
   @impl true
   def render(assigns) do
@@ -15,15 +15,15 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     <div class="p-10">
       <div class="container mx-auto lg:max-w-5xl">
         <div class="flex items-end justify-between gap-6">
-          <%= if @classes do %>
+          <%= if @selected_classes != [] do %>
             <p class="font-display font-bold text-2xl">
               <%= gettext("Viewing") %>
               <button
                 type="button"
                 class="inline text-left underline hover:text-ltrn-subtle"
-                phx-click={JS.exec("data-show", to: "#classes-filter-overlay")}
+                phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
               >
-                <%= @classes
+                <%= @selected_classes
                 |> Enum.map(& &1.name)
                 |> Enum.join(", ") %>
               </button>
@@ -33,7 +33,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
               <button
                 type="button"
                 class="underline hover:text-ltrn-subtle"
-                phx-click={JS.exec("data-show", to: "#classes-filter-overlay")}
+                phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
               >
                 <%= gettext("Select a class") %>
               </button>
@@ -47,7 +47,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         </div>
         <%!-- if no class filter is select, just render assessment points --%>
         <div
-          :if={!@classes && @assessment_points_count > 0}
+          :if={@selected_classes == [] && @assessment_points_count > 0}
           class="p-10 mt-4 rounded shadow-xl bg-white"
         >
           <p class="mb-6 font-bold text-ltrn-subtle"><%= gettext("Current assessment points") %></p>
@@ -63,7 +63,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       </div>
       <%!-- show entries only with class filter selected --%>
       <div
-        :if={@classes && @assessment_points_count > 0}
+        :if={@selected_classes != [] && @assessment_points_count > 0}
         class="relative w-full max-h-screen pb-6 mt-6 rounded shadow-xl bg-white overflow-x-auto"
       >
         <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2 bg-white">
@@ -94,19 +94,15 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         id={:strand_rubrics}
         strand={@strand}
         live_action={@live_action}
-        params={@params}
+        selected_classes_ids={@selected_classes_ids}
       />
-      <.class_selection_overlay
-        id="classes-filter-overlay"
+      <.live_component
+        module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
+        id="classes-filter-modal"
         current_user={@current_user}
-        classes_ids={@classes_ids}
-        navigate={
-          fn classes_ids ->
-            url_params = %{tab: "assessment", classes_ids: classes_ids}
-            ~p"/strands/#{@strand}?#{url_params}"
-          end
-        }
-        on_clear={JS.navigate(~p"/strands/#{@strand}?tab=assessment&classes_ids=")}
+        title={gettext("Select classes for assessment")}
+        filter_type={:classes}
+        navigate={~p"/strands/#{@strand}?tab=assessment"}
       />
     </div>
     """
@@ -210,8 +206,6 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         :students_entries,
         dom_id: fn {student, _entries} -> "student-#{student.id}" end
       )
-      |> assign(:classes, nil)
-      |> assign(:classes_ids, [])
 
     {:ok, socket}
   end
@@ -221,7 +215,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign_classes(assigns.params)
+      |> assign_user_filters([:classes], assigns.current_user)
       |> core_assigns(strand.id)
 
     {:ok, socket}
@@ -266,7 +260,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
 
     students_entries =
       Assessments.list_strand_students_entries(strand_id,
-        classes_ids: socket.assigns.classes_ids
+        classes_ids: socket.assigns.selected_classes_ids
       )
 
     socket
@@ -276,18 +270,4 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     |> assign(:sortable_assessment_points, Enum.with_index(assessment_points))
     |> assign(:scale_ov_map, scale_ov_map)
   end
-
-  defp assign_classes(socket, %{"classes_ids" => classes_ids}) when is_list(classes_ids) do
-    socket
-    |> assign(:classes_ids, classes_ids)
-    |> assign(
-      :classes,
-      Schools.list_user_classes(
-        socket.assigns.current_user,
-        classes_ids: classes_ids
-      )
-    )
-  end
-
-  defp assign_classes(socket, _params), do: socket
 end

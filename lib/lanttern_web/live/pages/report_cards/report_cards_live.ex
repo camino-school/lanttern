@@ -7,7 +7,6 @@ defmodule LantternWeb.ReportCardsLive do
 
   # live components
   alias LantternWeb.Reporting.ReportCardFormComponent
-  alias LantternWeb.BadgeButtonPickerComponent
 
   # shared components
   import LantternWeb.ReportingComponents
@@ -54,33 +53,6 @@ defmodule LantternWeb.ReportCardsLive do
       socket
       |> stream(:cycles_and_report_cards, cycles_and_report_cards)
       |> assign(:has_report_cards, has_report_cards)
-
-    {:noreply, socket}
-  end
-
-  # event handlers
-
-  @impl true
-  def handle_event("toggle_cycle_id", %{"id" => id}, socket),
-    do: {:noreply, handle_filter_toggle(socket, :cycles, id)}
-
-  def handle_event("toggle_year_id", %{"id" => id}, socket),
-    do: {:noreply, handle_filter_toggle(socket, :years, id)}
-
-  def handle_event("clear_filters", _, socket) do
-    clear_profile_filters(
-      socket.assigns.current_user,
-      [:cycles, :years]
-    )
-
-    {:noreply, push_navigate(socket, to: ~p"/report_cards")}
-  end
-
-  def handle_event("apply_filters", _, socket) do
-    socket =
-      socket
-      |> save_profile_filters(socket.assigns.current_user, [:cycles, :years])
-      |> push_navigate(to: ~p"/report_cards")
 
     {:noreply, socket}
   end

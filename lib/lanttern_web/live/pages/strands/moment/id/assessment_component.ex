@@ -3,14 +3,13 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
-  alias Lanttern.Schools
 
+  import LantternWeb.PersonalizationHelpers
   import Lanttern.Utils, only: [swap: 3]
 
   # shared components
   alias LantternWeb.Assessments.EntryEditorComponent
   alias LantternWeb.Assessments.AssessmentPointFormComponent
-  alias LantternWeb.Schools.ClassFilterFormComponent
 
   @impl true
   def render(assigns) do
@@ -18,15 +17,15 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
     <div class="p-10">
       <div class="container mx-auto lg:max-w-5xl">
         <div class="flex items-end justify-between gap-6">
-          <%= if @classes do %>
+          <%= if @selected_classes != [] do %>
             <p class="font-display font-bold text-2xl">
               <%= gettext("Assessing") %>
               <button
                 type="button"
                 class="inline text-left underline hover:text-ltrn-subtle"
-                phx-click={JS.exec("data-show", to: "#classes-filter-overlay")}
+                phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
               >
-                <%= @classes
+                <%= @selected_classes
                 |> Enum.map(& &1.name)
                 |> Enum.join(", ") %>
               </button>
@@ -36,7 +35,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
               <button
                 type="button"
                 class="underline hover:text-ltrn-subtle"
-                phx-click={JS.exec("data-show", to: "#classes-filter-overlay")}
+                phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
               >
                 <%= gettext("Select a class") %>
               </button>
@@ -67,7 +66,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
         </div>
         <%!-- if no class filter is select, just render assessment points --%>
         <div
-          :if={!@classes && @assessment_points_count > 0}
+          :if={@selected_classes == [] && @assessment_points_count > 0}
           class="p-10 mt-4 rounded shadow-xl bg-white"
         >
           <p class="mb-6 font-bold text-ltrn-subtle"><%= gettext("Current assessment points") %></p>
@@ -88,7 +87,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
       </div>
       <%!-- show entries only with class filter selected --%>
       <div
-        :if={@classes && @assessment_points_count > 0}
+        :if={@selected_classes != [] && @assessment_points_count > 0}
         class="relative w-full max-h-screen pb-6 mt-6 rounded shadow-xl bg-white overflow-x-auto"
       >
         <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2 bg-white">
@@ -178,38 +177,14 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
           </.button>
         </:actions>
       </.slide_over>
-      <.slide_over id="classes-filter-overlay">
-        <:title><%= gettext("Classes") %></:title>
-        <.live_component
-          module={ClassFilterFormComponent}
-          id={:filter}
-          current_user={@current_user}
-          notify_component={@myself}
-          classes_ids={@classes_ids}
-          navigate={
-            fn classes_ids ->
-              url_params = %{tab: "assessment", classes_ids: classes_ids}
-              ~p"/strands/moment/#{@moment}?#{url_params}"
-            end
-          }
-        />
-        <:actions>
-          <.button
-            type="button"
-            theme="ghost"
-            phx-click={JS.exec("data-cancel", to: "#classes-filter-overlay")}
-          >
-            <%= gettext("Cancel") %>
-          </.button>
-          <.button
-            type="submit"
-            form="class-filter-form"
-            phx-click={JS.exec("data-cancel", to: "#classes-filter-overlay")}
-          >
-            <%= gettext("Select") %>
-          </.button>
-        </:actions>
-      </.slide_over>
+      <.live_component
+        module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
+        id="classes-filter-modal"
+        current_user={@current_user}
+        title={gettext("Select classes for assessment")}
+        filter_type={:classes}
+        navigate={~p"/strands/moment/#{@moment}?tab=assessment"}
+      />
       <.slide_over :if={@assessment_points_count > 1} id="moment-assessment-points-order-overlay">
         <:title><%= gettext("Assessment Points Order") %></:title>
         <ol>
@@ -342,7 +317,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
      socket
      |> assign(assigns)
      |> assign_assessment_point(assessment_point_id)
-     |> assign_classes(assigns.params)
+     |> assign_user_filters([:classes], assigns.current_user)
      |> core_assigns(moment.id)}
   end
 
@@ -383,7 +358,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
 
     students_entries =
       Assessments.list_moment_students_entries(moment_id,
-        classes_ids: socket.assigns.classes_ids
+        classes_ids: socket.assigns.selected_classes_ids
       )
 
     # zip assessment points with entries
@@ -402,20 +377,6 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
     |> assign(:assessment_points_count, length(assessment_points))
     |> assign(:sortable_assessment_points, Enum.with_index(assessment_points))
   end
-
-  defp assign_classes(socket, %{"classes_ids" => classes_ids}) do
-    socket
-    |> assign(:classes_ids, classes_ids)
-    |> assign(
-      :classes,
-      Schools.list_user_classes(
-        socket.assigns.current_user,
-        classes_ids: classes_ids
-      )
-    )
-  end
-
-  defp assign_classes(socket, _params), do: socket
 
   # event handlers
 

@@ -11,6 +11,15 @@ defmodule LantternWeb.OverlayComponents do
   @doc """
   Renders a modal.
 
+  To show modal:
+
+      * use `JS.exec("data-show", to: "#modalid")`
+      * or mount with `show={true}`
+
+  To hide modal:
+
+      * use `JS.exec("data-cancel", to: "#modalid")`
+
   ## Examples
 
       <.modal id="confirm-modal">
@@ -34,8 +43,9 @@ defmodule LantternWeb.OverlayComponents do
     ~H"""
     <div
       id={@id}
-      phx-mounted={@show && show_modal(@id)}
+      phx-mounted={@show && JS.exec("data-show")}
       phx-remove={hide_modal(@id)}
+      data-show={show_modal(@id)}
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
       class="relative z-50 hidden"
     >

@@ -134,32 +134,4 @@ defmodule LantternWeb.MomentLiveTest do
       assert_redirect(view, "/strands/#{moment.strand_id}?tab=moments")
     end
   end
-
-  describe "Assessment class filter persistence" do
-    test "persist class filter in moment assessment tab", %{conn: conn} do
-      strand = LearningContextFixtures.strand_fixture()
-      moment = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
-      class = Lanttern.SchoolsFixtures.class_fixture(%{name: "class filter abc"})
-
-      {:ok, view, _html} =
-        live(
-          conn,
-          "#{@live_view_base_path}/#{moment.id}?tab=assessment&classes_ids[]=#{class.id}"
-        )
-
-      view
-      |> element("#moment-nav-tabs a", "Overview")
-      |> render_click()
-
-      assert_patch(view, "#{@live_view_base_path}/#{moment.id}?tab=overview")
-
-      view
-      |> element("#moment-nav-tabs a", "Assessment")
-      |> render_click()
-
-      # expect to patch to assessment tab, then patch again adding class_ids params
-      assert_patch(view, "#{@live_view_base_path}/#{moment.id}?tab=assessment")
-      assert_patch(view) =~ "classes_ids[]=#{class.id}"
-    end
-  end
 end

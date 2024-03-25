@@ -3,21 +3,17 @@ defmodule LantternWeb.CurriculumComponentLive do
 
   alias Lanttern.Curricula
   alias Lanttern.Curricula.CurriculumItem
-  alias Lanttern.Personalization
 
   import LantternWeb.PersonalizationHelpers
 
   # shared components
   alias LantternWeb.Curricula.CurriculumItemFormComponent
-  alias LantternWeb.BadgeButtonPickerComponent
 
   @impl true
   def mount(_params, _session, socket) do
     socket =
       socket
       |> assign_user_filters([:subjects, :years], socket.assigns.current_user)
-      |> assign(:show_subjects_filter, false)
-      |> assign(:show_years_filter, false)
 
     {:ok, socket}
   end
@@ -88,90 +84,6 @@ defmodule LantternWeb.CurriculumComponentLive do
     do: assign(socket, :show_curriculum_item_form, false)
 
   @impl true
-  def handle_event("show_subjects_filter", _, socket) do
-    {:noreply, assign(socket, :show_subjects_filter, true)}
-  end
-
-  def handle_event("hide_subjects_filter", _, socket) do
-    {:noreply, assign(socket, :show_subjects_filter, false)}
-  end
-
-  def handle_event("toggle_subject_id", %{"id" => id}, socket) do
-    selected_subjects_ids =
-      case id in socket.assigns.selected_subjects_ids do
-        true ->
-          socket.assigns.selected_subjects_ids
-          |> Enum.filter(&(&1 != id))
-
-        false ->
-          [id | socket.assigns.selected_subjects_ids]
-      end
-
-    {:noreply, assign(socket, :selected_subjects_ids, selected_subjects_ids)}
-  end
-
-  def handle_event("clear_subjects_filter", _, socket) do
-    Personalization.set_profile_current_filters(
-      socket.assigns.current_user,
-      %{subjects_ids: []}
-    )
-
-    {:noreply,
-     push_navigate(socket, to: ~p"/curriculum/component/#{socket.assigns.curriculum_component}")}
-  end
-
-  def handle_event("save_selected_subjects_ids", _, socket) do
-    Personalization.set_profile_current_filters(
-      socket.assigns.current_user,
-      %{subjects_ids: socket.assigns.selected_subjects_ids}
-    )
-
-    {:noreply,
-     push_navigate(socket, to: ~p"/curriculum/component/#{socket.assigns.curriculum_component}")}
-  end
-
-  def handle_event("show_years_filter", _, socket) do
-    {:noreply, assign(socket, :show_years_filter, true)}
-  end
-
-  def handle_event("hide_years_filter", _, socket) do
-    {:noreply, assign(socket, :show_years_filter, false)}
-  end
-
-  def handle_event("toggle_year_id", %{"id" => id}, socket) do
-    selected_years_ids =
-      case id in socket.assigns.selected_years_ids do
-        true ->
-          socket.assigns.selected_years_ids
-          |> Enum.filter(&(&1 != id))
-
-        false ->
-          [id | socket.assigns.selected_years_ids]
-      end
-
-    {:noreply, assign(socket, :selected_years_ids, selected_years_ids)}
-  end
-
-  def handle_event("clear_years_filter", _, socket) do
-    Personalization.set_profile_current_filters(
-      socket.assigns.current_user,
-      %{years_ids: []}
-    )
-
-    {:noreply,
-     push_navigate(socket, to: ~p"/curriculum/component/#{socket.assigns.curriculum_component}")}
-  end
-
-  def handle_event("save_selected_years_ids", _, socket) do
-    Personalization.set_profile_current_filters(
-      socket.assigns.current_user,
-      %{years_ids: socket.assigns.selected_years_ids}
-    )
-
-    {:noreply,
-     push_navigate(socket, to: ~p"/curriculum/component/#{socket.assigns.curriculum_component}")}
-  end
-
   def handle_event("delete_curriculum_item", _params, socket) do
     case Curricula.delete_curriculum_item(socket.assigns.curriculum_item) do
       {:ok, _curriculum_item} ->

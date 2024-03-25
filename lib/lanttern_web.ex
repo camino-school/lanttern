@@ -56,8 +56,6 @@ defmodule LantternWeb do
       use Phoenix.LiveView,
         layout: {LantternWeb.Layouts, unquote(layout)}
 
-      import LantternWeb.LiveViewHelpers
-
       # from https://hexdocs.pm/phoenix_live_view/using-gettext.html
       on_mount LantternWeb.LocalizationHelpers
 

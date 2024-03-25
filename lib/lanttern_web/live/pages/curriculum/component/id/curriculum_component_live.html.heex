@@ -51,7 +51,7 @@
           <button
             type="button"
             class="flex items-center gap-2 hover:text-ltrn-subtle"
-            phx-click="show_subjects_filter"
+            phx-click={JS.exec("data-show", to: "#subjects-filter-modal")}
           >
             <%= gettext("Subjects") %>
             <%= if length(@selected_subjects_ids) > 0 do %>
@@ -65,7 +65,7 @@
           <button
             type="button"
             class="flex items-center gap-2 hover:text-ltrn-subtle"
-            phx-click="show_years_filter"
+            phx-click={JS.exec("data-show", to: "#years-filter-modal")}
           >
             <%= gettext("Years") %>
             <%= if length(@selected_years_ids) > 0 do %>
@@ -149,68 +149,22 @@
     <.markdown text={@curriculum_component.description} />
   </section>
 </.container>
-<.modal
-  :if={@show_subjects_filter}
+<.live_component
+  module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
   id="subjects-filter-modal"
-  show
-  on_cancel={JS.push("hide_subjects_filter")}
->
-  <h5 class="font-display font-black text-xl">
-    <%= gettext("Filter curriculum items by subject") %>
-  </h5>
-  <.live_component
-    module={BadgeButtonPickerComponent}
-    id="curriculum-item-subjects-filter"
-    on_select={&JS.push("toggle_subject_id", value: %{"id" => &1})}
-    items={@subjects}
-    selected_ids={@selected_subjects_ids}
-    class="mt-6"
-  />
-  <div class="flex justify-between gap-2 mt-10">
-    <.button type="button" theme="ghost" phx-click="clear_subjects_filter">
-      <%= gettext("Clear filters") %>
-    </.button>
-    <div class="flex gap-2">
-      <.button type="button" theme="ghost" phx-click="hide_subjects_filter">
-        <%= gettext("Cancel") %>
-      </.button>
-      <.button type="button" phx-click="save_selected_subjects_ids">
-        <%= gettext("Apply") %>
-      </.button>
-    </div>
-  </div>
-</.modal>
-<.modal
-  :if={@show_years_filter}
+  current_user={@current_user}
+  title={gettext("Filter curriculum items by subject")}
+  filter_type={:subjects}
+  navigate={~p"/curriculum/component/#{@curriculum_component}"}
+/>
+<.live_component
+  module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
   id="years-filter-modal"
-  show
-  on_cancel={JS.push("hide_years_filter")}
->
-  <h5 class="font-display font-black text-xl">
-    <%= gettext("Filter curriculum items by year") %>
-  </h5>
-  <.live_component
-    module={BadgeButtonPickerComponent}
-    id="curriculum-item-years-filter"
-    on_select={&JS.push("toggle_year_id", value: %{"id" => &1})}
-    items={@years}
-    selected_ids={@selected_years_ids}
-    class="mt-6"
-  />
-  <div class="flex justify-between gap-2 mt-10">
-    <.button type="button" theme="ghost" phx-click="clear_years_filter">
-      <%= gettext("Clear filters") %>
-    </.button>
-    <div class="flex gap-2">
-      <.button type="button" theme="ghost" phx-click="hide_years_filter">
-        <%= gettext("Cancel") %>
-      </.button>
-      <.button type="button" phx-click="save_selected_years_ids">
-        <%= gettext("Apply") %>
-      </.button>
-    </div>
-  </div>
-</.modal>
+  current_user={@current_user}
+  title={gettext("Filter curriculum items by year")}
+  filter_type={:years}
+  navigate={~p"/curriculum/component/#{@curriculum_component}"}
+/>
 <.slide_over
   :if={@show_curriculum_item_form}
   id="curriculum-item-form-overlay"
