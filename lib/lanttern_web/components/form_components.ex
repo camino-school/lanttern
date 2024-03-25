@@ -329,7 +329,7 @@ defmodule LantternWeb.FormComponents do
       id={@id}
       name={@name}
       class={[
-        "block w-full rounded-sm border-0 shadown-sm ring-1 ring-ltrn-lighter bg-white sm:text-sm",
+        "appearance-none block w-full rounded-sm border-0 shadown-sm ring-1 ring-ltrn-lighter sm:text-sm",
         "focus:ring-2 focus:ring-ltrn-primary focus:ring-inset",
         @class
       ]}
