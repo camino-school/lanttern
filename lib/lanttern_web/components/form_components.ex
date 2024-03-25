@@ -336,7 +336,8 @@ defmodule LantternWeb.FormComponents do
       multiple={@multiple}
       {@rest}
     >
-      <option :if={@prompt} value=""><%= @prompt %></option>
+      <%!-- apply bg and text color to prevent issue #75 --%>
+      <option :if={@prompt} value="" class="bg-ltrn-lighter text-ltrn-dark"><%= @prompt %></option>
       <%= Phoenix.HTML.Form.options_for_select(@options, @value) %>
     </select>
     """
