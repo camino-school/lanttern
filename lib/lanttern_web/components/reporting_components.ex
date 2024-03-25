@@ -8,6 +8,7 @@ defmodule LantternWeb.ReportingComponents do
   import LantternWeb.GradingComponents
 
   alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Grading.Scale
   alias Lanttern.Reporting.ReportCard
   alias Lanttern.Reporting.GradesReport
@@ -192,6 +193,8 @@ defmodule LantternWeb.ReportingComponents do
   """
 
   attr :grades_report, GradesReport, required: true
+  attr :student_grades_map, :map, default: nil
+  attr :on_student_grade_click, JS, default: nil
   attr :class, :any, default: nil
   attr :id, :string, default: nil
   attr :on_setup, JS, default: nil
@@ -270,11 +273,16 @@ defmodule LantternWeb.ReportingComponents do
           <%= if @has_cycles do %>
             <.grades_report_grid_cell
               :for={grades_report_cycle <- @grades_report.grades_report_cycles}
-              on_click={
+              on_composition_click={
                 @report_card_cycle_id == grades_report_cycle.school_cycle_id &&
                   @on_composition_click
               }
               subject_id={grades_report_subject.subject_id}
+              student_grade_report_entry={
+                @student_grades_map &&
+                  @student_grades_map[grades_report_cycle.id][grades_report_subject.id]
+              }
+              on_student_grade_click={@on_student_grade_click}
             />
             <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
           <% else %>
@@ -300,16 +308,51 @@ defmodule LantternWeb.ReportingComponents do
     """
   end
 
-  attr :on_click, JS
+  attr :on_composition_click, JS
+  attr :on_student_grade_click, JS
+  attr :student_grade_report_entry, StudentGradeReportEntry
   attr :subject_id, :integer
 
-  defp grades_report_grid_cell(%{on_click: %JS{}} = assigns) do
+  defp grades_report_grid_cell(
+         %{student_grade_report_entry: %StudentGradeReportEntry{ordinal_value: %OrdinalValue{}}} =
+           assigns
+       ) do
+    ~H"""
+    <.button
+      type="button"
+      phx-click={@on_student_grade_click}
+      phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
+      phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
+      {apply_style_from_ordinal_value(@student_grade_report_entry.ordinal_value)}
+    >
+      <%= @student_grade_report_entry.ordinal_value.name %>
+    </.button>
+    """
+  end
+
+  defp grades_report_grid_cell(
+         %{student_grade_report_entry: %StudentGradeReportEntry{}} = assigns
+       ) do
+    ~H"""
+    <.button
+      type="button"
+      phx-click={@on_student_grade_click}
+      phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
+      phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
+      class="border border-ltrn-lighter"
+    >
+      <%= @student_grade_report_entry.score %>
+    </.button>
+    """
+  end
+
+  defp grades_report_grid_cell(%{on_composition_click: %JS{}} = assigns) do
     ~H"""
     <.button
       type="button"
       theme="ghost"
       icon_name="hero-calculator-mini"
-      phx-click={@on_click}
+      phx-click={@on_composition_click}
       phx-value-subjectid={@subject_id}
       class="border border-ltrn-lighter"
     >
@@ -480,10 +523,9 @@ defmodule LantternWeb.ReportingComponents do
   attr :on_entry_click, :any, required: true
 
   defp students_grades_grid_cell(
-         %{student_grade_report_entry: %StudentGradeReportEntry{ordinal_value: ordinal_value}} =
+         %{student_grade_report_entry: %StudentGradeReportEntry{ordinal_value: %OrdinalValue{}}} =
            assigns
-       )
-       when not is_nil(ordinal_value) do
+       ) do
     bg_class =
       if assigns.student_grade_report_entry.ordinal_value_id ==
            assigns.student_grade_report_entry.composition_ordinal_value_id,

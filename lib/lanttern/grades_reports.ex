@@ -15,6 +15,7 @@ defmodule Lanttern.GradesReports do
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Reporting.GradesReportCycle
   alias Lanttern.Reporting.GradesReportSubject
+  alias Lanttern.Reporting.StudentReportCard
 
   @doc """
   Returns the list of student_grade_report_entries.
@@ -722,6 +723,56 @@ defmodule Lanttern.GradesReports do
         |> Map.put(grs_id, sgre)
 
       Map.put(acc, std_id, std_map)
+    end)
+  end
+
+  @doc """
+  Returns a map in the format
+
+      %{
+        cycle_id => %{
+          subject_id => %StudentGradeReportEntry{},
+          # other subjects ids...
+        }
+        # other cycles ids...
+      }
+
+  for the given student report card id.
+
+  Ordinal values preloaded (manually) in student grade report entry.
+  """
+  @spec build_student_grades_map(student_report_card_id :: integer()) :: %{}
+  def build_student_grades_map(student_report_card_id) do
+    from(
+      src in StudentReportCard,
+      join: rc in assoc(src, :report_card),
+      join: gr in assoc(rc, :grades_report),
+      join: grc in assoc(gr, :grades_report_cycles),
+      join: grs in assoc(gr, :grades_report_subjects),
+      left_join: sgre in StudentGradeReportEntry,
+      on:
+        sgre.grades_report_cycle_id == grc.id and
+          sgre.grades_report_subject_id == grs.id and
+          sgre.student_id == src.student_id,
+      left_join: ov in assoc(sgre, :ordinal_value),
+      where: src.id == ^student_report_card_id,
+      select: {grc.id, grs.id, sgre, ov}
+    )
+    |> Repo.all()
+    |> Enum.reduce(%{}, fn {grc_id, grs_id, sgre, ov}, acc ->
+      # "preload" ordinal value in student grade report entry
+      sgre =
+        case sgre do
+          nil -> nil
+          sgre -> %{sgre | ordinal_value: ov}
+        end
+
+      # build cycle map
+      cycle_map =
+        Map.get(acc, grc_id, %{})
+        |> Map.put(grs_id, sgre)
+
+      Map.put(acc, grc_id, cycle_map)
     end)
   end
 end

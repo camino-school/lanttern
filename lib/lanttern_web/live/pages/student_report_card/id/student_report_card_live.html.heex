@@ -34,8 +34,15 @@
         </:bottom_content>
       </.strand_card>
     </div>
-    <h3 class="mt-10 font-display font-black text-2xl">Grade reports</h3>
-    <p>🚧 TBD</p>
+    <section :if={@grades_report} class="mt-10">
+      <h3 class="mb-6 font-display font-black text-2xl"><%= gettext("Grades") %></h3>
+      <.grades_report_grid
+        grades_report={@grades_report}
+        student_grades_map={@student_grades_map}
+        on_student_grade_click={%JS{}}
+        report_card_cycle_id={@student_report_card.report_card.school_cycle_id}
+      />
+    </section>
   </div>
 </div>
 <.footnote footnote={@student_report_card.footnote} />

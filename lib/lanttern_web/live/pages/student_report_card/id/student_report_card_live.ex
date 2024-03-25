@@ -1,12 +1,8 @@
 defmodule LantternWeb.StudentReportCardLive do
   use LantternWeb, :live_view
 
+  alias Lanttern.GradesReports
   alias Lanttern.Reporting
-  # alias Lanttern.Reporting.StrandReport
-
-  # live components
-  # alias LantternWeb.Reporting.ReportCardFormComponent
-  # alias LantternWeb.Reporting.StrandReportFormComponent
 
   # shared components
   import LantternWeb.LearningContextComponents
@@ -43,6 +39,15 @@ defmodule LantternWeb.StudentReportCardLive do
       socket
       |> assign(:student_report_card, student_report_card)
       |> stream(:strand_reports_and_entries, strand_reports_and_entries)
+      |> assign_new(:grades_report, fn %{student_report_card: student_report_card} ->
+        case student_report_card.report_card.grades_report_id do
+          nil -> nil
+          id -> Reporting.get_grades_report(id, load_grid: true)
+        end
+      end)
+      |> assign_new(:student_grades_map, fn %{student_report_card: student_report_card} ->
+        GradesReports.build_student_grades_map(student_report_card.id)
+      end)
 
     {:noreply, socket}
   end
