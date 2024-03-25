@@ -7,9 +7,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   alias Lanttern.Schools
 
   # shared components
-  alias LantternWeb.Schools.ClassFilterFormComponent
   alias LantternWeb.Reporting.StudentReportCardFormComponent
-  import LantternWeb.SchoolsComponents
 
   @impl true
   def render(assigns) do
@@ -85,12 +83,13 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           </div>
         </div>
       </div>
-      <.class_selection_overlay
+      <.live_component
+        module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
         id="classes-filter-overlay"
         current_user={@current_user}
-        classes_ids={@classes_ids}
-        on_clear={JS.push("clear_class_filters", target: @myself)}
-        notify_component={@myself}
+        title={gettext("Select classes")}
+        filter_type={:classes}
+        navigate={~p"/report_cards/#{@report_card}"}
       />
       <.slide_over
         :if={@show_student_report_card_form}
@@ -167,27 +166,6 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   end
 
   @impl true
-  def update(%{action: {ClassFilterFormComponent, {:save, classes_ids}}}, socket) do
-    Personalization.set_profile_current_filters(
-      socket.assigns.current_user,
-      %{classes_ids: classes_ids}
-    )
-
-    classes =
-      Schools.list_user_classes(
-        socket.assigns.current_user,
-        classes_ids: classes_ids
-      )
-
-    socket =
-      socket
-      |> assign(:classes, classes)
-      |> assign(:classes_ids, classes_ids)
-      |> stream_students_report_cards(force: true)
-
-    {:ok, socket}
-  end
-
   def update(assigns, socket) do
     socket =
       socket
@@ -290,15 +268,6 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     do: assign(socket, :show_student_report_card_form, false)
 
   @impl true
-  def handle_event("clear_class_filters", _, socket) do
-    Personalization.set_profile_current_filters(
-      socket.assigns.current_user,
-      %{classes_ids: []}
-    )
-
-    {:noreply, push_navigate(socket, to: ~p"/report_cards/#{socket.assigns.report_card}")}
-  end
-
   def handle_event("delete_student_report_card", _params, socket) do
     case Reporting.delete_student_report_card(socket.assigns.student_report_card) do
       {:ok, _student_report_card} ->
