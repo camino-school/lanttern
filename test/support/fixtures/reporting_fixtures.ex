@@ -13,25 +13,13 @@ defmodule Lanttern.ReportingFixtures do
       |> Enum.into(%{
         name: "some name",
         description: "some description",
-        school_cycle_id: maybe_gen_school_cycle_id(attrs),
-        year_id: maybe_gen_year_id(attrs)
+        school_cycle_id: Lanttern.SchoolsFixtures.maybe_gen_cycle_id(attrs),
+        year_id: Lanttern.TaxonomyFixtures.maybe_gen_year_id(attrs)
       })
       |> Lanttern.Reporting.create_report_card()
 
     report_card
   end
-
-  defp maybe_gen_school_cycle_id(%{school_cycle_id: school_cycle_id} = _attrs),
-    do: school_cycle_id
-
-  defp maybe_gen_school_cycle_id(_attrs),
-    do: Lanttern.SchoolsFixtures.cycle_fixture().id
-
-  defp maybe_gen_year_id(%{year_id: year_id} = _attrs),
-    do: year_id
-
-  defp maybe_gen_year_id(_attrs),
-    do: Lanttern.TaxonomyFixtures.year_fixture().id
 
   @doc """
   Generate a strand_report.
@@ -41,7 +29,7 @@ defmodule Lanttern.ReportingFixtures do
       attrs
       |> Enum.into(%{
         report_card_id: maybe_gen_report_card_id(attrs),
-        strand_id: maybe_gen_strand_id(attrs),
+        strand_id: Lanttern.LearningContextFixtures.maybe_gen_strand_id(attrs),
         description: "some description",
         position: 0
       })
@@ -49,18 +37,6 @@ defmodule Lanttern.ReportingFixtures do
 
     strand_report
   end
-
-  defp maybe_gen_report_card_id(%{report_card_id: report_card_id} = _attrs),
-    do: report_card_id
-
-  defp maybe_gen_report_card_id(_attrs),
-    do: report_card_fixture().id
-
-  defp maybe_gen_strand_id(%{strand_id: strand_id} = _attrs),
-    do: strand_id
-
-  defp maybe_gen_strand_id(_attrs),
-    do: Lanttern.LearningContextFixtures.strand_fixture().id
 
   @doc """
   Generate a student_report_card.
@@ -70,7 +46,7 @@ defmodule Lanttern.ReportingFixtures do
       attrs
       |> Enum.into(%{
         report_card_id: maybe_gen_report_card_id(attrs),
-        student_id: maybe_gen_student_id(attrs),
+        student_id: Lanttern.SchoolsFixtures.maybe_gen_student_id(attrs),
         comment: "some comment",
         footnote: "some footnote"
       })
@@ -78,12 +54,6 @@ defmodule Lanttern.ReportingFixtures do
 
     student_report_card
   end
-
-  defp maybe_gen_student_id(%{student_id: student_id} = _attrs),
-    do: student_id
-
-  defp maybe_gen_student_id(_attrs),
-    do: Lanttern.SchoolsFixtures.student_fixture().id
 
   @doc """
   Generate a grade report.
@@ -94,19 +64,13 @@ defmodule Lanttern.ReportingFixtures do
       |> Enum.into(%{
         name: "some name",
         info: "some info",
-        school_cycle_id: maybe_gen_school_cycle_id(attrs),
-        scale_id: maybe_gen_scale_id(attrs)
+        school_cycle_id: Lanttern.SchoolsFixtures.maybe_gen_cycle_id(attrs),
+        scale_id: Lanttern.GradingFixtures.maybe_gen_scale_id(attrs)
       })
       |> Lanttern.Reporting.create_grades_report()
 
     grades_report
   end
-
-  defp maybe_gen_scale_id(%{scale_id: scale_id} = _attrs),
-    do: scale_id
-
-  defp maybe_gen_scale_id(_attrs),
-    do: Lanttern.GradingFixtures.scale_fixture().id
 
   @doc """
   Generate a grades_report_subject.
@@ -116,24 +80,12 @@ defmodule Lanttern.ReportingFixtures do
       attrs
       |> Enum.into(%{
         grades_report_id: maybe_gen_grades_report_id(attrs),
-        subject_id: maybe_gen_subject_id(attrs)
+        subject_id: Lanttern.TaxonomyFixtures.maybe_gen_subject_id(attrs)
       })
       |> Lanttern.Reporting.add_subject_to_grades_report()
 
     grades_report_subject
   end
-
-  defp maybe_gen_grades_report_id(%{grades_report_id: grades_report_id} = _attrs),
-    do: grades_report_id
-
-  defp maybe_gen_grades_report_id(_attrs),
-    do: grades_report_fixture().id
-
-  defp maybe_gen_subject_id(%{subject_id: subject_id} = _attrs),
-    do: subject_id
-
-  defp maybe_gen_subject_id(_attrs),
-    do: Lanttern.TaxonomyFixtures.subject_fixture().id
 
   @doc """
   Generate a grades_report_cycle.
@@ -143,7 +95,7 @@ defmodule Lanttern.ReportingFixtures do
       attrs
       |> Enum.into(%{
         grades_report_id: maybe_gen_grades_report_id(attrs),
-        school_cycle_id: maybe_gen_school_cycle_id(attrs)
+        school_cycle_id: Lanttern.SchoolsFixtures.maybe_gen_cycle_id(attrs)
       })
       |> Lanttern.Reporting.add_cycle_to_grades_report()
 
@@ -160,17 +112,41 @@ defmodule Lanttern.ReportingFixtures do
         position: 42,
         weight: 120.5,
         report_card_id: maybe_gen_report_card_id(attrs),
-        assessment_point_id: maybe_gen_assessment_point_id(attrs),
-        subject_id: maybe_gen_subject_id(attrs)
+        assessment_point_id: Lanttern.AssessmentsFixtures.maybe_gen_assessment_point_id(attrs),
+        subject_id: Lanttern.TaxonomyFixtures.maybe_gen_subject_id(attrs)
       })
       |> Lanttern.Reporting.create_grade_component()
 
     grade_component
   end
 
-  defp maybe_gen_assessment_point_id(%{assessment_point_id: assessment_point_id} = _attrs),
-    do: assessment_point_id
+  # generator helpers
 
-  defp maybe_gen_assessment_point_id(_attrs),
-    do: Lanttern.AssessmentsFixtures.assessment_point_fixture().id
+  def maybe_gen_report_card_id(%{report_card_id: report_card_id} = _attrs),
+    do: report_card_id
+
+  def maybe_gen_report_card_id(_attrs),
+    do: report_card_fixture().id
+
+  def maybe_gen_grades_report_id(%{grades_report_id: grades_report_id} = _attrs),
+    do: grades_report_id
+
+  def maybe_gen_grades_report_id(_attrs),
+    do: grades_report_fixture().id
+
+  def maybe_gen_grades_report_cycle_id(
+        %{grades_report_cycle_id: grades_report_cycle_id} = _attrs
+      ),
+      do: grades_report_cycle_id
+
+  def maybe_gen_grades_report_cycle_id(_attrs),
+    do: grades_report_cycle_fixture().id
+
+  def maybe_gen_grades_report_subject_id(
+        %{grades_report_subject_id: grades_report_subject_id} = _attrs
+      ),
+      do: grades_report_subject_id
+
+  def maybe_gen_grades_report_subject_id(_attrs),
+    do: grades_report_subject_fixture().id
 end

@@ -36,12 +36,6 @@ defmodule Lanttern.LearningContextFixtures do
     moment
   end
 
-  defp maybe_gen_strand_id(%{strand_id: strand_id} = _attrs),
-    do: strand_id
-
-  defp maybe_gen_strand_id(_attrs),
-    do: strand_fixture().id
-
   @doc """
   Generate a moment_card.
   """
@@ -58,9 +52,11 @@ defmodule Lanttern.LearningContextFixtures do
     moment_card
   end
 
-  defp maybe_gen_moment_id(%{moment_id: moment_id} = _attrs),
-    do: moment_id
+  # generator helpers
 
-  defp maybe_gen_moment_id(_attrs),
-    do: moment_fixture().id
+  def maybe_gen_strand_id(%{strand_id: strand_id} = _attrs), do: strand_id
+  def maybe_gen_strand_id(_attrs), do: strand_fixture().id
+
+  def maybe_gen_moment_id(%{moment_id: moment_id} = _attrs), do: moment_id
+  def maybe_gen_moment_id(_attrs), do: moment_fixture().id
 end

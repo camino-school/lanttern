@@ -111,4 +111,9 @@ defmodule Lanttern.GradingFixtures do
 
     ordinal_value
   end
+
+  # generator helpers
+
+  def maybe_gen_scale_id(%{scale_id: scale_id} = _attrs), do: scale_id
+  def maybe_gen_scale_id(_attrs), do: scale_fixture().id
 end

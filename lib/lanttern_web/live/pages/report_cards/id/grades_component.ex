@@ -26,9 +26,6 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
               on_composition_click={JS.push("edit_subject_grade_composition", target: @myself)}
             />
           <% else %>
-            <h3 class="mb-4 font-display font-bold text-2xl">
-              <%= gettext("Grades report grid") %>
-            </h3>
             <.empty_state>
               <%= gettext("No grades report linked to this report card.") %>
             </.empty_state>

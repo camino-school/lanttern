@@ -34,8 +34,52 @@
         </:bottom_content>
       </.strand_card>
     </div>
-    <h3 class="mt-10 font-display font-black text-2xl">Grade reports</h3>
-    <p>🚧 TBD</p>
+    <section :if={@grades_report} class="mt-10">
+      <h3 class="mb-6 font-display font-black text-2xl"><%= gettext("Grades") %></h3>
+      <.grades_report_grid
+        grades_report={@grades_report}
+        student_grades_map={@student_grades_map}
+        on_student_grade_click={JS.push("view_grade_details")}
+        report_card_cycle_id={@student_report_card.report_card.school_cycle_id}
+      />
+    </section>
   </div>
 </div>
 <.footnote footnote={@student_report_card.footnote} />
+<.slide_over
+  :if={@is_showing_grade_details}
+  id="grade-details"
+  show={true}
+  on_cancel={JS.patch(~p"/student_report_card/#{@student_report_card}")}
+>
+  <:title><%= gettext("Grade details") %></:title>
+  <div class="flex items-center gap-6 mb-10">
+    <div
+      :if={@student_grade_report_entry.ordinal_value}
+      class="self-stretch flex items-center p-6 rounded"
+      {apply_style_from_ordinal_value(@student_grade_report_entry.ordinal_value)}
+    >
+      <%= @student_grade_report_entry.ordinal_value.name %>
+    </div>
+    <div class="flex-1">
+      <.metadata class="mb-4" icon_name="hero-bookmark">
+        <span class="font-bold"><%= gettext("Subject") %>:</span>
+        <%= Gettext.dgettext(
+          LantternWeb.Gettext,
+          "taxonomy",
+          @student_grade_report_entry.grades_report_subject.subject.name
+        ) %>
+      </.metadata>
+      <.metadata icon_name="hero-calendar">
+        <span class="font-bold"><%= gettext("Cycle") %>:</span>
+        <%= @student_grade_report_entry.grades_report_cycle.school_cycle.name %>
+      </.metadata>
+    </div>
+  </div>
+  <%= if @student_grade_report_entry.comment do %>
+    <h6 class="mb-4 font-display font-bold"><%= gettext("Comment") %></h6>
+    <.markdown text={@student_grade_report_entry.comment} size="sm" class="mb-10" />
+  <% end %>
+  <h6 class="mb-4 font-display font-bold"><%= gettext("Grade composition") %></h6>
+  <.grade_composition_table student_grade_report_entry={@student_grade_report_entry} />
+</.slide_over>

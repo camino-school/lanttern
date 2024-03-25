@@ -11,7 +11,7 @@ defmodule LantternWeb.PersonalizationHelpers do
   import LantternWeb.LocalizationHelpers
 
   @doc """
-  Handle filter related assigns in socket.
+  Handle all filter related assigns in socket.
 
   ## Filter types and assigns
 
@@ -32,6 +32,12 @@ defmodule LantternWeb.PersonalizationHelpers do
   - :cycles
   - :selected_cycles_ids
   - :selected_cycles
+
+  ### `:classes`' assigns
+
+  - :classes
+  - :selected_classes_ids
+  - :selected_classes
 
   ## Examples
 
@@ -97,19 +103,35 @@ defmodule LantternWeb.PersonalizationHelpers do
     |> assign_filter_type(current_user, current_filters, filter_types)
   end
 
+  defp assign_filter_type(socket, current_user, current_filters, [:classes | filter_types]) do
+    classes =
+      Schools.list_user_classes(current_user)
+
+    selected_classes_ids = Map.get(current_filters, :classes_ids) || []
+    selected_classes = Enum.filter(classes, &(&1.id in selected_classes_ids))
+
+    socket
+    |> assign(:classes, classes)
+    |> assign(:selected_classes_ids, selected_classes_ids)
+    |> assign(:selected_classes, selected_classes)
+    |> assign_filter_type(current_user, current_filters, filter_types)
+  end
+
   defp assign_filter_type(socket, current_user, current_filters, [_ | filter_types]),
     do: assign_filter_type(socket, current_user, current_filters, filter_types)
 
   @type_to_type_ids_key_map %{
     subjects: :subjects_ids,
     years: :years_ids,
-    cycles: :cycles_ids
+    cycles: :cycles_ids,
+    classes: :classes_ids
   }
 
   @type_to_selected_ids_key_map %{
     subjects: :selected_subjects_ids,
     years: :selected_years_ids,
-    cycles: :selected_cycles_ids
+    cycles: :selected_cycles_ids,
+    classes: :selected_classes_ids
   }
 
   @doc """

@@ -80,14 +80,22 @@
       params={@params}
     />
   </div>
-  <.live_component
-    :if={@current_tab == :grades}
-    module={GradesComponent}
-    id="report-card-grades"
-    report_card={@report_card}
-    current_user={@current_user}
-    params={@params}
-  />
+  <div :if={@current_tab == :grades}>
+    <.live_component
+      module={GradesComponent}
+      id="report-card-grades"
+      report_card={@report_card}
+      current_user={@current_user}
+      params={@params}
+    />
+    <.live_component
+      module={StudentsGradesComponent}
+      id="report-card-students-grades"
+      report_card={@report_card}
+      current_user={@current_user}
+      params={@params}
+    />
+  </div>
 </div>
 <.slide_over
   :if={@is_editing}

@@ -99,14 +99,12 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         on_cancel={JS.patch(~p"/report_cards/#{@report_card}?tab=students")}
       >
         <:title><%= @form_overlay_title %></:title>
-        <div class="flex items-center gap-2 mb-4">
-          <.icon name="hero-document-text" class="w-6 h-6 text-ltrn-subtle" />
-          <span class="text-sm"><%= @report_card.name %></span>
-        </div>
-        <div class="flex items-center gap-2 mb-4">
-          <.icon name="hero-user" class="w-6 h-6 text-ltrn-subtle" />
-          <span class="text-sm"><%= @student.name %></span>
-        </div>
+        <.metadata class="mb-4" icon_name="hero-document-text">
+          <%= @report_card.name %>
+        </.metadata>
+        <.metadata class="mb-4" icon_name="hero-user">
+          <%= @student.name %>
+        </.metadata>
         <.live_component
           module={StudentReportCardFormComponent}
           id={@student_report_card.id || :new}

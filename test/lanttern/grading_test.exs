@@ -534,4 +534,79 @@ defmodule Lanttern.GradingTest do
       assert %Ecto.Changeset{} = Grading.change_ordinal_value(ordinal_value)
     end
   end
+
+  describe "conversions" do
+    import Lanttern.GradingFixtures
+    alias Lanttern.Grading.OrdinalValue
+
+    test "convert_normalized_value_to_scale_value/1 returns the correct values for a ordinal scale" do
+      scale =
+        scale_fixture(%{
+          type: "ordinal",
+          breakpoints: [0.4, 0.8]
+        })
+
+      ov_1 =
+        ordinal_value_fixture(%{
+          scale_id: scale.id,
+          normalized_value: 0.3
+        })
+
+      ov_2 =
+        ordinal_value_fixture(%{
+          scale_id: scale.id,
+          normalized_value: 0.6
+        })
+
+      ov_3 =
+        ordinal_value_fixture(%{
+          scale_id: scale.id,
+          normalized_value: 1.0
+        })
+
+      ov_1_id = ov_1.id
+
+      assert %OrdinalValue{id: ^ov_1_id} =
+               Grading.convert_normalized_value_to_scale_value(0, scale)
+
+      assert %OrdinalValue{id: ^ov_1_id} =
+               Grading.convert_normalized_value_to_scale_value(0.39999, scale)
+
+      ov_2_id = ov_2.id
+
+      assert %OrdinalValue{id: ^ov_2_id} =
+               Grading.convert_normalized_value_to_scale_value(0.4, scale)
+
+      assert %OrdinalValue{id: ^ov_2_id} =
+               Grading.convert_normalized_value_to_scale_value(0.6, scale)
+
+      assert %OrdinalValue{id: ^ov_2_id} =
+               Grading.convert_normalized_value_to_scale_value(0.79999, scale)
+
+      ov_3_id = ov_3.id
+
+      assert %OrdinalValue{id: ^ov_3_id} =
+               Grading.convert_normalized_value_to_scale_value(0.8, scale)
+
+      assert %OrdinalValue{id: ^ov_3_id} =
+               Grading.convert_normalized_value_to_scale_value(0.962, scale)
+
+      assert %OrdinalValue{id: ^ov_3_id} =
+               Grading.convert_normalized_value_to_scale_value(1.0, scale)
+    end
+
+    test "convert_normalized_value_to_scale_value/1 returns the correct values for a numeric scale" do
+      scale =
+        scale_fixture(%{
+          type: "numeric",
+          start: 5.0,
+          stop: 10.0
+        })
+
+      assert Grading.convert_normalized_value_to_scale_value(0, scale) == 5.0
+      assert Grading.convert_normalized_value_to_scale_value(0.5, scale) == 7.5
+      assert Grading.convert_normalized_value_to_scale_value(0.789, scale) == 8.945
+      assert Grading.convert_normalized_value_to_scale_value(1, scale) == 10.0
+    end
+  end
 end

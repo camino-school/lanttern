@@ -232,7 +232,7 @@ defmodule LantternWeb.CoreComponents do
   """
   def get_button_styles(theme \\ "default", size \\ "normal", rounded \\ false) do
     [
-      "inline-flex items-center justify-center font-display text-sm font-bold",
+      "inline-flex items-center justify-center font-display text-sm font-bold disabled:cursor-not-allowed",
       if(size == "sm", do: "gap-1 p-1", else: "gap-2 p-2"),
       if(rounded, do: "rounded-full", else: "rounded-sm"),
       "phx-submit-loading:opacity-50 phx-click-loading:opacity-50 phx-click-loading:pointer-events-none",
@@ -241,8 +241,11 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @button_themes %{
-    "default" => "bg-ltrn-primary hover:bg-cyan-300 shadow-sm",
-    "white" => "bg-white hover:bg-ltrn-lightest shadow-sm",
+    "default" => [
+      "bg-ltrn-primary hover:bg-cyan-300 shadow-sm",
+      "disabled:text-ltrn-subtle disabled:bg-ltrn-mesh-cyan disabled:shadow-none"
+    ],
+    "white" => "text-ltrn-dark bg-white hover:bg-ltrn-lightest shadow-sm",
     "ghost" => [
       "text-ltrn-subtle bg-transparent hover:bg-slate-100",
       "disabled:text-ltrn-lighter disabled"
@@ -775,6 +778,22 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Renders metadata (basically icon + text).
+  """
+  attr :icon_name, :string, default: nil
+  attr :class, :any, default: nil
+  slot :inner_block, required: true
+
+  def metadata(assigns) do
+    ~H"""
+    <div class={["flex items-center gap-2", @class]}>
+      <.icon :if={@icon_name} name={@icon_name} class="w-6 h-6 text-ltrn-subtle" />
+      <div class="text-sm"><%= render_slot(@inner_block) %></div>
+    </div>
+    """
+  end
+
+  @doc """
   Renders the nav menu button.
   """
   attr :class, :any, default: nil
@@ -926,13 +945,14 @@ defmodule LantternWeb.CoreComponents do
   """
   attr :profile_name, :string, required: true
   attr :theme, :string, default: "cyan"
+  attr :icon_size, :string, default: "normal"
   attr :class, :any, default: nil
   attr :rest, :global
 
   def profile_icon_with_name(assigns) do
     ~H"""
     <div class={["flex gap-2 items-center text-sm", @class]}>
-      <.profile_icon profile_name={@profile_name} theme={@theme} />
+      <.profile_icon profile_name={@profile_name} theme={@theme} size={@icon_size} />
       <span class="line-clamp-2"><%= @profile_name %></span>
     </div>
     """

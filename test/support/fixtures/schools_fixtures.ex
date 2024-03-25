@@ -99,11 +99,14 @@ defmodule Lanttern.SchoolsFixtures do
     teacher
   end
 
-  # helpers
+  # generator helpers
 
-  defp maybe_gen_school_id(%{school_id: school_id} = _attrs),
-    do: school_id
+  def maybe_gen_school_id(%{school_id: school_id} = _attrs), do: school_id
+  def maybe_gen_school_id(_attrs), do: school_fixture().id
 
-  defp maybe_gen_school_id(_attrs),
-    do: school_fixture().id
+  def maybe_gen_cycle_id(%{cycle_id: cycle_id} = _attrs), do: cycle_id
+  def maybe_gen_cycle_id(_attrs), do: cycle_fixture().id
+
+  def maybe_gen_student_id(%{student_id: student_id} = _attrs), do: student_id
+  def maybe_gen_student_id(_attrs), do: student_fixture().id
 end

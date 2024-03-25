@@ -5,10 +5,13 @@ defmodule Lanttern.Grading do
 
   import Ecto.Query, warn: false
   alias Lanttern.Repo
+  import Lanttern.RepoHelpers
 
   alias Lanttern.Grading.Composition
   alias Lanttern.Grading.CompositionComponent
-  import Lanttern.RepoHelpers
+  alias Lanttern.Grading.CompositionComponentItem
+  alias Lanttern.Grading.OrdinalValue
+  alias Lanttern.Grading.Scale
 
   @doc """
   Returns the list of compositions.
@@ -211,8 +214,6 @@ defmodule Lanttern.Grading do
     CompositionComponent.changeset(composition_component, attrs)
   end
 
-  alias Lanttern.Grading.CompositionComponentItem
-
   @doc """
   Returns the list of component_items.
   Optionally preloads associated data.
@@ -318,8 +319,6 @@ defmodule Lanttern.Grading do
       ) do
     CompositionComponentItem.changeset(composition_component_item, attrs)
   end
-
-  alias Lanttern.Grading.OrdinalValue
 
   @doc """
   Returns the list of ordinal_values.
@@ -441,8 +440,6 @@ defmodule Lanttern.Grading do
     OrdinalValue.changeset(ordinal_value, attrs)
   end
 
-  alias Lanttern.Grading.Scale
-
   @doc """
   Returns the list of scales.
 
@@ -553,4 +550,37 @@ defmodule Lanttern.Grading do
   def change_scale(%Scale{} = scale, attrs \\ %{}) do
     Scale.changeset(scale, attrs)
   end
+
+  @doc """
+  Converts a normalized value to a scale's score (float) or `OrdinalValue`.
+  """
+  @spec convert_normalized_value_to_scale_value(float(), Scale.t()) :: float() | OrdinalValue.t()
+
+  def convert_normalized_value_to_scale_value(normalized_value, %Scale{type: "ordinal"} = scale) do
+    ordinal_values = list_ordinal_values(scale_id: scale.id)
+
+    # get index of ordinal value
+    # use sort to ensure scale breakpoints are sorted
+    i =
+      scale.breakpoints
+      |> Enum.sort()
+      |> get_normalized_value_breakpoint_index(normalized_value)
+
+    Enum.at(ordinal_values, i)
+  end
+
+  def convert_normalized_value_to_scale_value(normalized_value, %Scale{type: "numeric"} = scale) do
+    normalized_value * (scale.stop - scale.start) + scale.start
+  end
+
+  defp get_normalized_value_breakpoint_index(breakpoints, normalized_value, i \\ 0)
+
+  defp get_normalized_value_breakpoint_index([], _n_value, i), do: i
+
+  defp get_normalized_value_breakpoint_index([breakpoint | _breakpoints], n_value, i)
+       when n_value < breakpoint,
+       do: i
+
+  defp get_normalized_value_breakpoint_index([_breakpoint | breakpoints], n_value, i),
+    do: get_normalized_value_breakpoint_index(breakpoints, n_value, i + 1)
 end
