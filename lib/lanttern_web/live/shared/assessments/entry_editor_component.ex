@@ -54,23 +54,17 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
 
   def marking_input(%{scale: %{type: "ordinal"}} = assigns) do
     ~H"""
-    <div class={["relative", @class]}>
-      <div
-        class={[
-          "flex items-center justify-center w-full h-full rounded-sm font-mono text-sm pointer-events-none truncate",
-          @form[:ordinal_value_id].value == nil && "bg-ltrn-lighter"
-        ]}
-        style={@style}
-      >
-        <%= @ov_name || "—" %>
-      </div>
+    <div class={@class}>
       <.select
         name={@form[:ordinal_value_id].name}
         prompt="—"
         options={@ordinal_value_options}
         value={@form[:ordinal_value_id].value}
-        class="absolute inset-0 text-center text-transparent"
-        style="background-color: transparent"
+        class={[
+          "w-full h-full rounded-sm font-mono text-sm text-center truncate",
+          @form[:ordinal_value_id].value == nil && "bg-ltrn-lighter"
+        ]}
+        style={@style}
       />
     </div>
     """

@@ -67,9 +67,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
       <%!-- show entries only with class filter selected --%>
       <div
         :if={@classes && @assessment_points_count > 0}
-        id="strand-assessment-points-slider"
         class="relative w-full max-h-screen mt-6 rounded shadow-xl bg-white overflow-x-auto"
-        phx-hook="Slider"
       >
         <div
           class="relative grid w-max"
