@@ -64,7 +64,11 @@
     <div class="flex-1">
       <.metadata class="mb-4" icon_name="hero-bookmark">
         <span class="font-bold"><%= gettext("Subject") %>:</span>
-        <%= @student_grade_report_entry.grades_report_subject.subject.name %>
+        <%= Gettext.dgettext(
+          LantternWeb.Gettext,
+          "taxonomy",
+          @student_grade_report_entry.grades_report_subject.subject.name
+        ) %>
       </.metadata>
       <.metadata icon_name="hero-calendar">
         <span class="font-bold"><%= gettext("Cycle") %>:</span>

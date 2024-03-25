@@ -268,7 +268,7 @@ defmodule LantternWeb.ReportingComponents do
           style={@grid_column_style}
         >
           <div class="p-4 rounded bg-white shadow-lg">
-            <%= grades_report_subject.subject.name %>
+            <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", grades_report_subject.subject.name) %>
           </div>
           <%= if @has_cycles do %>
             <.grades_report_grid_cell
@@ -448,7 +448,7 @@ defmodule LantternWeb.ReportingComponents do
           class="flex items-center justify-center gap-2 px-1 py-4 rounded text-center bg-white shadow-lg"
         >
           <span class="flex-1 truncate">
-            <%= grades_report_subject.subject.name %>
+            <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", grades_report_subject.subject.name) %>
           </span>
           <.icon_button
             :if={@on_calculate_subject}
