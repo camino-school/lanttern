@@ -157,7 +157,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
         id="students-grades-filters"
         current_user={@current_user}
         title={gettext("Students grades filter")}
-        filters={[:classes]}
+        filter_type={:classes}
         navigate={~p"/report_cards/#{@report_card}?tab=grades"}
       />
     </div>

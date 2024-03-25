@@ -34,8 +34,9 @@ defmodule LantternWeb.OverlayComponents do
     ~H"""
     <div
       id={@id}
-      phx-mounted={@show && show_modal(@id)}
+      phx-mounted={@show && JS.exec("data-show")}
       phx-remove={hide_modal(@id)}
+      data-show={show_modal(@id)}
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
       class="relative z-50 hidden"
     >

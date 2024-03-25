@@ -10,37 +10,34 @@ defmodule LantternWeb.Personalization.GlobalFiltersOverlayComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <.slide_over id={@id}>
-        <:title><%= @title %></:title>
-        <.filter_group
-          :for={filter_type <- @filters}
-          myself={@myself}
-          {get_filter_groups_attrs(filter_type, assigns)}
-        />
-        <:actions_left>
+      <.modal id={@id}>
+        <h5 class="mb-10 font-display font-black text-xl">
+          <%= @title %>
+        </h5>
+        <.filter_group myself={@myself} {get_filter_groups_attrs(@filter_type, assigns)} />
+        <div class="flex justify-between gap-2 mt-10">
           <.button type="button" theme="ghost" phx-click={JS.push("clear_filters", target: @myself)}>
             <%= gettext("Clear filters") %>
           </.button>
-        </:actions_left>
-        <:actions>
-          <.button type="button" theme="ghost" phx-click={JS.exec("data-cancel", to: "##{@id}")}>
-            <%= gettext("Cancel") %>
-          </.button>
-          <.button
-            type="button"
-            disabled={!@has_changes}
-            phx-click={JS.push("apply_filters", target: @myself)}
-            phx-disable-with={gettext("Applying filters...")}
-          >
-            <%= gettext("Apply filters") %>
-          </.button>
-        </:actions>
-      </.slide_over>
+          <div class="flex gap-2">
+            <.button type="button" theme="ghost" phx-click={JS.exec("data-cancel", to: "##{@id}")}>
+              <%= gettext("Cancel") %>
+            </.button>
+            <.button
+              type="button"
+              disabled={!@has_changes}
+              phx-click={JS.push("apply_filters", target: @myself)}
+              phx-disable-with={gettext("Applying filters...")}
+            >
+              <%= gettext("Apply filters") %>
+            </.button>
+          </div>
+        </div>
+      </.modal>
     </div>
     """
   end
 
-  attr :title, :string, required: true
   attr :type, :string, required: true
   attr :myself, :any, required: true
   attr :items, :list, required: true
@@ -48,10 +45,7 @@ defmodule LantternWeb.Personalization.GlobalFiltersOverlayComponent do
 
   defp filter_group(assigns) do
     ~H"""
-    <div class="mb-10">
-      <p class="font-display font-black text-lg">
-        <%= @title %>
-      </p>
+    <div>
       <.live_component
         module={BadgeButtonPickerComponent}
         id={"global-#{@type}-filter"}
@@ -71,7 +65,6 @@ defmodule LantternWeb.Personalization.GlobalFiltersOverlayComponent do
 
   defp get_filter_groups_attrs(:subjects, assigns) do
     %{
-      title: gettext("Subjects"),
       type: "subjects",
       items: assigns.subjects,
       selected_ids: assigns.selected_subjects_ids
@@ -80,7 +73,6 @@ defmodule LantternWeb.Personalization.GlobalFiltersOverlayComponent do
 
   defp get_filter_groups_attrs(:years, assigns) do
     %{
-      title: gettext("Years"),
       type: "years",
       items: assigns.years,
       selected_ids: assigns.selected_years_ids
@@ -89,7 +81,6 @@ defmodule LantternWeb.Personalization.GlobalFiltersOverlayComponent do
 
   defp get_filter_groups_attrs(:classes, assigns) do
     %{
-      title: gettext("Classes"),
       type: "classes",
       items: assigns.classes,
       selected_ids: assigns.selected_classes_ids
@@ -98,7 +89,6 @@ defmodule LantternWeb.Personalization.GlobalFiltersOverlayComponent do
 
   defp get_filter_groups_attrs(:cycles, assigns) do
     %{
-      title: gettext("Cycles"),
       type: "cycles",
       items: assigns.cycles,
       selected_ids: assigns.selected_cycles_ids
@@ -117,12 +107,12 @@ defmodule LantternWeb.Personalization.GlobalFiltersOverlayComponent do
   end
 
   @impl true
-  def update(assigns, socket) do
+  def update(%{filter_type: filter_type} = assigns, socket) do
     socket =
       socket
       |> assign(assigns)
       |> assign_user_filters(
-        [:subjects, :years, :classes, :cycles],
+        [filter_type],
         assigns.current_user
       )
 
@@ -148,7 +138,7 @@ defmodule LantternWeb.Personalization.GlobalFiltersOverlayComponent do
   def handle_event("clear_filters", _, socket) do
     clear_profile_filters(
       socket.assigns.current_user,
-      socket.assigns.filters
+      [socket.assigns.filter_type]
     )
 
     {:noreply, handle_navigation(socket)}
@@ -157,7 +147,7 @@ defmodule LantternWeb.Personalization.GlobalFiltersOverlayComponent do
   def handle_event("apply_filters", _, socket) do
     socket =
       socket
-      |> save_profile_filters(socket.assigns.current_user, socket.assigns.filters)
+      |> save_profile_filters(socket.assigns.current_user, [socket.assigns.filter_type])
       |> assign(:has_changes, false)
       |> handle_navigation()
 
