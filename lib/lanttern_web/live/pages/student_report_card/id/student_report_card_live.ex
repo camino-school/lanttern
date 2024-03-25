@@ -1,12 +1,16 @@
 defmodule LantternWeb.StudentReportCardLive do
+  alias Lanttern.GradesReports.StudentGradeReportEntry
   use LantternWeb, :live_view
+  alias Lanttern.Repo
 
   alias Lanttern.GradesReports
   alias Lanttern.Reporting
 
   # shared components
   import LantternWeb.LearningContextComponents
+  import LantternWeb.GradingComponents
   import LantternWeb.ReportingComponents
+  import LantternWeb.GradesReportsComponents
 
   # lifecycle
 
@@ -23,7 +27,7 @@ defmodule LantternWeb.StudentReportCardLive do
   end
 
   @impl true
-  def handle_params(%{"id" => id}, _url, socket) do
+  def handle_params(%{"id" => id} = params, _url, socket) do
     student_report_card =
       Reporting.get_student_report_card!(id,
         preloads: [
@@ -48,7 +52,58 @@ defmodule LantternWeb.StudentReportCardLive do
       |> assign_new(:student_grades_map, fn %{student_report_card: student_report_card} ->
         GradesReports.build_student_grades_map(student_report_card.id)
       end)
+      |> assign_is_showing_grade_details(params)
 
     {:noreply, socket}
+  end
+
+  defp assign_is_showing_grade_details(
+         socket = %{assigns: %{student_grades_map: student_grades_map}},
+         %{"grades_report_subject_id" => grs_id, "grades_report_cycle_id" => grc_id}
+       ) do
+    grc_id = String.to_integer(grc_id)
+    grs_id = String.to_integer(grs_id)
+
+    case student_grades_map[grc_id][grs_id] do
+      %StudentGradeReportEntry{} = sgre ->
+        sgre =
+          sgre
+          |> Repo.preload([
+            :composition_ordinal_value,
+            grades_report_subject: :subject,
+            grades_report_cycle: :school_cycle
+          ])
+
+        socket
+        |> assign(:student_grade_report_entry, sgre)
+        |> assign(:is_showing_grade_details, true)
+
+      _ ->
+        assign(socket, :is_showing_grade_details, false)
+    end
+  end
+
+  defp assign_is_showing_grade_details(socket, _),
+    do: assign(socket, :is_showing_grade_details, false)
+
+  # event handlers
+
+  @impl true
+  def handle_event("view_grade_details", params, socket) do
+    %{
+      "gradesreportcycleid" => grc_id,
+      "gradesreportsubjectid" => grs_id
+    } = params
+
+    url_params =
+      %{
+        "grades_report_cycle_id" => grc_id,
+        "grades_report_subject_id" => grs_id
+      }
+
+    {:noreply,
+     push_patch(socket,
+       to: ~p"/student_report_card/#{socket.assigns.student_report_card}?#{url_params}"
+     )}
   end
 end

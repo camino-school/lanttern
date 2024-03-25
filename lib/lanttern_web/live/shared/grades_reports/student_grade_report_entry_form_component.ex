@@ -102,12 +102,12 @@ defmodule LantternWeb.GradesReports.StudentGradeReportEntryFormComponent do
     has_manual_edit =
       cond do
         scale_type == "ordinal" &&
-            form[:ordinal_value_id].value !=
-              student_grade_report_entry.composition_ordinal_value_id ->
+            "#{form[:ordinal_value_id].value}" !=
+              "#{student_grade_report_entry.composition_ordinal_value_id}" ->
           true
 
         scale_type == "numeric" &&
-            form[:score].value != student_grade_report_entry.composition_score ->
+            "#{form[:score].value}" != "#{student_grade_report_entry.composition_score}" ->
           true
 
         true ->
