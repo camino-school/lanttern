@@ -818,6 +818,10 @@ defmodule Lanttern.Assessments do
   Entries are ordered by `AssessmentPoint` position,
   which is the same order used by `list_assessment_points/1`.
 
+  Students are ordered by class name, then student name.
+
+  Classes are preloaded (when using `:classes_ids` opt).
+
   ## Options:
 
       - `:classes_ids` – filter entries by classes
@@ -828,23 +832,11 @@ defmodule Lanttern.Assessments do
         ]
 
   def list_moment_students_entries(moment_id, opts \\ []) do
-    students_query =
-      case Keyword.get(opts, :classes_ids) do
-        nil ->
-          from(s in Student)
-
-        classes_ids ->
-          from(
-            s in Student,
-            join: c in assoc(s, :classes),
-            where: c.id in ^classes_ids
-          )
-      end
-
-    results =
+    # build a %{student_id => entries} map
+    students_entries_map =
       from(
         ap in AssessmentPoint,
-        join: s in subquery(students_query),
+        join: s in subquery(distinct_students_query(opts)),
         on: true,
         left_join: e in AssessmentPointEntry,
         on: e.student_id == s.id and e.assessment_point_id == ap.id,
@@ -853,22 +845,15 @@ defmodule Lanttern.Assessments do
         select: {s, e}
       )
       |> Repo.all()
+      |> Enum.group_by(
+        fn {s, _e} -> s.id end,
+        fn {_s, e} -> e end
+      )
 
-    grouped_entries =
-      results
-      |> Enum.group_by(fn {s, _e} -> s.id end)
-      |> Enum.map(fn {s_id, list} ->
-        {
-          s_id,
-          list |> Enum.map(fn {_s, e} -> e end)
-        }
-      end)
-      |> Enum.into(%{})
-
-    results
-    |> Enum.map(fn {s, _} -> s end)
-    |> Enum.uniq()
-    |> Enum.map(&{&1, grouped_entries[&1.id]})
+    # list students in correct order and with classes preloads
+    # then map it with its entries
+    list_students_with_classes(opts)
+    |> Enum.map(&{&1, students_entries_map[&1.id]})
   end
 
   @doc """
