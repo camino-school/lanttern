@@ -67,7 +67,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
       <%!-- show entries only with class filter selected --%>
       <div
         :if={@selected_classes != [] && @assessment_points_count > 0}
-        class="relative w-full max-h-screen mt-6 rounded shadow-xl bg-white overflow-x-auto"
+        class="relative w-full max-h-[calc(100vh-4rem)] mt-6 rounded shadow-xl bg-white overflow-x-auto"
       >
         <div
           class="relative grid w-max"
@@ -85,10 +85,9 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
               style={"grid-column: span #{@assessment_points_count} / span #{@assessment_points_count}"}
             >
               <.assessment_point
-                :for={{dom_id, {assessment_point, i}} <- @streams.assessment_points}
+                :for={{dom_id, assessment_point} <- @streams.assessment_points}
                 id={dom_id}
                 assessment_point={assessment_point}
-                index={i}
               />
             </div>
           </div>
@@ -148,15 +147,21 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
 
   attr :id, :string, required: true
   attr :assessment_point, AssessmentPoint, required: true
-  attr :index, :integer, required: true
 
   def assessment_point(assigns) do
     ~H"""
     <div id={@id} class="max-w-80 pt-6 px-2 pb-2 text-sm">
-      <.badge :if={@assessment_point.is_differentiation} theme="diff" class="mr-2">
-        <%= gettext("Differentiation") %>
-      </.badge>
-      <%= "#{@index + 1}. #{@assessment_point.curriculum_item.name}" %>
+      <div class="flex items-center gap-2 mb-2">
+        <.badge>
+          <%= @assessment_point.curriculum_item.curriculum_component.name %>
+        </.badge>
+        <.badge :if={@assessment_point.is_differentiation} theme="diff">
+          <%= gettext("Diff") %>
+        </.badge>
+      </div>
+      <p class="line-clamp-3" title={@assessment_point.curriculum_item.name}>
+        <%= @assessment_point.curriculum_item.name %>
+      </p>
     </div>
     """
   end
@@ -201,13 +206,6 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
       socket
       |> assign(:classes, nil)
       |> assign(:classes_ids, [])
-      |> stream_configure(
-        :assessment_points,
-        dom_id: fn
-          {ap, _index} -> "assessment-point-#{ap.id}"
-          _ -> ""
-        end
-      )
       |> stream_configure(
         :students_entries,
         dom_id: fn {student, _entries} -> "student-#{student.id}" end
@@ -278,7 +276,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
       end)
 
     socket
-    |> stream(:assessment_points, assessment_points |> Enum.with_index())
+    |> stream(:assessment_points, assessment_points)
     |> assign(:assessment_points_count, length(assessment_points))
     |> assign(:scale_ov_map, scale_ov_map)
     |> stream(:students_entries, students_entries)
