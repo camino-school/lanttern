@@ -21,9 +21,8 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
         <.error_block :if={@form.source.action == :insert} class="mb-6">
           <%= gettext("Oops, something went wrong! Please check the errors below.") %>
         </.error_block>
-        <.input field={@form[:id]} type="hidden" />
-        <.input field={@form[:moment_id]} type="hidden" />
         <.input
+          :if={!@assessment_point.strand_id}
           field={@form[:name]}
           label={gettext("Assessment point name")}
           phx-debounce="1500"
@@ -62,7 +61,6 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
           </div>
           <.input field={@form[:curriculum_item_id]} type="hidden" class="mb-6" />
         <% end %>
-        <.input field={@form[:strand_id]} type="hidden" class="mb-6" />
         <.input
           field={@form[:scale_id]}
           type="select"
@@ -109,38 +107,56 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
     curriculum_item =
       case assessment_point.curriculum_item_id do
         nil -> nil
-        id -> Curricula.get_curriculum_item!(id)
+        id -> Curricula.get_curriculum_item!(id, preloads: :curriculum_component)
       end
 
     curriculum_item_options =
       case assigns do
         %{curriculum_from_strand_id: strand_id} ->
-          Curricula.list_strand_curriculum_items(strand_id)
-          |> Enum.map(&{&1.name, &1.id})
+          Curricula.list_strand_curriculum_items(strand_id, preloads: :curriculum_component)
+          |> Enum.map(&{"(#{&1.curriculum_component.name}) #{&1.name}", &1.id})
 
         _ ->
           nil
+      end
+
+    curriculum_item_id =
+      case curriculum_item do
+        nil -> nil
+        curriculum_item -> curriculum_item.id
+      end
+
+    curriculum_item_options_ids =
+      case curriculum_item_options do
+        nil -> []
+        curriculum_item_options -> Enum.map(curriculum_item_options, fn {_name, id} -> id end)
       end
 
     # for cases when we have existing assessment points using curriculum items
     # that were removed from strand, we add one extra curriculum item option
     # using the current assessment point curriculum item
     curriculum_item_options =
-      case {assigns, curriculum_item} do
-        {%{curriculum_from_strand_id: _}, ci} when not is_nil(ci) ->
-          (curriculum_item_options ++ [{ci.name, ci.id}])
+      case {assigns, curriculum_item_id in curriculum_item_options_ids, curriculum_item_id} do
+        {%{curriculum_from_strand_id: _}, false, ci_id} when not is_nil(ci_id) ->
+          (curriculum_item_options ++
+             [
+               {"#{gettext("Not linked to strand")} - (#{curriculum_item.curriculum_component.name}) #{curriculum_item.name}",
+                curriculum_item.id}
+             ])
           |> Enum.uniq()
 
         _ ->
           curriculum_item_options
       end
 
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign(:form, to_form(Assessments.change_assessment_point(assessment_point)))
-     |> assign(:selected_curriculum_item, curriculum_item)
-     |> assign(:curriculum_item_options, curriculum_item_options)}
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign(:form, to_form(Assessments.change_assessment_point(assessment_point)))
+      |> assign(:selected_curriculum_item, curriculum_item)
+      |> assign(:curriculum_item_options, curriculum_item_options)
+
+    {:ok, socket}
   end
 
   def update(%{action: {CurriculumItemSearchComponent, {:selected, curriculum_item}}}, socket) do
@@ -150,15 +166,17 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
       |> Map.put("curriculum_item_id", curriculum_item.id)
 
     form =
-      socket.assigns.form.data
+      socket.assigns.assessment_point
       |> Assessments.change_assessment_point(params)
       |> Map.put(:action, :validate)
       |> to_form()
 
-    {:ok,
-     socket
-     |> assign(:selected_curriculum_item, curriculum_item)
-     |> assign(:form, form)}
+    socket =
+      socket
+      |> assign(:selected_curriculum_item, curriculum_item)
+      |> assign(:form, form)
+
+    {:ok, socket}
   end
 
   def update(assigns, socket), do: {:ok, assign(socket, assigns)}
@@ -185,7 +203,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
 
   def handle_event("validate", %{"assessment_point" => params}, socket) do
     form =
-      socket.assigns.form.data
+      socket.assigns.assessment_point
       |> Assessments.change_assessment_point(params)
       |> Map.put(:action, :validate)
       |> to_form()
@@ -194,13 +212,18 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
   end
 
   def handle_event("save", %{"assessment_point" => params}, socket) do
-    case params["id"] do
-      "" -> save(:new, params, socket)
-      _id -> save(:edit, params, socket)
-    end
+    # inject strand and moment id in params
+    assessment_point = socket.assigns.assessment_point
+
+    params =
+      params
+      |> Map.put("strand_id", assessment_point.strand_id)
+      |> Map.put("moment_id", assessment_point.moment_id)
+
+    save(socket, assessment_point.id, params)
   end
 
-  defp save(:new, params, socket) do
+  defp save(socket, nil, params) do
     case Assessments.create_assessment_point(params) do
       {:ok, _assessment_point} ->
         {:noreply,
@@ -212,7 +235,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
     end
   end
 
-  defp save(:edit, params, socket) do
+  defp save(socket, _assessment_point_id, params) do
     case Assessments.update_assessment_point(socket.assigns.assessment_point, params) do
       {:ok, _assessment_point} ->
         {:noreply,

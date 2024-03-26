@@ -141,6 +141,37 @@ defmodule Lanttern.AssessmentsTest do
       assert Enum.find(assessment_point.entries, fn e -> e.student_id == student_3.id end)
     end
 
+    test "check name constraint when creating assessment points" do
+      curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
+      scale = Lanttern.GradingFixtures.scale_fixture()
+      strand = Lanttern.LearningContextFixtures.strand_fixture()
+      moment = Lanttern.LearningContextFixtures.moment_fixture()
+
+      attrs = %{
+        curriculum_item_id: curriculum_item.id,
+        scale_id: scale.id,
+        name: nil,
+        strand_id: nil,
+        moment_id: nil
+      }
+
+      # assessment point in strand context should be ok without name
+      assert {:ok, %AssessmentPoint{}} =
+               Assessments.create_assessment_point(%{attrs | strand_id: strand.id})
+
+      # assessment point in moment should return error without name
+      assert {:error, %Ecto.Changeset{}} =
+               Assessments.create_assessment_point(%{attrs | moment_id: moment.id})
+
+      # assessment point in moment should be ok with name
+      assert {:ok, %AssessmentPoint{}} =
+               Assessments.create_assessment_point(%{
+                 attrs
+                 | moment_id: moment.id,
+                   name: "some name"
+               })
+    end
+
     test "create_assessment_point/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} = Assessments.create_assessment_point(@invalid_attrs)
     end

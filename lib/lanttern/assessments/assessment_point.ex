@@ -101,12 +101,17 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       :classes_ids,
       :students_ids
     ])
-    |> validate_required([:name, :curriculum_item_id, :scale_id])
+    |> validate_required([:curriculum_item_id, :scale_id])
     |> validate_and_build_datetime()
     |> put_classes()
     |> cast_entries()
     |> unique_constraint([:strand_id, :curriculum_item_id],
       message: gettext("Curriculum item already added to this strand")
+    )
+    |> check_constraint(
+      :name,
+      name: :required_name_except_in_strand_context,
+      message: gettext("Name is required")
     )
     |> foreign_key_constraint(
       :rubric_id,

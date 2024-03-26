@@ -100,7 +100,6 @@ defmodule LantternWeb.StrandLive.AboutComponent do
         <.live_component
           module={AssessmentPointFormComponent}
           id={Map.get(@assessment_point, :id) || :new}
-          strand_id={@strand.id}
           notify_component={@myself}
           assessment_point={@assessment_point}
           navigate={~p"/strands/#{@strand}?tab=about"}
