@@ -34,9 +34,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         </div>
         <div phx-update="stream" id="studends-and-report-cards">
           <div
-            :for={
-              {dom_id, {student, class, student_report_card}} <- @streams.students_and_report_cards
-            }
+            :for={{dom_id, {student, student_report_card}} <- @streams.students_and_report_cards}
             id={dom_id}
             class={[
               "flex items-center gap-4 p-4 rounded mt-4",
@@ -45,12 +43,10 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           >
             <div class="flex-1 flex items-center gap-4">
               <.profile_icon_with_name
-                profile_name={student.name}
                 theme={if student_report_card, do: "cyan", else: "subtle"}
+                profile_name={student.name}
+                extra_info={student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
               />
-              <span :if={class && length(@classes) > 1} class="text-sm text-ltrn-subtle">
-                <%= class.name %>
-              </span>
             </div>
             <div class="shrink-0 flex items-center gap-2">
               <%= if student_report_card do %>
@@ -147,19 +143,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
       socket
       |> stream_configure(
         :students_and_report_cards,
-        dom_id: fn
-          {student, nil, nil} ->
-            "student-#{student.id}"
-
-          {student, class, nil} ->
-            "student-#{student.id}-class-#{class.id}"
-
-          {student, nil, student_report_card} ->
-            "student-#{student.id}-report-card-#{student_report_card.id}"
-
-          {student, class, student_report_card} ->
-            "student-#{student.id}-class-#{class.id}-report-card-#{student_report_card.id}"
-        end
+        dom_id: fn {student, _} -> "student-#{student.id}" end
       )
 
     {:ok, socket}

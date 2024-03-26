@@ -362,28 +362,32 @@ defmodule Lanttern.ReportingTest do
         })
 
       assert [
-               {expected_student_a_a, expected_class_a_a, expected_student_a_a_report_card},
-               {expected_student_a_b, expected_class_a_b, expected_student_a_b_report_card},
-               {expected_student_j_j, expected_class_j_j, expected_student_j_j_report_card},
-               {expected_student_j_k, expected_class_j_k, nil}
+               {expected_student_a_a, expected_student_a_a_report_card},
+               {expected_student_a_b, expected_student_a_b_report_card},
+               {expected_student_j_j, expected_student_j_j_report_card},
+               {expected_student_j_k, nil}
              ] =
                Reporting.list_students_for_report_card(report_card.id,
                  classes_ids: [class_a.id, class_j.id]
                )
 
       assert expected_student_a_a.id == student_a_a.id
+      assert [expected_class_a_a] = expected_student_a_a.classes
       assert expected_class_a_a.id == class_a.id
       assert expected_student_a_a_report_card.id == student_a_a_report_card.id
 
       assert expected_student_a_b.id == student_a_b.id
+      assert [expected_class_a_b] = expected_student_a_b.classes
       assert expected_class_a_b.id == class_a.id
       assert expected_student_a_b_report_card.id == student_a_b_report_card.id
 
       assert expected_student_j_j.id == student_j_j.id
+      assert [expected_class_j_j] = expected_student_j_j.classes
       assert expected_class_j_j.id == class_j.id
       assert expected_student_j_j_report_card.id == student_j_j_report_card.id
 
       assert expected_student_j_k.id == student_j_k.id
+      assert [expected_class_j_k] = expected_student_j_k.classes
       assert expected_class_j_k.id == class_j.id
     end
 
