@@ -392,7 +392,7 @@ defmodule Lanttern.Schools do
   ### Options:
 
   `:preloads` – preloads associated data
-  `:classes_ids` – filter students by provided list of ids
+  `:classes_ids` – filter students by provided list of ids. preloads the classes for each student, and order by class name
   `:check_diff_rubrics_for_strand_id` - used to check if student has any differentiation rubric for given strand id
 
   ## Examples
@@ -402,16 +402,18 @@ defmodule Lanttern.Schools do
 
   """
   def list_students(opts \\ []) do
-    from(
-      s in Student,
-      order_by: s.name
-    )
+    from(s in Student)
     |> apply_list_students_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
-  defp apply_list_students_opts(queryable, []), do: queryable
+  defp apply_list_students_opts(queryable, []) do
+    from(
+      s in queryable,
+      order_by: s.name
+    )
+  end
 
   defp apply_list_students_opts(queryable, [{:classes_ids, ids} | opts])
        when is_list(ids) and ids != [] do
@@ -419,7 +421,8 @@ defmodule Lanttern.Schools do
       s in queryable,
       join: c in assoc(s, :classes),
       where: c.id in ^ids,
-      distinct: s
+      order_by: c.name,
+      preload: [classes: c]
     )
     |> apply_list_students_opts(opts)
   end

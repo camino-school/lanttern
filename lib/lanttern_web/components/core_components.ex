@@ -955,8 +955,10 @@ defmodule LantternWeb.CoreComponents do
     <div class={["flex gap-2 items-center text-sm", @class]}>
       <.profile_icon profile_name={@profile_name} theme={@theme} size={@icon_size} />
       <div class="flex-1">
-        <div class="line-clamp-2"><%= @profile_name %></div>
-        <div :if={@extra_info} class="truncate text-xs text-ltrn-subtle"><%= @extra_info %></div>
+        <div class={if(@extra_info, do: "line-clamp-1", else: "line-clamp-2")}>
+          <%= @profile_name %>
+        </div>
+        <div :if={@extra_info} class="line-clamp-1 text-xs text-ltrn-subtle"><%= @extra_info %></div>
       </div>
     </div>
     """
