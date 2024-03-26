@@ -107,26 +107,42 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
     curriculum_item =
       case assessment_point.curriculum_item_id do
         nil -> nil
-        id -> Curricula.get_curriculum_item!(id)
+        id -> Curricula.get_curriculum_item!(id, preloads: :curriculum_component)
       end
 
     curriculum_item_options =
       case assigns do
         %{curriculum_from_strand_id: strand_id} ->
-          Curricula.list_strand_curriculum_items(strand_id)
-          |> Enum.map(&{&1.name, &1.id})
+          Curricula.list_strand_curriculum_items(strand_id, preloads: :curriculum_component)
+          |> Enum.map(&{"(#{&1.curriculum_component.name}) #{&1.name}", &1.id})
 
         _ ->
           nil
+      end
+
+    curriculum_item_id =
+      case curriculum_item do
+        nil -> nil
+        curriculum_item -> curriculum_item.id
+      end
+
+    curriculum_item_options_ids =
+      case curriculum_item_options do
+        nil -> []
+        curriculum_item_options -> Enum.map(curriculum_item_options, fn {_name, id} -> id end)
       end
 
     # for cases when we have existing assessment points using curriculum items
     # that were removed from strand, we add one extra curriculum item option
     # using the current assessment point curriculum item
     curriculum_item_options =
-      case {assigns, curriculum_item} do
-        {%{curriculum_from_strand_id: _}, ci} when not is_nil(ci) ->
-          (curriculum_item_options ++ [{ci.name, ci.id}])
+      case {assigns, curriculum_item_id in curriculum_item_options_ids, curriculum_item_id} do
+        {%{curriculum_from_strand_id: _}, false, ci_id} when not is_nil(ci_id) ->
+          (curriculum_item_options ++
+             [
+               {"#{gettext("Not linked to strand")} - (#{curriculum_item.curriculum_component.name}) #{curriculum_item.name}",
+                curriculum_item.id}
+             ])
           |> Enum.uniq()
 
         _ ->
