@@ -406,28 +406,26 @@ defmodule Lanttern.Schools do
       s in Student,
       order_by: s.name
     )
-    |> filter_students(opts)
-    |> load_has_diff_rubric_flag(Keyword.get(opts, :check_diff_rubrics_for_strand_id))
+    |> apply_list_students_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
-  defp filter_students(queryable, opts),
-    do: Enum.reduce(opts, queryable, &apply_students_filter/2)
+  defp apply_list_students_opts(queryable, []), do: queryable
 
-  defp apply_students_filter({:classes_ids, ids}, queryable) do
+  defp apply_list_students_opts(queryable, [{:classes_ids, ids} | opts])
+       when is_list(ids) and ids != [] do
     from(
       s in queryable,
       join: c in assoc(s, :classes),
-      where: c.id in ^ids
+      where: c.id in ^ids,
+      distinct: s
     )
+    |> apply_list_students_opts(opts)
   end
 
-  defp apply_students_filter(_, queryable), do: queryable
-
-  defp load_has_diff_rubric_flag(queryable, nil), do: queryable
-
-  defp load_has_diff_rubric_flag(queryable, strand_id) do
+  defp apply_list_students_opts(queryable, [{:check_diff_rubrics_for_strand_id, strand_id} | opts])
+       when not is_nil(strand_id) do
     has_diff_query =
       from(
         s in Student,
@@ -445,7 +443,11 @@ defmodule Lanttern.Schools do
       on: d.student_id == s.id,
       select: %{s | has_diff_rubric: d.has_diff_rubric}
     )
+    |> apply_list_students_opts(opts)
   end
+
+  defp apply_list_students_opts(queryable, [_ | opts]),
+    do: apply_list_students_opts(queryable, opts)
 
   @doc """
   Gets a single student.

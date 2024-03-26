@@ -651,24 +651,12 @@ defmodule Lanttern.Assessments do
         ]
 
   def list_strand_students_entries(strand_id, opts \\ []) do
-    students_query =
-      case Keyword.get(opts, :classes_ids) do
-        nil ->
-          from(s in Student)
-
-        classes_ids ->
-          from(
-            s in Student,
-            join: c in assoc(s, :classes),
-            where: c.id in ^classes_ids
-          )
-      end
-
-    results =
+    # build a %{student_id => entries} map
+    students_entries_map =
       from(
         ap in AssessmentPoint,
         join: m in assoc(ap, :moment),
-        join: s in subquery(students_query),
+        join: s in subquery(distinct_students_query(opts)),
         on: true,
         left_join: e in AssessmentPointEntry,
         on: e.student_id == s.id and e.assessment_point_id == ap.id,
@@ -677,22 +665,54 @@ defmodule Lanttern.Assessments do
         select: {s, e}
       )
       |> Repo.all()
+      |> Enum.group_by(
+        fn {s, _e} -> s.id end,
+        fn {_s, e} -> e end
+      )
 
-    grouped_entries =
-      results
-      |> Enum.group_by(fn {s, _e} -> s.id end)
-      |> Enum.map(fn {s_id, list} ->
-        {
-          s_id,
-          list |> Enum.map(fn {_s, e} -> e end)
-        }
-      end)
-      |> Enum.into(%{})
+    # list students in correct order and with classes preloads
+    # then map it with its entries
+    list_students_with_classes(opts)
+    |> Enum.map(&{&1, students_entries_map[&1.id]})
+  end
 
-    results
-    |> Enum.map(fn {s, _} -> s end)
-    |> Enum.uniq()
-    |> Enum.map(&{&1, grouped_entries[&1.id]})
+  defp distinct_students_query(opts) do
+    # use this subquery to prevent duplicated students,
+    # which can be caused by classes join
+    case Keyword.get(opts, :classes_ids) do
+      nil ->
+        from(s in Student)
+
+      classes_ids ->
+        from(
+          s in Student,
+          join: c in assoc(s, :classes),
+          where: c.id in ^classes_ids,
+          distinct: s.id
+        )
+    end
+  end
+
+  defp list_students_with_classes(opts) do
+    # list students ordered by class then by student
+    # and preload classes (only classes from opts)
+    case Keyword.get(opts, :classes_ids) do
+      nil ->
+        from(
+          s in Student,
+          order_by: [s.name]
+        )
+
+      classes_ids ->
+        from(
+          s in Student,
+          join: c in assoc(s, :classes),
+          where: c.id in ^classes_ids,
+          order_by: [c.name, s.name],
+          preload: [classes: c]
+        )
+    end
+    |> Repo.all()
   end
 
   @doc """
@@ -714,27 +734,11 @@ defmodule Lanttern.Assessments do
         ]
 
   def list_strand_goals_students_entries(strand_id, opts \\ []) do
-    # use this subquery to prevent duplicated students,
-    # which can be caused by classes join
-    students_subquery =
-      case Keyword.get(opts, :classes_ids) do
-        nil ->
-          from(s in Student)
-
-        classes_ids ->
-          from(
-            s in Student,
-            join: c in assoc(s, :classes),
-            where: c.id in ^classes_ids,
-            distinct: s.id
-          )
-      end
-
     # build a %{student_id => entries} map
     students_entries_map =
       from(
         ap in AssessmentPoint,
-        join: s in subquery(students_subquery),
+        join: s in subquery(distinct_students_query(opts)),
         on: true,
         left_join: e in AssessmentPointEntry,
         on: e.student_id == s.id and e.assessment_point_id == ap.id,
@@ -748,25 +752,9 @@ defmodule Lanttern.Assessments do
         fn {_s, e} -> e end
       )
 
-    # list students in the correct order (by class then by student)
-    # and then map it with its entries
-    case Keyword.get(opts, :classes_ids) do
-      nil ->
-        from(
-          s in Student,
-          order_by: [s.name]
-        )
-
-      classes_ids ->
-        from(
-          s in Student,
-          join: c in assoc(s, :classes),
-          where: c.id in ^classes_ids,
-          order_by: [c.name, s.name],
-          preload: [classes: c]
-        )
-    end
-    |> Repo.all()
+    # list students in correct order and with classes preloads
+    # then map it with its entries
+    list_students_with_classes(opts)
     |> Enum.map(&{&1, students_entries_map[&1.id]})
   end
 
