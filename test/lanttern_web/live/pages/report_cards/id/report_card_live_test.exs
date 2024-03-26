@@ -43,8 +43,8 @@ defmodule LantternWeb.ReportCardLiveTest do
 
       assert view |> has_element?("h1", report_card.name)
       assert view |> has_element?("span", "Cycle: Cycle 2024")
-      assert view |> has_element?("span", "Student AAA")
-      assert view |> has_element?("span", "Student BBB")
+      assert view |> has_element?("div", "Student AAA")
+      assert view |> has_element?("div", "Student BBB")
 
       view
       |> element("a", "Preview")

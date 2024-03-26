@@ -698,7 +698,11 @@ defmodule Lanttern.Assessments do
   @doc """
   Returns the list of strand goals entries for every student in the given strand.
 
+  Students are ordered by class name, and then by student name.
+
   Entries are ordered by `AssessmentPoint` positions.
+
+  When `:classes_ids` option is used, classes are preloaded.
 
   ## Options:
 
@@ -710,7 +714,9 @@ defmodule Lanttern.Assessments do
         ]
 
   def list_strand_goals_students_entries(strand_id, opts \\ []) do
-    students_query =
+    # use this subquery to prevent duplicated students,
+    # which can be caused by classes join
+    students_subquery =
       case Keyword.get(opts, :classes_ids) do
         nil ->
           from(s in Student)
@@ -719,38 +725,49 @@ defmodule Lanttern.Assessments do
           from(
             s in Student,
             join: c in assoc(s, :classes),
-            where: c.id in ^classes_ids
+            where: c.id in ^classes_ids,
+            distinct: s.id
           )
       end
 
-    results =
+    # build a %{student_id => entries} map
+    students_entries_map =
       from(
         ap in AssessmentPoint,
-        join: s in subquery(students_query),
+        join: s in subquery(students_subquery),
         on: true,
         left_join: e in AssessmentPointEntry,
         on: e.student_id == s.id and e.assessment_point_id == ap.id,
         where: ap.strand_id == ^strand_id,
-        order_by: [s.name, ap.position],
+        order_by: [ap.position],
         select: {s, e}
       )
       |> Repo.all()
+      |> Enum.group_by(
+        fn {s, _e} -> s.id end,
+        fn {_s, e} -> e end
+      )
 
-    grouped_entries =
-      results
-      |> Enum.group_by(fn {s, _e} -> s.id end)
-      |> Enum.map(fn {s_id, list} ->
-        {
-          s_id,
-          list |> Enum.map(fn {_s, e} -> e end)
-        }
-      end)
-      |> Enum.into(%{})
+    # list students in the correct order (by class then by student)
+    # and then map it with its entries
+    case Keyword.get(opts, :classes_ids) do
+      nil ->
+        from(
+          s in Student,
+          order_by: [s.name]
+        )
 
-    results
-    |> Enum.map(fn {s, _} -> s end)
-    |> Enum.uniq()
-    |> Enum.map(&{&1, grouped_entries[&1.id]})
+      classes_ids ->
+        from(
+          s in Student,
+          join: c in assoc(s, :classes),
+          where: c.id in ^classes_ids,
+          order_by: [c.name, s.name],
+          preload: [classes: c]
+        )
+    end
+    |> Repo.all()
+    |> Enum.map(&{&1, students_entries_map[&1.id]})
   end
 
   @doc """
