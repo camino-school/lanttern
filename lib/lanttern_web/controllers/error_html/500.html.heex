@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang={LantternWeb.LocalizationHelpers.get_html_lang()}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lanttern | 404</title>
+    <link rel="stylesheet" href={~p"/assets/app.css"} />
+    <script defer type="text/javascript" src={~p"/assets/app.js"}>
+    </script>
+  </head>
+  <body class="min-h-screen bg-ltrn-dark">
+    <div class="relative flex flex-col items-center justify-center min-h-screen p-10 text-center">
+      <div class="absolute inset-0 overflow-hidden">
+        <div
+          id="cover-spot-1"
+          class="absolute left-[-37vw] top-[-37vw] w-[75vw] h-[75vw] rounded-full bg-ltrn-mesh-primary blur-[15vw]"
+        />
+        <div
+          id="cover-spot-2"
+          class="absolute right-[-30vw] top-[-30vw] w-[60vw] h-[60vw] rounded-full bg-ltrn-mesh-violet blur-[15vw]"
+        />
+        <div
+          id="cover-spot-3"
+          class="absolute right-[-37vw] bottom-[-37vw] w-[75vw] h-[75vw] rounded-full bg-ltrn-mesh-lime blur-[15vw]"
+        />
+      </div>
+      <main class="relative">
+        <h1 class="font-display font-black text-8xl text-ltrn-dark">
+          500
+        </h1>
+        <p class="mt-10 font-display font-black text-4xl text-white drop-shadow-lg">
+          <%= gettext("Internal server error") %>
+        </p>
+      </main>
+    </div>
+  </body>
+</html>

@@ -47,7 +47,7 @@ defmodule LantternWeb.MenuComponent do
               :if={@current_profile.type == "student"}
               class="grid grid-cols-3 gap-px border-b border-ltrn-lighter bg-ltrn-lighter"
             >
-              <.nav_item active={@active_nav == :dashboard} path={~p"/student"}>
+              <.nav_item active={@active_nav == :student_home} path={~p"/student"}>
                 <%= gettext("Home") %>
               </.nav_item>
               <%!-- use this li as placeholder when nav items % 3 != 0--%>
@@ -58,7 +58,7 @@ defmodule LantternWeb.MenuComponent do
               :if={@current_profile.type == "guardian"}
               class="grid grid-cols-3 gap-px border-b border-ltrn-lighter bg-ltrn-lighter"
             >
-              <.nav_item active={@active_nav == :dashboard} path={~p"/guardian"}>
+              <.nav_item active={@active_nav == :guardian_home} path={~p"/guardian"}>
                 <%= gettext("Home") %>
               </.nav_item>
               <%!-- use this li as placeholder when nav items % 3 != 0--%>
@@ -319,6 +319,12 @@ defmodule LantternWeb.MenuComponent do
 
         socket.view in [LantternWeb.GradesReportsLive] ->
           :grading
+
+        socket.view in [LantternWeb.GuardianHomeLive] ->
+          :guardian_home
+
+        socket.view in [LantternWeb.StudentHomeLive] ->
+          :student_home
 
         true ->
           nil

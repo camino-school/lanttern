@@ -9,7 +9,7 @@ defmodule LantternWeb.Assessments.FeedbackFormComponentTest do
   @overlay_selector "#feedback-overlay"
   @form_selector "#feedback-form"
 
-  setup :register_and_log_in_user
+  setup :register_and_log_in_teacher
 
   describe "Create new feedback in assessment points live view" do
     setup :create_assessment_point_without_feedback

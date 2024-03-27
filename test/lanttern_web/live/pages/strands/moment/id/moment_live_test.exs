@@ -6,7 +6,7 @@ defmodule LantternWeb.MomentLiveTest do
 
   @live_view_base_path "/strands/moment"
 
-  setup [:register_and_log_in_user]
+  setup [:register_and_log_in_teacher]
 
   describe "Moment details live view basic navigation" do
     test "disconnected and connected mount", %{conn: conn} do

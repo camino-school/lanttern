@@ -5,7 +5,7 @@ defmodule LantternWeb.CurriculaLiveTest do
 
   @live_view_path "/curriculum"
 
-  setup :register_and_log_in_user
+  setup :register_and_log_in_teacher
 
   describe "Curriculum live view" do
     test "disconnected and connected mount", %{conn: conn} do

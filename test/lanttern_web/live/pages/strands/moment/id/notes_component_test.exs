@@ -6,7 +6,7 @@ defmodule LantternWeb.MomentLive.NotesComponentTest do
 
   @live_view_base_path "/strands"
 
-  setup [:register_and_log_in_user]
+  setup [:register_and_log_in_teacher]
 
   describe "Moment notes" do
     test "display existing note", %{conn: conn, user: user} do

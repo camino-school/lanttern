@@ -9,11 +9,13 @@ defmodule LantternWeb.StudentReportCardLiveTest do
 
   @live_view_path_base "/student_report_card"
 
-  setup [:register_and_log_in_user]
+  setup [:register_and_log_in_teacher]
 
   describe "Student report card live view basic navigation" do
-    test "disconnected and connected mount", %{conn: conn} do
-      student = SchoolsFixtures.student_fixture(%{name: "Student ABC"})
+    test "disconnected and connected mount", %{conn: conn, teacher: teacher} do
+      student =
+        SchoolsFixtures.student_fixture(%{name: "Student ABC", school_id: teacher.school_id})
+
       report_card = report_card_fixture(%{name: "Some report card name abc"})
 
       student_report_card =
@@ -28,9 +30,11 @@ defmodule LantternWeb.StudentReportCardLiveTest do
       {:ok, _view, _html} = live(conn)
     end
 
-    test "display student report card correctly", %{conn: conn} do
+    test "display student report card correctly", %{conn: conn, teacher: teacher} do
       cycle = SchoolsFixtures.cycle_fixture(%{name: "Cycle 2024"})
-      student = SchoolsFixtures.student_fixture(%{name: "Student ABC"})
+
+      student =
+        SchoolsFixtures.student_fixture(%{name: "Student ABC", school_id: teacher.school_id})
 
       report_card =
         report_card_fixture(%{school_cycle_id: cycle.id, name: "Some report card name abc"})

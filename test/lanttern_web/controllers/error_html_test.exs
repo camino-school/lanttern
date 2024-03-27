@@ -5,10 +5,10 @@ defmodule LantternWeb.ErrorHTMLTest do
   import Phoenix.Template
 
   test "renders 404.html" do
-    assert render_to_string(LantternWeb.ErrorHTML, "404", "html", []) == "Not Found"
+    assert render_to_string(LantternWeb.ErrorHTML, "404", "html", []) =~ "Ooops, page not found"
   end
 
   test "renders 500.html" do
-    assert render_to_string(LantternWeb.ErrorHTML, "500", "html", []) == "Internal Server Error"
+    assert render_to_string(LantternWeb.ErrorHTML, "500", "html", []) =~ "Internal server error"
   end
 end

@@ -6,7 +6,7 @@ defmodule LantternWeb.RubricsLiveTest do
 
   @live_view_path "/rubrics"
 
-  setup [:register_and_log_in_user, :create_scales]
+  setup [:register_and_log_in_teacher, :create_scales]
 
   describe "Rubrics live view basic navigation" do
     test "disconnected and connected mount", %{conn: conn} do
