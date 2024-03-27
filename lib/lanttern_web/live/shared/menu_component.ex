@@ -12,7 +12,10 @@ defmodule LantternWeb.MenuComponent do
       >
         <div class="flex-1 flex flex-col justify-between">
           <nav>
-            <ul class="grid grid-cols-3 gap-px border-b border-ltrn-lighter bg-ltrn-lighter">
+            <ul
+              :if={@current_profile.type == "teacher"}
+              class="grid grid-cols-3 gap-px border-b border-ltrn-lighter bg-ltrn-lighter"
+            >
               <.nav_item active={@active_nav == :dashboard} path={~p"/dashboard"}>
                 <%= gettext("Dashboard") %>
               </.nav_item>
@@ -38,6 +41,28 @@ defmodule LantternWeb.MenuComponent do
                 <%= gettext("Grading") %>
               </.nav_item>
               <%!-- use this li as placeholder when nav items % 3 != 0--%>
+              <li class="bg-white"></li>
+            </ul>
+            <ul
+              :if={@current_profile.type == "student"}
+              class="grid grid-cols-3 gap-px border-b border-ltrn-lighter bg-ltrn-lighter"
+            >
+              <.nav_item active={@active_nav == :dashboard} path={~p"/student"}>
+                <%= gettext("Home") %>
+              </.nav_item>
+              <%!-- use this li as placeholder when nav items % 3 != 0--%>
+              <li class="bg-white"></li>
+              <li class="bg-white"></li>
+            </ul>
+            <ul
+              :if={@current_profile.type == "guardian"}
+              class="grid grid-cols-3 gap-px border-b border-ltrn-lighter bg-ltrn-lighter"
+            >
+              <.nav_item active={@active_nav == :dashboard} path={~p"/guardian"}>
+                <%= gettext("Home") %>
+              </.nav_item>
+              <%!-- use this li as placeholder when nav items % 3 != 0--%>
+              <li class="bg-white"></li>
               <li class="bg-white"></li>
             </ul>
           </nav>

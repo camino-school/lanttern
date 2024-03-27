@@ -37,10 +37,10 @@ defmodule LantternWeb.Router do
 
     get "/", PageController, :home
 
-    live_session :authenticated,
+    live_session :authenticated_teacher,
       layout: {LantternWeb.Layouts, :app_logged_in},
       on_mount: [
-        {LantternWeb.UserAuth, :ensure_authenticated},
+        {LantternWeb.UserAuth, :ensure_authenticated_teacher},
         {LantternWeb.Path, :put_path_in_socket}
       ] do
       live "/dashboard", DashboardLive, :index
@@ -110,6 +110,24 @@ defmodule LantternWeb.Router do
       # grading
 
       live "/grading", GradesReportsLive, :index
+    end
+
+    live_session :authenticated_guardian,
+      layout: {LantternWeb.Layouts, :app_logged_in},
+      on_mount: [
+        {LantternWeb.UserAuth, :ensure_authenticated_guardian},
+        {LantternWeb.Path, :put_path_in_socket}
+      ] do
+      live "/guardian", GuardianHomeLive
+    end
+
+    live_session :authenticated_student,
+      layout: {LantternWeb.Layouts, :app_logged_in},
+      on_mount: [
+        {LantternWeb.UserAuth, :ensure_authenticated_student},
+        {LantternWeb.Path, :put_path_in_socket}
+      ] do
+      live "/student", StudentHomeLive
     end
   end
 
