@@ -299,9 +299,20 @@ defmodule Lanttern.ReportingTest do
 
     @invalid_attrs %{report_card_id: nil, comment: nil, footnote: nil}
 
-    test "list_student_report_cards/0 returns all student_report_cards" do
+    test "list_student_report_cards/1 returns all student_report_cards" do
       student_report_card = student_report_card_fixture()
       assert Reporting.list_student_report_cards() == [student_report_card]
+    end
+
+    test "list_student_report_cards/1 with student filter returns all student_report_cards of the given student" do
+      student = SchoolsFixtures.student_fixture()
+      student_report_card = student_report_card_fixture(%{student_id: student.id})
+
+      # extra fixtures for filter testing
+      student_report_card_fixture()
+      student_report_card_fixture()
+
+      assert Reporting.list_student_report_cards(student_id: student.id) == [student_report_card]
     end
 
     test "list_students_for_report_card/2 returns all students with class and linked report cards" do

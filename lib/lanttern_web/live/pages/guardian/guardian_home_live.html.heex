@@ -1,4 +1,21 @@
 <div class="container mx-auto lg:max-w-5xl">
-  <.page_title_with_menu>Welcome guardian!</.page_title_with_menu>
-  TBD
+  <.page_title_with_menu><%= gettext("Welcome!") %></.page_title_with_menu>
+  <p class="mt-10 font-display font-black text-xl">
+    <%= gettext("%{student}'s report cards", student: @current_user.current_profile.name) %>
+  </p>
+  <%= if @has_student_report_cards do %>
+    <div class="grid grid-cols-3 gap-10 mt-10">
+      <.report_card_card
+        :for={{dom_id, student_report_card} <- @streams.student_report_cards}
+        id={dom_id}
+        report_card={student_report_card.report_card}
+        navigate={~p"/student_report_card/#{student_report_card}"}
+        year={student_report_card.report_card.year}
+      />
+    </div>
+  <% else %>
+    <.empty_state class="p-10 rounded mt-10 bg-white shadow-lg">
+      <%= gettext("No student report cards created yet.") %>
+    </.empty_state>
+  <% end %>
 </div>

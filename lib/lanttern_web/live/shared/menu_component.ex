@@ -207,7 +207,7 @@ defmodule LantternWeb.MenuComponent do
 
         "guardian" ->
           {
-            "#{gettext("Guardian of")} #{profile.guardian_of_student.name}",
+            profile.guardian_of_student.name,
             profile.guardian_of_student.school.name
           }
       end

@@ -382,15 +382,36 @@ defmodule Lanttern.Reporting do
   @doc """
   Returns the list of student_report_cards.
 
+  ## Options
+
+  - `:student_id` - filter results by student
+  - `:preloads` – preloads associated data
+
   ## Examples
 
       iex> list_student_report_cards()
       [%StudentReportCard{}, ...]
 
   """
-  def list_student_report_cards do
-    Repo.all(StudentReportCard)
+  def list_student_report_cards(opts \\ []) do
+    StudentReportCard
+    |> apply_list_student_report_cards_opts(opts)
+    |> Repo.all()
+    |> maybe_preload(opts)
   end
+
+  defp apply_list_student_report_cards_opts(queryable, []), do: queryable
+
+  defp apply_list_student_report_cards_opts(queryable, [{:student_id, student_id} | opts]) do
+    from(
+      src in queryable,
+      where: src.student_id == ^student_id
+    )
+    |> apply_list_student_report_cards_opts(opts)
+  end
+
+  defp apply_list_student_report_cards_opts(queryable, [_ | opts]),
+    do: apply_list_student_report_cards_opts(queryable, opts)
 
   @doc """
   Returns the list of all students and their report cards linked to the

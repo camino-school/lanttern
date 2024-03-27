@@ -26,15 +26,6 @@ defmodule LantternWeb.ProfileController do
   end
 
   def create(conn, %{"profile" => profile_params}) do
-    profile_params =
-      case profile_params do
-        %{"type" => "guardian"} ->
-          Map.put(profile_params, "guardian_of_student_id", profile_params["student_id"])
-
-        _ ->
-          profile_params
-      end
-
     case Identity.create_profile(profile_params) do
       {:ok, profile} ->
         conn

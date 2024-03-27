@@ -30,6 +30,13 @@
     options={@teacher_options}
     prompt="Select teacher"
   />
+  <.input
+    field={f[:guardian_of_student_id]}
+    type="select"
+    label="Guardian of"
+    options={@student_options}
+    prompt="Select student"
+  />
   <:actions>
     <.button>Save Profile</.button>
   </:actions>

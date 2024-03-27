@@ -6,7 +6,6 @@ defmodule Lanttern.Identity do
   import Ecto.Query, warn: false
 
   import Lanttern.RepoHelpers
-  import LantternWeb.Gettext
   alias Lanttern.Repo
   alias Lanttern.Identity.User
   alias Lanttern.Identity.UserToken
@@ -322,7 +321,7 @@ defmodule Lanttern.Identity do
 
   defp build_flat_profile(%{type: "guardian", guardian_of_student: student} = profile) do
     profile
-    |> Map.put(:name, "#{gettext("Guardian of")} #{student.name}")
+    |> Map.put(:name, student.name)
     |> Map.put(:school_id, student.school.id)
     |> Map.put(:school_name, student.school.name)
   end
