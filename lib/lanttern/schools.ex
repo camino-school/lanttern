@@ -392,7 +392,7 @@ defmodule Lanttern.Schools do
   ### Options:
 
   `:preloads` – preloads associated data
-  `:classes_ids` – filter students by provided list of ids
+  `:classes_ids` – filter students by provided list of ids. preloads the classes for each student, and order by class name
   `:check_diff_rubrics_for_strand_id` - used to check if student has any differentiation rubric for given strand id
 
   ## Examples
@@ -402,32 +402,33 @@ defmodule Lanttern.Schools do
 
   """
   def list_students(opts \\ []) do
-    from(
-      s in Student,
-      order_by: s.name
-    )
-    |> filter_students(opts)
-    |> load_has_diff_rubric_flag(Keyword.get(opts, :check_diff_rubrics_for_strand_id))
+    from(s in Student)
+    |> apply_list_students_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
-  defp filter_students(queryable, opts),
-    do: Enum.reduce(opts, queryable, &apply_students_filter/2)
-
-  defp apply_students_filter({:classes_ids, ids}, queryable) do
+  defp apply_list_students_opts(queryable, []) do
     from(
       s in queryable,
-      join: c in assoc(s, :classes),
-      where: c.id in ^ids
+      order_by: s.name
     )
   end
 
-  defp apply_students_filter(_, queryable), do: queryable
+  defp apply_list_students_opts(queryable, [{:classes_ids, ids} | opts])
+       when is_list(ids) and ids != [] do
+    from(
+      s in queryable,
+      join: c in assoc(s, :classes),
+      where: c.id in ^ids,
+      order_by: c.name,
+      preload: [classes: c]
+    )
+    |> apply_list_students_opts(opts)
+  end
 
-  defp load_has_diff_rubric_flag(queryable, nil), do: queryable
-
-  defp load_has_diff_rubric_flag(queryable, strand_id) do
+  defp apply_list_students_opts(queryable, [{:check_diff_rubrics_for_strand_id, strand_id} | opts])
+       when not is_nil(strand_id) do
     has_diff_query =
       from(
         s in Student,
@@ -445,7 +446,11 @@ defmodule Lanttern.Schools do
       on: d.student_id == s.id,
       select: %{s | has_diff_rubric: d.has_diff_rubric}
     )
+    |> apply_list_students_opts(opts)
   end
+
+  defp apply_list_students_opts(queryable, [_ | opts]),
+    do: apply_list_students_opts(queryable, opts)
 
   @doc """
   Gets a single student.

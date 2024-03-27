@@ -473,10 +473,12 @@ defmodule LantternWeb.ReportingComponents do
           style={@grid_column_style}
         >
           <div class="flex items-center gap-2 px-2 py-4 rounded bg-white shadow-lg">
-            <.profile_icon_with_name profile_name={student.name} icon_size="sm" class="flex-1" />
-            <%!-- <span class="flex-1 truncate">
-              <%= student.name %>
-            </span> --%>
+            <.profile_icon_with_name
+              icon_size="sm"
+              class="flex-1"
+              profile_name={student.name}
+              extra_info={student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
+            />
             <.icon_button
               :if={@on_calculate_student}
               name="hero-arrow-path-mini"

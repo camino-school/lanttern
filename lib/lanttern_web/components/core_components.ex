@@ -946,6 +946,7 @@ defmodule LantternWeb.CoreComponents do
   attr :profile_name, :string, required: true
   attr :theme, :string, default: "cyan"
   attr :icon_size, :string, default: "normal"
+  attr :extra_info, :string, default: nil
   attr :class, :any, default: nil
   attr :rest, :global
 
@@ -953,7 +954,12 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div class={["flex gap-2 items-center text-sm", @class]}>
       <.profile_icon profile_name={@profile_name} theme={@theme} size={@icon_size} />
-      <span class="line-clamp-2"><%= @profile_name %></span>
+      <div class="flex-1">
+        <div class={if(@extra_info, do: "line-clamp-1", else: "line-clamp-2")}>
+          <%= @profile_name %>
+        </div>
+        <div :if={@extra_info} class="line-clamp-1 text-xs text-ltrn-subtle"><%= @extra_info %></div>
+      </div>
     </div>
     """
   end

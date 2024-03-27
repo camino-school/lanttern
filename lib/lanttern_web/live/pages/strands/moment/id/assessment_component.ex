@@ -276,6 +276,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
       <.profile_icon_with_name
         class="sticky left-0 z-10 shrink-0 w-60 px-6 bg-white"
         profile_name={@student.name}
+        extra_info={@student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
       />
       <%= for {entry, assessment_point} <- @entries do %>
         <div class="shrink-0 w-60 min-h-[4rem] py-1">
