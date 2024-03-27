@@ -301,20 +301,20 @@ defmodule LantternWeb.OverlayComponents do
         aria-hidden="true"
       />
       <div
-        class="fixed inset-0 z-30 w-screen overflow-y-auto"
+        class="fixed inset-0 z-30 w-screen"
         tabindex="0"
         aria-labelledby={"#{@id}-title"}
         aria-describedby={"#{@id}-description"}
         role="dialog"
         aria-modal="true"
       >
-        <div class="flex h-full items-stretch justify-stretch p-10">
+        <div class="flex h-full items-stretch justify-stretch pt-10 sm:p-10">
           <.focus_wrap
             id={"#{@id}-container"}
             phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
             phx-key="escape"
             phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-            class="relative transform overflow-hidden min-w-full h-full rounded bg-white shadow-xl transition-all"
+            class="relative transform min-w-full h-full rounded bg-white shadow-xl transition-all"
           >
             <button
               phx-click={JS.exec("data-cancel", to: "##{@id}")}

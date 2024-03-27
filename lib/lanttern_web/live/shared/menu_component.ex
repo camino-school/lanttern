@@ -8,70 +8,70 @@ defmodule LantternWeb.MenuComponent do
     <div>
       <.panel_overlay
         id="menu"
-        class="flex items-stretch h-full divide-x divide-ltrn-lighter ltrn-bg-menu"
+        class={[
+          "h-full overflow-y-auto ltrn-bg-menu",
+          "sm:flex sm:items-stretch sm:divide-x sm:divide-ltrn-lighter"
+        ]}
       >
-        <div class="flex-1 flex flex-col justify-between">
+        <div class="sm:flex-1 sm:flex sm:flex-col-reverse sm:justify-between">
+          <div class="p-6">
+            <h5 class="relative flex items-center font-display font-black text-3xl text-ltrn-dark">
+              <span class="w-20 h-20 rounded-full bg-ltrn-mesh-primary blur-sm" />
+              <span class="relative -ml-10">Lanttern</span>
+            </h5>
+          </div>
           <nav>
-            <ul
-              :if={@current_profile.type == "teacher"}
-              class="grid grid-cols-3 gap-px border-b border-ltrn-lighter bg-ltrn-lighter"
-            >
-              <.nav_item active={@active_nav == :dashboard} path={~p"/dashboard"}>
-                <%= gettext("Dashboard") %>
-              </.nav_item>
-              <.nav_item active={@active_nav == :strands} path={~p"/strands"}>
-                <%= gettext("Strands") %>
-              </.nav_item>
-              <.nav_item active={@active_nav == :school} path={~p"/school"}>
-                <%= gettext("School") %>
-              </.nav_item>
-              <.nav_item active={@active_nav == :assessment_points} path={~p"/assessment_points"}>
-                <%= gettext("Assessment points") %>
-              </.nav_item>
-              <.nav_item active={@active_nav == :rubrics} path={~p"/rubrics"}>
-                <%= gettext("Rubrics") %>
-              </.nav_item>
-              <.nav_item active={@active_nav == :curriculum} path={~p"/curriculum"}>
-                <%= gettext("Curriculum") %>
-              </.nav_item>
-              <.nav_item active={@active_nav == :report_cards} path={~p"/report_cards"}>
-                <%= gettext("Report cards") %>
-              </.nav_item>
-              <.nav_item active={@active_nav == :grading} path={~p"/grading"}>
-                <%= gettext("Grading") %>
-              </.nav_item>
-              <%!-- use this li as placeholder when nav items % 3 != 0--%>
-              <li class="bg-white"></li>
-            </ul>
-            <ul
-              :if={@current_profile.type == "student"}
-              class="grid grid-cols-3 gap-px border-b border-ltrn-lighter bg-ltrn-lighter"
-            >
-              <.nav_item active={@active_nav == :student_home} path={~p"/student"}>
-                <%= gettext("Home") %>
-              </.nav_item>
-              <%!-- use this li as placeholder when nav items % 3 != 0--%>
-              <li class="bg-white"></li>
-              <li class="bg-white"></li>
-            </ul>
-            <ul
-              :if={@current_profile.type == "guardian"}
-              class="grid grid-cols-3 gap-px border-b border-ltrn-lighter bg-ltrn-lighter"
-            >
-              <.nav_item active={@active_nav == :guardian_home} path={~p"/guardian"}>
-                <%= gettext("Home") %>
-              </.nav_item>
-              <%!-- use this li as placeholder when nav items % 3 != 0--%>
-              <li class="bg-white"></li>
-              <li class="bg-white"></li>
+            <ul class="grid grid-cols-2 sm:grid-cols-3 gap-px border-y sm:border-t-0 border-ltrn-lighter bg-ltrn-lighter">
+              <%= if @current_profile.type == "teacher" do %>
+                <.nav_item active={@active_nav == :dashboard} path={~p"/dashboard"}>
+                  <%= gettext("Dashboard") %>
+                </.nav_item>
+                <.nav_item active={@active_nav == :strands} path={~p"/strands"}>
+                  <%= gettext("Strands") %>
+                </.nav_item>
+                <.nav_item active={@active_nav == :school} path={~p"/school"}>
+                  <%= gettext("School") %>
+                </.nav_item>
+                <.nav_item active={@active_nav == :assessment_points} path={~p"/assessment_points"}>
+                  <%= gettext("Assessment points") %>
+                </.nav_item>
+                <.nav_item active={@active_nav == :rubrics} path={~p"/rubrics"}>
+                  <%= gettext("Rubrics") %>
+                </.nav_item>
+                <.nav_item active={@active_nav == :curriculum} path={~p"/curriculum"}>
+                  <%= gettext("Curriculum") %>
+                </.nav_item>
+                <.nav_item active={@active_nav == :report_cards} path={~p"/report_cards"}>
+                  <%= gettext("Report cards") %>
+                </.nav_item>
+                <.nav_item active={@active_nav == :grading} path={~p"/grading"}>
+                  <%= gettext("Grading") %>
+                </.nav_item>
+                <%!-- use this li as placeholder when nav items % 3 != 0 (sm) or nav items % 2 != 0 --%>
+                <li class="hidden sm:block bg-white"></li>
+              <% end %>
+
+              <%= if @current_profile.type == "student" do %>
+                <.nav_item active={@active_nav == :student_home} path={~p"/student"}>
+                  <%= gettext("Home") %>
+                </.nav_item>
+                <%!-- use this li as placeholder when nav items % 3 != 0 (sm) or nav items % 2 != 0 --%>
+                <li class="bg-white"></li>
+                <li class="hidden sm:block bg-white"></li>
+              <% end %>
+
+              <%= if @current_profile.type == "guardian" do %>
+                <.nav_item active={@active_nav == :guardian_home} path={~p"/guardian"}>
+                  <%= gettext("Home") %>
+                </.nav_item>
+                <%!-- use this li as placeholder when nav items % 3 != 0 (sm) or nav items % 2 != 0 --%>
+                <li class="bg-white"></li>
+                <li class="hidden sm:block bg-white"></li>
+              <% end %>
             </ul>
           </nav>
-          <h5 class="relative flex items-center ml-6 mb-6 font-display font-black text-3xl text-ltrn-dark">
-            <span class="w-20 h-20 rounded-full bg-ltrn-mesh-primary blur-sm" />
-            <span class="relative -ml-10">Lanttern</span>
-          </h5>
         </div>
-        <div class="flex flex-col w-96 p-10 font-display overflow-y-auto">
+        <div class="sm:flex sm:flex-col sm:w-96 p-10 font-display overflow-y-auto">
           <p class="mb-4 font-black text-lg text-ltrn-primary">
             <%= gettext("You're logged in as") %>
           </p>
@@ -129,8 +129,8 @@ defmodule LantternWeb.MenuComponent do
               </li>
             </ul>
           </nav>
-          <span class="flex-1" />
-          <div class="flex items-center gap-4 font-bold text-sm text-ltrn-subtle leading-loose">
+          <span class="hidden sm:block sm:flex-1" />
+          <div class="flex items-center gap-4 mt-6 font-bold text-sm text-ltrn-subtle leading-loose">
             <span><%= gettext("Language:") %></span>
             <.lang_button
               is_current={@current_user.current_profile.current_locale == "en"}
@@ -172,7 +172,7 @@ defmodule LantternWeb.MenuComponent do
       <.link
         patch={@path}
         class={[
-          "group relative block p-10 font-display font-black text-lg",
+          "group relative block p-10 font-display font-black text-base sm:text-lg",
           if(@active, do: "text-ltrn-dark", else: "text-ltrn-subtle underline hover:text-ltrn-dark")
         ]}
       >
