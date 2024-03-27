@@ -7,7 +7,7 @@ defmodule LantternWeb.ProfileController do
   alias Lanttern.Identity.Profile
 
   def index(conn, _params) do
-    profiles = Identity.list_profiles(preloads: [:user, :student, :teacher])
+    profiles = Identity.list_profiles(preloads: [:user, :student, :teacher, :guardian_of_student])
     render(conn, :index, profiles: profiles)
   end
 
@@ -26,6 +26,15 @@ defmodule LantternWeb.ProfileController do
   end
 
   def create(conn, %{"profile" => profile_params}) do
+    profile_params =
+      case profile_params do
+        %{"type" => "guardian"} ->
+          Map.put(profile_params, "guardian_of_student_id", profile_params["student_id"])
+
+        _ ->
+          profile_params
+      end
+
     case Identity.create_profile(profile_params) do
       {:ok, profile} ->
         conn
@@ -47,7 +56,9 @@ defmodule LantternWeb.ProfileController do
   end
 
   def show(conn, %{"id" => id}) do
-    profile = Identity.get_profile!(id, preloads: [:user, :student, :teacher])
+    profile =
+      Identity.get_profile!(id, preloads: [:user, :student, :teacher, :guardian_of_student])
+
     render(conn, :show, profile: profile)
   end
 

@@ -6,6 +6,7 @@ defmodule Lanttern.Identity do
   import Ecto.Query, warn: false
 
   import Lanttern.RepoHelpers
+  import LantternWeb.Gettext
   alias Lanttern.Repo
   alias Lanttern.Identity.User
   alias Lanttern.Identity.UserToken
@@ -296,7 +297,9 @@ defmodule Lanttern.Identity do
 
     query
     |> Repo.one()
-    |> Repo.preload(current_profile: [teacher: [:school], student: [:school]])
+    |> Repo.preload(
+      current_profile: [teacher: [:school], student: [:school], guardian_of_student: [:school]]
+    )
     |> case do
       nil -> nil
       user -> Map.update!(user, :current_profile, &build_flat_profile/1)
@@ -313,6 +316,13 @@ defmodule Lanttern.Identity do
   defp build_flat_profile(%{type: "student", student: student} = profile) do
     profile
     |> Map.put(:name, student.name)
+    |> Map.put(:school_id, student.school.id)
+    |> Map.put(:school_name, student.school.name)
+  end
+
+  defp build_flat_profile(%{type: "guardian", guardian_of_student: student} = profile) do
+    profile
+    |> Map.put(:name, "#{gettext("Guardian of")} #{student.name}")
     |> Map.put(:school_id, student.school.id)
     |> Map.put(:school_name, student.school.name)
   end

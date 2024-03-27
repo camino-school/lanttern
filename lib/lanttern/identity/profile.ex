@@ -20,6 +20,8 @@ defmodule Lanttern.Identity.Profile do
           student_id: pos_integer(),
           teacher: Teacher.t(),
           teacher_id: pos_integer(),
+          guardian_of_student: Student.t(),
+          guardian_of_student_id: pos_integer(),
           settings: ProfileSettings.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
@@ -38,6 +40,7 @@ defmodule Lanttern.Identity.Profile do
     belongs_to :user, User
     belongs_to :student, Student
     belongs_to :teacher, Teacher
+    belongs_to :guardian_of_student, Student
 
     has_one :settings, ProfileSettings
 
@@ -47,7 +50,14 @@ defmodule Lanttern.Identity.Profile do
   @doc false
   def changeset(profile, attrs) do
     profile
-    |> cast(attrs, [:type, :user_id, :teacher_id, :student_id, :current_locale])
+    |> cast(attrs, [
+      :type,
+      :user_id,
+      :teacher_id,
+      :student_id,
+      :guardian_of_student_id,
+      :current_locale
+    ])
     |> validate_required([:type, :user_id])
     |> validate_inclusion(:current_locale, ["en", "pt_BR"], message: "Locale not supported")
     |> validate_type_id()
@@ -59,15 +69,23 @@ defmodule Lanttern.Identity.Profile do
         changeset
         |> validate_required([:student_id])
         |> put_change(:teacher_id, nil)
+        |> put_change(:guardian_of_student_id, nil)
 
       "teacher" ->
         changeset
         |> validate_required([:teacher_id])
         |> put_change(:student_id, nil)
+        |> put_change(:guardian_of_student_id, nil)
+
+      "guardian" ->
+        changeset
+        |> validate_required([:guardian_of_student_id])
+        |> put_change(:student_id, nil)
+        |> put_change(:teacher_id, nil)
 
       _ ->
         changeset
-        |> add_error(:type, "Type should be student or teacher")
+        |> add_error(:type, "Type should be student, teacher, or guardian")
     end
   end
 end

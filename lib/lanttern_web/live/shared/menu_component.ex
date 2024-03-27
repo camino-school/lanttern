@@ -179,6 +179,12 @@ defmodule LantternWeb.MenuComponent do
             profile.teacher.name,
             profile.teacher.school.name
           }
+
+        "guardian" ->
+          {
+            "#{gettext("Guardian of")} #{profile.guardian_of_student.name}",
+            profile.guardian_of_student.school.name
+          }
       end
 
     assigns =
@@ -305,7 +311,7 @@ defmodule LantternWeb.MenuComponent do
     profiles =
       Identity.list_profiles(
         user_id: current_user.id,
-        preloads: [teacher: :school, student: :school]
+        preloads: [teacher: :school, student: :school, guardian_of_student: :school]
       )
 
     socket =

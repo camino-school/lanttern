@@ -16,6 +16,9 @@
   <:item :if={@profile.type == "teacher"} title="Teacher">
     <%= @profile.teacher.name %>
   </:item>
+  <:item :if={@profile.type == "guardian"} title="Guardian of">
+    <%= @profile.guardian_of_student.name %>
+  </:item>
 </.list>
 
 <.back navigate={~p"/admin/profiles"}>Back to profiles</.back>
