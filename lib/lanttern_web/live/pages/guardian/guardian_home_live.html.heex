@@ -1,21 +1,24 @@
-<div class="container mx-auto lg:max-w-5xl">
+<.responsive_container class="pt-6 sm:pt-10">
   <.page_title_with_menu><%= gettext("Welcome!") %></.page_title_with_menu>
   <p class="mt-10 font-display font-black text-xl">
     <%= gettext("%{student}'s report cards", student: @current_user.current_profile.name) %>
   </p>
-  <%= if @has_student_report_cards do %>
-    <div class="grid grid-cols-3 gap-10 mt-10">
-      <.report_card_card
-        :for={{dom_id, student_report_card} <- @streams.student_report_cards}
-        id={dom_id}
-        report_card={student_report_card.report_card}
-        navigate={~p"/student_report_card/#{student_report_card}"}
-        year={student_report_card.report_card.year}
-      />
-    </div>
-  <% else %>
-    <.empty_state class="p-10 rounded mt-10 bg-white shadow-lg">
+</.responsive_container>
+<%= if @has_student_report_cards do %>
+  <.responsive_grid>
+    <.report_card_card
+      :for={{dom_id, student_report_card} <- @streams.student_report_cards}
+      id={dom_id}
+      report_card={student_report_card.report_card}
+      navigate={~p"/student_report_card/#{student_report_card}"}
+      year={student_report_card.report_card.year}
+      class="shrink-0 w-64 sm:w-auto"
+    />
+  </.responsive_grid>
+<% else %>
+  <.responsive_container class="mt-10">
+    <.empty_state class="p-10 rounded bg-white shadow-lg">
       <%= gettext("No student report cards created yet.") %>
     </.empty_state>
-  <% end %>
-</div>
+  </.responsive_container>
+<% end %>

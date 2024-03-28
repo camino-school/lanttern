@@ -49,7 +49,11 @@ defmodule LantternWeb.OverlayComponents do
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
       class="relative z-50 hidden"
     >
-      <div id={"#{@id}-bg"} class="bg-white/90 fixed inset-0 transition-opacity" aria-hidden="true" />
+      <div
+        id={"#{@id}-bg"}
+        class="bg-ltrn-dark/75 fixed inset-0 transition-opacity"
+        aria-hidden="true"
+      />
       <div
         class="fixed inset-0 overflow-y-auto"
         aria-labelledby={"#{@id}-title"}
@@ -174,7 +178,7 @@ defmodule LantternWeb.OverlayComponents do
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
       class="relative z-30 hidden"
     >
-      <div id={"#{@id}-backdrop"} class="fixed inset-0 bg-white/75 transition-opacity" />
+      <div id={"#{@id}-backdrop"} class="fixed inset-0 bg-ltrn-dark/75 transition-opacity" />
       <div
         class="fixed inset-0 overflow-hidden"
         tabindex="0"
@@ -184,7 +188,10 @@ defmodule LantternWeb.OverlayComponents do
         aria-modal="true"
       >
         <div class="absolute inset-0 overflow-hidden">
-          <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full">
+          <div class={[
+            "pointer-events-none fixed top-20 bottom-0 flex max-w-full",
+            "md:inset-y-0 md:right-0"
+          ]}>
             <.focus_wrap
               id={"#{@id}-container"}
               phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
@@ -192,17 +199,14 @@ defmodule LantternWeb.OverlayComponents do
               phx-click-away={
                 if not @prevent_close_on_click_away, do: JS.exec("data-cancel", to: "##{@id}")
               }
-              class="pointer-events-auto w-screen max-w-xl transition-translate"
+              class="pointer-events-auto w-screen md:max-w-xl transition-translate"
             >
-              <div class="flex h-full flex-col divide-y divide-ltrn-lighter bg-white shadow-xl rounded-l">
-                <div class="relative flex min-h-0 flex-1 flex-col overflow-y-scroll ltrn-bg-slide-over">
-                  <h2
-                    class="shrink-0 px-4 sm:px-6 py-6 font-display font-black text-3xl"
-                    id={"#{@id}-title"}
-                  >
+              <div class="flex flex-col h-full divide-y divide-ltrn-lighter bg-white shadow-xl rounded-l">
+                <div class="flex-1 min-h-0 overflow-y-scroll ltrn-bg-slide-over">
+                  <h2 class="px-4 sm:px-6 py-6 font-display font-black text-3xl" id={"#{@id}-title"}>
                     <%= render_slot(@title) %>
                   </h2>
-                  <div id={"#{@id}-content"} class="flex-1 p-4 sm:px-6">
+                  <div id={"#{@id}-content"} class="p-4 sm:px-6">
                     <%= render_slot(@inner_block) %>
                   </div>
                 </div>
@@ -297,7 +301,7 @@ defmodule LantternWeb.OverlayComponents do
     >
       <div
         id={"#{@id}-backdrop"}
-        class="fixed inset-0 bg-white/75 transition-opacity"
+        class="fixed inset-0 bg-ltrn-dark/75 transition-opacity"
         aria-hidden="true"
       />
       <div

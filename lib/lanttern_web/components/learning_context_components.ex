@@ -57,7 +57,10 @@ defmodule LantternWeb.LearningContextComponents do
         if(@bottom_content == [], do: "shrink-0", else: "flex-[1_0]")
       ]}>
         <div>
-          <h5 class="font-display font-black text-3xl line-clamp-3">
+          <h5 class={[
+            "font-display font-black text-2xl line-clamp-3",
+            "md:text-3xl"
+          ]}>
             <%= if @navigate do %>
               <.link navigate={@navigate} class="underline hover:text-ltrn-subtle">
                 <%= @strand.name %>

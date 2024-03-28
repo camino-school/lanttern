@@ -7,8 +7,16 @@
       <.nav_menu_button />
     </div>
   </:top>
-  <h1 class="font-display font-black text-5xl"><%= @student_report_card.student.name %></h1>
-  <h2 class="mt-2 font-display font-black text-2xl">
+  <h1 class={[
+    "font-display font-black text-4xl",
+    "sm:text-5xl"
+  ]}>
+    <%= @student_report_card.student.name %>
+  </h1>
+  <h2 class={[
+    "mt-2 font-display font-black text-xl",
+    "sm:text-2xl"
+  ]}>
     <%= @student_report_card.report_card.name %>
   </h2>
   <.badge theme="dark" class="mt-6">
@@ -16,16 +24,24 @@
   </.badge>
 </.cover>
 <div class="ltrn-bg-main-local">
-  <div class="container py-10 mx-auto lg:max-w-5xl">
+  <.responsive_container class="py-10">
     <.markdown text={@student_report_card.comment} />
-    <h3 class="mt-10 font-display font-black text-2xl">Strand reports</h3>
-    <div class="grid grid-cols-3 gap-10 mt-10">
+  </.responsive_container>
+  <section class="mt-10">
+    <.responsive_container>
+      <h3 class="font-display font-black text-2xl">
+        <%= gettext("Strand reports") %>
+      </h3>
+    </.responsive_container>
+    <.responsive_grid>
+      <%!-- <div class="grid grid-cols-3 gap-10 mt-10"> --%>
       <.strand_card
         :for={{dom_id, {strand_report, entries}} <- @streams.strand_reports_and_entries}
         id={dom_id}
         strand={strand_report.strand}
         navigate={~p"/student_report_card/#{@student_report_card}/strand_report/#{strand_report}"}
         hide_description
+        class="shrink-0 w-64 sm:w-auto"
       >
         <:bottom_content :if={entries != []}>
           <div class="flex flex-wrap gap-2 p-6 border-t border-ltrn-lighter">
@@ -33,19 +49,23 @@
           </div>
         </:bottom_content>
       </.strand_card>
-    </div>
-    <section :if={@grades_report} class="mt-10">
-      <h3 class="mb-6 font-display font-black text-2xl"><%= gettext("Grades") %></h3>
-      <.grades_report_grid
-        grades_report={@grades_report}
-        student_grades_map={@student_grades_map}
-        on_student_grade_click={JS.push("view_grade_details")}
-        report_card_cycle_id={@student_report_card.report_card.school_cycle_id}
-      />
-    </section>
-  </div>
+    </.responsive_grid>
+  </section>
+  <section :if={@grades_report}>
+    <.responsive_container class="mb-4">
+      <h3 class="font-display font-black text-2xl">
+        <%= gettext("Grades") %>
+      </h3>
+    </.responsive_container>
+    <.grades_report_grid
+      grades_report={@grades_report}
+      student_grades_map={@student_grades_map}
+      on_student_grade_click={JS.push("view_grade_details")}
+      report_card_cycle_id={@student_report_card.report_card.school_cycle_id}
+    />
+  </section>
 </div>
-<.footnote footnote={@student_report_card.footnote} />
+<.footnote footnote={@student_report_card.footnote} class="mt-10" />
 <.slide_over
   :if={@is_showing_grade_details}
   id="grade-details"

@@ -10,10 +10,10 @@ defmodule LantternWeb.MenuComponent do
         id="menu"
         class={[
           "h-full overflow-y-auto ltrn-bg-menu",
-          "sm:flex sm:items-stretch sm:divide-x sm:divide-ltrn-lighter"
+          "md:flex md:items-stretch md:divide-x md:divide-ltrn-lighter"
         ]}
       >
-        <div class="sm:flex-1 sm:flex sm:flex-col-reverse sm:justify-between">
+        <div class="md:flex-1 md:flex md:flex-col-reverse md:justify-between">
           <div class="p-6">
             <h5 class="relative flex items-center font-display font-black text-3xl text-ltrn-dark">
               <span class="w-20 h-20 rounded-full bg-ltrn-mesh-primary blur-sm" />
@@ -21,7 +21,10 @@ defmodule LantternWeb.MenuComponent do
             </h5>
           </div>
           <nav>
-            <ul class="grid grid-cols-2 sm:grid-cols-3 gap-px border-y sm:border-t-0 border-ltrn-lighter bg-ltrn-lighter">
+            <ul class={[
+              "grid grid-cols-2 gap-px border-y border-ltrn-lighter bg-ltrn-lighter",
+              "lg:grid-cols-3 md:border-t-0"
+            ]}>
               <%= if @current_profile.type == "teacher" do %>
                 <.nav_item active={@active_nav == :dashboard} path={~p"/dashboard"}>
                   <%= gettext("Dashboard") %>
@@ -48,7 +51,7 @@ defmodule LantternWeb.MenuComponent do
                   <%= gettext("Grading") %>
                 </.nav_item>
                 <%!-- use this li as placeholder when nav items % 3 != 0 (sm) or nav items % 2 != 0 --%>
-                <li class="hidden sm:block bg-white"></li>
+                <li class="hidden lg:block bg-white"></li>
               <% end %>
 
               <%= if @current_profile.type == "student" do %>
@@ -57,7 +60,7 @@ defmodule LantternWeb.MenuComponent do
                 </.nav_item>
                 <%!-- use this li as placeholder when nav items % 3 != 0 (sm) or nav items % 2 != 0 --%>
                 <li class="bg-white"></li>
-                <li class="hidden sm:block bg-white"></li>
+                <li class="hidden lg:block bg-white"></li>
               <% end %>
 
               <%= if @current_profile.type == "guardian" do %>
@@ -66,12 +69,15 @@ defmodule LantternWeb.MenuComponent do
                 </.nav_item>
                 <%!-- use this li as placeholder when nav items % 3 != 0 (sm) or nav items % 2 != 0 --%>
                 <li class="bg-white"></li>
-                <li class="hidden sm:block bg-white"></li>
+                <li class="hidden lg:block bg-white"></li>
               <% end %>
             </ul>
           </nav>
         </div>
-        <div class="sm:flex sm:flex-col sm:w-96 p-10 font-display overflow-y-auto">
+        <div class={[
+          "p-10 font-display overflow-y-auto",
+          "md:flex md:flex-col md:w-80 lg:w-96"
+        ]}>
           <p class="mb-4 font-black text-lg text-ltrn-primary">
             <%= gettext("You're logged in as") %>
           </p>
@@ -172,12 +178,14 @@ defmodule LantternWeb.MenuComponent do
       <.link
         patch={@path}
         class={[
-          "group relative block p-10 font-display font-black text-base sm:text-lg",
+          "group relative block p-6 font-display font-black text-base",
+          "md:p-10 lg:text-lg",
           if(@active, do: "text-ltrn-dark", else: "text-ltrn-subtle underline hover:text-ltrn-dark")
         ]}
       >
         <span class={[
-          "absolute top-2 left-2 block w-6 h-6",
+          "absolute top-2 left-2 block w-4 h-4 rounded-full",
+          "md:w-6 md:h-6",
           if(@active, do: "bg-ltrn-primary", else: "group-hover:bg-ltrn-subtle")
         ]} />
         <%= render_slot(@inner_block) %>
