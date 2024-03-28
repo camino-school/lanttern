@@ -306,13 +306,42 @@ defmodule Lanttern.ReportingTest do
 
     test "list_student_report_cards/1 with student filter returns all student_report_cards of the given student" do
       student = SchoolsFixtures.student_fixture()
-      student_report_card = student_report_card_fixture(%{student_id: student.id})
+
+      cycle_2023 =
+        SchoolsFixtures.cycle_fixture(%{start_at: ~D[2023-01-01], end_at: ~D[2023-12-31]})
+
+      cycle_2024_q4 =
+        SchoolsFixtures.cycle_fixture(%{start_at: ~D[2024-10-01], end_at: ~D[2024-12-31]})
+
+      cycle_2024 =
+        SchoolsFixtures.cycle_fixture(%{start_at: ~D[2024-01-01], end_at: ~D[2024-12-31]})
+
+      report_card_2023 = report_card_fixture(%{school_cycle_id: cycle_2023.id})
+      report_card_2024_q4 = report_card_fixture(%{school_cycle_id: cycle_2024_q4.id})
+      report_card_2024 = report_card_fixture(%{school_cycle_id: cycle_2024.id})
+
+      student_report_card_2023 =
+        student_report_card_fixture(%{report_card_id: report_card_2023.id, student_id: student.id})
+
+      student_report_card_2024_q4 =
+        student_report_card_fixture(%{
+          report_card_id: report_card_2024_q4.id,
+          student_id: student.id
+        })
+
+      student_report_card_2024 =
+        student_report_card_fixture(%{report_card_id: report_card_2024.id, student_id: student.id})
 
       # extra fixtures for filter testing
-      student_report_card_fixture()
+      student_report_card_fixture(%{report_card_id: report_card_2023.id})
       student_report_card_fixture()
 
-      assert Reporting.list_student_report_cards(student_id: student.id) == [student_report_card]
+      # report should be ordered by cycle end date desc and start date asc
+      assert Reporting.list_student_report_cards(student_id: student.id) == [
+               student_report_card_2024,
+               student_report_card_2024_q4,
+               student_report_card_2023
+             ]
     end
 
     test "list_students_for_report_card/2 returns all students with class and linked report cards" do

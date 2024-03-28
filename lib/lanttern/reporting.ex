@@ -394,7 +394,12 @@ defmodule Lanttern.Reporting do
 
   """
   def list_student_report_cards(opts \\ []) do
-    StudentReportCard
+    from(
+      src in StudentReportCard,
+      join: rc in assoc(src, :report_card),
+      join: c in assoc(rc, :school_cycle),
+      order_by: [desc: c.end_at, asc: c.start_at]
+    )
     |> apply_list_student_report_cards_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)

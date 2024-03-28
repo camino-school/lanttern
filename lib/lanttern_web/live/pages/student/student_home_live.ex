@@ -15,7 +15,7 @@ defmodule LantternWeb.StudentHomeLive do
     student_report_cards =
       Reporting.list_student_report_cards(
         student_id: socket.assigns.current_user.current_profile.student_id,
-        preloads: [report_card: :year]
+        preloads: [report_card: [:year, :school_cycle]]
       )
 
     has_student_report_cards = length(student_report_cards) > 0

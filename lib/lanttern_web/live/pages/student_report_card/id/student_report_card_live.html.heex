@@ -23,7 +23,7 @@
     <%= gettext("Cycle") %>: <%= @student_report_card.report_card.school_cycle.name %>
   </.badge>
 </.cover>
-<div class="ltrn-bg-main-local">
+<div class="ltrn-bg-main-local pb-10">
   <.responsive_container class="py-10">
     <.markdown text={@student_report_card.comment} />
   </.responsive_container>
@@ -65,7 +65,7 @@
     />
   </section>
 </div>
-<.footnote footnote={@student_report_card.footnote} class="mt-10" />
+<.footnote footnote={@student_report_card.footnote} />
 <.slide_over
   :if={@is_showing_grade_details}
   id="grade-details"
