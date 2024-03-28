@@ -1,13 +1,13 @@
-defmodule LantternWeb.GuardianHomeLiveTest do
+defmodule LantternWeb.StudentHomeLiveTest do
   use LantternWeb.ConnCase
 
   import Lanttern.ReportingFixtures
 
-  @live_view_path "/guardian"
+  @live_view_path "/student"
 
-  setup [:register_and_log_in_guardian]
+  setup [:register_and_log_in_student]
 
-  describe "Guardian home live view basic navigation" do
+  describe "Student home live view basic navigation" do
     test "disconnected and connected mount", %{conn: conn} do
       conn = get(conn, @live_view_path)
 
