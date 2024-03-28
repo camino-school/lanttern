@@ -8,7 +8,7 @@
       <.nav_menu_button />
     </div>
   </:top>
-  <h1 class="font-display font-black text-5xl"><%= @report_card.name %></h1>
+  <h1 class="font-display font-black text-4xl sm:text-5xl"><%= @report_card.name %></h1>
   <div class="flex gap-2 mt-6">
     <.badge theme="dark">
       <%= gettext("Cycle") %>: <%= @report_card.school_cycle.name %>
@@ -19,8 +19,8 @@
   </div>
 </.cover>
 <div class="sticky z-30 top-0 border-b border-ltrn-lighter bg-white">
-  <div class="flex items-center justify-between container lg:max-w-5xl mx-auto">
-    <.nav_tabs id="strand-nav-tabs">
+  <.responsive_container class="flex items-center justify-between gap-10">
+    <.nav_tabs id="strand-nav-tabs" class="flex-1 overflow-x-auto">
       <:tab
         patch={~p"/report_cards/#{@report_card}?#{%{tab: "students"}}"}
         is_current={@current_tab == :students && "true"}
@@ -60,7 +60,7 @@
         </.menu_button_item>
       </:menu_items>
     </.menu_button>
-  </div>
+  </.responsive_container>
 </div>
 <div class="ltrn-bg-main-local">
   <.live_component
@@ -71,8 +71,10 @@
     current_user={@current_user}
     params={@params}
   />
-  <div :if={@current_tab == :strands}>
-    <.markdown text={@report_card.description} />
+  <div :if={@current_tab == :strands} class="py-10">
+    <.responsive_container class="mb-10">
+      <.markdown text={@report_card.description} />
+    </.responsive_container>
     <.live_component
       module={StrandsReportsComponent}
       id="report-card-strands-reports"

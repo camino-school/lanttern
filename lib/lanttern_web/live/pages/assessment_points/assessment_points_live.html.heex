@@ -1,4 +1,4 @@
-<div class="container mx-auto lg:max-w-5xl">
+<.responsive_container class="pt-6 sm:pt-10">
   <.page_title_with_menu>Assessment points explorer</.page_title_with_menu>
   <div class="mt-12">
     <p class="font-display font-bold text-lg">
@@ -7,8 +7,8 @@
       <.filter_buttons type="classes" items={@current_classes} />
     </p>
   </div>
-</div>
-<div class="container mx-auto lg:max-w-5xl mt-10">
+</.responsive_container>
+<.responsive_container class="mt-10">
   <div class="flex items-center gap-4 justify-between">
     <div class="flex items-center gap-4 text-sm">
       <p class="flex items-center gap-2">
@@ -23,26 +23,28 @@
       Create assessment point
     </.collection_action>
   </div>
-</div>
-<div
-  id="assessment-points-explorer-slider"
-  class="relative w-full max-h-screen pb-6 mt-6 rounded shadow-xl bg-white overflow-x-auto"
-  phx-hook="Slider"
->
-  <%= if length(@assessment_points) > 0 do %>
-    <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2 bg-white">
-      <div class="sticky left-0 z-20 shrink-0 w-40 bg-white"></div>
-      <.assessment_point :for={ap <- @assessment_points} assessment_point={ap} />
-      <div class="shrink-0 w-2"></div>
-    </div>
-    <.student_and_entries
-      :for={{student, entries} <- @students_and_entries}
-      student={student}
-      entries={entries}
-    />
-  <% else %>
-    <.empty_state>No assessment points found</.empty_state>
-  <% end %>
+</.responsive_container>
+<div class="px-6 pb-10">
+  <div
+    id="assessment-points-explorer-slider"
+    class="relative w-full max-h-screen pb-6 mt-6 rounded shadow-xl bg-white overflow-x-auto"
+    phx-hook="Slider"
+  >
+    <%= if length(@assessment_points) > 0 do %>
+      <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2 bg-white">
+        <div class="sticky left-0 z-20 shrink-0 w-40 bg-white"></div>
+        <.assessment_point :for={ap <- @assessment_points} assessment_point={ap} />
+        <div class="shrink-0 w-2"></div>
+      </div>
+      <.student_and_entries
+        :for={{student, entries} <- @students_and_entries}
+        student={student}
+        entries={entries}
+      />
+    <% else %>
+      <.empty_state>No assessment points found</.empty_state>
+    <% end %>
+  </div>
 </div>
 <.slide_over id="explorer-filters">
   <:title>Filter Assessment Points</:title>

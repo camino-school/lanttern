@@ -1,4 +1,4 @@
-<div class="container mx-auto lg:max-w-5xl">
+<.responsive_container class="py-6 sm:py-10">
   <.page_title_with_menu>Dashboard 🚧</.page_title_with_menu>
   <div class="mt-40">
     <.link
@@ -47,7 +47,7 @@
   <% else %>
     <.empty_state>You don't have any filter view yet</.empty_state>
   <% end %>
-</div>
+</.responsive_container>
 <.slide_over
   :if={@live_action in [:new_filter_view, :edit_filter_view]}
   id="assessment-points-filter-view-overlay"

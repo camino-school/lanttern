@@ -7,67 +7,69 @@ defmodule LantternWeb.MomentLive.NotesComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="container py-10 mx-auto lg:max-w-5xl">
-      <%= if @is_editing do %>
-        <.form for={@form} phx-submit="save" phx-target={@myself} id="moment-note-form">
-          <.markdown_supported class="mb-6" />
-          <.textarea_with_actions
-            id={@form[:description].id}
-            name={@form[:description].name}
-            value={@form[:description].value}
-            errors={@form[:description].errors}
-            label={gettext("Add your notes...")}
-            rows="10"
-          >
-            <:actions_left :if={@note}>
-              <.button
-                type="button"
-                theme="ghost"
-                phx-click="delete"
-                phx-target={@myself}
-                data-confirm={gettext("Are you sure?")}
-              >
-                <%= gettext("Delete note") %>
-              </.button>
-            </:actions_left>
-            <:actions>
-              <.button type="button" theme="ghost" phx-click="cancel_edit" phx-target={@myself}>
-                <%= gettext("Cancel") %>
-              </.button>
-              <.button type="submit">
-                <%= gettext("Save") %>
-              </.button>
-            </:actions>
-          </.textarea_with_actions>
-          <.error :for={{msg, _opts} <- @form[:description].errors}><%= msg %></.error>
-        </.form>
-      <% else %>
-        <%= if @note do %>
-          <div class="flex items-center justify-between mb-10">
-            <h3 class="font-display font-bold text-xl">
-              <%= gettext("My moment notes (visible only to you)") %>
-            </h3>
-            <.button type="button" theme="ghost" phx-click="edit" phx-target={@myself}>
-              <%= gettext("Edit") %>
-            </.button>
-          </div>
-          <.markdown text={@note.description} />
-        <% else %>
-          <.empty_state>
-            <%= gettext("You don't have any notes for this moment yet") %>
-          </.empty_state>
-          <div class="mt-6 text-center">
-            <button
-              type="button"
-              class="font-display font-black underline"
-              phx-click="edit"
-              phx-target={@myself}
+    <div class="py-10">
+      <.responsive_container>
+        <%= if @is_editing do %>
+          <.form for={@form} phx-submit="save" phx-target={@myself} id="moment-note-form">
+            <.markdown_supported class="mb-6" />
+            <.textarea_with_actions
+              id={@form[:description].id}
+              name={@form[:description].name}
+              value={@form[:description].value}
+              errors={@form[:description].errors}
+              label={gettext("Add your notes...")}
+              rows="10"
             >
-              <%= gettext("Add an moment note") %>
-            </button>
-          </div>
+              <:actions_left :if={@note}>
+                <.button
+                  type="button"
+                  theme="ghost"
+                  phx-click="delete"
+                  phx-target={@myself}
+                  data-confirm={gettext("Are you sure?")}
+                >
+                  <%= gettext("Delete note") %>
+                </.button>
+              </:actions_left>
+              <:actions>
+                <.button type="button" theme="ghost" phx-click="cancel_edit" phx-target={@myself}>
+                  <%= gettext("Cancel") %>
+                </.button>
+                <.button type="submit">
+                  <%= gettext("Save") %>
+                </.button>
+              </:actions>
+            </.textarea_with_actions>
+            <.error :for={{msg, _opts} <- @form[:description].errors}><%= msg %></.error>
+          </.form>
+        <% else %>
+          <%= if @note do %>
+            <div class="flex items-center justify-between mb-10">
+              <h3 class="font-display font-bold text-xl">
+                <%= gettext("My moment notes (visible only to you)") %>
+              </h3>
+              <.button type="button" theme="ghost" phx-click="edit" phx-target={@myself}>
+                <%= gettext("Edit") %>
+              </.button>
+            </div>
+            <.markdown text={@note.description} />
+          <% else %>
+            <.empty_state>
+              <%= gettext("You don't have any notes for this moment yet") %>
+            </.empty_state>
+            <div class="mt-6 text-center">
+              <button
+                type="button"
+                class="font-display font-black underline"
+                phx-click="edit"
+                phx-target={@myself}
+              >
+                <%= gettext("Add an moment note") %>
+              </button>
+            </div>
+          <% end %>
         <% end %>
-      <% end %>
+      </.responsive_container>
     </div>
     """
   end

@@ -13,7 +13,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   def render(assigns) do
     ~H"""
     <div class="py-10">
-      <div class="container mx-auto lg:max-w-5xl">
+      <.responsive_container>
         <div class="flex items-end justify-between gap-6">
           <p class="font-display font-bold text-2xl">
             <%= gettext("Viewing") %>
@@ -78,7 +78,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
             </div>
           </div>
         </div>
-      </div>
+      </.responsive_container>
       <.live_component
         module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
         id="classes-filter-overlay"

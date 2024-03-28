@@ -1,4 +1,4 @@
-<div class="container mx-auto lg:max-w-5xl">
+<.responsive_container class="pt-6 sm:pt-10">
   <.page_title_with_menu><%= gettext("Report Cards") %></.page_title_with_menu>
   <div class="flex items-end justify-between mt-12">
     <p class="font-display font-bold text-lg">
@@ -18,31 +18,34 @@
       <%= gettext("Create new report card") %>
     </.collection_action>
   </div>
-  <%= if @has_report_cards do %>
-    <div phx-update="stream" id="cycle-report-cards-grid">
-      <div
-        :for={{dom_id, {cycle, report_cards}} <- @streams.cycles_and_report_cards}
-        id={dom_id}
-        class="mt-12"
-      >
+</.responsive_container>
+<%= if @has_report_cards do %>
+  <div phx-update="stream" id="cycle-report-cards-grid">
+    <div
+      :for={{dom_id, {cycle, report_cards}} <- @streams.cycles_and_report_cards}
+      id={dom_id}
+      class="mt-12"
+    >
+      <.responsive_container>
         <h6 class="font-display font-bold"><%= cycle.name %></h6>
-        <div class="grid grid-cols-3 gap-10 mt-10">
-          <.report_card_card
-            :for={report_card <- report_cards}
-            id={"report-card-#{report_card.id}"}
-            report_card={report_card}
-            navigate={~p"/report_cards/#{report_card}"}
-            year={report_card.year}
-          />
-        </div>
-      </div>
+      </.responsive_container>
+      <.responsive_grid>
+        <.report_card_card
+          :for={report_card <- report_cards}
+          id={"report-card-#{report_card.id}"}
+          report_card={report_card}
+          navigate={~p"/report_cards/#{report_card}"}
+          year={report_card.year}
+          class="shrink-0 w-64 sm:w-auto"
+        />
+      </.responsive_grid>
     </div>
-  <% else %>
-    <.empty_state>
-      <%= gettext("No report cards created yet") %>
-    </.empty_state>
-  <% end %>
-</div>
+  </div>
+<% else %>
+  <.empty_state>
+    <%= gettext("No report cards created yet") %>
+  </.empty_state>
+<% end %>
 <.live_component
   module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
   id="report-cards-cycle-filters-overlay"

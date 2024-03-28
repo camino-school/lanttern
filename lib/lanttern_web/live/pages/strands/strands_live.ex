@@ -19,7 +19,7 @@ defmodule LantternWeb.StrandsLive do
 
   def strands_grid(assigns) do
     ~H"""
-    <div id={@id} phx-update="stream" class="grid grid-cols-3 gap-10 mt-12">
+    <.responsive_grid id={@id} phx-update="stream">
       <.strand_card
         :for={{dom_id, strand} <- @strands}
         id={dom_id}
@@ -31,8 +31,9 @@ defmodule LantternWeb.StrandsLive do
           )
         }
         navigate={~p"/strands/#{strand}"}
+        class="shrink-0 w-64 sm:w-auto"
       />
-    </div>
+    </.responsive_grid>
     """
   end
 

@@ -14,7 +14,7 @@
     </div>
   </:top>
   <div class="flex items-center gap-2 mb-4">
-    <.icon name="hero-arrow-left" class="w-6 h-6" />
+    <.icon name="hero-arrow-left" class="shrink-0 w-6 h-6" />
     <.link
       navigate={~p"/strands/#{@moment.strand}?tab=moments"}
       class="font-display font-black text-lg underline"
@@ -23,7 +23,7 @@
       <span :if={@moment.strand.type}>(<%= @moment.strand.type %>)</span>
     </.link>
   </div>
-  <h1 class="font-display font-black text-5xl"><%= @moment.name %></h1>
+  <h1 class="font-display font-black text-4xl sm:text-5xl"><%= @moment.name %></h1>
   <div class="flex flex-wrap gap-2 mt-6">
     <.badge :for={subject <- @moment.subjects} theme="dark">
       <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
@@ -31,8 +31,8 @@
   </div>
 </.cover>
 <div class="sticky top-0 z-30 border-b border-ltrn-lighter bg-white">
-  <div class="flex items-center justify-between container lg:max-w-5xl mx-auto">
-    <.nav_tabs id="moment-nav-tabs">
+  <.responsive_container class="flex items-center justify-between gap-10">
+    <.nav_tabs id="moment-nav-tabs" class="flex-1 overflow-x-auto">
       <:tab
         patch={~p"/strands/moment/#{@moment}?#{%{tab: "overview"}}"}
         is_current={@current_tab == :overview && "true"}
@@ -77,7 +77,7 @@
         </.menu_button_item>
       </:menu_items>
     </.menu_button>
-  </div>
+  </.responsive_container>
 </div>
 <div class="ltrn-bg-main-local">
   <.live_component

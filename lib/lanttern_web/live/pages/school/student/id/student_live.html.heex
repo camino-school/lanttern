@@ -1,4 +1,4 @@
-<div class="container mx-auto lg:max-w-5xl">
+<.responsive_container class="pt-6 sm:pt-10">
   <.page_title_with_menu><%= @student_name %></.page_title_with_menu>
   <.breadcrumbs class="mt-2">
     <:item link={~p"/school"}>School</:item>
@@ -8,22 +8,22 @@
   <h3 class="mt-10 font-display font-bold text-2xl">
     Classes
   </h3>
-  <div id="students" phx-update="stream" class="grid grid-cols-3 gap-10 mt-6">
-    <div
-      :for={{dom_id, class} <- @streams.classes}
-      id={dom_id}
-      class="flex flex-col items-start justify-between p-6 rounded bg-white shadow-xl"
+</.responsive_container>
+<.responsive_grid id="students" phx-update="stream">
+  <div
+    :for={{dom_id, class} <- @streams.classes}
+    id={dom_id}
+    class="shrink-0 flex flex-col items-start justify-between w-64 sm:w-auto p-6 rounded bg-white shadow-xl"
+  >
+    <.link
+      patch={~p"/school/class/#{class}"}
+      class="font-display font-black text-2xl underline hover:text-ltrn-subtle"
     >
-      <.link
-        patch={~p"/school/class/#{class}"}
-        class="font-display font-black text-2xl underline hover:text-ltrn-subtle"
-      >
-        <%= class.name %>
-      </.link>
-      <div class="flex flex-wrap gap-2 mt-6">
-        <.badge><%= class.cycle.name %></.badge>
-        <.badge :for={year <- class.years}><%= year.name %></.badge>
-      </div>
+      <%= class.name %>
+    </.link>
+    <div class="flex flex-wrap gap-2 mt-6">
+      <.badge><%= class.cycle.name %></.badge>
+      <.badge :for={year <- class.years}><%= year.name %></.badge>
     </div>
   </div>
-</div>
+</.responsive_grid>

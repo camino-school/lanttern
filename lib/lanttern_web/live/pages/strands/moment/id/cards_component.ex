@@ -12,80 +12,88 @@ defmodule LantternWeb.MomentLive.CardsComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="container py-10 mx-auto lg:max-w-5xl">
-      <div class="flex items-end justify-between gap-6">
-        <h3 class="font-display font-black text-3xl"><%= gettext("Moment cards") %></h3>
-        <div class="shrink-0 flex items-center gap-6">
-          <.collection_action
-            :if={@has_position_change}
-            type="button"
-            icon_name="hero-check-circle"
-            phx-click="save_order"
-            phx-target={@myself}
-            class="font-bold"
-          >
-            <%= gettext("Save updated order") %>
-          </.collection_action>
-          <.collection_action
-            type="button"
-            icon_name="hero-plus-circle"
-            phx-click="new_card"
-            phx-target={@myself}
-          >
-            <%= gettext("Add moment card") %>
-          </.collection_action>
+    <div class="py-10">
+      <.responsive_container>
+        <div class="flex items-end justify-between gap-6">
+          <h3 class="font-display font-black text-3xl"><%= gettext("Moment cards") %></h3>
+          <div class="shrink-0 flex items-center gap-6">
+            <.collection_action
+              :if={@has_position_change}
+              type="button"
+              icon_name="hero-check-circle"
+              phx-click="save_order"
+              phx-target={@myself}
+              class="font-bold"
+            >
+              <%= gettext("Save updated order") %>
+            </.collection_action>
+            <.collection_action
+              type="button"
+              icon_name="hero-plus-circle"
+              phx-click="new_card"
+              phx-target={@myself}
+            >
+              <%= gettext("Add moment card") %>
+            </.collection_action>
+          </div>
         </div>
-      </div>
-      <p class="mt-4">
-        <%= gettext("Use this feature to add an extra layer of organization to your moment planning.") %>
-      </p>
-      <div :if={@moment_cards == []} class="p-10 mt-10 rounded shadow-xl bg-white">
-        <.empty_state><%= gettext("No cards for this moment yet") %></.empty_state>
-      </div>
-      <div :for={{moment_card, i} <- @moment_cards} class="mt-6" id={"moment-card-#{moment_card.id}"}>
-        <div class="flex items-stretch gap-6 p-6 rounded bg-white shadow-lg">
-          <div class="flex-1">
-            <div class="flex items-center gap-4">
-              <h5 class="font-display font-bold text-sm">
-                <%= moment_card.name %>
-              </h5>
-              <.button
-                type="button"
-                theme="ghost"
-                phx-click={JS.push("edit_card", value: %{id: moment_card.id})}
-                phx-target={@myself}
-              >
-                <%= gettext("Edit") %>
-              </.button>
+        <p class="mt-4">
+          <%= gettext(
+            "Use this feature to add an extra layer of organization to your moment planning."
+          ) %>
+        </p>
+        <div :if={@moment_cards == []} class="p-10 mt-10 rounded shadow-xl bg-white">
+          <.empty_state><%= gettext("No cards for this moment yet") %></.empty_state>
+        </div>
+        <div
+          :for={{moment_card, i} <- @moment_cards}
+          class="mt-6"
+          id={"moment-card-#{moment_card.id}"}
+        >
+          <div class="flex items-stretch gap-6 p-6 rounded bg-white shadow-lg">
+            <div class="flex-1">
+              <div class="flex items-center gap-4">
+                <h5 class="font-display font-bold text-sm">
+                  <%= moment_card.name %>
+                </h5>
+                <.button
+                  type="button"
+                  theme="ghost"
+                  phx-click={JS.push("edit_card", value: %{id: moment_card.id})}
+                  phx-target={@myself}
+                >
+                  <%= gettext("Edit") %>
+                </.button>
+              </div>
+              <.markdown text={moment_card.description} class="mt-4" />
             </div>
-            <.markdown text={moment_card.description} class="mt-4" />
-          </div>
-          <div class="shrink-0 flex flex-col justify-center gap-2">
-            <.icon_button
-              type="button"
-              sr_text={gettext("Move moment card up")}
-              name="hero-chevron-up-mini"
-              theme="ghost"
-              rounded
-              size="sm"
-              disabled={i == 0}
-              phx-click={JS.push("swap_card_position", value: %{from: i, to: i - 1})}
-              phx-target={@myself}
-            />
-            <.icon_button
-              type="button"
-              sr_text={gettext("Move moment card down")}
-              name="hero-chevron-down-mini"
-              theme="ghost"
-              rounded
-              size="sm"
-              disabled={i + 1 == length(@moment_cards)}
-              phx-click={JS.push("swap_card_position", value: %{from: i, to: i + 1})}
-              phx-target={@myself}
-            />
+            <div class="shrink-0 flex flex-col justify-center gap-2">
+              <.icon_button
+                type="button"
+                sr_text={gettext("Move moment card up")}
+                name="hero-chevron-up-mini"
+                theme="ghost"
+                rounded
+                size="sm"
+                disabled={i == 0}
+                phx-click={JS.push("swap_card_position", value: %{from: i, to: i - 1})}
+                phx-target={@myself}
+              />
+              <.icon_button
+                type="button"
+                sr_text={gettext("Move moment card down")}
+                name="hero-chevron-down-mini"
+                theme="ghost"
+                rounded
+                size="sm"
+                disabled={i + 1 == length(@moment_cards)}
+                phx-click={JS.push("swap_card_position", value: %{from: i, to: i + 1})}
+                phx-target={@myself}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      </.responsive_container>
       <.slide_over
         :if={@live_action == :edit_card}
         id="moment-card-form-overlay"

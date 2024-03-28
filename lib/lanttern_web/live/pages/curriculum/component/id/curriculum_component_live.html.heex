@@ -1,4 +1,4 @@
-<.container>
+<.responsive_container class="pt-6 sm:pt-10">
   <.page_title_with_menu>
     <%= "#{@curriculum_component.curriculum.name}: #{@curriculum_component.name}" %>
   </.page_title_with_menu>
@@ -9,7 +9,9 @@
     </:item>
     <:item><%= gettext("Component") %></:item>
   </.breadcrumbs>
-  <section class="mt-10">
+</.responsive_container>
+<section class="mt-10 pb-10">
+  <.responsive_container>
     <div class="flex items-end gap-6 mb-6">
       <div class="flex-1">
         <h2 class="mb-2 font-display font-black text-2xl"><%= gettext("Curriculum items") %></h2>
@@ -42,6 +44,8 @@
         Add curriculum item
       </.collection_action>
     </div>
+  </.responsive_container>
+  <div class="mx-6 overflow-x-auto">
     <div class="grid grid-cols-[repeat(2,_max-content)_minmax(200px,_2fr)_repeat(2,_minmax(0,_1fr))_max-content] gap-y-2">
       <div class="sticky top-0 grid grid-cols-subgrid col-span-6 rounded font-display font-bold text-sm bg-white shadow">
         <div class="p-4">Id</div>
@@ -141,14 +145,14 @@
         </ul>
       <% end %>
     </div>
-  </section>
-  <section :if={@curriculum_component.description} class="mt-10">
-    <h2 class="mb-6 font-display font-black text-2xl">
-      <%= gettext("About the curriculum component") %>
-    </h2>
-    <.markdown text={@curriculum_component.description} />
-  </section>
-</.container>
+  </div>
+</section>
+<section :if={@curriculum_component.description} class="mt-10">
+  <h2 class="mb-6 font-display font-black text-2xl">
+    <%= gettext("About the curriculum component") %>
+  </h2>
+  <.markdown text={@curriculum_component.description} />
+</section>
 <.live_component
   module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
   id="subjects-filter-modal"

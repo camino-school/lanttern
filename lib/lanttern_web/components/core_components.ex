@@ -294,33 +294,6 @@ defmodule LantternWeb.CoreComponents do
       "shrink-0 flex items-center gap-2 font-display text-sm text-ltrn-dark hover:text-ltrn-subtle"
 
   @doc """
-  Renders a div container.
-
-  Very simple, but useful for keep the same configuration for all containers.
-  (And if we need to adjust something, we just need to tweak this component.)
-  """
-  attr :class, :any, default: nil
-  attr :id, :string, default: nil
-  attr :rest, :global
-
-  slot :inner_block, required: true
-
-  def container(assigns) do
-    ~H"""
-    <div
-      id={@id}
-      class={[
-        "container mx-auto lg:max-w-5xl",
-        @class
-      ]}
-      {@rest}
-    >
-      <%= render_slot(@inner_block) %>
-    </div>
-    """
-  end
-
-  @doc """
   Renders a page cover.
   """
   attr :rest, :global
@@ -988,12 +961,14 @@ defmodule LantternWeb.CoreComponents do
   Renders a responsive grid.
   """
   attr :class, :any, default: nil
+  attr :id, :string, default: nil
   attr :rest, :global
   slot :inner_block, required: true
 
   def responsive_grid(assigns) do
     ~H"""
     <div
+      id={@id}
       class={[
         "flex items-stretch gap-6 container py-10 px-6 pb-20 mx-auto overflow-x-auto",
         "sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:px-10 sm:overflow-x-visible lg:max-w-5xl",

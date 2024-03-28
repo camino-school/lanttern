@@ -1,4 +1,4 @@
-<div class="container mx-auto lg:max-w-5xl">
+<.responsive_container class="py-6 sm:py-10">
   <.page_title_with_menu><%= gettext("Grades reports") %></.page_title_with_menu>
   <div class="flex items-end justify-between mt-12">
     <p class="font-display font-bold text-lg">
@@ -62,7 +62,7 @@
       <%= gettext("No grade reports created yet") %>
     </.empty_state>
   <% end %>
-</div>
+</.responsive_container>
 <.slide_over
   :if={@show_grades_report_form}
   id="grade-report-form-overlay"
