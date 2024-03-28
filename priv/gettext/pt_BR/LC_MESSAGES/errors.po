@@ -101,7 +101,7 @@ msgstr "deve ser maior ou igual a %{number}"
 msgid "must be equal to %{number}"
 msgstr "deve ser igual a %{number}"
 
-#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:433
+#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:439
 #, elixir-autogen, elixir-format
 msgid "Something went wrong"
 msgstr "Algo deu errado"
