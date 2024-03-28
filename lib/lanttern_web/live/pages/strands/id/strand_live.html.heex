@@ -3,14 +3,14 @@
     <div class="flex items-center justify-between">
       <.breadcrumbs with_bg>
         <:item link={~p"/strands"}><%= gettext("Strands") %></:item>
-        <:item><%= gettext("Details") %></:item>
+        <:item><%= gettext("Strand details") %></:item>
       </.breadcrumbs>
       <.nav_menu_button />
     </div>
   </:top>
   <hgroup class="font-display font-black">
-    <h1 class="text-5xl"><%= @strand.name %></h1>
-    <p :if={@strand.type} class="mt-2 text-3xl"><%= @strand.type %></p>
+    <h1 class="text-4xl sm:text-5xl"><%= @strand.name %></h1>
+    <p :if={@strand.type} class="mt-2 text-xl sm:text-2xl"><%= @strand.type %></p>
   </hgroup>
   <div class="flex flex-wrap gap-2 mt-6">
     <.badge :for={subject <- @strand.subjects} theme="dark">
@@ -22,8 +22,8 @@
   </div>
 </.cover>
 <div class="sticky z-30 top-0 border-b border-ltrn-lighter bg-white">
-  <div class="flex items-center justify-between container lg:max-w-5xl mx-auto">
-    <.nav_tabs id="strand-nav-tabs">
+  <.responsive_container class="flex items-center justify-between gap-10">
+    <.nav_tabs id="strand-nav-tabs" class="flex-1 overflow-x-auto">
       <:tab
         patch={~p"/strands/#{@strand}?#{%{tab: "about"}}"}
         is_current={@current_tab == :about && "true"}
@@ -75,7 +75,7 @@
         </.menu_button_item>
       </:menu_items>
     </.menu_button>
-  </div>
+  </.responsive_container>
 </div>
 <div class="ltrn-bg-main-local">
   <.live_component

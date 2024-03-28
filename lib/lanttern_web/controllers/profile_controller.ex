@@ -7,7 +7,7 @@ defmodule LantternWeb.ProfileController do
   alias Lanttern.Identity.Profile
 
   def index(conn, _params) do
-    profiles = Identity.list_profiles(preloads: [:user, :student, :teacher])
+    profiles = Identity.list_profiles(preloads: [:user, :student, :teacher, :guardian_of_student])
     render(conn, :index, profiles: profiles)
   end
 
@@ -47,7 +47,9 @@ defmodule LantternWeb.ProfileController do
   end
 
   def show(conn, %{"id" => id}) do
-    profile = Identity.get_profile!(id, preloads: [:user, :student, :teacher])
+    profile =
+      Identity.get_profile!(id, preloads: [:user, :student, :teacher, :guardian_of_student])
+
     render(conn, :show, profile: profile)
   end
 

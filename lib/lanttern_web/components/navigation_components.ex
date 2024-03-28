@@ -135,9 +135,13 @@ defmodule LantternWeb.NavigationComponents do
       ]}>
         <li
           :for={{item, i} <- Enum.with_index(@item)}
-          class={[@item_class, if(@with_bg, do: "text-white drop-shadow-sm")]}
+          class={[
+            @item_class,
+            if(@with_bg, do: "text-white drop-shadow-sm"),
+            if(Map.get(item, :link), do: "hidden sm:list-item")
+          ]}
         >
-          <span :if={i > 0}>/</span>
+          <span :if={i > 0} class="hidden sm:inline">/</span>
           <%= if Map.get(item, :link) do %>
             <.link navigate={item.link} class="underline"><%= render_slot(item) %></.link>
           <% else %>

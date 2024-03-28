@@ -11,7 +11,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
   @live_view_path_base "/assessment_points"
   @overlay_selector "#feedback-overlay"
 
-  setup :register_and_log_in_user
+  setup :register_and_log_in_teacher
 
   describe "Assessment point details live view basic navigation" do
     test "disconnected and connected mount", %{conn: conn} do

@@ -15,30 +15,32 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="container py-10 mx-auto lg:max-w-5xl">
-      <div class="flex items-end justify-between mb-4">
-        <h3 class="font-display font-bold text-lg">
-          <%= gettext("Strands linked to report") %>
-        </h3>
-        <div class="shrink-0 flex items-center gap-6">
-          <.collection_action
-            type="link"
-            patch={~p"/report_cards/#{@report_card}?tab=strands&is_reordering=true"}
-            icon_name="hero-arrows-up-down"
-          >
-            <%= gettext("Reorder") %>
-          </.collection_action>
-          <.collection_action
-            type="link"
-            patch={~p"/report_cards/#{@report_card}?tab=strands&is_creating_strand_report=true"}
-            icon_name="hero-plus-circle"
-          >
-            <%= gettext("Link strand") %>
-          </.collection_action>
+    <div>
+      <.responsive_container>
+        <div class="flex items-end justify-between mb-4">
+          <h3 class="font-display font-bold text-lg">
+            <%= gettext("Strands linked to report") %>
+          </h3>
+          <div class="shrink-0 flex items-center gap-6">
+            <.collection_action
+              type="link"
+              patch={~p"/report_cards/#{@report_card}?tab=strands&is_reordering=true"}
+              icon_name="hero-arrows-up-down"
+            >
+              <%= gettext("Reorder") %>
+            </.collection_action>
+            <.collection_action
+              type="link"
+              patch={~p"/report_cards/#{@report_card}?tab=strands&is_creating_strand_report=true"}
+              icon_name="hero-plus-circle"
+            >
+              <%= gettext("Link strand") %>
+            </.collection_action>
+          </div>
         </div>
-      </div>
+      </.responsive_container>
       <%= if @has_strands_reports do %>
-        <div id="strands-reports-grid" class="grid grid-cols-3 gap-10 mt-10" phx-update="stream">
+        <.responsive_grid id="strands-reports-grid" phx-update="stream">
           <.strand_card
             :for={{dom_id, strand_report} <- @streams.strands_reports}
             id={dom_id}
@@ -50,8 +52,9 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
                 ~p"/report_cards/#{@report_card}?tab=strands&is_editing_strand_report=#{strand_report.id}"
               )
             }
+            class="shrink-0 w-64 sm:w-auto"
           />
-        </div>
+        </.responsive_grid>
       <% else %>
         <.empty_state><%= gettext("No strands linked to this report yet") %></.empty_state>
       <% end %>

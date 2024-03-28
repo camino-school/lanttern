@@ -12,8 +12,8 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="p-10">
-      <div class="container mx-auto lg:max-w-5xl">
+    <div class="py-10">
+      <.responsive_container>
         <div class="flex items-end justify-between gap-6">
           <%= if @selected_classes != [] do %>
             <p class="font-display font-bold text-2xl">
@@ -60,33 +60,39 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
             </li>
           </ol>
         </div>
-      </div>
+      </.responsive_container>
       <%!-- show entries only with class filter selected --%>
-      <div
-        :if={@selected_classes != [] && @assessment_points_count > 0}
-        class="relative w-full max-h-screen pb-6 mt-6 rounded shadow-xl bg-white overflow-x-auto"
-      >
-        <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2 bg-white">
-          <div class="sticky left-0 shrink-0 w-60 bg-white"></div>
-          <div id="strand-assessment-points" phx-update="stream" class="shrink-0 flex gap-4 bg-white">
-            <.assessment_point
-              :for={{dom_id, {ap, i}} <- @streams.assessment_points}
-              assessment_point={ap}
-              strand_id={@strand.id}
-              index={i}
+      <div class="px-6">
+        <div
+          :if={@selected_classes != [] && @assessment_points_count > 0}
+          class="relative w-full max-h-screen pb-6 mt-6 rounded shadow-xl bg-white overflow-x-auto"
+        >
+          <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2 bg-white">
+            <div class="sticky left-0 shrink-0 w-60 bg-white"></div>
+            <div
+              id="strand-assessment-points"
+              phx-update="stream"
+              class="shrink-0 flex gap-4 bg-white"
+            >
+              <.assessment_point
+                :for={{dom_id, {ap, i}} <- @streams.assessment_points}
+                assessment_point={ap}
+                strand_id={@strand.id}
+                index={i}
+                id={dom_id}
+              />
+            </div>
+            <div class="shrink-0 w-2"></div>
+          </div>
+          <div phx-update="stream" id="students-entries" class="flex flex-col gap-4">
+            <.student_and_entries
+              :for={{dom_id, {student, entries}} <- @streams.students_entries}
+              student={student}
+              entries={entries}
+              scale_ov_map={@scale_ov_map}
               id={dom_id}
             />
           </div>
-          <div class="shrink-0 w-2"></div>
-        </div>
-        <div phx-update="stream" id="students-entries" class="flex flex-col gap-4">
-          <.student_and_entries
-            :for={{dom_id, {student, entries}} <- @streams.students_entries}
-            student={student}
-            entries={entries}
-            scale_ov_map={@scale_ov_map}
-            id={dom_id}
-          />
         </div>
       </div>
       <.live_component

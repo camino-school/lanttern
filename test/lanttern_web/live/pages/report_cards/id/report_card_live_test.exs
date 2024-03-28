@@ -9,7 +9,7 @@ defmodule LantternWeb.ReportCardLiveTest do
 
   @live_view_path_base "/report_cards"
 
-  setup [:register_and_log_in_user]
+  setup [:register_and_log_in_teacher]
 
   describe "Report card live view basic navigation" do
     test "disconnected and connected mount", %{conn: conn} do

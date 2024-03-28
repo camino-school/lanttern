@@ -14,8 +14,8 @@
       <.nav_menu_button />
     </div>
   </:top>
-  <div class="flex items-center gap-2 mb-4">
-    <.icon name="hero-arrow-left" class="w-6 h-6" />
+  <div class="flex items-center gap-2 mb-6">
+    <.icon name="hero-arrow-left" class="shrink-0 w-6 h-6" />
     <.link
       navigate={~p"/student_report_card/#{@student_report_card}"}
       class="font-display font-black text-lg underline"
@@ -24,8 +24,8 @@
     </.link>
   </div>
   <hgroup class="font-display font-black">
-    <h1 class="text-5xl"><%= @strand_report.strand.name %></h1>
-    <p :if={@strand_report.strand.type} class="mt-2 text-3xl">
+    <h1 class="text-4xl sm:text-5xl"><%= @strand_report.strand.name %></h1>
+    <p :if={@strand_report.strand.type} class="mt-2 text-xl sm:text-2xl">
       <%= @strand_report.strand.type %>
     </p>
   </hgroup>
@@ -42,7 +42,7 @@
   </div>
 </.cover>
 <div class="ltrn-bg-main-local">
-  <div class="container py-10 mx-auto lg:max-w-5xl">
+  <.responsive_container class="py-10">
     <.markdown text={@strand_report.description} />
     <div class="mt-10">
       <div
@@ -56,43 +56,46 @@
            entry} <-
             @strand_goals_student_entries
         }
-        class="p-6 rounded mt-4 bg-white shadow"
+        class="rounded mt-4 bg-white shadow"
       >
-        <p class="font-display font-bold text-sm mb-2">
-          <%= curriculum_item.curriculum_component.name %>
-        </p>
-        <%= curriculum_item.name %>
-        <div
-          :if={
-            curriculum_item.code ||
-              curriculum_item.subjects != []
-          }
-          class="flex items-center gap-2 mt-4"
-        >
-          <.badge :if={curriculum_item.code} theme="dark">
-            <%= curriculum_item.code %>
-          </.badge>
-          <.badge :if={is_diff} theme="diff">
-            <%= gettext("Curriculum differentiation") %>
-          </.badge>
-          <.badge :if={rubric && length(rubric.differentiation_rubrics) > 0} theme="diff">
-            <%= gettext("Differentiation rubric") %>
-          </.badge>
-          <.badge :for={subject <- curriculum_item.subjects}>
-            <%= subject.name %>
-          </.badge>
+        <div class="pt-6 px-6">
+          <p class="font-display font-bold text-sm mb-2">
+            <%= curriculum_item.curriculum_component.name %>
+          </p>
+          <%= curriculum_item.name %>
+          <div
+            :if={
+              curriculum_item.code ||
+                curriculum_item.subjects != []
+            }
+            class="flex flex-wrap items-center gap-2 mt-4"
+          >
+            <.badge :if={curriculum_item.code} theme="dark">
+              <%= curriculum_item.code %>
+            </.badge>
+            <.badge :if={is_diff} theme="diff">
+              <%= gettext("Curriculum differentiation") %>
+            </.badge>
+            <.badge :if={rubric && length(rubric.differentiation_rubrics) > 0} theme="diff">
+              <%= gettext("Differentiation rubric") %>
+            </.badge>
+            <.badge :for={subject <- curriculum_item.subjects}>
+              <%= subject.name %>
+            </.badge>
+          </div>
         </div>
-        <.report_scale
-          class="mt-10"
-          scale={scale}
-          entry={entry}
-          rubric={
-            case rubric && rubric.differentiation_rubrics do
-              [diff_rubric] -> diff_rubric
-              _ -> rubric
-            end
-          }
-        />
+        <div class="p-6 overflow-x-auto">
+          <.report_scale
+            scale={scale}
+            entry={entry}
+            rubric={
+              case rubric && rubric.differentiation_rubrics do
+                [diff_rubric] -> diff_rubric
+                _ -> rubric
+              end
+            }
+          />
+        </div>
         <.markdown
           :if={entry && entry.report_note}
           text={entry.report_note}
@@ -101,6 +104,6 @@
         />
       </div>
     </div>
-  </div>
+  </.responsive_container>
 </div>
 <.footnote footnote={@student_report_card.footnote} />

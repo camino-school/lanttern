@@ -37,10 +37,10 @@ defmodule LantternWeb.Router do
 
     get "/", PageController, :home
 
-    live_session :authenticated,
+    live_session :authenticated_teacher,
       layout: {LantternWeb.Layouts, :app_logged_in},
       on_mount: [
-        {LantternWeb.UserAuth, :ensure_authenticated},
+        {LantternWeb.UserAuth, :ensure_authenticated_teacher},
         {LantternWeb.Path, :put_path_in_socket}
       ] do
       live "/dashboard", DashboardLive, :index
@@ -101,15 +101,40 @@ defmodule LantternWeb.Router do
       live "/report_cards/new", ReportCardsLive, :new
       live "/report_cards/:id", ReportCardLive, :show
 
+      # grading
+
+      live "/grading", GradesReportsLive, :index
+    end
+
+    live_session :authenticated_guardian,
+      layout: {LantternWeb.Layouts, :app_logged_in},
+      on_mount: [
+        {LantternWeb.UserAuth, :ensure_authenticated_guardian},
+        {LantternWeb.Path, :put_path_in_socket}
+      ] do
+      live "/guardian", GuardianHomeLive
+    end
+
+    live_session :authenticated_student,
+      layout: {LantternWeb.Layouts, :app_logged_in},
+      on_mount: [
+        {LantternWeb.UserAuth, :ensure_authenticated_student},
+        {LantternWeb.Path, :put_path_in_socket}
+      ] do
+      live "/student", StudentHomeLive
+    end
+
+    live_session :authenticated_user,
+      layout: {LantternWeb.Layouts, :app_logged_in},
+      on_mount: [
+        {LantternWeb.UserAuth, :ensure_authenticated},
+        {LantternWeb.Path, :put_path_in_socket}
+      ] do
       live "/student_report_card/:id", StudentReportCardLive, :show
 
       live "/student_report_card/:id/strand_report/:strand_report_id",
            StudentStrandReportLive,
            :show
-
-      # grading
-
-      live "/grading", GradesReportsLive, :index
     end
   end
 

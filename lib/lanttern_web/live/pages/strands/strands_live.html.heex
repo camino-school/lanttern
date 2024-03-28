@@ -1,4 +1,4 @@
-<div class="container mx-auto lg:max-w-5xl">
+<.responsive_container class="pt-6 sm:pt-10">
   <.page_title_with_menu><%= gettext("Strands") %></.page_title_with_menu>
   <div class="flex items-end justify-between mt-12">
     <p class="font-display font-bold text-lg">
@@ -18,39 +18,45 @@
       <%= gettext("Create new strand") %>
     </.collection_action>
   </div>
+</.responsive_container>
+<div class="pb-10">
   <%= if @strands_count == 0 do %>
-    <.empty_state>
+    <.empty_state class="p-10 my-10 mx-6 sm:mx-10 rounded bg-white shadow-lg">
       <%= gettext("No strands created for selected years and subjects") %>
     </.empty_state>
   <% else %>
     <%= if @starred_strands_count > 0 do %>
-      <p class="flex items-center gap-2 mt-10 font-display font-bold">
-        <.icon name="hero-star-solid" class="text-ltrn-primary" /> <%= gettext(
-          "Your starred strands"
-        ) %>
-        <button
-          type="button"
-          aria-label={gettext("Toggle starred strands")}
-          class="text-ltrn-subtle hover:text-ltrn-dark"
-          phx-click={
-            JS.toggle(to: "#starred-strands-list", display: "grid")
-            |> JS.toggle(to: "#toggle-starred-strands-list-icon-down")
-            |> JS.toggle(to: "#toggle-starred-strands-list-icon-up")
-          }
-        >
-          <.icon
-            name="hero-chevron-down-mini"
-            id="toggle-starred-strands-list-icon-down"
-            class="hidden"
-          />
-          <.icon name="hero-chevron-up-mini" id="toggle-starred-strands-list-icon-up" />
-        </button>
-      </p>
+      <.responsive_container class="mt-10">
+        <p class="flex items-center gap-2 font-display font-bold">
+          <.icon name="hero-star-solid" class="text-ltrn-primary" /> <%= gettext(
+            "Your starred strands"
+          ) %>
+          <button
+            type="button"
+            aria-label={gettext("Toggle starred strands")}
+            class="text-ltrn-subtle hover:text-ltrn-dark"
+            phx-click={
+              JS.toggle(to: "#starred-strands-list", display: "grid")
+              |> JS.toggle(to: "#toggle-starred-strands-list-icon-down")
+              |> JS.toggle(to: "#toggle-starred-strands-list-icon-up")
+            }
+          >
+            <.icon
+              name="hero-chevron-down-mini"
+              id="toggle-starred-strands-list-icon-down"
+              class="hidden"
+            />
+            <.icon name="hero-chevron-up-mini" id="toggle-starred-strands-list-icon-up" />
+          </button>
+        </p>
+      </.responsive_container>
       <.strands_grid id="starred-strands-list" strands={@streams.starred_strands} />
-      <p class="mt-10 font-display font-bold"><%= gettext("All strands") %></p>
+      <.responsive_container>
+        <p class="font-display font-bold"><%= gettext("All strands") %></p>
+      </.responsive_container>
     <% end %>
     <.strands_grid id="strands-list" strands={@streams.strands} />
-    <div :if={@has_next_page} class="mt-10 text-center">
+    <div :if={@has_next_page} class="text-center">
       <.button type="button" theme="ghost" phx-click="load-more">
         <%= gettext("Load more strands") %>
       </.button>

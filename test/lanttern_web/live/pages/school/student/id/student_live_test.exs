@@ -5,7 +5,7 @@ defmodule LantternWeb.StudentLiveTest do
 
   @live_view_base_path "/school/student"
 
-  setup [:register_and_log_in_user]
+  setup [:register_and_log_in_teacher]
 
   describe "Student live view basic navigation" do
     test "disconnected and connected mount", %{conn: conn, user: user} do

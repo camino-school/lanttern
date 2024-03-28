@@ -13,7 +13,7 @@
     field={f[:type]}
     type="select"
     label="Type"
-    options={[{"Student", "student"}, {"Teacher", "teacher"}]}
+    options={[{"Student", "student"}, {"Teacher", "teacher"}, {"Guardian", "guardian"}]}
     prompt="Select a profile type"
   />
   <.input
@@ -29,6 +29,13 @@
     label="Teacher"
     options={@teacher_options}
     prompt="Select teacher"
+  />
+  <.input
+    field={f[:guardian_of_student_id]}
+    type="select"
+    label="Guardian of"
+    options={@student_options}
+    prompt="Select student"
   />
   <:actions>
     <.button>Save Profile</.button>

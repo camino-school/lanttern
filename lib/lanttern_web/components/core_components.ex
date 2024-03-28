@@ -294,33 +294,6 @@ defmodule LantternWeb.CoreComponents do
       "shrink-0 flex items-center gap-2 font-display text-sm text-ltrn-dark hover:text-ltrn-subtle"
 
   @doc """
-  Renders a div container.
-
-  Very simple, but useful for keep the same configuration for all containers.
-  (And if we need to adjust something, we just need to tweak this component.)
-  """
-  attr :class, :any, default: nil
-  attr :id, :string, default: nil
-  attr :rest, :global
-
-  slot :inner_block, required: true
-
-  def container(assigns) do
-    ~H"""
-    <div
-      id={@id}
-      class={[
-        "container mx-auto lg:max-w-5xl",
-        @class
-      ]}
-      {@rest}
-    >
-      <%= render_slot(@inner_block) %>
-    </div>
-    """
-  end
-
-  @doc """
   Renders a page cover.
   """
   attr :rest, :global
@@ -333,8 +306,8 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div
       class={[
-        "relative bg-cover bg-center bg-ltrn-lighter",
-        if(@size == "sm", do: "h-96", else: "h-[40rem]")
+        "relative flex flex-col justify-between bg-cover bg-center bg-ltrn-lighter",
+        if(@size == "sm", do: "min-h-96", else: "min-h-[40rem]")
       ]}
       {@rest}
     >
@@ -343,14 +316,12 @@ defmodule LantternWeb.CoreComponents do
         cover_overlay(@theme),
         if(@size == "sm", do: "top-0", else: "top-1/4")
       ]} />
-      <div class="relative flex flex-col justify-between container h-full pt-10 pb-12 mx-auto lg:max-w-5xl">
-        <div>
-          <%= render_slot(@top) %>
-        </div>
-        <div>
-          <%= render_slot(@inner_block) %>
-        </div>
-      </div>
+      <.responsive_container class="relative py-6 sm:pt-10">
+        <%= render_slot(@top) %>
+      </.responsive_container>
+      <.responsive_container class="relative py-6 sm:pb-10 mt-14">
+        <%= render_slot(@inner_block) %>
+      </.responsive_container>
     </div>
     """
   end
@@ -960,6 +931,52 @@ defmodule LantternWeb.CoreComponents do
         </div>
         <div :if={@extra_info} class="line-clamp-1 text-xs text-ltrn-subtle"><%= @extra_info %></div>
       </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a responsive container.
+  """
+  attr :class, :any, default: nil
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def responsive_container(assigns) do
+    ~H"""
+    <div
+      class={[
+        "container px-6 mx-auto",
+        "sm:px-10 lg:max-w-5xl",
+        @class
+      ]}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a responsive grid.
+  """
+  attr :class, :any, default: nil
+  attr :id, :string, default: nil
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def responsive_grid(assigns) do
+    ~H"""
+    <div
+      id={@id}
+      class={[
+        "flex items-stretch gap-6 container py-10 px-6 pb-20 mx-auto overflow-x-auto",
+        "sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:px-10 sm:overflow-x-visible lg:max-w-5xl",
+        @class
+      ]}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
     </div>
     """
   end

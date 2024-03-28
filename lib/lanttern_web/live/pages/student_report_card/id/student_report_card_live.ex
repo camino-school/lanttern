@@ -4,6 +4,7 @@ defmodule LantternWeb.StudentReportCardLive do
   alias Lanttern.Repo
 
   alias Lanttern.GradesReports
+  alias Lanttern.Identity.Profile
   alias Lanttern.Reporting
 
   # shared components
@@ -35,6 +36,30 @@ defmodule LantternWeb.StudentReportCardLive do
           report_card: :school_cycle
         ]
       )
+
+    # check if user can view the student report
+    # guardian and students can only view their own reports
+    # teachers can view only reports from their school
+
+    report_card_student_id = student_report_card.student_id
+    report_card_student_school_id = student_report_card.student.school_id
+
+    case socket.assigns.current_user.current_profile do
+      %Profile{type: "guardian", guardian_of_student_id: student_id}
+      when student_id == report_card_student_id ->
+        nil
+
+      %Profile{type: "student", student_id: student_id}
+      when student_id == report_card_student_id ->
+        nil
+
+      %Profile{type: "teacher", school_id: school_id}
+      when school_id == report_card_student_school_id ->
+        nil
+
+      _ ->
+        raise LantternWeb.NotFoundError
+    end
 
     strand_reports_and_entries =
       Reporting.list_student_report_card_strand_reports_and_entries(student_report_card)

@@ -8,7 +8,7 @@ defmodule LantternWeb.DashboardLiveTest do
   @live_view_path "/dashboard"
   @form_selector "#assessment-points-filter-view-form"
 
-  setup :register_and_log_in_user
+  setup :register_and_log_in_teacher
 
   describe "Dashboard live view basic navigation" do
     test "disconnected and connected mount", %{conn: conn} do

@@ -15,6 +15,9 @@
   <:col :let={profile} label="Teacher">
     <%= if profile.type == "teacher", do: profile.teacher.name, else: "—" %>
   </:col>
+  <:col :let={profile} label="Guardian of">
+    <%= if profile.type == "guardian", do: profile.guardian_of_student.name, else: "—" %>
+  </:col>
   <:action :let={profile}>
     <div class="sr-only">
       <.link navigate={~p"/admin/profiles/#{profile}"}>Show</.link>

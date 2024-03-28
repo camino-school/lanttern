@@ -124,4 +124,8 @@ defmodule LantternWeb do
   defmacro __using__({which, opts}) when is_atom(which) and is_list(opts) do
     apply(__MODULE__, which, [opts])
   end
+
+  defmodule NotFoundError do
+    defexception message: "Not found", plug_status: 404
+  end
 end

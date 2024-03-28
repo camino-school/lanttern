@@ -40,22 +40,28 @@ defmodule LantternWeb.ConnCase do
   @doc """
   Setup helper that registers and logs in users.
 
-      setup :register_and_log_in_user
+      setup :register_and_log_in_teacher
 
-  It stores an updated connection and a registered user in the
-  test context.
+  It stores an updated connection and a registered user and teacher in the test context.
   """
-  def register_and_log_in_user(%{conn: conn}) do
+  def register_and_log_in_teacher(%{conn: conn}) do
     user = Lanttern.IdentityFixtures.user_fixture()
 
     # logged in users should always have a current_profile
-    profile = Lanttern.IdentityFixtures.teacher_profile_fixture(%{user_id: user.id})
+    teacher = Lanttern.SchoolsFixtures.teacher_fixture()
+
+    profile =
+      Lanttern.IdentityFixtures.teacher_profile_fixture(%{
+        user_id: user.id,
+        teacher_id: teacher.id
+      })
+
     Lanttern.Identity.update_user_current_profile_id(user, profile.id)
 
     # emulate Identity.get_user_by_session_token/1 to preload profile into user
     user =
       Lanttern.Identity.get_user!(user.id)
-      |> Lanttern.Repo.preload(current_profile: [teacher: [:school], student: [:school]])
+      |> Lanttern.Repo.preload(current_profile: [teacher: :school])
       |> Map.update!(:current_profile, fn profile ->
         %Lanttern.Identity.Profile{
           id: profile.id,
@@ -66,7 +72,77 @@ defmodule LantternWeb.ConnCase do
         }
       end)
 
-    %{conn: log_in_user(conn, user), user: user}
+    %{conn: log_in_user(conn, user), user: user, teacher: teacher}
+  end
+
+  @doc """
+  Setup helper that registers and logs in students.
+
+      setup :register_and_log_in_student
+
+  It stores an updated connection and registered user and student in the test context.
+  """
+  def register_and_log_in_student(%{conn: conn}) do
+    user = Lanttern.IdentityFixtures.user_fixture()
+
+    # logged in users should always have a current_profile
+    student = Lanttern.SchoolsFixtures.student_fixture()
+
+    profile =
+      Lanttern.IdentityFixtures.student_profile_fixture(%{student_id: student.id})
+
+    Lanttern.Identity.update_user_current_profile_id(user, profile.id)
+
+    # emulate Identity.get_user_by_session_token/1 to preload profile into user
+    user =
+      Lanttern.Identity.get_user!(user.id)
+      |> Lanttern.Repo.preload(current_profile: [student: :school])
+      |> Map.update!(:current_profile, fn profile ->
+        %Lanttern.Identity.Profile{
+          id: profile.id,
+          name: profile.student.name,
+          type: "student",
+          school_id: profile.student.school.id,
+          school_name: profile.student.school.name
+        }
+      end)
+
+    %{conn: log_in_user(conn, user), user: user, student: student}
+  end
+
+  @doc """
+  Setup helper that registers and logs in guardians.
+
+      setup :register_and_log_in_guardian
+
+  It stores an updated connection and registered user and student in the test context.
+  """
+  def register_and_log_in_guardian(%{conn: conn}) do
+    user = Lanttern.IdentityFixtures.user_fixture()
+
+    # logged in users should always have a current_profile
+    student = Lanttern.SchoolsFixtures.student_fixture()
+
+    profile =
+      Lanttern.IdentityFixtures.guardian_profile_fixture(%{guardian_of_student_id: student.id})
+
+    Lanttern.Identity.update_user_current_profile_id(user, profile.id)
+
+    # emulate Identity.get_user_by_session_token/1 to preload profile into user
+    user =
+      Lanttern.Identity.get_user!(user.id)
+      |> Lanttern.Repo.preload(current_profile: [guardian_of_student: :school])
+      |> Map.update!(:current_profile, fn profile ->
+        %Lanttern.Identity.Profile{
+          id: profile.id,
+          name: profile.guardian_of_student.name,
+          type: "guardian",
+          school_id: profile.guardian_of_student.school.id,
+          school_name: profile.guardian_of_student.school.name
+        }
+      end)
+
+    %{conn: log_in_user(conn, user), user: user, student: student}
   end
 
   @doc """

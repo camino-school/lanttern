@@ -40,7 +40,10 @@ defmodule LantternWeb.ReportingComponents do
         style={"background-image: url(#{"/images/cover-placeholder-sm.jpg"}?width=400&height=200)"}
       />
       <div class="flex flex-col gap-6 p-6">
-        <h5 class="font-display font-black text-3xl line-clamp-3">
+        <h5 class={[
+          "font-display font-black text-2xl line-clamp-3",
+          "md:text-3xl"
+        ]}>
           <%= if @navigate do %>
             <.link navigate={@navigate} class="underline hover:text-ltrn-subtle">
               <%= @report_card.name %>
@@ -72,19 +75,34 @@ defmodule LantternWeb.ReportingComponents do
   attr :class, :any, default: nil
 
   def report_scale(%{scale: %{type: "ordinal"}} = assigns) do
+    %{ordinal_values: ordinal_values} = assigns.scale
+    n = length(ordinal_values)
+
+    grid_template_columns_style =
+      cond do
+        assigns.rubric -> "grid-template-columns: repeat(#{n}, minmax(200px, 1fr))"
+        true -> "grid-template-columns: repeat(#{n}, minmax(min-content, 1fr))"
+      end
+
+    grid_column_style = "grid-column: span #{n} / span #{n}"
+
     active_ordinal_value =
       assigns.scale.ordinal_values
       |> Enum.find(&(assigns.entry && assigns.entry.ordinal_value_id == &1.id))
 
-    assigns = assign(assigns, :active_ordinal_value, active_ordinal_value)
+    assigns =
+      assigns
+      |> assign(:grid_template_columns_style, grid_template_columns_style)
+      |> assign(:grid_column_style, grid_column_style)
+      |> assign(:active_ordinal_value, active_ordinal_value)
 
     ~H"""
-    <div class={@class} id={@id}>
-      <div class="flex items-stretch gap-1">
+    <div class={["grid gap-1 min-w-full", @class]} id={@id} style={@grid_template_columns_style}>
+      <div class="grid grid-cols-subgrid" style={@grid_column_style}>
         <div
           :for={ordinal_value <- @scale.ordinal_values}
           class={[
-            "flex-1 shrink-0 p-2 font-mono text-sm text-center text-ltrn-subtle bg-ltrn-lighter",
+            "p-2 font-mono text-sm text-center text-ltrn-subtle bg-ltrn-lighter",
             if(@rubric,
               do: "first:rounded-tl last:rounded-tr",
               else: "first:rounded-l last:rounded-r"
@@ -95,10 +113,10 @@ defmodule LantternWeb.ReportingComponents do
           <%= ordinal_value.name %>
         </div>
       </div>
-      <div :if={@rubric} class="flex items-stretch gap-1 mt-1">
+      <div :if={@rubric} class="grid grid-cols-subgrid" style={@grid_column_style}>
         <.markdown
           :for={descriptor <- @rubric.descriptors}
-          class="flex-1 shrink-0 p-4 first:rounded-bl last:rounded-br bg-ltrn-lighter"
+          class="p-4 first:rounded-bl last:rounded-br bg-ltrn-lighter"
           text={descriptor.descriptor}
           size="sm"
           {if @active_ordinal_value && @active_ordinal_value.id == descriptor.ordinal_value_id, do: apply_style_from_ordinal_value(@active_ordinal_value), else: %{style: "color: #94a3b8"}}
@@ -175,13 +193,20 @@ defmodule LantternWeb.ReportingComponents do
 
   def footnote(assigns) do
     ~H"""
-    <div :if={@footnote} class={["p-10 bg-ltrn-diff-light", @class]}>
-      <div class="container mx-auto lg:max-w-5xl">
+    <div
+      :if={@footnote}
+      class={[
+        "py-6 bg-ltrn-diff-light",
+        "sm:py-10",
+        @class
+      ]}
+    >
+      <.responsive_container>
         <div class="flex items-center justify-center w-10 h-10 rounded-full mb-6 text-ltrn-diff-light bg-ltrn-diff-highlight">
           <.icon name="hero-document-text" />
         </div>
         <.markdown text={@footnote} size="sm" />
-      </div>
+      </.responsive_container>
     </div>
     """
   end
@@ -210,10 +235,10 @@ defmodule LantternWeb.ReportingComponents do
     grid_template_columns_style =
       case length(grades_report_cycles) do
         n when n > 0 ->
-          "grid-template-columns: 160px repeat(#{n + 1}, minmax(0, 1fr))"
+          "grid-template-columns: 160px repeat(#{n + 1}, minmax(128px, 1fr))"
 
         _ ->
-          "grid-template-columns: 160px minmax(0, 1fr)"
+          "grid-template-columns: 160px minmax(128px, 1fr)"
       end
 
     grid_column_style =
@@ -230,80 +255,86 @@ defmodule LantternWeb.ReportingComponents do
       |> assign(:has_cycles, length(grades_report_cycles) > 0)
 
     ~H"""
-    <div id={@id} class={["grid gap-1 text-sm", @class]} style={@grid_template_columns_style}>
-      <%= if @on_setup do %>
-        <.button type="button" theme="ghost" icon_name="hero-cog-6-tooth-mini" phx-click={@on_setup}>
-          <%= gettext("Setup") %>
-        </.button>
-      <% else %>
-        <div />
-      <% end %>
-      <%= if @has_cycles do %>
-        <div
-          :for={grades_report_cycle <- @grades_report.grades_report_cycles}
-          id={"grid-header-cycle-#{grades_report_cycle.id}"}
-          class={[
-            "p-4 rounded text-center shadow-lg",
-            if(@report_card_cycle_id == grades_report_cycle.school_cycle_id,
-              do: "font-bold bg-ltrn-mesh-cyan",
-              else: "bg-white"
-            )
-          ]}
-        >
-          <%= grades_report_cycle.school_cycle.name %>
-        </div>
-        <div class="p-4 rounded text-center bg-white shadow-lg">
-          <%= @grades_report.school_cycle.name %>
-        </div>
-      <% else %>
-        <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lightest">
-          <%= gettext("No cycles linked to this grades report") %>
-        </div>
-      <% end %>
-      <%= if @has_subjects do %>
-        <div
-          :for={grades_report_subject <- @grades_report.grades_report_subjects}
-          id={"grade-report-subject-#{grades_report_subject.id}"}
-          class="grid grid-cols-subgrid"
-          style={@grid_column_style}
-        >
-          <div class="p-4 rounded bg-white shadow-lg">
-            <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", grades_report_subject.subject.name) %>
+    <div class="relative p-2 overflow-x-auto">
+      <div id={@id} class={["grid gap-1 text-sm", @class]} style={@grid_template_columns_style}>
+        <%= if @on_setup do %>
+          <.button type="button" theme="ghost" icon_name="hero-cog-6-tooth-mini" phx-click={@on_setup}>
+            <%= gettext("Setup") %>
+          </.button>
+        <% else %>
+          <div />
+        <% end %>
+        <%= if @has_cycles do %>
+          <div
+            :for={grades_report_cycle <- @grades_report.grades_report_cycles}
+            id={"grid-header-cycle-#{grades_report_cycle.id}"}
+            class={[
+              "p-4 rounded text-center shadow-lg",
+              if(@report_card_cycle_id == grades_report_cycle.school_cycle_id,
+                do: "font-bold bg-ltrn-mesh-cyan",
+                else: "bg-white"
+              )
+            ]}
+          >
+            <%= grades_report_cycle.school_cycle.name %>
           </div>
-          <%= if @has_cycles do %>
-            <.grades_report_grid_cell
-              :for={grades_report_cycle <- @grades_report.grades_report_cycles}
-              on_composition_click={
-                @report_card_cycle_id == grades_report_cycle.school_cycle_id &&
-                  @on_composition_click
-              }
-              subject_id={grades_report_subject.subject_id}
-              student_grade_report_entry={
-                @student_grades_map &&
-                  @student_grades_map[grades_report_cycle.id][grades_report_subject.id]
-              }
-              on_student_grade_click={@on_student_grade_click}
-            />
-            <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
-          <% else %>
-            <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
-          <% end %>
-        </div>
-      <% else %>
-        <div class="grid grid-cols-subgrid" style={@grid_column_style}>
+          <div class="p-4 rounded text-center bg-white shadow-lg">
+            <%= @grades_report.school_cycle.name %>
+          </div>
+        <% else %>
           <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lightest">
-            <%= gettext("No subjects linked to this grades report") %>
+            <%= gettext("No cycles linked to this grades report") %>
           </div>
-          <%= if @has_cycles do %>
-            <.grades_report_grid_cell :for={
-              _grades_report_cycle <- @grades_report.grades_report_cycles
-            } />
-            <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
-          <% else %>
-            <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
-          <% end %>
-        </div>
-      <% end %>
+        <% end %>
+        <%= if @has_subjects do %>
+          <div
+            :for={grades_report_subject <- @grades_report.grades_report_subjects}
+            id={"grade-report-subject-#{grades_report_subject.id}"}
+            class="grid grid-cols-subgrid"
+            style={@grid_column_style}
+          >
+            <div class="sticky left-0 p-4 rounded bg-white shadow-lg">
+              <%= Gettext.dgettext(
+                LantternWeb.Gettext,
+                "taxonomy",
+                grades_report_subject.subject.name
+              ) %>
+            </div>
+            <%= if @has_cycles do %>
+              <.grades_report_grid_cell
+                :for={grades_report_cycle <- @grades_report.grades_report_cycles}
+                on_composition_click={
+                  @report_card_cycle_id == grades_report_cycle.school_cycle_id &&
+                    @on_composition_click
+                }
+                subject_id={grades_report_subject.subject_id}
+                student_grade_report_entry={
+                  @student_grades_map &&
+                    @student_grades_map[grades_report_cycle.id][grades_report_subject.id]
+                }
+                on_student_grade_click={@on_student_grade_click}
+              />
+              <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+            <% else %>
+              <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="grid grid-cols-subgrid" style={@grid_column_style}>
+            <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lightest">
+              <%= gettext("No subjects linked to this grades report") %>
+            </div>
+            <%= if @has_cycles do %>
+              <.grades_report_grid_cell :for={
+                _grades_report_cycle <- @grades_report.grades_report_cycles
+              } />
+              <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+            <% else %>
+              <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
     </div>
     """
   end

@@ -15,8 +15,8 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="p-10">
-      <div class="container mx-auto lg:max-w-5xl">
+    <div class="py-10">
+      <.responsive_container>
         <div class="flex items-end justify-between gap-6">
           <%= if @selected_classes != [] do %>
             <p class="font-display font-bold text-2xl">
@@ -63,51 +63,53 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
             </li>
           </ol>
         </div>
-      </div>
+      </.responsive_container>
       <%!-- show entries only with class filter selected --%>
-      <div
-        :if={@selected_classes != [] && @assessment_points_count > 0}
-        class="relative w-full max-h-[calc(100vh-4rem)] mt-6 rounded shadow-xl bg-white overflow-x-auto"
-      >
+      <div class="px-6">
         <div
-          class="relative grid w-max"
-          style={"grid-template-columns: 240px repeat(#{@assessment_points_count}, minmax(240px, 1fr))"}
+          :if={@selected_classes != [] && @assessment_points_count > 0}
+          class="relative w-full max-h-[calc(100vh-4rem)] mt-6 rounded shadow-xl bg-white overflow-x-auto"
         >
           <div
-            class="sticky top-0 z-20 grid grid-cols-subgrid bg-white"
-            style={"grid-column: span #{@assessment_points_count + 1} / span #{@assessment_points_count + 1}"}
+            class="relative grid w-max"
+            style={"grid-template-columns: 240px repeat(#{@assessment_points_count}, minmax(240px, 1fr))"}
           >
-            <div class="sticky left-0 bg-white"></div>
             <div
-              id="grid-assessment-points"
-              phx-update="stream"
-              class="grid grid-cols-subgrid"
-              style={"grid-column: span #{@assessment_points_count} / span #{@assessment_points_count}"}
+              class="sticky top-0 z-20 grid grid-cols-subgrid bg-white"
+              style={"grid-column: span #{@assessment_points_count + 1} / span #{@assessment_points_count + 1}"}
             >
-              <.assessment_point
-                :for={{dom_id, assessment_point} <- @streams.assessment_points}
+              <div class="sticky left-0 bg-white"></div>
+              <div
+                id="grid-assessment-points"
+                phx-update="stream"
+                class="grid grid-cols-subgrid"
+                style={"grid-column: span #{@assessment_points_count} / span #{@assessment_points_count}"}
+              >
+                <.assessment_point
+                  :for={{dom_id, assessment_point} <- @streams.assessment_points}
+                  id={dom_id}
+                  assessment_point={assessment_point}
+                />
+              </div>
+            </div>
+            <div
+              id="grid-student-entries"
+              phx-update="stream"
+              class="grid grid-cols-subgrid pb-4 pr-4"
+              style={"grid-column: span #{@assessment_points_count + 1} / span #{@assessment_points_count + 1}"}
+            >
+              <.student_entries
+                :for={{dom_id, {student, entries}} <- @streams.students_entries}
                 id={dom_id}
-                assessment_point={assessment_point}
+                student={student}
+                entries={entries}
+                scale_ov_map={@scale_ov_map}
               />
             </div>
           </div>
-          <div
-            id="grid-student-entries"
-            phx-update="stream"
-            class="grid grid-cols-subgrid pb-4 pr-4"
-            style={"grid-column: span #{@assessment_points_count + 1} / span #{@assessment_points_count + 1}"}
-          >
-            <.student_entries
-              :for={{dom_id, {student, entries}} <- @streams.students_entries}
-              id={dom_id}
-              student={student}
-              entries={entries}
-              scale_ov_map={@scale_ov_map}
-            />
-          </div>
         </div>
       </div>
-      <div class="container py-10 mx-auto lg:max-w-5xl">
+      <.responsive_container class="">
         <div class="flex items-end justify-between gap-6">
           <h3 class="mt-16 font-display font-black text-3xl"><%= gettext("Report cards") %></h3>
           <.collection_action
@@ -122,23 +124,23 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
         <p class="mt-4">
           <%= gettext("List of report cards linked to this strand.") %>
         </p>
-        <div id={@id} phx-update="stream" class="grid grid-cols-3 gap-10 mt-12">
-          <.report_card_card
-            :for={{dom_id, report_card} <- @streams.report_cards}
-            id={dom_id}
-            report_card={report_card}
-            navigate={~p"/report_cards/#{report_card}"}
-          />
-        </div>
-        <.live_component
-          module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
-          id="classes-filter-modal"
-          current_user={@current_user}
-          title={gettext("Select classes for assessment")}
-          filter_type={:classes}
-          navigate={~p"/strands/#{@strand}?tab=reporting"}
+      </.responsive_container>
+      <.responsive_grid id={@id} phx-update="stream">
+        <.report_card_card
+          :for={{dom_id, report_card} <- @streams.report_cards}
+          id={dom_id}
+          report_card={report_card}
+          navigate={~p"/report_cards/#{report_card}"}
         />
-      </div>
+      </.responsive_grid>
+      <.live_component
+        module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
+        id="classes-filter-modal"
+        current_user={@current_user}
+        title={gettext("Select classes for assessment")}
+        filter_type={:classes}
+        navigate={~p"/strands/#{@strand}?tab=reporting"}
+      />
     </div>
     """
   end

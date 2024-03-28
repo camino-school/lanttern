@@ -13,83 +13,85 @@ defmodule LantternWeb.StrandLive.AboutComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="container py-10 mx-auto lg:max-w-5xl">
-      <.markdown text={@strand.description} />
-      <div class="flex items-end justify-between gap-6">
-        <h3 class="mt-16 font-display font-black text-3xl"><%= gettext("Goals") %></h3>
-        <div class="shrink-0 flex items-center gap-6">
-          <.collection_action
-            :if={@has_goal_position_change}
-            type="button"
-            icon_name="hero-check-circle"
-            phx-click="save_order"
-            phx-target={@myself}
-            class="font-bold"
-          >
-            <%= gettext("Save updated order") %>
-          </.collection_action>
-          <.collection_action
-            type="button"
-            icon_name="hero-plus-circle"
-            phx-click="new_goal"
-            phx-target={@myself}
-          >
-            <%= gettext("Add strand goal") %>
-          </.collection_action>
+    <div class="py-10">
+      <.responsive_container>
+        <.markdown text={@strand.description} />
+        <div class="flex items-end justify-between gap-6">
+          <h3 class="mt-16 font-display font-black text-3xl"><%= gettext("Goals") %></h3>
+          <div class="shrink-0 flex items-center gap-6">
+            <.collection_action
+              :if={@has_goal_position_change}
+              type="button"
+              icon_name="hero-check-circle"
+              phx-click="save_order"
+              phx-target={@myself}
+              class="font-bold"
+            >
+              <%= gettext("Save updated order") %>
+            </.collection_action>
+            <.collection_action
+              type="button"
+              icon_name="hero-plus-circle"
+              phx-click="new_goal"
+              phx-target={@myself}
+            >
+              <%= gettext("Add strand goal") %>
+            </.collection_action>
+          </div>
         </div>
-      </div>
-      <p class="mt-4">
-        <%= gettext(
-          "Under the hood, goals in Lanttern are defined by assessment points linked directly to the strand — when adding goals, we are adding assessment points which, in turn, hold the curriculum items we'll want to assess along the strand course."
-        ) %>
-      </p>
-      <div :for={{curriculum_item, i} <- @curriculum_items} class="mt-6">
-        <div class="flex items-stretch gap-6 p-6 rounded bg-white shadow-lg">
-          <div class="flex-1">
-            <div class="flex items-center gap-4">
-              <.badge :if={curriculum_item.is_differentiation} theme="diff">
-                <%= gettext("Differentiation") %>
-              </.badge>
-              <p class="font-display font-bold text-sm">
-                <%= curriculum_item.curriculum_component.name %>
-              </p>
-              <.button
-                type="button"
-                theme="ghost"
-                phx-click={JS.push("edit_goal", value: %{id: curriculum_item.assessment_point_id})}
-                phx-target={@myself}
-              >
-                <%= gettext("Edit") %>
-              </.button>
+        <p class="mt-4">
+          <%= gettext(
+            "Under the hood, goals in Lanttern are defined by assessment points linked directly to the strand — when adding goals, we are adding assessment points which, in turn, hold the curriculum items we'll want to assess along the strand course."
+          ) %>
+        </p>
+        <div :for={{curriculum_item, i} <- @curriculum_items} class="mt-6">
+          <div class="flex items-stretch gap-6 p-6 rounded bg-white shadow-lg">
+            <div class="flex-1">
+              <div class="flex items-center gap-4">
+                <.badge :if={curriculum_item.is_differentiation} theme="diff">
+                  <%= gettext("Differentiation") %>
+                </.badge>
+                <p class="font-display font-bold text-sm">
+                  <%= curriculum_item.curriculum_component.name %>
+                </p>
+                <.button
+                  type="button"
+                  theme="ghost"
+                  phx-click={JS.push("edit_goal", value: %{id: curriculum_item.assessment_point_id})}
+                  phx-target={@myself}
+                >
+                  <%= gettext("Edit") %>
+                </.button>
+              </div>
+              <p class="mt-4"><%= curriculum_item.name %></p>
             </div>
-            <p class="mt-4"><%= curriculum_item.name %></p>
-          </div>
-          <div class="shrink-0 flex flex-col justify-center gap-2">
-            <.icon_button
-              type="button"
-              sr_text={gettext("Move curriculum item up")}
-              name="hero-chevron-up-mini"
-              theme="ghost"
-              rounded
-              size="sm"
-              disabled={i == 0}
-              phx-click={JS.push("swap_goal_position", value: %{from: i, to: i - 1})}
-              phx-target={@myself}
-            />
-            <.icon_button
-              type="button"
-              sr_text={gettext("Move curriculum item down")}
-              name="hero-chevron-down-mini"
-              theme="ghost"
-              rounded
-              size="sm"
-              disabled={i + 1 == length(@curriculum_items)}
-              phx-click={JS.push("swap_goal_position", value: %{from: i, to: i + 1})}
-              phx-target={@myself}
-            />
+            <div class="shrink-0 flex flex-col justify-center gap-2">
+              <.icon_button
+                type="button"
+                sr_text={gettext("Move curriculum item up")}
+                name="hero-chevron-up-mini"
+                theme="ghost"
+                rounded
+                size="sm"
+                disabled={i == 0}
+                phx-click={JS.push("swap_goal_position", value: %{from: i, to: i - 1})}
+                phx-target={@myself}
+              />
+              <.icon_button
+                type="button"
+                sr_text={gettext("Move curriculum item down")}
+                name="hero-chevron-down-mini"
+                theme="ghost"
+                rounded
+                size="sm"
+                disabled={i + 1 == length(@curriculum_items)}
+                phx-click={JS.push("swap_goal_position", value: %{from: i, to: i + 1})}
+                phx-target={@myself}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      </.responsive_container>
       <.slide_over
         :if={@live_action in [:new_goal, :edit_goal]}
         id="assessment-point-form-overlay"

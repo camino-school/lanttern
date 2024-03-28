@@ -1,6 +1,9 @@
 name: Lanttern tests
 
-on: push
+on:
+  push:
+    branches:
+      - '**'
 
 jobs:
   dependencies:

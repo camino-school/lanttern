@@ -4,6 +4,7 @@ defmodule LantternWeb.UserAuth do
   import Plug.Conn
   import Phoenix.Controller
 
+  import LantternWeb.Gettext
   alias Lanttern.Identity
   alias Lanttern.Identity.User
 
@@ -197,7 +198,7 @@ defmodule LantternWeb.UserAuth do
       to socket assigns based on user_token, or nil if
       there's no user_token or no matching user.
 
-    * `:ensure_authenticated` - Authenticates the user from the session,
+    * `:ensure_authenticated_` - Authenticates the user from the session,
       and assigns the current_user to socket assigns based
       on user_token.
       Redirects to login page if there's no logged user.
@@ -219,7 +220,7 @@ defmodule LantternWeb.UserAuth do
 
   Or use the `live_session` of your router to invoke the on_mount callback:
 
-      live_session :authenticated, on_mount: [{LantternWeb.UserAuth, :ensure_authenticated}] do
+      live_session :authenticated, on_mount: [{LantternWeb.UserAuth, :ensure_authenticated_teacher}] do
         live "/profile", ProfileLive, :index
       end
   """
@@ -228,18 +229,27 @@ defmodule LantternWeb.UserAuth do
   end
 
   def on_mount(:ensure_authenticated, _params, session, socket) do
-    socket = mount_current_user(socket, session)
+    socket
+    |> mount_current_user(session)
+    |> ensure_authenticated()
+  end
 
-    if socket.assigns.current_user do
-      {:cont, socket}
-    else
-      socket =
-        socket
-        |> Phoenix.LiveView.put_flash(:error, "You must log in to access this page.")
-        |> Phoenix.LiveView.redirect(to: ~p"/users/log_in")
+  def on_mount(:ensure_authenticated_teacher, _params, session, socket) do
+    socket
+    |> mount_current_user(session)
+    |> ensure_authenticated("teacher")
+  end
 
-      {:halt, socket}
-    end
+  def on_mount(:ensure_authenticated_student, _params, session, socket) do
+    socket
+    |> mount_current_user(session)
+    |> ensure_authenticated("student")
+  end
+
+  def on_mount(:ensure_authenticated_guardian, _params, session, socket) do
+    socket
+    |> mount_current_user(session)
+    |> ensure_authenticated("guardian")
   end
 
   def on_mount(:redirect_if_user_is_authenticated, _params, session, socket) do
@@ -258,6 +268,57 @@ defmodule LantternWeb.UserAuth do
         Identity.get_user_by_session_token(user_token)
       end
     end)
+  end
+
+  defp ensure_authenticated(socket) do
+    case socket.assigns.current_user do
+      %User{} ->
+        {:cont, socket}
+
+      _ ->
+        socket =
+          socket
+          |> Phoenix.LiveView.put_flash(:error, gettext("You must log in to access this page."))
+          |> Phoenix.LiveView.redirect(to: ~p"/users/log_in")
+
+        {:halt, socket}
+    end
+  end
+
+  defp ensure_authenticated(socket, profile_type) do
+    case socket.assigns.current_user do
+      %User{current_profile: %{type: ^profile_type}} ->
+        {:cont, socket}
+
+      %User{current_profile: %{type: "teacher"}} ->
+        socket =
+          socket
+          |> Phoenix.LiveView.redirect(to: ~p"/dashboard")
+
+        {:halt, socket}
+
+      %User{current_profile: %{type: "student"}} ->
+        socket =
+          socket
+          |> Phoenix.LiveView.redirect(to: ~p"/student")
+
+        {:halt, socket}
+
+      %User{current_profile: %{type: "guardian"}} ->
+        socket =
+          socket
+          |> Phoenix.LiveView.redirect(to: ~p"/guardian")
+
+        {:halt, socket}
+
+      _ ->
+        socket =
+          socket
+          |> Phoenix.LiveView.put_flash(:error, gettext("You must log in to access this page."))
+          |> Phoenix.LiveView.redirect(to: ~p"/users/log_in")
+
+        {:halt, socket}
+    end
   end
 
   @doc """

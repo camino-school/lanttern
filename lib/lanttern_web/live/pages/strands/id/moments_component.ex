@@ -12,60 +12,62 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="container py-10 mx-auto lg:max-w-5xl">
-      <div class="flex items-end justify-between mb-4">
-        <h3 class="font-display font-bold text-lg">
-          <%= gettext("Strand moments") %>
-        </h3>
-        <div class="shrink-0 flex items-center gap-6">
-          <.collection_action
-            :if={@moments_count > 1}
-            type="button"
-            phx-click={JS.exec("data-show", to: "#strand-moments-order-overlay")}
-            icon_name="hero-arrows-up-down"
-          >
-            <%= gettext("Reorder") %>
-          </.collection_action>
-          <.collection_action
-            type="link"
-            patch={~p"/strands/#{@strand}/new_moment"}
-            icon_name="hero-plus-circle"
-          >
-            <%= gettext("Create new moment") %>
-          </.collection_action>
-        </div>
-      </div>
-      <%= if @moments_count == 0 do %>
-        <div class="p-10 rounded shadow-xl bg-white">
-          <.empty_state><%= gettext("No moments for this strand yet") %></.empty_state>
-        </div>
-      <% else %>
-        <div phx-update="stream" id="strand-moments" class="flex flex-col gap-4">
-          <div
-            :for={{dom_id, {moment, i}} <- @streams.moments}
-            class="flex flex-col gap-6 p-6 rounded shadow-xl bg-white"
-            id={dom_id}
-          >
-            <div class="flex items-center justify-between gap-6">
-              <.link
-                navigate={~p"/strands/moment/#{moment.id}"}
-                class="font-display font-black text-xl"
-              >
-                <%= "#{i + 1}." %>
-                <span class="underline"><%= moment.name %></span>
-              </.link>
-              <div class="shrink-0 flex gap-2">
-                <.badge :for={subject <- moment.subjects}>
-                  <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
-                </.badge>
-              </div>
-            </div>
-            <div class="line-clamp-6">
-              <.markdown text={moment.description} size="sm" />
-            </div>
+    <div class="py-10">
+      <.responsive_container>
+        <div class="flex items-end justify-between mb-4">
+          <h3 class="font-display font-bold text-lg">
+            <%= gettext("Strand moments") %>
+          </h3>
+          <div class="shrink-0 flex items-center gap-6">
+            <.collection_action
+              :if={@moments_count > 1}
+              type="button"
+              phx-click={JS.exec("data-show", to: "#strand-moments-order-overlay")}
+              icon_name="hero-arrows-up-down"
+            >
+              <%= gettext("Reorder") %>
+            </.collection_action>
+            <.collection_action
+              type="link"
+              patch={~p"/strands/#{@strand}/new_moment"}
+              icon_name="hero-plus-circle"
+            >
+              <%= gettext("Create new moment") %>
+            </.collection_action>
           </div>
         </div>
-      <% end %>
+        <%= if @moments_count == 0 do %>
+          <div class="p-10 rounded shadow-xl bg-white">
+            <.empty_state><%= gettext("No moments for this strand yet") %></.empty_state>
+          </div>
+        <% else %>
+          <div phx-update="stream" id="strand-moments" class="flex flex-col gap-4">
+            <div
+              :for={{dom_id, {moment, i}} <- @streams.moments}
+              class="flex flex-col gap-6 p-6 rounded shadow-xl bg-white"
+              id={dom_id}
+            >
+              <div class="flex items-center justify-between gap-6">
+                <.link
+                  navigate={~p"/strands/moment/#{moment.id}"}
+                  class="font-display font-black text-xl"
+                >
+                  <%= "#{i + 1}." %>
+                  <span class="underline"><%= moment.name %></span>
+                </.link>
+                <div class="shrink-0 flex gap-2">
+                  <.badge :for={subject <- moment.subjects}>
+                    <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
+                  </.badge>
+                </div>
+              </div>
+              <div class="line-clamp-6">
+                <.markdown text={moment.description} size="sm" />
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </.responsive_container>
       <.slide_over
         :if={@live_action == :new_moment}
         id="moment-form-overlay"

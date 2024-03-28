@@ -7,7 +7,7 @@ defmodule LantternWeb.GradesReportsLiveTest do
 
   @live_view_path "/grading"
 
-  setup [:register_and_log_in_user]
+  setup [:register_and_log_in_teacher]
 
   describe "Grade reports live view basic navigation" do
     test "disconnected and connected mount", %{conn: conn} do

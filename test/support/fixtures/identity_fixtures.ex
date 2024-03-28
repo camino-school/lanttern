@@ -80,4 +80,23 @@ defmodule Lanttern.IdentityFixtures do
 
     profile
   end
+
+  @doc """
+  Generate a guardian profile.
+  """
+  def guardian_profile_fixture(attrs \\ %{}) do
+    user_id = Map.get(attrs, :user_id) || user_fixture().id
+    guardian_of_student_id = Map.get(attrs, :guardian_of_student_id) || student_fixture().id
+
+    {:ok, profile} =
+      attrs
+      |> Enum.into(%{
+        type: "guardian",
+        user_id: user_id,
+        guardian_of_student_id: guardian_of_student_id
+      })
+      |> Lanttern.Identity.create_profile()
+
+    profile
+  end
 end

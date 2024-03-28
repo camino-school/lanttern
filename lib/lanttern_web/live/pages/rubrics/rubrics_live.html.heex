@@ -1,4 +1,4 @@
-<div class="container mx-auto lg:max-w-5xl">
+<.responsive_container class="py-6 sm:py-10">
   <.page_title_with_menu>Rubrics explorer</.page_title_with_menu>
   <div class="flex items-center gap-4 justify-between mt-10">
     <div class="flex items-center gap-4 text-sm">
@@ -36,7 +36,7 @@
       <.rubric_descriptors rubric={rubric} />
     </div>
   </div>
-</div>
+</.responsive_container>
 <.slide_over
   :if={@live_action in [:new, :edit]}
   id="rubric-form-overlay"
