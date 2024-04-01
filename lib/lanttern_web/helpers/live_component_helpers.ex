@@ -43,32 +43,4 @@ defmodule LantternWeb.LiveComponentHelpers do
       do: Phoenix.LiveView.push_navigate(socket, to: navigate)
 
   def handle_navigation(socket, _arg), do: socket
-
-  @doc """
-  Friendly error messages for `Phoenix.Component.upload_errors/2`.
-  """
-  def error_to_string(upload_config = %Phoenix.LiveView.UploadConfig{}, :not_accepted) do
-    formats =
-      upload_config.accept
-      |> String.split(",")
-      |> format_formats_list()
-
-    "Only #{formats} files accepted"
-  end
-
-  def error_to_string(upload_config = %Phoenix.LiveView.UploadConfig{}, :too_large),
-    do: "File too large (max. #{upload_config.max_file_size / 1_000_000}MB)"
-
-  def error_to_string(_upload_config, err), do: err
-
-  defp format_formats_list([format]), do: format
-
-  defp format_formats_list([format_1, format_2]), do: "#{format_1} and #{format_2}"
-
-  defp format_formats_list(formats) do
-    {rest, last} = Enum.split(formats, -1)
-
-    (rest ++ ["and #{last}"])
-    |> Enum.join(", ")
-  end
 end

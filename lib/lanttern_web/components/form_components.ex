@@ -574,6 +574,111 @@ defmodule LantternWeb.FormComponents do
   end
 
   @doc """
+  Creates a image upload area UI
+  """
+  attr :current_image_url, :string, required: true
+  attr :is_removing, :boolean, required: true
+  attr :upload, :any, required: true, doc: "use it to pass `@uploads.something`"
+  attr :on_cancel_replace, JS, required: true
+  attr :on_cancel_upload, JS, required: true
+  attr :on_replace, JS, required: true
+  attr :class, :any, default: nil
+
+  def image_field(assigns) do
+    ~H"""
+    <div
+      :if={!@current_image_url || @is_removing}
+      class={[
+        "p-4 border border-dashed border-ltrn-lighter rounded-md text-center text-ltrn-subtle",
+        if(@upload.entries != [], do: "hidden"),
+        @class
+      ]}
+      phx-drop-target={@upload.ref}
+    >
+      <div>
+        <.icon name="hero-photo" class="h-10 w-10 mx-auto mb-6" />
+        <div>
+          <label
+            for={@upload.ref}
+            class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
+          >
+            <span><%= gettext("Upload a cover image file") %></span>
+            <.live_file_input upload={@upload} class="sr-only" />
+          </label>
+          <span><%= gettext("or drag and drop here") %></span>
+          <button :if={@is_removing} type="button" phx-click={@on_cancel_replace} class="mt-4">
+            <%= gettext("Cancel cover removal") %>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div :if={@current_image_url && !@is_removing} class={["relative", @class]}>
+      <div class="flex items-center justify-center w-full h-60 bg-ltrn-subtle overflow-hidden">
+        <img src={@current_image_url} alt="Cover image" class="w-full" />
+      </div>
+      <.icon_button
+        type="button"
+        name="hero-x-mark"
+        theme="white"
+        rounded
+        phx-click={@on_replace}
+        sr_text={gettext("Replace image")}
+        class="absolute top-2 right-2"
+      />
+    </div>
+    <div :for={entry <- @upload.entries} class={["relative", @class]}>
+      <div
+        :if={entry.valid?}
+        class="flex items-center justify-center w-full h-60 bg-ltrn-subtle overflow-hidden"
+      >
+        <.live_img_preview entry={entry} class="w-full" />
+      </div>
+      <.error_block :if={!entry.valid?} class="p-6 border border-red-500 rounded">
+        <p><%= gettext("File \"%{file}\" is invalid.", file: entry.client_name) %></p>
+        <%= for err <- upload_errors(@upload, entry) do %>
+          <%= upload_error_to_string(@upload, err) %>
+        <% end %>
+      </.error_block>
+      <.icon_button
+        type="button"
+        name="hero-x-mark"
+        theme="white"
+        rounded
+        phx-click={@on_cancel_upload}
+        phx-value-ref={entry.ref}
+        sr_text={gettext("cancel")}
+        class="absolute top-2 right-2"
+      />
+    </div>
+    """
+  end
+
+  defp upload_error_to_string(upload_config = %Phoenix.LiveView.UploadConfig{}, :not_accepted) do
+    formats =
+      upload_config.accept
+      |> String.split(",")
+      |> format_formats_list()
+
+    "Only #{formats} files accepted"
+  end
+
+  defp upload_error_to_string(upload_config = %Phoenix.LiveView.UploadConfig{}, :too_large),
+    do: "File too large (max. #{upload_config.max_file_size / 1_000_000}MB)"
+
+  defp upload_error_to_string(_upload_config, err), do: err
+
+  defp format_formats_list([format]), do: format
+
+  defp format_formats_list([format_1, format_2]), do: "#{format_1} and #{format_2}"
+
+  defp format_formats_list(formats) do
+    {rest, last} = Enum.split(formats, -1)
+
+    (rest ++ ["and #{last}"])
+    |> Enum.join(", ")
+  end
+
+  @doc """
   Translates the errors for a field from a keyword list of errors.
   """
   def translate_errors(errors, field) when is_list(errors) do

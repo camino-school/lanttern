@@ -247,7 +247,7 @@ defmodule LantternWeb.CoreComponents do
     ],
     "white" => "text-ltrn-dark bg-white hover:bg-ltrn-lightest shadow-sm",
     "ghost" => [
-      "text-ltrn-subtle bg-transparent hover:bg-slate-100",
+      "text-ltrn-subtle bg-white/10 hover:bg-slate-100",
       "disabled:text-ltrn-lighter disabled"
     ]
   }

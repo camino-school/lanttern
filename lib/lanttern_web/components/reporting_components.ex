@@ -37,7 +37,7 @@ defmodule LantternWeb.ReportingComponents do
     >
       <div
         class="relative w-full h-40 bg-center bg-cover"
-        style={"background-image: url(#{"/images/cover-placeholder-sm.jpg"}?width=400&height=200)"}
+        style={"background-image: url(#{@report_card.cover_image_url || "/images/cover-placeholder-sm.jpg"}?width=400&height=200)"}
       />
       <div class="flex flex-col gap-6 p-6">
         <h5 class={[
