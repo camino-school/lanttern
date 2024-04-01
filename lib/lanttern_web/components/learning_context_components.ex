@@ -16,6 +16,11 @@ defmodule LantternWeb.LearningContextComponents do
   attr :navigate, :string, default: nil
   attr :open_in_new_link, :string, default: nil
   attr :hide_description, :boolean, default: false
+
+  attr :cover_image_url, :string,
+    default: nil,
+    doc: "Use this to overwrite the strand cover (e.g. strand report cover)"
+
   attr :id, :string, default: nil
   attr :class, :any, default: nil
 
@@ -32,7 +37,7 @@ defmodule LantternWeb.LearningContextComponents do
     >
       <div
         class="shrink-0 relative w-full h-40 bg-center bg-cover"
-        style={"background-image: url(#{@strand.cover_image_url || "/images/cover-placeholder-sm.jpg"}?width=400&height=200)"}
+        style={"background-image: url(#{@cover_image_url || @strand.cover_image_url || "/images/cover-placeholder-sm.jpg"}?width=400&height=200)"}
       >
         <div :if={@on_star_click || @on_edit} class="absolute top-2 right-2 flex items-center gap-2">
           <.button :if={@on_edit} type="button" theme="ghost" size="sm" phx-click={@on_edit}>

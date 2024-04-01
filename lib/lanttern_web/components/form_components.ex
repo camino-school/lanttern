@@ -589,7 +589,7 @@ defmodule LantternWeb.FormComponents do
     <div
       :if={!@current_image_url || @is_removing}
       class={[
-        "p-4 border border-dashed border-ltrn-lighter rounded-md text-center text-ltrn-subtle",
+        "p-4 border border-dashed border-ltrn-subtle rounded-md text-center text-ltrn-subtle bg-white shadow-lg",
         if(@upload.entries != [], do: "hidden"),
         @class
       ]}
