@@ -10,6 +10,7 @@ defmodule Lanttern.Reporting.StrandReport do
   @type t :: %__MODULE__{
           id: pos_integer(),
           description: String.t(),
+          cover_image_url: String.t(),
           position: non_neg_integer(),
           report_card: ReportCard.t(),
           report_card_id: pos_integer(),
@@ -21,6 +22,7 @@ defmodule Lanttern.Reporting.StrandReport do
 
   schema "strand_reports" do
     field :description, :string
+    field :cover_image_url, :string
     field :position, :integer, default: 0
 
     belongs_to :report_card, ReportCard
@@ -32,7 +34,7 @@ defmodule Lanttern.Reporting.StrandReport do
   @doc false
   def changeset(strand_report, attrs) do
     strand_report
-    |> cast(attrs, [:description, :position, :report_card_id, :strand_id])
+    |> cast(attrs, [:description, :cover_image_url, :position, :report_card_id, :strand_id])
     |> validate_required([:report_card_id, :strand_id])
     |> unique_constraint([:strand_id, :report_card_id],
       message: gettext("Strand already linked to report card")
