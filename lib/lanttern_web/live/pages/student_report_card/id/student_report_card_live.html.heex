@@ -1,4 +1,4 @@
-<.cover style={"background-image: url(#{"/images/cover-placeholder.jpg"}?width=1280&height=640)"}>
+<.cover style={"background-image: url(#{@student_report_card.cover_image_url || @student_report_card.report_card.cover_image_url || "/images/cover-placeholder.jpg"}?width=1280&height=640)"}>
   <:top>
     <div class="flex items-center justify-between">
       <.breadcrumbs with_bg>
