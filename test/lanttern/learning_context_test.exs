@@ -44,25 +44,42 @@ defmodule Lanttern.LearningContextTest do
     end
 
     test "list_strands/1 with preloads and filters returns all filtered strands with preloaded data" do
-      subject = subject_fixture()
-      year = year_fixture()
-      strand = strand_fixture(%{subjects_ids: [subject.id], years_ids: [year.id]})
+      subject_1 = subject_fixture()
+      subject_2 = subject_fixture()
+      year_1 = year_fixture()
+      year_2 = year_fixture()
+
+      strand_a =
+        strand_fixture(%{
+          name: "AAA",
+          subjects_ids: [subject_1.id, subject_2.id],
+          years_ids: [year_1.id, year_2.id]
+        })
+
+      strand_b =
+        strand_fixture(%{name: "BBB", subjects_ids: [subject_1.id], years_ids: [year_2.id]})
 
       # extra strands for filtering
       strand_fixture()
-      strand_fixture(%{subjects_ids: [subject.id]})
-      strand_fixture(%{years_ids: [year.id]})
+      strand_fixture(%{subjects_ids: [subject_1.id, subject_2.id]})
+      strand_fixture(%{years_ids: [year_1.id, year_2.id]})
 
-      {[expected], _meta} =
+      {[expected_a, expected_b], _meta} =
         LearningContext.list_strands(
-          subjects_ids: [subject.id],
-          years_ids: [year.id],
+          subjects_ids: [subject_1.id, subject_2.id],
+          years_ids: [year_1.id, year_2.id],
           preloads: [:subjects, :years]
         )
 
-      assert expected.id == strand.id
-      assert expected.subjects == [subject]
-      assert expected.years == [year]
+      assert expected_a.id == strand_a.id
+      assert subject_1 in expected_a.subjects
+      assert subject_2 in expected_a.subjects
+      assert year_1 in expected_a.years
+      assert year_2 in expected_a.years
+
+      assert expected_b.id == strand_b.id
+      assert [subject_1] == expected_b.subjects
+      assert [year_2] == expected_b.years
     end
 
     test "list_strands/1 with show_starred_for_profile_id returns all strands with is_starred field" do

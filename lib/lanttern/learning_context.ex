@@ -39,7 +39,10 @@ defmodule Lanttern.LearningContext do
     }
 
     {:ok, {results, meta}} =
-      from(s in Strand)
+      from(
+        s in Strand,
+        distinct: [asc: s.name, asc: s.id]
+      )
       |> filter_strands(opts)
       |> handle_is_starred(Keyword.get(opts, :show_starred_for_profile_id))
       |> Flop.validate_and_run(params)
