@@ -4,6 +4,7 @@ defmodule LantternWeb.StudentStrandReportLive do
   alias Lanttern.Assessments
   alias Lanttern.Identity.Profile
   alias Lanttern.Reporting
+  import LantternWeb.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # shared components
   import LantternWeb.ReportingComponents
@@ -60,11 +61,19 @@ defmodule LantternWeb.StudentStrandReportLive do
         strand_report.strand.id
       )
 
+    cover_image_url =
+      object_url_to_render_url(
+        strand_report.cover_image_url || strand_report.strand.cover_image_url,
+        width: 1280,
+        height: 640
+      )
+
     socket =
       socket
       |> assign(:student_report_card, student_report_card)
       |> assign(:strand_report, strand_report)
       |> assign(:strand_goals_student_entries, strand_goals_student_entries)
+      |> assign(:cover_image_url, cover_image_url)
 
     {:noreply, socket}
   end

@@ -3,6 +3,7 @@ defmodule LantternWeb.LearningContextComponents do
 
   import LantternWeb.Gettext
   import LantternWeb.CoreComponents
+  import LantternWeb.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   alias Phoenix.LiveView.JS
   alias Lanttern.LearningContext.Strand
@@ -27,6 +28,12 @@ defmodule LantternWeb.LearningContextComponents do
   slot :bottom_content, doc: "optional block to render content in the bottom of the card"
 
   def strand_card(assigns) do
+    cover_image_url =
+      (assigns.cover_image_url || assigns.strand.cover_image_url)
+      |> object_url_to_render_url(width: 400, height: 200)
+
+    assigns = assign(assigns, :cover_image_url, cover_image_url)
+
     ~H"""
     <div
       class={[
@@ -37,7 +44,7 @@ defmodule LantternWeb.LearningContextComponents do
     >
       <div
         class="shrink-0 relative w-full h-40 bg-center bg-cover"
-        style={"background-image: url(#{@cover_image_url || @strand.cover_image_url || "/images/cover-placeholder-sm.jpg"}?width=400&height=200)"}
+        style={"background-image: url(#{@cover_image_url || "/images/cover-placeholder-sm.jpg"})"}
       >
         <div :if={@on_star_click || @on_edit} class="absolute top-2 right-2 flex items-center gap-2">
           <.button :if={@on_edit} type="button" theme="ghost" size="sm" phx-click={@on_edit}>

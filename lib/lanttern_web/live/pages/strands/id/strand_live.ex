@@ -2,6 +2,7 @@ defmodule LantternWeb.StrandLive do
   use LantternWeb, :live_view
 
   alias Lanttern.LearningContext
+  import LantternWeb.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # page components
   alias LantternWeb.StrandLive.AboutComponent
@@ -78,6 +79,10 @@ defmodule LantternWeb.StrandLive do
       strand ->
         socket
         |> assign(:strand, strand)
+        |> assign(
+          :cover_image_url,
+          object_url_to_render_url(strand.cover_image_url, width: 1280, height: 640)
+        )
     end
   end
 

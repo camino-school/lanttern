@@ -6,6 +6,7 @@ defmodule LantternWeb.StudentReportCardLive do
   alias Lanttern.GradesReports
   alias Lanttern.Identity.Profile
   alias Lanttern.Reporting
+  import LantternWeb.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # shared components
   import LantternWeb.LearningContextComponents
@@ -35,6 +36,13 @@ defmodule LantternWeb.StudentReportCardLive do
           :student,
           report_card: :school_cycle
         ]
+      )
+
+    cover_image_url =
+      object_url_to_render_url(
+        student_report_card.cover_image_url || student_report_card.report_card.cover_image_url,
+        width: 1280,
+        height: 640
       )
 
     # check if user can view the student report
@@ -67,6 +75,7 @@ defmodule LantternWeb.StudentReportCardLive do
     socket =
       socket
       |> assign(:student_report_card, student_report_card)
+      |> assign(:cover_image_url, cover_image_url)
       |> stream(:strand_reports_and_entries, strand_reports_and_entries)
       |> assign_new(:grades_report, fn %{student_report_card: student_report_card} ->
         case student_report_card.report_card.grades_report_id do
