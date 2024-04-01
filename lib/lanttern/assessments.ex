@@ -755,7 +755,7 @@ defmodule Lanttern.Assessments do
     # list students in correct order and with classes preloads
     # then map it with its entries
     list_students_with_classes(opts)
-    |> Enum.map(&{&1, students_entries_map[&1.id]})
+    |> Enum.map(&{&1, students_entries_map[&1.id] || []})
   end
 
   @doc """

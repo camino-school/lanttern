@@ -2,6 +2,7 @@ defmodule LantternWeb.MomentLive do
   use LantternWeb, :live_view
 
   alias Lanttern.LearningContext
+  import LantternWeb.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # page components
   alias LantternWeb.MomentLive.OverviewComponent
@@ -87,6 +88,10 @@ defmodule LantternWeb.MomentLive do
       moment ->
         socket
         |> assign(:moment, moment)
+        |> assign(
+          :cover_image_url,
+          object_url_to_render_url(moment.strand.cover_image_url, width: 1280, height: 640)
+        )
     end
   end
 

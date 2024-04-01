@@ -2,6 +2,7 @@ defmodule LantternWeb.ReportCardLive do
   use LantternWeb, :live_view
 
   alias Lanttern.Reporting
+  import LantternWeb.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # page components
   alias __MODULE__.StudentsComponent
@@ -33,6 +34,12 @@ defmodule LantternWeb.ReportCardLive do
       |> assign_new(:report_card, fn ->
         Reporting.get_report_card!(id, preloads: [:school_cycle, :year])
       end)
+      |> assign_new(
+        :cover_image_url,
+        fn %{report_card: report_card} ->
+          object_url_to_render_url(report_card.cover_image_url, width: 1280, height: 640)
+        end
+      )
       |> assign_current_tab(params)
       |> assign_is_editing(params)
 

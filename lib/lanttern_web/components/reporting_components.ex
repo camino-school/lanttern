@@ -6,6 +6,7 @@ defmodule LantternWeb.ReportingComponents do
   import LantternWeb.Gettext
   import LantternWeb.CoreComponents
   import LantternWeb.GradingComponents
+  import LantternWeb.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Grading.OrdinalValue
@@ -27,6 +28,12 @@ defmodule LantternWeb.ReportingComponents do
   attr :class, :any, default: nil
 
   def report_card_card(assigns) do
+    cover_image_url =
+      assigns.report_card.cover_image_url
+      |> object_url_to_render_url(width: 400, height: 200)
+
+    assigns = assign(assigns, :cover_image_url, cover_image_url)
+
     ~H"""
     <div
       class={[
@@ -37,7 +44,7 @@ defmodule LantternWeb.ReportingComponents do
     >
       <div
         class="relative w-full h-40 bg-center bg-cover"
-        style={"background-image: url(#{"/images/cover-placeholder-sm.jpg"}?width=400&height=200)"}
+        style={"background-image: url(#{@cover_image_url || "/images/cover-placeholder-sm.jpg"})"}
       />
       <div class="flex flex-col gap-6 p-6">
         <h5 class={[

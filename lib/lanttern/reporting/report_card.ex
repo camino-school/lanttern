@@ -11,6 +11,7 @@ defmodule Lanttern.Reporting.ReportCard do
           id: pos_integer(),
           name: String.t(),
           description: String.t(),
+          cover_image_url: String.t(),
           school_cycle: Cycle.t(),
           school_cycle_id: pos_integer(),
           year: Year.t(),
@@ -25,6 +26,7 @@ defmodule Lanttern.Reporting.ReportCard do
   schema "report_cards" do
     field :name, :string
     field :description, :string
+    field :cover_image_url, :string
 
     belongs_to :school_cycle, Cycle
     belongs_to :year, Year
@@ -38,7 +40,14 @@ defmodule Lanttern.Reporting.ReportCard do
   @doc false
   def changeset(report_card, attrs) do
     report_card
-    |> cast(attrs, [:name, :description, :school_cycle_id, :year_id, :grades_report_id])
+    |> cast(attrs, [
+      :name,
+      :description,
+      :cover_image_url,
+      :school_cycle_id,
+      :year_id,
+      :grades_report_id
+    ])
     |> validate_required([:name, :school_cycle_id, :year_id])
   end
 end

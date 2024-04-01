@@ -16,77 +16,15 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
         <.error_block :if={@form.source.action == :insert} class="mb-6">
           <%= gettext("Oops, something went wrong! Please check the errors below.") %>
         </.error_block>
-        <div
-          :if={!@strand.cover_image_url || @is_removing_cover}
-          class={[
-            "p-4 border border-dashed border-ltrn-lighter rounded-md mb-6 text-center text-ltrn-subtle",
-            if(@uploads.cover.entries != [], do: "hidden")
-          ]}
-          phx-drop-target={@uploads.cover.ref}
-        >
-          <div>
-            <.icon name="hero-photo" class="h-10 w-10 mx-auto mb-6" />
-            <div>
-              <label
-                for={@uploads.cover.ref}
-                class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
-              >
-                <span><%= gettext("Upload a cover image file") %></span>
-                <.live_file_input upload={@uploads.cover} class="sr-only" />
-              </label>
-              <span><%= gettext("or drag and drop here") %></span>
-              <button
-                :if={@is_removing_cover}
-                type="button"
-                phx-click="cancel-replace-cover"
-                phx-target={@myself}
-                class="mt-4"
-              >
-                <%= gettext("Cancel cover removal") %>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div :if={@strand.cover_image_url && !@is_removing_cover} class="relative mb-6">
-          <div class="flex items-center justify-center w-full h-60 bg-ltrn-subtle overflow-hidden">
-            <img src={@strand.cover_image_url} alt="Cover image" class="w-full" />
-          </div>
-          <.icon_button
-            type="button"
-            name="hero-x-mark"
-            theme="white"
-            rounded
-            phx-click="replace-cover"
-            sr_text={gettext("Replace image")}
-            class="absolute top-2 right-2"
-            phx-target={@myself}
-          />
-        </div>
-        <div :for={entry <- @uploads.cover.entries} class="relative mb-6">
-          <div
-            :if={entry.valid?}
-            class="flex items-center justify-center w-full h-60 bg-ltrn-subtle overflow-hidden"
-          >
-            <.live_img_preview entry={entry} class="w-full" />
-          </div>
-          <.error_block :if={!entry.valid?} class="p-6 border border-red-500 rounded">
-            <p><%= gettext("File \"%{file}\" is invalid.", file: entry.client_name) %></p>
-            <%= for err <- upload_errors(@uploads.cover, entry) do %>
-              <%= error_to_string(@uploads.cover, err) %>
-            <% end %>
-          </.error_block>
-          <.icon_button
-            type="button"
-            name="hero-x-mark"
-            theme="white"
-            rounded
-            phx-click="cancel-upload"
-            phx-value-ref={entry.ref}
-            sr_text={gettext("cancel")}
-            class="absolute top-2 right-2"
-            phx-target={@myself}
-          />
-        </div>
+        <.image_field
+          current_image_url={@strand.cover_image_url}
+          is_removing={@is_removing_cover}
+          upload={@uploads.cover}
+          on_cancel_replace={JS.push("cancel-replace-cover", target: @myself)}
+          on_cancel_upload={JS.push("cancel-upload", target: @myself)}
+          on_replace={JS.push("replace-cover", target: @myself)}
+          class="mb-6"
+        />
         <.input
           field={@form[:name]}
           type="text"
@@ -151,18 +89,20 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
 
   @impl true
   def mount(socket) do
-    {:ok,
-     socket
-     |> assign(:class, nil)
-     |> assign(:show_actions, false)
-     |> assign(:subject_options, generate_subject_options())
-     |> assign(:year_options, generate_year_options())
-     |> assign(:is_removing_cover, false)
-     |> allow_upload(:cover,
-       accept: ~w(.jpg .jpeg .png),
-       max_file_size: 5_000_000,
-       max_entries: 1
-     )}
+    socket =
+      socket
+      |> assign(:class, nil)
+      |> assign(:show_actions, false)
+      |> assign(:subject_options, generate_subject_options())
+      |> assign(:year_options, generate_year_options())
+      |> assign(:is_removing_cover, false)
+      |> allow_upload(:cover,
+        accept: ~w(.jpg .jpeg .png),
+        max_file_size: 5_000_000,
+        max_entries: 1
+      )
+
+    {:ok, socket}
   end
 
   @impl true

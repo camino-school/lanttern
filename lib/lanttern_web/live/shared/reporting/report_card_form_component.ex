@@ -4,6 +4,7 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
   alias Lanttern.Reporting
   alias LantternWeb.ReportingHelpers
   alias LantternWeb.SchoolsHelpers
+  alias LantternWeb.SupabaseHelpers
   alias LantternWeb.TaxonomyHelpers
 
   @impl true
@@ -17,6 +18,15 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
         phx-change="validate"
         phx-submit="save"
       >
+        <.image_field
+          current_image_url={@report_card.cover_image_url}
+          is_removing={@is_removing_cover}
+          upload={@uploads.cover}
+          on_cancel_replace={JS.push("cancel-replace-cover", target: @myself)}
+          on_cancel_upload={JS.push("cancel-upload", target: @myself)}
+          on_replace={JS.push("replace-cover", target: @myself)}
+          class="mb-6"
+        />
         <.input
           field={@form[:school_cycle_id]}
           type="select"
@@ -80,6 +90,12 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
       |> assign(:year_options, year_options)
       |> assign(:grades_report_options, grades_report_options)
       |> assign(:hide_submit, false)
+      |> assign(:is_removing_cover, false)
+      |> allow_upload(:cover,
+        accept: ~w(.jpg .jpeg .png),
+        max_file_size: 5_000_000,
+        max_entries: 1
+      )
 
     {:ok, socket}
   end
@@ -97,6 +113,18 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
   end
 
   @impl true
+  def handle_event("cancel-upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :cover, ref)}
+  end
+
+  def handle_event("replace-cover", _, socket) do
+    {:noreply, assign(socket, :is_removing_cover, true)}
+  end
+
+  def handle_event("cancel-replace-cover", _, socket) do
+    {:noreply, assign(socket, :is_removing_cover, false)}
+  end
+
   def handle_event("validate", %{"report_card" => report_card_params}, socket) do
     changeset =
       socket.assigns.report_card
@@ -107,6 +135,37 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
   end
 
   def handle_event("save", %{"report_card" => report_card_params}, socket) do
+    cover_image_url =
+      consume_uploaded_entries(socket, :cover, fn %{path: file_path}, entry ->
+        {:ok, object} =
+          SupabaseHelpers.upload_object(
+            "covers",
+            "#{Ecto.UUID.generate()}-#{entry.client_name}",
+            file_path,
+            %{content_type: entry.client_type}
+          )
+
+        image_url =
+          "#{SupabaseHelpers.config().base_url}/storage/v1/object/public/#{URI.encode(object["Key"])}"
+
+        {:ok, image_url}
+      end)
+      |> case do
+        [] -> nil
+        [image_url] -> image_url
+      end
+
+    # besides "consumed" cover image, we should also consider is_removing_cover flag
+    cover_image_url =
+      cond do
+        cover_image_url -> cover_image_url
+        socket.assigns.is_removing_cover -> nil
+        true -> socket.assigns.report_card.cover_image_url
+      end
+
+    # add cover to params
+    report_card_params = Map.put(report_card_params, "cover_image_url", cover_image_url)
+
     save_report_card(socket, socket.assigns.report_card.id, report_card_params)
   end
 

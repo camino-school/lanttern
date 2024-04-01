@@ -1,4 +1,4 @@
-<.cover style={"background-image: url(#{"/images/cover-placeholder.jpg"}?width=1280&height=640)"}>
+<.cover style={"background-image: url(#{@cover_image_url || "/images/cover-placeholder.jpg"})"}>
   <:top>
     <div class="flex items-center justify-between">
       <.breadcrumbs with_bg>
@@ -39,6 +39,7 @@
         :for={{dom_id, {strand_report, entries}} <- @streams.strand_reports_and_entries}
         id={dom_id}
         strand={strand_report.strand}
+        cover_image_url={strand_report.cover_image_url}
         navigate={~p"/student_report_card/#{@student_report_card}/strand_report/#{strand_report}"}
         hide_description
         class="shrink-0 w-64 sm:w-auto"

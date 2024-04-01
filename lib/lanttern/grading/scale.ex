@@ -31,7 +31,7 @@ defmodule Lanttern.Grading.Scale do
     field :stop_text_color, :string
     field :breakpoints, {:array, :float}
 
-    has_many :ordinal_values, OrdinalValue
+    has_many :ordinal_values, OrdinalValue, preload_order: [asc: :normalized_value, asc: :name]
 
     timestamps()
   end
