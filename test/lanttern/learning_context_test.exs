@@ -221,13 +221,14 @@ defmodule Lanttern.LearningContextTest do
 
     test "list_strands/1 with preloads and filters returns all filtered strands with preloaded data" do
       profile = teacher_profile_fixture()
-      subject = subject_fixture()
+      subject_1 = subject_fixture()
+      subject_2 = subject_fixture()
       year = year_fixture()
-      strand = strand_fixture(%{subjects_ids: [subject.id], years_ids: [year.id]})
+      strand = strand_fixture(%{subjects_ids: [subject_1.id, subject_2.id], years_ids: [year.id]})
 
       # extra strands for filtering
       other_strand = strand_fixture()
-      strand_fixture(%{subjects_ids: [subject.id], years_ids: [year.id]})
+      strand_fixture(%{subjects_ids: [subject_1.id, subject_2.id], years_ids: [year.id]})
 
       # star strand
       LearningContext.star_strand(strand.id, profile.id)
@@ -236,13 +237,14 @@ defmodule Lanttern.LearningContextTest do
       [expected] =
         LearningContext.list_starred_strands(
           profile.id,
-          subjects_ids: [subject.id],
+          subjects_ids: [subject_1.id, subject_2.id],
           years_ids: [year.id],
           preloads: [:subjects, :years]
         )
 
       assert expected.id == strand.id
-      assert expected.subjects == [subject]
+      assert subject_1 in expected.subjects
+      assert subject_2 in expected.subjects
       assert expected.years == [year]
     end
 

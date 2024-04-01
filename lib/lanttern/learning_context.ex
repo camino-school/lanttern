@@ -203,7 +203,7 @@ defmodule Lanttern.LearningContext do
     strands_query =
       from(
         s in Strand,
-        order_by: s.name
+        distinct: [asc: s.name, asc: s.id]
       )
       |> filter_strands(opts)
 
