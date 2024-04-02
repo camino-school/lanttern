@@ -44,7 +44,7 @@ defmodule LantternWeb.LearningContextComponents do
     >
       <div
         class="shrink-0 relative w-full h-40 bg-center bg-cover"
-        style={"background-image: url(#{@cover_image_url || "/images/cover-placeholder-sm.jpg"})"}
+        style={"background-image: url('#{@cover_image_url || "/images/cover-placeholder-sm.jpg"}')"}
       >
         <div :if={@on_star_click || @on_edit} class="absolute top-2 right-2 flex items-center gap-2">
           <.button :if={@on_edit} type="button" theme="ghost" size="sm" phx-click={@on_edit}>
