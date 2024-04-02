@@ -1,7 +1,7 @@
 <.cover
   size="sm"
   theme="lime"
-  style={"background-image: url(#{@cover_image_url || "/images/cover-placeholder.jpg"})"}
+  style={"background-image: url('#{@cover_image_url || "/images/cover-placeholder.jpg"}')"}
 >
   <:top>
     <div class="flex items-center justify-between">
@@ -47,11 +47,12 @@
     <div class="mt-10">
       <div
         :for={
-          {%{
+          {%AssessmentPoint{
              is_differentiation: is_diff,
              curriculum_item: curriculum_item,
              scale: scale,
-             rubric: rubric
+             rubric: rubric,
+             report_info: report_info
            },
            entry} <-
             @strand_goals_student_entries
@@ -96,12 +97,22 @@
             }
           />
         </div>
-        <.markdown
-          :if={entry && entry.report_note}
-          text={entry.report_note}
-          size="sm"
-          class="max-w-none p-4 rounded mt-4 bg-ltrn-mesh-cyan"
-        />
+        <div :if={entry && entry.report_note} class="sm:pt-6 sm:px-6 last:sm:pb-6">
+          <.markdown
+            text={entry.report_note}
+            size="sm"
+            class="max-w-none p-4 sm:rounded bg-ltrn-diff-light"
+          />
+        </div>
+        <div :if={report_info} class="sm:pt-6 sm:px-6 last:sm:pb-6">
+          <div class="p-4 sm:rounded bg-ltrn-mesh-cyan">
+            <div class="flex items-center gap-2 font-bold text-sm text-ltrn-subtle">
+              <.icon name="hero-information-circle" class="w-6 h-6" />
+              <%= gettext("About this assessment") %>
+            </div>
+            <.markdown text={report_info} size="sm" class="max-w-none mt-4" />
+          </div>
+        </div>
       </div>
     </div>
   </.responsive_container>
