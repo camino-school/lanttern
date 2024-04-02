@@ -64,6 +64,20 @@ defmodule LantternWeb.StrandLive.AboutComponent do
                 </.button>
               </div>
               <p class="mt-4"><%= curriculum_item.name %></p>
+              <div
+                :if={hd(curriculum_item.assessment_points).report_info}
+                class="p-4 rounded mt-6 bg-ltrn-mesh-cyan"
+              >
+                <div class="flex items-center gap-2 font-bold text-sm text-ltrn-subtle">
+                  <.icon name="hero-information-circle" class="w-6 h-6" />
+                  <%= gettext("Report info") %>
+                </div>
+                <.markdown
+                  text={hd(curriculum_item.assessment_points).report_info}
+                  size="sm"
+                  class="max-w-none mt-4"
+                />
+              </div>
             </div>
             <div class="shrink-0 flex flex-col justify-center gap-2">
               <.icon_button

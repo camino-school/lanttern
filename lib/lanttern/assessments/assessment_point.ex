@@ -21,6 +21,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
           name: String.t(),
           datetime: DateTime.t(),
           description: String.t(),
+          report_info: String.t(),
           position: non_neg_integer(),
           is_differentiation: boolean(),
           date: Date.t(),
@@ -52,6 +53,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     field :name, :string
     field :datetime, :utc_datetime
     field :description, :string
+    field :report_info, :string
     field :position, :integer, default: 0
     field :is_differentiation, :boolean, default: false
 
@@ -91,6 +93,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       :hour,
       :minute,
       :description,
+      :report_info,
       :position,
       :is_differentiation,
       :curriculum_item_id,

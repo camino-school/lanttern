@@ -69,6 +69,14 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
           prompt={gettext("Select a scale")}
           class="mb-6"
         />
+        <.input
+          field={@form[:report_info]}
+          type="textarea"
+          label={gettext("Report information")}
+          class="mb-1"
+          phx-debounce="1500"
+        />
+        <.markdown_supported class="mb-6" />
         <div class="p-4 rounded mb-6 bg-ltrn-diff-light">
           <.input
             field={@form[:is_differentiation]}

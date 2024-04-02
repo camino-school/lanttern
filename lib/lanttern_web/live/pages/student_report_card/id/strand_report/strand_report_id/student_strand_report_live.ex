@@ -2,6 +2,7 @@ defmodule LantternWeb.StudentStrandReportLive do
   use LantternWeb, :live_view
 
   alias Lanttern.Assessments
+  alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Identity.Profile
   alias Lanttern.Reporting
   import LantternWeb.SupabaseHelpers, only: [object_url_to_render_url: 2]
