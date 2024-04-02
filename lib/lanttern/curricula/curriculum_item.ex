@@ -15,7 +15,6 @@ defmodule Lanttern.Curricula.CurriculumItem do
           years_ids: [pos_integer()],
           assessment_point_id: pos_integer(),
           is_differentiation: boolean(),
-          grade_composition_component_items: [map()],
           assessment_points: [map()],
           curriculum_component: map(),
           curriculum_component_id: pos_integer(),
@@ -38,7 +37,6 @@ defmodule Lanttern.Curricula.CurriculumItem do
     # reflecting the parent assessment_point is_differentiation flag
     field :is_differentiation, :boolean, virtual: true, default: false
 
-    has_many :grade_composition_component_items, Lanttern.Grading.CompositionComponentItem
     has_many :assessment_points, Lanttern.Assessments.AssessmentPoint
     belongs_to :curriculum_component, Lanttern.Curricula.CurriculumComponent
 

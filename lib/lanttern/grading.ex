@@ -9,7 +9,6 @@ defmodule Lanttern.Grading do
 
   alias Lanttern.Grading.Composition
   alias Lanttern.Grading.CompositionComponent
-  alias Lanttern.Grading.CompositionComponentItem
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Grading.Scale
 
@@ -212,112 +211,6 @@ defmodule Lanttern.Grading do
   """
   def change_composition_component(%CompositionComponent{} = composition_component, attrs \\ %{}) do
     CompositionComponent.changeset(composition_component, attrs)
-  end
-
-  @doc """
-  Returns the list of component_items.
-  Optionally preloads associated data.
-
-  ## Examples
-
-      iex> list_component_items()
-      [%CompositionComponentItem{}, ...]
-
-  """
-  def list_component_items(preloads \\ []) do
-    Repo.all(CompositionComponentItem)
-    |> Repo.preload(preloads)
-  end
-
-  @doc """
-  Gets a single composition_component_item.
-  Optionally preloads associated data.
-
-  Raises `Ecto.NoResultsError` if the Composition component item does not exist.
-
-  ## Examples
-
-      iex> get_composition_component_item!(123)
-      %CompositionComponentItem{}
-
-      iex> get_composition_component_item!(456)
-      ** (Ecto.NoResultsError)
-
-  """
-  def get_composition_component_item!(id, preloads \\ []) do
-    Repo.get!(CompositionComponentItem, id)
-    |> Repo.preload(preloads)
-  end
-
-  @doc """
-  Creates a composition_component_item.
-
-  ## Examples
-
-      iex> create_composition_component_item(%{field: value})
-      {:ok, %CompositionComponentItem{}}
-
-      iex> create_composition_component_item(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_composition_component_item(attrs \\ %{}) do
-    %CompositionComponentItem{}
-    |> CompositionComponentItem.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  @doc """
-  Updates a composition_component_item.
-
-  ## Examples
-
-      iex> update_composition_component_item(composition_component_item, %{field: new_value})
-      {:ok, %CompositionComponentItem{}}
-
-      iex> update_composition_component_item(composition_component_item, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_composition_component_item(
-        %CompositionComponentItem{} = composition_component_item,
-        attrs
-      ) do
-    composition_component_item
-    |> CompositionComponentItem.changeset(attrs)
-    |> Repo.update()
-  end
-
-  @doc """
-  Deletes a composition_component_item.
-
-  ## Examples
-
-      iex> delete_composition_component_item(composition_component_item)
-      {:ok, %CompositionComponentItem{}}
-
-      iex> delete_composition_component_item(composition_component_item)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete_composition_component_item(%CompositionComponentItem{} = composition_component_item) do
-    Repo.delete(composition_component_item)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking composition_component_item changes.
-
-  ## Examples
-
-      iex> change_composition_component_item(composition_component_item)
-      %Ecto.Changeset{data: %CompositionComponentItem{}}
-
-  """
-  def change_composition_component_item(
-        %CompositionComponentItem{} = composition_component_item,
-        attrs \\ %{}
-      ) do
-    CompositionComponentItem.changeset(composition_component_item, attrs)
   end
 
   @doc """
