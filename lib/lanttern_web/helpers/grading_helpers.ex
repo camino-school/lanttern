@@ -41,17 +41,4 @@ defmodule LantternWeb.GradingHelpers do
     Grading.list_compositions()
     |> Enum.map(fn c -> {c.name, c.id} end)
   end
-
-  @doc """
-  Generate list of grading composition components to use as `Phoenix.HTML.Form.options_for_select/2` arg.
-
-  ## Examples
-
-      iex> generate_component_options()
-      ["component name": 1, ...]
-  """
-  def generate_component_options() do
-    Grading.list_composition_components()
-    |> Enum.map(fn c -> {c.name, c.id} end)
-  end
 end

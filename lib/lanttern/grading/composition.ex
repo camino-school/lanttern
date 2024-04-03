@@ -5,7 +5,6 @@ defmodule Lanttern.Grading.Composition do
   schema "grade_compositions" do
     field :name, :string
 
-    has_many :components, Lanttern.Grading.CompositionComponent
     belongs_to :final_grade_scale, Lanttern.Grading.Scale
 
     timestamps()
