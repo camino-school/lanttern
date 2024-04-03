@@ -5,23 +5,6 @@ defmodule Lanttern.GradingFixtures do
   """
 
   @doc """
-  Generate a composition.
-  """
-  def composition_fixture(attrs \\ %{}) do
-    scale = scale_fixture()
-
-    {:ok, composition} =
-      attrs
-      |> Enum.into(%{
-        name: "some name",
-        final_grade_scale_id: scale.id
-      })
-      |> Lanttern.Grading.create_composition()
-
-    composition
-  end
-
-  @doc """
   Generate a scale.
   """
   def scale_fixture(attrs \\ %{})

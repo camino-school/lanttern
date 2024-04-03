@@ -28,17 +28,4 @@ defmodule LantternWeb.GradingHelpers do
     Grading.list_ordinal_values()
     |> Enum.map(fn ov -> {ov.name, ov.id} end)
   end
-
-  @doc """
-  Generate list of grading compositions to use as `Phoenix.HTML.Form.options_for_select/2` arg.
-
-  ## Examples
-
-      iex> generate_composition_options()
-      ["composition name": 1, ...]
-  """
-  def generate_composition_options() do
-    Grading.list_compositions()
-    |> Enum.map(fn c -> {c.name, c.id} end)
-  end
 end
