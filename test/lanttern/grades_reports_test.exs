@@ -1,5 +1,6 @@
 defmodule Lanttern.GradesReportsTest do
   use Lanttern.DataCase
+  alias Lanttern.Repo
 
   alias Lanttern.GradesReports
 
@@ -37,15 +38,15 @@ defmodule Lanttern.GradesReportsTest do
 
     test "create_student_grade_report_entry/1 with valid data creates a student_grade_report_entry" do
       student = Lanttern.SchoolsFixtures.student_fixture()
-      grades_report = Lanttern.ReportingFixtures.grades_report_fixture()
+      grades_report = grades_report_fixture()
 
       grades_report_cycle =
-        Lanttern.ReportingFixtures.grades_report_cycle_fixture(%{
+        grades_report_cycle_fixture(%{
           grades_report_id: grades_report.id
         })
 
       grades_report_subject =
-        Lanttern.ReportingFixtures.grades_report_subject_fixture(%{
+        grades_report_subject_fixture(%{
           grades_report_id: grades_report.id
         })
 
@@ -123,6 +124,463 @@ defmodule Lanttern.GradesReportsTest do
 
       assert %Ecto.Changeset{} =
                GradesReports.change_student_grade_report_entry(student_grade_report_entry)
+    end
+  end
+
+  describe "grades_reports" do
+    alias Lanttern.GradesReports.GradesReport
+
+    import Lanttern.GradesReportsFixtures
+    alias Lanttern.ReportingFixtures
+    alias Lanttern.SchoolsFixtures
+    alias Lanttern.TaxonomyFixtures
+
+    @invalid_attrs %{info: "blah", scale_id: nil}
+
+    test "list_grades_reports/1 returns all grades_reports" do
+      grades_report = grades_report_fixture()
+      assert GradesReports.list_grades_reports() == [grades_report]
+    end
+
+    test "list_grades_reports/1 with load grid opt returns all grades_reports with linked and ordered cycles and subjects" do
+      cycle_2024 =
+        SchoolsFixtures.cycle_fixture(%{start_at: ~D[2024-01-01], end_at: ~D[2024-12-31]})
+
+      cycle_2024_1 =
+        SchoolsFixtures.cycle_fixture(%{start_at: ~D[2024-01-01], end_at: ~D[2024-06-30]})
+
+      cycle_2024_2 =
+        SchoolsFixtures.cycle_fixture(%{start_at: ~D[2024-07-01], end_at: ~D[2024-12-31]})
+
+      subject_a = TaxonomyFixtures.subject_fixture()
+      subject_b = TaxonomyFixtures.subject_fixture()
+      subject_c = TaxonomyFixtures.subject_fixture()
+
+      grades_report = grades_report_fixture(%{school_cycle_id: cycle_2024.id})
+
+      grades_report_cycle_2024_1 =
+        grades_report_cycle_fixture(%{
+          grades_report_id: grades_report.id,
+          school_cycle_id: cycle_2024_1.id
+        })
+
+      grades_report_cycle_2024_2 =
+        grades_report_cycle_fixture(%{
+          grades_report_id: grades_report.id,
+          school_cycle_id: cycle_2024_2.id
+        })
+
+      # subjects order c, b, a
+
+      grades_report_subject_c =
+        grades_report_subject_fixture(%{
+          grades_report_id: grades_report.id,
+          subject_id: subject_c.id
+        })
+
+      grades_report_subject_b =
+        grades_report_subject_fixture(%{
+          grades_report_id: grades_report.id,
+          subject_id: subject_b.id
+        })
+
+      grades_report_subject_a =
+        grades_report_subject_fixture(%{
+          grades_report_id: grades_report.id,
+          subject_id: subject_a.id
+        })
+
+      assert [expected_grades_report] = GradesReports.list_grades_reports(load_grid: true)
+      assert expected_grades_report.id == grades_report.id
+      assert expected_grades_report.school_cycle.id == cycle_2024.id
+
+      # check cycles
+      assert [expected_grc_2024_1, expected_grc_2024_2] =
+               expected_grades_report.grades_report_cycles
+
+      assert expected_grc_2024_1.id == grades_report_cycle_2024_1.id
+      assert expected_grc_2024_1.school_cycle.id == cycle_2024_1.id
+      assert expected_grc_2024_2.id == grades_report_cycle_2024_2.id
+      assert expected_grc_2024_2.school_cycle.id == cycle_2024_2.id
+
+      # check subjects
+      assert [expected_grs_c, expected_grs_b, expected_grs_a] =
+               expected_grades_report.grades_report_subjects
+
+      assert expected_grs_a.id == grades_report_subject_a.id
+      assert expected_grs_a.subject.id == subject_a.id
+      assert expected_grs_b.id == grades_report_subject_b.id
+      assert expected_grs_b.subject.id == subject_b.id
+      assert expected_grs_c.id == grades_report_subject_c.id
+      assert expected_grs_c.subject.id == subject_c.id
+    end
+
+    test "get_grades_report!/2 returns the grades_report with given id" do
+      grades_report = grades_report_fixture()
+      assert GradesReports.get_grades_report!(grades_report.id) == grades_report
+    end
+
+    test "get_grades_report!/2 with preloads returns the grade report with given id and preloaded data" do
+      school_cycle = SchoolsFixtures.cycle_fixture()
+      grades_report = grades_report_fixture(%{school_cycle_id: school_cycle.id})
+
+      expected = GradesReports.get_grades_report!(grades_report.id, preloads: :school_cycle)
+
+      assert expected.id == grades_report.id
+      assert expected.school_cycle == school_cycle
+    end
+
+    test "get_grades_report!/2 with load grid opt returns the grades report with linked and ordered cycles and subjects" do
+      cycle_2024 =
+        SchoolsFixtures.cycle_fixture(%{start_at: ~D[2024-01-01], end_at: ~D[2024-12-31]})
+
+      cycle_2024_1 =
+        SchoolsFixtures.cycle_fixture(%{start_at: ~D[2024-01-01], end_at: ~D[2024-06-30]})
+
+      cycle_2024_2 =
+        SchoolsFixtures.cycle_fixture(%{start_at: ~D[2024-07-01], end_at: ~D[2024-12-31]})
+
+      subject_a = TaxonomyFixtures.subject_fixture()
+      subject_b = TaxonomyFixtures.subject_fixture()
+      subject_c = TaxonomyFixtures.subject_fixture()
+
+      grades_report = grades_report_fixture(%{school_cycle_id: cycle_2024.id})
+
+      grades_report_cycle_2024_1 =
+        grades_report_cycle_fixture(%{
+          grades_report_id: grades_report.id,
+          school_cycle_id: cycle_2024_1.id
+        })
+
+      grades_report_cycle_2024_2 =
+        grades_report_cycle_fixture(%{
+          grades_report_id: grades_report.id,
+          school_cycle_id: cycle_2024_2.id
+        })
+
+      # subjects order c, b, a
+
+      grades_report_subject_c =
+        grades_report_subject_fixture(%{
+          grades_report_id: grades_report.id,
+          subject_id: subject_c.id
+        })
+
+      grades_report_subject_b =
+        grades_report_subject_fixture(%{
+          grades_report_id: grades_report.id,
+          subject_id: subject_b.id
+        })
+
+      grades_report_subject_a =
+        grades_report_subject_fixture(%{
+          grades_report_id: grades_report.id,
+          subject_id: subject_a.id
+        })
+
+      assert expected_grades_report =
+               GradesReports.get_grades_report!(grades_report.id, load_grid: true)
+
+      assert expected_grades_report.id == grades_report.id
+      assert expected_grades_report.school_cycle.id == cycle_2024.id
+
+      # check sub cycles
+      assert [expected_grc_2024_1, expected_grc_2024_2] =
+               expected_grades_report.grades_report_cycles
+
+      assert expected_grc_2024_1.id == grades_report_cycle_2024_1.id
+      assert expected_grc_2024_1.school_cycle.id == cycle_2024_1.id
+      assert expected_grc_2024_2.id == grades_report_cycle_2024_2.id
+      assert expected_grc_2024_2.school_cycle.id == cycle_2024_2.id
+
+      # check subjects
+      assert [expected_grs_c, expected_grs_b, expected_grs_a] =
+               expected_grades_report.grades_report_subjects
+
+      assert expected_grs_a.id == grades_report_subject_a.id
+      assert expected_grs_a.subject.id == subject_a.id
+      assert expected_grs_b.id == grades_report_subject_b.id
+      assert expected_grs_b.subject.id == subject_b.id
+      assert expected_grs_c.id == grades_report_subject_c.id
+      assert expected_grs_c.subject.id == subject_c.id
+    end
+
+    test "create_grades_report/1 with valid data creates a grades_report" do
+      school_cycle = Lanttern.SchoolsFixtures.cycle_fixture()
+      scale = Lanttern.GradingFixtures.scale_fixture()
+
+      valid_attrs = %{
+        name: "grade report name abc",
+        school_cycle_id: school_cycle.id,
+        scale_id: scale.id
+      }
+
+      assert {:ok, %GradesReport{} = grades_report} =
+               GradesReports.create_grades_report(valid_attrs)
+
+      assert grades_report.name == "grade report name abc"
+      assert grades_report.school_cycle_id == school_cycle.id
+      assert grades_report.scale_id == scale.id
+    end
+
+    test "create_grades_report/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = GradesReports.create_grades_report(@invalid_attrs)
+    end
+
+    test "update_grades_report/2 with valid data updates the grades_report" do
+      grades_report = grades_report_fixture()
+      update_attrs = %{info: "some updated info", is_differentiation: "true"}
+
+      assert {:ok, %GradesReport{} = grades_report} =
+               GradesReports.update_grades_report(grades_report, update_attrs)
+
+      assert grades_report.info == "some updated info"
+      assert grades_report.is_differentiation
+    end
+
+    test "update_grades_report/2 with invalid data returns error changeset" do
+      grades_report = grades_report_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               GradesReports.update_grades_report(grades_report, @invalid_attrs)
+
+      assert grades_report == GradesReports.get_grades_report!(grades_report.id)
+    end
+
+    test "delete_grades_report/1 deletes the grades_report" do
+      grades_report = grades_report_fixture()
+      assert {:ok, %GradesReport{}} = GradesReports.delete_grades_report(grades_report)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        GradesReports.get_grades_report!(grades_report.id)
+      end
+    end
+
+    test "change_grades_report/1 returns a grades_report changeset" do
+      grades_report = grades_report_fixture()
+      assert %Ecto.Changeset{} = GradesReports.change_grades_report(grades_report)
+    end
+  end
+
+  describe "grades report subjects" do
+    alias Lanttern.GradesReports.GradesReportSubject
+
+    import Lanttern.GradesReportsFixtures
+    alias Lanttern.SchoolsFixtures
+    alias Lanttern.TaxonomyFixtures
+
+    test "list_grades_report_subjects/1 returns all grades report subjects ordered by position and subjects preloaded" do
+      grades_report = grades_report_fixture()
+      subject_1 = TaxonomyFixtures.subject_fixture()
+      subject_2 = TaxonomyFixtures.subject_fixture()
+
+      grades_report_subject_1 =
+        grades_report_subject_fixture(%{
+          grades_report_id: grades_report.id,
+          subject_id: subject_1.id
+        })
+
+      grades_report_subject_2 =
+        grades_report_subject_fixture(%{
+          grades_report_id: grades_report.id,
+          subject_id: subject_2.id
+        })
+
+      assert [expected_grs_1, expected_grs_2] =
+               GradesReports.list_grades_report_subjects(grades_report.id)
+
+      assert expected_grs_1.id == grades_report_subject_1.id
+      assert expected_grs_1.subject.id == subject_1.id
+
+      assert expected_grs_2.id == grades_report_subject_2.id
+      assert expected_grs_2.subject.id == subject_2.id
+    end
+
+    test "add_subject_to_grades_report/1 with valid data creates a report card grade subject" do
+      grades_report = grades_report_fixture()
+      subject = TaxonomyFixtures.subject_fixture()
+
+      valid_attrs = %{
+        grades_report_id: grades_report.id,
+        subject_id: subject.id
+      }
+
+      assert {:ok, %GradesReportSubject{} = grades_report_subject} =
+               GradesReports.add_subject_to_grades_report(valid_attrs)
+
+      assert grades_report_subject.grades_report_id == grades_report.id
+      assert grades_report_subject.subject_id == subject.id
+      assert grades_report_subject.position == 0
+
+      # insert one more grades report subject in a different grades report to test position auto increment scope
+
+      # extra fixture in different grades report
+      grades_report_subject_fixture()
+
+      subject = TaxonomyFixtures.subject_fixture()
+
+      valid_attrs = %{
+        grades_report_id: grades_report.id,
+        subject_id: subject.id
+      }
+
+      assert {:ok, %GradesReportSubject{} = grades_report_subject} =
+               GradesReports.add_subject_to_grades_report(valid_attrs)
+
+      assert grades_report_subject.grades_report_id == grades_report.id
+      assert grades_report_subject.subject_id == subject.id
+      assert grades_report_subject.position == 1
+    end
+
+    test "update_grades_report_subjects_positions/1 update grades report subjects positions based on list order" do
+      grades_report = grades_report_fixture()
+
+      grades_report_subject_1 =
+        grades_report_subject_fixture(%{grades_report_id: grades_report.id})
+
+      grades_report_subject_2 =
+        grades_report_subject_fixture(%{grades_report_id: grades_report.id})
+
+      grades_report_subject_3 =
+        grades_report_subject_fixture(%{grades_report_id: grades_report.id})
+
+      grades_report_subject_4 =
+        grades_report_subject_fixture(%{grades_report_id: grades_report.id})
+
+      sorted_grades_report_subjects_ids =
+        [
+          grades_report_subject_2.id,
+          grades_report_subject_3.id,
+          grades_report_subject_1.id,
+          grades_report_subject_4.id
+        ]
+
+      assert :ok ==
+               GradesReports.update_grades_report_subjects_positions(
+                 sorted_grades_report_subjects_ids
+               )
+
+      assert [
+               expected_grs_2,
+               expected_grs_3,
+               expected_grs_1,
+               expected_grs_4
+             ] =
+               GradesReports.list_grades_report_subjects(grades_report.id)
+
+      assert expected_grs_1.id == grades_report_subject_1.id
+      assert expected_grs_2.id == grades_report_subject_2.id
+      assert expected_grs_3.id == grades_report_subject_3.id
+      assert expected_grs_4.id == grades_report_subject_4.id
+    end
+
+    test "delete_grades_report_subject/1 deletes the grades_report_subject" do
+      grades_report_subject = grades_report_subject_fixture()
+
+      assert {:ok, %GradesReportSubject{}} =
+               GradesReports.delete_grades_report_subject(grades_report_subject)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Repo.get!(GradesReportSubject, grades_report_subject.id)
+      end
+    end
+  end
+
+  describe "grades report cycles" do
+    alias Lanttern.GradesReports.GradesReportCycle
+
+    import Lanttern.GradesReportsFixtures
+    alias Lanttern.SchoolsFixtures
+    alias Lanttern.TaxonomyFixtures
+
+    test "list_grades_report_cycles/1 returns all grades report cycles ordered by dates and preloaded cycles" do
+      grades_report = grades_report_fixture()
+
+      cycle_2023 =
+        SchoolsFixtures.cycle_fixture(%{start_at: ~D[2023-01-01], end_at: ~D[2023-12-31]})
+
+      cycle_2024_q4 =
+        SchoolsFixtures.cycle_fixture(%{start_at: ~D[2024-09-01], end_at: ~D[2024-12-31]})
+
+      cycle_2024 =
+        SchoolsFixtures.cycle_fixture(%{start_at: ~D[2024-01-01], end_at: ~D[2024-12-31]})
+
+      grades_report_cycle_2023 =
+        grades_report_cycle_fixture(%{
+          grades_report_id: grades_report.id,
+          school_cycle_id: cycle_2023.id
+        })
+
+      grades_report_cycle_2024_q4 =
+        grades_report_cycle_fixture(%{
+          grades_report_id: grades_report.id,
+          school_cycle_id: cycle_2024_q4.id
+        })
+
+      grades_report_cycle_2024 =
+        grades_report_cycle_fixture(%{
+          grades_report_id: grades_report.id,
+          school_cycle_id: cycle_2024.id
+        })
+
+      assert [expected_grc_2023, expected_grc_2024_q4, expected_grc_2024] =
+               GradesReports.list_grades_report_cycles(grades_report.id)
+
+      assert expected_grc_2023.id == grades_report_cycle_2023.id
+      assert expected_grc_2023.school_cycle.id == cycle_2023.id
+
+      assert expected_grc_2024_q4.id == grades_report_cycle_2024_q4.id
+      assert expected_grc_2024_q4.school_cycle.id == cycle_2024_q4.id
+
+      assert expected_grc_2024.id == grades_report_cycle_2024.id
+      assert expected_grc_2024.school_cycle.id == cycle_2024.id
+    end
+
+    test "add_cycle_to_grades_report/1 with valid data creates a grades report cycle" do
+      grades_report = grades_report_fixture()
+      school_cycle = SchoolsFixtures.cycle_fixture()
+
+      valid_attrs = %{
+        grades_report_id: grades_report.id,
+        school_cycle_id: school_cycle.id
+      }
+
+      assert {:ok, %GradesReportCycle{} = grades_report_cycle} =
+               GradesReports.add_cycle_to_grades_report(valid_attrs)
+
+      assert grades_report_cycle.grades_report_id == grades_report.id
+      assert grades_report_cycle.school_cycle_id == school_cycle.id
+    end
+
+    test "update_grades_report_cycle/2 with valid data updates the grades_report_cycle" do
+      grades_report_cycle = grades_report_cycle_fixture()
+      update_attrs = %{weight: 123.0}
+
+      assert {:ok, %GradesReportCycle{} = grades_report_cycle} =
+               GradesReports.update_grades_report_cycle(grades_report_cycle, update_attrs)
+
+      assert grades_report_cycle.weight == 123.0
+    end
+
+    test "update_grades_report_cycle/2 with invalid data returns error changeset" do
+      grades_report_cycle = grades_report_cycle_fixture()
+      invalid_attrs = %{weight: "abc"}
+
+      assert {:error, %Ecto.Changeset{}} =
+               GradesReports.update_grades_report_cycle(grades_report_cycle, invalid_attrs)
+
+      assert grades_report_cycle == Repo.get!(GradesReportCycle, grades_report_cycle.id)
+    end
+
+    test "delete_grades_report_cycle/1 deletes the grades_report_cycle" do
+      grades_report_cycle = grades_report_cycle_fixture()
+
+      assert {:ok, %GradesReportCycle{}} =
+               GradesReports.delete_grades_report_cycle(grades_report_cycle)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Repo.get!(GradesReportCycle, grades_report_cycle.id)
+      end
     end
   end
 
@@ -229,16 +687,16 @@ defmodule Lanttern.GradesReportsTest do
 
       subject = TaxonomyFixtures.subject_fixture()
       cycle = SchoolsFixtures.cycle_fixture()
-      grades_report = ReportingFixtures.grades_report_fixture(%{scale_id: grading_scale.id})
+      grades_report = grades_report_fixture(%{scale_id: grading_scale.id})
 
       grades_report_cycle =
-        ReportingFixtures.grades_report_cycle_fixture(%{
+        grades_report_cycle_fixture(%{
           school_cycle_id: cycle.id,
           grades_report_id: grades_report.id
         })
 
       grades_report_subject =
-        ReportingFixtures.grades_report_subject_fixture(%{
+        grades_report_subject_fixture(%{
           subject_id: subject.id,
           grades_report_id: grades_report.id
         })
@@ -293,13 +751,13 @@ defmodule Lanttern.GradesReportsTest do
       other_cycle = SchoolsFixtures.cycle_fixture()
 
       _other_grades_report_cycle =
-        ReportingFixtures.grades_report_cycle_fixture(%{
+        grades_report_cycle_fixture(%{
           school_cycle_id: other_cycle.id,
           grades_report_id: grades_report.id
         })
 
       _other_grades_report_subject =
-        ReportingFixtures.grades_report_subject_fixture(%{
+        grades_report_subject_fixture(%{
           subject_id: other_subject.id,
           grades_report_id: grades_report.id
         })
@@ -638,34 +1096,34 @@ defmodule Lanttern.GradesReportsTest do
       subject_3 = TaxonomyFixtures.subject_fixture()
       subject_4 = TaxonomyFixtures.subject_fixture()
       cycle = SchoolsFixtures.cycle_fixture()
-      grades_report = ReportingFixtures.grades_report_fixture(%{scale_id: grading_scale.id})
+      grades_report = grades_report_fixture(%{scale_id: grading_scale.id})
 
       grades_report_cycle =
-        ReportingFixtures.grades_report_cycle_fixture(%{
+        grades_report_cycle_fixture(%{
           school_cycle_id: cycle.id,
           grades_report_id: grades_report.id
         })
 
       grades_report_subject_1 =
-        ReportingFixtures.grades_report_subject_fixture(%{
+        grades_report_subject_fixture(%{
           subject_id: subject_1.id,
           grades_report_id: grades_report.id
         })
 
       grades_report_subject_2 =
-        ReportingFixtures.grades_report_subject_fixture(%{
+        grades_report_subject_fixture(%{
           subject_id: subject_2.id,
           grades_report_id: grades_report.id
         })
 
       grades_report_subject_3 =
-        ReportingFixtures.grades_report_subject_fixture(%{
+        grades_report_subject_fixture(%{
           subject_id: subject_3.id,
           grades_report_id: grades_report.id
         })
 
       grades_report_subject_4 =
-        ReportingFixtures.grades_report_subject_fixture(%{
+        grades_report_subject_fixture(%{
           subject_id: subject_4.id,
           grades_report_id: grades_report.id
         })
@@ -999,16 +1457,16 @@ defmodule Lanttern.GradesReportsTest do
 
       subject = TaxonomyFixtures.subject_fixture()
       cycle = SchoolsFixtures.cycle_fixture()
-      grades_report = ReportingFixtures.grades_report_fixture(%{scale_id: grading_scale.id})
+      grades_report = grades_report_fixture(%{scale_id: grading_scale.id})
 
       grades_report_cycle =
-        ReportingFixtures.grades_report_cycle_fixture(%{
+        grades_report_cycle_fixture(%{
           school_cycle_id: cycle.id,
           grades_report_id: grades_report.id
         })
 
       grades_report_subject =
-        ReportingFixtures.grades_report_subject_fixture(%{
+        grades_report_subject_fixture(%{
           subject_id: subject.id,
           grades_report_id: grades_report.id
         })
@@ -1349,28 +1807,28 @@ defmodule Lanttern.GradesReportsTest do
       subject_2 = TaxonomyFixtures.subject_fixture()
       subject_3 = TaxonomyFixtures.subject_fixture()
       cycle = SchoolsFixtures.cycle_fixture()
-      grades_report = ReportingFixtures.grades_report_fixture(%{scale_id: grading_scale.id})
+      grades_report = grades_report_fixture(%{scale_id: grading_scale.id})
 
       grades_report_cycle =
-        ReportingFixtures.grades_report_cycle_fixture(%{
+        grades_report_cycle_fixture(%{
           school_cycle_id: cycle.id,
           grades_report_id: grades_report.id
         })
 
       grades_report_subject_1 =
-        ReportingFixtures.grades_report_subject_fixture(%{
+        grades_report_subject_fixture(%{
           subject_id: subject_1.id,
           grades_report_id: grades_report.id
         })
 
       grades_report_subject_2 =
-        ReportingFixtures.grades_report_subject_fixture(%{
+        grades_report_subject_fixture(%{
           subject_id: subject_2.id,
           grades_report_id: grades_report.id
         })
 
       grades_report_subject_3 =
-        ReportingFixtures.grades_report_subject_fixture(%{
+        grades_report_subject_fixture(%{
           subject_id: subject_3.id,
           grades_report_id: grades_report.id
         })
@@ -1657,26 +2115,26 @@ defmodule Lanttern.GradesReportsTest do
       ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
 
       cycle = SchoolsFixtures.cycle_fixture()
-      grades_report = ReportingFixtures.grades_report_fixture(%{scale_id: scale.id})
+      grades_report = grades_report_fixture(%{scale_id: scale.id})
 
       grades_report_cycle =
-        ReportingFixtures.grades_report_cycle_fixture(%{
+        grades_report_cycle_fixture(%{
           school_cycle_id: cycle.id,
           grades_report_id: grades_report.id
         })
 
       grades_report_subject_1 =
-        ReportingFixtures.grades_report_subject_fixture(%{
+        grades_report_subject_fixture(%{
           grades_report_id: grades_report.id
         })
 
       grades_report_subject_2 =
-        ReportingFixtures.grades_report_subject_fixture(%{
+        grades_report_subject_fixture(%{
           grades_report_id: grades_report.id
         })
 
       grades_report_subject_3 =
-        ReportingFixtures.grades_report_subject_fixture(%{
+        grades_report_subject_fixture(%{
           grades_report_id: grades_report.id
         })
 
@@ -1781,7 +2239,7 @@ defmodule Lanttern.GradesReportsTest do
       ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
 
       std = SchoolsFixtures.student_fixture()
-      grades_report = ReportingFixtures.grades_report_fixture(%{scale_id: scale.id})
+      grades_report = grades_report_fixture(%{scale_id: scale.id})
       report_card = ReportingFixtures.report_card_fixture(%{grades_report_id: grades_report.id})
 
       student_grades_report =
@@ -1795,35 +2253,35 @@ defmodule Lanttern.GradesReportsTest do
       cycle_3 = SchoolsFixtures.cycle_fixture()
 
       grades_report_cycle_1 =
-        ReportingFixtures.grades_report_cycle_fixture(%{
+        grades_report_cycle_fixture(%{
           school_cycle_id: cycle_1.id,
           grades_report_id: grades_report.id
         })
 
       grades_report_cycle_2 =
-        ReportingFixtures.grades_report_cycle_fixture(%{
+        grades_report_cycle_fixture(%{
           school_cycle_id: cycle_2.id,
           grades_report_id: grades_report.id
         })
 
       grades_report_cycle_3 =
-        ReportingFixtures.grades_report_cycle_fixture(%{
+        grades_report_cycle_fixture(%{
           school_cycle_id: cycle_3.id,
           grades_report_id: grades_report.id
         })
 
       grades_report_subject_1 =
-        ReportingFixtures.grades_report_subject_fixture(%{
+        grades_report_subject_fixture(%{
           grades_report_id: grades_report.id
         })
 
       grades_report_subject_2 =
-        ReportingFixtures.grades_report_subject_fixture(%{
+        grades_report_subject_fixture(%{
           grades_report_id: grades_report.id
         })
 
       grades_report_subject_3 =
-        ReportingFixtures.grades_report_subject_fixture(%{
+        grades_report_subject_fixture(%{
           grades_report_id: grades_report.id
         })
 

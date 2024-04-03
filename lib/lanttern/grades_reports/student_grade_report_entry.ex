@@ -2,10 +2,10 @@ defmodule Lanttern.GradesReports.StudentGradeReportEntry do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.GradesReports.GradesReport
+  alias Lanttern.GradesReports.GradesReportCycle
+  alias Lanttern.GradesReports.GradesReportSubject
   alias Lanttern.Grading.OrdinalValue
-  alias Lanttern.Reporting.GradesReport
-  alias Lanttern.Reporting.GradesReportCycle
-  alias Lanttern.Reporting.GradesReportSubject
   alias Lanttern.Schools.Student
 
   @type t :: %__MODULE__{

@@ -2,8 +2,8 @@ defmodule Lanttern.Reporting.ReportCard do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.GradesReports.GradesReport
   alias Lanttern.Reporting.StrandReport
-  alias Lanttern.Reporting.GradesReport
   alias Lanttern.Schools.Cycle
   alias Lanttern.Taxonomy.Year
 

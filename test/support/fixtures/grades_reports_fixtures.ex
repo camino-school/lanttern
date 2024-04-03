@@ -5,6 +5,53 @@ defmodule Lanttern.GradesReportsFixtures do
   """
 
   @doc """
+  Generate a grade report.
+  """
+  def grades_report_fixture(attrs \\ %{}) do
+    {:ok, grades_report} =
+      attrs
+      |> Enum.into(%{
+        name: "some name",
+        info: "some info",
+        school_cycle_id: Lanttern.SchoolsFixtures.maybe_gen_cycle_id(attrs),
+        scale_id: Lanttern.GradingFixtures.maybe_gen_scale_id(attrs)
+      })
+      |> Lanttern.GradesReports.create_grades_report()
+
+    grades_report
+  end
+
+  @doc """
+  Generate a grades_report_subject.
+  """
+  def grades_report_subject_fixture(attrs \\ %{}) do
+    {:ok, grades_report_subject} =
+      attrs
+      |> Enum.into(%{
+        grades_report_id: maybe_gen_grades_report_id(attrs),
+        subject_id: Lanttern.TaxonomyFixtures.maybe_gen_subject_id(attrs)
+      })
+      |> Lanttern.GradesReports.add_subject_to_grades_report()
+
+    grades_report_subject
+  end
+
+  @doc """
+  Generate a grades_report_cycle.
+  """
+  def grades_report_cycle_fixture(attrs \\ %{}) do
+    {:ok, grades_report_cycle} =
+      attrs
+      |> Enum.into(%{
+        grades_report_id: maybe_gen_grades_report_id(attrs),
+        school_cycle_id: Lanttern.SchoolsFixtures.maybe_gen_cycle_id(attrs)
+      })
+      |> Lanttern.GradesReports.add_cycle_to_grades_report()
+
+    grades_report_cycle
+  end
+
+  @doc """
   Generate a student_grade_report_entry.
   """
   def student_grade_report_entry_fixture(attrs \\ %{}) do
@@ -26,14 +73,14 @@ defmodule Lanttern.GradesReportsFixtures do
           }
 
         _ ->
-          grades_report = Lanttern.ReportingFixtures.grades_report_fixture()
+          grades_report = grades_report_fixture()
 
           {
             grades_report.id,
-            Lanttern.ReportingFixtures.grades_report_cycle_fixture(%{
+            grades_report_cycle_fixture(%{
               grades_report_id: grades_report.id
             }).id,
-            Lanttern.ReportingFixtures.grades_report_subject_fixture(%{
+            grades_report_subject_fixture(%{
               grades_report_id: grades_report.id
             }).id
           }
@@ -54,4 +101,28 @@ defmodule Lanttern.GradesReportsFixtures do
 
     student_grade_report_entry
   end
+
+  # generator helpers
+
+  def maybe_gen_grades_report_id(%{grades_report_id: grades_report_id} = _attrs),
+    do: grades_report_id
+
+  def maybe_gen_grades_report_id(_attrs),
+    do: grades_report_fixture().id
+
+  def maybe_gen_grades_report_cycle_id(
+        %{grades_report_cycle_id: grades_report_cycle_id} = _attrs
+      ),
+      do: grades_report_cycle_id
+
+  def maybe_gen_grades_report_cycle_id(_attrs),
+    do: grades_report_cycle_fixture().id
+
+  def maybe_gen_grades_report_subject_id(
+        %{grades_report_subject_id: grades_report_subject_id} = _attrs
+      ),
+      do: grades_report_subject_id
+
+  def maybe_gen_grades_report_subject_id(_attrs),
+    do: grades_report_subject_fixture().id
 end
