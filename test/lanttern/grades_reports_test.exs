@@ -250,7 +250,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_1 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject.id,
           assessment_point_id: goal_1.id,
@@ -258,7 +258,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_2 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject.id,
           assessment_point_id: goal_2.id,
@@ -266,7 +266,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_3 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject.id,
           assessment_point_id: goal_3.id,
@@ -274,7 +274,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_diff =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject.id,
           assessment_point_id: goal_diff.id,
@@ -305,7 +305,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _other_grade_component =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: other_subject.id,
           assessment_point_id: other_goal.id
@@ -677,7 +677,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_1_1 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject_1.id,
           assessment_point_id: goal_1_1.id,
@@ -685,7 +685,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_1_2 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject_1.id,
           assessment_point_id: goal_1_2.id,
@@ -693,7 +693,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_1_3 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject_1.id,
           assessment_point_id: goal_1_3.id,
@@ -701,7 +701,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_2_1 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject_2.id,
           assessment_point_id: goal_2_1.id,
@@ -709,7 +709,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_2_2 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject_2.id,
           assessment_point_id: goal_2_2.id,
@@ -717,7 +717,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_2_3 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject_2.id,
           assessment_point_id: goal_2_3.id,
@@ -725,7 +725,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_3_1 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject_3.id,
           assessment_point_id: goal_3_1.id,
@@ -733,7 +733,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_3_2 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject_3.id,
           assessment_point_id: goal_3_2.id,
@@ -741,7 +741,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_3_3 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject_3.id,
           assessment_point_id: goal_3_3.id,
@@ -1020,7 +1020,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_1 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject.id,
           assessment_point_id: goal_1.id,
@@ -1028,7 +1028,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_2 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject.id,
           assessment_point_id: goal_2.id,
@@ -1036,7 +1036,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_3 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject.id,
           assessment_point_id: goal_3.id,
@@ -1382,7 +1382,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_1_1 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject_1.id,
           assessment_point_id: goal_1_1.id,
@@ -1390,7 +1390,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_1_2 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject_1.id,
           assessment_point_id: goal_1_2.id,
@@ -1398,7 +1398,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_1_3 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject_1.id,
           assessment_point_id: goal_1_3.id,
@@ -1406,7 +1406,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_2_1 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject_2.id,
           assessment_point_id: goal_2_1.id,
@@ -1414,7 +1414,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_2_2 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject_2.id,
           assessment_point_id: goal_2_2.id,
@@ -1422,7 +1422,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_2_3 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject_2.id,
           assessment_point_id: goal_2_3.id,
@@ -1430,7 +1430,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_3_1 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject_3.id,
           assessment_point_id: goal_3_1.id,
@@ -1438,7 +1438,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_3_2 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject_3.id,
           assessment_point_id: goal_3_2.id,
@@ -1446,7 +1446,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       _grade_component_3_3 =
-        ReportingFixtures.grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: report_card.id,
           subject_id: subject_3.id,
           assessment_point_id: goal_3_3.id,

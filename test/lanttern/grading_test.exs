@@ -3,6 +3,128 @@ defmodule Lanttern.GradingTest do
 
   alias Lanttern.Grading
 
+  describe "grade_components" do
+    alias Lanttern.Grading.GradeComponent
+
+    import Lanttern.GradingFixtures
+    alias Lanttern.ReportingFixtures
+
+    @invalid_attrs %{position: nil, weight: nil}
+
+    test "list_grade_components/0 returns all grade_components" do
+      grade_component = grade_component_fixture()
+      assert Grading.list_grade_components() == [grade_component]
+    end
+
+    test "get_grade_component!/1 returns the grade_component with given id" do
+      grade_component = grade_component_fixture()
+      assert Grading.get_grade_component!(grade_component.id) == grade_component
+    end
+
+    test "create_grade_component/1 with valid data creates a grade_component" do
+      report_card = ReportingFixtures.report_card_fixture()
+      assessment_point = Lanttern.AssessmentsFixtures.assessment_point_fixture()
+      subject = Lanttern.TaxonomyFixtures.subject_fixture()
+
+      valid_attrs = %{
+        weight: 120.5,
+        report_card_id: report_card.id,
+        assessment_point_id: assessment_point.id,
+        subject_id: subject.id
+      }
+
+      assert {:ok, %GradeComponent{} = grade_component} =
+               Grading.create_grade_component(valid_attrs)
+
+      assert grade_component.weight == 120.5
+      assert grade_component.report_card_id == report_card.id
+      assert grade_component.assessment_point_id == assessment_point.id
+      assert grade_component.subject_id == subject.id
+    end
+
+    test "create_grade_component/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Grading.create_grade_component(@invalid_attrs)
+    end
+
+    test "update_grade_component/2 with valid data updates the grade_component" do
+      grade_component = grade_component_fixture()
+      update_attrs = %{position: 43, weight: 456.7}
+
+      assert {:ok, %GradeComponent{} = grade_component} =
+               Grading.update_grade_component(grade_component, update_attrs)
+
+      assert grade_component.position == 43
+      assert grade_component.weight == 456.7
+    end
+
+    test "update_grade_component/2 with invalid data returns error changeset" do
+      grade_component = grade_component_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Grading.update_grade_component(grade_component, @invalid_attrs)
+
+      assert grade_component == Grading.get_grade_component!(grade_component.id)
+    end
+
+    test "update_grade_components_positions/1 update grade components positions based on list order" do
+      report_card = ReportingFixtures.report_card_fixture()
+      subject = Lanttern.TaxonomyFixtures.subject_fixture()
+
+      grade_component_1 =
+        grade_component_fixture(%{
+          report_card_id: report_card.id,
+          subject_id: subject.id
+        })
+
+      grade_component_2 =
+        grade_component_fixture(%{
+          report_card_id: report_card.id,
+          subject_id: subject.id
+        })
+
+      grade_component_3 =
+        grade_component_fixture(%{
+          report_card_id: report_card.id,
+          subject_id: subject.id
+        })
+
+      grade_component_4 =
+        grade_component_fixture(%{
+          report_card_id: report_card.id,
+          subject_id: subject.id
+        })
+
+      sorted_grade_components_ids =
+        [
+          grade_component_2.id,
+          grade_component_3.id,
+          grade_component_1.id,
+          grade_component_4.id
+        ]
+
+      assert :ok == Grading.update_grade_components_positions(sorted_grade_components_ids)
+
+      assert Grading.get_grade_component!(grade_component_2.id).position == 0
+      assert Grading.get_grade_component!(grade_component_3.id).position == 1
+      assert Grading.get_grade_component!(grade_component_1.id).position == 2
+      assert Grading.get_grade_component!(grade_component_4.id).position == 3
+    end
+
+    test "delete_grade_component/1 deletes the grade_component" do
+      grade_component = grade_component_fixture()
+      assert {:ok, %GradeComponent{}} = Grading.delete_grade_component(grade_component)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Grading.get_grade_component!(grade_component.id)
+      end
+    end
+
+    test "change_grade_component/1 returns a grade_component changeset" do
+      grade_component = grade_component_fixture()
+      assert %Ecto.Changeset{} = Grading.change_grade_component(grade_component)
+    end
+  end
+
   describe "scales" do
     alias Lanttern.Grading.Scale
 

@@ -102,24 +102,6 @@ defmodule Lanttern.ReportingFixtures do
     grades_report_cycle
   end
 
-  @doc """
-  Generate a grade_component.
-  """
-  def grade_component_fixture(attrs \\ %{}) do
-    {:ok, grade_component} =
-      attrs
-      |> Enum.into(%{
-        position: 42,
-        weight: 120.5,
-        report_card_id: maybe_gen_report_card_id(attrs),
-        assessment_point_id: Lanttern.AssessmentsFixtures.maybe_gen_assessment_point_id(attrs),
-        subject_id: Lanttern.TaxonomyFixtures.maybe_gen_subject_id(attrs)
-      })
-      |> Lanttern.Reporting.create_grade_component()
-
-    grade_component
-  end
-
   # generator helpers
 
   def maybe_gen_report_card_id(%{report_card_id: report_card_id} = _attrs),

@@ -5,6 +5,24 @@ defmodule Lanttern.GradingFixtures do
   """
 
   @doc """
+  Generate a grade_component.
+  """
+  def grade_component_fixture(attrs \\ %{}) do
+    {:ok, grade_component} =
+      attrs
+      |> Enum.into(%{
+        position: 42,
+        weight: 120.5,
+        report_card_id: Lanttern.ReportingFixtures.maybe_gen_report_card_id(attrs),
+        assessment_point_id: Lanttern.AssessmentsFixtures.maybe_gen_assessment_point_id(attrs),
+        subject_id: Lanttern.TaxonomyFixtures.maybe_gen_subject_id(attrs)
+      })
+      |> Lanttern.Grading.create_grade_component()
+
+    grade_component
+  end
+
+  @doc """
   Generate a scale.
   """
   def scale_fixture(attrs \\ %{})

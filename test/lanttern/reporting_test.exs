@@ -1090,131 +1090,11 @@ defmodule Lanttern.ReportingTest do
     end
   end
 
-  describe "grade_components" do
-    alias Lanttern.Reporting.GradeComponent
-
-    import Lanttern.ReportingFixtures
-
-    @invalid_attrs %{position: nil, weight: nil}
-
-    test "list_grade_components/0 returns all grade_components" do
-      grade_component = grade_component_fixture()
-      assert Reporting.list_grade_components() == [grade_component]
-    end
-
-    test "get_grade_component!/1 returns the grade_component with given id" do
-      grade_component = grade_component_fixture()
-      assert Reporting.get_grade_component!(grade_component.id) == grade_component
-    end
-
-    test "create_grade_component/1 with valid data creates a grade_component" do
-      report_card = report_card_fixture()
-      assessment_point = Lanttern.AssessmentsFixtures.assessment_point_fixture()
-      subject = Lanttern.TaxonomyFixtures.subject_fixture()
-
-      valid_attrs = %{
-        weight: 120.5,
-        report_card_id: report_card.id,
-        assessment_point_id: assessment_point.id,
-        subject_id: subject.id
-      }
-
-      assert {:ok, %GradeComponent{} = grade_component} =
-               Reporting.create_grade_component(valid_attrs)
-
-      assert grade_component.weight == 120.5
-      assert grade_component.report_card_id == report_card.id
-      assert grade_component.assessment_point_id == assessment_point.id
-      assert grade_component.subject_id == subject.id
-    end
-
-    test "create_grade_component/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Reporting.create_grade_component(@invalid_attrs)
-    end
-
-    test "update_grade_component/2 with valid data updates the grade_component" do
-      grade_component = grade_component_fixture()
-      update_attrs = %{position: 43, weight: 456.7}
-
-      assert {:ok, %GradeComponent{} = grade_component} =
-               Reporting.update_grade_component(grade_component, update_attrs)
-
-      assert grade_component.position == 43
-      assert grade_component.weight == 456.7
-    end
-
-    test "update_grade_component/2 with invalid data returns error changeset" do
-      grade_component = grade_component_fixture()
-
-      assert {:error, %Ecto.Changeset{}} =
-               Reporting.update_grade_component(grade_component, @invalid_attrs)
-
-      assert grade_component == Reporting.get_grade_component!(grade_component.id)
-    end
-
-    test "update_grade_components_positions/1 update grade components positions based on list order" do
-      report_card = report_card_fixture()
-      subject = Lanttern.TaxonomyFixtures.subject_fixture()
-
-      grade_component_1 =
-        grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject.id
-        })
-
-      grade_component_2 =
-        grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject.id
-        })
-
-      grade_component_3 =
-        grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject.id
-        })
-
-      grade_component_4 =
-        grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject.id
-        })
-
-      sorted_grade_components_ids =
-        [
-          grade_component_2.id,
-          grade_component_3.id,
-          grade_component_1.id,
-          grade_component_4.id
-        ]
-
-      assert :ok == Reporting.update_grade_components_positions(sorted_grade_components_ids)
-
-      assert Reporting.get_grade_component!(grade_component_2.id).position == 0
-      assert Reporting.get_grade_component!(grade_component_3.id).position == 1
-      assert Reporting.get_grade_component!(grade_component_1.id).position == 2
-      assert Reporting.get_grade_component!(grade_component_4.id).position == 3
-    end
-
-    test "delete_grade_component/1 deletes the grade_component" do
-      grade_component = grade_component_fixture()
-      assert {:ok, %GradeComponent{}} = Reporting.delete_grade_component(grade_component)
-
-      assert_raise Ecto.NoResultsError, fn ->
-        Reporting.get_grade_component!(grade_component.id)
-      end
-    end
-
-    test "change_grade_component/1 returns a grade_component changeset" do
-      grade_component = grade_component_fixture()
-      assert %Ecto.Changeset{} = Reporting.change_grade_component(grade_component)
-    end
-  end
-
   describe "extra" do
     import Lanttern.ReportingFixtures
     alias Lanttern.AssessmentsFixtures
     alias Lanttern.CurriculaFixtures
+    alias Lanttern.GradingFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.TaxonomyFixtures
 
@@ -1335,7 +1215,7 @@ defmodule Lanttern.ReportingTest do
       subject = TaxonomyFixtures.subject_fixture()
 
       grade_component_1 =
-        grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           weight: 2.0,
           report_card_id: report_card.id,
           assessment_point_id: ast_point_1.id,
@@ -1343,7 +1223,7 @@ defmodule Lanttern.ReportingTest do
         })
 
       grade_component_2 =
-        grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           weight: 1.0,
           report_card_id: report_card.id,
           assessment_point_id: ast_point_2.id,
@@ -1361,7 +1241,7 @@ defmodule Lanttern.ReportingTest do
       other_subject = TaxonomyFixtures.subject_fixture()
 
       _other_grade_component =
-        grade_component_fixture(%{
+        GradingFixtures.grade_component_fixture(%{
           report_card_id: other_report_card.id,
           assessment_point_id: other_ast_point.id,
           subject_id: other_subject.id

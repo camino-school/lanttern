@@ -3,7 +3,8 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Reporting
-  alias Lanttern.Reporting.GradeComponent
+  alias Lanttern.Grading
+  alias Lanttern.Grading.GradeComponent
 
   import Lanttern.Utils, only: [swap: 3]
 
@@ -280,7 +281,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
       assessment_point_id: id,
       subject_id: subject_id
     }
-    |> Reporting.create_grade_component()
+    |> Grading.create_grade_component()
     |> case do
       {:ok, _grade_component} ->
         grade_components =
@@ -308,7 +309,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
     socket.assigns.indexed_grade_components
     |> Enum.map(fn {grade_component, _i} -> grade_component end)
     |> Enum.find(&("#{&1.id}" == id))
-    |> Reporting.update_grade_component(params)
+    |> Grading.update_grade_component(params)
     |> case do
       {:ok, _grades_component} ->
         {:noreply, socket}
@@ -323,7 +324,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
     socket.assigns.indexed_grade_components
     |> Enum.map(fn {grade_component, _i} -> grade_component end)
     |> Enum.find(&(&1.id == id))
-    |> Reporting.delete_grade_component()
+    |> Grading.delete_grade_component()
     |> case do
       {:ok, _grade_component} ->
         indexed_grade_components =
@@ -358,7 +359,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
 
     indexed_grade_components
     |> Enum.map(fn {grade_component, _i} -> grade_component.id end)
-    |> Reporting.update_grade_components_positions()
+    |> Grading.update_grade_components_positions()
     |> case do
       :ok ->
         socket =

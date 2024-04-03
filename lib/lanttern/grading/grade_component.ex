@@ -1,4 +1,4 @@
-defmodule Lanttern.Reporting.GradeComponent do
+defmodule Lanttern.Grading.GradeComponent do
   use Ecto.Schema
   import Ecto.Changeset
 
