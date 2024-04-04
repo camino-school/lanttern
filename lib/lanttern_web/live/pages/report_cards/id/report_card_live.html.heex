@@ -72,7 +72,7 @@
     params={@params}
   />
   <div :if={@current_tab == :strands} class="py-10">
-    <.responsive_container class="mb-10">
+    <.responsive_container :if={@report_card.description} class="mb-10">
       <.markdown text={@report_card.description} />
     </.responsive_container>
     <.live_component
@@ -83,6 +83,9 @@
     />
   </div>
   <div :if={@current_tab == :grades}>
+    <.responsive_container :if={@report_card.grading_info} class="pt-10">
+      <.markdown text={@report_card.grading_info} />
+    </.responsive_container>
     <.live_component
       module={GradesComponent}
       id="report-card-grades"

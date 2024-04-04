@@ -11,6 +11,7 @@ defmodule Lanttern.Reporting.ReportCard do
           id: pos_integer(),
           name: String.t(),
           description: String.t(),
+          grading_info: String.t(),
           cover_image_url: String.t(),
           school_cycle: Cycle.t(),
           school_cycle_id: pos_integer(),
@@ -26,6 +27,7 @@ defmodule Lanttern.Reporting.ReportCard do
   schema "report_cards" do
     field :name, :string
     field :description, :string
+    field :grading_info, :string
     field :cover_image_url, :string
 
     belongs_to :school_cycle, Cycle
@@ -43,6 +45,7 @@ defmodule Lanttern.Reporting.ReportCard do
     |> cast(attrs, [
       :name,
       :description,
+      :grading_info,
       :cover_image_url,
       :school_cycle_id,
       :year_id,
