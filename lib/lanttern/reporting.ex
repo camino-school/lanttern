@@ -499,6 +499,29 @@ defmodule Lanttern.Reporting do
   end
 
   @doc """
+  Gets a single student report card by student and report card id.
+
+  Returns `nil` if the Student report card does not exist.
+
+  ## Examples
+
+      iex> get_student_report_card_by_student_and_parent_report(123, 123)
+      %StudentReportCard{}
+
+      iex> get_student_report_card_by_student_and_parent_report(456, 456)
+      nil
+
+  """
+  @spec get_student_report_card_by_student_and_parent_report(
+          student_id :: non_neg_integer(),
+          report_card_id :: non_neg_integer()
+        ) :: StudentReportCard.t()
+  def get_student_report_card_by_student_and_parent_report(student_id, report_card_id) do
+    StudentReportCard
+    |> Repo.get_by(student_id: student_id, report_card_id: report_card_id)
+  end
+
+  @doc """
   Creates a student_report_card.
 
   ## Examples

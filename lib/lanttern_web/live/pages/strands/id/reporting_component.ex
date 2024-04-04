@@ -142,13 +142,10 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
         filter_type={:classes}
         navigate={~p"/strands/#{@strand}?tab=reporting"}
       />
-      <div
-        :if={@entries_changes_map != %{}}
-        class="z-20 fixed bottom-0 inset-x-0 flex items-center gap-6 p-6 bg-ltrn-dark"
-      >
-        <span class="flex-1 text-sm text-white">
+      <.fixed_bar :if={@entries_changes_map != %{}} class="flex items-center gap-6">
+        <p class="flex-1 text-sm text-white">
           <%= ngettext("1 change", "%{count} changes.", map_size(@entries_changes_map)) %>
-        </span>
+        </p>
         <.button
           phx-click={JS.navigate(~p"/strands/#{@strand}?tab=reporting")}
           theme="ghost"
@@ -159,7 +156,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
         <.button type="button" phx-click="save_changes" phx-target={@myself}>
           <%= gettext("Save") %>
         </.button>
-      </div>
+      </.fixed_bar>
     </div>
     """
   end

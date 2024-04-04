@@ -430,7 +430,7 @@ defmodule Lanttern.ReportingTest do
       assert expected_class_j_k.id == class_j.id
     end
 
-    test "get_student_report_card!/1 returns the student_report_card with given id" do
+    test "get_student_report_card!/2 returns the student_report_card with given id" do
       student_report_card = student_report_card_fixture()
       assert Reporting.get_student_report_card!(student_report_card.id) == student_report_card
     end
@@ -444,6 +444,19 @@ defmodule Lanttern.ReportingTest do
 
       assert expected.id == student_report_card.id
       assert expected.report_card == report_card
+    end
+
+    test "get_student_report_card_by_student_and_parent_report/2 returns the student_report_card" do
+      student = SchoolsFixtures.student_fixture()
+      report_card = report_card_fixture()
+
+      student_report_card =
+        student_report_card_fixture(%{student_id: student.id, report_card_id: report_card.id})
+
+      assert Reporting.get_student_report_card_by_student_and_parent_report(
+               student.id,
+               report_card.id
+             ) == student_report_card
     end
 
     test "create_student_report_card/1 with valid data creates a student_report_card" do

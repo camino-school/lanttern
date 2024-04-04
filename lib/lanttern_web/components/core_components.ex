@@ -405,6 +405,20 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Renders a fixed bar at the bottom of the page.
+  """
+  attr :class, :any, default: nil
+  slot :inner_block, required: true
+
+  def fixed_bar(assigns) do
+    ~H"""
+    <div class={["z-20 fixed bottom-0 inset-x-0 p-4 sm:p-6 bg-ltrn-dark", @class]}>
+      <%= render_slot(@inner_block) %>
+    </div>
+    """
+  end
+
+  @doc """
   Renders flash notices.
 
   ## Examples
@@ -860,22 +874,53 @@ defmodule LantternWeb.CoreComponents do
   attr :profile_name, :string, required: true
   attr :size, :string, default: "normal", doc: "xs | sm | normal"
   attr :theme, :string, default: "cyan", doc: "cyan | rose | subtle"
+  attr :on_click, JS, default: nil
+  attr :is_checked, :boolean, default: false
   attr :class, :any, default: nil
   attr :rest, :global
+
+  def profile_icon(%{on_click: %JS{}} = assigns) do
+    ~H"""
+    <button
+      type="button"
+      class={[
+        "shrink-0 flex items-center justify-center rounded-full font-display font-bold text-center shadow-md",
+        profile_icon_size_style(@size),
+        profile_icon_theme(@theme, @is_checked),
+        @class
+      ]}
+      title={@profile_name}
+      phx-click={@on_click}
+      {@rest}
+    >
+      <%= if @is_checked do %>
+        <.icon name="hero-check" />
+        <span class="sr-only"><%= gettext("Selected") %></span>
+      <% else %>
+        <%= profile_icon_initials(@profile_name) %>
+      <% end %>
+    </button>
+    """
+  end
 
   def profile_icon(assigns) do
     ~H"""
     <div
       class={[
-        "shrink-0 flex items-center justify-center rounded-full font-display font-bold text-center  shadow-md",
+        "shrink-0 flex items-center justify-center rounded-full font-display font-bold text-center shadow-md",
         profile_icon_size_style(@size),
-        profile_icon_theme(@theme),
+        profile_icon_theme(@theme, @is_checked),
         @class
       ]}
       title={@profile_name}
       {@rest}
     >
-      <%= profile_icon_initials(@profile_name) %>
+      <%= if @is_checked do %>
+        <.icon name="hero-check" />
+        <span class="sr-only"><%= gettext("Selected") %></span>
+      <% else %>
+        <%= profile_icon_initials(@profile_name) %>
+      <% end %>
     </div>
     """
   end
@@ -891,8 +936,11 @@ defmodule LantternWeb.CoreComponents do
     "diff" => "text-ltrn-diff-light bg-ltrn-diff-highlight"
   }
 
-  defp profile_icon_theme(theme),
+  defp profile_icon_theme(theme, false),
     do: Map.get(@profile_icon_themes, theme, @profile_icon_themes["default"])
+
+  defp profile_icon_theme(_theme, true),
+    do: "text-white bg-ltrn-dark"
 
   defp profile_icon_initials(full_name) do
     case String.split(full_name, ~r{\s}, trim: true) do
@@ -918,13 +966,21 @@ defmodule LantternWeb.CoreComponents do
   attr :theme, :string, default: "cyan"
   attr :icon_size, :string, default: "normal"
   attr :extra_info, :string, default: nil
+  attr :on_click, JS, default: nil
+  attr :is_checked, :boolean, default: false
   attr :class, :any, default: nil
   attr :rest, :global
 
   def profile_icon_with_name(assigns) do
     ~H"""
     <div class={["flex gap-2 items-center text-sm", @class]}>
-      <.profile_icon profile_name={@profile_name} theme={@theme} size={@icon_size} />
+      <.profile_icon
+        profile_name={@profile_name}
+        theme={@theme}
+        size={@icon_size}
+        on_click={@on_click}
+        is_checked={@is_checked}
+      />
       <div class="flex-1">
         <div class={if(@extra_info, do: "line-clamp-1", else: "line-clamp-2")}>
           <%= @profile_name %>
