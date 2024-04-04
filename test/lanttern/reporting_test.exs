@@ -377,6 +377,15 @@ defmodule Lanttern.ReportingTest do
           classes_ids: [class_j.id]
         })
 
+      class_z = SchoolsFixtures.class_fixture(%{name: "ZZZ", school_id: school.id})
+
+      student_z_z =
+        SchoolsFixtures.student_fixture(%{
+          name: "ZZZ",
+          school_id: school.id,
+          classes_ids: [class_z.id]
+        })
+
       report_card = report_card_fixture()
 
       student_a_a_report_card =
@@ -388,6 +397,9 @@ defmodule Lanttern.ReportingTest do
       student_j_j_report_card =
         student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_j_j.id})
 
+      student_z_z_report_card =
+        student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_z_z.id})
+
       # other fixtures for filter testing
       other_class = SchoolsFixtures.class_fixture(%{school_id: school.id})
 
@@ -395,10 +407,7 @@ defmodule Lanttern.ReportingTest do
         SchoolsFixtures.student_fixture(%{school_id: school.id, classes_ids: [other_class.id]})
 
       _other_student_report_card =
-        student_report_card_fixture(%{
-          report_card_id: report_card.id,
-          student_id: other_student.id
-        })
+        student_report_card_fixture(%{student_id: other_student.id})
 
       assert [
                {expected_student_a_a, expected_student_a_a_report_card},
@@ -428,6 +437,30 @@ defmodule Lanttern.ReportingTest do
       assert expected_student_j_k.id == student_j_k.id
       assert [expected_class_j_k] = expected_student_j_k.classes
       assert expected_class_j_k.id == class_j.id
+
+      # test only_with_report opt
+
+      assert [
+               {expected_student_a_a, expected_student_a_a_report_card},
+               {expected_student_a_b, expected_student_a_b_report_card},
+               {expected_student_j_j, expected_student_j_j_report_card},
+               {expected_student_z_z, expected_student_z_z_report_card}
+             ] =
+               Reporting.list_students_for_report_card(report_card.id,
+                 only_with_report: true
+               )
+
+      assert expected_student_a_a.id == student_a_a.id
+      assert expected_student_a_a_report_card.id == student_a_a_report_card.id
+
+      assert expected_student_a_b.id == student_a_b.id
+      assert expected_student_a_b_report_card.id == student_a_b_report_card.id
+
+      assert expected_student_j_j.id == student_j_j.id
+      assert expected_student_j_j_report_card.id == student_j_j_report_card.id
+
+      assert expected_student_z_z.id == student_z_z.id
+      assert expected_student_z_z_report_card.id == student_z_z_report_card.id
     end
 
     test "get_student_report_card!/2 returns the student_report_card with given id" do

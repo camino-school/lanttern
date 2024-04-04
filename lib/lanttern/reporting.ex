@@ -423,7 +423,8 @@ defmodule Lanttern.Reporting do
 
   ## Options
 
-      - `:classes_ids` - filter results by given classes
+  - `:classes_ids` - filter results by given classes
+  - `:only_with_report` - boolean, remove students without linked reports from results
 
   ## Examples
 
@@ -441,6 +442,7 @@ defmodule Lanttern.Reporting do
       as: :class,
       left_join: sr in StudentReportCard,
       on: sr.student_id == s.id and sr.report_card_id == ^report_card_id,
+      as: :student_report_card,
       select: {s, sr},
       preload: [classes: c],
       order_by: [asc: c.name, asc: s.name]
@@ -456,6 +458,14 @@ defmodule Lanttern.Reporting do
     from(
       [s, class: c] in queryable,
       where: c.id in ^classes_ids
+    )
+    |> apply_list_students_for_report_card_opts(opts)
+  end
+
+  defp apply_list_students_for_report_card_opts(queryable, [{:only_with_report, true} | opts]) do
+    from(
+      [s, student_report_card: src] in queryable,
+      where: not is_nil(src)
     )
     |> apply_list_students_for_report_card_opts(opts)
   end

@@ -5,6 +5,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   alias Lanttern.Reporting
   alias Lanttern.Reporting.StudentReportCard
   alias Lanttern.Schools
+  alias Lanttern.Schools.Student
 
   # shared components
   alias LantternWeb.Reporting.StudentReportCardFormComponent
@@ -33,53 +34,32 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           </p>
         </div>
         <div phx-update="stream" id="students-and-report-cards">
-          <div
+          <.student_and_report_card_row
             :for={{dom_id, {student, student_report_card}} <- @streams.students_and_report_cards}
             id={dom_id}
-            class={[
-              "flex items-center gap-4 p-4 rounded mt-4",
-              if(student_report_card, do: "bg-white shadow-lg", else: "bg-ltrn-lighter")
-            ]}
-          >
-            <div class="flex-1 flex items-center gap-4">
-              <.profile_icon_with_name
-                theme={if student_report_card, do: "cyan", else: "subtle"}
-                profile_name={student.name}
-                extra_info={student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
-                on_click={
-                  JS.push("toggle_student_id", value: %{"student_id" => student.id}, target: @myself)
-                  |> JS.toggle_class("outline outline-4 outline-ltrn-dark", to: "##{dom_id}")
-                }
-              />
-            </div>
-            <div class="shrink-0 flex items-center gap-2">
-              <%= if student_report_card do %>
-                <a
-                  class={get_button_styles("ghost")}
-                  href={~p"/student_report_card/#{student_report_card.id}"}
-                  target="_blank"
-                >
-                  <%= gettext("Preview") %>
-                </a>
-                <.link
-                  class={get_button_styles("ghost")}
-                  patch={
-                    ~p"/report_cards/#{@report_card}?tab=students&edit_student_report=#{student_report_card.id}"
-                  }
-                >
-                  <%= gettext("Edit") %>
-                </.link>
-              <% else %>
-                <.link
-                  class={get_button_styles("ghost")}
-                  patch={
-                    ~p"/report_cards/#{@report_card}?tab=students&create_student_report=#{student.id}"
-                  }
-                >
-                  <%= gettext("Create") %>
-                </.link>
-              <% end %>
-            </div>
+            report_card_id={@report_card.id}
+            student={student}
+            student_report_card={student_report_card}
+            on_click={
+              JS.push("toggle_student_id", value: %{"student_id" => student.id}, target: @myself)
+              |> JS.toggle_class("outline outline-4 outline-ltrn-dark", to: "##{dom_id}")
+            }
+          />
+        </div>
+        <div :if={@has_other_students_and_report_cards} class="mt-10">
+          <p class="font-display font-bold text-xl text-ltrn-subtle">
+            <%= gettext("Other students linked to this report card") %>
+          </p>
+          <div phx-update="stream" id="other-students-and-report-cards">
+            <.student_and_report_card_row
+              :for={
+                {dom_id, {student, student_report_card}} <- @streams.other_students_and_report_cards
+              }
+              id={dom_id}
+              report_card_id={@report_card.id}
+              student={student}
+              student_report_card={student_report_card}
+            />
           </div>
         </div>
       </.responsive_container>
@@ -162,6 +142,61 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     """
   end
 
+  attr :id, :string, required: true
+  attr :report_card_id, :string, required: true
+  attr :student, Student, required: true
+  attr :student_report_card, :any, required: true
+  attr :on_click, JS, default: nil
+
+  def student_and_report_card_row(assigns) do
+    ~H"""
+    <div
+      id={@id}
+      class={[
+        "flex items-center gap-4 p-4 rounded mt-4",
+        if(@student_report_card, do: "bg-white shadow-lg", else: "bg-ltrn-lighter")
+      ]}
+    >
+      <div class="flex-1 flex items-center gap-4">
+        <.profile_icon_with_name
+          theme={if @student_report_card, do: "cyan", else: "subtle"}
+          profile_name={@student.name}
+          extra_info={@student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
+          on_click={@on_click}
+        />
+      </div>
+      <div class="shrink-0 flex items-center gap-2">
+        <%= if @student_report_card do %>
+          <a
+            class={get_button_styles("ghost")}
+            href={~p"/student_report_card/#{@student_report_card.id}"}
+            target="_blank"
+          >
+            <%= gettext("Preview") %>
+          </a>
+          <.link
+            class={get_button_styles("ghost")}
+            patch={
+              ~p"/report_cards/#{@report_card_id}?tab=students&edit_student_report=#{@student_report_card.id}"
+            }
+          >
+            <%= gettext("Edit") %>
+          </.link>
+        <% else %>
+          <.link
+            class={get_button_styles("ghost")}
+            patch={
+              ~p"/report_cards/#{@report_card_id}?tab=students&create_student_report=#{@student.id}"
+            }
+          >
+            <%= gettext("Create") %>
+          </.link>
+        <% end %>
+      </div>
+    </div>
+    """
+  end
+
   # lifecycle
 
   @impl true
@@ -170,6 +205,10 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
       socket
       |> stream_configure(
         :students_and_report_cards,
+        dom_id: fn {student, _} -> "student-#{student.id}" end
+      )
+      |> stream_configure(
+        :other_students_and_report_cards,
         dom_id: fn {student, _} -> "student-#{student.id}" end
       )
       |> assign(:selected_students_ids, [])
@@ -223,7 +262,25 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         classes_ids: socket.assigns.classes_ids
       )
 
-    stream(socket, :students_and_report_cards, students_and_report_cards, reset: true)
+    students_ids =
+      students_and_report_cards
+      |> Enum.map(fn {student, _} -> student.id end)
+
+    # list all students linked to this report card
+    # and remove the ones already present in students_and_report_cards list
+    other_students_and_report_cards =
+      Reporting.list_students_for_report_card(
+        socket.assigns.report_card.id,
+        only_with_report: true
+      )
+      |> Enum.filter(fn {student, _} -> student.id not in students_ids end)
+
+    has_other_students_and_report_cards = length(other_students_and_report_cards) > 0
+
+    socket
+    |> stream(:students_and_report_cards, students_and_report_cards, reset: true)
+    |> stream(:other_students_and_report_cards, other_students_and_report_cards, reset: true)
+    |> assign(:has_other_students_and_report_cards, has_other_students_and_report_cards)
   end
 
   defp assign_show_student_report_card_form(socket, %{
