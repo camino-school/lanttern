@@ -4,6 +4,18 @@ defmodule LantternWeb.LiveComponentHelpers do
   """
 
   @doc """
+  Send notification to parent or component based on
+  `:notify_parent` and `:notify_component` assigns.
+  """
+  def notify(module, msg, %{notify_parent: true}),
+    do: send(self(), {module, msg})
+
+  def notify(module, msg, %{notify_component: %Phoenix.LiveComponent.CID{} = cid}),
+    do: Phoenix.LiveView.send_update(cid, action: {module, msg})
+
+  def notify(_module, _msg, _assigns), do: nil
+
+  @doc """
   Send notification to parent based on `:notify_parent` assign.
   """
   def notify_parent(module, msg, %{notify_parent: true}),

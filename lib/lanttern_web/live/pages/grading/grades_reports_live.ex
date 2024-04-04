@@ -1,14 +1,14 @@
 defmodule LantternWeb.GradesReportsLive do
   use LantternWeb, :live_view
 
-  alias Lanttern.Reporting
-  alias Lanttern.Reporting.GradesReport
+  alias Lanttern.GradesReports
+  alias Lanttern.GradesReports.GradesReport
 
   # local view components
   alias LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent
 
   # live components
-  alias LantternWeb.Reporting.GradesReportFormComponent
+  alias LantternWeb.GradesReports.GradesReportFormComponent
 
   # shared
   import LantternWeb.GradingComponents
@@ -19,7 +19,7 @@ defmodule LantternWeb.GradesReportsLive do
   @impl true
   def handle_params(params, _uri, socket) do
     grades_reports =
-      Reporting.list_grades_reports(
+      GradesReports.list_grades_reports(
         preloads: [scale: :ordinal_values],
         load_grid: true
       )
@@ -44,7 +44,7 @@ defmodule LantternWeb.GradesReportsLive do
   defp assign_show_grades_report_form(socket, %{"is_editing" => id}) do
     cond do
       String.match?(id, ~r/[0-9]+/) ->
-        case Reporting.get_grades_report(id) do
+        case GradesReports.get_grades_report(id) do
           %GradesReport{} = grades_report ->
             socket
             |> assign(:form_overlay_title, gettext("Edit grade report"))
@@ -66,7 +66,7 @@ defmodule LantternWeb.GradesReportsLive do
   defp assign_show_grades_report_grid_editor(socket, %{"is_editing_grid" => id}) do
     cond do
       String.match?(id, ~r/[0-9]+/) ->
-        case Reporting.get_grades_report(id) do
+        case GradesReports.get_grades_report(id) do
           %GradesReport{} = grades_report ->
             socket
             # |> assign(:form_overlay_title, gettext("Edit grade report"))
@@ -89,7 +89,7 @@ defmodule LantternWeb.GradesReportsLive do
 
   @impl true
   def handle_event("delete_grades_report", _params, socket) do
-    case Reporting.delete_grades_report(socket.assigns.grades_report) do
+    case GradesReports.delete_grades_report(socket.assigns.grades_report) do
       {:ok, _grades_report} ->
         socket =
           socket

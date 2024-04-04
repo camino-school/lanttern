@@ -2,7 +2,6 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.GradesReports
-  alias Lanttern.Reporting
   alias Lanttern.Schools
 
   import LantternWeb.PersonalizationHelpers
@@ -174,7 +173,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
       |> assign_new(:grades_report, fn %{report_card: report_card} ->
         case report_card.grades_report_id do
           nil -> nil
-          id -> Reporting.get_grades_report(id, load_grid: true)
+          id -> GradesReports.get_grades_report(id, load_grid: true)
         end
       end)
       |> assign_new(:current_grades_report_cycle, fn

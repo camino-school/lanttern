@@ -1,7 +1,7 @@
 defmodule LantternWeb.GradesReportsLiveTest do
   use LantternWeb.ConnCase
 
-  import Lanttern.ReportingFixtures
+  import Lanttern.GradesReportsFixtures
   alias Lanttern.SchoolsFixtures
   alias Lanttern.GradingFixtures
 

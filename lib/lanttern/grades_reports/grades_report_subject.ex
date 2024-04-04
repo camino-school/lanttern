@@ -1,11 +1,11 @@
-defmodule Lanttern.Reporting.GradesReportSubject do
+defmodule Lanttern.GradesReports.GradesReportSubject do
   use Ecto.Schema
   import Ecto.Changeset
 
   import LantternWeb.Gettext
 
+  alias Lanttern.GradesReports.GradesReport
   alias Lanttern.Taxonomy.Subject
-  alias Lanttern.Reporting.GradesReport
 
   @type t :: %__MODULE__{
           id: pos_integer(),

@@ -7,317 +7,133 @@ defmodule Lanttern.Grading do
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
 
-  alias Lanttern.Grading.Composition
-  alias Lanttern.Grading.CompositionComponent
-  alias Lanttern.Grading.CompositionComponentItem
+  alias Lanttern.Grading.GradeComponent
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Grading.Scale
 
   @doc """
-  Returns the list of compositions.
-  Optionally preloads associated data.
+  Returns the list of grade_components.
 
   ## Examples
 
-      iex> list_compositions()
-      [%Composition{}, ...]
+      iex> list_grade_components()
+      [%GradeComponent{}, ...]
 
   """
-  def list_compositions(preloads \\ []) do
-    Repo.all(Composition)
-    |> Repo.preload(preloads)
+  def list_grade_components do
+    Repo.all(GradeComponent)
   end
 
   @doc """
-  Gets a single composition.
-  Optionally preloads associated data.
+  Gets a single grade_component.
 
-  Raises `Ecto.NoResultsError` if the Composition does not exist.
+  Raises `Ecto.NoResultsError` if the Grade component does not exist.
 
   ## Examples
 
-      iex> get_composition!(123)
-      %Composition{}
+      iex> get_grade_component!(123)
+      %GradeComponent{}
 
-      iex> get_composition!(456)
+      iex> get_grade_component!(456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_composition!(id, preloads \\ []) do
-    Repo.get!(Composition, id)
-    |> Repo.preload(preloads)
-  end
+  def get_grade_component!(id), do: Repo.get!(GradeComponent, id)
 
   @doc """
-  Creates a composition.
+  Creates a grade_component.
 
   ## Examples
 
-      iex> create_composition(%{field: value})
-      {:ok, %Composition{}}
+      iex> create_grade_component(%{field: value})
+      {:ok, %GradeComponent{}}
 
-      iex> create_composition(%{field: bad_value})
+      iex> create_grade_component(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_composition(attrs \\ %{}) do
-    %Composition{}
-    |> Composition.changeset(attrs)
+  def create_grade_component(attrs \\ %{}) do
+    queryable =
+      case attrs do
+        %{report_card_id: report_card_id, subject_id: subject_id} ->
+          from(gc in GradeComponent,
+            where: gc.report_card_id == ^report_card_id and gc.subject_id == ^subject_id
+          )
+
+        %{"report_card_id" => report_card_id, "subject_id" => subject_id} ->
+          from(gc in GradeComponent,
+            where: gc.report_card_id == ^report_card_id and gc.subject_id == ^subject_id
+          )
+
+        _ ->
+          GradeComponent
+      end
+
+    attrs = set_position_in_attrs(queryable, attrs)
+
+    %GradeComponent{}
+    |> GradeComponent.changeset(attrs)
     |> Repo.insert()
   end
 
   @doc """
-  Updates a composition.
+  Updates a grade_component.
 
   ## Examples
 
-      iex> update_composition(composition, %{field: new_value})
-      {:ok, %Composition{}}
+      iex> update_grade_component(grade_component, %{field: new_value})
+      {:ok, %GradeComponent{}}
 
-      iex> update_composition(composition, %{field: bad_value})
+      iex> update_grade_component(grade_component, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_composition(%Composition{} = composition, attrs) do
-    composition
-    |> Composition.changeset(attrs)
+  def update_grade_component(%GradeComponent{} = grade_component, attrs) do
+    grade_component
+    |> GradeComponent.changeset(attrs)
     |> Repo.update()
   end
 
   @doc """
-  Deletes a composition.
+  Update grade components positions based on ids list order.
 
   ## Examples
 
-      iex> delete_composition(composition)
-      {:ok, %Composition{}}
+      iex> update_grade_components_positions([3, 2, 1])
+      :ok
 
-      iex> delete_composition(composition)
+  """
+  @spec update_grade_components_positions([integer()]) :: :ok | {:error, String.t()}
+  def update_grade_components_positions(grade_components_ids),
+    do: update_positions(GradeComponent, grade_components_ids)
+
+  @doc """
+  Deletes a grade_component.
+
+  ## Examples
+
+      iex> delete_grade_component(grade_component)
+      {:ok, %GradeComponent{}}
+
+      iex> delete_grade_component(grade_component)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_composition(%Composition{} = composition) do
-    Repo.delete(composition)
+  def delete_grade_component(%GradeComponent{} = grade_component) do
+    Repo.delete(grade_component)
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for tracking composition changes.
+  Returns an `%Ecto.Changeset{}` for tracking grade_component changes.
 
   ## Examples
 
-      iex> change_composition(composition)
-      %Ecto.Changeset{data: %Composition{}}
+      iex> change_grade_component(grade_component)
+      %Ecto.Changeset{data: %GradeComponent{}}
 
   """
-  def change_composition(%Composition{} = composition, attrs \\ %{}) do
-    Composition.changeset(composition, attrs)
-  end
-
-  @doc """
-  Returns the list of composition_components.
-  Optionally preloads associated data.
-
-  ## Examples
-
-      iex> list_composition_components()
-      [%CompositionComponent{}, ...]
-
-  """
-  def list_composition_components(preloads \\ []) do
-    Repo.all(CompositionComponent)
-    |> Repo.preload(preloads)
-  end
-
-  @doc """
-  Gets a single composition_component.
-  Optionally preloads associated data.
-
-  Raises `Ecto.NoResultsError` if the Composition component does not exist.
-
-  ## Examples
-
-      iex> get_composition_component!(123)
-      %CompositionComponent{}
-
-      iex> get_composition_component!(456)
-      ** (Ecto.NoResultsError)
-
-  """
-  def get_composition_component!(id, preloads \\ []) do
-    CompositionComponent
-    |> Repo.get!(id)
-    |> Repo.preload(preloads)
-  end
-
-  @doc """
-  Creates a composition_component.
-
-  ## Examples
-
-      iex> create_composition_component(%{field: value})
-      {:ok, %CompositionComponent{}}
-
-      iex> create_composition_component(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_composition_component(attrs \\ %{}) do
-    %CompositionComponent{}
-    |> CompositionComponent.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  @doc """
-  Updates a composition_component.
-
-  ## Examples
-
-      iex> update_composition_component(composition_component, %{field: new_value})
-      {:ok, %CompositionComponent{}}
-
-      iex> update_composition_component(composition_component, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_composition_component(%CompositionComponent{} = composition_component, attrs) do
-    composition_component
-    |> CompositionComponent.changeset(attrs)
-    |> Repo.update()
-  end
-
-  @doc """
-  Deletes a composition_component.
-
-  ## Examples
-
-      iex> delete_composition_component(composition_component)
-      {:ok, %CompositionComponent{}}
-
-      iex> delete_composition_component(composition_component)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete_composition_component(%CompositionComponent{} = composition_component) do
-    Repo.delete(composition_component)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking composition_component changes.
-
-  ## Examples
-
-      iex> change_composition_component(composition_component)
-      %Ecto.Changeset{data: %CompositionComponent{}}
-
-  """
-  def change_composition_component(%CompositionComponent{} = composition_component, attrs \\ %{}) do
-    CompositionComponent.changeset(composition_component, attrs)
-  end
-
-  @doc """
-  Returns the list of component_items.
-  Optionally preloads associated data.
-
-  ## Examples
-
-      iex> list_component_items()
-      [%CompositionComponentItem{}, ...]
-
-  """
-  def list_component_items(preloads \\ []) do
-    Repo.all(CompositionComponentItem)
-    |> Repo.preload(preloads)
-  end
-
-  @doc """
-  Gets a single composition_component_item.
-  Optionally preloads associated data.
-
-  Raises `Ecto.NoResultsError` if the Composition component item does not exist.
-
-  ## Examples
-
-      iex> get_composition_component_item!(123)
-      %CompositionComponentItem{}
-
-      iex> get_composition_component_item!(456)
-      ** (Ecto.NoResultsError)
-
-  """
-  def get_composition_component_item!(id, preloads \\ []) do
-    Repo.get!(CompositionComponentItem, id)
-    |> Repo.preload(preloads)
-  end
-
-  @doc """
-  Creates a composition_component_item.
-
-  ## Examples
-
-      iex> create_composition_component_item(%{field: value})
-      {:ok, %CompositionComponentItem{}}
-
-      iex> create_composition_component_item(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_composition_component_item(attrs \\ %{}) do
-    %CompositionComponentItem{}
-    |> CompositionComponentItem.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  @doc """
-  Updates a composition_component_item.
-
-  ## Examples
-
-      iex> update_composition_component_item(composition_component_item, %{field: new_value})
-      {:ok, %CompositionComponentItem{}}
-
-      iex> update_composition_component_item(composition_component_item, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_composition_component_item(
-        %CompositionComponentItem{} = composition_component_item,
-        attrs
-      ) do
-    composition_component_item
-    |> CompositionComponentItem.changeset(attrs)
-    |> Repo.update()
-  end
-
-  @doc """
-  Deletes a composition_component_item.
-
-  ## Examples
-
-      iex> delete_composition_component_item(composition_component_item)
-      {:ok, %CompositionComponentItem{}}
-
-      iex> delete_composition_component_item(composition_component_item)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete_composition_component_item(%CompositionComponentItem{} = composition_component_item) do
-    Repo.delete(composition_component_item)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking composition_component_item changes.
-
-  ## Examples
-
-      iex> change_composition_component_item(composition_component_item)
-      %Ecto.Changeset{data: %CompositionComponentItem{}}
-
-  """
-  def change_composition_component_item(
-        %CompositionComponentItem{} = composition_component_item,
-        attrs \\ %{}
-      ) do
-    CompositionComponentItem.changeset(composition_component_item, attrs)
+  def change_grade_component(%GradeComponent{} = grade_component, attrs \\ %{}) do
+    GradeComponent.changeset(grade_component, attrs)
   end
 
   @doc """

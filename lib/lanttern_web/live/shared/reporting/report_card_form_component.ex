@@ -2,7 +2,7 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Reporting
-  alias LantternWeb.ReportingHelpers
+  alias LantternWeb.GradesReportsHelpers
   alias LantternWeb.SchoolsHelpers
   alias LantternWeb.SupabaseHelpers
   alias LantternWeb.TaxonomyHelpers
@@ -81,7 +81,7 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
   def mount(socket) do
     cycle_options = SchoolsHelpers.generate_cycle_options()
     year_options = TaxonomyHelpers.generate_year_options()
-    grades_report_options = ReportingHelpers.generate_grades_report_options()
+    grades_report_options = GradesReportsHelpers.generate_grades_report_options()
 
     socket =
       socket

@@ -1,11 +1,11 @@
-defmodule Lanttern.Reporting.GradesReport do
+defmodule Lanttern.GradesReports.GradesReport do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.GradesReports.GradesReportCycle
+  alias Lanttern.GradesReports.GradesReportSubject
   alias Lanttern.Grading.Scale
   alias Lanttern.Schools.Cycle
-  alias Lanttern.Reporting.GradesReportCycle
-  alias Lanttern.Reporting.GradesReportSubject
 
   @type t :: %__MODULE__{
           id: pos_integer(),

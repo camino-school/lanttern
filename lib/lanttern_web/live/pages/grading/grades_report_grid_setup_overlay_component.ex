@@ -1,10 +1,10 @@
 defmodule LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent do
   use LantternWeb, :live_component
 
-  alias Lanttern.Reporting
-  alias Lanttern.Reporting.GradesReportCycle
+  alias Lanttern.GradesReports
   alias Lanttern.Schools
   alias Lanttern.Taxonomy
+  alias Lanttern.GradesReports.GradesReportCycle
 
   import Lanttern.Utils, only: [swap: 3]
 
@@ -141,11 +141,11 @@ defmodule LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent do
       Schools.list_cycles()
       |> Enum.filter(&(&1.id != grades_report.school_cycle_id))
 
-    grades_report_cycles = Reporting.list_grades_report_cycles(grades_report.id)
+    grades_report_cycles = GradesReports.list_grades_report_cycles(grades_report.id)
     selected_cycles_ids = grades_report_cycles |> Enum.map(& &1.school_cycle_id)
 
     subjects = Taxonomy.list_subjects()
-    grades_report_subjects = Reporting.list_grades_report_subjects(grades_report.id)
+    grades_report_subjects = GradesReports.list_grades_report_subjects(grades_report.id)
     selected_subjects_ids = grades_report_subjects |> Enum.map(& &1.subject.id)
     sortable_grades_report_subjects = grades_report_subjects |> Enum.with_index()
 
@@ -200,7 +200,7 @@ defmodule LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent do
 
     sortable_grades_report_subjects
     |> Enum.map(fn {grade_subject, _i} -> grade_subject.id end)
-    |> Reporting.update_grades_report_subjects_positions()
+    |> GradesReports.update_grades_report_subjects_positions()
     |> case do
       :ok ->
         socket =
@@ -236,7 +236,7 @@ defmodule LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent do
           acc
       end)
 
-    Reporting.update_grades_report_cycle(grades_report_cycle, %{weight: weight})
+    GradesReports.update_grades_report_cycle(grades_report_cycle, %{weight: weight})
     |> case do
       {:ok, _grades_report_cycle} ->
         {:noreply, socket}
@@ -252,11 +252,11 @@ defmodule LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent do
       grades_report_id: socket.assigns.grades_report.id,
       school_cycle_id: cycle_id
     }
-    |> Reporting.add_cycle_to_grades_report()
+    |> GradesReports.add_cycle_to_grades_report()
     |> case do
       {:ok, _grades_report_cycle} ->
         grades_report_cycles =
-          Reporting.list_grades_report_cycles(socket.assigns.grades_report.id)
+          GradesReports.list_grades_report_cycles(socket.assigns.grades_report.id)
 
         selected_cycles_ids = grades_report_cycles |> Enum.map(& &1.school_cycle_id)
 
@@ -272,7 +272,7 @@ defmodule LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent do
   defp remove_grades_report_cycle(socket, cycle_id) do
     socket.assigns.grades_report_cycles
     |> Enum.find(&(&1.school_cycle_id == cycle_id))
-    |> Reporting.delete_grades_report_cycle()
+    |> GradesReports.delete_grades_report_cycle()
     |> case do
       {:ok, _grades_report_cycle} ->
         grades_report_cycles =
@@ -297,7 +297,7 @@ defmodule LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent do
       grades_report_id: socket.assigns.grades_report.id,
       subject_id: subject_id
     }
-    |> Reporting.add_subject_to_grades_report()
+    |> GradesReports.add_subject_to_grades_report()
     |> case do
       {:ok, grades_report_subject} ->
         sortable_grades_report_subjects =
@@ -319,7 +319,7 @@ defmodule LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent do
   defp remove_grades_report_subject(socket, grades_report_subjects, subject_id) do
     grades_report_subjects
     |> Enum.find(&(&1.subject_id == subject_id))
-    |> Reporting.delete_grades_report_subject()
+    |> GradesReports.delete_grades_report_subject()
     |> case do
       {:ok, grades_report_subject} ->
         sortable_grades_report_subjects =

@@ -161,9 +161,6 @@ defmodule LantternWeb.Router do
     resources "/curriculum_relationships", CurriculumRelationshipController
 
     # Grading context
-    resources "/grading_compositions", CompositionController
-    resources "/grading_composition_components", CompositionComponentController
-    resources "/grading_component_items", CompositionComponentItemController
     resources "/ordinal_values", OrdinalValueController
     resources "/scales", ScaleController
 

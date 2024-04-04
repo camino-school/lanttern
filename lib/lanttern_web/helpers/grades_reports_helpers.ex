@@ -1,5 +1,5 @@
-defmodule LantternWeb.ReportingHelpers do
-  alias Lanttern.Reporting
+defmodule LantternWeb.GradesReportsHelpers do
+  alias Lanttern.GradesReports
 
   @doc """
   Generate list of grades reports to use as `Phoenix.HTML.Form.options_for_select/2` arg
@@ -10,7 +10,7 @@ defmodule LantternWeb.ReportingHelpers do
       ["grades report name": 1, ...]
   """
   def generate_grades_report_options() do
-    Reporting.list_grades_reports()
+    GradesReports.list_grades_reports()
     |> Enum.map(fn gr -> {gr.name, gr.id} end)
   end
 end

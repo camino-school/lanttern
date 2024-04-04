@@ -4,60 +4,22 @@ defmodule Lanttern.GradingFixtures do
   entities via the `Lanttern.Grading` context.
   """
 
-  alias Lanttern.CurriculaFixtures
-
   @doc """
-  Generate a composition.
+  Generate a grade_component.
   """
-  def composition_fixture(attrs \\ %{}) do
-    scale = scale_fixture()
-
-    {:ok, composition} =
+  def grade_component_fixture(attrs \\ %{}) do
+    {:ok, grade_component} =
       attrs
       |> Enum.into(%{
-        name: "some name",
-        final_grade_scale_id: scale.id
-      })
-      |> Lanttern.Grading.create_composition()
-
-    composition
-  end
-
-  @doc """
-  Generate a composition_component.
-  """
-  def composition_component_fixture(attrs \\ %{}) do
-    composition = composition_fixture()
-
-    {:ok, composition_component} =
-      attrs
-      |> Enum.into(%{
-        name: "some name",
+        position: 42,
         weight: 120.5,
-        composition_id: composition.id
+        report_card_id: Lanttern.ReportingFixtures.maybe_gen_report_card_id(attrs),
+        assessment_point_id: Lanttern.AssessmentsFixtures.maybe_gen_assessment_point_id(attrs),
+        subject_id: Lanttern.TaxonomyFixtures.maybe_gen_subject_id(attrs)
       })
-      |> Lanttern.Grading.create_composition_component()
+      |> Lanttern.Grading.create_grade_component()
 
-    composition_component
-  end
-
-  @doc """
-  Generate a composition_component_item.
-  """
-  def composition_component_item_fixture(attrs \\ %{}) do
-    component = composition_component_fixture()
-    curriculum_item = CurriculaFixtures.curriculum_item_fixture()
-
-    {:ok, composition_component_item} =
-      attrs
-      |> Enum.into(%{
-        weight: 120.5,
-        component_id: component.id,
-        curriculum_item_id: curriculum_item.id
-      })
-      |> Lanttern.Grading.create_composition_component_item()
-
-    composition_component_item
+    grade_component
   end
 
   @doc """

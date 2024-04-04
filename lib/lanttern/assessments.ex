@@ -327,7 +327,23 @@ defmodule Lanttern.Assessments do
   @doc """
   Gets a single assessment_point_entry.
 
-  Raises `Ecto.NoResultsError` if the Assessment point entry does not exist.
+  Returns `nil` if the Assessment point entry does not exist.
+
+  ## Examples
+
+      iex> get_assessment_point_entry(123)
+      %AssessmentPointEntry{}
+
+      iex> get_assessment_point_entry(456)
+      nil
+
+  """
+  def get_assessment_point_entry(id), do: Repo.get(AssessmentPointEntry, id)
+
+  @doc """
+  Gets a single assessment_point_entry.
+
+  Same as `get_assessment_point_entry/1`, but raises `Ecto.NoResultsError` if the Assessment point entry does not exist.
 
   ## Examples
 

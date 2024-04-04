@@ -9,10 +9,10 @@ defmodule LantternWeb.ReportingComponents do
   import LantternWeb.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.GradesReports.GradesReport
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Grading.Scale
   alias Lanttern.Reporting.ReportCard
-  alias Lanttern.Reporting.GradesReport
   alias Lanttern.Rubrics.Rubric
   alias Lanttern.Schools.Cycle
   alias Lanttern.Taxonomy.Year

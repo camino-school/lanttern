@@ -80,7 +80,7 @@ defmodule LantternWeb.StudentReportCardLive do
       |> assign_new(:grades_report, fn %{student_report_card: student_report_card} ->
         case student_report_card.report_card.grades_report_id do
           nil -> nil
-          id -> Reporting.get_grades_report(id, load_grid: true)
+          id -> GradesReports.get_grades_report(id, load_grid: true)
         end
       end)
       |> assign_new(:student_grades_map, fn %{student_report_card: student_report_card} ->

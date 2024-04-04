@@ -390,26 +390,3 @@ Repo.insert!(%Assessments.AssessmentPointEntry{
   scale_id: camino_levels_scale.id,
   scale_type: camino_levels_scale.type
 })
-
-# ------------------------------
-# grade compositions
-# ------------------------------
-
-english_grade_composition =
-  Repo.insert!(%Grading.Composition{
-    name: "English G5 2023Q3",
-    final_grade_scale_id: letter_grade_scale.id
-  })
-
-english_grade_composition_component =
-  Repo.insert!(%Grading.CompositionComponent{
-    name: "Learning objectives",
-    weight: 1.0,
-    composition_id: english_grade_composition.id
-  })
-
-Repo.insert!(%Grading.CompositionComponentItem{
-  component_id: english_grade_composition_component.id,
-  curriculum_item_id: en_lo.id,
-  weight: 1.0
-})

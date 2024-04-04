@@ -1,9 +1,11 @@
 defmodule LantternWeb.ReportCardLive.GradesComponent do
-  alias Lanttern.Reporting.GradesReport
   use LantternWeb, :live_component
 
+  alias Lanttern.GradesReports
+  alias Lanttern.Grading
   alias Lanttern.Reporting
-  alias Lanttern.Reporting.GradeComponent
+  alias Lanttern.GradesReports.GradesReport
+  alias Lanttern.Grading.GradeComponent
 
   import Lanttern.Utils, only: [swap: 3]
 
@@ -215,7 +217,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
       |> assign_new(:grades_report, fn %{report_card: report_card} ->
         case report_card.grades_report_id do
           nil -> nil
-          id -> Reporting.get_grades_report(id, load_grid: true)
+          id -> GradesReports.get_grades_report(id, load_grid: true)
         end
       end)
       |> assign_is_editing_grade_composition(assigns)
@@ -280,7 +282,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
       assessment_point_id: id,
       subject_id: subject_id
     }
-    |> Reporting.create_grade_component()
+    |> Grading.create_grade_component()
     |> case do
       {:ok, _grade_component} ->
         grade_components =
@@ -308,7 +310,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
     socket.assigns.indexed_grade_components
     |> Enum.map(fn {grade_component, _i} -> grade_component end)
     |> Enum.find(&("#{&1.id}" == id))
-    |> Reporting.update_grade_component(params)
+    |> Grading.update_grade_component(params)
     |> case do
       {:ok, _grades_component} ->
         {:noreply, socket}
@@ -323,7 +325,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
     socket.assigns.indexed_grade_components
     |> Enum.map(fn {grade_component, _i} -> grade_component end)
     |> Enum.find(&(&1.id == id))
-    |> Reporting.delete_grade_component()
+    |> Grading.delete_grade_component()
     |> case do
       {:ok, _grade_component} ->
         indexed_grade_components =
@@ -358,7 +360,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
 
     indexed_grade_components
     |> Enum.map(fn {grade_component, _i} -> grade_component.id end)
-    |> Reporting.update_grade_components_positions()
+    |> Grading.update_grade_components_positions()
     |> case do
       :ok ->
         socket =

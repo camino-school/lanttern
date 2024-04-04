@@ -3,292 +3,125 @@ defmodule Lanttern.GradingTest do
 
   alias Lanttern.Grading
 
-  describe "compositions" do
-    alias Lanttern.Grading.Composition
+  describe "grade_components" do
+    alias Lanttern.Grading.GradeComponent
 
     import Lanttern.GradingFixtures
+    alias Lanttern.ReportingFixtures
 
-    @invalid_attrs %{name: nil}
+    @invalid_attrs %{position: nil, weight: nil}
 
-    test "list_compositions/1 returns all compositions" do
-      composition = composition_fixture()
-      assert Grading.list_compositions() == [composition]
+    test "list_grade_components/0 returns all grade_components" do
+      grade_component = grade_component_fixture()
+      assert Grading.list_grade_components() == [grade_component]
     end
 
-    test "list_compositions/1 with prealoads returns all compositions with preloaded data" do
-      scale = scale_fixture()
-
-      composition =
-        composition_fixture(%{final_grade_scale_id: scale.id})
-        |> Map.put(:final_grade_scale, scale)
-
-      assert Grading.list_compositions(:final_grade_scale) == [composition]
+    test "get_grade_component!/1 returns the grade_component with given id" do
+      grade_component = grade_component_fixture()
+      assert Grading.get_grade_component!(grade_component.id) == grade_component
     end
 
-    test "get_composition!/2 returns the composition with given id" do
-      composition = composition_fixture()
-      assert Grading.get_composition!(composition.id) == composition
-    end
-
-    test "get_composition!/2 with preloads returns the composition with given id and preloaded data" do
-      scale = scale_fixture()
-
-      composition =
-        composition_fixture(%{final_grade_scale_id: scale.id})
-        |> Map.put(:final_grade_scale, scale)
-
-      assert Grading.get_composition!(composition.id, :final_grade_scale) == composition
-    end
-
-    test "create_composition/1 with valid data creates a composition" do
-      scale = scale_fixture()
-      valid_attrs = %{name: "some name", final_grade_scale_id: scale.id}
-
-      assert {:ok, %Composition{} = composition} = Grading.create_composition(valid_attrs)
-      assert composition.name == "some name"
-      assert composition.final_grade_scale_id == scale.id
-    end
-
-    test "create_composition/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Grading.create_composition(@invalid_attrs)
-    end
-
-    test "update_composition/2 with valid data updates the composition" do
-      composition = composition_fixture()
-      update_attrs = %{name: "some updated name"}
-
-      assert {:ok, %Composition{} = composition} =
-               Grading.update_composition(composition, update_attrs)
-
-      assert composition.name == "some updated name"
-    end
-
-    test "update_composition/2 with invalid data returns error changeset" do
-      composition = composition_fixture()
-      assert {:error, %Ecto.Changeset{}} = Grading.update_composition(composition, @invalid_attrs)
-      assert composition == Grading.get_composition!(composition.id)
-    end
-
-    test "delete_composition/1 deletes the composition" do
-      composition = composition_fixture()
-      assert {:ok, %Composition{}} = Grading.delete_composition(composition)
-      assert_raise Ecto.NoResultsError, fn -> Grading.get_composition!(composition.id) end
-    end
-
-    test "change_composition/1 returns a composition changeset" do
-      composition = composition_fixture()
-      assert %Ecto.Changeset{} = Grading.change_composition(composition)
-    end
-  end
-
-  describe "composition_components" do
-    alias Lanttern.Grading.CompositionComponent
-
-    import Lanttern.GradingFixtures
-
-    @invalid_attrs %{name: nil, weight: nil}
-
-    test "list_composition_components/1 returns all composition_components" do
-      composition_component = composition_component_fixture()
-      assert Grading.list_composition_components() == [composition_component]
-    end
-
-    test "list_composition_components/1 with preloads returns all composition_components with preloaded data" do
-      composition = composition_fixture()
-
-      composition_component =
-        composition_component_fixture(%{composition_id: composition.id})
-        |> Map.put(:composition, composition)
-
-      assert Grading.list_composition_components(:composition) == [composition_component]
-    end
-
-    test "get_composition_component!/2 returns the composition_component with given id" do
-      composition_component = composition_component_fixture()
-      assert Grading.get_composition_component!(composition_component.id) == composition_component
-    end
-
-    test "get_composition_component!/2 with preloads returns the composition_component with given id and preloaded data" do
-      composition = composition_fixture()
-
-      composition_component =
-        composition_component_fixture(%{composition_id: composition.id})
-        |> Map.put(:composition, composition)
-
-      assert Grading.get_composition_component!(composition_component.id, :composition) ==
-               composition_component
-    end
-
-    test "create_composition_component/1 with valid data creates a composition_component" do
-      composition = composition_fixture()
-      valid_attrs = %{name: "some name", weight: 120.5, composition_id: composition.id}
-
-      assert {:ok, %CompositionComponent{} = composition_component} =
-               Grading.create_composition_component(valid_attrs)
-
-      assert composition_component.name == "some name"
-      assert composition_component.weight == 120.5
-      assert composition_component.composition_id == composition.id
-    end
-
-    test "create_composition_component/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Grading.create_composition_component(@invalid_attrs)
-    end
-
-    test "update_composition_component/2 with valid data updates the composition_component" do
-      composition_component = composition_component_fixture()
-      update_attrs = %{name: "some updated name", weight: 456.7}
-
-      assert {:ok, %CompositionComponent{} = composition_component} =
-               Grading.update_composition_component(composition_component, update_attrs)
-
-      assert composition_component.name == "some updated name"
-      assert composition_component.weight == 456.7
-    end
-
-    test "update_composition_component/2 with invalid data returns error changeset" do
-      composition_component = composition_component_fixture()
-
-      assert {:error, %Ecto.Changeset{}} =
-               Grading.update_composition_component(composition_component, @invalid_attrs)
-
-      assert composition_component == Grading.get_composition_component!(composition_component.id)
-    end
-
-    test "delete_composition_component/1 deletes the composition_component" do
-      composition_component = composition_component_fixture()
-
-      assert {:ok, %CompositionComponent{}} =
-               Grading.delete_composition_component(composition_component)
-
-      assert_raise Ecto.NoResultsError, fn ->
-        Grading.get_composition_component!(composition_component.id)
-      end
-    end
-
-    test "change_composition_component/1 returns a composition_component changeset" do
-      composition_component = composition_component_fixture()
-      assert %Ecto.Changeset{} = Grading.change_composition_component(composition_component)
-    end
-  end
-
-  describe "component_items" do
-    alias Lanttern.Grading.CompositionComponentItem
-
-    import Lanttern.GradingFixtures
-    alias Lanttern.CurriculaFixtures
-
-    @invalid_attrs %{weight: nil}
-
-    test "list_component_items/1 returns all component_items" do
-      composition_component_item = composition_component_item_fixture()
-      assert Grading.list_component_items() == [composition_component_item]
-    end
-
-    test "list_component_items/1 with preloads returns all component_items with preloaded data" do
-      component = composition_component_fixture()
-      curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
-
-      composition_component_item =
-        composition_component_item_fixture(%{
-          component_id: component.id,
-          curriculum_item_id: curriculum_item.id
-        })
-        |> Map.put(:component, component)
-        |> Map.put(:curriculum_item, curriculum_item)
-
-      assert Grading.list_component_items([:component, :curriculum_item]) ==
-               [composition_component_item]
-    end
-
-    test "get_composition_component_item!/2 returns the composition_component_item with given id" do
-      composition_component_item = composition_component_item_fixture()
-
-      assert Grading.get_composition_component_item!(composition_component_item.id) ==
-               composition_component_item
-    end
-
-    test "get_composition_component_item!/2 with preloads returns the composition_component_item with given id and preloaded data" do
-      component = composition_component_fixture()
-      curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
-
-      composition_component_item =
-        composition_component_item_fixture(%{
-          component_id: component.id,
-          curriculum_item_id: curriculum_item.id
-        })
-        |> Map.put(:component, component)
-        |> Map.put(:curriculum_item, curriculum_item)
-
-      assert Grading.get_composition_component_item!(
-               composition_component_item.id,
-               [:component, :curriculum_item]
-             ) ==
-               composition_component_item
-    end
-
-    test "create_composition_component_item/1 with valid data creates a composition_component_item" do
-      component = composition_component_fixture()
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+    test "create_grade_component/1 with valid data creates a grade_component" do
+      report_card = ReportingFixtures.report_card_fixture()
+      assessment_point = Lanttern.AssessmentsFixtures.assessment_point_fixture()
+      subject = Lanttern.TaxonomyFixtures.subject_fixture()
 
       valid_attrs = %{
         weight: 120.5,
-        component_id: component.id,
-        curriculum_item_id: curriculum_item.id
+        report_card_id: report_card.id,
+        assessment_point_id: assessment_point.id,
+        subject_id: subject.id
       }
 
-      assert {:ok, %CompositionComponentItem{} = composition_component_item} =
-               Grading.create_composition_component_item(valid_attrs)
+      assert {:ok, %GradeComponent{} = grade_component} =
+               Grading.create_grade_component(valid_attrs)
 
-      assert composition_component_item.weight == 120.5
-      assert composition_component_item.component_id == component.id
-      assert composition_component_item.curriculum_item_id == curriculum_item.id
+      assert grade_component.weight == 120.5
+      assert grade_component.report_card_id == report_card.id
+      assert grade_component.assessment_point_id == assessment_point.id
+      assert grade_component.subject_id == subject.id
     end
 
-    test "create_composition_component_item/1 with invalid data returns error changeset" do
+    test "create_grade_component/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Grading.create_grade_component(@invalid_attrs)
+    end
+
+    test "update_grade_component/2 with valid data updates the grade_component" do
+      grade_component = grade_component_fixture()
+      update_attrs = %{position: 43, weight: 456.7}
+
+      assert {:ok, %GradeComponent{} = grade_component} =
+               Grading.update_grade_component(grade_component, update_attrs)
+
+      assert grade_component.position == 43
+      assert grade_component.weight == 456.7
+    end
+
+    test "update_grade_component/2 with invalid data returns error changeset" do
+      grade_component = grade_component_fixture()
+
       assert {:error, %Ecto.Changeset{}} =
-               Grading.create_composition_component_item(@invalid_attrs)
+               Grading.update_grade_component(grade_component, @invalid_attrs)
+
+      assert grade_component == Grading.get_grade_component!(grade_component.id)
     end
 
-    test "update_composition_component_item/2 with valid data updates the composition_component_item" do
-      composition_component_item = composition_component_item_fixture()
-      update_attrs = %{weight: 456.7}
+    test "update_grade_components_positions/1 update grade components positions based on list order" do
+      report_card = ReportingFixtures.report_card_fixture()
+      subject = Lanttern.TaxonomyFixtures.subject_fixture()
 
-      assert {:ok, %CompositionComponentItem{} = composition_component_item} =
-               Grading.update_composition_component_item(composition_component_item, update_attrs)
+      grade_component_1 =
+        grade_component_fixture(%{
+          report_card_id: report_card.id,
+          subject_id: subject.id
+        })
 
-      assert composition_component_item.weight == 456.7
+      grade_component_2 =
+        grade_component_fixture(%{
+          report_card_id: report_card.id,
+          subject_id: subject.id
+        })
+
+      grade_component_3 =
+        grade_component_fixture(%{
+          report_card_id: report_card.id,
+          subject_id: subject.id
+        })
+
+      grade_component_4 =
+        grade_component_fixture(%{
+          report_card_id: report_card.id,
+          subject_id: subject.id
+        })
+
+      sorted_grade_components_ids =
+        [
+          grade_component_2.id,
+          grade_component_3.id,
+          grade_component_1.id,
+          grade_component_4.id
+        ]
+
+      assert :ok == Grading.update_grade_components_positions(sorted_grade_components_ids)
+
+      assert Grading.get_grade_component!(grade_component_2.id).position == 0
+      assert Grading.get_grade_component!(grade_component_3.id).position == 1
+      assert Grading.get_grade_component!(grade_component_1.id).position == 2
+      assert Grading.get_grade_component!(grade_component_4.id).position == 3
     end
 
-    test "update_composition_component_item/2 with invalid data returns error changeset" do
-      composition_component_item = composition_component_item_fixture()
-
-      assert {:error, %Ecto.Changeset{}} =
-               Grading.update_composition_component_item(
-                 composition_component_item,
-                 @invalid_attrs
-               )
-
-      assert composition_component_item ==
-               Grading.get_composition_component_item!(composition_component_item.id)
-    end
-
-    test "delete_composition_component_item/1 deletes the composition_component_item" do
-      composition_component_item = composition_component_item_fixture()
-
-      assert {:ok, %CompositionComponentItem{}} =
-               Grading.delete_composition_component_item(composition_component_item)
+    test "delete_grade_component/1 deletes the grade_component" do
+      grade_component = grade_component_fixture()
+      assert {:ok, %GradeComponent{}} = Grading.delete_grade_component(grade_component)
 
       assert_raise Ecto.NoResultsError, fn ->
-        Grading.get_composition_component_item!(composition_component_item.id)
+        Grading.get_grade_component!(grade_component.id)
       end
     end
 
-    test "change_composition_component_item/1 returns a composition_component_item changeset" do
-      composition_component_item = composition_component_item_fixture()
-
-      assert %Ecto.Changeset{} =
-               Grading.change_composition_component_item(composition_component_item)
+    test "change_grade_component/1 returns a grade_component changeset" do
+      grade_component = grade_component_fixture()
+      assert %Ecto.Changeset{} = Grading.change_grade_component(grade_component)
     end
   end
 
