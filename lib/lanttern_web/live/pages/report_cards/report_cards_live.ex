@@ -26,6 +26,7 @@ defmodule LantternWeb.ReportCardsLive do
           _ -> ""
         end
       )
+      |> assign(:page_title, gettext("Report cards"))
 
     {:ok, socket}
   end

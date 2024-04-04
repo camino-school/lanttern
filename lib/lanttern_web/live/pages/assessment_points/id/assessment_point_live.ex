@@ -256,6 +256,7 @@ defmodule LantternWeb.AssessmentPointLive do
           |> assign(:entries, entries)
           |> assign(:ordinal_values, ordinal_values)
           |> assign(:is_updating, false)
+          |> assign(:page_title, assessment_point.name || gettext("Assessment point"))
 
         {:ok, socket}
     end

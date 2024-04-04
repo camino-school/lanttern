@@ -105,6 +105,7 @@ defmodule LantternWeb.DashboardLive do
       |> assign(:filter_view_count, filter_view_count)
       |> assign(:current_filter_view_id, nil)
       |> assign(:show_filter_view_overlay, false)
+      |> assign(:page_title, gettext("Dashboard"))
 
     {:ok, socket}
   end

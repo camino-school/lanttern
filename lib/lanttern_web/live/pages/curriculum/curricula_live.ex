@@ -8,6 +8,7 @@ defmodule LantternWeb.CurriculaLive do
     socket =
       socket
       |> stream(:curricula, Curricula.list_curricula())
+      |> assign(:page_title, gettext("Curriculum"))
 
     {:ok, socket}
   end

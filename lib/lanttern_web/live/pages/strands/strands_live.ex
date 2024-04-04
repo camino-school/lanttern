@@ -49,6 +49,7 @@ defmodule LantternWeb.StrandsLive do
       )
       |> assign(:is_creating_strand, false)
       |> stream_strands()
+      |> assign(:page_title, gettext("Strands"))
 
     {:ok, socket}
   end
