@@ -423,7 +423,8 @@ defmodule Lanttern.Reporting do
 
   ## Options
 
-      - `:classes_ids` - filter results by given classes
+  - `:classes_ids` - filter results by given classes
+  - `:only_with_report` - boolean, remove students without linked reports from results
 
   ## Examples
 
@@ -441,6 +442,7 @@ defmodule Lanttern.Reporting do
       as: :class,
       left_join: sr in StudentReportCard,
       on: sr.student_id == s.id and sr.report_card_id == ^report_card_id,
+      as: :student_report_card,
       select: {s, sr},
       preload: [classes: c],
       order_by: [asc: c.name, asc: s.name]
@@ -456,6 +458,14 @@ defmodule Lanttern.Reporting do
     from(
       [s, class: c] in queryable,
       where: c.id in ^classes_ids
+    )
+    |> apply_list_students_for_report_card_opts(opts)
+  end
+
+  defp apply_list_students_for_report_card_opts(queryable, [{:only_with_report, true} | opts]) do
+    from(
+      [s, student_report_card: src] in queryable,
+      where: not is_nil(src)
     )
     |> apply_list_students_for_report_card_opts(opts)
   end
@@ -496,6 +506,29 @@ defmodule Lanttern.Reporting do
     StudentReportCard
     |> Repo.get!(id)
     |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single student report card by student and report card id.
+
+  Returns `nil` if the Student report card does not exist.
+
+  ## Examples
+
+      iex> get_student_report_card_by_student_and_parent_report(123, 123)
+      %StudentReportCard{}
+
+      iex> get_student_report_card_by_student_and_parent_report(456, 456)
+      nil
+
+  """
+  @spec get_student_report_card_by_student_and_parent_report(
+          student_id :: non_neg_integer(),
+          report_card_id :: non_neg_integer()
+        ) :: StudentReportCard.t()
+  def get_student_report_card_by_student_and_parent_report(student_id, report_card_id) do
+    StudentReportCard
+    |> Repo.get_by(student_id: student_id, report_card_id: report_card_id)
   end
 
   @doc """
@@ -620,6 +653,7 @@ defmodule Lanttern.Reporting do
 
     strand_reports
     |> Enum.map(&{&1, Map.get(ast_entries_map, &1.id, [])})
+    |> Enum.filter(fn {_strand_report, entries} -> entries != [] end)
   end
 
   @doc """

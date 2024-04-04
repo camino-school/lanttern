@@ -16,6 +16,7 @@ defmodule LantternWeb.RubricsLive do
       socket
       |> stream(:rubrics, rubrics)
       |> assign(:results, results)
+      |> assign(:page_title, gettext("Rubrics"))
 
     {:ok, socket}
   end

@@ -28,6 +28,13 @@ defmodule LantternWeb.CurriculumComponentLive do
       |> stream_curriculum_items()
       |> assign_show_curriculum_item_form(params)
 
+    component = socket.assigns.curriculum_component
+    page_title = "#{component.name} • #{component.curriculum.name}"
+
+    socket =
+      socket
+      |> assign(:page_title, page_title)
+
     {:noreply, socket}
   end
 

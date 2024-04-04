@@ -83,6 +83,7 @@ defmodule LantternWeb.StrandLive do
           :cover_image_url,
           object_url_to_render_url(strand.cover_image_url, width: 1280, height: 640)
         )
+        |> assign(:page_title, strand.name)
     end
   end
 

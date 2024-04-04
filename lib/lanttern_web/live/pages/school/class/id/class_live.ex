@@ -22,6 +22,7 @@ defmodule LantternWeb.ClassLive do
         socket
         |> assign(:class_name, class.name)
         |> stream(:students, class.students)
+        |> assign(:page_title, class.name)
     end
   end
 

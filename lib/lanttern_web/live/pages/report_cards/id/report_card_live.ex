@@ -43,7 +43,7 @@ defmodule LantternWeb.ReportCardLive do
       |> assign_current_tab(params)
       |> assign_is_editing(params)
 
-    {:noreply, socket}
+    {:noreply, assign(socket, :page_title, socket.assigns.report_card.name)}
   end
 
   defp assign_current_tab(socket, %{"tab" => tab}),

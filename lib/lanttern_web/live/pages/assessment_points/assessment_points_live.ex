@@ -105,6 +105,10 @@ defmodule LantternWeb.AssessmentPointsLive do
   # lifecycle
 
   def mount(_params, _session, socket) do
+    socket =
+      socket
+      |> assign(:page_title, gettext("Assessment points explorer"))
+
     {:ok, socket, temporary_assigns: [assessment_points: []]}
   end
 

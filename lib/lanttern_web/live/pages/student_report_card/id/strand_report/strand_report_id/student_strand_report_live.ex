@@ -69,12 +69,16 @@ defmodule LantternWeb.StudentStrandReportLive do
         height: 640
       )
 
+    page_title =
+      "#{strand_report.strand.name} • #{student_report_card.student.name} • #{student_report_card.report_card.name}"
+
     socket =
       socket
       |> assign(:student_report_card, student_report_card)
       |> assign(:strand_report, strand_report)
       |> assign(:strand_goals_student_entries, strand_goals_student_entries)
       |> assign(:cover_image_url, cover_image_url)
+      |> assign(:page_title, page_title)
 
     {:noreply, socket}
   end

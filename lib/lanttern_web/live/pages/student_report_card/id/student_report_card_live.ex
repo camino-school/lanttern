@@ -38,6 +38,8 @@ defmodule LantternWeb.StudentReportCardLive do
         ]
       )
 
+    page_title = "#{student_report_card.student.name} • #{student_report_card.report_card.name}"
+
     cover_image_url =
       object_url_to_render_url(
         student_report_card.cover_image_url || student_report_card.report_card.cover_image_url,
@@ -87,6 +89,7 @@ defmodule LantternWeb.StudentReportCardLive do
         GradesReports.build_student_grades_map(student_report_card.id)
       end)
       |> assign_is_showing_grade_details(params)
+      |> assign(:page_title, page_title)
 
     {:noreply, socket}
   end
