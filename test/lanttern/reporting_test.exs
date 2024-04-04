@@ -521,6 +521,7 @@ defmodule Lanttern.ReportingTest do
 
       subject_1 = TaxonomyFixtures.subject_fixture()
       subject_2 = TaxonomyFixtures.subject_fixture()
+      subject_3 = TaxonomyFixtures.subject_fixture()
       year = TaxonomyFixtures.year_fixture()
 
       strand_1 =
@@ -532,6 +533,12 @@ defmodule Lanttern.ReportingTest do
       strand_2 =
         LearningContextFixtures.strand_fixture(%{
           subjects_ids: [subject_2.id],
+          years_ids: [year.id]
+        })
+
+      strand_3 =
+        LearningContextFixtures.strand_fixture(%{
+          subjects_ids: [subject_3.id],
           years_ids: [year.id]
         })
 
@@ -547,6 +554,14 @@ defmodule Lanttern.ReportingTest do
           report_card_id: report_card.id,
           strand_id: strand_2.id,
           position: 2
+        })
+
+      # no student assessment point entry for strand 3 (test list filtering)
+      _strand_3_report =
+        strand_report_fixture(%{
+          report_card_id: report_card.id,
+          strand_id: strand_3.id,
+          position: 3
         })
 
       student = SchoolsFixtures.student_fixture()
@@ -575,6 +590,13 @@ defmodule Lanttern.ReportingTest do
         AssessmentsFixtures.assessment_point_fixture(%{
           strand_id: strand_2.id,
           scale_id: n_scale.id
+        })
+
+      # no student assessment point entry for strand 3 (test list filtering)
+      _assessment_point_3_1 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand_3.id,
+          scale_id: o_scale.id
         })
 
       assessment_point_1_1_entry =

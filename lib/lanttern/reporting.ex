@@ -620,6 +620,7 @@ defmodule Lanttern.Reporting do
 
     strand_reports
     |> Enum.map(&{&1, Map.get(ast_entries_map, &1.id, [])})
+    |> Enum.filter(fn {_strand_report, entries} -> entries != [] end)
   end
 
   @doc """
