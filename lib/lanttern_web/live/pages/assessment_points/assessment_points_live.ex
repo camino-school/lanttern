@@ -105,6 +105,10 @@ defmodule LantternWeb.AssessmentPointsLive do
   # lifecycle
 
   def mount(_params, _session, socket) do
+    # 🚧 disable this view temporarily (see issues #112 and #123)
+    if !socket.assigns.current_user.is_root_admin,
+      do: raise(LantternWeb.NotFoundError)
+
     socket =
       socket
       |> assign(:page_title, gettext("Assessment points explorer"))

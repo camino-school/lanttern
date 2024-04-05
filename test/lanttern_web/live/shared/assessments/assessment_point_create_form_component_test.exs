@@ -4,7 +4,7 @@ defmodule LantternWeb.Assessments.AssessmentPointCreateFormComponentTest do
   @live_view_path "/assessment_points/new"
   @form_selector "#create-assessment-point-form"
 
-  setup :register_and_log_in_teacher
+  setup [:register_and_log_in_root_admin, :register_and_log_in_teacher]
 
   describe "Create assessment point form in assessment points live view" do
     test "selecting a class create class and class students badges, which can be removed", %{

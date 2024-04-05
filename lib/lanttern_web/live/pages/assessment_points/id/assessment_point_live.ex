@@ -216,6 +216,10 @@ defmodule LantternWeb.AssessmentPointLive do
   # lifecycle
 
   def mount(%{"id" => id}, _session, socket) do
+    # 🚧 disable this view temporarily (see issues #112 and #123)
+    if !socket.assigns.current_user.is_root_admin,
+      do: raise(LantternWeb.NotFoundError)
+
     try do
       Assessments.get_assessment_point!(id,
         preloads: [

@@ -44,8 +44,13 @@ defmodule LantternWeb.ConnCase do
 
   It stores an updated connection and a registered user and teacher in the test context.
   """
-  def register_and_log_in_teacher(%{conn: conn}) do
-    user = Lanttern.IdentityFixtures.user_fixture()
+  def register_and_log_in_teacher(%{conn: conn} = context) do
+    # use existing context user. useful to register a teacher root admin
+    user =
+      case context do
+        %{user: user} -> user
+        _ -> Lanttern.IdentityFixtures.user_fixture()
+      end
 
     # logged in users should always have a current_profile
     teacher = Lanttern.SchoolsFixtures.teacher_fixture()
