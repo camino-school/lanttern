@@ -11,8 +11,8 @@ msgstr ""
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/lanttern_web/components/core_components.ex:1209
-#: lib/lanttern_web/components/core_components.ex:1271
+#: lib/lanttern_web/components/core_components.ex:1213
+#: lib/lanttern_web/components/core_components.ex:1275
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr ""
@@ -58,7 +58,7 @@ msgstr ""
 msgid "Strands"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:469
+#: lib/lanttern_web/components/core_components.ex:473
 #: lib/lanttern_web/components/overlay_components.ex:78
 #: lib/lanttern_web/components/overlay_components.ex:327
 #, elixir-autogen, elixir-format
@@ -311,17 +311,17 @@ msgstr ""
 msgid "or drag and drop here"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:508
+#: lib/lanttern_web/components/core_components.ex:512
 #, elixir-autogen, elixir-format
 msgid "Attempting to reconnect"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:499
+#: lib/lanttern_web/components/core_components.ex:503
 #, elixir-autogen, elixir-format
 msgid "Error!"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:520
+#: lib/lanttern_web/components/core_components.ex:524
 #, elixir-autogen, elixir-format
 msgid "Hang in there while we get back on track"
 msgstr ""
@@ -331,22 +331,22 @@ msgstr ""
 msgid "Markdown supported"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:498
+#: lib/lanttern_web/components/core_components.ex:502
 #, elixir-autogen, elixir-format
 msgid "Success!"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:503
+#: lib/lanttern_web/components/core_components.ex:507
 #, elixir-autogen, elixir-format
 msgid "We can't find the internet"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:515
+#: lib/lanttern_web/components/core_components.ex:519
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:371
+#: lib/lanttern_web/components/core_components.ex:375
 #, elixir-autogen, elixir-format
 msgid "all %{type}"
 msgstr ""
@@ -849,7 +849,7 @@ msgstr ""
 msgid "Moments"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1159
+#: lib/lanttern_web/components/core_components.ex:1163
 #, elixir-autogen, elixir-format
 msgid "Move moment down"
 msgstr ""
@@ -1421,7 +1421,7 @@ msgstr ""
 msgid "Move moment card up"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1149
+#: lib/lanttern_web/components/core_components.ex:1153
 #: lib/lanttern_web/live/pages/report_cards/id/grades_component.ex:154
 #, elixir-autogen, elixir-format
 msgid "Move up"
@@ -2051,8 +2051,8 @@ msgstr ""
 msgid "Other students linked to this report card"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:898
-#: lib/lanttern_web/components/core_components.ex:920
+#: lib/lanttern_web/components/core_components.ex:902
+#: lib/lanttern_web/components/core_components.ex:924
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Selected"
 msgstr ""
@@ -2070,4 +2070,24 @@ msgstr ""
 #: lib/lanttern_web/live/pages/student_report_card/id/student_report_card_live.html.heex:33
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Strands reports"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/assessments/async_entry_editor_component.ex:49
+#, elixir-autogen, elixir-format
+msgid "Add entry note"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/assessments/async_entry_editor_component.ex:63
+#, elixir-autogen, elixir-format
+msgid "Entry report note"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/assessments/async_entry_editor_component.ex:69
+#, elixir-autogen, elixir-format
+msgid "Note"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/assessments/async_entry_editor_component.ex:75
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Save note"
 msgstr ""
