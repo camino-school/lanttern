@@ -6,7 +6,7 @@ defmodule LantternWeb.AssessmentPointsLiveTest do
   @live_view_path "/assessment_points"
   @slider_id "assessment-points-explorer-slider"
 
-  setup :register_and_log_in_teacher
+  setup [:register_and_log_in_root_admin, :register_and_log_in_teacher]
 
   describe "Assessment points explorer live view" do
     test "disconnected and connected mount", %{conn: conn} do

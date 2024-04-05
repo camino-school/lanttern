@@ -22,12 +22,12 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
 
   def render(assigns) do
     ~H"""
-    <div class={@wrapper_class}>
+    <div class={["flex items-center", @wrapper_class]}>
       <.form
         for={@form}
-        phx-change="save"
+        phx-change="change"
         phx-target={@myself}
-        class={@class}
+        class={[@class, if(@has_changes, do: "outline outline-4 outline-offset-1 outline-ltrn-dark")]}
         id={"entry-#{@id}-marking-form"}
       >
         <%= for marking_input <- @marking_input do %>
@@ -35,12 +35,47 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
             scale={@assessment_point.scale}
             ordinal_value_options={@ordinal_value_options}
             form={@form}
-            style={@ov_style}
+            style={if(!@has_changes, do: @ov_style)}
             ov_name={@ov_name}
             class={Map.get(marking_input, :class, "")}
           />
         <% end %>
       </.form>
+      <.icon_button
+        type="button"
+        name="hero-pencil-square-mini"
+        theme={if @entry.report_note, do: "diff_light", else: "ghost"}
+        rounded
+        sr_text={gettext("Add entry note")}
+        size="sm"
+        class="ml-2"
+        disabled={!@entry.id || @has_changes}
+        phx-click="edit_note"
+        phx-target={@myself}
+      />
+      <.modal
+        :if={@is_editing_note}
+        id={"entry-#{@id}-note-modal"}
+        show
+        on_cancel={JS.push("cancel_edit_note", target: @myself)}
+      >
+        <h5 class="mb-10 font-display font-black text-xl">
+          <%= gettext("Entry report note") %>
+        </h5>
+        <.form for={@form} phx-submit="save_note" phx-target={@myself} id={"entry-#{@id}-note-form"}>
+          <.input
+            field={@form[:report_note]}
+            type="textarea"
+            label={gettext("Note")}
+            class="mb-1"
+            phx-debounce="1500"
+          />
+          <.markdown_supported />
+          <div class="flex justify-end mt-10">
+            <.button type="submit"><%= gettext("Save note") %></.button>
+          </div>
+        </.form>
+      </.modal>
     </div>
     """
   end
@@ -122,118 +157,137 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
       |> Assessments.change_assessment_point_entry()
       |> to_form()
 
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign(:entry, entry)
-     |> assign(:ov_style, ov_style)
-     |> assign(:ov_name, ov_name)
-     |> assign(:form, form)
-     |> assign(:ordinal_value_options, ordinal_value_options)
-     |> assign(:wrapper_class, Map.get(assigns, :wrapper_class, ""))
-     |> assign(:class, Map.get(assigns, :class, ""))
-     |> assign(:marking_input, Map.get(assigns, :marking_input, []))}
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign(:entry, entry)
+      |> assign(:ov_style, ov_style)
+      |> assign(:ov_name, ov_name)
+      |> assign(:form, form)
+      |> assign(:ordinal_value_options, ordinal_value_options)
+      |> assign(:wrapper_class, Map.get(assigns, :wrapper_class, ""))
+      |> assign(:class, Map.get(assigns, :class, ""))
+      |> assign(:marking_input, Map.get(assigns, :marking_input, []))
+      |> assign(:has_changes, false)
+      |> assign(:is_editing_note, false)
+
+    {:ok, socket}
   end
 
   # event handlers
 
-  def handle_event(
-        "save",
-        %{"assessment_point_entry" => params},
-        %{assigns: %{entry: entry}} = socket
-      ) do
+  def handle_event("change", %{"assessment_point_entry" => params}, socket) do
+    entry = socket.assigns.entry
+
+    form =
+      entry
+      |> Assessments.change_assessment_point_entry(params)
+      |> to_form()
+
     entry_params =
       entry
       |> Map.from_struct()
       |> Map.take([:student_id, :assessment_point_id, :scale_id, :scale_type])
       |> Map.new(fn {k, v} -> {to_string(k), v} end)
 
+    composite_id = "#{entry_params["student_id"]}_#{entry_params["assessment_point_id"]}"
+
     # add extra fields from entry
     params =
       params
       |> Enum.into(entry_params)
 
-    case {
-      entry.id,
-      entry.scale_type,
-      params["ordinal_value_id"],
-      params["score"]
-    } do
-      {nil, "ordinal", ov_id, _} when ov_id != "" -> save(:new, entry, params, socket)
-      {nil, "numeric", _, score} when score != "" -> save(:new, entry, params, socket)
-      {id, "ordinal", "", _} when not is_nil(id) -> save(:delete, entry, params, socket)
-      {id, "numeric", _, ""} when not is_nil(id) -> save(:delete, entry, params, socket)
-      {id, _, _, _} when not is_nil(id) -> save(:edit, entry, params, socket)
-      _ -> {:noreply, socket}
-    end
-  end
+    # types: new, delete, edit, cancel
+    {change_type, has_changes} =
+      case {entry, params} do
+        {
+          %{id: nil, scale_type: "ordinal"},
+          %{"ordinal_value_id" => ov_id}
+        }
+        when ov_id != "" ->
+          {:new, true}
 
-  defp save(:new, _entry, params, socket) do
-    case Assessments.create_assessment_point_entry(params, preloads: :ordinal_value) do
-      {:ok, assessment_point_entry} ->
-        {:noreply, handle_create_update_success(assessment_point_entry, socket)}
+        {
+          %{id: nil, scale_type: "numeric"},
+          %{"score" => score}
+        }
+        when score != "" ->
+          {:new, true}
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :form, to_form(changeset))}
-    end
-  end
+        {%{id: nil}, _} ->
+          {:cancel, false}
 
-  defp save(:edit, entry, params, socket) do
-    case Assessments.update_assessment_point_entry(entry, params,
-           preloads: :ordinal_value,
-           force_preloads: true
-         ) do
-      {:ok, assessment_point_entry} ->
-        {:noreply, handle_create_update_success(assessment_point_entry, socket)}
+        {
+          %{id: id, scale_type: "ordinal"},
+          %{"ordinal_value_id" => ""}
+        }
+        when not is_nil(id) ->
+          {:delete, true}
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :form, to_form(changeset))}
-    end
-  end
+        {
+          %{id: id, scale_type: "numeric"},
+          %{"score" => ""}
+        }
+        when not is_nil(id) ->
+          {:delete, true}
 
-  defp save(:delete, entry, _params, socket) do
-    case Assessments.delete_assessment_point_entry(entry) do
-      {:ok, _assessment_point_entry} ->
-        new_entry =
-          new_assessment_point_entry(socket.assigns.assessment_point, socket.assigns.student.id)
+        {
+          %{id: id, scale_type: "ordinal", ordinal_value_id: entry_ov_id},
+          %{"ordinal_value_id" => ov_id}
+        }
+        when not is_nil(id) ->
+          if "#{entry_ov_id}" == ov_id,
+            do: {:cancel, false},
+            else: {:edit, true}
 
-        form =
-          new_entry
-          |> Assessments.change_assessment_point_entry()
-          |> to_form()
-
-        {:noreply,
-         socket
-         |> assign(:ov_style, nil)
-         |> assign(:ov_name, nil)
-         |> assign(:form, form)
-         |> assign(:entry, new_entry)}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :form, to_form(changeset))}
-    end
-  end
-
-  defp handle_create_update_success(assessment_point_entry, socket) do
-    {ov_style, ov_name} =
-      case assessment_point_entry.ordinal_value do
-        %{name: name} = ov ->
-          {get_colors_style(ov), name}
-
-        _ ->
-          {nil, nil}
+        {
+          %{id: id, scale_type: "numeric", score: entry_score},
+          %{"score" => score}
+        }
+        when not is_nil(id) ->
+          if "#{entry_score}" == score,
+            do: {:cancel, false},
+            else: {:edit, true}
       end
 
-    form =
-      assessment_point_entry
-      |> Assessments.change_assessment_point_entry()
-      |> to_form()
+    notify(
+      __MODULE__,
+      {:change, change_type, composite_id, entry.id, params},
+      socket.assigns
+    )
 
-    socket
-    |> assign(:entry, assessment_point_entry)
-    |> assign(:ov_style, ov_style)
-    |> assign(:ov_name, ov_name)
-    |> assign(:form, form)
+    socket =
+      socket
+      |> assign(:has_changes, has_changes)
+      |> assign(:form, form)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("edit_note", _, socket) do
+    {:noreply, assign(socket, :is_editing_note, true)}
+  end
+
+  def handle_event("cancel_edit_note", _, socket) do
+    {:noreply, assign(socket, :is_editing_note, false)}
+  end
+
+  def handle_event("save_note", %{"assessment_point_entry" => params}, socket) do
+    socket =
+      case Assessments.update_assessment_point_entry(socket.assigns.entry, params) do
+        {:ok, entry} ->
+          form =
+            entry
+            |> Assessments.change_assessment_point_entry(params)
+            |> to_form()
+
+          socket
+          |> assign(:entry, entry)
+          |> assign(:form, form)
+          |> assign(:is_editing_note, false)
+      end
+
+    {:noreply, socket}
   end
 
   # helpers

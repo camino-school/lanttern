@@ -11,7 +11,7 @@ defmodule LantternWeb.Assessments.FeedbackCommentFormComponentTest do
   @base_form_selector "#feedback-comment-form"
   @new_comment_form_selector "#{@base_form_selector}-new"
 
-  setup :register_and_log_in_teacher
+  setup [:register_and_log_in_root_admin, :register_and_log_in_teacher]
 
   describe "Create feedback comment in assessment points live view" do
     setup :create_assessment_point_with_feedback

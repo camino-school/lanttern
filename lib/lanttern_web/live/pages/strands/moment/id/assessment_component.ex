@@ -4,6 +4,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
 
+  import LantternWeb.AssessmentsHelpers, only: [save_entry_editor_component_changes: 1]
   import LantternWeb.PersonalizationHelpers
   import Lanttern.Utils, only: [swap: 3]
 
@@ -14,7 +15,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="py-10">
+    <div class="pt-10 pb-20">
       <.responsive_container>
         <div class="flex items-end justify-between gap-6">
           <%= if @selected_classes != [] do %>
@@ -113,6 +114,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
               student={student}
               entries={entries}
               id={dom_id}
+              myself={@myself}
             />
           </div>
         </div>
@@ -240,6 +242,21 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
           </.button>
         </:actions>
       </.slide_over>
+      <.fixed_bar :if={@entries_changes_map != %{}} class="flex items-center gap-6">
+        <p class="flex-1 text-sm text-white">
+          <%= ngettext("1 change", "%{count} changes", map_size(@entries_changes_map)) %>
+        </p>
+        <.button
+          phx-click={JS.navigate(~p"/strands/moment/#{@moment}?tab=assessment")}
+          theme="ghost"
+          data-confirm={gettext("Are you sure?")}
+        >
+          <%= gettext("Discard") %>
+        </.button>
+        <.button type="button" phx-click="save_changes" phx-target={@myself}>
+          <%= gettext("Save") %>
+        </.button>
+      </.fixed_bar>
     </div>
     """
   end
@@ -275,6 +292,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
   attr :id, :string, required: true
   attr :student, Lanttern.Schools.Student, required: true
   attr :entries, :list, required: true
+  attr :myself, :any, required: true
 
   def student_and_entries(assigns) do
     ~H"""
@@ -294,6 +312,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
             entry={entry}
             class="w-full h-full"
             wrapper_class="w-full h-full"
+            notify_component={@myself}
           >
             <:marking_input class="w-full h-full" />
           </.live_component>
@@ -307,18 +326,49 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
 
   @impl true
   def mount(socket) do
-    {:ok,
-     socket
-     |> stream_configure(
-       :students_entries_assessment_points,
-       dom_id: fn {student, _entries} -> "student-#{student.id}" end
-     )
-     |> assign(:delete_assessment_point_error, nil)
-     |> assign(:classes, nil)
-     |> assign(:classes_ids, [])}
+    socket =
+      socket
+      |> stream_configure(
+        :students_entries_assessment_points,
+        dom_id: fn {student, _entries} -> "student-#{student.id}" end
+      )
+      |> assign(:delete_assessment_point_error, nil)
+      |> assign(:classes, nil)
+      |> assign(:classes_ids, [])
+      |> assign(:entries_changes_map, %{})
+
+    {:ok, socket}
   end
 
   @impl true
+  def update(
+        %{action: {EntryEditorComponent, {:change, :cancel, composite_id, _, _}}},
+        socket
+      ) do
+    socket =
+      socket
+      |> update(:entries_changes_map, fn entries_changes_map ->
+        entries_changes_map
+        |> Map.drop([composite_id])
+      end)
+
+    {:ok, socket}
+  end
+
+  def update(
+        %{action: {EntryEditorComponent, {:change, type, composite_id, entry_id, params}}},
+        socket
+      ) do
+    socket =
+      socket
+      |> update(:entries_changes_map, fn entries_changes_map ->
+        entries_changes_map
+        |> Map.put(composite_id, {type, entry_id, params})
+      end)
+
+    {:ok, socket}
+  end
+
   def update(%{moment: moment, assessment_point_id: assessment_point_id} = assigns, socket) do
     {:ok,
      socket
@@ -388,6 +438,17 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
   # event handlers
 
   @impl true
+  def handle_event("save_changes", _params, socket) do
+    socket =
+      case save_entry_editor_component_changes(socket.assigns.entries_changes_map) do
+        {:ok, msg} -> put_flash(socket, :info, msg)
+        {:error, msg} -> put_flash(socket, :error, msg)
+      end
+      |> push_navigate(to: ~p"/strands/moment/#{socket.assigns.moment}?tab=assessment")
+
+    {:noreply, socket}
+  end
+
   def handle_event("delete_assessment_point", _params, socket) do
     case Assessments.delete_assessment_point(socket.assigns.assessment_point) do
       {:ok, _assessment_point} ->

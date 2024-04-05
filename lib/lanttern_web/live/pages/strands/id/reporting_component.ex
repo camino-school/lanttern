@@ -6,10 +6,11 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
   alias Lanttern.Reporting
   alias Lanttern.Schools.Student
 
+  import LantternWeb.AssessmentsHelpers, only: [save_entry_editor_component_changes: 1]
   import LantternWeb.PersonalizationHelpers
 
   # shared components
-  alias LantternWeb.Assessments.AsyncEntryEditorComponent
+  alias LantternWeb.Assessments.EntryEditorComponent
   import LantternWeb.ReportingComponents
 
   @impl true
@@ -144,7 +145,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
       />
       <.fixed_bar :if={@entries_changes_map != %{}} class="flex items-center gap-6">
         <p class="flex-1 text-sm text-white">
-          <%= ngettext("1 change", "%{count} changes.", map_size(@entries_changes_map)) %>
+          <%= ngettext("1 change", "%{count} changes", map_size(@entries_changes_map)) %>
         </p>
         <.button
           phx-click={JS.navigate(~p"/strands/#{@strand}?tab=reporting")}
@@ -205,7 +206,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
       </div>
       <div :for={{entry, assessment_point} <- @entries} class="p-2">
         <.live_component
-          module={AsyncEntryEditorComponent}
+          module={EntryEditorComponent}
           id={"student-#{@student.id}-entry-for-#{assessment_point.id}"}
           student={@student}
           assessment_point={assessment_point}
@@ -240,7 +241,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
 
   @impl true
   def update(
-        %{action: {AsyncEntryEditorComponent, {:change, :cancel, composite_id, _, _}}},
+        %{action: {EntryEditorComponent, {:change, :cancel, composite_id, _, _}}},
         socket
       ) do
     socket =
@@ -254,7 +255,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
   end
 
   def update(
-        %{action: {AsyncEntryEditorComponent, {:change, type, composite_id, entry_id, params}}},
+        %{action: {EntryEditorComponent, {:change, type, composite_id, entry_id, params}}},
         socket
       ) do
     socket =
@@ -342,103 +343,13 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
   end
 
   def handle_event("save_changes", _params, socket) do
-    changes =
-      socket.assigns.entries_changes_map
-      |> Enum.map(fn {_, change} -> change end)
-
     socket =
-      case apply_save_changes(changes) do
-        {:ok, results} ->
-          msg = build_save_changes_results_message(results)
-          put_flash(socket, :info, msg)
-
-        {:error, msg, results} ->
-          results_so_far_msg = build_save_changes_results_message(results)
-
-          msg =
-            case results_so_far_msg == "" do
-              true ->
-                msg
-
-              false ->
-                "#{msg} (#{gettext("Results so far")}: #{results_so_far_msg})"
-            end
-
-          put_flash(socket, :error, msg)
+      case save_entry_editor_component_changes(socket.assigns.entries_changes_map) do
+        {:ok, msg} -> put_flash(socket, :info, msg)
+        {:error, msg} -> put_flash(socket, :error, msg)
       end
       |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}?tab=reporting")
 
     {:noreply, socket}
-  end
-
-  defp apply_save_changes(
-         changes,
-         results \\ %{created: 0, updated: 0, deleted: 0}
-       )
-
-  defp apply_save_changes([], results), do: {:ok, results}
-
-  defp apply_save_changes([{:new, _entry_id, params} | changes], results) do
-    case Assessments.create_assessment_point_entry(params) do
-      {:ok, _assessment_point_entry} ->
-        apply_save_changes(changes, Map.update!(results, :created, &(&1 + 1)))
-
-      {:error, %Ecto.Changeset{} = _changeset} ->
-        {:error, gettext("Error creating assessment point entry"), results}
-    end
-  end
-
-  defp apply_save_changes([{:delete, entry_id, _params} | changes], results) do
-    with entry when not is_nil(entry) <- Assessments.get_assessment_point_entry(entry_id) do
-      case Assessments.delete_assessment_point_entry(entry) do
-        {:ok, _assessment_point_entry} ->
-          apply_save_changes(changes, Map.update!(results, :deleted, &(&1 + 1)))
-
-        {:error, %Ecto.Changeset{} = _changeset} ->
-          {:error, gettext("Error deleting assessment point entry"), results}
-      end
-    else
-      _ -> {:error, gettext("The entry does not exist anymore"), results}
-    end
-  end
-
-  defp apply_save_changes([{:edit, entry_id, params} | changes], results) do
-    with entry when not is_nil(entry) <- Assessments.get_assessment_point_entry(entry_id) do
-      case Assessments.update_assessment_point_entry(entry, params) do
-        {:ok, _assessment_point_entry} ->
-          apply_save_changes(changes, Map.update!(results, :updated, &(&1 + 1)))
-
-        {:error, %Ecto.Changeset{} = _changeset} ->
-          {:error, gettext("Error updating assessment point entry"), results}
-      end
-    else
-      _ -> {:error, gettext("The entry does not exist anymore"), results}
-    end
-  end
-
-  # helper
-
-  defp build_save_changes_results_message(%{} = results),
-    do: build_save_changes_results_message(Enum.map(results, & &1), [])
-
-  defp build_save_changes_results_message([], msgs),
-    do: Enum.join(msgs, ", ")
-
-  defp build_save_changes_results_message([{_operation, 0} | results], msgs),
-    do: build_save_changes_results_message(results, msgs)
-
-  defp build_save_changes_results_message([{:created, count} | results], msgs) do
-    msg = ngettext("1 entry created", "%{count} entries created", count)
-    build_save_changes_results_message(results, [msg | msgs])
-  end
-
-  defp build_save_changes_results_message([{:updated, count} | results], msgs) do
-    msg = ngettext("1 entry updated", "%{count} entries updated", count)
-    build_save_changes_results_message(results, [msg | msgs])
-  end
-
-  defp build_save_changes_results_message([{:deleted, count} | results], msgs) do
-    msg = ngettext("1 entry removed", "%{count} entries removed", count)
-    build_save_changes_results_message(results, [msg | msgs])
   end
 end
