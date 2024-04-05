@@ -271,7 +271,7 @@ defmodule LantternWeb.FormComponents do
         <.help_tooltip text={@help_text} class="inline-block font-normal" />
         <%= render_slot(@inner_block) %>
       </label>
-      <span class="text-ltrn-subtle">Optional</span>
+      <span class="text-ltrn-subtle"><%= gettext("Optional") %></span>
     </div>
     """
   end
