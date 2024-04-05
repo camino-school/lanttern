@@ -71,6 +71,22 @@ defmodule Lanttern.PersonalizationFixtures do
     profile_view
   end
 
+  @doc """
+  Generate a profile_strand_filter.
+  """
+  def profile_strand_filter_fixture(attrs \\ %{}) do
+    {:ok, profile_strand_filter} =
+      attrs
+      |> Enum.into(%{
+        profile_id: Lanttern.IdentityFixtures.maybe_gen_profile_id(attrs),
+        strand_id: Lanttern.LearningContextFixtures.maybe_gen_strand_id(attrs),
+        class_id: Lanttern.SchoolsFixtures.maybe_gen_class_id(attrs)
+      })
+      |> Lanttern.Personalization.create_profile_strand_filter()
+
+    profile_strand_filter
+  end
+
   # helpers
 
   defp maybe_gen_author_id(%{author_id: author_id} = _attrs),

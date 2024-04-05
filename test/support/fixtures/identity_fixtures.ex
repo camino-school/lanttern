@@ -99,4 +99,12 @@ defmodule Lanttern.IdentityFixtures do
 
     profile
   end
+
+  # helpers
+
+  def maybe_gen_profile_id(%{profile_id: profile_id} = _attrs),
+    do: profile_id
+
+  def maybe_gen_profile_id(_attrs),
+    do: teacher_profile_fixture().id
 end

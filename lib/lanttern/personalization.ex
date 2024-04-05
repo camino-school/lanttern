@@ -547,4 +547,100 @@ defmodule Lanttern.Personalization do
         {op, params}
     end
   end
+
+  alias Lanttern.Personalization.ProfileStrandFilter
+
+  @doc """
+  Returns the list of profile_strand_filters.
+
+  ## Examples
+
+      iex> list_profile_strand_filters()
+      [%ProfileStrandFilter{}, ...]
+
+  """
+  def list_profile_strand_filters do
+    Repo.all(ProfileStrandFilter)
+  end
+
+  @doc """
+  Gets a single profile_strand_filter.
+
+  Raises `Ecto.NoResultsError` if the Profile strand filter does not exist.
+
+  ## Examples
+
+      iex> get_profile_strand_filter!(123)
+      %ProfileStrandFilter{}
+
+      iex> get_profile_strand_filter!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_profile_strand_filter!(id), do: Repo.get!(ProfileStrandFilter, id)
+
+  @doc """
+  Creates a profile_strand_filter.
+
+  ## Examples
+
+      iex> create_profile_strand_filter(%{field: value})
+      {:ok, %ProfileStrandFilter{}}
+
+      iex> create_profile_strand_filter(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_profile_strand_filter(attrs \\ %{}) do
+    %ProfileStrandFilter{}
+    |> ProfileStrandFilter.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a profile_strand_filter.
+
+  ## Examples
+
+      iex> update_profile_strand_filter(profile_strand_filter, %{field: new_value})
+      {:ok, %ProfileStrandFilter{}}
+
+      iex> update_profile_strand_filter(profile_strand_filter, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_profile_strand_filter(%ProfileStrandFilter{} = profile_strand_filter, attrs) do
+    profile_strand_filter
+    |> ProfileStrandFilter.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a profile_strand_filter.
+
+  ## Examples
+
+      iex> delete_profile_strand_filter(profile_strand_filter)
+      {:ok, %ProfileStrandFilter{}}
+
+      iex> delete_profile_strand_filter(profile_strand_filter)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_profile_strand_filter(%ProfileStrandFilter{} = profile_strand_filter) do
+    Repo.delete(profile_strand_filter)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking profile_strand_filter changes.
+
+  ## Examples
+
+      iex> change_profile_strand_filter(profile_strand_filter)
+      %Ecto.Changeset{data: %ProfileStrandFilter{}}
+
+  """
+  def change_profile_strand_filter(%ProfileStrandFilter{} = profile_strand_filter, attrs \\ %{}) do
+    ProfileStrandFilter.changeset(profile_strand_filter, attrs)
+  end
 end
