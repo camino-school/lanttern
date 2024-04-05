@@ -18,7 +18,8 @@ module.exports = {
           diff: {
             dark: colors.purple["800"],
             highlight: colors.purple["600"],
-            light: colors.purple["100"],
+            light: colors.purple["200"],
+            lightest: colors.purple["100"],
           },
           dark: colors.slate["700"],
           subtle: colors.slate["400"],

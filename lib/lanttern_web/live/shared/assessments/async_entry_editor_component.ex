@@ -22,7 +22,7 @@ defmodule LantternWeb.Assessments.AsyncEntryEditorComponent do
 
   def render(assigns) do
     ~H"""
-    <div class={@wrapper_class}>
+    <div class={["flex items-center", @wrapper_class]}>
       <.form
         for={@form}
         phx-change="change"
@@ -41,6 +41,41 @@ defmodule LantternWeb.Assessments.AsyncEntryEditorComponent do
           />
         <% end %>
       </.form>
+      <.icon_button
+        type="button"
+        name="hero-pencil-square-mini"
+        theme={if @entry.report_note, do: "diff_light", else: "ghost"}
+        rounded
+        sr_text={gettext("Add entry note")}
+        size="sm"
+        class="ml-2"
+        disabled={!@entry.id || @has_changes}
+        phx-click="edit_note"
+        phx-target={@myself}
+      />
+      <.modal
+        :if={@is_editing_note}
+        id={"entry-#{@id}-note-modal"}
+        show
+        on_cancel={JS.push("cancel_edit_note", target: @myself)}
+      >
+        <h5 class="mb-10 font-display font-black text-xl">
+          <%= gettext("Entry report note") %>
+        </h5>
+        <.form for={@form} phx-submit="save_note" phx-target={@myself} id={"entry-#{@id}-note-form"}>
+          <.input
+            field={@form[:report_note]}
+            type="textarea"
+            label={gettext("Note")}
+            class="mb-1"
+            phx-debounce="1500"
+          />
+          <.markdown_supported />
+          <div class="flex justify-end mt-10">
+            <.button type="submit"><%= gettext("Save note") %></.button>
+          </div>
+        </.form>
+      </.modal>
     </div>
     """
   end
@@ -134,6 +169,7 @@ defmodule LantternWeb.Assessments.AsyncEntryEditorComponent do
       |> assign(:class, Map.get(assigns, :class, ""))
       |> assign(:marking_input, Map.get(assigns, :marking_input, []))
       |> assign(:has_changes, false)
+      |> assign(:is_editing_note, false)
 
     {:ok, socket}
   end
@@ -224,6 +260,32 @@ defmodule LantternWeb.Assessments.AsyncEntryEditorComponent do
       socket
       |> assign(:has_changes, has_changes)
       |> assign(:form, form)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("edit_note", _, socket) do
+    {:noreply, assign(socket, :is_editing_note, true)}
+  end
+
+  def handle_event("cancel_edit_note", _, socket) do
+    {:noreply, assign(socket, :is_editing_note, false)}
+  end
+
+  def handle_event("save_note", %{"assessment_point_entry" => params}, socket) do
+    socket =
+      case Assessments.update_assessment_point_entry(socket.assigns.entry, params) do
+        {:ok, entry} ->
+          form =
+            entry
+            |> Assessments.change_assessment_point_entry(params)
+            |> to_form()
+
+          socket
+          |> assign(:entry, entry)
+          |> assign(:form, form)
+          |> assign(:is_editing_note, false)
+      end
 
     {:noreply, socket}
   end
