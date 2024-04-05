@@ -77,7 +77,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
           phx-debounce="1500"
         />
         <.markdown_supported class="mb-6" />
-        <div class="p-4 rounded mb-6 bg-ltrn-diff-light">
+        <div class="p-4 rounded mb-6 bg-ltrn-diff-lightest">
           <.input
             field={@form[:is_differentiation]}
             type="toggle"

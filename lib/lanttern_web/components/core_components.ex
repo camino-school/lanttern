@@ -87,7 +87,7 @@ defmodule LantternWeb.CoreComponents do
     "secondary" => "bg-ltrn-secondary text-white",
     "cyan" => "bg-ltrn-mesh-cyan text-ltrn-dark",
     "dark" => "bg-ltrn-dark text-ltrn-lighter",
-    "diff" => "bg-ltrn-diff-light text-ltrn-diff-highlight"
+    "diff" => "bg-ltrn-diff-lightest text-ltrn-diff-highlight"
   }
 
   @badge_themes_hover %{
@@ -245,10 +245,14 @@ defmodule LantternWeb.CoreComponents do
       "bg-ltrn-primary hover:bg-cyan-300 shadow-sm",
       "disabled:text-ltrn-subtle disabled:bg-ltrn-mesh-cyan disabled:shadow-none"
     ],
+    "diff_light" => [
+      "bg-ltrn-diff-lightest hover:bg-ltrn-diff-light text-ltrn-diff-dark",
+      "disabled:opacity-40"
+    ],
     "white" => "text-ltrn-dark bg-white hover:bg-ltrn-lightest shadow-sm",
     "ghost" => [
       "text-ltrn-subtle bg-white/10 hover:bg-slate-100",
-      "disabled:text-ltrn-lighter disabled"
+      "disabled:text-ltrn-lighter"
     ]
   }
 
@@ -933,7 +937,7 @@ defmodule LantternWeb.CoreComponents do
     "subtle" => "text-ltrn-subtle bg-ltrn-lighter",
     "cyan" => "text-ltrn-dark bg-ltrn-mesh-primary",
     "rose" => "text-ltrn-dark bg-ltrn-mesh-rose",
-    "diff" => "text-ltrn-diff-light bg-ltrn-diff-highlight"
+    "diff" => "text-ltrn-diff-lightest bg-ltrn-diff-highlight"
   }
 
   defp profile_icon_theme(theme, false),

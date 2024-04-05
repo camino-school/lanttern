@@ -203,13 +203,13 @@ defmodule LantternWeb.ReportingComponents do
     <div
       :if={@footnote}
       class={[
-        "py-6 bg-ltrn-diff-light",
+        "py-6 bg-ltrn-diff-lightest",
         "sm:py-10",
         @class
       ]}
     >
       <.responsive_container>
-        <div class="flex items-center justify-center w-10 h-10 rounded-full mb-6 text-ltrn-diff-light bg-ltrn-diff-highlight">
+        <div class="flex items-center justify-center w-10 h-10 rounded-full mb-6 text-ltrn-diff-lightest bg-ltrn-diff-highlight">
           <.icon name="hero-document-text" />
         </div>
         <.markdown text={@footnote} size="sm" />
