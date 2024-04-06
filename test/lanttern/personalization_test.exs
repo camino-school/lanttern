@@ -478,6 +478,9 @@ defmodule Lanttern.PersonalizationTest do
     alias Lanttern.Personalization.ProfileStrandFilter
 
     import Lanttern.PersonalizationFixtures
+    alias Lanttern.IdentityFixtures
+    alias Lanttern.LearningContextFixtures
+    alias Lanttern.SchoolsFixtures
 
     @invalid_attrs %{profile_id: nil}
 
@@ -486,11 +489,77 @@ defmodule Lanttern.PersonalizationTest do
       assert Personalization.list_profile_strand_filters() == [profile_strand_filter]
     end
 
+    test "list_profile_strand_filters_classes_ids/2 returns all classes ids filtered by profile in the strand context" do
+      strand = LearningContextFixtures.strand_fixture()
+      class_1 = SchoolsFixtures.class_fixture()
+      class_2 = SchoolsFixtures.class_fixture()
+      profile = IdentityFixtures.teacher_profile_fixture()
+
+      profile_strand_filter_fixture(%{
+        profile_id: profile.id,
+        strand_id: strand.id,
+        class_id: class_1.id
+      })
+
+      profile_strand_filter_fixture(%{
+        profile_id: profile.id,
+        strand_id: strand.id,
+        class_id: class_2.id
+      })
+
+      # extra fixtures to test filter
+      profile_strand_filter_fixture()
+
+      assert expected =
+               Personalization.list_profile_strand_filters_classes_ids(profile.id, strand.id)
+
+      assert length(expected) == 2
+      assert class_1.id in expected
+      assert class_2.id in expected
+    end
+
     test "get_profile_strand_filter!/1 returns the profile_strand_filter with given id" do
       profile_strand_filter = profile_strand_filter_fixture()
 
       assert Personalization.get_profile_strand_filter!(profile_strand_filter.id) ==
                profile_strand_filter
+    end
+
+    test "set_profile_strand_filters/3 sets current filters in profile strand filters" do
+      current_profile = IdentityFixtures.teacher_profile_fixture()
+      strand = LearningContextFixtures.strand_fixture()
+      class_1 = SchoolsFixtures.class_fixture()
+      class_2 = SchoolsFixtures.class_fixture()
+
+      assert {:ok, results} =
+               Personalization.set_profile_strand_filters(
+                 %{current_profile: current_profile},
+                 strand.id,
+                 %{classes_ids: [class_1.id, class_2.id]}
+               )
+
+      for {_, profile_strand_filter} <- results do
+        assert profile_strand_filter.profile_id == current_profile.id
+        assert profile_strand_filter.strand_id == strand.id
+        assert profile_strand_filter.class_id in [class_1.id, class_2.id]
+      end
+
+      # repeat with a new class to test filter "update"
+      class_3 = SchoolsFixtures.class_fixture()
+      class_3_id = class_3.id
+
+      assert {:ok, _results} =
+               Personalization.set_profile_strand_filters(
+                 %{current_profile: current_profile},
+                 strand.id,
+                 %{classes_ids: [class_3_id]}
+               )
+
+      assert [class_3_id] ==
+               Personalization.list_profile_strand_filters_classes_ids(
+                 current_profile.id,
+                 strand.id
+               )
     end
 
     test "create_profile_strand_filter/1 with valid data creates a profile_strand_filter" do

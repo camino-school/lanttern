@@ -2,7 +2,6 @@ defmodule LantternWeb.PersonalizationHelpers do
   import Phoenix.Component, only: [assign: 3]
 
   alias Lanttern.Personalization
-  alias Lanttern.Personalization.ProfileSettings
 
   alias Lanttern.Identity.User
   alias Lanttern.Schools
@@ -13,48 +12,62 @@ defmodule LantternWeb.PersonalizationHelpers do
   @doc """
   Handle all filter related assigns in socket.
 
+  ## Supported opts
+
+  - `:strand_id` - will get the contextualized strand filters. supports `:classes` type
+
   ## Filter types and assigns
 
   ### `:subjects`' assigns
 
-  - :subjects
-  - :selected_subjects_ids
-  - :selected_subjects
+  - `:subjects`
+  - `:selected_subjects_ids`
+  - `:selected_subjects`
 
   ### `:years`' assigns
 
-  - :years
-  - :selected_years_ids
-  - :selected_years
+  - `:years`
+  - `:selected_years_ids`
+  - `:selected_years`
 
   ### `:cycles`' assigns
 
-  - :cycles
-  - :selected_cycles_ids
-  - :selected_cycles
+  - `:cycles`
+  - `:selected_cycles_ids`
+  - `:selected_cycles`
 
   ### `:classes`' assigns
 
-  - :classes
-  - :selected_classes_ids
-  - :selected_classes
+  - `:classes`
+  - `:selected_classes_ids`
+  - `:selected_classes`
 
   ## Examples
 
       iex> assign_user_filters(socket, [:subjects], user)
       socket
   """
-  @spec assign_user_filters(Phoenix.LiveView.Socket.t(), [atom()], User.t()) ::
+  @spec assign_user_filters(Phoenix.LiveView.Socket.t(), [atom()], User.t(), opts :: Keyword.t()) ::
           Phoenix.LiveView.Socket.t()
-  def assign_user_filters(socket, filter_types, %User{} = current_user) do
-    current_filters =
-      case Personalization.get_profile_settings(current_user.current_profile_id) do
-        %{current_filters: current_filters} -> current_filters
-        _ -> %{}
-      end
+  def assign_user_filters(socket, filter_types, %User{} = current_user, opts \\ []) do
+    current_filters = get_current_filters(current_user.current_profile_id, opts)
 
     socket
     |> assign_filter_type(current_user, current_filters, filter_types)
+  end
+
+  defp get_current_filters(profile_id, strand_id: strand_id) do
+    classes_ids =
+      Personalization.list_profile_strand_filters_classes_ids(profile_id, strand_id)
+
+    %{classes_ids: classes_ids}
+  end
+
+  defp get_current_filters(profile_id, _) do
+    case Personalization.get_profile_settings(profile_id) do
+      %{current_filters: current_filters} -> current_filters
+      _ -> %{}
+    end
   end
 
   defp assign_filter_type(socket, _current_user, _current_filters, []), do: socket
@@ -142,6 +155,7 @@ defmodule LantternWeb.PersonalizationHelpers do
   - `:subjects`
   - `:years`
   - `:cycles`
+  - `:classes`
 
   ## Examples
 
@@ -172,11 +186,16 @@ defmodule LantternWeb.PersonalizationHelpers do
   @doc """
   Handle clearing of profile filters.
 
+  ## Supported opts
+
+  - `:strand_id` - will persist data in the strand context. supports `:classes` type
+
   ## Supported types
 
   - `:subjects`
   - `:years`
   - `:cycles`
+  - `:classes`
 
   ## Examples
 
@@ -187,20 +206,24 @@ defmodule LantternWeb.PersonalizationHelpers do
       {:error, %Ecto.Changeset{}}
   """
 
-  @spec clear_profile_filters(User.t(), [atom()]) ::
-          {:ok, ProfileSettings.t()} | {:error, Ecto.Changeset.t()}
+  @spec clear_profile_filters(User.t(), [atom()], Keyword.t()) ::
+          {:ok, any()} | {:error, any()} | Ecto.Multi.failure()
 
-  def clear_profile_filters(current_user, types) do
+  def clear_profile_filters(current_user, types, opts \\ []) do
     attrs =
       types
       |> Enum.map(&{@type_to_type_ids_key_map[&1], []})
       |> Enum.into(%{})
 
-    Personalization.set_profile_current_filters(current_user, attrs)
+    apply_save_profile_filters(current_user, attrs, opts)
   end
 
   @doc """
   Handle saving of profile filters.
+
+  ## Supported opts
+
+  - `:strand_id` - will persist data in the strand context. supports `:classes` type
 
   ## Supported types
 
@@ -214,10 +237,10 @@ defmodule LantternWeb.PersonalizationHelpers do
       %Phoenix.LiveView.Socket{}
   """
 
-  @spec save_profile_filters(Phoenix.LiveView.Socket.t(), User.t(), [atom()]) ::
+  @spec save_profile_filters(Phoenix.LiveView.Socket.t(), User.t(), [atom()], Keyword.t()) ::
           Phoenix.LiveView.Socket.t()
 
-  def save_profile_filters(socket, current_user, types) do
+  def save_profile_filters(socket, current_user, types, opts \\ []) do
     attrs =
       types
       |> Enum.map(fn type ->
@@ -228,8 +251,14 @@ defmodule LantternWeb.PersonalizationHelpers do
       end)
       |> Enum.into(%{})
 
-    Personalization.set_profile_current_filters(current_user, attrs)
+    apply_save_profile_filters(current_user, attrs, opts)
 
     socket
   end
+
+  defp apply_save_profile_filters(current_user, attrs, strand_id: strand_id),
+    do: Personalization.set_profile_strand_filters(current_user, strand_id, attrs)
+
+  defp apply_save_profile_filters(current_user, attrs, _),
+    do: Personalization.set_profile_current_filters(current_user, attrs)
 end

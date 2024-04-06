@@ -4,7 +4,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
 
-  import LantternWeb.PersonalizationHelpers
+  import LantternWeb.PersonalizationHelpers, only: [assign_user_filters: 4]
 
   # shared components
   alias LantternWeb.StrandLive.StrandRubricsComponent
@@ -103,11 +103,12 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         selected_classes_ids={@selected_classes_ids}
       />
       <.live_component
-        module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
+        module={LantternWeb.Personalization.FiltersOverlayComponent}
         id="classes-filter-modal"
         current_user={@current_user}
         title={gettext("Select classes for assessment")}
         filter_type={:classes}
+        filter_opts={[strand_id: @strand.id]}
         navigate={~p"/strands/#{@strand}?tab=assessment"}
       />
     </div>
@@ -222,7 +223,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign_user_filters([:classes], assigns.current_user)
+      |> assign_user_filters([:classes], assigns.current_user, strand_id: strand.id)
       |> core_assigns(strand.id)
 
     {:ok, socket}

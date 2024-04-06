@@ -559,8 +559,28 @@ defmodule Lanttern.Personalization do
       [%ProfileStrandFilter{}, ...]
 
   """
-  def list_profile_strand_filters do
+  def list_profile_strand_filters() do
     Repo.all(ProfileStrandFilter)
+  end
+
+  @doc """
+  Returns the list of current classes ids filters for the given strand and profile.
+
+  ## Examples
+
+      iex> list_profile_strand_filters_classes_ids(1, 1)
+      [1, 2, ...]
+
+  """
+  @spec list_profile_strand_filters_classes_ids(pos_integer(), pos_integer()) :: [pos_integer()]
+  def list_profile_strand_filters_classes_ids(profile_id, strand_id) do
+    from(
+      psf in ProfileStrandFilter,
+      where: psf.profile_id == ^profile_id,
+      where: psf.strand_id == ^strand_id,
+      select: psf.class_id
+    )
+    |> Repo.all()
   end
 
   @doc """
@@ -578,6 +598,73 @@ defmodule Lanttern.Personalization do
 
   """
   def get_profile_strand_filter!(id), do: Repo.get!(ProfileStrandFilter, id)
+
+  @doc """
+  Set profile strand filters.
+
+  ## Examples
+
+      iex> set_profile_strand_filters(user, 1, %{classes_ids: [1]})
+      :ok
+
+      iex> set_profile_strand_filters(user, 1, %{classes_ids: bad_value})
+      {:error, message}
+
+  """
+  @spec set_profile_strand_filters(User.t(), pos_integer(), map()) ::
+          {:ok, any()} | {:error, any()} | Ecto.Multi.failure()
+  def set_profile_strand_filters(%{current_profile: %{id: profile_id}}, strand_id, %{
+        classes_ids: classes_ids
+      })
+      when is_list(classes_ids) do
+    # delete existing entries for given profile/strand
+    from(
+      psf in ProfileStrandFilter,
+      where: psf.profile_id == ^profile_id,
+      where: psf.strand_id == ^strand_id
+    )
+    |> Repo.delete_all()
+
+    # and insert the new values
+    base_profile_strand_filter =
+      %ProfileStrandFilter{
+        profile_id: profile_id,
+        strand_id: strand_id
+      }
+
+    Ecto.Multi.new()
+    |> multi_insert_profile_strand_filter(
+      base_profile_strand_filter,
+      classes_ids
+    )
+    |> Repo.transaction()
+  end
+
+  defp multi_insert_profile_strand_filter(multi, _base_profile_strand_filter, []), do: multi
+
+  defp multi_insert_profile_strand_filter(multi, base_profile_strand_filter, [
+         class_id | classes_ids
+       ]) do
+    %{
+      profile_id: profile_id,
+      strand_id: strand_id
+    } = base_profile_strand_filter
+
+    name = "#{profile_id}_#{strand_id}_#{class_id}"
+
+    changeset =
+      change_profile_strand_filter(
+        base_profile_strand_filter,
+        %{class_id: class_id}
+      )
+
+    multi
+    |> Ecto.Multi.insert(name, changeset)
+    |> multi_insert_profile_strand_filter(
+      base_profile_strand_filter,
+      classes_ids
+    )
+  end
 
   @doc """
   Creates a profile_strand_filter.

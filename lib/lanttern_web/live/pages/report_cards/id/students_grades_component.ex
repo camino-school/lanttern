@@ -152,7 +152,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
         </:actions>
       </.slide_over>
       <.live_component
-        module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
+        module={LantternWeb.Personalization.FiltersOverlayComponent}
         id="students-grades-filters"
         current_user={@current_user}
         title={gettext("Students grades filter")}

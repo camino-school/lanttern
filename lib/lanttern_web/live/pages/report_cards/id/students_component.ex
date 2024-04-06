@@ -64,7 +64,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         </div>
       </.responsive_container>
       <.live_component
-        module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
+        module={LantternWeb.Personalization.FiltersOverlayComponent}
         id="classes-filter-overlay"
         current_user={@current_user}
         title={gettext("Select classes")}

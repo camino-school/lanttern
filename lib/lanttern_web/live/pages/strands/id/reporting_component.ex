@@ -7,7 +7,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
   alias Lanttern.Schools.Student
 
   import LantternWeb.AssessmentsHelpers, only: [save_entry_editor_component_changes: 1]
-  import LantternWeb.PersonalizationHelpers
+  import LantternWeb.PersonalizationHelpers, only: [assign_user_filters: 4]
 
   # shared components
   alias LantternWeb.Assessments.EntryEditorComponent
@@ -127,20 +127,27 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
           <%= gettext("List of report cards linked to this strand.") %>
         </p>
       </.responsive_container>
-      <.responsive_grid id={@id} phx-update="stream">
-        <.report_card_card
-          :for={{dom_id, report_card} <- @streams.report_cards}
-          id={dom_id}
-          report_card={report_card}
-          navigate={~p"/report_cards/#{report_card}"}
-        />
-      </.responsive_grid>
+      <%= if @has_report_cards do %>
+        <.responsive_grid id={@id} phx-update="stream">
+          <.report_card_card
+            :for={{dom_id, report_card} <- @streams.report_cards}
+            id={dom_id}
+            report_card={report_card}
+            navigate={~p"/report_cards/#{report_card}"}
+          />
+        </.responsive_grid>
+      <% else %>
+        <.empty_state class="mt-10">
+          <%= gettext("No report cards linked to this strand") %>
+        </.empty_state>
+      <% end %>
       <.live_component
-        module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
+        module={LantternWeb.Personalization.FiltersOverlayComponent}
         id="classes-filter-modal"
         current_user={@current_user}
         title={gettext("Select classes for assessment")}
         filter_type={:classes}
+        filter_opts={[strand_id: @strand.id]}
         navigate={~p"/strands/#{@strand}?tab=reporting"}
       />
       <.fixed_bar :if={@entries_changes_map != %{}} class="flex items-center gap-6">
@@ -269,14 +276,15 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
   end
 
   def update(assigns, socket) do
+    report_cards =
+      Reporting.list_report_cards(preloads: :school_cycle, strands_ids: [assigns.strand.id])
+
     socket =
       socket
       |> assign(assigns)
-      |> stream(
-        :report_cards,
-        Reporting.list_report_cards(preloads: :school_cycle, strands_ids: [assigns.strand.id])
-      )
-      |> assign_user_filters([:classes], assigns.current_user)
+      |> stream(:report_cards, report_cards)
+      |> assign(:has_report_cards, length(report_cards) > 0)
+      |> assign_user_filters([:classes], assigns.current_user, strand_id: assigns.strand.id)
       |> assign_assessment_points_and_student_entries()
 
     {:ok, socket}
