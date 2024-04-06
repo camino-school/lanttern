@@ -5,7 +5,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
   alias Lanttern.Assessments.AssessmentPoint
 
   import LantternWeb.AssessmentsHelpers, only: [save_entry_editor_component_changes: 1]
-  import LantternWeb.PersonalizationHelpers
+  import LantternWeb.PersonalizationHelpers, only: [assign_user_filters: 4]
   import Lanttern.Utils, only: [swap: 3]
 
   # shared components
@@ -72,15 +72,12 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
         >
           <p class="mb-6 font-bold text-ltrn-subtle"><%= gettext("Current assessment points") %></p>
           <ol phx-update="stream" id="assessment-points-no-class" class="flex flex-col gap-4">
-            <li
-              :for={{dom_id, {assessment_point, i}} <- @streams.assessment_points}
-              id={"no-class-#{dom_id}"}
-            >
+            <li :for={{dom_id, assessment_point} <- @streams.assessment_points} id={dom_id}>
               <.link
                 patch={~p"/strands/moment/#{@moment}/assessment_point/#{assessment_point}"}
                 class="hover:underline"
               >
-                <%= "#{i + 1}. #{assessment_point.name}" %>
+                <%= assessment_point.name %>
               </.link>
             </li>
           </ol>
@@ -185,11 +182,12 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
         </:actions>
       </.slide_over>
       <.live_component
-        module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
+        module={LantternWeb.Personalization.FiltersOverlayComponent}
         id="classes-filter-modal"
         current_user={@current_user}
         title={gettext("Select classes for assessment")}
         filter_type={:classes}
+        filter_opts={[strand_id: @moment.strand_id]}
         navigate={~p"/strands/moment/#{@moment}?tab=assessment"}
       />
       <.slide_over :if={@assessment_points_count > 1} id="moment-assessment-points-order-overlay">
@@ -370,12 +368,14 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
   end
 
   def update(%{moment: moment, assessment_point_id: assessment_point_id} = assigns, socket) do
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign_assessment_point(assessment_point_id)
-     |> assign_user_filters([:classes], assigns.current_user)
-     |> core_assigns(moment.id)}
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign_assessment_point(assessment_point_id)
+      |> assign_user_filters([:classes], assigns.current_user, strand_id: moment.strand_id)
+      |> core_assigns(moment.id)
+
+    {:ok, socket}
   end
 
   def update(_assigns, socket), do: {:ok, socket}

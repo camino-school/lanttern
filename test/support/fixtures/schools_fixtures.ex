@@ -107,6 +107,9 @@ defmodule Lanttern.SchoolsFixtures do
   def maybe_gen_cycle_id(%{cycle_id: cycle_id} = _attrs), do: cycle_id
   def maybe_gen_cycle_id(_attrs), do: cycle_fixture().id
 
+  def maybe_gen_class_id(%{class_id: class_id} = _attrs), do: class_id
+  def maybe_gen_class_id(_attrs), do: class_fixture().id
+
   def maybe_gen_student_id(%{student_id: student_id} = _attrs), do: student_id
   def maybe_gen_student_id(_attrs), do: student_fixture().id
 end

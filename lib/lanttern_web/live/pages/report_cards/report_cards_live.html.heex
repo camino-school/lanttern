@@ -47,7 +47,7 @@
   </.empty_state>
 <% end %>
 <.live_component
-  module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
+  module={LantternWeb.Personalization.FiltersOverlayComponent}
   id="report-cards-cycle-filters-overlay"
   current_user={@current_user}
   title={gettext("Filter report cards by cycle")}
@@ -55,7 +55,7 @@
   navigate={~p"/report_cards"}
 />
 <.live_component
-  module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
+  module={LantternWeb.Personalization.FiltersOverlayComponent}
   id="report-cards-year-filters-overlay"
   current_user={@current_user}
   title={gettext("Filter report cards by year")}

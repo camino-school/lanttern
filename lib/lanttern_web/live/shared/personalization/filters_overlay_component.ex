@@ -1,4 +1,4 @@
-defmodule LantternWeb.Personalization.GlobalFiltersOverlayComponent do
+defmodule LantternWeb.Personalization.FiltersOverlayComponent do
   use LantternWeb, :live_component
 
   import LantternWeb.PersonalizationHelpers
@@ -102,6 +102,7 @@ defmodule LantternWeb.Personalization.GlobalFiltersOverlayComponent do
     socket =
       socket
       |> assign(:has_changes, false)
+      |> assign(:filter_opts, [])
 
     {:ok, socket}
   end
@@ -113,7 +114,8 @@ defmodule LantternWeb.Personalization.GlobalFiltersOverlayComponent do
       |> assign(assigns)
       |> assign_user_filters(
         [filter_type],
-        assigns.current_user
+        assigns.current_user,
+        Map.get(assigns, :filter_opts, [])
       )
 
     {:ok, socket}
@@ -138,7 +140,8 @@ defmodule LantternWeb.Personalization.GlobalFiltersOverlayComponent do
   def handle_event("clear_filters", _, socket) do
     clear_profile_filters(
       socket.assigns.current_user,
-      [socket.assigns.filter_type]
+      [socket.assigns.filter_type],
+      socket.assigns.filter_opts
     )
 
     {:noreply, handle_navigation(socket)}
@@ -147,7 +150,11 @@ defmodule LantternWeb.Personalization.GlobalFiltersOverlayComponent do
   def handle_event("apply_filters", _, socket) do
     socket =
       socket
-      |> save_profile_filters(socket.assigns.current_user, [socket.assigns.filter_type])
+      |> save_profile_filters(
+        socket.assigns.current_user,
+        [socket.assigns.filter_type],
+        socket.assigns.filter_opts
+      )
       |> assign(:has_changes, false)
       |> handle_navigation()
 

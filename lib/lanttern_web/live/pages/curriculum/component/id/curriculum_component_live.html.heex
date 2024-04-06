@@ -154,7 +154,7 @@
   <.markdown text={@curriculum_component.description} />
 </section>
 <.live_component
-  module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
+  module={LantternWeb.Personalization.FiltersOverlayComponent}
   id="subjects-filter-modal"
   current_user={@current_user}
   title={gettext("Filter curriculum items by subject")}
@@ -162,7 +162,7 @@
   navigate={~p"/curriculum/component/#{@curriculum_component}"}
 />
 <.live_component
-  module={LantternWeb.Personalization.GlobalFiltersOverlayComponent}
+  module={LantternWeb.Personalization.FiltersOverlayComponent}
   id="years-filter-modal"
   current_user={@current_user}
   title={gettext("Filter curriculum items by year")}
