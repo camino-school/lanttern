@@ -116,10 +116,17 @@ defmodule LantternWeb.MenuComponent do
                     :for={profile <- @profiles}
                     profile={profile}
                     current_profile_id={@current_user.current_profile_id}
-                    phx-click="change_profile"
-                    phx-target={@myself}
-                    phx-value-userid={@current_user.id}
-                    phx-value-profileid={profile.id}
+                    phx-click={
+                      JS.push(
+                        "change_profile",
+                        value: %{
+                          "user_id" => @current_user.id,
+                          "profile_id" => profile.id,
+                          "profile_type" => profile.type
+                        },
+                        target: @myself
+                      )
+                    }
                   />
                 </ul>
               </li>
@@ -364,11 +371,25 @@ defmodule LantternWeb.MenuComponent do
 
   # event handlers
 
-  def handle_event("change_profile", %{"userid" => user_id, "profileid" => profile_id}, socket) do
+  def handle_event(
+        "change_profile",
+        %{"user_id" => user_id, "profile_id" => profile_id, "profile_type" => profile_type},
+        socket
+      ) do
     user = Identity.get_user!(user_id)
+
     Identity.update_user_current_profile_id(user, profile_id)
 
-    {:noreply, push_navigate(socket, to: socket.assigns.current_path, replace: true)}
+    # redirect to profile home on profile change
+    # (avoid 404 when permissions are checked on view mount)
+    to_path =
+      case profile_type do
+        "teacher" -> ~p"/dashboard"
+        "student" -> ~p"/student"
+        "guardian" -> ~p"/guardian"
+      end
+
+    {:noreply, push_navigate(socket, to: to_path, replace: true)}
   end
 
   def handle_event("set_locale", %{"locale" => locale}, socket) do
