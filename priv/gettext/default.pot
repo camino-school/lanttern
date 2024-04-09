@@ -70,12 +70,12 @@ msgstr ""
 msgid "Change profile"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/menu_component.ex:140
+#: lib/lanttern_web/live/shared/menu_component.ex:147
 #, elixir-autogen, elixir-format
 msgid "Language:"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/menu_component.ex:133
+#: lib/lanttern_web/live/shared/menu_component.ex:140
 #, elixir-autogen, elixir-format
 msgid "Log out"
 msgstr ""
@@ -2099,4 +2099,19 @@ msgstr[1] ""
 #: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:141
 #, elixir-autogen, elixir-format
 msgid "No report cards linked to this strand"
+msgstr ""
+
+#: lib/lanttern_web/components/layouts/root.html.heex:26
+#, elixir-autogen, elixir-format
+msgid "...but only the necessary for session persistence, keeping you logged in even when you close the browser and come back the other day."
+msgstr ""
+
+#: lib/lanttern_web/components/layouts/root.html.heex:23
+#, elixir-autogen, elixir-format
+msgid "Lanttern uses cookies..."
+msgstr ""
+
+#: lib/lanttern_web/components/layouts/root.html.heex:31
+#, elixir-autogen, elixir-format
+msgid "Understood!"
 msgstr ""

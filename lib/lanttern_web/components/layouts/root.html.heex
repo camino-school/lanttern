@@ -13,5 +13,24 @@
   </head>
   <body class="bg-white antialiased min-h-screen text-ltrn-dark">
     <%= @inner_content %>
+    <div
+      id="cookies-container"
+      class="z-50 fixed bottom-0 inset-x-0 hidden justify-end p-6 sm:p-10"
+      phx-hook="Cookies"
+    >
+      <div class="w-full max-w-xs p-6 rounded bg-white shadow-lg">
+        <h6 class="font-display font-bold">
+          🍪 <%= gettext("Lanttern uses cookies...") %>
+        </h6>
+        <p class="mt-4">
+          <%= gettext(
+            "...but only the necessary for session persistence, keeping you logged in even when you close the browser and come back the other day."
+          ) %>
+        </p>
+        <button type="button" class="mt-6 underline" id="accept-cookies-button">
+          <%= gettext("Understood!") %>
+        </button>
+      </div>
+    </div>
   </body>
 </html>

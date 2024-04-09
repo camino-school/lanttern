@@ -70,12 +70,12 @@ msgstr "fechar"
 msgid "Change profile"
 msgstr "Alterar perfil"
 
-#: lib/lanttern_web/live/shared/menu_component.ex:140
+#: lib/lanttern_web/live/shared/menu_component.ex:147
 #, elixir-autogen, elixir-format
 msgid "Language:"
 msgstr "Idioma:"
 
-#: lib/lanttern_web/live/shared/menu_component.ex:133
+#: lib/lanttern_web/live/shared/menu_component.ex:140
 #, elixir-autogen, elixir-format
 msgid "Log out"
 msgstr "Sair"
@@ -2100,3 +2100,18 @@ msgstr[1] "%{count} alterações"
 #, elixir-autogen, elixir-format
 msgid "No report cards linked to this strand"
 msgstr "Nenhum report card vinculado a esta trilha"
+
+#: lib/lanttern_web/components/layouts/root.html.heex:26
+#, elixir-autogen, elixir-format
+msgid "...but only the necessary for session persistence, keeping you logged in even when you close the browser and come back the other day."
+msgstr "...mas somente o necessário para persistir a sessão, mantendo você logado mesmo após fechar o browser e voltar em um outro dia."
+
+#: lib/lanttern_web/components/layouts/root.html.heex:23
+#, elixir-autogen, elixir-format
+msgid "Lanttern uses cookies..."
+msgstr "Lanttern utiliza cookies..."
+
+#: lib/lanttern_web/components/layouts/root.html.heex:31
+#, elixir-autogen, elixir-format
+msgid "Understood!"
+msgstr "Entendido!"
