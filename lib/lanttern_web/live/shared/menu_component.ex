@@ -169,6 +169,13 @@ defmodule LantternWeb.MenuComponent do
           >
             <%= @locale_error %>
           </.error_block>
+          <a
+            href={~p"/privacy_policy"}
+            target="_blank"
+            class="mt-4 text-sm font-display font-bold text-ltrn-subtle hover:underline"
+          >
+            <%= gettext("Privacy policy") %>
+          </a>
         </div>
       </.panel_overlay>
     </div>

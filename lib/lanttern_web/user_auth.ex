@@ -353,6 +353,46 @@ defmodule LantternWeb.UserAuth do
   end
 
   @doc """
+  Used for routes that require the user to have accepted the privacy policy.
+
+  Use after `require_authenticated_user/2` (`current_user` assign is expected).
+  """
+
+  def require_privacy_policy_accepted(%{assigns: %{current_user: user}} = conn, _opts) do
+    if is_user_privacy_policy_accepted_valid?(user) do
+      conn
+    else
+      conn
+      |> maybe_store_return_to()
+      |> redirect(to: ~p"/accept_privacy_policy")
+      |> halt()
+    end
+  end
+
+  @doc """
+  Used for routes that require the user to not to have accepted the privacy policy.
+  """
+  def redirect_if_privacy_policy_accepted(%{assigns: %{current_user: user}} = conn, _opts) do
+    if is_user_privacy_policy_accepted_valid?(user) do
+      conn
+      |> redirect(to: signed_in_path(conn))
+      |> halt()
+    else
+      conn
+    end
+  end
+
+  @current_privacy_policy_date ~U[2024-04-10 00:00:00.00Z]
+
+  defp is_user_privacy_policy_accepted_valid?(
+         %{privacy_policy_accepted_at: %DateTime{} = accepted_at} = %User{}
+       ) do
+    if DateTime.compare(accepted_at, @current_privacy_policy_date) == :gt, do: true, else: false
+  end
+
+  defp is_user_privacy_policy_accepted_valid?(_user), do: false
+
+  @doc """
   Used for routes that require root admin permissions.
   Must be used after `require_authenticated_user/2` (current_user required)
   """

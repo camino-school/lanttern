@@ -11,6 +11,8 @@ defmodule Lanttern.Identity.User do
           hashed_password: String.t(),
           is_root_admin: boolean(),
           confirmed_at: NaiveDateTime.t(),
+          privacy_policy_accepted_at: DateTime.t(),
+          privacy_policy_accepted_meta: String.t(),
           current_profile: Profile.t(),
           current_profile_id: pos_integer(),
           inserted_at: DateTime.t(),
@@ -23,6 +25,8 @@ defmodule Lanttern.Identity.User do
     field :hashed_password, :string, redact: true
     field :is_root_admin, :boolean
     field :confirmed_at, :naive_datetime
+    field :privacy_policy_accepted_at, :utc_datetime
+    field :privacy_policy_accepted_meta, :string
 
     belongs_to :current_profile, Profile
 
@@ -180,5 +184,16 @@ defmodule Lanttern.Identity.User do
     else
       add_error(changeset, :current_password, "is not valid")
     end
+  end
+
+  @doc """
+  Register the datetime and context information
+  related to the privacy policy acceptance.
+  """
+  def privacy_policy_accepted_changeset(user, metadata) do
+    user
+    |> cast(%{}, [])
+    |> put_change(:privacy_policy_accepted_meta, metadata)
+    |> put_change(:privacy_policy_accepted_at, DateTime.utc_now() |> DateTime.truncate(:second))
   end
 end
