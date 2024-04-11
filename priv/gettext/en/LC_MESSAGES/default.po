@@ -75,7 +75,7 @@ msgstr ""
 msgid "Language:"
 msgstr ""
 
-#: lib/lanttern_web/controllers/privacy_policy_html/accept_policy.html.heex:22
+#: lib/lanttern_web/controllers/privacy_policy_html/accept_policy.html.heex:25
 #: lib/lanttern_web/live/shared/menu_component.ex:140
 #, elixir-autogen, elixir-format
 msgid "Log out"
@@ -884,7 +884,7 @@ msgstr ""
 
 #: lib/lanttern/learning_context.ex:443
 #: lib/lanttern/repo_helpers.ex:111
-#: lib/lanttern_web/controllers/privacy_policy_controller.ex:51
+#: lib/lanttern_web/controllers/privacy_policy_controller.ex:53
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:271
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:302
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:338
@@ -2118,27 +2118,20 @@ msgstr ""
 msgid "Understood!"
 msgstr ""
 
-#: lib/lanttern_web/controllers/privacy_policy_html/accept_policy.html.heex:8
-#, elixir-autogen, elixir-format
-msgid "By using Lanttern you confirm to have read and agree to our %{privacy_policy_link_str}."
-msgstr ""
-
-#: lib/lanttern_web/controllers/privacy_policy_html/accept_policy.html.heex:19
+#: lib/lanttern_web/controllers/privacy_policy_html/accept_policy.html.heex:22
 #, elixir-autogen, elixir-format
 msgid "Confirm"
 msgstr ""
 
-#: lib/lanttern_web/controllers/privacy_policy_controller.ex:8
-#: lib/lanttern_web/controllers/privacy_policy_controller.ex:13
-#: lib/lanttern_web/controllers/privacy_policy_controller.ex:46
-#: lib/lanttern_web/controllers/privacy_policy_html/accept_policy.html.heex:6
-#: lib/lanttern_web/live/shared/menu_component.ex:177
+#: lib/lanttern_web/controllers/privacy_policy_controller.ex:11
+#: lib/lanttern_web/controllers/privacy_policy_controller.ex:48
+#: lib/lanttern_web/live/shared/menu_component.ex:178
 #, elixir-autogen, elixir-format
 msgid "Privacy policy"
 msgstr ""
 
-#: lib/lanttern_web/controllers/privacy_policy_controller.ex:16
-#: lib/lanttern_web/controllers/privacy_policy_controller.ex:49
+#: lib/lanttern_web/controllers/privacy_policy_controller.ex:14
+#: lib/lanttern_web/controllers/privacy_policy_controller.ex:51
 #, elixir-autogen, elixir-format
 msgid "privacy policy"
 msgstr ""
@@ -2149,17 +2142,37 @@ msgstr ""
 msgid "Invalid hex color"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/student/student_home_live.html.heex:50
+#: lib/lanttern_web/components/schools_components.ex:61
 #, elixir-autogen, elixir-format
 msgid "Powered by %{lanttern}."
 msgstr ""
 
-#: lib/lanttern_web/live/pages/student/student_home_live.html.heex:36
+#: lib/lanttern_web/components/schools_components.ex:47
 #, elixir-autogen, elixir-format, fuzzy
 msgid "School logo"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/student/student_home_live.html.heex:43
+#: lib/lanttern_web/components/schools_components.ex:54
 #, elixir-autogen, elixir-format
 msgid "Students information and learning data by %{school_name}."
+msgstr ""
+
+#: lib/lanttern_web/controllers/privacy_policy_html/accept_policy.html.heex:10
+#, elixir-autogen, elixir-format, fuzzy
+msgid "By using Lanttern you confirm to have read and agree to our %{privacy_policy_link_str} and %{terms_of_service_link_str}."
+msgstr ""
+
+#: lib/lanttern_web/controllers/privacy_policy_html/accept_policy.html.heex:7
+#, elixir-autogen, elixir-format
+msgid "Privacy policy and terms of service"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/menu_component.ex:185
+#, elixir-autogen, elixir-format
+msgid "Terms of service"
+msgstr ""
+
+#: lib/lanttern_web/controllers/privacy_policy_controller.ex:17
+#, elixir-autogen, elixir-format
+msgid "terms of service"
 msgstr ""

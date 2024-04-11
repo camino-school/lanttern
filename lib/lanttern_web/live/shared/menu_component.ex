@@ -169,13 +169,23 @@ defmodule LantternWeb.MenuComponent do
           >
             <%= @locale_error %>
           </.error_block>
-          <a
-            href={~p"/privacy_policy"}
-            target="_blank"
-            class="mt-4 text-sm font-display font-bold text-ltrn-subtle hover:underline"
-          >
-            <%= gettext("Privacy policy") %>
-          </a>
+          <div class="mt-4">
+            <a
+              href="/docs/politica-de-privacidade-lanttern-20240403.pdf"
+              target="_blank"
+              class="mt-4 text-sm font-display font-bold text-ltrn-subtle hover:underline"
+            >
+              <%= gettext("Privacy policy") %>
+            </a>
+            <br />
+            <a
+              href="/docs/termos-de-uso-lanttern-20240403.pdf"
+              target="_blank"
+              class="mt-4 text-sm font-display font-bold text-ltrn-subtle hover:underline"
+            >
+              <%= gettext("Terms of service") %>
+            </a>
+          </div>
         </div>
       </.panel_overlay>
     </div>

@@ -37,7 +37,6 @@ defmodule LantternWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
-    get "/privacy_policy", PrivacyPolicyController, :policy
   end
 
   # accept privacy policy route

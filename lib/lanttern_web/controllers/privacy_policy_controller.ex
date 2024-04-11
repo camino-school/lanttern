@@ -4,20 +4,22 @@ defmodule LantternWeb.PrivacyPolicyController do
 
   alias Lanttern.Identity
 
-  def policy(conn, _params) do
-    page_title = gettext("Privacy policy")
-    render(conn, :policy, page_title: page_title)
-  end
+  @privacy_policy_path "/docs/politica-de-privacidade-lanttern-20240403.pdf"
+  @terms_of_service_path "/docs/termos-de-uso-lanttern-20240403.pdf"
 
   def accept_policy(conn, _params) do
     page_title = gettext("Privacy policy")
 
     privacy_policy_link_str =
-      "<a href='/privacy_policy' target='_blank' class='underline hover:text-ltrn-subtle'>#{gettext("privacy policy")}</a>"
+      "<a href='#{@privacy_policy_path}' target='_blank' class='underline hover:text-ltrn-subtle'>#{gettext("privacy policy")}</a>"
+
+    terms_of_service_link_str =
+      "<a href='#{@terms_of_service_path}' target='_blank' class='underline hover:text-ltrn-subtle'>#{gettext("terms of service")}</a>"
 
     render(conn, :accept_policy,
       page_title: page_title,
       privacy_policy_link_str: privacy_policy_link_str,
+      terms_of_service_link_str: terms_of_service_link_str,
       error: nil
     )
   end
