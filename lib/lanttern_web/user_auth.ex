@@ -382,7 +382,7 @@ defmodule LantternWeb.UserAuth do
     end
   end
 
-  @current_privacy_policy_date ~U[2024-04-10 00:00:00.00Z]
+  @current_privacy_policy_date ~U[2024-04-03 00:00:00.00Z]
 
   defp is_user_privacy_policy_accepted_valid?(
          %{privacy_policy_accepted_at: %DateTime{} = accepted_at} = %User{}
