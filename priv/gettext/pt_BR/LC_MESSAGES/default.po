@@ -2142,3 +2142,24 @@ msgstr "Política de privacidade"
 #, elixir-autogen, elixir-format
 msgid "privacy policy"
 msgstr "política de privacidade"
+
+#: lib/lanttern/schools/school.ex:33
+#: lib/lanttern/schools/school.ex:37
+#, elixir-autogen, elixir-format
+msgid "Invalid hex color"
+msgstr "Cor hex inválida"
+
+#: lib/lanttern_web/live/pages/student/student_home_live.html.heex:50
+#, elixir-autogen, elixir-format
+msgid "Powered by %{lanttern}."
+msgstr "Powered by %{lanttern}."
+
+#: lib/lanttern_web/live/pages/student/student_home_live.html.heex:36
+#, elixir-autogen, elixir-format
+msgid "School logo"
+msgstr "Logo da escola"
+
+#: lib/lanttern_web/live/pages/student/student_home_live.html.heex:43
+#, elixir-autogen, elixir-format
+msgid "Students information and learning data by %{school_name}."
+msgstr "Informações de estudantes e dados de aprendizagem por %{school_name}."

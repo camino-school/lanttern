@@ -3,6 +3,11 @@
     Oops, something went wrong! Please check the errors below.
   </.error>
   <.input field={f[:name]} type="text" label="Name" />
+  <.input field={f[:logo_image_url]} type="text" label="Logo image URL" />
+  <div class="flex gap-6">
+    <.input field={f[:bg_color]} type="color" label="Background color" class="flex-1" />
+    <.input field={f[:text_color]} type="color" label="Text color" class="flex-1" />
+  </div>
   <:actions>
     <.button>Save School</.button>
   </:actions>

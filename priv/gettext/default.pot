@@ -2142,3 +2142,24 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "privacy policy"
 msgstr ""
+
+#: lib/lanttern/schools/school.ex:33
+#: lib/lanttern/schools/school.ex:37
+#, elixir-autogen, elixir-format
+msgid "Invalid hex color"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/student/student_home_live.html.heex:50
+#, elixir-autogen, elixir-format
+msgid "Powered by %{lanttern}."
+msgstr ""
+
+#: lib/lanttern_web/live/pages/student/student_home_live.html.heex:36
+#, elixir-autogen, elixir-format
+msgid "School logo"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/student/student_home_live.html.heex:43
+#, elixir-autogen, elixir-format
+msgid "Students information and learning data by %{school_name}."
+msgstr ""
