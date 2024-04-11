@@ -70,12 +70,13 @@ msgstr "fechar"
 msgid "Change profile"
 msgstr "Alterar perfil"
 
-#: lib/lanttern_web/live/shared/menu_component.ex:140
+#: lib/lanttern_web/live/shared/menu_component.ex:147
 #, elixir-autogen, elixir-format
 msgid "Language:"
 msgstr "Idioma:"
 
-#: lib/lanttern_web/live/shared/menu_component.ex:133
+#: lib/lanttern_web/controllers/privacy_policy_html/accept_policy.html.heex:25
+#: lib/lanttern_web/live/shared/menu_component.ex:140
 #, elixir-autogen, elixir-format
 msgid "Log out"
 msgstr "Sair"
@@ -883,6 +884,7 @@ msgstr "Salvar momento"
 
 #: lib/lanttern/learning_context.ex:443
 #: lib/lanttern/repo_helpers.ex:111
+#: lib/lanttern_web/controllers/privacy_policy_controller.ex:53
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:271
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:302
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:338
@@ -2100,3 +2102,77 @@ msgstr[1] "%{count} alterações"
 #, elixir-autogen, elixir-format
 msgid "No report cards linked to this strand"
 msgstr "Nenhum report card vinculado a esta trilha"
+
+#: lib/lanttern_web/components/layouts/root.html.heex:26
+#, elixir-autogen, elixir-format
+msgid "...but only the necessary for session persistence, keeping you logged in even when you close the browser and come back the other day."
+msgstr "...mas somente o necessário para persistir a sessão, mantendo você logado mesmo após fechar o browser e voltar em um outro dia."
+
+#: lib/lanttern_web/components/layouts/root.html.heex:23
+#, elixir-autogen, elixir-format
+msgid "Lanttern uses cookies..."
+msgstr "Lanttern utiliza cookies..."
+
+#: lib/lanttern_web/components/layouts/root.html.heex:31
+#, elixir-autogen, elixir-format
+msgid "Understood!"
+msgstr "Entendido!"
+
+#: lib/lanttern_web/controllers/privacy_policy_html/accept_policy.html.heex:22
+#, elixir-autogen, elixir-format
+msgid "Confirm"
+msgstr "Confirmar"
+
+#: lib/lanttern_web/controllers/privacy_policy_controller.ex:11
+#: lib/lanttern_web/controllers/privacy_policy_controller.ex:48
+#: lib/lanttern_web/live/shared/menu_component.ex:178
+#, elixir-autogen, elixir-format
+msgid "Privacy policy"
+msgstr "Política de privacidade"
+
+#: lib/lanttern_web/controllers/privacy_policy_controller.ex:14
+#: lib/lanttern_web/controllers/privacy_policy_controller.ex:51
+#, elixir-autogen, elixir-format
+msgid "privacy policy"
+msgstr "política de privacidade"
+
+#: lib/lanttern/schools/school.ex:33
+#: lib/lanttern/schools/school.ex:37
+#, elixir-autogen, elixir-format
+msgid "Invalid hex color"
+msgstr "Cor hex inválida"
+
+#: lib/lanttern_web/components/schools_components.ex:61
+#, elixir-autogen, elixir-format
+msgid "Powered by %{lanttern}."
+msgstr "Powered by %{lanttern}."
+
+#: lib/lanttern_web/components/schools_components.ex:47
+#, elixir-autogen, elixir-format
+msgid "School logo"
+msgstr "Logo da escola"
+
+#: lib/lanttern_web/components/schools_components.ex:54
+#, elixir-autogen, elixir-format
+msgid "Students information and learning data by %{school_name}."
+msgstr "Informações de estudantes e dados de aprendizagem por %{school_name}."
+
+#: lib/lanttern_web/controllers/privacy_policy_html/accept_policy.html.heex:10
+#, elixir-autogen, elixir-format
+msgid "By using Lanttern you confirm to have read and agree to our %{privacy_policy_link_str} and %{terms_of_service_link_str}."
+msgstr "Ao utilizar o Lanttern, você confirma ter lido e estar de acordo com nossa %{privacy_policy_link_str} e %{terms_of_service_link_str}."
+
+#: lib/lanttern_web/controllers/privacy_policy_html/accept_policy.html.heex:7
+#, elixir-autogen, elixir-format
+msgid "Privacy policy and terms of service"
+msgstr "Política de privacidade e termos de uso"
+
+#: lib/lanttern_web/live/shared/menu_component.ex:185
+#, elixir-autogen, elixir-format
+msgid "Terms of service"
+msgstr "Termos de uso"
+
+#: lib/lanttern_web/controllers/privacy_policy_controller.ex:17
+#, elixir-autogen, elixir-format
+msgid "terms of service"
+msgstr "termos de uso"

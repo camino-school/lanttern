@@ -52,6 +52,9 @@ defmodule LantternWeb.ConnCase do
         _ -> Lanttern.IdentityFixtures.user_fixture()
       end
 
+    # "accept" privacy policy
+    {:ok, user} = Lanttern.Identity.update_user_privacy_policy_accepted(user, "some meta")
+
     # logged in users should always have a current_profile
     teacher = Lanttern.SchoolsFixtures.teacher_fixture()
 
@@ -90,6 +93,9 @@ defmodule LantternWeb.ConnCase do
   def register_and_log_in_student(%{conn: conn}) do
     user = Lanttern.IdentityFixtures.user_fixture()
 
+    # "accept" privacy policy
+    {:ok, user} = Lanttern.Identity.update_user_privacy_policy_accepted(user, "some meta")
+
     # logged in users should always have a current_profile
     student = Lanttern.SchoolsFixtures.student_fixture()
 
@@ -124,6 +130,9 @@ defmodule LantternWeb.ConnCase do
   """
   def register_and_log_in_guardian(%{conn: conn}) do
     user = Lanttern.IdentityFixtures.user_fixture()
+
+    # "accept" privacy policy
+    {:ok, user} = Lanttern.Identity.update_user_privacy_policy_accepted(user, "some meta")
 
     # logged in users should always have a current_profile
     student = Lanttern.SchoolsFixtures.student_fixture()

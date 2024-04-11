@@ -32,10 +32,24 @@ defmodule LantternWeb.Router do
     plug :accepts, ["json"]
   end
 
+  # public routes
   scope "/", LantternWeb do
     pipe_through :browser
 
     get "/", PageController, :home
+  end
+
+  # accept privacy policy route
+  scope "/", LantternWeb do
+    pipe_through [:browser, :require_authenticated_user, :redirect_if_privacy_policy_accepted]
+
+    get "/accept_privacy_policy", PrivacyPolicyController, :accept_policy
+    post "/accept_privacy_policy", PrivacyPolicyController, :save_accept_policy
+  end
+
+  # logged in and privacy policy accepted routes
+  scope "/", LantternWeb do
+    pipe_through [:browser, :require_authenticated_user, :require_privacy_policy_accepted]
 
     live_session :authenticated_teacher,
       layout: {LantternWeb.Layouts, :app_logged_in},

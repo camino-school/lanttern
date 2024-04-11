@@ -446,6 +446,30 @@ defmodule Lanttern.Identity do
   end
 
   @doc """
+  Updates the user privacy policy accepted fields.
+
+  ## Examples
+
+      iex> update_user_privacy_policy_accepted(user, "metadata")
+      {:ok, %User{}}
+
+      iex> update_user_privacy_policy_accepted(user, "invalid metadata")
+      {:error, %Ecto.Changeset{}}
+  """
+  def update_user_privacy_policy_accepted(user, metadata) do
+    # append metadata to existing metadata
+    metadata =
+      case user.privacy_policy_accepted_meta do
+        nil -> metadata
+        existing_metadata -> "#{existing_metadata}\n#{metadata}"
+      end
+
+    user
+    |> User.privacy_policy_accepted_changeset(metadata)
+    |> Repo.update()
+  end
+
+  @doc """
   Deletes a user.
 
   This function should be used only in admin (and maybe it should be removed

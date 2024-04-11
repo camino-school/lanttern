@@ -500,6 +500,20 @@ defmodule Lanttern.IdentityTest do
     end
   end
 
+  describe "update_user_privacy_policy_accepted/2" do
+    setup do
+      %{user: user_fixture()}
+    end
+
+    test "set privacy policy accepted fields", %{user: user} do
+      {:ok, user} =
+        Identity.update_user_privacy_policy_accepted(user, "some metadata")
+
+      assert %{privacy_policy_accepted_at: %DateTime{} = _} = user
+      assert user.privacy_policy_accepted_meta == "some metadata"
+    end
+  end
+
   describe "inspect/2 for the User module" do
     test "does not include password" do
       refute inspect(%User{password: "123456"}) =~ "password: \"123456\""
