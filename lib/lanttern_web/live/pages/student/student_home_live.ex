@@ -7,10 +7,10 @@ defmodule LantternWeb.StudentHomeLive do
 
   alias Lanttern.Reporting
   alias Lanttern.Schools
-  import LantternWeb.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # shared components
   import LantternWeb.ReportingComponents
+  import LantternWeb.SchoolsComponents
 
   @impl true
   def mount(_params, _session, socket) do
@@ -26,25 +26,11 @@ defmodule LantternWeb.StudentHomeLive do
       socket.assigns.current_user.current_profile.school_id
       |> Schools.get_school!()
 
-    logo_image_url =
-      case school.logo_image_url do
-        nil ->
-          nil
-
-        url ->
-          object_url_to_render_url(
-            url,
-            width: 128,
-            height: 128
-          )
-      end
-
     socket =
       socket
       |> stream(:student_report_cards, student_report_cards)
       |> assign(:has_student_report_cards, has_student_report_cards)
       |> assign(:school, school)
-      |> assign(:logo_image_url, logo_image_url)
 
     {:ok, socket}
   end
