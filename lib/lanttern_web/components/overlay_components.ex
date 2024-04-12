@@ -320,6 +320,9 @@ defmodule LantternWeb.OverlayComponents do
             phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
             class="relative transform min-w-full h-full rounded bg-white shadow-xl transition-all"
           >
+            <div id={"#{@id}-content"} class={@class}>
+              <%= render_slot(@inner_block) %>
+            </div>
             <button
               phx-click={JS.exec("data-cancel", to: "##{@id}")}
               type="button"
@@ -328,9 +331,6 @@ defmodule LantternWeb.OverlayComponents do
             >
               <.icon name="hero-x-mark" class="w-6 h-6" />
             </button>
-            <div id={"#{@id}-content"} class={@class}>
-              <%= render_slot(@inner_block) %>
-            </div>
           </.focus_wrap>
         </div>
       </div>
