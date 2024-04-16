@@ -7,6 +7,7 @@ defmodule Lanttern.AssessmentsLog do
   alias Lanttern.Repo
 
   alias Lanttern.AssessmentsLog.AssessmentPointEntryLog
+  alias Lanttern.Assessments.AssessmentPointEntry
 
   @doc """
   Returns the list of assessment_point_entries logs.
@@ -53,5 +54,57 @@ defmodule Lanttern.AssessmentsLog do
     %AssessmentPointEntryLog{}
     |> AssessmentPointEntryLog.changeset(attrs)
     |> Repo.insert()
+  end
+
+  @doc """
+  Util for create a assessment_point_entry log.
+
+  Accepts `%AssessmentPointEntry{}` or `{:ok, %AssessmentPointEntry{}}` tuple as first arg.
+
+  Always returns the entry or tuple as is. The log are handled in an async task.
+  """
+  @spec maybe_create_assessment_point_entry_log(
+          AssessmentPointEntry.t() | {:ok, AssessmentPointEntry.t()},
+          String.t(),
+          Keyword.t()
+        ) :: AssessmentPointEntry.t() | {:ok, AssessmentPointEntry.t()}
+  def maybe_create_assessment_point_entry_log(entry_or_tuple, operation, opts \\ []) do
+    entry =
+      case entry_or_tuple do
+        %AssessmentPointEntry{} = entry -> entry
+        {:ok, %AssessmentPointEntry{} = entry} -> entry
+        _ -> nil
+      end
+
+    if entry do
+      do_create_assessment_point_entry_log(
+        entry,
+        operation,
+        Keyword.get(opts, :log_profile_id)
+      )
+    end
+
+    entry_or_tuple
+  end
+
+  defp do_create_assessment_point_entry_log(_, _, nil), do: nil
+
+  defp do_create_assessment_point_entry_log(
+         %AssessmentPointEntry{} = entry,
+         operation,
+         profile_id
+       ) do
+    attrs =
+      entry
+      |> Map.from_struct()
+      |> Map.drop([:id])
+      |> Map.put(:assessment_point_entry_id, entry.id)
+      |> Map.put(:operation, operation)
+      |> Map.put(:profile_id, profile_id)
+
+    # create the log in a async task (fire and forget)
+    Task.Supervisor.start_child(Lanttern.TaskSupervisor, fn ->
+      create_assessment_point_entry_log(attrs)
+    end)
   end
 end

@@ -1,6 +1,7 @@
 defmodule Lanttern.AssessmentsTest do
   use Lanttern.DataCase
 
+  alias Lanttern.Repo
   alias Lanttern.Assessments
 
   describe "assessment_points" do
@@ -79,6 +80,8 @@ defmodule Lanttern.AssessmentsTest do
       assert assessment_point.description == "some description"
       assert assessment_point.curriculum_item_id == curriculum_item.id
       assert assessment_point.scale_id == scale.id
+
+      # assert log
     end
 
     test "create_assessment_point/1 with valid data containing classes creates an assessment point with linked classes" do
@@ -645,6 +648,7 @@ defmodule Lanttern.AssessmentsTest do
 
   describe "assessment_point_entries" do
     alias Lanttern.Assessments.AssessmentPointEntry
+    alias Lanttern.AssessmentsLog.AssessmentPointEntryLog
 
     import Lanttern.AssessmentsFixtures
 
@@ -740,6 +744,9 @@ defmodule Lanttern.AssessmentsTest do
       assessment_point = assessment_point_fixture(%{scale_id: scale.id})
       student = Lanttern.SchoolsFixtures.student_fixture()
 
+      # profile to test log
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+
       valid_attrs = %{
         assessment_point_id: assessment_point.id,
         student_id: student.id,
@@ -749,11 +756,27 @@ defmodule Lanttern.AssessmentsTest do
       }
 
       assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
-               Assessments.create_assessment_point_entry(valid_attrs)
+               Assessments.create_assessment_point_entry(valid_attrs, log_profile_id: profile.id)
 
       assert assessment_point_entry.assessment_point_id == assessment_point.id
       assert assessment_point_entry.student_id == student.id
       assert assessment_point_entry.observation == "some observation"
+
+      # assert log. see
+      # https://elixirforum.com/t/36605/2
+      on_exit(fn ->
+        assessment_point_entry_log =
+          Repo.get_by!(AssessmentPointEntryLog,
+            assessment_point_entry_id: assessment_point_entry.id
+          )
+
+        assert assessment_point_entry_log.assessment_point_entry_id == assessment_point_entry.id
+        assert assessment_point_entry_log.profile_id == profile.id
+        assert assessment_point_entry_log.operation == "CREATE"
+        assert assessment_point_entry_log.assessment_point_id == assessment_point.id
+        assert assessment_point_entry_log.student_id == student.id
+        assert assessment_point_entry_log.observation == "some observation"
+      end)
     end
 
     test "create_assessment_point_entry/1 of type numeric with valid data creates a assessment_point_entry" do
@@ -840,10 +863,29 @@ defmodule Lanttern.AssessmentsTest do
       assessment_point_entry = assessment_point_entry_fixture()
       update_attrs = %{observation: "some updated observation"}
 
+      # profile to test log
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+
       assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
-               Assessments.update_assessment_point_entry(assessment_point_entry, update_attrs)
+               Assessments.update_assessment_point_entry(assessment_point_entry, update_attrs,
+                 log_profile_id: profile.id
+               )
 
       assert assessment_point_entry.observation == "some updated observation"
+
+      # assert log. see
+      # https://elixirforum.com/t/36605/2
+      on_exit(fn ->
+        assessment_point_entry_log =
+          Repo.get_by!(AssessmentPointEntryLog,
+            assessment_point_entry_id: assessment_point_entry.id
+          )
+
+        assert assessment_point_entry_log.assessment_point_entry_id == assessment_point_entry.id
+        assert assessment_point_entry_log.profile_id == profile.id
+        assert assessment_point_entry_log.operation == "UPDATE"
+        assert assessment_point_entry_log.observation == "some updated observation"
+      end)
     end
 
     test "update_assessment_point_entry/3 with valid data and preloads updates the assessment_point_entry and return it with preloaded data" do
@@ -872,12 +914,30 @@ defmodule Lanttern.AssessmentsTest do
     test "delete_assessment_point_entry/1 deletes the assessment_point_entry" do
       assessment_point_entry = assessment_point_entry_fixture()
 
+      # profile to test log
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+
       assert {:ok, %AssessmentPointEntry{}} =
-               Assessments.delete_assessment_point_entry(assessment_point_entry)
+               Assessments.delete_assessment_point_entry(assessment_point_entry,
+                 log_profile_id: profile.id
+               )
 
       assert_raise Ecto.NoResultsError, fn ->
         Assessments.get_assessment_point_entry!(assessment_point_entry.id)
       end
+
+      # assert log. see
+      # https://elixirforum.com/t/36605/2
+      on_exit(fn ->
+        assessment_point_entry_log =
+          Repo.get_by!(AssessmentPointEntryLog,
+            assessment_point_entry_id: assessment_point_entry.id
+          )
+
+        assert assessment_point_entry_log.assessment_point_entry_id == assessment_point_entry.id
+        assert assessment_point_entry_log.profile_id == profile.id
+        assert assessment_point_entry_log.operation == "DELETE"
+      end)
     end
 
     test "change_assessment_point_entry/1 returns a assessment_point_entry changeset" do
