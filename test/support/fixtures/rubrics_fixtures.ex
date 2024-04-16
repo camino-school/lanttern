@@ -15,19 +15,13 @@ defmodule Lanttern.RubricsFixtures do
       attrs
       |> Enum.into(%{
         criteria: "some criteria",
-        scale_id: scale_id(attrs),
+        scale_id: GradingFixtures.maybe_gen_scale_id(attrs),
         is_differentiation: false
       })
       |> Lanttern.Rubrics.create_rubric()
 
     rubric
   end
-
-  defp scale_id(%{scale_id: scale_id} = _attrs),
-    do: scale_id
-
-  defp scale_id(_attrs),
-    do: GradingFixtures.scale_fixture().id
 
   @doc """
   Generate a rubric_descriptor.
