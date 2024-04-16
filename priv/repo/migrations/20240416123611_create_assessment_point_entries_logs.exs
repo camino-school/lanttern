@@ -1,4 +1,4 @@
-defmodule Lanttern.Repo.Migrations.CreateAssessmentPointEntries do
+defmodule Lanttern.Repo.Migrations.CreateAssessmentPointEntriesLogs do
   use Ecto.Migration
 
   @prefix "log"
