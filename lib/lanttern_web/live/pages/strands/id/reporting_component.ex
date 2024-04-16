@@ -6,7 +6,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
   alias Lanttern.Reporting
   alias Lanttern.Schools.Student
 
-  import LantternWeb.AssessmentsHelpers, only: [save_entry_editor_component_changes: 1]
+  import LantternWeb.AssessmentsHelpers, only: [save_entry_editor_component_changes: 2]
   import LantternWeb.PersonalizationHelpers, only: [assign_user_filters: 4]
 
   # shared components
@@ -351,8 +351,16 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
   end
 
   def handle_event("save_changes", _params, socket) do
+    %{
+      entries_changes_map: entries_changes_map,
+      current_user: current_user
+    } = socket.assigns
+
     socket =
-      case save_entry_editor_component_changes(socket.assigns.entries_changes_map) do
+      case save_entry_editor_component_changes(
+             entries_changes_map,
+             current_user.current_profile_id
+           ) do
         {:ok, msg} -> put_flash(socket, :info, msg)
         {:error, msg} -> put_flash(socket, :error, msg)
       end

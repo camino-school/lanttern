@@ -59,19 +59,19 @@ defmodule Lanttern.AssessmentsLog do
   @doc """
   Util for create a assessment_point_entry log.
 
-  Accepts `%AssessmentPointEntry{}` or `{:ok, %AssessmentPointEntry{}}` tuple as first arg.
+  Accepts `{:ok, %AssessmentPointEntry{}}` or `{:error, %Ecto.Changeset{}}` tuple as first arg.
 
   Always returns the entry or tuple as is. The log are handled in an async task.
   """
   @spec maybe_create_assessment_point_entry_log(
-          AssessmentPointEntry.t() | {:ok, AssessmentPointEntry.t()},
+          {:ok, AssessmentPointEntry.t()} | {:error, Ecto.Changeset.t()},
           String.t(),
           Keyword.t()
-        ) :: AssessmentPointEntry.t() | {:ok, AssessmentPointEntry.t()}
-  def maybe_create_assessment_point_entry_log(entry_or_tuple, operation, opts \\ []) do
+        ) ::
+          {:ok, AssessmentPointEntry.t()} | {:error, Ecto.Changeset.t()}
+  def maybe_create_assessment_point_entry_log(operation_tuple, operation, opts \\ []) do
     entry =
-      case entry_or_tuple do
-        %AssessmentPointEntry{} = entry -> entry
+      case operation_tuple do
         {:ok, %AssessmentPointEntry{} = entry} -> entry
         _ -> nil
       end
@@ -84,7 +84,7 @@ defmodule Lanttern.AssessmentsLog do
       )
     end
 
-    entry_or_tuple
+    operation_tuple
   end
 
   defp do_create_assessment_point_entry_log(_, _, nil), do: nil
