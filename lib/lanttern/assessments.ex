@@ -10,6 +10,7 @@ defmodule Lanttern.Assessments do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.Feedback
+  alias Lanttern.AssessmentsLog
   alias Lanttern.Conversation.Comment
   alias Lanttern.Rubrics
   alias Lanttern.Schools.Student
@@ -359,9 +360,10 @@ defmodule Lanttern.Assessments do
   @doc """
   Creates an assessment_point_entry.
 
-  ### Options:
+  ## Options:
 
-  `:preloads` – preloads associated data
+  - `:preloads` – preloads associated data
+  - `:log_profile_id` - logs the operation, linked to given profile
 
   ## Examples
 
@@ -377,15 +379,17 @@ defmodule Lanttern.Assessments do
     |> AssessmentPointEntry.changeset(attrs)
     |> Repo.insert()
     |> maybe_preload(opts)
+    |> AssessmentsLog.maybe_create_assessment_point_entry_log("CREATE", opts)
   end
 
   @doc """
   Updates a assessment_point_entry.
 
-  ### Options:
+  ## Options:
 
-  `:preloads` – preloads associated data
-  `:force_preloads` - force preload. useful for update actions
+  - `:preloads` – preloads associated data
+  - `:force_preloads` - force preload. useful for update actions
+  - `:log_profile_id` - logs the operation, linked to given profile
 
   ## Examples
 
@@ -405,10 +409,15 @@ defmodule Lanttern.Assessments do
     |> AssessmentPointEntry.changeset(attrs)
     |> Repo.update()
     |> maybe_preload(opts)
+    |> AssessmentsLog.maybe_create_assessment_point_entry_log("UPDATE", opts)
   end
 
   @doc """
   Deletes a assessment_point_entry.
+
+  ## Options:
+
+  - `:log_profile_id` - logs the operation, linked to given profile
 
   ## Examples
 
@@ -419,8 +428,9 @@ defmodule Lanttern.Assessments do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_assessment_point_entry(%AssessmentPointEntry{} = assessment_point_entry) do
+  def delete_assessment_point_entry(%AssessmentPointEntry{} = assessment_point_entry, opts \\ []) do
     Repo.delete(assessment_point_entry)
+    |> AssessmentsLog.maybe_create_assessment_point_entry_log("DELETE", opts)
   end
 
   @doc """

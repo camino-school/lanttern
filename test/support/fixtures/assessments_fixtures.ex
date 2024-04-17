@@ -91,4 +91,12 @@ defmodule Lanttern.AssessmentsFixtures do
 
   def maybe_gen_assessment_point_id(_attrs),
     do: assessment_point_fixture().id
+
+  def maybe_gen_assessment_point_entry_id(
+        %{assessment_point_entry_id: assessment_point_entry_id} = _attrs
+      ),
+      do: assessment_point_entry_id
+
+  def maybe_gen_assessment_point_entry_id(_attrs),
+    do: assessment_point_entry_fixture().id
 end

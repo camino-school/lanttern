@@ -17,20 +17,22 @@ defmodule LantternWeb.AssessmentsHelpers do
   end
 
   @doc """
-  TBD
+  Iterate over an entry editor component changes map and save all changes.
+
+  Logs all entries.
   """
   @type changes_map() :: %{
           optional(binary) => {type :: atom(), entry_id :: pos_integer(), params :: map()}
         }
 
-  @spec save_entry_editor_component_changes(changes_map()) ::
+  @spec save_entry_editor_component_changes(changes_map(), profile_id :: pos_integer() | nil) ::
           {:ok | :error, results_message :: binary()}
-  def save_entry_editor_component_changes(changes_map) do
+  def save_entry_editor_component_changes(changes_map, profile_id \\ nil) do
     changes =
       changes_map
       |> Enum.map(fn {_, change} -> change end)
 
-    case apply_save_changes(changes) do
+    case apply_save_changes(changes, profile_id) do
       {:ok, results} ->
         msg = build_save_changes_results_message(results)
         {:ok, msg}
@@ -53,16 +55,18 @@ defmodule LantternWeb.AssessmentsHelpers do
 
   defp apply_save_changes(
          changes,
+         profile_id,
          results \\ %{created: 0, updated: 0, deleted: 0}
        )
 
-  defp apply_save_changes([], results), do: {:ok, results}
+  defp apply_save_changes([], _, results), do: {:ok, results}
 
-  defp apply_save_changes([{:new, _entry_id, params} | changes], results) do
-    case Assessments.create_assessment_point_entry(params) do
+  defp apply_save_changes([{:new, _entry_id, params} | changes], profile_id, results) do
+    case Assessments.create_assessment_point_entry(params, log_profile_id: profile_id) do
       {:ok, _assessment_point_entry} ->
         apply_save_changes(
           changes,
+          profile_id,
           Map.update!(results, :created, &(&1 + 1))
         )
 
@@ -73,13 +77,15 @@ defmodule LantternWeb.AssessmentsHelpers do
 
   defp apply_save_changes(
          [{:delete, entry_id, _params} | changes],
+         profile_id,
          results
        ) do
     with entry when not is_nil(entry) <- Assessments.get_assessment_point_entry(entry_id) do
-      case Assessments.delete_assessment_point_entry(entry) do
+      case Assessments.delete_assessment_point_entry(entry, log_profile_id: profile_id) do
         {:ok, _assessment_point_entry} ->
           apply_save_changes(
             changes,
+            profile_id,
             Map.update!(results, :deleted, &(&1 + 1))
           )
 
@@ -91,12 +97,13 @@ defmodule LantternWeb.AssessmentsHelpers do
     end
   end
 
-  defp apply_save_changes([{:edit, entry_id, params} | changes], results) do
+  defp apply_save_changes([{:edit, entry_id, params} | changes], profile_id, results) do
     with entry when not is_nil(entry) <- Assessments.get_assessment_point_entry(entry_id) do
-      case Assessments.update_assessment_point_entry(entry, params) do
+      case Assessments.update_assessment_point_entry(entry, params, log_profile_id: profile_id) do
         {:ok, _assessment_point_entry} ->
           apply_save_changes(
             changes,
+            profile_id,
             Map.update!(results, :updated, &(&1 + 1))
           )
 
