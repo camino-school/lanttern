@@ -6,13 +6,14 @@ defmodule Lanttern.Personalization do
   import Ecto.Query, warn: false
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
-  alias Lanttern.Personalization.Note
-  alias Lanttern.Personalization.StrandNoteRelationship
-  alias Lanttern.LearningContext.Strand
   alias Lanttern.Personalization.MomentNoteRelationship
-  alias Lanttern.LearningContext.Moment
-  alias Lanttern.Personalization.ProfileView
+  alias Lanttern.Personalization.Note
   alias Lanttern.Personalization.ProfileSettings
+  alias Lanttern.Personalization.ProfileView
+  alias Lanttern.Personalization.StrandNoteRelationship
+  alias Lanttern.Identity.User
+  alias Lanttern.LearningContext.Moment
+  alias Lanttern.LearningContext.Strand
 
   @doc """
   Returns the list of notes.
@@ -445,6 +446,8 @@ defmodule Lanttern.Personalization do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec set_profile_current_filters(User.t(), attrs :: map()) ::
+          {:ok, ProfileSettings.t()} | {:error, Ecto.Changeset.t()}
   def set_profile_current_filters(%{current_profile: %{id: profile_id}}, attrs \\ %{}),
     do: insert_settings_or_update_filters(get_profile_settings(profile_id), profile_id, attrs)
 

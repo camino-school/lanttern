@@ -525,7 +525,7 @@ defmodule Lanttern.Reporting do
   @spec get_student_report_card_by_student_and_parent_report(
           student_id :: non_neg_integer(),
           report_card_id :: non_neg_integer()
-        ) :: StudentReportCard.t()
+        ) :: StudentReportCard.t() | nil
   def get_student_report_card_by_student_and_parent_report(student_id, report_card_id) do
     StudentReportCard
     |> Repo.get_by(student_id: student_id, report_card_id: report_card_id)
