@@ -9,8 +9,10 @@ defmodule Lanttern.Personalization do
   alias Lanttern.Personalization.MomentNoteRelationship
   alias Lanttern.Personalization.Note
   alias Lanttern.Personalization.ProfileSettings
-  alias Lanttern.Personalization.ProfileView
   alias Lanttern.Personalization.StrandNoteRelationship
+  alias Lanttern.Personalization.ProfileView
+  alias Lanttern.Personalization.ProfileStrandFilter
+  alias Lanttern.Personalization.ProfileReportCardFilter
   alias Lanttern.Identity.User
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
@@ -551,8 +553,6 @@ defmodule Lanttern.Personalization do
     end
   end
 
-  alias Lanttern.Personalization.ProfileStrandFilter
-
   @doc """
   Returns the list of profile_strand_filters.
 
@@ -732,5 +732,105 @@ defmodule Lanttern.Personalization do
   """
   def change_profile_strand_filter(%ProfileStrandFilter{} = profile_strand_filter, attrs \\ %{}) do
     ProfileStrandFilter.changeset(profile_strand_filter, attrs)
+  end
+
+  @doc """
+  Returns the list of profile_report_card_filters.
+
+  ## Examples
+
+      iex> list_profile_report_card_filters()
+      [%ProfileReportCardFilter{}, ...]
+
+  """
+  def list_profile_report_card_filters do
+    Repo.all(ProfileReportCardFilter)
+  end
+
+  @doc """
+  Gets a single profile_report_card_filters.
+
+  Raises `Ecto.NoResultsError` if the Profile report card filters does not exist.
+
+  ## Examples
+
+      iex> get_profile_report_card_filters!(123)
+      %ProfileReportCardFilter{}
+
+      iex> get_profile_report_card_filters!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_profile_report_card_filters!(id), do: Repo.get!(ProfileReportCardFilter, id)
+
+  @doc """
+  Creates a profile_report_card_filters.
+
+  ## Examples
+
+      iex> create_profile_report_card_filters(%{field: value})
+      {:ok, %ProfileReportCardFilter{}}
+
+      iex> create_profile_report_card_filters(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_profile_report_card_filters(attrs \\ %{}) do
+    %ProfileReportCardFilter{}
+    |> ProfileReportCardFilter.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a profile_report_card_filters.
+
+  ## Examples
+
+      iex> update_profile_report_card_filters(profile_report_card_filters, %{field: new_value})
+      {:ok, %ProfileReportCardFilter{}}
+
+      iex> update_profile_report_card_filters(profile_report_card_filters, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_profile_report_card_filters(
+        %ProfileReportCardFilter{} = profile_report_card_filters,
+        attrs
+      ) do
+    profile_report_card_filters
+    |> ProfileReportCardFilter.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a profile_report_card_filters.
+
+  ## Examples
+
+      iex> delete_profile_report_card_filters(profile_report_card_filters)
+      {:ok, %ProfileReportCardFilter{}}
+
+      iex> delete_profile_report_card_filters(profile_report_card_filters)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_profile_report_card_filters(%ProfileReportCardFilter{} = profile_report_card_filters) do
+    Repo.delete(profile_report_card_filters)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking profile_report_card_filters changes.
+
+  ## Examples
+
+      iex> change_profile_report_card_filters(profile_report_card_filters)
+      %Ecto.Changeset{data: %ProfileReportCardFilter{}}
+
+  """
+  def change_profile_report_card_filters(
+        %ProfileReportCardFilter{} = profile_report_card_filters,
+        attrs \\ %{}
+      ) do
+    ProfileReportCardFilter.changeset(profile_report_card_filters, attrs)
   end
 end

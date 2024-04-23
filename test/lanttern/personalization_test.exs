@@ -621,4 +621,93 @@ defmodule Lanttern.PersonalizationTest do
                Personalization.change_profile_strand_filter(profile_strand_filter)
     end
   end
+
+  describe "profile_report_card_filters" do
+    alias Lanttern.Personalization.ProfileReportCardFilter
+
+    import Lanttern.PersonalizationFixtures
+
+    @invalid_attrs %{profile_id: nil}
+
+    test "list_profile_report_card_filters/0 returns all profile_report_card_filters" do
+      profile_report_card_filters = profile_report_card_filters_fixture()
+      assert Personalization.list_profile_report_card_filters() == [profile_report_card_filters]
+    end
+
+    test "get_profile_report_card_filters!/1 returns the profile_report_card_filters with given id" do
+      profile_report_card_filters = profile_report_card_filters_fixture()
+
+      assert Personalization.get_profile_report_card_filters!(profile_report_card_filters.id) ==
+               profile_report_card_filters
+    end
+
+    test "create_profile_report_card_filters/1 with valid data creates a profile_report_card_filters" do
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      report_card = Lanttern.ReportingFixtures.report_card_fixture()
+      class = Lanttern.SchoolsFixtures.class_fixture()
+
+      valid_attrs = %{
+        profile_id: profile.id,
+        report_card_id: report_card.id,
+        class_id: class.id
+      }
+
+      assert {:ok, %ProfileReportCardFilter{} = profile_report_card_filters} =
+               Personalization.create_profile_report_card_filters(valid_attrs)
+
+      assert profile_report_card_filters.profile_id == profile.id
+      assert profile_report_card_filters.report_card_id == report_card.id
+      assert profile_report_card_filters.class_id == class.id
+    end
+
+    test "create_profile_report_card_filters/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} =
+               Personalization.create_profile_report_card_filters(@invalid_attrs)
+    end
+
+    test "update_profile_report_card_filters/2 with valid data updates the profile_report_card_filters" do
+      profile_report_card_filters = profile_report_card_filters_fixture()
+      class = Lanttern.SchoolsFixtures.class_fixture()
+      update_attrs = %{class_id: class.id}
+
+      assert {:ok, %ProfileReportCardFilter{} = profile_report_card_filters} =
+               Personalization.update_profile_report_card_filters(
+                 profile_report_card_filters,
+                 update_attrs
+               )
+
+      assert profile_report_card_filters.class_id == class.id
+    end
+
+    test "update_profile_report_card_filters/2 with invalid data returns error changeset" do
+      profile_report_card_filters = profile_report_card_filters_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Personalization.update_profile_report_card_filters(
+                 profile_report_card_filters,
+                 @invalid_attrs
+               )
+
+      assert profile_report_card_filters ==
+               Personalization.get_profile_report_card_filters!(profile_report_card_filters.id)
+    end
+
+    test "delete_profile_report_card_filters/1 deletes the profile_report_card_filters" do
+      profile_report_card_filters = profile_report_card_filters_fixture()
+
+      assert {:ok, %ProfileReportCardFilter{}} =
+               Personalization.delete_profile_report_card_filters(profile_report_card_filters)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Personalization.get_profile_report_card_filters!(profile_report_card_filters.id)
+      end
+    end
+
+    test "change_profile_report_card_filters/1 returns a profile_report_card_filters changeset" do
+      profile_report_card_filters = profile_report_card_filters_fixture()
+
+      assert %Ecto.Changeset{} =
+               Personalization.change_profile_report_card_filters(profile_report_card_filters)
+    end
+  end
 end
