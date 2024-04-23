@@ -55,7 +55,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
             >
               <%= gettext("Select a class") %>
             </button>
-            <%= gettext("to view students assessments") %>
+            <%= gettext("to list students") %>
           </p>
         <% end %>
         <.other_students_list
