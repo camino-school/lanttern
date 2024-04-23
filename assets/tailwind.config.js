@@ -23,6 +23,7 @@ module.exports = {
           },
           dark: colors.slate["700"],
           subtle: colors.slate["400"],
+          light: colors.slate["300"],
           lighter: colors.slate["200"],
           lightest: colors.slate["100"],
           mesh: {

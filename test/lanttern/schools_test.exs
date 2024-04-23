@@ -423,6 +423,44 @@ defmodule Lanttern.SchoolsTest do
       assert !expected_2.has_diff_rubric
     end
 
+    test "list_students/1 with report card filter returns all students linked to given report card" do
+      class = class_fixture()
+
+      student_a = student_fixture(%{name: "AAA", classes_ids: [class.id]})
+      student_b = student_fixture(%{name: "BBB", classes_ids: [class.id]})
+
+      report_card = Lanttern.ReportingFixtures.report_card_fixture()
+
+      Lanttern.Reporting.create_student_report_card(%{
+        student_id: student_a.id,
+        report_card_id: report_card.id
+      })
+
+      Lanttern.Reporting.create_student_report_card(%{
+        student_id: student_b.id,
+        report_card_id: report_card.id
+      })
+
+      # other rubrics for testing
+      other_student = student_fixture(%{classes_ids: [class.id]})
+      other_report_card = Lanttern.ReportingFixtures.report_card_fixture()
+
+      Lanttern.Reporting.create_student_report_card(%{
+        student_id: other_student.id,
+        report_card_id: other_report_card.id
+      })
+
+      # assert
+      [expected_a, expected_b] =
+        Schools.list_students(report_card_id: report_card.id)
+
+      assert expected_a.id == student_a.id
+      assert expected_a.classes == [class]
+
+      assert expected_b.id == student_b.id
+      assert expected_b.classes == [class]
+    end
+
     test "get_student/2 returns the student with given id" do
       student = student_fixture()
       assert Schools.get_student(student.id) == student
