@@ -15,6 +15,7 @@ defmodule LantternWeb.PersonalizationHelpers do
   ## Supported opts
 
   - `:strand_id` - will get the contextualized strand filters. supports `:classes` type
+  - `:report_card_id` - will get the contextualized report card filters. supports `:classes` type
 
   ## Filter types and assigns
 
@@ -59,6 +60,13 @@ defmodule LantternWeb.PersonalizationHelpers do
   defp get_current_filters(profile_id, strand_id: strand_id) do
     classes_ids =
       Personalization.list_profile_strand_filters_classes_ids(profile_id, strand_id)
+
+    %{classes_ids: classes_ids}
+  end
+
+  defp get_current_filters(profile_id, report_card_id: report_card_id) do
+    classes_ids =
+      Personalization.list_profile_report_card_filter_classes_ids(profile_id, report_card_id)
 
     %{classes_ids: classes_ids}
   end
@@ -189,6 +197,7 @@ defmodule LantternWeb.PersonalizationHelpers do
   ## Supported opts
 
   - `:strand_id` - will persist data in the strand context. supports `:classes` type
+  - `:report_card_id` - will persist data in the report card context. supports `:classes` type
 
   ## Supported types
 
@@ -224,6 +233,7 @@ defmodule LantternWeb.PersonalizationHelpers do
   ## Supported opts
 
   - `:strand_id` - will persist data in the strand context. supports `:classes` type
+  - `:report_card_id` - will persist data in the report card context. supports `:classes` type
 
   ## Supported types
 
@@ -258,6 +268,9 @@ defmodule LantternWeb.PersonalizationHelpers do
 
   defp apply_save_profile_filters(current_user, attrs, strand_id: strand_id),
     do: Personalization.set_profile_strand_filters(current_user, strand_id, attrs)
+
+  defp apply_save_profile_filters(current_user, attrs, report_card_id: report_card_id),
+    do: Personalization.set_profile_report_card_filters(current_user, report_card_id, attrs)
 
   defp apply_save_profile_filters(current_user, attrs, _),
     do: Personalization.set_profile_current_filters(current_user, attrs)

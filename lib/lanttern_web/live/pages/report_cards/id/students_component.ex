@@ -8,7 +8,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   alias Lanttern.Schools
   alias Lanttern.Schools.Student
 
-  import LantternWeb.PersonalizationHelpers, only: [assign_user_filters: 3]
+  import LantternWeb.PersonalizationHelpers, only: [assign_user_filters: 4]
 
   # shared components
   alias LantternWeb.Reporting.StudentReportCardFormComponent
@@ -72,6 +72,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         current_user={@current_user}
         title={gettext("Select classes")}
         filter_type={:classes}
+        filter_opts={[report_card_id: @report_card.id]}
         navigate={~p"/report_cards/#{@report_card}"}
       />
       <.slide_over
@@ -262,7 +263,9 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign_user_filters([:classes], assigns.current_user)
+      |> assign_user_filters([:classes], assigns.current_user,
+        report_card_id: assigns.report_card.id
+      )
       |> stream_students_report_cards()
       |> assign_show_student_report_card_form(assigns)
 

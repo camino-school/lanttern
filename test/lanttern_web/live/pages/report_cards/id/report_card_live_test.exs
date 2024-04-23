@@ -44,7 +44,11 @@ defmodule LantternWeb.ReportCardLiveTest do
         student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_a.id})
 
       # select profile class filter to display student B
-      Personalization.set_profile_current_filters(user, %{classes_ids: [class.id]})
+      Personalization.set_profile_report_card_filters(
+        user,
+        report_card.id,
+        %{classes_ids: [class.id]}
+      )
 
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{report_card.id}")
 

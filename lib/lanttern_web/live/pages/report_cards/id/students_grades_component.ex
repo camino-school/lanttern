@@ -169,8 +169,6 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
       |> assign_is_editing_student_grade_report_entry(assigns)
       |> assign_students_grades_grid()
 
-    IO.inspect(socket.assigns.current_grades_report_cycle, label: "current_grades_report_cycle")
-
     {:ok, socket}
   end
 
