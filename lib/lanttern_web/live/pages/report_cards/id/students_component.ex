@@ -22,6 +22,17 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           <p class="font-display font-bold text-2xl">
             <%= gettext("Students linked to this report card") %>
           </p>
+          <div class="flex flex-wrap gap-2 mt-2">
+            <.badge_button theme="primary" icon_name="hero-check-mini">
+              <%= gettext("All classes") %>
+            </.badge_button>
+            <.badge_button
+              :for={class <- @linked_students_classes}
+              id={"linked-student-class-#{class.id}"}
+            >
+              <%= class.name %>
+            </.badge_button>
+          </div>
           <div phx-update="stream" id="other-students-and-report-cards">
             <.student_and_report_card_row
               :for={{dom_id, {student, student_report_card}} <- @streams.students_in_report_card}
@@ -266,6 +277,9 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
       |> assign_user_filters([:classes], assigns.current_user,
         report_card_id: assigns.report_card.id
       )
+      |> assign_new(:linked_students_classes, fn ->
+        Reporting.list_report_card_linked_students_classes(assigns.report_card.id)
+      end)
       |> stream_students_report_cards()
       |> assign_show_student_report_card_form(assigns)
 

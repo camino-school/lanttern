@@ -882,5 +882,44 @@ defmodule Lanttern.ReportingTest do
       assert expected_grade_component_2.assessment_point.curriculum_item.curriculum_component.id ==
                cur_component.id
     end
+
+    test "list_report_card_linked_students_classes/1 returns all report classes from students linked to the report card" do
+      report_card = report_card_fixture()
+
+      year_1 = Lanttern.TaxonomyFixtures.year_fixture()
+      year_2 = Lanttern.TaxonomyFixtures.year_fixture()
+      year_3 = Lanttern.TaxonomyFixtures.year_fixture()
+
+      class_1 = Lanttern.SchoolsFixtures.class_fixture(%{name: "AAA", years_ids: [year_1.id]})
+
+      class_2 =
+        Lanttern.SchoolsFixtures.class_fixture(%{name: "BBB", years_ids: [year_2.id, year_3.id]})
+
+      student_1 = Lanttern.SchoolsFixtures.student_fixture(%{classes_ids: [class_1.id]})
+      student_2 = Lanttern.SchoolsFixtures.student_fixture(%{classes_ids: [class_2.id]})
+      # student in same class to test distinct results
+      student_3 =
+        Lanttern.SchoolsFixtures.student_fixture(%{classes_ids: [class_1.id, class_2.id]})
+
+      student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_1.id})
+      student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_2.id})
+      student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_3.id})
+
+      # other fixtures for filtering test
+      other_report_card = report_card_fixture()
+      other_class = Lanttern.SchoolsFixtures.class_fixture()
+      other_student = Lanttern.SchoolsFixtures.student_fixture(%{classes_ids: [other_class.id]})
+
+      student_report_card_fixture(%{
+        report_card_id: other_report_card.id,
+        student_id: other_student.id
+      })
+
+      assert [expected_class_1, expected_class_2] =
+               Reporting.list_report_card_linked_students_classes(report_card.id)
+
+      assert expected_class_1.id == class_1.id
+      assert expected_class_2.id == class_2.id
+    end
   end
 end

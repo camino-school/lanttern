@@ -15,6 +15,7 @@ defmodule Lanttern.Reporting do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Schools
+  alias Lanttern.Schools.Class
   alias Lanttern.Schools.Cycle
   alias Lanttern.Schools.Student
 
@@ -713,6 +714,30 @@ defmodule Lanttern.Reporting do
       preload: [
         assessment_point: {ap, strand: s, curriculum_item: {ci, curriculum_component: cc}}
       ]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Returns a list of all classes from students linked to given report card.
+
+  Useful for building report card linked students class filter.
+
+  ## Examples
+
+      iex> list_report_card_linked_students_classes(report_card_id)
+      [%Class{}, ...]
+
+  """
+  @spec list_report_card_linked_students_classes(report_card_id :: integer()) :: [Class.t()]
+  def list_report_card_linked_students_classes(report_card_id) do
+    from(c in Class,
+      left_join: y in assoc(c, :years),
+      join: s in assoc(c, :students),
+      join: src in assoc(s, :student_report_cards),
+      where: src.report_card_id == ^report_card_id,
+      group_by: c.id,
+      order_by: [asc: min(y.id), asc: c.name]
     )
     |> Repo.all()
   end
