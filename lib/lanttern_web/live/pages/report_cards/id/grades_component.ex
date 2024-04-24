@@ -105,7 +105,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
   attr :grade_component, GradeComponent, required: true
   attr :index, :integer, required: true
   attr :is_last, :boolean, required: true
-  attr :myself, :any, required: true
+  attr :myself, Phoenix.LiveComponent.CID, required: true
 
   def grade_component_form(assigns) do
     form =

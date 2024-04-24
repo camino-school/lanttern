@@ -39,7 +39,7 @@ defmodule LantternWeb.Personalization.FiltersOverlayComponent do
   end
 
   attr :type, :string, required: true
-  attr :myself, :any, required: true
+  attr :myself, Phoenix.LiveComponent.CID, required: true
   attr :items, :list, required: true
   attr :selected_ids, :list, required: true
 

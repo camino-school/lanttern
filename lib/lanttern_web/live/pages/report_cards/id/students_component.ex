@@ -8,10 +8,13 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   alias Lanttern.Schools
   alias Lanttern.Schools.Student
 
-  import LantternWeb.PersonalizationHelpers, only: [assign_user_filters: 4]
+  import LantternWeb.PersonalizationHelpers,
+    only: [assign_user_filters: 4, save_profile_filters: 4]
 
   # shared components
   alias LantternWeb.Reporting.StudentReportCardFormComponent
+  alias LantternWeb.Personalization.InlineFiltersComponent
+  alias LantternWeb.Personalization.FiltersOverlayComponent
 
   @impl true
   def render(assigns) do
@@ -22,17 +25,14 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           <p class="font-display font-bold text-2xl">
             <%= gettext("Students linked to this report card") %>
           </p>
-          <div class="flex flex-wrap gap-2 mt-2">
-            <.badge_button theme="primary" icon_name="hero-check-mini">
-              <%= gettext("All classes") %>
-            </.badge_button>
-            <.badge_button
-              :for={class <- @linked_students_classes}
-              id={"linked-student-class-#{class.id}"}
-            >
-              <%= class.name %>
-            </.badge_button>
-          </div>
+          <.live_component
+            module={InlineFiltersComponent}
+            id="linked-students-classes-filter"
+            filter_items={@linked_students_classes}
+            selected_items_ids={@selected_linked_students_classes_ids}
+            class="mt-2"
+            notify_component={@myself}
+          />
           <div phx-update="stream" id="other-students-and-report-cards">
             <.student_and_report_card_row
               :for={{dom_id, {student, student_report_card}} <- @streams.students_in_report_card}
@@ -78,7 +78,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         />
       </.responsive_container>
       <.live_component
-        module={LantternWeb.Personalization.FiltersOverlayComponent}
+        module={FiltersOverlayComponent}
         id="classes-filter-modal"
         current_user={@current_user}
         title={gettext("Select classes")}
@@ -161,7 +161,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   attr :has_other_students, :boolean, required: true
   attr :students_stream, LiveStream, required: true
   attr :report_card_id, :integer, required: true
-  attr :myself, :any, required: true
+  attr :myself, Phoenix.LiveComponent.CID, required: true
 
   def other_students_list(%{has_selected_class: false} = assigns) do
     ~H"""
@@ -270,17 +270,32 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   end
 
   @impl true
+  def update(%{action: {InlineFiltersComponent, {:apply, classes_ids}}}, socket) do
+    socket =
+      socket
+      |> assign(:selected_linked_students_classes_ids, classes_ids)
+      |> save_profile_filters(
+        socket.assigns.current_user,
+        [:linked_students_classes],
+        report_card_id: socket.assigns.report_card.id
+      )
+      |> assign_user_filters([:classes, :linked_students_classes], socket.assigns.current_user,
+        report_card_id: socket.assigns.report_card.id
+      )
+      |> stream_students_report_cards(force: true)
+
+    {:ok, socket}
+  end
+
   def update(assigns, socket) do
     socket =
       socket
       |> assign(assigns)
-      |> assign_user_filters([:classes], assigns.current_user,
+      |> assign_user_filters([:classes, :linked_students_classes], assigns.current_user,
         report_card_id: assigns.report_card.id
       )
-      |> assign_new(:linked_students_classes, fn ->
-        Reporting.list_report_card_linked_students_classes(assigns.report_card.id)
-      end)
       |> stream_students_report_cards()
+      |> stream_students_without_report_card()
       |> assign_show_student_report_card_form(assigns)
 
     {:ok, socket}
@@ -300,29 +315,31 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
 
   defp stream_students_report_cards(socket, _) do
     students_in_report_card =
-      Reporting.list_students_for_report_card(
+      Reporting.list_students_with_report_card(
         socket.assigns.report_card.id,
-        only_with_report: true
+        classes_ids: socket.assigns.selected_linked_students_classes_ids
       )
 
     has_students_in_report_card = length(students_in_report_card) > 0
 
-    # list students for current classes filters,
-    # and remove the ones already in `students_in_report_card`
+    socket
+    |> stream(:students_in_report_card, students_in_report_card, reset: true)
+    |> assign(:has_students_in_report_card, has_students_in_report_card)
+  end
 
-    students_ids =
-      students_in_report_card
-      |> Enum.map(fn {student, _} -> student.id end)
+  defp stream_students_without_report_card(%{assigns: %{streams: %{other_students: _}}} = socket),
+    do: socket
 
+  defp stream_students_without_report_card(socket) do
     other_students =
-      Schools.list_students(classes_ids: socket.assigns.selected_classes_ids)
-      |> Enum.filter(&(&1.id not in students_ids))
+      Reporting.list_students_without_report_card(
+        socket.assigns.report_card.id,
+        classes_ids: socket.assigns.selected_classes_ids
+      )
 
     has_other_students = length(other_students) > 0
 
     socket
-    |> stream(:students_in_report_card, students_in_report_card, reset: true)
-    |> assign(:has_students_in_report_card, has_students_in_report_card)
     |> stream(:other_students, other_students, reset: true)
     |> assign(:has_other_students, has_other_students)
   end

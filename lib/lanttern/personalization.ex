@@ -748,28 +748,47 @@ defmodule Lanttern.Personalization do
   end
 
   @doc """
-  Returns the list of current classes ids filters for the given report card and profile.
+  Returns the list of current filters related to the the given report card and profile.
+
+  Supported filters: `classes_ids`, `linked_students_classes_ids`.
 
   ## Examples
 
-      iex> list_profile_report_card_filter_classes_ids(1, 1)
-      [1, 2, ...]
+      iex> list_profile_report_card_filters(1, 1)
+      %{classes_ids: [1, 2, ...], linked_students_classes_ids: []}
 
   """
-  @spec list_profile_report_card_filter_classes_ids(
+  @spec list_profile_report_card_filters(
           profile_id :: pos_integer(),
           report_card_id :: pos_integer()
-        ) :: [
-          class_id :: pos_integer()
-        ]
-  def list_profile_report_card_filter_classes_ids(profile_id, report_card_id) do
-    from(
-      prcf in ProfileReportCardFilter,
-      where: prcf.profile_id == ^profile_id,
-      where: prcf.report_card_id == ^report_card_id,
-      select: prcf.class_id
-    )
-    |> Repo.all()
+        ) :: %{
+          classes_ids: [pos_integer()],
+          linked_students_classes_ids: [pos_integer()]
+        }
+  def list_profile_report_card_filters(profile_id, report_card_id) do
+    filters =
+      from(
+        prcf in ProfileReportCardFilter,
+        where: prcf.profile_id == ^profile_id,
+        where: prcf.report_card_id == ^report_card_id,
+        select: {prcf.class_id, prcf.linked_students_class_id}
+      )
+      |> Repo.all()
+
+    classes_ids =
+      filters
+      |> Enum.map(fn {class_id, _} -> class_id end)
+      |> Enum.filter(&Function.identity/1)
+
+    linked_students_classes_ids =
+      filters
+      |> Enum.map(fn {_, class_id} -> class_id end)
+      |> Enum.filter(&Function.identity/1)
+
+    %{
+      classes_ids: classes_ids,
+      linked_students_classes_ids: linked_students_classes_ids
+    }
   end
 
   @doc """
@@ -802,57 +821,93 @@ defmodule Lanttern.Personalization do
   """
   @spec set_profile_report_card_filters(User.t(), pos_integer(), map()) ::
           {:ok, any()} | {:error, any()} | Ecto.Multi.failure()
-  def set_profile_report_card_filters(%{current_profile: %{id: profile_id}}, report_card_id, %{
-        classes_ids: classes_ids
-      })
-      when is_list(classes_ids) do
-    # delete existing entries for given profile/strand
-    from(
-      prcf in ProfileReportCardFilter,
-      where: prcf.profile_id == ^profile_id,
-      where: prcf.report_card_id == ^report_card_id
-    )
-    |> Repo.delete_all()
+
+  def set_profile_report_card_filters(
+        %{current_profile: %{id: profile_id}},
+        report_card_id,
+        filters
+      ) do
+    # delete existing entries for given profile/report_card
+    filters
+    |> Map.keys()
+    |> Enum.each(&delete_profile_report_card_filters(&1, profile_id, report_card_id))
 
     # and insert the new values
-    base_profile_strand_filter =
+    base_profile_report_card_filter =
       %ProfileReportCardFilter{
         profile_id: profile_id,
         report_card_id: report_card_id
       }
 
+    types_and_ids =
+      filters
+      |> Enum.flat_map(fn {type, ids} ->
+        Enum.map(ids, &{type, &1})
+      end)
+
     Ecto.Multi.new()
     |> multi_insert_profile_report_card_filter(
-      base_profile_strand_filter,
-      classes_ids
+      base_profile_report_card_filter,
+      types_and_ids
     )
     |> Repo.transaction()
+  end
+
+  defp delete_profile_report_card_filters(:classes_ids, profile_id, report_card_id) do
+    from(
+      prcf in ProfileReportCardFilter,
+      where: prcf.profile_id == ^profile_id,
+      where: prcf.report_card_id == ^report_card_id,
+      where: not is_nil(prcf.class_id)
+    )
+    |> Repo.delete_all()
+  end
+
+  defp delete_profile_report_card_filters(
+         :linked_students_classes_ids,
+         profile_id,
+         report_card_id
+       ) do
+    from(
+      prcf in ProfileReportCardFilter,
+      where: prcf.profile_id == ^profile_id,
+      where: prcf.report_card_id == ^report_card_id,
+      where: not is_nil(prcf.linked_students_class_id)
+    )
+    |> Repo.delete_all()
   end
 
   defp multi_insert_profile_report_card_filter(multi, _base_profile_report_card_filter, []),
     do: multi
 
   defp multi_insert_profile_report_card_filter(multi, base_profile_report_card_filter, [
-         class_id | classes_ids
+         {type, id} | types_and_ids
        ]) do
     %{
       profile_id: profile_id,
       report_card_id: report_card_id
     } = base_profile_report_card_filter
 
-    name = "#{profile_id}_#{report_card_id}_#{class_id}"
+    # filter type to field type
+    type =
+      case type do
+        :classes_ids -> :class_id
+        :linked_students_classes_ids -> :linked_students_class_id
+      end
+
+    name = "#{profile_id}_#{report_card_id}_#{type}_#{id}"
 
     changeset =
       change_profile_report_card_filter(
         base_profile_report_card_filter,
-        %{class_id: class_id}
+        %{type => id}
       )
 
     multi
     |> Ecto.Multi.insert(name, changeset)
     |> multi_insert_profile_report_card_filter(
       base_profile_report_card_filter,
-      classes_ids
+      types_and_ids
     )
   end
 

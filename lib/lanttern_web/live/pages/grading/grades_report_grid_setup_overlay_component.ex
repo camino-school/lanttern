@@ -96,7 +96,7 @@ defmodule LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent do
 
   attr :id, :string, required: true
   attr :grades_report_cycle, GradesReportCycle, required: true
-  attr :myself, :any, required: true
+  attr :myself, Phoenix.LiveComponent.CID, required: true
 
   def grades_report_cycle_form(assigns) do
     form =

@@ -637,7 +637,7 @@ defmodule Lanttern.PersonalizationTest do
       assert Personalization.list_profile_report_card_filter() == [profile_report_card_filter]
     end
 
-    test "list_profile_report_card_filter_classes_ids/2 returns all classes ids filtered by profile in the report card context" do
+    test "list_profile_report_card_filters/2 returns all classes ids filtered by profile in the report card context" do
       report_card = ReportingFixtures.report_card_fixture()
       class_1 = SchoolsFixtures.class_fixture()
       class_2 = SchoolsFixtures.class_fixture()
@@ -655,18 +655,29 @@ defmodule Lanttern.PersonalizationTest do
         class_id: class_2.id
       })
 
+      profile_report_card_filter_fixture(%{
+        profile_id: profile.id,
+        report_card_id: report_card.id,
+        class_id: nil,
+        linked_students_class_id: class_2.id
+      })
+
       # extra fixtures to test filter
       profile_report_card_filter_fixture()
 
-      assert expected =
-               Personalization.list_profile_report_card_filter_classes_ids(
+      assert %{
+               classes_ids: expected_classes_ids,
+               linked_students_classes_ids: expected_linked_students_classes_ids
+             } =
+               Personalization.list_profile_report_card_filters(
                  profile.id,
                  report_card.id
                )
 
-      assert length(expected) == 2
-      assert class_1.id in expected
-      assert class_2.id in expected
+      assert length(expected_classes_ids) == 2
+      assert class_1.id in expected_classes_ids
+      assert class_2.id in expected_classes_ids
+      assert [class_2.id] == expected_linked_students_classes_ids
     end
 
     test "get_profile_report_card_filter!/1 returns the profile_report_card_filter with given id" do
@@ -686,13 +697,20 @@ defmodule Lanttern.PersonalizationTest do
                Personalization.set_profile_report_card_filters(
                  %{current_profile: current_profile},
                  report_card.id,
-                 %{classes_ids: [class_1.id, class_2.id]}
+                 %{
+                   classes_ids: [class_1.id, class_2.id],
+                   linked_students_classes_ids: [class_1.id]
+                 }
                )
+
+      assert length(Map.keys(results)) == 3
 
       for {_, profile_report_card_filter} <- results do
         assert profile_report_card_filter.profile_id == current_profile.id
         assert profile_report_card_filter.report_card_id == report_card.id
-        assert profile_report_card_filter.class_id in [class_1.id, class_2.id]
+
+        assert profile_report_card_filter.class_id in [class_1.id, class_2.id] or
+                 profile_report_card_filter.linked_students_class_id == class_1.id
       end
 
       # repeat with a new class to test filter "update"
@@ -706,8 +724,8 @@ defmodule Lanttern.PersonalizationTest do
                  %{classes_ids: [class_3_id]}
                )
 
-      assert [class_3_id] ==
-               Personalization.list_profile_report_card_filter_classes_ids(
+      assert %{classes_ids: [class_3_id], linked_students_classes_ids: [class_1.id]} ==
+               Personalization.list_profile_report_card_filters(
                  current_profile.id,
                  report_card.id
                )

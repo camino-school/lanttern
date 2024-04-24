@@ -196,7 +196,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
   attr :student, Student, required: true
   attr :entries, :list, required: true
   attr :scale_ov_map, :map, required: true
-  attr :myself, :any, required: true
+  attr :myself, Phoenix.LiveComponent.CID, required: true
 
   def student_entries(assigns) do
     ~H"""
