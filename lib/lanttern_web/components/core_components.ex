@@ -345,8 +345,10 @@ defmodule LantternWeb.CoreComponents do
   def empty_state(assigns) do
     ~H"""
     <div class={["text-center", @class]}>
-      <div class="p-10">
+      <div class="relative p-10">
         <div class="animate-pulse h-24 w-24 rounded-full mx-auto bg-ltrn-lighter blur-md"></div>
+        <div class="absolute top-1/2 left-1/2 h-20 w-20 -mt-10 -ml-10 rounded-full border border-dashed border-ltrn-light">
+        </div>
       </div>
       <%!-- <div class="relative flex h-16 w-16 mx-auto">
         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-ltrn-primary opacity-75 blur-[2px]">

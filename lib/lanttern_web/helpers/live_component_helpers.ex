@@ -7,6 +7,7 @@ defmodule LantternWeb.LiveComponentHelpers do
   Send notification to parent or component based on
   `:notify_parent` and `:notify_component` assigns.
   """
+  @spec notify(module :: atom(), msg :: any(), assigns :: map()) :: any()
   def notify(module, msg, %{notify_parent: true}),
     do: send(self(), {module, msg})
 

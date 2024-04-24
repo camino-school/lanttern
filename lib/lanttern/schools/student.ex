@@ -5,6 +5,7 @@ defmodule Lanttern.Schools.Student do
 
   alias Lanttern.Repo
 
+  alias Lanttern.Reporting.StudentReportCard
   alias Lanttern.Rubrics.Rubric
   alias Lanttern.Schools.School
   alias Lanttern.Schools.Class
@@ -18,6 +19,7 @@ defmodule Lanttern.Schools.Student do
           school_id: pos_integer(),
           classes: [Class.t()],
           diff_rubrics: [Rubric.t()],
+          student_report_cards: [StudentReportCard.t()],
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -35,6 +37,8 @@ defmodule Lanttern.Schools.Student do
       preload_order: [asc: :name]
 
     many_to_many :diff_rubrics, Rubric, join_through: "differentiation_rubrics_students"
+
+    has_many :student_report_cards, StudentReportCard
 
     timestamps()
   end

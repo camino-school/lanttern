@@ -6,13 +6,16 @@ defmodule Lanttern.Personalization do
   import Ecto.Query, warn: false
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
-  alias Lanttern.Personalization.Note
-  alias Lanttern.Personalization.StrandNoteRelationship
-  alias Lanttern.LearningContext.Strand
   alias Lanttern.Personalization.MomentNoteRelationship
-  alias Lanttern.LearningContext.Moment
-  alias Lanttern.Personalization.ProfileView
+  alias Lanttern.Personalization.Note
   alias Lanttern.Personalization.ProfileSettings
+  alias Lanttern.Personalization.StrandNoteRelationship
+  alias Lanttern.Personalization.ProfileView
+  alias Lanttern.Personalization.ProfileStrandFilter
+  alias Lanttern.Personalization.ProfileReportCardFilter
+  alias Lanttern.Identity.User
+  alias Lanttern.LearningContext.Moment
+  alias Lanttern.LearningContext.Strand
 
   @doc """
   Returns the list of notes.
@@ -445,6 +448,8 @@ defmodule Lanttern.Personalization do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec set_profile_current_filters(User.t(), attrs :: map()) ::
+          {:ok, ProfileSettings.t()} | {:error, Ecto.Changeset.t()}
   def set_profile_current_filters(%{current_profile: %{id: profile_id}}, attrs \\ %{}),
     do: insert_settings_or_update_filters(get_profile_settings(profile_id), profile_id, attrs)
 
@@ -547,8 +552,6 @@ defmodule Lanttern.Personalization do
         {op, params}
     end
   end
-
-  alias Lanttern.Personalization.ProfileStrandFilter
 
   @doc """
   Returns the list of profile_strand_filters.
@@ -729,5 +732,253 @@ defmodule Lanttern.Personalization do
   """
   def change_profile_strand_filter(%ProfileStrandFilter{} = profile_strand_filter, attrs \\ %{}) do
     ProfileStrandFilter.changeset(profile_strand_filter, attrs)
+  end
+
+  @doc """
+  Returns the list of profile_report_card_filter.
+
+  ## Examples
+
+      iex> list_profile_report_card_filter()
+      [%ProfileReportCardFilter{}, ...]
+
+  """
+  def list_profile_report_card_filter do
+    Repo.all(ProfileReportCardFilter)
+  end
+
+  @doc """
+  Returns the list of current filters related to the the given report card and profile.
+
+  Supported filters: `classes_ids`, `linked_students_classes_ids`.
+
+  ## Examples
+
+      iex> list_profile_report_card_filters(1, 1)
+      %{classes_ids: [1, 2, ...], linked_students_classes_ids: []}
+
+  """
+  @spec list_profile_report_card_filters(
+          profile_id :: pos_integer(),
+          report_card_id :: pos_integer()
+        ) :: %{
+          classes_ids: [pos_integer()],
+          linked_students_classes_ids: [pos_integer()]
+        }
+  def list_profile_report_card_filters(profile_id, report_card_id) do
+    filters =
+      from(
+        prcf in ProfileReportCardFilter,
+        where: prcf.profile_id == ^profile_id,
+        where: prcf.report_card_id == ^report_card_id,
+        select: {prcf.class_id, prcf.linked_students_class_id}
+      )
+      |> Repo.all()
+
+    classes_ids =
+      filters
+      |> Enum.map(fn {class_id, _} -> class_id end)
+      |> Enum.filter(&Function.identity/1)
+
+    linked_students_classes_ids =
+      filters
+      |> Enum.map(fn {_, class_id} -> class_id end)
+      |> Enum.filter(&Function.identity/1)
+
+    %{
+      classes_ids: classes_ids,
+      linked_students_classes_ids: linked_students_classes_ids
+    }
+  end
+
+  @doc """
+  Gets a single profile_report_card_filter.
+
+  Raises `Ecto.NoResultsError` if the Profile report card filters does not exist.
+
+  ## Examples
+
+      iex> get_profile_report_card_filter!(123)
+      %ProfileReportCardFilter{}
+
+      iex> get_profile_report_card_filter!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_profile_report_card_filter!(id), do: Repo.get!(ProfileReportCardFilter, id)
+
+  @doc """
+  Set profile report card filters.
+
+  ## Examples
+
+      iex> set_profile_report_card_filters(user, 1, %{classes_ids: [1]})
+      :ok
+
+      iex> set_profile_report_card_filters(user, 1, %{classes_ids: bad_value})
+      {:error, message}
+
+  """
+  @spec set_profile_report_card_filters(User.t(), pos_integer(), map()) ::
+          {:ok, any()} | {:error, any()} | Ecto.Multi.failure()
+
+  def set_profile_report_card_filters(
+        %{current_profile: %{id: profile_id}},
+        report_card_id,
+        filters
+      ) do
+    # delete existing entries for given profile/report_card
+    filters
+    |> Map.keys()
+    |> Enum.each(&delete_profile_report_card_filters(&1, profile_id, report_card_id))
+
+    # and insert the new values
+    base_profile_report_card_filter =
+      %ProfileReportCardFilter{
+        profile_id: profile_id,
+        report_card_id: report_card_id
+      }
+
+    types_and_ids =
+      filters
+      |> Enum.flat_map(fn {type, ids} ->
+        Enum.map(ids, &{type, &1})
+      end)
+
+    Ecto.Multi.new()
+    |> multi_insert_profile_report_card_filter(
+      base_profile_report_card_filter,
+      types_and_ids
+    )
+    |> Repo.transaction()
+  end
+
+  defp delete_profile_report_card_filters(:classes_ids, profile_id, report_card_id) do
+    from(
+      prcf in ProfileReportCardFilter,
+      where: prcf.profile_id == ^profile_id,
+      where: prcf.report_card_id == ^report_card_id,
+      where: not is_nil(prcf.class_id)
+    )
+    |> Repo.delete_all()
+  end
+
+  defp delete_profile_report_card_filters(
+         :linked_students_classes_ids,
+         profile_id,
+         report_card_id
+       ) do
+    from(
+      prcf in ProfileReportCardFilter,
+      where: prcf.profile_id == ^profile_id,
+      where: prcf.report_card_id == ^report_card_id,
+      where: not is_nil(prcf.linked_students_class_id)
+    )
+    |> Repo.delete_all()
+  end
+
+  defp multi_insert_profile_report_card_filter(multi, _base_profile_report_card_filter, []),
+    do: multi
+
+  defp multi_insert_profile_report_card_filter(multi, base_profile_report_card_filter, [
+         {type, id} | types_and_ids
+       ]) do
+    %{
+      profile_id: profile_id,
+      report_card_id: report_card_id
+    } = base_profile_report_card_filter
+
+    # filter type to field type
+    type =
+      case type do
+        :classes_ids -> :class_id
+        :linked_students_classes_ids -> :linked_students_class_id
+      end
+
+    name = "#{profile_id}_#{report_card_id}_#{type}_#{id}"
+
+    changeset =
+      change_profile_report_card_filter(
+        base_profile_report_card_filter,
+        %{type => id}
+      )
+
+    multi
+    |> Ecto.Multi.insert(name, changeset)
+    |> multi_insert_profile_report_card_filter(
+      base_profile_report_card_filter,
+      types_and_ids
+    )
+  end
+
+  @doc """
+  Creates a profile_report_card_filter.
+
+  ## Examples
+
+      iex> create_profile_report_card_filter(%{field: value})
+      {:ok, %ProfileReportCardFilter{}}
+
+      iex> create_profile_report_card_filter(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_profile_report_card_filter(attrs \\ %{}) do
+    %ProfileReportCardFilter{}
+    |> ProfileReportCardFilter.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a profile_report_card_filter.
+
+  ## Examples
+
+      iex> update_profile_report_card_filter(profile_report_card_filter, %{field: new_value})
+      {:ok, %ProfileReportCardFilter{}}
+
+      iex> update_profile_report_card_filter(profile_report_card_filter, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_profile_report_card_filter(
+        %ProfileReportCardFilter{} = profile_report_card_filter,
+        attrs
+      ) do
+    profile_report_card_filter
+    |> ProfileReportCardFilter.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a profile_report_card_filter.
+
+  ## Examples
+
+      iex> delete_profile_report_card_filter(profile_report_card_filter)
+      {:ok, %ProfileReportCardFilter{}}
+
+      iex> delete_profile_report_card_filter(profile_report_card_filter)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_profile_report_card_filter(%ProfileReportCardFilter{} = profile_report_card_filter) do
+    Repo.delete(profile_report_card_filter)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking profile_report_card_filter changes.
+
+  ## Examples
+
+      iex> change_profile_report_card_filter(profile_report_card_filter)
+      %Ecto.Changeset{data: %ProfileReportCardFilter{}}
+
+  """
+  def change_profile_report_card_filter(
+        %ProfileReportCardFilter{} = profile_report_card_filter,
+        attrs \\ %{}
+      ) do
+    ProfileReportCardFilter.changeset(profile_report_card_filter, attrs)
   end
 end

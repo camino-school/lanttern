@@ -3,6 +3,7 @@ defmodule LantternWeb.ReportCardLiveTest do
 
   import Lanttern.ReportingFixtures
 
+  alias Lanttern.Personalization
   alias Lanttern.LearningContextFixtures
   alias Lanttern.SchoolsFixtures
   alias Lanttern.TaxonomyFixtures
@@ -22,7 +23,7 @@ defmodule LantternWeb.ReportCardLiveTest do
       {:ok, _view, _html} = live(conn)
     end
 
-    test "list students and students report cards", %{conn: conn} do
+    test "list students and students report cards", %{conn: conn, user: user} do
       cycle_2024 =
         SchoolsFixtures.cycle_fixture(%{
           start_at: ~D[2024-01-01],
@@ -33,11 +34,21 @@ defmodule LantternWeb.ReportCardLiveTest do
       report_card =
         report_card_fixture(%{school_cycle_id: cycle_2024.id, name: "Some report card name abc"})
 
-      student_a = SchoolsFixtures.student_fixture(%{name: "Student AAA"})
-      _student_b = SchoolsFixtures.student_fixture(%{name: "Student BBB"})
+      class = SchoolsFixtures.class_fixture()
+      student_a = SchoolsFixtures.student_fixture(%{name: "Student AAA", classes_ids: [class.id]})
+
+      _student_b =
+        SchoolsFixtures.student_fixture(%{name: "Student BBB", classes_ids: [class.id]})
 
       student_a_report_card =
         student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_a.id})
+
+      # select profile class filter to display student B
+      Personalization.set_profile_report_card_filters(
+        user,
+        report_card.id,
+        %{classes_ids: [class.id]}
+      )
 
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{report_card.id}")
 

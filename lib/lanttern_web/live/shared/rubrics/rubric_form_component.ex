@@ -62,7 +62,7 @@ defmodule LantternWeb.Rubrics.RubricFormComponent do
 
   attr :scale, :map, required: true
   attr :field, :map, required: true
-  attr :myself, :any, required: true
+  attr :myself, Phoenix.LiveComponent.CID, required: true
 
   defp descriptors_fields(%{scale: nil} = assigns) do
     ~H"""

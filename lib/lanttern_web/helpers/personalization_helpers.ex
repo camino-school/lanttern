@@ -4,6 +4,7 @@ defmodule LantternWeb.PersonalizationHelpers do
   alias Lanttern.Personalization
 
   alias Lanttern.Identity.User
+  alias Lanttern.Reporting
   alias Lanttern.Schools
   alias Lanttern.Taxonomy
 
@@ -15,6 +16,7 @@ defmodule LantternWeb.PersonalizationHelpers do
   ## Supported opts
 
   - `:strand_id` - will get the contextualized strand filters. supports `:classes` type
+  - `:report_card_id` - will get the contextualized report card filters. supports `:classes` and `:linked_students_classes` types
 
   ## Filter types and assigns
 
@@ -42,6 +44,12 @@ defmodule LantternWeb.PersonalizationHelpers do
   - `:selected_classes_ids`
   - `:selected_classes`
 
+  ### `:linked_students_classes`' assigns
+
+  - `:linked_students_classes`
+  - `:selected_linked_students_classes_ids`
+  - `:selected_linked_students_classes`
+
   ## Examples
 
       iex> assign_user_filters(socket, [:subjects], user)
@@ -53,7 +61,7 @@ defmodule LantternWeb.PersonalizationHelpers do
     current_filters = get_current_filters(current_user.current_profile_id, opts)
 
     socket
-    |> assign_filter_type(current_user, current_filters, filter_types)
+    |> assign_filter_type(current_user, current_filters, filter_types, opts)
   end
 
   defp get_current_filters(profile_id, strand_id: strand_id) do
@@ -63,6 +71,9 @@ defmodule LantternWeb.PersonalizationHelpers do
     %{classes_ids: classes_ids}
   end
 
+  defp get_current_filters(profile_id, report_card_id: report_card_id),
+    do: Personalization.list_profile_report_card_filters(profile_id, report_card_id)
+
   defp get_current_filters(profile_id, _) do
     case Personalization.get_profile_settings(profile_id) do
       %{current_filters: current_filters} -> current_filters
@@ -70,9 +81,9 @@ defmodule LantternWeb.PersonalizationHelpers do
     end
   end
 
-  defp assign_filter_type(socket, _current_user, _current_filters, []), do: socket
+  defp assign_filter_type(socket, _current_user, _current_filters, [], _opts), do: socket
 
-  defp assign_filter_type(socket, current_user, current_filters, [:subjects | filter_types]) do
+  defp assign_filter_type(socket, current_user, current_filters, [:subjects | filter_types], opts) do
     subjects =
       Taxonomy.list_subjects()
       |> translate_struct_list("taxonomy", :name, reorder: true)
@@ -84,10 +95,10 @@ defmodule LantternWeb.PersonalizationHelpers do
     |> assign(:subjects, subjects)
     |> assign(:selected_subjects_ids, selected_subjects_ids)
     |> assign(:selected_subjects, selected_subjects)
-    |> assign_filter_type(current_user, current_filters, filter_types)
+    |> assign_filter_type(current_user, current_filters, filter_types, opts)
   end
 
-  defp assign_filter_type(socket, current_user, current_filters, [:years | filter_types]) do
+  defp assign_filter_type(socket, current_user, current_filters, [:years | filter_types], opts) do
     years =
       Taxonomy.list_years()
       |> translate_struct_list("taxonomy")
@@ -99,10 +110,10 @@ defmodule LantternWeb.PersonalizationHelpers do
     |> assign(:years, years)
     |> assign(:selected_years_ids, selected_years_ids)
     |> assign(:selected_years, selected_years)
-    |> assign_filter_type(current_user, current_filters, filter_types)
+    |> assign_filter_type(current_user, current_filters, filter_types, opts)
   end
 
-  defp assign_filter_type(socket, current_user, current_filters, [:cycles | filter_types]) do
+  defp assign_filter_type(socket, current_user, current_filters, [:cycles | filter_types], opts) do
     cycles =
       Schools.list_cycles(schools_ids: [current_user.current_profile.school_id])
 
@@ -113,10 +124,10 @@ defmodule LantternWeb.PersonalizationHelpers do
     |> assign(:cycles, cycles)
     |> assign(:selected_cycles_ids, selected_cycles_ids)
     |> assign(:selected_cycles, selected_cycles)
-    |> assign_filter_type(current_user, current_filters, filter_types)
+    |> assign_filter_type(current_user, current_filters, filter_types, opts)
   end
 
-  defp assign_filter_type(socket, current_user, current_filters, [:classes | filter_types]) do
+  defp assign_filter_type(socket, current_user, current_filters, [:classes | filter_types], opts) do
     classes =
       Schools.list_user_classes(current_user)
 
@@ -127,24 +138,46 @@ defmodule LantternWeb.PersonalizationHelpers do
     |> assign(:classes, classes)
     |> assign(:selected_classes_ids, selected_classes_ids)
     |> assign(:selected_classes, selected_classes)
-    |> assign_filter_type(current_user, current_filters, filter_types)
+    |> assign_filter_type(current_user, current_filters, filter_types, opts)
   end
 
-  defp assign_filter_type(socket, current_user, current_filters, [_ | filter_types]),
-    do: assign_filter_type(socket, current_user, current_filters, filter_types)
+  defp assign_filter_type(
+         socket,
+         current_user,
+         current_filters,
+         [:linked_students_classes | filter_types],
+         [report_card_id: report_card_id] = opts
+       ) do
+    classes =
+      Reporting.list_report_card_linked_students_classes(report_card_id)
+
+    selected_classes_ids = Map.get(current_filters, :linked_students_classes_ids) || []
+    selected_classes = Enum.filter(classes, &(&1.id in selected_classes_ids))
+
+    socket
+    |> assign(:linked_students_classes, classes)
+    |> assign(:selected_linked_students_classes_ids, selected_classes_ids)
+    |> assign(:selected_linked_students_classes, selected_classes)
+    |> assign_filter_type(current_user, current_filters, filter_types, opts)
+  end
+
+  defp assign_filter_type(socket, current_user, current_filters, [_ | filter_types], opts),
+    do: assign_filter_type(socket, current_user, current_filters, filter_types, opts)
 
   @type_to_type_ids_key_map %{
     subjects: :subjects_ids,
     years: :years_ids,
     cycles: :cycles_ids,
-    classes: :classes_ids
+    classes: :classes_ids,
+    linked_students_classes: :linked_students_classes_ids
   }
 
   @type_to_selected_ids_key_map %{
     subjects: :selected_subjects_ids,
     years: :selected_years_ids,
     cycles: :selected_cycles_ids,
-    classes: :selected_classes_ids
+    classes: :selected_classes_ids,
+    linked_students_classes: :selected_linked_students_classes_ids
   }
 
   @doc """
@@ -189,6 +222,7 @@ defmodule LantternWeb.PersonalizationHelpers do
   ## Supported opts
 
   - `:strand_id` - will persist data in the strand context. supports `:classes` type
+  - `:report_card_id` - will persist data in the report card context. supports `:classes` type
 
   ## Supported types
 
@@ -224,6 +258,7 @@ defmodule LantternWeb.PersonalizationHelpers do
   ## Supported opts
 
   - `:strand_id` - will persist data in the strand context. supports `:classes` type
+  - `:report_card_id` - will persist data in the report card context. supports `:classes` type
 
   ## Supported types
 
@@ -258,6 +293,9 @@ defmodule LantternWeb.PersonalizationHelpers do
 
   defp apply_save_profile_filters(current_user, attrs, strand_id: strand_id),
     do: Personalization.set_profile_strand_filters(current_user, strand_id, attrs)
+
+  defp apply_save_profile_filters(current_user, attrs, report_card_id: report_card_id),
+    do: Personalization.set_profile_report_card_filters(current_user, report_card_id, attrs)
 
   defp apply_save_profile_filters(current_user, attrs, _),
     do: Personalization.set_profile_current_filters(current_user, attrs)

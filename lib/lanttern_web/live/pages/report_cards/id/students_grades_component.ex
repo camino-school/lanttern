@@ -4,51 +4,45 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
   alias Lanttern.GradesReports
   alias Lanttern.Schools
 
-  import LantternWeb.PersonalizationHelpers
+  import LantternWeb.PersonalizationHelpers,
+    only: [assign_user_filters: 4, save_profile_filters: 4]
 
   # shared
   alias LantternWeb.GradesReports.StudentGradeReportEntryFormComponent
   import LantternWeb.ReportingComponents
   import LantternWeb.GradesReportsComponents
+  alias LantternWeb.Personalization.InlineFiltersComponent
 
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="py-10">
-      <%= if @selected_classes == [] do %>
+    <div>
+      <div :if={@grades_report} class="py-10">
         <div class="container mx-auto lg:max-w-5xl">
-          <p class="font-display font-bold text-2xl">
-            <%= gettext("Select a") %>
-            <button
-              type="button"
-              class="inline text-left underline hover:text-ltrn-subtle"
-              phx-click={JS.exec("data-show", to: "#students-grades-filters")}
-            >
-              <%= gettext("class") %>
-            </button>
-            <%= gettext("to view students grades") %>
+          <h5 class="font-display font-bold text-2xl">
+            <%= gettext("Students grades") %>
+          </h5>
+          <p class="mt-2">
+            <%= gettext("View grades reports for all students linked in the students tab.") %>
           </p>
+          <.live_component
+            module={InlineFiltersComponent}
+            id="linked-students-grades-classes-filter"
+            filter_items={@linked_students_classes}
+            selected_items_ids={@selected_linked_students_classes_ids}
+            class="mt-4"
+            notify_component={@myself}
+          />
         </div>
-      <% else %>
-        <div :if={@grades_report}>
-          <div class="container mx-auto lg:max-w-5xl">
-            <p class="font-display font-bold text-2xl">
-              <%= gettext("Viewing") %>
-              <button
-                type="button"
-                class="inline text-left underline hover:text-ltrn-subtle"
-                phx-click={JS.exec("data-show", to: "#students-grades-filters")}
-              >
-                <%= if length(@selected_classes) > 0 do
-                  @selected_classes
-                  |> Enum.map(& &1.name)
-                  |> Enum.join(", ")
-                else
-                  gettext("all classes")
-                end %>
-              </button>
-            </p>
+        <%= if @students == [] do %>
+          <div class="container mx-auto mt-4 lg:max-w-5xl">
+            <div class="p-10 rounded shadow-xl bg-white">
+              <.empty_state>
+                <%= gettext("Add students to report card to view grades") %>
+              </.empty_state>
+            </div>
           </div>
+        <% else %>
           <div class="p-6">
             <.students_grades_grid
               students={@students}
@@ -91,74 +85,74 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
               }
             />
           </div>
-        </div>
-      <% end %>
-      <.slide_over
-        :if={@is_editing_student_grade_report_entry}
-        id="student-grades-report-entry-overlay"
-        show={true}
-        on_cancel={JS.patch(~p"/report_cards/#{@report_card}?tab=grades")}
-      >
-        <:title><%= gettext("Edit student grade report entry") %></:title>
-        <.metadata class="mb-4" icon_name="hero-user">
-          <%= @student_grade_report_entry.student.name %>
-        </.metadata>
-        <.metadata class="mb-4" icon_name="hero-bookmark">
-          <%= @student_grade_report_entry.grades_report_subject.subject.name %>
-        </.metadata>
-        <.metadata class="mb-4" icon_name="hero-calendar">
-          <%= @student_grade_report_entry.grades_report_cycle.school_cycle.name %>
-        </.metadata>
+        <% end %>
+        <.slide_over
+          :if={@is_editing_student_grade_report_entry}
+          id="student-grades-report-entry-overlay"
+          show={true}
+          on_cancel={JS.patch(~p"/report_cards/#{@report_card}?tab=grades")}
+        >
+          <:title><%= gettext("Edit student grade report entry") %></:title>
+          <.metadata class="mb-4" icon_name="hero-user">
+            <%= @student_grade_report_entry.student.name %>
+          </.metadata>
+          <.metadata class="mb-4" icon_name="hero-bookmark">
+            <%= @student_grade_report_entry.grades_report_subject.subject.name %>
+          </.metadata>
+          <.metadata class="mb-4" icon_name="hero-calendar">
+            <%= @student_grade_report_entry.grades_report_cycle.school_cycle.name %>
+          </.metadata>
+          <.live_component
+            module={StudentGradeReportEntryFormComponent}
+            id={@student_grade_report_entry.id}
+            student_grade_report_entry={@student_grade_report_entry}
+            scale_id={@grades_report.scale_id}
+            navigate={~p"/report_cards/#{@report_card}?tab=grades"}
+            hide_submit
+          />
+          <div class="py-10">
+            <h6 class="font-display font-bold"><%= gettext("Grade composition") %></h6>
+            <p class="mt-4 mb-6 text-sm">
+              <%= gettext(
+                "Lanttern automatic grade calculation info based on configured grade composition"
+              ) %> (<%= Timex.local(@student_grade_report_entry.composition_datetime)
+              |> Timex.format!("{0D}/{0M}/{YYYY} {h24}:{m}") %>).
+            </p>
+            <.grade_composition_table student_grade_report_entry={@student_grade_report_entry} />
+          </div>
+          <:actions_left>
+            <.button
+              type="button"
+              theme="ghost"
+              phx-click="delete_student_grade_report_entry"
+              phx-target={@myself}
+              data-confirm={gettext("Are you sure?")}
+            >
+              <%= gettext("Delete") %>
+            </.button>
+          </:actions_left>
+          <:actions>
+            <.button
+              type="button"
+              theme="ghost"
+              phx-click={JS.exec("data-cancel", to: "#student-grades-report-entry-overlay")}
+            >
+              <%= gettext("Cancel") %>
+            </.button>
+            <.button type="submit" form="student-grade-report-entry-form">
+              <%= gettext("Save") %>
+            </.button>
+          </:actions>
+        </.slide_over>
         <.live_component
-          module={StudentGradeReportEntryFormComponent}
-          id={@student_grade_report_entry.id}
-          student_grade_report_entry={@student_grade_report_entry}
-          scale_id={@grades_report.scale_id}
+          module={LantternWeb.Personalization.FiltersOverlayComponent}
+          id="students-grades-filters"
+          current_user={@current_user}
+          title={gettext("Students grades filter")}
+          filter_type={:classes}
           navigate={~p"/report_cards/#{@report_card}?tab=grades"}
-          hide_submit
         />
-        <div class="py-10">
-          <h6 class="font-display font-bold"><%= gettext("Grade composition") %></h6>
-          <p class="mt-4 mb-6 text-sm">
-            <%= gettext(
-              "Lanttern automatic grade calculation info based on configured grade composition"
-            ) %> (<%= Timex.local(@student_grade_report_entry.composition_datetime)
-            |> Timex.format!("{0D}/{0M}/{YYYY} {h24}:{m}") %>).
-          </p>
-          <.grade_composition_table student_grade_report_entry={@student_grade_report_entry} />
-        </div>
-        <:actions_left>
-          <.button
-            type="button"
-            theme="ghost"
-            phx-click="delete_student_grade_report_entry"
-            phx-target={@myself}
-            data-confirm={gettext("Are you sure?")}
-          >
-            <%= gettext("Delete") %>
-          </.button>
-        </:actions_left>
-        <:actions>
-          <.button
-            type="button"
-            theme="ghost"
-            phx-click={JS.exec("data-cancel", to: "#student-grades-report-entry-overlay")}
-          >
-            <%= gettext("Cancel") %>
-          </.button>
-          <.button type="submit" form="student-grade-report-entry-form">
-            <%= gettext("Save") %>
-          </.button>
-        </:actions>
-      </.slide_over>
-      <.live_component
-        module={LantternWeb.Personalization.FiltersOverlayComponent}
-        id="students-grades-filters"
-        current_user={@current_user}
-        title={gettext("Students grades filter")}
-        filter_type={:classes}
-        navigate={~p"/report_cards/#{@report_card}?tab=grades"}
-      />
+      </div>
     </div>
     """
   end
@@ -166,10 +160,27 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
   # lifecycle
 
   @impl true
+  def update(%{action: {InlineFiltersComponent, {:apply, classes_ids}}}, socket) do
+    socket =
+      socket
+      |> assign(:selected_linked_students_classes_ids, classes_ids)
+      |> save_profile_filters(
+        socket.assigns.current_user,
+        [:linked_students_classes],
+        report_card_id: socket.assigns.report_card.id
+      )
+      |> assign_students_grades_grid()
+
+    {:ok, socket}
+  end
+
   def update(assigns, socket) do
     socket =
       socket
       |> assign(assigns)
+      |> assign_user_filters([:classes, :linked_students_classes], assigns.current_user,
+        report_card_id: assigns.report_card.id
+      )
       |> assign_new(:grades_report, fn %{report_card: report_card} ->
         case report_card.grades_report_id do
           nil -> nil
@@ -185,7 +196,6 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           |> Enum.find(&(&1.school_cycle_id == report_card.school_cycle_id))
       end)
       |> assign_is_editing_student_grade_report_entry(assigns)
-      |> assign_user_filters([:classes], assigns.current_user)
       |> assign_students_grades_grid()
 
     {:ok, socket}
@@ -223,7 +233,10 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
 
   defp assign_students_grades_grid(socket) do
     students =
-      Schools.list_students(classes_ids: socket.assigns.selected_classes_ids)
+      Schools.list_students(
+        report_card_id: socket.assigns.report_card.id,
+        classes_ids: socket.assigns.selected_linked_students_classes_ids
+      )
 
     students_grades_map =
       case socket.assigns.grades_report do

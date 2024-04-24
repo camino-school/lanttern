@@ -4,8 +4,6 @@ defmodule Lanttern.PersonalizationFixtures do
   entities via the `Lanttern.Personalization` context.
   """
 
-  import Lanttern.IdentityFixtures
-
   @doc """
   Generate a note.
   """
@@ -13,7 +11,7 @@ defmodule Lanttern.PersonalizationFixtures do
     {:ok, note} =
       attrs
       |> Enum.into(%{
-        author_id: maybe_gen_author_id(attrs),
+        author_id: Lanttern.IdentityFixtures.maybe_gen_profile_id(attrs),
         description: "some description"
       })
       |> Lanttern.Personalization.create_note()
@@ -87,11 +85,19 @@ defmodule Lanttern.PersonalizationFixtures do
     profile_strand_filter
   end
 
-  # helpers
+  @doc """
+  Generate a profile_report_card_filter.
+  """
+  def profile_report_card_filter_fixture(attrs \\ %{}) do
+    {:ok, profile_report_card_filter} =
+      attrs
+      |> Enum.into(%{
+        profile_id: Lanttern.IdentityFixtures.maybe_gen_profile_id(attrs),
+        report_card_id: Lanttern.ReportingFixtures.maybe_gen_report_card_id(attrs),
+        class_id: Lanttern.SchoolsFixtures.maybe_gen_class_id(attrs)
+      })
+      |> Lanttern.Personalization.create_profile_report_card_filter()
 
-  defp maybe_gen_author_id(%{author_id: author_id} = _attrs),
-    do: author_id
-
-  defp maybe_gen_author_id(_attrs),
-    do: teacher_profile_fixture().id
+    profile_report_card_filter
+  end
 end

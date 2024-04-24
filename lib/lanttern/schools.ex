@@ -393,6 +393,7 @@ defmodule Lanttern.Schools do
 
   `:preloads` – preloads associated data
   `:classes_ids` – filter students by provided list of ids. preloads the classes for each student, and order by class name
+  `:report_card_id` – filter students linked to given report card. preloads the classes for each student, and order by class name
   `:check_diff_rubrics_for_strand_id` - used to check if student has any differentiation rubric for given strand id
 
   ## Examples
@@ -402,10 +403,27 @@ defmodule Lanttern.Schools do
 
   """
   def list_students(opts \\ []) do
-    from(s in Student)
+    Student
+    |> maybe_join_and_preload_classes_and_order_list_students(opts)
     |> apply_list_students_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)
+  end
+
+  defp maybe_join_and_preload_classes_and_order_list_students(queryable, opts) do
+    case Keyword.keys(opts) |> Enum.any?(&(&1 in [:classes_ids, :report_card_id])) do
+      true ->
+        from(
+          s in Student,
+          join: c in assoc(s, :classes),
+          as: :classes,
+          order_by: c.name,
+          preload: [classes: c]
+        )
+
+      _ ->
+        queryable
+    end
   end
 
   defp apply_list_students_opts(queryable, []) do
@@ -418,11 +436,17 @@ defmodule Lanttern.Schools do
   defp apply_list_students_opts(queryable, [{:classes_ids, ids} | opts])
        when is_list(ids) and ids != [] do
     from(
-      s in queryable,
-      join: c in assoc(s, :classes),
-      where: c.id in ^ids,
-      order_by: c.name,
-      preload: [classes: c]
+      [s, classes: c] in queryable,
+      where: c.id in ^ids
+    )
+    |> apply_list_students_opts(opts)
+  end
+
+  defp apply_list_students_opts(queryable, [{:report_card_id, id} | opts]) do
+    from(
+      [s, classes: c] in queryable,
+      join: src in assoc(s, :student_report_cards),
+      where: src.report_card_id == ^id
     )
     |> apply_list_students_opts(opts)
   end

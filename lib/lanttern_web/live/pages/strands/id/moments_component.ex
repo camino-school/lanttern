@@ -109,7 +109,7 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
 
   attr :sortable_moments, :list, required: true
   attr :moments_count, :integer, required: true
-  attr :myself, :any, required: true
+  attr :myself, Phoenix.LiveComponent.CID, required: true
 
   def reorder_overlay(assigns) do
     ~H"""
