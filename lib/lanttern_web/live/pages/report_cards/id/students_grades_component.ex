@@ -4,10 +4,14 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
   alias Lanttern.GradesReports
   alias Lanttern.Schools
 
+  import LantternWeb.PersonalizationHelpers,
+    only: [assign_user_filters: 4, save_profile_filters: 4]
+
   # shared
   alias LantternWeb.GradesReports.StudentGradeReportEntryFormComponent
   import LantternWeb.ReportingComponents
   import LantternWeb.GradesReportsComponents
+  alias LantternWeb.Personalization.InlineFiltersComponent
 
   @impl true
   def render(assigns) do
@@ -21,6 +25,14 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           <p class="mt-2">
             <%= gettext("View grades reports for all students linked in the students tab.") %>
           </p>
+          <.live_component
+            module={InlineFiltersComponent}
+            id="linked-students-grades-classes-filter"
+            filter_items={@linked_students_classes}
+            selected_items_ids={@selected_linked_students_classes_ids}
+            class="mt-4"
+            notify_component={@myself}
+          />
         </div>
         <%= if @students == [] do %>
           <div class="container mx-auto mt-4 lg:max-w-5xl">
@@ -148,10 +160,27 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
   # lifecycle
 
   @impl true
+  def update(%{action: {InlineFiltersComponent, {:apply, classes_ids}}}, socket) do
+    socket =
+      socket
+      |> assign(:selected_linked_students_classes_ids, classes_ids)
+      |> save_profile_filters(
+        socket.assigns.current_user,
+        [:linked_students_classes],
+        report_card_id: socket.assigns.report_card.id
+      )
+      |> assign_students_grades_grid()
+
+    {:ok, socket}
+  end
+
   def update(assigns, socket) do
     socket =
       socket
       |> assign(assigns)
+      |> assign_user_filters([:classes, :linked_students_classes], assigns.current_user,
+        report_card_id: assigns.report_card.id
+      )
       |> assign_new(:grades_report, fn %{report_card: report_card} ->
         case report_card.grades_report_id do
           nil -> nil
@@ -204,7 +233,10 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
 
   defp assign_students_grades_grid(socket) do
     students =
-      Schools.list_students(report_card_id: socket.assigns.report_card.id)
+      Schools.list_students(
+        report_card_id: socket.assigns.report_card.id,
+        classes_ids: socket.assigns.selected_linked_students_classes_ids
+      )
 
     students_grades_map =
       case socket.assigns.grades_report do

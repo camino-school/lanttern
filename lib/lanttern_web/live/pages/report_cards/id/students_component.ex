@@ -21,7 +21,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     ~H"""
     <div class="pt-10 pb-20">
       <.responsive_container>
-        <div :if={@has_students_in_report_card} class="mb-10">
+        <div class="mb-10">
           <p class="font-display font-bold text-2xl">
             <%= gettext("Students linked to this report card") %>
           </p>
@@ -30,18 +30,26 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
             id="linked-students-classes-filter"
             filter_items={@linked_students_classes}
             selected_items_ids={@selected_linked_students_classes_ids}
-            class="mt-2"
+            class="mt-4"
             notify_component={@myself}
           />
-          <div phx-update="stream" id="other-students-and-report-cards">
-            <.student_and_report_card_row
-              :for={{dom_id, {student, student_report_card}} <- @streams.students_in_report_card}
-              id={dom_id}
-              report_card_id={@report_card.id}
-              student={student}
-              student_report_card={student_report_card}
-            />
-          </div>
+          <%= if @has_students_in_report_card do %>
+            <div phx-update="stream" id="other-students-and-report-cards">
+              <.student_and_report_card_row
+                :for={{dom_id, {student, student_report_card}} <- @streams.students_in_report_card}
+                id={dom_id}
+                report_card_id={@report_card.id}
+                student={student}
+                student_report_card={student_report_card}
+              />
+            </div>
+          <% else %>
+            <div class="p-10 mt-4 rounded shadow-xl bg-white">
+              <.empty_state>
+                <%= gettext("No students linked to this report card yet") %>
+              </.empty_state>
+            </div>
+          <% end %>
         </div>
         <%= if @selected_classes != [] do %>
           <p class="font-display font-bold text-2xl">
@@ -277,9 +285,6 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
       |> save_profile_filters(
         socket.assigns.current_user,
         [:linked_students_classes],
-        report_card_id: socket.assigns.report_card.id
-      )
-      |> assign_user_filters([:classes, :linked_students_classes], socket.assigns.current_user,
         report_card_id: socket.assigns.report_card.id
       )
       |> stream_students_report_cards(force: true)
