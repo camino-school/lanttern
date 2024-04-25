@@ -17,10 +17,28 @@
     />
   </.responsive_grid>
 <% else %>
-  <.responsive_container class="mt-10">
+  <.responsive_container class="my-10">
     <.empty_state class="p-10 rounded bg-white shadow-lg">
       <%= gettext("No student report cards created yet.") %>
     </.empty_state>
   </.responsive_container>
+<% end %>
+<%= if @has_student_report_cards_wip do %>
+  <.responsive_container>
+    <p class="font-display font-black text-xl text-ltrn-subtle">
+      <%= gettext("Report cards under development") %>
+    </p>
+  </.responsive_container>
+  <.responsive_grid>
+    <.report_card_card
+      :for={{dom_id, student_report_card} <- @streams.student_report_cards_wip}
+      id={dom_id}
+      report_card={student_report_card.report_card}
+      is_wip
+      year={student_report_card.report_card.year}
+      cycle={student_report_card.report_card.school_cycle}
+      class="shrink-0 w-64 sm:w-auto"
+    />
+  </.responsive_grid>
 <% end %>
 <.school_branding_footer school={@school} />

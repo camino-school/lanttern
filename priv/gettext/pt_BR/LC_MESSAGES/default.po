@@ -1861,7 +1861,7 @@ msgstr "Filtrar trilhas por ano"
 #: lib/lanttern_web/live/pages/student/student_home_live.html.heex:4
 #, elixir-autogen, elixir-format
 msgid "%{student}'s report cards"
-msgstr "Report card de %{student}"
+msgstr "Report cards de %{student}"
 
 #: lib/lanttern_web/live/shared/menu_component.ex:59
 #: lib/lanttern_web/live/shared/menu_component.ex:68
