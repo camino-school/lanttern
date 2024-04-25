@@ -33,14 +33,16 @@ defmodule LantternWeb.StudentStrandReportLive do
 
     report_card_student_id = student_report_card.student_id
     report_card_student_school_id = student_report_card.student.school_id
+    allow_student_access = student_report_card.allow_student_access
+    allow_guardian_access = student_report_card.allow_guardian_access
 
     case socket.assigns.current_user.current_profile do
       %Profile{type: "guardian", guardian_of_student_id: student_id}
-      when student_id == report_card_student_id ->
+      when student_id == report_card_student_id and allow_guardian_access ->
         nil
 
       %Profile{type: "student", student_id: student_id}
-      when student_id == report_card_student_id ->
+      when student_id == report_card_student_id and allow_student_access ->
         nil
 
       %Profile{type: "teacher", school_id: school_id}
