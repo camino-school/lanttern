@@ -58,7 +58,7 @@ defmodule LantternWeb.ReportCardLiveTest do
       assert view |> has_element?("div", "Student BBB")
 
       view
-      |> element("a", "Preview")
+      |> element("a[data-test-id='preview-button']")
       |> render_click()
 
       assert_redirect(view, "/student_report_card/#{student_a_report_card.id}")

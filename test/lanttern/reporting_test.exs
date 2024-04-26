@@ -343,6 +343,28 @@ defmodule Lanttern.ReportingTest do
              ]
     end
 
+    test "list_student_report_cards/1 with ids opt returns student_report_cards filtered by ids" do
+      student_report_card_1 = student_report_card_fixture()
+      student_report_card_2 = student_report_card_fixture()
+      student_report_card_3 = student_report_card_fixture()
+
+      # extra fixtures for filter testing
+      student_report_card_fixture()
+      student_report_card_fixture()
+
+      ids = [
+        student_report_card_1.id,
+        student_report_card_2.id,
+        student_report_card_3.id
+      ]
+
+      # report should be ordered by cycle end date desc and start date asc
+      assert [expected_a, expected_b, expected_c] = Reporting.list_student_report_cards(ids: ids)
+      assert expected_a.id in ids
+      assert expected_b.id in ids
+      assert expected_c.id in ids
+    end
+
     test "list_students_with_report_card/2 returns all students with class and linked report cards" do
       school = SchoolsFixtures.school_fixture()
       class_a = SchoolsFixtures.class_fixture(%{name: "AAA", school_id: school.id})
@@ -515,6 +537,30 @@ defmodule Lanttern.ReportingTest do
                Reporting.update_student_report_card(student_report_card, @invalid_attrs)
 
       assert student_report_card == Reporting.get_student_report_card!(student_report_card.id)
+    end
+
+    test "batch_update_student_report_card/2 with valid data updates the student_report_cards" do
+      student_report_card_1 = student_report_card_fixture()
+      student_report_card_2 = student_report_card_fixture()
+
+      update_attrs = %{allow_student_access: true, allow_guardian_access: true}
+
+      src_1_id = student_report_card_1.id
+      src_2_id = student_report_card_2.id
+
+      assert {:ok, %{^src_1_id => expected_1, ^src_2_id => expected_2}} =
+               Reporting.batch_update_student_report_card(
+                 [student_report_card_1, student_report_card_2],
+                 update_attrs
+               )
+
+      assert expected_1.id == student_report_card_1.id
+      assert expected_1.allow_student_access
+      assert expected_1.allow_guardian_access
+
+      assert expected_2.id == student_report_card_2.id
+      assert expected_2.allow_student_access
+      assert expected_2.allow_guardian_access
     end
 
     test "delete_student_report_card/1 deletes the student_report_card" do

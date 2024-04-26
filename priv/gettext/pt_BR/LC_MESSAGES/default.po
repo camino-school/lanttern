@@ -11,8 +11,8 @@ msgstr ""
 "Language: pt_BR\n"
 "Plural-Forms: nplurals=2; plural=(n>1);\n"
 
-#: lib/lanttern_web/components/core_components.ex:1215
-#: lib/lanttern_web/components/core_components.ex:1277
+#: lib/lanttern_web/components/core_components.ex:1216
+#: lib/lanttern_web/components/core_components.ex:1278
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr "Ações"
@@ -105,9 +105,9 @@ msgstr "Aplicando filtros..."
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:211
 #: lib/lanttern_web/live/pages/grading/grades_reports_live.html.heex:96
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:125
-#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:123
-#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:173
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:134
+#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:124
+#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:174
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:142
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:140
 #: lib/lanttern_web/live/pages/report_cards/report_cards_live.html.heex:85
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:166
@@ -161,9 +161,9 @@ msgstr "Nenhuma trilha criadas para os anos e componentes selecionados"
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:214
 #: lib/lanttern_web/live/pages/grading/grades_reports_live.html.heex:99
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:128
-#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:126
-#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:176
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:137
+#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:127
+#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:177
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:145
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:143
 #: lib/lanttern_web/live/pages/report_cards/report_cards_live.html.heex:88
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:169
@@ -385,8 +385,8 @@ msgstr "Não foi possível encontrar a trilha"
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:202
 #: lib/lanttern_web/live/pages/grading/grades_reports_live.html.heex:87
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:59
-#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:114
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:125
+#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:115
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:133
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:131
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:157
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:74
@@ -451,8 +451,8 @@ msgstr "Adicione suas anotações..."
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:200
 #: lib/lanttern_web/live/pages/grading/grades_reports_live.html.heex:85
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:57
-#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:112
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:123
+#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:113
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:131
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:129
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:133
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:155
@@ -496,7 +496,7 @@ msgstr "Diferenciação para %{name}"
 
 #: lib/lanttern_web/components/learning_context_components.ex:51
 #: lib/lanttern_web/live/pages/grading/grades_reports_live.html.heex:30
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:248
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:326
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:63
 #: lib/lanttern_web/live/pages/strands/id/notes_component.ex:52
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:281
@@ -559,7 +559,7 @@ msgstr "Rubrica"
 msgid "Save updated order"
 msgstr "Salvar ordem atualizada"
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:75
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:83
 #: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:38
 #: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:42
 #: lib/lanttern_web/live/pages/strands/moment/id/assessment_component.ex:41
@@ -852,7 +852,7 @@ msgstr "Momento atualizado com sucesso"
 msgid "Moments"
 msgstr "Momentos"
 
-#: lib/lanttern_web/components/core_components.ex:1165
+#: lib/lanttern_web/components/core_components.ex:1166
 #, elixir-autogen, elixir-format
 msgid "Move moment down"
 msgstr "Mover momento para baixo"
@@ -1008,22 +1008,22 @@ msgstr "Já selecionado"
 msgid "Background color format not accepted. Use hex color."
 msgstr "Cor de fundo inválida. Utilize cores hex."
 
-#: lib/lanttern_web/components/reporting_components.ex:477
+#: lib/lanttern_web/components/reporting_components.ex:487
 #, elixir-autogen, elixir-format
 msgid "Calculate all"
 msgstr "Calcular tudo"
 
-#: lib/lanttern_web/components/reporting_components.ex:652
+#: lib/lanttern_web/components/reporting_components.ex:662
 #, elixir-autogen, elixir-format
 msgid "Calculate grade"
 msgstr "Calcular nota"
 
-#: lib/lanttern_web/components/reporting_components.ex:526
+#: lib/lanttern_web/components/reporting_components.ex:536
 #, elixir-autogen, elixir-format
 msgid "Calculate student grades"
 msgstr "Calcular notas do estudante"
 
-#: lib/lanttern_web/components/reporting_components.ex:497
+#: lib/lanttern_web/components/reporting_components.ex:507
 #, elixir-autogen, elixir-format
 msgid "Calculate subject grades"
 msgstr "Calcular notas da disciplina"
@@ -1044,13 +1044,13 @@ msgstr "Cards"
 msgid "Code"
 msgstr "Código"
 
-#: lib/lanttern_web/live/pages/student_report_card/id/student_report_card_live.html.heex:102
+#: lib/lanttern_web/live/pages/student_report_card/id/student_report_card_live.html.heex:105
 #: lib/lanttern_web/live/shared/grades_reports/student_grade_report_entry_form_component.ex:45
 #, elixir-autogen, elixir-format
 msgid "Comment"
 msgstr "Comentário"
 
-#: lib/lanttern_web/components/reporting_components.ex:397
+#: lib/lanttern_web/components/reporting_components.ex:407
 #, elixir-autogen, elixir-format
 msgid "Comp"
 msgstr "Comp"
@@ -1059,11 +1059,6 @@ msgstr "Comp"
 #, elixir-autogen, elixir-format
 msgid "Component"
 msgstr "Componente"
-
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:257
-#, elixir-autogen, elixir-format
-msgid "Create"
-msgstr "Criar"
 
 #: lib/lanttern_web/live/pages/grading/grades_reports_live.ex:45
 #, elixir-autogen, elixir-format
@@ -1080,12 +1075,12 @@ msgstr "Criar novo relatório de notas"
 msgid "Create new report card"
 msgstr "Criar novo report card"
 
-#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:248
+#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:249
 #, elixir-autogen, elixir-format
 msgid "Create strand report"
 msgstr "Criar novo relatório de trilha"
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:369
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:549
 #, elixir-autogen, elixir-format
 msgid "Create student report card"
 msgstr "Criar report card de estudante"
@@ -1115,12 +1110,12 @@ msgstr "Item curricular removido"
 msgid "Curriculum items"
 msgstr "Itens curriculares"
 
-#: lib/lanttern_web/components/reporting_components.ex:64
+#: lib/lanttern_web/components/reporting_components.ex:67
 #: lib/lanttern_web/live/pages/grading/grades_reports_live.html.heex:36
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:14
 #: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/student_strand_report_live.html.heex:34
 #: lib/lanttern_web/live/pages/student_report_card/id/student_report_card_live.html.heex:23
-#: lib/lanttern_web/live/pages/student_report_card/id/student_report_card_live.html.heex:96
+#: lib/lanttern_web/live/pages/student_report_card/id/student_report_card_live.html.heex:99
 #: lib/lanttern_web/live/shared/reporting/report_card_form_component.ex:33
 #, elixir-autogen, elixir-format
 msgid "Cycle"
@@ -1186,7 +1181,7 @@ msgstr "Editar relatório de nota"
 msgid "Edit report card"
 msgstr "Editar report card"
 
-#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:264
+#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:265
 #, elixir-autogen, elixir-format
 msgid "Edit strand report"
 msgstr "Editar relatório da trilha"
@@ -1196,12 +1191,12 @@ msgstr "Editar relatório da trilha"
 msgid "Edit student grade report entry"
 msgstr "Editar registro de relatório de nota de estudante"
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:388
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:568
 #, elixir-autogen, elixir-format
 msgid "Edit student report card"
 msgstr "Editar report card de estudante"
 
-#: lib/lanttern_web/components/reporting_components.ex:604
+#: lib/lanttern_web/components/reporting_components.ex:614
 #, elixir-autogen, elixir-format
 msgid "Entry with comments"
 msgstr "Registro com comentários"
@@ -1231,7 +1226,7 @@ msgstr "Erro ao deletar relatório de nota"
 msgid "Error deleting report card"
 msgstr "Erro ao deletar report card"
 
-#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:307
+#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:308
 #, elixir-autogen, elixir-format
 msgid "Error deleting strand report"
 msgstr "Erro ao deletar relatório da trilha"
@@ -1241,7 +1236,7 @@ msgstr "Erro ao deletar relatório da trilha"
 msgid "Error deleting student grade report entry"
 msgstr "Erro ao deletar registro de relatório de nota de estudante"
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:451
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:665
 #, elixir-autogen, elixir-format
 msgid "Error deleting student report card"
 msgstr "Erro ao deletar report card de estudante"
@@ -1288,12 +1283,12 @@ msgid "Grade calculated succesfully"
 msgstr "Nota calculada com sucesso"
 
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:114
-#: lib/lanttern_web/live/pages/student_report_card/id/student_report_card_live.html.heex:105
+#: lib/lanttern_web/live/pages/student_report_card/id/student_report_card_live.html.heex:108
 #, elixir-autogen, elixir-format
 msgid "Grade composition"
 msgstr "Composição de nota"
 
-#: lib/lanttern_web/live/pages/student_report_card/id/student_report_card_live.html.heex:77
+#: lib/lanttern_web/live/pages/student_report_card/id/student_report_card_live.html.heex:80
 #, elixir-autogen, elixir-format
 msgid "Grade details"
 msgstr "Detalhes da nota"
@@ -1304,7 +1299,7 @@ msgid "Grade report deleted"
 msgstr "Relatório de nota deletada"
 
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:40
-#: lib/lanttern_web/live/pages/student_report_card/id/student_report_card_live.html.heex:58
+#: lib/lanttern_web/live/pages/student_report_card/id/student_report_card_live.html.heex:61
 #, elixir-autogen, elixir-format
 msgid "Grades"
 msgstr "Notas"
@@ -1425,7 +1420,7 @@ msgstr "Mover card de momento para baixo"
 msgid "Move moment card up"
 msgstr "Mover card de momento para cima"
 
-#: lib/lanttern_web/components/core_components.ex:1155
+#: lib/lanttern_web/components/core_components.ex:1156
 #: lib/lanttern_web/live/pages/report_cards/id/grades_component.ex:154
 #, elixir-autogen, elixir-format
 msgid "Move up"
@@ -1456,8 +1451,8 @@ msgstr "Nenhum card para este momento ainda"
 msgid "No curriculum items found for selected filters."
 msgstr "Nenhum item curricular encontrado para os filtros selecionados."
 
-#: lib/lanttern_web/components/reporting_components.ex:293
-#: lib/lanttern_web/components/reporting_components.ex:503
+#: lib/lanttern_web/components/reporting_components.ex:303
+#: lib/lanttern_web/components/reporting_components.ex:513
 #, elixir-autogen, elixir-format
 msgid "No cycles linked to this grades report"
 msgstr "Nenhum ciclo vinculado a este relatório de notas"
@@ -1482,12 +1477,12 @@ msgstr "Nennhum relatório de notas vinculado a este report card"
 msgid "No report cards created yet"
 msgstr "Nenhum report card criado ainda"
 
-#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:60
+#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:61
 #, elixir-autogen, elixir-format
 msgid "No strands linked to this report yet"
 msgstr "Nenhuma trilha vinculada a este relatório ainda"
 
-#: lib/lanttern_web/components/reporting_components.ex:546
+#: lib/lanttern_web/components/reporting_components.ex:556
 #, elixir-autogen, elixir-format
 msgid "No students linked to this grades report"
 msgstr "Nenhum estudante vinculado a este relatório de notas"
@@ -1502,7 +1497,7 @@ msgstr "Nenhum sub ciclo vinculado"
 msgid "No subjects linked"
 msgstr "Nenhuma disciplina vinculada"
 
-#: lib/lanttern_web/components/reporting_components.ex:332
+#: lib/lanttern_web/components/reporting_components.ex:342
 #, elixir-autogen, elixir-format
 msgid "No subjects linked to this grades report"
 msgstr "Nenhuma disciplina vinculada a este relatório de notas"
@@ -1511,11 +1506,6 @@ msgstr "Nenhuma disciplina vinculada a este relatório de notas"
 #, elixir-autogen, elixir-format
 msgid "Normalized value"
 msgstr "Valor normalizado"
-
-#: lib/lanttern_web/components/learning_context_components.ex:90
-#, elixir-autogen, elixir-format
-msgid "Open in new tab"
-msgstr "Abrir em uma nova aba"
 
 #: lib/lanttern_web/live/pages/strands/moment/id/moment_live.html.heex:40
 #, elixir-autogen, elixir-format
@@ -1529,13 +1519,13 @@ msgstr "Visão geral"
 msgid "Partial results"
 msgstr "Resultados parciais"
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:240
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:315
 #, elixir-autogen, elixir-format
 msgid "Preview"
 msgstr "Prévia"
 
-#: lib/lanttern_web/components/reporting_components.ex:597
-#: lib/lanttern_web/components/reporting_components.ex:635
+#: lib/lanttern_web/components/reporting_components.ex:607
+#: lib/lanttern_web/components/reporting_components.ex:645
 #, elixir-autogen, elixir-format
 msgid "Recalculate grade"
 msgstr "Recalcular nota"
@@ -1545,7 +1535,7 @@ msgstr "Recalcular nota"
 msgid "Remove"
 msgstr "Remover"
 
-#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:136
+#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:137
 #, elixir-autogen, elixir-format
 msgid "Reorder strands reports"
 msgstr "Reordenzar relatórios de trilha"
@@ -1638,7 +1628,7 @@ msgstr "Selecionar relatório de notas"
 msgid "Select moment"
 msgstr "Selecionar momento"
 
-#: lib/lanttern_web/components/reporting_components.ex:269
+#: lib/lanttern_web/components/reporting_components.ex:279
 #, elixir-autogen, elixir-format
 msgid "Setup"
 msgstr "Configurar"
@@ -1673,7 +1663,7 @@ msgstr "Id da trilha"
 msgid "Strand report"
 msgstr "Relatório da trilha"
 
-#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:299
+#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:300
 #, elixir-autogen, elixir-format
 msgid "Strand report deleted"
 msgstr "Relatório da trilha deletada"
@@ -1688,7 +1678,7 @@ msgstr "Objetivos da trilha"
 msgid "Strands linked to report"
 msgstr "Trilha vinculada ao relatório"
 
-#: lib/lanttern/reporting/student_report_card.ex:40
+#: lib/lanttern/reporting/student_report_card.ex:52
 #, elixir-autogen, elixir-format
 msgid "Student already linked to report card"
 msgstr "Estudante já vinculado ao report card"
@@ -1719,7 +1709,7 @@ msgstr "Notas do estudantes calculadas com sucesso"
 msgid "Student report card"
 msgstr "Report card de estudante"
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:443
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:657
 #, elixir-autogen, elixir-format
 msgid "Student report card deleted"
 msgstr "Report card de estudante deletado"
@@ -1739,7 +1729,7 @@ msgstr "Filtro de notas de estudantes"
 msgid "Sub cycle"
 msgstr "Sub ciclo"
 
-#: lib/lanttern_web/live/pages/student_report_card/id/student_report_card_live.html.heex:88
+#: lib/lanttern_web/live/pages/student_report_card/id/student_report_card_live.html.heex:91
 #, elixir-autogen, elixir-format
 msgid "Subject"
 msgstr "Disciplina"
@@ -1785,7 +1775,7 @@ msgstr "Visualizando todos os relatórios de nota"
 msgid "Weight"
 msgstr "Peso"
 
-#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:97
+#: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:98
 #, elixir-autogen, elixir-format
 msgid "Which strand do you want to link to this report?"
 msgstr "Qual trilha você quer vincular a este relatório?"
@@ -1835,7 +1825,7 @@ msgstr "Nome obrigatótio"
 msgid "Not linked to strand"
 msgstr "Não vinculado à trilha"
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:92
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:100
 #, elixir-autogen, elixir-format
 msgid "Select classes"
 msgstr "Selecione as turmas"
@@ -1861,7 +1851,7 @@ msgstr "Filtrar trilhas por ano"
 #: lib/lanttern_web/live/pages/student/student_home_live.html.heex:4
 #, elixir-autogen, elixir-format
 msgid "%{student}'s report cards"
-msgstr "Report card de %{student}"
+msgstr "Report cards de %{student}"
 
 #: lib/lanttern_web/live/shared/menu_component.ex:59
 #: lib/lanttern_web/live/shared/menu_component.ex:68
@@ -1970,28 +1960,28 @@ msgstr "Resultados até aqui"
 msgid "The entry does not exist anymore"
 msgstr "O registro não existe mais"
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:522
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:736
 #, elixir-autogen, elixir-format
 msgid "1 report creation failed"
 msgid_plural "%{count} reports creation failed"
 msgstr[0] "1 criação de report falhou"
 msgstr[1] "%{count} criações de reports falharam"
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:511
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:725
 #, elixir-autogen, elixir-format
 msgid "1 student report card created"
 msgid_plural "%{count} students report cards created"
 msgstr[0] "1 report card de estudante criado"
 msgstr[1] "%{count} report cards de estudantes criados"
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:143
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:232
 #, elixir-autogen, elixir-format
 msgid "1 student selected"
 msgid_plural "%{count} students selected"
 msgstr[0] "1 estudante selecionado"
 msgstr[1] "%{count} estudantes selecionados"
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:517
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:731
 #, elixir-autogen, elixir-format
 msgid "1 student skipped"
 msgid_plural "%{count} students skipped"
@@ -2008,15 +1998,10 @@ msgstr "Ponto de avaliação"
 msgid "Assessment points explorer"
 msgstr "Explorador de pontos de avaliação"
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:158
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:247
 #, elixir-autogen, elixir-format
 msgid "Clear selection"
 msgstr "Limpar seleção"
-
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:161
-#, elixir-autogen, elixir-format
-msgid "Create for selected"
-msgstr "Criar para selecionados"
 
 #: lib/lanttern_web/components/layouts/root.html.heex:8
 #, elixir-autogen, elixir-format
@@ -2039,7 +2024,7 @@ msgstr "Sobre as notas"
 msgid "Optional"
 msgstr "Opcional"
 
-#: lib/lanttern_web/live/pages/student_report_card/id/student_report_card_live.html.heex:33
+#: lib/lanttern_web/live/pages/student_report_card/id/student_report_card_live.html.heex:36
 #, elixir-autogen, elixir-format
 msgid "Strands reports"
 msgstr "Relatórios das trilhas"
@@ -2156,17 +2141,17 @@ msgstr "termos de uso"
 msgid "Add students to report card to view grades"
 msgstr "Adicione estudantes ao report card para ver as notas"
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:186
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:381
 #, elixir-autogen, elixir-format
 msgid "All students from selected classes are already linked to this report card"
 msgstr "Todos estudantes das turmas selecionadas já estão vinculados ao report card"
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:56
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:64
 #, elixir-autogen, elixir-format
 msgid "Link students from"
 msgstr "Vincular estudantes de"
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:177
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:372
 #, elixir-autogen, elixir-format
 msgid "No results"
 msgstr "Nenhum resultado"
@@ -2186,12 +2171,12 @@ msgstr "Estudantes vinculados a este report card"
 msgid "View grades reports for all students linked in the students tab."
 msgstr "Visualizar relatório de notas de todos estudantes vinculados na aba estudantes."
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:77
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:85
 #, elixir-autogen, elixir-format
 msgid "to list students"
 msgstr "para listar estudantes"
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:66
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:74
 #, elixir-autogen, elixir-format
 msgid "to this report card"
 msgstr "a este report card"
@@ -2206,7 +2191,117 @@ msgstr "Tudo"
 msgid "Filter value (class or linked students class) is required"
 msgstr "Valor do filtro (turma ou turma dos estudantes vinculados) obrigatório"
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:49
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:57
 #, elixir-autogen, elixir-format
 msgid "No students linked to this report card yet"
 msgstr "Nenhum estudante vinculado a este report card ainda"
+
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:151
+#, elixir-autogen, elixir-format
+msgid "1 student report card selected"
+msgid_plural "%{count} students report cards selected"
+msgstr[0] "1 report card de estudante selecionado"
+msgstr[1] "%{count} report cards de estudantes selecionados"
+
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:190
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:226
+#, elixir-autogen, elixir-format
+msgid "Allow access"
+msgstr "Permitir acesso"
+
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:217
+#, elixir-autogen, elixir-format
+msgid "Give access to guardians"
+msgstr "Dar acesso a guardiões"
+
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:181
+#, elixir-autogen, elixir-format
+msgid "Give access to students"
+msgstr "Dar acesso a estudantes"
+
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:194
+#, elixir-autogen, elixir-format
+msgid "Guardian access"
+msgstr "Acesso do guardião"
+
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:282
+#, elixir-autogen, elixir-format
+msgid "Has comments"
+msgstr "Possui comentário"
+
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:291
+#, elixir-autogen, elixir-format
+msgid "Has footnote"
+msgstr "Possui nota de rodapé"
+
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:427
+#, elixir-autogen, elixir-format
+msgid "Link"
+msgstr "Vincular"
+
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:250
+#, elixir-autogen, elixir-format
+msgid "Link selected"
+msgstr "Vincular selecionado"
+
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:304
+#, elixir-autogen, elixir-format
+msgid "Not shared with guardians"
+msgstr "Não compartilhado com guardiões"
+
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:298
+#, elixir-autogen, elixir-format
+msgid "Not shared with student"
+msgstr "Não compartilhado com estudante"
+
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:174
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:210
+#, elixir-autogen, elixir-format
+msgid "Remove access"
+msgstr "Remover acesso"
+
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:201
+#, elixir-autogen, elixir-format
+msgid "Remove access from guardians"
+msgstr "Remover acesso dos guardiães"
+
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:165
+#, elixir-autogen, elixir-format
+msgid "Remove access from students"
+msgstr "Remover acesso dos estudantes"
+
+#: lib/lanttern_web/live/pages/guardian/guardian_home_live.html.heex:29
+#: lib/lanttern_web/live/pages/student/student_home_live.html.heex:29
+#, elixir-autogen, elixir-format
+msgid "Report cards under development"
+msgstr "Report cards em desenvolvimento"
+
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:303
+#, elixir-autogen, elixir-format
+msgid "Shared with guardians"
+msgstr "Compartilhado com guardiões"
+
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:297
+#, elixir-autogen, elixir-format
+msgid "Shared with student"
+msgstr "Compartilhado com estudante"
+
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:614
+#, elixir-autogen, elixir-format
+msgid "Something got wrong"
+msgstr "Algo deu errado"
+
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:158
+#, elixir-autogen, elixir-format
+msgid "Student access"
+msgstr "Acesso de estudantes"
+
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:609
+#, elixir-autogen, elixir-format
+msgid "Students report cards access updated"
+msgstr "Report cards de estudante atualizados"
+
+#: lib/lanttern_web/components/reporting_components.ex:79
+#, elixir-autogen, elixir-format
+msgid "Under development"
+msgstr "Em desenvolvimento"

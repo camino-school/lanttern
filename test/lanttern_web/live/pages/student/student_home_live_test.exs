@@ -20,7 +20,11 @@ defmodule LantternWeb.StudentHomeLiveTest do
       report_card = report_card_fixture(%{name: "Some report card name ABC"})
 
       student_report_card =
-        student_report_card_fixture(%{report_card_id: report_card.id, student_id: student.id})
+        student_report_card_fixture(%{
+          report_card_id: report_card.id,
+          student_id: student.id,
+          allow_student_access: true
+        })
 
       {:ok, view, _html} = live(conn, @live_view_path)
 

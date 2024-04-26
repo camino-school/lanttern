@@ -24,6 +24,9 @@
   </.badge>
 </.cover>
 <div class="ltrn-bg-main-local pb-10">
+  <.responsive_container :if={@student_report_card.report_card.description} class="py-10">
+    <.markdown text={@student_report_card.report_card.description} />
+  </.responsive_container>
   <.responsive_container :if={@student_report_card.comment} class="py-10">
     <.markdown text={@student_report_card.comment} />
   </.responsive_container>

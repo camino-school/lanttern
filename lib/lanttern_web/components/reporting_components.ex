@@ -23,7 +23,9 @@ defmodule LantternWeb.ReportingComponents do
   attr :report_card, ReportCard, required: true
   attr :cycle, Cycle, default: nil
   attr :year, Year, default: nil
+  attr :is_wip, :boolean, default: false
   attr :navigate, :string, default: nil
+  attr :hide_description, :boolean, default: false
   attr :id, :string, default: nil
   attr :class, :any, default: nil
 
@@ -37,7 +39,7 @@ defmodule LantternWeb.ReportingComponents do
     ~H"""
     <div
       class={[
-        "rounded shadow-xl bg-white overflow-hidden",
+        "flex flex-col rounded shadow-xl bg-white overflow-hidden",
         @class
       ]}
       id={@id}
@@ -46,17 +48,18 @@ defmodule LantternWeb.ReportingComponents do
         class="relative w-full h-40 bg-center bg-cover"
         style={"background-image: url('#{@cover_image_url || "/images/cover-placeholder-sm.jpg"}')"}
       />
-      <div class="flex flex-col gap-6 p-6">
+      <div class="flex-1 flex flex-col gap-6 p-6">
         <h5 class={[
           "font-display font-black text-2xl line-clamp-3",
           "md:text-3xl"
         ]}>
-          <%= if @navigate do %>
+          <%= if @navigate && not @is_wip do %>
             <.link navigate={@navigate} class="underline hover:text-ltrn-subtle">
               <%= @report_card.name %>
             </.link>
           <% else %>
-            <%= @report_card.name %>
+            <span :if={@is_wip} class="text-ltrn-subtle"><%= @report_card.name %></span>
+            <%= if !@is_wip, do: @report_card.name %>
           <% end %>
         </h5>
         <div :if={@cycle || @report_card.year} class="flex flex-wrap gap-2">
@@ -67,6 +70,13 @@ defmodule LantternWeb.ReportingComponents do
             <%= @year.name %>
           </.badge>
         </div>
+        <div :if={!@hide_description && @report_card.description} class="line-clamp-3">
+          <.markdown text={@report_card.description} size="sm" />
+        </div>
+      </div>
+      <div :if={@is_wip} class="flex items-center gap-2 p-4 text-sm text-ltrn-subtle bg-ltrn-lightest">
+        <.icon name="hero-lock-closed-mini" />
+        <%= gettext("Under development") %>
       </div>
     </div>
     """
