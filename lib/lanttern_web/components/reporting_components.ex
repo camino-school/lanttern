@@ -39,7 +39,7 @@ defmodule LantternWeb.ReportingComponents do
     ~H"""
     <div
       class={[
-        "rounded shadow-xl bg-white overflow-hidden",
+        "flex flex-col rounded shadow-xl bg-white overflow-hidden",
         @class
       ]}
       id={@id}
@@ -48,7 +48,7 @@ defmodule LantternWeb.ReportingComponents do
         class="relative w-full h-40 bg-center bg-cover"
         style={"background-image: url('#{@cover_image_url || "/images/cover-placeholder-sm.jpg"}')"}
       />
-      <div class="flex flex-col gap-6 p-6">
+      <div class="flex-1 flex flex-col gap-6 p-6">
         <h5 class={[
           "font-display font-black text-2xl line-clamp-3",
           "md:text-3xl"

@@ -986,6 +986,7 @@ defmodule LantternWeb.CoreComponents do
         size={@icon_size}
         on_click={@on_click}
         is_checked={@is_checked}
+        {@rest}
       />
       <div class="flex-1">
         <div class={if(@extra_info, do: "line-clamp-1", else: "line-clamp-2")}>
@@ -1344,13 +1345,13 @@ defmodule LantternWeb.CoreComponents do
 
     ~H"""
     <div class={[
-      "pointer-events-none absolute w-80 max-w-max p-2 rounded text-sm bg-ltrn-dark text-white",
+      "pointer-events-none absolute w-80 max-w-max",
       "opacity-0 transition-opacity group-hover:opacity-100",
       @tooltip_pos_class,
       @class
     ]}>
       <div class={[
-        "relative",
+        "relative p-2 rounded text-sm bg-ltrn-dark text-white",
         @inner_pos_class
       ]}>
         <%= render_slot(@inner_block) %>

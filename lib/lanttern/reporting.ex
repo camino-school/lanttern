@@ -383,6 +383,7 @@ defmodule Lanttern.Reporting do
   ## Options
 
   - `:student_id` - filter results by student
+  - `:ids` - filter results by given ids
   - `:preloads` – preloads associated data
 
   ## Examples
@@ -413,6 +414,14 @@ defmodule Lanttern.Reporting do
     |> apply_list_student_report_cards_opts(opts)
   end
 
+  defp apply_list_student_report_cards_opts(queryable, [{:ids, ids} | opts]) do
+    from(
+      src in queryable,
+      where: src.id in ^ids
+    )
+    |> apply_list_student_report_cards_opts(opts)
+  end
+
   defp apply_list_student_report_cards_opts(queryable, [_ | opts]),
     do: apply_list_student_report_cards_opts(queryable, opts)
 
@@ -433,7 +442,7 @@ defmodule Lanttern.Reporting do
 
   """
   @spec list_students_with_report_card(report_card_id :: pos_integer(), Keyword.t()) :: [
-          {Student.t(), StudentReportCard.t() | nil}
+          {Student.t(), StudentReportCard.t()}
         ]
   def list_students_with_report_card(report_card_id, opts \\ []) do
     from(
@@ -606,6 +615,31 @@ defmodule Lanttern.Reporting do
     student_report_card
     |> StudentReportCard.changeset(attrs)
     |> Repo.update()
+  end
+
+  @doc """
+  Updates multiple student report cards.
+
+  ## Examples
+
+      iex> batch_update_student_report_card([student_report_card], %{field: new_value})
+      {:ok, %{"1" => %StudentReportCard{}}}
+
+      iex> batch_update_student_report_card([student_report_card], %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec batch_update_student_report_card([StudentReportCard.t()], map()) ::
+          {:ok, %{pos_integer() => StudentReportCard.t()}} | Ecto.Multi.failure()
+  def batch_update_student_report_card(student_report_cards, attrs) do
+    Enum.reduce(student_report_cards, Ecto.Multi.new(), fn src, multi ->
+      multi
+      |> Ecto.Multi.update(
+        src.id,
+        StudentReportCard.changeset(src, attrs)
+      )
+    end)
+    |> Repo.transaction()
   end
 
   @doc """

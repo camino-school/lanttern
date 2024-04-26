@@ -34,13 +34,21 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
             notify_component={@myself}
           />
           <%= if @has_students_in_report_card do %>
-            <div phx-update="stream" id="other-students-and-report-cards">
+            <div phx-update="stream" id="students-and-report-cards">
               <.student_and_report_card_row
                 :for={{dom_id, {student, student_report_card}} <- @streams.students_in_report_card}
                 id={dom_id}
                 report_card_id={@report_card.id}
                 student={student}
                 student_report_card={student_report_card}
+                disable_on_click={@selected_students_ids != []}
+                on_click={
+                  JS.push("toggle_student_report_card_id",
+                    value: %{"student_report_card_id" => student_report_card.id},
+                    target: @myself
+                  )
+                  |> JS.toggle_class("outline outline-4 outline-ltrn-dark", to: "##{dom_id}")
+                }
               />
             </div>
           <% else %>
@@ -138,6 +146,87 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           </.button>
         </:actions>
       </.slide_over>
+      <.fixed_bar :if={@selected_students_report_cards_ids != []} class="flex items-center gap-6">
+        <p class="flex-1 text-sm text-white">
+          <%= ngettext(
+            "1 student report card selected",
+            "%{count} students report cards selected",
+            length(@selected_students_report_cards_ids)
+          ) %>
+        </p>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-white"><%= gettext("Student access") %></span>
+          <div class="group relative">
+            <.icon_button
+              type="button"
+              name="hero-lock-closed"
+              theme="ghost"
+              rounded
+              sr_text={gettext("Remove access from students")}
+              phx-click={
+                JS.push(
+                  "batch_update_student_report_card",
+                  value: %{"attrs" => %{"allow_student_access" => false}},
+                  target: @myself
+                )
+              }
+            />
+            <.tooltip h_pos="center"><%= gettext("Remove access") %></.tooltip>
+          </div>
+          <div class="group relative">
+            <.icon_button
+              type="button"
+              name="hero-lock-open"
+              rounded
+              sr_text={gettext("Give access to students")}
+              phx-click={
+                JS.push(
+                  "batch_update_student_report_card",
+                  value: %{"attrs" => %{"allow_student_access" => true}},
+                  target: @myself
+                )
+              }
+            />
+            <.tooltip h_pos="center"><%= gettext("Allow access") %></.tooltip>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-white"><%= gettext("Guardian access") %></span>
+          <div class="group relative">
+            <.icon_button
+              type="button"
+              name="hero-lock-closed"
+              theme="ghost"
+              rounded
+              sr_text={gettext("Remove access from guardians")}
+              phx-click={
+                JS.push(
+                  "batch_update_student_report_card",
+                  value: %{"attrs" => %{"allow_guardian_access" => false}},
+                  target: @myself
+                )
+              }
+            />
+            <.tooltip h_pos="center"><%= gettext("Remove access") %></.tooltip>
+          </div>
+          <div class="group relative">
+            <.icon_button
+              type="button"
+              name="hero-lock-open"
+              rounded
+              sr_text={gettext("Give access to guardians")}
+              phx-click={
+                JS.push(
+                  "batch_update_student_report_card",
+                  value: %{"attrs" => %{"allow_guardian_access" => true}},
+                  target: @myself
+                )
+              }
+            />
+            <.tooltip h_pos="right"><%= gettext("Allow access") %></.tooltip>
+          </div>
+        </div>
+      </.fixed_bar>
       <.fixed_bar :if={@selected_students_ids != []} class="flex items-center gap-6">
         <p class="flex-1 text-sm text-white">
           <%= ngettext(
@@ -150,7 +239,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           phx-click={
             JS.push("clear_student_selection", target: @myself)
             |> JS.remove_class("outline outline-4 outline-ltrn-dark",
-              to: "#students-and-report-cards > div"
+              to: "#students-without-report-cards > div"
             )
           }
           theme="ghost"
@@ -158,9 +247,115 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           <%= gettext("Clear selection") %>
         </.button>
         <.button type="button" phx-click="batch_create_student_report_card" phx-target={@myself}>
-          <%= gettext("Create for selected") %>
+          <%= gettext("Link selected") %>
         </.button>
       </.fixed_bar>
+    </div>
+    """
+  end
+
+  attr :id, :string, required: true
+  attr :report_card_id, :string, required: true
+  attr :student, Student, required: true
+  attr :student_report_card, StudentReportCard, required: true
+  attr :disable_on_click, :boolean, required: true
+  attr :on_click, JS, required: true
+
+  def student_and_report_card_row(assigns) do
+    ~H"""
+    <div id={@id} class="flex items-center gap-4 p-4 rounded mt-4 bg-white shadow-lg">
+      <div class="flex-1 flex items-center gap-4">
+        <.profile_icon_with_name
+          theme="cyan"
+          profile_name={@student.name}
+          extra_info={@student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
+          on_click={@on_click}
+        />
+      </div>
+      <div class="shrink-0 flex items-center gap-2">
+        <div
+          :if={@student_report_card.comment}
+          class="group relative flex items-center justify-center w-10 h-10 rounded-full bg-ltrn-diff-lightest"
+        >
+          <.icon name="hero-chat-bubble-oval-left-mini" class="w-5 h-5 text-ltrn-diff-dark" />
+          <.tooltip h_pos="center">
+            <%= gettext("Has comments") %>
+          </.tooltip>
+        </div>
+        <div
+          :if={@student_report_card.footnote}
+          class="group relative flex items-center justify-center w-10 h-10 rounded-full bg-ltrn-diff-lightest"
+        >
+          <.icon name="hero-document-text-mini" class="w-5 h-5 text-ltrn-diff-dark" />
+          <.tooltip h_pos="center">
+            <%= gettext("Has footnote") %>
+          </.tooltip>
+        </div>
+        <.access_status
+          has_access={@student_report_card.allow_student_access}
+          icon_name="hero-user-mini"
+          with_access_text={gettext("Shared with student")}
+          without_access_text={gettext("Not shared with student")}
+        />
+        <.access_status
+          has_access={@student_report_card.allow_guardian_access}
+          icon_name="hero-users-mini"
+          with_access_text={gettext("Shared with guardians")}
+          without_access_text={gettext("Not shared with guardians")}
+        />
+        <div class="group relative">
+          <a
+            class={get_button_styles("ghost")}
+            href={~p"/student_report_card/#{@student_report_card.id}"}
+            target="_blank"
+            data-test-id="preview-button"
+          >
+            <.icon name="hero-eye-mini" class="w-5 h-5" />
+          </a>
+          <.tooltip h_pos="center"><%= gettext("Preview") %></.tooltip>
+        </div>
+        <div class="group relative">
+          <.link
+            class={get_button_styles("ghost")}
+            patch={
+              ~p"/report_cards/#{@report_card_id}?tab=students&edit_student_report=#{@student_report_card.id}"
+            }
+          >
+            <.icon name="hero-pencil-mini" class="w-5 h-5" />
+          </.link>
+          <.tooltip h_pos="center"><%= gettext("Edit") %></.tooltip>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  attr :has_access, :boolean, required: true
+  attr :icon_name, :string, required: true
+  attr :with_access_text, :string, required: true
+  attr :without_access_text, :string, required: true
+
+  def access_status(assigns) do
+    ~H"""
+    <div class={[
+      "group relative flex items-center justify-center w-10 h-10 rounded-full",
+      if(@has_access, do: "bg-ltrn-mesh-primary", else: "bg-ltrn-lightest")
+    ]}>
+      <.icon
+        name={@icon_name}
+        class={[
+          "w-5 h-5",
+          if(@has_access, do: "text-ltrn-dark", else: "text-ltrn-subtle")
+        ]}
+      />
+      <.icon
+        :if={@has_access}
+        name="hero-check-circle-mini"
+        class="absolute -top-1 -right-1 text-ltrn-primary"
+      />
+      <.tooltip h_pos="center">
+        <%= if @has_access, do: @with_access_text, else: @without_access_text %>
+      </.tooltip>
     </div>
     """
   end
@@ -191,13 +386,12 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
 
   def other_students_list(assigns) do
     ~H"""
-    <div phx-update="stream" id="students-and-report-cards">
-      <.student_and_report_card_row
+    <div phx-update="stream" id="students-without-report-cards">
+      <.student_row
         :for={{dom_id, student} <- @students_stream}
         id={dom_id}
         report_card_id={@report_card_id}
         student={student}
-        student_report_card={nil}
         on_click={
           JS.push("toggle_student_id", value: %{"student_id" => student.id}, target: @myself)
           |> JS.toggle_class("outline outline-4 outline-ltrn-dark", to: "##{dom_id}")
@@ -210,53 +404,28 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   attr :id, :string, required: true
   attr :report_card_id, :string, required: true
   attr :student, Student, required: true
-  attr :student_report_card, :any, required: true
   attr :on_click, JS, default: nil
 
-  def student_and_report_card_row(assigns) do
+  def student_row(assigns) do
     ~H"""
-    <div
-      id={@id}
-      class={[
-        "flex items-center gap-4 p-4 rounded mt-4",
-        if(@student_report_card, do: "bg-white shadow-lg", else: "bg-ltrn-lighter")
-      ]}
-    >
+    <div id={@id} class="flex items-center gap-4 p-4 rounded mt-4 bg-ltrn-lighter">
       <div class="flex-1 flex items-center gap-4">
         <.profile_icon_with_name
-          theme={if @student_report_card, do: "cyan", else: "subtle"}
+          theme="subtle"
           profile_name={@student.name}
           extra_info={@student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
           on_click={@on_click}
         />
       </div>
       <div class="shrink-0 flex items-center gap-2">
-        <%= if @student_report_card do %>
-          <a
-            class={get_button_styles("ghost")}
-            href={~p"/student_report_card/#{@student_report_card.id}"}
-            target="_blank"
-          >
-            <%= gettext("Preview") %>
-          </a>
-          <.link
-            class={get_button_styles("ghost")}
-            patch={
-              ~p"/report_cards/#{@report_card_id}?tab=students&edit_student_report=#{@student_report_card.id}"
-            }
-          >
-            <%= gettext("Edit") %>
-          </.link>
-        <% else %>
-          <.link
-            class={get_button_styles("ghost")}
-            patch={
-              ~p"/report_cards/#{@report_card_id}?tab=students&create_student_report=#{@student.id}"
-            }
-          >
-            <%= gettext("Create") %>
-          </.link>
-        <% end %>
+        <.link
+          class={get_button_styles("ghost")}
+          patch={
+            ~p"/report_cards/#{@report_card_id}?tab=students&create_student_report=#{@student.id}"
+          }
+        >
+          <%= gettext("Link") %>
+        </.link>
       </div>
     </div>
     """
@@ -273,6 +442,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         dom_id: fn {student, _} -> "student-#{student.id}" end
       )
       |> assign(:selected_students_ids, [])
+      |> assign(:selected_students_report_cards_ids, [])
 
     {:ok, socket}
   end
@@ -327,9 +497,19 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
 
     has_students_in_report_card = length(students_in_report_card) > 0
 
+    # remove selected reports if needed
+    students_report_cards_ids =
+      students_in_report_card
+      |> Enum.map(fn {_, src} -> src.id end)
+
+    selected_students_report_cards_ids =
+      socket.assigns.selected_students_report_cards_ids
+      |> Enum.filter(&(&1 in students_report_cards_ids))
+
     socket
     |> stream(:students_in_report_card, students_in_report_card, reset: true)
     |> assign(:has_students_in_report_card, has_students_in_report_card)
+    |> assign(:selected_students_report_cards_ids, selected_students_report_cards_ids)
   end
 
   defp stream_students_without_report_card(%{assigns: %{streams: %{other_students: _}}} = socket),
@@ -403,6 +583,40 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     do: assign(socket, :show_student_report_card_form, false)
 
   @impl true
+  def handle_event("toggle_student_report_card_id", %{"student_report_card_id" => id}, socket) do
+    selected_students_report_cards_ids =
+      case id in socket.assigns.selected_students_report_cards_ids do
+        true ->
+          socket.assigns.selected_students_report_cards_ids
+          |> Enum.filter(&(&1 != id))
+
+        false ->
+          [id | socket.assigns.selected_students_report_cards_ids]
+      end
+
+    {:noreply,
+     assign(socket, :selected_students_report_cards_ids, selected_students_report_cards_ids)}
+  end
+
+  def handle_event("batch_update_student_report_card", %{"attrs" => attrs}, socket) do
+    selected_students_report_cards =
+      Reporting.list_student_report_cards(ids: socket.assigns.selected_students_report_cards_ids)
+
+    socket =
+      case Reporting.batch_update_student_report_card(selected_students_report_cards, attrs) do
+        {:ok, _} ->
+          socket
+          |> put_flash(:info, gettext("Students report cards access updated"))
+          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=students")
+
+        {:error, _} ->
+          socket
+          |> put_flash(:error, gettext("Something got wrong"))
+      end
+
+    {:noreply, socket}
+  end
+
   def handle_event("toggle_student_id", %{"student_id" => id}, socket) do
     selected_students_ids =
       case id in socket.assigns.selected_students_ids do

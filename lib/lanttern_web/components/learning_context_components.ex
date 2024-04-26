@@ -15,7 +15,7 @@ defmodule LantternWeb.LearningContextComponents do
   attr :on_star_click, JS, default: nil
   attr :on_edit, JS, default: nil
   attr :navigate, :string, default: nil
-  attr :open_in_new_link, :string, default: nil
+  attr :open_in_new, :boolean, default: false
   attr :hide_description, :boolean, default: false
 
   attr :cover_image_url, :string,
@@ -74,21 +74,16 @@ defmodule LantternWeb.LearningContextComponents do
             "md:text-3xl"
           ]}>
             <%= if @navigate do %>
-              <.link navigate={@navigate} class="underline hover:text-ltrn-subtle">
+              <.link
+                navigate={@navigate}
+                class="underline hover:text-ltrn-subtle"
+                target={if @open_in_new, do: "_blank"}
+              >
                 <%= @strand.name %>
               </.link>
             <% else %>
               <%= @strand.name %>
             <% end %>
-            <a
-              :if={@open_in_new_link}
-              href={@open_in_new_link}
-              class="underline hover:text-ltrn-subtle"
-              target="_blank"
-            >
-              <.icon name="hero-arrow-top-right-on-square" class="w-6 h-6 align-baseline" />
-              <span class="sr-only"><%= gettext("Open in new tab") %></span>
-            </a>
           </h5>
           <p :if={@strand.type} class="mt-2 font-display font-black text-base text-ltrn-primary">
             <%= @strand.type %>
