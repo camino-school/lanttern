@@ -584,6 +584,102 @@ defmodule Lanttern.GradesReportsTest do
     end
   end
 
+  describe "grade composition" do
+    import Lanttern.GradesReportsFixtures
+
+    alias Lanttern.AssessmentsFixtures
+    alias Lanttern.CurriculaFixtures
+    alias Lanttern.GradingFixtures
+    alias Lanttern.LearningContextFixtures
+    alias Lanttern.TaxonomyFixtures
+
+    test "list_grade_composition/2 returns all report card's subject grade composition assessment points" do
+      strand = LearningContextFixtures.strand_fixture()
+
+      cur_component = CurriculaFixtures.curriculum_component_fixture()
+
+      ci_1 =
+        CurriculaFixtures.curriculum_item_fixture(curriculum_component_id: cur_component.id)
+
+      ci_2 =
+        CurriculaFixtures.curriculum_item_fixture(curriculum_component_id: cur_component.id)
+
+      ast_point_1 =
+        AssessmentsFixtures.assessment_point_fixture(
+          strand_id: strand.id,
+          curriculum_item_id: ci_1.id
+        )
+
+      ast_point_2 =
+        AssessmentsFixtures.assessment_point_fixture(
+          strand_id: strand.id,
+          curriculum_item_id: ci_2.id
+        )
+
+      grades_report = grades_report_fixture()
+      grades_report_cycle = grades_report_cycle_fixture(%{grades_report_id: grades_report.id})
+      grades_report_subject = grades_report_subject_fixture(%{grades_report_id: grades_report.id})
+
+      grade_component_1 =
+        GradingFixtures.grade_component_fixture(%{
+          weight: 2.0,
+          assessment_point_id: ast_point_1.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject.id
+        })
+
+      grade_component_2 =
+        GradingFixtures.grade_component_fixture(%{
+          weight: 1.0,
+          assessment_point_id: ast_point_2.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject.id
+        })
+
+      # extra fixtures to test filter
+      other_strand = LearningContextFixtures.strand_fixture()
+      other_ast_point = AssessmentsFixtures.assessment_point_fixture(strand_id: other_strand.id)
+
+      other_grades_report_cycle =
+        grades_report_cycle_fixture(%{grades_report_id: grades_report.id})
+
+      other_grades_report_subject =
+        grades_report_subject_fixture(%{grades_report_id: grades_report.id})
+
+      _other_grade_component =
+        GradingFixtures.grade_component_fixture(%{
+          assessment_point_id: other_ast_point.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: other_grades_report_cycle.id,
+          grades_report_subject_id: other_grades_report_subject.id
+        })
+
+      assert [expected_grade_component_1, expected_grade_component_2] =
+               GradesReports.list_grade_composition(
+                 grades_report_cycle.id,
+                 grades_report_subject.id
+               )
+
+      assert expected_grade_component_1.id == grade_component_1.id
+      assert expected_grade_component_1.assessment_point.id == ast_point_1.id
+      assert expected_grade_component_1.assessment_point.strand.id == strand.id
+      assert expected_grade_component_1.assessment_point.curriculum_item.id == ci_1.id
+
+      assert expected_grade_component_1.assessment_point.curriculum_item.curriculum_component.id ==
+               cur_component.id
+
+      assert expected_grade_component_2.id == grade_component_2.id
+      assert expected_grade_component_2.assessment_point.id == ast_point_2.id
+      assert expected_grade_component_2.assessment_point.strand.id == strand.id
+      assert expected_grade_component_2.assessment_point.curriculum_item.id == ci_2.id
+
+      assert expected_grade_component_2.assessment_point.curriculum_item.curriculum_component.id ==
+               cur_component.id
+    end
+  end
+
   describe "students grades calculations" do
     alias Lanttern.GradesReports.StudentGradeReportEntry
 
@@ -701,40 +797,38 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id
         })
 
-      report_card =
-        ReportingFixtures.report_card_fixture(%{
-          school_cycle_id: cycle.id,
-          grades_report_id: grades_report.id
-        })
-
       _grade_component_1 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject.id,
           assessment_point_id: goal_1.id,
           weight: 1.0
         })
 
       _grade_component_2 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject.id,
           assessment_point_id: goal_2.id,
           weight: 2.0
         })
 
       _grade_component_3 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject.id,
           assessment_point_id: goal_3.id,
           weight: 3.0
         })
 
       _grade_component_diff =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject.id,
           assessment_point_id: goal_diff.id,
           weight: 3.0
         })
@@ -750,13 +844,13 @@ defmodule Lanttern.GradesReportsTest do
       other_subject = TaxonomyFixtures.subject_fixture()
       other_cycle = SchoolsFixtures.cycle_fixture()
 
-      _other_grades_report_cycle =
+      other_grades_report_cycle =
         grades_report_cycle_fixture(%{
           school_cycle_id: other_cycle.id,
           grades_report_id: grades_report.id
         })
 
-      _other_grades_report_subject =
+      other_grades_report_subject =
         grades_report_subject_fixture(%{
           subject_id: other_subject.id,
           grades_report_id: grades_report.id
@@ -764,8 +858,9 @@ defmodule Lanttern.GradesReportsTest do
 
       _other_grade_component =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: other_subject.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: other_grades_report_cycle.id,
+          grades_report_subject_id: other_grades_report_subject.id,
           assessment_point_id: other_goal.id
         })
 
@@ -1128,80 +1223,83 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id
         })
 
-      report_card =
-        ReportingFixtures.report_card_fixture(%{
-          school_cycle_id: cycle.id,
-          grades_report_id: grades_report.id
-        })
-
       _grade_component_1_1 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject_1.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_1.id,
           assessment_point_id: goal_1_1.id,
           weight: 1.0
         })
 
       _grade_component_1_2 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject_1.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_1.id,
           assessment_point_id: goal_1_2.id,
           weight: 2.0
         })
 
       _grade_component_1_3 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject_1.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_1.id,
           assessment_point_id: goal_1_3.id,
           weight: 3.0
         })
 
       _grade_component_2_1 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject_2.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_2.id,
           assessment_point_id: goal_2_1.id,
           weight: 1.0
         })
 
       _grade_component_2_2 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject_2.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_2.id,
           assessment_point_id: goal_2_2.id,
           weight: 2.0
         })
 
       _grade_component_2_3 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject_2.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_2.id,
           assessment_point_id: goal_2_3.id,
           weight: 3.0
         })
 
       _grade_component_3_1 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject_3.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_3.id,
           assessment_point_id: goal_3_1.id,
           weight: 1.0
         })
 
       _grade_component_3_2 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject_3.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_3.id,
           assessment_point_id: goal_3_2.id,
           weight: 2.0
         })
 
       _grade_component_3_3 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject_3.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_3.id,
           assessment_point_id: goal_3_3.id,
           weight: 3.0
         })
@@ -1471,32 +1569,29 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id
         })
 
-      report_card =
-        ReportingFixtures.report_card_fixture(%{
-          school_cycle_id: cycle.id,
-          grades_report_id: grades_report.id
-        })
-
       _grade_component_1 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject.id,
           assessment_point_id: goal_1.id,
           weight: 1.0
         })
 
       _grade_component_2 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject.id,
           assessment_point_id: goal_2.id,
           weight: 2.0
         })
 
       _grade_component_3 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject.id,
           assessment_point_id: goal_3.id,
           weight: 3.0
         })
@@ -1833,80 +1928,83 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id
         })
 
-      report_card =
-        ReportingFixtures.report_card_fixture(%{
-          school_cycle_id: cycle.id,
-          grades_report_id: grades_report.id
-        })
-
       _grade_component_1_1 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject_1.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_1.id,
           assessment_point_id: goal_1_1.id,
           weight: 1.0
         })
 
       _grade_component_1_2 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject_1.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_1.id,
           assessment_point_id: goal_1_2.id,
           weight: 2.0
         })
 
       _grade_component_1_3 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject_1.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_1.id,
           assessment_point_id: goal_1_3.id,
           weight: 3.0
         })
 
       _grade_component_2_1 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject_2.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_2.id,
           assessment_point_id: goal_2_1.id,
           weight: 1.0
         })
 
       _grade_component_2_2 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject_2.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_2.id,
           assessment_point_id: goal_2_2.id,
           weight: 2.0
         })
 
       _grade_component_2_3 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject_2.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_2.id,
           assessment_point_id: goal_2_3.id,
           weight: 3.0
         })
 
       _grade_component_3_1 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject_3.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_3.id,
           assessment_point_id: goal_3_1.id,
           weight: 1.0
         })
 
       _grade_component_3_2 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject_3.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_3.id,
           assessment_point_id: goal_3_2.id,
           weight: 2.0
         })
 
       _grade_component_3_3 =
         GradingFixtures.grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject_3.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_3.id,
           assessment_point_id: goal_3_3.id,
           weight: 3.0
         })

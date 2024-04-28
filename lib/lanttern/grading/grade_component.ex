@@ -3,19 +3,22 @@ defmodule Lanttern.Grading.GradeComponent do
   import Ecto.Changeset
 
   alias Lanttern.Assessments.AssessmentPoint
-  alias Lanttern.Reporting.ReportCard
-  alias Lanttern.Taxonomy.Subject
+  alias Lanttern.GradesReports.GradesReport
+  alias Lanttern.GradesReports.GradesReportCycle
+  alias Lanttern.GradesReports.GradesReportSubject
 
   @type t :: %__MODULE__{
           id: pos_integer(),
           position: non_neg_integer(),
           weight: float(),
-          report_card: ReportCard.t(),
-          report_card_id: pos_integer(),
           assessment_point: AssessmentPoint.t(),
           assessment_point_id: pos_integer(),
-          subject: Subject.t(),
-          subject_id: pos_integer(),
+          grades_report: GradesReport.t(),
+          grades_report_id: pos_integer(),
+          grades_report_cycle: GradesReportCycle.t(),
+          grades_report_cycle_id: pos_integer(),
+          grades_report_subject: GradesReportSubject.t(),
+          grades_report_subject_id: pos_integer(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -24,9 +27,10 @@ defmodule Lanttern.Grading.GradeComponent do
     field :position, :integer, default: 0
     field :weight, :float, default: 1.0
 
-    belongs_to :report_card, ReportCard
     belongs_to :assessment_point, AssessmentPoint
-    belongs_to :subject, Subject
+    belongs_to :grades_report, GradesReport
+    belongs_to :grades_report_cycle, GradesReportCycle
+    belongs_to :grades_report_subject, GradesReportSubject
 
     timestamps()
   end
@@ -34,7 +38,21 @@ defmodule Lanttern.Grading.GradeComponent do
   @doc false
   def changeset(grade_component, attrs) do
     grade_component
-    |> cast(attrs, [:weight, :position, :report_card_id, :assessment_point_id, :subject_id])
-    |> validate_required([:weight, :position, :report_card_id, :assessment_point_id, :subject_id])
+    |> cast(attrs, [
+      :weight,
+      :position,
+      :assessment_point_id,
+      :grades_report_id,
+      :grades_report_cycle_id,
+      :grades_report_subject_id
+    ])
+    |> validate_required([
+      :weight,
+      :position,
+      :assessment_point_id,
+      :grades_report_id,
+      :grades_report_cycle_id,
+      :grades_report_subject_id
+    ])
   end
 end

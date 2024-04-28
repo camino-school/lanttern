@@ -1,9 +1,11 @@
 defmodule LantternWeb.ReportCardLive.GradesComponent do
+  alias Lanttern.GradesReports.GradesReportCycle
   use LantternWeb, :live_component
 
   alias Lanttern.GradesReports
   alias Lanttern.Grading
   alias Lanttern.Reporting
+  alias Lanttern.Reporting.ReportCard
   alias Lanttern.GradesReports.GradesReport
   alias Lanttern.Grading.GradeComponent
 
@@ -226,22 +228,27 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
   end
 
   defp assign_is_editing_grade_composition(socket, %{
-         params: %{"is_editing_grade_composition" => subject_id}
+         params: %{"is_editing_grade_composition" => grades_report_subject_id}
        }) do
-    with %{grades_report: %GradesReport{} = grades_report} <- socket.assigns do
-      grades_report_subjects = grades_report.grades_report_subjects
-      subjects_ids = Enum.map(grades_report_subjects, &"#{&1.subject_id}")
+    with %{
+           grades_report: %GradesReport{} = grades_report,
+           report_card: %ReportCard{} = report_card
+         } <- socket.assigns do
+      grades_report_cycle =
+        grades_report.grades_report_cycles
+        |> Enum.find(&(&1.school_cycle_id == report_card.school_cycle_id))
 
-      case subject_id in subjects_ids do
-        true ->
+      case grades_report_cycle do
+        %GradesReportCycle{} ->
           grade_components =
-            Reporting.list_report_card_subject_grade_composition(
-              socket.assigns.report_card.id,
-              subject_id
+            GradesReports.list_grade_composition(
+              grades_report_cycle.id,
+              grades_report_subject_id
             )
 
           socket
           |> assign(:is_editing_grade_composition, true)
+          |> assign(:grades_report_cycle_id, grades_report_cycle.id)
           |> assign_new(:assessment_points, fn ->
             Reporting.list_report_card_assessment_points(socket.assigns.report_card.id)
           end)
@@ -263,32 +270,38 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
     do: assign(socket, :is_editing_grade_composition, false)
 
   @impl true
-  def handle_event("edit_subject_grade_composition", %{"subjectid" => subject_id}, socket) do
+  def handle_event(
+        "edit_subject_grade_composition",
+        %{"gradesreportsubjectid" => grades_report_subject_id},
+        socket
+      ) do
     socket =
       socket
       |> push_patch(
         to:
-          ~p"/report_cards/#{socket.assigns.report_card}?tab=grades&is_editing_grade_composition=#{subject_id}"
+          ~p"/report_cards/#{socket.assigns.report_card}?tab=grades&is_editing_grade_composition=#{grades_report_subject_id}"
       )
 
     {:noreply, socket}
   end
 
   def handle_event("add_assessment_point_to_grade_comp", %{"id" => id}, socket) do
-    subject_id = socket.assigns.params["is_editing_grade_composition"]
+    grades_report_cycle_id = socket.assigns.grades_report_cycle_id
+    grades_report_subject_id = socket.assigns.params["is_editing_grade_composition"]
 
     %{
-      report_card_id: socket.assigns.report_card.id,
       assessment_point_id: id,
-      subject_id: subject_id
+      grades_report_id: socket.assigns.grades_report.id,
+      grades_report_cycle_id: grades_report_cycle_id,
+      grades_report_subject_id: grades_report_subject_id
     }
     |> Grading.create_grade_component()
     |> case do
       {:ok, _grade_component} ->
         grade_components =
-          Reporting.list_report_card_subject_grade_composition(
-            socket.assigns.report_card.id,
-            subject_id
+          GradesReports.list_grade_composition(
+            grades_report_cycle_id,
+            grades_report_subject_id
           )
 
         socket =

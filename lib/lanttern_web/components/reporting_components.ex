@@ -324,7 +324,7 @@ defmodule LantternWeb.ReportingComponents do
                   @report_card_cycle_id == grades_report_cycle.school_cycle_id &&
                     @on_composition_click
                 }
-                subject_id={grades_report_subject.subject_id}
+                grades_report_subject_id={grades_report_subject.id}
                 student_grade_report_entry={
                   @student_grades_map &&
                     @student_grades_map[grades_report_cycle.id][grades_report_subject.id]
@@ -359,7 +359,7 @@ defmodule LantternWeb.ReportingComponents do
   attr :on_composition_click, JS
   attr :on_student_grade_click, JS
   attr :student_grade_report_entry, StudentGradeReportEntry
-  attr :subject_id, :integer
+  attr :grades_report_subject_id, :integer
 
   defp grades_report_grid_cell(
          %{student_grade_report_entry: %StudentGradeReportEntry{ordinal_value: %OrdinalValue{}}} =
@@ -401,7 +401,7 @@ defmodule LantternWeb.ReportingComponents do
       theme="ghost"
       icon_name="hero-calculator-mini"
       phx-click={@on_composition_click}
-      phx-value-subjectid={@subject_id}
+      phx-value-gradesreportsubjectid={@grades_report_subject_id}
       class="border border-ltrn-lighter"
     >
       <%= gettext("Comp") %>
