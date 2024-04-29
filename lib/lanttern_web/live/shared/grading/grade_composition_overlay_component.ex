@@ -1,48 +1,30 @@
-defmodule LantternWeb.ReportCardLive.GradesComponent do
-  alias Lanttern.GradesReports.GradesReportCycle
+defmodule LantternWeb.Grading.GradeCompositionOverlayComponent do
+  @doc """
+  ### About assessment points list active UI state handling
+
+  As we are using streams for assessment points listing, we can't update the
+  item without inserting the whole item into the stream. That's why we are
+  using `JS` to handle the assessment point item classes.
+
+  Check https://elixirforum.com/t/54663
+
+  """
+
   use LantternWeb, :live_component
 
   alias Lanttern.GradesReports
   alias Lanttern.Grading
   alias Lanttern.Reporting
-  alias Lanttern.Reporting.ReportCard
-  alias Lanttern.GradesReports.GradesReport
   alias Lanttern.Grading.GradeComponent
 
   import Lanttern.Utils, only: [swap: 3]
 
-  # shared
-  import LantternWeb.GradesReportsComponents
-
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="py-10">
-      <div class="container mx-auto lg:max-w-5xl">
-        <div class="p-4 rounded mt-4 bg-white shadow-lg">
-          <%= if @grades_report do %>
-            <h3 class="mb-4 font-display font-bold text-2xl">
-              <%= gettext("Grades report grid") %>: <%= @grades_report.name %>
-            </h3>
-            <.grades_report_grid
-              grades_report={@grades_report}
-              report_card_cycle_id={@report_card.school_cycle_id}
-              on_composition_click={JS.push("edit_subject_grade_composition", target: @myself)}
-            />
-          <% else %>
-            <.empty_state>
-              <%= gettext("No grades report linked to this report card.") %>
-            </.empty_state>
-          <% end %>
-        </div>
-      </div>
-      <.slide_over
-        :if={@is_editing_grade_composition}
-        id="report-card-grade-composition-overlay"
-        show={true}
-        on_cancel={JS.patch(~p"/report_cards/#{@report_card}?tab=grades")}
-      >
-        <:title><%= gettext("Edit grade composition") %></:title>
+    <div>
+      <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
+        <:title><%= @title %></:title>
         <%= if length(@indexed_grade_components) == 0 do %>
           <.empty_state>
             <%= gettext("No assesment points in this grade composition") %>
@@ -63,41 +45,57 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
             />
           </div>
         <% end %>
-        <h5 class="mt-10 font-display font-bold">
-          <%= gettext("All report card strands' goals") %>
-        </h5>
-        <%= for assessment_point <- @assessment_points, assessment_point.id not in @grade_composition_assessment_point_ids do %>
-          <div
-            id={"report-card-assessment-point-#{assessment_point.id}"}
-            class="flex items-center gap-4 p-4 rounded mt-2 bg-white shadow-lg"
-          >
-            <div class="flex-1">
-              <p class="text-xs">
-                <%= assessment_point.strand.name %>
-                <span :if={assessment_point.strand.type}>
-                  (<%= assessment_point.strand.type %>)
-                </span>
-              </p>
-              <p class="mt-2 text-sm">
-                <.badge><%= assessment_point.curriculum_item.curriculum_component.name %></.badge>
-                <%= assessment_point.curriculum_item.name %>
-              </p>
-            </div>
-            <.icon_button
-              type="button"
-              theme="ghost"
-              name="hero-plus"
-              phx-click={
-                JS.push("add_assessment_point_to_grade_comp",
-                  value: %{id: assessment_point.id},
-                  target: @myself
+        <div :if={@use_assessment_points_from_report_card_id} class="mt-10">
+          <h5 class="font-display font-bold">
+            <%= gettext("All report card strands' goals") %>
+          </h5>
+          <div id="report-card-assessment-points" phx-update="stream">
+            <div
+              :for={{dom_id, assessment_point} <- @streams.assessment_points}
+              id={dom_id}
+              class={[
+                "group flex items-center gap-4 p-4 rounded mt-2 shadow-lg",
+                if(
+                  assessment_point.id in @grade_composition_assessment_point_ids,
+                  do: "active bg-ltrn-mesh-cyan",
+                  else: "bg-white"
                 )
-              }
-              sr_text={gettext("Add to grade composition")}
-              rounded
-            />
+              ]}
+            >
+              <div class="flex-1">
+                <p class="text-xs">
+                  <%= assessment_point.strand.name %>
+                  <span :if={assessment_point.strand.type}>
+                    (<%= assessment_point.strand.type %>)
+                  </span>
+                </p>
+                <p class="mt-2 text-sm">
+                  <.badge><%= assessment_point.curriculum_item.curriculum_component.name %></.badge>
+                  <%= assessment_point.curriculum_item.name %>
+                </p>
+              </div>
+              <div class="hidden group-[.active]:block p-2">
+                <.icon name="hero-check" class="text-ltrn-primary" />
+              </div>
+              <.icon_button
+                type="button"
+                theme="ghost"
+                name="hero-plus"
+                phx-click={
+                  JS.push("add_assessment_point_to_grade_comp",
+                    value: %{id: assessment_point.id},
+                    target: @myself
+                  )
+                  |> JS.remove_class("bg-white", to: "##{dom_id}")
+                  |> JS.add_class("bg-ltrn-mesh-cyan active", to: "##{dom_id}")
+                }
+                sr_text={gettext("Add to grade composition")}
+                rounded
+                class="group-[.active]:hidden"
+              />
+            </div>
           </div>
-        <% end %>
+        </div>
       </.slide_over>
     </div>
     """
@@ -175,6 +173,12 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
               value: %{id: @grade_component.id},
               target: @myself
             )
+            |> JS.remove_class("bg-ltrn-mesh-cyan active",
+              to: "#assessment_points-#{@grade_component.assessment_point_id}"
+            )
+            |> JS.add_class("bg-white",
+              to: "#assessment_points-#{@grade_component.assessment_point_id}"
+            )
           }
           sr_text={gettext("Remove")}
           rounded
@@ -207,109 +211,71 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
       socket
       |> assign(:indexed_grade_components, [])
       |> assign(:grade_composition_assessment_point_ids, [])
+      |> assign(:use_assessment_points_from_report_card_id, nil)
 
     {:ok, socket}
   end
 
   @impl true
   def update(assigns, socket) do
+    grade_components =
+      GradesReports.list_grade_composition(
+        assigns.grades_report_cycle_id,
+        assigns.grades_report_subject_id
+      )
+
+    grade_composition_assessment_point_ids =
+      grade_components
+      |> Enum.map(& &1.assessment_point_id)
+
     socket =
       socket
       |> assign(assigns)
-      |> assign_new(:grades_report, fn %{report_card: report_card} ->
-        case report_card.grades_report_id do
-          nil -> nil
-          id -> GradesReports.get_grades_report(id, load_grid: true)
-        end
-      end)
-      |> assign_is_editing_grade_composition(assigns)
+      |> assign(:indexed_grade_components, Enum.with_index(grade_components))
+      |> assign(:grade_composition_assessment_point_ids, grade_composition_assessment_point_ids)
+      |> assign_assessment_points(assigns)
 
     {:ok, socket}
   end
 
-  defp assign_is_editing_grade_composition(socket, %{
-         params: %{"is_editing_grade_composition" => grades_report_subject_id}
+  defp assign_assessment_points(socket, %{
+         use_assessment_points_from_report_card_id: report_card_id
        }) do
-    with %{
-           grades_report: %GradesReport{} = grades_report,
-           report_card: %ReportCard{} = report_card
-         } <- socket.assigns do
-      grades_report_cycle =
-        grades_report.grades_report_cycles
-        |> Enum.find(&(&1.school_cycle_id == report_card.school_cycle_id))
+    assessment_points = Reporting.list_report_card_assessment_points(report_card_id)
 
-      case grades_report_cycle do
-        %GradesReportCycle{} ->
-          grade_components =
-            GradesReports.list_grade_composition(
-              grades_report_cycle.id,
-              grades_report_subject_id
-            )
-
-          socket
-          |> assign(:is_editing_grade_composition, true)
-          |> assign(:grades_report_cycle_id, grades_report_cycle.id)
-          |> assign_new(:assessment_points, fn ->
-            Reporting.list_report_card_assessment_points(socket.assigns.report_card.id)
-          end)
-          |> assign(:indexed_grade_components, Enum.with_index(grade_components))
-          |> assign(
-            :grade_composition_assessment_point_ids,
-            Enum.map(grade_components, & &1.assessment_point_id)
-          )
-
-        _ ->
-          assign(socket, :is_editing_grade_composition, false)
-      end
-    else
-      _ -> assign(socket, :is_editing_grade_composition, false)
-    end
+    socket
+    |> stream(:assessment_points, assessment_points)
   end
 
-  defp assign_is_editing_grade_composition(socket, _),
-    do: assign(socket, :is_editing_grade_composition, false)
+  defp assign_assessment_points(socket, _), do: socket
 
   @impl true
-  def handle_event(
-        "edit_subject_grade_composition",
-        %{"gradesreportsubjectid" => grades_report_subject_id},
-        socket
-      ) do
-    socket =
-      socket
-      |> push_patch(
-        to:
-          ~p"/report_cards/#{socket.assigns.report_card}?tab=grades&is_editing_grade_composition=#{grades_report_subject_id}"
-      )
-
-    {:noreply, socket}
-  end
-
   def handle_event("add_assessment_point_to_grade_comp", %{"id" => id}, socket) do
-    grades_report_cycle_id = socket.assigns.grades_report_cycle_id
-    grades_report_subject_id = socket.assigns.params["is_editing_grade_composition"]
-
     %{
       assessment_point_id: id,
-      grades_report_id: socket.assigns.grades_report.id,
-      grades_report_cycle_id: grades_report_cycle_id,
-      grades_report_subject_id: grades_report_subject_id
+      grades_report_id: socket.assigns.grades_report_id,
+      grades_report_cycle_id: socket.assigns.grades_report_cycle_id,
+      grades_report_subject_id: socket.assigns.grades_report_subject_id
     }
     |> Grading.create_grade_component()
     |> case do
       {:ok, _grade_component} ->
         grade_components =
           GradesReports.list_grade_composition(
-            grades_report_cycle_id,
-            grades_report_subject_id
+            socket.assigns.grades_report_cycle_id,
+            socket.assigns.grades_report_subject_id
           )
+
+        grade_composition_assessment_point_ids =
+          grade_components
+          |> Enum.map(& &1.assessment_point_id)
 
         socket =
           socket
           |> assign(:indexed_grade_components, Enum.with_index(grade_components))
           |> assign(
             :grade_composition_assessment_point_ids,
-            Enum.map(grade_components, & &1.assessment_point_id)
+            grade_composition_assessment_point_ids
           )
 
         {:noreply, socket}
@@ -341,20 +307,21 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
     |> Grading.delete_grade_component()
     |> case do
       {:ok, _grade_component} ->
-        indexed_grade_components =
+        grade_components =
           socket.assigns.indexed_grade_components
           |> Enum.map(fn {grade_component, _i} -> grade_component end)
           |> Enum.filter(&(&1.id != id))
-          |> Enum.with_index()
+
+        grade_composition_assessment_point_ids =
+          grade_components
+          |> Enum.map(& &1.assessment_point_id)
 
         socket =
           socket
-          |> assign(:indexed_grade_components, indexed_grade_components)
+          |> assign(:indexed_grade_components, Enum.with_index(grade_components))
           |> assign(
             :grade_composition_assessment_point_ids,
-            Enum.map(indexed_grade_components, fn {grade_component, _i} ->
-              grade_component.assessment_point_id
-            end)
+            grade_composition_assessment_point_ids
           )
 
         {:noreply, socket}

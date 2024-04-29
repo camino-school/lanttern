@@ -57,6 +57,7 @@
         <.grades_report_grid
           grades_report={grades_report}
           on_setup={JS.patch(~p"/grading?is_editing_grid=#{grades_report.id}")}
+          on_composition_click={JS.push("edit_composition")}
         />
       </div>
     </div>
@@ -108,5 +109,15 @@
   module={GradesReportGridSetupOverlayComponent}
   id="grades-report-grid-overlay"
   grades_report={@grades_report}
+  on_cancel={JS.patch(~p"/grading")}
+/>
+<.live_component
+  :if={@grades_report_id && @grades_report_cycle_id && @grades_report_subject_id}
+  title={gettext("Edit grade composition")}
+  module={GradeCompositionOverlayComponent}
+  id="grade-composition-overlay"
+  grades_report_id={@grades_report_id}
+  grades_report_cycle_id={@grades_report_cycle_id}
+  grades_report_subject_id={@grades_report_subject_id}
   on_cancel={JS.patch(~p"/grading")}
 />
