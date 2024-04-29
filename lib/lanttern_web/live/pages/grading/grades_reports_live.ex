@@ -25,7 +25,7 @@ defmodule LantternWeb.GradesReportsLive do
   def handle_params(params, _uri, socket) do
     grades_reports =
       GradesReports.list_grades_reports(
-        preloads: [scale: :ordinal_values],
+        preloads: [:year, scale: :ordinal_values],
         load_grid: true
       )
 

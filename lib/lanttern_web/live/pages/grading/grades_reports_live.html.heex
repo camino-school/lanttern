@@ -30,14 +30,17 @@
             <%= gettext("Edit") %>
           </.button>
         </div>
-        <div class="flex items-center gap-6 mb-6">
+        <div class="flex items-center gap-6 mb-6 text-sm">
           <div class="flex items-center gap-2">
             <.icon name="hero-calendar" class="w-6 h-6 shrink-0 text-ltrn-subtle" />
-            <%= gettext("Cycle") %>: <%= grades_report.school_cycle.name %>
+            <div :if={grades_report.year}>
+              <%= grades_report.year.name %>,
+            </div>
+            <%= gettext("Cycle") %> <%= grades_report.school_cycle.name %>
           </div>
           <div class="flex items-center gap-2">
             <.icon name="hero-view-columns" class="w-6 h-6 shrink-0 text-ltrn-subtle" />
-            <%= gettext("Scale") %>: <%= grades_report.scale.name %>
+            <%= gettext("Scale") %> <%= grades_report.scale.name %>
             <div
               :if={grades_report.scale.ordinal_values != []}
               class="flex items-center gap-2 ml-2"
