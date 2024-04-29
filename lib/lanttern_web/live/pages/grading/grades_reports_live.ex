@@ -98,6 +98,7 @@ defmodule LantternWeb.GradesReportsLive do
          "grs_id" => grades_report_subject_id
        }) do
     socket
+    |> assign(:is_editing_grade_composition, true)
     |> assign(:grades_report_id, grades_report_id)
     |> assign(:grades_report_cycle_id, grades_report_cycle_id)
     |> assign(:grades_report_subject_id, grades_report_subject_id)
@@ -105,6 +106,7 @@ defmodule LantternWeb.GradesReportsLive do
 
   defp assign_is_editing_grade_composition(socket, _) do
     socket
+    |> assign(:is_editing_grade_composition, false)
     |> assign(:grades_report_id, nil)
     |> assign(:grades_report_cycle_id, nil)
     |> assign(:grades_report_subject_id, nil)

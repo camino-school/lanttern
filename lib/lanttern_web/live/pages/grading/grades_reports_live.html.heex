@@ -112,7 +112,7 @@
   on_cancel={JS.patch(~p"/grading")}
 />
 <.live_component
-  :if={@grades_report_id && @grades_report_cycle_id && @grades_report_subject_id}
+  :if={@is_editing_grade_composition}
   title={gettext("Edit grade composition")}
   module={GradeCompositionOverlayComponent}
   id="grade-composition-overlay"
