@@ -7,7 +7,7 @@ defmodule Lanttern.GradingTest do
     alias Lanttern.Grading.GradeComponent
 
     import Lanttern.GradingFixtures
-    alias Lanttern.ReportingFixtures
+    alias Lanttern.GradesReportsFixtures
 
     @invalid_attrs %{position: nil, weight: nil}
 
@@ -22,24 +22,31 @@ defmodule Lanttern.GradingTest do
     end
 
     test "create_grade_component/1 with valid data creates a grade_component" do
-      report_card = ReportingFixtures.report_card_fixture()
       assessment_point = Lanttern.AssessmentsFixtures.assessment_point_fixture()
-      subject = Lanttern.TaxonomyFixtures.subject_fixture()
+      grades_report = GradesReportsFixtures.grades_report_fixture()
+
+      grades_report_cycle =
+        GradesReportsFixtures.grades_report_cycle_fixture(%{grades_report_id: grades_report.id})
+
+      grades_report_subject =
+        GradesReportsFixtures.grades_report_subject_fixture(%{grades_report_id: grades_report.id})
 
       valid_attrs = %{
         weight: 120.5,
-        report_card_id: report_card.id,
         assessment_point_id: assessment_point.id,
-        subject_id: subject.id
+        grades_report_id: grades_report.id,
+        grades_report_cycle_id: grades_report_cycle.id,
+        grades_report_subject_id: grades_report_subject.id
       }
 
       assert {:ok, %GradeComponent{} = grade_component} =
                Grading.create_grade_component(valid_attrs)
 
       assert grade_component.weight == 120.5
-      assert grade_component.report_card_id == report_card.id
       assert grade_component.assessment_point_id == assessment_point.id
-      assert grade_component.subject_id == subject.id
+      assert grade_component.grades_report_id == grades_report.id
+      assert grade_component.grades_report_cycle_id == grades_report_cycle.id
+      assert grade_component.grades_report_subject_id == grades_report_subject.id
     end
 
     test "create_grade_component/1 with invalid data returns error changeset" do
@@ -67,31 +74,40 @@ defmodule Lanttern.GradingTest do
     end
 
     test "update_grade_components_positions/1 update grade components positions based on list order" do
-      report_card = ReportingFixtures.report_card_fixture()
-      subject = Lanttern.TaxonomyFixtures.subject_fixture()
+      grades_report = GradesReportsFixtures.grades_report_fixture()
+
+      grades_report_cycle =
+        GradesReportsFixtures.grades_report_cycle_fixture(%{grades_report_id: grades_report.id})
+
+      grades_report_subject =
+        GradesReportsFixtures.grades_report_subject_fixture(%{grades_report_id: grades_report.id})
 
       grade_component_1 =
         grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject.id
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject.id
         })
 
       grade_component_2 =
         grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject.id
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject.id
         })
 
       grade_component_3 =
         grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject.id
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject.id
         })
 
       grade_component_4 =
         grade_component_fixture(%{
-          report_card_id: report_card.id,
-          subject_id: subject.id
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject.id
         })
 
       sorted_grade_components_ids =

@@ -4,7 +4,7 @@ defmodule Lanttern.Repo.Migrations.AddLinkedStudentsClassIdToProfileReportCardFi
   # MIGRATION PLAN
   # 1. remove not null constraint from class_id
   # 2. add column linked_students_class_id (references classes)
-  # 4. add unique constraint to prevent duplicate linked_students_class_id per report/profile
+  # 3. add unique constraint to prevent duplicate linked_students_class_id per report/profile
   # 4. add check constraint: class_id is not null and linked_students_class_id is null (or vice-versa)
 
   def change do

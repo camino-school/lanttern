@@ -14,6 +14,7 @@ defmodule Lanttern.GradesReports do
   alias Lanttern.GradesReports.GradesReportSubject
   alias Lanttern.GradesReports.StudentGradeReportEntry
   alias Lanttern.Grading
+  alias Lanttern.Grading.GradeComponent
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Reporting.StudentReportCard
 
@@ -480,6 +481,41 @@ defmodule Lanttern.GradesReports do
   end
 
   @doc """
+  Returns a list of all grade components that are linked
+  to the given grades report subject and cycle.
+
+  Results are ordered by grade component position.
+
+  Preloads `assessment_point: [:strand, curriculum_item: :curriculum_component]`.
+
+  ## Examples
+
+      iex> list_grade_composition(grades_report_cycle_id, grades_report_subject_id)
+      [%GradeComponent{}, ...]
+
+  """
+  @spec list_grade_composition(
+          grades_report_cycle_id :: pos_integer(),
+          grades_report_subject_id :: pos_integer()
+        ) :: [GradeComponent.t()]
+  def list_grade_composition(grades_report_cycle_id, grades_report_subject_id) do
+    from(gc in GradeComponent,
+      join: ap in assoc(gc, :assessment_point),
+      join: s in assoc(ap, :strand),
+      join: grc in assoc(gc, :grades_report_cycle),
+      join: grs in assoc(gc, :grades_report_subject),
+      join: ci in assoc(ap, :curriculum_item),
+      join: cc in assoc(ci, :curriculum_component),
+      where: grc.id == ^grades_report_cycle_id and grs.id == ^grades_report_subject_id,
+      order_by: gc.position,
+      preload: [
+        assessment_point: {ap, strand: s, curriculum_item: {ci, curriculum_component: cc}}
+      ]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
   Calculate student grade for given grades report cycle and subject.
 
   Uses a third elemente in the `:ok` returned tuple:
@@ -514,11 +550,9 @@ defmodule Lanttern.GradesReports do
       join: ci in assoc(ap, :curriculum_item),
       join: cc in assoc(ci, :curriculum_component),
       join: gc in assoc(ap, :grade_components),
-      join: rc in assoc(gc, :report_card),
-      join: gr in assoc(rc, :grades_report),
-      join: grc in assoc(gr, :grades_report_cycles),
-      join: grs in GradesReportSubject,
-      on: grs.grades_report_id == gr.id and grs.subject_id == gc.subject_id,
+      join: gr in assoc(gc, :grades_report),
+      join: grc in assoc(gc, :grades_report_cycle),
+      join: grs in assoc(gc, :grades_report_subject),
       where: e.student_id == ^student_id,
       where: gr.id == ^grades_report_id,
       where: grc.id == ^grades_report_cycle_id,
@@ -691,11 +725,9 @@ defmodule Lanttern.GradesReports do
         join: ci in assoc(ap, :curriculum_item),
         join: cc in assoc(ci, :curriculum_component),
         join: gc in assoc(ap, :grade_components),
-        join: rc in assoc(gc, :report_card),
-        join: gr in assoc(rc, :grades_report),
-        join: grc in assoc(gr, :grades_report_cycles),
-        join: grs in GradesReportSubject,
-        on: grs.grades_report_id == gr.id and grs.subject_id == gc.subject_id,
+        join: gr in assoc(gc, :grades_report),
+        join: grc in assoc(gc, :grades_report_cycle),
+        join: grs in assoc(gc, :grades_report_subject),
         where: e.student_id == ^student_id,
         where: grc.id == ^grades_report_cycle_id,
         order_by: gc.position,
@@ -810,11 +842,9 @@ defmodule Lanttern.GradesReports do
         join: ci in assoc(ap, :curriculum_item),
         join: cc in assoc(ci, :curriculum_component),
         join: gc in assoc(ap, :grade_components),
-        join: rc in assoc(gc, :report_card),
-        join: gr in assoc(rc, :grades_report),
-        join: grc in assoc(gr, :grades_report_cycles),
-        join: grs in GradesReportSubject,
-        on: grs.grades_report_id == gr.id and grs.subject_id == gc.subject_id,
+        join: gr in assoc(gc, :grades_report),
+        join: grc in assoc(gc, :grades_report_cycle),
+        join: grs in assoc(gc, :grades_report_subject),
         where: e.student_id in ^students_ids,
         where: gr.id == ^grades_report_id,
         where: grc.id == ^grades_report_cycle_id,
@@ -936,11 +966,9 @@ defmodule Lanttern.GradesReports do
         join: ci in assoc(ap, :curriculum_item),
         join: cc in assoc(ci, :curriculum_component),
         join: gc in assoc(ap, :grade_components),
-        join: rc in assoc(gc, :report_card),
-        join: gr in assoc(rc, :grades_report),
-        join: grc in assoc(gr, :grades_report_cycles),
-        join: grs in GradesReportSubject,
-        on: grs.grades_report_id == gr.id and grs.subject_id == gc.subject_id,
+        join: gr in assoc(gc, :grades_report),
+        join: grc in assoc(gc, :grades_report_cycle),
+        join: grs in assoc(gc, :grades_report_subject),
         where: e.student_id in ^students_ids,
         where: gr.id == ^grades_report_id,
         where: grc.id == ^grades_report_cycle_id,

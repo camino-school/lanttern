@@ -8,14 +8,46 @@ defmodule Lanttern.GradingFixtures do
   Generate a grade_component.
   """
   def grade_component_fixture(attrs \\ %{}) do
+    {
+      grades_report_id,
+      grades_report_cycle_id,
+      grades_report_subject_id
+    } =
+      case attrs do
+        %{
+          grades_report_id: grades_report_id,
+          grades_report_cycle_id: grades_report_cycle_id,
+          grades_report_subject_id: grades_report_subject_id
+        } ->
+          {
+            grades_report_id,
+            grades_report_cycle_id,
+            grades_report_subject_id
+          }
+
+        _ ->
+          grades_report = Lanttern.GradesReportsFixtures.grades_report_fixture()
+
+          {
+            grades_report.id,
+            Lanttern.GradesReportsFixtures.grades_report_cycle_fixture(%{
+              grades_report_id: grades_report.id
+            }).id,
+            Lanttern.GradesReportsFixtures.grades_report_subject_fixture(%{
+              grades_report_id: grades_report.id
+            }).id
+          }
+      end
+
     {:ok, grade_component} =
       attrs
       |> Enum.into(%{
         position: 42,
         weight: 120.5,
-        report_card_id: Lanttern.ReportingFixtures.maybe_gen_report_card_id(attrs),
         assessment_point_id: Lanttern.AssessmentsFixtures.maybe_gen_assessment_point_id(attrs),
-        subject_id: Lanttern.TaxonomyFixtures.maybe_gen_subject_id(attrs)
+        grades_report_id: grades_report_id,
+        grades_report_cycle_id: grades_report_cycle_id,
+        grades_report_subject_id: grades_report_subject_id
       })
       |> Lanttern.Grading.create_grade_component()
 

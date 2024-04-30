@@ -9,10 +9,11 @@ defmodule LantternWeb.GradesReportsLive do
 
   # live components
   alias LantternWeb.GradesReports.GradesReportFormComponent
+  alias LantternWeb.Grading.GradeCompositionOverlayComponent
 
   # shared
+  import LantternWeb.GradesReportsComponents
   import LantternWeb.GradingComponents
-  import LantternWeb.ReportingComponents
 
   # lifecycle
 
@@ -25,7 +26,7 @@ defmodule LantternWeb.GradesReportsLive do
   def handle_params(params, _uri, socket) do
     grades_reports =
       GradesReports.list_grades_reports(
-        preloads: [scale: :ordinal_values],
+        preloads: [:year, scale: :ordinal_values],
         load_grid: true
       )
 
@@ -35,6 +36,7 @@ defmodule LantternWeb.GradesReportsLive do
       |> assign(:has_grades_reports, length(grades_reports) > 0)
       |> assign_show_grades_report_form(params)
       |> assign_show_grades_report_grid_editor(params)
+      |> assign_is_editing_grade_composition(params)
 
     {:noreply, socket}
   end
@@ -90,6 +92,26 @@ defmodule LantternWeb.GradesReportsLive do
   defp assign_show_grades_report_grid_editor(socket, _),
     do: assign(socket, :show_grades_report_grid_editor, false)
 
+  defp assign_is_editing_grade_composition(socket, %{
+         "gr_id" => grades_report_id,
+         "grc_id" => grades_report_cycle_id,
+         "grs_id" => grades_report_subject_id
+       }) do
+    socket
+    |> assign(:is_editing_grade_composition, true)
+    |> assign(:grades_report_id, grades_report_id)
+    |> assign(:grades_report_cycle_id, grades_report_cycle_id)
+    |> assign(:grades_report_subject_id, grades_report_subject_id)
+  end
+
+  defp assign_is_editing_grade_composition(socket, _) do
+    socket
+    |> assign(:is_editing_grade_composition, false)
+    |> assign(:grades_report_id, nil)
+    |> assign(:grades_report_cycle_id, nil)
+    |> assign(:grades_report_subject_id, nil)
+  end
+
   # event handlers
 
   @impl true
@@ -110,5 +132,19 @@ defmodule LantternWeb.GradesReportsLive do
 
         {:noreply, socket}
     end
+  end
+
+  def handle_event("edit_composition", params, socket) do
+    url_params = %{
+      gr_id: params["gradesreportid"],
+      grc_id: params["gradesreportcycleid"],
+      grs_id: params["gradesreportsubjectid"]
+    }
+
+    socket =
+      socket
+      |> push_patch(to: ~p"/grading?#{url_params}")
+
+    {:noreply, socket}
   end
 end

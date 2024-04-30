@@ -14,6 +14,7 @@ defmodule Lanttern.GradesReportsFixtures do
         name: "some name",
         info: "some info",
         school_cycle_id: Lanttern.SchoolsFixtures.maybe_gen_cycle_id(attrs),
+        year_id: Lanttern.TaxonomyFixtures.maybe_gen_year_id(attrs),
         scale_id: Lanttern.GradingFixtures.maybe_gen_scale_id(attrs)
       })
       |> Lanttern.GradesReports.create_grades_report()

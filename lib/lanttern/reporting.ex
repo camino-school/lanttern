@@ -10,7 +10,6 @@ defmodule Lanttern.Reporting do
   alias Lanttern.Reporting.ReportCard
   alias Lanttern.Reporting.StrandReport
   alias Lanttern.Reporting.StudentReportCard
-  alias Lanttern.Grading.GradeComponent
 
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
@@ -754,40 +753,6 @@ defmodule Lanttern.Reporting do
       where: sr.report_card_id == ^report_card_id,
       order_by: [asc: sr.position, asc: ap.position],
       preload: [strand: s, curriculum_item: {ci, curriculum_component: cc}]
-    )
-    |> Repo.all()
-  end
-
-  @doc """
-  Returns a list of all grade components that are linked
-  to the given subject and report card.
-
-  Results are ordered by grade component position.
-
-  Preloads `assessment_point: [:strand, curriculum_item: :curriculum_component]`.
-
-  ## Examples
-
-      iex> list_report_card_subject_grade_composition(report_card_id, subject_id)
-      [%GradeComponent{}, ...]
-
-  """
-  @spec list_report_card_subject_grade_composition(
-          report_card_id :: integer(),
-          subject_id :: integer()
-        ) :: [GradeComponent.t()]
-  def list_report_card_subject_grade_composition(report_card_id, subject_id) do
-    from(gc in GradeComponent,
-      join: ap in assoc(gc, :assessment_point),
-      join: s in assoc(ap, :strand),
-      join: sr in assoc(s, :strand_reports),
-      join: ci in assoc(ap, :curriculum_item),
-      join: cc in assoc(ci, :curriculum_component),
-      where: sr.report_card_id == ^report_card_id and gc.subject_id == ^subject_id,
-      order_by: gc.position,
-      preload: [
-        assessment_point: {ap, strand: s, curriculum_item: {ci, curriculum_component: cc}}
-      ]
     )
     |> Repo.all()
   end

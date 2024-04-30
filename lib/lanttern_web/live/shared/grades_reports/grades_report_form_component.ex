@@ -5,6 +5,7 @@ defmodule LantternWeb.GradesReports.GradesReportFormComponent do
 
   alias LantternWeb.GradingHelpers
   alias LantternWeb.SchoolsHelpers
+  alias LantternWeb.TaxonomyHelpers
 
   @impl true
   def render(assigns) do
@@ -50,6 +51,14 @@ defmodule LantternWeb.GradesReports.GradesReportFormComponent do
           </:description>
         </.input>
         <.input
+          field={@form[:year_id]}
+          type="select"
+          label="Year"
+          options={@year_options}
+          prompt="Select a year"
+          class="mb-6"
+        />
+        <.input
           field={@form[:scale_id]}
           type="select"
           label="Scale"
@@ -69,6 +78,7 @@ defmodule LantternWeb.GradesReports.GradesReportFormComponent do
   def mount(socket) do
     scale_options = GradingHelpers.generate_scale_options()
     cycle_options = SchoolsHelpers.generate_cycle_options()
+    year_options = TaxonomyHelpers.generate_year_options()
 
     socket =
       socket
@@ -76,6 +86,7 @@ defmodule LantternWeb.GradesReports.GradesReportFormComponent do
       |> assign(:hide_submit, false)
       |> assign(:scale_options, scale_options)
       |> assign(:cycle_options, cycle_options)
+      |> assign(:year_options, year_options)
 
     {:ok, socket}
   end

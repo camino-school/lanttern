@@ -9,7 +9,6 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
 
   # shared
   alias LantternWeb.GradesReports.StudentGradeReportEntryFormComponent
-  import LantternWeb.ReportingComponents
   import LantternWeb.GradesReportsComponents
   alias LantternWeb.Personalization.InlineFiltersComponent
 
