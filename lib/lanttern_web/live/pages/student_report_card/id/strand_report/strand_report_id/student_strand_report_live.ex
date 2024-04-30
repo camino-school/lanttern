@@ -5,6 +5,7 @@ defmodule LantternWeb.StudentStrandReportLive do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Identity.Profile
   alias Lanttern.Reporting
+  alias Lanttern.Reporting.StudentReportCard
   import LantternWeb.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # shared components
@@ -27,31 +28,8 @@ defmodule LantternWeb.StudentStrandReportLive do
         ]
       )
 
-    # check if user can view the student strand report
-    # guardian and students can only view their own reports
-    # teachers can view only reports from their school
-
-    report_card_student_id = student_report_card.student_id
-    report_card_student_school_id = student_report_card.student.school_id
-    allow_student_access = student_report_card.allow_student_access
-    allow_guardian_access = student_report_card.allow_guardian_access
-
-    case socket.assigns.current_user.current_profile do
-      %Profile{type: "guardian", guardian_of_student_id: student_id}
-      when student_id == report_card_student_id and allow_guardian_access ->
-        nil
-
-      %Profile{type: "student", student_id: student_id}
-      when student_id == report_card_student_id and allow_student_access ->
-        nil
-
-      %Profile{type: "teacher", school_id: school_id}
-      when school_id == report_card_student_school_id ->
-        nil
-
-      _ ->
-        raise LantternWeb.NotFoundError
-    end
+    # check if user can view the student report
+    check_if_user_has_access(socket.assigns.current_user, student_report_card)
 
     strand_report =
       Reporting.get_strand_report!(strand_report_id,
@@ -83,5 +61,33 @@ defmodule LantternWeb.StudentStrandReportLive do
       |> assign(:page_title, page_title)
 
     {:noreply, socket}
+  end
+
+  defp check_if_user_has_access(current_user, %StudentReportCard{} = student_report_card) do
+    # check if user can view the student strand report
+    # guardian and students can only view their own reports
+    # teachers can view only reports from their school
+
+    report_card_student_id = student_report_card.student_id
+    report_card_student_school_id = student_report_card.student.school_id
+    allow_student_access = student_report_card.allow_student_access
+    allow_guardian_access = student_report_card.allow_guardian_access
+
+    case current_user.current_profile do
+      %Profile{type: "guardian", guardian_of_student_id: student_id}
+      when student_id == report_card_student_id and allow_guardian_access ->
+        nil
+
+      %Profile{type: "student", student_id: student_id}
+      when student_id == report_card_student_id and allow_student_access ->
+        nil
+
+      %Profile{type: "teacher", school_id: school_id}
+      when school_id == report_card_student_school_id ->
+        nil
+
+      _ ->
+        raise LantternWeb.NotFoundError
+    end
   end
 end

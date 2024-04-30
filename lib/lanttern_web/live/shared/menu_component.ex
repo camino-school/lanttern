@@ -311,60 +311,48 @@ defmodule LantternWeb.MenuComponent do
 
   # lifecycle
 
+  @view_to_nav_map %{
+    LantternWeb.DashboardLive => :dashboard,
+
+    # strands
+    LantternWeb.StrandsLive => :strands,
+    LantternWeb.StrandLive => :strands,
+    LantternWeb.MomentLive => :strands,
+
+    # school
+    LantternWeb.SchoolLive => :school,
+    LantternWeb.ClassLive => :school,
+    LantternWeb.StudentLive => :school,
+
+    # assessment points
+    LantternWeb.AssessmentPointsLive => :assessment_points,
+    LantternWeb.AssessmentPointLive => :assessment_points,
+
+    # rubrics
+    LantternWeb.RubricsLive => :rubrics,
+
+    # curriculum
+    LantternWeb.CurriculaLive => :curriculum,
+    LantternWeb.CurriculumLive => :curriculum,
+    LantternWeb.CurriculumComponentLive => :curriculum,
+    LantternWeb.CurriculumBNCCEFLive => :curriculum,
+
+    # report cards
+    LantternWeb.ReportCardsLive => :report_cards,
+    LantternWeb.ReportCardLive => :report_cards,
+
+    # grading
+    LantternWeb.GradesReportsLive => :grading,
+
+    # guardian home
+    LantternWeb.GuardianHomeLive => :guardian_home,
+
+    # student home
+    LantternWeb.StudentHomeLive => :student_home
+  }
+
   def mount(socket) do
-    active_nav =
-      cond do
-        socket.view == LantternWeb.DashboardLive ->
-          :dashboard
-
-        socket.view in [
-          LantternWeb.StrandsLive,
-          LantternWeb.StrandLive,
-          LantternWeb.MomentLive
-        ] ->
-          :strands
-
-        socket.view in [
-          LantternWeb.SchoolLive,
-          LantternWeb.ClassLive,
-          LantternWeb.StudentLive
-        ] ->
-          :school
-
-        socket.view in [
-          LantternWeb.AssessmentPointsLive,
-          LantternWeb.AssessmentPointLive
-        ] ->
-          :assessment_points
-
-        socket.view in [
-          LantternWeb.RubricsLive
-        ] ->
-          :rubrics
-
-        socket.view in [
-          LantternWeb.CurriculaLive,
-          LantternWeb.CurriculumLive,
-          LantternWeb.CurriculumComponentLive,
-          LantternWeb.CurriculumBNCCEFLive
-        ] ->
-          :curriculum
-
-        socket.view in [LantternWeb.ReportCardsLive, LantternWeb.ReportCardLive] ->
-          :report_cards
-
-        socket.view in [LantternWeb.GradesReportsLive] ->
-          :grading
-
-        socket.view in [LantternWeb.GuardianHomeLive] ->
-          :guardian_home
-
-        socket.view in [LantternWeb.StudentHomeLive] ->
-          :student_home
-
-        true ->
-          nil
-      end
+    active_nav = Map.get(@view_to_nav_map, socket.view)
 
     socket =
       socket
