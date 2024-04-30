@@ -1,4 +1,8 @@
 defmodule LantternWeb.Path do
+  @moduledoc """
+  `on_mount` hook for handling URL path
+  """
+
   @doc """
   Sets the path from the connection as :current_path on the socket
   """

@@ -532,26 +532,24 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   defp assign_show_student_report_card_form(socket, %{
          params: %{"create_student_report" => student_id}
        }) do
-    cond do
-      String.match?(student_id, ~r/[0-9]+/) ->
-        case Schools.get_student(student_id) do
-          nil ->
-            # student does not exist, just return socket
-            assign(socket, :show_student_report_card_form, false)
+    if String.match?(student_id, ~r/[0-9]+/) do
+      case Schools.get_student(student_id) do
+        nil ->
+          # student does not exist, just return socket
+          assign(socket, :show_student_report_card_form, false)
 
-          student ->
-            socket
-            |> assign(:student_report_card, %StudentReportCard{
-              report_card_id: socket.assigns.report_card.id,
-              student_id: student_id
-            })
-            |> assign(:student, student)
-            |> assign(:form_overlay_title, gettext("Create student report card"))
-            |> assign(:show_student_report_card_form, true)
-        end
-
-      true ->
-        assign(socket, :show_student_report_card_form, false)
+        student ->
+          socket
+          |> assign(:student_report_card, %StudentReportCard{
+            report_card_id: socket.assigns.report_card.id,
+            student_id: student_id
+          })
+          |> assign(:student, student)
+          |> assign(:form_overlay_title, gettext("Create student report card"))
+          |> assign(:show_student_report_card_form, true)
+      end
+    else
+      assign(socket, :show_student_report_card_form, false)
     end
   end
 
@@ -560,22 +558,20 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
        }) do
     report_card_id = socket.assigns.report_card.id
 
-    cond do
-      String.match?(id, ~r/[0-9]+/) ->
-        case Reporting.get_student_report_card(id) do
-          %StudentReportCard{report_card_id: ^report_card_id} = student_report_card ->
-            socket
-            |> assign(:form_overlay_title, gettext("Edit student report card"))
-            |> assign(:student_report_card, student_report_card)
-            |> assign(:student, Schools.get_student(student_report_card.student_id))
-            |> assign(:show_student_report_card_form, true)
+    if String.match?(id, ~r/[0-9]+/) do
+      case Reporting.get_student_report_card(id) do
+        %StudentReportCard{report_card_id: ^report_card_id} = student_report_card ->
+          socket
+          |> assign(:form_overlay_title, gettext("Edit student report card"))
+          |> assign(:student_report_card, student_report_card)
+          |> assign(:student, Schools.get_student(student_report_card.student_id))
+          |> assign(:show_student_report_card_form, true)
 
-          _ ->
-            assign(socket, :show_student_report_card_form, false)
-        end
-
-      true ->
-        assign(socket, :show_student_report_card_form, false)
+        _ ->
+          assign(socket, :show_student_report_card_form, false)
+      end
+    else
+      assign(socket, :show_student_report_card_form, false)
     end
   end
 

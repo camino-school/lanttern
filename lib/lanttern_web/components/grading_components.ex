@@ -1,4 +1,8 @@
 defmodule LantternWeb.GradingComponents do
+  @moduledoc """
+  Shared function components related to `Grading` context
+  """
+
   use Phoenix.Component
 
   import LantternWeb.CoreComponents

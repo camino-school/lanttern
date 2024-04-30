@@ -1,4 +1,8 @@
 defmodule Lanttern.Personalization.MomentNoteRelationship do
+  @moduledoc """
+  The `MomentNoteRelationship` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
   import LantternWeb.Gettext

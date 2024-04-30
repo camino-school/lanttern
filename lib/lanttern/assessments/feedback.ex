@@ -1,4 +1,8 @@
 defmodule Lanttern.Assessments.Feedback do
+  @moduledoc """
+  The `Feedback` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

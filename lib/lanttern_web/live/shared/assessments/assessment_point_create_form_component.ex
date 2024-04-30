@@ -1,4 +1,8 @@
 defmodule LantternWeb.Assessments.AssessmentPointCreateFormComponent do
+  @moduledoc """
+  Renders a `AssessmentPoint` create form
+  """
+
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments

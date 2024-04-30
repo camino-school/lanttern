@@ -1,4 +1,8 @@
 defmodule LantternWeb.Reporting.StrandReportFormComponent do
+  @moduledoc """
+  Renders a `StrandReport` form
+  """
+
   use LantternWeb, :live_component
 
   alias Lanttern.Reporting

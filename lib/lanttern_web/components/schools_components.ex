@@ -1,4 +1,8 @@
 defmodule LantternWeb.SchoolsComponents do
+  @moduledoc """
+  Shared function components related to `Schools` context
+  """
+
   use Phoenix.Component
 
   import Phoenix.HTML, only: [raw: 1]

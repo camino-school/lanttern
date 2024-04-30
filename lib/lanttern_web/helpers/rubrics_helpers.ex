@@ -1,4 +1,8 @@
 defmodule LantternWeb.RubricsHelpers do
+  @moduledoc """
+  Helper functions related to `Rubrics` context
+  """
+
   alias Lanttern.Rubrics
 
   @doc """

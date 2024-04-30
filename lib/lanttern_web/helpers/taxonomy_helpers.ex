@@ -1,4 +1,8 @@
 defmodule LantternWeb.TaxonomyHelpers do
+  @moduledoc """
+  Helper functions related to `Taxonomy` context
+  """
+
   alias Lanttern.Taxonomy
 
   @doc """

@@ -1,4 +1,8 @@
 defmodule LantternWeb.Form.MultiSelectComponent do
+  @moduledoc """
+  Renders a multi select form component
+  """
+
   use LantternWeb, :live_component
 
   @impl true

@@ -653,7 +653,7 @@ defmodule LantternWeb.FormComponents do
     """
   end
 
-  defp upload_error_to_string(upload_config = %Phoenix.LiveView.UploadConfig{}, :not_accepted) do
+  defp upload_error_to_string(%Phoenix.LiveView.UploadConfig{} = upload_config, :not_accepted) do
     formats =
       upload_config.accept
       |> String.split(",")
@@ -662,7 +662,7 @@ defmodule LantternWeb.FormComponents do
     "Only #{formats} files accepted"
   end
 
-  defp upload_error_to_string(upload_config = %Phoenix.LiveView.UploadConfig{}, :too_large),
+  defp upload_error_to_string(%Phoenix.LiveView.UploadConfig{} = upload_config, :too_large),
     do: "File too large (max. #{upload_config.max_file_size / 1_000_000}MB)"
 
   defp upload_error_to_string(_upload_config, err), do: err

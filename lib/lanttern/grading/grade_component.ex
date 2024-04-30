@@ -1,4 +1,8 @@
 defmodule Lanttern.Grading.GradeComponent do
+  @moduledoc """
+  The `GradeComponent` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

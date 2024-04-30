@@ -515,41 +515,43 @@ defmodule Lanttern.Personalization do
         current_filters = profile_settings.current_filters || %{}
 
         {op, params, attrs} =
-          Enum.reduce(filters, {:noop, params, %{}}, fn atom_filter, {op, params, attrs} ->
-            str_filter = Atom.to_string(atom_filter)
-
-            case {params[str_filter], Map.get(current_filters, atom_filter)} do
-              {nil, nil} ->
-                {op, params, attrs}
-
-              {nil, []} ->
-                {op, params, attrs}
-
-              {nil, filter} when is_list(filter) ->
-                params =
-                  Map.put(
-                    params,
-                    str_filter,
-                    Enum.map(filter, &"#{&1}")
-                  )
-
-                {:updated, params, attrs}
-
-              {"", _filter} ->
-                attrs = Map.put(attrs, atom_filter, [])
-                {op, params, attrs}
-
-              {param, _filter} ->
-                attrs = Map.put(attrs, atom_filter, param)
-                {op, params, attrs}
-            end
-          end)
+          Enum.reduce(filters, {:noop, params, %{}}, &reduce_filter(&1, &2, current_filters))
 
         if attrs != %{} do
           insert_settings_or_update_filters(profile_settings, profile_id, attrs)
         end
 
         {op, params}
+    end
+  end
+
+  defp reduce_filter(atom_filter, {op, params, attrs}, current_filters) do
+    str_filter = Atom.to_string(atom_filter)
+
+    case {params[str_filter], Map.get(current_filters, atom_filter)} do
+      {nil, nil} ->
+        {op, params, attrs}
+
+      {nil, []} ->
+        {op, params, attrs}
+
+      {nil, filter} when is_list(filter) ->
+        params =
+          Map.put(
+            params,
+            str_filter,
+            Enum.map(filter, &"#{&1}")
+          )
+
+        {:updated, params, attrs}
+
+      {"", _filter} ->
+        attrs = Map.put(attrs, atom_filter, [])
+        {op, params, attrs}
+
+      {param, _filter} ->
+        attrs = Map.put(attrs, atom_filter, param)
+        {op, params, attrs}
     end
   end
 

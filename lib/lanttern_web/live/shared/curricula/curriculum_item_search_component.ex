@@ -1,4 +1,8 @@
 defmodule LantternWeb.Curricula.CurriculumItemSearchComponent do
+  @moduledoc """
+  Renders a `CurriculumItem` search component
+  """
+
   use LantternWeb, :live_component
 
   alias Lanttern.Curricula

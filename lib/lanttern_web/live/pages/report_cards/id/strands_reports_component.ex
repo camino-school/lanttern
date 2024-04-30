@@ -255,24 +255,22 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
        }) do
     report_card_id = socket.assigns.report_card.id
 
-    cond do
-      String.match?(id, ~r/[0-9]+/) ->
-        case Reporting.get_strand_report(id, preloads: [strand: [:subjects, :years]]) do
-          %StrandReport{report_card_id: ^report_card_id} = strand_report ->
-            strand = strand_report.strand
+    if String.match?(id, ~r/[0-9]+/) do
+      case Reporting.get_strand_report(id, preloads: [strand: [:subjects, :years]]) do
+        %StrandReport{report_card_id: ^report_card_id} = strand_report ->
+          strand = strand_report.strand
 
-            socket
-            |> assign(:form_overlay_title, gettext("Edit strand report"))
-            |> assign(:strand_report, strand_report)
-            |> assign(:strand, strand)
-            |> assign(:show_strand_report_form, true)
+          socket
+          |> assign(:form_overlay_title, gettext("Edit strand report"))
+          |> assign(:strand_report, strand_report)
+          |> assign(:strand, strand)
+          |> assign(:show_strand_report_form, true)
 
-          _ ->
-            assign(socket, :show_strand_report_form, false)
-        end
-
-      true ->
-        assign(socket, :show_strand_report_form, false)
+        _ ->
+          assign(socket, :show_strand_report_form, false)
+      end
+    else
+      assign(socket, :show_strand_report_form, false)
     end
   end
 

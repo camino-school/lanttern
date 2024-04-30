@@ -1,4 +1,8 @@
 defmodule Lanttern.RepoHelpers do
+  @moduledoc """
+  Helpers related to `Repo`
+  """
+
   alias Lanttern.Repo
   import Ecto.Query, only: [from: 2]
 

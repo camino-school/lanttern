@@ -1,4 +1,8 @@
 defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
+  @moduledoc """
+  Renders a `AssessmentPoint` form
+  """
+
   alias Lanttern.Curricula
   use LantternWeb, :live_component
 

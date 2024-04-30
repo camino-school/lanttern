@@ -1,4 +1,8 @@
 defmodule LantternWeb.GradesReportsHelpers do
+  @moduledoc """
+  Helper functions related to `GradesReports` context
+  """
+
   alias Lanttern.GradesReports
 
   @doc """

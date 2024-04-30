@@ -232,7 +232,7 @@ defmodule Lanttern.SchoolsTest do
 
     test "get_class/2 returns nil if class with given id does not exist" do
       class_fixture()
-      assert Schools.get_class(99999) == nil
+      assert Schools.get_class(99_999) == nil
     end
 
     test "get_class!/2 returns the class with given id" do
@@ -468,7 +468,7 @@ defmodule Lanttern.SchoolsTest do
 
     test "get_student/2 returns nil if student with given id does not exist" do
       student_fixture()
-      assert Schools.get_student(99999) == nil
+      assert Schools.get_student(99_999) == nil
     end
 
     test "get_student!/2 returns the student with given id" do

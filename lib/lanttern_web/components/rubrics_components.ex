@@ -1,4 +1,8 @@
 defmodule LantternWeb.RubricsComponents do
+  @moduledoc """
+  Shared function components related to `Rubrics` context
+  """
+
   use Phoenix.Component
 
   import LantternWeb.CoreComponents

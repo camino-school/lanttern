@@ -1,4 +1,8 @@
 defmodule Lanttern.Assessments.AssessmentPoint do
+  @moduledoc """
+  The `AssessmentPoint` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]

@@ -1,4 +1,8 @@
 defmodule Lanttern.LearningContext.Strand do
+  @moduledoc """
+  The `Strand` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

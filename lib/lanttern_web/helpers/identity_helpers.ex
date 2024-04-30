@@ -1,4 +1,8 @@
 defmodule LantternWeb.IdentityHelpers do
+  @moduledoc """
+  Helper functions related to `Identity` context
+  """
+
   alias Lanttern.Identity
 
   @doc """

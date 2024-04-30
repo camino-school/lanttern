@@ -29,13 +29,11 @@ defmodule LantternWeb.AssessmentPointsLive do
         {first_two, rest} = Enum.split(items, 2)
 
         first_two
-        |> Enum.map(& &1.name)
-        |> Enum.join(" / ")
+        |> Enum.map_join(" / ", & &1.name)
         |> Kernel.<>(" / + #{length(rest)} #{type}")
       else
         items
-        |> Enum.map(& &1.name)
-        |> Enum.join(" / ")
+        |> Enum.map_join(" / ", & &1.name)
       end
 
     assigns = assign(assigns, :items, items)

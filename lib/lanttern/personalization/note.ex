@@ -1,4 +1,8 @@
 defmodule Lanttern.Personalization.Note do
+  @moduledoc """
+  The `Note` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

@@ -339,17 +339,18 @@ defmodule LantternWeb.AssessmentPointLive do
   def handle_event("delete_comment", %{"id" => id, "is_completion" => is_completion}, socket) do
     case Conversation.delete_comment(%Comment{id: id}) do
       {:ok, comment} ->
+        feedback =
+          if is_completion do
+            socket.assigns.feedback
+            |> Map.put(:completion_comment_id, nil)
+            |> Map.put(:completion_comment, nil)
+          else
+            socket.assigns.feedback
+          end
+
         socket =
           socket
-          |> update(:feedback, fn feedback ->
-            if is_completion do
-              feedback
-              |> Map.put(:completion_comment_id, nil)
-              |> Map.put(:completion_comment, nil)
-            else
-              feedback
-            end
-          end)
+          |> assign(:feedback, feedback)
           |> maybe_update_socket_entries({:feedback_comment_deleted, comment})
           |> stream_delete(:comments, comment)
 

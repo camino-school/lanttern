@@ -181,6 +181,48 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Wrapper around `<.badge_button>` to render a list of badge buttons
+  with selected state management.
+
+  ## Examples
+
+      <.badge_button_picker
+        on_select={%JS{}}
+        items={items}
+        item_key={:name}
+        selected_ids={selected_ids}
+      />
+  """
+  attr :items, :list, required: true
+  attr :selected_ids, :list, required: true
+
+  attr :item_key, :any,
+    default: :name,
+    doc: "key used to access the item 'label' that will be displayed in the UI"
+
+  attr :on_select, :any,
+    required: true,
+    doc: "expects a function with arity 1. will receive the `item.id` as arg"
+
+  attr :class, :any, default: nil
+  attr :id, :string, default: nil
+
+  def badge_button_picker(assigns) do
+    ~H"""
+    <div class={["flex flex-wrap gap-2", @class]} id={@id}>
+      <.badge_button
+        :for={item <- @items}
+        theme={if item.id in @selected_ids, do: "primary", else: "default"}
+        icon_name={if item.id in @selected_ids, do: "hero-check-mini", else: "hero-plus-mini"}
+        phx-click={@on_select.(item.id)}
+      >
+        <%= Map.get(item, @item_key) %>
+      </.badge_button>
+    </div>
+    """
+  end
+
+  @doc """
   Renders a button.
 
   ## Examples
@@ -392,13 +434,11 @@ defmodule LantternWeb.CoreComponents do
         {initial, rest} = Enum.split(items, max_items - 1)
 
         initial
-        |> Enum.map(&Map.get(&1, item_key))
-        |> Enum.join(" / ")
+        |> Enum.map_join(" / ", &Map.get(&1, item_key))
         |> Kernel.<>(" / + #{length(rest)} #{type}")
       else
         items
-        |> Enum.map(&Map.get(&1, item_key))
-        |> Enum.join(" / ")
+        |> Enum.map_join(" / ", &Map.get(&1, item_key))
       end
 
     assigns = assign(assigns, :items, items)

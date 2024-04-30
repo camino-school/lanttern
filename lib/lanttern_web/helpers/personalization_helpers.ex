@@ -1,4 +1,8 @@
 defmodule LantternWeb.PersonalizationHelpers do
+  @moduledoc """
+  Helper functions related to `Personalization` context
+  """
+
   import Phoenix.Component, only: [assign: 3]
 
   alias Lanttern.Personalization

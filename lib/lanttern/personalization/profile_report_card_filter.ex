@@ -1,4 +1,8 @@
 defmodule Lanttern.Personalization.ProfileReportCardFilter do
+  @moduledoc """
+  The `ProfileReportCardFilter` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

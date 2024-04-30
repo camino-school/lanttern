@@ -97,7 +97,7 @@ defmodule LantternWeb.StudentReportCardLive do
   end
 
   defp assign_is_showing_grade_details(
-         socket = %{assigns: %{student_grades_map: student_grades_map}},
+         %{assigns: %{student_grades_map: student_grades_map}} = socket,
          %{"grades_report_subject_id" => grs_id, "grades_report_cycle_id" => grc_id}
        ) do
     grc_id = String.to_integer(grc_id)

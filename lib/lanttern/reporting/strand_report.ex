@@ -1,4 +1,8 @@
 defmodule Lanttern.Reporting.StrandReport do
+  @moduledoc """
+  The `StrandReport` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

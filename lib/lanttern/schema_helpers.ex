@@ -1,4 +1,8 @@
 defmodule Lanttern.SchemaHelpers do
+  @moduledoc """
+  Schema related helpers
+  """
+
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]
 

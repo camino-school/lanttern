@@ -1,4 +1,8 @@
 defmodule Lanttern.Reporting.ReportCard do
+  @moduledoc """
+  The `ReportCard` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

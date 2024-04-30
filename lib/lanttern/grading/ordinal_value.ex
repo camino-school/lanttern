@@ -1,4 +1,8 @@
 defmodule Lanttern.Grading.OrdinalValue do
+  @moduledoc """
+  The `OrdinalValue` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

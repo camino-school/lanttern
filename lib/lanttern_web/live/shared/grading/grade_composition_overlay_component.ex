@@ -1,5 +1,5 @@
 defmodule LantternWeb.Grading.GradeCompositionOverlayComponent do
-  @doc """
+  @moduledoc """
   ### About assessment points list active UI state handling
 
   As we are using streams for assessment points listing, we can't update the

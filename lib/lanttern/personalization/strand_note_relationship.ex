@@ -1,4 +1,8 @@
 defmodule Lanttern.Personalization.StrandNoteRelationship do
+  @moduledoc """
+  The `StrandNoteRelationship` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

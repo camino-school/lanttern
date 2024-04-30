@@ -1,4 +1,8 @@
 defmodule LantternWeb.MenuComponent do
+  @moduledoc """
+  Shared menu components
+  """
+
   use LantternWeb, :live_component
 
   alias Lanttern.Identity
