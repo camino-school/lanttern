@@ -1,4 +1,8 @@
 defmodule LantternWeb.GradingHelpers do
+  @moduledoc """
+  Helper functions related to `Grading` context
+  """
+
   alias Lanttern.Grading
 
   @doc """

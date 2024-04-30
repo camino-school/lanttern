@@ -1,4 +1,8 @@
 defmodule LantternWeb.LearningContextComponents do
+  @moduledoc """
+  Shared function components related to `LearningContext` context
+  """
+
   use Phoenix.Component
 
   import LantternWeb.Gettext

@@ -1,4 +1,8 @@
 defmodule Lanttern.Grading.Scale do
+  @moduledoc """
+  The `Scale` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

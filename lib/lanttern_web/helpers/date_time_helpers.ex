@@ -1,4 +1,8 @@
 defmodule LantternWeb.DateTimeHelpers do
+  @moduledoc """
+  Helper functions related to date and time
+  """
+
   @doc """
   Wrapper around `Timex.format!/3` which renders the formated time
   using the local timezone

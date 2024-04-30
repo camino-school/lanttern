@@ -195,7 +195,7 @@ defmodule Lanttern.BNCC do
   defp seed_bncc_learning_rights(code_id_maps) do
     parse_csv_string(@csv_path_da)
     |> Enum.map(&build_learning_right_params(&1, code_id_maps))
-    |> Enum.map(&get_or_insert_item/1)
+    |> Enum.each(&get_or_insert_item/1)
 
     code_id_maps
   end
@@ -213,7 +213,7 @@ defmodule Lanttern.BNCC do
   defp seed_bncc_competencies(code_id_maps) do
     parse_csv_string(@csv_path_co)
     |> Enum.map(&build_competency_params(&1, code_id_maps))
-    |> Enum.map(&get_or_insert_item/1)
+    |> Enum.each(&get_or_insert_item/1)
 
     code_id_maps
   end
@@ -232,7 +232,7 @@ defmodule Lanttern.BNCC do
   defp seed_bncc_items(code_id_maps) do
     # EI
     parse_csv_string(@csv_path_ei)
-    |> Enum.map(&insert_ei_item(&1, code_id_maps))
+    |> Enum.each(&insert_ei_item(&1, code_id_maps))
 
     # EF and EM
     [
@@ -241,11 +241,11 @@ defmodule Lanttern.BNCC do
       parse_csv_string(@csv_path_em)
     ]
     |> Enum.concat()
-    |> Enum.map(&insert_item(&1, code_id_maps))
+    |> Enum.each(&insert_item(&1, code_id_maps))
 
     # create EM Portuguese and competencies relationships
     parse_csv_string(@csv_path_em_lp_co)
-    |> Enum.map(&create_em_competency_item_relationship/1)
+    |> Enum.each(&create_em_competency_item_relationship/1)
   end
 
   defp insert_ei_item([ce, oa, code, years], code_id_maps) do

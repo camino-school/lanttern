@@ -1,4 +1,8 @@
 defmodule Lanttern.BNCC.HabilidadeBNCCEF do
+  @moduledoc """
+  The `HabilidadeBNCCEF` schema
+  """
+
   use Ecto.Schema
 
   alias Lanttern.Taxonomy.Subject

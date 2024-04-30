@@ -1,4 +1,8 @@
 defmodule LantternWeb.LearningContext.MomentFormComponent do
+  @moduledoc """
+  Renders a `Moment` form
+  """
+
   use LantternWeb, :live_component
 
   alias Lanttern.LearningContext

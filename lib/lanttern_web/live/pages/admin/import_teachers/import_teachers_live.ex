@@ -284,7 +284,7 @@ defmodule LantternWeb.Admin.ImportTeachersLive do
 
   defp validate_csv(csv) do
     cond do
-      length(csv) == 0 ->
+      csv == [] ->
         {:error, "No entries in CSV"}
 
       csv |> hd() |> length() != 2 ->

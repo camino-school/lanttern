@@ -1,5 +1,5 @@
 defmodule LantternWeb.Rubrics.RubricFormComponent do
-  @doc """
+  @moduledoc """
   Rubrics form component.
 
   This form is used inside a `<.slide_over>` component,

@@ -1,4 +1,8 @@
 defmodule LantternWeb.LearningContextHelpers do
+  @moduledoc """
+  Helper functions related to `LearningContext` context
+  """
+
   alias Lanttern.LearningContext
 
   @doc """

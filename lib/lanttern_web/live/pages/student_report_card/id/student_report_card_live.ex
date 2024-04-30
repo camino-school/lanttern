@@ -6,6 +6,7 @@ defmodule LantternWeb.StudentReportCardLive do
   alias Lanttern.GradesReports
   alias Lanttern.Identity.Profile
   alias Lanttern.Reporting
+  alias Lanttern.Reporting.StudentReportCard
   import LantternWeb.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # shared components
@@ -38,6 +39,9 @@ defmodule LantternWeb.StudentReportCardLive do
         ]
       )
 
+    # check if user can view the student report
+    check_if_user_has_access(socket.assigns.current_user, student_report_card)
+
     page_title = "#{student_report_card.student.name} • #{student_report_card.report_card.name}"
 
     cover_image_url =
@@ -46,32 +50,6 @@ defmodule LantternWeb.StudentReportCardLive do
         width: 1280,
         height: 640
       )
-
-    # check if user can view the student report
-    # guardian and students can only view their own reports if allow_access is true
-    # teachers can view only reports from their school
-
-    report_card_student_id = student_report_card.student_id
-    report_card_student_school_id = student_report_card.student.school_id
-    allow_student_access = student_report_card.allow_student_access
-    allow_guardian_access = student_report_card.allow_guardian_access
-
-    case socket.assigns.current_user.current_profile do
-      %Profile{type: "guardian", guardian_of_student_id: student_id}
-      when student_id == report_card_student_id and allow_guardian_access ->
-        nil
-
-      %Profile{type: "student", student_id: student_id}
-      when student_id == report_card_student_id and allow_student_access ->
-        nil
-
-      %Profile{type: "teacher", school_id: school_id}
-      when school_id == report_card_student_school_id ->
-        nil
-
-      _ ->
-        raise LantternWeb.NotFoundError
-    end
 
     strand_reports_and_entries =
       Reporting.list_student_report_card_strand_reports_and_entries(student_report_card)
@@ -96,8 +74,36 @@ defmodule LantternWeb.StudentReportCardLive do
     {:noreply, socket}
   end
 
+  defp check_if_user_has_access(current_user, %StudentReportCard{} = student_report_card) do
+    # check if user can view the student report
+    # guardian and students can only view their own reports if allow_access is true
+    # teachers can view only reports from their school
+
+    report_card_student_id = student_report_card.student_id
+    report_card_student_school_id = student_report_card.student.school_id
+    allow_student_access = student_report_card.allow_student_access
+    allow_guardian_access = student_report_card.allow_guardian_access
+
+    case current_user.current_profile do
+      %Profile{type: "guardian", guardian_of_student_id: student_id}
+      when student_id == report_card_student_id and allow_guardian_access ->
+        nil
+
+      %Profile{type: "student", student_id: student_id}
+      when student_id == report_card_student_id and allow_student_access ->
+        nil
+
+      %Profile{type: "teacher", school_id: school_id}
+      when school_id == report_card_student_school_id ->
+        nil
+
+      _ ->
+        raise LantternWeb.NotFoundError
+    end
+  end
+
   defp assign_is_showing_grade_details(
-         socket = %{assigns: %{student_grades_map: student_grades_map}},
+         %{assigns: %{student_grades_map: student_grades_map}} = socket,
          %{"grades_report_subject_id" => grs_id, "grades_report_cycle_id" => grc_id}
        ) do
     grc_id = String.to_integer(grc_id)

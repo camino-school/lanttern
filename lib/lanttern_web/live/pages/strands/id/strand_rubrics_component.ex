@@ -446,35 +446,37 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
   def handle_event("load_diff_rubrics", params, socket) do
     %{"student_id" => student_id} = params
 
-    with nil <- socket.assigns.students_diff_rubrics_map[student_id] do
-      parent_rubrics_ids =
-        socket.assigns.assessment_points_with_rubrics
-        |> Enum.map(& &1.rubric_id)
+    case socket.assigns.students_diff_rubrics_map[student_id] do
+      nil ->
+        parent_rubrics_ids =
+          socket.assigns.assessment_points_with_rubrics
+          |> Enum.map(& &1.rubric_id)
 
-      # key = parent rubric id
-      diff_rubrics_map =
-        Rubrics.list_full_rubrics(
-          parent_rubrics_ids: parent_rubrics_ids,
-          students_ids: [student_id]
-        )
-        |> Enum.map(&{&1.diff_for_rubric_id, &1})
-        |> Enum.into(%{})
+        # key = parent rubric id
+        diff_rubrics_map =
+          Rubrics.list_full_rubrics(
+            parent_rubrics_ids: parent_rubrics_ids,
+            students_ids: [student_id]
+          )
+          |> Enum.map(&{&1.diff_for_rubric_id, &1})
+          |> Enum.into(%{})
 
-      # key = assessment point id, value = diff rubric or nil
-      # we'll use it like `students_diff_rubrics_map[student_id][assessment_point_id]`
-      student_diff_rubrics_map =
-        socket.assigns.assessment_points_with_rubrics
-        |> Enum.map(&{&1.id, diff_rubrics_map[&1.rubric_id]})
-        |> Enum.into(%{})
+        # key = assessment point id, value = diff rubric or nil
+        # we'll use it like `students_diff_rubrics_map[student_id][assessment_point_id]`
+        student_diff_rubrics_map =
+          socket.assigns.assessment_points_with_rubrics
+          |> Enum.map(&{&1.id, diff_rubrics_map[&1.rubric_id]})
+          |> Enum.into(%{})
 
-      students_diff_rubrics_map =
-        socket.assigns.students_diff_rubrics_map
-        |> Map.put(student_id, student_diff_rubrics_map)
+        students_diff_rubrics_map =
+          socket.assigns.students_diff_rubrics_map
+          |> Map.put(student_id, student_diff_rubrics_map)
 
-      {:noreply, assign(socket, :students_diff_rubrics_map, students_diff_rubrics_map)}
-    else
-      # if students_diff_rubrics_map[student_id] already exists, just skip
-      _ -> {:noreply, socket}
+        {:noreply, assign(socket, :students_diff_rubrics_map, students_diff_rubrics_map)}
+
+      _ ->
+        # if students_diff_rubrics_map[student_id] already exists, just skip
+        {:noreply, socket}
     end
   end
 end

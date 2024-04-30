@@ -1,4 +1,8 @@
 defmodule Lanttern.Personalization.ProfileStrandFilter do
+  @moduledoc """
+  The `ProfileStrandFilter` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

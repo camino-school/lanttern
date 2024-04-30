@@ -1,4 +1,8 @@
 defmodule Lanttern.Taxonomy.Subject do
+  @moduledoc """
+  The `Subject` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

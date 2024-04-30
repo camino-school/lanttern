@@ -1,4 +1,8 @@
 defmodule LantternWeb.LearningContext.StrandFormComponent do
+  @moduledoc """
+  Renders a `Strand` form
+  """
+
   use LantternWeb, :live_component
 
   alias Lanttern.LearningContext

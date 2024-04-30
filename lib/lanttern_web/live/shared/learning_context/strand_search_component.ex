@@ -1,4 +1,8 @@
 defmodule LantternWeb.LearningContext.StrandSearchComponent do
+  @moduledoc """
+  Renders a `Strand` search component
+  """
+
   use LantternWeb, :live_component
 
   alias Lanttern.LearningContext

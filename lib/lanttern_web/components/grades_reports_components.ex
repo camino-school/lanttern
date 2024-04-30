@@ -1,4 +1,8 @@
 defmodule LantternWeb.GradesReportsComponents do
+  @moduledoc """
+  Shared function components related to `GradesReports` context
+  """
+
   use Phoenix.Component
   alias Phoenix.LiveView.JS
 

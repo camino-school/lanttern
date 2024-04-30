@@ -49,21 +49,19 @@ defmodule LantternWeb.GradesReportsLive do
   end
 
   defp assign_show_grades_report_form(socket, %{"is_editing" => id}) do
-    cond do
-      String.match?(id, ~r/[0-9]+/) ->
-        case GradesReports.get_grades_report(id) do
-          %GradesReport{} = grades_report ->
-            socket
-            |> assign(:form_overlay_title, gettext("Edit grade report"))
-            |> assign(:grades_report, grades_report)
-            |> assign(:show_grades_report_form, true)
+    if String.match?(id, ~r/[0-9]+/) do
+      case GradesReports.get_grades_report(id) do
+        %GradesReport{} = grades_report ->
+          socket
+          |> assign(:form_overlay_title, gettext("Edit grade report"))
+          |> assign(:grades_report, grades_report)
+          |> assign(:show_grades_report_form, true)
 
-          _ ->
-            assign(socket, :show_grades_report_form, false)
-        end
-
-      true ->
-        assign(socket, :show_grades_report_form, false)
+        _ ->
+          assign(socket, :show_grades_report_form, false)
+      end
+    else
+      assign(socket, :show_grades_report_form, false)
     end
   end
 
@@ -71,21 +69,19 @@ defmodule LantternWeb.GradesReportsLive do
     do: assign(socket, :show_grades_report_form, false)
 
   defp assign_show_grades_report_grid_editor(socket, %{"is_editing_grid" => id}) do
-    cond do
-      String.match?(id, ~r/[0-9]+/) ->
-        case GradesReports.get_grades_report(id) do
-          %GradesReport{} = grades_report ->
-            socket
-            # |> assign(:form_overlay_title, gettext("Edit grade report"))
-            |> assign(:grades_report, grades_report)
-            |> assign(:show_grades_report_grid_editor, true)
+    if String.match?(id, ~r/[0-9]+/) do
+      case GradesReports.get_grades_report(id) do
+        %GradesReport{} = grades_report ->
+          socket
+          # |> assign(:form_overlay_title, gettext("Edit grade report"))
+          |> assign(:grades_report, grades_report)
+          |> assign(:show_grades_report_grid_editor, true)
 
-          _ ->
-            assign(socket, :show_grades_report_grid_editor, false)
-        end
-
-      true ->
-        assign(socket, :show_grades_report_grid_editor, false)
+        _ ->
+          assign(socket, :show_grades_report_grid_editor, false)
+      end
+    else
+      assign(socket, :show_grades_report_grid_editor, false)
     end
   end
 

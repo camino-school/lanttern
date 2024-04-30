@@ -1,4 +1,8 @@
 defmodule Lanttern.Identity.UserToken do
+  @moduledoc """
+  The `UserToken` schema
+  """
+
   use Ecto.Schema
   import Ecto.Query
   alias Lanttern.Identity.UserToken

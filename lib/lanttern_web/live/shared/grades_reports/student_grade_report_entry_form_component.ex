@@ -1,4 +1,8 @@
 defmodule LantternWeb.GradesReports.StudentGradeReportEntryFormComponent do
+  @moduledoc """
+  Renders a `StudentGradeReportEntry` form
+  """
+
   use LantternWeb, :live_component
 
   alias Lanttern.GradesReports

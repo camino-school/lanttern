@@ -1,4 +1,8 @@
 defmodule Lanttern.Identity.Profile do
+  @moduledoc """
+  The `Profile` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

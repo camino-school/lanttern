@@ -1,4 +1,8 @@
 defmodule LantternWeb.AssessmentsHelpers do
+  @moduledoc """
+  Shared function components related to `Assessments` context
+  """
+
   import LantternWeb.Gettext
 
   alias Lanttern.Assessments
@@ -80,38 +84,42 @@ defmodule LantternWeb.AssessmentsHelpers do
          profile_id,
          results
        ) do
-    with entry when not is_nil(entry) <- Assessments.get_assessment_point_entry(entry_id) do
-      case Assessments.delete_assessment_point_entry(entry, log_profile_id: profile_id) do
-        {:ok, _assessment_point_entry} ->
-          apply_save_changes(
-            changes,
-            profile_id,
-            Map.update!(results, :deleted, &(&1 + 1))
-          )
+    case Assessments.get_assessment_point_entry(entry_id) do
+      entry when not is_nil(entry) ->
+        case Assessments.delete_assessment_point_entry(entry, log_profile_id: profile_id) do
+          {:ok, _assessment_point_entry} ->
+            apply_save_changes(
+              changes,
+              profile_id,
+              Map.update!(results, :deleted, &(&1 + 1))
+            )
 
-        {:error, %Ecto.Changeset{} = _changeset} ->
-          {:error, gettext("Error deleting assessment point entry"), results}
-      end
-    else
-      _ -> {:error, gettext("The entry does not exist anymore"), results}
+          {:error, %Ecto.Changeset{} = _changeset} ->
+            {:error, gettext("Error deleting assessment point entry"), results}
+        end
+
+      _ ->
+        {:error, gettext("The entry does not exist anymore"), results}
     end
   end
 
   defp apply_save_changes([{:edit, entry_id, params} | changes], profile_id, results) do
-    with entry when not is_nil(entry) <- Assessments.get_assessment_point_entry(entry_id) do
-      case Assessments.update_assessment_point_entry(entry, params, log_profile_id: profile_id) do
-        {:ok, _assessment_point_entry} ->
-          apply_save_changes(
-            changes,
-            profile_id,
-            Map.update!(results, :updated, &(&1 + 1))
-          )
+    case Assessments.get_assessment_point_entry(entry_id) do
+      entry when not is_nil(entry) ->
+        case Assessments.update_assessment_point_entry(entry, params, log_profile_id: profile_id) do
+          {:ok, _assessment_point_entry} ->
+            apply_save_changes(
+              changes,
+              profile_id,
+              Map.update!(results, :updated, &(&1 + 1))
+            )
 
-        {:error, %Ecto.Changeset{} = _changeset} ->
-          {:error, gettext("Error updating assessment point entry"), results}
-      end
-    else
-      _ -> {:error, gettext("The entry does not exist anymore"), results}
+          {:error, %Ecto.Changeset{} = _changeset} ->
+            {:error, gettext("Error updating assessment point entry"), results}
+        end
+
+      _ ->
+        {:error, gettext("The entry does not exist anymore"), results}
     end
   end
 

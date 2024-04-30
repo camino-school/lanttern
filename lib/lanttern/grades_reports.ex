@@ -605,35 +605,9 @@ defmodule Lanttern.GradesReports do
          grades_report_subject_id,
          scale
        ) do
-    # calculate the weighted average and build composition metadata
-    {sumprod, sumweight, composition} =
-      entries_and_grade_components
-      |> Enum.reduce({0, 0, []}, fn {e, gc, metadata}, {sumprod, sumweight, composition} ->
-        entry_normalized_value = get_normalized_value_from_entry(e)
+    {normalized_avg, composition} =
+      calculate_weighted_avg_and_build_comp_metadata(entries_and_grade_components)
 
-        comp_component = %{
-          strand_id: metadata.strand.id,
-          strand_name: metadata.strand.name,
-          strand_type: metadata.strand.type,
-          curriculum_item_id: metadata.curriculum_item.id,
-          curriculum_item_name: metadata.curriculum_item.name,
-          curriculum_component_id: metadata.curriculum_component.id,
-          curriculum_component_name: metadata.curriculum_component.name,
-          ordinal_value_id: if(e.ordinal_value, do: e.ordinal_value.id),
-          ordinal_value_name: if(e.ordinal_value, do: e.ordinal_value.name),
-          weight: gc.weight,
-          score: e.score,
-          normalized_value: entry_normalized_value
-        }
-
-        {
-          entry_normalized_value * gc.weight + sumprod,
-          gc.weight + sumweight,
-          composition ++ [comp_component]
-        }
-      end)
-
-    normalized_avg = Float.round(sumprod / sumweight, 5)
     scale_value = Grading.convert_normalized_value_to_scale_value(normalized_avg, scale)
 
     # setup student grade report entry attrs
@@ -682,11 +656,68 @@ defmodule Lanttern.GradesReports do
     end
   end
 
+  defp calculate_weighted_avg_and_build_comp_metadata(
+         entries_and_grade_components,
+         sumprod \\ 0,
+         sumweight \\ 0,
+         composition \\ []
+       )
+
+  defp calculate_weighted_avg_and_build_comp_metadata([], sumprod, sumweight, composition) do
+    normalized_avg = Float.round(sumprod / sumweight, 5)
+    {normalized_avg, composition}
+  end
+
+  defp calculate_weighted_avg_and_build_comp_metadata(
+         [{e, gc, metadata} | entries_and_grade_components],
+         sumprod,
+         sumweight,
+         composition
+       ) do
+    entry_normalized_value = get_normalized_value_from_entry(e)
+
+    comp_component =
+      build_comp_component(metadata, e, gc, entry_normalized_value)
+
+    sumprod = entry_normalized_value * gc.weight + sumprod
+    sumweight = gc.weight + sumweight
+    composition = composition ++ [comp_component]
+
+    calculate_weighted_avg_and_build_comp_metadata(
+      entries_and_grade_components,
+      sumprod,
+      sumweight,
+      composition
+    )
+  end
+
   defp get_normalized_value_from_entry(%AssessmentPointEntry{scale_type: "ordinal"} = entry),
     do: entry.ordinal_value.normalized_value
 
   defp get_normalized_value_from_entry(%AssessmentPointEntry{scale_type: "numeric"} = entry),
     do: (entry.score - entry.scale.start) / (entry.scale.stop - entry.scale.start)
+
+  defp build_comp_component(
+         metadata,
+         %AssessmentPointEntry{} = e,
+         %GradeComponent{} = gc,
+         entry_normalized_value
+       ) do
+    %{
+      strand_id: metadata.strand.id,
+      strand_name: metadata.strand.name,
+      strand_type: metadata.strand.type,
+      curriculum_item_id: metadata.curriculum_item.id,
+      curriculum_item_name: metadata.curriculum_item.name,
+      curriculum_component_id: metadata.curriculum_component.id,
+      curriculum_component_name: metadata.curriculum_component.name,
+      ordinal_value_id: if(e.ordinal_value, do: e.ordinal_value.id),
+      ordinal_value_name: if(e.ordinal_value, do: e.ordinal_value.name),
+      weight: gc.weight,
+      score: e.score,
+      normalized_value: entry_normalized_value
+    }
+  end
 
   @type batch_calculation_results() :: %{
           created: integer(),

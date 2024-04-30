@@ -31,17 +31,18 @@ defmodule LantternWeb.UserAuth do
   linked to the user, we log the user out.
   """
   def log_in_user(conn, user, params \\ %{}) do
-    with {:ok, user} <- check_current_profile(user) do
-      token = Identity.generate_user_session_token(user)
-      user_return_to = get_session(conn, :user_return_to)
+    case check_current_profile(user) do
+      {:ok, user} ->
+        token = Identity.generate_user_session_token(user)
+        user_return_to = get_session(conn, :user_return_to)
 
-      conn
-      |> renew_session()
-      |> put_token_in_session(token)
-      |> maybe_write_remember_me_cookie(token, params)
-      |> redirect(to: user_return_to || signed_in_path(conn))
-    else
-      :error ->
+        conn
+        |> renew_session()
+        |> put_token_in_session(token)
+        |> maybe_write_remember_me_cookie(token, params)
+        |> redirect(to: user_return_to || signed_in_path(conn))
+
+      _ ->
         conn
         |> put_flash(
           :error,
@@ -359,7 +360,7 @@ defmodule LantternWeb.UserAuth do
   """
 
   def require_privacy_policy_accepted(%{assigns: %{current_user: user}} = conn, _opts) do
-    if is_user_privacy_policy_accepted_valid?(user) do
+    if user_privacy_policy_accepted_valid?(user) do
       conn
     else
       conn
@@ -373,7 +374,7 @@ defmodule LantternWeb.UserAuth do
   Used for routes that require the user to not to have accepted the privacy policy.
   """
   def redirect_if_privacy_policy_accepted(%{assigns: %{current_user: user}} = conn, _opts) do
-    if is_user_privacy_policy_accepted_valid?(user) do
+    if user_privacy_policy_accepted_valid?(user) do
       conn
       |> redirect(to: signed_in_path(conn))
       |> halt()
@@ -384,13 +385,13 @@ defmodule LantternWeb.UserAuth do
 
   @current_privacy_policy_date ~U[2024-04-03 00:00:00.00Z]
 
-  defp is_user_privacy_policy_accepted_valid?(
+  defp user_privacy_policy_accepted_valid?(
          %{privacy_policy_accepted_at: %DateTime{} = accepted_at} = %User{}
        ) do
     if DateTime.compare(accepted_at, @current_privacy_policy_date) == :gt, do: true, else: false
   end
 
-  defp is_user_privacy_policy_accepted_valid?(_user), do: false
+  defp user_privacy_policy_accepted_valid?(_user), do: false
 
   @doc """
   Used for routes that require root admin permissions.

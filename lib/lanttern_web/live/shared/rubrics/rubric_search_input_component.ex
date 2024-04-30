@@ -1,4 +1,8 @@
 defmodule LantternWeb.Rubrics.RubricSearchInputComponent do
+  @moduledoc """
+  Renders a rubric search input
+  """
+
   use LantternWeb, :live_component
 
   alias Lanttern.Rubrics

@@ -1,4 +1,8 @@
 defmodule LantternWeb.Reporting.StudentReportCardFormComponent do
+  @moduledoc """
+  Renders a `StudentReportCard` form
+  """
+
   use LantternWeb, :live_component
 
   alias Lanttern.Reporting

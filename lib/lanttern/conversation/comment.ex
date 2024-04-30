@@ -1,4 +1,8 @@
 defmodule Lanttern.Conversation.Comment do
+  @moduledoc """
+  The `Comment` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
   alias Lanttern.Repo

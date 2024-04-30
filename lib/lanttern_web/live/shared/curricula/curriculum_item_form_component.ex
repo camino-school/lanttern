@@ -1,11 +1,12 @@
 defmodule LantternWeb.Curricula.CurriculumItemFormComponent do
+  @moduledoc """
+  Renders a `CurriculumItem` form
+  """
+
   use LantternWeb, :live_component
 
   alias Lanttern.Curricula
   alias Lanttern.Taxonomy
-
-  # live components
-  alias LantternWeb.BadgeButtonPickerComponent
 
   @impl true
   def render(assigns) do
@@ -35,8 +36,7 @@ defmodule LantternWeb.Curricula.CurriculumItemFormComponent do
         />
         <div class="mb-6">
           <.label><%= gettext("Subjects") %></.label>
-          <.live_component
-            module={BadgeButtonPickerComponent}
+          <.badge_button_picker
             id="curriculum-item-subjects-select"
             on_select={&JS.push("toggle_subject", value: %{"id" => &1}, target: @myself)}
             items={@subjects}
@@ -45,8 +45,7 @@ defmodule LantternWeb.Curricula.CurriculumItemFormComponent do
         </div>
         <div class="mb-6">
           <.label><%= gettext("Years") %></.label>
-          <.live_component
-            module={BadgeButtonPickerComponent}
+          <.badge_button_picker
             id="curriculum-item-years-select"
             on_select={&JS.push("toggle_year", value: %{"id" => &1}, target: @myself)}
             items={@years}

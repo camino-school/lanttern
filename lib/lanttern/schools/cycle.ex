@@ -1,4 +1,8 @@
 defmodule Lanttern.Schools.Cycle do
+  @moduledoc """
+  The `Cycle` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

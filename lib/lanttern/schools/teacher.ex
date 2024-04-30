@@ -1,4 +1,8 @@
 defmodule Lanttern.Schools.Teacher do
+  @moduledoc """
+  The `Teacher` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

@@ -1,4 +1,8 @@
 defmodule Lanttern.Rubrics.Rubric do
+  @moduledoc """
+  The `Rubric` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

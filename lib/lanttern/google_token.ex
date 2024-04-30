@@ -1,4 +1,8 @@
 defmodule Lanttern.GoogleToken do
+  @moduledoc """
+  Joken config to handle Google Tokens
+  """
+
   use Joken.Config
 
   @google_iss_1 "https://accounts.google.com"
@@ -26,6 +30,10 @@ end
 # I know this is not the best practice,
 # but I think it's ok to create a new module in the same file for this specific use case
 defmodule Lanttern.GoogleTokenStrategy do
+  @moduledoc """
+  Joken strategy for Google Tokens
+  """
+
   use JokenJwks.DefaultStrategyTemplate
 
   def init_opts(opts) do

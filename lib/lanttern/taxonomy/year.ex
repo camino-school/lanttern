@@ -1,4 +1,8 @@
 defmodule Lanttern.Taxonomy.Year do
+  @moduledoc """
+  The `Year` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

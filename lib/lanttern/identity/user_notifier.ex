@@ -1,4 +1,8 @@
 defmodule Lanttern.Identity.UserNotifier do
+  @moduledoc """
+  The `UserNotifier` schema
+  """
+
   import Swoosh.Email
 
   alias Lanttern.Mailer

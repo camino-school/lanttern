@@ -1,4 +1,8 @@
 defmodule Lanttern.Schools.Student do
+  @moduledoc """
+  The `Student` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]

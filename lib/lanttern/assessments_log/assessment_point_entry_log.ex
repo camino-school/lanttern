@@ -1,4 +1,8 @@
 defmodule Lanttern.AssessmentsLog.AssessmentPointEntryLog do
+  @moduledoc """
+  The `AssessmentPointEntryLog` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

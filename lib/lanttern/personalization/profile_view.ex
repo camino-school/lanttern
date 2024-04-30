@@ -1,4 +1,8 @@
 defmodule Lanttern.Personalization.ProfileView do
+  @moduledoc """
+  The `ProfileView` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]

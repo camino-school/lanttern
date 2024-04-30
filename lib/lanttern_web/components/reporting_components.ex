@@ -1,4 +1,8 @@
 defmodule LantternWeb.ReportingComponents do
+  @moduledoc """
+  Shared function components related to `Reporting` context
+  """
+
   use Phoenix.Component
 
   import LantternWeb.Gettext
@@ -92,10 +96,9 @@ defmodule LantternWeb.ReportingComponents do
     n = length(ordinal_values)
 
     grid_template_columns_style =
-      cond do
-        assigns.rubric -> "grid-template-columns: repeat(#{n}, minmax(200px, 1fr))"
-        true -> "grid-template-columns: repeat(#{n}, minmax(min-content, 1fr))"
-      end
+      if assigns.rubric,
+        do: "grid-template-columns: repeat(#{n}, minmax(200px, 1fr))",
+        else: "grid-template-columns: repeat(#{n}, minmax(min-content, 1fr))"
 
     grid_column_style = "grid-column: span #{n} / span #{n}"
 

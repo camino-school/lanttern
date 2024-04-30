@@ -1,4 +1,8 @@
 defmodule Lanttern.Curricula.Curriculum do
+  @moduledoc """
+  The `Curriculum` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

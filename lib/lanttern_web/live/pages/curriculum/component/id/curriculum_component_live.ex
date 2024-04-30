@@ -69,21 +69,19 @@ defmodule LantternWeb.CurriculumComponentLive do
   defp assign_show_curriculum_item_form(socket, %{"is_editing_curriculum_item" => id}) do
     curriculum_component_id = socket.assigns.curriculum_component.id
 
-    cond do
-      String.match?(id, ~r/[0-9]+/) ->
-        case Curricula.get_curriculum_item(id, preloads: [:subjects, :years]) do
-          %CurriculumItem{curriculum_component_id: ^curriculum_component_id} = curriculum_item ->
-            socket
-            |> assign(:form_overlay_title, gettext("Edit curriculum item"))
-            |> assign(:curriculum_item, curriculum_item)
-            |> assign(:show_curriculum_item_form, true)
+    if String.match?(id, ~r/[0-9]+/) do
+      case Curricula.get_curriculum_item(id, preloads: [:subjects, :years]) do
+        %CurriculumItem{curriculum_component_id: ^curriculum_component_id} = curriculum_item ->
+          socket
+          |> assign(:form_overlay_title, gettext("Edit curriculum item"))
+          |> assign(:curriculum_item, curriculum_item)
+          |> assign(:show_curriculum_item_form, true)
 
-          _ ->
-            assign(socket, :show_curriculum_item_form, false)
-        end
-
-      true ->
-        assign(socket, :show_curriculum_item_form, false)
+        _ ->
+          assign(socket, :show_curriculum_item_form, false)
+      end
+    else
+      assign(socket, :show_curriculum_item_form, false)
     end
   end
 

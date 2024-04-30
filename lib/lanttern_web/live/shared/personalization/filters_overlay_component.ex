@@ -1,10 +1,11 @@
 defmodule LantternWeb.Personalization.FiltersOverlayComponent do
+  @moduledoc """
+  Renders a filter overlay
+  """
+
   use LantternWeb, :live_component
 
   import LantternWeb.PersonalizationHelpers
-
-  # shared components
-  alias LantternWeb.BadgeButtonPickerComponent
 
   @impl true
   def render(assigns) do
@@ -46,9 +47,7 @@ defmodule LantternWeb.Personalization.FiltersOverlayComponent do
   defp filter_group(assigns) do
     ~H"""
     <div>
-      <.live_component
-        module={BadgeButtonPickerComponent}
-        id={"global-#{@type}-filter"}
+      <.badge_button_picker
         on_select={
           &JS.push("toggle_filter",
             value: %{"id" => &1, "type" => @type},

@@ -1,4 +1,8 @@
 defmodule Lanttern.Personalization.ProfileSettings do
+  @moduledoc """
+  The `ProfileSettings` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

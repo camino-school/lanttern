@@ -1,4 +1,8 @@
 defmodule Lanttern.LearningContext.StarredStrand do
+  @moduledoc """
+  The `StarredStrand` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 
