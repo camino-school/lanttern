@@ -4,7 +4,7 @@ defmodule Lanttern.MixProject do
   def project do
     [
       app: :lanttern,
-      version: "2024.4.30-alpha.15",
+      version: "2024.5.2-alpha.16",
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -62,7 +62,8 @@ defmodule Lanttern.MixProject do
       {:nimble_csv, "~> 1.2"},
       {:supabase_potion, "~> 0.2"},
       {:supabase_storage, "~> 0.2"},
-      {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
+      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false}
     ]
   end
 

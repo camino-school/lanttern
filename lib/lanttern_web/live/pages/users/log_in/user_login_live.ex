@@ -20,7 +20,7 @@ defmodule LantternWeb.UserLoginLive do
           data-client_id={@google_client_id}
           data-context="signin"
           data-ux_mode="popup"
-          data-login_uri={~p"/users/google_sign_in"}
+          data-login_uri={"#{LantternWeb.Endpoint.static_url()}/users/google_sign_in"}
           data-nonce=""
           data-auto_prompt="false"
         >
