@@ -62,7 +62,8 @@ defmodule Lanttern.MixProject do
       {:nimble_csv, "~> 1.2"},
       {:supabase_potion, "~> 0.2"},
       {:supabase_storage, "~> 0.2"},
-      {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
+      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false}
     ]
   end
 

@@ -55,13 +55,13 @@ defmodule LantternWeb.Assessments.FeedbackCommentFormComponentTest do
         }
       })
 
+      # assert in a new render(view) to "wait" for brodcast and send_update
+      assert render(view) =~ ~r/<p.+>\s*new feedback comment\s*<\/p>/
+
       # assert comment was actually created (just in case!)
       assert Repo.get_by!(Lanttern.Conversation.Comment,
                profile_id: user.current_profile.id
              )
-
-      # assert in a new render(view) to "wait" for brodcast and send_update
-      assert render(view) =~ ~r/<p.+>\s*new feedback comment\s*<\/p>/
     end
   end
 

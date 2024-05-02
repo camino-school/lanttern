@@ -10,7 +10,12 @@ defmodule LantternWeb.Router do
     plug :fetch_live_flash
     plug :put_root_layout, html: {LantternWeb.Layouts, :root}
     plug :protect_from_forgery
-    plug :put_secure_browser_headers
+
+    plug :put_secure_browser_headers, %{
+      "content-security-policy" =>
+        "default-src 'self'; script-src-elem 'self' https://accounts.google.com; frame-src 'self' https://accounts.google.com; connect-src 'self' https://accounts.google.com; img-src * data: 'self'; style-src 'self' https://fonts.googleapis.com https://accounts.google.com 'unsafe-inline'; font-src *"
+    }
+
     plug :fetch_current_user
     plug :put_locale
   end
@@ -20,12 +25,17 @@ defmodule LantternWeb.Router do
     plug :require_root_admin
   end
 
+  # we skip the https://hexdocs.pm/sobelow/Sobelow.Config.CSRF.html
+  # because for Sign In with Google pipeline we don't use :protect_from_forgery plug.
+  # instead, we use :verify_google_csrf_token plug and
+  # Lanttern.GoogleToken.verfify_and_validate/1
+
   pipeline :sign_in_with_google do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
     plug :verify_google_csrf_token
-    plug :put_secure_browser_headers
+    plug :put_secure_browser_headers, %{"content-security-policy" => "default-src 'self'"}
   end
 
   pipeline :api do

@@ -2,9 +2,6 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-/* import Montserrat, Open Sans, and Source Code Pro */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Source+Code+Pro:ital@0;1&display=swap');
-
 /* This file is for your main application CSS */
 
 .ltrn-bg-main {
