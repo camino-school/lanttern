@@ -63,7 +63,10 @@ defmodule Lanttern.MixProject do
       {:supabase_potion, "~> 0.2"},
       {:supabase_storage, "~> 0.2"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false}
+      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
+      {:ex_aws, "~> 2.1"},
+      {:ex_aws_s3, "~> 2.0"},
+      {:sweet_xml, "~> 0.7.4"}
     ]
   end
 

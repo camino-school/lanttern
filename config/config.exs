@@ -90,6 +90,16 @@ config :flop,
   default_limit: 1000,
   max_limit: 1000
 
+# ex_aws (for use with storj)
+config :ex_aws,
+  http_client: Lanttern.ExAwsHttpClient,
+  access_key_id: [{:system, "STORJ_ACCESS_KEY"}, :instance_role],
+  secret_access_key: [{:system, "STORJ_SECRET_KEY"}, :instance_role]
+
+config :ex_aws, :s3,
+  scheme: "https://",
+  host: "gateway.storjshare.io"
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
