@@ -6,11 +6,24 @@ defmodule Lanttern.Personalization.StrandNoteRelationship do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.Personalization.Note
+  alias Lanttern.Identity.Profile
+  alias Lanttern.LearningContext.Strand
+
+  @type t :: %__MODULE__{
+          note: Note.t(),
+          note_id: pos_integer(),
+          author: Profile.t(),
+          author_id: pos_integer(),
+          strand: Strand.t(),
+          strand_id: pos_integer()
+        }
+
   @primary_key false
   schema "strands_notes" do
-    belongs_to :note, Lanttern.Personalization.Note
-    belongs_to :author, Lanttern.Identity.Profile
-    belongs_to :strand, Lanttern.LearningContext.Strand
+    belongs_to :note, Note
+    belongs_to :author, Profile
+    belongs_to :strand, Strand
   end
 
   @doc false

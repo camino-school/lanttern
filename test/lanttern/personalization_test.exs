@@ -147,6 +147,97 @@ defmodule Lanttern.PersonalizationTest do
       assert expected_2.moment.id == moment_2.id
     end
 
+    test "list_student_strand_notes/2 returns all user strand notes related to students report cards" do
+      author = student_profile_fixture()
+      strand_1 = strand_fixture()
+      strand_2 = strand_fixture()
+      strand_3 = strand_fixture()
+      strand_4 = strand_fixture()
+
+      cycle_2024 =
+        Lanttern.SchoolsFixtures.cycle_fixture(start_at: ~D[2024-01-01], end_at: ~D[2024-12-31])
+
+      cycle_2023 =
+        Lanttern.SchoolsFixtures.cycle_fixture(start_at: ~D[2023-01-01], end_at: ~D[2023-12-31])
+
+      report_card_2024 =
+        Lanttern.ReportingFixtures.report_card_fixture(%{school_cycle_id: cycle_2024.id})
+
+      report_card_2023 =
+        Lanttern.ReportingFixtures.report_card_fixture(%{school_cycle_id: cycle_2023.id})
+
+      # create strand reports
+
+      _strand_report_1_2024 =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: report_card_2024.id,
+          strand_id: strand_1.id
+        })
+
+      _strand_report_2_2024 =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: report_card_2024.id,
+          strand_id: strand_2.id
+        })
+
+      _strand_report_3_2023 =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: report_card_2023.id,
+          strand_id: strand_3.id
+        })
+
+      _strand_report_4_2023 =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: report_card_2023.id,
+          strand_id: strand_4.id
+        })
+
+      # create students report cards
+      _ =
+        Lanttern.ReportingFixtures.student_report_card_fixture(%{
+          student_id: author.student_id,
+          report_card_id: report_card_2024.id
+        })
+
+      _ =
+        Lanttern.ReportingFixtures.student_report_card_fixture(%{
+          student_id: author.student_id,
+          report_card_id: report_card_2023.id
+        })
+
+      # create student notes in strand 1 and 3
+
+      strand_1_note = strand_note_fixture(%{current_profile: author}, strand_1.id)
+      strand_3_note = strand_note_fixture(%{current_profile: author}, strand_3.id)
+
+      # extra fixtures for filter testing
+      other_strand = strand_fixture()
+      other_report_card = Lanttern.ReportingFixtures.report_card_fixture()
+
+      _other_strand_report =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: other_report_card.id,
+          strand_id: other_strand.id
+        })
+
+      _ =
+        Lanttern.ReportingFixtures.student_report_card_fixture(%{
+          student_id: author.student_id,
+          report_card_id: other_report_card.id
+        })
+
+      assert [
+               {strand_1_note, strand_1, cycle_2024},
+               {nil, strand_2, cycle_2024},
+               {strand_3_note, strand_3, cycle_2023},
+               {nil, strand_4, cycle_2023}
+             ] ==
+               Personalization.list_student_strand_notes(
+                 %{current_profile: author},
+                 cycles_ids: [cycle_2023.id, cycle_2024.id]
+               )
+    end
+
     test "get_student_note/2 returns the student note for the given strand" do
       author = student_profile_fixture()
       strand = strand_fixture()

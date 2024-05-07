@@ -1,7 +1,7 @@
 <.responsive_container class="pt-6 sm:pt-10">
   <.page_title_with_menu><%= gettext("Welcome!") %></.page_title_with_menu>
   <p class="mt-10 font-display font-black text-xl">
-    <%= gettext("%{student}'s report cards", student: @current_user.current_profile.name) %>
+    <%= gettext("My report cards") %>
   </p>
 </.responsive_container>
 <%= if @has_student_report_cards do %>

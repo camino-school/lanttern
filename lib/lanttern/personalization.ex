@@ -6,6 +6,7 @@ defmodule Lanttern.Personalization do
   import Ecto.Query, warn: false
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
+
   alias Lanttern.Personalization.MomentNoteRelationship
   alias Lanttern.Personalization.Note
   alias Lanttern.Personalization.ProfileSettings
@@ -13,6 +14,8 @@ defmodule Lanttern.Personalization do
   alias Lanttern.Personalization.ProfileView
   alias Lanttern.Personalization.ProfileStrandFilter
   alias Lanttern.Personalization.ProfileReportCardFilter
+  alias Lanttern.Reporting.ReportCard
+  alias Lanttern.Schools.Cycle
   alias Lanttern.Identity.User
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
@@ -64,6 +67,58 @@ defmodule Lanttern.Personalization do
   end
 
   @doc """
+  Returns the list of student strand notes based on their report cards.
+
+  The function lists all strands linked to the student report cards, ordering the results
+  by (report card) cycle descending and strand reports position ascending.
+
+  The list is comprised of tuples of note (or `nil`), strand, and cycle.
+
+  ### Options:
+
+  `:cycles_ids` – filter results by given cycles
+
+  ## Examples
+
+      iex> list_student_strand_notes(user, opts)
+      [{%Note{}, %Cycle{}}, ...]
+
+  """
+  @spec list_student_strand_notes(user :: User.t(), opts :: Keyword.t()) :: [
+          {Note.t() | nil, Strand.t(), Cycle.t()}
+        ]
+  def list_student_strand_notes(%{current_profile: profile} = _user, opts \\ []) do
+    from(
+      rc in ReportCard,
+      join: c in assoc(rc, :school_cycle),
+      as: :cycles,
+      join: src in assoc(rc, :students_report_cards),
+      join: sr in assoc(rc, :strand_reports),
+      join: s in assoc(sr, :strand),
+      left_join: n in assoc(s, :notes),
+      on: n.author_id == ^profile.id,
+      where: src.student_id == ^profile.student_id,
+      order_by: [desc: c.end_at, asc: c.start_at, asc: sr.position],
+      select: {n, s, c}
+    )
+    |> apply_list_student_strand_notes_opts(opts)
+    |> Repo.all()
+  end
+
+  defp apply_list_student_strand_notes_opts(queryable, []), do: queryable
+
+  defp apply_list_student_strand_notes_opts(queryable, [{:cycles_ids, cycles_ids} | opts]) do
+    from(
+      [_, cycles: c] in queryable,
+      where: c.id in ^cycles_ids
+    )
+    |> apply_list_student_strand_notes_opts(opts)
+  end
+
+  defp apply_list_student_strand_notes_opts(queryable, [_opt | opts]),
+    do: apply_list_student_strand_notes_opts(queryable, opts)
+
+  @doc """
   Gets a single note.
 
   Raises `Ecto.NoResultsError` if the Note does not exist.
@@ -107,35 +162,25 @@ defmodule Lanttern.Personalization do
 
   """
   def get_user_note(%{current_profile: profile} = _user, strand_id: strand_id) do
-    query =
-      from(
-        n in Note,
-        join: sn in StrandNoteRelationship,
-        on: sn.note_id == n.id,
-        join: s in Strand,
-        on: s.id == sn.strand_id,
-        where: n.author_id == ^profile.id,
-        where: s.id == ^strand_id,
-        select: %{n | strand: s}
-      )
-
-    Repo.one(query)
+    from(
+      n in Note,
+      join: s in assoc(n, :strand),
+      where: n.author_id == ^profile.id,
+      where: s.id == ^strand_id,
+      select: %{n | strand: s}
+    )
+    |> Repo.one()
   end
 
   def get_user_note(%{current_profile: profile} = _user, moment_id: moment_id) do
-    query =
-      from(
-        n in Note,
-        join: mn in MomentNoteRelationship,
-        on: mn.note_id == n.id,
-        join: m in Moment,
-        on: m.id == mn.moment_id,
-        where: n.author_id == ^profile.id,
-        where: m.id == ^moment_id,
-        select: %{n | moment: m}
-      )
-
-    Repo.one(query)
+    from(
+      n in Note,
+      join: m in assoc(n, :moment),
+      where: n.author_id == ^profile.id,
+      where: m.id == ^moment_id,
+      select: %{n | moment: m}
+    )
+    |> Repo.one()
   end
 
   @doc """

@@ -9,6 +9,8 @@ defmodule Lanttern.Personalization.Note do
   alias Lanttern.Identity.Profile
   alias Lanttern.LearningContext.Strand
   alias Lanttern.LearningContext.Moment
+  alias Lanttern.Personalization.MomentNoteRelationship
+  alias Lanttern.Personalization.StrandNoteRelationship
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -25,11 +27,10 @@ defmodule Lanttern.Personalization.Note do
     field :description, :string
 
     belongs_to :author, Profile
-
-    # notes can be linked to other schemas through intermediate join tables/schemas.
-    # we use the "virtual" belongs_to below to preload those schemas in notes
-    belongs_to :strand, Strand, define_field: false
-    belongs_to :moment, Moment, define_field: false
+    has_one :strand_note_relationship, StrandNoteRelationship
+    has_one :strand, through: [:strand_note_relationship, :strand]
+    has_one :moment_note_relationship, MomentNoteRelationship
+    has_one :moment, through: [:moment_note_relationship, :moment]
 
     timestamps()
   end
