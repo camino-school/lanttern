@@ -146,6 +146,20 @@ defmodule Lanttern.PersonalizationTest do
       assert expected_2.id == note_2.id
       assert expected_2.moment.id == moment_2.id
     end
+
+    test "get_student_note/2 returns the student note for the given strand" do
+      author = student_profile_fixture()
+      strand = strand_fixture()
+
+      note =
+        strand_note_fixture(%{current_profile: author}, strand.id)
+
+      assert expected_note =
+               Personalization.get_student_note(author.student_id, strand_id: strand.id)
+
+      assert expected_note.id == note.id
+      assert expected_note.strand.id == strand.id
+    end
   end
 
   describe "moment notes" do

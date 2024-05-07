@@ -6,15 +6,30 @@ defmodule Lanttern.Personalization.Note do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.Identity.Profile
+  alias Lanttern.LearningContext.Strand
+  alias Lanttern.LearningContext.Moment
+
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          description: String.t(),
+          author: Profile.t(),
+          author_id: pos_integer(),
+          strand: Strand.t(),
+          moment: Moment.t(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   schema "notes" do
     field :description, :string
 
-    belongs_to :author, Lanttern.Identity.Profile
+    belongs_to :author, Profile
 
     # notes can be linked to other schemas through intermediate join tables/schemas.
     # we use the "virtual" belongs_to below to preload those schemas in notes
-    belongs_to :strand, Lanttern.LearningContext.Strand, define_field: false
-    belongs_to :moment, Lanttern.LearningContext.Moment, define_field: false
+    belongs_to :strand, Strand, define_field: false
+    belongs_to :moment, Moment, define_field: false
 
     timestamps()
   end

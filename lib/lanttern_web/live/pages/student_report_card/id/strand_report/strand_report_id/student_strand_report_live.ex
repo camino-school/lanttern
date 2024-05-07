@@ -8,8 +8,16 @@ defmodule LantternWeb.StudentStrandReportLive do
   alias Lanttern.Reporting.StudentReportCard
   import LantternWeb.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
+  # page components
+  alias LantternWeb.StudentStrandReportLive.StudentNotesComponent
+
   # shared components
   import LantternWeb.ReportingComponents
+
+  @tabs %{
+    "general" => :general,
+    "student_notes" => :student_notes
+  }
 
   # lifecycle
 
@@ -19,7 +27,9 @@ defmodule LantternWeb.StudentStrandReportLive do
   end
 
   @impl true
-  def handle_params(%{"id" => id, "strand_report_id" => strand_report_id}, _url, socket) do
+  def handle_params(params, _url, socket) do
+    %{"id" => id, "strand_report_id" => strand_report_id} = params
+
     student_report_card =
       Reporting.get_student_report_card!(id,
         preloads: [
@@ -52,6 +62,10 @@ defmodule LantternWeb.StudentStrandReportLive do
     page_title =
       "#{strand_report.strand.name} • #{student_report_card.student.name} • #{student_report_card.report_card.name}"
 
+    # flag to control student notes UI
+    is_student =
+      student_report_card.student_id == socket.assigns.current_user.current_profile.student_id
+
     socket =
       socket
       |> assign(:student_report_card, student_report_card)
@@ -59,6 +73,8 @@ defmodule LantternWeb.StudentStrandReportLive do
       |> assign(:strand_goals_student_entries, strand_goals_student_entries)
       |> assign(:cover_image_url, cover_image_url)
       |> assign(:page_title, page_title)
+      |> assign(:is_student, is_student)
+      |> assign_current_tab(params)
 
     {:noreply, socket}
   end
@@ -90,4 +106,10 @@ defmodule LantternWeb.StudentStrandReportLive do
         raise LantternWeb.NotFoundError
     end
   end
+
+  defp assign_current_tab(socket, %{"tab" => tab}),
+    do: assign(socket, :current_tab, Map.get(@tabs, tab, :general))
+
+  defp assign_current_tab(socket, _params),
+    do: assign(socket, :current_tab, :general)
 end

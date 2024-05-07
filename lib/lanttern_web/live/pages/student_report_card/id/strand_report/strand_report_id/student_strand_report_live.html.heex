@@ -41,8 +41,30 @@
     </.badge>
   </div>
 </.cover>
+<div class="sticky z-30 top-0 border-b border-ltrn-lighter bg-white">
+  <.responsive_container class="flex items-center justify-between gap-10">
+    <.nav_tabs id="strand-nav-tabs" class="flex-1 overflow-x-auto">
+      <:tab
+        patch={
+          ~p"/student_report_card/#{@student_report_card}/strand_report/#{@strand_report}?tab=general"
+        }
+        is_current={@current_tab == :general && "true"}
+      >
+        <%= gettext("General") %>
+      </:tab>
+      <:tab
+        patch={
+          ~p"/student_report_card/#{@student_report_card}/strand_report/#{@strand_report}?tab=student_notes"
+        }
+        is_current={@current_tab == :student_notes && "true"}
+      >
+        <%= gettext("Student notes") %>
+      </:tab>
+    </.nav_tabs>
+  </.responsive_container>
+</div>
 <div class="ltrn-bg-main-local">
-  <.responsive_container class="py-10">
+  <.responsive_container :if={@current_tab == :general} class="py-10">
     <.markdown text={@strand_report.description} />
     <div class="mt-10">
       <div
@@ -116,5 +138,14 @@
       </div>
     </div>
   </.responsive_container>
+  <.live_component
+    :if={@current_tab == :student_notes}
+    module={StudentNotesComponent}
+    id="student-strand-notes"
+    current_user={@current_user}
+    strand_id={@strand_report.strand_id}
+    student_id={@student_report_card.student_id}
+    is_student={@is_student}
+  />
 </div>
 <.footnote footnote={@student_report_card.footnote} />

@@ -139,6 +139,43 @@ defmodule Lanttern.Personalization do
   end
 
   @doc """
+  Gets a single student note.
+
+  Returns `nil` if the Note does not exist.
+
+  ### Options (required):
+
+  `:strand_id` – get student strand note with preloaded strand
+
+  ## Examples
+
+      iex> get_student_note(user, opts)
+      %Note{}
+
+      iex> get_student_note(user, opts)
+      nil
+
+  """
+  @spec get_student_note(student_id :: pos_integer(), Keyword.t()) :: Note.t() | nil
+  def get_student_note(student_id, strand_id: strand_id) do
+    query =
+      from(
+        n in Note,
+        # author is a profile
+        join: p in assoc(n, :author),
+        join: sn in StrandNoteRelationship,
+        on: sn.note_id == n.id,
+        join: s in Strand,
+        on: s.id == sn.strand_id,
+        where: p.student_id == ^student_id,
+        where: s.id == ^strand_id,
+        select: %{n | strand: s}
+      )
+
+    Repo.one(query)
+  end
+
+  @doc """
   Creates a note.
 
   ### Options:
