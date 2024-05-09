@@ -466,6 +466,25 @@ defmodule Lanttern.ReportingTest do
       assert expected_student_j_k.id == student_j_k.id
     end
 
+    test "list_student_report_card_cycles/1 returns all cycles linked to given student's report cards" do
+      student = SchoolsFixtures.student_fixture()
+
+      cycle_2023 = SchoolsFixtures.cycle_fixture(start_at: ~D[2023-01-01], end_at: ~D[2023-12-31])
+      cycle_2024 = SchoolsFixtures.cycle_fixture(start_at: ~D[2024-01-01], end_at: ~D[2024-12-31])
+
+      report_card_2023 =
+        Lanttern.ReportingFixtures.report_card_fixture(%{school_cycle_id: cycle_2023.id})
+
+      report_card_2024 =
+        Lanttern.ReportingFixtures.report_card_fixture(%{school_cycle_id: cycle_2024.id})
+
+      # link student to report cards
+      student_report_card_fixture(%{report_card_id: report_card_2023.id, student_id: student.id})
+      student_report_card_fixture(%{report_card_id: report_card_2024.id, student_id: student.id})
+
+      assert [cycle_2023, cycle_2024] == Reporting.list_student_report_cards_cycles(student.id)
+    end
+
     test "get_student_report_card!/2 returns the student_report_card with given id" do
       student_report_card = student_report_card_fixture()
       assert Reporting.get_student_report_card!(student_report_card.id) == student_report_card

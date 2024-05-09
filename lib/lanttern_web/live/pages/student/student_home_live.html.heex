@@ -27,8 +27,22 @@
   <p class="font-display font-black text-xl">
     <%= gettext("My strand notes") %>
   </p>
+  <.live_component
+    module={InlineFiltersComponent}
+    id="cycles-filter"
+    filter_items={@student_report_cards_cycles}
+    selected_items_ids={@selected_cycles_ids}
+    class="mt-4"
+    all_text={gettext("All cycles")}
+    notify_parent
+  />
+  <div :if={!@has_student_strands_notes} class="p-6 rounde mt-6 mb-10 bg-white shadow lg">
+    <.empty_state>
+      <%= gettext("No strands related to selected cycles") %>
+    </.empty_state>
+  </div>
 </.responsive_container>
-<.responsive_grid id="student-strands-notes" phx-update="stream">
+<.responsive_grid :if={@has_student_strands_notes} id="student-strands-notes" phx-update="stream">
   <.strand_card
     :for={{dom_id, {note, strand, _cycle}} <- @streams.student_strands_notes}
     id={dom_id}

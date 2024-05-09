@@ -523,6 +523,29 @@ defmodule Lanttern.Reporting do
     do: apply_list_students_without_report_card_opts(queryable, opts)
 
   @doc """
+  Returns the list of cycles related to student report cards.
+
+  ## Examples
+
+      iex> list_student_report_cards_cycles(student_id)
+      [%Cycle{}, ...]
+
+  """
+  @spec list_student_report_cards_cycles(student_id :: pos_integer()) :: [Cycle.t()]
+  def list_student_report_cards_cycles(student_id) do
+    from(
+      c in Cycle,
+      join: rc in ReportCard,
+      on: rc.school_cycle_id == c.id,
+      join: src in assoc(rc, :students_report_cards),
+      where: src.student_id == ^student_id,
+      order_by: [asc: c.end_at, desc: c.start_at],
+      distinct: true
+    )
+    |> Repo.all()
+  end
+
+  @doc """
   Gets a single student report card.
 
   Returns `nil` if the Student report card does not exist.

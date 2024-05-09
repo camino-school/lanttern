@@ -18,7 +18,7 @@ defmodule LantternWeb.Filters.InlineFiltersComponent do
         phx-click={JS.push("toggle_all", target: @myself)}
         {get_select_all_attrs(@selected_items_ids)}
       >
-        <%= gettext("All") %>
+        <%= @all_text %>
       </.badge_button>
       <.badge_button
         :for={item <- @filter_items}
@@ -74,6 +74,7 @@ defmodule LantternWeb.Filters.InlineFiltersComponent do
     socket =
       socket
       |> assign(:class, nil)
+      |> assign(:all_text, gettext("All"))
 
     {:ok, socket}
   end

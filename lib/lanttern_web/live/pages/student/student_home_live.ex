@@ -10,9 +10,12 @@ defmodule LantternWeb.StudentHomeLive do
   alias Lanttern.Reporting
   alias Lanttern.Schools
 
+  import LantternWeb.FiltersHelpers
+
   # shared components
   import LantternWeb.LearningContextComponents
   alias LantternWeb.Notes.NoteComponent
+  alias LantternWeb.Filters.InlineFiltersComponent
   import LantternWeb.ReportingComponents
   import LantternWeb.SchoolsComponents
 
@@ -40,9 +43,10 @@ defmodule LantternWeb.StudentHomeLive do
       socket.assigns.current_user.current_profile.school_id
       |> Schools.get_school!()
 
-    student_strands_notes =
-      socket.assigns.current_user
-      |> Notes.list_student_strands_notes()
+    student_report_cards_cycles =
+      Reporting.list_student_report_cards_cycles(
+        socket.assigns.current_user.current_profile.student_id
+      )
 
     socket =
       socket
@@ -51,17 +55,31 @@ defmodule LantternWeb.StudentHomeLive do
       |> stream(:student_report_cards_wip, student_report_cards_wip)
       |> assign(:has_student_report_cards_wip, has_student_report_cards_wip)
       |> assign(:school, school)
+      |> assign(:student_report_cards_cycles, student_report_cards_cycles)
+      |> assign(:strand, nil)
+      |> assign(:note, nil)
+      |> assign_user_filters([:cycles], socket.assigns.current_user)
       |> stream_configure(
         :student_strands_notes,
         dom_id: fn {_, strand, cycle} ->
           "strand-#{strand.id}-cycle-#{cycle.id}"
         end
       )
-      |> stream(:student_strands_notes, student_strands_notes)
-      |> assign(:strand, nil)
-      |> assign(:note, nil)
+      |> stream_student_strands_notes()
 
     {:ok, socket}
+  end
+
+  defp stream_student_strands_notes(socket) do
+    student_strands_notes =
+      socket.assigns.current_user
+      |> Notes.list_student_strands_notes(cycles_ids: socket.assigns.selected_cycles_ids)
+
+    has_student_strands_notes = student_strands_notes != []
+
+    socket
+    |> stream(:student_strands_notes, student_strands_notes, reset: true)
+    |> assign(:has_student_strands_notes, has_student_strands_notes)
   end
 
   @impl true
@@ -101,6 +119,22 @@ defmodule LantternWeb.StudentHomeLive do
       |> assign(:strand, strand)
       |> assign(:note, note)
       |> push_patch(to: ~p"/student?is_editing_note=true")
+
+    {:noreply, socket}
+  end
+
+  # info handlers
+
+  @impl true
+  def handle_info({InlineFiltersComponent, {:apply, cycles_ids}}, socket) do
+    socket =
+      socket
+      |> assign(:selected_cycles_ids, cycles_ids)
+      |> save_profile_filters(
+        socket.assigns.current_user,
+        [:cycles]
+      )
+      |> stream_student_strands_notes()
 
     {:noreply, socket}
   end

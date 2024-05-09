@@ -117,7 +117,8 @@ defmodule Lanttern.Notes do
 
   defp apply_list_student_strands_notes_opts(queryable, []), do: queryable
 
-  defp apply_list_student_strands_notes_opts(queryable, [{:cycles_ids, cycles_ids} | opts]) do
+  defp apply_list_student_strands_notes_opts(queryable, [{:cycles_ids, cycles_ids} | opts])
+       when cycles_ids != [] do
     from(
       [_, cycles: c] in queryable,
       where: c.id in ^cycles_ids
