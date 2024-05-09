@@ -29,12 +29,12 @@ defmodule LantternWeb.MomentLive.NotesComponentTest do
 
       assert view |> has_element?("p", "You don't have any notes for this moment yet")
 
-      view |> element("button", "Add an moment note") |> render_click()
+      view |> element("button", "Add a moment note") |> render_click()
 
       attrs = %{"description" => "new moment note"}
 
       assert view
-             |> form("#moment-note-form", note: attrs)
+             |> form("#note-form", note: attrs)
              |> render_submit()
 
       render(view)

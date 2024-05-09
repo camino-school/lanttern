@@ -2,89 +2,43 @@ defmodule LantternWeb.StrandLive.NotesComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Personalization
-  alias Lanttern.Personalization.Note
+
+  # shared
+
+  alias LantternWeb.Personalization.NoteComponent
 
   @impl true
   def render(assigns) do
     ~H"""
     <div class="py-10">
       <.responsive_container>
-        <%= if @is_editing do %>
-          <.form for={@form} phx-submit="save" phx-target={@myself} id="strand-note-form">
-            <.markdown_supported class="mb-6" />
-            <.textarea_with_actions
-              id={@form[:description].id}
-              name={@form[:description].name}
-              value={@form[:description].value}
-              errors={@form[:description].errors}
-              label={gettext("Add your notes...")}
-              rows="10"
+        <.live_component
+          module={NoteComponent}
+          id="strand-notes"
+          note={@note}
+          current_user={@current_user}
+          strand_id={@strand.id}
+          title={gettext("My strand notes")}
+          empty_msg={gettext("You don't have any notes for this strand yet")}
+          empty_add_note_msg={gettext("Add a strand note")}
+          allow_editing={true}
+        />
+        <%= if @has_moments_notes do %>
+          <h4 class="mt-10 font-display font-bold text-lg">
+            <%= gettext("Other notes in this strand") %>
+          </h4>
+          <div :for={{dom_id, note} <- @streams.moments_notes} class="mt-6" id={dom_id}>
+            <.link
+              navigate={~p"/strands/moment/#{note.moment.id}?tab=notes"}
+              class="font-display text-base"
             >
-              <:actions_left :if={@note}>
-                <.button
-                  type="button"
-                  theme="ghost"
-                  phx-click="delete"
-                  phx-target={@myself}
-                  data-confirm={gettext("Are you sure?")}
-                >
-                  <%= gettext("Delete note") %>
-                </.button>
-              </:actions_left>
-              <:actions>
-                <.button type="button" theme="ghost" phx-click="cancel_edit" phx-target={@myself}>
-                  <%= gettext("Cancel") %>
-                </.button>
-                <.button type="submit">
-                  <%= gettext("Save") %>
-                </.button>
-              </:actions>
-            </.textarea_with_actions>
-            <.error :for={{msg, _opts} <- @form[:description].errors}><%= msg %></.error>
-          </.form>
-        <% else %>
-          <%= if @note do %>
-            <div class="flex items-center justify-between mb-10">
-              <h3 class="font-display font-bold text-xl">
-                <%= gettext("My strand notes (visible only to you)") %>
-              </h3>
-              <.button type="button" theme="ghost" phx-click="edit" phx-target={@myself}>
-                <%= gettext("Edit") %>
-              </.button>
+              <%= "Moment #{note.moment.position}:" %>
+              <span class="underline"><%= note.moment.name %></span>
+            </.link>
+            <div class="mt-4 line-clamp-4">
+              <.markdown text={note.description} size="sm" />
             </div>
-            <.markdown text={@note.description} />
-          <% else %>
-            <.empty_state>
-              <%= gettext("You don't have any notes for this strand yet") %>
-            </.empty_state>
-            <div class="mt-6 text-center">
-              <button
-                type="button"
-                class="font-display font-black underline"
-                phx-click="edit"
-                phx-target={@myself}
-              >
-                <%= gettext("Add a strand note") %>
-              </button>
-            </div>
-          <% end %>
-          <%= if length(@moments_notes) > 0 do %>
-            <h4 class="mt-10 font-display font-bold text-lg">
-              <%= gettext("Other notes in this strand") %>
-            </h4>
-            <div :for={note <- @moments_notes} class="mt-6">
-              <.link
-                navigate={~p"/strands/moment/#{note.moment.id}?tab=notes"}
-                class="font-display text-base"
-              >
-                <%= "Moment #{note.moment.position}:" %>
-                <span class="underline"><%= note.moment.name %></span>
-              </.link>
-              <div class="mt-4 line-clamp-4">
-                <.markdown text={note.description} size="sm" />
-              </div>
-            </div>
-          <% end %>
+          </div>
         <% end %>
       </.responsive_container>
     </div>
@@ -94,11 +48,6 @@ defmodule LantternWeb.StrandLive.NotesComponent do
   # lifecycle
 
   @impl true
-  def mount(socket) do
-    {:ok, assign(socket, :is_editing, false)}
-  end
-
-  @impl true
   def update(%{current_user: user, strand: strand} = assigns, socket) do
     note =
       Personalization.get_user_note(user, strand_id: strand.id)
@@ -106,81 +55,15 @@ defmodule LantternWeb.StrandLive.NotesComponent do
     moments_notes =
       Personalization.list_user_notes(user, strand_id: strand.id)
 
-    form =
-      case note do
-        nil -> Personalization.change_note(%Note{})
-        note -> Personalization.change_note(note)
-      end
-      |> to_form()
+    has_moments_notes = moments_notes != []
 
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign(:note, note)
-     |> assign(:moments_notes, moments_notes)
-     |> assign(:form, form)}
-  end
-
-  # event handlers
-
-  @impl true
-  def handle_event("edit", _params, socket) do
-    {:noreply,
-     socket
-     |> assign(:is_editing, true)}
-  end
-
-  def handle_event("cancel_edit", _params, socket) do
-    {:noreply,
-     socket
-     |> assign(:is_editing, false)}
-  end
-
-  def handle_event("save", %{"note" => params}, socket) do
-    save_note(
-      socket.assigns.note,
-      params,
+    socket =
       socket
-    )
-    |> case do
-      {:ok, note} ->
-        {:noreply,
-         socket
-         |> assign(:is_editing, false)
-         |> assign(:note, note)
-         |> assign(:form, Personalization.change_note(note) |> to_form())}
+      |> assign(assigns)
+      |> assign(:note, note)
+      |> stream(:moments_notes, moments_notes)
+      |> assign(:has_moments_notes, has_moments_notes)
 
-      {:error, changeset} ->
-        {:noreply,
-         socket
-         |> assign(:form, to_form(changeset))}
-    end
-  end
-
-  def handle_event("delete", _params, socket) do
-    Personalization.delete_note(socket.assigns.note)
-
-    {:noreply,
-     socket
-     |> assign(:is_editing, false)
-     |> assign(:note, nil)
-     |> assign(:form, Personalization.change_note(%Note{}) |> to_form())}
-  end
-
-  # helpers
-
-  defp save_note(nil, params, socket) do
-    Personalization.create_strand_note(
-      socket.assigns.current_user,
-      socket.assigns.strand.id,
-      params
-    )
-  end
-
-  defp save_note(note, params, _socket) do
-    Personalization.update_note(
-      note,
-      params
-    )
+    {:ok, socket}
   end
 end

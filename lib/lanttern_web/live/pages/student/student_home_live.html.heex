@@ -23,6 +23,33 @@
     </.empty_state>
   </.responsive_container>
 <% end %>
+<.responsive_container>
+  <p class="font-display font-black text-xl">
+    <%= gettext("My strand notes") %>
+  </p>
+</.responsive_container>
+<.responsive_grid id="student-strands-notes" phx-update="stream">
+  <.strand_card
+    :for={{dom_id, {note, strand, _cycle}} <- @streams.student_strands_notes}
+    id={dom_id}
+    strand={strand}
+    cover_image_url={strand.cover_image_url}
+    hide_description
+    class="shrink-0 w-64 sm:w-auto"
+  >
+    <:bottom_content>
+      <div class="flex flex-wrap gap-2 p-6 border-t border-ltrn-lighter">
+        <.button
+          theme={if note, do: "diff_light", else: "ghost"}
+          icon_name="hero-pencil-square"
+          phx-click={JS.push("edit_note", value: %{"strand_id" => strand.id})}
+        >
+          <%= if note, do: gettext("View/edit note"), else: gettext("Add note") %>
+        </.button>
+      </div>
+    </:bottom_content>
+  </.strand_card>
+</.responsive_grid>
 <%= if @has_student_report_cards_wip do %>
   <.responsive_container>
     <p class="font-display font-black text-xl text-ltrn-subtle">
@@ -42,3 +69,22 @@
   </.responsive_grid>
 <% end %>
 <.school_branding_footer school={@school} />
+<.slide_over
+  :if={@is_editing_note && @strand}
+  id="student-strand-note-overlay"
+  show={true}
+  on_cancel={JS.patch(~p"/student")}
+>
+  <:title><%= gettext("My strand notes") %></:title>
+  <.live_component
+    module={NoteComponent}
+    id="student-strand-notes"
+    note={@note}
+    current_user={@current_user}
+    strand_id={@strand.id}
+    title={gettext("Notes")}
+    empty_msg={gettext("No notes for this strand yet")}
+    empty_add_note_msg={gettext("Add a strand note")}
+    allow_editing={true}
+  />
+</.slide_over>

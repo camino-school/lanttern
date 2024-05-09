@@ -80,43 +80,57 @@ defmodule Lanttern.Personalization do
 
   ## Examples
 
-      iex> list_student_strand_notes(user, opts)
+      iex> list_student_strands_notes(user, opts)
       [{%Note{}, %Cycle{}}, ...]
 
   """
-  @spec list_student_strand_notes(user :: User.t(), opts :: Keyword.t()) :: [
+  @spec list_student_strands_notes(user :: User.t(), opts :: Keyword.t()) :: [
           {Note.t() | nil, Strand.t(), Cycle.t()}
         ]
-  def list_student_strand_notes(%{current_profile: profile} = _user, opts \\ []) do
-    from(
-      rc in ReportCard,
-      join: c in assoc(rc, :school_cycle),
-      as: :cycles,
-      join: src in assoc(rc, :students_report_cards),
-      join: sr in assoc(rc, :strand_reports),
-      join: s in assoc(sr, :strand),
-      left_join: n in assoc(s, :notes),
-      on: n.author_id == ^profile.id,
-      where: src.student_id == ^profile.student_id,
-      order_by: [desc: c.end_at, asc: c.start_at, asc: sr.position],
-      select: {n, s, c}
+  def list_student_strands_notes(%{current_profile: profile} = _user, opts \\ []) do
+    notes_strands_cycles =
+      from(
+        rc in ReportCard,
+        join: c in assoc(rc, :school_cycle),
+        as: :cycles,
+        join: src in assoc(rc, :students_report_cards),
+        join: sr in assoc(rc, :strand_reports),
+        join: s in assoc(sr, :strand),
+        left_join: n in assoc(s, :notes),
+        where: src.student_id == ^profile.student_id,
+        where: is_nil(n) or n.author_id == ^profile.id,
+        order_by: [desc: c.end_at, asc: c.start_at, asc: sr.position],
+        select: {n, s, c}
+      )
+      |> apply_list_student_strands_notes_opts(opts)
+      |> Repo.all()
+
+    # preload strand subjects and years
+    updated_strands =
+      notes_strands_cycles
+      |> Enum.map(fn {_, strand, _} -> strand end)
+      |> maybe_preload(preloads: [:subjects, :years])
+
+    # put back strands with preloaded subjects and years
+    notes_strands_cycles
+    |> Enum.zip_with(
+      updated_strands,
+      fn {n, _, c}, s -> {n, s, c} end
     )
-    |> apply_list_student_strand_notes_opts(opts)
-    |> Repo.all()
   end
 
-  defp apply_list_student_strand_notes_opts(queryable, []), do: queryable
+  defp apply_list_student_strands_notes_opts(queryable, []), do: queryable
 
-  defp apply_list_student_strand_notes_opts(queryable, [{:cycles_ids, cycles_ids} | opts]) do
+  defp apply_list_student_strands_notes_opts(queryable, [{:cycles_ids, cycles_ids} | opts]) do
     from(
       [_, cycles: c] in queryable,
       where: c.id in ^cycles_ids
     )
-    |> apply_list_student_strand_notes_opts(opts)
+    |> apply_list_student_strands_notes_opts(opts)
   end
 
-  defp apply_list_student_strand_notes_opts(queryable, [_opt | opts]),
-    do: apply_list_student_strand_notes_opts(queryable, opts)
+  defp apply_list_student_strands_notes_opts(queryable, [_opt | opts]),
+    do: apply_list_student_strands_notes_opts(queryable, opts)
 
   @doc """
   Gets a single note.

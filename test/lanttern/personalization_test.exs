@@ -147,9 +147,16 @@ defmodule Lanttern.PersonalizationTest do
       assert expected_2.moment.id == moment_2.id
     end
 
-    test "list_student_strand_notes/2 returns all user strand notes related to students report cards" do
+    test "list_student_strands_notes/2 returns all user strand notes related to students report cards" do
       author = student_profile_fixture()
-      strand_1 = strand_fixture()
+
+      subject_1 = Lanttern.TaxonomyFixtures.subject_fixture()
+      subject_2 = Lanttern.TaxonomyFixtures.subject_fixture()
+      year = Lanttern.TaxonomyFixtures.year_fixture()
+
+      strand_1 =
+        strand_fixture(%{subjects_ids: [subject_1.id, subject_2.id], years_ids: [year.id]})
+
       strand_2 = strand_fixture()
       strand_3 = strand_fixture()
       strand_4 = strand_fixture()
@@ -214,6 +221,9 @@ defmodule Lanttern.PersonalizationTest do
       other_strand = strand_fixture()
       other_report_card = Lanttern.ReportingFixtures.report_card_fixture()
 
+      _other_strand_1_note =
+        strand_note_fixture(%{current_profile: student_profile_fixture()}, strand_1.id)
+
       _other_strand_report =
         Lanttern.ReportingFixtures.strand_report_fixture(%{
           report_card_id: other_report_card.id,
@@ -227,15 +237,23 @@ defmodule Lanttern.PersonalizationTest do
         })
 
       assert [
-               {strand_1_note, strand_1, cycle_2024},
-               {nil, strand_2, cycle_2024},
-               {strand_3_note, strand_3, cycle_2023},
-               {nil, strand_4, cycle_2023}
-             ] ==
-               Personalization.list_student_strand_notes(
+               {^strand_1_note, expected_strand_1, ^cycle_2024},
+               {nil, expected_strand_2, ^cycle_2024},
+               {^strand_3_note, expected_strand_3, ^cycle_2023},
+               {nil, expected_strand_4, ^cycle_2023}
+             ] =
+               Personalization.list_student_strands_notes(
                  %{current_profile: author},
                  cycles_ids: [cycle_2023.id, cycle_2024.id]
                )
+
+      assert expected_strand_1.id == strand_1.id
+      assert subject_1 in expected_strand_1.subjects
+      assert subject_2 in expected_strand_1.subjects
+      assert [year] == expected_strand_1.years
+      assert expected_strand_2.id == strand_2.id
+      assert expected_strand_3.id == strand_3.id
+      assert expected_strand_4.id == strand_4.id
     end
 
     test "get_student_note/2 returns the student note for the given strand" do

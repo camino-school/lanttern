@@ -50,7 +50,7 @@ defmodule LantternWeb.StrandLive.NotesComponentTest do
       attrs = %{"description" => "new strand note"}
 
       assert view
-             |> form("#strand-note-form", note: attrs)
+             |> form("#note-form", note: attrs)
              |> render_submit()
 
       render(view)
