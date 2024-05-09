@@ -1,13 +1,14 @@
-defmodule LantternWeb.PersonalizationHelpers do
+defmodule LantternWeb.FiltersHelpers do
   @moduledoc """
-  Helper functions related to `Personalization` context
+  Helper functions related to `Filters` context
   """
 
   import Phoenix.Component, only: [assign: 3]
 
-  alias Lanttern.Personalization
+  alias Lanttern.Filters
 
   alias Lanttern.Identity.User
+  alias Lanttern.Personalization
   alias Lanttern.Reporting
   alias Lanttern.Schools
   alias Lanttern.Taxonomy
@@ -70,13 +71,13 @@ defmodule LantternWeb.PersonalizationHelpers do
 
   defp get_current_filters(profile_id, strand_id: strand_id) do
     classes_ids =
-      Personalization.list_profile_strand_filters_classes_ids(profile_id, strand_id)
+      Filters.list_profile_strand_filters_classes_ids(profile_id, strand_id)
 
     %{classes_ids: classes_ids}
   end
 
   defp get_current_filters(profile_id, report_card_id: report_card_id),
-    do: Personalization.list_profile_report_card_filters(profile_id, report_card_id)
+    do: Filters.list_profile_report_card_filters(profile_id, report_card_id)
 
   defp get_current_filters(profile_id, _) do
     case Personalization.get_profile_settings(profile_id) do
@@ -296,11 +297,11 @@ defmodule LantternWeb.PersonalizationHelpers do
   end
 
   defp apply_save_profile_filters(current_user, attrs, strand_id: strand_id),
-    do: Personalization.set_profile_strand_filters(current_user, strand_id, attrs)
+    do: Filters.set_profile_strand_filters(current_user, strand_id, attrs)
 
   defp apply_save_profile_filters(current_user, attrs, report_card_id: report_card_id),
-    do: Personalization.set_profile_report_card_filters(current_user, report_card_id, attrs)
+    do: Filters.set_profile_report_card_filters(current_user, report_card_id, attrs)
 
   defp apply_save_profile_filters(current_user, attrs, _),
-    do: Personalization.set_profile_current_filters(current_user, attrs)
+    do: Filters.set_profile_current_filters(current_user, attrs)
 end

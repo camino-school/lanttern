@@ -6,13 +6,13 @@ defmodule LantternWeb.StudentHomeLive do
   use LantternWeb, :live_view
 
   alias Lanttern.LearningContext
-  alias Lanttern.Personalization
+  alias Lanttern.Notes
   alias Lanttern.Reporting
   alias Lanttern.Schools
 
   # shared components
   import LantternWeb.LearningContextComponents
-  alias LantternWeb.Personalization.NoteComponent
+  alias LantternWeb.Notes.NoteComponent
   import LantternWeb.ReportingComponents
   import LantternWeb.SchoolsComponents
 
@@ -42,7 +42,7 @@ defmodule LantternWeb.StudentHomeLive do
 
     student_strands_notes =
       socket.assigns.current_user
-      |> Personalization.list_student_strands_notes()
+      |> Notes.list_student_strands_notes()
 
     socket =
       socket
@@ -91,7 +91,7 @@ defmodule LantternWeb.StudentHomeLive do
     strand = LearningContext.get_strand!(strand_id)
 
     note =
-      Personalization.get_student_note(
+      Notes.get_student_note(
         socket.assigns.current_user.current_profile.student_id,
         strand_id: strand_id
       )

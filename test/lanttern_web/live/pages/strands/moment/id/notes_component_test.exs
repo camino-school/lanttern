@@ -2,7 +2,7 @@ defmodule LantternWeb.MomentLive.NotesComponentTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.LearningContextFixtures
-  alias Lanttern.PersonalizationFixtures
+  alias Lanttern.NotesFixtures
 
   @live_view_base_path "/strands"
 
@@ -14,7 +14,7 @@ defmodule LantternWeb.MomentLive.NotesComponentTest do
       moment = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
 
       note =
-        PersonalizationFixtures.moment_note_fixture(user, moment.id, %{
+        NotesFixtures.moment_note_fixture(user, moment.id, %{
           "description" => "moment note desc abc"
         })
 

@@ -76,6 +76,10 @@
   on_cancel={JS.patch(~p"/student")}
 >
   <:title><%= gettext("My strand notes") %></:title>
+  <div class="p-6 rounded mb-10 font-display font-black bg-white shadow-lg">
+    <h5 class="text-lg"><%= @strand.name %></h5>
+    <p :if={@strand.type} class="text-sm text-ltrn-primary"><%= @strand.type %></p>
+  </div>
   <.live_component
     module={NoteComponent}
     id="student-strand-notes"

@@ -1,4 +1,4 @@
-defmodule Lanttern.Personalization.Note do
+defmodule Lanttern.Notes.Note do
   @moduledoc """
   The `Note` schema
   """
@@ -9,8 +9,8 @@ defmodule Lanttern.Personalization.Note do
   alias Lanttern.Identity.Profile
   alias Lanttern.LearningContext.Strand
   alias Lanttern.LearningContext.Moment
-  alias Lanttern.Personalization.MomentNoteRelationship
-  alias Lanttern.Personalization.StrandNoteRelationship
+  alias Lanttern.Notes.MomentNoteRelationship
+  alias Lanttern.Notes.StrandNoteRelationship
 
   @type t :: %__MODULE__{
           id: pos_integer(),

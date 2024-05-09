@@ -1,4 +1,4 @@
-defmodule Lanttern.Personalization.ProfileReportCardFilter do
+defmodule Lanttern.Filters.ProfileReportCardFilter do
   @moduledoc """
   The `ProfileReportCardFilter` schema
   """

@@ -1,13 +1,12 @@
 defmodule LantternWeb.Admin.NoteLive.Index do
   use LantternWeb, {:live_view, layout: :admin}
 
-  alias Lanttern.Personalization
-  alias Lanttern.Personalization.Note
+  alias Lanttern.Notes
+  alias Lanttern.Notes.Note
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok,
-     stream(socket, :notes, Personalization.list_notes(preloads: [author: [:teacher, :student]]))}
+    {:ok, stream(socket, :notes, Notes.list_notes(preloads: [author: [:teacher, :student]]))}
   end
 
   @impl true
@@ -18,7 +17,7 @@ defmodule LantternWeb.Admin.NoteLive.Index do
   defp apply_action(socket, :edit, %{"id" => id}) do
     socket
     |> assign(:page_title, "Edit Note")
-    |> assign(:note, Personalization.get_note!(id))
+    |> assign(:note, Notes.get_note!(id))
   end
 
   defp apply_action(socket, :new, _params) do
@@ -40,8 +39,8 @@ defmodule LantternWeb.Admin.NoteLive.Index do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    note = Personalization.get_note!(id)
-    {:ok, _} = Personalization.delete_note(note)
+    note = Notes.get_note!(id)
+    {:ok, _} = Notes.delete_note(note)
 
     {:noreply, stream_delete(socket, :notes, note)}
   end

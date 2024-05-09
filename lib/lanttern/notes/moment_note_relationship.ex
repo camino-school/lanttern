@@ -1,4 +1,4 @@
-defmodule Lanttern.Personalization.MomentNoteRelationship do
+defmodule Lanttern.Notes.MomentNoteRelationship do
   @moduledoc """
   The `MomentNoteRelationship` schema
   """
@@ -9,7 +9,7 @@ defmodule Lanttern.Personalization.MomentNoteRelationship do
 
   @primary_key false
   schema "moments_notes" do
-    belongs_to :note, Lanttern.Personalization.Note
+    belongs_to :note, Lanttern.Notes.Note
     belongs_to :author, Lanttern.Identity.Profile
     belongs_to :moment, Lanttern.LearningContext.Moment
   end

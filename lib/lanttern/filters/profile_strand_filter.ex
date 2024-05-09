@@ -1,4 +1,4 @@
-defmodule Lanttern.Personalization.ProfileStrandFilter do
+defmodule Lanttern.Filters.ProfileStrandFilter do
   @moduledoc """
   The `ProfileStrandFilter` schema
   """

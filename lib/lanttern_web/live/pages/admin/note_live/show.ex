@@ -1,7 +1,7 @@
 defmodule LantternWeb.Admin.NoteLive.Show do
   use LantternWeb, {:live_view, layout: :admin}
 
-  alias Lanttern.Personalization
+  alias Lanttern.Notes
 
   @impl true
   def mount(_params, _session, socket) do
@@ -13,7 +13,7 @@ defmodule LantternWeb.Admin.NoteLive.Show do
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:note, Personalization.get_note!(id, preloads: [author: [:student, :teacher]]))}
+     |> assign(:note, Notes.get_note!(id, preloads: [author: [:student, :teacher]]))}
   end
 
   defp page_title(:show), do: "Show Note"

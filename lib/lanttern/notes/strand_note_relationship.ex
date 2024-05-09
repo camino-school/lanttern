@@ -1,4 +1,4 @@
-defmodule Lanttern.Personalization.StrandNoteRelationship do
+defmodule Lanttern.Notes.StrandNoteRelationship do
   @moduledoc """
   The `StrandNoteRelationship` schema
   """
@@ -6,7 +6,7 @@ defmodule Lanttern.Personalization.StrandNoteRelationship do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Lanttern.Personalization.Note
+  alias Lanttern.Notes.Note
   alias Lanttern.Identity.Profile
   alias Lanttern.LearningContext.Strand
 

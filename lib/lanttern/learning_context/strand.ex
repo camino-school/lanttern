@@ -11,8 +11,8 @@ defmodule Lanttern.LearningContext.Strand do
 
   alias Lanttern.LearningContext.Moment
   alias Lanttern.Assessments.AssessmentPoint
-  alias Lanttern.Personalization.Note
-  alias Lanttern.Personalization.StrandNoteRelationship
+  alias Lanttern.Notes.Note
+  alias Lanttern.Notes.StrandNoteRelationship
   alias Lanttern.Reporting.StrandReport
   alias Lanttern.Taxonomy.Subject
   alias Lanttern.Taxonomy.Year

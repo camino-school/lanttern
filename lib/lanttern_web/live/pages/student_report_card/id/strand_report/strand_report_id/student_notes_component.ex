@@ -1,10 +1,10 @@
 defmodule LantternWeb.StudentStrandReportLive.StudentNotesComponent do
   use LantternWeb, :live_component
 
-  alias Lanttern.Personalization
+  alias Lanttern.Notes
 
   # shared
-  alias LantternWeb.Personalization.NoteComponent
+  alias LantternWeb.Notes.NoteComponent
 
   @impl true
   def render(assigns) do
@@ -47,7 +47,7 @@ defmodule LantternWeb.StudentStrandReportLive.StudentNotesComponent do
     %{student_id: student_id, strand_id: strand_id} = assigns
 
     note =
-      Personalization.get_student_note(student_id, strand_id: strand_id)
+      Notes.get_student_note(student_id, strand_id: strand_id)
 
     socket =
       socket

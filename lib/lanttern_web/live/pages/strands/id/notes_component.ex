@@ -1,11 +1,11 @@
 defmodule LantternWeb.StrandLive.NotesComponent do
   use LantternWeb, :live_component
 
-  alias Lanttern.Personalization
+  alias Lanttern.Notes
 
   # shared
 
-  alias LantternWeb.Personalization.NoteComponent
+  alias LantternWeb.Notes.NoteComponent
 
   @impl true
   def render(assigns) do
@@ -50,10 +50,10 @@ defmodule LantternWeb.StrandLive.NotesComponent do
   @impl true
   def update(%{current_user: user, strand: strand} = assigns, socket) do
     note =
-      Personalization.get_user_note(user, strand_id: strand.id)
+      Notes.get_user_note(user, strand_id: strand.id)
 
     moments_notes =
-      Personalization.list_user_notes(user, strand_id: strand.id)
+      Notes.list_user_notes(user, strand_id: strand.id)
 
     has_moments_notes = moments_notes != []
 

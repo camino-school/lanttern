@@ -4,7 +4,7 @@ defmodule LantternWeb.CurriculumComponentLive do
   alias Lanttern.Curricula
   alias Lanttern.Curricula.CurriculumItem
 
-  import LantternWeb.PersonalizationHelpers
+  import LantternWeb.FiltersHelpers
 
   # shared components
   alias LantternWeb.Curricula.CurriculumItemFormComponent

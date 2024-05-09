@@ -1,4 +1,4 @@
-defmodule LantternWeb.Personalization.NoteComponent do
+defmodule LantternWeb.Notes.NoteComponent do
   @moduledoc """
   Renders notes markdown and editor.
 
@@ -21,8 +21,8 @@ defmodule LantternWeb.Personalization.NoteComponent do
 
   use LantternWeb, :live_component
 
-  alias Lanttern.Personalization
-  alias Lanttern.Personalization.Note
+  alias Lanttern.Notes
+  alias Lanttern.Notes.Note
 
   import LantternWeb.DateTimeHelpers
 
@@ -129,8 +129,8 @@ defmodule LantternWeb.Personalization.NoteComponent do
   def update(assigns, socket) do
     form =
       case assigns.note do
-        nil -> Personalization.change_note(%Note{})
-        note -> Personalization.change_note(note)
+        nil -> Notes.change_note(%Note{})
+        note -> Notes.change_note(note)
       end
       |> to_form()
 
@@ -165,7 +165,7 @@ defmodule LantternWeb.Personalization.NoteComponent do
          socket
          |> assign(:is_editing, false)
          |> assign(:note, note)
-         |> assign(:form, Personalization.change_note(note) |> to_form())}
+         |> assign(:form, Notes.change_note(note) |> to_form())}
 
       {:error, changeset} ->
         {:noreply,
@@ -175,19 +175,19 @@ defmodule LantternWeb.Personalization.NoteComponent do
   end
 
   def handle_event("delete", _params, socket) do
-    Personalization.delete_note(socket.assigns.note)
+    Notes.delete_note(socket.assigns.note)
 
     {:noreply,
      socket
      |> assign(:is_editing, false)
      |> assign(:note, nil)
-     |> assign(:form, Personalization.change_note(%Note{}) |> to_form())}
+     |> assign(:form, Notes.change_note(%Note{}) |> to_form())}
   end
 
   # helpers
 
   defp save_note(%{assigns: %{note: nil, strand_id: strand_id}} = socket, params) do
-    Personalization.create_strand_note(
+    Notes.create_strand_note(
       socket.assigns.current_user,
       strand_id,
       params
@@ -195,7 +195,7 @@ defmodule LantternWeb.Personalization.NoteComponent do
   end
 
   defp save_note(%{assigns: %{note: nil, moment_id: moment_id}} = socket, params) do
-    Personalization.create_moment_note(
+    Notes.create_moment_note(
       socket.assigns.current_user,
       moment_id,
       params
@@ -203,7 +203,7 @@ defmodule LantternWeb.Personalization.NoteComponent do
   end
 
   defp save_note(%{assigns: %{note: %Note{} = note}} = _socket, params) do
-    Personalization.update_note(
+    Notes.update_note(
       note,
       params
     )
