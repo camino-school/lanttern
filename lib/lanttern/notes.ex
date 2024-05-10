@@ -4,13 +4,13 @@ defmodule Lanttern.Notes do
   """
 
   import Ecto.Query, warn: false
+  alias Lanttern.Schools.Student
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
 
   alias Lanttern.Notes.MomentNoteRelationship
   alias Lanttern.Notes.Note
   alias Lanttern.Notes.StrandNoteRelationship
-  alias Lanttern.Reporting.ReportCard
   alias Lanttern.Identity.User
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
@@ -83,35 +83,36 @@ defmodule Lanttern.Notes do
           {Note.t() | nil, Strand.t()}
         ]
   def list_student_strands_notes(%{current_profile: profile} = _user, opts \\ []) do
-    notes_strands =
+    strand_student_notes_map =
       from(
-        rc in ReportCard,
-        join: c in assoc(rc, :school_cycle),
-        join: src in assoc(rc, :students_report_cards),
-        join: sr in assoc(rc, :strand_reports),
-        join: s in assoc(sr, :strand),
-        left_join: n in assoc(s, :notes),
-        where: src.student_id == ^profile.student_id,
-        where: is_nil(n) or n.author_id == ^profile.id,
-        order_by: [desc: c.end_at, asc: c.start_at, asc: sr.position],
-        select: {n, s}
+        n in Note,
+        join: snr in assoc(n, :strand_note_relationship),
+        where: n.author_id == ^profile.id,
+        select: {n, snr}
       )
-      |> apply_list_student_strands_notes_opts(opts)
       |> Repo.all()
-      |> Enum.uniq()
+      |> Enum.map(fn {n, snr} ->
+        {snr.strand_id, n}
+      end)
+      |> Enum.into(%{})
 
-    # preload strand subjects and years
-    updated_strands =
-      notes_strands
-      |> Enum.map(fn {_, strand} -> strand end)
-      |> maybe_preload(preloads: [:subjects, :years])
-
-    # put back strands with preloaded subjects and years
-    notes_strands
-    |> Enum.zip_with(
-      updated_strands,
-      fn {n, _}, s -> {n, s} end
+    from(
+      s in Strand,
+      join: sr in assoc(s, :strand_reports),
+      join: rc in assoc(sr, :report_card),
+      join: c in assoc(rc, :school_cycle),
+      as: :cycles,
+      join: src in assoc(rc, :students_report_cards),
+      order_by: [desc: c.end_at, asc: c.start_at, asc: sr.position],
+      where: src.student_id == ^profile.student_id
     )
+    |> apply_list_student_strands_notes_opts(opts)
+    |> Repo.all()
+    |> Enum.uniq()
+    |> maybe_preload(preloads: [:subjects, :years])
+    |> Enum.map(fn strand ->
+      {Map.get(strand_student_notes_map, strand.id), strand}
+    end)
   end
 
   defp apply_list_student_strands_notes_opts(queryable, []), do: queryable
@@ -119,14 +120,56 @@ defmodule Lanttern.Notes do
   defp apply_list_student_strands_notes_opts(queryable, [{:cycles_ids, cycles_ids} | opts])
        when cycles_ids != [] do
     from(
-      rc in queryable,
-      where: rc.school_cycle_id in ^cycles_ids
+      [_s, cycles: c] in queryable,
+      where: c.id in ^cycles_ids
     )
     |> apply_list_student_strands_notes_opts(opts)
   end
 
   defp apply_list_student_strands_notes_opts(queryable, [_opt | opts]),
     do: apply_list_student_strands_notes_opts(queryable, opts)
+
+  @doc """
+  Returns the list of students of the given classes with their strand notes.
+
+  Students are ordered by class name and name.
+
+  ## Examples
+
+      iex> list_classes_strand_notes(classes_ids, strand_id)
+      [{%Student{}, %Note{}}, ...]
+
+  """
+  @spec list_classes_strand_notes(classes_ids :: [pos_integer()], strand_id :: pos_integer()) :: [
+          {Student.t(), Note.t() | nil}
+        ]
+  def list_classes_strand_notes(classes_ids, strand_id) do
+    students_strand_notes_map =
+      from(
+        n in Note,
+        join: snr in assoc(n, :strand_note_relationship),
+        # author is a profile
+        join: p in assoc(n, :author),
+        join: std in assoc(p, :student),
+        join: c in assoc(std, :classes),
+        where: snr.strand_id == ^strand_id,
+        where: c.id in ^classes_ids,
+        select: {std.id, n}
+      )
+      |> Repo.all()
+      |> Enum.into(%{})
+
+    from(
+      std in Student,
+      join: c in assoc(std, :classes),
+      preload: [classes: c],
+      order_by: [asc: c.name, asc: std.name]
+    )
+    |> Repo.all()
+    |> Enum.map(fn std ->
+      {std, Map.get(students_strand_notes_map, std.id)}
+    end)
+  end
 
   @doc """
   Gets a single note.

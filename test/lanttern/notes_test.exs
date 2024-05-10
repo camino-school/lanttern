@@ -224,6 +224,9 @@ defmodule Lanttern.NotesTest do
       _other_strand_1_note =
         strand_note_fixture(%{current_profile: student_profile_fixture()}, strand_1.id)
 
+      _other_strand_2_note =
+        strand_note_fixture(%{current_profile: student_profile_fixture()}, strand_2.id)
+
       _other_strand_report =
         Lanttern.ReportingFixtures.strand_report_fixture(%{
           report_card_id: other_report_card.id,
@@ -247,13 +250,70 @@ defmodule Lanttern.NotesTest do
                  cycles_ids: [cycle_2023.id, cycle_2024.id]
                )
 
+      # assert expected_strand_1_note.id == strand_1_note.id
       assert expected_strand_1.id == strand_1.id
       assert subject_1 in expected_strand_1.subjects
       assert subject_2 in expected_strand_1.subjects
       assert [year] == expected_strand_1.years
+
       assert expected_strand_2.id == strand_2.id
+
+      # assert expected_strand_3_note.id == strand_3_note.id
       assert expected_strand_3.id == strand_3.id
+
       assert expected_strand_4.id == strand_4.id
+    end
+
+    test "list_classes_strand_notes/2 returns the list of classes students and their strand notes" do
+      class_a = Lanttern.SchoolsFixtures.class_fixture(%{name: "A"})
+      class_b = Lanttern.SchoolsFixtures.class_fixture(%{name: "B"})
+
+      student_a_a =
+        Lanttern.SchoolsFixtures.student_fixture(%{name: "A", classes_ids: [class_a.id]})
+
+      student_a_z =
+        Lanttern.SchoolsFixtures.student_fixture(%{name: "Z", classes_ids: [class_a.id]})
+
+      student_b_b =
+        Lanttern.SchoolsFixtures.student_fixture(%{name: "B", classes_ids: [class_b.id]})
+
+      student_a_a_profile = student_profile_fixture(%{student_id: student_a_a.id})
+      student_a_z_profile = student_profile_fixture(%{student_id: student_a_z.id})
+      student_b_b_profile = student_profile_fixture(%{student_id: student_b_b.id})
+
+      strand = strand_fixture()
+
+      # create student notes for student A and B
+
+      student_a_strand_note =
+        strand_note_fixture(%{current_profile: student_a_a_profile}, strand.id)
+
+      student_b_strand_note =
+        strand_note_fixture(%{current_profile: student_b_b_profile}, strand.id)
+
+      # extra fixtures for filter testing
+      other_strand = strand_fixture()
+
+      _student_z_other_strand_note =
+        strand_note_fixture(%{current_profile: student_a_z_profile}, other_strand.id)
+
+      assert [
+               {expected_student_a_a, ^student_a_strand_note},
+               {expected_student_a_z, nil},
+               {expected_student_b_b, ^student_b_strand_note}
+             ] =
+               Notes.list_classes_strand_notes(
+                 [class_a.id, class_b.id],
+                 strand.id
+               )
+
+      assert expected_student_a_a.id == student_a_a.id
+      assert class_a in expected_student_a_a.classes
+
+      assert expected_student_a_z.id == student_a_z.id
+
+      assert expected_student_b_b.id == student_b_b.id
+      assert class_b in expected_student_b_b.classes
     end
 
     test "get_student_note/2 returns the student note for the given strand" do
