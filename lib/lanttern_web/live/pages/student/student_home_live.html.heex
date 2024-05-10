@@ -44,7 +44,7 @@
 </.responsive_container>
 <.responsive_grid :if={@has_student_strands_notes} id="student-strands-notes" phx-update="stream">
   <.strand_card
-    :for={{dom_id, {note, strand, _cycle}} <- @streams.student_strands_notes}
+    :for={{dom_id, {note, strand}} <- @streams.student_strands_notes}
     id={dom_id}
     strand={strand}
     cover_image_url={strand.cover_image_url}
@@ -90,9 +90,9 @@
   on_cancel={JS.patch(~p"/student")}
 >
   <:title><%= gettext("My strand notes") %></:title>
-  <div class="p-6 rounded mb-10 font-display font-black bg-white shadow-lg">
-    <h5 class="text-lg"><%= @strand.name %></h5>
-    <p :if={@strand.type} class="text-sm text-ltrn-primary"><%= @strand.type %></p>
+  <div class="pb-10 border-b border-ltrn-lighter mb-10 font-display font-black">
+    <p class="text-lg"><%= @strand.name %></p>
+    <p :if={@strand.type} class="text-sm text-ltrn-subtle"><%= @strand.type %></p>
   </div>
   <.live_component
     module={NoteComponent}
@@ -105,4 +105,32 @@
     empty_add_note_msg={gettext("Add a strand note")}
     allow_editing={true}
   />
+  <div :if={@has_student_report_cards_for_strand} class="pt-10 border-t border-ltrn-lighter mt-10">
+    <h6 class="font-display font-bold"><%= gettext("View note in report card context") %></h6>
+    <ul id="strand-linked-report-cards" phx-update="stream" class="pl-6 list-disc">
+      <li
+        :for={
+          {dom_id, {student_report_card, strand_report}} <-
+            @streams.student_report_cards_for_strand
+        }
+        id={dom_id}
+        class="mt-4 text-sm"
+      >
+        <%= if student_report_card.allow_student_access do %>
+          <.link
+            navigate={
+              ~p"/student_report_card/#{student_report_card}/strand_report/#{strand_report}?tab=student_notes"
+            }
+            class="underline hover:text-ltrn-subtle"
+          >
+            <%= student_report_card.report_card.name %>
+          </.link>
+        <% else %>
+          <span class="text-ltrn-subtle">
+            <%= student_report_card.report_card.name %> (<%= gettext("under development") %>)
+          </span>
+        <% end %>
+      </li>
+    </ul>
+  </div>
 </.slide_over>

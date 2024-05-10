@@ -11,7 +11,6 @@ defmodule Lanttern.Notes do
   alias Lanttern.Notes.Note
   alias Lanttern.Notes.StrandNoteRelationship
   alias Lanttern.Reporting.ReportCard
-  alias Lanttern.Schools.Cycle
   alias Lanttern.Identity.User
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
@@ -68,7 +67,7 @@ defmodule Lanttern.Notes do
   The function lists all strands linked to the student report cards, ordering the results
   by (report card) cycle descending and strand reports position ascending.
 
-  The list is comprised of tuples of note (or `nil`), strand, and cycle.
+  The list is comprised of tuples of note (or `nil`) and strand.
 
   ### Options:
 
@@ -77,18 +76,17 @@ defmodule Lanttern.Notes do
   ## Examples
 
       iex> list_student_strands_notes(user, opts)
-      [{%Note{}, %Cycle{}}, ...]
+      [{%Note{}, %Strand{}}, ...]
 
   """
   @spec list_student_strands_notes(user :: User.t(), opts :: Keyword.t()) :: [
-          {Note.t() | nil, Strand.t(), Cycle.t()}
+          {Note.t() | nil, Strand.t()}
         ]
   def list_student_strands_notes(%{current_profile: profile} = _user, opts \\ []) do
-    notes_strands_cycles =
+    notes_strands =
       from(
         rc in ReportCard,
         join: c in assoc(rc, :school_cycle),
-        as: :cycles,
         join: src in assoc(rc, :students_report_cards),
         join: sr in assoc(rc, :strand_reports),
         join: s in assoc(sr, :strand),
@@ -96,22 +94,23 @@ defmodule Lanttern.Notes do
         where: src.student_id == ^profile.student_id,
         where: is_nil(n) or n.author_id == ^profile.id,
         order_by: [desc: c.end_at, asc: c.start_at, asc: sr.position],
-        select: {n, s, c}
+        select: {n, s}
       )
       |> apply_list_student_strands_notes_opts(opts)
       |> Repo.all()
+      |> Enum.uniq()
 
     # preload strand subjects and years
     updated_strands =
-      notes_strands_cycles
-      |> Enum.map(fn {_, strand, _} -> strand end)
+      notes_strands
+      |> Enum.map(fn {_, strand} -> strand end)
       |> maybe_preload(preloads: [:subjects, :years])
 
     # put back strands with preloaded subjects and years
-    notes_strands_cycles
+    notes_strands
     |> Enum.zip_with(
       updated_strands,
-      fn {n, _, c}, s -> {n, s, c} end
+      fn {n, _}, s -> {n, s} end
     )
   end
 
@@ -120,8 +119,8 @@ defmodule Lanttern.Notes do
   defp apply_list_student_strands_notes_opts(queryable, [{:cycles_ids, cycles_ids} | opts])
        when cycles_ids != [] do
     from(
-      [_, cycles: c] in queryable,
-      where: c.id in ^cycles_ids
+      rc in queryable,
+      where: rc.school_cycle_id in ^cycles_ids
     )
     |> apply_list_student_strands_notes_opts(opts)
   end

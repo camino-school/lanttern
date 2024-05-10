@@ -61,8 +61,14 @@ defmodule LantternWeb.StudentHomeLive do
       |> assign_user_filters([:cycles], socket.assigns.current_user)
       |> stream_configure(
         :student_strands_notes,
-        dom_id: fn {_, strand, cycle} ->
-          "strand-#{strand.id}-cycle-#{cycle.id}"
+        dom_id: fn {_, strand} ->
+          "strand-note-#{strand.id}"
+        end
+      )
+      |> stream_configure(
+        :student_report_cards_for_strand,
+        dom_id: fn {student_report_card, _} ->
+          "student-report-card-#{student_report_card.id}"
         end
       )
       |> stream_student_strands_notes()
@@ -92,14 +98,19 @@ defmodule LantternWeb.StudentHomeLive do
   end
 
   defp assign_is_editing_note(socket, params) do
-    is_editing_note =
-      case params do
-        %{"is_editing_note" => "true"} -> true
-        _ -> false
-      end
+    case {params, socket.assigns.strand} do
+      {%{"is_editing_note" => "true"}, nil} ->
+        socket
+        |> push_patch(to: ~p"/student", replace: true)
 
-    socket
-    |> assign(:is_editing_note, is_editing_note)
+      {%{"is_editing_note" => "true"}, _strand} ->
+        socket
+        |> assign(:is_editing_note, true)
+
+      _ ->
+        socket
+        |> assign(:is_editing_note, false)
+    end
   end
 
   # event handlers
@@ -108,16 +119,30 @@ defmodule LantternWeb.StudentHomeLive do
   def handle_event("edit_note", %{"strand_id" => strand_id}, socket) do
     strand = LearningContext.get_strand!(strand_id)
 
+    student_id =
+      socket.assigns.current_user.current_profile.student_id
+
     note =
       Notes.get_student_note(
-        socket.assigns.current_user.current_profile.student_id,
+        student_id,
         strand_id: strand_id
       )
+
+    student_report_cards_for_strand =
+      Reporting.list_student_report_cards_linked_to_strand(
+        student_id,
+        strand_id
+      )
+
+    has_student_report_cards_for_strand =
+      student_report_cards_for_strand != []
 
     socket =
       socket
       |> assign(:strand, strand)
       |> assign(:note, note)
+      |> stream(:student_report_cards_for_strand, student_report_cards_for_strand, reset: true)
+      |> assign(:has_student_report_cards_for_strand, has_student_report_cards_for_strand)
       |> push_patch(to: ~p"/student?is_editing_note=true")
 
     {:noreply, socket}

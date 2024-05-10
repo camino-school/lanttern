@@ -485,6 +485,56 @@ defmodule Lanttern.ReportingTest do
       assert [cycle_2023, cycle_2024] == Reporting.list_student_report_cards_cycles(student.id)
     end
 
+    test "list_student_report_cards_linked_to_strand/1 returns all student report cards linked to given strand note" do
+      cycle_2023 = SchoolsFixtures.cycle_fixture(start_at: ~D[2023-01-01], end_at: ~D[2023-12-31])
+      cycle_2024 = SchoolsFixtures.cycle_fixture(start_at: ~D[2024-01-01], end_at: ~D[2024-12-31])
+
+      report_card_2023 =
+        report_card_fixture(%{school_cycle_id: cycle_2023.id})
+
+      report_card_2024 =
+        report_card_fixture(%{school_cycle_id: cycle_2024.id})
+
+      strand = Lanttern.LearningContextFixtures.strand_fixture()
+
+      # create strand reports
+      strand_report_2023 =
+        strand_report_fixture(%{strand_id: strand.id, report_card_id: report_card_2023.id})
+
+      strand_report_2024 =
+        strand_report_fixture(%{strand_id: strand.id, report_card_id: report_card_2024.id})
+
+      student = SchoolsFixtures.student_fixture()
+
+      # link student to report cards
+
+      student_report_card_2023 =
+        student_report_card_fixture(%{report_card_id: report_card_2023.id, student_id: student.id})
+
+      student_report_card_2024 =
+        student_report_card_fixture(%{report_card_id: report_card_2024.id, student_id: student.id})
+
+      # other fixtures for query testing
+      other_report_card = report_card_fixture()
+
+      _other_strand_report =
+        strand_report_fixture(%{strand_id: strand.id, report_card_id: other_report_card.id})
+
+      _other_student_report_card =
+        student_report_card_fixture(%{report_card_id: other_report_card.id})
+
+      assert [
+               {expected_student_report_card_2023, ^strand_report_2023},
+               {expected_student_report_card_2024, ^strand_report_2024}
+             ] = Reporting.list_student_report_cards_linked_to_strand(student.id, strand.id)
+
+      assert expected_student_report_card_2023.id == student_report_card_2023.id
+      assert expected_student_report_card_2023.report_card.id == report_card_2023.id
+
+      assert expected_student_report_card_2024.id == student_report_card_2024.id
+      assert expected_student_report_card_2024.report_card.id == report_card_2024.id
+    end
+
     test "get_student_report_card!/2 returns the student_report_card with given id" do
       student_report_card = student_report_card_fixture()
       assert Reporting.get_student_report_card!(student_report_card.id) == student_report_card

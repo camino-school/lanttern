@@ -546,6 +546,40 @@ defmodule Lanttern.Reporting do
   end
 
   @doc """
+  Returns the list of all student report cards
+  and strand reports linked to a strand.
+
+  `%StudentReportCard{}`s have `report_card` preloaded.
+
+  Results are ordered by report card cycle.
+
+  ## Examples
+
+      iex> list_student_report_cards_linked_to_strand(student_id, strand_id)
+      [{%StudentReportCard{}, %StrandReport{}}, ...]
+
+  """
+  @spec list_student_report_cards_linked_to_strand(
+          student_id :: pos_integer(),
+          strand_id :: pos_integer()
+        ) :: [
+          {StudentReportCard.t(), StrandReport.t()}
+        ]
+  def list_student_report_cards_linked_to_strand(student_id, strand_id) do
+    from(
+      src in StudentReportCard,
+      join: rc in assoc(src, :report_card),
+      join: c in assoc(rc, :school_cycle),
+      join: sr in assoc(rc, :strand_reports),
+      where: src.student_id == ^student_id,
+      where: sr.strand_id == ^strand_id,
+      select: {%{src | report_card: rc}, sr},
+      order_by: [asc: c.end_at, desc: c.end_at]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
   Gets a single student report card.
 
   Returns `nil` if the Student report card does not exist.

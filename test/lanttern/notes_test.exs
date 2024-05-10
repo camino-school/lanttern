@@ -237,10 +237,10 @@ defmodule Lanttern.NotesTest do
         })
 
       assert [
-               {^strand_1_note, expected_strand_1, ^cycle_2024},
-               {nil, expected_strand_2, ^cycle_2024},
-               {^strand_3_note, expected_strand_3, ^cycle_2023},
-               {nil, expected_strand_4, ^cycle_2023}
+               {^strand_1_note, expected_strand_1},
+               {nil, expected_strand_2},
+               {^strand_3_note, expected_strand_3},
+               {nil, expected_strand_4}
              ] =
                Notes.list_student_strands_notes(
                  %{current_profile: author},
