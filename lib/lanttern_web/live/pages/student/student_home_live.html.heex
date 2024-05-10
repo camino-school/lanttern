@@ -90,10 +90,11 @@
   on_cancel={JS.patch(~p"/student")}
 >
   <:title><%= gettext("My strand notes") %></:title>
-  <div class="pb-10 border-b border-ltrn-lighter mb-10 font-display font-black">
+  <div class="font-display font-black">
     <p class="text-lg"><%= @strand.name %></p>
     <p :if={@strand.type} class="text-sm text-ltrn-subtle"><%= @strand.type %></p>
   </div>
+  <.hr class="my-10" />
   <.live_component
     module={NoteComponent}
     id="student-strand-notes"
@@ -105,7 +106,8 @@
     empty_add_note_msg={gettext("Add a strand note")}
     allow_editing={true}
   />
-  <div :if={@has_student_report_cards_for_strand} class="pt-10 border-t border-ltrn-lighter mt-10">
+  <div :if={@has_student_report_cards_for_strand}>
+    <.hr class="my-10" />
     <h6 class="font-display font-bold"><%= gettext("View note in report card context") %></h6>
     <ul id="strand-linked-report-cards" phx-update="stream" class="pl-6 list-disc">
       <li

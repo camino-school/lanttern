@@ -676,6 +676,21 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Renders a horizontal rule.
+  """
+  attr :class, :any, default: nil
+  attr :bg_color, :string, default: "bg-ltrn-subtle"
+
+  def hr(assigns) do
+    ~H"""
+    <hr class={[
+      "block w-10 h-2 border-0 #{@bg_color}",
+      @class
+    ]} />
+    """
+  end
+
+  @doc """
   Renders a [Heroicon](https://heroicons.com).
 
   Heroicons come in three styles – outline, solid, and mini.

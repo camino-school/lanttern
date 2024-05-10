@@ -3,8 +3,9 @@ defmodule LantternWeb.StrandLive.NotesComponent do
 
   alias Lanttern.Notes
 
-  # shared
+  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 4]
 
+  # shared components
   alias LantternWeb.Notes.NoteComponent
 
   @impl true
@@ -25,7 +26,7 @@ defmodule LantternWeb.StrandLive.NotesComponent do
         />
         <%= if @has_moments_notes do %>
           <h4 class="mt-10 font-display font-bold text-lg">
-            <%= gettext("Other notes in this strand") %>
+            <%= gettext("Moments notes in this strand") %>
           </h4>
           <div :for={{dom_id, note} <- @streams.moments_notes} class="mt-6" id={dom_id}>
             <.link
@@ -40,7 +41,68 @@ defmodule LantternWeb.StrandLive.NotesComponent do
             </div>
           </div>
         <% end %>
+        <.hr class="my-20" />
+        <div class="flex items-end justify-between gap-6">
+          <%= if @selected_classes != [] do %>
+            <p class="font-display font-bold text-2xl">
+              <button
+                type="button"
+                class="inline text-left underline hover:text-ltrn-subtle"
+                phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
+              >
+                <%= @selected_classes
+                |> Enum.map(& &1.name)
+                |> Enum.join(", ") %>
+              </button>
+              <%= gettext("students strand notes") %>
+            </p>
+          <% else %>
+            <p class="font-display font-bold text-2xl">
+              <button
+                type="button"
+                class="underline hover:text-ltrn-subtle"
+                phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
+              >
+                <%= gettext("Select a class") %>
+              </button>
+              <%= gettext("to view students strand notes") %>
+            </p>
+          <% end %>
+        </div>
+        <div id="students-strand-notes" phx-update="stream" class="mt-10">
+          <div
+            :for={{dom_id, {student, note}} <- @streams.students_strand_notes}
+            id={dom_id}
+            class={[
+              "rounded mt-6",
+              if(note, do: "bg-white shadow-lg", else: "bg-ltrn-lighter")
+            ]}
+          >
+            <div class={[
+              "p-6",
+              if(note, do: "border-b border-ltrn-lighter")
+            ]}>
+              <.profile_icon_with_name
+                theme={if note, do: "cyan", else: "subtle"}
+                profile_name={student.name}
+                extra_info={student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
+              />
+            </div>
+            <div :if={note} class="p-6">
+              <.markdown text={note.description} size="sm" />
+            </div>
+          </div>
+        </div>
       </.responsive_container>
+      <.live_component
+        module={LantternWeb.Filters.FiltersOverlayComponent}
+        id="classes-filter-modal"
+        current_user={@current_user}
+        title={gettext("Select classes to view student notes")}
+        filter_type={:classes}
+        filter_opts={[strand_id: @strand.id]}
+        navigate={~p"/strands/#{@strand}?tab=notes"}
+      />
     </div>
     """
   end
@@ -48,12 +110,27 @@ defmodule LantternWeb.StrandLive.NotesComponent do
   # lifecycle
 
   @impl true
-  def update(%{current_user: user, strand: strand} = assigns, socket) do
+  def mount(socket) do
+    socket =
+      socket
+      |> stream_configure(
+        :students_strand_notes,
+        dom_id: fn
+          {student, _note} -> "note-from-student-#{student.id}"
+          _ -> ""
+        end
+      )
+
+    {:ok, socket}
+  end
+
+  @impl true
+  def update(assigns, socket) do
     note =
-      Notes.get_user_note(user, strand_id: strand.id)
+      Notes.get_user_note(assigns.current_user, strand_id: assigns.strand.id)
 
     moments_notes =
-      Notes.list_user_notes(user, strand_id: strand.id)
+      Notes.list_user_notes(assigns.current_user, strand_id: assigns.strand.id)
 
     has_moments_notes = moments_notes != []
 
@@ -63,7 +140,18 @@ defmodule LantternWeb.StrandLive.NotesComponent do
       |> assign(:note, note)
       |> stream(:moments_notes, moments_notes)
       |> assign(:has_moments_notes, has_moments_notes)
+      |> assign_user_filters([:classes], assigns.current_user, strand_id: assigns.strand.id)
+      |> stream_students_strand_notes()
 
     {:ok, socket}
+  end
+
+  defp stream_students_strand_notes(socket) do
+    students_strand_notes =
+      socket.assigns.selected_classes_ids
+      |> Notes.list_classes_strand_notes(socket.assigns.strand.id)
+
+    socket
+    |> stream(:students_strand_notes, students_strand_notes)
   end
 end

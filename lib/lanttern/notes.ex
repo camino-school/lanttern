@@ -162,6 +162,7 @@ defmodule Lanttern.Notes do
     from(
       std in Student,
       join: c in assoc(std, :classes),
+      where: c.id in ^classes_ids,
       preload: [classes: c],
       order_by: [asc: c.name, asc: std.name]
     )
