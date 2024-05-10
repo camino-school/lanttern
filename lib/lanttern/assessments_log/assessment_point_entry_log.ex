@@ -25,8 +25,8 @@ defmodule Lanttern.AssessmentsLog.AssessmentPointEntryLog do
   end
 
   @doc false
-  def changeset(assessment_point_entry, attrs) do
-    assessment_point_entry
+  def changeset(assessment_point_entry_log, attrs) do
+    assessment_point_entry_log
     |> cast(attrs, [
       :assessment_point_entry_id,
       :profile_id,

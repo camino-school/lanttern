@@ -52,4 +52,12 @@ defmodule Lanttern.NotesFixtures do
 
     note
   end
+
+  # generator helpers
+
+  def maybe_gen_note_id(%{note_id: note_id} = _attrs),
+    do: note_id
+
+  def maybe_gen_note_id(_attrs),
+    do: note_fixture().id
 end

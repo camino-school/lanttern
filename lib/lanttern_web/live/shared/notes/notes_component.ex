@@ -175,13 +175,15 @@ defmodule LantternWeb.Notes.NoteComponent do
   end
 
   def handle_event("delete", _params, socket) do
-    Notes.delete_note(socket.assigns.note)
+    Notes.delete_note(socket.assigns.note, log_operation: true)
 
-    {:noreply,
-     socket
-     |> assign(:is_editing, false)
-     |> assign(:note, nil)
-     |> assign(:form, Notes.change_note(%Note{}) |> to_form())}
+    socket =
+      socket
+      |> assign(:is_editing, false)
+      |> assign(:note, nil)
+      |> assign(:form, Notes.change_note(%Note{}) |> to_form())
+
+    {:noreply, socket}
   end
 
   # helpers
@@ -190,7 +192,8 @@ defmodule LantternWeb.Notes.NoteComponent do
     Notes.create_strand_note(
       socket.assigns.current_user,
       strand_id,
-      params
+      params,
+      log_operation: true
     )
   end
 
@@ -198,14 +201,16 @@ defmodule LantternWeb.Notes.NoteComponent do
     Notes.create_moment_note(
       socket.assigns.current_user,
       moment_id,
-      params
+      params,
+      log_operation: true
     )
   end
 
   defp save_note(%{assigns: %{note: %Note{} = note}} = _socket, params) do
     Notes.update_note(
       note,
-      params
+      params,
+      log_operation: true
     )
   end
 end

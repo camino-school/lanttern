@@ -5,6 +5,7 @@ defmodule Lanttern.NotesTest do
 
   describe "notes" do
     alias Lanttern.Notes.Note
+    alias Lanttern.NotesLog.NoteLog
 
     import Lanttern.NotesFixtures
     import Lanttern.IdentityFixtures
@@ -43,9 +44,23 @@ defmodule Lanttern.NotesTest do
       author = teacher_profile_fixture()
       valid_attrs = %{author_id: author.id, description: "some description"}
 
-      assert {:ok, %Note{} = note} = Notes.create_note(valid_attrs)
+      assert {:ok, %Note{} = note} = Notes.create_note(valid_attrs, log_operation: true)
       assert note.author_id == author.id
       assert note.description == "some description"
+
+      # assert log.
+      # see https://elixirforum.com/t/36605/2
+      on_exit(fn ->
+        note_log =
+          Repo.get_by!(NoteLog,
+            note_id: note.id
+          )
+
+        assert note_log.note_id == note.id
+        assert note_log.author_id == author.id
+        assert note_log.operation == "CREATE"
+        assert note_log.description == note.description
+      end)
     end
 
     test "create_note/1 with invalid data returns error changeset" do
@@ -56,8 +71,22 @@ defmodule Lanttern.NotesTest do
       note = note_fixture()
       update_attrs = %{description: "some updated description"}
 
-      assert {:ok, %Note{} = note} = Notes.update_note(note, update_attrs)
+      assert {:ok, %Note{} = note} = Notes.update_note(note, update_attrs, log_operation: true)
       assert note.description == "some updated description"
+
+      # assert log.
+      # see https://elixirforum.com/t/36605/2
+      on_exit(fn ->
+        note_log =
+          Repo.get_by!(NoteLog,
+            note_id: note.id
+          )
+
+        assert note_log.note_id == note.id
+        assert note_log.author_id == note.author_id
+        assert note_log.operation == "UPDATE"
+        assert note_log.description == note.description
+      end)
     end
 
     test "update_note/2 with invalid data returns error changeset" do
@@ -66,10 +95,24 @@ defmodule Lanttern.NotesTest do
       assert note == Notes.get_note!(note.id)
     end
 
-    test "delete_note/1 deletes the note" do
+    test "delete_note/2 deletes the note" do
       note = note_fixture()
-      assert {:ok, %Note{}} = Notes.delete_note(note)
+      assert {:ok, %Note{}} = Notes.delete_note(note, log_operation: true)
       assert_raise Ecto.NoResultsError, fn -> Notes.get_note!(note.id) end
+
+      # assert log.
+      # see https://elixirforum.com/t/36605/2
+      on_exit(fn ->
+        note_log =
+          Repo.get_by!(NoteLog,
+            note_id: note.id
+          )
+
+        assert note_log.note_id == note.id
+        assert note_log.author_id == note.author_id
+        assert note_log.operation == "DELETE"
+        assert note_log.description == note.description
+      end)
     end
 
     test "change_note/1 returns a note changeset" do
@@ -80,12 +123,13 @@ defmodule Lanttern.NotesTest do
 
   describe "strand notes" do
     alias Lanttern.Notes.Note
+    alias Lanttern.NotesLog.NoteLog
 
     import Lanttern.NotesFixtures
     import Lanttern.IdentityFixtures
     import Lanttern.LearningContextFixtures
 
-    test "create_strand_note/2 with valid data creates a note linked to a strand" do
+    test "create_strand_note/4 with valid data creates a note linked to a strand" do
       author = teacher_profile_fixture()
       strand = strand_fixture()
       valid_attrs = %{"description" => "some strand note"}
@@ -94,7 +138,8 @@ defmodule Lanttern.NotesTest do
                Notes.create_strand_note(
                  %{current_profile: author},
                  strand.id,
-                 valid_attrs
+                 valid_attrs,
+                 log_operation: true
                )
 
       assert note.author_id == author.id
@@ -104,6 +149,22 @@ defmodule Lanttern.NotesTest do
         Notes.get_user_note(%{current_profile: author}, strand_id: strand.id)
 
       assert expected.id == note.id
+
+      # assert log.
+      # see https://elixirforum.com/t/36605/2
+      on_exit(fn ->
+        note_log =
+          Repo.get_by!(NoteLog,
+            note_id: note.id
+          )
+
+        assert note_log.note_id == note.id
+        assert note_log.author_id == author.id
+        assert note_log.operation == "CREATE"
+        assert note_log.description == note.description
+        assert note_log.type == "strand"
+        assert note_log.type_id == strand.id
+      end)
     end
 
     test "create_strand_note/2 with invalid data returns error changeset" do
@@ -333,12 +394,13 @@ defmodule Lanttern.NotesTest do
 
   describe "moment notes" do
     alias Lanttern.Notes.Note
+    alias Lanttern.NotesLog.NoteLog
 
     import Lanttern.NotesFixtures
     import Lanttern.IdentityFixtures
     import Lanttern.LearningContextFixtures
 
-    test "create_moment_note/2 with valid data creates a note linked to a moment" do
+    test "create_moment_note/4 with valid data creates a note linked to a moment" do
       author = teacher_profile_fixture()
       moment = moment_fixture()
       valid_attrs = %{"author_id" => author.id, "description" => "some moment note"}
@@ -347,7 +409,8 @@ defmodule Lanttern.NotesTest do
                Notes.create_moment_note(
                  %{current_profile: author},
                  moment.id,
-                 valid_attrs
+                 valid_attrs,
+                 log_operation: true
                )
 
       assert note.author_id == author.id
@@ -357,6 +420,22 @@ defmodule Lanttern.NotesTest do
         Notes.get_user_note(%{current_profile: author}, moment_id: moment.id)
 
       assert expected.id == note.id
+
+      # assert log.
+      # see https://elixirforum.com/t/36605/2
+      on_exit(fn ->
+        note_log =
+          Repo.get_by!(NoteLog,
+            note_id: note.id
+          )
+
+        assert note_log.note_id == note.id
+        assert note_log.author_id == author.id
+        assert note_log.operation == "CREATE"
+        assert note_log.description == note.description
+        assert note_log.type == "moment"
+        assert note_log.type_id == moment.id
+      end)
     end
 
     test "create_moment_note/2 with invalid data returns error changeset" do

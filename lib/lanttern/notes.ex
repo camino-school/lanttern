@@ -11,6 +11,7 @@ defmodule Lanttern.Notes do
   alias Lanttern.Notes.MomentNoteRelationship
   alias Lanttern.Notes.Note
   alias Lanttern.Notes.StrandNoteRelationship
+  alias Lanttern.NotesLog
   alias Lanttern.Identity.User
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
@@ -279,7 +280,8 @@ defmodule Lanttern.Notes do
 
   ### Options:
 
-  `:preloads` – preloads associated data
+  - `:preloads` – preloads associated data
+  - `:log_operation` - use `true` to log the operation
 
   ## Examples
 
@@ -295,10 +297,15 @@ defmodule Lanttern.Notes do
     |> Note.changeset(attrs)
     |> Repo.insert()
     |> maybe_preload(opts)
+    |> NotesLog.maybe_create_note_log("CREATE", opts)
   end
 
   @doc """
   Creates a user strand note.
+
+  ### Options:
+
+  - `:log_operation` - use `true` to log the operation
 
   ## Examples
 
@@ -309,7 +316,7 @@ defmodule Lanttern.Notes do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_strand_note(%{current_profile: profile} = _user, strand_id, attrs \\ %{}) do
+  def create_strand_note(%{current_profile: profile} = _user, strand_id, attrs \\ %{}, opts \\ []) do
     insert_query =
       %Note{}
       |> Note.changeset(Map.put(attrs, "author_id", profile && profile.id))
@@ -333,10 +340,15 @@ defmodule Lanttern.Notes do
       {:error, _multi, changeset, _changes} -> {:error, changeset}
       {:ok, %{insert_note: note}} -> {:ok, note}
     end
+    |> NotesLog.maybe_create_note_log("CREATE", [{:strand_id, strand_id} | opts])
   end
 
   @doc """
   Creates a user moment note.
+
+  ### Options:
+
+  - `:log_operation` - use `true` to log the operation
 
   ## Examples
 
@@ -347,7 +359,7 @@ defmodule Lanttern.Notes do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_moment_note(%{current_profile: profile} = _user, moment_id, attrs \\ %{}) do
+  def create_moment_note(%{current_profile: profile} = _user, moment_id, attrs \\ %{}, opts \\ []) do
     insert_query =
       %Note{}
       |> Note.changeset(Map.put(attrs, "author_id", profile && profile.id))
@@ -371,6 +383,7 @@ defmodule Lanttern.Notes do
       {:error, _multi, changeset, _changes} -> {:error, changeset}
       {:ok, %{insert_note: note}} -> {:ok, note}
     end
+    |> NotesLog.maybe_create_note_log("CREATE", [{:moment_id, moment_id} | opts])
   end
 
   @doc """
@@ -378,7 +391,8 @@ defmodule Lanttern.Notes do
 
   ### Options:
 
-  `:preloads` – preloads associated data
+  - `:preloads` – preloads associated data
+  - `:log_operation` - use `true` to log the operation
 
   ## Examples
 
@@ -394,10 +408,15 @@ defmodule Lanttern.Notes do
     |> Note.changeset(attrs)
     |> Repo.update()
     |> maybe_preload(opts)
+    |> NotesLog.maybe_create_note_log("UPDATE", opts)
   end
 
   @doc """
   Deletes a note.
+
+  ### Options:
+
+  - `:log_operation` - use `true` to log the operation
 
   ## Examples
 
@@ -408,8 +427,9 @@ defmodule Lanttern.Notes do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_note(%Note{} = note) do
+  def delete_note(%Note{} = note, opts \\ []) do
     Repo.delete(note)
+    |> NotesLog.maybe_create_note_log("DELETE", opts)
   end
 
   @doc """
