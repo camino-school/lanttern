@@ -7,7 +7,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
   alias Lanttern.Schools.Student
 
   import LantternWeb.AssessmentsHelpers, only: [save_entry_editor_component_changes: 2]
-  import LantternWeb.PersonalizationHelpers, only: [assign_user_filters: 4]
+  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 4]
 
   # shared components
   alias LantternWeb.Assessments.EntryEditorComponent
@@ -142,7 +142,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
         </.empty_state>
       <% end %>
       <.live_component
-        module={LantternWeb.Personalization.FiltersOverlayComponent}
+        module={LantternWeb.Filters.FiltersOverlayComponent}
         id="classes-filter-modal"
         current_user={@current_user}
         title={gettext("Select classes for assessment")}

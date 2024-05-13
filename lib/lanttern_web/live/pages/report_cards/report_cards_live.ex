@@ -3,7 +3,7 @@ defmodule LantternWeb.ReportCardsLive do
 
   alias Lanttern.Reporting
   alias Lanttern.Reporting.ReportCard
-  import LantternWeb.PersonalizationHelpers
+  import LantternWeb.FiltersHelpers
 
   # live components
   alias LantternWeb.Reporting.ReportCardFormComponent

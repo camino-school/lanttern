@@ -2,7 +2,7 @@ defmodule LantternWeb.MomentLive.NotesComponentTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.LearningContextFixtures
-  alias Lanttern.PersonalizationFixtures
+  alias Lanttern.NotesFixtures
 
   @live_view_base_path "/strands"
 
@@ -14,7 +14,7 @@ defmodule LantternWeb.MomentLive.NotesComponentTest do
       moment = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
 
       note =
-        PersonalizationFixtures.moment_note_fixture(user, moment.id, %{
+        NotesFixtures.moment_note_fixture(user, moment.id, %{
           "description" => "moment note desc abc"
         })
 
@@ -29,12 +29,12 @@ defmodule LantternWeb.MomentLive.NotesComponentTest do
 
       assert view |> has_element?("p", "You don't have any notes for this moment yet")
 
-      view |> element("button", "Add an moment note") |> render_click()
+      view |> element("button", "Add a moment note") |> render_click()
 
       attrs = %{"description" => "new moment note"}
 
       assert view
-             |> form("#moment-note-form", note: attrs)
+             |> form("#note-form", note: attrs)
              |> render_submit()
 
       render(view)

@@ -4,7 +4,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
 
-  import LantternWeb.PersonalizationHelpers, only: [assign_user_filters: 4]
+  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 4]
 
   # shared components
   alias LantternWeb.StrandLive.StrandRubricsComponent
@@ -103,7 +103,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         selected_classes_ids={@selected_classes_ids}
       />
       <.live_component
-        module={LantternWeb.Personalization.FiltersOverlayComponent}
+        module={LantternWeb.Filters.FiltersOverlayComponent}
         id="classes-filter-modal"
         current_user={@current_user}
         title={gettext("Select classes for assessment")}

@@ -2,7 +2,7 @@ defmodule LantternWeb.StrandLive.NotesComponentTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.LearningContextFixtures
-  alias Lanttern.PersonalizationFixtures
+  alias Lanttern.NotesFixtures
 
   @live_view_base_path "/strands"
 
@@ -13,21 +13,21 @@ defmodule LantternWeb.StrandLive.NotesComponentTest do
       strand = LearningContextFixtures.strand_fixture()
 
       note =
-        PersonalizationFixtures.strand_note_fixture(user, strand.id, %{
+        NotesFixtures.strand_note_fixture(user, strand.id, %{
           "description" => "strand note desc abc"
         })
 
       moment_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id, position: 1})
 
       moment_note_1 =
-        PersonalizationFixtures.moment_note_fixture(user, moment_1.id, %{
+        NotesFixtures.moment_note_fixture(user, moment_1.id, %{
           "description" => "moment 1 note desc abc"
         })
 
       moment_2 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id, position: 2})
 
       moment_note_2 =
-        PersonalizationFixtures.moment_note_fixture(user, moment_2.id, %{
+        NotesFixtures.moment_note_fixture(user, moment_2.id, %{
           "description" => "moment 2 note desc abc"
         })
 
@@ -50,7 +50,7 @@ defmodule LantternWeb.StrandLive.NotesComponentTest do
       attrs = %{"description" => "new strand note"}
 
       assert view
-             |> form("#strand-note-form", note: attrs)
+             |> form("#note-form", note: attrs)
              |> render_submit()
 
       render(view)

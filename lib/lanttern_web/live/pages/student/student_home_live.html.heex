@@ -1,7 +1,7 @@
 <.responsive_container class="pt-6 sm:pt-10">
   <.page_title_with_menu><%= gettext("Welcome!") %></.page_title_with_menu>
   <p class="mt-10 font-display font-black text-xl">
-    <%= gettext("%{student}'s report cards", student: @current_user.current_profile.name) %>
+    <%= gettext("My report cards") %>
   </p>
 </.responsive_container>
 <%= if @has_student_report_cards do %>
@@ -23,6 +23,47 @@
     </.empty_state>
   </.responsive_container>
 <% end %>
+<.responsive_container>
+  <p class="font-display font-black text-xl">
+    <%= gettext("My strand notes") %>
+  </p>
+  <.live_component
+    module={InlineFiltersComponent}
+    id="cycles-filter"
+    filter_items={@student_report_cards_cycles}
+    selected_items_ids={@selected_cycles_ids}
+    class="mt-4"
+    all_text={gettext("All cycles")}
+    notify_parent
+  />
+  <div :if={!@has_student_strands_notes} class="p-6 rounde mt-6 mb-10 bg-white shadow lg">
+    <.empty_state>
+      <%= gettext("No strands related to selected cycles") %>
+    </.empty_state>
+  </div>
+</.responsive_container>
+<.responsive_grid :if={@has_student_strands_notes} id="student-strands-notes" phx-update="stream">
+  <.strand_card
+    :for={{dom_id, {note, strand}} <- @streams.student_strands_notes}
+    id={dom_id}
+    strand={strand}
+    cover_image_url={strand.cover_image_url}
+    hide_description
+    class="shrink-0 w-64 sm:w-auto"
+  >
+    <:bottom_content>
+      <div class="flex flex-wrap gap-2 p-6 border-t border-ltrn-lighter">
+        <.button
+          theme={if note, do: "diff_light", else: "ghost"}
+          icon_name="hero-pencil-square"
+          phx-click={JS.push("edit_note", value: %{"strand_id" => strand.id})}
+        >
+          <%= if note, do: gettext("View/edit note"), else: gettext("Add note") %>
+        </.button>
+      </div>
+    </:bottom_content>
+  </.strand_card>
+</.responsive_grid>
 <%= if @has_student_report_cards_wip do %>
   <.responsive_container>
     <p class="font-display font-black text-xl text-ltrn-subtle">
@@ -42,3 +83,56 @@
   </.responsive_grid>
 <% end %>
 <.school_branding_footer school={@school} />
+<.slide_over
+  :if={@is_editing_note && @strand}
+  id="student-strand-note-overlay"
+  show={true}
+  on_cancel={JS.patch(~p"/student")}
+>
+  <:title><%= gettext("My strand notes") %></:title>
+  <div class="font-display font-black">
+    <p class="text-lg"><%= @strand.name %></p>
+    <p :if={@strand.type} class="text-sm text-ltrn-subtle"><%= @strand.type %></p>
+  </div>
+  <.hr class="my-10" />
+  <.live_component
+    module={NoteComponent}
+    id="student-strand-notes"
+    note={@note}
+    current_user={@current_user}
+    strand_id={@strand.id}
+    title={gettext("Notes")}
+    empty_msg={gettext("No notes for this strand yet")}
+    empty_add_note_msg={gettext("Add a strand note")}
+    allow_editing={true}
+  />
+  <div :if={@has_student_report_cards_for_strand}>
+    <.hr class="my-10" />
+    <h6 class="font-display font-bold"><%= gettext("View note in report card context") %></h6>
+    <ul id="strand-linked-report-cards" phx-update="stream" class="pl-6 list-disc">
+      <li
+        :for={
+          {dom_id, {student_report_card, strand_report}} <-
+            @streams.student_report_cards_for_strand
+        }
+        id={dom_id}
+        class="mt-4 text-sm"
+      >
+        <%= if student_report_card.allow_student_access do %>
+          <.link
+            navigate={
+              ~p"/student_report_card/#{student_report_card}/strand_report/#{strand_report}?tab=student_notes"
+            }
+            class="underline hover:text-ltrn-subtle"
+          >
+            <%= student_report_card.report_card.name %>
+          </.link>
+        <% else %>
+          <span class="text-ltrn-subtle">
+            <%= student_report_card.report_card.name %> (<%= gettext("under development") %>)
+          </span>
+        <% end %>
+      </li>
+    </ul>
+  </div>
+</.slide_over>

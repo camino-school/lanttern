@@ -8,6 +8,7 @@ defmodule Lanttern.Reporting.ReportCard do
 
   alias Lanttern.GradesReports.GradesReport
   alias Lanttern.Reporting.StrandReport
+  alias Lanttern.Reporting.StudentReportCard
   alias Lanttern.Schools.Cycle
   alias Lanttern.Taxonomy.Year
 
@@ -24,6 +25,7 @@ defmodule Lanttern.Reporting.ReportCard do
           grades_report: GradesReport.t(),
           grades_report_id: pos_integer(),
           strand_reports: [StrandReport.t()],
+          students_report_cards: [StudentReportCard.t()],
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -39,6 +41,7 @@ defmodule Lanttern.Reporting.ReportCard do
     belongs_to :grades_report, GradesReport
 
     has_many :strand_reports, StrandReport, preload_order: [asc: :position]
+    has_many :students_report_cards, StudentReportCard
 
     timestamps()
   end

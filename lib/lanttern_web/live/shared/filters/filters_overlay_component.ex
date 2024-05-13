@@ -1,11 +1,11 @@
-defmodule LantternWeb.Personalization.FiltersOverlayComponent do
+defmodule LantternWeb.Filters.FiltersOverlayComponent do
   @moduledoc """
   Renders a filter overlay
   """
 
   use LantternWeb, :live_component
 
-  import LantternWeb.PersonalizationHelpers
+  import LantternWeb.FiltersHelpers
 
   @impl true
   def render(assigns) do

@@ -30,8 +30,7 @@ defmodule Lanttern.ReportingFixtures do
       |> Enum.into(%{
         report_card_id: maybe_gen_report_card_id(attrs),
         strand_id: Lanttern.LearningContextFixtures.maybe_gen_strand_id(attrs),
-        description: "some description",
-        position: 0
+        description: "some description"
       })
       |> Lanttern.Reporting.create_strand_report()
 

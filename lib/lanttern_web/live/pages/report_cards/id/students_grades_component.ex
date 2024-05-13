@@ -4,13 +4,13 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
   alias Lanttern.GradesReports
   alias Lanttern.Schools
 
-  import LantternWeb.PersonalizationHelpers,
+  import LantternWeb.FiltersHelpers,
     only: [assign_user_filters: 4, save_profile_filters: 4]
 
   # shared
   alias LantternWeb.GradesReports.StudentGradeReportEntryFormComponent
   import LantternWeb.GradesReportsComponents
-  alias LantternWeb.Personalization.InlineFiltersComponent
+  alias LantternWeb.Filters.InlineFiltersComponent
 
   @impl true
   def render(assigns) do
@@ -144,7 +144,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           </:actions>
         </.slide_over>
         <.live_component
-          module={LantternWeb.Personalization.FiltersOverlayComponent}
+          module={LantternWeb.Filters.FiltersOverlayComponent}
           id="students-grades-filters"
           current_user={@current_user}
           title={gettext("Students grades filter")}

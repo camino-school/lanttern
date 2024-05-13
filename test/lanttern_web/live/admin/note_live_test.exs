@@ -2,7 +2,7 @@ defmodule LantternWeb.Admin.NoteLiveTest do
   use LantternWeb.ConnCase
 
   import Phoenix.LiveViewTest
-  import Lanttern.PersonalizationFixtures
+  import Lanttern.NotesFixtures
   import Lanttern.IdentityFixtures
 
   @update_attrs %{description: "some updated description"}

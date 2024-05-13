@@ -8,13 +8,13 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   alias Lanttern.Schools
   alias Lanttern.Schools.Student
 
-  import LantternWeb.PersonalizationHelpers,
+  import LantternWeb.FiltersHelpers,
     only: [assign_user_filters: 4, save_profile_filters: 4]
 
   # shared components
   alias LantternWeb.Reporting.StudentReportCardFormComponent
-  alias LantternWeb.Personalization.InlineFiltersComponent
-  alias LantternWeb.Personalization.FiltersOverlayComponent
+  alias LantternWeb.Filters.InlineFiltersComponent
+  alias LantternWeb.Filters.FiltersOverlayComponent
 
   @impl true
   def render(assigns) do

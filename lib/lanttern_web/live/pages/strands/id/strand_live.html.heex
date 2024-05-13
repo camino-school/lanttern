@@ -52,9 +52,9 @@
       <:tab
         patch={~p"/strands/#{@strand}?#{%{tab: "notes"}}"}
         is_current={@current_tab == :notes && "true"}
-        icon_name="hero-eye-slash"
+        icon_name="hero-pencil-square"
       >
-        <%= gettext("My notes") %>
+        <%= gettext("Notes") %>
       </:tab>
     </.nav_tabs>
     <.menu_button id={@strand.id}>

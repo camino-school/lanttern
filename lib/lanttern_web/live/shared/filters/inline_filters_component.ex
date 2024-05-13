@@ -1,7 +1,7 @@
-defmodule LantternWeb.Personalization.InlineFiltersComponent do
+defmodule LantternWeb.Filters.InlineFiltersComponent do
   @moduledoc """
   Renders an inline filter component based on the list of items and selected ids
-  from `LantternWeb.PersonalizationHelpers.assign_user_filters/4`.
+  from `LantternWeb.FiltersHelpers.assign_user_filters/4`.
 
   This component receives the inital state from the parent view/component,
   but handles its own internal state (selected items).
@@ -18,7 +18,7 @@ defmodule LantternWeb.Personalization.InlineFiltersComponent do
         phx-click={JS.push("toggle_all", target: @myself)}
         {get_select_all_attrs(@selected_items_ids)}
       >
-        <%= gettext("All") %>
+        <%= @all_text %>
       </.badge_button>
       <.badge_button
         :for={item <- @filter_items}
@@ -74,6 +74,7 @@ defmodule LantternWeb.Personalization.InlineFiltersComponent do
     socket =
       socket
       |> assign(:class, nil)
+      |> assign(:all_text, gettext("All"))
 
     {:ok, socket}
   end

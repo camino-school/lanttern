@@ -1,7 +1,7 @@
 defmodule LantternWeb.Admin.NoteLive.FormComponent do
   use LantternWeb, :live_component
 
-  alias Lanttern.Personalization
+  alias Lanttern.Notes
   import LantternWeb.IdentityHelpers
 
   @impl true
@@ -45,7 +45,7 @@ defmodule LantternWeb.Admin.NoteLive.FormComponent do
 
   @impl true
   def update(%{note: note} = assigns, socket) do
-    changeset = Personalization.change_note(note)
+    changeset = Notes.change_note(note)
 
     {:ok,
      socket
@@ -57,7 +57,7 @@ defmodule LantternWeb.Admin.NoteLive.FormComponent do
   def handle_event("validate", %{"note" => note_params}, socket) do
     changeset =
       socket.assigns.note
-      |> Personalization.change_note(note_params)
+      |> Notes.change_note(note_params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}
@@ -68,7 +68,7 @@ defmodule LantternWeb.Admin.NoteLive.FormComponent do
   end
 
   defp save_note(socket, :edit, note_params) do
-    case Personalization.update_note(socket.assigns.note, note_params,
+    case Notes.update_note(socket.assigns.note, note_params,
            preloads: [author: [:student, :teacher]]
          ) do
       {:ok, note} ->
@@ -85,7 +85,7 @@ defmodule LantternWeb.Admin.NoteLive.FormComponent do
   end
 
   defp save_note(socket, :new, note_params) do
-    case Personalization.create_note(note_params, preloads: [author: [:student, :teacher]]) do
+    case Notes.create_note(note_params, preloads: [author: [:student, :teacher]]) do
       {:ok, note} ->
         notify_parent({:saved, note})
 

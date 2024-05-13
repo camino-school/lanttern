@@ -7,6 +7,7 @@ defmodule Lanttern.Identity.Profile do
   import Ecto.Changeset
 
   alias Lanttern.Identity.User
+  alias Lanttern.Notes.Note
   alias Lanttern.Schools.Student
   alias Lanttern.Schools.Teacher
   alias Lanttern.Personalization.ProfileSettings
@@ -26,6 +27,7 @@ defmodule Lanttern.Identity.Profile do
           teacher_id: pos_integer(),
           guardian_of_student: Student.t(),
           guardian_of_student_id: pos_integer(),
+          notes: [Note.t()],
           settings: ProfileSettings.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
@@ -45,6 +47,8 @@ defmodule Lanttern.Identity.Profile do
     belongs_to :student, Student
     belongs_to :teacher, Teacher
     belongs_to :guardian_of_student, Student
+
+    has_many :notes, Note, foreign_key: :author_id
 
     has_one :settings, ProfileSettings
 

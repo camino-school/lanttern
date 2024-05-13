@@ -5,7 +5,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
   alias Lanttern.Assessments.AssessmentPoint
 
   import LantternWeb.AssessmentsHelpers, only: [save_entry_editor_component_changes: 2]
-  import LantternWeb.PersonalizationHelpers, only: [assign_user_filters: 4]
+  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 4]
   import Lanttern.Utils, only: [swap: 3]
 
   # shared components
@@ -182,7 +182,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
         </:actions>
       </.slide_over>
       <.live_component
-        module={LantternWeb.Personalization.FiltersOverlayComponent}
+        module={LantternWeb.Filters.FiltersOverlayComponent}
         id="classes-filter-modal"
         current_user={@current_user}
         title={gettext("Select classes for assessment")}

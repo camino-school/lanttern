@@ -4,7 +4,7 @@ defmodule LantternWeb.StrandsLive do
   alias Lanttern.LearningContext
   alias Lanttern.LearningContext.Strand
 
-  import LantternWeb.PersonalizationHelpers
+  import LantternWeb.FiltersHelpers
 
   # live components
   alias LantternWeb.LearningContext.StrandFormComponent

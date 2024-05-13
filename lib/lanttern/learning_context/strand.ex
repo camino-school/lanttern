@@ -11,6 +11,8 @@ defmodule Lanttern.LearningContext.Strand do
 
   alias Lanttern.LearningContext.Moment
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Notes.Note
+  alias Lanttern.Notes.StrandNoteRelationship
   alias Lanttern.Reporting.StrandReport
   alias Lanttern.Taxonomy.Subject
   alias Lanttern.Taxonomy.Year
@@ -29,6 +31,8 @@ defmodule Lanttern.LearningContext.Strand do
           moments: [Moment.t()],
           assessment_points: [AssessmentPoint.t()],
           strand_reports: [StrandReport.t()],
+          strand_note_relationships: [StrandNoteRelationship.t()],
+          notes: [Note.t()],
           subjects: [Subject.t()],
           years: [Year.t()],
           inserted_at: DateTime.t(),
@@ -49,6 +53,8 @@ defmodule Lanttern.LearningContext.Strand do
     has_many :moments, Moment
     has_many :assessment_points, AssessmentPoint
     has_many :strand_reports, StrandReport
+    has_many :strand_note_relationships, StrandNoteRelationship
+    has_many :notes, through: [:strand_note_relationships, :note]
 
     many_to_many :subjects, Subject,
       join_through: "strands_subjects",

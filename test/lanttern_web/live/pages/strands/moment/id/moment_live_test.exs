@@ -75,7 +75,7 @@ defmodule LantternWeb.MomentLiveTest do
 
       assert_patch(view)
 
-      assert view |> has_element?("button", "Add an moment note")
+      assert view |> has_element?("button", "Add a moment note")
 
       # back to details tab
 

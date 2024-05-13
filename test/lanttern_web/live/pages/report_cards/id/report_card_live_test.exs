@@ -3,7 +3,7 @@ defmodule LantternWeb.ReportCardLiveTest do
 
   import Lanttern.ReportingFixtures
 
-  alias Lanttern.Personalization
+  alias Lanttern.Filters
   alias Lanttern.LearningContextFixtures
   alias Lanttern.SchoolsFixtures
   alias Lanttern.TaxonomyFixtures
@@ -44,7 +44,7 @@ defmodule LantternWeb.ReportCardLiveTest do
         student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_a.id})
 
       # select profile class filter to display student B
-      Personalization.set_profile_report_card_filters(
+      Filters.set_profile_report_card_filters(
         user,
         report_card.id,
         %{classes_ids: [class.id]}
