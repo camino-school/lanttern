@@ -1,4 +1,4 @@
-defmodule Lanttern.Repo.Migrations.CreateNotes do
+defmodule Lanttern.Repo.Migrations.CreateNotesLogs do
   use Ecto.Migration
 
   @prefix "log"
