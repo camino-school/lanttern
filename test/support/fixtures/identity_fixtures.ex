@@ -102,9 +102,18 @@ defmodule Lanttern.IdentityFixtures do
 
   # helpers
 
-  def maybe_gen_profile_id(%{profile_id: profile_id} = _attrs),
+  def maybe_gen_profile_id(attrs, opts \\ [])
+
+  def maybe_gen_profile_id(%{profile_id: profile_id} = _attrs, _opts),
     do: profile_id
 
-  def maybe_gen_profile_id(_attrs),
+  def maybe_gen_profile_id(attrs, foreign_key: foreign_key) do
+    case Map.get(attrs, foreign_key) do
+      nil -> teacher_profile_fixture().id
+      id -> id
+    end
+  end
+
+  def maybe_gen_profile_id(_attrs, _opts),
     do: teacher_profile_fixture().id
 end
