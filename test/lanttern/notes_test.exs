@@ -470,4 +470,66 @@ defmodule Lanttern.NotesTest do
                )
     end
   end
+
+  describe "notes attachments" do
+    alias Lanttern.Notes.Note
+    alias Lanttern.NotesLog.NoteLog
+
+    import Lanttern.NotesFixtures
+    alias Lanttern.IdentityFixtures
+
+    alias Lanttern.Attachments.Attachment
+
+    test "list_note_attachments/1 lists all attachments linked to note" do
+      profile = IdentityFixtures.student_profile_fixture()
+      note = note_fixture(%{author_id: profile.id})
+
+      {:ok, attachment_1} =
+        Notes.create_note_attachment(
+          %{current_profile: profile},
+          note.id,
+          %{"name" => "attachment 1", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      {:ok, attachment_2} =
+        Notes.create_note_attachment(
+          %{current_profile: profile},
+          note.id,
+          %{"name" => "attachment 2", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      {:ok, attachment_3} =
+        Notes.create_note_attachment(
+          %{current_profile: profile},
+          note.id,
+          %{"name" => "attachment 3", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      assert [attachment_1, attachment_2, attachment_3] ==
+               Notes.list_note_attachments(note.id)
+    end
+
+    test "create_note_attachment/3 with valid data creates an attachment linked to an existing note" do
+      profile = IdentityFixtures.student_profile_fixture()
+      note = note_fixture(%{author_id: profile.id})
+
+      valid_attrs = %{
+        "name" => "attachment blah",
+        "link" => "https://somevaliduri.com",
+        "is_external" => true
+      }
+
+      assert {:ok, %Attachment{} = attachment} =
+               Notes.create_note_attachment(
+                 %{current_profile: profile},
+                 note.id,
+                 valid_attrs
+               )
+
+      assert attachment.owner_id == profile.id
+      assert attachment.name == "attachment blah"
+      assert attachment.link == "https://somevaliduri.com"
+      assert attachment.is_external
+    end
+  end
 end

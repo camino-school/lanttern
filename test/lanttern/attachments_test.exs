@@ -25,7 +25,7 @@ defmodule Lanttern.AttachmentsTest do
 
       valid_attrs = %{
         name: "some name",
-        link: "some link",
+        link: "https://create-valid.link",
         description: "some description",
         is_external: true,
         owner_id: profile.id
@@ -33,7 +33,7 @@ defmodule Lanttern.AttachmentsTest do
 
       assert {:ok, %Attachment{} = attachment} = Attachments.create_attachment(valid_attrs)
       assert attachment.name == "some name"
-      assert attachment.link == "some link"
+      assert attachment.link == "https://create-valid.link"
       assert attachment.description == "some description"
       assert attachment.is_external == true
       assert attachment.owner_id == profile.id
@@ -48,7 +48,7 @@ defmodule Lanttern.AttachmentsTest do
 
       update_attrs = %{
         name: "some updated name",
-        link: "some updated link",
+        link: "https://valid-updated.link",
         description: "some updated description",
         is_external: false
       }
@@ -57,7 +57,7 @@ defmodule Lanttern.AttachmentsTest do
                Attachments.update_attachment(attachment, update_attrs)
 
       assert attachment.name == "some updated name"
-      assert attachment.link == "some updated link"
+      assert attachment.link == "https://valid-updated.link"
       assert attachment.description == "some updated description"
       assert attachment.is_external == false
     end

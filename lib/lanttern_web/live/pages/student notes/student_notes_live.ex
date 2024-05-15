@@ -17,6 +17,7 @@ defmodule LantternWeb.StudentNotesLive do
   alias LantternWeb.Notes.NoteComponent
   alias LantternWeb.Filters.InlineFiltersComponent
   import LantternWeb.SchoolsComponents
+  alias LantternWeb.Attachments.AttachmentAreaComponent
 
   @impl true
   def mount(_params, _session, socket) do
@@ -137,6 +138,22 @@ defmodule LantternWeb.StudentNotesLive do
         [:cycles]
       )
       |> stream_student_strands_notes()
+
+    {:noreply, socket}
+  end
+
+  def handle_info({NoteComponent, {:saved, note}}, socket) do
+    socket =
+      socket
+      |> assign(:note, note)
+
+    {:noreply, socket}
+  end
+
+  def handle_info({NoteComponent, {:deleted, _}}, socket) do
+    socket =
+      socket
+      |> assign(:note, nil)
 
     {:noreply, socket}
   end

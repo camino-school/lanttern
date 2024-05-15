@@ -60,7 +60,20 @@
     empty_msg={gettext("No notes for this strand yet")}
     empty_add_note_msg={gettext("Add a strand note")}
     allow_editing={true}
+    notify_parent
   />
+  <div :if={@note} class="mt-10">
+    <div class="flex items-center gap-2 mb-4">
+      <.icon name="hero-paper-clip" class="w-6 h-6" />
+      <h5 class="font-display font-bold text-sm"><%= gettext("Note's attachments") %></h5>
+    </div>
+    <.live_component
+      module={AttachmentAreaComponent}
+      id="student-strand-note-attachemnts"
+      current_user={@current_user}
+      note_id={@note && @note.id}
+    />
+  </div>
   <div :if={@has_student_report_cards_for_strand}>
     <.hr class="my-10" />
     <h6 class="font-display font-bold"><%= gettext("View note in report card context") %></h6>

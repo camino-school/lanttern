@@ -12,7 +12,7 @@ defmodule Lanttern.AttachmentsFixtures do
       attrs
       |> Enum.into(%{
         name: "some name",
-        link: "some link",
+        link: "https://some-valid.link",
         owner_id: Lanttern.IdentityFixtures.maybe_gen_profile_id(attrs, foreign_key: :owner_id)
       })
       |> Lanttern.Attachments.create_attachment()
