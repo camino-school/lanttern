@@ -517,4 +517,18 @@ defmodule Lanttern.Notes do
       {:ok, %{insert_attachment: attachment}} -> {:ok, attachment}
     end
   end
+
+  @doc """
+  Update note attachments positions based on ids list order.
+
+  ## Examples
+
+      iex> update_note_attachments_positions([3, 2, 1])
+      :ok
+
+  """
+  @spec update_note_attachments_positions(attachments_ids :: [integer()]) ::
+          :ok | {:error, String.t()}
+  def update_note_attachments_positions(attachments_ids),
+    do: update_positions(NoteAttachment, attachments_ids, id_field: :attachment_id)
 end

@@ -7,6 +7,8 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   use LantternWeb, :live_component
 
+  import Lanttern.Utils, only: [swap: 3]
+
   alias Lanttern.Attachments
   alias Lanttern.Attachments.Attachment
   alias Lanttern.Notes
@@ -15,21 +17,46 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   def render(assigns) do
     ~H"""
     <div class={@class}>
-      <ul :if={@has_attachments} id="attachments-list" phx-update="stream">
+      <ul :if={@attachments_length > 0} id="attachments-list" phx-update="stream">
         <li
-          :for={{dom_id, attachment} <- @streams.attachments}
+          :for={{dom_id, {attachment, i}} <- @streams.attachments}
           id={dom_id}
-          class="p-4 rounded mb-4 bg-white shadow-lg"
+          class="flex items-center gap-4 mb-4"
         >
-          <span class="text-sm"><%= attachment.name %></span>
-          <br />
-          <a
-            href={attachment.link}
-            target="_blank"
-            class="mt-2 text-xs underline hover:text-ltrn-subtle"
+          <.sortable_card
+            is_move_up_disabled={i == 0}
+            on_move_up={
+              JS.push("reorder_attachments",
+                value: %{from: i, to: i - 1},
+                target: @myself
+              )
+            }
+            is_move_down_disabled={i + 1 == @attachments_length}
+            on_move_down={
+              JS.push("reorder_attachments",
+                value: %{from: i, to: i + 1},
+                target: @myself
+              )
+            }
+            class="flex-1"
           >
-            <%= attachment.link %>
-          </a>
+            <a href={attachment.link} target="_blank" class="flex-1 group mt-2 text-sm">
+              <%= attachment.name %>
+              <span class="block mt-2 text-xs underline group-hover:text-ltrn-subtle">
+                <%= attachment.link %>
+              </span>
+            </a>
+          </.sortable_card>
+          <.icon_button
+            name="hero-trash"
+            theme="ghost"
+            rounded
+            sr_text={gettext("Remove attachment")}
+            phx-click="delete"
+            phx-target={@myself}
+            phx-value-id={attachment.id}
+            data-confirm={gettext("Are you sure? This action cannot be undone.")}
+          />
         </li>
       </ul>
       <%= if @is_adding_external do %>
@@ -112,6 +139,10 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       socket
       |> assign(:class, nil)
       |> assign(:is_adding_external, false)
+      |> stream_configure(
+        :attachments,
+        dom_id: fn {attachment, _i} -> "attachment-#{attachment.id}" end
+      )
 
     {:ok, socket}
   end
@@ -136,10 +167,12 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   defp stream_attachments(socket) do
     attachments = Notes.list_note_attachments(socket.assigns.note_id)
+    attachments_ids = Enum.map(attachments, & &1.id)
 
     socket
-    |> stream(:attachments, attachments, reset: true)
-    |> assign(:has_attachments, attachments != [])
+    |> stream(:attachments, Enum.with_index(attachments), reset: true)
+    |> assign(:attachments_length, length(attachments))
+    |> assign(:attachments_ids, attachments_ids)
   end
 
   # event handlers
@@ -184,6 +217,44 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_external_form(socket, changeset)}
+    end
+  end
+
+  def handle_event("delete", %{"id" => id}, socket) do
+    attachment = Attachments.get_attachment!(id)
+
+    case Attachments.delete_attachment(attachment) do
+      {:ok, _attachment} ->
+        socket =
+          socket
+          |> stream_attachments()
+
+        {:noreply, socket}
+
+      {:error, _changeset} ->
+        socket =
+          socket
+          |> assign(:error_msg, gettext("Error deleting attachment"))
+
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event("reorder_attachments", %{"from" => i, "to" => j}, socket) do
+    attachments_ids =
+      socket.assigns.attachments_ids
+      |> swap(i, j)
+
+    case Notes.update_note_attachments_positions(attachments_ids) do
+      :ok ->
+        socket =
+          socket
+          |> stream_attachments()
+
+        {:noreply, socket}
+
+      {:error, msg} ->
+        {:noreply, put_flash(socket, :error, msg)}
     end
   end
 

@@ -1,4 +1,8 @@
 defmodule Lanttern.Notes.NoteAttachment do
+  @moduledoc """
+  The `NoteAttachment` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 
