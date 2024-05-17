@@ -36,23 +36,18 @@ defmodule LantternWeb.DashboardLive do
             <%= @filter_view.name %>
           </.link>
           <.menu_button id={@id}>
-            <:menu_items>
-              <.menu_button_item
-                id={"edit-filter-view-#{@id}"}
-                phx-click={JS.patch(~p"/dashboard/filter_view/#{@filter_view.id}/edit")}
-              >
-                Edit
-              </.menu_button_item>
-              <.menu_button_item
-                id={"remove-filter-view-#{@id}"}
-                class="text-red-500"
-                phx-click="delete_filter_view"
-                phx-value-id={@filter_view.id}
-                data-confirm="Are you sure?"
-              >
-                Delete
-              </.menu_button_item>
-            </:menu_items>
+            <:item
+              id={"edit-filter-view-#{@id}"}
+              text={gettext("Edit")}
+              on_click={JS.patch(~p"/dashboard/filter_view/#{@filter_view.id}/edit")}
+            />
+            <:item
+              id={"remove-filter-view-#{@id}"}
+              text={gettext("Delete")}
+              theme="alert"
+              on_click={JS.push("delete_filter_view", value: %{"id" => @filter_view.id})}
+              confirm_msg={gettext("Are you sure?")}
+            />
           </.menu_button>
         </div>
       </:upper_block>

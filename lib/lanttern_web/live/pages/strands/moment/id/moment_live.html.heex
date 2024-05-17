@@ -60,22 +60,18 @@
       </:tab>
     </.nav_tabs>
     <.menu_button id={"moment-#{@moment.id}"}>
-      <:menu_items>
-        <.menu_button_item
-          id={"edit-moment-#{@moment.id}"}
-          phx-click={JS.patch(~p"/strands/moment/#{@moment}/edit")}
-        >
-          <%= gettext("Edit moment") %>
-        </.menu_button_item>
-        <.menu_button_item
-          id={"remove-moment-#{@moment.id}"}
-          class="text-red-500"
-          phx-click="delete_moment"
-          data-confirm={gettext("Are you sure?")}
-        >
-          <%= gettext("Delete") %>
-        </.menu_button_item>
-      </:menu_items>
+      <:item
+        id={"edit-moment-#{@moment.id}"}
+        text={gettext("Edit moment")}
+        on_click={JS.patch(~p"/strands/moment/#{@moment}/edit")}
+      />
+      <:item
+        id={"remove-moment-#{@moment.id}"}
+        text={gettext("Delete")}
+        theme="alert"
+        on_click={JS.push("delete_moment")}
+        confirm_msg={gettext("Are you sure?")}
+      />
     </.menu_button>
   </.responsive_container>
 </div>

@@ -63,15 +63,12 @@
     notify_parent
   />
   <div :if={@note} class="mt-10">
-    <div class="flex items-center gap-2 mb-4">
-      <.icon name="hero-paper-clip" class="w-6 h-6" />
-      <h5 class="font-display font-bold text-sm"><%= gettext("Note's attachments") %></h5>
-    </div>
     <.live_component
       module={AttachmentAreaComponent}
       id="student-strand-note-attachemnts"
       current_user={@current_user}
       note_id={@note && @note.id}
+      title={gettext("Note's attachments")}
     />
   </div>
   <div :if={@has_student_report_cards_for_strand}>

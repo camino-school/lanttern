@@ -507,6 +507,13 @@ defmodule Lanttern.NotesTest do
 
       assert [attachment_1, attachment_2, attachment_3] ==
                Notes.list_note_attachments(note.id)
+
+      # use same setup to test update_note_attachments_positions/1
+
+      Notes.update_note_attachments_positions([attachment_2.id, attachment_3.id, attachment_1.id])
+
+      assert [attachment_2, attachment_3, attachment_1] ==
+               Notes.list_note_attachments(note.id)
     end
 
     test "create_note_attachment/3 with valid data creates an attachment linked to an existing note" do

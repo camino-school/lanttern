@@ -17,7 +17,16 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   def render(assigns) do
     ~H"""
     <div class={@class}>
-      <ul :if={@attachments_length > 0} id="attachments-list" phx-update="stream">
+      <div :if={@title} class="flex items-center gap-2 mb-4">
+        <.icon name="hero-paper-clip" class="w-6 h-6" />
+        <h5 class="font-display font-bold text-sm"><%= @title %></h5>
+      </div>
+      <ul
+        :if={@attachments_length > 0}
+        id="attachments-list"
+        phx-update="stream"
+        class={if @is_editing, do: "hidden"}
+      >
         <li
           :for={{dom_id, {attachment, i}} <- @streams.attachments}
           id={dom_id}
@@ -47,52 +56,51 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
               </span>
             </a>
           </.sortable_card>
-          <.icon_button
-            name="hero-trash"
-            theme="ghost"
-            rounded
-            sr_text={gettext("Remove attachment")}
-            phx-click="delete"
-            phx-target={@myself}
-            phx-value-id={attachment.id}
-            data-confirm={gettext("Are you sure? This action cannot be undone.")}
-          />
+          <.menu_button id={attachment.id}>
+            <:item
+              id={"edit-attachment-#{attachment.id}"}
+              text={gettext("Edit")}
+              on_click={JS.push("edit", value: %{"id" => attachment.id}, target: @myself)}
+            />
+            <:item
+              id={"remove-attachment-#{attachment.id}"}
+              text={gettext("Remove")}
+              on_click={JS.push("delete", value: %{"id" => attachment.id}, target: @myself)}
+              theme="alert"
+              confirm_msg={gettext("Are you sure? This action cannot be undone.")}
+            />
+          </.menu_button>
         </li>
       </ul>
-      <%= if @is_adding_external do %>
+      <%= if @is_adding_external || @is_editing do %>
         <div class="p-4 border border-dashed border-ltrn-subtle rounded bg-white shadow-lg">
           <.form
-            for={@external_form}
+            for={@form}
             id="external-attachment-form"
             phx-target={@myself}
-            phx-change="validate_external"
-            phx-submit="create_external"
+            phx-change="validate"
+            phx-submit="save"
           >
             <.input
-              field={@external_form[:name]}
+              field={@form[:name]}
               type="text"
               label={gettext("Attachment name")}
               class="mb-6"
               phx-debounce="1500"
             />
             <.input
-              field={@external_form[:link]}
+              field={@form[:link]}
               type="text"
               label={gettext("Link")}
               class="mb-6"
               phx-debounce="1500"
             />
             <div class="flex justify-end gap-2">
-              <.button
-                type="button"
-                theme="ghost"
-                phx-click="cancel_add_external"
-                phx-target={@myself}
-              >
+              <.button type="button" theme="ghost" phx-click="cancel" phx-target={@myself}>
                 <%= gettext("Cancel") %>
               </.button>
               <.button type="submit" phx-disable-with={gettext("Saving...")}>
-                <%= gettext("Attach") %>
+                <%= gettext("Save") %>
               </.button>
             </div>
           </.form>
@@ -137,8 +145,11 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   def mount(socket) do
     socket =
       socket
+      |> assign(:title, nil)
       |> assign(:class, nil)
+      |> assign(:attachment, nil)
       |> assign(:is_adding_external, false)
+      |> assign(:is_editing, false)
       |> stream_configure(
         :attachments,
         dom_id: fn {attachment, _i} -> "attachment-#{attachment.id}" end
@@ -152,14 +163,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     socket =
       socket
       |> assign(assigns)
-
-    changeset =
-      %Attachment{}
-      |> Attachments.change_attachment()
-
-    socket =
-      socket
-      |> assign_external_form(changeset)
       |> stream_attachments()
 
     {:ok, socket}
@@ -178,46 +181,58 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   # event handlers
 
   @impl true
-  def handle_event("add_external", _, socket),
-    do: {:noreply, assign(socket, :is_adding_external, true)}
+  def handle_event("add_external", _, socket) do
+    changeset =
+      %Attachment{}
+      |> Attachments.change_attachment()
 
-  def handle_event("cancel_add_external", _, socket),
-    do: {:noreply, assign(socket, :is_adding_external, false)}
+    socket =
+      socket
+      |> assign(:is_adding_external, true)
+      |> assign_form(changeset)
 
-  def handle_event("validate_external", %{"attachment" => attachment_params}, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_event("edit", %{"id" => id}, socket) do
+    attachment = Attachments.get_attachment!(id)
+    changeset = Attachments.change_attachment(attachment, %{})
+
+    socket =
+      socket
+      |> assign(:is_editing, true)
+      |> assign(:attachment, attachment)
+      |> assign_form(changeset)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("cancel", _, socket) do
+    socket =
+      socket
+      |> assign(:is_adding_external, false)
+      |> assign(:is_editing, false)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("validate", %{"attachment" => attachment_params}, socket) do
     changeset =
       %Attachment{}
       |> Attachments.change_attachment(attachment_params)
       |> Map.put(:action, :validate)
 
-    {:noreply, assign_external_form(socket, changeset)}
+    {:noreply, assign_form(socket, changeset)}
   end
 
-  def handle_event("create_external", %{"attachment" => params}, socket) do
-    %{
-      current_user: current_user,
-      note_id: note_id
-    } = socket.assigns
+  def handle_event("save", %{"attachment" => params}, socket) do
+    type =
+      case socket.assigns do
+        %{is_adding_external: true} -> :new_external
+        %{is_editing: true} -> :edit
+      end
 
-    # add is_external to params
-    params =
-      params
-      |> Map.put("is_external", true)
-
-    case Notes.create_note_attachment(current_user, note_id, params) do
-      {:ok, attachment} ->
-        notify_parent(__MODULE__, {:created, attachment}, socket.assigns)
-
-        socket =
-          socket
-          |> assign(:is_adding_external, false)
-          |> stream_attachments()
-
-        {:noreply, socket}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign_external_form(socket, changeset)}
-    end
+    save_attachment(socket, type, params)
   end
 
   def handle_event("delete", %{"id" => id}, socket) do
@@ -260,6 +275,56 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   # helpers
 
-  defp assign_external_form(socket, %Ecto.Changeset{} = changeset),
-    do: assign(socket, :external_form, to_form(changeset))
+  # save attachment clauses:
+  # :new_external -> when is_adding_external
+  # :edit -> when is_editing
+
+  defp save_attachment(socket, :new_external, params) do
+    %{
+      current_user: current_user,
+      note_id: note_id
+    } = socket.assigns
+
+    # add is_external to params
+    params =
+      params
+      |> Map.put("is_external", true)
+
+    case Notes.create_note_attachment(current_user, note_id, params) do
+      {:ok, attachment} ->
+        notify_parent(__MODULE__, {:created, attachment}, socket.assigns)
+
+        socket =
+          socket
+          |> assign(:is_adding_external, false)
+          |> stream_attachments()
+
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign_form(socket, changeset)}
+    end
+  end
+
+  defp save_attachment(socket, :edit, params) do
+    %{attachment: attachment} = socket.assigns
+
+    case Attachments.update_attachment(attachment, params) do
+      {:ok, attachment} ->
+        notify_parent(__MODULE__, {:edited, attachment}, socket.assigns)
+
+        socket =
+          socket
+          |> assign(:is_editing, false)
+          |> stream_attachments()
+
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign_form(socket, changeset)}
+    end
+  end
+
+  defp assign_form(socket, %Ecto.Changeset{} = changeset),
+    do: assign(socket, :form, to_form(changeset))
 end

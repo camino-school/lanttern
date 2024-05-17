@@ -385,7 +385,14 @@ defmodule LantternWeb.OverlayComponents do
   """
 
   attr :id, :string, required: true
-  slot :menu_items, required: true, doc: "Use `<.menu_button_item>` components here"
+
+  slot :item, required: true do
+    attr :id, :string, required: true
+    attr :text, :string, required: true
+    attr :on_click, JS, required: true
+    attr :theme, :string
+    attr :confirm_msg, :string, doc: "use for adding a data-confirm attr"
+  end
 
   def menu_button(assigns) do
     ~H"""
@@ -417,11 +424,36 @@ defmodule LantternWeb.OverlayComponents do
         phx-key="escape"
         phx-click-away={JS.exec("data-cancel", to: "#menu-button-#{@id}-button")}
       >
-        <%= render_slot(@menu_items) %>
+        <button
+          :for={item <- @item}
+          id={item.id}
+          type="button"
+          class={[
+            "block w-full px-3 py-1 text-sm text-left focus:bg-ltrn-lighter",
+            menu_button_item_theme_classes(Map.get(item, :theme, "default"))
+          ]}
+          role="menuitem"
+          tabindex="-1"
+          phx-click={
+            item.on_click
+            |> JS.exec("data-cancel", to: "#menu-button-#{@id}-button")
+          }
+          data-confirm={Map.get(item, :confirm_msg)}
+        >
+          <%= item.text %>
+        </button>
       </div>
     </div>
     """
   end
+
+  @menu_button_item_themes %{
+    "default" => "text-ltrn-dark",
+    "alert" => "text-ltrn-alert"
+  }
+
+  defp menu_button_item_theme_classes(theme),
+    do: Map.get(@menu_button_item_themes, theme, @menu_button_item_themes["default"])
 
   defp open_menu_button(id, js \\ %JS{}) do
     js
@@ -449,25 +481,5 @@ defmodule LantternWeb.OverlayComponents do
       time: 75
     )
     |> JS.remove_attribute("aria-expanded")
-  end
-
-  attr :id, :string, required: true
-  attr :class, :any, default: nil
-  attr :rest, :global, doc: "Use it to pass `phx-` bindings"
-  slot :inner_block, required: true
-
-  def menu_button_item(assigns) do
-    ~H"""
-    <button
-      id={@id}
-      type="button"
-      class={["block w-full px-3 py-1 text-sm text-left focus:bg-ltrn-lighter", @class]}
-      role="menuitem"
-      tabindex="-1"
-      {@rest}
-    >
-      <%= render_slot(@inner_block) %>
-    </button>
-    """
   end
 end
