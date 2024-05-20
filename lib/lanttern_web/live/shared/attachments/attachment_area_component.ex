@@ -49,12 +49,31 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
             }
             class="flex-1"
           >
-            <a href={attachment.link} target="_blank" class="flex-1 group mt-2 text-sm">
-              <%= attachment.name %>
-              <span class="block mt-2 text-xs underline group-hover:text-ltrn-subtle">
-                <%= attachment.link %>
-              </span>
-            </a>
+            <div class="flex items-center gap-4">
+              <button
+                type="button"
+                phx-hook="CopyToClipboard"
+                data-clipboard-text={"[#{attachment.name}](#{attachment.link})"}
+                id={"clipboard-#{dom_id}"}
+                class={[
+                  "group relative shrink-0 p-1 rounded-full text-ltrn-subtle hover:bg-ltrn-lighter",
+                  "[&.copied-to-clipboard]:text-ltrn-primary [&.copied-to-clipboard]:bg-ltrn-mesh-cyan"
+                ]}
+              >
+                <.icon
+                  name="hero-square-2-stack"
+                  class="block group-[.copied-to-clipboard]:hidden w-6 h-6"
+                />
+                <.icon name="hero-check hidden group-[.copied-to-clipboard]:block" class="w-6 h-6" />
+                <.tooltip><%= gettext("Copy attachment link markdown") %></.tooltip>
+              </button>
+              <a href={attachment.link} target="_blank" class="flex-1 group mt-2 text-sm">
+                <%= attachment.name %>
+                <span class="block mt-2 text-xs underline group-hover:text-ltrn-subtle">
+                  <%= attachment.link %>
+                </span>
+              </a>
+            </div>
           </.sortable_card>
           <.menu_button id={attachment.id}>
             <:item

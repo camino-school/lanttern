@@ -22,6 +22,7 @@ import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
 import autocompleteHook from "./autocomplete-hook";
+import copyToClipboardHook from "./copy-to-clipboard-hook";
 import cookiesHook from "./cookies-hook";
 import menuButtonrHook from "./menu-button-hook";
 import navScrollspyHook from "./nav-scrollspy-hook";
@@ -33,6 +34,7 @@ Hooks.MenuButton = menuButtonrHook;
 Hooks.NavScrollspy = navScrollspyHook;
 Hooks.Slider = sliderHook;
 Hooks.Cookies = cookiesHook;
+Hooks.CopyToClipboard = copyToClipboardHook;
 
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")
