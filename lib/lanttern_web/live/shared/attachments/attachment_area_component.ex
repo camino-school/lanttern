@@ -32,63 +32,74 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
           id={dom_id}
           class="flex items-center gap-4 mb-4"
         >
-          <.sortable_card
-            is_move_up_disabled={i == 0}
-            on_move_up={
-              JS.push("reorder_attachments",
-                value: %{from: i, to: i - 1},
-                target: @myself
-              )
-            }
-            is_move_down_disabled={i + 1 == @attachments_length}
-            on_move_down={
-              JS.push("reorder_attachments",
-                value: %{from: i, to: i + 1},
-                target: @myself
-              )
-            }
-            class="flex-1"
-          >
-            <div class="flex items-center gap-4">
-              <button
-                type="button"
-                phx-hook="CopyToClipboard"
-                data-clipboard-text={"[#{attachment.name}](#{attachment.link})"}
-                id={"clipboard-#{dom_id}"}
-                class={[
-                  "group relative shrink-0 p-1 rounded-full text-ltrn-subtle hover:bg-ltrn-lighter",
-                  "[&.copied-to-clipboard]:text-ltrn-primary [&.copied-to-clipboard]:bg-ltrn-mesh-cyan"
-                ]}
-              >
-                <.icon
-                  name="hero-square-2-stack"
-                  class="block group-[.copied-to-clipboard]:hidden w-6 h-6"
-                />
-                <.icon name="hero-check hidden group-[.copied-to-clipboard]:block" class="w-6 h-6" />
-                <.tooltip><%= gettext("Copy attachment link markdown") %></.tooltip>
-              </button>
-              <a href={attachment.link} target="_blank" class="flex-1 group mt-2 text-sm">
+          <%= if @allow_editing do %>
+            <.sortable_card
+              is_move_up_disabled={i == 0}
+              on_move_up={
+                JS.push("reorder_attachments",
+                  value: %{from: i, to: i - 1},
+                  target: @myself
+                )
+              }
+              is_move_down_disabled={i + 1 == @attachments_length}
+              on_move_down={
+                JS.push("reorder_attachments",
+                  value: %{from: i, to: i + 1},
+                  target: @myself
+                )
+              }
+              class="flex-1 min-w-0"
+            >
+              <div class="flex items-center gap-4">
+                <button
+                  type="button"
+                  phx-hook="CopyToClipboard"
+                  data-clipboard-text={"[#{attachment.name}](#{attachment.link})"}
+                  id={"clipboard-#{dom_id}"}
+                  class={[
+                    "group relative shrink-0 p-1 rounded-full text-ltrn-subtle hover:bg-ltrn-lighter",
+                    "[&.copied-to-clipboard]:text-ltrn-primary [&.copied-to-clipboard]:bg-ltrn-mesh-cyan"
+                  ]}
+                >
+                  <.icon
+                    name="hero-square-2-stack"
+                    class="block group-[.copied-to-clipboard]:hidden w-6 h-6"
+                  />
+                  <.icon name="hero-check hidden group-[.copied-to-clipboard]:block" class="w-6 h-6" />
+                  <.tooltip><%= gettext("Copy attachment link markdown") %></.tooltip>
+                </button>
+                <a href={attachment.link} target="_blank" class="group flex-1 min-w-0 text-sm">
+                  <%= attachment.name %>
+                  <span class="block max-w-full mt-2 text-xs underline text-ellipsis overflow-hidden group-hover:text-ltrn-subtle">
+                    <%= attachment.link %>
+                  </span>
+                </a>
+              </div>
+            </.sortable_card>
+            <.menu_button id={attachment.id}>
+              <:item
+                id={"edit-attachment-#{attachment.id}"}
+                text={gettext("Edit")}
+                on_click={JS.push("edit", value: %{"id" => attachment.id}, target: @myself)}
+              />
+              <:item
+                id={"remove-attachment-#{attachment.id}"}
+                text={gettext("Remove")}
+                on_click={JS.push("delete", value: %{"id" => attachment.id}, target: @myself)}
+                theme="alert"
+                confirm_msg={gettext("Are you sure? This action cannot be undone.")}
+              />
+            </.menu_button>
+          <% else %>
+            <div class="flex-1 min-w-0 p-4 rounded bg-white shadow-lg">
+              <a href={attachment.link} target="_blank" class="group mt-2 text-sm">
                 <%= attachment.name %>
-                <span class="block mt-2 text-xs underline group-hover:text-ltrn-subtle">
+                <span class="block mt-2 text-xs underline text-ellipsis overflow-hidden group-hover:text-ltrn-subtle">
                   <%= attachment.link %>
                 </span>
               </a>
             </div>
-          </.sortable_card>
-          <.menu_button id={attachment.id}>
-            <:item
-              id={"edit-attachment-#{attachment.id}"}
-              text={gettext("Edit")}
-              on_click={JS.push("edit", value: %{"id" => attachment.id}, target: @myself)}
-            />
-            <:item
-              id={"remove-attachment-#{attachment.id}"}
-              text={gettext("Remove")}
-              on_click={JS.push("delete", value: %{"id" => attachment.id}, target: @myself)}
-              theme="alert"
-              confirm_msg={gettext("Are you sure? This action cannot be undone.")}
-            />
-          </.menu_button>
+          <% end %>
         </li>
       </ul>
       <%= if @is_adding_external || @is_editing do %>
@@ -125,7 +136,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
           </.form>
         </div>
       <% else %>
-        <div class="grid grid-cols-2 gap-2">
+        <div :if={@allow_editing} class="grid grid-cols-2 gap-2">
           <div class="p-4 border border-dashed border-ltrn-subtle rounded text-center text-ltrn-subtle bg-white shadow-lg">
             <div>
               <.icon name="hero-document-plus" class="h-8 w-8 mx-auto mb-6" />
@@ -166,6 +177,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       socket
       |> assign(:title, nil)
       |> assign(:class, nil)
+      |> assign(:allow_editing, false)
       |> assign(:attachment, nil)
       |> assign(:is_adding_external, false)
       |> assign(:is_editing, false)

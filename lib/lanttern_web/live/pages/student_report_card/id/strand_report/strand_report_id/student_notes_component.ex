@@ -38,6 +38,7 @@ defmodule LantternWeb.StudentStrandReportLive.StudentNotesComponent do
           current_user={@current_user}
           note_id={@note && @note.id}
           title={gettext("Note's attachments")}
+          allow_editing={@is_student}
         />
       </.responsive_container>
     </div>
