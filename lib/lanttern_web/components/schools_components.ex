@@ -10,7 +10,7 @@ defmodule LantternWeb.SchoolsComponents do
   import LantternWeb.CoreComponents
 
   alias Lanttern.Schools.School
-  import LantternWeb.SupabaseHelpers, only: [object_url_to_render_url: 2]
+  import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   @doc """
   Renders a school branding footer.

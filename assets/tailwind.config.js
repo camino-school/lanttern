@@ -34,7 +34,8 @@ module.exports = {
             yellow: colors.yellow["100"],
             lime: colors.lime["100"],
           },
-          alert: colors.red["500"]
+          alert: colors.red["500"],
+          "alert-lighter": colors.red["100"]
         },
       },
       fontFamily: {

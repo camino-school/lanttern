@@ -5,6 +5,7 @@ defmodule Lanttern.Attachments do
 
   import Ecto.Query, warn: false
   alias Lanttern.Repo
+  alias Lanttern.SupabaseHelpers
 
   alias Lanttern.Attachments.Attachment
 
@@ -87,7 +88,24 @@ defmodule Lanttern.Attachments do
   """
   def delete_attachment(%Attachment{} = attachment) do
     Repo.delete(attachment)
+    |> case do
+      {:ok, _} = res ->
+        # if attachment is internal (Supabase), delete from cloud in a async task (fire and forget)
+        if !attachment.is_external do
+          Task.Supervisor.start_child(Lanttern.TaskSupervisor, fn ->
+            delete_attachment_from_cloud(attachment)
+          end)
+        end
+
+        res
+
+      {:error, _} = res ->
+        res
+    end
   end
+
+  defp delete_attachment_from_cloud(attachment),
+    do: SupabaseHelpers.remove_object("attachments", attachment.link)
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking attachment changes.

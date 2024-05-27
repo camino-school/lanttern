@@ -8,6 +8,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   use LantternWeb, :live_component
 
   import Lanttern.Utils, only: [swap: 3]
+  alias Lanttern.SupabaseHelpers
 
   alias Lanttern.Attachments
   alias Lanttern.Attachments.Attachment
@@ -68,16 +69,25 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
                   <.icon name="hero-check hidden group-[.copied-to-clipboard]:block" class="w-6 h-6" />
                   <.tooltip><%= gettext("Copy attachment link markdown") %></.tooltip>
                 </button>
-                <a href={attachment.link} target="_blank" class="group flex-1 min-w-0 text-sm">
-                  <%= attachment.name %>
-                  <span class="block max-w-full mt-2 text-xs underline text-ellipsis overflow-hidden group-hover:text-ltrn-subtle">
-                    <%= attachment.link %>
-                  </span>
-                </a>
+                <div class="flex-1 min-w-o">
+                  <%= if(attachment.is_external) do %>
+                    <.badge><%= gettext("External link") %></.badge>
+                  <% else %>
+                    <.badge theme="cyan"><%= gettext("Upload") %></.badge>
+                  <% end %>
+                  <a
+                    href={attachment.link}
+                    target="_blank"
+                    class="block mt-2 text-sm underline hover:text-ltrn-subtle"
+                  >
+                    <%= attachment.name %>
+                  </a>
+                </div>
               </div>
             </.sortable_card>
             <.menu_button id={attachment.id}>
               <:item
+                :if={attachment.is_external}
                 id={"edit-attachment-#{attachment.id}"}
                 text={gettext("Edit")}
                 on_click={JS.push("edit", value: %{"id" => attachment.id}, target: @myself)}
@@ -92,79 +102,145 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
             </.menu_button>
           <% else %>
             <div class="flex-1 min-w-0 p-4 rounded bg-white shadow-lg">
-              <a href={attachment.link} target="_blank" class="group mt-2 text-sm">
+              <%= if(attachment.is_external) do %>
+                <.badge><%= gettext("External link") %></.badge>
+              <% else %>
+                <.badge theme="cyan"><%= gettext("Upload") %></.badge>
+              <% end %>
+              <a
+                href={attachment.link}
+                target="_blank"
+                class="block mt-2 text-sm underline hover:text-ltrn-subtle"
+              >
                 <%= attachment.name %>
-                <span class="block mt-2 text-xs underline text-ellipsis overflow-hidden group-hover:text-ltrn-subtle">
-                  <%= attachment.link %>
-                </span>
               </a>
             </div>
           <% end %>
         </li>
       </ul>
-      <%= if @is_adding_external || @is_editing do %>
-        <div class="p-4 border border-dashed border-ltrn-subtle rounded bg-white shadow-lg">
-          <.form
-            for={@form}
-            id="external-attachment-form"
-            phx-target={@myself}
-            phx-change="validate"
-            phx-submit="save"
+      <div
+        :if={@is_adding_external || @is_editing}
+        class="p-4 border border-dashed border-ltrn-subtle rounded bg-white shadow-lg"
+      >
+        <.form
+          for={@form}
+          id="external-attachment-form"
+          phx-target={@myself}
+          phx-change="validate"
+          phx-submit="save"
+        >
+          <.input
+            field={@form[:name]}
+            type="text"
+            label={gettext("Attachment name")}
+            class="mb-6"
+            phx-debounce="1500"
+          />
+          <.input
+            field={@form[:link]}
+            type="text"
+            label={gettext("Link")}
+            class="mb-6"
+            phx-debounce="1500"
+          />
+          <div class="flex justify-end gap-2">
+            <.button type="button" theme="ghost" phx-click="cancel" phx-target={@myself}>
+              <%= gettext("Cancel") %>
+            </.button>
+            <.button type="submit" phx-disable-with={gettext("Saving...")}>
+              <%= gettext("Save") %>
+            </.button>
+          </div>
+        </.form>
+      </div>
+      <div
+        :for={entry <- @uploads.attachment_file.entries}
+        class="p-4 border border-dashed border-ltrn-subtle rounded shadow-lg bg-white"
+      >
+        <p class="flex items-center gap-2 text-sm text-ltrn-subtle">
+          <.icon name="hero-paper-clip-mini" />
+          <%= gettext("File upload") %>
+        </p>
+        <p class="mt-2 font-bold">
+          <%= Slug.slugify(entry.client_name, lowercase: false, ignore: "._") %>
+        </p>
+        <.error_block :if={@invalid_upload_msg} class="mt-4">
+          <%= @invalid_upload_msg %>
+        </.error_block>
+        <%!-- <%= inspect(entry) %>
+        <%= for err <- upload_errors(@uploads.attachment_file, entry) do %>
+          <p class="alert alert-danger"><%= err %></p>
+        <% end %> --%>
+
+        <div class="flex justify-end gap-4 mt-10">
+          <.button
+            type="button"
+            theme="ghost"
+            phx-click={JS.push("cancel_upload", value: %{"ref" => entry.ref}, target: @myself)}
           >
-            <.input
-              field={@form[:name]}
-              type="text"
-              label={gettext("Attachment name")}
-              class="mb-6"
-              phx-debounce="1500"
-            />
-            <.input
-              field={@form[:link]}
-              type="text"
-              label={gettext("Link")}
-              class="mb-6"
-              phx-debounce="1500"
-            />
-            <div class="flex justify-end gap-2">
-              <.button type="button" theme="ghost" phx-click="cancel" phx-target={@myself}>
-                <%= gettext("Cancel") %>
-              </.button>
-              <.button type="submit" phx-disable-with={gettext("Saving...")}>
-                <%= gettext("Save") %>
-              </.button>
-            </div>
-          </.form>
+            <%= gettext("Cancel") %>
+          </.button>
+          <.button type="submit" form="attachments-upload-form" disabled={!entry.valid?}>
+            <%= gettext("Upload") %>
+          </.button>
         </div>
-      <% else %>
-        <div :if={@allow_editing} class="grid grid-cols-2 gap-2">
-          <div class="p-4 border border-dashed border-ltrn-subtle rounded text-center text-ltrn-subtle bg-white shadow-lg">
+      </div>
+      <div
+        :if={@allow_editing && !@is_adding_external && !@is_editing}
+        class={
+          [
+            "grid grid-cols-2 gap-2",
+            # we don't use the conditional rendering with :if for attachment files
+            # because we need the #attachments-upload-form for upload
+            if(@uploads.attachment_file.entries != [], do: "hidden")
+          ]
+        }
+      >
+        <div
+          class="p-4 border border-dashed border-ltrn-subtle rounded text-center text-ltrn-subtle bg-white shadow-lg"
+          phx-drop-target={@uploads.attachment_file.ref}
+        >
+          <form
+            id="attachments-upload-form"
+            phx-submit="upload"
+            phx-change="validate_upload"
+            phx-target={@myself}
+          >
+            <.icon name="hero-document-plus" class="h-8 w-8 mx-auto mb-6" />
             <div>
-              <.icon name="hero-document-plus" class="h-8 w-8 mx-auto mb-6" />
-              <div>
-                <label class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark">
-                  <span><%= gettext("Upload a file") %></span>
-                  <%!-- <.live_file_input upload={@upload} class="sr-only" /> --%>
-                </label>
-                <span><%= gettext("or drag and drop here") %></span>
-              </div>
-            </div>
-          </div>
-          <div class="p-4 border border-dashed border-ltrn-subtle rounded text-center bg-white shadow-lg">
-            <.icon name="hero-link" class="h-8 w-8 mx-auto mb-6 text-ltrn-subtle" />
-            <div>
-              <button
-                type="button"
-                class="inline text-ltrn-primary hover:text-ltrn-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
-                phx-click="add_external"
-                phx-target={@myself}
+              <label
+                for={@uploads.attachment_file.ref}
+                class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
               >
-                <%= gettext("Or add a link to an external file") %>
-                <span class="text-ltrn-subtle"><%= gettext("(e.g. Google Docs)") %></span>
-              </button>
+                <span><%= gettext("Upload a file") %></span>
+                <.live_file_input upload={@uploads.attachment_file} class="sr-only" />
+              </label>
+              <span><%= gettext("or drag and drop here") %></span>
             </div>
+          </form>
+        </div>
+        <div class="p-4 border border-dashed border-ltrn-subtle rounded text-center bg-white shadow-lg">
+          <.icon name="hero-link" class="h-8 w-8 mx-auto mb-6 text-ltrn-subtle" />
+          <div>
+            <button
+              type="button"
+              class="inline text-ltrn-primary hover:text-ltrn-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
+              phx-click="add_external"
+              phx-target={@myself}
+            >
+              <%= gettext("Or add a link to an external file") %>
+              <span class="text-ltrn-subtle"><%= gettext("(e.g. Google Docs)") %></span>
+            </button>
           </div>
         </div>
-      <% end %>
+      </div>
+      <.error_block
+        :if={@upload_error}
+        class="mt-4"
+        on_dismiss={JS.push("clear_upload_error", target: @myself)}
+      >
+        <%= @upload_error %>
+      </.error_block>
     </div>
     """
   end
@@ -181,9 +257,15 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       |> assign(:attachment, nil)
       |> assign(:is_adding_external, false)
       |> assign(:is_editing, false)
+      |> assign(:upload_error, nil)
       |> stream_configure(
         :attachments,
         dom_id: fn {attachment, _i} -> "attachment-#{attachment.id}" end
+      )
+      |> allow_upload(:attachment_file,
+        accept: :any,
+        max_file_size: 5_000_000,
+        max_entries: 1
       )
 
     {:ok, socket}
@@ -257,13 +339,18 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   end
 
   def handle_event("save", %{"attachment" => params}, socket) do
-    type =
-      case socket.assigns do
-        %{is_adding_external: true} -> :new_external
-        %{is_editing: true} -> :edit
-      end
+    case socket.assigns do
+      %{is_adding_external: true} ->
+        # add is_external to params
+        params =
+          params
+          |> Map.put("is_external", true)
 
-    save_attachment(socket, type, params)
+        save_attachment(socket, :new, params)
+
+      %{is_editing: true} ->
+        save_attachment(socket, :edit, params)
+    end
   end
 
   def handle_event("delete", %{"id" => id}, socket) do
@@ -304,22 +391,87 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     end
   end
 
+  def handle_event("validate_upload", _, socket) do
+    upload_conf = socket.assigns.uploads.attachment_file
+
+    invalid_upload_msg =
+      case upload_conf.entries do
+        [entry] -> upload_errors(upload_conf, entry)
+        _ -> []
+      end
+      |> Enum.map(&upload_error_to_string(upload_conf, &1))
+      |> case do
+        [] -> nil
+        error_messages -> Enum.join(error_messages, " ")
+      end
+
+    socket =
+      socket
+      |> assign(:invalid_upload_msg, invalid_upload_msg)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("upload", _, socket) do
+    [consumed_upload_res] =
+      consume_uploaded_entries(socket, :attachment_file, fn %{path: file_path}, entry ->
+        attachment_name = Slug.slugify(entry.client_name, lowercase: false, ignore: "._")
+
+        SupabaseHelpers.upload_object(
+          "attachments",
+          "#{Ecto.UUID.generate()}-#{attachment_name}",
+          file_path,
+          %{content_type: entry.client_type}
+        )
+        |> case do
+          {:ok, object} ->
+            attachment_url =
+              "#{SupabaseHelpers.config().base_url}/storage/v1/object/public/#{URI.encode(object["Key"])}"
+
+            {:ok, {:ok, {attachment_url, attachment_name}}}
+
+          {:error, message} ->
+            {:ok, {:error, message}}
+        end
+      end)
+
+    case consumed_upload_res do
+      {:ok, {link, name}} ->
+        params = %{
+          "name" => name,
+          "link" => link
+        }
+
+        save_attachment(socket, :new, params)
+
+      {:error, message} ->
+        socket =
+          socket
+          |> assign(:upload_error, message)
+
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event("cancel_upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :attachment_file, ref)}
+  end
+
+  def handle_event("clear_upload_error", _, socket) do
+    {:noreply, assign(socket, :upload_error, nil)}
+  end
+
   # helpers
 
   # save attachment clauses:
-  # :new_external -> when is_adding_external
+  # :new -> when is_adding_external or uploading attachment
   # :edit -> when is_editing
 
-  defp save_attachment(socket, :new_external, params) do
+  defp save_attachment(socket, :new, params) do
     %{
       current_user: current_user,
       note_id: note_id
     } = socket.assigns
-
-    # add is_external to params
-    params =
-      params
-      |> Map.put("is_external", true)
 
     case Notes.create_note_attachment(current_user, note_id, params) do
       {:ok, attachment} ->

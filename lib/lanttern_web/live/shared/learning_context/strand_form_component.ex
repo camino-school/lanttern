@@ -6,7 +6,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.LearningContext
-  alias LantternWeb.SupabaseHelpers
+  alias Lanttern.SupabaseHelpers
   import LantternWeb.TaxonomyHelpers
 
   # live components

@@ -2,7 +2,7 @@ defmodule LantternWeb.MomentLive do
   use LantternWeb, :live_view
 
   alias Lanttern.LearningContext
-  import LantternWeb.SupabaseHelpers, only: [object_url_to_render_url: 2]
+  import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # page components
   alias LantternWeb.MomentLive.OverviewComponent

@@ -6,7 +6,7 @@ defmodule LantternWeb.StudentStrandReportLive do
   alias Lanttern.Identity.Profile
   alias Lanttern.Reporting
   alias Lanttern.Reporting.StudentReportCard
-  import LantternWeb.SupabaseHelpers, only: [object_url_to_render_url: 2]
+  import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # page components
   alias LantternWeb.StudentStrandReportLive.StudentNotesComponent

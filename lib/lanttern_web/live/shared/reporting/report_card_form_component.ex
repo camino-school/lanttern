@@ -8,7 +8,7 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
   alias Lanttern.Reporting
   alias LantternWeb.GradesReportsHelpers
   alias LantternWeb.SchoolsHelpers
-  alias LantternWeb.SupabaseHelpers
+  alias Lanttern.SupabaseHelpers
   alias LantternWeb.TaxonomyHelpers
 
   @impl true

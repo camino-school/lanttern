@@ -23,7 +23,7 @@ const copyToClipboardHook = {
       const res = await writeClipboardText(text)
       if (res === "copied") {
         button.classList.add("copied-to-clipboard")
-        setTimeout(() => button.classList.remove("copied-to-clipboard"), 2000)
+        setTimeout(() => button.classList.remove("copied-to-clipboard"), 1000)
       }
     });
   },
