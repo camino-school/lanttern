@@ -162,7 +162,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
           <%= gettext("File upload") %>
         </p>
         <p class="mt-2 font-bold">
-          <%= Slug.slugify(entry.client_name, lowercase: false, ignore: "._") %>
+          <%= entry.client_name %>
         </p>
         <.error_block :if={@invalid_upload_msg} class="mt-4">
           <%= @invalid_upload_msg %>
@@ -415,11 +415,9 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   def handle_event("upload", _, socket) do
     [consumed_upload_res] =
       consume_uploaded_entries(socket, :attachment_file, fn %{path: file_path}, entry ->
-        attachment_name = Slug.slugify(entry.client_name, lowercase: false, ignore: "._")
-
         SupabaseHelpers.upload_object(
           "attachments",
-          "#{Ecto.UUID.generate()}-#{attachment_name}",
+          entry.client_name,
           file_path,
           %{content_type: entry.client_type}
         )
@@ -428,7 +426,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
             attachment_url =
               "#{SupabaseHelpers.config().base_url}/storage/v1/object/public/#{URI.encode(object["Key"])}"
 
-            {:ok, {:ok, {attachment_url, attachment_name}}}
+            {:ok, {:ok, {attachment_url, entry.client_name}}}
 
           {:error, message} ->
             {:ok, {:error, message}}

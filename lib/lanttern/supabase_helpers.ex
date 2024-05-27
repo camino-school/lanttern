@@ -12,16 +12,21 @@ defmodule Lanttern.SupabaseHelpers do
 
   - handles the client
   - puts the bucket name into a `Supabase.Storage.Bucket` struct
-  - URI encodes the path
+  - adds UUID + Slugify + URI encodes the path
   - parses opts to a `Supabase.Storage.ObjectOptions` struct
   """
   def upload_object(bucket_name, path, file, opts \\ %{}) do
     client = client()
 
+    path =
+      "#{Ecto.UUID.generate()}-#{path}"
+      |> Slug.slugify(lowercase: false, ignore: "._")
+      |> URI.encode()
+
     Supabase.Storage.upload_object(
       client,
       Supabase.Storage.Bucket.parse!(%{name: bucket_name}),
-      URI.encode(path),
+      path,
       file,
       Supabase.Storage.ObjectOptions.parse!(opts)
     )
