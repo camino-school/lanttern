@@ -51,6 +51,11 @@ defmodule Lanttern.NotesTest do
       # assert log.
       # see https://elixirforum.com/t/36605/2
       on_exit(fn ->
+        for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
+          ref = Process.monitor(pid)
+          assert_receive {:DOWN, ^ref, _, _, _}
+        end
+
         note_log =
           Repo.get_by!(NoteLog,
             note_id: note.id
@@ -77,6 +82,11 @@ defmodule Lanttern.NotesTest do
       # assert log.
       # see https://elixirforum.com/t/36605/2
       on_exit(fn ->
+        for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
+          ref = Process.monitor(pid)
+          assert_receive {:DOWN, ^ref, _, _, _}
+        end
+
         note_log =
           Repo.get_by!(NoteLog,
             note_id: note.id
@@ -103,6 +113,11 @@ defmodule Lanttern.NotesTest do
       # assert log.
       # see https://elixirforum.com/t/36605/2
       on_exit(fn ->
+        for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
+          ref = Process.monitor(pid)
+          assert_receive {:DOWN, ^ref, _, _, _}
+        end
+
         note_log =
           Repo.get_by!(NoteLog,
             note_id: note.id
@@ -153,6 +168,11 @@ defmodule Lanttern.NotesTest do
       # assert log.
       # see https://elixirforum.com/t/36605/2
       on_exit(fn ->
+        for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
+          ref = Process.monitor(pid)
+          assert_receive {:DOWN, ^ref, _, _, _}
+        end
+
         note_log =
           Repo.get_by!(NoteLog,
             note_id: note.id
@@ -424,6 +444,11 @@ defmodule Lanttern.NotesTest do
       # assert log.
       # see https://elixirforum.com/t/36605/2
       on_exit(fn ->
+        for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
+          ref = Process.monitor(pid)
+          assert_receive {:DOWN, ^ref, _, _, _}
+        end
+
         note_log =
           Repo.get_by!(NoteLog,
             note_id: note.id

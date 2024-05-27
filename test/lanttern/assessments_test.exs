@@ -765,6 +765,11 @@ defmodule Lanttern.AssessmentsTest do
       # assert log. see
       # https://elixirforum.com/t/36605/2
       on_exit(fn ->
+        for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
+          ref = Process.monitor(pid)
+          assert_receive {:DOWN, ^ref, _, _, _}
+        end
+
         assessment_point_entry_log =
           Repo.get_by!(AssessmentPointEntryLog,
             assessment_point_entry_id: assessment_point_entry.id
@@ -876,6 +881,11 @@ defmodule Lanttern.AssessmentsTest do
       # assert log. see
       # https://elixirforum.com/t/36605/2
       on_exit(fn ->
+        for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
+          ref = Process.monitor(pid)
+          assert_receive {:DOWN, ^ref, _, _, _}
+        end
+
         assessment_point_entry_log =
           Repo.get_by!(AssessmentPointEntryLog,
             assessment_point_entry_id: assessment_point_entry.id
@@ -929,6 +939,11 @@ defmodule Lanttern.AssessmentsTest do
       # assert log. see
       # https://elixirforum.com/t/36605/2
       on_exit(fn ->
+        for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
+          ref = Process.monitor(pid)
+          assert_receive {:DOWN, ^ref, _, _, _}
+        end
+
         assessment_point_entry_log =
           Repo.get_by!(AssessmentPointEntryLog,
             assessment_point_entry_id: assessment_point_entry.id
