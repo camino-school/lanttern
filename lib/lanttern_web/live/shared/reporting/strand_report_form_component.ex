@@ -125,7 +125,7 @@ defmodule LantternWeb.Reporting.StrandReportFormComponent do
         {:ok, object} =
           SupabaseHelpers.upload_object(
             "covers",
-            "#{Ecto.UUID.generate()}-#{entry.client_name}",
+            entry.client_name,
             file_path,
             %{content_type: entry.client_type}
           )
