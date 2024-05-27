@@ -7,7 +7,7 @@ defmodule LantternWeb.LearningContextComponents do
 
   import LantternWeb.Gettext
   import LantternWeb.CoreComponents
-  import LantternWeb.SupabaseHelpers, only: [object_url_to_render_url: 2]
+  import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   alias Phoenix.LiveView.JS
   alias Lanttern.LearningContext.Strand

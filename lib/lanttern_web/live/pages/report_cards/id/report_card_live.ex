@@ -2,7 +2,7 @@ defmodule LantternWeb.ReportCardLive do
   use LantternWeb, :live_view
 
   alias Lanttern.Reporting
-  import LantternWeb.SupabaseHelpers, only: [object_url_to_render_url: 2]
+  import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # page components
   alias __MODULE__.StudentsComponent

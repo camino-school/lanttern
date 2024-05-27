@@ -41,24 +41,18 @@
       </:tab>
     </.nav_tabs>
     <.menu_button id={@report_card.id}>
-      <:menu_items>
-        <.menu_button_item
-          id={"edit-report-card-#{@report_card.id}"}
-          phx-click={
-            JS.patch(~p"/report_cards/#{@report_card}?tab=#{@current_tab}&is_editing=true")
-          }
-        >
-          <%= gettext("Edit report card") %>
-        </.menu_button_item>
-        <.menu_button_item
-          id={"remove-report-card-#{@report_card.id}"}
-          class="text-red-500"
-          phx-click="delete_report_card"
-          data-confirm={gettext("Are you sure?")}
-        >
-          <%= gettext("Delete") %>
-        </.menu_button_item>
-      </:menu_items>
+      <:item
+        id={"edit-report-card-#{@report_card.id}"}
+        text={gettext("Edit report card")}
+        on_click={JS.patch(~p"/report_cards/#{@report_card}?tab=#{@current_tab}&is_editing=true")}
+      />
+      <:item
+        id={"remove-report-card-#{@report_card.id}"}
+        text={gettext("Delete")}
+        theme="alert"
+        on_click={JS.push("delete_report_card")}
+        confirm_msg={gettext("Are you sure?")}
+      />
     </.menu_button>
   </.responsive_container>
 </div>

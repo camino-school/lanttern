@@ -8,8 +8,10 @@ defmodule Lanttern.Notes do
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
 
+  alias Lanttern.Attachments.Attachment
   alias Lanttern.Notes.MomentNoteRelationship
   alias Lanttern.Notes.Note
+  alias Lanttern.Notes.NoteAttachment
   alias Lanttern.Notes.StrandNoteRelationship
   alias Lanttern.NotesLog
   alias Lanttern.Identity.User
@@ -444,4 +446,89 @@ defmodule Lanttern.Notes do
   def change_note(%Note{} = note, attrs \\ %{}) do
     Note.changeset(note, attrs)
   end
+
+  @doc """
+  Returns the list of attachments of the given note.
+
+  Ordered by `NoteAttachment` position.
+
+  ## Examples
+
+      iex> list_note_attachments(note_id)
+      [%Attachment{}, ...]
+
+  """
+  @spec list_note_attachments(note_id :: pos_integer()) :: [Attachment.t()]
+  def list_note_attachments(note_id) do
+    from(
+      a in Attachment,
+      join: na in assoc(a, :note_attachment),
+      where: na.note_id == ^note_id,
+      order_by: na.position
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Creates an attachment and links it to an existing note in a single transaction.
+
+  Profile (author/owner) should be the same in note and attachment.
+
+  ## Examples
+
+      iex> create_note_attachment(user, 1, %{field: value})
+      {:ok, %Attachment{}}
+
+      iex> create_note_attachment(user, 1, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec create_note_attachment(User.t(), note_id :: pos_integer(), attrs :: map()) ::
+          {:ok, Attachment.t()} | {:error, Ecto.Changeset.t()}
+  def create_note_attachment(%{current_profile: profile}, note_id, attrs \\ %{}) do
+    insert_query =
+      %Attachment{}
+      |> Attachment.changeset(Map.put(attrs, "owner_id", profile && profile.id))
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:insert_attachment, insert_query)
+    |> Ecto.Multi.run(
+      :link_note,
+      fn _repo, %{insert_attachment: attachment} ->
+        attrs =
+          from(
+            na in NoteAttachment,
+            where: na.note_id == ^note_id
+          )
+          |> set_position_in_attrs(%{
+            note_id: note_id,
+            attachment_id: attachment.id,
+            owner_id: profile.id
+          })
+
+        %NoteAttachment{}
+        |> NoteAttachment.changeset(attrs)
+        |> Repo.insert()
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:error, _multi, changeset, _changes} -> {:error, changeset}
+      {:ok, %{insert_attachment: attachment}} -> {:ok, attachment}
+    end
+  end
+
+  @doc """
+  Update note attachments positions based on ids list order.
+
+  ## Examples
+
+      iex> update_note_attachments_positions([3, 2, 1])
+      :ok
+
+  """
+  @spec update_note_attachments_positions(attachments_ids :: [integer()]) ::
+          :ok | {:error, String.t()}
+  def update_note_attachments_positions(attachments_ids),
+    do: update_positions(NoteAttachment, attachments_ids, id_field: :attachment_id)
 end

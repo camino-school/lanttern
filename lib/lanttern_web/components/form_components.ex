@@ -550,7 +550,7 @@ defmodule LantternWeb.FormComponents do
     ~H"""
     <div
       class={[
-        "flex items-center gap-4 p-4 rounded-sm text-sm text-rose-600 bg-rose-100",
+        "flex items-center gap-4 p-4 rounded-sm text-sm text-ltrn-alert bg-ltrn-alert-lighter",
         @class
       ]}
       {@rest}
@@ -653,19 +653,22 @@ defmodule LantternWeb.FormComponents do
     """
   end
 
-  defp upload_error_to_string(%Phoenix.LiveView.UploadConfig{} = upload_config, :not_accepted) do
+  def upload_error_to_string(%Phoenix.LiveView.UploadConfig{} = upload_config, :not_accepted) do
     formats =
       upload_config.accept
       |> String.split(",")
       |> format_formats_list()
 
-    "Only #{formats} files accepted"
+    gettext("Only %{formats} files accepted", formats: formats)
   end
 
-  defp upload_error_to_string(%Phoenix.LiveView.UploadConfig{} = upload_config, :too_large),
-    do: "File too large (max. #{upload_config.max_file_size / 1_000_000}MB)"
+  def upload_error_to_string(%Phoenix.LiveView.UploadConfig{} = upload_config, :too_large),
+    do:
+      gettext("File too large (max. %{file_size}MB)",
+        file_size: upload_config.max_file_size / 1_000_000
+      )
 
-  defp upload_error_to_string(_upload_config, err), do: err
+  def upload_error_to_string(_upload_config, err), do: err
 
   defp format_formats_list([format]), do: format
 

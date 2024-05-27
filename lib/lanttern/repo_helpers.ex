@@ -85,25 +85,32 @@ defmodule Lanttern.RepoHelpers do
   @doc """
   Update schema positions based on ids list order.
 
+  ## Options
+
+  - `:id_field` - used change the column used to compare with the list of ids. defaults to `:id`
+
   ## Examples
 
       iex> update_positions(queryable, [3, 2, 1])
       :ok
 
   """
-  @spec update_positions(Ecto.Queryable.t(), [integer()]) :: :ok | {:error, String.t()}
-  def update_positions(queryable, ids) do
+  @spec update_positions(Ecto.Queryable.t(), [pos_integer()], Keyword.t()) ::
+          :ok | {:error, String.t()}
+  def update_positions(queryable, ids, opts \\ []) do
     ids
     |> Enum.with_index()
     |> Enum.reduce(
       Ecto.Multi.new(),
       fn {id, i}, multi ->
+        filter = [{Keyword.get(opts, :id_field, :id), id}]
+
         multi
         |> Ecto.Multi.update_all(
           "update-#{id}",
           from(
             q in queryable,
-            where: q.id == ^id
+            where: ^filter
           ),
           set: [position: i]
         )

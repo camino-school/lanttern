@@ -4,6 +4,7 @@ defmodule LantternWeb.StudentStrandReportLive.StudentNotesComponent do
   alias Lanttern.Notes
 
   # shared
+  alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.Notes.NoteComponent
 
   @impl true
@@ -28,6 +29,15 @@ defmodule LantternWeb.StudentStrandReportLive.StudentNotesComponent do
               else: gettext("No student notes for this strand")
           }
           empty_add_note_msg={gettext("Add a strand note")}
+          allow_editing={@is_student}
+        />
+        <.live_component
+          module={AttachmentAreaComponent}
+          id="student-strand-note-attachemnts"
+          class="mt-10"
+          current_user={@current_user}
+          note_id={@note && @note.id}
+          title={gettext("Note's attachments")}
           allow_editing={@is_student}
         />
       </.responsive_container>

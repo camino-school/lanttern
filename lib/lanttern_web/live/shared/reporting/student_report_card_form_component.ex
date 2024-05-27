@@ -6,7 +6,7 @@ defmodule LantternWeb.Reporting.StudentReportCardFormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Reporting
-  alias LantternWeb.SupabaseHelpers
+  alias Lanttern.SupabaseHelpers
 
   @impl true
   def render(assigns) do

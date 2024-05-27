@@ -1,4 +1,4 @@
-defmodule LantternWeb.SupabaseHelpers do
+defmodule Lanttern.SupabaseHelpers do
   @moduledoc """
   Wrapper around `Supabase` for ease of use
   """
@@ -24,6 +24,31 @@ defmodule LantternWeb.SupabaseHelpers do
       URI.encode(path),
       file,
       Supabase.Storage.ObjectOptions.parse!(opts)
+    )
+  end
+
+  @doc """
+  `Supabase.Storage.remove_object/3` wrapper.
+
+  This wrapper:
+
+  - handles the client
+  - puts the bucket name into a `Supabase.Storage.Bucket` struct
+  - extract the wildcard from URL and builds a Supabase.Storage.Object
+  """
+  def remove_object(bucket_name, url) do
+    client = client()
+
+    path =
+      case Regex.run(~r/.*\/([^?]+)/, url) do
+        [_, match] -> match
+        nil -> nil
+      end
+
+    Supabase.Storage.remove_object(
+      client,
+      Supabase.Storage.Bucket.parse!(%{name: bucket_name}),
+      Supabase.Storage.Object.parse!(%{path: path})
     )
   end
 

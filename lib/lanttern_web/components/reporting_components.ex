@@ -8,7 +8,7 @@ defmodule LantternWeb.ReportingComponents do
   import LantternWeb.Gettext
   import LantternWeb.CoreComponents
   import LantternWeb.GradingComponents
-  import LantternWeb.SupabaseHelpers, only: [object_url_to_render_url: 2]
+  import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Grading.Scale

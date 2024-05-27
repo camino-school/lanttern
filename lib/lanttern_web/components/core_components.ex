@@ -1202,7 +1202,7 @@ defmodule LantternWeb.CoreComponents do
   def sortable_card(assigns) do
     ~H"""
     <div id={@id} class={["flex items-center gap-4 p-4 rounded bg-white shadow-lg", @class]}>
-      <div class="flex-1">
+      <div class="flex-1 min-w-0">
         <%= render_slot(@inner_block) %>
       </div>
       <div class="shrink-0 flex flex-col gap-2">

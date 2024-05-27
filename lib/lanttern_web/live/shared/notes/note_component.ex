@@ -145,43 +145,45 @@ defmodule LantternWeb.Notes.NoteComponent do
   # event handlers
 
   @impl true
-  def handle_event("edit", _params, socket) do
-    {:noreply,
-     socket
-     |> assign(:is_editing, true)}
-  end
+  def handle_event("edit", _params, socket),
+    do: {:noreply, assign(socket, :is_editing, true)}
 
-  def handle_event("cancel_edit", _params, socket) do
-    {:noreply,
-     socket
-     |> assign(:is_editing, false)}
-  end
+  def handle_event("cancel_edit", _params, socket),
+    do: {:noreply, assign(socket, :is_editing, false)}
 
   def handle_event("save", %{"note" => params}, socket) do
-    save_note(socket, params)
-    |> case do
-      {:ok, note} ->
-        {:noreply,
-         socket
-         |> assign(:is_editing, false)
-         |> assign(:note, note)
-         |> assign(:form, Notes.change_note(note) |> to_form())}
+    socket =
+      save_note(socket, params)
+      |> case do
+        {:ok, note} ->
+          notify(__MODULE__, {:saved, note}, socket.assigns)
 
-      {:error, changeset} ->
-        {:noreply,
-         socket
-         |> assign(:form, to_form(changeset))}
-    end
+          socket
+          |> assign(:is_editing, false)
+          |> assign(:note, note)
+          |> assign(:form, Notes.change_note(note) |> to_form())
+
+        {:error, changeset} ->
+          assign(socket, :form, to_form(changeset))
+      end
+
+    {:noreply, socket}
   end
 
   def handle_event("delete", _params, socket) do
-    Notes.delete_note(socket.assigns.note, log_operation: true)
-
     socket =
-      socket
-      |> assign(:is_editing, false)
-      |> assign(:note, nil)
-      |> assign(:form, Notes.change_note(%Note{}) |> to_form())
+      case Notes.delete_note(socket.assigns.note, log_operation: true) do
+        {:ok, note} ->
+          notify(__MODULE__, {:deleted, note}, socket.assigns)
+
+          socket
+          |> assign(:is_editing, false)
+          |> assign(:note, nil)
+          |> assign(:form, Notes.change_note(%Note{}) |> to_form())
+
+        {:error, changeset} ->
+          assign(socket, :form, to_form(changeset))
+      end
 
     {:noreply, socket}
   end

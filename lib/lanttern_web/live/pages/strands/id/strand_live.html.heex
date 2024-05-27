@@ -58,22 +58,18 @@
       </:tab>
     </.nav_tabs>
     <.menu_button id={@strand.id}>
-      <:menu_items>
-        <.menu_button_item
-          id={"edit-strand-#{@strand.id}"}
-          phx-click={JS.patch(~p"/strands/#{@strand}/edit")}
-        >
-          <%= gettext("Edit strand") %>
-        </.menu_button_item>
-        <.menu_button_item
-          id={"remove-strand-#{@strand.id}"}
-          class="text-red-500"
-          phx-click="delete_strand"
-          data-confirm={gettext("Are you sure?")}
-        >
-          <%= gettext("Delete") %>
-        </.menu_button_item>
-      </:menu_items>
+      <:item
+        id={"edit-strand-#{@strand.id}"}
+        text={gettext("Edit strand")}
+        on_click={JS.patch(~p"/strands/#{@strand}/edit")}
+      />
+      <:item
+        id={"remove-strand-#{@strand.id}"}
+        text={gettext("Delete")}
+        theme="alert"
+        on_click={JS.push("delete_strand")}
+        confirm_msg={gettext("Are you sure?")}
+      />
     </.menu_button>
   </.responsive_container>
 </div>
