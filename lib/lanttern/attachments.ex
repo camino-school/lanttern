@@ -90,22 +90,24 @@ defmodule Lanttern.Attachments do
     Repo.delete(attachment)
     |> case do
       {:ok, _} = res ->
-        # if attachment is internal (Supabase), delete from cloud in a async task (fire and forget)
-        if !attachment.is_external do
-          Task.Supervisor.start_child(Lanttern.TaskSupervisor, fn ->
-            delete_attachment_from_cloud(attachment)
-          end)
-        end
-
-        res
+        # if attachment is internal (Supabase),
+        # delete from cloud in an async task (fire and forget)
+        maybe_delete_attachment_from_cloud(attachment, res)
 
       {:error, _} = res ->
         res
     end
   end
 
-  defp delete_attachment_from_cloud(attachment),
-    do: SupabaseHelpers.remove_object("attachments", attachment.link)
+  defp maybe_delete_attachment_from_cloud(%{is_external: false} = attachment, res) do
+    Task.Supervisor.start_child(Lanttern.TaskSupervisor, fn ->
+      SupabaseHelpers.remove_object("attachments", attachment.link)
+    end)
+
+    res
+  end
+
+  defp maybe_delete_attachment_from_cloud(_attachment, res), do: res
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking attachment changes.
