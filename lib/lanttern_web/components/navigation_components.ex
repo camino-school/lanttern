@@ -5,6 +5,8 @@ defmodule LantternWeb.NavigationComponents do
   use Phoenix.Component
 
   alias Phoenix.LiveView.JS
+  import LantternWeb.Gettext
+
   import LantternWeb.CoreComponents
 
   @doc """
@@ -150,6 +152,47 @@ defmodule LantternWeb.NavigationComponents do
         </li>
       </ol>
     </nav>
+    """
+  end
+
+  @doc """
+  Renders a expand/collapse button
+  """
+
+  attr :id, :string, required: true
+  attr :target_selector, :string, required: true
+  attr :initial_is_expanded, :boolean, default: true
+  attr :class, :any, default: nil
+  attr :theme, :string, default: "ghost"
+
+  def toggle_expand_button(assigns) do
+    ~H"""
+    <div id={@id} class={@class}>
+      <.icon_button
+        name="hero-arrows-pointing-in"
+        class={if !@initial_is_expanded, do: "hidden"}
+        theme={@theme}
+        rounded
+        sr_text={gettext("collapse")}
+        phx-click={
+          JS.toggle(to: @target_selector)
+          |> JS.toggle(to: "##{@id} [data-toggle=true]")
+        }
+        data-toggle="true"
+      />
+      <.icon_button
+        name="hero-arrows-pointing-out"
+        class={if @initial_is_expanded, do: "hidden"}
+        theme={@theme}
+        rounded
+        sr_text={gettext("expand")}
+        phx-click={
+          JS.toggle(to: @target_selector)
+          |> JS.toggle(to: "##{@id} [data-toggle=true]")
+        }
+        data-toggle="true"
+      />
+    </div>
     """
   end
 end

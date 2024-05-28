@@ -32,32 +32,9 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
               <%= assessment_point.curriculum_item.name %>
             </p>
             <%= if assessment_point.rubric do %>
-              <.icon_button
-                name="hero-arrows-pointing-in"
-                theme="ghost"
-                rounded
-                sr_text={gettext("collapse")}
-                phx-click={
-                  JS.toggle(to: "#goal-rubric-#{assessment_point.rubric_id}")
-                  |> JS.toggle(
-                    to: "#strand-assessment-point-#{assessment_point.id} [data-toggle=true]"
-                  )
-                }
-                data-toggle="true"
-              />
-              <.icon_button
-                name="hero-arrows-pointing-out"
-                class="hidden"
-                theme="ghost"
-                rounded
-                sr_text={gettext("expand")}
-                phx-click={
-                  JS.toggle(to: "#goal-rubric-#{assessment_point.rubric_id}")
-                  |> JS.toggle(
-                    to: "#strand-assessment-point-#{assessment_point.id} [data-toggle=true]"
-                  )
-                }
-                data-toggle="true"
+              <.toggle_expand_button
+                id={"strand-assessment-point-#{assessment_point.id}-toggle-button"}
+                target_selector={"#goal-rubric-#{assessment_point.rubric_id}"}
               />
             <% else %>
               <.button
@@ -134,40 +111,9 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                   <%= assessment_point.curriculum_item.name %>
                 </p>
                 <%= if @students_diff_rubrics_map[student.id][assessment_point.id] do %>
-                  <.icon_button
-                    name="hero-arrows-pointing-in"
-                    theme="ghost"
-                    rounded
-                    sr_text={gettext("collapse")}
-                    phx-click={
-                      JS.toggle(
-                        to:
-                          "#goal-rubric-#{@students_diff_rubrics_map[student.id][assessment_point.id].id}"
-                      )
-                      |> JS.toggle(
-                        to:
-                          "#strand-assessment-point-#{student.id}-#{assessment_point.id} [data-toggle=true]"
-                      )
-                    }
-                    data-toggle="true"
-                  />
-                  <.icon_button
-                    name="hero-arrows-pointing-out"
-                    class="hidden"
-                    theme="ghost"
-                    rounded
-                    sr_text={gettext("expand")}
-                    phx-click={
-                      JS.toggle(
-                        to:
-                          "#goal-rubric-#{@students_diff_rubrics_map[student.id][assessment_point.id].id}"
-                      )
-                      |> JS.toggle(
-                        to:
-                          "#strand-assessment-point-#{student.id}-#{assessment_point.id} [data-toggle=true]"
-                      )
-                    }
-                    data-toggle="true"
+                  <.toggle_expand_button
+                    id={"strand-assessment-point-#{student.id}-#{assessment_point.id}-toggle-button"}
+                    target_selector={"#goal-rubric-#{@students_diff_rubrics_map[student.id][assessment_point.id].id}"}
                   />
                 <% else %>
                   <.button

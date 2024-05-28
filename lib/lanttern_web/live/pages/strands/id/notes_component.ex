@@ -79,12 +79,24 @@ defmodule LantternWeb.StrandLive.NotesComponent do
               if(note, do: "bg-white shadow-lg", else: "bg-ltrn-lighter")
             ]}
           >
-            <.profile_icon_with_name
-              theme={if note, do: "cyan", else: "subtle"}
-              profile_name={student.name}
-              extra_info={student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
-            />
-            <div :if={note} class="pt-6 border-t border-ltrn-lighter mt-6">
+            <div class="flex items-center gap-4">
+              <.profile_icon_with_name
+                theme={if note, do: "cyan", else: "subtle"}
+                profile_name={student.name}
+                extra_info={student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
+                class="flex-1"
+              />
+              <.toggle_expand_button
+                :if={note}
+                id={"student-strand-note-#{dom_id}-toggle-button"}
+                target_selector={"#student-strand-note-#{dom_id}"}
+              />
+            </div>
+            <div
+              :if={note}
+              class="pt-6 border-t border-ltrn-lighter mt-6"
+              id={"student-strand-note-#{dom_id}"}
+            >
               <.markdown text={note.description} size="sm" />
               <.live_component
                 :if={note}
