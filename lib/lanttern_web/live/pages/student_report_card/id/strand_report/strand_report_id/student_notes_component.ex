@@ -30,13 +30,15 @@ defmodule LantternWeb.StudentStrandReportLive.StudentNotesComponent do
           }
           empty_add_note_msg={gettext("Add a strand note")}
           allow_editing={@is_student}
+          notify_component={@myself}
         />
         <.live_component
+          :if={@note}
           module={AttachmentAreaComponent}
           id="student-strand-note-attachemnts"
           class="mt-10"
           current_user={@current_user}
-          note_id={@note && @note.id}
+          note_id={@note.id}
           title={gettext("Note's attachments")}
           allow_editing={@is_student}
         />
@@ -53,6 +55,14 @@ defmodule LantternWeb.StudentStrandReportLive.StudentNotesComponent do
   end
 
   @impl true
+  def update(%{action: {NoteComponent, {:saved, note}}}, socket) do
+    {:ok, assign(socket, :note, note)}
+  end
+
+  def update(%{action: {NoteComponent, {:deleted, _note}}}, socket) do
+    {:ok, assign(socket, :note, nil)}
+  end
+
   def update(assigns, socket) do
     %{student_id: student_id, strand_id: strand_id} = assigns
 
