@@ -6,6 +6,7 @@ defmodule LantternWeb.StrandLive.NotesComponent do
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 4]
 
   # shared components
+  alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.Notes.NoteComponent
 
   @impl true
@@ -74,22 +75,37 @@ defmodule LantternWeb.StrandLive.NotesComponent do
             :for={{dom_id, {student, note}} <- @streams.students_strand_notes}
             id={dom_id}
             class={[
-              "rounded mt-6",
+              "rounded p-6 mt-6",
               if(note, do: "bg-white shadow-lg", else: "bg-ltrn-lighter")
             ]}
           >
-            <div class={[
-              "p-6",
-              if(note, do: "border-b border-ltrn-lighter")
-            ]}>
+            <div class="flex items-center gap-4">
               <.profile_icon_with_name
                 theme={if note, do: "cyan", else: "subtle"}
                 profile_name={student.name}
                 extra_info={student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
+                class="flex-1"
+              />
+              <.toggle_expand_button
+                :if={note}
+                id={"student-strand-note-#{dom_id}-toggle-button"}
+                target_selector={"#student-strand-note-#{dom_id}"}
               />
             </div>
-            <div :if={note} class="p-6">
+            <div
+              :if={note}
+              class="pt-6 border-t border-ltrn-lighter mt-6"
+              id={"student-strand-note-#{dom_id}"}
+            >
               <.markdown text={note.description} size="sm" />
+              <.live_component
+                :if={note}
+                module={AttachmentAreaComponent}
+                id={"student-strand-note-attachemnts-#{dom_id}"}
+                class="mt-6"
+                note_id={note.id}
+                title={gettext("Attachments")}
+              />
             </div>
           </div>
         </div>
