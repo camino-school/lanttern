@@ -12,15 +12,36 @@ defmodule Lanttern.Attachments do
   @doc """
   Returns the list of attachments.
 
+  ## Options
+
+  - `:note_id` - filter results by attachments linked the note
+
   ## Examples
 
       iex> list_attachments()
       [%Attachment{}, ...]
 
   """
-  def list_attachments do
-    Repo.all(Attachment)
+  def list_attachments(opts \\ []) do
+    Attachment
+    |> apply_list_attachments_opts(opts)
+    |> Repo.all()
   end
+
+  defp apply_list_attachments_opts(queryable, []), do: queryable
+
+  defp apply_list_attachments_opts(queryable, [{:note_id, note_id} | opts]) do
+    from(
+      a in queryable,
+      join: na in assoc(a, :note_attachment),
+      where: na.note_id == ^note_id,
+      order_by: na.position
+    )
+    |> apply_list_attachments_opts(opts)
+  end
+
+  defp apply_list_attachments_opts(queryable, [_ | opts]),
+    do: apply_list_attachments_opts(queryable, opts)
 
   @doc """
   Gets a single attachment.
@@ -99,7 +120,19 @@ defmodule Lanttern.Attachments do
     end
   end
 
-  defp maybe_delete_attachment_from_cloud(%{is_external: false} = attachment, res) do
+  @doc """
+  Delete an attachment from cloud if attachment is internal.
+
+  ## Examples
+
+      iex> maybe_delete_attachment_from_cloud(attachment, {:ok, %Attachment{}})
+      {:ok, %Attachment{}}
+
+  """
+  @spec maybe_delete_attachment_from_cloud(Attachment.t(), res :: any()) :: any()
+  def maybe_delete_attachment_from_cloud(attachment, res \\ nil)
+
+  def maybe_delete_attachment_from_cloud(%{is_external: false} = attachment, res) do
     Task.Supervisor.start_child(Lanttern.TaskSupervisor, fn ->
       SupabaseHelpers.remove_object("attachments", attachment.link)
     end)
@@ -107,7 +140,7 @@ defmodule Lanttern.Attachments do
     res
   end
 
-  defp maybe_delete_attachment_from_cloud(_attachment, res), do: res
+  def maybe_delete_attachment_from_cloud(_attachment, res), do: res
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking attachment changes.

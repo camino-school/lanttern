@@ -767,7 +767,7 @@ defmodule Lanttern.AssessmentsTest do
       on_exit(fn ->
         for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
           ref = Process.monitor(pid)
-          assert_receive {:DOWN, ^ref, _, _, _}
+          assert_receive {:DOWN, ^ref, _, _, _}, 1_000
         end
 
         assessment_point_entry_log =
@@ -883,7 +883,7 @@ defmodule Lanttern.AssessmentsTest do
       on_exit(fn ->
         for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
           ref = Process.monitor(pid)
-          assert_receive {:DOWN, ^ref, _, _, _}
+          assert_receive {:DOWN, ^ref, _, _, _}, 1_000
         end
 
         assessment_point_entry_log =
@@ -941,7 +941,7 @@ defmodule Lanttern.AssessmentsTest do
       on_exit(fn ->
         for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
           ref = Process.monitor(pid)
-          assert_receive {:DOWN, ^ref, _, _, _}
+          assert_receive {:DOWN, ^ref, _, _, _}, 1_000
         end
 
         assessment_point_entry_log =

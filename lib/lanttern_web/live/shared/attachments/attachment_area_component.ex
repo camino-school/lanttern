@@ -284,7 +284,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   defp stream_attachments(socket) do
     attachments =
       if socket.assigns.note_id do
-        Notes.list_note_attachments(socket.assigns.note_id)
+        Attachments.list_attachments(note_id: socket.assigns.note_id)
       else
         []
       end

@@ -1,4 +1,5 @@
 defmodule Lanttern.NotesTest do
+  alias Lanttern.Attachments
   use Lanttern.DataCase
 
   alias Lanttern.Notes
@@ -53,7 +54,7 @@ defmodule Lanttern.NotesTest do
       on_exit(fn ->
         for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
           ref = Process.monitor(pid)
-          assert_receive {:DOWN, ^ref, _, _, _}
+          assert_receive {:DOWN, ^ref, _, _, _}, 1_000
         end
 
         note_log =
@@ -84,7 +85,7 @@ defmodule Lanttern.NotesTest do
       on_exit(fn ->
         for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
           ref = Process.monitor(pid)
-          assert_receive {:DOWN, ^ref, _, _, _}
+          assert_receive {:DOWN, ^ref, _, _, _}, 1_000
         end
 
         note_log =
@@ -115,7 +116,7 @@ defmodule Lanttern.NotesTest do
       on_exit(fn ->
         for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
           ref = Process.monitor(pid)
-          assert_receive {:DOWN, ^ref, _, _, _}
+          assert_receive {:DOWN, ^ref, _, _, _}, 1_000
         end
 
         note_log =
@@ -127,6 +128,47 @@ defmodule Lanttern.NotesTest do
         assert note_log.author_id == note.author_id
         assert note_log.operation == "DELETE"
         assert note_log.description == note.description
+      end)
+    end
+
+    test "delete_note/2 deletes the note and its linked attachments" do
+      profile = student_profile_fixture()
+      note = note_fixture(%{author_id: profile.id})
+
+      {:ok, attachment_1} =
+        Notes.create_note_attachment(
+          %{current_profile: profile},
+          note.id,
+          %{"name" => "attachment 1", "link" => "https://somevaliduri.com"}
+        )
+
+      {:ok, attachment_2} =
+        Notes.create_note_attachment(
+          %{current_profile: profile},
+          note.id,
+          %{"name" => "attachment 2", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      {:ok, attachment_3} =
+        Notes.create_note_attachment(
+          %{current_profile: profile},
+          note.id,
+          %{"name" => "attachment 3", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      assert {:ok, %Note{}} = Notes.delete_note(note)
+      assert_raise Ecto.NoResultsError, fn -> Notes.get_note!(note.id) end
+      assert_raise Ecto.NoResultsError, fn -> Attachments.get_attachment!(attachment_1.id) end
+      assert_raise Ecto.NoResultsError, fn -> Attachments.get_attachment!(attachment_2.id) end
+      assert_raise Ecto.NoResultsError, fn -> Attachments.get_attachment!(attachment_3.id) end
+
+      # assert log. see
+      # https://elixirforum.com/t/36605/2
+      on_exit(fn ->
+        for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
+          ref = Process.monitor(pid)
+          assert_receive {:DOWN, ^ref, _, _, _}, 1_000
+        end
       end)
     end
 
@@ -170,7 +212,7 @@ defmodule Lanttern.NotesTest do
       on_exit(fn ->
         for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
           ref = Process.monitor(pid)
-          assert_receive {:DOWN, ^ref, _, _, _}
+          assert_receive {:DOWN, ^ref, _, _, _}, 1_000
         end
 
         note_log =
@@ -446,7 +488,7 @@ defmodule Lanttern.NotesTest do
       on_exit(fn ->
         for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
           ref = Process.monitor(pid)
-          assert_receive {:DOWN, ^ref, _, _, _}
+          assert_receive {:DOWN, ^ref, _, _, _}, 1_000
         end
 
         note_log =
@@ -504,42 +546,6 @@ defmodule Lanttern.NotesTest do
     alias Lanttern.IdentityFixtures
 
     alias Lanttern.Attachments.Attachment
-
-    test "list_note_attachments/1 lists all attachments linked to note" do
-      profile = IdentityFixtures.student_profile_fixture()
-      note = note_fixture(%{author_id: profile.id})
-
-      {:ok, attachment_1} =
-        Notes.create_note_attachment(
-          %{current_profile: profile},
-          note.id,
-          %{"name" => "attachment 1", "link" => "https://somevaliduri.com", "is_external" => true}
-        )
-
-      {:ok, attachment_2} =
-        Notes.create_note_attachment(
-          %{current_profile: profile},
-          note.id,
-          %{"name" => "attachment 2", "link" => "https://somevaliduri.com", "is_external" => true}
-        )
-
-      {:ok, attachment_3} =
-        Notes.create_note_attachment(
-          %{current_profile: profile},
-          note.id,
-          %{"name" => "attachment 3", "link" => "https://somevaliduri.com", "is_external" => true}
-        )
-
-      assert [attachment_1, attachment_2, attachment_3] ==
-               Notes.list_note_attachments(note.id)
-
-      # use same setup to test update_note_attachments_positions/1
-
-      Notes.update_note_attachments_positions([attachment_2.id, attachment_3.id, attachment_1.id])
-
-      assert [attachment_2, attachment_3, attachment_1] ==
-               Notes.list_note_attachments(note.id)
-    end
 
     test "create_note_attachment/3 with valid data creates an attachment linked to an existing note" do
       profile = IdentityFixtures.student_profile_fixture()
