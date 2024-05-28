@@ -143,18 +143,10 @@ defmodule LantternWeb.StudentNotesLive do
   end
 
   def handle_info({NoteComponent, {:saved, note}}, socket) do
-    socket =
-      socket
-      |> assign(:note, note)
-
-    {:noreply, socket}
+    {:noreply, assign(socket, :note, note)}
   end
 
   def handle_info({NoteComponent, {:deleted, _}}, socket) do
-    socket =
-      socket
-      |> assign(:note, nil)
-
-    {:noreply, socket}
+    {:noreply, assign(socket, :note, nil)}
   end
 end

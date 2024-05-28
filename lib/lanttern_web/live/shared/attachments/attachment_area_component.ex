@@ -282,7 +282,13 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   end
 
   defp stream_attachments(socket) do
-    attachments = Notes.list_note_attachments(socket.assigns.note_id)
+    attachments =
+      if socket.assigns.note_id do
+        Notes.list_note_attachments(socket.assigns.note_id)
+      else
+        []
+      end
+
     attachments_ids = Enum.map(attachments, & &1.id)
 
     socket
