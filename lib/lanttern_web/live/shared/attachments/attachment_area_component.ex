@@ -17,8 +17,8 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class={@class}>
-      <div :if={@title} class="flex items-center gap-2 mb-4">
+    <div class={[@class, if(!@is_editing && @attachments_length == 0, do: "hidden")]}>
+      <div :if={@title} class="flex items-center gap-2">
         <.icon name="hero-paper-clip" class="w-6 h-6" />
         <h5 class="font-display font-bold text-sm"><%= @title %></h5>
       </div>
@@ -31,7 +31,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         <li
           :for={{dom_id, {attachment, i}} <- @streams.attachments}
           id={dom_id}
-          class="flex items-center gap-4 mb-4"
+          class="flex items-center gap-4 mt-4"
         >
           <%= if @allow_editing do %>
             <.sortable_card
@@ -120,7 +120,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       </ul>
       <div
         :if={@is_adding_external || @is_editing}
-        class="p-4 border border-dashed border-ltrn-subtle rounded bg-white shadow-lg"
+        class="p-4 border border-dashed border-ltrn-subtle rounded mt-4 bg-white shadow-lg"
       >
         <.form
           for={@form}
@@ -155,7 +155,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       </div>
       <div
         :for={entry <- @uploads.attachment_file.entries}
-        class="p-4 border border-dashed border-ltrn-subtle rounded shadow-lg bg-white"
+        class="p-4 border border-dashed border-ltrn-subtle rounded mt-4 shadow-lg bg-white"
       >
         <p class="flex items-center gap-2 text-sm text-ltrn-subtle">
           <.icon name="hero-paper-clip-mini" />
@@ -189,7 +189,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         :if={@allow_editing && !@is_adding_external && !@is_editing}
         class={
           [
-            "grid grid-cols-2 gap-2",
+            "grid grid-cols-2 gap-2 mt-4",
             # we don't use the conditional rendering with :if for attachment files
             # because we need the #attachments-upload-form for upload
             if(@uploads.attachment_file.entries != [], do: "hidden")
