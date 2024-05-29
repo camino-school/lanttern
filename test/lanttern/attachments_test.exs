@@ -8,11 +8,51 @@ defmodule Lanttern.AttachmentsTest do
 
     import Lanttern.AttachmentsFixtures
 
+    alias Lanttern.IdentityFixtures
+    alias Lanttern.Notes
+    alias Lanttern.NotesFixtures
+
     @invalid_attrs %{name: nil, link: nil, description: nil, is_external: nil}
 
-    test "list_attachments/0 returns all attachments" do
+    test "list_attachments/1 returns all attachments" do
       attachment = attachment_fixture()
       assert Attachments.list_attachments() == [attachment]
+    end
+
+    test "list_attachments/1 with note_id opts returns all attachments filtered by given note" do
+      profile = IdentityFixtures.student_profile_fixture()
+      note = NotesFixtures.note_fixture(%{author_id: profile.id})
+
+      {:ok, attachment_1} =
+        Notes.create_note_attachment(
+          %{current_profile: profile},
+          note.id,
+          %{"name" => "attachment 1", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      {:ok, attachment_2} =
+        Notes.create_note_attachment(
+          %{current_profile: profile},
+          note.id,
+          %{"name" => "attachment 2", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      {:ok, attachment_3} =
+        Notes.create_note_attachment(
+          %{current_profile: profile},
+          note.id,
+          %{"name" => "attachment 3", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      assert [attachment_1, attachment_2, attachment_3] ==
+               Attachments.list_attachments(note_id: note.id)
+
+      # use same setup to test update_note_attachments_positions/1
+
+      Notes.update_note_attachments_positions([attachment_2.id, attachment_3.id, attachment_1.id])
+
+      assert [attachment_2, attachment_3, attachment_1] ==
+               Attachments.list_attachments(note_id: note.id)
     end
 
     test "get_attachment!/1 returns the attachment with given id" do

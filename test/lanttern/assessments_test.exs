@@ -762,13 +762,8 @@ defmodule Lanttern.AssessmentsTest do
       assert assessment_point_entry.student_id == student.id
       assert assessment_point_entry.observation == "some observation"
 
-      # assert log. see
-      # https://elixirforum.com/t/36605/2
       on_exit(fn ->
-        for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
-          ref = Process.monitor(pid)
-          assert_receive {:DOWN, ^ref, _, _, _}
-        end
+        assert_supervised_tasks_are_down()
 
         assessment_point_entry_log =
           Repo.get_by!(AssessmentPointEntryLog,
@@ -878,13 +873,8 @@ defmodule Lanttern.AssessmentsTest do
 
       assert assessment_point_entry.observation == "some updated observation"
 
-      # assert log. see
-      # https://elixirforum.com/t/36605/2
       on_exit(fn ->
-        for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
-          ref = Process.monitor(pid)
-          assert_receive {:DOWN, ^ref, _, _, _}
-        end
+        assert_supervised_tasks_are_down()
 
         assessment_point_entry_log =
           Repo.get_by!(AssessmentPointEntryLog,
@@ -936,13 +926,8 @@ defmodule Lanttern.AssessmentsTest do
         Assessments.get_assessment_point_entry!(assessment_point_entry.id)
       end
 
-      # assert log. see
-      # https://elixirforum.com/t/36605/2
       on_exit(fn ->
-        for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
-          ref = Process.monitor(pid)
-          assert_receive {:DOWN, ^ref, _, _, _}
-        end
+        assert_supervised_tasks_are_down()
 
         assessment_point_entry_log =
           Repo.get_by!(AssessmentPointEntryLog,

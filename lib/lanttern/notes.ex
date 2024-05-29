@@ -8,6 +8,7 @@ defmodule Lanttern.Notes do
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
 
+  alias Lanttern.Attachments
   alias Lanttern.Attachments.Attachment
   alias Lanttern.Notes.MomentNoteRelationship
   alias Lanttern.Notes.Note
@@ -416,6 +417,10 @@ defmodule Lanttern.Notes do
   @doc """
   Deletes a note.
 
+  Before deleting the note, this function tries to delete all linked attachments.
+  After the whole operation, in case of success, we trigger a request for deleting
+  the attachments from the cloud (if they are internal).
+
   ### Options:
 
   - `:log_operation` - use `true` to log the operation
@@ -430,8 +435,30 @@ defmodule Lanttern.Notes do
 
   """
   def delete_note(%Note{} = note, opts \\ []) do
-    Repo.delete(note)
-    |> NotesLog.maybe_create_note_log("DELETE", opts)
+    note_attachments_query =
+      from(
+        a in Attachment,
+        join: na in assoc(a, :note_attachment),
+        where: na.note_id == ^note.id,
+        select: a
+      )
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.delete_all(:delete_attachments, note_attachments_query)
+    |> Ecto.Multi.delete(:delete_note, note)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{delete_note: note, delete_attachments: {_qty, attachments}}} ->
+        # if attachment is internal (Supabase),
+        # delete from cloud in an async task (fire and forget)
+        Enum.each(attachments, &Attachments.maybe_delete_attachment_from_cloud(&1))
+
+        # maybe log
+        NotesLog.maybe_create_note_log({:ok, note}, "DELETE", opts)
+
+      {:error, _name, value, _changes_so_far} ->
+        {:error, value}
+    end
   end
 
   @doc """
@@ -445,28 +472,6 @@ defmodule Lanttern.Notes do
   """
   def change_note(%Note{} = note, attrs \\ %{}) do
     Note.changeset(note, attrs)
-  end
-
-  @doc """
-  Returns the list of attachments of the given note.
-
-  Ordered by `NoteAttachment` position.
-
-  ## Examples
-
-      iex> list_note_attachments(note_id)
-      [%Attachment{}, ...]
-
-  """
-  @spec list_note_attachments(note_id :: pos_integer()) :: [Attachment.t()]
-  def list_note_attachments(note_id) do
-    from(
-      a in Attachment,
-      join: na in assoc(a, :note_attachment),
-      where: na.note_id == ^note_id,
-      order_by: na.position
-    )
-    |> Repo.all()
   end
 
   @doc """

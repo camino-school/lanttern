@@ -17,7 +17,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class={[@class, if(!@is_editing && @attachments_length == 0, do: "hidden")]}>
+    <div class={[@class, if(!@allow_editing && @attachments_length == 0, do: "hidden")]}>
       <div :if={@title} class="flex items-center gap-2">
         <.icon name="hero-paper-clip" class="w-6 h-6" />
         <h5 class="font-display font-bold text-sm"><%= @title %></h5>
@@ -284,7 +284,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   defp stream_attachments(socket) do
     attachments =
       if socket.assigns.note_id do
-        Notes.list_note_attachments(socket.assigns.note_id)
+        Attachments.list_attachments(note_id: socket.assigns.note_id)
       else
         []
       end

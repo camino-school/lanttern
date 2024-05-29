@@ -55,4 +55,28 @@ defmodule Lanttern.DataCase do
       end)
     end)
   end
+
+  @doc """
+  A helper to be used `on_exit/1` for tests where supervised tasks are created.
+
+  Based on https://elixirforum.com/t/36605/2 and https://elixirforum.com/t/41489/5
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+        if needed, do something after supervised tasks are finished
+      end)
+
+  """
+  def assert_supervised_tasks_are_down() do
+    for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
+      # check for message queue len to avoid
+      # awaiting on empty message boxes
+      {:message_queue_len, len} = Process.info(pid, :message_queue_len)
+
+      if len > 0 do
+        ref = Process.monitor(pid)
+        assert_receive {:DOWN, ^ref, _, _, _}, 1_000
+      end
+    end
+  end
 end
