@@ -49,13 +49,8 @@ defmodule Lanttern.NotesTest do
       assert note.author_id == author.id
       assert note.description == "some description"
 
-      # assert log.
-      # see https://elixirforum.com/t/36605/2
       on_exit(fn ->
-        for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
-          ref = Process.monitor(pid)
-          assert_receive {:DOWN, ^ref, _, _, _}, 1_000
-        end
+        assert_supervised_tasks_are_down()
 
         note_log =
           Repo.get_by!(NoteLog,
@@ -80,13 +75,8 @@ defmodule Lanttern.NotesTest do
       assert {:ok, %Note{} = note} = Notes.update_note(note, update_attrs, log_operation: true)
       assert note.description == "some updated description"
 
-      # assert log.
-      # see https://elixirforum.com/t/36605/2
       on_exit(fn ->
-        for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
-          ref = Process.monitor(pid)
-          assert_receive {:DOWN, ^ref, _, _, _}, 1_000
-        end
+        assert_supervised_tasks_are_down()
 
         note_log =
           Repo.get_by!(NoteLog,
@@ -111,13 +101,8 @@ defmodule Lanttern.NotesTest do
       assert {:ok, %Note{}} = Notes.delete_note(note, log_operation: true)
       assert_raise Ecto.NoResultsError, fn -> Notes.get_note!(note.id) end
 
-      # assert log.
-      # see https://elixirforum.com/t/36605/2
       on_exit(fn ->
-        for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
-          ref = Process.monitor(pid)
-          assert_receive {:DOWN, ^ref, _, _, _}, 1_000
-        end
+        assert_supervised_tasks_are_down()
 
         note_log =
           Repo.get_by!(NoteLog,
@@ -162,13 +147,8 @@ defmodule Lanttern.NotesTest do
       assert_raise Ecto.NoResultsError, fn -> Attachments.get_attachment!(attachment_2.id) end
       assert_raise Ecto.NoResultsError, fn -> Attachments.get_attachment!(attachment_3.id) end
 
-      # assert log. see
-      # https://elixirforum.com/t/36605/2
       on_exit(fn ->
-        for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
-          ref = Process.monitor(pid)
-          assert_receive {:DOWN, ^ref, _, _, _}, 1_000
-        end
+        assert_supervised_tasks_are_down()
       end)
     end
 
@@ -207,13 +187,8 @@ defmodule Lanttern.NotesTest do
 
       assert expected.id == note.id
 
-      # assert log.
-      # see https://elixirforum.com/t/36605/2
       on_exit(fn ->
-        for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
-          ref = Process.monitor(pid)
-          assert_receive {:DOWN, ^ref, _, _, _}, 1_000
-        end
+        assert_supervised_tasks_are_down()
 
         note_log =
           Repo.get_by!(NoteLog,
@@ -483,13 +458,8 @@ defmodule Lanttern.NotesTest do
 
       assert expected.id == note.id
 
-      # assert log.
-      # see https://elixirforum.com/t/36605/2
       on_exit(fn ->
-        for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
-          ref = Process.monitor(pid)
-          assert_receive {:DOWN, ^ref, _, _, _}, 1_000
-        end
+        assert_supervised_tasks_are_down()
 
         note_log =
           Repo.get_by!(NoteLog,
