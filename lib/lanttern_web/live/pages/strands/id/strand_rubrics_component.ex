@@ -96,7 +96,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
               class={[
                 "p-6 rounded mt-6 bg-white shadow-lg",
                 if(@students_diff_rubrics_map[student.id][assessment_point.id],
-                  do: "border border-ltrn-diff-highlight"
+                  do: "border border-ltrn-diff-accent"
                 )
               ]}
             >

@@ -449,7 +449,7 @@ defmodule LantternWeb.OverlayComponents do
 
   @menu_button_item_themes %{
     "default" => "text-ltrn-dark",
-    "alert" => "text-ltrn-alert"
+    "alert" => "text-ltrn-alert-accent"
   }
 
   defp menu_button_item_theme_classes(theme),

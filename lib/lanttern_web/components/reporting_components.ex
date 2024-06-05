@@ -218,7 +218,7 @@ defmodule LantternWeb.ReportingComponents do
       ]}
     >
       <.responsive_container>
-        <div class="flex items-center justify-center w-10 h-10 rounded-full mb-6 text-ltrn-diff-lightest bg-ltrn-diff-highlight">
+        <div class="flex items-center justify-center w-10 h-10 rounded-full mb-6 text-ltrn-diff-lightest bg-ltrn-diff-accent">
           <.icon name="hero-document-text" />
         </div>
         <.markdown text={@footnote} size="sm" />
