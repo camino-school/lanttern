@@ -296,6 +296,14 @@ defmodule LantternWeb.CoreComponents do
       "bg-ltrn-diff-lightest hover:bg-ltrn-diff-lighter text-ltrn-diff-dark",
       "disabled:opacity-40"
     ],
+    "teacher" => [
+      "bg-ltrn-tt-accent text-ltrn-tt-dark hover:opacity-80",
+      "disabled:opacity-40"
+    ],
+    "student" => [
+      "bg-ltrn-std-accent text-ltrn-std-dark hover:opacity-80",
+      "disabled:opacity-40"
+    ],
     "white" => "text-ltrn-dark bg-white hover:bg-ltrn-lightest shadow-sm",
     "ghost" => [
       "text-ltrn-subtle bg-white/10 hover:bg-slate-100",

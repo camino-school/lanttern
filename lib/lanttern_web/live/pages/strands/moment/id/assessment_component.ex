@@ -1,4 +1,5 @@
 defmodule LantternWeb.MomentLive.AssessmentComponent do
+  alias Lanttern.Identity.User
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments
@@ -112,6 +113,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
               entries={entries}
               id={dom_id}
               myself={@myself}
+              current_user={@current_user}
             />
           </div>
         </div>
@@ -291,6 +293,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
   attr :student, Lanttern.Schools.Student, required: true
   attr :entries, :list, required: true
   attr :myself, Phoenix.LiveComponent.CID, required: true
+  attr :current_user, User, required: true
 
   def student_and_entries(assigns) do
     ~H"""
@@ -311,6 +314,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
             class="w-full h-full"
             wrapper_class="w-full h-full"
             notify_component={@myself}
+            current_user={@current_user}
           >
             <:marking_input class="w-full h-full" />
           </.live_component>

@@ -4,6 +4,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Filters
+  alias Lanttern.Identity.User
   alias Lanttern.Reporting
   alias Lanttern.Schools.Student
 
@@ -138,6 +139,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
                 myself={@myself}
                 current_assessment_view={@current_assessment_view}
                 view_bg={@view_bg}
+                current_user={@current_user}
               />
             </div>
           </div>
@@ -231,6 +233,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
   attr :myself, Phoenix.LiveComponent.CID, required: true
   attr :current_assessment_view, :string, required: true
   attr :view_bg, :string, required: true
+  attr :current_user, User, required: true
 
   def student_entries(assigns) do
     ~H"""
@@ -256,6 +259,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
           wrapper_class="w-full h-full"
           notify_component={@myself}
           assessment_view={@current_assessment_view}
+          current_user={@current_user}
         >
           <:marking_input class="w-full h-full" />
         </.live_component>

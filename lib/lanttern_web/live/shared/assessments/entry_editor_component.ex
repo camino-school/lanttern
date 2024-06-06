@@ -45,7 +45,7 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
       <.icon_button
         type="button"
         name="hero-pencil-square-mini"
-        theme={if @entry_note && @entry_value, do: "diff_light", else: "ghost"}
+        theme={@note_button_theme}
         rounded
         sr_text={gettext("Add entry note")}
         size="sm"
@@ -266,8 +266,10 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
   end
 
   def handle_event("save_note", %{"assessment_point_entry" => params}, socket) do
+    opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
+
     socket =
-      case Assessments.update_assessment_point_entry(socket.assigns.entry, params) do
+      case Assessments.update_assessment_point_entry(socket.assigns.entry, params, opts) do
         {:ok, entry} ->
           form =
             entry
@@ -329,6 +331,7 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
   defp assign_entry_note(socket) do
     %{
       entry: entry,
+      entry_value: entry_value,
       assessment_view: assessment_view
     } = socket.assigns
 
@@ -338,7 +341,16 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
         _ -> entry.report_note
       end
 
-    assign(socket, :entry_note, entry_note)
+    note_button_theme =
+      cond do
+        entry_note && entry_value && assessment_view == "student" -> "student"
+        entry_note && entry_value -> "teacher"
+        true -> "ghost"
+      end
+
+    socket
+    |> assign(:entry_note, entry_note)
+    |> assign(:note_button_theme, note_button_theme)
   end
 
   defp assign_ov_style_and_name(socket) do
