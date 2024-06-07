@@ -98,7 +98,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
           class={[
             "relative w-full max-h-[calc(100vh-4rem)] border mt-6 rounded shadow-xl #{@view_bg} overflow-x-auto",
             if(@current_assessment_view == "student",
-              do: "border-ltrn-std-accent",
+              do: "border-ltrn-student-accent",
               else: "border-transparent"
             )
           ]}
@@ -129,7 +129,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
             <div
               id="grid-student-entries"
               phx-update="stream"
-              class="grid grid-cols-subgrid pb-4 pr-4"
+              class="grid grid-cols-subgrid pb-4"
               style={"grid-column: span #{@assessment_points_count + 1} / span #{@assessment_points_count + 1}"}
             >
               <.student_entries
@@ -226,10 +226,10 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
         <%= @assessment_point.curriculum_item.name %>
       </p>
       <div :if={@assessment_view == "compare"} class="flex gap-1 w-full">
-        <div class="flex-1 pb-1 border-b-2 border-ltrn-tt-accent text-xs text-center text-ltrn-tt-dark">
+        <div class="flex-1 pb-1 border-b-2 border-ltrn-teacher-accent text-xs text-center text-ltrn-teacher-dark">
           <%= gettext("Teacher") %>
         </div>
-        <div class="flex-1 pb-1 border-b-2 border-ltrn-std-accent text-xs text-center text-ltrn-std-dark">
+        <div class="flex-1 pb-1 border-b-2 border-ltrn-student-accent text-xs text-center text-ltrn-student-dark">
           <%= gettext("Student") %>
         </div>
       </div>
@@ -356,7 +356,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
   defp assign_view_bg(socket) do
     view_bg =
       case socket.assigns.current_assessment_view do
-        "student" -> "bg-ltrn-std-lightest"
+        "student" -> "bg-ltrn-student-lightest"
         _ -> "bg-white"
       end
 

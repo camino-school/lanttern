@@ -34,13 +34,13 @@ module.exports = {
             lighter: colors.violet["200"],
             lightest: colors.violet["50"],
           },
-          std: {
+          student: {
             dark: colors.yellow["700"],
             accent: colors.yellow["400"],
             lighter: colors.yellow["200"],
             lightest: colors.yellow["50"],
           },
-          tt: {
+          teacher: {
             dark: colors.lime["800"],
             accent: colors.lime["500"],
             lighter: colors.lime["200"],

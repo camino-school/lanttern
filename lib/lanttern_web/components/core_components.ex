@@ -88,8 +88,8 @@ defmodule LantternWeb.CoreComponents do
     "cyan" => "bg-ltrn-mesh-cyan text-ltrn-dark",
     "dark" => "bg-ltrn-dark text-ltrn-lighter",
     "diff" => "bg-ltrn-diff-lighter text-ltrn-diff-dark",
-    "student" => "bg-ltrn-std-lighter text-ltrn-std-dark",
-    "teacher" => "bg-ltrn-tt-lighter text-ltrn-tt-dark"
+    "student" => "bg-ltrn-student-lighter text-ltrn-student-dark",
+    "teacher" => "bg-ltrn-teacher-lighter text-ltrn-teacher-dark"
   }
 
   @badge_themes_hover %{
@@ -99,8 +99,8 @@ defmodule LantternWeb.CoreComponents do
     "cyan" => "hover:bg-ltrn-mesh-cyan/50",
     "dark" => "hover:bg-ltrn-dark/50",
     "diff" => "hover:bg-ltrn-diff-lightest",
-    "student" => "hover:bg-ltrn-std-lightest",
-    "teacher" => "hover:bg-ltrn-tt-lightest"
+    "student" => "hover:bg-ltrn-student-lightest",
+    "teacher" => "hover:bg-ltrn-teacher-lightest"
   }
 
   defp badge_theme(theme, with_hover \\ false) do
@@ -297,11 +297,11 @@ defmodule LantternWeb.CoreComponents do
       "disabled:opacity-40"
     ],
     "teacher" => [
-      "bg-ltrn-tt-accent text-ltrn-tt-dark hover:opacity-80",
+      "bg-ltrn-teacher-accent text-ltrn-teacher-dark hover:opacity-80",
       "disabled:opacity-40"
     ],
     "student" => [
-      "bg-ltrn-std-accent text-ltrn-std-dark hover:opacity-80",
+      "bg-ltrn-student-accent text-ltrn-student-dark hover:opacity-80",
       "disabled:opacity-40"
     ],
     "white" => "text-ltrn-dark bg-white hover:bg-ltrn-lightest shadow-sm",
