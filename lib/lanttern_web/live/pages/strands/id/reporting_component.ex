@@ -12,6 +12,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 4, assign_user_filters: 3]
 
   # shared components
+  alias LantternWeb.Assessments.EntryCompareComponent
   alias LantternWeb.Assessments.EntryEditorComponent
   import LantternWeb.ReportingComponents
 
@@ -121,6 +122,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
                   :for={{dom_id, assessment_point} <- @streams.assessment_points}
                   id={dom_id}
                   assessment_point={assessment_point}
+                  assessment_view={@current_assessment_view}
                 />
               </div>
             </div>
@@ -207,11 +209,12 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
 
   attr :id, :string, required: true
   attr :assessment_point, AssessmentPoint, required: true
+  attr :assessment_view, :string, required: true
 
   def assessment_point(assigns) do
     ~H"""
-    <div id={@id} class="max-w-80 pt-6 px-2 pb-2 text-sm">
-      <div class="flex items-center gap-2 mb-2">
+    <div id={@id} class="flex flex-col gap-2 max-w-80 pt-6 px-2 pb-2 text-sm">
+      <div class="flex items-center gap-2">
         <.badge>
           <%= @assessment_point.curriculum_item.curriculum_component.name %>
         </.badge>
@@ -219,9 +222,17 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
           <%= gettext("Diff") %>
         </.badge>
       </div>
-      <p class="line-clamp-3" title={@assessment_point.curriculum_item.name}>
+      <p class="flex-1 line-clamp-3" title={@assessment_point.curriculum_item.name}>
         <%= @assessment_point.curriculum_item.name %>
       </p>
+      <div :if={@assessment_view == "compare"} class="flex gap-1 w-full">
+        <div class="flex-1 pb-1 border-b-2 border-ltrn-tt-accent text-xs text-center text-ltrn-tt-dark">
+          <%= gettext("Teacher") %>
+        </div>
+        <div class="flex-1 pb-1 border-b-2 border-ltrn-std-accent text-xs text-center text-ltrn-std-dark">
+          <%= gettext("Student") %>
+        </div>
+      </div>
     </div>
     """
   end
@@ -248,21 +259,32 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
           extra_info={@student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
         />
       </div>
-      <div :for={{entry, assessment_point} <- @entries} class="p-2">
-        <.live_component
-          module={EntryEditorComponent}
-          id={"student-#{@student.id}-entry-for-#{assessment_point.id}"}
-          student={@student}
-          assessment_point={assessment_point}
-          entry={entry}
-          class="w-full h-full"
-          wrapper_class="w-full h-full"
-          notify_component={@myself}
-          assessment_view={@current_assessment_view}
-          current_user={@current_user}
-        >
-          <:marking_input class="w-full h-full" />
-        </.live_component>
+      <div :for={{entry, assessment_point} <- @entries} class="max-w-80 p-2">
+        <%= if @current_assessment_view == "compare" do %>
+          <.live_component
+            module={EntryCompareComponent}
+            id={"student-#{@student.id}-entry-for-#{assessment_point.id}"}
+            class="w-full h-full"
+            student={@student}
+            scale={assessment_point.scale}
+            entry={entry}
+          />
+        <% else %>
+          <.live_component
+            module={EntryEditorComponent}
+            id={"student-#{@student.id}-entry-for-#{assessment_point.id}"}
+            student={@student}
+            assessment_point={assessment_point}
+            entry={entry}
+            class="w-full h-full"
+            wrapper_class="w-full h-full"
+            notify_component={@myself}
+            assessment_view={@current_assessment_view}
+            current_user={@current_user}
+          >
+            <:marking_input class="w-full h-full" />
+          </.live_component>
+        <% end %>
       </div>
     </div>
     """

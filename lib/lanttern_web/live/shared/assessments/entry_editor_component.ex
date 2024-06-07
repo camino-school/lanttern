@@ -20,6 +20,7 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Grading.Scale
 
+  @impl true
   def render(assigns) do
     ~H"""
     <div class={["flex items-center", @wrapper_class]}>
@@ -149,6 +150,21 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
 
   # lifecycle
 
+  @impl true
+  def mount(socket) do
+    socket =
+      socket
+      |> assign(:class, nil)
+      |> assign(:wrapper_class, nil)
+      |> assign(:has_changes, false)
+      |> assign(:is_editing_note, false)
+      |> assign(:assessment_view, "teacher")
+      |> assign(:marking_input, [])
+
+    {:ok, socket}
+  end
+
+  @impl true
   def update(assigns, socket) do
     %{
       student: student,
@@ -168,12 +184,6 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
       |> assign(assigns)
       |> assign(:entry, entry)
       |> assign(:form, form)
-      |> assign(:assessment_view, Map.get(assigns, :assessment_view, "teacher"))
-      |> assign(:wrapper_class, Map.get(assigns, :wrapper_class, ""))
-      |> assign(:class, Map.get(assigns, :class, ""))
-      |> assign(:marking_input, Map.get(assigns, :marking_input, []))
-      |> assign(:has_changes, false)
-      |> assign(:is_editing_note, false)
       |> assign_ordinal_value_options()
       |> assign_entry_value()
       |> assign_entry_note()
@@ -184,6 +194,7 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
 
   # event handlers
 
+  @impl true
   def handle_event("change", %{"assessment_point_entry" => params}, socket) do
     %{
       entry: %{scale_type: scale_type} = entry,
@@ -257,14 +268,17 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
     {:noreply, socket}
   end
 
+  @impl true
   def handle_event("edit_note", _, socket) do
     {:noreply, assign(socket, :is_editing_note, true)}
   end
 
+  @impl true
   def handle_event("cancel_edit_note", _, socket) do
     {:noreply, assign(socket, :is_editing_note, false)}
   end
 
+  @impl true
   def handle_event("save_note", %{"assessment_point_entry" => params}, socket) do
     opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
 
