@@ -134,7 +134,7 @@ defmodule LantternWeb.ReportingComponents do
       </div>
       <div
         :if={@entry.student_ordinal_value_id}
-        class="grid grid-cols-subgrid border-t-2 pt-1 border-ltrn-student-accent"
+        class="grid grid-cols-subgrid pt-1 px-1 border-2 border-ltrn-student-lighter rounded-sm bg-ltrn-student-lightest"
         style={@grid_column_span_style}
       >
         <div
@@ -144,10 +144,11 @@ defmodule LantternWeb.ReportingComponents do
         >
           <%= ordinal_value.name %>
         </div>
-        <div class="border-t-2 border-ltrn-student-accent mt-1" style={@grid_column_span_style}>
-          <div class="inline-block p-2 rounded-bl rounded-br text-xs text-ltrn-sudent-dark bg-ltrn-student-accent">
-            <%= gettext("Student self-assessment") %>
-          </div>
+        <div
+          class="p-1 rounded-t mt-1 text-xs text-center text-ltrn-student-dark bg-ltrn-student-lighter"
+          style={@grid_column_span_style}
+        >
+          <%= gettext("Student self-assessment") %>
         </div>
       </div>
     </div>
@@ -160,15 +161,12 @@ defmodule LantternWeb.ReportingComponents do
       <.report_scale_numeric_bar score={@entry && @entry.score} scale={@scale} />
       <div
         :if={@entry && @entry.student_score}
-        class="mt-1 py-1 border-y-2 border-ltrn-student-accent"
+        class="mt-1 pt-1 px-1 border-2 border-ltrn-student-lighter rounded-sm bg-ltrn-student-lightest"
       >
         <.report_scale_numeric_bar score={@entry.student_score} scale={@scale} is_student />
-      </div>
-      <div
-        :if={@entry && @entry.student_score}
-        class="inline-block p-2 rounded-bl rounded-br text-xs text-ltrn-sudent-dark bg-ltrn-student-accent"
-      >
-        <%= gettext("Student self-assessment") %>
+        <div class="p-2 rounded-t mt-1 text-xs text-center text-ltrn-student-dark bg-ltrn-student-lighter">
+          <%= gettext("Student self-assessment") %>
+        </div>
       </div>
     </div>
     """
