@@ -118,19 +118,35 @@
                 _ -> rubric
               end
             }
+            class="float-left"
           />
+          <%!-- fix for padding right. we need the float-left above and this emtpy div below --%>
+          <div class="w-6"></div>
         </div>
         <div :if={entry && entry.report_note} class="sm:pt-6 sm:px-6 last:sm:pb-6">
-          <.markdown
-            text={entry.report_note}
-            size="sm"
-            class="max-w-none p-4 sm:rounded bg-ltrn-diff-lightest"
-          />
+          <div class="p-4 sm:rounded bg-ltrn-teacher-lightest">
+            <div class="flex items-center gap-2 font-bold text-sm">
+              <.icon name="hero-chat-bubble-oval-left" class="w-6 h-6 text-ltrn-teacher-accent" />
+              <span class="text-ltrn-teacher-dark"><%= gettext("Teacher comment") %></span>
+            </div>
+            <.markdown text={entry.report_note} size="sm" class="max-w-none mt-4" />
+          </div>
+        </div>
+        <div :if={entry && entry.student_report_note} class="sm:pt-6 sm:px-6 last:sm:pb-6">
+          <div class="p-4 sm:rounded bg-ltrn-student-lightest">
+            <div class="flex items-center gap-2 font-bold text-sm">
+              <.icon name="hero-chat-bubble-oval-left" class="w-6 h-6 text-ltrn-student-accent" />
+              <span class="text-ltrn-student-dark">
+                <%= gettext("%{student} comment", student: @student_report_card.student.name) %>
+              </span>
+            </div>
+            <.markdown text={entry.student_report_note} size="sm" class="max-w-none mt-4" />
+          </div>
         </div>
         <div :if={report_info} class="sm:pt-6 sm:px-6 last:sm:pb-6">
           <div class="p-4 sm:rounded bg-ltrn-mesh-cyan">
-            <div class="flex items-center gap-2 font-bold text-sm text-ltrn-subtle">
-              <.icon name="hero-information-circle" class="w-6 h-6" />
+            <div class="flex items-center gap-2 font-bold text-sm">
+              <.icon name="hero-information-circle" class="w-6 h-6 text-ltrn-subtle" />
               <%= gettext("About this assessment") %>
             </div>
             <.markdown text={report_info} size="sm" class="max-w-none mt-4" />

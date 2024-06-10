@@ -100,7 +100,7 @@ defmodule LantternWeb.ReportingComponents do
         do: "grid-template-columns: repeat(#{n}, minmax(200px, 1fr))",
         else: "grid-template-columns: repeat(#{n}, minmax(min-content, 1fr))"
 
-    grid_column_style = "grid-column: span #{n} / span #{n}"
+    grid_column_span_style = "grid-column: span #{n} / span #{n}"
 
     active_ordinal_value =
       assigns.scale.ordinal_values
@@ -109,34 +109,46 @@ defmodule LantternWeb.ReportingComponents do
     assigns =
       assigns
       |> assign(:grid_template_columns_style, grid_template_columns_style)
-      |> assign(:grid_column_style, grid_column_style)
+      |> assign(:grid_column_span_style, grid_column_span_style)
       |> assign(:active_ordinal_value, active_ordinal_value)
 
     ~H"""
     <div class={["grid gap-1 min-w-full", @class]} id={@id} style={@grid_template_columns_style}>
-      <div class="grid grid-cols-subgrid" style={@grid_column_style}>
+      <div class="grid grid-cols-subgrid" style={@grid_column_span_style}>
         <div
           :for={ordinal_value <- @scale.ordinal_values}
-          class={[
-            "p-2 font-mono text-sm text-center text-ltrn-subtle bg-ltrn-lighter",
-            if(@rubric,
-              do: "first:rounded-tl last:rounded-tr",
-              else: "first:rounded-l last:rounded-r"
-            )
-          ]}
+          class="p-2 rounded font-mono text-sm text-center text-ltrn-subtle bg-ltrn-lighter"
           {if @entry && @entry.ordinal_value_id == ordinal_value.id, do: apply_style_from_ordinal_value(ordinal_value), else: %{}}
         >
           <%= ordinal_value.name %>
         </div>
       </div>
-      <div :if={@rubric} class="grid grid-cols-subgrid" style={@grid_column_style}>
+      <div :if={@rubric} class="grid grid-cols-subgrid" style={@grid_column_span_style}>
         <.markdown
           :for={descriptor <- @rubric.descriptors}
-          class="p-4 first:rounded-bl last:rounded-br bg-ltrn-lighter"
+          class="p-4 rounded bg-ltrn-lighter"
           text={descriptor.descriptor}
           size="sm"
           {if @active_ordinal_value && @active_ordinal_value.id == descriptor.ordinal_value_id, do: apply_style_from_ordinal_value(@active_ordinal_value), else: %{style: "color: #94a3b8"}}
         />
+      </div>
+      <div
+        :if={@entry.student_ordinal_value_id}
+        class="grid grid-cols-subgrid border-t-2 pt-1 border-ltrn-student-accent"
+        style={@grid_column_span_style}
+      >
+        <div
+          :for={ordinal_value <- @scale.ordinal_values}
+          class="p-2 rounded font-mono text-sm text-center text-ltrn-subtle bg-ltrn-lighter"
+          {if @entry && @entry.student_ordinal_value_id == ordinal_value.id, do: apply_style_from_ordinal_value(ordinal_value), else: %{}}
+        >
+          <%= ordinal_value.name %>
+        </div>
+        <div class="border-t-2 border-ltrn-student-accent mt-1" style={@grid_column_span_style}>
+          <div class="inline-block p-2 rounded-bl rounded-br text-xs text-ltrn-sudent-dark bg-ltrn-student-accent">
+            <%= gettext("Student self-assessment") %>
+          </div>
+        </div>
       </div>
     </div>
     """
@@ -144,12 +156,32 @@ defmodule LantternWeb.ReportingComponents do
 
   def report_scale(%{scale: %{type: "numeric"}} = assigns) do
     ~H"""
+    <div id={@id} class={["min-w-full", @class]}>
+      <.report_scale_numeric_bar score={@entry && @entry.score} scale={@scale} />
+      <div
+        :if={@entry && @entry.student_score}
+        class="mt-1 py-1 border-y-2 border-ltrn-student-accent"
+      >
+        <.report_scale_numeric_bar score={@entry.student_score} scale={@scale} is_student />
+      </div>
+      <div
+        :if={@entry && @entry.student_score}
+        class="inline-block p-2 rounded-bl rounded-br text-xs text-ltrn-sudent-dark bg-ltrn-student-accent"
+      >
+        <%= gettext("Student self-assessment") %>
+      </div>
+    </div>
+    """
+  end
+
+  attr :scale, Scale, required: true
+  attr :score, :float, default: nil
+  attr :is_student, :boolean, default: false
+
+  defp report_scale_numeric_bar(assigns) do
+    ~H"""
     <div
-      id={@id}
-      class={[
-        "relative flex items-center justify-between rounded h-10 px-4 font-mono text-sm text-ltrn-subtle bg-ltrn-lighter",
-        @class
-      ]}
+      class="relative flex items-center justify-between rounded w-full h-10 px-4 font-mono text-sm text-ltrn-subtle bg-ltrn-lighter"
       {apply_gradient_from_scale(@scale)}
     >
       <div
@@ -158,12 +190,18 @@ defmodule LantternWeb.ReportingComponents do
       >
         <%= @scale.start %>
       </div>
-      <div :if={@entry && @entry.score} class="relative z-10 flex-1 flex items-center h-full">
+      <div :if={@score} class="relative z-10 flex-1 flex items-center h-full">
         <div
-          class="absolute flex items-center justify-center w-16 h-16 rounded-full -ml-8 font-bold text-lg text-ltrn-dark bg-white shadow-lg"
-          style={"left: #{(@entry.score - @scale.start) * 100 / (@scale.stop - @scale.start)}%"}
+          class={[
+            "absolute flex items-center justify-center w-16 h-16 rounded-full -ml-8 font-bold text-lg shadow-lg",
+            if(@is_student,
+              do: "text-ltrn-student-dark bg-ltrn-student-lighter",
+              else: "text-ltrn-dark bg-white"
+            )
+          ]}
+          style={"left: #{(@score - @scale.start) * 100 / (@scale.stop - @scale.start)}%"}
         >
-          <%= @entry.score %>
+          <%= @score %>
         </div>
       </div>
       <div
