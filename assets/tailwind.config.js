@@ -15,12 +15,6 @@ module.exports = {
         ltrn: {
           primary: colors.cyan["400"],
           secondary: colors.rose["500"],
-          diff: {
-            dark: colors.purple["800"],
-            highlight: colors.purple["600"],
-            light: colors.purple["200"],
-            lightest: colors.purple["100"],
-          },
           dark: colors.slate["700"],
           subtle: colors.slate["400"],
           light: colors.slate["300"],
@@ -34,8 +28,28 @@ module.exports = {
             yellow: colors.yellow["100"],
             lime: colors.lime["100"],
           },
-          alert: colors.red["500"],
-          "alert-lighter": colors.red["100"]
+          diff: {
+            dark: colors.violet["800"],
+            accent: colors.violet["600"],
+            lighter: colors.violet["200"],
+            lightest: colors.violet["50"],
+          },
+          student: {
+            dark: colors.yellow["700"],
+            accent: colors.yellow["400"],
+            lighter: colors.yellow["200"],
+            lightest: colors.yellow["50"],
+          },
+          teacher: {
+            dark: colors.lime["800"],
+            accent: colors.lime["500"],
+            lighter: colors.lime["200"],
+            lightest: colors.lime["50"],
+          },
+          alert: {
+            accent: colors.red["500"],
+            lighter: colors.red["100"]
+          }
         },
       },
       fontFamily: {

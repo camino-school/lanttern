@@ -550,7 +550,7 @@ defmodule LantternWeb.FormComponents do
     ~H"""
     <div
       class={[
-        "flex items-center gap-4 p-4 rounded-sm text-sm text-ltrn-alert bg-ltrn-alert-lighter",
+        "flex items-center gap-4 p-4 rounded-sm text-sm text-ltrn-alert-accent bg-ltrn-alert-lighter",
         @class
       ]}
       {@rest}

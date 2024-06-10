@@ -34,7 +34,9 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
           id: pos_integer(),
           observation: String.t(),
           report_note: String.t(),
+          student_report_note: String.t(),
           score: float(),
+          student_score: float(),
           scale_type: String.t(),
           assessment_point: AssessmentPoint.t(),
           assessment_point_id: pos_integer(),
@@ -44,6 +46,8 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
           scale_id: pos_integer(),
           ordinal_value: OrdinalValue.t(),
           ordinal_value_id: pos_integer(),
+          student_ordinal_value: OrdinalValue.t(),
+          student_ordinal_value_id: pos_integer(),
           differentiation_rubric: Rubric.t(),
           differentiation_rubric_id: pos_integer(),
           feedback: Feedback.t(),
@@ -54,13 +58,16 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
   schema "assessment_point_entries" do
     field :observation, :string
     field :report_note, :string
+    field :student_report_note, :string
     field :score, :float
+    field :student_score, :float
     field :scale_type, :string
 
     belongs_to :assessment_point, AssessmentPoint
     belongs_to :student, Student
     belongs_to :scale, Scale
     belongs_to :ordinal_value, OrdinalValue
+    belongs_to :student_ordinal_value, OrdinalValue
     belongs_to :differentiation_rubric, Rubric
 
     # warning: don't use `Repo.preload/3` with this association.
@@ -108,12 +115,15 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
     |> cast(attrs, [
       :observation,
       :report_note,
+      :student_report_note,
       :score,
+      :student_score,
       :assessment_point_id,
       :student_id,
       :scale_id,
       :scale_type,
       :ordinal_value_id,
+      :student_ordinal_value_id,
       :differentiation_rubric_id
     ])
     |> validate_required([:assessment_point_id, :student_id, :scale_id, :scale_type])

@@ -55,6 +55,10 @@ defmodule LantternWeb.FiltersHelpers do
   - `:selected_linked_students_classes_ids`
   - `:selected_linked_students_classes`
 
+  ### `:assessment_view`' assigns
+
+  - `:current_assessment_view`
+
   ## Examples
 
       iex> assign_user_filters(socket, [:subjects], user)
@@ -166,6 +170,21 @@ defmodule LantternWeb.FiltersHelpers do
     |> assign_filter_type(current_user, current_filters, filter_types, opts)
   end
 
+  defp assign_filter_type(
+         socket,
+         current_user,
+         current_filters,
+         [:assessment_view | filter_types],
+         opts
+       ) do
+    current_assessment_view =
+      Map.get(current_filters, :assessment_view) || "teacher"
+
+    socket
+    |> assign(:current_assessment_view, current_assessment_view)
+    |> assign_filter_type(current_user, current_filters, filter_types, opts)
+  end
+
   defp assign_filter_type(socket, current_user, current_filters, [_ | filter_types], opts),
     do: assign_filter_type(socket, current_user, current_filters, filter_types, opts)
 
@@ -270,6 +289,7 @@ defmodule LantternWeb.FiltersHelpers do
   - `:subjects`
   - `:years`
   - `:cycles`
+  - `:linked_students_classes`
 
   ## Examples
 

@@ -106,7 +106,7 @@ defmodule LantternWeb.NavigationComponents do
   @person_tab_themes %{
     "default" => "text-ltrn-subtle bg-ltrn-lighter",
     "cyan" => "text-ltrn-dark bg-ltrn-mesh-cyan",
-    "diff" => "text-ltrn-diff-highlight bg-ltrn-diff-lightest"
+    "diff" => "text-ltrn-diff-accent bg-ltrn-diff-lightest"
   }
 
   defp person_tab_theme(theme),

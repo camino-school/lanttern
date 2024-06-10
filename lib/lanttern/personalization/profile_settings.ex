@@ -6,6 +6,8 @@ defmodule Lanttern.Personalization.ProfileSettings do
   use Ecto.Schema
   import Ecto.Changeset
 
+  import LantternWeb.Gettext
+
   alias Lanttern.Identity.Profile
 
   @type t :: %__MODULE__{
@@ -21,7 +23,8 @@ defmodule Lanttern.Personalization.ProfileSettings do
           classes_ids: [pos_integer()],
           subjects_ids: [pos_integer()],
           years_ids: [pos_integer()],
-          cycles_ids: [pos_integer()]
+          cycles_ids: [pos_integer()],
+          assessment_view: String.t()
         }
 
   schema "profile_settings" do
@@ -32,6 +35,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
       field :subjects_ids, {:array, :id}
       field :years_ids, {:array, :id}
       field :cycles_ids, {:array, :id}
+      field :assessment_view, :string
     end
 
     timestamps()
@@ -47,6 +51,11 @@ defmodule Lanttern.Personalization.ProfileSettings do
 
   defp current_filters_changeset(current_filters, attrs) do
     current_filters
-    |> cast(attrs, [:classes_ids, :subjects_ids, :years_ids, :cycles_ids])
+    |> cast(attrs, [:classes_ids, :subjects_ids, :years_ids, :cycles_ids, :assessment_view])
+    |> validate_change(:assessment_view, fn :assessment_view, view ->
+      if view in ["teacher", "student", "compare"],
+        do: [],
+        else: [assessment_view: gettext("Invalid assessment view")]
+    end)
   end
 end

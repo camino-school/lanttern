@@ -87,7 +87,9 @@ defmodule LantternWeb.CoreComponents do
     "secondary" => "bg-ltrn-secondary text-white",
     "cyan" => "bg-ltrn-mesh-cyan text-ltrn-dark",
     "dark" => "bg-ltrn-dark text-ltrn-lighter",
-    "diff" => "bg-ltrn-diff-lightest text-ltrn-diff-highlight"
+    "diff" => "bg-ltrn-diff-lighter text-ltrn-diff-dark",
+    "student" => "bg-ltrn-student-lighter text-ltrn-student-dark",
+    "teacher" => "bg-ltrn-teacher-lighter text-ltrn-teacher-dark"
   }
 
   @badge_themes_hover %{
@@ -95,7 +97,10 @@ defmodule LantternWeb.CoreComponents do
     "primary" => "hover:bg-ltrn-primary/50",
     "secondary" => "hover:bg-ltrn-secondary/50",
     "cyan" => "hover:bg-ltrn-mesh-cyan/50",
-    "dark" => "hover:bg-ltrn-dark/50"
+    "dark" => "hover:bg-ltrn-dark/50",
+    "diff" => "hover:bg-ltrn-diff-lightest",
+    "student" => "hover:bg-ltrn-student-lightest",
+    "teacher" => "hover:bg-ltrn-teacher-lightest"
   }
 
   defp badge_theme(theme, with_hover \\ false) do
@@ -288,7 +293,15 @@ defmodule LantternWeb.CoreComponents do
       "disabled:text-ltrn-subtle disabled:bg-ltrn-mesh-cyan disabled:shadow-none"
     ],
     "diff_light" => [
-      "bg-ltrn-diff-lightest hover:bg-ltrn-diff-light text-ltrn-diff-dark",
+      "bg-ltrn-diff-lightest hover:bg-ltrn-diff-lighter text-ltrn-diff-dark",
+      "disabled:opacity-40"
+    ],
+    "teacher" => [
+      "bg-ltrn-teacher-accent text-ltrn-teacher-dark hover:opacity-80",
+      "disabled:opacity-40"
+    ],
+    "student" => [
+      "bg-ltrn-student-accent text-ltrn-student-dark hover:opacity-80",
       "disabled:opacity-40"
     ],
     "white" => "text-ltrn-dark bg-white hover:bg-ltrn-lightest shadow-sm",
@@ -994,7 +1007,7 @@ defmodule LantternWeb.CoreComponents do
     "subtle" => "text-ltrn-subtle bg-ltrn-lighter",
     "cyan" => "text-ltrn-dark bg-ltrn-mesh-primary",
     "rose" => "text-ltrn-dark bg-ltrn-mesh-rose",
-    "diff" => "text-ltrn-diff-lightest bg-ltrn-diff-highlight"
+    "diff" => "text-ltrn-diff-lightest bg-ltrn-diff-accent"
   }
 
   defp profile_icon_theme(theme, false),
@@ -1166,7 +1179,7 @@ defmodule LantternWeb.CoreComponents do
 
   @toggle_themes %{
     "default" => "focus:ring-ltrn-primary",
-    "diff" => "focus:ring-ltrn-diff-highlight"
+    "diff" => "focus:ring-ltrn-diff-accent"
   }
 
   defp toggle_theme(theme),
@@ -1174,7 +1187,7 @@ defmodule LantternWeb.CoreComponents do
 
   @toggle_enabled_themes %{
     "default" => "bg-ltrn-primary",
-    "diff" => "bg-ltrn-diff-highlight"
+    "diff" => "bg-ltrn-diff-accent"
   }
 
   defp toggle_enabled_theme(theme),

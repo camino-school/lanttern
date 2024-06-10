@@ -26,11 +26,11 @@ defmodule LantternWeb.AssessmentsHelpers do
   Logs all entries.
   """
   @type changes_map() :: %{
-          optional(binary) => {type :: atom(), entry_id :: pos_integer(), params :: map()}
+          optional(String.t()) => {type :: atom(), entry_id :: pos_integer(), params :: map()}
         }
 
   @spec save_entry_editor_component_changes(changes_map(), profile_id :: pos_integer() | nil) ::
-          {:ok | :error, results_message :: binary()}
+          {:ok | :error, results_message :: String.t()}
   def save_entry_editor_component_changes(changes_map, profile_id \\ nil) do
     changes =
       changes_map
