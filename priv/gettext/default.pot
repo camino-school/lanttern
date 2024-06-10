@@ -1079,7 +1079,7 @@ msgstr ""
 msgid "Curriculum components"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/student_strand_report_live.html.heex:101
+#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/student_strand_report_live.html.heex:129
 #, elixir-autogen, elixir-format
 msgid "Curriculum differentiation"
 msgstr ""
@@ -1124,7 +1124,7 @@ msgstr ""
 msgid "Different from grade composition. Use comments field to justify it if needed."
 msgstr ""
 
-#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/student_strand_report_live.html.heex:104
+#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/student_strand_report_live.html.heex:132
 #, elixir-autogen, elixir-format
 msgid "Differentiation rubric"
 msgstr ""
@@ -1877,7 +1877,7 @@ msgstr ""
 msgid "You must log in to access this page."
 msgstr ""
 
-#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/student_strand_report_live.html.heex:134
+#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/student_strand_report_live.html.heex:184
 #, elixir-autogen, elixir-format
 msgid "About this assessment"
 msgstr ""
@@ -2524,4 +2524,35 @@ msgstr ""
 #: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:53
 #, elixir-autogen, elixir-format
 msgid "View"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/student_strand_report_live.html.heex:174
+#, elixir-autogen, elixir-format
+msgid "%{student} comment"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/student_strand_report_live.html.heex:78
+#, elixir-autogen, elixir-format
+msgid "Full"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/student_strand_report_live.html.heex:72
+#, elixir-autogen, elixir-format
+msgid "Information level"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/student_strand_report_live.html.heex:84
+#, elixir-autogen, elixir-format
+msgid "Simplified"
+msgstr ""
+
+#: lib/lanttern_web/components/reporting_components.ex:151
+#: lib/lanttern_web/components/reporting_components.ex:168
+#, elixir-autogen, elixir-format
+msgid "Student self-assessment"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/student_strand_report_live.html.heex:161
+#, elixir-autogen, elixir-format
+msgid "Teacher comment"
 msgstr ""
