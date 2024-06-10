@@ -55,7 +55,19 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
               )
             }
             class="shrink-0 w-64 sm:w-auto"
-          />
+          >
+            <:bottom_content>
+              <%= if strand_report.description do %>
+                <div class="p-6 bg-ltrn-mesh-cyan">
+                  <.markdown text={strand_report.description} size="sm" class="line-clamp-3" />
+                </div>
+              <% else %>
+                <p class="p-6 text-sm text-ltrn-subtle bg-ltrn-lightest">
+                  <%= gettext("No strand report description") %>
+                </p>
+              <% end %>
+            </:bottom_content>
+          </.strand_card>
         </.responsive_grid>
       <% else %>
         <.empty_state><%= gettext("No strands linked to this report yet") %></.empty_state>

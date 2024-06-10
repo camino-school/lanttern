@@ -51,7 +51,7 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
         sr_text={gettext("Add entry note")}
         size="sm"
         class="ml-2"
-        disabled={!@entry_value}
+        disabled={!@entry.id}
         phx-click="edit_note"
         phx-target={@myself}
       />
@@ -345,7 +345,6 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
   defp assign_entry_note(socket) do
     %{
       entry: entry,
-      entry_value: entry_value,
       assessment_view: assessment_view
     } = socket.assigns
 
@@ -357,8 +356,8 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
 
     note_button_theme =
       cond do
-        entry_note && entry_value && assessment_view == "student" -> "student"
-        entry_note && entry_value -> "teacher"
+        entry_note && assessment_view == "student" -> "student"
+        entry_note -> "teacher"
         true -> "ghost"
       end
 

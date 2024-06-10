@@ -23,6 +23,10 @@ defmodule LantternWeb.StudentStrandReportLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    socket =
+      socket
+      |> assign(:info_level, "full")
+
     {:ok, socket, layout: {LantternWeb.Layouts, :app_logged_in_blank}}
   end
 
@@ -112,4 +116,9 @@ defmodule LantternWeb.StudentStrandReportLive do
 
   defp assign_current_tab(socket, _params),
     do: assign(socket, :current_tab, :general)
+
+  @impl true
+  def handle_event("set_info_level", %{"level" => level}, socket) do
+    {:noreply, assign(socket, :info_level, level)}
+  end
 end
