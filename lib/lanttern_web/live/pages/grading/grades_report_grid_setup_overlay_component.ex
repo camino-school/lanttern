@@ -34,16 +34,22 @@ defmodule LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent do
             <%= gettext("No sub cycles linked") %>
           </div>
         <% else %>
-          <div class="flex items-center justify-between px-4 py-2 rounded mt-4 text-sm text-ltrn-subtle bg-ltrn-lighter">
-            <span><%= gettext("Sub cycle") %></span>
-            <span><%= gettext("Grading weight") %></span>
+          <div class="grid grid-cols-[1fr_min-content_min-content] gap-2">
+            <div class="grid grid-cols-subgrid col-span-3 items-center px-4 py-2 rounded mt-4 text-sm text-ltrn-subtle bg-ltrn-lighter">
+              <div><%= gettext("Sub cycle") %></div>
+              <div class="text-center"><%= gettext("Grading weight") %></div>
+              <div class="group relative text-center">
+                <.icon name="hero-eye" class="w-6 h-6" />
+                <.tooltip h_pos="right"><%= gettext("Visibility in grades reports") %></.tooltip>
+              </div>
+            </div>
+            <.grades_report_cycle_form
+              :for={grades_report_cycle <- @grades_report_cycles}
+              id={"grades-report-cycle-#{grades_report_cycle.id}"}
+              grades_report_cycle={grades_report_cycle}
+              myself={@myself}
+            />
           </div>
-          <.grades_report_cycle_form
-            :for={grades_report_cycle <- @grades_report_cycles}
-            id={"grades-report-cycle-#{grades_report_cycle.id}"}
-            grades_report_cycle={grades_report_cycle}
-            myself={@myself}
-          />
         <% end %>
         <h5 class="mt-10 mb-6 font-display font-black text-lg"><%= gettext("Grid subjects") %></h5>
         <div class="flex-1 flex flex-wrap gap-2">
@@ -104,17 +110,26 @@ defmodule LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent do
       |> GradesReportCycle.changeset(%{})
       |> to_form(as: "grades_report_cycle_#{assigns.grades_report_cycle.id}")
 
+    {visibility_icon, visibility_theme} =
+      if assigns.grades_report_cycle.is_visible do
+        {"hero-eye", "primary_light"}
+      else
+        {"hero-eye-slash", "ghost"}
+      end
+
     # we use :as option to avoid using hidden id input (which is easy to "hack")
 
     assigns =
       assigns
       |> assign(:form, form)
+      |> assign(:visibility_icon, visibility_icon)
+      |> assign(:visibility_theme, visibility_theme)
 
     ~H"""
     <.form
       id={@id}
       for={@form}
-      class="flex items-center justify-between p-4 rounded mt-4 bg-white shadow-lg"
+      class="grid grid-cols-subgrid col-span-3 items-center p-4 rounded mt-1 bg-white shadow-lg"
       phx-change={JS.push("update_grades_report_cycle_weight", target: @myself)}
     >
       <%= @grades_report_cycle.school_cycle.name %>
@@ -126,6 +141,18 @@ defmodule LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent do
         min="0"
         phx-debounce="1500"
         class="w-20 rounded-sm border-none text-right text-sm bg-ltrn-lightest"
+      />
+      <.icon_button
+        name={@visibility_icon}
+        sr_text={gettext("Cycle visibility")}
+        rounded
+        theme={@visibility_theme}
+        phx-click={
+          JS.push("toggle_grades_report_cycle_visibility",
+            value: %{"id" => @grades_report_cycle.id},
+            target: @myself
+          )
+        }
       />
     </.form>
     """
@@ -244,6 +271,35 @@ defmodule LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent do
       {:error, _changeset} ->
         {:noreply,
          put_flash(socket, :error, gettext("Error updating grades report cycle weight"))}
+    end
+  end
+
+  def handle_event("toggle_grades_report_cycle_visibility", %{"id" => id}, socket) do
+    grades_report_cycle =
+      socket.assigns.grades_report_cycles
+      |> Enum.find(&(&1.id == id))
+
+    GradesReports.update_grades_report_cycle(grades_report_cycle, %{
+      is_visible: !grades_report_cycle.is_visible
+    })
+    |> case do
+      {:ok, updated_grades_report_cycle} ->
+        grades_report_cycles =
+          socket.assigns.grades_report_cycles
+          |> Enum.map(fn
+            %{id: ^id} -> updated_grades_report_cycle
+            grc -> grc
+          end)
+
+        socket =
+          socket
+          |> assign(:grades_report_cycles, grades_report_cycles)
+
+        {:noreply, socket}
+
+      {:error, _changeset} ->
+        {:noreply,
+         put_flash(socket, :error, gettext("Error updating grades report cycle visibility"))}
     end
   end
 
