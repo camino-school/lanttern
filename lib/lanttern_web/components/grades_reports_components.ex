@@ -412,14 +412,21 @@ defmodule LantternWeb.GradesReportsComponents do
   attr :on_entry_click, :any, required: true
 
   defp students_grades_grid_cell(
-         %{student_grade_report_entry: %StudentGradeReportEntry{ordinal_value: %OrdinalValue{}}} =
+         %{student_grade_report_entry: %StudentGradeReportEntry{}} =
            assigns
        ) do
     bg_class =
-      if assigns.student_grade_report_entry.ordinal_value_id ==
-           assigns.student_grade_report_entry.composition_ordinal_value_id,
-         do: "border-ltrn-lighter bg-ltrn-lightest",
-         else: "border-ltrn-secondary bg-ltrn-mesh-rose"
+      case assigns.student_grade_report_entry do
+        %StudentGradeReportEntry{ordinal_value: %OrdinalValue{}} = sgre ->
+          if sgre.ordinal_value_id == sgre.composition_ordinal_value_id,
+            do: "border-ltrn-lighter bg-ltrn-lightest",
+            else: "border-ltrn-teacher-accent bg-ltrn-teacher-lightest"
+
+        %StudentGradeReportEntry{} = sgre ->
+          if sgre.score == sgre.composition_score,
+            do: "border-ltrn-lighter bg-ltrn-lightest",
+            else: "border-ltrn-teacher-accent bg-ltrn-teacher-lightest"
+      end
 
     assigns =
       assigns
@@ -427,63 +434,32 @@ defmodule LantternWeb.GradesReportsComponents do
 
     ~H"""
     <div class={[
-      "relative flex items-center justify-center gap-2 p-1 border rounded",
+      "relative flex items-center justify-center gap-1 p-1 border rounded",
       @bg_class
     ]}>
-      <button
-        class="flex-1 self-stretch flex items-center justify-center rounded-sm"
-        {apply_style_from_ordinal_value(@student_grade_report_entry.ordinal_value)}
-        phx-click={if(@on_entry_click, do: @on_entry_click.(@student_grade_report_entry.id))}
-      >
-        <%= @student_grade_report_entry.ordinal_value.name %>
-      </button>
-      <.icon_button
-        :if={@on_calculate_cell}
-        name="hero-arrow-path-mini"
-        theme="white"
-        rounded
-        size="sm"
-        sr_text={gettext("Recalculate grade")}
-        phx-click={@on_calculate_cell.(@student_id, @grades_report_subject_id)}
+      <.students_grades_grid_cell_value
+        student_grade_report_entry={@student_grade_report_entry}
+        on_entry_click={@on_entry_click}
       />
       <div
-        :if={@student_grade_report_entry.comment}
-        class="absolute top-1 right-1 w-2 h-2 rounded-full bg-ltrn-dark"
+        :if={@student_grade_report_entry.comment || @on_calculate_cell}
+        class="flex flex-col gap-1 justify-center items-center ml-1"
       >
-        <span class="sr-only"><%= gettext("Entry with comments") %></span>
+        <.icon
+          :if={@student_grade_report_entry.comment}
+          name="hero-chat-bubble-oval-left-mini"
+          class="text-ltrn-teacher-accent"
+        />
+        <.icon_button
+          :if={@on_calculate_cell}
+          name="hero-arrow-path-mini"
+          theme="white"
+          rounded
+          size="sm"
+          sr_text={gettext("Recalculate grade")}
+          phx-click={@on_calculate_cell.(@student_id, @grades_report_subject_id)}
+        />
       </div>
-    </div>
-    """
-  end
-
-  defp students_grades_grid_cell(
-         %{student_grade_report_entry: %StudentGradeReportEntry{}} = assigns
-       ) do
-    bg_class =
-      if assigns.student_grade_report_entry.score ==
-           assigns.student_grade_report_entry.composition_score,
-         do: "bg-ltrn-lightest",
-         else: "bg-ltrn-mesh-yellow"
-
-    assigns =
-      assigns
-      |> assign(:bg_class, bg_class)
-
-    ~H"""
-    <div class={[
-      "flex items-center justify-center gap-2 rounded border border-ltrn-lighter",
-      @bg_class
-    ]}>
-      <%= @student_grade_report_entry.score %>
-      <.icon_button
-        :if={@on_calculate_cell}
-        name="hero-arrow-path-mini"
-        theme="white"
-        rounded
-        size="sm"
-        sr_text={gettext("Recalculate grade")}
-        phx-click={@on_calculate_cell.(@student_id, @grades_report_subject_id)}
-      />
     </div>
     """
   end
@@ -501,6 +477,60 @@ defmodule LantternWeb.GradesReportsComponents do
         sr_text={gettext("Calculate grade")}
         phx-click={@on_calculate_cell.(@student_id, @grades_report_subject_id)}
       />
+    </div>
+    """
+  end
+
+  attr :student_grade_report_entry, StudentGradeReportEntry, required: true
+  attr :on_entry_click, :any, required: true
+
+  defp students_grades_grid_cell_value(
+         %{student_grade_report_entry: %StudentGradeReportEntry{ordinal_value: %OrdinalValue{}}} =
+           assigns
+       ) do
+    has_retake_history = assigns.student_grade_report_entry.pre_retake_ordinal_value_id != nil
+
+    assigns =
+      assigns
+      |> assign(:has_retake_history, has_retake_history)
+
+    ~H"""
+    <button
+      :if={@has_retake_history}
+      class="flex-1 self-stretch flex items-center justify-center border rounded-sm text-xs opacity-70"
+      {apply_style_from_ordinal_value(@student_grade_report_entry.pre_retake_ordinal_value)}
+      phx-click={if(@on_entry_click, do: @on_entry_click.(@student_grade_report_entry.id))}
+    >
+      <%= @student_grade_report_entry.pre_retake_ordinal_value.name %>
+    </button>
+    <button
+      class="flex-[2] self-stretch flex items-center justify-center rounded-sm"
+      {apply_style_from_ordinal_value(@student_grade_report_entry.ordinal_value)}
+      phx-click={if(@on_entry_click, do: @on_entry_click.(@student_grade_report_entry.id))}
+    >
+      <%= @student_grade_report_entry.ordinal_value.name %>
+    </button>
+    """
+  end
+
+  defp students_grades_grid_cell_value(
+         %{student_grade_report_entry: %StudentGradeReportEntry{}} = assigns
+       ) do
+    has_retake_history = assigns.student_grade_report_entry.pre_retake_score != nil
+
+    assigns =
+      assigns
+      |> assign(:has_retake_history, has_retake_history)
+
+    ~H"""
+    <div
+      :if={@has_retake_history}
+      class="flex-1 flex items-center justify-center rounded-sm text-xs bg-white opacity-70"
+    >
+      <%= @student_grade_report_entry.pre_retake_score %>
+    </div>
+    <div class="flex-[2] flex items-center justify-center rounded-sm bg-white">
+      <%= @student_grade_report_entry.score %>
     </div>
     """
   end
