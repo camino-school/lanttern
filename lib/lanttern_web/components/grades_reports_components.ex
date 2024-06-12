@@ -28,6 +28,7 @@ defmodule LantternWeb.GradesReportsComponents do
   attr :on_setup, JS, default: nil
   attr :report_card_cycle_id, :integer, default: nil
   attr :on_composition_click, JS, default: nil
+  attr :show_cycle_visibility, :boolean, default: false
 
   def grades_report_grid(assigns) do
     %{
@@ -72,7 +73,7 @@ defmodule LantternWeb.GradesReportsComponents do
             :for={grades_report_cycle <- @grades_report.grades_report_cycles}
             id={"grid-header-cycle-#{grades_report_cycle.id}"}
             class={[
-              "p-4 rounded text-center shadow-lg",
+              "flex items-center justify-center gap-1 p-4 rounded shadow-lg",
               if(@report_card_cycle_id == grades_report_cycle.school_cycle_id,
                 do: "font-bold bg-ltrn-mesh-cyan",
                 else: "bg-white"
@@ -80,6 +81,18 @@ defmodule LantternWeb.GradesReportsComponents do
             ]}
           >
             <%= grades_report_cycle.school_cycle.name %>
+            <div
+              :if={@show_cycle_visibility}
+              class={[
+                "flex items-center justify-center p-1 rounded-full",
+                if(grades_report_cycle.is_visible,
+                  do: "text-ltrn-primary bg-ltrn-mesh-cyan",
+                  else: "text-ltrn-subtle bg-ltrn-lighter"
+                )
+              ]}
+            >
+              <.icon name={if grades_report_cycle.is_visible, do: "hero-eye", else: "hero-eye-slash"} />
+            </div>
           </div>
           <div class="p-4 rounded text-center bg-white shadow-lg">
             <%= @grades_report.school_cycle.name %>

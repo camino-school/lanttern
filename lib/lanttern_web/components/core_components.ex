@@ -279,7 +279,8 @@ defmodule LantternWeb.CoreComponents do
   """
   def get_button_styles(theme \\ "default", size \\ "normal", rounded \\ false) do
     [
-      "inline-flex items-center justify-center font-display text-sm font-bold disabled:cursor-not-allowed",
+      "inline-flex items-center justify-center font-display text-sm font-bold disabled:cursor-not-allowed shadow",
+      "disabled:shadow-none",
       if(size == "sm", do: "gap-1 p-1", else: "gap-2 p-2"),
       if(rounded, do: "rounded-full", else: "rounded-sm"),
       "phx-submit-loading:opacity-50 phx-click-loading:opacity-50 phx-click-loading:pointer-events-none",
@@ -289,9 +290,10 @@ defmodule LantternWeb.CoreComponents do
 
   @button_themes %{
     "default" => [
-      "bg-ltrn-primary hover:bg-cyan-300 shadow-sm",
-      "disabled:text-ltrn-subtle disabled:bg-ltrn-mesh-cyan disabled:shadow-none"
+      "bg-ltrn-primary hover:bg-cyan-300",
+      "disabled:text-ltrn-subtle disabled:bg-ltrn-mesh-cyan"
     ],
+    "primary_light" => "bg-ltrn-mesh-cyan hover:bg-white text-ltrn-primary",
     "diff_light" => [
       "bg-ltrn-diff-lightest hover:bg-ltrn-diff-lighter text-ltrn-diff-dark",
       "disabled:opacity-40"
@@ -304,9 +306,9 @@ defmodule LantternWeb.CoreComponents do
       "bg-ltrn-student-accent text-ltrn-student-dark hover:opacity-80",
       "disabled:opacity-40"
     ],
-    "white" => "text-ltrn-dark bg-white hover:bg-ltrn-lightest shadow-sm",
+    "white" => "text-ltrn-dark bg-white hover:bg-ltrn-lightest",
     "ghost" => [
-      "text-ltrn-subtle bg-white/10 hover:bg-slate-100",
+      "text-ltrn-subtle bg-white/10 shadow-none hover:bg-slate-100",
       "disabled:text-ltrn-lighter"
     ]
   }
@@ -736,7 +738,7 @@ defmodule LantternWeb.CoreComponents do
 
   ## Examples
 
-      <.icon_button name="hero-x-mark" />
+      <.icon_button name="hero-x-mark" sr_text="Close" />
   """
   attr :type, :string, default: "button"
   attr :class, :any, default: nil

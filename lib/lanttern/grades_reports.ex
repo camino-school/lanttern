@@ -1166,6 +1166,7 @@ defmodule Lanttern.GradesReports do
       join: rc in assoc(src, :report_card),
       join: gr in assoc(rc, :grades_report),
       join: grc in assoc(gr, :grades_report_cycles),
+      on: grc.is_visible,
       join: grs in assoc(gr, :grades_report_subjects),
       left_join: sgre in StudentGradeReportEntry,
       on:

@@ -58,6 +58,7 @@
           grades_report={grades_report}
           on_setup={JS.patch(~p"/grading?is_editing_grid=#{grades_report.id}")}
           on_composition_click={JS.push("edit_composition")}
+          show_cycle_visibility
         />
       </div>
     </div>
