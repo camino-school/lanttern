@@ -14,6 +14,7 @@ defmodule Lanttern.GradesReports.GradesReportCycle do
   @type t :: %__MODULE__{
           id: pos_integer(),
           weight: float(),
+          is_visible: boolean(),
           school_cycle: Cycle.t(),
           school_cycle_id: pos_integer(),
           grades_report: GradesReport.t(),
@@ -24,6 +25,7 @@ defmodule Lanttern.GradesReports.GradesReportCycle do
 
   schema "grades_report_cycles" do
     field :weight, :float, default: 1.0
+    field :is_visible, :boolean, default: true
 
     belongs_to :school_cycle, Cycle
     belongs_to :grades_report, GradesReport
@@ -34,7 +36,7 @@ defmodule Lanttern.GradesReports.GradesReportCycle do
   @doc false
   def changeset(grades_report_cycle, attrs) do
     grades_report_cycle
-    |> cast(attrs, [:weight, :school_cycle_id, :grades_report_id])
+    |> cast(attrs, [:weight, :is_visible, :school_cycle_id, :grades_report_id])
     |> validate_required([:school_cycle_id, :grades_report_id])
     |> unique_constraint(:school_cycle_id,
       name: "grades_report_cycles_grades_report_id_school_cycle_id_index",
