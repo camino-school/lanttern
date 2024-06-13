@@ -86,6 +86,12 @@
     >
       <%= @student_grade_report_entry.ordinal_value.name %>
     </div>
+    <div
+      :if={@student_grade_report_entry.score}
+      class="self-stretch flex items-center p-6 border border-ltrn-lighter rounded font-mono font-bold bg-ltrn-lightes"
+    >
+      <%= @student_grade_report_entry.score %>
+    </div>
     <div class="flex-1">
       <.metadata class="mb-4" icon_name="hero-bookmark">
         <span class="font-bold"><%= gettext("Subject") %>:</span>
@@ -100,6 +106,29 @@
         <%= @student_grade_report_entry.grades_report_cycle.school_cycle.name %>
       </.metadata>
     </div>
+  </div>
+
+  <div
+    :if={
+      @student_grade_report_entry.pre_retake_ordinal_value ||
+        @student_grade_report_entry.pre_retake_score
+    }
+    class="flex items-center gap-4 p-4 rounded mb-10 bg-ltrn-lightest"
+  >
+    <div
+      :if={@student_grade_report_entry.pre_retake_ordinal_value}
+      class="self-stretch flex items-center px-4 py-2 rounded text-sm opacity-70"
+      {apply_style_from_ordinal_value(@student_grade_report_entry.pre_retake_ordinal_value)}
+    >
+      <%= @student_grade_report_entry.pre_retake_ordinal_value.name %>
+    </div>
+    <div
+      :if={@student_grade_report_entry.pre_retake_score}
+      class="self-stretch flex items-center px-4 py-2 rounded font-mono font-bold text-sm opacity-70"
+    >
+      <%= @student_grade_report_entry.pre_retake_score %>
+    </div>
+    <p class="text-sm text-ltrn-subtle"><%= gettext("Grade before retake process") %></p>
   </div>
   <%= if @student_grade_report_entry.comment do %>
     <h6 class="mb-4 font-display font-bold"><%= gettext("Comment") %></h6>

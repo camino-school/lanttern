@@ -36,7 +36,7 @@ defmodule LantternWeb.GradesReports.StudentGradeReportEntryFormComponent do
           />
           <p
             :if={@has_manual_edit}
-            class="p-2 rounded-sm border border-ltrn-secondary mt-2 text-sm bg-ltrn-mesh-rose"
+            class="p-2 rounded-sm border border-ltrn-teacher-accent mt-2 text-sm bg-ltrn-teacher-lightest"
           >
             <%= gettext(
               "Different from grade composition. Use comments field to justify it if needed."
@@ -51,7 +51,33 @@ defmodule LantternWeb.GradesReports.StudentGradeReportEntryFormComponent do
           class="mb-1"
           show_optional
         />
-        <.markdown_supported class={if !@hide_submit, do: "mb-6"} />
+        <.markdown_supported class="mb-6" />
+        <div class={[
+          "p-4 rounded",
+          if(!@hide_submit, do: "mb-6"),
+          if(@has_retake_history,
+            do: "bg-ltrn-alert-lighter",
+            else: "bg-ltrn-lighter"
+          )
+        ]}>
+          <.input
+            :if={@scale_type == "ordinal"}
+            field={@form[:pre_retake_ordinal_value_id]}
+            type="select"
+            label={gettext("Level before retake")}
+            options={@ordinal_value_options}
+            prompt={gettext("Select a level")}
+          />
+          <.input
+            :if={@scale_type == "numeric"}
+            field={@form[:pre_retake_score]}
+            type="number"
+            label={gettext("Score before retake")}
+          />
+          <p class="mt-4 text-sm">
+            <%= gettext("If needed, use this area to keep the student grade history before retake.") %>
+          </p>
+        </div>
         <.button :if={!@hide_submit} phx-disable-with={gettext("Saving...")}>
           <%= gettext("Save student grade report entry") %>
         </.button>
@@ -92,6 +118,7 @@ defmodule LantternWeb.GradesReports.StudentGradeReportEntryFormComponent do
       |> assign(:scale_type, scale.type)
       |> assign_form(changeset)
       |> assign_has_manual_edit()
+      |> assign_has_retake_history(changeset)
 
     {:ok, socket}
   end
@@ -121,6 +148,23 @@ defmodule LantternWeb.GradesReports.StudentGradeReportEntryFormComponent do
     assign(socket, :has_manual_edit, has_manual_edit)
   end
 
+  defp assign_has_retake_history(%{assigns: %{scale_type: scale_type}} = socket, changeset) do
+    pre_retake_ordinal_value_id =
+      Ecto.Changeset.get_field(changeset, :pre_retake_ordinal_value_id)
+
+    pre_retake_score = Ecto.Changeset.get_field(changeset, :pre_retake_score)
+
+    has_retake_history =
+      case {scale_type, pre_retake_ordinal_value_id, pre_retake_score} do
+        {"ordinal", nil, _} -> false
+        {"ordinal", _, _} -> true
+        {"numeric", _, nil} -> false
+        {"numeric", _, _} -> true
+      end
+
+    assign(socket, :has_retake_history, has_retake_history)
+  end
+
   @impl true
   def handle_event(
         "validate",
@@ -136,8 +180,9 @@ defmodule LantternWeb.GradesReports.StudentGradeReportEntryFormComponent do
       socket
       |> assign_form(changeset)
       |> assign_has_manual_edit()
+      |> assign_has_retake_history(changeset)
 
-    {:noreply, assign_form(socket, changeset)}
+    {:noreply, socket}
   end
 
   def handle_event(
