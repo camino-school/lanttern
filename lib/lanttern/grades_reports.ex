@@ -1121,19 +1121,19 @@ defmodule Lanttern.GradesReports do
           sgre.grades_report_subject_id == grs.id and
           sgre.student_id == std.id,
       left_join: ov in assoc(sgre, :ordinal_value),
-      left_join: prov in assoc(sgre, :pre_retake_ordinal_value),
+      left_join: pr_ov in assoc(sgre, :pre_retake_ordinal_value),
       where: std.id in ^students_ids,
       where: grc.grades_report_id == ^grades_report_id,
       where: grc.school_cycle_id == ^cycle_id,
-      select: {std.id, grs.id, sgre, ov, prov}
+      select: {std.id, grs.id, sgre, ov, pr_ov}
     )
     |> Repo.all()
-    |> Enum.reduce(%{}, fn {std_id, grs_id, sgre, ov, prov}, acc ->
+    |> Enum.reduce(%{}, fn {std_id, grs_id, sgre, ov, pr_ov}, acc ->
       # "preload" ordinal value in student grade report entry
       sgre =
         case sgre do
           nil -> nil
-          sgre -> %{sgre | ordinal_value: ov, pre_retake_ordinal_value: prov}
+          sgre -> %{sgre | ordinal_value: ov, pre_retake_ordinal_value: pr_ov}
         end
 
       # build student map
@@ -1175,16 +1175,17 @@ defmodule Lanttern.GradesReports do
           sgre.grades_report_subject_id == grs.id and
           sgre.student_id == src.student_id,
       left_join: ov in assoc(sgre, :ordinal_value),
+      left_join: pr_ov in assoc(sgre, :pre_retake_ordinal_value),
       where: src.id == ^student_report_card_id,
-      select: {grc.id, grs.id, sgre, ov}
+      select: {grc.id, grs.id, sgre, ov, pr_ov}
     )
     |> Repo.all()
-    |> Enum.reduce(%{}, fn {grc_id, grs_id, sgre, ov}, acc ->
+    |> Enum.reduce(%{}, fn {grc_id, grs_id, sgre, ov, pr_ov}, acc ->
       # "preload" ordinal value in student grade report entry
       sgre =
         case sgre do
           nil -> nil
-          sgre -> %{sgre | ordinal_value: ov}
+          sgre -> %{sgre | ordinal_value: ov, pre_retake_ordinal_value: pr_ov}
         end
 
       # build cycle map

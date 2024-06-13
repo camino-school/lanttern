@@ -169,15 +169,29 @@ defmodule LantternWeb.GradesReportsComponents do
            assigns
        ) do
     ~H"""
-    <.button
-      type="button"
-      phx-click={@on_student_grade_click}
-      phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
-      phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
-      {apply_style_from_ordinal_value(@student_grade_report_entry.ordinal_value)}
-    >
-      <%= @student_grade_report_entry.ordinal_value.name %>
-    </.button>
+    <div class="flex items-stretch justify-stretch gap-1">
+      <.button
+        :if={@student_grade_report_entry.pre_retake_ordinal_value}
+        type="button"
+        phx-click={@on_student_grade_click}
+        phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
+        phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
+        {apply_style_from_ordinal_value(@student_grade_report_entry.pre_retake_ordinal_value)}
+        class="flex-1 my-2 opacity-70"
+      >
+        <%= @student_grade_report_entry.pre_retake_ordinal_value.name %>
+      </.button>
+      <.button
+        type="button"
+        phx-click={@on_student_grade_click}
+        phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
+        phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
+        {apply_style_from_ordinal_value(@student_grade_report_entry.ordinal_value)}
+        class="flex-[2]"
+      >
+        <%= @student_grade_report_entry.ordinal_value.name %>
+      </.button>
+    </div>
     """
   end
 
@@ -185,15 +199,27 @@ defmodule LantternWeb.GradesReportsComponents do
          %{student_grade_report_entry: %StudentGradeReportEntry{}} = assigns
        ) do
     ~H"""
-    <.button
-      type="button"
-      phx-click={@on_student_grade_click}
-      phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
-      phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
-      class="border border-ltrn-lighter"
-    >
-      <%= @student_grade_report_entry.score %>
-    </.button>
+    <div class="flex items-stretch justify-stretch gap-1 font-mono font-bold">
+      <button
+        :if={@student_grade_report_entry.pre_retake_score}
+        type="button"
+        phx-click={@on_student_grade_click}
+        phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
+        phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
+        class="flex-1 rounded border border-ltrn-lighter my-2 text-sm bg-ltrn-lightest opacity-70"
+      >
+        <%= @student_grade_report_entry.pre_retake_score %>
+      </button>
+      <button
+        type="button"
+        phx-click={@on_student_grade_click}
+        phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
+        phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
+        class="flex-[2] rounded border border-ltrn-lighter text-base bg-ltrn-lightest"
+      >
+        <%= @student_grade_report_entry.score %>
+      </button>
+    </div>
     """
   end
 
@@ -497,7 +523,7 @@ defmodule LantternWeb.GradesReportsComponents do
     ~H"""
     <button
       :if={@has_retake_history}
-      class="flex-1 self-stretch flex items-center justify-center border rounded-sm text-xs opacity-70"
+      class="flex-1 self-stretch flex items-center justify-center border rounded-sm my-2 text-xs opacity-70"
       {apply_style_from_ordinal_value(@student_grade_report_entry.pre_retake_ordinal_value)}
       phx-click={if(@on_entry_click, do: @on_entry_click.(@student_grade_report_entry.id))}
     >
