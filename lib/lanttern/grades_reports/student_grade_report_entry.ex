@@ -16,6 +16,7 @@ defmodule Lanttern.GradesReports.StudentGradeReportEntry do
           id: pos_integer(),
           comment: String.t(),
           score: float(),
+          pre_retake_score: float(),
           student: Student.t(),
           student_id: pos_integer(),
           grades_report: GradesReport.t(),
@@ -26,6 +27,8 @@ defmodule Lanttern.GradesReports.StudentGradeReportEntry do
           grades_report_subject_id: pos_integer(),
           ordinal_value: OrdinalValue.t(),
           ordinal_value_id: pos_integer(),
+          pre_retake_ordinal_value: OrdinalValue.t(),
+          pre_retake_ordinal_value_id: pos_integer(),
           composition_normalized_value: float(),
           composition_ordinal_value: OrdinalValue.t(),
           composition_ordinal_value_id: pos_integer(),
@@ -38,12 +41,14 @@ defmodule Lanttern.GradesReports.StudentGradeReportEntry do
   schema "student_grade_report_entries" do
     field :comment, :string
     field :score, :float
+    field :pre_retake_score, :float
 
     belongs_to :student, Student
     belongs_to :grades_report, GradesReport
     belongs_to :grades_report_cycle, GradesReportCycle
     belongs_to :grades_report_subject, GradesReportSubject
     belongs_to :ordinal_value, OrdinalValue
+    belongs_to :pre_retake_ordinal_value, OrdinalValue
 
     # composition related fields
     field :composition_normalized_value, :float
@@ -78,11 +83,13 @@ defmodule Lanttern.GradesReports.StudentGradeReportEntry do
     |> cast(attrs, [
       :comment,
       :score,
+      :pre_retake_score,
       :student_id,
       :grades_report_id,
       :grades_report_cycle_id,
       :grades_report_subject_id,
       :ordinal_value_id,
+      :pre_retake_ordinal_value_id,
       :composition_normalized_value,
       :composition_ordinal_value_id,
       :composition_score,

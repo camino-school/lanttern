@@ -169,15 +169,29 @@ defmodule LantternWeb.GradesReportsComponents do
            assigns
        ) do
     ~H"""
-    <.button
-      type="button"
-      phx-click={@on_student_grade_click}
-      phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
-      phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
-      {apply_style_from_ordinal_value(@student_grade_report_entry.ordinal_value)}
-    >
-      <%= @student_grade_report_entry.ordinal_value.name %>
-    </.button>
+    <div class="flex items-stretch justify-stretch gap-1">
+      <.button
+        :if={@student_grade_report_entry.pre_retake_ordinal_value}
+        type="button"
+        phx-click={@on_student_grade_click}
+        phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
+        phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
+        {apply_style_from_ordinal_value(@student_grade_report_entry.pre_retake_ordinal_value)}
+        class="flex-1 my-2 opacity-70"
+      >
+        <%= @student_grade_report_entry.pre_retake_ordinal_value.name %>
+      </.button>
+      <.button
+        type="button"
+        phx-click={@on_student_grade_click}
+        phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
+        phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
+        {apply_style_from_ordinal_value(@student_grade_report_entry.ordinal_value)}
+        class="flex-[2]"
+      >
+        <%= @student_grade_report_entry.ordinal_value.name %>
+      </.button>
+    </div>
     """
   end
 
@@ -185,15 +199,27 @@ defmodule LantternWeb.GradesReportsComponents do
          %{student_grade_report_entry: %StudentGradeReportEntry{}} = assigns
        ) do
     ~H"""
-    <.button
-      type="button"
-      phx-click={@on_student_grade_click}
-      phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
-      phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
-      class="border border-ltrn-lighter"
-    >
-      <%= @student_grade_report_entry.score %>
-    </.button>
+    <div class="flex items-stretch justify-stretch gap-1 font-mono font-bold">
+      <button
+        :if={@student_grade_report_entry.pre_retake_score}
+        type="button"
+        phx-click={@on_student_grade_click}
+        phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
+        phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
+        class="flex-1 rounded border border-ltrn-lighter my-2 text-sm bg-ltrn-lightest opacity-70"
+      >
+        <%= @student_grade_report_entry.pre_retake_score %>
+      </button>
+      <button
+        type="button"
+        phx-click={@on_student_grade_click}
+        phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
+        phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
+        class="flex-[2] rounded border border-ltrn-lighter text-base bg-ltrn-lightest"
+      >
+        <%= @student_grade_report_entry.score %>
+      </button>
+    </div>
     """
   end
 
@@ -258,17 +284,19 @@ defmodule LantternWeb.GradesReportsComponents do
       grades_report_subjects: grades_report_subjects
     } = assigns
 
+    subjects_count = length(grades_report_subjects)
+
     grid_template_columns_style =
-      case length(grades_report_subjects) do
+      case subjects_count do
         n when n > 0 ->
-          "grid-template-columns: 200px repeat(#{n}, minmax(0, 1fr))"
+          "grid-template-columns: 200px repeat(#{n}, minmax(144px, 1fr))"
 
         _ ->
-          "grid-template-columns: 200px minmax(0, 1fr)"
+          "grid-template-columns: 200px minmax(144px, 1fr)"
       end
 
     grid_column_style =
-      case length(grades_report_subjects) do
+      case subjects_count do
         0 -> "grid-column: span 2 / span 2"
         n -> "grid-column: span #{n + 1} / span #{n + 1}"
       end
@@ -277,96 +305,128 @@ defmodule LantternWeb.GradesReportsComponents do
       assigns
       |> assign(:grid_template_columns_style, grid_template_columns_style)
       |> assign(:grid_column_style, grid_column_style)
-      |> assign(:has_subjects, length(grades_report_subjects) > 0)
+      |> assign(:has_subjects, subjects_count > 0)
       |> assign(:has_students, length(students) > 0)
 
     ~H"""
-    <div id={@id} class={["grid gap-1 text-sm", @class]} style={@grid_template_columns_style}>
-      <%= if @on_calculate_cycle do %>
-        <.button
-          type="button"
-          theme="ghost"
-          icon_name="hero-arrow-path-mini"
-          phx-click={@on_calculate_cycle.()}
-        >
-          <%= gettext("Calculate all") %>
-        </.button>
-      <% else %>
-        <div></div>
-      <% end %>
-      <%= if @has_subjects do %>
-        <div
-          :for={grades_report_subject <- @grades_report_subjects}
-          id={"students-grades-grid-header-subject-#{grades_report_subject.id}"}
-          class="flex items-center justify-center gap-2 px-1 py-4 rounded text-center bg-white shadow-lg"
-        >
-          <span class="flex-1 truncate">
-            <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", grades_report_subject.subject.name) %>
-          </span>
-          <.icon_button
-            :if={@on_calculate_subject}
-            name="hero-arrow-path-mini"
-            theme="white"
-            rounded
-            size="sm"
-            sr_text={gettext("Calculate subject grades")}
-            phx-click={@on_calculate_subject.(grades_report_subject.id)}
-          />
-        </div>
-      <% else %>
-        <div class="p-2 rounded text-ltrn-subtle bg-ltrn-lightest">
-          <%= gettext("No cycles linked to this grades report") %>
-        </div>
-      <% end %>
-      <%= if @has_students do %>
-        <div
-          :for={student <- @students}
-          id={"students-grades-grid-student-#{student.id}"}
-          class="grid grid-cols-subgrid"
-          style={@grid_column_style}
-        >
-          <div class="flex items-center gap-2 px-2 py-4 rounded bg-white shadow-lg">
-            <.profile_icon_with_name
-              icon_size="sm"
-              class="flex-1"
-              profile_name={student.name}
-              extra_info={student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
-            />
-            <.icon_button
-              :if={@on_calculate_student}
-              name="hero-arrow-path-mini"
+    <div
+      id={@id}
+      class={[
+        "relative w-full max-h-[calc(100vh-4rem)] rounded bg-white shadow-xl overflow-x-auto",
+        @class
+      ]}
+    >
+      <div class="relative grid gap-1 w-max text-sm" style={@grid_template_columns_style}>
+        <div class="sticky top-0 z-20 grid grid-cols-subgrid p-1 bg-white" style={@grid_column_style}>
+          <%= if @on_calculate_cycle do %>
+            <.button
+              type="button"
               theme="white"
-              rounded
-              size="sm"
-              sr_text={gettext("Calculate student grades")}
-              phx-click={@on_calculate_student.(student.id)}
-            />
-          </div>
+              icon_name="hero-arrow-path-mini"
+              phx-click={@on_calculate_cycle.()}
+              data-confirm={
+                gettext(
+                  "Are you sure? All grades will be created, updated, and removed based on their grade composition."
+                )
+              }
+              class="sticky left-1 z-10"
+            >
+              <%= gettext("Calculate all") %>
+            </.button>
+          <% else %>
+            <div class="sticky left-1"></div>
+          <% end %>
           <%= if @has_subjects do %>
-            <.students_grades_grid_cell
+            <div
               :for={grades_report_subject <- @grades_report_subjects}
-              student_grade_report_entry={@students_grades_map[student.id][grades_report_subject.id]}
-              on_calculate_cell={@on_calculate_cell}
-              on_entry_click={@on_entry_click}
-              grades_report_subject_id={grades_report_subject.id}
-              student_id={student.id}
-            />
+              id={"students-grades-grid-header-subject-#{grades_report_subject.id}"}
+              class="flex items-center justify-center gap-2 px-1 py-4 rounded text-center bg-white shadow-lg"
+            >
+              <span class="flex-1 truncate">
+                <%= Gettext.dgettext(
+                  LantternWeb.Gettext,
+                  "taxonomy",
+                  grades_report_subject.subject.name
+                ) %>
+              </span>
+              <.icon_button
+                :if={@on_calculate_subject}
+                name="hero-arrow-path-mini"
+                theme="white"
+                rounded
+                size="sm"
+                sr_text={gettext("Calculate subject grades")}
+                phx-click={@on_calculate_subject.(grades_report_subject.id)}
+                data-confirm={
+                  gettext(
+                    "Are you sure? Grades related to this subject will be created, updated, and removed based on their grade composition."
+                  )
+                }
+              />
+            </div>
           <% else %>
-            <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+            <div class="p-2 rounded text-ltrn-subtle bg-ltrn-lightest">
+              <%= gettext("No cycles linked to this grades report") %>
+            </div>
           <% end %>
         </div>
-      <% else %>
-        <div class="grid grid-cols-subgrid" style={@grid_column_style}>
-          <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lightest">
-            <%= gettext("No students linked to this grades report") %>
+        <%= if @has_students do %>
+          <div
+            :for={student <- @students}
+            id={"students-grades-grid-student-#{student.id}"}
+            class="grid grid-cols-subgrid px-1"
+            style={@grid_column_style}
+          >
+            <div class="sticky left-1 z-10 flex items-center gap-2 px-2 py-4 rounded bg-white shadow-lg">
+              <.profile_icon_with_name
+                icon_size="sm"
+                class="flex-1"
+                profile_name={student.name}
+                extra_info={student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
+              />
+              <.icon_button
+                :if={@on_calculate_student}
+                name="hero-arrow-path-mini"
+                theme="white"
+                rounded
+                size="sm"
+                sr_text={gettext("Calculate student grades")}
+                phx-click={@on_calculate_student.(student.id)}
+                data-confirm={
+                  gettext(
+                    "Are you sure? Grades related to this student will be created, updated, and removed based on their grade composition."
+                  )
+                }
+              />
+            </div>
+            <%= if @has_subjects do %>
+              <.students_grades_grid_cell
+                :for={grades_report_subject <- @grades_report_subjects}
+                student_grade_report_entry={
+                  @students_grades_map[student.id][grades_report_subject.id]
+                }
+                on_calculate_cell={@on_calculate_cell}
+                on_entry_click={@on_entry_click}
+                grades_report_subject_id={grades_report_subject.id}
+                student_id={student.id}
+              />
+            <% else %>
+              <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+            <% end %>
           </div>
-          <%= if @has_subjects do %>
-            <.grades_report_grid_cell :for={_grades_report_subject <- @grades_report_subjects} />
-          <% else %>
-            <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
-          <% end %>
-        </div>
-      <% end %>
+        <% else %>
+          <div class="grid grid-cols-subgrid" style={@grid_column_style}>
+            <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lightest">
+              <%= gettext("No students linked to this grades report") %>
+            </div>
+            <%= if @has_subjects do %>
+              <.grades_report_grid_cell :for={_grades_report_subject <- @grades_report_subjects} />
+            <% else %>
+              <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
     </div>
     """
   end
@@ -378,14 +438,21 @@ defmodule LantternWeb.GradesReportsComponents do
   attr :on_entry_click, :any, required: true
 
   defp students_grades_grid_cell(
-         %{student_grade_report_entry: %StudentGradeReportEntry{ordinal_value: %OrdinalValue{}}} =
+         %{student_grade_report_entry: %StudentGradeReportEntry{}} =
            assigns
        ) do
     bg_class =
-      if assigns.student_grade_report_entry.ordinal_value_id ==
-           assigns.student_grade_report_entry.composition_ordinal_value_id,
-         do: "border-ltrn-lighter bg-ltrn-lightest",
-         else: "border-ltrn-secondary bg-ltrn-mesh-rose"
+      case assigns.student_grade_report_entry do
+        %StudentGradeReportEntry{ordinal_value: %OrdinalValue{}} = sgre ->
+          if sgre.ordinal_value_id == sgre.composition_ordinal_value_id,
+            do: "border-ltrn-lighter bg-ltrn-lightest",
+            else: "border-ltrn-teacher-accent bg-ltrn-teacher-lightest"
+
+        %StudentGradeReportEntry{} = sgre ->
+          if sgre.score == sgre.composition_score,
+            do: "border-ltrn-lighter bg-ltrn-lightest",
+            else: "border-ltrn-teacher-accent bg-ltrn-teacher-lightest"
+      end
 
     assigns =
       assigns
@@ -393,63 +460,32 @@ defmodule LantternWeb.GradesReportsComponents do
 
     ~H"""
     <div class={[
-      "relative flex items-center justify-center gap-2 p-1 border rounded",
+      "relative flex items-center justify-center gap-1 p-1 border rounded",
       @bg_class
     ]}>
-      <button
-        class="flex-1 self-stretch flex items-center justify-center rounded-sm"
-        {apply_style_from_ordinal_value(@student_grade_report_entry.ordinal_value)}
-        phx-click={if(@on_entry_click, do: @on_entry_click.(@student_grade_report_entry.id))}
-      >
-        <%= @student_grade_report_entry.ordinal_value.name %>
-      </button>
-      <.icon_button
-        :if={@on_calculate_cell}
-        name="hero-arrow-path-mini"
-        theme="white"
-        rounded
-        size="sm"
-        sr_text={gettext("Recalculate grade")}
-        phx-click={@on_calculate_cell.(@student_id, @grades_report_subject_id)}
+      <.students_grades_grid_cell_value
+        student_grade_report_entry={@student_grade_report_entry}
+        on_entry_click={@on_entry_click}
       />
       <div
-        :if={@student_grade_report_entry.comment}
-        class="absolute top-1 right-1 w-2 h-2 rounded-full bg-ltrn-dark"
+        :if={@student_grade_report_entry.comment || @on_calculate_cell}
+        class="flex flex-col gap-1 justify-center items-center ml-1"
       >
-        <span class="sr-only"><%= gettext("Entry with comments") %></span>
+        <.icon
+          :if={@student_grade_report_entry.comment}
+          name="hero-chat-bubble-oval-left-mini"
+          class="text-ltrn-teacher-accent"
+        />
+        <.icon_button
+          :if={@on_calculate_cell}
+          name="hero-arrow-path-mini"
+          theme="white"
+          rounded
+          size="sm"
+          sr_text={gettext("Recalculate grade")}
+          phx-click={@on_calculate_cell.(@student_id, @grades_report_subject_id)}
+        />
       </div>
-    </div>
-    """
-  end
-
-  defp students_grades_grid_cell(
-         %{student_grade_report_entry: %StudentGradeReportEntry{}} = assigns
-       ) do
-    bg_class =
-      if assigns.student_grade_report_entry.score ==
-           assigns.student_grade_report_entry.composition_score,
-         do: "bg-ltrn-lightest",
-         else: "bg-ltrn-mesh-yellow"
-
-    assigns =
-      assigns
-      |> assign(:bg_class, bg_class)
-
-    ~H"""
-    <div class={[
-      "flex items-center justify-center gap-2 rounded border border-ltrn-lighter",
-      @bg_class
-    ]}>
-      <%= @student_grade_report_entry.score %>
-      <.icon_button
-        :if={@on_calculate_cell}
-        name="hero-arrow-path-mini"
-        theme="white"
-        rounded
-        size="sm"
-        sr_text={gettext("Recalculate grade")}
-        phx-click={@on_calculate_cell.(@student_id, @grades_report_subject_id)}
-      />
     </div>
     """
   end
@@ -467,6 +503,60 @@ defmodule LantternWeb.GradesReportsComponents do
         sr_text={gettext("Calculate grade")}
         phx-click={@on_calculate_cell.(@student_id, @grades_report_subject_id)}
       />
+    </div>
+    """
+  end
+
+  attr :student_grade_report_entry, StudentGradeReportEntry, required: true
+  attr :on_entry_click, :any, required: true
+
+  defp students_grades_grid_cell_value(
+         %{student_grade_report_entry: %StudentGradeReportEntry{ordinal_value: %OrdinalValue{}}} =
+           assigns
+       ) do
+    has_retake_history = assigns.student_grade_report_entry.pre_retake_ordinal_value_id != nil
+
+    assigns =
+      assigns
+      |> assign(:has_retake_history, has_retake_history)
+
+    ~H"""
+    <button
+      :if={@has_retake_history}
+      class="flex-1 self-stretch flex items-center justify-center border rounded-sm my-2 text-xs opacity-70"
+      {apply_style_from_ordinal_value(@student_grade_report_entry.pre_retake_ordinal_value)}
+      phx-click={if(@on_entry_click, do: @on_entry_click.(@student_grade_report_entry.id))}
+    >
+      <%= @student_grade_report_entry.pre_retake_ordinal_value.name %>
+    </button>
+    <button
+      class="flex-[2] self-stretch flex items-center justify-center rounded-sm"
+      {apply_style_from_ordinal_value(@student_grade_report_entry.ordinal_value)}
+      phx-click={if(@on_entry_click, do: @on_entry_click.(@student_grade_report_entry.id))}
+    >
+      <%= @student_grade_report_entry.ordinal_value.name %>
+    </button>
+    """
+  end
+
+  defp students_grades_grid_cell_value(
+         %{student_grade_report_entry: %StudentGradeReportEntry{}} = assigns
+       ) do
+    has_retake_history = assigns.student_grade_report_entry.pre_retake_score != nil
+
+    assigns =
+      assigns
+      |> assign(:has_retake_history, has_retake_history)
+
+    ~H"""
+    <div
+      :if={@has_retake_history}
+      class="flex-1 flex items-center justify-center rounded-sm text-xs bg-white opacity-70"
+    >
+      <%= @student_grade_report_entry.pre_retake_score %>
+    </div>
+    <div class="flex-[2] flex items-center justify-center rounded-sm bg-white">
+      <%= @student_grade_report_entry.score %>
     </div>
     """
   end
