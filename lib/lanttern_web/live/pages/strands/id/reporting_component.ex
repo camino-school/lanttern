@@ -187,9 +187,19 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
         navigate={~p"/strands/#{@strand}?tab=reporting"}
       />
       <.fixed_bar :if={@entries_changes_map != %{}} class="flex items-center gap-6">
-        <p class="flex-1 text-sm text-white">
-          <%= ngettext("1 change", "%{count} changes", map_size(@entries_changes_map)) %>
-        </p>
+        <div class="flex-1 flex items-center gap-4 text-sm">
+          <p class="text-white">
+            <%= ngettext("1 change", "%{count} changes", map_size(@entries_changes_map)) %>
+          </p>
+          <p
+            :if={@current_assessment_view == "student"}
+            class="p-2 rounded text-ltrn-student-dark bg-ltrn-student-lighter"
+          >
+            <%= gettext(
+              "You are registering students self-assessments. Make sure this is intended and, if needed, change to teacher view above."
+            ) %>
+          </p>
+        </div>
         <.button
           phx-click={JS.navigate(~p"/strands/#{@strand}?tab=reporting")}
           theme="ghost"
