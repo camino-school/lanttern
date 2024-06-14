@@ -170,7 +170,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:169
 #: lib/lanttern_web/live/pages/strands/id/moments_component.ex:96
 #: lib/lanttern_web/live/pages/strands/id/moments_component.ex:141
-#: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:201
+#: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:217
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:139
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:206
 #: lib/lanttern_web/live/pages/strands/moment/id/assessment_component.ex:182
@@ -461,7 +461,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:128
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:133
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:155
-#: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:196
+#: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:205
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:71
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:188
 #: lib/lanttern_web/live/pages/strands/moment/id/assessment_component.ex:146
@@ -1111,7 +1111,7 @@ msgstr ""
 msgid "Cycle already added to this grade report"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:222
+#: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:238
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:27
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:106
 #: lib/lanttern_web/live/pages/strands/moment/id/assessment_component.ex:282
@@ -1908,7 +1908,7 @@ msgid_plural "%{count} entries updated"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:198
+#: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:207
 #: lib/lanttern_web/live/pages/strands/moment/id/assessment_component.ex:254
 #, elixir-autogen, elixir-format
 msgid "Discard"
@@ -2029,7 +2029,7 @@ msgstr ""
 msgid "Save note"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:191
+#: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:192
 #: lib/lanttern_web/live/pages/strands/moment/id/assessment_component.ex:247
 #, elixir-autogen, elixir-format, fuzzy
 msgid "1 change"
@@ -2505,13 +2505,13 @@ msgid "Invalid assessment view"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:65
-#: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:233
+#: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:249
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Student"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:59
-#: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:230
+#: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:246
 #, elixir-autogen, elixir-format
 msgid "Teacher"
 msgstr ""
@@ -2605,4 +2605,14 @@ msgstr ""
 #: lib/lanttern_web/live/shared/grades_reports/student_grade_report_entry_form_component.ex:75
 #, elixir-autogen, elixir-format
 msgid "Score before retake"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:199
+#, elixir-autogen, elixir-format
+msgid "You are registering students self-assessments"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/id/reporting_component.ex:216
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Save self-assessments"
 msgstr ""

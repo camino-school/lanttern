@@ -299,11 +299,11 @@ defmodule LantternWeb.CoreComponents do
       "disabled:opacity-40"
     ],
     "teacher" => [
-      "bg-ltrn-teacher-accent text-ltrn-teacher-dark hover:opacity-80",
+      "bg-ltrn-teacher-lighter text-ltrn-teacher-dark hover:opacity-80",
       "disabled:opacity-40"
     ],
     "student" => [
-      "bg-ltrn-student-accent text-ltrn-student-dark hover:opacity-80",
+      "bg-ltrn-student-lighter text-ltrn-student-dark hover:opacity-80",
       "disabled:opacity-40"
     ],
     "white" => "text-ltrn-dark bg-white hover:bg-ltrn-lightest",
@@ -729,7 +729,7 @@ defmodule LantternWeb.CoreComponents do
 
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
-    <span class={[@name, @class]} aria-hidden="true" id={@id} />
+    <span class={["shrink-0", @name, @class]} aria-hidden="true" id={@id} />
     """
   end
 
