@@ -299,11 +299,11 @@ defmodule LantternWeb.CoreComponents do
       "disabled:opacity-40"
     ],
     "teacher" => [
-      "bg-ltrn-teacher-accent text-ltrn-teacher-dark hover:opacity-80",
+      "bg-ltrn-teacher-lighter text-ltrn-teacher-dark hover:opacity-80",
       "disabled:opacity-40"
     ],
     "student" => [
-      "bg-ltrn-student-accent text-ltrn-student-dark hover:opacity-80",
+      "bg-ltrn-student-lighter text-ltrn-student-dark hover:opacity-80",
       "disabled:opacity-40"
     ],
     "white" => "text-ltrn-dark bg-white hover:bg-ltrn-lightest",
@@ -848,7 +848,7 @@ defmodule LantternWeb.CoreComponents do
   def metadata(assigns) do
     ~H"""
     <div class={["flex items-center gap-2", @class]}>
-      <.icon :if={@icon_name} name={@icon_name} class="w-6 h-6 text-ltrn-subtle" />
+      <.icon :if={@icon_name} name={@icon_name} class="shrink-0 w-6 h-6 text-ltrn-subtle" />
       <div class="text-sm"><%= render_slot(@inner_block) %></div>
     </div>
     """

@@ -13,6 +13,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
 
   # shared components
   alias LantternWeb.Assessments.EntryCompareComponent
+  alias LantternWeb.Assessments.EntryDetailsComponent
   alias LantternWeb.Assessments.EntryEditorComponent
   import LantternWeb.ReportingComponents
 
@@ -186,6 +187,21 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
         filter_opts={[strand_id: @strand.id]}
         navigate={~p"/strands/#{@strand}?tab=reporting"}
       />
+      <.slide_over
+        :if={@assessment_point_entry}
+        id="entry-details-overlay"
+        show={true}
+        on_cancel={JS.push("close_entry_details_overlay", target: @myself)}
+      >
+        <:title><%= gettext("Assessment point entry details") %></:title>
+        <.live_component
+          module={EntryDetailsComponent}
+          id={@assessment_point_entry.id}
+          entry={@assessment_point_entry}
+          current_user={@current_user}
+          notify_component={@myself}
+        />
+      </.slide_over>
       <.fixed_bar :if={@entries_changes_map != %{}} class="flex items-center gap-6">
         <p class="flex-1 text-sm text-white">
           <%= ngettext("1 change", "%{count} changes", map_size(@entries_changes_map)) %>
@@ -299,6 +315,8 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
       |> assign(:classes, nil)
       |> assign(:classes_ids, [])
       |> assign(:entries_changes_map, %{})
+      |> assign(:assessment_point_entry, nil)
+      |> assign(:has_entry_details_change, false)
       |> stream_configure(
         :students_entries,
         dom_id: fn {student, _entries} -> "student-#{student.id}" end
@@ -334,6 +352,24 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
       end)
 
     {:ok, socket}
+  end
+
+  def update(
+        %{action: {EntryEditorComponent, {:view_details, entry}}},
+        socket
+      ) do
+    socket =
+      socket
+      |> assign(:assessment_point_entry, entry)
+
+    {:ok, socket}
+  end
+
+  def update(
+        %{action: {EntryDetailsComponent, {:change, _entry}}},
+        socket
+      ) do
+    {:ok, assign(socket, :has_entry_details_change, true)}
   end
 
   def update(assigns, socket) do
@@ -463,5 +499,22 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
         # do something with error?
         {:noreply, socket}
     end
+  end
+
+  def handle_event("close_entry_details_overlay", _, socket) do
+    socket =
+      socket
+      |> assign(:assessment_point_entry, nil)
+
+    socket =
+      if socket.assigns.has_entry_details_change do
+        socket
+        |> assign_assessment_points_and_student_entries()
+        |> assign(:has_entry_details_change, false)
+      else
+        socket
+      end
+
+    {:noreply, socket}
   end
 end
