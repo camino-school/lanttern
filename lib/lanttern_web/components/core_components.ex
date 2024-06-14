@@ -729,7 +729,7 @@ defmodule LantternWeb.CoreComponents do
 
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
-    <span class={[@name, @class]} aria-hidden="true" id={@id} />
+    <span class={["shrink-0", @name, @class]} aria-hidden="true" id={@id} />
     """
   end
 

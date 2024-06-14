@@ -203,9 +203,18 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
         />
       </.slide_over>
       <.fixed_bar :if={@entries_changes_map != %{}} class="flex items-center gap-6">
-        <p class="flex-1 text-sm text-white">
-          <%= ngettext("1 change", "%{count} changes", map_size(@entries_changes_map)) %>
-        </p>
+        <div class="flex-1 flex items-center gap-4 text-sm">
+          <p class="text-white text-nowrap">
+            <%= ngettext("1 change", "%{count} changes", map_size(@entries_changes_map)) %>
+          </p>
+          <p
+            :if={@current_assessment_view == "student"}
+            class="flex items-center gap-2 font-bold text-ltrn-student-accent"
+          >
+            <.icon name="hero-information-circle" class="w-6 h-6" />
+            <%= gettext("You are registering students self-assessments") %>
+          </p>
+        </div>
         <.button
           phx-click={JS.navigate(~p"/strands/#{@strand}?tab=reporting")}
           theme="ghost"
@@ -213,8 +222,15 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
         >
           <%= gettext("Discard") %>
         </.button>
-        <.button type="button" phx-click="save_changes" phx-target={@myself}>
-          <%= gettext("Save") %>
+        <.button
+          type="button"
+          phx-click="save_changes"
+          phx-target={@myself}
+          theme={if @current_assessment_view == "student", do: "student"}
+        >
+          <%= if @current_assessment_view == "student",
+            do: gettext("Save self-assessments"),
+            else: gettext("Save") %>
         </.button>
       </.fixed_bar>
     </div>
