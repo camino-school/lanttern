@@ -388,6 +388,19 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
     {:ok, assign(socket, :has_entry_details_change, true)}
   end
 
+  def update(
+        %{action: {EntryDetailsComponent, {:delete, _entry}}},
+        socket
+      ) do
+    socket =
+      socket
+      |> assign(:assessment_point_entry, nil)
+      |> assign_assessment_points_and_student_entries()
+      |> assign(:has_entry_details_change, false)
+
+    {:ok, socket}
+  end
+
   def update(assigns, socket) do
     report_cards =
       Reporting.list_report_cards(preloads: :school_cycle, strands_ids: [assigns.strand.id])

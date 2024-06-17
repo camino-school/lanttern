@@ -37,8 +37,7 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
             ordinal_value_options={@ordinal_value_options}
             form={@form}
             assessment_view={@assessment_view}
-            style={if(!@has_changes, do: @ov_style)}
-            ov_name={@ov_name}
+            style={if(@has_changes, do: "background-color: white", else: @ov_style)}
             class={Map.get(marking_input, :class, "")}
           />
         <% end %>
@@ -64,7 +63,6 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
   attr :ordinal_value_options, :list
   attr :style, :string
   attr :class, :any
-  attr :ov_name, :string
   attr :form, :map, required: true
   attr :assessment_view, :string, required: true
 
@@ -160,7 +158,7 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
       |> assign_ordinal_value_options()
       |> assign_entry_value()
       |> assign_entry_note()
-      |> assign_ov_style_and_name()
+      |> assign_ov_style()
 
     {:ok, socket}
   end
@@ -267,7 +265,7 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
        ) do
     ordinal_value_options =
       socket.assigns.assessment_point.scale.ordinal_values
-      |> Enum.map(fn ov -> {:"#{ov.name}", ov.id} end)
+      |> Enum.map(fn ov -> {ov.name, ov.id} end)
 
     assign(socket, :ordinal_value_options, ordinal_value_options)
   end
@@ -317,28 +315,25 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
     |> assign(:note_icon_class, note_icon_class)
   end
 
-  defp assign_ov_style_and_name(socket) do
+  defp assign_ov_style(socket) do
     %{
       entry_value: entry_value,
       assessment_point: %{scale: %{ordinal_values: ordinal_values, type: scale_type}}
     } = socket.assigns
 
-    {ov_style, ov_name} =
+    ov_style =
       case {scale_type, entry_value} do
         {"ordinal", ordinal_value_id} when not is_nil(ordinal_value_id) ->
-          ov =
-            ordinal_values
-            |> Enum.find(&(&1.id == ordinal_value_id))
-
-          {get_colors_style(ov), ov.name}
+          ordinal_values
+          |> Enum.find(&(&1.id == ordinal_value_id))
+          |> get_colors_style()
 
         _ ->
-          {nil, nil}
+          nil
       end
 
     socket
     |> assign(:ov_style, ov_style)
-    |> assign(:ov_name, ov_name)
   end
 
   defp get_colors_style(%OrdinalValue{} = ordinal_value) do
