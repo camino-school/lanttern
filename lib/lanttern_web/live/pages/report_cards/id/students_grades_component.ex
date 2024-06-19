@@ -365,7 +365,8 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
         student_id,
         socket.assigns.grades_report.id,
         socket.assigns.current_grades_report_cycle.id,
-        grades_report_subject_id
+        grades_report_subject_id,
+        force_overwrite: true
       )
       |> case do
         {:ok, nil, _} ->
