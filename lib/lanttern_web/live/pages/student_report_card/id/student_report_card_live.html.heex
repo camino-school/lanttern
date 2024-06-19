@@ -49,7 +49,9 @@
       >
         <:bottom_content :if={entries != []}>
           <div class="flex flex-wrap gap-2 p-6 border-t border-ltrn-lighter">
-            <.assessment_point_entry_preview :for={entry <- entries} entry={entry} />
+            <%= for entry <- entries, entry.ordinal_value || entry.score do %>
+              <.assessment_point_entry_preview entry={entry} />
+            <% end %>
           </div>
         </:bottom_content>
       </.strand_card>
