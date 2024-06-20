@@ -670,36 +670,48 @@ defmodule Lanttern.GradesReports do
       grades_report_cycle_id: grades_report_cycle_id,
       grades_report_subject_id: grades_report_subject_id
     )
-    |> case do
-      nil ->
-        case create_student_grade_report_entry(attrs) do
-          {:ok, sgre} -> {:ok, sgre, :created}
-          error_tuple -> error_tuple
-        end
+    |> create_or_update_student_grade_report_entry(attrs, force_overwrite)
+  end
 
-      %{ordinal_value_id: ov_id, composition_ordinal_value_id: comp_ov_id} = sgre
-      when ov_id != comp_ov_id and not force_overwrite ->
-        attrs = Map.drop(attrs, [:ordinal_value_id])
+  defp create_or_update_student_grade_report_entry(nil, attrs, _) do
+    case create_student_grade_report_entry(attrs) do
+      {:ok, sgre} -> {:ok, sgre, :created}
+      error_tuple -> error_tuple
+    end
+  end
 
-        case update_student_grade_report_entry(sgre, attrs) do
-          {:ok, sgre} -> {:ok, sgre, :updated_with_manual}
-          error_tuple -> error_tuple
-        end
+  defp create_or_update_student_grade_report_entry(
+         %{ordinal_value_id: ov_id, composition_ordinal_value_id: comp_ov_id} = sgre,
+         attrs,
+         false
+       )
+       when ov_id != comp_ov_id do
+    attrs = Map.drop(attrs, [:ordinal_value_id])
 
-      %{score: score, composition_score: comp_score} = sgre
-      when score != comp_score and not force_overwrite ->
-        attrs = Map.drop(attrs, [:score])
+    case update_student_grade_report_entry(sgre, attrs) do
+      {:ok, sgre} -> {:ok, sgre, :updated_with_manual}
+      error_tuple -> error_tuple
+    end
+  end
 
-        case update_student_grade_report_entry(sgre, attrs) do
-          {:ok, sgre} -> {:ok, sgre, :updated_with_manual}
-          error_tuple -> error_tuple
-        end
+  defp create_or_update_student_grade_report_entry(
+         %{score: score, composition_score: comp_score} = sgre,
+         attrs,
+         false
+       )
+       when score != comp_score do
+    attrs = Map.drop(attrs, [:score])
 
-      sgre ->
-        case update_student_grade_report_entry(sgre, attrs) do
-          {:ok, sgre} -> {:ok, sgre, :updated}
-          error_tuple -> error_tuple
-        end
+    case update_student_grade_report_entry(sgre, attrs) do
+      {:ok, sgre} -> {:ok, sgre, :updated_with_manual}
+      error_tuple -> error_tuple
+    end
+  end
+
+  defp create_or_update_student_grade_report_entry(sgre, attrs, _force_overwrite) do
+    case update_student_grade_report_entry(sgre, attrs) do
+      {:ok, sgre} -> {:ok, sgre, :updated}
+      error_tuple -> error_tuple
     end
   end
 
