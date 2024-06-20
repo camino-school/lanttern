@@ -197,7 +197,7 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
   @impl true
   def handle_event("change", %{"assessment_point_entry" => params}, socket) do
     %{
-      entry: %{scale_type: scale_type} = entry,
+      entry: entry,
       assessment_view: assessment_view,
       entry_value: entry_value
     } = socket.assigns
@@ -213,46 +213,21 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
       |> Map.take([:student_id, :assessment_point_id, :scale_id, :scale_type])
       |> Map.new(fn {k, v} -> {to_string(k), v} end)
 
-    composite_id = "#{entry_params["student_id"]}_#{entry_params["assessment_point_id"]}"
-
     # add extra fields from entry
     params =
       params
       |> Enum.into(entry_params)
 
-    param_value =
-      case {params, assessment_view} do
-        {%{"scale_type" => "ordinal"}, "student"} -> params["student_ordinal_value_id"]
-        {%{"scale_type" => "numeric"}, "student"} -> params["student_score"]
-        {%{"scale_type" => "ordinal"}, _teacher} -> params["ordinal_value_id"]
-        {%{"scale_type" => "numeric"}, _teacher} -> params["score"]
-      end
+    # get the right ordinal value or score based on view
+    param_value = get_param_value(params, assessment_view)
 
-    # when in student view, other value
-    # is the teacher value (and vice versa)
-    other_entry_value =
-      case {scale_type, assessment_view} do
-        {"ordinal", "student"} -> entry.ordinal_value_id
-        {"numeric", "student"} -> entry.score
-        {"ordinal", _teacher} -> entry.student_ordinal_value_id
-        {"numeric", _teacher} -> entry.student_score
-      end
+    # when in student view, other value = teacher value (and vice-versa)
+    other_entry_value = get_other_entry_value(entry, assessment_view)
 
-    # types: new, delete, edit, cancel
-    {change_type, has_changes} =
-      case {entry.id, "#{entry_value}", other_entry_value, param_value} do
-        {_, entry_value, _, param_value} when entry_value == param_value ->
-          {:cancel, false}
+    {has_changes, change_type} =
+      check_for_changes(entry.id, "#{entry_value}", other_entry_value, param_value)
 
-        {nil, _, _, param_value} when param_value != "" ->
-          {:new, true}
-
-        {entry_id, _, nil, ""} when not is_nil(entry_id) ->
-          {:delete, true}
-
-        _ ->
-          {:edit, true}
-      end
+    composite_id = "#{entry_params["student_id"]}_#{entry_params["assessment_point_id"]}"
 
     notify(
       __MODULE__,
@@ -268,17 +243,14 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
     {:noreply, socket}
   end
 
-  @impl true
   def handle_event("edit_note", _, socket) do
     {:noreply, assign(socket, :is_editing_note, true)}
   end
 
-  @impl true
   def handle_event("cancel_edit_note", _, socket) do
     {:noreply, assign(socket, :is_editing_note, false)}
   end
 
-  @impl true
   def handle_event("save_note", %{"assessment_point_entry" => params}, socket) do
     opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
 
@@ -395,4 +367,48 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
   end
 
   defp get_colors_style(_), do: ""
+
+  @spec get_param_value(params :: map(), view :: String.t()) :: String.t()
+  defp get_param_value(%{"scale_type" => "ordinal"} = params, "student"),
+    do: params["student_ordinal_value_id"]
+
+  defp get_param_value(%{"scale_type" => "numeric"} = params, "student"),
+    do: params["student_score"]
+
+  defp get_param_value(%{"scale_type" => "ordinal"} = params, _teacher),
+    do: params["ordinal_value_id"]
+
+  defp get_param_value(%{"scale_type" => "numeric"} = params, _teacher),
+    do: params["score"]
+
+  @spec get_other_entry_value(entry :: AssessmentPointEntry.t(), view :: String.t()) ::
+          float() | pos_integer() | nil
+  defp get_other_entry_value(%{scale_type: "ordinal"} = entry, "student"),
+    do: entry.ordinal_value_id
+
+  defp get_other_entry_value(%{scale_type: "numeric"} = entry, "student"),
+    do: entry.score
+
+  defp get_other_entry_value(%{scale_type: "ordinal"} = entry, _teacher),
+    do: entry.student_ordinal_value_id
+
+  defp get_other_entry_value(%{scale_type: "numeric"} = entry, _teacher),
+    do: entry.student_score
+
+  @spec check_for_changes(
+          entry_id :: pos_integer() | nil,
+          entry_value :: any(),
+          other_entry_value :: any(),
+          param_value :: String.t()
+        ) :: {boolean(), :cancel | :new | :delete | :edit}
+  defp check_for_changes(_, entry_value, _, param_value) when entry_value == param_value,
+    do: {false, :cancel}
+
+  defp check_for_changes(nil, _, _, param_value) when param_value != "",
+    do: {true, :new}
+
+  defp check_for_changes(entry_id, _, nil, "") when not is_nil(entry_id),
+    do: {true, :delete}
+
+  defp check_for_changes(_, _, _, _), do: {true, :edit}
 end

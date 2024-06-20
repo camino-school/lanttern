@@ -454,9 +454,27 @@ defmodule LantternWeb.GradesReportsComponents do
             else: "border-ltrn-teacher-accent bg-ltrn-teacher-lightest"
       end
 
+    has_manual_grade =
+      case assigns.student_grade_report_entry do
+        %{
+          ordinal_value_id: ov_id,
+          composition_ordinal_value_id: comp_ov_id
+        }
+        when ov_id != comp_ov_id ->
+          true
+
+        %{score: score, composition_score: comp_score}
+        when score != comp_score ->
+          true
+
+        _ ->
+          false
+      end
+
     assigns =
       assigns
       |> assign(:bg_class, bg_class)
+      |> assign(:has_manual_grade, has_manual_grade)
 
     ~H"""
     <div class={[
@@ -484,6 +502,13 @@ defmodule LantternWeb.GradesReportsComponents do
           size="sm"
           sr_text={gettext("Recalculate grade")}
           phx-click={@on_calculate_cell.(@student_id, @grades_report_subject_id)}
+          data-confirm={
+            if @has_manual_grade,
+              do:
+                gettext(
+                  "There is a manual grade change that will be overwritten by this operation. Are you sure you want to proceed?"
+                )
+          }
         />
       </div>
     </div>

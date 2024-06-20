@@ -11,6 +11,7 @@ defmodule LantternWeb.ReportingComponents do
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Grading.Scale
   alias Lanttern.Reporting.ReportCard
   alias Lanttern.Rubrics.Rubric
@@ -219,12 +220,12 @@ defmodule LantternWeb.ReportingComponents do
     required: true,
     doc: "Requires `scale` and `ordinal_value` preloads"
 
-  # attr :scale, Scale, required: true, doc: "Requires `ordinal_values` preload"
-  # attr :rubric, Rubric, default: nil, doc: "Requires `descriptors` preload"
   attr :id, :string, default: nil
   attr :class, :any, default: nil
 
-  def assessment_point_entry_preview(%{entry: %{scale: %{type: "ordinal"}}} = assigns) do
+  def assessment_point_entry_preview(
+        %{entry: %{ordinal_value: %OrdinalValue{}, scale: %{type: "ordinal"}}} = assigns
+      ) do
     ~H"""
     <.ordinal_value_badge ordinal_value={@entry.ordinal_value} class={@class} id={@id}>
       <%= String.slice(@entry.ordinal_value.name, 0..2) %>
@@ -232,13 +233,18 @@ defmodule LantternWeb.ReportingComponents do
     """
   end
 
-  def assessment_point_entry_preview(%{entry: %{scale: %{type: "numeric"}}} = assigns) do
+  def assessment_point_entry_preview(
+        %{entry: %{score: score, scale: %{type: "numeric"}}} = assigns
+      )
+      when not is_nil(score) do
     ~H"""
     <.badge class={@class} id={@id}>
       <%= @entry.score %>
     </.badge>
     """
   end
+
+  def assessment_point_entry_preview(_assigns), do: nil
 
   attr :footnote, :string, required: true
   attr :class, :any, default: nil

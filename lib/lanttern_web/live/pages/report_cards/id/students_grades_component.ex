@@ -365,7 +365,8 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
         student_id,
         socket.assigns.grades_report.id,
         socket.assigns.current_grades_report_cycle.id,
-        grades_report_subject_id
+        grades_report_subject_id,
+        force_overwrite: true
       )
       |> case do
         {:ok, nil, _} ->
@@ -424,6 +425,17 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
 
   defp build_calculation_results_message([{:updated, count} | results], msgs) do
     msg = ngettext("1 grade updated", "%{count} grades updated", count)
+    build_calculation_results_message(results, [msg | msgs])
+  end
+
+  defp build_calculation_results_message([{:updated_with_manual, count} | results], msgs) do
+    msg =
+      ngettext(
+        "1 grade partially updated (only composition, manual grade not changed)",
+        "%{count} grades partially updated (only compositions, manual grades not changed)",
+        count
+      )
+
     build_calculation_results_message(results, [msg | msgs])
   end
 

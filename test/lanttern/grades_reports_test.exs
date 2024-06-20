@@ -1011,7 +1011,7 @@ defmodule Lanttern.GradesReportsTest do
                 student_id: ^expected_std_id,
                 composition_normalized_value: 0.56667,
                 ordinal_value_id: ^expected_ov_id
-              },
+              } = sgre_3,
               :created} =
                GradesReports.calculate_student_grade(
                  std_3.id,
@@ -1035,6 +1035,47 @@ defmodule Lanttern.GradesReportsTest do
                  grades_report.id,
                  grades_report_cycle.id,
                  grades_report_subject.id
+               )
+
+      # UPDATE MANUALLY CHANGED GRADE CASE
+      # when calculating for an existing student/cycle/subject
+      # with manual grading, update the composition but not the grade
+
+      GradesReports.update_student_grade_report_entry(sgre_3, %{ordinal_value_id: ov_c.id})
+      expected_manual_ov_id = ov_c.id
+
+      assert {:ok,
+              %StudentGradeReportEntry{
+                id: ^sgre_3_id,
+                student_id: ^expected_std_id,
+                composition_normalized_value: 0.56667,
+                ordinal_value_id: ^expected_manual_ov_id
+              },
+              :updated_with_manual} =
+               GradesReports.calculate_student_grade(
+                 std_3.id,
+                 grades_report.id,
+                 grades_report_cycle.id,
+                 grades_report_subject.id
+               )
+
+      # UPDATE MANUALLY CHANGED GRADE CASE WITH force_overwrite opt
+      # same as above, but do change the ordinal value
+
+      assert {:ok,
+              %StudentGradeReportEntry{
+                id: ^sgre_3_id,
+                student_id: ^expected_std_id,
+                composition_normalized_value: 0.56667,
+                ordinal_value_id: ^expected_ov_id
+              },
+              :updated} =
+               GradesReports.calculate_student_grade(
+                 std_3.id,
+                 grades_report.id,
+                 grades_report_cycle.id,
+                 grades_report_subject.id,
+                 force_overwrite: true
                )
 
       # UPDATE + EMPTY CASE
@@ -1085,13 +1126,16 @@ defmodule Lanttern.GradesReportsTest do
       # compositions (same for each subject): ap1 = w1, ap2 = w2, ap3 = w3
       #
       # test cases (in ap order)
-      # exc - ach - pro = 0.75000 = C (actually irrelevant, will be delete to test update + no entries case)
-      # eme - ach - exc = 0.85000 = B
-      # eme - eme - eme = 0.40000 = E
+      # 1 exc - ach - pro = 0.75000 = C (actually irrelevant, will be delete to test update + no entries case)
+      # 2 eme - ach - exc = 0.85000 = B
+      # 3 eme - eme - eme = 0.40000 = E
+      # 4 eme - eme - eme = 0.40000 = C (view update manual grade below)
       #
-      # no entries case: there's a 4th subject without entries. it should return nil
-      # update case: subject 3 will be pre calculated. the function should update the std grade report entry
-      # update + no entries case: when there's no entries but an existing student grades report entry, delete it
+      # 1 update + no entries case: when there's no entries but an existing student grades report entry, delete it
+      # 2 create
+      # 3 update case: subject 3 will be pre calculated. the function should update the std grade report entry
+      # 4 update manual grade: when the current grade is different from the composition/calculated one, update but keep manual grade
+      # 5 no entries case: there's a 5th subject without entries. it should return nil
 
       marking_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
 
@@ -1122,7 +1166,7 @@ defmodule Lanttern.GradesReportsTest do
           normalized_value: 0.85
         })
 
-      _ov_c =
+      ov_c =
         GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.7})
 
       _ov_d =
@@ -1134,6 +1178,7 @@ defmodule Lanttern.GradesReportsTest do
       strand_1 = LearningContextFixtures.strand_fixture()
       strand_2 = LearningContextFixtures.strand_fixture()
       strand_3 = LearningContextFixtures.strand_fixture()
+      strand_4 = LearningContextFixtures.strand_fixture()
 
       goal_1_1 =
         AssessmentsFixtures.assessment_point_fixture(%{
@@ -1189,10 +1234,29 @@ defmodule Lanttern.GradesReportsTest do
           scale_id: marking_scale.id
         })
 
+      goal_4_1 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand_4.id,
+          scale_id: marking_scale.id
+        })
+
+      goal_4_2 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand_4.id,
+          scale_id: marking_scale.id
+        })
+
+      goal_4_3 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand_4.id,
+          scale_id: marking_scale.id
+        })
+
       subject_1 = TaxonomyFixtures.subject_fixture()
       subject_2 = TaxonomyFixtures.subject_fixture()
       subject_3 = TaxonomyFixtures.subject_fixture()
       subject_4 = TaxonomyFixtures.subject_fixture()
+      subject_5 = TaxonomyFixtures.subject_fixture()
       cycle = SchoolsFixtures.cycle_fixture()
       grades_report = grades_report_fixture(%{scale_id: grading_scale.id})
 
@@ -1223,6 +1287,12 @@ defmodule Lanttern.GradesReportsTest do
       grades_report_subject_4 =
         grades_report_subject_fixture(%{
           subject_id: subject_4.id,
+          grades_report_id: grades_report.id
+        })
+
+      grades_report_subject_5 =
+        grades_report_subject_fixture(%{
+          subject_id: subject_5.id,
           grades_report_id: grades_report.id
         })
 
@@ -1304,6 +1374,33 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_cycle_id: grades_report_cycle.id,
           grades_report_subject_id: grades_report_subject_3.id,
           assessment_point_id: goal_3_3.id,
+          weight: 3.0
+        })
+
+      _grade_component_4_1 =
+        GradingFixtures.grade_component_fixture(%{
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_4.id,
+          assessment_point_id: goal_4_1.id,
+          weight: 1.0
+        })
+
+      _grade_component_4_2 =
+        GradingFixtures.grade_component_fixture(%{
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_4.id,
+          assessment_point_id: goal_4_2.id,
+          weight: 2.0
+        })
+
+      _grade_component_4_3 =
+        GradingFixtures.grade_component_fixture(%{
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          grades_report_subject_id: grades_report_subject_4.id,
+          assessment_point_id: goal_4_3.id,
           weight: 3.0
         })
 
@@ -1396,16 +1493,36 @@ defmodule Lanttern.GradesReportsTest do
           ordinal_value_id: ov_eme.id
         })
 
-      # extra cases setup
+      # subject 4
 
-      # UPDATE CASE - pre calculate subject 3
-      {:ok, %{id: student_grade_report_entry_3_id}, :created} =
-        GradesReports.calculate_student_grade(
-          std.id,
-          grades_report.id,
-          grades_report_cycle.id,
-          grades_report_subject_3.id
-        )
+      _entry_4_1 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: std.id,
+          assessment_point_id: goal_4_1.id,
+          scale_id: marking_scale.id,
+          scale_type: "ordinal",
+          ordinal_value_id: ov_eme.id
+        })
+
+      _entry_4_2 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: std.id,
+          assessment_point_id: goal_4_2.id,
+          scale_id: marking_scale.id,
+          scale_type: "ordinal",
+          ordinal_value_id: ov_eme.id
+        })
+
+      _entry_4_3 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: std.id,
+          assessment_point_id: goal_4_3.id,
+          scale_id: marking_scale.id,
+          scale_type: "ordinal",
+          ordinal_value_id: ov_eme.id
+        })
+
+      # extra cases setup
 
       # UPDATE + EMPTY - pre calculate subject 1, then delete entries
       {:ok, %{id: student_grade_report_entry_1_id}, :created} =
@@ -1420,9 +1537,32 @@ defmodule Lanttern.GradesReportsTest do
       Assessments.delete_assessment_point_entry(entry_1_2)
       Assessments.delete_assessment_point_entry(entry_1_3)
 
+      # UPDATE CASE - pre calculate subject 3
+      {:ok, %{id: student_grade_report_entry_3_id}, :created} =
+        GradesReports.calculate_student_grade(
+          std.id,
+          grades_report.id,
+          grades_report_cycle.id,
+          grades_report_subject_3.id
+        )
+
+      # UPDATE MANUAL - pre calculate subject 4, and change the ordinal_value
+      {:ok, %{id: student_grade_report_entry_4_id} = sgre_4, :created} =
+        GradesReports.calculate_student_grade(
+          std.id,
+          grades_report.id,
+          grades_report_cycle.id,
+          grades_report_subject_4.id
+        )
+
+      assert {:ok, _} =
+               GradesReports.update_student_grade_report_entry(sgre_4, %{
+                 ordinal_value_id: ov_c.id
+               })
+
       # assert
 
-      assert {:ok, %{created: 1, updated: 1, deleted: 1, noop: 1}} =
+      assert {:ok, %{created: 1, updated: 1, deleted: 1, noop: 1, updated_with_manual: 1}} =
                GradesReports.calculate_student_grades(
                  std.id,
                  grades_report.id,
@@ -1465,12 +1605,31 @@ defmodule Lanttern.GradesReportsTest do
                  student_grade_report_entry_3_id
                )
 
-      # sub 4 - should not exist
+      # sub 4 - same as 3, but with ov = C (manually adjusted)
+      expected_ordinal_value_id = ov_c.id
+      expected_composition_ordinal_value_id = ov_e.id
+      expected_grades_report_cycle_id = grades_report_cycle.id
+      expected_grades_report_subject_id = grades_report_subject_4.id
+
+      assert %{
+               student_id: ^expected_student_id,
+               composition_normalized_value: 0.4,
+               composition_ordinal_value_id: ^expected_composition_ordinal_value_id,
+               ordinal_value_id: ^expected_ordinal_value_id,
+               grades_report_cycle_id: ^expected_grades_report_cycle_id,
+               grades_report_subject_id: ^expected_grades_report_subject_id
+             } =
+               Repo.get(
+                 StudentGradeReportEntry,
+                 student_grade_report_entry_4_id
+               )
+
+      # sub 5 - should not exist
       assert Repo.get_by(
                StudentGradeReportEntry,
                student_id: std.id,
                grades_report_cycle_id: grades_report_cycle.id,
-               grades_report_subject_id: grades_report_subject_4.id
+               grades_report_subject_id: grades_report_subject_5.id
              )
              |> is_nil()
     end
@@ -1493,10 +1652,13 @@ defmodule Lanttern.GradesReportsTest do
       # std 1: exc - ach - pro = 0.75000 = C (actually irrelevant, will be delete to test update + no entries case)
       # std 2: eme - ach - exc = 0.85000 = B
       # std 3: eme - eme - eme = 0.40000 = E
+      # std 4: eme - eme - eme = 0.40000 = C (view update manual grade below)
       #
-      # no entries case: there's a 4th student without entries. it should return nil
-      # update case: student 3 will be pre calculated. the function should update the std grade report entry
-      # update + no entries case: when there's no entries but an existing student grades report entry, delete it
+      # std 1 - update + no entries case: when there's no entries but an existing student grades report entry, delete it
+      # std 2 - create
+      # std 3 - update case: student 3 will be pre calculated. the function should update the std grade report entry
+      # std 4 - update manual grade: when the current grade is different from the composition/calculated one, update but keep manual grade
+      # no entries case: there's a 5th student without entries. it should return nil
 
       marking_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
 
@@ -1527,7 +1689,7 @@ defmodule Lanttern.GradesReportsTest do
           normalized_value: 0.85
         })
 
-      _ov_c =
+      ov_c =
         GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.7})
 
       _ov_d =
@@ -1604,6 +1766,7 @@ defmodule Lanttern.GradesReportsTest do
       std_3 = SchoolsFixtures.student_fixture()
       std_4 = SchoolsFixtures.student_fixture()
       std_5 = SchoolsFixtures.student_fixture()
+      std_6 = SchoolsFixtures.student_fixture()
 
       # student 1
 
@@ -1692,11 +1855,40 @@ defmodule Lanttern.GradesReportsTest do
           ordinal_value_id: ov_eme.id
         })
 
-      # student 5 (extra)
+      # student 4
 
-      _entry_5_1 =
+      _entry_4_1 =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
-          student_id: std_5.id,
+          student_id: std_4.id,
+          assessment_point_id: goal_1.id,
+          scale_id: marking_scale.id,
+          scale_type: "ordinal",
+          ordinal_value_id: ov_eme.id
+        })
+
+      _entry_4_2 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: std_4.id,
+          assessment_point_id: goal_2.id,
+          scale_id: marking_scale.id,
+          scale_type: "ordinal",
+          ordinal_value_id: ov_eme.id
+        })
+
+      _entry_4_3 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: std_4.id,
+          assessment_point_id: goal_3.id,
+          scale_id: marking_scale.id,
+          scale_type: "ordinal",
+          ordinal_value_id: ov_eme.id
+        })
+
+      # student 6 (extra)
+
+      _entry_6_1 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: std_6.id,
           assessment_point_id: goal_1.id,
           scale_id: marking_scale.id,
           scale_type: "ordinal",
@@ -1704,15 +1896,6 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       # extra cases setup
-
-      # UPDATE CASE - pre calculate student 3
-      {:ok, %{id: student_3_grade_report_entry_id}, :created} =
-        GradesReports.calculate_student_grade(
-          std_3.id,
-          grades_report.id,
-          grades_report_cycle.id,
-          grades_report_subject.id
-        )
 
       # UPDATE + EMPTY - pre calculate student 1, then delete entries
       {:ok, %{id: student_1_grade_report_entry_id}, :created} =
@@ -1727,11 +1910,34 @@ defmodule Lanttern.GradesReportsTest do
       Assessments.delete_assessment_point_entry(entry_1_2)
       Assessments.delete_assessment_point_entry(entry_1_3)
 
+      # UPDATE CASE - pre calculate student 3
+      {:ok, %{id: student_3_grade_report_entry_id}, :created} =
+        GradesReports.calculate_student_grade(
+          std_3.id,
+          grades_report.id,
+          grades_report_cycle.id,
+          grades_report_subject.id
+        )
+
+      # UPDATE MANUAL - pre calculate student 4, and change the ordinal_value
+      {:ok, %{id: student_4_grade_report_entry_id} = sgre_4, :created} =
+        GradesReports.calculate_student_grade(
+          std_4.id,
+          grades_report.id,
+          grades_report_cycle.id,
+          grades_report_subject.id
+        )
+
+      assert {:ok, _} =
+               GradesReports.update_student_grade_report_entry(sgre_4, %{
+                 ordinal_value_id: ov_c.id
+               })
+
       # assert
 
-      assert {:ok, %{created: 1, updated: 1, deleted: 1, noop: 1}} =
+      assert {:ok, %{created: 1, updated: 1, updated_with_manual: 1, deleted: 1, noop: 1}} =
                GradesReports.calculate_subject_grades(
-                 [std_1.id, std_2.id, std_3.id, std_4.id],
+                 [std_1.id, std_2.id, std_3.id, std_4.id, std_5.id],
                  grades_report.id,
                  grades_report_cycle.id,
                  grades_report_subject.id
@@ -1772,10 +1978,30 @@ defmodule Lanttern.GradesReportsTest do
                  student_3_grade_report_entry_id
                )
 
-      # sub 4 - should not exist
+      # sub 4
+      expected_student_id = std_4.id
+      expected_ordinal_value_id = ov_c.id
+      expected_composition_ordinal_value_id = ov_e.id
+      expected_grades_report_cycle_id = grades_report_cycle.id
+      expected_grades_report_subject_id = grades_report_subject.id
+
+      assert %{
+               composition_normalized_value: 0.4,
+               student_id: ^expected_student_id,
+               ordinal_value_id: ^expected_ordinal_value_id,
+               composition_ordinal_value_id: ^expected_composition_ordinal_value_id,
+               grades_report_cycle_id: ^expected_grades_report_cycle_id,
+               grades_report_subject_id: ^expected_grades_report_subject_id
+             } =
+               Repo.get(
+                 StudentGradeReportEntry,
+                 student_4_grade_report_entry_id
+               )
+
+      # sub 5 - should not exist
       assert Repo.get_by(
                StudentGradeReportEntry,
-               student_id: std_4.id,
+               student_id: std_5.id,
                grades_report_cycle_id: grades_report_cycle.id,
                grades_report_subject_id: grades_report_subject.id
              )
@@ -1800,10 +2026,13 @@ defmodule Lanttern.GradesReportsTest do
       # std 1 sub 1: exc - ach - pro = 0.75000 = C (actually irrelevant, will be delete to test update + no entries case)
       # std 2 sub 2: eme - ach - exc = 0.85000 = B
       # std 3 sub 3: eme - eme - eme = 0.40000 = E
+      # std 4 sub 3: eme - eme - eme = 0.40000 = C (view update manual grade below)
       #
-      # no entries case: there's a 4th student without entries. it should return nil
-      # update case: student 3 will be pre calculated. the function should update the std grade report entry
-      # update + no entries case: when there's no entries but an existing student grades report entry, delete it
+      # 1 update + no entries case: when there's no entries but an existing student grades report entry, delete it
+      # 2 create
+      # 3 update case: subject 3 will be pre calculated. the function should update the std grade report entry
+      # 4 update manual grade: when the current grade is different from the composition/calculated one, update but keep manual grade
+      # 5 no entries case: there's a 5th subject without entries. it should return nil
 
       marking_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
 
@@ -1834,7 +2063,7 @@ defmodule Lanttern.GradesReportsTest do
           normalized_value: 0.85
         })
 
-      _ov_c =
+      ov_c =
         GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.7})
 
       _ov_d =
@@ -2017,6 +2246,7 @@ defmodule Lanttern.GradesReportsTest do
       std_3 = SchoolsFixtures.student_fixture()
       std_4 = SchoolsFixtures.student_fixture()
       std_5 = SchoolsFixtures.student_fixture()
+      std_6 = SchoolsFixtures.student_fixture()
 
       # student 1
 
@@ -2105,11 +2335,40 @@ defmodule Lanttern.GradesReportsTest do
           ordinal_value_id: ov_eme.id
         })
 
-      # student 5 (extra)
+      # student 4
 
-      _entry_5_1 =
+      _entry_4_1 =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
-          student_id: std_5.id,
+          student_id: std_4.id,
+          assessment_point_id: goal_3_1.id,
+          scale_id: marking_scale.id,
+          scale_type: "ordinal",
+          ordinal_value_id: ov_eme.id
+        })
+
+      _entry_4_2 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: std_4.id,
+          assessment_point_id: goal_3_2.id,
+          scale_id: marking_scale.id,
+          scale_type: "ordinal",
+          ordinal_value_id: ov_eme.id
+        })
+
+      _entry_4_3 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: std_4.id,
+          assessment_point_id: goal_3_3.id,
+          scale_id: marking_scale.id,
+          scale_type: "ordinal",
+          ordinal_value_id: ov_eme.id
+        })
+
+      # student 6 (extra)
+
+      _entry_6_1 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: std_6.id,
           assessment_point_id: goal_1_1.id,
           scale_id: marking_scale.id,
           scale_type: "ordinal",
@@ -2117,15 +2376,6 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       # extra cases setup
-
-      # UPDATE CASE - pre calculate student 3
-      {:ok, %{id: student_3_grade_report_entry_id}, :created} =
-        GradesReports.calculate_student_grade(
-          std_3.id,
-          grades_report.id,
-          grades_report_cycle.id,
-          grades_report_subject_3.id
-        )
 
       # UPDATE + EMPTY - pre calculate student 1, then delete entries
       {:ok, %{id: student_1_grade_report_entry_id}, :created} =
@@ -2140,11 +2390,34 @@ defmodule Lanttern.GradesReportsTest do
       Assessments.delete_assessment_point_entry(entry_1_2)
       Assessments.delete_assessment_point_entry(entry_1_3)
 
+      # UPDATE CASE - pre calculate student 3
+      {:ok, %{id: student_3_grade_report_entry_id}, :created} =
+        GradesReports.calculate_student_grade(
+          std_3.id,
+          grades_report.id,
+          grades_report_cycle.id,
+          grades_report_subject_3.id
+        )
+
+      # UPDATE MANUAL - pre calculate student 4, and change the ordinal_value
+      {:ok, %{id: student_4_grade_report_entry_id} = sgre_4, :created} =
+        GradesReports.calculate_student_grade(
+          std_4.id,
+          grades_report.id,
+          grades_report_cycle.id,
+          grades_report_subject_3.id
+        )
+
+      assert {:ok, _} =
+               GradesReports.update_student_grade_report_entry(sgre_4, %{
+                 ordinal_value_id: ov_c.id
+               })
+
       # assert
 
-      assert {:ok, %{created: 1, updated: 1, deleted: 1, noop: 9}} =
+      assert {:ok, %{created: 1, updated: 1, updated_with_manual: 1, deleted: 1, noop: 11}} =
                GradesReports.calculate_cycle_grades(
-                 [std_1.id, std_2.id, std_3.id, std_4.id],
+                 [std_1.id, std_2.id, std_3.id, std_4.id, std_5.id],
                  grades_report.id,
                  grades_report_cycle.id
                )
@@ -2152,7 +2425,7 @@ defmodule Lanttern.GradesReportsTest do
       # std 1 - previously calculated should not exist anymore
       assert Repo.get(StudentGradeReportEntry, student_1_grade_report_entry_id) |> is_nil()
 
-      # sub 2
+      # std 2
       expected_ordinal_value_id = ov_b.id
 
       assert %{
@@ -2166,7 +2439,7 @@ defmodule Lanttern.GradesReportsTest do
                  grades_report_subject_id: grades_report_subject_2.id
                )
 
-      # sub 3
+      # std 3
       expected_student_id = std_3.id
       expected_ordinal_value_id = ov_e.id
       expected_grades_report_cycle_id = grades_report_cycle.id
@@ -2184,10 +2457,30 @@ defmodule Lanttern.GradesReportsTest do
                  student_3_grade_report_entry_id
                )
 
-      # sub 4 - should not exist
+      # std 4
+      expected_student_id = std_4.id
+      expected_ordinal_value_id = ov_c.id
+      expected_composition_ordinal_value_id = ov_e.id
+      expected_grades_report_cycle_id = grades_report_cycle.id
+      expected_grades_report_subject_id = grades_report_subject_3.id
+
+      assert %{
+               composition_normalized_value: 0.4,
+               student_id: ^expected_student_id,
+               ordinal_value_id: ^expected_ordinal_value_id,
+               composition_ordinal_value_id: ^expected_composition_ordinal_value_id,
+               grades_report_cycle_id: ^expected_grades_report_cycle_id,
+               grades_report_subject_id: ^expected_grades_report_subject_id
+             } =
+               Repo.get(
+                 StudentGradeReportEntry,
+                 student_4_grade_report_entry_id
+               )
+
+      # std 5 - should not exist
       assert Repo.get_by(
                StudentGradeReportEntry,
-               student_id: std_4.id,
+               student_id: std_5.id,
                grades_report_cycle_id: grades_report_cycle.id
              )
              |> is_nil()
