@@ -2042,17 +2042,17 @@ msgstr[1] ""
 msgid "No report cards linked to this strand"
 msgstr ""
 
-#: lib/lanttern_web/components/layouts/root.html.heex:34
+#: lib/lanttern_web/components/layouts/root.html.heex:41
 #, elixir-autogen, elixir-format
 msgid "...but only the necessary for session persistence, keeping you logged in even when you close the browser and come back the other day."
 msgstr ""
 
-#: lib/lanttern_web/components/layouts/root.html.heex:31
+#: lib/lanttern_web/components/layouts/root.html.heex:38
 #, elixir-autogen, elixir-format
 msgid "Lanttern uses cookies..."
 msgstr ""
 
-#: lib/lanttern_web/components/layouts/root.html.heex:39
+#: lib/lanttern_web/components/layouts/root.html.heex:46
 #, elixir-autogen, elixir-format
 msgid "Understood!"
 msgstr ""
