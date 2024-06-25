@@ -521,22 +521,30 @@ defmodule Lanttern.GradesReports do
   Uses a third elemente in the `:ok` returned tuple:
   - `:created` when the `StudentGradeReportEntry` is created
   - `:updated` when the `StudentGradeReportEntry` is updated
+  - `:updated_with_manual` when the `StudentGradeReportEntry` is updated, except from manually adjusted `ordinal_value_id` or `score`
   - `:deleted` when the `StudentGradeReportEntry` is deleted (always `nil` in the second element)
   - `:noop` when the nothing is created, updated, or deleted (always `nil` in the second element)
+
+  ### Options
+
+  - `:force_overwrite` - ignore the update with manual rule, and overwrite grade if needed
   """
   @spec calculate_student_grade(
           student_id :: integer(),
           grades_report_id :: integer(),
           grades_report_cycle_id :: integer(),
-          grades_report_subject_id :: integer()
+          grades_report_subject_id :: integer(),
+          Keyword.t()
         ) ::
-          {:ok, StudentGradeReportEntry.t() | nil, :created | :updated | :deleted | :noop}
+          {:ok, StudentGradeReportEntry.t() | nil,
+           :created | :updated | :updated_keep_manual | :deleted | :noop}
           | {:error, Ecto.Changeset.t()}
   def calculate_student_grade(
         student_id,
         grades_report_id,
         grades_report_cycle_id,
-        grades_report_subject_id
+        grades_report_subject_id,
+        opts \\ []
       ) do
     # get grades report scale
     %{scale: scale} = get_grades_report!(grades_report_id, preloads: :scale)
@@ -569,9 +577,20 @@ defmodule Lanttern.GradesReports do
       grades_report_id,
       grades_report_cycle_id,
       grades_report_subject_id,
-      scale
+      scale,
+      opts
     )
   end
+
+  defp handle_student_grades_report_entry_creation(
+         entries_and_grade_components,
+         student_id,
+         grades_report_id,
+         grades_report_cycle_id,
+         grades_report_subject_id,
+         scale,
+         opts \\ []
+       )
 
   defp handle_student_grades_report_entry_creation(
          [],
@@ -579,7 +598,8 @@ defmodule Lanttern.GradesReports do
          _grades_report_id,
          grades_report_cycle_id,
          grades_report_subject_id,
-         _scale
+         _scale,
+         _opts
        ) do
     # delete existing student grade report entry if needed
     Repo.get_by(StudentGradeReportEntry,
@@ -605,7 +625,8 @@ defmodule Lanttern.GradesReports do
          grades_report_id,
          grades_report_cycle_id,
          grades_report_subject_id,
-         scale
+         scale,
+         opts
        ) do
     {normalized_avg, composition} =
       calculate_weighted_avg_and_build_comp_metadata(entries_and_grade_components)
@@ -637,24 +658,60 @@ defmodule Lanttern.GradesReports do
         composition_datetime: DateTime.utc_now()
       })
 
+    force_overwrite =
+      case Keyword.get(opts, :force_overwrite) do
+        true -> true
+        _ -> false
+      end
+
     # create or update existing student grade report entry
     Repo.get_by(StudentGradeReportEntry,
       student_id: student_id,
       grades_report_cycle_id: grades_report_cycle_id,
       grades_report_subject_id: grades_report_subject_id
     )
-    |> case do
-      nil ->
-        case create_student_grade_report_entry(attrs) do
-          {:ok, sgre} -> {:ok, sgre, :created}
-          error_tuple -> error_tuple
-        end
+    |> create_or_update_student_grade_report_entry(attrs, force_overwrite)
+  end
 
-      sgre ->
-        case update_student_grade_report_entry(sgre, attrs) do
-          {:ok, sgre} -> {:ok, sgre, :updated}
-          error_tuple -> error_tuple
-        end
+  defp create_or_update_student_grade_report_entry(nil, attrs, _) do
+    case create_student_grade_report_entry(attrs) do
+      {:ok, sgre} -> {:ok, sgre, :created}
+      error_tuple -> error_tuple
+    end
+  end
+
+  defp create_or_update_student_grade_report_entry(
+         %{ordinal_value_id: ov_id, composition_ordinal_value_id: comp_ov_id} = sgre,
+         attrs,
+         false
+       )
+       when ov_id != comp_ov_id do
+    attrs = Map.drop(attrs, [:ordinal_value_id])
+
+    case update_student_grade_report_entry(sgre, attrs) do
+      {:ok, sgre} -> {:ok, sgre, :updated_with_manual}
+      error_tuple -> error_tuple
+    end
+  end
+
+  defp create_or_update_student_grade_report_entry(
+         %{score: score, composition_score: comp_score} = sgre,
+         attrs,
+         false
+       )
+       when score != comp_score do
+    attrs = Map.drop(attrs, [:score])
+
+    case update_student_grade_report_entry(sgre, attrs) do
+      {:ok, sgre} -> {:ok, sgre, :updated_with_manual}
+      error_tuple -> error_tuple
+    end
+  end
+
+  defp create_or_update_student_grade_report_entry(sgre, attrs, _force_overwrite) do
+    case update_student_grade_report_entry(sgre, attrs) do
+      {:ok, sgre} -> {:ok, sgre, :updated}
+      error_tuple -> error_tuple
     end
   end
 
@@ -724,6 +781,7 @@ defmodule Lanttern.GradesReports do
   @type batch_calculation_results() :: %{
           created: integer(),
           updated: integer(),
+          updated_with_manual: integer(),
           deleted: integer(),
           noop: integer()
         }
@@ -800,7 +858,7 @@ defmodule Lanttern.GradesReports do
          grades_report_id,
          grades_report_cycle_id,
          scale,
-         results \\ %{created: 0, updated: 0, deleted: 0, noop: 0}
+         results \\ %{created: 0, updated: 0, updated_with_manual: 0, deleted: 0, noop: 0}
        )
 
   defp handle_grades_report_subject_entries_and_grade_components(
@@ -922,7 +980,7 @@ defmodule Lanttern.GradesReports do
          grades_report_cycle_id,
          grades_report_subject_id,
          scale,
-         results \\ %{created: 0, updated: 0, deleted: 0, noop: 0}
+         results \\ %{created: 0, updated: 0, updated_with_manual: 0, deleted: 0, noop: 0}
        )
 
   defp handle_students_entries_and_grade_components(
@@ -1051,7 +1109,7 @@ defmodule Lanttern.GradesReports do
          grades_report_id,
          grades_report_cycle_id,
          scale,
-         results \\ %{created: 0, updated: 0, deleted: 0, noop: 0}
+         results \\ %{created: 0, updated: 0, updated_with_manual: 0, deleted: 0, noop: 0}
        )
 
   defp handle_students_grades_report_subjects_entries_and_grade_components(

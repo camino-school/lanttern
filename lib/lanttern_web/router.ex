@@ -13,7 +13,7 @@ defmodule LantternWeb.Router do
 
     plug :put_secure_browser_headers, %{
       "content-security-policy" =>
-        "default-src 'self'; script-src-elem 'self' https://accounts.google.com; frame-src 'self' https://accounts.google.com; connect-src 'self' https://accounts.google.com; img-src * data: blob: 'self'; style-src 'self' https://fonts.googleapis.com https://accounts.google.com 'unsafe-inline'; font-src *"
+        "default-src 'self' *.google.com *.googleapis.com plausible.io; style-src 'self' *.googleapis.com *.google.com 'unsafe-inline'; img-src * data: blob: 'self'; font-src *"
     }
 
     plug :fetch_current_user

@@ -31,7 +31,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
   alias Lanttern.Rubrics.Rubric
 
   @type t :: %__MODULE__{
-          id: pos_integer(),
+          id: pos_integer() | nil,
           observation: String.t() | nil,
           report_note: String.t() | nil,
           student_report_note: String.t() | nil,
