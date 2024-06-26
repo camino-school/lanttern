@@ -11,6 +11,9 @@ defmodule LantternWeb.Assessments.EntryDetailsComponent do
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Grading.Scale
 
+  # shared components
+  alias LantternWeb.Attachments.AttachmentAreaComponent
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -124,6 +127,16 @@ defmodule LantternWeb.Assessments.EntryDetailsComponent do
         on_cancel={JS.push("cancel_edit_student_note", target: @myself)}
         on_save={JS.push("save_note", target: @myself)}
         class="mt-6"
+      />
+      <.live_component
+        :if={@entry && @entry.id}
+        module={AttachmentAreaComponent}
+        id="assessment-point-entry-evidences"
+        class="mt-10"
+        current_user={@current_user}
+        assessment_point_entry_id={@entry.id}
+        title={gettext("Assessment point entry's evidences")}
+        allow_editing
       />
     </div>
     """

@@ -9,9 +9,12 @@ defmodule Lanttern.Assessments do
 
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.Assessments.AssessmentPointEntryEvidence
   alias Lanttern.Assessments.Feedback
   alias Lanttern.AssessmentsLog
+  alias Lanttern.Attachments.Attachment
   alias Lanttern.Conversation.Comment
+  alias Lanttern.Identity.User
   alias Lanttern.Rubrics
   alias Lanttern.Schools.Student
 
@@ -968,4 +971,73 @@ defmodule Lanttern.Assessments do
       rubric
     end)
   end
+
+  @doc """
+  Creates an evidence (attachment) and links it to an existing assessment point entry in a single transaction.
+
+  ## Examples
+
+      iex> create_assessment_point_entry_evidence(user, 1, %{field: value})
+      {:ok, %Attachment{}}
+
+      iex> create_assessment_point_entry_evidence(user, 1, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec create_assessment_point_entry_evidence(
+          User.t(),
+          assessment_point_entry_id :: pos_integer(),
+          attrs :: map()
+        ) ::
+          {:ok, Attachment.t()} | {:error, Ecto.Changeset.t()}
+  def create_assessment_point_entry_evidence(
+        %{current_profile: profile},
+        assessment_point_entry_id,
+        attrs \\ %{}
+      ) do
+    insert_query =
+      %Attachment{}
+      |> Attachment.changeset(Map.put(attrs, "owner_id", profile && profile.id))
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:insert_evidence, insert_query)
+    |> Ecto.Multi.run(
+      :link_assessment_point_entry,
+      fn _repo, %{insert_evidence: attachment} ->
+        attrs =
+          from(
+            apee in AssessmentPointEntryEvidence,
+            where: apee.assessment_point_entry_id == ^assessment_point_entry_id
+          )
+          |> set_position_in_attrs(%{
+            assessment_point_entry_id: assessment_point_entry_id,
+            attachment_id: attachment.id,
+            owner_id: profile.id
+          })
+
+        %AssessmentPointEntryEvidence{}
+        |> AssessmentPointEntryEvidence.changeset(attrs)
+        |> Repo.insert()
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:error, _multi, changeset, _changes} -> {:error, changeset}
+      {:ok, %{insert_evidence: attachment}} -> {:ok, attachment}
+    end
+  end
+
+  @doc """
+  Update assessment point entry evidences positions based on ids list order.
+
+  ## Examples
+
+  iex> update_assessment_point_entry_evidences_positions([3, 2, 1])
+  :ok
+
+  """
+  @spec update_assessment_point_entry_evidences_positions(attachments_ids :: [pos_integer()]) ::
+          :ok | {:error, String.t()}
+  def update_assessment_point_entry_evidences_positions(attachments_ids),
+    do: update_positions(AssessmentPointEntryEvidence, attachments_ids, id_field: :attachment_id)
 end

@@ -686,7 +686,8 @@ defmodule Lanttern.Reporting do
 
   """
   @spec batch_update_student_report_card([StudentReportCard.t()], map()) ::
-          {:ok, %{pos_integer() => StudentReportCard.t()}} | Ecto.Multi.failure()
+          {:ok, %{pos_integer() => StudentReportCard.t()}}
+          | {:error, Ecto.Multi.name(), any(), %{required(Ecto.Multi.name()) => any()}}
   def batch_update_student_report_card(student_report_cards, attrs) do
     Enum.reduce(student_report_cards, Ecto.Multi.new(), fn src, multi ->
       multi
