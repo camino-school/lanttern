@@ -23,12 +23,12 @@ defmodule Lanttern.Assessments do
 
   ### Options:
 
-  `:preloads` – preloads associated data
-  `:preload_full_rubrics` – boolean, preloads full associated rubrics using `Rubrics.full_rubric_query/0`
-  `:assessment_points_ids` – filter result by provided assessment points ids
-  `:moments_ids` – filter result by provided moments ids
-  `:moments_from_strand_id` – filter result by moments from provided strand id
-  `:strand_id` – filter result by provided strand id
+  - `:preloads` – preloads associated data
+  - `:preload_full_rubrics` – boolean, preloads full associated rubrics using `Rubrics.full_rubric_query/0`
+  - `:assessment_points_ids` – filter result by provided assessment points ids
+  - `:moments_ids` – filter result by provided moments ids
+  - `:moments_from_strand_id` – filter result by moments from provided strand id
+  - `:strand_id` – filter result by provided strand id
 
   ## Examples
 
@@ -753,9 +753,11 @@ defmodule Lanttern.Assessments do
 
   When `:classes_ids` option is used, classes are preloaded.
 
-  ## Options:
+  ### Options:
 
-      - `:classes_ids` – filter entries by classes
+  - `:classes_ids` – filter entries by classes
+  - `:check_if_has_evidences` – (boolean) calculate virtual `has_evidences` field
+
   """
 
   @spec list_strand_goals_students_entries(integer(), Keyword.t()) :: [
@@ -763,29 +765,65 @@ defmodule Lanttern.Assessments do
         ]
 
   def list_strand_goals_students_entries(strand_id, opts \\ []) do
-    # build a %{student_id => entries} map
-    students_entries_map =
+    # list all goals (assessment points) ids of the given
+    # strand, ordered by assessment points position
+    assessment_point_ids =
       from(
         ap in AssessmentPoint,
-        join: s in subquery(distinct_students_query(opts)),
-        on: true,
-        left_join: e in AssessmentPointEntry,
-        on: e.student_id == s.id and e.assessment_point_id == ap.id,
         where: ap.strand_id == ^strand_id,
-        order_by: [ap.position],
-        select: {s, e}
+        order_by: ap.position,
+        select: ap.id
       )
       |> Repo.all()
-      |> Enum.group_by(
-        fn {s, _e} -> s.id end,
-        fn {_s, e} -> e end
+
+    # list all goals_students_entries of given strand
+    # and put it into a map using student and assessment
+    # point ids as key
+    students_entries_map =
+      from(
+        e in AssessmentPointEntry,
+        join: ap in assoc(e, :assessment_point),
+        as: :assessment_point,
+        join: std in subquery(distinct_students_query(opts)),
+        on: std.id == e.student_id,
+        where: ap.strand_id == ^strand_id,
+        select: %{assessment_point_id: ap.id, entry: e}
       )
+      |> apply_list_strand_goals_students_entries_opts(opts)
+      |> Repo.all()
+      |> Enum.map(fn %{assessment_point_id: ap_id, entry: entry} ->
+        {"#{entry.student_id}_#{ap_id}", entry}
+      end)
+      |> Enum.into(%{})
 
     # list students in correct order and with classes preloads
     # then map it with its entries
     list_students_with_classes(opts)
-    |> Enum.map(&{&1, students_entries_map[&1.id] || []})
+    |> Enum.map(fn student ->
+      entries =
+        assessment_point_ids
+        |> Enum.map(&students_entries_map["#{student.id}_#{&1}"])
+
+      {student, entries}
+    end)
   end
+
+  defp apply_list_strand_goals_students_entries_opts(queryable, []), do: queryable
+
+  defp apply_list_strand_goals_students_entries_opts(queryable, [
+         {:check_if_has_evidences, true} | opts
+       ]) do
+    from(
+      [e, assessment_point: ap] in queryable,
+      left_join: apee in assoc(e, :assessment_point_entry_evidences),
+      select_merge: %{entry: %{e | has_evidences: count(apee) > 0}},
+      group_by: [e.id, ap.id]
+    )
+    |> apply_list_strand_goals_students_entries_opts(opts)
+  end
+
+  defp apply_list_strand_goals_students_entries_opts(queryable, [_ | opts]),
+    do: apply_list_strand_goals_students_entries_opts(queryable, opts)
 
   @doc """
   Returns the list of strand goals and entries for the given student and strand.

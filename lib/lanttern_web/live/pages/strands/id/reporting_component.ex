@@ -465,7 +465,8 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
     # zip assessment points with entries
     students_entries =
       Assessments.list_strand_goals_students_entries(strand.id,
-        classes_ids: classes_ids
+        classes_ids: classes_ids,
+        check_if_has_evidences: true
       )
       |> Enum.map(fn {student, entries} ->
         {

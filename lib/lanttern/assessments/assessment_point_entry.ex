@@ -24,6 +24,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
   import Ecto.Changeset
 
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Assessments.AssessmentPointEntryEvidence
   alias Lanttern.Assessments.Feedback
   alias Lanttern.Schools.Student
   alias Lanttern.Grading.Scale
@@ -50,6 +51,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
           student_ordinal_value_id: pos_integer() | nil,
           differentiation_rubric: Rubric.t() | nil,
           differentiation_rubric_id: pos_integer() | nil,
+          assessment_point_entry_evidences: [AssessmentPointEntryEvidence.t()],
           feedback: Feedback.t() | nil,
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
@@ -63,12 +65,16 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
     field :student_score, :float
     field :scale_type, :string
 
+    field :has_evidences, :boolean, virtual: true
+
     belongs_to :assessment_point, AssessmentPoint
     belongs_to :student, Student
     belongs_to :scale, Scale
     belongs_to :ordinal_value, OrdinalValue
     belongs_to :student_ordinal_value, OrdinalValue
     belongs_to :differentiation_rubric, Rubric
+
+    has_many :assessment_point_entry_evidences, AssessmentPointEntryEvidence
 
     # warning: don't use `Repo.preload/3` with this association.
     # we can get this in query, usign assessment_point_id and student_id

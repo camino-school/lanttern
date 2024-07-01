@@ -53,7 +53,7 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
         phx-target={@myself}
       >
         <.icon name="hero-chat-bubble-oval-left-mini" class={@note_icon_class} />
-        <.icon name="hero-paper-clip-mini" />
+        <.icon name="hero-paper-clip-mini" class={@evidences_icon_class} />
       </button>
     </div>
     """
@@ -285,9 +285,12 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
         true -> ""
       end
 
+    evidences_icon_class = if entry.has_evidences, do: "text-ltrn-primary", else: ""
+
     socket
     |> assign(:entry_note, entry_note)
     |> assign(:note_icon_class, note_icon_class)
+    |> assign(:evidences_icon_class, evidences_icon_class)
   end
 
   defp assign_ov_style(socket) do
