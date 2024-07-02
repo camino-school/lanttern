@@ -137,6 +137,7 @@ defmodule LantternWeb.Assessments.EntryDetailsComponent do
         assessment_point_entry_id={@entry.id}
         title={gettext("Assessment point entry's evidences")}
         allow_editing
+        notify_component={@myself}
       />
     </div>
     """
@@ -302,6 +303,36 @@ defmodule LantternWeb.Assessments.EntryDetailsComponent do
   end
 
   @impl true
+  def update(%{action: {AttachmentAreaComponent, {:created, attachment}}}, socket) do
+    notify(
+      __MODULE__,
+      {:created_attachment, attachment},
+      socket.assigns
+    )
+
+    {:ok, socket}
+  end
+
+  def update(%{action: {AttachmentAreaComponent, {:edited, attachment}}}, socket) do
+    notify(
+      __MODULE__,
+      {:edited_attachment, attachment},
+      socket.assigns
+    )
+
+    {:ok, socket}
+  end
+
+  def update(%{action: {AttachmentAreaComponent, {:deleted, attachment}}}, socket) do
+    notify(
+      __MODULE__,
+      {:deleted_attachment, attachment},
+      socket.assigns
+    )
+
+    {:ok, socket}
+  end
+
   def update(%{entry: %AssessmentPointEntry{}} = assigns, socket) do
     %{
       student: student,

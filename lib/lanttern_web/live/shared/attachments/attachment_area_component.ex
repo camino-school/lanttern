@@ -376,6 +376,8 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
     case Attachments.delete_attachment(attachment) do
       {:ok, _attachment} ->
+        notify(__MODULE__, {:deleted, attachment}, socket.assigns)
+
         socket =
           socket
           |> stream_attachments()
@@ -500,7 +502,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
     case Notes.create_note_attachment(current_user, note_id, params) do
       {:ok, attachment} ->
-        notify_parent(__MODULE__, {:created, attachment}, socket.assigns)
+        notify(__MODULE__, {:created, attachment}, socket.assigns)
 
         socket =
           socket
@@ -526,7 +528,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
            params
          ) do
       {:ok, attachment} ->
-        notify_parent(__MODULE__, {:created, attachment}, socket.assigns)
+        notify(__MODULE__, {:created, attachment}, socket.assigns)
 
         socket =
           socket
@@ -545,7 +547,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
     case Attachments.update_attachment(attachment, params) do
       {:ok, attachment} ->
-        notify_parent(__MODULE__, {:edited, attachment}, socket.assigns)
+        notify(__MODULE__, {:edited, attachment}, socket.assigns)
 
         socket =
           socket

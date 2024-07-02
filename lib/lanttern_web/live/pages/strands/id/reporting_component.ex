@@ -382,9 +382,10 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
   end
 
   def update(
-        %{action: {EntryDetailsComponent, {:change, _entry}}},
+        %{action: {EntryDetailsComponent, {msg_type, _}}},
         socket
-      ) do
+      )
+      when msg_type in [:change, :created_attachment, :deleted_attachment] do
     {:ok, assign(socket, :has_entry_details_change, true)}
   end
 
@@ -400,6 +401,9 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
 
     {:ok, socket}
   end
+
+  # catch all EntryDetailsComponent update
+  def update(%{action: {EntryDetailsComponent, _msg}}, socket), do: {:ok, socket}
 
   def update(assigns, socket) do
     report_cards =
