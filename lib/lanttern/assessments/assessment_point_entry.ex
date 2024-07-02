@@ -39,6 +39,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
           score: float() | nil,
           student_score: float() | nil,
           scale_type: String.t(),
+          has_evidences: boolean(),
           assessment_point: AssessmentPoint.t(),
           assessment_point_id: pos_integer(),
           student: Student.t(),

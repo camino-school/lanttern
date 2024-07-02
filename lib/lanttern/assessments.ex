@@ -765,65 +765,83 @@ defmodule Lanttern.Assessments do
         ]
 
   def list_strand_goals_students_entries(strand_id, opts \\ []) do
-    # list all goals (assessment points) ids of the given
-    # strand, ordered by assessment points position
-    assessment_point_ids =
+    students_entries =
       from(
-        ap in AssessmentPoint,
+        s in Student,
+        cross_join: ap in AssessmentPoint,
+        left_join: e in AssessmentPointEntry,
+        on: e.student_id == s.id and e.assessment_point_id == ap.id,
+        left_join: c in assoc(s, :classes),
+        as: :classes,
         where: ap.strand_id == ^strand_id,
-        order_by: ap.position,
-        select: ap.id
-      )
-      |> Repo.all()
-
-    # list all goals_students_entries of given strand
-    # and put it into a map using student and assessment
-    # point ids as key
-    students_entries_map =
-      from(
-        e in AssessmentPointEntry,
-        join: ap in assoc(e, :assessment_point),
-        as: :assessment_point,
-        join: std in subquery(distinct_students_query(opts)),
-        on: std.id == e.student_id,
-        where: ap.strand_id == ^strand_id,
-        select: %{assessment_point_id: ap.id, entry: e}
+        order_by: [c.name, s.name, ap.position],
+        preload: [classes: c],
+        # although we don't need it, we need to select
+        # something from ap to get the "nil"s correctly
+        select: {s, ap.id, e}
       )
       |> apply_list_strand_goals_students_entries_opts(opts)
       |> Repo.all()
-      |> Enum.map(fn %{assessment_point_id: ap_id, entry: entry} ->
-        {"#{entry.student_id}_#{ap_id}", entry}
-      end)
+      |> maybe_calculate_has_evidences(Keyword.get(opts, :check_if_has_evidences))
+
+    entries_by_student_map =
+      students_entries
+      |> Enum.group_by(
+        fn {s, _ap_id, _e} -> s.id end,
+        fn {_s, _ap_id, e} -> e end
+      )
       |> Enum.into(%{})
 
-    # list students in correct order and with classes preloads
-    # then map it with its entries
-    list_students_with_classes(opts)
-    |> Enum.map(fn student ->
-      entries =
-        assessment_point_ids
-        |> Enum.map(&students_entries_map["#{student.id}_#{&1}"])
-
-      {student, entries}
-    end)
+    students_entries
+    |> Enum.map(fn {s, _ap_id, _e} -> s end)
+    |> Enum.uniq_by(& &1.id)
+    |> Enum.map(&{&1, entries_by_student_map[&1.id]})
   end
 
   defp apply_list_strand_goals_students_entries_opts(queryable, []), do: queryable
 
   defp apply_list_strand_goals_students_entries_opts(queryable, [
-         {:check_if_has_evidences, true} | opts
+         {:classes_ids, classes_ids} | opts
        ]) do
     from(
-      [e, assessment_point: ap] in queryable,
-      left_join: apee in assoc(e, :assessment_point_entry_evidences),
-      select_merge: %{entry: %{e | has_evidences: count(apee) > 0}},
-      group_by: [e.id, ap.id]
+      [_s, classes: c] in queryable,
+      where: c.id in ^classes_ids
     )
     |> apply_list_strand_goals_students_entries_opts(opts)
   end
 
   defp apply_list_strand_goals_students_entries_opts(queryable, [_ | opts]),
     do: apply_list_strand_goals_students_entries_opts(queryable, opts)
+
+  defp maybe_calculate_has_evidences(students_entries, true) do
+    entries_ids =
+      students_entries
+      |> Enum.filter(fn {_s, _ap_id, e} -> e end)
+      |> Enum.map(fn {_s, _ap_id, e} -> e.id end)
+
+    entries_ids_with_has_evidences_map =
+      from(
+        e in AssessmentPointEntry,
+        left_join: apee in assoc(e, :assessment_point_entry_evidences),
+        where: e.id in ^entries_ids,
+        select: {e.id, count(apee) > 0},
+        group_by: e.id
+      )
+      |> Repo.all()
+      |> Enum.into(%{})
+
+    # return updated students_entries
+    students_entries
+    |> Enum.map(fn {s, ap_id, e} ->
+      {
+        s,
+        ap_id,
+        e && %{e | has_evidences: entries_ids_with_has_evidences_map[e.id]}
+      }
+    end)
+  end
+
+  defp maybe_calculate_has_evidences(students_entries, _), do: students_entries
 
   @doc """
   Returns the list of strand goals and entries for the given student and strand.
