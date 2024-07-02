@@ -468,7 +468,8 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
 
     # zip assessment points with entries
     students_entries =
-      Assessments.list_strand_goals_students_entries(strand.id,
+      Assessments.list_students_with_entries(
+        strand_id: strand.id,
         classes_ids: classes_ids,
         check_if_has_evidences: true
       )

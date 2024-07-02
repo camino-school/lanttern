@@ -386,7 +386,7 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_std_c.id == student_c.id
     end
 
-    test "list_strand_goals_students_entries/1 returns students and their goals entries for the given strand" do
+    test "list_students_with_entries/1 returns students and their goals entries for the given strand" do
       profile = IdentityFixtures.teacher_profile_fixture()
       strand = LearningContextFixtures.strand_fixture()
       curriculum_item_1 = CurriculaFixtures.curriculum_item_fixture()
@@ -500,7 +500,8 @@ defmodule Lanttern.AssessmentsTest do
                {expected_std_b, [nil, %{id: ^entry_2_b_id, has_evidences: true}, nil]},
                {expected_std_c, [nil, nil, %{id: ^entry_3_c_id, has_evidences: false}]}
              ] =
-               Assessments.list_strand_goals_students_entries(strand.id,
+               Assessments.list_students_with_entries(
+                 strand_id: strand.id,
                  check_if_has_evidences: true,
                  classes_ids: [class.id]
                )
@@ -543,6 +544,7 @@ defmodule Lanttern.AssessmentsTest do
     alias Lanttern.LearningContextFixtures
     alias Lanttern.CurriculaFixtures
     alias Lanttern.GradingFixtures
+    alias Lanttern.IdentityFixtures
     alias Lanttern.SchoolsFixtures
 
     test "create_assessment_point/2 with valid data creates an assessment point linked to a moment" do
@@ -599,7 +601,8 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_3.id == assessment_point_3.id
     end
 
-    test "list_moment_students_entries/1 returns students and their assessment point entries for the given activty" do
+    test "list_students_with_entries/1 returns students and their assessment point entries for the given moment" do
+      profile = IdentityFixtures.teacher_profile_fixture()
       moment = LearningContextFixtures.moment_fixture()
       curriculum_item_1 = CurriculaFixtures.curriculum_item_fixture()
       curriculum_item_2 = CurriculaFixtures.curriculum_item_fixture()
@@ -650,10 +653,31 @@ defmodule Lanttern.AssessmentsTest do
           scale_type: scale.type
         })
 
+      # attach 1 evidence to entry 1
+
+      assert {:ok, _} =
+               Assessments.create_assessment_point_entry_evidence(
+                 %{current_profile: profile},
+                 entry_1_a.id,
+                 %{
+                   "name" => "evidence 1 a",
+                   "link" => "https://evidence1.com",
+                   "is_external" => true
+                 }
+               )
+
+      entry_1_a_id = entry_1_a.id
+      entry_2_b_id = entry_2_b.id
+
       assert [
-               {expected_std_a, [^entry_1_a, nil]},
-               {expected_std_b, [nil, ^entry_2_b]}
-             ] = Assessments.list_moment_students_entries(moment.id, classes_ids: [class.id])
+               {expected_std_a, [%{id: ^entry_1_a_id, has_evidences: true}, nil]},
+               {expected_std_b, [nil, %{id: ^entry_2_b_id, has_evidences: false}]}
+             ] =
+               Assessments.list_students_with_entries(
+                 moment_id: moment.id,
+                 classes_ids: [class.id],
+                 check_if_has_evidences: true
+               )
 
       assert expected_std_a.id == student_a.id
       assert expected_std_b.id == student_b.id

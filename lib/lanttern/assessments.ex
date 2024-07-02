@@ -745,42 +745,42 @@ defmodule Lanttern.Assessments do
   end
 
   @doc """
-  Returns the list of strand goals entries for every student in the given strand.
+  Returns the list of entries for every student according to given opts.
 
-  Students are ordered by class name, and then by student name.
+  Students have preloaded classes, and are ordered by class name then by student name.
 
   Entries are ordered by `AssessmentPoint` positions.
 
-  When `:classes_ids` option is used, classes are preloaded.
-
   ### Options:
 
+  - `:strand_id` – filter entries related to given strand goals
+  - `:moment_id` – filter entries related to given moment assessment points
   - `:classes_ids` – filter entries by classes
   - `:check_if_has_evidences` – (boolean) calculate virtual `has_evidences` field
 
   """
 
-  @spec list_strand_goals_students_entries(integer(), Keyword.t()) :: [
+  @spec list_students_with_entries(Keyword.t()) :: [
           {Student.t(), [AssessmentPointEntry.t()]}
         ]
 
-  def list_strand_goals_students_entries(strand_id, opts \\ []) do
+  def list_students_with_entries(opts \\ []) do
     students_entries =
       from(
         s in Student,
         cross_join: ap in AssessmentPoint,
+        as: :assessment_points,
         left_join: e in AssessmentPointEntry,
         on: e.student_id == s.id and e.assessment_point_id == ap.id,
         left_join: c in assoc(s, :classes),
         as: :classes,
-        where: ap.strand_id == ^strand_id,
         order_by: [c.name, s.name, ap.position],
         preload: [classes: c],
         # although we don't need it, we need to select
         # something from ap to get the "nil"s correctly
         select: {s, ap.id, e}
       )
-      |> apply_list_strand_goals_students_entries_opts(opts)
+      |> apply_list_students_with_entries_opts(opts)
       |> Repo.all()
       |> maybe_calculate_has_evidences(Keyword.get(opts, :check_if_has_evidences))
 
@@ -798,20 +798,40 @@ defmodule Lanttern.Assessments do
     |> Enum.map(&{&1, entries_by_student_map[&1.id]})
   end
 
-  defp apply_list_strand_goals_students_entries_opts(queryable, []), do: queryable
+  defp apply_list_students_with_entries_opts(queryable, []), do: queryable
 
-  defp apply_list_strand_goals_students_entries_opts(queryable, [
+  defp apply_list_students_with_entries_opts(queryable, [
+         {:strand_id, strand_id} | opts
+       ]) do
+    from(
+      [_s, assessment_points: ap] in queryable,
+      where: ap.strand_id == ^strand_id
+    )
+    |> apply_list_students_with_entries_opts(opts)
+  end
+
+  defp apply_list_students_with_entries_opts(queryable, [
+         {:moment_id, moment_id} | opts
+       ]) do
+    from(
+      [_s, assessment_points: ap] in queryable,
+      where: ap.moment_id == ^moment_id
+    )
+    |> apply_list_students_with_entries_opts(opts)
+  end
+
+  defp apply_list_students_with_entries_opts(queryable, [
          {:classes_ids, classes_ids} | opts
        ]) do
     from(
       [_s, classes: c] in queryable,
       where: c.id in ^classes_ids
     )
-    |> apply_list_strand_goals_students_entries_opts(opts)
+    |> apply_list_students_with_entries_opts(opts)
   end
 
-  defp apply_list_strand_goals_students_entries_opts(queryable, [_ | opts]),
-    do: apply_list_strand_goals_students_entries_opts(queryable, opts)
+  defp apply_list_students_with_entries_opts(queryable, [_ | opts]),
+    do: apply_list_students_with_entries_opts(queryable, opts)
 
   defp maybe_calculate_has_evidences(students_entries, true) do
     entries_ids =
@@ -895,50 +915,6 @@ defmodule Lanttern.Assessments do
       ]
     )
     |> Repo.all()
-  end
-
-  @doc """
-  Returns the list of the assessment point entries for every student in the given moment.
-
-  Entries are ordered by `AssessmentPoint` position,
-  which is the same order used by `list_assessment_points/1`.
-
-  Students are ordered by class name, then student name.
-
-  Classes are preloaded (when using `:classes_ids` opt).
-
-  ## Options:
-
-      - `:classes_ids` – filter entries by classes
-  """
-
-  @spec list_moment_students_entries(integer(), Keyword.t()) :: [
-          {Student.t(), [AssessmentPointEntry.t()]}
-        ]
-
-  def list_moment_students_entries(moment_id, opts \\ []) do
-    # build a %{student_id => entries} map
-    students_entries_map =
-      from(
-        ap in AssessmentPoint,
-        join: s in subquery(distinct_students_query(opts)),
-        on: true,
-        left_join: e in AssessmentPointEntry,
-        on: e.student_id == s.id and e.assessment_point_id == ap.id,
-        where: ap.moment_id == ^moment_id,
-        order_by: [s.name, ap.position],
-        select: {s, e}
-      )
-      |> Repo.all()
-      |> Enum.group_by(
-        fn {s, _e} -> s.id end,
-        fn {_s, e} -> e end
-      )
-
-    # list students in correct order and with classes preloads
-    # then map it with its entries, returning [] when student entries is nil
-    list_students_with_classes(opts)
-    |> Enum.map(&{&1, students_entries_map[&1.id] || []})
   end
 
   @doc """

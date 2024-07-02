@@ -401,10 +401,25 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
   end
 
   def update(
-        %{action: {EntryDetailsComponent, {:change, _entry}}},
+        %{action: {EntryDetailsComponent, {msg_type, _}}},
+        socket
+      )
+      when msg_type in [:change, :created_attachment, :deleted_attachment] do
+    {:ok, assign(socket, :has_entry_details_change, true)}
+  end
+
+  def update(
+        %{action: {EntryDetailsComponent, {:delete, _entry}}},
         socket
       ) do
-    {:ok, assign(socket, :has_entry_details_change, true)}
+    socket =
+      socket
+      |> assign(:assessment_point_entry, nil)
+      |> assign(:has_entry_details_change, true)
+      |> core_assigns(socket.assigns.moment.id)
+      |> assign(:has_entry_details_change, false)
+
+    {:ok, socket}
   end
 
   def update(%{moment: moment, assessment_point_id: assessment_point_id} = assigns, socket) do
@@ -454,8 +469,10 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
       )
 
     students_entries =
-      Assessments.list_moment_students_entries(moment_id,
-        classes_ids: socket.assigns.selected_classes_ids
+      Assessments.list_students_with_entries(
+        moment_id: moment_id,
+        classes_ids: socket.assigns.selected_classes_ids,
+        check_if_has_evidences: true
       )
 
     # zip assessment points with entries
