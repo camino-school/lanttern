@@ -12,6 +12,7 @@ defmodule Lanttern.Assessments do
   alias Lanttern.Assessments.AssessmentPointEntryEvidence
   alias Lanttern.Assessments.Feedback
   alias Lanttern.AssessmentsLog
+  alias Lanttern.Attachments
   alias Lanttern.Attachments.Attachment
   alias Lanttern.Conversation.Comment
   alias Lanttern.Identity.User
@@ -416,7 +417,11 @@ defmodule Lanttern.Assessments do
   end
 
   @doc """
-  Deletes a assessment_point_entry.
+  Deletes an assessment point entry.
+
+  Before deleting the entry, this function tries to delete all linked attachments.
+  After the whole operation, in case of success, we trigger a request for deleting
+  the attachments from the cloud (if they are internal).
 
   ## Options:
 
@@ -432,8 +437,30 @@ defmodule Lanttern.Assessments do
 
   """
   def delete_assessment_point_entry(%AssessmentPointEntry{} = assessment_point_entry, opts \\ []) do
-    Repo.delete(assessment_point_entry)
-    |> AssessmentsLog.maybe_create_assessment_point_entry_log("DELETE", opts)
+    entry_attachments_query =
+      from(
+        a in Attachment,
+        join: apee in assoc(a, :assessment_point_entry_evidence),
+        where: apee.assessment_point_entry_id == ^assessment_point_entry.id,
+        select: a
+      )
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.delete_all(:delete_attachments, entry_attachments_query)
+    |> Ecto.Multi.delete(:delete_entry, assessment_point_entry)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{delete_entry: entry, delete_attachments: {_qty, attachments}}} ->
+        # if attachment is internal (Supabase),
+        # delete from cloud in an async task (fire and forget)
+        Enum.each(attachments, &Attachments.maybe_delete_attachment_from_cloud(&1))
+
+        # maybe log
+        AssessmentsLog.maybe_create_assessment_point_entry_log({:ok, entry}, "DELETE", opts)
+
+      {:error, _name, value, _changes_so_far} ->
+        {:error, value}
+    end
   end
 
   @doc """

@@ -720,6 +720,9 @@ defmodule Lanttern.AssessmentsTest do
 
     import Lanttern.AssessmentsFixtures
 
+    alias Lanttern.Attachments
+    alias Lanttern.IdentityFixtures
+
     @invalid_attrs %{student_id: nil, score: nil}
 
     test "list_assessment_point_entries/1 returns all assessment_point_entries" do
@@ -979,7 +982,7 @@ defmodule Lanttern.AssessmentsTest do
                Assessments.get_assessment_point_entry!(assessment_point_entry.id)
     end
 
-    test "delete_assessment_point_entry/1 deletes the assessment_point_entry" do
+    test "delete_assessment_point_entry/2 deletes the assessment_point_entry" do
       assessment_point_entry = assessment_point_entry_fixture()
 
       # profile to test log
@@ -1005,6 +1008,47 @@ defmodule Lanttern.AssessmentsTest do
         assert assessment_point_entry_log.assessment_point_entry_id == assessment_point_entry.id
         assert assessment_point_entry_log.profile_id == profile.id
         assert assessment_point_entry_log.operation == "DELETE"
+      end)
+    end
+
+    test "delete_assessment_point_entry/2 deletes the note and its linked attachments" do
+      profile = IdentityFixtures.teacher_profile_fixture()
+      assessment_point_entry = assessment_point_entry_fixture()
+
+      {:ok, attachment_1} =
+        Assessments.create_assessment_point_entry_evidence(
+          %{current_profile: profile},
+          assessment_point_entry.id,
+          %{"name" => "attachment 1", "link" => "https://somevaliduri.com"}
+        )
+
+      {:ok, attachment_2} =
+        Assessments.create_assessment_point_entry_evidence(
+          %{current_profile: profile},
+          assessment_point_entry.id,
+          %{"name" => "attachment 2", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      {:ok, attachment_3} =
+        Assessments.create_assessment_point_entry_evidence(
+          %{current_profile: profile},
+          assessment_point_entry.id,
+          %{"name" => "attachment 3", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      assert {:ok, %AssessmentPointEntry{}} =
+               Assessments.delete_assessment_point_entry(assessment_point_entry)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Assessments.get_assessment_point_entry!(assessment_point_entry.id)
+      end
+
+      assert_raise Ecto.NoResultsError, fn -> Attachments.get_attachment!(attachment_1.id) end
+      assert_raise Ecto.NoResultsError, fn -> Attachments.get_attachment!(attachment_2.id) end
+      assert_raise Ecto.NoResultsError, fn -> Attachments.get_attachment!(attachment_3.id) end
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
       end)
     end
 
