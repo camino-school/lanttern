@@ -59,8 +59,18 @@ defmodule LantternWeb.UserSessionController do
   end
 
   defp handle_google_sign_in_response(conn, {:error, error_reason}) do
+    error =
+      cond do
+        is_atom(error_reason) ->
+          # case: :kid_does_not_match
+          Atom.to_string(error_reason)
+
+        true ->
+          error_reason[:message]
+      end
+
     conn
-    |> put_flash(:error, error_reason[:message])
+    |> put_flash(:error, error)
     |> redirect(to: ~p"/users/log_in")
   end
 

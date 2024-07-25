@@ -7,6 +7,8 @@ defmodule Lanttern.Attachments.Attachment do
   import Ecto.Changeset
   import LantternWeb.Gettext
 
+  alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.Assessments.AssessmentPointEntryEvidence
   alias Lanttern.Identity.Profile
   alias Lanttern.Notes.Note
   alias Lanttern.Notes.NoteAttachment
@@ -20,6 +22,7 @@ defmodule Lanttern.Attachments.Attachment do
           owner: Profile.t(),
           owner_id: pos_integer(),
           note: Note.t(),
+          assessment_point_entry: AssessmentPointEntry.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -34,6 +37,11 @@ defmodule Lanttern.Attachments.Attachment do
 
     has_one :note_attachment, NoteAttachment
     has_one :note, through: [:note_attachment, :note]
+
+    has_one :assessment_point_entry_evidence, AssessmentPointEntryEvidence
+
+    has_one :assessment_point_entry,
+      through: [:assessment_point_entry_evidence, :assessment_point_entry]
 
     timestamps()
   end

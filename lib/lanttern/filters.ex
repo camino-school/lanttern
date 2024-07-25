@@ -200,7 +200,9 @@ defmodule Lanttern.Filters do
 
   """
   @spec set_profile_strand_filters(User.t(), pos_integer(), map()) ::
-          {:ok, any()} | {:error, any()} | Ecto.Multi.failure()
+          {:ok, any()}
+          | {:error, any()}
+          | {:error, Ecto.Multi.name(), any(), %{required(Ecto.Multi.name()) => any()}}
   def set_profile_strand_filters(%{current_profile: %{id: profile_id}}, strand_id, %{
         classes_ids: classes_ids
       })
@@ -405,7 +407,9 @@ defmodule Lanttern.Filters do
 
   """
   @spec set_profile_report_card_filters(User.t(), pos_integer(), map()) ::
-          {:ok, any()} | {:error, any()} | Ecto.Multi.failure()
+          {:ok, any()}
+          | {:error, any()}
+          | {:error, Ecto.Multi.name(), any(), %{required(Ecto.Multi.name()) => any()}}
 
   def set_profile_report_card_filters(
         %{current_profile: %{id: profile_id}},

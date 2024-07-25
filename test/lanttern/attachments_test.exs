@@ -8,6 +8,8 @@ defmodule Lanttern.AttachmentsTest do
 
     import Lanttern.AttachmentsFixtures
 
+    alias Lanttern.Assessments
+    alias Lanttern.AssessmentsFixtures
     alias Lanttern.IdentityFixtures
     alias Lanttern.Notes
     alias Lanttern.NotesFixtures
@@ -53,6 +55,46 @@ defmodule Lanttern.AttachmentsTest do
 
       assert [attachment_2, attachment_3, attachment_1] ==
                Attachments.list_attachments(note_id: note.id)
+    end
+
+    test "list_attachments/1 with assessment_point_entry_id opts returns all attachments filtered by given assessment point entry" do
+      profile = IdentityFixtures.student_profile_fixture()
+      entry = AssessmentsFixtures.assessment_point_entry_fixture()
+
+      {:ok, attachment_1} =
+        Assessments.create_assessment_point_entry_evidence(
+          %{current_profile: profile},
+          entry.id,
+          %{"name" => "evidence 1", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      {:ok, attachment_2} =
+        Assessments.create_assessment_point_entry_evidence(
+          %{current_profile: profile},
+          entry.id,
+          %{"name" => "evidence 2", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      {:ok, attachment_3} =
+        Assessments.create_assessment_point_entry_evidence(
+          %{current_profile: profile},
+          entry.id,
+          %{"name" => "evidence 3", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      assert [attachment_1, attachment_2, attachment_3] ==
+               Attachments.list_attachments(assessment_point_entry_id: entry.id)
+
+      # use same setup to test update_assessment_point_entry_evidences_positions/1
+
+      Assessments.update_assessment_point_entry_evidences_positions([
+        attachment_2.id,
+        attachment_3.id,
+        attachment_1.id
+      ])
+
+      assert [attachment_2, attachment_3, attachment_1] ==
+               Attachments.list_attachments(assessment_point_entry_id: entry.id)
     end
 
     test "get_attachment!/1 returns the attachment with given id" do

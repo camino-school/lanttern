@@ -24,6 +24,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
   import Ecto.Changeset
 
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Assessments.AssessmentPointEntryEvidence
   alias Lanttern.Assessments.Feedback
   alias Lanttern.Schools.Student
   alias Lanttern.Grading.Scale
@@ -31,26 +32,28 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
   alias Lanttern.Rubrics.Rubric
 
   @type t :: %__MODULE__{
-          id: pos_integer(),
-          observation: String.t(),
-          report_note: String.t(),
-          student_report_note: String.t(),
-          score: float(),
-          student_score: float(),
+          id: pos_integer() | nil,
+          observation: String.t() | nil,
+          report_note: String.t() | nil,
+          student_report_note: String.t() | nil,
+          score: float() | nil,
+          student_score: float() | nil,
           scale_type: String.t(),
+          has_evidences: boolean(),
           assessment_point: AssessmentPoint.t(),
           assessment_point_id: pos_integer(),
           student: Student.t(),
           student_id: pos_integer(),
           scale: Scale.t(),
           scale_id: pos_integer(),
-          ordinal_value: OrdinalValue.t(),
-          ordinal_value_id: pos_integer(),
-          student_ordinal_value: OrdinalValue.t(),
-          student_ordinal_value_id: pos_integer(),
-          differentiation_rubric: Rubric.t(),
-          differentiation_rubric_id: pos_integer(),
-          feedback: Feedback.t(),
+          ordinal_value: OrdinalValue.t() | nil,
+          ordinal_value_id: pos_integer() | nil,
+          student_ordinal_value: OrdinalValue.t() | nil,
+          student_ordinal_value_id: pos_integer() | nil,
+          differentiation_rubric: Rubric.t() | nil,
+          differentiation_rubric_id: pos_integer() | nil,
+          assessment_point_entry_evidences: [AssessmentPointEntryEvidence.t()],
+          feedback: Feedback.t() | nil,
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -63,12 +66,16 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
     field :student_score, :float
     field :scale_type, :string
 
+    field :has_evidences, :boolean, virtual: true
+
     belongs_to :assessment_point, AssessmentPoint
     belongs_to :student, Student
     belongs_to :scale, Scale
     belongs_to :ordinal_value, OrdinalValue
     belongs_to :student_ordinal_value, OrdinalValue
     belongs_to :differentiation_rubric, Rubric
+
+    has_many :assessment_point_entry_evidences, AssessmentPointEntryEvidence
 
     # warning: don't use `Repo.preload/3` with this association.
     # we can get this in query, usign assessment_point_id and student_id

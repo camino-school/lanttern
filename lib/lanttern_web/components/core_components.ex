@@ -848,7 +848,7 @@ defmodule LantternWeb.CoreComponents do
   def metadata(assigns) do
     ~H"""
     <div class={["flex items-center gap-2", @class]}>
-      <.icon :if={@icon_name} name={@icon_name} class="w-6 h-6 text-ltrn-subtle" />
+      <.icon :if={@icon_name} name={@icon_name} class="shrink-0 w-6 h-6 text-ltrn-subtle" />
       <div class="text-sm"><%= render_slot(@inner_block) %></div>
     </div>
     """

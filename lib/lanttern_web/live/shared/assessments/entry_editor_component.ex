@@ -13,10 +13,10 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
   ```
 
   """
-  alias Lanttern.Assessments.AssessmentPointEntry
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments
+  alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Grading.Scale
 
@@ -37,51 +37,24 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
             ordinal_value_options={@ordinal_value_options}
             form={@form}
             assessment_view={@assessment_view}
-            style={if(!@has_changes, do: @ov_style)}
-            ov_name={@ov_name}
+            style={if(@has_changes, do: "background-color: white", else: @ov_style)}
             class={Map.get(marking_input, :class, "")}
           />
         <% end %>
       </.form>
-      <.icon_button
+      <button
         type="button"
-        name="hero-pencil-square-mini"
-        theme={@note_button_theme}
-        rounded
-        sr_text={gettext("Add entry note")}
-        size="sm"
-        class="ml-2"
+        class={[
+          "flex items-center gap-1 p-1 ml-2 rounded-full text-ltrn-light bg-white shadow hover:bg-ltrn-lightest",
+          "disabled:bg-ltrn-lighter disabled:shadow-none"
+        ]}
         disabled={!@entry.id}
-        phx-click="edit_note"
+        phx-click="view_details"
         phx-target={@myself}
-      />
-      <.modal
-        :if={@is_editing_note}
-        id={"entry-#{@id}-note-modal"}
-        show
-        on_cancel={JS.push("cancel_edit_note", target: @myself)}
       >
-        <h5 class="mb-10 font-display font-black text-xl">
-          <%= gettext("Entry report note") %>
-        </h5>
-        <.form for={@form} phx-submit="save_note" phx-target={@myself} id={"entry-#{@id}-note-form"}>
-          <.input
-            field={
-              if @assessment_view == "student",
-                do: @form[:student_report_note],
-                else: @form[:report_note]
-            }
-            type="textarea"
-            label={gettext("Note")}
-            class="mb-1"
-            phx-debounce="1500"
-          />
-          <.markdown_supported />
-          <div class="flex justify-end mt-10">
-            <.button type="submit"><%= gettext("Save note") %></.button>
-          </div>
-        </.form>
-      </.modal>
+        <.icon name="hero-chat-bubble-oval-left-mini" class={@note_icon_class} />
+        <.icon name="hero-paper-clip-mini" class={@evidences_icon_class} />
+      </button>
     </div>
     """
   end
@@ -90,7 +63,6 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
   attr :ordinal_value_options, :list
   attr :style, :string
   attr :class, :any
-  attr :ov_name, :string
   attr :form, :map, required: true
   attr :assessment_view, :string, required: true
 
@@ -157,7 +129,6 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
       |> assign(:class, nil)
       |> assign(:wrapper_class, nil)
       |> assign(:has_changes, false)
-      |> assign(:is_editing_note, false)
       |> assign(:assessment_view, "teacher")
       |> assign(:marking_input, [])
 
@@ -187,7 +158,7 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
       |> assign_ordinal_value_options()
       |> assign_entry_value()
       |> assign_entry_note()
-      |> assign_ov_style_and_name()
+      |> assign_ov_style()
 
     {:ok, socket}
   end
@@ -243,31 +214,12 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
     {:noreply, socket}
   end
 
-  def handle_event("edit_note", _, socket) do
-    {:noreply, assign(socket, :is_editing_note, true)}
-  end
-
-  def handle_event("cancel_edit_note", _, socket) do
-    {:noreply, assign(socket, :is_editing_note, false)}
-  end
-
-  def handle_event("save_note", %{"assessment_point_entry" => params}, socket) do
-    opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
-
-    socket =
-      case Assessments.update_assessment_point_entry(socket.assigns.entry, params, opts) do
-        {:ok, entry} ->
-          form =
-            entry
-            |> Assessments.change_assessment_point_entry(params)
-            |> to_form()
-
-          socket
-          |> assign(:entry, entry)
-          |> assign(:form, form)
-          |> assign(:is_editing_note, false)
-          |> assign_entry_note()
-      end
+  def handle_event("view_details", _, socket) do
+    notify(
+      __MODULE__,
+      {:view_details, socket.assigns.entry},
+      socket.assigns
+    )
 
     {:noreply, socket}
   end
@@ -288,7 +240,7 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
        ) do
     ordinal_value_options =
       socket.assigns.assessment_point.scale.ordinal_values
-      |> Enum.map(fn ov -> {:"#{ov.name}", ov.id} end)
+      |> Enum.map(fn ov -> {ov.name, ov.id} end)
 
     assign(socket, :ordinal_value_options, ordinal_value_options)
   end
@@ -326,40 +278,40 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
         _ -> entry.report_note
       end
 
-    note_button_theme =
+    note_icon_class =
       cond do
-        entry_note && assessment_view == "student" -> "student"
-        entry_note -> "teacher"
-        true -> "ghost"
+        entry_note && assessment_view == "student" -> "text-ltrn-student-accent"
+        entry_note -> "text-ltrn-teacher-accent"
+        true -> ""
       end
+
+    evidences_icon_class = if entry.has_evidences, do: "text-ltrn-primary", else: ""
 
     socket
     |> assign(:entry_note, entry_note)
-    |> assign(:note_button_theme, note_button_theme)
+    |> assign(:note_icon_class, note_icon_class)
+    |> assign(:evidences_icon_class, evidences_icon_class)
   end
 
-  defp assign_ov_style_and_name(socket) do
+  defp assign_ov_style(socket) do
     %{
       entry_value: entry_value,
       assessment_point: %{scale: %{ordinal_values: ordinal_values, type: scale_type}}
     } = socket.assigns
 
-    {ov_style, ov_name} =
+    ov_style =
       case {scale_type, entry_value} do
         {"ordinal", ordinal_value_id} when not is_nil(ordinal_value_id) ->
-          ov =
-            ordinal_values
-            |> Enum.find(&(&1.id == ordinal_value_id))
-
-          {get_colors_style(ov), ov.name}
+          ordinal_values
+          |> Enum.find(&(&1.id == ordinal_value_id))
+          |> get_colors_style()
 
         _ ->
-          {nil, nil}
+          nil
       end
 
     socket
     |> assign(:ov_style, ov_style)
-    |> assign(:ov_name, ov_name)
   end
 
   defp get_colors_style(%OrdinalValue{} = ordinal_value) do
@@ -396,11 +348,12 @@ defmodule LantternWeb.Assessments.EntryEditorComponent do
     do: entry.student_score
 
   @spec check_for_changes(
-          entry_id :: pos_integer() | nil,
-          entry_value :: any(),
+          entry_id :: pos_integer(),
+          entry_value :: String.t(),
           other_entry_value :: any(),
           param_value :: String.t()
         ) :: {boolean(), :cancel | :new | :delete | :edit}
+
   defp check_for_changes(_, entry_value, _, param_value) when entry_value == param_value,
     do: {false, :cancel}
 

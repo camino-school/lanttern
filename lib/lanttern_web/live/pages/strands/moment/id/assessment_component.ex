@@ -10,6 +10,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
   import Lanttern.Utils, only: [swap: 3]
 
   # shared components
+  alias LantternWeb.Assessments.EntryDetailsComponent
   alias LantternWeb.Assessments.EntryEditorComponent
   alias LantternWeb.Assessments.AssessmentPointFormComponent
 
@@ -242,6 +243,21 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
           </.button>
         </:actions>
       </.slide_over>
+      <.slide_over
+        :if={@assessment_point_entry}
+        id="entry-details-overlay"
+        show={true}
+        on_cancel={JS.push("close_entry_details_overlay", target: @myself)}
+      >
+        <:title><%= gettext("Assessment point entry details") %></:title>
+        <.live_component
+          module={EntryDetailsComponent}
+          id={@assessment_point_entry.id}
+          entry={@assessment_point_entry}
+          current_user={@current_user}
+          notify_component={@myself}
+        />
+      </.slide_over>
       <.fixed_bar :if={@entries_changes_map != %{}} class="flex items-center gap-6">
         <p class="flex-1 text-sm text-white">
           <%= ngettext("1 change", "%{count} changes", map_size(@entries_changes_map)) %>
@@ -338,6 +354,8 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
       |> assign(:classes, nil)
       |> assign(:classes_ids, [])
       |> assign(:entries_changes_map, %{})
+      |> assign(:assessment_point_entry, nil)
+      |> assign(:has_entry_details_change, false)
 
     {:ok, socket}
   end
@@ -367,6 +385,39 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
         entries_changes_map
         |> Map.put(composite_id, {type, entry_id, params})
       end)
+
+    {:ok, socket}
+  end
+
+  def update(
+        %{action: {EntryEditorComponent, {:view_details, entry}}},
+        socket
+      ) do
+    socket =
+      socket
+      |> assign(:assessment_point_entry, entry)
+
+    {:ok, socket}
+  end
+
+  def update(
+        %{action: {EntryDetailsComponent, {msg_type, _}}},
+        socket
+      )
+      when msg_type in [:change, :created_attachment, :deleted_attachment] do
+    {:ok, assign(socket, :has_entry_details_change, true)}
+  end
+
+  def update(
+        %{action: {EntryDetailsComponent, {:delete, _entry}}},
+        socket
+      ) do
+    socket =
+      socket
+      |> assign(:assessment_point_entry, nil)
+      |> assign(:has_entry_details_change, true)
+      |> core_assigns(socket.assigns.moment.id)
+      |> assign(:has_entry_details_change, false)
 
     {:ok, socket}
   end
@@ -405,7 +456,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
   end
 
   defp core_assigns(
-         %{assigns: %{assessment_points_count: _}} = socket,
+         %{assigns: %{assessment_points_count: _, has_entry_details_change: false}} = socket,
          _moment_id
        ),
        do: socket
@@ -418,8 +469,10 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
       )
 
     students_entries =
-      Assessments.list_moment_students_entries(moment_id,
-        classes_ids: socket.assigns.selected_classes_ids
+      Assessments.list_students_with_entries(
+        moment_id: moment_id,
+        classes_ids: socket.assigns.selected_classes_ids,
+        check_if_has_evidences: true
       )
 
     # zip assessment points with entries
@@ -521,5 +574,22 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
       {:error, _} ->
         {:noreply, socket}
     end
+  end
+
+  def handle_event("close_entry_details_overlay", _, socket) do
+    socket =
+      socket
+      |> assign(:assessment_point_entry, nil)
+
+    socket =
+      if socket.assigns.has_entry_details_change do
+        socket
+        |> core_assigns(socket.assigns.moment.id)
+        |> assign(:has_entry_details_change, false)
+      else
+        socket
+      end
+
+    {:noreply, socket}
   end
 end

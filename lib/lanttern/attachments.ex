@@ -15,6 +15,7 @@ defmodule Lanttern.Attachments do
   ## Options
 
   - `:note_id` - filter results by attachments linked the note
+  - `:assessment_point_entry_id` - filter results by assessment point entry evidences
 
   ## Examples
 
@@ -30,12 +31,26 @@ defmodule Lanttern.Attachments do
 
   defp apply_list_attachments_opts(queryable, []), do: queryable
 
-  defp apply_list_attachments_opts(queryable, [{:note_id, note_id} | opts]) do
+  defp apply_list_attachments_opts(queryable, [{:note_id, note_id} | opts])
+       when is_integer(note_id) do
     from(
       a in queryable,
       join: na in assoc(a, :note_attachment),
       where: na.note_id == ^note_id,
       order_by: na.position
+    )
+    |> apply_list_attachments_opts(opts)
+  end
+
+  defp apply_list_attachments_opts(queryable, [
+         {:assessment_point_entry_id, assessment_point_entry_id} | opts
+       ])
+       when is_integer(assessment_point_entry_id) do
+    from(
+      a in queryable,
+      join: apee in assoc(a, :assessment_point_entry_evidence),
+      where: apee.assessment_point_entry_id == ^assessment_point_entry_id,
+      order_by: apee.position
     )
     |> apply_list_attachments_opts(opts)
   end

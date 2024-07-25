@@ -266,9 +266,10 @@ defmodule Lanttern.AssessmentsTest do
     alias Lanttern.Assessments.AssessmentPoint
 
     import Lanttern.AssessmentsFixtures
-    alias Lanttern.LearningContextFixtures
+    alias Lanttern.IdentityFixtures
     alias Lanttern.CurriculaFixtures
     alias Lanttern.GradingFixtures
+    alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
 
     test "list_assessment_points/1 returns all assessment points for moments in a given strand" do
@@ -385,7 +386,8 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_std_c.id == student_c.id
     end
 
-    test "list_strand_goals_students_entries/1 returns students and their goals entries for the given strand" do
+    test "list_students_with_entries/1 returns students and their goals entries for the given strand" do
+      profile = IdentityFixtures.teacher_profile_fixture()
       strand = LearningContextFixtures.strand_fixture()
       curriculum_item_1 = CurriculaFixtures.curriculum_item_fixture()
       curriculum_item_2 = CurriculaFixtures.curriculum_item_fixture()
@@ -454,12 +456,55 @@ defmodule Lanttern.AssessmentsTest do
           scale_type: scale.type
         })
 
+      # attach 1 evidence to entry 1, and 2 to entry 2
+
+      assert {:ok, _} =
+               Assessments.create_assessment_point_entry_evidence(
+                 %{current_profile: profile},
+                 entry_1_a.id,
+                 %{
+                   "name" => "evidence 1 a",
+                   "link" => "https://evidence1.com",
+                   "is_external" => true
+                 }
+               )
+
+      assert {:ok, _} =
+               Assessments.create_assessment_point_entry_evidence(
+                 %{current_profile: profile},
+                 entry_2_b.id,
+                 %{
+                   "name" => "evidence 2 b1",
+                   "link" => "https://evidence2b1.com",
+                   "is_external" => true
+                 }
+               )
+
+      assert {:ok, _} =
+               Assessments.create_assessment_point_entry_evidence(
+                 %{current_profile: profile},
+                 entry_2_b.id,
+                 %{
+                   "name" => "evidence 2 b2",
+                   "link" => "https://evidence2b2.com",
+                   "is_external" => true
+                 }
+               )
+
+      entry_1_a_id = entry_1_a.id
+      entry_2_b_id = entry_2_b.id
+      entry_3_c_id = entry_3_c.id
+
       assert [
-               {expected_std_a, [^entry_1_a, nil, nil]},
-               {expected_std_b, [nil, ^entry_2_b, nil]},
-               {expected_std_c, [nil, nil, ^entry_3_c]}
+               {expected_std_a, [%{id: ^entry_1_a_id, has_evidences: true}, nil, nil]},
+               {expected_std_b, [nil, %{id: ^entry_2_b_id, has_evidences: true}, nil]},
+               {expected_std_c, [nil, nil, %{id: ^entry_3_c_id, has_evidences: false}]}
              ] =
-               Assessments.list_strand_goals_students_entries(strand.id, classes_ids: [class.id])
+               Assessments.list_students_with_entries(
+                 strand_id: strand.id,
+                 check_if_has_evidences: true,
+                 classes_ids: [class.id]
+               )
 
       assert expected_std_a.id == student_a.id
       assert expected_std_b.id == student_b.id
@@ -499,6 +544,7 @@ defmodule Lanttern.AssessmentsTest do
     alias Lanttern.LearningContextFixtures
     alias Lanttern.CurriculaFixtures
     alias Lanttern.GradingFixtures
+    alias Lanttern.IdentityFixtures
     alias Lanttern.SchoolsFixtures
 
     test "create_assessment_point/2 with valid data creates an assessment point linked to a moment" do
@@ -555,7 +601,8 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_3.id == assessment_point_3.id
     end
 
-    test "list_moment_students_entries/1 returns students and their assessment point entries for the given activty" do
+    test "list_students_with_entries/1 returns students and their assessment point entries for the given moment" do
+      profile = IdentityFixtures.teacher_profile_fixture()
       moment = LearningContextFixtures.moment_fixture()
       curriculum_item_1 = CurriculaFixtures.curriculum_item_fixture()
       curriculum_item_2 = CurriculaFixtures.curriculum_item_fixture()
@@ -606,10 +653,31 @@ defmodule Lanttern.AssessmentsTest do
           scale_type: scale.type
         })
 
+      # attach 1 evidence to entry 1
+
+      assert {:ok, _} =
+               Assessments.create_assessment_point_entry_evidence(
+                 %{current_profile: profile},
+                 entry_1_a.id,
+                 %{
+                   "name" => "evidence 1 a",
+                   "link" => "https://evidence1.com",
+                   "is_external" => true
+                 }
+               )
+
+      entry_1_a_id = entry_1_a.id
+      entry_2_b_id = entry_2_b.id
+
       assert [
-               {expected_std_a, [^entry_1_a, nil]},
-               {expected_std_b, [nil, ^entry_2_b]}
-             ] = Assessments.list_moment_students_entries(moment.id, classes_ids: [class.id])
+               {expected_std_a, [%{id: ^entry_1_a_id, has_evidences: true}, nil]},
+               {expected_std_b, [nil, %{id: ^entry_2_b_id, has_evidences: false}]}
+             ] =
+               Assessments.list_students_with_entries(
+                 moment_id: moment.id,
+                 classes_ids: [class.id],
+                 check_if_has_evidences: true
+               )
 
       assert expected_std_a.id == student_a.id
       assert expected_std_b.id == student_b.id
@@ -651,6 +719,9 @@ defmodule Lanttern.AssessmentsTest do
     alias Lanttern.AssessmentsLog.AssessmentPointEntryLog
 
     import Lanttern.AssessmentsFixtures
+
+    alias Lanttern.Attachments
+    alias Lanttern.IdentityFixtures
 
     @invalid_attrs %{student_id: nil, score: nil}
 
@@ -911,7 +982,7 @@ defmodule Lanttern.AssessmentsTest do
                Assessments.get_assessment_point_entry!(assessment_point_entry.id)
     end
 
-    test "delete_assessment_point_entry/1 deletes the assessment_point_entry" do
+    test "delete_assessment_point_entry/2 deletes the assessment_point_entry" do
       assessment_point_entry = assessment_point_entry_fixture()
 
       # profile to test log
@@ -937,6 +1008,47 @@ defmodule Lanttern.AssessmentsTest do
         assert assessment_point_entry_log.assessment_point_entry_id == assessment_point_entry.id
         assert assessment_point_entry_log.profile_id == profile.id
         assert assessment_point_entry_log.operation == "DELETE"
+      end)
+    end
+
+    test "delete_assessment_point_entry/2 deletes the note and its linked attachments" do
+      profile = IdentityFixtures.teacher_profile_fixture()
+      assessment_point_entry = assessment_point_entry_fixture()
+
+      {:ok, attachment_1} =
+        Assessments.create_assessment_point_entry_evidence(
+          %{current_profile: profile},
+          assessment_point_entry.id,
+          %{"name" => "attachment 1", "link" => "https://somevaliduri.com"}
+        )
+
+      {:ok, attachment_2} =
+        Assessments.create_assessment_point_entry_evidence(
+          %{current_profile: profile},
+          assessment_point_entry.id,
+          %{"name" => "attachment 2", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      {:ok, attachment_3} =
+        Assessments.create_assessment_point_entry_evidence(
+          %{current_profile: profile},
+          assessment_point_entry.id,
+          %{"name" => "attachment 3", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      assert {:ok, %AssessmentPointEntry{}} =
+               Assessments.delete_assessment_point_entry(assessment_point_entry)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Assessments.get_assessment_point_entry!(assessment_point_entry.id)
+      end
+
+      assert_raise Ecto.NoResultsError, fn -> Attachments.get_attachment!(attachment_1.id) end
+      assert_raise Ecto.NoResultsError, fn -> Attachments.get_attachment!(attachment_2.id) end
+      assert_raise Ecto.NoResultsError, fn -> Attachments.get_attachment!(attachment_3.id) end
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
       end)
     end
 

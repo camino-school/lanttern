@@ -9,9 +9,13 @@ defmodule Lanttern.Assessments do
 
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.Assessments.AssessmentPointEntryEvidence
   alias Lanttern.Assessments.Feedback
   alias Lanttern.AssessmentsLog
+  alias Lanttern.Attachments
+  alias Lanttern.Attachments.Attachment
   alias Lanttern.Conversation.Comment
+  alias Lanttern.Identity.User
   alias Lanttern.Rubrics
   alias Lanttern.Schools.Student
 
@@ -20,12 +24,12 @@ defmodule Lanttern.Assessments do
 
   ### Options:
 
-  `:preloads` – preloads associated data
-  `:preload_full_rubrics` – boolean, preloads full associated rubrics using `Rubrics.full_rubric_query/0`
-  `:assessment_points_ids` – filter result by provided assessment points ids
-  `:moments_ids` – filter result by provided moments ids
-  `:moments_from_strand_id` – filter result by moments from provided strand id
-  `:strand_id` – filter result by provided strand id
+  - `:preloads` – preloads associated data
+  - `:preload_full_rubrics` – boolean, preloads full associated rubrics using `Rubrics.full_rubric_query/0`
+  - `:assessment_points_ids` – filter result by provided assessment points ids
+  - `:moments_ids` – filter result by provided moments ids
+  - `:moments_from_strand_id` – filter result by moments from provided strand id
+  - `:strand_id` – filter result by provided strand id
 
   ## Examples
 
@@ -413,7 +417,11 @@ defmodule Lanttern.Assessments do
   end
 
   @doc """
-  Deletes a assessment_point_entry.
+  Deletes an assessment point entry.
+
+  Before deleting the entry, this function tries to delete all linked attachments.
+  After the whole operation, in case of success, we trigger a request for deleting
+  the attachments from the cloud (if they are internal).
 
   ## Options:
 
@@ -429,8 +437,30 @@ defmodule Lanttern.Assessments do
 
   """
   def delete_assessment_point_entry(%AssessmentPointEntry{} = assessment_point_entry, opts \\ []) do
-    Repo.delete(assessment_point_entry)
-    |> AssessmentsLog.maybe_create_assessment_point_entry_log("DELETE", opts)
+    entry_attachments_query =
+      from(
+        a in Attachment,
+        join: apee in assoc(a, :assessment_point_entry_evidence),
+        where: apee.assessment_point_entry_id == ^assessment_point_entry.id,
+        select: a
+      )
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.delete_all(:delete_attachments, entry_attachments_query)
+    |> Ecto.Multi.delete(:delete_entry, assessment_point_entry)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{delete_entry: entry, delete_attachments: {_qty, attachments}}} ->
+        # if attachment is internal (Supabase),
+        # delete from cloud in an async task (fire and forget)
+        Enum.each(attachments, &Attachments.maybe_delete_attachment_from_cloud(&1))
+
+        # maybe log
+        AssessmentsLog.maybe_create_assessment_point_entry_log({:ok, entry}, "DELETE", opts)
+
+      {:error, _name, value, _changes_so_far} ->
+        {:error, value}
+    end
   end
 
   @doc """
@@ -742,47 +772,123 @@ defmodule Lanttern.Assessments do
   end
 
   @doc """
-  Returns the list of strand goals entries for every student in the given strand.
+  Returns the list of entries for every student according to given opts.
 
-  Students are ordered by class name, and then by student name.
+  Students have preloaded classes, and are ordered by class name then by student name.
 
   Entries are ordered by `AssessmentPoint` positions.
 
-  When `:classes_ids` option is used, classes are preloaded.
+  ### Options:
 
-  ## Options:
+  - `:strand_id` – filter entries related to given strand goals
+  - `:moment_id` – filter entries related to given moment assessment points
+  - `:classes_ids` – filter entries by classes
+  - `:check_if_has_evidences` – (boolean) calculate virtual `has_evidences` field
 
-      - `:classes_ids` – filter entries by classes
   """
 
-  @spec list_strand_goals_students_entries(integer(), Keyword.t()) :: [
+  @spec list_students_with_entries(Keyword.t()) :: [
           {Student.t(), [AssessmentPointEntry.t()]}
         ]
 
-  def list_strand_goals_students_entries(strand_id, opts \\ []) do
-    # build a %{student_id => entries} map
-    students_entries_map =
+  def list_students_with_entries(opts \\ []) do
+    students_entries =
       from(
-        ap in AssessmentPoint,
-        join: s in subquery(distinct_students_query(opts)),
-        on: true,
+        s in Student,
+        cross_join: ap in AssessmentPoint,
+        as: :assessment_points,
         left_join: e in AssessmentPointEntry,
         on: e.student_id == s.id and e.assessment_point_id == ap.id,
-        where: ap.strand_id == ^strand_id,
-        order_by: [ap.position],
-        select: {s, e}
+        left_join: c in assoc(s, :classes),
+        as: :classes,
+        order_by: [c.name, s.name, ap.position],
+        preload: [classes: c],
+        # although we don't need it, we need to select
+        # something from ap to get the "nil"s correctly
+        select: {s, ap.id, e}
+      )
+      |> apply_list_students_with_entries_opts(opts)
+      |> Repo.all()
+      |> maybe_calculate_has_evidences(Keyword.get(opts, :check_if_has_evidences))
+
+    entries_by_student_map =
+      students_entries
+      |> Enum.group_by(
+        fn {s, _ap_id, _e} -> s.id end,
+        fn {_s, _ap_id, e} -> e end
+      )
+      |> Enum.into(%{})
+
+    students_entries
+    |> Enum.map(fn {s, _ap_id, _e} -> s end)
+    |> Enum.uniq_by(& &1.id)
+    |> Enum.map(&{&1, entries_by_student_map[&1.id]})
+  end
+
+  defp apply_list_students_with_entries_opts(queryable, []), do: queryable
+
+  defp apply_list_students_with_entries_opts(queryable, [
+         {:strand_id, strand_id} | opts
+       ]) do
+    from(
+      [_s, assessment_points: ap] in queryable,
+      where: ap.strand_id == ^strand_id
+    )
+    |> apply_list_students_with_entries_opts(opts)
+  end
+
+  defp apply_list_students_with_entries_opts(queryable, [
+         {:moment_id, moment_id} | opts
+       ]) do
+    from(
+      [_s, assessment_points: ap] in queryable,
+      where: ap.moment_id == ^moment_id
+    )
+    |> apply_list_students_with_entries_opts(opts)
+  end
+
+  defp apply_list_students_with_entries_opts(queryable, [
+         {:classes_ids, classes_ids} | opts
+       ]) do
+    from(
+      [_s, classes: c] in queryable,
+      where: c.id in ^classes_ids
+    )
+    |> apply_list_students_with_entries_opts(opts)
+  end
+
+  defp apply_list_students_with_entries_opts(queryable, [_ | opts]),
+    do: apply_list_students_with_entries_opts(queryable, opts)
+
+  defp maybe_calculate_has_evidences(students_entries, true) do
+    entries_ids =
+      students_entries
+      |> Enum.filter(fn {_s, _ap_id, e} -> e end)
+      |> Enum.map(fn {_s, _ap_id, e} -> e.id end)
+
+    entries_ids_with_has_evidences_map =
+      from(
+        e in AssessmentPointEntry,
+        left_join: apee in assoc(e, :assessment_point_entry_evidences),
+        where: e.id in ^entries_ids,
+        select: {e.id, count(apee) > 0},
+        group_by: e.id
       )
       |> Repo.all()
-      |> Enum.group_by(
-        fn {s, _e} -> s.id end,
-        fn {_s, e} -> e end
-      )
+      |> Enum.into(%{})
 
-    # list students in correct order and with classes preloads
-    # then map it with its entries
-    list_students_with_classes(opts)
-    |> Enum.map(&{&1, students_entries_map[&1.id] || []})
+    # return updated students_entries
+    students_entries
+    |> Enum.map(fn {s, ap_id, e} ->
+      {
+        s,
+        ap_id,
+        e && %{e | has_evidences: entries_ids_with_has_evidences_map[e.id]}
+      }
+    end)
   end
+
+  defp maybe_calculate_has_evidences(students_entries, _), do: students_entries
 
   @doc """
   Returns the list of strand goals and entries for the given student and strand.
@@ -836,50 +942,6 @@ defmodule Lanttern.Assessments do
       ]
     )
     |> Repo.all()
-  end
-
-  @doc """
-  Returns the list of the assessment point entries for every student in the given moment.
-
-  Entries are ordered by `AssessmentPoint` position,
-  which is the same order used by `list_assessment_points/1`.
-
-  Students are ordered by class name, then student name.
-
-  Classes are preloaded (when using `:classes_ids` opt).
-
-  ## Options:
-
-      - `:classes_ids` – filter entries by classes
-  """
-
-  @spec list_moment_students_entries(integer(), Keyword.t()) :: [
-          {Student.t(), [AssessmentPointEntry.t()]}
-        ]
-
-  def list_moment_students_entries(moment_id, opts \\ []) do
-    # build a %{student_id => entries} map
-    students_entries_map =
-      from(
-        ap in AssessmentPoint,
-        join: s in subquery(distinct_students_query(opts)),
-        on: true,
-        left_join: e in AssessmentPointEntry,
-        on: e.student_id == s.id and e.assessment_point_id == ap.id,
-        where: ap.moment_id == ^moment_id,
-        order_by: [s.name, ap.position],
-        select: {s, e}
-      )
-      |> Repo.all()
-      |> Enum.group_by(
-        fn {s, _e} -> s.id end,
-        fn {_s, e} -> e end
-      )
-
-    # list students in correct order and with classes preloads
-    # then map it with its entries, returning [] when student entries is nil
-    list_students_with_classes(opts)
-    |> Enum.map(&{&1, students_entries_map[&1.id] || []})
   end
 
   @doc """
@@ -968,4 +1030,73 @@ defmodule Lanttern.Assessments do
       rubric
     end)
   end
+
+  @doc """
+  Creates an evidence (attachment) and links it to an existing assessment point entry in a single transaction.
+
+  ## Examples
+
+      iex> create_assessment_point_entry_evidence(user, 1, %{field: value})
+      {:ok, %Attachment{}}
+
+      iex> create_assessment_point_entry_evidence(user, 1, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec create_assessment_point_entry_evidence(
+          User.t(),
+          assessment_point_entry_id :: pos_integer(),
+          attrs :: map()
+        ) ::
+          {:ok, Attachment.t()} | {:error, Ecto.Changeset.t()}
+  def create_assessment_point_entry_evidence(
+        %{current_profile: profile},
+        assessment_point_entry_id,
+        attrs \\ %{}
+      ) do
+    insert_query =
+      %Attachment{}
+      |> Attachment.changeset(Map.put(attrs, "owner_id", profile && profile.id))
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:insert_evidence, insert_query)
+    |> Ecto.Multi.run(
+      :link_assessment_point_entry,
+      fn _repo, %{insert_evidence: attachment} ->
+        attrs =
+          from(
+            apee in AssessmentPointEntryEvidence,
+            where: apee.assessment_point_entry_id == ^assessment_point_entry_id
+          )
+          |> set_position_in_attrs(%{
+            assessment_point_entry_id: assessment_point_entry_id,
+            attachment_id: attachment.id,
+            owner_id: profile.id
+          })
+
+        %AssessmentPointEntryEvidence{}
+        |> AssessmentPointEntryEvidence.changeset(attrs)
+        |> Repo.insert()
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:error, _multi, changeset, _changes} -> {:error, changeset}
+      {:ok, %{insert_evidence: attachment}} -> {:ok, attachment}
+    end
+  end
+
+  @doc """
+  Update assessment point entry evidences positions based on ids list order.
+
+  ## Examples
+
+  iex> update_assessment_point_entry_evidences_positions([3, 2, 1])
+  :ok
+
+  """
+  @spec update_assessment_point_entry_evidences_positions(attachments_ids :: [pos_integer()]) ::
+          :ok | {:error, String.t()}
+  def update_assessment_point_entry_evidences_positions(attachments_ids),
+    do: update_positions(AssessmentPointEntryEvidence, attachments_ids, id_field: :attachment_id)
 end

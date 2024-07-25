@@ -265,7 +265,9 @@ defmodule LantternWeb.FiltersHelpers do
   """
 
   @spec clear_profile_filters(User.t(), [atom()], Keyword.t()) ::
-          {:ok, any()} | {:error, any()} | Ecto.Multi.failure()
+          {:ok, any()}
+          | {:error, any()}
+          | {:error, Ecto.Multi.name(), any(), %{required(Ecto.Multi.name()) => any()}}
 
   def clear_profile_filters(current_user, types, opts \\ []) do
     attrs =

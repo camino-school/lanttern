@@ -2,9 +2,12 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   @moduledoc """
   Creates an attachment area UI.
 
-  Supports only notes attachments (for now).
+  Supports:
+  - notes attachments (use `note_id` assign)
+  - assessment point entry evidences (use `assessment_point_entry_id` assign)
   """
 
+  alias Lanttern.Assessments
   use LantternWeb, :live_component
 
   import Lanttern.Utils, only: [swap: 3]
@@ -276,17 +279,26 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     socket =
       socket
       |> assign(assigns)
+      |> assign_type()
       |> stream_attachments()
 
     {:ok, socket}
   end
 
+  defp assign_type(%{assigns: %{note_id: _}} = socket),
+    do: assign(socket, :type, :note_attachments)
+
+  defp assign_type(%{assigns: %{assessment_point_entry_id: _}} = socket),
+    do: assign(socket, :type, :entry_evidences)
+
   defp stream_attachments(socket) do
     attachments =
-      if socket.assigns.note_id do
-        Attachments.list_attachments(note_id: socket.assigns.note_id)
-      else
-        []
+      case socket.assigns do
+        %{type: :note_attachments, note_id: id} ->
+          Attachments.list_attachments(note_id: id)
+
+        %{type: :entry_evidences, assessment_point_entry_id: id} ->
+          Attachments.list_attachments(assessment_point_entry_id: id)
       end
 
     attachments_ids = Enum.map(attachments, & &1.id)
@@ -364,6 +376,8 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
     case Attachments.delete_attachment(attachment) do
       {:ok, _attachment} ->
+        notify(__MODULE__, {:deleted, attachment}, socket.assigns)
+
         socket =
           socket
           |> stream_attachments()
@@ -384,7 +398,16 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       socket.assigns.attachments_ids
       |> swap(i, j)
 
-    case Notes.update_note_attachments_positions(attachments_ids) do
+    update_res =
+      case socket.assigns.type do
+        :note_attachments ->
+          Notes.update_note_attachments_positions(attachments_ids)
+
+        :entry_evidences ->
+          Assessments.update_assessment_point_entry_evidences_positions(attachments_ids)
+      end
+
+    case update_res do
       :ok ->
         socket =
           socket
@@ -471,7 +494,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   # :new -> when is_adding_external or uploading attachment
   # :edit -> when is_editing
 
-  defp save_attachment(socket, :new, params) do
+  defp save_attachment(%{assigns: %{type: :note_attachments}} = socket, :new, params) do
     %{
       current_user: current_user,
       note_id: note_id
@@ -479,7 +502,33 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
     case Notes.create_note_attachment(current_user, note_id, params) do
       {:ok, attachment} ->
-        notify_parent(__MODULE__, {:created, attachment}, socket.assigns)
+        notify(__MODULE__, {:created, attachment}, socket.assigns)
+
+        socket =
+          socket
+          |> assign(:is_adding_external, false)
+          |> stream_attachments()
+
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign_form(socket, changeset)}
+    end
+  end
+
+  defp save_attachment(%{assigns: %{type: :entry_evidences}} = socket, :new, params) do
+    %{
+      current_user: current_user,
+      assessment_point_entry_id: assessment_point_entry_id
+    } = socket.assigns
+
+    case Assessments.create_assessment_point_entry_evidence(
+           current_user,
+           assessment_point_entry_id,
+           params
+         ) do
+      {:ok, attachment} ->
+        notify(__MODULE__, {:created, attachment}, socket.assigns)
 
         socket =
           socket
@@ -498,7 +547,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
     case Attachments.update_attachment(attachment, params) do
       {:ok, attachment} ->
-        notify_parent(__MODULE__, {:edited, attachment}, socket.assigns)
+        notify(__MODULE__, {:edited, attachment}, socket.assigns)
 
         socket =
           socket
