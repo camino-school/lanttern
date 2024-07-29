@@ -41,6 +41,34 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
             </p>
           <% end %>
         </div>
+        <div class="flex items-center gap-4 mt-6 text-sm">
+          <div class="relative">
+            <.badge_button id="curriculum-dropdown-button" icon_name="hero-chevron-down-mini">
+              <%= gettext("Group by curriculum") %>
+            </.badge_button>
+            <.dropdown_menu
+              id="curriculum-dropdown"
+              button_id="curriculum-dropdown-button"
+              z_index="30"
+            >
+              <:item text={gettext("Group by curriculum")} on_click={%JS{}} />
+              <:item text={gettext("Group by moments")} on_click={%JS{}} />
+            </.dropdown_menu>
+          </div>
+          <div class="relative">
+            <.badge_button id="view-dropdown-button" icon_name="hero-chevron-down-mini">
+              <%= gettext("Assessed by teacher") %>
+            </.badge_button>
+            <.dropdown_menu id="view-dropdown" button_id="view-dropdown-button" z_index="30">
+              <:item text={gettext("Assessed by teacher")} on_click={%JS{}} />
+              <:item text={gettext("Assessed by student")} on_click={%JS{}} />
+              <:item text={gettext("Compare teacher/student assessments")} on_click={%JS{}} />
+            </.dropdown_menu>
+          </div>
+          <.badge_button is_checked={true}>
+            <%= gettext("Show only strand assessments") %>
+          </.badge_button>
+        </div>
         <%!-- if no assessment points, render empty state --%>
         <div :if={@assessment_points_count == 0} class="p-10 mt-4 rounded shadow-xl bg-white">
           <.empty_state><%= gettext("No assessment points for this strand yet") %></.empty_state>
