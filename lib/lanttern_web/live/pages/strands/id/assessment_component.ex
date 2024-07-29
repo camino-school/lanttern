@@ -3,8 +3,9 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Filters
 
-  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 4]
+  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 4, assign_user_filters: 3]
 
   # shared components
   alias LantternWeb.StrandLive.StrandRubricsComponent
@@ -42,30 +43,19 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
           <% end %>
         </div>
         <div class="flex items-center gap-4 mt-6 text-sm">
-          <div class="relative">
-            <.badge_button id="curriculum-dropdown-button" icon_name="hero-chevron-down-mini">
-              <%= gettext("Group by curriculum") %>
-            </.badge_button>
-            <.dropdown_menu
-              id="curriculum-dropdown"
-              button_id="curriculum-dropdown-button"
-              z_index="30"
-            >
-              <:item text={gettext("Group by curriculum")} on_click={%JS{}} />
-              <:item text={gettext("Group by moments")} on_click={%JS{}} />
-            </.dropdown_menu>
-          </div>
-          <div class="relative">
-            <.badge_button id="view-dropdown-button" icon_name="hero-chevron-down-mini">
-              <%= gettext("Assessed by teacher") %>
-            </.badge_button>
-            <.dropdown_menu id="view-dropdown" button_id="view-dropdown-button" z_index="30">
-              <:item text={gettext("Assessed by teacher")} on_click={%JS{}} />
-              <:item text={gettext("Assessed by student")} on_click={%JS{}} />
-              <:item text={gettext("Compare teacher/student assessments")} on_click={%JS{}} />
-            </.dropdown_menu>
-          </div>
-          <.badge_button is_checked={true}>
+          <.assessment_group_by_dropdow
+            current_assessment_group_by={@current_assessment_group_by}
+            myself={@myself}
+          />
+          <.assessment_view_dropdow
+            current_assessment_view={@current_assessment_view}
+            myself={@myself}
+          />
+          <.badge_button
+            is_checked={@current_assessment_show_only_strand}
+            phx-click="change_show_only_strand"
+            phx-target={@myself}
+          >
             <%= gettext("Show only strand assessments") %>
           </.badge_button>
         </div>
@@ -144,6 +134,76 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   end
 
   # function components
+
+  attr :current_assessment_group_by, :string, required: true
+  attr :myself, Phoenix.LiveComponent.CID, required: true
+
+  def assessment_group_by_dropdow(assigns) do
+    text =
+      case assigns.current_assessment_group_by do
+        "curriculum" -> gettext("Group by curriculum")
+        "moment" -> gettext("Group by moment")
+      end
+
+    assigns = assign(assigns, :text, text)
+
+    ~H"""
+    <div class="relative">
+      <.badge_button id="group-by-dropdown-button" icon_name="hero-chevron-down-mini">
+        <%= @text %>
+      </.badge_button>
+      <.dropdown_menu id="group-by-dropdown" button_id="group-by-dropdown-button" z_index="30">
+        <:item
+          text={gettext("Group by curriculum")}
+          on_click={JS.push("change_group_by", value: %{"group_by" => "curriculum"}, target: @myself)}
+        />
+        <:item
+          text={gettext("Group by moment")}
+          on_click={JS.push("change_group_by", value: %{"group_by" => "moment"}, target: @myself)}
+        />
+      </.dropdown_menu>
+    </div>
+    """
+  end
+
+  attr :current_assessment_view, :string, required: true
+  attr :myself, Phoenix.LiveComponent.CID, required: true
+
+  def assessment_view_dropdow(assigns) do
+    {theme, text} =
+      case assigns.current_assessment_view do
+        "teacher" -> {"teacher", gettext("Assessed by teacher")}
+        "student" -> {"student", gettext("Assessed by students")}
+        "compare" -> {"primary", gettext("Compare teacher/students")}
+      end
+
+    assigns =
+      assigns
+      |> assign(:theme, theme)
+      |> assign(:text, text)
+
+    ~H"""
+    <div class="relative">
+      <.badge_button id="view-dropdown-button" icon_name="hero-chevron-down-mini" theme={@theme}>
+        <%= @text %>
+      </.badge_button>
+      <.dropdown_menu id="view-dropdown" button_id="view-dropdown-button" z_index="30">
+        <:item
+          text={gettext("Assessed by teacher")}
+          on_click={JS.push("change_view", value: %{"view" => "teacher"}, target: @myself)}
+        />
+        <:item
+          text={gettext("Assessed by students")}
+          on_click={JS.push("change_view", value: %{"view" => "student"}, target: @myself)}
+        />
+        <:item
+          text={gettext("Compare teacher and students assessments")}
+          on_click={JS.push("change_view", value: %{"view" => "compare"}, target: @myself)}
+        />
+      </.dropdown_menu>
+    </div>
+    """
+  end
 
   attr :id, :string, required: true
   attr :assessment_point, AssessmentPoint, required: true
@@ -252,6 +312,9 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       socket
       |> assign(assigns)
       |> assign_user_filters([:classes], assigns.current_user, strand_id: strand.id)
+      |> assign_user_filters([:assessment_view], assigns.current_user)
+      |> assign_user_filters([:assessment_group_by], assigns.current_user)
+      |> assign_user_filters([:assessment_show_only_strand], assigns.current_user)
       |> core_assigns(strand.id)
 
     {:ok, socket}
@@ -305,5 +368,95 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     |> assign(:assessment_points_count, length(assessment_points))
     |> assign(:sortable_assessment_points, Enum.with_index(assessment_points))
     |> assign(:scale_ov_map, scale_ov_map)
+  end
+
+  # event handlers
+
+  @impl true
+  def handle_event(
+        "change_group_by",
+        %{"group_by" => group_by},
+        %{assigns: %{current_assessment_group_by: current_assessment_group_by}} = socket
+      )
+      when group_by == current_assessment_group_by,
+      do: {:noreply, socket}
+
+  def handle_event("change_group_by", %{"group_by" => group_by}, socket) do
+    # TODO
+    # before applying the group_by change, check if there're pending changes
+
+    Filters.set_profile_current_filters(
+      socket.assigns.current_user,
+      %{assessment_group_by: group_by}
+    )
+    |> case do
+      {:ok, _} ->
+        socket =
+          socket
+          |> assign(:current_assessment_group_by, group_by)
+          |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}?tab=assessment")
+
+        {:noreply, socket}
+
+      {:error, _} ->
+        # do something with error?
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event(
+        "change_view",
+        %{"view" => view},
+        %{assigns: %{current_assessment_view: current_assessment_view}} = socket
+      )
+      when view == current_assessment_view,
+      do: {:noreply, socket}
+
+  def handle_event("change_view", %{"view" => view}, socket) do
+    # TODO
+    # before applying the view change, check if there're pending changes
+
+    Filters.set_profile_current_filters(
+      socket.assigns.current_user,
+      %{assessment_view: view}
+    )
+    |> case do
+      {:ok, _} ->
+        socket =
+          socket
+          |> assign(:current_assessment_view, view)
+          |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}?tab=assessment")
+
+        {:noreply, socket}
+
+      {:error, _} ->
+        # do something with error?
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event("change_show_only_strand", _params, socket) do
+    # TODO
+    # before applying the view change, check if there're pending changes
+
+    current = socket.assigns.current_assessment_show_only_strand
+
+    Filters.set_profile_current_filters(
+      socket.assigns.current_user,
+      %{assessment_show_only_strand: !current}
+    )
+    |> case do
+      {:ok, _} ->
+        socket =
+          socket
+          |> assign(:assessment_show_only_strand, !current)
+          |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}?tab=assessment")
+
+        {:noreply, socket}
+
+      {:error, _} ->
+        # do something with error?
+        {:noreply, socket}
+    end
   end
 end

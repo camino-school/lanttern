@@ -36,6 +36,8 @@ defmodule Lanttern.Personalization.ProfileSettings do
       field :years_ids, {:array, :id}
       field :cycles_ids, {:array, :id}
       field :assessment_view, :string
+      field :assessment_group_by, :string
+      field :assessment_show_only_strand, :boolean
     end
 
     timestamps()
@@ -51,11 +53,24 @@ defmodule Lanttern.Personalization.ProfileSettings do
 
   defp current_filters_changeset(current_filters, attrs) do
     current_filters
-    |> cast(attrs, [:classes_ids, :subjects_ids, :years_ids, :cycles_ids, :assessment_view])
+    |> cast(attrs, [
+      :classes_ids,
+      :subjects_ids,
+      :years_ids,
+      :cycles_ids,
+      :assessment_view,
+      :assessment_group_by,
+      :assessment_show_only_strand
+    ])
     |> validate_change(:assessment_view, fn :assessment_view, view ->
       if view in ["teacher", "student", "compare"],
         do: [],
         else: [assessment_view: gettext("Invalid assessment view")]
+    end)
+    |> validate_change(:assessment_group_by, fn :assessment_group_by, view ->
+      if view in ["curriculum", "moment"],
+        do: [],
+        else: [assessment_group_by: gettext("Invalid assessment group by option")]
     end)
   end
 end

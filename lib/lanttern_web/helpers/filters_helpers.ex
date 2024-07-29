@@ -59,6 +59,14 @@ defmodule LantternWeb.FiltersHelpers do
 
   - `:current_assessment_view`
 
+  ### `:assessment_group_by`' assigns
+
+  - `:current_assessment_group_by`
+
+  ### `:assessment_show_only_strand`' assigns
+
+  - `:current_assessment_show_only_strand`
+
   ## Examples
 
       iex> assign_user_filters(socket, [:subjects], user)
@@ -182,6 +190,36 @@ defmodule LantternWeb.FiltersHelpers do
 
     socket
     |> assign(:current_assessment_view, current_assessment_view)
+    |> assign_filter_type(current_user, current_filters, filter_types, opts)
+  end
+
+  defp assign_filter_type(
+         socket,
+         current_user,
+         current_filters,
+         [:assessment_group_by | filter_types],
+         opts
+       ) do
+    current_assessment_group_by =
+      Map.get(current_filters, :assessment_group_by) || "curriculum"
+
+    socket
+    |> assign(:current_assessment_group_by, current_assessment_group_by)
+    |> assign_filter_type(current_user, current_filters, filter_types, opts)
+  end
+
+  defp assign_filter_type(
+         socket,
+         current_user,
+         current_filters,
+         [:assessment_show_only_strand | filter_types],
+         opts
+       ) do
+    current_assessment_show_only_strand =
+      Map.get(current_filters, :assessment_show_only_strand) || false
+
+    socket
+    |> assign(:current_assessment_show_only_strand, current_assessment_show_only_strand)
     |> assign_filter_type(current_user, current_filters, filter_types, opts)
   end
 
