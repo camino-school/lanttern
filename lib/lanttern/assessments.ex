@@ -15,7 +15,10 @@ defmodule Lanttern.Assessments do
   alias Lanttern.Attachments
   alias Lanttern.Attachments.Attachment
   alias Lanttern.Conversation.Comment
+  alias Lanttern.Curricula.CurriculumItem
   alias Lanttern.Identity.User
+  alias Lanttern.LearningContext.Moment
+  alias Lanttern.LearningContext.Strand
   alias Lanttern.Rubrics
   alias Lanttern.Schools.Student
 
@@ -103,6 +106,135 @@ defmodule Lanttern.Assessments do
           order_by: ap.position
         )
     end
+  end
+
+  @doc """
+  Returns the list of assessment points for the given strand.
+
+  The results are always a list of tuples, with the first item being
+  some meta information about the assessment point grouping and the second
+  the list of the assessment points (view below for more info).
+
+  ### Options
+
+  #### `:group_by`
+
+  - `nil` (default) - When `:group_by` is `nil`, will return a list with one tuple, with a
+  `%Strand{}` as the first item and the list of the strand assessment points
+  (no moments assessment points), ordered by position.
+  Preloads `curriculum_item` and `curriculum_component`.
+
+  - `"curriculum"` - will return a list of tuples where the first item
+  is a `%CurriculumItem{}` and the second is a list of `%AssessmentPoint{}`s.
+  The tuples are ordered by the strand assessment point
+  curriculum items position, and the assessment points are ordered by moment
+  and assessment point position, with the strand assessment point at the end.
+  Assessment points preloads `moment`, and curriculum items preloads curricumum component.
+
+  - `"moment"` - will return a list of tuples where the first item
+  is a `%Moment{}` or a `%Strand{}` and the second is a list of
+  `%AssessmentPoint{}`s ordered by position.
+  Preloads `curriculum_item` and `curriculum_component`.
+
+  ## Examples
+
+      iex> list_strand_assessment_points(strand_id)
+      [
+        {%Strand{}, [%AssessmentPoint{}, ...]}
+      ]
+
+      iex> list_strand_assessment_points(strand_id, group_by: "moment")
+      [
+        {%Moment{}, [%AssessmentPoint{}, ...]},
+        ...,
+        {%Strand{}, [%AssessmentPoint{}, ...]}
+      ]
+
+      iex> list_strand_assessment_points(strand_id, group_by: "curriculum")
+      [
+        {%CurriculumItem{}, [%AssessmentPoint{}, ...]},
+        ...
+      ]
+
+  """
+  @spec list_strand_assessment_points(pos_integer(), group_by: String.t() | nil) :: [
+          {CurriculumItem.t() | Moment.t() | Strand.t(), [AssessmentPoint.t()]}
+        ]
+  def list_strand_assessment_points(strand_id, opts \\ [])
+
+  def list_strand_assessment_points(strand_id, group_by: "curriculum") do
+    curriculum_assessment_points_map =
+      from(
+        ap in AssessmentPoint,
+        left_join: m in assoc(ap, :moment),
+        where: ap.strand_id == ^strand_id or m.strand_id == ^strand_id,
+        order_by: [asc: m.position, asc: ap.position],
+        preload: [moment: m]
+      )
+      |> Repo.all()
+      |> Enum.group_by(& &1.curriculum_item_id)
+
+    from(
+      ci in CurriculumItem,
+      join: cc in assoc(ci, :curriculum_component),
+      join: ap in assoc(ci, :assessment_points),
+      where: ap.strand_id == ^strand_id,
+      order_by: ap.position,
+      preload: [curriculum_component: cc]
+    )
+    |> Repo.all()
+    |> Enum.map(&{&1, curriculum_assessment_points_map[&1.id]})
+    |> Enum.filter(fn
+      {_curriculum_item, nil} -> false
+      {_curriculum_item, _assessment_points} -> true
+    end)
+  end
+
+  def list_strand_assessment_points(strand_id, group_by: "moment") do
+    moments_assessment_points_map =
+      from(
+        ap in AssessmentPoint,
+        join: m in assoc(ap, :moment),
+        join: ci in assoc(ap, :curriculum_item),
+        join: cc in assoc(ci, :curriculum_component),
+        where: m.strand_id == ^strand_id,
+        order_by: ap.position,
+        preload: [curriculum_item: {ci, curriculum_component: cc}]
+      )
+      |> Repo.all()
+      |> Enum.group_by(& &1.moment_id)
+
+    moments =
+      from(
+        m in Moment,
+        where: m.strand_id == ^strand_id,
+        order_by: m.position
+      )
+      |> Repo.all()
+      |> Enum.map(&{&1, moments_assessment_points_map[&1.id]})
+      |> Enum.filter(fn
+        {_moment, nil} -> false
+        {_moment, _assessment_points} -> true
+      end)
+
+    moments ++ list_strand_assessment_points(strand_id)
+  end
+
+  def list_strand_assessment_points(strand_id, _opts) do
+    assessment_points =
+      from(
+        ap in AssessmentPoint,
+        join: ci in assoc(ap, :curriculum_item),
+        join: cc in assoc(ci, :curriculum_component),
+        where: ap.strand_id == ^strand_id,
+        order_by: [asc: ap.position],
+        preload: [curriculum_item: {ci, curriculum_component: cc}]
+      )
+      |> Repo.all()
+
+    strand = Repo.get(Strand, strand_id)
+
+    [{strand, assessment_points}]
   end
 
   @doc """

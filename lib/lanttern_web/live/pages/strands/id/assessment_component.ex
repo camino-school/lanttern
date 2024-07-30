@@ -51,13 +51,6 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
             current_assessment_view={@current_assessment_view}
             myself={@myself}
           />
-          <.badge_button
-            is_checked={@current_assessment_show_only_strand}
-            phx-click="change_show_only_strand"
-            phx-target={@myself}
-          >
-            <%= gettext("Show only strand assessments") %>
-          </.badge_button>
         </div>
         <%!-- if no assessment points, render empty state --%>
         <div :if={@assessment_points_count == 0} class="p-10 mt-4 rounded shadow-xl bg-white">
@@ -141,8 +134,9 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   def assessment_group_by_dropdow(assigns) do
     text =
       case assigns.current_assessment_group_by do
-        "curriculum" -> gettext("Group by curriculum")
-        "moment" -> gettext("Group by moment")
+        "curriculum" -> gettext("Show all, grouped by curriculum")
+        "moment" -> gettext("Show all, grouped by moment")
+        _ -> gettext("Show only final assessents")
       end
 
     assigns = assign(assigns, :text, text)
@@ -154,11 +148,15 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       </.badge_button>
       <.dropdown_menu id="group-by-dropdown" button_id="group-by-dropdown-button" z_index="30">
         <:item
-          text={gettext("Group by curriculum")}
+          text={gettext("Show only final assessments")}
+          on_click={JS.push("change_group_by", value: %{"group_by" => nil}, target: @myself)}
+        />
+        <:item
+          text={gettext("Show all, grouped by curriculum")}
           on_click={JS.push("change_group_by", value: %{"group_by" => "curriculum"}, target: @myself)}
         />
         <:item
-          text={gettext("Group by moment")}
+          text={gettext("Show all, grouped by moment")}
           on_click={JS.push("change_group_by", value: %{"group_by" => "moment"}, target: @myself)}
         />
       </.dropdown_menu>
@@ -314,7 +312,6 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       |> assign_user_filters([:classes], assigns.current_user, strand_id: strand.id)
       |> assign_user_filters([:assessment_view], assigns.current_user)
       |> assign_user_filters([:assessment_group_by], assigns.current_user)
-      |> assign_user_filters([:assessment_show_only_strand], assigns.current_user)
       |> core_assigns(strand.id)
 
     {:ok, socket}
@@ -425,31 +422,6 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         socket =
           socket
           |> assign(:current_assessment_view, view)
-          |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}?tab=assessment")
-
-        {:noreply, socket}
-
-      {:error, _} ->
-        # do something with error?
-        {:noreply, socket}
-    end
-  end
-
-  def handle_event("change_show_only_strand", _params, socket) do
-    # TODO
-    # before applying the view change, check if there're pending changes
-
-    current = socket.assigns.current_assessment_show_only_strand
-
-    Filters.set_profile_current_filters(
-      socket.assigns.current_user,
-      %{assessment_show_only_strand: !current}
-    )
-    |> case do
-      {:ok, _} ->
-        socket =
-          socket
-          |> assign(:assessment_show_only_strand, !current)
           |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}?tab=assessment")
 
         {:noreply, socket}

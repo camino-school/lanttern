@@ -27,7 +27,6 @@ defmodule Lanttern.LearningContextFixtures do
       attrs
       |> Enum.into(%{
         name: "some name",
-        position: 42,
         description: "some description",
         strand_id: maybe_gen_strand_id(attrs)
       })

@@ -1644,4 +1644,194 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_entry_2.id == entry_2.id
     end
   end
+
+  describe "strand assessment points 2" do
+    setup :strand_assessment_points_setup
+
+    test "list_strand_assessment_points/2 returns assessment points as expected", %{
+      strand: strand,
+      cc: cc,
+      ci_1: ci_1,
+      ci_2: ci_2,
+      ci_3: ci_3,
+      s_ap_1_ci_1: s_ap_1_ci_1,
+      s_ap_2_ci_2: s_ap_2_ci_2,
+      s_ap_3_ci_3: s_ap_3_ci_3
+    } do
+      assert [{^strand, [expected_s_ap_1_ci_1, expected_s_ap_2_ci_2, expected_s_ap_3_ci_3]}] =
+               Assessments.list_strand_assessment_points(strand.id)
+
+      assert expected_s_ap_1_ci_1.id == s_ap_1_ci_1.id
+      assert expected_s_ap_1_ci_1.curriculum_item.id == ci_1.id
+      assert expected_s_ap_1_ci_1.curriculum_item.curriculum_component.id == cc.id
+
+      assert expected_s_ap_2_ci_2.id == s_ap_2_ci_2.id
+      assert expected_s_ap_2_ci_2.curriculum_item.id == ci_2.id
+      assert expected_s_ap_2_ci_2.curriculum_item.curriculum_component.id == cc.id
+
+      assert expected_s_ap_3_ci_3.id == s_ap_3_ci_3.id
+      assert expected_s_ap_3_ci_3.curriculum_item.id == ci_3.id
+      assert expected_s_ap_3_ci_3.curriculum_item.curriculum_component.id == cc.id
+    end
+
+    test "list_strand_assessment_points/2 grouped by curriculum returns assessment points as expected",
+         %{
+           strand: strand,
+           m_1: m_1,
+           m_2: m_2,
+           cc: cc,
+           ci_1: ci_1,
+           ci_2: ci_2,
+           ci_3: ci_3,
+           s_ap_1_ci_1: s_ap_1_ci_1,
+           s_ap_2_ci_2: s_ap_2_ci_2,
+           s_ap_3_ci_3: s_ap_3_ci_3,
+           m_1_ap_1_ci_1: m_1_ap_1_ci_1,
+           m_1_ap_2_ci_2: m_1_ap_2_ci_2,
+           m_2_ap_1_ci_2: m_2_ap_1_ci_2
+         } do
+      assert [
+               {expected_ci_1, [expected_m_1_ap_1_ci_1, expected_s_ap_1_ci_1]},
+               {expected_ci_2,
+                [expected_m_1_ap_2_ci_2, expected_m_2_ap_1_ci_2, expected_s_ap_2_ci_2]},
+               {expected_ci_3, [expected_s_ap_3_ci_3]}
+             ] =
+               Assessments.list_strand_assessment_points(strand.id, group_by: "curriculum")
+
+      assert expected_ci_1.id == ci_1.id
+      assert expected_ci_1.curriculum_component.id == cc.id
+      assert expected_m_1_ap_1_ci_1.id == m_1_ap_1_ci_1.id
+      assert expected_m_1_ap_1_ci_1.moment.id == m_1.id
+      assert expected_s_ap_1_ci_1.id == s_ap_1_ci_1.id
+
+      assert expected_ci_2.id == ci_2.id
+      assert expected_ci_2.curriculum_component.id == cc.id
+      assert expected_m_1_ap_2_ci_2.id == m_1_ap_2_ci_2.id
+      assert expected_m_1_ap_2_ci_2.moment.id == m_1.id
+      assert expected_m_2_ap_1_ci_2.id == m_2_ap_1_ci_2.id
+      assert expected_m_2_ap_1_ci_2.moment.id == m_2.id
+      assert expected_s_ap_2_ci_2.id == s_ap_2_ci_2.id
+
+      assert expected_ci_3.id == ci_3.id
+      assert expected_ci_3.curriculum_component.id == cc.id
+      assert expected_s_ap_3_ci_3.id == s_ap_3_ci_3.id
+    end
+
+    test "list_strand_assessment_points/2 grouped by moments returns assessment points as expected",
+         %{
+           strand: strand,
+           m_1: m_1,
+           m_2: m_2,
+           cc: cc,
+           ci_1: ci_1,
+           ci_2: ci_2,
+           ci_3: ci_3,
+           s_ap_1_ci_1: s_ap_1_ci_1,
+           s_ap_2_ci_2: s_ap_2_ci_2,
+           s_ap_3_ci_3: s_ap_3_ci_3,
+           m_1_ap_1_ci_1: m_1_ap_1_ci_1,
+           m_1_ap_2_ci_2: m_1_ap_2_ci_2,
+           m_2_ap_1_ci_2: m_2_ap_1_ci_2
+         } do
+      assert [
+               {^m_1, [expected_m_1_ap_1_ci_1, expected_m_1_ap_2_ci_2]},
+               {^m_2, [expected_m_2_ap_1_ci_2]},
+               {^strand, [expected_s_ap_1_ci_1, expected_s_ap_2_ci_2, expected_s_ap_3_ci_3]}
+             ] =
+               Assessments.list_strand_assessment_points(strand.id, group_by: "moment")
+
+      assert expected_m_1_ap_1_ci_1.id == m_1_ap_1_ci_1.id
+      assert expected_m_1_ap_1_ci_1.curriculum_item.id == ci_1.id
+      assert expected_m_1_ap_1_ci_1.curriculum_item.curriculum_component.id == cc.id
+
+      assert expected_m_1_ap_2_ci_2.id == m_1_ap_2_ci_2.id
+      assert expected_m_1_ap_2_ci_2.curriculum_item.id == ci_2.id
+      assert expected_m_1_ap_2_ci_2.curriculum_item.curriculum_component.id == cc.id
+
+      assert expected_m_2_ap_1_ci_2.id == m_2_ap_1_ci_2.id
+      assert expected_m_2_ap_1_ci_2.curriculum_item.id == ci_2.id
+      assert expected_m_2_ap_1_ci_2.curriculum_item.curriculum_component.id == cc.id
+
+      assert expected_s_ap_1_ci_1.id == s_ap_1_ci_1.id
+      assert expected_s_ap_1_ci_1.curriculum_item.id == ci_1.id
+      assert expected_s_ap_1_ci_1.curriculum_item.curriculum_component.id == cc.id
+
+      assert expected_s_ap_2_ci_2.id == s_ap_2_ci_2.id
+      assert expected_s_ap_2_ci_2.curriculum_item.id == ci_2.id
+      assert expected_s_ap_2_ci_2.curriculum_item.curriculum_component.id == cc.id
+
+      assert expected_s_ap_3_ci_3.id == s_ap_3_ci_3.id
+      assert expected_s_ap_3_ci_3.curriculum_item.id == ci_3.id
+      assert expected_s_ap_3_ci_3.curriculum_item.curriculum_component.id == cc.id
+    end
+  end
+
+  defp strand_assessment_points_setup(_context) do
+    strand = Lanttern.LearningContextFixtures.strand_fixture()
+
+    m_1 = Lanttern.LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+    m_2 = Lanttern.LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+    m_3 = Lanttern.LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+
+    cc = Lanttern.CurriculaFixtures.curriculum_component_fixture()
+    ci_1 = Lanttern.CurriculaFixtures.curriculum_item_fixture(%{curriculum_component_id: cc.id})
+    ci_2 = Lanttern.CurriculaFixtures.curriculum_item_fixture(%{curriculum_component_id: cc.id})
+    ci_3 = Lanttern.CurriculaFixtures.curriculum_item_fixture(%{curriculum_component_id: cc.id})
+
+    s_ap_1_ci_1 =
+      Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+        strand_id: strand.id,
+        curriculum_item_id: ci_1.id
+      })
+
+    s_ap_2_ci_2 =
+      Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+        strand_id: strand.id,
+        curriculum_item_id: ci_2.id
+      })
+
+    s_ap_3_ci_3 =
+      Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+        strand_id: strand.id,
+        curriculum_item_id: ci_3.id
+      })
+
+    m_1_ap_1_ci_1 =
+      Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+        moment_id: m_1.id,
+        curriculum_item_id: ci_1.id
+      })
+
+    m_1_ap_2_ci_2 =
+      Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+        moment_id: m_1.id,
+        curriculum_item_id: ci_2.id
+      })
+
+    m_2_ap_1_ci_2 =
+      Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+        moment_id: m_2.id,
+        curriculum_item_id: ci_2.id
+      })
+
+    # extra assessment point for filtering validation
+    Lanttern.AssessmentsFixtures.assessment_point_fixture()
+
+    %{
+      strand: strand,
+      m_1: m_1,
+      m_2: m_2,
+      m_3: m_3,
+      cc: cc,
+      ci_1: ci_1,
+      ci_2: ci_2,
+      ci_3: ci_3,
+      s_ap_1_ci_1: s_ap_1_ci_1,
+      s_ap_2_ci_2: s_ap_2_ci_2,
+      s_ap_3_ci_3: s_ap_3_ci_3,
+      m_1_ap_1_ci_1: m_1_ap_1_ci_1,
+      m_1_ap_2_ci_2: m_1_ap_2_ci_2,
+      m_2_ap_1_ci_2: m_2_ap_1_ci_2
+    }
+  end
 end
