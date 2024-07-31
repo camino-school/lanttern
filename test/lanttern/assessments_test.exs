@@ -1713,6 +1713,9 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_s_ap_2_ci_2.id == s_ap_2_ci_2.id
 
       assert expected_ci_3.id == ci_3.id
+      # the is_differentiation is a virtual field
+      # that should be set based on assessment point context
+      assert expected_ci_3.is_differentiation
       assert expected_ci_3.curriculum_component.id == cc.id
       assert expected_s_ap_3_ci_3.id == s_ap_3_ci_3.id
     end
@@ -1793,7 +1796,8 @@ defmodule Lanttern.AssessmentsTest do
     s_ap_3_ci_3 =
       Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
         strand_id: strand.id,
-        curriculum_item_id: ci_3.id
+        curriculum_item_id: ci_3.id,
+        is_differentiation: true
       })
 
     m_1_ap_1_ci_1 =

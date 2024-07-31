@@ -130,6 +130,7 @@ defmodule Lanttern.Assessments do
   curriculum items position, and the assessment points are ordered by moment
   and assessment point position, with the strand assessment point at the end.
   Assessment points preloads `moment`, and curriculum items preloads curricumum component.
+  Curriculum `is_differentiation` is set based on strand assessment point.
 
   - `"moment"` - will return a list of tuples where the first item
   is a `%Moment{}` or a `%Strand{}` and the second is a list of
@@ -180,6 +181,7 @@ defmodule Lanttern.Assessments do
       join: ap in assoc(ci, :assessment_points),
       where: ap.strand_id == ^strand_id,
       order_by: ap.position,
+      select: %{ci | is_differentiation: ap.is_differentiation},
       preload: [curriculum_component: cc]
     )
     |> Repo.all()

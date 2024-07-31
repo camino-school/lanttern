@@ -93,17 +93,14 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
         </div>
       </.responsive_container>
       <%!-- show entries only with class filter selected --%>
-      <div class="px-6">
-        <div
-          :if={@selected_classes != [] && @assessment_points_count > 0}
-          class={[
-            "relative w-full max-h-[calc(100vh-4rem)] border mt-6 rounded shadow-xl #{@view_bg} overflow-x-auto",
-            if(@current_assessment_view == "student",
-              do: "border-ltrn-student-accent",
-              else: "border-transparent"
-            )
-          ]}
-        >
+      <div :if={@selected_classes != [] && @assessment_points_count > 0} class="px-6">
+        <div class={[
+          "relative w-full max-h-[calc(100vh-4rem)] border mt-6 rounded shadow-xl #{@view_bg} overflow-x-auto",
+          if(@current_assessment_view == "student",
+            do: "border-ltrn-student-accent",
+            else: "border-transparent"
+          )
+        ]}>
           <div
             class="relative grid w-max"
             style={"grid-template-columns: 240px repeat(#{@assessment_points_count}, minmax(240px, 1fr))"}
