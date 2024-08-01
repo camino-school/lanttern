@@ -537,7 +537,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     assessment_points =
       Assessments.list_strand_assessment_points(
         socket.assigns.strand.id,
-        group_by: socket.assigns.current_assessment_group_by
+        socket.assigns.current_assessment_group_by
       )
 
     assessment_points_count =

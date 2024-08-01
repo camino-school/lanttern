@@ -305,6 +305,7 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_4.id == assessment_point_2_2.id
     end
 
+    @tag :skip
     test "list_strand_students_entries/1 returns students and their assessment point entries for the given strand" do
       strand = LearningContextFixtures.strand_fixture()
       moment_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id, position: 1})
@@ -1696,7 +1697,7 @@ defmodule Lanttern.AssessmentsTest do
                 [expected_m_1_ap_2_ci_2, expected_m_2_ap_1_ci_2, expected_s_ap_2_ci_2]},
                {expected_ci_3, [expected_s_ap_3_ci_3]}
              ] =
-               Assessments.list_strand_assessment_points(strand.id, group_by: "curriculum")
+               Assessments.list_strand_assessment_points(strand.id, "curriculum")
 
       assert expected_ci_1.id == ci_1.id
       assert expected_ci_1.curriculum_component.id == cc.id
@@ -1741,7 +1742,7 @@ defmodule Lanttern.AssessmentsTest do
                {^m_2, [expected_m_2_ap_1_ci_2]},
                {^strand, [expected_s_ap_1_ci_1, expected_s_ap_2_ci_2, expected_s_ap_3_ci_3]}
              ] =
-               Assessments.list_strand_assessment_points(strand.id, group_by: "moment")
+               Assessments.list_strand_assessment_points(strand.id, "moment")
 
       assert expected_m_1_ap_1_ci_1.id == m_1_ap_1_ci_1.id
       assert expected_m_1_ap_1_ci_1.curriculum_item.id == ci_1.id
@@ -1769,6 +1770,122 @@ defmodule Lanttern.AssessmentsTest do
     end
   end
 
+  describe "strand assessments students entries" do
+    setup [
+      :strand_assessment_points_setup,
+      :strand_assessment_points_entries_setup
+    ]
+
+    test "list_strand_students_entries/2 returns entries as expected", %{
+      strand: strand,
+      ov_a: ov_a,
+      ov_b: ov_b,
+      ov_c: ov_c,
+      class: class,
+      student_1: student_1,
+      student_2: student_2,
+      student_3: student_3,
+      std_1_s_ap_1_ci_1: std_1_s_ap_1_ci_1,
+      std_1_s_ap_2_ci_2: std_1_s_ap_2_ci_2,
+      std_2_s_ap_2_ci_2: std_2_s_ap_2_ci_2,
+      std_3_s_ap_3_ci_3: std_3_s_ap_3_ci_3
+    } do
+      # test case grid
+      # |     | final assessments        |
+      # | std | s ap 1 | s ap 2 | s ap 3 |
+      # ----------------------------------
+      # | 1   | ov a   | ov b   | ---    |
+      # | 2   | ---    | ov c   | ---    |
+      # | 3   | ---    | ---    | ov a   |
+      assert [
+               {expected_student_1,
+                [expected_std_1_s_ap_1_ci_1, expected_std_1_s_ap_2_ci_2, nil]},
+               {expected_student_2, [nil, expected_std_2_s_ap_2_ci_2, nil]},
+               {expected_student_3, [nil, nil, expected_std_3_s_ap_3_ci_3]}
+             ] = Assessments.list_strand_students_entries(strand.id, nil, classes_ids: [class.id])
+
+      assert expected_student_1.id == student_1.id
+      assert expected_std_1_s_ap_1_ci_1.id == std_1_s_ap_1_ci_1.id
+      assert expected_std_1_s_ap_1_ci_1.ordinal_value_id == ov_a.id
+      assert expected_std_1_s_ap_2_ci_2.id == std_1_s_ap_2_ci_2.id
+      assert expected_std_1_s_ap_2_ci_2.ordinal_value_id == ov_b.id
+
+      assert expected_student_2.id == student_2.id
+      assert expected_std_2_s_ap_2_ci_2.id == std_2_s_ap_2_ci_2.id
+      assert expected_std_2_s_ap_2_ci_2.ordinal_value_id == ov_c.id
+
+      assert expected_student_3.id == student_3.id
+      assert expected_std_3_s_ap_3_ci_3.id == std_3_s_ap_3_ci_3.id
+      assert expected_std_3_s_ap_3_ci_3.ordinal_value_id == ov_a.id
+    end
+
+    test "list_strand_students_entries/2 grouped by curriculum returns entries as expected", %{
+      strand: strand,
+      ov_a: ov_a,
+      ov_b: ov_b,
+      ov_c: ov_c,
+      class: class,
+      student_1: student_1,
+      student_2: student_2,
+      student_3: student_3,
+      std_1_m_1_ap_1_ci_1: std_1_m_1_ap_1_ci_1,
+      std_1_m_1_ap_2_ci_2: std_1_m_1_ap_2_ci_2,
+      std_1_m_2_ap_1_ci_2: std_1_m_2_ap_1_ci_2,
+      std_1_s_ap_1_ci_1: std_1_s_ap_1_ci_1,
+      std_1_s_ap_2_ci_2: std_1_s_ap_2_ci_2,
+      std_2_m_1_ap_2_ci_2: std_2_m_1_ap_2_ci_2,
+      std_2_s_ap_2_ci_2: std_2_s_ap_2_ci_2,
+      std_3_s_ap_3_ci_3: std_3_s_ap_3_ci_3
+    } do
+      # test case grid
+      # |     | ci 1             | ci 2                       | ci 3   |
+      # | std | m1 ap 1 | s ap 1 | m1 ap 2 | m2 ap 1 | s ap 2 | s ap 3 |
+      # ----------------------------------------------------------------
+      # | 1   | ov a    | ov a   | ov b    | ov b    | ov b   | ---    |
+      # | 2   | ---     | ---    | ov c    | ---     | ov c   | ---    |
+      # | 3   | ---     | ---    | ---     | ---     | ---    | ov a   |
+      assert [
+               {expected_student_1,
+                [
+                  expected_std_1_m_1_ap_1_ci_1,
+                  expected_std_1_s_ap_1_ci_1,
+                  expected_std_1_m_1_ap_2_ci_2,
+                  expected_std_1_m_2_ap_1_ci_2,
+                  expected_std_1_s_ap_2_ci_2,
+                  nil
+                ]},
+               {expected_student_2,
+                [nil, nil, expected_std_2_m_1_ap_2_ci_2, nil, expected_std_2_s_ap_2_ci_2, nil]},
+               {expected_student_3, [nil, nil, nil, nil, nil, expected_std_3_s_ap_3_ci_3]}
+             ] =
+               Assessments.list_strand_students_entries(strand.id, "curriculum",
+                 classes_ids: [class.id]
+               )
+
+      assert expected_student_1.id == student_1.id
+      assert expected_std_1_m_1_ap_1_ci_1.id == std_1_m_1_ap_1_ci_1.id
+      assert expected_std_1_m_1_ap_1_ci_1.ordinal_value_id == ov_a.id
+      assert expected_std_1_s_ap_1_ci_1.id == std_1_s_ap_1_ci_1.id
+      assert expected_std_1_s_ap_1_ci_1.ordinal_value_id == ov_a.id
+      assert expected_std_1_m_1_ap_2_ci_2.id == std_1_m_1_ap_2_ci_2.id
+      assert expected_std_1_m_1_ap_2_ci_2.ordinal_value_id == ov_b.id
+      assert expected_std_1_m_2_ap_1_ci_2.id == std_1_m_2_ap_1_ci_2.id
+      assert expected_std_1_m_2_ap_1_ci_2.ordinal_value_id == ov_b.id
+      assert expected_std_1_s_ap_2_ci_2.id == std_1_s_ap_2_ci_2.id
+      assert expected_std_1_s_ap_2_ci_2.ordinal_value_id == ov_b.id
+
+      assert expected_student_2.id == student_2.id
+      assert expected_std_2_m_1_ap_2_ci_2.id == std_2_m_1_ap_2_ci_2.id
+      assert expected_std_2_m_1_ap_2_ci_2.ordinal_value_id == ov_c.id
+      assert expected_std_2_s_ap_2_ci_2.id == std_2_s_ap_2_ci_2.id
+      assert expected_std_2_s_ap_2_ci_2.ordinal_value_id == ov_c.id
+
+      assert expected_student_3.id == student_3.id
+      assert expected_std_3_s_ap_3_ci_3.id == std_3_s_ap_3_ci_3.id
+      assert expected_std_3_s_ap_3_ci_3.ordinal_value_id == ov_a.id
+    end
+  end
+
   defp strand_assessment_points_setup(_context) do
     strand = Lanttern.LearningContextFixtures.strand_fixture()
 
@@ -1781,41 +1898,52 @@ defmodule Lanttern.AssessmentsTest do
     ci_2 = Lanttern.CurriculaFixtures.curriculum_item_fixture(%{curriculum_component_id: cc.id})
     ci_3 = Lanttern.CurriculaFixtures.curriculum_item_fixture(%{curriculum_component_id: cc.id})
 
+    scale = Lanttern.GradingFixtures.scale_fixture(%{type: "ordinal"})
+    ov_a = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+    ov_b = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+    ov_c = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+
     s_ap_1_ci_1 =
       Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
         strand_id: strand.id,
-        curriculum_item_id: ci_1.id
+        curriculum_item_id: ci_1.id,
+        scale_id: scale.id
       })
 
     s_ap_2_ci_2 =
       Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
         strand_id: strand.id,
-        curriculum_item_id: ci_2.id
+        curriculum_item_id: ci_2.id,
+        scale_id: scale.id
       })
 
     s_ap_3_ci_3 =
       Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
         strand_id: strand.id,
         curriculum_item_id: ci_3.id,
+        scale_id: scale.id,
         is_differentiation: true
       })
 
     m_1_ap_1_ci_1 =
       Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
         moment_id: m_1.id,
-        curriculum_item_id: ci_1.id
+        curriculum_item_id: ci_1.id,
+        scale_id: scale.id
       })
 
     m_1_ap_2_ci_2 =
       Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
         moment_id: m_1.id,
-        curriculum_item_id: ci_2.id
+        curriculum_item_id: ci_2.id,
+        scale_id: scale.id
       })
 
     m_2_ap_1_ci_2 =
       Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
         moment_id: m_2.id,
-        curriculum_item_id: ci_2.id
+        curriculum_item_id: ci_2.id,
+        scale_id: scale.id
       })
 
     # extra assessment point for filtering validation
@@ -1835,7 +1963,142 @@ defmodule Lanttern.AssessmentsTest do
       s_ap_3_ci_3: s_ap_3_ci_3,
       m_1_ap_1_ci_1: m_1_ap_1_ci_1,
       m_1_ap_2_ci_2: m_1_ap_2_ci_2,
-      m_2_ap_1_ci_2: m_2_ap_1_ci_2
+      m_2_ap_1_ci_2: m_2_ap_1_ci_2,
+      scale: scale,
+      ov_a: ov_a,
+      ov_b: ov_b,
+      ov_c: ov_c
+    }
+  end
+
+  defp strand_assessment_points_entries_setup(%{
+         s_ap_1_ci_1: s_ap_1_ci_1,
+         s_ap_2_ci_2: s_ap_2_ci_2,
+         s_ap_3_ci_3: s_ap_3_ci_3,
+         m_1_ap_1_ci_1: m_1_ap_1_ci_1,
+         m_1_ap_2_ci_2: m_1_ap_2_ci_2,
+         m_2_ap_1_ci_2: m_2_ap_1_ci_2,
+         scale: scale,
+         ov_a: ov_a,
+         ov_b: ov_b,
+         ov_c: ov_c
+       }) do
+    school = Lanttern.SchoolsFixtures.school_fixture()
+    class = Lanttern.SchoolsFixtures.class_fixture(%{school_id: school.id})
+    student_1 = Lanttern.SchoolsFixtures.student_fixture(%{name: "AAA", classes_ids: [class.id]})
+    student_2 = Lanttern.SchoolsFixtures.student_fixture(%{name: "BBB", classes_ids: [class.id]})
+    student_3 = Lanttern.SchoolsFixtures.student_fixture(%{name: "CCC", classes_ids: [class.id]})
+
+    # student 1 entries
+    # ci_1 m1 / s - ov_a
+    # ci_2 m1 / m2 / s - ov_b
+
+    std_1_m_1_ap_1_ci_1 =
+      Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+        student_id: student_1.id,
+        scale_id: scale.id,
+        scale_type: scale.type,
+        assessment_point_id: m_1_ap_1_ci_1.id,
+        ordinal_value_id: ov_a.id
+      })
+
+    std_1_m_1_ap_2_ci_2 =
+      Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+        student_id: student_1.id,
+        scale_id: scale.id,
+        scale_type: scale.type,
+        assessment_point_id: m_1_ap_2_ci_2.id,
+        ordinal_value_id: ov_b.id
+      })
+
+    std_1_m_2_ap_1_ci_2 =
+      Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+        student_id: student_1.id,
+        scale_id: scale.id,
+        scale_type: scale.type,
+        assessment_point_id: m_2_ap_1_ci_2.id,
+        ordinal_value_id: ov_b.id
+      })
+
+    std_1_s_ap_1_ci_1 =
+      Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+        student_id: student_1.id,
+        scale_id: scale.id,
+        scale_type: scale.type,
+        assessment_point_id: s_ap_1_ci_1.id,
+        ordinal_value_id: ov_a.id
+      })
+
+    std_1_s_ap_2_ci_2 =
+      Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+        student_id: student_1.id,
+        scale_id: scale.id,
+        scale_type: scale.type,
+        assessment_point_id: s_ap_2_ci_2.id,
+        ordinal_value_id: ov_b.id
+      })
+
+    # student 2 entries
+    # ci_2 m1 / s - ov_c
+
+    std_2_m_1_ap_2_ci_2 =
+      Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+        student_id: student_2.id,
+        scale_id: scale.id,
+        scale_type: scale.type,
+        assessment_point_id: m_1_ap_2_ci_2.id,
+        ordinal_value_id: ov_c.id
+      })
+
+    std_2_s_ap_2_ci_2 =
+      Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+        student_id: student_2.id,
+        scale_id: scale.id,
+        scale_type: scale.type,
+        assessment_point_id: s_ap_2_ci_2.id,
+        ordinal_value_id: ov_c.id
+      })
+
+    # student 3 entries
+    # ci_3 s - ov_a
+
+    std_3_s_ap_3_ci_3 =
+      Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+        student_id: student_3.id,
+        scale_id: scale.id,
+        scale_type: scale.type,
+        assessment_point_id: s_ap_3_ci_3.id,
+        ordinal_value_id: ov_a.id
+      })
+
+    # extra assessment point entries for filtering validation
+    Lanttern.AssessmentsFixtures.assessment_point_entry_fixture()
+
+    Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+      assessment_point_id: m_1_ap_2_ci_2.id,
+      scale_id: scale.id,
+      scale_type: scale.type
+    })
+
+    Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+      assessment_point_id: s_ap_3_ci_3.id,
+      scale_id: scale.id,
+      scale_type: scale.type
+    })
+
+    %{
+      class: class,
+      student_1: student_1,
+      student_2: student_2,
+      student_3: student_3,
+      std_1_m_1_ap_1_ci_1: std_1_m_1_ap_1_ci_1,
+      std_1_m_1_ap_2_ci_2: std_1_m_1_ap_2_ci_2,
+      std_1_m_2_ap_1_ci_2: std_1_m_2_ap_1_ci_2,
+      std_1_s_ap_1_ci_1: std_1_s_ap_1_ci_1,
+      std_1_s_ap_2_ci_2: std_1_s_ap_2_ci_2,
+      std_2_m_1_ap_2_ci_2: std_2_m_1_ap_2_ci_2,
+      std_2_s_ap_2_ci_2: std_2_s_ap_2_ci_2,
+      std_3_s_ap_3_ci_3: std_3_s_ap_3_ci_3
     }
   end
 end

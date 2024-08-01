@@ -109,137 +109,6 @@ defmodule Lanttern.Assessments do
   end
 
   @doc """
-  Returns the list of assessment points for the given strand.
-
-  The results are always a list of tuples, with the first item being
-  some meta information about the assessment point grouping and the second
-  the list of the assessment points (view below for more info).
-
-  ### Options
-
-  #### `:group_by`
-
-  - `nil` (default) - When `:group_by` is `nil`, will return a list with one tuple, with a
-  `%Strand{}` as the first item and the list of the strand assessment points
-  (no moments assessment points), ordered by position.
-  Preloads `curriculum_item` and `curriculum_component`.
-
-  - `"curriculum"` - will return a list of tuples where the first item
-  is a `%CurriculumItem{}` and the second is a list of `%AssessmentPoint{}`s.
-  The tuples are ordered by the strand assessment point
-  curriculum items position, and the assessment points are ordered by moment
-  and assessment point position, with the strand assessment point at the end.
-  Assessment points preloads `moment`, and curriculum items preloads curricumum component.
-  Curriculum `is_differentiation` is set based on strand assessment point.
-
-  - `"moment"` - will return a list of tuples where the first item
-  is a `%Moment{}` or a `%Strand{}` and the second is a list of
-  `%AssessmentPoint{}`s ordered by position.
-  Preloads `curriculum_item` and `curriculum_component`.
-
-  ## Examples
-
-      iex> list_strand_assessment_points(strand_id)
-      [
-        {%Strand{}, [%AssessmentPoint{}, ...]}
-      ]
-
-      iex> list_strand_assessment_points(strand_id, group_by: "moment")
-      [
-        {%Moment{}, [%AssessmentPoint{}, ...]},
-        ...,
-        {%Strand{}, [%AssessmentPoint{}, ...]}
-      ]
-
-      iex> list_strand_assessment_points(strand_id, group_by: "curriculum")
-      [
-        {%CurriculumItem{}, [%AssessmentPoint{}, ...]},
-        ...
-      ]
-
-  """
-  @spec list_strand_assessment_points(pos_integer(), group_by: String.t() | nil) :: [
-          {CurriculumItem.t() | Moment.t() | Strand.t(), [AssessmentPoint.t()]}
-        ]
-  def list_strand_assessment_points(strand_id, opts \\ [])
-
-  def list_strand_assessment_points(strand_id, group_by: "curriculum") do
-    curriculum_assessment_points_map =
-      from(
-        ap in AssessmentPoint,
-        left_join: m in assoc(ap, :moment),
-        where: ap.strand_id == ^strand_id or m.strand_id == ^strand_id,
-        order_by: [asc: m.position, asc: ap.position],
-        preload: [moment: m]
-      )
-      |> Repo.all()
-      |> Enum.group_by(& &1.curriculum_item_id)
-
-    from(
-      ci in CurriculumItem,
-      join: cc in assoc(ci, :curriculum_component),
-      join: ap in assoc(ci, :assessment_points),
-      where: ap.strand_id == ^strand_id,
-      order_by: ap.position,
-      select: %{ci | is_differentiation: ap.is_differentiation},
-      preload: [curriculum_component: cc]
-    )
-    |> Repo.all()
-    |> Enum.map(&{&1, curriculum_assessment_points_map[&1.id]})
-    |> Enum.filter(fn
-      {_curriculum_item, nil} -> false
-      {_curriculum_item, _assessment_points} -> true
-    end)
-  end
-
-  def list_strand_assessment_points(strand_id, group_by: "moment") do
-    moments_assessment_points_map =
-      from(
-        ap in AssessmentPoint,
-        join: m in assoc(ap, :moment),
-        join: ci in assoc(ap, :curriculum_item),
-        join: cc in assoc(ci, :curriculum_component),
-        where: m.strand_id == ^strand_id,
-        order_by: ap.position,
-        preload: [curriculum_item: {ci, curriculum_component: cc}]
-      )
-      |> Repo.all()
-      |> Enum.group_by(& &1.moment_id)
-
-    moments =
-      from(
-        m in Moment,
-        where: m.strand_id == ^strand_id,
-        order_by: m.position
-      )
-      |> Repo.all()
-      |> Enum.map(&{&1, moments_assessment_points_map[&1.id]})
-      |> Enum.filter(fn
-        {_moment, nil} -> false
-        {_moment, _assessment_points} -> true
-      end)
-
-    moments ++ list_strand_assessment_points(strand_id)
-  end
-
-  def list_strand_assessment_points(strand_id, _opts) do
-    assessment_points =
-      from(
-        ap in AssessmentPoint,
-        join: ci in assoc(ap, :curriculum_item),
-        join: cc in assoc(ci, :curriculum_component),
-        where: ap.strand_id == ^strand_id,
-        order_by: [asc: ap.position],
-        preload: [curriculum_item: {ci, curriculum_component: cc}]
-      )
-      |> Repo.all()
-
-    strand = Repo.get(Strand, strand_id)
-
-    [{strand, assessment_points}]
-  end
-
-  @doc """
   Gets a single assessment point.
 
   Returns nil if the AssessmentPoint does not exist.
@@ -827,83 +696,330 @@ defmodule Lanttern.Assessments do
   end
 
   @doc """
-  Returns the list of the assessment point entries for every student in the given strand.
+  Returns the list of assessment points for the given strand.
 
-  Entries are ordered by `Moment` and `AssessmentPoint` positions.
+  The results are always a list of tuples, with the first item being
+  some meta information about the assessment point grouping and the second
+  the list of the assessment points (view below for more info).
 
-  ## Options:
+  ### `:group_by`
 
-      - `:classes_ids` – filter entries by classes
+  - `nil` (default) - When `:group_by` is `nil`, will return a list with one tuple, with a
+  `%Strand{}` as the first item and the list of the strand assessment points
+  (no moments assessment points), ordered by position.
+  Preloads `curriculum_item` and `curriculum_component`.
+
+  - `"curriculum"` - will return a list of tuples where the first item
+  is a `%CurriculumItem{}` and the second is a list of `%AssessmentPoint{}`s.
+  The tuples are ordered by the strand assessment point
+  curriculum items position, and the assessment points are ordered by moment
+  and assessment point position, with the strand assessment point at the end.
+  Assessment points preloads `moment`, and curriculum items preloads curricumum component.
+  Curriculum `is_differentiation` is set based on strand assessment point.
+
+  - `"moment"` - will return a list of tuples where the first item
+  is a `%Moment{}` or a `%Strand{}` and the second is a list of
+  `%AssessmentPoint{}`s ordered by position.
+  Preloads `curriculum_item` and `curriculum_component`.
+
+  ## Examples
+
+      iex> list_strand_assessment_points(strand_id)
+      [
+        {%Strand{}, [%AssessmentPoint{}, ...]}
+      ]
+
+      iex> list_strand_assessment_points(strand_id, group_by: "moment")
+      [
+        {%Moment{}, [%AssessmentPoint{}, ...]},
+        ...,
+        {%Strand{}, [%AssessmentPoint{}, ...]}
+      ]
+
+      iex> list_strand_assessment_points(strand_id, group_by: "curriculum")
+      [
+        {%CurriculumItem{}, [%AssessmentPoint{}, ...]},
+        ...
+      ]
+
   """
-
-  @spec list_strand_students_entries(integer(), Keyword.t()) :: [
-          {Student.t(), [AssessmentPointEntry.t()]}
+  @spec list_strand_assessment_points(pos_integer(), String.t() | nil) :: [
+          {CurriculumItem.t() | Moment.t() | Strand.t(), [AssessmentPoint.t()]}
         ]
+  def list_strand_assessment_points(strand_id, group_by \\ nil)
 
-  def list_strand_students_entries(strand_id, opts \\ []) do
-    # build a %{student_id => entries} map
-    students_entries_map =
+  def list_strand_assessment_points(strand_id, "curriculum") do
+    # base query handles where and order_by
+    base_query = strand_assessment_points_base_query(strand_id, "curriculum")
+
+    assessment_points_map =
       from(
-        ap in AssessmentPoint,
-        join: m in assoc(ap, :moment),
-        join: s in subquery(distinct_students_query(opts)),
-        on: true,
-        left_join: e in AssessmentPointEntry,
-        on: e.student_id == s.id and e.assessment_point_id == ap.id,
-        where: m.strand_id == ^strand_id,
-        order_by: [s.name, m.position, ap.position],
-        select: {s, e}
+        [ap, moment: m] in base_query,
+        preload: [moment: m]
       )
       |> Repo.all()
-      |> Enum.group_by(
-        fn {s, _e} -> s.id end,
-        fn {_s, e} -> e end
-      )
+      |> Enum.group_by(& &1.curriculum_item_id)
 
-    # list students in correct order and with classes preloads
-    # then map it with its entries
-    list_students_with_classes(opts)
-    |> Enum.map(&{&1, students_entries_map[&1.id]})
-  end
-
-  defp distinct_students_query(opts) do
-    # use this subquery to prevent duplicated students,
-    # which can be caused by classes join
-    case Keyword.get(opts, :classes_ids) do
-      nil ->
-        from(s in Student)
-
-      classes_ids ->
-        from(
-          s in Student,
-          join: c in assoc(s, :classes),
-          where: c.id in ^classes_ids,
-          distinct: s.id
-        )
-    end
-  end
-
-  defp list_students_with_classes(opts) do
-    # list students ordered by class then by student
-    # and preload classes (only classes from opts)
-    case Keyword.get(opts, :classes_ids) do
-      nil ->
-        from(
-          s in Student,
-          order_by: [s.name]
-        )
-
-      classes_ids ->
-        from(
-          s in Student,
-          join: c in assoc(s, :classes),
-          where: c.id in ^classes_ids,
-          order_by: [c.name, s.name],
-          preload: [classes: c]
-        )
-    end
+    from(
+      ci in CurriculumItem,
+      join: cc in assoc(ci, :curriculum_component),
+      join: ap in assoc(ci, :assessment_points),
+      where: ap.strand_id == ^strand_id,
+      order_by: ap.position,
+      select: %{ci | is_differentiation: ap.is_differentiation},
+      preload: [curriculum_component: cc]
+    )
     |> Repo.all()
+    |> Enum.map(&{&1, assessment_points_map[&1.id]})
   end
+
+  def list_strand_assessment_points(strand_id, "moment") do
+    # base query handles where and order_by
+    base_query = strand_assessment_points_base_query(strand_id, "moment")
+
+    assessment_points_map =
+      from(
+        ap in base_query,
+        join: ci in assoc(ap, :curriculum_item),
+        join: cc in assoc(ci, :curriculum_component),
+        preload: [curriculum_item: {ci, curriculum_component: cc}]
+      )
+      |> Repo.all()
+      |> Enum.group_by(& &1.moment_id)
+
+    moments_assessment_points =
+      from(
+        m in Moment,
+        join: ap in assoc(m, :assessment_points),
+        where: m.strand_id == ^strand_id,
+        order_by: m.position,
+        distinct: true
+      )
+      |> Repo.all()
+      |> Enum.map(&{&1, assessment_points_map[&1.id]})
+
+    strand = Repo.get(Strand, strand_id)
+    strand_assessment_points = {strand, assessment_points_map[nil]}
+
+    moments_assessment_points ++ [strand_assessment_points]
+  end
+
+  def list_strand_assessment_points(strand_id, nil) do
+    # base query handles where and order_by
+    base_query = strand_assessment_points_base_query(strand_id, nil)
+
+    assessment_points =
+      from(
+        ap in base_query,
+        join: ci in assoc(ap, :curriculum_item),
+        join: cc in assoc(ci, :curriculum_component),
+        preload: [curriculum_item: {ci, curriculum_component: cc}]
+      )
+      |> Repo.all()
+
+    strand = Repo.get(Strand, strand_id)
+
+    [{strand, assessment_points}]
+  end
+
+  @doc """
+  Returns the list of assessment point entries for every student in the given strand.
+
+  The list is comprised of tuples with `Student` as the first item, and the list of
+  `AssessmentPointEntry`s as the second. The order and quantity of the entries
+  are aligned with `list_strand_assessment_points/2` (details below).
+
+  ### Options:
+
+  - `:group_by` – `"curriculum"`, `"moment"`, or `nil` (details below)
+  - `:classes_ids` – filter entries by classes
+  - `:check_if_has_evidences` – (boolean) calculate virtual `has_evidences` field
+
+  #### Order of entries when grouped by
+
+  - `"curriculum"` - ordered by strand assessment points position, then by moments
+  position, then by moments assessment points position, with the strand entry
+  (the "final assessment") at the end.
+
+  - `"moment"` - ordered by moments position, then by moments assessment points
+  position, with the strand assessment points entries (ordered by assessment
+  points position) at the end.
+
+  - `nil` (only strands) - ordered by strand assessment points position.
+
+  """
+
+  @spec list_strand_students_entries(pos_integer(), String.t() | nil, Keyword.t()) ::
+          [
+            {Student.t(), [AssessmentPointEntry.t()]}
+          ]
+  def list_strand_students_entries(strand_id, group_by, opts \\ []) do
+    assessment_points_query =
+      strand_assessment_points_base_query(strand_id, group_by)
+
+    students_query =
+      from(
+        s in Student,
+        left_join: c in assoc(s, :classes),
+        as: :classes,
+        order_by: [c.name, s.name]
+      )
+      |> apply_list_strand_students_entries_opts(opts)
+
+    students_entries =
+      from(
+        ap in assessment_points_query,
+        cross_join: s in subquery(students_query),
+        left_join: e in AssessmentPointEntry,
+        on: e.student_id == s.id and e.assessment_point_id == ap.id,
+        # although we don't need it, we need to select
+        # something from ap to get the "nil"s correctly
+        select: {s, ap.id, e}
+      )
+      |> Repo.all()
+      |> maybe_calculate_has_evidences(Keyword.get(opts, :check_if_has_evidences))
+
+    entries_by_student_map =
+      students_entries
+      |> Enum.group_by(
+        fn {s, _ap_id, _e} -> s.id end,
+        fn {_s, _ap_id, e} -> e end
+      )
+      |> Enum.into(%{})
+
+    from(
+      [s, classes: c] in students_query,
+      preload: [classes: c]
+    )
+    |> Repo.all()
+    |> Enum.uniq_by(& &1.id)
+    |> Enum.map(&{&1, entries_by_student_map[&1.id]})
+  end
+
+  defp strand_assessment_points_base_query(strand_id, group_by)
+
+  defp strand_assessment_points_base_query(strand_id, "curriculum") do
+    from(
+      ap in AssessmentPoint,
+      left_join: m in assoc(ap, :moment),
+      as: :moment,
+      join: ci_ap in AssessmentPoint,
+      on: ci_ap.curriculum_item_id == ap.curriculum_item_id and ci_ap.strand_id == ^strand_id,
+      where: ap.strand_id == ^strand_id or m.strand_id == ^strand_id,
+      order_by: [asc: ci_ap.position, asc: m.position, asc: ap.position]
+    )
+  end
+
+  defp strand_assessment_points_base_query(strand_id, "moment") do
+    from(
+      ap in AssessmentPoint,
+      left_join: m in assoc(ap, :moment),
+      where: ap.strand_id == ^strand_id or m.strand_id == ^strand_id,
+      order_by: [asc: m.position, asc: ap.position]
+    )
+  end
+
+  defp strand_assessment_points_base_query(strand_id, nil) do
+    from(
+      ap in AssessmentPoint,
+      where: ap.strand_id == ^strand_id,
+      order_by: [asc: ap.position]
+    )
+  end
+
+  defp apply_list_strand_students_entries_opts(queryable, []), do: queryable
+
+  defp apply_list_strand_students_entries_opts(queryable, [
+         {:classes_ids, classes_ids} | opts
+       ]) do
+    from(
+      [_s, classes: c] in queryable,
+      where: c.id in ^classes_ids
+    )
+    |> apply_list_strand_students_entries_opts(opts)
+  end
+
+  defp apply_list_strand_students_entries_opts(queryable, [_ | opts]),
+    do: apply_list_strand_students_entries_opts(queryable, opts)
+
+  # @doc """
+  # Returns the list of the assessment point entries for every student in the given strand.
+
+  # Entries are ordered by `Moment` and `AssessmentPoint` positions.
+
+  # ## Options:
+
+  #     - `:classes_ids` – filter entries by classes
+  # """
+
+  # @spec list_strand_students_entries(integer(), Keyword.t()) :: [
+  #         {Student.t(), [AssessmentPointEntry.t()]}
+  #       ]
+
+  # def list_strand_students_entries(strand_id, opts \\ []) do
+  #   # build a %{student_id => entries} map
+  #   students_entries_map =
+  #     from(
+  #       ap in AssessmentPoint,
+  #       join: m in assoc(ap, :moment),
+  #       join: s in subquery(distinct_students_query(opts)),
+  #       on: true,
+  #       left_join: e in AssessmentPointEntry,
+  #       on: e.student_id == s.id and e.assessment_point_id == ap.id,
+  #       where: m.strand_id == ^strand_id,
+  #       order_by: [s.name, m.position, ap.position],
+  #       select: {s, e}
+  #     )
+  #     |> Repo.all()
+  #     |> Enum.group_by(
+  #       fn {s, _e} -> s.id end,
+  #       fn {_s, e} -> e end
+  #     )
+
+  #   # list students in correct order and with classes preloads
+  #   # then map it with its entries
+  #   list_students_with_classes(opts)
+  #   |> Enum.map(&{&1, students_entries_map[&1.id]})
+  # end
+
+  # defp distinct_students_query(opts) do
+  #   # use this subquery to prevent duplicated students,
+  #   # which can be caused by classes join
+  #   case Keyword.get(opts, :classes_ids) do
+  #     nil ->
+  #       from(s in Student)
+
+  #     classes_ids ->
+  #       from(
+  #         s in Student,
+  #         join: c in assoc(s, :classes),
+  #         where: c.id in ^classes_ids,
+  #         distinct: s.id
+  #       )
+  #   end
+  # end
+
+  # defp list_students_with_classes(opts) do
+  #   # list students ordered by class then by student
+  #   # and preload classes (only classes from opts)
+  #   case Keyword.get(opts, :classes_ids) do
+  #     nil ->
+  #       from(
+  #         s in Student,
+  #         order_by: [s.name]
+  #       )
+
+  #     classes_ids ->
+  #       from(
+  #         s in Student,
+  #         join: c in assoc(s, :classes),
+  #         where: c.id in ^classes_ids,
+  #         order_by: [c.name, s.name],
+  #         preload: [classes: c]
+  #       )
+  #   end
+  #   |> Repo.all()
+  # end
 
   @doc """
   Returns the list of entries for every student according to given opts.

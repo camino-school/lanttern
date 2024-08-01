@@ -111,7 +111,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
             >
               <div class={"sticky left-0 #{@view_bg}"}></div>
               <div
-                id="grid-assessment-points"
+                id="reporting-grid-assessment-points"
                 phx-update="stream"
                 class="grid grid-cols-subgrid"
                 style={"grid-column: span #{@assessment_points_count} / span #{@assessment_points_count}"}
