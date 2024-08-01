@@ -1778,6 +1778,9 @@ defmodule Lanttern.AssessmentsTest do
 
     test "list_strand_students_entries/2 returns entries as expected", %{
       strand: strand,
+      s_ap_1_ci_1: s_ap_1_ci_1,
+      s_ap_2_ci_2: s_ap_2_ci_2,
+      s_ap_3_ci_3: s_ap_3_ci_3,
       ov_a: ov_a,
       ov_b: ov_b,
       ov_c: ov_c,
@@ -1797,11 +1800,30 @@ defmodule Lanttern.AssessmentsTest do
       # | 1   | ov a   | ov b   | ---    |
       # | 2   | ---    | ov c   | ---    |
       # | 3   | ---    | ---    | ov a   |
+
+      s_ap_1_id = s_ap_1_ci_1.id
+      s_ap_2_id = s_ap_2_ci_2.id
+      s_ap_3_id = s_ap_3_ci_3.id
+
       assert [
                {expected_student_1,
-                [expected_std_1_s_ap_1_ci_1, expected_std_1_s_ap_2_ci_2, nil]},
-               {expected_student_2, [nil, expected_std_2_s_ap_2_ci_2, nil]},
-               {expected_student_3, [nil, nil, expected_std_3_s_ap_3_ci_3]}
+                [
+                  {expected_std_1_s_ap_1_ci_1, ^s_ap_1_id},
+                  {expected_std_1_s_ap_2_ci_2, ^s_ap_2_id},
+                  {nil, ^s_ap_3_id}
+                ]},
+               {expected_student_2,
+                [
+                  {nil, ^s_ap_1_id},
+                  {expected_std_2_s_ap_2_ci_2, ^s_ap_2_id},
+                  {nil, ^s_ap_3_id}
+                ]},
+               {expected_student_3,
+                [
+                  {nil, ^s_ap_1_id},
+                  {nil, ^s_ap_2_id},
+                  {expected_std_3_s_ap_3_ci_3, ^s_ap_3_id}
+                ]}
              ] = Assessments.list_strand_students_entries(strand.id, nil, classes_ids: [class.id])
 
       assert expected_student_1.id == student_1.id
@@ -1821,6 +1843,12 @@ defmodule Lanttern.AssessmentsTest do
 
     test "list_strand_students_entries/2 grouped by curriculum returns entries as expected", %{
       strand: strand,
+      s_ap_1_ci_1: s_ap_1_ci_1,
+      s_ap_2_ci_2: s_ap_2_ci_2,
+      s_ap_3_ci_3: s_ap_3_ci_3,
+      m_1_ap_1_ci_1: m_1_ap_1_ci_1,
+      m_1_ap_2_ci_2: m_1_ap_2_ci_2,
+      m_2_ap_1_ci_2: m_2_ap_1_ci_2,
       ov_a: ov_a,
       ov_b: ov_b,
       ov_c: ov_c,
@@ -1844,19 +1872,42 @@ defmodule Lanttern.AssessmentsTest do
       # | 1   | ov a    | ov a   | ov b    | ov b    | ov b   | ---    |
       # | 2   | ---     | ---    | ov c    | ---     | ov c   | ---    |
       # | 3   | ---     | ---    | ---     | ---     | ---    | ov a   |
+
+      s_ap_1_id = s_ap_1_ci_1.id
+      s_ap_2_id = s_ap_2_ci_2.id
+      s_ap_3_id = s_ap_3_ci_3.id
+      m_1_ap_1_id = m_1_ap_1_ci_1.id
+      m_1_ap_2_id = m_1_ap_2_ci_2.id
+      m_2_ap_1_id = m_2_ap_1_ci_2.id
+
       assert [
                {expected_student_1,
                 [
-                  expected_std_1_m_1_ap_1_ci_1,
-                  expected_std_1_s_ap_1_ci_1,
-                  expected_std_1_m_1_ap_2_ci_2,
-                  expected_std_1_m_2_ap_1_ci_2,
-                  expected_std_1_s_ap_2_ci_2,
-                  nil
+                  {expected_std_1_m_1_ap_1_ci_1, ^m_1_ap_1_id},
+                  {expected_std_1_s_ap_1_ci_1, ^s_ap_1_id},
+                  {expected_std_1_m_1_ap_2_ci_2, ^m_1_ap_2_id},
+                  {expected_std_1_m_2_ap_1_ci_2, ^m_2_ap_1_id},
+                  {expected_std_1_s_ap_2_ci_2, ^s_ap_2_id},
+                  {nil, ^s_ap_3_id}
                 ]},
                {expected_student_2,
-                [nil, nil, expected_std_2_m_1_ap_2_ci_2, nil, expected_std_2_s_ap_2_ci_2, nil]},
-               {expected_student_3, [nil, nil, nil, nil, nil, expected_std_3_s_ap_3_ci_3]}
+                [
+                  {nil, ^m_1_ap_1_id},
+                  {nil, ^s_ap_1_id},
+                  {expected_std_2_m_1_ap_2_ci_2, ^m_1_ap_2_id},
+                  {nil, ^m_2_ap_1_id},
+                  {expected_std_2_s_ap_2_ci_2, ^s_ap_2_id},
+                  {nil, ^s_ap_3_id}
+                ]},
+               {expected_student_3,
+                [
+                  {nil, ^m_1_ap_1_id},
+                  {nil, ^s_ap_1_id},
+                  {nil, ^m_1_ap_2_id},
+                  {nil, ^m_2_ap_1_id},
+                  {nil, ^s_ap_2_id},
+                  {expected_std_3_s_ap_3_ci_3, ^s_ap_3_id}
+                ]}
              ] =
                Assessments.list_strand_students_entries(strand.id, "curriculum",
                  classes_ids: [class.id]
@@ -1871,6 +1922,101 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_std_1_m_1_ap_2_ci_2.ordinal_value_id == ov_b.id
       assert expected_std_1_m_2_ap_1_ci_2.id == std_1_m_2_ap_1_ci_2.id
       assert expected_std_1_m_2_ap_1_ci_2.ordinal_value_id == ov_b.id
+      assert expected_std_1_s_ap_2_ci_2.id == std_1_s_ap_2_ci_2.id
+      assert expected_std_1_s_ap_2_ci_2.ordinal_value_id == ov_b.id
+
+      assert expected_student_2.id == student_2.id
+      assert expected_std_2_m_1_ap_2_ci_2.id == std_2_m_1_ap_2_ci_2.id
+      assert expected_std_2_m_1_ap_2_ci_2.ordinal_value_id == ov_c.id
+      assert expected_std_2_s_ap_2_ci_2.id == std_2_s_ap_2_ci_2.id
+      assert expected_std_2_s_ap_2_ci_2.ordinal_value_id == ov_c.id
+
+      assert expected_student_3.id == student_3.id
+      assert expected_std_3_s_ap_3_ci_3.id == std_3_s_ap_3_ci_3.id
+      assert expected_std_3_s_ap_3_ci_3.ordinal_value_id == ov_a.id
+    end
+
+    test "list_strand_students_entries/2 grouped by moment returns entries as expected", %{
+      strand: strand,
+      s_ap_1_ci_1: s_ap_1_ci_1,
+      s_ap_2_ci_2: s_ap_2_ci_2,
+      s_ap_3_ci_3: s_ap_3_ci_3,
+      m_1_ap_1_ci_1: m_1_ap_1_ci_1,
+      m_1_ap_2_ci_2: m_1_ap_2_ci_2,
+      m_2_ap_1_ci_2: m_2_ap_1_ci_2,
+      ov_a: ov_a,
+      ov_b: ov_b,
+      ov_c: ov_c,
+      class: class,
+      student_1: student_1,
+      student_2: student_2,
+      student_3: student_3,
+      std_1_m_1_ap_1_ci_1: std_1_m_1_ap_1_ci_1,
+      std_1_m_1_ap_2_ci_2: std_1_m_1_ap_2_ci_2,
+      std_1_m_2_ap_1_ci_2: std_1_m_2_ap_1_ci_2,
+      std_1_s_ap_1_ci_1: std_1_s_ap_1_ci_1,
+      std_1_s_ap_2_ci_2: std_1_s_ap_2_ci_2,
+      std_2_m_1_ap_2_ci_2: std_2_m_1_ap_2_ci_2,
+      std_2_s_ap_2_ci_2: std_2_s_ap_2_ci_2,
+      std_3_s_ap_3_ci_3: std_3_s_ap_3_ci_3
+    } do
+      # test case grid
+      # |     | m 1         | m 2  | final (strand)     |
+      # | std | ap 1 | ap 2 | ap 1 | ap 1 | ap 2 | ap 3 |
+      # -------------------------------------------------
+      # | 1   | ov a | ov b | ov b | ov a | ov b | ---  |
+      # | 2   | ---  | ov c | ---  | ---  | ov c | ---  |
+      # | 3   | ---  | ---  | ---  | ---  | ---  | ov a |
+
+      s_ap_1_id = s_ap_1_ci_1.id
+      s_ap_2_id = s_ap_2_ci_2.id
+      s_ap_3_id = s_ap_3_ci_3.id
+      m_1_ap_1_id = m_1_ap_1_ci_1.id
+      m_1_ap_2_id = m_1_ap_2_ci_2.id
+      m_2_ap_1_id = m_2_ap_1_ci_2.id
+
+      assert [
+               {expected_student_1,
+                [
+                  {expected_std_1_m_1_ap_1_ci_1, ^m_1_ap_1_id},
+                  {expected_std_1_m_1_ap_2_ci_2, ^m_1_ap_2_id},
+                  {expected_std_1_m_2_ap_1_ci_2, ^m_2_ap_1_id},
+                  {expected_std_1_s_ap_1_ci_1, ^s_ap_1_id},
+                  {expected_std_1_s_ap_2_ci_2, ^s_ap_2_id},
+                  {nil, ^s_ap_3_id}
+                ]},
+               {expected_student_2,
+                [
+                  {nil, ^m_1_ap_1_id},
+                  {expected_std_2_m_1_ap_2_ci_2, ^m_1_ap_2_id},
+                  {nil, ^m_2_ap_1_id},
+                  {nil, ^s_ap_1_id},
+                  {expected_std_2_s_ap_2_ci_2, ^s_ap_2_id},
+                  {nil, ^s_ap_3_id}
+                ]},
+               {expected_student_3,
+                [
+                  {nil, ^m_1_ap_1_id},
+                  {nil, ^m_1_ap_2_id},
+                  {nil, ^m_2_ap_1_id},
+                  {nil, ^s_ap_1_id},
+                  {nil, ^s_ap_2_id},
+                  {expected_std_3_s_ap_3_ci_3, ^s_ap_3_id}
+                ]}
+             ] =
+               Assessments.list_strand_students_entries(strand.id, "moment",
+                 classes_ids: [class.id]
+               )
+
+      assert expected_student_1.id == student_1.id
+      assert expected_std_1_m_1_ap_1_ci_1.id == std_1_m_1_ap_1_ci_1.id
+      assert expected_std_1_m_1_ap_1_ci_1.ordinal_value_id == ov_a.id
+      assert expected_std_1_m_1_ap_2_ci_2.id == std_1_m_1_ap_2_ci_2.id
+      assert expected_std_1_m_1_ap_2_ci_2.ordinal_value_id == ov_b.id
+      assert expected_std_1_m_2_ap_1_ci_2.id == std_1_m_2_ap_1_ci_2.id
+      assert expected_std_1_m_2_ap_1_ci_2.ordinal_value_id == ov_b.id
+      assert expected_std_1_s_ap_1_ci_1.id == std_1_s_ap_1_ci_1.id
+      assert expected_std_1_s_ap_1_ci_1.ordinal_value_id == ov_a.id
       assert expected_std_1_s_ap_2_ci_2.id == std_1_s_ap_2_ci_2.id
       assert expected_std_1_s_ap_2_ci_2.ordinal_value_id == ov_b.id
 

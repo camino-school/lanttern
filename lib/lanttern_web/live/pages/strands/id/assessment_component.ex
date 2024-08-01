@@ -5,12 +5,15 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Curricula.CurriculumItem
   alias Lanttern.Filters
+  alias Lanttern.Identity.User
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
+  alias Lanttern.Schools.Student
 
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 4, assign_user_filters: 3]
 
   # shared components
+  alias LantternWeb.Assessments.EntryCellComponent
   alias LantternWeb.StrandLive.StrandRubricsComponent
 
   @impl true
@@ -105,10 +108,10 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                 />
               </div>
             </div>
-            <%!-- <div
+            <div
               id="grid-student-entries"
               phx-update="stream"
-              class="grid grid-cols-subgrid pb-4"
+              class="grid grid-cols-subgrid"
               style={"grid-column: span #{@assessment_points_count + 1} / span #{@assessment_points_count + 1}"}
             >
               <.student_entries
@@ -116,13 +119,12 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                 id={dom_id}
                 student={student}
                 entries={entries}
-                scale_ov_map={@scale_ov_map}
                 myself={@myself}
                 current_assessment_view={@current_assessment_view}
                 view_bg={@view_bg}
                 current_user={@current_user}
               />
-            </div> --%>
+            </div>
           </div>
         </div>
       </div>
@@ -313,7 +315,9 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
 
   def assessment_point_group_header(%{group_by_struct: %Moment{}} = assigns) do
     ~H"""
-    <%= @group_by_struct.name %>
+    <.link navigate={~p"/strands/moment/#{@group_by_struct.id}?tab=assessment"}>
+      <%= @group_by_struct.name %>
+    </.link>
     """
   end
 
@@ -361,9 +365,13 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
 
   def assessment_point(%{assessment_point: %{moment: %Moment{}}} = assigns) do
     ~H"""
-    <p class="line-clamp-3" title={@assessment_point.moment.name}>
+    <.link
+      class="line-clamp-3"
+      title={@assessment_point.moment.name}
+      navigate={~p"/strands/moment/#{@assessment_point.moment.id}?tab=assessment"}
+    >
       <%= @assessment_point.moment.name %>
-    </p>
+    </.link>
     """
   end
 
@@ -421,66 +429,38 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   # end
 
   attr :id, :string, required: true
-  attr :student, Lanttern.Schools.Student, required: true
+  attr :student, Student, required: true
   attr :entries, :list, required: true
-  attr :scale_ov_map, :map, required: true
+  attr :myself, Phoenix.LiveComponent.CID, required: true
+  attr :current_assessment_view, :string, required: true
+  attr :view_bg, :string, required: true
+  attr :current_user, User, required: true
 
-  def student_and_entries(assigns) do
+  def student_entries(assigns) do
     ~H"""
-    <div class="flex items-stretch gap-4" id={@id}>
-      <.profile_icon_with_name
-        class="sticky left-0 z-10 shrink-0 w-60 px-6 bg-white"
-        profile_name={@student.name}
-        extra_info={@student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
-      />
-      <%= for entry <- @entries do %>
-        <div
-          class={[
-            "shrink-0 flex items-center justify-center w-14 h-14 rounded-full text-sm",
-            if(
-              not is_nil(entry),
-              do: "text-ltrn-dark bg-white shadow-md",
-              else: "text-ltrn-subtle bg-ltrn-lighter"
-            )
-          ]}
-          style={get_colors_style(entry, @scale_ov_map)}
-        >
-          <%= get_entry_value(entry, @scale_ov_map) %>
-        </div>
-      <% end %>
+    <div
+      id={@id}
+      class="grid grid-cols-subgrid"
+      style={"grid-column: span #{length(@entries) + 1} / span #{length(@entries) + 1}"}
+    >
+      <div class={"sticky left-0 z-10 pl-6 py-2 pr-2 #{@view_bg}"}>
+        <.profile_icon_with_name
+          profile_name={@student.name}
+          extra_info={@student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
+        />
+      </div>
+      <div :for={{entry, assessment_point_id} <- @entries} class="max-w-80 p-2">
+        <.live_component
+          module={EntryCellComponent}
+          id={"student-#{@student.id}-entry-for-#{assessment_point_id}"}
+          class="w-full h-full"
+          entry={entry}
+          view={@current_assessment_view}
+        />
+      </div>
     </div>
     """
   end
-
-  defp get_entry_value(nil, _),
-    do: "—"
-
-  defp get_entry_value(%{scale_type: "ordinal", ordinal_value_id: nil}, _),
-    do: "—"
-
-  defp get_entry_value(
-         %{scale_type: "ordinal", ordinal_value_id: ov_id} = entry,
-         scale_ov_map
-       ) do
-    scale_ov_map[entry.scale_id][ov_id].name
-    |> String.slice(0..2)
-  end
-
-  defp get_entry_value(%{scale_type: "numeric", score: nil}, _),
-    do: "—"
-
-  defp get_entry_value(%{scale_type: "numeric", score: score}, _),
-    do: score
-
-  defp get_colors_style(
-         %{scale_type: "ordinal", ordinal_value_id: ov_id} = entry,
-         scale_ov_map
-       )
-       when not is_nil(ov_id) do
-    scale_ov_map[entry.scale_id][ov_id].style
-  end
-
-  defp get_colors_style(_, _), do: ""
 
   # lifecycle
 
@@ -515,6 +495,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       |> assign_user_filters([:assessment_group_by], assigns.current_user)
       |> assign_view_bg()
       |> stream_assessment_points()
+      |> stream_students_entries()
 
     # |> core_assigns(strand.id)
 
@@ -549,6 +530,18 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     |> stream(:assessment_points, assessment_points)
     |> assign(:assessment_points_count, assessment_points_count)
     |> assign(:has_assessment_points, assessment_points != [])
+  end
+
+  defp stream_students_entries(socket) do
+    students_entries =
+      Assessments.list_strand_students_entries(
+        socket.assigns.strand.id,
+        socket.assigns.current_assessment_group_by,
+        classes_ids: socket.assigns.selected_classes_ids
+      )
+
+    socket
+    |> stream(:students_entries, students_entries)
   end
 
   # defp core_assigns(

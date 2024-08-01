@@ -125,7 +125,7 @@ defmodule LantternWeb.StrandLive.ReportingComponent do
               </div>
             </div>
             <div
-              id="grid-student-entries"
+              id="reporting-grid-student-entries"
               phx-update="stream"
               class="grid grid-cols-subgrid pb-4"
               style={"grid-column: span #{@assessment_points_count + 1} / span #{@assessment_points_count + 1}"}

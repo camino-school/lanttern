@@ -826,8 +826,11 @@ defmodule Lanttern.Assessments do
   Returns the list of assessment point entries for every student in the given strand.
 
   The list is comprised of tuples with `Student` as the first item, and the list of
-  `AssessmentPointEntry`s as the second. The order and quantity of the entries
-  are aligned with `list_strand_assessment_points/2` (details below).
+  tuples with `AssessmentPointEntry` and assessment point id as the second. The assessment
+  point id is useful for composing dom ids when the entry is nil.
+
+  The order and quantity of the entries are aligned with `list_strand_assessment_points/2`,
+  returning `nil` when the student doesn't have an entry for a given assessment (details below).
 
   ### Options:
 
@@ -851,7 +854,8 @@ defmodule Lanttern.Assessments do
 
   @spec list_strand_students_entries(pos_integer(), String.t() | nil, Keyword.t()) ::
           [
-            {Student.t(), [AssessmentPointEntry.t()]}
+            {Student.t(),
+             [{AssessmentPointEntry.t() | nil, assessment_point_id :: pos_integer()}]}
           ]
   def list_strand_students_entries(strand_id, group_by, opts \\ []) do
     assessment_points_query =
@@ -872,8 +876,8 @@ defmodule Lanttern.Assessments do
         cross_join: s in subquery(students_query),
         left_join: e in AssessmentPointEntry,
         on: e.student_id == s.id and e.assessment_point_id == ap.id,
-        # although we don't need it, we need to select
-        # something from ap to get the "nil"s correctly
+        # even if we wouldn't use the assessment point id,
+        # we need to select something from ap to get the "nil"s
         select: {s, ap.id, e}
       )
       |> Repo.all()
@@ -883,7 +887,7 @@ defmodule Lanttern.Assessments do
       students_entries
       |> Enum.group_by(
         fn {s, _ap_id, _e} -> s.id end,
-        fn {_s, _ap_id, e} -> e end
+        fn {_s, ap_id, e} -> {e, ap_id} end
       )
       |> Enum.into(%{})
 
