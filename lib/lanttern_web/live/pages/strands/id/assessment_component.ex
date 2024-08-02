@@ -449,10 +449,10 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
           extra_info={@student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
         />
       </div>
-      <div :for={{entry, assessment_point_id} <- @entries} class="max-w-80 p-2">
+      <div :for={entry <- @entries} class="max-w-80 p-2">
         <.live_component
           module={EntryCellComponent}
-          id={"student-#{@student.id}-entry-for-#{assessment_point_id}"}
+          id={"student-#{@student.id}-entry-for-#{entry.assessment_point_id}"}
           class="w-full h-full"
           entry={entry}
           view={@current_assessment_view}

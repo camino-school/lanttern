@@ -822,84 +822,6 @@ defmodule Lanttern.Assessments do
     [{strand, assessment_points}]
   end
 
-  @doc """
-  Returns the list of assessment point entries for every student in the given strand.
-
-  The list is comprised of tuples with `Student` as the first item, and the list of
-  tuples with `AssessmentPointEntry` and assessment point id as the second. The assessment
-  point id is useful for composing dom ids when the entry is nil.
-
-  The order and quantity of the entries are aligned with `list_strand_assessment_points/2`,
-  returning `nil` when the student doesn't have an entry for a given assessment (details below).
-
-  ### Options:
-
-  - `:group_by` – `"curriculum"`, `"moment"`, or `nil` (details below)
-  - `:classes_ids` – filter entries by classes
-  - `:check_if_has_evidences` – (boolean) calculate virtual `has_evidences` field
-
-  #### Order of entries when grouped by
-
-  - `"curriculum"` - ordered by strand assessment points position, then by moments
-  position, then by moments assessment points position, with the strand entry
-  (the "final assessment") at the end.
-
-  - `"moment"` - ordered by moments position, then by moments assessment points
-  position, with the strand assessment points entries (ordered by assessment
-  points position) at the end.
-
-  - `nil` (only strands) - ordered by strand assessment points position.
-
-  """
-
-  @spec list_strand_students_entries(pos_integer(), String.t() | nil, Keyword.t()) ::
-          [
-            {Student.t(),
-             [{AssessmentPointEntry.t() | nil, assessment_point_id :: pos_integer()}]}
-          ]
-  def list_strand_students_entries(strand_id, group_by, opts \\ []) do
-    assessment_points_query =
-      strand_assessment_points_base_query(strand_id, group_by)
-
-    students_query =
-      from(
-        s in Student,
-        left_join: c in assoc(s, :classes),
-        as: :classes,
-        order_by: [c.name, s.name]
-      )
-      |> apply_list_strand_students_entries_opts(opts)
-
-    students_entries =
-      from(
-        ap in assessment_points_query,
-        cross_join: s in subquery(students_query),
-        left_join: e in AssessmentPointEntry,
-        on: e.student_id == s.id and e.assessment_point_id == ap.id,
-        # even if we wouldn't use the assessment point id,
-        # we need to select something from ap to get the "nil"s
-        select: {s, ap.id, e}
-      )
-      |> Repo.all()
-      |> maybe_calculate_has_evidences(Keyword.get(opts, :check_if_has_evidences))
-
-    entries_by_student_map =
-      students_entries
-      |> Enum.group_by(
-        fn {s, _ap_id, _e} -> s.id end,
-        fn {_s, ap_id, e} -> {e, ap_id} end
-      )
-      |> Enum.into(%{})
-
-    from(
-      [s, classes: c] in students_query,
-      preload: [classes: c]
-    )
-    |> Repo.all()
-    |> Enum.uniq_by(& &1.id)
-    |> Enum.map(&{&1, entries_by_student_map[&1.id]})
-  end
-
   defp strand_assessment_points_base_query(strand_id, group_by)
 
   defp strand_assessment_points_base_query(strand_id, "curriculum") do
@@ -931,6 +853,82 @@ defmodule Lanttern.Assessments do
     )
   end
 
+  @doc """
+  Returns the list of assessment point entries for every student in the given strand.
+
+  The list is comprised of tuples with `Student` as the first item, and the list of
+  `AssessmentPointEntry`s as the second. When there's no entry for the given student
+  and assessment point, this function handles the empty `%AssessmentPointEntry{}` creation.
+
+  The order and quantity of the entries are aligned with `list_strand_assessment_points/2`.
+
+  ### Options:
+
+  - `:group_by` – `"curriculum"`, `"moment"`, or `nil` (details below)
+  - `:classes_ids` – filter entries by classes
+  - `:check_if_has_evidences` – (boolean) calculate virtual `has_evidences` field
+
+  #### Order of entries when grouped by
+
+  - `"curriculum"` - ordered by strand assessment points position, then by moments
+  position, then by moments assessment points position, with the strand entry
+  (the "final assessment") at the end.
+
+  - `"moment"` - ordered by moments position, then by moments assessment points
+  position, with the strand assessment points entries (ordered by assessment
+  points position) at the end.
+
+  - `nil` (only strands) - ordered by strand assessment points position.
+
+  """
+
+  @spec list_strand_students_entries(pos_integer(), String.t() | nil, Keyword.t()) ::
+          [{Student.t(), [AssessmentPointEntry.t()]}]
+  def list_strand_students_entries(strand_id, group_by, opts \\ []) do
+    assessment_points_query =
+      strand_assessment_points_base_query(strand_id, group_by)
+
+    students_query =
+      from(
+        s in Student,
+        left_join: c in assoc(s, :classes),
+        as: :classes,
+        order_by: [c.name, s.name]
+      )
+      |> apply_list_strand_students_entries_opts(opts)
+
+    students_entries =
+      from(
+        ap in assessment_points_query,
+        join: sc in assoc(ap, :scale),
+        cross_join: s in subquery(students_query),
+        left_join: e in AssessmentPointEntry,
+        on: e.student_id == s.id and e.assessment_point_id == ap.id,
+        # even if we wouldn't use the assessment point,
+        # we need to select something from ap to get entry `nil`s
+        select: {s, ap.id, e, sc}
+      )
+      |> Repo.all()
+      |> maybe_calculate_has_evidences(Keyword.get(opts, :check_if_has_evidences))
+
+    entries_by_student_map =
+      students_entries
+      |> Enum.map(&maybe_build_empty_entry/1)
+      |> Enum.group_by(
+        fn {s, _ap_id, _e, _sc} -> s.id end,
+        fn {_s, _ap_id, e, _sc} -> e end
+      )
+      |> Enum.into(%{})
+
+    from(
+      [s, classes: c] in students_query,
+      preload: [classes: c]
+    )
+    |> Repo.all()
+    |> Enum.uniq_by(& &1.id)
+    |> Enum.map(&{&1, entries_by_student_map[&1.id]})
+  end
+
   defp apply_list_strand_students_entries_opts(queryable, []), do: queryable
 
   defp apply_list_strand_students_entries_opts(queryable, [
@@ -945,6 +943,20 @@ defmodule Lanttern.Assessments do
 
   defp apply_list_strand_students_entries_opts(queryable, [_ | opts]),
     do: apply_list_strand_students_entries_opts(queryable, opts)
+
+  defp maybe_build_empty_entry({s, ap_id, nil, sc}) do
+    empty_entry =
+      %AssessmentPointEntry{
+        student_id: s.id,
+        assessment_point_id: ap_id,
+        scale_id: sc.id,
+        scale_type: sc.type
+      }
+
+    {s, ap_id, empty_entry, sc}
+  end
+
+  defp maybe_build_empty_entry(select_tuple), do: select_tuple
 
   # @doc """
   # Returns the list of the assessment point entries for every student in the given strand.
@@ -1117,8 +1129,11 @@ defmodule Lanttern.Assessments do
   defp maybe_calculate_has_evidences(students_entries, true) do
     entries_ids =
       students_entries
-      |> Enum.filter(fn {_s, _ap_id, e} -> e end)
-      |> Enum.map(fn {_s, _ap_id, e} -> e.id end)
+      |> Enum.map(fn
+        {_s, _ap_id, e} -> e && e.id
+        {_s, _ap_id, e, _sc} -> e && e.id
+      end)
+      |> Enum.filter(& &1)
 
     entries_ids_with_has_evidences_map =
       from(
@@ -1133,12 +1148,21 @@ defmodule Lanttern.Assessments do
 
     # return updated students_entries
     students_entries
-    |> Enum.map(fn {s, ap_id, e} ->
-      {
-        s,
-        ap_id,
-        e && %{e | has_evidences: entries_ids_with_has_evidences_map[e.id]}
-      }
+    |> Enum.map(fn
+      {s, ap_id, e} ->
+        {
+          s,
+          ap_id,
+          e && %{e | has_evidences: entries_ids_with_has_evidences_map[e.id]}
+        }
+
+      {s, ap_id, e, sc} ->
+        {
+          s,
+          ap_id,
+          e && e.id && %{e | has_evidences: entries_ids_with_has_evidences_map[e.id]},
+          sc
+        }
     end)
   end
 

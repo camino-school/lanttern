@@ -1771,6 +1771,8 @@ defmodule Lanttern.AssessmentsTest do
   end
 
   describe "strand assessments students entries" do
+    alias Lanttern.Assessments.AssessmentPointEntry
+
     setup [
       :strand_assessment_points_setup,
       :strand_assessment_points_entries_setup
@@ -1781,6 +1783,7 @@ defmodule Lanttern.AssessmentsTest do
       s_ap_1_ci_1: s_ap_1_ci_1,
       s_ap_2_ci_2: s_ap_2_ci_2,
       s_ap_3_ci_3: s_ap_3_ci_3,
+      scale: scale,
       ov_a: ov_a,
       ov_b: ov_b,
       ov_c: ov_c,
@@ -1801,28 +1804,41 @@ defmodule Lanttern.AssessmentsTest do
       # | 2   | ---    | ov c   | ---    |
       # | 3   | ---    | ---    | ov a   |
 
+      # extract values to allow pattern match with pin
       s_ap_1_id = s_ap_1_ci_1.id
+      s_ap_1_scale_id = s_ap_1_ci_1.scale_id
+      s_ap_1_scale_type = scale.type
+
       s_ap_2_id = s_ap_2_ci_2.id
+      s_ap_2_scale_id = s_ap_2_ci_2.scale_id
+      s_ap_2_scale_type = scale.type
+
       s_ap_3_id = s_ap_3_ci_3.id
+      s_ap_3_scale_id = s_ap_3_ci_3.scale_id
+      s_ap_3_scale_type = scale.type
+
+      student_1_id = student_1.id
+      student_2_id = student_2.id
+      student_3_id = student_3.id
 
       assert [
                {expected_student_1,
                 [
-                  {expected_std_1_s_ap_1_ci_1, ^s_ap_1_id},
-                  {expected_std_1_s_ap_2_ci_2, ^s_ap_2_id},
-                  {nil, ^s_ap_3_id}
+                  expected_std_1_s_ap_1_ci_1,
+                  expected_std_1_s_ap_2_ci_2,
+                  expected_std_1_s_ap_3_ci_3
                 ]},
                {expected_student_2,
                 [
-                  {nil, ^s_ap_1_id},
-                  {expected_std_2_s_ap_2_ci_2, ^s_ap_2_id},
-                  {nil, ^s_ap_3_id}
+                  expected_std_2_s_ap_1_ci_1,
+                  expected_std_2_s_ap_2_ci_2,
+                  expected_std_2_s_ap_3_ci_3
                 ]},
                {expected_student_3,
                 [
-                  {nil, ^s_ap_1_id},
-                  {nil, ^s_ap_2_id},
-                  {expected_std_3_s_ap_3_ci_3, ^s_ap_3_id}
+                  expected_std_3_s_ap_1_ci_1,
+                  expected_std_3_s_ap_2_ci_2,
+                  expected_std_3_s_ap_3_ci_3
                 ]}
              ] = Assessments.list_strand_students_entries(strand.id, nil, classes_ids: [class.id])
 
@@ -1832,11 +1848,53 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_std_1_s_ap_2_ci_2.id == std_1_s_ap_2_ci_2.id
       assert expected_std_1_s_ap_2_ci_2.ordinal_value_id == ov_b.id
 
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_1_id,
+               assessment_point_id: ^s_ap_3_id,
+               scale_id: ^s_ap_3_scale_id,
+               scale_type: ^s_ap_3_scale_type
+             } = expected_std_1_s_ap_3_ci_3
+
       assert expected_student_2.id == student_2.id
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^s_ap_1_id,
+               scale_id: ^s_ap_1_scale_id,
+               scale_type: ^s_ap_1_scale_type
+             } = expected_std_2_s_ap_1_ci_1
+
       assert expected_std_2_s_ap_2_ci_2.id == std_2_s_ap_2_ci_2.id
       assert expected_std_2_s_ap_2_ci_2.ordinal_value_id == ov_c.id
 
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^s_ap_3_id,
+               scale_id: ^s_ap_3_scale_id,
+               scale_type: ^s_ap_3_scale_type
+             } = expected_std_2_s_ap_3_ci_3
+
       assert expected_student_3.id == student_3.id
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^s_ap_1_id,
+               scale_id: ^s_ap_1_scale_id,
+               scale_type: ^s_ap_1_scale_type
+             } = expected_std_3_s_ap_1_ci_1
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^s_ap_2_id,
+               scale_id: ^s_ap_2_scale_id,
+               scale_type: ^s_ap_2_scale_type
+             } = expected_std_3_s_ap_2_ci_2
+
       assert expected_std_3_s_ap_3_ci_3.id == std_3_s_ap_3_ci_3.id
       assert expected_std_3_s_ap_3_ci_3.ordinal_value_id == ov_a.id
     end
@@ -1849,6 +1907,7 @@ defmodule Lanttern.AssessmentsTest do
       m_1_ap_1_ci_1: m_1_ap_1_ci_1,
       m_1_ap_2_ci_2: m_1_ap_2_ci_2,
       m_2_ap_1_ci_2: m_2_ap_1_ci_2,
+      scale: scale,
       ov_a: ov_a,
       ov_b: ov_b,
       ov_c: ov_c,
@@ -1873,40 +1932,62 @@ defmodule Lanttern.AssessmentsTest do
       # | 2   | ---     | ---    | ov c    | ---     | ov c   | ---    |
       # | 3   | ---     | ---    | ---     | ---     | ---    | ov a   |
 
-      s_ap_1_id = s_ap_1_ci_1.id
-      s_ap_2_id = s_ap_2_ci_2.id
-      s_ap_3_id = s_ap_3_ci_3.id
+      # extract values to allow pattern match with pin
       m_1_ap_1_id = m_1_ap_1_ci_1.id
+      m_1_ap_1_scale_id = m_1_ap_1_ci_1.scale_id
+      m_1_ap_1_scale_type = scale.type
+
+      s_ap_1_id = s_ap_1_ci_1.id
+      s_ap_1_scale_id = s_ap_1_ci_1.scale_id
+      s_ap_1_scale_type = scale.type
+
       m_1_ap_2_id = m_1_ap_2_ci_2.id
+      m_1_ap_2_scale_id = m_1_ap_2_ci_2.scale_id
+      m_1_ap_2_scale_type = scale.type
+
       m_2_ap_1_id = m_2_ap_1_ci_2.id
+      m_2_ap_1_scale_id = m_2_ap_1_ci_2.scale_id
+      m_2_ap_1_scale_type = scale.type
+
+      s_ap_2_id = s_ap_2_ci_2.id
+      s_ap_2_scale_id = s_ap_2_ci_2.scale_id
+      s_ap_2_scale_type = scale.type
+
+      s_ap_3_id = s_ap_3_ci_3.id
+      s_ap_3_scale_id = s_ap_3_ci_3.scale_id
+      s_ap_3_scale_type = scale.type
+
+      student_1_id = student_1.id
+      student_2_id = student_2.id
+      student_3_id = student_3.id
 
       assert [
                {expected_student_1,
                 [
-                  {expected_std_1_m_1_ap_1_ci_1, ^m_1_ap_1_id},
-                  {expected_std_1_s_ap_1_ci_1, ^s_ap_1_id},
-                  {expected_std_1_m_1_ap_2_ci_2, ^m_1_ap_2_id},
-                  {expected_std_1_m_2_ap_1_ci_2, ^m_2_ap_1_id},
-                  {expected_std_1_s_ap_2_ci_2, ^s_ap_2_id},
-                  {nil, ^s_ap_3_id}
+                  expected_std_1_m_1_ap_1_ci_1,
+                  expected_std_1_s_ap_1_ci_1,
+                  expected_std_1_m_1_ap_2_ci_2,
+                  expected_std_1_m_2_ap_1_ci_2,
+                  expected_std_1_s_ap_2_ci_2,
+                  expected_std_1_s_ap_3_ci_3
                 ]},
                {expected_student_2,
                 [
-                  {nil, ^m_1_ap_1_id},
-                  {nil, ^s_ap_1_id},
-                  {expected_std_2_m_1_ap_2_ci_2, ^m_1_ap_2_id},
-                  {nil, ^m_2_ap_1_id},
-                  {expected_std_2_s_ap_2_ci_2, ^s_ap_2_id},
-                  {nil, ^s_ap_3_id}
+                  expected_std_2_m_1_ap_1_ci_1,
+                  expected_std_2_s_ap_1_ci_1,
+                  expected_std_2_m_1_ap_2_ci_2,
+                  expected_std_2_m_2_ap_1_ci_2,
+                  expected_std_2_s_ap_2_ci_2,
+                  expected_std_2_s_ap_3_ci_3
                 ]},
                {expected_student_3,
                 [
-                  {nil, ^m_1_ap_1_id},
-                  {nil, ^s_ap_1_id},
-                  {nil, ^m_1_ap_2_id},
-                  {nil, ^m_2_ap_1_id},
-                  {nil, ^s_ap_2_id},
-                  {expected_std_3_s_ap_3_ci_3, ^s_ap_3_id}
+                  expected_std_3_m_1_ap_1_ci_1,
+                  expected_std_3_s_ap_1_ci_1,
+                  expected_std_3_m_1_ap_2_ci_2,
+                  expected_std_3_m_2_ap_1_ci_2,
+                  expected_std_3_s_ap_2_ci_2,
+                  expected_std_3_s_ap_3_ci_3
                 ]}
              ] =
                Assessments.list_strand_students_entries(strand.id, "curriculum",
@@ -1925,13 +2006,96 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_std_1_s_ap_2_ci_2.id == std_1_s_ap_2_ci_2.id
       assert expected_std_1_s_ap_2_ci_2.ordinal_value_id == ov_b.id
 
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_1_id,
+               assessment_point_id: ^s_ap_3_id,
+               scale_id: ^s_ap_3_scale_id,
+               scale_type: ^s_ap_3_scale_type
+             } = expected_std_1_s_ap_3_ci_3
+
       assert expected_student_2.id == student_2.id
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^m_1_ap_1_id,
+               scale_id: ^m_1_ap_1_scale_id,
+               scale_type: ^m_1_ap_1_scale_type
+             } = expected_std_2_m_1_ap_1_ci_1
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^s_ap_1_id,
+               scale_id: ^s_ap_1_scale_id,
+               scale_type: ^s_ap_1_scale_type
+             } = expected_std_2_s_ap_1_ci_1
+
       assert expected_std_2_m_1_ap_2_ci_2.id == std_2_m_1_ap_2_ci_2.id
       assert expected_std_2_m_1_ap_2_ci_2.ordinal_value_id == ov_c.id
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^m_2_ap_1_id,
+               scale_id: ^m_2_ap_1_scale_id,
+               scale_type: ^m_2_ap_1_scale_type
+             } = expected_std_2_m_2_ap_1_ci_2
+
       assert expected_std_2_s_ap_2_ci_2.id == std_2_s_ap_2_ci_2.id
       assert expected_std_2_s_ap_2_ci_2.ordinal_value_id == ov_c.id
 
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^s_ap_3_id,
+               scale_id: ^s_ap_3_scale_id,
+               scale_type: ^s_ap_3_scale_type
+             } = expected_std_2_s_ap_3_ci_3
+
       assert expected_student_3.id == student_3.id
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^m_1_ap_1_id,
+               scale_id: ^m_1_ap_1_scale_id,
+               scale_type: ^m_1_ap_1_scale_type
+             } = expected_std_3_m_1_ap_1_ci_1
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^s_ap_1_id,
+               scale_id: ^s_ap_1_scale_id,
+               scale_type: ^s_ap_1_scale_type
+             } = expected_std_3_s_ap_1_ci_1
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^m_1_ap_2_id,
+               scale_id: ^m_1_ap_2_scale_id,
+               scale_type: ^m_1_ap_2_scale_type
+             } = expected_std_3_m_1_ap_2_ci_2
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^m_2_ap_1_id,
+               scale_id: ^m_2_ap_1_scale_id,
+               scale_type: ^m_2_ap_1_scale_type
+             } = expected_std_3_m_2_ap_1_ci_2
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^s_ap_2_id,
+               scale_id: ^s_ap_2_scale_id,
+               scale_type: ^s_ap_2_scale_type
+             } = expected_std_3_s_ap_2_ci_2
+
       assert expected_std_3_s_ap_3_ci_3.id == std_3_s_ap_3_ci_3.id
       assert expected_std_3_s_ap_3_ci_3.ordinal_value_id == ov_a.id
     end
@@ -1944,6 +2108,7 @@ defmodule Lanttern.AssessmentsTest do
       m_1_ap_1_ci_1: m_1_ap_1_ci_1,
       m_1_ap_2_ci_2: m_1_ap_2_ci_2,
       m_2_ap_1_ci_2: m_2_ap_1_ci_2,
+      scale: scale,
       ov_a: ov_a,
       ov_b: ov_b,
       ov_c: ov_c,
@@ -1968,40 +2133,62 @@ defmodule Lanttern.AssessmentsTest do
       # | 2   | ---  | ov c | ---  | ---  | ov c | ---  |
       # | 3   | ---  | ---  | ---  | ---  | ---  | ov a |
 
-      s_ap_1_id = s_ap_1_ci_1.id
-      s_ap_2_id = s_ap_2_ci_2.id
-      s_ap_3_id = s_ap_3_ci_3.id
+      # extract values to allow pattern match with pin
       m_1_ap_1_id = m_1_ap_1_ci_1.id
+      m_1_ap_1_scale_id = m_1_ap_1_ci_1.scale_id
+      m_1_ap_1_scale_type = scale.type
+
+      s_ap_1_id = s_ap_1_ci_1.id
+      s_ap_1_scale_id = s_ap_1_ci_1.scale_id
+      s_ap_1_scale_type = scale.type
+
       m_1_ap_2_id = m_1_ap_2_ci_2.id
+      m_1_ap_2_scale_id = m_1_ap_2_ci_2.scale_id
+      m_1_ap_2_scale_type = scale.type
+
       m_2_ap_1_id = m_2_ap_1_ci_2.id
+      m_2_ap_1_scale_id = m_2_ap_1_ci_2.scale_id
+      m_2_ap_1_scale_type = scale.type
+
+      s_ap_2_id = s_ap_2_ci_2.id
+      s_ap_2_scale_id = s_ap_2_ci_2.scale_id
+      s_ap_2_scale_type = scale.type
+
+      s_ap_3_id = s_ap_3_ci_3.id
+      s_ap_3_scale_id = s_ap_3_ci_3.scale_id
+      s_ap_3_scale_type = scale.type
+
+      student_1_id = student_1.id
+      student_2_id = student_2.id
+      student_3_id = student_3.id
 
       assert [
                {expected_student_1,
                 [
-                  {expected_std_1_m_1_ap_1_ci_1, ^m_1_ap_1_id},
-                  {expected_std_1_m_1_ap_2_ci_2, ^m_1_ap_2_id},
-                  {expected_std_1_m_2_ap_1_ci_2, ^m_2_ap_1_id},
-                  {expected_std_1_s_ap_1_ci_1, ^s_ap_1_id},
-                  {expected_std_1_s_ap_2_ci_2, ^s_ap_2_id},
-                  {nil, ^s_ap_3_id}
+                  expected_std_1_m_1_ap_1_ci_1,
+                  expected_std_1_m_1_ap_2_ci_2,
+                  expected_std_1_m_2_ap_1_ci_2,
+                  expected_std_1_s_ap_1_ci_1,
+                  expected_std_1_s_ap_2_ci_2,
+                  expected_std_1_s_ap_3_ci_3
                 ]},
                {expected_student_2,
                 [
-                  {nil, ^m_1_ap_1_id},
-                  {expected_std_2_m_1_ap_2_ci_2, ^m_1_ap_2_id},
-                  {nil, ^m_2_ap_1_id},
-                  {nil, ^s_ap_1_id},
-                  {expected_std_2_s_ap_2_ci_2, ^s_ap_2_id},
-                  {nil, ^s_ap_3_id}
+                  expected_std_2_m_1_ap_1_ci_1,
+                  expected_std_2_m_1_ap_2_ci_2,
+                  expected_std_2_m_2_ap_1_ci_2,
+                  expected_std_2_s_ap_1_ci_1,
+                  expected_std_2_s_ap_2_ci_2,
+                  expected_std_2_s_ap_3_ci_3
                 ]},
                {expected_student_3,
                 [
-                  {nil, ^m_1_ap_1_id},
-                  {nil, ^m_1_ap_2_id},
-                  {nil, ^m_2_ap_1_id},
-                  {nil, ^s_ap_1_id},
-                  {nil, ^s_ap_2_id},
-                  {expected_std_3_s_ap_3_ci_3, ^s_ap_3_id}
+                  expected_std_3_m_1_ap_1_ci_1,
+                  expected_std_3_m_1_ap_2_ci_2,
+                  expected_std_3_m_2_ap_1_ci_2,
+                  expected_std_3_s_ap_1_ci_1,
+                  expected_std_3_s_ap_2_ci_2,
+                  expected_std_3_s_ap_3_ci_3
                 ]}
              ] =
                Assessments.list_strand_students_entries(strand.id, "moment",
@@ -2020,13 +2207,96 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_std_1_s_ap_2_ci_2.id == std_1_s_ap_2_ci_2.id
       assert expected_std_1_s_ap_2_ci_2.ordinal_value_id == ov_b.id
 
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_1_id,
+               assessment_point_id: ^s_ap_3_id,
+               scale_id: ^s_ap_3_scale_id,
+               scale_type: ^s_ap_3_scale_type
+             } = expected_std_1_s_ap_3_ci_3
+
       assert expected_student_2.id == student_2.id
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^m_1_ap_1_id,
+               scale_id: ^m_1_ap_1_scale_id,
+               scale_type: ^m_1_ap_1_scale_type
+             } = expected_std_2_m_1_ap_1_ci_1
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^s_ap_1_id,
+               scale_id: ^s_ap_1_scale_id,
+               scale_type: ^s_ap_1_scale_type
+             } = expected_std_2_s_ap_1_ci_1
+
       assert expected_std_2_m_1_ap_2_ci_2.id == std_2_m_1_ap_2_ci_2.id
       assert expected_std_2_m_1_ap_2_ci_2.ordinal_value_id == ov_c.id
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^m_2_ap_1_id,
+               scale_id: ^m_2_ap_1_scale_id,
+               scale_type: ^m_2_ap_1_scale_type
+             } = expected_std_2_m_2_ap_1_ci_2
+
       assert expected_std_2_s_ap_2_ci_2.id == std_2_s_ap_2_ci_2.id
       assert expected_std_2_s_ap_2_ci_2.ordinal_value_id == ov_c.id
 
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^s_ap_3_id,
+               scale_id: ^s_ap_3_scale_id,
+               scale_type: ^s_ap_3_scale_type
+             } = expected_std_2_s_ap_3_ci_3
+
       assert expected_student_3.id == student_3.id
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^m_1_ap_1_id,
+               scale_id: ^m_1_ap_1_scale_id,
+               scale_type: ^m_1_ap_1_scale_type
+             } = expected_std_3_m_1_ap_1_ci_1
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^s_ap_1_id,
+               scale_id: ^s_ap_1_scale_id,
+               scale_type: ^s_ap_1_scale_type
+             } = expected_std_3_s_ap_1_ci_1
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^m_1_ap_2_id,
+               scale_id: ^m_1_ap_2_scale_id,
+               scale_type: ^m_1_ap_2_scale_type
+             } = expected_std_3_m_1_ap_2_ci_2
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^m_2_ap_1_id,
+               scale_id: ^m_2_ap_1_scale_id,
+               scale_type: ^m_2_ap_1_scale_type
+             } = expected_std_3_m_2_ap_1_ci_2
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^s_ap_2_id,
+               scale_id: ^s_ap_2_scale_id,
+               scale_type: ^s_ap_2_scale_type
+             } = expected_std_3_s_ap_2_ci_2
+
       assert expected_std_3_s_ap_3_ci_3.id == std_3_s_ap_3_ci_3.id
       assert expected_std_3_s_ap_3_ci_3.ordinal_value_id == ov_a.id
     end
