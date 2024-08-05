@@ -15,6 +15,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
 
   # shared components
   alias LantternWeb.Assessments.EntryCellComponent
+  alias LantternWeb.Assessments.EntryDetailsComponent
   alias LantternWeb.StrandLive.StrandRubricsComponent
 
   @impl true
@@ -176,6 +177,21 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
             else: gettext("Save") %>
         </.button>
       </.fixed_bar>
+      <.slide_over
+        :if={@assessment_point_entry}
+        id="entry-details-overlay"
+        show={true}
+        on_cancel={JS.push("close_entry_details_overlay", target: @myself)}
+      >
+        <:title><%= gettext("Assessment point entry details") %></:title>
+        <.live_component
+          module={EntryDetailsComponent}
+          id={@assessment_point_entry.id}
+          entry={@assessment_point_entry}
+          current_user={@current_user}
+          notify_component={@myself}
+        />
+      </.slide_over>
     </div>
     """
   end
@@ -190,7 +206,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       case assigns.current_assessment_group_by do
         "curriculum" -> gettext("Show all, grouped by curriculum")
         "moment" -> gettext("Show all, grouped by moment")
-        _ -> gettext("Show only final assessents")
+        _ -> gettext("Show only goal assessments")
       end
 
     assigns = assign(assigns, :text, text)
@@ -202,7 +218,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       </.badge_button>
       <.dropdown_menu id="group-by-dropdown" button_id="group-by-dropdown-button" z_index="30">
         <:item
-          text={gettext("Show only final assessments")}
+          text={gettext("Show only goal assessments")}
           on_click={JS.push("change_group_by", value: %{"group_by" => nil}, target: @myself)}
         />
         <:item
@@ -343,7 +359,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
 
   def assessment_point_group_header(%{group_by_struct: %Strand{}} = assigns) do
     ~H"""
-    <%= gettext("Final assessment") %>
+    <%= gettext("Goal assessment") %>
     """
   end
 
@@ -381,7 +397,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       when not is_nil(strand_id) do
     ~H"""
     <p>
-      <%= gettext("Final assessment") %>
+      <%= gettext("Goal assessment") %>
     </p>
     """
   end
@@ -429,6 +445,8 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     socket =
       socket
       |> assign(:entries_changes_map, %{})
+      |> assign(:assessment_point_entry, nil)
+      |> assign(:has_entry_details_change, false)
       |> stream_configure(
         :assessment_points,
         dom_id: fn
@@ -471,6 +489,39 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         entries_changes_map
         |> Map.put(composite_id, {type, entry_id, params})
       end)
+
+    {:ok, socket}
+  end
+
+  def update(
+        %{action: {EntryCellComponent, {:view_details, entry}}},
+        socket
+      ) do
+    socket =
+      socket
+      |> assign(:assessment_point_entry, entry)
+
+    {:ok, socket}
+  end
+
+  def update(
+        %{action: {EntryDetailsComponent, {msg_type, _}}},
+        socket
+      )
+      when msg_type in [:change, :created_attachment, :deleted_attachment] do
+    {:ok, assign(socket, :has_entry_details_change, true)}
+  end
+
+  def update(
+        %{action: {EntryDetailsComponent, {:delete, _entry}}},
+        socket
+      ) do
+    socket =
+      socket
+      |> assign(:assessment_point_entry, nil)
+      |> stream_assessment_points()
+      |> stream_students_entries()
+      |> assign(:has_entry_details_change, false)
 
     {:ok, socket}
   end
@@ -524,7 +575,8 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       Assessments.list_strand_students_entries(
         socket.assigns.strand.id,
         socket.assigns.current_assessment_group_by,
-        classes_ids: socket.assigns.selected_classes_ids
+        classes_ids: socket.assigns.selected_classes_ids,
+        check_if_has_evidences: true
       )
 
     socket
@@ -611,6 +663,24 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         {:error, msg} -> put_flash(socket, :error, msg)
       end
       |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}?tab=assessment")
+
+    {:noreply, socket}
+  end
+
+  def handle_event("close_entry_details_overlay", _, socket) do
+    socket =
+      socket
+      |> assign(:assessment_point_entry, nil)
+
+    socket =
+      if socket.assigns.has_entry_details_change do
+        socket
+        |> stream_assessment_points()
+        |> stream_students_entries()
+        |> assign(:has_entry_details_change, false)
+      else
+        socket
+      end
 
     {:noreply, socket}
   end

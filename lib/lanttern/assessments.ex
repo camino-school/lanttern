@@ -872,7 +872,7 @@ defmodule Lanttern.Assessments do
 
   - `"curriculum"` - ordered by strand assessment points position, then by moments
   position, then by moments assessment points position, with the strand entry
-  (the "final assessment") at the end.
+  (the "goal assessment") at the end.
 
   - `"moment"` - ordered by moments position, then by moments assessment points
   position, with the strand assessment points entries (ordered by assessment
@@ -1162,12 +1162,13 @@ defmodule Lanttern.Assessments do
           e && %{e | has_evidences: entries_ids_with_has_evidences_map[e.id]}
         }
 
-      {s, ap_id, e, sc} ->
+      {s, ap_id, e, sc, is_strand} ->
         {
           s,
           ap_id,
           e && e.id && %{e | has_evidences: entries_ids_with_has_evidences_map[e.id]},
-          sc
+          sc,
+          is_strand
         }
     end)
   end

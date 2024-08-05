@@ -35,20 +35,35 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     ~H"""
     <div class={[@grid_class, @class]}>
       <%= if @form do %>
-        <.form
-          for={@form}
-          phx-change="change"
-          phx-target={@myself}
-          class={if(@has_changes, do: "outline outline-4 outline-offset-1 outline-ltrn-dark")}
-          id={"entry-#{@id}-marking-form"}
-        >
-          <.marking_input
-            scale_type={@entry.scale_type}
-            ov_options={@ov_options}
-            field={@field}
-            style={if(@has_changes, do: "background-color: white", else: @field_style)}
-          />
-        </.form>
+        <div class="flex items-center gap-2">
+          <.form
+            for={@form}
+            phx-change="change"
+            phx-target={@myself}
+            class={if(@has_changes, do: "outline outline-4 outline-offset-1 outline-ltrn-dark")}
+            id={"entry-#{@id}-marking-form"}
+          >
+            <.marking_input
+              scale_type={@entry.scale_type}
+              ov_options={@ov_options}
+              field={@field}
+              style={if(@has_changes, do: "background-color: white", else: @field_style)}
+            />
+          </.form>
+          <button
+            type="button"
+            class={[
+              "flex items-center gap-1 p-1 ml-2 rounded-full text-ltrn-light bg-white shadow hover:bg-ltrn-lightest",
+              "disabled:bg-ltrn-lighter disabled:shadow-none"
+            ]}
+            disabled={!@entry.id}
+            phx-click="view_details"
+            phx-target={@myself}
+          >
+            <.icon name="hero-chat-bubble-oval-left-mini" class={@note_icon_class} />
+            <.icon name="hero-paper-clip-mini" class={@evidences_icon_class} />
+          </button>
+        </div>
       <% else %>
         <.entry_view
           :if={@view in ["compare", "teacher"]}
@@ -318,6 +333,21 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
         {"numeric", _teacher} -> {entry.score, entry.student_score}
       end
 
+    entry_note =
+      case view do
+        "student" -> entry.student_report_note
+        _ -> entry.report_note
+      end
+
+    note_icon_class =
+      cond do
+        entry_note && view == "student" -> "text-ltrn-student-accent"
+        entry_note -> "text-ltrn-teacher-accent"
+        true -> ""
+      end
+
+    evidences_icon_class = if entry.has_evidences, do: "text-ltrn-primary", else: ""
+
     socket
     |> assign(:form, form)
     |> assign(:field, field)
@@ -325,6 +355,9 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     |> assign(:ov_options, ov_options)
     |> assign(:entry_value, entry_value)
     |> assign(:other_value, other_value)
+    |> assign(:entry_note, entry_note)
+    |> assign(:note_icon_class, note_icon_class)
+    |> assign(:evidences_icon_class, evidences_icon_class)
   end
 
   defp assign_form_and_related_assigns(socket, _ov_options), do: assign(socket, :form, nil)
@@ -384,6 +417,18 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
 
     {:noreply, socket}
   end
+
+  def handle_event("view_details", _, socket) do
+    notify(
+      __MODULE__,
+      {:view_details, socket.assigns.entry},
+      socket.assigns
+    )
+
+    {:noreply, socket}
+  end
+
+  # helpers
 
   @spec get_param_value(params :: map(), view :: String.t()) :: String.t()
   defp get_param_value(%{"scale_type" => "ordinal"} = params, "student"),

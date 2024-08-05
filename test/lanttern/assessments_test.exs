@@ -1797,7 +1797,7 @@ defmodule Lanttern.AssessmentsTest do
       std_3_s_ap_3_ci_3: std_3_s_ap_3_ci_3
     } do
       # test case grid
-      # |     | final assessments        |
+      # |     | goal assessments        |
       # | std | s ap 1 | s ap 2 | s ap 3 |
       # ----------------------------------
       # | 1   | ov a   | ov b   | ---    |
