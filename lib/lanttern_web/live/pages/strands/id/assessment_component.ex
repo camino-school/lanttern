@@ -10,6 +10,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   alias Lanttern.LearningContext.Strand
   alias Lanttern.Schools.Student
 
+  import LantternWeb.AssessmentsHelpers, only: [save_entry_editor_component_changes: 2]
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 4, assign_user_filters: 3]
 
   # shared components
@@ -128,36 +129,6 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
           </div>
         </div>
       </div>
-      <%!-- <div :if={@selected_classes != [] && @assessment_points_count > 0} class="px-6">
-        <div class="relative w-full max-h-screen pb-6 mt-6 rounded shadow-xl bg-white overflow-x-auto">
-          <div class="sticky top-0 z-20 flex items-stretch gap-4 pr-6 mb-2 bg-white">
-            <div class="sticky left-0 shrink-0 w-60 bg-white"></div>
-            <div
-              id="strand-assessment-points"
-              phx-update="stream"
-              class="shrink-0 flex gap-4 bg-white"
-            >
-              <.assessment_point
-                :for={{dom_id, {ap, i}} <- @streams.assessment_points}
-                assessment_point={ap}
-                strand_id={@strand.id}
-                index={i}
-                id={dom_id}
-              />
-            </div>
-            <div class="shrink-0 w-2"></div>
-          </div>
-          <div phx-update="stream" id="students-entries" class="flex flex-col gap-4">
-            <.student_and_entries
-              :for={{dom_id, {student, entries}} <- @streams.students_entries}
-              student={student}
-              entries={entries}
-              scale_ov_map={@scale_ov_map}
-              id={dom_id}
-            />
-          </div>
-        </div>
-      </div> --%>
       <.live_component
         module={StrandRubricsComponent}
         id={:strand_rubrics}
@@ -174,6 +145,37 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         filter_opts={[strand_id: @strand.id]}
         navigate={~p"/strands/#{@strand}?tab=assessment"}
       />
+      <.fixed_bar :if={@entries_changes_map != %{}} class="flex items-center gap-6">
+        <div class="flex-1 flex items-center gap-4 text-sm">
+          <p class="text-white text-nowrap">
+            <%= ngettext("1 change", "%{count} changes", map_size(@entries_changes_map)) %>
+          </p>
+          <p
+            :if={@current_assessment_view == "student"}
+            class="flex items-center gap-2 font-bold text-ltrn-student-accent"
+          >
+            <.icon name="hero-information-circle" class="w-6 h-6" />
+            <%= gettext("You are registering students self-assessments") %>
+          </p>
+        </div>
+        <.button
+          phx-click={JS.navigate(~p"/strands/#{@strand}?tab=assessment")}
+          theme="ghost"
+          data-confirm={gettext("Are you sure?")}
+        >
+          <%= gettext("Discard") %>
+        </.button>
+        <.button
+          type="button"
+          phx-click="save_changes"
+          phx-target={@myself}
+          theme={if @current_assessment_view == "student", do: "student"}
+        >
+          <%= if @current_assessment_view == "student",
+            do: gettext("Save self-assessments"),
+            else: gettext("Save") %>
+        </.button>
+      </.fixed_bar>
     </div>
     """
   end
@@ -384,50 +386,6 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     """
   end
 
-  # def assessment_point(assigns) do
-  #   ~H"""
-  #   <div id={@id} class="flex flex-col gap-2 max-w-80 pt-6 px-2 pb-2 text-sm">
-  #     <div class="flex items-center gap-2">
-  #       <.badge>
-  #         <%= @assessment_point.curriculum_item.curriculum_component.name %>
-  #       </.badge>
-  #       <.badge :if={@assessment_point.is_differentiation} theme="diff">
-  #         <%= gettext("Diff") %>
-  #       </.badge>
-  #     </div>
-  #     <p class="flex-1 line-clamp-3" title={@assessment_point.curriculum_item.name}>
-  #       <%= @assessment_point.curriculum_item.name %>
-  #     </p>
-  #     <div :if={@assessment_view == "compare"} class="flex gap-1 w-full">
-  #       <div class="flex-1 pb-1 border-b-2 border-ltrn-teacher-accent text-xs text-center text-ltrn-teacher-dark">
-  #         <%= gettext("Teacher") %>
-  #       </div>
-  #       <div class="flex-1 pb-1 border-b-2 border-ltrn-student-accent text-xs text-center text-ltrn-student-dark">
-  #         <%= gettext("Student") %>
-  #       </div>
-  #     </div>
-  #   </div>
-  #   """
-  # end
-
-  # attr :id, :string, required: true
-  # attr :assessment_point, AssessmentPoint, required: true
-  # attr :strand_id, :integer, required: true
-  # attr :index, :integer, required: true
-
-  # def assessment_point(assigns) do
-  #   ~H"""
-  #   <div class="shrink-0 w-14 pt-6 pb-2 truncate" id={@id}>
-  #     <.link
-  #       navigate={~p"/strands/moment/#{@assessment_point.moment_id}?tab=assessment"}
-  #       class="text-xs hover:underline"
-  #     >
-  #       <%= "#{@index + 1}. #{@assessment_point.name}" %>
-  #     </.link>
-  #   </div>
-  #   """
-  # end
-
   attr :id, :string, required: true
   attr :student, Student, required: true
   attr :entries, :list, required: true
@@ -457,6 +415,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
           entry={entry}
           view={@current_assessment_view}
           allow_edit={entry.is_strand_entry}
+          notify_component={@myself}
         />
       </div>
     </div>
@@ -469,6 +428,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   def mount(socket) do
     socket =
       socket
+      |> assign(:entries_changes_map, %{})
       |> stream_configure(
         :assessment_points,
         dom_id: fn
@@ -487,6 +447,34 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   end
 
   @impl true
+  def update(
+        %{action: {EntryCellComponent, {:change, :cancel, composite_id, _, _}}},
+        socket
+      ) do
+    socket =
+      socket
+      |> update(:entries_changes_map, fn entries_changes_map ->
+        entries_changes_map
+        |> Map.drop([composite_id])
+      end)
+
+    {:ok, socket}
+  end
+
+  def update(
+        %{action: {EntryCellComponent, {:change, type, composite_id, entry_id, params}}},
+        socket
+      ) do
+    socket =
+      socket
+      |> update(:entries_changes_map, fn entries_changes_map ->
+        entries_changes_map
+        |> Map.put(composite_id, {type, entry_id, params})
+      end)
+
+    {:ok, socket}
+  end
+
   def update(%{strand: strand} = assigns, socket) do
     socket =
       socket
@@ -497,8 +485,6 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       |> assign_view_bg()
       |> stream_assessment_points()
       |> stream_students_entries()
-
-    # |> core_assigns(strand.id)
 
     {:ok, socket}
   end
@@ -544,54 +530,6 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     socket
     |> stream(:students_entries, students_entries)
   end
-
-  # defp core_assigns(
-  #        %{assigns: %{assessment_points_count: _}} = socket,
-  #        _strand_id
-  #      ),
-  #      do: socket
-
-  # defp core_assigns(socket, strand_id) do
-  #   assessment_points =
-  #     Assessments.list_assessment_points(
-  #       moments_from_strand_id: strand_id,
-  #       preloads: [scale: :ordinal_values]
-  #     )
-
-  #   scale_ov_map =
-  #     assessment_points
-  #     |> Enum.map(& &1.scale)
-  #     |> Enum.uniq_by(& &1.id)
-  #     |> Enum.map(fn scale ->
-  #       {
-  #         scale.id,
-  #         scale.ordinal_values
-  #         |> Enum.map(fn ov ->
-  #           {
-  #             ov.id,
-  #             %{
-  #               name: ov.name,
-  #               style: "background-color: #{ov.bg_color}; color: #{ov.text_color}"
-  #             }
-  #           }
-  #         end)
-  #         |> Enum.into(%{})
-  #       }
-  #     end)
-  #     |> Enum.into(%{})
-
-  #   students_entries =
-  #     Assessments.list_strand_students_entries(strand_id,
-  #       classes_ids: socket.assigns.selected_classes_ids
-  #     )
-
-  #   socket
-  #   |> stream(:assessment_points, Enum.with_index(assessment_points))
-  #   |> stream(:students_entries, students_entries)
-  #   |> assign(:assessment_points_count, length(assessment_points))
-  #   |> assign(:sortable_assessment_points, Enum.with_index(assessment_points))
-  #   |> assign(:scale_ov_map, scale_ov_map)
-  # end
 
   # event handlers
 
@@ -656,5 +594,24 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         # do something with error?
         {:noreply, socket}
     end
+  end
+
+  def handle_event("save_changes", _params, socket) do
+    %{
+      entries_changes_map: entries_changes_map,
+      current_user: current_user
+    } = socket.assigns
+
+    socket =
+      case save_entry_editor_component_changes(
+             entries_changes_map,
+             current_user.current_profile_id
+           ) do
+        {:ok, msg} -> put_flash(socket, :info, msg)
+        {:error, msg} -> put_flash(socket, :error, msg)
+      end
+      |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}?tab=assessment")
+
+    {:noreply, socket}
   end
 end
