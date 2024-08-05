@@ -17,14 +17,15 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
   #### Expected external assigns
 
       attr :entry, AssessmentPointEntry
-      attr :view, :string, default: "teacher", doc: "teacher | student | compare"
+      attr :allow_edit, :boolean
+      attr :view, :string, default: "teacher", doc: "teacher | student | compare. When compare, disallow edit"
       attr :class, :any
 
   """
   alias Lanttern.Grading
   use LantternWeb, :live_component
 
-  # alias Lanttern.Assessments
+  alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPointEntry
   # alias Lanttern.Grading.OrdinalValue
   # alias Lanttern.Grading.Scale
@@ -33,42 +34,92 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
   def render(assigns) do
     ~H"""
     <div class={[@grid_class, @class]}>
-      <.entry_view
-        :if={@view in ["compare", "teacher"]}
-        entry={@entry}
-        ov_map={@ov_map}
-        ov_style_map={@ov_style_map}
-        view="teacher"
-      />
-      <.entry_view
-        :if={@view in ["compare", "student"]}
-        entry={@entry}
-        ov_map={@ov_map}
-        ov_style_map={@ov_style_map}
-        view="student"
-      />
+      <%= if @form do %>
+        <.form
+          for={@form}
+          phx-change="change"
+          phx-target={@myself}
+          class={if(@has_changes, do: "outline outline-4 outline-offset-1 outline-ltrn-dark")}
+          id={"entry-#{@id}-marking-form"}
+        >
+          <.marking_input
+            scale_type={@entry.scale_type}
+            ov_options={@ov_options}
+            field={@field}
+            style={if(@has_changes, do: "background-color: white", else: @field_style)}
+          />
+        </.form>
+      <% else %>
+        <.entry_view
+          :if={@view in ["compare", "teacher"]}
+          entry={@entry}
+          teacher_ov_name={@teacher_ov_name}
+          teacher_ov_style={@teacher_ov_style}
+          view="teacher"
+        />
+        <.entry_view
+          :if={@view in ["compare", "student"]}
+          entry={@entry}
+          student_ov_name={@student_ov_name}
+          student_ov_style={@student_ov_style}
+          view="student"
+        />
+      <% end %>
     </div>
     """
   end
 
+  attr :scale_type, :string, required: true
+  attr :field, :map, required: true
+  attr :ov_options, :list
+  attr :style, :string
+
+  def marking_input(%{scale_type: "ordinal"} = assigns) do
+    ~H"""
+    <.select
+      name={@field.name}
+      prompt="—"
+      options={@ov_options}
+      value={@field.value}
+      class={[
+        "w-full h-full rounded-sm font-mono text-sm text-center truncate",
+        @field.value in [nil, ""] && "bg-ltrn-lighter"
+      ]}
+      style={@style}
+    />
+    """
+  end
+
+  def marking_input(%{scale_type: "numeric"} = assigns) do
+    # TODO: add min max based on scale
+
+    ~H"""
+    <.base_input
+      name={@field.name}
+      type="number"
+      phx-debounce="1000"
+      value={@field.value}
+      errors={@field.errors}
+      class={[
+        "h-full font-mono text-center",
+        @field.value == nil && "bg-ltrn-lighter"
+      ]}
+    />
+    """
+  end
+
   attr :entry, :any, required: true
-  attr :ov_map, :map, required: true
-  attr :ov_style_map, :map, required: true
+  attr :teacher_ov_name, :string
+  attr :teacher_ov_style, :string
+  attr :student_ov_name, :string
+  attr :student_ov_style, :string
   attr :view, :string, required: true, doc: "teacher | student"
 
   def entry_view(%{entry: %{scale_type: "ordinal"}} = assigns) do
-    key =
-      case assigns.view do
-        "teacher" -> :ordinal_value_id
-        "student" -> :student_ordinal_value_id
-      end
-
-    ov_id = Map.get(assigns.entry, key)
-
     {value, style} =
-      case ov_id do
-        nil -> {nil, nil}
-        ov_id -> {assigns.ov_map[ov_id].name, assigns.ov_style_map[ov_id]}
+      case assigns.view do
+        "teacher" -> {assigns.teacher_ov_name, assigns.teacher_ov_style}
+        "student" -> {assigns.student_ov_name, assigns.student_ov_style}
       end
 
     assigns =
@@ -114,12 +165,6 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     """
   end
 
-  def entry_view(assigns) do
-    ~H"""
-    <.empty />
-    """
-  end
-
   def empty(assigns) do
     ~H"""
     <div class="flex items-center justify-center p-2 rounded-sm font-mono text-sm text-ltrn-subtle bg-ltrn-lighter">
@@ -137,6 +182,8 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       |> assign(:class, nil)
       |> assign(:grid_class, nil)
       |> assign(:view, "teacher")
+      |> assign(:allow_edit, false)
+      |> assign(:has_changes, false)
 
     {:ok, socket}
   end
@@ -171,7 +218,11 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       |> Enum.map(
         &{
           &1.id,
-          build_ov_and_style_maps(&1.ordinal_values)
+          %{
+            ov_map: build_ov_map(&1.ordinal_values),
+            ov_style_map: build_ov_style_map(&1.ordinal_values),
+            ov_options: build_ov_options(&1.ordinal_values)
+          }
         }
       )
       |> Enum.into(%{})
@@ -180,39 +231,52 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     |> Enum.map(&update_single(&1, scale_ov_maps))
   end
 
-  defp build_ov_and_style_maps(ordinal_values) do
-    ov_map =
-      ordinal_values
-      |> Enum.map(&{&1.id, &1})
-      |> Enum.into(%{})
+  defp build_ov_map(ordinal_values) do
+    ordinal_values
+    |> Enum.map(&{&1.id, &1})
+    |> Enum.into(%{})
+  end
 
-    ov_style_map =
-      ordinal_values
-      |> Enum.map(&{&1.id, "background-color: #{&1.bg_color}; color: #{&1.text_color}"})
-      |> Enum.into(%{})
+  defp build_ov_style_map(ordinal_values) do
+    ordinal_values
+    |> Enum.map(&{&1.id, "background-color: #{&1.bg_color}; color: #{&1.text_color}"})
+    |> Enum.into(%{})
+  end
 
-    %{
-      ov_map: ov_map,
-      ov_style_map: ov_style_map
-    }
+  defp build_ov_options(ordinal_values) do
+    ordinal_values
+    |> Enum.map(&{&1.name, &1.id})
   end
 
   defp update_single({assigns, socket}, scale_ov_maps) do
-    default = %{ov_map: nil, ov_style_map: nil}
+    default_maps = %{ov_map: %{}, ov_style_map: %{}, ov_options: []}
 
-    ov_and_style_maps =
-      case assigns.entry do
-        %AssessmentPointEntry{} = entry ->
-          Map.get(scale_ov_maps, entry.scale_id, default)
-
-        _ ->
-          default
-      end
+    %{ov_map: ov_map, ov_style_map: ov_style_map, ov_options: ov_options} =
+      Map.get(scale_ov_maps, assigns.entry.scale_id, default_maps)
 
     socket
     |> assign(assigns)
-    |> assign(ov_and_style_maps)
+    |> assign_ov_values_and_styles(ov_map, ov_style_map)
+    |> assign_form_and_related_assigns(ov_options)
     |> assign_grid_class()
+  end
+
+  defp assign_ov_values_and_styles(socket, ov_map, ov_style_map) do
+    entry = socket.assigns.entry
+
+    teacher_ov = Map.get(ov_map, entry.ordinal_value_id)
+    teacher_ov_name = teacher_ov && teacher_ov.name
+    teacher_ov_style = Map.get(ov_style_map, entry.ordinal_value_id)
+
+    student_ov = Map.get(ov_map, entry.student_ordinal_value_id)
+    student_ov_name = student_ov && student_ov.name
+    student_ov_style = Map.get(ov_style_map, entry.student_ordinal_value_id)
+
+    socket
+    |> assign(:teacher_ov_name, teacher_ov_name)
+    |> assign(:teacher_ov_style, teacher_ov_style)
+    |> assign(:student_ov_name, student_ov_name)
+    |> assign(:student_ov_style, student_ov_style)
   end
 
   defp assign_grid_class(socket) do
@@ -224,4 +288,131 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
 
     assign(socket, :grid_class, grid_class)
   end
+
+  defp assign_form_and_related_assigns(
+         %{assigns: %{allow_edit: true, view: view}} = socket,
+         ov_options
+       )
+       when view != "compare" do
+    %{entry: entry, view: view} = socket.assigns
+
+    form =
+      entry
+      |> Assessments.change_assessment_point_entry()
+      |> to_form()
+
+    field = get_field_for_form(form, entry.scale_type, view)
+
+    field_style =
+      case view do
+        "student" -> socket.assigns.student_ov_style
+        "teacher" -> socket.assigns.teacher_ov_style
+      end
+
+    # when in student view, other value = teacher value (and vice-versa)
+    {entry_value, other_value} =
+      case {entry.scale_type, view} do
+        {"ordinal", "student"} -> {entry.student_ordinal_value_id, entry.ordinal_value_id}
+        {"ordinal", _teacher} -> {entry.ordinal_value_id, entry.student_ordinal_value_id}
+        {"numeric", "student"} -> {entry.student_score, entry.score}
+        {"numeric", _teacher} -> {entry.score, entry.student_score}
+      end
+
+    socket
+    |> assign(:form, form)
+    |> assign(:field, field)
+    |> assign(:field_style, field_style)
+    |> assign(:ov_options, ov_options)
+    |> assign(:entry_value, entry_value)
+    |> assign(:other_value, other_value)
+  end
+
+  defp assign_form_and_related_assigns(socket, _ov_options), do: assign(socket, :form, nil)
+
+  defp get_field_for_form(form, "ordinal", "student"), do: form[:student_ordinal_value_id]
+  defp get_field_for_form(form, "ordinal", _teacher), do: form[:ordinal_value_id]
+  defp get_field_for_form(form, "numeric", "student"), do: form[:student_score]
+  defp get_field_for_form(form, "numeric", _teacher), do: form[:score]
+
+  # event handlers
+
+  @impl true
+  def handle_event("change", %{"assessment_point_entry" => params}, socket) do
+    %{
+      entry: entry,
+      view: view,
+      entry_value: entry_value
+    } = socket.assigns
+
+    form =
+      entry
+      |> Assessments.change_assessment_point_entry(params)
+      |> to_form()
+
+    field = get_field_for_form(form, entry.scale_type, view)
+
+    entry_params =
+      entry
+      |> Map.from_struct()
+      |> Map.take([:student_id, :assessment_point_id, :scale_id, :scale_type])
+      |> Map.new(fn {k, v} -> {to_string(k), v} end)
+
+    # add extra fields from entry
+    params =
+      params
+      |> Enum.into(entry_params)
+
+    # get the right ordinal value or score based on view
+    param_value = get_param_value(params, view)
+
+    {has_changes, change_type} =
+      check_for_changes(entry.id, "#{entry_value}", socket.assigns.other_value, param_value)
+
+    composite_id = "#{entry_params["student_id"]}_#{entry_params["assessment_point_id"]}"
+
+    notify(
+      __MODULE__,
+      {:change, change_type, composite_id, entry.id, params},
+      socket.assigns
+    )
+
+    socket =
+      socket
+      |> assign(:has_changes, has_changes)
+      |> assign(:form, form)
+      |> assign(:field, field)
+
+    {:noreply, socket}
+  end
+
+  @spec get_param_value(params :: map(), view :: String.t()) :: String.t()
+  defp get_param_value(%{"scale_type" => "ordinal"} = params, "student"),
+    do: params["student_ordinal_value_id"]
+
+  defp get_param_value(%{"scale_type" => "numeric"} = params, "student"),
+    do: params["student_score"]
+
+  defp get_param_value(%{"scale_type" => "ordinal"} = params, _teacher),
+    do: params["ordinal_value_id"]
+
+  defp get_param_value(%{"scale_type" => "numeric"} = params, _teacher),
+    do: params["score"]
+
+  @spec check_for_changes(
+          entry_id :: pos_integer(),
+          entry_value :: String.t(),
+          other_entry_value :: any(),
+          param_value :: String.t()
+        ) :: {boolean(), :cancel | :new | :delete | :edit}
+
+  defp check_for_changes(_, entry_value, _, param_value) when entry_value == param_value,
+    do: {false, :cancel}
+
+  defp check_for_changes(nil, _, _, param_value) when param_value != "",
+    do: {true, :new}
+
+  defp check_for_changes(entry_id, _, nil, "") when not is_nil(entry_id),
+    do: {true, :delete}
+
+  defp check_for_changes(_, _, _, _), do: {true, :edit}
 end

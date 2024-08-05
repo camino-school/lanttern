@@ -456,6 +456,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
           class="w-full h-full"
           entry={entry}
           view={@current_assessment_view}
+          allow_edit={entry.is_strand_entry}
         />
       </div>
     </div>

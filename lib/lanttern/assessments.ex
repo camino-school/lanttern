@@ -906,7 +906,7 @@ defmodule Lanttern.Assessments do
         on: e.student_id == s.id and e.assessment_point_id == ap.id,
         # even if we wouldn't use the assessment point,
         # we need to select something from ap to get entry `nil`s
-        select: {s, ap.id, e, sc}
+        select: {s, ap.id, e, sc, not is_nil(ap.strand_id)}
       )
       |> Repo.all()
       |> maybe_calculate_has_evidences(Keyword.get(opts, :check_if_has_evidences))
@@ -914,9 +914,10 @@ defmodule Lanttern.Assessments do
     entries_by_student_map =
       students_entries
       |> Enum.map(&maybe_build_empty_entry/1)
+      |> Enum.map(&put_is_strand_entry/1)
       |> Enum.group_by(
-        fn {s, _ap_id, _e, _sc} -> s.id end,
-        fn {_s, _ap_id, e, _sc} -> e end
+        fn {s, _ap_id, _e, _sc, _is_strand} -> s.id end,
+        fn {_s, _ap_id, e, _sc, _is_strand} -> e end
       )
       |> Enum.into(%{})
 
@@ -944,7 +945,7 @@ defmodule Lanttern.Assessments do
   defp apply_list_strand_students_entries_opts(queryable, [_ | opts]),
     do: apply_list_strand_students_entries_opts(queryable, opts)
 
-  defp maybe_build_empty_entry({s, ap_id, nil, sc}) do
+  defp maybe_build_empty_entry({s, ap_id, nil, sc, is_strand}) do
     empty_entry =
       %AssessmentPointEntry{
         student_id: s.id,
@@ -953,10 +954,15 @@ defmodule Lanttern.Assessments do
         scale_type: sc.type
       }
 
-    {s, ap_id, empty_entry, sc}
+    {s, ap_id, empty_entry, sc, is_strand}
   end
 
   defp maybe_build_empty_entry(select_tuple), do: select_tuple
+
+  defp put_is_strand_entry({s, ap_id, e, sc, is_strand}) do
+    e = %{e | is_strand_entry: is_strand}
+    {s, ap_id, e, sc, is_strand}
+  end
 
   # @doc """
   # Returns the list of the assessment point entries for every student in the given strand.
@@ -1131,7 +1137,7 @@ defmodule Lanttern.Assessments do
       students_entries
       |> Enum.map(fn
         {_s, _ap_id, e} -> e && e.id
-        {_s, _ap_id, e, _sc} -> e && e.id
+        {_s, _ap_id, e, _sc, _is_strand} -> e && e.id
       end)
       |> Enum.filter(& &1)
 

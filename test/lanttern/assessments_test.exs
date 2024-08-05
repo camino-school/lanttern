@@ -1845,15 +1845,18 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_student_1.id == student_1.id
       assert expected_std_1_s_ap_1_ci_1.id == std_1_s_ap_1_ci_1.id
       assert expected_std_1_s_ap_1_ci_1.ordinal_value_id == ov_a.id
+      assert expected_std_1_s_ap_1_ci_1.is_strand_entry
       assert expected_std_1_s_ap_2_ci_2.id == std_1_s_ap_2_ci_2.id
       assert expected_std_1_s_ap_2_ci_2.ordinal_value_id == ov_b.id
+      assert expected_std_1_s_ap_2_ci_2.is_strand_entry
 
       assert %AssessmentPointEntry{
                id: nil,
                student_id: ^student_1_id,
                assessment_point_id: ^s_ap_3_id,
                scale_id: ^s_ap_3_scale_id,
-               scale_type: ^s_ap_3_scale_type
+               scale_type: ^s_ap_3_scale_type,
+               is_strand_entry: true
              } = expected_std_1_s_ap_3_ci_3
 
       assert expected_student_2.id == student_2.id
@@ -1863,18 +1866,21 @@ defmodule Lanttern.AssessmentsTest do
                student_id: ^student_2_id,
                assessment_point_id: ^s_ap_1_id,
                scale_id: ^s_ap_1_scale_id,
-               scale_type: ^s_ap_1_scale_type
+               scale_type: ^s_ap_1_scale_type,
+               is_strand_entry: true
              } = expected_std_2_s_ap_1_ci_1
 
       assert expected_std_2_s_ap_2_ci_2.id == std_2_s_ap_2_ci_2.id
       assert expected_std_2_s_ap_2_ci_2.ordinal_value_id == ov_c.id
+      assert expected_std_2_s_ap_2_ci_2.is_strand_entry
 
       assert %AssessmentPointEntry{
                id: nil,
                student_id: ^student_2_id,
                assessment_point_id: ^s_ap_3_id,
                scale_id: ^s_ap_3_scale_id,
-               scale_type: ^s_ap_3_scale_type
+               scale_type: ^s_ap_3_scale_type,
+               is_strand_entry: true
              } = expected_std_2_s_ap_3_ci_3
 
       assert expected_student_3.id == student_3.id
@@ -1884,7 +1890,8 @@ defmodule Lanttern.AssessmentsTest do
                student_id: ^student_3_id,
                assessment_point_id: ^s_ap_1_id,
                scale_id: ^s_ap_1_scale_id,
-               scale_type: ^s_ap_1_scale_type
+               scale_type: ^s_ap_1_scale_type,
+               is_strand_entry: true
              } = expected_std_3_s_ap_1_ci_1
 
       assert %AssessmentPointEntry{
@@ -1892,11 +1899,13 @@ defmodule Lanttern.AssessmentsTest do
                student_id: ^student_3_id,
                assessment_point_id: ^s_ap_2_id,
                scale_id: ^s_ap_2_scale_id,
-               scale_type: ^s_ap_2_scale_type
+               scale_type: ^s_ap_2_scale_type,
+               is_strand_entry: true
              } = expected_std_3_s_ap_2_ci_2
 
       assert expected_std_3_s_ap_3_ci_3.id == std_3_s_ap_3_ci_3.id
       assert expected_std_3_s_ap_3_ci_3.ordinal_value_id == ov_a.id
+      assert expected_std_3_s_ap_3_ci_3.is_strand_entry
     end
 
     test "list_strand_students_entries/2 grouped by curriculum returns entries as expected", %{
@@ -1997,21 +2006,27 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_student_1.id == student_1.id
       assert expected_std_1_m_1_ap_1_ci_1.id == std_1_m_1_ap_1_ci_1.id
       assert expected_std_1_m_1_ap_1_ci_1.ordinal_value_id == ov_a.id
+      refute expected_std_1_m_1_ap_1_ci_1.is_strand_entry
       assert expected_std_1_s_ap_1_ci_1.id == std_1_s_ap_1_ci_1.id
       assert expected_std_1_s_ap_1_ci_1.ordinal_value_id == ov_a.id
+      assert expected_std_1_s_ap_1_ci_1.is_strand_entry
       assert expected_std_1_m_1_ap_2_ci_2.id == std_1_m_1_ap_2_ci_2.id
       assert expected_std_1_m_1_ap_2_ci_2.ordinal_value_id == ov_b.id
+      refute expected_std_1_m_1_ap_2_ci_2.is_strand_entry
       assert expected_std_1_m_2_ap_1_ci_2.id == std_1_m_2_ap_1_ci_2.id
       assert expected_std_1_m_2_ap_1_ci_2.ordinal_value_id == ov_b.id
+      refute expected_std_1_m_2_ap_1_ci_2.is_strand_entry
       assert expected_std_1_s_ap_2_ci_2.id == std_1_s_ap_2_ci_2.id
       assert expected_std_1_s_ap_2_ci_2.ordinal_value_id == ov_b.id
+      assert expected_std_1_s_ap_2_ci_2.is_strand_entry
 
       assert %AssessmentPointEntry{
                id: nil,
                student_id: ^student_1_id,
                assessment_point_id: ^s_ap_3_id,
                scale_id: ^s_ap_3_scale_id,
-               scale_type: ^s_ap_3_scale_type
+               scale_type: ^s_ap_3_scale_type,
+               is_strand_entry: true
              } = expected_std_1_s_ap_3_ci_3
 
       assert expected_student_2.id == student_2.id
@@ -2021,7 +2036,8 @@ defmodule Lanttern.AssessmentsTest do
                student_id: ^student_2_id,
                assessment_point_id: ^m_1_ap_1_id,
                scale_id: ^m_1_ap_1_scale_id,
-               scale_type: ^m_1_ap_1_scale_type
+               scale_type: ^m_1_ap_1_scale_type,
+               is_strand_entry: false
              } = expected_std_2_m_1_ap_1_ci_1
 
       assert %AssessmentPointEntry{
@@ -2029,29 +2045,34 @@ defmodule Lanttern.AssessmentsTest do
                student_id: ^student_2_id,
                assessment_point_id: ^s_ap_1_id,
                scale_id: ^s_ap_1_scale_id,
-               scale_type: ^s_ap_1_scale_type
+               scale_type: ^s_ap_1_scale_type,
+               is_strand_entry: true
              } = expected_std_2_s_ap_1_ci_1
 
       assert expected_std_2_m_1_ap_2_ci_2.id == std_2_m_1_ap_2_ci_2.id
       assert expected_std_2_m_1_ap_2_ci_2.ordinal_value_id == ov_c.id
+      refute expected_std_2_m_1_ap_2_ci_2.is_strand_entry
 
       assert %AssessmentPointEntry{
                id: nil,
                student_id: ^student_2_id,
                assessment_point_id: ^m_2_ap_1_id,
                scale_id: ^m_2_ap_1_scale_id,
-               scale_type: ^m_2_ap_1_scale_type
+               scale_type: ^m_2_ap_1_scale_type,
+               is_strand_entry: false
              } = expected_std_2_m_2_ap_1_ci_2
 
       assert expected_std_2_s_ap_2_ci_2.id == std_2_s_ap_2_ci_2.id
       assert expected_std_2_s_ap_2_ci_2.ordinal_value_id == ov_c.id
+      assert expected_std_2_s_ap_2_ci_2.is_strand_entry
 
       assert %AssessmentPointEntry{
                id: nil,
                student_id: ^student_2_id,
                assessment_point_id: ^s_ap_3_id,
                scale_id: ^s_ap_3_scale_id,
-               scale_type: ^s_ap_3_scale_type
+               scale_type: ^s_ap_3_scale_type,
+               is_strand_entry: true
              } = expected_std_2_s_ap_3_ci_3
 
       assert expected_student_3.id == student_3.id
@@ -2061,7 +2082,8 @@ defmodule Lanttern.AssessmentsTest do
                student_id: ^student_3_id,
                assessment_point_id: ^m_1_ap_1_id,
                scale_id: ^m_1_ap_1_scale_id,
-               scale_type: ^m_1_ap_1_scale_type
+               scale_type: ^m_1_ap_1_scale_type,
+               is_strand_entry: false
              } = expected_std_3_m_1_ap_1_ci_1
 
       assert %AssessmentPointEntry{
@@ -2069,7 +2091,8 @@ defmodule Lanttern.AssessmentsTest do
                student_id: ^student_3_id,
                assessment_point_id: ^s_ap_1_id,
                scale_id: ^s_ap_1_scale_id,
-               scale_type: ^s_ap_1_scale_type
+               scale_type: ^s_ap_1_scale_type,
+               is_strand_entry: true
              } = expected_std_3_s_ap_1_ci_1
 
       assert %AssessmentPointEntry{
@@ -2077,7 +2100,8 @@ defmodule Lanttern.AssessmentsTest do
                student_id: ^student_3_id,
                assessment_point_id: ^m_1_ap_2_id,
                scale_id: ^m_1_ap_2_scale_id,
-               scale_type: ^m_1_ap_2_scale_type
+               scale_type: ^m_1_ap_2_scale_type,
+               is_strand_entry: false
              } = expected_std_3_m_1_ap_2_ci_2
 
       assert %AssessmentPointEntry{
@@ -2085,7 +2109,8 @@ defmodule Lanttern.AssessmentsTest do
                student_id: ^student_3_id,
                assessment_point_id: ^m_2_ap_1_id,
                scale_id: ^m_2_ap_1_scale_id,
-               scale_type: ^m_2_ap_1_scale_type
+               scale_type: ^m_2_ap_1_scale_type,
+               is_strand_entry: false
              } = expected_std_3_m_2_ap_1_ci_2
 
       assert %AssessmentPointEntry{
@@ -2093,11 +2118,13 @@ defmodule Lanttern.AssessmentsTest do
                student_id: ^student_3_id,
                assessment_point_id: ^s_ap_2_id,
                scale_id: ^s_ap_2_scale_id,
-               scale_type: ^s_ap_2_scale_type
+               scale_type: ^s_ap_2_scale_type,
+               is_strand_entry: true
              } = expected_std_3_s_ap_2_ci_2
 
       assert expected_std_3_s_ap_3_ci_3.id == std_3_s_ap_3_ci_3.id
       assert expected_std_3_s_ap_3_ci_3.ordinal_value_id == ov_a.id
+      assert expected_std_3_s_ap_3_ci_3.is_strand_entry
     end
 
     test "list_strand_students_entries/2 grouped by moment returns entries as expected", %{
@@ -2198,21 +2225,27 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_student_1.id == student_1.id
       assert expected_std_1_m_1_ap_1_ci_1.id == std_1_m_1_ap_1_ci_1.id
       assert expected_std_1_m_1_ap_1_ci_1.ordinal_value_id == ov_a.id
+      refute expected_std_1_m_1_ap_1_ci_1.is_strand_entry
       assert expected_std_1_m_1_ap_2_ci_2.id == std_1_m_1_ap_2_ci_2.id
       assert expected_std_1_m_1_ap_2_ci_2.ordinal_value_id == ov_b.id
+      refute expected_std_1_m_1_ap_2_ci_2.is_strand_entry
       assert expected_std_1_m_2_ap_1_ci_2.id == std_1_m_2_ap_1_ci_2.id
       assert expected_std_1_m_2_ap_1_ci_2.ordinal_value_id == ov_b.id
+      refute expected_std_1_m_2_ap_1_ci_2.is_strand_entry
       assert expected_std_1_s_ap_1_ci_1.id == std_1_s_ap_1_ci_1.id
       assert expected_std_1_s_ap_1_ci_1.ordinal_value_id == ov_a.id
+      assert expected_std_1_s_ap_1_ci_1.is_strand_entry
       assert expected_std_1_s_ap_2_ci_2.id == std_1_s_ap_2_ci_2.id
       assert expected_std_1_s_ap_2_ci_2.ordinal_value_id == ov_b.id
+      assert expected_std_1_s_ap_2_ci_2.is_strand_entry
 
       assert %AssessmentPointEntry{
                id: nil,
                student_id: ^student_1_id,
                assessment_point_id: ^s_ap_3_id,
                scale_id: ^s_ap_3_scale_id,
-               scale_type: ^s_ap_3_scale_type
+               scale_type: ^s_ap_3_scale_type,
+               is_strand_entry: true
              } = expected_std_1_s_ap_3_ci_3
 
       assert expected_student_2.id == student_2.id
@@ -2222,7 +2255,8 @@ defmodule Lanttern.AssessmentsTest do
                student_id: ^student_2_id,
                assessment_point_id: ^m_1_ap_1_id,
                scale_id: ^m_1_ap_1_scale_id,
-               scale_type: ^m_1_ap_1_scale_type
+               scale_type: ^m_1_ap_1_scale_type,
+               is_strand_entry: false
              } = expected_std_2_m_1_ap_1_ci_1
 
       assert %AssessmentPointEntry{
@@ -2230,29 +2264,34 @@ defmodule Lanttern.AssessmentsTest do
                student_id: ^student_2_id,
                assessment_point_id: ^s_ap_1_id,
                scale_id: ^s_ap_1_scale_id,
-               scale_type: ^s_ap_1_scale_type
+               scale_type: ^s_ap_1_scale_type,
+               is_strand_entry: true
              } = expected_std_2_s_ap_1_ci_1
 
       assert expected_std_2_m_1_ap_2_ci_2.id == std_2_m_1_ap_2_ci_2.id
       assert expected_std_2_m_1_ap_2_ci_2.ordinal_value_id == ov_c.id
+      refute expected_std_2_m_1_ap_2_ci_2.is_strand_entry
 
       assert %AssessmentPointEntry{
                id: nil,
                student_id: ^student_2_id,
                assessment_point_id: ^m_2_ap_1_id,
                scale_id: ^m_2_ap_1_scale_id,
-               scale_type: ^m_2_ap_1_scale_type
+               scale_type: ^m_2_ap_1_scale_type,
+               is_strand_entry: false
              } = expected_std_2_m_2_ap_1_ci_2
 
       assert expected_std_2_s_ap_2_ci_2.id == std_2_s_ap_2_ci_2.id
       assert expected_std_2_s_ap_2_ci_2.ordinal_value_id == ov_c.id
+      assert expected_std_2_s_ap_2_ci_2.is_strand_entry
 
       assert %AssessmentPointEntry{
                id: nil,
                student_id: ^student_2_id,
                assessment_point_id: ^s_ap_3_id,
                scale_id: ^s_ap_3_scale_id,
-               scale_type: ^s_ap_3_scale_type
+               scale_type: ^s_ap_3_scale_type,
+               is_strand_entry: true
              } = expected_std_2_s_ap_3_ci_3
 
       assert expected_student_3.id == student_3.id
@@ -2262,7 +2301,8 @@ defmodule Lanttern.AssessmentsTest do
                student_id: ^student_3_id,
                assessment_point_id: ^m_1_ap_1_id,
                scale_id: ^m_1_ap_1_scale_id,
-               scale_type: ^m_1_ap_1_scale_type
+               scale_type: ^m_1_ap_1_scale_type,
+               is_strand_entry: false
              } = expected_std_3_m_1_ap_1_ci_1
 
       assert %AssessmentPointEntry{
@@ -2270,7 +2310,8 @@ defmodule Lanttern.AssessmentsTest do
                student_id: ^student_3_id,
                assessment_point_id: ^s_ap_1_id,
                scale_id: ^s_ap_1_scale_id,
-               scale_type: ^s_ap_1_scale_type
+               scale_type: ^s_ap_1_scale_type,
+               is_strand_entry: true
              } = expected_std_3_s_ap_1_ci_1
 
       assert %AssessmentPointEntry{
@@ -2278,7 +2319,8 @@ defmodule Lanttern.AssessmentsTest do
                student_id: ^student_3_id,
                assessment_point_id: ^m_1_ap_2_id,
                scale_id: ^m_1_ap_2_scale_id,
-               scale_type: ^m_1_ap_2_scale_type
+               scale_type: ^m_1_ap_2_scale_type,
+               is_strand_entry: false
              } = expected_std_3_m_1_ap_2_ci_2
 
       assert %AssessmentPointEntry{
@@ -2286,7 +2328,8 @@ defmodule Lanttern.AssessmentsTest do
                student_id: ^student_3_id,
                assessment_point_id: ^m_2_ap_1_id,
                scale_id: ^m_2_ap_1_scale_id,
-               scale_type: ^m_2_ap_1_scale_type
+               scale_type: ^m_2_ap_1_scale_type,
+               is_strand_entry: false
              } = expected_std_3_m_2_ap_1_ci_2
 
       assert %AssessmentPointEntry{
@@ -2294,11 +2337,13 @@ defmodule Lanttern.AssessmentsTest do
                student_id: ^student_3_id,
                assessment_point_id: ^s_ap_2_id,
                scale_id: ^s_ap_2_scale_id,
-               scale_type: ^s_ap_2_scale_type
+               scale_type: ^s_ap_2_scale_type,
+               is_strand_entry: true
              } = expected_std_3_s_ap_2_ci_2
 
       assert expected_std_3_s_ap_3_ci_3.id == std_3_s_ap_3_ci_3.id
       assert expected_std_3_s_ap_3_ci_3.ordinal_value_id == ov_a.id
+      assert expected_std_3_s_ap_3_ci_3.is_strand_entry
     end
   end
 
