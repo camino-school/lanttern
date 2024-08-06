@@ -33,14 +33,17 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class={[@grid_class, @class]}>
+    <div class={["w-full h-full", @grid_class, @class]}>
       <%= if @form do %>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 w-full h-full">
           <.form
             for={@form}
             phx-change="change"
             phx-target={@myself}
-            class={if(@has_changes, do: "outline outline-4 outline-offset-1 outline-ltrn-dark")}
+            class={[
+              "flex-1 w-full h-full",
+              if(@has_changes, do: "outline outline-4 outline-offset-1 outline-ltrn-dark")
+            ]}
             id={"entry-#{@id}-marking-form"}
           >
             <.marking_input
@@ -53,7 +56,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
           <button
             type="button"
             class={[
-              "flex items-center gap-1 p-1 ml-2 rounded-full text-ltrn-light bg-white shadow hover:bg-ltrn-lightest",
+              "flex items-center gap-1 shrink-0 p-1 rounded-full text-ltrn-light bg-white shadow hover:bg-ltrn-lightest",
               "disabled:bg-ltrn-lighter disabled:shadow-none"
             ]}
             disabled={!@entry.id}
@@ -97,7 +100,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       options={@ov_options}
       value={@field.value}
       class={[
-        "w-full h-full rounded-sm font-mono text-sm text-center truncate",
+        "w-full h-full rounded-sm font-mono text-sm text-center truncate text-clip",
         @field.value in [nil, ""] && "bg-ltrn-lighter"
       ]}
       style={@style}
@@ -145,10 +148,10 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     ~H"""
     <%= if @value do %>
       <div
-        class="flex items-center justify-center p-2 rounded-sm font-mono text-sm bg-white"
+        class="flex items-center justify-center h-full px-1 py-2 rounded-sm font-mono text-sm bg-white"
         style={@style}
       >
-        <span class="truncate">
+        <span class="truncate text-clip">
           <%= @value %>
         </span>
       </div>
@@ -171,7 +174,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
 
     ~H"""
     <%= if @value do %>
-      <div class="flex items-center justify-center p-2 border border-ltrn-light rounded-sm font-mono text-sm bg-white">
+      <div class="flex items-center justify-center h-full p-2 rounded-sm font-mono text-sm bg-white shadow-lg">
         <%= @value %>
       </div>
     <% else %>
@@ -182,7 +185,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
 
   def empty(assigns) do
     ~H"""
-    <div class="flex items-center justify-center p-2 rounded-sm font-mono text-sm text-ltrn-subtle bg-ltrn-lighter">
+    <div class="flex items-center justify-center h-full p-2 rounded-sm font-mono text-sm text-ltrn-subtle bg-ltrn-lighter">
       —
     </div>
     """

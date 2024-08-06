@@ -698,86 +698,96 @@ defmodule Lanttern.Assessments do
   @doc """
   Returns the list of assessment points for the given strand.
 
-  The results are always a list of tuples, with the first item being
-  some meta information about the assessment point grouping and the second
-  the list of the assessment points (view below for more info).
+  The return format is comprised of a tuple with two lists:
+  1. a list of "headers", a tuple with the group by struct and a count of assessment points
+  2. the list of assessment points (view below for more info).
 
   ### `:group_by`
 
-  - `nil` (default) - When `:group_by` is `nil`, will return a list with one tuple, with a
-  `%Strand{}` as the first item and the list of the strand assessment points
-  (no moments assessment points), ordered by position.
-  Preloads `curriculum_item` and `curriculum_component`.
+  - `nil` (default) - When `:group_by` is `nil`, there will be only one header
+  (the `%Strand{}`) and the list of the strand assessment points (no moments
+  assessment points) will be ordered by position.
+  Assesment points preloads `curriculum_item` and `curriculum_component`.
 
-  - `"curriculum"` - will return a list of tuples where the first item
-  is a `%CurriculumItem{}` and the second is a list of `%AssessmentPoint{}`s.
-  The tuples are ordered by the strand assessment point
-  curriculum items position, and the assessment points are ordered by moment
-  and assessment point position, with the strand assessment point at the end.
+  - `"curriculum"` - will return a list of `%CurriculumItem{}`s as headers,
+  ordered by the strand assessment point curriculum items position,
+  and the assessment points will be ordered by moment and assessment point position,
+  with the strand assessment points at the end.
   Assessment points preloads `moment`, and curriculum items preloads curricumum component.
   Curriculum `is_differentiation` is set based on strand assessment point.
 
-  - `"moment"` - will return a list of tuples where the first item
-  is a `%Moment{}` or a `%Strand{}` and the second is a list of
-  `%AssessmentPoint{}`s ordered by position.
-  Preloads `curriculum_item` and `curriculum_component`.
+  - `"moment"` - will return a list of `%Moment{}`s in the header, with
+  a `%Strand{}` at the end. Assessment points are ordered by moment and
+  assessment point position, with strand assessment points at the end.
+  Assessment points preloads `curriculum_item` and `curriculum_component`.
 
   ## Examples
 
       iex> list_strand_assessment_points(strand_id)
-      [
-        {%Strand{}, [%AssessmentPoint{}, ...]}
-      ]
-
-      iex> list_strand_assessment_points(strand_id, group_by: "moment")
-      [
-        {%Moment{}, [%AssessmentPoint{}, ...]},
-        ...,
-        {%Strand{}, [%AssessmentPoint{}, ...]}
-      ]
+      {
+        [%Strand{}, 10],
+        [%AssessmentPoint{}, ...]
+      }
 
       iex> list_strand_assessment_points(strand_id, group_by: "curriculum")
-      [
-        {%CurriculumItem{}, [%AssessmentPoint{}, ...]},
-        ...
-      ]
+      {
+        [{%CurriculumItem{}, 5}, ...],
+        [%AssessmentPoint{}, ...]
+      }
+
+      iex> list_strand_assessment_points(strand_id, group_by: "moment")
+      {
+        [{%Moment{}, 5}, ..., {%Strand{}, 10}],
+        [%AssessmentPoint{}, ...]
+      }
 
   """
-  @spec list_strand_assessment_points(pos_integer(), String.t() | nil) :: [
-          {CurriculumItem.t() | Moment.t() | Strand.t(), [AssessmentPoint.t()]}
-        ]
+  @spec list_strand_assessment_points(pos_integer(), String.t() | nil) :: {
+          [{CurriculumItem.t() | Moment.t() | Strand.t(), non_neg_integer()}],
+          [AssessmentPoint.t()]
+        }
   def list_strand_assessment_points(strand_id, group_by \\ nil)
 
   def list_strand_assessment_points(strand_id, "curriculum") do
     # base query handles where and order_by
     base_query = strand_assessment_points_base_query(strand_id, "curriculum")
 
-    assessment_points_map =
+    assessment_points =
       from(
         [ap, moment: m] in base_query,
         preload: [moment: m]
       )
       |> Repo.all()
-      |> Enum.group_by(& &1.curriculum_item_id)
 
-    from(
-      ci in CurriculumItem,
-      join: cc in assoc(ci, :curriculum_component),
-      join: ap in assoc(ci, :assessment_points),
-      where: ap.strand_id == ^strand_id,
-      order_by: ap.position,
-      select: %{ci | is_differentiation: ap.is_differentiation},
-      preload: [curriculum_component: cc]
-    )
-    |> Repo.all()
-    |> Enum.map(&{&1, assessment_points_map[&1.id]})
+    curriculum_items_ap_count_map =
+      assessment_points
+      |> Enum.group_by(& &1.curriculum_item_id)
+      |> Enum.map(fn {curriculum_item_id, assessment_points} ->
+        {curriculum_item_id, length(assessment_points)}
+      end)
+      |> Enum.into(%{})
+
+    headers =
+      from(
+        ci in CurriculumItem,
+        join: cc in assoc(ci, :curriculum_component),
+        join: ap in assoc(ci, :assessment_points),
+        where: ap.strand_id == ^strand_id,
+        order_by: ap.position,
+        select: %{ci | is_differentiation: ap.is_differentiation},
+        preload: [curriculum_component: cc]
+      )
+      |> Repo.all()
+      |> Enum.map(&{&1, curriculum_items_ap_count_map[&1.id]})
+
+    {headers, assessment_points}
   end
 
   def list_strand_assessment_points(strand_id, "moment") do
     # base query handles where and order_by
     base_query = strand_assessment_points_base_query(strand_id, "moment")
 
-    assessment_points_map =
+    assessment_points =
       from(
         ap in base_query,
         join: ci in assoc(ap, :curriculum_item),
@@ -785,9 +795,14 @@ defmodule Lanttern.Assessments do
         preload: [curriculum_item: {ci, curriculum_component: cc}]
       )
       |> Repo.all()
-      |> Enum.group_by(& &1.moment_id)
 
-    moments_assessment_points =
+    assessment_points_count_map =
+      assessment_points
+      |> Enum.group_by(& &1.moment_id)
+      |> Enum.map(fn {moment_id, assessment_points} -> {moment_id, length(assessment_points)} end)
+      |> Enum.into(%{})
+
+    moments_headers =
       from(
         m in Moment,
         join: ap in assoc(m, :assessment_points),
@@ -796,12 +811,12 @@ defmodule Lanttern.Assessments do
         distinct: true
       )
       |> Repo.all()
-      |> Enum.map(&{&1, assessment_points_map[&1.id]})
+      |> Enum.map(&{&1, assessment_points_count_map[&1.id]})
 
     strand = Repo.get(Strand, strand_id)
-    strand_assessment_points = {strand, assessment_points_map[nil]}
+    strand_header = {strand, assessment_points_count_map[nil]}
 
-    moments_assessment_points ++ [strand_assessment_points]
+    {moments_headers ++ [strand_header], assessment_points}
   end
 
   def list_strand_assessment_points(strand_id, nil) do
@@ -819,7 +834,7 @@ defmodule Lanttern.Assessments do
 
     strand = Repo.get(Strand, strand_id)
 
-    [{strand, assessment_points}]
+    {[{strand, length(assessment_points)}], assessment_points}
   end
 
   defp strand_assessment_points_base_query(strand_id, group_by)

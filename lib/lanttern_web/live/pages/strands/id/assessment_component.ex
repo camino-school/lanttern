@@ -88,24 +88,42 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
           )
         ]}>
           <div
-            class="relative grid w-max"
-            style={"grid-template-columns: 240px repeat(#{@assessment_points_count}, minmax(240px, 1fr))"}
+            class="relative grid pb-4"
+            style={"grid-template-columns: 15rem #{@assessment_points_columns_grid}"}
           >
             <div
-              class={"sticky top-0 z-20 grid grid-cols-subgrid #{@view_bg}"}
+              class={"sticky top-0 z-20 grid grid-cols-subgrid pt-4 #{@view_bg}"}
               style={"grid-column: span #{@assessment_points_count + 1} / span #{@assessment_points_count + 1}"}
             >
-              <div class={"sticky left-0 #{@view_bg}"}></div>
+              <div class={[
+                "sticky left-0 #{@view_bg}",
+                if(!is_nil(@current_assessment_group_by), do: "row-span-2")
+              ]}>
+              </div>
+              <div
+                :if={!is_nil(@current_assessment_group_by)}
+                id="grid-assessment-point-headers"
+                phx-update="stream"
+                class="grid grid-cols-subgrid"
+                style={"grid-column: span #{@assessment_points_count} / span #{@assessment_points_count}"}
+              >
+                <.assessment_point_header
+                  :for={{dom_id, ap_header} <- @streams.assessment_point_headers}
+                  id={dom_id}
+                  ap_header={ap_header}
+                  assessment_view={@current_assessment_view}
+                />
+              </div>
               <div
                 id="grid-assessment-points"
                 phx-update="stream"
                 class="grid grid-cols-subgrid"
                 style={"grid-column: span #{@assessment_points_count} / span #{@assessment_points_count}"}
               >
-                <.assessment_point_group
-                  :for={{dom_id, ap_group} <- @streams.assessment_points}
+                <.assessment_point
+                  :for={{dom_id, assessment_point} <- @streams.assessment_points}
                   id={dom_id}
-                  ap_group={ap_group}
+                  assessment_point={assessment_point}
                   assessment_view={@current_assessment_view}
                 />
               </div>
@@ -206,7 +224,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       case assigns.current_assessment_group_by do
         "curriculum" -> gettext("Show all, grouped by curriculum")
         "moment" -> gettext("Show all, grouped by moment")
-        _ -> gettext("Show only goal assessments")
+        _ -> gettext("Show only goals assessments")
       end
 
     assigns = assign(assigns, :text, text)
@@ -218,7 +236,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       </.badge_button>
       <.dropdown_menu id="group-by-dropdown" button_id="group-by-dropdown-button" z_index="30">
         <:item
-          text={gettext("Show only goal assessments")}
+          text={gettext("Show only goals assessments")}
           on_click={JS.push("change_group_by", value: %{"group_by" => nil}, target: @myself)}
         />
         <:item
@@ -287,118 +305,169 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   end
 
   attr :id, :string, required: true
-  attr :ap_group, :any, required: true
+  attr :ap_header, :any, required: true
   attr :assessment_view, :string, required: true
 
-  def assessment_point_group(assigns) do
-    {group_by_struct, assessment_points} = assigns.ap_group
-
-    # handles grid-column span "calculation"
-    assessment_points_count = length(assessment_points)
+  def assessment_point_header(assigns) do
+    {header_struct, assessment_points_count} = assigns.ap_header
 
     grid_column_span_style =
       "grid-column: span #{assessment_points_count} / span #{assessment_points_count}"
 
     assigns =
       assigns
-      |> assign(:group_by_struct, group_by_struct)
-      |> assign(:assessment_points, assessment_points)
+      |> assign(:header_struct, header_struct)
       |> assign(:grid_column_span_style, grid_column_span_style)
 
     ~H"""
-    <div id={@id} class="grid grid-cols-subgrid" style={@grid_column_span_style}>
-      <div style={@grid_column_span_style}>
-        <.assessment_point_group_header group_by_struct={@group_by_struct} />
-      </div>
-      <div
-        :for={assessment_point <- @assessment_points}
-        id={"assessment-point-#{assessment_point.id}"}
-        class="flex flex-col gap-2 max-w-80 pt-6 px-2 pb-2 text-sm"
-      >
-        <.assessment_point assessment_point={assessment_point} />
-        <div :if={@assessment_view == "compare"} class="flex gap-1 w-full">
-          <div class="flex-1 pb-1 border-b-2 border-ltrn-teacher-accent text-xs text-center text-ltrn-teacher-dark">
-            <%= gettext("Teacher") %>
-          </div>
-          <div class="flex-1 pb-1 border-b-2 border-ltrn-student-accent text-xs text-center text-ltrn-student-dark">
-            <%= gettext("Student") %>
-          </div>
-        </div>
+    <div id={@id} class="group pt-2 px-2" style={@grid_column_span_style}>
+      <div class="h-full pb-2 border-b border-ltrn-light" style={@grid_column_span_style}>
+        <.assessment_point_header_struct header_struct={@header_struct} />
       </div>
     </div>
     """
   end
 
-  attr :group_by_struct, :any, required: true, doc: "moment, strand, or curriculum item"
+  attr :header_struct, :any, required: true, doc: "moment, strand, or curriculum item"
 
-  def assessment_point_group_header(%{group_by_struct: %Moment{}} = assigns) do
+  def assessment_point_header_struct(%{header_struct: %Moment{}} = assigns) do
     ~H"""
-    <.link navigate={~p"/strands/moment/#{@group_by_struct.id}?tab=assessment"}>
-      <%= @group_by_struct.name %>
+    <.link
+      class="flex items-center w-full h-full p-1 rounded text-sm font-display font-bold truncate hover:bg-ltrn-mesh-cyan"
+      navigate={~p"/strands/moment/#{@header_struct.id}?tab=assessment"}
+    >
+      <%= @header_struct.name %>
     </.link>
     """
   end
 
-  def assessment_point_group_header(%{group_by_struct: %CurriculumItem{}} = assigns) do
+  def assessment_point_header_struct(%{header_struct: %CurriculumItem{}} = assigns) do
     ~H"""
-    <div class="max-w-80">
-      <div class="flex items-center gap-2">
-        <.badge>
-          <%= @group_by_struct.curriculum_component.name %>
-        </.badge>
-        <.badge :if={@group_by_struct.is_differentiation} theme="diff">
-          <%= gettext("Diff") %>
-        </.badge>
-      </div>
-      <p class="flex-1 line-clamp-3" title={@group_by_struct.name}>
-        <%= @group_by_struct.name %>
-      </p>
+    <div class="flex items-center gap-2">
+      <.badge class="truncate">
+        <%= @header_struct.curriculum_component.name %>
+      </.badge>
+      <.badge :if={@header_struct.is_differentiation} theme="diff">
+        <%= gettext("Diff") %>
+      </.badge>
     </div>
+    <p class="mt-1 text-sm line-clamp-2" title={@header_struct.name}>
+      <%= @header_struct.name %>
+    </p>
     """
   end
 
-  def assessment_point_group_header(%{group_by_struct: %Strand{}} = assigns) do
+  def assessment_point_header_struct(%{header_struct: %Strand{}} = assigns) do
     ~H"""
-    <%= gettext("Goal assessment") %>
+    <p class="flex items-center h-full text-sm font-display font-bold">
+      <%= gettext("Goals assessment") %>
+    </p>
+    """
+  end
+
+  attr :assessment_point, AssessmentPoint, required: true
+  attr :assessment_view, :string, required: true
+  attr :id, :string, required: true
+
+  def assessment_point(assigns) do
+    ~H"""
+    <div id={@id} class="flex flex-col p-2">
+      <div class="flex-1">
+        <.assessment_point_struct assessment_point={@assessment_point} />
+      </div>
+      <.compare_header :if={@assessment_view == "compare"} />
+    </div>
     """
   end
 
   attr :assessment_point, AssessmentPoint, required: true
 
-  def assessment_point(%{assessment_point: %{curriculum_item: %CurriculumItem{}}} = assigns) do
+  def assessment_point_struct(
+        %{assessment_point: %{curriculum_item: %CurriculumItem{}, moment_id: moment_id}} = assigns
+      )
+      when not is_nil(moment_id) do
+    tooltip =
+      """
+      #{assigns.assessment_point.name}
+
+      (#{assigns.assessment_point.curriculum_item.curriculum_component.name}) #{assigns.assessment_point.curriculum_item.name}
+      """
+
+    assigns = assign(assigns, :tooltip, tooltip)
+
     ~H"""
-    <div class="flex items-center gap-2">
-      <.badge>
-        <%= @assessment_point.curriculum_item.curriculum_component.name %>
-      </.badge>
-      <.badge :if={@assessment_point.is_differentiation} theme="diff">
-        <%= gettext("Diff") %>
-      </.badge>
+    <div class="flex flex-col">
+      <div :if={@assessment_point.is_differentiation} class="mb-1">
+        <.badge theme="diff"><%= gettext("Diff") %></.badge>
+      </div>
+      <p
+        class={[
+          "flex-1 text-sm",
+          if(@assessment_point.is_differentiation, do: "line-clamp-2", else: "line-clamp-3")
+        ]}
+        title={@tooltip}
+      >
+        <%= @assessment_point.name %>
+      </p>
     </div>
-    <p class="flex-1 line-clamp-3" title={@assessment_point.curriculum_item.name}>
-      <%= @assessment_point.curriculum_item.name %>
-    </p>
     """
   end
 
-  def assessment_point(%{assessment_point: %{moment: %Moment{}}} = assigns) do
+  def assessment_point_struct(
+        %{assessment_point: %{curriculum_item: %CurriculumItem{}}} = assigns
+      ) do
     ~H"""
-    <.link
-      class="line-clamp-3"
-      title={@assessment_point.moment.name}
-      navigate={~p"/strands/moment/#{@assessment_point.moment.id}?tab=assessment"}
-    >
-      <%= @assessment_point.moment.name %>
-    </.link>
+    <div class="flex flex-col">
+      <div class="flex items-center gap-2">
+        <.badge class="truncate">
+          <%= @assessment_point.curriculum_item.curriculum_component.name %>
+        </.badge>
+        <.badge :if={@assessment_point.is_differentiation} theme="diff">
+          <%= gettext("Diff") %>
+        </.badge>
+      </div>
+      <p class="flex-1 mt-1 text-sm line-clamp-2" title={@assessment_point.curriculum_item.name}>
+        <%= @assessment_point.curriculum_item.name %>
+      </p>
+    </div>
     """
   end
 
-  def assessment_point(%{assessment_point: %{strand_id: strand_id}} = assigns)
+  def assessment_point_struct(%{assessment_point: %{moment: %Moment{}}} = assigns) do
+    ~H"""
+    <div class="text-sm whitespace-nowrap">
+      <.link
+        class="block w-full p-1 rounded overflow-hidden hover:bg-ltrn-mesh-cyan"
+        title={"#{@assessment_point.moment.name}\n\n#{@assessment_point.name}"}
+        navigate={~p"/strands/moment/#{@assessment_point.moment.id}?tab=assessment"}
+      >
+        <span class="font-bold"><%= @assessment_point.moment.name %></span> <br />
+        <span class="text-xs"><%= @assessment_point.name %></span>
+      </.link>
+    </div>
+    """
+  end
+
+  def assessment_point_struct(%{assessment_point: %{strand_id: strand_id}} = assigns)
       when not is_nil(strand_id) do
     ~H"""
-    <p>
-      <%= gettext("Goal assessment") %>
-    </p>
+    <div class="p-1 text-sm whitespace-nowrap overflow-hidden">
+      <span class="font-bold"><%= gettext("Goal assessment") %></span> <br />
+      <span class="text-xs"><%= gettext("(Strand final assessment)") %></span>
+    </div>
+    """
+  end
+
+  def compare_header(assigns) do
+    ~H"""
+    <div class="flex gap-1 w-full mt-2">
+      <div class="flex-1 pb-1 border-b-2 border-ltrn-teacher-accent text-xs text-center text-ltrn-teacher-dark">
+        <%= gettext("Teacher") %>
+      </div>
+      <div class="flex-1 pb-1 border-b-2 border-ltrn-student-accent text-xs text-center text-ltrn-student-dark">
+        <%= gettext("Student") %>
+      </div>
+    </div>
     """
   end
 
@@ -423,7 +492,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
           extra_info={@student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
         />
       </div>
-      <div :for={entry <- @entries} class="max-w-80 p-2">
+      <div :for={entry <- @entries} class="p-2">
         <.live_component
           module={EntryCellComponent}
           id={"student-#{@student.id}-entry-for-#{entry.assessment_point_id}"}
@@ -448,11 +517,11 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       |> assign(:assessment_point_entry, nil)
       |> assign(:has_entry_details_change, false)
       |> stream_configure(
-        :assessment_points,
+        :assessment_point_headers,
         dom_id: fn
-          {%CurriculumItem{} = ci, _assessment_points} -> "ap-group-curriculum-item-#{ci.id}"
-          {%Moment{} = moment, _assessment_points} -> "ap-group-moment-#{moment.id}"
-          {%Strand{} = strand, _assessment_points} -> "ap-group-strand-#{strand.id}"
+          {%CurriculumItem{} = ci, _count} -> "ap-group-curriculum-item-#{ci.id}"
+          {%Moment{} = moment, _count} -> "ap-group-moment-#{moment.id}"
+          {%Strand{} = strand, _count} -> "ap-group-strand-#{strand.id}"
           _ -> ""
         end
       )
@@ -553,20 +622,33 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   end
 
   defp stream_assessment_points(socket) do
-    assessment_points =
+    {assessment_point_headers, assessment_points} =
       Assessments.list_strand_assessment_points(
         socket.assigns.strand.id,
         socket.assigns.current_assessment_group_by
       )
 
-    assessment_points_count =
-      assessment_points
-      |> Enum.flat_map(fn {_, ap_list} -> ap_list end)
-      |> length()
+    assessment_points_count = length(assessment_points)
+
+    assessment_points_columns_grid =
+      case socket.assigns.current_assessment_view do
+        "compare" ->
+          "repeat(#{assessment_points_count}, 12rem)"
+
+        _ ->
+          assessment_points
+          |> Enum.map(fn
+            %{strand_id: id} when not is_nil(id) -> "15rem"
+            _ -> "6rem"
+          end)
+          |> Enum.join(" ")
+      end
 
     socket
     |> stream(:assessment_points, assessment_points)
-    |> assign(:assessment_points_count, assessment_points_count)
+    |> stream(:assessment_point_headers, assessment_point_headers)
+    |> assign(:assessment_points_count, length(assessment_points))
+    |> assign(:assessment_points_columns_grid, assessment_points_columns_grid)
     |> assign(:has_assessment_points, assessment_points != [])
   end
 

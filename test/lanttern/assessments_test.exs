@@ -262,7 +262,9 @@ defmodule Lanttern.AssessmentsTest do
     end
   end
 
-  describe "strand assessment points" do
+  # TODO: remove
+  # replaced by list_strand_assessment_points/2
+  describe "strand assessment points legacy" do
     alias Lanttern.Assessments.AssessmentPoint
 
     import Lanttern.AssessmentsFixtures
@@ -1646,7 +1648,7 @@ defmodule Lanttern.AssessmentsTest do
     end
   end
 
-  describe "strand assessment points 2" do
+  describe "strand assessment points" do
     setup :strand_assessment_points_setup
 
     test "list_strand_assessment_points/2 returns assessment points as expected", %{
@@ -1659,7 +1661,7 @@ defmodule Lanttern.AssessmentsTest do
       s_ap_2_ci_2: s_ap_2_ci_2,
       s_ap_3_ci_3: s_ap_3_ci_3
     } do
-      assert [{^strand, [expected_s_ap_1_ci_1, expected_s_ap_2_ci_2, expected_s_ap_3_ci_3]}] =
+      assert {[{^strand, 3}], [expected_s_ap_1_ci_1, expected_s_ap_2_ci_2, expected_s_ap_3_ci_3]} =
                Assessments.list_strand_assessment_points(strand.id)
 
       assert expected_s_ap_1_ci_1.id == s_ap_1_ci_1.id
@@ -1691,12 +1693,17 @@ defmodule Lanttern.AssessmentsTest do
            m_1_ap_2_ci_2: m_1_ap_2_ci_2,
            m_2_ap_1_ci_2: m_2_ap_1_ci_2
          } do
-      assert [
-               {expected_ci_1, [expected_m_1_ap_1_ci_1, expected_s_ap_1_ci_1]},
-               {expected_ci_2,
-                [expected_m_1_ap_2_ci_2, expected_m_2_ap_1_ci_2, expected_s_ap_2_ci_2]},
-               {expected_ci_3, [expected_s_ap_3_ci_3]}
-             ] =
+      assert {
+               [{expected_ci_1, 2}, {expected_ci_2, 3}, {expected_ci_3, 1}],
+               [
+                 expected_m_1_ap_1_ci_1,
+                 expected_s_ap_1_ci_1,
+                 expected_m_1_ap_2_ci_2,
+                 expected_m_2_ap_1_ci_2,
+                 expected_s_ap_2_ci_2,
+                 expected_s_ap_3_ci_3
+               ]
+             } =
                Assessments.list_strand_assessment_points(strand.id, "curriculum")
 
       assert expected_ci_1.id == ci_1.id
@@ -1737,11 +1744,17 @@ defmodule Lanttern.AssessmentsTest do
            m_1_ap_2_ci_2: m_1_ap_2_ci_2,
            m_2_ap_1_ci_2: m_2_ap_1_ci_2
          } do
-      assert [
-               {^m_1, [expected_m_1_ap_1_ci_1, expected_m_1_ap_2_ci_2]},
-               {^m_2, [expected_m_2_ap_1_ci_2]},
-               {^strand, [expected_s_ap_1_ci_1, expected_s_ap_2_ci_2, expected_s_ap_3_ci_3]}
-             ] =
+      assert {
+               [{^m_1, 2}, {^m_2, 1}, {^strand, 3}],
+               [
+                 expected_m_1_ap_1_ci_1,
+                 expected_m_1_ap_2_ci_2,
+                 expected_m_2_ap_1_ci_2,
+                 expected_s_ap_1_ci_1,
+                 expected_s_ap_2_ci_2,
+                 expected_s_ap_3_ci_3
+               ]
+             } =
                Assessments.list_strand_assessment_points(strand.id, "moment")
 
       assert expected_m_1_ap_1_ci_1.id == m_1_ap_1_ci_1.id
