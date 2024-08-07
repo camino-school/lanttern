@@ -50,7 +50,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
             </p>
           <% end %>
         </div>
-        <div class="flex items-center gap-4 mt-6 text-sm">
+        <div class="flex items-center gap-4 mt-6">
           <.assessment_group_by_dropdow
             current_assessment_group_by={@current_assessment_group_by}
             myself={@myself}

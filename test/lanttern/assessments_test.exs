@@ -307,213 +307,6 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_4.id == assessment_point_2_2.id
     end
 
-    @tag :skip
-    test "list_strand_students_entries/1 returns students and their assessment point entries for the given strand" do
-      strand = LearningContextFixtures.strand_fixture()
-      moment_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id, position: 1})
-      moment_2 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id, position: 2})
-      curriculum_item_1 = CurriculaFixtures.curriculum_item_fixture()
-      curriculum_item_2 = CurriculaFixtures.curriculum_item_fixture()
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-
-      assessment_point_1_1 =
-        assessment_point_fixture(%{
-          moment_id: moment_1.id,
-          name: "some assessment point name abc",
-          curriculum_item_id: curriculum_item_1.id,
-          scale_id: scale.id
-        })
-
-      assessment_point_2_1 =
-        assessment_point_fixture(%{
-          moment_id: moment_2.id,
-          name: "some assessment point name hij",
-          curriculum_item_id: curriculum_item_1.id,
-          scale_id: scale.id
-        })
-
-      assessment_point_2_2 =
-        assessment_point_fixture(%{
-          moment_id: moment_2.id,
-          name: "some assessment point name xyz",
-          curriculum_item_id: curriculum_item_2.id,
-          scale_id: scale.id
-        })
-
-      class = SchoolsFixtures.class_fixture()
-      student_a = SchoolsFixtures.student_fixture(%{name: "AAA", classes_ids: [class.id]})
-      student_b = SchoolsFixtures.student_fixture(%{name: "BBB", classes_ids: [class.id]})
-      student_c = SchoolsFixtures.student_fixture(%{name: "CCC", classes_ids: [class.id]})
-      student_d = SchoolsFixtures.student_fixture(%{name: "DDD"})
-
-      entry_1_1_a =
-        assessment_point_entry_fixture(%{
-          student_id: student_a.id,
-          assessment_point_id: assessment_point_1_1.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      entry_2_1_b =
-        assessment_point_entry_fixture(%{
-          student_id: student_b.id,
-          assessment_point_id: assessment_point_2_1.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      entry_2_2_c =
-        assessment_point_entry_fixture(%{
-          student_id: student_c.id,
-          assessment_point_id: assessment_point_2_2.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      _entry_2_2_d =
-        assessment_point_entry_fixture(%{
-          student_id: student_d.id,
-          assessment_point_id: assessment_point_2_2.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      assert [
-               {expected_std_a, [^entry_1_1_a, nil, nil]},
-               {expected_std_b, [nil, ^entry_2_1_b, nil]},
-               {expected_std_c, [nil, nil, ^entry_2_2_c]}
-             ] = Assessments.list_strand_students_entries(strand.id, classes_ids: [class.id])
-
-      assert expected_std_a.id == student_a.id
-      assert expected_std_b.id == student_b.id
-      assert expected_std_c.id == student_c.id
-    end
-
-    test "list_students_with_entries/1 returns students and their goals entries for the given strand" do
-      profile = IdentityFixtures.teacher_profile_fixture()
-      strand = LearningContextFixtures.strand_fixture()
-      curriculum_item_1 = CurriculaFixtures.curriculum_item_fixture()
-      curriculum_item_2 = CurriculaFixtures.curriculum_item_fixture()
-      curriculum_item_3 = CurriculaFixtures.curriculum_item_fixture()
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-
-      assessment_point_goal_1 =
-        assessment_point_fixture(%{
-          strand_id: strand.id,
-          position: 1,
-          curriculum_item_id: curriculum_item_1.id,
-          scale_id: scale.id
-        })
-
-      assessment_point_goal_2 =
-        assessment_point_fixture(%{
-          strand_id: strand.id,
-          position: 2,
-          curriculum_item_id: curriculum_item_2.id,
-          scale_id: scale.id
-        })
-
-      assessment_point_goal_3 =
-        assessment_point_fixture(%{
-          strand_id: strand.id,
-          position: 3,
-          curriculum_item_id: curriculum_item_3.id,
-          scale_id: scale.id
-        })
-
-      class = SchoolsFixtures.class_fixture()
-      student_a = SchoolsFixtures.student_fixture(%{name: "AAA", classes_ids: [class.id]})
-      student_b = SchoolsFixtures.student_fixture(%{name: "BBB", classes_ids: [class.id]})
-      student_c = SchoolsFixtures.student_fixture(%{name: "CCC", classes_ids: [class.id]})
-      student_d = SchoolsFixtures.student_fixture(%{name: "DDD"})
-
-      entry_1_a =
-        assessment_point_entry_fixture(%{
-          student_id: student_a.id,
-          assessment_point_id: assessment_point_goal_1.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      entry_2_b =
-        assessment_point_entry_fixture(%{
-          student_id: student_b.id,
-          assessment_point_id: assessment_point_goal_2.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      entry_3_c =
-        assessment_point_entry_fixture(%{
-          student_id: student_c.id,
-          assessment_point_id: assessment_point_goal_3.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      _entry_3_d =
-        assessment_point_entry_fixture(%{
-          student_id: student_d.id,
-          assessment_point_id: assessment_point_goal_3.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      # attach 1 evidence to entry 1, and 2 to entry 2
-
-      assert {:ok, _} =
-               Assessments.create_assessment_point_entry_evidence(
-                 %{current_profile: profile},
-                 entry_1_a.id,
-                 %{
-                   "name" => "evidence 1 a",
-                   "link" => "https://evidence1.com",
-                   "is_external" => true
-                 }
-               )
-
-      assert {:ok, _} =
-               Assessments.create_assessment_point_entry_evidence(
-                 %{current_profile: profile},
-                 entry_2_b.id,
-                 %{
-                   "name" => "evidence 2 b1",
-                   "link" => "https://evidence2b1.com",
-                   "is_external" => true
-                 }
-               )
-
-      assert {:ok, _} =
-               Assessments.create_assessment_point_entry_evidence(
-                 %{current_profile: profile},
-                 entry_2_b.id,
-                 %{
-                   "name" => "evidence 2 b2",
-                   "link" => "https://evidence2b2.com",
-                   "is_external" => true
-                 }
-               )
-
-      entry_1_a_id = entry_1_a.id
-      entry_2_b_id = entry_2_b.id
-      entry_3_c_id = entry_3_c.id
-
-      assert [
-               {expected_std_a, [%{id: ^entry_1_a_id, has_evidences: true}, nil, nil]},
-               {expected_std_b, [nil, %{id: ^entry_2_b_id, has_evidences: true}, nil]},
-               {expected_std_c, [nil, nil, %{id: ^entry_3_c_id, has_evidences: false}]}
-             ] =
-               Assessments.list_students_with_entries(
-                 strand_id: strand.id,
-                 check_if_has_evidences: true,
-                 classes_ids: [class.id]
-               )
-
-      assert expected_std_a.id == student_a.id
-      assert expected_std_b.id == student_b.id
-      assert expected_std_c.id == student_c.id
-    end
-
     test "create_assessment_point/2 with valid data creates an assessment point linked to a strand" do
       strand = LearningContextFixtures.strand_fixture()
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
@@ -602,88 +395,6 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_1.id == assessment_point_1.id
       assert expected_2.id == assessment_point_2.id
       assert expected_3.id == assessment_point_3.id
-    end
-
-    test "list_students_with_entries/1 returns students and their assessment point entries for the given moment" do
-      profile = IdentityFixtures.teacher_profile_fixture()
-      moment = LearningContextFixtures.moment_fixture()
-      curriculum_item_1 = CurriculaFixtures.curriculum_item_fixture()
-      curriculum_item_2 = CurriculaFixtures.curriculum_item_fixture()
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-
-      assessment_point_1 =
-        assessment_point_fixture(%{
-          moment_id: moment.id,
-          name: "some assessment point name abc",
-          curriculum_item_id: curriculum_item_1.id,
-          scale_id: scale.id
-        })
-
-      assessment_point_2 =
-        assessment_point_fixture(%{
-          moment_id: moment.id,
-          name: "some assessment point name xyz",
-          curriculum_item_id: curriculum_item_2.id,
-          scale_id: scale.id
-        })
-
-      class = SchoolsFixtures.class_fixture()
-      student_a = SchoolsFixtures.student_fixture(%{name: "AAA", classes_ids: [class.id]})
-      student_b = SchoolsFixtures.student_fixture(%{name: "BBB", classes_ids: [class.id]})
-      student_c = SchoolsFixtures.student_fixture(%{name: "CCC"})
-
-      entry_1_a =
-        assessment_point_entry_fixture(%{
-          student_id: student_a.id,
-          assessment_point_id: assessment_point_1.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      entry_2_b =
-        assessment_point_entry_fixture(%{
-          student_id: student_b.id,
-          assessment_point_id: assessment_point_2.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      _entry_2_c =
-        assessment_point_entry_fixture(%{
-          student_id: student_c.id,
-          assessment_point_id: assessment_point_2.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      # attach 1 evidence to entry 1
-
-      assert {:ok, _} =
-               Assessments.create_assessment_point_entry_evidence(
-                 %{current_profile: profile},
-                 entry_1_a.id,
-                 %{
-                   "name" => "evidence 1 a",
-                   "link" => "https://evidence1.com",
-                   "is_external" => true
-                 }
-               )
-
-      entry_1_a_id = entry_1_a.id
-      entry_2_b_id = entry_2_b.id
-
-      assert [
-               {expected_std_a, [%{id: ^entry_1_a_id, has_evidences: true}, nil]},
-               {expected_std_b, [nil, %{id: ^entry_2_b_id, has_evidences: false}]}
-             ] =
-               Assessments.list_students_with_entries(
-                 moment_id: moment.id,
-                 classes_ids: [class.id],
-                 check_if_has_evidences: true
-               )
-
-      assert expected_std_a.id == student_a.id
-      assert expected_std_b.id == student_b.id
     end
 
     test "update_assessment_points_positions/1 update assessment points position based on list order" do
@@ -1800,7 +1511,8 @@ defmodule Lanttern.AssessmentsTest do
       ov_a: ov_a,
       ov_b: ov_b,
       ov_c: ov_c,
-      class: class,
+      class_a: class_a,
+      class_b: class_b,
       student_1: student_1,
       student_2: student_2,
       student_3: student_3,
@@ -1853,7 +1565,10 @@ defmodule Lanttern.AssessmentsTest do
                   expected_std_3_s_ap_2_ci_2,
                   expected_std_3_s_ap_3_ci_3
                 ]}
-             ] = Assessments.list_strand_students_entries(strand.id, nil, classes_ids: [class.id])
+             ] =
+               Assessments.list_strand_students_entries(strand.id, nil,
+                 classes_ids: [class_a.id, class_b.id]
+               )
 
       assert expected_student_1.id == student_1.id
       assert expected_std_1_s_ap_1_ci_1.id == std_1_s_ap_1_ci_1.id
@@ -1933,7 +1648,7 @@ defmodule Lanttern.AssessmentsTest do
       ov_a: ov_a,
       ov_b: ov_b,
       ov_c: ov_c,
-      class: class,
+      class_a: class_a,
       student_1: student_1,
       student_2: student_2,
       student_3: student_3,
@@ -2013,7 +1728,7 @@ defmodule Lanttern.AssessmentsTest do
                 ]}
              ] =
                Assessments.list_strand_students_entries(strand.id, "curriculum",
-                 classes_ids: [class.id]
+                 classes_ids: [class_a.id]
                )
 
       assert expected_student_1.id == student_1.id
@@ -2152,7 +1867,7 @@ defmodule Lanttern.AssessmentsTest do
       ov_a: ov_a,
       ov_b: ov_b,
       ov_c: ov_c,
-      class: class,
+      class_a: class_a,
       student_1: student_1,
       student_2: student_2,
       student_3: student_3,
@@ -2232,7 +1947,7 @@ defmodule Lanttern.AssessmentsTest do
                 ]}
              ] =
                Assessments.list_strand_students_entries(strand.id, "moment",
-                 classes_ids: [class.id]
+                 classes_ids: [class_a.id]
                )
 
       assert expected_student_1.id == student_1.id
@@ -2360,6 +2075,110 @@ defmodule Lanttern.AssessmentsTest do
     end
   end
 
+  describe "moment assessments students entries" do
+    alias Lanttern.Assessments.AssessmentPointEntry
+
+    setup [
+      :strand_assessment_points_setup,
+      :strand_assessment_points_entries_setup
+    ]
+
+    test "list_moment_students_entries/2 returns entries as expected", %{
+      m_1: moment,
+      m_1_ap_1_ci_1: m_1_ap_1_ci_1,
+      m_1_ap_2_ci_2: m_1_ap_2_ci_2,
+      scale: scale,
+      ov_a: ov_a,
+      ov_b: ov_b,
+      ov_c: ov_c,
+      class_a: class_a,
+      class_b: class_b,
+      student_1: student_1,
+      student_2: student_2,
+      student_3: student_3,
+      std_1_m_1_ap_1_ci_1: std_1_m_1_ap_1_ci_1,
+      std_1_m_1_ap_2_ci_2: std_1_m_1_ap_2_ci_2,
+      std_2_m_1_ap_2_ci_2: std_2_m_1_ap_2_ci_2
+    } do
+      # test case grid
+      # | std | ap 1 | ap 2 |
+      # ---------------------
+      # | 1   | ov a | ov b |
+      # | 2   | ---  | ov c |
+      # | 3   | ---  | ---  |
+
+      # extract values to allow pattern match with pin
+      m_1_ap_1_id = m_1_ap_1_ci_1.id
+      m_1_ap_1_scale_id = m_1_ap_1_ci_1.scale_id
+      m_1_ap_1_scale_type = scale.type
+
+      m_1_ap_2_id = m_1_ap_2_ci_2.id
+      m_1_ap_2_scale_id = m_1_ap_2_ci_2.scale_id
+      m_1_ap_2_scale_type = scale.type
+
+      student_2_id = student_2.id
+      student_3_id = student_3.id
+
+      assert [
+               {expected_student_1,
+                [
+                  expected_std_1_m_1_ap_1_ci_1,
+                  expected_std_1_m_1_ap_2_ci_2
+                ]},
+               {expected_student_2,
+                [
+                  expected_std_2_m_1_ap_1_ci_1,
+                  expected_std_2_m_1_ap_2_ci_2
+                ]},
+               {expected_student_3,
+                [
+                  expected_std_3_m_1_ap_1_ci_1,
+                  expected_std_3_m_1_ap_2_ci_2
+                ]}
+             ] =
+               Assessments.list_moment_students_entries(moment.id,
+                 classes_ids: [class_a.id, class_b.id]
+               )
+
+      assert expected_student_1.id == student_1.id
+      assert expected_std_1_m_1_ap_1_ci_1.id == std_1_m_1_ap_1_ci_1.id
+      assert expected_std_1_m_1_ap_1_ci_1.ordinal_value_id == ov_a.id
+      assert expected_std_1_m_1_ap_2_ci_2.id == std_1_m_1_ap_2_ci_2.id
+      assert expected_std_1_m_1_ap_2_ci_2.ordinal_value_id == ov_b.id
+
+      assert expected_student_2.id == student_2.id
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^m_1_ap_1_id,
+               scale_id: ^m_1_ap_1_scale_id,
+               scale_type: ^m_1_ap_1_scale_type
+             } = expected_std_2_m_1_ap_1_ci_1
+
+      assert expected_std_2_m_1_ap_2_ci_2.id == std_2_m_1_ap_2_ci_2.id
+      assert expected_std_2_m_1_ap_2_ci_2.ordinal_value_id == ov_c.id
+
+      assert expected_student_3.id == student_3.id
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^m_1_ap_1_id,
+               scale_id: ^m_1_ap_1_scale_id,
+               scale_type: ^m_1_ap_1_scale_type
+             } = expected_std_3_m_1_ap_1_ci_1
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^m_1_ap_2_id,
+               scale_id: ^m_1_ap_2_scale_id,
+               scale_type: ^m_1_ap_2_scale_type
+             } = expected_std_3_m_1_ap_2_ci_2
+    end
+  end
+
   defp strand_assessment_points_setup(_context) do
     strand = Lanttern.LearningContextFixtures.strand_fixture()
 
@@ -2458,10 +2277,20 @@ defmodule Lanttern.AssessmentsTest do
          ov_c: ov_c
        }) do
     school = Lanttern.SchoolsFixtures.school_fixture()
-    class = Lanttern.SchoolsFixtures.class_fixture(%{school_id: school.id})
-    student_1 = Lanttern.SchoolsFixtures.student_fixture(%{name: "AAA", classes_ids: [class.id]})
-    student_2 = Lanttern.SchoolsFixtures.student_fixture(%{name: "BBB", classes_ids: [class.id]})
-    student_3 = Lanttern.SchoolsFixtures.student_fixture(%{name: "CCC", classes_ids: [class.id]})
+    class_a = Lanttern.SchoolsFixtures.class_fixture(%{school_id: school.id})
+    class_b = Lanttern.SchoolsFixtures.class_fixture(%{school_id: school.id})
+
+    student_1 =
+      Lanttern.SchoolsFixtures.student_fixture(%{
+        name: "AAA",
+        classes_ids: [class_a.id, class_b.id]
+      })
+
+    student_2 =
+      Lanttern.SchoolsFixtures.student_fixture(%{name: "BBB", classes_ids: [class_a.id]})
+
+    student_3 =
+      Lanttern.SchoolsFixtures.student_fixture(%{name: "CCC", classes_ids: [class_a.id]})
 
     # student 1 entries
     # ci_1 m1 / s - ov_a
@@ -2561,7 +2390,8 @@ defmodule Lanttern.AssessmentsTest do
     })
 
     %{
-      class: class,
+      class_a: class_a,
+      class_b: class_b,
       student_1: student_1,
       student_2: student_2,
       student_3: student_3,

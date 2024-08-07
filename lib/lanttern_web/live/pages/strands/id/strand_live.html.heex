@@ -34,7 +34,7 @@
         patch={~p"/strands/#{@strand}?#{%{tab: "assessment"}}"}
         is_current={@current_tab == :assessment && "true"}
       >
-        <%= gettext("Assessment") %>
+        <%= gettext("Strand assessment") %>
       </:tab>
       <:tab
         patch={~p"/strands/#{@strand}?#{%{tab: "moments"}}"}
@@ -43,16 +43,8 @@
         <%= gettext("Moments") %>
       </:tab>
       <:tab
-        patch={~p"/strands/#{@strand}?#{%{tab: "reporting"}}"}
-        is_current={@current_tab == :reporting && "true"}
-        icon_name="hero-users"
-      >
-        <%= gettext("Reporting") %>
-      </:tab>
-      <:tab
         patch={~p"/strands/#{@strand}?#{%{tab: "notes"}}"}
         is_current={@current_tab == :notes && "true"}
-        icon_name="hero-pencil-square"
       >
         <%= gettext("Notes") %>
       </:tab>
