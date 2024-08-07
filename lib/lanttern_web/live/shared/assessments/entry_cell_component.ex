@@ -327,14 +327,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
         "teacher" -> socket.assigns.teacher_ov_style
       end
 
-    # when in student view, other value = teacher value (and vice-versa)
-    {entry_value, other_value} =
-      case {entry.scale_type, view} do
-        {"ordinal", "student"} -> {entry.student_ordinal_value_id, entry.ordinal_value_id}
-        {"ordinal", _teacher} -> {entry.ordinal_value_id, entry.student_ordinal_value_id}
-        {"numeric", "student"} -> {entry.student_score, entry.score}
-        {"numeric", _teacher} -> {entry.score, entry.student_score}
-      end
+    {entry_value, other_value} = get_entry_value_and_other_value(entry, view)
 
     entry_note =
       case view do
@@ -369,6 +362,16 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
   defp get_field_for_form(form, "ordinal", _teacher), do: form[:ordinal_value_id]
   defp get_field_for_form(form, "numeric", "student"), do: form[:student_score]
   defp get_field_for_form(form, "numeric", _teacher), do: form[:score]
+
+  # when in student view, other value = teacher value (and vice-versa)
+  defp get_entry_value_and_other_value(entry, view) do
+    case {entry.scale_type, view} do
+      {"ordinal", "student"} -> {entry.student_ordinal_value_id, entry.ordinal_value_id}
+      {"ordinal", _teacher} -> {entry.ordinal_value_id, entry.student_ordinal_value_id}
+      {"numeric", "student"} -> {entry.student_score, entry.score}
+      {"numeric", _teacher} -> {entry.score, entry.student_score}
+    end
+  end
 
   # event handlers
 

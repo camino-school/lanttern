@@ -45,15 +45,15 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
           <div class="shrink-0 flex items-center gap-6">
             <.collection_action
               :if={@assessment_points_count > 1}
-              type="button"
-              phx-click={JS.exec("data-show", to: "#moment-assessment-points-order-overlay")}
+              type="link"
+              patch={~p"/strands/moment/#{@moment}?tab=assessment&action=reorder"}
               icon_name="hero-arrows-up-down"
             >
               <%= gettext("Reorder") %>
             </.collection_action>
             <.collection_action
               type="link"
-              patch={~p"/strands/moment/#{@moment}/assessment_point/new"}
+              patch={~p"/strands/moment/#{@moment}?tab=assessment&action=new"}
               icon_name="hero-plus-circle"
             >
               <%= gettext("Create assessment point") %>
@@ -69,9 +69,10 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
         classes_ids={@selected_classes_ids}
         class="mt-6"
         navigate={~p"/strands/moment/#{@moment}?tab=assessment"}
+        notify_component={@myself}
       />
       <.slide_over
-        :if={@live_action in [:new_assessment_point, :edit_assessment_point]}
+        :if={@assessment_point}
         id="assessment-point-form-overlay"
         show={true}
         on_cancel={JS.patch(~p"/strands/moment/#{@moment}?tab=assessment")}
@@ -111,7 +112,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
             <.icon name="hero-x-mark" />
           </button>
         </div>
-        <:actions_left :if={not is_nil(@assessment_point_id)}>
+        <:actions_left :if={not is_nil(@assessment_point.id)}>
           <.button
             type="button"
             theme="ghost"
@@ -144,7 +145,12 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
         filter_opts={[strand_id: @moment.strand_id]}
         navigate={~p"/strands/moment/#{@moment}?tab=assessment"}
       />
-      <.slide_over :if={@assessment_points_count > 1} id="moment-assessment-points-order-overlay">
+      <.slide_over
+        :if={@is_reordering}
+        show
+        id="moment-assessment-points-order-overlay"
+        on_cancel={JS.patch(~p"/strands/moment/#{@moment}?tab=assessment")}
+      >
         <:title><%= gettext("Assessment Points Order") %></:title>
         <ol>
           <li
@@ -208,26 +214,45 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
         :students_entries,
         dom_id: fn {student, _entries} -> "student-#{student.id}" end
       )
+      |> assign(:assessment_point, nil)
       |> assign(:delete_assessment_point_error, nil)
+      |> assign(:is_reordering, false)
+      |> assign(:initial_update, true)
 
     {:ok, socket}
   end
 
   @impl true
-  def update(%{moment: moment, assessment_point_id: assessment_point_id} = assigns, socket) do
+  def update(assigns, %{assigns: %{initial_update: true}} = socket) do
     socket =
       socket
       |> assign(assigns)
-      |> assign_assessment_point(assessment_point_id)
-      |> assign_user_filters([:classes], assigns.current_user, strand_id: moment.strand_id)
+      |> assign_user_filters([:classes], assigns.current_user,
+        strand_id: assigns.moment.strand_id
+      )
       |> assign_sortable_assessment_points()
+      |> assign(:initial_update, false)
+      |> handle_action()
 
     {:ok, socket}
   end
 
-  def update(_assigns, socket), do: {:ok, socket}
+  def update(assigns, socket) do
+    socket =
+      socket
+      |> assign(assigns)
+      |> handle_action()
 
-  defp assign_assessment_point(socket, nil) do
+    {:ok, socket}
+  end
+
+  defp handle_action(socket) do
+    socket
+    |> assign_assessment_point(socket.assigns.params)
+    |> assign_is_reordering(socket.assigns.params)
+  end
+
+  defp assign_assessment_point(socket, %{"action" => "new"}) do
     socket
     |> assign(:assessment_point, %AssessmentPoint{
       moment_id: socket.assigns.moment.id,
@@ -235,17 +260,23 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
     })
   end
 
-  defp assign_assessment_point(socket, assessment_point_id) do
-    case Assessments.get_assessment_point(assessment_point_id) do
-      nil ->
-        socket
-        |> assign(:assessment_point, %AssessmentPoint{datetime: DateTime.utc_now()})
+  defp assign_assessment_point(socket, %{"action" => "edit", "assessment_point_id" => id}) do
+    assessment_point =
+      socket.assigns.sortable_assessment_points
+      |> Enum.map(fn {ap, _i} -> ap end)
+      |> Enum.find(&("#{&1.id}" == id))
 
-      assessment_point ->
-        socket
-        |> assign(:assessment_point, assessment_point)
-    end
+    assign(socket, :assessment_point, assessment_point)
   end
+
+  defp assign_assessment_point(socket, _params),
+    do: assign(socket, :assessment_point, nil)
+
+  defp assign_is_reordering(socket, %{"action" => "reorder"}),
+    do: assign(socket, :is_reordering, true)
+
+  defp assign_is_reordering(socket, _params),
+    do: assign(socket, :is_reordering, false)
 
   defp assign_sortable_assessment_points(socket) do
     assessment_points =

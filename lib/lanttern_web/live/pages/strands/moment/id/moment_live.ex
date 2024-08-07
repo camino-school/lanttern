@@ -44,6 +44,7 @@ defmodule LantternWeb.MomentLive do
   def handle_params(params, _url, socket) do
     socket =
       socket
+      |> assign(:params, params)
       |> assign(:assessment_point_id, nil)
       |> set_current_tab(params, socket.assigns.live_action)
       |> apply_action(socket.assigns.live_action, params)

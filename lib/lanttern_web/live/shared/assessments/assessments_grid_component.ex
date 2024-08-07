@@ -62,9 +62,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         >
           <p class="mb-6 font-bold text-ltrn-subtle"><%= gettext("Current assessment points") %></p>
           <ol phx-update="stream" id="assessment-points-no-class" class="flex flex-col gap-4">
-            <.no_class_assessment_points_group
-              :for={{_dom_id, assessment_points_group} <- @streams.assessment_points}
-              assessment_points_group={assessment_points_group}
+            <.no_class_assessment_point
+              :for={{_dom_id, assessment_point} <- @streams.assessment_points}
+              assessment_point={assessment_point}
             />
           </ol>
         </div>
@@ -135,6 +135,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
                 current_assessment_view={@current_assessment_view}
                 view_bg={@view_bg}
                 current_user={@current_user}
+                is_moment={@moment_id != nil}
               />
             </div>
           </div>
@@ -267,10 +268,15 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     """
   end
 
-  attr :assessment_points_group, :any, required: true
+  attr :assessment_point, :any, required: true
 
-  def no_class_assessment_points_group(assigns) do
-    {_group_by_struct, assessment_points} = assigns.assessment_points_group
+  def no_class_assessment_point(assigns) do
+    assessment_points =
+      case assigns.assessment_point do
+        {_group_by_struct, assessment_points} -> assessment_points
+        %AssessmentPoint{} = assessment_point -> [assessment_point]
+      end
+
     assigns = assign(assigns, :assessment_points, assessment_points)
 
     ~H"""
@@ -286,10 +292,14 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
   def assessment_point_header(%{ap_header: %AssessmentPoint{}} = assigns) do
     # when in a moment grid, the header is the assessment point
+
+    # TODO: make the patch dynamic (allow parent control via attrs)
     ~H"""
     <div class="flex flex-col p-2" id={@id}>
       <.link
-        patch={~p"/strands/moment/#{@ap_header.moment_id}/assessment_point/#{@ap_header}"}
+        patch={
+          ~p"/strands/moment/#{@ap_header.moment_id}?tab=assessment&action=edit&assessment_point_id=#{@ap_header.id}"
+        }
         class="flex-1 p-1 rounded text-sm font-bold line-clamp-2 hover:bg-ltrn-mesh-cyan"
         title={@ap_header.name}
       >
@@ -475,6 +485,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   attr :current_assessment_view, :string, required: true
   attr :view_bg, :string, required: true
   attr :current_user, User, required: true
+  attr :is_moment, :boolean, required: true
 
   def student_entries(assigns) do
     ~H"""
@@ -496,7 +507,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           class="w-full h-full"
           entry={entry}
           view={@current_assessment_view}
-          allow_edit={entry.is_strand_entry}
+          allow_edit={@is_moment || entry.is_strand_entry}
           notify_component={@myself}
         />
       </div>
@@ -652,11 +663,10 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
         _ ->
           assessment_points
-          |> Enum.map(fn
+          |> Enum.map_join(" ", fn
             %{strand_id: id} when not is_nil(id) -> "15rem"
             _ -> "6rem"
           end)
-          |> Enum.join(" ")
       end
 
     socket
