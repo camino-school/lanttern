@@ -482,20 +482,7 @@ defmodule LantternWeb.OverlayComponents do
         _ -> "left-0"
       end
 
-    # this solution looks odd, but it's the best idea
-    # I could came with to inform Tailwind to compile
-    # all the z- classes
-    z_index_class =
-      case assigns.z_index do
-        "0" -> "z-0"
-        "10" -> "z-10"
-        "20" -> "z-20"
-        "30" -> "z-30"
-        "40" -> "z-40"
-        "50" -> "z-50"
-        "auto" -> "z-auto"
-        _ -> nil
-      end
+    z_index_class = get_z_index_class(assigns.z_index)
 
     assigns =
       assigns
@@ -542,6 +529,18 @@ defmodule LantternWeb.OverlayComponents do
     </div>
     """
   end
+
+  # this solution looks odd, but it's the best idea
+  # I could came with to inform Tailwind to compile
+  # all the z- classes
+  defp get_z_index_class("0"), do: "z-0"
+  defp get_z_index_class("10"), do: "z-10"
+  defp get_z_index_class("20"), do: "z-20"
+  defp get_z_index_class("30"), do: "z-30"
+  defp get_z_index_class("40"), do: "z-40"
+  defp get_z_index_class("50"), do: "z-50"
+  defp get_z_index_class("auto"), do: "auto"
+  defp get_z_index_class(_z_index), do: nil
 
   @menu_button_item_themes %{
     "default" => "text-ltrn-dark",

@@ -322,18 +322,16 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     field = get_field_for_form(form, entry.scale_type, view)
 
     field_style =
-      case view do
-        "student" -> socket.assigns.student_ov_style
-        "teacher" -> socket.assigns.teacher_ov_style
-      end
+      if view == "student",
+        do: socket.assigns.student_ov_style,
+        else: socket.assigns.teacher_ov_style
 
     {entry_value, other_value} = get_entry_value_and_other_value(entry, view)
 
     entry_note =
-      case view do
-        "student" -> entry.student_report_note
-        _ -> entry.report_note
-      end
+      if view == "student",
+        do: entry.student_report_note,
+        else: entry.report_note
 
     note_icon_class =
       cond do
