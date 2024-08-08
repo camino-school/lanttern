@@ -1,4 +1,4 @@
-defmodule LantternWeb.StrandLive.ReportingComponentTest do
+defmodule LantternWeb.StrandLive.AssessmentComponentTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.AssessmentsFixtures
@@ -23,7 +23,7 @@ defmodule LantternWeb.StrandLive.ReportingComponentTest do
       # setup current user view
       Filters.set_profile_current_filters(user, %{assessment_view: "teacher"})
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}?tab=reporting")
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}?tab=assessment")
 
       assert view |> has_element?("button", class.name)
       assert view |> has_element?("div", student.name)
@@ -41,7 +41,7 @@ defmodule LantternWeb.StrandLive.ReportingComponentTest do
       # setup current user view
       Filters.set_profile_current_filters(user, %{assessment_view: "student"})
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}?tab=reporting")
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}?tab=assessment")
 
       assert view |> has_element?("button", class.name)
       assert view |> has_element?("div", student.name)
@@ -60,7 +60,7 @@ defmodule LantternWeb.StrandLive.ReportingComponentTest do
       # setup current user view
       Filters.set_profile_current_filters(user, %{assessment_view: "compare"})
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}?tab=reporting")
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}?tab=assessment")
 
       assert view |> has_element?("button", class.name)
       assert view |> has_element?("div", student.name)

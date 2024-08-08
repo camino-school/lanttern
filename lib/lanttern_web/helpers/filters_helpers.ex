@@ -59,6 +59,10 @@ defmodule LantternWeb.FiltersHelpers do
 
   - `:current_assessment_view`
 
+  ### `:assessment_group_by`' assigns
+
+  - `:current_assessment_group_by`
+
   ## Examples
 
       iex> assign_user_filters(socket, [:subjects], user)
@@ -182,6 +186,21 @@ defmodule LantternWeb.FiltersHelpers do
 
     socket
     |> assign(:current_assessment_view, current_assessment_view)
+    |> assign_filter_type(current_user, current_filters, filter_types, opts)
+  end
+
+  defp assign_filter_type(
+         socket,
+         current_user,
+         current_filters,
+         [:assessment_group_by | filter_types],
+         opts
+       ) do
+    current_assessment_group_by =
+      Map.get(current_filters, :assessment_group_by)
+
+    socket
+    |> assign(:current_assessment_group_by, current_assessment_group_by)
     |> assign_filter_type(current_user, current_filters, filter_types, opts)
   end
 

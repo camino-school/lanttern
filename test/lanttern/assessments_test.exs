@@ -262,7 +262,9 @@ defmodule Lanttern.AssessmentsTest do
     end
   end
 
-  describe "strand assessment points" do
+  # TODO: remove
+  # replaced by list_strand_assessment_points/2
+  describe "strand assessment points legacy" do
     alias Lanttern.Assessments.AssessmentPoint
 
     import Lanttern.AssessmentsFixtures
@@ -303,212 +305,6 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_2.id == assessment_point_1_2.id
       assert expected_3.id == assessment_point_2_1.id
       assert expected_4.id == assessment_point_2_2.id
-    end
-
-    test "list_strand_students_entries/1 returns students and their assessment point entries for the given strand" do
-      strand = LearningContextFixtures.strand_fixture()
-      moment_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id, position: 1})
-      moment_2 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id, position: 2})
-      curriculum_item_1 = CurriculaFixtures.curriculum_item_fixture()
-      curriculum_item_2 = CurriculaFixtures.curriculum_item_fixture()
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-
-      assessment_point_1_1 =
-        assessment_point_fixture(%{
-          moment_id: moment_1.id,
-          name: "some assessment point name abc",
-          curriculum_item_id: curriculum_item_1.id,
-          scale_id: scale.id
-        })
-
-      assessment_point_2_1 =
-        assessment_point_fixture(%{
-          moment_id: moment_2.id,
-          name: "some assessment point name hij",
-          curriculum_item_id: curriculum_item_1.id,
-          scale_id: scale.id
-        })
-
-      assessment_point_2_2 =
-        assessment_point_fixture(%{
-          moment_id: moment_2.id,
-          name: "some assessment point name xyz",
-          curriculum_item_id: curriculum_item_2.id,
-          scale_id: scale.id
-        })
-
-      class = SchoolsFixtures.class_fixture()
-      student_a = SchoolsFixtures.student_fixture(%{name: "AAA", classes_ids: [class.id]})
-      student_b = SchoolsFixtures.student_fixture(%{name: "BBB", classes_ids: [class.id]})
-      student_c = SchoolsFixtures.student_fixture(%{name: "CCC", classes_ids: [class.id]})
-      student_d = SchoolsFixtures.student_fixture(%{name: "DDD"})
-
-      entry_1_1_a =
-        assessment_point_entry_fixture(%{
-          student_id: student_a.id,
-          assessment_point_id: assessment_point_1_1.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      entry_2_1_b =
-        assessment_point_entry_fixture(%{
-          student_id: student_b.id,
-          assessment_point_id: assessment_point_2_1.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      entry_2_2_c =
-        assessment_point_entry_fixture(%{
-          student_id: student_c.id,
-          assessment_point_id: assessment_point_2_2.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      _entry_2_2_d =
-        assessment_point_entry_fixture(%{
-          student_id: student_d.id,
-          assessment_point_id: assessment_point_2_2.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      assert [
-               {expected_std_a, [^entry_1_1_a, nil, nil]},
-               {expected_std_b, [nil, ^entry_2_1_b, nil]},
-               {expected_std_c, [nil, nil, ^entry_2_2_c]}
-             ] = Assessments.list_strand_students_entries(strand.id, classes_ids: [class.id])
-
-      assert expected_std_a.id == student_a.id
-      assert expected_std_b.id == student_b.id
-      assert expected_std_c.id == student_c.id
-    end
-
-    test "list_students_with_entries/1 returns students and their goals entries for the given strand" do
-      profile = IdentityFixtures.teacher_profile_fixture()
-      strand = LearningContextFixtures.strand_fixture()
-      curriculum_item_1 = CurriculaFixtures.curriculum_item_fixture()
-      curriculum_item_2 = CurriculaFixtures.curriculum_item_fixture()
-      curriculum_item_3 = CurriculaFixtures.curriculum_item_fixture()
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-
-      assessment_point_goal_1 =
-        assessment_point_fixture(%{
-          strand_id: strand.id,
-          position: 1,
-          curriculum_item_id: curriculum_item_1.id,
-          scale_id: scale.id
-        })
-
-      assessment_point_goal_2 =
-        assessment_point_fixture(%{
-          strand_id: strand.id,
-          position: 2,
-          curriculum_item_id: curriculum_item_2.id,
-          scale_id: scale.id
-        })
-
-      assessment_point_goal_3 =
-        assessment_point_fixture(%{
-          strand_id: strand.id,
-          position: 3,
-          curriculum_item_id: curriculum_item_3.id,
-          scale_id: scale.id
-        })
-
-      class = SchoolsFixtures.class_fixture()
-      student_a = SchoolsFixtures.student_fixture(%{name: "AAA", classes_ids: [class.id]})
-      student_b = SchoolsFixtures.student_fixture(%{name: "BBB", classes_ids: [class.id]})
-      student_c = SchoolsFixtures.student_fixture(%{name: "CCC", classes_ids: [class.id]})
-      student_d = SchoolsFixtures.student_fixture(%{name: "DDD"})
-
-      entry_1_a =
-        assessment_point_entry_fixture(%{
-          student_id: student_a.id,
-          assessment_point_id: assessment_point_goal_1.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      entry_2_b =
-        assessment_point_entry_fixture(%{
-          student_id: student_b.id,
-          assessment_point_id: assessment_point_goal_2.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      entry_3_c =
-        assessment_point_entry_fixture(%{
-          student_id: student_c.id,
-          assessment_point_id: assessment_point_goal_3.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      _entry_3_d =
-        assessment_point_entry_fixture(%{
-          student_id: student_d.id,
-          assessment_point_id: assessment_point_goal_3.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      # attach 1 evidence to entry 1, and 2 to entry 2
-
-      assert {:ok, _} =
-               Assessments.create_assessment_point_entry_evidence(
-                 %{current_profile: profile},
-                 entry_1_a.id,
-                 %{
-                   "name" => "evidence 1 a",
-                   "link" => "https://evidence1.com",
-                   "is_external" => true
-                 }
-               )
-
-      assert {:ok, _} =
-               Assessments.create_assessment_point_entry_evidence(
-                 %{current_profile: profile},
-                 entry_2_b.id,
-                 %{
-                   "name" => "evidence 2 b1",
-                   "link" => "https://evidence2b1.com",
-                   "is_external" => true
-                 }
-               )
-
-      assert {:ok, _} =
-               Assessments.create_assessment_point_entry_evidence(
-                 %{current_profile: profile},
-                 entry_2_b.id,
-                 %{
-                   "name" => "evidence 2 b2",
-                   "link" => "https://evidence2b2.com",
-                   "is_external" => true
-                 }
-               )
-
-      entry_1_a_id = entry_1_a.id
-      entry_2_b_id = entry_2_b.id
-      entry_3_c_id = entry_3_c.id
-
-      assert [
-               {expected_std_a, [%{id: ^entry_1_a_id, has_evidences: true}, nil, nil]},
-               {expected_std_b, [nil, %{id: ^entry_2_b_id, has_evidences: true}, nil]},
-               {expected_std_c, [nil, nil, %{id: ^entry_3_c_id, has_evidences: false}]}
-             ] =
-               Assessments.list_students_with_entries(
-                 strand_id: strand.id,
-                 check_if_has_evidences: true,
-                 classes_ids: [class.id]
-               )
-
-      assert expected_std_a.id == student_a.id
-      assert expected_std_b.id == student_b.id
-      assert expected_std_c.id == student_c.id
     end
 
     test "create_assessment_point/2 with valid data creates an assessment point linked to a strand" do
@@ -599,88 +395,6 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_1.id == assessment_point_1.id
       assert expected_2.id == assessment_point_2.id
       assert expected_3.id == assessment_point_3.id
-    end
-
-    test "list_students_with_entries/1 returns students and their assessment point entries for the given moment" do
-      profile = IdentityFixtures.teacher_profile_fixture()
-      moment = LearningContextFixtures.moment_fixture()
-      curriculum_item_1 = CurriculaFixtures.curriculum_item_fixture()
-      curriculum_item_2 = CurriculaFixtures.curriculum_item_fixture()
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-
-      assessment_point_1 =
-        assessment_point_fixture(%{
-          moment_id: moment.id,
-          name: "some assessment point name abc",
-          curriculum_item_id: curriculum_item_1.id,
-          scale_id: scale.id
-        })
-
-      assessment_point_2 =
-        assessment_point_fixture(%{
-          moment_id: moment.id,
-          name: "some assessment point name xyz",
-          curriculum_item_id: curriculum_item_2.id,
-          scale_id: scale.id
-        })
-
-      class = SchoolsFixtures.class_fixture()
-      student_a = SchoolsFixtures.student_fixture(%{name: "AAA", classes_ids: [class.id]})
-      student_b = SchoolsFixtures.student_fixture(%{name: "BBB", classes_ids: [class.id]})
-      student_c = SchoolsFixtures.student_fixture(%{name: "CCC"})
-
-      entry_1_a =
-        assessment_point_entry_fixture(%{
-          student_id: student_a.id,
-          assessment_point_id: assessment_point_1.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      entry_2_b =
-        assessment_point_entry_fixture(%{
-          student_id: student_b.id,
-          assessment_point_id: assessment_point_2.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      _entry_2_c =
-        assessment_point_entry_fixture(%{
-          student_id: student_c.id,
-          assessment_point_id: assessment_point_2.id,
-          scale_id: scale.id,
-          scale_type: scale.type
-        })
-
-      # attach 1 evidence to entry 1
-
-      assert {:ok, _} =
-               Assessments.create_assessment_point_entry_evidence(
-                 %{current_profile: profile},
-                 entry_1_a.id,
-                 %{
-                   "name" => "evidence 1 a",
-                   "link" => "https://evidence1.com",
-                   "is_external" => true
-                 }
-               )
-
-      entry_1_a_id = entry_1_a.id
-      entry_2_b_id = entry_2_b.id
-
-      assert [
-               {expected_std_a, [%{id: ^entry_1_a_id, has_evidences: true}, nil]},
-               {expected_std_b, [nil, %{id: ^entry_2_b_id, has_evidences: false}]}
-             ] =
-               Assessments.list_students_with_entries(
-                 moment_id: moment.id,
-                 classes_ids: [class.id],
-                 check_if_has_evidences: true
-               )
-
-      assert expected_std_a.id == student_a.id
-      assert expected_std_b.id == student_b.id
     end
 
     test "update_assessment_points_positions/1 update assessment points position based on list order" do
@@ -1643,5 +1357,1052 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_ap_2.curriculum_item.years == [year]
       assert expected_entry_2.id == entry_2.id
     end
+  end
+
+  describe "strand assessment points" do
+    setup :strand_assessment_points_setup
+
+    test "list_strand_assessment_points/2 returns assessment points as expected", %{
+      strand: strand,
+      cc: cc,
+      ci_1: ci_1,
+      ci_2: ci_2,
+      ci_3: ci_3,
+      s_ap_1_ci_1: s_ap_1_ci_1,
+      s_ap_2_ci_2: s_ap_2_ci_2,
+      s_ap_3_ci_3: s_ap_3_ci_3
+    } do
+      assert {[{^strand, 3}], [expected_s_ap_1_ci_1, expected_s_ap_2_ci_2, expected_s_ap_3_ci_3]} =
+               Assessments.list_strand_assessment_points(strand.id)
+
+      assert expected_s_ap_1_ci_1.id == s_ap_1_ci_1.id
+      assert expected_s_ap_1_ci_1.curriculum_item.id == ci_1.id
+      assert expected_s_ap_1_ci_1.curriculum_item.curriculum_component.id == cc.id
+
+      assert expected_s_ap_2_ci_2.id == s_ap_2_ci_2.id
+      assert expected_s_ap_2_ci_2.curriculum_item.id == ci_2.id
+      assert expected_s_ap_2_ci_2.curriculum_item.curriculum_component.id == cc.id
+
+      assert expected_s_ap_3_ci_3.id == s_ap_3_ci_3.id
+      assert expected_s_ap_3_ci_3.curriculum_item.id == ci_3.id
+      assert expected_s_ap_3_ci_3.curriculum_item.curriculum_component.id == cc.id
+    end
+
+    test "list_strand_assessment_points/2 grouped by curriculum returns assessment points as expected",
+         %{
+           strand: strand,
+           m_1: m_1,
+           m_2: m_2,
+           cc: cc,
+           ci_1: ci_1,
+           ci_2: ci_2,
+           ci_3: ci_3,
+           s_ap_1_ci_1: s_ap_1_ci_1,
+           s_ap_2_ci_2: s_ap_2_ci_2,
+           s_ap_3_ci_3: s_ap_3_ci_3,
+           m_1_ap_1_ci_1: m_1_ap_1_ci_1,
+           m_1_ap_2_ci_2: m_1_ap_2_ci_2,
+           m_2_ap_1_ci_2: m_2_ap_1_ci_2
+         } do
+      assert {
+               [{expected_ci_1, 2}, {expected_ci_2, 3}, {expected_ci_3, 1}],
+               [
+                 expected_m_1_ap_1_ci_1,
+                 expected_s_ap_1_ci_1,
+                 expected_m_1_ap_2_ci_2,
+                 expected_m_2_ap_1_ci_2,
+                 expected_s_ap_2_ci_2,
+                 expected_s_ap_3_ci_3
+               ]
+             } =
+               Assessments.list_strand_assessment_points(strand.id, "curriculum")
+
+      assert expected_ci_1.id == ci_1.id
+      assert expected_ci_1.curriculum_component.id == cc.id
+      assert expected_m_1_ap_1_ci_1.id == m_1_ap_1_ci_1.id
+      assert expected_m_1_ap_1_ci_1.moment.id == m_1.id
+      assert expected_s_ap_1_ci_1.id == s_ap_1_ci_1.id
+
+      assert expected_ci_2.id == ci_2.id
+      assert expected_ci_2.curriculum_component.id == cc.id
+      assert expected_m_1_ap_2_ci_2.id == m_1_ap_2_ci_2.id
+      assert expected_m_1_ap_2_ci_2.moment.id == m_1.id
+      assert expected_m_2_ap_1_ci_2.id == m_2_ap_1_ci_2.id
+      assert expected_m_2_ap_1_ci_2.moment.id == m_2.id
+      assert expected_s_ap_2_ci_2.id == s_ap_2_ci_2.id
+
+      assert expected_ci_3.id == ci_3.id
+      # the is_differentiation is a virtual field
+      # that should be set based on assessment point context
+      assert expected_ci_3.is_differentiation
+      assert expected_ci_3.curriculum_component.id == cc.id
+      assert expected_s_ap_3_ci_3.id == s_ap_3_ci_3.id
+    end
+
+    test "list_strand_assessment_points/2 grouped by moments returns assessment points as expected",
+         %{
+           strand: strand,
+           m_1: m_1,
+           m_2: m_2,
+           cc: cc,
+           ci_1: ci_1,
+           ci_2: ci_2,
+           ci_3: ci_3,
+           s_ap_1_ci_1: s_ap_1_ci_1,
+           s_ap_2_ci_2: s_ap_2_ci_2,
+           s_ap_3_ci_3: s_ap_3_ci_3,
+           m_1_ap_1_ci_1: m_1_ap_1_ci_1,
+           m_1_ap_2_ci_2: m_1_ap_2_ci_2,
+           m_2_ap_1_ci_2: m_2_ap_1_ci_2
+         } do
+      assert {
+               [{^m_1, 2}, {^m_2, 1}, {^strand, 3}],
+               [
+                 expected_m_1_ap_1_ci_1,
+                 expected_m_1_ap_2_ci_2,
+                 expected_m_2_ap_1_ci_2,
+                 expected_s_ap_1_ci_1,
+                 expected_s_ap_2_ci_2,
+                 expected_s_ap_3_ci_3
+               ]
+             } =
+               Assessments.list_strand_assessment_points(strand.id, "moment")
+
+      assert expected_m_1_ap_1_ci_1.id == m_1_ap_1_ci_1.id
+      assert expected_m_1_ap_1_ci_1.curriculum_item.id == ci_1.id
+      assert expected_m_1_ap_1_ci_1.curriculum_item.curriculum_component.id == cc.id
+
+      assert expected_m_1_ap_2_ci_2.id == m_1_ap_2_ci_2.id
+      assert expected_m_1_ap_2_ci_2.curriculum_item.id == ci_2.id
+      assert expected_m_1_ap_2_ci_2.curriculum_item.curriculum_component.id == cc.id
+
+      assert expected_m_2_ap_1_ci_2.id == m_2_ap_1_ci_2.id
+      assert expected_m_2_ap_1_ci_2.curriculum_item.id == ci_2.id
+      assert expected_m_2_ap_1_ci_2.curriculum_item.curriculum_component.id == cc.id
+
+      assert expected_s_ap_1_ci_1.id == s_ap_1_ci_1.id
+      assert expected_s_ap_1_ci_1.curriculum_item.id == ci_1.id
+      assert expected_s_ap_1_ci_1.curriculum_item.curriculum_component.id == cc.id
+
+      assert expected_s_ap_2_ci_2.id == s_ap_2_ci_2.id
+      assert expected_s_ap_2_ci_2.curriculum_item.id == ci_2.id
+      assert expected_s_ap_2_ci_2.curriculum_item.curriculum_component.id == cc.id
+
+      assert expected_s_ap_3_ci_3.id == s_ap_3_ci_3.id
+      assert expected_s_ap_3_ci_3.curriculum_item.id == ci_3.id
+      assert expected_s_ap_3_ci_3.curriculum_item.curriculum_component.id == cc.id
+    end
+  end
+
+  describe "strand assessments students entries" do
+    alias Lanttern.Assessments.AssessmentPointEntry
+
+    setup [
+      :strand_assessment_points_setup,
+      :strand_assessment_points_entries_setup
+    ]
+
+    test "list_strand_students_entries/2 returns entries as expected", %{
+      strand: strand,
+      s_ap_1_ci_1: s_ap_1_ci_1,
+      s_ap_2_ci_2: s_ap_2_ci_2,
+      s_ap_3_ci_3: s_ap_3_ci_3,
+      scale: scale,
+      ov_a: ov_a,
+      ov_b: ov_b,
+      ov_c: ov_c,
+      class_a: class_a,
+      class_b: class_b,
+      student_1: student_1,
+      student_2: student_2,
+      student_3: student_3,
+      std_1_s_ap_1_ci_1: std_1_s_ap_1_ci_1,
+      std_1_s_ap_2_ci_2: std_1_s_ap_2_ci_2,
+      std_2_s_ap_2_ci_2: std_2_s_ap_2_ci_2,
+      std_3_s_ap_3_ci_3: std_3_s_ap_3_ci_3
+    } do
+      # test case grid
+      # |     | goal assessments        |
+      # | std | s ap 1 | s ap 2 | s ap 3 |
+      # ----------------------------------
+      # | 1   | ov a   | ov b   | ---    |
+      # | 2   | ---    | ov c   | ---    |
+      # | 3   | ---    | ---    | ov a   |
+
+      # extract values to allow pattern match with pin
+      s_ap_1_id = s_ap_1_ci_1.id
+      s_ap_1_scale_id = s_ap_1_ci_1.scale_id
+      s_ap_1_scale_type = scale.type
+
+      s_ap_2_id = s_ap_2_ci_2.id
+      s_ap_2_scale_id = s_ap_2_ci_2.scale_id
+      s_ap_2_scale_type = scale.type
+
+      s_ap_3_id = s_ap_3_ci_3.id
+      s_ap_3_scale_id = s_ap_3_ci_3.scale_id
+      s_ap_3_scale_type = scale.type
+
+      student_1_id = student_1.id
+      student_2_id = student_2.id
+      student_3_id = student_3.id
+
+      assert [
+               {expected_student_1,
+                [
+                  expected_std_1_s_ap_1_ci_1,
+                  expected_std_1_s_ap_2_ci_2,
+                  expected_std_1_s_ap_3_ci_3
+                ]},
+               {expected_student_2,
+                [
+                  expected_std_2_s_ap_1_ci_1,
+                  expected_std_2_s_ap_2_ci_2,
+                  expected_std_2_s_ap_3_ci_3
+                ]},
+               {expected_student_3,
+                [
+                  expected_std_3_s_ap_1_ci_1,
+                  expected_std_3_s_ap_2_ci_2,
+                  expected_std_3_s_ap_3_ci_3
+                ]}
+             ] =
+               Assessments.list_strand_students_entries(strand.id, nil,
+                 classes_ids: [class_a.id, class_b.id]
+               )
+
+      assert expected_student_1.id == student_1.id
+      assert expected_std_1_s_ap_1_ci_1.id == std_1_s_ap_1_ci_1.id
+      assert expected_std_1_s_ap_1_ci_1.ordinal_value_id == ov_a.id
+      assert expected_std_1_s_ap_1_ci_1.is_strand_entry
+      assert expected_std_1_s_ap_2_ci_2.id == std_1_s_ap_2_ci_2.id
+      assert expected_std_1_s_ap_2_ci_2.ordinal_value_id == ov_b.id
+      assert expected_std_1_s_ap_2_ci_2.is_strand_entry
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_1_id,
+               assessment_point_id: ^s_ap_3_id,
+               scale_id: ^s_ap_3_scale_id,
+               scale_type: ^s_ap_3_scale_type,
+               is_strand_entry: true
+             } = expected_std_1_s_ap_3_ci_3
+
+      assert expected_student_2.id == student_2.id
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^s_ap_1_id,
+               scale_id: ^s_ap_1_scale_id,
+               scale_type: ^s_ap_1_scale_type,
+               is_strand_entry: true
+             } = expected_std_2_s_ap_1_ci_1
+
+      assert expected_std_2_s_ap_2_ci_2.id == std_2_s_ap_2_ci_2.id
+      assert expected_std_2_s_ap_2_ci_2.ordinal_value_id == ov_c.id
+      assert expected_std_2_s_ap_2_ci_2.is_strand_entry
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^s_ap_3_id,
+               scale_id: ^s_ap_3_scale_id,
+               scale_type: ^s_ap_3_scale_type,
+               is_strand_entry: true
+             } = expected_std_2_s_ap_3_ci_3
+
+      assert expected_student_3.id == student_3.id
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^s_ap_1_id,
+               scale_id: ^s_ap_1_scale_id,
+               scale_type: ^s_ap_1_scale_type,
+               is_strand_entry: true
+             } = expected_std_3_s_ap_1_ci_1
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^s_ap_2_id,
+               scale_id: ^s_ap_2_scale_id,
+               scale_type: ^s_ap_2_scale_type,
+               is_strand_entry: true
+             } = expected_std_3_s_ap_2_ci_2
+
+      assert expected_std_3_s_ap_3_ci_3.id == std_3_s_ap_3_ci_3.id
+      assert expected_std_3_s_ap_3_ci_3.ordinal_value_id == ov_a.id
+      assert expected_std_3_s_ap_3_ci_3.is_strand_entry
+    end
+
+    test "list_strand_students_entries/2 grouped by curriculum returns entries as expected", %{
+      strand: strand,
+      s_ap_1_ci_1: s_ap_1_ci_1,
+      s_ap_2_ci_2: s_ap_2_ci_2,
+      s_ap_3_ci_3: s_ap_3_ci_3,
+      m_1_ap_1_ci_1: m_1_ap_1_ci_1,
+      m_1_ap_2_ci_2: m_1_ap_2_ci_2,
+      m_2_ap_1_ci_2: m_2_ap_1_ci_2,
+      scale: scale,
+      ov_a: ov_a,
+      ov_b: ov_b,
+      ov_c: ov_c,
+      class_a: class_a,
+      student_1: student_1,
+      student_2: student_2,
+      student_3: student_3,
+      std_1_m_1_ap_1_ci_1: std_1_m_1_ap_1_ci_1,
+      std_1_m_1_ap_2_ci_2: std_1_m_1_ap_2_ci_2,
+      std_1_m_2_ap_1_ci_2: std_1_m_2_ap_1_ci_2,
+      std_1_s_ap_1_ci_1: std_1_s_ap_1_ci_1,
+      std_1_s_ap_2_ci_2: std_1_s_ap_2_ci_2,
+      std_2_m_1_ap_2_ci_2: std_2_m_1_ap_2_ci_2,
+      std_2_s_ap_2_ci_2: std_2_s_ap_2_ci_2,
+      std_3_s_ap_3_ci_3: std_3_s_ap_3_ci_3
+    } do
+      # test case grid
+      # |     | ci 1             | ci 2                       | ci 3   |
+      # | std | m1 ap 1 | s ap 1 | m1 ap 2 | m2 ap 1 | s ap 2 | s ap 3 |
+      # ----------------------------------------------------------------
+      # | 1   | ov a    | ov a   | ov b    | ov b    | ov b   | ---    |
+      # | 2   | ---     | ---    | ov c    | ---     | ov c   | ---    |
+      # | 3   | ---     | ---    | ---     | ---     | ---    | ov a   |
+
+      # extract values to allow pattern match with pin
+      m_1_ap_1_id = m_1_ap_1_ci_1.id
+      m_1_ap_1_scale_id = m_1_ap_1_ci_1.scale_id
+      m_1_ap_1_scale_type = scale.type
+
+      s_ap_1_id = s_ap_1_ci_1.id
+      s_ap_1_scale_id = s_ap_1_ci_1.scale_id
+      s_ap_1_scale_type = scale.type
+
+      m_1_ap_2_id = m_1_ap_2_ci_2.id
+      m_1_ap_2_scale_id = m_1_ap_2_ci_2.scale_id
+      m_1_ap_2_scale_type = scale.type
+
+      m_2_ap_1_id = m_2_ap_1_ci_2.id
+      m_2_ap_1_scale_id = m_2_ap_1_ci_2.scale_id
+      m_2_ap_1_scale_type = scale.type
+
+      s_ap_2_id = s_ap_2_ci_2.id
+      s_ap_2_scale_id = s_ap_2_ci_2.scale_id
+      s_ap_2_scale_type = scale.type
+
+      s_ap_3_id = s_ap_3_ci_3.id
+      s_ap_3_scale_id = s_ap_3_ci_3.scale_id
+      s_ap_3_scale_type = scale.type
+
+      student_1_id = student_1.id
+      student_2_id = student_2.id
+      student_3_id = student_3.id
+
+      assert [
+               {expected_student_1,
+                [
+                  expected_std_1_m_1_ap_1_ci_1,
+                  expected_std_1_s_ap_1_ci_1,
+                  expected_std_1_m_1_ap_2_ci_2,
+                  expected_std_1_m_2_ap_1_ci_2,
+                  expected_std_1_s_ap_2_ci_2,
+                  expected_std_1_s_ap_3_ci_3
+                ]},
+               {expected_student_2,
+                [
+                  expected_std_2_m_1_ap_1_ci_1,
+                  expected_std_2_s_ap_1_ci_1,
+                  expected_std_2_m_1_ap_2_ci_2,
+                  expected_std_2_m_2_ap_1_ci_2,
+                  expected_std_2_s_ap_2_ci_2,
+                  expected_std_2_s_ap_3_ci_3
+                ]},
+               {expected_student_3,
+                [
+                  expected_std_3_m_1_ap_1_ci_1,
+                  expected_std_3_s_ap_1_ci_1,
+                  expected_std_3_m_1_ap_2_ci_2,
+                  expected_std_3_m_2_ap_1_ci_2,
+                  expected_std_3_s_ap_2_ci_2,
+                  expected_std_3_s_ap_3_ci_3
+                ]}
+             ] =
+               Assessments.list_strand_students_entries(strand.id, "curriculum",
+                 classes_ids: [class_a.id]
+               )
+
+      assert expected_student_1.id == student_1.id
+      assert expected_std_1_m_1_ap_1_ci_1.id == std_1_m_1_ap_1_ci_1.id
+      assert expected_std_1_m_1_ap_1_ci_1.ordinal_value_id == ov_a.id
+      refute expected_std_1_m_1_ap_1_ci_1.is_strand_entry
+      assert expected_std_1_s_ap_1_ci_1.id == std_1_s_ap_1_ci_1.id
+      assert expected_std_1_s_ap_1_ci_1.ordinal_value_id == ov_a.id
+      assert expected_std_1_s_ap_1_ci_1.is_strand_entry
+      assert expected_std_1_m_1_ap_2_ci_2.id == std_1_m_1_ap_2_ci_2.id
+      assert expected_std_1_m_1_ap_2_ci_2.ordinal_value_id == ov_b.id
+      refute expected_std_1_m_1_ap_2_ci_2.is_strand_entry
+      assert expected_std_1_m_2_ap_1_ci_2.id == std_1_m_2_ap_1_ci_2.id
+      assert expected_std_1_m_2_ap_1_ci_2.ordinal_value_id == ov_b.id
+      refute expected_std_1_m_2_ap_1_ci_2.is_strand_entry
+      assert expected_std_1_s_ap_2_ci_2.id == std_1_s_ap_2_ci_2.id
+      assert expected_std_1_s_ap_2_ci_2.ordinal_value_id == ov_b.id
+      assert expected_std_1_s_ap_2_ci_2.is_strand_entry
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_1_id,
+               assessment_point_id: ^s_ap_3_id,
+               scale_id: ^s_ap_3_scale_id,
+               scale_type: ^s_ap_3_scale_type,
+               is_strand_entry: true
+             } = expected_std_1_s_ap_3_ci_3
+
+      assert expected_student_2.id == student_2.id
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^m_1_ap_1_id,
+               scale_id: ^m_1_ap_1_scale_id,
+               scale_type: ^m_1_ap_1_scale_type,
+               is_strand_entry: false
+             } = expected_std_2_m_1_ap_1_ci_1
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^s_ap_1_id,
+               scale_id: ^s_ap_1_scale_id,
+               scale_type: ^s_ap_1_scale_type,
+               is_strand_entry: true
+             } = expected_std_2_s_ap_1_ci_1
+
+      assert expected_std_2_m_1_ap_2_ci_2.id == std_2_m_1_ap_2_ci_2.id
+      assert expected_std_2_m_1_ap_2_ci_2.ordinal_value_id == ov_c.id
+      refute expected_std_2_m_1_ap_2_ci_2.is_strand_entry
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^m_2_ap_1_id,
+               scale_id: ^m_2_ap_1_scale_id,
+               scale_type: ^m_2_ap_1_scale_type,
+               is_strand_entry: false
+             } = expected_std_2_m_2_ap_1_ci_2
+
+      assert expected_std_2_s_ap_2_ci_2.id == std_2_s_ap_2_ci_2.id
+      assert expected_std_2_s_ap_2_ci_2.ordinal_value_id == ov_c.id
+      assert expected_std_2_s_ap_2_ci_2.is_strand_entry
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^s_ap_3_id,
+               scale_id: ^s_ap_3_scale_id,
+               scale_type: ^s_ap_3_scale_type,
+               is_strand_entry: true
+             } = expected_std_2_s_ap_3_ci_3
+
+      assert expected_student_3.id == student_3.id
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^m_1_ap_1_id,
+               scale_id: ^m_1_ap_1_scale_id,
+               scale_type: ^m_1_ap_1_scale_type,
+               is_strand_entry: false
+             } = expected_std_3_m_1_ap_1_ci_1
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^s_ap_1_id,
+               scale_id: ^s_ap_1_scale_id,
+               scale_type: ^s_ap_1_scale_type,
+               is_strand_entry: true
+             } = expected_std_3_s_ap_1_ci_1
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^m_1_ap_2_id,
+               scale_id: ^m_1_ap_2_scale_id,
+               scale_type: ^m_1_ap_2_scale_type,
+               is_strand_entry: false
+             } = expected_std_3_m_1_ap_2_ci_2
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^m_2_ap_1_id,
+               scale_id: ^m_2_ap_1_scale_id,
+               scale_type: ^m_2_ap_1_scale_type,
+               is_strand_entry: false
+             } = expected_std_3_m_2_ap_1_ci_2
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^s_ap_2_id,
+               scale_id: ^s_ap_2_scale_id,
+               scale_type: ^s_ap_2_scale_type,
+               is_strand_entry: true
+             } = expected_std_3_s_ap_2_ci_2
+
+      assert expected_std_3_s_ap_3_ci_3.id == std_3_s_ap_3_ci_3.id
+      assert expected_std_3_s_ap_3_ci_3.ordinal_value_id == ov_a.id
+      assert expected_std_3_s_ap_3_ci_3.is_strand_entry
+    end
+
+    test "list_strand_students_entries/2 grouped by moment returns entries as expected", %{
+      strand: strand,
+      s_ap_1_ci_1: s_ap_1_ci_1,
+      s_ap_2_ci_2: s_ap_2_ci_2,
+      s_ap_3_ci_3: s_ap_3_ci_3,
+      m_1_ap_1_ci_1: m_1_ap_1_ci_1,
+      m_1_ap_2_ci_2: m_1_ap_2_ci_2,
+      m_2_ap_1_ci_2: m_2_ap_1_ci_2,
+      scale: scale,
+      ov_a: ov_a,
+      ov_b: ov_b,
+      ov_c: ov_c,
+      class_a: class_a,
+      student_1: student_1,
+      student_2: student_2,
+      student_3: student_3,
+      std_1_m_1_ap_1_ci_1: std_1_m_1_ap_1_ci_1,
+      std_1_m_1_ap_2_ci_2: std_1_m_1_ap_2_ci_2,
+      std_1_m_2_ap_1_ci_2: std_1_m_2_ap_1_ci_2,
+      std_1_s_ap_1_ci_1: std_1_s_ap_1_ci_1,
+      std_1_s_ap_2_ci_2: std_1_s_ap_2_ci_2,
+      std_2_m_1_ap_2_ci_2: std_2_m_1_ap_2_ci_2,
+      std_2_s_ap_2_ci_2: std_2_s_ap_2_ci_2,
+      std_3_s_ap_3_ci_3: std_3_s_ap_3_ci_3
+    } do
+      # test case grid
+      # |     | m 1         | m 2  | final (strand)     |
+      # | std | ap 1 | ap 2 | ap 1 | ap 1 | ap 2 | ap 3 |
+      # -------------------------------------------------
+      # | 1   | ov a | ov b | ov b | ov a | ov b | ---  |
+      # | 2   | ---  | ov c | ---  | ---  | ov c | ---  |
+      # | 3   | ---  | ---  | ---  | ---  | ---  | ov a |
+
+      # extract values to allow pattern match with pin
+      m_1_ap_1_id = m_1_ap_1_ci_1.id
+      m_1_ap_1_scale_id = m_1_ap_1_ci_1.scale_id
+      m_1_ap_1_scale_type = scale.type
+
+      s_ap_1_id = s_ap_1_ci_1.id
+      s_ap_1_scale_id = s_ap_1_ci_1.scale_id
+      s_ap_1_scale_type = scale.type
+
+      m_1_ap_2_id = m_1_ap_2_ci_2.id
+      m_1_ap_2_scale_id = m_1_ap_2_ci_2.scale_id
+      m_1_ap_2_scale_type = scale.type
+
+      m_2_ap_1_id = m_2_ap_1_ci_2.id
+      m_2_ap_1_scale_id = m_2_ap_1_ci_2.scale_id
+      m_2_ap_1_scale_type = scale.type
+
+      s_ap_2_id = s_ap_2_ci_2.id
+      s_ap_2_scale_id = s_ap_2_ci_2.scale_id
+      s_ap_2_scale_type = scale.type
+
+      s_ap_3_id = s_ap_3_ci_3.id
+      s_ap_3_scale_id = s_ap_3_ci_3.scale_id
+      s_ap_3_scale_type = scale.type
+
+      student_1_id = student_1.id
+      student_2_id = student_2.id
+      student_3_id = student_3.id
+
+      assert [
+               {expected_student_1,
+                [
+                  expected_std_1_m_1_ap_1_ci_1,
+                  expected_std_1_m_1_ap_2_ci_2,
+                  expected_std_1_m_2_ap_1_ci_2,
+                  expected_std_1_s_ap_1_ci_1,
+                  expected_std_1_s_ap_2_ci_2,
+                  expected_std_1_s_ap_3_ci_3
+                ]},
+               {expected_student_2,
+                [
+                  expected_std_2_m_1_ap_1_ci_1,
+                  expected_std_2_m_1_ap_2_ci_2,
+                  expected_std_2_m_2_ap_1_ci_2,
+                  expected_std_2_s_ap_1_ci_1,
+                  expected_std_2_s_ap_2_ci_2,
+                  expected_std_2_s_ap_3_ci_3
+                ]},
+               {expected_student_3,
+                [
+                  expected_std_3_m_1_ap_1_ci_1,
+                  expected_std_3_m_1_ap_2_ci_2,
+                  expected_std_3_m_2_ap_1_ci_2,
+                  expected_std_3_s_ap_1_ci_1,
+                  expected_std_3_s_ap_2_ci_2,
+                  expected_std_3_s_ap_3_ci_3
+                ]}
+             ] =
+               Assessments.list_strand_students_entries(strand.id, "moment",
+                 classes_ids: [class_a.id]
+               )
+
+      assert expected_student_1.id == student_1.id
+      assert expected_std_1_m_1_ap_1_ci_1.id == std_1_m_1_ap_1_ci_1.id
+      assert expected_std_1_m_1_ap_1_ci_1.ordinal_value_id == ov_a.id
+      refute expected_std_1_m_1_ap_1_ci_1.is_strand_entry
+      assert expected_std_1_m_1_ap_2_ci_2.id == std_1_m_1_ap_2_ci_2.id
+      assert expected_std_1_m_1_ap_2_ci_2.ordinal_value_id == ov_b.id
+      refute expected_std_1_m_1_ap_2_ci_2.is_strand_entry
+      assert expected_std_1_m_2_ap_1_ci_2.id == std_1_m_2_ap_1_ci_2.id
+      assert expected_std_1_m_2_ap_1_ci_2.ordinal_value_id == ov_b.id
+      refute expected_std_1_m_2_ap_1_ci_2.is_strand_entry
+      assert expected_std_1_s_ap_1_ci_1.id == std_1_s_ap_1_ci_1.id
+      assert expected_std_1_s_ap_1_ci_1.ordinal_value_id == ov_a.id
+      assert expected_std_1_s_ap_1_ci_1.is_strand_entry
+      assert expected_std_1_s_ap_2_ci_2.id == std_1_s_ap_2_ci_2.id
+      assert expected_std_1_s_ap_2_ci_2.ordinal_value_id == ov_b.id
+      assert expected_std_1_s_ap_2_ci_2.is_strand_entry
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_1_id,
+               assessment_point_id: ^s_ap_3_id,
+               scale_id: ^s_ap_3_scale_id,
+               scale_type: ^s_ap_3_scale_type,
+               is_strand_entry: true
+             } = expected_std_1_s_ap_3_ci_3
+
+      assert expected_student_2.id == student_2.id
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^m_1_ap_1_id,
+               scale_id: ^m_1_ap_1_scale_id,
+               scale_type: ^m_1_ap_1_scale_type,
+               is_strand_entry: false
+             } = expected_std_2_m_1_ap_1_ci_1
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^s_ap_1_id,
+               scale_id: ^s_ap_1_scale_id,
+               scale_type: ^s_ap_1_scale_type,
+               is_strand_entry: true
+             } = expected_std_2_s_ap_1_ci_1
+
+      assert expected_std_2_m_1_ap_2_ci_2.id == std_2_m_1_ap_2_ci_2.id
+      assert expected_std_2_m_1_ap_2_ci_2.ordinal_value_id == ov_c.id
+      refute expected_std_2_m_1_ap_2_ci_2.is_strand_entry
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^m_2_ap_1_id,
+               scale_id: ^m_2_ap_1_scale_id,
+               scale_type: ^m_2_ap_1_scale_type,
+               is_strand_entry: false
+             } = expected_std_2_m_2_ap_1_ci_2
+
+      assert expected_std_2_s_ap_2_ci_2.id == std_2_s_ap_2_ci_2.id
+      assert expected_std_2_s_ap_2_ci_2.ordinal_value_id == ov_c.id
+      assert expected_std_2_s_ap_2_ci_2.is_strand_entry
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^s_ap_3_id,
+               scale_id: ^s_ap_3_scale_id,
+               scale_type: ^s_ap_3_scale_type,
+               is_strand_entry: true
+             } = expected_std_2_s_ap_3_ci_3
+
+      assert expected_student_3.id == student_3.id
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^m_1_ap_1_id,
+               scale_id: ^m_1_ap_1_scale_id,
+               scale_type: ^m_1_ap_1_scale_type,
+               is_strand_entry: false
+             } = expected_std_3_m_1_ap_1_ci_1
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^s_ap_1_id,
+               scale_id: ^s_ap_1_scale_id,
+               scale_type: ^s_ap_1_scale_type,
+               is_strand_entry: true
+             } = expected_std_3_s_ap_1_ci_1
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^m_1_ap_2_id,
+               scale_id: ^m_1_ap_2_scale_id,
+               scale_type: ^m_1_ap_2_scale_type,
+               is_strand_entry: false
+             } = expected_std_3_m_1_ap_2_ci_2
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^m_2_ap_1_id,
+               scale_id: ^m_2_ap_1_scale_id,
+               scale_type: ^m_2_ap_1_scale_type,
+               is_strand_entry: false
+             } = expected_std_3_m_2_ap_1_ci_2
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^s_ap_2_id,
+               scale_id: ^s_ap_2_scale_id,
+               scale_type: ^s_ap_2_scale_type,
+               is_strand_entry: true
+             } = expected_std_3_s_ap_2_ci_2
+
+      assert expected_std_3_s_ap_3_ci_3.id == std_3_s_ap_3_ci_3.id
+      assert expected_std_3_s_ap_3_ci_3.ordinal_value_id == ov_a.id
+      assert expected_std_3_s_ap_3_ci_3.is_strand_entry
+    end
+  end
+
+  describe "moment assessments students entries" do
+    alias Lanttern.Assessments.AssessmentPointEntry
+
+    setup [
+      :strand_assessment_points_setup,
+      :strand_assessment_points_entries_setup
+    ]
+
+    test "list_moment_students_entries/2 returns entries as expected", %{
+      m_1: moment,
+      m_1_ap_1_ci_1: m_1_ap_1_ci_1,
+      m_1_ap_2_ci_2: m_1_ap_2_ci_2,
+      scale: scale,
+      ov_a: ov_a,
+      ov_b: ov_b,
+      ov_c: ov_c,
+      class_a: class_a,
+      class_b: class_b,
+      student_1: student_1,
+      student_2: student_2,
+      student_3: student_3,
+      std_1_m_1_ap_1_ci_1: std_1_m_1_ap_1_ci_1,
+      std_1_m_1_ap_2_ci_2: std_1_m_1_ap_2_ci_2,
+      std_2_m_1_ap_2_ci_2: std_2_m_1_ap_2_ci_2
+    } do
+      # test case grid
+      # | std | ap 1 | ap 2 |
+      # ---------------------
+      # | 1   | ov a | ov b |
+      # | 2   | ---  | ov c |
+      # | 3   | ---  | ---  |
+
+      # extract values to allow pattern match with pin
+      m_1_ap_1_id = m_1_ap_1_ci_1.id
+      m_1_ap_1_scale_id = m_1_ap_1_ci_1.scale_id
+      m_1_ap_1_scale_type = scale.type
+
+      m_1_ap_2_id = m_1_ap_2_ci_2.id
+      m_1_ap_2_scale_id = m_1_ap_2_ci_2.scale_id
+      m_1_ap_2_scale_type = scale.type
+
+      student_2_id = student_2.id
+      student_3_id = student_3.id
+
+      assert [
+               {expected_student_1,
+                [
+                  expected_std_1_m_1_ap_1_ci_1,
+                  expected_std_1_m_1_ap_2_ci_2
+                ]},
+               {expected_student_2,
+                [
+                  expected_std_2_m_1_ap_1_ci_1,
+                  expected_std_2_m_1_ap_2_ci_2
+                ]},
+               {expected_student_3,
+                [
+                  expected_std_3_m_1_ap_1_ci_1,
+                  expected_std_3_m_1_ap_2_ci_2
+                ]}
+             ] =
+               Assessments.list_moment_students_entries(moment.id,
+                 classes_ids: [class_a.id, class_b.id]
+               )
+
+      assert expected_student_1.id == student_1.id
+      assert expected_std_1_m_1_ap_1_ci_1.id == std_1_m_1_ap_1_ci_1.id
+      assert expected_std_1_m_1_ap_1_ci_1.ordinal_value_id == ov_a.id
+      assert expected_std_1_m_1_ap_2_ci_2.id == std_1_m_1_ap_2_ci_2.id
+      assert expected_std_1_m_1_ap_2_ci_2.ordinal_value_id == ov_b.id
+
+      assert expected_student_2.id == student_2.id
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_2_id,
+               assessment_point_id: ^m_1_ap_1_id,
+               scale_id: ^m_1_ap_1_scale_id,
+               scale_type: ^m_1_ap_1_scale_type
+             } = expected_std_2_m_1_ap_1_ci_1
+
+      assert expected_std_2_m_1_ap_2_ci_2.id == std_2_m_1_ap_2_ci_2.id
+      assert expected_std_2_m_1_ap_2_ci_2.ordinal_value_id == ov_c.id
+
+      assert expected_student_3.id == student_3.id
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^m_1_ap_1_id,
+               scale_id: ^m_1_ap_1_scale_id,
+               scale_type: ^m_1_ap_1_scale_type
+             } = expected_std_3_m_1_ap_1_ci_1
+
+      assert %AssessmentPointEntry{
+               id: nil,
+               student_id: ^student_3_id,
+               assessment_point_id: ^m_1_ap_2_id,
+               scale_id: ^m_1_ap_2_scale_id,
+               scale_type: ^m_1_ap_2_scale_type
+             } = expected_std_3_m_1_ap_2_ci_2
+    end
+  end
+
+  defp strand_assessment_points_setup(_context) do
+    strand = Lanttern.LearningContextFixtures.strand_fixture()
+
+    m_1 = Lanttern.LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+    m_2 = Lanttern.LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+    m_3 = Lanttern.LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+
+    cc = Lanttern.CurriculaFixtures.curriculum_component_fixture()
+    ci_1 = Lanttern.CurriculaFixtures.curriculum_item_fixture(%{curriculum_component_id: cc.id})
+    ci_2 = Lanttern.CurriculaFixtures.curriculum_item_fixture(%{curriculum_component_id: cc.id})
+    ci_3 = Lanttern.CurriculaFixtures.curriculum_item_fixture(%{curriculum_component_id: cc.id})
+
+    scale = Lanttern.GradingFixtures.scale_fixture(%{type: "ordinal"})
+    ov_a = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+    ov_b = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+    ov_c = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+
+    s_ap_1_ci_1 =
+      Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+        strand_id: strand.id,
+        curriculum_item_id: ci_1.id,
+        scale_id: scale.id
+      })
+
+    s_ap_2_ci_2 =
+      Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+        strand_id: strand.id,
+        curriculum_item_id: ci_2.id,
+        scale_id: scale.id
+      })
+
+    s_ap_3_ci_3 =
+      Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+        strand_id: strand.id,
+        curriculum_item_id: ci_3.id,
+        scale_id: scale.id,
+        is_differentiation: true
+      })
+
+    m_1_ap_1_ci_1 =
+      Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+        moment_id: m_1.id,
+        curriculum_item_id: ci_1.id,
+        scale_id: scale.id
+      })
+
+    m_1_ap_2_ci_2 =
+      Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+        moment_id: m_1.id,
+        curriculum_item_id: ci_2.id,
+        scale_id: scale.id
+      })
+
+    m_2_ap_1_ci_2 =
+      Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+        moment_id: m_2.id,
+        curriculum_item_id: ci_2.id,
+        scale_id: scale.id
+      })
+
+    # extra assessment point for filtering validation
+    Lanttern.AssessmentsFixtures.assessment_point_fixture()
+
+    %{
+      strand: strand,
+      m_1: m_1,
+      m_2: m_2,
+      m_3: m_3,
+      cc: cc,
+      ci_1: ci_1,
+      ci_2: ci_2,
+      ci_3: ci_3,
+      s_ap_1_ci_1: s_ap_1_ci_1,
+      s_ap_2_ci_2: s_ap_2_ci_2,
+      s_ap_3_ci_3: s_ap_3_ci_3,
+      m_1_ap_1_ci_1: m_1_ap_1_ci_1,
+      m_1_ap_2_ci_2: m_1_ap_2_ci_2,
+      m_2_ap_1_ci_2: m_2_ap_1_ci_2,
+      scale: scale,
+      ov_a: ov_a,
+      ov_b: ov_b,
+      ov_c: ov_c
+    }
+  end
+
+  defp strand_assessment_points_entries_setup(%{
+         s_ap_1_ci_1: s_ap_1_ci_1,
+         s_ap_2_ci_2: s_ap_2_ci_2,
+         s_ap_3_ci_3: s_ap_3_ci_3,
+         m_1_ap_1_ci_1: m_1_ap_1_ci_1,
+         m_1_ap_2_ci_2: m_1_ap_2_ci_2,
+         m_2_ap_1_ci_2: m_2_ap_1_ci_2,
+         scale: scale,
+         ov_a: ov_a,
+         ov_b: ov_b,
+         ov_c: ov_c
+       }) do
+    school = Lanttern.SchoolsFixtures.school_fixture()
+    class_a = Lanttern.SchoolsFixtures.class_fixture(%{school_id: school.id})
+    class_b = Lanttern.SchoolsFixtures.class_fixture(%{school_id: school.id})
+
+    student_1 =
+      Lanttern.SchoolsFixtures.student_fixture(%{
+        name: "AAA",
+        classes_ids: [class_a.id, class_b.id]
+      })
+
+    student_2 =
+      Lanttern.SchoolsFixtures.student_fixture(%{name: "BBB", classes_ids: [class_a.id]})
+
+    student_3 =
+      Lanttern.SchoolsFixtures.student_fixture(%{name: "CCC", classes_ids: [class_a.id]})
+
+    # student 1 entries
+    # ci_1 m1 / s - ov_a
+    # ci_2 m1 / m2 / s - ov_b
+
+    std_1_m_1_ap_1_ci_1 =
+      Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+        student_id: student_1.id,
+        scale_id: scale.id,
+        scale_type: scale.type,
+        assessment_point_id: m_1_ap_1_ci_1.id,
+        ordinal_value_id: ov_a.id
+      })
+
+    std_1_m_1_ap_2_ci_2 =
+      Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+        student_id: student_1.id,
+        scale_id: scale.id,
+        scale_type: scale.type,
+        assessment_point_id: m_1_ap_2_ci_2.id,
+        ordinal_value_id: ov_b.id
+      })
+
+    std_1_m_2_ap_1_ci_2 =
+      Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+        student_id: student_1.id,
+        scale_id: scale.id,
+        scale_type: scale.type,
+        assessment_point_id: m_2_ap_1_ci_2.id,
+        ordinal_value_id: ov_b.id
+      })
+
+    std_1_s_ap_1_ci_1 =
+      Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+        student_id: student_1.id,
+        scale_id: scale.id,
+        scale_type: scale.type,
+        assessment_point_id: s_ap_1_ci_1.id,
+        ordinal_value_id: ov_a.id
+      })
+
+    std_1_s_ap_2_ci_2 =
+      Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+        student_id: student_1.id,
+        scale_id: scale.id,
+        scale_type: scale.type,
+        assessment_point_id: s_ap_2_ci_2.id,
+        ordinal_value_id: ov_b.id
+      })
+
+    # student 2 entries
+    # ci_2 m1 / s - ov_c
+
+    std_2_m_1_ap_2_ci_2 =
+      Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+        student_id: student_2.id,
+        scale_id: scale.id,
+        scale_type: scale.type,
+        assessment_point_id: m_1_ap_2_ci_2.id,
+        ordinal_value_id: ov_c.id
+      })
+
+    std_2_s_ap_2_ci_2 =
+      Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+        student_id: student_2.id,
+        scale_id: scale.id,
+        scale_type: scale.type,
+        assessment_point_id: s_ap_2_ci_2.id,
+        ordinal_value_id: ov_c.id
+      })
+
+    # student 3 entries
+    # ci_3 s - ov_a
+
+    std_3_s_ap_3_ci_3 =
+      Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+        student_id: student_3.id,
+        scale_id: scale.id,
+        scale_type: scale.type,
+        assessment_point_id: s_ap_3_ci_3.id,
+        ordinal_value_id: ov_a.id
+      })
+
+    # extra assessment point entries for filtering validation
+    Lanttern.AssessmentsFixtures.assessment_point_entry_fixture()
+
+    Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+      assessment_point_id: m_1_ap_2_ci_2.id,
+      scale_id: scale.id,
+      scale_type: scale.type
+    })
+
+    Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+      assessment_point_id: s_ap_3_ci_3.id,
+      scale_id: scale.id,
+      scale_type: scale.type
+    })
+
+    %{
+      class_a: class_a,
+      class_b: class_b,
+      student_1: student_1,
+      student_2: student_2,
+      student_3: student_3,
+      std_1_m_1_ap_1_ci_1: std_1_m_1_ap_1_ci_1,
+      std_1_m_1_ap_2_ci_2: std_1_m_1_ap_2_ci_2,
+      std_1_m_2_ap_1_ci_2: std_1_m_2_ap_1_ci_2,
+      std_1_s_ap_1_ci_1: std_1_s_ap_1_ci_1,
+      std_1_s_ap_2_ci_2: std_1_s_ap_2_ci_2,
+      std_2_m_1_ap_2_ci_2: std_2_m_1_ap_2_ci_2,
+      std_2_s_ap_2_ci_2: std_2_s_ap_2_ci_2,
+      std_3_s_ap_3_ci_3: std_3_s_ap_3_ci_3
+    }
   end
 end

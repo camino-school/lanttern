@@ -49,7 +49,7 @@ defmodule LantternWeb.MomentLiveTest do
       # assessment tab
 
       view
-      |> element("#moment-nav-tabs a", "Assessment")
+      |> element("#moment-nav-tabs a", "Moment assessment")
       |> render_click()
 
       assert_patch(view)

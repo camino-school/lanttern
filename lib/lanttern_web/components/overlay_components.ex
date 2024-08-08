@@ -176,7 +176,7 @@ defmodule LantternWeb.OverlayComponents do
       phx-remove={hide_slide_over(@id)}
       data-show={show_slide_over(@id)}
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
-      class="relative z-30 hidden"
+      class="relative z-50 hidden"
     >
       <div id={"#{@id}-backdrop"} class="fixed inset-0 bg-ltrn-dark/75 transition-opacity" />
       <div
@@ -297,7 +297,7 @@ defmodule LantternWeb.OverlayComponents do
       phx-remove={hide_panel_overlay(@id)}
       data-show={show_panel_overlay(@id)}
       data-cancel={JS.exec(@on_cancel, "phx-remove")}
-      class="relative z-30 hidden"
+      class="relative z-50 hidden"
     >
       <div
         id={"#{@id}-backdrop"}
@@ -305,7 +305,7 @@ defmodule LantternWeb.OverlayComponents do
         aria-hidden="true"
       />
       <div
-        class="fixed inset-0 z-30 w-screen"
+        class="fixed inset-0 z-50 w-screen"
         tabindex="0"
         aria-labelledby={"#{@id}-title"}
         aria-describedby={"#{@id}-description"}
@@ -447,6 +447,101 @@ defmodule LantternWeb.OverlayComponents do
     """
   end
 
+  @doc """
+  Renders a dropdown menu.
+
+  Using a JS hook, this component handles the interaction between
+  the button referenced by the `button_id` assign and the menu
+  (view `dropdown-menu-hook.js` for more information).
+
+  This component should be used in a parent with `postion: relative`.
+
+  """
+
+  attr :id, :string, required: true
+  attr :button_id, :string, required: true
+  attr :class, :string, default: nil
+  attr :position, :string, default: "left", doc: "left or right"
+
+  attr :z_index, :string,
+    default: "10",
+    doc:
+      "use any existing Tailwind z-index value, or \"custom\" to override it with the class attr (e.g. to use an arbitrary value, z-[15])"
+
+  slot :item, required: true do
+    attr :text, :string, required: true
+    attr :on_click, JS, required: true
+    attr :theme, :string
+    attr :confirm_msg, :string, doc: "use for adding a data-confirm attr"
+  end
+
+  def dropdown_menu(assigns) do
+    position_classes =
+      case assigns.position do
+        "right" -> "right-0"
+        _ -> "left-0"
+      end
+
+    z_index_class = get_z_index_class(assigns.z_index)
+
+    assigns =
+      assigns
+      |> assign(:position_classes, position_classes)
+      |> assign(:z_index_class, z_index_class)
+
+    ~H"""
+    <div
+      id={@id}
+      class={[
+        "hidden absolute mt-1 min-w-full w-max max-w-sm rounded-sm bg-white py-2 shadow-lg ring-1 ring-ltrn-lighter focus:outline-none",
+        @z_index_class,
+        @position_classes,
+        @class
+      ]}
+      role="menu"
+      aria-orientation="vertical"
+      aria-labelledby={@button_id}
+      tabindex="-1"
+      phx-window-keydown={JS.exec("data-close")}
+      phx-key="escape"
+      phx-click-away={JS.exec("data-close")}
+      data-close={close_dropdown_menu(@id)}
+      data-open={open_dropdown_menu(@id)}
+      phx-hook="DropdownMenu"
+    >
+      <button
+        :for={item <- @item}
+        type="button"
+        class={[
+          "block w-full px-3 py-1 text-sm text-left focus:bg-ltrn-lighter",
+          menu_button_item_theme_classes(Map.get(item, :theme, "default"))
+        ]}
+        role="menuitem"
+        tabindex="-1"
+        phx-click={
+          item.on_click
+          |> JS.exec("data-close", to: "##{@id}")
+        }
+        data-confirm={Map.get(item, :confirm_msg)}
+      >
+        <%= item.text %>
+      </button>
+    </div>
+    """
+  end
+
+  # this solution looks odd, but it's the best idea
+  # I could came with to inform Tailwind to compile
+  # all the z- classes
+  defp get_z_index_class("0"), do: "z-0"
+  defp get_z_index_class("10"), do: "z-10"
+  defp get_z_index_class("20"), do: "z-20"
+  defp get_z_index_class("30"), do: "z-30"
+  defp get_z_index_class("40"), do: "z-40"
+  defp get_z_index_class("50"), do: "z-50"
+  defp get_z_index_class("auto"), do: "auto"
+  defp get_z_index_class(_z_index), do: nil
+
   @menu_button_item_themes %{
     "default" => "text-ltrn-dark",
     "alert" => "text-ltrn-alert-accent"
@@ -473,6 +568,32 @@ defmodule LantternWeb.OverlayComponents do
     js
     |> JS.hide(
       to: "#menu-button-#{id}",
+      transition: {
+        "ease-out duration-75",
+        "transform opacity-100 scale-100",
+        "transform opacity-0 scale-95"
+      },
+      time: 75
+    )
+    |> JS.remove_attribute("aria-expanded")
+  end
+
+  defp open_dropdown_menu(id) do
+    JS.show(
+      to: "##{id}",
+      transition: {
+        "ease-out duration-100",
+        "transform opacity-0 scale-95",
+        "transform opacity-100 scale-100"
+      },
+      time: 100
+    )
+    |> JS.set_attribute({"aria-expanded", "true"})
+  end
+
+  defp close_dropdown_menu(id) do
+    JS.hide(
+      to: "##{id}",
       transition: {
         "ease-out duration-75",
         "transform opacity-100 scale-100",

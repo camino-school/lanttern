@@ -270,14 +270,33 @@ defmodule Lanttern.Grading do
 
   def list_scales(opts \\ [])
 
-  def list_scales(type: type) do
-    from(s in Scale, where: s.type == ^type)
+  def list_scales(opts) do
+    Scale
+    |> apply_list_scales_opts(opts)
     |> Repo.all()
+    |> maybe_preload(opts)
   end
 
-  def list_scales(_opts) do
-    Repo.all(Scale)
+  defp apply_list_scales_opts(queryable, []), do: queryable
+
+  defp apply_list_scales_opts(queryable, [{:type, type} | opts]) do
+    from(
+      s in queryable,
+      where: s.type == ^type
+    )
+    |> apply_list_scales_opts(opts)
   end
+
+  defp apply_list_scales_opts(queryable, [{:ids, ids} | opts]) when is_list(ids) do
+    from(
+      s in queryable,
+      where: s.id in ^ids
+    )
+    |> apply_list_scales_opts(opts)
+  end
+
+  defp apply_list_scales_opts(queryable, [_ | opts]),
+    do: apply_list_scales_opts(queryable, opts)
 
   @doc """
   Gets a single scale.

@@ -60,13 +60,11 @@ defmodule LantternWeb.UserSessionController do
 
   defp handle_google_sign_in_response(conn, {:error, error_reason}) do
     error =
-      cond do
-        is_atom(error_reason) ->
-          # case: :kid_does_not_match
-          Atom.to_string(error_reason)
-
-        true ->
-          error_reason[:message]
+      if is_atom(error_reason) do
+        # case: :kid_does_not_match
+        Atom.to_string(error_reason)
+      else
+        error_reason[:message]
       end
 
     conn

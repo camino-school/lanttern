@@ -68,7 +68,7 @@ defmodule LantternWeb.StrandLiveTest do
       # assessment tab
 
       view
-      |> element("#strand-nav-tabs a", "Assessment")
+      |> element("#strand-nav-tabs a", "Strand assessment")
       |> render_click()
 
       assert_patch(view)

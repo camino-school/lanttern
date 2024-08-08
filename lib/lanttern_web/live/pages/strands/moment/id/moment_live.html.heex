@@ -43,7 +43,7 @@
         patch={~p"/strands/moment/#{@moment}?#{%{tab: "assessment"}}"}
         is_current={@current_tab == :assessment && "true"}
       >
-        <%= gettext("Assessment") %>
+        <%= gettext("Moment assessment") %>
       </:tab>
       <:tab
         patch={~p"/strands/moment/#{@moment}?#{%{tab: "cards"}}"}
@@ -54,7 +54,6 @@
       <:tab
         patch={~p"/strands/moment/#{@moment}?#{%{tab: "notes"}}"}
         is_current={@current_tab == :notes && "true"}
-        icon_name="hero-pencil-square"
       >
         <%= gettext("My notes") %>
       </:tab>
@@ -90,6 +89,7 @@
     live_action={@live_action}
     assessment_point_id={@assessment_point_id}
     current_user={@current_user}
+    params={@params}
   />
   <.live_component
     :if={@current_tab == :cards}

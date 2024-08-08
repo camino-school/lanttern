@@ -24,12 +24,14 @@ import topbar from "../vendor/topbar";
 import autocompleteHook from "./autocomplete-hook";
 import copyToClipboardHook from "./copy-to-clipboard-hook";
 import cookiesHook from "./cookies-hook";
+import dropdownMenuHook from "./dropdown-menu-hook";
 import menuButtonrHook from "./menu-button-hook";
 import navScrollspyHook from "./nav-scrollspy-hook";
 import sliderHook from "./slider-hook";
 
 let Hooks = {};
 Hooks.Autocomplete = autocompleteHook;
+Hooks.DropdownMenu = dropdownMenuHook;
 Hooks.MenuButton = menuButtonrHook;
 Hooks.NavScrollspy = navScrollspyHook;
 Hooks.Slider = sliderHook;

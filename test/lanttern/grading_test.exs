@@ -158,9 +158,35 @@ defmodule Lanttern.GradingTest do
       breakpoints: [0.5, 1.5]
     }
 
-    test "list_scales/0 returns all scales" do
+    test "list_scales/1 returns all scales" do
       scale = scale_fixture()
       assert Grading.list_scales() == [scale]
+    end
+
+    test "list_scales/1 with preloads and scales_ids opts returns all scales as expected" do
+      num_scale = scale_fixture(%{type: "numeric"})
+      ord_scale = scale_fixture(%{type: "ordinal"})
+      ov_1 = ordinal_value_fixture(%{scale_id: ord_scale.id, normalized_value: 0})
+      ov_2 = ordinal_value_fixture(%{scale_id: ord_scale.id, normalized_value: 1})
+
+      # extra scales for filtering test
+      scale_fixture()
+
+      assert scales =
+               Grading.list_scales(ids: [num_scale.id, ord_scale.id], preloads: :ordinal_values)
+
+      assert length(scales) == 2
+
+      for scale <- scales do
+        case scale do
+          %{type: "ordinal"} ->
+            assert scale.id == ord_scale.id
+            assert scale.ordinal_values == [ov_1, ov_2]
+
+          %{type: "numeric"} ->
+            assert scale.id == num_scale.id
+        end
+      end
     end
 
     test "get_scale!/2 returns the scale with given id" do

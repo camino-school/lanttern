@@ -40,6 +40,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
           student_score: float() | nil,
           scale_type: String.t(),
           has_evidences: boolean(),
+          is_strand_entry: boolean(),
           assessment_point: AssessmentPoint.t(),
           assessment_point_id: pos_integer(),
           student: Student.t(),
@@ -67,6 +68,11 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
     field :scale_type, :string
 
     field :has_evidences, :boolean, virtual: true
+
+    # we use this virtual field in the assessments grid context.
+    # we have mixed moments and strands entries, but we just
+    # want the strand entries to be editable
+    field :is_strand_entry, :boolean, virtual: true
 
     belongs_to :assessment_point, AssessmentPoint
     belongs_to :student, Student

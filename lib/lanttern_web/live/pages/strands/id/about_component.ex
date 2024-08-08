@@ -4,11 +4,13 @@ defmodule LantternWeb.StrandLive.AboutComponent do
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Curricula
+  alias Lanttern.Reporting
 
   import Lanttern.Utils, only: [swap: 3]
 
   # shared components
   alias LantternWeb.Assessments.AssessmentPointFormComponent
+  import LantternWeb.ReportingComponents, only: [report_card_card: 1]
 
   @impl true
   def render(assigns) do
@@ -106,6 +108,29 @@ defmodule LantternWeb.StrandLive.AboutComponent do
           </div>
         </div>
       </.responsive_container>
+      <.responsive_container class="mt-16">
+        <h3 class="font-display font-black text-3xl"><%= gettext("Report cards") %></h3>
+        <p class="flex gap-1 mt-4">
+          <%= gettext("List of report cards linked to this strand.") %>
+          <.link class="text-ltrn-subtle hover:text-ltrn-primary" navigate={~p"/report_cards"}>
+            <%= gettext("View all") %>
+          </.link>
+        </p>
+      </.responsive_container>
+      <%= if @has_report_cards do %>
+        <.responsive_grid id={@id} phx-update="stream">
+          <.report_card_card
+            :for={{dom_id, report_card} <- @streams.report_cards}
+            id={dom_id}
+            report_card={report_card}
+            navigate={~p"/report_cards/#{report_card}"}
+          />
+        </.responsive_grid>
+      <% else %>
+        <.empty_state class="mt-10">
+          <%= gettext("No report cards linked to this strand") %>
+        </.empty_state>
+      <% end %>
       <.slide_over
         :if={@live_action in [:new_goal, :edit_goal]}
         id="assessment-point-form-overlay"
@@ -198,8 +223,21 @@ defmodule LantternWeb.StrandLive.AboutComponent do
         Curricula.list_strand_curriculum_items(strand.id, preloads: :curriculum_component)
         |> Enum.with_index()
       end)
+      |> stream_report_cards()
 
     {:ok, socket}
+  end
+
+  defp stream_report_cards(socket) do
+    report_cards =
+      Reporting.list_report_cards(
+        preloads: :school_cycle,
+        strands_ids: [socket.assigns.strand.id]
+      )
+
+    socket
+    |> stream(:report_cards, report_cards)
+    |> assign(:has_report_cards, report_cards != [])
   end
 
   # event handlers
