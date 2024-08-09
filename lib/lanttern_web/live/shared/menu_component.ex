@@ -52,7 +52,7 @@ defmodule LantternWeb.MenuComponent do
                   <%= gettext("Grading") %>
                 </.nav_item>
                 <%!-- use this li as placeholder when nav items % 3 != 0 (sm) or nav items % 2 != 0 --%>
-                <li class="hidden lg:block bg-white"></li>
+                <li class="bg-white"></li>
                 <li class="hidden lg:block bg-white"></li>
               <% end %>
 
