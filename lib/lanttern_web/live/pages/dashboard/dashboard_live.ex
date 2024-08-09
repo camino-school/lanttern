@@ -29,7 +29,7 @@ defmodule LantternWeb.DashboardLive do
       <:upper_block>
         <div class="flex gap-2">
           <.link
-            navigate={~p"/assessment_points?#{@path_params}"}
+            navigate="#"
             class="flex-1 font-display font-black text-2xl line-clamp-3 underline hover:text-ltrn-subtle"
             title={@filter_view.name}
           >

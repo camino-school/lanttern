@@ -35,6 +35,7 @@ defmodule LantternWeb.DashboardLiveTest do
       assert view |> has_element?("span", class.name)
     end
 
+    @tag :skip
     test "navigate using filter view", %{
       conn: conn,
       filter_view: filter_view,

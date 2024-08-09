@@ -124,37 +124,6 @@ defmodule Lanttern.Taxonomy do
   end
 
   @doc """
-  Returns a tuple with two lists of subjects:
-  one comprised of subjects used by assessment points,
-  and another with all the other subjects.
-
-  Inferred through assesmsent points's curriculum-item.
-
-  ## Examples
-
-      iex> list_assessment_point_subjects()
-      {[%Subject{}, ...], [%Subject{}, ...]}
-
-  """
-  def list_assessment_points_subjects do
-    all_subjects =
-      from(sub in Subject,
-        left_join: ci in assoc(sub, :curriculum_items),
-        left_join: ast in assoc(ci, :assessment_points),
-        group_by: sub.id,
-        order_by: sub.name,
-        select: {sub, count(ast.id)}
-      )
-      |> Repo.all()
-      |> Enum.group_by(fn {_subject, ast_count} -> ast_count > 0 end)
-
-    {
-      all_subjects |> Map.get(true, []) |> Enum.map(fn {sub, _} -> sub end),
-      all_subjects |> Map.get(false, []) |> Enum.map(fn {sub, _} -> sub end)
-    }
-  end
-
-  @doc """
   Returns the list of strand subjects ordered alphabetically.
 
   ## Examples
