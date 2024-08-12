@@ -1,11 +1,28 @@
-<.responsive_container class="py-6 sm:py-10">
+<.responsive_container class="pt-6 sm:pt-10">
   <.page_title_with_menu>Dashboard 🚧</.page_title_with_menu>
-  <div class="mt-40">
+  <div class="flex items-baseline gap-4 mt-12 font-display font-bold text-lg">
+    <h2><%= gettext("Your starred strands") %></h2>
     <.link
-      navigate={~p"/curriculum"}
-      class="flex items-center mt-10 font-display font-black text-lg text-ltrn-subtle"
+      navigate={~p"/strands"}
+      class="text-base text-ltrn-subtle hover:text-ltrn-dark hover:underline"
     >
-      Curriculum <.icon name="hero-arrow-right" class="text-ltrn-primary ml-2" />
+      <%= gettext("Go to all strands page") %>
     </.link>
   </div>
 </.responsive_container>
+<%= if !@has_strands do %>
+  <.empty_state class="p-10 my-10 mx-6 sm:mx-10 rounded bg-white shadow-lg">
+    <%= gettext("No starred strands yet") %>
+  </.empty_state>
+<% else %>
+  <.responsive_grid id="starred-strands-grid" phx-update="stream">
+    <.strand_card
+      :for={{dom_id, strand} <- @streams.starred_strands}
+      id={dom_id}
+      strand={strand}
+      on_star_click={JS.push("unstar", value: %{id: strand.id, dom_id: dom_id})}
+      navigate={~p"/strands/#{strand}"}
+      class="shrink-0 w-64 sm:w-auto"
+    />
+  </.responsive_grid>
+<% end %>
