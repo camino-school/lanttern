@@ -26,14 +26,13 @@ msgstr ""
 msgid "Curriculum"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/dashboard/dashboard_live.ex:13
+#: lib/lanttern_web/live/pages/dashboard/dashboard_live.ex:19
 #: lib/lanttern_web/live/shared/menu_component.ex:34
 #, elixir-autogen, elixir-format
 msgid "Dashboard"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/rubrics/rubrics_live.ex:19
-#: lib/lanttern_web/live/shared/menu_component.ex:43
 #, elixir-autogen, elixir-format
 msgid "Rubrics"
 msgstr ""
@@ -203,6 +202,7 @@ msgstr ""
 msgid "Years"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/dashboard/dashboard_live.html.heex:4
 #: lib/lanttern_web/live/pages/strands/strands_live.html.heex:31
 #, elixir-autogen, elixir-format
 msgid "Your starred strands"
@@ -2690,4 +2690,19 @@ msgstr ""
 #: lib/lanttern_web/live/shared/assessments/entry_details_component.ex:96
 #, elixir-autogen, elixir-format
 msgid "or"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/dashboard/dashboard_live.html.heex:9
+#, elixir-autogen, elixir-format
+msgid "Go to all strands page"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/dashboard/dashboard_live.html.heex:15
+#, elixir-autogen, elixir-format, fuzzy
+msgid "No starred strands yet"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/dashboard/dashboard_live.ex:56
+#, elixir-autogen, elixir-format
+msgid "Strand removed from your starred list"
 msgstr ""
