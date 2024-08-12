@@ -233,7 +233,7 @@ defmodule LantternWeb.AssessmentPointLive do
         socket =
           socket
           |> put_flash(:error, "Couldn't find assessment point")
-          |> redirect(to: ~p"/assessment_points")
+          |> redirect(to: ~p"/dashboard")
 
         {:ok, socket}
     else

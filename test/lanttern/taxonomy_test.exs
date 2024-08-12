@@ -27,38 +27,6 @@ defmodule Lanttern.TaxonomyTest do
       assert Taxonomy.list_subjects(ids: [subject_a.id, subject_b.id]) == [subject_a, subject_b]
     end
 
-    test "list_assessment_point_subjects/0 returns all subjects ordered alphabetically and separated in two lists: related and not related to assessment points" do
-      subject_1 = subject_fixture(%{name: "AAA"})
-      subject_2 = subject_fixture(%{name: "ZZZ"})
-
-      curriculum_item_1 =
-        Lanttern.CurriculaFixtures.curriculum_item_fixture(%{
-          subjects_ids: [subject_1.id, subject_2.id]
-        })
-
-      curriculum_item_2 =
-        Lanttern.CurriculaFixtures.curriculum_item_fixture(%{subjects_ids: [subject_2.id]})
-
-      Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
-        curriculum_item_id: curriculum_item_1.id
-      })
-
-      Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
-        curriculum_item_id: curriculum_item_2.id
-      })
-
-      # extra fixtures for "filter" testing
-      no_subject_1 = subject_fixture(%{name: "BBB"})
-      no_subject_2 = subject_fixture(%{name: "YYY"})
-      Lanttern.CurriculaFixtures.curriculum_item_fixture()
-      Lanttern.CurriculaFixtures.curriculum_item_fixture()
-      Lanttern.AssessmentsFixtures.assessment_point_fixture()
-      Lanttern.AssessmentsFixtures.assessment_point_fixture()
-
-      assert {[subject_1, subject_2], [no_subject_1, no_subject_2]} ==
-               Taxonomy.list_assessment_points_subjects()
-    end
-
     test "list_strand_subjects/1 returns all subjects linked to the given strand" do
       subject_a = subject_fixture(%{name: "AAA"})
       subject_b = subject_fixture(%{name: "BBB"})

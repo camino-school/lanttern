@@ -21,11 +21,8 @@ defmodule LantternWeb.CurriculumLiveTest do
 
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{curriculum.id}")
 
-      view
-      |> has_element?("h2", "About the curriculum")
-
-      view
-      |> has_element?("p", "lorem ipsum description")
+      assert view |> has_element?("h2", "About the curriculum")
+      assert view |> has_element?("p", "lorem ipsum description")
     end
 
     test "listing curriculum components", %{conn: conn} do
@@ -39,8 +36,7 @@ defmodule LantternWeb.CurriculumLiveTest do
 
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{curriculum.id}")
 
-      view
-      |> has_element?("a", "component AAA")
+      assert view |> has_element?("a", "component AAA")
 
       view
       |> element("a", "component BBB")

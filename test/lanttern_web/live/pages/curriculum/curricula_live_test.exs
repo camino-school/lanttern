@@ -21,8 +21,7 @@ defmodule LantternWeb.CurriculaLiveTest do
 
       {:ok, view, _html} = live(conn, @live_view_path)
 
-      view
-      |> has_element?("a", "Some curriculum BBB")
+      assert view |> has_element?("a", "Some curriculum BBB")
 
       view
       |> element("a", "Some curriculum AAA")

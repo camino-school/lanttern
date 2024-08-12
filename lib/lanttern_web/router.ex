@@ -69,20 +69,9 @@ defmodule LantternWeb.Router do
       ] do
       live "/dashboard", DashboardLive, :index
 
-      live "/dashboard/filter_view/new",
-           DashboardLive,
-           :new_filter_view
-
-      live "/dashboard/filter_view/:id/edit",
-           DashboardLive,
-           :edit_filter_view
-
       live "/school", SchoolLive, :show
       live "/school/class/:id", ClassLive, :show
       live "/school/student/:id", StudentLive, :show
-
-      live "/assessment_points", AssessmentPointsLive, :index
-      live "/assessment_points/new", AssessmentPointsLive, :new
 
       live "/assessment_points/:id", AssessmentPointLive, :show
       live "/assessment_points/:id/edit", AssessmentPointLive, :edit
@@ -243,19 +232,6 @@ defmodule LantternWeb.Router do
 
     live "/notes/:id", Admin.NoteLive.Show, :show
     live "/notes/:id/show/edit", Admin.NoteLive.Show, :edit
-
-    live "/profile_views", Admin.ProfileViewLive.Index, :index
-    live "/profile_views/new", Admin.ProfileViewLive.Index, :new
-
-    live "/profile_views/:id/edit",
-         Admin.ProfileViewLive.Index,
-         :edit
-
-    live "/profile_views/:id", Admin.ProfileViewLive.Show, :show
-
-    live "/profile_views/:id/show/edit",
-         Admin.ProfileViewLive.Show,
-         :edit
 
     # Reporting context
     live "/report_cards", Admin.ReportCardLive.Index, :index
