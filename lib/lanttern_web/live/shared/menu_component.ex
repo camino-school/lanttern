@@ -39,9 +39,9 @@ defmodule LantternWeb.MenuComponent do
                 <.nav_item active={@active_nav == :school} path={~p"/school"}>
                   <%= gettext("School") %>
                 </.nav_item>
-                <.nav_item active={@active_nav == :rubrics} path={~p"/rubrics"}>
+                <%!-- <.nav_item active={@active_nav == :rubrics} path={~p"/rubrics"}>
                   <%= gettext("Rubrics") %>
-                </.nav_item>
+                </.nav_item> --%>
                 <.nav_item active={@active_nav == :curriculum} path={~p"/curriculum"}>
                   <%= gettext("Curriculum") %>
                 </.nav_item>
@@ -52,8 +52,8 @@ defmodule LantternWeb.MenuComponent do
                   <%= gettext("Grading") %>
                 </.nav_item>
                 <%!-- use this li as placeholder when nav items % 3 != 0 (sm) or nav items % 2 != 0 --%>
-                <li class="bg-white"></li>
-                <li class="hidden lg:block bg-white"></li>
+                <%!-- <li class="bg-white"></li>
+                <li class="hidden lg:block bg-white"></li> --%>
               <% end %>
 
               <%= if @current_profile.type == "student" do %>
