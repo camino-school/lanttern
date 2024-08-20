@@ -1,14 +1,14 @@
 defmodule LantternWeb.StudentStrandReportLive do
   use LantternWeb, :live_view
 
-  alias Lanttern.Assessments
-  alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Identity.Profile
   alias Lanttern.Reporting
   alias Lanttern.Reporting.StudentReportCard
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # page components
+  alias LantternWeb.StudentStrandReportLive.MomentsComponent
+  alias LantternWeb.StudentStrandReportLive.AssessmentComponent
   alias LantternWeb.StudentStrandReportLive.StudentNotesComponent
 
   # shared components
@@ -16,6 +16,7 @@ defmodule LantternWeb.StudentStrandReportLive do
 
   @tabs %{
     "general" => :general,
+    "assessment" => :assessment,
     "student_notes" => :student_notes
   }
 
@@ -23,10 +24,6 @@ defmodule LantternWeb.StudentStrandReportLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    socket =
-      socket
-      |> assign(:info_level, "full")
-
     {:ok, socket, layout: {LantternWeb.Layouts, :app_logged_in_blank}}
   end
 
@@ -50,12 +47,6 @@ defmodule LantternWeb.StudentStrandReportLive do
         preloads: [strand: [:subjects, :years]]
       )
 
-    strand_goals_student_entries =
-      Assessments.list_strand_goals_student_entries(
-        student_report_card.student.id,
-        strand_report.strand.id
-      )
-
     cover_image_url =
       object_url_to_render_url(
         strand_report.cover_image_url || strand_report.strand.cover_image_url,
@@ -74,7 +65,6 @@ defmodule LantternWeb.StudentStrandReportLive do
       socket
       |> assign(:student_report_card, student_report_card)
       |> assign(:strand_report, strand_report)
-      |> assign(:strand_goals_student_entries, strand_goals_student_entries)
       |> assign(:cover_image_url, cover_image_url)
       |> assign(:page_title, page_title)
       |> assign(:is_student, is_student)
@@ -116,9 +106,4 @@ defmodule LantternWeb.StudentStrandReportLive do
 
   defp assign_current_tab(socket, _params),
     do: assign(socket, :current_tab, :general)
-
-  @impl true
-  def handle_event("set_info_level", %{"level" => level}, socket) do
-    {:noreply, assign(socket, :info_level, level)}
-  end
 end

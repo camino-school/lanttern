@@ -338,6 +338,24 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Renders a simple card.
+  """
+
+  attr :class, :any, default: nil
+  attr :id, :string, default: nil
+  attr :rest, :global
+
+  slot :inner_block, required: true
+
+  def card_base(assigns) do
+    ~H"""
+    <div id={@id} class={["rounded shadow-xl bg-white", @class]} {@rest}>
+      <%= render_slot(@inner_block) %>
+    </div>
+    """
+  end
+
+  @doc """
   Renders a `<button>` or `<.link>` with icon.
 
   Usually used in the context of a collection (e.g. to add a new item to a list).

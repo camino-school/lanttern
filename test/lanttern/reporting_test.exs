@@ -800,6 +800,126 @@ defmodule Lanttern.ReportingTest do
       assert expected_entry_2_1.scale == n_scale
       assert expected_entry_2_1.score == 5
     end
+
+    test "list_student_strand_report_moments_and_entries/2 returns all moments and entries for the given strand report and student" do
+      strand = LearningContextFixtures.strand_fixture()
+
+      subject_1 = TaxonomyFixtures.subject_fixture(%{name: "AAA"})
+      subject_2 = TaxonomyFixtures.subject_fixture(%{name: "BBB"})
+
+      moment_1 =
+        LearningContextFixtures.moment_fixture(%{
+          strand_id: strand.id,
+          subjects_ids: [subject_1.id]
+        })
+
+      moment_2 =
+        LearningContextFixtures.moment_fixture(%{
+          strand_id: strand.id,
+          subjects_ids: [subject_2.id]
+        })
+
+      moment_3 =
+        LearningContextFixtures.moment_fixture(%{
+          strand_id: strand.id,
+          subjects_ids: [subject_1.id, subject_2.id]
+        })
+
+      strand_report = strand_report_fixture(%{strand_id: strand.id})
+
+      student = SchoolsFixtures.student_fixture()
+
+      n_scale = GradingFixtures.scale_fixture(%{type: "numeric", start: 0, stop: 10})
+      o_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: o_scale.id})
+      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: o_scale.id})
+
+      assessment_point_1_1 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_1.id,
+          scale_id: o_scale.id
+        })
+
+      assessment_point_1_2 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_1.id,
+          scale_id: o_scale.id
+        })
+
+      assessment_point_2_1 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_2.id,
+          scale_id: n_scale.id
+        })
+
+      # no student assessment point entry for moment 3
+      _assessment_point_3_1 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_3.id,
+          scale_id: o_scale.id
+        })
+
+      assessment_point_1_1_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point_1_1.id,
+          scale_id: o_scale.id,
+          scale_type: o_scale.type,
+          ordinal_value_id: ov_1.id
+        })
+
+      assessment_point_1_2_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point_1_2.id,
+          scale_id: o_scale.id,
+          scale_type: o_scale.type,
+          ordinal_value_id: ov_2.id
+        })
+
+      assessment_point_2_1_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point_2_1.id,
+          scale_id: n_scale.id,
+          scale_type: n_scale.type,
+          score: 5
+        })
+
+      assert [
+               {expected_moment_1, [expected_entry_1_1, expected_entry_1_2]},
+               {expected_moment_2, [expected_entry_2_1]},
+               {expected_moment_3, []}
+             ] =
+               Reporting.list_student_strand_report_moments_and_entries(strand_report, student.id)
+
+      # moment 1 assertions
+
+      assert expected_moment_1.id == moment_1.id
+      assert expected_moment_1.subjects == [subject_1]
+
+      assert expected_entry_1_1.id == assessment_point_1_1_entry.id
+      assert expected_entry_1_1.scale == o_scale
+      assert expected_entry_1_1.ordinal_value == ov_1
+
+      assert expected_entry_1_2.id == assessment_point_1_2_entry.id
+      assert expected_entry_1_2.scale == o_scale
+      assert expected_entry_1_2.ordinal_value == ov_2
+
+      # moment 2 assertions
+
+      assert expected_moment_2.id == moment_2.id
+      assert expected_moment_2.subjects == [subject_2]
+
+      assert expected_entry_2_1.id == assessment_point_2_1_entry.id
+      assert expected_entry_2_1.scale == n_scale
+      assert expected_entry_2_1.score == 5
+
+      # moment 3 assertions
+
+      assert expected_moment_3.id == moment_3.id
+      assert expected_moment_3.subjects == [subject_1, subject_2]
+    end
   end
 
   describe "extra" do

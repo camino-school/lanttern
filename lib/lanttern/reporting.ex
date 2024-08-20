@@ -13,6 +13,7 @@ defmodule Lanttern.Reporting do
 
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.LearningContext.Moment
   alias Lanttern.Schools
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.Cycle
@@ -786,6 +787,63 @@ defmodule Lanttern.Reporting do
     strand_reports
     |> Enum.map(&{&1, Map.get(ast_entries_map, &1.id, [])})
     |> Enum.filter(fn {_strand_report, entries} -> entries != [] end)
+  end
+
+  @doc """
+  Returns the list of moments linked to the strand report, with assessment entries.
+
+  **Preloaded data:**
+
+  - moments: subjects
+  - assessment entries: assessment point, scale, and ordinal value
+
+  ## Examples
+
+      iex> list_student_strand_report_moments_and_entries(strand_report, student_id)
+      [{%StrandReport{}, [%AssessmentPointEntry{}, ...]}, ...]
+
+  """
+  @spec list_student_strand_report_moments_and_entries(
+          StrandReport.t(),
+          student_id :: pos_integer()
+        ) :: [
+          {Moment.t(), [AssessmentPointEntry.t()]}
+        ]
+
+  def list_student_strand_report_moments_and_entries(
+        %StrandReport{} = strand_report,
+        student_id
+      ) do
+    %{strand_id: strand_id} = strand_report
+
+    moments =
+      from(m in Moment,
+        left_join: sub in assoc(m, :subjects),
+        where: m.strand_id == ^strand_id,
+        order_by: [asc: m.position, asc: sub.name],
+        preload: [subjects: sub]
+      )
+      |> Repo.all()
+
+    ast_entries_map =
+      from(e in AssessmentPointEntry,
+        join: sc in assoc(e, :scale),
+        left_join: ov in assoc(e, :ordinal_value),
+        join: ap in assoc(e, :assessment_point),
+        join: m in assoc(ap, :moment),
+        where: m.strand_id == ^strand_id and e.student_id == ^student_id,
+        order_by: ap.position,
+        preload: [scale: sc, ordinal_value: ov],
+        select: {m.id, e}
+      )
+      |> Repo.all()
+      |> Enum.group_by(
+        fn {moment_id, _} -> moment_id end,
+        fn {_, entry} -> entry end
+      )
+
+    moments
+    |> Enum.map(&{&1, Map.get(ast_entries_map, &1.id, [])})
   end
 
   @doc """
