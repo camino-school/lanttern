@@ -28,7 +28,7 @@ defmodule LantternWeb.StudentStrandReportLive.MomentsComponent do
               <h5 class="font-display font-black text-lg" title={moment.name}>
                 <.link
                   patch={
-                    ~p"/student_report_card/#{@student_report_card_id}/strand_report/#{@strand_report.id}?tab=general&moment_id=#{moment.id}"
+                    ~p"/student_report_card/#{@student_report_card_id}/strand_report/#{@strand_report.id}?moment_id=#{moment.id}"
                   }
                   class="underline hover:text-ltrn-subtle"
                 >
@@ -46,7 +46,7 @@ defmodule LantternWeb.StudentStrandReportLive.MomentsComponent do
               class="flex flex-wrap gap-2 p-4 border-t border-ltrn-lighter md:border-t-0 md:p-6"
             >
               <%= for entry <- entries, entry.ordinal_value || entry.score do %>
-                <.assessment_point_entry_preview entry={entry} />
+                <.assessment_point_entry_badge entry={entry} is_short />
               <% end %>
             </div>
           </.card_base>
@@ -58,18 +58,22 @@ defmodule LantternWeb.StudentStrandReportLive.MomentsComponent do
         show={true}
         on_cancel={
           JS.patch(
-            ~p"/student_report_card/#{@student_report_card_id}/strand_report/#{@strand_report.id}?tab=general"
+            ~p"/student_report_card/#{@student_report_card_id}/strand_report/#{@strand_report.id}"
           )
         }
       >
         <:title><%= @moment.name %></:title>
-        <div
-          :for={assessment_point <- @moment.assessment_points}
-          id={"moment-assessment-point-#{assessment_point.id}"}
-          class="py-4 border-t border-ltrn-lighter"
-        >
-          <div><%= assessment_point.name %></div>
-          <.badge class="mt-2">TBD</.badge>
+        <div id="moment-assessment-points-and-entries">
+          <div
+            :for={
+              {dom_id, {assessment_point, entry}} <- @streams.moment_assessment_points_and_entries
+            }
+            id={dom_id}
+            class="py-4 border-t border-ltrn-lighter"
+          >
+            <p class="text-base"><%= assessment_point.name %></p>
+            <.assessment_point_entry_badge entry={entry} class="mt-2" />
+          </div>
         </div>
       </.slide_over>
     </div>
@@ -88,6 +92,13 @@ defmodule LantternWeb.StudentStrandReportLive.MomentsComponent do
         :moments_and_entries,
         dom_id: fn
           {moment, _entries} -> "moment-#{moment.id}"
+          _ -> ""
+        end
+      )
+      |> stream_configure(
+        :moment_assessment_points_and_entries,
+        dom_id: fn
+          {assessment_point, _entry} -> "assessment-point-#{assessment_point.id}"
           _ -> ""
         end
       )
@@ -136,10 +147,20 @@ defmodule LantternWeb.StudentStrandReportLive.MomentsComponent do
     # simple guard to prevent viewing details from unrelated moments
     moment =
       if moment_id in socket.assigns.moments_ids do
-        LearningContext.get_moment(moment_id, preloads: :assessment_points)
+        LearningContext.get_moment(moment_id)
       end
 
-    assign(socket, :moment, moment)
+    moment_assessment_points_and_entries =
+      if moment do
+        Reporting.list_moment_assessment_points_and_student_entries(
+          moment.id,
+          socket.assigns.student_id
+        )
+      end
+
+    socket
+    |> assign(:moment, moment)
+    |> stream(:moment_assessment_points_and_entries, moment_assessment_points_and_entries)
   end
 
   defp assign_moment(socket, _assigns), do: assign(socket, :moment, nil)

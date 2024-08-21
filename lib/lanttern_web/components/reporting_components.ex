@@ -214,33 +214,44 @@ defmodule LantternWeb.ReportingComponents do
   end
 
   @doc """
-  Renders an assessment point entry preview.
+  Renders an assessment point entry badge.
   """
-  attr :entry, AssessmentPointEntry,
+  attr :entry, :any,
     required: true,
     doc: "Requires `scale` and `ordinal_value` preloads"
+
+  attr :is_short, :boolean,
+    default: false,
+    doc: "Displays only the first 3 letters of the ordinal value"
 
   attr :id, :string, default: nil
   attr :class, :any, default: nil
 
-  def assessment_point_entry_preview(
+  def assessment_point_entry_badge(
         %{entry: %{ordinal_value: %OrdinalValue{}, scale: %{type: "ordinal"}}} = assigns
       ) do
+    ov_name =
+      if assigns.is_short do
+        String.slice(assigns.entry.ordinal_value.name, 0..2)
+      else
+        assigns.entry.ordinal_value.name
+      end
+
+    assigns = assign(assigns, :ov_name, ov_name)
+
     ~H"""
     <.ordinal_value_badge
       ordinal_value={@entry.ordinal_value}
       class={@class}
       id={@id}
-      title={@entry.ordinal_value.name}
+      title={if @is_short, do: @entry.ordinal_value.name}
     >
-      <%= String.slice(@entry.ordinal_value.name, 0..2) %>
+      <%= @ov_name %>
     </.ordinal_value_badge>
     """
   end
 
-  def assessment_point_entry_preview(
-        %{entry: %{score: score, scale: %{type: "numeric"}}} = assigns
-      )
+  def assessment_point_entry_badge(%{entry: %{score: score, scale: %{type: "numeric"}}} = assigns)
       when not is_nil(score) do
     ~H"""
     <.badge class={@class} id={@id}>
@@ -249,7 +260,24 @@ defmodule LantternWeb.ReportingComponents do
     """
   end
 
-  def assessment_point_entry_preview(_assigns), do: nil
+  def assessment_point_entry_badge(%{entry: nil} = assigns) do
+    text =
+      if assigns.is_short do
+        "---"
+      else
+        gettext("No entry")
+      end
+
+    assigns = assign(assigns, :text, text)
+
+    ~H"""
+    <.badge class={@class} id={@id} theme="empty">
+      <%= @text %>
+    </.badge>
+    """
+  end
+
+  def assessment_point_entry_badge(_assigns), do: nil
 
   attr :footnote, :string, required: true
   attr :class, :any, default: nil

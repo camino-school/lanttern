@@ -847,6 +847,44 @@ defmodule Lanttern.Reporting do
   end
 
   @doc """
+  Returns the list of assessment points and entries linked to given moment and student.
+
+  **Preloaded data:**
+
+  - assessment_points: entries
+  - assessment entries: scale and ordinal value
+
+  ## Examples
+
+      iex> list_moment_assessment_points_and_student_entries(moment_id, student_id)
+      [{%AssessmentPoint{}, %AssessmentPointEntry{}}, ...]
+
+  """
+  @spec list_moment_assessment_points_and_student_entries(
+          moment_id :: pos_integer(),
+          student_id :: pos_integer()
+        ) :: [
+          {AssessmentPoint.t(), AssessmentPointEntry.t()}
+        ]
+
+  def list_moment_assessment_points_and_student_entries(moment_id, student_id) do
+    from(
+      ap in AssessmentPoint,
+      left_join: e in AssessmentPointEntry,
+      on: e.assessment_point_id == ap.id and e.student_id == ^student_id,
+      where: ap.moment_id == ^moment_id,
+      left_join: sc in assoc(e, :scale),
+      left_join: ov in assoc(e, :ordinal_value),
+      order_by: ap.position,
+      select: {ap, e, sc, ov}
+    )
+    |> Repo.all()
+    |> Enum.map(fn {ap, e, sc, ov} ->
+      {ap, e && %{e | scale: sc, ordinal_value: ov}}
+    end)
+  end
+
+  @doc """
   Returns a list of all assessment points linked to the report card.
 
   Results are ordered by strand report card and strand goals position.

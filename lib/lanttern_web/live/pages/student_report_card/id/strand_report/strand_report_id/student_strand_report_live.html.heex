@@ -46,11 +46,11 @@
     <.nav_tabs id="strand-nav-tabs" class="flex-1 overflow-x-auto">
       <:tab
         patch={
-          ~p"/student_report_card/#{@student_report_card}/strand_report/#{@strand_report}?tab=general"
+          ~p"/student_report_card/#{@student_report_card}/strand_report/#{@strand_report}?tab=overview"
         }
-        is_current={@current_tab == :general && "true"}
+        is_current={@current_tab == :overview && "true"}
       >
-        <%= gettext("General") %>
+        <%= gettext("Overview") %>
       </:tab>
       <:tab
         patch={
@@ -72,7 +72,7 @@
   </.responsive_container>
 </div>
 <div class="ltrn-bg-main-local">
-  <div :if={@current_tab == :general}>
+  <div :if={@current_tab == :overview}>
     <.responsive_container class="py-10">
       <.markdown text={@strand_report.description} />
     </.responsive_container>

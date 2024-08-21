@@ -15,7 +15,7 @@ defmodule LantternWeb.StudentStrandReportLive do
   import LantternWeb.ReportingComponents
 
   @tabs %{
-    "general" => :general,
+    "overview" => :overview,
     "assessment" => :assessment,
     "student_notes" => :student_notes
   }
@@ -103,8 +103,8 @@ defmodule LantternWeb.StudentStrandReportLive do
   end
 
   defp assign_current_tab(socket, %{"tab" => tab}),
-    do: assign(socket, :current_tab, Map.get(@tabs, tab, :general))
+    do: assign(socket, :current_tab, Map.get(@tabs, tab, :overview))
 
   defp assign_current_tab(socket, _params),
-    do: assign(socket, :current_tab, :general)
+    do: assign(socket, :current_tab, :overview)
 end

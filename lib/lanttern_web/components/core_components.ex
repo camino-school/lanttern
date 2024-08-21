@@ -90,7 +90,8 @@ defmodule LantternWeb.CoreComponents do
     "dark" => "bg-ltrn-dark text-ltrn-lighter",
     "diff" => "bg-ltrn-diff-lighter text-ltrn-diff-dark",
     "student" => "bg-ltrn-student-lighter text-ltrn-student-dark",
-    "teacher" => "bg-ltrn-teacher-lighter text-ltrn-teacher-dark"
+    "teacher" => "bg-ltrn-teacher-lighter text-ltrn-teacher-dark",
+    "empty" => "bg-transparent border border-dashed border-ltrn-light text-ltrn-subtle"
   }
 
   @badge_themes_hover %{
