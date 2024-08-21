@@ -49,12 +49,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
           />
           <div class="flex flex-wrap gap-1 mt-2 mb-6">
             <%= if @selected_curriculum_item do %>
-              <.badge
-                theme="cyan"
-                show_remove
-                phx-click={JS.push("remove_curriculum_item")}
-                phx-target={@myself}
-              >
+              <.badge theme="cyan" on_remove={JS.push("remove_curriculum_item", target: @myself)}>
                 <%= @selected_curriculum_item.name %>
               </.badge>
             <% else %>

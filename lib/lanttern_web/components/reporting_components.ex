@@ -227,7 +227,12 @@ defmodule LantternWeb.ReportingComponents do
         %{entry: %{ordinal_value: %OrdinalValue{}, scale: %{type: "ordinal"}}} = assigns
       ) do
     ~H"""
-    <.ordinal_value_badge ordinal_value={@entry.ordinal_value} class={@class} id={@id}>
+    <.ordinal_value_badge
+      ordinal_value={@entry.ordinal_value}
+      class={@class}
+      id={@id}
+      title={@entry.ordinal_value.name}
+    >
       <%= String.slice(@entry.ordinal_value.name, 0..2) %>
     </.ordinal_value_badge>
     """

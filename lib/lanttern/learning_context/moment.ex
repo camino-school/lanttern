@@ -37,7 +37,7 @@ defmodule Lanttern.LearningContext.Moment do
 
     belongs_to :strand, Strand
 
-    has_many :assessment_points, AssessmentPoint
+    has_many :assessment_points, AssessmentPoint, preload_order: [asc: :position]
 
     has_many :curriculum_items,
       through: [:assessment_points, :curriculum_item]

@@ -17,19 +17,12 @@ defmodule LantternWeb.GradingComponents do
     default: nil,
     doc: "map with `:bg_color` and `:text_color` keys"
 
-  attr :show_remove, :boolean, default: false
   attr :rest, :global, doc: "use to pass phx-* bindings to the remove button"
   slot :inner_block, required: true
 
   def ordinal_value_badge(assigns) do
     ~H"""
-    <.badge
-      id={@id}
-      class={@class}
-      show_remove={@show_remove}
-      {@rest}
-      {apply_style_from_ordinal_value(@ordinal_value)}
-    >
+    <.badge id={@id} class={@class} {@rest} {apply_style_from_ordinal_value(@ordinal_value)}>
       <%= render_slot(@inner_block) %>
     </.badge>
     """

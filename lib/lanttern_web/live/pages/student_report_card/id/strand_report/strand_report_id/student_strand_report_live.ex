@@ -68,6 +68,7 @@ defmodule LantternWeb.StudentStrandReportLive do
       |> assign(:cover_image_url, cover_image_url)
       |> assign(:page_title, page_title)
       |> assign(:is_student, is_student)
+      |> assign(:params, params)
       |> assign_current_tab(params)
 
     {:noreply, socket}
