@@ -127,7 +127,7 @@ defmodule LantternWeb.StudentStrandReportLive.MomentsComponent do
 
     moments_ids =
       moments_and_entries
-      |> Enum.map(fn {moment, _entry} -> moment.id end)
+      |> Enum.map(fn {moment, _entry} -> "#{moment.id}" end)
 
     socket
     |> assign(assigns)
@@ -138,12 +138,6 @@ defmodule LantternWeb.StudentStrandReportLive.MomentsComponent do
   defp stream_moments_and_entries(socket, _assigns), do: socket
 
   defp assign_moment(socket, %{params: %{"moment_id" => moment_id}}) do
-    moment_id =
-      case Integer.parse(moment_id) do
-        {id, _} -> id
-        _ -> nil
-      end
-
     # simple guard to prevent viewing details from unrelated moments
     moment =
       if moment_id in socket.assigns.moments_ids do

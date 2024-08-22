@@ -4,6 +4,9 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
 
+  # page components
+  alias LantternWeb.StudentStrandReportLive.AssessmentPointDetailsComponent
+
   # shared components
   import LantternWeb.ReportingComponents
 
@@ -33,6 +36,7 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
           <div
             :for={
               {%AssessmentPoint{
+                 id: assessment_point_id,
                  is_differentiation: is_diff,
                  curriculum_item: curriculum_item,
                  scale: scale,
@@ -44,6 +48,11 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
             }
             class="rounded mt-4 bg-white shadow"
           >
+            <.link patch={
+              ~p"/student_report_card/#{@student_report_card.id}/strand_report/#{@strand_report.id}?tab=assessment&assessment_point_id=#{assessment_point_id}"
+            }>
+              details
+            </.link>
             <div class="pt-6 px-6">
               <%= if @info_level == "simplified" do %>
                 <p class="text-sm">
@@ -116,7 +125,7 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
                 <div class="flex items-center gap-2 font-bold text-sm">
                   <.icon name="hero-chat-bubble-oval-left" class="w-6 h-6 text-ltrn-student-accent" />
                   <span class="text-ltrn-student-dark">
-                    <%= gettext("%{student} comment", student: @student.name) %>
+                    <%= gettext("%{student} comment", student: @student_report_card.student.name) %>
                   </span>
                 </div>
                 <.markdown text={entry.student_report_note} size="sm" class="max-w-none mt-4" />
@@ -134,6 +143,17 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
           </div>
         </div>
       </.responsive_container>
+      <.live_component
+        :if={@assessment_point_id}
+        module={AssessmentPointDetailsComponent}
+        id="assessment-point-details-component"
+        assessment_point_id={@assessment_point_id}
+        on_cancel={
+          JS.patch(
+            ~p"/student_report_card/#{@student_report_card.id}/strand_report/#{@strand_report.id}?tab=assessment"
+          )
+        }
+      />
     </div>
     """
   end
@@ -145,25 +165,55 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
     socket =
       socket
       |> assign(:info_level, "full")
+      |> assign(:assessment_point_id, nil)
+      |> assign(:initialized, false)
 
     {:ok, socket}
   end
 
   @impl true
   def update(assigns, socket) do
-    strand_goals_student_entries =
-      Assessments.list_strand_goals_student_entries(
-        assigns.student.id,
-        assigns.strand_id
-      )
-
     socket =
       socket
       |> assign(assigns)
-      |> assign(:strand_goals_student_entries, strand_goals_student_entries)
+      |> assign_strand_goals_student_entries(assigns)
+      |> assign_assessment_point_id(assigns)
+      |> assign(:initialized, true)
 
     {:ok, socket}
   end
+
+  defp assign_strand_goals_student_entries(%{assigns: %{initialized: false}} = socket, assigns) do
+    strand_goals_student_entries =
+      Assessments.list_strand_goals_student_entries(
+        assigns.student_report_card.student_id,
+        assigns.strand_report.strand_id
+      )
+
+    assessment_points_ids =
+      strand_goals_student_entries
+      |> Enum.map(fn {assessment_point, _} -> "#{assessment_point.id}" end)
+
+    socket
+    |> assign(:strand_goals_student_entries, strand_goals_student_entries)
+    |> assign(:assessment_points_ids, assessment_points_ids)
+  end
+
+  defp assign_strand_goals_student_entries(socket, _assigns), do: socket
+
+  defp assign_assessment_point_id(socket, %{
+         params: %{"assessment_point_id" => assessment_point_id}
+       }) do
+    # simple guard to prevent viewing details from unrelated assessment points
+    assessment_point_id =
+      if assessment_point_id in socket.assigns.assessment_points_ids do
+        assessment_point_id
+      end
+
+    assign(socket, :assessment_point_id, assessment_point_id)
+  end
+
+  defp assign_assessment_point_id(socket, _assigns), do: assign(socket, :assessment_point_id, nil)
 
   # event handlers
 

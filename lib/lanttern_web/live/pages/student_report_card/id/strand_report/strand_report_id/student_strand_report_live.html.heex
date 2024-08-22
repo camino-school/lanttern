@@ -89,8 +89,9 @@
     :if={@current_tab == :assessment}
     module={AssessmentComponent}
     id="student-assessment"
-    strand_id={@strand_report.strand_id}
-    student={@student_report_card.student}
+    strand_report={@strand_report}
+    student_report_card={@student_report_card}
+    params={@params}
   />
   <.live_component
     :if={@current_tab == :student_notes}

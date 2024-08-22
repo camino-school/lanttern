@@ -3,7 +3,6 @@ defmodule LantternWeb.StudentStrandReportLive do
 
   alias Lanttern.Identity.Profile
   alias Lanttern.Reporting
-  alias Lanttern.Reporting.StudentReportCard
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # page components
@@ -24,12 +23,31 @@ defmodule LantternWeb.StudentStrandReportLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    socket =
+      socket
+      |> assign(:initialized, false)
+
     {:ok, socket, layout: {LantternWeb.Layouts, :app_logged_in_blank}}
   end
 
   @impl true
   def handle_params(params, _url, socket) do
-    %{"id" => id, "strand_report_id" => strand_report_id} = params
+    socket =
+      socket
+      |> assign_student_report_card(params)
+      # check if user can view the student report
+      |> check_if_user_has_access()
+      |> assign_strand_report(params)
+      |> assign_is_student()
+      |> assign(:params, params)
+      |> assign_current_tab(params)
+      |> assign(:initialized, true)
+
+    {:noreply, socket}
+  end
+
+  defp assign_student_report_card(%{assigns: %{initialized: false}} = socket, params) do
+    %{"id" => id} = params
 
     student_report_card =
       Reporting.get_student_report_card!(id,
@@ -39,42 +57,13 @@ defmodule LantternWeb.StudentStrandReportLive do
         ]
       )
 
-    # check if user can view the student report
-    check_if_user_has_access(socket.assigns.current_user, student_report_card)
-
-    strand_report =
-      Reporting.get_strand_report!(strand_report_id,
-        preloads: [strand: [:subjects, :years]]
-      )
-
-    cover_image_url =
-      object_url_to_render_url(
-        strand_report.cover_image_url || strand_report.strand.cover_image_url,
-        width: 1280,
-        height: 640
-      )
-
-    page_title =
-      "#{strand_report.strand.name} • #{student_report_card.student.name} • #{student_report_card.report_card.name}"
-
-    # flag to control student notes UI
-    is_student =
-      student_report_card.student_id == socket.assigns.current_user.current_profile.student_id
-
-    socket =
-      socket
-      |> assign(:student_report_card, student_report_card)
-      |> assign(:strand_report, strand_report)
-      |> assign(:cover_image_url, cover_image_url)
-      |> assign(:page_title, page_title)
-      |> assign(:is_student, is_student)
-      |> assign(:params, params)
-      |> assign_current_tab(params)
-
-    {:noreply, socket}
+    assign(socket, :student_report_card, student_report_card)
   end
 
-  defp check_if_user_has_access(current_user, %StudentReportCard{} = student_report_card) do
+  defp assign_student_report_card(socket, _params), do: socket
+
+  defp check_if_user_has_access(socket) do
+    %{current_user: current_user, student_report_card: student_report_card} = socket.assigns
     # check if user can view the student strand report
     # guardian and students can only view their own reports
     # teachers can view only reports from their school
@@ -100,6 +89,44 @@ defmodule LantternWeb.StudentStrandReportLive do
       _ ->
         raise LantternWeb.NotFoundError
     end
+
+    socket
+  end
+
+  defp assign_strand_report(%{assigns: %{initialized: false}} = socket, params) do
+    %{"strand_report_id" => strand_report_id} = params
+    student_report_card = socket.assigns.student_report_card
+
+    strand_report =
+      Reporting.get_strand_report!(strand_report_id,
+        preloads: [strand: [:subjects, :years]]
+      )
+
+    cover_image_url =
+      object_url_to_render_url(
+        strand_report.cover_image_url || strand_report.strand.cover_image_url,
+        width: 1280,
+        height: 640
+      )
+
+    page_title =
+      "#{strand_report.strand.name} • #{student_report_card.student.name} • #{student_report_card.report_card.name}"
+
+    socket
+    |> assign(:strand_report, strand_report)
+    |> assign(:cover_image_url, cover_image_url)
+    |> assign(:page_title, page_title)
+  end
+
+  defp assign_strand_report(socket, _params), do: socket
+
+  defp assign_is_student(socket) do
+    # flag to control student notes UI
+    is_student =
+      socket.assigns.student_report_card.student_id ==
+        socket.assigns.current_user.current_profile.student_id
+
+    assign(socket, :is_student, is_student)
   end
 
   defp assign_current_tab(socket, %{"tab" => tab}),
