@@ -159,15 +159,34 @@ defmodule Lanttern.Rubrics do
   - when scale type is "ordinal", we use ordinal value's normalized value
   - when scale type is "numeric", we use descriptor's score
 
+  ### Options:
+
+  - `:check_diff_for_student_id` – returns the differentiation rubric for the given student, if it exists
+
   ## Examples
 
       iex> get_full_rubric!(id)
       %Rubric{}
 
   """
-  def get_full_rubric!(id) do
+  def get_full_rubric!(id, opts \\ []) do
+    id = get_diff_rubric_id(id, Keyword.get(opts, :check_diff_for_student_id))
+
     full_rubric_query()
     |> Repo.get!(id)
+  end
+
+  defp get_diff_rubric_id(parent_rubric_id, nil), do: parent_rubric_id
+
+  defp get_diff_rubric_id(parent_rubric_id, student_id) do
+    from(
+      diff_r in Rubric,
+      join: r in assoc(diff_r, :parent_rubric),
+      join: s in assoc(diff_r, :students),
+      where: r.id == ^parent_rubric_id and s.id == ^student_id,
+      select: diff_r.id
+    )
+    |> Repo.one()
   end
 
   @doc """

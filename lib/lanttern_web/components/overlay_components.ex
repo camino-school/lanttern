@@ -163,7 +163,7 @@ defmodule LantternWeb.OverlayComponents do
   attr :on_cancel, JS, default: %JS{}
   attr :prevent_close_on_click_away, :boolean, default: false
 
-  slot :title, required: true
+  slot :title
   slot :inner_block, required: true
   slot :actions
   slot :actions_left
@@ -203,7 +203,11 @@ defmodule LantternWeb.OverlayComponents do
             >
               <div class="flex flex-col h-full divide-y divide-ltrn-lighter bg-white shadow-xl rounded-l">
                 <div class="flex-1 min-h-0 overflow-y-scroll ltrn-bg-slide-over">
-                  <h2 class="px-4 sm:px-6 py-6 font-display font-black text-3xl" id={"#{@id}-title"}>
+                  <h2
+                    :if={@title != []}
+                    class="px-4 sm:px-6 py-6 font-display font-black text-3xl"
+                    id={"#{@id}-title"}
+                  >
                     <%= render_slot(@title) %>
                   </h2>
                   <div id={"#{@id}-content"} class="p-4 sm:px-6">

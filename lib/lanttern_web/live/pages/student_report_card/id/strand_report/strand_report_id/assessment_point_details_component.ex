@@ -2,17 +2,17 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentPointDetailsComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments
+  alias Lanttern.Rubrics
   # alias Lanttern.Assessments.AssessmentPoint
 
-  # # shared components
-  # import LantternWeb.ReportingComponents
+  # shared components
+  import LantternWeb.ReportingComponents
 
   @impl true
   def render(assigns) do
     ~H"""
     <div>
       <.slide_over id="assessment-point-details" show={true} on_cancel={@on_cancel}>
-        <:title><%= gettext("Goal assessment details") %></:title>
         <p class="mb-2 font-display font-bold text-sm">
           <%= @assessment_point.curriculum_item.curriculum_component.name %>
         </p>
@@ -26,9 +26,6 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentPointDetailsComponent do
           <.badge :if={@assessment_point.is_differentiation} theme="diff">
             <%= gettext("Curriculum differentiation") %>
           </.badge>
-          <%!-- <.badge :if={rubric && length(rubric.differentiation_rubrics) > 0} theme="diff">
-            <%= gettext("Differentiation rubric") %>
-          </.badge> --%>
           <.badge :for={subject <- @assessment_point.curriculum_item.subjects}>
             <%= subject.name %>
           </.badge>
@@ -39,6 +36,21 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentPointDetailsComponent do
             <%= gettext("About this assessment") %>
           </div>
           <.markdown text={@assessment_point.report_info} size="sm" class="max-w-none mt-4" />
+        </div>
+        <div class="flex items-center justify-between gap-2 mt-10">
+          <h6 class="font-display font-black text-base">
+            <%= if @rubric, do: gettext("Assessment rubric"), else: gettext("Assessment scale") %>
+          </h6>
+          <.badge :if={@rubric && @rubric.diff_for_rubric_id} theme="diff">
+            <%= gettext("Differentiation") %>
+          </.badge>
+        </div>
+        <p :if={@rubric} class="mt-2 text-sm">
+          <span class="font-bold"><%= gettext("Criteria:") %></span>
+          <%= @rubric.criteria %>
+        </p>
+        <div class="py-4 overflow-x-auto">
+          <.report_scale scale={@assessment_point.scale} rubric={@rubric} />
         </div>
       </.slide_over>
     </div>
@@ -58,24 +70,39 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentPointDetailsComponent do
 
   @impl true
   def update(assigns, socket) do
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign_assessment_point(assigns)
+      |> assign_rubric()
+
+    {:ok, socket}
+  end
+
+  defp assign_assessment_point(socket, assigns) do
     assessment_point =
       Assessments.get_assessment_point(assigns.assessment_point_id,
         preloads: [
+          scale: :ordinal_values,
           curriculum_item: [
             :curriculum_component,
             :subjects
           ]
         ]
       )
-      |> IO.inspect()
 
-    socket =
-      socket
-      |> assign(assigns)
-      |> assign(:assessment_point, assessment_point)
-
-    {:ok, socket}
+    assign(socket, :assessment_point, assessment_point)
   end
+
+  defp assign_rubric(%{assigns: %{assessment_point: %{rubric_id: rubric_id}}} = socket)
+       when not is_nil(rubric_id) do
+    student_id = socket.assigns.student_id
+    rubric = Rubrics.get_full_rubric!(rubric_id, check_diff_for_student_id: student_id)
+
+    assign(socket, :rubric, rubric)
+  end
+
+  defp assign_rubric(socket), do: assign(socket, :rubric, nil)
 
   # # event handlers
 

@@ -134,7 +134,7 @@ defmodule LantternWeb.ReportingComponents do
         />
       </div>
       <div
-        :if={@entry.student_ordinal_value_id}
+        :if={@entry && @entry.student_ordinal_value_id}
         class="grid grid-cols-subgrid pt-1 px-1 border-2 border-ltrn-student-lighter rounded-sm bg-ltrn-student-lightest"
         style={@grid_column_span_style}
       >

@@ -148,6 +148,7 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
         module={AssessmentPointDetailsComponent}
         id="assessment-point-details-component"
         assessment_point_id={@assessment_point_id}
+        student_id={@student_report_card.student_id}
         on_cancel={
           JS.patch(
             ~p"/student_report_card/#{@student_report_card.id}/strand_report/#{@strand_report.id}?tab=assessment"
