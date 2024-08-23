@@ -186,7 +186,7 @@ defmodule Lanttern.Rubrics do
       where: r.id == ^parent_rubric_id and s.id == ^student_id,
       select: diff_r.id
     )
-    |> Repo.one()
+    |> Repo.one() || parent_rubric_id
   end
 
   @doc """

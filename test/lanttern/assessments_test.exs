@@ -524,6 +524,23 @@ defmodule Lanttern.AssessmentsTest do
                assessment_point_entry
     end
 
+    test "get_assessment_point_student_entry/3 returns the assessment_point_entry for the given assessment point and student" do
+      student = Lanttern.SchoolsFixtures.student_fixture()
+
+      entry =
+        assessment_point_entry_fixture(%{student_id: student.id})
+
+      entry_id = entry.id
+      student_id = student.id
+
+      assert %{id: ^entry_id, student: %{id: ^student_id}} =
+               Assessments.get_assessment_point_student_entry(
+                 entry.assessment_point_id,
+                 entry.student_id,
+                 preloads: :student
+               )
+    end
+
     test "create_assessment_point_entry/1 with valid data creates a assessment_point_entry" do
       scale = Lanttern.GradingFixtures.scale_fixture()
       assessment_point = assessment_point_fixture(%{scale_id: scale.id})

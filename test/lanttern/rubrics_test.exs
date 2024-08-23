@@ -280,6 +280,39 @@ defmodule Lanttern.RubricsTest do
       assert expected_descriptor_2.id == descriptor_2.id
     end
 
+    test "get_full_rubric!/1 with diff option but no diff returns the default rubric with descriptors preloaded and ordered correctly" do
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})
+      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.2})
+
+      rubric = rubric_fixture(%{scale_id: scale.id})
+
+      student = student_fixture()
+
+      descriptor_2 =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_2.id
+        })
+
+      descriptor_1 =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_1.id
+        })
+
+      expected = Rubrics.get_full_rubric!(rubric.id, check_diff_for_student_id: student.id)
+      assert expected.id == rubric.id
+
+      [expected_descriptor_1, expected_descriptor_2] = expected.descriptors
+      assert expected_descriptor_1.id == descriptor_1.id
+      assert expected_descriptor_2.id == descriptor_2.id
+    end
+
     test "create_rubric/1 with valid data creates a rubric" do
       valid_attrs = %{
         criteria: "some criteria",

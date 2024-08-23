@@ -7,12 +7,13 @@ defmodule LantternWeb.ReportingComponents do
 
   import LantternWeb.Gettext
   import LantternWeb.CoreComponents
+
+  import LantternWeb.AssessmentsComponents
   import LantternWeb.GradingComponents
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
-  alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Grading.Scale
   alias Lanttern.Reporting.ReportCard
   alias Lanttern.Rubrics.Rubric
@@ -93,6 +94,53 @@ defmodule LantternWeb.ReportingComponents do
   attr :id, :string, default: nil
   attr :class, :any, default: nil
 
+  def report_scale(%{scale: %{type: "ordinal"}, rubric: rubric} = assigns)
+      when not is_nil(rubric) do
+    %{ordinal_values: ordinal_values} = assigns.scale
+    n = length(ordinal_values)
+
+    grid_template_columns_style =
+      "grid-template-columns: repeat(#{n}, minmax(200px, 1fr))"
+
+    active_ordinal_value =
+      assigns.scale.ordinal_values
+      |> Enum.find(&(assigns.entry && assigns.entry.ordinal_value_id == &1.id))
+
+    ordinal_values_and_descriptors =
+      Enum.zip(ordinal_values, rubric.descriptors)
+
+    assigns =
+      assigns
+      |> assign(:grid_template_columns_style, grid_template_columns_style)
+      |> assign(:active_ordinal_value, active_ordinal_value)
+      |> assign(:ordinal_values_and_descriptors, ordinal_values_and_descriptors)
+
+    ~H"""
+    <div class={["grid gap-1 min-w-full", @class]} id={@id} style={@grid_template_columns_style}>
+      <%= for {ordinal_value, descriptor} <- @ordinal_values_and_descriptors do %>
+        <% is_active = @entry && @entry.ordinal_value_id == ordinal_value.id %>
+        <div
+          class="p-2 border border-ltrn-lighter rounded font-mono bg-ltrn-lightest"
+          {if is_active, do: apply_style_from_ordinal_value(ordinal_value), else: %{}}
+        >
+          <div
+            class="p-1 rounded-sm text-xs text-center text-ltrn-subtle bg-ltrn-lighter shadow-lg"
+            {if is_active, do: apply_style_from_ordinal_value(ordinal_value), else: %{}}
+          >
+            <%= ordinal_value.name %>
+          </div>
+          <.markdown
+            text={descriptor.descriptor}
+            size="sm"
+            class="mt-2 text-[0.75rem]"
+            {if is_active, do: apply_text_style_from_ordinal_value(ordinal_value), else: %{}}
+          />
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+
   def report_scale(%{scale: %{type: "ordinal"}} = assigns) do
     %{ordinal_values: ordinal_values} = assigns.scale
     n = length(ordinal_values)
@@ -119,7 +167,7 @@ defmodule LantternWeb.ReportingComponents do
       <div class="grid grid-cols-subgrid" style={@grid_column_span_style}>
         <div
           :for={ordinal_value <- @scale.ordinal_values}
-          class="p-2 rounded font-mono text-sm text-center text-ltrn-subtle bg-ltrn-lighter"
+          class="p-2 rounded font-mono text-xs text-center text-ltrn-subtle whitespace-nowrap bg-ltrn-lighter"
           {if @entry && @entry.ordinal_value_id == ordinal_value.id, do: apply_style_from_ordinal_value(ordinal_value), else: %{}}
         >
           <%= ordinal_value.name %>
@@ -134,25 +182,6 @@ defmodule LantternWeb.ReportingComponents do
           {if @active_ordinal_value && @active_ordinal_value.id == descriptor.ordinal_value_id, do: apply_style_from_ordinal_value(@active_ordinal_value), else: %{style: "color: #94a3b8"}}
         />
       </div>
-      <div
-        :if={@entry && @entry.student_ordinal_value_id}
-        class="grid grid-cols-subgrid pt-1 px-1 border-2 border-ltrn-student-lighter rounded-sm bg-ltrn-student-lightest"
-        style={@grid_column_span_style}
-      >
-        <div
-          :for={ordinal_value <- @scale.ordinal_values}
-          class="p-2 rounded font-mono text-sm text-center text-ltrn-subtle bg-ltrn-lighter"
-          {if @entry && @entry.student_ordinal_value_id == ordinal_value.id, do: apply_style_from_ordinal_value(ordinal_value), else: %{}}
-        >
-          <%= ordinal_value.name %>
-        </div>
-        <div
-          class="p-1 rounded-t mt-1 text-xs text-center text-ltrn-student-dark bg-ltrn-student-lighter"
-          style={@grid_column_span_style}
-        >
-          <%= gettext("Student self-assessment") %>
-        </div>
-      </div>
     </div>
     """
   end
@@ -161,15 +190,6 @@ defmodule LantternWeb.ReportingComponents do
     ~H"""
     <div id={@id} class={["min-w-full", @class]}>
       <.report_scale_numeric_bar score={@entry && @entry.score} scale={@scale} />
-      <div
-        :if={@entry && @entry.student_score}
-        class="mt-1 pt-1 px-1 border-2 border-ltrn-student-lighter rounded-sm bg-ltrn-student-lightest"
-      >
-        <.report_scale_numeric_bar score={@entry.student_score} scale={@scale} is_student />
-        <div class="p-2 rounded-t mt-1 text-xs text-center text-ltrn-student-dark bg-ltrn-student-lighter">
-          <%= gettext("Student self-assessment") %>
-        </div>
-      </div>
     </div>
     """
   end
@@ -181,31 +201,29 @@ defmodule LantternWeb.ReportingComponents do
   defp report_scale_numeric_bar(assigns) do
     ~H"""
     <div
-      class="relative flex items-center justify-between rounded w-full h-10 px-4 font-mono text-sm text-ltrn-subtle bg-ltrn-lighter"
+      class="relative flex items-center justify-between rounded w-full h-6 px-2 font-mono text-xs text-ltrn-subtle bg-ltrn-lighter"
       {apply_gradient_from_scale(@scale)}
     >
-      <div
-        class="absolute left-4"
-        style={if @scale.start_text_color, do: "color: #{@scale.start_text_color}"}
-      >
+      <div style={if @scale.start_text_color, do: "color: #{@scale.start_text_color}"}>
         <%= @scale.start %>
       </div>
-      <div :if={@score} class="relative z-10 flex-1 flex items-center h-full">
-        <div
-          class={[
-            "absolute flex items-center justify-center w-16 h-16 rounded-full -ml-8 font-bold text-lg shadow-lg",
-            if(@is_student,
-              do: "text-ltrn-student-dark bg-ltrn-student-lighter",
-              else: "text-ltrn-dark bg-white"
-            )
-          ]}
-          style={"left: #{(@score - @scale.start) * 100 / (@scale.stop - @scale.start)}%"}
-        >
+      <div
+        :if={@score}
+        class="absolute z-10 flex-1 flex items-center h-full"
+        style={"left: calc(#{(@score - @scale.start) * 100 / (@scale.stop - @scale.start)}% - #{((@score - @scale.start) / (@scale.stop - @scale.start)) * 48}px)"}
+      >
+        <div class={[
+          "absolute flex items-center justify-center w-12 h-8 rounded text-sm shadow-lg",
+          if(@is_student,
+            do: "text-ltrn-student-dark bg-ltrn-student-lighter",
+            else: "text-ltrn-dark bg-white"
+          )
+        ]}>
           <%= @score %>
         </div>
       </div>
       <div
-        class="absolute right-4 text-right"
+        class="text-right"
         style={if @scale.stop_text_color, do: "color: #{@scale.stop_text_color}"}
       >
         <%= @scale.stop %>
@@ -213,72 +231,6 @@ defmodule LantternWeb.ReportingComponents do
     </div>
     """
   end
-
-  @doc """
-  Renders an assessment point entry badge.
-  """
-  attr :entry, :any,
-    required: true,
-    doc: "Requires `scale` and `ordinal_value` preloads"
-
-  attr :is_short, :boolean,
-    default: false,
-    doc: "Displays only the first 3 letters of the ordinal value"
-
-  attr :id, :string, default: nil
-  attr :class, :any, default: nil
-
-  def assessment_point_entry_badge(
-        %{entry: %{ordinal_value: %OrdinalValue{}, scale: %{type: "ordinal"}}} = assigns
-      ) do
-    ov_name =
-      if assigns.is_short do
-        String.slice(assigns.entry.ordinal_value.name, 0..2)
-      else
-        assigns.entry.ordinal_value.name
-      end
-
-    assigns = assign(assigns, :ov_name, ov_name)
-
-    ~H"""
-    <.ordinal_value_badge
-      ordinal_value={@entry.ordinal_value}
-      class={@class}
-      id={@id}
-      title={if @is_short, do: @entry.ordinal_value.name}
-    >
-      <%= @ov_name %>
-    </.ordinal_value_badge>
-    """
-  end
-
-  def assessment_point_entry_badge(%{entry: %{score: score, scale: %{type: "numeric"}}} = assigns)
-      when not is_nil(score) do
-    ~H"""
-    <.badge class={@class} id={@id}>
-      <%= @entry.score %>
-    </.badge>
-    """
-  end
-
-  def assessment_point_entry_badge(%{entry: nil} = assigns) do
-    text =
-      if assigns.is_short do
-        "---"
-      else
-        gettext("No entry")
-      end
-
-    assigns = assign(assigns, :text, text)
-
-    ~H"""
-    <.badge class={@class} id={@id} theme="empty">
-      <%= @text %>
-    </.badge>
-    """
-  end
-
-  def assessment_point_entry_badge(_assigns), do: nil
 
   attr :footnote, :string, required: true
   attr :class, :any, default: nil

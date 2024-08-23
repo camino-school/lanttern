@@ -365,6 +365,35 @@ defmodule Lanttern.Assessments do
   def get_assessment_point_entry!(id), do: Repo.get!(AssessmentPointEntry, id)
 
   @doc """
+  Gets a single assessment_point_entry for the given assessment point and student.
+
+  Returns `nil` if the Assessment point entry does not exist.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> get_assessment_point_student_entry(123, 1)
+      %AssessmentPointEntry{}
+
+      iex> get_assessment_point_student_entry(456, 1)
+      nil
+
+  """
+  @spec get_assessment_point_student_entry(
+          assessment_point_id :: pos_integer(),
+          student_id :: pos_integer(),
+          opts :: Keyword.t()
+        ) :: AssessmentPointEntry.t() | nil
+  def get_assessment_point_student_entry(assessment_point_id, student_id, opts \\ []) do
+    AssessmentPointEntry
+    |> Repo.get_by(assessment_point_id: assessment_point_id, student_id: student_id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
   Creates an assessment_point_entry.
 
   ## Options:

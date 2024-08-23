@@ -6,6 +6,7 @@ defmodule LantternWeb.StudentStrandReportLive.MomentsComponent do
 
   # shared components
   import LantternWeb.ReportingComponents
+  import LantternWeb.AssessmentsComponents
 
   @impl true
   def render(assigns) do

@@ -40,6 +40,17 @@ defmodule LantternWeb.GradingComponents do
   def apply_style_from_ordinal_value(_), do: %{}
 
   @doc """
+  Creates a style attr based on ordinal values `text_color`
+  """
+  def apply_text_style_from_ordinal_value(%{text_color: text_color}) do
+    %{
+      style: "color: #{text_color}"
+    }
+  end
+
+  def apply_text_style_from_ordinal_value(_), do: %{}
+
+  @doc """
   Creates a style attr based on scale start and stop colors
   """
   def apply_gradient_from_scale(%{start_bg_color: start_bg_color, stop_bg_color: stop_bg_color})
