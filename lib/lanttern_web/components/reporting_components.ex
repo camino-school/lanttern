@@ -10,6 +10,7 @@ defmodule LantternWeb.ReportingComponents do
   import LantternWeb.GradingComponents
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
+  alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Grading.Scale
@@ -298,6 +299,20 @@ defmodule LantternWeb.ReportingComponents do
         </div>
         <.markdown text={@footnote} size="sm" />
       </.responsive_container>
+    </div>
+    """
+  end
+
+  attr :class, :any, default: nil
+  attr :id, :string, default: nil
+  attr :assessment_point, AssessmentPoint, required: true
+  attr :entry, :any, required: true
+
+  def moment_assessment_point_entry(assigns) do
+    ~H"""
+    <div id={@id} class={["flex items-center gap-2", @class]}>
+      <p class="flex-1 text-sm"><%= @assessment_point.name %></p>
+      <.assessment_point_entry_badge entry={@entry} class="shrink-0" />
     </div>
     """
   end

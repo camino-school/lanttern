@@ -64,16 +64,15 @@ defmodule LantternWeb.StudentStrandReportLive.MomentsComponent do
       >
         <:title><%= @moment.name %></:title>
         <div id="moment-assessment-points-and-entries">
-          <div
+          <.moment_assessment_point_entry
             :for={
               {dom_id, {assessment_point, entry}} <- @streams.moment_assessment_points_and_entries
             }
             id={dom_id}
             class="py-4 border-t border-ltrn-lighter"
-          >
-            <p class="text-base"><%= assessment_point.name %></p>
-            <.assessment_point_entry_badge entry={entry} class="mt-2" />
-          </div>
+            assessment_point={assessment_point}
+            entry={entry}
+          />
         </div>
       </.slide_over>
     </div>

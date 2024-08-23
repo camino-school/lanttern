@@ -653,6 +653,7 @@ defmodule Lanttern.ReportingTest do
     import Lanttern.ReportingFixtures
 
     alias Lanttern.AssessmentsFixtures
+    alias Lanttern.CurriculaFixtures
     alias Lanttern.GradingFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
@@ -1018,6 +1019,147 @@ defmodule Lanttern.ReportingTest do
       # assessment point 4 assertion
 
       assert expected_assessment_point_4.id == assessment_point_4.id
+    end
+
+    test "list_strand_goal_moments_and_student_entries/2 returns all moments with assessment points and entries for the given strand goal and student" do
+      strand = LearningContextFixtures.strand_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+
+      strand_goal =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      moment_1 =
+        LearningContextFixtures.moment_fixture(%{
+          strand_id: strand.id
+        })
+
+      moment_2 =
+        LearningContextFixtures.moment_fixture(%{
+          strand_id: strand.id
+        })
+
+      # won't have assessment points linked to strand goal
+      moment_3 =
+        LearningContextFixtures.moment_fixture(%{
+          strand_id: strand.id
+        })
+
+      student = SchoolsFixtures.student_fixture()
+
+      n_scale = GradingFixtures.scale_fixture(%{type: "numeric", start: 0, stop: 10})
+      o_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: o_scale.id})
+      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: o_scale.id})
+
+      assessment_point_1_1 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_1.id,
+          scale_id: o_scale.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      assessment_point_1_2 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_1.id,
+          scale_id: n_scale.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      # no student assessment point entry for assessment point 2_1
+      assessment_point_2_1 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_2.id,
+          scale_id: n_scale.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      # not linked to strand goal
+      assessment_point_3_1 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_3.id,
+          scale_id: o_scale.id
+        })
+
+      assessment_point_1_1_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point_1_1.id,
+          scale_id: o_scale.id,
+          scale_type: o_scale.type,
+          ordinal_value_id: ov_1.id
+        })
+
+      assessment_point_1_2_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point_1_2.id,
+          scale_id: n_scale.id,
+          scale_type: n_scale.type,
+          score: 5
+        })
+
+      # not linked to strand goal
+      _assessment_point_3_1_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point_3_1.id,
+          scale_id: o_scale.id,
+          scale_type: o_scale.type,
+          ordinal_value_id: ov_2.id
+        })
+
+      # other strand goal with same curriculum item
+      # to test filtering
+
+      other_strand = LearningContextFixtures.strand_fixture()
+
+      _other_goal =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: other_strand.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      other_moment =
+        LearningContextFixtures.moment_fixture(%{
+          strand_id: other_strand.id
+        })
+
+      _other_assessment_point =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: other_moment.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      assert [
+               {expected_moment_1,
+                [
+                  {expected_assessment_point_1_1, expected_entry_1_1},
+                  {expected_assessment_point_1_2, expected_entry_1_2}
+                ]},
+               {expected_moment_2, [{expected_assessment_point_2_1, nil}]}
+             ] =
+               Reporting.list_strand_goal_moments_and_student_entries(strand_goal, student.id)
+
+      # moment 1 assertions
+
+      assert expected_moment_1.id == moment_1.id
+      assert expected_assessment_point_1_1.id == assessment_point_1_1.id
+      assert expected_entry_1_1.id == assessment_point_1_1_entry.id
+      assert expected_entry_1_1.scale == o_scale
+      assert expected_entry_1_1.ordinal_value == ov_1
+
+      assert expected_entry_1_2.id == assessment_point_1_2_entry.id
+      assert expected_assessment_point_1_2.id == assessment_point_1_2.id
+      assert expected_entry_1_2.scale == n_scale
+      assert expected_entry_1_2.score == 5.0
+
+      # moment 2 assertions
+
+      assert expected_moment_2.id == moment_2.id
+      assert expected_assessment_point_2_1.id == assessment_point_2_1.id
     end
   end
 
