@@ -942,6 +942,145 @@ defmodule Lanttern.AssessmentsTest do
 
     test "list_strand_goals_student_entries/2 returns the list of strand goals with student assessments" do
       strand = LearningContextFixtures.strand_fixture()
+
+      curriculum_component_1 = CurriculaFixtures.curriculum_component_fixture()
+      curriculum_component_2 = CurriculaFixtures.curriculum_component_fixture()
+      curriculum_component_3 = CurriculaFixtures.curriculum_component_fixture()
+
+      curriculum_item_1 =
+        CurriculaFixtures.curriculum_item_fixture(%{
+          curriculum_component_id: curriculum_component_1.id
+        })
+
+      curriculum_item_2 =
+        CurriculaFixtures.curriculum_item_fixture(%{
+          curriculum_component_id: curriculum_component_2.id
+        })
+
+      curriculum_item_3 =
+        CurriculaFixtures.curriculum_item_fixture(%{
+          curriculum_component_id: curriculum_component_3.id
+        })
+
+      ordinal_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ordinal_value = GradingFixtures.ordinal_value_fixture(%{scale_id: ordinal_scale.id})
+      numeric_scale = GradingFixtures.scale_fixture(%{type: "numeric"})
+
+      rubric_1 = RubricsFixtures.rubric_fixture(%{scale_id: ordinal_scale.id})
+      rubric_3 = RubricsFixtures.rubric_fixture(%{scale_id: ordinal_scale.id})
+
+      # create diff rubric to test query consistency
+      # (only diff rubrics of the student should be loaded)
+      diff_rubric_3 =
+        RubricsFixtures.rubric_fixture(%{
+          scale_id: ordinal_scale.id,
+          diff_for_rubric_id: rubric_3.id
+        })
+
+      student = SchoolsFixtures.student_fixture()
+
+      Lanttern.Repo.insert_all(
+        "differentiation_rubrics_students",
+        [[rubric_id: diff_rubric_3.id, student_id: student.id]]
+      )
+
+      assessment_point_1 =
+        assessment_point_fixture(%{
+          position: 1,
+          curriculum_item_id: curriculum_item_1.id,
+          scale_id: ordinal_scale.id,
+          strand_id: strand.id,
+          rubric_id: rubric_1.id
+        })
+
+      assessment_point_2 =
+        assessment_point_fixture(%{
+          position: 2,
+          curriculum_item_id: curriculum_item_2.id,
+          scale_id: numeric_scale.id,
+          strand_id: strand.id
+        })
+
+      assessment_point_3 =
+        assessment_point_fixture(%{
+          position: 3,
+          curriculum_item_id: curriculum_item_3.id,
+          scale_id: ordinal_scale.id,
+          strand_id: strand.id,
+          rubric_id: rubric_3.id
+        })
+
+      entry_1 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point_1.id,
+          student_id: student.id,
+          scale_id: ordinal_scale.id,
+          scale_type: ordinal_scale.type,
+          ordinal_value_id: ordinal_value.id
+        })
+
+      entry_2 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point_2.id,
+          student_id: student.id,
+          scale_id: numeric_scale.id,
+          scale_type: numeric_scale.type,
+          score: 5.0
+        })
+
+      entry_3 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point_3.id,
+          student_id: student.id,
+          scale_id: ordinal_scale.id,
+          scale_type: ordinal_scale.type,
+          ordinal_value_id: ordinal_value.id
+        })
+
+      # extra entry for different student (test student join)
+      _other_entry =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point_3.id,
+          scale_id: ordinal_scale.id,
+          scale_type: ordinal_scale.type
+        })
+
+      assert [
+               {expected_ap_1, expected_entry_1},
+               {expected_ap_2, expected_entry_2},
+               {expected_ap_3, expected_entry_3}
+             ] = Assessments.list_strand_goals_student_entries(student.id, strand.id)
+
+      assert expected_ap_1.id == assessment_point_1.id
+      assert expected_ap_1.scale_id == ordinal_scale.id
+      assert expected_ap_1.rubric_id == rubric_1.id
+      refute expected_ap_1.has_diff_rubric_for_student
+      assert expected_ap_1.curriculum_item.id == curriculum_item_1.id
+      assert expected_ap_1.curriculum_item.curriculum_component.id == curriculum_component_1.id
+      assert expected_ap_1.curriculum_item.id == curriculum_item_1.id
+      assert expected_entry_1.id == entry_1.id
+      assert expected_entry_1.ordinal_value.id == ordinal_value.id
+
+      assert expected_ap_2.id == assessment_point_2.id
+      assert expected_ap_2.scale_id == numeric_scale.id
+      assert expected_ap_2.curriculum_item.id == curriculum_item_2.id
+      assert expected_ap_2.curriculum_item.curriculum_component.id == curriculum_component_2.id
+      assert expected_entry_2.id == entry_2.id
+      assert expected_entry_2.score == 5.0
+
+      assert expected_ap_3.id == assessment_point_3.id
+      assert expected_ap_3.scale_id == ordinal_scale.id
+      assert expected_ap_3.rubric_id == rubric_3.id
+      assert expected_ap_3.has_diff_rubric_for_student
+      assert expected_ap_3.curriculum_item.id == curriculum_item_3.id
+      assert expected_ap_3.curriculum_item.curriculum_component.id == curriculum_component_3.id
+      assert expected_ap_3.curriculum_item.id == curriculum_item_3.id
+      assert expected_entry_3.id == entry_3.id
+      assert expected_entry_3.ordinal_value.id == ordinal_value.id
+    end
+
+    test "legacy_list_strand_goals_student_entries/2 returns the list of strand goals with student assessments" do
+      strand = LearningContextFixtures.strand_fixture()
       subject_1 = TaxonomyFixtures.subject_fixture()
       subject_2 = TaxonomyFixtures.subject_fixture()
       year = TaxonomyFixtures.year_fixture()
@@ -1044,7 +1183,7 @@ defmodule Lanttern.AssessmentsTest do
       assert [
                {expected_ap_1, expected_entry_1},
                {expected_ap_2, expected_entry_2}
-             ] = Assessments.list_strand_goals_student_entries(student.id, strand.id)
+             ] = Assessments.legacy_list_strand_goals_student_entries(student.id, strand.id)
 
       assert expected_ap_1.id == assessment_point_1.id
       assert expected_ap_1.scale.id == ordinal_scale.id

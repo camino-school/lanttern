@@ -113,7 +113,7 @@ defmodule LantternWeb.AssessmentsComponents do
       |> assign(:grid_cols_class, grid_cols_class)
 
     ~H"""
-    <div class={["grid gap-1", @grid_cols_class, @class]} id={@id}>
+    <div class={["grid gap-1 w-full", @grid_cols_class, @class]} id={@id}>
       <.assessment_point_entry_value_display entry={@entry} />
       <.assessment_point_entry_value_display :if={@show_student_assessment} entry={@entry} is_student />
       <div :if={@show_student_assessment} class="text-xs text-center text-ltrn-teacher-dark">
@@ -191,5 +191,5 @@ defmodule LantternWeb.AssessmentsComponents do
   end
 
   defp assessment_point_entry_display_base_classes(),
-    do: "flex items-center justify-center p-4 rounded font-mono text-sm"
+    do: "flex items-center justify-center p-4 rounded font-mono text-sm text-center"
 end

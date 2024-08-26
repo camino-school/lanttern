@@ -2,13 +2,12 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments
-  alias Lanttern.Assessments.AssessmentPoint
 
   # page components
   alias LantternWeb.StudentStrandReportLive.StrandGoalDetailsComponent
 
   # shared components
-  # import LantternWeb.AssessmentsComponents
+  import LantternWeb.AssessmentsComponents
   # import LantternWeb.ReportingComponents
 
   @impl true
@@ -34,98 +33,63 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
           </.badge_button>
         </div>
         <.link
-          :for={
-            {%AssessmentPoint{
-               id: strand_goal_id,
-               is_differentiation: is_diff,
-               curriculum_item: curriculum_item,
-               # scale: scale,
-               rubric: rubric,
-               report_info: report_info
-             },
-             entry} <-
-              @strand_goals_student_entries
-          }
+          :for={{goal, entry} <- @strand_goals_student_entries}
           patch={
-            ~p"/student_report_card/#{@student_report_card.id}/strand_report/#{@strand_report.id}?tab=assessment&strand_goal_id=#{strand_goal_id}"
+            ~p"/student_report_card/#{@student_report_card.id}/strand_report/#{@strand_report.id}?tab=assessment&strand_goal_id=#{goal.id}"
           }
-          class="block mt-4"
+          class={[
+            "group/card block mt-4",
+            "sm:grid sm:grid-cols-[minmax(10px,_3fr)_minmax(10px,_2fr)]"
+          ]}
         >
-          <.card_base>
-            <div class="flex items-center gap-4 p-4">
-              <p class="flex-1 text-sm">
+          <%!-- <.card_base class="flex flex-col sm:flex-row items-center gap-4 p-4"> --%>
+          <.card_base class={[
+            "p-4 group-hover/card:bg-ltrn-mesh-cyan",
+            "sm:col-span-2 sm:grid sm:grid-cols-subgrid sm:items-center sm:gap-4"
+          ]}>
+            <div>
+              <p class="text-sm">
                 <span class="inline-block mr-1 font-display font-bold text-ltrn-subtle">
-                  <%= curriculum_item.curriculum_component.name %>
+                  <%= goal.curriculum_item.curriculum_component.name %>
                 </span>
-                <%= curriculum_item.name %>
+                <%= goal.curriculum_item.name %>
               </p>
-              entry TBD <%!-- <.assessment_point_entry_display entry={entry} /> --%>
-            </div>
-            <div class="flex items-center gap-2 px-2 pb-2">
               <div
                 :if={
-                  is_diff ||
-                    rubric ||
+                  goal.is_differentiation ||
+                    goal.rubric_id ||
                     (entry && entry.report_note) ||
                     (entry && entry.student_report_note) ||
-                    report_info
+                    goal.report_info
                 }
-                class="flex flex-wrap items-center gap-1"
+                class="flex items-center gap-4 mt-2"
               >
-                <.assessment_metadata_icon :if={report_info} type={:info} />
-                <.assessment_metadata_icon :if={rubric} type={:rubric} />
-                <.assessment_metadata_icon
-                  :if={is_diff || (rubric && rubric.is_differentiation)}
-                  type={:diff}
-                />
-                <.assessment_metadata_icon :if={entry && entry.report_note} type={:teacher_comment} />
-                <.assessment_metadata_icon
-                  :if={entry && entry.student_report_note}
-                  type={:student_comment}
-                />
-              </div>
-              <div class="flex-1 flex h-4">
-                Formative TBD
-                <div class="flex-1 bg-ltrn-primary"></div>
-                <div class="flex-1 bg-ltrn-secondary"></div>
-                <div class="flex-1 bg-ltrn-light"></div>
+                <div class="flex flex-wrap items-center gap-1">
+                  <.assessment_metadata_icon :if={goal.report_info} type={:info} />
+                  <.assessment_metadata_icon :if={goal.rubric_id} type={:rubric} />
+                  <.assessment_metadata_icon
+                    :if={goal.is_differentiation || goal.has_diff_rubric_for_student}
+                    type={:diff}
+                  />
+                  <.assessment_metadata_icon :if={entry && entry.report_note} type={:teacher_comment} />
+                  <.assessment_metadata_icon
+                    :if={entry && entry.student_report_note}
+                    type={:student_comment}
+                  />
+                </div>
+                <div class="group relative flex items-center gap-1">
+                  <div class="w-4 h-4 rounded-sm bg-ltrn-primary"></div>
+                  <div class="w-4 h-4 rounded-sm bg-ltrn-secondary"></div>
+                  <div class="w-4 h-4 rounded-sm bg-ltrn-light"></div>
+                  <.tooltip><%= gettext("Formative assessment pattern") %></.tooltip>
+                </div>
               </div>
             </div>
-            <%!-- <div
-              :if={entry && entry.report_note && @info_level == "full"}
-              class="sm:pt-6 sm:px-6 last:sm:pb-6"
-            >
-              <div class="p-4 sm:rounded bg-ltrn-teacher-lightest">
-                <div class="flex items-center gap-2 font-bold text-sm">
-                  <.icon name="hero-chat-bubble-oval-left" class="w-6 h-6 text-ltrn-teacher-accent" />
-                  <span class="text-ltrn-teacher-dark"><%= gettext("Teacher comment") %></span>
-                </div>
-                <.markdown text={entry.report_note} size="sm" class="max-w-none mt-4" />
-              </div>
-            </div>
-            <div
-              :if={entry && entry.student_report_note && @info_level == "full"}
-              class="sm:pt-6 sm:px-6 last:sm:pb-6"
-            >
-              <div class="p-4 sm:rounded bg-ltrn-student-lightest">
-                <div class="flex items-center gap-2 font-bold text-sm">
-                  <.icon name="hero-chat-bubble-oval-left" class="w-6 h-6 text-ltrn-student-accent" />
-                  <span class="text-ltrn-student-dark">
-                    <%= gettext("%{student} comment", student: @student_report_card.student.name) %>
-                  </span>
-                </div>
-                <.markdown text={entry.student_report_note} size="sm" class="max-w-none mt-4" />
-              </div>
-            </div>
-            <div :if={report_info && @info_level == "full"} class="sm:pt-6 sm:px-6 last:sm:pb-6">
-              <div class="p-4 sm:rounded bg-ltrn-mesh-cyan">
-                <div class="flex items-center gap-2 font-bold text-sm">
-                  <.icon name="hero-information-circle" class="w-6 h-6 text-ltrn-subtle" />
-                  <%= gettext("About this assessment") %>
-                </div>
-                <.markdown text={report_info} size="sm" class="max-w-none mt-4" />
-              </div>
-            </div> --%>
+            <.assessment_point_entry_display
+              entry={entry}
+              show_student_assessment
+              class="mt-4 sm:mt-0"
+            />
           </.card_base>
         </.link>
       </.responsive_container>

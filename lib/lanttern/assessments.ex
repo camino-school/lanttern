@@ -1013,17 +1013,74 @@ defmodule Lanttern.Assessments do
 
   Ordered by `AssessmentPoint` positions.
 
+  Assessment point fields and preloads:
+  - `:has_diff_rubric_for_student` calculated based on student id
+  - curriculum item with curriculum component
+
+  Assessment point entry preload:
+  - `ordinal_value` and `student_ordinal_value`
+
+  """
+
+  @spec list_strand_goals_student_entries(student_id :: pos_integer(), strand_id :: pos_integer()) ::
+          [
+            {AssessmentPoint.t(), AssessmentPointEntry.t()}
+          ]
+
+  def list_strand_goals_student_entries(student_id, strand_id) do
+    from(
+      ap in AssessmentPoint,
+      left_join: r in assoc(ap, :rubric),
+      left_join: diff_r in assoc(r, :differentiation_rubrics),
+      left_join: diff_r_s in "differentiation_rubrics_students",
+      on: diff_r_s.student_id == ^student_id and diff_r_s.rubric_id == diff_r.id,
+      join: ci in assoc(ap, :curriculum_item),
+      join: cc in assoc(ci, :curriculum_component),
+      join: e in AssessmentPointEntry,
+      on: e.assessment_point_id == ap.id and e.student_id == ^student_id,
+      left_join: ov in assoc(e, :ordinal_value),
+      left_join: s_ov in assoc(e, :student_ordinal_value),
+      where: ap.strand_id == ^strand_id,
+      order_by: ap.position,
+      select: {
+        %{ap | has_diff_rubric_for_student: not is_nil(diff_r_s)},
+        e,
+        ov,
+        s_ov
+      },
+      preload: [
+        curriculum_item: {ci, curriculum_component: cc}
+      ]
+    )
+    |> Repo.all()
+    |> Enum.map(fn {ap, e, ov, s_ov} ->
+      {
+        ap,
+        %{e | ordinal_value: ov, student_ordinal_value: s_ov}
+      }
+    end)
+  end
+
+  @doc """
+  TODO: remove
+
+  Returns the list of strand goals and entries for the given student and strand.
+
+  Assessment points without entries are ignored.
+
+  Ordered by `AssessmentPoint` positions.
+
   Assessment point preloads:
   - scale with ordinal values
   - rubric with descriptors and differentiation rubric linked to the given student
   - curriculum item with curriculum component, subjects, and years
   """
 
-  @spec list_strand_goals_student_entries(integer(), integer()) :: [
+  @spec legacy_list_strand_goals_student_entries(integer(), integer()) :: [
           {AssessmentPoint.t(), AssessmentPointEntry.t()}
         ]
 
-  def list_strand_goals_student_entries(student_id, strand_id) do
+  def legacy_list_strand_goals_student_entries(student_id, strand_id) do
     from(
       ap in AssessmentPoint,
       join: s in assoc(ap, :scale),
