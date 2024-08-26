@@ -116,16 +116,10 @@ defmodule LantternWeb.AssessmentsComponents do
     <div class={["grid gap-1", @grid_cols_class, @class]} id={@id}>
       <.assessment_point_entry_value_display entry={@entry} />
       <.assessment_point_entry_value_display :if={@show_student_assessment} entry={@entry} is_student />
-      <div
-        :if={@show_student_assessment}
-        class="p-1 rounded-sm text-xs text-center text-ltrn-teacher-dark bg-ltrn-teacher-lighter"
-      >
+      <div :if={@show_student_assessment} class="text-xs text-center text-ltrn-teacher-dark">
         <%= gettext("Teacher assessment") %>
       </div>
-      <div
-        :if={@show_student_assessment}
-        class="p-1 rounded-sm text-xs text-center text-ltrn-student-dark bg-ltrn-student-lighter"
-      >
+      <div :if={@show_student_assessment} class="text-xs text-center text-ltrn-student-dark">
         <%= gettext("Student self-assessment") %>
       </div>
     </div>

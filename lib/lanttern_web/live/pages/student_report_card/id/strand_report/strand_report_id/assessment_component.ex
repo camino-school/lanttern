@@ -8,7 +8,8 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
   alias LantternWeb.StudentStrandReportLive.StrandGoalDetailsComponent
 
   # shared components
-  import LantternWeb.ReportingComponents
+  # import LantternWeb.AssessmentsComponents
+  # import LantternWeb.ReportingComponents
 
   @impl true
   def render(assigns) do
@@ -32,80 +33,65 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
             <%= gettext("Simplified") %>
           </.badge_button>
         </div>
-        <div class="mt-4">
-          <div
-            :for={
-              {%AssessmentPoint{
-                 id: strand_goal_id,
-                 is_differentiation: is_diff,
-                 curriculum_item: curriculum_item,
-                 scale: scale,
-                 rubric: rubric,
-                 report_info: report_info
-               },
-               entry} <-
-                @strand_goals_student_entries
-            }
-            class="rounded mt-4 bg-white shadow"
-          >
-            <.link patch={
-              ~p"/student_report_card/#{@student_report_card.id}/strand_report/#{@strand_report.id}?tab=assessment&strand_goal_id=#{strand_goal_id}"
-            }>
-              details
-            </.link>
-            <div class="pt-6 px-6">
-              <%= if @info_level == "simplified" do %>
-                <p class="text-sm">
-                  <span class="inline-block mr-1 font-display font-bold text-ltrn-subtle">
-                    <%= curriculum_item.curriculum_component.name %>
-                  </span>
-                  <%= curriculum_item.name %>
-                </p>
-              <% else %>
-                <p class="mb-2 font-display font-bold text-sm">
+        <.link
+          :for={
+            {%AssessmentPoint{
+               id: strand_goal_id,
+               is_differentiation: is_diff,
+               curriculum_item: curriculum_item,
+               # scale: scale,
+               rubric: rubric,
+               report_info: report_info
+             },
+             entry} <-
+              @strand_goals_student_entries
+          }
+          patch={
+            ~p"/student_report_card/#{@student_report_card.id}/strand_report/#{@strand_report.id}?tab=assessment&strand_goal_id=#{strand_goal_id}"
+          }
+          class="block mt-4"
+        >
+          <.card_base>
+            <div class="flex items-center gap-4 p-4">
+              <p class="flex-1 text-sm">
+                <span class="inline-block mr-1 font-display font-bold text-ltrn-subtle">
                   <%= curriculum_item.curriculum_component.name %>
-                </p>
-                <p class="text-base">
-                  <%= curriculum_item.name %>
-                </p>
-              <% end %>
+                </span>
+                <%= curriculum_item.name %>
+              </p>
+              entry TBD <%!-- <.assessment_point_entry_display entry={entry} /> --%>
+            </div>
+            <div class="flex items-center gap-2 px-2 pb-2">
               <div
                 :if={
-                  @info_level == "full" &&
-                    (curriculum_item.code || curriculum_item.subjects != [])
+                  is_diff ||
+                    rubric ||
+                    (entry && entry.report_note) ||
+                    (entry && entry.student_report_note) ||
+                    report_info
                 }
-                class="flex flex-wrap items-center gap-2 mt-4"
+                class="flex flex-wrap items-center gap-1"
               >
-                <.badge :if={curriculum_item.code} theme="dark">
-                  <%= curriculum_item.code %>
-                </.badge>
-                <.badge :if={is_diff} theme="diff">
-                  <%= gettext("Curriculum differentiation") %>
-                </.badge>
-                <.badge :if={rubric && length(rubric.differentiation_rubrics) > 0} theme="diff">
-                  <%= gettext("Differentiation rubric") %>
-                </.badge>
-                <.badge :for={subject <- curriculum_item.subjects}>
-                  <%= subject.name %>
-                </.badge>
+                <.assessment_metadata_icon :if={report_info} type={:info} />
+                <.assessment_metadata_icon :if={rubric} type={:rubric} />
+                <.assessment_metadata_icon
+                  :if={is_diff || (rubric && rubric.is_differentiation)}
+                  type={:diff}
+                />
+                <.assessment_metadata_icon :if={entry && entry.report_note} type={:teacher_comment} />
+                <.assessment_metadata_icon
+                  :if={entry && entry.student_report_note}
+                  type={:student_comment}
+                />
+              </div>
+              <div class="flex-1 flex h-4">
+                Formative TBD
+                <div class="flex-1 bg-ltrn-primary"></div>
+                <div class="flex-1 bg-ltrn-secondary"></div>
+                <div class="flex-1 bg-ltrn-light"></div>
               </div>
             </div>
-            <div class="p-6 overflow-x-auto">
-              <.report_scale
-                scale={scale}
-                entry={entry}
-                rubric={
-                  case rubric && rubric.differentiation_rubrics do
-                    [diff_rubric] -> diff_rubric
-                    _ -> rubric
-                  end
-                }
-                class="float-left"
-              />
-              <%!-- fix for padding right. we need the float-left above and this emtpy div below --%>
-              <div class="w-6"></div>
-            </div>
-            <div
+            <%!-- <div
               :if={entry && entry.report_note && @info_level == "full"}
               class="sm:pt-6 sm:px-6 last:sm:pb-6"
             >
@@ -139,9 +125,9 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
                 </div>
                 <.markdown text={report_info} size="sm" class="max-w-none mt-4" />
               </div>
-            </div>
-          </div>
-        </div>
+            </div> --%>
+          </.card_base>
+        </.link>
       </.responsive_container>
       <.live_component
         :if={@strand_goal_id}
@@ -158,6 +144,51 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
     </div>
     """
   end
+
+  attr :type, :atom, required: true
+
+  defp assessment_metadata_icon(assigns) do
+    {text, icon_name, bg, color} =
+      assessment_metadata_icon_attrs(assigns.type)
+
+    assigns =
+      assigns
+      |> assign(:text, text)
+      |> assign(:icon_name, icon_name)
+      |> assign(:bg, bg)
+      |> assign(:color, color)
+
+    ~H"""
+    <div class={["group relative flex items-center justify-center w-6 h-6 rounded-full", @bg]}>
+      <.icon name={@icon_name} class={@color} />
+      <.tooltip><%= @text %></.tooltip>
+    </div>
+    """
+  end
+
+  defp assessment_metadata_icon_attrs(:info),
+    do:
+      {gettext("Assessment info"), "hero-information-circle-mini", "bg-ltrn-mesh-cyan",
+       "text-ltrn-primary"}
+
+  defp assessment_metadata_icon_attrs(:rubric),
+    do:
+      {gettext("Has rubric"), "hero-view-columns-mini", "bg-ltrn-mesh-cyan", "text-ltrn-primary"}
+
+  defp assessment_metadata_icon_attrs(:diff),
+    do:
+      {gettext("Differentiation"), "hero-user-mini", "bg-ltrn-diff-lighter",
+       "text-ltrn-diff-accent"}
+
+  defp assessment_metadata_icon_attrs(:teacher_comment),
+    do:
+      {gettext("Teacher comment"), "hero-chat-bubble-oval-left-mini", "bg-ltrn-teacher-lighter",
+       "text-ltrn-teacher-accent"}
+
+  defp assessment_metadata_icon_attrs(:student_comment),
+    do:
+      {gettext("Student comment"), "hero-chat-bubble-oval-left-mini", "bg-ltrn-student-lighter",
+       "text-ltrn-student-accent"}
 
   # lifecycle
 
