@@ -15,25 +15,16 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
     ~H"""
     <div class="py-10">
       <.responsive_container>
-        <div class="flex items-center gap-2">
-          <span class="text-sm font-bold">
-            <%= gettext("Information level") %>
-          </span>
-          <.badge_button
-            theme={if @info_level == "full", do: "primary"}
-            phx-click={JS.push("set_info_level", value: %{"level" => "full"}, target: @myself)}
-          >
-            <%= gettext("Full") %>
-          </.badge_button>
-          <.badge_button
-            theme={if @info_level == "simplified", do: "primary"}
-            phx-click={JS.push("set_info_level", value: %{"level" => "simplified"}, target: @myself)}
-          >
-            <%= gettext("Simplified") %>
-          </.badge_button>
-        </div>
+        <p>
+          <%= gettext(
+            "Here you'll find information about the strand final and formative assessments."
+          ) %>
+        </p>
+        <p class="mt-4 mb-10">
+          <%= gettext("Click the assessment card to view more details about it.") %>
+        </p>
         <.link
-          :for={{goal, entry} <- @strand_goals_student_entries}
+          :for={{goal, entry, entries} <- @strand_goals_student_entries}
           patch={
             ~p"/student_report_card/#{@student_report_card.id}/strand_report/#{@strand_report.id}?tab=assessment&strand_goal_id=#{goal.id}"
           }
@@ -57,16 +48,15 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
               <div
                 :if={
                   goal.is_differentiation ||
-                    goal.rubric_id ||
                     (entry && entry.report_note) ||
                     (entry && entry.student_report_note) ||
-                    goal.report_info
+                    goal.report_info ||
+                    goal.rubric_id ||
+                    entries != []
                 }
                 class="flex items-center gap-4 mt-2"
               >
                 <div class="flex flex-wrap items-center gap-1">
-                  <.assessment_metadata_icon :if={goal.report_info} type={:info} />
-                  <.assessment_metadata_icon :if={goal.rubric_id} type={:rubric} />
                   <.assessment_metadata_icon
                     :if={goal.is_differentiation || goal.has_diff_rubric_for_student}
                     type={:diff}
@@ -76,11 +66,11 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
                     :if={entry && entry.student_report_note}
                     type={:student_comment}
                   />
+                  <.assessment_metadata_icon :if={goal.report_info} type={:info} />
+                  <.assessment_metadata_icon :if={goal.rubric_id} type={:rubric} />
                 </div>
-                <div class="group relative flex items-center gap-1">
-                  <div class="w-4 h-4 rounded-sm bg-ltrn-primary"></div>
-                  <div class="w-4 h-4 rounded-sm bg-ltrn-secondary"></div>
-                  <div class="w-4 h-4 rounded-sm bg-ltrn-light"></div>
+                <div class="group relative flex gap-1">
+                  <.moment_entry :for={moment_entry <- entries} entry={moment_entry} />
                   <.tooltip><%= gettext("Formative assessment pattern") %></.tooltip>
                 </div>
               </div>
@@ -111,6 +101,15 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
 
   attr :type, :atom, required: true
 
+  defp assessment_metadata_icon(%{type: :diff} = assigns) do
+    ~H"""
+    <div class="group relative flex items-center justify-center w-6 h-6 rounded-full bg-ltrn-diff-lighter">
+      <span class="font-display font-black text-sm text-ltrn-diff-accent">D</span>
+      <.tooltip><%= gettext("Differentiation") %></.tooltip>
+    </div>
+    """
+  end
+
   defp assessment_metadata_icon(assigns) do
     {text, icon_name, bg, color} =
       assessment_metadata_icon_attrs(assigns.type)
@@ -130,20 +129,6 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
     """
   end
 
-  defp assessment_metadata_icon_attrs(:info),
-    do:
-      {gettext("Assessment info"), "hero-information-circle-mini", "bg-ltrn-mesh-cyan",
-       "text-ltrn-primary"}
-
-  defp assessment_metadata_icon_attrs(:rubric),
-    do:
-      {gettext("Has rubric"), "hero-view-columns-mini", "bg-ltrn-mesh-cyan", "text-ltrn-primary"}
-
-  defp assessment_metadata_icon_attrs(:diff),
-    do:
-      {gettext("Differentiation"), "hero-user-mini", "bg-ltrn-diff-lighter",
-       "text-ltrn-diff-accent"}
-
   defp assessment_metadata_icon_attrs(:teacher_comment),
     do:
       {gettext("Teacher comment"), "hero-chat-bubble-oval-left-mini", "bg-ltrn-teacher-lighter",
@@ -154,13 +139,56 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
       {gettext("Student comment"), "hero-chat-bubble-oval-left-mini", "bg-ltrn-student-lighter",
        "text-ltrn-student-accent"}
 
+  defp assessment_metadata_icon_attrs(:info),
+    do:
+      {gettext("Assessment info"), "hero-information-circle-mini", "bg-ltrn-lighter",
+       "text-ltrn-subtle"}
+
+  defp assessment_metadata_icon_attrs(:rubric),
+    do: {gettext("Has rubric"), "hero-view-columns-mini", "bg-ltrn-lighter", "text-ltrn-subtle"}
+
+  attr :entry, :any, required: true
+
+  defp moment_entry(assigns) do
+    {additional_classes, style, text} =
+      case assigns.entry do
+        %{scale_type: "ordinal"} = entry ->
+          {nil,
+           "color: #{entry.ordinal_value.text_color}; background-color: #{entry.ordinal_value.bg_color}",
+           "•"}
+
+        %{scale_type: "numeric"} ->
+          {"text-ltrn-dark bg-ltrn-lighter", nil, "•"}
+
+        nil ->
+          {"border border-dashed border-ltrn-light text-ltrn-light", nil, "-"}
+      end
+
+    assigns =
+      assigns
+      |> assign(:additional_classes, additional_classes)
+      |> assign(:style, style)
+      |> assign(:text, text)
+
+    ~H"""
+    <div
+      class={[
+        "flex-1 flex items-center justify-center w-6 h-6 rounded-sm text-base",
+        @additional_classes
+      ]}
+      style={@style}
+    >
+      <%= @text %>
+    </div>
+    """
+  end
+
   # lifecycle
 
   @impl true
   def mount(socket) do
     socket =
       socket
-      |> assign(:info_level, "full")
       |> assign(:strand_goal_id, nil)
       |> assign(:initialized, false)
 
@@ -188,7 +216,7 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
 
     strand_goals_ids =
       strand_goals_student_entries
-      |> Enum.map(fn {strand_goal, _} -> "#{strand_goal.id}" end)
+      |> Enum.map(fn {strand_goal, _, _} -> "#{strand_goal.id}" end)
 
     socket
     |> assign(:strand_goals_student_entries, strand_goals_student_entries)
@@ -210,11 +238,4 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
   end
 
   defp assign_strand_goal_id(socket, _assigns), do: assign(socket, :strand_goal_id, nil)
-
-  # event handlers
-
-  @impl true
-  def handle_event("set_info_level", %{"level" => level}, socket) do
-    {:noreply, assign(socket, :info_level, level)}
-  end
 end

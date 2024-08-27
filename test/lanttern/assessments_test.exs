@@ -941,7 +941,17 @@ defmodule Lanttern.AssessmentsTest do
     alias Lanttern.TaxonomyFixtures
 
     test "list_strand_goals_student_entries/2 returns the list of strand goals with student assessments" do
+      #      | moment_1 | moment_2 | moment_3 |
+      # ---------------------------------------
+      # ci_1 |    2*    |    1     |    1     | (* no entry in m1 pos 2 and m3)
+      # ci_2 |    -     |    1     |    -     |
+      # ci_3 |    -     |    -     |    -     |
+
       strand = LearningContextFixtures.strand_fixture()
+
+      moment_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+      moment_2 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+      moment_3 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
 
       curriculum_component_1 = CurriculaFixtures.curriculum_component_fixture()
       curriculum_component_2 = CurriculaFixtures.curriculum_component_fixture()
@@ -1037,6 +1047,68 @@ defmodule Lanttern.AssessmentsTest do
           ordinal_value_id: ordinal_value.id
         })
 
+      ci_1_m_1_1 =
+        assessment_point_fixture(%{
+          curriculum_item_id: curriculum_item_1.id,
+          scale_id: ordinal_scale.id,
+          moment_id: moment_1.id
+        })
+
+      _ci_1_m_1_2 =
+        assessment_point_fixture(%{
+          curriculum_item_id: curriculum_item_1.id,
+          scale_id: ordinal_scale.id,
+          moment_id: moment_1.id
+        })
+
+      ci_1_m_2 =
+        assessment_point_fixture(%{
+          curriculum_item_id: curriculum_item_1.id,
+          scale_id: ordinal_scale.id,
+          moment_id: moment_2.id
+        })
+
+      _ci_1_m_3 =
+        assessment_point_fixture(%{
+          curriculum_item_id: curriculum_item_1.id,
+          scale_id: ordinal_scale.id,
+          moment_id: moment_3.id
+        })
+
+      ci_2_m_2 =
+        assessment_point_fixture(%{
+          curriculum_item_id: curriculum_item_2.id,
+          scale_id: ordinal_scale.id,
+          moment_id: moment_2.id
+        })
+
+      entry_ci_1_m_1_1 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ci_1_m_1_1.id,
+          student_id: student.id,
+          scale_id: ordinal_scale.id,
+          scale_type: ordinal_scale.type,
+          ordinal_value_id: ordinal_value.id
+        })
+
+      entry_ci_1_m_2 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ci_1_m_2.id,
+          student_id: student.id,
+          scale_id: ordinal_scale.id,
+          scale_type: ordinal_scale.type,
+          ordinal_value_id: ordinal_value.id
+        })
+
+      entry_ci_2_m_2 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ci_2_m_2.id,
+          student_id: student.id,
+          scale_id: ordinal_scale.id,
+          scale_type: ordinal_scale.type,
+          ordinal_value_id: ordinal_value.id
+        })
+
       # extra entry for different student (test student join)
       _other_entry =
         assessment_point_entry_fixture(%{
@@ -1046,9 +1118,10 @@ defmodule Lanttern.AssessmentsTest do
         })
 
       assert [
-               {expected_ap_1, expected_entry_1},
-               {expected_ap_2, expected_entry_2},
-               {expected_ap_3, expected_entry_3}
+               {expected_ap_1, expected_entry_1,
+                [expected_ci_1_m_1_1, nil, expected_ci_1_m_2, nil]},
+               {expected_ap_2, expected_entry_2, [expected_ci_2_m_2]},
+               {expected_ap_3, expected_entry_3, []}
              ] = Assessments.list_strand_goals_student_entries(student.id, strand.id)
 
       assert expected_ap_1.id == assessment_point_1.id
@@ -1061,12 +1134,20 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_entry_1.id == entry_1.id
       assert expected_entry_1.ordinal_value.id == ordinal_value.id
 
+      assert expected_ci_1_m_1_1.id == entry_ci_1_m_1_1.id
+      assert expected_ci_1_m_1_1.ordinal_value.id == ordinal_value.id
+      assert expected_ci_1_m_2.id == entry_ci_1_m_2.id
+      assert expected_ci_1_m_2.ordinal_value.id == ordinal_value.id
+
       assert expected_ap_2.id == assessment_point_2.id
       assert expected_ap_2.scale_id == numeric_scale.id
       assert expected_ap_2.curriculum_item.id == curriculum_item_2.id
       assert expected_ap_2.curriculum_item.curriculum_component.id == curriculum_component_2.id
       assert expected_entry_2.id == entry_2.id
       assert expected_entry_2.score == 5.0
+
+      assert expected_ci_2_m_2.id == entry_ci_2_m_2.id
+      assert expected_ci_2_m_2.ordinal_value.id == ordinal_value.id
 
       assert expected_ap_3.id == assessment_point_3.id
       assert expected_ap_3.scale_id == ordinal_scale.id

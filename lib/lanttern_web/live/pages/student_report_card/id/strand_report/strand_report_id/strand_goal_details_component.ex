@@ -54,9 +54,10 @@ defmodule LantternWeb.StudentStrandReportLive.StrandGoalDetailsComponent do
           </div>
         </div>
         <div class="flex items-center justify-between gap-2 mt-10">
-          <h6 class="font-display font-black text-base">
+          <h5 class="flex items-center gap-2 font-display font-black text-base">
+            <.icon :if={@rubric} name="hero-view-columns" class="w-6 h-6" />
             <%= if @rubric, do: gettext("Assessment rubric"), else: gettext("Assessment scale") %>
-          </h6>
+          </h5>
           <.badge :if={@rubric && @rubric.diff_for_rubric_id} theme="diff">
             <%= gettext("Differentiation") %>
           </.badge>
@@ -91,7 +92,8 @@ defmodule LantternWeb.StudentStrandReportLive.StrandGoalDetailsComponent do
           </div>
         </div>
         <div :if={@strand_goal.report_info} class="mt-10">
-          <h5 class="font-display font-black text-base">
+          <h5 class="flex items-center gap-2 font-display font-black text-base">
+            <.icon name="hero-information-circle" class="w-6 h-6" />
             <%= gettext("About this assessment") %>
           </h5>
           <.markdown text={@strand_goal.report_info} size="sm" class="max-w-none mt-4" />
