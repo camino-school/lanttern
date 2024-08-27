@@ -31,7 +31,6 @@ defmodule Lanttern.Assessments do
   - `:preload_full_rubrics` – boolean, preloads full associated rubrics using `Rubrics.full_rubric_query/0`
   - `:assessment_points_ids` – filter result by provided assessment points ids
   - `:moments_ids` – filter result by provided moments ids
-  - `:moments_from_strand_id` – filter result by moments from provided strand id
   - `:strand_id` – filter result by provided strand id
 
   ## Examples
@@ -68,43 +67,23 @@ defmodule Lanttern.Assessments do
   defp apply_assessment_points_filter({:moments_ids, ids}, queryable),
     do: from(ap in queryable, where: ap.moment_id in ^ids)
 
-  defp apply_assessment_points_filter({:moments_from_strand_id, id}, queryable) do
-    from(
-      ap in queryable,
-      join: m in assoc(ap, :moment),
-      as: :moment,
-      where: m.strand_id == ^id
-    )
-  end
-
   defp apply_assessment_points_filter({:strand_id, id}, queryable),
     do: from(ap in queryable, where: ap.strand_id == ^id)
 
   defp apply_assessment_points_filter(_, queryable), do: queryable
 
   defp order_assessment_points(queryable, opts) do
-    moments_ids = Keyword.get(opts, :moments_ids)
-    strand_id = Keyword.get(opts, :moments_from_strand_id)
-
-    cond do
-      moments_ids ->
-        from(
-          ap in queryable,
-          join: m in assoc(ap, :moment),
-          order_by: [m.position, ap.position]
-        )
-
-      strand_id ->
-        from(
-          [ap, moment: m] in queryable,
-          order_by: [m.position, ap.position]
-        )
-
-      true ->
-        from(
-          ap in queryable,
-          order_by: ap.position
-        )
+    if Keyword.get(opts, :moments_ids) do
+      from(
+        ap in queryable,
+        join: m in assoc(ap, :moment),
+        order_by: [m.position, ap.position]
+      )
+    else
+      from(
+        ap in queryable,
+        order_by: ap.position
+      )
     end
   end
 
@@ -1095,62 +1074,6 @@ defmodule Lanttern.Assessments do
         Map.get(goals_and_moments_entries_map, ap.curriculum_item_id, [])
       }
     end)
-  end
-
-  @doc """
-  TODO: remove
-
-  Returns the list of strand goals and entries for the given student and strand.
-
-  Assessment points without entries are ignored.
-
-  Ordered by `AssessmentPoint` positions.
-
-  Assessment point preloads:
-  - scale with ordinal values
-  - rubric with descriptors and differentiation rubric linked to the given student
-  - curriculum item with curriculum component, subjects, and years
-  """
-
-  @spec legacy_list_strand_goals_student_entries(integer(), integer()) :: [
-          {AssessmentPoint.t(), AssessmentPointEntry.t()}
-        ]
-
-  def legacy_list_strand_goals_student_entries(student_id, strand_id) do
-    from(
-      ap in AssessmentPoint,
-      join: s in assoc(ap, :scale),
-      left_join: ov in assoc(s, :ordinal_values),
-      left_join: r in assoc(ap, :rubric),
-      left_join: rd in assoc(r, :descriptors),
-      left_join: rdov in assoc(rd, :ordinal_value),
-      left_join: diff_r_s in "differentiation_rubrics_students",
-      on: diff_r_s.student_id == ^student_id,
-      left_join: diff_r in Rubrics.Rubric,
-      on: diff_r.id == diff_r_s.rubric_id and diff_r.diff_for_rubric_id == r.id,
-      left_join: diff_rd in assoc(diff_r, :descriptors),
-      left_join: diff_rdov in assoc(diff_rd, :ordinal_value),
-      join: ci in assoc(ap, :curriculum_item),
-      join: cc in assoc(ci, :curriculum_component),
-      join: e in AssessmentPointEntry,
-      on: e.assessment_point_id == ap.id and e.student_id == ^student_id,
-      left_join: sub in assoc(ci, :subjects),
-      left_join: y in assoc(ci, :years),
-      where: ap.strand_id == ^strand_id,
-      order_by: [
-        asc: ap.position,
-        asc: ov.normalized_value,
-        asc: rdov.normalized_value,
-        asc: diff_rdov.normalized_value
-      ],
-      select: {ap, e},
-      preload: [
-        scale: {s, ordinal_values: ov},
-        rubric: {r, descriptors: rd, differentiation_rubrics: {diff_r, descriptors: diff_rd}},
-        curriculum_item: {ci, curriculum_component: cc, subjects: sub, years: y}
-      ]
-    )
-    |> Repo.all()
   end
 
   @doc """

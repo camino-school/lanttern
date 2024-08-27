@@ -24,7 +24,7 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
           <%= gettext("Click the assessment card to view more details about it.") %>
         </p>
         <.link
-          :for={{goal, entry, entries} <- @strand_goals_student_entries}
+          :for={{goal, entry, moment_entries} <- @strand_goals_student_entries}
           patch={
             ~p"/student_report_card/#{@student_report_card.id}/strand_report/#{@strand_report.id}?tab=assessment&strand_goal_id=#{goal.id}"
           }
@@ -52,11 +52,20 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
                     (entry && entry.student_report_note) ||
                     goal.report_info ||
                     goal.rubric_id ||
-                    entries != []
+                    moment_entries != []
                 }
                 class="flex items-center gap-4 mt-2"
               >
-                <div class="flex flex-wrap items-center gap-1">
+                <div
+                  :if={
+                    goal.is_differentiation ||
+                      (entry && entry.report_note) ||
+                      (entry && entry.student_report_note) ||
+                      goal.report_info ||
+                      goal.rubric_id
+                  }
+                  class="flex flex-wrap items-center gap-1"
+                >
                   <.assessment_metadata_icon
                     :if={goal.is_differentiation || goal.has_diff_rubric_for_student}
                     type={:diff}
@@ -70,7 +79,7 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
                   <.assessment_metadata_icon :if={goal.rubric_id} type={:rubric} />
                 </div>
                 <div class="group relative flex gap-1">
-                  <.moment_entry :for={moment_entry <- entries} entry={moment_entry} />
+                  <.moment_entry :for={moment_entry <- moment_entries} entry={moment_entry} />
                   <.tooltip><%= gettext("Formative assessment pattern") %></.tooltip>
                 </div>
               </div>
