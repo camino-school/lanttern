@@ -16,6 +16,7 @@ defmodule LantternWeb.StudentStrandReportLive do
   @tabs %{
     "overview" => :overview,
     "assessment" => :assessment,
+    "moments" => :moments,
     "student_notes" => :student_notes
   }
 

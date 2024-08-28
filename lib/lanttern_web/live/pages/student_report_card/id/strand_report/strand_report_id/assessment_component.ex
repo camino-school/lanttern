@@ -21,7 +21,7 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
           ) %>
         </p>
         <p class="mt-4 mb-10">
-          <%= gettext("Click the assessment card to view more details about it.") %>
+          <%= gettext("You can click the assessment card to view more details about it.") %>
         </p>
         <.link
           :for={{goal, entry, moment_entries} <- @strand_goals_student_entries}
@@ -54,7 +54,7 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
                     goal.rubric_id ||
                     moment_entries != []
                 }
-                class="flex items-center gap-4 mt-2"
+                class="shrink-0 flex items-center gap-4 max-w-full mt-2"
               >
                 <div
                   :if={
@@ -64,7 +64,7 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
                       goal.report_info ||
                       goal.rubric_id
                   }
-                  class="flex flex-wrap items-center gap-1"
+                  class="flex items-center gap-1"
                 >
                   <.assessment_metadata_icon
                     :if={goal.is_differentiation || goal.has_diff_rubric_for_student}
@@ -78,7 +78,7 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
                   <.assessment_metadata_icon :if={goal.report_info} type={:info} />
                   <.assessment_metadata_icon :if={goal.rubric_id} type={:rubric} />
                 </div>
-                <div class="group relative flex gap-1">
+                <div class="group relative flex-1 flex flex-wrap gap-1">
                   <.moment_entry :for={moment_entry <- moment_entries} entry={moment_entry} />
                   <.tooltip><%= gettext("Formative assessment pattern") %></.tooltip>
                 </div>
@@ -182,7 +182,7 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
     ~H"""
     <div
       class={[
-        "flex-1 flex items-center justify-center w-6 h-6 rounded-sm text-base",
+        "flex-1 flex items-center justify-center w-6 h-6 max-w-6 rounded-sm text-base",
         @additional_classes
       ]}
       style={@style}

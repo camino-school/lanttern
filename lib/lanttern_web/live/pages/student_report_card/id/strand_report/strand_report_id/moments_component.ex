@@ -13,45 +13,54 @@ defmodule LantternWeb.StudentStrandReportLive.MomentsComponent do
     ~H"""
     <div class="py-10">
       <.responsive_container>
-        <h3 class="font-display font-black text-xl text-ltrn-subtle">
-          <%= gettext("Strand moments / formative assessment") %>
-        </h3>
-        <div id="strand-moments-and-entries" phx-update="stream">
-          <.card_base
-            :for={{dom_id, {moment, entries}} <- @streams.moments_and_entries}
-            id={dom_id}
-            class={[
-              "flex flex-col mt-4",
-              "md:flex-row md:items-center md:justify-between"
-            ]}
-          >
-            <div class="p-4 md:p-6">
-              <h5 class="font-display font-black text-lg" title={moment.name}>
-                <.link
-                  patch={
-                    ~p"/student_report_card/#{@student_report_card_id}/strand_report/#{@strand_report.id}?moment_id=#{moment.id}"
-                  }
-                  class="underline hover:text-ltrn-subtle"
-                >
-                  <%= moment.name %>
-                </.link>
-              </h5>
-              <div :if={moment.subjects != []} class="flex gap-2 mt-2">
-                <.badge :for={subject <- moment.subjects}>
-                  <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
-                </.badge>
-              </div>
-            </div>
-            <div
-              :if={entries != []}
-              class="flex flex-wrap gap-2 p-4 border-t border-ltrn-lighter md:border-t-0 md:p-6"
+        <p>
+          <%= gettext("Here you'll find information about the strand learning journey.") %>
+        </p>
+        <p class="mt-4 mb-10">
+          <%= gettext(
+            "You can click the moment card to view more details about it, including information about formative assessment."
+          ) %>
+        </p>
+        <%= if @has_moments do %>
+          <div id="strand-moments-and-entries" phx-update="stream">
+            <.link
+              :for={{dom_id, {moment, entries}} <- @streams.moments_and_entries}
+              id={dom_id}
+              patch={
+                ~p"/student_report_card/#{@student_report_card_id}/strand_report/#{@strand_report.id}?tab=moments&moment_id=#{moment.id}"
+              }
+              class="group block mt-4"
             >
-              <%= for entry <- entries, entry.ordinal_value || entry.score do %>
-                <.assessment_point_entry_badge entry={entry} is_short />
-              <% end %>
-            </div>
-          </.card_base>
-        </div>
+              <.card_base class={[
+                "flex flex-col group-hover:bg-ltrn-mesh-cyan",
+                "md:flex-row md:items-center md:justify-between"
+              ]}>
+                <div class="p-4 md:p-6">
+                  <h5 class="font-display font-black text-lg" title={moment.name}>
+                    <%= moment.name %>
+                  </h5>
+                  <div :if={moment.subjects != []} class="flex gap-2 mt-2">
+                    <.badge :for={subject <- moment.subjects}>
+                      <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
+                    </.badge>
+                  </div>
+                </div>
+                <div
+                  :if={entries != []}
+                  class="flex flex-wrap gap-2 p-4 border-t border-ltrn-lighter md:border-t-0 md:p-6"
+                >
+                  <%= for entry <- entries, entry.ordinal_value || entry.score do %>
+                    <.assessment_point_entry_badge entry={entry} is_short />
+                  <% end %>
+                </div>
+              </.card_base>
+            </.link>
+          </div>
+        <% else %>
+          <.empty_state>
+            <%= gettext("No moments registered for this strand") %>
+          </.empty_state>
+        <% end %>
       </.responsive_container>
       <.slide_over
         :if={@moment}
@@ -59,7 +68,7 @@ defmodule LantternWeb.StudentStrandReportLive.MomentsComponent do
         show={true}
         on_cancel={
           JS.patch(
-            ~p"/student_report_card/#{@student_report_card_id}/strand_report/#{@strand_report.id}"
+            ~p"/student_report_card/#{@student_report_card_id}/strand_report/#{@strand_report.id}?tab=moments"
           )
         }
       >
@@ -133,6 +142,7 @@ defmodule LantternWeb.StudentStrandReportLive.MomentsComponent do
     |> assign(assigns)
     |> stream(:moments_and_entries, moments_and_entries)
     |> assign(:moments_ids, moments_ids)
+    |> assign(:has_moments, moments_and_entries != [])
   end
 
   defp stream_moments_and_entries(socket, _assigns), do: socket

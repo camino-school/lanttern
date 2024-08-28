@@ -62,6 +62,14 @@
       </:tab>
       <:tab
         patch={
+          ~p"/student_report_card/#{@student_report_card}/strand_report/#{@strand_report}?tab=moments"
+        }
+        is_current={@current_tab == :moments && "true"}
+      >
+        <%= gettext("Moments") %>
+      </:tab>
+      <:tab
+        patch={
           ~p"/student_report_card/#{@student_report_card}/strand_report/#{@strand_report}?tab=student_notes"
         }
         is_current={@current_tab == :student_notes && "true"}
@@ -74,16 +82,14 @@
 <div class="ltrn-bg-main-local">
   <div :if={@current_tab == :overview}>
     <.responsive_container class="py-10">
-      <.markdown text={@strand_report.description} />
+      <%= if @strand_report.description do %>
+        <.markdown text={@strand_report.description} />
+      <% else %>
+        <.empty_state>
+          <%= gettext("No strand report info yet.") %>
+        </.empty_state>
+      <% end %>
     </.responsive_container>
-    <.live_component
-      module={MomentsComponent}
-      id="student-moments"
-      strand_report={@strand_report}
-      student_id={@student_report_card.student_id}
-      student_report_card_id={@student_report_card.id}
-      params={@params}
-    />
   </div>
   <.live_component
     :if={@current_tab == :assessment}
@@ -91,6 +97,15 @@
     id="student-assessment"
     strand_report={@strand_report}
     student_report_card={@student_report_card}
+    params={@params}
+  />
+  <.live_component
+    :if={@current_tab == :moments}
+    module={MomentsComponent}
+    id="student-moments"
+    strand_report={@strand_report}
+    student_id={@student_report_card.student_id}
+    student_report_card_id={@student_report_card.id}
     params={@params}
   />
   <.live_component
