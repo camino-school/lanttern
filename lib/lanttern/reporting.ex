@@ -13,6 +13,7 @@ defmodule Lanttern.Reporting do
 
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.LearningContext.Moment
   alias Lanttern.Schools
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.Cycle
@@ -786,6 +787,154 @@ defmodule Lanttern.Reporting do
     strand_reports
     |> Enum.map(&{&1, Map.get(ast_entries_map, &1.id, [])})
     |> Enum.filter(fn {_strand_report, entries} -> entries != [] end)
+  end
+
+  @doc """
+  Returns the list of moments linked to the strand report, with assessment entries.
+
+  **Preloaded data:**
+
+  - moments: subjects
+  - assessment entries: assessment point, scale, and ordinal value
+
+  ## Examples
+
+      iex> list_student_strand_report_moments_and_entries(strand_report, student_id)
+      [{%StrandReport{}, [%AssessmentPointEntry{}, ...]}, ...]
+
+  """
+  @spec list_student_strand_report_moments_and_entries(
+          StrandReport.t(),
+          student_id :: pos_integer()
+        ) :: [
+          {Moment.t(), [AssessmentPointEntry.t()]}
+        ]
+
+  def list_student_strand_report_moments_and_entries(
+        %StrandReport{} = strand_report,
+        student_id
+      ) do
+    %{strand_id: strand_id} = strand_report
+
+    moments =
+      from(m in Moment,
+        left_join: sub in assoc(m, :subjects),
+        where: m.strand_id == ^strand_id,
+        order_by: [asc: m.position, asc: sub.name],
+        preload: [subjects: sub]
+      )
+      |> Repo.all()
+
+    ast_entries_map =
+      from(e in AssessmentPointEntry,
+        join: sc in assoc(e, :scale),
+        left_join: ov in assoc(e, :ordinal_value),
+        join: ap in assoc(e, :assessment_point),
+        join: m in assoc(ap, :moment),
+        where: m.strand_id == ^strand_id and e.student_id == ^student_id,
+        order_by: ap.position,
+        preload: [scale: sc, ordinal_value: ov],
+        select: {m.id, e}
+      )
+      |> Repo.all()
+      |> Enum.group_by(
+        fn {moment_id, _} -> moment_id end,
+        fn {_, entry} -> entry end
+      )
+
+    moments
+    |> Enum.map(&{&1, Map.get(ast_entries_map, &1.id, [])})
+  end
+
+  @doc """
+  Returns the list of assessment points and entries linked to given moment and student.
+
+  **Preloaded data:**
+
+  - assessment_points: entries
+  - assessment entries: scale and ordinal value
+
+  ## Examples
+
+      iex> list_moment_assessment_points_and_student_entries(moment_id, student_id)
+      [{%AssessmentPoint{}, %AssessmentPointEntry{}}, ...]
+
+  """
+  @spec list_moment_assessment_points_and_student_entries(
+          moment_id :: pos_integer(),
+          student_id :: pos_integer()
+        ) :: [
+          {AssessmentPoint.t(), AssessmentPointEntry.t()}
+        ]
+
+  def list_moment_assessment_points_and_student_entries(moment_id, student_id) do
+    from(
+      ap in AssessmentPoint,
+      left_join: e in AssessmentPointEntry,
+      on: e.assessment_point_id == ap.id and e.student_id == ^student_id,
+      where: ap.moment_id == ^moment_id,
+      left_join: sc in assoc(e, :scale),
+      left_join: ov in assoc(e, :ordinal_value),
+      order_by: ap.position,
+      select: {ap, e, sc, ov}
+    )
+    |> Repo.all()
+    |> Enum.map(fn {ap, e, sc, ov} ->
+      {ap, e && %{e | scale: sc, ordinal_value: ov}}
+    end)
+  end
+
+  @doc """
+  Returns the list of moments with assessment points and entries
+  linked to given strand goal (strand linked assessment point) and student.
+
+  **Preloaded data:**
+
+  - assessment entries: scale and ordinal value
+
+  ## Examples
+
+      iex> list_strand_goal_moments_and_student_entries(assessment_point_id, student_id)
+      [{%Moment{}, [{%AssessmentPoint{}, %AssessmentPointEntry{}}, ...]}, ...]
+
+  """
+  @spec list_strand_goal_moments_and_student_entries(
+          strand_goal :: AssessmentPoint.t(),
+          student_id :: pos_integer()
+        ) :: [
+          {Moment.t(), [{AssessmentPoint.t(), AssessmentPointEntry.t()}]}
+        ]
+
+  def list_strand_goal_moments_and_student_entries(%AssessmentPoint{} = strand_goal, student_id) do
+    %{
+      curriculum_item_id: curriculum_item_id,
+      strand_id: strand_id
+    } = strand_goal
+
+    m_ap_e_sc_ov =
+      from(
+        m in Moment,
+        join: ap in assoc(m, :assessment_points),
+        on: ap.curriculum_item_id == ^curriculum_item_id,
+        left_join: e in AssessmentPointEntry,
+        on: e.assessment_point_id == ap.id and e.student_id == ^student_id,
+        left_join: sc in assoc(e, :scale),
+        left_join: ov in assoc(e, :ordinal_value),
+        where: m.strand_id == ^strand_id,
+        order_by: [asc: m.position, asc: ap.position],
+        select: {m, ap, e, sc, ov}
+      )
+      |> Repo.all()
+
+    moment_assessment_points_map =
+      m_ap_e_sc_ov
+      |> Enum.map(fn {_m, ap, e, sc, ov} -> {ap, e && %{e | scale: sc, ordinal_value: ov}} end)
+      |> Enum.group_by(fn {ap, _e} -> ap.moment_id end)
+
+    m_ap_e_sc_ov
+    |> Enum.map(fn {m, _ap, _e, _sc, _ov} -> m end)
+    |> Enum.uniq()
+    |> Enum.map(&{&1, moment_assessment_points_map[&1.id]})
   end
 
   @doc """

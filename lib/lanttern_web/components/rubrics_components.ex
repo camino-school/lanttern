@@ -39,7 +39,10 @@ defmodule LantternWeb.RubricsComponents do
   def rubric_descriptors(assigns) do
     ~H"""
     <div class={["flex items-stretch gap-2", @class]}>
-      <div :for={descriptor <- @rubric.descriptors} class="flex-[1_0] flex flex-col items-start gap-2">
+      <div
+        :for={descriptor <- @rubric.descriptors}
+        class="flex-[1_0] flex flex-col items-start gap-2 min-w-[10rem]"
+      >
         <%= if descriptor.scale_type == "numeric" do %>
           <.badge theme="dark"><%= descriptor.score %></.badge>
         <% else %>

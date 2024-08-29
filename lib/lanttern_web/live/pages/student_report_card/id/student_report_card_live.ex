@@ -10,6 +10,7 @@ defmodule LantternWeb.StudentReportCardLive do
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # shared components
+  import LantternWeb.AssessmentsComponents
   import LantternWeb.LearningContextComponents
   import LantternWeb.GradingComponents
   import LantternWeb.ReportingComponents

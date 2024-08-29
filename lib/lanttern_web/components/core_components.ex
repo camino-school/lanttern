@@ -51,8 +51,8 @@ defmodule LantternWeb.CoreComponents do
   attr :class, :any, default: nil
   attr :style, :string, default: nil
   attr :theme, :string, default: "default"
-  attr :show_remove, :boolean, default: false
-  attr :rest, :global, doc: "use to pass phx-* bindings to the remove button"
+  attr :on_remove, JS, default: nil
+  attr :rest, :global
   slot :inner_block, required: true
 
   def badge(assigns) do
@@ -65,13 +65,14 @@ defmodule LantternWeb.CoreComponents do
         @class
       ]}
       style={@style}
+      {@rest}
     >
       <%= render_slot(@inner_block) %>
       <button
-        :if={@show_remove}
+        :if={@on_remove}
         type="button"
         class="group relative ml-1 h-3.5 w-3.5 rounded-[1px] hover:bg-ltrn-subtle/20"
-        {@rest}
+        phx-click={@on_remove}
       >
         <span class="sr-only">Remove</span>
         <.icon name="hero-x-mark-mini" class="w-3.5 text-ltrn-subtle hover:text-slate-700" />
@@ -89,7 +90,8 @@ defmodule LantternWeb.CoreComponents do
     "dark" => "bg-ltrn-dark text-ltrn-lighter",
     "diff" => "bg-ltrn-diff-lighter text-ltrn-diff-dark",
     "student" => "bg-ltrn-student-lighter text-ltrn-student-dark",
-    "teacher" => "bg-ltrn-teacher-lighter text-ltrn-teacher-dark"
+    "teacher" => "bg-ltrn-teacher-lighter text-ltrn-teacher-dark",
+    "empty" => "bg-transparent border border-dashed border-ltrn-light text-ltrn-subtle"
   }
 
   @badge_themes_hover %{
@@ -335,6 +337,29 @@ defmodule LantternWeb.CoreComponents do
   defp button_theme(theme) do
     @button_themes
     |> Map.get(theme, @button_themes["default"])
+  end
+
+  @doc """
+  Renders a simple card.
+  """
+
+  attr :class, :any, default: nil
+
+  attr :bg_class, :any,
+    default: "bg-white",
+    doc: "we use a separate attr for bg class to prevent clashing with default bg"
+
+  attr :id, :string, default: nil
+  attr :rest, :global
+
+  slot :inner_block, required: true
+
+  def card_base(assigns) do
+    ~H"""
+    <div id={@id} class={["rounded shadow-xl", @bg_class, @class]} {@rest}>
+      <%= render_slot(@inner_block) %>
+    </div>
+    """
   end
 
   @doc """

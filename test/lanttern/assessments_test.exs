@@ -262,77 +262,6 @@ defmodule Lanttern.AssessmentsTest do
     end
   end
 
-  # TODO: remove
-  # replaced by list_strand_assessment_points/2
-  describe "strand assessment points legacy" do
-    alias Lanttern.Assessments.AssessmentPoint
-
-    import Lanttern.AssessmentsFixtures
-    alias Lanttern.IdentityFixtures
-    alias Lanttern.CurriculaFixtures
-    alias Lanttern.GradingFixtures
-    alias Lanttern.LearningContextFixtures
-    alias Lanttern.SchoolsFixtures
-
-    test "list_assessment_points/1 returns all assessment points for moments in a given strand" do
-      strand = LearningContextFixtures.strand_fixture()
-      moment_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id, position: 1})
-      moment_2 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id, position: 2})
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
-      scale = GradingFixtures.scale_fixture()
-
-      valid_attrs = %{
-        moment_id: nil,
-        name: "some assessment point name abc",
-        curriculum_item_id: curriculum_item.id,
-        scale_id: scale.id
-      }
-
-      assessment_point_1_1 = assessment_point_fixture(%{valid_attrs | moment_id: moment_1.id})
-      assessment_point_1_2 = assessment_point_fixture(%{valid_attrs | moment_id: moment_1.id})
-      assessment_point_2_1 = assessment_point_fixture(%{valid_attrs | moment_id: moment_2.id})
-      assessment_point_2_2 = assessment_point_fixture(%{valid_attrs | moment_id: moment_2.id})
-
-      # extra assessment points for "filter" assertion
-      other_moment = LearningContextFixtures.moment_fixture()
-      assessment_point_fixture(%{valid_attrs | moment_id: other_moment.id})
-      assessment_point_fixture()
-
-      assert [expected_1, expected_2, expected_3, expected_4] =
-               Assessments.list_assessment_points(moments_from_strand_id: strand.id)
-
-      assert expected_1.id == assessment_point_1_1.id
-      assert expected_2.id == assessment_point_1_2.id
-      assert expected_3.id == assessment_point_2_1.id
-      assert expected_4.id == assessment_point_2_2.id
-    end
-
-    test "create_assessment_point/2 with valid data creates an assessment point linked to a strand" do
-      strand = LearningContextFixtures.strand_fixture()
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
-      scale = GradingFixtures.scale_fixture()
-
-      valid_attrs = %{
-        strand_id: strand.id,
-        name: "some assessment point name abc",
-        curriculum_item_id: curriculum_item.id,
-        scale_id: scale.id
-      }
-
-      assert {:ok, %AssessmentPoint{} = assessment_point} =
-               Assessments.create_assessment_point(valid_attrs)
-
-      assert assessment_point.name == "some assessment point name abc"
-      assert assessment_point.curriculum_item_id == curriculum_item.id
-      assert assessment_point.scale_id == scale.id
-
-      [expected] =
-        Assessments.list_assessment_points(strands_ids: [strand.id])
-
-      assert expected.id == assessment_point.id
-    end
-  end
-
   describe "moment assessment points" do
     alias Lanttern.Assessments.AssessmentPoint
 
@@ -522,6 +451,23 @@ defmodule Lanttern.AssessmentsTest do
 
       assert Assessments.get_assessment_point_entry!(assessment_point_entry.id) ==
                assessment_point_entry
+    end
+
+    test "get_assessment_point_student_entry/3 returns the assessment_point_entry for the given assessment point and student" do
+      student = Lanttern.SchoolsFixtures.student_fixture()
+
+      entry =
+        assessment_point_entry_fixture(%{student_id: student.id})
+
+      entry_id = entry.id
+      student_id = student.id
+
+      assert %{id: ^entry_id, student: %{id: ^student_id}} =
+               Assessments.get_assessment_point_student_entry(
+                 entry.assessment_point_id,
+                 entry.student_id,
+                 preloads: :student
+               )
     end
 
     test "create_assessment_point_entry/1 with valid data creates a assessment_point_entry" do
@@ -921,13 +867,19 @@ defmodule Lanttern.AssessmentsTest do
     alias Lanttern.LearningContextFixtures
     alias Lanttern.RubricsFixtures
     alias Lanttern.SchoolsFixtures
-    alias Lanttern.TaxonomyFixtures
 
     test "list_strand_goals_student_entries/2 returns the list of strand goals with student assessments" do
+      #      | moment_1 | moment_2 | moment_3 |
+      # ---------------------------------------
+      # ci_1 |    2*    |    1     |    1     | (* no entry in m1 pos 2 and m3)
+      # ci_2 |    -     |    1     |    -     |
+      # ci_3 |    -     |    -     |    -     |
+
       strand = LearningContextFixtures.strand_fixture()
-      subject_1 = TaxonomyFixtures.subject_fixture()
-      subject_2 = TaxonomyFixtures.subject_fixture()
-      year = TaxonomyFixtures.year_fixture()
+
+      moment_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+      moment_2 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+      moment_3 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
 
       curriculum_component_1 = CurriculaFixtures.curriculum_component_fixture()
       curriculum_component_2 = CurriculaFixtures.curriculum_component_fixture()
@@ -935,16 +887,12 @@ defmodule Lanttern.AssessmentsTest do
 
       curriculum_item_1 =
         CurriculaFixtures.curriculum_item_fixture(%{
-          curriculum_component_id: curriculum_component_1.id,
-          subjects_ids: [subject_1.id],
-          years_ids: [year.id]
+          curriculum_component_id: curriculum_component_1.id
         })
 
       curriculum_item_2 =
         CurriculaFixtures.curriculum_item_fixture(%{
-          curriculum_component_id: curriculum_component_2.id,
-          subjects_ids: [subject_2.id],
-          years_ids: [year.id]
+          curriculum_component_id: curriculum_component_2.id
         })
 
       curriculum_item_3 =
@@ -956,22 +904,23 @@ defmodule Lanttern.AssessmentsTest do
       ordinal_value = GradingFixtures.ordinal_value_fixture(%{scale_id: ordinal_scale.id})
       numeric_scale = GradingFixtures.scale_fixture(%{type: "numeric"})
 
-      rubric = RubricsFixtures.rubric_fixture(%{scale_id: ordinal_scale.id})
+      rubric_1 = RubricsFixtures.rubric_fixture(%{scale_id: ordinal_scale.id})
+      rubric_3 = RubricsFixtures.rubric_fixture(%{scale_id: ordinal_scale.id})
 
       # create diff rubric to test query consistency
       # (only diff rubrics of the student should be loaded)
-      _diff_rubric =
+      diff_rubric_3 =
         RubricsFixtures.rubric_fixture(%{
           scale_id: ordinal_scale.id,
-          diff_for_rubric_id: rubric.id
+          diff_for_rubric_id: rubric_3.id
         })
 
-      rubric_descriptor =
-        RubricsFixtures.rubric_descriptor_fixture(%{
-          rubric_id: rubric.id,
-          scale_id: ordinal_scale.id,
-          ordinal_value_id: ordinal_value.id
-        })
+      student = SchoolsFixtures.student_fixture()
+
+      Lanttern.Repo.insert_all(
+        "differentiation_rubrics_students",
+        [[rubric_id: diff_rubric_3.id, student_id: student.id]]
+      )
 
       assessment_point_1 =
         assessment_point_fixture(%{
@@ -979,7 +928,7 @@ defmodule Lanttern.AssessmentsTest do
           curriculum_item_id: curriculum_item_1.id,
           scale_id: ordinal_scale.id,
           strand_id: strand.id,
-          rubric_id: rubric.id
+          rubric_id: rubric_1.id
         })
 
       assessment_point_2 =
@@ -995,17 +944,17 @@ defmodule Lanttern.AssessmentsTest do
           position: 3,
           curriculum_item_id: curriculum_item_3.id,
           scale_id: ordinal_scale.id,
-          strand_id: strand.id
+          strand_id: strand.id,
+          rubric_id: rubric_3.id
         })
-
-      student = SchoolsFixtures.student_fixture()
 
       entry_1 =
         assessment_point_entry_fixture(%{
           assessment_point_id: assessment_point_1.id,
           student_id: student.id,
           scale_id: ordinal_scale.id,
-          scale_type: ordinal_scale.type
+          scale_type: ordinal_scale.type,
+          ordinal_value_id: ordinal_value.id
         })
 
       entry_2 =
@@ -1013,7 +962,79 @@ defmodule Lanttern.AssessmentsTest do
           assessment_point_id: assessment_point_2.id,
           student_id: student.id,
           scale_id: numeric_scale.id,
-          scale_type: numeric_scale.type
+          scale_type: numeric_scale.type,
+          score: 5.0
+        })
+
+      entry_3 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point_3.id,
+          student_id: student.id,
+          scale_id: ordinal_scale.id,
+          scale_type: ordinal_scale.type,
+          ordinal_value_id: ordinal_value.id
+        })
+
+      ci_1_m_1_1 =
+        assessment_point_fixture(%{
+          curriculum_item_id: curriculum_item_1.id,
+          scale_id: ordinal_scale.id,
+          moment_id: moment_1.id
+        })
+
+      _ci_1_m_1_2 =
+        assessment_point_fixture(%{
+          curriculum_item_id: curriculum_item_1.id,
+          scale_id: ordinal_scale.id,
+          moment_id: moment_1.id
+        })
+
+      ci_1_m_2 =
+        assessment_point_fixture(%{
+          curriculum_item_id: curriculum_item_1.id,
+          scale_id: ordinal_scale.id,
+          moment_id: moment_2.id
+        })
+
+      _ci_1_m_3 =
+        assessment_point_fixture(%{
+          curriculum_item_id: curriculum_item_1.id,
+          scale_id: ordinal_scale.id,
+          moment_id: moment_3.id
+        })
+
+      ci_2_m_2 =
+        assessment_point_fixture(%{
+          curriculum_item_id: curriculum_item_2.id,
+          scale_id: ordinal_scale.id,
+          moment_id: moment_2.id
+        })
+
+      entry_ci_1_m_1_1 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ci_1_m_1_1.id,
+          student_id: student.id,
+          scale_id: ordinal_scale.id,
+          scale_type: ordinal_scale.type,
+          ordinal_value_id: ordinal_value.id
+        })
+
+      entry_ci_1_m_2 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ci_1_m_2.id,
+          student_id: student.id,
+          scale_id: ordinal_scale.id,
+          scale_type: ordinal_scale.type,
+          ordinal_value_id: ordinal_value.id
+        })
+
+      entry_ci_2_m_2 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ci_2_m_2.id,
+          student_id: student.id,
+          scale_id: ordinal_scale.id,
+          scale_type: ordinal_scale.type,
+          ordinal_value_id: ordinal_value.id
         })
 
       # extra entry for different student (test student join)
@@ -1025,35 +1046,59 @@ defmodule Lanttern.AssessmentsTest do
         })
 
       assert [
-               {expected_ap_1, expected_entry_1},
-               {expected_ap_2, expected_entry_2}
+               {expected_ap_1, expected_entry_1,
+                [expected_ci_1_m_1_1, nil, expected_ci_1_m_2, nil]},
+               {expected_ap_2, expected_entry_2, [expected_ci_2_m_2]},
+               {expected_ap_3, expected_entry_3, []}
              ] = Assessments.list_strand_goals_student_entries(student.id, strand.id)
 
       assert expected_ap_1.id == assessment_point_1.id
-      assert expected_ap_1.scale.id == ordinal_scale.id
-      assert expected_ap_1.rubric.id == rubric.id
-      assert expected_ap_1.rubric.descriptors == [rubric_descriptor]
-      assert expected_ap_1.rubric.differentiation_rubrics == []
-      assert expected_ap_1.scale.ordinal_values == [ordinal_value]
+      assert expected_ap_1.scale_id == ordinal_scale.id
+      assert expected_ap_1.rubric_id == rubric_1.id
+      refute expected_ap_1.has_diff_rubric_for_student
       assert expected_ap_1.curriculum_item.id == curriculum_item_1.id
       assert expected_ap_1.curriculum_item.curriculum_component.id == curriculum_component_1.id
-      assert expected_ap_1.curriculum_item.subjects == [subject_1]
-      assert expected_ap_1.curriculum_item.years == [year]
       assert expected_ap_1.curriculum_item.id == curriculum_item_1.id
       assert expected_entry_1.id == entry_1.id
+      assert expected_entry_1.ordinal_value.id == ordinal_value.id
+
+      assert expected_ci_1_m_1_1.id == entry_ci_1_m_1_1.id
+      assert expected_ci_1_m_1_1.ordinal_value.id == ordinal_value.id
+      assert expected_ci_1_m_2.id == entry_ci_1_m_2.id
+      assert expected_ci_1_m_2.ordinal_value.id == ordinal_value.id
 
       assert expected_ap_2.id == assessment_point_2.id
-      assert expected_ap_2.scale.id == numeric_scale.id
-      assert expected_ap_2.scale.ordinal_values == []
+      assert expected_ap_2.scale_id == numeric_scale.id
       assert expected_ap_2.curriculum_item.id == curriculum_item_2.id
       assert expected_ap_2.curriculum_item.curriculum_component.id == curriculum_component_2.id
-      assert expected_ap_2.curriculum_item.subjects == [subject_2]
-      assert expected_ap_2.curriculum_item.years == [year]
       assert expected_entry_2.id == entry_2.id
+      assert expected_entry_2.score == 5.0
+
+      assert expected_ci_2_m_2.id == entry_ci_2_m_2.id
+      assert expected_ci_2_m_2.ordinal_value.id == ordinal_value.id
+
+      assert expected_ap_3.id == assessment_point_3.id
+      assert expected_ap_3.scale_id == ordinal_scale.id
+      assert expected_ap_3.rubric_id == rubric_3.id
+      assert expected_ap_3.has_diff_rubric_for_student
+      assert expected_ap_3.curriculum_item.id == curriculum_item_3.id
+      assert expected_ap_3.curriculum_item.curriculum_component.id == curriculum_component_3.id
+      assert expected_ap_3.curriculum_item.id == curriculum_item_3.id
+      assert expected_entry_3.id == entry_3.id
+      assert expected_entry_3.ordinal_value.id == ordinal_value.id
     end
   end
 
   describe "strand assessment points" do
+    alias Lanttern.Assessments.AssessmentPoint
+
+    # import Lanttern.AssessmentsFixtures
+    # alias Lanttern.IdentityFixtures
+    alias Lanttern.CurriculaFixtures
+    alias Lanttern.GradingFixtures
+    alias Lanttern.LearningContextFixtures
+    # alias Lanttern.SchoolsFixtures
+
     setup :strand_assessment_points_setup
 
     test "list_strand_assessment_points/2 returns assessment points as expected", %{
@@ -1185,6 +1230,31 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_s_ap_3_ci_3.id == s_ap_3_ci_3.id
       assert expected_s_ap_3_ci_3.curriculum_item.id == ci_3.id
       assert expected_s_ap_3_ci_3.curriculum_item.curriculum_component.id == cc.id
+    end
+
+    test "create_assessment_point/2 with valid data creates an assessment point linked to a strand" do
+      strand = LearningContextFixtures.strand_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      scale = GradingFixtures.scale_fixture()
+
+      valid_attrs = %{
+        strand_id: strand.id,
+        name: "some assessment point name abc",
+        curriculum_item_id: curriculum_item.id,
+        scale_id: scale.id
+      }
+
+      assert {:ok, %AssessmentPoint{} = assessment_point} =
+               Assessments.create_assessment_point(valid_attrs)
+
+      assert assessment_point.name == "some assessment point name abc"
+      assert assessment_point.curriculum_item_id == curriculum_item.id
+      assert assessment_point.scale_id == scale.id
+
+      [expected] =
+        Assessments.list_assessment_points(strand_id: strand.id)
+
+      assert expected.id == assessment_point.id
     end
   end
 

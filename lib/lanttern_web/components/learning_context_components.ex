@@ -39,9 +39,9 @@ defmodule LantternWeb.LearningContextComponents do
     assigns = assign(assigns, :cover_image_url, cover_image_url)
 
     ~H"""
-    <div
+    <.card_base
       class={[
-        "flex flex-col rounded shadow-xl bg-white overflow-hidden",
+        "flex flex-col overflow-hidden",
         @class
       ]}
       id={@id}
@@ -106,7 +106,7 @@ defmodule LantternWeb.LearningContextComponents do
         </div>
       </div>
       <%= render_slot(@bottom_content) %>
-    </div>
+    </.card_base>
     """
   end
 end

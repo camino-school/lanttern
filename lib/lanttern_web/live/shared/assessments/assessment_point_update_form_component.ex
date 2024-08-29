@@ -72,9 +72,7 @@ defmodule LantternWeb.Assessments.AssessmentPointUpdateFormComponent do
             :if={@selected_curriculum_item}
             class="mt-2"
             theme="cyan"
-            show_remove
-            phx-click="remove_curriculum_item"
-            phx-target={@myself}
+            on_remove={JS.push("remove_curriculum_item", target: @myself)}
           >
             <div>
               #<%= @selected_curriculum_item.id %>

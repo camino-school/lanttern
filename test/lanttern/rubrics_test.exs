@@ -158,6 +158,98 @@ defmodule Lanttern.RubricsTest do
       assert expected_descriptor_2.id == descriptor_2.id
     end
 
+    test "list_strand_rubrics/1 returns all strand rubrics with descriptors preloaded and ordered correctly" do
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})
+      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.2})
+
+      rubric_1 = rubric_fixture(%{scale_id: scale.id})
+      rubric_2 = rubric_fixture(%{scale_id: scale.id})
+
+      # register rubric 2 before 1 to validate ordering
+      descriptor_1_2 =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_2.id
+        })
+
+      descriptor_1_1 =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_1.id
+        })
+
+      descriptor_2_1 =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric_2.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_1.id
+        })
+
+      descriptor_2_2 =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric_2.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_2.id
+        })
+
+      strand = Lanttern.LearningContextFixtures.strand_fixture()
+      curriculum_component = Lanttern.CurriculaFixtures.curriculum_component_fixture()
+
+      curriculum_item_1 =
+        Lanttern.CurriculaFixtures.curriculum_item_fixture(%{
+          curriculum_component_id: curriculum_component.id
+        })
+
+      curriculum_item_2 =
+        Lanttern.CurriculaFixtures.curriculum_item_fixture(%{
+          curriculum_component_id: curriculum_component.id
+        })
+
+      _assessment_point_1 =
+        assessment_point_fixture(%{
+          rubric_id: rubric_1.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item_1.id
+        })
+
+      _assessment_point_2 =
+        assessment_point_fixture(%{
+          rubric_id: rubric_2.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item_2.id
+        })
+
+      # extra fixtures for filter test
+      other_strand = Lanttern.LearningContextFixtures.strand_fixture()
+      other_rubric = rubric_fixture(%{scale_id: scale.id})
+      assessment_point_fixture(%{rubric_id: other_rubric.id, strand_id: other_strand.id})
+      rubric_fixture(%{scale_id: scale.id})
+
+      [expected_rubric_1, expected_rubric_2] =
+        Rubrics.list_strand_rubrics(strand.id)
+
+      assert expected_rubric_1.id == rubric_1.id
+      [expected_descriptor_1_1, expected_descriptor_1_2] = expected_rubric_1.descriptors
+      assert expected_descriptor_1_1.id == descriptor_1_1.id
+      assert expected_descriptor_1_2.id == descriptor_1_2.id
+      assert expected_rubric_1.curriculum_item.id == curriculum_item_1.id
+      assert expected_rubric_1.curriculum_item.curriculum_component.id == curriculum_component.id
+
+      assert expected_rubric_2.id == rubric_2.id
+      [expected_descriptor_2_1, expected_descriptor_2_2] = expected_rubric_2.descriptors
+      assert expected_descriptor_2_1.id == descriptor_2_1.id
+      assert expected_descriptor_2_2.id == descriptor_2_2.id
+      assert expected_rubric_2.curriculum_item.id == curriculum_item_2.id
+      assert expected_rubric_2.curriculum_item.curriculum_component.id == curriculum_component.id
+    end
+
     test "search_rubrics/2 returns all rubrics matched by search" do
       _rubric_1 = rubric_fixture(%{criteria: "lorem ipsum xolor sit amet"})
       rubric_2 = rubric_fixture(%{criteria: "lorem ipsum dolor sit amet"})
@@ -234,6 +326,78 @@ defmodule Lanttern.RubricsTest do
         })
 
       expected = Rubrics.get_full_rubric!(rubric.id)
+      assert expected.id == rubric.id
+
+      [expected_descriptor_1, expected_descriptor_2] = expected.descriptors
+      assert expected_descriptor_1.id == descriptor_1.id
+      assert expected_descriptor_2.id == descriptor_2.id
+    end
+
+    test "get_full_rubric!/1 with diff option returns the diff rubric with descriptors preloaded and ordered correctly" do
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})
+      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.2})
+
+      rubric = rubric_fixture(%{scale_id: scale.id})
+      diff_rubric = rubric_fixture(%{scale_id: scale.id, diff_for_rubric_id: rubric.id})
+
+      student = student_fixture()
+
+      Lanttern.Repo.insert_all(
+        "differentiation_rubrics_students",
+        [[rubric_id: diff_rubric.id, student_id: student.id]]
+      )
+
+      descriptor_2 =
+        rubric_descriptor_fixture(%{
+          rubric_id: diff_rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_2.id
+        })
+
+      descriptor_1 =
+        rubric_descriptor_fixture(%{
+          rubric_id: diff_rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_1.id
+        })
+
+      expected = Rubrics.get_full_rubric!(rubric.id, check_diff_for_student_id: student.id)
+      assert expected.id == diff_rubric.id
+
+      [expected_descriptor_1, expected_descriptor_2] = expected.descriptors
+      assert expected_descriptor_1.id == descriptor_1.id
+      assert expected_descriptor_2.id == descriptor_2.id
+    end
+
+    test "get_full_rubric!/1 with diff option but no diff returns the default rubric with descriptors preloaded and ordered correctly" do
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})
+      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.2})
+
+      rubric = rubric_fixture(%{scale_id: scale.id})
+
+      student = student_fixture()
+
+      descriptor_2 =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_2.id
+        })
+
+      descriptor_1 =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_1.id
+        })
+
+      expected = Rubrics.get_full_rubric!(rubric.id, check_diff_for_student_id: student.id)
       assert expected.id == rubric.id
 
       [expected_descriptor_1, expected_descriptor_2] = expected.descriptors

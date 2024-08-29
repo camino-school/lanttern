@@ -50,7 +50,7 @@
         <:bottom_content :if={entries != []}>
           <div class="flex flex-wrap gap-2 p-6 border-t border-ltrn-lighter">
             <%= for entry <- entries, entry.ordinal_value || entry.score do %>
-              <.assessment_point_entry_preview entry={entry} />
+              <.assessment_point_entry_badge entry={entry} is_short />
             <% end %>
           </div>
         </:bottom_content>

@@ -70,6 +70,8 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     field :student_id, :id, virtual: true
     field :students_ids, {:array, :id}, virtual: true
 
+    field :has_diff_rubric_for_student, :boolean, virtual: true
+
     belongs_to :curriculum_item, CurriculumItem
     belongs_to :scale, Scale
     belongs_to :rubric, Rubric

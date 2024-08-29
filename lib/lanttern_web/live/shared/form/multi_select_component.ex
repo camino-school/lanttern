@@ -27,8 +27,7 @@ defmodule LantternWeb.Form.MultiSelectComponent do
           :for={{name, id} <- @selected_options}
           id={"#{name}-#{id}"}
           theme="cyan"
-          show_remove
-          phx-click={JS.push("remove", value: %{id: id})}
+          on_remove={JS.push("remove", value: %{id: id}, target: @myself)}
           phx-target={@myself}
         >
           <%= name %>
