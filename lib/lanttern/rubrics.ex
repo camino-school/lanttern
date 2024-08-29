@@ -40,9 +40,9 @@ defmodule Lanttern.Rubrics do
 
   ## Options
 
-      - `assessment_points_ids` - filter rubrics by linked assessment points
-      - `parent_rubrics_ids` - filter differentiation rubrics by parent rubrics
-      - `students_ids` - filter rubrics by linked students
+  - `assessment_points_ids` - filter rubrics by linked assessment points
+  - `parent_rubrics_ids` - filter differentiation rubrics by parent rubrics
+  - `students_ids` - filter rubrics by linked students
 
   ## Examples
 
@@ -52,37 +52,72 @@ defmodule Lanttern.Rubrics do
   """
   def list_full_rubrics(opts \\ []) do
     full_rubric_query()
-    |> filter_rubrics(opts)
+    |> apply_list_full_rubrics_opts(opts)
     |> Repo.all()
   end
 
-  defp filter_rubrics(queryable, opts) do
-    Enum.reduce(opts, queryable, &apply_rubrics_filter/2)
+  defp apply_list_full_rubrics_opts(queryable, []), do: queryable
+
+  defp apply_list_full_rubrics_opts(queryable, [{:rubrics_ids, ids}, opts]) do
+    from(ap in queryable, where: ap.id in ^ids)
+    |> apply_list_full_rubrics_opts(opts)
   end
 
-  defp apply_rubrics_filter({:rubrics_ids, ids}, queryable),
-    do: from(ap in queryable, where: ap.id in ^ids)
+  defp apply_list_full_rubrics_opts(queryable, [{:parent_rubrics_ids, ids} | opts]) do
+    from(ap in queryable, where: ap.diff_for_rubric_id in ^ids)
+    |> apply_list_full_rubrics_opts(opts)
+  end
 
-  defp apply_rubrics_filter({:parent_rubrics_ids, ids}, queryable),
-    do: from(ap in queryable, where: ap.diff_for_rubric_id in ^ids)
-
-  defp apply_rubrics_filter({:assessment_points_ids, ids}, queryable) do
+  defp apply_list_full_rubrics_opts(queryable, [{:assessment_points_ids, ids} | opts]) do
     from(
       r in queryable,
       join: ap in assoc(r, :assessment_points),
       where: ap.id in ^ids
     )
+    |> apply_list_full_rubrics_opts(opts)
   end
 
-  defp apply_rubrics_filter({:students_ids, ids}, queryable) do
+  defp apply_list_full_rubrics_opts(queryable, [{:students_ids, ids} | opts]) do
     from(
       r in queryable,
       join: s in assoc(r, :students),
       where: s.id in ^ids
     )
+    |> apply_list_full_rubrics_opts(opts)
   end
 
-  defp apply_rubrics_filter(_, queryable), do: queryable
+  defp apply_list_full_rubrics_opts(queryable, [_ | opts]),
+    do: apply_list_full_rubrics_opts(queryable, opts)
+
+  @doc """
+  Returns the list of strand rubrics (diff not included).
+
+  Preloads scale, descriptors, and descriptors ordinal values.
+
+  Preloads curriculum item and curriculum component
+  (linked through strand goal/assessment point).
+
+  View `get_full_rubric!/1` for more details on descriptors sorting.
+
+  ## Examples
+
+      iex> list_strand_rubrics()
+      [%Rubric{}, ...]
+
+  """
+  @spec list_strand_rubrics(strand_id :: pos_integer()) :: [Rubric.t()]
+  def list_strand_rubrics(strand_id) do
+    from(
+      r in full_rubric_query(),
+      join: ap in assoc(r, :assessment_points),
+      join: ci in assoc(ap, :curriculum_item),
+      join: cc in assoc(ci, :curriculum_component),
+      where: ap.strand_id == ^strand_id,
+      order_by: ap.position,
+      select: %{r | curriculum_item: %{ci | curriculum_component: cc}}
+    )
+    |> Repo.all()
+  end
 
   @doc """
   Search rubrics by criteria.
@@ -207,8 +242,7 @@ defmodule Lanttern.Rubrics do
 
     from(r in Rubric,
       join: s in assoc(r, :scale),
-      preload: [scale: s, descriptors: ^descriptors_query],
-      order_by: r.id
+      preload: [scale: s, descriptors: ^descriptors_query]
     )
   end
 

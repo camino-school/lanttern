@@ -6,8 +6,9 @@ defmodule LantternWeb.StudentStrandReportLive do
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # page components
-  alias LantternWeb.StudentStrandReportLive.MomentsComponent
+  alias LantternWeb.StudentStrandReportLive.OverviewComponent
   alias LantternWeb.StudentStrandReportLive.AssessmentComponent
+  alias LantternWeb.StudentStrandReportLive.MomentsComponent
   alias LantternWeb.StudentStrandReportLive.StudentNotesComponent
 
   # shared components

@@ -80,17 +80,12 @@
   </.responsive_container>
 </div>
 <div class="ltrn-bg-main-local">
-  <div :if={@current_tab == :overview}>
-    <.responsive_container class="py-10">
-      <%= if @strand_report.description do %>
-        <.markdown text={@strand_report.description} />
-      <% else %>
-        <.empty_state>
-          <%= gettext("No strand report info yet.") %>
-        </.empty_state>
-      <% end %>
-    </.responsive_container>
-  </div>
+  <.live_component
+    :if={@current_tab == :overview}
+    module={OverviewComponent}
+    id="strand-overview"
+    strand_report={@strand_report}
+  />
   <.live_component
     :if={@current_tab == :assessment}
     module={AssessmentComponent}

@@ -31,6 +31,10 @@ defmodule Lanttern.Rubrics.Rubric do
     field :criteria, :string
     field :is_differentiation, :boolean, default: false
 
+    # use this to preload curriculum info in strand rubric context
+    # (curriculum item info comes from relationship with assessment point)
+    field :curriculum_item, :map, virtual: true
+
     belongs_to :scale, Scale
     belongs_to :parent_rubric, __MODULE__, foreign_key: :diff_for_rubric_id
 

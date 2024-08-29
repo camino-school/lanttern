@@ -344,6 +344,11 @@ defmodule LantternWeb.CoreComponents do
   """
 
   attr :class, :any, default: nil
+
+  attr :bg_class, :any,
+    default: "bg-white",
+    doc: "we use a separate attr for bg class to prevent clashing with default bg"
+
   attr :id, :string, default: nil
   attr :rest, :global
 
@@ -351,7 +356,7 @@ defmodule LantternWeb.CoreComponents do
 
   def card_base(assigns) do
     ~H"""
-    <div id={@id} class={["rounded shadow-xl bg-white", @class]} {@rest}>
+    <div id={@id} class={["rounded shadow-xl", @bg_class, @class]} {@rest}>
       <%= render_slot(@inner_block) %>
     </div>
     """
