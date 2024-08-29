@@ -11,8 +11,8 @@ msgstr ""
 "Language: pt_BR\n"
 "Plural-Forms: nplurals=2; plural=(n>1);\n"
 
-#: lib/lanttern_web/components/core_components.ex:1325
-#: lib/lanttern_web/components/core_components.ex:1387
+#: lib/lanttern_web/components/core_components.ex:1330
+#: lib/lanttern_web/components/core_components.ex:1392
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr "Ações"
@@ -52,7 +52,7 @@ msgstr "Escola"
 msgid "Strands"
 msgstr "Trilhas"
 
-#: lib/lanttern_web/components/core_components.ex:569
+#: lib/lanttern_web/components/core_components.ex:574
 #: lib/lanttern_web/components/overlay_components.ex:78
 #: lib/lanttern_web/components/overlay_components.ex:334
 #, elixir-autogen, elixir-format
@@ -314,17 +314,17 @@ msgstr "cancelar"
 msgid "or drag and drop here"
 msgstr "ou arraste e solte aqui"
 
-#: lib/lanttern_web/components/core_components.ex:608
+#: lib/lanttern_web/components/core_components.ex:613
 #, elixir-autogen, elixir-format
 msgid "Attempting to reconnect"
 msgstr "Tentando reconectar"
 
-#: lib/lanttern_web/components/core_components.ex:599
+#: lib/lanttern_web/components/core_components.ex:604
 #, elixir-autogen, elixir-format
 msgid "Error!"
 msgstr "Erro!"
 
-#: lib/lanttern_web/components/core_components.ex:620
+#: lib/lanttern_web/components/core_components.ex:625
 #, elixir-autogen, elixir-format
 msgid "Hang in there while we get back on track"
 msgstr "Aguente firme enquanto nos reconectamos"
@@ -334,22 +334,22 @@ msgstr "Aguente firme enquanto nos reconectamos"
 msgid "Markdown supported"
 msgstr "Suporta Markdown"
 
-#: lib/lanttern_web/components/core_components.ex:598
+#: lib/lanttern_web/components/core_components.ex:603
 #, elixir-autogen, elixir-format
 msgid "Success!"
 msgstr "Sucesso!"
 
-#: lib/lanttern_web/components/core_components.ex:603
+#: lib/lanttern_web/components/core_components.ex:608
 #, elixir-autogen, elixir-format
 msgid "We can't find the internet"
 msgstr "Não conseguimos nos conectar"
 
-#: lib/lanttern_web/components/core_components.ex:615
+#: lib/lanttern_web/components/core_components.ex:620
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
 msgstr "Algo deu errado!"
 
-#: lib/lanttern_web/components/core_components.ex:473
+#: lib/lanttern_web/components/core_components.ex:478
 #, elixir-autogen, elixir-format
 msgid "all %{type}"
 msgstr "todos %{type}"
@@ -830,11 +830,12 @@ msgid "Moment updated successfully"
 msgstr "Momento atualizado com sucesso"
 
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:43
+#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/student_strand_report_live.html.heex:69
 #, elixir-autogen, elixir-format
 msgid "Moments"
 msgstr "Momentos"
 
-#: lib/lanttern_web/components/core_components.ex:1275
+#: lib/lanttern_web/components/core_components.ex:1280
 #, elixir-autogen, elixir-format
 msgid "Move moment down"
 msgstr "Mover momento para baixo"
@@ -1098,6 +1099,7 @@ msgstr "Ciclo"
 msgid "Cycle already added to this grade report"
 msgstr "Ciclo já adicionado à este relatório de nota"
 
+#: lib/lanttern_web/components/reporting_components.ex:266
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:27
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:106
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:353
@@ -1378,7 +1380,7 @@ msgstr "Mover card de momento para baixo"
 msgid "Move moment card up"
 msgstr "Mover card de momento para cima"
 
-#: lib/lanttern_web/components/core_components.ex:1265
+#: lib/lanttern_web/components/core_components.ex:1270
 #: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:154
 #, elixir-autogen, elixir-format
 msgid "Move up"
@@ -1949,8 +1951,8 @@ msgstr "Limpar seleção"
 msgid "Hey!"
 msgstr "Olá!"
 
-#: lib/lanttern_web/components/core_components.ex:1013
-#: lib/lanttern_web/components/core_components.ex:1035
+#: lib/lanttern_web/components/core_components.ex:1018
+#: lib/lanttern_web/components/core_components.ex:1040
 #, elixir-autogen, elixir-format
 msgid "Selected"
 msgstr "Selecionado"
@@ -2295,7 +2297,7 @@ msgstr "Anotações"
 msgid "Select classes to view student notes"
 msgstr "Selecione uma turma para visualizar anotações dos estudantes"
 
-#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/student_strand_report_live.html.heex:69
+#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/student_strand_report_live.html.heex:77
 #, elixir-autogen, elixir-format
 msgid "Student notes"
 msgstr "Anotações de estudantes"
@@ -2701,11 +2703,7 @@ msgstr "Rubrica de avaliação"
 msgid "Assessment scale"
 msgstr "Escala da avaliação"
 
-#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/assessment_component.ex:24
-#, elixir-autogen, elixir-format
-msgid "Click the assessment card to view more details about it."
-msgstr "Clique no card da avaliação para ver mais detalhes."
-
+#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/overview_component.ex:24
 #: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/strand_goal_details_component.ex:66
 #, elixir-autogen, elixir-format
 msgid "Criteria:"
@@ -2737,13 +2735,38 @@ msgstr "Aqui você irá encontrar informações sobre as avaliações final e fo
 msgid "No entry"
 msgstr "Sem registro"
 
-#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/moments_component.ex:17
-#, elixir-autogen, elixir-format
-msgid "Strand moments / formative assessment"
-msgstr "Momentos da trilha / avaliação formativa"
-
 #: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/assessment_component.ex:148
 #: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/strand_goal_details_component.ex:50
 #, elixir-autogen, elixir-format
 msgid "Student comment"
 msgstr "Comentário do estudante"
+
+#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/moments_component.ex:17
+#, elixir-autogen, elixir-format
+msgid "Here you'll find information about the strand learning journey."
+msgstr "Aqui você irá encontrar informações sobre a jornada de aprendizagem da trilha."
+
+#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/moments_component.ex:61
+#, elixir-autogen, elixir-format
+msgid "No moments registered for this strand"
+msgstr "Nenhum momento registrado nesta trilha"
+
+#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/overview_component.ex:38
+#, elixir-autogen, elixir-format
+msgid "No strand report info yet."
+msgstr "Nenhuma informação do relatório ainda."
+
+#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/overview_component.ex:16
+#, elixir-autogen, elixir-format
+msgid "Strand rubrics"
+msgstr "Rubricas da trilha"
+
+#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/assessment_component.ex:24
+#, elixir-autogen, elixir-format
+msgid "You can click the assessment card to view more details about it."
+msgstr "Você pode clicar no card da avaliação para ver mais detalhes."
+
+#: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/moments_component.ex:20
+#, elixir-autogen, elixir-format
+msgid "You can click the moment card to view more details about it, including information about formative assessment."
+msgstr "Você pode clicar no card do momento para ver mais detalhes sobre, incluindo informações sobre avaliação formativa."
