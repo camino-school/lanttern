@@ -3,6 +3,7 @@ defmodule LantternWeb.StudentStrandsLive do
   Student home live view
   """
 
+  alias Lanttern.Identity.Profile
   use LantternWeb, :live_view
 
   alias Lanttern.LearningContext
@@ -18,14 +19,21 @@ defmodule LantternWeb.StudentStrandsLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    # check if user is guardian or student
+    check_if_user_has_access(socket.assigns.current_user.current_profile)
+
     school =
       socket.assigns.current_user.current_profile.school_id
       |> Schools.get_school!()
 
+    student_id =
+      case socket.assigns.current_user.current_profile do
+        %{type: "student"} = profile -> profile.student_id
+        %{type: "guardian"} = profile -> profile.guardian_of_student_id
+      end
+
     student_report_cards_cycles =
-      Reporting.list_student_report_cards_cycles(
-        socket.assigns.current_user.current_profile.student_id
-      )
+      Reporting.list_student_report_cards_cycles(student_id)
 
     socket =
       socket
@@ -37,10 +45,23 @@ defmodule LantternWeb.StudentStrandsLive do
     {:ok, socket}
   end
 
+  defp check_if_user_has_access(%{type: profile_type} = %Profile{})
+       when profile_type in ["student", "guardian"],
+       do: nil
+
+  defp check_if_user_has_access(_profile),
+    do: raise(LantternWeb.NotFoundError)
+
   defp stream_student_strands(socket) do
+    student_id =
+      case socket.assigns.current_user.current_profile do
+        %{type: "student"} = profile -> profile.student_id
+        %{type: "guardian"} = profile -> profile.guardian_of_student_id
+      end
+
     student_strands =
       LearningContext.list_student_strands(
-        socket.assigns.current_user.current_profile.student_id,
+        student_id,
         cycles_ids: socket.assigns.selected_cycles_ids
       )
 

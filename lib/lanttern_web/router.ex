@@ -129,7 +129,6 @@ defmodule LantternWeb.Router do
         {LantternWeb.Path, :put_path_in_socket}
       ] do
       live "/student", StudentHomeLive
-      live "/student_strands", StudentStrandsLive
     end
 
     live_session :authenticated_user,
@@ -138,6 +137,8 @@ defmodule LantternWeb.Router do
         {LantternWeb.UserAuth, :ensure_authenticated},
         {LantternWeb.Path, :put_path_in_socket}
       ] do
+      live "/student_strands", StudentStrandsLive
+
       live "/student_report_card/:id", StudentReportCardLive, :show
 
       live "/student_report_card/:id/strand_report/:strand_report_id",
