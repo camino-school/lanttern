@@ -99,6 +99,110 @@ defmodule Lanttern.LearningContextTest do
       assert expected_b.is_starred == false
     end
 
+    test "list_student_strand/2 returns all user strands related to students report cards" do
+      student = Lanttern.SchoolsFixtures.student_fixture()
+
+      subject_1 = Lanttern.TaxonomyFixtures.subject_fixture()
+      subject_2 = Lanttern.TaxonomyFixtures.subject_fixture()
+      year = Lanttern.TaxonomyFixtures.year_fixture()
+
+      strand_1 =
+        strand_fixture(%{subjects_ids: [subject_1.id, subject_2.id], years_ids: [year.id]})
+
+      strand_2 = strand_fixture()
+      strand_3 = strand_fixture()
+      strand_4 = strand_fixture()
+
+      cycle_2024 =
+        Lanttern.SchoolsFixtures.cycle_fixture(start_at: ~D[2024-01-01], end_at: ~D[2024-12-31])
+
+      cycle_2023 =
+        Lanttern.SchoolsFixtures.cycle_fixture(start_at: ~D[2023-01-01], end_at: ~D[2023-12-31])
+
+      report_card_2024 =
+        Lanttern.ReportingFixtures.report_card_fixture(%{school_cycle_id: cycle_2024.id})
+
+      report_card_2023 =
+        Lanttern.ReportingFixtures.report_card_fixture(%{school_cycle_id: cycle_2023.id})
+
+      # create strand reports
+
+      _strand_report_1_2024 =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: report_card_2024.id,
+          strand_id: strand_1.id
+        })
+
+      _strand_report_2_2024 =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: report_card_2024.id,
+          strand_id: strand_2.id
+        })
+
+      _strand_report_3_2023 =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: report_card_2023.id,
+          strand_id: strand_3.id
+        })
+
+      _strand_report_4_2023 =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: report_card_2023.id,
+          strand_id: strand_4.id
+        })
+
+      # create students report cards
+      _ =
+        Lanttern.ReportingFixtures.student_report_card_fixture(%{
+          student_id: student.id,
+          report_card_id: report_card_2024.id
+        })
+
+      _ =
+        Lanttern.ReportingFixtures.student_report_card_fixture(%{
+          student_id: student.id,
+          report_card_id: report_card_2023.id
+        })
+
+      # extra fixtures for filter testing
+      other_strand = strand_fixture()
+      other_report_card = Lanttern.ReportingFixtures.report_card_fixture()
+
+      _other_strand_report =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: other_report_card.id,
+          strand_id: other_strand.id
+        })
+
+      _other_student_report_card =
+        Lanttern.ReportingFixtures.student_report_card_fixture(%{
+          student_id: student.id,
+          report_card_id: other_report_card.id
+        })
+
+      assert [
+               expected_strand_1,
+               expected_strand_2,
+               expected_strand_3,
+               expected_strand_4
+             ] =
+               LearningContext.list_student_strands(
+                 student.id,
+                 cycles_ids: [cycle_2023.id, cycle_2024.id]
+               )
+
+      assert expected_strand_1.id == strand_1.id
+      assert subject_1 in expected_strand_1.subjects
+      assert subject_2 in expected_strand_1.subjects
+      assert [year] == expected_strand_1.years
+
+      assert expected_strand_2.id == strand_2.id
+
+      assert expected_strand_3.id == strand_3.id
+
+      assert expected_strand_4.id == strand_4.id
+    end
+
     test "search_strands/2 returns all items matched by search" do
       _strand_1 = strand_fixture(%{name: "lorem ipsum xolor sit amet"})
       strand_2 = strand_fixture(%{name: "lorem ipsum dolor sit amet"})

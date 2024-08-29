@@ -1,0 +1,28 @@
+<.responsive_container class="pt-6 sm:pt-10">
+  <.page_title_with_menu><%= gettext("Strands") %></.page_title_with_menu>
+  <.live_component
+    module={InlineFiltersComponent}
+    id="cycles-filter"
+    filter_items={@student_report_cards_cycles}
+    selected_items_ids={@selected_cycles_ids}
+    all_text={gettext("All cycles")}
+    class="mt-10"
+    notify_parent
+  />
+  <div :if={!@has_student_strands} class="p-6 rounde mt-6 mb-10 bg-white shadow lg">
+    <.empty_state>
+      <%= gettext("No strands related to selected cycles") %>
+    </.empty_state>
+  </div>
+</.responsive_container>
+<.responsive_grid :if={@has_student_strands} id="student-strands" phx-update="stream">
+  <.strand_card
+    :for={{dom_id, strand} <- @streams.student_strands}
+    id={dom_id}
+    strand={strand}
+    cover_image_url={strand.cover_image_url}
+    hide_description
+    class="shrink-0 w-64 sm:w-auto"
+  />
+</.responsive_grid>
+<.school_branding_footer school={@school} />

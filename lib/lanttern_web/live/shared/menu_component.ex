@@ -58,10 +58,10 @@ defmodule LantternWeb.MenuComponent do
 
               <%= if @current_profile.type == "student" do %>
                 <.nav_item active={@active_nav == :student_home} path={~p"/student"}>
-                  <%= gettext("Home") %>
+                  <%= gettext("Report cards") %>
                 </.nav_item>
-                <.nav_item active={@active_nav == :student_notes} path={~p"/student_notes"}>
-                  <%= gettext("Notes") %>
+                <.nav_item active={@active_nav == :student_strands} path={~p"/student_strands"}>
+                  <%= gettext("Strands") %>
                 </.nav_item>
                 <%!-- use this li as placeholder when nav items % 3 != 0 (sm) or nav items % 2 != 0 --%>
                 <%!-- <li class="bg-white"></li> --%>
@@ -350,9 +350,10 @@ defmodule LantternWeb.MenuComponent do
 
     # student home
     LantternWeb.StudentHomeLive => :student_home,
+    LantternWeb.StudentReportCardLive => :student_home,
 
-    # student notes
-    LantternWeb.StudentNotesLive => :student_notes
+    # student strands
+    LantternWeb.StudentStrandsLive => :student_strands
   }
 
   def mount(socket) do

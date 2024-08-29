@@ -51,6 +51,62 @@ defmodule Lanttern.LearningContext do
   end
 
   @doc """
+  Returns the list of strands linked to the student.
+
+  Strands are "linked to the student" through report cards:
+
+      strand -> strand report -> report card -> student report card
+
+  Results are ordered by cycle (desc), then by strand report position.
+
+  Preloads subjects and years.
+
+  ## Options:
+
+  - `:cycles_ids` - filter results by given cycles, using the report card cycle
+
+  ## Examples
+
+      iex> list_student_strands(1)
+      [%Strand{}, ...]
+
+  """
+  @spec list_student_strands(student_id :: pos_integer(), opts :: Keyword.t()) :: [Strand.t()]
+  def list_student_strands(student_id, opts \\ []) do
+    from(
+      s in Strand,
+      left_join: sub in assoc(s, :subjects),
+      left_join: y in assoc(s, :years),
+      join: sr in assoc(s, :strand_reports),
+      join: rc in assoc(sr, :report_card),
+      join: c in assoc(rc, :school_cycle),
+      as: :cycles,
+      join: src in assoc(rc, :students_report_cards),
+      order_by: [desc: c.end_at, asc: c.start_at, asc: sr.position],
+      where: src.student_id == ^student_id,
+      preload: [subjects: sub, years: y]
+    )
+    |> apply_list_student_strands_opts(opts)
+    |> Repo.all()
+    # we may have the same strand in more than one report card/strand report
+    |> Enum.uniq()
+  end
+
+  defp apply_list_student_strands_opts(queryable, []), do: queryable
+
+  defp apply_list_student_strands_opts(queryable, [{:cycles_ids, cycles_ids} | opts])
+       when cycles_ids != [] do
+    from(
+      [_s, cycles: c] in queryable,
+      where: c.id in ^cycles_ids
+    )
+    |> apply_list_student_strands_opts(opts)
+  end
+
+  defp apply_list_student_strands_opts(queryable, [_opt | opts]),
+    do: apply_list_student_strands_opts(queryable, opts)
+
+  @doc """
   Search strands by name.
 
   ## Options
