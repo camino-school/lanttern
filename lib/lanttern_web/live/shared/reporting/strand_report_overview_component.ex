@@ -2,10 +2,11 @@ defmodule LantternWeb.Reporting.StrandReportOverviewComponent do
   @moduledoc """
   Renders the overview content of a `StrandReport`.
 
-  ### Required attrs:
+  ### Required attrs
 
   - `strand_report` - `%StrandReport{}`
   - `student_id`
+
   """
 
   use LantternWeb, :live_component
@@ -21,13 +22,13 @@ defmodule LantternWeb.Reporting.StrandReportOverviewComponent do
     ~H"""
     <div class={@class}>
       <.responsive_container>
-        <.markdown :if={@strand_report.description} text={@strand_report.description} />
-        <div :if={@has_rubric} class={if @strand_report.description, do: "mt-10"}>
+        <.markdown :if={@description} text={@description} />
+        <div :if={@has_rubric} class={if @description, do: "mt-10"}>
           <h3 class="font-display font-black text-xl"><%= gettext("Strand rubrics") %></h3>
           <.rubric_card :for={{dom_id, rubric} <- @streams.rubrics} id={dom_id} rubric={rubric} />
           <.rubric_card :for={{dom_id, rubric} <- @streams.diff_rubrics} id={dom_id} rubric={rubric} />
         </div>
-        <.empty_state :if={!@strand_report.description && !@has_rubric}>
+        <.empty_state :if={!@description && !@has_rubric}>
           <%= gettext("No strand report info yet.") %>
         </.empty_state>
       </.responsive_container>
@@ -95,10 +96,30 @@ defmodule LantternWeb.Reporting.StrandReportOverviewComponent do
     socket =
       socket
       |> assign(assigns)
+      |> assign_description()
       |> stream_strand_rubrics()
       |> stream_diff_rubrics()
 
     {:ok, socket}
+  end
+
+  defp assign_description(socket) do
+    # we try to use the strand report description
+    # and we fall back to the strand description
+
+    description =
+      case socket.assigns.strand_report do
+        %{description: strand_report_desc} when is_binary(strand_report_desc) ->
+          strand_report_desc
+
+        %{strand: %{description: strand_desc}} when is_binary(strand_desc) ->
+          strand_desc
+
+        _ ->
+          nil
+      end
+
+    assign(socket, :description, description)
   end
 
   defp stream_strand_rubrics(socket) do
