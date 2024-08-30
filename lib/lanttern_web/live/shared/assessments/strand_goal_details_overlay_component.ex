@@ -1,4 +1,4 @@
-defmodule LantternWeb.StudentStrandReportLive.StrandGoalDetailsComponent do
+defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments
@@ -182,11 +182,4 @@ defmodule LantternWeb.StudentStrandReportLive.StrandGoalDetailsComponent do
     |> stream(:moments_assessment_points_and_entries, moments_assessment_points_and_entries)
     |> assign(:has_formative_assessment, has_formative_assessment)
   end
-
-  # # event handlers
-
-  # @impl true
-  # def handle_event("set_info_level", %{"level" => level}, socket) do
-  #   {:noreply, assign(socket, :info_level, level)}
-  # end
 end

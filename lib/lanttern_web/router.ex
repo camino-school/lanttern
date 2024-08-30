@@ -131,6 +131,17 @@ defmodule LantternWeb.Router do
       live "/student", StudentHomeLive
     end
 
+    live_session :authenticated_student_or_guardian,
+      layout: {LantternWeb.Layouts, :app_logged_in},
+      on_mount: [
+        {LantternWeb.UserAuth, :ensure_authenticated_student_or_guardian},
+        {LantternWeb.Path, :put_path_in_socket}
+      ] do
+      live "/strand_report/:strand_report_id",
+           StudentStrandReportLive,
+           :show
+    end
+
     live_session :authenticated_user,
       layout: {LantternWeb.Layouts, :app_logged_in},
       on_mount: [
@@ -141,8 +152,8 @@ defmodule LantternWeb.Router do
 
       live "/student_report_card/:id", StudentReportCardLive, :show
 
-      live "/student_report_card/:id/strand_report/:strand_report_id",
-           StudentStrandReportLive,
+      live "/student_report_card/:student_report_card_id/strand_report/:strand_report_id",
+           StudentReportCardStrandReportLive,
            :show
     end
   end

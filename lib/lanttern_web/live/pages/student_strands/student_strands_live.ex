@@ -40,6 +40,12 @@ defmodule LantternWeb.StudentStrandsLive do
       |> assign(:school, school)
       |> assign(:student_report_cards_cycles, student_report_cards_cycles)
       |> assign_user_filters([:cycles], socket.assigns.current_user)
+      # adjust dom id to prevent duplication
+      # (some strands can be in more than one report card at the same time)
+      |> stream_configure(
+        :student_strands,
+        dom_id: fn strand -> "student-strand-report-#{strand.strand_report_id}" end
+      )
       |> stream_student_strands()
 
     {:ok, socket}

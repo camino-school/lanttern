@@ -1,4 +1,4 @@
-defmodule LantternWeb.StudentStrandReportLive.MomentsComponent do
+defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
   alias Lanttern.LearningContext
   use LantternWeb, :live_component
 
@@ -11,7 +11,7 @@ defmodule LantternWeb.StudentStrandReportLive.MomentsComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="py-10">
+    <div class={@class}>
       <.responsive_container>
         <p>
           <%= gettext("Here you'll find information about the strand learning journey.") %>
@@ -26,9 +26,7 @@ defmodule LantternWeb.StudentStrandReportLive.MomentsComponent do
             <.link
               :for={{dom_id, {moment, entries}} <- @streams.moments_and_entries}
               id={dom_id}
-              patch={
-                ~p"/student_report_card/#{@student_report_card_id}/strand_report/#{@strand_report.id}?tab=moments&moment_id=#{moment.id}"
-              }
+              patch={"#{@base_path}&moment_id=#{moment.id}"}
               class="group block mt-4"
             >
               <.card_base class={[
@@ -62,16 +60,7 @@ defmodule LantternWeb.StudentStrandReportLive.MomentsComponent do
           </.empty_state>
         <% end %>
       </.responsive_container>
-      <.slide_over
-        :if={@moment}
-        id="moment-overlay"
-        show={true}
-        on_cancel={
-          JS.patch(
-            ~p"/student_report_card/#{@student_report_card_id}/strand_report/#{@strand_report.id}?tab=moments"
-          )
-        }
-      >
+      <.slide_over :if={@moment} id="moment-overlay" show={true} on_cancel={JS.patch(@base_path)}>
         <:title><%= @moment.name %></:title>
         <div id="moment-assessment-points-and-entries">
           <.moment_assessment_point_entry
@@ -95,6 +84,7 @@ defmodule LantternWeb.StudentStrandReportLive.MomentsComponent do
   def mount(socket) do
     socket =
       socket
+      |> assign(:class, nil)
       |> assign(:moment, nil)
       |> assign(:initialized, false)
       |> stream_configure(

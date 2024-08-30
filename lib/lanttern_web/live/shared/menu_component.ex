@@ -57,7 +57,7 @@ defmodule LantternWeb.MenuComponent do
               <% end %>
 
               <%= if @current_profile.type == "student" do %>
-                <.nav_item active={@active_nav == :student_home} path={~p"/student"}>
+                <.nav_item active={@active_nav == :student_report_card} path={~p"/student"}>
                   <%= gettext("Report cards") %>
                 </.nav_item>
                 <.nav_item active={@active_nav == :student_strands} path={~p"/student_strands"}>
@@ -69,7 +69,7 @@ defmodule LantternWeb.MenuComponent do
               <% end %>
 
               <%= if @current_profile.type == "guardian" do %>
-                <.nav_item active={@active_nav == :guardian_home} path={~p"/guardian"}>
+                <.nav_item active={@active_nav == :student_report_card} path={~p"/guardian"}>
                   <%= gettext("Report cards") %>
                 </.nav_item>
                 <.nav_item active={@active_nav == :student_strands} path={~p"/student_strands"}>
@@ -349,14 +349,18 @@ defmodule LantternWeb.MenuComponent do
     LantternWeb.GradesReportsLive => :grading,
 
     # guardian home
-    LantternWeb.GuardianHomeLive => :guardian_home,
+    LantternWeb.GuardianHomeLive => :student_report_card,
 
     # student home
-    LantternWeb.StudentHomeLive => :student_home,
-    LantternWeb.StudentReportCardLive => :student_home,
+    LantternWeb.StudentHomeLive => :student_report_card,
+
+    # student report card
+    LantternWeb.StudentReportCardLive => :student_report_card,
+    LantternWeb.StudentReportCardStrandReportLive => :student_report_card,
 
     # student strands
-    LantternWeb.StudentStrandsLive => :student_strands
+    LantternWeb.StudentStrandsLive => :student_strands,
+    LantternWeb.StudentStrandReportLive => :student_strands
   }
 
   def mount(socket) do

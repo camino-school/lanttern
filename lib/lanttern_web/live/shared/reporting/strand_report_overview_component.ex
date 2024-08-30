@@ -1,4 +1,4 @@
-defmodule LantternWeb.StudentStrandReportLive.OverviewComponent do
+defmodule LantternWeb.Reporting.StrandReportOverviewComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Rubrics
@@ -9,7 +9,7 @@ defmodule LantternWeb.StudentStrandReportLive.OverviewComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="py-10">
+    <div class={@class}>
       <.responsive_container>
         <.markdown :if={@strand_report.description} text={@strand_report.description} />
         <div :if={@has_rubric} class={if @strand_report.description, do: "mt-10"}>
@@ -43,6 +43,15 @@ defmodule LantternWeb.StudentStrandReportLive.OverviewComponent do
   end
 
   # lifecycle
+
+  @impl true
+  def mount(socket) do
+    socket =
+      socket
+      |> assign(:class, nil)
+
+    {:ok, socket}
+  end
 
   @impl true
   def update(assigns, socket) do

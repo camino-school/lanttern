@@ -59,7 +59,11 @@ defmodule Lanttern.LearningContext do
 
   Results are ordered by cycle (desc), then by strand report position.
 
-  Preloads subjects and years.
+  Preloads subjects, years, and report cycle.
+
+  The same strand can appear more than once, because it can
+  be linked to more than one report card at the same time.
+  The `report_card_id` and `report_cycle` can help differentiate them.
 
   ## Options:
 
@@ -84,12 +88,11 @@ defmodule Lanttern.LearningContext do
       join: src in assoc(rc, :students_report_cards),
       order_by: [desc: c.end_at, asc: c.start_at, asc: sr.position],
       where: src.student_id == ^student_id,
-      preload: [subjects: sub, years: y]
+      preload: [subjects: sub, years: y],
+      select: %{s | strand_report_id: sr.id, report_cycle: c}
     )
     |> apply_list_student_strands_opts(opts)
     |> Repo.all()
-    # we may have the same strand in more than one report card/strand report
-    |> Enum.uniq()
   end
 
   defp apply_list_student_strands_opts(queryable, []), do: queryable

@@ -551,6 +551,21 @@ defmodule Lanttern.ReportingTest do
       assert expected.report_card == report_card
     end
 
+    test "get_student_report_card_by_student_and_strand_report/2 returns the student_report_card" do
+      student = SchoolsFixtures.student_fixture()
+      report_card = report_card_fixture()
+
+      student_report_card =
+        student_report_card_fixture(%{student_id: student.id, report_card_id: report_card.id})
+
+      strand_report = strand_report_fixture(%{report_card_id: report_card.id})
+
+      assert Reporting.get_student_report_card_by_student_and_strand_report(
+               student.id,
+               strand_report.id
+             ) == student_report_card
+    end
+
     test "get_student_report_card_by_student_and_parent_report/2 returns the student_report_card" do
       student = SchoolsFixtures.student_fixture()
       report_card = report_card_fixture()

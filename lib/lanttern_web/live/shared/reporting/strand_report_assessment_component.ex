@@ -1,10 +1,10 @@
-defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
+defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments
 
   # page components
-  alias LantternWeb.StudentStrandReportLive.StrandGoalDetailsComponent
+  alias LantternWeb.Assessments.StrandGoalDetailsOverlayComponent
 
   # shared components
   import LantternWeb.AssessmentsComponents
@@ -13,7 +13,7 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="py-10">
+    <div class={@class}>
       <.responsive_container>
         <p>
           <%= gettext(
@@ -25,9 +25,7 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
         </p>
         <.link
           :for={{goal, entry, moment_entries} <- @strand_goals_student_entries}
-          patch={
-            ~p"/student_report_card/#{@student_report_card.id}/strand_report/#{@strand_report.id}?tab=assessment&strand_goal_id=#{goal.id}"
-          }
+          patch={"#{@base_path}&strand_goal_id=#{goal.id}"}
           class={[
             "group/card block mt-4",
             "sm:grid sm:grid-cols-[minmax(10px,_3fr)_minmax(10px,_2fr)]"
@@ -94,15 +92,11 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
       </.responsive_container>
       <.live_component
         :if={@strand_goal_id}
-        module={StrandGoalDetailsComponent}
+        module={StrandGoalDetailsOverlayComponent}
         id="assessment-point-details-component"
         strand_goal_id={@strand_goal_id}
         student_id={@student_report_card.student_id}
-        on_cancel={
-          JS.patch(
-            ~p"/student_report_card/#{@student_report_card.id}/strand_report/#{@strand_report.id}?tab=assessment"
-          )
-        }
+        on_cancel={JS.patch(@base_path)}
       />
     </div>
     """
@@ -198,6 +192,7 @@ defmodule LantternWeb.StudentStrandReportLive.AssessmentComponent do
   def mount(socket) do
     socket =
       socket
+      |> assign(:class, nil)
       |> assign(:strand_goal_id, nil)
       |> assign(:initialized, false)
 

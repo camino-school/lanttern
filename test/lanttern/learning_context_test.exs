@@ -111,7 +111,9 @@ defmodule Lanttern.LearningContextTest do
 
       strand_2 = strand_fixture()
       strand_3 = strand_fixture()
-      strand_4 = strand_fixture()
+
+      # use same strand in different reports
+      strand_4 = strand_2
 
       cycle_2024 =
         Lanttern.SchoolsFixtures.cycle_fixture(start_at: ~D[2024-01-01], end_at: ~D[2024-12-31])
@@ -127,25 +129,25 @@ defmodule Lanttern.LearningContextTest do
 
       # create strand reports
 
-      _strand_report_1_2024 =
+      strand_report_1_2024 =
         Lanttern.ReportingFixtures.strand_report_fixture(%{
           report_card_id: report_card_2024.id,
           strand_id: strand_1.id
         })
 
-      _strand_report_2_2024 =
+      strand_report_2_2024 =
         Lanttern.ReportingFixtures.strand_report_fixture(%{
           report_card_id: report_card_2024.id,
           strand_id: strand_2.id
         })
 
-      _strand_report_3_2023 =
+      strand_report_3_2023 =
         Lanttern.ReportingFixtures.strand_report_fixture(%{
           report_card_id: report_card_2023.id,
           strand_id: strand_3.id
         })
 
-      _strand_report_4_2023 =
+      strand_report_4_2023 =
         Lanttern.ReportingFixtures.strand_report_fixture(%{
           report_card_id: report_card_2023.id,
           strand_id: strand_4.id
@@ -195,12 +197,20 @@ defmodule Lanttern.LearningContextTest do
       assert subject_1 in expected_strand_1.subjects
       assert subject_2 in expected_strand_1.subjects
       assert [year] == expected_strand_1.years
+      assert expected_strand_1.strand_report_id == strand_report_1_2024.id
+      assert expected_strand_1.report_cycle == cycle_2024
 
       assert expected_strand_2.id == strand_2.id
+      assert expected_strand_2.strand_report_id == strand_report_2_2024.id
+      assert expected_strand_2.report_cycle == cycle_2024
 
       assert expected_strand_3.id == strand_3.id
+      assert expected_strand_3.strand_report_id == strand_report_3_2023.id
+      assert expected_strand_3.report_cycle == cycle_2023
 
       assert expected_strand_4.id == strand_4.id
+      assert expected_strand_4.strand_report_id == strand_report_4_2023.id
+      assert expected_strand_4.report_cycle == cycle_2023
     end
 
     test "search_strands/2 returns all items matched by search" do
