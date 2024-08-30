@@ -1,4 +1,16 @@
 defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
+  @moduledoc """
+  Renders moments info related to a `StrandReport`.
+
+  ### Required attrs:
+
+  -`strand_report` - `%StrandReport{}`
+  -`student_id`
+  -`student_report_card_id`
+  -`params` - the URL params from parent view `handle_params/3`
+  -`base_path` - the base URL path for overlay navigation control
+  """
+
   alias Lanttern.LearningContext
   use LantternWeb, :live_component
 

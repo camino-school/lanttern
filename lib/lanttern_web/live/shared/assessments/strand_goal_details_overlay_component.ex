@@ -1,4 +1,14 @@
 defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
+  @moduledoc """
+  Renders a strand goal info overlay.
+
+  ### Required attrs:
+
+  - `strand_goal_id`
+  - `student_id`
+  - `on_cancel` - a `%JS{}` struct to execute on overlay close
+  """
+
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments

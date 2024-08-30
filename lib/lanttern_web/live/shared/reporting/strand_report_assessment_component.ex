@@ -1,4 +1,15 @@
 defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
+  @moduledoc """
+  Renders assessment info related to a `StrandReport`.
+
+  ### Required attrs:
+
+  -`strand_report` - `%StrandReport{}`
+  -`student_report_card` - `%StudentReportCard{}`
+  -`params` - the URL params from parent view `handle_params/3`
+  -`base_path` - the base URL path for overlay navigation control
+  """
+
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments

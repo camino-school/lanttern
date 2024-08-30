@@ -223,7 +223,8 @@ defmodule Lanttern.RubricsTest do
         assessment_point_fixture(%{
           rubric_id: rubric_2.id,
           strand_id: strand.id,
-          curriculum_item_id: curriculum_item_2.id
+          curriculum_item_id: curriculum_item_2.id,
+          is_differentiation: true
         })
 
       # extra fixtures for filter test
@@ -241,6 +242,7 @@ defmodule Lanttern.RubricsTest do
       assert expected_descriptor_1_2.id == descriptor_1_2.id
       assert expected_rubric_1.curriculum_item.id == curriculum_item_1.id
       assert expected_rubric_1.curriculum_item.curriculum_component.id == curriculum_component.id
+      refute expected_rubric_1.is_differentiation
 
       assert expected_rubric_2.id == rubric_2.id
       [expected_descriptor_2_1, expected_descriptor_2_2] = expected_rubric_2.descriptors
@@ -248,6 +250,75 @@ defmodule Lanttern.RubricsTest do
       assert expected_descriptor_2_2.id == descriptor_2_2.id
       assert expected_rubric_2.curriculum_item.id == curriculum_item_2.id
       assert expected_rubric_2.curriculum_item.curriculum_component.id == curriculum_component.id
+      assert expected_rubric_2.is_differentiation
+    end
+
+    test "list_strand_diff_rubrics_for_student_id/2 returns all strand diff rubrics with descriptors preloaded and ordered correctly" do
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})
+      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.2})
+
+      rubric = rubric_fixture(%{scale_id: scale.id})
+      diff_rubric = rubric_fixture(%{scale_id: scale.id, diff_for_rubric_id: rubric.id})
+
+      student = Lanttern.SchoolsFixtures.student_fixture()
+
+      Lanttern.Repo.insert_all(
+        "differentiation_rubrics_students",
+        [[rubric_id: diff_rubric.id, student_id: student.id]]
+      )
+
+      descriptor_1 =
+        rubric_descriptor_fixture(%{
+          rubric_id: diff_rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_1.id
+        })
+
+      descriptor_2 =
+        rubric_descriptor_fixture(%{
+          rubric_id: diff_rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_2.id
+        })
+
+      strand = Lanttern.LearningContextFixtures.strand_fixture()
+      curriculum_component = Lanttern.CurriculaFixtures.curriculum_component_fixture()
+
+      curriculum_item =
+        Lanttern.CurriculaFixtures.curriculum_item_fixture(%{
+          curriculum_component_id: curriculum_component.id
+        })
+
+      _assessment_point =
+        assessment_point_fixture(%{
+          rubric_id: rubric.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      # extra fixtures for filter test
+      other_strand = Lanttern.LearningContextFixtures.strand_fixture()
+      other_rubric = rubric_fixture(%{scale_id: scale.id})
+      assessment_point_fixture(%{rubric_id: other_rubric.id, strand_id: other_strand.id})
+      rubric_fixture(%{scale_id: scale.id})
+
+      [expected_diff_rubric] =
+        Rubrics.list_strand_diff_rubrics_for_student_id(student.id, strand.id)
+
+      assert expected_diff_rubric.id == diff_rubric.id
+
+      [expected_descriptor_1, expected_descriptor_2] =
+        expected_diff_rubric.descriptors
+
+      assert expected_descriptor_1.id == descriptor_1.id
+      assert expected_descriptor_2.id == descriptor_2.id
+      assert expected_diff_rubric.curriculum_item.id == curriculum_item.id
+
+      assert expected_diff_rubric.curriculum_item.curriculum_component.id ==
+               curriculum_component.id
     end
 
     test "search_rubrics/2 returns all rubrics matched by search" do
