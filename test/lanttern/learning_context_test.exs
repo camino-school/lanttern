@@ -99,7 +99,7 @@ defmodule Lanttern.LearningContextTest do
       assert expected_b.is_starred == false
     end
 
-    test "list_student_strand/2 returns all user strands related to students report cards" do
+    test "list_student_strands/2 returns all user strands related to students report cards" do
       student = Lanttern.SchoolsFixtures.student_fixture()
 
       subject_1 = Lanttern.TaxonomyFixtures.subject_fixture()

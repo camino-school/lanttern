@@ -40,6 +40,7 @@ defmodule LantternWeb.StudentStrandsLive do
       |> assign(:school, school)
       |> assign(:student_report_cards_cycles, student_report_cards_cycles)
       |> assign_user_filters([:cycles], socket.assigns.current_user)
+      |> adjust_cycles_filter()
       # adjust dom id to prevent duplication
       # (some strands can be in more than one report card at the same time)
       |> stream_configure(
@@ -57,6 +58,26 @@ defmodule LantternWeb.StudentStrandsLive do
 
   defp check_if_user_has_access(_profile),
     do: raise(LantternWeb.NotFoundError)
+
+  # if no cycle is selected, select the most recent (the last one)
+  defp adjust_cycles_filter(%{assigns: %{selected_cycles_ids: []}} = socket) do
+    case socket.assigns.student_report_cards_cycles do
+      [] ->
+        socket
+
+      cycles ->
+        last_cycle = List.last(cycles)
+
+        socket
+        |> assign(:selected_cycles_ids, [last_cycle.id])
+        |> save_profile_filters(
+          socket.assigns.current_user,
+          [:cycles]
+        )
+    end
+  end
+
+  defp adjust_cycles_filter(socket), do: socket
 
   defp stream_student_strands(socket) do
     student_id =

@@ -94,9 +94,6 @@ defmodule LantternWeb.LearningContextComponents do
           </p>
         </div>
         <div class="flex flex-wrap gap-2">
-          <.badge :if={@strand.report_cycle} theme="dark">
-            <%= @strand.report_cycle.name %>
-          </.badge>
           <.badge :for={subject <- @strand.subjects}>
             <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
           </.badge>
