@@ -80,6 +80,7 @@
     params={@params}
     class="py-10"
     base_path={~p"/strand_report/#{@strand_report.id}?tab=assessment"}
+    current_profile={@current_user.current_profile}
   />
   <.live_component
     :if={@current_tab == :moments}

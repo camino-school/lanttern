@@ -7,6 +7,7 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
   - `strand_goal_id`
   - `student_id`
   - `on_cancel` - a `%JS{}` struct to execute on overlay close
+  - `prevent_preview` - should be `true` when user is not allowed to view the parent report card
   """
 
   use LantternWeb, :live_component
@@ -42,7 +43,11 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
           </.badge>
         </div>
         <div class="py-10 border-b-2 border-ltrn-lighter">
-          <.assessment_point_entry_display entry={@entry} show_student_assessment />
+          <.assessment_point_entry_display
+            entry={@entry}
+            show_student_assessment
+            prevent_preview={@prevent_preview}
+          />
           <div :if={@entry && @entry.report_note} class="p-4 rounded mt-4 bg-ltrn-teacher-lightest">
             <div class="flex items-center gap-2 font-bold text-sm">
               <.icon name="hero-chat-bubble-oval-left" class="w-6 h-6 text-ltrn-teacher-accent" />
@@ -77,7 +82,11 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
           <%= @rubric.criteria %>
         </p>
         <div class="py-4 overflow-x-auto">
-          <.report_scale scale={@strand_goal.scale} rubric={@rubric} entry={@entry} />
+          <.report_scale
+            scale={@strand_goal.scale}
+            rubric={@rubric}
+            entry={!@prevent_preview && @entry}
+          />
         </div>
         <div :if={@has_formative_assessment} class="mt-10">
           <h5 class="font-display font-black text-base"><%= gettext("Formative assessment") %></h5>
@@ -119,6 +128,7 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
   def mount(socket) do
     socket =
       socket
+      |> assign(:prevent_preview, false)
       |> stream_configure(
         :moments_assessment_points_and_entries,
         dom_id: fn

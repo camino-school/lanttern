@@ -86,8 +86,26 @@ defmodule LantternWeb.AssessmentsComponents do
     doc: "Requires `scale`, `ordinal_value`, and `student_ordinal_value` preloads"
 
   attr :show_student_assessment, :boolean, default: false
+
+  attr :prevent_preview, :boolean,
+    default: false,
+    doc: "use `true` to hide the final assessment from user"
+
   attr :id, :string, default: nil
   attr :class, :any, default: nil
+
+  def assessment_point_entry_display(%{prevent_preview: true} = assigns) do
+    ~H"""
+    <div class={["grid grid-cols-1 w-full", @class]} id={@id}>
+      <div class={[
+        assessment_point_entry_display_base_classes(),
+        "border border-ltrn-light border-dashed text-ltrn-subtle"
+      ]}>
+        <%= gettext("Final assessment not available yet") %>
+      </div>
+    </div>
+    """
+  end
 
   def assessment_point_entry_display(assigns) do
     # even if show_student_assessment is true,

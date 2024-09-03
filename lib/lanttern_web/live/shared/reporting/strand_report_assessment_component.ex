@@ -8,8 +8,10 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
   -`student_report_card` - `%StudentReportCard{}`
   -`params` - the URL params from parent view `handle_params/3`
   -`base_path` - the base URL path for overlay navigation control
+  -`current_profile` - the current `%Profile{}` from `current_user`
   """
 
+  alias Lanttern.Assessments.AssessmentPoint
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments
@@ -26,7 +28,8 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
     ~H"""
     <div class={@class}>
       <.responsive_container>
-        <p>
+        <h2 class="font-display font-black text-2xl"><%= gettext("Goals assessment entries") %></h2>
+        <p class="mt-4">
           <%= gettext(
             "Here you'll find information about the strand final and formative assessments."
           ) %>
@@ -34,72 +37,39 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
         <p class="mt-4 mb-10">
           <%= gettext("You can click the assessment card to view more details about it.") %>
         </p>
-        <.link
+        <.goal_card
           :for={{goal, entry, moment_entries} <- @strand_goals_student_entries}
           patch={"#{@base_path}&strand_goal_id=#{goal.id}"}
-          class={[
-            "group/card block mt-4",
-            "sm:grid sm:grid-cols-[minmax(10px,_3fr)_minmax(10px,_2fr)]"
-          ]}
-        >
-          <%!-- <.card_base class="flex flex-col sm:flex-row items-center gap-4 p-4"> --%>
-          <.card_base class={[
-            "p-4 group-hover/card:bg-ltrn-mesh-cyan",
-            "sm:col-span-2 sm:grid sm:grid-cols-subgrid sm:items-center sm:gap-4"
-          ]}>
-            <div>
-              <p class="text-sm">
-                <span class="inline-block mr-1 font-display font-bold text-ltrn-subtle">
-                  <%= goal.curriculum_item.curriculum_component.name %>
-                </span>
-                <%= goal.curriculum_item.name %>
-              </p>
-              <div
-                :if={
-                  goal.is_differentiation ||
-                    (entry && entry.report_note) ||
-                    (entry && entry.student_report_note) ||
-                    goal.report_info ||
-                    goal.rubric_id ||
-                    moment_entries != []
-                }
-                class="shrink-0 flex items-center gap-4 max-w-full mt-2"
-              >
-                <div
-                  :if={
-                    goal.is_differentiation ||
-                      (entry && entry.report_note) ||
-                      (entry && entry.student_report_note) ||
-                      goal.report_info ||
-                      goal.rubric_id
-                  }
-                  class="flex items-center gap-1"
-                >
-                  <.assessment_metadata_icon
-                    :if={goal.is_differentiation || goal.has_diff_rubric_for_student}
-                    type={:diff}
-                  />
-                  <.assessment_metadata_icon :if={entry && entry.report_note} type={:teacher_comment} />
-                  <.assessment_metadata_icon
-                    :if={entry && entry.student_report_note}
-                    type={:student_comment}
-                  />
-                  <.assessment_metadata_icon :if={goal.report_info} type={:info} />
-                  <.assessment_metadata_icon :if={goal.rubric_id} type={:rubric} />
-                </div>
-                <div class="group relative flex-1 flex flex-wrap gap-1">
-                  <.moment_entry :for={moment_entry <- moment_entries} entry={moment_entry} />
-                  <.tooltip><%= gettext("Formative assessment pattern") %></.tooltip>
-                </div>
-              </div>
-            </div>
-            <.assessment_point_entry_display
-              entry={entry}
-              show_student_assessment
-              class="mt-4 sm:mt-0"
+          goal={goal}
+          entry={entry}
+          moment_entries={moment_entries}
+          prevent_preview={@prevent_final_assessment_preview}
+        />
+        <.empty_state :if={!@has_strand_goals_with_student_entries}>
+          <%= gettext("No assessment entries for this strand yet") %>
+        </.empty_state>
+        <div :if={@has_strand_goals_without_student_entries} class="mt-10">
+          <div class="flex items-center gap-2">
+            <h4 class="flex-1 font-display font-black text-ltrn-subtle">
+              <%= gettext("Goals without assessment entries") %>
+            </h4>
+            <.toggle_expand_button
+              id="toggle-strand-goals-without-student-entries"
+              target_selector="#strand-goals-without-student-entries"
+              initial_is_expanded={false}
             />
-          </.card_base>
-        </.link>
+          </div>
+          <div id="strand-goals-without-student-entries" class="hidden">
+            <.goal_card
+              :for={{goal, entry, moment_entries} <- @strand_goals_without_student_entries}
+              patch={"#{@base_path}&strand_goal_id=#{goal.id}"}
+              goal={goal}
+              entry={entry}
+              moment_entries={moment_entries}
+              prevent_preview={@prevent_final_assessment_preview}
+            />
+          </div>
+        </div>
       </.responsive_container>
       <.live_component
         :if={@strand_goal_id}
@@ -107,9 +77,92 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
         id="assessment-point-details-component"
         strand_goal_id={@strand_goal_id}
         student_id={@student_report_card.student_id}
+        prevent_preview={@prevent_final_assessment_preview}
         on_cancel={JS.patch(@base_path)}
       />
     </div>
+    """
+  end
+
+  attr :goal, AssessmentPoint, required: true
+  attr :entry, :any, required: true
+  attr :moment_entries, :list, required: true
+  attr :patch, :string, required: true
+  attr :prevent_preview, :boolean, required: true
+
+  defp goal_card(assigns) do
+    %{
+      goal: goal,
+      entry: entry,
+      moment_entries: moment_entries
+    } = assigns
+
+    render_icons_area =
+      goal.is_differentiation ||
+        (entry && entry.report_note) ||
+        (entry && entry.student_report_note) ||
+        goal.report_info ||
+        goal.rubric_id
+
+    render_extra_fields_area =
+      render_icons_area ||
+        moment_entries != []
+
+    assigns =
+      assigns
+      |> assign(:render_extra_fields_area, render_extra_fields_area)
+      |> assign(:render_icons_area, render_extra_fields_area)
+
+    ~H"""
+    <.link
+      patch={@patch}
+      class={[
+        "group/card block mt-4",
+        "sm:grid sm:grid-cols-[minmax(10px,_3fr)_minmax(10px,_2fr)]"
+      ]}
+    >
+      <.card_base class={[
+        "p-4 group-hover/card:bg-ltrn-mesh-cyan",
+        "sm:col-span-2 sm:grid sm:grid-cols-subgrid sm:items-center sm:gap-4"
+      ]}>
+        <div>
+          <p class="text-sm">
+            <span class="inline-block mr-1 font-display font-bold text-ltrn-subtle">
+              <%= @goal.curriculum_item.curriculum_component.name %>
+            </span>
+            <%= @goal.curriculum_item.name %>
+          </p>
+          <div
+            :if={@render_extra_fields_area}
+            class="shrink-0 flex items-center gap-4 max-w-full mt-2"
+          >
+            <div :if={@render_icons_area} class="flex items-center gap-1">
+              <.assessment_metadata_icon
+                :if={@goal.is_differentiation || @goal.has_diff_rubric_for_student}
+                type={:diff}
+              />
+              <.assessment_metadata_icon :if={@entry && @entry.report_note} type={:teacher_comment} />
+              <.assessment_metadata_icon
+                :if={@entry && @entry.student_report_note}
+                type={:student_comment}
+              />
+              <.assessment_metadata_icon :if={@goal.report_info} type={:info} />
+              <.assessment_metadata_icon :if={@goal.rubric_id} type={:rubric} />
+            </div>
+            <div class="group relative flex-1 flex flex-wrap gap-1">
+              <.moment_entry :for={moment_entry <- @moment_entries} entry={moment_entry} />
+              <.tooltip><%= gettext("Formative assessment pattern") %></.tooltip>
+            </div>
+          </div>
+        </div>
+        <.assessment_point_entry_display
+          entry={@entry}
+          show_student_assessment
+          prevent_preview={@prevent_preview}
+          class="mt-4 sm:mt-0"
+        />
+      </.card_base>
+    </.link>
     """
   end
 
@@ -217,25 +270,45 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
       |> assign(assigns)
       |> assign_strand_goals_student_entries(assigns)
       |> assign_strand_goal_id(assigns)
+      |> assign_prevent_final_assessment_preview()
       |> assign(:initialized, true)
 
     {:ok, socket}
   end
 
   defp assign_strand_goals_student_entries(%{assigns: %{initialized: false}} = socket, assigns) do
-    strand_goals_student_entries =
-      Assessments.list_strand_goals_student_entries(
+    all_strand_goals_student_entries =
+      Assessments.list_strand_goals_for_student(
         assigns.student_report_card.student_id,
         assigns.strand_report.strand_id
       )
 
     strand_goals_ids =
-      strand_goals_student_entries
+      all_strand_goals_student_entries
       |> Enum.map(fn {strand_goal, _, _} -> "#{strand_goal.id}" end)
+
+    strand_goals_student_entries =
+      all_strand_goals_student_entries
+      |> Enum.filter(fn {_, entry, moments_entries} ->
+        not is_nil(entry) or moments_entries != []
+      end)
+
+    strand_goals_without_student_entries =
+      all_strand_goals_student_entries
+      |> Enum.filter(fn {_, entry, moments_entries} -> is_nil(entry) and moments_entries == [] end)
 
     socket
     |> assign(:strand_goals_student_entries, strand_goals_student_entries)
     |> assign(:strand_goals_ids, strand_goals_ids)
+    |> assign(:strand_goals_without_student_entries, strand_goals_without_student_entries)
+    |> assign(
+      :has_strand_goals_with_student_entries,
+      strand_goals_student_entries != []
+    )
+    |> assign(
+      :has_strand_goals_without_student_entries,
+      strand_goals_without_student_entries != []
+    )
   end
 
   defp assign_strand_goals_student_entries(socket, _assigns), do: socket
@@ -253,4 +326,18 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
   end
 
   defp assign_strand_goal_id(socket, _assigns), do: assign(socket, :strand_goal_id, nil)
+
+  defp assign_prevent_final_assessment_preview(socket) do
+    profile = socket.assigns.current_profile
+
+    prevent_final_assessment_preview =
+      case {profile.type, socket.assigns.student_report_card} do
+        {"teacher", _} -> false
+        {"student", %{allow_student_access: true}} -> false
+        {"guardian", %{allow_guardian_access: true}} -> false
+        _ -> true
+      end
+
+    assign(socket, :prevent_final_assessment_preview, prevent_final_assessment_preview)
+  end
 end

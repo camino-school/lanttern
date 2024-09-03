@@ -99,6 +99,7 @@
     base_path={
       ~p"/student_report_card/#{@student_report_card.id}/strand_report/#{@strand_report.id}?tab=assessment"
     }
+    current_profile={@current_user.current_profile}
   />
   <.live_component
     :if={@current_tab == :moments}

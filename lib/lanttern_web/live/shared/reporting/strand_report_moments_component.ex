@@ -25,7 +25,8 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
     ~H"""
     <div class={@class}>
       <.responsive_container>
-        <p>
+        <h2 class="font-display font-black text-2xl"><%= gettext("Strand moments") %></h2>
+        <p class="mt-4">
           <%= gettext("Here you'll find information about the strand learning journey.") %>
         </p>
         <p class="mt-4 mb-10">
