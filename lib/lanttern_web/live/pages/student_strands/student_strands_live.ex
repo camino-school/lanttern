@@ -13,8 +13,9 @@ defmodule LantternWeb.StudentStrandsLive do
   import LantternWeb.FiltersHelpers
 
   # shared components
-  import LantternWeb.LearningContextComponents
+  alias LantternWeb.Assessments.EntryParticleComponent
   alias LantternWeb.Filters.InlineFiltersComponent
+  import LantternWeb.LearningContextComponents
   import LantternWeb.SchoolsComponents
 
   @impl true
@@ -45,7 +46,7 @@ defmodule LantternWeb.StudentStrandsLive do
       # (some strands can be in more than one report card at the same time)
       |> stream_configure(
         :student_strands,
-        dom_id: fn strand -> "student-strand-report-#{strand.strand_report_id}" end
+        dom_id: fn {strand, _entries} -> "student-strand-report-#{strand.strand_report_id}" end
       )
       |> stream_student_strands()
 

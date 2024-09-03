@@ -19,13 +19,26 @@
 </.responsive_container>
 <.responsive_grid :if={@has_student_strands} id="student-strands" phx-update="stream">
   <.strand_card
-    :for={{dom_id, strand} <- @streams.student_strands}
+    :for={{dom_id, {strand, entries}} <- @streams.student_strands}
     id={dom_id}
     strand={strand}
     cover_image_url={strand.cover_image_url}
     navigate={~p"/strand_report/#{strand.strand_report_id}"}
     hide_description
     class="shrink-0 w-64 sm:w-auto"
-  />
+  >
+    <:bottom_content :if={entries != []}>
+      <div class="group relative flex flex-wrap justify-center gap-px p-2 border-t border-ltrn-lighter">
+        <.live_component
+          :for={entry <- entries}
+          module={EntryParticleComponent}
+          id={entry.id}
+          entry={entry}
+          size="sm"
+        />
+        <.tooltip h_pos="center"><%= gettext("Formative assessment pattern") %></.tooltip>
+      </div>
+    </:bottom_content>
+  </.strand_card>
 </.responsive_grid>
 <.school_branding_footer school={@school} />

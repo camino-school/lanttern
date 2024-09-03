@@ -99,7 +99,7 @@ defmodule Lanttern.LearningContextTest do
       assert expected_b.is_starred == false
     end
 
-    test "list_student_strands/2 returns all user strands related to students report cards" do
+    test "list_student_strands/2 returns all user strands related to students report cards (+ moment entries)" do
       student = Lanttern.SchoolsFixtures.student_fixture()
 
       subject_1 = Lanttern.TaxonomyFixtures.subject_fixture()
@@ -114,6 +114,64 @@ defmodule Lanttern.LearningContextTest do
 
       # use same strand in different reports
       strand_4 = strand_2
+
+      # add moments to strand 1, following this structure
+      # moment 1 - 2 assessment points, only first with student entry
+      # moment 2 - 1 assessment point with student entry
+      # moment 3 - no assessment points
+      # expected entries return: m1_ap1, m2_ap1
+
+      moment_1 = moment_fixture(%{strand_id: strand_1.id})
+      moment_2 = moment_fixture(%{strand_id: strand_1.id})
+      _moment_3 = moment_fixture(%{strand_id: strand_1.id})
+
+      scale = Lanttern.GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+
+      ap_m1_1 =
+        Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_1.id,
+          scale_id: scale.id
+        })
+
+      _ap_m1_2 =
+        Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_1.id,
+          scale_id: scale.id
+        })
+
+      ap_m2_1 =
+        Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_2.id,
+          scale_id: scale.id
+        })
+
+      entry_m1_1 =
+        Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: ap_m1_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
+        })
+
+      entry_m2_1 =
+        Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: ap_m2_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
+        })
+
+      # entry for other student
+      _other_entry_m2_1 =
+        Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: ap_m2_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
+        })
 
       cycle_2024 =
         Lanttern.SchoolsFixtures.cycle_fixture(start_at: ~D[2024-01-01], end_at: ~D[2024-12-31])
@@ -183,10 +241,10 @@ defmodule Lanttern.LearningContextTest do
         })
 
       assert [
-               expected_strand_1,
-               expected_strand_2,
-               expected_strand_3,
-               expected_strand_4
+               {expected_strand_1, [^entry_m1_1, ^entry_m2_1]},
+               {expected_strand_2, []},
+               {expected_strand_3, []},
+               {expected_strand_4, []}
              ] =
                LearningContext.list_student_strands(
                  student.id,
