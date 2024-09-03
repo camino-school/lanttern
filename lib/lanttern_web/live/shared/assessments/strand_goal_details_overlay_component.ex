@@ -48,25 +48,13 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
             show_student_assessment
             prevent_preview={@prevent_preview}
           />
-          <div :if={@entry && @entry.report_note} class="p-4 rounded mt-4 bg-ltrn-teacher-lightest">
-            <div class="flex items-center gap-2 font-bold text-sm">
-              <.icon name="hero-chat-bubble-oval-left" class="w-6 h-6 text-ltrn-teacher-accent" />
-              <span class="text-ltrn-teacher-dark"><%= gettext("Teacher comment") %></span>
-            </div>
-            <.markdown text={@entry.report_note} size="sm" class="max-w-none mt-4" />
-          </div>
-          <div
+          <.comment_area :if={@entry && @entry.report_note} comment={@entry.report_note} class="mt-4" />
+          <.comment_area
             :if={@entry && @entry.student_report_note}
-            class="p-4 rounded mt-4 bg-ltrn-student-lightest"
-          >
-            <div class="flex items-center gap-2 font-bold text-sm">
-              <.icon name="hero-chat-bubble-oval-left" class="w-6 h-6 text-ltrn-student-accent" />
-              <span class="text-ltrn-student-dark">
-                <%= gettext("Student comment") %>
-              </span>
-            </div>
-            <.markdown text={@entry.student_report_note} size="sm" class="max-w-none mt-4" />
-          </div>
+            comment={@entry.student_report_note}
+            class="mt-4"
+            type="student"
+          />
         </div>
         <div class="flex items-center justify-between gap-2 mt-10">
           <h5 class="flex items-center gap-2 font-display font-black text-base">

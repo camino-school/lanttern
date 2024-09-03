@@ -21,6 +21,44 @@ defmodule LantternWeb.ReportingComponents do
   alias Lanttern.Taxonomy.Year
 
   @doc """
+  Renders a teacher or student comment area
+  """
+
+  attr :comment, :string, required: true
+  attr :type, :string, default: "teacher", doc: "teacher | student"
+  attr :class, :any, default: nil
+
+  def comment_area(assigns) do
+    {bg_class, icon_class, text_class, text} =
+      case assigns.type do
+        "teacher" ->
+          {"bg-ltrn-teacher-lightest", "text-ltrn-teacher-accent", "text-ltrn-teacher-dark",
+           gettext("Teacher comment")}
+
+        "student" ->
+          {"bg-ltrn-student-lightest", "text-ltrn-student-accent", "text-ltrn-student-dark",
+           gettext("Student comment")}
+      end
+
+    assigns =
+      assigns
+      |> assign(:bg_class, bg_class)
+      |> assign(:icon_class, icon_class)
+      |> assign(:text_class, text_class)
+      |> assign(:text, text)
+
+    ~H"""
+    <div class={["p-4 rounded", @bg_class, @class]}>
+      <div class="flex items-center gap-2 font-bold text-sm">
+        <.icon name="hero-chat-bubble-oval-left" class={["w-6 h-6", @icon_class]} />
+        <span class={@text_class}><%= @text %></span>
+      </div>
+      <.markdown text={@comment} size="sm" class="max-w-none mt-4" />
+    </div>
+    """
+  end
+
+  @doc """
   Renders a report card card (yes, card card, 2x).
   """
   attr :report_card, ReportCard, required: true
@@ -262,10 +300,15 @@ defmodule LantternWeb.ReportingComponents do
 
   def moment_assessment_point_entry(assigns) do
     ~H"""
-    <div id={@id} class={["flex items-center gap-2", @class]}>
-      <.badge :if={@assessment_point.is_differentiation} theme="diff"><%= gettext("Diff") %></.badge>
-      <p class="flex-1 text-sm"><%= @assessment_point.name %></p>
-      <.assessment_point_entry_badge entry={@entry} class="shrink-0" />
+    <div id={@id} class={@class}>
+      <div class="flex items-center gap-2">
+        <.badge :if={@assessment_point.is_differentiation} theme="diff">
+          <%= gettext("Diff") %>
+        </.badge>
+        <p class="flex-1 text-sm"><%= @assessment_point.name %></p>
+        <.assessment_point_entry_badge entry={@entry} class="shrink-0" />
+      </div>
+      <.comment_area :if={@entry && @entry.report_note} comment={@entry.report_note} class="mt-2" />
     </div>
     """
   end
