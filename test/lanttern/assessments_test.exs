@@ -1050,12 +1050,12 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_ap_1.curriculum_item.curriculum_component.id == curriculum_component_1.id
       assert expected_ap_1.curriculum_item.id == curriculum_item_1.id
       assert expected_entry_1.id == entry_1.id
-      assert expected_entry_1.ordinal_value.id == ordinal_value.id
+      assert expected_entry_1.ordinal_value_id == ordinal_value.id
 
       assert expected_ci_1_m_1_1.id == entry_ci_1_m_1_1.id
-      assert expected_ci_1_m_1_1.ordinal_value.id == ordinal_value.id
+      assert expected_ci_1_m_1_1.ordinal_value_id == ordinal_value.id
       assert expected_ci_1_m_2.id == entry_ci_1_m_2.id
-      assert expected_ci_1_m_2.ordinal_value.id == ordinal_value.id
+      assert expected_ci_1_m_2.ordinal_value_id == ordinal_value.id
 
       assert expected_ap_2.id == assessment_point_2.id
       assert expected_ap_2.scale_id == numeric_scale.id
@@ -1065,7 +1065,7 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_entry_2.score == 5.0
 
       assert expected_ci_2_m_2.id == entry_ci_2_m_2.id
-      assert expected_ci_2_m_2.ordinal_value.id == ordinal_value.id
+      assert expected_ci_2_m_2.ordinal_value_id == ordinal_value.id
 
       assert expected_ap_3.id == assessment_point_3.id
       assert expected_ap_3.scale_id == ordinal_scale.id

@@ -998,9 +998,6 @@ defmodule Lanttern.Assessments do
   - `:has_diff_rubric_for_student` calculated based on student id
   - curriculum item with curriculum component
 
-  Assessment point entry preload:
-  - `ordinal_value` and `student_ordinal_value`
-
   """
 
   @spec list_strand_goals_for_student(student_id :: pos_integer(), strand_id :: pos_integer()) ::
@@ -1048,19 +1045,11 @@ defmodule Lanttern.Assessments do
         join: m in assoc(ap, :moment),
         join: e in AssessmentPointEntry,
         on: e.assessment_point_id == ap.id and e.student_id == ^student_id,
-        left_join: ov in assoc(e, :ordinal_value),
-        left_join: s_ov in assoc(e, :student_ordinal_value),
         where: m.strand_id == ^strand_id,
         order_by: [asc: m.position, asc: ap.position],
-        select: {ap.curriculum_item_id, e, ov, s_ov}
+        select: {ap.curriculum_item_id, e}
       )
       |> Repo.all()
-      |> Enum.map(fn {ci_id, e, ov, s_ov} ->
-        {
-          ci_id,
-          e && %{e | ordinal_value: ov, student_ordinal_value: s_ov}
-        }
-      end)
       |> Enum.group_by(
         fn {ci_id, _e} -> ci_id end,
         fn {_ci_id, e} -> e end

@@ -20,8 +20,8 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
   alias LantternWeb.Assessments.StrandGoalDetailsOverlayComponent
 
   # shared components
+  alias LantternWeb.Assessments.EntryParticleComponent
   import LantternWeb.AssessmentsComponents
-  # import LantternWeb.ReportingComponents
 
   @impl true
   def render(assigns) do
@@ -150,7 +150,13 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
               <.assessment_metadata_icon :if={@goal.rubric_id} type={:rubric} />
             </div>
             <div class="group relative flex-1 flex flex-wrap gap-1">
-              <.moment_entry :for={moment_entry <- @moment_entries} entry={moment_entry} />
+              <.live_component
+                :for={moment_entry <- @moment_entries}
+                module={EntryParticleComponent}
+                id={moment_entry.id}
+                entry={moment_entry}
+                class="flex-1"
+              />
               <.tooltip><%= gettext("Formative assessment pattern") %></.tooltip>
             </div>
           </div>
@@ -213,42 +219,6 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
 
   defp assessment_metadata_icon_attrs(:rubric),
     do: {gettext("Has rubric"), "hero-view-columns-mini", "bg-ltrn-lighter", "text-ltrn-subtle"}
-
-  attr :entry, :any, required: true
-
-  defp moment_entry(assigns) do
-    {additional_classes, style, text} =
-      case assigns.entry do
-        %{scale_type: "ordinal"} = entry ->
-          {nil,
-           "color: #{entry.ordinal_value.text_color}; background-color: #{entry.ordinal_value.bg_color}",
-           "•"}
-
-        %{scale_type: "numeric"} ->
-          {"text-ltrn-dark bg-ltrn-lighter", nil, "•"}
-
-        nil ->
-          {"border border-dashed border-ltrn-light text-ltrn-light", nil, "-"}
-      end
-
-    assigns =
-      assigns
-      |> assign(:additional_classes, additional_classes)
-      |> assign(:style, style)
-      |> assign(:text, text)
-
-    ~H"""
-    <div
-      class={[
-        "flex-1 flex items-center justify-center w-6 h-6 max-w-6 rounded-sm text-base",
-        @additional_classes
-      ]}
-      style={@style}
-    >
-      <%= @text %>
-    </div>
-    """
-  end
 
   # lifecycle
 
