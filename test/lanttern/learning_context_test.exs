@@ -99,6 +99,178 @@ defmodule Lanttern.LearningContextTest do
       assert expected_b.is_starred == false
     end
 
+    test "list_student_strands/2 returns all user strands related to students report cards (+ moment entries)" do
+      student = Lanttern.SchoolsFixtures.student_fixture()
+
+      subject_1 = Lanttern.TaxonomyFixtures.subject_fixture()
+      subject_2 = Lanttern.TaxonomyFixtures.subject_fixture()
+      year = Lanttern.TaxonomyFixtures.year_fixture()
+
+      strand_1 =
+        strand_fixture(%{subjects_ids: [subject_1.id, subject_2.id], years_ids: [year.id]})
+
+      strand_2 = strand_fixture()
+      strand_3 = strand_fixture()
+
+      # use same strand in different reports
+      strand_4 = strand_2
+
+      # add moments to strand 1, following this structure
+      # moment 1 - 2 assessment points, only first with student entry
+      # moment 2 - 1 assessment point with student entry
+      # moment 3 - no assessment points
+      # expected entries return: m1_ap1, m2_ap1
+
+      moment_1 = moment_fixture(%{strand_id: strand_1.id})
+      moment_2 = moment_fixture(%{strand_id: strand_1.id})
+      _moment_3 = moment_fixture(%{strand_id: strand_1.id})
+
+      scale = Lanttern.GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+
+      ap_m1_1 =
+        Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_1.id,
+          scale_id: scale.id
+        })
+
+      _ap_m1_2 =
+        Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_1.id,
+          scale_id: scale.id
+        })
+
+      ap_m2_1 =
+        Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_2.id,
+          scale_id: scale.id
+        })
+
+      entry_m1_1 =
+        Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: ap_m1_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
+        })
+
+      entry_m2_1 =
+        Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: ap_m2_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
+        })
+
+      # entry for other student
+      _other_entry_m2_1 =
+        Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: ap_m2_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
+        })
+
+      cycle_2024 =
+        Lanttern.SchoolsFixtures.cycle_fixture(start_at: ~D[2024-01-01], end_at: ~D[2024-12-31])
+
+      cycle_2023 =
+        Lanttern.SchoolsFixtures.cycle_fixture(start_at: ~D[2023-01-01], end_at: ~D[2023-12-31])
+
+      report_card_2024 =
+        Lanttern.ReportingFixtures.report_card_fixture(%{school_cycle_id: cycle_2024.id})
+
+      report_card_2023 =
+        Lanttern.ReportingFixtures.report_card_fixture(%{school_cycle_id: cycle_2023.id})
+
+      # create strand reports
+
+      strand_report_1_2024 =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: report_card_2024.id,
+          strand_id: strand_1.id
+        })
+
+      strand_report_2_2024 =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: report_card_2024.id,
+          strand_id: strand_2.id
+        })
+
+      strand_report_3_2023 =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: report_card_2023.id,
+          strand_id: strand_3.id
+        })
+
+      strand_report_4_2023 =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: report_card_2023.id,
+          strand_id: strand_4.id
+        })
+
+      # create students report cards
+      _ =
+        Lanttern.ReportingFixtures.student_report_card_fixture(%{
+          student_id: student.id,
+          report_card_id: report_card_2024.id
+        })
+
+      _ =
+        Lanttern.ReportingFixtures.student_report_card_fixture(%{
+          student_id: student.id,
+          report_card_id: report_card_2023.id
+        })
+
+      # extra fixtures for filter testing
+      other_strand = strand_fixture()
+      other_report_card = Lanttern.ReportingFixtures.report_card_fixture()
+
+      _other_strand_report =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: other_report_card.id,
+          strand_id: other_strand.id
+        })
+
+      _other_student_report_card =
+        Lanttern.ReportingFixtures.student_report_card_fixture(%{
+          student_id: student.id,
+          report_card_id: other_report_card.id
+        })
+
+      assert [
+               {expected_strand_1, [^entry_m1_1, ^entry_m2_1]},
+               {expected_strand_2, []},
+               {expected_strand_3, []},
+               {expected_strand_4, []}
+             ] =
+               LearningContext.list_student_strands(
+                 student.id,
+                 cycles_ids: [cycle_2023.id, cycle_2024.id]
+               )
+
+      assert expected_strand_1.id == strand_1.id
+      assert subject_1 in expected_strand_1.subjects
+      assert subject_2 in expected_strand_1.subjects
+      assert [year] == expected_strand_1.years
+      assert expected_strand_1.strand_report_id == strand_report_1_2024.id
+      assert expected_strand_1.report_cycle == cycle_2024
+
+      assert expected_strand_2.id == strand_2.id
+      assert expected_strand_2.strand_report_id == strand_report_2_2024.id
+      assert expected_strand_2.report_cycle == cycle_2024
+
+      assert expected_strand_3.id == strand_3.id
+      assert expected_strand_3.strand_report_id == strand_report_3_2023.id
+      assert expected_strand_3.report_cycle == cycle_2023
+
+      assert expected_strand_4.id == strand_4.id
+      assert expected_strand_4.strand_report_id == strand_report_4_2023.id
+      assert expected_strand_4.report_cycle == cycle_2023
+    end
+
     test "search_strands/2 returns all items matched by search" do
       _strand_1 = strand_fixture(%{name: "lorem ipsum xolor sit amet"})
       strand_2 = strand_fixture(%{name: "lorem ipsum dolor sit amet"})

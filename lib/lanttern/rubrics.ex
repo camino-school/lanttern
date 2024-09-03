@@ -94,8 +94,8 @@ defmodule Lanttern.Rubrics do
 
   Preloads scale, descriptors, and descriptors ordinal values.
 
-  Preloads curriculum item and curriculum component
-  (linked through strand goal/assessment point).
+  Preloads curriculum item and curriculum component, and marks
+  the rubric with `is_differentiation` based on strand goal/assessment point.
 
   View `get_full_rubric!/1` for more details on descriptors sorting.
 
@@ -110,6 +110,46 @@ defmodule Lanttern.Rubrics do
     from(
       r in full_rubric_query(),
       join: ap in assoc(r, :assessment_points),
+      join: ci in assoc(ap, :curriculum_item),
+      join: cc in assoc(ci, :curriculum_component),
+      where: ap.strand_id == ^strand_id,
+      order_by: ap.position,
+      select: %{
+        r
+        | curriculum_item: %{ci | curriculum_component: cc},
+          is_differentiation: ap.is_differentiation
+      }
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Returns the list of strand diff rubrics for given student.
+
+  Preloads scale, descriptors, and descriptors ordinal values.
+
+  Preloads curriculum item and curriculum component
+  (linked through strand goal/assessment point).
+
+  View `get_full_rubric!/1` for more details on descriptors sorting.
+
+  ## Examples
+
+      iex> list_strand_rubrics()
+      [%Rubric{}, ...]
+
+  """
+  @spec list_strand_diff_rubrics_for_student_id(
+          student_id :: pos_integer(),
+          strand_id :: pos_integer()
+        ) :: [Rubric.t()]
+  def list_strand_diff_rubrics_for_student_id(student_id, strand_id) do
+    from(
+      r in full_rubric_query(),
+      join: drs in "differentiation_rubrics_students",
+      on: drs.rubric_id == r.id and drs.student_id == ^student_id,
+      join: pr in assoc(r, :parent_rubric),
+      join: ap in assoc(pr, :assessment_points),
       join: ci in assoc(ap, :curriculum_item),
       join: cc in assoc(ci, :curriculum_component),
       where: ap.strand_id == ^strand_id,

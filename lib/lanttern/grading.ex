@@ -143,6 +143,7 @@ defmodule Lanttern.Grading do
 
   `:preloads` – preloads associated data
   `:scale_id` – filter ordinal values by scale and order results by `normalized_value`
+  `:ids` – filter ordinal values by given ids
 
   ## Examples
 
@@ -151,25 +152,29 @@ defmodule Lanttern.Grading do
 
   """
   def list_ordinal_values(opts \\ []) do
-    OrdinalValue
-    |> maybe_filter_ordinal_values_by_scale(opts)
+    from(
+      ov in OrdinalValue,
+      order_by: ov.normalized_value
+    )
+    |> apply_list_ordinal_values_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
-  defp maybe_filter_ordinal_values_by_scale(ordinal_value_query, opts) do
-    case Keyword.get(opts, :scale_id) do
-      nil ->
-        ordinal_value_query
+  defp apply_list_ordinal_values_opts(queryable, []), do: queryable
 
-      scale_id ->
-        from(
-          ov in ordinal_value_query,
-          where: ov.scale_id == ^scale_id,
-          order_by: ov.normalized_value
-        )
-    end
+  defp apply_list_ordinal_values_opts(queryable, [{:scale_id, scale_id} | opts]) do
+    from(ov in queryable, where: ov.scale_id == ^scale_id)
+    |> apply_list_ordinal_values_opts(opts)
   end
+
+  defp apply_list_ordinal_values_opts(queryable, [{:ids, ids} | opts]) do
+    from(ov in queryable, where: ov.id in ^ids)
+    |> apply_list_ordinal_values_opts(opts)
+  end
+
+  defp apply_list_ordinal_values_opts(queryable, [_ | opts]),
+    do: apply_list_ordinal_values_opts(queryable, opts)
 
   @doc """
   Gets a single ordinal_value.

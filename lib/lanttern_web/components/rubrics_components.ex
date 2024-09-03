@@ -41,7 +41,7 @@ defmodule LantternWeb.RubricsComponents do
     <div class={["flex items-stretch gap-2", @class]}>
       <div
         :for={descriptor <- @rubric.descriptors}
-        class="flex-[1_0] flex flex-col items-start gap-2 min-w-[10rem]"
+        class="flex-[1_0] flex flex-col items-start gap-2 min-w-[10rem] p-2 border border-ltrn-lighter rounded-sm bg-ltrn-lightest"
       >
         <%= if descriptor.scale_type == "numeric" do %>
           <.badge theme="dark"><%= descriptor.score %></.badge>
@@ -50,11 +50,7 @@ defmodule LantternWeb.RubricsComponents do
             <%= descriptor.ordinal_value.name %>
           </.ordinal_value_badge>
         <% end %>
-        <.markdown
-          text={descriptor.descriptor}
-          size="sm"
-          class="flex-1 w-full p-2 border border-ltrn-lighter rounded-sm bg-ltrn-lightest"
-        />
+        <.markdown text={descriptor.descriptor} size="sm" class="flex-1 w-full" />
       </div>
     </div>
     """

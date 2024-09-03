@@ -616,6 +616,45 @@ defmodule Lanttern.Reporting do
   end
 
   @doc """
+  Gets a single student report card based on given student and children strand report.
+
+  Returns `nil` if the Student report card does not exist.
+
+  ## Options
+
+  - `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> get_student_report_card_by_student_and_strand_report(123, 123)
+      %StudentReportCard{}
+
+      iex> get_student_report_card_by_student_and_strand_report(456, 456)
+      nil
+
+  """
+  @spec get_student_report_card_by_student_and_strand_report(
+          student_id :: pos_integer(),
+          strand_report_id :: pos_integer(),
+          opts :: Keyword.t()
+        ) :: StudentReportCard.t() | nil
+  def get_student_report_card_by_student_and_strand_report(
+        student_id,
+        strand_report_id,
+        opts \\ []
+      ) do
+    from(
+      src in StudentReportCard,
+      join: rc in assoc(src, :report_card),
+      join: sr in assoc(rc, :strand_reports),
+      where: sr.id == ^strand_report_id,
+      where: src.student_id == ^student_id
+    )
+    |> Repo.one()
+    |> maybe_preload(opts)
+  end
+
+  @doc """
   Gets a single student report card by student and report card id.
 
   Returns `nil` if the Student report card does not exist.

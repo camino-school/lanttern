@@ -14,6 +14,7 @@ defmodule LantternWeb.Filters.InlineFiltersComponent do
     ~H"""
     <div class={["flex flex-wrap gap-2", @class]}>
       <.badge_button
+        :if={!@hide_all_opt}
         id={"#{@id}-all"}
         phx-click={JS.push("toggle_all", target: @myself)}
         {get_select_all_attrs(@selected_items_ids)}
@@ -74,6 +75,8 @@ defmodule LantternWeb.Filters.InlineFiltersComponent do
     socket =
       socket
       |> assign(:class, nil)
+      |> assign(:hide_all_opt, false)
+      |> assign(:is_single, false)
       |> assign(:all_text, gettext("All"))
 
     {:ok, socket}
@@ -93,11 +96,23 @@ defmodule LantternWeb.Filters.InlineFiltersComponent do
   # event handlers
 
   @impl true
+  def handle_event("toggle_all", _params, %{assigns: %{is_single: true}} = socket) do
+    notify(__MODULE__, {:apply, []}, socket.assigns)
+
+    {:noreply, socket}
+  end
+
   def handle_event("toggle_all", _params, socket) do
     socket =
       socket
       |> assign(:selected_items_ids, [])
       |> assign(:has_changes, check_if_has_changes(socket.assigns.initial_selected_items_ids, []))
+
+    {:noreply, socket}
+  end
+
+  def handle_event("toggle_filter", %{"id" => id}, %{assigns: %{is_single: true}} = socket) do
+    notify(__MODULE__, {:apply, [id]}, socket.assigns)
 
     {:noreply, socket}
   end

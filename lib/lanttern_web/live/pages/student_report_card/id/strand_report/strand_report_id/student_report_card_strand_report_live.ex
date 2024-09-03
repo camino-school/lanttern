@@ -1,4 +1,4 @@
-defmodule LantternWeb.StudentStrandReportLive do
+defmodule LantternWeb.StudentReportCardStrandReportLive do
   use LantternWeb, :live_view
 
   alias Lanttern.Identity.Profile
@@ -6,13 +6,13 @@ defmodule LantternWeb.StudentStrandReportLive do
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # page components
-  alias LantternWeb.StudentStrandReportLive.OverviewComponent
-  alias LantternWeb.StudentStrandReportLive.AssessmentComponent
-  alias LantternWeb.StudentStrandReportLive.MomentsComponent
-  alias LantternWeb.StudentStrandReportLive.StudentNotesComponent
+  alias LantternWeb.StudentReportCardStrandReportLive.StudentNotesComponent
 
   # shared components
   import LantternWeb.ReportingComponents
+  alias LantternWeb.Reporting.StrandReportOverviewComponent
+  alias LantternWeb.Reporting.StrandReportAssessmentComponent
+  alias LantternWeb.Reporting.StrandReportMomentsComponent
 
   @tabs %{
     "overview" => :overview,
@@ -27,6 +27,7 @@ defmodule LantternWeb.StudentStrandReportLive do
   def mount(_params, _session, socket) do
     socket =
       socket
+      |> assign(:student_report_card, nil)
       |> assign(:initialized, false)
 
     {:ok, socket, layout: {LantternWeb.Layouts, :app_logged_in_blank}}
@@ -37,7 +38,7 @@ defmodule LantternWeb.StudentStrandReportLive do
     socket =
       socket
       |> assign_student_report_card(params)
-      # check if user can view the student report
+      # check if user can view the strand report
       |> check_if_user_has_access()
       |> assign_strand_report(params)
       |> assign_is_student()
@@ -49,7 +50,7 @@ defmodule LantternWeb.StudentStrandReportLive do
   end
 
   defp assign_student_report_card(%{assigns: %{initialized: false}} = socket, params) do
-    %{"id" => id} = params
+    %{"student_report_card_id" => id} = params
 
     student_report_card =
       Reporting.get_student_report_card!(id,
@@ -63,6 +64,9 @@ defmodule LantternWeb.StudentStrandReportLive do
   end
 
   defp assign_student_report_card(socket, _params), do: socket
+
+  defp check_if_user_has_access(%{assigns: %{student_report_card: nil}} = _socket),
+    do: raise(LantternWeb.NotFoundError)
 
   defp check_if_user_has_access(socket) do
     %{current_user: current_user, student_report_card: student_report_card} = socket.assigns

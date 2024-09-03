@@ -988,9 +988,9 @@ defmodule Lanttern.Assessments do
   @doc """
   Returns the list of strand goals, goal entries, and related moment entries for the given student and strand.
 
-  Assessment points without entries are ignored.
+  Assessment points without entries will return `nil`.
 
-  Moments without entries will return `nil`.
+  Moments without entries are ignored.
 
   Ordered by `AssessmentPoint` positions.
 
@@ -998,17 +998,14 @@ defmodule Lanttern.Assessments do
   - `:has_diff_rubric_for_student` calculated based on student id
   - curriculum item with curriculum component
 
-  Assessment point entry preload:
-  - `ordinal_value` and `student_ordinal_value`
-
   """
 
-  @spec list_strand_goals_student_entries(student_id :: pos_integer(), strand_id :: pos_integer()) ::
+  @spec list_strand_goals_for_student(student_id :: pos_integer(), strand_id :: pos_integer()) ::
           [
-            {AssessmentPoint.t(), AssessmentPointEntry.t(), [AssessmentPointEntry.t() | nil]}
+            {AssessmentPoint.t(), AssessmentPointEntry.t() | nil, [AssessmentPointEntry.t()]}
           ]
 
-  def list_strand_goals_student_entries(student_id, strand_id) do
+  def list_strand_goals_for_student(student_id, strand_id) do
     goals_and_entries =
       from(
         ap in AssessmentPoint,
@@ -1018,7 +1015,7 @@ defmodule Lanttern.Assessments do
         on: diff_r_s.student_id == ^student_id and diff_r_s.rubric_id == diff_r.id,
         join: ci in assoc(ap, :curriculum_item),
         join: cc in assoc(ci, :curriculum_component),
-        join: e in AssessmentPointEntry,
+        left_join: e in AssessmentPointEntry,
         on: e.assessment_point_id == ap.id and e.student_id == ^student_id,
         left_join: ov in assoc(e, :ordinal_value),
         left_join: s_ov in assoc(e, :student_ordinal_value),
@@ -1038,7 +1035,7 @@ defmodule Lanttern.Assessments do
       |> Enum.map(fn {ap, e, ov, s_ov} ->
         {
           ap,
-          %{e | ordinal_value: ov, student_ordinal_value: s_ov}
+          e && %{e | ordinal_value: ov, student_ordinal_value: s_ov}
         }
       end)
 
@@ -1046,21 +1043,13 @@ defmodule Lanttern.Assessments do
       from(
         ap in AssessmentPoint,
         join: m in assoc(ap, :moment),
-        left_join: e in AssessmentPointEntry,
+        join: e in AssessmentPointEntry,
         on: e.assessment_point_id == ap.id and e.student_id == ^student_id,
-        left_join: ov in assoc(e, :ordinal_value),
-        left_join: s_ov in assoc(e, :student_ordinal_value),
         where: m.strand_id == ^strand_id,
         order_by: [asc: m.position, asc: ap.position],
-        select: {ap.curriculum_item_id, e, ov, s_ov}
+        select: {ap.curriculum_item_id, e}
       )
       |> Repo.all()
-      |> Enum.map(fn {ci_id, e, ov, s_ov} ->
-        {
-          ci_id,
-          e && %{e | ordinal_value: ov, student_ordinal_value: s_ov}
-        }
-      end)
       |> Enum.group_by(
         fn {ci_id, _e} -> ci_id end,
         fn {_ci_id, e} -> e end

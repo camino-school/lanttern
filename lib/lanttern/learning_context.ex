@@ -8,6 +8,7 @@ defmodule Lanttern.LearningContext do
   import LantternWeb.Gettext
   alias Lanttern.Repo
 
+  alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.LearningContext.Strand
   alias Lanttern.LearningContext.StarredStrand
   alias Lanttern.LearningContext.Moment
@@ -49,6 +50,93 @@ defmodule Lanttern.LearningContext do
 
     {results |> maybe_preload(opts), meta}
   end
+
+  @doc """
+  Returns the list of strands linked to the student with
+  linked moments entries.
+
+  Strands are "linked to the student" through report cards:
+
+      strand -> strand report -> report card -> student report card
+
+  Strands results are ordered by cycle (desc), then by strand report position.
+  Entries are ordered by moment position, then by assessment point position.
+
+  Preloads subjects, years, and report cycle.
+
+  The same strand can appear more than once, because it can
+  be linked to more than one report card at the same time.
+  The `report_card_id` and `report_cycle` can help differentiate them.
+
+  ## Options:
+
+  - `:cycles_ids` - filter results by given cycles, using the report card cycle
+
+  ## Examples
+
+      iex> list_student_strands(1)
+      [{%Strand{}, [%AssessmentPointEntry{}, ...]}, ...]
+
+  """
+  @spec list_student_strands(student_id :: pos_integer(), opts :: Keyword.t()) :: [
+          {Strand.t(), [AssessmentPointEntry.t()]}
+        ]
+  def list_student_strands(student_id, opts \\ []) do
+    student_strands =
+      from(
+        s in Strand,
+        left_join: sub in assoc(s, :subjects),
+        left_join: y in assoc(s, :years),
+        join: sr in assoc(s, :strand_reports),
+        join: rc in assoc(sr, :report_card),
+        join: c in assoc(rc, :school_cycle),
+        as: :cycles,
+        join: src in assoc(rc, :students_report_cards),
+        order_by: [desc: c.end_at, asc: c.start_at, asc: sr.position],
+        where: src.student_id == ^student_id,
+        preload: [subjects: sub, years: y],
+        select: %{s | strand_report_id: sr.id, report_cycle: c}
+      )
+      |> apply_list_student_strands_opts(opts)
+      |> Repo.all()
+
+    student_strands_ids =
+      student_strands
+      |> Enum.map(& &1.id)
+
+    student_strands_entries_map =
+      from(
+        e in AssessmentPointEntry,
+        join: ap in assoc(e, :assessment_point),
+        join: m in assoc(ap, :moment),
+        where: m.strand_id in ^student_strands_ids,
+        where: e.student_id == ^student_id,
+        order_by: [asc: m.position, asc: ap.position],
+        select: {e, m.strand_id}
+      )
+      |> Repo.all()
+      |> Enum.group_by(
+        fn {_entry, strand_id} -> strand_id end,
+        fn {entry, _strand_id} -> entry end
+      )
+
+    student_strands
+    |> Enum.map(&{&1, Map.get(student_strands_entries_map, &1.id, [])})
+  end
+
+  defp apply_list_student_strands_opts(queryable, []), do: queryable
+
+  defp apply_list_student_strands_opts(queryable, [{:cycles_ids, cycles_ids} | opts])
+       when cycles_ids != [] do
+    from(
+      [_s, cycles: c] in queryable,
+      where: c.id in ^cycles_ids
+    )
+    |> apply_list_student_strands_opts(opts)
+  end
+
+  defp apply_list_student_strands_opts(queryable, [_opt | opts]),
+    do: apply_list_student_strands_opts(queryable, opts)
 
   @doc """
   Search strands by name.

@@ -1,4 +1,4 @@
-defmodule LantternWeb.StudentStrandReportLiveTest do
+defmodule LantternWeb.StudentReportCardStrandReportLiveTest do
   use LantternWeb.ConnCase
 
   import Lanttern.ReportingFixtures

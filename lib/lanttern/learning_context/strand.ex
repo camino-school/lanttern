@@ -14,6 +14,7 @@ defmodule Lanttern.LearningContext.Strand do
   alias Lanttern.Notes.Note
   alias Lanttern.Notes.StrandNoteRelationship
   alias Lanttern.Reporting.StrandReport
+  alias Lanttern.Schools.Cycle
   alias Lanttern.Taxonomy.Subject
   alias Lanttern.Taxonomy.Year
 
@@ -28,6 +29,8 @@ defmodule Lanttern.LearningContext.Strand do
           year_id: pos_integer(),
           years_ids: [pos_integer()],
           is_starred: boolean(),
+          strand_report_id: pos_integer(),
+          report_cycle: Cycle.t(),
           moments: [Moment.t()],
           assessment_points: [AssessmentPoint.t()],
           strand_reports: [StrandReport.t()],
@@ -49,6 +52,8 @@ defmodule Lanttern.LearningContext.Strand do
     field :year_id, :id, virtual: true
     field :years_ids, {:array, :id}, virtual: true
     field :is_starred, :boolean, virtual: true
+    field :strand_report_id, :id, virtual: true
+    field :report_cycle, :map, virtual: true
 
     has_many :moments, Moment
     has_many :assessment_points, AssessmentPoint

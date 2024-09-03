@@ -1,4 +1,15 @@
-defmodule LantternWeb.StudentStrandReportLive.StrandGoalDetailsComponent do
+defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
+  @moduledoc """
+  Renders a strand goal info overlay.
+
+  ### Required attrs:
+
+  - `strand_goal_id`
+  - `student_id`
+  - `on_cancel` - a `%JS{}` struct to execute on overlay close
+  - `prevent_preview` - should be `true` when user is not allowed to view the parent report card
+  """
+
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments
@@ -32,26 +43,18 @@ defmodule LantternWeb.StudentStrandReportLive.StrandGoalDetailsComponent do
           </.badge>
         </div>
         <div class="py-10 border-b-2 border-ltrn-lighter">
-          <.assessment_point_entry_display entry={@entry} show_student_assessment />
-          <div :if={@entry && @entry.report_note} class="p-4 rounded mt-4 bg-ltrn-teacher-lightest">
-            <div class="flex items-center gap-2 font-bold text-sm">
-              <.icon name="hero-chat-bubble-oval-left" class="w-6 h-6 text-ltrn-teacher-accent" />
-              <span class="text-ltrn-teacher-dark"><%= gettext("Teacher comment") %></span>
-            </div>
-            <.markdown text={@entry.report_note} size="sm" class="max-w-none mt-4" />
-          </div>
-          <div
+          <.assessment_point_entry_display
+            entry={@entry}
+            show_student_assessment
+            prevent_preview={@prevent_preview}
+          />
+          <.comment_area :if={@entry && @entry.report_note} comment={@entry.report_note} class="mt-4" />
+          <.comment_area
             :if={@entry && @entry.student_report_note}
-            class="p-4 rounded mt-4 bg-ltrn-student-lightest"
-          >
-            <div class="flex items-center gap-2 font-bold text-sm">
-              <.icon name="hero-chat-bubble-oval-left" class="w-6 h-6 text-ltrn-student-accent" />
-              <span class="text-ltrn-student-dark">
-                <%= gettext("Student comment") %>
-              </span>
-            </div>
-            <.markdown text={@entry.student_report_note} size="sm" class="max-w-none mt-4" />
-          </div>
+            comment={@entry.student_report_note}
+            class="mt-4"
+            type="student"
+          />
         </div>
         <div class="flex items-center justify-between gap-2 mt-10">
           <h5 class="flex items-center gap-2 font-display font-black text-base">
@@ -67,7 +70,11 @@ defmodule LantternWeb.StudentStrandReportLive.StrandGoalDetailsComponent do
           <%= @rubric.criteria %>
         </p>
         <div class="py-4 overflow-x-auto">
-          <.report_scale scale={@strand_goal.scale} rubric={@rubric} entry={@entry} />
+          <.report_scale
+            scale={@strand_goal.scale}
+            rubric={@rubric}
+            entry={!@prevent_preview && @entry}
+          />
         </div>
         <div :if={@has_formative_assessment} class="mt-10">
           <h5 class="font-display font-black text-base"><%= gettext("Formative assessment") %></h5>
@@ -109,6 +116,7 @@ defmodule LantternWeb.StudentStrandReportLive.StrandGoalDetailsComponent do
   def mount(socket) do
     socket =
       socket
+      |> assign(:prevent_preview, false)
       |> stream_configure(
         :moments_assessment_points_and_entries,
         dom_id: fn
@@ -182,11 +190,4 @@ defmodule LantternWeb.StudentStrandReportLive.StrandGoalDetailsComponent do
     |> stream(:moments_assessment_points_and_entries, moments_assessment_points_and_entries)
     |> assign(:has_formative_assessment, has_formative_assessment)
   end
-
-  # # event handlers
-
-  # @impl true
-  # def handle_event("set_info_level", %{"level" => level}, socket) do
-  #   {:noreply, assign(socket, :info_level, level)}
-  # end
 end

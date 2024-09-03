@@ -1,0 +1,105 @@
+<.cover
+  size="sm"
+  theme="lime"
+  style={"background-image: url('#{@cover_image_url || "/images/cover-placeholder.jpg"}')"}
+>
+  <:top>
+    <div class="flex items-center justify-between">
+      <.breadcrumbs with_bg>
+        <:item link={~p"/student_strands"}>
+          <%= gettext("Strands") %>
+        </:item>
+        <:item><%= gettext("Strand report") %></:item>
+      </.breadcrumbs>
+      <.nav_menu_button />
+    </div>
+  </:top>
+  <hgroup class="font-display font-black">
+    <h1 class="text-4xl sm:text-5xl"><%= @strand_report.strand.name %></h1>
+    <p :if={@strand_report.strand.type} class="mt-2 text-xl sm:text-2xl">
+      <%= @strand_report.strand.type %>
+    </p>
+  </hgroup>
+  <div class="flex flex-wrap gap-2 mt-6">
+    <.badge theme="dark">
+      <%= gettext("Cycle") %>: <%= @student_report_card.report_card.school_cycle.name %>
+    </.badge>
+    <.badge :for={subject <- @strand_report.strand.subjects}>
+      <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
+    </.badge>
+    <.badge :for={year <- @strand_report.strand.years}>
+      <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", year.name) %>
+    </.badge>
+  </div>
+</.cover>
+<div class="sticky z-30 top-0 border-b border-ltrn-lighter bg-white">
+  <.responsive_container class="flex items-center justify-between gap-10">
+    <.nav_tabs id="strand-nav-tabs" class="flex-1 overflow-x-auto">
+      <:tab
+        patch={~p"/strand_report/#{@strand_report}?tab=overview"}
+        is_current={@current_tab == :overview && "true"}
+      >
+        <%= gettext("Overview") %>
+      </:tab>
+      <:tab
+        patch={~p"/strand_report/#{@strand_report}?tab=assessment"}
+        is_current={@current_tab == :assessment && "true"}
+      >
+        <%= gettext("Assessment") %>
+      </:tab>
+      <:tab
+        patch={~p"/strand_report/#{@strand_report}?tab=moments"}
+        is_current={@current_tab == :moments && "true"}
+      >
+        <%= gettext("Moments") %>
+      </:tab>
+      <:tab
+        patch={~p"/strand_report/#{@strand_report}?tab=student_notes"}
+        is_current={@current_tab == :student_notes && "true"}
+      >
+        <%= gettext("Student notes") %>
+      </:tab>
+    </.nav_tabs>
+  </.responsive_container>
+</div>
+<div class="ltrn-bg-main-local">
+  <.live_component
+    :if={@current_tab == :overview}
+    module={StrandReportOverviewComponent}
+    id="strand-overview"
+    strand_report={@strand_report}
+    student_id={@student_report_card.student_id}
+    class="py-10"
+  />
+  <.live_component
+    :if={@current_tab == :assessment}
+    module={StrandReportAssessmentComponent}
+    id="student-assessment"
+    strand_report={@strand_report}
+    student_report_card={@student_report_card}
+    params={@params}
+    class="py-10"
+    base_path={~p"/strand_report/#{@strand_report.id}?tab=assessment"}
+    current_profile={@current_user.current_profile}
+  />
+  <.live_component
+    :if={@current_tab == :moments}
+    module={StrandReportMomentsComponent}
+    id="student-moments"
+    strand_report={@strand_report}
+    student_id={@student_report_card.student_id}
+    student_report_card_id={@student_report_card.id}
+    params={@params}
+    class="py-10"
+    base_path={~p"/strand_report/#{@strand_report.id}?tab=moments"}
+  />
+  <.live_component
+    :if={@current_tab == :student_notes}
+    module={StudentNotesComponent}
+    id="student-strand-notes"
+    current_user={@current_user}
+    strand_id={@strand_report.strand_id}
+    student_id={@student_report_card.student_id}
+    is_student={@is_student}
+  />
+</div>

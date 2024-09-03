@@ -82,26 +82,37 @@
 <div class="ltrn-bg-main-local">
   <.live_component
     :if={@current_tab == :overview}
-    module={OverviewComponent}
+    module={StrandReportOverviewComponent}
     id="strand-overview"
     strand_report={@strand_report}
+    student_id={@student_report_card.student_id}
+    class="py-10"
   />
   <.live_component
     :if={@current_tab == :assessment}
-    module={AssessmentComponent}
+    module={StrandReportAssessmentComponent}
     id="student-assessment"
     strand_report={@strand_report}
     student_report_card={@student_report_card}
     params={@params}
+    class="py-10"
+    base_path={
+      ~p"/student_report_card/#{@student_report_card.id}/strand_report/#{@strand_report.id}?tab=assessment"
+    }
+    current_profile={@current_user.current_profile}
   />
   <.live_component
     :if={@current_tab == :moments}
-    module={MomentsComponent}
+    module={StrandReportMomentsComponent}
     id="student-moments"
     strand_report={@strand_report}
     student_id={@student_report_card.student_id}
     student_report_card_id={@student_report_card.id}
     params={@params}
+    class="py-10"
+    base_path={
+      ~p"/student_report_card/#{@student_report_card.id}/strand_report/#{@strand_report.id}?tab=moments"
+    }
   />
   <.live_component
     :if={@current_tab == :student_notes}

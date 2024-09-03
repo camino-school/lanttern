@@ -253,6 +253,12 @@ defmodule LantternWeb.UserAuth do
     |> ensure_authenticated("guardian")
   end
 
+  def on_mount(:ensure_authenticated_student_or_guardian, _params, session, socket) do
+    socket
+    |> mount_current_user(session)
+    |> ensure_authenticated(["student", "guardian"])
+  end
+
   def on_mount(:redirect_if_user_is_authenticated, _params, session, socket) do
     socket = mount_current_user(socket, session)
 
@@ -286,11 +292,32 @@ defmodule LantternWeb.UserAuth do
     end
   end
 
+  defp ensure_authenticated(socket, profile_types) when is_list(profile_types) do
+    case socket.assigns.current_user do
+      %User{current_profile: %{type: profile_type}} ->
+        if profile_type in profile_types do
+          {:cont, socket}
+        else
+          ensure_authenticated_redirect(socket)
+        end
+
+      _ ->
+        ensure_authenticated_redirect(socket)
+    end
+  end
+
   defp ensure_authenticated(socket, profile_type) do
     case socket.assigns.current_user do
       %User{current_profile: %{type: ^profile_type}} ->
         {:cont, socket}
 
+      _ ->
+        ensure_authenticated_redirect(socket)
+    end
+  end
+
+  defp ensure_authenticated_redirect(socket) do
+    case socket.assigns.current_user do
       %User{current_profile: %{type: "teacher"}} ->
         socket =
           socket

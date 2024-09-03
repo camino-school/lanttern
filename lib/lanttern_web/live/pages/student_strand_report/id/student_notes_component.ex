@@ -1,4 +1,4 @@
-defmodule LantternWeb.StudentReportCardStrandReportLive.StudentNotesComponent do
+defmodule LantternWeb.StudentStrandReportLive.StudentNotesComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Notes
