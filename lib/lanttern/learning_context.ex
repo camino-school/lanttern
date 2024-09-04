@@ -154,8 +154,12 @@ defmodule Lanttern.LearningContext do
     from(
       s in Strand,
       join: sr in assoc(s, :strand_reports),
+      left_join: m in assoc(s, :moments),
+      left_join: ap in assoc(m, :assessment_points),
       where: sr.report_card_id == ^report_card_id,
-      order_by: sr.position
+      order_by: sr.position,
+      group_by: [s.id, sr.position],
+      select: %{s | assessment_points_count: count(ap)}
     )
     |> Repo.all()
   end

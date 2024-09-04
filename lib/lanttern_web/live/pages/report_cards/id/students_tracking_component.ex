@@ -16,9 +16,9 @@ defmodule LantternWeb.ReportCardLive.StudentsTrackingComponent do
   def render(assigns) do
     ~H"""
     <div class="py-10">
-      <div class="container mx-auto lg:max-w-5xl">
+      <.responsive_container>
         <h5 class="font-display font-bold text-2xl">
-          <%= gettext("Students tracking") %>
+          <%= gettext("Students moments assessment tracking") %>
         </h5>
         <p class="mt-2">
           <%= gettext("Track progress of all students linked in the students tab.") %>
@@ -31,7 +31,7 @@ defmodule LantternWeb.ReportCardLive.StudentsTrackingComponent do
           class="mt-4"
           notify_component={@myself}
         />
-      </div>
+      </.responsive_container>
       <%= if !@has_students do %>
         <div class="container mx-auto mt-4 lg:max-w-5xl">
           <div class="p-10 rounded shadow-xl bg-white">
@@ -46,6 +46,7 @@ defmodule LantternWeb.ReportCardLive.StudentsTrackingComponent do
             students_stream={@streams.students}
             strands={@strands}
             has_students={@has_students}
+            students_entries_map={@students_entries_map}
           />
         </div>
       <% end %>
@@ -90,7 +91,10 @@ defmodule LantternWeb.ReportCardLive.StudentsTrackingComponent do
 
   defp stream_report_card_strands(socket) do
     strands =
-      LearningContext.list_report_card_strands(socket.assigns.report_card.id)
+      socket.assigns.report_card.id
+      |> LearningContext.list_report_card_strands()
+      # remove strands without assessment points
+      |> Enum.filter(&(&1.assessment_points_count > 0))
 
     socket
     |> assign(:strands, strands)

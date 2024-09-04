@@ -20,6 +20,9 @@ defmodule LantternWeb.ReportingComponents do
   alias Lanttern.Schools.Cycle
   alias Lanttern.Taxonomy.Year
 
+  # shared components
+  alias LantternWeb.Assessments.EntryParticleComponent
+
   @doc """
   Renders a teacher or student comment area
   """
@@ -319,24 +322,30 @@ defmodule LantternWeb.ReportingComponents do
 
   attr :students_stream, :any, required: true
   attr :has_students, :boolean, required: true
-  attr :strands, :list, required: true
-  # attr :students_entries_map, :map, required: true
+
+  attr :strands, :list,
+    required: true,
+    doc: "requires `assessment_points_count` field to be calculated"
+
+  attr :students_entries_map, :map, required: true
   attr :class, :any, default: nil
 
   def students_moments_entries_grid(assigns) do
-    strands_count = length(assigns.strands)
+    assessment_points_count =
+      assigns.strands
+      |> Enum.reduce(0, fn strand, count -> count + strand.assessment_points_count end)
 
     grid_template_columns_style =
-      case strands_count do
+      case assessment_points_count do
         n when n > 0 ->
-          "grid-template-columns: 200px repeat(#{n}, minmax(144px, 1fr))"
+          "grid-template-columns: 200px repeat(#{n}, 16px)"
 
         _ ->
-          "grid-template-columns: 200px minmax(144px, 1fr)"
+          "grid-template-columns: 200px minmax(10px, 1fr)"
       end
 
     grid_column_style =
-      case strands_count do
+      case assessment_points_count do
         0 -> "grid-column: span 2 / span 2"
         n -> "grid-column: span #{n + 1} / span #{n + 1}"
       end
@@ -351,22 +360,30 @@ defmodule LantternWeb.ReportingComponents do
       "relative w-full max-h-[calc(100vh-4rem)] rounded bg-white shadow-xl overflow-x-auto",
       @class
     ]}>
-      <div class="relative grid gap-1 w-max text-sm" style={@grid_template_columns_style}>
-        <div class="sticky top-0 z-20 grid grid-cols-subgrid p-1 bg-white" style={@grid_column_style}>
-          <div class="sticky left-1"></div>
+      <div class="relative grid gap-1 w-max min-w-full" style={@grid_template_columns_style}>
+        <div
+          class="sticky top-0 z-20 grid grid-cols-subgrid py-1 pr-1 bg-white"
+          style={@grid_column_style}
+        >
+          <div class="sticky left-0 bg-white"></div>
           <%= if @strands != [] do %>
-            <div
+            <a
               :for={strand <- @strands}
               id={"moments-entries-grid-strand-#{strand.id}"}
-              class="flex items-center justify-center gap-2 px-1 py-4 rounded text-center bg-white shadow-lg"
+              href={"/strands/#{strand.id}?tab=assessment"}
+              target="_blank"
+              class="w-full p-1 rounded-sm border border-ltrn-lighter text-center truncate bg-white hover:bg-ltrn-lighter"
+              style={"grid-column: span #{strand.assessment_points_count} / span #{strand.assessment_points_count}"}
+              title={"#{if strand.type, do: "#{strand.type} | "}#{strand.name}"}
             >
-              <span class="flex-1 truncate">
+              <span class="font-display font-black text-sm">
+                <%= if strand.type, do: "#{strand.type} | " %>
                 <%= strand.name %>
               </span>
-            </div>
+            </a>
           <% else %>
-            <div class="p-2 rounded text-ltrn-subtle bg-ltrn-lightest">
-              <%= gettext("No strands linked to this report card") %>
+            <div class="w-full p-2 rounded text-ltrn-subtle text-center bg-ltrn-lightest">
+              <%= gettext("No strands with moments assessment linked to this report card") %>
             </div>
           <% end %>
         </div>
@@ -374,21 +391,31 @@ defmodule LantternWeb.ReportingComponents do
           <div
             :for={{dom_id, student} <- @students_stream}
             id={dom_id}
-            class="grid grid-cols-subgrid px-1"
+            class="grid grid-cols-subgrid items-center pr-1 hover:bg-ltrn-mesh-cyan"
             style={@grid_column_style}
           >
-            <div class="sticky left-1 z-10 flex items-center gap-2 px-2 py-4 rounded bg-white shadow-lg">
-              <.profile_icon_with_name
-                icon_size="sm"
-                class="flex-1"
-                profile_name={student.name}
-                extra_info={student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
-              />
+            <div class="sticky left-0 z-10 p-2 text-xs truncate bg-white" title={student.name}>
+              <%= student.name %>
             </div>
             <%= if @strands != [] do %>
-              TBD
+              <%= for strand <- @strands do %>
+                <%= for {moment_id, assessment_point_id, entry} <- @students_entries_map[student.id][strand.id] do %>
+                  <a
+                    href={"/strands/moment/#{moment_id}?tab=assessment"}
+                    target="_blank"
+                    class="block w-min rounded-sm outline-ltrn-primary text-center hover:outline"
+                  >
+                    <.live_component
+                      module={EntryParticleComponent}
+                      id={"student-#{student.id}-ap-#{assessment_point_id}"}
+                      entry={entry}
+                      size="sm"
+                    />
+                  </a>
+                <% end %>
+              <% end %>
             <% else %>
-              <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+              <div class="h-full rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
             <% end %>
           </div>
         <% else %>
