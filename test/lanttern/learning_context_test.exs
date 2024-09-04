@@ -271,6 +271,54 @@ defmodule Lanttern.LearningContextTest do
       assert expected_strand_4.report_cycle == cycle_2023
     end
 
+    test "list_report_card_strands/1 returns all strands related to given report card" do
+      strand_1 = strand_fixture()
+      strand_2 = strand_fixture()
+      strand_3 = strand_fixture()
+
+      report_card =
+        Lanttern.ReportingFixtures.report_card_fixture()
+
+      # create strand reports
+
+      _strand_report_1 =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: report_card.id,
+          strand_id: strand_1.id
+        })
+
+      _strand_report_2 =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: report_card.id,
+          strand_id: strand_2.id
+        })
+
+      _strand_report_3 =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: report_card.id,
+          strand_id: strand_3.id
+        })
+
+      # use same strand in different reports
+      _other_strand_3_report =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          strand_id: strand_3.id
+        })
+
+      # extra fixtures for filter testing
+      other_strand = strand_fixture()
+      other_report_card = Lanttern.ReportingFixtures.report_card_fixture()
+
+      _other_strand_report =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: other_report_card.id,
+          strand_id: other_strand.id
+        })
+
+      assert LearningContext.list_report_card_strands(report_card.id) ==
+               [strand_1, strand_2, strand_3]
+    end
+
     test "search_strands/2 returns all items matched by search" do
       _strand_1 = strand_fixture(%{name: "lorem ipsum xolor sit amet"})
       strand_2 = strand_fixture(%{name: "lorem ipsum dolor sit amet"})

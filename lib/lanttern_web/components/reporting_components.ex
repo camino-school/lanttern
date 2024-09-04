@@ -312,4 +312,99 @@ defmodule LantternWeb.ReportingComponents do
     </div>
     """
   end
+
+  @doc """
+  Renders a student moments entries grid for a given report card.
+  """
+
+  attr :students_stream, :any, required: true
+  attr :has_students, :boolean, required: true
+  attr :strands, :list, required: true
+  # attr :students_entries_map, :map, required: true
+  attr :class, :any, default: nil
+
+  def students_moments_entries_grid(assigns) do
+    strands_count = length(assigns.strands)
+
+    grid_template_columns_style =
+      case strands_count do
+        n when n > 0 ->
+          "grid-template-columns: 200px repeat(#{n}, minmax(144px, 1fr))"
+
+        _ ->
+          "grid-template-columns: 200px minmax(144px, 1fr)"
+      end
+
+    grid_column_style =
+      case strands_count do
+        0 -> "grid-column: span 2 / span 2"
+        n -> "grid-column: span #{n + 1} / span #{n + 1}"
+      end
+
+    assigns =
+      assigns
+      |> assign(:grid_template_columns_style, grid_template_columns_style)
+      |> assign(:grid_column_style, grid_column_style)
+
+    ~H"""
+    <div class={[
+      "relative w-full max-h-[calc(100vh-4rem)] rounded bg-white shadow-xl overflow-x-auto",
+      @class
+    ]}>
+      <div class="relative grid gap-1 w-max text-sm" style={@grid_template_columns_style}>
+        <div class="sticky top-0 z-20 grid grid-cols-subgrid p-1 bg-white" style={@grid_column_style}>
+          <div class="sticky left-1"></div>
+          <%= if @strands != [] do %>
+            <div
+              :for={strand <- @strands}
+              id={"moments-entries-grid-strand-#{strand.id}"}
+              class="flex items-center justify-center gap-2 px-1 py-4 rounded text-center bg-white shadow-lg"
+            >
+              <span class="flex-1 truncate">
+                <%= strand.name %>
+              </span>
+            </div>
+          <% else %>
+            <div class="p-2 rounded text-ltrn-subtle bg-ltrn-lightest">
+              <%= gettext("No strands linked to this report card") %>
+            </div>
+          <% end %>
+        </div>
+        <%= if @has_students do %>
+          <div
+            :for={{dom_id, student} <- @students_stream}
+            id={dom_id}
+            class="grid grid-cols-subgrid px-1"
+            style={@grid_column_style}
+          >
+            <div class="sticky left-1 z-10 flex items-center gap-2 px-2 py-4 rounded bg-white shadow-lg">
+              <.profile_icon_with_name
+                icon_size="sm"
+                class="flex-1"
+                profile_name={student.name}
+                extra_info={student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
+              />
+            </div>
+            <%= if @strands != [] do %>
+              TBD
+            <% else %>
+              <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="grid grid-cols-subgrid" style={@grid_column_style}>
+            <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lightest">
+              <%= gettext("No students linked to this grades report") %>
+            </div>
+            <%= if @strands != [] do %>
+              TBD
+            <% else %>
+              <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    """
+  end
 end
