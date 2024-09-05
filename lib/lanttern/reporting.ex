@@ -14,6 +14,7 @@ defmodule Lanttern.Reporting do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.LearningContext.Moment
+  alias Lanttern.LearningContext.Strand
   alias Lanttern.Schools
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.Cycle
@@ -1025,5 +1026,90 @@ defmodule Lanttern.Reporting do
       order_by: [asc: min(y.id), asc: c.name]
     )
     |> Repo.all()
+  end
+
+  @doc """
+  Returns a map in the format
+
+      %{
+        student_id: %{
+          strand_id: [
+            {moment_id, assessment_point_id, %AssessmentPointEntry{}},
+            # other moment assessment entry tuples...
+          ],
+          # other strands ids...
+        },
+        # other students ids...
+      }
+
+  for given report card and students.
+
+  Moment/assessment point/entry tuples are ordered by moment and then by assessment point position.
+
+  When there's no entry, `nil` is returned in place. Moments and assessment points ids are included
+  to help building the element dom id in the frontend and link to the moment assessment page.
+
+  """
+  @spec build_students_moments_entries_map_for_report_card(
+          report_card_id :: pos_integer(),
+          students_ids :: [pos_integer()]
+        ) :: %{}
+  def build_students_moments_entries_map_for_report_card(report_card_id, students_ids) do
+    strands_moments_assessment_points =
+      from(
+        s in Strand,
+        join: sr in assoc(s, :strand_reports),
+        join: m in assoc(s, :moments),
+        join: ap in assoc(m, :assessment_points),
+        where: sr.report_card_id == ^report_card_id,
+        select: {s.id, m.id, ap.id},
+        order_by: [asc: m.position, asc: ap.position]
+      )
+      |> Repo.all()
+
+    assessment_points_ids =
+      strands_moments_assessment_points
+      |> Enum.map(fn {_s_id, _m_id, ap_id} -> ap_id end)
+
+    students_assessment_points_entry_map =
+      from(
+        e in AssessmentPointEntry,
+        where: e.assessment_point_id in ^assessment_points_ids,
+        where: e.student_id in ^students_ids
+      )
+      |> Repo.all()
+      |> Enum.map(&{"#{&1.student_id}_#{&1.assessment_point_id}", &1})
+      |> Enum.into(%{})
+
+    students_ids
+    |> Enum.map(fn std_id ->
+      {
+        std_id,
+        build_strands_moments_assessment_points_entries_map(
+          std_id,
+          strands_moments_assessment_points,
+          students_assessment_points_entry_map
+        )
+      }
+    end)
+    |> Enum.into(%{})
+  end
+
+  defp build_strands_moments_assessment_points_entries_map(
+         student_id,
+         strands_moments_assessment_points,
+         students_assessment_points_entry_map
+       ) do
+    strands_moments_assessment_points
+    |> Enum.group_by(
+      fn {s_id, _m_id, _ap_id} -> s_id end,
+      fn {_s_id, m_id, ap_id} ->
+        {
+          m_id,
+          ap_id,
+          students_assessment_points_entry_map["#{student_id}_#{ap_id}"]
+        }
+      end
+    )
   end
 end

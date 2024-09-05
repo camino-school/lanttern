@@ -8,6 +8,7 @@ defmodule Lanttern.LearningContextTest do
     alias Lanttern.LearningContext.Strand
 
     import Lanttern.TaxonomyFixtures
+    import Lanttern.AssessmentsFixtures
 
     @invalid_attrs %{name: nil, description: nil}
 
@@ -269,6 +270,80 @@ defmodule Lanttern.LearningContextTest do
       assert expected_strand_4.id == strand_4.id
       assert expected_strand_4.strand_report_id == strand_report_4_2023.id
       assert expected_strand_4.report_cycle == cycle_2023
+    end
+
+    test "list_report_card_strands/1 returns all strands related to given report card with correct assessment points count" do
+      strand_1 = strand_fixture()
+      strand_2 = strand_fixture()
+      strand_3 = strand_fixture()
+
+      # moments and assessment points fixture
+      # strand_1 = 3 moments, 1 assessment point each = 3 aps
+      # strand_2 = 1 moment, 2 assessment points = 2 aps
+      # strand_3 = 1 moment, no assessment points = 0 aps
+
+      m_1_1 = moment_fixture(%{strand_id: strand_1.id})
+      m_1_2 = moment_fixture(%{strand_id: strand_1.id})
+      m_1_3 = moment_fixture(%{strand_id: strand_1.id})
+      m_2_1 = moment_fixture(%{strand_id: strand_2.id})
+      _m_3_1 = moment_fixture(%{strand_id: strand_3.id})
+
+      _ap_1_1 = assessment_point_fixture(%{moment_id: m_1_1.id})
+      _ap_1_2 = assessment_point_fixture(%{moment_id: m_1_2.id})
+      _ap_1_3 = assessment_point_fixture(%{moment_id: m_1_3.id})
+      _ap_2_1_1 = assessment_point_fixture(%{moment_id: m_2_1.id})
+      _ap_2_1_2 = assessment_point_fixture(%{moment_id: m_2_1.id})
+
+      report_card =
+        Lanttern.ReportingFixtures.report_card_fixture()
+
+      # create strand reports
+
+      _strand_report_1 =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: report_card.id,
+          strand_id: strand_1.id
+        })
+
+      _strand_report_2 =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: report_card.id,
+          strand_id: strand_2.id
+        })
+
+      _strand_report_3 =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: report_card.id,
+          strand_id: strand_3.id
+        })
+
+      # use same strand in different reports
+      _other_strand_3_report =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          strand_id: strand_3.id
+        })
+
+      # extra fixtures for filter testing
+      other_strand = strand_fixture()
+      other_report_card = Lanttern.ReportingFixtures.report_card_fixture()
+
+      _other_strand_report =
+        Lanttern.ReportingFixtures.strand_report_fixture(%{
+          report_card_id: other_report_card.id,
+          strand_id: other_strand.id
+        })
+
+      assert [expected_strand_1, expected_strand_2, expected_strand_3] =
+               LearningContext.list_report_card_strands(report_card.id)
+
+      assert expected_strand_1.id == strand_1.id
+      assert expected_strand_1.assessment_points_count == 3
+
+      assert expected_strand_2.id == strand_2.id
+      assert expected_strand_2.assessment_points_count == 2
+
+      assert expected_strand_3.id == strand_3.id
+      assert expected_strand_3.assessment_points_count == 0
     end
 
     test "search_strands/2 returns all items matched by search" do

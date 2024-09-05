@@ -139,6 +139,32 @@ defmodule Lanttern.LearningContext do
     do: apply_list_student_strands_opts(queryable, opts)
 
   @doc """
+  Returns the list of strands linked to the given report card.
+
+  Results are ordered by strand report position.
+
+  ## Examples
+
+      iex> list_report_card_strands(report_card_id)
+      [%Strand{}, ...]
+
+  """
+  @spec list_report_card_strands(report_card_id :: pos_integer()) :: [Strand.t()]
+  def list_report_card_strands(report_card_id) do
+    from(
+      s in Strand,
+      join: sr in assoc(s, :strand_reports),
+      left_join: m in assoc(s, :moments),
+      left_join: ap in assoc(m, :assessment_points),
+      where: sr.report_card_id == ^report_card_id,
+      order_by: sr.position,
+      group_by: [s.id, sr.position],
+      select: %{s | assessment_points_count: count(ap)}
+    )
+    |> Repo.all()
+  end
+
+  @doc """
   Search strands by name.
 
   ## Options

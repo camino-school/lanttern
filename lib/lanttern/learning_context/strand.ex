@@ -30,6 +30,7 @@ defmodule Lanttern.LearningContext.Strand do
           years_ids: [pos_integer()],
           is_starred: boolean(),
           strand_report_id: pos_integer(),
+          assessment_points_count: non_neg_integer(),
           report_cycle: Cycle.t(),
           moments: [Moment.t()],
           assessment_points: [AssessmentPoint.t()],
@@ -53,6 +54,7 @@ defmodule Lanttern.LearningContext.Strand do
     field :years_ids, {:array, :id}, virtual: true
     field :is_starred, :boolean, virtual: true
     field :strand_report_id, :id, virtual: true
+    field :assessment_points_count, :integer, virtual: true
     field :report_cycle, :map, virtual: true
 
     has_many :moments, Moment

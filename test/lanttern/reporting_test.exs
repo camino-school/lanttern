@@ -1178,6 +1178,276 @@ defmodule Lanttern.ReportingTest do
     end
   end
 
+  describe "report card students assessments tracking" do
+    import Lanttern.ReportingFixtures
+
+    alias Lanttern.AssessmentsFixtures
+    alias Lanttern.CurriculaFixtures
+    alias Lanttern.GradingFixtures
+    alias Lanttern.LearningContextFixtures
+    alias Lanttern.SchoolsFixtures
+    alias Lanttern.TaxonomyFixtures
+
+    test "build_students_moments_entries_map_for_report_card/2 returns the map of students with strands and entries correctly" do
+      # expected grid for this test case:
+
+      # students  |      strand 1      | st 2 |  strand 3   |
+      # -----------------------------------------------------
+      # student A | m1_1 | m1_2 | nil  | m1_1 | nil  | m2_1 |
+      # student B | nil  | m1_2 | m2_1 | nil  | nil  | nil  |
+      # student C | m1_1 | m1_2 | m2_1 | m1_1 | m1_1 | nil  |
+
+      student_a = SchoolsFixtures.student_fixture()
+      student_b = SchoolsFixtures.student_fixture()
+      student_c = SchoolsFixtures.student_fixture()
+
+      # strands and moments fixtures
+
+      strand_1 = LearningContextFixtures.strand_fixture()
+      moment_1_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand_1.id})
+      moment_1_2 = LearningContextFixtures.moment_fixture(%{strand_id: strand_1.id})
+
+      strand_2 = LearningContextFixtures.strand_fixture()
+      moment_2_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand_2.id})
+
+      strand_3 = LearningContextFixtures.strand_fixture()
+      moment_3_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand_3.id})
+      moment_3_2 = LearningContextFixtures.moment_fixture(%{strand_id: strand_3.id})
+
+      # assessments fixtures
+
+      scale = GradingFixtures.scale_fixture(%{type: "numeric"})
+
+      ap_1_1_1 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_1_1.id,
+          scale_id: scale.id
+        })
+
+      ap_1_1_2 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_1_1.id,
+          scale_id: scale.id
+        })
+
+      ap_1_2_1 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_1_2.id,
+          scale_id: scale.id
+        })
+
+      ap_2_1_1 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_2_1.id,
+          scale_id: scale.id
+        })
+
+      ap_3_1_1 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_3_1.id,
+          scale_id: scale.id
+        })
+
+      ap_3_2_1 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_3_2.id,
+          scale_id: scale.id
+        })
+
+      entry_std_a_ap_1_1_1 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student_a.id,
+          assessment_point_id: ap_1_1_1.id,
+          scale_id: scale.id,
+          scale_type: "numeric"
+        })
+
+      entry_std_a_ap_1_1_2 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student_a.id,
+          assessment_point_id: ap_1_1_2.id,
+          scale_id: scale.id,
+          scale_type: "numeric"
+        })
+
+      entry_std_a_ap_2_1_1 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student_a.id,
+          assessment_point_id: ap_2_1_1.id,
+          scale_id: scale.id,
+          scale_type: "numeric"
+        })
+
+      entry_std_a_ap_3_2_1 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student_a.id,
+          assessment_point_id: ap_3_2_1.id,
+          scale_id: scale.id,
+          scale_type: "numeric"
+        })
+
+      entry_std_b_ap_1_1_2 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student_b.id,
+          assessment_point_id: ap_1_1_2.id,
+          scale_id: scale.id,
+          scale_type: "numeric"
+        })
+
+      entry_std_b_ap_1_2_1 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student_b.id,
+          assessment_point_id: ap_1_2_1.id,
+          scale_id: scale.id,
+          scale_type: "numeric"
+        })
+
+      entry_std_c_ap_1_1_1 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student_c.id,
+          assessment_point_id: ap_1_1_1.id,
+          scale_id: scale.id,
+          scale_type: "numeric"
+        })
+
+      entry_std_c_ap_1_1_2 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student_c.id,
+          assessment_point_id: ap_1_1_2.id,
+          scale_id: scale.id,
+          scale_type: "numeric"
+        })
+
+      entry_std_c_ap_1_2_1 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student_c.id,
+          assessment_point_id: ap_1_2_1.id,
+          scale_id: scale.id,
+          scale_type: "numeric"
+        })
+
+      entry_std_c_ap_2_1_1 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student_c.id,
+          assessment_point_id: ap_2_1_1.id,
+          scale_id: scale.id,
+          scale_type: "numeric"
+        })
+
+      entry_std_c_ap_3_1_1 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student_c.id,
+          assessment_point_id: ap_3_1_1.id,
+          scale_id: scale.id,
+          scale_type: "numeric"
+        })
+
+      # report fixtures
+
+      report_card = report_card_fixture()
+
+      _strand_1_report =
+        strand_report_fixture(%{
+          report_card_id: report_card.id,
+          strand_id: strand_1.id
+        })
+
+      _strand_2_report =
+        strand_report_fixture(%{
+          report_card_id: report_card.id,
+          strand_id: strand_2.id
+        })
+
+      _strand_3_report =
+        strand_report_fixture(%{
+          report_card_id: report_card.id,
+          strand_id: strand_3.id
+        })
+
+      _student_a_report_card =
+        student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_a.id})
+
+      _student_b_report_card =
+        student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_b.id})
+
+      _student_c_report_card =
+        student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_c.id})
+
+      expected =
+        Reporting.build_students_moments_entries_map_for_report_card(report_card.id, [
+          student_a.id,
+          student_b.id,
+          student_c.id
+        ])
+
+      # ids for pattern match
+      moment_1_1_id = moment_1_1.id
+      moment_1_2_id = moment_1_2.id
+      moment_2_1_id = moment_2_1.id
+      moment_3_1_id = moment_3_1.id
+      moment_3_2_id = moment_3_2.id
+      ap_1_1_1_id = ap_1_1_1.id
+      ap_1_1_2_id = ap_1_1_2.id
+      ap_1_2_1_id = ap_1_2_1.id
+      ap_2_1_1_id = ap_2_1_1.id
+      ap_3_1_1_id = ap_3_1_1.id
+      ap_3_2_1_id = ap_3_2_1.id
+
+      # assertions
+
+      expected_std_a_strands_map = expected[student_a.id]
+
+      assert [
+               {^moment_1_1_id, ^ap_1_1_1_id, ^entry_std_a_ap_1_1_1},
+               {^moment_1_1_id, ^ap_1_1_2_id, ^entry_std_a_ap_1_1_2},
+               {^moment_1_2_id, ^ap_1_2_1_id, nil}
+             ] = expected_std_a_strands_map[strand_1.id]
+
+      assert [
+               {^moment_2_1_id, ^ap_2_1_1_id, ^entry_std_a_ap_2_1_1}
+             ] = expected_std_a_strands_map[strand_2.id]
+
+      assert [
+               {^moment_3_1_id, ^ap_3_1_1_id, nil},
+               {^moment_3_2_id, ^ap_3_2_1_id, ^entry_std_a_ap_3_2_1}
+             ] = expected_std_a_strands_map[strand_3.id]
+
+      expected_std_b_strands_map = expected[student_b.id]
+
+      assert [
+               {^moment_1_1_id, ^ap_1_1_1_id, nil},
+               {^moment_1_1_id, ^ap_1_1_2_id, ^entry_std_b_ap_1_1_2},
+               {^moment_1_2_id, ^ap_1_2_1_id, ^entry_std_b_ap_1_2_1}
+             ] = expected_std_b_strands_map[strand_1.id]
+
+      assert [
+               {^moment_2_1_id, ^ap_2_1_1_id, nil}
+             ] = expected_std_b_strands_map[strand_2.id]
+
+      assert [
+               {^moment_3_1_id, ^ap_3_1_1_id, nil},
+               {^moment_3_2_id, ^ap_3_2_1_id, nil}
+             ] = expected_std_b_strands_map[strand_3.id]
+
+      expected_std_c_strands_map = expected[student_c.id]
+
+      assert [
+               {^moment_1_1_id, ^ap_1_1_1_id, ^entry_std_c_ap_1_1_1},
+               {^moment_1_1_id, ^ap_1_1_2_id, ^entry_std_c_ap_1_1_2},
+               {^moment_1_2_id, ^ap_1_2_1_id, ^entry_std_c_ap_1_2_1}
+             ] = expected_std_c_strands_map[strand_1.id]
+
+      assert [
+               {^moment_2_1_id, ^ap_2_1_1_id, ^entry_std_c_ap_2_1_1}
+             ] = expected_std_c_strands_map[strand_2.id]
+
+      assert [
+               {^moment_3_1_id, ^ap_3_1_1_id, ^entry_std_c_ap_3_1_1},
+               {^moment_3_2_id, ^ap_3_2_1_id, nil}
+             ] = expected_std_c_strands_map[strand_3.id]
+    end
+  end
+
   describe "extra" do
     import Lanttern.ReportingFixtures
     alias Lanttern.AssessmentsFixtures
