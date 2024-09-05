@@ -391,10 +391,13 @@ defmodule LantternWeb.ReportingComponents do
           <div
             :for={{dom_id, student} <- @students_stream}
             id={dom_id}
-            class="grid grid-cols-subgrid items-center pr-1 hover:bg-ltrn-mesh-cyan"
+            class="group grid grid-cols-subgrid items-center pr-1 hover:bg-ltrn-mesh-cyan"
             style={@grid_column_style}
           >
-            <div class="sticky left-0 z-10 p-2 text-xs truncate bg-white" title={student.name}>
+            <div
+              class="sticky left-0 z-10 p-2 text-xs truncate bg-white group-hover:bg-ltrn-mesh-cyan"
+              title={student.name}
+            >
               <%= student.name %>
             </div>
             <%= if @strands != [] do %>
