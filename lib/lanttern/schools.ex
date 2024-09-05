@@ -262,15 +262,6 @@ defmodule Lanttern.Schools do
   def list_user_classes(current_user, opts \\ [])
 
   def list_user_classes(%{current_profile: %{type: "teacher", school_id: school_id}}, opts) do
-    # from(
-    #   cl in Class,
-    #   join: cy in assoc(cl, :cycle),
-    #   left_join: s in assoc(cl, :students),
-    #   left_join: y in assoc(cl, :years),
-    #   group_by: [cl.id, cy.end_at],
-    #   order_by: [desc: cy.end_at, asc: min(y.id), asc: cl.name],
-    #   where: [school_id: ^school_id]
-    # )
     from(
       cl in Class,
       join: cy in assoc(cl, :cycle),
