@@ -69,6 +69,11 @@ defmodule LantternWeb.ReportingComponents do
   attr :year, Year, default: nil
   attr :is_wip, :boolean, default: false
   attr :navigate, :string, default: nil
+
+  attr :open_in_new, :string,
+    default: nil,
+    doc: "will render `<a>` tag with `target='_blank'` instead of `<.link>`"
+
   attr :hide_description, :boolean, default: false
   attr :id, :string, default: nil
   attr :class, :any, default: nil
@@ -97,14 +102,20 @@ defmodule LantternWeb.ReportingComponents do
           "font-display font-black text-2xl line-clamp-3",
           "md:text-3xl"
         ]}>
-          <%= if @navigate && not @is_wip do %>
-            <.link navigate={@navigate} class="underline hover:text-ltrn-subtle">
-              <%= @report_card.name %>
-            </.link>
-          <% else %>
-            <span :if={@is_wip} class="text-ltrn-subtle"><%= @report_card.name %></span>
-            <%= if !@is_wip, do: @report_card.name %>
-          <% end %>
+          <.link :if={@navigate} navigate={@navigate} class="underline hover:text-ltrn-subtle">
+            <%= @report_card.name %>
+          </.link>
+          <a
+            :if={@open_in_new}
+            href={@open_in_new}
+            target="_blank"
+            class="underline hover:text-ltrn-subtle"
+          >
+            <%= @report_card.name %>
+          </a>
+          <span :if={!@navigate && !@open_in_new} class={if @is_wip, do: "text-ltrn-subtle"}>
+            <%= @report_card.name %>
+          </span>
         </h5>
         <div :if={@cycle || @report_card.year} class="flex flex-wrap gap-2">
           <.badge :if={@cycle}>

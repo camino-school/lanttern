@@ -65,6 +65,82 @@ defmodule Lanttern.GradesReports do
   end
 
   @doc """
+  Returns the list of grade reports linked to the given student,
+  with grid elements preloaded.
+
+  Grades reports links to student through student report cards:
+
+      grades report
+      is linked to report card
+      linked to student report card
+      linked to student
+
+  Results are ordered by grades report cycle desc.
+
+  Preloads school cycle and grades report cycles/subjects (with school cycle/subject preloaded).
+
+  ## Examples
+
+      iex> list_student_grades_reports_grids(student_id)
+      [%GradesReport{}, ...]
+
+  """
+  @spec list_student_grades_reports_grids(student_id :: pos_integer()) :: [GradesReport.t()]
+  def list_student_grades_reports_grids(student_id) do
+    grades_reports =
+      from(
+        gr in GradesReport,
+        join: c in assoc(gr, :school_cycle),
+        join: rc in assoc(gr, :report_cards),
+        join: src in assoc(rc, :students_report_cards),
+        where: src.student_id == ^student_id,
+        distinct: [desc: c.end_at, asc: c.start_at, asc: gr.id],
+        # any order by, just to make distinct order work
+        order_by: gr.name,
+        preload: [school_cycle: c]
+      )
+      |> Repo.all()
+
+    grades_reports_ids = Enum.map(grades_reports, & &1.id)
+
+    grades_reports_cycles_map =
+      from(
+        gr in GradesReport,
+        left_join: grc in assoc(gr, :grades_report_cycles),
+        left_join: grc_sc in assoc(grc, :school_cycle),
+        where: gr.id in ^grades_reports_ids,
+        order_by: [asc: grc_sc.end_at, desc: grc_sc.start_at],
+        preload: [grades_report_cycles: {grc, [school_cycle: grc_sc]}]
+      )
+      |> Repo.all()
+      |> Enum.map(&{&1.id, &1.grades_report_cycles})
+      |> Enum.into(%{})
+
+    grades_reports_subjects_map =
+      from(
+        gr in GradesReport,
+        left_join: grs in assoc(gr, :grades_report_subjects),
+        left_join: grs_s in assoc(grs, :subject),
+        where: gr.id in ^grades_reports_ids,
+        order_by: [asc: grs.position],
+        preload: [grades_report_subjects: {grs, [subject: grs_s]}]
+      )
+      |> Repo.all()
+      |> Enum.map(&{&1.id, &1.grades_report_subjects})
+      |> Enum.into(%{})
+
+    # "load" grades reports cycles and subjects and return
+    grades_reports
+    |> Enum.map(
+      &%{
+        &1
+        | grades_report_cycles: Map.get(grades_reports_cycles_map, &1.id, []),
+          grades_report_subjects: Map.get(grades_reports_subjects_map, &1.id, [])
+      }
+    )
+  end
+
+  @doc """
   Gets a single grade report.
 
   Returns `nil` if the grade report does not exist.
