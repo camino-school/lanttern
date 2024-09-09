@@ -50,8 +50,6 @@ msgstr "Escola"
 #: lib/lanttern_web/live/pages/student_strand_report/id/student_strand_report_live.html.heex:10
 #: lib/lanttern_web/live/pages/student_strands/student_strands_live.html.heex:2
 #: lib/lanttern_web/live/shared/menu_component.ex:37
-#: lib/lanttern_web/live/shared/menu_component.ex:64
-#: lib/lanttern_web/live/shared/menu_component.ex:76
 #, elixir-autogen, elixir-format
 msgid "Strands"
 msgstr "Trilhas"
@@ -1448,7 +1446,7 @@ msgid "No strands linked to this report yet"
 msgstr "Nenhuma trilha vinculada a este relatório ainda"
 
 #: lib/lanttern_web/components/grades_reports_components.ex:420
-#: lib/lanttern_web/components/reporting_components.ex:424
+#: lib/lanttern_web/components/reporting_components.ex:427
 #, elixir-autogen, elixir-format
 msgid "No students linked to this grades report"
 msgstr "Nenhum estudante vinculado a este relatório de notas"
@@ -2708,6 +2706,7 @@ msgstr "Aqui você irá encontrar informações sobre as avaliações final e fo
 
 #: lib/lanttern_web/components/assessments_components.ex:67
 #: lib/lanttern_web/components/assessments_components.ex:206
+#: lib/lanttern_web/live/shared/assessments/entry_particle_component.ex:122
 #, elixir-autogen, elixir-format
 msgid "No entry"
 msgstr "Sem registro"
@@ -2797,3 +2796,13 @@ msgstr "Acompanhe o progresso de todos estudantes vinculados na aba estudantes."
 #, elixir-autogen, elixir-format
 msgid "Tracking"
 msgstr "Acompanhamento"
+
+#: lib/lanttern_web/live/shared/assessments/entry_particle_component.ex:120
+#, elixir-autogen, elixir-format
+msgid "No student self-assessment"
+msgstr "Sem autoavaliação do estudante"
+
+#: lib/lanttern_web/live/shared/assessments/entry_particle_component.ex:121
+#, elixir-autogen, elixir-format
+msgid "No teacher assessment"
+msgstr "Sem avaliação do professor"
