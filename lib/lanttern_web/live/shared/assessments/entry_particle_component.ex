@@ -94,26 +94,7 @@ defmodule LantternWeb.Assessments.EntryParticleComponent do
       end
 
     {additional_classes, style, particle_text, full_text} =
-      case ordinal_value_or_score do
-        %OrdinalValue{} = ordinal_value ->
-          style =
-            "color: #{ordinal_value.text_color}; background-color: #{ordinal_value.bg_color}"
-
-          {nil, style, String.first(ordinal_value.name), ordinal_value.name}
-
-        score when is_float(score) ->
-          {"text-ltrn-dark bg-ltrn-lighter", nil, "•", score}
-
-        _ ->
-          full_text =
-            case {assigns.entry, is_student} do
-              {%AssessmentPointEntry{}, true} -> gettext("No student self-assessment")
-              {%AssessmentPointEntry{}, _} -> gettext("No teacher assessment")
-              _ -> gettext("No entry")
-            end
-
-          {"border border-dashed border-ltrn-light text-ltrn-light", nil, "-", full_text}
-      end
+      get_particle_styles_and_text(ordinal_value_or_score, assigns.entry, is_student)
 
     socket
     |> assign(assigns)
@@ -121,5 +102,26 @@ defmodule LantternWeb.Assessments.EntryParticleComponent do
     |> assign(:style, style)
     |> assign(:particle_text, particle_text)
     |> assign(:full_text, full_text)
+  end
+
+  defp get_particle_styles_and_text(%OrdinalValue{} = ordinal_value, _, _) do
+    style =
+      "color: #{ordinal_value.text_color}; background-color: #{ordinal_value.bg_color}"
+
+    {nil, style, String.first(ordinal_value.name), ordinal_value.name}
+  end
+
+  defp get_particle_styles_and_text(score, _, _) when is_float(score),
+    do: {"text-ltrn-dark bg-ltrn-lighter", nil, "•", score}
+
+  defp get_particle_styles_and_text(_, entry, is_student) do
+    full_text =
+      case {entry, is_student} do
+        {%AssessmentPointEntry{}, true} -> gettext("No student self-assessment")
+        {%AssessmentPointEntry{}, _} -> gettext("No teacher assessment")
+        _ -> gettext("No entry")
+      end
+
+    {"border border-dashed border-ltrn-light text-ltrn-light", nil, "-", full_text}
   end
 end
