@@ -12,13 +12,16 @@ defmodule LantternWeb.Assessments.EntryParticleComponent do
 
   #### Optional assigns
 
+      attr :is_student, :boolean, default: false
       attr :size, :string, default: "md", doc: "sm | md"
       attr :class, :any, default: nil
 
   """
   use LantternWeb, :live_component
 
+  alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Grading
+  alias Lanttern.Grading.OrdinalValue
 
   @impl true
   def render(assigns) do
@@ -26,13 +29,14 @@ defmodule LantternWeb.Assessments.EntryParticleComponent do
     <div
       class={[
         "flex items-center justify-center rounded-sm",
-        if(@size == "sm", do: "w-4 h-4 max-w-4 text-sm", else: "w-6 h-6 max-w-6 text-base"),
+        if(@size == "sm", do: "w-4 h-4 max-w-4 text-xs", else: "w-6 h-6 max-w-6 text-sm"),
         @additional_classes,
         @class
       ]}
       style={@style}
+      title={@full_text}
     >
-      <%= @text %>
+      <%= @particle_text %>
     </div>
     """
   end
@@ -74,27 +78,48 @@ defmodule LantternWeb.Assessments.EntryParticleComponent do
   end
 
   defp update_single({assigns, socket}, ovs_map) do
-    {additional_classes, style, text} =
+    is_student = Map.get(assigns, :is_student)
+
+    ordinal_value_or_score =
       case assigns.entry do
         %{scale_type: "ordinal"} = entry ->
-          ordinal_value = ovs_map[entry.ordinal_value_id]
+          ov_id = if is_student, do: entry.student_ordinal_value_id, else: entry.ordinal_value_id
+          Map.get(ovs_map, ov_id)
 
+        %{scale_type: "numeric"} = entry ->
+          if is_student, do: entry.student_score, else: entry.score
+
+        _ ->
+          nil
+      end
+
+    {additional_classes, style, particle_text, full_text} =
+      case ordinal_value_or_score do
+        %OrdinalValue{} = ordinal_value ->
           style =
             "color: #{ordinal_value.text_color}; background-color: #{ordinal_value.bg_color}"
 
-          {nil, style, "•"}
+          {nil, style, String.first(ordinal_value.name), ordinal_value.name}
 
-        %{scale_type: "numeric"} ->
-          {"text-ltrn-dark bg-ltrn-lighter", nil, "•"}
+        score when is_float(score) ->
+          {"text-ltrn-dark bg-ltrn-lighter", nil, "•", score}
 
-        nil ->
-          {"border border-dashed border-ltrn-light text-ltrn-light", nil, "-"}
+        _ ->
+          full_text =
+            case {assigns.entry, is_student} do
+              {%AssessmentPointEntry{}, true} -> gettext("No student self-assessment")
+              {%AssessmentPointEntry{}, _} -> gettext("No teacher assessment")
+              _ -> gettext("No entry")
+            end
+
+          {"border border-dashed border-ltrn-light text-ltrn-light", nil, "-", full_text}
       end
 
     socket
     |> assign(assigns)
     |> assign(:additional_classes, additional_classes)
     |> assign(:style, style)
-    |> assign(:text, text)
+    |> assign(:particle_text, particle_text)
+    |> assign(:full_text, full_text)
   end
 end
