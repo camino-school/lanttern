@@ -1300,6 +1300,8 @@ defmodule Lanttern.GradesReports do
 
   for the given student report card id.
 
+  Removes `composition` from returned `StudentGradeReportEntry` to save memory.
+
   Ordinal values preloaded (manually) in student grade report entry.
   """
   @spec build_student_grades_map(student_report_card_id :: pos_integer()) :: %{}
@@ -1322,6 +1324,9 @@ defmodule Lanttern.GradesReports do
       select: {grc.id, grs.id, sgre, ov, pr_ov}
     )
     |> Repo.all()
+    |> Enum.map(fn {grc_id, grs_id, sgre, ov, pr_ov} ->
+      {grc_id, grs_id, sgre && %{sgre | composition: nil}, ov, pr_ov}
+    end)
     |> build_grades_report_cycle_subject_map()
   end
 
@@ -1341,7 +1346,7 @@ defmodule Lanttern.GradesReports do
 
   for the given student and grades reports.
 
-  Remove `composition` from returned `StudentGradeReportEntry` to save memory.
+  Removes `composition` from returned `StudentGradeReportEntry` to save memory.
 
   Ordinal values preloaded (manually) in student grade report entry.
   """
