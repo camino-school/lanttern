@@ -1246,9 +1246,9 @@ defmodule Lanttern.GradesReports do
   Ordinal values preloaded (manually) in student grade report entry.
   """
   @spec build_students_grades_map(
-          student_ids :: [integer()],
-          grades_report_id :: integer(),
-          cycle_id :: integer()
+          students_ids :: [pos_integer()],
+          grades_report_id :: pos_integer(),
+          cycle_id :: pos_integer()
         ) :: %{}
   def build_students_grades_map(students_ids, grades_report_id, cycle_id) do
     from(
@@ -1302,7 +1302,7 @@ defmodule Lanttern.GradesReports do
 
   Ordinal values preloaded (manually) in student grade report entry.
   """
-  @spec build_student_grades_map(student_report_card_id :: integer()) :: %{}
+  @spec build_student_grades_map(student_report_card_id :: pos_integer()) :: %{}
   def build_student_grades_map(student_report_card_id) do
     from(
       src in StudentReportCard,
@@ -1322,6 +1322,63 @@ defmodule Lanttern.GradesReports do
       select: {grc.id, grs.id, sgre, ov, pr_ov}
     )
     |> Repo.all()
+    |> build_grades_report_cycle_subject_map()
+  end
+
+  @doc """
+  Returns a map in the format
+
+      %{
+        grades_report_id => %{
+          cycle_id => %{
+            subject_id => %StudentGradeReportEntry{},
+            # other subjects ids...
+          },
+          # other cycles ids...
+        },
+        # other grades reports...
+      }
+
+  for the given student and grades reports.
+
+  Ordinal values preloaded (manually) in student grade report entry.
+  """
+  @spec build_student_grades_maps(
+          student_id :: pos_integer(),
+          grades_reports_ids :: [pos_integer()]
+        ) :: %{}
+  def build_student_grades_maps(student_id, grades_reports_ids) do
+    from(
+      gr in GradesReport,
+      join: grc in assoc(gr, :grades_report_cycles),
+      # on: grc.is_visible,
+      join: grs in assoc(gr, :grades_report_subjects),
+      left_join: sgre in StudentGradeReportEntry,
+      on:
+        sgre.grades_report_cycle_id == grc.id and
+          sgre.grades_report_subject_id == grs.id and
+          sgre.student_id == ^student_id,
+      left_join: ov in assoc(sgre, :ordinal_value),
+      left_join: pr_ov in assoc(sgre, :pre_retake_ordinal_value),
+      where: gr.id in ^grades_reports_ids,
+      select: {gr.id, grc.id, grs.id, sgre, ov, pr_ov}
+    )
+    |> Repo.all()
+    |> Enum.group_by(
+      fn {gr_id, _, _, _, _, _} -> gr_id end,
+      fn {_, grc_id, grs_id, sgre, ov, pr_ov} -> {grc_id, grs_id, sgre, ov, pr_ov} end
+    )
+    |> Enum.map(fn {gr_id, rest} ->
+      {
+        gr_id,
+        build_grades_report_cycle_subject_map(rest)
+      }
+    end)
+    |> Enum.into(%{})
+  end
+
+  defp build_grades_report_cycle_subject_map(grades_reports_cycles_subjects_entries_ov_and_pr_ov) do
+    grades_reports_cycles_subjects_entries_ov_and_pr_ov
     |> Enum.reduce(%{}, fn {grc_id, grs_id, sgre, ov, pr_ov}, acc ->
       # "preload" ordinal value in student grade report entry
       sgre =

@@ -2774,7 +2774,7 @@ defmodule Lanttern.GradesReportsTest do
       grades_report = grades_report_fixture(%{scale_id: scale.id})
       report_card = ReportingFixtures.report_card_fixture(%{grades_report_id: grades_report.id})
 
-      student_grades_report =
+      student_report_card =
         ReportingFixtures.student_report_card_fixture(%{
           student_id: std.id,
           report_card_id: report_card.id
@@ -2868,7 +2868,7 @@ defmodule Lanttern.GradesReportsTest do
 
       # extra fixtures for query test (TBD)
 
-      assert expected = GradesReports.build_student_grades_map(student_grades_report.id)
+      assert expected = GradesReports.build_student_grades_map(student_report_card.id)
 
       # expected structure
       #       | cycle 1   | cycle 2   | cycle 3
@@ -2902,6 +2902,186 @@ defmodule Lanttern.GradesReportsTest do
       assert is_nil(expected_entry_3_1.ordinal_value)
       assert is_nil(expected_cycle_3[grades_report_subject_2.id])
       assert is_nil(expected_cycle_3[grades_report_subject_3.id])
+    end
+
+    test "build_student_grades_maps/2 returns the correct map for given student and grades reports" do
+      # expected structure
+
+      # grades report 1
+      #       | cycle 1_1   | cycle 1_2   | cycle 1_3
+      # sub A | entry_1_1_a | entry_1_2_a | entry_1_3_a
+      # sub B | entry_1_1_b | nil         | nil
+
+      # grades report 2
+      #       | cycle 2_1   | cycle 2_2   | cycle 2_3
+      # sub B | entry_2_1_b | entry_2_2_b | nil
+
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+
+      std = SchoolsFixtures.student_fixture()
+      grades_report_1 = grades_report_fixture(%{scale_id: scale.id})
+      grades_report_2 = grades_report_fixture(%{scale_id: scale.id})
+
+      cycle_1_1 = SchoolsFixtures.cycle_fixture()
+      cycle_1_2 = SchoolsFixtures.cycle_fixture()
+      cycle_1_3 = SchoolsFixtures.cycle_fixture()
+
+      cycle_2_1 = SchoolsFixtures.cycle_fixture()
+      cycle_2_2 = SchoolsFixtures.cycle_fixture()
+      cycle_2_3 = SchoolsFixtures.cycle_fixture()
+
+      grades_report_cycle_1_1 =
+        grades_report_cycle_fixture(%{
+          school_cycle_id: cycle_1_1.id,
+          grades_report_id: grades_report_1.id
+        })
+
+      grades_report_cycle_1_2 =
+        grades_report_cycle_fixture(%{
+          school_cycle_id: cycle_1_2.id,
+          grades_report_id: grades_report_1.id
+        })
+
+      grades_report_cycle_1_3 =
+        grades_report_cycle_fixture(%{
+          school_cycle_id: cycle_1_3.id,
+          grades_report_id: grades_report_1.id
+        })
+
+      grades_report_cycle_2_1 =
+        grades_report_cycle_fixture(%{
+          school_cycle_id: cycle_2_1.id,
+          grades_report_id: grades_report_2.id
+        })
+
+      grades_report_cycle_2_2 =
+        grades_report_cycle_fixture(%{
+          school_cycle_id: cycle_2_2.id,
+          grades_report_id: grades_report_2.id
+        })
+
+      grades_report_cycle_2_3 =
+        grades_report_cycle_fixture(%{
+          school_cycle_id: cycle_2_3.id,
+          grades_report_id: grades_report_2.id
+        })
+
+      grades_report_subject_1_a =
+        grades_report_subject_fixture(%{
+          grades_report_id: grades_report_1.id
+        })
+
+      grades_report_subject_1_b =
+        grades_report_subject_fixture(%{
+          grades_report_id: grades_report_1.id
+        })
+
+      grades_report_subject_2_b =
+        grades_report_subject_fixture(%{
+          grades_report_id: grades_report_2.id,
+          subject_id: grades_report_subject_1_b.subject_id
+        })
+
+      entry_1_1_a =
+        student_grade_report_entry_fixture(%{
+          student_id: std.id,
+          grades_report_id: grades_report_1.id,
+          grades_report_cycle_id: grades_report_cycle_1_1.id,
+          grades_report_subject_id: grades_report_subject_1_a.id,
+          ordinal_value_id: ov.id
+        })
+
+      entry_1_2_a =
+        student_grade_report_entry_fixture(%{
+          student_id: std.id,
+          grades_report_id: grades_report_1.id,
+          grades_report_cycle_id: grades_report_cycle_1_2.id,
+          grades_report_subject_id: grades_report_subject_1_a.id
+        })
+
+      entry_1_3_a =
+        student_grade_report_entry_fixture(%{
+          student_id: std.id,
+          grades_report_id: grades_report_1.id,
+          grades_report_cycle_id: grades_report_cycle_1_3.id,
+          grades_report_subject_id: grades_report_subject_1_a.id
+        })
+
+      entry_1_1_b =
+        student_grade_report_entry_fixture(%{
+          student_id: std.id,
+          grades_report_id: grades_report_1.id,
+          grades_report_cycle_id: grades_report_cycle_1_1.id,
+          grades_report_subject_id: grades_report_subject_1_b.id
+        })
+
+      entry_2_1_b =
+        student_grade_report_entry_fixture(%{
+          student_id: std.id,
+          grades_report_id: grades_report_2.id,
+          grades_report_cycle_id: grades_report_cycle_2_1.id,
+          grades_report_subject_id: grades_report_subject_2_b.id
+        })
+
+      entry_2_2_b =
+        student_grade_report_entry_fixture(%{
+          student_id: std.id,
+          grades_report_id: grades_report_2.id,
+          grades_report_cycle_id: grades_report_cycle_2_2.id,
+          grades_report_subject_id: grades_report_subject_2_b.id
+        })
+
+      # extra fixtures for query test (TBD)
+
+      expected =
+        GradesReports.build_student_grades_maps(std.id, [grades_report_1.id, grades_report_2.id])
+
+      expected_1 = expected[grades_report_1.id]
+
+      # grades report 1
+      #       | cycle 1_1   | cycle 1_2   | cycle 1_3
+      # sub A | entry_1_1_a | entry_1_2_a | entry_1_3_a
+      # sub B | entry_1_1_b | nil         | nil
+
+      # grades report 2
+      #       | cycle 2_1   | cycle 2_2   | cycle 2_3
+      # sub B | entry_2_1_b | entry_2_2_b | nil
+
+      expected_cycle_1_1 = expected_1[grades_report_cycle_1_1.id]
+      assert expected_entry_1_1_a = expected_cycle_1_1[grades_report_subject_1_a.id]
+      assert expected_entry_1_1_a.id == entry_1_1_a.id
+      assert expected_entry_1_1_a.ordinal_value.id == ov.id
+      assert expected_entry_1_1_b = expected_cycle_1_1[grades_report_subject_1_b.id]
+      assert expected_entry_1_1_b.id == entry_1_1_b.id
+      assert is_nil(expected_entry_1_1_b.ordinal_value)
+
+      assert expected_cycle_1_2 = expected_1[grades_report_cycle_1_2.id]
+      assert expected_entry_1_2_a = expected_cycle_1_2[grades_report_subject_1_a.id]
+      assert expected_entry_1_2_a.id == entry_1_2_a.id
+      assert is_nil(expected_entry_1_2_a.ordinal_value)
+      assert is_nil(expected_cycle_1_2[grades_report_subject_1_b.id])
+
+      assert expected_cycle_1_3 = expected_1[grades_report_cycle_1_3.id]
+      assert expected_entry_1_3_a = expected_cycle_1_3[grades_report_subject_1_a.id]
+      assert expected_entry_1_3_a.id == entry_1_3_a.id
+      assert is_nil(expected_entry_1_3_a.ordinal_value)
+      assert is_nil(expected_cycle_1_3[grades_report_subject_1_b.id])
+
+      expected_2 = expected[grades_report_2.id]
+
+      expected_cycle_2_1 = expected_2[grades_report_cycle_2_1.id]
+      assert expected_entry_2_1_b = expected_cycle_2_1[grades_report_subject_2_b.id]
+      assert expected_entry_2_1_b.id == entry_2_1_b.id
+      assert is_nil(expected_entry_2_1_b.ordinal_value)
+
+      expected_cycle_2_2 = expected_2[grades_report_cycle_2_2.id]
+      assert expected_entry_2_2_b = expected_cycle_2_2[grades_report_subject_2_b.id]
+      assert expected_entry_2_2_b.id == entry_2_2_b.id
+      assert is_nil(expected_entry_2_2_b.ordinal_value)
+
+      expected_cycle_2_3 = expected_2[grades_report_cycle_2_3.id]
+      assert is_nil(expected_cycle_2_3[grades_report_subject_2_b.id])
     end
   end
 end

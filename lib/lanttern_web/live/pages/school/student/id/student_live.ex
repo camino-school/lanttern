@@ -32,7 +32,7 @@ defmodule LantternWeb.StudentLive do
       |> stream_student_report_cards()
       |> stream_grades_reports()
 
-    {:ok, socket}
+    {:ok, socket, temporary_assigns: [student_grades_maps: %{}]}
   end
 
   defp stream_student_report_cards(socket) do
@@ -48,11 +48,19 @@ defmodule LantternWeb.StudentLive do
   end
 
   defp stream_grades_reports(socket) do
+    student_id = socket.assigns.student_id
+
     grades_reports =
-      GradesReports.list_student_grades_reports_grids(socket.assigns.student_id)
+      GradesReports.list_student_grades_reports_grids(student_id)
+
+    grades_reports_ids = Enum.map(grades_reports, & &1.id)
+
+    student_grades_maps =
+      GradesReports.build_student_grades_maps(student_id, grades_reports_ids)
 
     socket
     |> stream(:grades_reports, grades_reports)
     |> assign(:has_grades_reports, grades_reports != [])
+    |> assign(:student_grades_maps, student_grades_maps)
   end
 end
