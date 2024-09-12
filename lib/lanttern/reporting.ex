@@ -777,18 +777,26 @@ defmodule Lanttern.Reporting do
   - strand reports: strand with subjects and years
   - assessment entries: assessment point, scale, and ordinal value
 
+  ## Options
+
+  - `:include_strands_without_entries` - `boolean`, false by "default"
+
   ## Examples
 
       iex> list_student_report_card_strand_reports_and_entries(student_report_card)
       [{%StrandReport{}, [%AssessmentPointEntry{}, ...]}, ...]
 
   """
-  @spec list_student_report_card_strand_reports_and_entries(StudentReportCard.t()) :: [
+  @spec list_student_report_card_strand_reports_and_entries(
+          StudentReportCard.t(),
+          opts :: Keyword.t()
+        ) :: [
           {StrandReport.t(), [AssessmentPointEntry.t()]}
         ]
 
   def list_student_report_card_strand_reports_and_entries(
-        %StudentReportCard{} = student_report_card
+        %StudentReportCard{} = student_report_card,
+        opts \\ []
       ) do
     %{
       report_card_id: report_card_id,
@@ -826,7 +834,9 @@ defmodule Lanttern.Reporting do
 
     strand_reports
     |> Enum.map(&{&1, Map.get(ast_entries_map, &1.id, [])})
-    |> Enum.filter(fn {_strand_report, entries} -> entries != [] end)
+    |> Enum.filter(fn {_strand_report, entries} ->
+      Keyword.get(opts, :include_strands_without_entries) || entries != []
+    end)
   end
 
   @doc """
@@ -835,7 +845,6 @@ defmodule Lanttern.Reporting do
   **Preloaded data:**
 
   - moments: subjects
-  - assessment entries: assessment point, scale, and ordinal value
 
   ## Examples
 
@@ -867,13 +876,10 @@ defmodule Lanttern.Reporting do
 
     ast_entries_map =
       from(e in AssessmentPointEntry,
-        join: sc in assoc(e, :scale),
-        left_join: ov in assoc(e, :ordinal_value),
         join: ap in assoc(e, :assessment_point),
         join: m in assoc(ap, :moment),
         where: m.strand_id == ^strand_id and e.student_id == ^student_id,
         order_by: ap.position,
-        preload: [scale: sc, ordinal_value: ov],
         select: {m.id, e}
       )
       |> Repo.all()

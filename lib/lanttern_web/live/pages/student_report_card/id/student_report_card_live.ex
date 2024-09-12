@@ -38,8 +38,13 @@ defmodule LantternWeb.StudentReportCardLive do
         height: 640
       )
 
+    is_teacher = socket.assigns.current_user.current_profile.type == "teacher"
+
     strand_reports_and_entries =
-      Reporting.list_student_report_card_strand_reports_and_entries(student_report_card)
+      Reporting.list_student_report_card_strand_reports_and_entries(
+        student_report_card,
+        include_strands_without_entries: is_teacher
+      )
 
     socket =
       socket

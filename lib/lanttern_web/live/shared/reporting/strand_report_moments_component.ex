@@ -17,8 +17,8 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
   alias Lanttern.Reporting
 
   # shared components
+  alias LantternWeb.Assessments.EntryParticleComponent
   import LantternWeb.ReportingComponents
-  import LantternWeb.AssessmentsComponents
 
   @impl true
   def render(assigns) do
@@ -60,8 +60,9 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
                   :if={entries != []}
                   class="flex flex-wrap gap-2 p-4 border-t border-ltrn-lighter md:border-t-0 md:p-6"
                 >
-                  <%= for entry <- entries, entry.ordinal_value || entry.score do %>
-                    <.assessment_point_entry_badge entry={entry} is_short />
+                  <%= for entry <- entries, entry.ordinal_value_id || entry.score do %>
+                    <%!-- <.assessment_point_entry_badge entry={entry} is_short /> --%>
+                    <.live_component module={EntryParticleComponent} id={entry.id} entry={entry} />
                   <% end %>
                 </div>
               </.card_base>
