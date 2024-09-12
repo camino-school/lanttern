@@ -174,6 +174,7 @@ defmodule LantternWeb.GradesReportsComponents do
         :if={@student_grade_report_entry.pre_retake_ordinal_value}
         type="button"
         phx-click={@on_student_grade_click}
+        phx-value-studentgradereportid={@student_grade_report_entry.id}
         phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
         phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
         {apply_style_from_ordinal_value(@student_grade_report_entry.pre_retake_ordinal_value)}
@@ -184,6 +185,7 @@ defmodule LantternWeb.GradesReportsComponents do
       <.button
         type="button"
         phx-click={@on_student_grade_click}
+        phx-value-studentgradereportid={@student_grade_report_entry.id}
         phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
         phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
         {apply_style_from_ordinal_value(@student_grade_report_entry.ordinal_value)}
@@ -204,6 +206,7 @@ defmodule LantternWeb.GradesReportsComponents do
         :if={@student_grade_report_entry.pre_retake_score}
         type="button"
         phx-click={@on_student_grade_click}
+        phx-value-studentgradereportid={@student_grade_report_entry.id}
         phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
         phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
         class="flex-1 rounded border border-ltrn-lighter my-2 text-sm bg-ltrn-lightest opacity-70"
@@ -213,6 +216,7 @@ defmodule LantternWeb.GradesReportsComponents do
       <button
         type="button"
         phx-click={@on_student_grade_click}
+        phx-value-studentgradereportid={@student_grade_report_entry.id}
         phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
         phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
         class="flex-[2] rounded border border-ltrn-lighter text-base bg-ltrn-lightest"

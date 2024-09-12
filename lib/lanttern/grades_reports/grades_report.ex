@@ -9,6 +9,7 @@ defmodule Lanttern.GradesReports.GradesReport do
   alias Lanttern.GradesReports.GradesReportCycle
   alias Lanttern.GradesReports.GradesReportSubject
   alias Lanttern.Grading.Scale
+  alias Lanttern.Reporting.ReportCard
   alias Lanttern.Schools.Cycle
   alias Lanttern.Taxonomy.Year
 
@@ -25,6 +26,7 @@ defmodule Lanttern.GradesReports.GradesReport do
           scale_id: pos_integer(),
           grades_report_cycles: [GradesReportCycle.t()],
           grades_report_subjects: [GradesReportSubject.t()],
+          report_cards: [ReportCard.t()],
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -40,6 +42,7 @@ defmodule Lanttern.GradesReports.GradesReport do
 
     has_many :grades_report_cycles, GradesReportCycle
     has_many :grades_report_subjects, GradesReportSubject
+    has_many :report_cards, ReportCard
 
     timestamps()
   end

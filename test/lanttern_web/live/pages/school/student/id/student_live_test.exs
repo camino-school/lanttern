@@ -34,27 +34,8 @@ defmodule LantternWeb.StudentLiveTest do
 
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{student.id}")
 
-      assert view |> has_element?("a", class_a.name)
-      assert view |> has_element?("a", class_b.name)
-    end
-
-    test "navigate to class", %{conn: conn, user: user} do
-      school_id = user.current_profile.school_id
-      class = SchoolsFixtures.class_fixture(%{school_id: school_id})
-
-      student =
-        SchoolsFixtures.student_fixture(%{
-          school_id: school_id,
-          classes_ids: [class.id]
-        })
-
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{student.id}")
-
-      view
-      |> element("a", class.name)
-      |> render_click()
-
-      assert_patch(view, "/school/class/#{class.id}")
+      assert view |> has_element?("p", class_a.name)
+      assert view |> has_element?("p", class_b.name)
     end
   end
 end

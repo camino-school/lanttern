@@ -1139,6 +1139,7 @@ defmodule LantternWeb.CoreComponents do
   """
   attr :class, :any, default: nil
   attr :id, :string, default: nil
+  attr :is_full_width, :boolean, default: false
   attr :rest, :global
   slot :inner_block, required: true
 
@@ -1147,8 +1148,9 @@ defmodule LantternWeb.CoreComponents do
     <div
       id={@id}
       class={[
-        "flex items-stretch gap-6 container py-10 px-6 pb-20 mx-auto overflow-x-auto",
-        "sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:px-10 sm:overflow-x-visible lg:max-w-5xl",
+        "flex items-stretch gap-6 py-10 px-6 pb-20 mx-auto overflow-x-auto",
+        "sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:px-10 sm:overflow-x-visible",
+        if(assigns.is_full_width, do: "2xl:grid-cols-4", else: "container lg:max-w-5xl"),
         @class
       ]}
       {@rest}

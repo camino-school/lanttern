@@ -249,7 +249,9 @@ defmodule Lanttern.Schools do
 
   ## Options:
 
-      - `:classes_ids` – filter results
+  - `:classes_ids` – filter results by classes
+  - `:years_ids` – filter results by years
+  - `:preload_cycle_years_students` – boolean
 
   ## Examples
 
@@ -263,11 +265,11 @@ defmodule Lanttern.Schools do
     from(
       cl in Class,
       join: cy in assoc(cl, :cycle),
-      left_join: s in assoc(cl, :students),
       left_join: y in assoc(cl, :years),
-      group_by: [cl.id, cy.end_at],
-      order_by: [desc: cy.end_at, asc: min(y.id), asc: cl.name],
-      where: [school_id: ^school_id]
+      as: :years,
+      group_by: cl.id,
+      order_by: [desc: max(cy.end_at), asc: min(y.id), asc: cl.name],
+      where: cl.school_id == ^school_id
     )
     |> apply_list_user_classes_opts(opts)
     |> Repo.all()
@@ -276,16 +278,29 @@ defmodule Lanttern.Schools do
   def list_user_classes(_current_user, _opts),
     do: {:error, "User not allowed to list classes"}
 
-  defp apply_list_user_classes_opts(query, opts),
-    do: Enum.reduce(opts, query, &apply_list_user_classes_opt/2)
+  defp apply_list_user_classes_opts(queryable, []), do: queryable
 
-  defp apply_list_user_classes_opt({:classes_ids, classes_ids}, query),
-    do: from(cl in query, where: cl.id in ^classes_ids)
+  defp apply_list_user_classes_opts(queryable, [{:classes_ids, classes_ids} | opts]) do
+    from(cl in queryable, where: cl.id in ^classes_ids)
+    |> apply_list_user_classes_opts(opts)
+  end
 
-  defp apply_list_user_classes_opt({:preload, true}, query),
-    do: from(cl in query, preload: [:cycle, :students, :years])
+  defp apply_list_user_classes_opts(queryable, [{:years_ids, years_ids} | opts])
+       when years_ids != [] do
+    from([_cl, years: y] in queryable, where: y.id in ^years_ids)
+    |> apply_list_user_classes_opts(opts)
+  end
 
-  defp apply_list_user_classes_opt(_, query), do: query
+  defp apply_list_user_classes_opts(queryable, [{:preload_cycle_years_students, true} | opts]) do
+    from(
+      cl in queryable,
+      preload: [:cycle, :years, :students]
+    )
+    |> apply_list_user_classes_opts(opts)
+  end
+
+  defp apply_list_user_classes_opts(queryable, [_ | opts]),
+    do: apply_list_user_classes_opts(queryable, opts)
 
   @doc """
   Gets a single class.
