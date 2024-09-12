@@ -186,7 +186,7 @@ defmodule Lanttern.SchoolsTest do
       assert expected_class.years == [year]
     end
 
-    test "list_user_classes/1 returns all classes from user's school with preloaded data and correct order" do
+    test "list_user_classes/1 returns all classes from user's school ordered correctly" do
       school = school_fixture()
       class_b = class_fixture(%{school_id: school.id, name: "BBB"})
       class_a = class_fixture(%{school_id: school.id, name: "AAA"})
@@ -210,6 +210,82 @@ defmodule Lanttern.SchoolsTest do
 
       assert expected_a.id == class_a.id
       assert expected_b.id == class_b.id
+    end
+
+    test "list_user_classes/1 with opts returns all classes from user's school correctly" do
+      school = school_fixture()
+      cycle_25 = cycle_fixture(%{school_id: school.id, end_at: ~D[2025-12-31]})
+      cycle_24 = cycle_fixture(%{school_id: school.id, end_at: ~D[2024-12-31]})
+      year = Lanttern.TaxonomyFixtures.year_fixture()
+
+      class_b_25 =
+        class_fixture(%{
+          school_id: school.id,
+          name: "BBB",
+          cycle_id: cycle_25.id,
+          years_ids: [year.id]
+        })
+
+      class_a_25 =
+        class_fixture(%{
+          school_id: school.id,
+          name: "AAA 25",
+          cycle_id: cycle_25.id,
+          years_ids: [year.id]
+        })
+
+      class_a_24 =
+        class_fixture(%{
+          school_id: school.id,
+          name: "AAA 24",
+          cycle_id: cycle_24.id,
+          years_ids: [year.id]
+        })
+
+      # extra class for filtering test
+      _class_from_another_year = class_fixture(%{school_id: school.id})
+
+      # put students only in class a
+      student_x = student_fixture(%{name: "XXX", classes_ids: [class_a_24.id, class_a_25.id]})
+      student_y = student_fixture(%{name: "YYY", classes_ids: [class_a_25.id]})
+      student_z = student_fixture(%{name: "ZZZ", classes_ids: [class_a_25.id]})
+
+      teacher = teacher_fixture(%{school_id: school.id})
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture(%{teacher_id: teacher.id})
+
+      user =
+        %{
+          current_profile:
+            Lanttern.Identity.get_profile!(profile.id, preloads: :teacher, years_ids: [year.id])
+        }
+        |> Map.update!(:current_profile, fn profile ->
+          %{
+            profile
+            | school_id: profile.teacher.school_id
+          }
+        end)
+
+      # extra classes for school filter validation
+      class_fixture()
+      class_fixture()
+
+      [expected_a_25, expected_b_25, expected_a_24] =
+        Schools.list_user_classes(user, preload_cycle_years_students: true, years_ids: [year.id])
+
+      assert expected_a_25.id == class_a_25.id
+      assert expected_a_25.cycle.id == cycle_25.id
+      assert [expected_std_x, expected_std_y, expected_std_z] = expected_a_25.students
+      assert expected_std_x.id == student_x.id
+      assert expected_std_y.id == student_y.id
+      assert expected_std_z.id == student_z.id
+
+      assert expected_b_25.id == class_b_25.id
+      assert expected_b_25.cycle.id == cycle_25.id
+
+      assert expected_a_24.id == class_a_24.id
+      assert expected_a_24.cycle.id == cycle_24.id
+      assert [expected_std_x] = expected_a_24.students
+      assert expected_std_x.id == student_x.id
     end
 
     test "list_user_classes/1 returns error tuple when user is student" do

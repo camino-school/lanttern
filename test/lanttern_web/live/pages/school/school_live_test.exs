@@ -25,7 +25,7 @@ defmodule LantternWeb.SchoolLiveTest do
 
       {:ok, view, _html} = live(conn, @live_view_path)
 
-      assert view |> has_element?("td", class.name)
+      assert view |> has_element?("p", class.name)
     end
   end
 end
