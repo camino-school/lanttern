@@ -50,6 +50,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/student_strand_report/id/student_strand_report_live.html.heex:10
 #: lib/lanttern_web/live/pages/student_strands/student_strands_live.html.heex:2
 #: lib/lanttern_web/live/shared/menu_component.ex:37
+#: lib/lanttern_web/live/shared/menu_component.ex:64
 #, elixir-autogen, elixir-format
 msgid "Strands"
 msgstr ""
@@ -1268,7 +1269,7 @@ msgid "Grade report deleted"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:40
-#: lib/lanttern_web/live/pages/student_report_card/id/student_report_card_live.html.heex:63
+#: lib/lanttern_web/live/pages/student_report_card/id/student_report_card_live.html.heex:70
 #, elixir-autogen, elixir-format
 msgid "Grades"
 msgstr ""
@@ -2724,7 +2725,7 @@ msgstr ""
 msgid "Here you'll find information about the strand learning journey."
 msgstr ""
 
-#: lib/lanttern_web/live/shared/reporting/strand_report_moments_component.ex:72
+#: lib/lanttern_web/live/shared/reporting/strand_report_moments_component.ex:73
 #, elixir-autogen, elixir-format
 msgid "No moments registered for this strand"
 msgstr ""
@@ -2832,4 +2833,9 @@ msgstr ""
 #: lib/lanttern_web/live/pages/school/student/id/student_live.html.heex:30
 #, elixir-autogen, elixir-format
 msgid "Student report cards"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/student_report_card/id/student_report_card_live.html.heex:58
+#, elixir-autogen, elixir-format
+msgid "Not visible in student report card (no final assessment registered for this strand)"
 msgstr ""
