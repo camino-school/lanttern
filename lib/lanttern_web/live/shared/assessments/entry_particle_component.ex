@@ -28,7 +28,7 @@ defmodule LantternWeb.Assessments.EntryParticleComponent do
     ~H"""
     <div
       class={[
-        "flex items-center justify-center rounded-sm",
+        "flex items-center justify-center rounded-full",
         if(@size == "sm", do: "w-4 h-4 max-w-4 text-xs", else: "w-6 h-6 max-w-6 text-sm"),
         @additional_classes,
         @class

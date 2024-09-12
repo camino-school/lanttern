@@ -715,7 +715,7 @@ defmodule Lanttern.ReportingTest do
         })
 
       # no student assessment point entry for strand 3 (test list filtering)
-      _strand_3_report =
+      strand_3_report =
         strand_report_fixture(%{
           report_card_id: report_card.id,
           strand_id: strand_3.id,
@@ -815,6 +815,31 @@ defmodule Lanttern.ReportingTest do
       assert expected_entry_2_1.id == assessment_point_2_1_entry.id
       assert expected_entry_2_1.scale == n_scale
       assert expected_entry_2_1.score == 5
+
+      # return strand 3 report if include_strands_without_entries is true
+      assert [
+               {expected_strand_1_report, [expected_entry_1_1, expected_entry_1_2]},
+               {expected_strand_2_report, [expected_entry_2_1]},
+               {expected_strand_3_report, []}
+             ] =
+               Reporting.list_student_report_card_strand_reports_and_entries(student_report_card,
+                 include_strands_without_entries: true
+               )
+
+      # strand 1 assertions
+
+      assert expected_strand_1_report.id == strand_1_report.id
+      assert expected_entry_1_1.id == assessment_point_1_1_entry.id
+      assert expected_entry_1_2.id == assessment_point_1_2_entry.id
+
+      # strand 2 assertions
+
+      assert expected_strand_2_report.id == strand_2_report.id
+      assert expected_entry_2_1.id == assessment_point_2_1_entry.id
+
+      # strand 3 assertions
+
+      assert expected_strand_3_report.id == strand_3_report.id
     end
 
     test "list_student_strand_report_moments_and_entries/2 returns all moments and entries for the given strand report and student" do
@@ -915,12 +940,12 @@ defmodule Lanttern.ReportingTest do
       assert expected_moment_1.subjects == [subject_1]
 
       assert expected_entry_1_1.id == assessment_point_1_1_entry.id
-      assert expected_entry_1_1.scale == o_scale
-      assert expected_entry_1_1.ordinal_value == ov_1
+      assert expected_entry_1_1.scale_id == o_scale.id
+      assert expected_entry_1_1.ordinal_value_id == ov_1.id
 
       assert expected_entry_1_2.id == assessment_point_1_2_entry.id
-      assert expected_entry_1_2.scale == o_scale
-      assert expected_entry_1_2.ordinal_value == ov_2
+      assert expected_entry_1_2.scale_id == o_scale.id
+      assert expected_entry_1_2.ordinal_value_id == ov_2.id
 
       # moment 2 assertions
 
@@ -928,7 +953,7 @@ defmodule Lanttern.ReportingTest do
       assert expected_moment_2.subjects == [subject_2]
 
       assert expected_entry_2_1.id == assessment_point_2_1_entry.id
-      assert expected_entry_2_1.scale == n_scale
+      assert expected_entry_2_1.scale_id == n_scale.id
       assert expected_entry_2_1.score == 5
 
       # moment 3 assertions

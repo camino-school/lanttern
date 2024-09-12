@@ -47,11 +47,18 @@
         hide_description
         class="shrink-0 w-64 sm:w-auto"
       >
-        <:bottom_content :if={entries != []}>
-          <div class="flex flex-wrap gap-2 p-6 border-t border-ltrn-lighter">
+        <:bottom_content>
+          <div :if={entries != []} class="flex flex-wrap gap-2 p-6 border-t border-ltrn-lighter">
             <%= for entry <- entries, entry.ordinal_value || entry.score do %>
               <.assessment_point_entry_badge entry={entry} is_short />
             <% end %>
+          </div>
+          <div :if={entries == []} class="p-6 bg-ltrn-lighter">
+            <p class="text-xs">
+              <%= gettext(
+                "Not visible in student report card (no final assessment registered for this strand)"
+              ) %>
+            </p>
           </div>
         </:bottom_content>
       </.strand_card>
