@@ -72,11 +72,11 @@ defmodule LantternWeb.MenuComponent do
                 <.nav_item active={@active_nav == :student_report_card} path={~p"/guardian"}>
                   <%= gettext("Report cards") %>
                 </.nav_item>
-                <.nav_item active={@active_nav == :student_strands} path={~p"/student_strands"}>
+                <%!-- <.nav_item active={@active_nav == :student_strands} path={~p"/student_strands"}>
                   <%= gettext("Strands") %>
-                </.nav_item>
+                </.nav_item> --%>
                 <%!-- use this li as placeholder when nav items % 3 != 0 (sm) or nav items % 2 != 0 --%>
-                <%!-- <li class="bg-white"></li> --%>
+                <li class="bg-white"></li>
                 <li class="hidden lg:block bg-white"></li>
               <% end %>
             </ul>
