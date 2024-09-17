@@ -186,4 +186,94 @@ defmodule Lanttern.StudentsRecordsTest do
       assert %Ecto.Changeset{} = StudentsRecords.change_student_record_type(student_record_type)
     end
   end
+
+  describe "student_record_statuses" do
+    alias Lanttern.StudentsRecords.StudentRecordStatus
+
+    import Lanttern.StudentsRecordsFixtures
+    alias Lanttern.SchoolsFixtures
+
+    @invalid_attrs %{name: nil, bg_color: nil, text_color: nil}
+
+    test "list_student_record_statuses/0 returns all student_record_statuses" do
+      student_record_status = student_record_status_fixture()
+      assert StudentsRecords.list_student_record_statuses() == [student_record_status]
+    end
+
+    test "get_student_record_status!/1 returns the student_record_status with given id" do
+      student_record_status = student_record_status_fixture()
+
+      assert StudentsRecords.get_student_record_status!(student_record_status.id) ==
+               student_record_status
+    end
+
+    test "create_student_record_status/1 with valid data creates a student_record_status" do
+      school = SchoolsFixtures.school_fixture()
+
+      valid_attrs = %{
+        school_id: school.id,
+        name: "some name",
+        bg_color: "#000000",
+        text_color: "#ffffff"
+      }
+
+      assert {:ok, %StudentRecordStatus{} = student_record_status} =
+               StudentsRecords.create_student_record_status(valid_attrs)
+
+      assert student_record_status.school_id == school.id
+      assert student_record_status.name == "some name"
+      assert student_record_status.bg_color == "#000000"
+      assert student_record_status.text_color == "#ffffff"
+    end
+
+    test "create_student_record_status/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} =
+               StudentsRecords.create_student_record_status(@invalid_attrs)
+    end
+
+    test "update_student_record_status/2 with valid data updates the student_record_status" do
+      student_record_status = student_record_status_fixture()
+
+      update_attrs = %{
+        name: "some updated name",
+        bg_color: "#ffffff",
+        text_color: "#000000"
+      }
+
+      assert {:ok, %StudentRecordStatus{} = student_record_status} =
+               StudentsRecords.update_student_record_status(student_record_status, update_attrs)
+
+      assert student_record_status.name == "some updated name"
+      assert student_record_status.bg_color == "#ffffff"
+      assert student_record_status.text_color == "#000000"
+    end
+
+    test "update_student_record_status/2 with invalid data returns error changeset" do
+      student_record_status = student_record_status_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               StudentsRecords.update_student_record_status(student_record_status, @invalid_attrs)
+
+      assert student_record_status ==
+               StudentsRecords.get_student_record_status!(student_record_status.id)
+    end
+
+    test "delete_student_record_status/1 deletes the student_record_status" do
+      student_record_status = student_record_status_fixture()
+
+      assert {:ok, %StudentRecordStatus{}} =
+               StudentsRecords.delete_student_record_status(student_record_status)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        StudentsRecords.get_student_record_status!(student_record_status.id)
+      end
+    end
+
+    test "change_student_record_status/1 returns a student_record_status changeset" do
+      student_record_status = student_record_status_fixture()
+
+      assert %Ecto.Changeset{} =
+               StudentsRecords.change_student_record_status(student_record_status)
+    end
+  end
 end

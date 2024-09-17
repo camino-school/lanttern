@@ -41,9 +41,27 @@ defmodule Lanttern.StudentsRecordsFixtures do
     student_record_type
   end
 
+  @doc """
+  Generate a student_record_status.
+  """
+  def student_record_status_fixture(attrs \\ %{}) do
+    {:ok, student_record_status} =
+      attrs
+      |> Enum.into(%{
+        school_id: SchoolsFixtures.maybe_gen_school_id(attrs),
+        name: "some name",
+        bg_color: "#000000",
+        text_color: "#ffffff"
+      })
+      |> Lanttern.StudentsRecords.create_student_record_status()
+
+    student_record_status
+  end
+
   # generator helpers
 
   def maybe_gen_student_record_type_id(attrs, school_id \\ nil)
+
   def maybe_gen_student_record_type_id(%{type_id: type_id}, _), do: type_id
 
   def maybe_gen_student_record_type_id(_attrs, school_id),
