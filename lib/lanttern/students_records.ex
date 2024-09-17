@@ -107,15 +107,37 @@ defmodule Lanttern.StudentsRecords do
   @doc """
   Returns the list of student_record_types.
 
+  ## Options
+
+  - `:school_id` - filter results by school
+
   ## Examples
 
       iex> list_student_record_types()
       [%StudentRecordType{}, ...]
 
   """
-  def list_student_record_types do
-    Repo.all(StudentRecordType)
+  def list_student_record_types(opts \\ []) do
+    from(
+      srt in StudentRecordType,
+      order_by: srt.name
+    )
+    |> apply_list_student_record_types_opts(opts)
+    |> Repo.all()
   end
+
+  defp apply_list_student_record_types_opts(queryable, []), do: queryable
+
+  defp apply_list_student_record_types_opts(queryable, [{:school_id, school_id} | opts]) do
+    from(
+      srt in queryable,
+      where: srt.school_id == ^school_id
+    )
+    |> apply_list_student_record_types_opts(opts)
+  end
+
+  defp apply_list_student_record_types_opts(queryable, [_ | opts]),
+    do: apply_list_student_record_types_opts(queryable, opts)
 
   @doc """
   Gets a single student_record_type.

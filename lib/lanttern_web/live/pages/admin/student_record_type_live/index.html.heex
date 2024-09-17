@@ -16,7 +16,14 @@
     end
   }
 >
-  <:col :let={{_id, student_record_type}} label="Name"><%= student_record_type.name %></:col>
+  <:col :let={{_id, student_record_type}} label="Name">
+    <span
+      class="inline-block p-2 rounded"
+      style={"background: #{student_record_type.bg_color}; color: #{student_record_type.text_color}"}
+    >
+      <%= student_record_type.name %>
+    </span>
+  </:col>
   <:col :let={{_id, student_record_type}} label="Bg color">
     <%= student_record_type.bg_color %>
   </:col>

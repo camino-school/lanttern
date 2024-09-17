@@ -1,8 +1,9 @@
 defmodule LantternWeb.StudentRecordLive.FormComponent do
   use LantternWeb, :live_component
 
-  alias LantternWeb.SchoolsHelpers
   alias Lanttern.StudentsRecords
+  alias LantternWeb.StudentsRecordsHelpers
+  alias LantternWeb.SchoolsHelpers
 
   @impl true
   def render(assigns) do
@@ -28,6 +29,14 @@ defmodule LantternWeb.StudentRecordLive.FormComponent do
           prompt="No school selected"
           class="mb-4"
         />
+        <.input
+          field={@form[:type_id]}
+          type="select"
+          label="Select type"
+          options={@type_options}
+          prompt="No type selected"
+          class="mb-4"
+        />
         <.input field={@form[:name]} type="text" label="Name" />
         <.input field={@form[:description]} type="textarea" label="Description" />
         <.input field={@form[:date]} type="date" label="Date" />
@@ -45,6 +54,7 @@ defmodule LantternWeb.StudentRecordLive.FormComponent do
     socket =
       socket
       |> assign(:school_options, SchoolsHelpers.generate_school_options())
+      |> assign(:type_options, StudentsRecordsHelpers.generate_student_record_type_options())
 
     {:ok, socket}
   end

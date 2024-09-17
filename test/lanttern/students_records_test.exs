@@ -23,9 +23,11 @@ defmodule Lanttern.StudentsRecordsTest do
 
     test "create_student_record/1 with valid data creates a student_record" do
       school = SchoolsFixtures.school_fixture()
+      type = student_record_type_fixture(%{school_id: school.id})
 
       valid_attrs = %{
         school_id: school.id,
+        type_id: type.id,
         name: "some name",
         date: ~D[2024-09-15],
         time: ~T[14:00:00],
@@ -36,6 +38,7 @@ defmodule Lanttern.StudentsRecordsTest do
                StudentsRecords.create_student_record(valid_attrs)
 
       assert student_record.school_id == school.id
+      assert student_record.type_id == type.id
       assert student_record.name == "some name"
       assert student_record.date == ~D[2024-09-15]
       assert student_record.time == ~T[14:00:00]
@@ -97,9 +100,21 @@ defmodule Lanttern.StudentsRecordsTest do
 
     @invalid_attrs %{name: nil, bg_color: nil, text_color: nil}
 
-    test "list_student_record_types/0 returns all student_record_types" do
+    test "list_student_record_types/1 returns all student_record_types" do
       student_record_type = student_record_type_fixture()
       assert StudentsRecords.list_student_record_types() == [student_record_type]
+    end
+
+    test "list_student_record_types/1 with school_id opt returns all student_record_types filtered by given school" do
+      school = SchoolsFixtures.school_fixture()
+      student_record_type = student_record_type_fixture(%{school_id: school.id})
+
+      # other fixture for filter testing
+      student_record_type_fixture()
+
+      assert StudentsRecords.list_student_record_types(school_id: school.id) == [
+               student_record_type
+             ]
     end
 
     test "get_student_record_type!/1 returns the student_record_type with given id" do

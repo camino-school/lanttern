@@ -12,8 +12,8 @@ defmodule Lanttern.StudentsRecordsFixtures do
   def student_record_fixture(attrs \\ %{}) do
     {:ok, student_record} =
       attrs
+      |> maybe_inject_school_and_type()
       |> Enum.into(%{
-        school_id: SchoolsFixtures.maybe_gen_school_id(attrs),
         date: ~D[2024-09-15],
         description: "some description",
         name: "some name",
@@ -39,5 +39,30 @@ defmodule Lanttern.StudentsRecordsFixtures do
       |> Lanttern.StudentsRecords.create_student_record_type()
 
     student_record_type
+  end
+
+  # generator helpers
+
+  def maybe_gen_student_record_type_id(attrs, school_id \\ nil)
+  def maybe_gen_student_record_type_id(%{type_id: type_id}, _), do: type_id
+
+  def maybe_gen_student_record_type_id(_attrs, school_id),
+    do: student_record_type_fixture(%{school_id: school_id}).id
+
+  # helpers
+
+  defp maybe_inject_school_and_type(%{school_id: _, type_id: _} = attrs), do: attrs
+
+  defp maybe_inject_school_and_type(%{school_id: school_id} = attrs) do
+    attrs
+    |> Map.put(:type_id, student_record_type_fixture(%{school_id: school_id}).id)
+  end
+
+  defp maybe_inject_school_and_type(attrs) do
+    school = SchoolsFixtures.school_fixture()
+
+    attrs
+    |> Map.put(:school_id, school.id)
+    |> Map.put(:type_id, student_record_type_fixture(%{school_id: school.id}).id)
   end
 end
