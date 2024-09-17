@@ -88,4 +88,87 @@ defmodule Lanttern.StudentsRecordsTest do
       assert %Ecto.Changeset{} = StudentsRecords.change_student_record(student_record)
     end
   end
+
+  describe "student_record_types" do
+    alias Lanttern.StudentsRecords.StudentRecordType
+
+    import Lanttern.StudentsRecordsFixtures
+    alias Lanttern.SchoolsFixtures
+
+    @invalid_attrs %{name: nil, bg_color: nil, text_color: nil}
+
+    test "list_student_record_types/0 returns all student_record_types" do
+      student_record_type = student_record_type_fixture()
+      assert StudentsRecords.list_student_record_types() == [student_record_type]
+    end
+
+    test "get_student_record_type!/1 returns the student_record_type with given id" do
+      student_record_type = student_record_type_fixture()
+
+      assert StudentsRecords.get_student_record_type!(student_record_type.id) ==
+               student_record_type
+    end
+
+    test "create_student_record_type/1 with valid data creates a student_record_type" do
+      school = SchoolsFixtures.school_fixture()
+
+      valid_attrs = %{
+        school_id: school.id,
+        name: "some name",
+        bg_color: "#000000",
+        text_color: "#ffffff"
+      }
+
+      assert {:ok, %StudentRecordType{} = student_record_type} =
+               StudentsRecords.create_student_record_type(valid_attrs)
+
+      assert student_record_type.school_id == school.id
+      assert student_record_type.name == "some name"
+      assert student_record_type.bg_color == "#000000"
+      assert student_record_type.text_color == "#ffffff"
+    end
+
+    test "create_student_record_type/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} =
+               StudentsRecords.create_student_record_type(@invalid_attrs)
+    end
+
+    test "update_student_record_type/2 with valid data updates the student_record_type" do
+      student_record_type = student_record_type_fixture()
+      update_attrs = %{name: "some updated name", bg_color: "#ffffff", text_color: "#000000"}
+
+      assert {:ok, %StudentRecordType{} = student_record_type} =
+               StudentsRecords.update_student_record_type(student_record_type, update_attrs)
+
+      assert student_record_type.name == "some updated name"
+      assert student_record_type.bg_color == "#ffffff"
+      assert student_record_type.text_color == "#000000"
+    end
+
+    test "update_student_record_type/2 with invalid data returns error changeset" do
+      student_record_type = student_record_type_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               StudentsRecords.update_student_record_type(student_record_type, @invalid_attrs)
+
+      assert student_record_type ==
+               StudentsRecords.get_student_record_type!(student_record_type.id)
+    end
+
+    test "delete_student_record_type/1 deletes the student_record_type" do
+      student_record_type = student_record_type_fixture()
+
+      assert {:ok, %StudentRecordType{}} =
+               StudentsRecords.delete_student_record_type(student_record_type)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        StudentsRecords.get_student_record_type!(student_record_type.id)
+      end
+    end
+
+    test "change_student_record_type/1 returns a student_record_type changeset" do
+      student_record_type = student_record_type_fixture()
+      assert %Ecto.Changeset{} = StudentsRecords.change_student_record_type(student_record_type)
+    end
+  end
 end

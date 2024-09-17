@@ -101,4 +101,100 @@ defmodule Lanttern.StudentsRecords do
   def change_student_record(%StudentRecord{} = student_record, attrs \\ %{}) do
     StudentRecord.changeset(student_record, attrs)
   end
+
+  alias Lanttern.StudentsRecords.StudentRecordType
+
+  @doc """
+  Returns the list of student_record_types.
+
+  ## Examples
+
+      iex> list_student_record_types()
+      [%StudentRecordType{}, ...]
+
+  """
+  def list_student_record_types do
+    Repo.all(StudentRecordType)
+  end
+
+  @doc """
+  Gets a single student_record_type.
+
+  Raises `Ecto.NoResultsError` if the Student record type does not exist.
+
+  ## Examples
+
+      iex> get_student_record_type!(123)
+      %StudentRecordType{}
+
+      iex> get_student_record_type!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_student_record_type!(id), do: Repo.get!(StudentRecordType, id)
+
+  @doc """
+  Creates a student_record_type.
+
+  ## Examples
+
+      iex> create_student_record_type(%{field: value})
+      {:ok, %StudentRecordType{}}
+
+      iex> create_student_record_type(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_student_record_type(attrs \\ %{}) do
+    %StudentRecordType{}
+    |> StudentRecordType.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a student_record_type.
+
+  ## Examples
+
+      iex> update_student_record_type(student_record_type, %{field: new_value})
+      {:ok, %StudentRecordType{}}
+
+      iex> update_student_record_type(student_record_type, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_student_record_type(%StudentRecordType{} = student_record_type, attrs) do
+    student_record_type
+    |> StudentRecordType.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a student_record_type.
+
+  ## Examples
+
+      iex> delete_student_record_type(student_record_type)
+      {:ok, %StudentRecordType{}}
+
+      iex> delete_student_record_type(student_record_type)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_student_record_type(%StudentRecordType{} = student_record_type) do
+    Repo.delete(student_record_type)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking student_record_type changes.
+
+  ## Examples
+
+      iex> change_student_record_type(student_record_type)
+      %Ecto.Changeset{data: %StudentRecordType{}}
+
+  """
+  def change_student_record_type(%StudentRecordType{} = student_record_type, attrs \\ %{}) do
+    StudentRecordType.changeset(student_record_type, attrs)
+  end
 end
