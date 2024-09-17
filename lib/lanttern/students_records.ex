@@ -225,15 +225,37 @@ defmodule Lanttern.StudentsRecords do
   @doc """
   Returns the list of student_record_statuses.
 
+  ## Options
+
+  - `:school_id` - filter results by school
+
   ## Examples
 
       iex> list_student_record_statuses()
       [%StudentRecordStatus{}, ...]
 
   """
-  def list_student_record_statuses do
-    Repo.all(StudentRecordStatus)
+  def list_student_record_statuses(opts \\ []) do
+    from(
+      srs in StudentRecordStatus,
+      order_by: srs.name
+    )
+    |> apply_list_student_record_statuses_opts(opts)
+    |> Repo.all()
   end
+
+  defp apply_list_student_record_statuses_opts(queryable, []), do: queryable
+
+  defp apply_list_student_record_statuses_opts(queryable, [{:school_id, school_id} | opts]) do
+    from(
+      srs in queryable,
+      where: srs.school_id == ^school_id
+    )
+    |> apply_list_student_record_statuses_opts(opts)
+  end
+
+  defp apply_list_student_record_statuses_opts(queryable, [_ | opts]),
+    do: apply_list_student_record_statuses_opts(queryable, opts)
 
   @doc """
   Gets a single student_record_status.

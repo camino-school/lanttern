@@ -37,6 +37,14 @@ defmodule LantternWeb.StudentRecordLive.FormComponent do
           prompt="No type selected"
           class="mb-4"
         />
+        <.input
+          field={@form[:status_id]}
+          type="select"
+          label="Select status"
+          options={@status_options}
+          prompt="No status selected"
+          class="mb-4"
+        />
         <.input field={@form[:name]} type="text" label="Name" />
         <.input field={@form[:description]} type="textarea" label="Description" />
         <.input field={@form[:date]} type="date" label="Date" />
@@ -55,6 +63,7 @@ defmodule LantternWeb.StudentRecordLive.FormComponent do
       socket
       |> assign(:school_options, SchoolsHelpers.generate_school_options())
       |> assign(:type_options, StudentsRecordsHelpers.generate_student_record_type_options())
+      |> assign(:status_options, StudentsRecordsHelpers.generate_student_record_status_options())
 
     {:ok, socket}
   end
