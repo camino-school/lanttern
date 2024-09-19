@@ -110,6 +110,10 @@ defmodule LantternWeb.Router do
       # grading
 
       live "/grading", GradesReportsLive, :index
+
+      # students records
+
+      live "/students_records", StudentsRecordsLive, :index
     end
 
     live_session :authenticated_guardian,

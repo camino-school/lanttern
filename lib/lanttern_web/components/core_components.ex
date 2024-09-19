@@ -438,6 +438,106 @@ defmodule LantternWeb.CoreComponents do
     do: "from-ltrn-mesh-primary/0 to-ltrn-mesh-primary"
 
   @doc """
+  Renders a data grid.
+
+  ## Examples
+
+      <.data_grid id="users" rows={@users}>
+        <:col :let={user} label="id"><%= user.id %></:col>
+        <:col :let={user} label="username"><%= user.username %></:col>
+      </.data_grid>
+  """
+  attr :id, :string, required: true
+  attr :stream, :any, required: true
+  attr :class, :any, default: nil
+  # this approach looks weird... but we need something apart from stream to identify empty streams
+  attr :show_empty_state_message, :string, default: nil, doc: "Use this field to show empty state"
+
+  slot :col, required: true do
+    attr :label, :string, required: true
+    attr :on_filter, JS
+    attr :filter_is_active, :boolean
+    attr :template_col, :string, doc: "use to define grid template. minmax(0, 1fr) by default"
+    attr :class, :any
+  end
+
+  slot :action, doc: "the slot for showing user actions in the last table column"
+
+  def data_grid(assigns) do
+    cols_style =
+      assigns.col
+      |> Enum.map(&Map.get(&1, :template_col, "minmax(0, 1fr)"))
+      |> Enum.join(" ")
+
+    has_action = assigns.action != []
+
+    grid_template_cols_style = "grid-template-columns: #{cols_style}"
+
+    grid_template_cols_style =
+      if has_action,
+        do: grid_template_cols_style <> " max-content",
+        else: grid_template_cols_style
+
+    cols_count = length(assigns.col)
+    cols_count = if has_action, do: cols_count + 1, else: cols_count
+
+    grid_col_span_style = "grid-column: span #{cols_count} / span #{cols_count}"
+
+    assigns =
+      assigns
+      |> assign(:grid_template_cols_style, grid_template_cols_style)
+      |> assign(:grid_col_span_style, grid_col_span_style)
+
+    ~H"""
+    <div class={["overflow-x-auto", @class]}>
+      <div class="grid gap-y-2" style={@grid_template_cols_style}>
+        <div
+          class="sticky top-0 grid grid-cols-subgrid rounded font-display font-bold text-sm bg-white shadow"
+          style={@grid_col_span_style}
+        >
+          <div :for={col <- @col} class="flex gap-2 p-4">
+            <%= col[:label] %>
+            <button
+              :if={col[:on_filter]}
+              type="button"
+              class="hover:opacity-50"
+              phx-click={col[:on_filter]}
+            >
+              <%= if col[:filter_is_active] do %>
+                <.icon name="hero-funnel-solid" class="text-ltrn-primary" />
+              <% else %>
+                <.icon name="hero-funnel" class="text-ltrn-subtle" />
+              <% end %>
+            </button>
+          </div>
+          <div :if={@action != []} class="relative p-2 pb-4">
+            <span class="sr-only"><%= gettext("Actions") %></span>
+          </div>
+        </div>
+        <ul id={@id} phx-update="stream" class="grid grid-cols-subgrid" style={@grid_col_span_style}>
+          <li
+            :for={{row_id, row} <- @stream}
+            id={row_id}
+            class="grid grid-cols-subgrid items-center py-2 rounded hover:bg-ltrn-mesh-yellow"
+            style={@grid_col_span_style}
+          >
+            <div :for={col <- @col} class={["p-4", col[:class]]}>
+              <%= render_slot(col, row) %>
+            </div>
+            <div :if={@action != []} class="flex items-center gap-2 p-4">
+              <%= for action <- @action do %>
+                <%= render_slot(action, row) %>
+              <% end %>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <.empty_state><%= @show_empty_state_message %></.empty_state>
+    </div>
+    """
+  end
+
+  @doc """
   Renders an empty state block
   """
   attr :class, :any, default: nil
@@ -928,7 +1028,7 @@ defmodule LantternWeb.CoreComponents do
 
   def page_title_with_menu(assigns) do
     ~H"""
-    <div class={["flex items-center justify-between", @class]}>
+    <div class={["flex items-center gap-4 justify-between", @class]}>
       <h1 class="font-display font-black text-3xl">
         <%= render_slot(@inner_block) %>
       </h1>

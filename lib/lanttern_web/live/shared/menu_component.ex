@@ -36,6 +36,9 @@ defmodule LantternWeb.MenuComponent do
                 <.nav_item active={@active_nav == :strands} path={~p"/strands"}>
                   <%= gettext("Strands") %>
                 </.nav_item>
+                <.nav_item active={@active_nav == :students_records} path={~p"/students_records"}>
+                  <%= gettext("Students records") %>
+                </.nav_item>
                 <.nav_item active={@active_nav == :school} path={~p"/school"}>
                   <%= gettext("School") %>
                 </.nav_item>
@@ -52,8 +55,8 @@ defmodule LantternWeb.MenuComponent do
                   <%= gettext("Grading") %>
                 </.nav_item>
                 <%!-- use this li as placeholder when nav items % 3 != 0 (sm) or nav items % 2 != 0 --%>
-                <%!-- <li class="bg-white"></li>
-                <li class="hidden lg:block bg-white"></li> --%>
+                <li class="bg-white"></li>
+                <li class="hidden lg:block bg-white"></li>
               <% end %>
 
               <%= if @current_profile.type == "student" do %>
@@ -322,6 +325,9 @@ defmodule LantternWeb.MenuComponent do
     LantternWeb.StrandsLive => :strands,
     LantternWeb.StrandLive => :strands,
     LantternWeb.MomentLive => :strands,
+
+    # students records
+    LantternWeb.StudentsRecordsLive => :students_records,
 
     # school
     LantternWeb.SchoolLive => :school,

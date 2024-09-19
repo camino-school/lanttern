@@ -1,0 +1,25 @@
+<.responsive_container class="py-6 sm:py-10">
+  <.page_title_with_menu><%= gettext("Students records") %></.page_title_with_menu>
+</.responsive_container>
+<.data_grid
+  id="students-records"
+  class="mx-6"
+  stream={@streams.students_records}
+  show_empty_state_message={
+    if @students_records_length == 0,
+      do: gettext("No students records found for selected filters.")
+  }
+>
+  <:col :let={student_record} label={gettext("Record")}>
+    <p :if={student_record.name} class="mb-4 font-display font-black">
+      <%= student_record.name %>
+    </p>
+    <.markdown text={student_record.description} class="line-clamp-3" size="sm" />
+  </:col>
+  <:col :let={student_record} label={gettext("Type")} template_col="max-content">
+    <%= student_record.type.name %>
+  </:col>
+  <:col :let={student_record} label={gettext("Status")} template_col="max-content">
+    <%= student_record.status.name %>
+  </:col>
+</.data_grid>

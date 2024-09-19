@@ -4,6 +4,7 @@ defmodule Lanttern.StudentsRecords do
   """
 
   import Ecto.Query, warn: false
+  import Lanttern.RepoHelpers
   alias Lanttern.Repo
 
   alias Lanttern.StudentsRecords.StudentRecord
@@ -11,15 +12,39 @@ defmodule Lanttern.StudentsRecords do
   @doc """
   Returns the list of students_records.
 
+  ## Options
+
+  - `:school_id` - filter results by school
+  - `:preloads` - preloads associated data
+
   ## Examples
 
       iex> list_students_records()
       [%StudentRecord{}, ...]
 
   """
-  def list_students_records do
-    Repo.all(StudentRecord)
+  def list_students_records(opts \\ []) do
+    from(
+      sr in StudentRecord,
+      order_by: [desc: sr.date, desc: sr.time]
+    )
+    |> apply_list_students_records_opts(opts)
+    |> Repo.all()
+    |> maybe_preload(opts)
   end
+
+  defp apply_list_students_records_opts(queryable, []), do: queryable
+
+  defp apply_list_students_records_opts(queryable, [{:school_id, school_id} | opts]) do
+    from(
+      sr in queryable,
+      where: sr.school_id == ^school_id
+    )
+    |> apply_list_students_records_opts(opts)
+  end
+
+  defp apply_list_students_records_opts(queryable, [_ | opts]),
+    do: apply_list_students_records_opts(queryable, opts)
 
   @doc """
   Gets a single student_record.

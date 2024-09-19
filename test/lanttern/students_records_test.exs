@@ -11,9 +11,29 @@ defmodule Lanttern.StudentsRecordsTest do
 
     @invalid_attrs %{name: nil, date: nil, time: nil, description: nil}
 
-    test "list_students_records/0 returns all students_records" do
+    test "list_students_records/1 returns all students_records" do
       student_record = student_record_fixture()
       assert StudentsRecords.list_students_records() == [student_record]
+    end
+
+    test "list_students_records/1 with school opt returns all students_records filtered by the given school" do
+      school = SchoolsFixtures.school_fixture()
+      student_record = student_record_fixture(%{school_id: school.id})
+
+      # extra fixture to test filtering
+      student_record_fixture()
+
+      assert StudentsRecords.list_students_records(school_id: school.id) == [student_record]
+    end
+
+    test "list_students_records/1 with preloads opt returns all students_records with preloaded data" do
+      school = SchoolsFixtures.school_fixture()
+      type = student_record_type_fixture(%{school_id: school.id})
+      student_record = student_record_fixture(%{type_id: type.id, school_id: school.id})
+
+      [expected] = StudentsRecords.list_students_records(preloads: :type)
+      assert expected.id == student_record.id
+      assert expected.type.id == type.id
     end
 
     test "get_student_record!/1 returns the student_record with given id" do
