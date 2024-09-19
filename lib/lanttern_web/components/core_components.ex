@@ -173,6 +173,11 @@ defmodule LantternWeb.CoreComponents do
   attr :theme, :string, default: "default", doc: "default | ghost"
   attr :icon_name, :string, default: nil
   attr :is_checked, :boolean, doc: "will render a check icon on the left side. impacts styling"
+
+  attr :color_map, :map,
+    default: nil,
+    doc: "any map with `bg_color` and `text_color` attrs (e.g. ordinal value)"
+
   attr :rest, :global
 
   slot :inner_block, required: true
@@ -196,16 +201,22 @@ defmodule LantternWeb.CoreComponents do
         get_badge_button_styles(@theme),
         @class
       ]}
+      style={create_color_map_style(@color_map)}
       {@rest}
     >
       <.icon
         :if={@has_check_icon}
         name="hero-check-circle-mini"
         class={["w-3.5 h-3.5", badge_check_icon_theme(@is_checked)]}
+        style={create_color_map_text_style(@color_map)}
       />
       <%= render_slot(@inner_block) %>
       <%= if @icon_name do %>
-        <.icon name={@icon_name} class={["w-3.5 h-3.5", badge_icon_theme(@theme)]} />
+        <.icon
+          name={@icon_name}
+          class={["w-3.5 h-3.5", badge_icon_theme(@theme)]}
+          style={create_color_map_text_style(@color_map)}
+        />
       <% end %>
     </button>
     """
@@ -235,6 +246,11 @@ defmodule LantternWeb.CoreComponents do
     required: true,
     doc: "expects a function with arity 1. will receive the `item.id` as arg"
 
+  attr :use_color_map_as_active, :boolean,
+    default: false,
+    doc:
+      "instead of using primary theme when active, will set `color_map` attr using item when active"
+
   attr :class, :any, default: nil
   attr :id, :string, default: nil
 
@@ -244,6 +260,7 @@ defmodule LantternWeb.CoreComponents do
       <.badge_button
         :for={item <- @items}
         theme={if item.id in @selected_ids, do: "primary", else: "default"}
+        color_map={if item.id in @selected_ids && @use_color_map_as_active, do: item}
         icon_name={if item.id in @selected_ids, do: "hero-check-mini", else: "hero-plus-mini"}
         phx-click={@on_select.(item.id)}
       >
@@ -907,11 +924,12 @@ defmodule LantternWeb.CoreComponents do
   """
   attr :name, :string, required: true
   attr :class, :any, default: nil
+  attr :style, :any, default: nil
   attr :id, :string, default: nil
 
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
-    <span class={["shrink-0", @name, @class]} aria-hidden="true" id={@id} />
+    <span class={["shrink-0", @name, @class]} style={@style} aria-hidden="true" id={@id} />
     """
   end
 

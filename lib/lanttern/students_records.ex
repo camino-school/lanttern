@@ -49,7 +49,7 @@ defmodule Lanttern.StudentsRecords do
   @doc """
   Gets a single student_record.
 
-  Raises `Ecto.NoResultsError` if the Student record does not exist.
+  Returns `nil` if the student record does not exist.
 
   ## Examples
 
@@ -57,7 +57,15 @@ defmodule Lanttern.StudentsRecords do
       %StudentRecord{}
 
       iex> get_student_record!(456)
-      ** (Ecto.NoResultsError)
+      nil
+
+  """
+  def get_student_record(id), do: Repo.get(StudentRecord, id)
+
+  @doc """
+  Gets a single student record.
+
+  Same as `get_student_record/1`, but raises `Ecto.NoResultsError` if the `StudentRecord` does not exist.
 
   """
   def get_student_record!(id), do: Repo.get!(StudentRecord, id)

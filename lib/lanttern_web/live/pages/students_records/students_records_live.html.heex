@@ -1,5 +1,35 @@
 <.responsive_container class="py-6 sm:py-10">
   <.page_title_with_menu><%= gettext("Students records") %></.page_title_with_menu>
+
+  <div class="flex items-end gap-6 mt-10 mb-4">
+    <div class="flex-1">
+      <p class="flex flex-wrap gap-2">
+        <%= ngettext(
+          "Showing 1 result for",
+          "Showing %{count} results for",
+          @students_records_length
+        ) %>
+        <%!-- <%= if length(@selected_subjects) == 0 do %>
+          <.badge><%= gettext("all subjects") %></.badge>
+        <% else %>
+          <.badge :for={subject <- @selected_subjects}><%= subject.name %></.badge>
+        <% end %>
+        <%= gettext("and") %>
+        <%= if length(@selected_years) == 0 do %>
+          <.badge><%= gettext("all years") %></.badge>
+        <% else %>
+          <.badge :for={year <- @selected_years}><%= year.name %></.badge>
+        <% end %> --%>
+      </p>
+    </div>
+    <.collection_action
+      type="link"
+      patch={~p"/students_records?edit=new"}
+      icon_name="hero-plus-circle"
+    >
+      <%= gettext("Add student record") %>
+    </.collection_action>
+  </div>
 </.responsive_container>
 <.data_grid
   id="students-records"
@@ -10,6 +40,16 @@
       do: gettext("No students records found for selected filters.")
   }
 >
+  <:col :let={student_record} label={gettext("Date")} template_col="max-content" class="text-sm">
+    <div class="flex items-center gap-2">
+      <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
+      <%= student_record.date %>
+    </div>
+    <div :if={student_record.time} class="flex items-center gap-2 mt-2">
+      <.icon name="hero-clock-mini" class="w-5 h-5 text-ltrn-subtle" />
+      <%= student_record.time %>
+    </div>
+  </:col>
   <:col :let={student_record} label={gettext("Record")}>
     <p :if={student_record.name} class="mb-4 font-display font-black">
       <%= student_record.name %>
@@ -26,4 +66,28 @@
       <%= student_record.status.name %>
     </.badge>
   </:col>
+  <:action :let={student_record}>
+    <.icon_button
+      type="button"
+      sr_text={gettext("Edit student record")}
+      name="hero-pencil-mini"
+      size="sm"
+      theme="ghost"
+      phx-click={JS.patch(~p"/students_records?edit=#{student_record.id}")}
+    />
+  </:action>
 </.data_grid>
+<.live_component
+  :if={@student_record}
+  module={StudentRecordFormOverlayComponent}
+  id={(@student_record && @student_record.id) || :new}
+  student_record={@student_record}
+  navigate={~p"/students_records"}
+  current_user={@current_user}
+  on_cancel={JS.patch(~p"/students_records")}
+  title={
+    if @student_record && @student_record.id,
+      do: gettext("Edit student record"),
+      else: gettext("New student record")
+  }
+/>
