@@ -17,9 +17,13 @@
     <.markdown text={student_record.description} class="line-clamp-3" size="sm" />
   </:col>
   <:col :let={student_record} label={gettext("Type")} template_col="max-content">
-    <%= student_record.type.name %>
+    <.badge color_map={student_record.type}>
+      <%= student_record.type.name %>
+    </.badge>
   </:col>
   <:col :let={student_record} label={gettext("Status")} template_col="max-content">
-    <%= student_record.status.name %>
+    <.badge color_map={student_record.status}>
+      <%= student_record.status.name %>
+    </.badge>
   </:col>
 </.data_grid>

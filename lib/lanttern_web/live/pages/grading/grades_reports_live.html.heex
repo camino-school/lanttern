@@ -46,9 +46,9 @@
               class="flex items-center gap-2 ml-2"
             >
               <%= for ov <- grades_report.scale.ordinal_values do %>
-                <.ordinal_value_badge ordinal_value={ov}>
+                <.badge color_map={ov}>
                   <%= ov.name %>
-                </.ordinal_value_badge>
+                </.badge>
               <% end %>
             </div>
           </div>

@@ -51,6 +51,11 @@ defmodule LantternWeb.CoreComponents do
   attr :class, :any, default: nil
   attr :style, :string, default: nil
   attr :theme, :string, default: "default"
+
+  attr :color_map, :map,
+    default: nil,
+    doc: "any map with `bg_color` and `text_color` attrs (e.g. ordinal value)"
+
   attr :on_remove, JS, default: nil
   attr :rest, :global
   slot :inner_block, required: true
@@ -64,7 +69,7 @@ defmodule LantternWeb.CoreComponents do
         badge_theme(@theme),
         @class
       ]}
-      style={@style}
+      style={create_color_map_style(@color_map)}
       {@rest}
     >
       <%= render_slot(@inner_block) %>
@@ -438,6 +443,39 @@ defmodule LantternWeb.CoreComponents do
     do: "from-ltrn-mesh-primary/0 to-ltrn-mesh-primary"
 
   @doc """
+  Returns a string with background and text styles to be
+  used in a `style` attribute.
+  """
+
+  def create_color_map_style(%{bg_color: bg_color, text_color: text_color}),
+    do: "background-color: #{bg_color}; color: #{text_color}"
+
+  def create_color_map_style(_), do: nil
+
+  @doc """
+  Returns a string with text style to be
+  used in a `style` attribute.
+  """
+
+  def create_color_map_text_style(%{text_color: text_color}),
+    do: "color: #{text_color}"
+
+  def create_color_map_text_style(_), do: nil
+
+  @doc """
+  Returns a string with background gradient style
+  to be used in a `style` attribute.
+  """
+  def create_color_map_gradient_bg_style(%{
+        start_bg_color: start_bg_color,
+        stop_bg_color: stop_bg_color
+      })
+      when is_binary(start_bg_color) and is_binary(stop_bg_color),
+      do: "background-image: linear-gradient(to right, #{start_bg_color}, #{stop_bg_color})"
+
+  def create_color_map_gradient_bg_style(_), do: %{}
+
+  @doc """
   Renders a data grid.
 
   ## Examples
@@ -532,7 +570,7 @@ defmodule LantternWeb.CoreComponents do
           </li>
         </ul>
       </div>
-      <.empty_state><%= @show_empty_state_message %></.empty_state>
+      <.empty_state :if={@show_empty_state_message}><%= @show_empty_state_message %></.empty_state>
     </div>
     """
   end

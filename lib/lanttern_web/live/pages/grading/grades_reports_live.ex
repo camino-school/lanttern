@@ -13,7 +13,6 @@ defmodule LantternWeb.GradesReportsLive do
 
   # shared
   import LantternWeb.GradesReportsComponents
-  import LantternWeb.GradingComponents
 
   # lifecycle
 

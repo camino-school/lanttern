@@ -8,8 +8,6 @@ defmodule LantternWeb.AssessmentsComponents do
   import LantternWeb.Gettext
   import LantternWeb.CoreComponents
 
-  import LantternWeb.GradingComponents
-
   alias Lanttern.Grading.OrdinalValue
 
   @doc """
@@ -39,14 +37,14 @@ defmodule LantternWeb.AssessmentsComponents do
     assigns = assign(assigns, :ov_name, ov_name)
 
     ~H"""
-    <.ordinal_value_badge
-      ordinal_value={@entry.ordinal_value}
+    <.badge
+      color_map={@entry.ordinal_value}
       class={@class}
       id={@id}
       title={if @is_short, do: @entry.ordinal_value.name}
     >
       <%= @ov_name %>
-    </.ordinal_value_badge>
+    </.badge>
     """
   end
 
@@ -159,7 +157,7 @@ defmodule LantternWeb.AssessmentsComponents do
     <%= if @ov do %>
       <div
         class={[assessment_point_entry_display_base_classes(), "shadow-lg"]}
-        {apply_style_from_ordinal_value(@ov)}
+        style={create_color_map_style(@ov)}
       >
         <%= @ov.name %>
       </div>
