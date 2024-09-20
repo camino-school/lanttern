@@ -505,6 +505,7 @@ defmodule LantternWeb.CoreComponents do
   attr :id, :string, required: true
   attr :stream, :any, required: true
   attr :class, :any, default: nil
+  attr :row_click, :any, default: nil, doc: "the function for handling phx-click on each row"
   # this approach looks weird... but we need something apart from stream to identify empty streams
   attr :show_empty_state_message, :string, default: nil, doc: "Use this field to show empty state"
 
@@ -573,8 +574,12 @@ defmodule LantternWeb.CoreComponents do
           <li
             :for={{row_id, row} <- @stream}
             id={row_id}
-            class="grid grid-cols-subgrid items-center py-2 rounded hover:bg-ltrn-mesh-yellow"
+            class={[
+              "grid grid-cols-subgrid items-center py-2 rounded hover:bg-ltrn-mesh-yellow",
+              @row_click && "hover:cursor-pointer"
+            ]}
             style={@grid_col_span_style}
+            phx-click={@row_click && @row_click.(row)}
           >
             <div :for={col <- @col} class={["p-4", col[:class]]}>
               <%= render_slot(col, row) %>

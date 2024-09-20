@@ -1,0 +1,51 @@
+<.responsive_container class="py-6 sm:py-10">
+  <.page_title_with_menu><%= @page_title %></.page_title_with_menu>
+  <.breadcrumbs class="mt-2">
+    <:item link={~p"/students_records"}><%= gettext("Students records") %></:item>
+    <:item><%= gettext("Details") %></:item>
+  </.breadcrumbs>
+
+  <div class="flex gap-6 mt-10">
+    <div class="flex items-center gap-2">
+      <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
+      <%= Timex.format!(@student_record.date, "{Mfull} {0D}, {YYYY}") %>
+    </div>
+    <div :if={@student_record.time} class="flex items-center gap-2">
+      <.icon name="hero-clock-mini" class="w-5 h-5 text-ltrn-subtle" />
+      <%= @student_record.time %>
+    </div>
+  </div>
+  <div class="flex gap-6 mt-6">
+    <div class="flex items-center gap-2">
+      <span><%= gettext("Type") %>:</span>
+      <.badge color_map={@student_record.type}>
+        <%= @student_record.type.name %>
+      </.badge>
+    </div>
+    <div class="flex items-center gap-2">
+      <span><%= gettext("Status") %>:</span>
+      <.badge color_map={@student_record.status}>
+        <%= @student_record.status.name %>
+      </.badge>
+    </div>
+  </div>
+  <.markdown text={@student_record.description} class="mt-10" />
+  <p class="mt-10">
+    <.link
+      patch={~p"/students_records/#{@student_record}/edit"}
+      class="font-display font-black text-ltrn-subtle hover:underline hover:text-ltrn-dark"
+    >
+      <%= gettext("Edit this record") %>
+    </.link>
+  </p>
+</.responsive_container>
+<.live_component
+  :if={@live_action == :edit}
+  module={StudentRecordFormOverlayComponent}
+  id={@student_record.id}
+  student_record={@student_record}
+  navigate={~p"/students_records/#{@student_record}"}
+  current_user={@current_user}
+  on_cancel={JS.patch(~p"/students_records/#{@student_record}")}
+  title={gettext("Edit student record")}
+/>

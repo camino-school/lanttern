@@ -114,6 +114,8 @@ defmodule LantternWeb.Router do
       # students records
 
       live "/students_records", StudentsRecordsLive, :index
+      live "/students_records/:id", StudentRecordLive, :show
+      live "/students_records/:id/edit", StudentRecordLive, :edit
     end
 
     live_session :authenticated_guardian,

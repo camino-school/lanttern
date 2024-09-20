@@ -51,6 +51,10 @@ defmodule Lanttern.StudentsRecords do
 
   Returns `nil` if the student record does not exist.
 
+  ## Options
+
+  - `:preloads` - preloads associated data
+
   ## Examples
 
       iex> get_student_record!(123)
@@ -60,7 +64,10 @@ defmodule Lanttern.StudentsRecords do
       nil
 
   """
-  def get_student_record(id), do: Repo.get(StudentRecord, id)
+  def get_student_record(id, opts \\ []) do
+    Repo.get(StudentRecord, id)
+    |> maybe_preload(opts)
+  end
 
   @doc """
   Gets a single student record.

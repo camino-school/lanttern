@@ -35,6 +35,7 @@
   id="students-records"
   class="mx-6"
   stream={@streams.students_records}
+  row_click={fn student_record -> JS.navigate(~p"/students_records/#{student_record.id}") end}
   show_empty_state_message={
     if @students_records_length == 0,
       do: gettext("No students records found for selected filters.")
@@ -43,7 +44,7 @@
   <:col :let={student_record} label={gettext("Date")} template_col="max-content" class="text-sm">
     <div class="flex items-center gap-2">
       <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
-      <%= student_record.date %>
+      <%= Timex.format!(student_record.date, "{Mshort} {0D}, {YYYY}") %>
     </div>
     <div :if={student_record.time} class="flex items-center gap-2 mt-2">
       <.icon name="hero-clock-mini" class="w-5 h-5 text-ltrn-subtle" />

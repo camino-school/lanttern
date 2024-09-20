@@ -36,9 +36,24 @@ defmodule Lanttern.StudentsRecordsTest do
       assert expected.type.id == type.id
     end
 
+    test "get_student_record/1 returns the student_record with given id" do
+      student_record = student_record_fixture()
+      assert StudentsRecords.get_student_record(student_record.id) == student_record
+    end
+
     test "get_student_record!/1 returns the student_record with given id" do
       student_record = student_record_fixture()
       assert StudentsRecords.get_student_record!(student_record.id) == student_record
+    end
+
+    test "get_student_record/1 with preload opts returns the student_record with preloaded data" do
+      school = SchoolsFixtures.school_fixture()
+      type = student_record_type_fixture(%{school_id: school.id})
+      student_record = student_record_fixture(%{type_id: type.id, school_id: school.id})
+
+      expected = StudentsRecords.get_student_record(student_record.id, preloads: :type)
+      assert expected.id == student_record.id
+      assert expected.type.id == type.id
     end
 
     test "create_student_record/1 with valid data creates a student_record" do

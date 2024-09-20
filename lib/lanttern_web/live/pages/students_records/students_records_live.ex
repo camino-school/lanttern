@@ -1,8 +1,8 @@
 defmodule LantternWeb.StudentsRecordsLive do
-  alias Lanttern.StudentsRecords.StudentRecord
   use LantternWeb, :live_view
 
   alias Lanttern.StudentsRecords
+  alias Lanttern.StudentsRecords.StudentRecord
 
   # shared components
 
