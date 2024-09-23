@@ -10,6 +10,7 @@ defmodule LantternWeb.StrandLive.AboutComponent do
 
   # shared components
   alias LantternWeb.Assessments.AssessmentPointFormComponent
+  alias LantternWeb.Dataviz.LantternVizComponent
   import LantternWeb.ReportingComponents, only: [report_card_card: 1]
 
   @impl true
@@ -17,6 +18,12 @@ defmodule LantternWeb.StrandLive.AboutComponent do
     ~H"""
     <div class="py-10">
       <.responsive_container>
+        <.live_component
+          module={LantternVizComponent}
+          id="lanttern-viz"
+          class="w-full h-[50vh] min-h-[360px] mb-10 rounded-lg bg-ltrn-primary/20"
+          strand_id={@strand.id}
+        />
         <.markdown text={@strand.description} />
         <div class="flex items-end justify-between gap-6">
           <h3 class="mt-16 font-display font-black text-3xl"><%= gettext("Goals") %></h3>
