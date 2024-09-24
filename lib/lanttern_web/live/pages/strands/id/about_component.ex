@@ -17,13 +17,13 @@ defmodule LantternWeb.StrandLive.AboutComponent do
   def render(assigns) do
     ~H"""
     <div class="py-10">
+      <.live_component
+        module={LantternVizComponent}
+        id="lanttern-viz"
+        class="mb-10"
+        strand_id={@strand.id}
+      />
       <.responsive_container>
-        <.live_component
-          module={LantternVizComponent}
-          id="lanttern-viz"
-          class="w-full h-[50vh] min-h-[360px] mb-10 rounded-lg bg-ltrn-primary/20"
-          strand_id={@strand.id}
-        />
         <.markdown text={@strand.description} />
         <div class="flex items-end justify-between gap-6">
           <h3 class="mt-16 font-display font-black text-3xl"><%= gettext("Goals") %></h3>

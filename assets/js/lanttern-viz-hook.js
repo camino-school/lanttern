@@ -5,26 +5,15 @@ const RADIUS = 100;
 const DIST = 24;
 
 const PALETTE = [
-  0Xef4444, // red
-  0x10b981, // emerald
-  0x6366f1, // indigo
-  0xf59e0b, // amber
-  0x06b6d4, // cyan
-  0xd946ef, // fuchsia
-  0x84cc16, // lime
-  0xf43f5e, // rose
-]
-
-const PALETTE_SECONDARY = [
-  0Xfecaca, // red
-  0xa7f3d0, // emerald
-  0xc7d2fe, // indigo
-  0xfde68a, // amber
-  0xa5f3fc, // cyan
-  0xf5d0fe, // fuchsia
-  0xd9f99d, // lime
-  0xfecdd3, // rose
-]
+  0X67e8f9, // cyan
+  0xfda4af, // rose
+  0xc4b5fd, // violet
+  0xfde047, // yellow
+  0xbef264, // lime
+  0x93c5fd, // blue
+  0xf0abfc, // fuschia
+  0xfdba74, // orange
+];
 
 function drawCurve(scene, z) {
   const curve = new THREE.EllipseCurve(
@@ -38,11 +27,11 @@ function drawCurve(scene, z) {
   const points = curve.getPoints(50);
   const geometry = new THREE.BufferGeometry().setFromPoints(points);
 
-  const material = new THREE.LineDashedMaterial({ color: 0xe2e8f0, dashSize: 2, gapSize: 2 });
+  const material = new THREE.LineDashedMaterial({ color: 0xe2e8f0, dashSize: 2, gapSize: 4 });
 
   const ellipse = new THREE.Line(geometry, material);
-  ellipse.computeLineDistances()
-  ellipse.position.z = z
+  ellipse.computeLineDistances();
+  ellipse.position.z = z;
 
   scene.add(ellipse);
 }
@@ -51,40 +40,42 @@ function drawSphere(scene, x, y, z, color) {
   const geometry = new THREE.SphereGeometry(RADIUS / 25, 20, 20);
   const material = new THREE.MeshBasicMaterial({ color });
   const sphere = new THREE.Mesh(geometry, material);
-  sphere.position.x = x
-  sphere.position.y = y
-  sphere.position.z = z
+  sphere.position.x = x;
+  sphere.position.y = y;
+  sphere.position.z = z;
 
   scene.add(sphere);
 }
 
-function drawLayer(scene, assessmentPoints, z, colorMap, angleShift) {
+function drawLayer(scene, assessmentPoints, z, colorMap, angleShift, currentItem) {
   drawCurve(scene, z);
 
-  const radiansAndZ = []
+  const radiansAndZ = [];
 
   assessmentPoints
     .forEach((ap, i) => {
-      const a = (2 * Math.PI / assessmentPoints.length) * i + angleShift
-      const x = Math.cos(a) * RADIUS
-      const y = Math.sin(a) * RADIUS
-      drawSphere(scene, x, y, z, colorMap[ap])
+      if (!currentItem || ap === currentItem) {
+        const a = (2 * Math.PI / assessmentPoints.length) * i + angleShift;
+        const x = Math.cos(a) * RADIUS;
+        const y = Math.sin(a) * RADIUS;
+        drawSphere(scene, x, y, z, colorMap[ap]);
 
-      radiansAndZ.push([ap, a, z])
-    })
+        radiansAndZ.push([ap, a, z]);
+      }
+    });
 
-  return radiansAndZ
+  return radiansAndZ;
 }
 
 function drawConnection(scene, r1, z1, r2, z2, color) {
-  const rStep = (r2 - r1) / 10
-  const zStep = (z2 - z1) / 10
+  const rStep = (r2 - r1) / 10;
+  const zStep = (z2 - z1) / 10;
 
-  const curvePoints = []
+  const curvePoints = [];
   for (let i = 0; i <= 10; i++) {
-    const r = r1 + (rStep * i)
-    const z = z1 + (zStep * i)
-    curvePoints.push(new THREE.Vector3(Math.cos(r) * RADIUS, Math.sin(r) * RADIUS, z))
+    const r = r1 + (rStep * i);
+    const z = z1 + (zStep * i);
+    curvePoints.push(new THREE.Vector3(Math.cos(r) * RADIUS, Math.sin(r) * RADIUS, z));
   }
 
   const curve = new THREE.CatmullRomCurve3(curvePoints);
@@ -96,10 +87,29 @@ function drawConnection(scene, r1, z1, r2, z2, color) {
   // Create the final object to add to the scene
   const connection = new THREE.Line(geometry, material);
 
-  scene.add(connection)
+  scene.add(connection);
 }
 
-function buildViz(canvas, { strand_goals, moments_assessment_points }) {
+function clearThree(obj) {
+  while (obj.children.length > 0) {
+    clearThree(obj.children[0]);
+    obj.remove(obj.children[0]);
+  }
+  if (obj.geometry) obj.geometry.dispose();
+
+  if (obj.material) {
+    //in case of map, bumpMap, normalMap, envMap ...
+    Object.keys(obj.material).forEach(prop => {
+      if (!obj.material[prop])
+        return;
+      if (obj.material[prop] !== null && typeof obj.material[prop].dispose === 'function')
+        obj.material[prop].dispose();
+    });
+    obj.material.dispose();
+  }
+}
+
+function buildViz(canvas, strandGoals, momentsAssessmentPoints, currentItem = null) {
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, premultipliedAlpha: false, antialias: true });
 
   const fov = 40;
@@ -107,7 +117,7 @@ function buildViz(canvas, { strand_goals, moments_assessment_points }) {
   const near = 0.1;
   const far = 5000;
   const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-  camera.position.set(400, 0, 300);
+  camera.position.set(200, 0, 200);
   camera.up.set(0, 0, 1);
   camera.lookAt(0, 0, 0);
 
@@ -117,65 +127,32 @@ function buildViz(canvas, { strand_goals, moments_assessment_points }) {
 
   const scene = new THREE.Scene();
 
-  colorMap = {}
-  secondaryColorMap = {}
-  strand_goals.forEach((goal, i) => {
-    colorMap[goal] = PALETTE[i % 8]
-    secondaryColorMap[goal] = PALETTE_SECONDARY[i % 8]
-  })
+  colorMap = {};
+  strandGoals.forEach((goal, i) => {
+    colorMap[goal] = PALETTE[i % 8];
+  });
 
-  const goalsRadiansAndZ = drawLayer(scene, strand_goals, 0, colorMap, 0)
-
-  const momentsRadiansAndZ = []
-  moments_assessment_points.forEach((moment_assessment_points, i) => {
-    const angleShift = Math.PI / 10 * (i + 1)
-    momentsRadiansAndZ.push(
-      drawLayer(scene, moment_assessment_points, -DIST * (i + 1), secondaryColorMap, angleShift)
-    );
-  })
-
-  const connections = []
-
-  for (const [id, rad, z] of goalsRadiansAndZ) {
-    for (const m of momentsRadiansAndZ) {
-      for (const [mId, mRad, mZ] of m) {
-        if (id === mId) {
-          connections.push([rad, z, mRad, mZ, colorMap[id]])
-        }
-      }
-    }
-  }
-
-  connections.forEach(([r1, z1, r2, z2, color]) => {
-    drawConnection(scene, r1, z1, r2, z2, color)
-  })
+  drawViz(scene, strandGoals, momentsAssessmentPoints, colorMap, currentItem);
 
   // reposition scene based on moments length
-  z = (DIST * moments_assessment_points.length) / 2
-  scene.position.z = z
-
-  function resizeRendererToDisplaySize(renderer) {
-    const canvas = renderer.domElement;
-    const pixelRatio = window.devicePixelRatio;
-    const width = Math.floor(canvas.clientWidth * pixelRatio);
-    const height = Math.floor(canvas.clientHeight * pixelRatio);
-    const needResize = canvas.width !== width || canvas.height !== height;
-
-    if (needResize) {
-      renderer.setSize(width, height, false);
-    }
-
-    return needResize;
-  }
+  z = (DIST * momentsAssessmentPoints.length) / 2;
+  scene.position.z = z;
 
   function render(time) {
     time *= 0.0001;
 
-    if (resizeRendererToDisplaySize(renderer)) {
+    function resizeCanvasToDisplaySize() {
       const canvas = renderer.domElement;
-      camera.aspect = canvas.clientWidth / canvas.clientHeight;
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
     }
+
+    const resizeObserver = new ResizeObserver(resizeCanvasToDisplaySize);
+    resizeObserver.observe(canvas, { box: 'content-box' });
 
     const rot = time;
     scene.rotation.z = rot;
@@ -185,15 +162,65 @@ function buildViz(canvas, { strand_goals, moments_assessment_points }) {
   }
 
   requestAnimationFrame(render);
+
+  return [scene, colorMap];
+}
+
+function drawViz(scene, strandGoals, momentsAssessmentPoints, colorMap, currentItem) {
+  clearThree(scene);
+  const goalsRadiansAndZ = drawLayer(scene, strandGoals, 0, colorMap, 0, currentItem);
+
+  const momentsRadiansAndZ = [];
+  momentsAssessmentPoints.forEach((momentAssessmentPoints, i) => {
+    const angleShift = Math.PI / 10 * (i + 1);
+    momentsRadiansAndZ.push(
+      drawLayer(scene, momentAssessmentPoints, -DIST * (i + 1), colorMap, angleShift, currentItem)
+    );
+  });
+
+  const connections = [];
+  const lastRadZByItem = {};
+
+  for (const [id, rad, z] of goalsRadiansAndZ) {
+    lastRadZByItem[id] = [rad, z];
+    for (const m of momentsRadiansAndZ) {
+      for (const [mId, mRad, mZ] of m) {
+        if (id === mId) {
+          [lastRad, lastZ] = lastRadZByItem[id];
+          connections.push([lastRad, lastZ, mRad, mZ, colorMap[id]]);
+          lastRadZByItem[id] = [mRad, mZ];
+        }
+      }
+    }
+  }
+
+  connections.forEach(([r1, z1, r2, z2, color]) => {
+    drawConnection(scene, r1, z1, r2, z2, color);
+  });
 }
 
 const lantternVizHook = {
   mounted() {
-    const canvas = this.el
+    const canvas = this.el;
+
+    let data, currentItem, scene, colorMap, strandGoals, momentsAssessmentPoints;
 
     this.handleEvent("build_lanttern_viz", data => {
-      buildViz(canvas, data);
-    })
+      const { strand_goals, moments_assessment_points } = data;
+      strandGoals = strand_goals;
+      momentsAssessmentPoints = moments_assessment_points;
+      [scene, colorMap] = buildViz(canvas, strandGoals, momentsAssessmentPoints);
+    });
+
+    this.handleEvent("set_current_item", ({ id: itemId }) => {
+      if (currentItem === itemId) {
+        currentItem = null;
+        drawViz(scene, strandGoals, momentsAssessmentPoints, colorMap, currentItem);
+      } else {
+        currentItem = itemId;
+        drawViz(scene, strandGoals, momentsAssessmentPoints, colorMap, currentItem);
+      }
+    });
   },
 };
 
