@@ -5,7 +5,7 @@ defmodule LantternWeb.Dataviz.LantternVizComponent do
 
   use LantternWeb, :live_component
 
-  alias Lanttern.LearningContext
+  alias Lanttern.Dataviz
 
   @color_scale [
     # cyan
@@ -30,9 +30,36 @@ defmodule LantternWeb.Dataviz.LantternVizComponent do
   def render(assigns) do
     ~H"""
     <div class={["flex gap-6 px-10", @class]}>
-      <div class="flex-1 h-[60vh] min-h-[20rem]">
+      <div class="relative flex-1 h-[60vh] min-h-[20rem]">
         <canvas id={@id} phx-hook="LantternViz" class="w-full h-full rounded-lg bg-ltrn-primary/20">
         </canvas>
+        <div class="absolute left-2 top-2 max-w-40 font-mono text-xs">
+          <p class="mb-2 font-bold"><%= gettext("Layers (moments)") %></p>
+          <ul>
+            <li class="flex items-center gap-1">
+              <span class="shrink-0 w-4 border-t-2 border-ltrn-dark" />
+              <.link
+                navigate={~p"/strands/#{@strand_id}?tab=assessment"}
+                class="underline hover:opacity-50 truncate"
+              >
+                <%= gettext("Final assessment") %>
+              </.link>
+            </li>
+            <li
+              :for={{dom_id, moment} <- @streams.moments}
+              id={dom_id}
+              class="flex items-center gap-1 mt-2"
+            >
+              <span class="shrink-0 w-4 border-t-2 border-dotted border-ltrn-subtle"></span>
+              <.link
+                navigate={~p"/strands/moment/#{moment.id}?tab=assessment"}
+                class="underline truncate hover:opacity-50"
+              >
+                <%= moment.name %>
+              </.link>
+            </li>
+          </ul>
+        </div>
       </div>
       <div id="viz-items" class="shrink-0 w-60 h-[60vh] min-h-full overflow-auto">
         <button
@@ -43,10 +70,7 @@ defmodule LantternWeb.Dataviz.LantternVizComponent do
           style={"border-color: #{color}"}
           title={ci.name}
           phx-click={
-            JS.add_class("truncate", to: "#viz-items button:not(#control-btn-#{ci.id})")
-            |> JS.remove_class("active", to: "#viz-items button:not(#control-btn-#{ci.id})")
-            |> JS.toggle_class("truncate")
-            |> JS.toggle_class("active")
+            JS.toggle_class("truncate active")
             |> JS.push("select_item", value: %{"id" => ci.id}, target: @myself)
           }
         >
@@ -84,43 +108,26 @@ defmodule LantternWeb.Dataviz.LantternVizComponent do
   end
 
   defp push_assessment_points_data(socket) do
-    strand =
-      LearningContext.get_strand(socket.assigns.strand_id,
-        preloads: [
-          assessment_points: [curriculum_item: :curriculum_component],
-          moments: :assessment_points
-        ]
-      )
-
-    strand_goals =
-      strand.assessment_points
-      |> Enum.map(& &1.curriculum_item_id)
-
-    moments_assessment_points =
-      strand.moments
-      |> Enum.map(&build_moment_reverse_curriculum_items_list/1)
-      |> Enum.reverse()
+    %{
+      moments: moments,
+      strand_goals_curriculum_items: strand_goals_curriculum_items,
+      strand_goals_curriculum_items_ids: strand_goals_curriculum_items_ids,
+      moments_assessments_curriculum_items_ids: moments_assessments_curriculum_items_ids
+    } =
+      Dataviz.get_strand_lanttern_viz_data(socket.assigns.strand_id)
 
     curriculum_items_and_color =
-      strand.assessment_points
-      |> Enum.map(& &1.curriculum_item)
+      strand_goals_curriculum_items
       |> Enum.with_index()
       |> Enum.map(fn {ci, i} -> {ci, Enum.at(@color_scale, rem(i, 8))} end)
 
     socket
     |> push_event("build_lanttern_viz", %{
-      strand_goals: strand_goals,
-      moments_assessment_points: moments_assessment_points
+      strand_goals_curriculum_items_ids: strand_goals_curriculum_items_ids,
+      moments_assessments_curriculum_items_ids: moments_assessments_curriculum_items_ids
     })
     |> assign(:curriculum_items_and_color, curriculum_items_and_color)
-  end
-
-  defp build_moment_reverse_curriculum_items_list(
-         %{assessment_points: assessment_points} = _moment
-       ) do
-    assessment_points
-    |> Enum.map(& &1.curriculum_item_id)
-    |> Enum.reverse()
+    |> stream(:moments, moments)
   end
 
   @impl true
