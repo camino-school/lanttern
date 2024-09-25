@@ -5,39 +5,30 @@ import { MeshLine, MeshLineMaterial, MeshLineRaycast } from 'three.meshline';
 const RADIUS = 100;
 const DIST = 24;
 
-const PALETTE = [
-  0X67e8f9, // cyan
-  0xfda4af, // rose
-  0xc4b5fd, // violet
-  0xfde047, // yellow
-  0xbef264, // lime
-  0x93c5fd, // blue
-  0xf0abfc, // fuschia
-  0xfdba74, // orange
-];
+const layerCurve = new THREE.EllipseCurve(
+  0, 0,            // ax, aY
+  RADIUS, RADIUS,           // xRadius, yRadius
+  0, 2 * Math.PI,  // aStartAngle, aEndAngle
+  false,            // aClockwise
+  0                 // aRotation
+);
 
-function drawCurve(scene, z, color = 0xe2e8f0, isDashed = true) {
-  const curve = new THREE.EllipseCurve(
-    0, 0,            // ax, aY
-    RADIUS, RADIUS,           // xRadius, yRadius
-    0, 2 * Math.PI,  // aStartAngle, aEndAngle
-    false,            // aClockwise
-    0                 // aRotation
-  );
+const layerPoints = layerCurve.getPoints(50);
+const LAYER_GEOMETRY = new THREE.BufferGeometry().setFromPoints(layerPoints);
 
-  const points = curve.getPoints(50);
-  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+const SPHERE_GEOMETRY = new THREE.SphereGeometry(RADIUS / 25, 20, 20);
 
+function drawCurve(scene, z, layerMaterials, isMoment = true) {
   let ellipse;
 
-  if (isDashed) {
-    const material = new THREE.LineDashedMaterial({ color, dashSize: 1, gapSize: 3 });
-    ellipse = new THREE.Line(geometry, material);
+  if (isMoment) {
+    const material = layerMaterials.moment;
+    ellipse = new THREE.Line(LAYER_GEOMETRY, material);
     ellipse.computeLineDistances();
   } else {
     const line = new MeshLine();
-    line.setGeometry(geometry);
-    const material = new MeshLineMaterial({ color, lineWidth: 0.5 });
+    line.setGeometry(LAYER_GEOMETRY);
+    const material = layerMaterials.final;
     ellipse = new THREE.Mesh(line, material);
   }
 
@@ -46,10 +37,8 @@ function drawCurve(scene, z, color = 0xe2e8f0, isDashed = true) {
   scene.add(ellipse);
 }
 
-function drawSphere(scene, x, y, z, color) {
-  const geometry = new THREE.SphereGeometry(RADIUS / 25, 20, 20);
-  const material = new THREE.MeshBasicMaterial({ color });
-  const sphere = new THREE.Mesh(geometry, material);
+function drawSphere(scene, x, y, z, material) {
+  const sphere = new THREE.Mesh(SPHERE_GEOMETRY, material);
   sphere.position.x = x;
   sphere.position.y = y;
   sphere.position.z = z;
@@ -57,11 +46,11 @@ function drawSphere(scene, x, y, z, color) {
   scene.add(sphere);
 }
 
-function drawLayer(scene, assessmentPoints, z, colorMap, layerIndex, currentItems) {
+function drawLayer(scene, assessmentPoints, z, layerMaterials, sphereMaterials, layerIndex, currentItems) {
   if (layerIndex === 0) {
-    drawCurve(scene, z, 0x334155, false);
+    drawCurve(scene, z, layerMaterials, false);
   } else {
-    drawCurve(scene, z);
+    drawCurve(scene, z, layerMaterials);
   }
 
   const radiansZAndIndex = [];
@@ -72,7 +61,7 @@ function drawLayer(scene, assessmentPoints, z, colorMap, layerIndex, currentItem
         const a = (2 * Math.PI / assessmentPoints.length) * i;
         const x = Math.cos(a) * RADIUS;
         const y = Math.sin(a) * RADIUS;
-        drawSphere(scene, x, y, z, colorMap[ap]);
+        drawSphere(scene, x, y, z, sphereMaterials[ap]);
 
         radiansZAndIndex.push([ap, a, z, layerIndex]);
       }
@@ -81,7 +70,7 @@ function drawLayer(scene, assessmentPoints, z, colorMap, layerIndex, currentItem
   return radiansZAndIndex;
 }
 
-function drawConnection(scene, r1, z1, r2, z2, color) {
+function drawConnection(scene, r1, z1, r2, z2, material) {
   const rStep = (r2 - r1) / 20;
   const zStep = (z2 - z1) / 20;
 
@@ -97,8 +86,6 @@ function drawConnection(scene, r1, z1, r2, z2, color) {
   const geometry = new THREE.BufferGeometry().setFromPoints(points);
   const line = new MeshLine();
   line.setGeometry(geometry);
-
-  const material = new MeshLineMaterial({ color });
 
   // Create the final object to add to the scene
   const connection = new THREE.Mesh(line, material);
@@ -125,7 +112,7 @@ function clearThree(obj) {
   }
 }
 
-function buildViz(canvas, strandGoals, momentsAssessmentPoints, currentItems = []) {
+function buildViz(canvas, momentsAssessmentPoints) {
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, premultipliedAlpha: false, antialias: true });
 
   const fov = 40;
@@ -142,13 +129,6 @@ function buildViz(canvas, strandGoals, momentsAssessmentPoints, currentItems = [
   controls.update();
 
   const scene = new THREE.Scene();
-
-  colorMap = {};
-  strandGoals.forEach((goal, i) => {
-    colorMap[goal] = PALETTE[i % 8];
-  });
-
-  drawViz(scene, strandGoals, momentsAssessmentPoints, colorMap, currentItems);
 
   // reposition scene based on moments length
   z = (DIST * momentsAssessmentPoints.length) / 2;
@@ -179,17 +159,17 @@ function buildViz(canvas, strandGoals, momentsAssessmentPoints, currentItems = [
 
   requestAnimationFrame(render);
 
-  return [scene, colorMap];
+  return scene;
 }
 
-function drawViz(scene, strandGoals, momentsAssessmentPoints, colorMap, currentItems) {
+function drawViz(scene, strandGoals, momentsAssessmentPoints, layerMaterials, sphereMaterials, connectionMaterials, currentItems = []) {
   clearThree(scene);
-  const goalsRadiansZAndIndex = drawLayer(scene, strandGoals, 0, colorMap, 0, currentItems);
+  const goalsRadiansZAndIndex = drawLayer(scene, strandGoals, 0, layerMaterials, sphereMaterials, 0, currentItems);
 
   const momentsRadiansZAndIndex = [];
   momentsAssessmentPoints.forEach((momentAssessmentPoints, i) => {
     momentsRadiansZAndIndex.push(
-      drawLayer(scene, momentAssessmentPoints, -DIST * (i + 1), colorMap, i + 1, currentItems)
+      drawLayer(scene, momentAssessmentPoints, -DIST * (i + 1), layerMaterials, sphereMaterials, i + 1, currentItems)
     );
   });
 
@@ -208,39 +188,81 @@ function drawViz(scene, strandGoals, momentsAssessmentPoints, colorMap, currentI
             radShiftByItem[id] = radShiftByItem[id] + 2 * Math.PI;
           }
           mRad = mRad + radShiftByItem[id];
-          connections.push([lastRad, lastZ, mRad, mZ, colorMap[id]]);
+          connections.push([lastRad, lastZ, mRad, mZ, connectionMaterials[id]]);
           lastRadZAndIndexByItem[id] = [mRad, mZ, mI];
         }
       }
     }
   }
 
-  connections.forEach(([r1, z1, r2, z2, color]) => {
-    drawConnection(scene, r1, z1, r2, z2, color);
+  connections.forEach(([r1, z1, r2, z2, material]) => {
+    drawConnection(scene, r1, z1, r2, z2, material);
   });
+}
+
+function buildLayerMaterials() {
+  return {
+    moment: new THREE.LineDashedMaterial({ color: 0xe2e8f0, dashSize: 1, gapSize: 3 }),
+    final: new MeshLineMaterial({ color: 0x334155, lineWidth: 0.5 })
+  };
+}
+
+function buildSphereMaterials(colorMap) {
+  const sphereMaterials = {};
+
+  for (const id in colorMap) {
+    color = colorMap[id];
+    sphereMaterials[id] = new THREE.MeshBasicMaterial({ color });
+  }
+
+  return sphereMaterials;
+}
+
+function buildConnectionMaterials(colorMap) {
+  const connectionMaterials = {};
+
+  for (const id in colorMap) {
+    color = colorMap[id];
+    connectionMaterials[id] = new MeshLineMaterial({ color });
+  }
+
+  return connectionMaterials;
 }
 
 const lantternVizHook = {
   mounted() {
     const canvas = this.el;
 
-    let scene, colorMap, strandGoals, momentsAssessmentPoints;
+    let scene, strandGoals, momentsAssessmentPoints;
+    let sphereMaterials, connectionMaterials;
     let currentItems = [];
 
+    const layerMaterials = buildLayerMaterials();
+
     this.handleEvent("build_lanttern_viz", data => {
-      const { strand_goals_curriculum_items_ids, moments_assessments_curriculum_items_ids } = data;
+      const {
+        strand_goals_curriculum_items_ids,
+        moments_assessments_curriculum_items_ids,
+        curriculum_items_ids_color_map
+      } = data;
+
       strandGoals = strand_goals_curriculum_items_ids;
       momentsAssessmentPoints = moments_assessments_curriculum_items_ids;
-      [scene, colorMap] = buildViz(canvas, strandGoals, momentsAssessmentPoints);
+
+      sphereMaterials = buildSphereMaterials(curriculum_items_ids_color_map);
+      connectionMaterials = buildConnectionMaterials(curriculum_items_ids_color_map);
+
+      scene = buildViz(canvas, momentsAssessmentPoints);
+      drawViz(scene, strandGoals, momentsAssessmentPoints, layerMaterials, sphereMaterials, connectionMaterials);
     });
 
     this.handleEvent("set_current_item", ({ id: itemId }) => {
       if (currentItems.includes(itemId)) {
         currentItems = currentItems.filter(id => id != itemId);
-        drawViz(scene, strandGoals, momentsAssessmentPoints, colorMap, currentItems);
+        drawViz(scene, strandGoals, momentsAssessmentPoints, layerMaterials, sphereMaterials, connectionMaterials, currentItems);
       } else {
         currentItems = [...currentItems, itemId];
-        drawViz(scene, strandGoals, momentsAssessmentPoints, colorMap, currentItems);
+        drawViz(scene, strandGoals, momentsAssessmentPoints, layerMaterials, sphereMaterials, connectionMaterials, currentItems);
       }
     });
   },

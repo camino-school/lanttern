@@ -7,25 +7,6 @@ defmodule LantternWeb.Dataviz.LantternVizComponent do
 
   alias Lanttern.Dataviz
 
-  @color_scale [
-    # cyan
-    "#67e8f9",
-    # rose
-    "#fda4af",
-    # violet
-    "#c4b5fd",
-    # yellow
-    "#fde047",
-    # lime
-    "#bef264",
-    # blue
-    "#93c5fd",
-    # fuschia
-    "#f0abfc",
-    # orange
-    "#fdba74"
-  ]
-
   @impl true
   def render(assigns) do
     ~H"""
@@ -63,11 +44,11 @@ defmodule LantternWeb.Dataviz.LantternVizComponent do
       </div>
       <div id="viz-items" class="shrink-0 w-60 h-[60vh] min-h-full overflow-auto">
         <button
-          :for={{ci, color} <- @curriculum_items_and_color}
-          id={"control-btn-#{ci.id}"}
+          :for={{dom_id, ci} <- @streams.curriculum_items}
+          id={"control-btn-#{dom_id}"}
           type="button"
           class="group w-full pl-2 border-l-4 rounded mb-4 text-sm text-left truncate"
-          style={"border-color: #{color}"}
+          style={"border-color: #{@curriculum_items_ids_color_map[ci.id]}"}
           title={ci.name}
           phx-click={
             JS.toggle_class("truncate active")
@@ -112,22 +93,20 @@ defmodule LantternWeb.Dataviz.LantternVizComponent do
       moments: moments,
       strand_goals_curriculum_items: strand_goals_curriculum_items,
       strand_goals_curriculum_items_ids: strand_goals_curriculum_items_ids,
-      moments_assessments_curriculum_items_ids: moments_assessments_curriculum_items_ids
+      moments_assessments_curriculum_items_ids: moments_assessments_curriculum_items_ids,
+      curriculum_items_ids_color_map: curriculum_items_ids_color_map
     } =
       Dataviz.get_strand_lanttern_viz_data(socket.assigns.strand_id)
-
-    curriculum_items_and_color =
-      strand_goals_curriculum_items
-      |> Enum.with_index()
-      |> Enum.map(fn {ci, i} -> {ci, Enum.at(@color_scale, rem(i, 8))} end)
 
     socket
     |> push_event("build_lanttern_viz", %{
       strand_goals_curriculum_items_ids: strand_goals_curriculum_items_ids,
-      moments_assessments_curriculum_items_ids: moments_assessments_curriculum_items_ids
+      moments_assessments_curriculum_items_ids: moments_assessments_curriculum_items_ids,
+      curriculum_items_ids_color_map: curriculum_items_ids_color_map
     })
-    |> assign(:curriculum_items_and_color, curriculum_items_and_color)
+    |> stream(:curriculum_items, strand_goals_curriculum_items)
     |> stream(:moments, moments)
+    |> assign(:curriculum_items_ids_color_map, curriculum_items_ids_color_map)
   end
 
   @impl true

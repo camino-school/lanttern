@@ -3,6 +3,26 @@ defmodule Lanttern.DatavizTest do
 
   alias Lanttern.Dataviz
 
+  # copy it from Lanttern.Dataviz
+  @color_scale [
+    # cyan
+    "#67e8f9",
+    # rose
+    "#fda4af",
+    # violet
+    "#c4b5fd",
+    # yellow
+    "#fde047",
+    # lime
+    "#bef264",
+    # blue
+    "#93c5fd",
+    # fuschia
+    "#f0abfc",
+    # orange
+    "#fdba74"
+  ]
+
   describe "lanttern viz" do
     alias Lanttern.AssessmentsFixtures
     alias Lanttern.CurriculaFixtures
@@ -116,18 +136,93 @@ defmodule Lanttern.DatavizTest do
                  [^ci_c_id, ^ci_a_id, ^ci_b_id],
                  [^ci_b_id],
                  [^ci_b_id, ^ci_a_id, ^ci_a_id]
-               ]
+               ],
+               curriculum_items_ids_color_map: expected_color_map
              } = Dataviz.get_strand_lanttern_viz_data(strand.id)
 
       assert expected_m_3.id == m_3.id
       assert expected_m_2.id == m_2.id
       assert expected_m_1.id == m_1.id
+
       assert expected_ci_a.id == ci_a.id
       assert expected_ci_a.curriculum_component.id == curriculum_component.id
       assert expected_ci_b.id == ci_b.id
       assert expected_ci_b.curriculum_component.id == curriculum_component.id
       assert expected_ci_c.id == ci_c.id
       assert expected_ci_c.curriculum_component.id == curriculum_component.id
+
+      assert expected_color_map[ci_a.id] == Enum.at(@color_scale, 0)
+      assert expected_color_map[ci_b.id] == Enum.at(@color_scale, 1)
+      assert expected_color_map[ci_c.id] == Enum.at(@color_scale, 2)
+    end
+
+    test "get_strand_lanttern_viz_data/1 in a strand without moments also returns the map with data needed to build a lanttern viz" do
+      strand = LearningContextFixtures.strand_fixture()
+
+      curriculum_component = CurriculaFixtures.curriculum_component_fixture()
+
+      ci_a =
+        CurriculaFixtures.curriculum_item_fixture(%{
+          curriculum_component_id: curriculum_component.id
+        })
+
+      ci_b =
+        CurriculaFixtures.curriculum_item_fixture(%{
+          curriculum_component_id: curriculum_component.id
+        })
+
+      ci_c =
+        CurriculaFixtures.curriculum_item_fixture(%{
+          curriculum_component_id: curriculum_component.id
+        })
+
+      _strand_goal_a =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          curriculum_item_id: ci_a.id,
+          strand_id: strand.id
+        })
+
+      _strand_goal_b =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          curriculum_item_id: ci_b.id,
+          strand_id: strand.id
+        })
+
+      _strand_goal_c =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          curriculum_item_id: ci_c.id,
+          strand_id: strand.id
+        })
+
+      # extra fixtures for testing
+      LearningContextFixtures.strand_fixture()
+      LearningContextFixtures.moment_fixture()
+      CurriculaFixtures.curriculum_item_fixture()
+      AssessmentsFixtures.assessment_point_fixture()
+
+      # ids for pattern matching
+      ci_a_id = ci_a.id
+      ci_b_id = ci_b.id
+      ci_c_id = ci_c.id
+
+      assert %{
+               moments: [],
+               strand_goals_curriculum_items: [expected_ci_a, expected_ci_b, expected_ci_c],
+               strand_goals_curriculum_items_ids: [^ci_a_id, ^ci_b_id, ^ci_c_id],
+               moments_assessments_curriculum_items_ids: [],
+               curriculum_items_ids_color_map: expected_color_map
+             } = Dataviz.get_strand_lanttern_viz_data(strand.id)
+
+      assert expected_ci_a.id == ci_a.id
+      assert expected_ci_a.curriculum_component.id == curriculum_component.id
+      assert expected_ci_b.id == ci_b.id
+      assert expected_ci_b.curriculum_component.id == curriculum_component.id
+      assert expected_ci_c.id == ci_c.id
+      assert expected_ci_c.curriculum_component.id == curriculum_component.id
+
+      assert expected_color_map[ci_a.id] == Enum.at(@color_scale, 0)
+      assert expected_color_map[ci_b.id] == Enum.at(@color_scale, 1)
+      assert expected_color_map[ci_c.id] == Enum.at(@color_scale, 2)
     end
   end
 end

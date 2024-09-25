@@ -12,18 +12,39 @@ defmodule Lanttern.Dataviz do
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
 
+  @color_scale [
+    # cyan
+    "#67e8f9",
+    # rose
+    "#fda4af",
+    # violet
+    "#c4b5fd",
+    # yellow
+    "#fde047",
+    # lime
+    "#bef264",
+    # blue
+    "#93c5fd",
+    # fuschia
+    "#f0abfc",
+    # orange
+    "#fdba74"
+  ]
+
   @doc """
   Returns a map with required data to build the strand lanttern viz.
 
   - `strand_goals_curriculum_items` curriculum items will have preloaded curriculum components
   - `moments_assessments_curriculum_items_ids` will be ordered by moment and assessment point positions desc
+  - `curriculum_items_ids_color_map` is a map with curriculum item id as key and a color (from the color scale) as value
 
   """
   @spec get_strand_lanttern_viz_data(strand_id :: pos_integer()) :: %{
           moments: [Moment.t()],
           strand_goals_curriculum_items: [CurriculumItem.t()],
           strand_goals_curriculum_items_ids: [pos_integer()],
-          moments_assessments_curriculum_items_ids: [[pos_integer()]]
+          moments_assessments_curriculum_items_ids: [[pos_integer()]],
+          curriculum_items_ids_color_map: map()
         }
   def get_strand_lanttern_viz_data(strand_id) do
     strand =
@@ -32,8 +53,8 @@ defmodule Lanttern.Dataviz do
         join: ap in assoc(s, :assessment_points),
         join: ci in assoc(ap, :curriculum_item),
         join: cc in assoc(ci, :curriculum_component),
-        join: m in assoc(s, :moments),
-        join: m_ap in assoc(m, :assessment_points),
+        left_join: m in assoc(s, :moments),
+        left_join: m_ap in assoc(m, :assessment_points),
         where: s.id == ^strand_id,
         preload: [
           moments: {m, assessment_points: m_ap},
@@ -49,7 +70,8 @@ defmodule Lanttern.Dataviz do
           moments: [],
           strand_goals_curriculum_items: [],
           strand_goals_curriculum_items_ids: [],
-          moments_assessments_curriculum_items_ids: []
+          moments_assessments_curriculum_items_ids: [],
+          curriculum_items_ids_color_map: %{}
         }
 
       %Strand{} ->
@@ -74,11 +96,20 @@ defmodule Lanttern.Dataviz do
           strand.moments
           |> Enum.map(&map_moment_assessment_points_to_curriculum_item_ids(&1))
 
+        curriculum_items_ids_color_map =
+          strand_goals_curriculum_item_ids
+          |> Enum.with_index()
+          |> Enum.map(fn {ci_id, i} ->
+            {ci_id, Enum.at(@color_scale, rem(i, length(@color_scale)))}
+          end)
+          |> Enum.into(%{})
+
         %{
           moments: moments,
           strand_goals_curriculum_items: strand_goals_curriculum_items,
           strand_goals_curriculum_items_ids: strand_goals_curriculum_item_ids,
-          moments_assessments_curriculum_items_ids: moments_assessments_curriculum_items_ids
+          moments_assessments_curriculum_items_ids: moments_assessments_curriculum_items_ids,
+          curriculum_items_ids_color_map: curriculum_items_ids_color_map
         }
     end
   end
