@@ -107,7 +107,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:142
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:139
 #: lib/lanttern_web/live/pages/report_cards/report_cards_live.html.heex:85
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:191
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:198
 #: lib/lanttern_web/live/pages/strands/id/moments_component.ex:93
 #: lib/lanttern_web/live/pages/strands/id/moments_component.ex:138
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:128
@@ -166,7 +166,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:145
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:142
 #: lib/lanttern_web/live/pages/report_cards/report_cards_live.html.heex:88
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:194
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:201
 #: lib/lanttern_web/live/pages/strands/id/moments_component.ex:96
 #: lib/lanttern_web/live/pages/strands/id/moments_component.ex:141
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:131
@@ -264,7 +264,7 @@ msgstr ""
 msgid "Save Strand"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:193
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:200
 #: lib/lanttern_web/live/pages/strands/moment/id/cards_component.ex:130
 #: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:153
 #: lib/lanttern_web/live/shared/curricula/curriculum_item_form_component.ex:55
@@ -392,7 +392,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:127
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:133
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:130
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:182
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:189
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:60
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:190
 #: lib/lanttern_web/live/pages/strands/moment/id/assessment_component.ex:123
@@ -442,7 +442,7 @@ msgstr ""
 msgid "Add rubric"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:40
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:47
 #, elixir-autogen, elixir-format
 msgid "Add strand goal"
 msgstr ""
@@ -458,8 +458,8 @@ msgstr ""
 #: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:125
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:131
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:128
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:158
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:180
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:165
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:187
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:63
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:188
 #: lib/lanttern_web/live/pages/strands/moment/id/assessment_component.ex:99
@@ -482,7 +482,7 @@ msgstr ""
 msgid "Delete note"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:54
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:61
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:74
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:84
 #: lib/lanttern_web/live/shared/assessments/entry_details_component.ex:28
@@ -500,7 +500,7 @@ msgstr ""
 #: lib/lanttern_web/components/learning_context_components.ex:55
 #: lib/lanttern_web/live/pages/grading/grades_reports_live.html.heex:30
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:326
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:65
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:72
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:227
 #: lib/lanttern_web/live/pages/strands/moment/id/cards_component.ex:65
 #: lib/lanttern_web/live/shared/assessments/entry_details_component.ex:258
@@ -515,17 +515,17 @@ msgstr ""
 msgid "Goal rubrics"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:22
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:29
 #, elixir-autogen, elixir-format
 msgid "Goals"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:98
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:105
 #, elixir-autogen, elixir-format
 msgid "Move curriculum item down"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:87
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:94
 #, elixir-autogen, elixir-format
 msgid "Move curriculum item up"
 msgstr ""
@@ -547,7 +547,7 @@ msgstr ""
 msgid "Rubric"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:32
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:39
 #: lib/lanttern_web/live/pages/strands/moment/id/cards_component.ex:28
 #, elixir-autogen, elixir-format
 msgid "Save updated order"
@@ -561,22 +561,22 @@ msgstr ""
 msgid "Select a class"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:140
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:147
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Strand Goal"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:275
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:282
 #, elixir-autogen, elixir-format
 msgid "This goal already have some entries. Deleting it will cause data loss."
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:45
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:52
 #, elixir-autogen, elixir-format
 msgid "Under the hood, goals in Lanttern are defined by assessment points linked directly to the strand — when adding goals, we are adding assessment points which, in turn, hold the curriculum items we'll want to assess along the strand course."
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:161
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:168
 #: lib/lanttern_web/live/pages/strands/moment/id/assessment_component.ex:102
 #, elixir-autogen, elixir-format
 msgid "Understood. Delete anyway"
@@ -599,7 +599,7 @@ msgstr ""
 msgid "collapse"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:170
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:177
 #: lib/lanttern_web/live/pages/strands/moment/id/assessment_component.ex:111
 #, elixir-autogen, elixir-format
 msgid "dismiss"
@@ -1351,7 +1351,7 @@ msgstr ""
 msgid "Link strand"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:114
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:121
 #, elixir-autogen, elixir-format
 msgid "List of report cards linked to this strand."
 msgstr ""
@@ -1530,7 +1530,7 @@ msgid "Report card id"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/report_cards/report_cards_live.ex:29
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:112
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:119
 #: lib/lanttern_web/live/shared/menu_component.ex:49
 #: lib/lanttern_web/live/shared/menu_component.ex:61
 #: lib/lanttern_web/live/shared/menu_component.ex:73
@@ -1856,7 +1856,7 @@ msgstr ""
 msgid "About this assessment"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:75
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:82
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Report info"
 msgstr ""
@@ -1989,7 +1989,7 @@ msgid_plural "%{count} changes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:131
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:138
 #, elixir-autogen, elixir-format, fuzzy
 msgid "No report cards linked to this strand"
 msgstr ""
@@ -2629,7 +2629,7 @@ msgstr ""
 msgid "This will delete the assessment point entry."
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/about_component.ex:116
+#: lib/lanttern_web/live/pages/strands/id/about_component.ex:123
 #, elixir-autogen, elixir-format, fuzzy
 msgid "View all"
 msgstr ""
@@ -2838,4 +2838,14 @@ msgstr ""
 #: lib/lanttern_web/live/pages/student_report_card/id/student_report_card_live.html.heex:58
 #, elixir-autogen, elixir-format
 msgid "Not visible in student report card (no final assessment registered for this strand)"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/dataviz/lanttern_viz_component.ex:27
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Final assessment"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/dataviz/lanttern_viz_component.ex:19
+#, elixir-autogen, elixir-format
+msgid "Layers (moments)"
 msgstr ""
