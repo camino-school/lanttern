@@ -26,6 +26,9 @@ defmodule LantternWeb.Notes.NoteComponent do
 
   import LantternWeb.DateTimeHelpers
 
+  # shared
+  alias LantternWeb.Attachments.AttachmentAreaComponent
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -108,6 +111,16 @@ defmodule LantternWeb.Notes.NoteComponent do
           </div>
         <% end %>
       <% end %>
+      <.live_component
+        :if={@note}
+        module={AttachmentAreaComponent}
+        id={"#{@id}-attachments"}
+        class="mt-10"
+        current_user={@current_user}
+        note_id={@note.id}
+        title={gettext("Note's attachments")}
+        allow_editing={@allow_editing}
+      />
     </div>
     """
   end

@@ -2,13 +2,13 @@ defmodule LantternWeb.StudentStrandReportLive do
   use LantternWeb, :live_view
 
   alias Lanttern.Identity.Profile
+  alias Lanttern.Notes
+  alias Lanttern.Notes.Note
   alias Lanttern.Reporting
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
-  # page components
-  alias LantternWeb.StudentStrandReportLive.StudentNotesComponent
-
   # shared components
+  alias LantternWeb.Notes.NoteComponent
   alias LantternWeb.Reporting.StrandReportOverviewComponent
   alias LantternWeb.Reporting.StrandReportAssessmentComponent
   alias LantternWeb.Reporting.StrandReportMomentsComponent
@@ -23,11 +23,15 @@ defmodule LantternWeb.StudentStrandReportLive do
   # lifecycle
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(params, _session, socket) do
     socket =
       socket
-      |> assign(:student_report_card, nil)
-      |> assign(:initialized, false)
+      |> assign_student_report_card(params)
+      # check if user can view the strand report
+      |> check_if_user_has_access()
+      |> assign_strand_report(params)
+      |> assign_student_note()
+      |> assign_is_student()
 
     {:ok, socket, layout: {LantternWeb.Layouts, :app_logged_in_blank}}
   end
@@ -36,19 +40,13 @@ defmodule LantternWeb.StudentStrandReportLive do
   def handle_params(params, _url, socket) do
     socket =
       socket
-      |> assign_student_report_card(params)
-      # check if user can view the strand report
-      |> check_if_user_has_access()
-      |> assign_strand_report(params)
-      |> assign_is_student()
       |> assign(:params, params)
       |> assign_current_tab(params)
-      |> assign(:initialized, true)
 
     {:noreply, socket}
   end
 
-  defp assign_student_report_card(%{assigns: %{initialized: false}} = socket, params) do
+  defp assign_student_report_card(socket, params) do
     %{"strand_report_id" => strand_report_id} = params
 
     # don't need to worry with other profile types
@@ -69,8 +67,6 @@ defmodule LantternWeb.StudentStrandReportLive do
 
     assign(socket, :student_report_card, student_report_card)
   end
-
-  defp assign_student_report_card(socket, _params), do: socket
 
   defp check_if_user_has_access(%{assigns: %{student_report_card: nil}} = _socket),
     do: raise(LantternWeb.NotFoundError)
@@ -98,13 +94,14 @@ defmodule LantternWeb.StudentStrandReportLive do
     socket
   end
 
-  defp assign_strand_report(%{assigns: %{initialized: false}} = socket, params) do
+  defp assign_strand_report(socket, params) do
     %{"strand_report_id" => strand_report_id} = params
     student_report_card = socket.assigns.student_report_card
 
     strand_report =
       Reporting.get_strand_report!(strand_report_id,
-        preloads: [strand: [:subjects, :years]]
+        preloads: [strand: [:subjects, :years]],
+        check_if_has_moments: true
       )
 
     cover_image_url =
@@ -123,15 +120,39 @@ defmodule LantternWeb.StudentStrandReportLive do
     |> assign(:page_title, page_title)
   end
 
-  defp assign_strand_report(socket, _params), do: socket
+  defp assign_student_note(socket) do
+    student_id = socket.assigns.student_report_card.student_id
+    strand_id = socket.assigns.strand_report.strand_id
+
+    note =
+      Notes.get_student_note(student_id, strand_id: strand_id)
+
+    assign(socket, :note, note)
+  end
 
   defp assign_is_student(socket) do
     # flag to control student notes UI
-    is_student =
-      socket.assigns.student_report_card.student_id ==
-        socket.assigns.current_user.current_profile.student_id
+    is_student = socket.assigns.current_user.current_profile.type == "student"
 
     assign(socket, :is_student, is_student)
+  end
+
+  defp assign_current_tab(socket, %{"tab" => "moments"}) do
+    current_tab =
+      if socket.assigns.strand_report.has_moments, do: :moments, else: :overview
+
+    assign(socket, :current_tab, current_tab)
+  end
+
+  defp assign_current_tab(socket, %{"tab" => "student_notes"}) do
+    current_tab =
+      case {socket.assigns.note, socket.assigns.current_user.current_profile} do
+        {_, %{type: "student"}} -> :student_notes
+        {%Note{}, _} -> :student_notes
+        _ -> :overview
+      end
+
+    assign(socket, :current_tab, current_tab)
   end
 
   defp assign_current_tab(socket, %{"tab" => tab}),
