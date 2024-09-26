@@ -101,5 +101,39 @@ defmodule LantternWeb.StudentStrandReportLiveTest do
 
       assert view |> has_element?("h1", "Strand for report ABC")
     end
+
+    test "hide student notes tab from guardians when empty", context do
+      %{conn: conn, student: student} = register_and_log_in_guardian(context)
+
+      cycle = SchoolsFixtures.cycle_fixture(%{name: "Cycle 2024"})
+
+      report_card =
+        report_card_fixture(%{school_cycle_id: cycle.id, name: "Some report card name abc"})
+
+      _student_report_card =
+        student_report_card_fixture(%{
+          report_card_id: report_card.id,
+          student_id: student.id
+        })
+
+      strand =
+        LearningContextFixtures.strand_fixture(%{
+          name: "Strand for report ABC"
+        })
+
+      strand_report =
+        strand_report_fixture(%{
+          report_card_id: report_card.id,
+          strand_id: strand.id
+        })
+
+      {:ok, view, _html} =
+        live(
+          conn,
+          "#{@live_view_path_base}/#{strand_report.id}"
+        )
+
+      refute view |> has_element?("a", "Student notes")
+    end
   end
 end
