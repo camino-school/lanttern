@@ -100,7 +100,8 @@ defmodule LantternWeb.StudentStrandReportLive do
 
     strand_report =
       Reporting.get_strand_report!(strand_report_id,
-        preloads: [strand: [:subjects, :years]]
+        preloads: [strand: [:subjects, :years]],
+        check_if_has_moments: true
       )
 
     cover_image_url =
@@ -134,6 +135,13 @@ defmodule LantternWeb.StudentStrandReportLive do
     is_student = socket.assigns.current_user.current_profile.type == "student"
 
     assign(socket, :is_student, is_student)
+  end
+
+  defp assign_current_tab(socket, %{"tab" => "moments"}) do
+    current_tab =
+      if socket.assigns.strand_report.has_moments, do: :moments, else: :overview
+
+    assign(socket, :current_tab, current_tab)
   end
 
   defp assign_current_tab(socket, %{"tab" => "student_notes"}) do

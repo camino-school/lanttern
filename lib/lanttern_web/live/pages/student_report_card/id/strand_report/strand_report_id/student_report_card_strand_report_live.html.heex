@@ -61,6 +61,7 @@
         <%= gettext("Assessment") %>
       </:tab>
       <:tab
+        :if={@strand_report.has_moments}
         patch={
           ~p"/student_report_card/#{@student_report_card}/strand_report/#{@strand_report}?tab=moments"
         }

@@ -241,7 +241,8 @@ defmodule Lanttern.Reporting do
 
   ## Options:
 
-      - `:preloads` – preloads associated data
+  - `:preloads` – preloads associated data
+  - `:check_if_has_moments` – when `true` will calculate `has_moments` virtual field
 
   ## Examples
 
@@ -253,10 +254,30 @@ defmodule Lanttern.Reporting do
 
   """
   def get_strand_report(id, opts \\ []) do
-    StrandReport
-    |> Repo.get(id)
+    from(
+      sr in StrandReport,
+      where: sr.id == ^id
+    )
+    |> apply_get_strand_report_opts(opts)
+    |> Repo.one()
     |> maybe_preload(opts)
   end
+
+  defp apply_get_strand_report_opts(queryable, []), do: queryable
+
+  defp apply_get_strand_report_opts(queryable, [{:check_if_has_moments, true} | opts]) do
+    from(
+      sr in queryable,
+      left_join: m in Moment,
+      on: m.strand_id == sr.strand_id,
+      group_by: sr.id,
+      select: %{sr | has_moments: count(m) > 0}
+    )
+    |> apply_get_strand_report_opts(opts)
+  end
+
+  defp apply_get_strand_report_opts(queryable, [_ | opts]),
+    do: apply_get_strand_report_opts(queryable, opts)
 
   @doc """
   Gets a single strand_report.
@@ -264,8 +285,12 @@ defmodule Lanttern.Reporting do
   Same as `get_strand_report/2`, but raises `Ecto.NoResultsError` if the Strand report does not exist.
   """
   def get_strand_report!(id, opts \\ []) do
-    StrandReport
-    |> Repo.get!(id)
+    from(
+      sr in StrandReport,
+      where: sr.id == ^id
+    )
+    |> apply_get_strand_report_opts(opts)
+    |> Repo.one!()
     |> maybe_preload(opts)
   end
 
