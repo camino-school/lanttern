@@ -208,6 +208,18 @@ defmodule Lanttern.ReportingTest do
       assert expected.strand == strand
     end
 
+    test "get_strand_report/2 with check_if_has_moments opts calculate has_moments field" do
+      strand = Lanttern.LearningContextFixtures.strand_fixture()
+      _moment = Lanttern.LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+      strand_report = strand_report_fixture(%{strand_id: strand.id})
+
+      expected =
+        Reporting.get_strand_report!(strand_report.id, check_if_has_moments: true)
+
+      assert expected.id == strand_report.id
+      assert expected.has_moments
+    end
+
     test "create_strand_report/1 with valid data creates a strand_report" do
       report_card = report_card_fixture()
       strand = Lanttern.LearningContextFixtures.strand_fixture()

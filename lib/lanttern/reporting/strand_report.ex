@@ -29,6 +29,8 @@ defmodule Lanttern.Reporting.StrandReport do
     field :cover_image_url, :string
     field :position, :integer, default: 0
 
+    field :has_moments, :boolean, virtual: true
+
     belongs_to :report_card, ReportCard
     belongs_to :strand, Strand
 
