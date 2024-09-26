@@ -227,7 +227,9 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
           <%= gettext("Edit") %>
         </button>
       </p>
-      <.rubric_descriptors rubric={@rubric} />
+      <div class="overflow-x-auto">
+        <.rubric_descriptors rubric={@rubric} />
+      </div>
     </div>
     """
   end
