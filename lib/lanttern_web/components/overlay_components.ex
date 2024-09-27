@@ -534,6 +534,39 @@ defmodule LantternWeb.OverlayComponents do
     """
   end
 
+  @doc """
+  Renders a single selection filter modal.
+  """
+
+  attr :id, :string, required: true
+  attr :title, :string, required: true
+  attr :items, :list, required: true
+  attr :selected_item_id, :any, required: true
+  attr :use_color_map_as_active, :boolean, default: false
+
+  attr :on_cancel, JS,
+    default: %JS{},
+    doc: "the function to execute on cancel (click outside of modal or button click)"
+
+  attr :on_select, :any, required: true, doc: "the function to execute on item select"
+
+  def single_selection_filter_modal(assigns) do
+    ~H"""
+    <.modal id={@id} on_cancel={@on_cancel}>
+      <h5 class="mb-10 font-display font-black text-xl">
+        <%= @title %>
+      </h5>
+      <.badge_button_picker
+        on_select={&@on_select.(&1)}
+        items={@items}
+        selected_ids={[@selected_item_id]}
+        use_color_map_as_active={@use_color_map_as_active}
+        class="mt-4"
+      />
+    </.modal>
+    """
+  end
+
   # this solution looks odd, but it's the best idea
   # I could came with to inform Tailwind to compile
   # all the z- classes

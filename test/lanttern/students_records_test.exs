@@ -16,7 +16,7 @@ defmodule Lanttern.StudentsRecordsTest do
       assert StudentsRecords.list_students_records() == [student_record]
     end
 
-    test "list_students_records/1 with school opt returns all students_records filtered by the given school" do
+    test "list_students_records/1 with school opt returns students_records filtered by the given school" do
       school = SchoolsFixtures.school_fixture()
       student_record = student_record_fixture(%{school_id: school.id})
 
@@ -34,6 +34,26 @@ defmodule Lanttern.StudentsRecordsTest do
       [expected] = StudentsRecords.list_students_records(preloads: :type)
       assert expected.id == student_record.id
       assert expected.type.id == type.id
+    end
+
+    test "list_students_records/1 with types and statuses opts students_records filtered by given types and statuses" do
+      school = SchoolsFixtures.school_fixture()
+      type = student_record_type_fixture(%{school_id: school.id})
+      status = student_record_status_fixture(%{school_id: school.id})
+
+      student_record =
+        student_record_fixture(%{school_id: school.id, type_id: type.id, status_id: status.id})
+
+      # extra fixture to test filtering
+      student_record_fixture()
+      student_record_fixture(%{school_id: school.id, type_id: type.id})
+      student_record_fixture(%{school_id: school.id, status_id: status.id})
+
+      assert StudentsRecords.list_students_records(
+               school_id: school.id,
+               types_ids: [type.id],
+               statuses_ids: [status.id]
+             ) == [student_record]
     end
 
     test "get_student_record/1 returns the student_record with given id" do

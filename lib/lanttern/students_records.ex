@@ -15,6 +15,8 @@ defmodule Lanttern.StudentsRecords do
   ## Options
 
   - `:school_id` - filter results by school
+  - `:types_ids` - filter results by type
+  - `:statuses_ids` - filter results by status
   - `:preloads` - preloads associated data
 
   ## Examples
@@ -39,6 +41,24 @@ defmodule Lanttern.StudentsRecords do
     from(
       sr in queryable,
       where: sr.school_id == ^school_id
+    )
+    |> apply_list_students_records_opts(opts)
+  end
+
+  defp apply_list_students_records_opts(queryable, [{:types_ids, types_ids} | opts])
+       when is_list(types_ids) and types_ids != [] do
+    from(
+      sr in queryable,
+      where: sr.type_id in ^types_ids
+    )
+    |> apply_list_students_records_opts(opts)
+  end
+
+  defp apply_list_students_records_opts(queryable, [{:statuses_ids, statuses_ids} | opts])
+       when is_list(statuses_ids) and statuses_ids != [] do
+    from(
+      sr in queryable,
+      where: sr.status_id in ^statuses_ids
     )
     |> apply_list_students_records_opts(opts)
   end

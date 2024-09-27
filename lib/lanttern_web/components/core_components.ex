@@ -76,11 +76,15 @@ defmodule LantternWeb.CoreComponents do
       <button
         :if={@on_remove}
         type="button"
-        class="group relative ml-1 h-3.5 w-3.5 rounded-[1px] hover:bg-ltrn-subtle/20"
+        class="group relative ml-1 h-3.5 w-3.5 rounded-[1px] hover:bg-ltrn-dark/10"
         phx-click={@on_remove}
       >
-        <span class="sr-only">Remove</span>
-        <.icon name="hero-x-mark-mini" class="w-3.5 text-ltrn-subtle hover:text-slate-700" />
+        <span class="sr-only"><%= gettext("Remove") %></span>
+        <.icon
+          name="hero-x-mark-mini"
+          class="w-3.5 text-ltrn-subtle hover:text-ltrn-dark"
+          style={create_color_map_text_style(@color_map)}
+        />
         <span class="absolute -inset-1"></span>
       </button>
     </span>

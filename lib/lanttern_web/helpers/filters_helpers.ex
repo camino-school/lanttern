@@ -11,6 +11,7 @@ defmodule LantternWeb.FiltersHelpers do
   alias Lanttern.Personalization
   alias Lanttern.Reporting
   alias Lanttern.Schools
+  alias Lanttern.StudentsRecords
   alias Lanttern.Taxonomy
 
   import LantternWeb.LocalizationHelpers
@@ -63,14 +64,27 @@ defmodule LantternWeb.FiltersHelpers do
 
   - `:current_assessment_group_by`
 
+  ### `:student_record_types`' assigns
+
+  - `:student_record_types` (filtered by user school)
+  - `:selected_student_record_types`
+  - `:selected_student_record_types_ids`
+
+  ### `:student_record_statuses`' assigns
+
+  - `:student_record_statuses` (filtered by user school)
+  - `:selected_student_record_statuses`
+  - `:selected_student_record_statuses_ids`
+
   ## Examples
 
       iex> assign_user_filters(socket, [:subjects], user)
       socket
   """
-  @spec assign_user_filters(Phoenix.LiveView.Socket.t(), [atom()], User.t(), opts :: Keyword.t()) ::
+  @spec assign_user_filters(Phoenix.LiveView.Socket.t(), [atom()], opts :: Keyword.t()) ::
           Phoenix.LiveView.Socket.t()
-  def assign_user_filters(socket, filter_types, %User{} = current_user, opts \\ []) do
+  def assign_user_filters(socket, filter_types, opts \\ []) do
+    current_user = socket.assigns.current_user
     current_filters = get_current_filters(current_user.current_profile_id, opts)
 
     socket
@@ -204,6 +218,55 @@ defmodule LantternWeb.FiltersHelpers do
     |> assign_filter_type(current_user, current_filters, filter_types, opts)
   end
 
+  defp assign_filter_type(
+         socket,
+         current_user,
+         current_filters,
+         [:student_record_types | filter_types],
+         opts
+       ) do
+    school_id = current_user.current_profile.school_id
+
+    student_record_types =
+      StudentsRecords.list_student_record_types(school_id: school_id)
+
+    selected_student_record_types_ids = Map.get(current_filters, :student_record_types_ids) || []
+
+    selected_student_record_types =
+      Enum.filter(student_record_types, &(&1.id in selected_student_record_types_ids))
+
+    socket
+    |> assign(:student_record_types, student_record_types)
+    |> assign(:selected_student_record_types_ids, selected_student_record_types_ids)
+    |> assign(:selected_student_record_types, selected_student_record_types)
+    |> assign_filter_type(current_user, current_filters, filter_types, opts)
+  end
+
+  defp assign_filter_type(
+         socket,
+         current_user,
+         current_filters,
+         [:student_record_statuses | filter_types],
+         opts
+       ) do
+    school_id = current_user.current_profile.school_id
+
+    student_record_statuses =
+      StudentsRecords.list_student_record_statuses(school_id: school_id)
+
+    selected_student_record_statuses_ids =
+      Map.get(current_filters, :student_record_statuses_ids) || []
+
+    selected_student_record_statuses =
+      Enum.filter(student_record_statuses, &(&1.id in selected_student_record_statuses_ids))
+
+    socket
+    |> assign(:student_record_statuses, student_record_statuses)
+    |> assign(:selected_student_record_statuses_ids, selected_student_record_statuses_ids)
+    |> assign(:selected_student_record_statuses, selected_student_record_statuses)
+    |> assign_filter_type(current_user, current_filters, filter_types, opts)
+  end
+
   defp assign_filter_type(socket, current_user, current_filters, [_ | filter_types], opts),
     do: assign_filter_type(socket, current_user, current_filters, filter_types, opts)
 
@@ -212,7 +275,9 @@ defmodule LantternWeb.FiltersHelpers do
     years: :years_ids,
     cycles: :cycles_ids,
     classes: :classes_ids,
-    linked_students_classes: :linked_students_classes_ids
+    linked_students_classes: :linked_students_classes_ids,
+    student_record_types: :student_record_types_ids,
+    student_record_statuses: :student_record_statuses_ids
   }
 
   @type_to_selected_ids_key_map %{
@@ -220,7 +285,9 @@ defmodule LantternWeb.FiltersHelpers do
     years: :selected_years_ids,
     cycles: :selected_cycles_ids,
     classes: :selected_classes_ids,
-    linked_students_classes: :selected_linked_students_classes_ids
+    linked_students_classes: :selected_linked_students_classes_ids,
+    student_record_types: :selected_student_record_types_ids,
+    student_record_statuses: :selected_student_record_statuses_ids
   }
 
   @doc """
@@ -311,6 +378,8 @@ defmodule LantternWeb.FiltersHelpers do
   - `:years`
   - `:cycles`
   - `:linked_students_classes`
+  - `:student_record_type`
+  - `:student_record_status`
 
   ## Examples
 
@@ -318,10 +387,12 @@ defmodule LantternWeb.FiltersHelpers do
       %Phoenix.LiveView.Socket{}
   """
 
-  @spec save_profile_filters(Phoenix.LiveView.Socket.t(), User.t(), [atom()], Keyword.t()) ::
+  @spec save_profile_filters(Phoenix.LiveView.Socket.t(), [atom()], Keyword.t()) ::
           Phoenix.LiveView.Socket.t()
 
-  def save_profile_filters(socket, current_user, types, opts \\ []) do
+  def save_profile_filters(socket, types, opts \\ []) do
+    current_user = socket.assigns.current_user
+
     attrs =
       types
       |> Enum.map(fn type ->

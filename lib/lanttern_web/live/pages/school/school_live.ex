@@ -2,7 +2,7 @@ defmodule LantternWeb.SchoolLive do
   use LantternWeb, :live_view
 
   alias Lanttern.Schools
-  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 3]
+  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2]
 
   # lifecycle
 
@@ -10,7 +10,7 @@ defmodule LantternWeb.SchoolLive do
   def mount(_params, _session, socket) do
     socket =
       socket
-      |> assign_user_filters([:years], socket.assigns.current_user)
+      |> assign_user_filters([:years])
       |> stream_classes()
       |> assign(:page_title, socket.assigns.current_user.current_profile.school_name)
 

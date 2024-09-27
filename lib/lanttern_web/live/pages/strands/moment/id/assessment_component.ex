@@ -4,7 +4,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
 
-  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 4]
+  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 3]
   import Lanttern.Utils, only: [swap: 3]
 
   # shared components
@@ -227,7 +227,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign_user_filters([:classes], assigns.current_user,
+      |> assign_user_filters([:classes],
         strand_id: assigns.moment.strand_id
       )
       |> assign_sortable_assessment_points()

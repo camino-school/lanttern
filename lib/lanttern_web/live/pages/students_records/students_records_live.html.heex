@@ -9,17 +9,29 @@
           "Showing %{count} results for",
           @students_records_length
         ) %>
-        <%!-- <%= if length(@selected_subjects) == 0 do %>
-          <.badge><%= gettext("all subjects") %></.badge>
+        <%= if @selected_student_record_types != [] do %>
+          <.badge
+            :for={type <- @selected_student_record_types}
+            color_map={type}
+            on_remove={JS.push("remove_type_filter")}
+          >
+            <%= type.name %>
+          </.badge>
         <% else %>
-          <.badge :for={subject <- @selected_subjects}><%= subject.name %></.badge>
+          <.badge><%= gettext("all student record types") %></.badge>
         <% end %>
         <%= gettext("and") %>
-        <%= if length(@selected_years) == 0 do %>
-          <.badge><%= gettext("all years") %></.badge>
+        <%= if @selected_student_record_statuses != [] do %>
+          <.badge
+            :for={status <- @selected_student_record_statuses}
+            color_map={status}
+            on_remove={JS.push("remove_status_filter")}
+          >
+            <%= status.name %>
+          </.badge>
         <% else %>
-          <.badge :for={year <- @selected_years}><%= year.name %></.badge>
-        <% end %> --%>
+          <.badge><%= gettext("all statuses") %></.badge>
+        <% end %>
       </p>
     </div>
     <.collection_action
@@ -57,12 +69,24 @@
     </p>
     <.markdown text={student_record.description} class="line-clamp-3" size="sm" />
   </:col>
-  <:col :let={student_record} label={gettext("Type")} template_col="max-content">
+  <:col
+    :let={student_record}
+    label={gettext("Type")}
+    template_col="max-content"
+    on_filter={JS.exec("data-show", to: "#student-record-types-filter-modal")}
+    filter_is_active={@selected_student_record_types_ids != []}
+  >
     <.badge color_map={student_record.type}>
       <%= student_record.type.name %>
     </.badge>
   </:col>
-  <:col :let={student_record} label={gettext("Status")} template_col="max-content">
+  <:col
+    :let={student_record}
+    label={gettext("Status")}
+    template_col="max-content"
+    on_filter={JS.exec("data-show", to: "#student-record-statuses-filter-modal")}
+    filter_is_active={@selected_student_record_statuses_ids != []}
+  >
     <.badge color_map={student_record.status}>
       <%= student_record.status.name %>
     </.badge>
@@ -78,6 +102,34 @@
     />
   </:action>
 </.data_grid>
+<.single_selection_filter_modal
+  id="student-record-types-filter-modal"
+  title={gettext("Filter student records by type")}
+  use_color_map_as_active
+  items={@student_record_types}
+  selected_item_id={Enum.at(@selected_student_record_types_ids, 0)}
+  on_cancel={%JS{}}
+  on_select={
+    fn id ->
+      JS.push("filter_by_type", value: %{"id" => id})
+      |> JS.exec("data-cancel", to: "#student-record-types-filter-modal")
+    end
+  }
+/>
+<.single_selection_filter_modal
+  id="student-record-statuses-filter-modal"
+  title={gettext("Filter student records by status")}
+  use_color_map_as_active
+  items={@student_record_statuses}
+  selected_item_id={Enum.at(@selected_student_record_statuses_ids, 0)}
+  on_cancel={%JS{}}
+  on_select={
+    fn id ->
+      JS.push("filter_by_status", value: %{"id" => id})
+      |> JS.exec("data-cancel", to: "#student-record-statuses-filter-modal")
+    end
+  }
+/>
 <.live_component
   :if={@student_record}
   module={StudentRecordFormOverlayComponent}

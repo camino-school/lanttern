@@ -3,7 +3,7 @@ defmodule LantternWeb.ReportCardsLive do
 
   alias Lanttern.Reporting
   alias Lanttern.Reporting.ReportCard
-  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 3]
+  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2]
 
   # live components
   alias LantternWeb.Reporting.ReportCardFormComponent
@@ -18,7 +18,7 @@ defmodule LantternWeb.ReportCardsLive do
     socket =
       socket
       |> maybe_redirect(params)
-      |> assign_user_filters([:cycles, :years], socket.assigns.current_user)
+      |> assign_user_filters([:cycles, :years])
       |> stream_configure(
         :cycles_and_report_cards,
         dom_id: fn

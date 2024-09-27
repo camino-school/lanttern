@@ -113,7 +113,6 @@ defmodule LantternWeb.Filters.FiltersOverlayComponent do
       |> assign(assigns)
       |> assign_user_filters(
         [filter_type],
-        assigns.current_user,
         Map.get(assigns, :filter_opts, [])
       )
 
@@ -149,11 +148,7 @@ defmodule LantternWeb.Filters.FiltersOverlayComponent do
   def handle_event("apply_filters", _, socket) do
     socket =
       socket
-      |> save_profile_filters(
-        socket.assigns.current_user,
-        [socket.assigns.filter_type],
-        socket.assigns.filter_opts
-      )
+      |> save_profile_filters([socket.assigns.filter_type], socket.assigns.filter_opts)
       |> assign(:has_changes, false)
       |> handle_navigation()
 

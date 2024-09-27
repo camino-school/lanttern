@@ -25,7 +25,9 @@ defmodule Lanttern.Personalization.ProfileSettings do
           years_ids: [pos_integer()],
           cycles_ids: [pos_integer()],
           assessment_view: String.t(),
-          assessment_group_by: String.t()
+          assessment_group_by: String.t(),
+          student_record_types_ids: [pos_integer()],
+          student_record_statuses_ids: [pos_integer()]
         }
 
   schema "profile_settings" do
@@ -38,6 +40,8 @@ defmodule Lanttern.Personalization.ProfileSettings do
       field :cycles_ids, {:array, :id}
       field :assessment_view, :string
       field :assessment_group_by, :string
+      field :student_record_types_ids, {:array, :id}
+      field :student_record_statuses_ids, {:array, :id}
     end
 
     timestamps()
@@ -59,7 +63,9 @@ defmodule Lanttern.Personalization.ProfileSettings do
       :years_ids,
       :cycles_ids,
       :assessment_view,
-      :assessment_group_by
+      :assessment_group_by,
+      :student_record_types_ids,
+      :student_record_statuses_ids
     ])
     |> validate_change(:assessment_view, fn :assessment_view, view ->
       if view in ["teacher", "student", "compare"],

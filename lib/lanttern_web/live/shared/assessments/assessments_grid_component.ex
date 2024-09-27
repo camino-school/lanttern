@@ -29,7 +29,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   alias Lanttern.Schools.Student
 
   import LantternWeb.AssessmentsHelpers, only: [save_entry_editor_component_changes: 2]
-  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 3]
+  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2]
 
   # shared components
   alias LantternWeb.Assessments.EntryCellComponent
@@ -612,8 +612,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign_user_filters([:assessment_view], assigns.current_user)
-      |> assign_user_filters([:assessment_group_by], assigns.current_user)
+      |> assign_user_filters([:assessment_view, :assessment_group_by])
       |> assign_view_bg()
       |> stream_assessment_points()
       |> stream_students_entries()
