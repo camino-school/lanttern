@@ -38,11 +38,12 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
           <%= gettext("You can click the assessment card to view more details about it.") %>
         </p>
         <.goal_card
-          :for={{goal, entry, moment_entries, _} <- @strand_goals_student_entries}
+          :for={{goal, entry, moment_entries, has_evidence} <- @strand_goals_student_entries}
           patch={"#{@base_path}&strand_goal_id=#{goal.id}"}
           goal={goal}
           entry={entry}
           moment_entries={moment_entries}
+          has_evidence={has_evidence}
           prevent_preview={@prevent_final_assessment_preview}
         />
         <.empty_state :if={!@has_strand_goals_with_student_entries}>
@@ -61,11 +62,14 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
           </div>
           <div id="strand-goals-without-student-entries" class="hidden">
             <.goal_card
-              :for={{goal, entry, moment_entries, _} <- @strand_goals_without_student_entries}
+              :for={
+                {goal, entry, moment_entries, has_evidence} <- @strand_goals_without_student_entries
+              }
               patch={"#{@base_path}&strand_goal_id=#{goal.id}"}
               goal={goal}
               entry={entry}
               moment_entries={moment_entries}
+              has_evidence={has_evidence}
               prevent_preview={@prevent_final_assessment_preview}
             />
           </div>
@@ -87,6 +91,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
   attr :goal, AssessmentPoint, required: true
   attr :entry, :any, required: true
   attr :moment_entries, :list, required: true
+  attr :has_evidence, :boolean, required: true
   attr :patch, :string, required: true
   attr :prevent_preview, :boolean, required: true
 
@@ -94,14 +99,15 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
     %{
       goal: goal,
       entry: entry,
-      moment_entries: moment_entries
+      moment_entries: moment_entries,
+      has_evidence: has_evidence
     } = assigns
 
     render_icons_area =
       goal.is_differentiation ||
         (entry && entry.report_note) ||
         (entry && entry.student_report_note) ||
-        (entry && entry.has_evidences) ||
+        has_evidence ||
         goal.report_info ||
         goal.rubric_id
 
@@ -147,7 +153,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
                 :if={@entry && @entry.student_report_note}
                 type={:student_comment}
               />
-              <.assessment_metadata_icon :if={@entry && @entry.has_evidences} type={:evidences} />
+              <.assessment_metadata_icon :if={@has_evidence} type={:evidences} />
               <.assessment_metadata_icon :if={@goal.report_info} type={:info} />
               <.assessment_metadata_icon :if={@goal.rubric_id} type={:rubric} />
             </div>

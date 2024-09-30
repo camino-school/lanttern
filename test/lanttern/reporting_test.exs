@@ -682,9 +682,12 @@ defmodule Lanttern.ReportingTest do
     alias Lanttern.AssessmentsFixtures
     alias Lanttern.CurriculaFixtures
     alias Lanttern.GradingFixtures
+    alias Lanttern.IdentityFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
     alias Lanttern.TaxonomyFixtures
+
+    alias Lanttern.Assessments
 
     test "list_student_report_card_strand_reports_and_entries/1 returns the list of the strands in the report with the student assessment point entries" do
       report_card = report_card_fixture()
@@ -1135,6 +1138,8 @@ defmodule Lanttern.ReportingTest do
           scale_id: o_scale.id
         })
 
+      # entries
+
       assessment_point_1_1_entry =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           student_id: student.id,
@@ -1162,6 +1167,22 @@ defmodule Lanttern.ReportingTest do
           scale_type: o_scale.type,
           ordinal_value_id: ov_2.id
         })
+
+      # add evidences to entry 1_1
+      current_user = %{current_profile: IdentityFixtures.teacher_profile_fixture()}
+
+      params = %{
+        "name" => "attachment name",
+        "link" => "https://somesite.com",
+        "is_external" => true
+      }
+
+      {:ok, evidence} =
+        Assessments.create_assessment_point_entry_evidence(
+          current_user,
+          assessment_point_1_1_entry.id,
+          params
+        )
 
       # other strand goal with same curriculum item
       # to test filtering
@@ -1202,6 +1223,7 @@ defmodule Lanttern.ReportingTest do
       assert expected_entry_1_1.id == assessment_point_1_1_entry.id
       assert expected_entry_1_1.scale == o_scale
       assert expected_entry_1_1.ordinal_value == ov_1
+      assert expected_entry_1_1.evidences == [evidence]
 
       assert expected_entry_1_2.id == assessment_point_1_2_entry.id
       assert expected_assessment_point_1_2.id == assessment_point_1_2.id

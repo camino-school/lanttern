@@ -9,6 +9,7 @@ defmodule LantternWeb.ReportingComponents do
   import LantternWeb.CoreComponents
 
   import LantternWeb.AssessmentsComponents
+  import LantternWeb.AttachmentsComponents
   import LantternWeb.GradingComponents
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
@@ -323,6 +324,11 @@ defmodule LantternWeb.ReportingComponents do
         <.assessment_point_entry_badge entry={@entry} class="shrink-0" />
       </div>
       <.comment_area :if={@entry && @entry.report_note} comment={@entry.report_note} class="mt-2" />
+      <.attachments_list
+        :if={@entry && is_list(@entry.evidences) && @entry.evidences != []}
+        attachments={@entry.evidences}
+        class="mt-2"
+      />
     </div>
     """
   end

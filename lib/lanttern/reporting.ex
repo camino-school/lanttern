@@ -961,7 +961,7 @@ defmodule Lanttern.Reporting do
 
   **Preloaded data:**
 
-  - assessment entries: scale and ordinal value
+  - assessment entries: scale, ordinal value, and evidences
 
   ## Examples
 
@@ -982,30 +982,43 @@ defmodule Lanttern.Reporting do
       strand_id: strand_id
     } = strand_goal
 
-    m_ap_e_sc_ov =
+    moments_and_assessment_points =
       from(
         m in Moment,
         join: ap in assoc(m, :assessment_points),
         on: ap.curriculum_item_id == ^curriculum_item_id,
-        left_join: e in AssessmentPointEntry,
-        on: e.assessment_point_id == ap.id and e.student_id == ^student_id,
-        left_join: sc in assoc(e, :scale),
-        left_join: ov in assoc(e, :ordinal_value),
         where: m.strand_id == ^strand_id,
         order_by: [asc: m.position, asc: ap.position],
-        select: {m, ap, e, sc, ov}
+        select: {m, ap}
       )
       |> Repo.all()
 
-    moment_assessment_points_map =
-      m_ap_e_sc_ov
-      |> Enum.map(fn {_m, ap, e, sc, ov} -> {ap, e && %{e | scale: sc, ordinal_value: ov}} end)
-      |> Enum.group_by(fn {ap, _e} -> ap.moment_id end)
+    ap_id_entries_map =
+      from(
+        e in AssessmentPointEntry,
+        join: ap in assoc(e, :assessment_point),
+        join: m in assoc(ap, :moment),
+        left_join: sc in assoc(e, :scale),
+        left_join: ov in assoc(e, :ordinal_value),
+        left_join: apee in assoc(e, :assessment_point_entry_evidences),
+        left_join: ev in assoc(apee, :attachment),
+        where: m.strand_id == ^strand_id and e.student_id == ^student_id,
+        order_by: [asc: ap.position, asc: apee.position],
+        preload: [scale: sc, ordinal_value: ov, evidences: ev]
+      )
+      |> Repo.all()
+      |> Enum.map(&{&1.assessment_point_id, &1})
+      |> Enum.into(%{})
 
-    m_ap_e_sc_ov
-    |> Enum.map(fn {m, _ap, _e, _sc, _ov} -> m end)
+    m_id_assessment_points_and_entries_map =
+      moments_and_assessment_points
+      |> Enum.map(fn {_m, ap} -> {ap, ap_id_entries_map[ap.id]} end)
+      |> Enum.group_by(fn {ap, _entries} -> ap.moment_id end)
+
+    moments_and_assessment_points
+    |> Enum.map(fn {m, _ap} -> m end)
     |> Enum.uniq()
-    |> Enum.map(&{&1, moment_assessment_points_map[&1.id]})
+    |> Enum.map(&{&1, m_id_assessment_points_and_entries_map[&1.id]})
   end
 
   @doc """
