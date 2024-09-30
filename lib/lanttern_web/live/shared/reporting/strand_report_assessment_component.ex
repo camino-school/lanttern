@@ -38,7 +38,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
           <%= gettext("You can click the assessment card to view more details about it.") %>
         </p>
         <.goal_card
-          :for={{goal, entry, moment_entries} <- @strand_goals_student_entries}
+          :for={{goal, entry, moment_entries, _} <- @strand_goals_student_entries}
           patch={"#{@base_path}&strand_goal_id=#{goal.id}"}
           goal={goal}
           entry={entry}
@@ -61,7 +61,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
           </div>
           <div id="strand-goals-without-student-entries" class="hidden">
             <.goal_card
-              :for={{goal, entry, moment_entries} <- @strand_goals_without_student_entries}
+              :for={{goal, entry, moment_entries, _} <- @strand_goals_without_student_entries}
               patch={"#{@base_path}&strand_goal_id=#{goal.id}"}
               goal={goal}
               entry={entry}
@@ -101,6 +101,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
       goal.is_differentiation ||
         (entry && entry.report_note) ||
         (entry && entry.student_report_note) ||
+        (entry && entry.has_evidences) ||
         goal.report_info ||
         goal.rubric_id
 
@@ -146,6 +147,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
                 :if={@entry && @entry.student_report_note}
                 type={:student_comment}
               />
+              <.assessment_metadata_icon :if={@entry && @entry.has_evidences} type={:evidences} />
               <.assessment_metadata_icon :if={@goal.report_info} type={:info} />
               <.assessment_metadata_icon :if={@goal.rubric_id} type={:rubric} />
             </div>
@@ -212,6 +214,11 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
       {gettext("Student comment"), "hero-chat-bubble-oval-left-mini", "bg-ltrn-student-lighter",
        "text-ltrn-student-accent"}
 
+  defp assessment_metadata_icon_attrs(:evidences),
+    do:
+      {gettext("With learning evidences"), "hero-paper-clip-mini", "bg-ltrn-lighter",
+       "text-ltrn-subtle"}
+
   defp assessment_metadata_icon_attrs(:info),
     do:
       {gettext("Assessment info"), "hero-information-circle-mini", "bg-ltrn-lighter",
@@ -255,17 +262,19 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
 
     strand_goals_ids =
       all_strand_goals_student_entries
-      |> Enum.map(fn {strand_goal, _, _} -> "#{strand_goal.id}" end)
+      |> Enum.map(fn {strand_goal, _, _, _} -> "#{strand_goal.id}" end)
 
     strand_goals_student_entries =
       all_strand_goals_student_entries
-      |> Enum.filter(fn {_, entry, moments_entries} ->
+      |> Enum.filter(fn {_, entry, moments_entries, _} ->
         not is_nil(entry) or moments_entries != []
       end)
 
     strand_goals_without_student_entries =
       all_strand_goals_student_entries
-      |> Enum.filter(fn {_, entry, moments_entries} -> is_nil(entry) and moments_entries == [] end)
+      |> Enum.filter(fn {_, entry, moments_entries, _} ->
+        is_nil(entry) and moments_entries == []
+      end)
 
     socket
     |> assign(:strand_goals_student_entries, strand_goals_student_entries)

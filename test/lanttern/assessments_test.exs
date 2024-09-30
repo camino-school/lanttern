@@ -864,6 +864,7 @@ defmodule Lanttern.AssessmentsTest do
     import Lanttern.AssessmentsFixtures
     alias Lanttern.CurriculaFixtures
     alias Lanttern.GradingFixtures
+    alias Lanttern.IdentityFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.RubricsFixtures
     alias Lanttern.SchoolsFixtures
@@ -871,9 +872,10 @@ defmodule Lanttern.AssessmentsTest do
     test "list_strand_goals_for_student/2 returns the list of strand goals with student assessments" do
       #      | moment_1 | moment_2 | moment_3 |
       # ---------------------------------------
-      # ci_1  |    2*    |    1     |    1     | (* no entry in m1 pos 2 and m3)
-      # ci_2  |    -     |    1     |    -     |
-      # ci_3* |    -     |    -     |    -     | (* no entry for goal)
+      # ci_1 |    2     |    1     |    1     | (no entry in m1 pos 2 and m3. has goal evidence)
+      # ci_2 |    -     |    1     |    -     |
+      # ci_3 |    -     |    -     |    -     | (no entry for goal)
+      # ci_4 |    1     |    -     |    -     | (no entry for goal. has evidence in m1 entry)
 
       strand = LearningContextFixtures.strand_fixture()
 
@@ -883,7 +885,7 @@ defmodule Lanttern.AssessmentsTest do
 
       curriculum_component_1 = CurriculaFixtures.curriculum_component_fixture()
       curriculum_component_2 = CurriculaFixtures.curriculum_component_fixture()
-      curriculum_component_3 = CurriculaFixtures.curriculum_component_fixture()
+      curriculum_component_3_4 = CurriculaFixtures.curriculum_component_fixture()
 
       curriculum_item_1 =
         CurriculaFixtures.curriculum_item_fixture(%{
@@ -897,7 +899,12 @@ defmodule Lanttern.AssessmentsTest do
 
       curriculum_item_3 =
         CurriculaFixtures.curriculum_item_fixture(%{
-          curriculum_component_id: curriculum_component_3.id
+          curriculum_component_id: curriculum_component_3_4.id
+        })
+
+      curriculum_item_4 =
+        CurriculaFixtures.curriculum_item_fixture(%{
+          curriculum_component_id: curriculum_component_3_4.id
         })
 
       ordinal_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
@@ -946,6 +953,14 @@ defmodule Lanttern.AssessmentsTest do
           scale_id: ordinal_scale.id,
           strand_id: strand.id,
           rubric_id: rubric_3.id
+        })
+
+      assessment_point_4 =
+        assessment_point_fixture(%{
+          position: 4,
+          curriculum_item_id: curriculum_item_4.id,
+          scale_id: ordinal_scale.id,
+          strand_id: strand.id
         })
 
       entry_1 =
@@ -1028,6 +1043,43 @@ defmodule Lanttern.AssessmentsTest do
           ordinal_value_id: ordinal_value.id
         })
 
+      ci_4_m_1 =
+        assessment_point_fixture(%{
+          curriculum_item_id: curriculum_item_4.id,
+          scale_id: ordinal_scale.id,
+          moment_id: moment_1.id
+        })
+
+      entry_ci_4_m_1 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ci_4_m_1.id,
+          student_id: student.id,
+          scale_id: ordinal_scale.id,
+          scale_type: ordinal_scale.type,
+          ordinal_value_id: ordinal_value.id
+        })
+
+      # add evidences to goal entry 1 and ci_4_m1 entry
+      current_user = %{current_profile: IdentityFixtures.teacher_profile_fixture()}
+
+      params = %{
+        "name" => "attachment name",
+        "link" => "https://somesite.com",
+        "is_external" => true
+      }
+
+      Assessments.create_assessment_point_entry_evidence(
+        current_user,
+        entry_1.id,
+        params
+      )
+
+      Assessments.create_assessment_point_entry_evidence(
+        current_user,
+        entry_ci_4_m_1.id,
+        params
+      )
+
       # extra entry for different student (test student join)
       _other_entry =
         assessment_point_entry_fixture(%{
@@ -1037,9 +1089,10 @@ defmodule Lanttern.AssessmentsTest do
         })
 
       assert [
-               {expected_ap_1, expected_entry_1, [expected_ci_1_m_1_1, expected_ci_1_m_2]},
-               {expected_ap_2, expected_entry_2, [expected_ci_2_m_2]},
-               {expected_ap_3, nil, []}
+               {expected_ap_1, expected_entry_1, [expected_ci_1_m_1_1, expected_ci_1_m_2], true},
+               {expected_ap_2, expected_entry_2, [expected_ci_2_m_2], false},
+               {expected_ap_3, nil, [], false},
+               {expected_ap_4, nil, [expected_ci_4_m_1], true}
              ] = Assessments.list_strand_goals_for_student(student.id, strand.id)
 
       assert expected_ap_1.id == assessment_point_1.id
@@ -1072,8 +1125,16 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_ap_3.rubric_id == rubric_3.id
       assert expected_ap_3.has_diff_rubric_for_student
       assert expected_ap_3.curriculum_item.id == curriculum_item_3.id
-      assert expected_ap_3.curriculum_item.curriculum_component.id == curriculum_component_3.id
+      assert expected_ap_3.curriculum_item.curriculum_component.id == curriculum_component_3_4.id
       assert expected_ap_3.curriculum_item.id == curriculum_item_3.id
+
+      assert expected_ap_4.id == assessment_point_4.id
+      assert expected_ap_4.scale_id == ordinal_scale.id
+      assert expected_ap_4.curriculum_item.id == curriculum_item_4.id
+      assert expected_ap_4.curriculum_item.curriculum_component.id == curriculum_component_3_4.id
+
+      assert expected_ci_4_m_1.id == entry_ci_4_m_1.id
+      assert expected_ci_4_m_1.ordinal_value_id == ordinal_value.id
     end
   end
 

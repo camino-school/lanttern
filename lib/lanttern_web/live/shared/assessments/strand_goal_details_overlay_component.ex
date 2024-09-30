@@ -18,6 +18,7 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
 
   # shared components
   import LantternWeb.AssessmentsComponents
+  import LantternWeb.AttachmentsComponents
   import LantternWeb.ReportingComponents
 
   @impl true
@@ -75,6 +76,13 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
             rubric={@rubric}
             entry={!@prevent_preview && @entry}
           />
+        </div>
+        <div :if={@entry && @entry.evidences != []} class="mt-10">
+          <h5 class="flex items-center gap-2 font-display font-black text-base">
+            <.icon name="hero-paper-clip" class="w-6 h-6" />
+            <%= gettext("Learning evidences") %>
+          </h5>
+          <.attachments_list id="goals-attachments-list" attachments={@entry.evidences} />
         </div>
         <div :if={@has_formative_assessment} class="mt-10">
           <h5 class="font-display font-black text-base"><%= gettext("Formative assessment") %></h5>
@@ -161,7 +169,7 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
       Assessments.get_assessment_point_student_entry(
         socket.assigns.strand_goal.id,
         socket.assigns.student_id,
-        preloads: [:scale, :ordinal_value, :student_ordinal_value]
+        preloads: [:scale, :ordinal_value, :student_ordinal_value, :evidences]
       )
 
     assign(socket, :entry, entry)
