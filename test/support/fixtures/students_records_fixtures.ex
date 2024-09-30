@@ -13,6 +13,7 @@ defmodule Lanttern.StudentsRecordsFixtures do
     {:ok, student_record} =
       attrs
       |> maybe_inject_school_id()
+      |> maybe_inject_students_ids()
       |> maybe_inject_type_id()
       |> maybe_inject_status_id()
       |> Enum.into(%{
@@ -76,6 +77,13 @@ defmodule Lanttern.StudentsRecordsFixtures do
   defp maybe_inject_school_id(attrs) do
     attrs
     |> Map.put(:school_id, SchoolsFixtures.school_fixture().id)
+  end
+
+  defp maybe_inject_students_ids(%{students_ids: _} = attrs), do: attrs
+
+  defp maybe_inject_students_ids(%{school_id: school_id} = attrs) do
+    attrs
+    |> Map.put(:students_ids, [SchoolsFixtures.student_fixture(%{school_id: school_id}).id])
   end
 
   defp maybe_inject_type_id(%{type_id: _} = attrs), do: attrs

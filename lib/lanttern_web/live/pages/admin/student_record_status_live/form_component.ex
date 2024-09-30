@@ -1,4 +1,4 @@
-defmodule LantternWeb.StudentRecordStatusLive.FormComponent do
+defmodule LantternWeb.Admin.StudentRecordStatusLive.FormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.StudentsRecords

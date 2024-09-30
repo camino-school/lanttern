@@ -35,7 +35,7 @@ defmodule LantternWeb.StudentsRecordsLive do
         school_id: school_id,
         types_ids: types_ids,
         statuses_ids: statuses_ids,
-        preloads: [:type, :status]
+        preloads: [:type, :status, :students]
       )
 
     socket
@@ -48,7 +48,7 @@ defmodule LantternWeb.StudentsRecordsLive do
     student_record =
       case params do
         %{"edit" => "new"} ->
-          %StudentRecord{}
+          %StudentRecord{students: []}
 
         %{"edit" => id} ->
           get_student_record_and_validate_permission(socket, id)
@@ -64,7 +64,9 @@ defmodule LantternWeb.StudentsRecordsLive do
   end
 
   defp get_student_record_and_validate_permission(socket, id) do
-    student_record = StudentsRecords.get_student_record(id)
+    student_record =
+      StudentsRecords.get_student_record(id, preloads: [:students_relationships, :students])
+      |> put_students_ids()
 
     case student_record do
       nil ->
@@ -74,6 +76,16 @@ defmodule LantternWeb.StudentsRecordsLive do
         if student_record.school_id == socket.assigns.current_user.current_profile.school_id,
           do: student_record
     end
+  end
+
+  defp put_students_ids(nil), do: nil
+
+  defp put_students_ids(student_record) do
+    students_ids =
+      student_record.students_relationships
+      |> Enum.map(& &1.student_id)
+
+    %{student_record | students_ids: students_ids}
   end
 
   @impl true

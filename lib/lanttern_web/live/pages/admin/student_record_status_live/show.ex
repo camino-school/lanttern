@@ -1,4 +1,4 @@
-defmodule LantternWeb.StudentRecordStatusLive.Show do
+defmodule LantternWeb.Admin.StudentRecordStatusLive.Show do
   use LantternWeb, {:live_view, layout: :admin}
 
   alias Lanttern.StudentsRecords

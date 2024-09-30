@@ -1,4 +1,4 @@
-defmodule LantternWeb.StudentRecordLive.Index do
+defmodule LantternWeb.Admin.StudentRecordLive.Index do
   use LantternWeb, {:live_view, layout: :admin}
 
   alias Lanttern.StudentsRecords
@@ -6,7 +6,10 @@ defmodule LantternWeb.StudentRecordLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :students_records, StudentsRecords.list_students_records())}
+    students_records =
+      StudentsRecords.list_students_records(preloads: [:students])
+
+    {:ok, stream(socket, :students_records, students_records)}
   end
 
   @impl true
@@ -15,9 +18,13 @@ defmodule LantternWeb.StudentRecordLive.Index do
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
+    student_record =
+      StudentsRecords.get_student_record!(id, preloads: :students_relationships)
+      |> put_students_ids()
+
     socket
     |> assign(:page_title, "Edit Student record")
-    |> assign(:student_record, StudentsRecords.get_student_record!(id))
+    |> assign(:student_record, student_record)
   end
 
   defp apply_action(socket, :new, _params) do
@@ -33,7 +40,10 @@ defmodule LantternWeb.StudentRecordLive.Index do
   end
 
   @impl true
-  def handle_info({LantternWeb.StudentRecordLive.FormComponent, {:saved, student_record}}, socket) do
+  def handle_info(
+        {LantternWeb.Admin.StudentRecordLive.FormComponent, {:saved, student_record}},
+        socket
+      ) do
     {:noreply, stream_insert(socket, :students_records, student_record)}
   end
 
@@ -43,5 +53,13 @@ defmodule LantternWeb.StudentRecordLive.Index do
     {:ok, _} = StudentsRecords.delete_student_record(student_record)
 
     {:noreply, stream_delete(socket, :students_records, student_record)}
+  end
+
+  defp put_students_ids(student_record) do
+    students_ids =
+      student_record.students_relationships
+      |> Enum.map(& &1.student_id)
+
+    %{student_record | students_ids: students_ids}
   end
 end

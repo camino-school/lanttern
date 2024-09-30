@@ -1,4 +1,4 @@
-defmodule LantternWeb.StudentRecordStatusLive.Index do
+defmodule LantternWeb.Admin.StudentRecordStatusLive.Index do
   use LantternWeb, {:live_view, layout: :admin}
 
   alias Lanttern.StudentsRecords
@@ -35,7 +35,8 @@ defmodule LantternWeb.StudentRecordStatusLive.Index do
 
   @impl true
   def handle_info(
-        {LantternWeb.StudentRecordStatusLive.FormComponent, {:saved, student_record_status}},
+        {LantternWeb.Admin.StudentRecordStatusLive.FormComponent,
+         {:saved, student_record_status}},
         socket
       ) do
     {:noreply, stream_insert(socket, :student_record_statuses, student_record_status)}

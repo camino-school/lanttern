@@ -454,6 +454,17 @@ defmodule Lanttern.SchoolsTest do
       end
     end
 
+    test "list_students/1 with school opts returns students filtered by school" do
+      school = school_fixture()
+      student_1 = student_fixture(%{school_id: school.id, name: "AAA"})
+      student_2 = student_fixture(%{school_id: school.id, name: "BBB"})
+
+      # extra student for filtering validation
+      student_fixture()
+
+      assert [student_1, student_2] == Schools.list_students(school_id: school.id)
+    end
+
     test "list_students/1 with diff rubrics opts returns all students as expected" do
       student_1 = student_fixture(%{name: "AAA"})
       student_2 = student_fixture(%{name: "BBB"})
@@ -535,6 +546,26 @@ defmodule Lanttern.SchoolsTest do
 
       assert expected_b.id == student_b.id
       assert expected_b.classes == [class]
+    end
+
+    test "search_students/2 returns all items matched by search" do
+      _student_1 = student_fixture(%{name: "lorem ipsum xolor sit amet"})
+      student_2 = student_fixture(%{name: "lorem ipsum dolor sit amet"})
+      student_3 = student_fixture(%{name: "lorem ipsum dolorxxx sit amet"})
+      _student_4 = student_fixture(%{name: "lorem ipsum xxxxx sit amet"})
+
+      assert [student_2, student_3] == Schools.search_students("dolor")
+    end
+
+    test "search_students/2 with school opt returns only students from given school" do
+      school = school_fixture()
+
+      _student_1 = student_fixture(%{name: "lorem ipsum xolor sit amet"})
+      student_2 = student_fixture(%{name: "lorem ipsum dolor sit amet", school_id: school.id})
+      _student_3 = student_fixture(%{name: "lorem ipsum dolorxxx sit amet"})
+      _student_4 = student_fixture(%{name: "lorem ipsum xxxxx sit amet"})
+
+      assert [student_2] == Schools.search_students("dolor", school_id: school.id)
     end
 
     test "get_student/2 returns the student with given id" do

@@ -13,7 +13,8 @@ defmodule Lanttern.StudentsRecordsTest do
 
     test "list_students_records/1 returns all students_records" do
       student_record = student_record_fixture()
-      assert StudentsRecords.list_students_records() == [student_record]
+      [expected_student_record] = StudentsRecords.list_students_records()
+      assert expected_student_record.id == student_record.id
     end
 
     test "list_students_records/1 with school opt returns students_records filtered by the given school" do
@@ -23,7 +24,8 @@ defmodule Lanttern.StudentsRecordsTest do
       # extra fixture to test filtering
       student_record_fixture()
 
-      assert StudentsRecords.list_students_records(school_id: school.id) == [student_record]
+      [expected_student_record] = StudentsRecords.list_students_records(school_id: school.id)
+      assert expected_student_record.id == student_record.id
     end
 
     test "list_students_records/1 with preloads opt returns all students_records with preloaded data" do
@@ -49,21 +51,26 @@ defmodule Lanttern.StudentsRecordsTest do
       student_record_fixture(%{school_id: school.id, type_id: type.id})
       student_record_fixture(%{school_id: school.id, status_id: status.id})
 
-      assert StudentsRecords.list_students_records(
-               school_id: school.id,
-               types_ids: [type.id],
-               statuses_ids: [status.id]
-             ) == [student_record]
+      [expected_student_record] =
+        StudentsRecords.list_students_records(
+          school_id: school.id,
+          types_ids: [type.id],
+          statuses_ids: [status.id]
+        )
+
+      assert expected_student_record.id == student_record.id
     end
 
     test "get_student_record/1 returns the student_record with given id" do
       student_record = student_record_fixture()
-      assert StudentsRecords.get_student_record(student_record.id) == student_record
+      expected_student_record = StudentsRecords.get_student_record(student_record.id)
+      assert expected_student_record.id == student_record.id
     end
 
     test "get_student_record!/1 returns the student_record with given id" do
       student_record = student_record_fixture()
-      assert StudentsRecords.get_student_record!(student_record.id) == student_record
+      expected_student_record = StudentsRecords.get_student_record!(student_record.id)
+      assert expected_student_record.id == student_record.id
     end
 
     test "get_student_record/1 with preload opts returns the student_record with preloaded data" do
@@ -80,6 +87,7 @@ defmodule Lanttern.StudentsRecordsTest do
       school = SchoolsFixtures.school_fixture()
       type = student_record_type_fixture(%{school_id: school.id})
       status = student_record_status_fixture(%{school_id: school.id})
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
 
       valid_attrs = %{
         school_id: school.id,
@@ -88,7 +96,8 @@ defmodule Lanttern.StudentsRecordsTest do
         name: "some name",
         date: ~D[2024-09-15],
         time: ~T[14:00:00],
-        description: "some description"
+        description: "some description",
+        students_ids: [student.id]
       }
 
       assert {:ok, %StudentRecord{} = student_record} =
@@ -132,7 +141,8 @@ defmodule Lanttern.StudentsRecordsTest do
       assert {:error, %Ecto.Changeset{}} =
                StudentsRecords.update_student_record(student_record, @invalid_attrs)
 
-      assert student_record == StudentsRecords.get_student_record!(student_record.id)
+      expected_student_record = StudentsRecords.get_student_record!(student_record.id)
+      assert expected_student_record.id == student_record.id
     end
 
     test "delete_student_record/1 deletes the student_record" do

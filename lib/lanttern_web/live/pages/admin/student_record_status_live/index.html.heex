@@ -50,7 +50,7 @@
   on_cancel={JS.patch(~p"/admin/student_record_statuses")}
 >
   <.live_component
-    module={LantternWeb.StudentRecordStatusLive.FormComponent}
+    module={LantternWeb.Admin.StudentRecordStatusLive.FormComponent}
     id={@student_record_status.id || :new}
     title={@page_title}
     action={@live_action}

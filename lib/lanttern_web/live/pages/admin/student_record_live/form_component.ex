@@ -1,4 +1,4 @@
-defmodule LantternWeb.StudentRecordLive.FormComponent do
+defmodule LantternWeb.Admin.StudentRecordLive.FormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.StudentsRecords
@@ -27,6 +27,15 @@ defmodule LantternWeb.StudentRecordLive.FormComponent do
           label="Select school"
           options={@school_options}
           prompt="No school selected"
+          class="mb-4"
+        />
+        <.input
+          field={@form[:students_ids]}
+          type="select"
+          multiple
+          label="Select students"
+          options={@student_options}
+          prompt="No student selected"
           class="mb-4"
         />
         <.input
@@ -62,6 +71,7 @@ defmodule LantternWeb.StudentRecordLive.FormComponent do
     socket =
       socket
       |> assign(:school_options, SchoolsHelpers.generate_school_options())
+      |> assign(:student_options, SchoolsHelpers.generate_student_options())
       |> assign(:type_options, StudentsRecordsHelpers.generate_student_record_type_options())
       |> assign(:status_options, StudentsRecordsHelpers.generate_student_record_status_options())
 
@@ -72,10 +82,12 @@ defmodule LantternWeb.StudentRecordLive.FormComponent do
   def update(%{student_record: student_record} = assigns, socket) do
     changeset = StudentsRecords.change_student_record(student_record)
 
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign_form(changeset)}
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign_form(changeset)
+
+    {:ok, socket}
   end
 
   @impl true
@@ -98,6 +110,7 @@ defmodule LantternWeb.StudentRecordLive.FormComponent do
            student_record_params
          ) do
       {:ok, student_record} ->
+        student_record = student_record |> Lanttern.Repo.preload(:students)
         notify_parent({:saved, student_record})
 
         {:noreply,
@@ -113,6 +126,7 @@ defmodule LantternWeb.StudentRecordLive.FormComponent do
   defp save_student_record(socket, :new, student_record_params) do
     case StudentsRecords.create_student_record(student_record_params) do
       {:ok, student_record} ->
+        student_record = student_record |> Lanttern.Repo.preload(:students)
         notify_parent({:saved, student_record})
 
         {:noreply,

@@ -12,6 +12,9 @@
 </.header>
 
 <.list>
+  <:item title="Students">
+    <%= @student_record.students |> Enum.map(& &1.name) |> Enum.join(", ") %>
+  </:item>
   <:item title="Name"><%= @student_record.name %></:item>
   <:item title="Description"><%= @student_record.description %></:item>
   <:item title="Date"><%= @student_record.date %></:item>
@@ -27,7 +30,7 @@
   on_cancel={JS.patch(~p"/admin/students_records/#{@student_record}")}
 >
   <.live_component
-    module={LantternWeb.StudentRecordLive.FormComponent}
+    module={LantternWeb.Admin.StudentRecordLive.FormComponent}
     id={@student_record.id}
     title={@page_title}
     action={@live_action}

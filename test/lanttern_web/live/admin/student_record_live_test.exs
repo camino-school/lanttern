@@ -33,6 +33,7 @@ defmodule LantternWeb.StudentRecordLiveTest do
 
     test "saves new student_record", %{conn: conn} do
       school = SchoolsFixtures.school_fixture()
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
       status = student_record_status_fixture(%{school_id: school.id})
       type = student_record_type_fixture(%{school_id: school.id})
 
@@ -49,6 +50,7 @@ defmodule LantternWeb.StudentRecordLiveTest do
 
       create_attrs = %{
         school_id: school.id,
+        students_ids: [student.id],
         status_id: status.id,
         type_id: type.id,
         name: "some name",

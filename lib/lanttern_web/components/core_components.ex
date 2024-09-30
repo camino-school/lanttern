@@ -1111,8 +1111,9 @@ defmodule LantternWeb.CoreComponents do
 
   """
   attr :id, :string, default: nil
-  attr :person, :map, required: true
+  attr :person, :map, required: true, doc: "any map with `name` attr"
   attr :theme, :string, default: "subtle", doc: "subtle | cyan"
+  attr :on_remove, JS, default: nil
   attr :rest, :global
 
   def person_badge(assigns) do
@@ -1129,6 +1130,19 @@ defmodule LantternWeb.CoreComponents do
       <span class="max-w-[7rem] pr-1 text-xs truncate">
         <%= @person.name %>
       </span>
+      <div :if={@on_remove} class="pr-1 -ml-1">
+        <button
+          type="button"
+          class="group flex items-center justify-center rounded-full hover:bg-ltrn-dark/10"
+          phx-click={@on_remove}
+        >
+          <span class="sr-only"><%= gettext("Remove") %></span>
+          <.icon
+            name="hero-x-mark-mini"
+            class="w-3.5 h-3.5 text-ltrn-subtle group-hover:text-ltrn-dark"
+          />
+        </button>
+      </div>
     </span>
     """
   end

@@ -95,7 +95,10 @@ defmodule Lanttern.StudentsRecords do
   Same as `get_student_record/1`, but raises `Ecto.NoResultsError` if the `StudentRecord` does not exist.
 
   """
-  def get_student_record!(id), do: Repo.get!(StudentRecord, id)
+  def get_student_record!(id, opts \\ []) do
+    Repo.get!(StudentRecord, id)
+    |> maybe_preload(opts)
+  end
 
   @doc """
   Creates a student_record.

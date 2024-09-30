@@ -20,13 +20,24 @@ defmodule LantternWeb.StudentRecordLive do
 
   defp assign_student_record(socket, %{"id" => id}) do
     student_record =
-      StudentsRecords.get_student_record(id, preloads: [:type, :status])
+      StudentsRecords.get_student_record(id,
+        preloads: [:students, :students_relationships, :type, :status]
+      )
+      |> put_students_ids()
 
     page_title = student_record.name || gettext("Student record details")
 
     socket
     |> assign(:student_record, student_record)
     |> assign(:page_title, page_title)
+  end
+
+  defp put_students_ids(student_record) do
+    students_ids =
+      student_record.students_relationships
+      |> Enum.map(& &1.student_id)
+
+    %{student_record | students_ids: students_ids}
   end
 
   @impl true

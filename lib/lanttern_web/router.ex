@@ -275,26 +275,26 @@ defmodule LantternWeb.Router do
 
     # Students records
 
-    live "/students_records", StudentRecordLive.Index, :index
-    live "/students_records/new", StudentRecordLive.Index, :new
-    live "/students_records/:id/edit", StudentRecordLive.Index, :edit
+    live "/students_records", Admin.StudentRecordLive.Index, :index
+    live "/students_records/new", Admin.StudentRecordLive.Index, :new
+    live "/students_records/:id/edit", Admin.StudentRecordLive.Index, :edit
 
-    live "/students_records/:id", StudentRecordLive.Show, :show
-    live "/students_records/:id/show/edit", StudentRecordLive.Show, :edit
+    live "/students_records/:id", Admin.StudentRecordLive.Show, :show
+    live "/students_records/:id/show/edit", Admin.StudentRecordLive.Show, :edit
 
-    live "/student_record_types", StudentRecordTypeLive.Index, :index
-    live "/student_record_types/new", StudentRecordTypeLive.Index, :new
-    live "/student_record_types/:id/edit", StudentRecordTypeLive.Index, :edit
+    live "/student_record_types", Admin.StudentRecordTypeLive.Index, :index
+    live "/student_record_types/new", Admin.StudentRecordTypeLive.Index, :new
+    live "/student_record_types/:id/edit", Admin.StudentRecordTypeLive.Index, :edit
 
-    live "/student_record_types/:id", StudentRecordTypeLive.Show, :show
-    live "/student_record_types/:id/show/edit", StudentRecordTypeLive.Show, :edit
+    live "/student_record_types/:id", Admin.StudentRecordTypeLive.Show, :show
+    live "/student_record_types/:id/show/edit", Admin.StudentRecordTypeLive.Show, :edit
 
-    live "/student_record_statuses", StudentRecordStatusLive.Index, :index
-    live "/student_record_statuses/new", StudentRecordStatusLive.Index, :new
-    live "/student_record_statuses/:id/edit", StudentRecordStatusLive.Index, :edit
+    live "/student_record_statuses", Admin.StudentRecordStatusLive.Index, :index
+    live "/student_record_statuses/new", Admin.StudentRecordStatusLive.Index, :new
+    live "/student_record_statuses/:id/edit", Admin.StudentRecordStatusLive.Index, :edit
 
-    live "/student_record_statuses/:id", StudentRecordStatusLive.Show, :show
-    live "/student_record_statuses/:id/show/edit", StudentRecordStatusLive.Show, :edit
+    live "/student_record_statuses/:id", Admin.StudentRecordStatusLive.Show, :show
+    live "/student_record_statuses/:id/show/edit", Admin.StudentRecordStatusLive.Show, :edit
   end
 
   # Other scopes may use custom stacks.

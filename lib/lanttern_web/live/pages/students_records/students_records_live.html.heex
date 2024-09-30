@@ -63,6 +63,11 @@
       <%= student_record.time %>
     </div>
   </:col>
+  <:col :let={student_record} label={gettext("Students")} template_col="min-content">
+    <div class="flex flex-wrap gap-1">
+      <.person_badge :for={student <- student_record.students} person={student} theme="cyan" />
+    </div>
+  </:col>
   <:col :let={student_record} label={gettext("Record")}>
     <p :if={student_record.name} class="mb-4 font-display font-black">
       <%= student_record.name %>
