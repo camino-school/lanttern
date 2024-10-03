@@ -9,6 +9,36 @@ defmodule LantternWeb.AttachmentsComponents do
   import LantternWeb.CoreComponents
   import LantternWeb.OverlayComponents
 
+  alias Lanttern.Attachments.Attachment
+
+  @doc """
+  Renders an attachment card.
+  """
+  attr :attachment, Attachment, required: true
+  attr :id, :string, default: nil
+  attr :class, :any, default: nil
+  slot :inner_block
+
+  def attachment_card(assigns) do
+    ~H"""
+    <.card_base id={@id} class={["p-6", @class]}>
+      <%= if(@attachment.is_external) do %>
+        <.badge><%= gettext("External link") %></.badge>
+      <% else %>
+        <.badge theme="cyan"><%= gettext("Upload") %></.badge>
+      <% end %>
+      <a
+        href={@attachment.link}
+        target="_blank"
+        class="block mt-2 text-sm underline hover:text-ltrn-subtle"
+      >
+        <%= @attachment.name %>
+      </a>
+      <%= render_slot(@inner_block) %>
+    </.card_base>
+    """
+  end
+
   @doc """
   Renders an assessment point entry badge.
   """

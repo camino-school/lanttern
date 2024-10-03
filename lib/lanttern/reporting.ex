@@ -13,6 +13,7 @@ defmodule Lanttern.Reporting do
 
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.Attachments.Attachment
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
   alias Lanttern.Schools
@@ -915,6 +916,60 @@ defmodule Lanttern.Reporting do
 
     moments
     |> Enum.map(&{&1, Map.get(ast_entries_map, &1.id, [])})
+  end
+
+  @doc """
+  Returns the list of student evidences linked to given strand,
+  with goal id and moment name (if any) info.
+
+  Ordered by moment then assessment point position.
+  Goals evidences are shown last.
+
+  ## Examples
+
+      iex> list_student_strand_evidences(strand_id, student_id)
+      [{%Attachment{}, 1, "Task 1"}, ...]
+
+  """
+  @spec list_student_strand_evidences(
+          strand_id :: pos_integer(),
+          student_id :: pos_integer()
+        ) :: [
+          {Attachment.t(), goal_id :: pos_integer(), moment_name :: binary() | nil}
+        ]
+  def list_student_strand_evidences(strand_id, student_id) do
+    base_query =
+      from(
+        a in Attachment,
+        join: e in assoc(a, :assessment_point_entry),
+        on: e.student_id == ^student_id,
+        join: ap in assoc(e, :assessment_point),
+        as: :assessment_point
+      )
+
+    moments_evidences_and_name =
+      from(
+        [a, assessment_point: ap] in base_query,
+        join: m in assoc(ap, :moment),
+        # pg = parent_goal
+        join: pg in AssessmentPoint,
+        on: pg.curriculum_item_id == ap.curriculum_item_id and pg.strand_id == ^strand_id,
+        where: m.strand_id == ^strand_id,
+        order_by: [asc: m.position, asc: ap.position],
+        select: {a, pg.id, m.name}
+      )
+      |> Repo.all()
+
+    goals_evidences =
+      from(
+        [a, assessment_point: ap] in base_query,
+        where: ap.strand_id == ^strand_id,
+        order_by: ap.position,
+        select: {a, ap.id, nil}
+      )
+      |> Repo.all()
+
+    moments_evidences_and_name ++ goals_evidences
   end
 
   @doc """
