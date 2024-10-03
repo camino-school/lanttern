@@ -11,10 +11,11 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
   -`current_profile` - the current `%Profile{}` from `current_user`
   """
 
-  alias Lanttern.Assessments.AssessmentPoint
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments
+  alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Reporting
 
   # page components
   alias LantternWeb.Assessments.StrandGoalDetailsOverlayComponent
@@ -22,6 +23,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
   # shared components
   alias LantternWeb.Assessments.EntryParticleComponent
   import LantternWeb.AssessmentsComponents
+  import LantternWeb.AttachmentsComponents
 
   @impl true
   def render(assigns) do
@@ -37,17 +39,52 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
         <p class="mt-4 mb-10">
           <%= gettext("You can click the assessment card to view more details about it.") %>
         </p>
-        <.goal_card
-          :for={{goal, entry, moment_entries} <- @strand_goals_student_entries}
-          patch={"#{@base_path}&strand_goal_id=#{goal.id}"}
-          goal={goal}
-          entry={entry}
-          moment_entries={moment_entries}
-          prevent_preview={@prevent_final_assessment_preview}
-        />
+        <div id="strand-goals-student-entries" phx-update="stream">
+          <.goal_card
+            :for={
+              {dom_id, {goal, entry, moment_entries}} <-
+                @streams.strand_goals_student_entries
+            }
+            id={dom_id}
+            patch={"#{@base_path}&strand_goal_id=#{goal.id}"}
+            goal={goal}
+            entry={entry}
+            moment_entries={moment_entries}
+            has_evidence={@goal_has_evidences_map[goal.id]}
+            prevent_preview={@prevent_final_assessment_preview}
+          />
+        </div>
         <.empty_state :if={!@has_strand_goals_with_student_entries}>
           <%= gettext("No assessment entries for this strand yet") %>
         </.empty_state>
+        <div :if={@has_strand_evidences} class="mt-10">
+          <div class="flex items-center gap-2">
+            <.icon name="hero-paper-clip" class="w-6 h-6" />
+            <h4 class="font-display font-black">
+              <%= gettext("All strand evidences") %>
+            </h4>
+          </div>
+          <div id="strand-evidences" phx-update="stream">
+            <.attachment_card
+              :for={{dom_id, {evidence, goal_id, moment_name}} <- @streams.strand_evidences}
+              id={dom_id}
+              class="mt-6"
+              attachment={evidence}
+            >
+              <p class="mt-4 text-xs">
+                <%= if moment_name do
+                  "#{gettext("In the context of")} \"#{moment_name}\"."
+                end %>
+                <.link
+                  patch={"#{@base_path}&strand_goal_id=#{goal_id}"}
+                  class="underline hover:text-ltrn-subtle"
+                >
+                  <%= gettext("View assessment details") %>
+                </.link>
+              </p>
+            </.attachment_card>
+          </div>
+        </div>
         <div :if={@has_strand_goals_without_student_entries} class="mt-10">
           <div class="flex items-center gap-2">
             <h4 class="flex-1 font-display font-black text-ltrn-subtle">
@@ -59,13 +96,18 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
               initial_is_expanded={false}
             />
           </div>
-          <div id="strand-goals-without-student-entries" class="hidden">
+          <div id="strand-goals-without-student-entries" phx-update="stream" class="hidden">
             <.goal_card
-              :for={{goal, entry, moment_entries} <- @strand_goals_without_student_entries}
+              :for={
+                {dom_id, {goal, entry, moment_entries}} <-
+                  @streams.strand_goals_without_student_entries
+              }
+              id={dom_id}
               patch={"#{@base_path}&strand_goal_id=#{goal.id}"}
               goal={goal}
               entry={entry}
               moment_entries={moment_entries}
+              has_evidence={@goal_has_evidences_map[goal.id]}
               prevent_preview={@prevent_final_assessment_preview}
             />
           </div>
@@ -85,8 +127,10 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
   end
 
   attr :goal, AssessmentPoint, required: true
+  attr :id, :string, required: true
   attr :entry, :any, required: true
   attr :moment_entries, :list, required: true
+  attr :has_evidence, :boolean, required: true
   attr :patch, :string, required: true
   attr :prevent_preview, :boolean, required: true
 
@@ -94,13 +138,15 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
     %{
       goal: goal,
       entry: entry,
-      moment_entries: moment_entries
+      moment_entries: moment_entries,
+      has_evidence: has_evidence
     } = assigns
 
     render_icons_area =
       goal.is_differentiation ||
         (entry && entry.report_note) ||
         (entry && entry.student_report_note) ||
+        has_evidence ||
         goal.report_info ||
         goal.rubric_id
 
@@ -115,6 +161,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
 
     ~H"""
     <.link
+      id={@id}
       patch={@patch}
       class={[
         "group/card block mt-4",
@@ -146,6 +193,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
                 :if={@entry && @entry.student_report_note}
                 type={:student_comment}
               />
+              <.assessment_metadata_icon :if={@has_evidence} type={:evidences} />
               <.assessment_metadata_icon :if={@goal.report_info} type={:info} />
               <.assessment_metadata_icon :if={@goal.rubric_id} type={:rubric} />
             </div>
@@ -212,6 +260,11 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
       {gettext("Student comment"), "hero-chat-bubble-oval-left-mini", "bg-ltrn-student-lighter",
        "text-ltrn-student-accent"}
 
+  defp assessment_metadata_icon_attrs(:evidences),
+    do:
+      {gettext("With learning evidences"), "hero-paper-clip-mini", "bg-ltrn-lighter",
+       "text-ltrn-subtle"}
+
   defp assessment_metadata_icon_attrs(:info),
     do:
       {gettext("Assessment info"), "hero-information-circle-mini", "bg-ltrn-lighter",
@@ -229,6 +282,18 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
       |> assign(:class, nil)
       |> assign(:strand_goal_id, nil)
       |> assign(:initialized, false)
+      |> stream_configure(
+        :strand_goals_student_entries,
+        dom_id: fn {goal, _, _} -> "goal-#{goal.id}" end
+      )
+      |> stream_configure(
+        :strand_goals_without_student_entries,
+        dom_id: fn {goal, _, _} -> "goal-#{goal.id}" end
+      )
+      |> stream_configure(
+        :strand_evidences,
+        dom_id: fn {attachment, _, _} -> "attachment-#{attachment.id}" end
+      )
 
     {:ok, socket}
   end
@@ -238,15 +303,16 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign_strand_goals_student_entries(assigns)
+      |> stream_strand_goals_student_entries(assigns)
       |> assign_strand_goal_id(assigns)
       |> assign_prevent_final_assessment_preview()
+      |> stream_strand_evidences()
       |> assign(:initialized, true)
 
     {:ok, socket}
   end
 
-  defp assign_strand_goals_student_entries(%{assigns: %{initialized: false}} = socket, assigns) do
+  defp stream_strand_goals_student_entries(%{assigns: %{initialized: false}} = socket, assigns) do
     all_strand_goals_student_entries =
       Assessments.list_strand_goals_for_student(
         assigns.student_report_card.student_id,
@@ -265,12 +331,14 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
 
     strand_goals_without_student_entries =
       all_strand_goals_student_entries
-      |> Enum.filter(fn {_, entry, moments_entries} -> is_nil(entry) and moments_entries == [] end)
+      |> Enum.filter(fn {_, entry, moments_entries} ->
+        is_nil(entry) and moments_entries == []
+      end)
 
     socket
-    |> assign(:strand_goals_student_entries, strand_goals_student_entries)
+    |> stream(:strand_goals_student_entries, strand_goals_student_entries)
     |> assign(:strand_goals_ids, strand_goals_ids)
-    |> assign(:strand_goals_without_student_entries, strand_goals_without_student_entries)
+    |> stream(:strand_goals_without_student_entries, strand_goals_without_student_entries)
     |> assign(
       :has_strand_goals_with_student_entries,
       strand_goals_student_entries != []
@@ -281,7 +349,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
     )
   end
 
-  defp assign_strand_goals_student_entries(socket, _assigns), do: socket
+  defp stream_strand_goals_student_entries(socket, _assigns), do: socket
 
   defp assign_strand_goal_id(socket, %{
          params: %{"strand_goal_id" => strand_goal_id}
@@ -296,6 +364,31 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
   end
 
   defp assign_strand_goal_id(socket, _assigns), do: assign(socket, :strand_goal_id, nil)
+
+  defp stream_strand_evidences(%{assigns: %{initialized: false}} = socket) do
+    %{
+      strand_report: %{strand_id: strand_id},
+      student_report_card: %{student_id: student_id}
+    } = socket.assigns
+
+    strand_evidences = Reporting.list_student_strand_evidences(strand_id, student_id)
+
+    goal_has_evidences_map =
+      strand_evidences
+      |> Enum.group_by(
+        fn {_, goal_id, _} -> goal_id end,
+        fn _ -> true end
+      )
+      |> Enum.map(fn {goal_id, _} -> {goal_id, true} end)
+      |> Enum.into(%{})
+
+    socket
+    |> stream(:strand_evidences, strand_evidences)
+    |> assign(:has_strand_evidences, strand_evidences != [])
+    |> assign(:goal_has_evidences_map, goal_has_evidences_map)
+  end
+
+  defp stream_strand_evidences(socket), do: socket
 
   defp assign_prevent_final_assessment_preview(socket) do
     profile = socket.assigns.current_profile

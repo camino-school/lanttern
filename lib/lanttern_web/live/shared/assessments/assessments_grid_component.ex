@@ -608,6 +608,12 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     {:ok, socket}
   end
 
+  def update(
+        %{action: {EntryDetailsComponent, _}},
+        socket
+      ),
+      do: {:ok, socket}
+
   def update(assigns, socket) do
     socket =
       socket
