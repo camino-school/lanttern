@@ -17,6 +17,10 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   alias Lanttern.Attachments.Attachment
   alias Lanttern.Notes
 
+  # shared
+
+  import LantternWeb.AttachmentsComponents
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -25,102 +29,40 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         <.icon name="hero-paper-clip" class="w-6 h-6" />
         <h5 class="font-display font-bold text-sm"><%= @title %></h5>
       </div>
-      <ul
+      <.attachments_list
         :if={@attachments_length > 0}
         id="attachments-list"
-        phx-update="stream"
         class={if @is_editing, do: "hidden"}
-      >
-        <li
-          :for={{dom_id, {attachment, i}} <- @streams.attachments}
-          id={dom_id}
-          class="flex items-center gap-4 mt-4"
-        >
-          <%= if @allow_editing do %>
-            <.sortable_card
-              is_move_up_disabled={i == 0}
-              on_move_up={
-                JS.push("reorder_attachments",
-                  value: %{from: i, to: i - 1},
-                  target: @myself
-                )
-              }
-              is_move_down_disabled={i + 1 == @attachments_length}
-              on_move_down={
-                JS.push("reorder_attachments",
-                  value: %{from: i, to: i + 1},
-                  target: @myself
-                )
-              }
-              class="flex-1 min-w-0"
-            >
-              <div class="flex items-center gap-4">
-                <button
-                  type="button"
-                  phx-hook="CopyToClipboard"
-                  data-clipboard-text={"[#{attachment.name}](#{attachment.link})"}
-                  id={"clipboard-#{dom_id}"}
-                  class={[
-                    "group relative shrink-0 p-1 rounded-full text-ltrn-subtle hover:bg-ltrn-lighter",
-                    "[&.copied-to-clipboard]:text-ltrn-primary [&.copied-to-clipboard]:bg-ltrn-mesh-cyan"
-                  ]}
-                >
-                  <.icon
-                    name="hero-square-2-stack"
-                    class="block group-[.copied-to-clipboard]:hidden w-6 h-6"
-                  />
-                  <.icon name="hero-check hidden group-[.copied-to-clipboard]:block" class="w-6 h-6" />
-                  <.tooltip><%= gettext("Copy attachment link markdown") %></.tooltip>
-                </button>
-                <div class="flex-1 min-w-o">
-                  <%= if(attachment.is_external) do %>
-                    <.badge><%= gettext("External link") %></.badge>
-                  <% else %>
-                    <.badge theme="cyan"><%= gettext("Upload") %></.badge>
-                  <% end %>
-                  <a
-                    href={attachment.link}
-                    target="_blank"
-                    class="block mt-2 text-sm underline hover:text-ltrn-subtle"
-                  >
-                    <%= attachment.name %>
-                  </a>
-                </div>
-              </div>
-            </.sortable_card>
-            <.menu_button id={attachment.id}>
-              <:item
-                :if={attachment.is_external}
-                id={"edit-attachment-#{attachment.id}"}
-                text={gettext("Edit")}
-                on_click={JS.push("edit", value: %{"id" => attachment.id}, target: @myself)}
-              />
-              <:item
-                id={"remove-attachment-#{attachment.id}"}
-                text={gettext("Remove")}
-                on_click={JS.push("delete", value: %{"id" => attachment.id}, target: @myself)}
-                theme="alert"
-                confirm_msg={gettext("Are you sure? This action cannot be undone.")}
-              />
-            </.menu_button>
-          <% else %>
-            <div class="flex-1 min-w-0 p-4 rounded bg-white shadow-lg">
-              <%= if(attachment.is_external) do %>
-                <.badge><%= gettext("External link") %></.badge>
-              <% else %>
-                <.badge theme="cyan"><%= gettext("Upload") %></.badge>
-              <% end %>
-              <a
-                href={attachment.link}
-                target="_blank"
-                class="block mt-2 text-sm underline hover:text-ltrn-subtle"
-              >
-                <%= attachment.name %>
-              </a>
-            </div>
-          <% end %>
-        </li>
-      </ul>
+        attachments={@streams.attachments}
+        allow_editing={@allow_editing}
+        attachments_length={@attachments_length}
+        on_move_up={
+          fn i ->
+            JS.push("reorder_attachments",
+              value: %{from: i, to: i - 1},
+              target: @myself
+            )
+          end
+        }
+        on_move_down={
+          fn i ->
+            JS.push("reorder_attachments",
+              value: %{from: i, to: i + 1},
+              target: @myself
+            )
+          end
+        }
+        on_edit={
+          fn id ->
+            JS.push("edit", value: %{"id" => id}, target: @myself)
+          end
+        }
+        on_remove={
+          fn id ->
+            JS.push("delete", value: %{"id" => id}, target: @myself)
+          end
+        }
+      />
       <div
         :if={@is_adding_external || @is_editing}
         class="p-4 border border-dashed border-ltrn-subtle rounded mt-4 bg-white shadow-lg"

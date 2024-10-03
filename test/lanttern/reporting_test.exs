@@ -682,9 +682,18 @@ defmodule Lanttern.ReportingTest do
     alias Lanttern.AssessmentsFixtures
     alias Lanttern.CurriculaFixtures
     alias Lanttern.GradingFixtures
+    alias Lanttern.IdentityFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
     alias Lanttern.TaxonomyFixtures
+
+    alias Lanttern.Assessments
+
+    @evidence_params %{
+      "name" => "attachment name",
+      "link" => "https://somesite.com",
+      "is_external" => true
+    }
 
     test "list_student_report_card_strand_reports_and_entries/1 returns the list of the strands in the report with the student assessment point entries" do
       report_card = report_card_fixture()
@@ -974,6 +983,96 @@ defmodule Lanttern.ReportingTest do
       assert expected_moment_3.subjects == [subject_1, subject_2]
     end
 
+    test "list_student_strand_evidences/2 returns all student evidences linked to the given strand" do
+      strand = LearningContextFixtures.strand_fixture()
+
+      moment_1 =
+        LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+
+      moment_2 =
+        LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+
+      student = SchoolsFixtures.student_fixture()
+
+      # assessment points
+
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      scale = GradingFixtures.scale_fixture(%{type: "numeric"})
+
+      goal =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          scale_id: scale.id
+        })
+
+      moment_1_assessment_point =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_1.id,
+          curriculum_item_id: curriculum_item.id,
+          scale_id: scale.id
+        })
+
+      moment_2_assessment_point =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_2.id,
+          curriculum_item_id: curriculum_item.id,
+          scale_id: scale.id
+        })
+
+      # entries
+
+      goal_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: goal.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          score: 10
+        })
+
+      moment_1_assessment_point_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: moment_1_assessment_point.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          score: 10
+        })
+
+      _moment_2_assessment_point_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: moment_2_assessment_point.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          score: 10
+        })
+
+      # evidences
+
+      current_user = %{current_profile: IdentityFixtures.teacher_profile_fixture()}
+
+      {:ok, goal_evidence} =
+        Assessments.create_assessment_point_entry_evidence(
+          current_user,
+          goal_entry.id,
+          @evidence_params
+        )
+
+      {:ok, moment_1_assessment_point_evidence} =
+        Assessments.create_assessment_point_entry_evidence(
+          current_user,
+          moment_1_assessment_point_entry.id,
+          @evidence_params
+        )
+
+      assert Reporting.list_student_strand_evidences(strand.id, student.id) == [
+               {moment_1_assessment_point_evidence, goal.id, moment_1.name},
+               {goal_evidence, goal.id, nil}
+             ]
+    end
+
     test "list_moment_assessment_points_and_student_entries/2 returns all assessment points and entries for the given moment and student" do
       moment = LearningContextFixtures.moment_fixture()
 
@@ -1135,6 +1234,8 @@ defmodule Lanttern.ReportingTest do
           scale_id: o_scale.id
         })
 
+      # entries
+
       assessment_point_1_1_entry =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           student_id: student.id,
@@ -1162,6 +1263,16 @@ defmodule Lanttern.ReportingTest do
           scale_type: o_scale.type,
           ordinal_value_id: ov_2.id
         })
+
+      # add evidences to entry 1_1
+      current_user = %{current_profile: IdentityFixtures.teacher_profile_fixture()}
+
+      {:ok, evidence} =
+        Assessments.create_assessment_point_entry_evidence(
+          current_user,
+          assessment_point_1_1_entry.id,
+          @evidence_params
+        )
 
       # other strand goal with same curriculum item
       # to test filtering
@@ -1202,6 +1313,7 @@ defmodule Lanttern.ReportingTest do
       assert expected_entry_1_1.id == assessment_point_1_1_entry.id
       assert expected_entry_1_1.scale == o_scale
       assert expected_entry_1_1.ordinal_value == ov_1
+      assert expected_entry_1_1.evidences == [evidence]
 
       assert expected_entry_1_2.id == assessment_point_1_2_entry.id
       assert expected_assessment_point_1_2.id == assessment_point_1_2.id

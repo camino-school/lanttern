@@ -26,6 +26,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntryEvidence
   alias Lanttern.Assessments.Feedback
+  alias Lanttern.Attachments.Attachment
   alias Lanttern.Schools.Student
   alias Lanttern.Grading.Scale
   alias Lanttern.Grading.OrdinalValue
@@ -54,6 +55,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
           differentiation_rubric: Rubric.t() | nil,
           differentiation_rubric_id: pos_integer() | nil,
           assessment_point_entry_evidences: [AssessmentPointEntryEvidence.t()],
+          evidences: [Attachment.t()],
           feedback: Feedback.t() | nil,
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
@@ -82,6 +84,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
     belongs_to :differentiation_rubric, Rubric
 
     has_many :assessment_point_entry_evidences, AssessmentPointEntryEvidence
+    has_many :evidences, through: [:assessment_point_entry_evidences, :attachment]
 
     # warning: don't use `Repo.preload/3` with this association.
     # we can get this in query, usign assessment_point_id and student_id
