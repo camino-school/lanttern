@@ -39,15 +39,21 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
         <p class="mt-4 mb-10">
           <%= gettext("You can click the assessment card to view more details about it.") %>
         </p>
-        <.goal_card
-          :for={{goal, entry, moment_entries, has_evidence} <- @strand_goals_student_entries}
-          patch={"#{@base_path}&strand_goal_id=#{goal.id}"}
-          goal={goal}
-          entry={entry}
-          moment_entries={moment_entries}
-          has_evidence={has_evidence}
-          prevent_preview={@prevent_final_assessment_preview}
-        />
+        <div id="strand-goals-student-entries" phx-update="stream">
+          <.goal_card
+            :for={
+              {dom_id, {goal, entry, moment_entries}} <-
+                @streams.strand_goals_student_entries
+            }
+            id={dom_id}
+            patch={"#{@base_path}&strand_goal_id=#{goal.id}"}
+            goal={goal}
+            entry={entry}
+            moment_entries={moment_entries}
+            has_evidence={@goal_has_evidences_map[goal.id]}
+            prevent_preview={@prevent_final_assessment_preview}
+          />
+        </div>
         <.empty_state :if={!@has_strand_goals_with_student_entries}>
           <%= gettext("No assessment entries for this strand yet") %>
         </.empty_state>
@@ -90,16 +96,18 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
               initial_is_expanded={false}
             />
           </div>
-          <div id="strand-goals-without-student-entries" class="hidden">
+          <div id="strand-goals-without-student-entries" phx-update="stream" class="hidden">
             <.goal_card
               :for={
-                {goal, entry, moment_entries, has_evidence} <- @strand_goals_without_student_entries
+                {dom_id, {goal, entry, moment_entries}} <-
+                  @streams.strand_goals_without_student_entries
               }
+              id={dom_id}
               patch={"#{@base_path}&strand_goal_id=#{goal.id}"}
               goal={goal}
               entry={entry}
               moment_entries={moment_entries}
-              has_evidence={has_evidence}
+              has_evidence={@goal_has_evidences_map[goal.id]}
               prevent_preview={@prevent_final_assessment_preview}
             />
           </div>
@@ -119,6 +127,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
   end
 
   attr :goal, AssessmentPoint, required: true
+  attr :id, :string, required: true
   attr :entry, :any, required: true
   attr :moment_entries, :list, required: true
   attr :has_evidence, :boolean, required: true
@@ -152,6 +161,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
 
     ~H"""
     <.link
+      id={@id}
       patch={@patch}
       class={[
         "group/card block mt-4",
@@ -273,8 +283,16 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
       |> assign(:strand_goal_id, nil)
       |> assign(:initialized, false)
       |> stream_configure(
+        :strand_goals_student_entries,
+        dom_id: fn {goal, _, _} -> "goal-#{goal.id}" end
+      )
+      |> stream_configure(
+        :strand_goals_without_student_entries,
+        dom_id: fn {goal, _, _} -> "goal-#{goal.id}" end
+      )
+      |> stream_configure(
         :strand_evidences,
-        dom_id: fn {a, _, _} -> "attachment-#{a.id}" end
+        dom_id: fn {attachment, _, _} -> "attachment-#{attachment.id}" end
       )
 
     {:ok, socket}
@@ -285,7 +303,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign_strand_goals_student_entries(assigns)
+      |> stream_strand_goals_student_entries(assigns)
       |> assign_strand_goal_id(assigns)
       |> assign_prevent_final_assessment_preview()
       |> stream_strand_evidences()
@@ -294,7 +312,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
     {:ok, socket}
   end
 
-  defp assign_strand_goals_student_entries(%{assigns: %{initialized: false}} = socket, assigns) do
+  defp stream_strand_goals_student_entries(%{assigns: %{initialized: false}} = socket, assigns) do
     all_strand_goals_student_entries =
       Assessments.list_strand_goals_for_student(
         assigns.student_report_card.student_id,
@@ -303,24 +321,24 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
 
     strand_goals_ids =
       all_strand_goals_student_entries
-      |> Enum.map(fn {strand_goal, _, _, _} -> "#{strand_goal.id}" end)
+      |> Enum.map(fn {strand_goal, _, _} -> "#{strand_goal.id}" end)
 
     strand_goals_student_entries =
       all_strand_goals_student_entries
-      |> Enum.filter(fn {_, entry, moments_entries, _} ->
+      |> Enum.filter(fn {_, entry, moments_entries} ->
         not is_nil(entry) or moments_entries != []
       end)
 
     strand_goals_without_student_entries =
       all_strand_goals_student_entries
-      |> Enum.filter(fn {_, entry, moments_entries, _} ->
+      |> Enum.filter(fn {_, entry, moments_entries} ->
         is_nil(entry) and moments_entries == []
       end)
 
     socket
-    |> assign(:strand_goals_student_entries, strand_goals_student_entries)
+    |> stream(:strand_goals_student_entries, strand_goals_student_entries)
     |> assign(:strand_goals_ids, strand_goals_ids)
-    |> assign(:strand_goals_without_student_entries, strand_goals_without_student_entries)
+    |> stream(:strand_goals_without_student_entries, strand_goals_without_student_entries)
     |> assign(
       :has_strand_goals_with_student_entries,
       strand_goals_student_entries != []
@@ -331,7 +349,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
     )
   end
 
-  defp assign_strand_goals_student_entries(socket, _assigns), do: socket
+  defp stream_strand_goals_student_entries(socket, _assigns), do: socket
 
   defp assign_strand_goal_id(socket, %{
          params: %{"strand_goal_id" => strand_goal_id}
@@ -355,9 +373,19 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
 
     strand_evidences = Reporting.list_student_strand_evidences(strand_id, student_id)
 
+    goal_has_evidences_map =
+      strand_evidences
+      |> Enum.group_by(
+        fn {_, goal_id, _} -> goal_id end,
+        fn _ -> true end
+      )
+      |> Enum.map(fn {goal_id, _} -> {goal_id, true} end)
+      |> Enum.into(%{})
+
     socket
     |> stream(:strand_evidences, strand_evidences)
     |> assign(:has_strand_evidences, strand_evidences != [])
+    |> assign(:goal_has_evidences_map, goal_has_evidences_map)
   end
 
   defp stream_strand_evidences(socket), do: socket

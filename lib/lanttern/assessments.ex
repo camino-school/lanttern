@@ -1002,8 +1002,7 @@ defmodule Lanttern.Assessments do
 
   @spec list_strand_goals_for_student(student_id :: pos_integer(), strand_id :: pos_integer()) ::
           [
-            {AssessmentPoint.t(), AssessmentPointEntry.t() | nil, [AssessmentPointEntry.t()],
-             has_assessment :: boolean()}
+            {AssessmentPoint.t(), AssessmentPointEntry.t() | nil, [AssessmentPointEntry.t()]}
           ]
 
   def list_strand_goals_for_student(student_id, strand_id) do
@@ -1031,11 +1030,8 @@ defmodule Lanttern.Assessments do
         join: ap in assoc(e, :assessment_point),
         left_join: ov in assoc(e, :ordinal_value),
         left_join: s_ov in assoc(e, :student_ordinal_value),
-        left_join: apee in assoc(e, :assessment_point_entry_evidences),
         where: ap.strand_id == ^strand_id and e.student_id == ^student_id,
-        group_by: [e.id, ov.id, s_ov.id],
-        preload: [ordinal_value: ov, student_ordinal_value: s_ov],
-        select: %{e | has_evidences: count(apee) > 0}
+        preload: [ordinal_value: ov, student_ordinal_value: s_ov]
       )
       |> Repo.all()
       |> Enum.map(&{&1.assessment_point_id, &1})
@@ -1047,11 +1043,9 @@ defmodule Lanttern.Assessments do
         join: m in assoc(ap, :moment),
         join: e in AssessmentPointEntry,
         on: e.assessment_point_id == ap.id and e.student_id == ^student_id,
-        left_join: apee in assoc(e, :assessment_point_entry_evidences),
         where: m.strand_id == ^strand_id,
-        group_by: [m.position, ap.position, e.id, ap.curriculum_item_id],
         order_by: [asc: m.position, asc: ap.position],
-        select: {ap.curriculum_item_id, %{e | has_evidences: count(apee) > 0}}
+        select: {ap.curriculum_item_id, e}
       )
       |> Repo.all()
       |> Enum.group_by(
@@ -1064,10 +1058,7 @@ defmodule Lanttern.Assessments do
       goal_entry = Map.get(goals_and_entries_map, ap.id)
       moments_entries = Map.get(goals_and_moments_entries_map, ap.curriculum_item_id, [])
 
-      has_evidence =
-        (goal_entry && goal_entry.has_evidences) || Enum.any?(moments_entries, & &1.has_evidences)
-
-      {ap, goal_entry, moments_entries, has_evidence}
+      {ap, goal_entry, moments_entries}
     end)
   end
 

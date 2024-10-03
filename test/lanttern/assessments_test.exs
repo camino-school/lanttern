@@ -872,10 +872,10 @@ defmodule Lanttern.AssessmentsTest do
     test "list_strand_goals_for_student/2 returns the list of strand goals with student assessments" do
       #      | moment_1 | moment_2 | moment_3 |
       # ---------------------------------------
-      # ci_1 |    2     |    1     |    1     | (no entry in m1 pos 2 and m3. has goal evidence)
+      # ci_1 |    2     |    1     |    1     | (no entry in m1 pos 2 and m3)
       # ci_2 |    -     |    1     |    -     |
       # ci_3 |    -     |    -     |    -     | (no entry for goal)
-      # ci_4 |    1     |    -     |    -     | (no entry for goal. has evidence in m1 entry)
+      # ci_4 |    1     |    -     |    -     | (no entry for goal)
 
       strand = LearningContextFixtures.strand_fixture()
 
@@ -1059,27 +1059,6 @@ defmodule Lanttern.AssessmentsTest do
           ordinal_value_id: ordinal_value.id
         })
 
-      # add evidences to goal entry 1 and ci_4_m1 entry
-      current_user = %{current_profile: IdentityFixtures.teacher_profile_fixture()}
-
-      params = %{
-        "name" => "attachment name",
-        "link" => "https://somesite.com",
-        "is_external" => true
-      }
-
-      Assessments.create_assessment_point_entry_evidence(
-        current_user,
-        entry_1.id,
-        params
-      )
-
-      Assessments.create_assessment_point_entry_evidence(
-        current_user,
-        entry_ci_4_m_1.id,
-        params
-      )
-
       # extra entry for different student (test student join)
       _other_entry =
         assessment_point_entry_fixture(%{
@@ -1089,10 +1068,10 @@ defmodule Lanttern.AssessmentsTest do
         })
 
       assert [
-               {expected_ap_1, expected_entry_1, [expected_ci_1_m_1_1, expected_ci_1_m_2], true},
-               {expected_ap_2, expected_entry_2, [expected_ci_2_m_2], false},
-               {expected_ap_3, nil, [], false},
-               {expected_ap_4, nil, [expected_ci_4_m_1], true}
+               {expected_ap_1, expected_entry_1, [expected_ci_1_m_1_1, expected_ci_1_m_2]},
+               {expected_ap_2, expected_entry_2, [expected_ci_2_m_2]},
+               {expected_ap_3, nil, []},
+               {expected_ap_4, nil, [expected_ci_4_m_1]}
              ] = Assessments.list_strand_goals_for_student(student.id, strand.id)
 
       assert expected_ap_1.id == assessment_point_1.id
