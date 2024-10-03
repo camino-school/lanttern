@@ -61,7 +61,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
           <div class="flex items-center gap-2">
             <.icon name="hero-paper-clip" class="w-6 h-6" />
             <h4 class="font-display font-black">
-              <%= gettext("All strands evidences") %>
+              <%= gettext("All strand evidences") %>
             </h4>
           </div>
           <div id="strand-evidences" phx-update="stream">
@@ -73,7 +73,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
             >
               <p class="mt-4 text-xs">
                 <%= if moment_name do
-                  "#{gettext("In the context of")} #{moment_name}."
+                  "#{gettext("In the context of")} \"#{moment_name}\"."
                 end %>
                 <.link
                   patch={"#{@base_path}&strand_goal_id=#{goal_id}"}
