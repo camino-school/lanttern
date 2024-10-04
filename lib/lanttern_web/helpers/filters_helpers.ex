@@ -26,51 +26,56 @@ defmodule LantternWeb.FiltersHelpers do
 
   ## Filter types and assigns
 
-  ### `:subjects`' assigns
+  ### `:subjects` assigns
 
   - `:subjects`
   - `:selected_subjects_ids`
   - `:selected_subjects`
 
-  ### `:years`' assigns
+  ### `:years` assigns
 
   - `:years`
   - `:selected_years_ids`
   - `:selected_years`
 
-  ### `:cycles`' assigns
+  ### `:cycles` assigns
 
   - `:cycles`
   - `:selected_cycles_ids`
   - `:selected_cycles`
 
-  ### `:classes`' assigns
+  ### `:classes` assigns
 
   - `:classes`
   - `:selected_classes_ids`
   - `:selected_classes`
 
-  ### `:linked_students_classes`' assigns
+  ### `:linked_students_classes` assigns
 
   - `:linked_students_classes`
   - `:selected_linked_students_classes_ids`
   - `:selected_linked_students_classes`
 
-  ### `:assessment_view`' assigns
+  ### `:assessment_view assigns
 
   - `:current_assessment_view`
 
-  ### `:assessment_group_by`' assigns
+  ### `:assessment_group_by` assigns
 
   - `:current_assessment_group_by`
 
-  ### `:student_record_types`' assigns
+  ### `:students` assigns
+
+  - `:selected_students`
+  - `:selected_students_ids`
+
+  ### `:student_record_types` assigns
 
   - `:student_record_types` (filtered by user school)
   - `:selected_student_record_types`
   - `:selected_student_record_types_ids`
 
-  ### `:student_record_statuses`' assigns
+  ### `:student_record_statuses` assigns
 
   - `:student_record_statuses` (filtered by user school)
   - `:selected_student_record_statuses`
@@ -222,6 +227,23 @@ defmodule LantternWeb.FiltersHelpers do
          socket,
          current_user,
          current_filters,
+         [:students | filter_types],
+         opts
+       ) do
+    selected_students_ids = Map.get(current_filters, :students_ids) || []
+
+    selected_students = Schools.list_students(students_ids: selected_students_ids)
+
+    socket
+    |> assign(:selected_students_ids, selected_students_ids)
+    |> assign(:selected_students, selected_students)
+    |> assign_filter_type(current_user, current_filters, filter_types, opts)
+  end
+
+  defp assign_filter_type(
+         socket,
+         current_user,
+         current_filters,
          [:student_record_types | filter_types],
          opts
        ) do
@@ -276,6 +298,7 @@ defmodule LantternWeb.FiltersHelpers do
     cycles: :cycles_ids,
     classes: :classes_ids,
     linked_students_classes: :linked_students_classes_ids,
+    students: :students_ids,
     student_record_types: :student_record_types_ids,
     student_record_statuses: :student_record_statuses_ids
   }
@@ -286,6 +309,7 @@ defmodule LantternWeb.FiltersHelpers do
     cycles: :selected_cycles_ids,
     classes: :selected_classes_ids,
     linked_students_classes: :selected_linked_students_classes_ids,
+    students: :selected_students_ids,
     student_record_types: :selected_student_record_types_ids,
     student_record_statuses: :selected_student_record_statuses_ids
   }
@@ -378,7 +402,8 @@ defmodule LantternWeb.FiltersHelpers do
   - `:years`
   - `:cycles`
   - `:linked_students_classes`
-  - `:student_record_type`
+  - `:students`
+  - `:student_record_types`
   - `:student_record_status`
 
   ## Examples

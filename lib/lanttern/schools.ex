@@ -407,7 +407,8 @@ defmodule Lanttern.Schools do
   ### Options:
 
   - `:preloads` – preloads associated data
-  - `:school_id` - filters students by school
+  - `:school_id` - filter students by school
+  - `:students_ids` - filter students by given ids
   - `:classes_ids` – filter students by provided list of ids. preloads the classes for each student, and order by class name
   - `:report_card_id` – filter students linked to given report card. preloads the classes for each student, and order by class name
   - `:check_diff_rubrics_for_strand_id` - used to check if student has any differentiation rubric for given strand id
@@ -466,6 +467,14 @@ defmodule Lanttern.Schools do
     from(
       s in queryable,
       where: s.school_id == ^school_id
+    )
+    |> apply_list_students_opts(opts)
+  end
+
+  defp apply_list_students_opts(queryable, [{:students_ids, students_ids} | opts]) do
+    from(
+      s in queryable,
+      where: s.id in ^students_ids
     )
     |> apply_list_students_opts(opts)
   end

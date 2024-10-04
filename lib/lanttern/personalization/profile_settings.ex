@@ -26,6 +26,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
           cycles_ids: [pos_integer()],
           assessment_view: String.t(),
           assessment_group_by: String.t(),
+          students_ids: [pos_integer()],
           student_record_types_ids: [pos_integer()],
           student_record_statuses_ids: [pos_integer()]
         }
@@ -40,6 +41,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
       field :cycles_ids, {:array, :id}
       field :assessment_view, :string
       field :assessment_group_by, :string
+      field :students_ids, {:array, :id}
       field :student_record_types_ids, {:array, :id}
       field :student_record_statuses_ids, {:array, :id}
     end
@@ -64,6 +66,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
       :cycles_ids,
       :assessment_view,
       :assessment_group_by,
+      :students_ids,
       :student_record_types_ids,
       :student_record_statuses_ids
     ])

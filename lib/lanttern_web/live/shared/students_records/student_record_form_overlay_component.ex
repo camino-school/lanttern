@@ -268,7 +268,6 @@ defmodule LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent do
       socket.assigns.student_record
       |> StudentsRecords.change_student_record(params)
       |> Map.put(:action, :validate)
-      |> IO.inspect()
 
     assign(socket, :form, to_form(changeset))
   end
@@ -314,7 +313,6 @@ defmodule LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent do
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        IO.inspect(changeset)
         {:noreply, assign(socket, :form, to_form(changeset))}
     end
   end

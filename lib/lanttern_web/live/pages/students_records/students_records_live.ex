@@ -8,6 +8,7 @@ defmodule LantternWeb.StudentsRecordsLive do
 
   # shared components
 
+  alias LantternWeb.Schools.StudentSearchComponent
   alias LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent
 
   # lifecycle
@@ -17,8 +18,9 @@ defmodule LantternWeb.StudentsRecordsLive do
     socket =
       socket
       |> assign(:page_title, gettext("Students records"))
-      |> assign_user_filters([:student_record_types, :student_record_statuses])
+      |> assign_user_filters([:students, :student_record_types, :student_record_statuses])
       |> stream_students_records()
+      |> assign(:show_student_search_modal, false)
 
     {:ok, socket}
   end
@@ -26,6 +28,7 @@ defmodule LantternWeb.StudentsRecordsLive do
   defp stream_students_records(socket) do
     %{
       current_user: %{current_profile: %{school_id: school_id}},
+      selected_students_ids: students_ids,
       selected_student_record_types_ids: types_ids,
       selected_student_record_statuses_ids: statuses_ids
     } = socket.assigns
@@ -33,6 +36,7 @@ defmodule LantternWeb.StudentsRecordsLive do
     students_records =
       StudentsRecords.list_students_records(
         school_id: school_id,
+        students_ids: students_ids,
         types_ids: types_ids,
         statuses_ids: statuses_ids,
         preloads: [:type, :status, :students]
@@ -48,7 +52,11 @@ defmodule LantternWeb.StudentsRecordsLive do
     student_record =
       case params do
         %{"edit" => "new"} ->
-          %StudentRecord{students: []}
+          %StudentRecord{
+            students: socket.assigns.selected_students,
+            students_ids: socket.assigns.selected_students_ids,
+            date: Date.utc_today()
+          }
 
         %{"edit" => id} ->
           get_student_record_and_validate_permission(socket, id)
@@ -89,6 +97,17 @@ defmodule LantternWeb.StudentsRecordsLive do
   end
 
   @impl true
+  def handle_event("remove_student_filter", _, socket) do
+    socket =
+      socket
+      |> assign(:selected_students_ids, [])
+      |> save_profile_filters([:students])
+      |> assign_user_filters([:students])
+      |> stream_students_records()
+
+    {:noreply, socket}
+  end
+
   def handle_event("remove_type_filter", _, socket) do
     socket =
       socket
@@ -110,6 +129,12 @@ defmodule LantternWeb.StudentsRecordsLive do
 
     {:noreply, socket}
   end
+
+  def handle_event("open_student_search_modal", _, socket),
+    do: {:noreply, assign(socket, :show_student_search_modal, true)}
+
+  def handle_event("close_student_search_modal", _, socket),
+    do: {:noreply, assign(socket, :show_student_search_modal, false)}
 
   def handle_event("filter_by_type", %{"id" => id}, socket) do
     selected_ids =
@@ -135,6 +160,21 @@ defmodule LantternWeb.StudentsRecordsLive do
       |> save_profile_filters([:student_record_statuses])
       |> assign_user_filters([:student_record_statuses])
       |> stream_students_records()
+
+    {:noreply, socket}
+  end
+
+  # info handlers
+
+  @impl true
+  def handle_info({StudentSearchComponent, {:selected, student}}, socket) do
+    socket =
+      socket
+      |> assign(:selected_students_ids, [student.id])
+      |> save_profile_filters([:students])
+      |> assign_user_filters([:students])
+      |> stream_students_records()
+      |> assign(:show_student_search_modal, false)
 
     {:noreply, socket}
   end
