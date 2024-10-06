@@ -5,12 +5,13 @@ defmodule Lanttern.StudentsRecords do
 
   import Ecto.Query, warn: false
   import Lanttern.RepoHelpers
+  alias Lanttern.RepoHelpers.Page
   alias Lanttern.Repo
 
   alias Lanttern.StudentsRecords.StudentRecord
 
   @doc """
-  Returns the list of students_records.
+  Returns a list of students_records, ordered desc by date and time.
 
   ## Options
 
@@ -26,10 +27,20 @@ defmodule Lanttern.StudentsRecords do
       [%StudentRecord{}, ...]
 
   """
+  @type list_students_records_opts ::
+          [
+            school_id: pos_integer(),
+            students_ids: [pos_integer()],
+            types_ids: [pos_integer()],
+            statuses_ids: [pos_integer()],
+            preloads: Keyword.t()
+          ]
+          | Page.opts()
+  @spec list_students_records(list_students_records_opts()) :: [StudentRecord.t()]
   def list_students_records(opts \\ []) do
     from(
       sr in StudentRecord,
-      order_by: [desc: sr.date, desc: sr.time]
+      order_by: [desc: sr.date, desc: sr.time, desc: sr.id]
     )
     |> apply_list_students_records_opts(opts)
     |> Repo.all()
@@ -74,8 +85,65 @@ defmodule Lanttern.StudentsRecords do
     |> apply_list_students_records_opts(opts)
   end
 
+  defp apply_list_students_records_opts(queryable, [{:first, first} | opts]) do
+    from(sr in queryable, limit: ^first + 1)
+    |> apply_list_students_records_opts(opts)
+  end
+
+  defp apply_list_students_records_opts(queryable, [
+         {:after, [date: date, time: %Time{} = time, id: id]} | opts
+       ]) do
+    from(
+      sr in queryable,
+      where:
+        sr.date < ^date or (sr.date == ^date and sr.time < ^time) or
+          (sr.date == ^date and sr.time == ^time and sr.id < ^id)
+    )
+    |> apply_list_students_records_opts(opts)
+  end
+
+  # time is optiona, so there's a keyset case to consider only date
+  defp apply_list_students_records_opts(queryable, [
+         {:after, [date: date, time: _, id: id]} | opts
+       ]) do
+    from(
+      sr in queryable,
+      where: sr.date < ^date or (sr.date == ^date and sr.id < ^id)
+    )
+    |> apply_list_students_records_opts(opts)
+  end
+
   defp apply_list_students_records_opts(queryable, [_ | opts]),
     do: apply_list_students_records_opts(queryable, opts)
+
+  @doc """
+  Returns a page with the list of students_records.
+
+  Sets the `first` default to 100.
+
+  Keyset for this query is `[:date, :time, :id]`.
+
+  Same as `list_students_records/1`, but returned in a `%Page{}` struct.
+  """
+  @spec list_students_records_page(list_students_records_opts()) :: Page.t()
+  def list_students_records_page(opts \\ []) do
+    # set default for first opt
+    first = Keyword.get(opts, :first, 100)
+    opts = Keyword.put(opts, :first, first)
+
+    students_records = list_students_records(opts)
+
+    {has_next, results} =
+      Page.handle_list_has_next_and_results(students_records, first)
+
+    keyset =
+      case List.pop_at(results, -1) do
+        {%StudentRecord{} = last, _} -> [date: last.date, time: last.time, id: last.id]
+        _ -> nil
+      end
+
+    %Page{results: results, keyset: keyset, has_next: has_next}
+  end
 
   @doc """
   Gets a single student_record.

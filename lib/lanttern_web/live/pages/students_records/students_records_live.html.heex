@@ -57,7 +57,7 @@
 </.responsive_container>
 <.data_grid
   id="students-records"
-  class="mx-6"
+  class="pb-10 mx-6"
   stream={@streams.students_records}
   row_click={fn student_record -> JS.navigate(~p"/students_records/#{student_record.id}") end}
   show_empty_state_message={
@@ -125,6 +125,9 @@
     />
   </:action>
 </.data_grid>
+<div :if={@has_next} class="flex justify-center pb-10">
+  <.button theme="ghost" phx-click="load_more"><%= gettext("Load more records") %></.button>
+</div>
 <.modal
   :if={@show_student_search_modal}
   id="student-search-modal"

@@ -8,6 +8,7 @@ defmodule Lanttern.StudentsRecordsTest do
 
     import Lanttern.StudentsRecordsFixtures
     alias Lanttern.SchoolsFixtures
+    alias Lanttern.RepoHelpers.Page
 
     @invalid_attrs %{name: nil, date: nil, time: nil, description: nil}
 
@@ -79,6 +80,41 @@ defmodule Lanttern.StudentsRecordsTest do
         )
 
       assert expected_student_record.id == student_record.id
+    end
+
+    test "list_students_records_page/1 returns all students_records in a Page struct" do
+      student_record_1 = student_record_fixture(%{date: ~D[2024-01-01], time: nil})
+      student_record_2_1 = student_record_fixture(%{date: ~D[2024-02-01], time: ~T[09:00:00]})
+      student_record_2_2 = student_record_fixture(%{date: ~D[2024-02-01], time: ~T[10:00:00]})
+      student_record_2_3 = student_record_fixture(%{date: ~D[2024-02-01], time: ~T[10:00:00]})
+
+      %Page{results: [expected_student_record], keyset: keyset, has_next: true} =
+        StudentsRecords.list_students_records_page(first: 1)
+
+      assert expected_student_record.id == student_record_2_3.id
+
+      %Page{results: [expected_student_record], keyset: keyset, has_next: true} =
+        StudentsRecords.list_students_records_page(first: 1, after: keyset)
+
+      assert expected_student_record.id == student_record_2_2.id
+
+      %Page{results: [expected_student_record], keyset: keyset, has_next: true} =
+        StudentsRecords.list_students_records_page(first: 1, after: keyset)
+
+      assert expected_student_record.id == student_record_2_1.id
+
+      %Page{results: [expected_student_record], has_next: false} =
+        StudentsRecords.list_students_records_page(first: 1, after: keyset)
+
+      assert expected_student_record.id == student_record_1.id
+    end
+
+    test "list_students_records_page/1 handles empty students_records correctly" do
+      _student_record = student_record_fixture()
+      type = student_record_type_fixture()
+
+      %Page{results: [], has_next: false} =
+        StudentsRecords.list_students_records_page(types_ids: [type.id])
     end
 
     test "get_student_record/1 returns the student_record with given id" do

@@ -8,6 +8,52 @@ defmodule Lanttern.RepoHelpers do
 
   import LantternWeb.Gettext
 
+  defmodule Page do
+    @moduledoc "General pagination page struct and related utils"
+
+    @type t() :: %__MODULE__{
+            results: list(),
+            has_next: boolean(),
+            keyset: any()
+          }
+
+    @typedoc """
+    The `opts` spec to use in pagination functions.
+
+    When fetching `first` results, the query should include `first + 1` results,
+    and the extra result should be handled by `handle_list_has_next_and_results/2`
+    """
+    @type opts() :: [first: pos_integer(), after: Keyword.t()]
+
+    defstruct [:keyset, results: [], has_next: false]
+
+    @doc """
+    Util function to handle `has_next` and the `results` of a paginated query.
+
+    It will:
+
+    1. define if `Page.has_next`
+    2. remove the last result from the list, if needed
+    """
+    @spec handle_list_has_next_and_results(list(), first :: pos_integer()) ::
+            {has_next :: boolean(), results :: list()}
+    def handle_list_has_next_and_results([], _),
+      do: {false, []}
+
+    def handle_list_has_next_and_results([single], _),
+      do: {false, [single]}
+
+    def handle_list_has_next_and_results(list, first) do
+      {_, results} = List.pop_at(list, -1)
+
+      case length(results) do
+        len when len == first - 1 -> {false, results}
+        len when len < first -> {false, list}
+        _ -> {true, results}
+      end
+    end
+  end
+
   @doc """
   Preload associated data based on provided values.
 

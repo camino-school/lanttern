@@ -25,7 +25,7 @@ defmodule LantternWeb.StudentsRecordsLive do
     {:ok, socket}
   end
 
-  defp stream_students_records(socket) do
+  defp stream_students_records(socket, reset \\ false) do
     %{
       current_user: %{current_profile: %{school_id: school_id}},
       selected_students_ids: students_ids,
@@ -33,18 +33,35 @@ defmodule LantternWeb.StudentsRecordsLive do
       selected_student_record_statuses_ids: statuses_ids
     } = socket.assigns
 
-    students_records =
-      StudentsRecords.list_students_records(
+    {keyset, len} =
+      if reset,
+        do: {nil, 0},
+        else: {socket.assigns[:keyset], socket.assigns[:students_records_length] || 0}
+
+    page =
+      StudentsRecords.list_students_records_page(
         school_id: school_id,
         students_ids: students_ids,
         types_ids: types_ids,
         statuses_ids: statuses_ids,
-        preloads: [:type, :status, :students]
+        preloads: [:type, :status, :students],
+        first: 20,
+        after: keyset
       )
 
+    %{
+      results: students_records,
+      keyset: keyset,
+      has_next: has_next
+    } = page
+
+    len = len + length(students_records)
+
     socket
-    |> stream(:students_records, students_records, reset: true)
-    |> assign(:students_records_length, length(students_records))
+    |> stream(:students_records, students_records, reset: reset)
+    |> assign(:students_records_length, len)
+    |> assign(:has_next, has_next)
+    |> assign(:keyset, keyset)
   end
 
   @impl true
@@ -103,7 +120,7 @@ defmodule LantternWeb.StudentsRecordsLive do
       |> assign(:selected_students_ids, [])
       |> save_profile_filters([:students])
       |> assign_user_filters([:students])
-      |> stream_students_records()
+      |> stream_students_records(true)
 
     {:noreply, socket}
   end
@@ -114,7 +131,7 @@ defmodule LantternWeb.StudentsRecordsLive do
       |> assign(:selected_student_record_types_ids, [])
       |> save_profile_filters([:student_record_types])
       |> assign_user_filters([:student_record_types])
-      |> stream_students_records()
+      |> stream_students_records(true)
 
     {:noreply, socket}
   end
@@ -125,7 +142,7 @@ defmodule LantternWeb.StudentsRecordsLive do
       |> assign(:selected_student_record_statuses_ids, [])
       |> save_profile_filters([:student_record_statuses])
       |> assign_user_filters([:student_record_statuses])
-      |> stream_students_records()
+      |> stream_students_records(true)
 
     {:noreply, socket}
   end
@@ -145,7 +162,7 @@ defmodule LantternWeb.StudentsRecordsLive do
       |> assign(:selected_student_record_types_ids, selected_ids)
       |> save_profile_filters([:student_record_types])
       |> assign_user_filters([:student_record_types])
-      |> stream_students_records()
+      |> stream_students_records(true)
 
     {:noreply, socket}
   end
@@ -159,10 +176,13 @@ defmodule LantternWeb.StudentsRecordsLive do
       |> assign(:selected_student_record_statuses_ids, selected_ids)
       |> save_profile_filters([:student_record_statuses])
       |> assign_user_filters([:student_record_statuses])
-      |> stream_students_records()
+      |> stream_students_records(true)
 
     {:noreply, socket}
   end
+
+  def handle_event("load_more", _, socket),
+    do: {:noreply, stream_students_records(socket)}
 
   # info handlers
 
@@ -173,9 +193,11 @@ defmodule LantternWeb.StudentsRecordsLive do
       |> assign(:selected_students_ids, [student.id])
       |> save_profile_filters([:students])
       |> assign_user_filters([:students])
-      |> stream_students_records()
+      |> stream_students_records(true)
       |> assign(:show_student_search_modal, false)
 
     {:noreply, socket}
   end
+
+  def handle_info(_, socket), do: socket
 end
