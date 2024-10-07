@@ -20,6 +20,7 @@ defmodule Lanttern.StudentsRecords do
   - `:types_ids` - filter results by type
   - `:statuses_ids` - filter results by status
   - `:preloads` - preloads associated data
+  - page opts (view `Page.opts()`)
 
   ## Examples
 
@@ -33,7 +34,7 @@ defmodule Lanttern.StudentsRecords do
             students_ids: [pos_integer()],
             types_ids: [pos_integer()],
             statuses_ids: [pos_integer()],
-            preloads: Keyword.t()
+            preloads: list()
           ]
           | Page.opts()
   @spec list_students_records(list_students_records_opts()) :: [StudentRecord.t()]

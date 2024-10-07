@@ -23,7 +23,7 @@ defmodule Lanttern.RepoHelpers do
     When fetching `first` results, the query should include `first + 1` results
     (the extra result should be handled by `extract_pagination_fields_from/3`).
     """
-    @type opts() :: [first: pos_integer(), after: Keyword.t()]
+    @type opts() :: [first: pos_integer(), after: Keyword.t() | nil]
 
     @typedoc """
     The function to use as the last arg in `extract_pagination_fields_from/3`.

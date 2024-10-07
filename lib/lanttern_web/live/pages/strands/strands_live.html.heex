@@ -20,12 +20,12 @@
   </div>
 </.responsive_container>
 <div class="pb-10">
-  <%= if @strands_count == 0 do %>
+  <%= if !@has_strands do %>
     <.empty_state class="p-10 my-10 mx-6 sm:mx-10 rounded bg-white shadow-lg">
       <%= gettext("No strands created for selected years and subjects") %>
     </.empty_state>
   <% else %>
-    <%= if @starred_strands_count > 0 do %>
+    <%= if @has_starred_strands do %>
       <.responsive_container class="mt-10">
         <p class="flex items-center gap-2 font-display font-bold">
           <.icon name="hero-star-solid" class="text-ltrn-primary" /> <%= gettext(
