@@ -133,14 +133,12 @@ defmodule Lanttern.StudentsRecords do
 
     students_records = list_students_records(opts)
 
-    {has_next, results} =
-      Page.handle_list_has_next_and_results(students_records, first)
-
-    keyset =
-      case List.pop_at(results, -1) do
-        {%StudentRecord{} = last, _} -> [date: last.date, time: last.time, id: last.id]
-        _ -> nil
-      end
+    {results, has_next, keyset} =
+      Page.extract_pagination_fields_from(
+        students_records,
+        first,
+        fn last -> [date: last.date, time: last.time, id: last.id] end
+      )
 
     %Page{results: results, keyset: keyset, has_next: has_next}
   end
