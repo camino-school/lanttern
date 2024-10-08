@@ -175,6 +175,9 @@ defmodule LantternWeb.Router do
     resources "/users", UserController
     resources "/profiles", ProfileController
 
+    live "/profile_settings", Admin.ProfileSettingsLive.Index, :index
+    live "/profile_settings/:profile_id/edit", Admin.ProfileSettingsLive.Index, :edit
+
     # Assessments context
     resources "/assessment_points", AssessmentPointController
     resources "/assessment_point_entries", AssessmentPointEntryController

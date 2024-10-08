@@ -1,4 +1,4 @@
-defmodule LantternWeb.StudentRecordTypeLiveTest do
+defmodule LantternWeb.Admin.StudentRecordTypeLiveTest do
   use LantternWeb.ConnCase
 
   import Phoenix.LiveViewTest

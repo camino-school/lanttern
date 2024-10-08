@@ -9,9 +9,11 @@ defmodule Lanttern.Personalization.ProfileSettings do
   import LantternWeb.Gettext
 
   alias Lanttern.Identity.Profile
+  alias Lanttern.Personalization
 
   @type t :: %__MODULE__{
           id: pos_integer(),
+          permissions: [binary()],
           profile: Profile.t(),
           profile_id: pos_integer(),
           current_filters: current_filters(),
@@ -32,6 +34,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
         }
 
   schema "profile_settings" do
+    field :permissions, {:array, :string}, default: []
     belongs_to :profile, Profile
 
     embeds_one :current_filters, CurrentFilters, on_replace: :delete, primary_key: false do
@@ -52,9 +55,16 @@ defmodule Lanttern.Personalization.ProfileSettings do
   @doc false
   def changeset(profile_settings, attrs) do
     profile_settings
-    |> cast(attrs, [:profile_id])
+    |> cast(attrs, [:profile_id, :permissions])
     |> validate_required([:profile_id])
     |> cast_embed(:current_filters, with: &current_filters_changeset/2)
+    |> validate_change(:permissions, fn :permissions, permissions ->
+      valid_permissions = Personalization.list_valid_permissions()
+
+      if Enum.all?(permissions, &(&1 in valid_permissions)),
+        do: [],
+        else: [permissions: gettext("Invalid permissions")]
+    end)
   end
 
   defp current_filters_changeset(current_filters, attrs) do
