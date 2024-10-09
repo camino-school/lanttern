@@ -19,6 +19,7 @@ defmodule Lanttern.Identity.Profile do
           name: String.t(),
           school_id: pos_integer(),
           school_name: String.t(),
+          permissions: [String.t()],
           user: User.t(),
           user_id: pos_integer(),
           student: Student.t(),
@@ -42,6 +43,7 @@ defmodule Lanttern.Identity.Profile do
     field :name, :string, virtual: true
     field :school_id, :id, virtual: true
     field :school_name, :string, virtual: true
+    field :permissions, {:array, :string}, virtual: true, default: []
 
     belongs_to :user, User
     belongs_to :student, Student
