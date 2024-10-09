@@ -5,6 +5,7 @@ defmodule Lanttern.StudentsRecordsTest do
 
   describe "students_records" do
     alias Lanttern.StudentsRecords.StudentRecord
+    alias Lanttern.StudentsRecordsLog.StudentRecordLog
 
     import Lanttern.StudentsRecordsFixtures
     alias Lanttern.SchoolsFixtures
@@ -145,6 +146,9 @@ defmodule Lanttern.StudentsRecordsTest do
       status = student_record_status_fixture(%{school_id: school.id})
       student = SchoolsFixtures.student_fixture(%{school_id: school.id})
 
+      # profile to test log
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+
       valid_attrs = %{
         school_id: school.id,
         status_id: status.id,
@@ -157,7 +161,7 @@ defmodule Lanttern.StudentsRecordsTest do
       }
 
       assert {:ok, %StudentRecord{} = student_record} =
-               StudentsRecords.create_student_record(valid_attrs)
+               StudentsRecords.create_student_record(valid_attrs, log_profile_id: profile.id)
 
       assert student_record.school_id == school.id
       assert student_record.status_id == status.id
@@ -166,6 +170,28 @@ defmodule Lanttern.StudentsRecordsTest do
       assert student_record.date == ~D[2024-09-15]
       assert student_record.time == ~T[14:00:00]
       assert student_record.description == "some description"
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+
+        student_record_log =
+          Repo.get_by!(StudentRecordLog,
+            student_record_id: student_record.id
+          )
+
+        assert student_record_log.student_record_id == student_record.id
+        assert student_record_log.profile_id == profile.id
+        assert student_record_log.operation == "CREATE"
+
+        assert student_record_log.students_ids == [student.id]
+        assert student_record_log.school_id == student_record.school_id
+        assert student_record_log.status_id == student_record.status_id
+        assert student_record_log.type_id == student_record.type_id
+        assert student_record_log.name == student_record.name
+        assert student_record_log.date == student_record.date
+        assert student_record_log.time == student_record.time
+        assert student_record_log.description == student_record.description
+      end)
     end
 
     test "create_student_record/1 with invalid data returns error changeset" do
@@ -182,13 +208,40 @@ defmodule Lanttern.StudentsRecordsTest do
         description: "some updated description"
       }
 
+      # profile to test log
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+
       assert {:ok, %StudentRecord{} = student_record} =
-               StudentsRecords.update_student_record(student_record, update_attrs)
+               StudentsRecords.update_student_record(student_record, update_attrs,
+                 log_profile_id: profile.id
+               )
 
       assert student_record.name == "some updated name"
       assert student_record.date == ~D[2024-09-16]
       assert student_record.time == ~T[15:01:01]
       assert student_record.description == "some updated description"
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+
+        student_record_log =
+          Repo.get_by!(StudentRecordLog,
+            student_record_id: student_record.id
+          )
+
+        assert student_record_log.student_record_id == student_record.id
+        assert student_record_log.profile_id == profile.id
+        assert student_record_log.operation == "UPDATE"
+
+        assert student_record_log.students_ids == student_record.students_ids
+        assert student_record_log.school_id == student_record.school_id
+        assert student_record_log.status_id == student_record.status_id
+        assert student_record_log.type_id == student_record.type_id
+        assert student_record_log.name == student_record.name
+        assert student_record_log.date == student_record.date
+        assert student_record_log.time == student_record.time
+        assert student_record_log.description == student_record.description
+      end)
     end
 
     test "update_student_record/2 with invalid data returns error changeset" do
@@ -203,11 +256,29 @@ defmodule Lanttern.StudentsRecordsTest do
 
     test "delete_student_record/1 deletes the student_record" do
       student_record = student_record_fixture()
-      assert {:ok, %StudentRecord{}} = StudentsRecords.delete_student_record(student_record)
+
+      # profile to test log
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+
+      assert {:ok, %StudentRecord{}} =
+               StudentsRecords.delete_student_record(student_record, log_profile_id: profile.id)
 
       assert_raise Ecto.NoResultsError, fn ->
         StudentsRecords.get_student_record!(student_record.id)
       end
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+
+        student_record_log =
+          Repo.get_by!(StudentRecordLog,
+            student_record_id: student_record.id
+          )
+
+        assert student_record_log.student_record_id == student_record.id
+        assert student_record_log.profile_id == profile.id
+        assert student_record_log.operation == "DELETE"
+      end)
     end
 
     test "change_student_record/1 returns a student_record changeset" do

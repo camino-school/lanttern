@@ -9,6 +9,7 @@ defmodule Lanttern.StudentsRecords do
   alias Lanttern.Repo
 
   alias Lanttern.StudentsRecords.StudentRecord
+  alias Lanttern.StudentsRecordsLog
 
   @doc """
   Returns a list of students_records, ordered desc by date and time.
@@ -181,6 +182,10 @@ defmodule Lanttern.StudentsRecords do
   @doc """
   Creates a student_record.
 
+  ## Options:
+
+  - `:log_profile_id` - logs the operation, linked to given profile
+
   ## Examples
 
       iex> create_student_record(%{field: value})
@@ -190,14 +195,19 @@ defmodule Lanttern.StudentsRecords do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_student_record(attrs \\ %{}) do
+  def create_student_record(attrs \\ %{}, opts \\ []) do
     %StudentRecord{}
     |> StudentRecord.changeset(attrs)
     |> Repo.insert()
+    |> StudentsRecordsLog.maybe_create_student_record_log("CREATE", opts)
   end
 
   @doc """
   Updates a student_record.
+
+  ## Options:
+
+  - `:log_profile_id` - logs the operation, linked to given profile
 
   ## Examples
 
@@ -208,14 +218,19 @@ defmodule Lanttern.StudentsRecords do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_student_record(%StudentRecord{} = student_record, attrs) do
+  def update_student_record(%StudentRecord{} = student_record, attrs, opts \\ []) do
     student_record
     |> StudentRecord.changeset(attrs)
     |> Repo.update()
+    |> StudentsRecordsLog.maybe_create_student_record_log("UPDATE", opts)
   end
 
   @doc """
   Deletes a student_record.
+
+  ## Options:
+
+  - `:log_profile_id` - logs the operation, linked to given profile
 
   ## Examples
 
@@ -226,8 +241,9 @@ defmodule Lanttern.StudentsRecords do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_student_record(%StudentRecord{} = student_record) do
+  def delete_student_record(%StudentRecord{} = student_record, opts \\ []) do
     Repo.delete(student_record)
+    |> StudentsRecordsLog.maybe_create_student_record_log("DELETE", opts)
   end
 
   @doc """

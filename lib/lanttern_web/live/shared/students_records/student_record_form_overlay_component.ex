@@ -263,7 +263,11 @@ defmodule LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent do
   end
 
   def handle_event("delete", _, socket) do
-    case StudentsRecords.delete_student_record(socket.assigns.student_record) do
+    StudentsRecords.delete_student_record(
+      socket.assigns.student_record,
+      log_profile_id: socket.assigns.current_user.current_profile_id
+    )
+    |> case do
       {:ok, student_record} ->
         notify(__MODULE__, {:deleted, student_record}, socket.assigns)
         {:noreply, socket}
@@ -293,7 +297,11 @@ defmodule LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent do
   end
 
   defp save_student_record(socket, nil, student_record_params) do
-    case StudentsRecords.create_student_record(student_record_params) do
+    StudentsRecords.create_student_record(
+      student_record_params,
+      log_profile_id: socket.assigns.current_user.current_profile_id
+    )
+    |> case do
       {:ok, student_record} ->
         notify(__MODULE__, {:created, student_record}, socket.assigns)
         {:noreply, socket}
@@ -304,10 +312,12 @@ defmodule LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent do
   end
 
   defp save_student_record(socket, _id, student_record_params) do
-    case StudentsRecords.update_student_record(
-           socket.assigns.student_record,
-           student_record_params
-         ) do
+    StudentsRecords.update_student_record(
+      socket.assigns.student_record,
+      student_record_params,
+      log_profile_id: socket.assigns.current_user.current_profile_id
+    )
+    |> case do
       {:ok, student_record} ->
         notify(__MODULE__, {:updated, student_record}, socket.assigns)
         {:noreply, socket}
