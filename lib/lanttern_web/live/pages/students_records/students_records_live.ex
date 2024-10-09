@@ -5,6 +5,7 @@ defmodule LantternWeb.StudentsRecordsLive do
   alias Lanttern.StudentsRecords.StudentRecord
 
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
+  import LantternWeb.PersonalizationHelpers, only: [profile_has_permission?: 2]
 
   # shared components
 
@@ -15,6 +16,9 @@ defmodule LantternWeb.StudentsRecordsLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    if !profile_has_permission?(socket.assigns.current_user.current_profile, "wcd"),
+      do: raise(LantternWeb.NotFoundError)
+
     socket =
       socket
       |> assign(:page_title, gettext("Students records"))

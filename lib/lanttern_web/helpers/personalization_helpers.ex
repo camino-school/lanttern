@@ -3,6 +3,7 @@ defmodule LantternWeb.PersonalizationHelpers do
   Helper functions related to `Personalization` context
   """
 
+  alias Lanttern.Identity.Profile
   alias Lanttern.Personalization
 
   @permission_to_option_map %{
@@ -21,4 +22,10 @@ defmodule LantternWeb.PersonalizationHelpers do
     Personalization.list_valid_permissions()
     |> Enum.map(fn p -> {@permission_to_option_map[p], p} end)
   end
+
+  @doc """
+  Basic util function to check for profile permission in on view mount
+  """
+  def profile_has_permission?(%Profile{permissions: permissions}, required_permission),
+    do: required_permission in permissions
 end

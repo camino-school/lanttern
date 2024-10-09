@@ -184,4 +184,20 @@ defmodule LantternWeb.ConnCase do
     |> Phoenix.ConnTest.init_test_session(%{})
     |> Plug.Conn.put_session(:user_token, token)
   end
+
+  @doc """
+  Setup helper that adds wcd permissions to current user profile.
+  """
+  def add_wcd_permissions(%{conn: conn, user: user}) do
+    # add wcd permissions to user
+    {:ok, settings} =
+      Lanttern.Personalization.set_profile_permissions(user.current_profile_id, ["wcd"])
+
+    # emulate Identity.get_user_by_session_token/1 to preload profile into user
+    user =
+      user
+      |> Map.update!(:current_profile, &%{&1 | permissions: settings.permissions})
+
+    %{conn: log_in_user(conn, user), user: user}
+  end
 end

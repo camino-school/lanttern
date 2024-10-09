@@ -6,9 +6,9 @@ defmodule LantternWeb.StudentsRecordsLiveTest do
 
   @live_view_path "/students_records"
 
-  setup [:register_and_log_in_teacher]
-
   describe "Students records live view basic navigation" do
+    setup [:register_and_log_in_teacher, :add_wcd_permissions]
+
     test "disconnected and connected mount", %{conn: conn} do
       conn = get(conn, @live_view_path)
       assert html_response(conn, 200) =~ ~r/<h1 .+>\s*Students records\s*<\/h1>/
@@ -49,6 +49,14 @@ defmodule LantternWeb.StudentsRecordsLiveTest do
       assert view |> has_element?("p", student_record.description)
       assert view |> has_element?("span", type.name)
       assert view |> has_element?("span", status.name)
+    end
+  end
+
+  describe "Students records live view access" do
+    setup [:register_and_log_in_teacher]
+
+    test "user without wcd permission is not allowed to access students records", %{conn: conn} do
+      assert_raise(LantternWeb.NotFoundError, fn -> live(conn, @live_view_path) end)
     end
   end
 end

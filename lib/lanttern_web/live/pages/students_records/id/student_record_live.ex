@@ -3,6 +3,8 @@ defmodule LantternWeb.StudentRecordLive do
 
   alias Lanttern.StudentsRecords
 
+  import LantternWeb.PersonalizationHelpers, only: [profile_has_permission?: 2]
+
   # shared components
 
   alias LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent
@@ -11,9 +13,13 @@ defmodule LantternWeb.StudentRecordLive do
 
   @impl true
   def mount(params, _session, socket) do
+    if !profile_has_permission?(socket.assigns.current_user.current_profile, "wcd"),
+      do: raise(LantternWeb.NotFoundError)
+
     socket =
       socket
       |> assign_student_record(params)
+      |> check_profile_school_access()
 
     {:ok, socket}
   end
@@ -38,6 +44,18 @@ defmodule LantternWeb.StudentRecordLive do
       |> Enum.map(& &1.student_id)
 
     %{student_record | students_ids: students_ids}
+  end
+
+  defp check_profile_school_access(socket) do
+    %{
+      student_record: %{school_id: record_school_id},
+      current_user: %{current_profile: %{school_id: profile_school_id}}
+    } = socket.assigns
+
+    if record_school_id != profile_school_id,
+      do: raise(LantternWeb.NotFoundError)
+
+    socket
   end
 
   @impl true

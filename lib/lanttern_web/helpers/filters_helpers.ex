@@ -108,7 +108,7 @@ defmodule LantternWeb.FiltersHelpers do
 
   defp get_current_filters(profile_id, _) do
     case Personalization.get_profile_settings(profile_id) do
-      %{current_filters: current_filters} -> current_filters
+      %{current_filters: current_filters} when not is_nil(current_filters) -> current_filters
       _ -> %{}
     end
   end
