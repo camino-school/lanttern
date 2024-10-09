@@ -179,7 +179,6 @@
   module={StudentRecordFormOverlayComponent}
   id={(@student_record && @student_record.id) || :new}
   student_record={@student_record}
-  navigate={~p"/students_records"}
   current_user={@current_user}
   on_cancel={JS.patch(~p"/students_records")}
   title={
@@ -187,4 +186,5 @@
       do: gettext("Edit student record"),
       else: gettext("New student record")
   }
+  notify_parent
 />

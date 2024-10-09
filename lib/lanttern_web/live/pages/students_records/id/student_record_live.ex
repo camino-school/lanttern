@@ -63,36 +63,24 @@ defmodule LantternWeb.StudentRecordLive do
     {:noreply, socket}
   end
 
-  # @impl true
-  # def handle_params(params, _uri, socket) do
-  #   student_record =
-  #     case params do
-  #       %{"edit" => "new"} ->
-  #         %StudentRecord{}
+  # info handlers
 
-  #       %{"edit" => id} ->
-  #         get_student_record_and_validate_permission(socket, id)
+  @impl true
+  def handle_info({StudentRecordFormOverlayComponent, {:updated, _student_record}}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, gettext("Student record updated successfully"))
+      |> push_navigate(to: ~p"/students_records/#{socket.assigns.student_record}")
 
-  #       _ ->
-  #         nil
-  #     end
+    {:noreply, socket}
+  end
 
-  #   socket =
-  #     assign(socket, :student_record, student_record)
+  def handle_info({StudentRecordFormOverlayComponent, {:deleted, _student_record}}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, gettext("Student record deleted successfully"))
+      |> push_navigate(to: ~p"/students_records")
 
-  #   {:noreply, socket}
-  # end
-
-  # defp get_student_record_and_validate_permission(socket, id) do
-  #   student_record = StudentsRecords.get_student_record(id)
-
-  #   case student_record do
-  #     nil ->
-  #       nil
-
-  #     student_record ->
-  #       if student_record.school_id == socket.assigns.current_user.current_profile.school_id,
-  #         do: student_record
-  #   end
-  # end
+    {:noreply, socket}
+  end
 end

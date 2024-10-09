@@ -101,11 +101,12 @@ defmodule LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent do
           />
           <.markdown_supported class="mb-6" />
         </.form>
-        <:actions_left :if={@show_delete}>
+        <:actions_left :if={@student_record.id}>
           <.button
             type="button"
             theme="ghost"
-            phx-click="delete_student_record"
+            phx-click="delete"
+            phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           >
             <%= gettext("Delete") %>
@@ -261,6 +262,17 @@ defmodule LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent do
     save_student_record(socket, socket.assigns.student_record.id, student_record_params)
   end
 
+  def handle_event("delete", _, socket) do
+    case StudentsRecords.delete_student_record(socket.assigns.student_record) do
+      {:ok, student_record} ->
+        notify(__MODULE__, {:deleted, student_record}, socket.assigns)
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
   defp assign_validated_form(socket, params) do
     params = inject_school_type_status_and_students_in_params(socket, params)
 
@@ -283,13 +295,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent do
   defp save_student_record(socket, nil, student_record_params) do
     case StudentsRecords.create_student_record(student_record_params) do
       {:ok, student_record} ->
-        # notify_parent({:saved, student_record})
-
-        socket =
-          socket
-          |> put_flash(:info, gettext("Student record created successfully"))
-          |> handle_navigation(student_record)
-
+        notify(__MODULE__, {:created, student_record}, socket.assigns)
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -303,13 +309,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent do
            student_record_params
          ) do
       {:ok, student_record} ->
-        # notify_parent({:saved, student_record})
-
-        socket =
-          socket
-          |> put_flash(:info, gettext("Student record updated successfully"))
-          |> handle_navigation(student_record)
-
+        notify(__MODULE__, {:updated, student_record}, socket.assigns)
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->

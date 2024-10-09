@@ -203,5 +203,32 @@ defmodule LantternWeb.StudentsRecordsLive do
     {:noreply, socket}
   end
 
+  def handle_info({StudentRecordFormOverlayComponent, {:created, _student_record}}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, gettext("Student record created successfully"))
+      |> push_navigate(to: ~p"/students_records")
+
+    {:noreply, socket}
+  end
+
+  def handle_info({StudentRecordFormOverlayComponent, {:updated, _student_record}}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, gettext("Student record updated successfully"))
+      |> push_navigate(to: ~p"/students_records")
+
+    {:noreply, socket}
+  end
+
+  def handle_info({StudentRecordFormOverlayComponent, {:deleted, _student_record}}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, gettext("Student record deleted successfully"))
+      |> push_navigate(to: ~p"/students_records")
+
+    {:noreply, socket}
+  end
+
   def handle_info(_, socket), do: socket
 end

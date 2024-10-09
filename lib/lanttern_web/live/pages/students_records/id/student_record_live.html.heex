@@ -48,8 +48,8 @@
   module={StudentRecordFormOverlayComponent}
   id={@student_record.id}
   student_record={@student_record}
-  navigate={~p"/students_records/#{@student_record}"}
   current_user={@current_user}
   on_cancel={JS.patch(~p"/students_records/#{@student_record}")}
   title={gettext("Edit student record")}
+  notify_parent
 />
