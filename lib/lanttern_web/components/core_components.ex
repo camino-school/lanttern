@@ -526,8 +526,7 @@ defmodule LantternWeb.CoreComponents do
   def data_grid(assigns) do
     cols_style =
       assigns.col
-      |> Enum.map(&Map.get(&1, :template_col, "minmax(0, 1fr)"))
-      |> Enum.join(" ")
+      |> Enum.map_join(" ", &Map.get(&1, :template_col, "minmax(0, 1fr)"))
 
     has_action = assigns.action != []
 

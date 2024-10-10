@@ -1,4 +1,8 @@
 defmodule Lanttern.StudentsRecords.StudentRecordStatus do
+  @moduledoc """
+  The `StudentRecordStatus` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

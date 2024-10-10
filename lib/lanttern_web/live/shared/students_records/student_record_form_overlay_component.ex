@@ -1,4 +1,8 @@
 defmodule LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent do
+  @moduledoc """
+  Renders an overlay with a `StudentRecord` form
+  """
+
   use LantternWeb, :live_component
 
   alias Lanttern.StudentsRecords
@@ -74,11 +78,17 @@ defmodule LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent do
             </div>
           </div>
           <div class="flex gap-6 mb-6">
-            <.input field={@form[:date]} type="date" label="Date" class="flex-1" phx-debounce="1500" />
+            <.input
+              field={@form[:date]}
+              type="date"
+              label={gettext("Date")}
+              class="flex-1"
+              phx-debounce="1500"
+            />
             <.input
               field={@form[:time]}
               type="time"
-              label="Time"
+              label={gettext("Time")}
               class="flex-1"
               show_optional
               phx-debounce="1500"

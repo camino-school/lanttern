@@ -54,11 +54,13 @@ defmodule Lanttern.StudentsRecordsLog do
         operation,
         opts
       ) do
-    with profile_id when not is_nil(profile_id) <- Keyword.get(opts, :log_profile_id) do
-      do_create_student_record_log(student_record, operation, profile_id)
-      operation_tuple
-    else
-      _ -> operation_tuple
+    case Keyword.get(opts, :log_profile_id) do
+      profile_id when not is_nil(profile_id) ->
+        do_create_student_record_log(student_record, operation, profile_id)
+        operation_tuple
+
+      _ ->
+        operation_tuple
     end
   end
 
