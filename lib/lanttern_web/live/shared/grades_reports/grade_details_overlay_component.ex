@@ -14,7 +14,6 @@ defmodule LantternWeb.GradesReports.GradeDetailsOverlayComponent do
   alias Lanttern.GradesReports
 
   # shared components
-  import LantternWeb.GradingComponents, only: [apply_style_from_ordinal_value: 1]
   import LantternWeb.GradesReportsComponents
 
   @impl true
@@ -27,7 +26,7 @@ defmodule LantternWeb.GradesReports.GradeDetailsOverlayComponent do
           <div
             :if={@student_grade_report_entry.ordinal_value}
             class="self-stretch flex items-center p-6 rounded"
-            {apply_style_from_ordinal_value(@student_grade_report_entry.ordinal_value)}
+            style={create_color_map_style(@student_grade_report_entry.ordinal_value)}
           >
             <%= @student_grade_report_entry.ordinal_value.name %>
           </div>
@@ -63,7 +62,7 @@ defmodule LantternWeb.GradesReports.GradeDetailsOverlayComponent do
           <div
             :if={@student_grade_report_entry.pre_retake_ordinal_value}
             class="self-stretch flex items-center px-4 py-2 rounded text-sm opacity-70"
-            {apply_style_from_ordinal_value(@student_grade_report_entry.pre_retake_ordinal_value)}
+            style={create_color_map_style(@student_grade_report_entry.pre_retake_ordinal_value)}
           >
             <%= @student_grade_report_entry.pre_retake_ordinal_value.name %>
           </div>

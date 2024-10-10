@@ -1,7 +1,7 @@
 defmodule LantternWeb.StrandLive.AssessmentComponent do
   use LantternWeb, :live_component
 
-  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 4]
+  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 3]
 
   # shared components
   alias LantternWeb.Assessments.AssessmentsGridComponent
@@ -77,7 +77,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign_user_filters([:classes], assigns.current_user, strand_id: strand.id)
+      |> assign_user_filters([:classes], strand_id: strand.id)
 
     {:ok, socket}
   end

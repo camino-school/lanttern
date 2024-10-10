@@ -17,31 +17,7 @@ defmodule Lanttern.LearningContextTest do
       strand_c = strand_fixture(%{name: "CCC"})
       strand_b = strand_fixture(%{name: "BBB"})
 
-      {results, _meta} = LearningContext.list_strands()
-      assert results == [strand_a, strand_b, strand_c]
-    end
-
-    test "list_strands/1 with pagination opts returns all strands ordered alphabetically and paginated" do
-      strand_a = strand_fixture(%{name: "AAA"})
-      strand_c = strand_fixture(%{name: "CCC"})
-      strand_b = strand_fixture(%{name: "BBB"})
-      strand_d = strand_fixture(%{name: "DDD"})
-      strand_e = strand_fixture(%{name: "EEE"})
-      strand_f = strand_fixture(%{name: "FFF"})
-
-      {results, meta} = LearningContext.list_strands(first: 5)
-
-      assert results == [
-               strand_a,
-               strand_b,
-               strand_c,
-               strand_d,
-               strand_e
-             ]
-
-      {results, _meta} = LearningContext.list_strands(first: 5, after: meta.end_cursor)
-
-      assert results == [strand_f]
+      assert [strand_a, strand_b, strand_c] == LearningContext.list_strands()
     end
 
     test "list_strands/1 with preloads and filters returns all filtered strands with preloaded data" do
@@ -65,7 +41,7 @@ defmodule Lanttern.LearningContextTest do
       strand_fixture(%{subjects_ids: [subject_1.id, subject_2.id]})
       strand_fixture(%{years_ids: [year_1.id, year_2.id]})
 
-      {[expected_a, expected_b], _meta} =
+      [expected_a, expected_b] =
         LearningContext.list_strands(
           subjects_ids: [subject_1.id, subject_2.id],
           years_ids: [year_1.id, year_2.id],
@@ -91,13 +67,38 @@ defmodule Lanttern.LearningContextTest do
       # star strand a
       LearningContext.star_strand(strand_a.id, profile.id)
 
-      {[expected_a, expected_b], _meta} =
+      [expected_a, expected_b] =
         LearningContext.list_strands(show_starred_for_profile_id: profile.id)
 
       assert expected_a.id == strand_a.id
       assert expected_a.is_starred == true
       assert expected_b.id == strand_b.id
       assert expected_b.is_starred == false
+    end
+
+    test "list_strands_page/1 with pagination opts returns all strands ordered alphabetically and paginated" do
+      strand_a = strand_fixture(%{name: "AAA"})
+      strand_c = strand_fixture(%{name: "CCC"})
+      strand_b = strand_fixture(%{name: "BBB"})
+      strand_d = strand_fixture(%{name: "DDD"})
+      strand_e = strand_fixture(%{name: "EEE"})
+      strand_f = strand_fixture(%{name: "FFF"})
+
+      %{results: strands, keyset: keyset, has_next: true} =
+        LearningContext.list_strands_page(first: 5)
+
+      assert strands == [
+               strand_a,
+               strand_b,
+               strand_c,
+               strand_d,
+               strand_e
+             ]
+
+      %{results: strands, has_next: false} =
+        LearningContext.list_strands_page(first: 5, after: keyset)
+
+      assert strands == [strand_f]
     end
 
     test "list_student_strands/2 returns all user strands related to students report cards (+ moment entries)" do
@@ -451,7 +452,7 @@ defmodule Lanttern.LearningContextTest do
 
     @invalid_attrs %{name: nil, description: nil}
 
-    test "list_starred_strands/1 returns all starred strands ordered alphabetically" do
+    test "list_strands/1 with only_starred_for_profile_id opt returns all starred strands ordered alphabetically" do
       profile = teacher_profile_fixture()
       strand_b = strand_fixture(%{name: "BBB"}) |> Map.put(:is_starred, true)
       strand_a = strand_fixture(%{name: "AAA"}) |> Map.put(:is_starred, true)
@@ -463,10 +464,11 @@ defmodule Lanttern.LearningContextTest do
       LearningContext.star_strand(strand_a.id, profile.id)
       LearningContext.star_strand(strand_b.id, profile.id)
 
-      assert [strand_a, strand_b] == LearningContext.list_starred_strands(profile.id)
+      assert [strand_a, strand_b] ==
+               LearningContext.list_strands(only_starred_for_profile_id: profile.id)
     end
 
-    test "list_strands/1 with preloads and filters returns all filtered strands with preloaded data" do
+    test "list_strands/1 with only_starred_for_profile_id, preloads, and filters returns all filtered starred strands with preloaded data" do
       profile = teacher_profile_fixture()
       subject_1 = subject_fixture()
       subject_2 = subject_fixture()
@@ -482,8 +484,8 @@ defmodule Lanttern.LearningContextTest do
       LearningContext.star_strand(other_strand.id, profile.id)
 
       [expected] =
-        LearningContext.list_starred_strands(
-          profile.id,
+        LearningContext.list_strands(
+          only_starred_for_profile_id: profile.id,
           subjects_ids: [subject_1.id, subject_2.id],
           years_ids: [year.id],
           preloads: [:subjects, :years]
@@ -501,20 +503,24 @@ defmodule Lanttern.LearningContextTest do
       strand_b = strand_fixture(%{name: "BBB"}) |> Map.put(:is_starred, true)
 
       # empty list before starring
-      assert [] == LearningContext.list_starred_strands(profile.id)
+      assert [] == LearningContext.list_strands(only_starred_for_profile_id: profile.id)
 
       # star and list again
       LearningContext.star_strand(strand_a.id, profile.id)
       LearningContext.star_strand(strand_b.id, profile.id)
-      assert [strand_a, strand_b] == LearningContext.list_starred_strands(profile.id)
+
+      assert [strand_a, strand_b] ==
+               LearningContext.list_strands(only_starred_for_profile_id: profile.id)
 
       # staring an already starred strand shouldn't cause any change
       assert {:ok, _starred_strand} = LearningContext.star_strand(strand_a.id, profile.id)
-      assert [strand_a, strand_b] == LearningContext.list_starred_strands(profile.id)
+
+      assert [strand_a, strand_b] ==
+               LearningContext.list_strands(only_starred_for_profile_id: profile.id)
 
       # unstar and list
       LearningContext.unstar_strand(strand_a.id, profile.id)
-      assert [strand_b] == LearningContext.list_starred_strands(profile.id)
+      assert [strand_b] == LearningContext.list_strands(only_starred_for_profile_id: profile.id)
     end
   end
 

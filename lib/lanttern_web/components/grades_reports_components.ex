@@ -8,7 +8,6 @@ defmodule LantternWeb.GradesReportsComponents do
 
   import LantternWeb.Gettext
   import LantternWeb.CoreComponents
-  import LantternWeb.GradingComponents, only: [apply_style_from_ordinal_value: 1]
 
   alias Lanttern.GradesReports.GradesReport
   alias Lanttern.GradesReports.StudentGradeReportEntry
@@ -177,7 +176,7 @@ defmodule LantternWeb.GradesReportsComponents do
         phx-value-studentgradereportid={@student_grade_report_entry.id}
         phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
         phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
-        {apply_style_from_ordinal_value(@student_grade_report_entry.pre_retake_ordinal_value)}
+        style={create_color_map_style(@student_grade_report_entry.pre_retake_ordinal_value)}
         class="flex-1 my-2 opacity-70"
       >
         <%= @student_grade_report_entry.pre_retake_ordinal_value.name %>
@@ -188,7 +187,7 @@ defmodule LantternWeb.GradesReportsComponents do
         phx-value-studentgradereportid={@student_grade_report_entry.id}
         phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
         phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
-        {apply_style_from_ordinal_value(@student_grade_report_entry.ordinal_value)}
+        style={create_color_map_style(@student_grade_report_entry.ordinal_value)}
         class="flex-[2]"
       >
         <%= @student_grade_report_entry.ordinal_value.name %>
@@ -553,14 +552,14 @@ defmodule LantternWeb.GradesReportsComponents do
     <button
       :if={@has_retake_history}
       class="flex-1 self-stretch flex items-center justify-center border rounded-sm my-2 text-xs opacity-70"
-      {apply_style_from_ordinal_value(@student_grade_report_entry.pre_retake_ordinal_value)}
+      style={create_color_map_style(@student_grade_report_entry.pre_retake_ordinal_value)}
       phx-click={if(@on_entry_click, do: @on_entry_click.(@student_grade_report_entry.id))}
     >
       <%= @student_grade_report_entry.pre_retake_ordinal_value.name %>
     </button>
     <button
       class="flex-[2] self-stretch flex items-center justify-center rounded-sm"
-      {apply_style_from_ordinal_value(@student_grade_report_entry.ordinal_value)}
+      style={create_color_map_style(@student_grade_report_entry.ordinal_value)}
       phx-click={if(@on_entry_click, do: @on_entry_click.(@student_grade_report_entry.id))}
     >
       <%= @student_grade_report_entry.ordinal_value.name %>

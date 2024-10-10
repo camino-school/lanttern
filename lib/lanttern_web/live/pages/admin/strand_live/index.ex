@@ -8,15 +8,13 @@ defmodule LantternWeb.Admin.StrandLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    {strands, _meta} =
-      LearningContext.list_strands(preloads: [:subjects, :years], first: 100)
+    strands = LearningContext.list_strands(preloads: [:subjects, :years])
 
-    {:ok,
-     stream(
-       socket,
-       :strands,
-       strands
-     )}
+    socket =
+      socket
+      |> stream(:strands, strands)
+
+    {:ok, socket}
   end
 
   @impl true

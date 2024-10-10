@@ -61,7 +61,7 @@ defmodule Lanttern.NotesLog do
 
   Accepts `{:ok, %Note{}}` or `{:error, %Ecto.Changeset{}}` tuple as first arg.
 
-  Always returns the note or tuple as is. The log are handled in an async task.
+  Always returns the note or tuple as is. The logging process is handled in an async task.
 
   ### Options:
 

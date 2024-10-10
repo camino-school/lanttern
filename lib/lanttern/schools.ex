@@ -406,10 +406,13 @@ defmodule Lanttern.Schools do
 
   ### Options:
 
-  `:preloads` – preloads associated data
-  `:classes_ids` – filter students by provided list of ids. preloads the classes for each student, and order by class name
-  `:report_card_id` – filter students linked to given report card. preloads the classes for each student, and order by class name
-  `:check_diff_rubrics_for_strand_id` - used to check if student has any differentiation rubric for given strand id
+  - `:preloads` – preloads associated data
+  - `:school_id` - filter students by school
+  - `:students_ids` - filter students by given ids
+  - `:classes_ids` – filter students by provided list of ids. preloads the classes for each student, and order by class name
+  - `:report_card_id` – filter students linked to given report card. preloads the classes for each student, and order by class name
+  - `:check_diff_rubrics_for_strand_id` - used to check if student has any differentiation rubric for given strand id
+  - `:base_query` - used in conjunction with `search_students/2`
 
   ## Examples
 
@@ -418,21 +421,24 @@ defmodule Lanttern.Schools do
 
   """
   def list_students(opts \\ []) do
-    Student
-    |> maybe_join_and_preload_classes_and_order_list_students(opts)
+    queryable = Keyword.get(opts, :base_query, Student)
+
+    from(s in queryable,
+      order_by: s.name
+    )
+    |> maybe_join_and_preload_classes_in_list_students(opts)
     |> apply_list_students_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
-  defp maybe_join_and_preload_classes_and_order_list_students(queryable, opts) do
+  defp maybe_join_and_preload_classes_in_list_students(queryable, opts) do
     case Keyword.keys(opts) |> Enum.any?(&(&1 in [:classes_ids, :report_card_id])) do
       true ->
         from(
           s in Student,
           join: c in assoc(s, :classes),
           as: :classes,
-          order_by: c.name,
           preload: [classes: c]
         )
 
@@ -453,6 +459,22 @@ defmodule Lanttern.Schools do
     from(
       [s, classes: c] in queryable,
       where: c.id in ^ids
+    )
+    |> apply_list_students_opts(opts)
+  end
+
+  defp apply_list_students_opts(queryable, [{:school_id, school_id} | opts]) do
+    from(
+      s in queryable,
+      where: s.school_id == ^school_id
+    )
+    |> apply_list_students_opts(opts)
+  end
+
+  defp apply_list_students_opts(queryable, [{:students_ids, students_ids} | opts]) do
+    from(
+      s in queryable,
+      where: s.id in ^students_ids
     )
     |> apply_list_students_opts(opts)
   end
@@ -490,6 +512,34 @@ defmodule Lanttern.Schools do
 
   defp apply_list_students_opts(queryable, [_ | opts]),
     do: apply_list_students_opts(queryable, opts)
+
+  @doc """
+  Search students by name.
+
+  ## Options:
+
+  View `list_students/1` for `opts`
+
+  ## Examples
+
+      iex> search_students("some name")
+      [%Student{}, ...]
+
+  """
+  @spec search_students(search_term :: binary(), opts :: Keyword.t()) :: [Student.t()]
+  def search_students(search_term, opts \\ []) do
+    ilike_search_term = "%#{search_term}%"
+
+    query =
+      from(
+        s in Student,
+        where: ilike(s.name, ^ilike_search_term),
+        order_by: {:asc, fragment("? <<-> ?", ^search_term, s.name)}
+      )
+
+    [{:base_query, query} | opts]
+    |> list_students()
+  end
 
   @doc """
   Gets a single student.

@@ -3,7 +3,7 @@ defmodule LantternWeb.StrandLive.NotesComponent do
 
   alias Lanttern.Notes
 
-  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 4]
+  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 3]
 
   # shared components
   alias LantternWeb.Attachments.AttachmentAreaComponent
@@ -156,7 +156,7 @@ defmodule LantternWeb.StrandLive.NotesComponent do
       |> assign(:note, note)
       |> stream(:moments_notes, moments_notes)
       |> assign(:has_moments_notes, has_moments_notes)
-      |> assign_user_filters([:classes], assigns.current_user, strand_id: assigns.strand.id)
+      |> assign_user_filters([:classes], strand_id: assigns.strand.id)
       |> stream_students_strand_notes()
 
     {:ok, socket}

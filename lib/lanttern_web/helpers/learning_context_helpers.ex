@@ -14,9 +14,7 @@ defmodule LantternWeb.LearningContextHelpers do
       [{"strand name", 1}, ...]
   """
   def generate_strand_options() do
-    {results, _meta} = LearningContext.list_strands(first: 100)
-
-    results
+    LearningContext.list_strands()
     |> Enum.map(fn s -> {s.name, s.id} end)
   end
 end

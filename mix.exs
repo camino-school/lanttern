@@ -4,7 +4,7 @@ defmodule Lanttern.MixProject do
   def project do
     [
       app: :lanttern,
-      version: "2024.10.3-alpha.35",
+      version: "2024.10.10-alpha.36",
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -55,7 +55,6 @@ defmodule Lanttern.MixProject do
       {:timex, "~> 3.0"},
       {:joken, "~> 2.5"},
       {:joken_jwks, "~> 1.6.0"},
-      {:flop, "~> 0.22.1"},
       {:benchee, "~> 1.0", only: :dev},
       {:ex_doc, "~> 0.27", runtime: false},
       {:earmark, "~> 1.4"},

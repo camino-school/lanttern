@@ -4,7 +4,7 @@ defmodule LantternWeb.CurriculumComponentLive do
   alias Lanttern.Curricula
   alias Lanttern.Curricula.CurriculumItem
 
-  import LantternWeb.FiltersHelpers
+  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2]
 
   # shared components
   alias LantternWeb.Curricula.CurriculumItemFormComponent
@@ -13,7 +13,7 @@ defmodule LantternWeb.CurriculumComponentLive do
   def mount(_params, _session, socket) do
     socket =
       socket
-      |> assign_user_filters([:subjects, :years], socket.assigns.current_user)
+      |> assign_user_filters([:subjects, :years])
 
     {:ok, socket}
   end

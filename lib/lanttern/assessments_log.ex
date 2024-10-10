@@ -61,7 +61,7 @@ defmodule Lanttern.AssessmentsLog do
 
   Accepts `{:ok, %AssessmentPointEntry{}}` or `{:error, %Ecto.Changeset{}}` tuple as first arg.
 
-  Always returns the entry or tuple as is. The log are handled in an async task.
+  Always returns the entry or tuple as is. The logging process is handled in an async task.
   """
   @spec maybe_create_assessment_point_entry_log(
           {:ok, AssessmentPointEntry.t()} | {:error, Ecto.Changeset.t()},

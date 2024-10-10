@@ -11,6 +11,7 @@ defmodule Lanttern.Identity do
   alias Lanttern.Identity.UserToken
   alias Lanttern.Identity.UserNotifier
   alias Lanttern.Identity.Profile
+  alias Lanttern.Personalization
 
   ## Database getters
 
@@ -300,8 +301,13 @@ defmodule Lanttern.Identity do
       current_profile: [teacher: [:school], student: [:school], guardian_of_student: [:school]]
     )
     |> case do
-      nil -> nil
-      user -> Map.update!(user, :current_profile, &build_flat_profile/1)
+      nil ->
+        nil
+
+      user ->
+        user
+        |> Map.update!(:current_profile, &build_flat_profile/1)
+        |> Map.update!(:current_profile, &add_permissions/1)
     end
   end
 
@@ -327,6 +333,18 @@ defmodule Lanttern.Identity do
   end
 
   defp build_flat_profile(profile), do: profile
+
+  defp add_permissions(%{id: profile_id} = profile) do
+    permissions =
+      case Personalization.get_profile_settings(profile_id) do
+        %{permissions: permissions} -> permissions
+        _ -> []
+      end
+
+    Map.put(profile, :permissions, permissions)
+  end
+
+  defp add_permissions(profile), do: profile
 
   @doc """
   Deletes the signed token with the given context.

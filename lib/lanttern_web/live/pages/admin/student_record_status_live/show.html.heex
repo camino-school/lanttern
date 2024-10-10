@@ -1,0 +1,36 @@
+<.header>
+  Student record status <%= @student_record_status.id %>
+  <:subtitle>This is a student_record_status record from your database.</:subtitle>
+  <:actions>
+    <.link
+      patch={~p"/admin/student_record_statuses/#{@student_record_status}/show/edit"}
+      phx-click={JS.push_focus()}
+    >
+      <.button>Edit student_record_status</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @student_record_status.name %></:item>
+  <:item title="Bg color"><%= @student_record_status.bg_color %></:item>
+  <:item title="Text color"><%= @student_record_status.text_color %></:item>
+</.list>
+
+<.back navigate={~p"/admin/student_record_statuses"}>Back to student_record_statuses</.back>
+
+<.modal
+  :if={@live_action == :edit}
+  id="student_record_status-modal"
+  show
+  on_cancel={JS.patch(~p"/admin/student_record_statuses/#{@student_record_status}")}
+>
+  <.live_component
+    module={LantternWeb.Admin.StudentRecordStatusLive.FormComponent}
+    id={@student_record_status.id}
+    title={@page_title}
+    action={@live_action}
+    student_record_status={@student_record_status}
+    patch={~p"/admin/student_record_statuses/#{@student_record_status}"}
+  />
+</.modal>

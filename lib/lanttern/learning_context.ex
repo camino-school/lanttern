@@ -5,8 +5,9 @@ defmodule Lanttern.LearningContext do
 
   import Ecto.Query, warn: false
   import Lanttern.RepoHelpers
-  import LantternWeb.Gettext
+  alias Lanttern.RepoHelpers.Page
   alias Lanttern.Repo
+  import LantternWeb.Gettext
 
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.LearningContext.Strand
@@ -17,38 +18,126 @@ defmodule Lanttern.LearningContext do
   @doc """
   Returns the list of strands ordered alphabetically.
 
-  ### Options:
+  ## Options
 
-      - `:subjects_ids` – filter strands by subjects
-      - `:years_ids` – filter strands by years
-      - `:first` – number of results after cursor. defaults to 10
-      - `:after` – the cursor to list results after
-      - `:preloads` – preloads associated data
-      - `:show_starred_for_profile_id` - handles `is_starred` field
+  - `:subjects_ids` – filter strands by subjects
+  - `:years_ids` – filter strands by years
+  - `:show_starred_for_profile_id` - handles `is_starred` field
+  - `:only_starred_for_profile_id` - list only profile starred strands
+  - `:preloads` – preloads associated data
+  - page opts (view `Page.opts()`)
 
   ## Examples
 
       iex> list_strands()
-      {[%Strand{}, ...], %Flop.Meta{}}
+      [%Strand{}, ...]
 
   """
+  @type list_strands_opts ::
+          [
+            subjects_ids: [pos_integer()],
+            years_ids: [pos_integer()],
+            show_starred_for_profile_id: pos_integer(),
+            only_starred_for_profile_id: pos_integer(),
+            preloads: list()
+          ]
+          | Page.opts()
+  @spec list_strands(list_strands_opts()) :: [Strand.t()]
   def list_strands(opts \\ []) do
-    params = %{
-      order_by: [:name],
-      first: Keyword.get(opts, :first, 10),
-      after: Keyword.get(opts, :after)
-    }
+    from(
+      s in Strand,
+      distinct: [asc: s.name, asc: s.id]
+    )
+    |> apply_list_strands_opts(opts)
+    |> Repo.all()
+    |> maybe_preload(opts)
+  end
 
-    {:ok, {results, meta}} =
-      from(
-        s in Strand,
-        distinct: [asc: s.name, asc: s.id]
+  defp apply_list_strands_opts(queryable, []), do: queryable
+
+  defp apply_list_strands_opts(queryable, [{:subjects_ids, subjects_ids} | opts])
+       when is_list(subjects_ids) and subjects_ids != [] do
+    from(
+      s in queryable,
+      join: sub in assoc(s, :subjects),
+      where: sub.id in ^subjects_ids
+    )
+    |> apply_list_strands_opts(opts)
+  end
+
+  defp apply_list_strands_opts(queryable, [{:years_ids, years_ids} | opts])
+       when is_list(years_ids) and years_ids != [] do
+    from(
+      s in queryable,
+      join: y in assoc(s, :years),
+      where: y.id in ^years_ids
+    )
+    |> apply_list_strands_opts(opts)
+  end
+
+  defp apply_list_strands_opts(queryable, [{:show_starred_for_profile_id, profile_id} | opts]) do
+    from(
+      s in queryable,
+      left_join: ss in StarredStrand,
+      on: ss.profile_id == ^profile_id and ss.strand_id == s.id,
+      select: %{s | is_starred: not is_nil(ss)}
+    )
+    |> apply_list_strands_opts(opts)
+  end
+
+  defp apply_list_strands_opts(queryable, [{:only_starred_for_profile_id, profile_id} | opts]) do
+    from(
+      s in queryable,
+      join: ss in StarredStrand,
+      on: ss.profile_id == ^profile_id and ss.strand_id == s.id,
+      select: %{s | is_starred: true}
+    )
+    |> apply_list_strands_opts(opts)
+  end
+
+  defp apply_list_strands_opts(queryable, [{:first, first} | opts]) do
+    from(s in queryable, limit: ^first + 1)
+    |> apply_list_strands_opts(opts)
+  end
+
+  defp apply_list_strands_opts(queryable, [
+         {:after, [name: name, id: id]} | opts
+       ]) do
+    from(
+      s in queryable,
+      where: s.name > ^name or (s.name == ^name and s.id > ^id)
+    )
+    |> apply_list_strands_opts(opts)
+  end
+
+  defp apply_list_strands_opts(queryable, [_ | opts]),
+    do: apply_list_strands_opts(queryable, opts)
+
+  @doc """
+  Returns a page with the list of strands.
+
+  Sets the `first` default to 100.
+
+  Keyset for this query is `[:name, :id]`.
+
+  Same as `list_strands/1`, but returned in a `%Page{}` struct.
+  """
+  @spec list_strands_page(list_strands_opts()) :: Page.t()
+  def list_strands_page(opts \\ []) do
+    # set default for first opt
+    first = Keyword.get(opts, :first, 100)
+    opts = Keyword.put(opts, :first, first)
+
+    strands = list_strands(opts)
+
+    {results, has_next, keyset} =
+      Page.extract_pagination_fields_from(
+        strands,
+        first,
+        fn last -> [name: last.name, id: last.id] end
       )
-      |> filter_strands(opts)
-      |> handle_is_starred(Keyword.get(opts, :show_starred_for_profile_id))
-      |> Flop.validate_and_run(params)
 
-    {results |> maybe_preload(opts), meta}
+    %Page{results: results, keyset: keyset, has_next: has_next}
   end
 
   @doc """
@@ -297,39 +386,6 @@ defmodule Lanttern.LearningContext do
   """
   def change_strand(%Strand{} = strand, attrs \\ %{}) do
     Strand.changeset(strand, attrs)
-  end
-
-  @doc """
-  Returns the list of profile starred strands ordered alphabetically.
-
-  ### Options:
-      - `:subjects_ids` – filter strands by subjects
-      - `:years_ids` – filter strands by years
-      - `:preloads` – preloads associated data
-
-  ## Examples
-
-      iex> list_starred_strands(profile_id)
-      [%Strand{}, ...]
-
-  """
-  def list_starred_strands(profile_id, opts \\ []) do
-    strands_query =
-      from(
-        s in Strand,
-        distinct: [asc: s.name, asc: s.id]
-      )
-      |> filter_strands(opts)
-
-    from(
-      s in strands_query,
-      join: ss in StarredStrand,
-      on: ss.strand_id == s.id,
-      where: ss.profile_id == ^profile_id,
-      select: %{s | is_starred: true}
-    )
-    |> Repo.all()
-    |> maybe_preload(opts)
   end
 
   @doc """
@@ -770,41 +826,5 @@ defmodule Lanttern.LearningContext do
   """
   def change_moment_card(%MomentCard{} = moment_card, attrs \\ %{}) do
     MomentCard.changeset(moment_card, attrs)
-  end
-
-  # Helpers
-
-  defp filter_strands(strands_query, opts) do
-    Enum.reduce(opts, strands_query, &apply_strands_filter/2)
-  end
-
-  defp apply_strands_filter({:subjects_ids, subjects_ids}, strands_query)
-       when subjects_ids != [] do
-    from(
-      s in strands_query,
-      join: sub in assoc(s, :subjects),
-      where: sub.id in ^subjects_ids
-    )
-  end
-
-  defp apply_strands_filter({:years_ids, years_ids}, strands_query) when years_ids != [] do
-    from(
-      s in strands_query,
-      join: y in assoc(s, :years),
-      where: y.id in ^years_ids
-    )
-  end
-
-  defp apply_strands_filter(_opt, query), do: query
-
-  defp handle_is_starred(strands_query, nil), do: strands_query
-
-  defp handle_is_starred(strands_query, profile_id) do
-    from(
-      s in strands_query,
-      left_join: ss in StarredStrand,
-      on: ss.profile_id == ^profile_id and ss.strand_id == s.id,
-      select: %{s | is_starred: not is_nil(ss)}
-    )
   end
 end

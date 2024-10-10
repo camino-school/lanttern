@@ -8,9 +8,6 @@ defmodule LantternWeb.ReportingComponents do
   import LantternWeb.Gettext
   import LantternWeb.CoreComponents
 
-  import LantternWeb.AssessmentsComponents
-  import LantternWeb.AttachmentsComponents
-  import LantternWeb.GradingComponents
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   alias Lanttern.Assessments.AssessmentPoint
@@ -23,6 +20,8 @@ defmodule LantternWeb.ReportingComponents do
 
   # shared components
   alias LantternWeb.Assessments.EntryParticleComponent
+  import LantternWeb.AssessmentsComponents
+  import LantternWeb.AttachmentsComponents
 
   @doc """
   Renders a teacher or student comment area
@@ -174,11 +173,11 @@ defmodule LantternWeb.ReportingComponents do
         <% is_active = @entry && @entry.ordinal_value_id == ordinal_value.id %>
         <div
           class="p-2 border border-ltrn-lighter rounded font-mono bg-ltrn-lightest"
-          {if is_active, do: apply_style_from_ordinal_value(ordinal_value), else: %{}}
+          style={if is_active, do: create_color_map_style(ordinal_value)}
         >
           <div
             class="p-1 rounded-sm text-xs text-center text-ltrn-subtle bg-ltrn-lighter shadow-lg"
-            {if is_active, do: apply_style_from_ordinal_value(ordinal_value), else: %{}}
+            style={if is_active, do: create_color_map_style(ordinal_value)}
           >
             <%= ordinal_value.name %>
           </div>
@@ -186,7 +185,7 @@ defmodule LantternWeb.ReportingComponents do
             text={descriptor.descriptor}
             size="sm"
             class="mt-2 text-[0.75rem]"
-            {if is_active, do: apply_text_style_from_ordinal_value(ordinal_value), else: %{}}
+            style={if is_active, do: create_color_map_text_style(ordinal_value)}
           />
         </div>
       <% end %>
@@ -221,7 +220,10 @@ defmodule LantternWeb.ReportingComponents do
         <div
           :for={ordinal_value <- @scale.ordinal_values}
           class="p-2 rounded font-mono text-xs text-center text-ltrn-subtle whitespace-nowrap bg-ltrn-lighter"
-          {if @entry && @entry.ordinal_value_id == ordinal_value.id, do: apply_style_from_ordinal_value(ordinal_value), else: %{}}
+          style={
+            if @entry && @entry.ordinal_value_id == ordinal_value.id,
+              do: create_color_map_style(ordinal_value)
+          }
         >
           <%= ordinal_value.name %>
         </div>
@@ -230,9 +232,13 @@ defmodule LantternWeb.ReportingComponents do
         <.markdown
           :for={descriptor <- @rubric.descriptors}
           class="p-4 rounded bg-ltrn-lighter"
+          style={
+            if @active_ordinal_value && @active_ordinal_value.id == descriptor.ordinal_value_id,
+              do: create_color_map_style(@active_ordinal_value),
+              else: "color: #94a3b8"
+          }
           text={descriptor.descriptor}
           size="sm"
-          {if @active_ordinal_value && @active_ordinal_value.id == descriptor.ordinal_value_id, do: apply_style_from_ordinal_value(@active_ordinal_value), else: %{style: "color: #94a3b8"}}
         />
       </div>
     </div>
@@ -255,7 +261,7 @@ defmodule LantternWeb.ReportingComponents do
     ~H"""
     <div
       class="relative flex items-center justify-between rounded w-full h-6 px-2 font-mono text-xs text-ltrn-subtle bg-ltrn-lighter"
-      {apply_gradient_from_scale(@scale)}
+      style={create_color_map_gradient_bg_style(@scale)}
     >
       <div style={if @scale.start_text_color, do: "color: #{@scale.start_text_color}"}>
         <%= @scale.start %>

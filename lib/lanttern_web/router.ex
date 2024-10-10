@@ -110,6 +110,12 @@ defmodule LantternWeb.Router do
       # grading
 
       live "/grading", GradesReportsLive, :index
+
+      # students records
+
+      live "/students_records", StudentsRecordsLive, :index
+      live "/students_records/:id", StudentRecordLive, :show
+      live "/students_records/:id/edit", StudentRecordLive, :edit
     end
 
     live_session :authenticated_guardian,
@@ -168,6 +174,9 @@ defmodule LantternWeb.Router do
     # Identity context
     resources "/users", UserController
     resources "/profiles", ProfileController
+
+    live "/profile_settings", Admin.ProfileSettingsLive.Index, :index
+    live "/profile_settings/:profile_id/edit", Admin.ProfileSettingsLive.Index, :edit
 
     # Assessments context
     resources "/assessment_points", AssessmentPointController
@@ -266,6 +275,29 @@ defmodule LantternWeb.Router do
 
     live "/student_report_cards/:id", Admin.StudentReportCardLive.Show, :show
     live "/student_report_cards/:id/show/edit", Admin.StudentReportCardLive.Show, :edit
+
+    # Students records
+
+    live "/students_records", Admin.StudentRecordLive.Index, :index
+    live "/students_records/new", Admin.StudentRecordLive.Index, :new
+    live "/students_records/:id/edit", Admin.StudentRecordLive.Index, :edit
+
+    live "/students_records/:id", Admin.StudentRecordLive.Show, :show
+    live "/students_records/:id/show/edit", Admin.StudentRecordLive.Show, :edit
+
+    live "/student_record_types", Admin.StudentRecordTypeLive.Index, :index
+    live "/student_record_types/new", Admin.StudentRecordTypeLive.Index, :new
+    live "/student_record_types/:id/edit", Admin.StudentRecordTypeLive.Index, :edit
+
+    live "/student_record_types/:id", Admin.StudentRecordTypeLive.Show, :show
+    live "/student_record_types/:id/show/edit", Admin.StudentRecordTypeLive.Show, :edit
+
+    live "/student_record_statuses", Admin.StudentRecordStatusLive.Index, :index
+    live "/student_record_statuses/new", Admin.StudentRecordStatusLive.Index, :new
+    live "/student_record_statuses/:id/edit", Admin.StudentRecordStatusLive.Index, :edit
+
+    live "/student_record_statuses/:id", Admin.StudentRecordStatusLive.Show, :show
+    live "/student_record_statuses/:id/show/edit", Admin.StudentRecordStatusLive.Show, :edit
   end
 
   # Other scopes may use custom stacks.

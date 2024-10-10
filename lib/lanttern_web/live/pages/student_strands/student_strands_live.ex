@@ -10,7 +10,7 @@ defmodule LantternWeb.StudentStrandsLive do
   alias Lanttern.Reporting
   alias Lanttern.Schools
 
-  import LantternWeb.FiltersHelpers
+  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
 
   # shared components
   alias LantternWeb.Assessments.EntryParticleComponent
@@ -40,7 +40,7 @@ defmodule LantternWeb.StudentStrandsLive do
       socket
       |> assign(:school, school)
       |> assign(:student_report_cards_cycles, student_report_cards_cycles)
-      |> assign_user_filters([:cycles], socket.assigns.current_user)
+      |> assign_user_filters([:cycles])
       |> adjust_cycles_filter()
       # adjust dom id to prevent duplication
       # (some strands can be in more than one report card at the same time)
@@ -71,10 +71,7 @@ defmodule LantternWeb.StudentStrandsLive do
 
         socket
         |> assign(:selected_cycles_ids, [last_cycle.id])
-        |> save_profile_filters(
-          socket.assigns.current_user,
-          [:cycles]
-        )
+        |> save_profile_filters([:cycles])
     end
   end
 
@@ -107,10 +104,7 @@ defmodule LantternWeb.StudentStrandsLive do
     socket =
       socket
       |> assign(:selected_cycles_ids, cycles_ids)
-      |> save_profile_filters(
-        socket.assigns.current_user,
-        [:cycles]
-      )
+      |> save_profile_filters([:cycles])
       |> stream_student_strands()
 
     {:noreply, socket}

@@ -6,7 +6,7 @@ defmodule LantternWeb.ReportCardLive.StudentsTrackingComponent do
   alias Lanttern.Schools
 
   import LantternWeb.FiltersHelpers,
-    only: [assign_user_filters: 4, save_profile_filters: 4]
+    only: [assign_user_filters: 3, save_profile_filters: 3]
 
   # shared
   alias LantternWeb.Filters.InlineFiltersComponent
@@ -67,7 +67,6 @@ defmodule LantternWeb.ReportCardLive.StudentsTrackingComponent do
       socket
       |> assign(:selected_linked_students_classes_ids, classes_ids)
       |> save_profile_filters(
-        socket.assigns.current_user,
         [:linked_students_classes],
         report_card_id: socket.assigns.report_card.id
       )
@@ -80,7 +79,7 @@ defmodule LantternWeb.ReportCardLive.StudentsTrackingComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign_user_filters([:classes, :linked_students_classes], assigns.current_user,
+      |> assign_user_filters([:classes, :linked_students_classes],
         report_card_id: assigns.report_card.id
       )
       |> stream_report_card_strands()

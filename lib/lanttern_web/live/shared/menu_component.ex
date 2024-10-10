@@ -29,56 +29,17 @@ defmodule LantternWeb.MenuComponent do
               "grid grid-cols-2 gap-px border-y border-ltrn-lighter bg-ltrn-lighter",
               "lg:grid-cols-3 md:border-t-0"
             ]}>
-              <%= if @current_profile.type == "teacher" do %>
-                <.nav_item active={@active_nav == :dashboard} path={~p"/dashboard"}>
-                  <%= gettext("Dashboard") %>
-                </.nav_item>
-                <.nav_item active={@active_nav == :strands} path={~p"/strands"}>
-                  <%= gettext("Strands") %>
-                </.nav_item>
-                <.nav_item active={@active_nav == :school} path={~p"/school"}>
-                  <%= gettext("School") %>
-                </.nav_item>
-                <%!-- <.nav_item active={@active_nav == :rubrics} path={~p"/rubrics"}>
-                  <%= gettext("Rubrics") %>
-                </.nav_item> --%>
-                <.nav_item active={@active_nav == :curriculum} path={~p"/curriculum"}>
-                  <%= gettext("Curriculum") %>
-                </.nav_item>
-                <.nav_item active={@active_nav == :report_cards} path={~p"/report_cards"}>
-                  <%= gettext("Report cards") %>
-                </.nav_item>
-                <.nav_item active={@active_nav == :grading} path={~p"/grading"}>
-                  <%= gettext("Grading") %>
-                </.nav_item>
-                <%!-- use this li as placeholder when nav items % 3 != 0 (sm) or nav items % 2 != 0 --%>
-                <%!-- <li class="bg-white"></li>
-                <li class="hidden lg:block bg-white"></li> --%>
-              <% end %>
-
-              <%= if @current_profile.type == "student" do %>
-                <.nav_item active={@active_nav == :student_report_card} path={~p"/student"}>
-                  <%= gettext("Report cards") %>
-                </.nav_item>
-                <.nav_item active={@active_nav == :student_strands} path={~p"/student_strands"}>
-                  <%= gettext("Strands") %>
-                </.nav_item>
-                <%!-- use this li as placeholder when nav items % 3 != 0 (sm) or nav items % 2 != 0 --%>
-                <%!-- <li class="bg-white"></li> --%>
-                <li class="hidden lg:block bg-white"></li>
-              <% end %>
-
-              <%= if @current_profile.type == "guardian" do %>
-                <.nav_item active={@active_nav == :student_report_card} path={~p"/guardian"}>
-                  <%= gettext("Report cards") %>
-                </.nav_item>
-                <%!-- <.nav_item active={@active_nav == :student_strands} path={~p"/student_strands"}>
-                  <%= gettext("Strands") %>
-                </.nav_item> --%>
-                <%!-- use this li as placeholder when nav items % 3 != 0 (sm) or nav items % 2 != 0 --%>
-                <li class="bg-white"></li>
-                <li class="hidden lg:block bg-white"></li>
-              <% end %>
+              <.nav_item
+                :for={nav_item <- @profile_nav_items}
+                active={@active_nav == nav_item.active}
+                path={nav_item.path}
+              >
+                <%= nav_item.text %>
+              </.nav_item>
+              <%!-- use this li as placeholder when nav rem(items, 3) != 0 (sm) or rem(items, 2) != 0 --%>
+              <li :if={@has_sm_nav_item_placeholder} class="lg:hidden bg-white"></li>
+              <li :if={@lg_nav_item_placeholders_count > 0} class="hidden lg:block bg-white"></li>
+              <li :if={@lg_nav_item_placeholders_count == 2} class="hidden lg:block bg-white"></li>
             </ul>
           </nav>
         </div>
@@ -90,14 +51,14 @@ defmodule LantternWeb.MenuComponent do
             <%= gettext("You're logged in as") %>
           </p>
           <p class="font-black text-4xl text-ltrn-dark">
-            <%= @current_profile.name %>
+            <%= @current_user.current_profile.name %>
           </p>
           <p class="mt-2 font-black text-lg text-ltrn-dark">
             <%= Gettext.dgettext(
               LantternWeb.Gettext,
               "schools",
-              String.capitalize(@current_profile.type)
-            ) %> @ <%= @current_profile.school_name %>
+              String.capitalize(@current_user.current_profile.type)
+            ) %> @ <%= @current_user.current_profile.school_name %>
           </p>
           <nav class="mt-10">
             <ul class="font-bold text-lg text-ltrn-subtle leading-loose">
@@ -323,6 +284,10 @@ defmodule LantternWeb.MenuComponent do
     LantternWeb.StrandLive => :strands,
     LantternWeb.MomentLive => :strands,
 
+    # students records
+    LantternWeb.StudentsRecordsLive => :students_records,
+    LantternWeb.StudentRecordLive => :students_records,
+
     # school
     LantternWeb.SchoolLive => :school,
     LantternWeb.ClassLive => :school,
@@ -374,20 +339,106 @@ defmodule LantternWeb.MenuComponent do
     {:ok, socket}
   end
 
-  def update(%{current_user: current_user} = assigns, socket) do
-    profiles =
-      Identity.list_profiles(
-        user_id: current_user.id,
-        preloads: [teacher: :school, student: :school, guardian_of_student: :school]
-      )
-
+  def update(assigns, socket) do
     socket =
       socket
       |> assign(assigns)
-      |> assign(:current_profile, current_user.current_profile)
-      |> assign(:profiles, profiles)
+      |> assign_profiles()
+      |> assign_nav_items()
 
     {:ok, socket}
+  end
+
+  defp assign_profiles(socket) do
+    profiles =
+      Identity.list_profiles(
+        user_id: socket.assigns.current_user.id,
+        preloads: [teacher: :school, student: :school, guardian_of_student: :school]
+      )
+
+    assign(socket, :profiles, profiles)
+  end
+
+  defp assign_nav_items(socket) do
+    all_nav_items = [
+      # staff
+      %{profile: "teacher", active: :dashboard, path: ~p"/dashboard", text: gettext("Dashboard")},
+      %{profile: "teacher", active: :strands, path: ~p"/strands", text: gettext("Strands")},
+      %{
+        profile: "teacher",
+        active: :students_records,
+        path: ~p"/students_records",
+        text: gettext("Students records"),
+        permission: "wcd"
+      },
+      %{profile: "teacher", active: :school, path: ~p"/school", text: gettext("School")},
+      %{profile: "teacher", active: :rubrics, path: ~p"/rubrics", text: gettext("Rubrics")},
+      %{
+        profile: "teacher",
+        active: :curriculum,
+        path: ~p"/curriculum",
+        text: gettext("Curriculum")
+      },
+      %{
+        profile: "teacher",
+        active: :report_cards,
+        path: ~p"/report_cards",
+        text: gettext("Report cards")
+      },
+      %{profile: "teacher", active: :grading, path: ~p"/grading", text: gettext("Grading")},
+      # student
+      %{
+        profile: "student",
+        active: :student_report_card,
+        path: ~p"/student",
+        text: gettext("Report cards")
+      },
+      %{
+        profile: "student",
+        active: :student_strands,
+        path: ~p"/student_strands",
+        text: gettext("Strands")
+      },
+      # guardian
+      %{
+        profile: "guardian",
+        active: :student_report_card,
+        path: ~p"/guardian",
+        text: gettext("Report cards")
+      }
+    ]
+
+    profile_nav_items =
+      filter_profile_nav_items(socket.assigns.current_user.current_profile, all_nav_items)
+
+    has_sm_nav_item_placeholder = rem(length(profile_nav_items), 2) == 1
+
+    lg_nav_item_placeholders_count =
+      case rem(length(profile_nav_items), 3) do
+        1 -> 2
+        2 -> 1
+        _ -> 0
+      end
+
+    socket
+    |> assign(:profile_nav_items, profile_nav_items)
+    |> assign(:lg_nav_item_placeholders_count, lg_nav_item_placeholders_count)
+    |> assign(:has_sm_nav_item_placeholder, has_sm_nav_item_placeholder)
+  end
+
+  defp filter_profile_nav_items(profile, all_nav_items, profile_nav_items \\ [])
+
+  defp filter_profile_nav_items(_profile, [], profile_nav_items), do: profile_nav_items
+
+  defp filter_profile_nav_items(profile, [cur_nav_item | other_nav_items], profile_nav_items) do
+    add_item? =
+      cur_nav_item.profile == profile.type &&
+        (is_nil(cur_nav_item[:permission]) || cur_nav_item.permission in profile.permissions)
+
+    profile_nav_items =
+      if add_item?, do: profile_nav_items ++ [cur_nav_item], else: profile_nav_items
+
+    filter_profile_nav_items(profile, other_nav_items, profile_nav_items)
   end
 
   # event handlers

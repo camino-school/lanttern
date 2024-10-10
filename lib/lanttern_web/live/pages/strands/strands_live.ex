@@ -43,10 +43,7 @@ defmodule LantternWeb.StrandsLive do
   def mount(_params, _session, socket) do
     socket =
       socket
-      |> assign_user_filters(
-        [:subjects, :years],
-        socket.assigns.current_user
-      )
+      |> assign_user_filters([:subjects, :years])
       |> assign(:is_creating_strand, false)
       |> stream_strands()
       |> assign(:page_title, gettext("Strands"))
@@ -55,40 +52,37 @@ defmodule LantternWeb.StrandsLive do
   end
 
   defp stream_strands(socket) do
-    %{
-      selected_subjects_ids: subjects_ids,
-      selected_years_ids: years_ids
-    } =
-      socket.assigns
-
-    {strands, meta} =
-      LearningContext.list_strands(
+    page =
+      LearningContext.list_strands_page(
         preloads: [:subjects, :years],
-        after: socket.assigns[:end_cursor],
-        subjects_ids: subjects_ids,
-        years_ids: years_ids,
+        first: 20,
+        after: socket.assigns[:keyset],
+        subjects_ids: socket.assigns.selected_subjects_ids,
+        years_ids: socket.assigns.selected_years_ids,
         show_starred_for_profile_id: socket.assigns.current_user.current_profile.id
       )
 
-    strands_count = length(strands)
+    %{
+      results: strands,
+      keyset: keyset,
+      has_next: has_next
+    } = page
 
     starred_strands =
-      LearningContext.list_starred_strands(
-        socket.assigns.current_user.current_profile.id,
+      LearningContext.list_strands(
+        only_starred_for_profile_id: socket.assigns.current_user.current_profile.id,
         preloads: [:subjects, :years],
-        subjects_ids: subjects_ids,
-        years_ids: years_ids
+        subjects_ids: socket.assigns.selected_subjects_ids,
+        years_ids: socket.assigns.selected_years_ids
       )
-
-    starred_strands_count = length(starred_strands)
 
     socket
     |> stream(:strands, strands)
-    |> assign(:strands_count, strands_count)
-    |> assign(:end_cursor, meta.end_cursor)
-    |> assign(:has_next_page, meta.has_next_page?)
+    |> assign(:has_strands, length(strands) > 0)
+    |> assign(:keyset, keyset)
+    |> assign(:has_next_page, has_next)
     |> stream(:starred_strands, starred_strands)
-    |> assign(:starred_strands_count, starred_strands_count)
+    |> assign(:has_starred_strands, length(starred_strands) > 0)
   end
 
   # event handlers

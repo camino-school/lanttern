@@ -18,11 +18,14 @@ const pushSelect = (hook, input, selected) => {
   if (input.getAttribute("data-refocus-on-select") === "true") {
     // clear input
     input.value = "";
-    input.focus()
+    input.focus();
   } else {
     // force visible input value change
     input.value = selected.name;
   }
+
+  // always hide controls after select
+  hideControls(input);
 
   // send event to liveview server
   hook.pushEventTo(input, "autocomplete_result_select", selected);
@@ -171,7 +174,7 @@ function keydownHandler(event) {
 
 const autocompleteHook = {
   mounted() {
-    const id = this.el.id
+    const id = this.el.id;
     hookAbortControllerMap[id] = new AbortController();
     window.addEventListener(
       `phx:autocomplete_search_results:${id}`,

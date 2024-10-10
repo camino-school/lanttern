@@ -41,111 +41,73 @@
         }
         icon_name="hero-plus-circle"
       >
-        Add curriculum item
+        <%= gettext("Add curriculum item") %>
       </.collection_action>
     </div>
   </.responsive_container>
-  <div class="mx-6 overflow-x-auto">
-    <div class="grid grid-cols-[repeat(2,_max-content)_minmax(200px,_2fr)_repeat(2,_minmax(0,_1fr))_max-content] gap-y-2">
-      <div class="sticky top-0 grid grid-cols-subgrid col-span-6 rounded font-display font-bold text-sm bg-white shadow">
-        <div class="p-4">Id</div>
-        <div class="p-4"><%= gettext("Code") %></div>
-        <div class="p-4"><%= gettext("Item") %></div>
-        <div class="p-4">
-          <button
-            type="button"
-            class="flex items-center gap-2 hover:text-ltrn-subtle"
-            phx-click={JS.exec("data-show", to: "#subjects-filter-modal")}
-          >
-            <%= gettext("Subjects") %>
-            <%= if length(@selected_subjects_ids) > 0 do %>
-              <.icon name="hero-funnel-solid" class="text-ltrn-primary" />
-            <% else %>
-              <.icon name="hero-funnel" class="text-ltrn-subtle" />
-            <% end %>
-          </button>
-        </div>
-        <div class="p-4">
-          <button
-            type="button"
-            class="flex items-center gap-2 hover:text-ltrn-subtle"
-            phx-click={JS.exec("data-show", to: "#years-filter-modal")}
-          >
-            <%= gettext("Years") %>
-            <%= if length(@selected_years_ids) > 0 do %>
-              <.icon name="hero-funnel-solid" class="text-ltrn-primary" />
-            <% else %>
-              <.icon name="hero-funnel" class="text-ltrn-subtle" />
-            <% end %>
-          </button>
-        </div>
-        <div>
-          <%!-- actions column --%>
-        </div>
-      </div>
-      <%= if @curriculum_items_count == 0 do %>
-        <div class="col-span-5 p-10 rounded bg-white shadow">
-          <.empty_state>
-            <%= gettext("No curriculum items found for selected filters.") %>
-          </.empty_state>
-        </div>
+  <.data_grid
+    id="curriculum-items-table"
+    class="mx-6"
+    stream={@streams.curriculum_items}
+    show_empty_state_message={
+      if @curriculum_items_count == 0,
+        do: gettext("No curriculum items found for selected filters.")
+    }
+  >
+    <:col :let={curriculum_item} label="Id" template_col="max-content">
+      <.badge theme="dark">
+        #<%= curriculum_item.id %>
+      </.badge>
+    </:col>
+    <:col :let={curriculum_item} label={gettext("Code")} template_col="max-content">
+      <%= if curriculum_item.code do %>
+        <.badge theme="dark">
+          (<%= curriculum_item.code %>)
+        </.badge>
       <% else %>
-        <ul
-          id="curriculum-items-table"
-          class="grid grid-cols-subgrid col-span-6"
-          phx-update="stream"
-        >
-          <li
-            :for={{dom_id, curriculum_item} <- @streams.curriculum_items}
-            id={dom_id}
-            class="grid grid-cols-subgrid col-span-6 py-2 rounded hover:bg-ltrn-mesh-yellow"
-          >
-            <div class="p-4">
-              <.badge theme="dark">
-                #<%= curriculum_item.id %>
-              </.badge>
-            </div>
-            <div class="p-4">
-              <%= if curriculum_item.code do %>
-                <.badge theme="dark">
-                  (<%= curriculum_item.code %>)
-                </.badge>
-              <% else %>
-                <span class="text-ltrn-subtle">—</span>
-              <% end %>
-            </div>
-            <div class="p-4 text-sm">
-              <%= curriculum_item.name %>
-            </div>
-            <div class="flex flex-wrap items-start gap-1 p-4">
-              <.badge :for={subject <- curriculum_item.subjects}>
-                <%= subject.name %>
-              </.badge>
-            </div>
-            <div class="flex flex-wrap items-start gap-1 p-4">
-              <.badge :for={year <- curriculum_item.years}>
-                <%= year.name %>
-              </.badge>
-            </div>
-            <div class="p-4">
-              <.icon_button
-                type="button"
-                sr_text={gettext("Edit curriculum item")}
-                name="hero-pencil-mini"
-                size="sm"
-                theme="ghost"
-                phx-click={
-                  JS.patch(
-                    ~p"/curriculum/component/#{@curriculum_component}?is_editing_curriculum_item=#{curriculum_item.id}"
-                  )
-                }
-              />
-            </div>
-          </li>
-        </ul>
+        <span class="text-ltrn-subtle">—</span>
       <% end %>
-    </div>
-  </div>
+    </:col>
+    <:col :let={curriculum_item} label={gettext("Item")} template_col="minmax(0, 2fr)">
+      <%= curriculum_item.name %>
+    </:col>
+    <:col
+      :let={curriculum_item}
+      label={gettext("Subjects")}
+      on_filter={JS.exec("data-show", to: "#subjects-filter-modal")}
+      filter_is_active={length(@selected_subjects_ids) > 0}
+      class="flex flex-wrap gap-2"
+    >
+      <.badge :for={subject <- curriculum_item.subjects}>
+        <%= subject.name %>
+      </.badge>
+    </:col>
+    <:col
+      :let={curriculum_item}
+      label={gettext("Years")}
+      on_filter={JS.exec("data-show", to: "#years-filter-modal")}
+      filter_is_active={length(@selected_years_ids) > 0}
+      class="flex flex-wrap gap-2"
+    >
+      <.badge :for={year <- curriculum_item.years}>
+        <%= year.name %>
+      </.badge>
+    </:col>
+    <:action :let={curriculum_item}>
+      <.icon_button
+        type="button"
+        sr_text={gettext("Edit curriculum item")}
+        name="hero-pencil-mini"
+        size="sm"
+        theme="ghost"
+        phx-click={
+          JS.patch(
+            ~p"/curriculum/component/#{@curriculum_component}?is_editing_curriculum_item=#{curriculum_item.id}"
+          )
+        }
+      />
+    </:action>
+  </.data_grid>
 </section>
 <section :if={@curriculum_component.description} class="mt-10">
   <h2 class="mb-6 font-display font-black text-2xl">

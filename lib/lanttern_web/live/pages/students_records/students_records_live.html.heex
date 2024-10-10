@@ -1,0 +1,190 @@
+<.responsive_container class="py-6 sm:py-10">
+  <.page_title_with_menu><%= gettext("Students records") %></.page_title_with_menu>
+
+  <div class="flex items-end gap-6 mt-10 mb-4">
+    <div class="flex-1">
+      <p class="flex flex-wrap gap-2">
+        <%= ngettext(
+          "Showing 1 result for",
+          "Showing %{count} results for",
+          @students_records_length
+        ) %>
+        <%= if @selected_students != [] do %>
+          <.badge
+            :for={student <- @selected_students}
+            on_remove={JS.push("remove_student_filter")}
+            theme="primary"
+          >
+            <%= student.name %>
+          </.badge>
+        <% else %>
+          <.badge><%= gettext("all students") %></.badge>
+        <% end %>
+        ,
+        <%= if @selected_student_record_types != [] do %>
+          <.badge
+            :for={type <- @selected_student_record_types}
+            color_map={type}
+            on_remove={JS.push("remove_type_filter")}
+          >
+            <%= type.name %>
+          </.badge>
+        <% else %>
+          <.badge><%= gettext("all student record types") %></.badge>
+        <% end %>
+        <%= gettext("and") %>
+        <%= if @selected_student_record_statuses != [] do %>
+          <.badge
+            :for={status <- @selected_student_record_statuses}
+            color_map={status}
+            on_remove={JS.push("remove_status_filter")}
+          >
+            <%= status.name %>
+          </.badge>
+        <% else %>
+          <.badge><%= gettext("all statuses") %></.badge>
+        <% end %>
+      </p>
+    </div>
+    <.collection_action
+      type="link"
+      patch={~p"/students_records?edit=new"}
+      icon_name="hero-plus-circle"
+    >
+      <%= gettext("Add student record") %>
+    </.collection_action>
+  </div>
+</.responsive_container>
+<.data_grid
+  id="students-records"
+  class="pb-10 mx-6"
+  stream={@streams.students_records}
+  row_click={fn student_record -> JS.navigate(~p"/students_records/#{student_record.id}") end}
+  show_empty_state_message={
+    if @students_records_length == 0,
+      do: gettext("No students records found for selected filters.")
+  }
+>
+  <:col :let={student_record} label={gettext("Date")} template_col="max-content" class="text-sm">
+    <div class="flex items-center gap-2">
+      <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
+      <%= Timex.format!(student_record.date, "{Mshort} {0D}, {YYYY}") %>
+    </div>
+    <div :if={student_record.time} class="flex items-center gap-2 mt-2">
+      <.icon name="hero-clock-mini" class="w-5 h-5 text-ltrn-subtle" />
+      <%= student_record.time %>
+    </div>
+  </:col>
+  <:col
+    :let={student_record}
+    label={gettext("Students")}
+    template_col="min-content"
+    on_filter={JS.push("open_student_search_modal")}
+    filter_is_active={@selected_students_ids != []}
+  >
+    <div class="flex flex-wrap gap-1">
+      <.person_badge :for={student <- student_record.students} person={student} theme="cyan" />
+    </div>
+  </:col>
+  <:col :let={student_record} label={gettext("Record")}>
+    <p :if={student_record.name} class="mb-4 font-display font-black">
+      <%= student_record.name %>
+    </p>
+    <.markdown text={student_record.description} class="line-clamp-3" size="sm" />
+  </:col>
+  <:col
+    :let={student_record}
+    label={gettext("Type")}
+    template_col="max-content"
+    on_filter={JS.exec("data-show", to: "#student-record-types-filter-modal")}
+    filter_is_active={@selected_student_record_types_ids != []}
+  >
+    <.badge color_map={student_record.type}>
+      <%= student_record.type.name %>
+    </.badge>
+  </:col>
+  <:col
+    :let={student_record}
+    label={gettext("Status")}
+    template_col="max-content"
+    on_filter={JS.exec("data-show", to: "#student-record-statuses-filter-modal")}
+    filter_is_active={@selected_student_record_statuses_ids != []}
+  >
+    <.badge color_map={student_record.status}>
+      <%= student_record.status.name %>
+    </.badge>
+  </:col>
+  <:action :let={student_record}>
+    <.icon_button
+      type="button"
+      sr_text={gettext("Edit student record")}
+      name="hero-pencil-mini"
+      size="sm"
+      theme="ghost"
+      phx-click={JS.patch(~p"/students_records?edit=#{student_record.id}")}
+    />
+  </:action>
+</.data_grid>
+<div :if={@has_next} class="flex justify-center pb-10">
+  <.button theme="ghost" phx-click="load_more"><%= gettext("Load more records") %></.button>
+</div>
+<.modal
+  :if={@show_student_search_modal}
+  id="student-search-modal"
+  show
+  on_cancel={JS.push("close_student_search_modal")}
+>
+  <h5 class="mb-10 font-display font-black text-xl">
+    <%= gettext("Filter records by student") %>
+  </h5>
+  <form>
+    <.live_component
+      module={StudentSearchComponent}
+      id="student-search-modal-search"
+      notify_parent
+      label={gettext("Type the name of the student")}
+    />
+  </form>
+</.modal>
+<.single_selection_filter_modal
+  id="student-record-types-filter-modal"
+  title={gettext("Filter students records by type")}
+  use_color_map_as_active
+  items={@student_record_types}
+  selected_item_id={Enum.at(@selected_student_record_types_ids, 0)}
+  on_cancel={%JS{}}
+  on_select={
+    fn id ->
+      JS.push("filter_by_type", value: %{"id" => id})
+      |> JS.exec("data-cancel", to: "#student-record-types-filter-modal")
+    end
+  }
+/>
+<.single_selection_filter_modal
+  id="student-record-statuses-filter-modal"
+  title={gettext("Filter students records by status")}
+  use_color_map_as_active
+  items={@student_record_statuses}
+  selected_item_id={Enum.at(@selected_student_record_statuses_ids, 0)}
+  on_cancel={%JS{}}
+  on_select={
+    fn id ->
+      JS.push("filter_by_status", value: %{"id" => id})
+      |> JS.exec("data-cancel", to: "#student-record-statuses-filter-modal")
+    end
+  }
+/>
+<.live_component
+  :if={@student_record}
+  module={StudentRecordFormOverlayComponent}
+  id={(@student_record && @student_record.id) || :new}
+  student_record={@student_record}
+  current_user={@current_user}
+  on_cancel={JS.patch(~p"/students_records")}
+  title={
+    if @student_record && @student_record.id,
+      do: gettext("Edit student record"),
+      else: gettext("New student record")
+  }
+  notify_parent
+/>

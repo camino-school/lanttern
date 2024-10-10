@@ -8,6 +8,66 @@ defmodule Lanttern.RepoHelpers do
 
   import LantternWeb.Gettext
 
+  defmodule Page do
+    @moduledoc "General pagination page struct and related utils"
+
+    @type t() :: %__MODULE__{
+            results: list(),
+            has_next: boolean(),
+            keyset: any()
+          }
+
+    @typedoc """
+    The `opts` spec to use in pagination functions.
+
+    When fetching `first` results, the query should include `first + 1` results
+    (the extra result should be handled by `extract_pagination_fields_from/3`).
+    """
+    @type opts() :: [first: pos_integer(), after: Keyword.t() | nil]
+
+    @typedoc """
+    The function to use as the last arg in `extract_pagination_fields_from/3`.
+
+    This function will receive the last item of results as arg, and should
+    return the pagination query keyset (a `Keyword.t()`) to be used as `after` opt.
+    """
+    @type keyset_fn() :: (last :: any() -> Keyword.t())
+
+    defstruct [:keyset, results: [], has_next: false]
+
+    @doc """
+    Util function to extract `results`, `has_next`, and `keyset` from a given list.
+
+    It will:
+
+    1. remove the last result from the list, if needed
+    2. determine if `Page.has_next`
+    3. extract the keyset from the last result based on given `keyset_fn`
+    """
+    @spec extract_pagination_fields_from(
+            list(),
+            first :: pos_integer(),
+            keyset_fn :: keyset_fn()
+          ) ::
+            {results :: list(), has_next :: boolean(), keyset :: Keyword.t() | nil}
+    def extract_pagination_fields_from([], _, _),
+      do: {[], false, nil}
+
+    def extract_pagination_fields_from([single], _, _),
+      do: {[single], false, nil}
+
+    def extract_pagination_fields_from(list, first, keyset_fn) do
+      if length(list) > first do
+        {_, results} = List.pop_at(list, -1)
+        keyset = Enum.at(results, -1) |> keyset_fn.()
+
+        {results, true, keyset}
+      else
+        {list, false, nil}
+      end
+    end
+  end
+
   @doc """
   Preload associated data based on provided values.
 

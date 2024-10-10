@@ -51,6 +51,11 @@ defmodule LantternWeb.CoreComponents do
   attr :class, :any, default: nil
   attr :style, :string, default: nil
   attr :theme, :string, default: "default"
+
+  attr :color_map, :map,
+    default: nil,
+    doc: "any map with `bg_color` and `text_color` attrs (e.g. ordinal value)"
+
   attr :on_remove, JS, default: nil
   attr :rest, :global
   slot :inner_block, required: true
@@ -64,18 +69,22 @@ defmodule LantternWeb.CoreComponents do
         badge_theme(@theme),
         @class
       ]}
-      style={@style}
+      style={create_color_map_style(@color_map)}
       {@rest}
     >
       <%= render_slot(@inner_block) %>
       <button
         :if={@on_remove}
         type="button"
-        class="group relative ml-1 h-3.5 w-3.5 rounded-[1px] hover:bg-ltrn-subtle/20"
+        class="group relative ml-1 h-3.5 w-3.5 rounded-[1px] hover:bg-ltrn-dark/10"
         phx-click={@on_remove}
       >
-        <span class="sr-only">Remove</span>
-        <.icon name="hero-x-mark-mini" class="w-3.5 text-ltrn-subtle hover:text-slate-700" />
+        <span class="sr-only"><%= gettext("Remove") %></span>
+        <.icon
+          name="hero-x-mark-mini"
+          class="w-3.5 text-ltrn-subtle hover:text-ltrn-dark"
+          style={create_color_map_text_style(@color_map)}
+        />
         <span class="absolute -inset-1"></span>
       </button>
     </span>
@@ -168,6 +177,11 @@ defmodule LantternWeb.CoreComponents do
   attr :theme, :string, default: "default", doc: "default | ghost"
   attr :icon_name, :string, default: nil
   attr :is_checked, :boolean, doc: "will render a check icon on the left side. impacts styling"
+
+  attr :color_map, :map,
+    default: nil,
+    doc: "any map with `bg_color` and `text_color` attrs (e.g. ordinal value)"
+
   attr :rest, :global
 
   slot :inner_block, required: true
@@ -191,16 +205,22 @@ defmodule LantternWeb.CoreComponents do
         get_badge_button_styles(@theme),
         @class
       ]}
+      style={create_color_map_style(@color_map)}
       {@rest}
     >
       <.icon
         :if={@has_check_icon}
         name="hero-check-circle-mini"
         class={["w-3.5 h-3.5", badge_check_icon_theme(@is_checked)]}
+        style={create_color_map_text_style(@color_map)}
       />
       <%= render_slot(@inner_block) %>
       <%= if @icon_name do %>
-        <.icon name={@icon_name} class={["w-3.5 h-3.5", badge_icon_theme(@theme)]} />
+        <.icon
+          name={@icon_name}
+          class={["w-3.5 h-3.5", badge_icon_theme(@theme)]}
+          style={create_color_map_text_style(@color_map)}
+        />
       <% end %>
     </button>
     """
@@ -230,6 +250,11 @@ defmodule LantternWeb.CoreComponents do
     required: true,
     doc: "expects a function with arity 1. will receive the `item.id` as arg"
 
+  attr :use_color_map_as_active, :boolean,
+    default: false,
+    doc:
+      "instead of using primary theme when active, will set `color_map` attr using item when active"
+
   attr :class, :any, default: nil
   attr :id, :string, default: nil
 
@@ -239,6 +264,7 @@ defmodule LantternWeb.CoreComponents do
       <.badge_button
         :for={item <- @items}
         theme={if item.id in @selected_ids, do: "primary", else: "default"}
+        color_map={if item.id in @selected_ids && @use_color_map_as_active, do: item}
         icon_name={if item.id in @selected_ids, do: "hero-check-mini", else: "hero-plus-mini"}
         phx-click={@on_select.(item.id)}
       >
@@ -436,6 +462,143 @@ defmodule LantternWeb.CoreComponents do
 
   defp cover_overlay(_),
     do: "from-ltrn-mesh-primary/0 to-ltrn-mesh-primary"
+
+  @doc """
+  Returns a string with background and text styles to be
+  used in a `style` attribute.
+  """
+
+  def create_color_map_style(%{bg_color: bg_color, text_color: text_color}),
+    do: "background-color: #{bg_color}; color: #{text_color}"
+
+  def create_color_map_style(_), do: nil
+
+  @doc """
+  Returns a string with text style to be
+  used in a `style` attribute.
+  """
+
+  def create_color_map_text_style(%{text_color: text_color}),
+    do: "color: #{text_color}"
+
+  def create_color_map_text_style(_), do: nil
+
+  @doc """
+  Returns a string with background gradient style
+  to be used in a `style` attribute.
+  """
+  def create_color_map_gradient_bg_style(%{
+        start_bg_color: start_bg_color,
+        stop_bg_color: stop_bg_color
+      })
+      when is_binary(start_bg_color) and is_binary(stop_bg_color),
+      do: "background-image: linear-gradient(to right, #{start_bg_color}, #{stop_bg_color})"
+
+  def create_color_map_gradient_bg_style(_), do: %{}
+
+  @doc """
+  Renders a data grid.
+
+  ## Examples
+
+      <.data_grid id="users" rows={@users}>
+        <:col :let={user} label="id"><%= user.id %></:col>
+        <:col :let={user} label="username"><%= user.username %></:col>
+      </.data_grid>
+  """
+  attr :id, :string, required: true
+  attr :stream, :any, required: true
+  attr :class, :any, default: nil
+  attr :row_click, :any, default: nil, doc: "the function for handling phx-click on each row"
+  # this approach looks weird... but we need something apart from stream to identify empty streams
+  attr :show_empty_state_message, :string, default: nil, doc: "Use this field to show empty state"
+
+  slot :col, required: true do
+    attr :label, :string, required: true
+    attr :on_filter, JS
+    attr :filter_is_active, :boolean
+    attr :template_col, :string, doc: "use to define grid template. minmax(0, 1fr) by default"
+    attr :class, :any
+  end
+
+  slot :action, doc: "the slot for showing user actions in the last table column"
+
+  def data_grid(assigns) do
+    cols_style =
+      assigns.col
+      |> Enum.map_join(" ", &Map.get(&1, :template_col, "minmax(0, 1fr)"))
+
+    has_action = assigns.action != []
+
+    grid_template_cols_style = "grid-template-columns: #{cols_style}"
+
+    grid_template_cols_style =
+      if has_action,
+        do: grid_template_cols_style <> " max-content",
+        else: grid_template_cols_style
+
+    cols_count = length(assigns.col)
+    cols_count = if has_action, do: cols_count + 1, else: cols_count
+
+    grid_col_span_style = "grid-column: span #{cols_count} / span #{cols_count}"
+
+    assigns =
+      assigns
+      |> assign(:grid_template_cols_style, grid_template_cols_style)
+      |> assign(:grid_col_span_style, grid_col_span_style)
+
+    ~H"""
+    <div class={["overflow-x-auto", @class]}>
+      <div class="grid gap-y-2" style={@grid_template_cols_style}>
+        <div
+          class="sticky top-0 grid grid-cols-subgrid rounded font-display font-bold text-sm bg-white shadow"
+          style={@grid_col_span_style}
+        >
+          <div :for={col <- @col} class="flex gap-2 p-4">
+            <%= col[:label] %>
+            <button
+              :if={col[:on_filter]}
+              type="button"
+              class="hover:opacity-50"
+              phx-click={col[:on_filter]}
+            >
+              <%= if col[:filter_is_active] do %>
+                <.icon name="hero-funnel-solid" class="text-ltrn-primary" />
+              <% else %>
+                <.icon name="hero-funnel" class="text-ltrn-subtle" />
+              <% end %>
+            </button>
+          </div>
+          <div :if={@action != []} class="relative p-2 pb-4">
+            <span class="sr-only"><%= gettext("Actions") %></span>
+          </div>
+        </div>
+        <ul id={@id} phx-update="stream" class="grid grid-cols-subgrid" style={@grid_col_span_style}>
+          <li
+            :for={{row_id, row} <- @stream}
+            id={row_id}
+            class={[
+              "grid grid-cols-subgrid items-center py-2 rounded hover:bg-ltrn-mesh-yellow",
+              @row_click && "hover:cursor-pointer"
+            ]}
+            style={@grid_col_span_style}
+            phx-click={@row_click && @row_click.(row)}
+          >
+            <div :for={col <- @col} class={["p-4", col[:class]]}>
+              <%= render_slot(col, row) %>
+            </div>
+            <div :if={@action != []} class="flex items-center gap-2 p-4">
+              <%= for action <- @action do %>
+                <%= render_slot(action, row) %>
+              <% end %>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <.empty_state :if={@show_empty_state_message}><%= @show_empty_state_message %></.empty_state>
+    </div>
+    """
+  end
 
   @doc """
   Renders an empty state block
@@ -769,11 +932,12 @@ defmodule LantternWeb.CoreComponents do
   """
   attr :name, :string, required: true
   attr :class, :any, default: nil
+  attr :style, :any, default: nil
   attr :id, :string, default: nil
 
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
-    <span class={["shrink-0", @name, @class]} aria-hidden="true" id={@id} />
+    <span class={["shrink-0", @name, @class]} style={@style} aria-hidden="true" id={@id} />
     """
   end
 
@@ -928,7 +1092,7 @@ defmodule LantternWeb.CoreComponents do
 
   def page_title_with_menu(assigns) do
     ~H"""
-    <div class={["flex items-center justify-between", @class]}>
+    <div class={["flex items-center gap-4 justify-between", @class]}>
       <h1 class="font-display font-black text-3xl">
         <%= render_slot(@inner_block) %>
       </h1>
@@ -946,8 +1110,9 @@ defmodule LantternWeb.CoreComponents do
 
   """
   attr :id, :string, default: nil
-  attr :person, :map, required: true
+  attr :person, :map, required: true, doc: "any map with `name` attr"
   attr :theme, :string, default: "subtle", doc: "subtle | cyan"
+  attr :on_remove, JS, default: nil
   attr :rest, :global
 
   def person_badge(assigns) do
@@ -964,6 +1129,19 @@ defmodule LantternWeb.CoreComponents do
       <span class="max-w-[7rem] pr-1 text-xs truncate">
         <%= @person.name %>
       </span>
+      <div :if={@on_remove} class="pr-1 -ml-1">
+        <button
+          type="button"
+          class="group flex items-center justify-center rounded-full hover:bg-ltrn-dark/10"
+          phx-click={@on_remove}
+        >
+          <span class="sr-only"><%= gettext("Remove") %></span>
+          <.icon
+            name="hero-x-mark-mini"
+            class="w-3.5 h-3.5 text-ltrn-subtle group-hover:text-ltrn-dark"
+          />
+        </button>
+      </div>
     </span>
     """
   end
