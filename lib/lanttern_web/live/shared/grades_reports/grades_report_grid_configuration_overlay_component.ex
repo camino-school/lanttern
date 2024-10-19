@@ -1,4 +1,4 @@
-defmodule LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent do
+defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.GradesReports
@@ -14,7 +14,7 @@ defmodule LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent do
     <div>
       <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
         <:title>
-          <%= gettext("%{grades_report} grid setup", grades_report: @grades_report.name) %>
+          <%= gettext("%{grades_report} grid configuration", grades_report: @grades_report.name) %>
         </:title>
         <h5 class="mb-6 font-display font-black text-lg"><%= gettext("Grid sub cycles") %></h5>
         <div class="flex-1 flex flex-wrap gap-2">

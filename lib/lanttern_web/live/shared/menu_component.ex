@@ -310,8 +310,9 @@ defmodule LantternWeb.MenuComponent do
     LantternWeb.ReportCardsLive => :report_cards,
     LantternWeb.ReportCardLive => :report_cards,
 
-    # grading
-    LantternWeb.GradesReportsLive => :grading,
+    # grades reports
+    LantternWeb.GradesReportsLive => :grades_reports,
+    LantternWeb.GradesReportLive => :grades_reports,
 
     # guardian home
     LantternWeb.GuardianHomeLive => :student_report_card,
@@ -385,7 +386,12 @@ defmodule LantternWeb.MenuComponent do
         path: ~p"/report_cards",
         text: gettext("Report cards")
       },
-      %{profile: "teacher", active: :grading, path: ~p"/grading", text: gettext("Grading")},
+      %{
+        profile: "teacher",
+        active: :grades_reports,
+        path: ~p"/grades_reports",
+        text: gettext("Grades reports")
+      },
       # student
       %{
         profile: "student",

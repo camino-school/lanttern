@@ -24,7 +24,7 @@ defmodule LantternWeb.GradesReportsComponents do
   attr :on_student_grade_click, JS, default: nil
   attr :class, :any, default: nil
   attr :id, :string, default: nil
-  attr :on_setup, JS, default: nil
+  attr :on_configure, JS, default: nil
   attr :report_card_cycle_id, :integer, default: nil
   attr :on_composition_click, JS, default: nil
   attr :show_cycle_visibility, :boolean, default: false
@@ -60,9 +60,14 @@ defmodule LantternWeb.GradesReportsComponents do
     ~H"""
     <div class="relative p-2 overflow-x-auto">
       <div id={@id} class={["grid gap-1 text-sm", @class]} style={@grid_template_columns_style}>
-        <%= if @on_setup do %>
-          <.button type="button" theme="ghost" icon_name="hero-cog-6-tooth-mini" phx-click={@on_setup}>
-            <%= gettext("Setup") %>
+        <%= if @on_configure do %>
+          <.button
+            type="button"
+            theme="ghost"
+            icon_name="hero-cog-6-tooth-mini"
+            phx-click={@on_configure}
+          >
+            <%= gettext("Configure") %>
           </.button>
         <% else %>
           <div />
