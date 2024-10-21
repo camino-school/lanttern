@@ -20,7 +20,14 @@
         class="p-6 rounded mt-12 bg-white shadow-lg"
       >
         <div class="flex items-center justify-between gap-6 mb-6">
-          <h3 class="font-display font-black text-2xl"><%= grades_report.name %></h3>
+          <h3 class="font-display font-black text-2xl">
+            <.link
+              navigate={~p"/grades_reports/#{grades_report}"}
+              class="underline hover:text-ltrn-subtle"
+            >
+              <%= grades_report.name %>
+            </.link>
+          </h3>
           <.button
             type="link"
             theme="ghost"

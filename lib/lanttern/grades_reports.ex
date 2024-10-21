@@ -1235,6 +1235,78 @@ defmodule Lanttern.GradesReports do
 
       %{
         student_id => %{
+          grades_report_cycle_id => %{
+            grades_report_subject_id => %StudentGradeReportEntry{},
+            # other subjects ids...
+          },
+          # other cycles ids...
+        }
+        # other students ids...
+      }
+
+  for the given students and grades report.
+
+  Ordinal values preloaded (manually) in student grade report entry.
+  """
+  @spec build_students_full_grades_report_map(grades_report_id :: pos_integer()) :: %{}
+  def build_students_full_grades_report_map(grades_report_id) do
+    grades_report_students_query =
+      from(
+        std in Student,
+        join: sgre in assoc(std, :grades_report_entries),
+        where: sgre.grades_report_id == ^grades_report_id,
+        distinct: true
+      )
+
+    from(
+      std in subquery(grades_report_students_query),
+      join: grs in GradesReportSubject,
+      on: grs.grades_report_id == ^grades_report_id,
+      join: grc in GradesReportCycle,
+      on: grc.grades_report_id == ^grades_report_id,
+      left_join: sgre in StudentGradeReportEntry,
+      on:
+        sgre.grades_report_cycle_id == grc.id and
+          sgre.grades_report_subject_id == grs.id and
+          sgre.student_id == std.id,
+      left_join: ov in assoc(sgre, :ordinal_value),
+      left_join: pr_ov in assoc(sgre, :pre_retake_ordinal_value),
+      select: {std.id, grc.id, grs.id, sgre, ov, pr_ov}
+    )
+    |> Repo.all()
+    |> Enum.reduce(%{}, fn {std_id, grc_id, grs_id, sgre, ov, pr_ov}, acc ->
+      # "preload" ordinal value in student grade report entry
+      # and clear composition to save memory
+      sgre =
+        case sgre do
+          nil ->
+            nil
+
+          sgre ->
+            %{sgre | ordinal_value: ov, pre_retake_ordinal_value: pr_ov, composition: nil}
+        end
+
+      # get or create student map
+      std_map = Map.get(acc, std_id, %{})
+
+      # get or create cycle map and put entry in subject
+      cycle_map =
+        std_map
+        |> Map.get(grc_id, %{})
+        |> Map.put(grs_id, sgre)
+
+      # update/add cycle to student map
+      std_map = Map.put(std_map, grc_id, cycle_map)
+
+      Map.put(acc, std_id, std_map)
+    end)
+  end
+
+  @doc """
+  Returns a map in the format
+
+      %{
+        student_id => %{
           subject_id => %StudentGradeReportEntry{},
           # other subjects ids...
         }
@@ -1272,10 +1344,14 @@ defmodule Lanttern.GradesReports do
     |> Repo.all()
     |> Enum.reduce(%{}, fn {std_id, grs_id, sgre, ov, pr_ov}, acc ->
       # "preload" ordinal value in student grade report entry
+      # and clear composition to save memory
       sgre =
         case sgre do
-          nil -> nil
-          sgre -> %{sgre | ordinal_value: ov, pre_retake_ordinal_value: pr_ov}
+          nil ->
+            nil
+
+          sgre ->
+            %{sgre | ordinal_value: ov, pre_retake_ordinal_value: pr_ov, composition: nil}
         end
 
       # build student map
