@@ -8,7 +8,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
     only: [assign_user_filters: 3, save_profile_filters: 3]
 
   # shared
-  alias LantternWeb.GradesReports.StudentGradeReportEntryFormComponent
+  alias LantternWeb.GradesReports.StudentGradeReportEntryOverlayComponent
   import LantternWeb.GradesReportsComponents
   alias LantternWeb.Filters.InlineFiltersComponent
 
@@ -84,64 +84,15 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
             }
           />
         <% end %>
-        <.slide_over
+        <.live_component
           :if={@is_editing_student_grade_report_entry}
-          id="student-grades-report-entry-overlay"
-          show={true}
+          module={StudentGradeReportEntryOverlayComponent}
+          id={@student_grade_report_entry.id}
+          student_grade_report_entry={@student_grade_report_entry}
+          scale_id={@grades_report.scale_id}
+          navigate={~p"/report_cards/#{@report_card}?tab=grades"}
           on_cancel={JS.patch(~p"/report_cards/#{@report_card}?tab=grades")}
-        >
-          <:title><%= gettext("Edit student grade report entry") %></:title>
-          <.metadata class="mb-4" icon_name="hero-user">
-            <%= @student_grade_report_entry.student.name %>
-          </.metadata>
-          <.metadata class="mb-4" icon_name="hero-bookmark">
-            <%= @student_grade_report_entry.grades_report_subject.subject.name %>
-          </.metadata>
-          <.metadata class="mb-4" icon_name="hero-calendar">
-            <%= @student_grade_report_entry.grades_report_cycle.school_cycle.name %>
-          </.metadata>
-          <.live_component
-            module={StudentGradeReportEntryFormComponent}
-            id={@student_grade_report_entry.id}
-            student_grade_report_entry={@student_grade_report_entry}
-            scale_id={@grades_report.scale_id}
-            navigate={~p"/report_cards/#{@report_card}?tab=grades"}
-            hide_submit
-          />
-          <div class="py-10">
-            <h6 class="font-display font-bold"><%= gettext("Grade composition") %></h6>
-            <p class="mt-4 mb-6 text-sm">
-              <%= gettext(
-                "Lanttern automatic grade calculation info based on configured grade composition"
-              ) %> (<%= Timex.local(@student_grade_report_entry.composition_datetime)
-              |> Timex.format!("{0D}/{0M}/{YYYY} {h24}:{m}") %>).
-            </p>
-            <.grade_composition_table student_grade_report_entry={@student_grade_report_entry} />
-          </div>
-          <:actions_left>
-            <.button
-              type="button"
-              theme="ghost"
-              phx-click="delete_student_grade_report_entry"
-              phx-target={@myself}
-              data-confirm={gettext("Are you sure?")}
-            >
-              <%= gettext("Delete") %>
-            </.button>
-          </:actions_left>
-          <:actions>
-            <.button
-              type="button"
-              theme="ghost"
-              phx-click={JS.exec("data-cancel", to: "#student-grades-report-entry-overlay")}
-            >
-              <%= gettext("Cancel") %>
-            </.button>
-            <.button type="submit" form="student-grade-report-entry-form">
-              <%= gettext("Save") %>
-            </.button>
-          </:actions>
-        </.slide_over>
+        />
         <.live_component
           module={LantternWeb.Filters.FiltersOverlayComponent}
           id="students-grades-filters"
@@ -382,27 +333,6 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
       end
 
     {:noreply, socket}
-  end
-
-  def handle_event("delete_student_grade_report_entry", _params, socket) do
-    case GradesReports.delete_student_grade_report_entry(
-           socket.assigns.student_grade_report_entry
-         ) do
-      {:ok, _student_grade_report_entry} ->
-        socket =
-          socket
-          |> put_flash(:info, gettext("Student grade report entry deleted"))
-          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=grades")
-
-        {:noreply, socket}
-
-      {:error, _changeset} ->
-        socket =
-          socket
-          |> put_flash(:error, gettext("Error deleting student grade report entry"))
-
-        {:noreply, socket}
-    end
   end
 
   # helper

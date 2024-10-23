@@ -11,6 +11,7 @@ defmodule LantternWeb.GradesReportLive do
   import LantternWeb.GradesReportsComponents
   alias LantternWeb.GradesReports.GradesReportFormComponent
   alias LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponent
+  alias LantternWeb.GradesReports.StudentGradeReportEntryOverlayComponent
   # alias LantternWeb.Grading.GradeCompositionOverlayComponent
 
   # # shared
@@ -90,9 +91,40 @@ defmodule LantternWeb.GradesReportLive do
       socket
       |> assign(:is_editing, is_editing)
       |> assign(:is_configuring, is_configuring)
+      |> assign_student_grade_report_entry(params)
 
     {:noreply, socket}
   end
+
+  defp assign_student_grade_report_entry(socket, %{
+         "student_grade_report_entry" => student_grade_report_entry_id
+       }) do
+    grades_report = socket.assigns.grades_report
+
+    student_grade_report_entry =
+      GradesReports.get_student_grade_report_entry!(
+        student_grade_report_entry_id,
+        preloads: [
+          :student,
+          :composition_ordinal_value,
+          grades_report_subject: :subject,
+          grades_report_cycle: :school_cycle
+        ]
+      )
+
+    case student_grade_report_entry.grades_report_id == grades_report.id do
+      true ->
+        socket
+        |> assign(:is_editing_student_grade_report_entry, true)
+        |> assign(:student_grade_report_entry, student_grade_report_entry)
+
+      _ ->
+        assign(socket, :is_editing_student_grade_report_entry, false)
+    end
+  end
+
+  defp assign_student_grade_report_entry(socket, _),
+    do: assign(socket, :is_editing_student_grade_report_entry, false)
 
   # defp assign_show_grades_report_form(socket, %{"is_creating" => "true"}) do
   #   socket

@@ -54,7 +54,13 @@
   grades_report_cycles={@grades_report_cycles}
   grades_report_subjects={@grades_report_subjects}
   students_grades_map={@students_grades_map}
-  on_entry_click={fn _student_grade_report_entry_id -> nil end}
+  on_entry_click={
+    fn student_grade_report_entry_id ->
+      JS.patch(
+        ~p"/grades_reports/#{@grades_report}?student_grade_report_entry=#{student_grade_report_entry_id}"
+      )
+    end
+  }
 />
 <.slide_over
   :if={@is_editing}
@@ -98,5 +104,14 @@
   module={GradesReportGridConfigurationOverlayComponent}
   id="grades-report-grid-configuration-overlay"
   grades_report={@grades_report}
+  on_cancel={JS.patch(~p"/grades_reports/#{@grades_report}")}
+/>
+<.live_component
+  :if={@is_editing_student_grade_report_entry}
+  module={StudentGradeReportEntryOverlayComponent}
+  id={@student_grade_report_entry.id}
+  student_grade_report_entry={@student_grade_report_entry}
+  scale_id={@grades_report.scale_id}
+  navigate={~p"/grades_reports/#{@grades_report}"}
   on_cancel={JS.patch(~p"/grades_reports/#{@grades_report}")}
 />
