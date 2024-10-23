@@ -3249,5 +3249,100 @@ defmodule Lanttern.GradesReportsTest do
       expected_cycle_2_3 = expected_2[grades_report_cycle_2_3.id]
       assert is_nil(expected_cycle_2_3[grades_report_subject_2_b.id])
     end
+
+    test "list_grades_report_students/2 returns all students linked to the grades report" do
+      year = TaxonomyFixtures.year_fixture()
+
+      grades_report = grades_report_fixture(%{year_id: year.id})
+
+      grades_report_cycle_1 =
+        grades_report_cycle_fixture(%{grades_report_id: grades_report.id})
+
+      grades_report_cycle_2 =
+        grades_report_cycle_fixture(%{grades_report_id: grades_report.id})
+
+      grades_report_subject_1 =
+        grades_report_subject_fixture(%{grades_report_id: grades_report.id})
+
+      grades_report_subject_2 =
+        grades_report_subject_fixture(%{grades_report_id: grades_report.id})
+
+      school = SchoolsFixtures.school_fixture()
+
+      class_1 =
+        SchoolsFixtures.class_fixture(%{name: "111", school_id: school.id, years_ids: [year.id]})
+
+      class_2 =
+        SchoolsFixtures.class_fixture(%{name: "222", school_id: school.id, years_ids: [year.id]})
+
+      # when listing students, classes will be preloaded, but only classes
+      # related to the grades report year should be displayed (so, we don't expect
+      # other_class to appear in std_a classes preload)
+      other_class = SchoolsFixtures.class_fixture()
+
+      std_a =
+        SchoolsFixtures.student_fixture(%{name: "AAA", classes_ids: [class_1.id, other_class.id]})
+
+      std_b = SchoolsFixtures.student_fixture(%{name: "BBB", classes_ids: [class_2.id]})
+
+      std_c =
+        SchoolsFixtures.student_fixture(%{name: "CCC", classes_ids: [class_1.id, class_2.id]})
+
+      std_d = SchoolsFixtures.student_fixture(%{name: "DDD"})
+
+      _std_a_entry =
+        student_grade_report_entry_fixture(%{
+          student_id: std_a.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle_1.id,
+          grades_report_subject_id: grades_report_subject_1.id
+        })
+
+      _std_b_entry =
+        student_grade_report_entry_fixture(%{
+          student_id: std_b.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle_2.id,
+          grades_report_subject_id: grades_report_subject_1.id
+        })
+
+      _std_c_entry =
+        student_grade_report_entry_fixture(%{
+          student_id: std_c.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle_1.id,
+          grades_report_subject_id: grades_report_subject_2.id
+        })
+
+      _std_d_entry =
+        student_grade_report_entry_fixture(%{
+          student_id: std_d.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grades_report_cycle_2.id,
+          grades_report_subject_id: grades_report_subject_2.id
+        })
+
+      # extra fixtures for query test
+      student_grade_report_entry_fixture()
+
+      assert [expected_std_a, expected_std_c, expected_std_b, expected_std_d] =
+               GradesReports.list_grades_report_students(grades_report.id, grades_report.year_id)
+
+      assert expected_std_a.id == std_a.id
+      assert [expected_class_1] = expected_std_a.classes
+      assert expected_class_1.id == class_1.id
+
+      assert expected_std_c.id == std_c.id
+      assert [expected_class_1, expected_class_2] = expected_std_c.classes
+      assert expected_class_1.id == class_1.id
+      assert expected_class_2.id == class_2.id
+
+      assert expected_std_b.id == std_b.id
+      assert [expected_class_2] = expected_std_b.classes
+      assert expected_class_2.id == class_2.id
+
+      assert expected_std_d.id == std_d.id
+      assert expected_std_d.classes == []
+    end
   end
 end

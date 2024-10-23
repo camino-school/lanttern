@@ -4,7 +4,6 @@ defmodule Lanttern.GradesReports do
   """
 
   import Ecto.Query, warn: false
-  alias Lanttern.Schools.Student
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
 
@@ -17,6 +16,7 @@ defmodule Lanttern.GradesReports do
   alias Lanttern.Grading.GradeComponent
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Reporting.StudentReportCard
+  alias Lanttern.Schools.Student
 
   @doc """
   Returns the list of grade reports.
@@ -1480,5 +1480,46 @@ defmodule Lanttern.GradesReports do
 
       Map.put(acc, grc_id, cycle_map)
     end)
+  end
+
+  @doc """
+  Returns the list of students linked to the given grades report.
+
+  A student is "linked" to a grades report if they have at least
+  one grade report entry.
+
+  Student classes that belong to the same year as the grades report
+  will be preloaded.
+
+  Results are ordered by class name, then by student name.
+
+  We could query the grades report to get the year id, but in most cases
+  the caller will already have access to this id.
+  """
+  @spec list_grades_report_students(
+          grades_report_id :: pos_integer(),
+          grades_report_year_id :: pos_integer()
+        ) :: [Student.t()]
+  def list_grades_report_students(grades_report_id, grades_report_year_id) do
+    students_ids =
+      from(
+        std in Student,
+        join: sgre in assoc(std, :grades_report_entries),
+        where: sgre.grades_report_id == ^grades_report_id,
+        distinct: true
+      )
+      |> Repo.all()
+      |> Enum.map(& &1.id)
+
+    from(
+      std in Student,
+      left_join: c in assoc(std, :classes),
+      left_join: y in assoc(c, :years),
+      where: std.id in ^students_ids,
+      where: (not is_nil(c) and y.id == ^grades_report_year_id) or is_nil(c),
+      order_by: [asc: c.name, asc: std.name],
+      preload: [classes: c]
+    )
+    |> Repo.all()
   end
 end

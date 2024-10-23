@@ -18,99 +18,104 @@
     </.badge>
   </div>
 </.cover>
-<div class="sticky z-30 top-0 border-b border-ltrn-lighter bg-white">
-  <.responsive_container class="flex items-center justify-between gap-10">
-    <.nav_tabs id="strand-nav-tabs" class="flex-1 overflow-x-auto">
-      <:tab
-        patch={~p"/report_cards/#{@report_card}?#{%{tab: "students"}}"}
-        is_current={@current_tab == :students && "true"}
-      >
-        <%= gettext("Students") %>
-      </:tab>
-      <:tab
-        patch={~p"/report_cards/#{@report_card}?#{%{tab: "strands"}}"}
-        is_current={@current_tab == :strands && "true"}
-      >
-        <%= gettext("Strands") %>
-      </:tab>
-      <:tab
-        patch={~p"/report_cards/#{@report_card}?#{%{tab: "grades"}}"}
-        is_current={@current_tab == :grades && "true"}
-      >
-        <%= gettext("Grades") %>
-      </:tab>
-      <:tab
-        patch={~p"/report_cards/#{@report_card}?#{%{tab: "tracking"}}"}
-        is_current={@current_tab == :tracking && "true"}
-      >
-        <%= gettext("Tracking") %>
-      </:tab>
-    </.nav_tabs>
-    <.menu_button id={@report_card.id}>
-      <:item
-        id={"edit-report-card-#{@report_card.id}"}
-        text={gettext("Edit report card")}
-        on_click={JS.patch(~p"/report_cards/#{@report_card}?tab=#{@current_tab}&is_editing=true")}
-      />
-      <:item
-        id={"remove-report-card-#{@report_card.id}"}
-        text={gettext("Delete")}
-        theme="alert"
-        on_click={JS.push("delete_report_card")}
-        confirm_msg={gettext("Are you sure?")}
-      />
-    </.menu_button>
-  </.responsive_container>
-</div>
-<div class="ltrn-bg-main-local">
-  <.live_component
-    :if={@current_tab == :students}
-    module={StudentsComponent}
-    id="report-card-students"
-    report_card={@report_card}
-    current_user={@current_user}
-    params={@params}
-  />
-  <div :if={@current_tab == :strands} class="py-10">
-    <.responsive_container :if={@report_card.description} class="mb-10">
-      <.markdown text={@report_card.description} />
+<div class="relative">
+  <div class="sticky z-30 top-0 border-b border-ltrn-lighter bg-white">
+    <.responsive_container class="flex items-center justify-between gap-10">
+      <.nav_tabs id="strand-nav-tabs" class="flex-1 overflow-x-auto">
+        <:tab
+          patch={~p"/report_cards/#{@report_card}?#{%{tab: "students"}}"}
+          is_current={@current_tab == :students && "true"}
+        >
+          <%= gettext("Students") %>
+        </:tab>
+        <:tab
+          patch={~p"/report_cards/#{@report_card}?#{%{tab: "strands"}}"}
+          is_current={@current_tab == :strands && "true"}
+        >
+          <%= gettext("Strands") %>
+        </:tab>
+        <:tab
+          patch={~p"/report_cards/#{@report_card}?#{%{tab: "grades"}}"}
+          is_current={@current_tab == :grades && "true"}
+        >
+          <%= gettext("Grades") %>
+        </:tab>
+        <:tab
+          patch={~p"/report_cards/#{@report_card}?#{%{tab: "tracking"}}"}
+          is_current={@current_tab == :tracking && "true"}
+        >
+          <%= gettext("Tracking") %>
+        </:tab>
+      </.nav_tabs>
+      <.menu_button id={@report_card.id}>
+        <:item
+          id={"edit-report-card-#{@report_card.id}"}
+          text={gettext("Edit report card")}
+          on_click={
+            JS.patch(~p"/report_cards/#{@report_card}?tab=#{@current_tab}&is_editing=true")
+          }
+        />
+        <:item
+          id={"remove-report-card-#{@report_card.id}"}
+          text={gettext("Delete")}
+          theme="alert"
+          on_click={JS.push("delete_report_card")}
+          confirm_msg={gettext("Are you sure?")}
+        />
+      </.menu_button>
     </.responsive_container>
-    <.live_component
-      module={StrandsReportsComponent}
-      id="report-card-strands-reports"
-      report_card={@report_card}
-      params={@params}
-    />
   </div>
-  <div :if={@current_tab == :grades}>
-    <.responsive_container :if={@report_card.grading_info} class="pt-10">
-      <.markdown text={@report_card.grading_info} />
-    </.responsive_container>
+  <div class="ltrn-bg-main-local">
     <.live_component
-      module={GradesComponent}
-      id="report-card-grades"
+      :if={@current_tab == :students}
+      module={StudentsComponent}
+      id="report-card-students"
       report_card={@report_card}
       current_user={@current_user}
       params={@params}
     />
-    <.live_component
-      module={StudentsGradesComponent}
-      id="report-card-students-grades"
-      report_card={@report_card}
-      current_user={@current_user}
-      params={@params}
-    />
-  </div>
-  <div :if={@current_tab == :tracking}>
-    <.live_component
-      module={StudentsTrackingComponent}
-      id="report-card-students-tracking"
-      report_card={@report_card}
-      current_user={@current_user}
-      params={@params}
-    />
+    <div :if={@current_tab == :strands} class="py-10">
+      <.responsive_container :if={@report_card.description} class="mb-10">
+        <.markdown text={@report_card.description} />
+      </.responsive_container>
+      <.live_component
+        module={StrandsReportsComponent}
+        id="report-card-strands-reports"
+        report_card={@report_card}
+        params={@params}
+      />
+    </div>
+    <div :if={@current_tab == :grades}>
+      <.responsive_container :if={@report_card.grading_info} class="pt-10">
+        <.markdown text={@report_card.grading_info} />
+      </.responsive_container>
+      <.live_component
+        module={GradesComponent}
+        id="report-card-grades"
+        report_card={@report_card}
+        current_user={@current_user}
+        params={@params}
+      />
+    </div>
+    <div :if={@current_tab == :tracking}>
+      <.live_component
+        module={StudentsTrackingComponent}
+        id="report-card-students-tracking"
+        report_card={@report_card}
+        current_user={@current_user}
+        params={@params}
+      />
+    </div>
   </div>
 </div>
+<.live_component
+  :if={@current_tab == :grades}
+  module={StudentsGradesComponent}
+  id="report-card-students-grades"
+  report_card={@report_card}
+  current_user={@current_user}
+  params={@params}
+/>
 <.slide_over
   :if={@is_editing}
   id="report-card-form-overlay"

@@ -283,7 +283,7 @@ defmodule LantternWeb.CoreComponents do
       <.button phx-click="go" class="ml-2">Send!</.button>
   """
   attr :type, :string,
-    default: "button",
+    default: nil,
     doc: "if `link` is used, will render a `<.link>` component instead of `<button>`"
 
   attr :class, :any, default: nil

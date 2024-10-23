@@ -48,6 +48,14 @@
   </div>
   <.markdown :if={@grades_report.info} text={@grades_report.info} class="mt-6" />
 </.responsive_container>
+<.students_grades_report_full_grid
+  students={@streams.students}
+  has_students={@has_students}
+  grades_report_cycles={@grades_report_cycles}
+  grades_report_subjects={@grades_report_subjects}
+  students_grades_map={@students_grades_map}
+  on_entry_click={fn _student_grade_report_entry_id -> nil end}
+/>
 <.slide_over
   :if={@is_editing}
   id="grade-report-form-overlay"

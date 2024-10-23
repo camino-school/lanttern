@@ -8,6 +8,7 @@ defmodule LantternWeb.GradesReportLive do
   # alias LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent
 
   # live components
+  import LantternWeb.GradesReportsComponents
   alias LantternWeb.GradesReports.GradesReportFormComponent
   alias LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponent
   # alias LantternWeb.Grading.GradeCompositionOverlayComponent
@@ -19,22 +20,61 @@ defmodule LantternWeb.GradesReportLive do
 
   @impl true
   def mount(params, _session, socket) do
+    socket =
+      socket
+      |> assign(:page_title, gettext("Grades reports"))
+      |> assign_grades_report(params)
+      |> stream_students()
+      |> assign_students_grades_map()
+      |> assign(:is_editing, false)
+      |> assign(:is_configuring, false)
+
+    {:ok, socket}
+  end
+
+  defp assign_grades_report(socket, %{"id" => id}) do
     grades_report =
-      case GradesReports.get_grades_report(params["id"],
-             preloads: [:school_cycle, :year, scale: :ordinal_values]
+      case GradesReports.get_grades_report(id,
+             preloads: [
+               :school_cycle,
+               :year,
+               scale: :ordinal_values,
+               grades_report_cycles: :school_cycle,
+               grades_report_subjects: :subject
+             ]
            ) do
         nil -> raise LantternWeb.NotFoundError
         grades_report -> grades_report
       end
 
-    socket =
-      socket
-      |> assign(:page_title, gettext("Grades reports"))
-      |> assign(:grades_report, grades_report)
-      |> assign(:is_editing, false)
-      |> assign(:is_configuring, false)
+    grades_report_cycles =
+      grades_report.grades_report_cycles
+      |> Enum.sort_by(& &1.school_cycle.start_at, Date)
 
-    {:ok, socket}
+    grades_report_subjects =
+      grades_report.grades_report_subjects
+      |> Enum.sort_by(& &1.position)
+
+    socket
+    |> assign(:grades_report, grades_report)
+    |> assign(:grades_report_cycles, grades_report_cycles)
+    |> assign(:grades_report_subjects, grades_report_subjects)
+  end
+
+  defp stream_students(socket) do
+    grades_report = socket.assigns.grades_report
+    students = GradesReports.list_grades_report_students(grades_report.id, grades_report.year_id)
+
+    socket
+    |> stream(:students, students)
+    |> assign(:has_students, length(students) > 0)
+  end
+
+  defp assign_students_grades_map(socket) do
+    students_grades_map =
+      GradesReports.build_students_full_grades_report_map(socket.assigns.grades_report.id)
+
+    assign(socket, :students_grades_map, students_grades_map)
   end
 
   @impl true

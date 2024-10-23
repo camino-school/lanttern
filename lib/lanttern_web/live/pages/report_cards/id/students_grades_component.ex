@@ -16,7 +16,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <div :if={@grades_report} class="py-10">
+      <div :if={@grades_report}>
         <div class="container mx-auto lg:max-w-5xl">
           <h5 class="font-display font-bold text-2xl">
             <%= gettext("Students grades") %>
@@ -42,48 +42,47 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
             </div>
           </div>
         <% else %>
-          <div class="p-6">
-            <.students_grades_grid
-              students={@students}
-              grades_report_subjects={@grades_report.grades_report_subjects}
-              students_grades_map={@students_grades_map}
-              on_calculate_cycle={fn -> JS.push("calculate_cycle", target: @myself) end}
-              on_calculate_student={
-                fn student_id ->
-                  JS.push("calculate_student",
-                    value: %{student_id: student_id},
-                    target: @myself
-                  )
-                end
-              }
-              on_calculate_subject={
-                fn grades_report_subject_id ->
-                  JS.push("calculate_subject",
-                    value: %{grades_report_subject_id: grades_report_subject_id},
-                    target: @myself
-                  )
-                end
-              }
-              on_calculate_cell={
-                fn student_id, grades_report_subject_id ->
-                  JS.push("calculate_cell",
-                    value: %{
-                      student_id: student_id,
-                      grades_report_subject_id: grades_report_subject_id
-                    },
-                    target: @myself
-                  )
-                end
-              }
-              on_entry_click={
-                fn student_grade_report_entry_id ->
-                  JS.patch(
-                    ~p"/report_cards/#{@report_card}?tab=grades&student_grade_report_entry=#{student_grade_report_entry_id}"
-                  )
-                end
-              }
-            />
-          </div>
+          <.students_grades_grid
+            class="mt-6"
+            students={@students}
+            grades_report_subjects={@grades_report.grades_report_subjects}
+            students_grades_map={@students_grades_map}
+            on_calculate_cycle={fn -> JS.push("calculate_cycle", target: @myself) end}
+            on_calculate_student={
+              fn student_id ->
+                JS.push("calculate_student",
+                  value: %{student_id: student_id},
+                  target: @myself
+                )
+              end
+            }
+            on_calculate_subject={
+              fn grades_report_subject_id ->
+                JS.push("calculate_subject",
+                  value: %{grades_report_subject_id: grades_report_subject_id},
+                  target: @myself
+                )
+              end
+            }
+            on_calculate_cell={
+              fn student_id, grades_report_subject_id ->
+                JS.push("calculate_cell",
+                  value: %{
+                    student_id: student_id,
+                    grades_report_subject_id: grades_report_subject_id
+                  },
+                  target: @myself
+                )
+              end
+            }
+            on_entry_click={
+              fn student_grade_report_entry_id ->
+                JS.patch(
+                  ~p"/report_cards/#{@report_card}?tab=grades&student_grade_report_entry=#{student_grade_report_entry_id}"
+                )
+              end
+            }
+          />
         <% end %>
         <.slide_over
           :if={@is_editing_student_grade_report_entry}
