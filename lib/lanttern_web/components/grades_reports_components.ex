@@ -10,7 +10,7 @@ defmodule LantternWeb.GradesReportsComponents do
   import LantternWeb.CoreComponents
 
   alias Lanttern.GradesReports.GradesReport
-  alias Lanttern.GradesReports.StudentGradeReportEntry
+  alias Lanttern.GradesReports.StudentGradesReportEntry
   alias Lanttern.Grading.OrdinalValue
 
   @doc """
@@ -130,7 +130,7 @@ defmodule LantternWeb.GradesReportsComponents do
                 grades_report_id={@grades_report.id}
                 grades_report_subject_id={grades_report_subject.id}
                 grades_report_cycle_id={grades_report_cycle.id}
-                student_grade_report_entry={
+                student_grades_report_entry={
                   @student_grades_map &&
                     @student_grades_map[grades_report_cycle.id][grades_report_subject.id]
                 }
@@ -163,69 +163,69 @@ defmodule LantternWeb.GradesReportsComponents do
 
   attr :on_composition_click, JS
   attr :on_student_grade_click, JS
-  attr :student_grade_report_entry, StudentGradeReportEntry
+  attr :student_grades_report_entry, StudentGradesReportEntry
   attr :grades_report_id, :integer, default: nil
   attr :grades_report_subject_id, :integer, default: nil
   attr :grades_report_cycle_id, :integer, default: nil
 
   defp grades_report_grid_cell(
-         %{student_grade_report_entry: %StudentGradeReportEntry{ordinal_value: %OrdinalValue{}}} =
+         %{student_grades_report_entry: %StudentGradesReportEntry{ordinal_value: %OrdinalValue{}}} =
            assigns
        ) do
     ~H"""
     <div class="flex items-stretch justify-stretch gap-1">
       <.button
-        :if={@student_grade_report_entry.pre_retake_ordinal_value}
+        :if={@student_grades_report_entry.pre_retake_ordinal_value}
         type="button"
         phx-click={@on_student_grade_click}
-        phx-value-studentgradereportid={@student_grade_report_entry.id}
-        phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
-        phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
-        style={create_color_map_style(@student_grade_report_entry.pre_retake_ordinal_value)}
+        phx-value-studentgradereportid={@student_grades_report_entry.id}
+        phx-value-gradesreportsubjectid={@student_grades_report_entry.grades_report_subject_id}
+        phx-value-gradesreportcycleid={@student_grades_report_entry.grades_report_cycle_id}
+        style={create_color_map_style(@student_grades_report_entry.pre_retake_ordinal_value)}
         class="flex-1 my-2 opacity-70"
       >
-        <%= @student_grade_report_entry.pre_retake_ordinal_value.name %>
+        <%= @student_grades_report_entry.pre_retake_ordinal_value.name %>
       </.button>
       <.button
         type="button"
         phx-click={@on_student_grade_click}
-        phx-value-studentgradereportid={@student_grade_report_entry.id}
-        phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
-        phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
-        style={create_color_map_style(@student_grade_report_entry.ordinal_value)}
+        phx-value-studentgradereportid={@student_grades_report_entry.id}
+        phx-value-gradesreportsubjectid={@student_grades_report_entry.grades_report_subject_id}
+        phx-value-gradesreportcycleid={@student_grades_report_entry.grades_report_cycle_id}
+        style={create_color_map_style(@student_grades_report_entry.ordinal_value)}
         class="flex-[2]"
       >
-        <%= @student_grade_report_entry.ordinal_value.name %>
+        <%= @student_grades_report_entry.ordinal_value.name %>
       </.button>
     </div>
     """
   end
 
   defp grades_report_grid_cell(
-         %{student_grade_report_entry: %StudentGradeReportEntry{}} = assigns
+         %{student_grades_report_entry: %StudentGradesReportEntry{}} = assigns
        ) do
     ~H"""
     <div class="flex items-stretch justify-stretch gap-1 font-mono font-bold">
       <button
-        :if={@student_grade_report_entry.pre_retake_score}
+        :if={@student_grades_report_entry.pre_retake_score}
         type="button"
         phx-click={@on_student_grade_click}
-        phx-value-studentgradereportid={@student_grade_report_entry.id}
-        phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
-        phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
+        phx-value-studentgradereportid={@student_grades_report_entry.id}
+        phx-value-gradesreportsubjectid={@student_grades_report_entry.grades_report_subject_id}
+        phx-value-gradesreportcycleid={@student_grades_report_entry.grades_report_cycle_id}
         class="flex-1 rounded border border-ltrn-lighter my-2 text-sm bg-ltrn-lightest opacity-70"
       >
-        <%= @student_grade_report_entry.pre_retake_score %>
+        <%= @student_grades_report_entry.pre_retake_score %>
       </button>
       <button
         type="button"
         phx-click={@on_student_grade_click}
-        phx-value-studentgradereportid={@student_grade_report_entry.id}
-        phx-value-gradesreportsubjectid={@student_grade_report_entry.grades_report_subject_id}
-        phx-value-gradesreportcycleid={@student_grade_report_entry.grades_report_cycle_id}
+        phx-value-studentgradereportid={@student_grades_report_entry.id}
+        phx-value-gradesreportsubjectid={@student_grades_report_entry.grades_report_subject_id}
+        phx-value-gradesreportcycleid={@student_grades_report_entry.grades_report_cycle_id}
         class="flex-[2] rounded border border-ltrn-lighter text-base bg-ltrn-lightest"
       >
-        <%= @student_grade_report_entry.score %>
+        <%= @student_grades_report_entry.score %>
       </button>
     </div>
     """
@@ -513,7 +513,7 @@ defmodule LantternWeb.GradesReportsComponents do
             >
               <.students_grades_grid_cell
                 :for={grades_report_subject <- @grades_report_subjects}
-                student_grade_report_entry={
+                student_grades_report_entry={
                   @students_grades_map[student.id][grades_report_cycle.id][grades_report_subject.id]
                 }
                 on_calculate_cell={nil}
@@ -525,7 +525,7 @@ defmodule LantternWeb.GradesReportsComponents do
             <div class="grid grid-cols-subgrid" style={@cycle_grid_column_span_style}>
               <.students_grades_grid_cell
                 :for={grades_report_subject <- @grades_report_subjects}
-                student_grade_report_entry={
+                student_grades_report_entry={
                   @students_grades_map[student.id][grades_report_subject.id]
                 }
                 on_calculate_cell={@on_calculate_cell}
@@ -704,7 +704,7 @@ defmodule LantternWeb.GradesReportsComponents do
           <%= if @has_subjects do %>
             <.students_grades_grid_cell
               :for={grades_report_subject <- @grades_report_subjects}
-              student_grade_report_entry={@students_grades_map[student.id][grades_report_subject.id]}
+              student_grades_report_entry={@students_grades_map[student.id][grades_report_subject.id]}
               on_calculate_cell={@on_calculate_cell}
               on_entry_click={@on_entry_click}
               grades_report_subject_id={grades_report_subject.id}
@@ -730,37 +730,37 @@ defmodule LantternWeb.GradesReportsComponents do
     """
   end
 
-  attr :student_grade_report_entry, StudentGradeReportEntry, default: nil
+  attr :student_grades_report_entry, StudentGradesReportEntry, default: nil
   attr :student_id, :integer, default: nil
   attr :grades_report_subject_id, :integer, default: nil
   attr :on_calculate_cell, :any, required: true
   attr :on_entry_click, :any, required: true
 
   defp students_grades_grid_cell(
-         %{student_grade_report_entry: %StudentGradeReportEntry{}} =
+         %{student_grades_report_entry: %StudentGradesReportEntry{}} =
            assigns
        ) do
     wrapper_class =
-      case assigns.student_grade_report_entry.comment || assigns.on_calculate_cell do
+      case assigns.student_grades_report_entry.comment || assigns.on_calculate_cell do
         nil -> ""
         _ -> "p-1 border border-ltrn-light"
       end
 
     wrapper_class =
-      case assigns.student_grade_report_entry do
-        %StudentGradeReportEntry{ordinal_value: %OrdinalValue{}} = sgre ->
+      case assigns.student_grades_report_entry do
+        %StudentGradesReportEntry{ordinal_value: %OrdinalValue{}} = sgre ->
           if sgre.ordinal_value_id == sgre.composition_ordinal_value_id,
             do: wrapper_class,
             else: "p-1 border border-ltrn-teacher-accent bg-ltrn-teacher-lightest"
 
-        %StudentGradeReportEntry{} = sgre ->
+        %StudentGradesReportEntry{} = sgre ->
           if sgre.score == sgre.composition_score,
             do: wrapper_class,
             else: "p-1 border border-ltrn-teacher-accent bg-ltrn-teacher-lightest"
       end
 
     has_manual_grade =
-      case assigns.student_grade_report_entry do
+      case assigns.student_grades_report_entry do
         %{
           ordinal_value_id: ov_id,
           composition_ordinal_value_id: comp_ov_id
@@ -787,15 +787,15 @@ defmodule LantternWeb.GradesReportsComponents do
       @wrapper_class
     ]}>
       <.students_grades_grid_cell_value
-        student_grade_report_entry={@student_grade_report_entry}
+        student_grades_report_entry={@student_grades_report_entry}
         on_entry_click={@on_entry_click}
       />
       <div
-        :if={@student_grade_report_entry.comment || @on_calculate_cell}
+        :if={@student_grades_report_entry.comment || @on_calculate_cell}
         class="flex flex-col gap-1 justify-center items-center ml-1"
       >
         <.icon
-          :if={@student_grade_report_entry.comment}
+          :if={@student_grades_report_entry.comment}
           name="hero-chat-bubble-oval-left-mini"
           class="text-ltrn-teacher-accent"
         />
@@ -837,14 +837,14 @@ defmodule LantternWeb.GradesReportsComponents do
     """
   end
 
-  attr :student_grade_report_entry, StudentGradeReportEntry, required: true
+  attr :student_grades_report_entry, StudentGradesReportEntry, required: true
   attr :on_entry_click, :any, required: true
 
   defp students_grades_grid_cell_value(
-         %{student_grade_report_entry: %StudentGradeReportEntry{ordinal_value: %OrdinalValue{}}} =
+         %{student_grades_report_entry: %StudentGradesReportEntry{ordinal_value: %OrdinalValue{}}} =
            assigns
        ) do
-    has_retake_history = assigns.student_grade_report_entry.pre_retake_ordinal_value_id != nil
+    has_retake_history = assigns.student_grades_report_entry.pre_retake_ordinal_value_id != nil
 
     assigns =
       assigns
@@ -854,25 +854,25 @@ defmodule LantternWeb.GradesReportsComponents do
     <button
       :if={@has_retake_history}
       class="flex-1 self-stretch flex items-center justify-center border rounded-sm my-2 text-xs opacity-70"
-      style={create_color_map_style(@student_grade_report_entry.pre_retake_ordinal_value)}
-      phx-click={if(@on_entry_click, do: @on_entry_click.(@student_grade_report_entry.id))}
+      style={create_color_map_style(@student_grades_report_entry.pre_retake_ordinal_value)}
+      phx-click={if(@on_entry_click, do: @on_entry_click.(@student_grades_report_entry.id))}
     >
-      <%= @student_grade_report_entry.pre_retake_ordinal_value.name %>
+      <%= @student_grades_report_entry.pre_retake_ordinal_value.name %>
     </button>
     <button
       class="flex-[2] self-stretch flex items-center justify-center rounded-sm"
-      style={create_color_map_style(@student_grade_report_entry.ordinal_value)}
-      phx-click={if(@on_entry_click, do: @on_entry_click.(@student_grade_report_entry.id))}
+      style={create_color_map_style(@student_grades_report_entry.ordinal_value)}
+      phx-click={if(@on_entry_click, do: @on_entry_click.(@student_grades_report_entry.id))}
     >
-      <%= @student_grade_report_entry.ordinal_value.name %>
+      <%= @student_grades_report_entry.ordinal_value.name %>
     </button>
     """
   end
 
   defp students_grades_grid_cell_value(
-         %{student_grade_report_entry: %StudentGradeReportEntry{}} = assigns
+         %{student_grades_report_entry: %StudentGradesReportEntry{}} = assigns
        ) do
-    has_retake_history = assigns.student_grade_report_entry.pre_retake_score != nil
+    has_retake_history = assigns.student_grades_report_entry.pre_retake_score != nil
 
     assigns =
       assigns
@@ -883,10 +883,10 @@ defmodule LantternWeb.GradesReportsComponents do
       :if={@has_retake_history}
       class="flex-1 flex items-center justify-center rounded-sm text-xs bg-white opacity-70"
     >
-      <%= @student_grade_report_entry.pre_retake_score %>
+      <%= @student_grades_report_entry.pre_retake_score %>
     </div>
     <div class="flex-[2] flex items-center justify-center rounded-sm bg-white">
-      <%= @student_grade_report_entry.score %>
+      <%= @student_grades_report_entry.score %>
     </div>
     """
   end
@@ -894,7 +894,7 @@ defmodule LantternWeb.GradesReportsComponents do
   @doc """
   Renders a grade composition table.
   """
-  attr :student_grade_report_entry, StudentGradeReportEntry, required: true
+  attr :student_grades_report_entry, StudentGradesReportEntry, required: true
   attr :id, :string, default: nil
   attr :class, :any, default: nil
 
@@ -912,7 +912,7 @@ defmodule LantternWeb.GradesReportsComponents do
           </tr>
         </thead>
         <tbody>
-          <tr :for={component <- @student_grade_report_entry.composition}>
+          <tr :for={component <- @student_grades_report_entry.composition}>
             <td class="p-2">
               <span :if={component.strand_type}>
                 (<%= component.strand_type %>)
@@ -941,10 +941,10 @@ defmodule LantternWeb.GradesReportsComponents do
               <%= gettext("Final grade") %>
             </td>
             <td class="p-2">
-              <%= case @student_grade_report_entry.composition_ordinal_value do
+              <%= case @student_grades_report_entry.composition_ordinal_value do
                 nil ->
                   :erlang.float_to_binary(
-                    @student_grade_report_entry.composition_score,
+                    @student_grades_report_entry.composition_score,
                     decimals: 2
                   )
 
@@ -954,7 +954,7 @@ defmodule LantternWeb.GradesReportsComponents do
             </td>
             <td colspan="2" class="p-2 text-right">
               <%= :erlang.float_to_binary(
-                @student_grade_report_entry.composition_normalized_value,
+                @student_grades_report_entry.composition_normalized_value,
                 decimals: 2
               ) %>
             </td>

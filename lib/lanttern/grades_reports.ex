@@ -11,7 +11,8 @@ defmodule Lanttern.GradesReports do
   alias Lanttern.GradesReports.GradesReport
   alias Lanttern.GradesReports.GradesReportCycle
   alias Lanttern.GradesReports.GradesReportSubject
-  alias Lanttern.GradesReports.StudentGradeReportEntry
+  alias Lanttern.GradesReports.StudentGradesReportEntry
+  alias Lanttern.GradesReports.StudentGradesReportFinalEntry
   alias Lanttern.Grading
   alias Lanttern.Grading.GradeComponent
   alias Lanttern.Grading.OrdinalValue
@@ -455,15 +456,15 @@ defmodule Lanttern.GradesReports do
   ## Examples
 
       iex> list_student_grade_report_entries()
-      [%StudentGradeReportEntry{}, ...]
+      [%StudentGradesReportEntry{}, ...]
 
   """
   def list_student_grade_report_entries do
-    Repo.all(StudentGradeReportEntry)
+    Repo.all(StudentGradesReportEntry)
   end
 
   @doc """
-  Gets a single student_grade_report_entry.
+  Gets a single student_grades_report_entry.
 
   Raises `Ecto.NoResultsError` if the Student grade report entry does not exist.
 
@@ -473,87 +474,107 @@ defmodule Lanttern.GradesReports do
 
   ## Examples
 
-      iex> get_student_grade_report_entry!(123)
-      %StudentGradeReportEntry{}
+      iex> get_student_grades_report_entry!(123)
+      %StudentGradesReportEntry{}
 
-      iex> get_student_grade_report_entry!(456)
+      iex> get_student_grades_report_entry!(456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_student_grade_report_entry!(id, opts \\ []) do
-    Repo.get!(StudentGradeReportEntry, id)
+  def get_student_grades_report_entry!(id, opts \\ []) do
+    Repo.get!(StudentGradesReportEntry, id)
     |> maybe_preload(opts)
   end
 
   @doc """
-  Creates a student_grade_report_entry.
+  Creates a student_grades_report_entry.
 
   ## Examples
 
-      iex> create_student_grade_report_entry(%{field: value})
-      {:ok, %StudentGradeReportEntry{}}
+      iex> create_student_grades_report_entry(%{field: value})
+      {:ok, %StudentGradesReportEntry{}}
 
-      iex> create_student_grade_report_entry(%{field: bad_value})
+      iex> create_student_grades_report_entry(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_student_grade_report_entry(attrs \\ %{}) do
-    %StudentGradeReportEntry{}
-    |> StudentGradeReportEntry.changeset(attrs)
+  def create_student_grades_report_entry(attrs \\ %{}) do
+    %StudentGradesReportEntry{}
+    |> StudentGradesReportEntry.changeset(attrs)
     |> Repo.insert()
   end
 
   @doc """
-  Updates a student_grade_report_entry.
+  Updates a student_grades_report_entry.
 
   ## Examples
 
-      iex> update_student_grade_report_entry(student_grade_report_entry, %{field: new_value})
-      {:ok, %StudentGradeReportEntry{}}
+      iex> update_student_grades_report_entry(student_grades_report_entry, %{field: new_value})
+      {:ok, %StudentGradesReportEntry{}}
 
-      iex> update_student_grade_report_entry(student_grade_report_entry, %{field: bad_value})
+      iex> update_student_grades_report_entry(student_grades_report_entry, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_student_grade_report_entry(
-        %StudentGradeReportEntry{} = student_grade_report_entry,
+  def update_student_grades_report_entry(
+        %StudentGradesReportEntry{} = student_grades_report_entry,
         attrs
       ) do
-    student_grade_report_entry
-    |> StudentGradeReportEntry.changeset(attrs)
+    student_grades_report_entry
+    |> StudentGradesReportEntry.changeset(attrs)
     |> Repo.update()
   end
 
   @doc """
-  Deletes a student_grade_report_entry.
+  Deletes a student_grades_report_entry.
 
   ## Examples
 
-      iex> delete_student_grade_report_entry(student_grade_report_entry)
-      {:ok, %StudentGradeReportEntry{}}
+      iex> delete_student_grades_report_entry(student_grades_report_entry)
+      {:ok, %StudentGradesReportEntry{}}
 
-      iex> delete_student_grade_report_entry(student_grade_report_entry)
+      iex> delete_student_grades_report_entry(student_grades_report_entry)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_student_grade_report_entry(%StudentGradeReportEntry{} = student_grade_report_entry) do
-    Repo.delete(student_grade_report_entry)
+  def delete_student_grades_report_entry(
+        %StudentGradesReportEntry{} = student_grades_report_entry
+      ) do
+    Repo.delete(student_grades_report_entry)
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for tracking student_grade_report_entry changes.
+  Returns an `%Ecto.Changeset{}` for tracking student_grades_report_entry changes.
 
   ## Examples
 
-      iex> change_student_grade_report_entry(student_grade_report_entry)
-      %Ecto.Changeset{data: %StudentGradeReportEntry{}}
+      iex> change_student_grades_report_entry(student_grades_report_entry)
+      %Ecto.Changeset{data: %StudentGradesReportEntry{}}
 
   """
-  def change_student_grade_report_entry(
-        %StudentGradeReportEntry{} = student_grade_report_entry,
+  def change_student_grades_report_entry(
+        %StudentGradesReportEntry{} = student_grades_report_entry,
         attrs \\ %{}
       ) do
-    StudentGradeReportEntry.changeset(student_grade_report_entry, attrs)
+    StudentGradesReportEntry.changeset(student_grades_report_entry, attrs)
+  end
+
+  @doc """
+  Creates a student_grades_report_final_entry.
+
+  ## Examples
+
+      iex> create_student_grades_report_final_entry(%{field: value})
+      {:ok, %StudentGradesReportFinalEntry{}}
+
+      iex> create_student_grades_report_final_entry(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_student_grades_report_final_entry(attrs \\ %{}) do
+    %StudentGradesReportFinalEntry{}
+    |> StudentGradesReportFinalEntry.changeset(attrs)
+    |> Repo.insert()
   end
 
   @doc """
@@ -595,10 +616,10 @@ defmodule Lanttern.GradesReports do
   Calculate student grade for given grades report cycle and subject.
 
   Uses a third elemente in the `:ok` returned tuple:
-  - `:created` when the `StudentGradeReportEntry` is created
-  - `:updated` when the `StudentGradeReportEntry` is updated
-  - `:updated_with_manual` when the `StudentGradeReportEntry` is updated, except from manually adjusted `ordinal_value_id` or `score`
-  - `:deleted` when the `StudentGradeReportEntry` is deleted (always `nil` in the second element)
+  - `:created` when the `StudentGradesReportEntry` is created
+  - `:updated` when the `StudentGradesReportEntry` is updated
+  - `:updated_with_manual` when the `StudentGradesReportEntry` is updated, except from manually adjusted `ordinal_value_id` or `score`
+  - `:deleted` when the `StudentGradesReportEntry` is deleted (always `nil` in the second element)
   - `:noop` when the nothing is created, updated, or deleted (always `nil` in the second element)
 
   ### Options
@@ -612,7 +633,7 @@ defmodule Lanttern.GradesReports do
           grades_report_subject_id :: integer(),
           Keyword.t()
         ) ::
-          {:ok, StudentGradeReportEntry.t() | nil,
+          {:ok, StudentGradesReportEntry.t() | nil,
            :created | :updated | :updated_keep_manual | :deleted | :noop}
           | {:error, Ecto.Changeset.t()}
   def calculate_student_grade(
@@ -678,7 +699,7 @@ defmodule Lanttern.GradesReports do
          _opts
        ) do
     # delete existing student grade report entry if needed
-    Repo.get_by(StudentGradeReportEntry,
+    Repo.get_by(StudentGradesReportEntry,
       student_id: student_id,
       grades_report_cycle_id: grades_report_cycle_id,
       grades_report_subject_id: grades_report_subject_id
@@ -688,7 +709,7 @@ defmodule Lanttern.GradesReports do
         {:ok, nil, :noop}
 
       sgre ->
-        case delete_student_grade_report_entry(sgre) do
+        case delete_student_grades_report_entry(sgre) do
           {:ok, _} -> {:ok, nil, :deleted}
           error_tuple -> error_tuple
         end
@@ -741,22 +762,22 @@ defmodule Lanttern.GradesReports do
       end
 
     # create or update existing student grade report entry
-    Repo.get_by(StudentGradeReportEntry,
+    Repo.get_by(StudentGradesReportEntry,
       student_id: student_id,
       grades_report_cycle_id: grades_report_cycle_id,
       grades_report_subject_id: grades_report_subject_id
     )
-    |> create_or_update_student_grade_report_entry(attrs, force_overwrite)
+    |> create_or_update_student_grades_report_entry(attrs, force_overwrite)
   end
 
-  defp create_or_update_student_grade_report_entry(nil, attrs, _) do
-    case create_student_grade_report_entry(attrs) do
+  defp create_or_update_student_grades_report_entry(nil, attrs, _) do
+    case create_student_grades_report_entry(attrs) do
       {:ok, sgre} -> {:ok, sgre, :created}
       error_tuple -> error_tuple
     end
   end
 
-  defp create_or_update_student_grade_report_entry(
+  defp create_or_update_student_grades_report_entry(
          %{ordinal_value_id: ov_id, composition_ordinal_value_id: comp_ov_id} = sgre,
          attrs,
          false
@@ -764,13 +785,13 @@ defmodule Lanttern.GradesReports do
        when ov_id != comp_ov_id do
     attrs = Map.drop(attrs, [:ordinal_value_id])
 
-    case update_student_grade_report_entry(sgre, attrs) do
+    case update_student_grades_report_entry(sgre, attrs) do
       {:ok, sgre} -> {:ok, sgre, :updated_with_manual}
       error_tuple -> error_tuple
     end
   end
 
-  defp create_or_update_student_grade_report_entry(
+  defp create_or_update_student_grades_report_entry(
          %{score: score, composition_score: comp_score} = sgre,
          attrs,
          false
@@ -778,14 +799,14 @@ defmodule Lanttern.GradesReports do
        when score != comp_score do
     attrs = Map.drop(attrs, [:score])
 
-    case update_student_grade_report_entry(sgre, attrs) do
+    case update_student_grades_report_entry(sgre, attrs) do
       {:ok, sgre} -> {:ok, sgre, :updated_with_manual}
       error_tuple -> error_tuple
     end
   end
 
-  defp create_or_update_student_grade_report_entry(sgre, attrs, _force_overwrite) do
-    case update_student_grade_report_entry(sgre, attrs) do
+  defp create_or_update_student_grades_report_entry(sgre, attrs, _force_overwrite) do
+    case update_student_grades_report_entry(sgre, attrs) do
       {:ok, sgre} -> {:ok, sgre, :updated}
       error_tuple -> error_tuple
     end
@@ -1236,10 +1257,14 @@ defmodule Lanttern.GradesReports do
       %{
         student_id => %{
           grades_report_cycle_id => %{
-            grades_report_subject_id => %StudentGradeReportEntry{},
+            grades_report_subject_id => %StudentGradesReportEntry{},
             # other subjects ids...
           },
           # other cycles ids...
+          final => %{
+            grades_report_subject_id => %StudentGradesReportFinalEntry{},
+            # other subjects ids...
+          }
         }
         # other students ids...
       }
@@ -1258,13 +1283,48 @@ defmodule Lanttern.GradesReports do
         distinct: true
       )
 
+    final_entries_map =
+      from(
+        std in subquery(grades_report_students_query),
+        join: grs in GradesReportSubject,
+        on: grs.grades_report_id == ^grades_report_id,
+        left_join: sgrfe in StudentGradesReportFinalEntry,
+        on:
+          sgrfe.grades_report_subject_id == grs.id and
+            sgrfe.student_id == std.id,
+        left_join: ov in assoc(sgrfe, :ordinal_value),
+        left_join: pr_ov in assoc(sgrfe, :pre_retake_ordinal_value),
+        select: {std.id, grs.id, sgrfe, ov, pr_ov}
+      )
+      |> Repo.all()
+      |> Enum.reduce(%{}, fn {std_id, grs_id, sgrfe, ov, pr_ov}, acc ->
+        # "preload" ordinal value in student grade report entry
+        # and clear composition to save memory
+        sgrfe =
+          case sgrfe do
+            nil ->
+              nil
+
+            sgrfe ->
+              %{sgrfe | ordinal_value: ov, pre_retake_ordinal_value: pr_ov, composition: nil}
+          end
+
+        # get or create student map
+        std_map = Map.get(acc, std_id, %{})
+
+        # add subject to student map
+        std_map = Map.put(std_map, grs_id, sgrfe)
+
+        Map.put(acc, std_id, std_map)
+      end)
+
     from(
       std in subquery(grades_report_students_query),
       join: grs in GradesReportSubject,
       on: grs.grades_report_id == ^grades_report_id,
       join: grc in GradesReportCycle,
       on: grc.grades_report_id == ^grades_report_id,
-      left_join: sgre in StudentGradeReportEntry,
+      left_join: sgre in StudentGradesReportEntry,
       on:
         sgre.grades_report_cycle_id == grc.id and
           sgre.grades_report_subject_id == grs.id and
@@ -1295,8 +1355,12 @@ defmodule Lanttern.GradesReports do
         |> Map.get(grc_id, %{})
         |> Map.put(grs_id, sgre)
 
-      # update/add cycle to student map
-      std_map = Map.put(std_map, grc_id, cycle_map)
+      std_map =
+        std_map
+        # update/add cycle to student map
+        |> Map.put(grc_id, cycle_map)
+        # put final entries in map
+        |> Map.put(:final, final_entries_map[std_id])
 
       Map.put(acc, std_id, std_map)
     end)
@@ -1307,7 +1371,7 @@ defmodule Lanttern.GradesReports do
 
       %{
         student_id => %{
-          subject_id => %StudentGradeReportEntry{},
+          subject_id => %StudentGradesReportEntry{},
           # other subjects ids...
         }
         # other students ids...
@@ -1317,19 +1381,19 @@ defmodule Lanttern.GradesReports do
 
   Ordinal values preloaded (manually) in student grade report entry.
   """
-  @spec build_students_grades_map(
+  @spec build_students_grades_cycle_map(
           students_ids :: [pos_integer()],
           grades_report_id :: pos_integer(),
           cycle_id :: pos_integer()
         ) :: %{}
-  def build_students_grades_map(students_ids, grades_report_id, cycle_id) do
+  def build_students_grades_cycle_map(students_ids, grades_report_id, cycle_id) do
     from(
       std in Student,
       join: grs in GradesReportSubject,
       on: true,
       join: grc in GradesReportCycle,
       on: grc.grades_report_id == grs.grades_report_id,
-      left_join: sgre in StudentGradeReportEntry,
+      left_join: sgre in StudentGradesReportEntry,
       on:
         sgre.grades_report_cycle_id == grc.id and
           sgre.grades_report_subject_id == grs.id and
@@ -1368,7 +1432,7 @@ defmodule Lanttern.GradesReports do
 
       %{
         cycle_id => %{
-          subject_id => %StudentGradeReportEntry{},
+          subject_id => %StudentGradesReportEntry{},
           # other subjects ids...
         }
         # other cycles ids...
@@ -1376,7 +1440,7 @@ defmodule Lanttern.GradesReports do
 
   for the given student report card id.
 
-  Removes `composition` from returned `StudentGradeReportEntry` to save memory.
+  Removes `composition` from returned `StudentGradesReportEntry` to save memory.
 
   Ordinal values preloaded (manually) in student grade report entry.
   """
@@ -1389,7 +1453,7 @@ defmodule Lanttern.GradesReports do
       join: grc in assoc(gr, :grades_report_cycles),
       on: grc.is_visible,
       join: grs in assoc(gr, :grades_report_subjects),
-      left_join: sgre in StudentGradeReportEntry,
+      left_join: sgre in StudentGradesReportEntry,
       on:
         sgre.grades_report_cycle_id == grc.id and
           sgre.grades_report_subject_id == grs.id and
@@ -1412,7 +1476,7 @@ defmodule Lanttern.GradesReports do
       %{
         grades_report_id => %{
           cycle_id => %{
-            subject_id => %StudentGradeReportEntry{},
+            subject_id => %StudentGradesReportEntry{},
             # other subjects ids...
           },
           # other cycles ids...
@@ -1422,7 +1486,7 @@ defmodule Lanttern.GradesReports do
 
   for the given student and grades reports.
 
-  Removes `composition` from returned `StudentGradeReportEntry` to save memory.
+  Removes `composition` from returned `StudentGradesReportEntry` to save memory.
 
   Ordinal values preloaded (manually) in student grade report entry.
   """
@@ -1436,7 +1500,7 @@ defmodule Lanttern.GradesReports do
       join: grc in assoc(gr, :grades_report_cycles),
       # on: grc.is_visible,
       join: grs in assoc(gr, :grades_report_subjects),
-      left_join: sgre in StudentGradeReportEntry,
+      left_join: sgre in StudentGradesReportEntry,
       on:
         sgre.grades_report_cycle_id == grc.id and
           sgre.grades_report_subject_id == grs.id and

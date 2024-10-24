@@ -81,9 +81,9 @@
 </div>
 <.footnote footnote={@student_report_card.footnote} />
 <.live_component
-  :if={@student_grade_report_entry_id}
+  :if={@student_grades_report_entry_id}
   module={GradeDetailsOverlayComponent}
   id="grade-details-overlay-component-overlay"
-  student_grade_report_entry_id={@student_grade_report_entry_id}
+  student_grades_report_entry_id={@student_grades_report_entry_id}
   on_cancel={JS.patch(~p"/student_report_card/#{@student_report_card}")}
 />

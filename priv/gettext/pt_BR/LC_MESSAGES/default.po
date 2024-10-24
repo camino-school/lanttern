@@ -276,7 +276,7 @@ msgstr "Salvar Trilha"
 #: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:95
 #: lib/lanttern_web/live/shared/curricula/curriculum_item_form_component.ex:55
 #: lib/lanttern_web/live/shared/grades_reports/grades_report_form_component.ex:73
-#: lib/lanttern_web/live/shared/grades_reports/student_grade_report_entry_form_component.ex:81
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:81
 #: lib/lanttern_web/live/shared/learning_context/moment_card_form_component.ex:54
 #: lib/lanttern_web/live/shared/learning_context/moment_form_component.ex:63
 #: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:83
@@ -711,7 +711,7 @@ msgstr "Rubrica criada com sucesso"
 msgid "Rubric updated successfully"
 msgstr "Rubrica atualizada com sucesso"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grade_report_entry_form_component.ex:35
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:35
 #: lib/lanttern_web/live/shared/rubrics/rubric_form_component.ex:104
 #, elixir-autogen, elixir-format
 msgid "Score"
@@ -1039,7 +1039,7 @@ msgid "Code"
 msgstr "Código"
 
 #: lib/lanttern_web/live/shared/grades_reports/grade_details_overlay_component.ex:78
-#: lib/lanttern_web/live/shared/grades_reports/student_grade_report_entry_form_component.ex:49
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:49
 #, elixir-autogen, elixir-format
 msgid "Comment"
 msgstr "Comentário"
@@ -1133,7 +1133,7 @@ msgstr "Ciclo já adicionado à este relatório de nota"
 msgid "Diff"
 msgstr "Dif"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grade_report_entry_form_component.ex:41
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:41
 #, elixir-autogen, elixir-format
 msgid "Different from grade composition. Use comments field to justify it if needed."
 msgstr "Diferente da composição da nota. Use o campo de comentários para justificar se necessário."
@@ -1355,7 +1355,7 @@ msgstr "Item"
 msgid "Lanttern automatic grade calculation info based on configured grade composition"
 msgstr "Informações do cálculo automático da nota do Lanttern baseado na configuração de composição da nota"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grade_report_entry_form_component.ex:27
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:27
 #, elixir-autogen, elixir-format
 msgid "Level"
 msgstr "Nível"
@@ -1589,13 +1589,13 @@ msgstr "Salvar relatório de nota"
 msgid "Save moment card"
 msgstr "Salvar card de momento"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grade_report_entry_form_component.ex:82
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:82
 #, elixir-autogen, elixir-format
 msgid "Save student grade report entry"
 msgstr "Salvar registro de relatório de nota de estudante"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grade_report_entry_form_component.ex:29
-#: lib/lanttern_web/live/shared/grades_reports/student_grade_report_entry_form_component.ex:69
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:29
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:69
 #, elixir-autogen, elixir-format
 msgid "Select a level"
 msgstr "Selecione uma escala"
@@ -1666,7 +1666,7 @@ msgstr "Trilha vinculada ao relatório"
 msgid "Student already linked to report card"
 msgstr "Estudante já vinculado ao report card"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grade_report_entry_form_component.ex:207
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:207
 #, elixir-autogen, elixir-format
 msgid "Student grade report entry created successfully"
 msgstr "Registro de relatório de nota de estudante criado com sucesso"
@@ -1676,7 +1676,7 @@ msgstr "Registro de relatório de nota de estudante criado com sucesso"
 msgid "Student grade report entry deleted"
 msgstr "Registro de relatório de nota de estudante deletado"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grade_report_entry_form_component.ex:231
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:231
 #, elixir-autogen, elixir-format
 msgid "Student grade report entry updated successfully"
 msgstr "Registro de relatório de nota de estudante atualizado com sucesso"
@@ -2506,17 +2506,17 @@ msgstr "Você tem certeza? Notas relacionadas à disciplina serão criadas, atua
 msgid "Grade before retake process"
 msgstr "Nota anterior ao processo de recuperação"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grade_report_entry_form_component.ex:78
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:78
 #, elixir-autogen, elixir-format
 msgid "If needed, use this area to keep the student grade history before retake."
 msgstr "Se necessário, utilize esta área para manter o histórico de nota do estudante antes da recuperação."
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grade_report_entry_form_component.ex:67
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:67
 #, elixir-autogen, elixir-format
 msgid "Level before retake"
 msgstr "Nível anterior à recuperação"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grade_report_entry_form_component.ex:75
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:75
 #, elixir-autogen, elixir-format
 msgid "Score before retake"
 msgstr "Score anterior à recuperação"

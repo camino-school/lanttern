@@ -1,6 +1,6 @@
-defmodule LantternWeb.GradesReports.StudentGradeReportEntryFormComponent do
+defmodule LantternWeb.GradesReports.StudentGradesReportEntryFormComponent do
   @moduledoc """
-  Renders a `StudentGradeReportEntry` form
+  Renders a `StudentGradesReportEntry` form
   """
 
   use LantternWeb, :live_component
@@ -99,11 +99,11 @@ defmodule LantternWeb.GradesReports.StudentGradeReportEntryFormComponent do
   @impl true
   def update(assigns, socket) do
     %{
-      student_grade_report_entry: student_grade_report_entry,
+      student_grades_report_entry: student_grades_report_entry,
       scale_id: scale_id
     } = assigns
 
-    changeset = GradesReports.change_student_grade_report_entry(student_grade_report_entry)
+    changeset = GradesReports.change_student_grades_report_entry(student_grades_report_entry)
 
     scale = Grading.get_scale!(scale_id, preloads: :ordinal_values)
 
@@ -126,7 +126,7 @@ defmodule LantternWeb.GradesReports.StudentGradeReportEntryFormComponent do
   defp assign_has_manual_edit(socket) do
     %{
       form: form,
-      student_grade_report_entry: student_grade_report_entry,
+      student_grades_report_entry: student_grades_report_entry,
       scale_type: scale_type
     } = socket.assigns
 
@@ -134,11 +134,11 @@ defmodule LantternWeb.GradesReports.StudentGradeReportEntryFormComponent do
       cond do
         scale_type == "ordinal" &&
             "#{form[:ordinal_value_id].value}" !=
-              "#{student_grade_report_entry.composition_ordinal_value_id}" ->
+              "#{student_grades_report_entry.composition_ordinal_value_id}" ->
           true
 
         scale_type == "numeric" &&
-            "#{form[:score].value}" != "#{student_grade_report_entry.composition_score}" ->
+            "#{form[:score].value}" != "#{student_grades_report_entry.composition_score}" ->
           true
 
         true ->
@@ -168,12 +168,12 @@ defmodule LantternWeb.GradesReports.StudentGradeReportEntryFormComponent do
   @impl true
   def handle_event(
         "validate",
-        %{"student_grade_report_entry" => student_grade_report_entry_params},
+        %{"student_grades_report_entry" => student_grades_report_entry_params},
         socket
       ) do
     changeset =
-      socket.assigns.student_grade_report_entry
-      |> GradesReports.change_student_grade_report_entry(student_grade_report_entry_params)
+      socket.assigns.student_grades_report_entry
+      |> GradesReports.change_student_grades_report_entry(student_grades_report_entry_params)
       |> Map.put(:action, :validate)
 
     socket =
@@ -187,25 +187,25 @@ defmodule LantternWeb.GradesReports.StudentGradeReportEntryFormComponent do
 
   def handle_event(
         "save",
-        %{"student_grade_report_entry" => student_grade_report_entry_params},
+        %{"student_grades_report_entry" => student_grades_report_entry_params},
         socket
       ) do
-    save_student_grade_report_entry(
+    save_student_grades_report_entry(
       socket,
-      socket.assigns.student_grade_report_entry.id,
-      student_grade_report_entry_params
+      socket.assigns.student_grades_report_entry.id,
+      student_grades_report_entry_params
     )
   end
 
-  defp save_student_grade_report_entry(socket, nil, student_grade_report_entry_params) do
-    case GradesReports.create_student_grade_report_entry(student_grade_report_entry_params) do
-      {:ok, student_grade_report_entry} ->
-        notify_parent(__MODULE__, {:saved, student_grade_report_entry}, socket.assigns)
+  defp save_student_grades_report_entry(socket, nil, student_grades_report_entry_params) do
+    case GradesReports.create_student_grades_report_entry(student_grades_report_entry_params) do
+      {:ok, student_grades_report_entry} ->
+        notify_parent(__MODULE__, {:saved, student_grades_report_entry}, socket.assigns)
 
         socket =
           socket
           |> put_flash(:info, gettext("Student grade report entry created successfully"))
-          |> handle_navigation(student_grade_report_entry)
+          |> handle_navigation(student_grades_report_entry)
 
         {:noreply, socket}
 
@@ -214,22 +214,22 @@ defmodule LantternWeb.GradesReports.StudentGradeReportEntryFormComponent do
     end
   end
 
-  defp save_student_grade_report_entry(
+  defp save_student_grades_report_entry(
          socket,
-         _student_grade_report_entry_id,
-         student_grade_report_entry_params
+         _student_grades_report_entry_id,
+         student_grades_report_entry_params
        ) do
-    case GradesReports.update_student_grade_report_entry(
-           socket.assigns.student_grade_report_entry,
-           student_grade_report_entry_params
+    case GradesReports.update_student_grades_report_entry(
+           socket.assigns.student_grades_report_entry,
+           student_grades_report_entry_params
          ) do
-      {:ok, student_grade_report_entry} ->
-        notify_parent(__MODULE__, {:saved, student_grade_report_entry}, socket.assigns)
+      {:ok, student_grades_report_entry} ->
+        notify_parent(__MODULE__, {:saved, student_grades_report_entry}, socket.assigns)
 
         socket =
           socket
           |> put_flash(:info, gettext("Student grade report entry updated successfully"))
-          |> handle_navigation(student_grade_report_entry)
+          |> handle_navigation(student_grades_report_entry)
 
         {:noreply, socket}
 

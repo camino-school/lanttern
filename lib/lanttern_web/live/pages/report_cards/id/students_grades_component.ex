@@ -8,7 +8,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
     only: [assign_user_filters: 3, save_profile_filters: 3]
 
   # shared
-  alias LantternWeb.GradesReports.StudentGradeReportEntryOverlayComponent
+  alias LantternWeb.GradesReports.StudentGradesReportEntryOverlayComponent
   import LantternWeb.GradesReportsComponents
   alias LantternWeb.Filters.InlineFiltersComponent
 
@@ -76,19 +76,19 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
               end
             }
             on_entry_click={
-              fn student_grade_report_entry_id ->
+              fn student_grades_report_entry_id ->
                 JS.patch(
-                  ~p"/report_cards/#{@report_card}?tab=grades&student_grade_report_entry=#{student_grade_report_entry_id}"
+                  ~p"/report_cards/#{@report_card}?tab=grades&student_grades_report_entry=#{student_grades_report_entry_id}"
                 )
               end
             }
           />
         <% end %>
         <.live_component
-          :if={@is_editing_student_grade_report_entry}
-          module={StudentGradeReportEntryOverlayComponent}
-          id={@student_grade_report_entry.id}
-          student_grade_report_entry={@student_grade_report_entry}
+          :if={@is_editing_student_grades_report_entry}
+          module={StudentGradesReportEntryOverlayComponent}
+          id={@student_grades_report_entry.id}
+          student_grades_report_entry={@student_grades_report_entry}
           scale_id={@grades_report.scale_id}
           navigate={~p"/report_cards/#{@report_card}?tab=grades"}
           on_cancel={JS.patch(~p"/report_cards/#{@report_card}?tab=grades")}
@@ -143,20 +143,20 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           grades_report.grades_report_cycles
           |> Enum.find(&(&1.school_cycle_id == report_card.school_cycle_id))
       end)
-      |> assign_is_editing_student_grade_report_entry(assigns)
+      |> assign_is_editing_student_grades_report_entry(assigns)
       |> assign_students_grades_grid()
 
     {:ok, socket}
   end
 
-  defp assign_is_editing_student_grade_report_entry(socket, %{
-         params: %{"student_grade_report_entry" => student_grade_report_entry_id}
+  defp assign_is_editing_student_grades_report_entry(socket, %{
+         params: %{"student_grades_report_entry" => student_grades_report_entry_id}
        }) do
     %{current_grades_report_cycle: current_grades_report_cycle} = socket.assigns
 
-    student_grade_report_entry =
-      GradesReports.get_student_grade_report_entry!(
-        student_grade_report_entry_id,
+    student_grades_report_entry =
+      GradesReports.get_student_grades_report_entry!(
+        student_grades_report_entry_id,
         preloads: [
           :student,
           :composition_ordinal_value,
@@ -165,19 +165,19 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
         ]
       )
 
-    case student_grade_report_entry.grades_report_cycle_id == current_grades_report_cycle.id do
+    case student_grades_report_entry.grades_report_cycle_id == current_grades_report_cycle.id do
       true ->
         socket
-        |> assign(:is_editing_student_grade_report_entry, true)
-        |> assign(:student_grade_report_entry, student_grade_report_entry)
+        |> assign(:is_editing_student_grades_report_entry, true)
+        |> assign(:student_grades_report_entry, student_grades_report_entry)
 
       _ ->
-        assign(socket, :is_editing_student_grade_report_entry, false)
+        assign(socket, :is_editing_student_grades_report_entry, false)
     end
   end
 
-  defp assign_is_editing_student_grade_report_entry(socket, _),
-    do: assign(socket, :is_editing_student_grade_report_entry, false)
+  defp assign_is_editing_student_grades_report_entry(socket, _),
+    do: assign(socket, :is_editing_student_grades_report_entry, false)
 
   defp assign_students_grades_grid(socket) do
     students =
@@ -192,7 +192,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           nil
 
         grades_report ->
-          GradesReports.build_students_grades_map(
+          GradesReports.build_students_grades_cycle_map(
             Enum.map(students, & &1.id),
             grades_report.id,
             socket.assigns.report_card.school_cycle_id

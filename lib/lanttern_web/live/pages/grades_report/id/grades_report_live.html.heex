@@ -59,9 +59,9 @@
   on_calculate_subject={fn _ -> nil end}
   on_calculate_cell={fn _, _ -> nil end}
   on_entry_click={
-    fn student_grade_report_entry_id ->
+    fn student_grades_report_entry_id ->
       JS.patch(
-        ~p"/grades_reports/#{@grades_report}?student_grade_report_entry=#{student_grade_report_entry_id}"
+        ~p"/grades_reports/#{@grades_report}?student_grades_report_entry=#{student_grades_report_entry_id}"
       )
     end
   }
@@ -111,10 +111,10 @@
   on_cancel={JS.patch(~p"/grades_reports/#{@grades_report}")}
 />
 <.live_component
-  :if={@is_editing_student_grade_report_entry}
-  module={StudentGradeReportEntryOverlayComponent}
-  id={@student_grade_report_entry.id}
-  student_grade_report_entry={@student_grade_report_entry}
+  :if={@is_editing_student_grades_report_entry}
+  module={StudentGradesReportEntryOverlayComponent}
+  id={@student_grades_report_entry.id}
+  student_grades_report_entry={@student_grades_report_entry}
   scale_id={@grades_report.scale_id}
   navigate={~p"/grades_reports/#{@grades_report}"}
   on_cancel={JS.patch(~p"/grades_reports/#{@grades_report}")}

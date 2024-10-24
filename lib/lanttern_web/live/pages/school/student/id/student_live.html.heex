@@ -61,9 +61,9 @@
   </div>
 <% end %>
 <.live_component
-  :if={@student_grade_report_entry_id}
+  :if={@student_grades_report_entry_id}
   module={GradeDetailsOverlayComponent}
   id="grade-details-overlay-component-overlay"
-  student_grade_report_entry_id={@student_grade_report_entry_id}
+  student_grades_report_entry_id={@student_grades_report_entry_id}
   on_cancel={JS.patch(~p"/school/student/#{@student_id}")}
 />

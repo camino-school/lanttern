@@ -1,6 +1,6 @@
-defmodule LantternWeb.GradesReports.StudentGradeReportEntryOverlayComponent do
+defmodule LantternWeb.GradesReports.StudentGradesReportEntryOverlayComponent do
   @moduledoc """
-  Renders an overlay with details of a `StudentGradeReportEntry`
+  Renders an overlay with details of a `StudentGradesReportEntry`
   """
 
   use LantternWeb, :live_component
@@ -8,7 +8,7 @@ defmodule LantternWeb.GradesReports.StudentGradeReportEntryOverlayComponent do
   alias Lanttern.GradesReports
 
   # shared
-  alias LantternWeb.GradesReports.StudentGradeReportEntryFormComponent
+  alias LantternWeb.GradesReports.StudentGradesReportEntryFormComponent
   import LantternWeb.GradesReportsComponents
 
   @impl true
@@ -18,18 +18,18 @@ defmodule LantternWeb.GradesReports.StudentGradeReportEntryOverlayComponent do
       <.slide_over id="student-grade-report-entry-overlay" show={true} on_cancel={@on_cancel}>
         <:title><%= gettext("Edit student grade report entry") %></:title>
         <.metadata class="mb-4" icon_name="hero-user">
-          <%= @student_grade_report_entry.student.name %>
+          <%= @student_grades_report_entry.student.name %>
         </.metadata>
         <.metadata class="mb-4" icon_name="hero-bookmark">
-          <%= @student_grade_report_entry.grades_report_subject.subject.name %>
+          <%= @student_grades_report_entry.grades_report_subject.subject.name %>
         </.metadata>
         <.metadata class="mb-4" icon_name="hero-calendar">
-          <%= @student_grade_report_entry.grades_report_cycle.school_cycle.name %>
+          <%= @student_grades_report_entry.grades_report_cycle.school_cycle.name %>
         </.metadata>
         <.live_component
-          module={StudentGradeReportEntryFormComponent}
-          id={@student_grade_report_entry.id}
-          student_grade_report_entry={@student_grade_report_entry}
+          module={StudentGradesReportEntryFormComponent}
+          id={@student_grades_report_entry.id}
+          student_grades_report_entry={@student_grades_report_entry}
           scale_id={@scale_id}
           navigate={@navigate}
           hide_submit
@@ -39,16 +39,16 @@ defmodule LantternWeb.GradesReports.StudentGradeReportEntryOverlayComponent do
           <p class="mt-4 mb-6 text-sm">
             <%= gettext(
               "Lanttern automatic grade calculation info based on configured grade composition"
-            ) %> (<%= Timex.local(@student_grade_report_entry.composition_datetime)
+            ) %> (<%= Timex.local(@student_grades_report_entry.composition_datetime)
             |> Timex.format!("{0D}/{0M}/{YYYY} {h24}:{m}") %>).
           </p>
-          <.grade_composition_table student_grade_report_entry={@student_grade_report_entry} />
+          <.grade_composition_table student_grades_report_entry={@student_grades_report_entry} />
         </div>
         <:actions_left>
           <.button
             type="button"
             theme="ghost"
-            phx-click="delete_student_grade_report_entry"
+            phx-click="delete_student_grades_report_entry"
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           >
@@ -75,11 +75,11 @@ defmodule LantternWeb.GradesReports.StudentGradeReportEntryOverlayComponent do
   # lifecycle
 
   @impl true
-  def handle_event("delete_student_grade_report_entry", _params, socket) do
-    case GradesReports.delete_student_grade_report_entry(
-           socket.assigns.student_grade_report_entry
+  def handle_event("delete_student_grades_report_entry", _params, socket) do
+    case GradesReports.delete_student_grades_report_entry(
+           socket.assigns.student_grades_report_entry
          ) do
-      {:ok, _student_grade_report_entry} ->
+      {:ok, _student_grades_report_entry} ->
         socket =
           socket
           |> put_flash(:info, gettext("Student grade report entry deleted"))

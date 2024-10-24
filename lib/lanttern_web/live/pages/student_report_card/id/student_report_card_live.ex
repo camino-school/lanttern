@@ -122,22 +122,22 @@ defmodule LantternWeb.StudentReportCardLive do
   end
 
   @impl true
-  def handle_params(%{"student_grade_report_entry_id" => sgre_id} = _params, _url, socket) do
+  def handle_params(%{"student_grades_report_entry_id" => sgre_id} = _params, _url, socket) do
     sgre_id = String.to_integer(sgre_id)
 
     # guard against user manipulated ids
     socket =
       if sgre_id in socket.assigns.student_grade_report_entries_ids do
-        assign(socket, :student_grade_report_entry_id, sgre_id)
+        assign(socket, :student_grades_report_entry_id, sgre_id)
       else
-        assign(socket, :student_grade_report_entry_id, nil)
+        assign(socket, :student_grades_report_entry_id, nil)
       end
 
     {:noreply, socket}
   end
 
   def handle_params(_params, _url, socket),
-    do: {:noreply, assign(socket, :student_grade_report_entry_id, nil)}
+    do: {:noreply, assign(socket, :student_grades_report_entry_id, nil)}
 
   # event handlers
 
@@ -145,7 +145,7 @@ defmodule LantternWeb.StudentReportCardLive do
   def handle_event("view_grade_details", params, socket) do
     %{"studentgradereportid" => sgr_id} = params
 
-    url_params = %{"student_grade_report_entry_id" => sgr_id}
+    url_params = %{"student_grades_report_entry_id" => sgr_id}
 
     socket =
       socket

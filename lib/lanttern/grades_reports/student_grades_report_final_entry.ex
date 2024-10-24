@@ -1,13 +1,12 @@
-defmodule Lanttern.GradesReports.StudentGradesReportEntry do
+defmodule Lanttern.GradesReports.StudentGradesReportFinalEntry do
   @moduledoc """
-  The `StudentGradesReportEntry` schema
+  The `StudentGradesReportFinalEntry` schema
   """
 
   use Ecto.Schema
   import Ecto.Changeset
 
   alias Lanttern.GradesReports.GradesReport
-  alias Lanttern.GradesReports.GradesReportCycle
   alias Lanttern.GradesReports.GradesReportSubject
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Schools.Student
@@ -21,8 +20,6 @@ defmodule Lanttern.GradesReports.StudentGradesReportEntry do
           student_id: pos_integer(),
           grades_report: GradesReport.t(),
           grades_report_id: pos_integer(),
-          grades_report_cycle: GradesReportCycle.t(),
-          grades_report_cycle_id: pos_integer(),
           grades_report_subject: GradesReportSubject.t(),
           grades_report_subject_id: pos_integer(),
           ordinal_value: OrdinalValue.t(),
@@ -38,14 +35,13 @@ defmodule Lanttern.GradesReports.StudentGradesReportEntry do
           updated_at: DateTime.t()
         }
 
-  schema "student_grade_report_entries" do
+  schema "students_grades_reports_final_entries" do
     field :comment, :string
     field :score, :float
     field :pre_retake_score, :float
 
     belongs_to :student, Student
     belongs_to :grades_report, GradesReport
-    belongs_to :grades_report_cycle, GradesReportCycle
     belongs_to :grades_report_subject, GradesReportSubject
     belongs_to :ordinal_value, OrdinalValue
     belongs_to :pre_retake_ordinal_value, OrdinalValue
@@ -57,19 +53,13 @@ defmodule Lanttern.GradesReports.StudentGradesReportEntry do
     field :composition_datetime, :utc_datetime
 
     embeds_many :composition, CompositionComponent, on_replace: :delete, primary_key: false do
-      field :strand_id, :id
-      field :strand_name, :string
-      field :strand_type, :string
-
-      field :curriculum_item_id, :id
-      field :curriculum_item_name, :string
-      field :curriculum_component_id, :id
-      field :curriculum_component_name, :string
+      field :school_cycle_id, :id
+      field :school_cycle_name, :string
 
       field :ordinal_value_id, :id
       field :ordinal_value_name, :string
-
       field :score, :float
+
       field :normalized_value, :float
       field :weight, :float
     end
@@ -86,7 +76,6 @@ defmodule Lanttern.GradesReports.StudentGradesReportEntry do
       :pre_retake_score,
       :student_id,
       :grades_report_id,
-      :grades_report_cycle_id,
       :grades_report_subject_id,
       :ordinal_value_id,
       :pre_retake_ordinal_value_id,
@@ -98,7 +87,6 @@ defmodule Lanttern.GradesReports.StudentGradesReportEntry do
     |> validate_required([
       :student_id,
       :grades_report_id,
-      :grades_report_cycle_id,
       :grades_report_subject_id,
       :composition_normalized_value
     ])
@@ -108,18 +96,13 @@ defmodule Lanttern.GradesReports.StudentGradesReportEntry do
   defp composition_component_changeset(schema, params) do
     schema
     |> cast(params, [
-      :strand_id,
-      :curriculum_item_id,
-      :curriculum_component_id,
+      :school_cycle_id,
+      :school_cycle_name,
       :ordinal_value_id,
-      :strand_name,
-      :strand_type,
-      :curriculum_item_name,
-      :curriculum_component_name,
-      :weight,
       :ordinal_value_name,
       :score,
-      :normalized_value
+      :normalized_value,
+      :weight
     ])
   end
 end
