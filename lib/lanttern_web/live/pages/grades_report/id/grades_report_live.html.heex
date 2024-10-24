@@ -54,6 +54,10 @@
   grades_report_cycles={@grades_report_cycles}
   grades_report_subjects={@grades_report_subjects}
   students_grades_map={@students_grades_map}
+  on_calculate_final={fn -> nil end}
+  on_calculate_student={fn _ -> nil end}
+  on_calculate_subject={fn _ -> nil end}
+  on_calculate_cell={fn _, _ -> nil end}
   on_entry_click={
     fn student_grade_report_entry_id ->
       JS.patch(

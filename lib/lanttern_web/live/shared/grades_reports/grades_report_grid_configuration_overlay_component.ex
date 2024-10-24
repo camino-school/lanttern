@@ -1,4 +1,8 @@
 defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponent do
+  @moduledoc """
+  Renders a `GradesReport` configuration overlay
+  """
+
   use LantternWeb, :live_component
 
   alias Lanttern.GradesReports
