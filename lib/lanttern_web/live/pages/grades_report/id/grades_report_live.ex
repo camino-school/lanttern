@@ -12,6 +12,7 @@ defmodule LantternWeb.GradesReportLive do
   alias LantternWeb.GradesReports.GradesReportFormComponent
   alias LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponent
   alias LantternWeb.GradesReports.StudentGradesReportEntryOverlayComponent
+  alias LantternWeb.GradesReports.StudentGradesReportFinalEntryOverlayComponent
   # alias LantternWeb.Grading.GradeCompositionOverlayComponent
 
   # # shared
@@ -92,6 +93,7 @@ defmodule LantternWeb.GradesReportLive do
       |> assign(:is_editing, is_editing)
       |> assign(:is_configuring, is_configuring)
       |> assign_student_grades_report_entry(params)
+      |> assign_student_grades_report_final_entry(params)
 
     {:noreply, socket}
   end
@@ -125,6 +127,35 @@ defmodule LantternWeb.GradesReportLive do
 
   defp assign_student_grades_report_entry(socket, _),
     do: assign(socket, :is_editing_student_grades_report_entry, false)
+
+  defp assign_student_grades_report_final_entry(socket, %{
+         "student_grades_report_final_entry" => student_grades_report_final_entry_id
+       }) do
+    grades_report = socket.assigns.grades_report
+
+    student_grades_report_final_entry =
+      GradesReports.get_student_grades_report_final_entry!(
+        student_grades_report_final_entry_id,
+        preloads: [
+          :student,
+          :composition_ordinal_value,
+          grades_report_subject: :subject
+        ]
+      )
+
+    case student_grades_report_final_entry.grades_report_id == grades_report.id do
+      true ->
+        socket
+        |> assign(:is_editing_student_grades_report_final_entry, true)
+        |> assign(:student_grades_report_final_entry, student_grades_report_final_entry)
+
+      _ ->
+        assign(socket, :is_editing_student_grades_report_final_entry, false)
+    end
+  end
+
+  defp assign_student_grades_report_final_entry(socket, _),
+    do: assign(socket, :is_editing_student_grades_report_final_entry, false)
 
   # defp assign_show_grades_report_form(socket, %{"is_creating" => "true"}) do
   #   socket
@@ -215,17 +246,82 @@ defmodule LantternWeb.GradesReportLive do
     end
   end
 
-  # def handle_event("edit_composition", params, socket) do
-  #   url_params = %{
-  #     gr_id: params["gradesreportid"],
-  #     grc_id: params["gradesreportcycleid"],
-  #     grs_id: params["gradesreportsubjectid"]
-  #   }
+  def handle_event("calculate_cell", params, socket) do
+    %{
+      "grades_report_subject_id" => grades_report_subject_id,
+      "student_id" => student_id
+    } = params
 
-  #   socket =
-  #     socket
-  #     |> push_patch(to: ~p"/grades_reports?#{url_params}")
+    socket =
+      GradesReports.calculate_student_final_grade(
+        student_id,
+        socket.assigns.grades_report.id,
+        grades_report_subject_id,
+        force_overwrite: true
+      )
+      |> case do
+        {:ok, nil, _} ->
+          socket
+          |> put_flash(:error, gettext("No subcycle entries for this subject"))
+          |> push_navigate(to: ~p"/grades_reports/#{socket.assigns.grades_report}")
 
-  #   {:noreply, socket}
+        {:ok, _, _} ->
+          socket
+          |> put_flash(:info, gettext("Grade calculated succesfully"))
+          |> push_navigate(to: ~p"/grades_reports/#{socket.assigns.grades_report}")
+
+        {:error, _} ->
+          put_flash(socket, :error, gettext("Something went wrong"))
+      end
+
+    {:noreply, socket}
+  end
+
+  # # helper
+
+  # defp build_calculation_results_message(%{} = results),
+  #   do: build_calculation_results_message(Enum.map(results, & &1), [])
+
+  # defp build_calculation_results_message([], msgs),
+  #   do: Enum.join(msgs, ", ")
+
+  # defp build_calculation_results_message([{_operation, 0} | results], msgs),
+  #   do: build_calculation_results_message(results, msgs)
+
+  # defp build_calculation_results_message([{:created, count} | results], msgs) do
+  #   msg = ngettext("1 grade created", "%{count} grades created", count)
+  #   build_calculation_results_message(results, [msg | msgs])
+  # end
+
+  # defp build_calculation_results_message([{:updated, count} | results], msgs) do
+  #   msg = ngettext("1 grade updated", "%{count} grades updated", count)
+  #   build_calculation_results_message(results, [msg | msgs])
+  # end
+
+  # defp build_calculation_results_message([{:updated_with_manual, count} | results], msgs) do
+  #   msg =
+  #     ngettext(
+  #       "1 grade partially updated (only composition, manual grade not changed)",
+  #       "%{count} grades partially updated (only compositions, manual grades not changed)",
+  #       count
+  #     )
+
+  #   build_calculation_results_message(results, [msg | msgs])
+  # end
+
+  # defp build_calculation_results_message([{:deleted, count} | results], msgs) do
+  #   msg = ngettext("1 grade removed", "%{count} grades removed", count)
+  #   build_calculation_results_message(results, [msg | msgs])
+  # end
+
+  # defp build_calculation_results_message([{:noop, count} | results], msgs) do
+  #   msg =
+  #     ngettext(
+  #       "1 grade calculation skipped (no assessment point entries)",
+  #       "%{count} grades skipped (no assessment point entries)",
+  #       count
+  #     )
+
+  #   build_calculation_results_message(results, [msg | msgs])
   # end
 end

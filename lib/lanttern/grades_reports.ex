@@ -17,6 +17,7 @@ defmodule Lanttern.GradesReports do
   alias Lanttern.Grading.GradeComponent
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Reporting.StudentReportCard
+  alias Lanttern.Schools.Cycle
   alias Lanttern.Schools.Student
 
   @doc """
@@ -560,6 +561,29 @@ defmodule Lanttern.GradesReports do
   end
 
   @doc """
+  Gets a single student_grades_report_final_entry.
+
+  Raises `Ecto.NoResultsError` if the Student grade report final entry does not exist.
+
+  ## Options
+
+  - `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> get_student_grades_report_final_entry!(123)
+      %StudentGradesReportFinalEntry{}
+
+      iex> get_student_grades_report_final_entry!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_student_grades_report_final_entry!(id, opts \\ []) do
+    Repo.get!(StudentGradesReportFinalEntry, id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
   Creates a student_grades_report_final_entry.
 
   ## Examples
@@ -575,6 +599,61 @@ defmodule Lanttern.GradesReports do
     %StudentGradesReportFinalEntry{}
     |> StudentGradesReportFinalEntry.changeset(attrs)
     |> Repo.insert()
+  end
+
+  @doc """
+  Updates a student_grades_report_final_entry.
+
+  ## Examples
+
+      iex> update_student_grades_report_final_entry(student_grades_report_final_entry, %{field: new_value})
+      {:ok, %StudentGradesReportFinalEntry{}}
+
+      iex> update_student_grades_report_final_entry(student_grades_report_final_entry, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_student_grades_report_final_entry(
+        %StudentGradesReportFinalEntry{} = student_grades_report_final_entry,
+        attrs
+      ) do
+    student_grades_report_final_entry
+    |> StudentGradesReportFinalEntry.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a student_grades_report_final_entry.
+
+  ## Examples
+
+      iex> delete_student_grades_report_final_entry(student_grades_report_final_entry)
+      {:ok, %StudentGradesReportEntry{}}
+
+      iex> delete_student_grades_report_final_entry(student_grades_report_final_entry)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_student_grades_report_final_entry(
+        %StudentGradesReportFinalEntry{} = student_grades_report_final_entry
+      ) do
+    Repo.delete(student_grades_report_final_entry)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking student_grades_report_final_entry changes.
+
+  ## Examples
+
+      iex> change_student_grades_report_final_entry(student_grades_report_final_entry)
+      %Ecto.Changeset{data: %StudentGradesReportFinalEntry{}}
+
+  """
+  def change_student_grades_report_final_entry(
+        %StudentGradesReportFinalEntry{} = student_grades_report_final_entry,
+        attrs \\ %{}
+      ) do
+    StudentGradesReportFinalEntry.changeset(student_grades_report_final_entry, attrs)
   end
 
   @doc """
@@ -1249,6 +1328,230 @@ defmodule Lanttern.GradesReports do
       {:error, changeset} ->
         {:error, changeset, results}
     end
+  end
+
+  @doc """
+  Calculate student final grade for a given grades report and subject.
+
+  Uses a third elemente in the `:ok` returned tuple:
+  - `:created` when the `StudentGradesReportFinalEntry` is created
+  - `:updated` when the `StudentGradesReportFinalEntry` is updated
+  - `:updated_with_manual` when the `StudentGradesReportFinalEntry` is updated, except from manually adjusted `ordinal_value_id` or `score`
+  - `:deleted` when the `StudentGradesReportFinalEntry` is deleted (always `nil` in the second element)
+  - `:noop` when the nothing is created, updated, or deleted (always `nil` in the second element)
+
+  ### Options
+
+  - `:force_overwrite` - ignore the update with manual rule, and overwrite grade if needed
+  """
+  @spec calculate_student_final_grade(
+          student_id :: integer(),
+          grades_report_id :: integer(),
+          grades_report_subject_id :: integer(),
+          Keyword.t()
+        ) ::
+          {:ok, StudentGradesReportEntry.t() | nil,
+           :created | :updated | :updated_keep_manual | :deleted | :noop}
+          | {:error, Ecto.Changeset.t()}
+  def calculate_student_final_grade(
+        student_id,
+        grades_report_id,
+        grades_report_subject_id,
+        opts \\ []
+      ) do
+    # get grades report scale
+    %{scale: scale} = get_grades_report!(grades_report_id, preloads: :scale)
+
+    from(
+      sgre in StudentGradesReportEntry,
+      left_join: ov in assoc(sgre, :ordinal_value),
+      join: grc in assoc(sgre, :grades_report_cycle),
+      join: sc in assoc(grc, :school_cycle),
+      where: sgre.student_id == ^student_id,
+      where: sgre.grades_report_id == ^grades_report_id,
+      where: sgre.grades_report_subject_id == ^grades_report_subject_id,
+      order_by: sc.start_at,
+      preload: [ordinal_value: ov],
+      select: {sgre, sc, grc.weight}
+    )
+    |> Repo.all()
+    |> handle_student_grades_report_final_entry_creation(
+      student_id,
+      grades_report_id,
+      grades_report_subject_id,
+      scale,
+      opts
+    )
+  end
+
+  defp handle_student_grades_report_final_entry_creation(
+         [],
+         student_id,
+         _grades_report_id,
+         grades_report_subject_id,
+         _scale,
+         _opts
+       ) do
+    # delete existing student grade report entry if needed
+    Repo.get_by(StudentGradesReportFinalEntry,
+      student_id: student_id,
+      grades_report_subject_id: grades_report_subject_id
+    )
+    |> case do
+      nil ->
+        {:ok, nil, :noop}
+
+      sgrfe ->
+        case delete_student_grades_report_final_entry(sgrfe) do
+          {:ok, _} -> {:ok, nil, :deleted}
+          error_tuple -> error_tuple
+        end
+    end
+  end
+
+  defp handle_student_grades_report_final_entry_creation(
+         student_grades_report_entries_cycles_and_weight,
+         student_id,
+         grades_report_id,
+         grades_report_subject_id,
+         scale,
+         opts
+       ) do
+    {normalized_avg, composition} =
+      calculate_weighted_avg_and_build_final_comp_metadata(
+        student_grades_report_entries_cycles_and_weight
+      )
+
+    scale_value = Grading.convert_normalized_value_to_scale_value(normalized_avg, scale)
+
+    # setup student grade report final entry attrs
+    attrs =
+      case scale_value do
+        %OrdinalValue{} = ordinal_value ->
+          %{
+            ordinal_value_id: ordinal_value.id,
+            composition_ordinal_value_id: ordinal_value.id
+          }
+
+        score ->
+          %{
+            score: score,
+            composition_score: score
+          }
+      end
+      |> Enum.into(%{
+        student_id: student_id,
+        grades_report_id: grades_report_id,
+        grades_report_subject_id: grades_report_subject_id,
+        composition: composition,
+        composition_normalized_value: normalized_avg,
+        composition_datetime: DateTime.utc_now()
+      })
+
+    force_overwrite =
+      case Keyword.get(opts, :force_overwrite) do
+        true -> true
+        _ -> false
+      end
+
+    # create or update existing student grade report entry
+    Repo.get_by(StudentGradesReportFinalEntry,
+      student_id: student_id,
+      grades_report_subject_id: grades_report_subject_id
+    )
+    |> create_or_update_student_grades_report_final_entry(attrs, force_overwrite)
+  end
+
+  defp create_or_update_student_grades_report_final_entry(nil, attrs, _) do
+    case create_student_grades_report_final_entry(attrs) do
+      {:ok, sgrfe} -> {:ok, sgrfe, :created}
+      error_tuple -> error_tuple
+    end
+  end
+
+  defp create_or_update_student_grades_report_final_entry(
+         %{ordinal_value_id: ov_id, composition_ordinal_value_id: comp_ov_id} = sgrfe,
+         attrs,
+         false
+       )
+       when ov_id != comp_ov_id do
+    attrs = Map.drop(attrs, [:ordinal_value_id])
+
+    case update_student_grades_report_final_entry(sgrfe, attrs) do
+      {:ok, sgrfe} -> {:ok, sgrfe, :updated_with_manual}
+      error_tuple -> error_tuple
+    end
+  end
+
+  defp create_or_update_student_grades_report_final_entry(
+         %{score: score, composition_score: comp_score} = sgrfe,
+         attrs,
+         false
+       )
+       when score != comp_score do
+    attrs = Map.drop(attrs, [:score])
+
+    case update_student_grades_report_final_entry(sgrfe, attrs) do
+      {:ok, sgrfe} -> {:ok, sgrfe, :updated_with_manual}
+      error_tuple -> error_tuple
+    end
+  end
+
+  defp create_or_update_student_grades_report_final_entry(sgrfe, attrs, _force_overwrite) do
+    case update_student_grades_report_final_entry(sgrfe, attrs) do
+      {:ok, sgrfe} -> {:ok, sgrfe, :updated}
+      error_tuple -> error_tuple
+    end
+  end
+
+  defp calculate_weighted_avg_and_build_final_comp_metadata(
+         student_grades_report_entries_cycles_and_weight,
+         sumprod \\ 0,
+         sumweight \\ 0,
+         composition \\ []
+       )
+
+  defp calculate_weighted_avg_and_build_final_comp_metadata([], sumprod, sumweight, composition) do
+    normalized_avg = Float.round(sumprod / sumweight, 5)
+    {normalized_avg, composition}
+  end
+
+  defp calculate_weighted_avg_and_build_final_comp_metadata(
+         [{sgre, sc, weight} | student_grades_report_entries_cycles_and_weight],
+         sumprod,
+         sumweight,
+         composition
+       ) do
+    cycle_composition =
+      build_cycle_composition(sgre, sc, sgre.composition_normalized_value, weight)
+
+    sumprod = sgre.composition_normalized_value * weight + sumprod
+    sumweight = weight + sumweight
+    composition = composition ++ [cycle_composition]
+
+    calculate_weighted_avg_and_build_final_comp_metadata(
+      student_grades_report_entries_cycles_and_weight,
+      sumprod,
+      sumweight,
+      composition
+    )
+  end
+
+  defp build_cycle_composition(
+         %StudentGradesReportEntry{} = sgre,
+         %Cycle{} = sc,
+         entry_normalized_value,
+         weight
+       ) do
+    %{
+      school_cycle_id: sc.id,
+      school_cycle_name: sc.name,
+      ordinal_value_id: sgre.ordinal_value && sgre.ordinal_value.id,
+      ordinal_value_name: sgre.ordinal_value && sgre.ordinal_value.name,
+      score: sgre.score,
+      normalized_value: entry_normalized_value,
+      weight: weight
+    }
   end
 
   @doc """

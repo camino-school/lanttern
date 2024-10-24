@@ -57,11 +57,27 @@
   on_calculate_final={fn -> nil end}
   on_calculate_student={fn _ -> nil end}
   on_calculate_subject={fn _ -> nil end}
-  on_calculate_cell={fn _, _ -> nil end}
+  on_calculate_cell={
+    fn student_id, grades_report_subject_id ->
+      JS.push("calculate_cell",
+        value: %{
+          student_id: student_id,
+          grades_report_subject_id: grades_report_subject_id
+        }
+      )
+    end
+  }
   on_entry_click={
     fn student_grades_report_entry_id ->
       JS.patch(
         ~p"/grades_reports/#{@grades_report}?student_grades_report_entry=#{student_grades_report_entry_id}"
+      )
+    end
+  }
+  on_final_entry_click={
+    fn student_grades_report_final_entry_id ->
+      JS.patch(
+        ~p"/grades_reports/#{@grades_report}?student_grades_report_final_entry=#{student_grades_report_final_entry_id}"
       )
     end
   }
@@ -115,6 +131,15 @@
   module={StudentGradesReportEntryOverlayComponent}
   id={@student_grades_report_entry.id}
   student_grades_report_entry={@student_grades_report_entry}
+  scale_id={@grades_report.scale_id}
+  navigate={~p"/grades_reports/#{@grades_report}"}
+  on_cancel={JS.patch(~p"/grades_reports/#{@grades_report}")}
+/>
+<.live_component
+  :if={@is_editing_student_grades_report_final_entry}
+  module={StudentGradesReportFinalEntryOverlayComponent}
+  id={@student_grades_report_final_entry.id}
+  student_grades_report_final_entry={@student_grades_report_final_entry}
   scale_id={@grades_report.scale_id}
   navigate={~p"/grades_reports/#{@grades_report}"}
   on_cancel={JS.patch(~p"/grades_reports/#{@grades_report}")}
