@@ -1760,6 +1760,108 @@ defmodule Lanttern.GradesReports do
   end
 
   @doc """
+  Calculate final grades for all subjects and given students and grades report.
+  """
+  @spec calculate_grades_report_final_grades(
+          students_ids :: [pos_integer()],
+          grades_report_id :: pos_integer()
+        ) ::
+          {:ok, batch_calculation_results()}
+          | {:error, Ecto.Changeset.t(), batch_calculation_results()}
+  def calculate_grades_report_final_grades(students_ids, grades_report_id) do
+    # get grades report scale and all report subjects
+    %{
+      scale: scale,
+      grades_report_subjects: grades_report_subjects
+    } =
+      get_grades_report!(grades_report_id,
+        preloads: [:scale, :grades_report_subjects]
+      )
+
+    grades_report_entries_cycles_and_weight =
+      from(
+        sgre in StudentGradesReportEntry,
+        left_join: ov in assoc(sgre, :ordinal_value),
+        join: grc in assoc(sgre, :grades_report_cycle),
+        join: sc in assoc(grc, :school_cycle),
+        where: sgre.student_id in ^students_ids,
+        where: sgre.grades_report_id == ^grades_report_id,
+        order_by: sc.start_at,
+        preload: [ordinal_value: ov],
+        select: {sgre, sc, grc.weight}
+      )
+      |> Repo.all()
+      |> Enum.group_by(fn {sgre, _sc, _weight} ->
+        "#{sgre.student_id}_#{sgre.grades_report_subject_id}"
+      end)
+
+    students_ids
+    |> Enum.flat_map(fn student_id ->
+      grades_report_subjects
+      |> Enum.map(&{student_id, &1.id})
+    end)
+    |> Enum.map(fn {std_id, grs_id} ->
+      {
+        std_id,
+        grs_id,
+        Map.get(
+          grades_report_entries_cycles_and_weight,
+          "#{std_id}_#{grs_id}",
+          []
+        )
+      }
+    end)
+    |> handle_calculate_grades_report_final_grades_results(
+      grades_report_id,
+      scale
+    )
+  end
+
+  defp handle_calculate_grades_report_final_grades_results(
+         grades_report_entries_cycles_and_weights,
+         grades_report_id,
+         scale,
+         results \\ %{created: 0, updated: 0, updated_with_manual: 0, deleted: 0, noop: 0}
+       )
+
+  defp handle_calculate_grades_report_final_grades_results(
+         [],
+         _grades_report_id,
+         _scale,
+         results
+       ),
+       do: {:ok, results}
+
+  defp handle_calculate_grades_report_final_grades_results(
+         [
+           {std_id, grs_id, entries_cycles_and_weights} | grades_report_entries_cycles_and_weights
+         ],
+         grades_report_id,
+         scale,
+         results
+       ) do
+    handle_student_grades_report_final_entry_creation(
+      entries_cycles_and_weights,
+      std_id,
+      grades_report_id,
+      grs_id,
+      scale
+    )
+    |> case do
+      {:ok, _result, operation} ->
+        handle_calculate_grades_report_final_grades_results(
+          grades_report_entries_cycles_and_weights,
+          grades_report_id,
+          scale,
+          Map.update!(results, operation, &(&1 + 1))
+        )
+
+      {:error, changeset} ->
+        {:error, changeset, results}
+    end
+  end
+
+  @doc """
   Returns a map in the format
 
       %{

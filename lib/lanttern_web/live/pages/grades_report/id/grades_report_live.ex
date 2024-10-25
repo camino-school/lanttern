@@ -247,6 +247,32 @@ defmodule LantternWeb.GradesReportLive do
     end
   end
 
+  def handle_event("calculate_all", _params, socket) do
+    socket =
+      GradesReports.calculate_grades_report_final_grades(
+        socket.assigns.students_ids,
+        socket.assigns.grades_report.id
+      )
+      |> case do
+        {:ok, results} ->
+          socket
+          |> put_flash(
+            :info,
+            "#{gettext("All final grades calculated succesfully")}. #{build_calculation_results_message(results)}"
+          )
+          |> push_navigate(to: ~p"/grades_reports/#{socket.assigns.grades_report}")
+
+        {:error, _, results} ->
+          put_flash(
+            socket,
+            :error,
+            "#{gettext("Something went wrong")}. #{gettext("Partial results")}: #{build_calculation_results_message(results)}"
+          )
+      end
+
+    {:noreply, socket}
+  end
+
   def handle_event("calculate_student", params, socket) do
     %{"student_id" => student_id} = params
 

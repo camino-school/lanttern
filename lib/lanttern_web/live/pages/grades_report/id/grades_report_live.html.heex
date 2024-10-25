@@ -54,7 +54,7 @@
   grades_report_cycles={@grades_report_cycles}
   grades_report_subjects={@grades_report_subjects}
   students_grades_map={@students_grades_map}
-  on_calculate_final={fn -> nil end}
+  on_calculate_final={fn -> JS.push("calculate_all") end}
   on_calculate_student={
     fn student_id ->
       JS.push("calculate_student", value: %{student_id: student_id})
