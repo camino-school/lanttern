@@ -61,8 +61,8 @@ defmodule LantternWeb.GradesReportsHelpers do
   defp build_calculation_results_message([{:noop, count} | results], msgs) do
     msg =
       ngettext(
-        "1 grade calculation skipped (no assessment point entries)",
-        "%{count} grades skipped (no assessment point entries)",
+        "1 grade calculation skipped (no composition entries)",
+        "%{count} grades skipped (no composition entries)",
         count
       )
 

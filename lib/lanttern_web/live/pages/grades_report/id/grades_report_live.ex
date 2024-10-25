@@ -69,6 +69,7 @@ defmodule LantternWeb.GradesReportLive do
 
     socket
     |> stream(:students, students)
+    |> assign(:students_ids, Enum.map(students, & &1.id))
     |> assign(:has_students, length(students) > 0)
   end
 
@@ -260,6 +261,35 @@ defmodule LantternWeb.GradesReportLive do
           |> put_flash(
             :info,
             "#{gettext("Student final grades calculated succesfully")}. #{build_calculation_results_message(results)}"
+          )
+          |> push_navigate(to: ~p"/grades_reports/#{socket.assigns.grades_report}")
+
+        {:error, _, results} ->
+          put_flash(
+            socket,
+            :error,
+            "#{gettext("Something went wrong")}. #{gettext("Partial results")}: #{build_calculation_results_message(results)}"
+          )
+      end
+
+    {:noreply, socket}
+  end
+
+  def handle_event("calculate_subject", params, socket) do
+    %{"grades_report_subject_id" => grades_report_subject_id} = params
+
+    socket =
+      GradesReports.calculate_subject_final_grades(
+        socket.assigns.students_ids,
+        socket.assigns.grades_report.id,
+        grades_report_subject_id
+      )
+      |> case do
+        {:ok, results} ->
+          socket
+          |> put_flash(
+            :info,
+            "#{gettext("Students final subject grades calculated succesfully")}. #{build_calculation_results_message(results)}"
           )
           |> push_navigate(to: ~p"/grades_reports/#{socket.assigns.grades_report}")
 

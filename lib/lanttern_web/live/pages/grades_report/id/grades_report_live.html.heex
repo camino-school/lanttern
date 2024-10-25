@@ -60,7 +60,11 @@
       JS.push("calculate_student", value: %{student_id: student_id})
     end
   }
-  on_calculate_subject={fn _ -> nil end}
+  on_calculate_subject={
+    fn grades_report_subject_id ->
+      JS.push("calculate_subject", value: %{grades_report_subject_id: grades_report_subject_id})
+    end
+  }
   on_calculate_cell={
     fn student_id, grades_report_subject_id ->
       JS.push("calculate_cell",

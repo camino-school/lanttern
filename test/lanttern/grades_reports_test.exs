@@ -3044,379 +3044,241 @@ defmodule Lanttern.GradesReportsTest do
              |> is_nil()
     end
 
-    # test "calculate_subject_grades/4 returns the correct student grades report entries for given cycle and subject" do
-    #   # marking scale
-    #   # ordinal scale, 4 levels
-    #   # 1 eme: 0.4
-    #   # 2 pro: 0.6
-    #   # 3 ach: 0.85
-    #   # 4 exc: 1.0
-    #   #
-    #   # grades scale
-    #   # ordinal scale, 5 levels A, B, C, D, E (1.0, 0.85, 0.7, 0.5, 0)
-    #   # breakpoints: E - 0.5 - D - 0.6 - C - 0.8 - B - 0.9 - A
-    #   #
-    #   # compositions: ap1 = w1, ap2 = w2, ap3 = w3
-    #   #
-    #   # test cases (in ap order)
-    #   # std 1: exc - ach - pro = 0.75000 = C (actually irrelevant, will be delete to test update + no entries case)
-    #   # std 2: eme - ach - exc = 0.85000 = B
-    #   # std 3: eme - eme - eme = 0.40000 = E
-    #   # std 4: eme - eme - eme = 0.40000 = C (view update manual grade below)
-    #   #
-    #   # std 1 - update + no entries case: when there's no entries but an existing student grades report entry, delete it
-    #   # std 2 - create
-    #   # std 3 - update case: student 3 will be pre calculated. the function should update the std grade report entry
-    #   # std 4 - update manual grade: when the current grade is different from the composition/calculated one, update but keep manual grade
-    #   # no entries case: there's a 5th student without entries. it should return nil
+    test "calculate_subject_final_grades/3 calculates student grades report final entries for given subject",
+         %{
+           ordinal_value_a: ov_a,
+           ordinal_value_b: _ov_b,
+           ordinal_value_c: ov_c,
+           ordinal_value_d: ov_d,
+           ordinal_value_e: ov_e,
+           grades_report: grades_report,
+           school: school,
+           grades_report_cycle_1: grc_1,
+           grades_report_cycle_2: grc_2,
+           grades_report_cycle_3: grc_3,
+           grades_report_subject_1: grs,
+           grades_report_subject_2: other_grs
+         } do
+      # (view grades_report_final_entries_setup initial comment for grades, cycles, and subjects info)
+      #
+      # test cases (in cycle order)
+      # std 1 1.0 - 0.9 - 0.8 = 0.86667 = B (actually irrelevant, will be deleted to test update + no entries case)
+      # std 2 0.0 - 0.5 - nil = 0.33333 = E
+      # std 3 1.0 - nil - nil = 1.00000 = A
+      # std 4 0.5 - 0.5 - 0.5 = 0.50000 = C (D changed to C, view update manual grade below)
+      #
+      # std 1 - update + no entries case: when there's no entries but an existing student grades report entry, delete it
+      # std 2 - create
+      # std 3 - update case: student 3 will be pre calculated. the function should update the std grade report entry
+      # std 4 - update manual grade: when the current grade is different from the composition/calculated one, update but keep manual grade
+      # no entries case: there's a 5th student without entries (has entries in other subject). it should return nil
+      # std not in list case: there's a 6th student with valid entries but out of stds ids list
 
-    #   marking_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      std_1 = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      std_2 = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      std_3 = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      std_4 = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      # extra
+      std_5 = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      std_6 = SchoolsFixtures.student_fixture(%{school_id: school.id})
 
-    #   ov_eme =
-    #     GradingFixtures.ordinal_value_fixture(%{scale_id: marking_scale.id, normalized_value: 0.4})
+      # std 1
 
-    #   ov_pro =
-    #     GradingFixtures.ordinal_value_fixture(%{scale_id: marking_scale.id, normalized_value: 0.6})
+      std_1_c_1_entry =
+        student_grades_report_entry_fixture(%{
+          student_id: std_1.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grc_1.id,
+          grades_report_subject_id: grs.id,
+          composition_normalized_value: 1.0
+        })
 
-    #   ov_ach =
-    #     GradingFixtures.ordinal_value_fixture(%{
-    #       scale_id: marking_scale.id,
-    #       normalized_value: 0.85
-    #     })
+      std_1_c_2_entry =
+        student_grades_report_entry_fixture(%{
+          student_id: std_1.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grc_2.id,
+          grades_report_subject_id: grs.id,
+          composition_normalized_value: 0.9
+        })
 
-    #   ov_exc =
-    #     GradingFixtures.ordinal_value_fixture(%{scale_id: marking_scale.id, normalized_value: 1.0})
+      std_1_c_3_entry =
+        student_grades_report_entry_fixture(%{
+          student_id: std_1.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grc_3.id,
+          grades_report_subject_id: grs.id,
+          composition_normalized_value: 0.8
+        })
 
-    #   grading_scale =
-    #     GradingFixtures.scale_fixture(%{type: "ordinal", breakpoints: [0.5, 0.6, 0.8, 0.9]})
+      # std 2
 
-    #   _ov_a =
-    #     GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 1.0})
+      _std_2_c_1_entry =
+        student_grades_report_entry_fixture(%{
+          student_id: std_2.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grc_1.id,
+          grades_report_subject_id: grs.id,
+          composition_normalized_value: 0.0
+        })
 
-    #   ov_b =
-    #     GradingFixtures.ordinal_value_fixture(%{
-    #       scale_id: grading_scale.id,
-    #       normalized_value: 0.85
-    #     })
+      _std_2_c_2_entry =
+        student_grades_report_entry_fixture(%{
+          student_id: std_2.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grc_2.id,
+          grades_report_subject_id: grs.id,
+          composition_normalized_value: 0.5
+        })
 
-    #   ov_c =
-    #     GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.7})
+      # std 3
 
-    #   _ov_d =
-    #     GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.5})
+      _std_3_c_1_entry =
+        student_grades_report_entry_fixture(%{
+          student_id: std_3.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grc_1.id,
+          grades_report_subject_id: grs.id,
+          composition_normalized_value: 1.0
+        })
 
-    #   ov_e =
-    #     GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.0})
+      # std 4
 
-    #   strand_1 = LearningContextFixtures.strand_fixture()
+      _std_4_c_1_entry =
+        student_grades_report_entry_fixture(%{
+          student_id: std_4.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grc_1.id,
+          grades_report_subject_id: grs.id,
+          composition_normalized_value: 0.5
+        })
 
-    #   goal_1 =
-    #     AssessmentsFixtures.assessment_point_fixture(%{
-    #       strand_id: strand_1.id,
-    #       scale_id: marking_scale.id
-    #     })
+      _std_4_c_2_entry =
+        student_grades_report_entry_fixture(%{
+          student_id: std_4.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grc_2.id,
+          grades_report_subject_id: grs.id,
+          composition_normalized_value: 0.5
+        })
 
-    #   goal_2 =
-    #     AssessmentsFixtures.assessment_point_fixture(%{
-    #       strand_id: strand_1.id,
-    #       scale_id: marking_scale.id
-    #     })
+      _std_4_c_3_entry =
+        student_grades_report_entry_fixture(%{
+          student_id: std_4.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grc_3.id,
+          grades_report_subject_id: grs.id,
+          composition_normalized_value: 0.5
+        })
 
-    #   goal_3 =
-    #     AssessmentsFixtures.assessment_point_fixture(%{
-    #       strand_id: strand_1.id,
-    #       scale_id: marking_scale.id
-    #     })
+      # std 5 (different subject)
 
-    #   subject = TaxonomyFixtures.subject_fixture()
-    #   cycle = SchoolsFixtures.cycle_fixture()
-    #   grades_report = grades_report_fixture(%{scale_id: grading_scale.id})
+      _std_5_c_1_entry =
+        student_grades_report_entry_fixture(%{
+          student_id: std_5.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grc_1.id,
+          grades_report_subject_id: other_grs.id,
+          composition_normalized_value: 0.5
+        })
 
-    #   grades_report_cycle =
-    #     grades_report_cycle_fixture(%{
-    #       school_cycle_id: cycle.id,
-    #       grades_report_id: grades_report.id
-    #     })
+      # std 6 (valid, but will be out of stds ids list)
 
-    #   grades_report_subject =
-    #     grades_report_subject_fixture(%{
-    #       subject_id: subject.id,
-    #       grades_report_id: grades_report.id
-    #     })
+      _std_6_c_1_entry =
+        student_grades_report_entry_fixture(%{
+          student_id: std_6.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grc_1.id,
+          grades_report_subject_id: grs.id,
+          composition_normalized_value: 0.5
+        })
 
-    #   _grade_component_1 =
-    #     GradingFixtures.grade_component_fixture(%{
-    #       grades_report_id: grades_report.id,
-    #       grades_report_cycle_id: grades_report_cycle.id,
-    #       grades_report_subject_id: grades_report_subject.id,
-    #       assessment_point_id: goal_1.id,
-    #       weight: 1.0
-    #     })
+      # extra cases setup
 
-    #   _grade_component_2 =
-    #     GradingFixtures.grade_component_fixture(%{
-    #       grades_report_id: grades_report.id,
-    #       grades_report_cycle_id: grades_report_cycle.id,
-    #       grades_report_subject_id: grades_report_subject.id,
-    #       assessment_point_id: goal_2.id,
-    #       weight: 2.0
-    #     })
+      # UPDATE + EMPTY - pre calculate std 1, then delete entries
+      {:ok, %{id: sgrfe_1_id}, :created} =
+        GradesReports.calculate_student_final_grade(std_1.id, grades_report.id, grs.id)
 
-    #   _grade_component_3 =
-    #     GradingFixtures.grade_component_fixture(%{
-    #       grades_report_id: grades_report.id,
-    #       grades_report_cycle_id: grades_report_cycle.id,
-    #       grades_report_subject_id: grades_report_subject.id,
-    #       assessment_point_id: goal_3.id,
-    #       weight: 3.0
-    #     })
+      GradesReports.delete_student_grades_report_entry(std_1_c_1_entry)
+      GradesReports.delete_student_grades_report_entry(std_1_c_2_entry)
+      GradesReports.delete_student_grades_report_entry(std_1_c_3_entry)
 
-    #   std_1 = SchoolsFixtures.student_fixture()
-    #   std_2 = SchoolsFixtures.student_fixture()
-    #   std_3 = SchoolsFixtures.student_fixture()
-    #   std_4 = SchoolsFixtures.student_fixture()
-    #   std_5 = SchoolsFixtures.student_fixture()
-    #   std_6 = SchoolsFixtures.student_fixture()
+      # UPDATE CASE - pre calculate std 3
+      {:ok, %{id: sgrfe_3_id}, :created} =
+        GradesReports.calculate_student_final_grade(std_3.id, grades_report.id, grs.id)
 
-    #   # student 1
+      # UPDATE MANUAL - pre calculate subject 4, and change the ordinal_value
+      {:ok, %{id: sgrfe_4_id} = sgrfe_4, :created} =
+        GradesReports.calculate_student_final_grade(std_4.id, grades_report.id, grs.id)
 
-    #   entry_1_1 =
-    #     AssessmentsFixtures.assessment_point_entry_fixture(%{
-    #       student_id: std_1.id,
-    #       assessment_point_id: goal_1.id,
-    #       scale_id: marking_scale.id,
-    #       scale_type: "ordinal",
-    #       ordinal_value_id: ov_exc.id
-    #     })
+      assert {:ok, _} =
+               GradesReports.update_student_grades_report_final_entry(sgrfe_4, %{
+                 ordinal_value_id: ov_c.id
+               })
 
-    #   entry_1_2 =
-    #     AssessmentsFixtures.assessment_point_entry_fixture(%{
-    #       student_id: std_1.id,
-    #       assessment_point_id: goal_2.id,
-    #       scale_id: marking_scale.id,
-    #       scale_type: "ordinal",
-    #       ordinal_value_id: ov_ach.id
-    #     })
+      # assert
 
-    #   entry_1_3 =
-    #     AssessmentsFixtures.assessment_point_entry_fixture(%{
-    #       student_id: std_1.id,
-    #       assessment_point_id: goal_3.id,
-    #       scale_id: marking_scale.id,
-    #       scale_type: "ordinal",
-    #       ordinal_value_id: ov_pro.id
-    #     })
+      assert {:ok, %{created: 1, updated: 1, updated_with_manual: 1, deleted: 1, noop: 1}} =
+               GradesReports.calculate_subject_final_grades(
+                 [std_1.id, std_2.id, std_3.id, std_4.id, std_5.id],
+                 grades_report.id,
+                 grs.id
+               )
 
-    #   # student 2
+      # std 1 - previously calculated should not exist anymore
+      assert Repo.get(StudentGradesReportFinalEntry, sgrfe_1_id) |> is_nil()
 
-    #   _entry_2_1 =
-    #     AssessmentsFixtures.assessment_point_entry_fixture(%{
-    #       student_id: std_2.id,
-    #       assessment_point_id: goal_1.id,
-    #       scale_id: marking_scale.id,
-    #       scale_type: "ordinal",
-    #       ordinal_value_id: ov_eme.id
-    #     })
+      # std 2
+      expected_student_id = std_2.id
+      expected_ordinal_value_id = ov_e.id
 
-    #   _entry_2_2 =
-    #     AssessmentsFixtures.assessment_point_entry_fixture(%{
-    #       student_id: std_2.id,
-    #       assessment_point_id: goal_2.id,
-    #       scale_id: marking_scale.id,
-    #       scale_type: "ordinal",
-    #       ordinal_value_id: ov_ach.id
-    #     })
+      assert %{
+               student_id: ^expected_student_id,
+               composition_normalized_value: 0.33333,
+               ordinal_value_id: ^expected_ordinal_value_id
+             } =
+               Repo.get_by(
+                 StudentGradesReportFinalEntry,
+                 student_id: std_2.id,
+                 grades_report_subject_id: grs.id
+               )
 
-    #   _entry_2_3 =
-    #     AssessmentsFixtures.assessment_point_entry_fixture(%{
-    #       student_id: std_2.id,
-    #       assessment_point_id: goal_3.id,
-    #       scale_id: marking_scale.id,
-    #       scale_type: "ordinal",
-    #       ordinal_value_id: ov_exc.id
-    #     })
+      # std 3
+      expected_student_id = std_3.id
+      expected_ordinal_value_id = ov_a.id
+      expected_grades_report_subject_id = grs.id
 
-    #   # student 3
+      assert %{
+               student_id: ^expected_student_id,
+               composition_normalized_value: 1.0,
+               ordinal_value_id: ^expected_ordinal_value_id,
+               grades_report_subject_id: ^expected_grades_report_subject_id
+             } =
+               Repo.get(StudentGradesReportFinalEntry, sgrfe_3_id)
 
-    #   _entry_3_1 =
-    #     AssessmentsFixtures.assessment_point_entry_fixture(%{
-    #       student_id: std_3.id,
-    #       assessment_point_id: goal_1.id,
-    #       scale_id: marking_scale.id,
-    #       scale_type: "ordinal",
-    #       ordinal_value_id: ov_eme.id
-    #     })
+      # std 4 (manually adjusted)
+      expected_student_id = std_4.id
+      expected_ordinal_value_id = ov_c.id
+      expected_composition_ordinal_value_id = ov_d.id
+      expected_grades_report_subject_id = grs.id
 
-    #   _entry_3_2 =
-    #     AssessmentsFixtures.assessment_point_entry_fixture(%{
-    #       student_id: std_3.id,
-    #       assessment_point_id: goal_2.id,
-    #       scale_id: marking_scale.id,
-    #       scale_type: "ordinal",
-    #       ordinal_value_id: ov_eme.id
-    #     })
+      assert %{
+               student_id: ^expected_student_id,
+               composition_normalized_value: 0.5,
+               composition_ordinal_value_id: ^expected_composition_ordinal_value_id,
+               ordinal_value_id: ^expected_ordinal_value_id,
+               grades_report_subject_id: ^expected_grades_report_subject_id
+             } =
+               Repo.get(StudentGradesReportFinalEntry, sgrfe_4_id)
 
-    #   _entry_3_3 =
-    #     AssessmentsFixtures.assessment_point_entry_fixture(%{
-    #       student_id: std_3.id,
-    #       assessment_point_id: goal_3.id,
-    #       scale_id: marking_scale.id,
-    #       scale_type: "ordinal",
-    #       ordinal_value_id: ov_eme.id
-    #     })
-
-    #   # student 4
-
-    #   _entry_4_1 =
-    #     AssessmentsFixtures.assessment_point_entry_fixture(%{
-    #       student_id: std_4.id,
-    #       assessment_point_id: goal_1.id,
-    #       scale_id: marking_scale.id,
-    #       scale_type: "ordinal",
-    #       ordinal_value_id: ov_eme.id
-    #     })
-
-    #   _entry_4_2 =
-    #     AssessmentsFixtures.assessment_point_entry_fixture(%{
-    #       student_id: std_4.id,
-    #       assessment_point_id: goal_2.id,
-    #       scale_id: marking_scale.id,
-    #       scale_type: "ordinal",
-    #       ordinal_value_id: ov_eme.id
-    #     })
-
-    #   _entry_4_3 =
-    #     AssessmentsFixtures.assessment_point_entry_fixture(%{
-    #       student_id: std_4.id,
-    #       assessment_point_id: goal_3.id,
-    #       scale_id: marking_scale.id,
-    #       scale_type: "ordinal",
-    #       ordinal_value_id: ov_eme.id
-    #     })
-
-    #   # student 6 (extra)
-
-    #   _entry_6_1 =
-    #     AssessmentsFixtures.assessment_point_entry_fixture(%{
-    #       student_id: std_6.id,
-    #       assessment_point_id: goal_1.id,
-    #       scale_id: marking_scale.id,
-    #       scale_type: "ordinal",
-    #       ordinal_value_id: ov_eme.id
-    #     })
-
-    #   # extra cases setup
-
-    #   # UPDATE + EMPTY - pre calculate student 1, then delete entries
-    #   {:ok, %{id: student_1_grade_report_entry_id}, :created} =
-    #     GradesReports.calculate_student_grade(
-    #       std_1.id,
-    #       grades_report.id,
-    #       grades_report_cycle.id,
-    #       grades_report_subject.id
-    #     )
-
-    #   Assessments.delete_assessment_point_entry(entry_1_1)
-    #   Assessments.delete_assessment_point_entry(entry_1_2)
-    #   Assessments.delete_assessment_point_entry(entry_1_3)
-
-    #   # UPDATE CASE - pre calculate student 3
-    #   {:ok, %{id: student_3_grade_report_entry_id}, :created} =
-    #     GradesReports.calculate_student_grade(
-    #       std_3.id,
-    #       grades_report.id,
-    #       grades_report_cycle.id,
-    #       grades_report_subject.id
-    #     )
-
-    #   # UPDATE MANUAL - pre calculate student 4, and change the ordinal_value
-    #   {:ok, %{id: student_4_grade_report_entry_id} = sgre_4, :created} =
-    #     GradesReports.calculate_student_grade(
-    #       std_4.id,
-    #       grades_report.id,
-    #       grades_report_cycle.id,
-    #       grades_report_subject.id
-    #     )
-
-    #   assert {:ok, _} =
-    #            GradesReports.update_student_grades_report_entry(sgre_4, %{
-    #              ordinal_value_id: ov_c.id
-    #            })
-
-    #   # assert
-
-    #   assert {:ok, %{created: 1, updated: 1, updated_with_manual: 1, deleted: 1, noop: 1}} =
-    #            GradesReports.calculate_subject_grades(
-    #              [std_1.id, std_2.id, std_3.id, std_4.id, std_5.id],
-    #              grades_report.id,
-    #              grades_report_cycle.id,
-    #              grades_report_subject.id
-    #            )
-
-    #   # std 1 - previously calculated should not exist anymore
-    #   assert Repo.get(StudentGradesReportEntry, student_1_grade_report_entry_id) |> is_nil()
-
-    #   # sub 2
-    #   expected_ordinal_value_id = ov_b.id
-
-    #   assert %{
-    #            composition_normalized_value: 0.85,
-    #            ordinal_value_id: ^expected_ordinal_value_id
-    #          } =
-    #            Repo.get_by(
-    #              StudentGradesReportEntry,
-    #              student_id: std_2.id,
-    #              grades_report_cycle_id: grades_report_cycle.id,
-    #              grades_report_subject_id: grades_report_subject.id
-    #            )
-
-    #   # sub 3
-    #   expected_student_id = std_3.id
-    #   expected_ordinal_value_id = ov_e.id
-    #   expected_grades_report_cycle_id = grades_report_cycle.id
-    #   expected_grades_report_subject_id = grades_report_subject.id
-
-    #   assert %{
-    #            composition_normalized_value: 0.4,
-    #            student_id: ^expected_student_id,
-    #            ordinal_value_id: ^expected_ordinal_value_id,
-    #            grades_report_cycle_id: ^expected_grades_report_cycle_id,
-    #            grades_report_subject_id: ^expected_grades_report_subject_id
-    #          } =
-    #            Repo.get(
-    #              StudentGradesReportEntry,
-    #              student_3_grade_report_entry_id
-    #            )
-
-    #   # sub 4
-    #   expected_student_id = std_4.id
-    #   expected_ordinal_value_id = ov_c.id
-    #   expected_composition_ordinal_value_id = ov_e.id
-    #   expected_grades_report_cycle_id = grades_report_cycle.id
-    #   expected_grades_report_subject_id = grades_report_subject.id
-
-    #   assert %{
-    #            composition_normalized_value: 0.4,
-    #            student_id: ^expected_student_id,
-    #            ordinal_value_id: ^expected_ordinal_value_id,
-    #            composition_ordinal_value_id: ^expected_composition_ordinal_value_id,
-    #            grades_report_cycle_id: ^expected_grades_report_cycle_id,
-    #            grades_report_subject_id: ^expected_grades_report_subject_id
-    #          } =
-    #            Repo.get(
-    #              StudentGradesReportEntry,
-    #              student_4_grade_report_entry_id
-    #            )
-
-    #   # sub 5 - should not exist
-    #   assert Repo.get_by(
-    #            StudentGradesReportEntry,
-    #            student_id: std_5.id,
-    #            grades_report_cycle_id: grades_report_cycle.id,
-    #            grades_report_subject_id: grades_report_subject.id
-    #          )
-    #          |> is_nil()
-    # end
+      # std 5 - should not exist
+      assert Repo.get_by(
+               StudentGradesReportFinalEntry,
+               student_id: std_5.id,
+               grades_report_subject_id: grs.id
+             )
+             |> is_nil()
+    end
 
     # test "calculate_cycle_grades/3 returns the correct student grades report entries for given cycle" do
     #   # marking scale
