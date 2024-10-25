@@ -7,6 +7,8 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
   import LantternWeb.FiltersHelpers,
     only: [assign_user_filters: 3, save_profile_filters: 3]
 
+  import LantternWeb.GradesReportsHelpers, only: [build_calculation_results_message: 1]
+
   # shared
   alias LantternWeb.GradesReports.StudentGradesReportEntryOverlayComponent
   import LantternWeb.GradesReportsComponents
@@ -333,53 +335,5 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
       end
 
     {:noreply, socket}
-  end
-
-  # helper
-
-  defp build_calculation_results_message(%{} = results),
-    do: build_calculation_results_message(Enum.map(results, & &1), [])
-
-  defp build_calculation_results_message([], msgs),
-    do: Enum.join(msgs, ", ")
-
-  defp build_calculation_results_message([{_operation, 0} | results], msgs),
-    do: build_calculation_results_message(results, msgs)
-
-  defp build_calculation_results_message([{:created, count} | results], msgs) do
-    msg = ngettext("1 grade created", "%{count} grades created", count)
-    build_calculation_results_message(results, [msg | msgs])
-  end
-
-  defp build_calculation_results_message([{:updated, count} | results], msgs) do
-    msg = ngettext("1 grade updated", "%{count} grades updated", count)
-    build_calculation_results_message(results, [msg | msgs])
-  end
-
-  defp build_calculation_results_message([{:updated_with_manual, count} | results], msgs) do
-    msg =
-      ngettext(
-        "1 grade partially updated (only composition, manual grade not changed)",
-        "%{count} grades partially updated (only compositions, manual grades not changed)",
-        count
-      )
-
-    build_calculation_results_message(results, [msg | msgs])
-  end
-
-  defp build_calculation_results_message([{:deleted, count} | results], msgs) do
-    msg = ngettext("1 grade removed", "%{count} grades removed", count)
-    build_calculation_results_message(results, [msg | msgs])
-  end
-
-  defp build_calculation_results_message([{:noop, count} | results], msgs) do
-    msg =
-      ngettext(
-        "1 grade calculation skipped (no assessment point entries)",
-        "%{count} grades skipped (no assessment point entries)",
-        count
-      )
-
-    build_calculation_results_message(results, [msg | msgs])
   end
 end

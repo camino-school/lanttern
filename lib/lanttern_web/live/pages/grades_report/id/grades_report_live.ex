@@ -15,8 +15,8 @@ defmodule LantternWeb.GradesReportLive do
   alias LantternWeb.GradesReports.StudentGradesReportFinalEntryOverlayComponent
   # alias LantternWeb.Grading.GradeCompositionOverlayComponent
 
-  # # shared
-  # import LantternWeb.GradesReportsComponents
+  # shared
+  import LantternWeb.GradesReportsHelpers, only: [build_calculation_results_message: 1]
 
   # lifecycle
 
@@ -246,6 +246,34 @@ defmodule LantternWeb.GradesReportLive do
     end
   end
 
+  def handle_event("calculate_student", params, socket) do
+    %{"student_id" => student_id} = params
+
+    socket =
+      GradesReports.calculate_student_final_grades(
+        student_id,
+        socket.assigns.grades_report.id
+      )
+      |> case do
+        {:ok, results} ->
+          socket
+          |> put_flash(
+            :info,
+            "#{gettext("Student final grades calculated succesfully")}. #{build_calculation_results_message(results)}"
+          )
+          |> push_navigate(to: ~p"/grades_reports/#{socket.assigns.grades_report}")
+
+        {:error, _, results} ->
+          put_flash(
+            socket,
+            :error,
+            "#{gettext("Something went wrong")}. #{gettext("Partial results")}: #{build_calculation_results_message(results)}"
+          )
+      end
+
+    {:noreply, socket}
+  end
+
   def handle_event("calculate_cell", params, socket) do
     %{
       "grades_report_subject_id" => grades_report_subject_id,
@@ -276,52 +304,4 @@ defmodule LantternWeb.GradesReportLive do
 
     {:noreply, socket}
   end
-
-  # # helper
-
-  # defp build_calculation_results_message(%{} = results),
-  #   do: build_calculation_results_message(Enum.map(results, & &1), [])
-
-  # defp build_calculation_results_message([], msgs),
-  #   do: Enum.join(msgs, ", ")
-
-  # defp build_calculation_results_message([{_operation, 0} | results], msgs),
-  #   do: build_calculation_results_message(results, msgs)
-
-  # defp build_calculation_results_message([{:created, count} | results], msgs) do
-  #   msg = ngettext("1 grade created", "%{count} grades created", count)
-  #   build_calculation_results_message(results, [msg | msgs])
-  # end
-
-  # defp build_calculation_results_message([{:updated, count} | results], msgs) do
-  #   msg = ngettext("1 grade updated", "%{count} grades updated", count)
-  #   build_calculation_results_message(results, [msg | msgs])
-  # end
-
-  # defp build_calculation_results_message([{:updated_with_manual, count} | results], msgs) do
-  #   msg =
-  #     ngettext(
-  #       "1 grade partially updated (only composition, manual grade not changed)",
-  #       "%{count} grades partially updated (only compositions, manual grades not changed)",
-  #       count
-  #     )
-
-  #   build_calculation_results_message(results, [msg | msgs])
-  # end
-
-  # defp build_calculation_results_message([{:deleted, count} | results], msgs) do
-  #   msg = ngettext("1 grade removed", "%{count} grades removed", count)
-  #   build_calculation_results_message(results, [msg | msgs])
-  # end
-
-  # defp build_calculation_results_message([{:noop, count} | results], msgs) do
-  #   msg =
-  #     ngettext(
-  #       "1 grade calculation skipped (no assessment point entries)",
-  #       "%{count} grades skipped (no assessment point entries)",
-  #       count
-  #     )
-
-  #   build_calculation_results_message(results, [msg | msgs])
-  # end
 end
