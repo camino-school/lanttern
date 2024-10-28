@@ -260,6 +260,7 @@ defmodule LantternWeb.GradesReportsComponents do
   """
 
   attr :students, Phoenix.LiveView.LiveStream, required: true
+  attr :cycle_name, :string, required: true
   attr :has_students, :boolean, required: true
   attr :grades_report_cycles, :list, required: true
   attr :grades_report_subjects, :list, required: true
@@ -386,7 +387,7 @@ defmodule LantternWeb.GradesReportsComponents do
             class="flex items-center justify-center gap-2 p-2 text-center text-white truncate bg-ltrn-dark"
             style={@cycle_grid_column_span_style}
           >
-            Parent cycle (TBD - use cycle name)
+            <%= @cycle_name %> (<%= gettext("Final grades") %>)
             <%= if @display_actions && @on_calculate_final do %>
               <.button
                 type="button"
@@ -400,7 +401,7 @@ defmodule LantternWeb.GradesReportsComponents do
                 }
                 class="sticky left-1 z-10"
               >
-                <%= gettext("Calculate final grades") %>
+                <%= gettext("Calculate") %>
               </.button>
             <% end %>
           </div>
