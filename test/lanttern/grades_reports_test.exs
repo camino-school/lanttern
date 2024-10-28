@@ -3802,29 +3802,29 @@ defmodule Lanttern.GradesReportsTest do
       assert expected_cycle_1a = expected_std_a[grades_report_cycle_1.id]
       assert expected_entry_1ax = expected_cycle_1a[grades_report_subject_x.id]
       assert expected_entry_1ax.id == entry_1ax.id
-      assert expected_entry_1ax.ordinal_value.id == ov.id
+      assert expected_entry_1ax.ordinal_value_id == ov.id
       assert expected_entry_1ay = expected_cycle_1a[grades_report_subject_y.id]
       assert expected_entry_1ay.id == entry_1ay.id
-      assert is_nil(expected_entry_1ay.ordinal_value)
+      assert is_nil(expected_entry_1ay.ordinal_value_id)
       assert expected_cycle_2a = expected_std_a[grades_report_cycle_2.id]
       assert expected_entry_2ax = expected_cycle_2a[grades_report_subject_x.id]
       assert expected_entry_2ax.id == entry_2ax.id
-      assert expected_entry_2ax.ordinal_value.id == ov.id
+      assert expected_entry_2ax.ordinal_value_id == ov.id
       assert expected_entry_2ay = expected_cycle_2a[grades_report_subject_y.id]
       assert expected_entry_2ay.id == entry_2ay.id
-      assert is_nil(expected_entry_2ay.ordinal_value)
+      assert is_nil(expected_entry_2ay.ordinal_value_id)
       assert expected_final_entry_ax = expected_std_a[:final][grades_report_subject_x.id]
       assert expected_final_entry_ax.id == final_entry_ax.id
-      assert expected_final_entry_ax.ordinal_value.id == ov.id
+      assert expected_final_entry_ax.ordinal_value_id == ov.id
       assert expected_final_entry_ay = expected_std_a[:final][grades_report_subject_y.id]
       assert expected_final_entry_ay.id == final_entry_ay.id
-      assert is_nil(expected_final_entry_ay.ordinal_value)
+      assert is_nil(expected_final_entry_ay.ordinal_value_id)
 
       assert expected_std_b = expected[std_b.id]
       assert expected_cycle_1b = expected_std_b[grades_report_cycle_1.id]
       assert expected_entry_1bx = expected_cycle_1b[grades_report_subject_x.id]
       assert expected_entry_1bx.id == entry_1bx.id
-      assert expected_entry_1bx.ordinal_value.id == ov.id
+      assert expected_entry_1bx.ordinal_value_id == ov.id
       assert is_nil(expected_cycle_1b[grades_report_subject_y.id])
       assert expected_cycle_2b = expected_std_b[grades_report_cycle_2.id]
       assert is_nil(expected_cycle_2b[grades_report_subject_x.id])
@@ -3836,19 +3836,19 @@ defmodule Lanttern.GradesReportsTest do
       assert expected_cycle_1c = expected_std_c[grades_report_cycle_1.id]
       assert expected_entry_1cx = expected_cycle_1c[grades_report_subject_x.id]
       assert expected_entry_1cx.id == entry_1cx.id
-      assert expected_entry_1cx.ordinal_value.id == ov.id
+      assert expected_entry_1cx.ordinal_value_id == ov.id
       assert expected_entry_1cy = expected_cycle_1c[grades_report_subject_y.id]
       assert expected_entry_1cy.id == entry_1cy.id
-      assert is_nil(expected_entry_1cy.ordinal_value)
+      assert is_nil(expected_entry_1cy.ordinal_value_id)
       assert expected_cycle_2c = expected_std_c[grades_report_cycle_2.id]
       assert is_nil(expected_cycle_2c[grades_report_subject_x.id])
       assert expected_entry_2cy = expected_cycle_2c[grades_report_subject_y.id]
       assert expected_entry_2cy.id == entry_2cy.id
-      assert is_nil(expected_entry_2cy.ordinal_value)
+      assert is_nil(expected_entry_2cy.ordinal_value_id)
       assert is_nil(expected_std_c[:final][grades_report_subject_x.id])
       assert expected_final_entry_cy = expected_std_c[:final][grades_report_subject_y.id]
       assert expected_final_entry_cy.id == final_entry_cy.id
-      assert is_nil(expected_final_entry_cy.ordinal_value)
+      assert is_nil(expected_final_entry_cy.ordinal_value_id)
     end
 
     test "build_students_grades_cycle_map/3 returns the correct map" do
@@ -3950,28 +3950,28 @@ defmodule Lanttern.GradesReportsTest do
       assert expected_std_1 = expected[std_1.id]
       assert expected_entry_1_1 = expected_std_1[grades_report_subject_1.id]
       assert expected_entry_1_1.id == entry_1_1.id
-      assert expected_entry_1_1.ordinal_value.id == ov.id
+      assert expected_entry_1_1.ordinal_value_id == ov.id
       assert expected_entry_1_2 = expected_std_1[grades_report_subject_2.id]
       assert expected_entry_1_2.id == entry_1_2.id
-      assert is_nil(expected_entry_1_2.ordinal_value)
+      assert is_nil(expected_entry_1_2.ordinal_value_id)
       assert expected_entry_1_3 = expected_std_1[grades_report_subject_3.id]
       assert expected_entry_1_3.id == entry_1_3.id
-      assert is_nil(expected_entry_1_3.ordinal_value)
+      assert is_nil(expected_entry_1_3.ordinal_value_id)
 
       assert expected_std_2 = expected[std_2.id]
       assert expected_entry_2_1 = expected_std_2[grades_report_subject_1.id]
       assert expected_entry_2_1.id == entry_2_1.id
-      assert is_nil(expected_entry_2_1.ordinal_value)
+      assert is_nil(expected_entry_2_1.ordinal_value_id)
       assert is_nil(expected_std_2[grades_report_subject_2.id])
       assert is_nil(expected_std_2[grades_report_subject_3.id])
 
       assert expected_std_3 = expected[std_3.id]
       assert expected_entry_3_1 = expected_std_3[grades_report_subject_1.id]
       assert expected_entry_3_1.id == entry_3_1.id
-      assert is_nil(expected_entry_3_1.ordinal_value)
+      assert is_nil(expected_entry_3_1.ordinal_value_id)
       assert expected_entry_3_2 = expected_std_3[grades_report_subject_2.id]
       assert expected_entry_3_2.id == entry_3_2.id
-      assert is_nil(expected_entry_3_2.ordinal_value)
+      assert is_nil(expected_entry_3_2.ordinal_value_id)
       assert is_nil(expected_std_3[grades_report_subject_3.id])
     end
 

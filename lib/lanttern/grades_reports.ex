@@ -1679,8 +1679,6 @@ defmodule Lanttern.GradesReports do
       }
 
   for the given students and grades report.
-
-  Ordinal values preloaded (manually) in student grade report entry.
   """
   @spec build_students_full_grades_report_map(grades_report_id :: pos_integer()) :: %{}
   def build_students_full_grades_report_map(grades_report_id) do
@@ -1701,21 +1699,18 @@ defmodule Lanttern.GradesReports do
         on:
           sgrfe.grades_report_subject_id == grs.id and
             sgrfe.student_id == std.id,
-        left_join: ov in assoc(sgrfe, :ordinal_value),
-        left_join: pr_ov in assoc(sgrfe, :pre_retake_ordinal_value),
-        select: {std.id, grs.id, sgrfe, ov, pr_ov}
+        select: {std.id, grs.id, sgrfe}
       )
       |> Repo.all()
-      |> Enum.reduce(%{}, fn {std_id, grs_id, sgrfe, ov, pr_ov}, acc ->
-        # "preload" ordinal value in student grade report entry
-        # and clear composition to save memory
+      |> Enum.reduce(%{}, fn {std_id, grs_id, sgrfe}, acc ->
+        # clear composition to save memory
         sgrfe =
           case sgrfe do
             nil ->
               nil
 
             sgrfe ->
-              %{sgrfe | ordinal_value: ov, pre_retake_ordinal_value: pr_ov, composition: nil}
+              %{sgrfe | composition: nil}
           end
 
         # get or create student map
@@ -1738,21 +1733,18 @@ defmodule Lanttern.GradesReports do
         sgre.grades_report_cycle_id == grc.id and
           sgre.grades_report_subject_id == grs.id and
           sgre.student_id == std.id,
-      left_join: ov in assoc(sgre, :ordinal_value),
-      left_join: pr_ov in assoc(sgre, :pre_retake_ordinal_value),
-      select: {std.id, grc.id, grs.id, sgre, ov, pr_ov}
+      select: {std.id, grc.id, grs.id, sgre}
     )
     |> Repo.all()
-    |> Enum.reduce(%{}, fn {std_id, grc_id, grs_id, sgre, ov, pr_ov}, acc ->
-      # "preload" ordinal value in student grade report entry
-      # and clear composition to save memory
+    |> Enum.reduce(%{}, fn {std_id, grc_id, grs_id, sgre}, acc ->
+      # clear composition to save memory
       sgre =
         case sgre do
           nil ->
             nil
 
           sgre ->
-            %{sgre | ordinal_value: ov, pre_retake_ordinal_value: pr_ov, composition: nil}
+            %{sgre | composition: nil}
         end
 
       # get or create student map
@@ -1787,8 +1779,6 @@ defmodule Lanttern.GradesReports do
       }
 
   for the given students, grades report and cycle.
-
-  Ordinal values preloaded (manually) in student grade report entry.
   """
   @spec build_students_grades_cycle_map(
           students_ids :: [pos_integer()],
@@ -1807,24 +1797,21 @@ defmodule Lanttern.GradesReports do
         sgre.grades_report_cycle_id == grc.id and
           sgre.grades_report_subject_id == grs.id and
           sgre.student_id == std.id,
-      left_join: ov in assoc(sgre, :ordinal_value),
-      left_join: pr_ov in assoc(sgre, :pre_retake_ordinal_value),
       where: std.id in ^students_ids,
       where: grc.grades_report_id == ^grades_report_id,
       where: grc.school_cycle_id == ^cycle_id,
-      select: {std.id, grs.id, sgre, ov, pr_ov}
+      select: {std.id, grs.id, sgre}
     )
     |> Repo.all()
-    |> Enum.reduce(%{}, fn {std_id, grs_id, sgre, ov, pr_ov}, acc ->
-      # "preload" ordinal value in student grade report entry
-      # and clear composition to save memory
+    |> Enum.reduce(%{}, fn {std_id, grs_id, sgre}, acc ->
+      # clear composition to save memory
       sgre =
         case sgre do
           nil ->
             nil
 
           sgre ->
-            %{sgre | ordinal_value: ov, pre_retake_ordinal_value: pr_ov, composition: nil}
+            %{sgre | composition: nil}
         end
 
       # build student map

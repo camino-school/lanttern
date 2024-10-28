@@ -14,6 +14,9 @@ defmodule LantternWeb.GradesReportsComponents do
   alias Lanttern.GradesReports.StudentGradesReportFinalEntry
   alias Lanttern.Grading.OrdinalValue
 
+  # shared components
+  alias LantternWeb.GradesReports.StudentGradesReportEntryButtonComponent
+
   @doc """
   Renders a grades report grid.
 
@@ -412,13 +415,13 @@ defmodule LantternWeb.GradesReportsComponents do
         <% end %>
         <%= if @has_subjects do %>
           <div
-            :for={_grades_report_cycle <- @grades_report_cycles}
+            :for={grades_report_cycle <- @grades_report_cycles}
             class="grid grid-cols-subgrid border-r-2 border-ltrn-subtle"
             style={@cycle_grid_column_span_style}
           >
             <div
               :for={grades_report_subject <- @grades_report_subjects}
-              id={"students-grades-grid-header-subject-#{grades_report_subject.id}"}
+              id={"students-grades-grid-header-subject-#{grades_report_subject.id}-#{grades_report_cycle.id}"}
               class="flex items-center justify-center w-20 min-w-full p-2 border-b-2 border-ltrn-subtle mt-px bg-white last:border-r-2 last:border-ltrn-subtle"
               title={
                 Gettext.dgettext(
@@ -526,6 +529,7 @@ defmodule LantternWeb.GradesReportsComponents do
                 on_calculate_cell={nil}
                 on_entry_click={@on_entry_click}
                 grades_report_subject_id={grades_report_subject.id}
+                grades_report_cycle_id={grades_report_cycle.id}
                 student_id={student.id}
               />
             </div>
@@ -536,6 +540,7 @@ defmodule LantternWeb.GradesReportsComponents do
                 on_calculate_cell={@on_calculate_cell}
                 on_entry_click={@on_final_entry_click}
                 grades_report_subject_id={grades_report_subject.id}
+                grades_report_cycle_id={0}
                 student_id={student.id}
               />
             </div>
@@ -713,6 +718,7 @@ defmodule LantternWeb.GradesReportsComponents do
               on_calculate_cell={@on_calculate_cell}
               on_entry_click={@on_entry_click}
               grades_report_subject_id={grades_report_subject.id}
+              grades_report_cycle_id={0}
               student_id={student.id}
             />
           <% else %>
@@ -740,7 +746,8 @@ defmodule LantternWeb.GradesReportsComponents do
     doc: "a `StudentGradesReportEntry` or `StudentGradesReportFinalEntry`"
 
   attr :student_id, :integer, default: nil
-  attr :grades_report_subject_id, :integer, default: nil
+  attr :grades_report_subject_id, :integer, required: true
+  attr :grades_report_cycle_id, :integer, required: true, doc: "use `0` for parent cycle"
   attr :on_calculate_cell, :any, required: true
   attr :on_entry_click, :any, required: true
 
@@ -753,7 +760,7 @@ defmodule LantternWeb.GradesReportsComponents do
 
     wrapper_class =
       case assigns.entry do
-        %{ordinal_value: %OrdinalValue{}} = entry ->
+        %{ordinal_value_id: ov_id} = entry when not is_nil(ov_id) ->
           if entry.ordinal_value_id == entry.composition_ordinal_value_id,
             do: wrapper_class,
             else: "p-1 border border-ltrn-teacher-accent bg-ltrn-teacher-lightest"
@@ -791,7 +798,11 @@ defmodule LantternWeb.GradesReportsComponents do
       "relative flex items-center justify-center gap-px",
       @wrapper_class
     ]}>
-      <.students_grades_grid_cell_value entry={@entry} on_entry_click={@on_entry_click} />
+      <.students_grades_grid_cell_value
+        id={"#{@student_id}_#{@grades_report_subject_id}_#{@grades_report_cycle_id}"}
+        entry={@entry}
+        on_entry_click={@on_entry_click}
+      />
       <div
         :if={@entry.comment || @on_calculate_cell}
         class="flex flex-col gap-1 justify-center items-center ml-1"
@@ -843,54 +854,37 @@ defmodule LantternWeb.GradesReportsComponents do
     required: true,
     doc: "a `StudentGradesReportEntry` or `StudentGradesReportFinalEntry`"
 
+  attr :id, :string,
+    required: true,
+    doc: "a unique id to render `StudentGradesReportEntryButtonComponent`"
+
   attr :on_entry_click, :any, required: true
 
-  defp students_grades_grid_cell_value(
-         %{entry: %{ordinal_value: %OrdinalValue{}}} =
-           assigns
-       ) do
-    has_retake_history = assigns.entry.pre_retake_ordinal_value_id != nil
+  defp students_grades_grid_cell_value(assigns) do
+    has_retake_history =
+      assigns.entry.pre_retake_ordinal_value_id != nil || assigns.entry.pre_retake_score != nil
 
     assigns =
       assigns
       |> assign(:has_retake_history, has_retake_history)
 
     ~H"""
-    <button
+    <.live_component
       :if={@has_retake_history}
-      class="flex-1 self-stretch flex items-center justify-center border rounded-sm my-2 text-xs opacity-70"
-      style={create_color_map_style(@entry.pre_retake_ordinal_value)}
-      phx-click={if(@on_entry_click, do: @on_entry_click.(@entry.id))}
-    >
-      <%= @entry.pre_retake_ordinal_value.name %>
-    </button>
-    <button
-      class="flex-[2] self-stretch flex items-center justify-center rounded-sm"
-      style={create_color_map_style(@entry.ordinal_value)}
-      phx-click={if(@on_entry_click, do: @on_entry_click.(@entry.id))}
-    >
-      <%= @entry.ordinal_value.name %>
-    </button>
-    """
-  end
-
-  defp students_grades_grid_cell_value(%{entry: %{}} = assigns) do
-    has_retake_history = assigns.entry.pre_retake_score != nil
-
-    assigns =
-      assigns
-      |> assign(:has_retake_history, has_retake_history)
-
-    ~H"""
-    <div
-      :if={@has_retake_history}
-      class="flex-1 flex items-center justify-center rounded-sm text-xs bg-white opacity-70"
-    >
-      <%= @entry.pre_retake_score %>
-    </div>
-    <div class="flex-[2] flex items-center justify-center rounded-sm bg-white">
-      <%= @entry.score %>
-    </div>
+      module={StudentGradesReportEntryButtonComponent}
+      is_pre_retake
+      id={"pre-retake-#{@id}"}
+      student_grades_report_entry={@entry}
+      class="flex-1 self-stretch my-2 text-xs opacity-70"
+      on_click={if(@on_entry_click, do: @on_entry_click.(@entry.id))}
+    />
+    <.live_component
+      module={StudentGradesReportEntryButtonComponent}
+      id={@id}
+      student_grades_report_entry={@entry}
+      class="flex-[2] self-stretch"
+      on_click={if(@on_entry_click, do: @on_entry_click.(@entry.id))}
+    />
     """
   end
 

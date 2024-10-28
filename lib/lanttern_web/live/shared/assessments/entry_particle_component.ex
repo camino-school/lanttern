@@ -57,8 +57,14 @@ defmodule LantternWeb.Assessments.EntryParticleComponent do
   def update_many(assigns_sockets) do
     ordinal_values_ids =
       assigns_sockets
-      |> Enum.map(fn {assigns, _socket} ->
-        assigns.entry && assigns.entry.ordinal_value_id
+      |> Enum.flat_map(fn {assigns, _socket} ->
+        ov_id =
+          assigns.entry && assigns.entry.ordinal_value_id
+
+        student_ov_id =
+          assigns.entry && assigns.entry.student_ordinal_value_id
+
+        [ov_id, student_ov_id]
       end)
       |> Enum.filter(&(not is_nil(&1)))
       |> Enum.uniq()
