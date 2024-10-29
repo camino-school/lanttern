@@ -52,6 +52,8 @@
   students={@streams.students}
   cycle_name={@grades_report.school_cycle.name}
   has_students={@has_students}
+  final_is_visible={@grades_report.final_is_visible}
+  on_toggle_final_grades_visibility={fn -> JS.push("toggle_final_grades_visibility") end}
   grades_report_cycles={@grades_report_cycles}
   grades_report_subjects={@grades_report_subjects}
   students_grades_map={@students_grades_map}

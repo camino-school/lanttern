@@ -161,6 +161,19 @@ defmodule LantternWeb.GradesReportLive do
   # event handlers
 
   @impl true
+  def handle_event("toggle_final_grades_visibility", _params, socket) do
+    GradesReports.update_grades_report(socket.assigns.grades_report, %{
+      final_is_visible: !socket.assigns.grades_report.final_is_visible
+    })
+    |> case do
+      {:ok, updated_grades_report} ->
+        {:noreply, assign(socket, :grades_report, updated_grades_report)}
+
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, gettext("Error updating final grades visibility"))}
+    end
+  end
+
   def handle_event("delete_grades_report", _params, socket) do
     case GradesReports.delete_grades_report(socket.assigns.grades_report) do
       {:ok, _grades_report} ->

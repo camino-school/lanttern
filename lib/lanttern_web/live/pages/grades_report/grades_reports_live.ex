@@ -67,7 +67,7 @@ defmodule LantternWeb.GradesReportsLive do
 
   defp assign_show_grades_report_grid_configuration(socket, %{"is_configuring_grid" => id}) do
     if String.match?(id, ~r/[0-9]+/) do
-      case GradesReports.get_grades_report(id) do
+      case GradesReports.get_grades_report(id, preloads: :school_cycle) do
         %GradesReport{} = grades_report ->
           socket
           # |> assign(:form_overlay_title, gettext("Edit grade report"))

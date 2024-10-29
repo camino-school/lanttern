@@ -95,15 +95,27 @@ defmodule LantternWeb.GradesReportsComponents do
                 "flex items-center justify-center p-1 rounded-full",
                 if(grades_report_cycle.is_visible,
                   do: "text-ltrn-primary bg-ltrn-mesh-cyan",
-                  else: "text-ltrn-subtle bg-ltrn-lighter"
+                  else: "text-ltrn-subtle"
                 )
               ]}
             >
               <.icon name={if grades_report_cycle.is_visible, do: "hero-eye", else: "hero-eye-slash"} />
             </div>
           </div>
-          <div class="p-4 rounded text-center bg-white shadow-lg">
+          <div class="flex items-center justify-center gap-1 p-4 rounded text-center bg-white shadow-lg">
             <%= @grades_report.school_cycle.name %>
+            <div
+              :if={@show_cycle_visibility}
+              class={[
+                "flex items-center justify-center p-1 rounded-full",
+                if(@grades_report.final_is_visible,
+                  do: "text-ltrn-primary bg-ltrn-mesh-cyan",
+                  else: "text-ltrn-subtle"
+                )
+              ]}
+            >
+              <.icon name={if @grades_report.final_is_visible, do: "hero-eye", else: "hero-eye-slash"} />
+            </div>
           </div>
         <% else %>
           <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lightest">
@@ -140,7 +152,14 @@ defmodule LantternWeb.GradesReportsComponents do
                 }
                 on_student_grade_click={@on_student_grade_click}
               />
-              <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+              <div class={[
+                "flex items-center justify-center rounded border border-ltrn-lighter",
+                if(@report_card_cycle_id, do: "bg-ltrn-lightest")
+              ]}>
+                <p :if={!@report_card_cycle_id} class="font-display font-bold text-ltrn-subtle">
+                  <%= gettext("Final") %>
+                </p>
+              </div>
             <% else %>
               <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
             <% end %>
@@ -265,11 +284,14 @@ defmodule LantternWeb.GradesReportsComponents do
   attr :students, Phoenix.LiveView.LiveStream, required: true
   attr :cycle_name, :string, required: true
   attr :has_students, :boolean, required: true
+  attr :final_is_visible, :boolean, required: true
   attr :grades_report_cycles, :list, required: true
   attr :grades_report_subjects, :list, required: true
   attr :students_grades_map, :map, required: true
   attr :class, :any, default: nil
   attr :id, :string, default: nil
+
+  attr :on_toggle_final_grades_visibility, :any, default: nil
 
   attr :on_calculate_final, :any,
     default: nil,
@@ -392,20 +414,33 @@ defmodule LantternWeb.GradesReportsComponents do
           >
             <%= @cycle_name %> (<%= gettext("Final grades") %>)
             <%= if @display_actions && @on_calculate_final do %>
-              <.button
-                type="button"
+              <.icon_button
+                name="hero-arrow-path-mini"
+                sr_text={gettext("Calculate final grades")}
+                rounded
+                size="sm"
                 theme="white"
-                icon_name="hero-arrow-path-mini"
                 phx-click={@on_calculate_final.()}
                 data-confirm={
                   gettext(
-                    "Are you sure? All grades will be created, updated, and removed based on their grade composition."
+                    "Are you sure? All final grades will be created, updated, and removed based on their grade composition."
                   )
                 }
-                class="sticky left-1 z-10"
-              >
-                <%= gettext("Calculate") %>
-              </.button>
+                title={gettext("Calculate final grades")}
+              />
+              <.icon_button
+                name={if @final_is_visible, do: "hero-eye-mini", else: "hero-eye-slash-mini"}
+                sr_text={gettext("Parent cycle visibility")}
+                rounded
+                size="sm"
+                theme={if @final_is_visible, do: "primary_light", else: "ghost"}
+                phx-click={@on_toggle_final_grades_visibility.()}
+                title={
+                  if @final_is_visible,
+                    do: gettext("Final grades are visible"),
+                    else: gettext("Final grades not visible")
+                }
+              />
             <% end %>
           </div>
         <% else %>
@@ -469,7 +504,7 @@ defmodule LantternWeb.GradesReportsComponents do
               phx-click={@on_calculate_subject.(grades_report_subject.id)}
               data-confirm={
                 gettext(
-                  "Are you sure? Grades related to this subject will be created, updated, and removed based on their grade composition."
+                  "Are you sure? Final grades related to this subject will be created, updated, and removed based on their grade composition."
                 )
               }
             />
@@ -488,63 +523,70 @@ defmodule LantternWeb.GradesReportsComponents do
       </div>
       <%= if @has_students do %>
         <div
-          :for={{dom_id, student} <- @students}
-          id={"students-grades-grid-#{dom_id}"}
+          id="students-grades-grid-students"
           class="grid grid-cols-subgrid"
           style={@row_grid_column_span_style}
+          phx-update="stream"
         >
-          <div class="sticky left-0 z-10 flex items-center gap-2 p-2 border-r-2 border-ltrn-subtle bg-white">
-            <.profile_icon_with_name
-              icon_size="sm"
-              class="flex-1"
-              profile_name={student.name}
-              extra_info={student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
-            />
-            <.icon_button
-              :if={@display_actions && @on_calculate_student}
-              name="hero-arrow-path-mini"
-              theme="white"
-              rounded
-              size="sm"
-              sr_text={gettext("Calculate student grades")}
-              phx-click={@on_calculate_student.(student.id)}
-              data-confirm={
-                gettext(
-                  "Are you sure? Grades related to this student will be created, updated, and removed based on their grade composition."
-                )
-              }
-            />
-          </div>
-          <%= if @has_cycles and @has_subjects do %>
-            <div
-              :for={grades_report_cycle <- @grades_report_cycles}
-              class="grid grid-cols-subgrid border-r-2 border-ltrn-subtle"
-              style={@cycle_grid_column_span_style}
-            >
-              <.students_grades_grid_cell
-                :for={grades_report_subject <- @grades_report_subjects}
-                entry={
-                  @students_grades_map[student.id][grades_report_cycle.id][grades_report_subject.id]
+          <div
+            :for={{dom_id, student} <- @students}
+            id={"students-grades-grid-#{dom_id}"}
+            class="grid grid-cols-subgrid"
+            style={@row_grid_column_span_style}
+          >
+            <div class="sticky left-0 z-10 flex items-center gap-2 p-2 border-r-2 border-ltrn-subtle bg-white">
+              <.profile_icon_with_name
+                icon_size="sm"
+                class="flex-1"
+                profile_name={student.name}
+                extra_info={student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
+              />
+              <.icon_button
+                :if={@display_actions && @on_calculate_student}
+                name="hero-arrow-path-mini"
+                theme="white"
+                rounded
+                size="sm"
+                sr_text={gettext("Calculate student grades")}
+                phx-click={@on_calculate_student.(student.id)}
+                data-confirm={
+                  gettext(
+                    "Are you sure? Final grades related to this student will be created, updated, and removed based on their grade composition."
+                  )
                 }
-                on_calculate_cell={nil}
-                on_entry_click={@on_entry_click}
-                grades_report_subject_id={grades_report_subject.id}
-                grades_report_cycle_id={grades_report_cycle.id}
-                student_id={student.id}
               />
             </div>
-            <div class="grid grid-cols-subgrid" style={@cycle_grid_column_span_style}>
-              <.students_grades_grid_cell
-                :for={grades_report_subject <- @grades_report_subjects}
-                entry={@students_grades_map[student.id][:final][grades_report_subject.id]}
-                on_calculate_cell={@on_calculate_cell}
-                on_entry_click={@on_final_entry_click}
-                grades_report_subject_id={grades_report_subject.id}
-                grades_report_cycle_id={0}
-                student_id={student.id}
-              />
-            </div>
-          <% end %>
+            <%= if @has_cycles and @has_subjects do %>
+              <div
+                :for={grades_report_cycle <- @grades_report_cycles}
+                class="grid grid-cols-subgrid border-r-2 border-ltrn-subtle"
+                style={@cycle_grid_column_span_style}
+              >
+                <.students_grades_grid_cell
+                  :for={grades_report_subject <- @grades_report_subjects}
+                  entry={
+                    @students_grades_map[student.id][grades_report_cycle.id][grades_report_subject.id]
+                  }
+                  on_calculate_cell={nil}
+                  on_entry_click={@on_entry_click}
+                  grades_report_subject_id={grades_report_subject.id}
+                  grades_report_cycle_id={grades_report_cycle.id}
+                  student_id={student.id}
+                />
+              </div>
+              <div class="grid grid-cols-subgrid" style={@cycle_grid_column_span_style}>
+                <.students_grades_grid_cell
+                  :for={grades_report_subject <- @grades_report_subjects}
+                  entry={@students_grades_map[student.id][:final][grades_report_subject.id]}
+                  on_calculate_cell={@on_calculate_cell}
+                  on_entry_click={@on_final_entry_click}
+                  grades_report_subject_id={grades_report_subject.id}
+                  grades_report_cycle_id={0}
+                  student_id={student.id}
+                />
+              </div>
+            <% end %>
+          </div>
         </div>
       <% else %>
         <div class="sticky left-0 flex items-center justify-center p-4 border-r-2 border-ltrn-subtle text-ltrn-subtle">

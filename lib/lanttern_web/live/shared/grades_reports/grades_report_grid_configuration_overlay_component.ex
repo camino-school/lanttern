@@ -20,7 +20,7 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
         <:title>
           <%= gettext("%{grades_report} grid configuration", grades_report: @grades_report.name) %>
         </:title>
-        <h5 class="mb-6 font-display font-black text-lg"><%= gettext("Grid sub cycles") %></h5>
+        <h5 class="mb-4 font-display font-black text-lg"><%= gettext("Grid sub cycles") %></h5>
         <div class="flex-1 flex flex-wrap gap-2">
           <.badge_button
             :for={cycle <- @cycles}
@@ -55,6 +55,21 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
             />
           </div>
         <% end %>
+        <h5 class="mt-10 font-display font-black text-lg">
+          <%= gettext("Final grades visibility") %>
+        </h5>
+        <.card_base class="flex items-center p-4 mt-4">
+          <p class="flex-1">
+            <%= @grades_report.school_cycle.name %>
+          </p>
+          <.icon_button
+            name={if @grades_report.final_is_visible, do: "hero-eye", else: "hero-eye-slash"}
+            sr_text={gettext("Parent cycle visibility")}
+            rounded
+            theme={if @grades_report.final_is_visible, do: "primary_light", else: "ghost"}
+            phx-click={JS.push("toggle_final_grades_visibility", target: @myself)}
+          />
+        </.card_base>
         <h5 class="mt-10 mb-6 font-display font-black text-lg"><%= gettext("Grid subjects") %></h5>
         <div class="flex-1 flex flex-wrap gap-2">
           <.badge_button
@@ -304,6 +319,19 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
       {:error, _changeset} ->
         {:noreply,
          put_flash(socket, :error, gettext("Error updating grades report cycle visibility"))}
+    end
+  end
+
+  def handle_event("toggle_final_grades_visibility", _params, socket) do
+    GradesReports.update_grades_report(socket.assigns.grades_report, %{
+      final_is_visible: !socket.assigns.grades_report.final_is_visible
+    })
+    |> case do
+      {:ok, updated_grades_report} ->
+        {:noreply, assign(socket, :grades_report, updated_grades_report)}
+
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, gettext("Error updating final grades visibility"))}
     end
   end
 
