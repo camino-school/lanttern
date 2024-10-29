@@ -51,6 +51,7 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       valid_attrs = %{
+        normalized_value: 0.5,
         comment: "some comment",
         composition_normalized_value: 0.5,
         student_id: student.id,
@@ -62,6 +63,7 @@ defmodule Lanttern.GradesReportsTest do
       assert {:ok, %StudentGradesReportEntry{} = student_grades_report_entry} =
                GradesReports.create_student_grades_report_entry(valid_attrs)
 
+      assert student_grades_report_entry.normalized_value == 0.5
       assert student_grades_report_entry.comment == "some comment"
       assert student_grades_report_entry.composition_normalized_value == 0.5
       assert student_grades_report_entry.student_id == student.id
@@ -1052,7 +1054,7 @@ defmodule Lanttern.GradesReportsTest do
       assert {:ok,
               %StudentGradesReportEntry{
                 student_id: ^expected_std_id,
-                composition_normalized_value: 0.69167,
+                normalized_value: 0.69167,
                 ordinal_value_id: ^expected_ov_id
               },
               :created} =
@@ -1099,7 +1101,7 @@ defmodule Lanttern.GradesReportsTest do
       assert {:ok,
               %StudentGradesReportEntry{
                 student_id: ^expected_std_id,
-                composition_normalized_value: 0.925,
+                normalized_value: 0.925,
                 ordinal_value_id: ^expected_ov_id
               },
               :created} =
@@ -1147,7 +1149,7 @@ defmodule Lanttern.GradesReportsTest do
               %StudentGradesReportEntry{
                 id: sgre_3_id,
                 student_id: ^expected_std_id,
-                composition_normalized_value: 0.56667,
+                normalized_value: 0.56667,
                 ordinal_value_id: ^expected_ov_id
               } = sgre_3,
               :created} =
@@ -1164,7 +1166,7 @@ defmodule Lanttern.GradesReportsTest do
               %StudentGradesReportEntry{
                 id: ^sgre_3_id,
                 student_id: ^expected_std_id,
-                composition_normalized_value: 0.56667,
+                normalized_value: 0.56667,
                 ordinal_value_id: ^expected_ov_id
               },
               :updated} =
@@ -1186,7 +1188,7 @@ defmodule Lanttern.GradesReportsTest do
               %StudentGradesReportEntry{
                 id: ^sgre_3_id,
                 student_id: ^expected_std_id,
-                composition_normalized_value: 0.56667,
+                normalized_value: 0.56667,
                 ordinal_value_id: ^expected_manual_ov_id
               },
               :updated_with_manual} =
@@ -1204,7 +1206,7 @@ defmodule Lanttern.GradesReportsTest do
               %StudentGradesReportEntry{
                 id: ^sgre_3_id,
                 student_id: ^expected_std_id,
-                composition_normalized_value: 0.56667,
+                normalized_value: 0.56667,
                 ordinal_value_id: ^expected_ov_id
               },
               :updated} =
@@ -1716,7 +1718,7 @@ defmodule Lanttern.GradesReportsTest do
 
       assert %{
                student_id: ^expected_student_id,
-               composition_normalized_value: 0.85,
+               normalized_value: 0.85,
                ordinal_value_id: ^expected_ordinal_value_id
              } =
                Repo.get_by(
@@ -1733,7 +1735,7 @@ defmodule Lanttern.GradesReportsTest do
 
       assert %{
                student_id: ^expected_student_id,
-               composition_normalized_value: 0.4,
+               normalized_value: 0.4,
                ordinal_value_id: ^expected_ordinal_value_id,
                grades_report_cycle_id: ^expected_grades_report_cycle_id,
                grades_report_subject_id: ^expected_grades_report_subject_id
@@ -1751,7 +1753,7 @@ defmodule Lanttern.GradesReportsTest do
 
       assert %{
                student_id: ^expected_student_id,
-               composition_normalized_value: 0.4,
+               normalized_value: 0.4,
                composition_ordinal_value_id: ^expected_composition_ordinal_value_id,
                ordinal_value_id: ^expected_ordinal_value_id,
                grades_report_cycle_id: ^expected_grades_report_cycle_id,
@@ -2088,7 +2090,7 @@ defmodule Lanttern.GradesReportsTest do
       expected_ordinal_value_id = ov_b.id
 
       assert %{
-               composition_normalized_value: 0.85,
+               normalized_value: 0.85,
                ordinal_value_id: ^expected_ordinal_value_id
              } =
                Repo.get_by(
@@ -2105,7 +2107,7 @@ defmodule Lanttern.GradesReportsTest do
       expected_grades_report_subject_id = grades_report_subject.id
 
       assert %{
-               composition_normalized_value: 0.4,
+               normalized_value: 0.4,
                student_id: ^expected_student_id,
                ordinal_value_id: ^expected_ordinal_value_id,
                grades_report_cycle_id: ^expected_grades_report_cycle_id,
@@ -2124,7 +2126,7 @@ defmodule Lanttern.GradesReportsTest do
       expected_grades_report_subject_id = grades_report_subject.id
 
       assert %{
-               composition_normalized_value: 0.4,
+               normalized_value: 0.4,
                student_id: ^expected_student_id,
                ordinal_value_id: ^expected_ordinal_value_id,
                composition_ordinal_value_id: ^expected_composition_ordinal_value_id,
@@ -2567,7 +2569,7 @@ defmodule Lanttern.GradesReportsTest do
       expected_ordinal_value_id = ov_b.id
 
       assert %{
-               composition_normalized_value: 0.85,
+               normalized_value: 0.85,
                ordinal_value_id: ^expected_ordinal_value_id
              } =
                Repo.get_by(
@@ -2584,7 +2586,7 @@ defmodule Lanttern.GradesReportsTest do
       expected_grades_report_subject_id = grades_report_subject_3.id
 
       assert %{
-               composition_normalized_value: 0.4,
+               normalized_value: 0.4,
                student_id: ^expected_student_id,
                ordinal_value_id: ^expected_ordinal_value_id,
                grades_report_cycle_id: ^expected_grades_report_cycle_id,
@@ -2603,7 +2605,7 @@ defmodule Lanttern.GradesReportsTest do
       expected_grades_report_subject_id = grades_report_subject_3.id
 
       assert %{
-               composition_normalized_value: 0.4,
+               normalized_value: 0.4,
                student_id: ^expected_student_id,
                ordinal_value_id: ^expected_ordinal_value_id,
                composition_ordinal_value_id: ^expected_composition_ordinal_value_id,
@@ -2673,7 +2675,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_1.id,
           grades_report_subject_id: grs.id,
-          composition_normalized_value: 1.0
+          normalized_value: 1.0
         })
 
       _s_1_cycle_2_grade =
@@ -2682,7 +2684,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_2.id,
           grades_report_subject_id: grs.id,
-          composition_normalized_value: 0.9
+          normalized_value: 0.9
         })
 
       _s_1_cycle_3_grade =
@@ -2691,7 +2693,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_3.id,
           grades_report_subject_id: grs.id,
-          composition_normalized_value: 0.8
+          normalized_value: 0.8
         })
 
       expected_ov_id = ov_b.id
@@ -2719,7 +2721,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_1.id,
           grades_report_subject_id: grs.id,
-          composition_normalized_value: 0.0
+          normalized_value: 0.0
         })
 
       s_2_cycle_2_grade =
@@ -2728,7 +2730,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_2.id,
           grades_report_subject_id: grs.id,
-          composition_normalized_value: 0.5
+          normalized_value: 0.5
         })
 
       expected_ov_id = ov_e.id
@@ -2882,7 +2884,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_1.id,
           grades_report_subject_id: grs_1.id,
-          composition_normalized_value: 1.0
+          normalized_value: 1.0
         })
 
       s_1_c_2_entry =
@@ -2891,7 +2893,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_2.id,
           grades_report_subject_id: grs_1.id,
-          composition_normalized_value: 0.9
+          normalized_value: 0.9
         })
 
       s_1_c_3_entry =
@@ -2900,7 +2902,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_3.id,
           grades_report_subject_id: grs_1.id,
-          composition_normalized_value: 0.8
+          normalized_value: 0.8
         })
 
       # subject 2
@@ -2911,7 +2913,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_1.id,
           grades_report_subject_id: grs_2.id,
-          composition_normalized_value: 0.0
+          normalized_value: 0.0
         })
 
       _s_2_c_2_entry =
@@ -2920,7 +2922,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_2.id,
           grades_report_subject_id: grs_2.id,
-          composition_normalized_value: 0.5
+          normalized_value: 0.5
         })
 
       # subject 3
@@ -2931,7 +2933,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_1.id,
           grades_report_subject_id: grs_3.id,
-          composition_normalized_value: 1.0
+          normalized_value: 1.0
         })
 
       # subject 4
@@ -2942,7 +2944,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_1.id,
           grades_report_subject_id: grs_4.id,
-          composition_normalized_value: 0.5
+          normalized_value: 0.5
         })
 
       _s_4_c_2_entry =
@@ -2951,7 +2953,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_2.id,
           grades_report_subject_id: grs_4.id,
-          composition_normalized_value: 0.5
+          normalized_value: 0.5
         })
 
       _s_4_c_3_entry =
@@ -2960,7 +2962,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_3.id,
           grades_report_subject_id: grs_4.id,
-          composition_normalized_value: 0.5
+          normalized_value: 0.5
         })
 
       # extra cases setup
@@ -3090,7 +3092,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_1.id,
           grades_report_subject_id: grs.id,
-          composition_normalized_value: 1.0
+          normalized_value: 1.0
         })
 
       std_1_c_2_entry =
@@ -3099,7 +3101,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_2.id,
           grades_report_subject_id: grs.id,
-          composition_normalized_value: 0.9
+          normalized_value: 0.9
         })
 
       std_1_c_3_entry =
@@ -3108,7 +3110,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_3.id,
           grades_report_subject_id: grs.id,
-          composition_normalized_value: 0.8
+          normalized_value: 0.8
         })
 
       # std 2
@@ -3119,7 +3121,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_1.id,
           grades_report_subject_id: grs.id,
-          composition_normalized_value: 0.0
+          normalized_value: 0.0
         })
 
       _std_2_c_2_entry =
@@ -3128,7 +3130,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_2.id,
           grades_report_subject_id: grs.id,
-          composition_normalized_value: 0.5
+          normalized_value: 0.5
         })
 
       # std 3
@@ -3139,7 +3141,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_1.id,
           grades_report_subject_id: grs.id,
-          composition_normalized_value: 1.0
+          normalized_value: 1.0
         })
 
       # std 4
@@ -3150,7 +3152,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_1.id,
           grades_report_subject_id: grs.id,
-          composition_normalized_value: 0.5
+          normalized_value: 0.5
         })
 
       _std_4_c_2_entry =
@@ -3159,7 +3161,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_2.id,
           grades_report_subject_id: grs.id,
-          composition_normalized_value: 0.5
+          normalized_value: 0.5
         })
 
       _std_4_c_3_entry =
@@ -3168,7 +3170,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_3.id,
           grades_report_subject_id: grs.id,
-          composition_normalized_value: 0.5
+          normalized_value: 0.5
         })
 
       # std 5 (different subject)
@@ -3179,7 +3181,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_1.id,
           grades_report_subject_id: other_grs.id,
-          composition_normalized_value: 0.5
+          normalized_value: 0.5
         })
 
       # std 6 (valid, but will be out of stds ids list)
@@ -3190,7 +3192,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_1.id,
           grades_report_subject_id: grs.id,
-          composition_normalized_value: 0.5
+          normalized_value: 0.5
         })
 
       # extra cases setup
@@ -3329,7 +3331,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_1.id,
           grades_report_subject_id: grs_1.id,
-          composition_normalized_value: 1.0
+          normalized_value: 1.0
         })
 
       std_1_c_2_entry =
@@ -3338,7 +3340,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_2.id,
           grades_report_subject_id: grs_1.id,
-          composition_normalized_value: 0.9
+          normalized_value: 0.9
         })
 
       std_1_c_3_entry =
@@ -3347,7 +3349,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_3.id,
           grades_report_subject_id: grs_1.id,
-          composition_normalized_value: 0.8
+          normalized_value: 0.8
         })
 
       # std 2
@@ -3358,7 +3360,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_1.id,
           grades_report_subject_id: grs_2.id,
-          composition_normalized_value: 0.0
+          normalized_value: 0.0
         })
 
       _std_2_c_2_entry =
@@ -3367,7 +3369,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_2.id,
           grades_report_subject_id: grs_2.id,
-          composition_normalized_value: 0.5
+          normalized_value: 0.5
         })
 
       # std 3
@@ -3378,7 +3380,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_1.id,
           grades_report_subject_id: grs_3.id,
-          composition_normalized_value: 1.0
+          normalized_value: 1.0
         })
 
       # std 4
@@ -3389,7 +3391,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_1.id,
           grades_report_subject_id: grs_4.id,
-          composition_normalized_value: 0.5
+          normalized_value: 0.5
         })
 
       _std_4_c_2_entry =
@@ -3398,7 +3400,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_2.id,
           grades_report_subject_id: grs_4.id,
-          composition_normalized_value: 0.5
+          normalized_value: 0.5
         })
 
       _std_4_c_3_entry =
@@ -3407,7 +3409,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_3.id,
           grades_report_subject_id: grs_4.id,
-          composition_normalized_value: 0.5
+          normalized_value: 0.5
         })
 
       # std 6 (valid, but will be out of stds ids list)
@@ -3418,7 +3420,7 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_id: grades_report.id,
           grades_report_cycle_id: grc_1.id,
           grades_report_subject_id: grs_1.id,
-          composition_normalized_value: 0.5
+          normalized_value: 0.5
         })
 
       # extra cases setup

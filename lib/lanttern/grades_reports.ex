@@ -829,6 +829,7 @@ defmodule Lanttern.GradesReports do
         grades_report_id: grades_report_id,
         grades_report_cycle_id: grades_report_cycle_id,
         grades_report_subject_id: grades_report_subject_id,
+        normalized_value: normalized_avg,
         composition: composition,
         composition_normalized_value: normalized_avg,
         composition_datetime: DateTime.utc_now()
@@ -1426,9 +1427,9 @@ defmodule Lanttern.GradesReports do
          composition
        ) do
     cycle_composition =
-      build_cycle_composition(sgre, sc, sgre.composition_normalized_value, weight)
+      build_cycle_composition(sgre, sc, sgre.normalized_value, weight)
 
-    sumprod = sgre.composition_normalized_value * weight + sumprod
+    sumprod = sgre.normalized_value * weight + sumprod
     sumweight = weight + sumweight
     composition = composition ++ [cycle_composition]
 

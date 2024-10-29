@@ -42,6 +42,30 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryFormComponent do
               "Different from grade composition. Use comments field to justify it if needed."
             ) %>
           </p>
+          <%= if @has_manual_edit || @has_normalized_value_edit do %>
+            <div class="p-4 rounded mt-2 bg-ltrn-alert-lighter">
+              <.input
+                field={@form[:normalized_value]}
+                type="number"
+                label={gettext("Normalized value")}
+                phx-debounce="1500"
+                min="0"
+                max="1"
+                step="0.0001"
+              />
+              <p class="mt-4 text-sm">
+                <%= gettext(
+                  "Normalized values are used to calculate final grades — when levels are changed manually without normalized values adjustments, final grades calculation can be misaligned with related sub cycle grades."
+                ) %>
+              </p>
+            </div>
+          <% else %>
+            <.input
+              name={@form[:normalized_value].name}
+              value={@form[:composition_normalized_value].value}
+              type="hidden"
+            />
+          <% end %>
         </div>
         <.input
           field={@form[:comment]}
@@ -118,6 +142,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryFormComponent do
       |> assign(:scale_type, scale.type)
       |> assign_form(changeset)
       |> assign_has_manual_edit()
+      |> assign_has_normalized_value_edit()
       |> assign_has_retake_history(changeset)
 
     {:ok, socket}
@@ -146,6 +171,18 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryFormComponent do
       end
 
     assign(socket, :has_manual_edit, has_manual_edit)
+  end
+
+  defp assign_has_normalized_value_edit(socket) do
+    %{
+      form: form,
+      student_grades_report_entry: student_grades_report_entry
+    } = socket.assigns
+
+    has_normalized_value_edit =
+      form[:normalized_value].value != student_grades_report_entry.composition_normalized_value
+
+    assign(socket, :has_normalized_value_edit, has_normalized_value_edit)
   end
 
   defp assign_has_retake_history(%{assigns: %{scale_type: scale_type}} = socket, changeset) do
@@ -180,6 +217,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryFormComponent do
       socket
       |> assign_form(changeset)
       |> assign_has_manual_edit()
+      |> assign_has_normalized_value_edit()
       |> assign_has_retake_history(changeset)
 
     {:noreply, socket}
