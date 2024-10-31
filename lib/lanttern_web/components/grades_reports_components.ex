@@ -378,41 +378,13 @@ defmodule LantternWeb.GradesReportsComponents do
     # we should display actions only if we have cycles, subjects, and students
     display_actions = has_cycles && has_subjects && has_students
 
-    grid_template_columns_style =
-      case {has_cycles, has_subjects} do
-        {true, true} ->
-          n = cycles_count * subjects_count
-
-          "grid-template-columns: 200px repeat(#{n}, minmax(5rem, 1fr)) repeat(#{subjects_count}, minmax(9rem, 1fr))"
-
-        {true, false} ->
-          "grid-template-columns: 200px repeat(#{cycles_count + 1}, minmax(5rem, 1fr))"
-
-        {false, true} ->
-          "grid-template-columns: 200px repeat(#{subjects_count}, minmax(5rem, 1fr))"
-
-        _ ->
-          "grid-template-columns: 200px minmax(10px, 1fr)"
-      end
-
-    row_grid_column_span_style =
-      case {has_cycles, has_subjects} do
-        {true, true} ->
-          n = cycles_count * subjects_count + subjects_count + 1
-          "grid-column: span #{n} / span #{n}"
-
-        {true, false} ->
-          # cycles + parent cycle + students col
-          n = cycles_count + 2
-          "grid-column: span #{n} / span #{n}"
-
-        {false, true} ->
-          n = subjects_count + 1
-          "grid-column: span #{n} / span #{n}"
-
-        _ ->
-          "grid-column: span 2 / span 2"
-      end
+    {grid_template_columns_style, row_grid_column_span_style} =
+      get_students_grades_report_full_grid_styles(
+        has_cycles,
+        has_subjects,
+        cycles_count,
+        subjects_count
+      )
 
     cycle_grid_column_span_style = "grid-column: span #{subjects_count} / span #{subjects_count}"
 
@@ -639,6 +611,51 @@ defmodule LantternWeb.GradesReportsComponents do
     """
   end
 
+  defp get_students_grades_report_full_grid_styles(true, true, cycles_count, subjects_count) do
+    n = cycles_count * subjects_count
+
+    grid_template_columns_style =
+      "grid-template-columns: 200px repeat(#{n}, minmax(5rem, 1fr)) repeat(#{subjects_count}, minmax(9rem, 1fr))"
+
+    n = cycles_count * subjects_count + subjects_count + 1
+    row_grid_column_span_style = "grid-column: span #{n} / span #{n}"
+
+    {grid_template_columns_style, row_grid_column_span_style}
+  end
+
+  defp get_students_grades_report_full_grid_styles(true, false, cycles_count, _subjects_count) do
+    grid_template_columns_style =
+      "grid-template-columns: 200px repeat(#{cycles_count + 1}, minmax(5rem, 1fr))"
+
+    # cycles + parent cycle + students col
+    n = cycles_count + 2
+    row_grid_column_span_style = "grid-column: span #{n} / span #{n}"
+
+    {grid_template_columns_style, row_grid_column_span_style}
+  end
+
+  defp get_students_grades_report_full_grid_styles(false, true, _cycles_count, subjects_count) do
+    grid_template_columns_style =
+      "grid-template-columns: 200px repeat(#{subjects_count}, minmax(5rem, 1fr))"
+
+    n = subjects_count + 1
+    row_grid_column_span_style = "grid-column: span #{n} / span #{n}"
+
+    {grid_template_columns_style, row_grid_column_span_style}
+  end
+
+  defp get_students_grades_report_full_grid_styles(
+         _has_cycles,
+         _has_subjects,
+         _cycles_count,
+         _subjects_count
+       ) do
+    grid_template_columns_style = "grid-template-columns: 200px minmax(10px, 1fr)"
+    row_grid_column_span_style = "grid-column: span 2 / span 2"
+
+    {grid_template_columns_style, row_grid_column_span_style}
+  end
+
   @doc """
   Renders a student grades grid for a given cycle.
   """
@@ -837,23 +854,10 @@ defmodule LantternWeb.GradesReportsComponents do
 
   defp students_grades_grid_cell(%{entry: %{}} = assigns) do
     wrapper_class =
-      case assigns.entry.comment || assigns.on_calculate_cell do
-        nil -> ""
-        _ -> "p-1 border border-ltrn-light"
-      end
-
-    wrapper_class =
-      case assigns.entry do
-        %{ordinal_value_id: ov_id} = entry when not is_nil(ov_id) ->
-          if entry.ordinal_value_id == entry.composition_ordinal_value_id,
-            do: wrapper_class,
-            else: "p-1 border border-ltrn-teacher-accent bg-ltrn-teacher-lightest"
-
-        %{} = entry ->
-          if entry.score == entry.composition_score,
-            do: wrapper_class,
-            else: "p-1 border border-ltrn-teacher-accent bg-ltrn-teacher-lightest"
-      end
+      get_students_grades_grid_cell_wrapper_class(
+        assigns.entry,
+        assigns.on_calculate_cell
+      )
 
     has_manual_grade =
       case assigns.entry do
@@ -933,6 +937,33 @@ defmodule LantternWeb.GradesReportsComponents do
     </div>
     """
   end
+
+  defp get_students_grades_grid_cell_wrapper_class(
+         %{score: score, composition_score: composition_score},
+         _
+       )
+       when score != composition_score,
+       do: "p-1 border border-ltrn-teacher-accent bg-ltrn-teacher-lightest"
+
+  defp get_students_grades_grid_cell_wrapper_class(
+         %{
+           ordinal_value_id: ordinal_value_id,
+           composition_ordinal_value_id: composition_ordinal_value_id
+         },
+         _
+       )
+       when ordinal_value_id != composition_ordinal_value_id,
+       do: "p-1 border border-ltrn-teacher-accent bg-ltrn-teacher-lightest"
+
+  defp get_students_grades_grid_cell_wrapper_class(%{comment: comment}, _)
+       when is_binary(comment),
+       do: "p-1 border border-ltrn-light"
+
+  defp get_students_grades_grid_cell_wrapper_class(_, on_calculate_cell)
+       when not is_nil(on_calculate_cell),
+       do: "p-1 border border-ltrn-light"
+
+  defp get_students_grades_grid_cell_wrapper_class(_entry, _on_calculate_cell), do: ""
 
   attr :entry, :map,
     required: true,
