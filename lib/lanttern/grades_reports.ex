@@ -1681,7 +1681,7 @@ defmodule Lanttern.GradesReports do
 
   for the given students and grades report.
   """
-  @spec build_students_full_grades_report_map(grades_report_id :: pos_integer()) :: %{}
+  @spec build_students_full_grades_report_map(grades_report_id :: pos_integer()) :: map()
   def build_students_full_grades_report_map(grades_report_id) do
     grades_report_students_query =
       from(
@@ -1829,10 +1829,14 @@ defmodule Lanttern.GradesReports do
 
       %{
         cycle_id => %{
-          subject_id => %StudentGradesReportEntry{},
+          grades_report_subject_id => %StudentGradesReportEntry{},
+          # other subjects ids...
+        },
+        # other cycles ids...
+        :final => %{
+          grades_report_subject_id => %StudentGradesReportFinalEntry{},
           # other subjects ids...
         }
-        # other cycles ids...
       }
 
   for the given student report card id.
@@ -1841,8 +1845,25 @@ defmodule Lanttern.GradesReports do
 
   Ordinal values preloaded (manually) in student grade report entry.
   """
-  @spec build_student_grades_map(student_report_card_id :: pos_integer()) :: %{}
+  @spec build_student_grades_map(student_report_card_id :: pos_integer()) :: map()
   def build_student_grades_map(student_report_card_id) do
+    final_grades_map =
+      from(
+        src in StudentReportCard,
+        join: rc in assoc(src, :report_card),
+        join: gr in assoc(rc, :grades_report),
+        join: grs in assoc(gr, :grades_report_subjects),
+        left_join: sgrfe in StudentGradesReportFinalEntry,
+        on:
+          sgrfe.grades_report_subject_id == grs.id and
+            sgrfe.student_id == src.student_id and
+            gr.final_is_visible,
+        where: src.id == ^student_report_card_id,
+        select: {grs.id, sgrfe}
+      )
+      |> Repo.all()
+      |> Enum.into(%{})
+
     from(
       src in StudentReportCard,
       join: rc in assoc(src, :report_card),
@@ -1855,16 +1876,15 @@ defmodule Lanttern.GradesReports do
         sgre.grades_report_cycle_id == grc.id and
           sgre.grades_report_subject_id == grs.id and
           sgre.student_id == src.student_id,
-      left_join: ov in assoc(sgre, :ordinal_value),
-      left_join: pr_ov in assoc(sgre, :pre_retake_ordinal_value),
       where: src.id == ^student_report_card_id,
-      select: {grc.id, grs.id, sgre, ov, pr_ov}
+      select: {grc.id, grs.id, sgre}
     )
     |> Repo.all()
-    |> Enum.map(fn {grc_id, grs_id, sgre, ov, pr_ov} ->
-      {grc_id, grs_id, sgre && %{sgre | composition: nil}, ov, pr_ov}
+    |> Enum.map(fn {grc_id, grs_id, sgre} ->
+      {grc_id, grs_id, sgre && %{sgre | composition: nil}}
     end)
     |> build_grades_report_cycle_subject_map()
+    |> Map.put(:final, final_grades_map)
   end
 
   @doc """
@@ -1872,11 +1892,14 @@ defmodule Lanttern.GradesReports do
 
       %{
         grades_report_id => %{
-          cycle_id => %{
-            subject_id => %StudentGradesReportEntry{},
+          grades_report_cycle_id => %{
+            grades_report_subject_id => %StudentGradesReportEntry{},
             # other subjects ids...
           },
           # other cycles ids...
+          :final => %{
+            grades_report_subject_id => %StudentGradesReportFinalEntry{},
+          }
         },
         # other grades reports...
       }
@@ -1884,14 +1907,40 @@ defmodule Lanttern.GradesReports do
   for the given student and grades reports.
 
   Removes `composition` from returned `StudentGradesReportEntry` to save memory.
-
-  Ordinal values preloaded (manually) in student grade report entry.
   """
   @spec build_student_grades_maps(
           student_id :: pos_integer(),
           grades_reports_ids :: [pos_integer()]
-        ) :: %{}
+        ) :: map()
   def build_student_grades_maps(student_id, grades_reports_ids) do
+    final_student_grades_maps =
+      from(
+        gr in GradesReport,
+        join: grs in assoc(gr, :grades_report_subjects),
+        left_join: sgrfe in StudentGradesReportFinalEntry,
+        on:
+          sgrfe.grades_report_subject_id == grs.id and
+            sgrfe.student_id == ^student_id,
+        # and gr.final_is_visible,
+        where: gr.id in ^grades_reports_ids,
+        select: {gr.id, grs.id, sgrfe}
+      )
+      |> Repo.all()
+      # remove composition from sgrfe to save memory while grouping
+      |> Enum.group_by(
+        fn {gr_id, _, _} -> gr_id end,
+        fn {_, grs_id, sgrfe} ->
+          {grs_id, sgrfe && %{sgrfe | composition: nil}}
+        end
+      )
+      |> Enum.map(fn {gr_id, grs_id_sgrfe_tuples} ->
+        {
+          gr_id,
+          Enum.into(grs_id_sgrfe_tuples, %{})
+        }
+      end)
+      |> Enum.into(%{})
+
     from(
       gr in GradesReport,
       join: grc in assoc(gr, :grades_report_cycles),
@@ -1902,38 +1951,30 @@ defmodule Lanttern.GradesReports do
         sgre.grades_report_cycle_id == grc.id and
           sgre.grades_report_subject_id == grs.id and
           sgre.student_id == ^student_id,
-      left_join: ov in assoc(sgre, :ordinal_value),
-      left_join: pr_ov in assoc(sgre, :pre_retake_ordinal_value),
       where: gr.id in ^grades_reports_ids,
-      select: {gr.id, grc.id, grs.id, sgre, ov, pr_ov}
+      select: {gr.id, grc.id, grs.id, sgre}
     )
     |> Repo.all()
     # remove composition from sgre to save memory while grouping
     |> Enum.group_by(
-      fn {gr_id, _, _, _, _, _} -> gr_id end,
-      fn {_, grc_id, grs_id, sgre, ov, pr_ov} ->
-        {grc_id, grs_id, sgre && %{sgre | composition: nil}, ov, pr_ov}
+      fn {gr_id, _, _, _} -> gr_id end,
+      fn {_, grc_id, grs_id, sgre} ->
+        {grc_id, grs_id, sgre && %{sgre | composition: nil}}
       end
     )
     |> Enum.map(fn {gr_id, rest} ->
       {
         gr_id,
         build_grades_report_cycle_subject_map(rest)
+        |> Map.put(:final, final_student_grades_maps[gr_id])
       }
     end)
     |> Enum.into(%{})
   end
 
-  defp build_grades_report_cycle_subject_map(grades_reports_cycles_subjects_entries_ov_and_pr_ov) do
-    grades_reports_cycles_subjects_entries_ov_and_pr_ov
-    |> Enum.reduce(%{}, fn {grc_id, grs_id, sgre, ov, pr_ov}, acc ->
-      # "preload" ordinal value in student grade report entry
-      sgre =
-        case sgre do
-          nil -> nil
-          sgre -> %{sgre | ordinal_value: ov, pre_retake_ordinal_value: pr_ov}
-        end
-
+  defp build_grades_report_cycle_subject_map(grades_reports_cycles_subjects_entries) do
+    grades_reports_cycles_subjects_entries
+    |> Enum.reduce(%{}, fn {grc_id, grs_id, sgre}, acc ->
       # build cycle map
       cycle_map =
         Map.get(acc, grc_id, %{})

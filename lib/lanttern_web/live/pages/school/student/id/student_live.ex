@@ -7,6 +7,7 @@ defmodule LantternWeb.StudentLive do
 
   # shared components
   alias LantternWeb.GradesReports.GradeDetailsOverlayComponent
+  alias LantternWeb.GradesReports.FinalGradeDetailsOverlayComponent
   import LantternWeb.GradesReportsComponents
   import LantternWeb.ReportingComponents
 
@@ -59,10 +60,16 @@ defmodule LantternWeb.StudentLive do
     student_grades_maps =
       GradesReports.build_student_grades_maps(student_id, grades_reports_ids)
 
-    student_grade_report_entries_ids =
+    student_grades_report_entries_ids =
       student_grades_maps
       |> Enum.map(fn {_, cycle_and_subjects_map} -> cycle_and_subjects_map end)
       |> Enum.flat_map(&Enum.map(&1, fn {_, subjects_entries_map} -> subjects_entries_map end))
+      |> Enum.flat_map(&Enum.map(&1, fn {_, entry} -> entry && entry.id end))
+      |> Enum.filter(&Function.identity/1)
+
+    student_grades_report_final_entries_ids =
+      student_grades_maps
+      |> Enum.map(fn {_, cycle_and_subjects_map} -> cycle_and_subjects_map[:final] end)
       |> Enum.flat_map(&Enum.map(&1, fn {_, entry} -> entry && entry.id end))
       |> Enum.filter(&Function.identity/1)
 
@@ -70,38 +77,36 @@ defmodule LantternWeb.StudentLive do
     |> stream(:grades_reports, grades_reports)
     |> assign(:has_grades_reports, grades_reports != [])
     |> assign(:student_grades_maps, student_grades_maps)
-    |> assign(:student_grade_report_entries_ids, student_grade_report_entries_ids)
+    |> assign(:student_grades_report_entries_ids, student_grades_report_entries_ids)
+    |> assign(:student_grades_report_final_entries_ids, student_grades_report_final_entries_ids)
   end
 
   @impl true
-  def handle_params(%{"student_grades_report_entry_id" => sgre_id} = _params, _url, socket) do
-    sgre_id = String.to_integer(sgre_id)
+  def handle_params(params, _url, socket) do
+    {sgre_id, sgrfe_id} =
+      case params do
+        %{"student_grades_report_entry_id" => sgre_id} ->
+          sgre_id = String.to_integer(sgre_id)
+          # guard against user manipulated ids
+          if sgre_id in socket.assigns.student_grades_report_entries_ids,
+            do: {sgre_id, nil},
+            else: {nil, nil}
 
-    # guard against user manipulated ids
-    socket =
-      if sgre_id in socket.assigns.student_grade_report_entries_ids do
-        assign(socket, :student_grades_report_entry_id, sgre_id)
-      else
-        assign(socket, :student_grades_report_entry_id, nil)
+        %{"student_grades_report_final_entry_id" => sgrfe_id} ->
+          sgrfe_id = String.to_integer(sgrfe_id)
+          # guard against user manipulated ids
+          if sgrfe_id in socket.assigns.student_grades_report_final_entries_ids,
+            do: {nil, sgrfe_id},
+            else: {nil, nil}
+
+        _ ->
+          {nil, nil}
       end
-
-    {:noreply, socket}
-  end
-
-  def handle_params(_params, _url, socket),
-    do: {:noreply, assign(socket, :student_grades_report_entry_id, nil)}
-
-  # event handlers
-
-  @impl true
-  def handle_event("view_grade_details", params, socket) do
-    %{"studentgradereportid" => sgr_id} = params
-
-    url_params = %{"student_grades_report_entry_id" => sgr_id}
 
     socket =
       socket
-      |> push_patch(to: ~p"/school/student/#{socket.assigns.student_id}?#{url_params}")
+      |> assign(:student_grades_report_entry_id, sgre_id)
+      |> assign(:student_grades_report_final_entry_id, sgrfe_id)
 
     {:noreply, socket}
   end

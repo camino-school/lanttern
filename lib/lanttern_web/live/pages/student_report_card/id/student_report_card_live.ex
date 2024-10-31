@@ -8,6 +8,7 @@ defmodule LantternWeb.StudentReportCardLive do
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # shared components
+  alias LantternWeb.GradesReports.FinalGradeDetailsOverlayComponent
   alias LantternWeb.GradesReports.GradeDetailsOverlayComponent
   import LantternWeb.AssessmentsComponents
   import LantternWeb.LearningContextComponents
@@ -75,22 +76,32 @@ defmodule LantternWeb.StudentReportCardLive do
         id -> GradesReports.get_grades_report(id, load_grid: true)
       end
 
-    assign(socket, :grades_report, grades_report)
+    socket
+    |> assign(:grades_report, grades_report)
   end
 
   defp assign_students_grades_map(socket) do
     student_grades_map =
       GradesReports.build_student_grades_map(socket.assigns.student_report_card.id)
 
-    student_grade_report_entries_ids =
+    student_grades_report_entries_ids =
       student_grades_map
       |> Enum.map(fn {_, subjects_entries_map} -> subjects_entries_map end)
       |> Enum.flat_map(&Enum.map(&1, fn {_, entry} -> entry && entry.id end))
       |> Enum.filter(&Function.identity/1)
 
+    student_grades_report_final_entries_ids =
+      student_grades_map[:final]
+      |> Enum.map(fn
+        {_grades_report_subject_id, nil} -> nil
+        {_grades_report_subject_id, final_entry} -> final_entry.id
+      end)
+      |> Enum.filter(&Function.identity/1)
+
     socket
     |> assign(:student_grades_map, student_grades_map)
-    |> assign(:student_grade_report_entries_ids, student_grade_report_entries_ids)
+    |> assign(:student_grades_report_entries_ids, student_grades_report_entries_ids)
+    |> assign(:student_grades_report_final_entries_ids, student_grades_report_final_entries_ids)
   end
 
   defp check_if_user_has_access(current_user, %StudentReportCard{} = student_report_card) do
@@ -122,36 +133,31 @@ defmodule LantternWeb.StudentReportCardLive do
   end
 
   @impl true
-  def handle_params(%{"student_grades_report_entry_id" => sgre_id} = _params, _url, socket) do
-    sgre_id = String.to_integer(sgre_id)
+  def handle_params(params, _url, socket) do
+    {sgre_id, sgrfe_id} =
+      case params do
+        %{"student_grades_report_entry_id" => sgre_id} ->
+          sgre_id = String.to_integer(sgre_id)
+          # guard against user manipulated ids
+          if sgre_id in socket.assigns.student_grades_report_entries_ids,
+            do: {sgre_id, nil},
+            else: {nil, nil}
 
-    # guard against user manipulated ids
-    socket =
-      if sgre_id in socket.assigns.student_grade_report_entries_ids do
-        assign(socket, :student_grades_report_entry_id, sgre_id)
-      else
-        assign(socket, :student_grades_report_entry_id, nil)
+        %{"student_grades_report_final_entry_id" => sgrfe_id} ->
+          sgrfe_id = String.to_integer(sgrfe_id)
+          # guard against user manipulated ids
+          if sgrfe_id in socket.assigns.student_grades_report_final_entries_ids,
+            do: {nil, sgrfe_id},
+            else: {nil, nil}
+
+        _ ->
+          {nil, nil}
       end
-
-    {:noreply, socket}
-  end
-
-  def handle_params(_params, _url, socket),
-    do: {:noreply, assign(socket, :student_grades_report_entry_id, nil)}
-
-  # event handlers
-
-  @impl true
-  def handle_event("view_grade_details", params, socket) do
-    %{"studentgradereportid" => sgr_id} = params
-
-    url_params = %{"student_grades_report_entry_id" => sgr_id}
 
     socket =
       socket
-      |> push_patch(
-        to: ~p"/student_report_card/#{socket.assigns.student_report_card}?#{url_params}"
-      )
+      |> assign(:student_grades_report_entry_id, sgre_id)
+      |> assign(:student_grades_report_final_entry_id, sgrfe_id)
 
     {:noreply, socket}
   end

@@ -12,7 +12,6 @@ defmodule LantternWeb.GradesReportsComponents do
   alias Lanttern.GradesReports.GradesReport
   alias Lanttern.GradesReports.StudentGradesReportEntry
   alias Lanttern.GradesReports.StudentGradesReportFinalEntry
-  alias Lanttern.Grading.OrdinalValue
 
   # shared components
   alias LantternWeb.GradesReports.StudentGradesReportEntryButtonComponent
@@ -25,7 +24,8 @@ defmodule LantternWeb.GradesReportsComponents do
 
   attr :grades_report, GradesReport, required: true
   attr :student_grades_map, :map, default: nil
-  attr :on_student_grade_click, JS, default: nil
+  attr :on_student_grade_click, :any, default: nil
+  attr :on_student_final_grade_click, :any, default: nil
   attr :class, :any, default: nil
   attr :id, :string, default: nil
   attr :on_configure, JS, default: nil
@@ -103,7 +103,9 @@ defmodule LantternWeb.GradesReportsComponents do
             </div>
           </div>
           <div class="flex items-center justify-center gap-1 p-4 rounded text-center bg-white shadow-lg">
-            <%= @grades_report.school_cycle.name %>
+            <span class={if !@report_card_cycle_id, do: "font-bold"}>
+              <%= @grades_report.school_cycle.name %>
+            </span>
             <div
               :if={@show_cycle_visibility}
               class={[
@@ -152,14 +154,13 @@ defmodule LantternWeb.GradesReportsComponents do
                 }
                 on_student_grade_click={@on_student_grade_click}
               />
-              <div class={[
-                "flex items-center justify-center rounded border border-ltrn-lighter",
-                if(@report_card_cycle_id, do: "bg-ltrn-lightest")
-              ]}>
-                <p :if={!@report_card_cycle_id} class="font-display font-bold text-ltrn-subtle">
-                  <%= gettext("Final") %>
-                </p>
-              </div>
+              <.grades_report_grid_final_grade_cell
+                on_click={@on_student_final_grade_click}
+                student_grades_report_final_entry={
+                  @student_grades_map &&
+                    @student_grades_map[:final][grades_report_subject.id]
+                }
+              />
             <% else %>
               <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
             <% end %>
@@ -192,34 +193,32 @@ defmodule LantternWeb.GradesReportsComponents do
   attr :grades_report_cycle_id, :integer, default: nil
 
   defp grades_report_grid_cell(
-         %{student_grades_report_entry: %StudentGradesReportEntry{ordinal_value: %OrdinalValue{}}} =
+         %{student_grades_report_entry: %StudentGradesReportEntry{ordinal_value_id: ov_id}} =
            assigns
-       ) do
+       )
+       when not is_nil(ov_id) do
     ~H"""
     <div class="flex items-stretch justify-stretch gap-1">
-      <.button
-        :if={@student_grades_report_entry.pre_retake_ordinal_value}
-        type="button"
-        phx-click={@on_student_grade_click}
-        phx-value-studentgradereportid={@student_grades_report_entry.id}
-        phx-value-gradesreportsubjectid={@student_grades_report_entry.grades_report_subject_id}
-        phx-value-gradesreportcycleid={@student_grades_report_entry.grades_report_cycle_id}
-        style={create_color_map_style(@student_grades_report_entry.pre_retake_ordinal_value)}
+      <.live_component
+        :if={@student_grades_report_entry.pre_retake_ordinal_value_id}
+        module={StudentGradesReportEntryButtonComponent}
+        is_pre_retake
+        id={"student-grades-report-entry-#{@student_grades_report_entry.id}-pre-retake"}
+        student_grades_report_entry={@student_grades_report_entry}
         class="flex-1 my-2 opacity-70"
-      >
-        <%= @student_grades_report_entry.pre_retake_ordinal_value.name %>
-      </.button>
-      <.button
-        type="button"
-        phx-click={@on_student_grade_click}
-        phx-value-studentgradereportid={@student_grades_report_entry.id}
-        phx-value-gradesreportsubjectid={@student_grades_report_entry.grades_report_subject_id}
-        phx-value-gradesreportcycleid={@student_grades_report_entry.grades_report_cycle_id}
-        style={create_color_map_style(@student_grades_report_entry.ordinal_value)}
+        on_click={
+          if(@on_student_grade_click, do: @on_student_grade_click.(@student_grades_report_entry.id))
+        }
+      />
+      <.live_component
+        module={StudentGradesReportEntryButtonComponent}
+        id={"student-grades-report-entry-#{@student_grades_report_entry.id}"}
+        student_grades_report_entry={@student_grades_report_entry}
         class="flex-[2]"
-      >
-        <%= @student_grades_report_entry.ordinal_value.name %>
-      </.button>
+        on_click={
+          if(@on_student_grade_click, do: @on_student_grade_click.(@student_grades_report_entry.id))
+        }
+      />
     </div>
     """
   end
@@ -272,6 +271,49 @@ defmodule LantternWeb.GradesReportsComponents do
   end
 
   defp grades_report_grid_cell(assigns) do
+    ~H"""
+    <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+    """
+  end
+
+  attr :on_click, :any
+  attr :student_grades_report_final_entry, StudentGradesReportFinalEntry
+
+  defp grades_report_grid_final_grade_cell(
+         %{student_grades_report_final_entry: %StudentGradesReportFinalEntry{}} =
+           assigns
+       ) do
+    ~H"""
+    <div class="flex items-stretch justify-stretch gap-1">
+      <.live_component
+        :if={@student_grades_report_final_entry.pre_retake_ordinal_value_id}
+        module={StudentGradesReportEntryButtonComponent}
+        is_pre_retake
+        id={"student-grades-report-final-entry-#{@student_grades_report_final_entry.id}-pre-retake"}
+        student_grades_report_entry={@student_grades_report_final_entry}
+        class="flex-1 my-2 opacity-70"
+        on_click={
+          if(@on_click,
+            do: @on_click.(@student_grades_report_final_entry.id)
+          )
+        }
+      />
+      <.live_component
+        module={StudentGradesReportEntryButtonComponent}
+        id={"student-grades-report-final-entry-#{@student_grades_report_final_entry.id}"}
+        student_grades_report_entry={@student_grades_report_final_entry}
+        class="flex-[2]"
+        on_click={
+          if(@on_click,
+            do: @on_click.(@student_grades_report_final_entry.id)
+          )
+        }
+      />
+    </div>
+    """
+  end
+
+  defp grades_report_grid_final_grade_cell(assigns) do
     ~H"""
     <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
     """
@@ -524,7 +566,7 @@ defmodule LantternWeb.GradesReportsComponents do
       <%= if @has_students do %>
         <div
           id="students-grades-grid-students"
-          class="grid grid-cols-subgrid"
+          class="grid grid-cols-subgrid gap-px"
           style={@row_grid_column_span_style}
           phx-update="stream"
         >

@@ -51,12 +51,15 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryFormComponent do
                 phx-debounce="1500"
                 min="0"
                 max="1"
-                step="0.0001"
+                step="0.00001"
               />
               <p class="mt-4 text-sm">
                 <%= gettext(
                   "Normalized values are used to calculate final grades — when levels are changed manually without normalized values adjustments, final grades calculation can be misaligned with related sub cycle grades."
                 ) %>
+              </p>
+              <p :if={@has_normalized_value_edit} class="mt-2 text-sm">
+                <%= gettext("Composition normalized value (reference)") %>: <%= @student_grades_report_entry.composition_normalized_value %>
               </p>
             </div>
           <% else %>
@@ -180,7 +183,18 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryFormComponent do
     } = socket.assigns
 
     has_normalized_value_edit =
-      form[:normalized_value].value != student_grades_report_entry.composition_normalized_value
+      case form[:normalized_value].value do
+        form_normalized_value when is_float(form_normalized_value) ->
+          Float.round(form_normalized_value, 5) !=
+            Float.round(student_grades_report_entry.composition_normalized_value, 5)
+
+        "" ->
+          true
+
+        form_normalized_value when is_binary(form_normalized_value) ->
+          Float.round(String.to_float(form_normalized_value), 5) !=
+            Float.round(student_grades_report_entry.composition_normalized_value, 5)
+      end
 
     assign(socket, :has_normalized_value_edit, has_normalized_value_edit)
   end
