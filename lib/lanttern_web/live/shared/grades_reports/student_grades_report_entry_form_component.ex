@@ -55,7 +55,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryFormComponent do
               />
               <p class="mt-4 text-sm">
                 <%= gettext(
-                  "Normalized values are used to calculate final grades — when levels are changed manually without normalized values adjustments, final grades calculation can be misaligned with related sub cycle grades."
+                  "Normalized values are used to calculate final grades — when levels are changed manually without normalized values adjustments, final grades calculation can be misaligned with related subcycle grades."
                 ) %>
               </p>
               <p :if={@has_normalized_value_edit} class="mt-2 text-sm">

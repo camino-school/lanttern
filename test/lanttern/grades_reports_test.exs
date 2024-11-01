@@ -424,7 +424,7 @@ defmodule Lanttern.GradesReportsTest do
       assert expected_grades_report.id == grades_report.id
       assert expected_grades_report.school_cycle.id == cycle_2024.id
 
-      # check sub cycles
+      # check subcycles
       assert [expected_grc_2024_1, expected_grc_2024_2] =
                expected_grades_report.grades_report_cycles
 

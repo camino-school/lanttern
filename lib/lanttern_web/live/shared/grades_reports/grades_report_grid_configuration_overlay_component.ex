@@ -20,7 +20,7 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
         <:title>
           <%= gettext("%{grades_report} grid configuration", grades_report: @grades_report.name) %>
         </:title>
-        <h5 class="mb-4 font-display font-black text-lg"><%= gettext("Grid sub cycles") %></h5>
+        <h5 class="mb-4 font-display font-black text-lg"><%= gettext("Grid subcycles") %></h5>
         <div class="flex-1 flex flex-wrap gap-2">
           <.badge_button
             :for={cycle <- @cycles}
@@ -35,12 +35,12 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
         </div>
         <%= if @grades_report_cycles == [] do %>
           <div class="p-4 rounded mt-4 text-ltrn-subtle bg-ltrn-lighter">
-            <%= gettext("No sub cycles linked") %>
+            <%= gettext("No subcycles linked") %>
           </div>
         <% else %>
           <div class="grid grid-cols-[1fr_min-content_min-content] gap-2">
             <div class="grid grid-cols-subgrid col-span-3 items-center px-4 py-2 rounded mt-4 text-sm text-ltrn-subtle bg-ltrn-lighter">
-              <div><%= gettext("Sub cycle") %></div>
+              <div><%= gettext("Subcycle") %></div>
               <div class="text-center"><%= gettext("Grading weight") %></div>
               <div class="group relative text-center">
                 <.icon name="hero-eye" class="w-6 h-6" />
