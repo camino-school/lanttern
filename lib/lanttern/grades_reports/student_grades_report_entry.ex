@@ -1,4 +1,4 @@
-defmodule Lanttern.GradesReports.StudentGradeReportEntry do
+defmodule Lanttern.GradesReports.StudentGradesReportEntry do
   @moduledoc """
   The `StudentGradesReportEntry` schema
   """
@@ -15,6 +15,7 @@ defmodule Lanttern.GradesReports.StudentGradeReportEntry do
   @type t :: %__MODULE__{
           id: pos_integer(),
           comment: String.t(),
+          normalized_value: float(),
           score: float(),
           pre_retake_score: float(),
           student: Student.t(),
@@ -40,6 +41,7 @@ defmodule Lanttern.GradesReports.StudentGradeReportEntry do
 
   schema "student_grade_report_entries" do
     field :comment, :string
+    field :normalized_value, :float
     field :score, :float
     field :pre_retake_score, :float
 
@@ -78,10 +80,11 @@ defmodule Lanttern.GradesReports.StudentGradeReportEntry do
   end
 
   @doc false
-  def changeset(student_grade_report_entry, attrs) do
-    student_grade_report_entry
+  def changeset(student_grades_report_entry, attrs) do
+    student_grades_report_entry
     |> cast(attrs, [
       :comment,
+      :normalized_value,
       :score,
       :pre_retake_score,
       :student_id,
@@ -96,6 +99,7 @@ defmodule Lanttern.GradesReports.StudentGradeReportEntry do
       :composition_datetime
     ])
     |> validate_required([
+      :normalized_value,
       :student_id,
       :grades_report_id,
       :grades_report_cycle_id,

@@ -17,7 +17,14 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
         <div class="p-4 rounded mt-4 bg-white shadow-lg">
           <%= if @grades_report do %>
             <h3 class="mb-4 font-display font-bold text-2xl">
-              <%= gettext("Grades report grid") %>: <%= @grades_report.name %>
+              <%= gettext("Grades report grid") %>:
+              <a
+                href={~p"/grades_reports/#{@grades_report}"}
+                target="_blank"
+                class="underline hover:text-ltrn-subtle"
+              >
+                <%= @grades_report.name %>
+              </a>
             </h3>
             <.grades_report_grid
               grades_report={@grades_report}

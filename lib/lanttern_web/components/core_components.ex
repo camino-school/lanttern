@@ -282,15 +282,55 @@ defmodule LantternWeb.CoreComponents do
       <.button>Send!</.button>
       <.button phx-click="go" class="ml-2">Send!</.button>
   """
-  attr :type, :string, default: nil
+  attr :type, :string,
+    default: nil,
+    doc: "if `link` is used, will render a `<.link>` component instead of `<button>`"
+
   attr :class, :any, default: nil
   attr :theme, :string, default: "default", doc: "default | ghost"
   attr :size, :string, default: "normal", doc: "sm | normal"
   attr :rounded, :boolean, default: false
   attr :icon_name, :string, default: nil
-  attr :rest, :global, include: ~w(disabled form name value)
+  # `<.link>` attrs
+  attr :navigate, :string, default: nil
+  attr :patch, :string, default: nil
+  attr :href, :any, default: nil
+  attr :replace, :boolean, default: nil
+  attr :method, :string, default: nil
+  attr :csrf_token, :any, default: nil
+  # include `<.link>` attrs
+  attr :rest, :global,
+    include: ~w(disabled form name value download hreflang referrerpolicy rel target)
 
   slot :inner_block, required: true
+
+  def button(%{type: "link"} = assigns) do
+    ~H"""
+    <.link
+      class={[
+        "group",
+        get_button_styles(@theme, @size, @rounded),
+        @class
+      ]}
+      navigate={@navigate}
+      patch={@patch}
+      href={@href}
+      replace={@replace}
+      method={@method}
+      csrf_token={@csrf_token}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+      <%= if @icon_name do %>
+        <.icon
+          name={@icon_name}
+          class="w-5 h-5 group-phx-submit-loading:hidden group-phx-click-loading:hidden"
+        />
+      <% end %>
+      <.spinner class="hidden group-phx-submit-loading:block group-phx-click-loading:block" />
+    </.link>
+    """
+  end
 
   def button(assigns) do
     ~H"""

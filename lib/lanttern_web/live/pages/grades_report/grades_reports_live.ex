@@ -4,11 +4,9 @@ defmodule LantternWeb.GradesReportsLive do
   alias Lanttern.GradesReports
   alias Lanttern.GradesReports.GradesReport
 
-  # local view components
-  alias LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent
-
   # live components
   alias LantternWeb.GradesReports.GradesReportFormComponent
+  alias LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponent
   alias LantternWeb.Grading.GradeCompositionOverlayComponent
 
   # shared
@@ -34,7 +32,7 @@ defmodule LantternWeb.GradesReportsLive do
       |> stream(:grades_reports, grades_reports)
       |> assign(:has_grades_reports, length(grades_reports) > 0)
       |> assign_show_grades_report_form(params)
-      |> assign_show_grades_report_grid_editor(params)
+      |> assign_show_grades_report_grid_configuration(params)
       |> assign_is_editing_grade_composition(params)
 
     {:noreply, socket}
@@ -43,7 +41,7 @@ defmodule LantternWeb.GradesReportsLive do
   defp assign_show_grades_report_form(socket, %{"is_creating" => "true"}) do
     socket
     |> assign(:grades_report, %GradesReport{})
-    |> assign(:form_overlay_title, gettext("Create grade report"))
+    |> assign(:form_overlay_title, gettext("Create grades report"))
     |> assign(:show_grades_report_form, true)
   end
 
@@ -52,7 +50,7 @@ defmodule LantternWeb.GradesReportsLive do
       case GradesReports.get_grades_report(id) do
         %GradesReport{} = grades_report ->
           socket
-          |> assign(:form_overlay_title, gettext("Edit grade report"))
+          |> assign(:form_overlay_title, gettext("Edit grades report"))
           |> assign(:grades_report, grades_report)
           |> assign(:show_grades_report_form, true)
 
@@ -67,25 +65,25 @@ defmodule LantternWeb.GradesReportsLive do
   defp assign_show_grades_report_form(socket, _),
     do: assign(socket, :show_grades_report_form, false)
 
-  defp assign_show_grades_report_grid_editor(socket, %{"is_editing_grid" => id}) do
+  defp assign_show_grades_report_grid_configuration(socket, %{"is_configuring_grid" => id}) do
     if String.match?(id, ~r/[0-9]+/) do
-      case GradesReports.get_grades_report(id) do
+      case GradesReports.get_grades_report(id, preloads: :school_cycle) do
         %GradesReport{} = grades_report ->
           socket
           # |> assign(:form_overlay_title, gettext("Edit grade report"))
           |> assign(:grades_report, grades_report)
-          |> assign(:show_grades_report_grid_editor, true)
+          |> assign(:show_grades_report_grid_configuration, true)
 
         _ ->
-          assign(socket, :show_grades_report_grid_editor, false)
+          assign(socket, :show_grades_report_grid_configuration, false)
       end
     else
-      assign(socket, :show_grades_report_grid_editor, false)
+      assign(socket, :show_grades_report_grid_configuration, false)
     end
   end
 
-  defp assign_show_grades_report_grid_editor(socket, _),
-    do: assign(socket, :show_grades_report_grid_editor, false)
+  defp assign_show_grades_report_grid_configuration(socket, _),
+    do: assign(socket, :show_grades_report_grid_configuration, false)
 
   defp assign_is_editing_grade_composition(socket, %{
          "gr_id" => grades_report_id,
@@ -116,7 +114,7 @@ defmodule LantternWeb.GradesReportsLive do
         socket =
           socket
           |> put_flash(:info, gettext("Grade report deleted"))
-          |> push_navigate(to: ~p"/grading")
+          |> push_navigate(to: ~p"/grades_reports")
 
         {:noreply, socket}
 
@@ -138,7 +136,7 @@ defmodule LantternWeb.GradesReportsLive do
 
     socket =
       socket
-      |> push_patch(to: ~p"/grading?#{url_params}")
+      |> push_patch(to: ~p"/grades_reports?#{url_params}")
 
     {:noreply, socket}
   end

@@ -1,4 +1,8 @@
-defmodule LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent do
+defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponent do
+  @moduledoc """
+  Renders a `GradesReport` configuration overlay
+  """
+
   use LantternWeb, :live_component
 
   alias Lanttern.GradesReports
@@ -14,9 +18,9 @@ defmodule LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent do
     <div>
       <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
         <:title>
-          <%= gettext("%{grades_report} grid setup", grades_report: @grades_report.name) %>
+          <%= gettext("%{grades_report} grid configuration", grades_report: @grades_report.name) %>
         </:title>
-        <h5 class="mb-6 font-display font-black text-lg"><%= gettext("Grid sub cycles") %></h5>
+        <h5 class="mb-4 font-display font-black text-lg"><%= gettext("Grid subcycles") %></h5>
         <div class="flex-1 flex flex-wrap gap-2">
           <.badge_button
             :for={cycle <- @cycles}
@@ -31,12 +35,12 @@ defmodule LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent do
         </div>
         <%= if @grades_report_cycles == [] do %>
           <div class="p-4 rounded mt-4 text-ltrn-subtle bg-ltrn-lighter">
-            <%= gettext("No sub cycles linked") %>
+            <%= gettext("No subcycles linked") %>
           </div>
         <% else %>
           <div class="grid grid-cols-[1fr_min-content_min-content] gap-2">
             <div class="grid grid-cols-subgrid col-span-3 items-center px-4 py-2 rounded mt-4 text-sm text-ltrn-subtle bg-ltrn-lighter">
-              <div><%= gettext("Sub cycle") %></div>
+              <div><%= gettext("Subcycle") %></div>
               <div class="text-center"><%= gettext("Grading weight") %></div>
               <div class="group relative text-center">
                 <.icon name="hero-eye" class="w-6 h-6" />
@@ -51,6 +55,21 @@ defmodule LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent do
             />
           </div>
         <% end %>
+        <h5 class="mt-10 font-display font-black text-lg">
+          <%= gettext("Final grades visibility") %>
+        </h5>
+        <.card_base class="flex items-center p-4 mt-4">
+          <p class="flex-1">
+            <%= @grades_report.school_cycle.name %>
+          </p>
+          <.icon_button
+            name={if @grades_report.final_is_visible, do: "hero-eye", else: "hero-eye-slash"}
+            sr_text={gettext("Parent cycle visibility")}
+            rounded
+            theme={if @grades_report.final_is_visible, do: "primary_light", else: "ghost"}
+            phx-click={JS.push("toggle_final_grades_visibility", target: @myself)}
+          />
+        </.card_base>
         <h5 class="mt-10 mb-6 font-display font-black text-lg"><%= gettext("Grid subjects") %></h5>
         <div class="flex-1 flex flex-wrap gap-2">
           <.badge_button
@@ -300,6 +319,19 @@ defmodule LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent do
       {:error, _changeset} ->
         {:noreply,
          put_flash(socket, :error, gettext("Error updating grades report cycle visibility"))}
+    end
+  end
+
+  def handle_event("toggle_final_grades_visibility", _params, socket) do
+    GradesReports.update_grades_report(socket.assigns.grades_report, %{
+      final_is_visible: !socket.assigns.grades_report.final_is_visible
+    })
+    |> case do
+      {:ok, updated_grades_report} ->
+        {:noreply, assign(socket, :grades_report, updated_grades_report)}
+
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, gettext("Error updating final grades visibility"))}
     end
   end
 

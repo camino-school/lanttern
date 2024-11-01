@@ -604,7 +604,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           |> put_flash(:info, gettext("Students report cards access updated"))
           |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=students")
 
-        {:error, _} ->
+        {:error, _, _, _} ->
           socket
           |> put_flash(:error, gettext("Something got wrong"))
       end

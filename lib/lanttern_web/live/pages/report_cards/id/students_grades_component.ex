@@ -7,8 +7,10 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
   import LantternWeb.FiltersHelpers,
     only: [assign_user_filters: 3, save_profile_filters: 3]
 
+  import LantternWeb.GradesReportsHelpers, only: [build_calculation_results_message: 1]
+
   # shared
-  alias LantternWeb.GradesReports.StudentGradeReportEntryFormComponent
+  alias LantternWeb.GradesReports.StudentGradesReportEntryOverlayComponent
   import LantternWeb.GradesReportsComponents
   alias LantternWeb.Filters.InlineFiltersComponent
 
@@ -16,7 +18,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <div :if={@grades_report} class="py-10">
+      <div :if={@grades_report}>
         <div class="container mx-auto lg:max-w-5xl">
           <h5 class="font-display font-bold text-2xl">
             <%= gettext("Students grades") %>
@@ -42,107 +44,57 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
             </div>
           </div>
         <% else %>
-          <div class="p-6">
-            <.students_grades_grid
-              students={@students}
-              grades_report_subjects={@grades_report.grades_report_subjects}
-              students_grades_map={@students_grades_map}
-              on_calculate_cycle={fn -> JS.push("calculate_cycle", target: @myself) end}
-              on_calculate_student={
-                fn student_id ->
-                  JS.push("calculate_student",
-                    value: %{student_id: student_id},
-                    target: @myself
-                  )
-                end
-              }
-              on_calculate_subject={
-                fn grades_report_subject_id ->
-                  JS.push("calculate_subject",
-                    value: %{grades_report_subject_id: grades_report_subject_id},
-                    target: @myself
-                  )
-                end
-              }
-              on_calculate_cell={
-                fn student_id, grades_report_subject_id ->
-                  JS.push("calculate_cell",
-                    value: %{
-                      student_id: student_id,
-                      grades_report_subject_id: grades_report_subject_id
-                    },
-                    target: @myself
-                  )
-                end
-              }
-              on_entry_click={
-                fn student_grade_report_entry_id ->
-                  JS.patch(
-                    ~p"/report_cards/#{@report_card}?tab=grades&student_grade_report_entry=#{student_grade_report_entry_id}"
-                  )
-                end
-              }
-            />
-          </div>
-        <% end %>
-        <.slide_over
-          :if={@is_editing_student_grade_report_entry}
-          id="student-grades-report-entry-overlay"
-          show={true}
-          on_cancel={JS.patch(~p"/report_cards/#{@report_card}?tab=grades")}
-        >
-          <:title><%= gettext("Edit student grade report entry") %></:title>
-          <.metadata class="mb-4" icon_name="hero-user">
-            <%= @student_grade_report_entry.student.name %>
-          </.metadata>
-          <.metadata class="mb-4" icon_name="hero-bookmark">
-            <%= @student_grade_report_entry.grades_report_subject.subject.name %>
-          </.metadata>
-          <.metadata class="mb-4" icon_name="hero-calendar">
-            <%= @student_grade_report_entry.grades_report_cycle.school_cycle.name %>
-          </.metadata>
-          <.live_component
-            module={StudentGradeReportEntryFormComponent}
-            id={@student_grade_report_entry.id}
-            student_grade_report_entry={@student_grade_report_entry}
-            scale_id={@grades_report.scale_id}
-            navigate={~p"/report_cards/#{@report_card}?tab=grades"}
-            hide_submit
+          <.students_grades_grid
+            class="mt-6"
+            students={@students}
+            grades_report_subjects={@grades_report.grades_report_subjects}
+            students_grades_map={@students_grades_map}
+            on_calculate_cycle={fn -> JS.push("calculate_cycle", target: @myself) end}
+            on_calculate_student={
+              fn student_id ->
+                JS.push("calculate_student",
+                  value: %{student_id: student_id},
+                  target: @myself
+                )
+              end
+            }
+            on_calculate_subject={
+              fn grades_report_subject_id ->
+                JS.push("calculate_subject",
+                  value: %{grades_report_subject_id: grades_report_subject_id},
+                  target: @myself
+                )
+              end
+            }
+            on_calculate_cell={
+              fn student_id, grades_report_subject_id ->
+                JS.push("calculate_cell",
+                  value: %{
+                    student_id: student_id,
+                    grades_report_subject_id: grades_report_subject_id
+                  },
+                  target: @myself
+                )
+              end
+            }
+            on_entry_click={
+              fn student_grades_report_entry_id ->
+                JS.patch(
+                  ~p"/report_cards/#{@report_card}?tab=grades&student_grades_report_entry=#{student_grades_report_entry_id}"
+                )
+              end
+            }
           />
-          <div class="py-10">
-            <h6 class="font-display font-bold"><%= gettext("Grade composition") %></h6>
-            <p class="mt-4 mb-6 text-sm">
-              <%= gettext(
-                "Lanttern automatic grade calculation info based on configured grade composition"
-              ) %> (<%= Timex.local(@student_grade_report_entry.composition_datetime)
-              |> Timex.format!("{0D}/{0M}/{YYYY} {h24}:{m}") %>).
-            </p>
-            <.grade_composition_table student_grade_report_entry={@student_grade_report_entry} />
-          </div>
-          <:actions_left>
-            <.button
-              type="button"
-              theme="ghost"
-              phx-click="delete_student_grade_report_entry"
-              phx-target={@myself}
-              data-confirm={gettext("Are you sure?")}
-            >
-              <%= gettext("Delete") %>
-            </.button>
-          </:actions_left>
-          <:actions>
-            <.button
-              type="button"
-              theme="ghost"
-              phx-click={JS.exec("data-cancel", to: "#student-grades-report-entry-overlay")}
-            >
-              <%= gettext("Cancel") %>
-            </.button>
-            <.button type="submit" form="student-grade-report-entry-form">
-              <%= gettext("Save") %>
-            </.button>
-          </:actions>
-        </.slide_over>
+        <% end %>
+        <.live_component
+          :if={@is_editing_student_grades_report_entry}
+          module={StudentGradesReportEntryOverlayComponent}
+          id={@student_grades_report_entry.id}
+          student_grades_report_entry={@student_grades_report_entry}
+          scale_id={@grades_report.scale_id}
+          navigate={~p"/report_cards/#{@report_card}?tab=grades"}
+          on_cancel={JS.patch(~p"/report_cards/#{@report_card}?tab=grades")}
+        />
         <.live_component
           module={LantternWeb.Filters.FiltersOverlayComponent}
           id="students-grades-filters"
@@ -193,20 +145,20 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           grades_report.grades_report_cycles
           |> Enum.find(&(&1.school_cycle_id == report_card.school_cycle_id))
       end)
-      |> assign_is_editing_student_grade_report_entry(assigns)
+      |> assign_is_editing_student_grades_report_entry(assigns)
       |> assign_students_grades_grid()
 
     {:ok, socket}
   end
 
-  defp assign_is_editing_student_grade_report_entry(socket, %{
-         params: %{"student_grade_report_entry" => student_grade_report_entry_id}
+  defp assign_is_editing_student_grades_report_entry(socket, %{
+         params: %{"student_grades_report_entry" => student_grades_report_entry_id}
        }) do
     %{current_grades_report_cycle: current_grades_report_cycle} = socket.assigns
 
-    student_grade_report_entry =
-      GradesReports.get_student_grade_report_entry!(
-        student_grade_report_entry_id,
+    student_grades_report_entry =
+      GradesReports.get_student_grades_report_entry!(
+        student_grades_report_entry_id,
         preloads: [
           :student,
           :composition_ordinal_value,
@@ -215,19 +167,19 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
         ]
       )
 
-    case student_grade_report_entry.grades_report_cycle_id == current_grades_report_cycle.id do
+    case student_grades_report_entry.grades_report_cycle_id == current_grades_report_cycle.id do
       true ->
         socket
-        |> assign(:is_editing_student_grade_report_entry, true)
-        |> assign(:student_grade_report_entry, student_grade_report_entry)
+        |> assign(:is_editing_student_grades_report_entry, true)
+        |> assign(:student_grades_report_entry, student_grades_report_entry)
 
       _ ->
-        assign(socket, :is_editing_student_grade_report_entry, false)
+        assign(socket, :is_editing_student_grades_report_entry, false)
     end
   end
 
-  defp assign_is_editing_student_grade_report_entry(socket, _),
-    do: assign(socket, :is_editing_student_grade_report_entry, false)
+  defp assign_is_editing_student_grades_report_entry(socket, _),
+    do: assign(socket, :is_editing_student_grades_report_entry, false)
 
   defp assign_students_grades_grid(socket) do
     students =
@@ -242,7 +194,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           nil
 
         grades_report ->
-          GradesReports.build_students_grades_map(
+          GradesReports.build_students_grades_cycle_map(
             Enum.map(students, & &1.id),
             grades_report.id,
             socket.assigns.report_card.school_cycle_id
@@ -383,74 +335,5 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
       end
 
     {:noreply, socket}
-  end
-
-  def handle_event("delete_student_grade_report_entry", _params, socket) do
-    case GradesReports.delete_student_grade_report_entry(
-           socket.assigns.student_grade_report_entry
-         ) do
-      {:ok, _student_grade_report_entry} ->
-        socket =
-          socket
-          |> put_flash(:info, gettext("Student grade report entry deleted"))
-          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=grades")
-
-        {:noreply, socket}
-
-      {:error, _changeset} ->
-        socket =
-          socket
-          |> put_flash(:error, gettext("Error deleting student grade report entry"))
-
-        {:noreply, socket}
-    end
-  end
-
-  # helper
-
-  defp build_calculation_results_message(%{} = results),
-    do: build_calculation_results_message(Enum.map(results, & &1), [])
-
-  defp build_calculation_results_message([], msgs),
-    do: Enum.join(msgs, ", ")
-
-  defp build_calculation_results_message([{_operation, 0} | results], msgs),
-    do: build_calculation_results_message(results, msgs)
-
-  defp build_calculation_results_message([{:created, count} | results], msgs) do
-    msg = ngettext("1 grade created", "%{count} grades created", count)
-    build_calculation_results_message(results, [msg | msgs])
-  end
-
-  defp build_calculation_results_message([{:updated, count} | results], msgs) do
-    msg = ngettext("1 grade updated", "%{count} grades updated", count)
-    build_calculation_results_message(results, [msg | msgs])
-  end
-
-  defp build_calculation_results_message([{:updated_with_manual, count} | results], msgs) do
-    msg =
-      ngettext(
-        "1 grade partially updated (only composition, manual grade not changed)",
-        "%{count} grades partially updated (only compositions, manual grades not changed)",
-        count
-      )
-
-    build_calculation_results_message(results, [msg | msgs])
-  end
-
-  defp build_calculation_results_message([{:deleted, count} | results], msgs) do
-    msg = ngettext("1 grade removed", "%{count} grades removed", count)
-    build_calculation_results_message(results, [msg | msgs])
-  end
-
-  defp build_calculation_results_message([{:noop, count} | results], msgs) do
-    msg =
-      ngettext(
-        "1 grade calculation skipped (no assessment point entries)",
-        "%{count} grades skipped (no assessment point entries)",
-        count
-      )
-
-    build_calculation_results_message(results, [msg | msgs])
   end
 end

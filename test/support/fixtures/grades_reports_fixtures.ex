@@ -53,9 +53,9 @@ defmodule Lanttern.GradesReportsFixtures do
   end
 
   @doc """
-  Generate a student_grade_report_entry.
+  Generate a student_grades_report_entry.
   """
-  def student_grade_report_entry_fixture(attrs \\ %{}) do
+  def student_grades_report_entry_fixture(attrs \\ %{}) do
     {
       grades_report_id,
       grades_report_cycle_id,
@@ -87,7 +87,7 @@ defmodule Lanttern.GradesReportsFixtures do
           }
       end
 
-    {:ok, student_grade_report_entry} =
+    {:ok, student_grades_report_entry} =
       attrs
       |> Enum.into(%{
         student_id: Lanttern.SchoolsFixtures.maybe_gen_student_id(attrs),
@@ -96,11 +96,56 @@ defmodule Lanttern.GradesReportsFixtures do
         grades_report_subject_id: grades_report_subject_id,
         comment: "some comment",
         composition_normalized_value: 0.5,
+        normalized_value: 0.5,
         score: 120.5
       })
-      |> Lanttern.GradesReports.create_student_grade_report_entry()
+      |> Lanttern.GradesReports.create_student_grades_report_entry()
 
-    student_grade_report_entry
+    student_grades_report_entry
+  end
+
+  @doc """
+  Generate a student_grades_report_final_entry.
+  """
+  def student_grades_report_final_entry_fixture(attrs \\ %{}) do
+    {
+      grades_report_id,
+      grades_report_subject_id
+    } =
+      case attrs do
+        %{
+          grades_report_id: grades_report_id,
+          grades_report_subject_id: grades_report_subject_id
+        } ->
+          {
+            grades_report_id,
+            grades_report_subject_id
+          }
+
+        _ ->
+          grades_report = grades_report_fixture()
+
+          {
+            grades_report.id,
+            grades_report_subject_fixture(%{
+              grades_report_id: grades_report.id
+            }).id
+          }
+      end
+
+    {:ok, student_grades_report_final_entry} =
+      attrs
+      |> Enum.into(%{
+        student_id: Lanttern.SchoolsFixtures.maybe_gen_student_id(attrs),
+        grades_report_id: grades_report_id,
+        grades_report_subject_id: grades_report_subject_id,
+        comment: "some comment",
+        composition_normalized_value: 0.5,
+        score: 120.5
+      })
+      |> Lanttern.GradesReports.create_student_grades_report_final_entry()
+
+    student_grades_report_final_entry
   end
 
   # generator helpers

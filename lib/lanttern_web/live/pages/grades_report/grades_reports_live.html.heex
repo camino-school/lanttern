@@ -7,7 +7,7 @@
     <.collection_action
       type="link"
       icon_name="hero-plus-circle"
-      patch={~p"/grading?is_creating=true"}
+      patch={~p"/grades_reports?is_creating=true"}
     >
       <%= gettext("Create new grades report") %>
     </.collection_action>
@@ -20,12 +20,19 @@
         class="p-6 rounded mt-12 bg-white shadow-lg"
       >
         <div class="flex items-center justify-between gap-6 mb-6">
-          <h3 class="font-display font-black text-2xl"><%= grades_report.name %></h3>
+          <h3 class="font-display font-black text-2xl">
+            <.link
+              navigate={~p"/grades_reports/#{grades_report}"}
+              class="underline hover:text-ltrn-subtle"
+            >
+              <%= grades_report.name %>
+            </.link>
+          </h3>
           <.button
-            type="button"
+            type="link"
             theme="ghost"
             icon_name="hero-pencil-mini"
-            phx-click={JS.patch(~p"/grading?is_editing=#{grades_report.id}")}
+            patch={~p"/grades_reports?is_editing=#{grades_report.id}"}
           >
             <%= gettext("Edit") %>
           </.button>
@@ -56,7 +63,7 @@
         <.markdown :if={grades_report.info} text={grades_report.info} class="mb-6" size="sm" />
         <.grades_report_grid
           grades_report={grades_report}
-          on_setup={JS.patch(~p"/grading?is_editing_grid=#{grades_report.id}")}
+          on_configure={JS.patch(~p"/grades_reports?is_configuring_grid=#{grades_report.id}")}
           on_composition_click={JS.push("edit_composition")}
           show_cycle_visibility
         />
@@ -72,14 +79,14 @@
   :if={@show_grades_report_form}
   id="grade-report-form-overlay"
   show={true}
-  on_cancel={JS.patch(~p"/grading")}
+  on_cancel={JS.patch(~p"/grades_reports")}
 >
   <:title><%= @form_overlay_title %></:title>
   <.live_component
     module={GradesReportFormComponent}
     id={@grades_report.id || :new}
     grades_report={@grades_report}
-    navigate={fn _ -> ~p"/grading" end}
+    navigate={fn _ -> ~p"/grades_reports" end}
     hide_submit
   />
   <:actions_left :if={@grades_report.id}>
@@ -106,11 +113,11 @@
   </:actions>
 </.slide_over>
 <.live_component
-  :if={@show_grades_report_grid_editor}
-  module={GradesReportGridSetupOverlayComponent}
-  id="grades-report-grid-overlay"
+  :if={@show_grades_report_grid_configuration}
+  module={GradesReportGridConfigurationOverlayComponent}
+  id="grades-report-grid-configuration-overlay"
   grades_report={@grades_report}
-  on_cancel={JS.patch(~p"/grading")}
+  on_cancel={JS.patch(~p"/grades_reports")}
 />
 <.live_component
   :if={@is_editing_grade_composition}
@@ -120,5 +127,5 @@
   grades_report_id={@grades_report_id}
   grades_report_cycle_id={@grades_report_cycle_id}
   grades_report_subject_id={@grades_report_subject_id}
-  on_cancel={JS.patch(~p"/grading")}
+  on_cancel={JS.patch(~p"/grades_reports")}
 />
