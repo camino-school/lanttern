@@ -308,7 +308,18 @@ defmodule Lanttern.SchoolsTest do
 
     test "get_class/2 returns nil if class with given id does not exist" do
       class_fixture()
-      assert Schools.get_class(99_999) == nil
+      assert Schools.get_class(999_999) == nil
+    end
+
+    test "get_class/2 with check_permissions_for_user checks for user permission" do
+      school = school_fixture()
+      class = class_fixture(%{school_id: school.id})
+      user = Lanttern.IdentityFixtures.current_teacher_user_fixture(%{school_id: school.id})
+
+      assert Schools.get_class(class.id, check_permissions_for_user: user) == class
+
+      other_user = Lanttern.IdentityFixtures.current_teacher_user_fixture()
+      assert Schools.get_class(class.id, check_permissions_for_user: other_user) |> is_nil()
     end
 
     test "get_class!/2 returns the class with given id" do

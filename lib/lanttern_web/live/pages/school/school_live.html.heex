@@ -1,13 +1,22 @@
 <.responsive_container class="py-6 sm:py-10">
   <.page_title_with_menu><%= @current_user.current_profile.school_name %></.page_title_with_menu>
-  <p class="mt-12 font-display font-bold text-lg">
-    <%= gettext("Showing classes from") %><br />
-    <.filter_text_button
-      type={gettext("years")}
-      items={@selected_years}
-      on_click={JS.exec("data-show", to: "#school-year-filters-overlay")}
-    />
-  </p>
+  <div class="flex items-end justify-between gap-6 mt-10">
+    <p class="font-display font-bold text-lg">
+      <%= gettext("Showing classes from") %><br />
+      <.filter_text_button
+        type={gettext("years")}
+        items={@selected_years}
+        on_click={JS.exec("data-show", to: "#school-year-filters-overlay")}
+      />
+    </p>
+    <.collection_action
+      type="link"
+      patch={~p"/school?is_creating_class=true"}
+      icon_name="hero-plus-circle"
+    >
+      <%= gettext("Add class") %>
+    </.collection_action>
+  </div>
 </.responsive_container>
 <.responsive_grid is_full_width>
   <.card_base
@@ -15,7 +24,18 @@
     id={dom_id}
     class="min-w-[16rem] sm:min-w-0 p-4"
   >
-    <p class="font-display font-black"><%= class.name %></p>
+    <div class="flex items-center justify-between gap-4">
+      <p class="font-display font-black"><%= class.name %></p>
+      <.button
+        type="link"
+        icon_name="hero-pencil-mini"
+        sr_text={gettext("Edit class")}
+        rounded
+        size="sm"
+        theme="ghost"
+        patch={~p"/school?edit_class=#{class}"}
+      />
+    </div>
     <div class="flex flex-wrap gap-2 mt-4">
       <.badge>
         <%= class.cycle.name %>
@@ -49,4 +69,14 @@
   title={gettext("Filter classes by year")}
   filter_type={:years}
   navigate={~p"/school"}
+/>
+<.live_component
+  :if={@class}
+  module={ClassFormOverlayComponent}
+  id={:form}
+  class={@class}
+  current_user={@current_user}
+  title={gettext("Update class")}
+  on_cancel={JS.patch(~p"/school")}
+  notify_parent
 />

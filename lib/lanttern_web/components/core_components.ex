@@ -291,7 +291,8 @@ defmodule LantternWeb.CoreComponents do
   attr :size, :string, default: "normal", doc: "sm | normal"
   attr :rounded, :boolean, default: false
   attr :icon_name, :string, default: nil
-  # `<.link>` attrs
+  attr :sr_text, :string, doc: "screen reader text. required when rendering an icon only button"
+  # `<.button type="link">` (`<.link>`) attrs
   attr :navigate, :string, default: nil
   attr :patch, :string, default: nil
   attr :href, :any, default: nil
@@ -302,7 +303,7 @@ defmodule LantternWeb.CoreComponents do
   attr :rest, :global,
     include: ~w(disabled form name value download hreflang referrerpolicy rel target)
 
-  slot :inner_block, required: true
+  slot :inner_block, doc: "not required when rendering icon only"
 
   def button(%{type: "link"} = assigns) do
     ~H"""
@@ -322,6 +323,7 @@ defmodule LantternWeb.CoreComponents do
     >
       <%= render_slot(@inner_block) %>
       <%= if @icon_name do %>
+        <span :if={@inner_block == []} class="sr-only"><%= @sr_text %></span>
         <.icon
           name={@icon_name}
           class="w-5 h-5 group-phx-submit-loading:hidden group-phx-click-loading:hidden"

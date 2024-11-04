@@ -100,6 +100,30 @@ defmodule Lanttern.IdentityFixtures do
     profile
   end
 
+  @doc """
+  Generate a teacher user that emulates the `current_user` in socket.
+
+  Creates the user, profile, and teacher needed to structure the current user.
+  """
+  def current_teacher_user_fixture(attrs \\ %{}) do
+    user = user_fixture()
+    teacher = teacher_fixture(attrs) |> Lanttern.Repo.preload(:school)
+    teacher_profile = teacher_profile_fixture(%{user_id: user.id, teacher_id: teacher.id})
+
+    # emulate Identity.get_user_by_session_token/1 to preload profile into user
+    user
+    |> Map.put(
+      :current_profile,
+      %Lanttern.Identity.Profile{
+        id: teacher_profile.id,
+        name: teacher.name,
+        type: "teacher",
+        school_id: teacher.school.id,
+        school_name: teacher.school.name
+      }
+    )
+  end
+
   # helpers
 
   def maybe_gen_profile_id(attrs, opts \\ [])

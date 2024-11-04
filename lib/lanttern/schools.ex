@@ -309,7 +309,8 @@ defmodule Lanttern.Schools do
 
   ### Options:
 
-  `:preloads` – preloads associated data
+  - `:preloads` – preloads associated data
+  - `:check_permissions_for_user` - expects a `%User{}` (usually from `socket.assigns.current_user`), and will check for class access based on school and permissions
 
   ## Examples
 
@@ -321,9 +322,25 @@ defmodule Lanttern.Schools do
 
   """
   def get_class(id, opts \\ []) do
-    Repo.get(Class, id)
-    |> maybe_preload(opts)
+    class =
+      Repo.get(Class, id)
+      |> maybe_preload(opts)
+
+    case Keyword.get(opts, :check_permissions_for_user) do
+      %User{} = user -> apply_get_class_check_permissions_for_user(class, user)
+      _ -> class
+    end
   end
+
+  defp apply_get_class_check_permissions_for_user(
+         %Class{} = class,
+         %User{current_profile: %Profile{school_id: school_id}}
+       )
+       when class.school_id == school_id do
+    class
+  end
+
+  defp apply_get_class_check_permissions_for_user(_, _), do: nil
 
   @doc """
   Gets a single class.
