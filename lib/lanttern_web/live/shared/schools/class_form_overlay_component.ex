@@ -10,8 +10,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
   alias Lanttern.Taxonomy
 
   # shared
-
-  # alias LantternWeb.Schools.StudentSearchComponent
+  alias LantternWeb.Schools.StudentSearchComponent
 
   @impl true
   def render(assigns) do
@@ -66,26 +65,38 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
               <.error :for={{msg, _} <- @form[:years_ids].errors}><%= msg %></.error>
             </div>
           </div>
-          <%!-- <div class="mb-6">
+          <div class="mb-6">
             <.live_component
               module={StudentSearchComponent}
               id="student-search"
               notify_component={@myself}
-              label={gettext("Students")}
+              label={gettext("Students in this class")}
               refocus_on_select="true"
             />
-            <div :if={@selected_students != []} class="flex flex-wrap gap-2 mt-2">
-              <.person_badge
-                :for={student <- @selected_students}
-                person={student}
-                theme="cyan"
-                on_remove={JS.push("remove_student", value: %{"id" => student.id}, target: @myself)}
-              />
-            </div>
-            <div :if={@form.source.action in [:insert, :update]}>
+            <%= if @students != [] do %>
+              <ol class="mt-4 text-sm leading-relaxed list-decimal list-inside">
+                <li :for={student <- @students} id={"selected-student-#{student.id}"}>
+                  <%= student.name %>
+                  <.button
+                    type="button"
+                    icon_name="hero-x-mark-mini"
+                    class="align-middle"
+                    size="sm"
+                    theme="ghost"
+                    rounded
+                    phx-click={
+                      JS.push("remove_student", value: %{"id" => student.id}, target: @myself)
+                    }
+                  />
+                </li>
+              </ol>
+            <% else %>
+              <%= gettext("No students added to this class") %>
+            <% end %>
+            <%!-- <div :if={@form.source.action in [:insert, :update]}>
               <.error :for={{msg, _} <- @form[:students_ids].errors}><%= msg %></.error>
-            </div>
-          </div> --%>
+            </div> --%>
+          </div>
         </.form>
         <:actions_left :if={@class.id}>
           <.button
@@ -126,32 +137,14 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
   end
 
   @impl true
-  # def update(%{action: {StudentSearchComponent, {:selected, student}}}, socket) do
-  #   selected_students =
-  #     (socket.assigns.selected_students ++ [student])
-  #     |> Enum.uniq()
+  def update(%{action: {StudentSearchComponent, {:selected, student}}}, socket) do
+    students =
+      [student | socket.assigns.students]
+      |> Enum.uniq()
+      |> Enum.sort_by(& &1.name)
 
-  #   selected_students_ids = selected_students |> Enum.map(& &1.id)
-
-  #   # basically a manual "validate" event to update students ids
-  #   params =
-  #     socket.assigns.form.params
-  #     |> Map.put("students_ids", selected_students_ids)
-
-  #   form =
-  #     socket.assigns.student_record
-  #     |> StudentsRecords.change_student_record(params)
-  #     |> Map.put(:action, :validate)
-  #     |> to_form()
-
-  #   socket =
-  #     socket
-  #     |> assign(:selected_students, selected_students)
-  #     |> assign(:selected_students_ids, selected_students_ids)
-  #     |> assign(:form, form)
-
-  #   {:ok, socket}
-  # end
+    {:ok, assign(socket, :students, students)}
+  end
 
   def update(%{class: %Class{}} = assigns, socket) do
     socket =
@@ -161,19 +154,11 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
       |> assign_form()
       |> assign_cycles()
       |> assign_years()
+      |> assign_students()
       |> assign(:initialized, true)
 
     {:ok, socket}
   end
-
-  # defp assign_selected_students(socket) do
-  #   selected_students = socket.assigns.student_record.students
-  #   selected_students_ids = selected_students |> Enum.map(& &1.id)
-
-  #   socket
-  #   |> assign(:selected_students, selected_students)
-  #   |> assign(:selected_students_ids, selected_students_ids)
-  # end
 
   defp assign_form(socket) do
     class = socket.assigns.class
@@ -203,24 +188,28 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
 
   defp assign_years(socket), do: socket
 
+  defp assign_students(%{assigns: %{initialized: false}} = socket) do
+    students =
+      case socket.assigns.class.id do
+        nil -> []
+        class_id -> Schools.list_students(class_id: class_id)
+      end
+
+    assign(socket, :students, students)
+  end
+
+  defp assign_students(socket), do: socket
+
   # event handlers
 
   @impl true
-  # def handle_event("remove_student", %{"id" => id}, socket) do
-  #   selected_students =
-  #     socket.assigns.selected_students
-  #     |> Enum.filter(&(&1.id != id))
+  def handle_event("remove_student", %{"id" => id}, socket) do
+    students =
+      socket.assigns.students
+      |> Enum.reject(&(&1.id == id))
 
-  #   selected_students_ids = selected_students |> Enum.map(& &1.id)
-
-  #   socket =
-  #     socket
-  #     |> assign(:selected_students, selected_students)
-  #     |> assign(:selected_students_ids, selected_students_ids)
-  #     |> assign_validated_form(socket.assigns.form.params)
-
-  #   {:noreply, socket}
-  # end
+    {:noreply, assign(socket, :students, students)}
+  end
 
   def handle_event("select_cycle", %{"id" => id}, socket) do
     socket =
@@ -281,9 +270,10 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
   # inject params handled in backend
   defp inject_extra_params(socket, params) do
     params
-    |> Map.put("school_id", socket.assigns.class.school_id)
+    |> Map.put("school_id", socket.assigns.current_user.current_profile.school_id)
     |> Map.put("cycle_id", socket.assigns.selected_cycle_id)
     |> Map.put("years_ids", socket.assigns.selected_years_ids)
+    |> Map.put("students_ids", socket.assigns.students |> Enum.map(& &1.id))
 
     # |> Map.put("students_ids", socket.assigns.selected_students_ids)
   end

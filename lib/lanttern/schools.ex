@@ -446,6 +446,7 @@ defmodule Lanttern.Schools do
   - `:preloads` – preloads associated data
   - `:school_id` - filter students by school
   - `:students_ids` - filter students by given ids
+  - `:class_id` – filter students by given class
   - `:classes_ids` – filter students by provided list of ids. preloads the classes for each student, and order by class name
   - `:report_card_id` – filter students linked to given report card. preloads the classes for each student, and order by class name
   - `:check_diff_rubrics_for_strand_id` - used to check if student has any differentiation rubric for given strand id
@@ -463,20 +464,20 @@ defmodule Lanttern.Schools do
     from(s in queryable,
       order_by: s.name
     )
-    |> maybe_join_and_preload_classes_in_list_students(opts)
+    |> maybe_join_classes_in_list_students(opts)
     |> apply_list_students_opts(opts)
+    |> maybe_preload_classes_in_list_students(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
-  defp maybe_join_and_preload_classes_in_list_students(queryable, opts) do
-    case Keyword.keys(opts) |> Enum.any?(&(&1 in [:classes_ids, :report_card_id])) do
+  defp maybe_join_classes_in_list_students(queryable, opts) do
+    case Keyword.keys(opts) |> Enum.any?(&(&1 in [:class_id, :classes_ids, :report_card_id])) do
       true ->
         from(
-          s in Student,
+          s in queryable,
           join: c in assoc(s, :classes),
-          as: :classes,
-          preload: [classes: c]
+          as: :classes
         )
 
       _ ->
@@ -484,11 +485,14 @@ defmodule Lanttern.Schools do
     end
   end
 
-  defp apply_list_students_opts(queryable, []) do
+  defp apply_list_students_opts(queryable, []), do: queryable
+
+  defp apply_list_students_opts(queryable, [{:class_id, id} | opts]) do
     from(
-      s in queryable,
-      order_by: s.name
+      [s, classes: c] in queryable,
+      where: c.id == ^id
     )
+    |> apply_list_students_opts(opts)
   end
 
   defp apply_list_students_opts(queryable, [{:classes_ids, ids} | opts])
@@ -549,6 +553,19 @@ defmodule Lanttern.Schools do
 
   defp apply_list_students_opts(queryable, [_ | opts]),
     do: apply_list_students_opts(queryable, opts)
+
+  defp maybe_preload_classes_in_list_students(queryable, opts) do
+    case Keyword.keys(opts) |> Enum.any?(&(&1 in [:classes_ids, :report_card_id])) do
+      true ->
+        from(
+          [_s, classes: c] in queryable,
+          preload: [classes: c]
+        )
+
+      _ ->
+        queryable
+    end
+  end
 
   @doc """
   Search students by name.

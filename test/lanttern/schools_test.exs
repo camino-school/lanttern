@@ -437,6 +437,17 @@ defmodule Lanttern.SchoolsTest do
       assert Schools.list_students() == [student]
     end
 
+    test "list_students/1 with class_id opt filter results by class" do
+      class = class_fixture()
+      student = student_fixture(%{classes_ids: [class.id]})
+
+      # other students for filter testing
+      student_fixture()
+
+      assert [expected_student] = Schools.list_students(class_id: class.id)
+      assert expected_student.id == student.id
+    end
+
     test "list_students/1 with opts returns all students as expected" do
       school = school_fixture()
       class_1 = class_fixture()
