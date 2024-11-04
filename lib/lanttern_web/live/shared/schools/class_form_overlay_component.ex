@@ -281,6 +281,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
   # inject params handled in backend
   defp inject_extra_params(socket, params) do
     params
+    |> Map.put("school_id", socket.assigns.class.school_id)
     |> Map.put("cycle_id", socket.assigns.selected_cycle_id)
     |> Map.put("years_ids", socket.assigns.selected_years_ids)
 

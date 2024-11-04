@@ -411,7 +411,12 @@ defmodule Lanttern.SchoolsTest do
     end
 
     test "delete_class/1 deletes the class" do
-      class = class_fixture()
+      # create and link year and student to test if relations are deleted with class
+      year = Lanttern.TaxonomyFixtures.year_fixture()
+      student = student_fixture()
+
+      class = class_fixture(%{years_ids: [year.id], students_ids: [student.id]})
+
       assert {:ok, %Class{}} = Schools.delete_class(class)
       assert_raise Ecto.NoResultsError, fn -> Schools.get_class!(class.id) end
     end

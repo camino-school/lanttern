@@ -11,7 +11,7 @@
     </p>
     <.collection_action
       type="link"
-      patch={~p"/school?is_creating_class=true"}
+      patch={~p"/school?create_class=true"}
       icon_name="hero-plus-circle"
     >
       <%= gettext("Add class") %>
@@ -56,7 +56,7 @@
         </li>
       </ol>
     <% else %>
-      <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lighter">
+      <div class="p-4 rounded mt-4 text-ltrn-subtle bg-ltrn-lighter">
         <%= gettext("No students in this class") %>
       </div>
     <% end %>

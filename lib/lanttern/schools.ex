@@ -390,7 +390,7 @@ defmodule Lanttern.Schools do
   end
 
   @doc """
-  Deletes a class.
+  Deletes a class and related years/students.
 
   ## Examples
 
@@ -402,7 +402,27 @@ defmodule Lanttern.Schools do
 
   """
   def delete_class(%Class{} = class) do
-    Repo.delete(class)
+    Ecto.Multi.new()
+    |> Ecto.Multi.delete_all(
+      :delete_class_years,
+      from(
+        cy in "classes_years",
+        where: cy.class_id == ^class.id
+      )
+    )
+    |> Ecto.Multi.delete_all(
+      :delete_class_students,
+      from(
+        cs in "classes_students",
+        where: cs.class_id == ^class.id
+      )
+    )
+    |> Ecto.Multi.delete(:delete_class, class)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{delete_class: %Class{} = class}} -> {:ok, class}
+      res -> res
+    end
   end
 
   @doc """

@@ -2,6 +2,7 @@ defmodule LantternWeb.SchoolLive do
   use LantternWeb, :live_view
 
   alias Lanttern.Schools
+  alias Lanttern.Schools.Class
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2]
 
   # shared components
@@ -40,6 +41,16 @@ defmodule LantternWeb.SchoolLive do
       |> assign_class(params)
 
     {:noreply, socket}
+  end
+
+  defp assign_class(socket, %{"create_class" => "true"}) do
+    class =
+      %Class{
+        school_id: socket.assigns.current_user.current_profile.school_id,
+        years: []
+      }
+
+    assign(socket, :class, class)
   end
 
   defp assign_class(socket, %{"edit_class" => class_id}) do
