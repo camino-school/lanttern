@@ -643,7 +643,7 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
-  Renders an empty state block
+  Renders an empty state block with a pulsating visual element
   """
   attr :class, :any, default: nil
   slot :inner_block, required: true
@@ -662,6 +662,20 @@ defmodule LantternWeb.CoreComponents do
         <span class="relative inline-flex rounded-full h-16 w-16 bg-ltrn-primary blur-sm"></span>
       </div> --%>
       <p class="font-display text-ltrn-subtle"><%= render_slot(@inner_block) %></p>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a simple empty state component
+  """
+  attr :class, :any, default: nil
+  slot :inner_block, required: true
+
+  def empty_state_simple(assigns) do
+    ~H"""
+    <div class={["p-4 border border-dashed border-ltrn-light rounded", @class]}>
+      <p class="text-sm text-ltrn-subtle text-center"><%= render_slot(@inner_block) %></p>
     </div>
     """
   end

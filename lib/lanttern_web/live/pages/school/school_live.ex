@@ -44,13 +44,13 @@ defmodule LantternWeb.SchoolLive do
   end
 
   defp assign_class(socket, %{"create_class" => "true"}),
-    do: assign(socket, :class, %Class{years: []})
+    do: assign(socket, :class, %Class{years: [], students: []})
 
   defp assign_class(socket, %{"edit_class" => class_id}) do
     class =
       Schools.get_class(class_id,
         check_permissions_for_user: socket.assigns.current_user,
-        preloads: :years
+        preloads: [:years, :students]
       )
 
     assign(socket, :class, class)

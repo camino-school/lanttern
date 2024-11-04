@@ -91,7 +91,9 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
                 </li>
               </ol>
             <% else %>
-              <%= gettext("No students added to this class") %>
+              <.empty_state_simple class="mt-4">
+                <%= gettext("No students added to this class") %>
+              </.empty_state_simple>
             <% end %>
             <%!-- <div :if={@form.source.action in [:insert, :update]}>
               <.error :for={{msg, _} <- @form[:students_ids].errors}><%= msg %></.error>

@@ -25,7 +25,7 @@
     class="min-w-[16rem] sm:min-w-0 p-4"
   >
     <div class="flex items-center justify-between gap-4">
-      <p class="font-display font-black"><%= class.name %></p>
+      <p class="font-display font-black"><%= class.name %> (<%= class.cycle.name %>)</p>
       <.button
         type="link"
         icon_name="hero-pencil-mini"
@@ -37,9 +37,6 @@
       />
     </div>
     <div class="flex flex-wrap gap-2 mt-4">
-      <.badge>
-        <%= class.cycle.name %>
-      </.badge>
       <.badge :for={year <- class.years}>
         <%= year.name %>
       </.badge>
@@ -56,9 +53,9 @@
         </li>
       </ol>
     <% else %>
-      <div class="p-4 rounded mt-4 text-ltrn-subtle bg-ltrn-lighter">
+      <.empty_state_simple class="mt-4">
         <%= gettext("No students in this class") %>
-      </div>
+      </.empty_state_simple>
     <% end %>
   </.card_base>
 </.responsive_grid>
