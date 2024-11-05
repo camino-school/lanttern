@@ -10,6 +10,7 @@
       />
     </p>
     <.collection_action
+      :if={@is_school_manager}
       type="link"
       patch={~p"/school?create_class=true"}
       icon_name="hero-plus-circle"
@@ -27,6 +28,7 @@
     <div class="flex items-center justify-between gap-4">
       <p class="font-display font-black"><%= class.name %> (<%= class.cycle.name %>)</p>
       <.button
+        :if={@is_school_manager}
         type="link"
         icon_name="hero-pencil-mini"
         sr_text={gettext("Edit class")}
@@ -73,7 +75,7 @@
   id={:form}
   class={@class}
   current_user={@current_user}
-  title={gettext("Update class")}
+  title={@class_form_overlay_title}
   on_cancel={JS.patch(~p"/school")}
   notify_parent
 />

@@ -16,6 +16,7 @@ defmodule LantternWeb.SchoolLive do
       socket
       |> assign_user_filters([:years])
       |> stream_classes()
+      |> assign_is_school_manager()
       |> assign(:page_title, socket.assigns.current_user.current_profile.school_name)
 
     {:ok, socket}
@@ -34,6 +35,13 @@ defmodule LantternWeb.SchoolLive do
     stream(socket, :classes, classes)
   end
 
+  defp assign_is_school_manager(socket) do
+    is_school_manager =
+      "school_management" in socket.assigns.current_user.current_profile.permissions
+
+    assign(socket, :is_school_manager, is_school_manager)
+  end
+
   @impl true
   def handle_params(params, _uri, socket) do
     socket =
@@ -43,8 +51,16 @@ defmodule LantternWeb.SchoolLive do
     {:noreply, socket}
   end
 
-  defp assign_class(socket, %{"create_class" => "true"}),
-    do: assign(socket, :class, %Class{years: [], students: []})
+  defp assign_class(%{assigns: %{is_school_manager: false}} = socket, _params),
+    do: assign(socket, :class, nil)
+
+  defp assign_class(socket, %{"create_class" => "true"}) do
+    class = %Class{years: [], students: []}
+
+    socket
+    |> assign(:class, class)
+    |> assign(:class_form_overlay_title, gettext("Create class"))
+  end
 
   defp assign_class(socket, %{"edit_class" => class_id}) do
     class =
@@ -53,7 +69,9 @@ defmodule LantternWeb.SchoolLive do
         preloads: [:years, :students]
       )
 
-    assign(socket, :class, class)
+    socket
+    |> assign(:class, class)
+    |> assign(:class_form_overlay_title, gettext("Edit class"))
   end
 
   defp assign_class(socket, _params), do: assign(socket, :class, nil)

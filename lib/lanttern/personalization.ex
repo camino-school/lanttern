@@ -1,6 +1,11 @@
 defmodule Lanttern.Personalization do
   @moduledoc """
   The Personalization context.
+
+  ### Permissions info
+
+  - `wcd` - control access to student records
+  - `school_management` - control access to classes, students, and teachers management
   """
 
   import Ecto.Query, warn: false
@@ -8,7 +13,7 @@ defmodule Lanttern.Personalization do
 
   alias Lanttern.Personalization.ProfileSettings
 
-  @valid_permissions ["wcd"]
+  @valid_permissions ["wcd", "school_management"]
 
   @doc """
   Get profile settings.
