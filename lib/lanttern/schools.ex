@@ -334,10 +334,10 @@ defmodule Lanttern.Schools do
 
   defp apply_get_class_check_permissions_for_user(
          %Class{} = class,
-         %User{current_profile: %Profile{school_id: school_id}}
+         %User{current_profile: %Profile{school_id: school_id} = profile}
        )
        when class.school_id == school_id do
-    class
+    if "school_management" in profile.permissions, do: class
   end
 
   defp apply_get_class_check_permissions_for_user(_, _), do: nil
