@@ -55,7 +55,11 @@ defmodule LantternWeb.SchoolLive do
     do: assign(socket, :class, nil)
 
   defp assign_class(socket, %{"create_class" => "true"}) do
-    class = %Class{years: [], students: []}
+    class = %Class{
+      school_id: socket.assigns.current_user.current_profile.school_id,
+      years: [],
+      students: []
+    }
 
     socket
     |> assign(:class, class)

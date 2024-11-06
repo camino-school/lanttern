@@ -65,7 +65,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
               <.error :for={{msg, _} <- @form[:years_ids].errors}><%= msg %></.error>
             </div>
           </div>
-          <div class="mb-6">
+          <div>
             <.live_component
               module={StudentSearchComponent}
               id="student-search"
@@ -95,9 +95,6 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
                 <%= gettext("No students added to this class") %>
               </.empty_state_simple>
             <% end %>
-            <%!-- <div :if={@form.source.action in [:insert, :update]}>
-              <.error :for={{msg, _} <- @form[:students_ids].errors}><%= msg %></.error>
-            </div> --%>
           </div>
         </.form>
         <:actions_left :if={@class.id}>
@@ -130,11 +127,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
 
   @impl true
   def mount(socket) do
-    socket =
-      socket
-      |> assign(:show_delete, false)
-      |> assign(:initialized, false)
-
+    socket = assign(socket, :initialized, false)
     {:ok, socket}
   end
 
@@ -152,7 +145,6 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
     socket =
       socket
       |> assign(assigns)
-      # |> assign_selected_students()
       |> assign_form()
       |> assign_cycles()
       |> assign_years()
@@ -272,7 +264,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
   # inject params handled in backend
   defp inject_extra_params(socket, params) do
     params
-    |> Map.put("school_id", socket.assigns.current_user.current_profile.school_id)
+    |> Map.put("school_id", socket.assigns.class.school_id)
     |> Map.put("cycle_id", socket.assigns.selected_cycle_id)
     |> Map.put("years_ids", socket.assigns.selected_years_ids)
     |> Map.put("students_ids", socket.assigns.students |> Enum.map(& &1.id))

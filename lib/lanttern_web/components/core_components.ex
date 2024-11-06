@@ -1144,14 +1144,26 @@ defmodule LantternWeb.CoreComponents do
   Renders a page title with menu button.
   """
   attr :class, :any, default: nil
+  attr :on_edit_patch, :string, default: nil, doc: "use it to navigate when clicking on edit"
   slot :inner_block, required: true
 
   def page_title_with_menu(assigns) do
     ~H"""
     <div class={["flex items-center gap-4 justify-between", @class]}>
-      <h1 class="font-display font-black text-3xl">
-        <%= render_slot(@inner_block) %>
-      </h1>
+      <div class="flex items-center gap-2">
+        <h1 class="font-display font-black text-3xl">
+          <%= render_slot(@inner_block) %>
+        </h1>
+        <.button
+          :if={@on_edit_patch}
+          icon_name="hero-pencil-mini"
+          sr_text={gettext("Edit")}
+          type="link"
+          rounded
+          theme="ghost"
+          patch={@on_edit_patch}
+        />
+      </div>
       <.nav_menu_button />
     </div>
     """

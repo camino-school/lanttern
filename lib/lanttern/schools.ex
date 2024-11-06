@@ -125,17 +125,30 @@ defmodule Lanttern.Schools do
   """
   def list_cycles(opts \\ []) do
     Cycle
-    |> maybe_filter_by_schools(opts)
-    |> order_cycles(Keyword.get(opts, :order_by))
+    |> apply_list_cycles_opts(opts)
+    |> apply_list_cycles_order_by(Keyword.get(opts, :order_by))
     |> Repo.all()
   end
 
-  defp order_cycles(queryable, nil) do
+  defp apply_list_cycles_opts(queryable, []), do: queryable
+
+  defp apply_list_cycles_opts(queryable, [{:schools_ids, schools_ids} | opts]) do
+    from(
+      c in queryable,
+      where: c.school_id in ^schools_ids
+    )
+    |> apply_list_cycles_opts(opts)
+  end
+
+  defp apply_list_cycles_opts(queryable, [_ | opts]),
+    do: apply_list_cycles_opts(queryable, opts)
+
+  defp apply_list_cycles_order_by(queryable, nil) do
     from c in queryable,
       order_by: [asc: :end_at, desc: :start_at]
   end
 
-  defp order_cycles(queryable, order_by_expression) do
+  defp apply_list_cycles_order_by(queryable, order_by_expression) do
     from c in queryable,
       order_by: ^order_by_expression
   end
@@ -236,11 +249,27 @@ defmodule Lanttern.Schools do
 
   """
   def list_classes(opts \\ []) do
-    Class
-    |> maybe_filter_by_schools(opts)
+    from(
+      c in Class,
+      order_by: c.name
+    )
+    |> apply_list_classes_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
+
+  defp apply_list_classes_opts(queryable, []), do: queryable
+
+  defp apply_list_classes_opts(queryable, [{:schools_ids, schools_ids} | opts]) do
+    from(
+      c in queryable,
+      where: c.school_id in ^schools_ids
+    )
+    |> apply_list_classes_opts(opts)
+  end
+
+  defp apply_list_classes_opts(queryable, [_ | opts]),
+    do: apply_list_classes_opts(queryable, opts)
 
   @doc """
   Returns the list of user's school classes.
@@ -1054,20 +1083,5 @@ defmodule Lanttern.Schools do
       )
 
     {:ok, response}
-  end
-
-  # Helpers
-
-  defp maybe_filter_by_schools(query, opts) do
-    case Keyword.get(opts, :schools_ids) do
-      nil ->
-        query
-
-      schools_ids ->
-        from(
-          q in query,
-          where: q.school_id in ^schools_ids
-        )
-    end
   end
 end
