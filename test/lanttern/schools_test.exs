@@ -740,7 +740,10 @@ defmodule Lanttern.SchoolsTest do
     end
 
     test "delete_student/1 deletes the student" do
-      student = student_fixture()
+      # create and link class to test if relations are deleted with student
+      class = class_fixture()
+      student = student_fixture(%{classes_ids: [class.id]})
+
       assert {:ok, %Student{}} = Schools.delete_student(student)
       assert_raise Ecto.NoResultsError, fn -> Schools.get_student!(student.id) end
     end

@@ -167,7 +167,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
   end
 
   defp assign_cycles(%{assigns: %{initialized: false}} = socket) do
-    school_id = socket.assigns.current_user.current_profile.school_id
+    school_id = socket.assigns.class.school_id
     cycles = Schools.list_cycles(schools_ids: [school_id])
     assign(socket, :cycles, cycles)
   end
@@ -175,7 +175,6 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
   defp assign_cycles(socket), do: socket
 
   defp assign_years(%{assigns: %{initialized: false}} = socket) do
-    # school_id = socket.assigns.current_user.current_profile.scho
     years = Taxonomy.list_years()
     assign(socket, :years, years)
   end

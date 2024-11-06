@@ -1,10 +1,12 @@
 <.responsive_container class="pt-6 sm:pt-10">
-  <.page_title_with_menu on_edit_patch={~p"/school/student/#{@student}?edit=true"}>
+  <.page_title_with_menu on_edit_patch={
+    if @is_school_manager, do: ~p"/school/student/#{@student}?edit=true"
+  }>
     <%= @student.name %>
   </.page_title_with_menu>
   <.breadcrumbs class="mt-2">
-    <:item link={~p"/school"}>School</:item>
-    <:item>Student</:item>
+    <:item link={~p"/school"}><%= gettext("School") %></:item>
+    <:item><%= gettext("Student") %></:item>
   </.breadcrumbs>
 
   <h3 class="mt-10 font-display font-black text-2xl">

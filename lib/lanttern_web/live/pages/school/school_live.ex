@@ -3,10 +3,12 @@ defmodule LantternWeb.SchoolLive do
 
   alias Lanttern.Schools
   alias Lanttern.Schools.Class
+  alias Lanttern.Schools.Student
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2]
 
   # shared components
   alias LantternWeb.Schools.ClassFormOverlayComponent
+  alias LantternWeb.Schools.StudentFormOverlayComponent
 
   # lifecycle
 
@@ -47,6 +49,7 @@ defmodule LantternWeb.SchoolLive do
     socket =
       socket
       |> assign_class(params)
+      |> assign_student(params)
 
     {:noreply, socket}
   end
@@ -80,6 +83,20 @@ defmodule LantternWeb.SchoolLive do
 
   defp assign_class(socket, _params), do: assign(socket, :class, nil)
 
+  defp assign_student(%{assigns: %{is_school_manager: false}} = socket, _params),
+    do: assign(socket, :student, nil)
+
+  defp assign_student(socket, %{"create_student" => "true"}) do
+    student = %Student{
+      school_id: socket.assigns.current_user.current_profile.school_id,
+      classes: []
+    }
+
+    assign(socket, :student, student)
+  end
+
+  defp assign_student(socket, _params), do: assign(socket, :student, nil)
+
   @impl true
   def handle_info({ClassFormOverlayComponent, {:created, _class}}, socket) do
     socket =
@@ -104,6 +121,15 @@ defmodule LantternWeb.SchoolLive do
       socket
       |> put_flash(:info, gettext("Class deleted successfully"))
       |> push_navigate(to: ~p"/school")
+
+    {:noreply, socket}
+  end
+
+  def handle_info({StudentFormOverlayComponent, {:created, student}}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, gettext("Student created successfully"))
+      |> push_navigate(to: ~p"/school/student/#{student}")
 
     {:noreply, socket}
   end

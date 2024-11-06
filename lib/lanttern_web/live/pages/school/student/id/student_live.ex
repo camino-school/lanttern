@@ -23,9 +23,10 @@ defmodule LantternWeb.StudentLive do
     socket =
       socket
       |> assign(:student, student)
-      |> assign(:page_title, student.name)
       |> stream_student_report_cards()
       |> stream_grades_reports()
+      |> assign_is_school_manager()
+      |> assign(:page_title, student.name)
 
     {:ok, socket, temporary_assigns: [student_grades_maps: %{}]}
   end
@@ -84,6 +85,13 @@ defmodule LantternWeb.StudentLive do
     |> assign(:student_grades_report_final_entries_ids, student_grades_report_final_entries_ids)
   end
 
+  defp assign_is_school_manager(socket) do
+    is_school_manager =
+      "school_management" in socket.assigns.current_user.current_profile.permissions
+
+    assign(socket, :is_school_manager, is_school_manager)
+  end
+
   @impl true
   def handle_params(params, _url, socket) do
     socket =
@@ -94,7 +102,7 @@ defmodule LantternWeb.StudentLive do
     {:noreply, socket}
   end
 
-  defp assign_is_editing(socket, %{"edit" => "true"}),
+  defp assign_is_editing(%{assigns: %{is_school_manager: true}} = socket, %{"edit" => "true"}),
     do: assign(socket, :is_editing, true)
 
   defp assign_is_editing(socket, _params),

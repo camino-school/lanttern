@@ -27,18 +27,20 @@ defmodule LantternWeb.SchoolLiveTest do
 
       assert view |> has_element?("p", class.name)
     end
+  end
 
+  describe "School management permissions" do
     test "allow user with school management permissions to create class", context do
       %{conn: conn} = add_school_management_permissions(context)
       {:ok, view, _html} = live(conn, "#{@live_view_path}?create_class=true")
 
-      assert view |> has_element?("h2", "Create class")
+      assert view |> has_element?("#class-form-overlay h2", "Create class")
     end
 
     test "prevent user without school management permissions to create class", %{conn: conn} do
       {:ok, view, _html} = live(conn, "#{@live_view_path}?create_class=true")
 
-      refute view |> has_element?("h2", "Create class")
+      refute view |> has_element?("#class-form-overlay h2", "Create class")
     end
 
     test "allow user with school management permissions to edit class", context do
@@ -48,7 +50,7 @@ defmodule LantternWeb.SchoolLiveTest do
 
       {:ok, view, _html} = live(conn, "#{@live_view_path}?edit_class=#{class.id}")
 
-      assert view |> has_element?("h2", "Edit class")
+      assert view |> has_element?("#class-form-overlay h2", "Edit class")
     end
 
     test "prevent user without school management permissions to edit class", %{
@@ -60,7 +62,20 @@ defmodule LantternWeb.SchoolLiveTest do
 
       {:ok, view, _html} = live(conn, "#{@live_view_path}?edit_class=#{class.id}")
 
-      refute view |> has_element?("h2", "Edit class")
+      refute view |> has_element?("#class-form-overlay h2", "Edit class")
+    end
+
+    test "allow user with school management permissions to create student", context do
+      %{conn: conn} = add_school_management_permissions(context)
+      {:ok, view, _html} = live(conn, "#{@live_view_path}?create_student=true")
+
+      assert view |> has_element?("#student-form-overlay h2", "Create student")
+    end
+
+    test "prevent user without school management permissions to create student", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "#{@live_view_path}?create_student=true")
+
+      refute view |> has_element?("#student-form-overlay h2", "Create student")
     end
   end
 end
