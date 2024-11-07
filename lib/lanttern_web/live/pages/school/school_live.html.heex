@@ -11,21 +11,26 @@
 <div class="sticky top-0 z-30 border-b border-ltrn-lighter bg-white">
   <.responsive_container>
     <.nav_tabs>
-      <:tab patch={~p"/school?tab=students"} is_current={@current_tab == :students}>
+      <:tab navigate={~p"/school/students"} is_current={@live_action in [:show, :view_students]}>
         <%= gettext("Students") %>
       </:tab>
-      <:tab patch={~p"/school?tab=classes"} is_current={@current_tab == :classes}>
+      <:tab navigate={~p"/school/classes"} is_current={@live_action == :view_classes}>
         <%= gettext("Classes") %>
       </:tab>
     </.nav_tabs>
   </.responsive_container>
 </div>
 <div class="ltrn-bg-main-local">
-  <div :if={@current_tab == :students}>
-    TBD
-  </div>
   <.live_component
-    :if={@current_tab == :classes}
+    module={StudentsComponent}
+    id={:school_classes}
+    current_user={@current_user}
+    params={@params}
+    live_action={@live_action}
+    is_school_manager={@is_school_manager}
+  />
+  <.live_component
+    :if={@live_action == :view_classes}
     module={ClassesComponent}
     id={:school_classes}
     current_user={@current_user}

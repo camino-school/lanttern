@@ -147,7 +147,7 @@ defmodule LantternWeb.StudentLive do
     socket =
       socket
       |> put_flash(:info, gettext("Student updated successfully"))
-      |> push_navigate(to: ~p"/school/student/#{student}")
+      |> push_navigate(to: ~p"/school/students/#{student}")
 
     {:noreply, socket}
   end

@@ -14,7 +14,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <.responsive_container class="py-6 sm:py-10">
+      <.responsive_container class="py-6">
         <div class="flex items-end justify-between gap-6 mt-10">
           <p class="font-display font-bold text-lg">
             <%= gettext("Showing classes from") %><br />
@@ -28,7 +28,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
             <.collection_action
               :if={@is_school_manager}
               type="link"
-              patch={~p"/school?tab=classes&create_class=true"}
+              patch={~p"/school/classes?create_class=true"}
               icon_name="hero-plus-circle"
             >
               <%= gettext("Add class") %>
@@ -36,7 +36,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
             <.collection_action
               :if={@is_school_manager}
               type="link"
-              patch={~p"/school?tab=classes&create_student=true"}
+              patch={~p"/school/classes?create_student=true"}
               icon_name="hero-plus-circle"
             >
               <%= gettext("Add student") %>
@@ -60,7 +60,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
               rounded
               size="sm"
               theme="ghost"
-              patch={~p"/school?tab=classes&edit_class=#{class}"}
+              patch={~p"/school/classes?edit_class=#{class}"}
             />
           </div>
           <div class="flex flex-wrap gap-2 mt-4">
@@ -72,7 +72,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
             <ol class="mt-4 text-sm leading-relaxed list-decimal list-inside">
               <li :for={std <- class.students} class="truncate">
                 <.link
-                  navigate={~p"/school/student/#{std}"}
+                  navigate={~p"/school/students/#{std}"}
                   class="hover:text-ltrn-subtle hover:underline"
                 >
                   <%= std.name %>
@@ -92,24 +92,24 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
         current_user={@current_user}
         title={gettext("Filter classes by year")}
         filter_type={:years}
-        navigate={~p"/school?tab=classes"}
+        navigate={~p"/school/classes"}
       />
       <.live_component
         :if={@class}
         module={ClassFormOverlayComponent}
-        id={:form}
+        id="class-form-overlay"
         class={@class}
         title={@class_form_overlay_title}
-        on_cancel={JS.patch(~p"/school?tab=classes")}
+        on_cancel={JS.patch(~p"/school/classes")}
         notify_parent
       />
       <.live_component
         :if={@student}
         module={StudentFormOverlayComponent}
-        id={:form}
+        id="student-form-overlay"
         student={@student}
         title={gettext("Create student")}
-        on_cancel={JS.patch(~p"/school?tab=classes")}
+        on_cancel={JS.patch(~p"/school/classes")}
         notify_parent
       />
     </div>

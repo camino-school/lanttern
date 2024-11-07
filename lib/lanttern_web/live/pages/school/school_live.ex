@@ -2,16 +2,11 @@ defmodule LantternWeb.SchoolLive do
   use LantternWeb, :live_view
 
   # view components
+  alias __MODULE__.StudentsComponent
   alias __MODULE__.ClassesComponent
 
   # shared components
   alias LantternWeb.Schools.ClassFormOverlayComponent
-  alias LantternWeb.Schools.StudentFormOverlayComponent
-
-  @tabs %{
-    "students" => :students,
-    "classes" => :classes
-  }
 
   # lifecycle
 
@@ -33,29 +28,15 @@ defmodule LantternWeb.SchoolLive do
   end
 
   @impl true
-  def handle_params(params, _uri, socket) do
-    socket =
-      socket
-      |> assign(:params, params)
-      |> assign_current_tab(params)
-
-    {:noreply, socket}
-  end
-
-  defp assign_current_tab(socket, %{"tab" => tab}) do
-    current_tab = Map.get(@tabs, tab, :students)
-    assign(socket, :current_tab, current_tab)
-  end
-
-  defp assign_current_tab(socket, _params),
-    do: assign(socket, :current_tab, :students)
+  def handle_params(params, _uri, socket),
+    do: {:noreply, assign(socket, :params, params)}
 
   @impl true
   def handle_info({ClassFormOverlayComponent, {:created, _class}}, socket) do
     socket =
       socket
       |> put_flash(:info, gettext("Class created successfully"))
-      |> push_navigate(to: ~p"/school?tab=classes")
+      |> push_navigate(to: ~p"/school/classes")
 
     {:noreply, socket}
   end
@@ -64,7 +45,7 @@ defmodule LantternWeb.SchoolLive do
     socket =
       socket
       |> put_flash(:info, gettext("Class updated successfully"))
-      |> push_navigate(to: ~p"/school?tab=classes")
+      |> push_navigate(to: ~p"/school/classes")
 
     {:noreply, socket}
   end
@@ -73,17 +54,10 @@ defmodule LantternWeb.SchoolLive do
     socket =
       socket
       |> put_flash(:info, gettext("Class deleted successfully"))
-      |> push_navigate(to: ~p"/school?tab=classes")
+      |> push_navigate(to: ~p"/school/classes")
 
     {:noreply, socket}
   end
 
-  def handle_info({StudentFormOverlayComponent, {:created, student}}, socket) do
-    socket =
-      socket
-      |> put_flash(:info, gettext("Student created successfully"))
-      |> push_navigate(to: ~p"/school/student/#{student}")
-
-    {:noreply, socket}
-  end
+  def handle_info(_, socket), do: {:noreply, socket}
 end

@@ -15,8 +15,8 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div>
-      <.slide_over id="student-form-overlay" show={true} on_cancel={@on_cancel}>
+    <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
+      <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
         <:title><%= @title %></:title>
         <.form
           id="student-form"
@@ -63,11 +63,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
           </.button>
         </:actions_left>
         <:actions>
-          <.button
-            type="button"
-            theme="ghost"
-            phx-click={JS.exec("data-cancel", to: "#student-form-overlay")}
-          >
+          <.button type="button" theme="ghost" phx-click={JS.exec("data-cancel", to: "##{@id}")}>
             <%= gettext("Cancel") %>
           </.button>
           <.button type="submit" form="student-form">

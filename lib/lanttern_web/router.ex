@@ -33,7 +33,6 @@ defmodule LantternWeb.Router do
   pipeline :sign_in_with_google do
     plug :accepts, ["html"]
     plug :fetch_session
-    plug :fetch_live_flash
     plug :verify_google_csrf_token
     plug :put_secure_browser_headers, %{"content-security-policy" => "default-src 'self'"}
   end
@@ -70,7 +69,10 @@ defmodule LantternWeb.Router do
       live "/dashboard", DashboardLive, :index
 
       live "/school", SchoolLive, :show
-      live "/school/student/:id", StudentLive, :show
+      live "/school/students", SchoolLive, :view_students
+      live "/school/classes", SchoolLive, :view_classes
+
+      live "/school/students/:id", StudentLive, :show
 
       live "/assessment_points/:id", AssessmentPointLive, :show
       live "/assessment_points/:id/edit", AssessmentPointLive, :edit

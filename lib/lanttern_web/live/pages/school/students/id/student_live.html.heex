@@ -1,6 +1,6 @@
 <.responsive_container class="pt-6 sm:pt-10">
   <.page_title_with_menu on_edit_patch={
-    if @is_school_manager, do: ~p"/school/student/#{@student}?edit=true"
+    if @is_school_manager, do: ~p"/school/students/#{@student}?edit=true"
   }>
     <%= @student.name %>
   </.page_title_with_menu>
@@ -61,12 +61,12 @@
       student_grades_map={@student_grades_maps[grades_report.id]}
       on_student_grade_click={
         fn id ->
-          JS.patch(~p"/school/student/#{@student}?student_grades_report_entry_id=#{id}")
+          JS.patch(~p"/school/students/#{@student}?student_grades_report_entry_id=#{id}")
         end
       }
       on_student_final_grade_click={
         fn id ->
-          JS.patch(~p"/school/student/#{@student}?student_grades_report_final_entry_id=#{id}")
+          JS.patch(~p"/school/students/#{@student}?student_grades_report_final_entry_id=#{id}")
         end
       }
       class="mt-10"
@@ -78,22 +78,22 @@
   module={GradeDetailsOverlayComponent}
   id="grade-details-overlay-component-overlay"
   student_grades_report_entry_id={@student_grades_report_entry_id}
-  on_cancel={JS.patch(~p"/school/student/#{@student}")}
+  on_cancel={JS.patch(~p"/school/students/#{@student}")}
 />
 <.live_component
   :if={@student_grades_report_final_entry_id}
   module={FinalGradeDetailsOverlayComponent}
   id="final-grade-details-overlay-component-overlay"
   student_grades_report_final_entry_id={@student_grades_report_final_entry_id}
-  on_cancel={JS.patch(~p"/school/student/#{@student}")}
+  on_cancel={JS.patch(~p"/school/students/#{@student}")}
 />
 <.live_component
   :if={@is_editing}
   module={StudentFormOverlayComponent}
-  id={:student_form}
+  id="student-form-overlay"
   student={@student}
   current_user={@current_user}
   title={gettext("Edit student")}
-  on_cancel={JS.patch(~p"/school/student/#{@student}")}
+  on_cancel={JS.patch(~p"/school/students/#{@student}")}
   notify_parent
 />

@@ -3,7 +3,7 @@ defmodule LantternWeb.StudentLiveTest do
 
   alias Lanttern.SchoolsFixtures
 
-  @live_view_base_path "/school/student"
+  @live_view_base_path "/school/students"
 
   setup [:register_and_log_in_teacher]
 

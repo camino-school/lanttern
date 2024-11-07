@@ -555,6 +555,10 @@ defmodule LantternWeb.CoreComponents do
   # this approach looks weird... but we need something apart from stream to identify empty streams
   attr :show_empty_state_message, :string, default: nil, doc: "Use this field to show empty state"
 
+  attr :sticky_header_offset, :string,
+    default: "0",
+    doc: "Use it to adjust where the grid header will stick"
+
   slot :col, required: true do
     attr :label, :string, required: true
     attr :on_filter, JS
@@ -590,11 +594,11 @@ defmodule LantternWeb.CoreComponents do
       |> assign(:grid_col_span_style, grid_col_span_style)
 
     ~H"""
-    <div class={["overflow-x-auto", @class]}>
+    <div class={@class}>
       <div class="grid gap-y-2" style={@grid_template_cols_style}>
         <div
-          class="sticky top-0 grid grid-cols-subgrid rounded font-display font-bold text-sm bg-white shadow"
-          style={@grid_col_span_style}
+          class="sticky z-10 grid grid-cols-subgrid rounded font-display font-bold text-sm bg-white shadow"
+          style={["top: #{@sticky_header_offset};", @grid_col_span_style]}
         >
           <div :for={col <- @col} class="flex gap-2 p-4">
             <%= col[:label] %>

@@ -505,7 +505,7 @@ defmodule Lanttern.Schools do
       true ->
         from(
           s in queryable,
-          join: c in assoc(s, :classes),
+          left_join: c in assoc(s, :classes),
           as: :classes
         )
 
