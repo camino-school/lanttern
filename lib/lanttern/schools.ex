@@ -280,6 +280,7 @@ defmodule Lanttern.Schools do
 
   - `:classes_ids` – filter results by classes
   - `:years_ids` – filter results by years
+  - `:cycles_ids` – filter results by cycles
   - `:preload_cycle_years_students` – boolean
 
   ## Examples
@@ -317,6 +318,12 @@ defmodule Lanttern.Schools do
   defp apply_list_user_classes_opts(queryable, [{:years_ids, years_ids} | opts])
        when years_ids != [] do
     from([_cl, years: y] in queryable, where: y.id in ^years_ids)
+    |> apply_list_user_classes_opts(opts)
+  end
+
+  defp apply_list_user_classes_opts(queryable, [{:cycles_ids, cycles_ids} | opts])
+       when cycles_ids != [] do
+    from(cl in queryable, where: cl.cycle_id in ^cycles_ids)
     |> apply_list_user_classes_opts(opts)
   end
 

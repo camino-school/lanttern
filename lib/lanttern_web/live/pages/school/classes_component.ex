@@ -20,6 +20,11 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
               type={gettext("years")}
               items={@selected_years}
               on_click={JS.exec("data-show", to: "#school-year-filters-overlay")}
+            />,
+            <.filter_text_button
+              type={gettext("cycles")}
+              items={@selected_cycles}
+              on_click={JS.exec("data-show", to: "#school-cycle-filters-overlay")}
             />
           </p>
           <div class="flex gap-4">
@@ -34,54 +39,70 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
           </div>
         </div>
       </.responsive_container>
-      <.responsive_grid id="school-classes" phx-update="stream" is_full_width>
-        <.card_base
-          :for={{dom_id, class} <- @streams.classes}
-          id={dom_id}
-          class="min-w-[16rem] sm:min-w-0 p-4"
-        >
-          <div class="flex items-center justify-between gap-4">
-            <p class="font-display font-black"><%= class.name %> (<%= class.cycle.name %>)</p>
-            <.button
-              :if={@is_school_manager}
-              type="link"
-              icon_name="hero-pencil-mini"
-              sr_text={gettext("Edit class")}
-              rounded
-              size="sm"
-              theme="ghost"
-              patch={~p"/school/classes?edit=#{class}"}
-            />
-          </div>
-          <div class="flex flex-wrap gap-2 mt-4">
-            <.badge :for={year <- class.years}>
-              <%= year.name %>
-            </.badge>
-          </div>
-          <%= if class.students != [] do %>
-            <ol class="mt-4 text-sm leading-relaxed list-decimal list-inside">
-              <li :for={std <- class.students} class="truncate">
-                <.link
-                  navigate={~p"/school/students/#{std}"}
-                  class="hover:text-ltrn-subtle hover:underline"
-                >
-                  <%= std.name %>
-                </.link>
-              </li>
-            </ol>
-          <% else %>
-            <.empty_state_simple class="mt-4">
-              <%= gettext("No students in this class") %>
-            </.empty_state_simple>
-          <% end %>
-        </.card_base>
-      </.responsive_grid>
+      <%= if @has_classes do %>
+        <.responsive_grid id="school-classes" phx-update="stream" is_full_width>
+          <.card_base
+            :for={{dom_id, class} <- @streams.classes}
+            id={dom_id}
+            class="min-w-[16rem] sm:min-w-0 p-4"
+          >
+            <div class="flex items-center justify-between gap-4">
+              <p class="font-display font-black"><%= class.name %> (<%= class.cycle.name %>)</p>
+              <.button
+                :if={@is_school_manager}
+                type="link"
+                icon_name="hero-pencil-mini"
+                sr_text={gettext("Edit class")}
+                rounded
+                size="sm"
+                theme="ghost"
+                patch={~p"/school/classes?edit=#{class}"}
+              />
+            </div>
+            <div class="flex flex-wrap gap-2 mt-4">
+              <.badge :for={year <- class.years}>
+                <%= year.name %>
+              </.badge>
+            </div>
+            <%= if class.students != [] do %>
+              <ol class="mt-4 text-sm leading-relaxed list-decimal list-inside">
+                <li :for={std <- class.students} class="truncate">
+                  <.link
+                    navigate={~p"/school/students/#{std}"}
+                    class="hover:text-ltrn-subtle hover:underline"
+                  >
+                    <%= std.name %>
+                  </.link>
+                </li>
+              </ol>
+            <% else %>
+              <.empty_state_simple class="mt-4">
+                <%= gettext("No students in this class") %>
+              </.empty_state_simple>
+            <% end %>
+          </.card_base>
+        </.responsive_grid>
+      <% else %>
+        <.responsive_container class="pt-6 pb-10">
+          <.empty_state>
+            <%= gettext("No classes matching current filters") %>
+          </.empty_state>
+        </.responsive_container>
+      <% end %>
       <.live_component
         module={LantternWeb.Filters.FiltersOverlayComponent}
         id="school-year-filters-overlay"
         current_user={@current_user}
         title={gettext("Filter classes by year")}
         filter_type={:years}
+        navigate={~p"/school/classes"}
+      />
+      <.live_component
+        module={LantternWeb.Filters.FiltersOverlayComponent}
+        id="school-cycle-filters-overlay"
+        current_user={@current_user}
+        title={gettext("Filter classes by cycle")}
+        filter_type={:cycles}
         navigate={~p"/school/classes"}
       />
       <.live_component
@@ -146,25 +167,33 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign_user_filters([:years])
-      |> stream_classes()
-      |> assign(:initialized, true)
+      |> initialize()
       |> assign_class()
 
     {:ok, socket}
   end
 
-  defp stream_classes(%{assigns: %{initialized: false}} = socket) do
-    years_ids = socket.assigns.selected_years_ids
+  defp initialize(%{assigns: %{initialized: false}} = socket) do
+    socket
+    |> assign_user_filters([:years, :cycles])
+    |> stream_classes()
+    |> assign(:initialized, true)
+  end
 
+  defp initialize(socket), do: socket
+
+  defp stream_classes(%{assigns: %{initialized: false}} = socket) do
     classes =
       Schools.list_user_classes(
         socket.assigns.current_user,
         preload_cycle_years_students: true,
-        years_ids: years_ids
+        years_ids: socket.assigns.selected_years_ids,
+        cycles_ids: socket.assigns.selected_cycles_ids
       )
 
-    stream(socket, :classes, classes)
+    socket
+    |> stream(:classes, classes)
+    |> assign(:has_classes, length(classes) > 0)
   end
 
   defp stream_classes(socket), do: socket

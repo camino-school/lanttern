@@ -214,8 +214,16 @@ defmodule Lanttern.SchoolsTest do
 
     test "list_user_classes/1 with opts returns all classes from user's school correctly" do
       school = school_fixture()
-      cycle_25 = cycle_fixture(%{school_id: school.id, end_at: ~D[2025-12-31]})
-      cycle_24 = cycle_fixture(%{school_id: school.id, end_at: ~D[2024-12-31]})
+
+      cycle_25 =
+        cycle_fixture(%{school_id: school.id, start_at: ~D[2025-01-01], end_at: ~D[2025-12-31]})
+
+      cycle_24 =
+        cycle_fixture(%{school_id: school.id, start_at: ~D[2024-01-01], end_at: ~D[2024-12-31]})
+
+      cycle_23 =
+        cycle_fixture(%{school_id: school.id, start_at: ~D[2023-01-01], end_at: ~D[2023-12-31]})
+
       year = Lanttern.TaxonomyFixtures.year_fixture()
 
       class_b_25 =
@@ -242,11 +250,21 @@ defmodule Lanttern.SchoolsTest do
           years_ids: [year.id]
         })
 
+      class_a_23 =
+        class_fixture(%{
+          school_id: school.id,
+          name: "AAA 24",
+          cycle_id: cycle_23.id,
+          years_ids: [year.id]
+        })
+
       # extra class for filtering test
       _class_from_another_year = class_fixture(%{school_id: school.id})
 
       # put students only in class a
-      student_x = student_fixture(%{name: "XXX", classes_ids: [class_a_24.id, class_a_25.id]})
+      student_x =
+        student_fixture(%{name: "XXX", classes_ids: [class_a_23.id, class_a_24.id, class_a_25.id]})
+
       student_y = student_fixture(%{name: "YYY", classes_ids: [class_a_25.id]})
       student_z = student_fixture(%{name: "ZZZ", classes_ids: [class_a_25.id]})
 
@@ -270,7 +288,11 @@ defmodule Lanttern.SchoolsTest do
       class_fixture()
 
       [expected_a_25, expected_b_25, expected_a_24] =
-        Schools.list_user_classes(user, preload_cycle_years_students: true, years_ids: [year.id])
+        Schools.list_user_classes(user,
+          preload_cycle_years_students: true,
+          years_ids: [year.id],
+          cycles_ids: [cycle_24.id, cycle_25.id]
+        )
 
       assert expected_a_25.id == class_a_25.id
       assert expected_a_25.cycle.id == cycle_25.id
