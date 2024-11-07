@@ -5,9 +5,6 @@ defmodule LantternWeb.SchoolLive do
   alias __MODULE__.StudentsComponent
   alias __MODULE__.ClassesComponent
 
-  # shared components
-  alias LantternWeb.Schools.ClassFormOverlayComponent
-
   # lifecycle
 
   @impl true
@@ -30,34 +27,4 @@ defmodule LantternWeb.SchoolLive do
   @impl true
   def handle_params(params, _uri, socket),
     do: {:noreply, assign(socket, :params, params)}
-
-  @impl true
-  def handle_info({ClassFormOverlayComponent, {:created, _class}}, socket) do
-    socket =
-      socket
-      |> put_flash(:info, gettext("Class created successfully"))
-      |> push_navigate(to: ~p"/school/classes")
-
-    {:noreply, socket}
-  end
-
-  def handle_info({ClassFormOverlayComponent, {:updated, _class}}, socket) do
-    socket =
-      socket
-      |> put_flash(:info, gettext("Class updated successfully"))
-      |> push_navigate(to: ~p"/school/classes")
-
-    {:noreply, socket}
-  end
-
-  def handle_info({ClassFormOverlayComponent, {:deleted, _class}}, socket) do
-    socket =
-      socket
-      |> put_flash(:info, gettext("Class deleted successfully"))
-      |> push_navigate(to: ~p"/school/classes")
-
-    {:noreply, socket}
-  end
-
-  def handle_info(_, socket), do: {:noreply, socket}
 end

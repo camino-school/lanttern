@@ -3,12 +3,10 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
 
   alias Lanttern.Schools
   alias Lanttern.Schools.Class
-  alias Lanttern.Schools.Student
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2]
 
   # shared components
   alias LantternWeb.Schools.ClassFormOverlayComponent
-  alias LantternWeb.Schools.StudentFormOverlayComponent
 
   @impl true
   def render(assigns) do
@@ -28,18 +26,10 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
             <.collection_action
               :if={@is_school_manager}
               type="link"
-              patch={~p"/school/classes?create_class=true"}
+              patch={~p"/school/classes?new=true"}
               icon_name="hero-plus-circle"
             >
               <%= gettext("Add class") %>
-            </.collection_action>
-            <.collection_action
-              :if={@is_school_manager}
-              type="link"
-              patch={~p"/school/classes?create_student=true"}
-              icon_name="hero-plus-circle"
-            >
-              <%= gettext("Add student") %>
             </.collection_action>
           </div>
         </div>
@@ -60,7 +50,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
               rounded
               size="sm"
               theme="ghost"
-              patch={~p"/school/classes?edit_class=#{class}"}
+              patch={~p"/school/classes?edit=#{class}"}
             />
           </div>
           <div class="flex flex-wrap gap-2 mt-4">
@@ -101,16 +91,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
         class={@class}
         title={@class_form_overlay_title}
         on_cancel={JS.patch(~p"/school/classes")}
-        notify_parent
-      />
-      <.live_component
-        :if={@student}
-        module={StudentFormOverlayComponent}
-        id="student-form-overlay"
-        student={@student}
-        title={gettext("Create student")}
-        on_cancel={JS.patch(~p"/school/classes")}
-        notify_parent
+        notify_component={@myself}
       />
     </div>
     """
@@ -124,6 +105,43 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
   end
 
   @impl true
+  def update(%{action: {ClassFormOverlayComponent, {:created, _class}}}, socket) do
+    nav_opts = [
+      put_flash: {:info, gettext("Class created successfully")},
+      push_navigate: [to: ~p"/school/classes"]
+    ]
+
+    {:ok, delegate_navigation(socket, nav_opts)}
+  end
+
+  def update(%{action: {ClassFormOverlayComponent, {:updated, class}}}, socket) do
+    nav_opts = [
+      put_flash: {:info, gettext("Class updated successfully")},
+      push_patch: [to: ~p"/school/classes"]
+    ]
+
+    socket =
+      socket
+      |> delegate_navigation(nav_opts)
+      |> stream_insert(:classes, class)
+
+    {:ok, socket}
+  end
+
+  def update(%{action: {ClassFormOverlayComponent, {:deleted, class}}}, socket) do
+    nav_opts = [
+      put_flash: {:info, gettext("Class deleted successfully")},
+      push_patch: [to: ~p"/school/classes"]
+    ]
+
+    socket =
+      socket
+      |> delegate_navigation(nav_opts)
+      |> stream_delete(:classes, class)
+
+    {:ok, socket}
+  end
+
   def update(assigns, socket) do
     socket =
       socket
@@ -132,7 +150,6 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
       |> stream_classes()
       |> assign(:initialized, true)
       |> assign_class()
-      |> assign_student()
 
     {:ok, socket}
   end
@@ -155,7 +172,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
   defp assign_class(%{assigns: %{is_school_manager: false}} = socket),
     do: assign(socket, :class, nil)
 
-  defp assign_class(%{assigns: %{params: %{"create_class" => "true"}}} = socket) do
+  defp assign_class(%{assigns: %{params: %{"new" => "true"}}} = socket) do
     class = %Class{
       school_id: socket.assigns.current_user.current_profile.school_id,
       years: [],
@@ -167,11 +184,11 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
     |> assign(:class_form_overlay_title, gettext("Create class"))
   end
 
-  defp assign_class(%{assigns: %{params: %{"edit_class" => class_id}}} = socket) do
+  defp assign_class(%{assigns: %{params: %{"edit" => class_id}}} = socket) do
     class =
       Schools.get_class(class_id,
         check_permissions_for_user: socket.assigns.current_user,
-        preloads: [:years, :students]
+        preloads: [:years, :students, :cycle]
       )
 
     socket
@@ -180,18 +197,4 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
   end
 
   defp assign_class(socket), do: assign(socket, :class, nil)
-
-  defp assign_student(%{assigns: %{is_school_manager: false}} = socket),
-    do: assign(socket, :student, nil)
-
-  defp assign_student(%{assigns: %{params: %{"create_student" => "true"}}} = socket) do
-    student = %Student{
-      school_id: socket.assigns.current_user.current_profile.school_id,
-      classes: []
-    }
-
-    assign(socket, :student, student)
-  end
-
-  defp assign_student(socket), do: assign(socket, :student, nil)
 end

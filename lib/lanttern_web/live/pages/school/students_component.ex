@@ -3,7 +3,7 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
 
   alias Lanttern.Schools
   alias Lanttern.Schools.Student
-  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, clear_profile_filters: 2]
+  import LantternWeb.FiltersHelpers
 
   # shared components
   alias LantternWeb.Schools.StudentFormOverlayComponent
@@ -59,6 +59,7 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
             </p>
           </div>
           <.collection_action
+            :if={@is_school_manager}
             type="link"
             patch={~p"/school/students?new=true"}
             icon_name="hero-plus-circle"
@@ -92,7 +93,7 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
             <.badge :for={class <- student.classes}><%= class.name %></.badge>
           </div>
         </:col>
-        <:action :let={student}>
+        <:action :let={student} :if={@is_school_manager}>
           <.button
             type="button"
             sr_text={gettext("Edit student")}
@@ -309,12 +310,13 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
 
   @impl true
   def handle_event("remove_class_filter", _params, socket) do
-    clear_profile_filters(socket.assigns.current_user, [:classes])
+    nav_opts = [push_navigate: [to: ~p"/school/students"]]
 
     socket =
       socket
-      |> assign_user_filters([:classes])
-      |> stream_students()
+      |> assign(:selected_classes_ids, [])
+      |> save_profile_filters([:classes])
+      |> delegate_navigation(nav_opts)
 
     {:noreply, socket}
   end
