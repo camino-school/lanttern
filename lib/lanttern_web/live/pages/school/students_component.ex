@@ -89,7 +89,16 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
         row_click={fn student -> JS.navigate(~p"/school/students/#{student}") end}
         sticky_header_offset="4rem"
       >
-        <:col :let={student} label={gettext("Students not linked to any class")}>
+        <:col
+          :let={student}
+          label={
+            ngettext(
+              "1 student not linked to any class",
+              "%{count} students not linked to any class",
+              @no_class_students_length
+            )
+          }
+        >
           <%= student.name %>
         </:col>
         <:action :let={student} :if={@is_school_manager}>
@@ -159,13 +168,12 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
 
         {false, true} ->
           socket
-          |> assign(:students_length, socket.assigns.students_length + 1)
           |> assign(:no_class_students_length, socket.assigns.no_class_students_length - 1)
-          |> stream_insert(:students, student)
           |> stream_delete(:no_class_students, student)
+          |> stream_updated_student_with_class(student, already_in_list: false)
 
         {true, true} ->
-          stream_insert(socket, :students, student)
+          stream_updated_student_with_class(socket, student, already_in_list: true)
 
         {false, false} ->
           stream_insert(socket, :no_class_students, student)
@@ -205,6 +213,37 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
       |> assign_student()
 
     {:ok, socket}
+  end
+
+  # this function handles the correct operation (insert or delete)
+  # based on student classes and selected classes filter.
+  # when calling this function, we already know that the student is linked to a class
+  defp stream_updated_student_with_class(socket, student, already_in_list: already_in_list) do
+    student_classes_ids = Enum.map(student.classes, & &1.id)
+
+    is_inserting =
+      case socket.assigns.selected_classes_ids do
+        [] -> true
+        ids -> Enum.any?(student_classes_ids, &(&1 in ids))
+      end
+
+    case {is_inserting, already_in_list} do
+      {true, true} ->
+        stream_insert(socket, :students, student)
+
+      {true, false} ->
+        socket
+        |> stream_insert(:students, student)
+        |> assign(:students_length, socket.assigns.students_length + 1)
+
+      {false, true} ->
+        socket
+        |> stream_delete(:students, student)
+        |> assign(:students_length, socket.assigns.students_length - 1)
+
+      {false, false} ->
+        socket
+    end
   end
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
