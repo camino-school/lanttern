@@ -484,6 +484,7 @@ defmodule Lanttern.Schools do
   - `:students_ids` - filter students by given ids
   - `:class_id` – filter students by given class
   - `:classes_ids` – filter students by provided list of ids. preloads the classes for each student, and order by class name
+  - `:only_in_some_class` - boolean. When `true`, will remove students not linked to a class (and will do the opposite when `false`)
   - `:report_card_id` – filter students linked to given report card. preloads the classes for each student, and order by class name
   - `:check_diff_rubrics_for_strand_id` - used to check if student has any differentiation rubric for given strand id
   - `:base_query` - used in conjunction with `search_students/2`
@@ -500,32 +501,17 @@ defmodule Lanttern.Schools do
     from(s in queryable,
       order_by: s.name
     )
-    |> maybe_join_classes_in_list_students(opts)
     |> apply_list_students_opts(opts)
     |> maybe_preload_classes_in_list_students(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
-  defp maybe_join_classes_in_list_students(queryable, opts) do
-    case Keyword.keys(opts) |> Enum.any?(&(&1 in [:class_id, :classes_ids, :report_card_id])) do
-      true ->
-        from(
-          s in queryable,
-          left_join: c in assoc(s, :classes),
-          as: :classes
-        )
-
-      _ ->
-        queryable
-    end
-  end
-
   defp apply_list_students_opts(queryable, []), do: queryable
 
   defp apply_list_students_opts(queryable, [{:class_id, id} | opts]) do
     from(
-      [s, classes: c] in queryable,
+      [s, classes: c] in bind_classes_to_students(queryable),
       where: c.id == ^id
     )
     |> apply_list_students_opts(opts)
@@ -534,8 +520,24 @@ defmodule Lanttern.Schools do
   defp apply_list_students_opts(queryable, [{:classes_ids, ids} | opts])
        when is_list(ids) and ids != [] do
     from(
-      [s, classes: c] in queryable,
+      [s, classes: c] in bind_classes_to_students(queryable),
       where: c.id in ^ids
+    )
+    |> apply_list_students_opts(opts)
+  end
+
+  defp apply_list_students_opts(queryable, [{:only_in_some_class, true} | opts]) do
+    from(
+      [s, classes: c] in bind_classes_to_students(queryable),
+      where: not is_nil(c)
+    )
+    |> apply_list_students_opts(opts)
+  end
+
+  defp apply_list_students_opts(queryable, [{:only_in_some_class, false} | opts]) do
+    from(
+      [s, classes: c] in bind_classes_to_students(queryable),
+      where: is_nil(c)
     )
     |> apply_list_students_opts(opts)
   end
@@ -558,7 +560,7 @@ defmodule Lanttern.Schools do
 
   defp apply_list_students_opts(queryable, [{:report_card_id, id} | opts]) do
     from(
-      [s, classes: c] in queryable,
+      [s, classes: c] in bind_classes_to_students(queryable),
       join: src in assoc(s, :student_report_cards),
       where: src.report_card_id == ^id
     )
@@ -590,11 +592,23 @@ defmodule Lanttern.Schools do
   defp apply_list_students_opts(queryable, [_ | opts]),
     do: apply_list_students_opts(queryable, opts)
 
+  defp bind_classes_to_students(queryable) do
+    if has_named_binding?(queryable, :classes) do
+      queryable
+    else
+      from(
+        s in queryable,
+        left_join: c in assoc(s, :classes),
+        as: :classes
+      )
+    end
+  end
+
   defp maybe_preload_classes_in_list_students(queryable, opts) do
     case Keyword.keys(opts) |> Enum.any?(&(&1 in [:classes_ids, :report_card_id])) do
       true ->
         from(
-          [_s, classes: c] in queryable,
+          [_s, classes: c] in bind_classes_to_students(queryable),
           preload: [classes: c]
         )
 

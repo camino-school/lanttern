@@ -15,7 +15,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
       <.responsive_container class="py-6">
         <div class="flex items-end justify-between gap-6 mt-10">
           <p class="font-display font-bold text-lg">
-            <%= gettext("Showing classes from") %><br />
+            <%= gettext("Showing classes from") %>
             <.filter_text_button
               type={gettext("years")}
               items={@selected_years}

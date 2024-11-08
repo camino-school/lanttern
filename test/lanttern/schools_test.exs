@@ -518,6 +518,36 @@ defmodule Lanttern.SchoolsTest do
       end
     end
 
+    test "list_students/1 with only_in_some_class opts returns all students as expected" do
+      school = school_fixture()
+      class_1 = class_fixture(%{school_id: school.id})
+      class_2 = class_fixture(%{school_id: school.id})
+      student_a = student_fixture(%{name: "AAA", school_id: school.id, classes_ids: [class_1.id]})
+      student_b = student_fixture(%{name: "BBB", school_id: school.id, classes_ids: [class_2.id]})
+      student_c = student_fixture(%{name: "CCC", school_id: school.id})
+
+      # extra student for filtering validation
+      student_fixture()
+
+      [expected_std_a, expected_std_b, expected_std_c] =
+        Schools.list_students(school_id: school.id)
+
+      assert expected_std_a.id == student_a.id
+      assert expected_std_b.id == student_b.id
+      assert expected_std_c.id == student_c.id
+
+      [expected_std_a, expected_std_b] =
+        Schools.list_students(school_id: school.id, only_in_some_class: true)
+
+      assert expected_std_a.id == student_a.id
+      assert expected_std_b.id == student_b.id
+
+      [expected_std_c] =
+        Schools.list_students(school_id: school.id, only_in_some_class: false)
+
+      assert expected_std_c.id == student_c.id
+    end
+
     test "list_students/1 with school opts returns students filtered by school" do
       school = school_fixture()
       student_1 = student_fixture(%{school_id: school.id, name: "AAA"})

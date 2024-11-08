@@ -33,6 +33,7 @@ defmodule LantternWeb.Router do
   pipeline :sign_in_with_google do
     plug :accepts, ["html"]
     plug :fetch_session
+    plug :fetch_live_flash
     plug :verify_google_csrf_token
     plug :put_secure_browser_headers, %{"content-security-policy" => "default-src 'self'"}
   end
