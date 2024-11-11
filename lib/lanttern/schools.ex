@@ -125,17 +125,30 @@ defmodule Lanttern.Schools do
   """
   def list_cycles(opts \\ []) do
     Cycle
-    |> maybe_filter_by_schools(opts)
-    |> order_cycles(Keyword.get(opts, :order_by))
+    |> apply_list_cycles_opts(opts)
+    |> apply_list_cycles_order_by(Keyword.get(opts, :order_by))
     |> Repo.all()
   end
 
-  defp order_cycles(queryable, nil) do
+  defp apply_list_cycles_opts(queryable, []), do: queryable
+
+  defp apply_list_cycles_opts(queryable, [{:schools_ids, schools_ids} | opts]) do
+    from(
+      c in queryable,
+      where: c.school_id in ^schools_ids
+    )
+    |> apply_list_cycles_opts(opts)
+  end
+
+  defp apply_list_cycles_opts(queryable, [_ | opts]),
+    do: apply_list_cycles_opts(queryable, opts)
+
+  defp apply_list_cycles_order_by(queryable, nil) do
     from c in queryable,
       order_by: [asc: :end_at, desc: :start_at]
   end
 
-  defp order_cycles(queryable, order_by_expression) do
+  defp apply_list_cycles_order_by(queryable, order_by_expression) do
     from c in queryable,
       order_by: ^order_by_expression
   end
@@ -236,11 +249,27 @@ defmodule Lanttern.Schools do
 
   """
   def list_classes(opts \\ []) do
-    Class
-    |> maybe_filter_by_schools(opts)
+    from(
+      c in Class,
+      order_by: c.name
+    )
+    |> apply_list_classes_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
+
+  defp apply_list_classes_opts(queryable, []), do: queryable
+
+  defp apply_list_classes_opts(queryable, [{:schools_ids, schools_ids} | opts]) do
+    from(
+      c in queryable,
+      where: c.school_id in ^schools_ids
+    )
+    |> apply_list_classes_opts(opts)
+  end
+
+  defp apply_list_classes_opts(queryable, [_ | opts]),
+    do: apply_list_classes_opts(queryable, opts)
 
   @doc """
   Returns the list of user's school classes.
@@ -251,6 +280,7 @@ defmodule Lanttern.Schools do
 
   - `:classes_ids` – filter results by classes
   - `:years_ids` – filter results by years
+  - `:cycles_ids` – filter results by cycles
   - `:preload_cycle_years_students` – boolean
 
   ## Examples
@@ -291,6 +321,12 @@ defmodule Lanttern.Schools do
     |> apply_list_user_classes_opts(opts)
   end
 
+  defp apply_list_user_classes_opts(queryable, [{:cycles_ids, cycles_ids} | opts])
+       when cycles_ids != [] do
+    from(cl in queryable, where: cl.cycle_id in ^cycles_ids)
+    |> apply_list_user_classes_opts(opts)
+  end
+
   defp apply_list_user_classes_opts(queryable, [{:preload_cycle_years_students, true} | opts]) do
     from(
       cl in queryable,
@@ -309,7 +345,8 @@ defmodule Lanttern.Schools do
 
   ### Options:
 
-  `:preloads` – preloads associated data
+  - `:preloads` – preloads associated data
+  - `:check_permissions_for_user` - expects a `%User{}` (usually from `socket.assigns.current_user`), and will check for class access based on school and permissions
 
   ## Examples
 
@@ -321,9 +358,25 @@ defmodule Lanttern.Schools do
 
   """
   def get_class(id, opts \\ []) do
-    Repo.get(Class, id)
-    |> maybe_preload(opts)
+    class =
+      Repo.get(Class, id)
+      |> maybe_preload(opts)
+
+    case Keyword.get(opts, :check_permissions_for_user) do
+      %User{} = user -> apply_get_class_check_permissions_for_user(class, user)
+      _ -> class
+    end
   end
+
+  defp apply_get_class_check_permissions_for_user(
+         %Class{} = class,
+         %User{current_profile: %Profile{school_id: school_id} = profile}
+       )
+       when class.school_id == school_id do
+    if "school_management" in profile.permissions, do: class
+  end
+
+  defp apply_get_class_check_permissions_for_user(_, _), do: nil
 
   @doc """
   Gets a single class.
@@ -373,7 +426,7 @@ defmodule Lanttern.Schools do
   end
 
   @doc """
-  Deletes a class.
+  Deletes a class and related years/students relationships.
 
   ## Examples
 
@@ -385,7 +438,27 @@ defmodule Lanttern.Schools do
 
   """
   def delete_class(%Class{} = class) do
-    Repo.delete(class)
+    Ecto.Multi.new()
+    |> Ecto.Multi.delete_all(
+      :delete_class_years,
+      from(
+        cy in "classes_years",
+        where: cy.class_id == ^class.id
+      )
+    )
+    |> Ecto.Multi.delete_all(
+      :delete_class_students,
+      from(
+        cs in "classes_students",
+        where: cs.class_id == ^class.id
+      )
+    )
+    |> Ecto.Multi.delete(:delete_class, class)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{delete_class: %Class{} = class}} -> {:ok, class}
+      res -> res
+    end
   end
 
   @doc """
@@ -409,7 +482,9 @@ defmodule Lanttern.Schools do
   - `:preloads` – preloads associated data
   - `:school_id` - filter students by school
   - `:students_ids` - filter students by given ids
+  - `:class_id` – filter students by given class
   - `:classes_ids` – filter students by provided list of ids. preloads the classes for each student, and order by class name
+  - `:only_in_some_class` - boolean. When `true`, will remove students not linked to a class (and will do the opposite when `false`)
   - `:report_card_id` – filter students linked to given report card. preloads the classes for each student, and order by class name
   - `:check_diff_rubrics_for_strand_id` - used to check if student has any differentiation rubric for given strand id
   - `:base_query` - used in conjunction with `search_students/2`
@@ -426,39 +501,43 @@ defmodule Lanttern.Schools do
     from(s in queryable,
       order_by: s.name
     )
-    |> maybe_join_and_preload_classes_in_list_students(opts)
     |> apply_list_students_opts(opts)
+    |> maybe_preload_classes_in_list_students(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
-  defp maybe_join_and_preload_classes_in_list_students(queryable, opts) do
-    case Keyword.keys(opts) |> Enum.any?(&(&1 in [:classes_ids, :report_card_id])) do
-      true ->
-        from(
-          s in Student,
-          join: c in assoc(s, :classes),
-          as: :classes,
-          preload: [classes: c]
-        )
+  defp apply_list_students_opts(queryable, []), do: queryable
 
-      _ ->
-        queryable
-    end
-  end
-
-  defp apply_list_students_opts(queryable, []) do
+  defp apply_list_students_opts(queryable, [{:class_id, id} | opts]) do
     from(
-      s in queryable,
-      order_by: s.name
+      [s, classes: c] in bind_classes_to_students(queryable),
+      where: c.id == ^id
     )
+    |> apply_list_students_opts(opts)
   end
 
   defp apply_list_students_opts(queryable, [{:classes_ids, ids} | opts])
        when is_list(ids) and ids != [] do
     from(
-      [s, classes: c] in queryable,
+      [s, classes: c] in bind_classes_to_students(queryable),
       where: c.id in ^ids
+    )
+    |> apply_list_students_opts(opts)
+  end
+
+  defp apply_list_students_opts(queryable, [{:only_in_some_class, true} | opts]) do
+    from(
+      [s, classes: c] in bind_classes_to_students(queryable),
+      where: not is_nil(c)
+    )
+    |> apply_list_students_opts(opts)
+  end
+
+  defp apply_list_students_opts(queryable, [{:only_in_some_class, false} | opts]) do
+    from(
+      [s, classes: c] in bind_classes_to_students(queryable),
+      where: is_nil(c)
     )
     |> apply_list_students_opts(opts)
   end
@@ -481,7 +560,7 @@ defmodule Lanttern.Schools do
 
   defp apply_list_students_opts(queryable, [{:report_card_id, id} | opts]) do
     from(
-      [s, classes: c] in queryable,
+      [s, classes: c] in bind_classes_to_students(queryable),
       join: src in assoc(s, :student_report_cards),
       where: src.report_card_id == ^id
     )
@@ -512,6 +591,31 @@ defmodule Lanttern.Schools do
 
   defp apply_list_students_opts(queryable, [_ | opts]),
     do: apply_list_students_opts(queryable, opts)
+
+  defp bind_classes_to_students(queryable) do
+    if has_named_binding?(queryable, :classes) do
+      queryable
+    else
+      from(
+        s in queryable,
+        left_join: c in assoc(s, :classes),
+        as: :classes
+      )
+    end
+  end
+
+  defp maybe_preload_classes_in_list_students(queryable, opts) do
+    case Keyword.keys(opts) |> Enum.any?(&(&1 in [:classes_ids, :report_card_id])) do
+      true ->
+        from(
+          [_s, classes: c] in bind_classes_to_students(queryable),
+          preload: [classes: c]
+        )
+
+      _ ->
+        queryable
+    end
+  end
 
   @doc """
   Search students by name.
@@ -612,7 +716,7 @@ defmodule Lanttern.Schools do
   end
 
   @doc """
-  Deletes a student.
+  Deletes a student and related classes relationships.
 
   ## Examples
 
@@ -624,7 +728,20 @@ defmodule Lanttern.Schools do
 
   """
   def delete_student(%Student{} = student) do
-    Repo.delete(student)
+    Ecto.Multi.new()
+    |> Ecto.Multi.delete_all(
+      :delete_classes_students,
+      from(
+        cs in "classes_students",
+        where: cs.student_id == ^student.id
+      )
+    )
+    |> Ecto.Multi.delete(:delete_student, student)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{delete_student: %Student{} = student}} -> {:ok, student}
+      res -> res
+    end
   end
 
   @doc """
@@ -1000,20 +1117,5 @@ defmodule Lanttern.Schools do
       )
 
     {:ok, response}
-  end
-
-  # Helpers
-
-  defp maybe_filter_by_schools(query, opts) do
-    case Keyword.get(opts, :schools_ids) do
-      nil ->
-        query
-
-      schools_ids ->
-        from(
-          q in query,
-          where: q.school_id in ^schools_ids
-        )
-    end
   end
 end

@@ -96,11 +96,12 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           on_cancel={JS.patch(~p"/report_cards/#{@report_card}?tab=grades")}
         />
         <.live_component
-          module={LantternWeb.Filters.FiltersOverlayComponent}
+          module={LantternWeb.Filters.ClassesFilterOverlayComponent}
           id="students-grades-filters"
           current_user={@current_user}
           title={gettext("Students grades filter")}
-          filter_type={:classes}
+          classes={@classes}
+          selected_classes_ids={@selected_classes_ids}
           navigate={~p"/report_cards/#{@report_card}?tab=grades"}
         />
       </div>

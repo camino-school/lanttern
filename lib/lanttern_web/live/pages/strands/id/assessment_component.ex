@@ -58,12 +58,13 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         selected_classes_ids={@selected_classes_ids}
       />
       <.live_component
-        module={LantternWeb.Filters.FiltersOverlayComponent}
+        module={LantternWeb.Filters.ClassesFilterOverlayComponent}
         id="classes-filter-modal"
         current_user={@current_user}
         title={gettext("Select classes for assessment")}
-        filter_type={:classes}
         filter_opts={[strand_id: @strand.id]}
+        classes={@classes}
+        selected_classes_ids={@selected_classes_ids}
         navigate={~p"/strands/#{@strand}?tab=assessment"}
       />
     </div>

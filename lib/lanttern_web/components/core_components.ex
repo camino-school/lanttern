@@ -291,7 +291,8 @@ defmodule LantternWeb.CoreComponents do
   attr :size, :string, default: "normal", doc: "sm | normal"
   attr :rounded, :boolean, default: false
   attr :icon_name, :string, default: nil
-  # `<.link>` attrs
+  attr :sr_text, :string, doc: "screen reader text. required when rendering an icon only button"
+  # `<.button type="link">` (`<.link>`) attrs
   attr :navigate, :string, default: nil
   attr :patch, :string, default: nil
   attr :href, :any, default: nil
@@ -302,7 +303,7 @@ defmodule LantternWeb.CoreComponents do
   attr :rest, :global,
     include: ~w(disabled form name value download hreflang referrerpolicy rel target)
 
-  slot :inner_block, required: true
+  slot :inner_block, doc: "not required when rendering icon only"
 
   def button(%{type: "link"} = assigns) do
     ~H"""
@@ -322,6 +323,7 @@ defmodule LantternWeb.CoreComponents do
     >
       <%= render_slot(@inner_block) %>
       <%= if @icon_name do %>
+        <span :if={@inner_block == []} class="sr-only"><%= @sr_text %></span>
         <.icon
           name={@icon_name}
           class="w-5 h-5 group-phx-submit-loading:hidden group-phx-click-loading:hidden"
@@ -553,6 +555,10 @@ defmodule LantternWeb.CoreComponents do
   # this approach looks weird... but we need something apart from stream to identify empty streams
   attr :show_empty_state_message, :string, default: nil, doc: "Use this field to show empty state"
 
+  attr :sticky_header_offset, :string,
+    default: "0",
+    doc: "Use it to adjust where the grid header will stick"
+
   slot :col, required: true do
     attr :label, :string, required: true
     attr :on_filter, JS
@@ -588,11 +594,11 @@ defmodule LantternWeb.CoreComponents do
       |> assign(:grid_col_span_style, grid_col_span_style)
 
     ~H"""
-    <div class={["overflow-x-auto", @class]}>
+    <div class={@class}>
       <div class="grid gap-y-2" style={@grid_template_cols_style}>
         <div
-          class="sticky top-0 grid grid-cols-subgrid rounded font-display font-bold text-sm bg-white shadow"
-          style={@grid_col_span_style}
+          class="sticky z-10 grid grid-cols-subgrid rounded font-display font-bold text-sm bg-white shadow"
+          style={["top: #{@sticky_header_offset};", @grid_col_span_style]}
         >
           <div :for={col <- @col} class="flex gap-2 p-4">
             <%= col[:label] %>
@@ -641,7 +647,7 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
-  Renders an empty state block
+  Renders an empty state block with a pulsating visual element
   """
   attr :class, :any, default: nil
   slot :inner_block, required: true
@@ -660,6 +666,20 @@ defmodule LantternWeb.CoreComponents do
         <span class="relative inline-flex rounded-full h-16 w-16 bg-ltrn-primary blur-sm"></span>
       </div> --%>
       <p class="font-display text-ltrn-subtle"><%= render_slot(@inner_block) %></p>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a simple empty state component
+  """
+  attr :class, :any, default: nil
+  slot :inner_block, required: true
+
+  def empty_state_simple(assigns) do
+    ~H"""
+    <div class={["p-4 border border-dashed border-ltrn-light rounded", @class]}>
+      <p class="text-sm text-ltrn-subtle text-center"><%= render_slot(@inner_block) %></p>
     </div>
     """
   end
@@ -1128,14 +1148,26 @@ defmodule LantternWeb.CoreComponents do
   Renders a page title with menu button.
   """
   attr :class, :any, default: nil
+  attr :on_edit_patch, :string, default: nil, doc: "use it to navigate when clicking on edit"
   slot :inner_block, required: true
 
   def page_title_with_menu(assigns) do
     ~H"""
     <div class={["flex items-center gap-4 justify-between", @class]}>
-      <h1 class="font-display font-black text-3xl">
-        <%= render_slot(@inner_block) %>
-      </h1>
+      <div class="flex items-center gap-2">
+        <h1 class="font-display font-black text-3xl">
+          <%= render_slot(@inner_block) %>
+        </h1>
+        <.button
+          :if={@on_edit_patch}
+          icon_name="hero-pencil-mini"
+          sr_text={gettext("Edit")}
+          type="link"
+          rounded
+          theme="ghost"
+          patch={@on_edit_patch}
+        />
+      </div>
       <.nav_menu_button />
     </div>
     """

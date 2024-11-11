@@ -200,4 +200,22 @@ defmodule LantternWeb.ConnCase do
 
     %{conn: log_in_user(conn, user), user: user}
   end
+
+  @doc """
+  Setup helper that adds school_management permissions to current user profile.
+  """
+  def add_school_management_permissions(%{conn: conn, user: user}) do
+    # add school_management permissions to user
+    {:ok, settings} =
+      Lanttern.Personalization.set_profile_permissions(user.current_profile_id, [
+        "school_management"
+      ])
+
+    # emulate Identity.get_user_by_session_token/1 to preload profile into user
+    user =
+      user
+      |> Map.update!(:current_profile, &%{&1 | permissions: settings.permissions})
+
+    %{conn: log_in_user(conn, user), user: user}
+  end
 end

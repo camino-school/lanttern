@@ -56,4 +56,22 @@ defmodule LantternWeb.LiveComponentHelpers do
       do: Phoenix.LiveView.push_navigate(socket, to: navigate)
 
   def handle_navigation(socket, _arg), do: socket
+
+  @doc """
+  Send a message to parent live view with a `put_flash/3`, `push_patch/2`, and/or `push_navigate/2` args.
+
+  View `LantternWeb.LiveViewHelpers` to check how the parent live view handles the message.
+
+  Based on https://sevenseacat.net/posts/2023/flash-messages-in-phoenix-liveview-components/
+
+  ### Supported opts
+
+  - `put_flash: {kind, message}`
+  - `push_patch: push_patch_opts`
+  - `push_navigate: push_navigate_opts`
+  """
+  def delegate_navigation(socket, opts) do
+    send(self(), {:delegated_nav, opts})
+    socket
+  end
 end

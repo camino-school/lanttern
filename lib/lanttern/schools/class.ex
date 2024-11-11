@@ -6,6 +6,7 @@ defmodule Lanttern.Schools.Class do
   use Ecto.Schema
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]
+  import LantternWeb.Gettext
 
   alias Lanttern.Repo
 
@@ -59,6 +60,10 @@ defmodule Lanttern.Schools.Class do
       :cycle_id,
       name: :classes_cycle_id_fkey,
       message: "Check if the cycle exists and belongs to the same school"
+    )
+    |> unique_constraint(:name,
+      name: "classes_name_school_id_cycle_id_index",
+      message: gettext("Class name already in use in this cycle")
     )
     |> put_students()
     |> put_years()

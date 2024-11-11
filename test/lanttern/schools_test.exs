@@ -214,8 +214,16 @@ defmodule Lanttern.SchoolsTest do
 
     test "list_user_classes/1 with opts returns all classes from user's school correctly" do
       school = school_fixture()
-      cycle_25 = cycle_fixture(%{school_id: school.id, end_at: ~D[2025-12-31]})
-      cycle_24 = cycle_fixture(%{school_id: school.id, end_at: ~D[2024-12-31]})
+
+      cycle_25 =
+        cycle_fixture(%{school_id: school.id, start_at: ~D[2025-01-01], end_at: ~D[2025-12-31]})
+
+      cycle_24 =
+        cycle_fixture(%{school_id: school.id, start_at: ~D[2024-01-01], end_at: ~D[2024-12-31]})
+
+      cycle_23 =
+        cycle_fixture(%{school_id: school.id, start_at: ~D[2023-01-01], end_at: ~D[2023-12-31]})
+
       year = Lanttern.TaxonomyFixtures.year_fixture()
 
       class_b_25 =
@@ -242,11 +250,21 @@ defmodule Lanttern.SchoolsTest do
           years_ids: [year.id]
         })
 
+      class_a_23 =
+        class_fixture(%{
+          school_id: school.id,
+          name: "AAA 24",
+          cycle_id: cycle_23.id,
+          years_ids: [year.id]
+        })
+
       # extra class for filtering test
       _class_from_another_year = class_fixture(%{school_id: school.id})
 
       # put students only in class a
-      student_x = student_fixture(%{name: "XXX", classes_ids: [class_a_24.id, class_a_25.id]})
+      student_x =
+        student_fixture(%{name: "XXX", classes_ids: [class_a_23.id, class_a_24.id, class_a_25.id]})
+
       student_y = student_fixture(%{name: "YYY", classes_ids: [class_a_25.id]})
       student_z = student_fixture(%{name: "ZZZ", classes_ids: [class_a_25.id]})
 
@@ -270,7 +288,11 @@ defmodule Lanttern.SchoolsTest do
       class_fixture()
 
       [expected_a_25, expected_b_25, expected_a_24] =
-        Schools.list_user_classes(user, preload_cycle_years_students: true, years_ids: [year.id])
+        Schools.list_user_classes(user,
+          preload_cycle_years_students: true,
+          years_ids: [year.id],
+          cycles_ids: [cycle_24.id, cycle_25.id]
+        )
 
       assert expected_a_25.id == class_a_25.id
       assert expected_a_25.cycle.id == cycle_25.id
@@ -308,7 +330,33 @@ defmodule Lanttern.SchoolsTest do
 
     test "get_class/2 returns nil if class with given id does not exist" do
       class_fixture()
-      assert Schools.get_class(99_999) == nil
+      assert Schools.get_class(999_999) == nil
+    end
+
+    test "get_class/2 with check_permissions_for_user checks for user permission" do
+      school = school_fixture()
+      class = class_fixture(%{school_id: school.id})
+
+      user =
+        Lanttern.IdentityFixtures.current_teacher_user_fixture(%{school_id: school.id}, [
+          "school_management"
+        ])
+
+      assert Schools.get_class(class.id, check_permissions_for_user: user) == class
+
+      school_user_without_management_permission =
+        Lanttern.IdentityFixtures.current_teacher_user_fixture(%{school_id: school.id})
+
+      assert Schools.get_class(class.id,
+               check_permissions_for_user: school_user_without_management_permission
+             )
+             |> is_nil()
+
+      manager_from_other_school =
+        Lanttern.IdentityFixtures.current_teacher_user_fixture(%{}, ["school_management"])
+
+      assert Schools.get_class(class.id, check_permissions_for_user: manager_from_other_school)
+             |> is_nil()
     end
 
     test "get_class!/2 returns the class with given id" do
@@ -400,7 +448,12 @@ defmodule Lanttern.SchoolsTest do
     end
 
     test "delete_class/1 deletes the class" do
-      class = class_fixture()
+      # create and link year and student to test if relations are deleted with class
+      year = Lanttern.TaxonomyFixtures.year_fixture()
+      student = student_fixture()
+
+      class = class_fixture(%{years_ids: [year.id], students_ids: [student.id]})
+
       assert {:ok, %Class{}} = Schools.delete_class(class)
       assert_raise Ecto.NoResultsError, fn -> Schools.get_class!(class.id) end
     end
@@ -419,6 +472,17 @@ defmodule Lanttern.SchoolsTest do
     test "list_students/1 returns all students" do
       student = student_fixture()
       assert Schools.list_students() == [student]
+    end
+
+    test "list_students/1 with class_id opt filter results by class" do
+      class = class_fixture()
+      student = student_fixture(%{classes_ids: [class.id]})
+
+      # other students for filter testing
+      student_fixture()
+
+      assert [expected_student] = Schools.list_students(class_id: class.id)
+      assert expected_student.id == student.id
     end
 
     test "list_students/1 with opts returns all students as expected" do
@@ -452,6 +516,36 @@ defmodule Lanttern.SchoolsTest do
             assert expected_student.classes == [class_2]
         end
       end
+    end
+
+    test "list_students/1 with only_in_some_class opts returns all students as expected" do
+      school = school_fixture()
+      class_1 = class_fixture(%{school_id: school.id})
+      class_2 = class_fixture(%{school_id: school.id})
+      student_a = student_fixture(%{name: "AAA", school_id: school.id, classes_ids: [class_1.id]})
+      student_b = student_fixture(%{name: "BBB", school_id: school.id, classes_ids: [class_2.id]})
+      student_c = student_fixture(%{name: "CCC", school_id: school.id})
+
+      # extra student for filtering validation
+      student_fixture()
+
+      [expected_std_a, expected_std_b, expected_std_c] =
+        Schools.list_students(school_id: school.id)
+
+      assert expected_std_a.id == student_a.id
+      assert expected_std_b.id == student_b.id
+      assert expected_std_c.id == student_c.id
+
+      [expected_std_a, expected_std_b] =
+        Schools.list_students(school_id: school.id, only_in_some_class: true)
+
+      assert expected_std_a.id == student_a.id
+      assert expected_std_b.id == student_b.id
+
+      [expected_std_c] =
+        Schools.list_students(school_id: school.id, only_in_some_class: false)
+
+      assert expected_std_c.id == student_c.id
     end
 
     test "list_students/1 with school opts returns students filtered by school" do
@@ -698,7 +792,10 @@ defmodule Lanttern.SchoolsTest do
     end
 
     test "delete_student/1 deletes the student" do
-      student = student_fixture()
+      # create and link class to test if relations are deleted with student
+      class = class_fixture()
+      student = student_fixture(%{classes_ids: [class.id]})
+
       assert {:ok, %Student{}} = Schools.delete_student(student)
       assert_raise Ecto.NoResultsError, fn -> Schools.get_student!(student.id) end
     end

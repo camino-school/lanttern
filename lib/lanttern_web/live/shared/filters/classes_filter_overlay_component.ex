@@ -1,6 +1,17 @@
-defmodule LantternWeb.Filters.FiltersOverlayComponent do
+defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
   @moduledoc """
-  Renders a filter overlay
+  Renders a classes filter overlay.
+
+  Expected external assigns:
+
+  ```elixir
+  attr :current_user, Lanttern.Identity.User, required: true
+  attr :title, :string, required: true
+  attr :navigate, :string
+  attr :filter_opts, :list, default: [], doc: "opts used in `assign_user_filters/3`"
+  attr :classes, :list, doc: "if `classes` and `selected_classes_ids` are given, this component skips `assign_user_filters/3`"
+  attr :selected_classes_ids, :list, doc: "if `classes` and `selected_classes_ids` are given, this component skips `assign_user_filters/3`"
+  ```
   """
 
   use LantternWeb, :live_component
@@ -15,7 +26,17 @@ defmodule LantternWeb.Filters.FiltersOverlayComponent do
         <h5 class="mb-10 font-display font-black text-xl">
           <%= @title %>
         </h5>
-        <.filter_group myself={@myself} {get_filter_groups_attrs(@filter_type, assigns)} />
+        <.badge_button_picker
+          on_select={
+            &JS.push("toggle_filter",
+              value: %{"id" => &1},
+              target: @myself
+            )
+          }
+          items={@classes}
+          selected_ids={@selected_classes_ids}
+          class="mt-4"
+        />
         <div class="flex justify-between gap-2 mt-10">
           <.button type="button" theme="ghost" phx-click={JS.push("clear_filters", target: @myself)}>
             <%= gettext("Clear filters") %>
@@ -39,53 +60,6 @@ defmodule LantternWeb.Filters.FiltersOverlayComponent do
     """
   end
 
-  attr :type, :string, required: true
-  attr :myself, Phoenix.LiveComponent.CID, required: true
-  attr :items, :list, required: true
-  attr :selected_ids, :list, required: true
-
-  defp filter_group(assigns) do
-    ~H"""
-    <div>
-      <.badge_button_picker
-        on_select={
-          &JS.push("toggle_filter",
-            value: %{"id" => &1, "type" => @type},
-            target: @myself
-          )
-        }
-        items={@items}
-        selected_ids={@selected_ids}
-        class="mt-4"
-      />
-    </div>
-    """
-  end
-
-  defp get_filter_groups_attrs(:subjects, assigns) do
-    %{
-      type: "subjects",
-      items: assigns.subjects,
-      selected_ids: assigns.selected_subjects_ids
-    }
-  end
-
-  defp get_filter_groups_attrs(:years, assigns) do
-    %{
-      type: "years",
-      items: assigns.years,
-      selected_ids: assigns.selected_years_ids
-    }
-  end
-
-  defp get_filter_groups_attrs(:cycles, assigns) do
-    %{
-      type: "cycles",
-      items: assigns.cycles,
-      selected_ids: assigns.selected_cycles_ids
-    }
-  end
-
   # lifecycle
 
   @impl true
@@ -99,25 +73,31 @@ defmodule LantternWeb.Filters.FiltersOverlayComponent do
   end
 
   @impl true
-  def update(%{filter_type: filter_type} = assigns, socket) do
+  def update(assigns, socket) do
     socket =
       socket
       |> assign(assigns)
-      |> assign_user_filters(
-        [filter_type],
-        Map.get(assigns, :filter_opts, [])
-      )
+      |> maybe_assign_user_filters()
 
     {:ok, socket}
   end
 
+  defp maybe_assign_user_filters(
+         %{assigns: %{classes: classes, selected_classes_ids: selected_classes_ids}} = socket
+       )
+       when is_list(classes) and is_list(selected_classes_ids),
+       do: socket
+
+  defp maybe_assign_user_filters(socket),
+    do: assign_user_filters(socket, [:classes], socket.assigns.filter_opts)
+
   # event handlers
 
   @impl true
-  def handle_event("toggle_filter", %{"id" => id, "type" => type}, socket) do
+  def handle_event("toggle_filter", %{"id" => id}, socket) do
     socket =
       socket
-      |> handle_filter_toggle(String.to_atom(type), id)
+      |> handle_filter_toggle(:classes, id)
       |> assign(:has_changes, true)
 
     {:noreply, socket}
@@ -130,7 +110,7 @@ defmodule LantternWeb.Filters.FiltersOverlayComponent do
   def handle_event("clear_filters", _, socket) do
     clear_profile_filters(
       socket.assigns.current_user,
-      [socket.assigns.filter_type],
+      [:classes],
       socket.assigns.filter_opts
     )
 
@@ -140,7 +120,7 @@ defmodule LantternWeb.Filters.FiltersOverlayComponent do
   def handle_event("apply_filters", _, socket) do
     socket =
       socket
-      |> save_profile_filters([socket.assigns.filter_type], socket.assigns.filter_opts)
+      |> save_profile_filters([:classes], socket.assigns.filter_opts)
       |> assign(:has_changes, false)
       |> handle_navigation()
 

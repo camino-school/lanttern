@@ -14,7 +14,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   # shared components
   alias LantternWeb.Reporting.StudentReportCardFormComponent
   alias LantternWeb.Filters.InlineFiltersComponent
-  alias LantternWeb.Filters.FiltersOverlayComponent
+  alias LantternWeb.Filters.ClassesFilterOverlayComponent
 
   @impl true
   def render(assigns) do
@@ -94,12 +94,13 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         />
       </.responsive_container>
       <.live_component
-        module={FiltersOverlayComponent}
+        module={ClassesFilterOverlayComponent}
         id="classes-filter-modal"
         current_user={@current_user}
         title={gettext("Select classes")}
-        filter_type={:classes}
         filter_opts={[report_card_id: @report_card.id]}
+        classes={@classes}
+        selected_classes_ids={@selected_classes_ids}
         navigate={~p"/report_cards/#{@report_card}"}
       />
       <.slide_over

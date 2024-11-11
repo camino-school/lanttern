@@ -3,7 +3,7 @@ defmodule LantternWeb.StudentLiveTest do
 
   alias Lanttern.SchoolsFixtures
 
-  @live_view_base_path "/school/student"
+  @live_view_base_path "/school/students"
 
   setup [:register_and_log_in_teacher]
 
@@ -36,6 +36,30 @@ defmodule LantternWeb.StudentLiveTest do
 
       assert view |> has_element?("p", class_a.name)
       assert view |> has_element?("p", class_b.name)
+    end
+  end
+
+  describe "Student management permissions" do
+    test "allow user with school management permissions to edit student", context do
+      %{conn: conn, user: user} = add_school_management_permissions(context)
+      school_id = user.current_profile.school_id
+      student = SchoolsFixtures.student_fixture(%{school_id: school_id, name: "student abc"})
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{student.id}?edit=true")
+
+      assert view |> has_element?("#student-form-overlay h2", "Edit student")
+    end
+
+    test "prevent user without school management permissions to edit class", %{
+      conn: conn,
+      user: user
+    } do
+      school_id = user.current_profile.school_id
+      student = SchoolsFixtures.student_fixture(%{school_id: school_id, name: "student abc"})
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{student.id}?edit=true")
+
+      refute view |> has_element?("#student-form-overlay h2", "Edit student")
     end
   end
 end

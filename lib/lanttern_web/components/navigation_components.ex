@@ -25,8 +25,9 @@ defmodule LantternWeb.NavigationComponents do
   attr :class, :any, default: nil
 
   slot :tab, required: true do
-    attr :patch, :string, required: true
-    attr :is_current, :string
+    attr :patch, :string
+    attr :navigate, :string
+    attr :is_current, :boolean
     attr :icon_name, :string
   end
 
@@ -35,10 +36,11 @@ defmodule LantternWeb.NavigationComponents do
     <nav class={["flex gap-10", @class]} id={@id}>
       <%= for tab <- @tab do %>
         <.link
-          patch={tab.patch}
+          patch={Map.get(tab, :patch)}
+          navigate={Map.get(tab, :navigate)}
           class={[
             "relative shrink-0 flex items-center gap-2 py-5 font-display text-base whitespace-nowrap",
-            if(Map.get(tab, :is_current) == "true",
+            if(Map.get(tab, :is_current),
               do: "font-bold",
               else: "hover:text-ltrn-subtle"
             )
@@ -47,7 +49,7 @@ defmodule LantternWeb.NavigationComponents do
           <%= render_slot(tab) %>
           <.icon :if={Map.get(tab, :icon_name)} name={Map.get(tab, :icon_name)} class="w-6 h-6" />
           <span
-            :if={Map.get(tab, :is_current) == "true"}
+            :if={Map.get(tab, :is_current)}
             class="absolute h-2 bg-ltrn-primary inset-x-0 bottom-0"
           />
         </.link>

@@ -59,6 +59,8 @@ defmodule LantternWeb do
       # from https://hexdocs.pm/phoenix_live_view/using-gettext.html
       on_mount LantternWeb.LocalizationHelpers
 
+      on_mount LantternWeb.LiveViewHelpers
+
       unquote(html_helpers())
     end
   end

@@ -6,6 +6,7 @@ defmodule Lanttern.IdentityFixtures do
 
   import Ecto.Query, only: [from: 2]
   import Lanttern.SchoolsFixtures
+  alias Lanttern.Personalization
 
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
   def valid_user_password, do: "hello world!"
@@ -98,6 +99,32 @@ defmodule Lanttern.IdentityFixtures do
       |> Lanttern.Identity.create_profile()
 
     profile
+  end
+
+  @doc """
+  Generate a teacher user that emulates the `current_user` in socket.
+
+  Creates the user, profile, and teacher needed to structure the current user.
+  """
+  def current_teacher_user_fixture(attrs \\ %{}, permissions \\ []) do
+    user = user_fixture()
+    teacher = teacher_fixture(attrs) |> Lanttern.Repo.preload(:school)
+    teacher_profile = teacher_profile_fixture(%{user_id: user.id, teacher_id: teacher.id})
+    Personalization.set_profile_permissions(teacher_profile.id, permissions)
+
+    # emulate Identity.get_user_by_session_token/1 to preload profile into user
+    user
+    |> Map.put(
+      :current_profile,
+      %Lanttern.Identity.Profile{
+        id: teacher_profile.id,
+        name: teacher.name,
+        type: "teacher",
+        school_id: teacher.school.id,
+        school_name: teacher.school.name,
+        permissions: permissions
+      }
+    )
   end
 
   # helpers
