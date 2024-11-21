@@ -922,11 +922,23 @@ defmodule Lanttern.AssessmentsTest do
           diff_for_rubric_id: rubric_3.id
         })
 
+      other_diff_rubric_3 =
+        RubricsFixtures.rubric_fixture(%{
+          scale_id: ordinal_scale.id,
+          diff_for_rubric_id: rubric_3.id
+        })
+
       student = SchoolsFixtures.student_fixture()
+      other_student = SchoolsFixtures.student_fixture()
 
       Lanttern.Repo.insert_all(
         "differentiation_rubrics_students",
         [[rubric_id: diff_rubric_3.id, student_id: student.id]]
+      )
+
+      Lanttern.Repo.insert_all(
+        "differentiation_rubrics_students",
+        [[rubric_id: other_diff_rubric_3.id, student_id: other_student.id]]
       )
 
       assessment_point_1 =
