@@ -1009,28 +1009,39 @@ defmodule Lanttern.Assessments do
     goals =
       from(
         ap in AssessmentPoint,
-        left_join: r in assoc(ap, :rubric),
-        left_join: diff_r in assoc(r, :differentiation_rubrics),
-        left_join: diff_r_s in "differentiation_rubrics_students",
-        on: diff_r_s.student_id == ^student_id and diff_r_s.rubric_id == diff_r.id,
         join: ci in assoc(ap, :curriculum_item),
         join: cc in assoc(ci, :curriculum_component),
         where: ap.strand_id == ^strand_id,
         order_by: ap.position,
-        select: %{ap | has_diff_rubric_for_student: not is_nil(diff_r_s)},
         preload: [
           curriculum_item: {ci, curriculum_component: cc}
         ]
       )
       |> Repo.all()
 
+    goals_ids = Enum.map(goals, & &1.id)
+
+    # map goals ids with diff rubrics for the student
+    # to set `has_diff_rubric_for_student` later
+
+    goals_ids_with_diff_rubrics_for_student =
+      from(
+        ap in AssessmentPoint,
+        join: r in assoc(ap, :rubric),
+        join: diff_r in assoc(r, :differentiation_rubrics),
+        join: diff_r_s in "differentiation_rubrics_students",
+        on: diff_r_s.student_id == ^student_id and diff_r_s.rubric_id == diff_r.id,
+        where: ap.strand_id == ^strand_id,
+        select: ap.id
+      )
+      |> Repo.all()
+
     goals_and_entries_map =
       from(
         e in AssessmentPointEntry,
-        join: ap in assoc(e, :assessment_point),
         left_join: ov in assoc(e, :ordinal_value),
         left_join: s_ov in assoc(e, :student_ordinal_value),
-        where: ap.strand_id == ^strand_id and e.student_id == ^student_id,
+        where: e.assessment_point_id in ^goals_ids and e.student_id == ^student_id,
         preload: [ordinal_value: ov, student_ordinal_value: s_ov]
       )
       |> Repo.all()
@@ -1055,6 +1066,7 @@ defmodule Lanttern.Assessments do
 
     goals
     |> Enum.map(fn ap ->
+      ap = %{ap | has_diff_rubric_for_student: ap.id in goals_ids_with_diff_rubrics_for_student}
       goal_entry = Map.get(goals_and_entries_map, ap.id)
       moments_entries = Map.get(goals_and_moments_entries_map, ap.curriculum_item_id, [])
 
