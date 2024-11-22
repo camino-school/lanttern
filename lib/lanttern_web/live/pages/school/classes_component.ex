@@ -182,7 +182,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
 
   defp initialize(socket), do: socket
 
-  defp stream_classes(%{assigns: %{initialized: false}} = socket) do
+  defp stream_classes(socket) do
     classes =
       Schools.list_user_classes(
         socket.assigns.current_user,
@@ -195,8 +195,6 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
     |> stream(:classes, classes)
     |> assign(:has_classes, length(classes) > 0)
   end
-
-  defp stream_classes(socket), do: socket
 
   defp assign_class(%{assigns: %{is_school_manager: false}} = socket),
     do: assign(socket, :class, nil)

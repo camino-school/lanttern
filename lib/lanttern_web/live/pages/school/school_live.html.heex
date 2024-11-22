@@ -11,18 +11,21 @@
 <div class="sticky top-0 z-30 border-b border-ltrn-lighter bg-white">
   <.responsive_container>
     <.nav_tabs>
-      <:tab patch={~p"/school/students"} is_current={@live_action in [:show, :view_students]}>
+      <:tab patch={~p"/school/students"} is_current={@live_action in [:show, :manage_students]}>
         <%= gettext("Students") %>
       </:tab>
-      <:tab patch={~p"/school/classes"} is_current={@live_action == :view_classes}>
+      <:tab patch={~p"/school/classes"} is_current={@live_action == :manage_classes}>
         <%= gettext("Classes") %>
+      </:tab>
+      <:tab patch={~p"/school/cycles"} is_current={@live_action == :manage_cycles}>
+        <%= gettext("Cycles") %>
       </:tab>
     </.nav_tabs>
   </.responsive_container>
 </div>
 <div class="ltrn-bg-main-local">
   <.live_component
-    :if={@live_action in [:show, :view_students]}
+    :if={@live_action in [:show, :manage_students]}
     module={StudentsComponent}
     id={:school_classes}
     current_user={@current_user}
@@ -31,8 +34,16 @@
     is_school_manager={@is_school_manager}
   />
   <.live_component
-    :if={@live_action == :view_classes}
+    :if={@live_action == :manage_classes}
     module={ClassesComponent}
+    id={:school_classes}
+    current_user={@current_user}
+    params={@params}
+    is_school_manager={@is_school_manager}
+  />
+  <.live_component
+    :if={@live_action == :manage_cycles}
+    module={CyclesComponent}
     id={:school_classes}
     current_user={@current_user}
     params={@params}

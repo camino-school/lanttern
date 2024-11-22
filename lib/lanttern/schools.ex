@@ -114,8 +114,9 @@ defmodule Lanttern.Schools do
 
   ## Options:
 
-      - `:schools_ids` – filter cycles by schools
-      - `:order_by` - an order by query expression ([ref](https://hexdocs.pm/ecto/Ecto.Query.html#order_by/3))
+  - `:schools_ids` – filter cycles by schools
+  - `:order_by` - an order by query expression ([ref](https://hexdocs.pm/ecto/Ecto.Query.html#order_by/3))
+  - `:preloads` – preloads associated data
 
   ## Examples
 
@@ -128,6 +129,7 @@ defmodule Lanttern.Schools do
     |> apply_list_cycles_opts(opts)
     |> apply_list_cycles_order_by(Keyword.get(opts, :order_by))
     |> Repo.all()
+    |> maybe_preload(opts)
   end
 
   defp apply_list_cycles_opts(queryable, []), do: queryable
@@ -156,21 +158,64 @@ defmodule Lanttern.Schools do
   @doc """
   Gets a single cycle.
 
-  Raises `Ecto.NoResultsError` if the Cycle does not exist.
+  Returns `nil` if the Cycle does not exist.
+
+  ## Options:
+
+  - `:preloads` – preloads associated data
+  - `:check_permissions_for_user` - expects a `%User{}` (usually from `socket.assigns.current_user`), and will check for class access based on school and permissions
 
   ## Examples
 
-      iex> get_cycle!(123)
+      iex> get_cycle(123)
       %Cycle{}
 
-      iex> get_cycle!(456)
+      iex> get_cycle(456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_cycle!(id), do: Repo.get!(Cycle, id)
+  def get_cycle(id, opts \\ []) do
+    cycle =
+      Cycle
+      |> Repo.get(id)
+      |> maybe_preload(opts)
+
+    case Keyword.get(opts, :check_permissions_for_user) do
+      %User{} = user -> apply_get_cycle_check_permissions_for_user(cycle, user)
+      _ -> cycle
+    end
+  end
+
+  defp apply_get_cycle_check_permissions_for_user(
+         %Cycle{} = cycle,
+         %User{current_profile: %Profile{school_id: school_id} = profile}
+       )
+       when cycle.school_id == school_id do
+    if "school_management" in profile.permissions, do: cycle
+  end
+
+  defp apply_get_cycle_check_permissions_for_user(_, _), do: nil
+
+  @doc """
+  Gets a single cycle.
+
+  Same as `get_cycle/2`, but raises `Ecto.NoResultsError` if the Cycle does not exist.
+
+  """
+  def get_cycle!(id, opts \\ []) do
+    Cycle
+    |> Repo.get!(id)
+    |> maybe_preload(opts)
+  end
+
+  # check_permissions_for_user
 
   @doc """
   Creates a cycle.
+
+  ## Options
+
+  - `:preloads` – preloads associated data on return
 
   ## Examples
 
@@ -181,14 +226,19 @@ defmodule Lanttern.Schools do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_cycle(attrs \\ %{}) do
+  def create_cycle(attrs \\ %{}, opts \\ []) do
     %Cycle{}
     |> Cycle.changeset(attrs)
     |> Repo.insert()
+    |> maybe_preload(opts)
   end
 
   @doc """
   Updates a cycle.
+
+  ## Options
+
+  - `:preloads` – preloads associated data on return
 
   ## Examples
 
@@ -199,10 +249,11 @@ defmodule Lanttern.Schools do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_cycle(%Cycle{} = cycle, attrs) do
+  def update_cycle(%Cycle{} = cycle, attrs, opts \\ []) do
     cycle
     |> Cycle.changeset(attrs)
     |> Repo.update()
+    |> maybe_preload(opts)
   end
 
   @doc """
