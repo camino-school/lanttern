@@ -13,6 +13,7 @@ defmodule Lanttern.Schools.Cycle do
           name: String.t(),
           start_at: Date.t(),
           end_at: Date.t(),
+          is_parent: boolean(),
           school: School.t(),
           school_id: pos_integer(),
           inserted_at: DateTime.t(),
@@ -23,7 +24,12 @@ defmodule Lanttern.Schools.Cycle do
     field :name, :string
     field :start_at, :date
     field :end_at, :date
+    field :is_parent, :boolean, default: false
+
     belongs_to :school, School
+    belongs_to :parent_cycle, __MODULE__
+
+    has_many :children_cycles, __MODULE__
 
     timestamps()
   end
@@ -31,7 +37,7 @@ defmodule Lanttern.Schools.Cycle do
   @doc false
   def changeset(cycle, attrs) do
     cycle
-    |> cast(attrs, [:name, :start_at, :end_at, :school_id])
+    |> cast(attrs, [:name, :start_at, :end_at, :is_parent, :school_id, :parent_cycle_id])
     |> validate_required([:name, :start_at, :end_at, :school_id])
     |> check_constraint(
       :end_at,
