@@ -15,7 +15,7 @@ defmodule LantternWeb.SchoolLive do
       |> assign_is_school_manager()
       |> assign(:page_title, socket.assigns.current_user.current_profile.school_name)
 
-    {:ok, socket, layout: {LantternWeb.Layouts, :app_logged_in_blank}}
+    {:ok, socket}
   end
 
   defp assign_is_school_manager(socket) do

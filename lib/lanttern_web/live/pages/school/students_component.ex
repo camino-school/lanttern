@@ -12,107 +12,105 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <.responsive_container class="py-6">
-        <div class="flex items-end gap-6 mt-10 mb-4">
-          <div class="flex-1">
-            <p class="flex flex-wrap gap-2">
-              <%= ngettext(
-                "Showing 1 student in",
-                "Showing %{count} students in",
-                @students_length
-              ) %>
-              <%= if @selected_classes != [] do %>
-                <.badge
-                  :for={class <- @selected_classes}
-                  on_remove={JS.push("remove_class_filter", target: @myself)}
-                  theme="primary"
-                >
-                  <%= class.name %>
-                </.badge>
-              <% else %>
-                <.badge><%= gettext("all classes") %></.badge>
-              <% end %>
-            </p>
-          </div>
-          <.collection_action
-            :if={@is_school_manager}
-            type="link"
-            patch={~p"/school/students?new=true"}
-            icon_name="hero-plus-circle"
-          >
-            <%= gettext("Add student") %>
-          </.collection_action>
+      <div class="flex items-center gap-6 p-4">
+        <div class="flex-1 flex flex-wrap items-center gap-2">
+          <p>
+            <%= ngettext(
+              "Showing 1 student in",
+              "Showing %{count} students in",
+              @students_length
+            ) %>
+          </p>
+          <%= if @selected_classes != [] do %>
+            <.badge
+              :for={class <- @selected_classes}
+              on_remove={JS.push("remove_class_filter", target: @myself)}
+              theme="primary"
+            >
+              <%= class.name %>
+            </.badge>
+          <% else %>
+            <.badge><%= gettext("all classes") %></.badge>
+          <% end %>
         </div>
-      </.responsive_container>
-      <.data_grid
-        id="students"
-        class="pb-10 mx-6"
-        stream={@streams.students}
-        row_click={fn student -> JS.navigate(~p"/school/students/#{student}") end}
-        show_empty_state_message={
-          if @students_length == 0,
-            do: gettext("No students found for selected filters.")
-        }
-        sticky_header_offset="4rem"
-      >
-        <:col :let={student} label={gettext("Name")}>
-          <%= student.name %>
-        </:col>
-        <:col
-          :let={student}
-          label={gettext("Classes")}
-          template_col="max-content"
-          on_filter={JS.exec("data-show", to: "#school-students-classes-filters-overlay")}
-          filter_is_active={@selected_classes_ids != []}
+        <.neo_action
+          :if={@is_school_manager}
+          type="link"
+          patch={~p"/school/students?new=true"}
+          icon_name="hero-plus-circle-mini"
         >
-          <div class="flex flex-wrap gap-1">
-            <.badge :for={class <- student.classes}><%= class.name %></.badge>
-          </div>
-        </:col>
-        <:action :let={student} :if={@is_school_manager}>
-          <.button
-            type="button"
-            sr_text={gettext("Edit student")}
-            icon_name="hero-pencil-mini"
-            size="sm"
-            theme="ghost"
-            rounded
-            phx-click={JS.patch(~p"/school/students?edit=#{student.id}")}
-          />
-        </:action>
-      </.data_grid>
-      <.data_grid
-        :if={@no_class_students_length > 0}
-        id="no-class-students"
-        class="pb-10 mx-6"
-        stream={@streams.no_class_students}
-        row_click={fn student -> JS.navigate(~p"/school/students/#{student}") end}
-        sticky_header_offset="4rem"
-      >
-        <:col
-          :let={student}
-          label={
-            ngettext(
-              "1 student not linked to any class",
-              "%{count} students not linked to any class",
-              @no_class_students_length
-            )
+          <%= gettext("Add student") %>
+        </.neo_action>
+      </div>
+      <div class="bg-white">
+        <.data_grid
+          id="students"
+          stream={@streams.students}
+          row_click={fn student -> JS.navigate(~p"/school/students/#{student}") end}
+          show_empty_state_message={
+            if @students_length == 0,
+              do: gettext("No students found for selected filters.")
           }
+          sticky_header_offset="7rem"
         >
-          <%= student.name %>
-        </:col>
-        <:action :let={student} :if={@is_school_manager}>
-          <.button
-            type="button"
-            sr_text={gettext("Edit student")}
-            icon_name="hero-pencil-mini"
-            size="sm"
-            theme="ghost"
-            rounded
-            phx-click={JS.patch(~p"/school/students?edit=#{student.id}")}
-          />
-        </:action>
-      </.data_grid>
+          <:col :let={student} label={gettext("Name")}>
+            <%= student.name %>
+          </:col>
+          <:col
+            :let={student}
+            label={gettext("Classes")}
+            template_col="max-content"
+            on_filter={JS.exec("data-show", to: "#school-students-classes-filters-overlay")}
+            filter_is_active={@selected_classes_ids != []}
+          >
+            <div class="flex flex-wrap gap-1">
+              <.badge :for={class <- student.classes}><%= class.name %></.badge>
+            </div>
+          </:col>
+          <:action :let={student} :if={@is_school_manager}>
+            <.button
+              type="button"
+              sr_text={gettext("Edit student")}
+              icon_name="hero-pencil-mini"
+              size="sm"
+              theme="ghost"
+              rounded
+              phx-click={JS.patch(~p"/school/students?edit=#{student.id}")}
+            />
+          </:action>
+        </.data_grid>
+        <.data_grid
+          :if={@no_class_students_length > 0}
+          id="no-class-students"
+          stream={@streams.no_class_students}
+          row_click={fn student -> JS.navigate(~p"/school/students/#{student}") end}
+          sticky_header_offset="7rem"
+        >
+          <:col
+            :let={student}
+            label={
+              ngettext(
+                "1 student not linked to any class",
+                "%{count} students not linked to any class",
+                @no_class_students_length
+              )
+            }
+          >
+            <%= student.name %>
+          </:col>
+          <:action :let={student} :if={@is_school_manager}>
+            <.button
+              type="button"
+              sr_text={gettext("Edit student")}
+              icon_name="hero-pencil-mini"
+              size="sm"
+              theme="ghost"
+              rounded
+              phx-click={JS.patch(~p"/school/students?edit=#{student.id}")}
+            />
+          </:action>
+        </.data_grid>
+      </div>
       <.live_component
         module={LantternWeb.Filters.ClassesFilterOverlayComponent}
         id="school-students-classes-filters-overlay"

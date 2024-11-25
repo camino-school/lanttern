@@ -12,30 +12,55 @@ defmodule LantternWeb.SchoolLive.CyclesComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <.responsive_container class="py-6">
-        <div :if={@is_school_manager} class="flex justify-end mt-10">
-          <div class="flex gap-4">
-            <.collection_action
-              type="link"
-              patch={~p"/school/cycles?new=true"}
-              icon_name="hero-plus-circle"
-            >
-              <%= gettext("Add cycle") %>
-            </.collection_action>
-          </div>
-        </div>
-      </.responsive_container>
+      <div class="flex justify-end gap-6 p-4">
+        <.neo_action
+          :if={@is_school_manager}
+          type="link"
+          patch={~p"/school/cycles?new=true"}
+          icon_name="hero-plus-circle-mini"
+        >
+          <%= gettext("Add cycle") %>
+        </.neo_action>
+      </div>
       <%= if @has_cycles do %>
-        <.responsive_grid id="school-cycles" phx-update="stream" is_full_width>
-          <.card_base
-            :for={{dom_id, cycle} <- @streams.cycles}
-            id={dom_id}
-            class="min-w-[16rem] sm:min-w-0 p-4"
+        <div class="bg-white">
+          <.data_grid
+            id="cycles"
+            stream={@streams.cycles}
+            show_empty_state_message={if !@has_cycles, do: gettext("No cycles found in this school.")}
+            sticky_header_offset="7rem"
           >
-            <%= cycle.name %>
-            <.link patch={~p"/school/cycles?edit=#{cycle.id}"}>edit</.link>
-          </.card_base>
-        </.responsive_grid>
+            <:col :let={cycle} label={gettext("Cycle")}>
+              <%= if cycle.is_parent do %>
+                <div class="flex items-center gap-2 font-bold">
+                  <.icon name="hero-folder" class="w-6 h-6" />
+                  <%= cycle.name %>
+                </div>
+              <% else %>
+                <div class="ml-8">
+                  <%= cycle.name %>
+                </div>
+              <% end %>
+            </:col>
+            <:col :let={cycle} label={gettext("Start at")}>
+              <%= cycle.start_at %>
+            </:col>
+            <:col :let={cycle} label={gettext("End at")}>
+              <%= cycle.end_at %>
+            </:col>
+            <:action :let={cycle} :if={@is_school_manager}>
+              <.button
+                type="link"
+                sr_text={gettext("Edit cycle")}
+                icon_name="hero-pencil-mini"
+                size="sm"
+                theme="ghost"
+                rounded
+                patch={~p"/school/cycles?edit=#{cycle.id}"}
+              />
+            </:action>
+          </.data_grid>
+        </div>
       <% else %>
         <.responsive_container class="pt-6 pb-10">
           <.empty_state>
@@ -122,7 +147,9 @@ defmodule LantternWeb.SchoolLive.CyclesComponent do
 
   defp stream_cycles(socket) do
     school_id = socket.assigns.current_user.current_profile.school_id
-    cycles = Schools.list_cycles(schools_ids: [school_id])
+
+    cycles =
+      Schools.list_cycles(schools_ids: [school_id], order_by: [desc: :end_at, asc: :start_at])
 
     socket
     |> stream(:cycles, cycles)
