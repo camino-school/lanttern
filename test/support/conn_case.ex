@@ -191,7 +191,9 @@ defmodule LantternWeb.ConnCase do
   def add_wcd_permissions(%{conn: conn, user: user}) do
     # add wcd permissions to user
     {:ok, settings} =
-      Lanttern.Personalization.set_profile_permissions(user.current_profile_id, ["wcd"])
+      Lanttern.Personalization.set_profile_settings(user.current_profile_id, %{
+        permissions: ["wcd"]
+      })
 
     # emulate Identity.get_user_by_session_token/1 to preload profile into user
     user =
@@ -207,9 +209,9 @@ defmodule LantternWeb.ConnCase do
   def add_school_management_permissions(%{conn: conn, user: user}) do
     # add school_management permissions to user
     {:ok, settings} =
-      Lanttern.Personalization.set_profile_permissions(user.current_profile_id, [
-        "school_management"
-      ])
+      Lanttern.Personalization.set_profile_settings(user.current_profile_id, %{
+        permissions: ["school_management"]
+      })
 
     # emulate Identity.get_user_by_session_token/1 to preload profile into user
     user =

@@ -307,7 +307,7 @@ defmodule Lanttern.Identity do
       user ->
         user
         |> Map.update!(:current_profile, &build_flat_profile/1)
-        |> Map.update!(:current_profile, &add_permissions/1)
+        |> Map.update!(:current_profile, &add_profile_settings/1)
     end
   end
 
@@ -334,17 +334,19 @@ defmodule Lanttern.Identity do
 
   defp build_flat_profile(profile), do: profile
 
-  defp add_permissions(%{id: profile_id} = profile) do
-    permissions =
-      case Personalization.get_profile_settings(profile_id) do
-        %{permissions: permissions} -> permissions
-        _ -> []
-      end
+  defp add_profile_settings(%{id: profile_id} = profile) do
+    profile_settings =
+      Personalization.get_profile_settings(profile_id, preloads: :current_school_cycle) || %{}
 
-    Map.put(profile, :permissions, permissions)
+    permissions = Map.get(profile_settings, :permissions, [])
+    current_school_cycle = Map.get(profile_settings, :current_school_cycle)
+
+    profile
+    |> Map.put(:permissions, permissions)
+    |> Map.put(:current_school_cycle, current_school_cycle)
   end
 
-  defp add_permissions(profile), do: profile
+  defp add_profile_settings(profile), do: profile
 
   @doc """
   Deletes the signed token with the given context.

@@ -1,6 +1,7 @@
 defmodule LantternWeb.UserAuthTest do
   use LantternWeb.ConnCase, async: true
 
+  alias Lanttern.SchoolsFixtures
   alias Phoenix.LiveView
   alias Lanttern.Identity
   alias LantternWeb.UserAuth
@@ -20,7 +21,7 @@ defmodule LantternWeb.UserAuthTest do
     profile = teacher_profile_fixture(%{user_id: user.id, teacher_id: teacher.id})
     {:ok, user} = Identity.update_user_current_profile_id(user, profile.id)
 
-    %{user: user, profile: profile, conn: conn}
+    %{conn: conn, user: user, profile: profile, school: school}
   end
 
   describe "log_in_user/3" do
@@ -122,6 +123,29 @@ defmodule LantternWeb.UserAuthTest do
       conn = UserAuth.fetch_current_user(conn, [])
       refute get_session(conn, :user_token)
       refute conn.assigns.current_user
+    end
+
+    test "when current_school_cycle is nil, it's setup based on the newest cycle (if available)",
+         %{conn: conn, user: user, profile: profile, school: school} do
+      cycle_2025 =
+        SchoolsFixtures.cycle_fixture(%{
+          school_id: school.id,
+          start_at: ~D[2025-01-01],
+          end_at: ~D[2025-12-31]
+        })
+
+      _cycle_2024 =
+        SchoolsFixtures.cycle_fixture(%{
+          school_id: school.id,
+          start_at: ~D[2024-01-01],
+          end_at: ~D[2024-12-31]
+        })
+
+      user_token = Identity.generate_user_session_token(user)
+      conn = conn |> put_session(:user_token, user_token) |> UserAuth.fetch_current_user([])
+      assert conn.assigns.current_user.id == user.id
+      assert conn.assigns.current_user.current_profile.id == profile.id
+      assert conn.assigns.current_user.current_profile.current_school_cycle == cycle_2025
     end
   end
 

@@ -277,7 +277,22 @@ defmodule Lanttern.Schools do
     |> maybe_preload(opts)
   end
 
-  # check_permissions_for_user
+  @doc """
+  Gets the newest parent cycle from the given school.
+
+  Returns `nil` if there's no parent in the school.
+
+  """
+  def get_newest_parent_cycle_from_school(school_id) do
+    from(
+      c in Cycle,
+      where: c.school_id == ^school_id,
+      where: is_nil(c.parent_cycle_id),
+      order_by: [desc: :end_at, asc: :start_at],
+      limit: 1
+    )
+    |> Repo.one()
+  end
 
   @doc """
   Creates a cycle.

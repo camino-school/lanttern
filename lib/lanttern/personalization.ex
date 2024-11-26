@@ -9,6 +9,7 @@ defmodule Lanttern.Personalization do
   """
 
   import Ecto.Query, warn: false
+  import Lanttern.RepoHelpers
   alias Lanttern.Repo
 
   alias Lanttern.Personalization.ProfileSettings
@@ -20,6 +21,10 @@ defmodule Lanttern.Personalization do
 
   Returns `nil` if profile has no settings.
 
+  ## Options
+
+  - `:preloads` – preloads associated data
+
   ## Examples
 
       iex> get_profile_settings(profile_id)
@@ -29,45 +34,47 @@ defmodule Lanttern.Personalization do
       nil
 
   """
-  def get_profile_settings(profile_id),
-    do: Repo.get_by(ProfileSettings, profile_id: profile_id)
+  def get_profile_settings(profile_id, opts \\ []) do
+    ProfileSettings
+    |> Repo.get_by(profile_id: profile_id)
+    |> maybe_preload(opts)
+  end
 
   @doc """
-  Set current profile permissions.
+  Set current profile settings.
 
   If there's no profile setting, this function creates one.
 
   ## Examples
 
-      iex> set_profile_permissions(profile_id, permissions)
+      iex> set_profile_settings(profile_id, settings)
       {:ok, %ProfileSettings{}}
 
-      iex> set_profile_permissions(profile_id, ["bad permission"])
+      iex> set_profile_settings(profile_id, "bad settings"])
       {:error, %Ecto.Changeset{}}
 
   """
-  @spec set_profile_permissions(profile_id :: pos_integer(), permissions :: [binary()]) ::
+  @spec set_profile_settings(profile_id :: pos_integer(), settings :: map()) ::
           {:ok, ProfileSettings.t()} | {:error, Ecto.Changeset.t()}
-  def set_profile_permissions(profile_id, permissions),
+  def set_profile_settings(profile_id, settings),
     do:
-      insert_settings_or_update_permissions(
+      insert_or_update_settings(
         get_profile_settings(profile_id),
         profile_id,
-        permissions
+        settings
       )
 
-  defp insert_settings_or_update_permissions(nil, profile_id, permissions) do
+  defp insert_or_update_settings(nil, profile_id, settings) do
+    settings = Map.put(settings, :profile_id, profile_id)
+
     %ProfileSettings{}
-    |> ProfileSettings.changeset(%{
-      profile_id: profile_id,
-      permissions: permissions
-    })
+    |> ProfileSettings.changeset(settings)
     |> Repo.insert()
   end
 
-  defp insert_settings_or_update_permissions(profile_settings, _, permissions) do
+  defp insert_or_update_settings(profile_settings, _, settings) do
     profile_settings
-    |> ProfileSettings.changeset(%{permissions: permissions})
+    |> ProfileSettings.changeset(settings)
     |> Repo.update()
   end
 

@@ -161,6 +161,28 @@ defmodule Lanttern.SchoolsTest do
       assert Schools.get_cycle!(cycle.id) == cycle
     end
 
+    test "get_newest_parent_cycle_from_school/1 returns the newest cycle from given school" do
+      school = school_fixture()
+
+      newest_cycle =
+        cycle_fixture(%{school_id: school.id, start_at: ~D[2030-01-01], end_at: ~D[2030-12-31]})
+
+      # other cycles for testing (newer but sub, older, from other school)
+      cycle_fixture(%{start_at: ~D[2031-01-01], end_at: ~D[2031-12-31]})
+
+      cycle_fixture(%{
+        school_id: school.id,
+        start_at: ~D[2031-01-01],
+        end_at: ~D[2031-12-31],
+        parent_cycle_id: newest_cycle.id
+      })
+
+      cycle_fixture(%{school_id: school.id, start_at: ~D[2029-01-01], end_at: ~D[2029-12-31]})
+      cycle_fixture()
+
+      assert Schools.get_newest_parent_cycle_from_school(school.id) == newest_cycle
+    end
+
     test "create_cycle/1 with valid data creates a cycle" do
       school = school_fixture()
 

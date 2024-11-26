@@ -5,8 +5,9 @@ defmodule LantternWeb.NeoComponents do
   We might replace core components in the future with this module.
   """
   use Phoenix.Component
-
   alias Phoenix.LiveView.JS
+
+  alias Lanttern.Identity.User
 
   import LantternWeb.CoreComponents, only: [icon: 1]
 
@@ -56,7 +57,7 @@ defmodule LantternWeb.NeoComponents do
   @doc """
   Renders the page header.
   """
-  attr :school_name, :string, required: true
+  attr :current_user, User, required: true
 
   slot :title, required: true
   slot :inner_block
@@ -68,9 +69,14 @@ defmodule LantternWeb.NeoComponents do
   def neo_header(assigns) do
     has_breadcrumb = assigns.breadcrumb != []
 
+    %{school_name: school_name, current_school_cycle: current_cycle} =
+      assigns.current_user.current_profile
+
     assigns =
       assigns
       |> assign(:has_breadcrumb, has_breadcrumb)
+      |> assign(:school_name, school_name)
+      |> assign(:current_cycle, current_cycle)
 
     ~H"""
     <header class="sticky top-0 z-20 bg-white ltrn-bg-main shadow-lg">
@@ -83,7 +89,10 @@ defmodule LantternWeb.NeoComponents do
           phx-click={JS.exec("data-show", to: "#menu")}
           aria-label="open menu"
         >
-          <p class="font-display font-bold"><%= "#{@school_name} 2024" %></p>
+          <p class="font-display font-bold">
+            <%= "#{@school_name}" %>
+            <span :if={@current_cycle}><%= @current_cycle.name %></span>
+          </p>
           <.icon name="hero-bars-3-mini" class="w-5 h-5" />
         </button>
       </div>
