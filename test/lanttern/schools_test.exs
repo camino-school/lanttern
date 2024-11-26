@@ -74,8 +74,8 @@ defmodule Lanttern.SchoolsTest do
       cycle = cycle_fixture(%{school_id: school.id})
 
       # extra cycles for school filter validation
-      class_fixture()
-      class_fixture()
+      cycle_fixture()
+      cycle_fixture()
 
       assert [cycle] == Schools.list_cycles(schools_ids: [school.id])
     end
@@ -91,10 +91,69 @@ defmodule Lanttern.SchoolsTest do
         cycle_fixture(%{start_at: ~D[2022-01-01], end_at: ~D[2022-12-31], name: "BBB"})
 
       assert [cycle_2022_b, cycle_2023_a, cycle_2024_c] ==
-               Schools.list_cycles(order_by: [asc: :end_at])
+               Schools.list_cycles(order: :asc)
+    end
 
-      assert [cycle_2024_c, cycle_2022_b, cycle_2023_a] ==
-               Schools.list_cycles(order_by: [desc: :name])
+    test "list_cycles/1 with parent_only: true opt removes subcycles from list" do
+      school = school_fixture()
+      parent_cycle = cycle_fixture(%{school_id: school.id})
+      _subcycle = cycle_fixture(%{school_id: school.id, parent_cycle_id: parent_cycle.id})
+
+      assert [parent_cycle] == Schools.list_cycles(parent_only: true)
+    end
+
+    test "list_cycles_and_subcycles/1 with school filter returns all cycles with preloaded subcycles as expected" do
+      school = school_fixture()
+
+      cycle_2024 =
+        cycle_fixture(%{school_id: school.id, start_at: ~D[2024-01-01], end_at: ~D[2024-12-31]})
+
+      cycle_2024_1 =
+        cycle_fixture(%{
+          school_id: school.id,
+          start_at: ~D[2024-01-01],
+          end_at: ~D[2024-06-30],
+          parent_cycle_id: cycle_2024.id
+        })
+
+      cycle_2024_2 =
+        cycle_fixture(%{
+          school_id: school.id,
+          start_at: ~D[2024-07-01],
+          end_at: ~D[2024-12-31],
+          parent_cycle_id: cycle_2024.id
+        })
+
+      cycle_2023 =
+        cycle_fixture(%{school_id: school.id, start_at: ~D[2023-01-01], end_at: ~D[2023-12-31]})
+
+      cycle_2023_1 =
+        cycle_fixture(%{
+          school_id: school.id,
+          start_at: ~D[2023-01-01],
+          end_at: ~D[2023-06-30],
+          parent_cycle_id: cycle_2023.id
+        })
+
+      cycle_2023_2 =
+        cycle_fixture(%{
+          school_id: school.id,
+          start_at: ~D[2023-07-01],
+          end_at: ~D[2023-12-31],
+          parent_cycle_id: cycle_2023.id
+        })
+
+      # extra cycles for school filter validation
+      cycle_fixture()
+      cycle_fixture()
+
+      [expected_cycle_2024, expected_cycle_2023] =
+        Schools.list_cycles_and_subcycles(schools_ids: [school.id])
+
+      assert expected_cycle_2024.id == cycle_2024.id
+      assert expected_cycle_2024.subcycles == [cycle_2024_2, cycle_2024_1]
+      assert expected_cycle_2023.id == cycle_2023.id
+      assert expected_cycle_2023.subcycles == [cycle_2023_2, cycle_2023_1]
     end
 
     test "get_cycle!/1 returns the cycle with given id" do
@@ -122,6 +181,25 @@ defmodule Lanttern.SchoolsTest do
       assert {:error, %Ecto.Changeset{}} = Schools.create_cycle(@invalid_attrs)
     end
 
+    test "create_cycle/1 prevents using subcycle as parent cycle" do
+      school = school_fixture()
+      parent_cycle = cycle_fixture(%{school_id: school.id})
+      subcycle = cycle_fixture(%{school_id: school.id, parent_cycle_id: parent_cycle.id})
+
+      create_attrs = %{
+        name: "some name",
+        start_at: ~D[2023-11-09],
+        end_at: ~D[2023-12-09],
+        school_id: school.id,
+        parent_cycle_id: subcycle.id
+      }
+
+      assert {:error,
+              %Ecto.Changeset{
+                errors: [parent_cycle_id: {"You can't use a subcycle as a parent cycle", []}]
+              }} = Schools.create_cycle(create_attrs)
+    end
+
     test "update_cycle/2 with valid data updates the cycle" do
       cycle = cycle_fixture()
 
@@ -141,6 +219,23 @@ defmodule Lanttern.SchoolsTest do
       cycle = cycle_fixture()
       assert {:error, %Ecto.Changeset{}} = Schools.update_cycle(cycle, @invalid_attrs)
       assert cycle == Schools.get_cycle!(cycle.id)
+    end
+
+    test "update_cycle/2 prevents using subcycle as parent cycle" do
+      school = school_fixture()
+      parent_cycle = cycle_fixture(%{school_id: school.id})
+      subcycle = cycle_fixture(%{school_id: school.id, parent_cycle_id: parent_cycle.id})
+      cycle = cycle_fixture(%{school_id: school.id})
+
+      update_attrs = %{
+        name: "updated name",
+        parent_cycle_id: subcycle.id
+      }
+
+      assert {:error,
+              %Ecto.Changeset{
+                errors: [parent_cycle_id: {"You can't use a subcycle as a parent cycle", []}]
+              }} = Schools.update_cycle(cycle, update_attrs)
     end
 
     test "delete_cycle/1 deletes the cycle" do

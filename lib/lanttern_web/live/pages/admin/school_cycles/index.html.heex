@@ -13,7 +13,7 @@
   row_click={fn {_id, cycle} -> JS.navigate(~p"/admin/school_cycles/#{cycle}") end}
 >
   <:col :let={{_id, cycle}} label="Name">
-    <%= cycle.name %><%= if cycle.is_parent, do: " (parent cycle)" %>
+    <%= cycle.name %><%= if !cycle.parent_cycle_id, do: " (parent cycle)" %>
   </:col>
   <:col :let={{_id, cycle}} label="Start at"><%= cycle.start_at %></:col>
   <:col :let={{_id, cycle}} label="End at"><%= cycle.end_at %></:col>

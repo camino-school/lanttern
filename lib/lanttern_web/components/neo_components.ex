@@ -75,7 +75,7 @@ defmodule LantternWeb.NeoComponents do
     ~H"""
     <header class="sticky top-0 z-20 bg-white ltrn-bg-main shadow-lg">
       <div class="flex items-center gap-2 p-4">
-        <h1 class="flex-1 font-display font-black text-xl"><%= render_slot(@title) %></h1>
+        <h1 class="flex-1 font-display font-black text-lg"><%= render_slot(@title) %></h1>
 
         <button
           type="button"
@@ -83,7 +83,7 @@ defmodule LantternWeb.NeoComponents do
           phx-click={JS.exec("data-show", to: "#menu")}
           aria-label="open menu"
         >
-          <p class="font-display font-bold text-sm"><%= "#{@school_name} 2024" %></p>
+          <p class="font-display font-bold"><%= "#{@school_name} 2024" %></p>
           <.icon name="hero-bars-3-mini" class="w-5 h-5" />
         </button>
       </div>
@@ -121,7 +121,7 @@ defmodule LantternWeb.NeoComponents do
         patch={Map.get(tab, :patch)}
         navigate={Map.get(tab, :navigate)}
         class={[
-          "relative shrink-0 py-4 font-display font-bold text-base whitespace-nowrap",
+          "relative shrink-0 py-4 font-display font-bold whitespace-nowrap",
           if(Map.get(tab, :is_current),
             do: "text-ltrn-dark",
             else: "text-ltrn-subtle hover:text-ltrn-dark"
@@ -169,7 +169,7 @@ defmodule LantternWeb.NeoComponents do
   end
 
   defp neo_action_styles(),
-    do: "flex items-center gap-2 min-w-0 text-base text-ltrn-dark hover:text-ltrn-subtle"
+    do: "flex items-center gap-2 min-w-0 text-ltrn-dark hover:text-ltrn-subtle"
 
   def format_neo_action_items_text(items, default_text, key \\ :name, separator \\ ", ")
 

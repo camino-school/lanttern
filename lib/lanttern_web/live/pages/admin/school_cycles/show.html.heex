@@ -9,7 +9,9 @@
 </.header>
 
 <.list>
-  <:item title="Name"><%= @cycle.name %><%= if @cycle.is_parent, do: " (parent cycle)" %></:item>
+  <:item title="Name">
+    <%= @cycle.name %><%= if !@cycle.parent_cycle_id, do: " (parent cycle)" %>
+  </:item>
   <:item title="Start at"><%= @cycle.start_at %></:item>
   <:item title="End at"><%= @cycle.end_at %></:item>
   <:item title="Parent cycle">

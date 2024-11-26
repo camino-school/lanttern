@@ -31,7 +31,7 @@ defmodule LantternWeb.SchoolLive.CyclesComponent do
             sticky_header_offset="7rem"
           >
             <:col :let={cycle} label={gettext("Cycle")}>
-              <%= if cycle.is_parent do %>
+              <%= if !cycle.parent_cycle_id do %>
                 <div class="flex items-center gap-2 font-bold">
                   <.icon name="hero-folder" class="w-6 h-6" />
                   <%= cycle.name %>
@@ -101,7 +101,7 @@ defmodule LantternWeb.SchoolLive.CyclesComponent do
   def update(%{action: {CycleFormOverlayComponent, {:updated, cycle}}}, socket) do
     nav_opts = [
       put_flash: {:info, gettext("Cycle updated successfully")},
-      push_patch: [to: ~p"/school/cycles"]
+      push_navigate: [to: ~p"/school/cycles"]
     ]
 
     socket =
@@ -149,7 +149,8 @@ defmodule LantternWeb.SchoolLive.CyclesComponent do
     school_id = socket.assigns.current_user.current_profile.school_id
 
     cycles =
-      Schools.list_cycles(schools_ids: [school_id], order_by: [desc: :end_at, asc: :start_at])
+      Schools.list_cycles_and_subcycles(schools_ids: [school_id])
+      |> Enum.flat_map(&[%{&1 | subcycles: nil} | &1.subcycles])
 
     socket
     |> stream(:cycles, cycles)

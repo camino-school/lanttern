@@ -5,6 +5,7 @@ defmodule Lanttern.Schools do
 
   import Ecto.Query, warn: false
   import Lanttern.RepoHelpers
+  import LantternWeb.Gettext
   alias Lanttern.Repo
   alias Lanttern.Schools.School
   alias Lanttern.Schools.Cycle
@@ -115,7 +116,8 @@ defmodule Lanttern.Schools do
   ## Options:
 
   - `:schools_ids` – filter cycles by schools
-  - `:order_by` - an order by query expression ([ref](https://hexdocs.pm/ecto/Ecto.Query.html#order_by/3))
+  - `:order` - `:desc` (default) or `:asc`
+  - `:parent_only` – list only cycles without `parent_cycle_id` when `true`
   - `:preloads` – preloads associated data
 
   ## Examples
@@ -127,7 +129,7 @@ defmodule Lanttern.Schools do
   def list_cycles(opts \\ []) do
     Cycle
     |> apply_list_cycles_opts(opts)
-    |> apply_list_cycles_order_by(Keyword.get(opts, :order_by))
+    |> apply_list_cycles_order(Keyword.get(opts, :order))
     |> Repo.all()
     |> maybe_preload(opts)
   end
@@ -142,18 +144,85 @@ defmodule Lanttern.Schools do
     |> apply_list_cycles_opts(opts)
   end
 
+  defp apply_list_cycles_opts(queryable, [{:parent_only, true} | opts]) do
+    from(
+      c in queryable,
+      where: is_nil(c.parent_cycle_id)
+    )
+    |> apply_list_cycles_opts(opts)
+  end
+
   defp apply_list_cycles_opts(queryable, [_ | opts]),
     do: apply_list_cycles_opts(queryable, opts)
 
-  defp apply_list_cycles_order_by(queryable, nil) do
+  defp apply_list_cycles_order(queryable, :asc) do
     from c in queryable,
-      order_by: [asc: :end_at, desc: :start_at]
+      order_by: [asc: :start_at, asc: :end_at]
   end
 
-  defp apply_list_cycles_order_by(queryable, order_by_expression) do
+  defp apply_list_cycles_order(queryable, _) do
     from c in queryable,
-      order_by: ^order_by_expression
+      order_by: [desc: :end_at, asc: :start_at]
   end
+
+  @doc """
+  Returns the list of school cycles with preloaded subcycles.
+
+  ## Options:
+
+  - `:schools_ids` – filter cycles by schools
+  - `:order` - `:desc` (defautl) or `:asc`
+
+  ## Examples
+
+      iex> list_cycles_and_subcycles()
+      [%Cycle{}, ...]
+
+  """
+  def list_cycles_and_subcycles(opts \\ []) do
+    order =
+      Keyword.get(opts, :order)
+      |> set_list_cycles_and_subcycles_order()
+
+    from(
+      c in Cycle,
+      left_join: sc in assoc(c, :subcycles),
+      where: is_nil(c.parent_cycle_id),
+      preload: [subcycles: sc],
+      order_by: ^order
+    )
+    |> apply_list_cycles_and_subcycles_opts(opts)
+    |> Repo.all()
+  end
+
+  defp set_list_cycles_and_subcycles_order(:asc),
+    do: [
+      asc: :start_at,
+      asc: :end_at,
+      asc: dynamic([_c, sc], sc.start_at),
+      asc: dynamic([_c, sc], sc.end_at)
+    ]
+
+  defp set_list_cycles_and_subcycles_order(_),
+    do: [
+      desc: :end_at,
+      asc: :start_at,
+      desc: dynamic([_c, sc], sc.end_at),
+      asc: dynamic([_c, sc], sc.start_at)
+    ]
+
+  defp apply_list_cycles_and_subcycles_opts(queryable, []), do: queryable
+
+  defp apply_list_cycles_and_subcycles_opts(queryable, [{:schools_ids, schools_ids} | opts]) do
+    from(
+      c in queryable,
+      where: c.school_id in ^schools_ids
+    )
+    |> apply_list_cycles_and_subcycles_opts(opts)
+  end
+
+  defp apply_list_cycles_and_subcycles_opts(queryable, [_ | opts]),
+    do: apply_list_cycles_and_subcycles_opts(queryable, opts)
 
   @doc """
   Gets a single cycle.
@@ -229,9 +298,36 @@ defmodule Lanttern.Schools do
   def create_cycle(attrs \\ %{}, opts \\ []) do
     %Cycle{}
     |> Cycle.changeset(attrs)
+    |> validate_cycle_parent_cycle_id()
     |> Repo.insert()
     |> maybe_preload(opts)
   end
+
+  defp validate_cycle_parent_cycle_id(%{changes: %{parent_cycle_id: nil}} = changeset),
+    do: changeset
+
+  defp validate_cycle_parent_cycle_id(%{changes: %{parent_cycle_id: parent_cycle_id}} = changeset) do
+    case Repo.get(Cycle, parent_cycle_id) do
+      %Cycle{parent_cycle_id: nil} ->
+        changeset
+
+      %Cycle{parent_cycle_id: _} ->
+        Ecto.Changeset.add_error(
+          changeset,
+          :parent_cycle_id,
+          gettext("You can't use a subcycle as a parent cycle")
+        )
+
+      nil ->
+        Ecto.Changeset.add_error(
+          changeset,
+          :parent_cycle_id,
+          gettext("Parent cycle does not exist")
+        )
+    end
+  end
+
+  defp validate_cycle_parent_cycle_id(changeset), do: changeset
 
   @doc """
   Updates a cycle.
@@ -252,6 +348,7 @@ defmodule Lanttern.Schools do
   def update_cycle(%Cycle{} = cycle, attrs, opts \\ []) do
     cycle
     |> Cycle.changeset(attrs)
+    |> validate_cycle_parent_cycle_id()
     |> Repo.update()
     |> maybe_preload(opts)
   end

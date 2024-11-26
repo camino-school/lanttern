@@ -595,9 +595,9 @@ defmodule LantternWeb.CoreComponents do
 
     ~H"""
     <div class={@class}>
-      <div class="grid gap-y-2" style={@grid_template_cols_style}>
+      <div class="grid" style={@grid_template_cols_style}>
         <div
-          class="sticky z-10 grid grid-cols-subgrid rounded font-display font-bold text-sm bg-white shadow"
+          class="sticky z-10 grid grid-cols-subgrid font-display font-bold text-sm bg-white shadow"
           style={["top: #{@sticky_header_offset};", @grid_col_span_style]}
         >
           <div :for={col <- @col} class="flex gap-2 p-4">
@@ -624,7 +624,7 @@ defmodule LantternWeb.CoreComponents do
             :for={{row_id, row} <- @stream}
             id={row_id}
             class={[
-              "grid grid-cols-subgrid items-center py-2 rounded hover:bg-ltrn-mesh-yellow",
+              "grid grid-cols-subgrid items-center hover:bg-ltrn-mesh-yellow",
               @row_click && "hover:cursor-pointer"
             ]}
             style={@grid_col_span_style}

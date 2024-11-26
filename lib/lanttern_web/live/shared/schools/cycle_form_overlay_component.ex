@@ -7,6 +7,7 @@ defmodule LantternWeb.Schools.CycleFormOverlayComponent do
 
   alias Lanttern.Schools
   alias Lanttern.Schools.Cycle
+  import LantternWeb.SchoolsHelpers, only: [generate_cycle_options: 1]
 
   @impl true
   def render(assigns) do
@@ -33,14 +34,13 @@ defmodule LantternWeb.Schools.CycleFormOverlayComponent do
           />
           <.input field={@form[:start_at]} type="date" label={gettext("Start at")} class="mb-6" />
           <.input field={@form[:end_at]} type="date" label={gettext("End at")} class="mb-6" />
-          <%!-- <.input
+          <.input
             field={@form[:parent_cycle_id]}
             type="select"
-            label="Parent cycle"
-            prompt="Select parent cycle"
+            label={gettext("Parent cycle")}
+            prompt={gettext("Select parent cycle")}
             options={@cycle_options}
-          /> --%>
-          <.input field={@form[:is_parent]} type="checkbox" label={gettext("Is parent cycle?")} />
+          />
         </.form>
         <:actions_left :if={@cycle.id}>
           <.button
@@ -85,7 +85,11 @@ defmodule LantternWeb.Schools.CycleFormOverlayComponent do
   end
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
+    cycle_options =
+      generate_cycle_options(schools_ids: [socket.assigns.cycle.school_id], parent_only: true)
+
     socket
+    |> assign(:cycle_options, cycle_options)
     |> assign(:initalized, true)
   end
 

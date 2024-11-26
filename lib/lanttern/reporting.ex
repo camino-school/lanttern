@@ -101,7 +101,7 @@ defmodule Lanttern.Reporting do
       list_report_cards(opts)
       |> Enum.group_by(& &1.school_cycle_id)
 
-    Schools.list_cycles(order_by: [desc: :end_at])
+    Schools.list_cycles()
     |> Enum.map(&{&1, Map.get(report_cards_by_cycle_map, &1.id)})
     |> Enum.filter(fn {_cycle, report_cards} -> not is_nil(report_cards) end)
   end

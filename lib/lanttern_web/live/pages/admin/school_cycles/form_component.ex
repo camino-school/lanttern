@@ -37,7 +37,6 @@ defmodule LantternWeb.Admin.CycleLive.FormComponent do
           prompt="Select parent cycle"
           options={@cycle_options}
         />
-        <.input field={@form[:is_parent]} type="checkbox" label="Is parent cycle?" />
         <:actions>
           <.button phx-disable-with="Saving...">Save Cycle</.button>
         </:actions>
