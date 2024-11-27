@@ -674,11 +674,12 @@ defmodule LantternWeb.CoreComponents do
   Renders a simple empty state component
   """
   attr :class, :any, default: nil
+  attr :id, :string, default: nil
   slot :inner_block, required: true
 
   def empty_state_simple(assigns) do
     ~H"""
-    <div class={["p-4 border border-dashed border-ltrn-light rounded", @class]}>
+    <div class={["p-4 border border-dashed border-ltrn-light rounded", @class]} id={@id}>
       <p class="text-sm text-ltrn-subtle text-center"><%= render_slot(@inner_block) %></p>
     </div>
     """

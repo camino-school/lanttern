@@ -3,6 +3,8 @@ defmodule LantternWeb.MenuComponent do
   Shared menu components
   """
 
+  alias Lanttern.Personalization
+  alias Lanttern.Schools
   use LantternWeb, :live_component
 
   alias Lanttern.Identity
@@ -60,6 +62,39 @@ defmodule LantternWeb.MenuComponent do
               String.capitalize(@current_user.current_profile.type)
             ) %> @ <%= @current_user.current_profile.school_name %>
           </p>
+          <div class="mt-2">
+            <button
+              type="button"
+              phx-click={toggle_cycle_list(@myself)}
+              class="flex items-center gap-2 font-display font-black text-base hover:text-ltrn-subtle"
+            >
+              <%= if @current_user.current_profile.current_school_cycle,
+                do: "#{gettext("Cycle")}: #{@current_user.current_profile.current_school_cycle.name}",
+                else: gettext("No cycle selected") %>
+              <.icon name="hero-chevron-down" id="cycle-list-down-icon" />
+              <.icon name="hero-chevron-up" id="cycle-list-up-icon" class="hidden" />
+            </button>
+            <%= if @has_school_cycles do %>
+              <ul id="cycle-list" class="hidden flex-wrap gap-2 mt-2" phx-update="stream">
+                <.badge_button
+                  :for={{dom_id, cycle} <- @streams.school_cycles}
+                  id={dom_id}
+                  is_checked={
+                    cycle.id == Map.get(@current_user.current_profile.current_school_cycle, :id)
+                  }
+                  phx-click={
+                    JS.push("select_school_cycle", value: %{"id" => cycle.id}, target: @myself)
+                  }
+                >
+                  <%= cycle.name %>
+                </.badge_button>
+              </ul>
+            <% else %>
+              <.empty_state_simple id="cycle-list" class="hidden mt-2">
+                <%= gettext("No cycles registered") %>
+              </.empty_state_simple>
+            <% end %>
+          </div>
           <nav class="mt-10">
             <ul class="font-bold text-lg text-ltrn-subtle leading-loose">
               <li :if={@current_user.is_root_admin}>
@@ -251,6 +286,14 @@ defmodule LantternWeb.MenuComponent do
     """
   end
 
+  def toggle_cycle_list(js \\ %JS{}, myself) do
+    js
+    |> JS.toggle(to: "#cycle-list", display: "flex")
+    |> JS.toggle(to: "#cycle-list-down-icon")
+    |> JS.toggle(to: "#cycle-list-up-icon")
+    |> JS.push("stream_school_cycles", target: myself)
+  end
+
   def toggle_profile_list(js \\ %JS{}) do
     js
     |> JS.toggle(to: "#profile-list")
@@ -336,6 +379,9 @@ defmodule LantternWeb.MenuComponent do
       socket
       |> assign(:locale_error, nil)
       |> assign(:active_nav, active_nav)
+      |> stream(:school_cycles, [])
+      |> assign(:school_cycles_loaded, false)
+      |> assign(:has_school_cycles, false)
 
     {:ok, socket}
   end
@@ -448,6 +494,44 @@ defmodule LantternWeb.MenuComponent do
   end
 
   # event handlers
+
+  def handle_event("stream_school_cycles", _, %{assigns: %{school_cycles_loaded: false}} = socket) do
+    school_cycles =
+      Schools.list_cycles(
+        schools_ids: [socket.assigns.current_user.current_profile.school_id],
+        parent_only: true
+      )
+
+    socket =
+      socket
+      |> stream(:school_cycles, school_cycles)
+      |> assign(:school_cycles_loaded, true)
+      |> assign(:has_school_cycles, length(school_cycles) > 0)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("stream_school_cycles", _, socket), do: {:noreply, socket}
+
+  def handle_event("select_school_cycle", %{"id" => cycle_id}, socket) do
+    socket =
+      Personalization.set_profile_settings(
+        socket.assigns.current_user.current_profile.id,
+        %{current_school_cycle_id: cycle_id}
+      )
+      |> case do
+        {:ok, _profile_setting} ->
+          socket
+          |> push_navigate(to: socket.assigns.current_path)
+          |> put_flash(:info, gettext("Current cycle changed"))
+
+        _ ->
+          # do something with error
+          socket
+      end
+
+    {:noreply, socket}
+  end
 
   def handle_event(
         "change_profile",
