@@ -55,18 +55,59 @@ defmodule LantternWeb.MenuComponent do
           <p class="font-black text-4xl text-ltrn-dark">
             <%= @current_user.current_profile.name %>
           </p>
-          <p class="mt-2 font-black text-lg text-ltrn-dark">
-            <%= Gettext.dgettext(
-              LantternWeb.Gettext,
-              "schools",
-              String.capitalize(@current_user.current_profile.type)
-            ) %> @ <%= @current_user.current_profile.school_name %>
-          </p>
-          <div class="mt-2">
+          <div id="profile-select" class="group mt-2">
+            <button
+              type="button"
+              phx-click={toggle_profile_list(@myself)}
+              class="flex items-center gap-2 font-black text-lg hover:text-ltrn-subtle"
+            >
+              <%= Gettext.dgettext(
+                LantternWeb.Gettext,
+                "schools",
+                String.capitalize(@current_user.current_profile.type)
+              ) %> @ <%= @current_user.current_profile.school_name %>
+
+              <.icon name="hero-chevron-down" id="profile-list-down-icon" />
+              <.icon name="hero-chevron-up" id="profile-list-up-icon" class="hidden" />
+            </button>
+            <div
+              :if={!@profiles_loaded}
+              class="hidden items-center gap-2 mt-2 group-phx-click-loading:flex"
+            >
+              <.spinner />
+              <%= gettext("Loading profiles") %>
+            </div>
+            <div id="profile-list" class="hidden">
+              <ul
+                id="profile-list-ul"
+                class="mt-2 mb-4 divide-y divide-ltrn-lighter"
+                phx-update="stream"
+              >
+                <.profile_item
+                  :for={{dom_id, profile} <- @streams.profiles}
+                  id={dom_id}
+                  profile={profile}
+                  current_profile_id={@current_user.current_profile_id}
+                  phx-click={
+                    JS.push(
+                      "change_profile",
+                      value: %{
+                        "user_id" => @current_user.id,
+                        "profile_id" => profile.id,
+                        "profile_type" => profile.type
+                      },
+                      target: @myself
+                    )
+                  }
+                />
+              </ul>
+            </div>
+          </div>
+          <div id="cycle-select" class="group mt-2">
             <button
               type="button"
               phx-click={toggle_cycle_list(@myself)}
-              class="flex items-center gap-2 font-display font-black text-base hover:text-ltrn-subtle"
+              class="flex items-center gap-2 font-black text-lg hover:text-ltrn-subtle"
             >
               <%= if @current_user.current_profile.current_school_cycle,
                 do: "#{gettext("Cycle")}: #{@current_user.current_profile.current_school_cycle.name}",
@@ -74,6 +115,13 @@ defmodule LantternWeb.MenuComponent do
               <.icon name="hero-chevron-down" id="cycle-list-down-icon" />
               <.icon name="hero-chevron-up" id="cycle-list-up-icon" class="hidden" />
             </button>
+            <div
+              :if={!@has_school_cycles}
+              class="hidden items-center gap-2 mt-2 group-phx-click-loading:flex"
+            >
+              <.spinner />
+              <%= gettext("Loading cycles") %>
+            </div>
             <div id="cycle-list" class="hidden">
               <%= if @has_school_cycles do %>
                 <ul id="cycle-list-ul" class="flex flex-wrap gap-2 mt-2" phx-update="stream">
@@ -91,7 +139,7 @@ defmodule LantternWeb.MenuComponent do
                   </.badge_button>
                 </ul>
               <% else %>
-                <.empty_state_simple class="mt-2">
+                <.empty_state_simple class="mt-2 group-phx-click-loading:hidden">
                   <%= gettext("No cycles registered") %>
                 </.empty_state_simple>
               <% end %>
@@ -100,49 +148,12 @@ defmodule LantternWeb.MenuComponent do
           <nav class="mt-10">
             <ul class="font-bold text-lg text-ltrn-subtle leading-loose">
               <li :if={@current_user.is_root_admin}>
-                <.link
-                  href={~p"/admin"}
-                  class="flex items-center gap-2 underline hover:text-ltrn-dark"
-                >
-                  Admin
+                <.link href={~p"/admin"} class="flex items-center gap-2 hover:text-ltrn-dark">
+                  <%= gettext("Admin") %>
                 </.link>
               </li>
               <li>
-                <button
-                  type="button"
-                  phx-click={toggle_profile_list()}
-                  class="flex items-center gap-2 underline hover:text-ltrn-dark"
-                >
-                  <%= gettext("Change profile") %>
-                  <.icon name="hero-chevron-down" id="profile-list-down-icon" />
-                  <.icon name="hero-chevron-up" id="profile-list-up-icon" class="hidden" />
-                </button>
-                <ul id="profile-list" class="hidden mt-2 mb-4 divide-y divide-ltrn-lighter">
-                  <.profile_item
-                    :for={profile <- @profiles}
-                    profile={profile}
-                    current_profile_id={@current_user.current_profile_id}
-                    phx-click={
-                      JS.push(
-                        "change_profile",
-                        value: %{
-                          "user_id" => @current_user.id,
-                          "profile_id" => profile.id,
-                          "profile_type" => profile.type
-                        },
-                        target: @myself
-                      )
-                    }
-                  />
-                </ul>
-              </li>
-              <%!-- <li>Edit profile</li> --%>
-              <li class="mt-4">
-                <.link
-                  href={~p"/users/log_out"}
-                  method="delete"
-                  class="underline hover:text-ltrn-dark"
-                >
+                <.link href={~p"/users/log_out"} method="delete" class="hover:text-ltrn-dark">
                   <%= gettext("Log out") %>
                 </.link>
               </li>
@@ -224,6 +235,7 @@ defmodule LantternWeb.MenuComponent do
     """
   end
 
+  attr :id, :string, required: true
   attr :current_profile_id, :string, required: true
   attr :profile, Lanttern.Identity.Profile, required: true
   attr :rest, :global, doc: "use to pass phx-* bindings to change profile button"
@@ -257,7 +269,7 @@ defmodule LantternWeb.MenuComponent do
       |> assign(:active, profile.id == current_profile_id)
 
     ~H"""
-    <li id={"profile-#{@profile.id}"}>
+    <li id={@id}>
       <button
         type="button"
         class="group flex items-center gap-2 w-full py-2 text-left text-ltrn-subtle leading-none"
@@ -293,14 +305,15 @@ defmodule LantternWeb.MenuComponent do
     |> JS.toggle(to: "#cycle-list")
     |> JS.toggle(to: "#cycle-list-down-icon")
     |> JS.toggle(to: "#cycle-list-up-icon")
-    |> JS.push("stream_school_cycles", target: myself)
+    |> JS.push("stream_school_cycles", target: myself, loading: "#cycle-select")
   end
 
-  def toggle_profile_list(js \\ %JS{}) do
+  def toggle_profile_list(js \\ %JS{}, myself) do
     js
     |> JS.toggle(to: "#profile-list")
     |> JS.toggle(to: "#profile-list-down-icon")
     |> JS.toggle(to: "#profile-list-up-icon")
+    |> JS.push("stream_user_profiles", target: myself, loading: "#profile-select")
   end
 
   attr :is_current, :boolean, required: true
@@ -384,6 +397,8 @@ defmodule LantternWeb.MenuComponent do
       |> stream(:school_cycles, [])
       |> assign(:school_cycles_loaded, false)
       |> assign(:has_school_cycles, false)
+      |> stream(:profiles, [])
+      |> assign(:profiles_loaded, false)
 
     {:ok, socket}
   end
@@ -392,20 +407,9 @@ defmodule LantternWeb.MenuComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign_profiles()
       |> assign_nav_items()
 
     {:ok, socket}
-  end
-
-  defp assign_profiles(socket) do
-    profiles =
-      Identity.list_profiles(
-        user_id: socket.assigns.current_user.id,
-        preloads: [teacher: :school, student: :school, guardian_of_student: :school]
-      )
-
-    assign(socket, :profiles, profiles)
   end
 
   defp assign_nav_items(socket) do
@@ -534,6 +538,23 @@ defmodule LantternWeb.MenuComponent do
 
     {:noreply, socket}
   end
+
+  def handle_event("stream_user_profiles", _, %{assigns: %{profiles_loaded: false}} = socket) do
+    profiles =
+      Identity.list_profiles(
+        user_id: socket.assigns.current_user.id,
+        preloads: [teacher: :school, student: :school, guardian_of_student: :school]
+      )
+
+    socket =
+      socket
+      |> stream(:profiles, profiles)
+      |> assign(:profiles_loaded, true)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("stream_user_profiles", _, socket), do: {:noreply, socket}
 
   def handle_event(
         "change_profile",
