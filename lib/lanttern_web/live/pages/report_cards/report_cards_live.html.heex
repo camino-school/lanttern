@@ -29,7 +29,7 @@
       <.responsive_container>
         <h6 class="font-display font-bold"><%= cycle.name %></h6>
       </.responsive_container>
-      <.responsive_grid>
+      <.responsive_grid class="px-6 py-10 sm:px-10">
         <.report_card_card
           :for={report_card <- report_cards}
           id={"report-card-#{report_card.id}"}

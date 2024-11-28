@@ -479,13 +479,13 @@ defmodule Lanttern.Schools do
   end
 
   defp apply_list_user_classes_opts(queryable, [{:years_ids, years_ids} | opts])
-       when years_ids != [] do
+       when is_list(years_ids) and years_ids != [] do
     from([_cl, years: y] in queryable, where: y.id in ^years_ids)
     |> apply_list_user_classes_opts(opts)
   end
 
   defp apply_list_user_classes_opts(queryable, [{:cycles_ids, cycles_ids} | opts])
-       when cycles_ids != [] do
+       when is_list(cycles_ids) and cycles_ids != [] do
     from(cl in queryable, where: cl.cycle_id in ^cycles_ids)
     |> apply_list_user_classes_opts(opts)
   end

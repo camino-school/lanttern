@@ -74,26 +74,28 @@ defmodule LantternWeb.MenuComponent do
               <.icon name="hero-chevron-down" id="cycle-list-down-icon" />
               <.icon name="hero-chevron-up" id="cycle-list-up-icon" class="hidden" />
             </button>
-            <%= if @has_school_cycles do %>
-              <ul id="cycle-list" class="hidden flex-wrap gap-2 mt-2" phx-update="stream">
-                <.badge_button
-                  :for={{dom_id, cycle} <- @streams.school_cycles}
-                  id={dom_id}
-                  is_checked={
-                    cycle.id == Map.get(@current_user.current_profile.current_school_cycle, :id)
-                  }
-                  phx-click={
-                    JS.push("select_school_cycle", value: %{"id" => cycle.id}, target: @myself)
-                  }
-                >
-                  <%= cycle.name %>
-                </.badge_button>
-              </ul>
-            <% else %>
-              <.empty_state_simple id="cycle-list" class="hidden mt-2">
-                <%= gettext("No cycles registered") %>
-              </.empty_state_simple>
-            <% end %>
+            <div id="cycle-list" class="hidden">
+              <%= if @has_school_cycles do %>
+                <ul id="cycle-list-ul" class="flex flex-wrap gap-2 mt-2" phx-update="stream">
+                  <.badge_button
+                    :for={{dom_id, cycle} <- @streams.school_cycles}
+                    id={dom_id}
+                    is_checked={
+                      cycle.id == Map.get(@current_user.current_profile.current_school_cycle, :id)
+                    }
+                    phx-click={
+                      JS.push("select_school_cycle", value: %{"id" => cycle.id}, target: @myself)
+                    }
+                  >
+                    <%= cycle.name %>
+                  </.badge_button>
+                </ul>
+              <% else %>
+                <.empty_state_simple class="mt-2">
+                  <%= gettext("No cycles registered") %>
+                </.empty_state_simple>
+              <% end %>
+            </div>
           </div>
           <nav class="mt-10">
             <ul class="font-bold text-lg text-ltrn-subtle leading-loose">
@@ -288,7 +290,7 @@ defmodule LantternWeb.MenuComponent do
 
   def toggle_cycle_list(js \\ %JS{}, myself) do
     js
-    |> JS.toggle(to: "#cycle-list", display: "flex")
+    |> JS.toggle(to: "#cycle-list")
     |> JS.toggle(to: "#cycle-list-down-icon")
     |> JS.toggle(to: "#cycle-list-up-icon")
     |> JS.push("stream_school_cycles", target: myself)

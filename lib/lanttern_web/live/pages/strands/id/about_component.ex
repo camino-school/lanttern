@@ -125,7 +125,7 @@ defmodule LantternWeb.StrandLive.AboutComponent do
         </p>
       </.responsive_container>
       <%= if @has_report_cards do %>
-        <.responsive_grid id={@id} phx-update="stream">
+        <.responsive_grid id={@id} phx-update="stream" class="px-6 py-10 sm:px-10">
           <.report_card_card
             :for={{dom_id, report_card} <- @streams.report_cards}
             id={dom_id}

@@ -40,7 +40,7 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
         </div>
       </.responsive_container>
       <%= if @has_strands_reports do %>
-        <.responsive_grid id="strands-reports-grid" phx-update="stream">
+        <.responsive_grid id="strands-reports-grid" phx-update="stream" class="px-6 sm:px-10">
           <.strand_card
             :for={{dom_id, strand_report} <- @streams.strands_reports}
             id={dom_id}

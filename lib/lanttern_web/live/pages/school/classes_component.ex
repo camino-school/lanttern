@@ -21,13 +21,6 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
           >
             <%= format_neo_action_items_text(@selected_years, gettext("All years")) %>
           </.neo_action>
-          <.neo_action
-            type="button"
-            phx-click={JS.exec("data-show", to: "#school-cycle-filters-overlay")}
-            icon_name="hero-chevron-down-mini"
-          >
-            <%= format_neo_action_items_text(@selected_cycles, gettext("All cycles")) %>
-          </.neo_action>
         </div>
         <.neo_action
           :if={@is_school_manager}
@@ -39,7 +32,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
         </.neo_action>
       </div>
       <%= if @has_classes do %>
-        <.responsive_grid id="school-classes" phx-update="stream" is_full_width>
+        <.responsive_grid id="school-classes" phx-update="stream" is_full_width class="px-4 pb-4">
           <.card_base
             :for={{dom_id, class} <- @streams.classes}
             id={dom_id}
@@ -174,7 +167,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
-    |> assign_user_filters([:years, :cycles])
+    |> assign_user_filters([:years])
     |> stream_classes()
     |> assign(:initialized, true)
   end
@@ -182,12 +175,18 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
   defp initialize(socket), do: socket
 
   defp stream_classes(socket) do
+    cycles_ids =
+      case socket.assigns.current_user.current_profile.current_school_cycle do
+        %{id: cycle_id} -> [cycle_id]
+        _ -> []
+      end
+
     classes =
       Schools.list_user_classes(
         socket.assigns.current_user,
         preload_cycle_years_students: true,
         years_ids: socket.assigns.selected_years_ids,
-        cycles_ids: socket.assigns.selected_cycles_ids
+        cycles_ids: cycles_ids
       )
 
     socket

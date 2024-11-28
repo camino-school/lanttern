@@ -13,7 +13,7 @@
     <%= gettext("Classes") %>
   </h3>
 </.responsive_container>
-<.responsive_grid id="students" phx-update="stream">
+<.responsive_grid id="students" phx-update="stream" class="px-6 py-10 sm:px-10">
   <.card_base
     :for={class <- @student.classes}
     id={"student-class-#{class.id}"}
@@ -34,7 +34,7 @@
       <%= gettext("Student report cards") %>
     </h3>
   </.responsive_container>
-  <.responsive_grid>
+  <.responsive_grid class="px-6 py-10 sm:px-10">
     <.report_card_card
       :for={{dom_id, student_report_card} <- @streams.student_report_cards}
       id={dom_id}

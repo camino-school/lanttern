@@ -9,7 +9,11 @@
   <.responsive_container>
     <h2 class="font-display font-bold text-2xl"><%= gettext("Curriculum components") %></h2>
   </.responsive_container>
-  <.responsive_grid id="curriculum-components-grid" phx-update="stream">
+  <.responsive_grid
+    id="curriculum-components-grid"
+    phx-update="stream"
+    class="px-6 py-10 sm:px-10"
+  >
     <div
       :for={{dom_id, curriculum_component} <- @streams.curriculum_components}
       id={dom_id}

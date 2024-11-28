@@ -2,11 +2,13 @@
   <:title><%= @current_user.current_profile.school_name %></:title>
   <div class="px-4">
     <.neo_tabs>
-      <:tab patch={~p"/school/students"} is_current={@live_action in [:show, :manage_students]}>
-        <%= gettext("Students") %>
+      <:tab patch={~p"/school/classes"} is_current={@live_action in [:show, :manage_classes]}>
+        <%= if @current_user.current_profile.current_school_cycle,
+          do: "#{@current_user.current_profile.current_school_cycle.name} #{gettext("classes")}",
+          else: gettext("Classes") %>
       </:tab>
-      <:tab patch={~p"/school/classes"} is_current={@live_action == :manage_classes}>
-        <%= gettext("Classes") %>
+      <:tab patch={~p"/school/students"} is_current={@live_action == :manage_students}>
+        <%= gettext("All students") %>
       </:tab>
       <:tab patch={~p"/school/cycles"} is_current={@live_action == :manage_cycles}>
         <%= gettext("Cycles") %>
@@ -15,20 +17,20 @@
   </div>
 </.neo_header>
 <.live_component
-  :if={@live_action in [:show, :manage_students]}
+  :if={@live_action in [:show, :manage_classes]}
+  module={ClassesComponent}
+  id={:school_classes}
+  current_user={@current_user}
+  params={@params}
+  is_school_manager={@is_school_manager}
+/>
+<.live_component
+  :if={@live_action == :manage_students}
   module={StudentsComponent}
   id={:school_classes}
   current_user={@current_user}
   params={@params}
   live_action={@live_action}
-  is_school_manager={@is_school_manager}
-/>
-<.live_component
-  :if={@live_action == :manage_classes}
-  module={ClassesComponent}
-  id={:school_classes}
-  current_user={@current_user}
-  params={@params}
   is_school_manager={@is_school_manager}
 />
 <.live_component

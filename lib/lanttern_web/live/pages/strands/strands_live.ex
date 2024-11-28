@@ -19,7 +19,7 @@ defmodule LantternWeb.StrandsLive do
 
   def strands_grid(assigns) do
     ~H"""
-    <.responsive_grid id={@id} phx-update="stream">
+    <.responsive_grid id={@id} phx-update="stream" class="px-6 py-10 sm:px-10">
       <.strand_card
         :for={{dom_id, strand} <- @strands}
         id={dom_id}
