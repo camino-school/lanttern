@@ -93,14 +93,12 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
 
   @impl true
   def mount(socket) do
-    cycle_options = SchoolsHelpers.generate_cycle_options()
     year_options = TaxonomyHelpers.generate_year_options()
     grades_report_options = GradesReportsHelpers.generate_grades_report_options()
 
     socket =
       socket
       |> assign(:class, nil)
-      |> assign(:cycle_options, cycle_options)
       |> assign(:year_options, year_options)
       |> assign(:grades_report_options, grades_report_options)
       |> assign(:hide_submit, false)
@@ -110,20 +108,35 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
         max_file_size: 5_000_000,
         max_entries: 1
       )
+      |> assign(:initialized, false)
 
     {:ok, socket}
   end
 
   @impl true
-  def update(%{report_card: report_card} = assigns, socket) do
-    changeset = Reporting.change_report_card(report_card)
-
+  def update(assigns, socket) do
     socket =
       socket
       |> assign(assigns)
-      |> assign_form(changeset)
+      |> initialize()
 
     {:ok, socket}
+  end
+
+  defp initialize(%{assigns: %{initialized: false}} = socket) do
+    changeset = Reporting.change_report_card(socket.assigns.report_card)
+
+    socket
+    |> assign_cycle_options()
+    |> assign_form(changeset)
+    |> assign(:initialized, true)
+  end
+
+  defp initialize(socket), do: socket
+
+  defp assign_cycle_options(socket) do
+    cycle_options = SchoolsHelpers.generate_cycle_options(subcycles_only: true)
+    assign(socket, :cycle_options, cycle_options)
   end
 
   @impl true

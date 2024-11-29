@@ -1,7 +1,7 @@
 <.neo_header current_user={@current_user}>
   <:breadcrumb navigate={~p"/report_cards"}><%= gettext("Report cards") %></:breadcrumb>
   <:title><%= @report_card.name %></:title>
-  <div class="flex items-center justify-between px-4">
+  <div class="flex items-center justify-between gap-4 px-4">
     <.neo_tabs>
       <:tab patch={~p"/report_cards/#{@report_card}"} is_current={@live_action == :show}>
         <%= gettext("Overview") %>
@@ -28,20 +28,24 @@
         <%= gettext("Tracking") %>
       </:tab>
     </.neo_tabs>
-    <.menu_button id={@report_card.id}>
-      <:item
-        id={"edit-report-card-#{@report_card.id}"}
-        text={gettext("Edit report card")}
-        on_click={JS.patch(~p"/report_cards/#{@report_card}?tab=#{@current_tab}&is_editing=true")}
-      />
-      <:item
-        id={"remove-report-card-#{@report_card.id}"}
-        text={gettext("Delete")}
-        theme="alert"
-        on_click={JS.push("delete_report_card")}
-        confirm_msg={gettext("Are you sure?")}
-      />
-    </.menu_button>
+    <div class="flex items-center gap-4">
+      <.neo_action
+        type="link"
+        patch={"#{@current_path}?is_editing=true"}
+        icon_name="hero-pencil-mini"
+      >
+        <%= gettext("Edit") %>
+      </.neo_action>
+      <.menu_button id={@report_card.id}>
+        <:item
+          id={"remove-report-card-#{@report_card.id}"}
+          text={gettext("Delete")}
+          theme="alert"
+          on_click={JS.push("delete_report_card")}
+          confirm_msg={gettext("Are you sure?")}
+        />
+      </.menu_button>
+    </div>
   </div>
 </.neo_header>
 <div class="relative">
@@ -117,14 +121,14 @@
   :if={@is_editing}
   id="report-card-form-overlay"
   show={true}
-  on_cancel={JS.patch(~p"/report_cards/#{@report_card}?tab=#{@current_tab}")}
+  on_cancel={JS.patch(@current_path)}
 >
   <:title><%= gettext("Edit card") %></:title>
   <.live_component
     module={ReportCardFormComponent}
     id={@report_card.id}
     report_card={@report_card}
-    navigate={~p"/report_cards/#{@report_card}?tab=#{@current_tab}"}
+    navigate={@current_path}
     hide_submit
   />
   <:actions>

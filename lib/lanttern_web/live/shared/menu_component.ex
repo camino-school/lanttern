@@ -505,7 +505,7 @@ defmodule LantternWeb.MenuComponent do
     school_cycles =
       Schools.list_cycles(
         schools_ids: [socket.assigns.current_user.current_profile.school_id],
-        parent_only: true
+        parent_cycles_only: true
       )
 
     socket =

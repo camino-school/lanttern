@@ -57,10 +57,16 @@
   title={gettext("Filter report cards by cycle")}
   navigate={~p"/report_cards"}
   filter_info={
-    gettext(
-      "Showing only %{cycle} subcycles. Change the current cycle in the main menu to view other subcycles.",
-      cycle: Map.get(@current_user.current_profile.current_school_cycle || %{}, :name)
-    )
+    case Map.get(@current_user.current_profile.current_school_cycle || %{}, :name) do
+      nil ->
+        nil
+
+      cycle_name ->
+        gettext(
+          "Showing only %{cycle} subcycles. Change the current cycle in the main menu to view other subcycles.",
+          cycle: cycle_name
+        )
+    end
   }
   cycles={@cycles}
   selected_cycles_ids={@selected_cycles_ids}
@@ -84,8 +90,9 @@
     module={ReportCardFormComponent}
     id={:new}
     report_card={%ReportCard{}}
-    navigate={fn _report_card -> ~p"/report_cards" end}
+    navigate={fn report_card -> ~p"/report_cards/#{report_card}" end}
     hide_submit
+    parent_cycle_id={Map.get(@current_user.current_profile.current_school_cycle || %{}, :id)}
   />
   <:actions>
     <.button

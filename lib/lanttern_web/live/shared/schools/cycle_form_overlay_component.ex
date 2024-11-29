@@ -86,7 +86,10 @@ defmodule LantternWeb.Schools.CycleFormOverlayComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     cycle_options =
-      generate_cycle_options(schools_ids: [socket.assigns.cycle.school_id], parent_only: true)
+      generate_cycle_options(
+        schools_ids: [socket.assigns.cycle.school_id],
+        parent_cycles_only: true
+      )
 
     socket
     |> assign(:cycle_options, cycle_options)

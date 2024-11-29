@@ -94,12 +94,20 @@ defmodule Lanttern.SchoolsTest do
                Schools.list_cycles(order: :asc)
     end
 
-    test "list_cycles/1 with parent_only: true opt removes subcycles from list" do
+    test "list_cycles/1 with parent_cycles_only: true opt removes subcycles from list" do
       school = school_fixture()
       parent_cycle = cycle_fixture(%{school_id: school.id})
       _subcycle = cycle_fixture(%{school_id: school.id, parent_cycle_id: parent_cycle.id})
 
-      assert [parent_cycle] == Schools.list_cycles(parent_only: true)
+      assert [parent_cycle] == Schools.list_cycles(parent_cycles_only: true)
+    end
+
+    test "list_cycles/1 with subcycles_only: true opt removes parent cycles from list" do
+      school = school_fixture()
+      parent_cycle = cycle_fixture(%{school_id: school.id})
+      subcycle = cycle_fixture(%{school_id: school.id, parent_cycle_id: parent_cycle.id})
+
+      assert [subcycle] == Schools.list_cycles(subcycles_only: true)
     end
 
     test "list_cycles/1 with subcycles_of_parent_id returns the subcycles of the given parent" do

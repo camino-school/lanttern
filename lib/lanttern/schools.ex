@@ -117,7 +117,8 @@ defmodule Lanttern.Schools do
 
   - `:schools_ids` – filter cycles by schools
   - `:order` - `:desc` (default) or `:asc`
-  - `:parent_only` – list only cycles without `parent_cycle_id` when `true`
+  - `:parent_cycles_only` – list only cycles without `parent_cycle_id` when `true`
+  - `:subcycles_only` – list only cycles with `parent_cycle_id` when `true`
   - `:subcycles_of_parent_id` – list only subcycles of given parent cycle
   - `:preloads` – preloads associated data
 
@@ -145,10 +146,18 @@ defmodule Lanttern.Schools do
     |> apply_list_cycles_opts(opts)
   end
 
-  defp apply_list_cycles_opts(queryable, [{:parent_only, true} | opts]) do
+  defp apply_list_cycles_opts(queryable, [{:parent_cycles_only, true} | opts]) do
     from(
       c in queryable,
       where: is_nil(c.parent_cycle_id)
+    )
+    |> apply_list_cycles_opts(opts)
+  end
+
+  defp apply_list_cycles_opts(queryable, [{:subcycles_only, true} | opts]) do
+    from(
+      c in queryable,
+      where: not is_nil(c.parent_cycle_id)
     )
     |> apply_list_cycles_opts(opts)
   end
