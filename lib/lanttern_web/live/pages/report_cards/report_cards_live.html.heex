@@ -7,7 +7,14 @@
         phx-click={JS.exec("data-show", to: "#report-cards-cycle-filters-overlay")}
         icon_name="hero-chevron-down-mini"
       >
-        <%= format_neo_action_items_text(@selected_cycles, gettext("All cycles")) %>
+        <%= format_neo_action_items_text(
+          @selected_cycles,
+          gettext(
+            "All %{parent_cycle} cycles",
+            parent_cycle:
+              Map.get(@current_user.current_profile.current_school_cycle || %{}, :name)
+          )
+        ) %>
       </.neo_action>
       <.neo_action
         type="button"
@@ -44,12 +51,19 @@
   </.empty_state>
 <% end %>
 <.live_component
-  module={LantternWeb.Filters.FiltersOverlayComponent}
+  module={LantternWeb.Filters.CyclesFilterOverlayComponent}
   id="report-cards-cycle-filters-overlay"
   current_user={@current_user}
   title={gettext("Filter report cards by cycle")}
-  filter_type={:cycles}
   navigate={~p"/report_cards"}
+  filter_info={
+    gettext(
+      "Showing only %{cycle} subcycles. Change the current cycle in the main menu to view other subcycles.",
+      cycle: Map.get(@current_user.current_profile.current_school_cycle || %{}, :name)
+    )
+  }
+  cycles={@cycles}
+  selected_cycles_ids={@selected_cycles_ids}
 />
 <.live_component
   module={LantternWeb.Filters.FiltersOverlayComponent}

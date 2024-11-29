@@ -55,6 +55,33 @@ defmodule Lanttern.ReportingTest do
       assert expected.id == report_card.id
     end
 
+    test "list_report_cards/1 with parent cycle filter returns report_cards linked to the subcycles of given parent cycle" do
+      school = Lanttern.SchoolsFixtures.school_fixture()
+      parent_cycle = Lanttern.SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+
+      subcycle =
+        Lanttern.SchoolsFixtures.cycle_fixture(%{
+          school_id: school.id,
+          parent_cycle_id: parent_cycle.id
+        })
+
+      report_card = report_card_fixture(%{school_cycle_id: subcycle.id})
+
+      # extra report cards for filtering test
+      other_parent_cycle = Lanttern.SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+
+      other_subcycle =
+        Lanttern.SchoolsFixtures.cycle_fixture(%{
+          school_id: school.id,
+          parent_cycle_id: other_parent_cycle.id
+        })
+
+      report_card_fixture(%{school_cycle_id: other_subcycle.id})
+
+      [expected] = Reporting.list_report_cards(parent_cycle_id: parent_cycle.id)
+      assert expected.id == report_card.id
+    end
+
     test "list_report_cards_by_cycle/0 returns report_cards grouped by cycle" do
       school = SchoolsFixtures.school_fixture()
 

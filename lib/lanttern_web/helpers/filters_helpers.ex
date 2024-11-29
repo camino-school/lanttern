@@ -11,6 +11,7 @@ defmodule LantternWeb.FiltersHelpers do
   alias Lanttern.Personalization
   alias Lanttern.Reporting
   alias Lanttern.Schools
+  alias Lanttern.Schools.Cycle
   alias Lanttern.StudentsRecords
   alias Lanttern.Taxonomy
 
@@ -145,6 +146,7 @@ defmodule LantternWeb.FiltersHelpers do
     |> assign_filter_type(current_user, current_filters, filter_types, opts)
   end
 
+  # to do: drop support to cycle filter in assign_filter_type in favor of assign_cycle_filter
   defp assign_filter_type(socket, current_user, current_filters, [:cycles | filter_types], opts) do
     cycles =
       Schools.list_cycles(schools_ids: [current_user.current_profile.school_id])
@@ -313,6 +315,77 @@ defmodule LantternWeb.FiltersHelpers do
     student_record_types: :selected_student_record_types_ids,
     student_record_statuses: :selected_student_record_statuses_ids
   }
+
+  @doc """
+  Handle cycle filter assigns in socket.
+
+  When `only_subcycles: true`, will list only subcycles of the user's
+  current school cycle. If user has a selected cycle that are not part
+  of the listed subcycles, it's not considered as selected.
+
+  In case `only_subcycles: true` but the current user doesn't have a
+  current school cycle selected, the function will work as if the opt is `false`.
+
+  ## Filter assigns
+
+  - `:cycles`
+  - `:selected_cycles_ids`
+  - `:selected_cycles`
+
+  ## Examples
+
+      iex> assign_cycle_filter(socket)
+      socket
+  """
+  @spec assign_cycle_filter(Phoenix.LiveView.Socket.t(), opts :: Keyword.t()) ::
+          Phoenix.LiveView.Socket.t()
+  def assign_cycle_filter(socket, opts \\ []) do
+    current_user = socket.assigns.current_user
+    current_filters = get_current_filters(current_user.current_profile_id, opts)
+
+    socket
+    |> assign_cycle_filter(current_user, current_filters, opts)
+  end
+
+  defp assign_cycle_filter(
+         socket,
+         %{current_profile: %{current_school_cycle: %Cycle{}}} = current_user,
+         current_filters,
+         only_subcycles: true
+       ) do
+    subcycles =
+      Schools.list_cycles(
+        schools_ids: [current_user.current_profile.school_id],
+        subcycles_of_parent_id: Map.get(current_user.current_profile.current_school_cycle, :id)
+      )
+
+    subcycles_ids = Enum.map(subcycles, & &1.id)
+
+    # if there are selected cycles outside of the scope of subcycles,
+    # consider that they are not selected
+    selected_subcycles_ids =
+      (Map.get(current_filters, :cycles_ids) || [])
+      |> Enum.filter(&(&1 in subcycles_ids))
+
+    selected_subcycles = Enum.filter(subcycles, &(&1.id in selected_subcycles_ids))
+
+    socket
+    |> assign(:cycles, subcycles)
+    |> assign(:selected_cycles_ids, selected_subcycles_ids)
+    |> assign(:selected_cycles, selected_subcycles)
+  end
+
+  defp assign_cycle_filter(socket, current_user, current_filters, _only_subcycles) do
+    cycles = Schools.list_cycles(schools_ids: [current_user.current_profile.school_id])
+
+    selected_cycles_ids = Map.get(current_filters, :cycles_ids) || []
+    selected_cycles = Enum.filter(cycles, &(&1.id in selected_cycles_ids))
+
+    socket
+    |> assign(:cycles, cycles)
+    |> assign(:selected_cycles_ids, selected_cycles_ids)
+    |> assign(:selected_cycles, selected_cycles)
+  end
 
   @doc """
   Handle toggling of filter related assigns in socket.

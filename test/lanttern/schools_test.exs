@@ -102,6 +102,20 @@ defmodule Lanttern.SchoolsTest do
       assert [parent_cycle] == Schools.list_cycles(parent_only: true)
     end
 
+    test "list_cycles/1 with subcycles_of_parent_id returns the subcycles of the given parent" do
+      school = school_fixture()
+      parent_cycle = cycle_fixture(%{school_id: school.id})
+      subcycle = cycle_fixture(%{school_id: school.id, parent_cycle_id: parent_cycle.id})
+
+      # other fixtures for filter testing
+      other_parent_cycle = cycle_fixture(%{school_id: school.id})
+
+      _other_subcycle =
+        cycle_fixture(%{school_id: school.id, parent_cycle_id: other_parent_cycle.id})
+
+      assert [subcycle] == Schools.list_cycles(subcycles_of_parent_id: parent_cycle.id)
+    end
+
     test "list_cycles_and_subcycles/1 with school filter returns all cycles with preloaded subcycles as expected" do
       school = school_fixture()
 
