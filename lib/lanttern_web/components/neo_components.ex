@@ -11,49 +11,6 @@ defmodule LantternWeb.NeoComponents do
 
   import LantternWeb.CoreComponents, only: [icon: 1]
 
-  # @doc """
-  # Renders a breadcrumb.
-
-  # ## Examples
-
-  #     <.person_tab person={student} />
-
-  # """
-  # attr :class, :any, default: nil
-  # attr :with_bg, :boolean, default: false
-  # attr :item_class, :any, default: nil
-
-  # slot :item, required: true do
-  #   attr :link, :string
-  # end
-
-  # def breadcrumbs(assigns) do
-  #   ~H"""
-  #   <nav class={@class}>
-  #     <ol class={[
-  #       "flex items-center gap-2 font-display font-bold text-sm text-ltrn-subtle",
-  #       if(@with_bg, do: "p-2 rounded-full bg-ltrn-dark/50")
-  #     ]}>
-  #       <li
-  #         :for={{item, i} <- Enum.with_index(@item)}
-  #         class={[
-  #           @item_class,
-  #           if(@with_bg, do: "text-white drop-shadow-sm"),
-  #           if(Map.get(item, :link), do: "hidden sm:list-item")
-  #         ]}
-  #       >
-  #         <span :if={i > 0} class="hidden sm:inline">/</span>
-  #         <%= if Map.get(item, :link) do %>
-  #           <.link navigate={item.link} class="underline"><%= render_slot(item) %></.link>
-  #         <% else %>
-  #           <span><%= render_slot(item) %></span>
-  #         <% end %>
-  #       </li>
-  #     </ol>
-  #   </nav>
-  #   """
-  # end
-
   @doc """
   Renders the page header.
   """
@@ -63,7 +20,7 @@ defmodule LantternWeb.NeoComponents do
   slot :inner_block
 
   slot :breadcrumb do
-    attr :link, :string
+    attr :navigate, :string
   end
 
   def neo_header(assigns) do
@@ -80,9 +37,20 @@ defmodule LantternWeb.NeoComponents do
 
     ~H"""
     <header class="sticky top-0 z-20 bg-white ltrn-bg-main shadow-lg">
-      <div class="flex items-center gap-2 p-4">
-        <h1 class="flex-1 font-display font-black text-lg"><%= render_slot(@title) %></h1>
-
+      <div class="flex items-center gap-4 p-4">
+        <%!-- min-w-0 to "fix" truncate (https://css-tricks.com/flexbox-truncated-text/) --%>
+        <div class="flex-1 flex gap-2 min-w-0 font-display font-black text-lg">
+          <%= for breadcrumb <- @breadcrumb do %>
+            <.link
+              navigate={breadcrumb.navigate}
+              class="text-ltrn-subtle truncate hover:text-ltrn-dark"
+            >
+              <%= render_slot(breadcrumb) %>
+            </.link>
+            <span class="text-ltrn-subtle">/</span>
+          <% end %>
+          <h1 class="truncate"><%= render_slot(@title) %></h1>
+        </div>
         <button
           type="button"
           class="flex gap-2 items-center hover:text-ltrn-subtle"

@@ -24,11 +24,6 @@ defmodule LantternWeb.ReportCardLive do
   # lifecycle
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok, socket, layout: {LantternWeb.Layouts, :app_logged_in_blank}}
-  end
-
-  @impl true
   def handle_params(%{"id" => id} = params, _url, socket) do
     socket =
       socket

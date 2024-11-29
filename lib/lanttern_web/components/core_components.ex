@@ -505,6 +505,51 @@ defmodule LantternWeb.CoreComponents do
   defp cover_overlay(_),
     do: "from-ltrn-mesh-primary/0 to-ltrn-mesh-primary"
 
+  attr :image_url, :string, default: nil
+  attr :alt_text, :string, required: true
+  attr :empty_state_text, :string, default: nil
+  attr :theme, :string, default: "primary"
+  attr :class, :any, default: nil
+
+  def cover_image(%{image_url: image_url} = assigns)
+      when is_binary(image_url) and image_url != "" do
+    ~H"""
+    <div
+      class={[
+        "relative w-full h-[30rem] min-h-[60vh] max-h-[80vh] rounded bg-cover bg-center shadow-xl overflow-hidden",
+        @class
+      ]}
+      style={"background-image: url('#{@image_url || "/images/cover-placeholder.jpg"}')"}
+    >
+      <p class="sr-only"><%= @alt_text %></p>
+      <div class={[
+        "absolute inset-0 bg-gradient-to-b",
+        cover_overlay(@theme)
+      ]} />
+    </div>
+    """
+  end
+
+  def cover_image(assigns) do
+    ~H"""
+    <div
+      class={[
+        "relative flex items-center justify-center w-full h-[30rem] min-h-[60vh] max-h-[80vh] border border-dashed border-ltrn-light rounded bg-cover bg-center overflow-hidden",
+        @class
+      ]}
+      style="background-image: url('/images/cover-placeholder.jpg')"
+    >
+      <p :if={@empty_state_text} class="font-display font-black text-2xl text-ltrn-subtle">
+        <%= @empty_state_text %>
+      </p>
+      <div class={[
+        "absolute inset-0 bg-gradient-to-b",
+        cover_overlay(@theme)
+      ]} />
+    </div>
+    """
+  end
+
   @doc """
   Returns a string with background and text styles to be
   used in a `style` attribute.
@@ -1399,9 +1444,12 @@ defmodule LantternWeb.CoreComponents do
     <div
       id={@id}
       class={[
-        "flex items-stretch gap-4 mx-auto overflow-x-auto overflow-y-visible",
+        "flex items-stretch gap-6 mx-auto overflow-x-auto overflow-y-visible",
         "sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:overflow-x-visible",
-        if(assigns.is_full_width, do: "2xl:grid-cols-4", else: "container lg:max-w-5xl"),
+        if(assigns.is_full_width,
+          do: "xl:grid-cols-4 2xl:grid-cols-5",
+          else: "container lg:max-w-5xl"
+        ),
         @class
       ]}
       {@rest}
