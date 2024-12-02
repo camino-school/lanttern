@@ -107,5 +107,14 @@ defmodule LantternWeb.ReportCardLiveTest do
       assert view |> has_element?("#strands_reports-#{strand_report.id} span", subject.name)
       assert view |> has_element?("#strands_reports-#{strand_report.id} span", year.name)
     end
+
+    test "view grades reports", %{conn: conn} do
+      grades_report = Lanttern.GradesReportsFixtures.grades_report_fixture(%{name: "GR name AAA"})
+      report_card = report_card_fixture(%{grades_report_id: grades_report.id})
+
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{report_card.id}/grades")
+
+      assert view |> has_element?("a", "GR name AAA")
+    end
   end
 end

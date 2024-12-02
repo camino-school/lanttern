@@ -46,7 +46,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
         grades_report_id={@grades_report_id}
         grades_report_cycle_id={@grades_report_cycle_id}
         grades_report_subject_id={@grades_report_subject_id}
-        on_cancel={JS.patch(~p"/report_cards/#{@report_card}?tab=grades")}
+        on_cancel={JS.patch(~p"/report_cards/#{@report_card}/grades")}
         use_assessment_points_from_report_card_id={@report_card.id}
       />
     </div>
@@ -96,7 +96,6 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
   @impl true
   def handle_event("edit_composition", params, socket) do
     url_params = %{
-      tab: "grades",
       gr_id: params["gradesreportid"],
       grc_id: params["gradesreportcycleid"],
       grs_id: params["gradesreportsubjectid"]
@@ -104,7 +103,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
 
     socket =
       socket
-      |> push_patch(to: ~p"/report_cards/#{socket.assigns.report_card}?#{url_params}")
+      |> push_patch(to: ~p"/report_cards/#{socket.assigns.report_card}/grades?#{url_params}")
 
     {:noreply, socket}
   end

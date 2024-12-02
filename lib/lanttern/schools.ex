@@ -667,7 +667,6 @@ defmodule Lanttern.Schools do
   - `:class_id` – filter students by given class
   - `:classes_ids` – filter students by provided list of ids. preloads the classes for each student, and order by class name
   - `:only_in_some_class` - boolean. When `true`, will remove students not linked to a class (and will do the opposite when `false`)
-  - `:report_card_id` – filter students linked to given report card. preloads the classes for each student, and order by class name
   - `:check_diff_rubrics_for_strand_id` - used to check if student has any differentiation rubric for given strand id
   - `:base_query` - used in conjunction with `search_students/2`
 
@@ -736,15 +735,6 @@ defmodule Lanttern.Schools do
     from(
       s in queryable,
       where: s.id in ^students_ids
-    )
-    |> apply_list_students_opts(opts)
-  end
-
-  defp apply_list_students_opts(queryable, [{:report_card_id, id} | opts]) do
-    from(
-      [s, classes: c] in bind_classes_to_students(queryable),
-      join: src in assoc(s, :student_report_cards),
-      where: src.report_card_id == ^id
     )
     |> apply_list_students_opts(opts)
   end

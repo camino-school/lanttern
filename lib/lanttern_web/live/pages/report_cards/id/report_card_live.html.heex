@@ -1,54 +1,57 @@
-<.neo_header current_user={@current_user}>
-  <:breadcrumb navigate={~p"/report_cards"}><%= gettext("Report cards") %></:breadcrumb>
-  <:title><%= @report_card.name %></:title>
-  <div class="flex items-center justify-between gap-4 px-4">
-    <.neo_tabs>
-      <:tab patch={~p"/report_cards/#{@report_card}"} is_current={@live_action == :show}>
-        <%= gettext("Overview") %>
-      </:tab>
-      <:tab
-        patch={~p"/report_cards/#{@report_card}/students"}
-        is_current={@live_action == :students}
-      >
-        <%= gettext("Students") %>
-      </:tab>
-      <:tab
-        patch={~p"/report_cards/#{@report_card}/strands"}
-        is_current={@live_action == :strands}
-      >
-        <%= gettext("Strands") %>
-      </:tab>
-      <:tab patch={~p"/report_cards/#{@report_card}/grades"} is_current={@live_action == :grades}>
-        <%= gettext("Grades") %>
-      </:tab>
-      <:tab
-        patch={~p"/report_cards/#{@report_card}/tracking"}
-        is_current={@live_action == :tracking}
-      >
-        <%= gettext("Tracking") %>
-      </:tab>
-    </.neo_tabs>
-    <div class="flex items-center gap-4">
-      <.neo_action
-        type="link"
-        patch={"#{@current_path}?is_editing=true"}
-        icon_name="hero-pencil-mini"
-      >
-        <%= gettext("Edit") %>
-      </.neo_action>
-      <.menu_button id={@report_card.id}>
-        <:item
-          id={"remove-report-card-#{@report_card.id}"}
-          text={gettext("Delete")}
-          theme="alert"
-          on_click={JS.push("delete_report_card")}
-          confirm_msg={gettext("Are you sure?")}
-        />
-      </.menu_button>
-    </div>
-  </div>
-</.neo_header>
 <div class="relative">
+  <.neo_header current_user={@current_user}>
+    <:breadcrumb navigate={~p"/report_cards"}><%= gettext("Report cards") %></:breadcrumb>
+    <:title><%= @report_card.name %></:title>
+    <div class="flex items-center justify-between gap-4 px-4">
+      <.neo_tabs>
+        <:tab patch={~p"/report_cards/#{@report_card}"} is_current={@live_action == :show}>
+          <%= gettext("Overview") %>
+        </:tab>
+        <:tab
+          patch={~p"/report_cards/#{@report_card}/students"}
+          is_current={@live_action == :students}
+        >
+          <%= gettext("Students") %>
+        </:tab>
+        <:tab
+          patch={~p"/report_cards/#{@report_card}/strands"}
+          is_current={@live_action == :strands}
+        >
+          <%= gettext("Strands") %>
+        </:tab>
+        <:tab
+          patch={~p"/report_cards/#{@report_card}/grades"}
+          is_current={@live_action == :grades}
+        >
+          <%= gettext("Grades") %>
+        </:tab>
+        <:tab
+          patch={~p"/report_cards/#{@report_card}/tracking"}
+          is_current={@live_action == :tracking}
+        >
+          <%= gettext("Tracking") %>
+        </:tab>
+      </.neo_tabs>
+      <div class="flex items-center gap-4">
+        <.neo_action
+          type="link"
+          patch={"#{@current_path}?is_editing=true"}
+          icon_name="hero-pencil-mini"
+        >
+          <%= gettext("Edit") %>
+        </.neo_action>
+        <.menu_button id={@report_card.id}>
+          <:item
+            id={"remove-report-card-#{@report_card.id}"}
+            text={gettext("Delete")}
+            theme="alert"
+            on_click={JS.push("delete_report_card")}
+            confirm_msg={gettext("Are you sure?")}
+          />
+        </.menu_button>
+      </div>
+    </div>
+  </.neo_header>
   <div :if={@live_action == :show} class="p-4">
     <.cover_image
       image_url={@cover_image_url}

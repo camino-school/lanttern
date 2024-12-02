@@ -473,6 +473,7 @@ defmodule Lanttern.Reporting do
   ## Options
 
   - `:classes_ids` - filter results by given classes
+  - `:students_only` - when `true`, will return only students
 
   ## Examples
 
@@ -481,42 +482,61 @@ defmodule Lanttern.Reporting do
 
   """
   @spec list_students_linked_to_report_card(ReportCard.t(), opts :: Keyword.t()) :: [
-          {Student.t(), StudentReportCard.t()}
+          {Student.t(), StudentReportCard.t()} | Student.t()
         ]
   def list_students_linked_to_report_card(%ReportCard{} = report_card, opts \\ []) do
-    students_with_classes_query =
-      list_students_linked_to_report_card_students_query(report_card)
-
-    from(
-      s in students_with_classes_query,
-      join: sr in StudentReportCard,
-      on: sr.student_id == s.id and sr.report_card_id == ^report_card.id,
-      select: {s, sr}
-    )
-    |> apply_list_students_linked_to_report_card_opts(opts)
-    |> Repo.all()
-  end
-
-  defp list_students_linked_to_report_card_students_query(report_card) do
-    student_classes_join_condition =
-      case report_card.school_cycle do
-        # restrict classes to same report card parent cycle if possible
-        %{school_cycle: %{parent_cycle_id: parent_cycle_id}} when not is_nil(parent_cycle_id) ->
-          dynamic([_s, c], c.cycle_id == ^parent_cycle_id)
-
-        _ ->
-          true
-      end
+    allowed_classes_ids =
+      build_list_students_linked_to_report_card_allowed_classes_ids(report_card)
 
     from(
       s in Student,
       left_join: c in assoc(s, :classes),
-      on: ^student_classes_join_condition,
-      left_join: y in assoc(c, :years),
-      where: is_nil(y) or y.id == ^report_card.year_id,
+      on: c.id in ^allowed_classes_ids,
+      as: :classes,
+      join: src in StudentReportCard,
+      on: src.student_id == s.id and src.report_card_id == ^report_card.id,
+      as: :student_report_card,
       order_by: [asc: c.name, asc: s.name],
       preload: [classes: c]
     )
+    |> list_students_linked_to_report_card_select(opts)
+    |> apply_list_students_linked_to_report_card_opts(opts)
+    |> Repo.all()
+  end
+
+  defp build_list_students_linked_to_report_card_allowed_classes_ids(report_card) do
+    # restrict classes to same report card year
+    conditions =
+      dynamic([_c, y], y.id == ^report_card.year_id)
+
+    # restrict classes to same report card parent cycle if possible
+    conditions =
+      case report_card.school_cycle do
+        %{parent_cycle_id: parent_cycle_id} when not is_nil(parent_cycle_id) ->
+          dynamic([c], c.cycle_id == ^parent_cycle_id and ^conditions)
+
+        _ ->
+          conditions
+      end
+
+    from(
+      c in Class,
+      left_join: y in assoc(c, :years),
+      where: ^conditions,
+      select: c.id
+    )
+    |> Repo.all()
+  end
+
+  defp list_students_linked_to_report_card_select(queryable, opts) do
+    if Keyword.get(opts, :students_only) do
+      queryable
+    else
+      from(
+        [s, student_report_card: src] in queryable,
+        select: {s, src}
+      )
+    end
   end
 
   defp apply_list_students_linked_to_report_card_opts(queryable, []), do: queryable
@@ -526,7 +546,7 @@ defmodule Lanttern.Reporting do
        ])
        when is_list(classes_ids) and classes_ids != [] do
     from(
-      [_s, c] in queryable,
+      [_s, classes: c] in queryable,
       where: c.id in ^classes_ids
     )
     |> apply_list_students_linked_to_report_card_opts(opts)
@@ -1134,7 +1154,7 @@ defmodule Lanttern.Reporting do
 
   Useful for building report card linked students class filter.
 
-  If possible, will list only classes from the same report card's parent cycle.
+  Will list only classes from the same report card's year and parent cycle (if possible).
 
   ## Examples
 
@@ -1149,6 +1169,7 @@ defmodule Lanttern.Reporting do
       join: s in assoc(c, :students),
       join: src in assoc(s, :student_report_cards),
       where: src.report_card_id == ^report_card.id,
+      where: y.id == ^report_card.year_id,
       group_by: c.id,
       order_by: [asc: min(y.id), asc: c.name]
     )

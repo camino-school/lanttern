@@ -552,6 +552,81 @@ defmodule Lanttern.ReportingTest do
       assert expected_student_j_k.id == student_j_k.id
     end
 
+    test "list_students_linked_to_report_card/2 with students_only = true opt omits report cards from the returned list" do
+      school = SchoolsFixtures.school_fixture()
+      parent_cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+
+      subcycle =
+        SchoolsFixtures.cycle_fixture(%{school_id: school.id, parent_cycle_id: parent_cycle.id})
+
+      year = TaxonomyFixtures.year_fixture()
+
+      class =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school.id,
+          cycle_id: parent_cycle.id,
+          years_ids: [year.id]
+        })
+
+      other_cycle_class =
+        SchoolsFixtures.class_fixture(%{school_id: school.id, years_ids: [year.id]})
+
+      other_year_class =
+        SchoolsFixtures.class_fixture(%{school_id: school.id, cycle_id: parent_cycle.id})
+
+      student_a =
+        SchoolsFixtures.student_fixture(%{
+          name: "AAA",
+          classes_ids: [class.id, other_cycle_class.id]
+        })
+
+      student_b =
+        SchoolsFixtures.student_fixture(%{
+          name: "BBB",
+          classes_ids: [class.id, other_year_class.id]
+        })
+
+      report_card =
+        report_card_fixture(%{
+          year_id: year.id,
+          school_cycle_id: subcycle.id
+        })
+        |> Repo.preload(:school_cycle)
+
+      Reporting.create_student_report_card(%{
+        student_id: student_a.id,
+        report_card_id: report_card.id
+      })
+
+      Reporting.create_student_report_card(%{
+        student_id: student_b.id,
+        report_card_id: report_card.id
+      })
+
+      # other report card for testing
+      other_student = SchoolsFixtures.student_fixture(%{classes_ids: [class.id]})
+      other_report_card = report_card_fixture()
+
+      Reporting.create_student_report_card(%{
+        student_id: other_student.id,
+        report_card_id: other_report_card.id
+      })
+
+      # assert
+      [expected_a, expected_b] =
+        Reporting.list_students_linked_to_report_card(report_card, students_only: true)
+
+      assert expected_a.id == student_a.id
+      assert expected_b.id == student_b.id
+
+      # classes preload should be restricted to classes related
+      # to report card year and parent cycle
+      [expected_class] = expected_a.classes
+      assert expected_class.id == class.id
+      [expected_class] = expected_b.classes
+      assert expected_class.id == class.id
+    end
+
     test "list_student_report_card_cycles/1 returns all cycles linked to given student's report cards" do
       student = SchoolsFixtures.student_fixture()
 
@@ -1767,13 +1842,14 @@ defmodule Lanttern.ReportingTest do
     end
 
     test "list_report_card_linked_students_classes/1 returns all report classes from students linked to the report card" do
-      report_card = report_card_fixture()
-
       year_1 = Lanttern.TaxonomyFixtures.year_fixture()
       year_2 = Lanttern.TaxonomyFixtures.year_fixture()
       year_3 = Lanttern.TaxonomyFixtures.year_fixture()
 
-      class_1 = Lanttern.SchoolsFixtures.class_fixture(%{name: "AAA", years_ids: [year_1.id]})
+      report_card = report_card_fixture(%{year_id: year_2.id})
+
+      class_1 =
+        Lanttern.SchoolsFixtures.class_fixture(%{name: "AAA", years_ids: [year_1.id, year_2.id]})
 
       class_2 =
         Lanttern.SchoolsFixtures.class_fixture(%{name: "BBB", years_ids: [year_2.id, year_3.id]})
