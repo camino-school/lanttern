@@ -8,6 +8,7 @@ defmodule Lanttern.ReportingTest do
 
     import Lanttern.ReportingFixtures
     alias Lanttern.SchoolsFixtures
+    alias Lanttern.TaxonomyFixtures
 
     @invalid_attrs %{name: nil, description: nil}
 
@@ -17,7 +18,7 @@ defmodule Lanttern.ReportingTest do
     end
 
     test "list_report_cards/1 with preloads returns all report_cards with preloaded data" do
-      school_cycle = Lanttern.SchoolsFixtures.cycle_fixture()
+      school_cycle = SchoolsFixtures.cycle_fixture()
       report_card = report_card_fixture(%{school_cycle_id: school_cycle.id})
 
       [expected] = Reporting.list_report_cards(preloads: :school_cycle)
@@ -41,8 +42,8 @@ defmodule Lanttern.ReportingTest do
     end
 
     test "list_report_cards/1 with year/cycle filters returns all filtered report_cards" do
-      year = Lanttern.TaxonomyFixtures.year_fixture()
-      cycle = Lanttern.SchoolsFixtures.cycle_fixture()
+      year = TaxonomyFixtures.year_fixture()
+      cycle = SchoolsFixtures.cycle_fixture()
       report_card = report_card_fixture(%{school_cycle_id: cycle.id, year_id: year.id})
 
       # extra report cards for filtering test
@@ -132,8 +133,8 @@ defmodule Lanttern.ReportingTest do
     end
 
     test "create_report_card/1 with valid data creates a report_card" do
-      school_cycle = Lanttern.SchoolsFixtures.cycle_fixture()
-      year = Lanttern.TaxonomyFixtures.year_fixture()
+      school_cycle = SchoolsFixtures.cycle_fixture()
+      year = TaxonomyFixtures.year_fixture()
 
       valid_attrs = %{
         name: "some name",
@@ -334,6 +335,7 @@ defmodule Lanttern.ReportingTest do
     import Lanttern.ReportingFixtures
 
     alias Lanttern.SchoolsFixtures
+    alias Lanttern.TaxonomyFixtures
 
     @invalid_attrs %{report_card_id: nil, comment: nil, footnote: nil}
 
@@ -404,9 +406,21 @@ defmodule Lanttern.ReportingTest do
       assert expected_c.id in ids
     end
 
-    test "list_students_with_report_card/2 returns all students with class and linked report cards" do
+    test "list_students_linked_to_report_card/2 returns all students with class and linked report cards" do
       school = SchoolsFixtures.school_fixture()
-      class_a = SchoolsFixtures.class_fixture(%{name: "AAA", school_id: school.id})
+      year = TaxonomyFixtures.year_fixture()
+      parent_cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+
+      cycle =
+        SchoolsFixtures.cycle_fixture(%{school_id: school.id, parent_cycle_id: parent_cycle.id})
+
+      class_a =
+        SchoolsFixtures.class_fixture(%{
+          name: "AAA",
+          school_id: school.id,
+          cycle_id: parent_cycle.id,
+          years_ids: [year.id]
+        })
 
       student_a_a =
         SchoolsFixtures.student_fixture(%{
@@ -422,7 +436,13 @@ defmodule Lanttern.ReportingTest do
           classes_ids: [class_a.id]
         })
 
-      class_j = SchoolsFixtures.class_fixture(%{name: "JJJ", school_id: school.id})
+      class_j =
+        SchoolsFixtures.class_fixture(%{
+          name: "JJJ",
+          school_id: school.id,
+          cycle_id: parent_cycle.id,
+          years_ids: [year.id]
+        })
 
       student_j_j =
         SchoolsFixtures.student_fixture(%{
@@ -439,7 +459,13 @@ defmodule Lanttern.ReportingTest do
           classes_ids: [class_j.id]
         })
 
-      class_z = SchoolsFixtures.class_fixture(%{name: "ZZZ", school_id: school.id})
+      class_z =
+        SchoolsFixtures.class_fixture(%{
+          name: "ZZZ",
+          school_id: school.id,
+          cycle_id: parent_cycle.id,
+          years_ids: [year.id]
+        })
 
       student_z_z =
         SchoolsFixtures.student_fixture(%{
@@ -448,7 +474,30 @@ defmodule Lanttern.ReportingTest do
           classes_ids: [class_z.id]
         })
 
-      report_card = report_card_fixture()
+      # extra fixtures
+      other_year_class =
+        SchoolsFixtures.class_fixture(%{school_id: school.id, cycle_id: parent_cycle.id})
+
+      _other_year_student =
+        SchoolsFixtures.student_fixture(%{
+          name: "student from other year",
+          school_id: school.id,
+          classes_ids: [other_year_class.id]
+        })
+
+      other_cycle_class =
+        SchoolsFixtures.class_fixture(%{school_id: school.id, years_ids: [year.id]})
+
+      _other_cycle_student =
+        SchoolsFixtures.student_fixture(%{
+          name: "student from other cycle",
+          school_id: school.id,
+          classes_ids: [other_cycle_class.id]
+        })
+
+      report_card =
+        report_card_fixture(%{school_cycle_id: cycle.id, year_id: year.id})
+        |> Repo.preload([:school_cycle, :year])
 
       student_a_a_report_card =
         student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_a_a.id})
@@ -476,7 +525,7 @@ defmodule Lanttern.ReportingTest do
                {expected_student_a_b, expected_student_a_b_report_card},
                {expected_student_j_j, expected_student_j_j_report_card}
              ] =
-               Reporting.list_students_with_report_card(report_card.id,
+               Reporting.list_students_linked_to_report_card(report_card,
                  classes_ids: [class_a.id, class_j.id]
                )
 
@@ -498,9 +547,7 @@ defmodule Lanttern.ReportingTest do
       # use same setup and test without report card
 
       assert [expected_student_j_k] =
-               Reporting.list_students_without_report_card(report_card.id,
-                 classes_ids: [class_a.id, class_j.id]
-               )
+               Reporting.list_students_not_linked_to_report_card(report_card)
 
       assert expected_student_j_k.id == student_j_k.id
     end
@@ -1752,7 +1799,7 @@ defmodule Lanttern.ReportingTest do
       })
 
       assert [expected_class_1, expected_class_2] =
-               Reporting.list_report_card_linked_students_classes(report_card.id)
+               Reporting.list_report_card_linked_students_classes(report_card)
 
       assert expected_class_1.id == class_1.id
       assert expected_class_2.id == class_2.id

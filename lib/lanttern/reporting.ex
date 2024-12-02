@@ -20,6 +20,7 @@ defmodule Lanttern.Reporting do
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.Cycle
   alias Lanttern.Schools.Student
+  alias Lanttern.Taxonomy.Year
 
   @doc """
   Returns the list of report cards.
@@ -463,7 +464,11 @@ defmodule Lanttern.Reporting do
   Returns the list of all students and their report cards linked to the
   given base report card.
 
-  Results are ordered by class name, and them by student name.
+  Students will have their classes preloaded and will be
+  ordered by class name, and them by student name.
+
+  Preloaded classes will be restricted to classes from the same
+  report card's year and parent school cycle (if possible).
 
   ## Options
 
@@ -471,91 +476,105 @@ defmodule Lanttern.Reporting do
 
   ## Examples
 
-      iex> list_students_with_report_card()
+      iex> list_students_linked_to_report_card()
       [{%Student{}, %StudentReportCard{}}, ...]
 
   """
-  @spec list_students_with_report_card(report_card_id :: pos_integer(), Keyword.t()) :: [
+  @spec list_students_linked_to_report_card(ReportCard.t(), opts :: Keyword.t()) :: [
           {Student.t(), StudentReportCard.t()}
         ]
-  def list_students_with_report_card(report_card_id, opts \\ []) do
+  def list_students_linked_to_report_card(%ReportCard{} = report_card, opts \\ []) do
+    students_with_classes_query =
+      list_students_linked_to_report_card_students_query(report_card)
+
     from(
-      s in Student,
-      left_join: c in assoc(s, :classes),
-      as: :classes,
+      s in students_with_classes_query,
       join: sr in StudentReportCard,
-      on: sr.student_id == s.id and sr.report_card_id == ^report_card_id,
-      select: {s, sr},
-      preload: [classes: c],
-      order_by: [asc: c.name, asc: s.name]
+      on: sr.student_id == s.id and sr.report_card_id == ^report_card.id,
+      select: {s, sr}
     )
-    |> apply_list_students_with_report_card_opts(opts)
+    |> apply_list_students_linked_to_report_card_opts(opts)
     |> Repo.all()
   end
 
-  defp apply_list_students_with_report_card_opts(queryable, []), do: queryable
+  defp list_students_linked_to_report_card_students_query(report_card) do
+    student_classes_join_condition =
+      case report_card.school_cycle do
+        # restrict classes to same report card parent cycle if possible
+        %{school_cycle: %{parent_cycle_id: parent_cycle_id}} when not is_nil(parent_cycle_id) ->
+          dynamic([_s, c], c.cycle_id == ^parent_cycle_id)
 
-  defp apply_list_students_with_report_card_opts(queryable, [{:classes_ids, classes_ids} | opts])
-       when is_list(classes_ids) and classes_ids != [] do
-    from(
-      [s, classes: c] in queryable,
-      where: c.id in ^classes_ids
-    )
-    |> apply_list_students_with_report_card_opts(opts)
-  end
+        _ ->
+          true
+      end
 
-  defp apply_list_students_with_report_card_opts(queryable, [_opt | opts]),
-    do: apply_list_students_with_report_card_opts(queryable, opts)
-
-  @doc """
-  Returns the list of all students not linked to
-  given base report card.
-
-  Results are ordered by class name, and them by student name.
-
-  ## Options
-
-  - `:classes_ids` - filter results by given classes
-
-  ## Examples
-
-      iex> list_students_without_report_card()
-      [%Student{}, ...]
-
-  """
-  @spec list_students_without_report_card(report_card_id :: pos_integer(), Keyword.t()) :: [
-          Student.t()
-        ]
-  def list_students_without_report_card(report_card_id, opts \\ []) do
     from(
       s in Student,
       left_join: c in assoc(s, :classes),
-      as: :classes,
-      left_join: sr in StudentReportCard,
-      on: sr.student_id == s.id and sr.report_card_id == ^report_card_id,
-      preload: [classes: c],
+      on: ^student_classes_join_condition,
+      left_join: y in assoc(c, :years),
+      where: is_nil(y) or y.id == ^report_card.year_id,
       order_by: [asc: c.name, asc: s.name],
-      where: is_nil(sr)
+      preload: [classes: c]
     )
-    |> apply_list_students_without_report_card_opts(opts)
-    |> Repo.all()
   end
 
-  defp apply_list_students_without_report_card_opts(queryable, []), do: queryable
+  defp apply_list_students_linked_to_report_card_opts(queryable, []), do: queryable
 
-  defp apply_list_students_without_report_card_opts(queryable, [
+  defp apply_list_students_linked_to_report_card_opts(queryable, [
          {:classes_ids, classes_ids} | opts
        ])
        when is_list(classes_ids) and classes_ids != [] do
     from(
-      [s, classes: c] in queryable,
+      [_s, c] in queryable,
       where: c.id in ^classes_ids
     )
-    |> apply_list_students_without_report_card_opts(opts)
+    |> apply_list_students_linked_to_report_card_opts(opts)
   end
 
-  defp apply_list_students_without_report_card_opts(queryable, [_opt | opts]),
-    do: apply_list_students_without_report_card_opts(queryable, opts)
+  defp apply_list_students_linked_to_report_card_opts(queryable, [_opt | opts]),
+    do: apply_list_students_linked_to_report_card_opts(queryable, opts)
+
+  @doc """
+  Returns the list of all students not linked to given base report card.
+
+  Results are filtered by the report card year and parent cycle (if possible),
+  and ordered by class name, and them by student name.
+
+  Expect `school_cycle` and `year` preloads.
+
+  ## Examples
+
+      iex> list_students_not_linked_to_report_card(report_card)
+      [%Student{}, ...]
+
+  """
+  @spec list_students_not_linked_to_report_card(ReportCard.t()) :: [Student.t()]
+  def list_students_not_linked_to_report_card(%ReportCard{
+        id: report_card_id,
+        school_cycle: %Cycle{} = cycle,
+        year: %Year{} = year
+      }) do
+    where_cycle_filter =
+      if cycle.parent_cycle_id,
+        do: dynamic([_s, _c, _y, cy], cy.id == ^cycle.parent_cycle_id),
+        else: true
+
+    from(
+      s in Student,
+      join: c in assoc(s, :classes),
+      join: y in assoc(c, :years),
+      join: cy in assoc(c, :cycle),
+      left_join: sr in StudentReportCard,
+      on: sr.student_id == s.id and sr.report_card_id == ^report_card_id,
+      where: is_nil(sr),
+      where: y.id == ^year.id,
+      where: ^where_cycle_filter,
+      order_by: [asc: c.name, asc: s.name],
+      preload: [classes: c]
+    )
+    |> Repo.all()
+  end
 
   @doc """
   Returns the list of cycles related to student report cards.
@@ -1115,24 +1134,39 @@ defmodule Lanttern.Reporting do
 
   Useful for building report card linked students class filter.
 
+  If possible, will list only classes from the same report card's parent cycle.
+
   ## Examples
 
       iex> list_report_card_linked_students_classes(report_card_id)
       [%Class{}, ...]
 
   """
-  @spec list_report_card_linked_students_classes(report_card_id :: integer()) :: [Class.t()]
-  def list_report_card_linked_students_classes(report_card_id) do
+  @spec list_report_card_linked_students_classes(report_card :: ReportCard.t()) :: [Class.t()]
+  def list_report_card_linked_students_classes(%ReportCard{} = report_card) do
     from(c in Class,
       left_join: y in assoc(c, :years),
       join: s in assoc(c, :students),
       join: src in assoc(s, :student_report_cards),
-      where: src.report_card_id == ^report_card_id,
+      where: src.report_card_id == ^report_card.id,
       group_by: c.id,
       order_by: [asc: min(y.id), asc: c.name]
     )
+    |> maybe_filter_classes_by_cycle(report_card)
     |> Repo.all()
   end
+
+  defp maybe_filter_classes_by_cycle(queryable, %ReportCard{
+         school_cycle: %Cycle{parent_cycle_id: parent_cycle_id}
+       })
+       when not is_nil(parent_cycle_id) do
+    from(
+      c in queryable,
+      where: c.cycle_id == ^parent_cycle_id
+    )
+  end
+
+  defp maybe_filter_classes_by_cycle(queryable, _), do: queryable
 
   @doc """
   Returns a map in the format

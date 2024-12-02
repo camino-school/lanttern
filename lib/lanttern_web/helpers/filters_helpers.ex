@@ -10,6 +10,7 @@ defmodule LantternWeb.FiltersHelpers do
   alias Lanttern.Identity.User
   alias Lanttern.Personalization
   alias Lanttern.Reporting
+  alias Lanttern.Reporting.ReportCard
   alias Lanttern.Schools
   alias Lanttern.Schools.Cycle
   alias Lanttern.StudentsRecords
@@ -23,7 +24,7 @@ defmodule LantternWeb.FiltersHelpers do
   ## Supported opts
 
   - `:strand_id` - will get the contextualized strand filters. supports `:classes` type
-  - `:report_card_id` - will get the contextualized report card filters. supports `:classes` and `:linked_students_classes` types
+  - `:report_card_id` - will get the contextualized report card filters. supports `:classes` types
 
   ## Filter types and assigns
 
@@ -50,12 +51,6 @@ defmodule LantternWeb.FiltersHelpers do
   - `:classes`
   - `:selected_classes_ids`
   - `:selected_classes`
-
-  ### `:linked_students_classes` assigns
-
-  - `:linked_students_classes`
-  - `:selected_linked_students_classes_ids`
-  - `:selected_linked_students_classes`
 
   ### `:assessment_view assigns
 
@@ -103,9 +98,6 @@ defmodule LantternWeb.FiltersHelpers do
 
     %{classes_ids: classes_ids}
   end
-
-  defp get_current_filters(profile_id, report_card_id: report_card_id),
-    do: Filters.list_profile_report_card_filters(profile_id, report_card_id)
 
   defp get_current_filters(profile_id, _) do
     case Personalization.get_profile_settings(profile_id) do
@@ -172,26 +164,6 @@ defmodule LantternWeb.FiltersHelpers do
     |> assign(:classes, classes)
     |> assign(:selected_classes_ids, selected_classes_ids)
     |> assign(:selected_classes, selected_classes)
-    |> assign_filter_type(current_user, current_filters, filter_types, opts)
-  end
-
-  defp assign_filter_type(
-         socket,
-         current_user,
-         current_filters,
-         [:linked_students_classes | filter_types],
-         [report_card_id: report_card_id] = opts
-       ) do
-    classes =
-      Reporting.list_report_card_linked_students_classes(report_card_id)
-
-    selected_classes_ids = Map.get(current_filters, :linked_students_classes_ids) || []
-    selected_classes = Enum.filter(classes, &(&1.id in selected_classes_ids))
-
-    socket
-    |> assign(:linked_students_classes, classes)
-    |> assign(:selected_linked_students_classes_ids, selected_classes_ids)
-    |> assign(:selected_linked_students_classes, selected_classes)
     |> assign_filter_type(current_user, current_filters, filter_types, opts)
   end
 
@@ -344,10 +316,10 @@ defmodule LantternWeb.FiltersHelpers do
     current_filters = get_current_filters(current_user.current_profile_id, opts)
 
     socket
-    |> assign_cycle_filter(current_user, current_filters, opts)
+    |> set_assign_cycle_filter_socket(current_user, current_filters, opts)
   end
 
-  defp assign_cycle_filter(
+  defp set_assign_cycle_filter_socket(
          socket,
          %{current_profile: %{current_school_cycle: %Cycle{}}} = current_user,
          current_filters,
@@ -375,7 +347,7 @@ defmodule LantternWeb.FiltersHelpers do
     |> assign(:selected_cycles, selected_subcycles)
   end
 
-  defp assign_cycle_filter(socket, current_user, current_filters, _only_subcycles) do
+  defp set_assign_cycle_filter_socket(socket, current_user, current_filters, _only_subcycles) do
     cycles = Schools.list_cycles(schools_ids: [current_user.current_profile.school_id])
 
     selected_cycles_ids = Map.get(current_filters, :cycles_ids) || []
@@ -385,6 +357,54 @@ defmodule LantternWeb.FiltersHelpers do
     |> assign(:cycles, cycles)
     |> assign(:selected_cycles_ids, selected_cycles_ids)
     |> assign(:selected_cycles, selected_cycles)
+  end
+
+  @doc """
+  Handle report card linked student classes filter assigns in socket.
+
+
+
+  ## Filter assigns
+
+  - `:linked_students_classes`
+  - `:selected_linked_students_classes_ids`
+  - `:selected_linked_students_classes`
+
+  ## Examples
+
+      iex> assign_report_card_linked_student_classes_filter(socket)
+      socket
+  """
+  @spec assign_report_card_linked_student_classes_filter(
+          Phoenix.LiveView.Socket.t(),
+          report_card :: ReportCard.t()
+        ) ::
+          Phoenix.LiveView.Socket.t()
+  def assign_report_card_linked_student_classes_filter(socket, %ReportCard{} = report_card) do
+    current_user = socket.assigns.current_user
+
+    current_filters =
+      Filters.list_profile_report_card_filters(current_user.current_profile_id, report_card.id)
+
+    socket
+    |> set_assign_report_card_linked_student_classes_filter_socket(current_filters, report_card)
+  end
+
+  defp set_assign_report_card_linked_student_classes_filter_socket(
+         socket,
+         current_filters,
+         report_card
+       ) do
+    classes =
+      Reporting.list_report_card_linked_students_classes(report_card)
+
+    selected_classes_ids = Map.get(current_filters, :linked_students_classes_ids) || []
+    selected_classes = Enum.filter(classes, &(&1.id in selected_classes_ids))
+
+    socket
+    |> assign(:linked_students_classes, classes)
+    |> assign(:selected_linked_students_classes_ids, selected_classes_ids)
+    |> assign(:selected_linked_students_classes, selected_classes)
   end
 
   @doc """
@@ -474,7 +494,6 @@ defmodule LantternWeb.FiltersHelpers do
   - `:subjects`
   - `:years`
   - `:cycles`
-  - `:linked_students_classes`
   - `:students`
   - `:student_record_types`
   - `:student_record_status`

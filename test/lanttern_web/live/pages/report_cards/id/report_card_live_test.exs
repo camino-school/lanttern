@@ -3,7 +3,6 @@ defmodule LantternWeb.ReportCardLiveTest do
 
   import Lanttern.ReportingFixtures
 
-  alias Lanttern.Filters
   alias Lanttern.LearningContextFixtures
   alias Lanttern.SchoolsFixtures
   alias Lanttern.TaxonomyFixtures
@@ -40,9 +39,24 @@ defmodule LantternWeb.ReportCardLiveTest do
       assert view |> has_element?("span", "Cycle: Cycle 2024")
     end
 
-    test "list students and students report cards", %{conn: conn, user: user} do
-      report_card = report_card_fixture()
-      class = SchoolsFixtures.class_fixture()
+    test "list students and students report cards", %{conn: conn} do
+      school = SchoolsFixtures.school_fixture()
+      parent_cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+
+      subcycle =
+        SchoolsFixtures.cycle_fixture(%{school_id: school.id, parent_cycle_id: parent_cycle.id})
+
+      year = TaxonomyFixtures.year_fixture()
+
+      report_card = report_card_fixture(%{school_cycle_id: subcycle.id, year_id: year.id})
+
+      class =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school.id,
+          cycle_id: parent_cycle.id,
+          years_ids: [year.id]
+        })
+
       student_a = SchoolsFixtures.student_fixture(%{name: "Student AAA", classes_ids: [class.id]})
 
       _student_b =
@@ -51,16 +65,13 @@ defmodule LantternWeb.ReportCardLiveTest do
       student_a_report_card =
         student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_a.id})
 
-      # select profile class filter to display student B
-      Filters.set_profile_report_card_filters(
-        user,
-        report_card.id,
-        %{classes_ids: [class.id]}
-      )
-
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{report_card.id}/students")
 
+      # student A should be displayed in students linked to report card list
       assert view |> has_element?("div", "Student AAA")
+
+      # student B should be displayed in students not linked to report card list
+      # (students are filtered by the class from the same year and cycle as the report card)
       assert view |> has_element?("div", "Student BBB")
 
       view
