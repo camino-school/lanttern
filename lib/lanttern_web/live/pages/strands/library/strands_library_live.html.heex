@@ -1,21 +1,8 @@
 <.neo_header current_user={@current_user}>
-  <:title><%= @page_title %></:title>
+  <:breadcrumb navigate={~p"/strands"}><%= gettext("Strands") %></:breadcrumb>
+  <:title><%= gettext("Library") %></:title>
   <div class="flex items-center gap-6 p-4">
     <div class="flex-1 flex items-center gap-6 min-w-0">
-      <.neo_action
-        type="button"
-        phx-click={JS.exec("data-show", to: "#report-cards-cycle-filters-overlay")}
-        icon_name="hero-chevron-down-mini"
-      >
-        <%= format_neo_action_items_text(
-          @selected_cycles,
-          gettext(
-            "All %{parent_cycle} cycles",
-            parent_cycle:
-              Map.get(@current_user.current_profile.current_school_cycle || %{}, :name)
-          )
-        ) %>
-      </.neo_action>
       <.neo_action
         type="button"
         phx-click={JS.exec("data-show", to: "#strands-year-filters")}
@@ -39,8 +26,8 @@
         <%= if @only_starred_strands, do: gettext("Only starred"), else: gettext("All") %>
       </.neo_action>
     </div>
-    <.neo_action type="link" patch={~p"/strands/library"} icon_name="hero-square-3-stack-3d-mini">
-      <%= gettext("Explore all strands") %>
+    <.neo_action type="link" patch={~p"/strands/library/new"} icon_name="hero-plus-circle-mini">
+      <%= gettext("Create strand") %>
     </.neo_action>
   </div>
 </.neo_header>
@@ -71,33 +58,12 @@
   </div>
 <% end %>
 <.live_component
-  module={LantternWeb.Filters.CyclesFilterOverlayComponent}
-  id="report-cards-cycle-filters-overlay"
-  current_user={@current_user}
-  title={gettext("Filter strands by cycle")}
-  navigate={~p"/strands"}
-  filter_info={
-    case Map.get(@current_user.current_profile.current_school_cycle || %{}, :name) do
-      nil ->
-        nil
-
-      cycle_name ->
-        gettext(
-          "Showing only %{cycle} subcycles. Change the current cycle in the main menu to view other subcycles.",
-          cycle: cycle_name
-        )
-    end
-  }
-  cycles={@cycles}
-  selected_cycles_ids={@selected_cycles_ids}
-/>
-<.live_component
   module={LantternWeb.Filters.FiltersOverlayComponent}
   id="strands-year-filters"
   current_user={@current_user}
   title={gettext("Strands year filters")}
   filter_type={:years}
-  navigate={~p"/strands"}
+  navigate={~p"/strands/library"}
 />
 <.live_component
   module={LantternWeb.Filters.FiltersOverlayComponent}
@@ -105,5 +71,37 @@
   current_user={@current_user}
   title={gettext("Strands subject filters")}
   filter_type={:subjects}
-  navigate={~p"/strands"}
+  navigate={~p"/strands/library"}
 />
+<.slide_over
+  :if={@live_action == :new}
+  id="strand-form-overlay"
+  show={true}
+  on_cancel={JS.patch(~p"/strands/library")}
+>
+  <:title><%= gettext("New strand") %></:title>
+  <.live_component
+    module={StrandFormComponent}
+    id={:new}
+    strand={
+      %Strand{
+        subjects: @selected_subjects,
+        years: @selected_years
+      }
+    }
+    action={:new}
+    navigate={fn strand -> ~p"/strands/#{strand}" end}
+  />
+  <:actions>
+    <.button
+      type="button"
+      theme="ghost"
+      phx-click={JS.exec("data-cancel", to: "#strand-form-overlay")}
+    >
+      <%= gettext("Cancel") %>
+    </.button>
+    <.button type="submit" form="strand-form">
+      <%= gettext("Save") %>
+    </.button>
+  </:actions>
+</.slide_over>

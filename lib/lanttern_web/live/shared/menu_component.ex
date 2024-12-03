@@ -425,7 +425,7 @@ defmodule LantternWeb.MenuComponent do
         permission: "wcd"
       },
       %{profile: "teacher", active: :school, path: ~p"/school", text: gettext("School")},
-      %{profile: "teacher", active: :rubrics, path: ~p"/rubrics", text: gettext("Rubrics")},
+      # %{profile: "teacher", active: :rubrics, path: ~p"/rubrics", text: gettext("Rubrics")},
       %{
         profile: "teacher",
         active: :curriculum,

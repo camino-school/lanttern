@@ -74,13 +74,13 @@ defmodule LantternWeb.LearningContextComponents do
       ]}>
         <div>
           <h5 class={[
-            "font-display font-black text-2xl line-clamp-3",
-            "md:text-3xl"
+            "font-display font-black text-xl line-clamp-3",
+            "md:text-2xl md:leading-tight"
           ]}>
             <%= if @navigate do %>
               <.link
                 navigate={@navigate}
-                class="underline hover:text-ltrn-subtle"
+                class="hover:text-ltrn-subtle"
                 target={if @open_in_new, do: "_blank"}
               >
                 <%= @strand.name %>

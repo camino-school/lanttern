@@ -77,6 +77,10 @@ defmodule LantternWeb.FiltersHelpers do
   - `:selected_student_record_statuses`
   - `:selected_student_record_statuses_ids`
 
+  ### `:starred_strands`
+
+  - `:only_starred_strands`
+
   ## Examples
 
       iex> assign_user_filters(socket, [:subjects], user)
@@ -263,10 +267,22 @@ defmodule LantternWeb.FiltersHelpers do
     |> assign_filter_type(current_user, current_filters, filter_types, opts)
   end
 
+  defp assign_filter_type(
+         socket,
+         current_user,
+         current_filters,
+         [:starred_strands | filter_types],
+         opts
+       ) do
+    socket
+    |> assign(:only_starred_strands, Map.get(current_filters, :only_starred_strands))
+    |> assign_filter_type(current_user, current_filters, filter_types, opts)
+  end
+
   defp assign_filter_type(socket, current_user, current_filters, [_ | filter_types], opts),
     do: assign_filter_type(socket, current_user, current_filters, filter_types, opts)
 
-  @type_to_type_ids_key_map %{
+  @type_to_filter_key_map %{
     subjects: :subjects_ids,
     years: :years_ids,
     cycles: :cycles_ids,
@@ -274,10 +290,11 @@ defmodule LantternWeb.FiltersHelpers do
     linked_students_classes: :linked_students_classes_ids,
     students: :students_ids,
     student_record_types: :student_record_types_ids,
-    student_record_statuses: :student_record_statuses_ids
+    student_record_statuses: :student_record_statuses_ids,
+    starred_strands: :only_starred_strands
   }
 
-  @type_to_selected_ids_key_map %{
+  @type_to_current_value_key_map %{
     subjects: :selected_subjects_ids,
     years: :selected_years_ids,
     cycles: :selected_cycles_ids,
@@ -285,7 +302,8 @@ defmodule LantternWeb.FiltersHelpers do
     linked_students_classes: :selected_linked_students_classes_ids,
     students: :selected_students_ids,
     student_record_types: :selected_student_record_types_ids,
-    student_record_statuses: :selected_student_record_statuses_ids
+    student_record_statuses: :selected_student_record_statuses_ids,
+    starred_strands: :only_starred_strands
   }
 
   @doc """
@@ -427,7 +445,7 @@ defmodule LantternWeb.FiltersHelpers do
           Phoenix.LiveView.Socket.t()
 
   def handle_filter_toggle(socket, type, id) do
-    selected_ids_key = @type_to_selected_ids_key_map[type]
+    selected_ids_key = @type_to_current_value_key_map[type]
     selected_ids = socket.assigns[selected_ids_key]
 
     selected_ids =
@@ -475,7 +493,7 @@ defmodule LantternWeb.FiltersHelpers do
   def clear_profile_filters(current_user, types, opts \\ []) do
     attrs =
       types
-      |> Enum.map(&{@type_to_type_ids_key_map[&1], []})
+      |> Enum.map(&{@type_to_filter_key_map[&1], []})
       |> Enum.into(%{})
 
     apply_save_profile_filters(current_user, attrs, opts)
@@ -513,10 +531,10 @@ defmodule LantternWeb.FiltersHelpers do
     attrs =
       types
       |> Enum.map(fn type ->
-        selected_ids_key = @type_to_selected_ids_key_map[type]
-        selected_ids = socket.assigns[selected_ids_key]
+        filter_key = @type_to_current_value_key_map[type]
+        current_filter_value = socket.assigns[filter_key]
 
-        {@type_to_type_ids_key_map[type], selected_ids}
+        {@type_to_filter_key_map[type], current_filter_value}
       end)
       |> Enum.into(%{})
 

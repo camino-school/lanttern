@@ -123,13 +123,14 @@ defmodule LantternWeb.NeoComponents do
   attr :icon_name, :string, default: nil
   attr :patch, :string, default: nil, doc: "use with type=\"link\""
   attr :navigate, :string, default: nil, doc: "use with type=\"link\""
+  attr :is_active, :boolean, default: nil
   attr :rest, :global
 
   slot :inner_block, required: true
 
   def neo_action(%{type: "button"} = assigns) do
     ~H"""
-    <button type="button" class={[neo_action_styles(), @class]} {@rest}>
+    <button type="button" class={[neo_action_styles(assigns), @class]} {@rest}>
       <span class="truncate"><%= render_slot(@inner_block) %></span>
       <.icon :if={@icon_name} name={@icon_name} class="shrink-0 w-5 h-5" />
     </button>
@@ -138,19 +139,26 @@ defmodule LantternWeb.NeoComponents do
 
   def neo_action(%{type: "link"} = assigns) do
     ~H"""
-    <.link patch={@patch} navigate={@navigate} class={[neo_action_styles(), @class]}>
+    <.link patch={@patch} navigate={@navigate} class={[neo_action_styles(assigns), @class]}>
       <span class="truncate"><%= render_slot(@inner_block) %></span>
       <.icon :if={@icon_name} name={@icon_name} class="shrink-0 w-5 h-5" />
     </.link>
     """
   end
 
-  defp neo_action_styles(),
-    do: "flex items-center gap-2 min-w-0 text-ltrn-dark hover:text-ltrn-subtle"
+  defp neo_action_styles(assigns) do
+    class = "flex items-center gap-2 min-w-0"
+
+    case assigns.is_active do
+      true -> class <> " text-ltrn-primary hover:text-ltrn-subtle"
+      false -> class <> " text-ltrn-subtle hover:text-ltrn-dark"
+      _ -> class <> " text-ltrn-dark hover:text-ltrn-subtle"
+    end
+  end
 
   def format_neo_action_items_text(items, default_text, key \\ :name, separator \\ ", ")
 
-  def format_neo_action_items_text(_items = [], default_text, _, _), do: default_text
+  def format_neo_action_items_text([] = _items, default_text, _, _), do: default_text
 
   def format_neo_action_items_text(items, _, key, separator),
     do: Enum.map_join(items, separator, &Map.get(&1, key))

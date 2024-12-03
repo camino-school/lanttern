@@ -1,10 +1,14 @@
-defmodule LantternWeb.StrandsLive do
+defmodule LantternWeb.StrandsLibraryLive do
   use LantternWeb, :live_view
 
   alias Lanttern.LearningContext
+  alias Lanttern.LearningContext.Strand
 
   import LantternWeb.FiltersHelpers,
-    only: [assign_user_filters: 2, assign_cycle_filter: 2, save_profile_filters: 2]
+    only: [assign_user_filters: 2, save_profile_filters: 2]
+
+  # live components
+  alias LantternWeb.LearningContext.StrandFormComponent
 
   # shared components
   import LantternWeb.LearningContextComponents
@@ -15,10 +19,9 @@ defmodule LantternWeb.StrandsLive do
   def mount(_params, _session, socket) do
     socket =
       socket
-      |> assign(:page_title, gettext("Strands"))
+      |> assign(:page_title, gettext("Strands library"))
       |> assign(:strands_length, 0)
       |> assign_user_filters([:subjects, :years, :starred_strands])
-      |> assign_cycle_filter(only_subcycles: true)
       |> stream_strands()
 
     {:ok, socket}
@@ -32,9 +35,6 @@ defmodule LantternWeb.StrandsLive do
         after: socket.assigns[:keyset],
         subjects_ids: socket.assigns.selected_subjects_ids,
         years_ids: socket.assigns.selected_years_ids,
-        parent_cycle_id:
-          Map.get(socket.assigns.current_user.current_profile.current_school_cycle || %{}, :id),
-        cycles_ids: socket.assigns.selected_cycles_ids,
         show_starred_for_profile_id: socket.assigns.current_user.current_profile.id,
         only_starred: socket.assigns.only_starred_strands
       )
@@ -51,6 +51,10 @@ defmodule LantternWeb.StrandsLive do
     |> assign(:keyset, keyset)
     |> assign(:has_next_page, has_next)
   end
+
+  @impl true
+  def handle_params(_params, _uri, socket),
+    do: {:noreply, socket}
 
   # event handlers
 
@@ -69,7 +73,7 @@ defmodule LantternWeb.StrandsLive do
       socket
       |> assign(:only_starred_strands, only_starred_strands)
       |> save_profile_filters([:starred_strands])
-      |> push_navigate(to: ~p"/strands", replace: true)
+      |> push_navigate(to: ~p"/strands/library", replace: true)
       |> put_flash(:info, message)
 
     {:noreply, socket}

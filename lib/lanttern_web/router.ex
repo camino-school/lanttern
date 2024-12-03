@@ -85,7 +85,8 @@ defmodule LantternWeb.Router do
            :feedback
 
       live "/strands", StrandsLive, :index
-      live "/strands/new", StrandsLive, :new
+      live "/strands/library", StrandsLibraryLive, :index
+      live "/strands/library/new", StrandsLibraryLive, :new
       live "/strands/:id", StrandLive, :show
       live "/strands/:id/edit", StrandLive, :edit
       live "/strands/:id/goal/new", StrandLive, :new_goal

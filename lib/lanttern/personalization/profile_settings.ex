@@ -33,7 +33,8 @@ defmodule Lanttern.Personalization.ProfileSettings do
           assessment_group_by: String.t(),
           students_ids: [pos_integer()],
           student_record_types_ids: [pos_integer()],
-          student_record_statuses_ids: [pos_integer()]
+          student_record_statuses_ids: [pos_integer()],
+          only_starred_strands: boolean()
         }
 
   schema "profile_settings" do
@@ -51,6 +52,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
       field :students_ids, {:array, :id}
       field :student_record_types_ids, {:array, :id}
       field :student_record_statuses_ids, {:array, :id}
+      field :only_starred_strands, :boolean, default: false
     end
 
     timestamps()
@@ -82,7 +84,8 @@ defmodule Lanttern.Personalization.ProfileSettings do
       :assessment_group_by,
       :students_ids,
       :student_record_types_ids,
-      :student_record_statuses_ids
+      :student_record_statuses_ids,
+      :only_starred_strands
     ])
     |> validate_change(:assessment_view, fn :assessment_view, view ->
       if view in ["teacher", "student", "compare"],

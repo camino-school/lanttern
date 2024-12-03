@@ -22,8 +22,10 @@ defmodule Lanttern.LearningContext do
 
   - `:subjects_ids` – filter strands by subjects
   - `:years_ids` – filter strands by years
+  - `:cycles_ids` – filter strands by cycle, using linked report cards to determine the relationship between strands and cycles
+  - `:parent_cycle_id` – same as `cycles_ids`, but will use report cards' parent cycle
   - `:show_starred_for_profile_id` - handles `is_starred` field
-  - `:only_starred_for_profile_id` - list only profile starred strands
+  - `:only_starred` - requires `show_starred_for_profile_id`. List only profile starred strands
   - `:preloads` – preloads associated data
   - page opts (view `Page.opts()`)
 
@@ -37,8 +39,10 @@ defmodule Lanttern.LearningContext do
           [
             subjects_ids: [pos_integer()],
             years_ids: [pos_integer()],
+            cycles_ids: [pos_integer()],
+            parent_cycle_id: pos_integer(),
             show_starred_for_profile_id: pos_integer(),
-            only_starred_for_profile_id: pos_integer(),
+            only_starred: boolean(),
             preloads: list()
           ]
           | Page.opts()
@@ -75,22 +79,43 @@ defmodule Lanttern.LearningContext do
     |> apply_list_strands_opts(opts)
   end
 
-  defp apply_list_strands_opts(queryable, [{:show_starred_for_profile_id, profile_id} | opts]) do
+  defp apply_list_strands_opts(queryable, [{:cycles_ids, cycles_ids} | opts])
+       when is_list(cycles_ids) and cycles_ids != [] do
+    queryable = bind_cycles_to_strands(queryable)
+
     from(
-      s in queryable,
-      left_join: ss in StarredStrand,
-      on: ss.profile_id == ^profile_id and ss.strand_id == s.id,
-      select: %{s | is_starred: not is_nil(ss)}
+      [s, cycles: c] in queryable,
+      where: c.id in ^cycles_ids
     )
     |> apply_list_strands_opts(opts)
   end
 
-  defp apply_list_strands_opts(queryable, [{:only_starred_for_profile_id, profile_id} | opts]) do
+  defp apply_list_strands_opts(queryable, [{:parent_cycle_id, parent_cycle_id} | opts])
+       when is_integer(parent_cycle_id) do
+    queryable = bind_cycles_to_strands(queryable)
+
+    from(
+      [s, cycles: c] in queryable,
+      where: c.parent_cycle_id == ^parent_cycle_id
+    )
+    |> apply_list_strands_opts(opts)
+  end
+
+  defp apply_list_strands_opts(queryable, [{:show_starred_for_profile_id, profile_id} | opts]) do
+    condition =
+      if Keyword.get(opts, :only_starred) == true do
+        dynamic([starred_strands: ss], not is_nil(ss))
+      else
+        true
+      end
+
     from(
       s in queryable,
-      join: ss in StarredStrand,
+      left_join: ss in StarredStrand,
       on: ss.profile_id == ^profile_id and ss.strand_id == s.id,
-      select: %{s | is_starred: true}
+      as: :starred_strands,
+      select: %{s | is_starred: not is_nil(ss)},
+      where: ^condition
     )
     |> apply_list_strands_opts(opts)
   end
@@ -112,6 +137,20 @@ defmodule Lanttern.LearningContext do
 
   defp apply_list_strands_opts(queryable, [_ | opts]),
     do: apply_list_strands_opts(queryable, opts)
+
+  defp bind_cycles_to_strands(queryable) do
+    if has_named_binding?(queryable, :cycles) do
+      queryable
+    else
+      from(
+        s in queryable,
+        join: sr in assoc(s, :strand_reports),
+        join: rc in assoc(sr, :report_card),
+        join: c in assoc(rc, :school_cycle),
+        as: :cycles
+      )
+    end
+  end
 
   @doc """
   Returns a page with the list of strands.

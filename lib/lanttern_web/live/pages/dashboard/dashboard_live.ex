@@ -33,7 +33,8 @@ defmodule LantternWeb.DashboardLive do
   defp stream_starred_strands(socket) do
     starred_strands =
       LearningContext.list_strands(
-        only_starred_for_profile_id: socket.assigns.current_user.current_profile.id,
+        show_starred_for_profile_id: socket.assigns.current_user.current_profile.id,
+        only_starred: true,
         preloads: [:subjects, :years]
       )
 
