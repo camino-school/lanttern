@@ -1,4 +1,4 @@
-<div class="relative">
+<div>
   <.neo_header current_user={@current_user}>
     <:breadcrumb navigate={~p"/report_cards"}><%= gettext("Report cards") %></:breadcrumb>
     <:title><%= @report_card.name %></:title>
@@ -102,15 +102,6 @@
       params={@params}
     />
   </div>
-  <div :if={@live_action == :tracking}>
-    <.live_component
-      module={StudentsTrackingComponent}
-      id="report-card-students-tracking"
-      report_card={@report_card}
-      current_user={@current_user}
-      params={@params}
-    />
-  </div>
 </div>
 <.live_component
   :if={@live_action == :grades}
@@ -120,6 +111,15 @@
   current_user={@current_user}
   params={@params}
 />
+<div :if={@live_action == :tracking}>
+  <.live_component
+    module={StudentsTrackingComponent}
+    id="report-card-students-tracking"
+    report_card={@report_card}
+    current_user={@current_user}
+    params={@params}
+  />
+</div>
 <.slide_over
   :if={@is_editing}
   id="report-card-form-overlay"

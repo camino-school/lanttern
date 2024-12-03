@@ -116,5 +116,13 @@ defmodule LantternWeb.ReportCardLiveTest do
 
       assert view |> has_element?("a", "GR name AAA")
     end
+
+    test "view tracking", %{conn: conn} do
+      report_card = report_card_fixture()
+
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{report_card.id}/tracking")
+
+      assert view |> has_element?("h5", "Students moments assessment tracking")
+    end
   end
 end

@@ -380,7 +380,7 @@ defmodule LantternWeb.ReportingComponents do
 
     ~H"""
     <div class={[
-      "relative w-full max-h-[calc(100vh-4rem)] rounded bg-white shadow-xl overflow-x-auto",
+      "relative w-full max-h-screen bg-white shadow-xl overflow-x-auto",
       @class
     ]}>
       <div class="relative grid gap-1 w-max min-w-full" style={@grid_template_columns_style}>

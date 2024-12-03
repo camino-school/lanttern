@@ -6,8 +6,8 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
 
   import LantternWeb.FiltersHelpers,
     only: [
-      save_profile_filters: 3,
-      assign_report_card_linked_student_classes_filter: 2
+      assign_report_card_linked_student_classes_filter: 2,
+      save_profile_filters: 3
     ]
 
   import LantternWeb.GradesReportsHelpers, only: [build_calculation_results_message: 1]
