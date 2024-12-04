@@ -191,10 +191,10 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
       |> Map.put("subjects_ids", socket.assigns.selected_subjects_ids)
       |> Map.put("years_ids", socket.assigns.selected_years_ids)
 
-    save_strand(socket, socket.assigns.action, strand_params)
+    save_strand(socket, socket.assigns.strand, strand_params)
   end
 
-  defp save_strand(socket, :edit, strand_params) do
+  defp save_strand(socket, %{id: strand_id}, strand_params) when not is_nil(strand_id) do
     case LearningContext.update_strand(socket.assigns.strand, strand_params) do
       {:ok, strand} ->
         notify_parent(__MODULE__, {:saved, strand}, socket.assigns)
@@ -209,17 +209,19 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
     end
   end
 
-  defp save_strand(socket, :new, strand_params) do
+  defp save_strand(socket, %{id: nil}, strand_params) do
     case LearningContext.create_strand(strand_params,
            preloads: [:subjects, :years]
          ) do
       {:ok, strand} ->
         notify_parent(__MODULE__, {:saved, strand}, socket.assigns)
 
-        {:noreply,
-         socket
-         |> put_flash(:info, gettext("Strand created successfully"))
-         |> handle_navigation(strand)}
+        socket =
+          socket
+          |> put_flash(:info, gettext("Strand created successfully"))
+          |> handle_navigation(strand)
+
+        {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}

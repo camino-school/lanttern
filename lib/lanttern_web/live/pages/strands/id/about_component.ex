@@ -6,54 +6,52 @@ defmodule LantternWeb.StrandLive.AboutComponent do
   alias Lanttern.Curricula
   alias Lanttern.Reporting
 
+  import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
   import Lanttern.Utils, only: [swap: 3]
 
   # shared components
   alias LantternWeb.Assessments.AssessmentPointFormComponent
-  alias LantternWeb.Dataviz.LantternVizComponent
   import LantternWeb.ReportingComponents, only: [report_card_card: 1]
 
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="py-10">
-      <.live_component
-        module={LantternVizComponent}
-        id="lanttern-viz"
-        class="mb-10"
-        strand_id={@strand.id}
+    <div class="p-4">
+      <.cover_image
+        image_url={@cover_image_url}
+        alt_text={gettext("Strand cover image")}
+        empty_state_text={gettext("Edit strand to add a cover image")}
       />
-      <.responsive_container>
-        <.markdown text={@strand.description} />
+      <.responsive_container class="mt-10">
+        <hgroup class="font-display font-black">
+          <h1 class="text-4xl sm:text-5xl"><%= @strand.name %></h1>
+          <p :if={@strand.type} class="mt-2 text-xl sm:text-2xl"><%= @strand.type %></p>
+        </hgroup>
+        <div class="flex flex-wrap gap-2 mt-6">
+          <.badge :for={subject <- @strand.subjects} theme="dark">
+            <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
+          </.badge>
+          <.badge :for={year <- @strand.years} theme="dark">
+            <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", year.name) %>
+          </.badge>
+        </div>
+        <.markdown text={@strand.description} class="mt-10" />
         <div class="flex items-end justify-between gap-6">
           <h3 class="mt-16 font-display font-black text-3xl"><%= gettext("Goals") %></h3>
-          <div class="shrink-0 flex items-center gap-6">
-            <.collection_action
-              :if={@has_goal_position_change}
-              type="button"
-              icon_name="hero-check-circle"
-              phx-click="save_order"
-              phx-target={@myself}
-              class="font-bold"
-            >
-              <%= gettext("Save updated order") %>
-            </.collection_action>
-            <.collection_action
-              type="button"
-              icon_name="hero-plus-circle"
-              phx-click="new_goal"
-              phx-target={@myself}
-            >
-              <%= gettext("Add strand goal") %>
-            </.collection_action>
-          </div>
+          <.neo_action
+            type="link"
+            icon_name="hero-plus-circle-mini"
+            patch={~p"/strands/#{@strand}?goal=new"}
+          >
+            <%= gettext("Add strand goal") %>
+          </.neo_action>
         </div>
         <p class="mt-4">
           <%= gettext(
             "Under the hood, goals in Lanttern are defined by assessment points linked directly to the strand — when adding goals, we are adding assessment points which, in turn, hold the curriculum items we'll want to assess along the strand course."
           ) %>
         </p>
-        <div :for={{curriculum_item, i} <- @curriculum_items} class="mt-6">
+        <div :for={{curriculum_item, i} <- @indexed_curriculum_items} class="mt-6">
           <div class="flex items-stretch gap-6 p-6 rounded bg-white shadow-lg">
             <div class="flex-1">
               <div class="flex items-center gap-4">
@@ -64,10 +62,9 @@ defmodule LantternWeb.StrandLive.AboutComponent do
                   <%= curriculum_item.curriculum_component.name %>
                 </p>
                 <.button
-                  type="button"
+                  type="link"
                   theme="ghost"
-                  phx-click={JS.push("edit_goal", value: %{id: curriculum_item.assessment_point_id})}
-                  phx-target={@myself}
+                  patch={~p"/strands/#{@strand}?goal=#{curriculum_item.assessment_point_id}"}
                 >
                   <%= gettext("Edit") %>
                 </.button>
@@ -107,7 +104,7 @@ defmodule LantternWeb.StrandLive.AboutComponent do
                 theme="ghost"
                 rounded
                 size="sm"
-                disabled={i + 1 == length(@curriculum_items)}
+                disabled={i + 1 == length(@indexed_curriculum_items)}
                 phx-click={JS.push("swap_goal_position", value: %{from: i, to: i + 1})}
                 phx-target={@myself}
               />
@@ -119,9 +116,6 @@ defmodule LantternWeb.StrandLive.AboutComponent do
         <h3 class="font-display font-black text-3xl"><%= gettext("Report cards") %></h3>
         <p class="flex gap-1 mt-4">
           <%= gettext("List of report cards linked to this strand.") %>
-          <.link class="text-ltrn-subtle hover:text-ltrn-primary" navigate={~p"/report_cards"}>
-            <%= gettext("View all") %>
-          </.link>
         </p>
       </.responsive_container>
       <%= if @has_report_cards do %>
@@ -139,50 +133,35 @@ defmodule LantternWeb.StrandLive.AboutComponent do
         </.empty_state>
       <% end %>
       <.slide_over
-        :if={@live_action in [:new_goal, :edit_goal]}
+        :if={@goal}
         id="assessment-point-form-overlay"
         show={true}
-        on_cancel={JS.patch(~p"/strands/#{@strand}?tab=about")}
+        on_cancel={JS.patch(~p"/strands/#{@strand}")}
       >
-        <:title><%= gettext("Strand Goal") %></:title>
+        <:title><%= gettext("Strand goal") %></:title>
+        <.delete_goal_error
+          error_message={@delete_goal_error}
+          on_delete={JS.push("delete_goal_and_entries", target: @myself)}
+          on_dismiss={JS.push("dismiss_delete_goal_error", target: @myself)}
+          class="mb-6"
+        />
         <.live_component
           module={AssessmentPointFormComponent}
-          id={Map.get(@assessment_point, :id) || :new}
+          id={Map.get(@goal, :id) || :new}
           notify_component={@myself}
-          assessment_point={@assessment_point}
-          navigate={~p"/strands/#{@strand}?tab=about"}
+          assessment_point={@goal}
+          navigate={~p"/strands/#{@strand}"}
         />
-        <div
-          :if={@delete_assessment_point_error}
-          class="flex items-start gap-4 p-4 rounded-sm text-sm text-rose-600 bg-rose-100"
-        >
-          <div>
-            <p><%= @delete_assessment_point_error %></p>
-            <button
-              type="button"
-              phx-click="delete_assessment_point_and_entries"
-              phx-target={@myself}
-              data-confirm={gettext("Are you sure?")}
-              class="mt-4 font-display font-bold underline"
-            >
-              <%= gettext("Understood. Delete anyway") %>
-            </button>
-          </div>
-          <button
-            type="button"
-            phx-click="dismiss_assessment_point_error"
-            phx-target={@myself}
-            class="shrink-0"
-          >
-            <span class="sr-only"><%= gettext("dismiss") %></span>
-            <.icon name="hero-x-mark" />
-          </button>
-        </div>
-        <:actions_left :if={@assessment_point.id}>
+        <.delete_goal_error
+          error_message={@delete_goal_error}
+          on_delete={JS.push("delete_goal_and_entries", target: @myself)}
+          on_dismiss={JS.push("dismiss_delete_goal_error", target: @myself)}
+        />
+        <:actions_left :if={@goal.id}>
           <.button
             type="button"
             theme="ghost"
-            phx-click="delete_assessment_point"
+            phx-click="delete_goal"
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           >
@@ -206,33 +185,85 @@ defmodule LantternWeb.StrandLive.AboutComponent do
     """
   end
 
+  attr :class, :any, default: nil
+  attr :error_message, :string, required: true
+  attr :on_delete, JS, required: true
+  attr :on_dismiss, JS, required: true
+
+  defp delete_goal_error(assigns) do
+    ~H"""
+    <div
+      :if={@error_message}
+      class={["flex items-start gap-4 p-4 rounded-sm text-sm text-rose-600 bg-rose-100", @class]}
+    >
+      <div>
+        <p><%= @error_message %></p>
+        <button
+          type="button"
+          phx-click={@on_delete}
+          data-confirm={gettext("Are you sure?")}
+          class="mt-4 font-display font-bold underline"
+        >
+          <%= gettext("Understood. Delete anyway") %>
+        </button>
+      </div>
+      <button type="button" phx-click={@on_dismiss} class="shrink-0">
+        <span class="sr-only"><%= gettext("dismiss") %></span>
+        <.icon name="hero-x-mark" />
+      </button>
+    </div>
+    """
+  end
+
   # lifecycle
   @impl true
   def mount(socket) do
-    {:ok,
-     socket
-     |> assign(:delete_assessment_point_error, nil)
-     |> assign(:has_goal_position_change, false)}
+    socket =
+      socket
+      |> assign(:goal, nil)
+      |> assign(:delete_goal_error, nil)
+      |> assign(:has_goal_position_change, false)
+      |> assign(:initialized, false)
+
+    {:ok, socket}
   end
 
   @impl true
-  def update(%{strand: strand} = assigns, socket) do
+  def update(assigns, socket) do
     socket =
       socket
       |> assign(assigns)
-      |> assign_new(:assessment_point, fn ->
-        %AssessmentPoint{
-          strand_id: strand.id,
-          datetime: DateTime.utc_now()
-        }
-      end)
-      |> assign_new(:curriculum_items, fn ->
-        Curricula.list_strand_curriculum_items(strand.id, preloads: :curriculum_component)
-        |> Enum.with_index()
-      end)
-      |> stream_report_cards()
+      |> initialize()
+      |> assign_goal()
 
     {:ok, socket}
+  end
+
+  defp initialize(%{assigns: %{initialized: false}} = socket) do
+    strand = socket.assigns.strand
+
+    socket
+    |> assign(
+      :cover_image_url,
+      object_url_to_render_url(strand.cover_image_url, width: 1280, height: 640)
+    )
+    |> assign_indexed_curriculum_items()
+    |> stream_report_cards()
+    |> assign(:initialized, true)
+  end
+
+  defp initialize(socket), do: socket
+
+  defp assign_indexed_curriculum_items(socket) do
+    curriculum_items =
+      Curricula.list_strand_curriculum_items(
+        socket.assigns.strand.id,
+        preloads: :curriculum_component
+      )
+
+    socket
+    |> assign(:indexed_curriculum_items, Enum.with_index(curriculum_items))
+    |> assign(:goals_ids, Enum.map(curriculum_items, & &1.assessment_point_id))
   end
 
   defp stream_report_cards(socket) do
@@ -247,83 +278,87 @@ defmodule LantternWeb.StrandLive.AboutComponent do
     |> assign(:has_report_cards, report_cards != [])
   end
 
+  defp assign_goal(%{assigns: %{params: %{"goal" => "new"}}} = socket) do
+    goal =
+      %AssessmentPoint{
+        strand_id: socket.assigns.strand.id,
+        datetime: DateTime.utc_now()
+      }
+
+    assign(socket, :goal, goal)
+  end
+
+  defp assign_goal(%{assigns: %{params: %{"goal" => binary_id}}} = socket) do
+    with {id, _} <- Integer.parse(binary_id), true <- id in socket.assigns.goals_ids do
+      goal = Assessments.get_assessment_point(id)
+      assign(socket, :goal, goal)
+    else
+      _ -> assign(socket, :goal, nil)
+    end
+  end
+
+  defp assign_goal(socket), do: assign(socket, :goal, nil)
+
   # event handlers
 
   @impl true
-  def handle_event("new_goal", _params, socket) do
-    {:noreply,
-     socket
-     |> assign(:assessment_point, %AssessmentPoint{
-       strand_id: socket.assigns.strand.id,
-       datetime: DateTime.utc_now()
-     })
-     |> push_patch(to: ~p"/strands/#{socket.assigns.strand}/goal/new")}
-  end
+  def handle_event("delete_goal", _params, socket) do
+    case Assessments.delete_assessment_point(socket.assigns.goal) do
+      {:ok, _} ->
+        socket =
+          socket
+          |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}")
+          |> put_flash(:info, gettext("Goal deleted"))
 
-  def handle_event("edit_goal", %{"id" => assessment_point_id}, socket) do
-    assessment_point = Assessments.get_assessment_point(assessment_point_id)
-
-    {:noreply,
-     socket
-     |> assign(:assessment_point, assessment_point)
-     |> push_patch(to: ~p"/strands/#{socket.assigns.strand}/goal/edit")}
-  end
-
-  def handle_event("delete_assessment_point", _params, socket) do
-    case Assessments.delete_assessment_point(socket.assigns.assessment_point) do
-      {:ok, _assessment_point} ->
-        {:noreply,
-         socket
-         |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}?tab=about")}
+        {:noreply, socket}
 
       {:error, _changeset} ->
         # we may have more error types, but for now we are handling only this one
         message =
           gettext("This goal already have some entries. Deleting it will cause data loss.")
 
-        {:noreply, socket |> assign(:delete_assessment_point_error, message)}
+        {:noreply, socket |> assign(:delete_goal_error, message)}
     end
   end
 
-  def handle_event("delete_assessment_point_and_entries", _, socket) do
-    case Assessments.delete_assessment_point_and_entries(socket.assigns.assessment_point) do
+  def handle_event("delete_goal_and_entries", _, socket) do
+    case Assessments.delete_assessment_point_and_entries(socket.assigns.goal) do
       {:ok, _} ->
-        {:noreply,
-         socket
-         |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}?tab=about")}
+        socket =
+          socket
+          |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}")
+          |> put_flash(:info, gettext("Goal and entries deleted"))
+
+        {:noreply, socket}
 
       {:error, _} ->
         {:noreply, socket}
     end
   end
 
-  def handle_event("dismiss_assessment_point_error", _, socket) do
-    {:noreply,
-     socket
-     |> assign(:delete_assessment_point_error, nil)}
-  end
+  def handle_event("dismiss_delete_goal_error", _, socket),
+    do: {:noreply, assign(socket, :delete_goal_error, nil)}
 
   def handle_event("swap_goal_position", %{"from" => i, "to" => j}, socket) do
-    curriculum_items =
-      socket.assigns.curriculum_items
+    swapped_curriculum_items =
+      socket.assigns.indexed_curriculum_items
       |> Enum.map(fn {ap, _i} -> ap end)
       |> swap(i, j)
-      |> Enum.with_index()
 
-    {:noreply,
-     socket
-     |> assign(:curriculum_items, curriculum_items)
-     |> assign(:has_goal_position_change, true)}
-  end
+    swapped_goals_ids =
+      swapped_curriculum_items
+      |> Enum.map(& &1.assessment_point_id)
 
-  def handle_event("save_order", _, socket) do
-    assessment_points_ids =
-      socket.assigns.curriculum_items
-      |> Enum.map(fn {ci, _i} -> ci.assessment_point_id end)
+    case Assessments.update_assessment_points_positions(swapped_goals_ids) do
+      {:ok, _} ->
+        socket =
+          socket
+          |> assign(
+            :indexed_curriculum_items,
+            Enum.with_index(swapped_curriculum_items)
+          )
 
-    case Assessments.update_assessment_points_positions(assessment_points_ids) do
-      {:ok, _assessment_points} ->
-        {:noreply, assign(socket, :has_goal_position_change, false)}
+        {:noreply, socket}
 
       {:error, msg} ->
         {:noreply, put_flash(socket, :error, msg)}

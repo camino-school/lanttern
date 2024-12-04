@@ -5,7 +5,6 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
 
   # shared components
   alias LantternWeb.Assessments.AssessmentsGridComponent
-  alias LantternWeb.StrandLive.StrandRubricsComponent
 
   @impl true
   def render(assigns) do
@@ -48,14 +47,6 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         classes_ids={@selected_classes_ids}
         class="mt-6"
         navigate={~p"/strands/#{@strand}?tab=assessment"}
-      />
-
-      <.live_component
-        module={StrandRubricsComponent}
-        id={:strand_rubrics}
-        strand={@strand}
-        live_action={@live_action}
-        selected_classes_ids={@selected_classes_ids}
       />
       <.live_component
         module={LantternWeb.Filters.ClassesFilterOverlayComponent}

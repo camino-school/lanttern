@@ -1,122 +1,93 @@
-<.cover style={"background-image: url('#{@cover_image_url || "/images/cover-placeholder.jpg"}')"}>
-  <:top>
-    <div class="flex items-center justify-between">
-      <.breadcrumbs with_bg>
-        <:item link={~p"/strands"}><%= gettext("Strands") %></:item>
-        <:item><%= gettext("Strand details") %></:item>
-      </.breadcrumbs>
-      <.nav_menu_button />
-    </div>
-  </:top>
-  <hgroup class="font-display font-black">
-    <h1 class="text-4xl sm:text-5xl"><%= @strand.name %></h1>
-    <p :if={@strand.type} class="mt-2 text-xl sm:text-2xl"><%= @strand.type %></p>
-  </hgroup>
-  <div class="flex flex-wrap gap-2 mt-6">
-    <.badge :for={subject <- @strand.subjects} theme="dark">
-      <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
-    </.badge>
-    <.badge :for={year <- @strand.years} theme="dark">
-      <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", year.name) %>
-    </.badge>
-  </div>
-</.cover>
-<div class="sticky z-40 top-0 border-b border-ltrn-lighter bg-white">
-  <.responsive_container class="flex items-center justify-between gap-10">
-    <.nav_tabs id="strand-nav-tabs" class="flex-1 overflow-x-auto">
-      <:tab
-        patch={~p"/strands/#{@strand}?#{%{tab: "about"}}"}
-        is_current={@current_tab == :about && "true"}
-      >
+<.neo_header current_user={@current_user}>
+  <:breadcrumb navigate={~p"/strands"}><%= gettext("Strands") %></:breadcrumb>
+  <:title><%= @strand.name %></:title>
+  <div class="flex items-center justify-between gap-4 px-4">
+    <.neo_tabs id="strand-nav-tabs">
+      <:tab patch={~p"/strands/#{@strand}"} is_current={@live_action == :show}>
         <%= gettext("About") %>
       </:tab>
-      <:tab
-        patch={~p"/strands/#{@strand}?#{%{tab: "assessment"}}"}
-        is_current={@current_tab == :assessment && "true"}
-      >
-        <%= gettext("Strand assessment") %>
+      <:tab patch={~p"/strands/#{@strand}/rubrics"} is_current={@live_action == :rubrics}>
+        <%= gettext("Rubrics") %>
       </:tab>
-      <:tab
-        patch={~p"/strands/#{@strand}?#{%{tab: "moments"}}"}
-        is_current={@current_tab == :moments && "true"}
-      >
+      <:tab patch={~p"/strands/#{@strand}/assessment"} is_current={@live_action == :assessment}>
+        <%= gettext("Assessment") %>
+      </:tab>
+      <:tab patch={~p"/strands/#{@strand}/moments"} is_current={@live_action == :moments}>
         <%= gettext("Moments") %>
       </:tab>
-      <:tab
-        patch={~p"/strands/#{@strand}?#{%{tab: "notes"}}"}
-        is_current={@current_tab == :notes && "true"}
-      >
+      <:tab patch={~p"/strands/#{@strand}/notes"} is_current={@live_action == :notes}>
         <%= gettext("Notes") %>
       </:tab>
-    </.nav_tabs>
-    <.menu_button id={@strand.id}>
-      <:item
-        id={"edit-strand-#{@strand.id}"}
-        text={gettext("Edit strand")}
-        on_click={JS.patch(~p"/strands/#{@strand}/edit")}
-      />
-      <:item
-        id={"remove-strand-#{@strand.id}"}
-        text={gettext("Delete")}
-        theme="alert"
-        on_click={JS.push("delete_strand")}
-        confirm_msg={gettext("Are you sure?")}
-      />
-    </.menu_button>
-  </.responsive_container>
-</div>
-<div class="ltrn-bg-main-local">
-  <.live_component
-    :if={@current_tab == :about}
-    module={AboutComponent}
-    id="strand-details-about"
-    strand={@strand}
-    live_action={@live_action}
-  />
-  <.live_component
-    :if={@current_tab == :assessment}
-    module={AssessmentComponent}
-    id="strand-details-assessment"
-    strand={@strand}
-    current_user={@current_user}
-    live_action={@live_action}
-  />
-  <.live_component
-    :if={@current_tab == :moments}
-    module={MomentsComponent}
-    id="strand-details-moments"
-    strand={@strand}
-    live_action={@live_action}
-  />
-  <.live_component
-    :if={@current_tab == :reporting}
-    module={ReportingComponent}
-    id="strand-details-reporting"
-    strand={@strand}
-    live_action={@live_action}
-    current_user={@current_user}
-  />
-  <.live_component
-    :if={@current_tab == :notes}
-    module={NotesComponent}
-    id="strand-details-notes"
-    strand={@strand}
-    current_user={@current_user}
-  />
-</div>
+    </.neo_tabs>
+    <div class="flex items-center gap-4">
+      <.neo_action
+        type="link"
+        patch={"#{@current_path}?is_editing=true"}
+        icon_name="hero-pencil-mini"
+      >
+        <%= gettext("Edit strand") %>
+      </.neo_action>
+      <.menu_button id="strand-menu-more">
+        <:item
+          id={"remove-strand-#{@strand.id}"}
+          text={gettext("Delete")}
+          theme="alert"
+          on_click={JS.push("delete_strand")}
+          confirm_msg={gettext("Are you sure?")}
+        />
+      </.menu_button>
+    </div>
+  </div>
+</.neo_header>
+<.live_component
+  :if={@live_action == :show}
+  module={AboutComponent}
+  id="strand-about"
+  strand={@strand}
+  params={@params}
+/>
+<.live_component
+  :if={@live_action == :rubrics}
+  module={StrandRubricsComponent}
+  id="strand-rubrics"
+  strand={@strand}
+  current_user={@current_user}
+  params={@params}
+/>
+<.live_component
+  :if={@live_action == :assessment}
+  module={AssessmentComponent}
+  id="strand-assessment"
+  strand={@strand}
+  current_user={@current_user}
+  live_action={@live_action}
+/>
+<.live_component
+  :if={@live_action == :moments}
+  module={MomentsComponent}
+  id="strand-moments"
+  strand={@strand}
+  params={@params}
+/>
+<.live_component
+  :if={@live_action == :notes}
+  module={NotesComponent}
+  id="strand-notes"
+  strand={@strand}
+  current_user={@current_user}
+/>
 <.slide_over
-  :if={@live_action == :edit}
+  :if={@is_editing}
   id="strand-form-overlay"
   show={true}
-  on_cancel={JS.patch(~p"/strands/#{@strand}")}
+  on_cancel={JS.patch(@current_path)}
 >
   <:title><%= gettext("Edit strand") %></:title>
   <.live_component
     module={StrandFormComponent}
     id={@strand.id}
     strand={@strand}
-    action={@live_action}
-    patch={~p"/strands/#{@strand}"}
+    patch={@current_path}
     notify_parent
   />
   <:actions>

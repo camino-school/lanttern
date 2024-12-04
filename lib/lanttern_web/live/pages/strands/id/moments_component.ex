@@ -6,8 +6,9 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
 
   import Lanttern.Utils, only: [swap: 3]
 
-  # live components
+  # shared components
   alias LantternWeb.LearningContext.MomentFormComponent
+  alias LantternWeb.Dataviz.LantternVizComponent
 
   @impl true
   def render(assigns) do
@@ -29,7 +30,7 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
             </.collection_action>
             <.collection_action
               type="link"
-              patch={~p"/strands/#{@strand}/new_moment"}
+              patch={~p"/strands/#{@strand}/moments?moment=new"}
               icon_name="hero-plus-circle"
             >
               <%= gettext("Create new moment") %>
@@ -68,8 +69,14 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
           </div>
         <% end %>
       </.responsive_container>
+      <.live_component
+        module={LantternVizComponent}
+        id="lanttern-viz"
+        class="mb-10"
+        strand_id={@strand.id}
+      />
       <.slide_over
-        :if={@live_action == :new_moment}
+        :if={@moment}
         id="moment-form-overlay"
         show={true}
         on_cancel={JS.patch(~p"/strands/#{@strand}?tab=moments")}
@@ -78,7 +85,7 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
         <.live_component
           module={MomentFormComponent}
           id={:new}
-          moment={%Moment{strand_id: @strand.id, subjects: []}}
+          moment={@moment}
           strand_id={@strand.id}
           action={:new}
           navigate={fn moment -> ~p"/strands/moment/#{moment}" end}
@@ -163,13 +170,23 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
       LearningContext.list_moments(strands_ids: [assigns.strand.id], preloads: :subjects)
       |> Enum.with_index()
 
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign(:moments_count, length(moments))
-     |> stream(:moments, moments)
-     |> assign(:sortable_moments, moments)}
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign(:moments_count, length(moments))
+      |> stream(:moments, moments)
+      |> assign(:sortable_moments, moments)
+      |> assign_moment()
+
+    {:ok, socket}
   end
+
+  defp assign_moment(%{assigns: %{params: %{"moment" => "new"}}} = socket) do
+    moment = %Moment{strand_id: socket.assigns.strand.id, subjects: []}
+    assign(socket, :moment, moment)
+  end
+
+  defp assign_moment(socket), do: assign(socket, :moment, nil)
 
   # event handlers
 

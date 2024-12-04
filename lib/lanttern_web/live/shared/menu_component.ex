@@ -339,6 +339,7 @@ defmodule LantternWeb.MenuComponent do
 
     # strands
     LantternWeb.StrandsLive => :strands,
+    LantternWeb.StrandsLibraryLive => :strands,
     LantternWeb.StrandLive => :strands,
     LantternWeb.MomentLive => :strands,
 
