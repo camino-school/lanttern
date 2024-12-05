@@ -1,81 +1,83 @@
-<.neo_header current_user={@current_user}>
-  <:breadcrumb navigate={~p"/strands"}><%= gettext("Strands") %></:breadcrumb>
-  <:title><%= @strand.name %></:title>
-  <div class="flex items-center justify-between gap-4 px-4">
-    <.neo_tabs id="strand-nav-tabs">
-      <:tab patch={~p"/strands/#{@strand}"} is_current={@live_action == :show}>
-        <%= gettext("About") %>
-      </:tab>
-      <:tab patch={~p"/strands/#{@strand}/rubrics"} is_current={@live_action == :rubrics}>
-        <%= gettext("Rubrics") %>
-      </:tab>
-      <:tab patch={~p"/strands/#{@strand}/assessment"} is_current={@live_action == :assessment}>
-        <%= gettext("Assessment") %>
-      </:tab>
-      <:tab patch={~p"/strands/#{@strand}/moments"} is_current={@live_action == :moments}>
-        <%= gettext("Moments") %>
-      </:tab>
-      <:tab patch={~p"/strands/#{@strand}/notes"} is_current={@live_action == :notes}>
-        <%= gettext("Notes") %>
-      </:tab>
-    </.neo_tabs>
-    <div class="flex items-center gap-4">
-      <.neo_action
-        type="link"
-        patch={"#{@current_path}?is_editing=true"}
-        icon_name="hero-pencil-mini"
-      >
-        <%= gettext("Edit strand") %>
-      </.neo_action>
-      <.menu_button id="strand-menu-more">
-        <:item
-          id={"remove-strand-#{@strand.id}"}
-          text={gettext("Delete")}
-          theme="alert"
-          on_click={JS.push("delete_strand")}
-          confirm_msg={gettext("Are you sure?")}
-        />
-      </.menu_button>
+<div>
+  <.neo_header current_user={@current_user}>
+    <:breadcrumb navigate={~p"/strands"}><%= gettext("Strands") %></:breadcrumb>
+    <:title><%= @strand.name %></:title>
+    <div class="flex items-center justify-between gap-4 px-4">
+      <.neo_tabs id="strand-nav-tabs">
+        <:tab patch={~p"/strands/#{@strand}"} is_current={@live_action == :show}>
+          <%= gettext("About") %>
+        </:tab>
+        <:tab patch={~p"/strands/#{@strand}/rubrics"} is_current={@live_action == :rubrics}>
+          <%= gettext("Rubrics") %>
+        </:tab>
+        <:tab patch={~p"/strands/#{@strand}/assessment"} is_current={@live_action == :assessment}>
+          <%= gettext("Assessment") %>
+        </:tab>
+        <:tab patch={~p"/strands/#{@strand}/moments"} is_current={@live_action == :moments}>
+          <%= gettext("Moments") %>
+        </:tab>
+        <:tab patch={~p"/strands/#{@strand}/notes"} is_current={@live_action == :notes}>
+          <%= gettext("Notes") %>
+        </:tab>
+      </.neo_tabs>
+      <div class="flex items-center gap-4">
+        <.neo_action
+          type="link"
+          patch={"#{@current_path}?is_editing=true"}
+          icon_name="hero-pencil-mini"
+        >
+          <%= gettext("Edit strand") %>
+        </.neo_action>
+        <.menu_button id="strand-menu-more">
+          <:item
+            id={"remove-strand-#{@strand.id}"}
+            text={gettext("Delete")}
+            theme="alert"
+            on_click={JS.push("delete_strand")}
+            confirm_msg={gettext("Are you sure?")}
+          />
+        </.menu_button>
+      </div>
     </div>
-  </div>
-</.neo_header>
-<.live_component
-  :if={@live_action == :show}
-  module={AboutComponent}
-  id="strand-about"
-  strand={@strand}
-  params={@params}
-/>
-<.live_component
-  :if={@live_action == :rubrics}
-  module={StrandRubricsComponent}
-  id="strand-rubrics"
-  strand={@strand}
-  current_user={@current_user}
-  params={@params}
-/>
-<.live_component
-  :if={@live_action == :assessment}
-  module={AssessmentComponent}
-  id="strand-assessment"
-  strand={@strand}
-  current_user={@current_user}
-  live_action={@live_action}
-/>
-<.live_component
-  :if={@live_action == :moments}
-  module={MomentsComponent}
-  id="strand-moments"
-  strand={@strand}
-  params={@params}
-/>
-<.live_component
-  :if={@live_action == :notes}
-  module={NotesComponent}
-  id="strand-notes"
-  strand={@strand}
-  current_user={@current_user}
-/>
+  </.neo_header>
+  <.live_component
+    :if={@live_action == :show}
+    module={AboutComponent}
+    id="strand-about"
+    strand={@strand}
+    params={@params}
+  />
+  <.live_component
+    :if={@live_action == :rubrics}
+    module={StrandRubricsComponent}
+    id="strand-rubrics"
+    strand={@strand}
+    current_user={@current_user}
+    params={@params}
+  />
+  <.live_component
+    :if={@live_action == :assessment}
+    module={AssessmentComponent}
+    id="strand-assessment"
+    strand={@strand}
+    current_user={@current_user}
+    live_action={@live_action}
+  />
+  <.live_component
+    :if={@live_action == :moments}
+    module={MomentsComponent}
+    id="strand-moments"
+    strand={@strand}
+    params={@params}
+  />
+  <.live_component
+    :if={@live_action == :notes}
+    module={NotesComponent}
+    id="strand-notes"
+    strand={@strand}
+    current_user={@current_user}
+  />
+</div>
 <.slide_over
   :if={@is_editing}
   id="strand-form-overlay"

@@ -159,7 +159,7 @@ defmodule LantternWeb.StrandLiveTest do
 
       # open create moment overlay
       view |> element("a", "Create new moment") |> render_click()
-      assert_patch(view, "#{@live_view_base_path}/#{strand.id}/moments?moment=new")
+      assert_patch(view, "#{@live_view_base_path}/#{strand.id}/moments?new_moment=true")
       assert view |> has_element?("h2", "New moment")
 
       # add subject

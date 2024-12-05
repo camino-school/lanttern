@@ -11,7 +11,7 @@ defmodule LantternWeb.Dataviz.LantternVizComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <div :if={@has_data} class={["flex gap-6 px-10", @class]}>
+      <div :if={@has_data} class={["flex gap-4", @class]}>
         <div class="relative flex-1 h-[60vh] min-h-[20rem]">
           <canvas id={@id} phx-hook="LantternViz" class="w-full h-full rounded-lg bg-ltrn-primary/20">
           </canvas>
