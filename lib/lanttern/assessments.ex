@@ -92,9 +92,10 @@ defmodule Lanttern.Assessments do
 
   Returns nil if the AssessmentPoint does not exist.
 
-  ### Options:
+  ## Options:
 
-  `:preloads` – preloads associated data
+  - `:preload_full_rubrics` – boolean, preloads full associated rubric using `Rubrics.full_rubric_query/0`
+  - `:preloads` – preloads associated data
 
   ## Examples
 
@@ -107,6 +108,7 @@ defmodule Lanttern.Assessments do
   """
   def get_assessment_point(id, opts \\ []) do
     AssessmentPoint
+    |> maybe_preload_full_rubrics(Keyword.get(opts, :preload_full_rubrics))
     |> Repo.get(id)
     |> maybe_preload(opts)
   end
@@ -118,6 +120,7 @@ defmodule Lanttern.Assessments do
   """
   def get_assessment_point!(id, opts \\ []) do
     AssessmentPoint
+    |> maybe_preload_full_rubrics(Keyword.get(opts, :preload_full_rubrics))
     |> Repo.get!(id)
     |> maybe_preload(opts)
   end

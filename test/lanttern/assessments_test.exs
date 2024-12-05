@@ -9,6 +9,9 @@ defmodule Lanttern.AssessmentsTest do
 
     import Lanttern.AssessmentsFixtures
 
+    alias Lanttern.GradingFixtures
+    alias Lanttern.RubricsFixtures
+
     @invalid_attrs %{name: nil, date: nil, description: nil}
 
     test "list_assessment_points/1 returns all assessments" do
@@ -58,6 +61,42 @@ defmodule Lanttern.AssessmentsTest do
 
       assert Assessments.get_assessment_point!(assessment_point.id, preloads: :scale) ==
                assessment_point
+    end
+
+    test "get_assessment_point!/2 with preload_full_rubrics opt returns the assessment point with given id and preloaded rubrics" do
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})
+      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.2})
+
+      rubric = RubricsFixtures.rubric_fixture(%{scale_id: scale.id})
+
+      descriptor_2 =
+        RubricsFixtures.rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_2.id
+        })
+
+      descriptor_1 =
+        RubricsFixtures.rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_1.id
+        })
+
+      assessment_point =
+        assessment_point_fixture(%{scale_id: scale.id, rubric_id: rubric.id})
+
+      expected =
+        Assessments.get_assessment_point!(assessment_point.id, preload_full_rubrics: true)
+
+      assert expected.id == assessment_point.id
+      assert expected.rubric.id == rubric.id
+      [expected_descriptor_1, expected_descriptor_2] = expected.rubric.descriptors
+      assert expected_descriptor_1.id == descriptor_1.id
+      assert expected_descriptor_2.id == descriptor_2.id
     end
 
     test "create_assessment_point/1 with valid data creates a assessment point" do
