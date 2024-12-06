@@ -19,13 +19,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
           phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
           icon_name="hero-chevron-down-mini"
         >
-          <%= if @selected_classes != [] do
-            @selected_classes
-            |> Enum.map(& &1.name)
-            |> Enum.join(", ")
-          else
-            gettext("No class selected")
-          end %>
+          <%= format_action_items_text(@selected_classes, gettext("No class selected")) %>
         </.action>
         <.assessment_group_by_dropdow
           current_assessment_group_by={@current_assessment_group_by}

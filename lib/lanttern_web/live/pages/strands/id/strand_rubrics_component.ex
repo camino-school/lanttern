@@ -15,13 +15,21 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <.responsive_container>
-        <h3 class="mt-16 font-display font-black text-3xl"><%= gettext("Goal rubrics") %></h3>
-        <div
-          :for={goal <- @goals}
-          id={"strand-assessment-point-#{goal.id}"}
-          class="p-6 rounded mt-6 shadow-lg bg-white"
-        >
+      <.responsive_container class="py-10">
+        <div>
+          <blockquote class="text-base italic">
+            <%= gettext(
+              "\"A rubric is a coherent set of criteria for students' work that includes descriptions of levels of performance quality on the criteria.\""
+            ) %>
+          </blockquote>
+          <p class="mt-2">
+            — Susan M. Brookhart,
+            <cite class="italic">
+              How to create and use rubrics for formative assessment and grading
+            </cite>
+          </p>
+        </div>
+        <.card_base :for={goal <- @goals} id={"strand-assessment-point-#{goal.id}"} class="p-6 mt-6">
           <div class="flex items-center gap-4">
             <p class="flex-1 text-sm">
               <.badge :if={goal.is_differentiation} theme="diff" class="mr-2">
@@ -56,15 +64,22 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
             criteria_text={gettext("Rubric criteria")}
             patch={~p"/strands/#{@strand}/rubrics?edit_rubric_for_goal=#{goal.id}"}
           />
-        </div>
-        <section
-          :if={@selected_classes_ids != []}
-          id="differentiation-rubrics-section"
-          class="pb-10 mt-10"
-        >
-          <h4 class="-mb-2 font-display font-black text-xl text-ltrn-subtle">
+        </.card_base>
+        <section id="differentiation-rubrics-section" class="pb-10 mt-10">
+          <h4 class="font-display font-black text-xl text-ltrn-subtle">
             <%= gettext("Differentiation") %>
           </h4>
+          <.action
+            type="button"
+            phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
+            icon_name="hero-chevron-down-mini"
+            class="mt-4"
+          >
+            <%= format_action_items_text(
+              @selected_classes,
+              gettext("Select a class to view differentiation rubrics")
+            ) %>
+          </.action>
           <div role="tablist" class="flex flex-wrap items-center gap-2 mt-6">
             <.person_tab
               :for={student <- @students}
@@ -134,6 +149,16 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
           </div>
         </section>
       </.responsive_container>
+      <.live_component
+        module={LantternWeb.Filters.ClassesFilterOverlayComponent}
+        id="classes-filter-modal"
+        current_user={@current_user}
+        title={gettext("Select classes to view students differentiation rubrics")}
+        filter_opts={[strand_id: @strand.id]}
+        classes={@classes}
+        selected_classes_ids={@selected_classes_ids}
+        navigate={~p"/strands/#{@strand}/rubrics"}
+      />
       <.slide_over
         :if={@goal}
         id="rubric-form-overlay"
