@@ -322,9 +322,10 @@ defmodule Lanttern.LearningContext do
 
   Returns `nil` if the strand does not exist.
 
-  ### Options:
+  ## Options:
 
-  `:preloads` – preloads associated data
+  - `:show_starred_for_profile_id` - handles `is_starred` field
+  - `:preloads` – preloads associated data
 
   ## Examples
 
@@ -336,9 +337,26 @@ defmodule Lanttern.LearningContext do
 
   """
   def get_strand(id, opts \\ []) do
-    Repo.get(Strand, id)
+    Strand
+    |> apply_get_strand_opts(opts)
+    |> Repo.get(id)
     |> maybe_preload(opts)
   end
+
+  defp apply_get_strand_opts(queryable, []), do: queryable
+
+  defp apply_get_strand_opts(queryable, [{:show_starred_for_profile_id, profile_id} | opts]) do
+    from(
+      s in queryable,
+      left_join: ss in StarredStrand,
+      on: ss.profile_id == ^profile_id and ss.strand_id == s.id,
+      select: %{s | is_starred: not is_nil(ss)}
+    )
+    |> apply_get_strand_opts(opts)
+  end
+
+  defp apply_get_strand_opts(queryable, [_ | opts]),
+    do: apply_get_strand_opts(queryable, opts)
 
   @doc """
   Gets a single strand.
@@ -346,7 +364,9 @@ defmodule Lanttern.LearningContext do
   Same as `get_strand/2`, but raises `Ecto.NoResultsError` if the strand does not exist.
   """
   def get_strand!(id, opts \\ []) do
-    Repo.get!(Strand, id)
+    Strand
+    |> apply_get_strand_opts(opts)
+    |> Repo.get!(id)
     |> maybe_preload(opts)
   end
 

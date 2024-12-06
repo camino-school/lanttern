@@ -2,10 +2,10 @@
   <.header_nav current_user={@current_user}>
     <:breadcrumb navigate={~p"/strands"}><%= gettext("Strands") %></:breadcrumb>
     <:breadcrumb is_info>
-      <.mini_strand_card strand={@moment.strand} class="w-60" />
+      <.mini_strand_card strand={@strand} class="w-60" />
     </:breadcrumb>
-    <:breadcrumb navigate={~p"/strands/#{@moment.strand}/moments"}>
-      <%= @moment.strand.name %>
+    <:breadcrumb navigate={~p"/strands/#{@strand}/moments"}>
+      <%= @strand.name %>
     </:breadcrumb>
     <:title><%= gettext("Moment: %{moment}", moment: @moment.name) %></:title>
     <div class="flex items-center justify-between gap-4 px-4">
@@ -51,6 +51,7 @@
     module={OverviewComponent}
     id="moment-details-overview"
     moment={@moment}
+    strand={@strand}
   />
   <.live_component
     :if={@live_action == :cards}

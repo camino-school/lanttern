@@ -24,6 +24,12 @@
         </:tab>
       </.neo_tabs>
       <div class="flex items-center gap-4">
+        <.live_component
+          module={ToggleStrandStarActionComponent}
+          id={:star_strand_action}
+          strand={@strand}
+          current_user={@current_user}
+        />
         <.action
           type="link"
           patch={"#{@current_path}?is_editing=true"}

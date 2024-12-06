@@ -21,14 +21,13 @@ defmodule LantternWeb.MomentLive do
       socket
       |> assign(:assessment_point_id, nil)
       |> assign_moment(params)
+      |> assign_strand()
 
     {:ok, socket}
   end
 
   defp assign_moment(socket, %{"id" => id}) do
-    case LearningContext.get_moment(id,
-           preloads: [:subjects, strand: [:years, :subjects]]
-         ) do
+    case LearningContext.get_moment(id, preloads: :subjects) do
       moment when is_nil(moment) ->
         socket
         |> put_flash(:error, gettext("Couldn't find moment"))
@@ -37,8 +36,18 @@ defmodule LantternWeb.MomentLive do
       moment ->
         socket
         |> assign(:moment, moment)
-        |> assign(:page_title, "#{moment.name} • #{moment.strand.name}")
     end
+  end
+
+  defp assign_strand(socket) do
+    strand =
+      LearningContext.get_strand(socket.assigns.moment.strand_id,
+        preloads: [:subjects, :years]
+      )
+
+    socket
+    |> assign(:strand, strand)
+    |> assign(:page_title, "#{socket.assigns.moment.name} • #{strand.name}")
   end
 
   @impl true
@@ -54,7 +63,7 @@ defmodule LantternWeb.MomentLive do
         {:noreply,
          socket
          |> put_flash(:info, gettext("Moment deleted"))
-         |> push_navigate(to: ~p"/strands/#{socket.assigns.moment.strand}/moments")}
+         |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}/moments")}
 
       {:error, _changeset} ->
         {:noreply,

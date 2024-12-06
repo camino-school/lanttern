@@ -19,7 +19,7 @@ defmodule LantternWeb.MomentLive.OverviewComponent do
       <.responsive_container class="mt-10">
         <h1 class="font-display font-black text-4xl"><%= @moment.name %></h1>
         <p class="mt-2 font-display font-black text-2xl text-ltrn-subtle">
-          <%= gettext("Moment of %{strand}", strand: @moment.strand.name) %>
+          <%= gettext("Moment of %{strand}", strand: @strand.name) %>
         </p>
         <div class="flex flex-wrap gap-2 mt-4">
           <.badge :for={subject <- @moment.subjects} theme="dark">
@@ -70,7 +70,7 @@ defmodule LantternWeb.MomentLive.OverviewComponent do
   defp assign_cover_image_url(socket) do
     cover_image_url =
       object_url_to_render_url(
-        socket.assigns.moment.strand.cover_image_url,
+        socket.assigns.strand.cover_image_url,
         width: 1280,
         height: 640
       )

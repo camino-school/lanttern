@@ -427,6 +427,26 @@ defmodule Lanttern.LearningContextTest do
       assert expected.years == [year]
     end
 
+    test "get_strand/2 with show_starred_for_profile_id returns the strand with is_starred field" do
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      strand = strand_fixture()
+
+      # assert without starring
+
+      expected = LearningContext.get_strand(strand.id, show_starred_for_profile_id: profile.id)
+
+      assert expected.id == strand.id
+      assert expected.is_starred == false
+
+      # star strand and assert again
+      LearningContext.star_strand(strand.id, profile.id)
+
+      expected = LearningContext.get_strand(strand.id, show_starred_for_profile_id: profile.id)
+
+      assert expected.id == strand.id
+      assert expected.is_starred
+    end
+
     test "create_strand/1 with valid data creates a strand" do
       subject = subject_fixture()
       year = year_fixture()
