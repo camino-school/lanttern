@@ -1,52 +1,54 @@
 defmodule LantternWeb.StrandLive.AssessmentComponent do
   use LantternWeb, :live_component
 
-  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 3]
+  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, assign_user_filters: 3]
+
+  alias Lanttern.Filters
 
   # shared components
+  import LantternWeb.AssessmentsComponents
   alias LantternWeb.Assessments.AssessmentsGridComponent
 
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="py-10">
-      <.responsive_container>
-        <div class="flex items-end justify-between gap-6">
-          <%= if @selected_classes != [] do %>
-            <p class="font-display font-bold text-2xl">
-              <%= gettext("Viewing") %>
-              <button
-                type="button"
-                class="inline text-left underline hover:text-ltrn-subtle"
-                phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
-              >
-                <%= @selected_classes
-                |> Enum.map(& &1.name)
-                |> Enum.join(", ") %>
-              </button>
-            </p>
-          <% else %>
-            <p class="font-display font-bold text-2xl">
-              <button
-                type="button"
-                class="underline hover:text-ltrn-subtle"
-                phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
-              >
-                <%= gettext("Select a class") %>
-              </button>
-              <%= gettext("to view students assessments") %>
-            </p>
-          <% end %>
-        </div>
-      </.responsive_container>
+    <div>
+      <.action_bar class="flex items-center gap-4">
+        <.neo_action
+          type="button"
+          phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
+          icon_name="hero-chevron-down-mini"
+        >
+          <%= if @selected_classes != [] do
+            @selected_classes
+            |> Enum.map(& &1.name)
+            |> Enum.join(", ")
+          else
+            gettext("No class selected")
+          end %>
+        </.neo_action>
+        <.assessment_group_by_dropdow
+          current_assessment_group_by={@current_assessment_group_by}
+          on_change={
+            fn group_by ->
+              JS.push("change_group_by", value: %{"group_by" => group_by}, target: @myself)
+            end
+          }
+        />
+        <.assessment_view_dropdow
+          current_assessment_view={@current_assessment_view}
+          on_change={fn view -> JS.push("change_view", value: %{"view" => view}, target: @myself) end}
+        />
+      </.action_bar>
       <.live_component
         module={AssessmentsGridComponent}
         id={:strand_assessment_grid}
         current_user={@current_user}
+        current_assessment_group_by={@current_assessment_group_by}
+        current_assessment_view={@current_assessment_view}
         strand_id={@strand.id}
         classes_ids={@selected_classes_ids}
-        class="mt-6"
-        navigate={~p"/strands/#{@strand}?tab=assessment"}
+        navigate={~p"/strands/#{@strand}/assessment"}
       />
       <.live_component
         module={LantternWeb.Filters.ClassesFilterOverlayComponent}
@@ -56,7 +58,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         filter_opts={[strand_id: @strand.id]}
         classes={@classes}
         selected_classes_ids={@selected_classes_ids}
-        navigate={~p"/strands/#{@strand}?tab=assessment"}
+        navigate={~p"/strands/#{@strand}/assessment"}
       />
     </div>
     """
@@ -65,14 +67,95 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   # lifecycle
 
   @impl true
-  def update(%{strand: strand} = assigns, socket) do
+  def mount(socket) do
     socket =
       socket
-      |> assign(assigns)
-      |> assign_user_filters([:classes], strand_id: strand.id)
+      |> assign(:initialized, false)
 
     {:ok, socket}
   end
 
-  def update(_assigns, socket), do: {:ok, socket}
+  @impl true
+  def update(assigns, socket) do
+    socket =
+      socket
+      |> assign(assigns)
+      |> initialize()
+
+    {:ok, socket}
+  end
+
+  defp initialize(%{assigns: %{initialized: false}} = socket) do
+    socket
+    |> assign_user_filters([:classes], strand_id: socket.assigns.strand.id)
+    |> assign_user_filters([:assessment_view, :assessment_group_by])
+    |> assign(:initialized, true)
+  end
+
+  defp initialize(socket), do: socket
+
+  # event handlers
+
+  @impl true
+  def handle_event(
+        "change_group_by",
+        %{"group_by" => group_by},
+        %{assigns: %{current_assessment_group_by: current_assessment_group_by}} = socket
+      )
+      when group_by == current_assessment_group_by,
+      do: {:noreply, socket}
+
+  def handle_event("change_group_by", %{"group_by" => group_by}, socket) do
+    # TODO
+    # before applying the group_by change, check if there're pending changes
+
+    Filters.set_profile_current_filters(
+      socket.assigns.current_user,
+      %{assessment_group_by: group_by}
+    )
+    |> case do
+      {:ok, _} ->
+        socket =
+          socket
+          |> assign(:current_assessment_group_by, group_by)
+          |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}/assessment")
+
+        {:noreply, socket}
+
+      {:error, _} ->
+        # do something with error?
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event(
+        "change_view",
+        %{"view" => view},
+        %{assigns: %{current_assessment_view: current_assessment_view}} = socket
+      )
+      when view == current_assessment_view,
+      do: {:noreply, socket}
+
+  def handle_event("change_view", %{"view" => view}, socket) do
+    # TODO
+    # before applying the view change, check if there're pending changes
+
+    Filters.set_profile_current_filters(
+      socket.assigns.current_user,
+      %{assessment_view: view}
+    )
+    |> case do
+      {:ok, _} ->
+        socket =
+          socket
+          |> assign(:current_assessment_view, view)
+          |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}/assessment")
+
+        {:noreply, socket}
+
+      {:error, _} ->
+        # do something with error?
+        {:noreply, socket}
+    end
+  end
 end

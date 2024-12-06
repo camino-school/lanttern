@@ -21,6 +21,27 @@ defmodule LantternWeb.CoreComponents do
   import LantternWeb.Gettext
 
   @doc """
+  Renders an action bar.
+
+  ## Examples
+
+      <.action_bar>
+        some actions
+      </.action_bar>
+  """
+  attr :class, :any, default: nil
+
+  slot :inner_block, required: true
+
+  def action_bar(assigns) do
+    ~H"""
+    <div class={["p-4 bg-white/20 shadow-xl", @class]}>
+      <%= render_slot(@inner_block) %>
+    </div>
+    """
+  end
+
+  @doc """
   Renders a back navigation link.
 
   ## Examples

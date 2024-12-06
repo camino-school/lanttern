@@ -14,7 +14,7 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <div class="flex items-center justify-between p-4 bg-white/20 shadow-xl">
+      <.action_bar class="flex items-center justify-between">
         <p><%= gettext("Moments linked to this strand") %></p>
         <div class="shrink-0 flex items-center gap-4">
           <.neo_action
@@ -33,7 +33,7 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
             <%= gettext("Create new moment") %>
           </.neo_action>
         </div>
-      </div>
+      </.action_bar>
       <%= if @moments_count == 0 do %>
         <div class="p-4">
           <.card_base class="p-10">

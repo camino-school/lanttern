@@ -119,6 +119,7 @@ defmodule LantternWeb.NeoComponents do
   """
 
   attr :class, :any, default: nil
+  attr :theme, :string, default: "default"
   attr :type, :string, required: true, doc: "link | button"
   attr :icon_name, :string, default: nil
   attr :patch, :string, default: nil, doc: "use with type=\"link\""
@@ -131,8 +132,9 @@ defmodule LantternWeb.NeoComponents do
   def neo_action(%{type: "button"} = assigns) do
     ~H"""
     <button type="button" class={[neo_action_styles(assigns), @class]} {@rest}>
-      <span class="truncate"><%= render_slot(@inner_block) %></span>
-      <.icon :if={@icon_name} name={@icon_name} class="shrink-0 w-5 h-5" />
+      <div class={neo_action_bar_styles(@theme)}></div>
+      <span class="relative truncate"><%= render_slot(@inner_block) %></span>
+      <.icon :if={@icon_name} name={@icon_name} class="relative shrink-0 w-5 h-5" />
     </button>
     """
   end
@@ -140,21 +142,42 @@ defmodule LantternWeb.NeoComponents do
   def neo_action(%{type: "link"} = assigns) do
     ~H"""
     <.link patch={@patch} navigate={@navigate} class={[neo_action_styles(assigns), @class]}>
-      <span class="truncate"><%= render_slot(@inner_block) %></span>
-      <.icon :if={@icon_name} name={@icon_name} class="shrink-0 w-5 h-5" />
+      <div class={neo_action_bar_styles(@theme)}></div>
+      <span class="relative truncate"><%= render_slot(@inner_block) %></span>
+      <.icon :if={@icon_name} name={@icon_name} class="relative shrink-0 w-5 h-5" />
     </.link>
     """
   end
 
-  defp neo_action_styles(assigns) do
-    class = "flex items-center gap-2 min-w-0"
+  @action_themes %{
+    "default" => "text-ltrn-dark hover:text-ltrn-subtle",
+    "student" => "text-ltrn-student-dark hover:text-ltrn-student-dark/80",
+    "teacher" => "text-ltrn-teacher-dark hover:text-ltrn-teacher-dark/80"
+  }
 
-    case assigns.is_active do
-      true -> class <> " text-ltrn-primary hover:text-ltrn-subtle"
-      false -> class <> " text-ltrn-subtle hover:text-ltrn-dark"
-      _ -> class <> " text-ltrn-dark hover:text-ltrn-subtle"
-    end
+  @action_bar_themes %{
+    "default" => nil,
+    "student" => "bg-ltrn-student-lightest",
+    "teacher" => "bg-ltrn-teacher-lightest"
+  }
+
+  defp neo_action_styles(assigns) do
+    other_classes =
+      case assigns.is_active do
+        true -> "text-ltrn-primary hover:text-ltrn-subtle"
+        false -> "text-ltrn-subtle hover:text-ltrn-dark"
+        _ -> Map.get(@action_themes, assigns.theme)
+      end
+
+    "relative flex items-center gap-2 min-w-0 #{other_classes}"
   end
+
+  defp neo_action_bar_styles(theme),
+    do: "absolute inset-x-0 bottom-0 h-2 #{Map.get(@action_bar_themes, theme)}"
+
+  @doc """
+  Util function to help with action item text formating
+  """
 
   def format_neo_action_items_text(items, default_text, key \\ :name, separator \\ ", ")
 

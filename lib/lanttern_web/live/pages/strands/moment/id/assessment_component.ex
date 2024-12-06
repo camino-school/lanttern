@@ -3,13 +3,15 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Filters
 
-  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 3]
+  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, assign_user_filters: 3]
   import Lanttern.Utils, only: [swap: 3]
 
   # shared components
   alias LantternWeb.Assessments.AssessmentsGridComponent
   alias LantternWeb.Assessments.AssessmentPointFormComponent
+  import LantternWeb.AssessmentsComponents
 
   @impl true
   def render(assigns) do
@@ -60,11 +62,29 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
             </.collection_action>
           </div>
         </div>
+        <div class="flex gap-6 mt-6">
+          <.assessment_group_by_dropdow
+            current_assessment_group_by={@current_assessment_group_by}
+            on_change={
+              fn group_by ->
+                JS.push("change_group_by", value: %{"group_by" => group_by}, target: @myself)
+              end
+            }
+          />
+          <.assessment_view_dropdow
+            current_assessment_view={@current_assessment_view}
+            on_change={
+              fn view -> JS.push("change_view", value: %{"view" => view}, target: @myself) end
+            }
+          />
+        </div>
       </.responsive_container>
       <.live_component
         module={AssessmentsGridComponent}
         id={:moment_assessment_grid}
         current_user={@current_user}
+        current_assessment_group_by={@current_assessment_group_by}
+        current_assessment_view={@current_assessment_view}
         moment_id={@moment.id}
         classes_ids={@selected_classes_ids}
         class="mt-6"
@@ -231,6 +251,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
       |> assign_user_filters([:classes],
         strand_id: assigns.moment.strand_id
       )
+      |> assign_user_filters([:assessment_view, :assessment_group_by])
       |> assign_sortable_assessment_points()
       |> assign(:initial_update, false)
       |> handle_action()
@@ -294,6 +315,68 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
   # event handlers
 
   @impl true
+  def handle_event(
+        "change_group_by",
+        %{"group_by" => group_by},
+        %{assigns: %{current_assessment_group_by: current_assessment_group_by}} = socket
+      )
+      when group_by == current_assessment_group_by,
+      do: {:noreply, socket}
+
+  def handle_event("change_group_by", %{"group_by" => group_by}, socket) do
+    # TODO
+    # before applying the group_by change, check if there're pending changes
+
+    Filters.set_profile_current_filters(
+      socket.assigns.current_user,
+      %{assessment_group_by: group_by}
+    )
+    |> case do
+      {:ok, _} ->
+        socket =
+          socket
+          |> assign(:current_assessment_group_by, group_by)
+          |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}/assessment")
+
+        {:noreply, socket}
+
+      {:error, _} ->
+        # do something with error?
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event(
+        "change_view",
+        %{"view" => view},
+        %{assigns: %{current_assessment_view: current_assessment_view}} = socket
+      )
+      when view == current_assessment_view,
+      do: {:noreply, socket}
+
+  def handle_event("change_view", %{"view" => view}, socket) do
+    # TODO
+    # before applying the view change, check if there're pending changes
+
+    Filters.set_profile_current_filters(
+      socket.assigns.current_user,
+      %{assessment_view: view}
+    )
+    |> case do
+      {:ok, _} ->
+        socket =
+          socket
+          |> assign(:current_assessment_view, view)
+          |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}/assessment")
+
+        {:noreply, socket}
+
+      {:error, _} ->
+        # do something with error?
+        {:noreply, socket}
+    end
+  end
+
   def handle_event("delete_assessment_point", _params, socket) do
     case Assessments.delete_assessment_point(socket.assigns.assessment_point) do
       {:ok, _assessment_point} ->

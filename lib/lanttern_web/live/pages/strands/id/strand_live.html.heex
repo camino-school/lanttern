@@ -56,14 +56,6 @@
     params={@params}
   />
   <.live_component
-    :if={@live_action == :assessment}
-    module={AssessmentComponent}
-    id="strand-assessment"
-    strand={@strand}
-    current_user={@current_user}
-    live_action={@live_action}
-  />
-  <.live_component
     :if={@live_action == :moments}
     module={MomentsComponent}
     id="strand-moments"
@@ -78,6 +70,14 @@
     current_user={@current_user}
   />
 </div>
+<.live_component
+  :if={@live_action == :assessment}
+  module={AssessmentComponent}
+  id="strand-assessment"
+  strand={@strand}
+  current_user={@current_user}
+  live_action={@live_action}
+/>
 <.slide_over
   :if={@is_editing}
   id="strand-form-overlay"
