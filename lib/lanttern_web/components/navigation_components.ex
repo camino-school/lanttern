@@ -6,8 +6,65 @@ defmodule LantternWeb.NavigationComponents do
 
   alias Phoenix.LiveView.JS
   import LantternWeb.Gettext
-
   import LantternWeb.CoreComponents
+
+  @doc """
+  Renders the page header with navigation items.
+  """
+  attr :current_user, Lanttern.Identity.User, required: true
+
+  slot :title, required: true
+  slot :inner_block
+
+  slot :breadcrumb do
+    attr :navigate, :string
+  end
+
+  def header_nav(assigns) do
+    has_breadcrumb = assigns.breadcrumb != []
+
+    %{school_name: school_name, current_school_cycle: current_cycle} =
+      assigns.current_user.current_profile
+
+    assigns =
+      assigns
+      |> assign(:has_breadcrumb, has_breadcrumb)
+      |> assign(:school_name, school_name)
+      |> assign(:current_cycle, current_cycle)
+
+    ~H"""
+    <header class="sticky top-0 z-20 bg-white ltrn-bg-main shadow-lg">
+      <div class="flex items-center gap-4 p-4">
+        <%!-- min-w-0 to "fix" truncate (https://css-tricks.com/flexbox-truncated-text/) --%>
+        <div class="flex-1 flex gap-2 min-w-0 font-display font-black text-lg">
+          <%= for breadcrumb <- @breadcrumb do %>
+            <.link
+              navigate={breadcrumb.navigate}
+              class="text-ltrn-subtle truncate hover:text-ltrn-dark"
+            >
+              <%= render_slot(breadcrumb) %>
+            </.link>
+            <span class="text-ltrn-subtle">/</span>
+          <% end %>
+          <h1 class="truncate"><%= render_slot(@title) %></h1>
+        </div>
+        <button
+          type="button"
+          class="flex gap-2 items-center hover:text-ltrn-subtle"
+          phx-click={JS.exec("data-show", to: "#menu")}
+          aria-label="open menu"
+        >
+          <p class="font-display font-bold">
+            <%= "#{@school_name}" %>
+            <span :if={@current_cycle}><%= @current_cycle.name %></span>
+          </p>
+          <.icon name="hero-bars-3-mini" class="w-5 h-5" />
+        </button>
+      </div>
+      <%= render_slot(@inner_block) %>
+    </header>
+    """
+  end
 
   @doc """
   Renders navigation tabs.

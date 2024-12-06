@@ -38,13 +38,13 @@ defmodule LantternWeb.StrandLive.AboutComponent do
         <.markdown text={@strand.description} class="mt-10" />
         <div class="flex items-end justify-between gap-6">
           <h3 class="mt-16 font-display font-black text-3xl"><%= gettext("Goals") %></h3>
-          <.neo_action
+          <.action
             type="link"
             icon_name="hero-plus-circle-mini"
             patch={~p"/strands/#{@strand}?goal=new"}
           >
             <%= gettext("Add strand goal") %>
-          </.neo_action>
+          </.action>
         </div>
         <p class="mt-4">
           <%= gettext(

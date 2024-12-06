@@ -13,9 +13,9 @@ defmodule LantternWeb.SchoolLive.CyclesComponent do
     ~H"""
     <div>
       <div :if={@is_school_manager} class="flex justify-end gap-6 p-4">
-        <.neo_action type="link" patch={~p"/school/cycles?new=true"} icon_name="hero-plus-circle-mini">
+        <.action type="link" patch={~p"/school/cycles?new=true"} icon_name="hero-plus-circle-mini">
           <%= gettext("Add cycle") %>
-        </.neo_action>
+        </.action>
       </div>
       <%= if @has_cycles do %>
         <div class="bg-white">

@@ -1,13 +1,13 @@
-<.neo_header current_user={@current_user}>
+<.header_nav current_user={@current_user}>
   <:title><%= @page_title %></:title>
   <div class="flex items-center gap-6 p-4">
     <div class="flex-1 flex items-center gap-6 min-w-0">
-      <.neo_action
+      <.action
         type="button"
         phx-click={JS.exec("data-show", to: "#report-cards-cycle-filters-overlay")}
         icon_name="hero-chevron-down-mini"
       >
-        <%= format_neo_action_items_text(
+        <%= format_action_items_text(
           @selected_cycles,
           gettext(
             "All %{parent_cycle} cycles",
@@ -15,35 +15,35 @@
               Map.get(@current_user.current_profile.current_school_cycle || %{}, :name)
           )
         ) %>
-      </.neo_action>
-      <.neo_action
+      </.action>
+      <.action
         type="button"
         phx-click={JS.exec("data-show", to: "#strands-year-filters")}
         icon_name="hero-chevron-down-mini"
       >
-        <%= format_neo_action_items_text(@selected_years, gettext("All years")) %>
-      </.neo_action>
-      <.neo_action
+        <%= format_action_items_text(@selected_years, gettext("All years")) %>
+      </.action>
+      <.action
         type="button"
         phx-click={JS.exec("data-show", to: "#strands-subject-filters")}
         icon_name="hero-chevron-down-mini"
       >
-        <%= format_neo_action_items_text(@selected_subjects, gettext("All subjects")) %>
-      </.neo_action>
-      <.neo_action
+        <%= format_action_items_text(@selected_subjects, gettext("All subjects")) %>
+      </.action>
+      <.action
         type="button"
         phx-click="toggle_only_starred_strands"
         icon_name="hero-star-mini"
         is_active={@only_starred_strands}
       >
         <%= if @only_starred_strands, do: gettext("Only starred"), else: gettext("All") %>
-      </.neo_action>
+      </.action>
     </div>
-    <.neo_action type="link" patch={~p"/strands/library"} icon_name="hero-square-3-stack-3d-mini">
+    <.action type="link" patch={~p"/strands/library"} icon_name="hero-square-3-stack-3d-mini">
       <%= gettext("Explore all strands") %>
-    </.neo_action>
+    </.action>
   </div>
-</.neo_header>
+</.header_nav>
 <%= if @strands_length < 1 do %>
   <.empty_state class="p-10 m-4 mx-6 sm:mx-10 rounded bg-white shadow-lg">
     <%= gettext("No strands matching selected filters") %>

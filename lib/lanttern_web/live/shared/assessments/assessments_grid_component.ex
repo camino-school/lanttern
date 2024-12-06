@@ -47,7 +47,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         <%!-- if no class filter is select, just render assessment points --%>
         <div
           :if={@classes_ids == [] && @has_assessment_points}
-          class="p-10 mt-4 rounded shadow-xl bg-white"
+          class="p-10 rounded shadow-xl bg-white"
         >
           <p class="mb-6 font-bold text-ltrn-subtle"><%= gettext("Current assessment points") %></p>
           <ol phx-update="stream" id="assessment-points-no-class" class="flex flex-col gap-4">
@@ -195,7 +195,16 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
     ~H"""
     <li :for={assessment_point <- @assessment_points} id={"no-class-#{assessment_point.id}"}>
-      <%= assessment_point.name %>
+      <%= case assessment_point do
+        %{name: name} when not is_nil(name) ->
+          name
+
+        %{curriculum_item: %CurriculumItem{} = curriculum_item} ->
+          gettext("Strand final assessment for %{item}", item: curriculum_item.name)
+
+        _final_assessment_without_curriculum_preload ->
+          gettext("Strand final assessment for curriculum item")
+      end %>
     </li>
     """
   end

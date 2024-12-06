@@ -21,6 +21,80 @@ defmodule LantternWeb.CoreComponents do
   import LantternWeb.Gettext
 
   @doc """
+  Renders a `<button>` or `<.link>` with icon.
+
+  Usually used in the context of a collection (e.g. to add a new item to a list, or filter results).
+  """
+
+  attr :class, :any, default: nil
+  attr :theme, :string, default: "default"
+  attr :type, :string, required: true, doc: "link | button"
+  attr :icon_name, :string, default: nil
+  attr :patch, :string, default: nil, doc: "use with type=\"link\""
+  attr :navigate, :string, default: nil, doc: "use with type=\"link\""
+  attr :is_active, :boolean, default: nil
+  attr :rest, :global
+
+  slot :inner_block, required: true
+
+  def action(%{type: "button"} = assigns) do
+    ~H"""
+    <button type="button" class={[action_styles(assigns), @class]} {@rest}>
+      <div class={action_bg_styles(@theme)}></div>
+      <span class="relative truncate"><%= render_slot(@inner_block) %></span>
+      <.icon :if={@icon_name} name={@icon_name} class="relative shrink-0 w-5 h-5" />
+    </button>
+    """
+  end
+
+  def action(%{type: "link"} = assigns) do
+    ~H"""
+    <.link patch={@patch} navigate={@navigate} class={[action_styles(assigns), @class]}>
+      <div class={action_bg_styles(@theme)}></div>
+      <span class="relative truncate"><%= render_slot(@inner_block) %></span>
+      <.icon :if={@icon_name} name={@icon_name} class="relative shrink-0 w-5 h-5" />
+    </.link>
+    """
+  end
+
+  @action_themes %{
+    "default" => "text-ltrn-dark hover:text-ltrn-subtle",
+    "student" => "text-ltrn-student-dark hover:text-ltrn-student-dark/80",
+    "teacher" => "text-ltrn-teacher-dark hover:text-ltrn-teacher-dark/80"
+  }
+
+  @action_bg_themes %{
+    "default" => nil,
+    "student" => "bg-ltrn-student-lightest",
+    "teacher" => "bg-ltrn-teacher-lightest"
+  }
+
+  defp action_styles(assigns) do
+    other_classes =
+      case assigns.is_active do
+        true -> "text-ltrn-primary hover:text-ltrn-subtle"
+        false -> "text-ltrn-subtle hover:text-ltrn-dark"
+        _ -> Map.get(@action_themes, assigns.theme)
+      end
+
+    "relative flex items-center gap-2 min-w-0 #{other_classes}"
+  end
+
+  defp action_bg_styles(theme),
+    do: "absolute inset-x-0 bottom-0 h-2 #{Map.get(@action_bg_themes, theme)}"
+
+  @doc """
+  Util function to help with action item text formating
+  """
+
+  def format_action_items_text(items, default_text, key \\ :name, separator \\ ", ")
+
+  def format_action_items_text([] = _items, default_text, _, _), do: default_text
+
+  def format_action_items_text(items, _, key, separator),
+    do: Enum.map_join(items, separator, &Map.get(&1, key))
+
+  @doc """
   Renders an action bar.
 
   ## Examples

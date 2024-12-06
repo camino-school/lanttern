@@ -14,22 +14,22 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
     <div>
       <div class="flex items-center gap-6 p-4">
         <div class="flex-1 flex items-center gap-6 min-w-0">
-          <.neo_action
+          <.action
             type="button"
             phx-click={JS.exec("data-show", to: "#school-year-filters-overlay")}
             icon_name="hero-chevron-down-mini"
           >
-            <%= format_neo_action_items_text(@selected_years, gettext("All years")) %>
-          </.neo_action>
+            <%= format_action_items_text(@selected_years, gettext("All years")) %>
+          </.action>
         </div>
-        <.neo_action
+        <.action
           :if={@is_school_manager}
           type="link"
           patch={~p"/school/classes?new=true"}
           icon_name="hero-plus-circle-mini"
         >
           <%= gettext("Add class") %>
-        </.neo_action>
+        </.action>
       </div>
       <%= if @has_classes do %>
         <.responsive_grid id="school-classes" phx-update="stream" is_full_width class="px-4 pb-4">

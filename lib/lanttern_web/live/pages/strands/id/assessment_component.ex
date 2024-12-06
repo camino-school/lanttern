@@ -14,7 +14,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     ~H"""
     <div>
       <.action_bar class="flex items-center gap-4">
-        <.neo_action
+        <.action
           type="button"
           phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
           icon_name="hero-chevron-down-mini"
@@ -26,7 +26,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
           else
             gettext("No class selected")
           end %>
-        </.neo_action>
+        </.action>
         <.assessment_group_by_dropdow
           current_assessment_group_by={@current_assessment_group_by}
           on_change={
@@ -40,6 +40,12 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
           on_change={fn view -> JS.push("change_view", value: %{"view" => view}, target: @myself) end}
         />
       </.action_bar>
+      <.responsive_container class="py-10">
+        <p class="flex items-center gap-2">
+          <.icon name="hero-light-bulb-mini" class="text-ltrn-subtle" />
+          <%= gettext("Select a class above to view full assessments grid") %>
+        </p>
+      </.responsive_container>
       <.live_component
         module={AssessmentsGridComponent}
         id={:strand_assessment_grid}

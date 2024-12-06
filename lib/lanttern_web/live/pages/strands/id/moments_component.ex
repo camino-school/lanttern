@@ -17,21 +17,21 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
       <.action_bar class="flex items-center justify-between">
         <p><%= gettext("Moments linked to this strand") %></p>
         <div class="shrink-0 flex items-center gap-4">
-          <.neo_action
+          <.action
             :if={@moments_count > 1}
             type="button"
             phx-click={JS.exec("data-show", to: "#strand-moments-order-overlay")}
             icon_name="hero-arrows-up-down-mini"
           >
             <%= gettext("Reorder") %>
-          </.neo_action>
-          <.neo_action
+          </.action>
+          <.action
             type="link"
             patch={~p"/strands/#{@strand}/moments?new_moment=true"}
             icon_name="hero-plus-circle-mini"
           >
             <%= gettext("Create new moment") %>
-          </.neo_action>
+          </.action>
         </div>
       </.action_bar>
       <%= if @moments_count == 0 do %>

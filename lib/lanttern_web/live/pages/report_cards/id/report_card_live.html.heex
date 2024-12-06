@@ -1,5 +1,5 @@
 <div>
-  <.neo_header current_user={@current_user}>
+  <.header_nav current_user={@current_user}>
     <:breadcrumb navigate={~p"/report_cards"}><%= gettext("Report cards") %></:breadcrumb>
     <:title><%= @report_card.name %></:title>
     <div class="flex items-center justify-between gap-4 px-4">
@@ -33,13 +33,13 @@
         </:tab>
       </.neo_tabs>
       <div class="flex items-center gap-4">
-        <.neo_action
+        <.action
           type="link"
           patch={"#{@current_path}?is_editing=true"}
           icon_name="hero-pencil-mini"
         >
           <%= gettext("Edit") %>
-        </.neo_action>
+        </.action>
         <.menu_button id="report-card-more">
           <:item
             id={"remove-report-card-#{@report_card.id}"}
@@ -51,7 +51,7 @@
         </.menu_button>
       </div>
     </div>
-  </.neo_header>
+  </.header_nav>
   <div :if={@live_action == :show} class="p-4">
     <.cover_image
       image_url={@cover_image_url}

@@ -7,7 +7,6 @@ defmodule LantternWeb.AssessmentsComponents do
 
   import LantternWeb.Gettext
   import LantternWeb.CoreComponents
-  import LantternWeb.NeoComponents
   import LantternWeb.OverlayComponents
 
   alias Lanttern.Grading.OrdinalValue
@@ -232,9 +231,9 @@ defmodule LantternWeb.AssessmentsComponents do
 
     ~H"""
     <div class="relative">
-      <.neo_action type="button" id="group-by-dropdown-button" icon_name="hero-chevron-down-mini">
+      <.action type="button" id="group-by-dropdown-button" icon_name="hero-chevron-down-mini">
         <%= @text %>
-      </.neo_action>
+      </.action>
       <.dropdown_menu id="group-by-dropdown" button_id="group-by-dropdown-button" z_index="30">
         <:item text={gettext("Show only goals assessments")} on_click={@on_change.(nil)} />
         <:item text={gettext("Show all, grouped by curriculum")} on_click={@on_change.("curriculum")} />
@@ -265,14 +264,14 @@ defmodule LantternWeb.AssessmentsComponents do
 
     ~H"""
     <div class="relative">
-      <.neo_action
+      <.action
         type="button"
         id="view-dropdown-button"
         icon_name="hero-chevron-down-mini"
         theme={@theme}
       >
         <%= @text %>
-      </.neo_action>
+      </.action>
       <.dropdown_menu id="view-dropdown" button_id="view-dropdown-button" z_index="30">
         <:item text={gettext("Assessed by teacher")} on_click={@on_change.("teacher")} />
         <:item text={gettext("Assessed by students")} on_click={@on_change.("student")} />

@@ -33,14 +33,14 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
             <.badge><%= gettext("all classes") %></.badge>
           <% end %>
         </div>
-        <.neo_action
+        <.action
           :if={@is_school_manager}
           type="link"
           patch={~p"/school/students?new=true"}
           icon_name="hero-plus-circle-mini"
         >
           <%= gettext("Add student") %>
-        </.neo_action>
+        </.action>
       </div>
       <div class="bg-white">
         <.data_grid
