@@ -34,7 +34,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
           on_change={fn view -> JS.push("change_view", value: %{"view" => view}, target: @myself) end}
         />
       </.action_bar>
-      <.responsive_container class="py-10">
+      <.responsive_container :if={@selected_classes == []} class="py-10">
         <p class="flex items-center gap-2">
           <.icon name="hero-light-bulb-mini" class="text-ltrn-subtle" />
           <%= gettext("Select a class above to view full assessments grid") %>

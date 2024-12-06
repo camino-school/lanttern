@@ -18,6 +18,9 @@ defmodule LantternWeb.NavigationComponents do
 
   slot :breadcrumb do
     attr :navigate, :string
+
+    attr :is_info, :boolean,
+      doc: "use this attr to render an info icon before the item with hover interaction"
   end
 
   def header_nav(assigns) do
@@ -33,20 +36,26 @@ defmodule LantternWeb.NavigationComponents do
       |> assign(:current_cycle, current_cycle)
 
     ~H"""
-    <header class="sticky top-0 z-20 bg-white ltrn-bg-main shadow-lg">
+    <header class="sticky top-0 z-30 bg-white ltrn-bg-main shadow-lg">
       <div class="flex items-center gap-4 p-4">
         <%!-- min-w-0 to "fix" truncate (https://css-tricks.com/flexbox-truncated-text/) --%>
-        <div class="flex-1 flex gap-2 min-w-0 font-display font-black text-lg">
+        <div class="flex-1 flex items-center gap-2 min-w-0">
           <%= for breadcrumb <- @breadcrumb do %>
-            <.link
-              navigate={breadcrumb.navigate}
-              class="text-ltrn-subtle truncate hover:text-ltrn-dark"
-            >
-              <%= render_slot(breadcrumb) %>
-            </.link>
-            <span class="text-ltrn-subtle">/</span>
+            <%= if Map.get(breadcrumb, :is_info) do %>
+              <.breadcrumb_floating_info>
+                <%= render_slot(breadcrumb) %>
+              </.breadcrumb_floating_info>
+            <% else %>
+              <.link
+                navigate={breadcrumb.navigate}
+                class="font-display font-black text-lg text-ltrn-subtle truncate hover:text-ltrn-dark"
+              >
+                <%= render_slot(breadcrumb) %>
+              </.link>
+              <span class="font-display font-black text-lg text-ltrn-subtle">/</span>
+            <% end %>
           <% end %>
-          <h1 class="truncate"><%= render_slot(@title) %></h1>
+          <h1 class="font-display font-black text-lg truncate"><%= render_slot(@title) %></h1>
         </div>
         <button
           type="button"
@@ -63,6 +72,17 @@ defmodule LantternWeb.NavigationComponents do
       </div>
       <%= render_slot(@inner_block) %>
     </header>
+    """
+  end
+
+  defp breadcrumb_floating_info(assigns) do
+    ~H"""
+    <div class="group relative" tabindex="0">
+      <.icon name="hero-information-circle-mini" />
+      <div class="hidden absolute top-[calc(100%+0.5rem)] left-0 z-10 group-hover:block group-focus:block">
+        <%= render_slot(@inner_block) %>
+      </div>
+    </div>
     """
   end
 

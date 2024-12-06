@@ -29,7 +29,7 @@ defmodule LantternWeb.NeoComponents do
 
   def neo_tabs(assigns) do
     ~H"""
-    <nav class={["flex gap-6", @class]} id={@id}>
+    <nav class={["flex gap-4", @class]} id={@id}>
       <.link
         :for={tab <- @tab}
         patch={Map.get(tab, :patch)}

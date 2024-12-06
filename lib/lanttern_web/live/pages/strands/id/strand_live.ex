@@ -12,6 +12,7 @@ defmodule LantternWeb.StrandLive do
 
   # shared components
   alias LantternWeb.LearningContext.StrandFormComponent
+  import LantternWeb.LearningContextComponents, only: [mini_strand_card: 1]
 
   # lifecycle
 
