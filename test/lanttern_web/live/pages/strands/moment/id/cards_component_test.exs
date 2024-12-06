@@ -18,7 +18,7 @@ defmodule LantternWeb.MomentLive.CardsComponentTest do
           description: "some card description abc"
         })
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}?tab=cards")
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}/cards")
       assert view |> has_element?("h5", "some card name abc")
       assert view |> has_element?("p", "some card description abc")
     end
@@ -26,13 +26,13 @@ defmodule LantternWeb.MomentLive.CardsComponentTest do
     test "create card", %{conn: conn} do
       moment = LearningContextFixtures.moment_fixture()
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}?tab=cards")
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}/cards")
 
       assert view |> has_element?("p", "No cards for this moment yet")
 
-      view |> element("button", "Add moment card") |> render_click()
+      view |> element("a", "New moment card") |> render_click()
 
-      assert_patch(view, "#{@live_view_base_path}/#{moment.id}/edit_card")
+      assert_patch(view, "#{@live_view_base_path}/#{moment.id}/cards?new=true")
 
       attrs =
         %{
@@ -45,9 +45,9 @@ defmodule LantternWeb.MomentLive.CardsComponentTest do
              |> form("#moment-card-form", moment_card: attrs)
              |> render_submit()
 
-      assert_redirect(view, "#{@live_view_base_path}/#{moment.id}?tab=cards")
+      assert_redirect(view, "#{@live_view_base_path}/#{moment.id}/cards")
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}?tab=cards")
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}/cards")
       assert view |> has_element?("h5", "new moment card")
       assert view |> has_element?("p", "card description abc")
     end
@@ -62,13 +62,13 @@ defmodule LantternWeb.MomentLive.CardsComponentTest do
           description: "some card description abc"
         })
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}?tab=cards")
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}/cards")
       assert view |> has_element?("h5", "some card name abc")
       assert view |> has_element?("p", "some card description abc")
 
-      view |> element("#moment-card-#{moment_card.id} button", "Edit") |> render_click()
+      view |> element("#moment-card-#{moment_card.id} a", "Edit") |> render_click()
 
-      assert_patch(view, "#{@live_view_base_path}/#{moment.id}/edit_card")
+      assert_patch(view, "#{@live_view_base_path}/#{moment.id}/cards?edit=#{moment_card.id}")
 
       attrs =
         %{
@@ -81,9 +81,9 @@ defmodule LantternWeb.MomentLive.CardsComponentTest do
              |> form("#moment-card-form", moment_card: attrs)
              |> render_submit()
 
-      assert_redirect(view, "#{@live_view_base_path}/#{moment.id}?tab=cards")
+      assert_redirect(view, "#{@live_view_base_path}/#{moment.id}/cards")
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}?tab=cards")
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}/cards")
       assert view |> has_element?("h5", "updated moment card")
       assert view |> has_element?("p", "card description xyz")
       refute view |> has_element?("h5", "some card name abc")
@@ -99,18 +99,18 @@ defmodule LantternWeb.MomentLive.CardsComponentTest do
           name: "some card name abc"
         })
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}?tab=cards")
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}/cards")
       assert view |> has_element?("h5", "some card name abc")
 
-      view |> element("#moment-card-#{moment_card.id} button", "Edit") |> render_click()
+      view |> element("#moment-card-#{moment_card.id} a", "Edit") |> render_click()
 
-      assert_patch(view, "#{@live_view_base_path}/#{moment.id}/edit_card")
+      assert_patch(view, "#{@live_view_base_path}/#{moment.id}/cards?edit=#{moment_card.id}")
 
       view |> element("#moment-card-form-overlay button", "Delete") |> render_click()
 
-      assert_redirect(view, "#{@live_view_base_path}/#{moment.id}?tab=cards")
+      assert_redirect(view, "#{@live_view_base_path}/#{moment.id}/cards")
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}?tab=cards")
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}/cards")
       assert view |> has_element?("p", "No cards for this moment yet")
     end
   end

@@ -34,7 +34,7 @@
         type="button"
         phx-click="toggle_only_starred_strands"
         icon_name="hero-star-mini"
-        is_active={@only_starred_strands}
+        theme={if @only_starred_strands, do: "primary", else: "subtle"}
       >
         <%= if @only_starred_strands, do: gettext("Only starred"), else: gettext("All") %>
       </.action>

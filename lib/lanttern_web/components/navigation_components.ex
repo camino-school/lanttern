@@ -48,7 +48,7 @@ defmodule LantternWeb.NavigationComponents do
             <% else %>
               <.link
                 navigate={breadcrumb.navigate}
-                class="font-display font-black text-lg text-ltrn-subtle truncate hover:text-ltrn-dark"
+                class="max-w-60 font-display font-black text-lg text-ltrn-subtle truncate hover:text-ltrn-dark"
               >
                 <%= render_slot(breadcrumb) %>
               </.link>
@@ -78,7 +78,10 @@ defmodule LantternWeb.NavigationComponents do
   defp breadcrumb_floating_info(assigns) do
     ~H"""
     <div class="group relative" tabindex="0">
-      <.icon name="hero-information-circle-mini" />
+      <.icon
+        name="hero-information-circle-mini"
+        class="text-ltrn-dark group-hover:text-ltrn-subtle group-focus:text-ltrn-subtle"
+      />
       <div class="hidden absolute top-[calc(100%+0.5rem)] left-0 z-10 group-hover:block group-focus:block">
         <%= render_slot(@inner_block) %>
       </div>

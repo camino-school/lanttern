@@ -133,27 +133,10 @@ defmodule LantternWeb.LearningContext.MomentFormComponent do
       moment_params
       |> Map.put("subjects_ids", socket.assigns.selected_subjects_ids)
 
-    save_moment(socket, socket.assigns.action, moment_params)
+    save_moment(socket, socket.assigns.moment.id, moment_params)
   end
 
-  defp save_moment(socket, :edit, moment_params) do
-    case LearningContext.update_moment(socket.assigns.moment, moment_params,
-           preloads: socket.assigns.save_preloads
-         ) do
-      {:ok, moment} ->
-        notify_parent(__MODULE__, {:saved, moment}, socket.assigns)
-
-        {:noreply,
-         socket
-         |> put_flash(:info, gettext("Moment updated successfully"))
-         |> handle_navigation(moment)}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign_form(socket, changeset)}
-    end
-  end
-
-  defp save_moment(socket, :new, moment_params) do
+  defp save_moment(socket, nil, moment_params) do
     case LearningContext.create_moment(moment_params,
            preloads: socket.assigns.save_preloads
          ) do
@@ -163,6 +146,23 @@ defmodule LantternWeb.LearningContext.MomentFormComponent do
         {:noreply,
          socket
          |> put_flash(:info, gettext("Moment created successfully"))
+         |> handle_navigation(moment)}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign_form(socket, changeset)}
+    end
+  end
+
+  defp save_moment(socket, _id, moment_params) do
+    case LearningContext.update_moment(socket.assigns.moment, moment_params,
+           preloads: socket.assigns.save_preloads
+         ) do
+      {:ok, moment} ->
+        notify_parent(__MODULE__, {:saved, moment}, socket.assigns)
+
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Moment updated successfully"))
          |> handle_navigation(moment)}
 
       {:error, %Ecto.Changeset{} = changeset} ->

@@ -722,15 +722,23 @@ defmodule Lanttern.LearningContext do
   @doc """
   Gets a single moment_card.
 
-  Raises `Ecto.NoResultsError` if the Moment card does not exist.
+  Returns `nil` if the Moment card does not exist.
 
   ## Examples
 
-      iex> get_moment_card!(123)
+      iex> get_moment_card(123)
       %MomentCard{}
 
-      iex> get_moment_card!(456)
-      ** (Ecto.NoResultsError)
+      iex> get_moment_card(456)
+      nil
+
+  """
+  def get_moment_card(id), do: Repo.get(MomentCard, id)
+
+  @doc """
+  Gets a single moment_card.
+
+  Same as `get_moment_card/1`, but raises `Ecto.NoResultsError` if the Moment card does not exist.
 
   """
   def get_moment_card!(id), do: Repo.get!(MomentCard, id)

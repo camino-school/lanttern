@@ -221,7 +221,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     <div class="flex flex-col p-2" id={@id}>
       <.link
         patch={
-          ~p"/strands/moment/#{@ap_header.moment_id}?tab=assessment&action=edit&assessment_point_id=#{@ap_header.id}"
+          ~p"/strands/moment/#{@ap_header.moment_id}/assessment?edit_assessment_point=#{@ap_header.id}"
         }
         class="flex-1 p-1 rounded text-sm font-bold line-clamp-2 hover:bg-ltrn-mesh-cyan"
         title={@ap_header.name}

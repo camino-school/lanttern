@@ -54,8 +54,7 @@ defmodule LantternWeb.MomentLiveTest do
 
       assert_patch(view)
 
-      assert view |> has_element?("button", "Select a class")
-      assert view |> has_element?("p", "to assess students")
+      assert view |> has_element?("button", "No class selected")
 
       # cards tab
 
@@ -65,12 +64,13 @@ defmodule LantternWeb.MomentLiveTest do
 
       assert_patch(view)
 
-      assert view |> has_element?("h3", "Moment cards")
+      assert view
+             |> has_element?("p", "Use cards to add an extra layer of organization to moments")
 
       # notes tab
 
       view
-      |> element("#moment-nav-tabs a", "My notes")
+      |> element("#moment-nav-tabs a", "Notes")
       |> render_click()
 
       assert_patch(view)
@@ -97,7 +97,7 @@ defmodule LantternWeb.MomentLiveTest do
       moment =
         LearningContextFixtures.moment_fixture(%{strand_id: strand.id, name: "moment abc"})
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}/edit")
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}?is_editing=true")
 
       assert view
              |> has_element?("h2", "Edit moment")
@@ -131,7 +131,7 @@ defmodule LantternWeb.MomentLiveTest do
       |> element("button#remove-moment-#{moment.id}")
       |> render_click()
 
-      assert_redirect(view, "/strands/#{moment.strand_id}?tab=moments")
+      assert_redirect(view, "/strands/#{moment.strand_id}/moments")
     end
   end
 end

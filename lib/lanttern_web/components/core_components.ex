@@ -32,14 +32,13 @@ defmodule LantternWeb.CoreComponents do
   attr :icon_name, :string, default: nil
   attr :patch, :string, default: nil, doc: "use with type=\"link\""
   attr :navigate, :string, default: nil, doc: "use with type=\"link\""
-  attr :is_active, :boolean, default: nil
   attr :rest, :global
 
   slot :inner_block, required: true
 
   def action(%{type: "button"} = assigns) do
     ~H"""
-    <button type="button" class={[action_styles(assigns), @class]} {@rest}>
+    <button type="button" class={[action_styles(@theme), @class]} {@rest}>
       <div class={action_bg_styles(@theme)}></div>
       <span class="relative truncate"><%= render_slot(@inner_block) %></span>
       <.icon :if={@icon_name} name={@icon_name} class="relative shrink-0 w-5 h-5" />
@@ -49,7 +48,7 @@ defmodule LantternWeb.CoreComponents do
 
   def action(%{type: "link"} = assigns) do
     ~H"""
-    <.link patch={@patch} navigate={@navigate} class={[action_styles(assigns), @class]}>
+    <.link patch={@patch} navigate={@navigate} class={[action_styles(@theme), @class]}>
       <div class={action_bg_styles(@theme)}></div>
       <span class="relative truncate"><%= render_slot(@inner_block) %></span>
       <.icon :if={@icon_name} name={@icon_name} class="relative shrink-0 w-5 h-5" />
@@ -59,26 +58,22 @@ defmodule LantternWeb.CoreComponents do
 
   @action_themes %{
     "default" => "text-ltrn-dark hover:text-ltrn-subtle",
+    "subtle" => "text-ltrn-subtle hover:text-ltrn-dark",
+    "primary" => "text-ltrn-dark hover:text-ltrn-subtle",
     "student" => "text-ltrn-student-dark hover:text-ltrn-student-dark/80",
     "teacher" => "text-ltrn-teacher-dark hover:text-ltrn-teacher-dark/80"
   }
 
   @action_bg_themes %{
     "default" => nil,
+    "subtle" => nil,
+    "primary" => "bg-ltrn-mesh-primary",
     "student" => "bg-ltrn-student-lightest",
     "teacher" => "bg-ltrn-teacher-lightest"
   }
 
-  defp action_styles(assigns) do
-    other_classes =
-      case assigns.is_active do
-        true -> "text-ltrn-primary hover:text-ltrn-subtle"
-        false -> "text-ltrn-subtle hover:text-ltrn-dark"
-        _ -> Map.get(@action_themes, assigns.theme)
-      end
-
-    "relative flex items-center gap-2 min-w-0 #{other_classes}"
-  end
+  defp action_styles(theme),
+    do: "relative flex items-center gap-2 min-w-0 #{Map.get(@action_themes, theme)}"
 
   defp action_bg_styles(theme),
     do: "absolute inset-x-0 bottom-0 h-2 #{Map.get(@action_bg_themes, theme)}"
@@ -604,16 +599,14 @@ defmodule LantternWeb.CoreComponents do
   attr :alt_text, :string, required: true
   attr :empty_state_text, :string, default: nil
   attr :theme, :string, default: "primary"
+  attr :size, :string, default: "lg", doc: "lg | sm"
   attr :class, :any, default: nil
 
   def cover_image(%{image_url: image_url} = assigns)
       when is_binary(image_url) and image_url != "" do
     ~H"""
     <div
-      class={[
-        "relative w-full h-[30rem] min-h-[60vh] max-h-[80vh] rounded bg-cover bg-center shadow-xl overflow-hidden",
-        @class
-      ]}
+      class={[cover_image_base_classes(@size), @class]}
       style={"background-image: url('#{@image_url || "/images/cover-placeholder.jpg"}')"}
     >
       <p class="sr-only"><%= @alt_text %></p>
@@ -629,7 +622,8 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div
       class={[
-        "relative flex items-center justify-center w-full h-[30rem] min-h-[60vh] max-h-[80vh] border border-dashed border-ltrn-light rounded bg-cover bg-center overflow-hidden",
+        cover_image_base_classes(@size),
+        "flex items-center justify-center border border-dashed border-ltrn-light",
         @class
       ]}
       style="background-image: url('/images/cover-placeholder.jpg')"
@@ -643,6 +637,16 @@ defmodule LantternWeb.CoreComponents do
       ]} />
     </div>
     """
+  end
+
+  defp cover_image_base_classes(size) do
+    height_classes =
+      case size do
+        "sm" -> "h-[20rem] min-h-[40vh] max-h-[60vh]"
+        _ -> "h-[30rem] min-h-[60vh] max-h-[80vh]"
+      end
+
+    "relative w-full #{height_classes} rounded bg-cover bg-center shadow-xl overflow-hidden"
   end
 
   @doc """
