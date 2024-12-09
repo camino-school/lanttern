@@ -50,7 +50,7 @@ defmodule LantternWeb.StudentHomeLive do
     all_student_report_cards =
       Reporting.list_student_report_cards(
         student_id: socket.assigns.current_user.current_profile.student_id,
-        cycle_id: Map.get(socket.assigns.current_cycle, :id),
+        parent_cycle_id: Map.get(socket.assigns.current_cycle, :id),
         preloads: [report_card: [:year, :school_cycle]]
       )
 

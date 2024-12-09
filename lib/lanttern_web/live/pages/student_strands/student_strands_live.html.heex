@@ -1,16 +1,31 @@
 <.responsive_container class="pt-6 sm:pt-10">
   <.page_title_with_menu><%= gettext("Strands") %></.page_title_with_menu>
-  <.live_component
-    module={InlineFiltersComponent}
-    id="cycles-filter"
-    filter_items={@student_report_cards_cycles}
-    selected_items_ids={@selected_cycles_ids}
-    all_text={gettext("All cycles")}
-    class="mt-10"
-    notify_parent
-    is_single
-    hide_all_opt
-  />
+  <div class="flex items-center gap-4 mt-10">
+    <%= if @has_student_report_cards_cycles do %>
+      <.live_component
+        module={InlineFiltersComponent}
+        id="cycles-filter"
+        filter_items={@student_report_cards_cycles}
+        selected_items_ids={@selected_cycles_ids}
+        all_text={gettext("All cycles")}
+        class="flex-1"
+        notify_parent
+        is_single
+        hide_all_opt
+      />
+    <% else %>
+      <p class="flex-1">
+        <%= gettext("No strands in %{cycle} yet", cycle: Map.get(@current_cycle, :name)) %>
+      </p>
+    <% end %>
+    <.action
+      type="button"
+      icon_name="hero-arrows-up-down-mini"
+      phx-click={JS.exec("data-show", to: "#student-cycle-filters-overlay")}
+    >
+      <%= gettext("Change cycle") %>
+    </.action>
+  </div>
   <div :if={!@has_student_strands} class="p-6 rounde mt-6 mb-10 bg-white shadow lg">
     <.empty_state>
       <%= gettext("No strands related to selected cycles") %>
@@ -47,3 +62,13 @@
   </.strand_card>
 </.responsive_grid>
 <.school_branding_footer school={@school} />
+<.modal id="student-cycle-filters-overlay">
+  <h5 class="mb-10 font-display font-black text-xl">
+    <%= gettext("Select a cycle") %>
+  </h5>
+  <.badge_button_picker
+    on_select={&JS.push("change_cycle", value: %{"id" => &1})}
+    items={@parent_cycles}
+    selected_ids={[Map.get(@current_cycle, :id)]}
+  />
+</.modal>

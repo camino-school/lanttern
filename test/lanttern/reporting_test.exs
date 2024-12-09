@@ -406,7 +406,7 @@ defmodule Lanttern.ReportingTest do
       assert expected_c.id in ids
     end
 
-    test "list_student_report_cards/1 with cycle filter returns all student_report_cards of the given cycle" do
+    test "list_student_report_cards/1 with parent cycle filter returns all student_report_cards of the given cycle" do
       school = SchoolsFixtures.school_fixture()
       student = SchoolsFixtures.student_fixture(%{school_id: school.id})
 
@@ -434,7 +434,10 @@ defmodule Lanttern.ReportingTest do
 
       student_report_card_fixture()
 
-      assert Reporting.list_student_report_cards(student_id: student.id, cycle_id: cycle.id) == [
+      assert Reporting.list_student_report_cards(
+               student_id: student.id,
+               parent_cycle_id: cycle.id
+             ) == [
                student_report_card
              ]
     end
@@ -677,6 +680,59 @@ defmodule Lanttern.ReportingTest do
       student_report_card_fixture(%{report_card_id: report_card_2024.id, student_id: student.id})
 
       assert [cycle_2023, cycle_2024] == Reporting.list_student_report_cards_cycles(student.id)
+    end
+
+    test "list_student_report_card_cycles/1 with parent cycle filter returns all cycles linked to given student's report cards filtered by cycle" do
+      school = SchoolsFixtures.school_fixture()
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+
+      parent_cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+
+      cycle_1 =
+        SchoolsFixtures.cycle_fixture(%{
+          school_id: school.id,
+          parent_cycle_id: parent_cycle.id,
+          start_at: ~D[2025-01-01],
+          end_at: ~D[2025-06-30]
+        })
+
+      cycle_2 =
+        SchoolsFixtures.cycle_fixture(%{
+          school_id: school.id,
+          parent_cycle_id: parent_cycle.id,
+          start_at: ~D[2025-07-01],
+          end_at: ~D[2025-12-01]
+        })
+
+      report_card_1 =
+        Lanttern.ReportingFixtures.report_card_fixture(%{school_cycle_id: cycle_1.id})
+
+      report_card_2 =
+        Lanttern.ReportingFixtures.report_card_fixture(%{school_cycle_id: cycle_2.id})
+
+      # link student to report cards
+      student_report_card_fixture(%{report_card_id: report_card_1.id, student_id: student.id})
+      student_report_card_fixture(%{report_card_id: report_card_2.id, student_id: student.id})
+
+      # other fixtures for filter testing
+      other_parent_cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+
+      other_cycle =
+        SchoolsFixtures.cycle_fixture(%{
+          school_id: school.id,
+          parent_cycle_id: other_parent_cycle.id
+        })
+
+      other_report_card =
+        Lanttern.ReportingFixtures.report_card_fixture(%{school_cycle_id: other_cycle.id})
+
+      # link student to report cards
+      student_report_card_fixture(%{report_card_id: other_report_card.id, student_id: student.id})
+
+      assert [cycle_1, cycle_2] ==
+               Reporting.list_student_report_cards_cycles(student.id,
+                 parent_cycle_id: parent_cycle.id
+               )
     end
 
     test "list_student_report_cards_linked_to_strand/1 returns all student report cards linked to given strand note" do

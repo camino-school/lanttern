@@ -420,7 +420,7 @@ defmodule Lanttern.Reporting do
   - `:student_id` - filter results by student
   - `:ids` - filter results by given ids
   - `:preloads` – preloads associated data
-  - `:cycle_id` - filter results by given cycle
+  - `:parent_cycle_id` - filter results by given cycle
 
   ## Examples
 
@@ -459,11 +459,13 @@ defmodule Lanttern.Reporting do
     |> apply_list_student_report_cards_opts(opts)
   end
 
-  defp apply_list_student_report_cards_opts(queryable, [{:cycle_id, cycle_id} | opts])
-       when is_integer(cycle_id) do
+  defp apply_list_student_report_cards_opts(queryable, [
+         {:parent_cycle_id, parent_cycle_id} | opts
+       ])
+       when is_integer(parent_cycle_id) do
     from(
       [_src, school_cycle: sc] in queryable,
-      where: sc.parent_cycle_id == ^cycle_id
+      where: sc.parent_cycle_id == ^parent_cycle_id
     )
     |> apply_list_student_report_cards_opts(opts)
   end
@@ -610,14 +612,20 @@ defmodule Lanttern.Reporting do
   @doc """
   Returns the list of cycles related to student report cards.
 
+  ## Options
+
+  - `:parent_cycle_id` - filter
+
   ## Examples
 
       iex> list_student_report_cards_cycles(student_id)
       [%Cycle{}, ...]
 
   """
-  @spec list_student_report_cards_cycles(student_id :: pos_integer()) :: [Cycle.t()]
-  def list_student_report_cards_cycles(student_id) do
+  @spec list_student_report_cards_cycles(student_id :: pos_integer(), opts :: Keyword.t()) :: [
+          Cycle.t()
+        ]
+  def list_student_report_cards_cycles(student_id, opts \\ []) do
     from(
       c in Cycle,
       join: rc in ReportCard,
@@ -627,8 +635,25 @@ defmodule Lanttern.Reporting do
       order_by: [asc: c.end_at, desc: c.start_at],
       distinct: true
     )
+    |> apply_list_student_report_cards_cycles_opts(opts)
     |> Repo.all()
   end
+
+  defp apply_list_student_report_cards_cycles_opts(queryable, []), do: queryable
+
+  defp apply_list_student_report_cards_cycles_opts(queryable, [
+         {:parent_cycle_id, parent_cycle_id} | opts
+       ])
+       when is_integer(parent_cycle_id) do
+    from(
+      c in queryable,
+      where: c.parent_cycle_id == ^parent_cycle_id
+    )
+    |> apply_list_student_report_cards_cycles_opts(opts)
+  end
+
+  defp apply_list_student_report_cards_cycles_opts(queryable, [_ | opts]),
+    do: apply_list_student_report_cards_cycles_opts(queryable, opts)
 
   @doc """
   Returns the list of all student report cards
