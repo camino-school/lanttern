@@ -3,6 +3,7 @@ defmodule LantternWeb.GradesReportsLive do
 
   alias Lanttern.GradesReports
   alias Lanttern.GradesReports.GradesReport
+  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2]
 
   # live components
   alias LantternWeb.GradesReports.GradesReportFormComponent
@@ -16,21 +17,40 @@ defmodule LantternWeb.GradesReportsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, :page_title, gettext("Grades reports"))}
+    socket =
+      socket
+      |> assign(:page_title, gettext("Grades reports"))
+      |> assign_user_filters([:years])
+      |> stream_grades_reports
+      |> set_current_cycle()
+
+    {:ok, socket}
+  end
+
+  defp stream_grades_reports(socket) do
+    grades_reports =
+      GradesReports.list_grades_reports(
+        preloads: [:year, scale: :ordinal_values],
+        load_grid: true,
+        school_cycle_id:
+          Map.get(socket.assigns.current_user.current_profile.current_school_cycle || %{}, :id),
+        years_ids: socket.assigns.selected_years_ids
+      )
+
+    socket
+    |> stream(:grades_reports, grades_reports)
+    |> assign(:has_grades_reports, length(grades_reports) > 0)
+  end
+
+  defp set_current_cycle(socket) do
+    current_cycle = socket.assigns.current_user.current_profile.current_school_cycle || %{}
+    assign(socket, :current_cycle, current_cycle)
   end
 
   @impl true
   def handle_params(params, _uri, socket) do
-    grades_reports =
-      GradesReports.list_grades_reports(
-        preloads: [:year, scale: :ordinal_values],
-        load_grid: true
-      )
-
     socket =
       socket
-      |> stream(:grades_reports, grades_reports)
-      |> assign(:has_grades_reports, length(grades_reports) > 0)
       |> assign_show_grades_report_form(params)
       |> assign_show_grades_report_grid_configuration(params)
       |> assign_is_editing_grade_composition(params)
@@ -38,7 +58,7 @@ defmodule LantternWeb.GradesReportsLive do
     {:noreply, socket}
   end
 
-  defp assign_show_grades_report_form(socket, %{"is_creating" => "true"}) do
+  defp assign_show_grades_report_form(socket, %{"new" => "true"}) do
     socket
     |> assign(:grades_report, %GradesReport{})
     |> assign(:form_overlay_title, gettext("Create grades report"))
@@ -55,15 +75,22 @@ defmodule LantternWeb.GradesReportsLive do
           |> assign(:show_grades_report_form, true)
 
         _ ->
-          assign(socket, :show_grades_report_form, false)
+          socket
+          |> assign(:grades_report, nil)
+          |> assign(:show_grades_report_form, false)
       end
     else
-      assign(socket, :show_grades_report_form, false)
+      socket
+      |> assign(:grades_report, nil)
+      |> assign(:show_grades_report_form, false)
     end
   end
 
-  defp assign_show_grades_report_form(socket, _),
-    do: assign(socket, :show_grades_report_form, false)
+  defp assign_show_grades_report_form(socket, _) do
+    socket
+    |> assign(:grades_report, nil)
+    |> assign(:show_grades_report_form, false)
+  end
 
   defp assign_show_grades_report_grid_configuration(socket, %{"is_configuring_grid" => id}) do
     if String.match?(id, ~r/[0-9]+/) do

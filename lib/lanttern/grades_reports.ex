@@ -27,6 +27,8 @@ defmodule Lanttern.GradesReports do
 
   - `:preloads` – preloads associated data
   - `:load_grid` – (bool) preloads school cycle and grades report cycles/subjects (with school cycle/subject preloaded)
+  - `:school_cycle_id` - filter results by given school cycle
+  - `:years_ids` - filter results by given years
 
   ## Examples
 
@@ -35,7 +37,10 @@ defmodule Lanttern.GradesReports do
 
   """
   def list_grades_reports(opts \\ []) do
-    GradesReport
+    from(
+      gr in GradesReport,
+      order_by: [asc: gr.year_id]
+    )
     |> apply_list_grades_reports_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)
@@ -45,6 +50,24 @@ defmodule Lanttern.GradesReports do
 
   defp apply_list_grades_reports_opts(queryable, [{:load_grid, true} | opts]),
     do: apply_list_grades_reports_opts(grid_query(queryable), opts)
+
+  defp apply_list_grades_reports_opts(queryable, [{:school_cycle_id, id} | opts])
+       when is_integer(id) do
+    from(
+      gr in queryable,
+      where: gr.school_cycle_id == ^id
+    )
+    |> apply_list_grades_reports_opts(opts)
+  end
+
+  defp apply_list_grades_reports_opts(queryable, [{:years_ids, ids} | opts])
+       when is_list(ids) and ids != [] do
+    from(
+      gr in queryable,
+      where: gr.year_id in ^ids
+    )
+    |> apply_list_grades_reports_opts(opts)
+  end
 
   defp apply_list_grades_reports_opts(queryable, [_ | opts]),
     do: apply_list_grades_reports_opts(queryable, opts)

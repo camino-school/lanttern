@@ -1,41 +1,48 @@
-<.responsive_container class="py-6 sm:py-10">
-  <.page_title_with_menu><%= gettext("Grades reports") %></.page_title_with_menu>
-  <div class="flex items-end justify-between mt-12">
-    <p class="font-display font-bold text-lg">
-      <%= gettext("Viewing all grades reports") %>
-    </p>
-    <.collection_action
-      type="link"
-      icon_name="hero-plus-circle"
-      patch={~p"/grades_reports?is_creating=true"}
-    >
-      <%= gettext("Create new grades report") %>
-    </.collection_action>
+<.header_nav current_user={@current_user}>
+  <:title><%= gettext("Grades reports") %></:title>
+  <div class="flex items-center gap-6 p-4">
+    <div class="flex-1 flex items-center gap-6 min-w-0">
+      <.action
+        type="button"
+        phx-click={JS.exec("data-show", to: "#grades-reports-year-filters-overlay")}
+        icon_name="hero-chevron-down-mini"
+      >
+        <%= format_action_items_text(@selected_years, gettext("All years")) %>
+      </.action>
+      <div class="group relative flex items-center gap-2">
+        <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+        <%= gettext("Showing %{cycle} grades reports", cycle: Map.get(@current_cycle, :name)) %>
+        <.tooltip v_pos="bottom">
+          <%= gettext("Change current cycle in main menu to view other cyles' grades reports") %>
+        </.tooltip>
+      </div>
+    </div>
+    <.action type="link" patch={~p"/grades_reports?new=true"} icon_name="hero-plus-circle-mini">
+      <%= gettext("New grades report") %>
+    </.action>
   </div>
+</.header_nav>
+<.responsive_container class="pb-10">
   <%= if @has_grades_reports do %>
     <div phx-update="stream" id="grade-reports-grid">
       <div
         :for={{dom_id, grades_report} <- @streams.grades_reports}
         id={dom_id}
-        class="p-6 rounded mt-12 bg-white shadow-lg"
+        class="p-6 rounded mt-10 bg-white shadow-lg"
       >
         <div class="flex items-center justify-between gap-6 mb-6">
           <h3 class="font-display font-black text-2xl">
-            <.link
-              navigate={~p"/grades_reports/#{grades_report}"}
-              class="underline hover:text-ltrn-subtle"
-            >
+            <.link navigate={~p"/grades_reports/#{grades_report}"} class="hover:text-ltrn-subtle">
               <%= grades_report.name %>
             </.link>
           </h3>
-          <.button
+          <.action
             type="link"
-            theme="ghost"
             icon_name="hero-pencil-mini"
             patch={~p"/grades_reports?is_editing=#{grades_report.id}"}
           >
             <%= gettext("Edit") %>
-          </.button>
+          </.action>
         </div>
         <div class="flex items-center gap-6 mb-6 text-sm">
           <div class="flex items-center gap-2">
@@ -71,7 +78,9 @@
     </div>
   <% else %>
     <.empty_state class="mt-12">
-      <%= gettext("No grade reports created yet") %>
+      <%= gettext("No %{cycle} grade reports matching current filters created yet",
+        cycle: Map.get(@current_cycle, :name)
+      ) %>
     </.empty_state>
   <% end %>
 </.responsive_container>
@@ -128,4 +137,12 @@
   grades_report_cycle_id={@grades_report_cycle_id}
   grades_report_subject_id={@grades_report_subject_id}
   on_cancel={JS.patch(~p"/grades_reports")}
+/>
+<.live_component
+  module={LantternWeb.Filters.FiltersOverlayComponent}
+  id="grades-reports-year-filters-overlay"
+  current_user={@current_user}
+  title={gettext("Filter grades reports by year")}
+  filter_type={:years}
+  navigate={~p"/grades_reports"}
 />

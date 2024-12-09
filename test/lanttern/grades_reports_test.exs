@@ -139,9 +139,15 @@ defmodule Lanttern.GradesReportsTest do
 
     @invalid_attrs %{info: "blah", scale_id: nil}
 
-    test "list_grades_reports/1 returns all grades_reports" do
-      grades_report = grades_report_fixture()
-      assert GradesReports.list_grades_reports() == [grades_report]
+    test "list_grades_reports/1 returns all grades_reports ordered by linked year id" do
+      year_1 = TaxonomyFixtures.year_fixture()
+      year_2 = TaxonomyFixtures.year_fixture()
+
+      # create in reverse order to test ordering
+      grades_report_2 = grades_report_fixture(%{year_id: year_2.id})
+      grades_report_1 = grades_report_fixture(%{year_id: year_1.id})
+
+      assert GradesReports.list_grades_reports() == [grades_report_1, grades_report_2]
     end
 
     test "list_grades_reports/1 with load grid opt returns all grades_reports with linked and ordered cycles and subjects" do
@@ -215,6 +221,20 @@ defmodule Lanttern.GradesReportsTest do
       assert expected_grs_b.subject.id == subject_b.id
       assert expected_grs_c.id == grades_report_subject_c.id
       assert expected_grs_c.subject.id == subject_c.id
+    end
+
+    test "list_grades_reports/1 with cycle and years filter returns all grades_reports as expected" do
+      cycle = SchoolsFixtures.cycle_fixture()
+      year = TaxonomyFixtures.year_fixture()
+      grades_report = grades_report_fixture(%{school_cycle_id: cycle.id, year_id: year.id})
+
+      # extra fixtures for filter testing
+      grades_report_fixture()
+      grades_report_fixture(%{school_cycle_id: cycle.id})
+      grades_report_fixture(%{year_id: year.id})
+
+      assert GradesReports.list_grades_reports(school_cycle_id: cycle.id, years_ids: [year.id]) ==
+               [grades_report]
     end
 
     test "list_student_grades_reports/1 returns all student grades_reports" do

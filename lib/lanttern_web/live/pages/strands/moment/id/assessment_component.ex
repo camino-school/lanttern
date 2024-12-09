@@ -151,41 +151,6 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
         >
           <p><%= assessment_point.name %></p>
         </.sortable_card>
-        <%!-- <ol>
-          <li
-            :for={{assessment_point, i} <- @sortable_assessment_points}
-            id={"sortable-assessment-point-#{assessment_point.id}"}
-            class="flex items-center gap-4 mb-4"
-          >
-            <div class="flex-1 flex items-start p-4 rounded bg-white shadow-lg">
-              <%= "#{i + 1}. #{assessment_point.name}" %>
-            </div>
-            <div class="shrink-0 flex flex-col gap-2">
-              <.icon_button
-                type="button"
-                sr_text={gettext("Move assessment point up")}
-                name="hero-chevron-up-mini"
-                theme="ghost"
-                rounded
-                size="sm"
-                disabled={i == 0}
-                phx-click={JS.push("assessment_point_position", value: %{from: i, to: i - 1})}
-                phx-target={@myself}
-              />
-              <.icon_button
-                type="button"
-                sr_text={gettext("Move assessment point down")}
-                name="hero-chevron-down-mini"
-                theme="ghost"
-                rounded
-                size="sm"
-                disabled={i + 1 == @assessment_points_length}
-                phx-click={JS.push("assessment_point_position", value: %{from: i, to: i + 1})}
-                phx-target={@myself}
-              />
-            </div>
-          </li>
-        </ol> --%>
         <:actions>
           <.button
             type="button"
