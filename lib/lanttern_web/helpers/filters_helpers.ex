@@ -309,6 +309,10 @@ defmodule LantternWeb.FiltersHelpers do
   @doc """
   Handle cycle filter assigns in socket.
 
+  ## Options
+
+  ### `only_subcycles` (`boolean`)
+
   When `only_subcycles: true`, will list only subcycles of the user's
   current school cycle. If user has a selected cycle that are not part
   of the listed subcycles, it's not considered as selected.

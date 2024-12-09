@@ -420,6 +420,7 @@ defmodule Lanttern.Reporting do
   - `:student_id` - filter results by student
   - `:ids` - filter results by given ids
   - `:preloads` – preloads associated data
+  - `:cycle_id` - filter results by given cycle
 
   ## Examples
 
@@ -431,8 +432,9 @@ defmodule Lanttern.Reporting do
     from(
       src in StudentReportCard,
       join: rc in assoc(src, :report_card),
-      join: c in assoc(rc, :school_cycle),
-      order_by: [desc: c.end_at, asc: c.start_at]
+      join: sc in assoc(rc, :school_cycle),
+      as: :school_cycle,
+      order_by: [desc: sc.end_at, asc: sc.start_at]
     )
     |> apply_list_student_report_cards_opts(opts)
     |> Repo.all()
@@ -453,6 +455,15 @@ defmodule Lanttern.Reporting do
     from(
       src in queryable,
       where: src.id in ^ids
+    )
+    |> apply_list_student_report_cards_opts(opts)
+  end
+
+  defp apply_list_student_report_cards_opts(queryable, [{:cycle_id, cycle_id} | opts])
+       when is_integer(cycle_id) do
+    from(
+      [_src, school_cycle: sc] in queryable,
+      where: sc.parent_cycle_id == ^cycle_id
     )
     |> apply_list_student_report_cards_opts(opts)
   end

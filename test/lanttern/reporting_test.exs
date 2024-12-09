@@ -406,6 +406,39 @@ defmodule Lanttern.ReportingTest do
       assert expected_c.id in ids
     end
 
+    test "list_student_report_cards/1 with cycle filter returns all student_report_cards of the given cycle" do
+      school = SchoolsFixtures.school_fixture()
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+
+      cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+      subcycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id, parent_cycle_id: cycle.id})
+
+      report_card = report_card_fixture(%{school_cycle_id: subcycle.id})
+
+      student_report_card =
+        student_report_card_fixture(%{report_card_id: report_card.id, student_id: student.id})
+
+      # extra fixtures for filter testing
+      other_cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+
+      other_subcycle =
+        SchoolsFixtures.cycle_fixture(%{school_id: school.id, parent_cycle_id: other_cycle.id})
+
+      other_report_card = report_card_fixture(%{school_cycle_id: other_subcycle.id})
+
+      _other_student_report_card =
+        student_report_card_fixture(%{
+          report_card_id: other_report_card.id,
+          student_id: student.id
+        })
+
+      student_report_card_fixture()
+
+      assert Reporting.list_student_report_cards(student_id: student.id, cycle_id: cycle.id) == [
+               student_report_card
+             ]
+    end
+
     test "list_students_linked_to_report_card/2 returns all students with class and linked report cards" do
       school = SchoolsFixtures.school_fixture()
       year = TaxonomyFixtures.year_fixture()
