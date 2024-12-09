@@ -27,18 +27,6 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
           items={@subcycles}
           selected_ids={@selected_cycles_ids}
         />
-        <%!-- <div class="flex-1 flex flex-wrap gap-2">
-          <.badge_button
-            :for={cycle <- @cycles}
-            theme={if cycle.id in @selected_cycles_ids, do: "primary", else: "default"}
-            icon_name={
-              if cycle.id in @selected_cycles_ids, do: "hero-check-mini", else: "hero-plus-mini"
-            }
-            phx-click={JS.push("toggle_cycle", value: %{"id" => cycle.id}, target: @myself)}
-          >
-            <%= cycle.name %>
-          </.badge_button>
-        </div> --%>
         <%= if @grades_report_cycles == [] do %>
           <div class="p-4 rounded mt-4 text-ltrn-subtle bg-ltrn-lighter">
             <%= gettext("No subcycles linked") %>

@@ -1,53 +1,50 @@
-<.responsive_container class="py-6 sm:py-10">
-  <.page_title_with_menu><%= gettext("Grades report details") %></.page_title_with_menu>
-  <.breadcrumbs class="mt-2">
-    <:item link={~p"/grades_reports"}><%= gettext("Grades reports") %></:item>
-    <:item><%= gettext("Details") %></:item>
-  </.breadcrumbs>
-
-  <div class="flex justify-between gap-4 mt-10">
-    <h2 class="font-display font-black text-2xl"><%= @grades_report.name %></h2>
-    <div class="flex items-center gap-4">
-      <.button
-        type="link"
-        theme="ghost"
-        icon_name="hero-cog-6-tooth-mini"
-        patch={~p"/grades_reports/#{@grades_report}?is_configuring=true"}
-      >
-        <%= gettext("Configure") %>
-      </.button>
-      <.button
-        type="link"
-        theme="ghost"
-        icon_name="hero-pencil-mini"
-        patch={~p"/grades_reports/#{@grades_report}?is_editing=true"}
-      >
-        <%= gettext("Edit") %>
-      </.button>
-    </div>
-  </div>
-  <div class="mt-6 flex items-center gap-6 text-sm">
-    <div class="flex items-center gap-2">
-      <.icon name="hero-calendar" class="w-6 h-6 shrink-0 text-ltrn-subtle" />
-      <div :if={@grades_report.year}>
-        <%= @grades_report.year.name %>,
+<div>
+  <.header_nav current_user={@current_user}>
+    <:breadcrumb navigate={~p"/grades_reports"}><%= gettext("Grades reports") %></:breadcrumb>
+    <:title><%= @grades_report.name %></:title>
+    <div class="flex items-center gap-6 p-4">
+      <div class="flex-1 flex items-center gap-4">
+        <div class="flex items-center gap-2">
+          <.icon name="hero-calendar-mini" class="text-ltrn-subtle" />
+          <%= @grades_report.year.name %>, <%= gettext("Cycle") %> <%= @grades_report.school_cycle.name %>
+        </div>
+        <div class="flex items-center gap-2">
+          <.icon name="hero-view-columns-mini" class="text-ltrn-subtle" />
+          <%= gettext("Scale") %> <%= @grades_report.scale.name %>
+          <div
+            :if={@grades_report.scale.ordinal_values != []}
+            class="flex items-center gap-2 ml-2"
+          >
+            <%= for ov <- @grades_report.scale.ordinal_values do %>
+              <.badge color_map={ov}>
+                <%= ov.name %>
+              </.badge>
+            <% end %>
+          </div>
+        </div>
       </div>
-      <%= gettext("Cycle") %> <%= @grades_report.school_cycle.name %>
-    </div>
-    <div class="flex items-center gap-2">
-      <.icon name="hero-view-columns" class="w-6 h-6 shrink-0 text-ltrn-subtle" />
-      <%= gettext("Scale") %> <%= @grades_report.scale.name %>
-      <div :if={@grades_report.scale.ordinal_values != []} class="flex items-center gap-2 ml-2">
-        <%= for ov <- @grades_report.scale.ordinal_values do %>
-          <.badge color_map={ov}>
-            <%= ov.name %>
-          </.badge>
-        <% end %>
+      <div class="flex gap-4">
+        <.action
+          type="link"
+          icon_name="hero-cog-6-tooth-mini"
+          patch={~p"/grades_reports/#{@grades_report}?is_configuring=true"}
+        >
+          <%= gettext("Configure") %>
+        </.action>
+        <.action
+          type="link"
+          icon_name="hero-pencil-mini"
+          patch={~p"/grades_reports/#{@grades_report}?is_editing=true"}
+        >
+          <%= gettext("Edit") %>
+        </.action>
       </div>
     </div>
-  </div>
-  <.markdown :if={@grades_report.info} text={@grades_report.info} class="mt-6" />
-</.responsive_container>
+  </.header_nav>
+  <.responsive_container :if={@grades_report.info} class="py-6 sm:py-10">
+    <.markdown text={@grades_report.info} />
+  </.responsive_container>
+</div>
 <.students_grades_report_full_grid
   students={@streams.students}
   cycle_name={@grades_report.school_cycle.name}
