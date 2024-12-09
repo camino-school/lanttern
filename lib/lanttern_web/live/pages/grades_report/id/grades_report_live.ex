@@ -179,7 +179,7 @@ defmodule LantternWeb.GradesReportLive do
       {:ok, _grades_report} ->
         socket =
           socket
-          |> put_flash(:info, gettext("Grade report deleted"))
+          |> put_flash(:info, gettext("Grades report deleted"))
           |> push_navigate(to: ~p"/grades_reports")
 
         {:noreply, socket}

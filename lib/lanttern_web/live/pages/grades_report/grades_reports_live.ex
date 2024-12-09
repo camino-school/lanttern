@@ -59,8 +59,10 @@ defmodule LantternWeb.GradesReportsLive do
   end
 
   defp assign_show_grades_report_form(socket, %{"new" => "true"}) do
+    current_cycle_id = Map.get(socket.assigns.current_cycle, :id)
+
     socket
-    |> assign(:grades_report, %GradesReport{})
+    |> assign(:grades_report, %GradesReport{school_cycle_id: current_cycle_id})
     |> assign(:form_overlay_title, gettext("Create grades report"))
     |> assign(:show_grades_report_form, true)
   end
@@ -140,7 +142,7 @@ defmodule LantternWeb.GradesReportsLive do
       {:ok, _grades_report} ->
         socket =
           socket
-          |> put_flash(:info, gettext("Grade report deleted"))
+          |> put_flash(:info, gettext("Grades report deleted"))
           |> push_navigate(to: ~p"/grades_reports")
 
         {:noreply, socket}

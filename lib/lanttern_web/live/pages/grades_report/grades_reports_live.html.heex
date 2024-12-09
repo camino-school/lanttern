@@ -86,7 +86,7 @@
 </.responsive_container>
 <.slide_over
   :if={@show_grades_report_form}
-  id="grade-report-form-overlay"
+  id="grades-report-form-overlay"
   show={true}
   on_cancel={JS.patch(~p"/grades_reports")}
 >
@@ -95,6 +95,7 @@
     module={GradesReportFormComponent}
     id={@grades_report.id || :new}
     grades_report={@grades_report}
+    current_user={@current_user}
     navigate={fn _ -> ~p"/grades_reports" end}
     hide_submit
   />
@@ -112,11 +113,11 @@
     <.button
       type="button"
       theme="ghost"
-      phx-click={JS.exec("data-cancel", to: "#grade-report-form-overlay")}
+      phx-click={JS.exec("data-cancel", to: "#grades-report-form-overlay")}
     >
       <%= gettext("Cancel") %>
     </.button>
-    <.button type="submit" form="grade-report-form">
+    <.button type="submit" form="grades-report-form">
       <%= gettext("Save") %>
     </.button>
   </:actions>
@@ -126,7 +127,7 @@
   module={GradesReportGridConfigurationOverlayComponent}
   id="grades-report-grid-configuration-overlay"
   grades_report={@grades_report}
-  on_cancel={JS.patch(~p"/grades_reports")}
+  on_cancel={JS.navigate(~p"/grades_reports")}
 />
 <.live_component
   :if={@is_editing_grade_composition}
