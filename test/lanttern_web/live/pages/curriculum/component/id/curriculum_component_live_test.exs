@@ -15,7 +15,7 @@ defmodule LantternWeb.CurriculumComponentLiveTest do
         curriculum_component_fixture(%{name: "Component XYZ", curriculum_id: curriculum.id})
 
       conn = get(conn, "#{@live_view_base_path}/#{curriculum_component.id}")
-      assert html_response(conn, 200) =~ ~r/<h1 .+>\s*Curriculum ABC: Component XYZ\s*<\/h1>/
+      assert html_response(conn, 200) =~ ~r/<h1 .+>\s*Component XYZ\s*<\/h1>/
 
       {:ok, _view, _html} = live(conn)
     end

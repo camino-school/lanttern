@@ -1,23 +1,16 @@
-<.responsive_container class="pt-6 sm:pt-10">
-  <.page_title_with_menu><%= @curriculum.name %></.page_title_with_menu>
-  <.breadcrumbs class="mt-2">
-    <:item link={~p"/curriculum"}>Curriculum</:item>
-    <:item><%= gettext("Details") %></:item>
-  </.breadcrumbs>
-</.responsive_container>
-<section class="mt-10">
-  <.responsive_container>
-    <h2 class="font-display font-bold text-2xl"><%= gettext("Curriculum components") %></h2>
-  </.responsive_container>
-  <.responsive_grid
-    id="curriculum-components-grid"
-    phx-update="stream"
-    class="px-6 py-10 sm:px-10"
-  >
-    <div
+<.header_nav current_user={@current_user}>
+  <:breadcrumb navigate={~p"/curriculum"}><%= gettext("Curriculum") %></:breadcrumb>
+  <:title><%= @curriculum.name %></:title>
+  <div class="p-4">
+    <p><%= gettext("All curriculum components") %></p>
+  </div>
+</.header_nav>
+<section class="p-4">
+  <.responsive_grid id="curriculum-components-grid" phx-update="stream" is_full_width>
+    <.card_base
       :for={{dom_id, curriculum_component} <- @streams.curriculum_components}
       id={dom_id}
-      class="shrink-0 w-64 sm:w-auto p-4 rounded bg-white shadow-lg"
+      class="p-4"
     >
       <.badge :if={curriculum_component.code} class="mb-2">
         <%= curriculum_component.code %>
@@ -25,11 +18,11 @@
       <br />
       <.link
         navigate={~p"/curriculum/component/#{curriculum_component}"}
-        class="font-display font-bold hover:underline"
+        class="font-display font-bold text-base hover:text-ltrn-subtle"
       >
         <%= curriculum_component.name %>
       </.link>
-    </div>
+    </.card_base>
   </.responsive_grid>
 </section>
 <section :if={@curriculum.description} class="pb-10">

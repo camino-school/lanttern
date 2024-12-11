@@ -4,7 +4,7 @@
     <:breadcrumb is_info>
       <.mini_strand_card strand={@strand} class="w-60" />
     </:breadcrumb>
-    <:breadcrumb navigate={~p"/strands/#{@strand}/moments"}>
+    <:breadcrumb navigate={~p"/strands/#{@strand}/moments"} title={@strand.name}>
       <%= @strand.name %>
     </:breadcrumb>
     <:title><%= gettext("Moment: %{moment}", moment: @moment.name) %></:title>

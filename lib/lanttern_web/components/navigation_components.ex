@@ -18,6 +18,7 @@ defmodule LantternWeb.NavigationComponents do
 
   slot :breadcrumb do
     attr :navigate, :string
+    attr :title, :string
 
     attr :is_info, :boolean,
       doc: "use this attr to render an info icon before the item with hover interaction"
@@ -49,6 +50,7 @@ defmodule LantternWeb.NavigationComponents do
               <.link
                 navigate={breadcrumb.navigate}
                 class="max-w-60 font-display font-black text-lg text-ltrn-subtle truncate hover:text-ltrn-dark"
+                title={Map.get(breadcrumb, :title)}
               >
                 <%= render_slot(breadcrumb) %>
               </.link>
