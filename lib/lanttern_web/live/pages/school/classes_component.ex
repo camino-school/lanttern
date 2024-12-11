@@ -90,14 +90,6 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
         navigate={~p"/school/classes"}
       />
       <.live_component
-        module={LantternWeb.Filters.FiltersOverlayComponent}
-        id="school-cycle-filters-overlay"
-        current_user={@current_user}
-        title={gettext("Filter classes by cycle")}
-        filter_type={:cycles}
-        navigate={~p"/school/classes"}
-      />
-      <.live_component
         :if={@class}
         module={ClassFormOverlayComponent}
         id="class-form-overlay"

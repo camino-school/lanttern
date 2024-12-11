@@ -3,7 +3,6 @@ defmodule LantternWeb.SchoolLive.CyclesComponent do
 
   alias Lanttern.Schools
   alias Lanttern.Schools.Cycle
-  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2]
 
   # shared components
   alias LantternWeb.Schools.CycleFormOverlayComponent
@@ -133,7 +132,6 @@ defmodule LantternWeb.SchoolLive.CyclesComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
-    |> assign_user_filters([:years, :cycles])
     |> stream_cycles()
     |> assign(:initialized, true)
   end

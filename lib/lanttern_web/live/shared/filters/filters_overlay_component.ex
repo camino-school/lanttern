@@ -78,14 +78,6 @@ defmodule LantternWeb.Filters.FiltersOverlayComponent do
     }
   end
 
-  defp get_filter_groups_attrs(:cycles, assigns) do
-    %{
-      type: "cycles",
-      items: assigns.cycles,
-      selected_ids: assigns.selected_cycles_ids
-    }
-  end
-
   # lifecycle
 
   @impl true

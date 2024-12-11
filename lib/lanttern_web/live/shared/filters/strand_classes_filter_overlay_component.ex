@@ -108,11 +108,11 @@ defmodule LantternWeb.Filters.StrandClassesFilterOverlayComponent do
   defp maybe_add_class_from_search(socket, class) do
     classes_ids = Enum.map(socket.assigns.classes, & &1.id)
 
-    if class.id not in classes_ids do
+    if class.id in classes_ids do
+      socket
+    else
       classes = socket.assigns.classes ++ [class]
       assign(socket, :classes, classes)
-    else
-      socket
     end
   end
 

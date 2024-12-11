@@ -11,7 +11,7 @@ defmodule LantternWeb.StudentStrandsLive do
   alias Lanttern.Reporting
   alias Lanttern.Schools
 
-  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
+  import LantternWeb.FiltersHelpers, only: [assign_cycle_filter: 1, save_profile_filters: 2]
 
   # shared components
   alias LantternWeb.Assessments.EntryParticleComponent
@@ -29,7 +29,7 @@ defmodule LantternWeb.StudentStrandsLive do
       |> assign_school()
       |> assign_parent_cycles()
       |> assign_student_report_cards_cycles()
-      |> assign_user_filters([:cycles])
+      |> assign_cycle_filter()
       # adjust dom id to prevent duplication
       # (some strands can be in more than one report card at the same time)
       |> stream_configure(

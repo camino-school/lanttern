@@ -35,12 +35,6 @@ defmodule LantternWeb.FiltersHelpers do
   - `:selected_years_ids`
   - `:selected_years`
 
-  ### `:cycles` assigns
-
-  - `:cycles`
-  - `:selected_cycles_ids`
-  - `:selected_cycles`
-
   ### `:classes` assigns
 
   - `:classes`
@@ -127,21 +121,6 @@ defmodule LantternWeb.FiltersHelpers do
     |> assign(:years, years)
     |> assign(:selected_years_ids, selected_years_ids)
     |> assign(:selected_years, selected_years)
-    |> assign_filter_type(current_user, current_filters, filter_types)
-  end
-
-  # to do: drop support to cycle filter in assign_filter_type in favor of assign_cycle_filter
-  defp assign_filter_type(socket, current_user, current_filters, [:cycles | filter_types]) do
-    cycles =
-      Schools.list_cycles(schools_ids: [current_user.current_profile.school_id])
-
-    selected_cycles_ids = Map.get(current_filters, :cycles_ids) || []
-    selected_cycles = Enum.filter(cycles, &(&1.id in selected_cycles_ids))
-
-    socket
-    |> assign(:cycles, cycles)
-    |> assign(:selected_cycles_ids, selected_cycles_ids)
-    |> assign(:selected_cycles, selected_cycles)
     |> assign_filter_type(current_user, current_filters, filter_types)
   end
 

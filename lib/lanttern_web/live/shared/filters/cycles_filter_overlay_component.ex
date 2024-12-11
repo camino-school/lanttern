@@ -9,8 +9,8 @@ defmodule LantternWeb.Filters.CyclesFilterOverlayComponent do
   attr :title, :string, required: true
   attr :navigate, :string
   attr :filter_opts, :list, default: [], doc: "opts used in `assign_cycle_filter/2`"
-  attr :cycles, :list, doc: "if `cycles` and `selected_cycles_ids` are given, this component skips `assign_user_filters/3`"
-  attr :selected_cycles_ids, :list, doc: "if `cycles` and `selected_cycles_ids` are given, this component skips `assign_user_filters/3`"
+  attr :cycles, :list, required: true
+  attr :selected_cycles_ids, :list, required: true
   ```
   """
 
@@ -82,19 +82,9 @@ defmodule LantternWeb.Filters.CyclesFilterOverlayComponent do
     socket =
       socket
       |> assign(assigns)
-      |> maybe_assign_cycle_filter()
 
     {:ok, socket}
   end
-
-  defp maybe_assign_cycle_filter(
-         %{assigns: %{cycles: cycles, selected_cycles_ids: selected_cycles_ids}} = socket
-       )
-       when is_list(cycles) and is_list(selected_cycles_ids),
-       do: socket
-
-  defp maybe_assign_cycle_filter(socket),
-    do: assign_cycle_filter(socket, socket.assigns.filter_opts)
 
   # event handlers
 

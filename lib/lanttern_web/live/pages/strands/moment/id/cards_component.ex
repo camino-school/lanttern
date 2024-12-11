@@ -180,7 +180,7 @@ defmodule LantternWeb.MomentLive.CardsComponent do
         {:noreply, socket}
 
       {:error, _changeset} ->
-        # to do: handle error
+        # todo: handle error
         {:noreply, socket}
     end
   end
