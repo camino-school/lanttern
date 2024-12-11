@@ -1330,9 +1330,25 @@ defmodule LantternWeb.CoreComponents do
   attr :person, :map, required: true, doc: "any map with `name` attr"
   attr :theme, :string, default: "subtle", doc: "subtle | cyan"
   attr :on_remove, JS, default: nil
+  attr :size, :string, default: "xs", doc: "xs | sm"
+  attr :truncate, :boolean, default: false
   attr :rest, :global
 
   def person_badge(assigns) do
+    {text_size, profile_icon_size} =
+      case assigns.size do
+        "sm" -> {"text-sm", "sm"}
+        _ -> {"text-xs", "xs"}
+      end
+
+    name_w = if assigns.truncate, do: "max-w-24"
+
+    assigns =
+      assigns
+      |> assign(:text_size, text_size)
+      |> assign(:profile_icon_size, profile_icon_size)
+      |> assign(:name_w, name_w)
+
     ~H"""
     <span
       id={@id}
@@ -1340,10 +1356,11 @@ defmodule LantternWeb.CoreComponents do
         "flex items-center gap-2 p-1 rounded-full",
         person_badge_theme_style(@theme)
       ]}
+      title={if @truncate, do: @person.name}
       {@rest}
     >
-      <.profile_icon profile_name={@person.name} size="xs" theme={@theme} />
-      <span class="max-w-[7rem] pr-1 text-xs truncate">
+      <.profile_icon profile_name={@person.name} size={@profile_icon_size} theme={@theme} />
+      <span class={["pr-1 truncate", @text_size, @name_w]}>
         <%= @person.name %>
       </span>
       <div :if={@on_remove} class="pr-1 -ml-1">

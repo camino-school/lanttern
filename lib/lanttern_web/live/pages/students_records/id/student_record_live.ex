@@ -59,8 +59,8 @@ defmodule LantternWeb.StudentRecordLive do
   end
 
   @impl true
-  def handle_params(_params, _uri, socket) do
-    {:noreply, socket}
+  def handle_params(params, _uri, socket) do
+    {:noreply, assign(socket, :params, params)}
   end
 
   # info handlers
