@@ -1,92 +1,71 @@
-<.responsive_container class="pt-6 sm:pt-10">
-  <.page_title_with_menu on_edit_patch={
-    if @is_school_manager, do: ~p"/school/students/#{@student}?edit=true"
-  }>
-    <%= @student.name %>
-  </.page_title_with_menu>
-  <.breadcrumbs class="mt-2">
-    <:item link={~p"/school"}><%= gettext("School") %></:item>
-    <:item><%= gettext("Student") %></:item>
-  </.breadcrumbs>
-
-  <h3 class="mt-10 font-display font-black text-2xl">
-    <%= gettext("Classes") %>
-  </h3>
-</.responsive_container>
-<.responsive_grid id="students" phx-update="stream" class="px-6 py-10 sm:px-10">
-  <.card_base
-    :for={class <- @student.classes}
-    id={"student-class-#{class.id}"}
-    class="shrink-0 flex flex-col items-start justify-between w-64 sm:w-auto p-4"
-  >
-    <p class="font-display font-black text-lg">
-      <%= class.name %>
-    </p>
-    <div class="flex flex-wrap gap-2 mt-2">
-      <.badge><%= class.cycle.name %></.badge>
-      <.badge :for={year <- class.years}><%= year.name %></.badge>
+<div>
+  <.header_nav current_user={@current_user}>
+    <:breadcrumb navigate={~p"/school"}><%= gettext("School") %></:breadcrumb>
+    <:title><%= @student.name %></:title>
+    <div class="flex items-center justify-between gap-4 px-4">
+      <.neo_tabs id="student-nav-tabs">
+        <:tab patch={~p"/school/students/#{@student}"} is_current={@live_action == :show}>
+          <%= gettext("About") %>
+        </:tab>
+        <:tab
+          patch={~p"/school/students/#{@student}/report_cards"}
+          is_current={@live_action == :report_cards}
+        >
+          <%= gettext("Report cards") %>
+        </:tab>
+        <:tab
+          patch={~p"/school/students/#{@student}/grades_reports"}
+          is_current={@live_action == :grades_reports}
+        >
+          <%= gettext("Grades reports") %>
+        </:tab>
+      </.neo_tabs>
+      <.action
+        :if={@is_school_manager}
+        type="link"
+        patch={"#{@current_path}?edit=true"}
+        icon_name="hero-pencil-mini"
+      >
+        <%= gettext("Edit student") %>
+      </.action>
     </div>
-  </.card_base>
-</.responsive_grid>
-<%= if @has_student_report_cards do %>
-  <.responsive_container class="mt-10">
-    <h3 class="font-display font-black text-2xl">
-      <%= gettext("Student report cards") %>
-    </h3>
-  </.responsive_container>
-  <.responsive_grid class="px-6 py-10 sm:px-10">
-    <.report_card_card
-      :for={{dom_id, student_report_card} <- @streams.student_report_cards}
-      id={dom_id}
-      report_card={student_report_card.report_card}
-      open_in_new={~p"/student_report_card/#{student_report_card}"}
-      year={student_report_card.report_card.year}
-      cycle={student_report_card.report_card.school_cycle}
-      class="shrink-0 w-64 sm:w-auto"
-      is_wip={!student_report_card.allow_student_access}
-    />
-  </.responsive_grid>
-<% end %>
-<%= if @has_grades_reports do %>
-  <.responsive_container class="mt-10">
-    <h3 class="font-display font-black text-2xl">
-      <%= gettext("Grades reports") %>
-    </h3>
-  </.responsive_container>
-  <div phx-update="stream" id="grades-report-grid">
-    <.grades_report_grid
-      :for={{dom_id, grades_report} <- @streams.grades_reports}
-      id={dom_id}
-      grades_report={grades_report}
-      student_grades_map={@student_grades_maps[grades_report.id]}
-      on_student_grade_click={
-        fn id ->
-          JS.patch(~p"/school/students/#{@student}?student_grades_report_entry_id=#{id}")
-        end
-      }
-      on_student_final_grade_click={
-        fn id ->
-          JS.patch(~p"/school/students/#{@student}?student_grades_report_final_entry_id=#{id}")
-        end
-      }
-      class="mt-10"
-    />
+  </.header_nav>
+  <div :if={@live_action == :show}>
+    <.responsive_container class="pt-6 sm:pt-10">
+      <h3 class="mt-10 font-display font-black text-2xl">
+        <%= gettext("Classes") %>
+      </h3>
+    </.responsive_container>
+    <.responsive_grid id="students" phx-update="stream" class="px-6 py-10 sm:px-10">
+      <.card_base
+        :for={class <- @student.classes}
+        id={"student-class-#{class.id}"}
+        class="shrink-0 flex flex-col items-start justify-between w-64 sm:w-auto p-4"
+      >
+        <p class="font-display font-black text-lg">
+          <%= class.name %>
+        </p>
+        <div class="flex flex-wrap gap-2 mt-2">
+          <.badge><%= class.cycle.name %></.badge>
+          <.badge :for={year <- class.years}><%= year.name %></.badge>
+        </div>
+      </.card_base>
+    </.responsive_grid>
   </div>
-<% end %>
-<.live_component
-  :if={@student_grades_report_entry_id}
-  module={GradeDetailsOverlayComponent}
-  id="grade-details-overlay-component-overlay"
-  student_grades_report_entry_id={@student_grades_report_entry_id}
-  on_cancel={JS.patch(~p"/school/students/#{@student}")}
-/>
-<.live_component
-  :if={@student_grades_report_final_entry_id}
-  module={FinalGradeDetailsOverlayComponent}
-  id="final-grade-details-overlay-component-overlay"
-  student_grades_report_final_entry_id={@student_grades_report_final_entry_id}
-  on_cancel={JS.patch(~p"/school/students/#{@student}")}
-/>
+  <.live_component
+    :if={@live_action == :report_cards}
+    module={StudentReportCardsComponent}
+    id="student-report-cards"
+    student={@student}
+  />
+  <.live_component
+    :if={@live_action == :grades_reports}
+    module={GradesReportsComponent}
+    id="grades-reports"
+    student={@student}
+    params={@params}
+  />
+</div>
 <.live_component
   :if={@is_editing}
   module={StudentFormOverlayComponent}
@@ -94,6 +73,6 @@
   student={@student}
   current_user={@current_user}
   title={gettext("Edit student")}
-  on_cancel={JS.patch(~p"/school/students/#{@student}")}
+  on_cancel={JS.patch(@current_path)}
   notify_parent
 />

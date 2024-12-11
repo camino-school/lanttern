@@ -32,6 +32,7 @@ defmodule LantternWeb.GradesReportsComponents do
   attr :report_card_cycle_id, :integer, default: nil
   attr :on_composition_click, JS, default: nil
   attr :show_cycle_visibility, :boolean, default: false
+  attr :title_navigate, :string, default: nil
 
   def grades_report_grid(assigns) do
     %{
@@ -62,8 +63,8 @@ defmodule LantternWeb.GradesReportsComponents do
       |> assign(:has_cycles, length(grades_report_cycles) > 0)
 
     ~H"""
-    <div class="relative p-2 overflow-x-auto">
-      <div id={@id} class={["grid gap-1 text-sm", @class]} style={@grid_template_columns_style}>
+    <div class={["relative p-4 overflow-x-auto", @class]}>
+      <div id={@id} class="grid gap-1 text-sm" style={@grid_template_columns_style}>
         <%= if @on_configure do %>
           <.button
             type="button"
@@ -74,7 +75,14 @@ defmodule LantternWeb.GradesReportsComponents do
             <%= gettext("Configure") %>
           </.button>
         <% else %>
-          <div />
+          <div class="flex items-center justify-center p-2 rounded font-display font-black bg-white shadow-lg">
+            <.link :if={@title_navigate} navigate={@title_navigate} class="hover:text-ltrn-subtle">
+              <%= @grades_report.name %>
+            </.link>
+            <span :if={!@title_navigate}>
+              <%= @grades_report.name %>
+            </span>
+          </div>
         <% end %>
         <%= if @has_cycles do %>
           <div

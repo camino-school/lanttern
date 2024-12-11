@@ -75,6 +75,8 @@ defmodule LantternWeb.Router do
       live "/school/cycles", SchoolLive, :manage_cycles
 
       live "/school/students/:id", StudentLive, :show
+      live "/school/students/:id/report_cards", StudentLive, :report_cards
+      live "/school/students/:id/grades_reports", StudentLive, :grades_reports
 
       live "/assessment_points/:id", AssessmentPointLive, :show
       live "/assessment_points/:id/edit", AssessmentPointLive, :edit
