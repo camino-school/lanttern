@@ -301,7 +301,8 @@ defmodule Lanttern.SchoolsTest do
 
     test "list_classes/1 returns all classes" do
       class = class_fixture()
-      assert Schools.list_classes() == [class]
+      [expected] = Schools.list_classes()
+      assert expected.id == class.id
     end
 
     test "list_classes/1 with preloads and school filter returns all classes as expected" do
@@ -325,33 +326,10 @@ defmodule Lanttern.SchoolsTest do
       assert expected_class.years == [year]
     end
 
-    test "list_user_classes/1 returns all classes from user's school ordered correctly" do
-      school = school_fixture()
-      class_b = class_fixture(%{school_id: school.id, name: "BBB"})
-      class_a = class_fixture(%{school_id: school.id, name: "AAA"})
-      teacher = teacher_fixture(%{school_id: school.id})
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture(%{teacher_id: teacher.id})
+    test "list_classes/1 with opts returns all classes correctly" do
+      # in this test we'll apply school, cycle, and year filters
+      # and preload students, which should be ordered alphabetically
 
-      user =
-        %{current_profile: Lanttern.Identity.get_profile!(profile.id, preloads: :teacher)}
-        |> Map.update!(:current_profile, fn profile ->
-          %{
-            profile
-            | school_id: profile.teacher.school_id
-          }
-        end)
-
-      # extra classes for school filter validation
-      class_fixture()
-      class_fixture()
-
-      [expected_a, expected_b] = Schools.list_user_classes(user)
-
-      assert expected_a.id == class_a.id
-      assert expected_b.id == class_b.id
-    end
-
-    test "list_user_classes/1 with opts returns all classes from user's school correctly" do
       school = school_fixture()
 
       cycle_25 =
@@ -407,30 +385,16 @@ defmodule Lanttern.SchoolsTest do
       student_y = student_fixture(%{name: "YYY", classes_ids: [class_a_25.id]})
       student_z = student_fixture(%{name: "ZZZ", classes_ids: [class_a_25.id]})
 
-      teacher = teacher_fixture(%{school_id: school.id})
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture(%{teacher_id: teacher.id})
-
-      user =
-        %{
-          current_profile:
-            Lanttern.Identity.get_profile!(profile.id, preloads: :teacher, years_ids: [year.id])
-        }
-        |> Map.update!(:current_profile, fn profile ->
-          %{
-            profile
-            | school_id: profile.teacher.school_id
-          }
-        end)
-
       # extra classes for school filter validation
       class_fixture()
       class_fixture()
 
       [expected_a_25, expected_b_25, expected_a_24] =
-        Schools.list_user_classes(user,
-          preload_cycle_years_students: true,
+        Schools.list_classes(
+          schools_ids: [school.id],
           years_ids: [year.id],
-          cycles_ids: [cycle_24.id, cycle_25.id]
+          cycles_ids: [cycle_24.id, cycle_25.id],
+          preloads: :students
         )
 
       assert expected_a_25.id == class_a_25.id
@@ -449,6 +413,22 @@ defmodule Lanttern.SchoolsTest do
       assert expected_std_x.id == student_x.id
     end
 
+    test "list_user_classes/1 returns all classes from user's school correctly" do
+      school = school_fixture()
+      class = class_fixture(%{school_id: school.id})
+
+      # extra class for filtering test
+      _class_from_another_school = class_fixture()
+
+      teacher = teacher_fixture(%{school_id: school.id})
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture(%{teacher_id: teacher.id})
+
+      user = %Lanttern.Identity.User{current_profile: %{profile | school_id: school.id}}
+
+      [expected] = Schools.list_user_classes(user)
+      assert expected.id == class.id
+    end
+
     test "list_user_classes/1 returns error tuple when user is student" do
       school = school_fixture()
       student = student_fixture(%{school_id: school.id})
@@ -460,6 +440,29 @@ defmodule Lanttern.SchoolsTest do
       }
 
       assert {:error, "User not allowed to list classes"} == Schools.list_user_classes(user)
+    end
+
+    test "search_classes/2 returns all items matched by search" do
+      _class_1 = class_fixture(%{name: "lorem ipsum xolor sit amet"})
+      class_2 = class_fixture(%{name: "lorem ipsum dolor sit amet"})
+      class_3 = class_fixture(%{name: "lorem ipsum dolorxxx sit amet"})
+      _class_4 = class_fixture(%{name: "lorem ipsum xxxxx sit amet"})
+
+      [expected_2, expected_3] = Schools.search_classes("dolor")
+      assert expected_2.id == class_2.id
+      assert expected_3.id == class_3.id
+    end
+
+    test "search_classes/2 with school opt returns only classs from given school" do
+      school = school_fixture()
+
+      _class_1 = class_fixture(%{name: "lorem ipsum xolor sit amet"})
+      class_2 = class_fixture(%{name: "lorem ipsum dolor sit amet", school_id: school.id})
+      _class_3 = class_fixture(%{name: "lorem ipsum dolorxxx sit amet"})
+      _class_4 = class_fixture(%{name: "lorem ipsum xxxxx sit amet"})
+
+      [expected] = Schools.search_classes("dolor", schools_ids: [school.id])
+      assert expected.id == class_2.id
     end
 
     test "get_class/2 returns the class with given id" do

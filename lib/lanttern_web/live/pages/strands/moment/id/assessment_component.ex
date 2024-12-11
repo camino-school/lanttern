@@ -5,7 +5,9 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Filters
 
-  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, assign_user_filters: 3]
+  import LantternWeb.FiltersHelpers,
+    only: [assign_user_filters: 2, assign_strand_classes_filter: 1]
+
   import Lanttern.Utils, only: [swap: 3]
 
   # shared components
@@ -120,11 +122,11 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
         </:actions>
       </.slide_over>
       <.live_component
-        module={LantternWeb.Filters.ClassesFilterOverlayComponent}
+        module={LantternWeb.Filters.StrandClassesFilterOverlayComponent}
         id="classes-filter-modal"
         current_user={@current_user}
         title={gettext("Select classes for assessment")}
-        filter_opts={[strand_id: @moment.strand_id]}
+        strand_id={@moment.strand_id}
         classes={@classes}
         selected_classes_ids={@selected_classes_ids}
         navigate={~p"/strands/moment/#{@moment}/assessment"}
@@ -224,7 +226,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
-    |> assign_user_filters([:classes], strand_id: socket.assigns.moment.strand_id)
+    |> assign_strand_classes_filter()
     |> assign_user_filters([:assessment_view, :assessment_group_by])
     |> assign_sortable_assessment_points()
     |> assign(:initialized, true)

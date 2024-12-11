@@ -103,10 +103,7 @@ defmodule LantternWeb.Filters.FiltersOverlayComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign_user_filters(
-        [filter_type],
-        Map.get(assigns, :filter_opts, [])
-      )
+      |> assign_user_filters([filter_type])
 
     {:ok, socket}
   end

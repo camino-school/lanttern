@@ -3,7 +3,7 @@ defmodule LantternWeb.StrandLive.NotesComponent do
 
   alias Lanttern.Notes
 
-  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 3]
+  import LantternWeb.FiltersHelpers, only: [assign_strand_classes_filter: 1]
 
   # shared components
   alias LantternWeb.Attachments.AttachmentAreaComponent
@@ -97,12 +97,11 @@ defmodule LantternWeb.StrandLive.NotesComponent do
         </div>
       </.responsive_container>
       <.live_component
-        module={LantternWeb.Filters.ClassesFilterOverlayComponent}
+        module={LantternWeb.Filters.StrandClassesFilterOverlayComponent}
         id="classes-filter-modal"
         current_user={@current_user}
         title={gettext("Select classes to view student notes")}
-        filter_type={:classes}
-        filter_opts={[strand_id: @strand.id]}
+        strand_id={@strand.id}
         classes={@classes}
         selected_classes_ids={@selected_classes_ids}
         navigate={~p"/strands/#{@strand}/notes"}
@@ -144,7 +143,7 @@ defmodule LantternWeb.StrandLive.NotesComponent do
       |> assign(:note, note)
       |> stream(:moments_notes, moments_notes)
       |> assign(:has_moments_notes, has_moments_notes)
-      |> assign_user_filters([:classes], strand_id: assigns.strand.id)
+      |> assign_strand_classes_filter()
       |> stream_students_strand_notes()
 
     {:ok, socket}

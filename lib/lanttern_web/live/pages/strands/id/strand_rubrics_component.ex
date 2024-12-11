@@ -5,7 +5,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
   alias Lanttern.Rubrics
   alias Lanttern.Rubrics.Rubric
   alias Lanttern.Schools
-  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 3]
+  import LantternWeb.FiltersHelpers, only: [assign_strand_classes_filter: 1]
 
   # shared components
   import LantternWeb.RubricsComponents
@@ -150,11 +150,11 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
         </section>
       </.responsive_container>
       <.live_component
-        module={LantternWeb.Filters.ClassesFilterOverlayComponent}
+        module={LantternWeb.Filters.StrandClassesFilterOverlayComponent}
         id="classes-filter-modal"
         current_user={@current_user}
         title={gettext("Select classes to view students differentiation rubrics")}
-        filter_opts={[strand_id: @strand.id]}
+        strand_id={@strand.id}
         classes={@classes}
         selected_classes_ids={@selected_classes_ids}
         navigate={~p"/strands/#{@strand}/rubrics"}
@@ -267,7 +267,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
-    |> assign_user_filters([:classes], strand_id: socket.assigns.strand.id)
+    |> assign_strand_classes_filter()
     |> assign_goals()
     |> assign_students()
     |> assign(:initialized, true)

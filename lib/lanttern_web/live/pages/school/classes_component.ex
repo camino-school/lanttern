@@ -184,9 +184,9 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
     classes =
       Schools.list_user_classes(
         socket.assigns.current_user,
-        preload_cycle_years_students: true,
         years_ids: socket.assigns.selected_years_ids,
-        cycles_ids: cycles_ids
+        cycles_ids: cycles_ids,
+        preloads: :students
       )
 
     socket

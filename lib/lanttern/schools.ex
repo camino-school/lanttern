@@ -419,10 +419,14 @@ defmodule Lanttern.Schools do
   @doc """
   Returns the list of classes.
 
-  ### Options:
+  ## Options:
 
-  `:preloads` – preloads associated data
-  `:schools_ids` – filter classes by schools
+  - `:classes_ids` – filter results by given ids
+  - `:schools_ids` – filter classes by schools
+  - `:years_ids` – filter results by years
+  - `:cycles_ids` – filter results by cycles
+  - `:preloads` – preloads associated data
+  - `:base_query` - used in conjunction with `search_classes/2`
 
   ## Examples
 
@@ -431,9 +435,16 @@ defmodule Lanttern.Schools do
 
   """
   def list_classes(opts \\ []) do
+    queryable = Keyword.get(opts, :base_query, Class)
+
     from(
-      c in Class,
-      order_by: c.name
+      cl in queryable,
+      join: cy in assoc(cl, :cycle),
+      left_join: y in assoc(cl, :years),
+      as: :years,
+      group_by: [cl.id, cy.id, y.id],
+      order_by: [desc: max(cy.end_at), asc: min(y.id), asc: cl.name],
+      preload: [cycle: cy, years: y]
     )
     |> apply_list_classes_opts(opts)
     |> Repo.all()
@@ -442,11 +453,33 @@ defmodule Lanttern.Schools do
 
   defp apply_list_classes_opts(queryable, []), do: queryable
 
-  defp apply_list_classes_opts(queryable, [{:schools_ids, schools_ids} | opts]) do
+  defp apply_list_classes_opts(queryable, [{:schools_ids, schools_ids} | opts])
+       when is_list(schools_ids) and schools_ids != [] do
     from(
-      c in queryable,
-      where: c.school_id in ^schools_ids
+      cl in queryable,
+      where: cl.school_id in ^schools_ids
     )
+    |> apply_list_classes_opts(opts)
+  end
+
+  defp apply_list_classes_opts(queryable, [{:classes_ids, classes_ids} | opts])
+       when is_list(classes_ids) and classes_ids != [] do
+    from(
+      cl in queryable,
+      where: cl.id in ^classes_ids
+    )
+    |> apply_list_classes_opts(opts)
+  end
+
+  defp apply_list_classes_opts(queryable, [{:years_ids, years_ids} | opts])
+       when is_list(years_ids) and years_ids != [] do
+    from([_cl, years: y] in queryable, where: y.id in ^years_ids)
+    |> apply_list_classes_opts(opts)
+  end
+
+  defp apply_list_classes_opts(queryable, [{:cycles_ids, cycles_ids} | opts])
+       when is_list(cycles_ids) and cycles_ids != [] do
+    from(cl in queryable, where: cl.cycle_id in ^cycles_ids)
     |> apply_list_classes_opts(opts)
   end
 
@@ -456,69 +489,49 @@ defmodule Lanttern.Schools do
   @doc """
   Returns the list of user's school classes.
 
-  The list is sorted by cycle end date (desc), class year (asc), and class name (asc).
+  It uses `list_classes/1` internally, extracting the `school_id` from
+  `current_user.current_profile`.
 
-  ## Options:
-
-  - `:classes_ids` – filter results by classes
-  - `:years_ids` – filter results by years
-  - `:cycles_ids` – filter results by cycles
-  - `:preload_cycle_years_students` – boolean
-
-  ## Examples
-
-      iex> list_user_classes()
-      [%Class{}, ...]
+  View `list_classes/1` for supported opts.
 
   """
   def list_user_classes(current_user, opts \\ [])
 
-  def list_user_classes(%{current_profile: %{type: "teacher", school_id: school_id}}, opts) do
-    from(
-      cl in Class,
-      join: cy in assoc(cl, :cycle),
-      left_join: y in assoc(cl, :years),
-      as: :years,
-      group_by: cl.id,
-      order_by: [desc: max(cy.end_at), asc: min(y.id), asc: cl.name],
-      where: cl.school_id == ^school_id
-    )
-    |> apply_list_user_classes_opts(opts)
-    |> Repo.all()
+  def list_user_classes(%User{current_profile: %{type: "teacher", school_id: school_id}}, opts) do
+    opts = Keyword.put(opts, :schools_ids, [school_id])
+    list_classes(opts)
   end
 
   def list_user_classes(_current_user, _opts),
     do: {:error, "User not allowed to list classes"}
 
-  defp apply_list_user_classes_opts(queryable, []), do: queryable
+  @doc """
+  Search classes by name.
 
-  defp apply_list_user_classes_opts(queryable, [{:classes_ids, classes_ids} | opts]) do
-    from(cl in queryable, where: cl.id in ^classes_ids)
-    |> apply_list_user_classes_opts(opts)
+  ## Options:
+
+  View `list_classes/1` for `opts`
+
+  ## Examples
+
+      iex> search_classes("some name")
+      [%Class{}, ...]
+
+  """
+  @spec search_classes(search_term :: binary(), opts :: Keyword.t()) :: [Class.t()]
+  def search_classes(search_term, opts \\ []) do
+    ilike_search_term = "%#{search_term}%"
+
+    query =
+      from(
+        c in Class,
+        where: ilike(c.name, ^ilike_search_term),
+        order_by: {:asc, fragment("? <<-> ?", ^search_term, c.name)}
+      )
+
+    [{:base_query, query} | opts]
+    |> list_classes()
   end
-
-  defp apply_list_user_classes_opts(queryable, [{:years_ids, years_ids} | opts])
-       when is_list(years_ids) and years_ids != [] do
-    from([_cl, years: y] in queryable, where: y.id in ^years_ids)
-    |> apply_list_user_classes_opts(opts)
-  end
-
-  defp apply_list_user_classes_opts(queryable, [{:cycles_ids, cycles_ids} | opts])
-       when is_list(cycles_ids) and cycles_ids != [] do
-    from(cl in queryable, where: cl.cycle_id in ^cycles_ids)
-    |> apply_list_user_classes_opts(opts)
-  end
-
-  defp apply_list_user_classes_opts(queryable, [{:preload_cycle_years_students, true} | opts]) do
-    from(
-      cl in queryable,
-      preload: [:cycle, :years, :students]
-    )
-    |> apply_list_user_classes_opts(opts)
-  end
-
-  defp apply_list_user_classes_opts(queryable, [_ | opts]),
-    do: apply_list_user_classes_opts(queryable, opts)
 
   @doc """
   Gets a single class.

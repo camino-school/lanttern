@@ -21,7 +21,7 @@ defmodule LantternWeb.Dataviz.LantternVizComponent do
               <li class="flex items-center gap-1" id="main-layer">
                 <span class="shrink-0 w-4 border-t-2 border-ltrn-dark" />
                 <.link
-                  navigate={~p"/strands/#{@strand_id}?tab=assessment"}
+                  navigate={~p"/strands/#{@strand_id}/assessment"}
                   class="underline hover:opacity-50 truncate"
                 >
                   <%= gettext("Final assessment") %>
@@ -34,7 +34,7 @@ defmodule LantternWeb.Dataviz.LantternVizComponent do
               >
                 <span class="shrink-0 w-4 border-t-2 border-dotted border-ltrn-subtle"></span>
                 <.link
-                  navigate={~p"/strands/moment/#{moment.id}?tab=assessment"}
+                  navigate={~p"/strands/moment/#{moment.id}/assessment"}
                   class="underline truncate hover:opacity-50"
                 >
                   <%= moment.name %>

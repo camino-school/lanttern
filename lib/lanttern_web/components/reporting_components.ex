@@ -389,7 +389,7 @@ defmodule LantternWeb.ReportingComponents do
             <a
               :for={strand <- @strands}
               id={"moments-entries-grid-strand-#{strand.id}"}
-              href={"/strands/#{strand.id}?tab=assessment"}
+              href={"/strands/#{strand.id}/assessment"}
               target="_blank"
               class="w-full p-1 rounded-sm border border-ltrn-lighter text-center truncate bg-white hover:bg-ltrn-lighter"
               style={"grid-column: span #{strand.assessment_points_count} / span #{strand.assessment_points_count}"}
@@ -423,7 +423,7 @@ defmodule LantternWeb.ReportingComponents do
               <%= for strand <- @strands do %>
                 <%= for {moment_id, assessment_point_id, entry} <- @students_entries_map[student.id][strand.id] do %>
                   <a
-                    href={"/strands/moment/#{moment_id}?tab=assessment"}
+                    href={"/strands/moment/#{moment_id}/assessment"}
                     target="_blank"
                     class="block w-min rounded-sm outline-ltrn-primary text-center hover:outline"
                   >

@@ -259,7 +259,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     ~H"""
     <.link
       class="flex items-center w-full h-full p-1 rounded text-sm font-display font-bold truncate hover:bg-ltrn-mesh-cyan"
-      navigate={~p"/strands/moment/#{@header_struct.id}?tab=assessment"}
+      navigate={~p"/strands/moment/#{@header_struct.id}/assessment"}
     >
       <%= @header_struct.name %>
     </.link>
@@ -369,7 +369,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       <.link
         class="block w-full p-1 rounded overflow-hidden hover:bg-ltrn-mesh-cyan"
         title={"#{@assessment_point.moment.name}\n\n#{@assessment_point.name}"}
-        navigate={~p"/strands/moment/#{@assessment_point.moment.id}?tab=assessment"}
+        navigate={~p"/strands/moment/#{@assessment_point.moment.id}/assessment"}
       >
         <span class="font-bold"><%= @assessment_point.moment.name %></span> <br />
         <span class="text-xs"><%= @assessment_point.name %></span>
