@@ -14,23 +14,16 @@ defmodule LantternWeb.ReportCardLive.StudentsTrackingComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="pt-10">
-      <.responsive_container>
-        <h5 class="font-display font-bold text-2xl">
-          <%= gettext("Students moments assessment tracking") %>
-        </h5>
-        <p class="mt-2">
-          <%= gettext("Track progress of all students linked in the students tab.") %>
-        </p>
+    <div>
+      <.action_bar>
         <.live_component
           module={InlineFiltersComponent}
           id="linked-students-grades-classes-filter"
           filter_items={@linked_students_classes}
           selected_items_ids={@selected_linked_students_classes_ids}
-          class="mt-4"
           notify_component={@myself}
         />
-      </.responsive_container>
+      </.action_bar>
       <%= if !@has_students do %>
         <div class="container mx-auto mt-4 lg:max-w-5xl">
           <div class="p-10 rounded shadow-xl bg-white">
@@ -45,7 +38,6 @@ defmodule LantternWeb.ReportCardLive.StudentsTrackingComponent do
           strands={@strands}
           has_students={@has_students}
           students_entries_map={@students_entries_map}
-          class="mt-6"
         />
       <% end %>
     </div>

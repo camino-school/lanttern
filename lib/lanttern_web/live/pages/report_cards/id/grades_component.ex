@@ -13,7 +13,8 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
   def render(assigns) do
     ~H"""
     <div class="py-10">
-      <div class="container mx-auto lg:max-w-5xl">
+      <.responsive_container>
+        <.markdown :if={@report_card.grading_info} text={@report_card.grading_info} class="mb-10" />
         <%= if @grades_report do %>
           <.grades_report_grid
             grades_report={@grades_report}
@@ -22,13 +23,13 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
             title_navigate={~p"/grades_reports/#{@grades_report}"}
           />
         <% else %>
-          <.card_base class="p-4 mt-4">
+          <.card_base class="p-4">
             <.empty_state>
               <%= gettext("No grades report linked to this report card.") %>
             </.empty_state>
           </.card_base>
         <% end %>
-      </div>
+      </.responsive_container>
       <.live_component
         :if={@is_editing_grade_composition}
         title={gettext("Edit grade composition")}

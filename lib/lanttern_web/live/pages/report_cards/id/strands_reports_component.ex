@@ -16,31 +16,27 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <.responsive_container>
-        <div class="flex items-end justify-between mb-4">
-          <h3 class="font-display font-bold text-lg">
-            <%= gettext("Strands linked to report") %>
-          </h3>
-          <div class="shrink-0 flex items-center gap-6">
-            <.collection_action
-              type="link"
-              patch={~p"/report_cards/#{@report_card}/strands?is_reordering=true"}
-              icon_name="hero-arrows-up-down"
-            >
-              <%= gettext("Reorder") %>
-            </.collection_action>
-            <.collection_action
-              type="link"
-              patch={~p"/report_cards/#{@report_card}/strands?is_creating_strand_report=true"}
-              icon_name="hero-plus-circle"
-            >
-              <%= gettext("Link strand") %>
-            </.collection_action>
-          </div>
+      <.action_bar class="flex items-center justify-between">
+        <p><%= gettext("Strands linked to report") %></p>
+        <div class="shrink-0 flex items-center gap-4">
+          <.action
+            type="link"
+            patch={~p"/report_cards/#{@report_card}/strands?is_reordering=true"}
+            icon_name="hero-arrows-up-down-mini"
+          >
+            <%= gettext("Reorder") %>
+          </.action>
+          <.action
+            type="link"
+            patch={~p"/report_cards/#{@report_card}/strands?is_creating_strand_report=true"}
+            icon_name="hero-link-mini"
+          >
+            <%= gettext("Link strand") %>
+          </.action>
         </div>
-      </.responsive_container>
+      </.action_bar>
       <%= if @has_strands_reports do %>
-        <.responsive_grid id="strands-reports-grid" phx-update="stream" class="px-6 sm:px-10">
+        <.responsive_grid id="strands-reports-grid" phx-update="stream" class="p-4" is_full_width>
           <.strand_card
             :for={{dom_id, strand_report} <- @streams.strands_reports}
             id={dom_id}
@@ -258,7 +254,7 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
        }) do
     socket
     |> assign(:strand, nil)
-    |> assign(:form_overlay_title, gettext("Create strand report"))
+    |> assign(:form_overlay_title, gettext("Link strand to report"))
     |> assign(:show_strand_report_form, true)
   end
 

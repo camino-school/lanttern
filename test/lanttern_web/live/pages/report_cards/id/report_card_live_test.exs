@@ -122,7 +122,7 @@ defmodule LantternWeb.ReportCardLiveTest do
 
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{report_card.id}/tracking")
 
-      assert view |> has_element?("h5", "Students moments assessment tracking")
+      assert view |> has_element?("p", "Add students to report card to track entries")
     end
   end
 end

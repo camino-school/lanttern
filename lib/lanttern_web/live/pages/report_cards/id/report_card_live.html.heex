@@ -58,7 +58,7 @@
       alt_text={gettext("Report card cover image")}
       empty_state_text={gettext("Edit report to add a cover image")}
     />
-    <.responsive_container class="mt-10">
+    <.responsive_container class="py-10">
       <h1 class="font-display font-black text-2xl sm:text-3xl"><%= @report_card.name %></h1>
       <div class="flex gap-2 mt-6">
         <.badge theme="dark">
@@ -68,7 +68,7 @@
           <%= @report_card.year.name %>
         </.badge>
       </div>
-      <%!-- </.cover> --%>
+      <.markdown :if={@report_card.description} text={@report_card.description} class="mt-10" />
     </.responsive_container>
   </div>
   <.live_component
@@ -79,29 +79,21 @@
     current_user={@current_user}
     params={@params}
   />
-  <div :if={@live_action == :strands} class="py-10">
-    <.responsive_container :if={@report_card.description} class="mb-10">
-      <.markdown text={@report_card.description} />
-    </.responsive_container>
-    <.live_component
-      module={StrandsReportsComponent}
-      id="report-card-strands-reports"
-      report_card={@report_card}
-      params={@params}
-    />
-  </div>
-  <div :if={@live_action == :grades}>
-    <.responsive_container :if={@report_card.grading_info} class="pt-10">
-      <.markdown text={@report_card.grading_info} />
-    </.responsive_container>
-    <.live_component
-      module={GradesComponent}
-      id="report-card-grades"
-      report_card={@report_card}
-      current_user={@current_user}
-      params={@params}
-    />
-  </div>
+  <.live_component
+    :if={@live_action == :strands}
+    module={StrandsReportsComponent}
+    id="report-card-strands-reports"
+    report_card={@report_card}
+    params={@params}
+  />
+  <.live_component
+    :if={@live_action == :grades}
+    module={GradesComponent}
+    id="report-card-grades"
+    report_card={@report_card}
+    current_user={@current_user}
+    params={@params}
+  />
 </div>
 <.live_component
   :if={@live_action == :grades}

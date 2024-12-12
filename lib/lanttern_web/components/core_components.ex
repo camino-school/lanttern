@@ -523,42 +523,6 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
-  Renders a `<button>` or `<.link>` with icon.
-
-  Usually used in the context of a collection (e.g. to add a new item to a list).
-  """
-
-  attr :class, :any, default: nil
-  attr :type, :string, required: true, doc: "link | button"
-  attr :icon_name, :string, default: nil
-  attr :patch, :string, doc: "use with type=\"link\""
-  attr :rest, :global
-
-  slot :inner_block, required: true
-
-  def collection_action(%{type: "button"} = assigns) do
-    ~H"""
-    <button type="button" class={[collection_action_styles(), @class]} {@rest}>
-      <%= render_slot(@inner_block) %>
-      <.icon :if={@icon_name} name={@icon_name} class="w-6 h-6 text-ltrn-primary" />
-    </button>
-    """
-  end
-
-  def collection_action(%{type: "link"} = assigns) do
-    ~H"""
-    <.link patch={@patch} class={[collection_action_styles(), @class]}>
-      <%= render_slot(@inner_block) %>
-      <.icon :if={@icon_name} name={@icon_name} class="w-6 h-6 text-ltrn-primary" />
-    </.link>
-    """
-  end
-
-  defp collection_action_styles(),
-    do:
-      "shrink-0 flex items-center gap-2 font-display text-sm text-ltrn-dark hover:text-ltrn-subtle"
-
-  @doc """
   Renders a page cover.
   """
   attr :rest, :global
