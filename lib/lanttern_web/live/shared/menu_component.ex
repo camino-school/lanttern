@@ -221,7 +221,7 @@ defmodule LantternWeb.MenuComponent do
         class={[
           "group relative block p-6 font-display font-black text-base",
           "md:p-10 lg:text-lg",
-          if(@active, do: "text-ltrn-dark", else: "text-ltrn-subtle underline hover:text-ltrn-dark")
+          if(@active, do: "text-ltrn-dark", else: "text-ltrn-subtle hover:text-ltrn-dark")
         ]}
       >
         <span class={[
@@ -324,7 +324,7 @@ defmodule LantternWeb.MenuComponent do
     ~H"""
     <button
       type="button"
-      class={if(@is_current, do: "text-ltrn-dark", else: "hover:underline")}
+      class={if(@is_current, do: "text-ltrn-dark", else: "hover:text-ltrn-dark")}
       {@rest}
     >
       <%= render_slot(@inner_block) %>

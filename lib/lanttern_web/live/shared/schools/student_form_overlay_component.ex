@@ -185,8 +185,10 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
 
     other_cycle_classes_options =
       socket.assigns.all_classes
-      |> Enum.filter(&(&1.cycle_id != cycle_id))
-      |> Enum.filter(&(&1.id not in socket.assigns.selected_classes_ids))
+      |> Enum.filter(fn class ->
+        class.cycle_id != cycle_id &&
+          class.id not in socket.assigns.selected_classes_ids
+      end)
       |> Enum.map(&{"#{&1.name} (#{&1.cycle.name})", &1.id})
 
     assign(socket, :other_cycle_classes_options, other_cycle_classes_options)
