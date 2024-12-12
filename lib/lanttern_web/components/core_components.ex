@@ -325,16 +325,15 @@ defmodule LantternWeb.CoreComponents do
       <.badge_button_picker
         on_select={%JS{}}
         items={items}
-        item_key={:name}
         selected_ids={selected_ids}
       />
   """
   attr :items, :list, required: true
   attr :selected_ids, :list, required: true
 
-  attr :item_key, :any,
-    default: :name,
-    doc: "key used to access the item 'label' that will be displayed in the UI"
+  attr :label_setter, :string,
+    default: nil,
+    doc: "supports \"class_with_cycle\" opt, which will render the class + cycle name"
 
   attr :on_select, :any,
     required: true,
@@ -358,7 +357,10 @@ defmodule LantternWeb.CoreComponents do
         icon_name={if item.id in @selected_ids, do: "hero-check-mini", else: "hero-plus-mini"}
         phx-click={@on_select.(item.id)}
       >
-        <%= Map.get(item, @item_key) %>
+        <%= case @label_setter do
+          "class_with_cycle" -> "#{item.name} (#{item.cycle.name})"
+          _ -> item.name
+        end %>
       </.badge_button>
     </div>
     """

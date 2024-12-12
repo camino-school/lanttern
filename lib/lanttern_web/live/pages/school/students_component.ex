@@ -64,7 +64,9 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
             filter_is_active={@selected_classes_ids != []}
           >
             <div class="flex flex-wrap gap-1">
-              <.badge :for={class <- student.classes}><%= class.name %></.badge>
+              <.badge :for={class <- student.classes}>
+                <%= "#{class.name} (#{class.cycle.name})" %>
+              </.badge>
             </div>
           </:col>
           <:action :let={student} :if={@is_school_manager}>
@@ -125,6 +127,7 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
         module={StudentFormOverlayComponent}
         id="student-form-overlay"
         student={@student}
+        current_cycle={@current_user.current_profile.current_school_cycle}
         title={@student_overlay_title}
         on_cancel={JS.patch(~p"/school/students")}
         notify_component={@myself}
@@ -257,7 +260,7 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
   defp stream_students(socket) do
     students =
       Schools.list_students(
-        preloads: :classes,
+        preloads: [classes: :cycle],
         school_id: socket.assigns.current_user.current_profile.school_id,
         classes_ids: socket.assigns.selected_classes_ids,
         only_in_some_class: true

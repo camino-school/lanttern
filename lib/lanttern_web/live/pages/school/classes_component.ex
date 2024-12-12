@@ -39,7 +39,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
             class="min-w-[16rem] sm:min-w-0 p-4"
           >
             <div class="flex items-center justify-between gap-4">
-              <p class="font-display font-black"><%= class.name %> (<%= class.cycle.name %>)</p>
+              <p class="font-display font-black"><%= class.name %></p>
               <.button
                 :if={@is_school_manager}
                 type="link"
