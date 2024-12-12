@@ -6,9 +6,9 @@
         Showing <%= @results %> results
       </p>
     </div>
-    <.collection_action type="link" patch={~p"/rubrics/new"} icon_name="hero-plus-circle">
+    <.action type="link" patch={~p"/rubrics/new"} icon_name="hero-plus-circle-mini">
       Create rubric
-    </.collection_action>
+    </.action>
   </div>
   <div id="rubrics-list" phx-update="stream">
     <div

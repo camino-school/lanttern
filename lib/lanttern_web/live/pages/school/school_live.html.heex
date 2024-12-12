@@ -1,41 +1,43 @@
-<.cover size="sm">
-  <:top>
-    <div class="flex justify-end">
-      <.nav_menu_button />
-    </div>
-  </:top>
-  <h1 class="font-display font-black text-4xl sm:text-5xl">
-    <%= @current_user.current_profile.school_name %>
-  </h1>
-</.cover>
-<div class="sticky top-0 z-30 border-b border-ltrn-lighter bg-white">
-  <.responsive_container>
-    <.nav_tabs>
-      <:tab patch={~p"/school/students"} is_current={@live_action in [:show, :view_students]}>
-        <%= gettext("Students") %>
+<.header_nav current_user={@current_user}>
+  <:title><%= @current_user.current_profile.school_name %></:title>
+  <div class="px-4">
+    <.neo_tabs>
+      <:tab patch={~p"/school/classes"} is_current={@live_action in [:show, :manage_classes]}>
+        <%= if @current_user.current_profile.current_school_cycle,
+          do: "#{@current_user.current_profile.current_school_cycle.name} #{gettext("classes")}",
+          else: gettext("Classes") %>
       </:tab>
-      <:tab patch={~p"/school/classes"} is_current={@live_action == :view_classes}>
-        <%= gettext("Classes") %>
+      <:tab patch={~p"/school/students"} is_current={@live_action == :manage_students}>
+        <%= gettext("All students") %>
       </:tab>
-    </.nav_tabs>
-  </.responsive_container>
-</div>
-<div class="ltrn-bg-main-local">
-  <.live_component
-    :if={@live_action in [:show, :view_students]}
-    module={StudentsComponent}
-    id={:school_classes}
-    current_user={@current_user}
-    params={@params}
-    live_action={@live_action}
-    is_school_manager={@is_school_manager}
-  />
-  <.live_component
-    :if={@live_action == :view_classes}
-    module={ClassesComponent}
-    id={:school_classes}
-    current_user={@current_user}
-    params={@params}
-    is_school_manager={@is_school_manager}
-  />
-</div>
+      <:tab patch={~p"/school/cycles"} is_current={@live_action == :manage_cycles}>
+        <%= gettext("Cycles") %>
+      </:tab>
+    </.neo_tabs>
+  </div>
+</.header_nav>
+<.live_component
+  :if={@live_action in [:show, :manage_classes]}
+  module={ClassesComponent}
+  id={:school_classes}
+  current_user={@current_user}
+  params={@params}
+  is_school_manager={@is_school_manager}
+/>
+<.live_component
+  :if={@live_action == :manage_students}
+  module={StudentsComponent}
+  id={:school_classes}
+  current_user={@current_user}
+  params={@params}
+  live_action={@live_action}
+  is_school_manager={@is_school_manager}
+/>
+<.live_component
+  :if={@live_action == :manage_cycles}
+  module={CyclesComponent}
+  id={:school_classes}
+  current_user={@current_user}
+  params={@params}
+  is_school_manager={@is_school_manager}
+/>

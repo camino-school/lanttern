@@ -12,7 +12,7 @@ defmodule LantternWeb.ReportCardsLiveTest do
     test "disconnected and connected mount", %{conn: conn} do
       conn = get(conn, @live_view_path)
 
-      assert html_response(conn, 200) =~ ~r"<h1 .+>\s*Report Cards\s*<\/h1>"
+      assert html_response(conn, 200) =~ ~r"<h1 .+>\s*Report cards\s*<\/h1>"
 
       {:ok, _view, _html} = live(conn)
     end

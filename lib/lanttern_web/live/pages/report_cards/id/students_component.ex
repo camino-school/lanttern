@@ -4,17 +4,17 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   alias Phoenix.LiveView.LiveStream
 
   alias Lanttern.Reporting
+  alias Lanttern.Reporting.ReportCard
   alias Lanttern.Reporting.StudentReportCard
   alias Lanttern.Schools
   alias Lanttern.Schools.Student
 
   import LantternWeb.FiltersHelpers,
-    only: [assign_user_filters: 3, save_profile_filters: 3]
+    only: [save_profile_filters: 3, assign_report_card_linked_student_classes_filter: 2]
 
   # shared components
   alias LantternWeb.Reporting.StudentReportCardFormComponent
   alias LantternWeb.Filters.InlineFiltersComponent
-  alias LantternWeb.Filters.ClassesFilterOverlayComponent
 
   @impl true
   def render(assigns) do
@@ -59,55 +59,32 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
             </div>
           <% end %>
         </div>
-        <%= if @selected_classes != [] do %>
-          <p class="font-display font-bold text-2xl">
-            <%= gettext("Link students from") %>
-            <button
-              type="button"
-              class="inline text-left underline hover:text-ltrn-subtle"
-              phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
-            >
-              <%= @selected_classes
-              |> Enum.map(& &1.name)
-              |> Enum.join(", ") %>
-            </button>
-            <%= gettext("to this report card") %>
-          </p>
-        <% else %>
-          <p class="font-display font-bold text-2xl">
-            <button
-              type="button"
-              class="underline hover:text-ltrn-subtle"
-              phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
-            >
-              <%= gettext("Select a class") %>
-            </button>
-            <%= gettext("to list students") %>
-          </p>
-        <% end %>
+        <p class="font-display font-bold text-2xl">
+          <%= case @report_card.school_cycle.parent_cycle do
+            %{name: parent_cycle_name} ->
+              gettext("Link students from %{year} (%{cycle}) to this report card",
+                year: @report_card.year.name,
+                cycle: parent_cycle_name
+              )
+
+            _ ->
+              gettext("Link students from %{year} to this report card",
+                year: @report_card.year.name
+              )
+          end %>
+        </p>
         <.other_students_list
-          has_selected_class={@selected_classes_ids != []}
           has_other_students={@has_other_students}
           students_stream={@streams.other_students}
-          report_card_id={@report_card.id}
+          report_card={@report_card}
           myself={@myself}
         />
       </.responsive_container>
-      <.live_component
-        module={ClassesFilterOverlayComponent}
-        id="classes-filter-modal"
-        current_user={@current_user}
-        title={gettext("Select classes")}
-        filter_opts={[report_card_id: @report_card.id]}
-        classes={@classes}
-        selected_classes_ids={@selected_classes_ids}
-        navigate={~p"/report_cards/#{@report_card}"}
-      />
       <.slide_over
         :if={@show_student_report_card_form}
         id="student-report-card-form-overlay"
         show={true}
-        on_cancel={JS.patch(~p"/report_cards/#{@report_card}?tab=students")}
+        on_cancel={JS.patch(~p"/report_cards/#{@report_card}/students")}
       >
         <:title><%= @form_overlay_title %></:title>
         <.metadata class="mb-4" icon_name="hero-document-text">
@@ -120,7 +97,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           module={StudentReportCardFormComponent}
           id={@student_report_card.id || :new}
           student_report_card={@student_report_card}
-          navigate={~p"/report_cards/#{@report_card}?tab=students"}
+          navigate={~p"/report_cards/#{@report_card}/students"}
           hide_submit
         />
         <:actions_left :if={@student_report_card.id}>
@@ -319,7 +296,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           <.link
             class={get_button_styles("ghost")}
             patch={
-              ~p"/report_cards/#{@report_card_id}?tab=students&edit_student_report=#{@student_report_card.id}"
+              ~p"/report_cards/#{@report_card_id}/students?edit_student_report=#{@student_report_card.id}"
             }
           >
             <.icon name="hero-pencil-mini" class="w-5 h-5" />
@@ -361,25 +338,28 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     """
   end
 
-  attr :has_selected_class, :boolean, required: true
   attr :has_other_students, :boolean, required: true
   attr :students_stream, LiveStream, required: true
-  attr :report_card_id, :integer, required: true
+  attr :report_card, ReportCard, required: true
   attr :myself, Phoenix.LiveComponent.CID, required: true
-
-  def other_students_list(%{has_selected_class: false} = assigns) do
-    ~H"""
-    <div class="p-10 mt-4 rounded shadow-xl bg-white">
-      <.empty_state><%= gettext("No results") %></.empty_state>
-    </div>
-    """
-  end
 
   def other_students_list(%{has_other_students: false} = assigns) do
     ~H"""
     <div class="p-10 mt-4 rounded shadow-xl bg-white">
       <.empty_state>
-        <%= gettext("All students from selected classes are already linked to this report card") %>
+        <%= case @report_card.school_cycle.parent_cycle do
+          %{name: parent_cycle_name} ->
+            gettext(
+              "All students from %{year} (%{cycle}) classes are already linked to this report card",
+              year: @report_card.year.name,
+              cycle: parent_cycle_name
+            )
+
+          _ ->
+            gettext("All students from %{year} classes are already linked to this report card",
+              year: @report_card.year.name
+            )
+        end %>
       </.empty_state>
     </div>
     """
@@ -391,7 +371,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
       <.student_row
         :for={{dom_id, student} <- @students_stream}
         id={dom_id}
-        report_card_id={@report_card_id}
+        report_card_id={@report_card.id}
         student={student}
         on_click={
           JS.push("toggle_student_id", value: %{"student_id" => student.id}, target: @myself)
@@ -421,9 +401,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
       <div class="shrink-0 flex items-center gap-2">
         <.link
           class={get_button_styles("ghost")}
-          patch={
-            ~p"/report_cards/#{@report_card_id}?tab=students&create_student_report=#{@student.id}"
-          }
+          patch={~p"/report_cards/#{@report_card_id}/students?create_student_report=#{@student.id}"}
         >
           <%= gettext("Link") %>
         </.link>
@@ -444,6 +422,8 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
       )
       |> assign(:selected_students_ids, [])
       |> assign(:selected_students_report_cards_ids, [])
+      |> assign(:selected_linked_students_classes_ids, [])
+      |> assign(:initialized, false)
 
     {:ok, socket}
   end
@@ -457,7 +437,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         [:linked_students_classes],
         report_card_id: socket.assigns.report_card.id
       )
-      |> stream_students_report_cards(force: true)
+      |> stream_students_report_cards()
 
     {:ok, socket}
   end
@@ -466,32 +446,26 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign_user_filters([:classes, :linked_students_classes],
-        report_card_id: assigns.report_card.id
-      )
-      |> stream_students_report_cards()
-      |> stream_students_without_report_card()
-      |> assign_show_student_report_card_form(assigns)
+      |> initialize()
+      |> assign_student_report_card()
 
     {:ok, socket}
   end
 
-  # use force opt to control when fetching students and report cards.
-  # by default, we won't fetch if the stream already exists (to prevent
-  # fetching when it's not necessary, on params change)
+  defp initialize(%{assigns: %{initialized: false}} = socket) do
+    socket
+    |> assign_report_card_linked_student_classes_filter(socket.assigns.report_card)
+    |> stream_students_report_cards()
+    |> stream_students_not_linked_to_report_card()
+    |> assign(:initialized, true)
+  end
 
-  defp stream_students_report_cards(socket, opts \\ [force: false])
+  defp initialize(socket), do: socket
 
-  defp stream_students_report_cards(
-         %{assigns: %{streams: %{students_in_report_card: _}}} = socket,
-         force: false
-       ),
-       do: socket
-
-  defp stream_students_report_cards(socket, _) do
+  defp stream_students_report_cards(socket) do
     students_in_report_card =
-      Reporting.list_students_with_report_card(
-        socket.assigns.report_card.id,
+      Reporting.list_students_linked_to_report_card(
+        socket.assigns.report_card,
         classes_ids: socket.assigns.selected_linked_students_classes_ids
       )
 
@@ -512,15 +486,9 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     |> assign(:selected_students_report_cards_ids, selected_students_report_cards_ids)
   end
 
-  defp stream_students_without_report_card(%{assigns: %{streams: %{other_students: _}}} = socket),
-    do: socket
-
-  defp stream_students_without_report_card(socket) do
+  defp stream_students_not_linked_to_report_card(socket) do
     other_students =
-      Reporting.list_students_without_report_card(
-        socket.assigns.report_card.id,
-        classes_ids: socket.assigns.selected_classes_ids
-      )
+      Reporting.list_students_not_linked_to_report_card(socket.assigns.report_card)
 
     has_other_students = length(other_students) > 0
 
@@ -529,9 +497,13 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     |> assign(:has_other_students, has_other_students)
   end
 
-  defp assign_show_student_report_card_form(socket, %{
-         params: %{"create_student_report" => student_id}
-       }) do
+  defp assign_student_report_card(
+         %{
+           assigns: %{
+             params: %{"create_student_report" => student_id}
+           }
+         } = socket
+       ) do
     if String.match?(student_id, ~r/[0-9]+/) do
       case Schools.get_student(student_id) do
         nil ->
@@ -553,9 +525,13 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     end
   end
 
-  defp assign_show_student_report_card_form(socket, %{
-         params: %{"edit_student_report" => id}
-       }) do
+  defp assign_student_report_card(
+         %{
+           assigns: %{
+             params: %{"edit_student_report" => id}
+           }
+         } = socket
+       ) do
     report_card_id = socket.assigns.report_card.id
 
     if String.match?(id, ~r/[0-9]+/) do
@@ -575,7 +551,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     end
   end
 
-  defp assign_show_student_report_card_form(socket, _),
+  defp assign_student_report_card(socket),
     do: assign(socket, :show_student_report_card_form, false)
 
   @impl true
@@ -603,7 +579,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         {:ok, _} ->
           socket
           |> put_flash(:info, gettext("Students report cards access updated"))
-          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=students")
+          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}/students")
 
         {:error, _, _, _} ->
           socket
@@ -640,7 +616,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     socket =
       socket
       |> put_flash(:info, build_batch_create_student_report_card_message(results))
-      |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=students")
+      |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}/students")
 
     {:noreply, socket}
   end
@@ -651,7 +627,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         socket =
           socket
           |> put_flash(:info, gettext("Student report card deleted"))
-          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}?tab=students")
+          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}/students")
 
         {:noreply, socket}
 

@@ -7,6 +7,7 @@ defmodule LantternWeb.AssessmentsComponents do
 
   import LantternWeb.Gettext
   import LantternWeb.CoreComponents
+  import LantternWeb.OverlayComponents
 
   alias Lanttern.Grading.OrdinalValue
 
@@ -208,4 +209,78 @@ defmodule LantternWeb.AssessmentsComponents do
 
   defp assessment_point_entry_display_base_classes(),
     do: "flex items-center justify-center p-4 rounded font-mono text-sm text-center"
+
+  @doc """
+  Renders a dropdown to control the assessment group by option.
+  """
+  attr :current_assessment_group_by, :string, required: true
+
+  attr :on_change, :any,
+    required: true,
+    doc: "expects a function. Will pass `nil`, `\"curriculum\"`, or `\"moment\" as args"
+
+  def assessment_group_by_dropdow(assigns) do
+    text =
+      case assigns.current_assessment_group_by do
+        "curriculum" -> gettext("Show all, grouped by curriculum")
+        "moment" -> gettext("Show all, grouped by moment")
+        _ -> gettext("Show only goals assessments")
+      end
+
+    assigns = assign(assigns, :text, text)
+
+    ~H"""
+    <div class="relative">
+      <.action type="button" id="group-by-dropdown-button" icon_name="hero-chevron-down-mini">
+        <%= @text %>
+      </.action>
+      <.dropdown_menu id="group-by-dropdown" button_id="group-by-dropdown-button" z_index="30">
+        <:item text={gettext("Show only goals assessments")} on_click={@on_change.(nil)} />
+        <:item text={gettext("Show all, grouped by curriculum")} on_click={@on_change.("curriculum")} />
+        <:item text={gettext("Show all, grouped by moment")} on_click={@on_change.("moment")} />
+      </.dropdown_menu>
+    </div>
+    """
+  end
+
+  attr :current_assessment_view, :string, required: true
+
+  attr :on_change, :any,
+    required: true,
+    doc: "expects a function. Will pass `\"teacher\"`, `\"student\"`, or `\"compare\" as args"
+
+  def assessment_view_dropdow(assigns) do
+    {theme, text} =
+      case assigns.current_assessment_view do
+        "teacher" -> {"teacher", gettext("Assessed by teacher")}
+        "student" -> {"student", gettext("Assessed by students")}
+        "compare" -> {"primary", gettext("Compare teacher/students")}
+      end
+
+    assigns =
+      assigns
+      |> assign(:theme, theme)
+      |> assign(:text, text)
+
+    ~H"""
+    <div class="relative">
+      <.action
+        type="button"
+        id="view-dropdown-button"
+        icon_name="hero-chevron-down-mini"
+        theme={@theme}
+      >
+        <%= @text %>
+      </.action>
+      <.dropdown_menu id="view-dropdown" button_id="view-dropdown-button" z_index="30">
+        <:item text={gettext("Assessed by teacher")} on_click={@on_change.("teacher")} />
+        <:item text={gettext("Assessed by students")} on_click={@on_change.("student")} />
+        <:item
+          text={gettext("Compare teacher and students assessments")}
+          on_click={@on_change.("compare")}
+        />
+      </.dropdown_menu>
+    </div>
+    """
+  end
 end

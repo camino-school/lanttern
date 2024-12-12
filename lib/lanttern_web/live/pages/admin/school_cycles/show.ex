@@ -13,7 +13,7 @@ defmodule LantternWeb.Admin.CycleLive.Show do
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:cycle, Schools.get_cycle!(id))}
+     |> assign(:cycle, Schools.get_cycle!(id, preloads: :parent_cycle))}
   end
 
   defp page_title(:show), do: "Show Cycle"

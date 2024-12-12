@@ -5,6 +5,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
   alias Lanttern.Rubrics
   alias Lanttern.Rubrics.Rubric
   alias Lanttern.Schools
+  import LantternWeb.FiltersHelpers, only: [assign_strand_classes_filter: 1]
 
   # shared components
   import LantternWeb.RubricsComponents
@@ -14,65 +15,71 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <.responsive_container>
-        <h3 class="mt-16 font-display font-black text-3xl"><%= gettext("Goal rubrics") %></h3>
-        <div
-          :for={assessment_point <- @assessment_points}
-          id={"strand-assessment-point-#{assessment_point.id}"}
-          class="p-6 rounded mt-6 shadow-lg bg-white"
-        >
+      <.responsive_container class="py-10">
+        <div>
+          <blockquote class="text-base italic">
+            <%= gettext(
+              "\"A rubric is a coherent set of criteria for students' work that includes descriptions of levels of performance quality on the criteria.\""
+            ) %>
+          </blockquote>
+          <p class="mt-2">
+            — Susan M. Brookhart,
+            <cite class="italic">
+              How to create and use rubrics for formative assessment and grading
+            </cite>
+          </p>
+        </div>
+        <.card_base :for={goal <- @goals} id={"strand-assessment-point-#{goal.id}"} class="p-6 mt-6">
           <div class="flex items-center gap-4">
             <p class="flex-1 text-sm">
-              <.badge :if={assessment_point.is_differentiation} theme="diff" class="mr-2">
+              <.badge :if={goal.is_differentiation} theme="diff" class="mr-2">
                 <%= gettext("Diff") %>
               </.badge>
               <strong class="inline-block mr-2 font-display font-bold">
-                <%= assessment_point.curriculum_item.curriculum_component.name %>
+                <%= goal.curriculum_item.curriculum_component.name %>
               </strong>
-              <%= assessment_point.curriculum_item.name %>
+              <%= goal.curriculum_item.name %>
             </p>
-            <%= if assessment_point.rubric do %>
+            <%= if goal.rubric do %>
               <.toggle_expand_button
-                id={"strand-assessment-point-#{assessment_point.id}-toggle-button"}
-                target_selector={"#goal-rubric-#{assessment_point.rubric_id}"}
+                id={"strand-assessment-point-#{goal.id}-toggle-button"}
+                target_selector={"#goal-rubric-#{goal.rubric_id}"}
               />
             <% else %>
               <.button
+                type="link"
                 theme="ghost"
-                phx-click={
-                  JS.push("new_rubric",
-                    value: %{assessment_point_id: assessment_point.id}
-                  )
-                }
-                phx-target={@myself}
+                patch={~p"/strands/#{@strand}/rubrics?new_rubric_for_goal=#{goal.id}"}
               >
                 <%= gettext("Add rubric") %>
               </.button>
             <% end %>
           </div>
           <.rubric
-            :if={assessment_point.rubric}
+            :if={goal.rubric}
             class="pt-6 border-t border-ltrn-lighter mt-6"
-            id={"goal-rubric-#{assessment_point.rubric_id}"}
-            assessment_point_id={assessment_point.id}
-            rubric={assessment_point.rubric}
+            id={"goal-rubric-#{goal.rubric_id}"}
+            goal_id={goal.id}
+            rubric={goal.rubric}
             criteria_text={gettext("Rubric criteria")}
-            on_edit={
-              JS.push("edit_rubric",
-                value: %{assessment_point_id: assessment_point.id},
-                target: @myself
-              )
-            }
+            patch={~p"/strands/#{@strand}/rubrics?edit_rubric_for_goal=#{goal.id}"}
           />
-        </div>
-        <section
-          :if={@selected_classes_ids != []}
-          id="differentiation-rubrics-section"
-          class="pb-10 mt-10"
-        >
-          <h4 class="-mb-2 font-display font-black text-xl text-ltrn-subtle">
+        </.card_base>
+        <section id="differentiation-rubrics-section" class="pb-10 mt-10">
+          <h4 class="font-display font-black text-xl text-ltrn-subtle">
             <%= gettext("Differentiation") %>
           </h4>
+          <.action
+            type="button"
+            phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
+            icon_name="hero-chevron-down-mini"
+            class="mt-4"
+          >
+            <%= format_action_items_text(
+              @selected_classes,
+              gettext("Select a class to view differentiation rubrics")
+            ) %>
+          </.action>
           <div role="tablist" class="flex flex-wrap items-center gap-2 mt-6">
             <.person_tab
               :for={student <- @students}
@@ -91,80 +98,79 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
             class="hidden"
           >
             <div
-              :for={assessment_point <- @assessment_points_with_rubrics}
-              id={"strand-assessment-point-#{student.id}-#{assessment_point.id}"}
+              :for={goal <- @goals_with_rubrics}
+              id={"strand-assessment-point-#{student.id}-#{goal.id}"}
               class={[
                 "p-6 rounded mt-6 bg-white shadow-lg",
-                if(@students_diff_rubrics_map[student.id][assessment_point.id],
+                if(@current_student_diff_rubrics_map[goal.rubric_id],
                   do: "border border-ltrn-diff-accent"
                 )
               ]}
             >
               <div class="flex items-center gap-4">
                 <p class="flex-1 text-sm">
-                  <.badge :if={assessment_point.is_differentiation} theme="diff" class="mr-2">
+                  <.badge :if={goal.is_differentiation} theme="diff" class="mr-2">
                     <%= gettext("Diff") %>
                   </.badge>
                   <strong class="inline-block mr-2 font-display font-bold">
-                    <%= assessment_point.curriculum_item.curriculum_component.name %>
+                    <%= goal.curriculum_item.curriculum_component.name %>
                   </strong>
-                  <%= assessment_point.curriculum_item.name %>
+                  <%= goal.curriculum_item.name %>
                 </p>
-                <%= if @students_diff_rubrics_map[student.id][assessment_point.id] do %>
+                <%= if @current_student_diff_rubrics_map[goal.rubric_id] do %>
                   <.toggle_expand_button
-                    id={"strand-assessment-point-#{student.id}-#{assessment_point.id}-toggle-button"}
-                    target_selector={"#goal-rubric-#{@students_diff_rubrics_map[student.id][assessment_point.id].id}"}
+                    id={"strand-assessment-point-#{student.id}-#{goal.id}-toggle-button"}
+                    target_selector={"#goal-student-#{student.id}-rubric-#{@current_student_diff_rubrics_map[goal.rubric_id].id}"}
                   />
                 <% else %>
                   <.button
+                    type="link"
                     theme="ghost"
-                    phx-click={
-                      JS.push("new_diff_rubric",
-                        value: %{
-                          assessment_point_id: assessment_point.id,
-                          student_id: student.id
-                        }
-                      )
+                    patch={
+                      ~p"/strands/#{@strand}/rubrics?new_diff_rubric_for_goal=#{goal.id}&student=#{student.id}"
                     }
-                    phx-target={@myself}
                   >
                     <%= gettext("Add diff") %>
                   </.button>
                 <% end %>
               </div>
               <.rubric
-                :if={@students_diff_rubrics_map[student.id][assessment_point.id]}
+                :if={@current_student_diff_rubrics_map[goal.rubric_id]}
                 class="pt-6 border-t border-ltrn-lighter mt-6"
-                id={"goal-rubric-#{@students_diff_rubrics_map[student.id][assessment_point.id].id}"}
-                assessment_point_id={assessment_point.id}
-                rubric={@students_diff_rubrics_map[student.id][assessment_point.id]}
+                id={"goal-student-#{student.id}-rubric-#{@current_student_diff_rubrics_map[goal.rubric_id].id}"}
+                goal_id={goal.id}
+                rubric={@current_student_diff_rubrics_map[goal.rubric_id]}
                 criteria_text={gettext("Differentiation rubric criteria")}
-                on_edit={
-                  JS.push("edit_diff_rubric",
-                    value: %{
-                      assessment_point_id: assessment_point.id,
-                      student_id: student.id
-                    },
-                    target: @myself
-                  )
+                patch={
+                  ~p"/strands/#{@strand}/rubrics?edit_diff_rubric_for_goal=#{goal.id}&student=#{student.id}"
                 }
               />
             </div>
           </div>
         </section>
       </.responsive_container>
+      <.live_component
+        module={LantternWeb.Filters.StrandClassesFilterOverlayComponent}
+        id="classes-filter-modal"
+        current_user={@current_user}
+        title={gettext("Select classes to view students differentiation rubrics")}
+        strand_id={@strand.id}
+        classes={@classes}
+        selected_classes_ids={@selected_classes_ids}
+        navigate={~p"/strands/#{@strand}/rubrics"}
+      />
       <.slide_over
-        :if={@live_action == :manage_rubric}
+        :if={@goal}
         id="rubric-form-overlay"
         show={true}
-        on_cancel={JS.patch(~p"/strands/#{@strand}?tab=assessment")}
+        on_cancel={JS.patch(~p"/strands/#{@strand}/rubrics")}
       >
         <:title><%= gettext("Rubric") %></:title>
         <p>
           <strong class="inline-block mr-2 font-display font-bold">
-            <%= @assessment_point.curriculum_item.curriculum_component.name %>
+            <%= @goal.curriculum_item.curriculum_component.name %>
           </strong>
-          <%= @assessment_point.curriculum_item.name %>
+          <%= @goal.curriculum_item.name %>
         </p>
         <p :if={@student} class="mt-6 font-display font-bold">
           <%= gettext("Differentiation for %{name}", name: @student.name) %>
@@ -173,10 +179,10 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
           module={RubricFormComponent}
           id={@rubric.id || :new}
           rubric={@rubric}
-          link_to_assessment_point_id={@assessment_point && @assessment_point.id}
+          link_to_assessment_point_id={@goal && @goal.id}
           diff_for_student_id={@student && @student.id}
           hide_diff_and_scale
-          navigate={~p"/strands/#{@strand}?tab=assessment"}
+          navigate={~p"/strands/#{@strand}/rubrics"}
           class="mt-6"
         />
         <:actions_left :if={@rubric.id}>
@@ -211,21 +217,21 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
     """
   end
 
-  attr :assessment_point_id, :integer, required: true
+  attr :goal_id, :integer, required: true
   attr :criteria_text, :string, required: true
   attr :class, :any, default: nil
   attr :id, :string, required: true
   attr :rubric, :any, required: true
-  attr :on_edit, JS, required: true
+  attr :patch, :string, required: true
 
   def rubric(assigns) do
     ~H"""
     <div class={@class} id={@id}>
       <p class="mb-6 font-display font-black">
         <%= @criteria_text %>: <%= @rubric.criteria %>
-        <button class="ml-2 underline text-ltrn-subtle hover:text-ltrn-dark" phx-click={@on_edit}>
+        <.link patch={@patch} class="ml-2 underline text-ltrn-subtle hover:text-ltrn-dark">
           <%= gettext("Edit") %>
-        </button>
+        </.link>
       </p>
       <div class="overflow-x-auto">
         <.rubric_descriptors rubric={@rubric} />
@@ -242,142 +248,207 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
       socket
       |> assign(:rubric, nil)
       |> assign(:curriculum_item, nil)
+      |> assign(:current_student_diff_rubrics_map, %{})
+      |> assign(:initialized, false)
 
     {:ok, socket}
   end
 
   @impl true
-  def update(%{strand: strand} = assigns, socket) do
+  def update(assigns, socket) do
     socket =
       socket
       |> assign(assigns)
-      |> assign_new(:assessment_points, fn ->
-        Assessments.list_assessment_points(
-          strand_id: strand.id,
-          preload_full_rubrics: true,
-          preloads: [curriculum_item: :curriculum_component]
-        )
-      end)
-      |> assign_new(:students, fn ->
-        case assigns.selected_classes_ids do
-          classes_ids when is_list(classes_ids) and classes_ids != [] ->
-            Schools.list_students(
-              classes_ids: classes_ids,
-              check_diff_rubrics_for_strand_id: strand.id
-            )
-
-          _ ->
-            []
-        end
-      end)
-
-    # diff rubrics
-    socket =
-      socket
-      |> assign_new(:assessment_points_with_rubrics, fn ->
-        socket.assigns.assessment_points
-        |> Enum.filter(& &1.rubric)
-      end)
-      |> assign_new(:students_diff_rubrics_map, fn -> %{} end)
+      |> initialize()
+      |> assign_goal_rubric_and_student()
 
     {:ok, socket}
   end
 
-  def update(_assigns, socket), do: {:ok, socket}
+  defp initialize(%{assigns: %{initialized: false}} = socket) do
+    socket
+    |> assign_strand_classes_filter()
+    |> assign_goals()
+    |> assign_students()
+    |> assign(:initialized, true)
+  end
+
+  defp initialize(socket), do: socket
+
+  defp assign_goals(socket) do
+    goals =
+      Assessments.list_assessment_points(
+        strand_id: socket.assigns.strand.id,
+        preload_full_rubrics: true,
+        preloads: [curriculum_item: :curriculum_component]
+      )
+
+    goals_with_rubrics =
+      goals
+      |> Enum.filter(& &1.rubric)
+
+    socket
+    |> assign(:goals, goals)
+    |> assign(:goals_with_rubrics, goals_with_rubrics)
+    |> assign(:goals_ids, Enum.map(goals, & &1.id))
+    |> assign(:goals_rubrics_ids, Enum.map(goals_with_rubrics, & &1.rubric_id))
+  end
+
+  defp assign_students(socket) do
+    students =
+      case socket.assigns.selected_classes_ids do
+        classes_ids when is_list(classes_ids) and classes_ids != [] ->
+          Schools.list_students(
+            classes_ids: classes_ids,
+            check_diff_rubrics_for_strand_id: socket.assigns.strand.id
+          )
+
+        _ ->
+          []
+      end
+
+    socket
+    |> assign(:students, students)
+    |> assign(:students_ids, Enum.map(students, & &1.id))
+  end
+
+  defp assign_goal_rubric_and_student(
+         %{assigns: %{params: %{"new_rubric_for_goal" => binary_id}}} = socket
+       ) do
+    with {id, _} <- Integer.parse(binary_id), true <- id in socket.assigns.goals_ids do
+      goal =
+        Assessments.get_assessment_point(id, preloads: [curriculum_item: :curriculum_component])
+
+      rubric = %Rubric{scale_id: goal.scale_id}
+
+      socket
+      |> assign(:goal, goal)
+      |> assign(:rubric, rubric)
+      |> assign(:student, nil)
+    else
+      _ -> assign_empty_goal_rubric_and_student(socket)
+    end
+  end
+
+  defp assign_goal_rubric_and_student(
+         %{assigns: %{params: %{"edit_rubric_for_goal" => binary_id}}} = socket
+       ) do
+    with {id, _} <- Integer.parse(binary_id), true <- id in socket.assigns.goals_ids do
+      goal =
+        Assessments.get_assessment_point(id,
+          preload_full_rubrics: true,
+          preloads: [curriculum_item: :curriculum_component]
+        )
+
+      rubric = goal.rubric
+
+      socket
+      |> assign(:goal, goal)
+      |> assign(:rubric, rubric)
+      |> assign(:student, nil)
+    else
+      _ -> assign_empty_goal_rubric_and_student(socket)
+    end
+  end
+
+  defp assign_goal_rubric_and_student(
+         %{
+           assigns: %{
+             params: %{
+               "new_diff_rubric_for_goal" => goal_binary_id,
+               "student" => student_binary_id
+             }
+           }
+         } = socket
+       ) do
+    with {goal_id, _} <- Integer.parse(goal_binary_id),
+         true <- goal_id in socket.assigns.goals_ids,
+         {student_id, _} <- Integer.parse(student_binary_id),
+         true <- student_id in socket.assigns.students_ids do
+      goal =
+        Assessments.get_assessment_point(goal_id,
+          preloads: [curriculum_item: :curriculum_component]
+        )
+
+      rubric =
+        %Rubric{
+          scale_id: goal.scale_id,
+          diff_for_rubric_id: goal.rubric_id
+        }
+
+      student =
+        Schools.get_student(student_id)
+
+      socket
+      |> assign(:goal, goal)
+      |> assign(:rubric, rubric)
+      |> assign(:student, student)
+    else
+      _ -> assign_empty_goal_rubric_and_student(socket)
+    end
+  end
+
+  defp assign_goal_rubric_and_student(
+         %{
+           assigns: %{
+             params: %{
+               "edit_diff_rubric_for_goal" => goal_binary_id,
+               "student" => student_binary_id
+             }
+           }
+         } = socket
+       ) do
+    with {goal_id, _} <- Integer.parse(goal_binary_id),
+         true <- goal_id in socket.assigns.goals_ids,
+         {student_id, _} <- Integer.parse(student_binary_id),
+         true <- student_id in socket.assigns.students_ids do
+      goal =
+        Assessments.get_assessment_point(goal_id,
+          preloads: [curriculum_item: :curriculum_component]
+        )
+
+      rubric = socket.assigns.current_student_diff_rubrics_map[goal.rubric_id]
+
+      student =
+        Schools.get_student(student_id)
+
+      socket
+      |> assign(:goal, goal)
+      |> assign(:rubric, rubric)
+      |> assign(:student, student)
+    else
+      _ -> assign_empty_goal_rubric_and_student(socket)
+    end
+  end
+
+  defp assign_goal_rubric_and_student(socket),
+    do: assign_empty_goal_rubric_and_student(socket)
+
+  defp assign_empty_goal_rubric_and_student(socket) do
+    socket
+    |> assign(:goal, nil)
+    |> assign(:rubric, nil)
+    |> assign(:student, nil)
+  end
 
   # event handlers
 
   @impl true
-  def handle_event("new_rubric", params, socket) do
-    assessment_point =
-      socket.assigns.assessment_points
-      |> Enum.find(&(&1.id == params["assessment_point_id"]))
-
-    socket =
-      socket
-      |> assign(:assessment_point, assessment_point)
-      |> assign(:student, nil)
-      |> assign(:rubric, %Rubric{scale_id: assessment_point.scale_id})
-      |> push_patch(to: ~p"/strands/#{socket.assigns.strand}/rubric/manage")
-
-    {:noreply, socket}
-  end
-
-  def handle_event("new_diff_rubric", params, socket) do
-    assessment_point =
-      socket.assigns.assessment_points
-      |> Enum.find(&(&1.id == params["assessment_point_id"]))
-
-    student =
-      socket.assigns.students
-      |> Enum.find(&(&1.id == params["student_id"]))
-
-    rubric =
-      %Rubric{
-        scale_id: assessment_point.scale_id,
-        diff_for_rubric_id: assessment_point.rubric_id
-      }
-
-    socket =
-      socket
-      |> assign(:assessment_point, assessment_point)
-      |> assign(:student, student)
-      |> assign(:rubric, rubric)
-      |> push_patch(to: ~p"/strands/#{socket.assigns.strand}/rubric/manage")
-
-    {:noreply, socket}
-  end
-
-  def handle_event("edit_rubric", params, socket) do
-    assessment_point =
-      socket.assigns.assessment_points
-      |> Enum.find(&(&1.id == params["assessment_point_id"]))
-
-    socket =
-      socket
-      |> assign(:assessment_point, assessment_point)
-      |> assign(:student, nil)
-      |> assign(:rubric, assessment_point.rubric)
-      |> clear_flash()
-      |> push_patch(to: ~p"/strands/#{socket.assigns.strand}/rubric/manage")
-
-    {:noreply, socket}
-  end
-
-  def handle_event("edit_diff_rubric", params, socket) do
-    assessment_point =
-      socket.assigns.assessment_points
-      |> Enum.find(&(&1.id == params["assessment_point_id"]))
-
-    student =
-      socket.assigns.students
-      |> Enum.find(&(&1.id == params["student_id"]))
-
-    rubric =
-      socket.assigns.students_diff_rubrics_map[student.id][assessment_point.id]
-
-    socket =
-      socket
-      |> assign(:assessment_point, assessment_point)
-      |> assign(:student, student)
-      |> assign(:rubric, rubric)
-      |> clear_flash()
-      |> push_patch(to: ~p"/strands/#{socket.assigns.strand}/rubric/manage")
-
-    {:noreply, socket}
-  end
-
   def handle_event("delete_rubric", _, socket) do
     case Rubrics.delete_rubric(socket.assigns.rubric) do
       {:ok, _rubric} ->
-        {:noreply,
-         push_navigate(socket, to: ~p"/strands/#{socket.assigns.strand}?tab=assessment")}
+        socket =
+          socket
+          |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}/rubrics")
+          |> put_flash(:info, gettext("Rubric deleted"))
+
+        {:noreply, socket}
 
       {:error, %Ecto.Changeset{errors: [diff_for_rubric_id: {msg, _}]}} ->
         socket =
           socket
           |> put_flash(:error, msg)
-          |> push_patch(to: ~p"/strands/#{socket.assigns.strand}/rubric/manage")
+          |> push_patch(to: ~p"/strands/#{socket.assigns.strand}/rubrics")
 
         {:noreply, socket}
 
@@ -385,46 +456,23 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
         socket =
           socket
           |> put_flash(:error, dgettext("errors", "Something went wrong"))
-          |> push_patch(to: ~p"/strands/#{socket.assigns.strand}/rubric/manage")
+          |> push_patch(to: ~p"/strands/#{socket.assigns.strand}/rubrics")
 
         {:noreply, socket}
     end
   end
 
-  def handle_event("load_diff_rubrics", params, socket) do
-    %{"student_id" => student_id} = params
+  def handle_event("load_diff_rubrics", %{"student_id" => student_id}, socket) do
+    # key = parent rubric id
+    current_student_diff_rubrics_map =
+      Rubrics.list_full_rubrics(
+        parent_rubrics_ids: socket.assigns.goals_rubrics_ids,
+        students_ids: [student_id]
+      )
+      |> Enum.map(&{&1.diff_for_rubric_id, &1})
+      |> Enum.into(%{})
 
-    case socket.assigns.students_diff_rubrics_map[student_id] do
-      nil ->
-        parent_rubrics_ids =
-          socket.assigns.assessment_points_with_rubrics
-          |> Enum.map(& &1.rubric_id)
-
-        # key = parent rubric id
-        diff_rubrics_map =
-          Rubrics.list_full_rubrics(
-            parent_rubrics_ids: parent_rubrics_ids,
-            students_ids: [student_id]
-          )
-          |> Enum.map(&{&1.diff_for_rubric_id, &1})
-          |> Enum.into(%{})
-
-        # key = assessment point id, value = diff rubric or nil
-        # we'll use it like `students_diff_rubrics_map[student_id][assessment_point_id]`
-        student_diff_rubrics_map =
-          socket.assigns.assessment_points_with_rubrics
-          |> Enum.map(&{&1.id, diff_rubrics_map[&1.rubric_id]})
-          |> Enum.into(%{})
-
-        students_diff_rubrics_map =
-          socket.assigns.students_diff_rubrics_map
-          |> Map.put(student_id, student_diff_rubrics_map)
-
-        {:noreply, assign(socket, :students_diff_rubrics_map, students_diff_rubrics_map)}
-
-      _ ->
-        # if students_diff_rubrics_map[student_id] already exists, just skip
-        {:noreply, socket}
-    end
+    {:noreply,
+     assign(socket, :current_student_diff_rubrics_map, current_student_diff_rubrics_map)}
   end
 end

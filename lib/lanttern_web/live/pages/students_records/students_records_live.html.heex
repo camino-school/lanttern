@@ -1,9 +1,8 @@
-<.responsive_container class="py-6 sm:py-10">
-  <.page_title_with_menu><%= gettext("Students records") %></.page_title_with_menu>
-
-  <div class="flex items-end gap-6 mt-10 mb-4">
-    <div class="flex-1">
-      <p class="flex flex-wrap gap-2">
+<div>
+  <.header_nav current_user={@current_user}>
+    <:title><%= gettext("Students records") %></:title>
+    <div class="flex items-center gap-4 p-4">
+      <p class="flex-1 flex flex-wrap gap-2">
         <%= ngettext(
           "Showing 1 result for",
           "Showing %{count} results for",
@@ -45,19 +44,18 @@
           <.badge><%= gettext("all statuses") %></.badge>
         <% end %>
       </p>
+      <.action
+        type="link"
+        patch={~p"/students_records?edit=new"}
+        icon_name="hero-plus-circle-mini"
+      >
+        <%= gettext("New student record") %>
+      </.action>
     </div>
-    <.collection_action
-      type="link"
-      patch={~p"/students_records?edit=new"}
-      icon_name="hero-plus-circle"
-    >
-      <%= gettext("Add student record") %>
-    </.collection_action>
-  </div>
-</.responsive_container>
+  </.header_nav>
+</div>
 <.data_grid
   id="students-records"
-  class="pb-10 mx-6"
   stream={@streams.students_records}
   row_click={fn student_record -> JS.navigate(~p"/students_records/#{student_record.id}") end}
   show_empty_state_message={
@@ -83,7 +81,12 @@
     filter_is_active={@selected_students_ids != []}
   >
     <div class="flex flex-wrap gap-1">
-      <.person_badge :for={student <- student_record.students} person={student} theme="cyan" />
+      <.person_badge
+        :for={student <- student_record.students}
+        person={student}
+        theme="cyan"
+        truncate
+      />
     </div>
   </:col>
   <:col :let={student_record} label={gettext("Record")}>

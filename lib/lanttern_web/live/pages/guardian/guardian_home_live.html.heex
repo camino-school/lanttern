@@ -1,11 +1,23 @@
 <.responsive_container class="pt-6 sm:pt-10">
   <.page_title_with_menu><%= gettext("Welcome!") %></.page_title_with_menu>
-  <p class="mt-10 font-display font-black text-xl">
-    <%= gettext("%{student}'s report cards", student: @current_user.current_profile.name) %>
-  </p>
+  <div class="flex items-center gap-4 mt-10">
+    <p class="flex-1 font-display font-black text-xl">
+      <%= gettext("%{student}'s %{cycle} report cards",
+        student: @current_user.current_profile.name,
+        cycle: Map.get(@current_cycle, :name)
+      ) %>
+    </p>
+    <.action
+      type="button"
+      icon_name="hero-arrows-up-down-mini"
+      phx-click={JS.exec("data-show", to: "#guardian-cycle-filters-overlay")}
+    >
+      <%= gettext("Change cycle") %>
+    </.action>
+  </div>
 </.responsive_container>
 <%= if @has_student_report_cards do %>
-  <.responsive_grid>
+  <.responsive_grid class="px-6 py-10 sm:px-10">
     <.report_card_card
       :for={{dom_id, student_report_card} <- @streams.student_report_cards}
       id={dom_id}
@@ -19,7 +31,7 @@
 <% else %>
   <.responsive_container class="my-10">
     <.empty_state class="p-10 rounded bg-white shadow-lg">
-      <%= gettext("No student report cards created yet.") %>
+      <%= gettext("No student report cards for selected cycle created yet.") %>
     </.empty_state>
   </.responsive_container>
 <% end %>
@@ -29,7 +41,7 @@
       <%= gettext("Report cards under development") %>
     </p>
   </.responsive_container>
-  <.responsive_grid>
+  <.responsive_grid class="px-6 py-10 sm:px-10">
     <.report_card_card
       :for={{dom_id, student_report_card} <- @streams.student_report_cards_wip}
       id={dom_id}
@@ -42,3 +54,13 @@
   </.responsive_grid>
 <% end %>
 <.school_branding_footer school={@school} />
+<.modal id="guardian-cycle-filters-overlay">
+  <h5 class="mb-10 font-display font-black text-xl">
+    <%= gettext("Select a cycle") %>
+  </h5>
+  <.badge_button_picker
+    on_select={&JS.push("change_cycle", value: %{"id" => &1})}
+    items={@cycles}
+    selected_ids={[Map.get(@current_cycle, :id)]}
+  />
+</.modal>

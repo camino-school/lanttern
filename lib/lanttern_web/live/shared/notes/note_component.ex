@@ -72,15 +72,15 @@ defmodule LantternWeb.Notes.NoteComponent do
             <h3 class="font-display font-bold text-xl">
               <%= @title %>
             </h3>
-            <.button
+            <.action
               :if={@allow_editing}
               type="button"
-              theme="ghost"
               phx-click="edit"
               phx-target={@myself}
+              icon_name="hero-pencil-square-mini"
             >
-              <%= gettext("Edit") %>
-            </.button>
+              <%= gettext("Edit note") %>
+            </.action>
           </div>
           <p class="text-xs">
             <%= gettext("Created at") %> <%= format_local!(

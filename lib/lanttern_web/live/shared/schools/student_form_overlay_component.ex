@@ -1,16 +1,23 @@
 defmodule LantternWeb.Schools.StudentFormOverlayComponent do
   @moduledoc """
   Renders an overlay with a `Student` form
+
+  ### Attrs
+
+      attr :student, Student, required: true, doc: "requires `classes` preload"
+      attr :current_cycle, Cycle, doc: "used to separate current cycle from other classes"
+      attr :title, :string, required: true
+      attr :on_cancel, :any, required: true, doc: "`<.slide_over>` `on_cancel` attr"
+      attr :notify_parent, :boolean
+      attr :notify_component, Phoenix.LiveComponent.CID
+
   """
 
   use LantternWeb, :live_component
 
   alias Lanttern.Schools
+  alias Lanttern.Schools.Cycle
   alias Lanttern.Schools.Student
-  # alias Lanttern.Taxonomy
-
-  # shared
-  # alias LantternWeb.Schools.StudentSearchComponent
 
   @impl true
   def render(assigns) do
@@ -37,14 +44,44 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
           />
           <div>
             <.label><%= gettext("Classes") %></.label>
-            <.badge_button_picker
-              id="class-cycle-select"
-              on_select={
-                &(JS.push("select_class", value: %{"id" => &1}, target: @myself)
-                  |> JS.dispatch("change", to: "#student-form"))
+            <%= if @selected_classes != [] do %>
+              <.badge_button_picker
+                id="current-class-picker"
+                on_select={
+                  &(JS.push("unselect_class", value: %{"id" => &1}, target: @myself)
+                    |> JS.dispatch("change", to: "#student-form"))
+                }
+                items={@selected_classes}
+                selected_ids={@selected_classes_ids}
+                label_setter="class_with_cycle"
+              />
+            <% else %>
+              <.empty_state_simple><%= gettext("No linked classes") %></.empty_state_simple>
+            <% end %>
+            <div :if={@cycle_classes != []} class="mt-6">
+              <p class="mb-2"><%= gettext("%{cycle} cycle classes", cycle: @current_cycle.name) %></p>
+              <.badge_button_picker
+                id="class-cycle-select"
+                on_select={
+                  &(JS.push("select_cycle_class", value: %{"id" => &1}, target: @myself)
+                    |> JS.dispatch("change", to: "#student-form"))
+                }
+                items={@cycle_classes}
+                selected_ids={@selected_classes_ids}
+              />
+            </div>
+            <.select
+              name="other_classes"
+              prompt={
+                if @cycle_classes != [],
+                  do: gettext("Other cycle classes"),
+                  else: gettext("Select a class")
               }
-              items={@classes}
-              selected_ids={@selected_classes_ids}
+              options={@other_cycle_classes_options}
+              value=""
+              phx-change="select_other_cycle_class"
+              phx-target={@myself}
+              class="mt-6"
             />
             <%!-- <div :if={@form.source.action in [:insert, :update]}>
               <.error :for={{msg, _} <- @form[:classes_ids].errors}><%= msg %></.error>
@@ -82,25 +119,23 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
   end
 
   @impl true
-  # def update(%{action: {StudentSearchComponent, {:selected, student}}}, socket) do
-  #   students =
-  #     [student | socket.assigns.students]
-  #     |> Enum.uniq()
-  #     |> Enum.sort_by(& &1.name)
-
-  #   {:ok, assign(socket, :students, students)}
-  # end
-
   def update(%{student: %Student{}} = assigns, socket) do
     socket =
       socket
       |> assign(assigns)
-      |> assign_form()
-      |> assign_classes()
-      |> assign(:initialized, true)
+      |> initialize()
 
     {:ok, socket}
   end
+
+  defp initialize(%{assigns: %{initialized: false}} = socket) do
+    socket
+    |> assign_form()
+    |> assign_classes()
+    |> assign(:initialized, true)
+  end
+
+  defp initialize(socket), do: socket
 
   defp assign_form(socket) do
     student = socket.assigns.student
@@ -113,24 +148,107 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
     |> assign(:selected_classes_ids, selected_classes_ids)
   end
 
-  defp assign_classes(%{assigns: %{initialized: false}} = socket) do
+  defp assign_classes(socket) do
     school_id = socket.assigns.student.school_id
-    classes = Schools.list_classes(schools_ids: [school_id])
-    assign(socket, :classes, classes)
+    all_classes = Schools.list_classes(schools_ids: [school_id])
+
+    selected_classes =
+      Enum.filter(all_classes, &(&1.id in socket.assigns.selected_classes_ids))
+
+    socket
+    |> assign(:all_classes, all_classes)
+    |> assign(:selected_classes, selected_classes)
+    |> assign_cycle_classes()
+    |> assign_other_cycle_classes_options()
+  end
+
+  defp assign_cycle_classes(socket) do
+    cycle_classes =
+      case socket.assigns do
+        %{current_cycle: %Cycle{} = cycle} ->
+          Enum.filter(socket.assigns.all_classes, &(&1.cycle_id == cycle.id))
+
+        _ ->
+          []
+      end
+      |> Enum.filter(&(&1.id not in socket.assigns.selected_classes_ids))
+
+    assign(socket, :cycle_classes, cycle_classes)
+  end
+
+  defp assign_other_cycle_classes_options(socket) do
+    cycle_id =
+      case socket.assigns do
+        %{current_cycle: %Cycle{} = cycle} -> cycle.id
+        _ -> nil
+      end
+
+    other_cycle_classes_options =
+      socket.assigns.all_classes
+      |> Enum.filter(fn class ->
+        class.cycle_id != cycle_id &&
+          class.id not in socket.assigns.selected_classes_ids
+      end)
+      |> Enum.map(&{"#{&1.name} (#{&1.cycle.name})", &1.id})
+
+    assign(socket, :other_cycle_classes_options, other_cycle_classes_options)
   end
 
   # event handlers
 
   @impl true
-  def handle_event("select_class", %{"id" => id}, socket) do
+  def handle_event("unselect_class", %{"id" => id}, socket) do
     selected_classes_ids =
-      if id in socket.assigns.selected_classes_ids,
-        do: Enum.reject(socket.assigns.selected_classes_ids, &(&1 == id)),
-        else: [id | socket.assigns.selected_classes_ids]
+      Enum.reject(socket.assigns.selected_classes_ids, &(&1 == id))
+
+    selected_classes =
+      socket.assigns.all_classes
+      |> Enum.filter(&(&1.id in selected_classes_ids))
 
     socket =
       socket
       |> assign(:selected_classes_ids, selected_classes_ids)
+      |> assign(:selected_classes, selected_classes)
+      |> assign_cycle_classes()
+      |> assign_other_cycle_classes_options()
+      |> assign_validated_form(socket.assigns.form.params)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("select_cycle_class", %{"id" => id}, socket) do
+    selected_classes_ids =
+      [id | socket.assigns.selected_classes_ids]
+
+    selected_classes =
+      socket.assigns.all_classes
+      |> Enum.filter(&(&1.id in selected_classes_ids))
+
+    socket =
+      socket
+      |> assign(:selected_classes_ids, selected_classes_ids)
+      |> assign(:selected_classes, selected_classes)
+      |> assign_cycle_classes()
+      |> assign_validated_form(socket.assigns.form.params)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("select_other_cycle_class", %{"other_classes" => id}, socket) do
+    id = String.to_integer(id)
+
+    selected_classes_ids =
+      [id | socket.assigns.selected_classes_ids]
+
+    selected_classes =
+      socket.assigns.all_classes
+      |> Enum.filter(&(&1.id in selected_classes_ids))
+
+    socket =
+      socket
+      |> assign(:selected_classes_ids, selected_classes_ids)
+      |> assign(:selected_classes, selected_classes)
+      |> assign_other_cycle_classes_options()
       |> assign_validated_form(socket.assigns.form.params)
 
     {:noreply, socket}

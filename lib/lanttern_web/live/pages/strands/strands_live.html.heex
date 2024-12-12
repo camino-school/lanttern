@@ -1,100 +1,96 @@
-<.responsive_container class="pt-6 sm:pt-10">
-  <.page_title_with_menu><%= gettext("Strands") %></.page_title_with_menu>
-  <div class="flex items-end justify-between mt-12">
-    <p class="font-display font-bold text-lg">
-      <%= gettext("I want to explore strands in") %><br />
-      <.filter_text_button
-        type={gettext("years")}
-        items={@selected_years}
-        on_click={JS.exec("data-show", to: "#strands-year-filters")}
-      />,
-      <.filter_text_button
-        type={gettext("subjects")}
-        items={@selected_subjects}
-        on_click={JS.exec("data-show", to: "#strands-subject-filters")}
-      />
-    </p>
-    <.collection_action type="button" icon_name="hero-plus-circle" phx-click="create-strand">
-      <%= gettext("Create new strand") %>
-    </.collection_action>
-  </div>
-</.responsive_container>
-<div class="pb-10">
-  <%= if !@has_strands do %>
-    <.empty_state class="p-10 my-10 mx-6 sm:mx-10 rounded bg-white shadow-lg">
-      <%= gettext("No strands created for selected years and subjects") %>
-    </.empty_state>
-  <% else %>
-    <%= if @has_starred_strands do %>
-      <.responsive_container class="mt-10">
-        <p class="flex items-center gap-2 font-display font-bold">
-          <.icon name="hero-star-solid" class="text-ltrn-primary" /> <%= gettext(
-            "Your starred strands"
-          ) %>
-          <button
-            type="button"
-            aria-label={gettext("Toggle starred strands")}
-            class="text-ltrn-subtle hover:text-ltrn-dark"
-            phx-click={
-              JS.toggle(to: "#starred-strands-list", display: "grid")
-              |> JS.toggle(to: "#toggle-starred-strands-list-icon-down")
-              |> JS.toggle(to: "#toggle-starred-strands-list-icon-up")
-            }
-          >
-            <.icon
-              name="hero-chevron-down-mini"
-              id="toggle-starred-strands-list-icon-down"
-              class="hidden"
-            />
-            <.icon name="hero-chevron-up-mini" id="toggle-starred-strands-list-icon-up" />
-          </button>
-        </p>
-      </.responsive_container>
-      <.strands_grid id="starred-strands-list" strands={@streams.starred_strands} />
-      <.responsive_container>
-        <p class="font-display font-bold"><%= gettext("All strands") %></p>
-      </.responsive_container>
-    <% end %>
-    <.strands_grid id="strands-list" strands={@streams.strands} />
-    <div :if={@has_next_page} class="text-center">
-      <.button type="button" theme="ghost" phx-click="load-more">
-        <%= gettext("Load more strands") %>
-      </.button>
+<.header_nav current_user={@current_user}>
+  <:title><%= gettext("Strands") %></:title>
+  <div class="flex items-center gap-6 p-4">
+    <div class="flex-1 flex items-center gap-6 min-w-0">
+      <.action
+        type="button"
+        phx-click={JS.exec("data-show", to: "#report-cards-cycle-filters-overlay")}
+        icon_name="hero-chevron-down-mini"
+      >
+        <%= format_action_items_text(
+          @selected_cycles,
+          gettext(
+            "All %{parent_cycle} cycles",
+            parent_cycle:
+              Map.get(@current_user.current_profile.current_school_cycle || %{}, :name)
+          )
+        ) %>
+      </.action>
+      <.action
+        type="button"
+        phx-click={JS.exec("data-show", to: "#strands-year-filters")}
+        icon_name="hero-chevron-down-mini"
+      >
+        <%= format_action_items_text(@selected_years, gettext("All years")) %>
+      </.action>
+      <.action
+        type="button"
+        phx-click={JS.exec("data-show", to: "#strands-subject-filters")}
+        icon_name="hero-chevron-down-mini"
+      >
+        <%= format_action_items_text(@selected_subjects, gettext("All subjects")) %>
+      </.action>
+      <.action
+        type="button"
+        phx-click="toggle_only_starred_strands"
+        icon_name="hero-star-mini"
+        theme={if @only_starred_strands, do: "primary", else: "subtle"}
+      >
+        <%= if @only_starred_strands, do: gettext("Only starred"), else: gettext("All") %>
+      </.action>
     </div>
-  <% end %>
-</div>
-<.slide_over
-  :if={@is_creating_strand}
-  id="strand-form-overlay"
-  show={true}
-  on_cancel={JS.push("cancel-strand-creation")}
->
-  <:title><%= gettext("New strand") %></:title>
-  <.live_component
-    module={StrandFormComponent}
-    id={:new}
-    strand={
-      %Strand{
-        subjects: @selected_subjects,
-        years: @selected_years
+    <.action type="link" patch={~p"/strands/library"} icon_name="hero-square-3-stack-3d-mini">
+      <%= gettext("Explore all strands") %>
+    </.action>
+  </div>
+</.header_nav>
+<%= if @strands_length < 1 do %>
+  <.empty_state class="p-10 m-4 mx-6 sm:mx-10 rounded bg-white shadow-lg">
+    <%= gettext("No strands matching selected filters") %>
+  </.empty_state>
+<% else %>
+  <.responsive_grid id="strands-list" phx-update="stream" class="p-4" is_full_width>
+    <.strand_card
+      :for={{dom_id, strand} <- @streams.strands}
+      id={dom_id}
+      strand={strand}
+      on_star_click={
+        JS.push(
+          if(strand.is_starred, do: "unstar-strand", else: "star-strand"),
+          value: %{id: strand.id, name: strand.name}
+        )
       }
-    }
-    action={:new}
-    navigate={fn strand -> ~p"/strands/#{strand}" end}
-  />
-  <:actions>
-    <.button
-      type="button"
-      theme="ghost"
-      phx-click={JS.exec("data-cancel", to: "#strand-form-overlay")}
-    >
-      <%= gettext("Cancel") %>
+      navigate={~p"/strands/#{strand}"}
+      class="shrink-0 w-64 sm:w-auto"
+    />
+  </.responsive_grid>
+  <div :if={@has_next_page} class="p-4 text-center">
+    <.button type="button" theme="ghost" phx-click="load-more">
+      <%= gettext("Load more strands") %>
     </.button>
-    <.button type="submit" form="strand-form">
-      <%= gettext("Save") %>
-    </.button>
-  </:actions>
-</.slide_over>
+  </div>
+<% end %>
+<.live_component
+  module={LantternWeb.Filters.CyclesFilterOverlayComponent}
+  id="report-cards-cycle-filters-overlay"
+  current_user={@current_user}
+  title={gettext("Filter strands by cycle")}
+  navigate={~p"/strands"}
+  filter_info={
+    case Map.get(@current_user.current_profile.current_school_cycle || %{}, :name) do
+      nil ->
+        nil
+
+      cycle_name ->
+        gettext(
+          "Showing only %{cycle} subcycles. Change the current cycle in the main menu to view other subcycles.",
+          cycle: cycle_name
+        )
+    end
+  }
+  cycles={@cycles}
+  selected_cycles_ids={@selected_cycles_ids}
+/>
 <.live_component
   module={LantternWeb.Filters.FiltersOverlayComponent}
   id="strands-year-filters"

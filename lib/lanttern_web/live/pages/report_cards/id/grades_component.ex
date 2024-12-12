@@ -13,31 +13,23 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
   def render(assigns) do
     ~H"""
     <div class="py-10">
-      <div class="container mx-auto lg:max-w-5xl">
-        <div class="p-4 rounded mt-4 bg-white shadow-lg">
-          <%= if @grades_report do %>
-            <h3 class="mb-4 font-display font-bold text-2xl">
-              <%= gettext("Grades report grid") %>:
-              <a
-                href={~p"/grades_reports/#{@grades_report}"}
-                target="_blank"
-                class="underline hover:text-ltrn-subtle"
-              >
-                <%= @grades_report.name %>
-              </a>
-            </h3>
-            <.grades_report_grid
-              grades_report={@grades_report}
-              report_card_cycle_id={@report_card.school_cycle_id}
-              on_composition_click={JS.push("edit_composition", target: @myself)}
-            />
-          <% else %>
+      <.responsive_container>
+        <.markdown :if={@report_card.grading_info} text={@report_card.grading_info} class="mb-10" />
+        <%= if @grades_report do %>
+          <.grades_report_grid
+            grades_report={@grades_report}
+            report_card_cycle_id={@report_card.school_cycle_id}
+            on_composition_click={JS.push("edit_composition", target: @myself)}
+            title_navigate={~p"/grades_reports/#{@grades_report}"}
+          />
+        <% else %>
+          <.card_base class="p-4">
             <.empty_state>
               <%= gettext("No grades report linked to this report card.") %>
             </.empty_state>
-          <% end %>
-        </div>
-      </div>
+          </.card_base>
+        <% end %>
+      </.responsive_container>
       <.live_component
         :if={@is_editing_grade_composition}
         title={gettext("Edit grade composition")}
@@ -46,7 +38,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
         grades_report_id={@grades_report_id}
         grades_report_cycle_id={@grades_report_cycle_id}
         grades_report_subject_id={@grades_report_subject_id}
-        on_cancel={JS.patch(~p"/report_cards/#{@report_card}?tab=grades")}
+        on_cancel={JS.patch(~p"/report_cards/#{@report_card}/grades")}
         use_assessment_points_from_report_card_id={@report_card.id}
       />
     </div>
@@ -96,7 +88,6 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
   @impl true
   def handle_event("edit_composition", params, socket) do
     url_params = %{
-      tab: "grades",
       gr_id: params["gradesreportid"],
       grc_id: params["gradesreportcycleid"],
       grs_id: params["gradesreportsubjectid"]
@@ -104,7 +95,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
 
     socket =
       socket
-      |> push_patch(to: ~p"/report_cards/#{socket.assigns.report_card}?#{url_params}")
+      |> push_patch(to: ~p"/report_cards/#{socket.assigns.report_card}/grades?#{url_params}")
 
     {:noreply, socket}
   end

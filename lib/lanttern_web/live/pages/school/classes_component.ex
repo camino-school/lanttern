@@ -12,42 +12,34 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <.responsive_container class="py-6">
-        <div class="flex items-end justify-between gap-6 mt-10">
-          <p class="font-display font-bold text-lg">
-            <%= gettext("Showing classes from") %>
-            <.filter_text_button
-              type={gettext("years")}
-              items={@selected_years}
-              on_click={JS.exec("data-show", to: "#school-year-filters-overlay")}
-            />,
-            <.filter_text_button
-              type={gettext("cycles")}
-              items={@selected_cycles}
-              on_click={JS.exec("data-show", to: "#school-cycle-filters-overlay")}
-            />
-          </p>
-          <div class="flex gap-4">
-            <.collection_action
-              :if={@is_school_manager}
-              type="link"
-              patch={~p"/school/classes?new=true"}
-              icon_name="hero-plus-circle"
-            >
-              <%= gettext("Add class") %>
-            </.collection_action>
-          </div>
+      <div class="flex items-center gap-6 p-4">
+        <div class="flex-1 flex items-center gap-6 min-w-0">
+          <.action
+            type="button"
+            phx-click={JS.exec("data-show", to: "#school-year-filters-overlay")}
+            icon_name="hero-chevron-down-mini"
+          >
+            <%= format_action_items_text(@selected_years, gettext("All years")) %>
+          </.action>
         </div>
-      </.responsive_container>
+        <.action
+          :if={@is_school_manager}
+          type="link"
+          patch={~p"/school/classes?new=true"}
+          icon_name="hero-plus-circle-mini"
+        >
+          <%= gettext("Add class") %>
+        </.action>
+      </div>
       <%= if @has_classes do %>
-        <.responsive_grid id="school-classes" phx-update="stream" is_full_width>
+        <.responsive_grid id="school-classes" phx-update="stream" is_full_width class="px-4 pb-4">
           <.card_base
             :for={{dom_id, class} <- @streams.classes}
             id={dom_id}
             class="min-w-[16rem] sm:min-w-0 p-4"
           >
             <div class="flex items-center justify-between gap-4">
-              <p class="font-display font-black"><%= class.name %> (<%= class.cycle.name %>)</p>
+              <p class="font-display font-black"><%= class.name %></p>
               <.button
                 :if={@is_school_manager}
                 type="link"
@@ -95,14 +87,6 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
         current_user={@current_user}
         title={gettext("Filter classes by year")}
         filter_type={:years}
-        navigate={~p"/school/classes"}
-      />
-      <.live_component
-        module={LantternWeb.Filters.FiltersOverlayComponent}
-        id="school-cycle-filters-overlay"
-        current_user={@current_user}
-        title={gettext("Filter classes by cycle")}
-        filter_type={:cycles}
         navigate={~p"/school/classes"}
       />
       <.live_component
@@ -175,28 +159,32 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
-    |> assign_user_filters([:years, :cycles])
+    |> assign_user_filters([:years])
     |> stream_classes()
     |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
 
-  defp stream_classes(%{assigns: %{initialized: false}} = socket) do
+  defp stream_classes(socket) do
+    cycles_ids =
+      case socket.assigns.current_user.current_profile.current_school_cycle do
+        %{id: cycle_id} -> [cycle_id]
+        _ -> []
+      end
+
     classes =
       Schools.list_user_classes(
         socket.assigns.current_user,
-        preload_cycle_years_students: true,
         years_ids: socket.assigns.selected_years_ids,
-        cycles_ids: socket.assigns.selected_cycles_ids
+        cycles_ids: cycles_ids,
+        preloads: :students
       )
 
     socket
     |> stream(:classes, classes)
     |> assign(:has_classes, length(classes) > 0)
   end
-
-  defp stream_classes(socket), do: socket
 
   defp assign_class(%{assigns: %{is_school_manager: false}} = socket),
     do: assign(socket, :class, nil)

@@ -6,6 +6,8 @@ defmodule Lanttern.GradesReports.GradesReport do
   use Ecto.Schema
   import Ecto.Changeset
 
+  import LantternWeb.Gettext
+
   alias Lanttern.GradesReports.GradesReportCycle
   alias Lanttern.GradesReports.GradesReportSubject
   alias Lanttern.Grading.Scale
@@ -62,5 +64,9 @@ defmodule Lanttern.GradesReports.GradesReport do
       :scale_id
     ])
     |> validate_required([:name, :school_cycle_id, :year_id, :scale_id])
+    |> unique_constraint(:school_cycle_id,
+      name: "grades_reports_year_id_school_cycle_id_index",
+      message: gettext("A grades report for the same cycle and year already exists")
+    )
   end
 end

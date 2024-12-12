@@ -110,7 +110,7 @@ defmodule Lanttern.IdentityFixtures do
     user = user_fixture()
     teacher = teacher_fixture(attrs) |> Lanttern.Repo.preload(:school)
     teacher_profile = teacher_profile_fixture(%{user_id: user.id, teacher_id: teacher.id})
-    Personalization.set_profile_permissions(teacher_profile.id, permissions)
+    Personalization.set_profile_settings(teacher_profile.id, %{permissions: permissions})
 
     # emulate Identity.get_user_by_session_token/1 to preload profile into user
     user

@@ -1,27 +1,23 @@
-<.responsive_container class="py-6 sm:py-10">
-  <.page_title_with_menu>Curriculum</.page_title_with_menu>
-  <ul phx-update="stream" id="curricula-list">
-    <li
-      :for={{dom_id, curriculum} <- @streams.curricula}
-      id={dom_id}
-      class="p-6 rounded mt-10 bg-white shadow-lg"
-    >
-      <div class="flex items-center gap-4">
-        <h5 class="font-display font-black">
-          <.link navigate={~p"/curriculum/#{curriculum}"} class="hover:underline">
-            <%= curriculum.name %>
-          </.link>
-        </h5>
-        <.badge :if={curriculum.code} theme="dark">
-          <%= curriculum.code %>
-        </.badge>
-      </div>
-      <.markdown
-        :if={curriculum.description}
-        text={curriculum.description}
-        size="sm"
-        class="max-w-none mt-6"
-      />
-    </li>
-  </ul>
-</.responsive_container>
+<.header_nav current_user={@current_user}>
+  <:title><%= gettext("Curriculum") %></:title>
+</.header_nav>
+<.responsive_grid class="p-4" is_full_width phx-update="stream" id="curricula-list">
+  <.card_base :for={{dom_id, curriculum} <- @streams.curricula} id={dom_id} class="p-6">
+    <div class="flex items-center gap-4">
+      <h5 class="font-display font-black text-base">
+        <.link navigate={~p"/curriculum/#{curriculum}"} class="hover:text-ltrn-subtle">
+          <%= curriculum.name %>
+        </.link>
+      </h5>
+      <.badge :if={curriculum.code} theme="dark">
+        <%= curriculum.code %>
+      </.badge>
+    </div>
+    <.markdown
+      :if={curriculum.description}
+      text={curriculum.description}
+      size="sm"
+      class="max-w-none mt-6"
+    />
+  </.card_base>
+</.responsive_grid>

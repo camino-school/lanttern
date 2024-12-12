@@ -11,10 +11,10 @@ defmodule LantternWeb.GradesReportLiveTest do
 
   describe "Grades report live view basic navigation" do
     test "disconnected and connected mount", %{conn: conn} do
-      grades_report = grades_report_fixture()
+      grades_report = grades_report_fixture(%{name: "Grades report ABC"})
       conn = get(conn, "#{@live_view_base_path}/#{grades_report.id}")
 
-      assert html_response(conn, 200) =~ ~r"<h1 .+>\s*Grades report details\s*<\/h1>"
+      assert html_response(conn, 200) =~ ~r"<h1 .+>\s*Grades report ABC\s*<\/h1>"
 
       {:ok, _view, _html} = live(conn)
     end
@@ -36,7 +36,7 @@ defmodule LantternWeb.GradesReportLiveTest do
 
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{grades_report.id}")
 
-      assert view |> has_element?("h2", "Some grade report ABC")
+      assert view |> has_element?("h1", "Some grade report ABC")
       assert view |> has_element?("p", "Some info XYZ")
       assert view |> has_element?("div", "Some cycle 000")
       assert view |> has_element?("div", "Some scale AZ")

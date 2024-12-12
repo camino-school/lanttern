@@ -9,6 +9,8 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   #### Expected external assigns
 
       attr :current_user, User
+      attr :current_assessment_group_by, :string
+      attr :current_assessment_view, :string
       attr :classes_ids, :list, doc: "list of classes_ids to filter results"
       attr :strand_id, :integer, doc: "defines a strand grid view"
       attr :moment_id, :integer, doc: "defines a moment grid view. will override the strand id"
@@ -22,14 +24,12 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Curricula.CurriculumItem
-  alias Lanttern.Filters
   alias Lanttern.Identity.User
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
   alias Lanttern.Schools.Student
 
   import LantternWeb.AssessmentsHelpers, only: [save_entry_editor_component_changes: 2]
-  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2]
 
   # shared components
   alias LantternWeb.Assessments.EntryCellComponent
@@ -40,17 +40,6 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     ~H"""
     <div class={@class}>
       <.responsive_container>
-        <div class="flex items-center gap-4">
-          <.assessment_group_by_dropdow
-            :if={@strand_id}
-            current_assessment_group_by={@current_assessment_group_by}
-            myself={@myself}
-          />
-          <.assessment_view_dropdow
-            current_assessment_view={@current_assessment_view}
-            myself={@myself}
-          />
-        </div>
         <%!-- if no assessment points, render empty state --%>
         <div :if={!@has_assessment_points} class="p-10 mt-4 rounded shadow-xl bg-white">
           <.empty_state><%= gettext("No assessment points for this strand yet") %></.empty_state>
@@ -58,7 +47,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         <%!-- if no class filter is select, just render assessment points --%>
         <div
           :if={@classes_ids == [] && @has_assessment_points}
-          class="p-10 mt-4 rounded shadow-xl bg-white"
+          class="p-10 rounded shadow-xl bg-white"
         >
           <p class="mb-6 font-bold text-ltrn-subtle"><%= gettext("Current assessment points") %></p>
           <ol phx-update="stream" id="assessment-points-no-class" class="flex flex-col gap-4">
@@ -70,9 +59,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         </div>
       </.responsive_container>
       <%!-- show entries only with class filter selected --%>
-      <div :if={@classes_ids != [] && @has_assessment_points} class="px-6">
+      <div :if={@classes_ids != [] && @has_assessment_points}>
         <div class={[
-          "relative w-full max-h-[calc(100vh-4rem)] border mt-6 rounded shadow-xl #{@view_bg} overflow-x-auto",
+          "relative w-full max-h-screen border rounded shadow-xl #{@view_bg} overflow-x-auto",
           if(@current_assessment_view == "student",
             do: "border-ltrn-student-accent",
             else: "border-transparent"
@@ -193,81 +182,6 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
   # function components
 
-  attr :current_assessment_group_by, :string, required: true
-  attr :myself, Phoenix.LiveComponent.CID, required: true
-
-  def assessment_group_by_dropdow(assigns) do
-    text =
-      case assigns.current_assessment_group_by do
-        "curriculum" -> gettext("Show all, grouped by curriculum")
-        "moment" -> gettext("Show all, grouped by moment")
-        _ -> gettext("Show only goals assessments")
-      end
-
-    assigns = assign(assigns, :text, text)
-
-    ~H"""
-    <div class="relative">
-      <.badge_button id="group-by-dropdown-button" icon_name="hero-chevron-down-mini">
-        <%= @text %>
-      </.badge_button>
-      <.dropdown_menu id="group-by-dropdown" button_id="group-by-dropdown-button" z_index="30">
-        <:item
-          text={gettext("Show only goals assessments")}
-          on_click={JS.push("change_group_by", value: %{"group_by" => nil}, target: @myself)}
-        />
-        <:item
-          text={gettext("Show all, grouped by curriculum")}
-          on_click={JS.push("change_group_by", value: %{"group_by" => "curriculum"}, target: @myself)}
-        />
-        <:item
-          text={gettext("Show all, grouped by moment")}
-          on_click={JS.push("change_group_by", value: %{"group_by" => "moment"}, target: @myself)}
-        />
-      </.dropdown_menu>
-    </div>
-    """
-  end
-
-  attr :current_assessment_view, :string, required: true
-  attr :myself, Phoenix.LiveComponent.CID, required: true
-
-  def assessment_view_dropdow(assigns) do
-    {theme, text} =
-      case assigns.current_assessment_view do
-        "teacher" -> {"teacher", gettext("Assessed by teacher")}
-        "student" -> {"student", gettext("Assessed by students")}
-        "compare" -> {"primary", gettext("Compare teacher/students")}
-      end
-
-    assigns =
-      assigns
-      |> assign(:theme, theme)
-      |> assign(:text, text)
-
-    ~H"""
-    <div class="relative">
-      <.badge_button id="view-dropdown-button" icon_name="hero-chevron-down-mini" theme={@theme}>
-        <%= @text %>
-      </.badge_button>
-      <.dropdown_menu id="view-dropdown" button_id="view-dropdown-button" z_index="30">
-        <:item
-          text={gettext("Assessed by teacher")}
-          on_click={JS.push("change_view", value: %{"view" => "teacher"}, target: @myself)}
-        />
-        <:item
-          text={gettext("Assessed by students")}
-          on_click={JS.push("change_view", value: %{"view" => "student"}, target: @myself)}
-        />
-        <:item
-          text={gettext("Compare teacher and students assessments")}
-          on_click={JS.push("change_view", value: %{"view" => "compare"}, target: @myself)}
-        />
-      </.dropdown_menu>
-    </div>
-    """
-  end
-
   attr :assessment_point, :any, required: true
 
   def no_class_assessment_point(assigns) do
@@ -281,7 +195,16 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
     ~H"""
     <li :for={assessment_point <- @assessment_points} id={"no-class-#{assessment_point.id}"}>
-      <%= assessment_point.name %>
+      <%= case assessment_point do
+        %{name: name} when not is_nil(name) ->
+          name
+
+        %{curriculum_item: %CurriculumItem{} = curriculum_item} ->
+          gettext("Strand final assessment for %{item}", item: curriculum_item.name)
+
+        _final_assessment_without_curriculum_preload ->
+          gettext("Strand final assessment for curriculum item")
+      end %>
     </li>
     """
   end
@@ -298,7 +221,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     <div class="flex flex-col p-2" id={@id}>
       <.link
         patch={
-          ~p"/strands/moment/#{@ap_header.moment_id}?tab=assessment&action=edit&assessment_point_id=#{@ap_header.id}"
+          ~p"/strands/moment/#{@ap_header.moment_id}/assessment?edit_assessment_point=#{@ap_header.id}"
         }
         class="flex-1 p-1 rounded text-sm font-bold line-clamp-2 hover:bg-ltrn-mesh-cyan"
         title={@ap_header.name}
@@ -336,7 +259,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     ~H"""
     <.link
       class="flex items-center w-full h-full p-1 rounded text-sm font-display font-bold truncate hover:bg-ltrn-mesh-cyan"
-      navigate={~p"/strands/moment/#{@header_struct.id}?tab=assessment"}
+      navigate={~p"/strands/moment/#{@header_struct.id}/assessment"}
     >
       <%= @header_struct.name %>
     </.link>
@@ -446,7 +369,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       <.link
         class="block w-full p-1 rounded overflow-hidden hover:bg-ltrn-mesh-cyan"
         title={"#{@assessment_point.moment.name}\n\n#{@assessment_point.name}"}
-        navigate={~p"/strands/moment/#{@assessment_point.moment.id}?tab=assessment"}
+        navigate={~p"/strands/moment/#{@assessment_point.moment.id}/assessment"}
       >
         <span class="font-bold"><%= @assessment_point.moment.name %></span> <br />
         <span class="text-xs"><%= @assessment_point.name %></span>
@@ -618,7 +541,6 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign_user_filters([:assessment_view, :assessment_group_by])
       |> assign_view_bg()
       |> stream_assessment_points()
       |> stream_students_entries()
@@ -708,68 +630,6 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   # event handlers
 
   @impl true
-  def handle_event(
-        "change_group_by",
-        %{"group_by" => group_by},
-        %{assigns: %{current_assessment_group_by: current_assessment_group_by}} = socket
-      )
-      when group_by == current_assessment_group_by,
-      do: {:noreply, socket}
-
-  def handle_event("change_group_by", %{"group_by" => group_by}, socket) do
-    # TODO
-    # before applying the group_by change, check if there're pending changes
-
-    Filters.set_profile_current_filters(
-      socket.assigns.current_user,
-      %{assessment_group_by: group_by}
-    )
-    |> case do
-      {:ok, _} ->
-        socket =
-          socket
-          |> assign(:current_assessment_group_by, group_by)
-          |> push_navigate(to: socket.assigns.navigate)
-
-        {:noreply, socket}
-
-      {:error, _} ->
-        # do something with error?
-        {:noreply, socket}
-    end
-  end
-
-  def handle_event(
-        "change_view",
-        %{"view" => view},
-        %{assigns: %{current_assessment_view: current_assessment_view}} = socket
-      )
-      when view == current_assessment_view,
-      do: {:noreply, socket}
-
-  def handle_event("change_view", %{"view" => view}, socket) do
-    # TODO
-    # before applying the view change, check if there're pending changes
-
-    Filters.set_profile_current_filters(
-      socket.assigns.current_user,
-      %{assessment_view: view}
-    )
-    |> case do
-      {:ok, _} ->
-        socket =
-          socket
-          |> assign(:current_assessment_view, view)
-          |> push_navigate(to: socket.assigns.navigate)
-
-        {:noreply, socket}
-
-      {:error, _} ->
-        # do something with error?
-        {:noreply, socket}
-    end
-  end
-
   def handle_event("save_changes", _params, socket) do
     %{
       entries_changes_map: entries_changes_map,

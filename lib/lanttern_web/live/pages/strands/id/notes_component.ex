@@ -3,7 +3,7 @@ defmodule LantternWeb.StrandLive.NotesComponent do
 
   alias Lanttern.Notes
 
-  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 3]
+  import LantternWeb.FiltersHelpers, only: [assign_strand_classes_filter: 1]
 
   # shared components
   alias LantternWeb.Attachments.AttachmentAreaComponent
@@ -32,44 +32,30 @@ defmodule LantternWeb.StrandLive.NotesComponent do
           <div :for={{dom_id, note} <- @streams.moments_notes} class="mt-6" id={dom_id}>
             <.link
               navigate={~p"/strands/moment/#{note.moment.id}?tab=notes"}
-              class="font-display text-base"
+              class="font-display text-base hover:text-ltrn-subtle"
             >
-              <%= "Moment #{note.moment.position}:" %>
-              <span class="underline"><%= note.moment.name %></span>
+              <%= note.moment.name %>
             </.link>
             <div class="mt-4 line-clamp-4">
               <.markdown text={note.description} size="sm" />
             </div>
           </div>
         <% end %>
-        <.hr class="my-20" />
-        <div class="flex items-end justify-between gap-6">
-          <%= if @selected_classes != [] do %>
-            <p class="font-display font-bold text-2xl">
-              <button
-                type="button"
-                class="inline text-left underline hover:text-ltrn-subtle"
-                phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
-              >
-                <%= @selected_classes
-                |> Enum.map(& &1.name)
-                |> Enum.join(", ") %>
-              </button>
-              <%= gettext("students strand notes") %>
-            </p>
-          <% else %>
-            <p class="font-display font-bold text-2xl">
-              <button
-                type="button"
-                class="underline hover:text-ltrn-subtle"
-                phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
-              >
-                <%= gettext("Select a class") %>
-              </button>
-              <%= gettext("to view students strand notes") %>
-            </p>
-          <% end %>
-        </div>
+        <.hr class="my-10" />
+        <h4 class="font-display font-black text-xl text-ltrn-subtle">
+          <%= gettext("Student notes") %>
+        </h4>
+        <.action
+          type="button"
+          phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
+          icon_name="hero-chevron-down-mini"
+          class="mt-4"
+        >
+          <%= format_action_items_text(
+            @selected_classes,
+            gettext("Select a class to view students notes")
+          ) %>
+        </.action>
         <div id="students-strand-notes" phx-update="stream" class="mt-10">
           <div
             :for={{dom_id, {student, note}} <- @streams.students_strand_notes}
@@ -111,15 +97,14 @@ defmodule LantternWeb.StrandLive.NotesComponent do
         </div>
       </.responsive_container>
       <.live_component
-        module={LantternWeb.Filters.ClassesFilterOverlayComponent}
+        module={LantternWeb.Filters.StrandClassesFilterOverlayComponent}
         id="classes-filter-modal"
         current_user={@current_user}
         title={gettext("Select classes to view student notes")}
-        filter_type={:classes}
-        filter_opts={[strand_id: @strand.id]}
+        strand_id={@strand.id}
         classes={@classes}
         selected_classes_ids={@selected_classes_ids}
-        navigate={~p"/strands/#{@strand}?tab=notes"}
+        navigate={~p"/strands/#{@strand}/notes"}
       />
     </div>
     """
@@ -158,7 +143,7 @@ defmodule LantternWeb.StrandLive.NotesComponent do
       |> assign(:note, note)
       |> stream(:moments_notes, moments_notes)
       |> assign(:has_moments_notes, has_moments_notes)
-      |> assign_user_filters([:classes], strand_id: assigns.strand.id)
+      |> assign_strand_classes_filter()
       |> stream_students_strand_notes()
 
     {:ok, socket}

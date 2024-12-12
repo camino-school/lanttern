@@ -30,6 +30,13 @@ defmodule LantternWeb.Admin.CycleLive.FormComponent do
         <.input field={@form[:name]} type="text" label="Name" />
         <.input field={@form[:start_at]} type="date" label="Start at" />
         <.input field={@form[:end_at]} type="date" label="End at" />
+        <.input
+          field={@form[:parent_cycle_id]}
+          type="select"
+          label="Parent cycle"
+          prompt="Select parent cycle"
+          options={@cycle_options}
+        />
         <:actions>
           <.button phx-disable-with="Saving...">Save Cycle</.button>
         </:actions>
@@ -46,6 +53,7 @@ defmodule LantternWeb.Admin.CycleLive.FormComponent do
      socket
      |> assign(assigns)
      |> assign(:school_options, generate_school_options())
+     |> assign(:cycle_options, generate_cycle_options())
      |> assign_form(changeset)}
   end
 
@@ -64,7 +72,7 @@ defmodule LantternWeb.Admin.CycleLive.FormComponent do
   end
 
   defp save_cycle(socket, :edit, cycle_params) do
-    case Schools.update_cycle(socket.assigns.cycle, cycle_params) do
+    case Schools.update_cycle(socket.assigns.cycle, cycle_params, preloads: :parent_cycle) do
       {:ok, cycle} ->
         notify_parent({:saved, cycle})
 
@@ -79,7 +87,7 @@ defmodule LantternWeb.Admin.CycleLive.FormComponent do
   end
 
   defp save_cycle(socket, :new, cycle_params) do
-    case Schools.create_cycle(cycle_params) do
+    case Schools.create_cycle(cycle_params, preloads: :parent_cycle) do
       {:ok, cycle} ->
         notify_parent({:saved, cycle})
 

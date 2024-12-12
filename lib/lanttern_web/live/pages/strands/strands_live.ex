@@ -2,40 +2,12 @@ defmodule LantternWeb.StrandsLive do
   use LantternWeb, :live_view
 
   alias Lanttern.LearningContext
-  alias Lanttern.LearningContext.Strand
 
-  import LantternWeb.FiltersHelpers
-
-  # live components
-  alias LantternWeb.LearningContext.StrandFormComponent
+  import LantternWeb.FiltersHelpers,
+    only: [assign_user_filters: 2, assign_cycle_filter: 2, save_profile_filters: 2]
 
   # shared components
   import LantternWeb.LearningContextComponents
-
-  # function components
-
-  attr :id, :string, required: true
-  attr :strands, :list, required: true
-
-  def strands_grid(assigns) do
-    ~H"""
-    <.responsive_grid id={@id} phx-update="stream">
-      <.strand_card
-        :for={{dom_id, strand} <- @strands}
-        id={dom_id}
-        strand={strand}
-        on_star_click={
-          JS.push(
-            if(strand.is_starred, do: "unstar-strand", else: "star-strand"),
-            value: %{id: strand.id, name: strand.name}
-          )
-        }
-        navigate={~p"/strands/#{strand}"}
-        class="shrink-0 w-64 sm:w-auto"
-      />
-    </.responsive_grid>
-    """
-  end
 
   # lifecycle
 
@@ -43,10 +15,11 @@ defmodule LantternWeb.StrandsLive do
   def mount(_params, _session, socket) do
     socket =
       socket
-      |> assign_user_filters([:subjects, :years])
-      |> assign(:is_creating_strand, false)
-      |> stream_strands()
       |> assign(:page_title, gettext("Strands"))
+      |> assign(:strands_length, 0)
+      |> assign_user_filters([:subjects, :years, :starred_strands])
+      |> assign_cycle_filter(only_subcycles: true)
+      |> stream_strands()
 
     {:ok, socket}
   end
@@ -59,7 +32,11 @@ defmodule LantternWeb.StrandsLive do
         after: socket.assigns[:keyset],
         subjects_ids: socket.assigns.selected_subjects_ids,
         years_ids: socket.assigns.selected_years_ids,
-        show_starred_for_profile_id: socket.assigns.current_user.current_profile.id
+        parent_cycle_id:
+          Map.get(socket.assigns.current_user.current_profile.current_school_cycle || %{}, :id),
+        cycles_ids: socket.assigns.selected_cycles_ids,
+        show_starred_for_profile_id: socket.assigns.current_user.current_profile.id,
+        only_starred: socket.assigns.only_starred_strands
       )
 
     %{
@@ -68,31 +45,35 @@ defmodule LantternWeb.StrandsLive do
       has_next: has_next
     } = page
 
-    starred_strands =
-      LearningContext.list_strands(
-        only_starred_for_profile_id: socket.assigns.current_user.current_profile.id,
-        preloads: [:subjects, :years],
-        subjects_ids: socket.assigns.selected_subjects_ids,
-        years_ids: socket.assigns.selected_years_ids
-      )
-
     socket
     |> stream(:strands, strands)
-    |> assign(:has_strands, length(strands) > 0)
+    |> assign(:strands_length, socket.assigns.strands_length + length(strands))
     |> assign(:keyset, keyset)
     |> assign(:has_next_page, has_next)
-    |> stream(:starred_strands, starred_strands)
-    |> assign(:has_starred_strands, length(starred_strands) > 0)
   end
 
   # event handlers
 
   @impl true
-  def handle_event("create-strand", _params, socket),
-    do: {:noreply, assign(socket, :is_creating_strand, true)}
+  def handle_event("toggle_only_starred_strands", _params, socket) do
+    only_starred_strands = !socket.assigns.only_starred_strands
 
-  def handle_event("cancel-strand-creation", _params, socket),
-    do: {:noreply, assign(socket, :is_creating_strand, false)}
+    message =
+      if only_starred_strands do
+        gettext("Showing only starred strands")
+      else
+        gettext("Showing all strands")
+      end
+
+    socket =
+      socket
+      |> assign(:only_starred_strands, only_starred_strands)
+      |> save_profile_filters([:starred_strands])
+      |> push_navigate(to: ~p"/strands", replace: true)
+      |> put_flash(:info, message)
+
+    {:noreply, socket}
+  end
 
   def handle_event("load-more", _params, socket),
     do: {:noreply, stream_strands(socket)}
@@ -101,10 +82,16 @@ defmodule LantternWeb.StrandsLive do
     profile_id = socket.assigns.current_user.current_profile.id
 
     with {:ok, _} <- LearningContext.star_strand(id, profile_id) do
-      {:noreply,
-       socket
-       |> put_flash(:info, "\"#{name}\" added to your starred strands")
-       |> push_navigate(to: ~p"/strands", replace: true)}
+      strand =
+        LearningContext.get_strand!(id, preloads: [:subjects, :years])
+        |> Map.put(:is_starred, true)
+
+      socket =
+        socket
+        |> put_flash(:info, "\"#{name}\" added to your starred strands")
+        |> stream_insert(:strands, strand)
+
+      {:noreply, socket}
     end
   end
 
@@ -112,10 +99,24 @@ defmodule LantternWeb.StrandsLive do
     profile_id = socket.assigns.current_user.current_profile.id
 
     with {:ok, _} <- LearningContext.unstar_strand(id, profile_id) do
-      {:noreply,
-       socket
-       |> put_flash(:info, "\"#{name}\" removed from your starred strands")
-       |> push_navigate(to: ~p"/strands", replace: true)}
+      strand =
+        LearningContext.get_strand!(id, preloads: [:subjects, :years])
+        |> Map.put(:is_starred, false)
+
+      socket =
+        socket
+        |> put_flash(:info, "\"#{name}\" removed from your starred strands")
+
+      socket =
+        if socket.assigns.only_starred_strands do
+          socket
+          |> stream_delete(:strands, strand)
+          |> assign(:strands_length, socket.assigns.strands_length - 1)
+        else
+          stream_insert(socket, :strands, strand)
+        end
+
+      {:noreply, socket}
     end
   end
 end

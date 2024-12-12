@@ -5,8 +5,10 @@ defmodule LantternWeb.UserAuth do
   import Phoenix.Controller
 
   import LantternWeb.Gettext
+  alias Lanttern.Personalization
   alias Lanttern.Identity
   alias Lanttern.Identity.User
+  alias Lanttern.Schools
 
   # Make the remember me cookie valid for 60 days.
   # If you want bump or reduce this value, also change
@@ -135,6 +137,25 @@ defmodule LantternWeb.UserAuth do
           "There's no profile linked to your user. Check with your Lanttern admin."
         )
         |> log_out_user()
+
+      # when there's no current school cycle in profile at this point
+      # try to set the newest school cycle as current
+      %User{current_profile: %{id: profile_id, school_id: school_id, current_school_cycle: nil}} =
+          user
+      when not is_nil(school_id) ->
+        case Schools.get_newest_parent_cycle_from_school(school_id) do
+          nil ->
+            assign(conn, :current_user, user)
+
+          school_cycle ->
+            Personalization.set_profile_settings(profile_id, %{
+              current_school_cycle_id: school_cycle.id
+            })
+
+            profile = Map.put(user.current_profile, :current_school_cycle, school_cycle)
+            user = Map.put(user, :current_profile, profile)
+            assign(conn, :current_user, user)
+        end
 
       user ->
         assign(conn, :current_user, user)

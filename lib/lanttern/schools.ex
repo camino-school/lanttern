@@ -5,6 +5,7 @@ defmodule Lanttern.Schools do
 
   import Ecto.Query, warn: false
   import Lanttern.RepoHelpers
+  import LantternWeb.Gettext
   alias Lanttern.Repo
   alias Lanttern.Schools.School
   alias Lanttern.Schools.Cycle
@@ -114,8 +115,12 @@ defmodule Lanttern.Schools do
 
   ## Options:
 
-      - `:schools_ids` – filter cycles by schools
-      - `:order_by` - an order by query expression ([ref](https://hexdocs.pm/ecto/Ecto.Query.html#order_by/3))
+  - `:schools_ids` – filter cycles by schools
+  - `:order` - `:desc` (default) or `:asc`
+  - `:parent_cycles_only` – list only cycles without `parent_cycle_id` when `true`
+  - `:subcycles_only` – list only cycles with `parent_cycle_id` when `true`
+  - `:subcycles_of_parent_id` – list only subcycles of given parent cycle
+  - `:preloads` – preloads associated data
 
   ## Examples
 
@@ -126,8 +131,9 @@ defmodule Lanttern.Schools do
   def list_cycles(opts \\ []) do
     Cycle
     |> apply_list_cycles_opts(opts)
-    |> apply_list_cycles_order_by(Keyword.get(opts, :order_by))
+    |> apply_list_cycles_order(Keyword.get(opts, :order))
     |> Repo.all()
+    |> maybe_preload(opts)
   end
 
   defp apply_list_cycles_opts(queryable, []), do: queryable
@@ -140,37 +146,179 @@ defmodule Lanttern.Schools do
     |> apply_list_cycles_opts(opts)
   end
 
+  defp apply_list_cycles_opts(queryable, [{:parent_cycles_only, true} | opts]) do
+    from(
+      c in queryable,
+      where: is_nil(c.parent_cycle_id)
+    )
+    |> apply_list_cycles_opts(opts)
+  end
+
+  defp apply_list_cycles_opts(queryable, [{:subcycles_only, true} | opts]) do
+    from(
+      c in queryable,
+      where: not is_nil(c.parent_cycle_id)
+    )
+    |> apply_list_cycles_opts(opts)
+  end
+
+  defp apply_list_cycles_opts(queryable, [{:subcycles_of_parent_id, parent_id} | opts])
+       when is_integer(parent_id) do
+    from(
+      c in queryable,
+      where: c.parent_cycle_id == ^parent_id
+    )
+    |> apply_list_cycles_opts(opts)
+  end
+
   defp apply_list_cycles_opts(queryable, [_ | opts]),
     do: apply_list_cycles_opts(queryable, opts)
 
-  defp apply_list_cycles_order_by(queryable, nil) do
+  defp apply_list_cycles_order(queryable, :asc) do
     from c in queryable,
-      order_by: [asc: :end_at, desc: :start_at]
+      order_by: [asc: :start_at, asc: :end_at]
   end
 
-  defp apply_list_cycles_order_by(queryable, order_by_expression) do
+  defp apply_list_cycles_order(queryable, _) do
     from c in queryable,
-      order_by: ^order_by_expression
+      order_by: [desc: :end_at, asc: :start_at]
   end
+
+  @doc """
+  Returns the list of school cycles with preloaded subcycles.
+
+  ## Options:
+
+  - `:schools_ids` – filter cycles by schools
+  - `:order` - `:desc` (defautl) or `:asc`
+
+  ## Examples
+
+      iex> list_cycles_and_subcycles()
+      [%Cycle{}, ...]
+
+  """
+  def list_cycles_and_subcycles(opts \\ []) do
+    order =
+      Keyword.get(opts, :order)
+      |> set_list_cycles_and_subcycles_order()
+
+    from(
+      c in Cycle,
+      left_join: sc in assoc(c, :subcycles),
+      where: is_nil(c.parent_cycle_id),
+      preload: [subcycles: sc],
+      order_by: ^order
+    )
+    |> apply_list_cycles_and_subcycles_opts(opts)
+    |> Repo.all()
+  end
+
+  defp set_list_cycles_and_subcycles_order(:asc),
+    do: [
+      asc: :start_at,
+      asc: :end_at,
+      asc: dynamic([_c, sc], sc.start_at),
+      asc: dynamic([_c, sc], sc.end_at)
+    ]
+
+  defp set_list_cycles_and_subcycles_order(_),
+    do: [
+      desc: :end_at,
+      asc: :start_at,
+      desc: dynamic([_c, sc], sc.end_at),
+      asc: dynamic([_c, sc], sc.start_at)
+    ]
+
+  defp apply_list_cycles_and_subcycles_opts(queryable, []), do: queryable
+
+  defp apply_list_cycles_and_subcycles_opts(queryable, [{:schools_ids, schools_ids} | opts]) do
+    from(
+      c in queryable,
+      where: c.school_id in ^schools_ids
+    )
+    |> apply_list_cycles_and_subcycles_opts(opts)
+  end
+
+  defp apply_list_cycles_and_subcycles_opts(queryable, [_ | opts]),
+    do: apply_list_cycles_and_subcycles_opts(queryable, opts)
 
   @doc """
   Gets a single cycle.
 
-  Raises `Ecto.NoResultsError` if the Cycle does not exist.
+  Returns `nil` if the Cycle does not exist.
+
+  ## Options:
+
+  - `:preloads` – preloads associated data
+  - `:check_permissions_for_user` - expects a `%User{}` (usually from `socket.assigns.current_user`), and will check for class access based on school and permissions
 
   ## Examples
 
-      iex> get_cycle!(123)
+      iex> get_cycle(123)
       %Cycle{}
 
-      iex> get_cycle!(456)
+      iex> get_cycle(456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_cycle!(id), do: Repo.get!(Cycle, id)
+  def get_cycle(id, opts \\ []) do
+    cycle =
+      Cycle
+      |> Repo.get(id)
+      |> maybe_preload(opts)
+
+    case Keyword.get(opts, :check_permissions_for_user) do
+      %User{} = user -> apply_get_cycle_check_permissions_for_user(cycle, user)
+      _ -> cycle
+    end
+  end
+
+  defp apply_get_cycle_check_permissions_for_user(
+         %Cycle{} = cycle,
+         %User{current_profile: %Profile{school_id: school_id} = profile}
+       )
+       when cycle.school_id == school_id do
+    if "school_management" in profile.permissions, do: cycle
+  end
+
+  defp apply_get_cycle_check_permissions_for_user(_, _), do: nil
+
+  @doc """
+  Gets a single cycle.
+
+  Same as `get_cycle/2`, but raises `Ecto.NoResultsError` if the Cycle does not exist.
+
+  """
+  def get_cycle!(id, opts \\ []) do
+    Cycle
+    |> Repo.get!(id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets the newest parent cycle from the given school.
+
+  Returns `nil` if there's no parent in the school.
+
+  """
+  def get_newest_parent_cycle_from_school(school_id) do
+    from(
+      c in Cycle,
+      where: c.school_id == ^school_id,
+      where: is_nil(c.parent_cycle_id),
+      order_by: [desc: :end_at, asc: :start_at],
+      limit: 1
+    )
+    |> Repo.one()
+  end
 
   @doc """
   Creates a cycle.
+
+  ## Options
+
+  - `:preloads` – preloads associated data on return
 
   ## Examples
 
@@ -181,14 +329,46 @@ defmodule Lanttern.Schools do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_cycle(attrs \\ %{}) do
+  def create_cycle(attrs \\ %{}, opts \\ []) do
     %Cycle{}
     |> Cycle.changeset(attrs)
+    |> validate_cycle_parent_cycle_id()
     |> Repo.insert()
+    |> maybe_preload(opts)
   end
+
+  defp validate_cycle_parent_cycle_id(%{changes: %{parent_cycle_id: nil}} = changeset),
+    do: changeset
+
+  defp validate_cycle_parent_cycle_id(%{changes: %{parent_cycle_id: parent_cycle_id}} = changeset) do
+    case Repo.get(Cycle, parent_cycle_id) do
+      %Cycle{parent_cycle_id: nil} ->
+        changeset
+
+      %Cycle{parent_cycle_id: _} ->
+        Ecto.Changeset.add_error(
+          changeset,
+          :parent_cycle_id,
+          gettext("You can't use a subcycle as a parent cycle")
+        )
+
+      nil ->
+        Ecto.Changeset.add_error(
+          changeset,
+          :parent_cycle_id,
+          gettext("Parent cycle does not exist")
+        )
+    end
+  end
+
+  defp validate_cycle_parent_cycle_id(changeset), do: changeset
 
   @doc """
   Updates a cycle.
+
+  ## Options
+
+  - `:preloads` – preloads associated data on return
 
   ## Examples
 
@@ -199,10 +379,12 @@ defmodule Lanttern.Schools do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_cycle(%Cycle{} = cycle, attrs) do
+  def update_cycle(%Cycle{} = cycle, attrs, opts \\ []) do
     cycle
     |> Cycle.changeset(attrs)
+    |> validate_cycle_parent_cycle_id()
     |> Repo.update()
+    |> maybe_preload(opts)
   end
 
   @doc """
@@ -237,10 +419,14 @@ defmodule Lanttern.Schools do
   @doc """
   Returns the list of classes.
 
-  ### Options:
+  ## Options:
 
-  `:preloads` – preloads associated data
-  `:schools_ids` – filter classes by schools
+  - `:classes_ids` – filter results by given ids
+  - `:schools_ids` – filter classes by schools
+  - `:years_ids` – filter results by years
+  - `:cycles_ids` – filter results by cycles
+  - `:preloads` – preloads associated data
+  - `:base_query` - used in conjunction with `search_classes/2`
 
   ## Examples
 
@@ -249,9 +435,16 @@ defmodule Lanttern.Schools do
 
   """
   def list_classes(opts \\ []) do
+    queryable = Keyword.get(opts, :base_query, Class)
+
     from(
-      c in Class,
-      order_by: c.name
+      cl in queryable,
+      join: cy in assoc(cl, :cycle),
+      left_join: y in assoc(cl, :years),
+      as: :years,
+      group_by: [cl.id, cy.id, y.id],
+      order_by: [desc: max(cy.end_at), asc: min(y.id), asc: cl.name],
+      preload: [cycle: cy, years: y]
     )
     |> apply_list_classes_opts(opts)
     |> Repo.all()
@@ -260,11 +453,33 @@ defmodule Lanttern.Schools do
 
   defp apply_list_classes_opts(queryable, []), do: queryable
 
-  defp apply_list_classes_opts(queryable, [{:schools_ids, schools_ids} | opts]) do
+  defp apply_list_classes_opts(queryable, [{:schools_ids, schools_ids} | opts])
+       when is_list(schools_ids) and schools_ids != [] do
     from(
-      c in queryable,
-      where: c.school_id in ^schools_ids
+      cl in queryable,
+      where: cl.school_id in ^schools_ids
     )
+    |> apply_list_classes_opts(opts)
+  end
+
+  defp apply_list_classes_opts(queryable, [{:classes_ids, classes_ids} | opts])
+       when is_list(classes_ids) and classes_ids != [] do
+    from(
+      cl in queryable,
+      where: cl.id in ^classes_ids
+    )
+    |> apply_list_classes_opts(opts)
+  end
+
+  defp apply_list_classes_opts(queryable, [{:years_ids, years_ids} | opts])
+       when is_list(years_ids) and years_ids != [] do
+    from([_cl, years: y] in queryable, where: y.id in ^years_ids)
+    |> apply_list_classes_opts(opts)
+  end
+
+  defp apply_list_classes_opts(queryable, [{:cycles_ids, cycles_ids} | opts])
+       when is_list(cycles_ids) and cycles_ids != [] do
+    from(cl in queryable, where: cl.cycle_id in ^cycles_ids)
     |> apply_list_classes_opts(opts)
   end
 
@@ -274,69 +489,49 @@ defmodule Lanttern.Schools do
   @doc """
   Returns the list of user's school classes.
 
-  The list is sorted by cycle end date (desc), class year (asc), and class name (asc).
+  It uses `list_classes/1` internally, extracting the `school_id` from
+  `current_user.current_profile`.
 
-  ## Options:
-
-  - `:classes_ids` – filter results by classes
-  - `:years_ids` – filter results by years
-  - `:cycles_ids` – filter results by cycles
-  - `:preload_cycle_years_students` – boolean
-
-  ## Examples
-
-      iex> list_user_classes()
-      [%Class{}, ...]
+  View `list_classes/1` for supported opts.
 
   """
   def list_user_classes(current_user, opts \\ [])
 
-  def list_user_classes(%{current_profile: %{type: "teacher", school_id: school_id}}, opts) do
-    from(
-      cl in Class,
-      join: cy in assoc(cl, :cycle),
-      left_join: y in assoc(cl, :years),
-      as: :years,
-      group_by: cl.id,
-      order_by: [desc: max(cy.end_at), asc: min(y.id), asc: cl.name],
-      where: cl.school_id == ^school_id
-    )
-    |> apply_list_user_classes_opts(opts)
-    |> Repo.all()
+  def list_user_classes(%User{current_profile: %{type: "teacher", school_id: school_id}}, opts) do
+    opts = Keyword.put(opts, :schools_ids, [school_id])
+    list_classes(opts)
   end
 
   def list_user_classes(_current_user, _opts),
     do: {:error, "User not allowed to list classes"}
 
-  defp apply_list_user_classes_opts(queryable, []), do: queryable
+  @doc """
+  Search classes by name.
 
-  defp apply_list_user_classes_opts(queryable, [{:classes_ids, classes_ids} | opts]) do
-    from(cl in queryable, where: cl.id in ^classes_ids)
-    |> apply_list_user_classes_opts(opts)
+  ## Options:
+
+  View `list_classes/1` for `opts`
+
+  ## Examples
+
+      iex> search_classes("some name")
+      [%Class{}, ...]
+
+  """
+  @spec search_classes(search_term :: binary(), opts :: Keyword.t()) :: [Class.t()]
+  def search_classes(search_term, opts \\ []) do
+    ilike_search_term = "%#{search_term}%"
+
+    query =
+      from(
+        c in Class,
+        where: ilike(c.name, ^ilike_search_term),
+        order_by: {:asc, fragment("? <<-> ?", ^search_term, c.name)}
+      )
+
+    [{:base_query, query} | opts]
+    |> list_classes()
   end
-
-  defp apply_list_user_classes_opts(queryable, [{:years_ids, years_ids} | opts])
-       when years_ids != [] do
-    from([_cl, years: y] in queryable, where: y.id in ^years_ids)
-    |> apply_list_user_classes_opts(opts)
-  end
-
-  defp apply_list_user_classes_opts(queryable, [{:cycles_ids, cycles_ids} | opts])
-       when cycles_ids != [] do
-    from(cl in queryable, where: cl.cycle_id in ^cycles_ids)
-    |> apply_list_user_classes_opts(opts)
-  end
-
-  defp apply_list_user_classes_opts(queryable, [{:preload_cycle_years_students, true} | opts]) do
-    from(
-      cl in queryable,
-      preload: [:cycle, :years, :students]
-    )
-    |> apply_list_user_classes_opts(opts)
-  end
-
-  defp apply_list_user_classes_opts(queryable, [_ | opts]),
-    do: apply_list_user_classes_opts(queryable, opts)
 
   @doc """
   Gets a single class.
@@ -485,7 +680,6 @@ defmodule Lanttern.Schools do
   - `:class_id` – filter students by given class
   - `:classes_ids` – filter students by provided list of ids. preloads the classes for each student, and order by class name
   - `:only_in_some_class` - boolean. When `true`, will remove students not linked to a class (and will do the opposite when `false`)
-  - `:report_card_id` – filter students linked to given report card. preloads the classes for each student, and order by class name
   - `:check_diff_rubrics_for_strand_id` - used to check if student has any differentiation rubric for given strand id
   - `:base_query` - used in conjunction with `search_students/2`
 
@@ -554,15 +748,6 @@ defmodule Lanttern.Schools do
     from(
       s in queryable,
       where: s.id in ^students_ids
-    )
-    |> apply_list_students_opts(opts)
-  end
-
-  defp apply_list_students_opts(queryable, [{:report_card_id, id} | opts]) do
-    from(
-      [s, classes: c] in bind_classes_to_students(queryable),
-      join: src in assoc(s, :student_report_cards),
-      where: src.report_card_id == ^id
     )
     |> apply_list_students_opts(opts)
   end

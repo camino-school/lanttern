@@ -9,9 +9,14 @@
 </.header>
 
 <.list>
-  <:item title="Name"><%= @cycle.name %></:item>
+  <:item title="Name">
+    <%= @cycle.name %><%= if !@cycle.parent_cycle_id, do: " (parent cycle)" %>
+  </:item>
   <:item title="Start at"><%= @cycle.start_at %></:item>
   <:item title="End at"><%= @cycle.end_at %></:item>
+  <:item title="Parent cycle">
+    <%= if @cycle.parent_cycle, do: @cycle.parent_cycle.name, else: "-" %>
+  </:item>
 </.list>
 
 <.back navigate={~p"/admin/school_cycles"}>Back to school_cycles</.back>

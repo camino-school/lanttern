@@ -1,17 +1,18 @@
 defmodule LantternWeb.StudentLive do
-  alias Lanttern.GradesReports
   use LantternWeb, :live_view
 
-  alias Lanttern.Reporting
+  alias Lanttern.GradesReports
   alias Lanttern.Schools
   alias Lanttern.Schools.Student
 
+  # page components
+
+  alias __MODULE__.StudentReportCardsComponent
+  alias __MODULE__.GradesReportsComponent
+
   # shared components
-  alias LantternWeb.GradesReports.GradeDetailsOverlayComponent
-  alias LantternWeb.GradesReports.FinalGradeDetailsOverlayComponent
+
   alias LantternWeb.Schools.StudentFormOverlayComponent
-  import LantternWeb.GradesReportsComponents
-  import LantternWeb.ReportingComponents
 
   # lifecycle
 
@@ -23,7 +24,6 @@ defmodule LantternWeb.StudentLive do
     socket =
       socket
       |> assign(:student, student)
-      |> stream_student_report_cards()
       |> stream_grades_reports()
       |> assign_is_school_manager()
       |> assign(:page_title, student.name)
@@ -40,18 +40,6 @@ defmodule LantternWeb.StudentLive do
 
   defp check_if_user_has_access(_current_user, nil),
     do: raise(LantternWeb.NotFoundError)
-
-  defp stream_student_report_cards(socket) do
-    student_report_cards =
-      Reporting.list_student_report_cards(
-        student_id: socket.assigns.student.id,
-        preloads: [report_card: [:year, :school_cycle]]
-      )
-
-    socket
-    |> stream(:student_report_cards, student_report_cards)
-    |> assign(:has_student_report_cards, student_report_cards != [])
-  end
 
   defp stream_grades_reports(socket) do
     student_id = socket.assigns.student.id
@@ -96,8 +84,8 @@ defmodule LantternWeb.StudentLive do
   def handle_params(params, _url, socket) do
     socket =
       socket
+      |> assign(:params, params)
       |> assign_is_editing(params)
-      |> assign_student_grades_report_entry(params)
 
     {:noreply, socket}
   end
@@ -107,40 +95,6 @@ defmodule LantternWeb.StudentLive do
 
   defp assign_is_editing(socket, _params),
     do: assign(socket, :is_editing, false)
-
-  defp assign_student_grades_report_entry(socket, %{"student_grades_report_entry_id" => sgre_id}) do
-    sgre_id = String.to_integer(sgre_id)
-
-    # guard against user manipulated ids
-    sgre_id =
-      if sgre_id in socket.assigns.student_grades_report_entries_ids,
-        do: sgre_id
-
-    socket
-    |> assign(:student_grades_report_entry_id, sgre_id)
-    |> assign(:student_grades_report_final_entry_id, nil)
-  end
-
-  defp assign_student_grades_report_entry(socket, %{
-         "student_grades_report_final_entry_id" => sgrfe_id
-       }) do
-    sgrfe_id = String.to_integer(sgrfe_id)
-
-    # guard against user manipulated ids
-    sgrfe_id =
-      if sgrfe_id in socket.assigns.student_grades_report_final_entries_ids,
-        do: sgrfe_id
-
-    socket
-    |> assign(:student_grades_report_entry_id, nil)
-    |> assign(:student_grades_report_final_entry_id, sgrfe_id)
-  end
-
-  defp assign_student_grades_report_entry(socket, _params) do
-    socket
-    |> assign(:student_grades_report_entry_id, nil)
-    |> assign(:student_grades_report_final_entry_id, nil)
-  end
 
   @impl true
   def handle_info({StudentFormOverlayComponent, {:updated, student}}, socket) do

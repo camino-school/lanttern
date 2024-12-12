@@ -21,6 +21,96 @@ defmodule LantternWeb.CoreComponents do
   import LantternWeb.Gettext
 
   @doc """
+  Renders a `<button>` or `<.link>` with icon.
+
+  Usually used in the context of a collection (e.g. to add a new item to a list, or filter results).
+  """
+
+  attr :class, :any, default: nil
+  attr :theme, :string, default: "default"
+  attr :type, :string, required: true, doc: "link | button"
+  attr :icon_name, :string, default: nil
+  attr :patch, :string, default: nil, doc: "use with type=\"link\""
+  attr :navigate, :string, default: nil, doc: "use with type=\"link\""
+  attr :rest, :global
+
+  slot :inner_block, required: true
+
+  def action(%{type: "button"} = assigns) do
+    ~H"""
+    <button type="button" class={[action_styles(@theme), @class]} {@rest}>
+      <div class={action_bg_styles(@theme)}></div>
+      <span class="relative truncate"><%= render_slot(@inner_block) %></span>
+      <.icon :if={@icon_name} name={@icon_name} class="relative shrink-0 w-5 h-5" />
+    </button>
+    """
+  end
+
+  def action(%{type: "link"} = assigns) do
+    ~H"""
+    <.link patch={@patch} navigate={@navigate} class={[action_styles(@theme), @class]}>
+      <div class={action_bg_styles(@theme)}></div>
+      <span class="relative truncate"><%= render_slot(@inner_block) %></span>
+      <.icon :if={@icon_name} name={@icon_name} class="relative shrink-0 w-5 h-5" />
+    </.link>
+    """
+  end
+
+  @action_themes %{
+    "default" => "text-ltrn-dark hover:text-ltrn-subtle",
+    "subtle" => "text-ltrn-subtle hover:text-ltrn-dark",
+    "primary" => "text-ltrn-dark hover:text-ltrn-subtle",
+    "student" => "text-ltrn-student-dark hover:text-ltrn-student-dark/80",
+    "teacher" => "text-ltrn-teacher-dark hover:text-ltrn-teacher-dark/80"
+  }
+
+  @action_bg_themes %{
+    "default" => nil,
+    "subtle" => nil,
+    "primary" => "bg-ltrn-mesh-primary",
+    "student" => "bg-ltrn-student-lightest",
+    "teacher" => "bg-ltrn-teacher-lightest"
+  }
+
+  defp action_styles(theme),
+    do: "relative flex items-center gap-2 min-w-0 #{Map.get(@action_themes, theme)}"
+
+  defp action_bg_styles(theme),
+    do: "absolute inset-x-0 bottom-0 h-2 #{Map.get(@action_bg_themes, theme)}"
+
+  @doc """
+  Util function to help with action item text formating
+  """
+
+  def format_action_items_text(items, default_text, key \\ :name, separator \\ ", ")
+
+  def format_action_items_text([] = _items, default_text, _, _), do: default_text
+
+  def format_action_items_text(items, _, key, separator),
+    do: Enum.map_join(items, separator, &Map.get(&1, key))
+
+  @doc """
+  Renders an action bar.
+
+  ## Examples
+
+      <.action_bar>
+        some actions
+      </.action_bar>
+  """
+  attr :class, :any, default: nil
+
+  slot :inner_block, required: true
+
+  def action_bar(assigns) do
+    ~H"""
+    <div class={["p-4 bg-white/20 shadow-xl", @class]}>
+      <%= render_slot(@inner_block) %>
+    </div>
+    """
+  end
+
+  @doc """
   Renders a back navigation link.
 
   ## Examples
@@ -65,7 +155,7 @@ defmodule LantternWeb.CoreComponents do
     <span
       id={@id}
       class={[
-        "inline-flex items-center rounded-sm px-1 py-1 font-mono text-xs",
+        "inline-flex items-center rounded-sm px-1 py-1 font-mono font-normal text-xs",
         badge_theme(@theme),
         @class
       ]}
@@ -235,16 +325,15 @@ defmodule LantternWeb.CoreComponents do
       <.badge_button_picker
         on_select={%JS{}}
         items={items}
-        item_key={:name}
         selected_ids={selected_ids}
       />
   """
   attr :items, :list, required: true
   attr :selected_ids, :list, required: true
 
-  attr :item_key, :any,
-    default: :name,
-    doc: "key used to access the item 'label' that will be displayed in the UI"
+  attr :label_setter, :string,
+    default: nil,
+    doc: "supports \"class_with_cycle\" opt, which will render the class + cycle name"
 
   attr :on_select, :any,
     required: true,
@@ -268,7 +357,10 @@ defmodule LantternWeb.CoreComponents do
         icon_name={if item.id in @selected_ids, do: "hero-check-mini", else: "hero-plus-mini"}
         phx-click={@on_select.(item.id)}
       >
-        <%= Map.get(item, @item_key) %>
+        <%= case @label_setter do
+          "class_with_cycle" -> "#{item.name} (#{item.cycle.name})"
+          _ -> item.name
+        end %>
       </.badge_button>
     </div>
     """
@@ -431,42 +523,6 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
-  Renders a `<button>` or `<.link>` with icon.
-
-  Usually used in the context of a collection (e.g. to add a new item to a list).
-  """
-
-  attr :class, :any, default: nil
-  attr :type, :string, required: true, doc: "link | button"
-  attr :icon_name, :string, default: nil
-  attr :patch, :string, doc: "use with type=\"link\""
-  attr :rest, :global
-
-  slot :inner_block, required: true
-
-  def collection_action(%{type: "button"} = assigns) do
-    ~H"""
-    <button type="button" class={[collection_action_styles(), @class]} {@rest}>
-      <%= render_slot(@inner_block) %>
-      <.icon :if={@icon_name} name={@icon_name} class="w-6 h-6 text-ltrn-primary" />
-    </button>
-    """
-  end
-
-  def collection_action(%{type: "link"} = assigns) do
-    ~H"""
-    <.link patch={@patch} class={[collection_action_styles(), @class]}>
-      <%= render_slot(@inner_block) %>
-      <.icon :if={@icon_name} name={@icon_name} class="w-6 h-6 text-ltrn-primary" />
-    </.link>
-    """
-  end
-
-  defp collection_action_styles(),
-    do:
-      "shrink-0 flex items-center gap-2 font-display text-sm text-ltrn-dark hover:text-ltrn-subtle"
-
-  @doc """
   Renders a page cover.
   """
   attr :rest, :global
@@ -504,6 +560,60 @@ defmodule LantternWeb.CoreComponents do
 
   defp cover_overlay(_),
     do: "from-ltrn-mesh-primary/0 to-ltrn-mesh-primary"
+
+  attr :image_url, :string, default: nil
+  attr :alt_text, :string, required: true
+  attr :empty_state_text, :string, default: nil
+  attr :theme, :string, default: "primary"
+  attr :size, :string, default: "lg", doc: "lg | sm"
+  attr :class, :any, default: nil
+
+  def cover_image(%{image_url: image_url} = assigns)
+      when is_binary(image_url) and image_url != "" do
+    ~H"""
+    <div
+      class={[cover_image_base_classes(@size), @class]}
+      style={"background-image: url('#{@image_url || "/images/cover-placeholder.jpg"}')"}
+    >
+      <p class="sr-only"><%= @alt_text %></p>
+      <div class={[
+        "absolute inset-0 bg-gradient-to-b",
+        cover_overlay(@theme)
+      ]} />
+    </div>
+    """
+  end
+
+  def cover_image(assigns) do
+    ~H"""
+    <div
+      class={[
+        cover_image_base_classes(@size),
+        "flex items-center justify-center border border-dashed border-ltrn-light",
+        @class
+      ]}
+      style="background-image: url('/images/cover-placeholder.jpg')"
+    >
+      <p :if={@empty_state_text} class="font-display font-black text-2xl text-ltrn-subtle">
+        <%= @empty_state_text %>
+      </p>
+      <div class={[
+        "absolute inset-0 bg-gradient-to-b",
+        cover_overlay(@theme)
+      ]} />
+    </div>
+    """
+  end
+
+  defp cover_image_base_classes(size) do
+    height_classes =
+      case size do
+        "sm" -> "h-[20rem] min-h-[40vh] max-h-[60vh]"
+        _ -> "h-[30rem] min-h-[60vh] max-h-[80vh]"
+      end
+
+    "relative w-full #{height_classes} rounded bg-cover bg-center shadow-xl overflow-hidden"
+  end
 
   @doc """
   Returns a string with background and text styles to be
@@ -595,9 +705,9 @@ defmodule LantternWeb.CoreComponents do
 
     ~H"""
     <div class={@class}>
-      <div class="grid gap-y-2" style={@grid_template_cols_style}>
+      <div class="grid" style={@grid_template_cols_style}>
         <div
-          class="sticky z-10 grid grid-cols-subgrid rounded font-display font-bold text-sm bg-white shadow"
+          class="sticky z-10 grid grid-cols-subgrid font-display font-bold text-sm bg-white shadow"
           style={["top: #{@sticky_header_offset};", @grid_col_span_style]}
         >
           <div :for={col <- @col} class="flex gap-2 p-4">
@@ -624,7 +734,7 @@ defmodule LantternWeb.CoreComponents do
             :for={{row_id, row} <- @stream}
             id={row_id}
             class={[
-              "grid grid-cols-subgrid items-center py-2 rounded hover:bg-ltrn-mesh-yellow",
+              "grid grid-cols-subgrid items-center hover:bg-ltrn-mesh-yellow",
               @row_click && "hover:cursor-pointer"
             ]}
             style={@grid_col_span_style}
@@ -674,61 +784,14 @@ defmodule LantternWeb.CoreComponents do
   Renders a simple empty state component
   """
   attr :class, :any, default: nil
+  attr :id, :string, default: nil
   slot :inner_block, required: true
 
   def empty_state_simple(assigns) do
     ~H"""
-    <div class={["p-4 border border-dashed border-ltrn-light rounded", @class]}>
+    <div class={["p-4 border border-dashed border-ltrn-light rounded", @class]} id={@id}>
       <p class="text-sm text-ltrn-subtle text-center"><%= render_slot(@inner_block) %></p>
     </div>
-    """
-  end
-
-  @doc """
-  Renders a filter text button.
-  """
-
-  attr :items, :list, required: true
-  attr :item_key, :any, default: :name
-  attr :type, :string, required: true
-  attr :max_items, :integer, default: 3
-  attr :class, :any, default: nil
-  attr :on_click, JS, default: %JS{}
-
-  def filter_text_button(%{items: []} = assigns) do
-    ~H"""
-    <button type="button" phx-click={@on_click} class={["underline hover:text-ltrn-primary", @class]}>
-      <%= gettext("all %{type}", type: @type) %>
-    </button>
-    """
-  end
-
-  def filter_text_button(assigns) do
-    %{
-      items: items,
-      type: type,
-      max_items: max_items,
-      item_key: item_key
-    } = assigns
-
-    items =
-      if length(items) > max_items do
-        {initial, rest} = Enum.split(items, max_items - 1)
-
-        initial
-        |> Enum.map_join(" / ", &Map.get(&1, item_key))
-        |> Kernel.<>(" / + #{length(rest)} #{type}")
-      else
-        items
-        |> Enum.map_join(" / ", &Map.get(&1, item_key))
-      end
-
-    assigns = assign(assigns, :items, items)
-
-    ~H"""
-    <button type="button" phx-click={@on_click} class={["underline hover:text-ltrn-primary", @class]}>
-      <%= @items %>
-    </button>
     """
   end
 
@@ -1185,9 +1248,25 @@ defmodule LantternWeb.CoreComponents do
   attr :person, :map, required: true, doc: "any map with `name` attr"
   attr :theme, :string, default: "subtle", doc: "subtle | cyan"
   attr :on_remove, JS, default: nil
+  attr :size, :string, default: "xs", doc: "xs | sm"
+  attr :truncate, :boolean, default: false
   attr :rest, :global
 
   def person_badge(assigns) do
+    {text_size, profile_icon_size} =
+      case assigns.size do
+        "sm" -> {"text-sm", "sm"}
+        _ -> {"text-xs", "xs"}
+      end
+
+    name_w = if assigns.truncate, do: "max-w-24"
+
+    assigns =
+      assigns
+      |> assign(:text_size, text_size)
+      |> assign(:profile_icon_size, profile_icon_size)
+      |> assign(:name_w, name_w)
+
     ~H"""
     <span
       id={@id}
@@ -1195,10 +1274,11 @@ defmodule LantternWeb.CoreComponents do
         "flex items-center gap-2 p-1 rounded-full",
         person_badge_theme_style(@theme)
       ]}
+      title={if @truncate, do: @person.name}
       {@rest}
     >
-      <.profile_icon profile_name={@person.name} size="xs" theme={@theme} />
-      <span class="max-w-[7rem] pr-1 text-xs truncate">
+      <.profile_icon profile_name={@person.name} size={@profile_icon_size} theme={@theme} />
+      <span class={["pr-1 truncate", @text_size, @name_w]}>
         <%= @person.name %>
       </span>
       <div :if={@on_remove} class="pr-1 -ml-1">
@@ -1398,9 +1478,12 @@ defmodule LantternWeb.CoreComponents do
     <div
       id={@id}
       class={[
-        "flex items-stretch gap-6 py-10 px-6 pb-20 mx-auto overflow-x-auto",
-        "sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:px-10 sm:overflow-x-visible",
-        if(assigns.is_full_width, do: "2xl:grid-cols-4", else: "container lg:max-w-5xl"),
+        "flex items-stretch gap-6 mx-auto overflow-x-auto overflow-y-visible",
+        "sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:overflow-x-visible",
+        if(assigns.is_full_width,
+          do: "xl:grid-cols-4 2xl:grid-cols-5",
+          else: "container lg:max-w-5xl"
+        ),
         @class
       ]}
       {@rest}

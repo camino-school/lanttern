@@ -11,7 +11,7 @@ defmodule LantternWeb.Dataviz.LantternVizComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <div :if={@has_data} class={["flex gap-6 px-10", @class]}>
+      <div :if={@has_data} class={["flex gap-4", @class]}>
         <div class="relative flex-1 h-[60vh] min-h-[20rem]">
           <canvas id={@id} phx-hook="LantternViz" class="w-full h-full rounded-lg bg-ltrn-primary/20">
           </canvas>
@@ -21,7 +21,7 @@ defmodule LantternWeb.Dataviz.LantternVizComponent do
               <li class="flex items-center gap-1" id="main-layer">
                 <span class="shrink-0 w-4 border-t-2 border-ltrn-dark" />
                 <.link
-                  navigate={~p"/strands/#{@strand_id}?tab=assessment"}
+                  navigate={~p"/strands/#{@strand_id}/assessment"}
                   class="underline hover:opacity-50 truncate"
                 >
                   <%= gettext("Final assessment") %>
@@ -34,7 +34,7 @@ defmodule LantternWeb.Dataviz.LantternVizComponent do
               >
                 <span class="shrink-0 w-4 border-t-2 border-dotted border-ltrn-subtle"></span>
                 <.link
-                  navigate={~p"/strands/moment/#{moment.id}?tab=assessment"}
+                  navigate={~p"/strands/moment/#{moment.id}/assessment"}
                   class="underline truncate hover:opacity-50"
                 >
                   <%= moment.name %>

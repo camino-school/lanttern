@@ -3,10 +3,9 @@ defmodule LantternWeb.ReportCardLive.StudentsTrackingComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Reporting
-  alias Lanttern.Schools
 
   import LantternWeb.FiltersHelpers,
-    only: [assign_user_filters: 3, save_profile_filters: 3]
+    only: [assign_report_card_linked_student_classes_filter: 2, save_profile_filters: 3]
 
   # shared
   alias LantternWeb.Filters.InlineFiltersComponent
@@ -15,23 +14,16 @@ defmodule LantternWeb.ReportCardLive.StudentsTrackingComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="py-10">
-      <.responsive_container>
-        <h5 class="font-display font-bold text-2xl">
-          <%= gettext("Students moments assessment tracking") %>
-        </h5>
-        <p class="mt-2">
-          <%= gettext("Track progress of all students linked in the students tab.") %>
-        </p>
+    <div>
+      <.action_bar>
         <.live_component
           module={InlineFiltersComponent}
           id="linked-students-grades-classes-filter"
           filter_items={@linked_students_classes}
           selected_items_ids={@selected_linked_students_classes_ids}
-          class="mt-4"
           notify_component={@myself}
         />
-      </.responsive_container>
+      </.action_bar>
       <%= if !@has_students do %>
         <div class="container mx-auto mt-4 lg:max-w-5xl">
           <div class="p-10 rounded shadow-xl bg-white">
@@ -41,14 +33,12 @@ defmodule LantternWeb.ReportCardLive.StudentsTrackingComponent do
           </div>
         </div>
       <% else %>
-        <div class="p-6">
-          <.students_moments_entries_grid
-            students_stream={@streams.students}
-            strands={@strands}
-            has_students={@has_students}
-            students_entries_map={@students_entries_map}
-          />
-        </div>
+        <.students_moments_entries_grid
+          students_stream={@streams.students}
+          strands={@strands}
+          has_students={@has_students}
+          students_entries_map={@students_entries_map}
+        />
       <% end %>
     </div>
     """
@@ -79,9 +69,7 @@ defmodule LantternWeb.ReportCardLive.StudentsTrackingComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign_user_filters([:classes, :linked_students_classes],
-        report_card_id: assigns.report_card.id
-      )
+      |> assign_report_card_linked_student_classes_filter(assigns.report_card)
       |> stream_report_card_strands()
       |> assign_students_entries_grid()
 
@@ -101,9 +89,10 @@ defmodule LantternWeb.ReportCardLive.StudentsTrackingComponent do
 
   defp assign_students_entries_grid(socket) do
     students =
-      Schools.list_students(
-        report_card_id: socket.assigns.report_card.id,
-        classes_ids: socket.assigns.selected_linked_students_classes_ids
+      Reporting.list_students_linked_to_report_card(
+        socket.assigns.report_card,
+        classes_ids: socket.assigns.selected_linked_students_classes_ids,
+        students_only: true
       )
 
     students_ids =

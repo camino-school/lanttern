@@ -83,7 +83,8 @@ defmodule LantternWeb.ReportingComponents do
       assigns.report_card.cover_image_url
       |> object_url_to_render_url(width: 400, height: 200)
 
-    assigns = assign(assigns, :cover_image_url, cover_image_url)
+    assigns =
+      assign(assigns, :cover_image_url, cover_image_url)
 
     ~H"""
     <div
@@ -99,25 +100,20 @@ defmodule LantternWeb.ReportingComponents do
       />
       <div class="flex-1 flex flex-col gap-6 p-6">
         <h5 class={[
-          "font-display font-black text-2xl line-clamp-3",
-          "md:text-3xl"
+          "font-display font-black text-xl line-clamp-3",
+          "md:text-2xl md:leading-tight"
         ]}>
-          <.link :if={@navigate} navigate={@navigate} class="underline hover:text-ltrn-subtle">
+          <.link :if={@navigate} navigate={@navigate} class="hover:text-ltrn-subtle">
             <%= @report_card.name %>
           </.link>
-          <a
-            :if={@open_in_new}
-            href={@open_in_new}
-            target="_blank"
-            class="underline hover:text-ltrn-subtle"
-          >
+          <a :if={@open_in_new} href={@open_in_new} target="_blank" class="hover:text-ltrn-subtle">
             <%= @report_card.name %>
           </a>
           <span :if={!@navigate && !@open_in_new} class={if @is_wip, do: "text-ltrn-subtle"}>
             <%= @report_card.name %>
           </span>
         </h5>
-        <div :if={@cycle || @report_card.year} class="flex flex-wrap gap-2">
+        <div :if={@cycle || @year} class="flex flex-wrap gap-2">
           <.badge :if={@cycle}>
             <%= gettext("Cycle") %>: <%= @cycle.name %>
           </.badge>
@@ -380,7 +376,7 @@ defmodule LantternWeb.ReportingComponents do
 
     ~H"""
     <div class={[
-      "relative w-full max-h-[calc(100vh-4rem)] rounded bg-white shadow-xl overflow-x-auto",
+      "relative w-full max-h-screen bg-white shadow-xl overflow-x-auto",
       @class
     ]}>
       <div class="relative grid gap-1 w-max min-w-full" style={@grid_template_columns_style}>
@@ -393,7 +389,7 @@ defmodule LantternWeb.ReportingComponents do
             <a
               :for={strand <- @strands}
               id={"moments-entries-grid-strand-#{strand.id}"}
-              href={"/strands/#{strand.id}?tab=assessment"}
+              href={"/strands/#{strand.id}/assessment"}
               target="_blank"
               class="w-full p-1 rounded-sm border border-ltrn-lighter text-center truncate bg-white hover:bg-ltrn-lighter"
               style={"grid-column: span #{strand.assessment_points_count} / span #{strand.assessment_points_count}"}
@@ -427,7 +423,7 @@ defmodule LantternWeb.ReportingComponents do
               <%= for strand <- @strands do %>
                 <%= for {moment_id, assessment_point_id, entry} <- @students_entries_map[student.id][strand.id] do %>
                   <a
-                    href={"/strands/moment/#{moment_id}?tab=assessment"}
+                    href={"/strands/moment/#{moment_id}/assessment"}
                     target="_blank"
                     class="block w-min rounded-sm outline-ltrn-primary text-center hover:outline"
                   >

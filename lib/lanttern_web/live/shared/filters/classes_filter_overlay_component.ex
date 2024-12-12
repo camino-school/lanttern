@@ -8,9 +8,8 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
   attr :current_user, Lanttern.Identity.User, required: true
   attr :title, :string, required: true
   attr :navigate, :string
-  attr :filter_opts, :list, default: [], doc: "opts used in `assign_user_filters/3`"
-  attr :classes, :list, doc: "if `classes` and `selected_classes_ids` are given, this component skips `assign_user_filters/3`"
-  attr :selected_classes_ids, :list, doc: "if `classes` and `selected_classes_ids` are given, this component skips `assign_user_filters/3`"
+  attr :classes, :list, required: true
+  attr :selected_classes_ids, :list, required: true
   ```
   """
 
@@ -67,7 +66,6 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
     socket =
       socket
       |> assign(:has_changes, false)
-      |> assign(:filter_opts, [])
 
     {:ok, socket}
   end
@@ -77,19 +75,9 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
     socket =
       socket
       |> assign(assigns)
-      |> maybe_assign_user_filters()
 
     {:ok, socket}
   end
-
-  defp maybe_assign_user_filters(
-         %{assigns: %{classes: classes, selected_classes_ids: selected_classes_ids}} = socket
-       )
-       when is_list(classes) and is_list(selected_classes_ids),
-       do: socket
-
-  defp maybe_assign_user_filters(socket),
-    do: assign_user_filters(socket, [:classes], socket.assigns.filter_opts)
 
   # event handlers
 
@@ -110,8 +98,7 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
   def handle_event("clear_filters", _, socket) do
     clear_profile_filters(
       socket.assigns.current_user,
-      [:classes],
-      socket.assigns.filter_opts
+      [:classes]
     )
 
     {:noreply, handle_navigation(socket)}
@@ -120,7 +107,7 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
   def handle_event("apply_filters", _, socket) do
     socket =
       socket
-      |> save_profile_filters([:classes], socket.assigns.filter_opts)
+      |> save_profile_filters([:classes])
       |> assign(:has_changes, false)
       |> handle_navigation()
 

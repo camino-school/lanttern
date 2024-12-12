@@ -31,7 +31,7 @@ defmodule LantternWeb.StrandLive.NotesComponentTest do
           "description" => "moment 2 note desc abc"
         })
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}?tab=notes")
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}/notes")
       assert view |> has_element?("p", note.description)
       assert view |> has_element?("a", moment_1.name)
       assert view |> has_element?("p", moment_note_1.description)
@@ -41,7 +41,7 @@ defmodule LantternWeb.StrandLive.NotesComponentTest do
 
     test "create note", %{conn: conn} do
       strand = LearningContextFixtures.strand_fixture()
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}?tab=notes")
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}/notes")
 
       assert view |> has_element?("p", "You don't have any notes for this strand yet")
 

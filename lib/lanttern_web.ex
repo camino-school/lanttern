@@ -94,6 +94,7 @@ defmodule LantternWeb do
       import Phoenix.HTML
       # Core UI components and translation
       import LantternWeb.CoreComponents
+      import LantternWeb.NeoComponents
       import LantternWeb.NavigationComponents
       import LantternWeb.FormComponents
       import LantternWeb.OverlayComponents

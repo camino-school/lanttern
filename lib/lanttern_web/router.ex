@@ -70,10 +70,13 @@ defmodule LantternWeb.Router do
       live "/dashboard", DashboardLive, :index
 
       live "/school", SchoolLive, :show
-      live "/school/students", SchoolLive, :view_students
-      live "/school/classes", SchoolLive, :view_classes
+      live "/school/students", SchoolLive, :manage_students
+      live "/school/classes", SchoolLive, :manage_classes
+      live "/school/cycles", SchoolLive, :manage_cycles
 
       live "/school/students/:id", StudentLive, :show
+      live "/school/students/:id/report_cards", StudentLive, :report_cards
+      live "/school/students/:id/grades_reports", StudentLive, :grades_reports
 
       live "/assessment_points/:id", AssessmentPointLive, :show
       live "/assessment_points/:id/edit", AssessmentPointLive, :edit
@@ -84,16 +87,19 @@ defmodule LantternWeb.Router do
            :feedback
 
       live "/strands", StrandsLive, :index
-      live "/strands/new", StrandsLive, :new
+      live "/strands/library", StrandsLibraryLive, :index
+      live "/strands/library/new", StrandsLibraryLive, :new
+
       live "/strands/:id", StrandLive, :show
-      live "/strands/:id/edit", StrandLive, :edit
-      live "/strands/:id/goal/new", StrandLive, :new_goal
-      live "/strands/:id/goal/edit", StrandLive, :edit_goal
-      live "/strands/:id/new_moment", StrandLive, :new_moment
-      live "/strands/:id/rubric/manage", StrandLive, :manage_rubric
+      live "/strands/:id/rubrics", StrandLive, :rubrics
+      live "/strands/:id/assessment", StrandLive, :assessment
+      live "/strands/:id/moments", StrandLive, :moments
+      live "/strands/:id/notes", StrandLive, :notes
+
       live "/strands/moment/:id", MomentLive, :show
-      live "/strands/moment/:id/edit", MomentLive, :edit
-      live "/strands/moment/:id/edit_card", MomentLive, :edit_card
+      live "/strands/moment/:id/assessment", MomentLive, :assessment
+      live "/strands/moment/:id/cards", MomentLive, :cards
+      live "/strands/moment/:id/notes", MomentLive, :notes
 
       live "/rubrics", RubricsLive, :index
       live "/rubrics/new", RubricsLive, :new
@@ -109,6 +115,10 @@ defmodule LantternWeb.Router do
       live "/report_cards", ReportCardsLive, :index
       live "/report_cards/new", ReportCardsLive, :new
       live "/report_cards/:id", ReportCardLive, :show
+      live "/report_cards/:id/students", ReportCardLive, :students
+      live "/report_cards/:id/strands", ReportCardLive, :strands
+      live "/report_cards/:id/grades", ReportCardLive, :grades
+      live "/report_cards/:id/tracking", ReportCardLive, :tracking
 
       # grading
 
@@ -119,7 +129,6 @@ defmodule LantternWeb.Router do
 
       live "/students_records", StudentsRecordsLive, :index
       live "/students_records/:id", StudentRecordLive, :show
-      live "/students_records/:id/edit", StudentRecordLive, :edit
     end
 
     live_session :authenticated_guardian,

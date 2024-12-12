@@ -15,7 +15,7 @@
     <%= gettext("No starred strands yet") %>
   </.empty_state>
 <% else %>
-  <.responsive_grid id="starred-strands-grid" phx-update="stream">
+  <.responsive_grid id="starred-strands-grid" phx-update="stream" class="px-6 py-10 sm:px-10">
     <.strand_card
       :for={{dom_id, strand} <- @streams.starred_strands}
       id={dom_id}

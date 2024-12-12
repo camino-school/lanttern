@@ -243,7 +243,7 @@ defmodule LantternWeb.AssessmentPointLive do
             assessment_point_id: assessment_point.id,
             load_feedback: true
           )
-          # to do: move sort to list_assessment_point_entries
+          # todo: move sort to list_assessment_point_entries
           |> Enum.sort_by(& &1.student.name)
 
         ordinal_values =
@@ -356,7 +356,7 @@ defmodule LantternWeb.AssessmentPointLive do
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{}} ->
-        # to do: where should we display this error?
+        # todo: where should we display this error?
         {:noreply, socket}
     end
   end
@@ -374,7 +374,7 @@ defmodule LantternWeb.AssessmentPointLive do
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{}} ->
-        # to do: where should we display this error?
+        # todo: where should we display this error?
         {:noreply, socket}
     end
   end

@@ -78,14 +78,6 @@ defmodule LantternWeb.Filters.FiltersOverlayComponent do
     }
   end
 
-  defp get_filter_groups_attrs(:cycles, assigns) do
-    %{
-      type: "cycles",
-      items: assigns.cycles,
-      selected_ids: assigns.selected_cycles_ids
-    }
-  end
-
   # lifecycle
 
   @impl true
@@ -103,10 +95,7 @@ defmodule LantternWeb.Filters.FiltersOverlayComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign_user_filters(
-        [filter_type],
-        Map.get(assigns, :filter_opts, [])
-      )
+      |> assign_user_filters([filter_type])
 
     {:ok, socket}
   end

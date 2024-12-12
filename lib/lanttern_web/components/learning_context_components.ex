@@ -74,13 +74,13 @@ defmodule LantternWeb.LearningContextComponents do
       ]}>
         <div>
           <h5 class={[
-            "font-display font-black text-2xl line-clamp-3",
-            "md:text-3xl"
+            "font-display font-black text-xl line-clamp-3",
+            "md:text-2xl md:leading-tight"
           ]}>
             <%= if @navigate do %>
               <.link
                 navigate={@navigate}
-                class="underline hover:text-ltrn-subtle"
+                class="hover:text-ltrn-subtle"
                 target={if @open_in_new, do: "_blank"}
               >
                 <%= @strand.name %>
@@ -106,6 +106,48 @@ defmodule LantternWeb.LearningContextComponents do
         </div>
       </div>
       <%= render_slot(@bottom_content) %>
+    </.card_base>
+    """
+  end
+
+  @doc """
+  Renders a mini strand card.
+  """
+  attr :strand, Strand, required: true, doc: "Requires subjects + years preloads"
+  attr :id, :string, default: nil
+  attr :class, :any, default: nil
+
+  def mini_strand_card(assigns) do
+    cover_image_url =
+      assigns.strand.cover_image_url
+      |> object_url_to_render_url(width: 400, height: 200)
+
+    assigns = assign(assigns, :cover_image_url, cover_image_url)
+
+    ~H"""
+    <.card_base class={["overflow-hidden", @class]} id={@id}>
+      <div
+        class="w-full h-32 bg-center bg-cover"
+        style={"background-image: url('#{@cover_image_url || "/images/cover-placeholder-sm.jpg"}')"}
+      >
+        <span class="sr-only"><%= gettext("Cover image") %></span>
+      </div>
+      <div class="p-4">
+        <h6 class="font-display font-black text-base leading-tight">
+          <%= @strand.name %>
+        </h6>
+        <p :if={@strand.type} class="mt-2 font-display font-black text-sm text-ltrn-subtle">
+          <%= @strand.type %>
+        </p>
+        <div class="flex flex-wrap gap-2 mt-4">
+          <.badge :for={subject <- @strand.subjects}>
+            <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
+          </.badge>
+          <.badge :for={year <- @strand.years}>
+            <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", year.name) %>
+          </.badge>
+        </div>
+      </div>
     </.card_base>
     """
   end

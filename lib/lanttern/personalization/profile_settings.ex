@@ -10,12 +10,15 @@ defmodule Lanttern.Personalization.ProfileSettings do
 
   alias Lanttern.Identity.Profile
   alias Lanttern.Personalization
+  alias Lanttern.Schools.Cycle
 
   @type t :: %__MODULE__{
           id: pos_integer(),
           permissions: [binary()],
           profile: Profile.t(),
           profile_id: pos_integer(),
+          current_school_cycle: Cycle.t(),
+          current_school_cycle_id: pos_integer(),
           current_filters: current_filters(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
@@ -30,12 +33,14 @@ defmodule Lanttern.Personalization.ProfileSettings do
           assessment_group_by: String.t(),
           students_ids: [pos_integer()],
           student_record_types_ids: [pos_integer()],
-          student_record_statuses_ids: [pos_integer()]
+          student_record_statuses_ids: [pos_integer()],
+          only_starred_strands: boolean()
         }
 
   schema "profile_settings" do
     field :permissions, {:array, :string}, default: []
     belongs_to :profile, Profile
+    belongs_to :current_school_cycle, Cycle
 
     embeds_one :current_filters, CurrentFilters, on_replace: :delete, primary_key: false do
       field :classes_ids, {:array, :id}
@@ -47,6 +52,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
       field :students_ids, {:array, :id}
       field :student_record_types_ids, {:array, :id}
       field :student_record_statuses_ids, {:array, :id}
+      field :only_starred_strands, :boolean, default: false
     end
 
     timestamps()
@@ -55,7 +61,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
   @doc false
   def changeset(profile_settings, attrs) do
     profile_settings
-    |> cast(attrs, [:profile_id, :permissions])
+    |> cast(attrs, [:profile_id, :current_school_cycle_id, :permissions])
     |> validate_required([:profile_id])
     |> cast_embed(:current_filters, with: &current_filters_changeset/2)
     |> validate_change(:permissions, fn :permissions, permissions ->
@@ -78,7 +84,8 @@ defmodule Lanttern.Personalization.ProfileSettings do
       :assessment_group_by,
       :students_ids,
       :student_record_types_ids,
-      :student_record_statuses_ids
+      :student_record_statuses_ids,
+      :only_starred_strands
     ])
     |> validate_change(:assessment_view, fn :assessment_view, view ->
       if view in ["teacher", "student", "compare"],

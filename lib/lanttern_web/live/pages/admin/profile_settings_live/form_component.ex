@@ -78,9 +78,9 @@ defmodule LantternWeb.Admin.ProfileSettingsLive.FormComponent do
         permissions -> permissions
       end
 
-    case Personalization.set_profile_permissions(
+    case Personalization.set_profile_settings(
            socket.assigns.profile_settings.profile_id,
-           permissions
+           %{permissions: permissions}
          ) do
       {:ok, profile_settings} ->
         notify_parent({:saved, profile_settings})

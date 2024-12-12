@@ -6,8 +6,90 @@ defmodule LantternWeb.NavigationComponents do
 
   alias Phoenix.LiveView.JS
   import LantternWeb.Gettext
-
   import LantternWeb.CoreComponents
+
+  @doc """
+  Renders the page header with navigation items.
+  """
+  attr :current_user, Lanttern.Identity.User, required: true
+
+  slot :title, required: true
+  slot :inner_block
+
+  slot :breadcrumb do
+    attr :navigate, :string
+    attr :title, :string
+
+    attr :is_info, :boolean,
+      doc: "use this attr to render an info icon before the item with hover interaction"
+  end
+
+  def header_nav(assigns) do
+    has_breadcrumb = assigns.breadcrumb != []
+
+    %{school_name: school_name, current_school_cycle: current_cycle} =
+      assigns.current_user.current_profile
+
+    assigns =
+      assigns
+      |> assign(:has_breadcrumb, has_breadcrumb)
+      |> assign(:school_name, school_name)
+      |> assign(:current_cycle, current_cycle)
+
+    ~H"""
+    <header class="sticky top-0 z-30 bg-white ltrn-bg-main shadow-lg">
+      <div class="flex items-center gap-4 p-4">
+        <%!-- min-w-0 to "fix" truncate (https://css-tricks.com/flexbox-truncated-text/) --%>
+        <div class="flex-1 flex items-center gap-2 min-w-0">
+          <%= for breadcrumb <- @breadcrumb do %>
+            <%= if Map.get(breadcrumb, :is_info) do %>
+              <.breadcrumb_floating_info>
+                <%= render_slot(breadcrumb) %>
+              </.breadcrumb_floating_info>
+            <% else %>
+              <.link
+                navigate={breadcrumb.navigate}
+                class="max-w-60 font-display font-black text-lg text-ltrn-subtle truncate hover:text-ltrn-dark"
+                title={Map.get(breadcrumb, :title)}
+              >
+                <%= render_slot(breadcrumb) %>
+              </.link>
+              <span class="font-display font-black text-lg text-ltrn-subtle">/</span>
+            <% end %>
+          <% end %>
+          <h1 class="font-display font-black text-lg truncate"><%= render_slot(@title) %></h1>
+        </div>
+        <button
+          type="button"
+          class="flex gap-2 items-center hover:text-ltrn-subtle"
+          phx-click={JS.exec("data-show", to: "#menu")}
+          aria-label="open menu"
+        >
+          <p class="font-display font-bold">
+            <%= "#{@school_name}" %>
+            <span :if={@current_cycle}><%= @current_cycle.name %></span>
+          </p>
+          <.icon name="hero-bars-3-mini" class="w-5 h-5" />
+        </button>
+      </div>
+      <%= render_slot(@inner_block) %>
+    </header>
+    """
+  end
+
+  defp breadcrumb_floating_info(assigns) do
+    ~H"""
+    <div class="group relative" tabindex="0">
+      <.icon
+        name="hero-information-circle-mini"
+        class="text-ltrn-dark group-hover:text-ltrn-subtle group-focus:text-ltrn-subtle"
+      />
+      <div class="hidden absolute top-[calc(100%+0.5rem)] left-0 z-10 group-hover:block group-focus:block">
+        <%= render_slot(@inner_block) %>
+      </div>
+    </div>
+    """
+  end
 
   @doc """
   Renders navigation tabs.

@@ -8,7 +8,16 @@ defmodule LantternWeb.Admin.ReportCardLiveTest do
   @invalid_attrs %{name: nil, description: nil}
 
   defp create_report_card(_) do
-    report_card = report_card_fixture()
+    school = Lanttern.SchoolsFixtures.school_fixture()
+    parent_cycle = Lanttern.SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+
+    school_cycle =
+      Lanttern.SchoolsFixtures.cycle_fixture(%{
+        school_id: school.id,
+        parent_cycle_id: parent_cycle.id
+      })
+
+    report_card = report_card_fixture(%{school_cycle_id: school_cycle.id})
     %{report_card: report_card}
   end
 
@@ -25,7 +34,15 @@ defmodule LantternWeb.Admin.ReportCardLiveTest do
     end
 
     test "saves new report_card", %{conn: conn} do
-      school_cycle = Lanttern.SchoolsFixtures.cycle_fixture()
+      school = Lanttern.SchoolsFixtures.school_fixture()
+      parent_cycle = Lanttern.SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+
+      school_cycle =
+        Lanttern.SchoolsFixtures.cycle_fixture(%{
+          school_id: school.id,
+          parent_cycle_id: parent_cycle.id
+        })
+
       year = Lanttern.TaxonomyFixtures.year_fixture()
 
       {:ok, index_live, _html} = live(conn, ~p"/admin/report_cards")

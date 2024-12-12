@@ -164,7 +164,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
 
   defp assign_cycles(%{assigns: %{initialized: false}} = socket) do
     school_id = socket.assigns.class.school_id
-    cycles = Schools.list_cycles(schools_ids: [school_id])
+    cycles = Schools.list_cycles(schools_ids: [school_id], parent_cycles_only: true)
     assign(socket, :cycles, cycles)
   end
 

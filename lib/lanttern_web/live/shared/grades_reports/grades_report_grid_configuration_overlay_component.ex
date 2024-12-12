@@ -21,18 +21,12 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
           <%= gettext("%{grades_report} grid configuration", grades_report: @grades_report.name) %>
         </:title>
         <h5 class="mb-4 font-display font-black text-lg"><%= gettext("Grid subcycles") %></h5>
-        <div class="flex-1 flex flex-wrap gap-2">
-          <.badge_button
-            :for={cycle <- @cycles}
-            theme={if cycle.id in @selected_cycles_ids, do: "primary", else: "default"}
-            icon_name={
-              if cycle.id in @selected_cycles_ids, do: "hero-check-mini", else: "hero-plus-mini"
-            }
-            phx-click={JS.push("toggle_cycle", value: %{"id" => cycle.id}, target: @myself)}
-          >
-            <%= cycle.name %>
-          </.badge_button>
-        </div>
+        <.badge_button_picker
+          id="grades-report-subcycles-select"
+          on_select={&JS.push("toggle_cycle", value: %{"id" => &1}, target: @myself)}
+          items={@subcycles}
+          selected_ids={@selected_cycles_ids}
+        />
         <%= if @grades_report_cycles == [] do %>
           <div class="p-4 rounded mt-4 text-ltrn-subtle bg-ltrn-lighter">
             <%= gettext("No subcycles linked") %>
@@ -180,32 +174,78 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
   # lifecycle
 
   @impl true
+  def mount(socket) do
+    socket =
+      socket
+      |> assign(:initialized, false)
+
+    {:ok, socket}
+  end
+
+  @impl true
   def update(assigns, socket) do
-    %{grades_report: grades_report} = assigns
-
-    cycles =
-      Schools.list_cycles()
-      |> Enum.filter(&(&1.id != grades_report.school_cycle_id))
-
-    grades_report_cycles = GradesReports.list_grades_report_cycles(grades_report.id)
-    selected_cycles_ids = grades_report_cycles |> Enum.map(& &1.school_cycle_id)
-
-    subjects = Taxonomy.list_subjects()
-    grades_report_subjects = GradesReports.list_grades_report_subjects(grades_report.id)
-    selected_subjects_ids = grades_report_subjects |> Enum.map(& &1.subject.id)
-    sortable_grades_report_subjects = grades_report_subjects |> Enum.with_index()
-
     socket =
       socket
       |> assign(assigns)
-      |> assign(:cycles, cycles)
-      |> assign(:grades_report_cycles, grades_report_cycles)
-      |> assign(:selected_cycles_ids, selected_cycles_ids)
-      |> assign(:subjects, subjects)
-      |> assign(:selected_subjects_ids, selected_subjects_ids)
-      |> assign(:sortable_grades_report_subjects, sortable_grades_report_subjects)
+      |> initialize()
 
     {:ok, socket}
+  end
+
+  defp initialize(%{assigns: %{initialized: false}} = socket) do
+    socket
+    |> assign_grades_report_cycles()
+    |> assign_subcycles()
+    |> assign_subjects()
+    |> assign(:initialized, true)
+  end
+
+  defp initialize(socket), do: socket
+
+  defp assign_grades_report_cycles(socket) do
+    grades_report_cycles =
+      GradesReports.list_grades_report_cycles(socket.assigns.grades_report.id)
+
+    selected_cycles_ids = grades_report_cycles |> Enum.map(& &1.school_cycle_id)
+
+    socket
+    |> assign(:grades_report_cycles, grades_report_cycles)
+    |> assign(:selected_cycles_ids, selected_cycles_ids)
+  end
+
+  defp assign_subcycles(socket) do
+    school_cycle_id = socket.assigns.grades_report.school_cycle_id
+    subcycles = Schools.list_cycles(subcycles_of_parent_id: school_cycle_id)
+
+    # also include selected cycles that are subcycles of the current
+    # grades report cycle (grades report created in a cycle and "moved"
+    # to a different one).
+
+    subcycles_ids = Enum.map(subcycles, & &1.id)
+
+    selected_cycles_not_in_subcycles =
+      socket.assigns.grades_report_cycles
+      |> Enum.map(& &1.school_cycle)
+      |> Enum.filter(&(&1.id not in subcycles_ids))
+
+    subcycles = selected_cycles_not_in_subcycles ++ subcycles
+
+    assign(socket, :subcycles, subcycles)
+  end
+
+  defp assign_subjects(socket) do
+    subjects = Taxonomy.list_subjects()
+
+    grades_report_subjects =
+      GradesReports.list_grades_report_subjects(socket.assigns.grades_report.id)
+
+    selected_subjects_ids = grades_report_subjects |> Enum.map(& &1.subject.id)
+    sortable_grades_report_subjects = grades_report_subjects |> Enum.with_index()
+
+    socket
+    |> assign(:subjects, subjects)
+    |> assign(:selected_subjects_ids, selected_subjects_ids)
+    |> assign(:sortable_grades_report_subjects, sortable_grades_report_subjects)
   end
 
   # event handlers

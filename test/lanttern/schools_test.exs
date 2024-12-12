@@ -74,8 +74,8 @@ defmodule Lanttern.SchoolsTest do
       cycle = cycle_fixture(%{school_id: school.id})
 
       # extra cycles for school filter validation
-      class_fixture()
-      class_fixture()
+      cycle_fixture()
+      cycle_fixture()
 
       assert [cycle] == Schools.list_cycles(schools_ids: [school.id])
     end
@@ -91,15 +91,118 @@ defmodule Lanttern.SchoolsTest do
         cycle_fixture(%{start_at: ~D[2022-01-01], end_at: ~D[2022-12-31], name: "BBB"})
 
       assert [cycle_2022_b, cycle_2023_a, cycle_2024_c] ==
-               Schools.list_cycles(order_by: [asc: :end_at])
+               Schools.list_cycles(order: :asc)
+    end
 
-      assert [cycle_2024_c, cycle_2022_b, cycle_2023_a] ==
-               Schools.list_cycles(order_by: [desc: :name])
+    test "list_cycles/1 with parent_cycles_only: true opt removes subcycles from list" do
+      school = school_fixture()
+      parent_cycle = cycle_fixture(%{school_id: school.id})
+      _subcycle = cycle_fixture(%{school_id: school.id, parent_cycle_id: parent_cycle.id})
+
+      assert [parent_cycle] == Schools.list_cycles(parent_cycles_only: true)
+    end
+
+    test "list_cycles/1 with subcycles_only: true opt removes parent cycles from list" do
+      school = school_fixture()
+      parent_cycle = cycle_fixture(%{school_id: school.id})
+      subcycle = cycle_fixture(%{school_id: school.id, parent_cycle_id: parent_cycle.id})
+
+      assert [subcycle] == Schools.list_cycles(subcycles_only: true)
+    end
+
+    test "list_cycles/1 with subcycles_of_parent_id returns the subcycles of the given parent" do
+      school = school_fixture()
+      parent_cycle = cycle_fixture(%{school_id: school.id})
+      subcycle = cycle_fixture(%{school_id: school.id, parent_cycle_id: parent_cycle.id})
+
+      # other fixtures for filter testing
+      other_parent_cycle = cycle_fixture(%{school_id: school.id})
+
+      _other_subcycle =
+        cycle_fixture(%{school_id: school.id, parent_cycle_id: other_parent_cycle.id})
+
+      assert [subcycle] == Schools.list_cycles(subcycles_of_parent_id: parent_cycle.id)
+    end
+
+    test "list_cycles_and_subcycles/1 with school filter returns all cycles with preloaded subcycles as expected" do
+      school = school_fixture()
+
+      cycle_2024 =
+        cycle_fixture(%{school_id: school.id, start_at: ~D[2024-01-01], end_at: ~D[2024-12-31]})
+
+      cycle_2024_1 =
+        cycle_fixture(%{
+          school_id: school.id,
+          start_at: ~D[2024-01-01],
+          end_at: ~D[2024-06-30],
+          parent_cycle_id: cycle_2024.id
+        })
+
+      cycle_2024_2 =
+        cycle_fixture(%{
+          school_id: school.id,
+          start_at: ~D[2024-07-01],
+          end_at: ~D[2024-12-31],
+          parent_cycle_id: cycle_2024.id
+        })
+
+      cycle_2023 =
+        cycle_fixture(%{school_id: school.id, start_at: ~D[2023-01-01], end_at: ~D[2023-12-31]})
+
+      cycle_2023_1 =
+        cycle_fixture(%{
+          school_id: school.id,
+          start_at: ~D[2023-01-01],
+          end_at: ~D[2023-06-30],
+          parent_cycle_id: cycle_2023.id
+        })
+
+      cycle_2023_2 =
+        cycle_fixture(%{
+          school_id: school.id,
+          start_at: ~D[2023-07-01],
+          end_at: ~D[2023-12-31],
+          parent_cycle_id: cycle_2023.id
+        })
+
+      # extra cycles for school filter validation
+      cycle_fixture()
+      cycle_fixture()
+
+      [expected_cycle_2024, expected_cycle_2023] =
+        Schools.list_cycles_and_subcycles(schools_ids: [school.id])
+
+      assert expected_cycle_2024.id == cycle_2024.id
+      assert expected_cycle_2024.subcycles == [cycle_2024_2, cycle_2024_1]
+      assert expected_cycle_2023.id == cycle_2023.id
+      assert expected_cycle_2023.subcycles == [cycle_2023_2, cycle_2023_1]
     end
 
     test "get_cycle!/1 returns the cycle with given id" do
       cycle = cycle_fixture()
       assert Schools.get_cycle!(cycle.id) == cycle
+    end
+
+    test "get_newest_parent_cycle_from_school/1 returns the newest cycle from given school" do
+      school = school_fixture()
+
+      newest_cycle =
+        cycle_fixture(%{school_id: school.id, start_at: ~D[2030-01-01], end_at: ~D[2030-12-31]})
+
+      # other cycles for testing (newer but sub, older, from other school)
+      cycle_fixture(%{start_at: ~D[2031-01-01], end_at: ~D[2031-12-31]})
+
+      cycle_fixture(%{
+        school_id: school.id,
+        start_at: ~D[2031-01-01],
+        end_at: ~D[2031-12-31],
+        parent_cycle_id: newest_cycle.id
+      })
+
+      cycle_fixture(%{school_id: school.id, start_at: ~D[2029-01-01], end_at: ~D[2029-12-31]})
+      cycle_fixture()
+
+      assert Schools.get_newest_parent_cycle_from_school(school.id) == newest_cycle
     end
 
     test "create_cycle/1 with valid data creates a cycle" do
@@ -120,6 +223,25 @@ defmodule Lanttern.SchoolsTest do
 
     test "create_cycle/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} = Schools.create_cycle(@invalid_attrs)
+    end
+
+    test "create_cycle/1 prevents using subcycle as parent cycle" do
+      school = school_fixture()
+      parent_cycle = cycle_fixture(%{school_id: school.id})
+      subcycle = cycle_fixture(%{school_id: school.id, parent_cycle_id: parent_cycle.id})
+
+      create_attrs = %{
+        name: "some name",
+        start_at: ~D[2023-11-09],
+        end_at: ~D[2023-12-09],
+        school_id: school.id,
+        parent_cycle_id: subcycle.id
+      }
+
+      assert {:error,
+              %Ecto.Changeset{
+                errors: [parent_cycle_id: {"You can't use a subcycle as a parent cycle", []}]
+              }} = Schools.create_cycle(create_attrs)
     end
 
     test "update_cycle/2 with valid data updates the cycle" do
@@ -143,6 +265,23 @@ defmodule Lanttern.SchoolsTest do
       assert cycle == Schools.get_cycle!(cycle.id)
     end
 
+    test "update_cycle/2 prevents using subcycle as parent cycle" do
+      school = school_fixture()
+      parent_cycle = cycle_fixture(%{school_id: school.id})
+      subcycle = cycle_fixture(%{school_id: school.id, parent_cycle_id: parent_cycle.id})
+      cycle = cycle_fixture(%{school_id: school.id})
+
+      update_attrs = %{
+        name: "updated name",
+        parent_cycle_id: subcycle.id
+      }
+
+      assert {:error,
+              %Ecto.Changeset{
+                errors: [parent_cycle_id: {"You can't use a subcycle as a parent cycle", []}]
+              }} = Schools.update_cycle(cycle, update_attrs)
+    end
+
     test "delete_cycle/1 deletes the cycle" do
       cycle = cycle_fixture()
       assert {:ok, %Cycle{}} = Schools.delete_cycle(cycle)
@@ -162,7 +301,8 @@ defmodule Lanttern.SchoolsTest do
 
     test "list_classes/1 returns all classes" do
       class = class_fixture()
-      assert Schools.list_classes() == [class]
+      [expected] = Schools.list_classes()
+      assert expected.id == class.id
     end
 
     test "list_classes/1 with preloads and school filter returns all classes as expected" do
@@ -186,33 +326,10 @@ defmodule Lanttern.SchoolsTest do
       assert expected_class.years == [year]
     end
 
-    test "list_user_classes/1 returns all classes from user's school ordered correctly" do
-      school = school_fixture()
-      class_b = class_fixture(%{school_id: school.id, name: "BBB"})
-      class_a = class_fixture(%{school_id: school.id, name: "AAA"})
-      teacher = teacher_fixture(%{school_id: school.id})
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture(%{teacher_id: teacher.id})
+    test "list_classes/1 with opts returns all classes correctly" do
+      # in this test we'll apply school, cycle, and year filters
+      # and preload students, which should be ordered alphabetically
 
-      user =
-        %{current_profile: Lanttern.Identity.get_profile!(profile.id, preloads: :teacher)}
-        |> Map.update!(:current_profile, fn profile ->
-          %{
-            profile
-            | school_id: profile.teacher.school_id
-          }
-        end)
-
-      # extra classes for school filter validation
-      class_fixture()
-      class_fixture()
-
-      [expected_a, expected_b] = Schools.list_user_classes(user)
-
-      assert expected_a.id == class_a.id
-      assert expected_b.id == class_b.id
-    end
-
-    test "list_user_classes/1 with opts returns all classes from user's school correctly" do
       school = school_fixture()
 
       cycle_25 =
@@ -268,30 +385,16 @@ defmodule Lanttern.SchoolsTest do
       student_y = student_fixture(%{name: "YYY", classes_ids: [class_a_25.id]})
       student_z = student_fixture(%{name: "ZZZ", classes_ids: [class_a_25.id]})
 
-      teacher = teacher_fixture(%{school_id: school.id})
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture(%{teacher_id: teacher.id})
-
-      user =
-        %{
-          current_profile:
-            Lanttern.Identity.get_profile!(profile.id, preloads: :teacher, years_ids: [year.id])
-        }
-        |> Map.update!(:current_profile, fn profile ->
-          %{
-            profile
-            | school_id: profile.teacher.school_id
-          }
-        end)
-
       # extra classes for school filter validation
       class_fixture()
       class_fixture()
 
       [expected_a_25, expected_b_25, expected_a_24] =
-        Schools.list_user_classes(user,
-          preload_cycle_years_students: true,
+        Schools.list_classes(
+          schools_ids: [school.id],
           years_ids: [year.id],
-          cycles_ids: [cycle_24.id, cycle_25.id]
+          cycles_ids: [cycle_24.id, cycle_25.id],
+          preloads: :students
         )
 
       assert expected_a_25.id == class_a_25.id
@@ -310,6 +413,22 @@ defmodule Lanttern.SchoolsTest do
       assert expected_std_x.id == student_x.id
     end
 
+    test "list_user_classes/1 returns all classes from user's school correctly" do
+      school = school_fixture()
+      class = class_fixture(%{school_id: school.id})
+
+      # extra class for filtering test
+      _class_from_another_school = class_fixture()
+
+      teacher = teacher_fixture(%{school_id: school.id})
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture(%{teacher_id: teacher.id})
+
+      user = %Lanttern.Identity.User{current_profile: %{profile | school_id: school.id}}
+
+      [expected] = Schools.list_user_classes(user)
+      assert expected.id == class.id
+    end
+
     test "list_user_classes/1 returns error tuple when user is student" do
       school = school_fixture()
       student = student_fixture(%{school_id: school.id})
@@ -321,6 +440,29 @@ defmodule Lanttern.SchoolsTest do
       }
 
       assert {:error, "User not allowed to list classes"} == Schools.list_user_classes(user)
+    end
+
+    test "search_classes/2 returns all items matched by search" do
+      _class_1 = class_fixture(%{name: "lorem ipsum xolor sit amet"})
+      class_2 = class_fixture(%{name: "lorem ipsum dolor sit amet"})
+      class_3 = class_fixture(%{name: "lorem ipsum dolorxxx sit amet"})
+      _class_4 = class_fixture(%{name: "lorem ipsum xxxxx sit amet"})
+
+      [expected_2, expected_3] = Schools.search_classes("dolor")
+      assert expected_2.id == class_2.id
+      assert expected_3.id == class_3.id
+    end
+
+    test "search_classes/2 with school opt returns only classs from given school" do
+      school = school_fixture()
+
+      _class_1 = class_fixture(%{name: "lorem ipsum xolor sit amet"})
+      class_2 = class_fixture(%{name: "lorem ipsum dolor sit amet", school_id: school.id})
+      _class_3 = class_fixture(%{name: "lorem ipsum dolorxxx sit amet"})
+      _class_4 = class_fixture(%{name: "lorem ipsum xxxxx sit amet"})
+
+      [expected] = Schools.search_classes("dolor", schools_ids: [school.id])
+      assert expected.id == class_2.id
     end
 
     test "get_class/2 returns the class with given id" do
@@ -615,44 +757,6 @@ defmodule Lanttern.SchoolsTest do
 
       assert expected_2.id == student_2.id
       assert !expected_2.has_diff_rubric
-    end
-
-    test "list_students/1 with report card filter returns all students linked to given report card" do
-      class = class_fixture()
-
-      student_a = student_fixture(%{name: "AAA", classes_ids: [class.id]})
-      student_b = student_fixture(%{name: "BBB", classes_ids: [class.id]})
-
-      report_card = Lanttern.ReportingFixtures.report_card_fixture()
-
-      Lanttern.Reporting.create_student_report_card(%{
-        student_id: student_a.id,
-        report_card_id: report_card.id
-      })
-
-      Lanttern.Reporting.create_student_report_card(%{
-        student_id: student_b.id,
-        report_card_id: report_card.id
-      })
-
-      # other rubrics for testing
-      other_student = student_fixture(%{classes_ids: [class.id]})
-      other_report_card = Lanttern.ReportingFixtures.report_card_fixture()
-
-      Lanttern.Reporting.create_student_report_card(%{
-        student_id: other_student.id,
-        report_card_id: other_report_card.id
-      })
-
-      # assert
-      [expected_a, expected_b] =
-        Schools.list_students(report_card_id: report_card.id)
-
-      assert expected_a.id == student_a.id
-      assert expected_a.classes == [class]
-
-      assert expected_b.id == student_b.id
-      assert expected_b.classes == [class]
     end
 
     test "search_students/2 returns all items matched by search" do

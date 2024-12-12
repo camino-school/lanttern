@@ -6,79 +6,77 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
 
   import Lanttern.Utils, only: [swap: 3]
 
-  # live components
+  # shared components
   alias LantternWeb.LearningContext.MomentFormComponent
+  alias LantternWeb.Dataviz.LantternVizComponent
 
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="py-10">
-      <.responsive_container>
-        <div class="flex items-end justify-between mb-4">
-          <h3 class="font-display font-bold text-lg">
-            <%= gettext("Strand moments") %>
-          </h3>
-          <div class="shrink-0 flex items-center gap-6">
-            <.collection_action
-              :if={@moments_count > 1}
-              type="button"
-              phx-click={JS.exec("data-show", to: "#strand-moments-order-overlay")}
-              icon_name="hero-arrows-up-down"
-            >
-              <%= gettext("Reorder") %>
-            </.collection_action>
-            <.collection_action
-              type="link"
-              patch={~p"/strands/#{@strand}/new_moment"}
-              icon_name="hero-plus-circle"
-            >
-              <%= gettext("Create new moment") %>
-            </.collection_action>
-          </div>
+    <div>
+      <.action_bar class="flex items-center justify-between">
+        <p><%= gettext("Moments linked to this strand") %></p>
+        <div class="shrink-0 flex items-center gap-4">
+          <.action
+            :if={@moments_count > 1}
+            type="button"
+            phx-click={JS.exec("data-show", to: "#strand-moments-order-overlay")}
+            icon_name="hero-arrows-up-down-mini"
+          >
+            <%= gettext("Reorder") %>
+          </.action>
+          <.action
+            type="link"
+            patch={~p"/strands/#{@strand}/moments?new_moment=true"}
+            icon_name="hero-plus-circle-mini"
+          >
+            <%= gettext("Create new moment") %>
+          </.action>
         </div>
-        <%= if @moments_count == 0 do %>
-          <div class="p-10 rounded shadow-xl bg-white">
+      </.action_bar>
+      <%= if @moments_count == 0 do %>
+        <div class="p-4">
+          <.card_base class="p-10">
             <.empty_state><%= gettext("No moments for this strand yet") %></.empty_state>
-          </div>
-        <% else %>
-          <div phx-update="stream" id="strand-moments" class="flex flex-col gap-4">
-            <div
-              :for={{dom_id, {moment, i}} <- @streams.moments}
-              class="flex flex-col gap-6 p-6 rounded shadow-xl bg-white"
-              id={dom_id}
+          </.card_base>
+        </div>
+      <% else %>
+        <.responsive_grid phx-update="stream" id="strand-moments" class="p-4" is_full_width>
+          <.card_base :for={{dom_id, moment} <- @streams.moments} class="p-6" id={dom_id}>
+            <.link
+              navigate={~p"/strands/moment/#{moment.id}"}
+              class="font-display font-black text-xl hover:text-ltrn-subtle"
             >
-              <div class="flex items-center justify-between gap-6">
-                <.link
-                  navigate={~p"/strands/moment/#{moment.id}"}
-                  class="font-display font-black text-xl"
-                >
-                  <%= "#{i + 1}." %>
-                  <span class="underline"><%= moment.name %></span>
-                </.link>
-                <div class="shrink-0 flex gap-2">
-                  <.badge :for={subject <- moment.subjects}>
-                    <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
-                  </.badge>
-                </div>
-              </div>
-              <div class="line-clamp-6">
-                <.markdown text={moment.description} size="sm" />
-              </div>
+              <%= moment.name %>
+            </.link>
+            <div class="flex flex-wrap gap-2 mt-2">
+              <.badge :for={subject <- moment.subjects}>
+                <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
+              </.badge>
             </div>
-          </div>
-        <% end %>
-      </.responsive_container>
+            <div class="mt-6 line-clamp-6">
+              <.markdown text={moment.description} size="sm" />
+            </div>
+          </.card_base>
+        </.responsive_grid>
+      <% end %>
+      <.live_component
+        module={LantternVizComponent}
+        id="lanttern-viz"
+        class="px-4 py-10"
+        strand_id={@strand.id}
+      />
       <.slide_over
-        :if={@live_action == :new_moment}
+        :if={@moment}
         id="moment-form-overlay"
         show={true}
-        on_cancel={JS.patch(~p"/strands/#{@strand}?tab=moments")}
+        on_cancel={JS.patch(~p"/strands/#{@strand}/moments")}
       >
         <:title><%= gettext("New moment") %></:title>
         <.live_component
           module={MomentFormComponent}
           id={:new}
-          moment={%Moment{strand_id: @strand.id, subjects: []}}
+          moment={@moment}
           strand_id={@strand.id}
           action={:new}
           navigate={fn moment -> ~p"/strands/moment/#{moment}" end}
@@ -148,28 +146,47 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
   # lifecycle
 
   @impl true
-  def mount(socket) do
-    {:ok,
-     socket
-     |> stream_configure(
-       :moments,
-       dom_id: fn {moment, _i} -> "moment-#{moment.id}" end
-     )}
-  end
+  def mount(socket),
+    do: {:ok, assign(socket, :initialized, false)}
 
   @impl true
   def update(assigns, socket) do
-    moments =
-      LearningContext.list_moments(strands_ids: [assigns.strand.id], preloads: :subjects)
-      |> Enum.with_index()
+    socket =
+      socket
+      |> assign(assigns)
+      |> initialize()
+      |> assign_moment()
 
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign(:moments_count, length(moments))
-     |> stream(:moments, moments)
-     |> assign(:sortable_moments, moments)}
+    {:ok, socket}
   end
+
+  defp initialize(%{assigns: %{initialized: false}} = socket) do
+    socket
+    |> stream_moments()
+    |> assign(:initialized, true)
+  end
+
+  defp initialize(socket), do: socket
+
+  defp stream_moments(socket) do
+    moments =
+      LearningContext.list_moments(
+        strands_ids: [socket.assigns.strand.id],
+        preloads: :subjects
+      )
+
+    socket
+    |> assign(:moments_count, length(moments))
+    |> stream(:moments, moments)
+    |> assign(:sortable_moments, Enum.with_index(moments))
+  end
+
+  defp assign_moment(%{assigns: %{params: %{"new_moment" => "true"}}} = socket) do
+    moment = %Moment{strand_id: socket.assigns.strand.id, subjects: []}
+    assign(socket, :moment, moment)
+  end
+
+  defp assign_moment(socket), do: assign(socket, :moment, nil)
 
   # event handlers
 
@@ -194,9 +211,11 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
            moments_ids
          ) do
       {:ok, _moments} ->
-        {:noreply,
-         socket
-         |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}?tab=moments")}
+        socket =
+          socket
+          |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}/moments")
+
+        {:noreply, socket}
 
       {:error, _} ->
         {:noreply, socket}

@@ -8,6 +8,7 @@ defmodule Lanttern.Identity.Profile do
 
   alias Lanttern.Identity.User
   alias Lanttern.Notes.Note
+  alias Lanttern.Schools.Cycle
   alias Lanttern.Schools.Student
   alias Lanttern.Schools.Teacher
   alias Lanttern.Personalization.ProfileSettings
@@ -20,6 +21,7 @@ defmodule Lanttern.Identity.Profile do
           school_id: pos_integer(),
           school_name: String.t(),
           permissions: [String.t()],
+          current_school_cycle: Cycle.t(),
           user: User.t(),
           user_id: pos_integer(),
           student: Student.t(),
@@ -44,6 +46,7 @@ defmodule Lanttern.Identity.Profile do
     field :school_id, :id, virtual: true
     field :school_name, :string, virtual: true
     field :permissions, {:array, :string}, virtual: true, default: []
+    field :current_school_cycle, :map, default: nil, virtual: true
 
     belongs_to :user, User
     belongs_to :student, Student
