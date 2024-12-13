@@ -17,6 +17,7 @@ defmodule Lanttern.StudentsRecordsLog.StudentRecordLog do
     field :date, :date
     field :time, :time
     field :students_ids, {:array, :id}
+    field :classes_ids, {:array, :id}
     field :school_id, :id
     field :type_id, :id
     field :status_id, :id
@@ -36,6 +37,7 @@ defmodule Lanttern.StudentsRecordsLog.StudentRecordLog do
       :date,
       :time,
       :students_ids,
+      :classes_ids,
       :school_id,
       :type_id,
       :status_id
