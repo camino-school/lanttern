@@ -11,6 +11,7 @@ defmodule LantternWeb.StudentsRecordsLive do
 
   alias LantternWeb.Schools.StudentSearchComponent
   alias LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent
+  import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
 
   # lifecycle
 
@@ -48,7 +49,7 @@ defmodule LantternWeb.StudentsRecordsLive do
         students_ids: students_ids,
         types_ids: types_ids,
         statuses_ids: statuses_ids,
-        preloads: [:type, :status, :students],
+        preloads: [:type, :status, :students, [classes: :cycle]],
         first: 20,
         after: keyset
       )

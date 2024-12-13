@@ -20,6 +20,8 @@ defmodule LantternWeb.CoreComponents do
   import Phoenix.HTML, only: [raw: 1]
   import LantternWeb.Gettext
 
+  import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
+
   @doc """
   Renders a `<button>` or `<.link>` with icon.
 
@@ -155,7 +157,7 @@ defmodule LantternWeb.CoreComponents do
     <span
       id={@id}
       class={[
-        "inline-flex items-center rounded-sm px-1 py-1 font-mono font-normal text-xs",
+        "inline-flex items-center rounded-sm px-1 py-1 font-mono font-normal text-xs whitespace-nowrap",
         badge_theme(@theme),
         @class
       ]}
@@ -335,6 +337,8 @@ defmodule LantternWeb.CoreComponents do
     default: nil,
     doc: "supports \"class_with_cycle\" opt, which will render the class + cycle name"
 
+  attr :current_user, :any, default: nil, doc: "used when `label_setter` is \"class_with_cycle\""
+
   attr :on_select, :any,
     required: true,
     doc: "expects a function with arity 1. will receive the `item.id` as arg"
@@ -358,7 +362,7 @@ defmodule LantternWeb.CoreComponents do
         phx-click={@on_select.(item.id)}
       >
         <%= case @label_setter do
-          "class_with_cycle" -> "#{item.name} (#{item.cycle.name})"
+          "class_with_cycle" -> class_with_cycle(item, @current_user)
           _ -> item.name
         end %>
       </.badge_button>
@@ -704,7 +708,7 @@ defmodule LantternWeb.CoreComponents do
       |> assign(:grid_col_span_style, grid_col_span_style)
 
     ~H"""
-    <div class={@class}>
+    <div class={["bg-white shadow-xl", @class]}>
       <div class="grid" style={@grid_template_cols_style}>
         <div
           class="sticky z-10 grid grid-cols-subgrid font-display font-bold text-sm bg-white shadow"

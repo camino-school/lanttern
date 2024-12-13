@@ -35,12 +35,6 @@ defmodule LantternWeb.FiltersHelpers do
   - `:selected_years_ids`
   - `:selected_years`
 
-  ### `:classes` assigns
-
-  - `:classes`
-  - `:selected_classes_ids`
-  - `:selected_classes`
-
   ### `:assessment_view assigns
 
   - `:current_assessment_view`
@@ -121,20 +115,6 @@ defmodule LantternWeb.FiltersHelpers do
     |> assign(:years, years)
     |> assign(:selected_years_ids, selected_years_ids)
     |> assign(:selected_years, selected_years)
-    |> assign_filter_type(current_user, current_filters, filter_types)
-  end
-
-  defp assign_filter_type(socket, current_user, current_filters, [:classes | filter_types]) do
-    classes =
-      Schools.list_user_classes(current_user)
-
-    selected_classes_ids = Map.get(current_filters, :classes_ids) || []
-    selected_classes = Enum.filter(classes, &(&1.id in selected_classes_ids))
-
-    socket
-    |> assign(:classes, classes)
-    |> assign(:selected_classes_ids, selected_classes_ids)
-    |> assign(:selected_classes, selected_classes)
     |> assign_filter_type(current_user, current_filters, filter_types)
   end
 
@@ -266,6 +246,68 @@ defmodule LantternWeb.FiltersHelpers do
     student_record_statuses: :selected_student_record_statuses_ids,
     starred_strands: :only_starred_strands
   }
+
+  @doc """
+  Handle classes filter assigns in socket.
+
+  ## Opts
+
+  Any opts accepted in `list_user_classes/2`.
+
+  ## Expected assigns in socket
+
+  - `current_user` - used to get the current cycle information
+
+  ## Returned socket assigns
+
+  - `:classes`
+  - `:selected_classes_ids`
+  - `:selected_classes`
+
+  ## Examples
+
+      iex> assign_classes_filter(socket)
+      socket
+  """
+  @spec assign_classes_filter(Phoenix.LiveView.Socket.t(), opts :: Keyword.t()) ::
+          Phoenix.LiveView.Socket.t()
+  def assign_classes_filter(socket, opts \\ []) do
+    classes =
+      Schools.list_user_classes(socket.assigns.current_user, opts)
+
+    selected_classes_ids =
+      case Personalization.get_profile_settings(socket.assigns.current_user.current_profile_id) do
+        %{current_filters: current_filters} when not is_nil(current_filters) -> current_filters
+        _ -> %{}
+      end
+      |> Map.get(:classes_ids) || []
+
+    selected_classes = Enum.filter(classes, &(&1.id in selected_classes_ids))
+
+    # as classes may be filtered (by cycle, for example), selected classes
+    # may have more classes than the listed. we check for this case below,
+    # and adjust classes and selected classes as needed
+
+    classes_ids = Enum.map(classes, & &1.id)
+
+    selected_classes_ids_not_in_classes =
+      Enum.filter(selected_classes_ids, &(&1 not in classes_ids))
+
+    selected_classes_not_in_classes =
+      if selected_classes_ids_not_in_classes != [] do
+        Schools.list_classes(classes_ids: selected_classes_ids_not_in_classes)
+      else
+        []
+      end
+
+    classes = classes ++ selected_classes_not_in_classes
+    selected_classes = selected_classes ++ selected_classes_not_in_classes
+
+    socket
+    |> assign(:classes, classes)
+    |> assign(:selected_classes_ids, selected_classes_ids)
+    |> assign(:selected_classes, selected_classes)
+  end
 
   @doc """
   Handle strand classes filter assigns in socket.
@@ -585,11 +627,13 @@ defmodule LantternWeb.FiltersHelpers do
     socket
   end
 
-  defp apply_save_profile_filters(current_user, attrs, strand_id: strand_id),
-    do: Filters.set_profile_strand_filters(current_user, strand_id, attrs)
+  defp apply_save_profile_filters(current_user, attrs, strand_id: strand_id)
+       when is_integer(strand_id),
+       do: Filters.set_profile_strand_filters(current_user, strand_id, attrs)
 
-  defp apply_save_profile_filters(current_user, attrs, report_card_id: report_card_id),
-    do: Filters.set_profile_report_card_filters(current_user, report_card_id, attrs)
+  defp apply_save_profile_filters(current_user, attrs, report_card_id: report_card_id)
+       when is_integer(report_card_id),
+       do: Filters.set_profile_report_card_filters(current_user, report_card_id, attrs)
 
   defp apply_save_profile_filters(current_user, attrs, _),
     do: Filters.set_profile_current_filters(current_user, attrs)

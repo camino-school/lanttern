@@ -2,11 +2,13 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Schools
+  alias Lanttern.Schools.Cycle
   alias Lanttern.Schools.Student
-  import LantternWeb.FiltersHelpers
 
   # shared components
   alias LantternWeb.Schools.StudentFormOverlayComponent
+  import LantternWeb.FiltersHelpers, only: [assign_classes_filter: 2, save_profile_filters: 2]
+  import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
 
   @impl true
   def render(assigns) do
@@ -24,10 +26,10 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
           <%= if @selected_classes != [] do %>
             <.badge
               :for={class <- @selected_classes}
-              on_remove={JS.push("remove_class_filter", target: @myself)}
+              on_remove={JS.push("remove_class_filter", value: %{"id" => class.id}, target: @myself)}
               theme="primary"
             >
-              <%= class.name %>
+              <%= class_with_cycle(class, @current_user) %>
             </.badge>
           <% else %>
             <.badge><%= gettext("all classes") %></.badge>
@@ -65,7 +67,7 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
           >
             <div class="flex flex-wrap gap-1">
               <.badge :for={class <- student.classes}>
-                <%= "#{class.name} (#{class.cycle.name})" %>
+                <%= class_with_cycle(class, @current_user) %>
               </.badge>
             </div>
           </:col>
@@ -87,6 +89,7 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
           stream={@streams.no_class_students}
           row_click={fn student -> JS.navigate(~p"/school/students/#{student}") end}
           sticky_header_offset="7rem"
+          class={["mt-10", if(@selected_classes_ids != [], do: "hidden")]}
         >
           <:col
             :let={student}
@@ -249,13 +252,23 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
-    |> assign_user_filters([:classes])
+    |> apply_assign_classes_filter()
     |> stream_students()
     |> stream_no_class_students()
     |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
+
+  defp apply_assign_classes_filter(socket) do
+    assign_classes_filter_opts =
+      case socket.assigns.current_user.current_profile do
+        %{current_school_cycle: %Cycle{} = cycle} -> [cycles_ids: [cycle.id]]
+        _ -> []
+      end
+
+    assign_classes_filter(socket, assign_classes_filter_opts)
+  end
 
   defp stream_students(socket) do
     students =
@@ -308,12 +321,16 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
   defp assign_student(socket), do: assign(socket, :student, nil)
 
   @impl true
-  def handle_event("remove_class_filter", _params, socket) do
+  def handle_event("remove_class_filter", %{"id" => class_id}, socket) do
+    selected_classes_ids =
+      socket.assigns.selected_classes_ids
+      |> Enum.filter(&(&1 != class_id))
+
     socket =
       socket
-      |> assign(:selected_classes_ids, [])
+      |> assign(:selected_classes_ids, selected_classes_ids)
       |> save_profile_filters([:classes])
-      |> assign_user_filters([:classes])
+      |> apply_assign_classes_filter()
       |> stream_students()
 
     {:noreply, socket}

@@ -419,6 +419,8 @@ defmodule Lanttern.Schools do
   @doc """
   Returns the list of classes.
 
+  Cycle and years are always preloaded.
+
   ## Options:
 
   - `:classes_ids` – filter results by given ids

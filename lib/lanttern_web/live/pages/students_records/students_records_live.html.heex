@@ -89,6 +89,19 @@
       />
     </div>
   </:col>
+  <:col :let={student_record} label={gettext("Classes")} template_col="min-content">
+    <%= if student_record.classes != [] do %>
+      <div class="flex flex-wrap gap-1">
+        <.badge :for={class <- student_record.classes}>
+          <%= class_with_cycle(class, @current_user) %>
+        </.badge>
+      </div>
+    <% else %>
+      <.badge>
+        —
+      </.badge>
+    <% end %>
+  </:col>
   <:col :let={student_record} label={gettext("Record")}>
     <p :if={student_record.name} class="mb-4 font-display font-black">
       <%= student_record.name %>
