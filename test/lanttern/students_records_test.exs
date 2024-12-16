@@ -60,6 +60,26 @@ defmodule Lanttern.StudentsRecordsTest do
       assert expected_student_record.id == student_record.id
     end
 
+    test "list_students_records/1 with classes opt returns records filtered by classes" do
+      school = SchoolsFixtures.school_fixture()
+      class = SchoolsFixtures.class_fixture(%{school_id: school.id})
+
+      student_record =
+        student_record_fixture(%{school_id: school.id, classes_ids: [class.id]})
+
+      # extra fixture to test filtering
+      student_record_fixture()
+      student_record_fixture(%{school_id: school.id})
+
+      [expected_student_record] =
+        StudentsRecords.list_students_records(
+          school_id: school.id,
+          classes_ids: [class.id]
+        )
+
+      assert expected_student_record.id == student_record.id
+    end
+
     test "list_students_records/1 with types and statuses opts students_records filtered by given types and statuses" do
       school = SchoolsFixtures.school_fixture()
       type = student_record_type_fixture(%{school_id: school.id})

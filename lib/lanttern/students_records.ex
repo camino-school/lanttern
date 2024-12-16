@@ -18,6 +18,7 @@ defmodule Lanttern.StudentsRecords do
 
   - `:school_id` - filter results by school
   - `:students_ids` - filter results by students
+  - `:classes_ids` - filter results by classes
   - `:types_ids` - filter results by type
   - `:statuses_ids` - filter results by status
   - `:preloads` - preloads associated data
@@ -63,8 +64,18 @@ defmodule Lanttern.StudentsRecords do
        when is_list(students_ids) and students_ids != [] do
     from(
       sr in queryable,
-      join: s in assoc(sr, :students),
-      where: s.id in ^students_ids
+      join: srel in assoc(sr, :students_relationships),
+      where: srel.student_id in ^students_ids
+    )
+    |> apply_list_students_records_opts(opts)
+  end
+
+  defp apply_list_students_records_opts(queryable, [{:classes_ids, classes_ids} | opts])
+       when is_list(classes_ids) and classes_ids != [] do
+    from(
+      sr in queryable,
+      join: cr in assoc(sr, :classes_relationships),
+      where: cr.class_id in ^classes_ids
     )
     |> apply_list_students_records_opts(opts)
   end

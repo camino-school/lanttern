@@ -174,7 +174,7 @@ defmodule LantternWeb.CoreComponents do
         <span class="sr-only"><%= gettext("Remove") %></span>
         <.icon
           name="hero-x-mark-mini"
-          class="w-3.5 text-ltrn-subtle hover:text-ltrn-dark"
+          class="w-3.5 text-ltrn-dark"
           style={create_color_map_text_style(@color_map)}
         />
         <span class="absolute -inset-1"></span>
