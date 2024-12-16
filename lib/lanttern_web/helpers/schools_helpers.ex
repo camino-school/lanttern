@@ -4,6 +4,10 @@ defmodule LantternWeb.SchoolsHelpers do
   """
 
   alias Lanttern.Schools
+  alias Lanttern.Schools.Cycle
+  alias Lanttern.Schools.Class
+  alias Lanttern.Identity.Profile
+  alias Lanttern.Identity.User
 
   @doc """
   Generate list of schools to use as `Phoenix.HTML.Form.options_for_select/2` arg
@@ -73,4 +77,39 @@ defmodule LantternWeb.SchoolsHelpers do
     Schools.list_teachers()
     |> Enum.map(fn t -> {t.name, t.id} end)
   end
+
+  @doc """
+  Returns the class name in the format `"Class A (Cycle X)"`.
+
+  Only class name will be returned when class cycle is the same as the current cycle
+  (infered from `User` or directly from `Cycle` as second argument).
+
+  ## Examples
+
+      iex> class_with_cycle(class)
+      "Class A (Cycle X)"
+  """
+  @spec class_with_cycle(Class.t(), User.t() | Cycle.t() | nil) :: binary()
+  def class_with_cycle(class, user \\ nil)
+
+  def class_with_cycle(
+        %Class{cycle_id: class_cycle_id} = class,
+        %User{
+          current_profile: %Profile{current_school_cycle: %Cycle{id: current_cycle_id}}
+        }
+      )
+      when class_cycle_id == current_cycle_id,
+      do: class.name
+
+  def class_with_cycle(
+        %Class{cycle_id: class_cycle_id} = class,
+        %Cycle{id: current_cycle_id}
+      )
+      when class_cycle_id == current_cycle_id,
+      do: class.name
+
+  def class_with_cycle(%Class{cycle: %Cycle{} = cycle} = class, _user),
+    do: "#{class.name} (#{cycle.name})"
+
+  def class_with_cycle(%Class{} = class, _user), do: class.name
 end

@@ -20,6 +20,17 @@
           <.badge><%= gettext("all students") %></.badge>
         <% end %>
         ,
+        <%= if @selected_classes != [] do %>
+          <.badge
+            :for={class <- @selected_classes}
+            on_remove={JS.push("remove_class_filter", value: %{"id" => class.id})}
+            theme="primary"
+          >
+            <%= class_with_cycle(class, @current_user) %>
+          </.badge>
+        <% else %>
+          <.badge><%= gettext("all classes") %></.badge>
+        <% end %>,
         <%= if @selected_student_record_types != [] do %>
           <.badge
             :for={type <- @selected_student_record_types}
@@ -46,7 +57,7 @@
       </p>
       <.action
         type="link"
-        patch={~p"/students_records?edit=new"}
+        patch={~p"/students_records?new=true"}
         icon_name="hero-plus-circle-mini"
       >
         <%= gettext("New student record") %>
@@ -89,6 +100,25 @@
       />
     </div>
   </:col>
+  <:col
+    :let={student_record}
+    label={gettext("Classes")}
+    template_col="min-content"
+    on_filter={JS.exec("data-show", to: "#students-records-classes-filters-overlay")}
+    filter_is_active={@selected_classes_ids != []}
+  >
+    <%= if student_record.classes != [] do %>
+      <div class="flex flex-wrap gap-1">
+        <.badge :for={class <- student_record.classes}>
+          <%= class_with_cycle(class, @current_user) %>
+        </.badge>
+      </div>
+    <% else %>
+      <.badge>
+        —
+      </.badge>
+    <% end %>
+  </:col>
   <:col :let={student_record} label={gettext("Record")}>
     <p :if={student_record.name} class="mb-4 font-display font-black">
       <%= student_record.name %>
@@ -129,7 +159,9 @@
   </:action>
 </.data_grid>
 <div :if={@has_next} class="flex justify-center pb-10">
-  <.button theme="ghost" phx-click="load_more"><%= gettext("Load more records") %></.button>
+  <.button theme="ghost" phx-click="load_more" class="mt-6">
+    <%= gettext("Load more records") %>
+  </.button>
 </div>
 <.modal
   :if={@show_student_search_modal}
@@ -149,6 +181,15 @@
     />
   </form>
 </.modal>
+<.live_component
+  module={LantternWeb.Filters.ClassesFilterOverlayComponent}
+  id="students-records-classes-filters-overlay"
+  current_user={@current_user}
+  title={gettext("Filter students records by class")}
+  navigate={~p"/students_records"}
+  classes={@classes}
+  selected_classes_ids={@selected_classes_ids}
+/>
 <.single_selection_filter_modal
   id="student-record-types-filter-modal"
   title={gettext("Filter students records by type")}

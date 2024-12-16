@@ -1167,4 +1167,26 @@ defmodule Lanttern.SchoolsTest do
       |> Lanttern.Repo.one!()
     end
   end
+
+  describe "list classes ids for student in date" do
+    test "list_classes_ids_for_student_in_date/2 returns the correct list" do
+      school = school_fixture()
+
+      cycle_2024 =
+        cycle_fixture(%{school_id: school.id, start_at: ~D[2024-01-01], end_at: ~D[2024-12-31]})
+
+      cycle_2025 =
+        cycle_fixture(%{school_id: school.id, start_at: ~D[2025-01-01], end_at: ~D[2025-12-31]})
+
+      class_2024 = class_fixture(%{school_id: school.id, cycle_id: cycle_2024.id})
+      class_2025 = class_fixture(%{school_id: school.id, cycle_id: cycle_2025.id})
+
+      student =
+        student_fixture(%{school_id: school.id, classes_ids: [class_2024.id, class_2025.id]})
+
+      assert Schools.list_classes_ids_for_student_in_date(student.id, ~D[2024-06-10]) == [
+               class_2024.id
+             ]
+    end
+  end
 end

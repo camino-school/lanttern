@@ -122,11 +122,11 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
         </:actions>
       </.slide_over>
       <.live_component
-        module={LantternWeb.Filters.StrandClassesFilterOverlayComponent}
+        module={LantternWeb.Filters.ClassesFilterOverlayComponent}
         id="classes-filter-modal"
         current_user={@current_user}
         title={gettext("Select classes for assessment")}
-        strand_id={@moment.strand_id}
+        profile_filter_opts={[strand_id: @moment.strand_id]}
         classes={@classes}
         selected_classes_ids={@selected_classes_ids}
         navigate={~p"/strands/moment/#{@moment}/assessment"}

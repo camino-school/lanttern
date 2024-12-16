@@ -116,7 +116,7 @@ defmodule LantternWeb.Schools.ClassSearchComponent do
   end
 
   def handle_event("autocomplete_result_select", %{"id" => id}, socket) do
-    selected = Schools.get_class!(id)
+    selected = Schools.get_class!(id, preloads: [:years, :cycle])
 
     notify(
       __MODULE__,

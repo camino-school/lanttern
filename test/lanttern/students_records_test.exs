@@ -60,6 +60,26 @@ defmodule Lanttern.StudentsRecordsTest do
       assert expected_student_record.id == student_record.id
     end
 
+    test "list_students_records/1 with classes opt returns records filtered by classes" do
+      school = SchoolsFixtures.school_fixture()
+      class = SchoolsFixtures.class_fixture(%{school_id: school.id})
+
+      student_record =
+        student_record_fixture(%{school_id: school.id, classes_ids: [class.id]})
+
+      # extra fixture to test filtering
+      student_record_fixture()
+      student_record_fixture(%{school_id: school.id})
+
+      [expected_student_record] =
+        StudentsRecords.list_students_records(
+          school_id: school.id,
+          classes_ids: [class.id]
+        )
+
+      assert expected_student_record.id == student_record.id
+    end
+
     test "list_students_records/1 with types and statuses opts students_records filtered by given types and statuses" do
       school = SchoolsFixtures.school_fixture()
       type = student_record_type_fixture(%{school_id: school.id})
@@ -145,6 +165,7 @@ defmodule Lanttern.StudentsRecordsTest do
       type = student_record_type_fixture(%{school_id: school.id})
       status = student_record_status_fixture(%{school_id: school.id})
       student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      class = SchoolsFixtures.class_fixture(%{school_id: school.id})
 
       # profile to test log
       profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
@@ -157,7 +178,8 @@ defmodule Lanttern.StudentsRecordsTest do
         date: ~D[2024-09-15],
         time: ~T[14:00:00],
         description: "some description",
-        students_ids: [student.id]
+        students_ids: [student.id],
+        classes_ids: [class.id]
       }
 
       assert {:ok, %StudentRecord{} = student_record} =
@@ -170,6 +192,10 @@ defmodule Lanttern.StudentsRecordsTest do
       assert student_record.date == ~D[2024-09-15]
       assert student_record.time == ~T[14:00:00]
       assert student_record.description == "some description"
+
+      student_record = student_record |> Repo.preload([:students, :classes])
+      assert student_record.students == [student]
+      assert student_record.classes == [class]
 
       on_exit(fn ->
         assert_supervised_tasks_are_down()
@@ -184,6 +210,7 @@ defmodule Lanttern.StudentsRecordsTest do
         assert student_record_log.operation == "CREATE"
 
         assert student_record_log.students_ids == [student.id]
+        assert student_record_log.classes_ids == [class.id]
         assert student_record_log.school_id == student_record.school_id
         assert student_record_log.status_id == student_record.status_id
         assert student_record_log.type_id == student_record.type_id
@@ -199,13 +226,27 @@ defmodule Lanttern.StudentsRecordsTest do
     end
 
     test "update_student_record/2 with valid data updates the student_record" do
-      student_record = student_record_fixture()
+      school = SchoolsFixtures.school_fixture()
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      class = SchoolsFixtures.class_fixture(%{school_id: school.id})
+
+      student_record =
+        student_record_fixture(%{
+          school_id: school.id,
+          students_ids: [student.id],
+          classes_ids: [class.id]
+        })
+
+      updated_student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      updated_class = SchoolsFixtures.class_fixture(%{school_id: school.id})
 
       update_attrs = %{
         name: "some updated name",
         date: ~D[2024-09-16],
         time: ~T[15:01:01],
-        description: "some updated description"
+        description: "some updated description",
+        students_ids: [updated_student.id],
+        classes_ids: [updated_class.id]
       }
 
       # profile to test log
@@ -221,6 +262,10 @@ defmodule Lanttern.StudentsRecordsTest do
       assert student_record.time == ~T[15:01:01]
       assert student_record.description == "some updated description"
 
+      student_record = student_record |> Repo.preload([:students, :classes])
+      assert student_record.students == [updated_student]
+      assert student_record.classes == [updated_class]
+
       on_exit(fn ->
         assert_supervised_tasks_are_down()
 
@@ -233,7 +278,8 @@ defmodule Lanttern.StudentsRecordsTest do
         assert student_record_log.profile_id == profile.id
         assert student_record_log.operation == "UPDATE"
 
-        assert student_record_log.students_ids == student_record.students_ids
+        assert student_record_log.students_ids == [updated_student.id]
+        assert student_record_log.classes_ids == [updated_class.id]
         assert student_record_log.school_id == student_record.school_id
         assert student_record_log.status_id == student_record.status_id
         assert student_record_log.type_id == student_record.type_id

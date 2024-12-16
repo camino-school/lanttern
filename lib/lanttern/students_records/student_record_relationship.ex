@@ -16,7 +16,7 @@ defmodule Lanttern.StudentsRecords.StudentRecordRelationship do
   @doc false
   def changeset(student_record_relationship, attrs) do
     student_record_relationship
-    |> cast(attrs, [:student_id, :student_record_i, :school_id])
+    |> cast(attrs, [:student_id, :student_record_id, :school_id])
     |> validate_required([:student_id, :student_record_id, :school_id])
   end
 end

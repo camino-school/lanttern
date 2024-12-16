@@ -97,11 +97,11 @@ defmodule LantternWeb.StrandLive.NotesComponent do
         </div>
       </.responsive_container>
       <.live_component
-        module={LantternWeb.Filters.StrandClassesFilterOverlayComponent}
+        module={LantternWeb.Filters.ClassesFilterOverlayComponent}
         id="classes-filter-modal"
         current_user={@current_user}
         title={gettext("Select classes to view student notes")}
-        strand_id={@strand.id}
+        profile_filter_opts={[strand_id: @strand.id]}
         classes={@classes}
         selected_classes_ids={@selected_classes_ids}
         navigate={~p"/strands/#{@strand}/notes"}

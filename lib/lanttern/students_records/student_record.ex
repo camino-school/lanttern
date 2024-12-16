@@ -8,9 +8,11 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
 
   import LantternWeb.Gettext
 
+  alias Lanttern.StudentsRecords.StudentRecordClassRelationship
   alias Lanttern.StudentsRecords.StudentRecordRelationship
   alias Lanttern.StudentsRecords.StudentRecordStatus
   alias Lanttern.StudentsRecords.StudentRecordType
+  alias Lanttern.Schools.Class
   alias Lanttern.Schools.School
   alias Lanttern.Schools.Student
 
@@ -21,6 +23,9 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
           date: Date.t(),
           time: Time.t(),
           students: [Student.t()],
+          students_ids: [pos_integer()],
+          classes: [Class.t()],
+          classes_ids: [pos_integer()],
           school_id: pos_integer(),
           school: School.t(),
           status_id: pos_integer(),
@@ -37,16 +42,20 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
     field :date, :date
     field :time, :time
     field :students_ids, {:array, :id}, virtual: true
+    field :classes_ids, {:array, :id}, virtual: true
 
     belongs_to :school, School
     belongs_to :status, StudentRecordStatus
     belongs_to :type, StudentRecordType
 
     has_many :students_relationships, StudentRecordRelationship, on_replace: :delete
+    has_many :classes_relationships, StudentRecordClassRelationship, on_replace: :delete
 
     many_to_many :students, Student,
       join_through: "students_students_records",
       preload_order: [asc: :name]
+
+    many_to_many :classes, Class, join_through: "students_records_classes"
 
     timestamps()
   end
@@ -60,12 +69,14 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
       :date,
       :time,
       :students_ids,
+      :classes_ids,
       :school_id,
       :type_id,
       :status_id
     ])
     |> validate_required([:description, :date, :school_id, :type_id, :status_id])
     |> cast_and_validate_students()
+    |> cast_classes()
   end
 
   def cast_and_validate_students(changeset) do
@@ -96,4 +107,21 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
   end
 
   defp cast_students(changeset, _), do: changeset
+
+  defp cast_classes(changeset) do
+    case get_change(changeset, :classes_ids) do
+      classes_ids when is_list(classes_ids) ->
+        school_id = get_field(changeset, :school_id)
+
+        classes_relationships_params =
+          Enum.map(classes_ids, &%{class_id: &1, school_id: school_id})
+
+        changeset
+        |> put_change(:classes_relationships, classes_relationships_params)
+        |> cast_assoc(:classes_relationships)
+
+      _ ->
+        changeset
+    end
+  end
 end
