@@ -81,15 +81,15 @@ defmodule LantternWeb.SchoolsHelpers do
   @doc """
   Returns the class name in the format `"Class A (Cycle X)"`.
 
-  When a user is given, only class name will be returned
-  when class cycle is the same as user's current cycle.
+  Only class name will be returned when class cycle is the same as the current cycle
+  (infered from `User` or directly from `Cycle` as second argument).
 
   ## Examples
 
       iex> class_with_cycle(class)
       "Class A (Cycle X)"
   """
-  @spec class_with_cycle(Class.t(), User.t() | nil) :: binary()
+  @spec class_with_cycle(Class.t(), User.t() | Cycle.t() | nil) :: binary()
   def class_with_cycle(class, user \\ nil)
 
   def class_with_cycle(
@@ -97,6 +97,13 @@ defmodule LantternWeb.SchoolsHelpers do
         %User{
           current_profile: %Profile{current_school_cycle: %Cycle{id: current_cycle_id}}
         }
+      )
+      when class_cycle_id == current_cycle_id,
+      do: class.name
+
+  def class_with_cycle(
+        %Class{cycle_id: class_cycle_id} = class,
+        %Cycle{id: current_cycle_id}
       )
       when class_cycle_id == current_cycle_id,
       do: class.name

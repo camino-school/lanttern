@@ -34,6 +34,7 @@ defmodule Lanttern.StudentsRecords do
           [
             school_id: pos_integer(),
             students_ids: [pos_integer()],
+            classes_ids: [pos_integer()],
             types_ids: [pos_integer()],
             statuses_ids: [pos_integer()],
             preloads: list()

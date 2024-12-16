@@ -11,6 +11,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent do
   # shared
 
   alias LantternWeb.Schools.StudentSearchComponent
+  alias LantternWeb.Schools.ClassesFieldComponent
 
   @impl true
   def render(assigns) do
@@ -48,6 +49,16 @@ defmodule LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent do
               <.error :for={{msg, _} <- @form[:students_ids].errors}><%= msg %></.error>
             </div>
           </div>
+          <.live_component
+            module={ClassesFieldComponent}
+            id="student-form-classes-picker"
+            label={gettext("Classes")}
+            school_id={@student_record.school_id}
+            current_cycle={@current_user.current_profile.current_school_cycle}
+            selected_classes_ids={@selected_classes_ids}
+            notify_component={@myself}
+            class="mb-6"
+          />
           <div class="mb-6">
             <.label><%= gettext("Record type") %></.label>
             <.badge_button_picker
@@ -177,11 +188,18 @@ defmodule LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent do
     {:ok, socket}
   end
 
+  def update(
+        %{action: {ClassesFieldComponent, {:changed, selected_classes_ids}}},
+        socket
+      ),
+      do: {:ok, assign(socket, :selected_classes_ids, selected_classes_ids)}
+
   def update(%{student_record: %StudentRecord{}} = assigns, socket) do
     socket =
       socket
       |> assign(assigns)
       |> assign_selected_students()
+      |> assign_selected_classes_ids()
       |> assign_form()
       |> assign_types()
       |> assign_statuses()
@@ -197,6 +215,14 @@ defmodule LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent do
     socket
     |> assign(:selected_students, selected_students)
     |> assign(:selected_students_ids, selected_students_ids)
+  end
+
+  defp assign_selected_classes_ids(socket) do
+    selected_classes_ids =
+      socket.assigns.student_record.classes
+      |> Enum.map(& &1.id)
+
+    assign(socket, :selected_classes_ids, selected_classes_ids)
   end
 
   defp assign_form(socket) do
@@ -304,6 +330,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent do
     |> Map.put("type_id", socket.assigns.selected_type_id)
     |> Map.put("status_id", socket.assigns.selected_status_id)
     |> Map.put("students_ids", socket.assigns.selected_students_ids)
+    |> Map.put("classes_ids", socket.assigns.selected_classes_ids)
   end
 
   defp save_student_record(socket, nil, student_record_params) do

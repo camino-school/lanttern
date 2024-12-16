@@ -111,7 +111,9 @@ defmodule LantternWeb.StudentsRecordsLive do
 
   defp get_student_record_and_validate_permission(socket, id) do
     student_record =
-      StudentsRecords.get_student_record(id, preloads: [:students_relationships, :students])
+      StudentsRecords.get_student_record(id,
+        preloads: [:students_relationships, :students, :classes_relationships, :classes]
+      )
       |> put_students_ids()
 
     case student_record do
