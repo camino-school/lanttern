@@ -28,7 +28,14 @@ defmodule LantternWeb.StudentRecordLive do
   defp assign_student_record(socket, %{"id" => id}) do
     student_record =
       StudentsRecords.get_student_record(id,
-        preloads: [:students, :students_relationships, :type, :status, [classes: :cycle]]
+        preloads: [
+          :students,
+          :students_relationships,
+          :classes_relationships,
+          :type,
+          :status,
+          [classes: :cycle]
+        ]
       )
       |> put_students_ids()
 

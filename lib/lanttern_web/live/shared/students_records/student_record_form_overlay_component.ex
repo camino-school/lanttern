@@ -7,6 +7,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent do
 
   alias Lanttern.StudentsRecords
   alias Lanttern.StudentsRecords.StudentRecord
+  alias Lanttern.Schools
 
   # shared
 
@@ -51,7 +52,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent do
           </div>
           <.live_component
             module={ClassesFieldComponent}
-            id="student-form-classes-picker"
+            id="student-record-form-classes-picker"
             label={gettext("Classes")}
             school_id={@student_record.school_id}
             current_cycle={@current_user.current_profile.current_school_cycle}
@@ -168,6 +169,14 @@ defmodule LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent do
 
     selected_students_ids = selected_students |> Enum.map(& &1.id)
 
+    # also add selected classes ids if possible
+    student_classes_ids =
+      Schools.list_classes_ids_for_student_in_date(student.id, socket.assigns.student_record.date)
+
+    selected_classes_ids =
+      (socket.assigns.selected_classes_ids ++ student_classes_ids)
+      |> Enum.uniq()
+
     # basically a manual "validate" event to update students ids
     params =
       socket.assigns.form.params
@@ -183,6 +192,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent do
       socket
       |> assign(:selected_students, selected_students)
       |> assign(:selected_students_ids, selected_students_ids)
+      |> assign(:selected_classes_ids, selected_classes_ids)
       |> assign(:form, form)
 
     {:ok, socket}

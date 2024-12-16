@@ -89,10 +89,12 @@ defmodule LantternWeb.StudentsRecordsLive do
   def handle_params(params, _uri, socket) do
     student_record =
       case params do
-        %{"edit" => "new"} ->
+        %{"new" => "true"} ->
           %StudentRecord{
+            school_id: socket.assigns.current_user.current_profile.school_id,
             students: socket.assigns.selected_students,
             students_ids: socket.assigns.selected_students_ids,
+            classes: [],
             date: Date.utc_today()
           }
 

@@ -1305,4 +1305,29 @@ defmodule Lanttern.Schools do
 
     {:ok, response}
   end
+
+  @doc """
+  Returns a list of classes ids linked to student for the giving date,
+  using the relationship between class and cycle.
+
+  ## Examples
+
+      iex> list_classes_ids_for_student_in_date(student_id, ~D[2024-08-01])
+      [1, 2]
+
+  """
+  @spec list_classes_ids_for_student_in_date(student_id :: pos_integer(), date: Date.t()) :: [
+          pos_integer()
+        ]
+  def list_classes_ids_for_student_in_date(student_id, date) do
+    from(
+      c in Class,
+      join: s in assoc(c, :students),
+      on: s.id == ^student_id,
+      join: cy in assoc(c, :cycle),
+      where: cy.start_at <= ^date and cy.end_at >= ^date,
+      select: c.id
+    )
+    |> Repo.all()
+  end
 end
