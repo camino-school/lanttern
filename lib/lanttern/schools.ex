@@ -1307,26 +1307,29 @@ defmodule Lanttern.Schools do
   end
 
   @doc """
-  Returns a list of classes ids linked to student for the giving date,
+  Returns a list of classes linked to students in the giving date,
   using the relationship between class and cycle.
+
+  `cycle` is preloaded in the results.
 
   ## Examples
 
-      iex> list_classes_ids_for_student_in_date(student_id, ~D[2024-08-01])
-      [1, 2]
+      iex> list_classes_for_students_in_date(students_ids, ~D[2024-08-01])
+      [%Class{}, ...]
 
   """
-  @spec list_classes_ids_for_student_in_date(student_id :: pos_integer(), date: Date.t()) :: [
-          pos_integer()
+  @spec list_classes_for_students_in_date(students_ids :: [pos_integer()], date: Date.t()) :: [
+          Class.t()
         ]
-  def list_classes_ids_for_student_in_date(student_id, date) do
+  def list_classes_for_students_in_date(students_ids, date) do
     from(
       c in Class,
       join: s in assoc(c, :students),
-      on: s.id == ^student_id,
+      on: s.id in ^students_ids,
       join: cy in assoc(c, :cycle),
       where: cy.start_at <= ^date and cy.end_at >= ^date,
-      select: c.id
+      preload: [cycle: cy],
+      distinct: true
     )
     |> Repo.all()
   end

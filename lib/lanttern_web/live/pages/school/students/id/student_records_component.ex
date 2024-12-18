@@ -13,6 +13,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.StudentsRecords
+  alias Lanttern.Schools
   alias Lanttern.Schools.Cycle
 
   import LantternWeb.FiltersHelpers,
@@ -35,52 +36,35 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
             "Showing %{count} results for",
             @students_records_length
           ) %>
-          <%= if @selected_students != [] do %>
-            <.badge
-              :for={student <- @selected_students}
-              on_remove={JS.push("remove_student_filter", target: @myself)}
-              theme="primary"
-            >
+          <.badge theme="primary">
+            <%= @student.name %>
+          </.badge>
+          <%= for student <- @selected_students, student.id != @student.id do %>
+            <.badge on_remove={JS.push("remove_student_filter", target: @myself)} theme="primary">
               <%= student.name %>
             </.badge>
-          <% else %>
-            <.badge><%= gettext("all students") %></.badge>
           <% end %>
-          ,
-          <%= if @selected_classes != [] do %>
-            <.badge
-              :for={class <- @selected_classes}
-              on_remove={JS.push("remove_class_filter", value: %{"id" => class.id}, target: @myself)}
-              theme="primary"
-            >
-              <%= class_with_cycle(class, @current_user) %>
-            </.badge>
-          <% else %>
-            <.badge><%= gettext("all classes") %></.badge>
-          <% end %>,
-          <%= if @selected_student_record_types != [] do %>
-            <.badge
-              :for={type <- @selected_student_record_types}
-              color_map={type}
-              on_remove={JS.push("remove_type_filter", target: @myself)}
-            >
-              <%= type.name %>
-            </.badge>
-          <% else %>
-            <.badge><%= gettext("all student record types") %></.badge>
-          <% end %>
-          <%= gettext("and") %>
-          <%= if @selected_student_record_statuses != [] do %>
-            <.badge
-              :for={status <- @selected_student_record_statuses}
-              color_map={status}
-              on_remove={JS.push("remove_status_filter", target: @myself)}
-            >
-              <%= status.name %>
-            </.badge>
-          <% else %>
-            <.badge><%= gettext("all statuses") %></.badge>
-          <% end %>
+          <.badge
+            :for={class <- @selected_classes}
+            on_remove={JS.push("remove_class_filter", value: %{"id" => class.id}, target: @myself)}
+            theme="primary"
+          >
+            <%= class_with_cycle(class, @current_user) %>
+          </.badge>
+          <.badge
+            :for={type <- @selected_student_record_types}
+            color_map={type}
+            on_remove={JS.push("remove_type_filter", target: @myself)}
+          >
+            <%= type.name %>
+          </.badge>
+          <.badge
+            :for={status <- @selected_student_record_statuses}
+            color_map={status}
+            on_remove={JS.push("remove_status_filter", target: @myself)}
+          >
+            <%= status.name %>
+          </.badge>
         </p>
         <.action
           type="link"
@@ -176,6 +160,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
         current_user={@current_user}
         on_cancel={JS.patch(@base_path)}
         notify_component={@myself}
+        new_record_initial_fields={@new_record_initial_fields}
       />
     </div>
     """
@@ -184,8 +169,14 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
   # lifecycle
 
   @impl true
-  def mount(socket),
-    do: {:ok, assign(socket, :initialized, false)}
+  def mount(socket) do
+    socket =
+      socket
+      |> assign(:initialized, false)
+      |> assign(:new_record_initial_fields, nil)
+
+    {:ok, socket}
+  end
 
   @impl true
   def update(%{action: {StudentSearchComponent, {:selected, student}}}, socket) do
@@ -194,6 +185,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
       |> assign(:selected_students_ids, [student.id])
       |> save_profile_filters([:students])
       |> assign_user_filters([:students])
+      |> assign_adjusted_selected_students()
       |> stream_students_records(true)
       |> assign(:show_student_search_modal, false)
 
@@ -239,6 +231,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
     |> assign_user_filters([:students, :student_record_types, :student_record_statuses])
+    |> assign_adjusted_selected_students()
     |> apply_assign_classes_filter()
     |> stream_students_records()
     |> assign(:show_student_search_modal, false)
@@ -256,6 +249,20 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
       end
 
     assign_classes_filter(socket, assign_classes_filter_opts)
+  end
+
+  # adjust the selected students assign to always
+  # include the current student in results
+  defp assign_adjusted_selected_students(socket) do
+    selected_students =
+      [socket.assigns.student | socket.assigns.selected_students]
+      |> Enum.uniq_by(& &1.id)
+
+    selected_students_ids = Enum.map(selected_students, & &1.id)
+
+    socket
+    |> assign(:selected_students, selected_students)
+    |> assign(:selected_students_ids, selected_students_ids)
   end
 
   defp stream_students_records(socket, reset \\ false) do
@@ -304,8 +311,39 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
     assign(socket, :base_path, base_path)
   end
 
-  defp assign_student_record_id(%{assigns: %{params: %{"student_record" => "new"}}} = socket),
-    do: assign(socket, :student_record_id, :new)
+  defp assign_student_record_id(%{assigns: %{params: %{"student_record" => "new"}}} = socket) do
+    # build new record initial fields based on current filters
+    students_ids = Enum.map(socket.assigns.selected_students, & &1.id)
+
+    classes =
+      (socket.assigns.selected_classes ++
+         Schools.list_classes_for_students_in_date(students_ids, Date.utc_today()))
+      |> Enum.uniq_by(& &1.id)
+
+    type_id =
+      case socket.assigns.selected_student_record_types do
+        [type] -> type.id
+        _ -> nil
+      end
+
+    status_id =
+      case socket.assigns.selected_student_record_statuses do
+        [status] -> status.id
+        _ -> nil
+      end
+
+    new_record_initial_fields =
+      %{
+        students: socket.assigns.selected_students,
+        classes: classes,
+        type_id: type_id,
+        status_id: status_id
+      }
+
+    socket
+    |> assign(:student_record_id, :new)
+    |> assign(:new_record_initial_fields, new_record_initial_fields)
+  end
 
   defp assign_student_record_id(%{assigns: %{params: %{"student_record" => id}}} = socket),
     do: assign(socket, :student_record_id, id)
@@ -320,6 +358,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
       |> assign(:selected_students_ids, [])
       |> save_profile_filters([:students])
       |> assign_user_filters([:students])
+      |> assign_adjusted_selected_students()
       |> stream_students_records(true)
 
     {:noreply, socket}

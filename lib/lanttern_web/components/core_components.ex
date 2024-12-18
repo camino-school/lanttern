@@ -777,7 +777,9 @@ defmodule LantternWeb.CoreComponents do
           </li>
         </ul>
       </div>
-      <.empty_state :if={@show_empty_state_message}><%= @show_empty_state_message %></.empty_state>
+      <div :if={@show_empty_state_message} class="p-6">
+        <.empty_state><%= @show_empty_state_message %></.empty_state>
+      </div>
     </div>
     """
   end
@@ -791,7 +793,7 @@ defmodule LantternWeb.CoreComponents do
   def empty_state(assigns) do
     ~H"""
     <div class={["text-center", @class]}>
-      <div class="relative p-10">
+      <div class="relative p-6">
         <div class="animate-pulse h-24 w-24 rounded-full mx-auto bg-ltrn-lighter blur-md"></div>
         <div class="absolute top-1/2 left-1/2 h-20 w-20 -mt-10 -ml-10 rounded-full border border-dashed border-ltrn-light">
         </div>

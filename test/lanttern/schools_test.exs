@@ -1169,7 +1169,7 @@ defmodule Lanttern.SchoolsTest do
   end
 
   describe "list classes ids for student in date" do
-    test "list_classes_ids_for_student_in_date/2 returns the correct list" do
+    test "list_classes_for_students_in_date/2 returns the correct list" do
       school = school_fixture()
 
       cycle_2024 =
@@ -1181,12 +1181,23 @@ defmodule Lanttern.SchoolsTest do
       class_2024 = class_fixture(%{school_id: school.id, cycle_id: cycle_2024.id})
       class_2025 = class_fixture(%{school_id: school.id, cycle_id: cycle_2025.id})
 
-      student =
+      student_a =
         student_fixture(%{school_id: school.id, classes_ids: [class_2024.id, class_2025.id]})
 
-      assert Schools.list_classes_ids_for_student_in_date(student.id, ~D[2024-06-10]) == [
-               class_2024.id
-             ]
+      student_b =
+        student_fixture(%{school_id: school.id, classes_ids: [class_2024.id]})
+
+      student_c =
+        student_fixture(%{school_id: school.id, classes_ids: [class_2025.id]})
+
+      [expected_class_2024] =
+        Schools.list_classes_for_students_in_date(
+          [student_a.id, student_b.id, student_c.id],
+          ~D[2024-06-10]
+        )
+
+      assert expected_class_2024.id == class_2024.id
+      assert expected_class_2024.cycle.id == cycle_2024.id
     end
   end
 end

@@ -276,7 +276,8 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
 
     # also add selected classes ids if possible
     student_classes_ids =
-      Schools.list_classes_ids_for_student_in_date(student.id, socket.assigns.student_record.date)
+      Schools.list_classes_for_students_in_date([student.id], socket.assigns.student_record.date)
+      |> Enum.map(& &1.id)
 
     selected_classes_ids =
       (socket.assigns.selected_classes_ids ++ student_classes_ids)
@@ -337,6 +338,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
         classes: [],
         date: Date.utc_today()
       }
+      |> struct(Map.get(socket.assigns, :new_record_initial_fields, %{}))
 
     socket
     |> assign(:student_record, student_record)
