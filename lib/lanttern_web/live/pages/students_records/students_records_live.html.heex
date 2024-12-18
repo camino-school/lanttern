@@ -57,7 +57,7 @@
       </p>
       <.action
         type="link"
-        patch={~p"/students_records?new=true"}
+        patch={~p"/students_records?student_record=new"}
         icon_name="hero-plus-circle-mini"
       >
         <%= gettext("New student record") %>
@@ -65,99 +65,25 @@
     </div>
   </.header_nav>
 </div>
-<.data_grid
+<.students_records_data_grid
   id="students-records"
   stream={@streams.students_records}
-  row_click={fn student_record -> JS.navigate(~p"/students_records/#{student_record.id}") end}
-  show_empty_state_message={
-    if @students_records_length == 0,
-      do: gettext("No students records found for selected filters.")
+  show_empty_state_message={@students_records_length == 0}
+  row_click={
+    fn student_record ->
+      JS.patch(~p"/students_records?student_record=#{student_record.id}")
+    end
   }
->
-  <:col :let={student_record} label={gettext("Date")} template_col="max-content" class="text-sm">
-    <div class="flex items-center gap-2">
-      <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
-      <%= Timex.format!(student_record.date, "{Mshort} {0D}, {YYYY}") %>
-    </div>
-    <div :if={student_record.time} class="flex items-center gap-2 mt-2">
-      <.icon name="hero-clock-mini" class="w-5 h-5 text-ltrn-subtle" />
-      <%= student_record.time %>
-    </div>
-  </:col>
-  <:col
-    :let={student_record}
-    label={gettext("Students")}
-    template_col="min-content"
-    on_filter={JS.push("open_student_search_modal")}
-    filter_is_active={@selected_students_ids != []}
-  >
-    <div class="flex flex-wrap gap-1">
-      <.person_badge
-        :for={student <- student_record.students}
-        person={student}
-        theme="cyan"
-        truncate
-      />
-    </div>
-  </:col>
-  <:col
-    :let={student_record}
-    label={gettext("Classes")}
-    template_col="min-content"
-    on_filter={JS.exec("data-show", to: "#students-records-classes-filters-overlay")}
-    filter_is_active={@selected_classes_ids != []}
-  >
-    <%= if student_record.classes != [] do %>
-      <div class="flex flex-wrap gap-1">
-        <.badge :for={class <- student_record.classes}>
-          <%= class_with_cycle(class, @current_user) %>
-        </.badge>
-      </div>
-    <% else %>
-      <.badge>
-        —
-      </.badge>
-    <% end %>
-  </:col>
-  <:col :let={student_record} label={gettext("Record")}>
-    <p :if={student_record.name} class="mb-4 font-display font-black">
-      <%= student_record.name %>
-    </p>
-    <.markdown text={student_record.description} class="line-clamp-3" size="sm" />
-  </:col>
-  <:col
-    :let={student_record}
-    label={gettext("Type")}
-    template_col="max-content"
-    on_filter={JS.exec("data-show", to: "#student-record-types-filter-modal")}
-    filter_is_active={@selected_student_record_types_ids != []}
-  >
-    <.badge color_map={student_record.type}>
-      <%= student_record.type.name %>
-    </.badge>
-  </:col>
-  <:col
-    :let={student_record}
-    label={gettext("Status")}
-    template_col="max-content"
-    on_filter={JS.exec("data-show", to: "#student-record-statuses-filter-modal")}
-    filter_is_active={@selected_student_record_statuses_ids != []}
-  >
-    <.badge color_map={student_record.status}>
-      <%= student_record.status.name %>
-    </.badge>
-  </:col>
-  <:action :let={student_record}>
-    <.icon_button
-      type="button"
-      sr_text={gettext("Edit student record")}
-      name="hero-pencil-mini"
-      size="sm"
-      theme="ghost"
-      phx-click={JS.patch(~p"/students_records?edit=#{student_record.id}")}
-    />
-  </:action>
-</.data_grid>
+  is_students_filter_active={@selected_students_ids != []}
+  on_students_filter={JS.push("open_student_search_modal")}
+  is_classes_filter_active={@selected_classes_ids != []}
+  on_classes_filter={JS.exec("data-show", to: "#students-records-classes-filters-overlay")}
+  is_type_filter_active={@selected_student_record_types_ids != []}
+  on_type_filter={JS.exec("data-show", to: "#student-record-types-filter-modal")}
+  is_status_filter_active={@selected_student_record_statuses_ids != []}
+  on_status_filter={JS.exec("data-show", to: "#student-record-statuses-filter-modal")}
+  current_user_or_cycle={@current_user}
+/>
 <div :if={@has_next} class="flex justify-center pb-10">
   <.button theme="ghost" phx-click="load_more" class="mt-6">
     <%= gettext("Load more records") %>
@@ -219,16 +145,10 @@
   }
 />
 <.live_component
-  :if={@student_record}
-  module={StudentRecordFormOverlayComponent}
-  id={(@student_record && @student_record.id) || :new}
-  student_record={@student_record}
+  module={StudentRecordOverlayComponent}
+  student_record_id={@student_record_id}
+  id="student-record-overlay"
   current_user={@current_user}
   on_cancel={JS.patch(~p"/students_records")}
-  title={
-    if @student_record && @student_record.id,
-      do: gettext("Edit student record"),
-      else: gettext("New student record")
-  }
   notify_parent
 />

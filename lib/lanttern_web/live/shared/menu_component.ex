@@ -345,7 +345,6 @@ defmodule LantternWeb.MenuComponent do
 
     # students records
     LantternWeb.StudentsRecordsLive => :students_records,
-    LantternWeb.StudentRecordLive => :students_records,
 
     # school
     LantternWeb.SchoolLive => :school,

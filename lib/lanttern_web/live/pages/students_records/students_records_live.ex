@@ -2,7 +2,6 @@ defmodule LantternWeb.StudentsRecordsLive do
   use LantternWeb, :live_view
 
   alias Lanttern.StudentsRecords
-  alias Lanttern.StudentsRecords.StudentRecord
   alias Lanttern.Schools.Cycle
 
   import LantternWeb.FiltersHelpers,
@@ -13,8 +12,9 @@ defmodule LantternWeb.StudentsRecordsLive do
   # shared components
 
   alias LantternWeb.Schools.StudentSearchComponent
-  alias LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent
+  alias LantternWeb.StudentsRecords.StudentRecordOverlayComponent
   import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
+  import LantternWeb.StudentsRecordsComponents
 
   # lifecycle
 
@@ -87,55 +87,17 @@ defmodule LantternWeb.StudentsRecordsLive do
 
   @impl true
   def handle_params(params, _uri, socket) do
-    student_record =
+    student_record_id =
       case params do
-        %{"new" => "true"} ->
-          %StudentRecord{
-            school_id: socket.assigns.current_user.current_profile.school_id,
-            students: socket.assigns.selected_students,
-            students_ids: socket.assigns.selected_students_ids,
-            classes: [],
-            date: Date.utc_today()
-          }
-
-        %{"edit" => id} ->
-          get_student_record_and_validate_permission(socket, id)
-
-        _ ->
-          nil
+        %{"student_record" => "new"} -> :new
+        %{"student_record" => id} -> id
+        _ -> nil
       end
 
     socket =
-      assign(socket, :student_record, student_record)
+      assign(socket, :student_record_id, student_record_id)
 
     {:noreply, socket}
-  end
-
-  defp get_student_record_and_validate_permission(socket, id) do
-    student_record =
-      StudentsRecords.get_student_record(id,
-        preloads: [:students_relationships, :students, :classes_relationships, :classes]
-      )
-      |> put_students_ids()
-
-    case student_record do
-      nil ->
-        nil
-
-      student_record ->
-        if student_record.school_id == socket.assigns.current_user.current_profile.school_id,
-          do: student_record
-    end
-  end
-
-  defp put_students_ids(nil), do: nil
-
-  defp put_students_ids(student_record) do
-    students_ids =
-      student_record.students_relationships
-      |> Enum.map(& &1.student_id)
-
-    %{student_record | students_ids: students_ids}
   end
 
   @impl true
@@ -239,29 +201,28 @@ defmodule LantternWeb.StudentsRecordsLive do
     {:noreply, socket}
   end
 
-  def handle_info({StudentRecordFormOverlayComponent, {:created, _student_record}}, socket) do
+  def handle_info({StudentRecordOverlayComponent, {:created, student_record}}, socket) do
     socket =
       socket
-      |> put_flash(:info, gettext("Student record created successfully"))
-      |> push_navigate(to: ~p"/students_records")
+      |> stream_insert(:students_records, student_record, at: 0)
+      |> assign(:students_records_length, socket.assigns.students_records_length + 1)
 
     {:noreply, socket}
   end
 
-  def handle_info({StudentRecordFormOverlayComponent, {:updated, _student_record}}, socket) do
+  def handle_info({StudentRecordOverlayComponent, {:updated, student_record}}, socket) do
     socket =
       socket
-      |> put_flash(:info, gettext("Student record updated successfully"))
-      |> push_navigate(to: ~p"/students_records")
+      |> stream_insert(:students_records, student_record)
 
     {:noreply, socket}
   end
 
-  def handle_info({StudentRecordFormOverlayComponent, {:deleted, _student_record}}, socket) do
+  def handle_info({StudentRecordOverlayComponent, {:deleted, student_record}}, socket) do
     socket =
       socket
-      |> put_flash(:info, gettext("Student record deleted successfully"))
-      |> push_navigate(to: ~p"/students_records")
+      |> stream_delete(:students_records, student_record)
+      |> assign(:students_records_length, socket.assigns.students_records_length - 1)
 
     {:noreply, socket}
   end

@@ -30,7 +30,8 @@ defmodule LantternWeb.CoreComponents do
 
   attr :class, :any, default: nil
   attr :theme, :string, default: "default"
-  attr :type, :string, required: true, doc: "link | button"
+  attr :size, :string, default: "sm", doc: "sm | md"
+  attr :type, :string, required: true, doc: "link | button | submit"
   attr :icon_name, :string, default: nil
   attr :patch, :string, default: nil, doc: "use with type=\"link\""
   attr :navigate, :string, default: nil, doc: "use with type=\"link\""
@@ -38,23 +39,23 @@ defmodule LantternWeb.CoreComponents do
 
   slot :inner_block, required: true
 
-  def action(%{type: "button"} = assigns) do
+  def action(%{type: "link"} = assigns) do
     ~H"""
-    <button type="button" class={[action_styles(@theme), @class]} {@rest}>
-      <div class={action_bg_styles(@theme)}></div>
+    <.link patch={@patch} navigate={@navigate} class={[action_styles(@theme, @size), @class]}>
+      <div class={action_bg_styles(@theme, @size)}></div>
       <span class="relative truncate"><%= render_slot(@inner_block) %></span>
-      <.icon :if={@icon_name} name={@icon_name} class="relative shrink-0 w-5 h-5" />
-    </button>
+      <.icon :if={@icon_name} name={@icon_name} class={action_icon_styles(@size)} />
+    </.link>
     """
   end
 
-  def action(%{type: "link"} = assigns) do
+  def action(%{type: type} = assigns) when type in ["button", "submit"] do
     ~H"""
-    <.link patch={@patch} navigate={@navigate} class={[action_styles(@theme), @class]}>
-      <div class={action_bg_styles(@theme)}></div>
+    <button type={@type} class={[action_styles(@theme, @size), @class]} {@rest}>
+      <div class={action_bg_styles(@theme, @size)}></div>
       <span class="relative truncate"><%= render_slot(@inner_block) %></span>
-      <.icon :if={@icon_name} name={@icon_name} class="relative shrink-0 w-5 h-5" />
-    </.link>
+      <.icon :if={@icon_name} name={@icon_name} class={action_icon_styles(@size)} />
+    </button>
     """
   end
 
@@ -74,11 +75,30 @@ defmodule LantternWeb.CoreComponents do
     "teacher" => "bg-ltrn-teacher-lightest"
   }
 
-  defp action_styles(theme),
-    do: "relative flex items-center gap-2 min-w-0 #{Map.get(@action_themes, theme)}"
+  @action_sizes %{
+    "sm" => "text-sm",
+    "md" => "text-base"
+  }
 
-  defp action_bg_styles(theme),
-    do: "absolute inset-x-0 bottom-0 h-2 #{Map.get(@action_bg_themes, theme)}"
+  @action_bg_sizes %{
+    "sm" => "h-2",
+    "md" => "h-3"
+  }
+
+  @action_icon_sizes %{
+    "sm" => "w-5 h-5",
+    "md" => "w-6 h-6"
+  }
+
+  defp action_styles(theme, size),
+    do:
+      "relative flex items-center gap-2 min-w-0 #{Map.get(@action_themes, theme)} #{Map.get(@action_sizes, size)}"
+
+  defp action_bg_styles(theme, size),
+    do:
+      "absolute inset-x-0 bottom-0 #{Map.get(@action_bg_themes, theme)} #{Map.get(@action_bg_sizes, size)}"
+
+  defp action_icon_styles(size), do: "relative shrink-0 #{Map.get(@action_icon_sizes, size)}"
 
   @doc """
   Util function to help with action item text formating
@@ -725,7 +745,7 @@ defmodule LantternWeb.CoreComponents do
               phx-click={col[:on_filter]}
             >
               <%= if col[:filter_is_active] do %>
-                <.icon name="hero-funnel-solid" class="text-ltrn-primary" />
+                <.icon name="hero-funnel-mini" class="text-ltrn-primary" />
               <% else %>
                 <.icon name="hero-funnel" class="text-ltrn-subtle" />
               <% end %>

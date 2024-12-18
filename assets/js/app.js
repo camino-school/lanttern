@@ -28,17 +28,19 @@ import dropdownMenuHook from "./dropdown-menu-hook";
 import lantternVizHook from "./lanttern-viz-hook";
 import menuButtonrHook from "./menu-button-hook";
 import navScrollspyHook from "./nav-scrollspy-hook";
+import scrollToTopHook from "./scroll-to-top-hook";
 import sliderHook from "./slider-hook";
 
 let Hooks = {};
 Hooks.Autocomplete = autocompleteHook;
+Hooks.Cookies = cookiesHook;
+Hooks.CopyToClipboard = copyToClipboardHook;
 Hooks.DropdownMenu = dropdownMenuHook;
 Hooks.LantternViz = lantternVizHook;
 Hooks.MenuButton = menuButtonrHook;
 Hooks.NavScrollspy = navScrollspyHook;
+Hooks.ScrollToTop = scrollToTopHook;
 Hooks.Slider = sliderHook;
-Hooks.Cookies = cookiesHook;
-Hooks.CopyToClipboard = copyToClipboardHook;
 
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")

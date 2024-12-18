@@ -19,6 +19,13 @@
         >
           <%= gettext("Grades reports") %>
         </:tab>
+        <:tab
+          :if={@is_wcd}
+          patch={~p"/school/students/#{@student}/student_records"}
+          is_current={@live_action == :student_records}
+        >
+          <%= gettext("Student records") %>
+        </:tab>
       </.neo_tabs>
       <.action
         :if={@is_school_manager}
@@ -66,6 +73,14 @@
     params={@params}
   />
 </div>
+<.live_component
+  :if={@live_action == :student_records && @is_wcd}
+  module={StudentRecordsComponent}
+  id="student-records"
+  student={@student}
+  current_user={@current_user}
+  params={@params}
+/>
 <.live_component
   :if={@is_editing}
   module={StudentFormOverlayComponent}
