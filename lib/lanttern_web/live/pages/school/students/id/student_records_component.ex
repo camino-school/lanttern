@@ -78,11 +78,13 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
         id="students-records"
         stream={@streams.students_records}
         show_empty_state_message={@students_records_length == 0}
-        row_click={
-          fn student_record ->
-            JS.patch("#{@base_path}?student_record=#{student_record.id}")
+        student_navigate={
+          fn
+            student when student.id != @student.id -> ~p"/school/students/#{student}/student_records"
+            _ -> nil
           end
         }
+        details_patch={fn student_record -> "#{@base_path}?student_record=#{student_record.id}" end}
         is_students_filter_active={@selected_students_ids != []}
         on_students_filter={JS.push("open_student_search_modal", target: @myself)}
         is_classes_filter_active={@selected_classes_ids != []}

@@ -248,6 +248,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           profile_name={@student.name}
           extra_info={@student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
           on_click={@on_click}
+          navigate={~p"/school/students/#{@student}/report_cards"}
         />
       </div>
       <div class="shrink-0 flex items-center gap-2">
@@ -396,6 +397,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           profile_name={@student.name}
           extra_info={@student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
           on_click={@on_click}
+          navigate={~p"/school/students/#{@student}/report_cards"}
         />
       </div>
       <div class="shrink-0 flex items-center gap-2">

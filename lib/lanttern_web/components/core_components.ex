@@ -760,7 +760,7 @@ defmodule LantternWeb.CoreComponents do
             :for={{row_id, row} <- @stream}
             id={row_id}
             class={[
-              "grid grid-cols-subgrid items-center hover:bg-ltrn-mesh-yellow",
+              "grid grid-cols-subgrid items-center hover:bg-ltrn-mesh-cyan",
               @row_click && "hover:cursor-pointer"
             ]}
             style={@grid_col_span_style}
@@ -1278,6 +1278,7 @@ defmodule LantternWeb.CoreComponents do
   attr :on_remove, JS, default: nil
   attr :size, :string, default: "xs", doc: "xs | sm"
   attr :truncate, :boolean, default: false
+  attr :navigate, :string, default: nil
   attr :rest, :global
 
   def person_badge(assigns) do
@@ -1306,9 +1307,24 @@ defmodule LantternWeb.CoreComponents do
       {@rest}
     >
       <.profile_icon profile_name={@person.name} size={@profile_icon_size} theme={@theme} />
-      <span class={["pr-1 truncate", @text_size, @name_w]}>
-        <%= @person.name %>
-      </span>
+      <%= if @navigate do %>
+        <.link
+          navigate={@navigate}
+          target="_blank"
+          class={[
+            "pr-1 font-bold hover:text-ltrn-subtle",
+            @text_size,
+            @name_w,
+            if(@truncate, do: "truncate")
+          ]}
+        >
+          <%= @person.name %>
+        </.link>
+      <% else %>
+        <span class={["pr-1", @text_size, @name_w, if(@truncate, do: "truncate")]}>
+          <%= @person.name %>
+        </span>
+      <% end %>
       <div :if={@on_remove} class="pr-1 -ml-1">
         <button
           type="button"
@@ -1446,6 +1462,7 @@ defmodule LantternWeb.CoreComponents do
   attr :extra_info, :string, default: nil
   attr :on_click, JS, default: nil
   attr :is_checked, :boolean, default: false
+  attr :navigate, :string, default: nil
   attr :class, :any, default: nil
   attr :rest, :global
 
@@ -1461,9 +1478,22 @@ defmodule LantternWeb.CoreComponents do
         {@rest}
       />
       <div class="flex-1">
-        <div class={if(@extra_info, do: "line-clamp-1", else: "line-clamp-2")}>
-          <%= @profile_name %>
-        </div>
+        <%= if @navigate do %>
+          <.link
+            navigate={@navigate}
+            target="_blank"
+            class={[
+              "font-bold hover:text-ltrn-subtle",
+              if(@extra_info, do: "line-clamp-1", else: "line-clamp-2")
+            ]}
+          >
+            <%= @profile_name %>
+          </.link>
+        <% else %>
+          <div class={if(@extra_info, do: "line-clamp-1", else: "line-clamp-2")}>
+            <%= @profile_name %>
+          </div>
+        <% end %>
         <div :if={@extra_info} class="line-clamp-1 text-xs text-ltrn-subtle"><%= @extra_info %></div>
       </div>
     </div>

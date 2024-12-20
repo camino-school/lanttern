@@ -18,9 +18,13 @@ defmodule LantternWeb.StudentsRecordsComponents do
   attr :stream, :any, required: true
   attr :show_empty_state_message, :boolean, required: true
 
-  attr :row_click, :any,
+  attr :student_navigate, :any,
     required: true,
-    doc: "function to execute on row click. Will receive student record as arg"
+    doc: "function, will receive student as arg. Should return route for navigate"
+
+  attr :details_patch, :any,
+    required: true,
+    doc: "function, will receive student record as arg. Should return route for patch"
 
   attr :is_students_filter_active, :boolean, required: true
   attr :on_students_filter, JS, required: true
@@ -37,7 +41,6 @@ defmodule LantternWeb.StudentsRecordsComponents do
     <.data_grid
       id={@id}
       stream={@stream}
-      row_click={@row_click}
       show_empty_state_message={
         if @show_empty_state_message,
           do: gettext("No students records found for selected filters.")
@@ -66,6 +69,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
             person={student}
             theme="cyan"
             truncate
+            navigate={@student_navigate.(student)}
           />
         </div>
       </:col>
@@ -116,6 +120,15 @@ defmodule LantternWeb.StudentsRecordsComponents do
           <%= student_record.status.name %>
         </.badge>
       </:col>
+      <:action :let={student_record}>
+        <.action
+          type="link"
+          icon_name="hero-arrow-up-right-mini"
+          patch={@details_patch.(student_record)}
+        >
+          <%= gettext("Details") %>
+        </.action>
+      </:action>
     </.data_grid>
     """
   end

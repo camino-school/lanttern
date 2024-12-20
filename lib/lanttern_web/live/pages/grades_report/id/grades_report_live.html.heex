@@ -54,6 +54,7 @@
   grades_report_cycles={@grades_report_cycles}
   grades_report_subjects={@grades_report_subjects}
   students_grades_map={@students_grades_map}
+  student_navigate={fn student -> ~p"/school/students/#{student}/grades_reports" end}
   on_calculate_final={fn -> JS.push("calculate_all") end}
   on_calculate_student={
     fn student_id ->

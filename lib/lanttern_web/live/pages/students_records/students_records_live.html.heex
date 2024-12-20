@@ -69,10 +69,9 @@
   id="students-records"
   stream={@streams.students_records}
   show_empty_state_message={@students_records_length == 0}
-  row_click={
-    fn student_record ->
-      JS.patch(~p"/students_records?student_record=#{student_record.id}")
-    end
+  student_navigate={fn student -> ~p"/school/students/#{student}/student_records" end}
+  details_patch={
+    fn student_record -> ~p"/students_records?student_record=#{student_record.id}" end
   }
   is_students_filter_active={@selected_students_ids != []}
   on_students_filter={JS.push("open_student_search_modal")}

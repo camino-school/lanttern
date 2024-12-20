@@ -193,6 +193,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                     theme="cyan"
                     size="sm"
                     id={"student-#{student.id}"}
+                    navigate={~p"/school/students/#{student.id}/student_records"}
                   />
                 </div>
               </div>
