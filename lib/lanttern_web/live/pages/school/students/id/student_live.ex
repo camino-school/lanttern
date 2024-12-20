@@ -9,6 +9,7 @@ defmodule LantternWeb.StudentLive do
 
   alias __MODULE__.StudentReportCardsComponent
   alias __MODULE__.GradesReportsComponent
+  alias __MODULE__.StudentRecordsComponent
 
   # shared components
 
@@ -26,6 +27,7 @@ defmodule LantternWeb.StudentLive do
       |> assign(:student, student)
       |> stream_grades_reports()
       |> assign_is_school_manager()
+      |> assign_is_wcd()
       |> assign(:page_title, student.name)
 
     {:ok, socket, temporary_assigns: [student_grades_maps: %{}]}
@@ -80,6 +82,11 @@ defmodule LantternWeb.StudentLive do
     assign(socket, :is_school_manager, is_school_manager)
   end
 
+  defp assign_is_wcd(socket) do
+    is_wcd = "wcd" in socket.assigns.current_user.current_profile.permissions
+    assign(socket, :is_wcd, is_wcd)
+  end
+
   @impl true
   def handle_params(params, _url, socket) do
     socket =
@@ -97,11 +104,11 @@ defmodule LantternWeb.StudentLive do
     do: assign(socket, :is_editing, false)
 
   @impl true
-  def handle_info({StudentFormOverlayComponent, {:updated, student}}, socket) do
+  def handle_info({StudentFormOverlayComponent, {:updated, _student}}, socket) do
     socket =
       socket
       |> put_flash(:info, gettext("Student updated successfully"))
-      |> push_navigate(to: ~p"/school/students/#{student}")
+      |> push_navigate(to: socket.assigns.current_path)
 
     {:noreply, socket}
   end

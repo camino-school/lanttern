@@ -44,7 +44,8 @@ defmodule Lanttern.StudentsRecords do
   def list_students_records(opts \\ []) do
     from(
       sr in StudentRecord,
-      order_by: [desc: sr.date, desc: sr.time, desc: sr.id]
+      order_by: [desc: sr.date, desc: sr.time, desc: sr.id],
+      group_by: sr.id
     )
     |> apply_list_students_records_opts(opts)
     |> Repo.all()

@@ -30,7 +30,8 @@ defmodule LantternWeb.CoreComponents do
 
   attr :class, :any, default: nil
   attr :theme, :string, default: "default"
-  attr :type, :string, required: true, doc: "link | button"
+  attr :size, :string, default: "sm", doc: "sm | md"
+  attr :type, :string, required: true, doc: "link | button | submit"
   attr :icon_name, :string, default: nil
   attr :patch, :string, default: nil, doc: "use with type=\"link\""
   attr :navigate, :string, default: nil, doc: "use with type=\"link\""
@@ -38,23 +39,23 @@ defmodule LantternWeb.CoreComponents do
 
   slot :inner_block, required: true
 
-  def action(%{type: "button"} = assigns) do
+  def action(%{type: "link"} = assigns) do
     ~H"""
-    <button type="button" class={[action_styles(@theme), @class]} {@rest}>
-      <div class={action_bg_styles(@theme)}></div>
+    <.link patch={@patch} navigate={@navigate} class={[action_styles(@theme, @size), @class]}>
+      <div class={action_bg_styles(@theme, @size)}></div>
       <span class="relative truncate"><%= render_slot(@inner_block) %></span>
-      <.icon :if={@icon_name} name={@icon_name} class="relative shrink-0 w-5 h-5" />
-    </button>
+      <.icon :if={@icon_name} name={@icon_name} class={action_icon_styles(@size)} />
+    </.link>
     """
   end
 
-  def action(%{type: "link"} = assigns) do
+  def action(%{type: type} = assigns) when type in ["button", "submit"] do
     ~H"""
-    <.link patch={@patch} navigate={@navigate} class={[action_styles(@theme), @class]}>
-      <div class={action_bg_styles(@theme)}></div>
+    <button type={@type} class={[action_styles(@theme, @size), @class]} {@rest}>
+      <div class={action_bg_styles(@theme, @size)}></div>
       <span class="relative truncate"><%= render_slot(@inner_block) %></span>
-      <.icon :if={@icon_name} name={@icon_name} class="relative shrink-0 w-5 h-5" />
-    </.link>
+      <.icon :if={@icon_name} name={@icon_name} class={action_icon_styles(@size)} />
+    </button>
     """
   end
 
@@ -74,11 +75,30 @@ defmodule LantternWeb.CoreComponents do
     "teacher" => "bg-ltrn-teacher-lightest"
   }
 
-  defp action_styles(theme),
-    do: "relative flex items-center gap-2 min-w-0 #{Map.get(@action_themes, theme)}"
+  @action_sizes %{
+    "sm" => "text-sm",
+    "md" => "text-base"
+  }
 
-  defp action_bg_styles(theme),
-    do: "absolute inset-x-0 bottom-0 h-2 #{Map.get(@action_bg_themes, theme)}"
+  @action_bg_sizes %{
+    "sm" => "h-2",
+    "md" => "h-3"
+  }
+
+  @action_icon_sizes %{
+    "sm" => "w-5 h-5",
+    "md" => "w-6 h-6"
+  }
+
+  defp action_styles(theme, size),
+    do:
+      "relative flex items-center gap-2 min-w-0 #{Map.get(@action_themes, theme)} #{Map.get(@action_sizes, size)}"
+
+  defp action_bg_styles(theme, size),
+    do:
+      "absolute inset-x-0 bottom-0 #{Map.get(@action_bg_themes, theme)} #{Map.get(@action_bg_sizes, size)}"
+
+  defp action_icon_styles(size), do: "relative shrink-0 #{Map.get(@action_icon_sizes, size)}"
 
   @doc """
   Util function to help with action item text formating
@@ -725,7 +745,7 @@ defmodule LantternWeb.CoreComponents do
               phx-click={col[:on_filter]}
             >
               <%= if col[:filter_is_active] do %>
-                <.icon name="hero-funnel-solid" class="text-ltrn-primary" />
+                <.icon name="hero-funnel-mini" class="text-ltrn-primary" />
               <% else %>
                 <.icon name="hero-funnel" class="text-ltrn-subtle" />
               <% end %>
@@ -740,7 +760,7 @@ defmodule LantternWeb.CoreComponents do
             :for={{row_id, row} <- @stream}
             id={row_id}
             class={[
-              "grid grid-cols-subgrid items-center hover:bg-ltrn-mesh-yellow",
+              "grid grid-cols-subgrid items-center hover:bg-ltrn-mesh-cyan",
               @row_click && "hover:cursor-pointer"
             ]}
             style={@grid_col_span_style}
@@ -757,7 +777,9 @@ defmodule LantternWeb.CoreComponents do
           </li>
         </ul>
       </div>
-      <.empty_state :if={@show_empty_state_message}><%= @show_empty_state_message %></.empty_state>
+      <div :if={@show_empty_state_message} class="p-6">
+        <.empty_state><%= @show_empty_state_message %></.empty_state>
+      </div>
     </div>
     """
   end
@@ -771,7 +793,7 @@ defmodule LantternWeb.CoreComponents do
   def empty_state(assigns) do
     ~H"""
     <div class={["text-center", @class]}>
-      <div class="relative p-10">
+      <div class="relative p-6">
         <div class="animate-pulse h-24 w-24 rounded-full mx-auto bg-ltrn-lighter blur-md"></div>
         <div class="absolute top-1/2 left-1/2 h-20 w-20 -mt-10 -ml-10 rounded-full border border-dashed border-ltrn-light">
         </div>
@@ -1256,6 +1278,7 @@ defmodule LantternWeb.CoreComponents do
   attr :on_remove, JS, default: nil
   attr :size, :string, default: "xs", doc: "xs | sm"
   attr :truncate, :boolean, default: false
+  attr :navigate, :string, default: nil
   attr :rest, :global
 
   def person_badge(assigns) do
@@ -1284,9 +1307,24 @@ defmodule LantternWeb.CoreComponents do
       {@rest}
     >
       <.profile_icon profile_name={@person.name} size={@profile_icon_size} theme={@theme} />
-      <span class={["pr-1 truncate", @text_size, @name_w]}>
-        <%= @person.name %>
-      </span>
+      <%= if @navigate do %>
+        <.link
+          navigate={@navigate}
+          target="_blank"
+          class={[
+            "pr-1 font-bold hover:text-ltrn-subtle",
+            @text_size,
+            @name_w,
+            if(@truncate, do: "truncate")
+          ]}
+        >
+          <%= @person.name %>
+        </.link>
+      <% else %>
+        <span class={["pr-1", @text_size, @name_w, if(@truncate, do: "truncate")]}>
+          <%= @person.name %>
+        </span>
+      <% end %>
       <div :if={@on_remove} class="pr-1 -ml-1">
         <button
           type="button"
@@ -1424,6 +1462,7 @@ defmodule LantternWeb.CoreComponents do
   attr :extra_info, :string, default: nil
   attr :on_click, JS, default: nil
   attr :is_checked, :boolean, default: false
+  attr :navigate, :string, default: nil
   attr :class, :any, default: nil
   attr :rest, :global
 
@@ -1439,9 +1478,22 @@ defmodule LantternWeb.CoreComponents do
         {@rest}
       />
       <div class="flex-1">
-        <div class={if(@extra_info, do: "line-clamp-1", else: "line-clamp-2")}>
-          <%= @profile_name %>
-        </div>
+        <%= if @navigate do %>
+          <.link
+            navigate={@navigate}
+            target="_blank"
+            class={[
+              "font-bold hover:text-ltrn-subtle",
+              if(@extra_info, do: "line-clamp-1", else: "line-clamp-2")
+            ]}
+          >
+            <%= @profile_name %>
+          </.link>
+        <% else %>
+          <div class={if(@extra_info, do: "line-clamp-1", else: "line-clamp-2")}>
+            <%= @profile_name %>
+          </div>
+        <% end %>
         <div :if={@extra_info} class="line-clamp-1 text-xs text-ltrn-subtle"><%= @extra_info %></div>
       </div>
     </div>

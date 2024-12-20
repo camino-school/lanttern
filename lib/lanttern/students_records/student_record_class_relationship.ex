@@ -9,8 +9,9 @@ defmodule Lanttern.StudentsRecords.StudentRecordClassRelationship do
   @primary_key false
   schema "students_records_classes" do
     field :student_record_id, :id, primary_key: true
-    field :class_id, :id, primary_key: true
     field :school_id, :id
+
+    belongs_to :class, Lanttern.Schools.Class, primary_key: true
   end
 
   @doc false

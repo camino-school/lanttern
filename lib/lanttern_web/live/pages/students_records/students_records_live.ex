@@ -2,7 +2,7 @@ defmodule LantternWeb.StudentsRecordsLive do
   use LantternWeb, :live_view
 
   alias Lanttern.StudentsRecords
-  alias Lanttern.StudentsRecords.StudentRecord
+  alias Lanttern.Schools
   alias Lanttern.Schools.Cycle
 
   import LantternWeb.FiltersHelpers,
@@ -13,8 +13,9 @@ defmodule LantternWeb.StudentsRecordsLive do
   # shared components
 
   alias LantternWeb.Schools.StudentSearchComponent
-  alias LantternWeb.StudentsRecords.StudentRecordFormOverlayComponent
+  alias LantternWeb.StudentsRecords.StudentRecordOverlayComponent
   import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
+  import LantternWeb.StudentsRecordsComponents
 
   # lifecycle
 
@@ -30,6 +31,7 @@ defmodule LantternWeb.StudentsRecordsLive do
       |> apply_assign_classes_filter()
       |> stream_students_records()
       |> assign(:show_student_search_modal, false)
+      |> assign(:new_record_initial_fields, nil)
 
     {:ok, socket}
   end
@@ -86,57 +88,48 @@ defmodule LantternWeb.StudentsRecordsLive do
   end
 
   @impl true
-  def handle_params(params, _uri, socket) do
-    student_record =
-      case params do
-        %{"new" => "true"} ->
-          %StudentRecord{
-            school_id: socket.assigns.current_user.current_profile.school_id,
-            students: socket.assigns.selected_students,
-            students_ids: socket.assigns.selected_students_ids,
-            classes: [],
-            date: Date.utc_today()
-          }
+  def handle_params(params, _uri, socket),
+    do: {:noreply, assign_student_record_id(socket, params)}
 
-        %{"edit" => id} ->
-          get_student_record_and_validate_permission(socket, id)
+  defp assign_student_record_id(socket, %{"student_record" => "new"}) do
+    # build new record initial fields based on current filters
+    students_ids = Enum.map(socket.assigns.selected_students, & &1.id)
 
-        _ ->
-          nil
+    classes =
+      (socket.assigns.selected_classes ++
+         Schools.list_classes_for_students_in_date(students_ids, Date.utc_today()))
+      |> Enum.uniq_by(& &1.id)
+
+    type_id =
+      case socket.assigns.selected_student_record_types do
+        [type] -> type.id
+        _ -> nil
       end
 
-    socket =
-      assign(socket, :student_record, student_record)
+    status_id =
+      case socket.assigns.selected_student_record_statuses do
+        [status] -> status.id
+        _ -> nil
+      end
 
-    {:noreply, socket}
+    new_record_initial_fields =
+      %{
+        students: socket.assigns.selected_students,
+        classes: classes,
+        type_id: type_id,
+        status_id: status_id
+      }
+
+    socket
+    |> assign(:student_record_id, :new)
+    |> assign(:new_record_initial_fields, new_record_initial_fields)
   end
 
-  defp get_student_record_and_validate_permission(socket, id) do
-    student_record =
-      StudentsRecords.get_student_record(id,
-        preloads: [:students_relationships, :students, :classes_relationships, :classes]
-      )
-      |> put_students_ids()
+  defp assign_student_record_id(socket, %{"student_record" => id}),
+    do: assign(socket, :student_record_id, id)
 
-    case student_record do
-      nil ->
-        nil
-
-      student_record ->
-        if student_record.school_id == socket.assigns.current_user.current_profile.school_id,
-          do: student_record
-    end
-  end
-
-  defp put_students_ids(nil), do: nil
-
-  defp put_students_ids(student_record) do
-    students_ids =
-      student_record.students_relationships
-      |> Enum.map(& &1.student_id)
-
-    %{student_record | students_ids: students_ids}
-  end
+  defp assign_student_record_id(socket, _params),
+    do: assign(socket, :student_record_id, nil)
 
   @impl true
   def handle_event("remove_student_filter", _, socket) do
@@ -239,29 +232,28 @@ defmodule LantternWeb.StudentsRecordsLive do
     {:noreply, socket}
   end
 
-  def handle_info({StudentRecordFormOverlayComponent, {:created, _student_record}}, socket) do
+  def handle_info({StudentRecordOverlayComponent, {:created, student_record}}, socket) do
     socket =
       socket
-      |> put_flash(:info, gettext("Student record created successfully"))
-      |> push_navigate(to: ~p"/students_records")
+      |> stream_insert(:students_records, student_record, at: 0)
+      |> assign(:students_records_length, socket.assigns.students_records_length + 1)
 
     {:noreply, socket}
   end
 
-  def handle_info({StudentRecordFormOverlayComponent, {:updated, _student_record}}, socket) do
+  def handle_info({StudentRecordOverlayComponent, {:updated, student_record}}, socket) do
     socket =
       socket
-      |> put_flash(:info, gettext("Student record updated successfully"))
-      |> push_navigate(to: ~p"/students_records")
+      |> stream_insert(:students_records, student_record)
 
     {:noreply, socket}
   end
 
-  def handle_info({StudentRecordFormOverlayComponent, {:deleted, _student_record}}, socket) do
+  def handle_info({StudentRecordOverlayComponent, {:deleted, student_record}}, socket) do
     socket =
       socket
-      |> put_flash(:info, gettext("Student record deleted successfully"))
-      |> push_navigate(to: ~p"/students_records")
+      |> stream_delete(:students_records, student_record)
+      |> assign(:students_records_length, socket.assigns.students_records_length - 1)
 
     {:noreply, socket}
   end

@@ -77,6 +77,7 @@ defmodule LantternWeb.Router do
       live "/school/students/:id", StudentLive, :show
       live "/school/students/:id/report_cards", StudentLive, :report_cards
       live "/school/students/:id/grades_reports", StudentLive, :grades_reports
+      live "/school/students/:id/student_records", StudentLive, :student_records
 
       live "/assessment_points/:id", AssessmentPointLive, :show
       live "/assessment_points/:id/edit", AssessmentPointLive, :edit
@@ -128,7 +129,6 @@ defmodule LantternWeb.Router do
       # students records
 
       live "/students_records", StudentsRecordsLive, :index
-      live "/students_records/:id", StudentRecordLive, :show
     end
 
     live_session :authenticated_guardian,

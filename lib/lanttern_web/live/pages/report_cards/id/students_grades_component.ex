@@ -52,6 +52,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
             students={@students}
             grades_report_subjects={@grades_report.grades_report_subjects}
             students_grades_map={@students_grades_map}
+            student_navigate={fn student -> ~p"/school/students/#{student}/grades_reports" end}
             on_calculate_cycle={fn -> JS.push("calculate_cycle", target: @myself) end}
             on_calculate_student={
               fn student_id ->

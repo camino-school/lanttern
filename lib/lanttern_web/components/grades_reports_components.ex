@@ -338,6 +338,7 @@ defmodule LantternWeb.GradesReportsComponents do
   attr :grades_report_cycles, :list, required: true
   attr :grades_report_subjects, :list, required: true
   attr :students_grades_map, :map, required: true
+  attr :student_navigate, :any, default: nil, doc: "function. will receive student as arg"
   attr :class, :any, default: nil
   attr :id, :string, default: nil
 
@@ -562,6 +563,7 @@ defmodule LantternWeb.GradesReportsComponents do
                 class="flex-1"
                 profile_name={student.name}
                 extra_info={student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
+                navigate={@student_navigate && @student_navigate.(student)}
               />
               <.icon_button
                 :if={@display_actions && @on_calculate_student}
@@ -671,6 +673,7 @@ defmodule LantternWeb.GradesReportsComponents do
   attr :students, :list, required: true
   attr :grades_report_subjects, :list, required: true
   attr :students_grades_map, :map, required: true
+  attr :student_navigate, :any, default: nil, doc: "function. will receive student as arg"
   attr :class, :any, default: nil
   attr :id, :string, default: nil
 
@@ -804,6 +807,7 @@ defmodule LantternWeb.GradesReportsComponents do
               class="flex-1"
               profile_name={student.name}
               extra_info={student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
+              navigate={@student_navigate && @student_navigate.(student)}
             />
             <.icon_button
               :if={@on_calculate_student}

@@ -42,10 +42,13 @@ defmodule Lanttern.StudentsRecordsTest do
 
     test "list_students_records/1 with students opt returns records filtered by students" do
       school = SchoolsFixtures.school_fixture()
-      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+
+      # create 2 students to test duplicated results when more than one filter applied
+      student_a = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      student_b = SchoolsFixtures.student_fixture(%{school_id: school.id})
 
       student_record =
-        student_record_fixture(%{school_id: school.id, students_ids: [student.id]})
+        student_record_fixture(%{school_id: school.id, students_ids: [student_a.id, student_b.id]})
 
       # extra fixture to test filtering
       student_record_fixture()
@@ -54,7 +57,7 @@ defmodule Lanttern.StudentsRecordsTest do
       [expected_student_record] =
         StudentsRecords.list_students_records(
           school_id: school.id,
-          students_ids: [student.id]
+          students_ids: [student_a.id, student_b.id]
         )
 
       assert expected_student_record.id == student_record.id
@@ -62,10 +65,13 @@ defmodule Lanttern.StudentsRecordsTest do
 
     test "list_students_records/1 with classes opt returns records filtered by classes" do
       school = SchoolsFixtures.school_fixture()
-      class = SchoolsFixtures.class_fixture(%{school_id: school.id})
+
+      # create 2 classes to test duplicated results when more than one filter applied
+      class_a = SchoolsFixtures.class_fixture(%{school_id: school.id})
+      class_b = SchoolsFixtures.class_fixture(%{school_id: school.id})
 
       student_record =
-        student_record_fixture(%{school_id: school.id, classes_ids: [class.id]})
+        student_record_fixture(%{school_id: school.id, classes_ids: [class_a.id, class_b.id]})
 
       # extra fixture to test filtering
       student_record_fixture()
@@ -74,7 +80,7 @@ defmodule Lanttern.StudentsRecordsTest do
       [expected_student_record] =
         StudentsRecords.list_students_records(
           school_id: school.id,
-          classes_ids: [class.id]
+          classes_ids: [class_a.id, class_b.id]
         )
 
       assert expected_student_record.id == student_record.id

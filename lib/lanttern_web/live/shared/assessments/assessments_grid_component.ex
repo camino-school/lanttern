@@ -421,6 +421,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         <.profile_icon_with_name
           profile_name={@student.name}
           extra_info={@student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
+          navigate={~p"/school/students/#{@student}"}
         />
       </div>
       <div :for={entry <- @entries} class="p-2">
