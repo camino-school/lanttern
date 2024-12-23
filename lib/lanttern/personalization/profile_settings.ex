@@ -34,7 +34,8 @@ defmodule Lanttern.Personalization.ProfileSettings do
           students_ids: [pos_integer()],
           student_record_types_ids: [pos_integer()],
           student_record_statuses_ids: [pos_integer()],
-          only_starred_strands: boolean()
+          only_starred_strands: boolean(),
+          student_info_cycle_id: pos_integer()
         }
 
   schema "profile_settings" do
@@ -53,6 +54,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
       field :student_record_types_ids, {:array, :id}
       field :student_record_statuses_ids, {:array, :id}
       field :only_starred_strands, :boolean, default: false
+      field :student_info_cycle_id, :id
     end
 
     timestamps()
@@ -85,7 +87,8 @@ defmodule Lanttern.Personalization.ProfileSettings do
       :students_ids,
       :student_record_types_ids,
       :student_record_statuses_ids,
-      :only_starred_strands
+      :only_starred_strands,
+      :student_info_cycle_id
     ])
     |> validate_change(:assessment_view, fn :assessment_view, view ->
       if view in ["teacher", "student", "compare"],

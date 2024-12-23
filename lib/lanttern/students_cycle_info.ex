@@ -4,9 +4,12 @@ defmodule Lanttern.StudentsCycleInfo do
   """
 
   import Ecto.Query, warn: false
+  alias Lanttern.Schools.Student
   alias Lanttern.Repo
 
   alias Lanttern.StudentsCycleInfo.StudentCycleInfo
+  alias Lanttern.Schools.Class
+  alias Lanttern.Schools.Cycle
 
   @doc """
   Returns the list of students_cycle_info.
@@ -100,5 +103,44 @@ defmodule Lanttern.StudentsCycleInfo do
   """
   def change_student_cycle_info(%StudentCycleInfo{} = student_cycle_info, attrs \\ %{}) do
     StudentCycleInfo.changeset(student_cycle_info, attrs)
+  end
+
+  @doc """
+  List parent cycles with a list of classes related to the given student.
+
+  Results are ordered by cycle end_at desc and cycle start_at asc.
+
+  Classes in tuple are ordered alphabetically.
+
+  ## Examples
+
+      iex> list_cycles_and_classes_for_student(student)
+      [{%Cycle{}, [%Class{}, ...]}, ...]
+
+  """
+  @spec list_cycles_and_classes_for_student(Student.t()) :: [
+          {Cycle.t(), [Class.t()]}
+        ]
+  def list_cycles_and_classes_for_student(%Student{} = student) do
+    student_classes_map =
+      from(
+        c in Class,
+        join: s in assoc(c, :students),
+        where: s.id == ^student.id,
+        order_by: [asc: c.name]
+      )
+      |> Repo.all()
+      |> Enum.group_by(& &1.cycle_id)
+
+    from(
+      cy in Cycle,
+      where: cy.school_id == ^student.school_id,
+      where: is_nil(cy.parent_cycle_id),
+      order_by: [desc: cy.end_at, asc: cy.start_at]
+    )
+    |> Repo.all()
+    |> Enum.map(fn cycle ->
+      {cycle, student_classes_map[cycle.id] || []}
+    end)
   end
 end

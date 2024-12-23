@@ -79,6 +79,8 @@ defmodule LantternWeb.ConnCase do
           school_name: profile.teacher.school.name
         }
       end)
+      # profile should always have a current school cycle
+      |> inject_current_school_cycle()
 
     %{conn: log_in_user(conn, user), user: user, teacher: teacher}
   end
@@ -117,6 +119,8 @@ defmodule LantternWeb.ConnCase do
           school_name: profile.student.school.name
         }
       end)
+      # profile should always have a current school cycle
+      |> inject_current_school_cycle()
 
     %{conn: log_in_user(conn, user), user: user, student: student}
   end
@@ -155,6 +159,8 @@ defmodule LantternWeb.ConnCase do
           school_name: profile.guardian_of_student.school.name
         }
       end)
+      # profile should always have a current school cycle
+      |> inject_current_school_cycle()
 
     %{conn: log_in_user(conn, user), user: user, student: student}
   end
@@ -219,5 +225,23 @@ defmodule LantternWeb.ConnCase do
       |> Map.update!(:current_profile, &%{&1 | permissions: settings.permissions})
 
     %{conn: log_in_user(conn, user), user: user}
+  end
+
+  # helpers
+
+  defp inject_current_school_cycle(user) do
+    school_id = user.current_profile.school_id
+
+    cycle =
+      Lanttern.SchoolsFixtures.cycle_fixture(%{
+        school_id: school_id,
+        start_at: ~D[2020-01-01],
+        end_at: ~D[2020-12-31]
+      })
+
+    user
+    |> Map.update!(:current_profile, fn profile ->
+      %{profile | current_school_cycle: cycle}
+    end)
   end
 end

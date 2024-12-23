@@ -7,6 +7,7 @@ defmodule Lanttern.Schools.Cycle do
   import Ecto.Changeset
 
   import LantternWeb.Gettext
+  alias Lanttern.Schools.Class
   alias Lanttern.Schools.School
 
   @type t :: %__MODULE__{
@@ -16,6 +17,7 @@ defmodule Lanttern.Schools.Cycle do
           end_at: Date.t(),
           school: School.t(),
           school_id: pos_integer(),
+          classes: [Class.t()],
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -29,6 +31,7 @@ defmodule Lanttern.Schools.Cycle do
     belongs_to :parent_cycle, __MODULE__
 
     has_many :subcycles, __MODULE__, foreign_key: :parent_cycle_id
+    has_many :classes, Class
 
     timestamps()
   end

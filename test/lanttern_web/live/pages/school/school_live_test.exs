@@ -32,7 +32,15 @@ defmodule LantternWeb.SchoolLiveTest do
 
     test "list classes", %{conn: conn, user: user} do
       school_id = user.current_profile.school_id
-      class = SchoolsFixtures.class_fixture(%{school_id: school_id, name: "class abc"})
+      cycle_id = user.current_profile.current_school_cycle.id
+
+      class =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school_id,
+          cycle_id: cycle_id,
+          name: "class abc"
+        })
+
       other_class = SchoolsFixtures.class_fixture(%{name: "class from other school"})
 
       {:ok, view, _html} = live(conn, "#{@live_view_path}/classes")

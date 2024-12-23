@@ -3,6 +3,7 @@ defmodule LantternWeb.StudentStrandsLiveTest do
 
   alias Lanttern.LearningContextFixtures
   alias Lanttern.ReportingFixtures
+  alias Lanttern.SchoolsFixtures
 
   @live_view_path "/student_strands"
 
@@ -17,8 +18,16 @@ defmodule LantternWeb.StudentStrandsLiveTest do
       {:ok, _view, _html} = live(conn)
     end
 
-    test "list strands linked to report cards", %{conn: conn, student: student} do
-      report_card = ReportingFixtures.report_card_fixture()
+    test "list strands linked to report cards", %{conn: conn, user: user, student: student} do
+      parent_cycle_id = user.current_profile.current_school_cycle.id
+
+      cycle =
+        SchoolsFixtures.cycle_fixture(%{
+          school_id: student.school_id,
+          parent_cycle_id: parent_cycle_id
+        })
+
+      report_card = ReportingFixtures.report_card_fixture(%{school_cycle_id: cycle.id})
 
       _student_report_card =
         ReportingFixtures.student_report_card_fixture(%{

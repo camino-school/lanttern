@@ -1,7 +1,8 @@
 defmodule LantternWeb.StudentHomeLiveTest do
   use LantternWeb.ConnCase
 
-  import Lanttern.ReportingFixtures
+  alias Lanttern.ReportingFixtures
+  alias Lanttern.SchoolsFixtures
 
   @live_view_path "/student"
 
@@ -16,11 +17,24 @@ defmodule LantternWeb.StudentHomeLiveTest do
       {:ok, _view, _html} = live(conn)
     end
 
-    test "list student report cards", %{conn: conn, student: student} do
-      report_card = report_card_fixture(%{name: "Some report card name ABC"})
+    test "list student report cards", %{conn: conn, user: user, student: student} do
+      school_id = user.current_profile.school_id
+      parent_cycle_id = user.current_profile.current_school_cycle.id
+
+      cycle =
+        SchoolsFixtures.cycle_fixture(%{
+          school_id: school_id,
+          parent_cycle_id: parent_cycle_id
+        })
+
+      report_card =
+        ReportingFixtures.report_card_fixture(%{
+          name: "Some report card name ABC",
+          school_cycle_id: cycle.id
+        })
 
       student_report_card =
-        student_report_card_fixture(%{
+        ReportingFixtures.student_report_card_fixture(%{
           report_card_id: report_card.id,
           student_id: student.id,
           allow_student_access: true

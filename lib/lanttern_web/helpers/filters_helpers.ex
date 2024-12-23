@@ -64,6 +64,10 @@ defmodule LantternWeb.FiltersHelpers do
 
   - `:only_starred_strands`
 
+  ### `:student_info`
+
+  - `:student_info_selected_cycle_id`
+
   ## Examples
 
       iex> assign_user_filters(socket, [:subjects], user)
@@ -220,6 +224,27 @@ defmodule LantternWeb.FiltersHelpers do
     |> assign_filter_type(current_user, current_filters, filter_types)
   end
 
+  defp assign_filter_type(
+         socket,
+         current_user,
+         current_filters,
+         [:student_info | filter_types]
+       ) do
+    student_info_selected_cycle_id =
+      case Map.get(current_filters, :student_info_cycle_id) do
+        nil ->
+          # use profile current cycle as default
+          Map.get(current_user.current_profile.current_school_cycle || %{}, :id)
+
+        cycle_id ->
+          cycle_id
+      end
+
+    socket
+    |> assign(:student_info_selected_cycle_id, student_info_selected_cycle_id)
+    |> assign_filter_type(current_user, current_filters, filter_types)
+  end
+
   defp assign_filter_type(socket, current_user, current_filters, [_ | filter_types]),
     do: assign_filter_type(socket, current_user, current_filters, filter_types)
 
@@ -232,7 +257,8 @@ defmodule LantternWeb.FiltersHelpers do
     students: :students_ids,
     student_record_types: :student_record_types_ids,
     student_record_statuses: :student_record_statuses_ids,
-    starred_strands: :only_starred_strands
+    starred_strands: :only_starred_strands,
+    student_info: :student_info_cycle_id
   }
 
   @type_to_current_value_key_map %{
@@ -244,7 +270,8 @@ defmodule LantternWeb.FiltersHelpers do
     students: :selected_students_ids,
     student_record_types: :selected_student_record_types_ids,
     student_record_statuses: :selected_student_record_statuses_ids,
-    starred_strands: :only_starred_strands
+    starred_strands: :only_starred_strands,
+    student_info: :student_info_selected_cycle_id
   }
 
   @doc """
@@ -599,10 +626,11 @@ defmodule LantternWeb.FiltersHelpers do
   - `:students`
   - `:student_record_types`
   - `:student_record_status`
+  - `:student_info`
 
   ## Examples
 
-      iex> save_profile_filters(socket, user, [:subjects])
+      iex> save_profile_filters(socket, [:subjects])
       %Phoenix.LiveView.Socket{}
   """
 

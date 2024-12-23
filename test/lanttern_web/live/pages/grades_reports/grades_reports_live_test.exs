@@ -2,7 +2,6 @@ defmodule LantternWeb.GradesReportsLiveTest do
   use LantternWeb.ConnCase
 
   import Lanttern.GradesReportsFixtures
-  alias Lanttern.SchoolsFixtures
   alias Lanttern.GradingFixtures
 
   @live_view_path "/grades_reports"
@@ -18,8 +17,8 @@ defmodule LantternWeb.GradesReportsLiveTest do
       {:ok, _view, _html} = live(conn)
     end
 
-    test "list grades reports", %{conn: conn} do
-      cycle = SchoolsFixtures.cycle_fixture(%{name: "Some cycle 000"})
+    test "list grades reports", %{conn: conn, user: user} do
+      cycle = user.current_profile.current_school_cycle
       scale = GradingFixtures.scale_fixture(%{name: "Some scale AZ", type: "ordinal"})
 
       _ordinal_value =
@@ -37,7 +36,7 @@ defmodule LantternWeb.GradesReportsLiveTest do
 
       assert view |> has_element?("h3", "Some grades report ABC")
       assert view |> has_element?("p", "Some info XYZ")
-      assert view |> has_element?("div", "Some cycle 000")
+      assert view |> has_element?("div", cycle.name)
       assert view |> has_element?("div", "Some scale AZ")
       assert view |> has_element?("span", "Ordinal value A")
     end

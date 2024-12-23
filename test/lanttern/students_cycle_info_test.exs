@@ -101,4 +101,73 @@ defmodule Lanttern.StudentsCycleInfoTest do
       assert %Ecto.Changeset{} = StudentsCycleInfo.change_student_cycle_info(student_cycle_info)
     end
   end
+
+  describe "list_cycles_and_classes_for_student" do
+    alias Lanttern.SchoolsFixtures
+
+    test "list_cycles_and_classes_for_student/1 returns a list of cycles and classes related to given student" do
+      school = SchoolsFixtures.school_fixture()
+
+      cycle_2023 =
+        SchoolsFixtures.cycle_fixture(%{
+          school_id: school.id,
+          start_at: ~D[2023-01-01],
+          end_at: ~D[2023-12-31]
+        })
+
+      cycle_2024 =
+        SchoolsFixtures.cycle_fixture(%{
+          school_id: school.id,
+          start_at: ~D[2024-01-01],
+          end_at: ~D[2024-12-31]
+        })
+
+      cycle_2025 =
+        SchoolsFixtures.cycle_fixture(%{
+          school_id: school.id,
+          start_at: ~D[2025-01-01],
+          end_at: ~D[2025-12-31]
+        })
+
+      _cycle_2025_q1 =
+        SchoolsFixtures.cycle_fixture(%{
+          school_id: school.id,
+          start_at: ~D[2025-01-01],
+          end_at: ~D[2025-03-31],
+          parent_cycle_id: cycle_2025.id
+        })
+
+      class_2023_a =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school.id,
+          cycle_id: cycle_2023.id,
+          name: "AAA"
+        })
+
+      class_2023_b =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school.id,
+          cycle_id: cycle_2023.id,
+          name: "BBB"
+        })
+
+      class_2024 = SchoolsFixtures.class_fixture(%{school_id: school.id, cycle_id: cycle_2024.id})
+
+      _class_2025 =
+        SchoolsFixtures.class_fixture(%{school_id: school.id, cycle_id: cycle_2025.id})
+
+      # student won't be linked to class 2025
+      student =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id,
+          classes_ids: [class_2023_a.id, class_2023_b.id, class_2024.id]
+        })
+
+      assert StudentsCycleInfo.list_cycles_and_classes_for_student(student) == [
+               {cycle_2025, []},
+               {cycle_2024, [class_2024]},
+               {cycle_2023, [class_2023_a, class_2023_b]}
+             ]
+    end
+  end
 end
