@@ -6,6 +6,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
   # shared components
   # import LantternWeb.ReportingComponents
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
+  alias LantternWeb.StudentsCycleInfo.StudentCycleInfoFormComponent
 
   @impl true
   def render(assigns) do
@@ -62,12 +63,31 @@ defmodule LantternWeb.StudentLive.AboutComponent do
             </p>
           </div>
           <div class="mt-10">
-            <.empty_state_simple>
-              <%= gettext("No information about student in school area") %>
-            </.empty_state_simple>
-            <.action type="button" icon_name="hero-pencil-mini" class="mt-10">
-              <%= gettext("Edit information") %>
-            </.action>
+            <%= if @is_editing_student_school_info do %>
+              <.live_component
+                module={StudentCycleInfoFormComponent}
+                id={"#{@student_cycle_info.id}-school-info-form"}
+                student_cycle_info={@student_cycle_info}
+                type="school"
+                label={gettext("Add school area student info...")}
+                notify_component={@myself}
+              />
+            <% else %>
+              <.empty_state_simple :if={!@student_cycle_info.school_info}>
+                <%= gettext("No information about student in school area") %>
+              </.empty_state_simple>
+              <.markdown text={@student_cycle_info.school_info} />
+              <.action
+                type="button"
+                icon_name="hero-pencil-mini"
+                class="mt-10"
+                phx-click="edit_student_school_info"
+                phx-target={@myself}
+                disabled={@is_editing_student_family_info}
+              >
+                <%= gettext("Edit information") %>
+              </.action>
+            <% end %>
           </div>
         </div>
         <div class="flex-1">
@@ -81,12 +101,31 @@ defmodule LantternWeb.StudentLive.AboutComponent do
             </p>
           </div>
           <div class="mt-10">
-            <.empty_state_simple>
-              <%= gettext("No information about student in family area") %>
-            </.empty_state_simple>
-            <.action type="button" icon_name="hero-pencil-mini" class="mt-10">
-              <%= gettext("Edit information") %>
-            </.action>
+            <%= if @is_editing_student_family_info do %>
+              <.live_component
+                module={StudentCycleInfoFormComponent}
+                id={"#{@student_cycle_info.id}-family-info-form"}
+                student_cycle_info={@student_cycle_info}
+                type="family"
+                label={gettext("Add family area student info...")}
+                notify_component={@myself}
+              />
+            <% else %>
+              <.empty_state_simple :if={!@student_cycle_info.family_info}>
+                <%= gettext("No information about student in family area") %>
+              </.empty_state_simple>
+              <.markdown text={@student_cycle_info.family_info} />
+              <.action
+                type="button"
+                icon_name="hero-pencil-mini"
+                class="mt-10"
+                phx-click="edit_student_family_info"
+                phx-target={@myself}
+                disabled={@is_editing_student_school_info}
+              >
+                <%= gettext("Edit information") %>
+              </.action>
+            <% end %>
           </div>
         </div>
       </div>
@@ -101,6 +140,24 @@ defmodule LantternWeb.StudentLive.AboutComponent do
     do: {:ok, assign(socket, :initialized, false)}
 
   @impl true
+  def update(%{action: {StudentCycleInfoFormComponent, {:cancel, "school"}}}, socket) do
+    {:ok, assign(socket, :is_editing_student_school_info, false)}
+  end
+
+  def update(%{action: {StudentCycleInfoFormComponent, {:cancel, "family"}}}, socket) do
+    {:ok, assign(socket, :is_editing_student_family_info, false)}
+  end
+
+  def update(%{action: {StudentCycleInfoFormComponent, {:saved, student_cycle_info}}}, socket) do
+    socket =
+      socket
+      |> assign(:student_cycle_info, student_cycle_info)
+      |> assign(:is_editing_student_school_info, false)
+      |> assign(:is_editing_student_family_info, false)
+
+    {:ok, socket}
+  end
+
   def update(assigns, socket) do
     socket =
       socket
@@ -112,9 +169,12 @@ defmodule LantternWeb.StudentLive.AboutComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
+    |> assign(:is_editing_student_school_info, false)
+    |> assign(:is_editing_student_family_info, false)
     |> assign_user_filters([:student_info])
     |> assign_cycles_and_classes()
     |> assign_current_cycle_and_classes()
+    |> assign_student_cycle_info()
     |> assign(:initialized, true)
   end
 
@@ -146,6 +206,31 @@ defmodule LantternWeb.StudentLive.AboutComponent do
     |> assign(:current_classes, current_classes)
   end
 
+  defp assign_student_cycle_info(socket) do
+    student_cycle_info =
+      StudentsCycleInfo.get_student_cycle_info_by_student_and_cycle(
+        socket.assigns.student.id,
+        socket.assigns.current_cycle.id
+      )
+      |> case do
+        nil ->
+          # create student cycle info if it does not exist
+          {:ok, info} =
+            StudentsCycleInfo.create_student_cycle_info(%{
+              school_id: socket.assigns.student.school_id,
+              student_id: socket.assigns.student.id,
+              cycle_id: socket.assigns.current_cycle.id
+            })
+
+          info
+
+        student_cycle_info ->
+          student_cycle_info
+      end
+
+    assign(socket, :student_cycle_info, student_cycle_info)
+  end
+
   # event handlers
 
   @impl true
@@ -155,9 +240,18 @@ defmodule LantternWeb.StudentLive.AboutComponent do
       |> assign(:student_info_selected_cycle_id, id)
       |> save_profile_filters([:student_info])
       |> assign_current_cycle_and_classes()
+      |> assign_student_cycle_info()
+      |> assign(:is_editing_student_school_info, false)
+      |> assign(:is_editing_student_family_info, false)
 
     {:noreply, socket}
   end
+
+  def handle_event("edit_student_school_info", _params, socket),
+    do: {:noreply, assign(socket, :is_editing_student_school_info, true)}
+
+  def handle_event("edit_student_family_info", _params, socket),
+    do: {:noreply, assign(socket, :is_editing_student_family_info, true)}
 
   # helpers
 

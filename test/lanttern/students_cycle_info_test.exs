@@ -23,6 +23,22 @@ defmodule Lanttern.StudentsCycleInfoTest do
                student_cycle_info
     end
 
+    test "get_student_cycle_info_by_student_and_cycle/2 returns the student_cycle_info for given student and cycle" do
+      school = SchoolsFixtures.school_fixture()
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+
+      student_cycle_info =
+        student_cycle_info_fixture(%{
+          school_id: school.id,
+          student_id: student.id,
+          cycle_id: cycle.id
+        })
+
+      assert StudentsCycleInfo.get_student_cycle_info_by_student_and_cycle(student.id, cycle.id) ==
+               student_cycle_info
+    end
+
     test "create_student_cycle_info/1 with valid data creates a student_cycle_info" do
       school = SchoolsFixtures.school_fixture()
       student = SchoolsFixtures.student_fixture(%{school_id: school.id})

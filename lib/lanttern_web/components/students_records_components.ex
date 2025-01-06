@@ -96,7 +96,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
         <p :if={student_record.name} class="mb-4 font-display font-black">
           <%= student_record.name %>
         </p>
-        <.markdown text={student_record.description} class="line-clamp-3" size="sm" />
+        <.markdown text={student_record.description} class="line-clamp-3" />
       </:col>
       <:col
         :let={student_record}

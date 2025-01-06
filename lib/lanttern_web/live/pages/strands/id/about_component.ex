@@ -80,7 +80,6 @@ defmodule LantternWeb.StrandLive.AboutComponent do
                 </div>
                 <.markdown
                   text={hd(curriculum_item.assessment_points).report_info}
-                  size="sm"
                   class="max-w-none mt-4"
                 />
               </div>

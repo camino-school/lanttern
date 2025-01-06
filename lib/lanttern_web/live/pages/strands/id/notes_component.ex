@@ -37,7 +37,7 @@ defmodule LantternWeb.StrandLive.NotesComponent do
               <%= note.moment.name %>
             </.link>
             <div class="mt-4 line-clamp-4">
-              <.markdown text={note.description} size="sm" />
+              <.markdown text={note.description} />
             </div>
           </div>
         <% end %>
@@ -83,7 +83,7 @@ defmodule LantternWeb.StrandLive.NotesComponent do
               class="pt-6 border-t border-ltrn-lighter mt-6"
               id={"student-strand-note-#{dom_id}"}
             >
-              <.markdown text={note.description} size="sm" />
+              <.markdown text={note.description} />
               <.live_component
                 :if={note}
                 module={AttachmentAreaComponent}

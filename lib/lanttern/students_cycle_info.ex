@@ -41,6 +41,33 @@ defmodule Lanttern.StudentsCycleInfo do
   def get_student_cycle_info!(id), do: Repo.get!(StudentCycleInfo, id)
 
   @doc """
+  Gets a single student_cycle_info based on given student and cycle id.
+
+  Returns `nil` if the Student cycle info does not exist.
+
+  ## Examples
+
+      iex> get_student_cycle_info_by_student_and_cycle(student_id, cycle_id)
+      %StudentCycleInfo{}
+
+      iex> get_student_cycle_info_by_student_and_cycle(student_id, cycle_id)
+      nil
+
+  """
+  @spec get_student_cycle_info_by_student_and_cycle(
+          student_id :: pos_integer(),
+          cycle_id :: pos_integer()
+        ) :: StudentCycleInfo.t() | nil
+  def get_student_cycle_info_by_student_and_cycle(student_id, cycle_id) do
+    from(
+      sci in StudentCycleInfo,
+      where: sci.student_id == ^student_id,
+      where: sci.cycle_id == ^cycle_id
+    )
+    |> Repo.one()
+  end
+
+  @doc """
   Creates a student_cycle_info.
 
   ## Examples

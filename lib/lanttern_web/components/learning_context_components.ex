@@ -102,7 +102,7 @@ defmodule LantternWeb.LearningContextComponents do
           </.badge>
         </div>
         <div :if={!@hide_description} class="line-clamp-3">
-          <.markdown text={@strand.description} size="sm" />
+          <.markdown text={@strand.description} />
         </div>
       </div>
       <%= render_slot(@bottom_content) %>

@@ -111,7 +111,7 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
             <.icon name="hero-information-circle" class="w-6 h-6" />
             <%= gettext("About this assessment") %>
           </h5>
-          <.markdown text={@strand_goal.report_info} size="sm" class="max-w-none mt-4" />
+          <.markdown text={@strand_goal.report_info} class="max-w-none mt-4" />
         </div>
       </.slide_over>
     </div>

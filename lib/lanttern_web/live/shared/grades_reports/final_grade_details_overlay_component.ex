@@ -78,7 +78,7 @@ defmodule LantternWeb.GradesReports.FinalGradeDetailsOverlayComponent do
         </div>
         <%= if @student_grades_report_final_entry.comment do %>
           <h6 class="mb-4 font-display font-bold"><%= gettext("Comment") %></h6>
-          <.markdown text={@student_grades_report_final_entry.comment} size="sm" class="mb-10" />
+          <.markdown text={@student_grades_report_final_entry.comment} class="mb-10" />
         <% end %>
         <h6 class="mb-4 font-display font-bold"><%= gettext("Grade composition") %></h6>
         <.final_grade_composition_table student_grades_report_final_entry={

@@ -35,7 +35,7 @@ defmodule LantternWeb.CoreComponents do
   attr :icon_name, :string, default: nil
   attr :patch, :string, default: nil, doc: "use with type=\"link\""
   attr :navigate, :string, default: nil, doc: "use with type=\"link\""
-  attr :rest, :global
+  attr :rest, :global, include: ~w(disabled)
 
   slot :inner_block, required: true
 
@@ -1178,7 +1178,7 @@ defmodule LantternWeb.CoreComponents do
   """
   attr :text, :string, required: true
   attr :theme, :string, default: "slate"
-  attr :size, :string, default: "base"
+  attr :size, :string, default: "sm", doc: "sm | base"
   attr :class, :any, default: nil
   attr :rest, :global
 

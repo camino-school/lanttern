@@ -49,7 +49,7 @@ defmodule LantternWeb.RubricsComponents do
             <%= descriptor.ordinal_value.name %>
           </.badge>
         <% end %>
-        <.markdown text={descriptor.descriptor} size="sm" class="flex-1 w-full" />
+        <.markdown text={descriptor.descriptor} class="flex-1 w-full" />
       </div>
     </div>
     """

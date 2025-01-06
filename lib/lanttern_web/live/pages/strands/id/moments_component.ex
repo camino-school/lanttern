@@ -55,7 +55,7 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
               </.badge>
             </div>
             <div class="mt-6 line-clamp-6">
-              <.markdown text={moment.description} size="sm" />
+              <.markdown text={moment.description} />
             </div>
           </.card_base>
         </.responsive_grid>
