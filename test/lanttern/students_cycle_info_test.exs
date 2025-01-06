@@ -5,6 +5,7 @@ defmodule Lanttern.StudentsCycleInfoTest do
 
   describe "students_cycle_info" do
     alias Lanttern.StudentsCycleInfo.StudentCycleInfo
+    alias Lanttern.StudentsCycleInfoLog.StudentCycleInfoLog
 
     import Lanttern.StudentsCycleInfoFixtures
     alias Lanttern.SchoolsFixtures
@@ -44,6 +45,9 @@ defmodule Lanttern.StudentsCycleInfoTest do
       student = SchoolsFixtures.student_fixture(%{school_id: school.id})
       cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
 
+      # profile to test log
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+
       valid_attrs = %{
         school_info: "some school_info",
         family_info: "some family_info",
@@ -54,7 +58,9 @@ defmodule Lanttern.StudentsCycleInfoTest do
       }
 
       assert {:ok, %StudentCycleInfo{} = student_cycle_info} =
-               StudentsCycleInfo.create_student_cycle_info(valid_attrs)
+               StudentsCycleInfo.create_student_cycle_info(valid_attrs,
+                 log_profile_id: profile.id
+               )
 
       assert student_cycle_info.school_info == "some school_info"
       assert student_cycle_info.family_info == "some family_info"
@@ -62,6 +68,29 @@ defmodule Lanttern.StudentsCycleInfoTest do
       assert student_cycle_info.school_id == school.id
       assert student_cycle_info.student_id == student.id
       assert student_cycle_info.cycle_id == cycle.id
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+
+        student_cycle_info_log =
+          Repo.get_by!(StudentCycleInfoLog,
+            student_cycle_info_id: student_cycle_info.id
+          )
+
+        assert student_cycle_info_log.student_cycle_info_id == student_cycle_info.id
+        assert student_cycle_info_log.profile_id == profile.id
+        assert student_cycle_info_log.operation == "CREATE"
+
+        assert student_cycle_info_log.school_info == student_cycle_info.school_info
+        assert student_cycle_info_log.family_info == student_cycle_info.family_info
+
+        assert student_cycle_info_log.profile_picture_url ==
+                 student_cycle_info.profile_picture_url
+
+        assert student_cycle_info_log.school_id == student_cycle_info.school_id
+        assert student_cycle_info_log.student_id == student_cycle_info.student_id
+        assert student_cycle_info_log.cycle_id == student_cycle_info.cycle_id
+      end)
     end
 
     test "create_student_cycle_info/1 with invalid data returns error changeset" do
@@ -72,6 +101,9 @@ defmodule Lanttern.StudentsCycleInfoTest do
     test "update_student_cycle_info/2 with valid data updates the student_cycle_info" do
       student_cycle_info = student_cycle_info_fixture()
 
+      # profile to test log
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+
       update_attrs = %{
         school_info: "some updated school_info",
         family_info: "some updated family_info",
@@ -79,11 +111,36 @@ defmodule Lanttern.StudentsCycleInfoTest do
       }
 
       assert {:ok, %StudentCycleInfo{} = student_cycle_info} =
-               StudentsCycleInfo.update_student_cycle_info(student_cycle_info, update_attrs)
+               StudentsCycleInfo.update_student_cycle_info(student_cycle_info, update_attrs,
+                 log_profile_id: profile.id
+               )
 
       assert student_cycle_info.school_info == "some updated school_info"
       assert student_cycle_info.family_info == "some updated family_info"
       assert student_cycle_info.profile_picture_url == "some updated profile_picture"
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+
+        student_cycle_info_log =
+          Repo.get_by!(StudentCycleInfoLog,
+            student_cycle_info_id: student_cycle_info.id
+          )
+
+        assert student_cycle_info_log.student_cycle_info_id == student_cycle_info.id
+        assert student_cycle_info_log.profile_id == profile.id
+        assert student_cycle_info_log.operation == "UPDATE"
+
+        assert student_cycle_info_log.school_info == student_cycle_info.school_info
+        assert student_cycle_info_log.family_info == student_cycle_info.family_info
+
+        assert student_cycle_info_log.profile_picture_url ==
+                 student_cycle_info.profile_picture_url
+
+        assert student_cycle_info_log.school_id == student_cycle_info.school_id
+        assert student_cycle_info_log.student_id == student_cycle_info.student_id
+        assert student_cycle_info_log.cycle_id == student_cycle_info.cycle_id
+      end)
     end
 
     test "update_student_cycle_info/2 with invalid data returns error changeset" do
@@ -104,12 +161,30 @@ defmodule Lanttern.StudentsCycleInfoTest do
     test "delete_student_cycle_info/1 deletes the student_cycle_info" do
       student_cycle_info = student_cycle_info_fixture()
 
+      # profile to test log
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+
       assert {:ok, %StudentCycleInfo{}} =
-               StudentsCycleInfo.delete_student_cycle_info(student_cycle_info)
+               StudentsCycleInfo.delete_student_cycle_info(student_cycle_info,
+                 log_profile_id: profile.id
+               )
 
       assert_raise Ecto.NoResultsError, fn ->
         StudentsCycleInfo.get_student_cycle_info!(student_cycle_info.id)
       end
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+
+        student_cycle_info_log =
+          Repo.get_by!(StudentCycleInfoLog,
+            student_cycle_info_id: student_cycle_info.id
+          )
+
+        assert student_cycle_info_log.student_cycle_info_id == student_cycle_info.id
+        assert student_cycle_info_log.profile_id == profile.id
+        assert student_cycle_info_log.operation == "DELETE"
+      end)
     end
 
     test "change_student_cycle_info/1 returns a student_cycle_info changeset" do

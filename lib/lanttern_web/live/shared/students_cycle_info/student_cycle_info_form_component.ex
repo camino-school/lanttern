@@ -6,12 +6,11 @@ defmodule LantternWeb.StudentsCycleInfo.StudentCycleInfoFormComponent do
 
   - `:student_cycle_info` - `%StudentCycleInfo{}`
   - `:type` - "school" or "family"
-  - `:current_user` - `%User{}` in `socket.assigns.current_user`
+  - `:current_profile_id` - in `socket.assigns.current_user.current_profile_id`
 
   ### Optional attrs
 
   - `:class`
-  - `:allow_editing` - Defaults to `false`
 
   """
 
@@ -24,7 +23,7 @@ defmodule LantternWeb.StudentsCycleInfo.StudentCycleInfoFormComponent do
   def render(assigns) do
     ~H"""
     <div class={@class}>
-      <.form for={@form} phx-submit="save" phx-target={@myself} id="note-form">
+      <.form for={@form} phx-submit="save" phx-target={@myself} id={@id}>
         <.textarea_with_actions
           id={@field.id}
           name={@field.name}
@@ -37,10 +36,10 @@ defmodule LantternWeb.StudentsCycleInfo.StudentCycleInfoFormComponent do
             <.markdown_supported />
           </:actions_left>
           <:actions>
-            <.action type="button" theme="subtle" phx-click="cancel" phx-target={@myself}>
+            <.action type="button" theme="subtle" size="md" phx-click="cancel" phx-target={@myself}>
               <%= gettext("Cancel") %>
             </.action>
-            <.action type="submit" theme="primary">
+            <.action type="submit" theme="primary" size="md" icon_name="hero-check">
               <%= gettext("Save") %>
             </.action>
           </:actions>
@@ -125,14 +124,18 @@ defmodule LantternWeb.StudentsCycleInfo.StudentCycleInfoFormComponent do
 
   # helpers
 
-  defp save_info(
-         %{assigns: %{student_cycle_info: %StudentCycleInfo{} = student_cycle_info}} = _socket,
-         params
-       ) do
+  defp save_info(socket, params) do
+    %{
+      assigns: %{
+        student_cycle_info: %StudentCycleInfo{} = student_cycle_info,
+        current_profile_id: current_profile_id
+      }
+    } = socket
+
     StudentsCycleInfo.update_student_cycle_info(
       student_cycle_info,
-      params
-      # log_operation: true
+      params,
+      log_profile_id: current_profile_id
     )
   end
 end

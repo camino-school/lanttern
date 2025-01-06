@@ -7,6 +7,7 @@ defmodule Lanttern.StudentsCycleInfo do
   alias Lanttern.Schools.Student
   alias Lanttern.Repo
 
+  alias Lanttern.StudentsCycleInfoLog
   alias Lanttern.StudentsCycleInfo.StudentCycleInfo
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.Cycle
@@ -70,23 +71,32 @@ defmodule Lanttern.StudentsCycleInfo do
   @doc """
   Creates a student_cycle_info.
 
+  ## Options:
+
+  - `:log_profile_id` - logs the operation, linked to given profile
+
   ## Examples
 
-      iex> create_student_cycle_info(%{field: value})
-      {:ok, %StudentCycleInfo{}}
+    iex> create_student_cycle_info(%{field: value})
+    {:ok, %StudentCycleInfo{}}
 
-      iex> create_student_cycle_info(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
+    iex> create_student_cycle_info(%{field: bad_value})
+    {:error, %Ecto.Changeset{}}
 
   """
-  def create_student_cycle_info(attrs \\ %{}) do
+  def create_student_cycle_info(attrs \\ %{}, opts \\ []) do
     %StudentCycleInfo{}
     |> StudentCycleInfo.changeset(attrs)
     |> Repo.insert()
+    |> StudentsCycleInfoLog.maybe_create_student_cycle_info_log("CREATE", opts)
   end
 
   @doc """
   Updates a student_cycle_info.
+
+  ## Options:
+
+  - `:log_profile_id` - logs the operation, linked to given profile
 
   ## Examples
 
@@ -97,14 +107,19 @@ defmodule Lanttern.StudentsCycleInfo do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_student_cycle_info(%StudentCycleInfo{} = student_cycle_info, attrs) do
+  def update_student_cycle_info(%StudentCycleInfo{} = student_cycle_info, attrs, opts \\ []) do
     student_cycle_info
     |> StudentCycleInfo.changeset(attrs)
     |> Repo.update()
+    |> StudentsCycleInfoLog.maybe_create_student_cycle_info_log("UPDATE", opts)
   end
 
   @doc """
   Deletes a student_cycle_info.
+
+  ## Options:
+
+  - `:log_profile_id` - logs the operation, linked to given profile
 
   ## Examples
 
@@ -115,8 +130,9 @@ defmodule Lanttern.StudentsCycleInfo do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_student_cycle_info(%StudentCycleInfo{} = student_cycle_info) do
+  def delete_student_cycle_info(%StudentCycleInfo{} = student_cycle_info, opts \\ []) do
     Repo.delete(student_cycle_info)
+    |> StudentsCycleInfoLog.maybe_create_student_cycle_info_log("DELETE", opts)
   end
 
   @doc """

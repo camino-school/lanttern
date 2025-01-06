@@ -417,7 +417,7 @@ defmodule LantternWeb.FormComponents do
         <div class="flex items-center gap-2">
           <%= render_slot(@actions_left) %>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-4">
           <%= render_slot(@actions) %>
         </div>
       </div>

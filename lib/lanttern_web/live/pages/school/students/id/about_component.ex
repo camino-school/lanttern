@@ -70,6 +70,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
                 student_cycle_info={@student_cycle_info}
                 type="school"
                 label={gettext("Add school area student info...")}
+                current_profile_id={@current_user.current_profile_id}
                 notify_component={@myself}
               />
             <% else %>
@@ -108,6 +109,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
                 student_cycle_info={@student_cycle_info}
                 type="family"
                 label={gettext("Add family area student info...")}
+                current_profile_id={@current_user.current_profile_id}
                 notify_component={@myself}
               />
             <% else %>
@@ -216,11 +218,14 @@ defmodule LantternWeb.StudentLive.AboutComponent do
         nil ->
           # create student cycle info if it does not exist
           {:ok, info} =
-            StudentsCycleInfo.create_student_cycle_info(%{
-              school_id: socket.assigns.student.school_id,
-              student_id: socket.assigns.student.id,
-              cycle_id: socket.assigns.current_cycle.id
-            })
+            StudentsCycleInfo.create_student_cycle_info(
+              %{
+                school_id: socket.assigns.student.school_id,
+                student_id: socket.assigns.student.id,
+                cycle_id: socket.assigns.current_cycle.id
+              },
+              log_profile_id: socket.assigns.current_user.current_profile_id
+            )
 
           info
 
