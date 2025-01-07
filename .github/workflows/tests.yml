@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        elixir: ["1.15.4"]
-        otp: ["26.0.2"]
+        elixir: ["1.18.1"]
+        otp: ["27.2"]
     steps:
       - name: Cancel previous runs
         uses: styfle/cancel-workflow-action@0.9.0
@@ -45,8 +45,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        elixir: ["1.15.4"]
-        otp: ["26.0.2"]
+        elixir: ["1.18.1"]
+        otp: ["27.2"]
     services:
       db:
         image: postgres:latest
