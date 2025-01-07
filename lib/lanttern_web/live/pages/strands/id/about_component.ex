@@ -29,10 +29,10 @@ defmodule LantternWeb.StrandLive.AboutComponent do
         </hgroup>
         <div class="flex flex-wrap gap-2 mt-6">
           <.badge :for={subject <- @strand.subjects} theme="dark">
-            <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
+            <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name) %>
           </.badge>
           <.badge :for={year <- @strand.years} theme="dark">
-            <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", year.name) %>
+            <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", year.name) %>
           </.badge>
         </div>
         <.markdown text={@strand.description} class="mt-10" />

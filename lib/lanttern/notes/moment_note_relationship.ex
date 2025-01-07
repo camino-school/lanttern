@@ -5,7 +5,7 @@ defmodule Lanttern.Notes.MomentNoteRelationship do
 
   use Ecto.Schema
   import Ecto.Changeset
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
 
   @primary_key false
   schema "moments_notes" do

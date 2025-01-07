@@ -6,7 +6,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
 
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
   import LantternWeb.CoreComponents
   import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
 

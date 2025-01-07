@@ -6,7 +6,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
   use Ecto.Schema
   import Ecto.Changeset
   import Ecto.Query, only: [from: 2]
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
 
   alias Lanttern.Repo
 

@@ -6,7 +6,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
   use Ecto.Schema
   import Ecto.Changeset
 
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
 
   alias Lanttern.Identity.Profile
   alias Lanttern.Personalization

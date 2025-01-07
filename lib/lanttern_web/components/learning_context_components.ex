@@ -5,7 +5,7 @@ defmodule LantternWeb.LearningContextComponents do
 
   use Phoenix.Component
 
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
   import LantternWeb.CoreComponents
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
@@ -95,10 +95,10 @@ defmodule LantternWeb.LearningContextComponents do
         </div>
         <div class="flex flex-wrap gap-2">
           <.badge :for={subject <- @strand.subjects}>
-            <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
+            <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name) %>
           </.badge>
           <.badge :for={year <- @strand.years}>
-            <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", year.name) %>
+            <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", year.name) %>
           </.badge>
         </div>
         <div :if={!@hide_description} class="line-clamp-3">
@@ -141,10 +141,10 @@ defmodule LantternWeb.LearningContextComponents do
         </p>
         <div class="flex flex-wrap gap-2 mt-4">
           <.badge :for={subject <- @strand.subjects}>
-            <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
+            <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name) %>
           </.badge>
           <.badge :for={year <- @strand.years}>
-            <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", year.name) %>
+            <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", year.name) %>
           </.badge>
         </div>
       </div>

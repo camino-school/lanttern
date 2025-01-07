@@ -43,7 +43,7 @@ defmodule LantternWeb do
         layouts: [html: LantternWeb.Layouts]
 
       import Plug.Conn
-      import LantternWeb.Gettext
+      use Gettext, backend: Lanttern.Gettext
 
       unquote(verified_routes())
     end
@@ -98,7 +98,7 @@ defmodule LantternWeb do
       import LantternWeb.NavigationComponents
       import LantternWeb.FormComponents
       import LantternWeb.OverlayComponents
-      import LantternWeb.Gettext
+      use Gettext, backend: Lanttern.Gettext
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS

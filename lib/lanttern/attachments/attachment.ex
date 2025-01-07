@@ -5,7 +5,7 @@ defmodule Lanttern.Attachments.Attachment do
 
   use Ecto.Schema
   import Ecto.Changeset
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
 
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.AssessmentPointEntryEvidence

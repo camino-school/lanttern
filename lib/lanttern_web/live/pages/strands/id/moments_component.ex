@@ -51,7 +51,7 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
             </.link>
             <div class="flex flex-wrap gap-2 mt-2">
               <.badge :for={subject <- moment.subjects}>
-                <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
+                <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name) %>
               </.badge>
             </div>
             <div class="mt-6 line-clamp-6">

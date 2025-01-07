@@ -6,7 +6,7 @@ defmodule LantternWeb.OverlayComponents do
 
   alias Phoenix.LiveView.JS
   import LantternWeb.CoreComponents
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
 
   @doc """
   Renders a modal.

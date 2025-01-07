@@ -12,7 +12,7 @@ defmodule LantternWeb.LocalizationHelpers do
 
   """
   def put_locale(%{params: %{"locale" => locale}} = conn, _opts) do
-    Gettext.put_locale(LantternWeb.Gettext, locale)
+    Gettext.put_locale(Lanttern.Gettext, locale)
     conn
   end
 
@@ -26,7 +26,7 @@ defmodule LantternWeb.LocalizationHelpers do
         } = conn,
         _opts
       ) do
-    Gettext.put_locale(LantternWeb.Gettext, locale)
+    Gettext.put_locale(Lanttern.Gettext, locale)
     conn
   end
 
@@ -41,7 +41,7 @@ defmodule LantternWeb.LocalizationHelpers do
 
   """
   def on_mount(:default, %{"locale" => locale}, _session, socket) do
-    Gettext.put_locale(LantternWeb.Gettext, locale)
+    Gettext.put_locale(Lanttern.Gettext, locale)
     {:cont, socket}
   end
 
@@ -59,7 +59,7 @@ defmodule LantternWeb.LocalizationHelpers do
           socket
       )
       when is_binary(locale) do
-    Gettext.put_locale(LantternWeb.Gettext, locale)
+    Gettext.put_locale(Lanttern.Gettext, locale)
     {:cont, socket}
   end
 
@@ -79,7 +79,7 @@ defmodule LantternWeb.LocalizationHelpers do
       Map.put(
         item,
         field,
-        Gettext.dgettext(LantternWeb.Gettext, domain, Map.get(item, field))
+        Gettext.dgettext(Lanttern.Gettext, domain, Map.get(item, field))
       )
     end)
     |> reorder(field, opts)
@@ -99,7 +99,7 @@ defmodule LantternWeb.LocalizationHelpers do
       "pt-br"
   """
   def get_html_lang() do
-    Gettext.get_locale(LantternWeb.Gettext)
+    Gettext.get_locale(Lanttern.Gettext)
     |> String.downcase()
     |> String.replace("_", "-")
   end

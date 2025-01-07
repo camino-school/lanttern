@@ -62,7 +62,7 @@ defmodule LantternWeb.MenuComponent do
               class="flex items-center gap-2 font-black text-lg hover:text-ltrn-subtle"
             >
               <%= Gettext.dgettext(
-                LantternWeb.Gettext,
+                Lanttern.Gettext,
                 "schools",
                 String.capitalize(@current_user.current_profile.type)
               ) %> @ <%= @current_user.current_profile.school_name %>
@@ -292,7 +292,7 @@ defmodule LantternWeb.MenuComponent do
             <%= @name %>
           </span>
           <span class="font-sans font-normal text-xs">
-            <%= Gettext.dgettext(LantternWeb.Gettext, "schools", String.capitalize(@profile.type)) %> @ <%= @school %>
+            <%= Gettext.dgettext(Lanttern.Gettext, "schools", String.capitalize(@profile.type)) %> @ <%= @school %>
           </span>
         </div>
       </button>

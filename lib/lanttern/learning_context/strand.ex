@@ -6,7 +6,7 @@ defmodule Lanttern.LearningContext.Strand do
   use Ecto.Schema
   import Ecto.Changeset
 
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
   import Lanttern.SchemaHelpers
 
   alias Lanttern.LearningContext.Moment

@@ -5,7 +5,7 @@ defmodule Lanttern.MixProject do
     [
       app: :lanttern,
       version: "2024.12.20-alpha.39",
-      elixir: "~> 1.15",
+      elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -35,7 +35,7 @@ defmodule Lanttern.MixProject do
       {:bcrypt_elixir, "~> 3.0"},
       {:phoenix, "~> 1.7.7"},
       {:phoenix_ecto, "~> 4.4"},
-      {:ecto_sql, "~> 3.10"},
+      {:ecto_sql, "~> 3.12"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 3.3"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},

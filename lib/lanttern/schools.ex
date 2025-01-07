@@ -5,7 +5,7 @@ defmodule Lanttern.Schools do
 
   import Ecto.Query, warn: false
   import Lanttern.RepoHelpers
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
   alias Lanttern.Repo
   alias Lanttern.Schools.School
   alias Lanttern.Schools.Cycle

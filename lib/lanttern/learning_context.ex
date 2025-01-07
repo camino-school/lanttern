@@ -7,7 +7,7 @@ defmodule Lanttern.LearningContext do
   import Lanttern.RepoHelpers
   alias Lanttern.RepoHelpers.Page
   alias Lanttern.Repo
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
 
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.LearningContext.Strand

@@ -5,7 +5,7 @@ defmodule LantternWeb.ReportingComponents do
 
   use Phoenix.Component
 
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
   import LantternWeb.CoreComponents
 
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]

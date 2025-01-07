@@ -3,7 +3,7 @@ defmodule LantternWeb.GradesReportsHelpers do
   Helper functions related to `GradesReports` context
   """
 
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
   alias Lanttern.GradesReports
 
   @doc """

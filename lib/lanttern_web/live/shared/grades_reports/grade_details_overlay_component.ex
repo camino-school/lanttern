@@ -40,7 +40,7 @@ defmodule LantternWeb.GradesReports.GradeDetailsOverlayComponent do
             <.metadata class="mb-4" icon_name="hero-bookmark">
               <span class="font-bold"><%= gettext("Subject") %>:</span>
               <%= Gettext.dgettext(
-                LantternWeb.Gettext,
+                Lanttern.Gettext,
                 "taxonomy",
                 @student_grades_report_entry.grades_report_subject.subject.name
               ) %>

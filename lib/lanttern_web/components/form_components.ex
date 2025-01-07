@@ -6,7 +6,7 @@ defmodule LantternWeb.FormComponents do
 
   import LantternWeb.CoreComponents
   alias Phoenix.LiveView.JS
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
 
   @doc """
   Renders a simple form.

@@ -3,7 +3,7 @@ defmodule LantternWeb.AssessmentsHelpers do
   Shared function components related to `Assessments` context
   """
 
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
 
   alias Lanttern.Assessments
 

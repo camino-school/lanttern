@@ -6,7 +6,7 @@ defmodule LantternWeb.SchoolsComponents do
   use Phoenix.Component
 
   import Phoenix.HTML, only: [raw: 1]
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
   import LantternWeb.CoreComponents
 
   alias Lanttern.Schools.School

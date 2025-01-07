@@ -38,7 +38,7 @@
     <.error :for={
       msg <-
         Enum.map(f[:breakpoints].errors, fn {msg, opts} ->
-          Gettext.dgettext(LantternWeb.Gettext, "errors", msg, opts)
+          Gettext.dgettext(Lanttern.Gettext, "errors", msg, opts)
         end)
     }>
       <%= msg %>

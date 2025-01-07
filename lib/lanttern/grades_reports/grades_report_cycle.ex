@@ -6,7 +6,7 @@ defmodule Lanttern.GradesReports.GradesReportCycle do
   use Ecto.Schema
   import Ecto.Changeset
 
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
 
   alias Lanttern.GradesReports.GradesReport
   alias Lanttern.Schools.Cycle

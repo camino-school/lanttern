@@ -18,7 +18,7 @@ defmodule LantternWeb.CoreComponents do
 
   alias Phoenix.LiveView.JS
   import Phoenix.HTML, only: [raw: 1]
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
 
   import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
 
@@ -1826,9 +1826,9 @@ defmodule LantternWeb.CoreComponents do
     # with our gettext backend as first argument. Translations are
     # available in the errors.po file (as we use the "errors" domain).
     if count = opts[:count] do
-      Gettext.dngettext(LantternWeb.Gettext, "errors", msg, msg, count, opts)
+      Gettext.dngettext(Lanttern.Gettext, "errors", msg, msg, count, opts)
     else
-      Gettext.dgettext(LantternWeb.Gettext, "errors", msg, opts)
+      Gettext.dgettext(Lanttern.Gettext, "errors", msg, opts)
     end
   end
 
