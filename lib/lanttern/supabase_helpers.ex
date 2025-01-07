@@ -6,6 +6,19 @@ defmodule Lanttern.SupabaseHelpers do
   @client_name :lanttern
 
   @doc """
+  `Supabase.Storage.create_bucket/2` wrapper.
+
+  This wrapper:
+
+  - handles the client
+  - puts the bucket name into valid attrs
+  """
+  def create_bucket(bucket_name) do
+    client = client()
+    Supabase.Storage.create_bucket(client, %{id: bucket_name, public: true})
+  end
+
+  @doc """
   `Supabase.Storage.upload_object/5` wrapper.
 
   This wrapper:

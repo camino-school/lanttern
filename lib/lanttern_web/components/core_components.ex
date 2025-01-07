@@ -1501,6 +1501,39 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Renders a profile picture.
+  """
+  attr :picture_url, :string, required: true
+  attr :profile_name, :string, required: true, doc: "render initials when there's no image"
+  attr :size, :string, default: "normal", doc: "xs | sm | md | lg | xl"
+  attr :class, :any, default: nil
+
+  def profile_picture(assigns) do
+    ~H"""
+    <div
+      class={[
+        "relative shrink-0 flex items-center justify-center rounded-full font-display text-center bg-white overflow-hidden ltrn-bg-profile",
+        profile_picture_size_style(@size),
+        @class
+      ]}
+      title={@profile_name}
+    >
+      <%= if @picture_url do %>
+        <img src={@picture_url} class="object-cover w-full h-full" />
+      <% else %>
+        <%= profile_icon_initials(@profile_name) %>
+      <% end %>
+    </div>
+    """
+  end
+
+  defp profile_picture_size_style("xs"), do: "w-6 h-6 font-bold text-xs"
+  defp profile_picture_size_style("sm"), do: "w-8 h-8 font-bold text-xs"
+  defp profile_picture_size_style("lg"), do: "w-32 h-32 font-black text-4xl"
+  defp profile_picture_size_style("xl"), do: "w-60 h-60 font-black text-6xl"
+  defp profile_picture_size_style(_md), do: "w-10 h-10 font-bold text-sm"
+
+  @doc """
   Renders a responsive container.
   """
   attr :class, :any, default: nil

@@ -4,16 +4,33 @@ defmodule LantternWeb.StudentLive.AboutComponent do
   alias Lanttern.StudentsCycleInfo
 
   # shared components
-  # import LantternWeb.ReportingComponents
-  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
   alias LantternWeb.StudentsCycleInfo.StudentCycleInfoFormComponent
+  alias LantternWeb.StudentsCycleInfo.StudentCycleProfilePictureOverlayComponent
+  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
 
   @impl true
   def render(assigns) do
     ~H"""
     <div class="p-10">
       <div class="flex items-center gap-6">
-        <div class="w-32 h-32 rounded-full bg-ltrn-subtle shadow-lg"></div>
+        <div class="relative">
+          <.profile_picture
+            class="shadow-lg"
+            picture_url={@student_cycle_info.profile_picture_url}
+            profile_name={@student.name}
+            size="lg"
+          />
+          <.button
+            type="link"
+            icon_name="hero-pencil-mini"
+            sr_text={gettext("Edit cycle profile picture")}
+            rounded
+            size="sm"
+            theme="white"
+            class="absolute bottom-0 right-0"
+            patch={~p"/school/students/#{@student}?edit_profile_picture=true"}
+          />
+        </div>
         <div>
           <h2 class="font-display font-black text-2xl">
             <%= @student.name %>
@@ -131,6 +148,16 @@ defmodule LantternWeb.StudentLive.AboutComponent do
           </div>
         </div>
       </div>
+      <.live_component
+        :if={@is_editing_profile_picture}
+        module={StudentCycleProfilePictureOverlayComponent}
+        id="profile_picture_modal"
+        student_cycle_info={@student_cycle_info}
+        student_name={@student.name}
+        current_profile_id={@current_user.current_profile_id}
+        notify_component={@myself}
+        on_cancel={JS.patch(~p"/school/students/#{@student}")}
+      />
     </div>
     """
   end
@@ -160,11 +187,27 @@ defmodule LantternWeb.StudentLive.AboutComponent do
     {:ok, socket}
   end
 
+  def update(
+        %{
+          action:
+            {StudentCycleProfilePictureOverlayComponent,
+             {_uploaded_or_removed, student_cycle_info}}
+        },
+        socket
+      ) do
+    socket =
+      socket
+      |> assign(:student_cycle_info, student_cycle_info)
+
+    {:ok, socket}
+  end
+
   def update(assigns, socket) do
     socket =
       socket
       |> assign(assigns)
       |> initialize()
+      |> assign_is_editing_profile_picture()
 
     {:ok, socket}
   end
@@ -236,6 +279,14 @@ defmodule LantternWeb.StudentLive.AboutComponent do
     assign(socket, :student_cycle_info, student_cycle_info)
   end
 
+  defp assign_is_editing_profile_picture(
+         %{assigns: %{params: %{"edit_profile_picture" => "true"}}} = socket
+       ),
+       do: assign(socket, :is_editing_profile_picture, true)
+
+  defp assign_is_editing_profile_picture(socket),
+    do: assign(socket, :is_editing_profile_picture, false)
+
   # event handlers
 
   @impl true
@@ -251,6 +302,12 @@ defmodule LantternWeb.StudentLive.AboutComponent do
 
     {:noreply, socket}
   end
+
+  def handle_event("edit_profile_picture", _params, socket),
+    do: {:noreply, assign(socket, :is_editing_profile_picture, true)}
+
+  def handle_event("cancel_edit_profile_picture", _params, socket),
+    do: {:noreply, assign(socket, :is_editing_profile_picture, false)}
 
   def handle_event("edit_student_school_info", _params, socket),
     do: {:noreply, assign(socket, :is_editing_student_school_info, true)}

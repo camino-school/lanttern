@@ -1,12 +1,12 @@
 defmodule LantternWeb.StudentsCycleInfo.StudentCycleInfoFormComponent do
   @moduledoc """
-  Renders notes markdown and editor.
+  Renders student cycle school or family info editor.
 
   ### Required attrs
 
   - `:student_cycle_info` - `%StudentCycleInfo{}`
   - `:type` - "school" or "family"
-  - `:current_profile_id` - in `socket.assigns.current_user.current_profile_id`
+  - `:current_profile_id` - in `socket.assigns.current_user.current_profile_id`, for logging
 
   ### Optional attrs
 
@@ -56,6 +56,7 @@ defmodule LantternWeb.StudentsCycleInfo.StudentCycleInfoFormComponent do
   def mount(socket) do
     socket =
       socket
+      |> assign(:class, nil)
       |> assign(:initialized, false)
 
     {:ok, socket}
@@ -73,7 +74,6 @@ defmodule LantternWeb.StudentsCycleInfo.StudentCycleInfoFormComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
-    |> assign(:class, nil)
     |> assign_form()
     |> assign(:initialized, true)
   end
