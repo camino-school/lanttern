@@ -80,7 +80,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
               <%= gettext("Access to information in this area is restricted to school staff") %>
             </p>
           </div>
-          <div class="mt-10">
+          <div class="py-10 border-b border-ltrn-light">
             <%= if @is_editing_student_school_info do %>
               <.live_component
                 module={StudentCycleInfoFormComponent}
@@ -129,7 +129,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
               <%= gettext("Information shared with student and family") %>
             </p>
           </div>
-          <div class="mt-10">
+          <div class="py-10 border-b border-ltrn-student-lighter">
             <%= if @is_editing_student_family_info do %>
               <.live_component
                 module={StudentCycleInfoFormComponent}
@@ -317,11 +317,6 @@ defmodule LantternWeb.StudentLive.AboutComponent do
       |> assign(:student_info_selected_cycle_id, id)
       |> save_profile_filters([:student_info])
       |> push_navigate(to: ~p"/school/students/#{socket.assigns.student}")
-
-    # |> assign_current_cycle_and_classes()
-    # |> assign_student_cycle_info()
-    # |> assign(:is_editing_student_school_info, false)
-    # |> assign(:is_editing_student_family_info, false)
 
     {:noreply, socket}
   end

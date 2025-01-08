@@ -692,6 +692,7 @@ defmodule LantternWeb.FormComponents do
             icon_name="hero-check-mini"
             theme="primary"
             phx-click={@on_save.()}
+            show_loading_spinner
           >
             <%= gettext("Save") %>
           </.action>

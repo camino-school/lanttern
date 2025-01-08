@@ -63,7 +63,8 @@ defmodule Lanttern.MixProject do
       {:supabase_storage, "~> 0.2"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
-      {:slugify, "~> 1.3"}
+      {:slugify, "~> 1.3"},
+      {:image, "~> 0.37"}
     ]
   end
 

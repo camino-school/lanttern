@@ -39,7 +39,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       </div>
       <.attachments_list
         :if={@attachments_length > 0}
-        id="attachments-list"
+        id={"#{@id}-attachments-list"}
         class={if @is_editing, do: "hidden"}
         attachments={@streams.attachments}
         allow_editing={@allow_editing}
@@ -133,7 +133,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
           >
             <%= gettext("Cancel") %>
           </.button>
-          <.button type="submit" form="attachments-upload-form" disabled={!entry.valid?}>
+          <.button type="submit" form={"#{@id}-attachments-upload-form"} disabled={!entry.valid?}>
             <%= gettext("Upload") %>
           </.button>
         </div>
@@ -154,7 +154,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
           phx-drop-target={@uploads.attachment_file.ref}
         >
           <form
-            id="attachments-upload-form"
+            id={"#{@id}-attachments-upload-form"}
             phx-submit="upload"
             phx-change="validate_upload"
             phx-target={@myself}
