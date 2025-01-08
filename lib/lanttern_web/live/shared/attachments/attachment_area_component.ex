@@ -5,6 +5,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   Supports:
   - notes attachments (use `note_id` assign)
   - assessment point entry evidences (use `assessment_point_entry_id` assign)
+  - student cycle info attachments (use `student_cycle_info_id` assign and `is_family` assign)
   """
 
   alias Lanttern.Assessments
@@ -16,6 +17,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   alias Lanttern.Attachments
   alias Lanttern.Attachments.Attachment
   alias Lanttern.Notes
+  alias Lanttern.StudentsCycleInfo
 
   # shared
 
@@ -25,7 +27,13 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   def render(assigns) do
     ~H"""
     <div class={[@class, if(!@allow_editing && @attachments_length == 0, do: "hidden")]}>
-      <div :if={@title} class="flex items-center gap-2">
+      <div
+        :if={@title}
+        class={[
+          "flex items-center gap-2",
+          if(@is_family, do: "text-ltrn-student-dark")
+        ]}
+      >
         <.icon name="hero-paper-clip" class="w-6 h-6" />
         <h5 class="font-display font-bold text-sm"><%= @title %></h5>
       </div>
@@ -203,6 +211,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       |> assign(:is_adding_external, false)
       |> assign(:is_editing, false)
       |> assign(:upload_error, nil)
+      |> assign(:is_family, nil)
       |> stream_configure(
         :attachments,
         dom_id: fn {attachment, _i} -> "attachment-#{attachment.id}" end
@@ -212,6 +221,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         max_file_size: 5_000_000,
         max_entries: 1
       )
+      |> assign(:initialized, false)
 
     {:ok, socket}
   end
@@ -221,17 +231,28 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign_type()
-      |> stream_attachments()
+      |> initialize()
 
     {:ok, socket}
   end
+
+  defp initialize(%{assigns: %{initialized: false}} = socket) do
+    socket
+    |> assign_type()
+    |> stream_attachments()
+    |> assign(:initialized, true)
+  end
+
+  defp initialize(socket), do: socket
 
   defp assign_type(%{assigns: %{note_id: _}} = socket),
     do: assign(socket, :type, :note_attachments)
 
   defp assign_type(%{assigns: %{assessment_point_entry_id: _}} = socket),
     do: assign(socket, :type, :entry_evidences)
+
+  defp assign_type(%{assigns: %{student_cycle_info_id: _}} = socket),
+    do: assign(socket, :type, :student_cycle_info_attachments)
 
   defp stream_attachments(socket) do
     attachments =
@@ -241,6 +262,10 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
         %{type: :entry_evidences, assessment_point_entry_id: id} ->
           Attachments.list_attachments(assessment_point_entry_id: id)
+
+        %{type: :student_cycle_info_attachments, student_cycle_info_id: id} ->
+          is_family = socket.assigns.is_family
+          Attachments.list_attachments(student_cycle_info_id: id, is_family: is_family)
       end
 
     attachments_ids = Enum.map(attachments, & &1.id)
@@ -347,6 +372,9 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
         :entry_evidences ->
           Assessments.update_assessment_point_entry_evidences_positions(attachments_ids)
+
+        :student_cycle_info_attachments ->
+          StudentsCycleInfo.update_student_cycle_info_attachments_positions(attachments_ids)
       end
 
     case update_res do
@@ -468,6 +496,37 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
            current_user,
            assessment_point_entry_id,
            params
+         ) do
+      {:ok, attachment} ->
+        notify(__MODULE__, {:created, attachment}, socket.assigns)
+
+        socket =
+          socket
+          |> assign(:is_adding_external, false)
+          |> stream_attachments()
+
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign_form(socket, changeset)}
+    end
+  end
+
+  defp save_attachment(
+         %{assigns: %{type: :student_cycle_info_attachments}} = socket,
+         :new,
+         params
+       ) do
+    %{
+      current_user: current_user,
+      student_cycle_info_id: student_cycle_info_id
+    } = socket.assigns
+
+    case StudentsCycleInfo.create_student_cycle_info_attachment(
+           current_user.current_profile_id,
+           student_cycle_info_id,
+           params,
+           socket.assigns.is_family
          ) do
       {:ok, attachment} ->
         notify(__MODULE__, {:created, attachment}, socket.assigns)

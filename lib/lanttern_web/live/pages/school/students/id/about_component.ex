@@ -4,6 +4,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
   alias Lanttern.StudentsCycleInfo
 
   # shared components
+  alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.StudentsCycleInfo.StudentCycleInfoFormComponent
   alias LantternWeb.StudentsCycleInfo.StudentCycleProfilePictureOverlayComponent
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
@@ -70,7 +71,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
           </div>
         </div>
       </div>
-      <div class="flex items-start gap-10 mt-12">
+      <div class="flex items-start gap-20 mt-12">
         <div class="flex-1">
           <div class="pb-6 border-b-2 border-ltrn-light">
             <h4 class="font-display font-black text-lg"><%= gettext("School area") %></h4>
@@ -107,6 +108,16 @@ defmodule LantternWeb.StudentLive.AboutComponent do
               </.action>
             <% end %>
           </div>
+          <.live_component
+            module={AttachmentAreaComponent}
+            id="student-cycle-info-school-attachments"
+            class="mt-10"
+            student_cycle_info_id={@student_cycle_info.id}
+            is_family={false}
+            title={gettext("School area attachments")}
+            allow_editing
+            current_user={@current_user}
+          />
         </div>
         <div class="flex-1">
           <div class="pb-6 border-b-2 border-ltrn-student-lighter">
@@ -146,6 +157,16 @@ defmodule LantternWeb.StudentLive.AboutComponent do
               </.action>
             <% end %>
           </div>
+          <.live_component
+            module={AttachmentAreaComponent}
+            id="student-cycle-info-family-attachments"
+            class="mt-10"
+            student_cycle_info_id={@student_cycle_info.id}
+            is_family
+            title={gettext("Family area attachments")}
+            allow_editing
+            current_user={@current_user}
+          />
         </div>
       </div>
       <.live_component
@@ -295,10 +316,12 @@ defmodule LantternWeb.StudentLive.AboutComponent do
       socket
       |> assign(:student_info_selected_cycle_id, id)
       |> save_profile_filters([:student_info])
-      |> assign_current_cycle_and_classes()
-      |> assign_student_cycle_info()
-      |> assign(:is_editing_student_school_info, false)
-      |> assign(:is_editing_student_family_info, false)
+      |> push_navigate(to: ~p"/school/students/#{socket.assigns.student}")
+
+    # |> assign_current_cycle_and_classes()
+    # |> assign_student_cycle_info()
+    # |> assign(:is_editing_student_school_info, false)
+    # |> assign(:is_editing_student_family_info, false)
 
     {:noreply, socket}
   end
