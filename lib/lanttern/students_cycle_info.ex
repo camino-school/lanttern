@@ -7,8 +7,12 @@ defmodule Lanttern.StudentsCycleInfo do
   alias Lanttern.Schools.Student
   alias Lanttern.Repo
 
+  import Lanttern.RepoHelpers
+
+  alias Lanttern.Attachments.Attachment
   alias Lanttern.StudentsCycleInfoLog
   alias Lanttern.StudentsCycleInfo.StudentCycleInfo
+  alias Lanttern.StudentsCycleInfo.StudentCycleInfoAttachment
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.Cycle
 
@@ -186,4 +190,76 @@ defmodule Lanttern.StudentsCycleInfo do
       {cycle, student_classes_map[cycle.id] || []}
     end)
   end
+
+  @doc """
+  Creates an attachment and links it to an existing student cycle info in a single transaction.
+
+  ## Examples
+
+      iex> create_student_cycle_info_attachment(profile_id, student_cycle_info_id, %{field: value})
+      {:ok, %Attachment{}}
+
+      iex> create_student_cycle_info_attachment(profile_id, student_cycle_info_id, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec create_student_cycle_info_attachment(
+          profile_id :: pos_integer(),
+          student_cycle_info_id :: pos_integer(),
+          attachment_attrs :: map(),
+          is_family :: boolean()
+        ) ::
+          {:ok, Attachment.t()} | {:error, Ecto.Changeset.t()}
+  def create_student_cycle_info_attachment(
+        profile_id,
+        student_cycle_info_id,
+        attachment_attrs,
+        is_family \\ false
+      ) do
+    insert_query =
+      %Attachment{}
+      |> Attachment.changeset(Map.put(attachment_attrs, "owner_id", profile_id))
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:insert_attachment, insert_query)
+    |> Ecto.Multi.run(
+      :link_student_cycle_info,
+      fn _repo, %{insert_attachment: attachment} ->
+        attrs =
+          from(
+            scia in StudentCycleInfoAttachment,
+            where: scia.student_cycle_info_id == ^student_cycle_info_id
+          )
+          |> set_position_in_attrs(%{
+            student_cycle_info_id: student_cycle_info_id,
+            attachment_id: attachment.id,
+            is_family: is_family,
+            owner_id: profile_id
+          })
+
+        %StudentCycleInfoAttachment{}
+        |> StudentCycleInfoAttachment.changeset(attrs)
+        |> Repo.insert()
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:error, _multi, changeset, _changes} -> {:error, changeset}
+      {:ok, %{insert_attachment: attachment}} -> {:ok, attachment}
+    end
+  end
+
+  @doc """
+  Update student cycle info attachments positions based on ids list order.
+
+  ## Examples
+
+  iex> update_student_cycle_info_attachments_positions([3, 2, 1])
+  :ok
+
+  """
+  @spec update_student_cycle_info_attachments_positions(attachments_ids :: [pos_integer()]) ::
+          :ok | {:error, String.t()}
+  def update_student_cycle_info_attachments_positions(attachments_ids),
+    do: update_positions(StudentCycleInfoAttachment, attachments_ids, id_field: :attachment_id)
 end

@@ -13,6 +13,8 @@ defmodule Lanttern.AttachmentsTest do
     alias Lanttern.IdentityFixtures
     alias Lanttern.Notes
     alias Lanttern.NotesFixtures
+    alias Lanttern.StudentsCycleInfo
+    alias Lanttern.StudentsCycleInfoFixtures
 
     @invalid_attrs %{name: nil, link: nil, description: nil, is_external: nil}
 
@@ -95,6 +97,66 @@ defmodule Lanttern.AttachmentsTest do
 
       assert [attachment_2, attachment_3, attachment_1] ==
                Attachments.list_attachments(assessment_point_entry_id: entry.id)
+    end
+
+    test "list_attachments/1 with student_cycle_info_id opts returns all attachments linked to given student cycle info" do
+      profile = IdentityFixtures.student_profile_fixture()
+      student_cycle_info = StudentsCycleInfoFixtures.student_cycle_info_fixture()
+
+      {:ok, attachment_1} =
+        StudentsCycleInfo.create_student_cycle_info_attachment(
+          profile.id,
+          student_cycle_info.id,
+          %{"name" => "attachment 1", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      {:ok, attachment_2} =
+        StudentsCycleInfo.create_student_cycle_info_attachment(
+          profile.id,
+          student_cycle_info.id,
+          %{"name" => "attachment 2", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      {:ok, family_attachment} =
+        StudentsCycleInfo.create_student_cycle_info_attachment(
+          profile.id,
+          student_cycle_info.id,
+          %{
+            "name" => "family attachment",
+            "link" => "https://somevaliduri.com",
+            "is_external" => true
+          },
+          true
+        )
+
+      # extra attachments to test filtering
+      attachment_fixture()
+
+      StudentsCycleInfo.create_student_cycle_info_attachment(
+        profile.id,
+        StudentsCycleInfoFixtures.student_cycle_info_fixture().id,
+        %{
+          "name" => "other attachment",
+          "link" => "https://somevaliduri.com",
+          "is_external" => true
+        }
+      )
+
+      assert [attachment_1, attachment_2, family_attachment] ==
+               Attachments.list_attachments(student_cycle_info_id: student_cycle_info.id)
+
+      # use same setup to test update_student_cycle_info_attachments_positions/1 and is_family filtering
+
+      StudentsCycleInfo.update_student_cycle_info_attachments_positions([
+        attachment_2.id,
+        attachment_1.id
+      ])
+
+      assert [attachment_2, attachment_1] ==
+               Attachments.list_attachments(
+                 student_cycle_info_id: student_cycle_info.id,
+                 is_family: false
+               )
     end
 
     test "get_attachment!/1 returns the attachment with given id" do
