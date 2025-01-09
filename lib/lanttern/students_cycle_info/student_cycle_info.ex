@@ -8,6 +8,7 @@ defmodule Lanttern.StudentsCycleInfo.StudentCycleInfo do
 
   use Gettext, backend: Lanttern.Gettext
 
+  alias Lanttern.StudentsCycleInfo.StudentCycleInfoAttachment
   alias Lanttern.Schools.Cycle
   alias Lanttern.Schools.School
   alias Lanttern.Schools.Student
@@ -23,6 +24,7 @@ defmodule Lanttern.StudentsCycleInfo.StudentCycleInfo do
           cycle_id: pos_integer(),
           school: School.t(),
           school_id: pos_integer(),
+          student_cycle_info_attachments: [StudentCycleInfoAttachment.t()],
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -32,9 +34,13 @@ defmodule Lanttern.StudentsCycleInfo.StudentCycleInfo do
     field :family_info, :string
     field :profile_picture_url, :string
 
+    field :has_attachments, :boolean, virtual: true
+
     belongs_to :student, Student
     belongs_to :cycle, Cycle
     belongs_to :school, School
+
+    has_many :student_cycle_info_attachments, StudentCycleInfoAttachment
 
     timestamps()
   end

@@ -2,10 +2,23 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   @moduledoc """
   Creates an attachment area UI.
 
-  Supports:
+  ### Supported contexts:
+
   - notes attachments (use `note_id` assign)
   - assessment point entry evidences (use `assessment_point_entry_id` assign)
   - student cycle info attachments (use `student_cycle_info_id` assign and `is_family` assign)
+
+  ### Supported attrs/assigns
+
+  - `title` (optional, string)
+  - `class` (optional, any)
+  - `allow_editing` (optional, boolean)
+  - `current_user` (optional, `%User{}`) - required when `allow_editing` is `true`
+  - `note_id` (optional, integer) - view supported contexts above
+  - `assessment_point_entry_id` (optional, integer) - view supported contexts above
+  - `student_cycle_info_id` (optional, integer) - view supported contexts above
+  - `is_family` (optional, boolean) - used with `student_cycle_info_id`. View supported contexts above
+
   """
 
   alias Lanttern.Assessments

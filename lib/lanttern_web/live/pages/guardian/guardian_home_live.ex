@@ -8,8 +8,10 @@ defmodule LantternWeb.GuardianHomeLive do
   alias Lanttern.Personalization
   alias Lanttern.Reporting
   alias Lanttern.Schools
+  alias Lanttern.StudentsCycleInfo
 
   # shared components
+  alias LantternWeb.Attachments.AttachmentAreaComponent
   import LantternWeb.ReportingComponents
   import LantternWeb.SchoolsComponents
 
@@ -17,11 +19,22 @@ defmodule LantternWeb.GuardianHomeLive do
   def mount(_params, _session, socket) do
     socket =
       socket
+      |> assign_student()
       |> assign_school()
-      |> assign_cycles()
+      |> assign_cycles_and_classes()
+      |> assign_current_cycle_and_classes()
+      |> assign_student_cycle_info()
       |> stream_student_report_cards()
 
     {:ok, socket}
+  end
+
+  defp assign_student(socket) do
+    student =
+      socket.assigns.current_user.current_profile.guardian_of_student_id
+      |> Schools.get_student!()
+
+    assign(socket, :student, student)
   end
 
   defp assign_school(socket) do
@@ -32,18 +45,53 @@ defmodule LantternWeb.GuardianHomeLive do
     assign(socket, :school, school)
   end
 
-  defp assign_cycles(socket) do
-    current_cycle = socket.assigns.current_user.current_profile.current_school_cycle || %{}
-
-    cycles =
-      Schools.list_cycles(
-        schools_ids: [socket.assigns.current_user.current_profile.school_id],
-        parent_cycles_only: true
-      )
+  defp assign_cycles_and_classes(socket) do
+    cycles_and_classes =
+      StudentsCycleInfo.list_cycles_and_classes_for_student(socket.assigns.student)
 
     socket
-    |> assign(:cycles, cycles)
+    |> assign(:cycles_and_classes, cycles_and_classes)
+  end
+
+  defp assign_current_cycle_and_classes(socket) do
+    current_cycle = socket.assigns.current_user.current_profile.current_school_cycle
+
+    {_cycle, classes} =
+      socket.assigns.cycles_and_classes
+      |> Enum.find(fn {cycle, _classes} -> cycle.id == current_cycle.id end)
+
+    socket
     |> assign(:current_cycle, current_cycle)
+    |> assign(:current_classes, classes)
+  end
+
+  defp assign_student_cycle_info(socket) do
+    student_cycle_info =
+      StudentsCycleInfo.get_student_cycle_info_by_student_and_cycle(
+        socket.assigns.student.id,
+        socket.assigns.current_cycle.id,
+        check_attachments_for: :family
+      )
+      |> case do
+        nil ->
+          # create student cycle info if it does not exist
+          {:ok, info} =
+            StudentsCycleInfo.create_student_cycle_info(
+              %{
+                school_id: socket.assigns.student.school_id,
+                student_id: socket.assigns.student.id,
+                cycle_id: socket.assigns.current_cycle.id
+              },
+              log_profile_id: socket.assigns.current_user.current_profile_id
+            )
+
+          info
+
+        student_cycle_info ->
+          student_cycle_info
+      end
+
+    assign(socket, :student_cycle_info, student_cycle_info)
   end
 
   defp stream_student_report_cards(socket) do
@@ -81,7 +129,7 @@ defmodule LantternWeb.GuardianHomeLive do
   # event handlers
 
   @impl true
-  def handle_event("change_cycle", %{"id" => cycle_id}, socket) do
+  def handle_event("change_cycle", %{"cycle_id" => cycle_id}, socket) do
     socket =
       Personalization.set_profile_settings(
         socket.assigns.current_user.current_profile.id,
@@ -100,4 +148,9 @@ defmodule LantternWeb.GuardianHomeLive do
 
     {:noreply, socket}
   end
+
+  # helpers
+
+  defp cycle_classes_opt([]), do: gettext("No classes")
+  defp cycle_classes_opt(classes), do: Enum.map_join(classes, ", ", & &1.name)
 end

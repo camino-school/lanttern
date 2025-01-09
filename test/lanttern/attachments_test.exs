@@ -100,7 +100,7 @@ defmodule Lanttern.AttachmentsTest do
     end
 
     test "list_attachments/1 with student_cycle_info_id opts returns all attachments linked to given student cycle info" do
-      profile = IdentityFixtures.student_profile_fixture()
+      profile = IdentityFixtures.teacher_profile_fixture()
       student_cycle_info = StudentsCycleInfoFixtures.student_cycle_info_fixture()
 
       {:ok, attachment_1} =

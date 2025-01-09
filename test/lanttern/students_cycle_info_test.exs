@@ -9,6 +9,7 @@ defmodule Lanttern.StudentsCycleInfoTest do
 
     import Lanttern.StudentsCycleInfoFixtures
     alias Lanttern.SchoolsFixtures
+    alias Lanttern.IdentityFixtures
 
     @invalid_attrs %{school_info: nil, family_info: nil, profile_picture_url: nil}
 
@@ -38,6 +39,68 @@ defmodule Lanttern.StudentsCycleInfoTest do
 
       assert StudentsCycleInfo.get_student_cycle_info_by_student_and_cycle(student.id, cycle.id) ==
                student_cycle_info
+    end
+
+    test "get_student_cycle_info_by_student_and_cycle/3 with check_attachments_for school opt set has_attachments field as expected" do
+      school = SchoolsFixtures.school_fixture()
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+
+      student_cycle_info =
+        student_cycle_info_fixture(%{
+          school_id: school.id,
+          student_id: student.id,
+          cycle_id: cycle.id
+        })
+
+      profile = IdentityFixtures.teacher_profile_fixture()
+
+      {:ok, _attachment} =
+        StudentsCycleInfo.create_student_cycle_info_attachment(
+          profile.id,
+          student_cycle_info.id,
+          %{"name" => "attachment", "link" => "https://somevaliduri.com", "is_external" => true},
+          false
+        )
+
+      expected =
+        StudentsCycleInfo.get_student_cycle_info_by_student_and_cycle(student.id, cycle.id,
+          check_attachments_for: :school
+        )
+
+      assert expected.id == student_cycle_info.id
+      assert expected.has_attachments
+    end
+
+    test "get_student_cycle_info_by_student_and_cycle/3 with check_attachments_for family opt set has_attachments field as expected" do
+      school = SchoolsFixtures.school_fixture()
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+
+      student_cycle_info =
+        student_cycle_info_fixture(%{
+          school_id: school.id,
+          student_id: student.id,
+          cycle_id: cycle.id
+        })
+
+      profile = IdentityFixtures.teacher_profile_fixture()
+
+      {:ok, _attachment} =
+        StudentsCycleInfo.create_student_cycle_info_attachment(
+          profile.id,
+          student_cycle_info.id,
+          %{"name" => "attachment", "link" => "https://somevaliduri.com", "is_external" => true},
+          true
+        )
+
+      expected =
+        StudentsCycleInfo.get_student_cycle_info_by_student_and_cycle(student.id, cycle.id,
+          check_attachments_for: :family
+        )
+
+      assert expected.id == student_cycle_info.id
+      assert expected.has_attachments
     end
 
     test "create_student_cycle_info/1 with valid data creates a student_cycle_info" do

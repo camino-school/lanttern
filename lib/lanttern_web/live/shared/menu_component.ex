@@ -574,7 +574,7 @@ defmodule LantternWeb.MenuComponent do
         "guardian" -> ~p"/guardian"
       end
 
-    {:noreply, push_navigate(socket, to: to_path, replace: true)}
+    {:noreply, redirect(socket, to: to_path)}
   end
 
   def handle_event("set_locale", %{"locale" => locale}, socket) do

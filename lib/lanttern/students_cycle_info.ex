@@ -50,6 +50,10 @@ defmodule Lanttern.StudentsCycleInfo do
 
   Returns `nil` if the Student cycle info does not exist.
 
+  ## Options:
+
+  - `:check_attachments_for` - supports `:school` or `:family`. will check for linked attachments of given type and set `has_attachments` field
+
   ## Examples
 
       iex> get_student_cycle_info_by_student_and_cycle(student_id, cycle_id)
@@ -61,16 +65,39 @@ defmodule Lanttern.StudentsCycleInfo do
   """
   @spec get_student_cycle_info_by_student_and_cycle(
           student_id :: pos_integer(),
-          cycle_id :: pos_integer()
+          cycle_id :: pos_integer(),
+          opts :: Keyword.t()
         ) :: StudentCycleInfo.t() | nil
-  def get_student_cycle_info_by_student_and_cycle(student_id, cycle_id) do
+  def get_student_cycle_info_by_student_and_cycle(student_id, cycle_id, opts \\ []) do
     from(
       sci in StudentCycleInfo,
       where: sci.student_id == ^student_id,
       where: sci.cycle_id == ^cycle_id
     )
+    |> apply_get_student_cycle_info_by_student_and_cycle_opts(opts)
     |> Repo.one()
   end
+
+  defp apply_get_student_cycle_info_by_student_and_cycle_opts(queryable, []), do: queryable
+
+  defp apply_get_student_cycle_info_by_student_and_cycle_opts(queryable, [
+         {:check_attachments_for, type} | opts
+       ])
+       when type in [:school, :family] do
+    is_family = if type == :family, do: true, else: false
+
+    from(
+      sci in queryable,
+      left_join: scia in assoc(sci, :student_cycle_info_attachments),
+      on: scia.is_family == ^is_family,
+      group_by: sci.id,
+      select: %{sci | has_attachments: count(scia.id) > 0}
+    )
+    |> apply_get_student_cycle_info_by_student_and_cycle_opts(opts)
+  end
+
+  defp apply_get_student_cycle_info_by_student_and_cycle_opts(queryable, [_ | opts]),
+    do: apply_get_student_cycle_info_by_student_and_cycle_opts(queryable, opts)
 
   @doc """
   Creates a student_cycle_info.
