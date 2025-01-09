@@ -1,43 +1,18 @@
 <.responsive_container class="pt-6 sm:pt-10">
   <.page_title_with_menu><%= gettext("Welcome!") %></.page_title_with_menu>
-  <div class="flex items-center gap-6 mt-20">
-    <.profile_picture
-      class="shadow-lg"
-      picture_url={@student_cycle_info.profile_picture_url}
-      profile_name={@student.name}
-      size="lg"
-    />
-    <div>
-      <h2 class="font-display font-black text-2xl">
-        <%= @student.name %>
-      </h2>
-      <div class="flex items-center gap-4 mt-2">
-        <div class="relative">
-          <.action
-            type="button"
-            id="current-cycle-dropdown-button"
-            icon_name="hero-chevron-down-mini"
-          >
-            <%= @current_cycle.name %>
-          </.action>
-          <.dropdown_menu
-            id="current-cycle-dropdown"
-            button_id="current-cycle-dropdown-button"
-            z_index="10"
-          >
-            <:item
-              :for={{cycle, classes} <- @cycles_and_classes}
-              text={"#{cycle.name} (#{cycle_classes_opt(classes)})"}
-              on_click={JS.push("change_cycle", value: %{"cycle_id" => cycle.id})}
-            />
-          </.dropdown_menu>
-        </div>
-        <.badge :for={class <- @current_classes} id={"current-student-class-#{class.id}"}>
-          <%= class.name %>
-        </.badge>
-      </div>
-    </div>
-  </div>
+  <.live_component
+    module={StudentCycleInfoHeaderComponent}
+    id="student-cycle-info-header"
+    selected_cycle_id={@current_cycle.id}
+    student={@student}
+    student_cycle_info={@student_cycle_info}
+    on_change_cycle={
+      fn cycle_id ->
+        JS.push("change_cycle", value: %{"cycle_id" => cycle_id})
+      end
+    }
+    class="mt-20"
+  />
   <h3 class="mt-20 font-display font-black text-xl">
     <%= gettext("%{cycle} report cards", cycle: @current_cycle.name) %>
   </h3>

@@ -59,7 +59,7 @@ defmodule LantternWeb.MenuComponent do
             <button
               type="button"
               phx-click={toggle_profile_list(@myself)}
-              class="flex items-center gap-2 font-black text-lg hover:text-ltrn-subtle"
+              class="flex items-center gap-2 font-black text-lg text-left hover:text-ltrn-subtle"
             >
               <%= Gettext.dgettext(
                 Lanttern.Gettext,

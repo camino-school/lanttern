@@ -12,6 +12,7 @@ defmodule LantternWeb.GuardianHomeLive do
 
   # shared components
   alias LantternWeb.Attachments.AttachmentAreaComponent
+  alias LantternWeb.StudentsCycleInfo.StudentCycleInfoHeaderComponent
   import LantternWeb.ReportingComponents
   import LantternWeb.SchoolsComponents
 
@@ -21,8 +22,7 @@ defmodule LantternWeb.GuardianHomeLive do
       socket
       |> assign_student()
       |> assign_school()
-      |> assign_cycles_and_classes()
-      |> assign_current_cycle_and_classes()
+      |> assign_current_cycle()
       |> assign_student_cycle_info()
       |> stream_student_report_cards()
 
@@ -45,24 +45,9 @@ defmodule LantternWeb.GuardianHomeLive do
     assign(socket, :school, school)
   end
 
-  defp assign_cycles_and_classes(socket) do
-    cycles_and_classes =
-      StudentsCycleInfo.list_cycles_and_classes_for_student(socket.assigns.student)
-
-    socket
-    |> assign(:cycles_and_classes, cycles_and_classes)
-  end
-
-  defp assign_current_cycle_and_classes(socket) do
+  defp assign_current_cycle(socket) do
     current_cycle = socket.assigns.current_user.current_profile.current_school_cycle
-
-    {_cycle, classes} =
-      socket.assigns.cycles_and_classes
-      |> Enum.find(fn {cycle, _classes} -> cycle.id == current_cycle.id end)
-
-    socket
-    |> assign(:current_cycle, current_cycle)
-    |> assign(:current_classes, classes)
+    assign(socket, :current_cycle, current_cycle)
   end
 
   defp assign_student_cycle_info(socket) do
@@ -148,9 +133,4 @@ defmodule LantternWeb.GuardianHomeLive do
 
     {:noreply, socket}
   end
-
-  # helpers
-
-  defp cycle_classes_opt([]), do: gettext("No classes")
-  defp cycle_classes_opt(classes), do: Enum.map_join(classes, ", ", & &1.name)
 end
