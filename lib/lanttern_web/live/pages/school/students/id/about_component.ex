@@ -214,7 +214,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
               %{
                 school_id: socket.assigns.student.school_id,
                 student_id: socket.assigns.student.id,
-                cycle_id: socket.assigns.current_user.current_profile.current_school_cycle.id
+                cycle_id: socket.assigns.student_info_selected_cycle_id
               },
               log_profile_id: socket.assigns.current_user.current_profile_id
             )
