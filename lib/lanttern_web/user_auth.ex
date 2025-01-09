@@ -1,4 +1,7 @@
 defmodule LantternWeb.UserAuth do
+  @moduledoc """
+  User authentication and authorization helpers.
+  """
   use LantternWeb, :verified_routes
 
   import Plug.Conn

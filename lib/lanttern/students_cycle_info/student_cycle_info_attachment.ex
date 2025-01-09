@@ -1,4 +1,8 @@
 defmodule Lanttern.StudentsCycleInfo.StudentCycleInfoAttachment do
+  @moduledoc """
+  The `StudentCycleInfoAttachment` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

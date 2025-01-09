@@ -64,7 +64,7 @@ defmodule Lanttern.BNCC do
   @doc """
   Check if BNCC curriculum already exists.
   """
-  def is_bncc_registered?() do
+  def bncc_registered?() do
     case Repo.get_by(Curriculum, code: @bncc) do
       nil -> false
       _bncc -> true

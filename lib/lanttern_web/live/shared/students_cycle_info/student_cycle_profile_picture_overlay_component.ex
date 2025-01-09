@@ -143,7 +143,6 @@ defmodule LantternWeb.StudentsCycleInfo.StudentCycleProfilePictureOverlayCompone
           # cleanup in async task (fire and forget)
           Task.Supervisor.start_child(Lanttern.TaskSupervisor, fn ->
             File.rm_rf(thumbnail_folder)
-            |> IO.inspect(label: "after rm_rf from async task")
           end)
         end
       end)
