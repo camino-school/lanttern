@@ -40,7 +40,7 @@ defmodule LantternWeb.GradesReports.GradeDetailsOverlayComponent do
             <.metadata class="mb-4" icon_name="hero-bookmark">
               <span class="font-bold"><%= gettext("Subject") %>:</span>
               <%= Gettext.dgettext(
-                LantternWeb.Gettext,
+                Lanttern.Gettext,
                 "taxonomy",
                 @student_grades_report_entry.grades_report_subject.subject.name
               ) %>
@@ -76,7 +76,7 @@ defmodule LantternWeb.GradesReports.GradeDetailsOverlayComponent do
         </div>
         <%= if @student_grades_report_entry.comment do %>
           <h6 class="mb-4 font-display font-bold"><%= gettext("Comment") %></h6>
-          <.markdown text={@student_grades_report_entry.comment} size="sm" class="mb-10" />
+          <.markdown text={@student_grades_report_entry.comment} class="mb-10" />
         <% end %>
         <h6 class="mb-4 font-display font-bold"><%= gettext("Grade composition") %></h6>
         <.grade_composition_table student_grades_report_entry={@student_grades_report_entry} />

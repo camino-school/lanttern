@@ -1,6 +1,6 @@
 defmodule LantternWeb.PrivacyPolicyController do
   use LantternWeb, :controller
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
 
   alias Lanttern.Identity
 

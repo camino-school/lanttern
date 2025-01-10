@@ -6,7 +6,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
 
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
   import LantternWeb.CoreComponents
   import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
 
@@ -96,7 +96,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
         <p :if={student_record.name} class="mb-4 font-display font-black">
           <%= student_record.name %>
         </p>
-        <.markdown text={student_record.description} class="line-clamp-3" size="sm" />
+        <.markdown text={student_record.description} class="line-clamp-3" />
       </:col>
       <:col
         :let={student_record}

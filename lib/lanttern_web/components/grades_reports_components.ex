@@ -6,7 +6,7 @@ defmodule LantternWeb.GradesReportsComponents do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
 
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
   import LantternWeb.CoreComponents
 
   alias Lanttern.GradesReports.GradesReport
@@ -141,7 +141,7 @@ defmodule LantternWeb.GradesReportsComponents do
           >
             <div class="sticky left-0 p-4 rounded bg-white shadow-lg">
               <%= Gettext.dgettext(
-                LantternWeb.Gettext,
+                Lanttern.Gettext,
                 "taxonomy",
                 grades_report_subject.subject.name
               ) %>
@@ -483,7 +483,7 @@ defmodule LantternWeb.GradesReportsComponents do
               class="flex items-center justify-center w-20 min-w-full p-2 border-b-2 border-ltrn-subtle mt-px bg-white last:border-r-2 last:border-ltrn-subtle"
               title={
                 Gettext.dgettext(
-                  LantternWeb.Gettext,
+                  Lanttern.Gettext,
                   "taxonomy",
                   grades_report_subject.subject.name
                 )
@@ -491,7 +491,7 @@ defmodule LantternWeb.GradesReportsComponents do
             >
               <div class="truncate">
                 <%= Gettext.dgettext(
-                  LantternWeb.Gettext,
+                  Lanttern.Gettext,
                   "taxonomy",
                   grades_report_subject.subject.short_name || grades_report_subject.subject.name
                 ) %>
@@ -504,7 +504,7 @@ defmodule LantternWeb.GradesReportsComponents do
             class="flex items-center justify-center gap-2 w-20 min-w-full py-2 px-1 border-b-2 border-ltrn-subtle mt-px text-white bg-ltrn-dark"
             title={
               Gettext.dgettext(
-                LantternWeb.Gettext,
+                Lanttern.Gettext,
                 "taxonomy",
                 grades_report_subject.subject.name
               )
@@ -512,7 +512,7 @@ defmodule LantternWeb.GradesReportsComponents do
           >
             <div class="flex-1 text-center truncate">
               <%= Gettext.dgettext(
-                LantternWeb.Gettext,
+                Lanttern.Gettext,
                 "taxonomy",
                 grades_report_subject.subject.short_name || grades_report_subject.subject.name
               ) %>
@@ -768,7 +768,7 @@ defmodule LantternWeb.GradesReportsComponents do
           >
             <span class="flex-1 truncate">
               <%= Gettext.dgettext(
-                LantternWeb.Gettext,
+                Lanttern.Gettext,
                 "taxonomy",
                 grades_report_subject.subject.name
               ) %>

@@ -6,7 +6,7 @@ defmodule LantternWeb.FormComponents do
 
   import LantternWeb.CoreComponents
   alias Phoenix.LiveView.JS
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
 
   @doc """
   Renders a simple form.
@@ -417,7 +417,7 @@ defmodule LantternWeb.FormComponents do
         <div class="flex items-center gap-2">
           <%= render_slot(@actions_left) %>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-4">
           <%= render_slot(@actions) %>
         </div>
       </div>
@@ -649,6 +649,81 @@ defmodule LantternWeb.FormComponents do
         sr_text={gettext("cancel")}
         class="absolute top-2 right-2"
       />
+    </div>
+    """
+  end
+
+  @doc """
+  Creates a image upload area for profile picture UI
+  """
+  attr :current_picture_url, :string, required: true
+  attr :profile_name, :string, required: true
+  attr :upload, :any, required: true, doc: "use it to pass `@uploads.something`"
+
+  attr :on_cancel, :any,
+    required: true,
+    doc:
+      "expects a function that will be called with entry ref as arg. Expects parent to call `cancel_upload/3`"
+
+  attr :on_save, :any, required: true, doc: "function to call on save"
+  attr :on_remove, :any, required: true, doc: "function to call on remove"
+  attr :class, :any, default: nil
+
+  def profile_picture_field(assigns) do
+    ~H"""
+    <div class={["flex flex-col items-center gap-4", @class]} phx-drop-target={@upload.ref}>
+      <div :for={entry <- @upload.entries} class="flex flex-col items-center gap-4">
+        <div :if={entry.valid?} class="w-60 h-60 rounded-full bg-ltrn-light overflow-hidden shadow-xl">
+          <.live_img_preview entry={entry} class="object-cover w-full h-full" />
+        </div>
+        <.error_block :if={!entry.valid?} class="p-6 border border-red-500 rounded">
+          <p><%= gettext("File \"%{file}\" is invalid.", file: entry.client_name) %></p>
+          <%= for err <- upload_errors(@upload, entry) do %>
+            <%= upload_error_to_string(@upload, err) %>
+          <% end %>
+        </.error_block>
+        <div class="flex gap-4">
+          <.action type="button" theme="subtle" phx-click={@on_cancel.(entry.ref)}>
+            <%= gettext("Cancel") %>
+          </.action>
+          <.action
+            :if={entry.valid?}
+            type="button"
+            icon_name="hero-check-mini"
+            theme="primary"
+            phx-click={@on_save.()}
+            show_loading_spinner
+          >
+            <%= gettext("Save") %>
+          </.action>
+        </div>
+      </div>
+      <div class={["flex flex-col items-center gap-4", if(@upload.entries != [], do: "hidden")]}>
+        <.profile_picture
+          picture_url={@current_picture_url}
+          profile_name={@profile_name}
+          size="xl"
+          class="shadow-xl"
+        />
+        <div class="flex gap-4">
+          <.action
+            :if={@current_picture_url}
+            type="button"
+            theme="subtle"
+            phx-click={@on_remove.()}
+            data-confirm={gettext("Are you sure?")}
+          >
+            <%= gettext("Remove") %>
+          </.action>
+          <label
+            for={@upload.ref}
+            class="cursor-pointer hover:text-ltrn-subtle focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
+          >
+            <%= gettext("Upload profile picture") %>
+            <.live_file_input upload={@upload} class="sr-only" />
+          </label>
+        </div>
+      </div>
     </div>
     """
   end

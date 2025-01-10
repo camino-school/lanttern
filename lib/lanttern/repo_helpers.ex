@@ -6,7 +6,7 @@ defmodule Lanttern.RepoHelpers do
   alias Lanttern.Repo
   import Ecto.Query, only: [from: 2]
 
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
 
   defmodule Page do
     @moduledoc "General pagination page struct and related utils"

@@ -1,10 +1,13 @@
 defmodule LantternWeb.UserAuth do
+  @moduledoc """
+  User authentication and authorization helpers.
+  """
   use LantternWeb, :verified_routes
 
   import Plug.Conn
   import Phoenix.Controller
 
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
   alias Lanttern.Personalization
   alias Lanttern.Identity
   alias Lanttern.Identity.User

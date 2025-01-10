@@ -6,7 +6,7 @@ defmodule Lanttern.Schools.School do
   use Ecto.Schema
   import Ecto.Changeset
 
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
 
   @type t :: %__MODULE__{
           id: pos_integer(),

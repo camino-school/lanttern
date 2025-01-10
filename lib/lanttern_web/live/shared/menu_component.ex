@@ -59,10 +59,10 @@ defmodule LantternWeb.MenuComponent do
             <button
               type="button"
               phx-click={toggle_profile_list(@myself)}
-              class="flex items-center gap-2 font-black text-lg hover:text-ltrn-subtle"
+              class="flex items-center gap-2 font-black text-lg text-left hover:text-ltrn-subtle"
             >
               <%= Gettext.dgettext(
-                LantternWeb.Gettext,
+                Lanttern.Gettext,
                 "schools",
                 String.capitalize(@current_user.current_profile.type)
               ) %> @ <%= @current_user.current_profile.school_name %>
@@ -292,7 +292,7 @@ defmodule LantternWeb.MenuComponent do
             <%= @name %>
           </span>
           <span class="font-sans font-normal text-xs">
-            <%= Gettext.dgettext(LantternWeb.Gettext, "schools", String.capitalize(@profile.type)) %> @ <%= @school %>
+            <%= Gettext.dgettext(Lanttern.Gettext, "schools", String.capitalize(@profile.type)) %> @ <%= @school %>
           </span>
         </div>
       </button>
@@ -574,7 +574,7 @@ defmodule LantternWeb.MenuComponent do
         "guardian" -> ~p"/guardian"
       end
 
-    {:noreply, push_navigate(socket, to: to_path, replace: true)}
+    {:noreply, redirect(socket, to: to_path)}
   end
 
   def handle_event("set_locale", %{"locale" => locale}, socket) do

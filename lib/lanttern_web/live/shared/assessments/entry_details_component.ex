@@ -271,7 +271,7 @@ defmodule LantternWeb.Assessments.EntryDetailsComponent do
           <.button type="submit" theme={@theme}><%= gettext("Save comment") %></.button>
         </div>
       </.form>
-      <.markdown :if={!@is_editing && @note} text={@note} size="sm" class="max-w-none mt-4" />
+      <.markdown :if={!@is_editing && @note} text={@note} class="max-w-none mt-4" />
       <div
         :if={!@is_editing && !@note}
         class="p-4 rounded border border-dashed border-ltrn-light mt-4 text-sm text-center text-ltrn-subtle"

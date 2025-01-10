@@ -39,7 +39,7 @@ defmodule LantternWeb.AdminController do
   defp generate_assigns() do
     [
       has_base_taxonomy: Taxonomy.has_base_taxonomy?(),
-      is_bncc_registered: BNCC.is_bncc_registered?()
+      is_bncc_registered: BNCC.bncc_registered?()
     ]
   end
 end

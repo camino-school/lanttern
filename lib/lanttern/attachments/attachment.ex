@@ -5,13 +5,15 @@ defmodule Lanttern.Attachments.Attachment do
 
   use Ecto.Schema
   import Ecto.Changeset
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
 
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.AssessmentPointEntryEvidence
   alias Lanttern.Identity.Profile
   alias Lanttern.Notes.Note
   alias Lanttern.Notes.NoteAttachment
+  alias Lanttern.StudentsCycleInfo.StudentCycleInfo
+  alias Lanttern.StudentsCycleInfo.StudentCycleInfoAttachment
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -21,8 +23,12 @@ defmodule Lanttern.Attachments.Attachment do
           is_external: boolean(),
           owner: Profile.t(),
           owner_id: pos_integer(),
+          note_attachment: NoteAttachment.t(),
           note: Note.t(),
+          assessment_point_entry_evidence: AssessmentPointEntryEvidence.t(),
           assessment_point_entry: AssessmentPointEntry.t(),
+          student_cycle_info_attachment: StudentCycleInfoAttachment.t(),
+          student_cycle_info: StudentCycleInfo.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -42,6 +48,9 @@ defmodule Lanttern.Attachments.Attachment do
 
     has_one :assessment_point_entry,
       through: [:assessment_point_entry_evidence, :assessment_point_entry]
+
+    has_one :student_cycle_info_attachment, StudentCycleInfoAttachment
+    has_one :student_cycle_info, through: [:student_cycle_info_attachment, :student_cycle_info]
 
     timestamps()
   end

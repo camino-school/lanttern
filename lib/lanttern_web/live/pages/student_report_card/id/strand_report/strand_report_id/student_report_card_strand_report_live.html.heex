@@ -34,10 +34,10 @@
       <%= gettext("Cycle") %>: <%= @student_report_card.report_card.school_cycle.name %>
     </.badge>
     <.badge :for={subject <- @strand_report.strand.subjects}>
-      <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
+      <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name) %>
     </.badge>
     <.badge :for={year <- @strand_report.strand.years}>
-      <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", year.name) %>
+      <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", year.name) %>
     </.badge>
   </div>
 </.cover>

@@ -16,6 +16,8 @@ defmodule Lanttern.Attachments do
 
   - `:note_id` - filter results by attachments linked the note
   - `:assessment_point_entry_id` - filter results by assessment point entry evidences
+  - `:student_cycle_info_id` - filter attachments linked to given student cycle info. May be used with `:is_family` option.
+  - `:is_family` - used with `:student_cycle_info_id` option. If not given, will return all student cycle info attachments.
 
   ## Examples
 
@@ -55,8 +57,33 @@ defmodule Lanttern.Attachments do
     |> apply_list_attachments_opts(opts)
   end
 
+  defp apply_list_attachments_opts(queryable, [
+         {:student_cycle_info_id, student_cycle_info_id} | opts
+       ])
+       when is_integer(student_cycle_info_id) do
+    from(
+      a in queryable,
+      join: scia in assoc(a, :student_cycle_info_attachment),
+      as: :student_cycle_info_attachment,
+      where: scia.student_cycle_info_id == ^student_cycle_info_id,
+      order_by: scia.position
+    )
+    |> maybe_filter_by_is_family(Keyword.get(opts, :is_family))
+    |> apply_list_attachments_opts(opts)
+  end
+
   defp apply_list_attachments_opts(queryable, [_ | opts]),
     do: apply_list_attachments_opts(queryable, opts)
+
+  defp maybe_filter_by_is_family(queryable, is_family) when is_boolean(is_family) do
+    from(
+      [_a, student_cycle_info_attachment: scia] in queryable,
+      where: scia.is_family == ^is_family
+    )
+  end
+
+  defp maybe_filter_by_is_family(queryable, _is_family),
+    do: queryable
 
   @doc """
   Gets a single attachment.

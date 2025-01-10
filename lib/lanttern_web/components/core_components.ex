@@ -18,9 +18,10 @@ defmodule LantternWeb.CoreComponents do
 
   alias Phoenix.LiveView.JS
   import Phoenix.HTML, only: [raw: 1]
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
 
   import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
+  import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   @doc """
   Renders a `<button>` or `<.link>` with icon.
@@ -35,7 +36,8 @@ defmodule LantternWeb.CoreComponents do
   attr :icon_name, :string, default: nil
   attr :patch, :string, default: nil, doc: "use with type=\"link\""
   attr :navigate, :string, default: nil, doc: "use with type=\"link\""
-  attr :rest, :global
+  attr :show_loading_spinner, :boolean, default: false
+  attr :rest, :global, include: ~w(disabled)
 
   slot :inner_block, required: true
 
@@ -54,7 +56,20 @@ defmodule LantternWeb.CoreComponents do
     <button type={@type} class={[action_styles(@theme, @size), @class]} {@rest}>
       <div class={action_bg_styles(@theme, @size)}></div>
       <span class="relative truncate"><%= render_slot(@inner_block) %></span>
-      <.icon :if={@icon_name} name={@icon_name} class={action_icon_styles(@size)} />
+      <.icon
+        :if={@icon_name}
+        name={@icon_name}
+        class={[
+          if(@show_loading_spinner,
+            do: "group-phx-submit-loading:hidden group-phx-click-loading:hidden"
+          ),
+          action_icon_styles(@size)
+        ]}
+      />
+      <.spinner
+        :if={@show_loading_spinner}
+        class="hidden group-phx-submit-loading:block group-phx-click-loading:block"
+      />
     </button>
     """
   end
@@ -92,7 +107,7 @@ defmodule LantternWeb.CoreComponents do
 
   defp action_styles(theme, size),
     do:
-      "relative flex items-center gap-2 min-w-0 #{Map.get(@action_themes, theme)} #{Map.get(@action_sizes, size)}"
+      "group relative flex items-center gap-2 min-w-0 #{Map.get(@action_themes, theme)} #{Map.get(@action_sizes, size)}"
 
   defp action_bg_styles(theme, size),
     do:
@@ -1178,7 +1193,7 @@ defmodule LantternWeb.CoreComponents do
   """
   attr :text, :string, required: true
   attr :theme, :string, default: "slate"
-  attr :size, :string, default: "base"
+  attr :size, :string, default: "sm", doc: "sm | base"
   attr :class, :any, default: nil
   attr :rest, :global
 
@@ -1501,6 +1516,61 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Renders a profile picture.
+  """
+  attr :picture_url, :string, required: true
+  attr :profile_name, :string, required: true, doc: "render initials when there's no image"
+  attr :size, :string, default: "normal", doc: "xs | sm | md | lg | xl"
+  attr :class, :any, default: nil
+
+  def profile_picture(assigns) do
+    picture_url = profile_picture_render_url(assigns.picture_url, assigns.size)
+    assigns = assign(assigns, :picture_url, picture_url)
+
+    ~H"""
+    <div
+      class={[
+        "relative shrink-0 flex items-center justify-center rounded-full font-display text-center bg-white overflow-hidden ltrn-bg-profile",
+        profile_picture_size_style(@size),
+        @class
+      ]}
+      title={@profile_name}
+    >
+      <%= if @picture_url do %>
+        <img src={@picture_url} class="object-cover w-full h-full" />
+      <% else %>
+        <%= profile_icon_initials(@profile_name) %>
+      <% end %>
+    </div>
+    """
+  end
+
+  # resize to width/height * 2 (144dpi)
+  defp profile_picture_render_url(picture_url, _size) when not is_binary(picture_url),
+    do: picture_url
+
+  defp profile_picture_render_url(picture_url, "xs"),
+    do: object_url_to_render_url(picture_url, width: 48, height: 48)
+
+  defp profile_picture_render_url(picture_url, "sm"),
+    do: object_url_to_render_url(picture_url, width: 64, height: 64)
+
+  defp profile_picture_render_url(picture_url, "lg"),
+    do: object_url_to_render_url(picture_url, width: 256, height: 256)
+
+  defp profile_picture_render_url(picture_url, "xl"),
+    do: object_url_to_render_url(picture_url, width: 480, height: 480)
+
+  defp profile_picture_render_url(picture_url, _md),
+    do: object_url_to_render_url(picture_url, width: 80, height: 80)
+
+  defp profile_picture_size_style("xs"), do: "w-6 h-6 font-bold text-xs"
+  defp profile_picture_size_style("sm"), do: "w-8 h-8 font-bold text-xs"
+  defp profile_picture_size_style("lg"), do: "w-32 h-32 font-black text-4xl"
+  defp profile_picture_size_style("xl"), do: "w-60 h-60 font-black text-6xl"
+  defp profile_picture_size_style(_md), do: "w-10 h-10 font-bold text-sm"
+
+  @doc """
   Renders a responsive container.
   """
   attr :class, :any, default: nil
@@ -1558,24 +1628,23 @@ defmodule LantternWeb.CoreComponents do
 
   def spinner(assigns) do
     ~H"""
-    <svg
-      class={[
-        "animate-spin h-5 w-5",
-        @class
-      ]}
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-      </circle>
-      <path
-        class="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+    <div class={["h-5 w-5 overflow-hidden", @class]}>
+      <svg
+        class="animate-spin h-full w-full"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
       >
-      </path>
-    </svg>
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+        </circle>
+        <path
+          class="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        >
+        </path>
+      </svg>
+    </div>
     """
   end
 
@@ -1826,9 +1895,9 @@ defmodule LantternWeb.CoreComponents do
     # with our gettext backend as first argument. Translations are
     # available in the errors.po file (as we use the "errors" domain).
     if count = opts[:count] do
-      Gettext.dngettext(LantternWeb.Gettext, "errors", msg, msg, count, opts)
+      Gettext.dngettext(Lanttern.Gettext, "errors", msg, msg, count, opts)
     else
-      Gettext.dgettext(LantternWeb.Gettext, "errors", msg, opts)
+      Gettext.dgettext(Lanttern.Gettext, "errors", msg, opts)
     end
   end
 

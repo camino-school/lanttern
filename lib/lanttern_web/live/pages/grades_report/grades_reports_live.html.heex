@@ -67,7 +67,7 @@
             </div>
           </div>
         </div>
-        <.markdown :if={grades_report.info} text={grades_report.info} class="mb-6" size="sm" />
+        <.markdown :if={grades_report.info} text={grades_report.info} class="mb-6" />
         <.grades_report_grid
           grades_report={grades_report}
           on_configure={JS.patch(~p"/grades_reports?is_configuring_grid=#{grades_report.id}")}

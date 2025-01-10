@@ -55,7 +55,7 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
             <:bottom_content>
               <%= if strand_report.description do %>
                 <div class="p-6 bg-ltrn-mesh-cyan">
-                  <.markdown text={strand_report.description} size="sm" class="line-clamp-3" />
+                  <.markdown text={strand_report.description} class="line-clamp-3" />
                 </div>
               <% else %>
                 <p class="p-6 text-sm text-ltrn-subtle bg-ltrn-lightest">

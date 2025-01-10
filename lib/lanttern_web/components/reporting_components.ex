@@ -5,7 +5,7 @@ defmodule LantternWeb.ReportingComponents do
 
   use Phoenix.Component
 
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
   import LantternWeb.CoreComponents
 
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
@@ -56,7 +56,7 @@ defmodule LantternWeb.ReportingComponents do
         <.icon name="hero-chat-bubble-oval-left" class={["w-6 h-6", @icon_class]} />
         <span class={@text_class}><%= @text %></span>
       </div>
-      <.markdown text={@comment} size="sm" class="max-w-none mt-4" />
+      <.markdown text={@comment} class="max-w-none mt-4" />
     </div>
     """
   end
@@ -122,7 +122,7 @@ defmodule LantternWeb.ReportingComponents do
           </.badge>
         </div>
         <div :if={!@hide_description && @report_card.description} class="line-clamp-3">
-          <.markdown text={@report_card.description} size="sm" />
+          <.markdown text={@report_card.description} />
         </div>
       </div>
       <div :if={@is_wip} class="flex items-center gap-2 p-4 text-sm text-ltrn-subtle bg-ltrn-lightest">
@@ -179,7 +179,6 @@ defmodule LantternWeb.ReportingComponents do
           </div>
           <.markdown
             text={descriptor.descriptor}
-            size="sm"
             class="mt-2 text-[0.75rem]"
             style={if is_active, do: create_color_map_text_style(ordinal_value)}
           />
@@ -234,7 +233,6 @@ defmodule LantternWeb.ReportingComponents do
               else: "color: #94a3b8"
           }
           text={descriptor.descriptor}
-          size="sm"
         />
       </div>
     </div>
@@ -304,7 +302,7 @@ defmodule LantternWeb.ReportingComponents do
         <div class="flex items-center justify-center w-10 h-10 rounded-full mb-6 text-ltrn-diff-lightest bg-ltrn-diff-accent">
           <.icon name="hero-document-text" />
         </div>
-        <.markdown text={@footnote} size="sm" />
+        <.markdown text={@footnote} />
       </.responsive_container>
     </div>
     """

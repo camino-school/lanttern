@@ -39,6 +39,13 @@
     radial-gradient(circle at 10% 130%, #ECFCCB 360px, transparent 480px)
 }
 
+.ltrn-bg-profile {
+  background-image:
+    radial-gradient(circle at 20% 60%, #ECFEFF 20%, transparent 60%),
+    radial-gradient(circle at 0 0, #FFE4E6 20%, transparent 50%),
+    radial-gradient(circle at 120% 120%, #DDD6FE 40%, transparent 60%);
+}
+
 /* landing page */
 
 #cover-spot-1 {

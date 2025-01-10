@@ -23,7 +23,7 @@ defmodule LantternWeb.MomentLive.OverviewComponent do
         </p>
         <div class="flex flex-wrap gap-2 mt-4">
           <.badge :for={subject <- @moment.subjects} theme="dark">
-            <%= Gettext.dgettext(LantternWeb.Gettext, "taxonomy", subject.name) %>
+            <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name) %>
           </.badge>
         </div>
         <.markdown text={@moment.description} class="mt-10" />

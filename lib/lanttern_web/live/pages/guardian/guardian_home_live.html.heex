@@ -1,20 +1,21 @@
 <.responsive_container class="pt-6 sm:pt-10">
   <.page_title_with_menu><%= gettext("Welcome!") %></.page_title_with_menu>
-  <div class="flex items-center gap-4 mt-10">
-    <p class="flex-1 font-display font-black text-xl">
-      <%= gettext("%{student}'s %{cycle} report cards",
-        student: @current_user.current_profile.name,
-        cycle: Map.get(@current_cycle, :name)
-      ) %>
-    </p>
-    <.action
-      type="button"
-      icon_name="hero-arrows-up-down-mini"
-      phx-click={JS.exec("data-show", to: "#guardian-cycle-filters-overlay")}
-    >
-      <%= gettext("Change cycle") %>
-    </.action>
-  </div>
+  <.live_component
+    module={StudentCycleInfoHeaderComponent}
+    id="student-cycle-info-header"
+    selected_cycle_id={@current_cycle.id}
+    student={@student}
+    student_cycle_info={@student_cycle_info}
+    on_change_cycle={
+      fn cycle_id ->
+        JS.push("change_cycle", value: %{"cycle_id" => cycle_id})
+      end
+    }
+    class="mt-20"
+  />
+  <h3 class="mt-20 font-display font-black text-xl">
+    <%= gettext("%{cycle} report cards", cycle: @current_cycle.name) %>
+  </h3>
 </.responsive_container>
 <%= if @has_student_report_cards do %>
   <.responsive_grid class="px-6 py-10 sm:px-10">
@@ -53,14 +54,26 @@
     />
   </.responsive_grid>
 <% end %>
-<.school_branding_footer school={@school} />
-<.modal id="guardian-cycle-filters-overlay">
-  <h5 class="mb-10 font-display font-black text-xl">
-    <%= gettext("Select a cycle") %>
-  </h5>
-  <.badge_button_picker
-    on_select={&JS.push("change_cycle", value: %{"id" => &1})}
-    items={@cycles}
-    selected_ids={[Map.get(@current_cycle, :id)]}
+<.responsive_container
+  :if={@student_cycle_info.family_info || @student_cycle_info.has_attachments}
+  class="py-10"
+>
+  <h3 class="font-display font-black text-xl">
+    <%= gettext("Additional cycle information") %>
+  </h3>
+  <.markdown
+    :if={@student_cycle_info.family_info}
+    text={@student_cycle_info.family_info}
+    class="mt-10"
   />
-</.modal>
+  <.live_component
+    :if={@student_cycle_info.has_attachments}
+    module={AttachmentAreaComponent}
+    id="student-cycle-info-family-attachments"
+    class="mt-10"
+    student_cycle_info_id={@student_cycle_info.id}
+    is_family
+    title={gettext("Attachments for current cycle")}
+  />
+</.responsive_container>
+<.school_branding_footer school={@school} />

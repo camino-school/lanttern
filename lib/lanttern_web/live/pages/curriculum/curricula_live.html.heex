@@ -13,11 +13,6 @@
         <%= curriculum.code %>
       </.badge>
     </div>
-    <.markdown
-      :if={curriculum.description}
-      text={curriculum.description}
-      size="sm"
-      class="max-w-none mt-6"
-    />
+    <.markdown :if={curriculum.description} text={curriculum.description} class="max-w-none mt-6" />
   </.card_base>
 </.responsive_grid>

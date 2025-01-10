@@ -2,6 +2,8 @@ defmodule LantternWeb.StudentLiveTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.SchoolsFixtures
+  alias Lanttern.StudentsCycleInfo
+  alias Lanttern.StudentsCycleInfoFixtures
 
   @live_view_base_path "/school/students"
 
@@ -23,8 +25,13 @@ defmodule LantternWeb.StudentLiveTest do
 
     test "list classes", %{conn: conn, user: user} do
       school_id = user.current_profile.school_id
-      class_b = SchoolsFixtures.class_fixture(%{school_id: school_id, name: "bbb"})
-      class_a = SchoolsFixtures.class_fixture(%{school_id: school_id, name: "aaa"})
+      cycle_id = user.current_profile.current_school_cycle.id
+
+      class_b =
+        SchoolsFixtures.class_fixture(%{school_id: school_id, name: "bbb", cycle_id: cycle_id})
+
+      class_a =
+        SchoolsFixtures.class_fixture(%{school_id: school_id, name: "aaa", cycle_id: cycle_id})
 
       student =
         SchoolsFixtures.student_fixture(%{
@@ -34,8 +41,8 @@ defmodule LantternWeb.StudentLiveTest do
 
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{student.id}")
 
-      assert view |> has_element?("p", class_a.name)
-      assert view |> has_element?("p", class_b.name)
+      assert view |> has_element?("span", class_a.name)
+      assert view |> has_element?("span", class_b.name)
     end
   end
 
@@ -60,6 +67,52 @@ defmodule LantternWeb.StudentLiveTest do
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{student.id}?edit=true")
 
       refute view |> has_element?("#student-form-overlay h2", "Edit student")
+    end
+  end
+
+  describe "student cycle info" do
+    test "student cycle info is created when there's none", %{conn: conn, user: user} do
+      school_id = user.current_profile.school_id
+      student = SchoolsFixtures.student_fixture(%{school_id: school_id})
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{student.id}")
+
+      assert view |> has_element?("p", "No information about student in school area")
+      assert view |> has_element?("p", "No information about student in family area")
+    end
+
+    test "student cycle info displays correctly", %{conn: conn, user: user} do
+      school_id = user.current_profile.school_id
+      student = SchoolsFixtures.student_fixture(%{school_id: school_id})
+
+      student_cycle_info =
+        StudentsCycleInfoFixtures.student_cycle_info_fixture(%{
+          school_id: school_id,
+          student_id: student.id,
+          cycle_id: user.current_profile.current_school_cycle.id,
+          school_info: "some school info"
+        })
+
+      StudentsCycleInfo.create_student_cycle_info_attachment(
+        user.current_profile_id,
+        student_cycle_info.id,
+        %{
+          "name" => "some attachment",
+          "link" => "https://somevaliduri.com",
+          "is_external" => true
+        },
+        true
+      )
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{student.id}")
+
+      assert view |> has_element?("p", "some school info")
+
+      view
+      |> element("a", "some attachment")
+      |> render_click()
+
+      assert_redirect(view, "https://somevaliduri.com")
     end
   end
 end

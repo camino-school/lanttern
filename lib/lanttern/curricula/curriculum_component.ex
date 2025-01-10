@@ -6,7 +6,7 @@ defmodule Lanttern.Curricula.CurriculumComponent do
   use Ecto.Schema
   import Ecto.Changeset
 
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
 
   schema "curriculum_components" do
     field :code, :string

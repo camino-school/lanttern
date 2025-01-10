@@ -5,7 +5,7 @@ defmodule LantternWeb.AttachmentsComponents do
 
   use Phoenix.Component
 
-  import LantternWeb.Gettext
+  use Gettext, backend: Lanttern.Gettext
   import LantternWeb.CoreComponents
   import LantternWeb.OverlayComponents
 
