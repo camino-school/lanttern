@@ -51,7 +51,7 @@ defmodule LantternWeb.StudentsCycleInfo.StudentCycleProfilePictureOverlayCompone
     socket =
       socket
       |> allow_upload(:profile_picture,
-        accept: ~w(.jpg .jpeg .png),
+        accept: ~w(.jpg .jpeg .png .webp),
         max_file_size: 3_000_000,
         max_entries: 1
       )
