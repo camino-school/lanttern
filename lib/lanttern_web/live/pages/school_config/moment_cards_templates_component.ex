@@ -9,6 +9,8 @@ defmodule LantternWeb.SchoolConfigLive.MomentCardsTemplatesComponent do
   alias Lanttern.SchoolConfig
   alias Lanttern.SchoolConfig.MomentCardTemplate
 
+  import Lanttern.Utils, only: [swap: 3]
+
   # shared components
   alias LantternWeb.SchoolConfig.MomentCardTemplateOverlayComponent
 
@@ -20,14 +22,24 @@ defmodule LantternWeb.SchoolConfigLive.MomentCardsTemplatesComponent do
         <p>
           <%= gettext("Templates for new moment cards") %>
         </p>
-        <.action
-          :if={@is_content_manager}
-          type="link"
-          patch={~p"/school_config/moment_cards_templates?new=true"}
-          icon_name="hero-plus-circle-mini"
-        >
-          <%= gettext("Add card template") %>
-        </.action>
+        <div class="flex gap-4">
+          <.action
+            :if={@templates_count > 1}
+            type="link"
+            patch={~p"/school_config/moment_cards_templates?reorder=true"}
+            icon_name="hero-arrows-up-down-mini"
+          >
+            <%= gettext("Reorder") %>
+          </.action>
+          <.action
+            :if={@is_content_manager}
+            type="link"
+            patch={~p"/school_config/moment_cards_templates?new=true"}
+            icon_name="hero-plus-circle-mini"
+          >
+            <%= gettext("Add card template") %>
+          </.action>
+        </div>
       </.action_bar>
       <%= if @templates_count == 0 do %>
         <div class="p-4">
@@ -59,6 +71,46 @@ defmodule LantternWeb.SchoolConfigLive.MomentCardsTemplatesComponent do
         allow_edit={@is_content_manager}
         notify_component={@myself}
       />
+      <.slide_over
+        :if={@is_reordering}
+        show
+        id="moment-cards-templates-order-overlay"
+        on_cancel={JS.patch(~p"/school_config/moment_cards_templates")}
+      >
+        <:title><%= gettext("Moment cards templates order") %></:title>
+        <ol>
+          <li
+            :for={{template, i} <- @sortable_templates}
+            id={"sortable-template-#{template.id}"}
+            class="mb-4"
+          >
+            <.sortable_card
+              is_move_up_disabled={i == 0}
+              on_move_up={
+                JS.push("set_template_position", value: %{from: i, to: i - 1}, target: @myself)
+              }
+              is_move_down_disabled={i + 1 == @templates_count}
+              on_move_down={
+                JS.push("set_template_position", value: %{from: i, to: i + 1}, target: @myself)
+              }
+            >
+              <%= "#{i + 1}. #{template.name}" %>
+            </.sortable_card>
+          </li>
+        </ol>
+        <:actions>
+          <.button
+            type="button"
+            theme="ghost"
+            phx-click={JS.exec("data-cancel", to: "#moment-cards-templates-order-overlay")}
+          >
+            <%= gettext("Cancel") %>
+          </.button>
+          <.button type="button" phx-click="save_order" phx-target={@myself}>
+            <%= gettext("Save") %>
+          </.button>
+        </:actions>
+      </.slide_over>
     </div>
     """
   end
@@ -92,40 +144,13 @@ defmodule LantternWeb.SchoolConfigLive.MomentCardsTemplatesComponent do
     {:ok, socket}
   end
 
-  # def update(%{action: {CycleFormOverlayComponent, {:updated, cycle}}}, socket) do
-  #   nav_opts = [
-  #     put_flash: {:info, gettext("Cycle updated successfully")},
-  #     push_navigate: [to: ~p"/school/cycles"]
-  #   ]
-
-  #   socket =
-  #     socket
-  #     |> delegate_navigation(nav_opts)
-  #     |> stream_insert(:cycles, cycle)
-
-  #   {:ok, socket}
-  # end
-
-  # def update(%{action: {CycleFormOverlayComponent, {:deleted, cycle}}}, socket) do
-  #   nav_opts = [
-  #     put_flash: {:info, gettext("Cycle deleted successfully")},
-  #     push_patch: [to: ~p"/school/cycles"]
-  #   ]
-
-  #   socket =
-  #     socket
-  #     |> delegate_navigation(nav_opts)
-  #     |> stream_delete(:cycles, cycle)
-
-  #   {:ok, socket}
-  # end
-
   def update(assigns, socket) do
     socket =
       socket
       |> assign(assigns)
       |> initialize()
       |> assign_template()
+      |> assign_sortable_templates()
 
     {:ok, socket}
   end
@@ -169,4 +194,52 @@ defmodule LantternWeb.SchoolConfigLive.MomentCardsTemplatesComponent do
   end
 
   defp assign_template(socket), do: assign(socket, :template, nil)
+
+  defp assign_sortable_templates(
+         %{assigns: %{params: %{"reorder" => "true"}, is_content_manager: true}} = socket
+       ) do
+    school_id = socket.assigns.current_user.current_profile.school_id
+
+    templates =
+      SchoolConfig.list_moment_cards_templates(schools_ids: [school_id])
+      # remove unnecessary fields to save memory
+      |> Enum.map(&%MomentCardTemplate{id: &1.id, name: &1.name})
+
+    socket
+    |> assign(:sortable_templates, Enum.with_index(templates))
+    |> assign(:is_reordering, true)
+  end
+
+  defp assign_sortable_templates(socket), do: assign(socket, :is_reordering, false)
+
+  # event handlers
+
+  @impl true
+  def handle_event("set_template_position", %{"from" => i, "to" => j}, socket) do
+    sortable_templates =
+      socket.assigns.sortable_templates
+      |> Enum.map(fn {mct, _i} -> mct end)
+      |> swap(i, j)
+      |> Enum.with_index()
+
+    {:noreply, assign(socket, :sortable_templates, sortable_templates)}
+  end
+
+  def handle_event("save_order", _, socket) do
+    templates_ids =
+      socket.assigns.sortable_templates
+      |> Enum.map(fn {mct, _i} -> mct.id end)
+
+    case SchoolConfig.update_moment_cards_templates_positions(templates_ids) do
+      :ok ->
+        socket =
+          socket
+          |> push_navigate(to: ~p"/school_config/moment_cards_templates")
+
+        {:noreply, socket}
+
+      {:error, _} ->
+        {:noreply, socket}
+    end
+  end
 end

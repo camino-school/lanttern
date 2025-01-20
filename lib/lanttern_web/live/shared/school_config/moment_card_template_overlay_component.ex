@@ -23,7 +23,7 @@ defmodule LantternWeb.SchoolConfig.MomentCardTemplateOverlayComponent do
           <%= case {@is_editing, @moment_card_template} do
             {true, %{id: nil}} -> gettext("New moment card template")
             {true, _} -> gettext("Edit moment card template")
-            {false, %{name: name}} -> name
+            {false, %{name: name}} -> gettext("Template: %{template}", template: name)
           end %>
         </h5>
         <%= if @is_editing && @allow_edit do %>
@@ -88,7 +88,15 @@ defmodule LantternWeb.SchoolConfig.MomentCardTemplateOverlayComponent do
         <% else %>
           <.scroll_to_top overlay_id={@id} id="details-scroll-top" />
           <.markdown text={@moment_card_template.template} class="mt-6" />
-          <.markdown text={@moment_card_template.instructions} class="mt-6" />
+          <div
+            :if={@moment_card_template.instructions}
+            class="p-4 border border-ltrn-teacher-accent rounded-sm mt-10 bg-ltrn-teacher-lightest"
+          >
+            <h6 class="font-display font-black font-lg text-ltrn-teacher-dark">
+              <%= gettext("Additional teacher instructions") %>
+            </h6>
+            <.markdown text={@moment_card_template.instructions} class="mt-6" />
+          </div>
           <%= if @is_deleted do %>
             <.error_block class="mt-10">
               <%= gettext("This template was deleted") %>

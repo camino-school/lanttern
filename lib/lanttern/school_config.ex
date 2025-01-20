@@ -157,4 +157,18 @@ defmodule Lanttern.SchoolConfig do
   def change_moment_card_template(%MomentCardTemplate{} = moment_card_template, attrs \\ %{}) do
     MomentCardTemplate.changeset(moment_card_template, attrs)
   end
+
+  @doc """
+  Update moment cards templates positions based on ids list order.
+
+  ## Examples
+
+  iex> update_moment_cards_templates_positions([3, 2, 1])
+  :ok
+
+  """
+  @spec update_moment_cards_templates_positions(moment_cards_templates_ids :: [pos_integer()]) ::
+          :ok | {:error, String.t()}
+  def update_moment_cards_templates_positions(moment_cards_templates_ids),
+    do: update_positions(MomentCardTemplate, moment_cards_templates_ids)
 end

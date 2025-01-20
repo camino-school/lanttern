@@ -11,13 +11,33 @@ defmodule Lanttern.SchoolConfigTest do
     @invalid_attrs %{name: nil, position: nil, template: nil}
 
     test "list_moment_cards_templates/1 returns all moment_cards_templates ordered by position" do
+      moment_card_template_3 = moment_card_template_fixture(%{position: 3})
       moment_card_template_2 = moment_card_template_fixture(%{position: 2})
       moment_card_template_1 = moment_card_template_fixture(%{position: 1})
 
       assert SchoolConfig.list_moment_cards_templates() == [
                moment_card_template_1,
-               moment_card_template_2
+               moment_card_template_2,
+               moment_card_template_3
              ]
+
+      # use same setup to test update_moment_cards_templates_positions/1
+
+      SchoolConfig.update_moment_cards_templates_positions([
+        moment_card_template_2.id,
+        moment_card_template_3.id,
+        moment_card_template_1.id
+      ])
+
+      [
+        expected_moment_card_template_2,
+        expected_moment_card_template_3,
+        expected_moment_card_template_1
+      ] = SchoolConfig.list_moment_cards_templates()
+
+      assert expected_moment_card_template_1.id == moment_card_template_1.id
+      assert expected_moment_card_template_2.id == moment_card_template_2.id
+      assert expected_moment_card_template_3.id == moment_card_template_3.id
     end
 
     test "list_moment_cards_templates/1 with school filter returns all moment_cards_templates filtered by school" do
