@@ -143,10 +143,15 @@ defmodule LantternWeb.SchoolConfig.MomentCardTemplateOverlayComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign_initial_is_editing()
-      |> assign(:initialized, false)
+      |> initialize()
 
     {:ok, socket}
+  end
+
+  defp initialize(socket) do
+    socket
+    |> assign_initial_is_editing()
+    |> assign(:initialized, true)
   end
 
   defp assign_initial_is_editing(%{assigns: %{moment_card_template: %{id: nil}}} = socket) do

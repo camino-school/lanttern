@@ -56,7 +56,7 @@ defmodule LantternWeb.SchoolConfigLive.MomentCardsTemplatesComponent do
             >
               <%= template.name %>
             </.link>
-            <div class="mt-6 line-clamp-6">
+            <div class="mt-6 line-clamp-4">
               <.markdown text={template.template} />
             </div>
           </.card_base>
