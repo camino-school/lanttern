@@ -2,6 +2,7 @@ defmodule LantternWeb.SchoolConfigLiveTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.SchoolsFixtures
+  alias Lanttern.SchoolConfigFixtures
 
   @live_view_base_path "/school_config"
 
@@ -18,7 +19,9 @@ defmodule LantternWeb.SchoolConfigLiveTest do
 
       {:ok, _view, _html} = live(conn)
     end
+  end
 
+  describe "Cycle management" do
     test "list cycles", %{conn: conn, user: user} do
       school_id = user.current_profile.school_id
 
@@ -37,9 +40,7 @@ defmodule LantternWeb.SchoolConfigLiveTest do
       assert view |> has_element?("div", parent_cycle.name)
       assert view |> has_element?("div", subcycle.name)
     end
-  end
 
-  describe "Management permissions" do
     test "allow user with school management permissions to create cycle", context do
       %{conn: conn} = add_school_management_permissions(context)
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/cycles?new=true")
@@ -73,6 +74,75 @@ defmodule LantternWeb.SchoolConfigLiveTest do
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/cycles?edit=#{cycle.id}")
 
       refute view |> has_element?("#cycle-form-overlay h2", "Edit cycle")
+    end
+  end
+
+  describe "Template management" do
+    test "list templates and basic navigation", %{conn: conn, user: user} do
+      school_id = user.current_profile.school_id
+
+      template =
+        SchoolConfigFixtures.moment_card_template_fixture(%{
+          school_id: school_id,
+          name: "template abc"
+        })
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/moment_cards_templates")
+
+      assert view |> has_element?("a", "template abc")
+
+      view
+      |> element("a", "template abc")
+      |> render_click()
+
+      assert_patch(view, "#{@live_view_base_path}/moment_cards_templates?id=#{template.id}")
+    end
+
+    test "allow user with content management permissions to create template", context do
+      %{conn: conn} = add_content_management_permissions(context)
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/moment_cards_templates?new=true")
+
+      assert view |> has_element?("#moment-card-template-overlay h5", "New moment card template")
+    end
+
+    test "prevent user without content management permissions to create template", %{conn: conn} do
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/moment_cards_templates?new=true")
+
+      refute view |> has_element?("#moment-card-template-overlay h5", "New moment card template")
+    end
+
+    test "allow user with content management permissions to edit template", context do
+      %{conn: conn, user: user} = add_content_management_permissions(context)
+      school_id = user.current_profile.school_id
+
+      template =
+        SchoolConfigFixtures.moment_card_template_fixture(%{
+          school_id: school_id,
+          name: "template abc"
+        })
+
+      {:ok, view, _html} =
+        live(conn, "#{@live_view_base_path}/moment_cards_templates?id=#{template.id}")
+
+      assert view |> has_element?("#moment-card-template-overlay button", "Edit template")
+    end
+
+    test "prevent user without content management permissions to edit template", %{
+      conn: conn,
+      user: user
+    } do
+      school_id = user.current_profile.school_id
+
+      template =
+        SchoolConfigFixtures.moment_card_template_fixture(%{
+          school_id: school_id,
+          name: "template abc"
+        })
+
+      {:ok, view, _html} =
+        live(conn, "#{@live_view_base_path}/moment_cards_templates?id=#{template.id}")
+
+      refute view |> has_element?("#moment-card-template-overlay button", "Edit template")
     end
   end
 end

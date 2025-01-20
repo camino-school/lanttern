@@ -114,8 +114,17 @@ defmodule Lanttern.RepoHelpers do
 
   @doc """
   Set the position in attrs for new entries, based on existing items in schema.
+
+  Skip if position already present in attrs.
   """
   @spec set_position_in_attrs(Ecto.Queryable.t(), attrs :: map()) :: map()
+  def set_position_in_attrs(_queryable, %{position: position} = attrs) when is_integer(position),
+    do: attrs
+
+  def set_position_in_attrs(_queryable, %{"position" => position} = attrs)
+      when is_integer(position),
+      do: attrs
+
   def set_position_in_attrs(queryable, attrs) do
     position =
       from(

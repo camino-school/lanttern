@@ -10,9 +10,26 @@ defmodule Lanttern.SchoolConfigTest do
 
     @invalid_attrs %{name: nil, position: nil, template: nil}
 
-    test "list_moment_cards_templates/0 returns all moment_cards_templates" do
-      moment_card_template = moment_card_template_fixture()
-      assert SchoolConfig.list_moment_cards_templates() == [moment_card_template]
+    test "list_moment_cards_templates/1 returns all moment_cards_templates ordered by position" do
+      moment_card_template_2 = moment_card_template_fixture(%{position: 2})
+      moment_card_template_1 = moment_card_template_fixture(%{position: 1})
+
+      assert SchoolConfig.list_moment_cards_templates() == [
+               moment_card_template_1,
+               moment_card_template_2
+             ]
+    end
+
+    test "list_moment_cards_templates/1 with school filter returns all moment_cards_templates filtered by school" do
+      school = Lanttern.SchoolsFixtures.school_fixture()
+      moment_card_template = moment_card_template_fixture(%{school_id: school.id})
+
+      # other fixtures for filter test
+      moment_card_template_fixture()
+
+      assert SchoolConfig.list_moment_cards_templates(school_id: school.id) == [
+               moment_card_template
+             ]
     end
 
     test "get_moment_card_template!/1 returns the moment_card_template with given id" do
@@ -38,6 +55,30 @@ defmodule Lanttern.SchoolConfigTest do
       assert moment_card_template.name == "some name"
       assert moment_card_template.position == 42
       assert moment_card_template.template == "some template"
+    end
+
+    test "created moments cards are ordered automatically" do
+      school = Lanttern.SchoolsFixtures.school_fixture()
+
+      valid_attrs = %{
+        name: "some name",
+        template: "some template",
+        school_id: school.id
+      }
+
+      {:ok, _moment_card_template_1} = SchoolConfig.create_moment_card_template(valid_attrs)
+      {:ok, _moment_card_template_2} = SchoolConfig.create_moment_card_template(valid_attrs)
+      {:ok, _moment_card_template_3} = SchoolConfig.create_moment_card_template(valid_attrs)
+
+      [
+        expected_moment_card_template_1,
+        expected_moment_card_template_2,
+        expected_moment_card_template_3
+      ] = SchoolConfig.list_moment_cards_templates(school_id: school.id)
+
+      assert expected_moment_card_template_1.position == 0
+      assert expected_moment_card_template_2.position == 1
+      assert expected_moment_card_template_3.position == 2
     end
 
     test "create_moment_card_template/1 with invalid data returns error changeset" do

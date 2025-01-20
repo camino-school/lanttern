@@ -15,7 +15,6 @@ defmodule Lanttern.SchoolConfigFixtures do
       |> Enum.into(%{
         name: "some name",
         template: "some template",
-        position: 42,
         school_id: SchoolsFixtures.maybe_gen_school_id(attrs)
       })
       |> Lanttern.SchoolConfig.create_moment_card_template()
