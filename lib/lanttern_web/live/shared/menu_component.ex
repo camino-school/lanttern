@@ -372,6 +372,9 @@ defmodule LantternWeb.MenuComponent do
     LantternWeb.GradesReportsLive => :grades_reports,
     LantternWeb.GradesReportLive => :grades_reports,
 
+    # school config
+    LantternWeb.SchoolConfigLive => :school_config,
+
     # guardian home
     LantternWeb.GuardianHomeLive => :student_report_card,
 
@@ -424,7 +427,12 @@ defmodule LantternWeb.MenuComponent do
         text: gettext("Students records"),
         permission: "wcd"
       },
-      %{profile: "teacher", active: :school, path: ~p"/school", text: gettext("School")},
+      %{
+        profile: "teacher",
+        active: :school,
+        path: ~p"/school",
+        text: gettext("Students and classes")
+      },
       # %{profile: "teacher", active: :rubrics, path: ~p"/rubrics", text: gettext("Rubrics")},
       %{
         profile: "teacher",
@@ -443,6 +451,12 @@ defmodule LantternWeb.MenuComponent do
         active: :grades_reports,
         path: ~p"/grades_reports",
         text: gettext("Grades reports")
+      },
+      %{
+        profile: "teacher",
+        active: :school_config,
+        path: ~p"/school_config/cycles",
+        text: gettext("School config")
       },
       # student
       %{
