@@ -6,12 +6,25 @@ defmodule Lanttern.LearningContext.MomentCard do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.LearningContext.Moment
+
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          name: String.t(),
+          position: non_neg_integer(),
+          description: String.t(),
+          moment: Moment.t() | Ecto.Association.NotLoaded.t(),
+          moment_id: pos_integer(),
+          inserted_at: NaiveDateTime.t(),
+          updated_at: NaiveDateTime.t()
+        }
+
   schema "moment_cards" do
     field :name, :string
     field :position, :integer, default: 0
     field :description, :string
 
-    belongs_to :moment, Lanttern.LearningContext.Moment
+    belongs_to :moment, Moment
 
     timestamps()
   end
