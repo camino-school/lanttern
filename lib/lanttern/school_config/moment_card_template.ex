@@ -1,4 +1,8 @@
 defmodule Lanttern.SchoolConfig.MomentCardTemplate do
+  @moduledoc """
+  The `MomentCardTemplate` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 
