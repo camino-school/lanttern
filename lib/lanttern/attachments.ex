@@ -17,7 +17,13 @@ defmodule Lanttern.Attachments do
   - `:note_id` - filter results by attachments linked the note
   - `:assessment_point_entry_id` - filter results by assessment point entry evidences
   - `:student_cycle_info_id` - filter attachments linked to given student cycle info. May be used with `:is_family` option.
-  - `:is_family` - used with `:student_cycle_info_id` option. If not given, will return all student cycle info attachments.
+  - `:moment_card_id` - filter results by moment card
+  - `:shared_with_family` - expect a tuple with type and boolean (view the section below for accepted types). If not given, will not filter results.
+
+  #### `:shared_with_family` supported types
+
+  - `:student_cycle_info` - use with `:student_cycle_info_id` opt
+  - `:moment_card` - use with `:moment_card_id` opt
 
   ## Examples
 
@@ -68,21 +74,43 @@ defmodule Lanttern.Attachments do
       where: scia.student_cycle_info_id == ^student_cycle_info_id,
       order_by: scia.position
     )
-    |> maybe_filter_by_is_family(Keyword.get(opts, :is_family))
+    |> maybe_filter_by_shared_with_family(Keyword.get(opts, :shared_with_family))
+    |> apply_list_attachments_opts(opts)
+  end
+
+  defp apply_list_attachments_opts(queryable, [{:moment_card_id, moment_card_id} | opts])
+       when is_integer(moment_card_id) do
+    from(
+      a in queryable,
+      join: mca in assoc(a, :moment_card_attachment),
+      as: :moment_card_attachment,
+      where: mca.moment_card_id == ^moment_card_id,
+      order_by: mca.position
+    )
+    |> maybe_filter_by_shared_with_family(Keyword.get(opts, :shared_with_family))
     |> apply_list_attachments_opts(opts)
   end
 
   defp apply_list_attachments_opts(queryable, [_ | opts]),
     do: apply_list_attachments_opts(queryable, opts)
 
-  defp maybe_filter_by_is_family(queryable, is_family) when is_boolean(is_family) do
+  defp maybe_filter_by_shared_with_family(queryable, {:student_cycle_info, is_family})
+       when is_boolean(is_family) do
     from(
       [_a, student_cycle_info_attachment: scia] in queryable,
       where: scia.is_family == ^is_family
     )
   end
 
-  defp maybe_filter_by_is_family(queryable, _is_family),
+  defp maybe_filter_by_shared_with_family(queryable, {:moment_card, share_with_family})
+       when is_boolean(share_with_family) do
+    from(
+      [_a, moment_card_attachment: mca] in queryable,
+      where: mca.share_with_family == ^share_with_family
+    )
+  end
+
+  defp maybe_filter_by_shared_with_family(queryable, _shared_tuple),
     do: queryable
 
   @doc """

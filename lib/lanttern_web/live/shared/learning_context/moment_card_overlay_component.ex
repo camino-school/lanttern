@@ -17,6 +17,9 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
   alias Lanttern.LearningContext.MomentCard
   alias Lanttern.SchoolConfig
 
+  # shared
+  alias LantternWeb.Attachments.AttachmentAreaComponent
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -41,6 +44,16 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
           moment_card={@moment_card}
           myself={@myself}
         />
+        <div :if={@moment_card.id && !@is_deleted} class="pt-10 border-t border-ltrn-light mt-10">
+          <.live_component
+            module={AttachmentAreaComponent}
+            id="moment-card-attachments"
+            moment_card_id={@moment_card.id}
+            title={gettext("Attachments")}
+            allow_editing={@allow_edit}
+            current_user={@current_user}
+          />
+        </div>
       </.modal>
     </div>
     """

@@ -9,11 +9,13 @@ defmodule Lanttern.LearningContext do
   alias Lanttern.Repo
   use Gettext, backend: Lanttern.Gettext
 
+  alias Lanttern.Attachments.Attachment
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.LearningContext.Strand
   alias Lanttern.LearningContext.StarredStrand
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.MomentCard
+  alias Lanttern.LearningContext.MomentCardAttachment
 
   @doc """
   Returns the list of strands ordered alphabetically.
@@ -894,4 +896,76 @@ defmodule Lanttern.LearningContext do
   def change_moment_card(%MomentCard{} = moment_card, attrs \\ %{}) do
     MomentCard.changeset(moment_card, attrs)
   end
+
+  @doc """
+  Creates an attachment and links it to an existing moment card in a single transaction.
+
+  ## Examples
+
+      iex> create_moment_card_attachment(profile_id, moment_card_id, %{field: value})
+      {:ok, %Attachment{}}
+
+      iex> create_moment_card_attachment(profile_id, moment_card_id, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec create_moment_card_attachment(
+          profile_id :: pos_integer(),
+          moment_card_id :: pos_integer(),
+          attachment_attrs :: map(),
+          share_with_family :: boolean()
+        ) ::
+          {:ok, Attachment.t()} | {:error, Ecto.Changeset.t()}
+  def create_moment_card_attachment(
+        profile_id,
+        moment_card_id,
+        attachment_attrs,
+        share_with_family \\ false
+      ) do
+    insert_query =
+      %Attachment{}
+      |> Attachment.changeset(Map.put(attachment_attrs, "owner_id", profile_id))
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:insert_attachment, insert_query)
+    |> Ecto.Multi.run(
+      :link_moment_card,
+      fn _repo, %{insert_attachment: attachment} ->
+        attrs =
+          from(
+            mca in MomentCardAttachment,
+            where: mca.moment_card_id == ^moment_card_id
+          )
+          |> set_position_in_attrs(%{
+            moment_card_id: moment_card_id,
+            attachment_id: attachment.id,
+            share_with_family: share_with_family,
+            owner_id: profile_id
+          })
+
+        %MomentCardAttachment{}
+        |> MomentCardAttachment.changeset(attrs)
+        |> Repo.insert()
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:error, _multi, changeset, _changes} -> {:error, changeset}
+      {:ok, %{insert_attachment: attachment}} -> {:ok, attachment}
+    end
+  end
+
+  @doc """
+  Update moment card attachments positions based on ids list order.
+
+  ## Examples
+
+      iex> update_moment_card_attachments_positions([3, 2, 1])
+      :ok
+
+  """
+  @spec update_moment_card_attachments_positions(attachments_ids :: [pos_integer()]) ::
+          :ok | {:error, String.t()}
+  def update_moment_card_attachments_positions(attachments_ids),
+    do: update_positions(MomentCardAttachment, attachments_ids, id_field: :attachment_id)
 end
