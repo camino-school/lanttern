@@ -16,7 +16,7 @@ defmodule Lanttern.Attachments do
 
   - `:note_id` - filter results by attachments linked the note
   - `:assessment_point_entry_id` - filter results by assessment point entry evidences
-  - `:student_cycle_info_id` - filter attachments linked to given student cycle info. May be used with `:is_family` option.
+  - `:student_cycle_info_id` - filter attachments linked to given student cycle info. May be used with `:shared_with_student` option.
   - `:moment_card_id` - filter results by moment card
   - `:shared_with_student` - expect a tuple with type and boolean (view the section below for accepted types). If not given, will not filter results.
 
@@ -95,11 +95,11 @@ defmodule Lanttern.Attachments do
   defp apply_list_attachments_opts(queryable, [_ | opts]),
     do: apply_list_attachments_opts(queryable, opts)
 
-  defp maybe_filter_by_shared_with_student(queryable, {:student_cycle_info, is_family})
-       when is_boolean(is_family) do
+  defp maybe_filter_by_shared_with_student(queryable, {:student_cycle_info, shared_with_student})
+       when is_boolean(shared_with_student) do
     from(
       [_a, student_cycle_info_attachment: scia] in queryable,
-      where: scia.is_family == ^is_family
+      where: scia.shared_with_student == ^shared_with_student
     )
   end
 

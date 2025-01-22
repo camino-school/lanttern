@@ -16,7 +16,7 @@ defmodule Lanttern.StudentsCycleInfo.StudentCycleInfo do
   @type t :: %__MODULE__{
           id: pos_integer(),
           school_info: String.t(),
-          family_info: String.t(),
+          shared_info: String.t(),
           profile_picture_url: String.t(),
           student: Student.t(),
           student_id: pos_integer(),
@@ -31,7 +31,7 @@ defmodule Lanttern.StudentsCycleInfo.StudentCycleInfo do
 
   schema "students_cycle_info" do
     field :school_info, :string
-    field :family_info, :string
+    field :shared_info, :string
     field :profile_picture_url, :string
 
     field :has_attachments, :boolean, virtual: true
@@ -50,7 +50,7 @@ defmodule Lanttern.StudentsCycleInfo.StudentCycleInfo do
     student_cycle_info
     |> cast(attrs, [
       :school_info,
-      :family_info,
+      :shared_info,
       :profile_picture_url,
       :student_id,
       :cycle_id,

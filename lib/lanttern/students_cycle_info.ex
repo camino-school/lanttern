@@ -52,7 +52,7 @@ defmodule Lanttern.StudentsCycleInfo do
 
   ## Options:
 
-  - `:check_attachments_for` - supports `:school` or `:family`. will check for linked attachments of given type and set `has_attachments` field
+  - `:check_attachments_for` - supports `:school` or `:student`. will check for linked attachments of given type and set `has_attachments` field
 
   ## Examples
 
@@ -83,13 +83,13 @@ defmodule Lanttern.StudentsCycleInfo do
   defp apply_get_student_cycle_info_by_student_and_cycle_opts(queryable, [
          {:check_attachments_for, type} | opts
        ])
-       when type in [:school, :family] do
-    is_family = if type == :family, do: true, else: false
+       when type in [:school, :student] do
+    is_student = if type == :student, do: true, else: false
 
     from(
       sci in queryable,
       left_join: scia in assoc(sci, :student_cycle_info_attachments),
-      on: scia.is_family == ^is_family,
+      on: scia.shared_with_student == ^is_student,
       group_by: sci.id,
       select: %{sci | has_attachments: count(scia.id) > 0}
     )
@@ -234,14 +234,14 @@ defmodule Lanttern.StudentsCycleInfo do
           profile_id :: pos_integer(),
           student_cycle_info_id :: pos_integer(),
           attachment_attrs :: map(),
-          is_family :: boolean()
+          shared_with_student :: boolean()
         ) ::
           {:ok, Attachment.t()} | {:error, Ecto.Changeset.t()}
   def create_student_cycle_info_attachment(
         profile_id,
         student_cycle_info_id,
         attachment_attrs,
-        is_family \\ false
+        shared_with_student \\ false
       ) do
     insert_query =
       %Attachment{}
@@ -260,7 +260,7 @@ defmodule Lanttern.StudentsCycleInfo do
           |> set_position_in_attrs(%{
             student_cycle_info_id: student_cycle_info_id,
             attachment_id: attachment.id,
-            is_family: is_family,
+            shared_with_student: shared_with_student,
             owner_id: profile_id
           })
 

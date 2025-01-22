@@ -58,7 +58,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
                 class="mt-10"
                 phx-click="edit_student_school_info"
                 phx-target={@myself}
-                disabled={@is_editing_student_family_info}
+                disabled={@is_editing_shared_info}
               >
                 <%= gettext("Edit information") %>
               </.action>
@@ -78,34 +78,34 @@ defmodule LantternWeb.StudentLive.AboutComponent do
         <div class="flex-1">
           <div class="pb-6 border-b-2 border-ltrn-student-lighter">
             <h4 class="font-display font-black text-lg text-ltrn-student-dark">
-              <%= gettext("Family area") %>
+              <%= gettext("Student area") %>
             </h4>
             <p class="flex items-center gap-2 mt-2">
               <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-              <%= gettext("Information shared with student and family") %>
+              <%= gettext("Information shared with student and guardians") %>
             </p>
           </div>
           <div class="py-10 border-b border-ltrn-student-lighter">
-            <%= if @is_editing_student_family_info do %>
+            <%= if @is_editing_shared_info do %>
               <.live_component
                 module={StudentCycleInfoFormComponent}
-                id={"#{@student_cycle_info.id}-family-info-form"}
+                id={"#{@student_cycle_info.id}-student-info-form"}
                 student_cycle_info={@student_cycle_info}
-                type="family"
-                label={gettext("Add family area student info...")}
+                type="student"
+                label={gettext("Add student area info...")}
                 current_profile_id={@current_user.current_profile_id}
                 notify_component={@myself}
               />
             <% else %>
-              <.empty_state_simple :if={!@student_cycle_info.family_info}>
-                <%= gettext("No information about student in family area") %>
+              <.empty_state_simple :if={!@student_cycle_info.shared_info}>
+                <%= gettext("No information in student area") %>
               </.empty_state_simple>
-              <.markdown text={@student_cycle_info.family_info} />
+              <.markdown text={@student_cycle_info.shared_info} />
               <.action
                 type="button"
                 icon_name="hero-pencil-mini"
                 class="mt-10"
-                phx-click="edit_student_family_info"
+                phx-click="edit_student_shared_info"
                 phx-target={@myself}
                 disabled={@is_editing_student_school_info}
               >
@@ -115,11 +115,11 @@ defmodule LantternWeb.StudentLive.AboutComponent do
           </div>
           <.live_component
             module={AttachmentAreaComponent}
-            id="student-cycle-info-family-attachments"
+            id="student-cycle-info-student-attachments"
             class="mt-10"
             student_cycle_info_id={@student_cycle_info.id}
             shared_with_student
-            title={gettext("Family area attachments")}
+            title={gettext("Student area attachments")}
             allow_editing
             current_user={@current_user}
           />
@@ -150,8 +150,8 @@ defmodule LantternWeb.StudentLive.AboutComponent do
     {:ok, assign(socket, :is_editing_student_school_info, false)}
   end
 
-  def update(%{action: {StudentCycleInfoFormComponent, {:cancel, "family"}}}, socket) do
-    {:ok, assign(socket, :is_editing_student_family_info, false)}
+  def update(%{action: {StudentCycleInfoFormComponent, {:cancel, "student"}}}, socket) do
+    {:ok, assign(socket, :is_editing_shared_info, false)}
   end
 
   def update(%{action: {StudentCycleInfoFormComponent, {:saved, student_cycle_info}}}, socket) do
@@ -159,7 +159,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
       socket
       |> assign(:student_cycle_info, student_cycle_info)
       |> assign(:is_editing_student_school_info, false)
-      |> assign(:is_editing_student_family_info, false)
+      |> assign(:is_editing_shared_info, false)
 
     {:ok, socket}
   end
@@ -192,7 +192,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
     |> assign(:is_editing_student_school_info, false)
-    |> assign(:is_editing_student_family_info, false)
+    |> assign(:is_editing_shared_info, false)
     |> assign_user_filters([:student_info])
     |> assign_student_cycle_info()
     |> assign(:initialized, true)
@@ -258,6 +258,6 @@ defmodule LantternWeb.StudentLive.AboutComponent do
   def handle_event("edit_student_school_info", _params, socket),
     do: {:noreply, assign(socket, :is_editing_student_school_info, true)}
 
-  def handle_event("edit_student_family_info", _params, socket),
-    do: {:noreply, assign(socket, :is_editing_student_family_info, true)}
+  def handle_event("edit_student_shared_info", _params, socket),
+    do: {:noreply, assign(socket, :is_editing_shared_info, true)}
 end

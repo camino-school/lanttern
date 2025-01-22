@@ -12,7 +12,7 @@ defmodule Lanttern.StudentsCycleInfo.StudentCycleInfoAttachment do
   @type t :: %__MODULE__{
           id: pos_integer(),
           position: non_neg_integer(),
-          is_family: boolean(),
+          shared_with_student: boolean(),
           student_cycle_info: StudentCycleInfo.t(),
           student_cycle_info_id: pos_integer(),
           attachment: Attachment.t(),
@@ -23,7 +23,7 @@ defmodule Lanttern.StudentsCycleInfo.StudentCycleInfoAttachment do
 
   schema "students_cycle_info_attachments" do
     field :position, :integer, default: 0
-    field :is_family, :boolean, default: false
+    field :shared_with_student, :boolean, default: false
 
     belongs_to :student_cycle_info, StudentCycleInfo
     belongs_to :attachment, Attachment
@@ -34,7 +34,12 @@ defmodule Lanttern.StudentsCycleInfo.StudentCycleInfoAttachment do
   @doc false
   def changeset(student_cycle_info_attachment, attrs) do
     student_cycle_info_attachment
-    |> cast(attrs, [:position, :is_family, :student_cycle_info_id, :attachment_id])
-    |> validate_required([:position, :is_family, :student_cycle_info_id, :attachment_id])
+    |> cast(attrs, [:position, :shared_with_student, :student_cycle_info_id, :attachment_id])
+    |> validate_required([
+      :position,
+      :shared_with_student,
+      :student_cycle_info_id,
+      :attachment_id
+    ])
   end
 end

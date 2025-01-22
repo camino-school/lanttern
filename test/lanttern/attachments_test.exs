@@ -147,7 +147,7 @@ defmodule Lanttern.AttachmentsTest do
       assert [attachment_1, attachment_2, family_attachment] ==
                Attachments.list_attachments(student_cycle_info_id: student_cycle_info.id)
 
-      # use same setup to test update_student_cycle_info_attachments_positions/1 and is_family filtering
+      # use same setup to test update_student_cycle_info_attachments_positions/1 and shared_with_student filtering
 
       StudentsCycleInfo.update_student_cycle_info_attachments_positions([
         attachment_2.id,

@@ -1,11 +1,11 @@
 defmodule LantternWeb.StudentsCycleInfo.StudentCycleInfoFormComponent do
   @moduledoc """
-  Renders student cycle school or family info editor.
+  Renders student cycle school or student info editor.
 
   ### Required attrs
 
   - `:student_cycle_info` - `%StudentCycleInfo{}`
-  - `:type` - "school" or "family"
+  - `:type` - "school" or "student"
   - `:current_profile_id` - in `socket.assigns.current_user.current_profile_id`, for logging
 
   ### Optional attrs
@@ -88,7 +88,7 @@ defmodule LantternWeb.StudentsCycleInfo.StudentCycleInfoFormComponent do
     field =
       case socket.assigns.type do
         "school" -> form[:school_info]
-        "family" -> form[:family_info]
+        "student" -> form[:shared_info]
       end
 
     socket
