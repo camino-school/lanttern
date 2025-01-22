@@ -18,6 +18,7 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
 
   # shared components
   alias LantternWeb.Assessments.EntryParticleComponent
+  import LantternWeb.AttachmentsComponents
   import LantternWeb.ReportingComponents
 
   @impl true
@@ -76,16 +77,35 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
       </.responsive_container>
       <.slide_over :if={@moment} id="moment-overlay" show={true} on_cancel={JS.patch(@base_path)}>
         <:title><%= @moment.name %></:title>
-        <div id="moment-assessment-points-and-entries">
-          <.moment_assessment_point_entry
-            :for={
-              {dom_id, {assessment_point, entry}} <- @streams.moment_assessment_points_and_entries
-            }
-            id={dom_id}
-            class="py-4 border-t border-ltrn-lighter"
-            assessment_point={assessment_point}
-            entry={entry}
-          />
+        <div :if={@moment_has_assessment_points} class="mb-10">
+          <h4 class="mb-4 font-display font-black text-lg text-ltrn-subtle">
+            <%= gettext("Assessment points") %>
+          </h4>
+          <div id="moment-assessment-points-and-entries" phx-update="stream">
+            <.moment_assessment_point_entry
+              :for={
+                {dom_id, {assessment_point, entry}} <- @streams.moment_assessment_points_and_entries
+              }
+              id={dom_id}
+              class="py-4 border-t border-ltrn-lighter"
+              assessment_point={assessment_point}
+              entry={entry}
+            />
+          </div>
+        </div>
+        <div :if={@moment_has_cards}>
+          <h4 class="mb-4 font-display font-black text-lg text-ltrn-subtle">
+            <%= gettext("More about this moment") %>
+          </h4>
+          <div id="moment-cards" phx-update="stream">
+            <div :for={{dom_id, card} <- @streams.moment_cards} id={dom_id} class="py-6 border-t">
+              <h5 class="font-display font-black text-base mb-4">
+                <%= card.name %>
+              </h5>
+              <.markdown text={card.description} />
+              <.attachments_list attachments={card.attachments} />
+            </div>
+          </div>
         </div>
       </.slide_over>
     </div>
@@ -124,18 +144,25 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
     socket =
       socket
       |> assign(assigns)
-      |> stream_moments_and_entries(assigns)
+      |> initialize()
       |> assign_moment(assigns)
-      |> assign(:initialized, true)
 
     {:ok, socket}
   end
 
-  defp stream_moments_and_entries(%{assigns: %{initialized: false}} = socket, assigns) do
+  defp initialize(%{assigns: %{initialized: false}} = socket) do
+    socket
+    |> stream_moments_and_entries()
+    |> assign(:initialized, true)
+  end
+
+  defp initialize(socket), do: socket
+
+  defp stream_moments_and_entries(socket) do
     moments_and_entries =
       Reporting.list_student_strand_report_moments_and_entries(
-        assigns.strand_report,
-        assigns.student_id
+        socket.assigns.strand_report,
+        socket.assigns.student_id
       )
 
     moments_ids =
@@ -143,13 +170,10 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
       |> Enum.map(fn {moment, _entry} -> "#{moment.id}" end)
 
     socket
-    |> assign(assigns)
     |> stream(:moments_and_entries, moments_and_entries)
     |> assign(:moments_ids, moments_ids)
     |> assign(:has_moments, moments_and_entries != [])
   end
-
-  defp stream_moments_and_entries(socket, _assigns), do: socket
 
   defp assign_moment(socket, %{params: %{"moment_id" => moment_id}}) do
     # simple guard to prevent viewing details from unrelated moments
@@ -166,9 +190,17 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
         )
       end
 
+    moment_cards =
+      if moment do
+        Reporting.list_moment_cards_and_attachments_shared_with_students(moment.id)
+      end
+
     socket
     |> assign(:moment, moment)
     |> stream(:moment_assessment_points_and_entries, moment_assessment_points_and_entries)
+    |> assign(:moment_has_assessment_points, moment_assessment_points_and_entries != [])
+    |> stream(:moment_cards, moment_cards)
+    |> assign(:moment_has_cards, moment_cards != [])
   end
 
   defp assign_moment(socket, _assigns), do: assign(socket, :moment, nil)

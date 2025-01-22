@@ -38,6 +38,7 @@ defmodule Lanttern.LearningContext.MomentCard do
     belongs_to :moment, Moment
 
     has_many :moment_card_attachments, MomentCardAttachment
+    has_many :attachments, through: [:moment_card_attachments, :attachment]
 
     timestamps()
   end
