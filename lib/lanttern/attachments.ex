@@ -18,9 +18,9 @@ defmodule Lanttern.Attachments do
   - `:assessment_point_entry_id` - filter results by assessment point entry evidences
   - `:student_cycle_info_id` - filter attachments linked to given student cycle info. May be used with `:is_family` option.
   - `:moment_card_id` - filter results by moment card
-  - `:shared_with_family` - expect a tuple with type and boolean (view the section below for accepted types). If not given, will not filter results.
+  - `:shared_with_student` - expect a tuple with type and boolean (view the section below for accepted types). If not given, will not filter results.
 
-  #### `:shared_with_family` supported types
+  #### `:shared_with_student` supported types
 
   - `:student_cycle_info` - use with `:student_cycle_info_id` opt
   - `:moment_card` - use with `:moment_card_id` opt
@@ -74,7 +74,7 @@ defmodule Lanttern.Attachments do
       where: scia.student_cycle_info_id == ^student_cycle_info_id,
       order_by: scia.position
     )
-    |> maybe_filter_by_shared_with_family(Keyword.get(opts, :shared_with_family))
+    |> maybe_filter_by_shared_with_student(Keyword.get(opts, :shared_with_student))
     |> apply_list_attachments_opts(opts)
   end
 
@@ -85,16 +85,17 @@ defmodule Lanttern.Attachments do
       join: mca in assoc(a, :moment_card_attachment),
       as: :moment_card_attachment,
       where: mca.moment_card_id == ^moment_card_id,
-      order_by: mca.position
+      order_by: mca.position,
+      preload: [moment_card_attachment: mca]
     )
-    |> maybe_filter_by_shared_with_family(Keyword.get(opts, :shared_with_family))
+    |> maybe_filter_by_shared_with_student(Keyword.get(opts, :shared_with_student))
     |> apply_list_attachments_opts(opts)
   end
 
   defp apply_list_attachments_opts(queryable, [_ | opts]),
     do: apply_list_attachments_opts(queryable, opts)
 
-  defp maybe_filter_by_shared_with_family(queryable, {:student_cycle_info, is_family})
+  defp maybe_filter_by_shared_with_student(queryable, {:student_cycle_info, is_family})
        when is_boolean(is_family) do
     from(
       [_a, student_cycle_info_attachment: scia] in queryable,
@@ -102,15 +103,15 @@ defmodule Lanttern.Attachments do
     )
   end
 
-  defp maybe_filter_by_shared_with_family(queryable, {:moment_card, share_with_family})
-       when is_boolean(share_with_family) do
+  defp maybe_filter_by_shared_with_student(queryable, {:moment_card, shared_with_students})
+       when is_boolean(shared_with_students) do
     from(
       [_a, moment_card_attachment: mca] in queryable,
-      where: mca.share_with_family == ^share_with_family
+      where: mca.shared_with_students == ^shared_with_students
     )
   end
 
-  defp maybe_filter_by_shared_with_family(queryable, _shared_tuple),
+  defp maybe_filter_by_shared_with_student(queryable, _shared_tuple),
     do: queryable
 
   @doc """

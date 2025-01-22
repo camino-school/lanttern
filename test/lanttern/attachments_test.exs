@@ -157,7 +157,7 @@ defmodule Lanttern.AttachmentsTest do
       assert [attachment_2, attachment_1] ==
                Attachments.list_attachments(
                  student_cycle_info_id: student_cycle_info.id,
-                 shared_with_family: {:student_cycle_info, false}
+                 shared_with_student: {:student_cycle_info, false}
                )
     end
 
@@ -204,21 +204,28 @@ defmodule Lanttern.AttachmentsTest do
         }
       )
 
-      assert [attachment_1, attachment_2, family_attachment] ==
-               Attachments.list_attachments(moment_card_id: moment_card.id)
+      [expected_attachment_1, expected_attachment_2, expected_family_attachment] =
+        Attachments.list_attachments(moment_card_id: moment_card.id)
 
-      # use same setup to test update_moment_card_attachments_positions/1 and share_with_family filtering
+      assert expected_attachment_1.id == attachment_1.id
+      assert expected_attachment_2.id == attachment_2.id
+      assert expected_family_attachment.id == family_attachment.id
+
+      # use same setup to test update_moment_card_attachments_positions/1 and shared_with_students filtering
 
       LearningContext.update_moment_card_attachments_positions([
         attachment_2.id,
         attachment_1.id
       ])
 
-      assert [attachment_2, attachment_1] ==
-               Attachments.list_attachments(
-                 moment_card_id: moment_card.id,
-                 shared_with_family: {:moment_card, false}
-               )
+      [expected_attachment_2, expected_attachment_1] =
+        Attachments.list_attachments(
+          moment_card_id: moment_card.id,
+          shared_with_student: {:moment_card, false}
+        )
+
+      assert expected_attachment_1.id == attachment_1.id
+      assert expected_attachment_2.id == attachment_2.id
     end
 
     test "get_attachment!/1 returns the attachment with given id" do

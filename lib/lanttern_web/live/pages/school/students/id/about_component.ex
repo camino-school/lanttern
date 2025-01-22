@@ -69,7 +69,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
             id="student-cycle-info-school-attachments"
             class="mt-10"
             student_cycle_info_id={@student_cycle_info.id}
-            shared_with_family={false}
+            shared_with_student={false}
             title={gettext("School area attachments")}
             allow_editing
             current_user={@current_user}
@@ -118,7 +118,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
             id="student-cycle-info-family-attachments"
             class="mt-10"
             student_cycle_info_id={@student_cycle_info.id}
-            shared_with_family
+            shared_with_student
             title={gettext("Family area attachments")}
             allow_editing
             current_user={@current_user}

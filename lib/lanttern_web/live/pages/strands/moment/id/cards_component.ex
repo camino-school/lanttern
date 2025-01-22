@@ -55,6 +55,11 @@ defmodule LantternWeb.MomentLive.CardsComponent do
             <div class="mt-4 line-clamp-4">
               <.markdown text={moment_card.description} />
             </div>
+            <div :if={moment_card.attachments_count > 0} class="mt-4">
+              <.badge icon_name="hero-paper-clip-mini">
+                <%= ngettext("1 attachment", "%{count} attachments", moment_card.attachments_count) %>
+              </.badge>
+            </div>
           </.card_base>
         </.responsive_grid>
       <% end %>
@@ -176,7 +181,10 @@ defmodule LantternWeb.MomentLive.CardsComponent do
 
   defp stream_moment_cards(socket) do
     moment_cards =
-      LearningContext.list_moment_cards(moments_ids: [socket.assigns.moment.id])
+      LearningContext.list_moment_cards(
+        moments_ids: [socket.assigns.moment.id],
+        count_attachments: true
+      )
 
     socket
     |> stream(:moment_cards, moment_cards)
@@ -190,7 +198,8 @@ defmodule LantternWeb.MomentLive.CardsComponent do
   defp assign_moment_card(%{assigns: %{params: %{"moment_card_id" => binary_id}}} = socket) do
     with {id, _} <- Integer.parse(binary_id),
          true <- id in socket.assigns.moment_cards_ids,
-         %MomentCard{} = moment_card <- LearningContext.get_moment_card(id) do
+         %MomentCard{} = moment_card <-
+           LearningContext.get_moment_card(id, count_attachments: true) do
       assign(socket, :moment_card, moment_card)
     else
       _ -> assign(socket, :moment_card, nil)
