@@ -14,10 +14,13 @@ defmodule Lanttern.LearningContext.MomentCard do
           name: String.t(),
           position: non_neg_integer(),
           description: String.t(),
+          teacher_instructions: String.t() | nil,
+          differentiation: String.t() | nil,
+          shared_with_students: boolean(),
           attachments_count: non_neg_integer(),
           moment: Moment.t() | Ecto.Association.NotLoaded.t(),
           moment_id: pos_integer(),
-          moment_card_attachments: [MomentCardAttachment.t()],
+          moment_card_attachments: [MomentCardAttachment.t()] | Ecto.Association.NotLoaded.t(),
           inserted_at: NaiveDateTime.t(),
           updated_at: NaiveDateTime.t()
         }
@@ -26,6 +29,9 @@ defmodule Lanttern.LearningContext.MomentCard do
     field :name, :string
     field :position, :integer, default: 0
     field :description, :string
+    field :teacher_instructions, :string
+    field :differentiation, :string
+    field :shared_with_students, :boolean, default: false
 
     field :attachments_count, :integer, virtual: true, default: 0
 
@@ -39,7 +45,15 @@ defmodule Lanttern.LearningContext.MomentCard do
   @doc false
   def changeset(moment_card, attrs) do
     moment_card
-    |> cast(attrs, [:name, :description, :position, :moment_id])
-    |> validate_required([:name, :description, :position, :moment_id])
+    |> cast(attrs, [
+      :name,
+      :position,
+      :description,
+      :teacher_instructions,
+      :differentiation,
+      :shared_with_students,
+      :moment_id
+    ])
+    |> validate_required([:name, :description, :moment_id])
   end
 end
