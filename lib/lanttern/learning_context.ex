@@ -9,11 +9,14 @@ defmodule Lanttern.LearningContext do
   alias Lanttern.Repo
   use Gettext, backend: Lanttern.Gettext
 
+  alias Lanttern.Attachments
+  alias Lanttern.Attachments.Attachment
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.LearningContext.Strand
   alias Lanttern.LearningContext.StarredStrand
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.MomentCard
+  alias Lanttern.LearningContext.MomentCardAttachment
 
   @doc """
   Returns the list of strands ordered alphabetically.
@@ -709,8 +712,9 @@ defmodule Lanttern.LearningContext do
 
   ## Options:
 
-        - `:ids` – filter cards by ids
-        - `:moments_ids` – filter cards by moment
+  - `:ids` – filter cards by ids
+  - `:moments_ids` – filter cards by moment
+  - `:count_attachments` – (boolean) calculate virtual `attachments_count` field
 
   ## Examples
 
@@ -720,29 +724,46 @@ defmodule Lanttern.LearningContext do
   """
   def list_moment_cards(opts \\ []) do
     from(
-      c in MomentCard,
-      order_by: c.position
+      mc in MomentCard,
+      order_by: mc.position
     )
-    |> filter_moment_cards(opts)
+    |> apply_list_moment_cards_opts(opts)
     |> Repo.all()
   end
 
-  defp filter_moment_cards(queryable, opts) do
-    Enum.reduce(opts, queryable, &apply_moment_cards_filter/2)
+  defp apply_list_moment_cards_opts(queryable, []), do: queryable
+
+  defp apply_list_moment_cards_opts(queryable, [{:ids, ids} | opts]) do
+    from(mc in queryable, where: mc.id in ^ids)
+    |> apply_list_moment_cards_opts(opts)
   end
 
-  defp apply_moment_cards_filter({:ids, ids}, queryable),
-    do: from(c in queryable, where: c.id in ^ids)
+  defp apply_list_moment_cards_opts(queryable, [{:moments_ids, ids} | opts]) do
+    from(mc in queryable, where: mc.moment_id in ^ids)
+    |> apply_list_moment_cards_opts(opts)
+  end
 
-  defp apply_moment_cards_filter({:moments_ids, ids}, queryable),
-    do: from(c in queryable, where: c.moment_id in ^ids)
+  defp apply_list_moment_cards_opts(queryable, [{:count_attachments, true} | opts]) do
+    from(
+      mc in queryable,
+      left_join: mca in assoc(mc, :moment_card_attachments),
+      group_by: mc.id,
+      select: %{mc | attachments_count: count(mca.id)}
+    )
+    |> apply_list_moment_cards_opts(opts)
+  end
 
-  defp apply_moment_cards_filter(_, queryable), do: queryable
+  defp apply_list_moment_cards_opts(queryable, [_ | opts]),
+    do: apply_list_moment_cards_opts(queryable, opts)
 
   @doc """
   Gets a single moment_card.
 
   Returns `nil` if the Moment card does not exist.
+
+  ## Options:
+
+  - `:count_attachments` – (boolean) calculate virtual `attachments_count` field
 
   ## Examples
 
@@ -753,7 +774,26 @@ defmodule Lanttern.LearningContext do
       nil
 
   """
-  def get_moment_card(id), do: Repo.get(MomentCard, id)
+  def get_moment_card(id, opts \\ []) do
+    MomentCard
+    |> apply_get_moment_card_opts(opts)
+    |> Repo.get(id)
+  end
+
+  defp apply_get_moment_card_opts(queryable, []), do: queryable
+
+  defp apply_get_moment_card_opts(queryable, [{:count_attachments, true} | opts]) do
+    from(
+      mc in queryable,
+      left_join: mca in assoc(mc, :moment_card_attachments),
+      group_by: mc.id,
+      select: %{mc | attachments_count: count(mca.id)}
+    )
+    |> apply_get_moment_card_opts(opts)
+  end
+
+  defp apply_get_moment_card_opts(queryable, [_ | opts]),
+    do: apply_get_moment_card_opts(queryable, opts)
 
   @doc """
   Gets a single moment_card.
@@ -761,7 +801,11 @@ defmodule Lanttern.LearningContext do
   Same as `get_moment_card/1`, but raises `Ecto.NoResultsError` if the Moment card does not exist.
 
   """
-  def get_moment_card!(id), do: Repo.get!(MomentCard, id)
+  def get_moment_card!(id, opts \\ []) do
+    MomentCard
+    |> apply_get_moment_card_opts(opts)
+    |> Repo.get!(id)
+  end
 
   @doc """
   Creates a moment_card.
@@ -869,6 +913,10 @@ defmodule Lanttern.LearningContext do
   @doc """
   Deletes a moment_card.
 
+  Before deleting the moment card, this function tries to delete all linked attachments.
+  After the whole operation, in case of success, we trigger a request for deleting
+  the attachments from the cloud (if they are internal).
+
   ## Examples
 
       iex> delete_moment_card(moment_card)
@@ -879,7 +927,29 @@ defmodule Lanttern.LearningContext do
 
   """
   def delete_moment_card(%MomentCard{} = moment_card) do
-    Repo.delete(moment_card)
+    attachments_query =
+      from(
+        a in Attachment,
+        join: mca in assoc(a, :moment_card_attachment),
+        where: mca.moment_card_id == ^moment_card.id,
+        select: a
+      )
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.delete_all(:delete_attachments, attachments_query)
+    |> Ecto.Multi.delete(:delete_moment_card, moment_card)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{delete_moment_card: moment_card, delete_attachments: {_qty, attachments}}} ->
+        # if attachment is internal (Supabase),
+        # delete from cloud in an async task (fire and forget)
+        Enum.each(attachments, &Attachments.maybe_delete_attachment_from_cloud(&1))
+
+        {:ok, moment_card}
+
+      {:error, _name, value, _changes_so_far} ->
+        {:error, value}
+    end
   end
 
   @doc """
@@ -894,4 +964,76 @@ defmodule Lanttern.LearningContext do
   def change_moment_card(%MomentCard{} = moment_card, attrs \\ %{}) do
     MomentCard.changeset(moment_card, attrs)
   end
+
+  @doc """
+  Creates an attachment and links it to an existing moment card in a single transaction.
+
+  ## Examples
+
+      iex> create_moment_card_attachment(profile_id, moment_card_id, %{field: value})
+      {:ok, %Attachment{}}
+
+      iex> create_moment_card_attachment(profile_id, moment_card_id, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec create_moment_card_attachment(
+          profile_id :: pos_integer(),
+          moment_card_id :: pos_integer(),
+          attachment_attrs :: map(),
+          shared_with_students :: boolean()
+        ) ::
+          {:ok, Attachment.t()} | {:error, Ecto.Changeset.t()}
+  def create_moment_card_attachment(
+        profile_id,
+        moment_card_id,
+        attachment_attrs,
+        shared_with_students \\ false
+      ) do
+    insert_query =
+      %Attachment{}
+      |> Attachment.changeset(Map.put(attachment_attrs, "owner_id", profile_id))
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:insert_attachment, insert_query)
+    |> Ecto.Multi.run(
+      :link_moment_card,
+      fn _repo, %{insert_attachment: attachment} ->
+        attrs =
+          from(
+            mca in MomentCardAttachment,
+            where: mca.moment_card_id == ^moment_card_id
+          )
+          |> set_position_in_attrs(%{
+            moment_card_id: moment_card_id,
+            attachment_id: attachment.id,
+            shared_with_students: shared_with_students,
+            owner_id: profile_id
+          })
+
+        %MomentCardAttachment{}
+        |> MomentCardAttachment.changeset(attrs)
+        |> Repo.insert()
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:error, _multi, changeset, _changes} -> {:error, changeset}
+      {:ok, %{insert_attachment: attachment}} -> {:ok, attachment}
+    end
+  end
+
+  @doc """
+  Update moment card attachments positions based on ids list order.
+
+  ## Examples
+
+      iex> update_moment_card_attachments_positions([3, 2, 1])
+      :ok
+
+  """
+  @spec update_moment_card_attachments_positions(attachments_ids :: [pos_integer()]) ::
+          :ok | {:error, String.t()}
+  def update_moment_card_attachments_positions(attachments_ids),
+    do: update_positions(MomentCardAttachment, attachments_ids, id_field: :attachment_id)
 end

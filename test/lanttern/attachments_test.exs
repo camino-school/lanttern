@@ -11,6 +11,8 @@ defmodule Lanttern.AttachmentsTest do
     alias Lanttern.Assessments
     alias Lanttern.AssessmentsFixtures
     alias Lanttern.IdentityFixtures
+    alias Lanttern.LearningContext
+    alias Lanttern.LearningContextFixtures
     alias Lanttern.Notes
     alias Lanttern.NotesFixtures
     alias Lanttern.StudentsCycleInfo
@@ -145,7 +147,7 @@ defmodule Lanttern.AttachmentsTest do
       assert [attachment_1, attachment_2, family_attachment] ==
                Attachments.list_attachments(student_cycle_info_id: student_cycle_info.id)
 
-      # use same setup to test update_student_cycle_info_attachments_positions/1 and is_family filtering
+      # use same setup to test update_student_cycle_info_attachments_positions/1 and shared_with_student filtering
 
       StudentsCycleInfo.update_student_cycle_info_attachments_positions([
         attachment_2.id,
@@ -155,8 +157,75 @@ defmodule Lanttern.AttachmentsTest do
       assert [attachment_2, attachment_1] ==
                Attachments.list_attachments(
                  student_cycle_info_id: student_cycle_info.id,
-                 is_family: false
+                 shared_with_student: {:student_cycle_info, false}
                )
+    end
+
+    test "list_attachments/1 with moment_card_id opts returns all attachments linked to given moment card" do
+      profile = IdentityFixtures.teacher_profile_fixture()
+      moment_card = LearningContextFixtures.moment_card_fixture()
+
+      {:ok, attachment_1} =
+        LearningContext.create_moment_card_attachment(
+          profile.id,
+          moment_card.id,
+          %{"name" => "attachment 1", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      {:ok, attachment_2} =
+        LearningContext.create_moment_card_attachment(
+          profile.id,
+          moment_card.id,
+          %{"name" => "attachment 2", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      {:ok, family_attachment} =
+        LearningContext.create_moment_card_attachment(
+          profile.id,
+          moment_card.id,
+          %{
+            "name" => "family attachment",
+            "link" => "https://somevaliduri.com",
+            "is_external" => true
+          },
+          true
+        )
+
+      # extra attachments to test filtering
+      attachment_fixture()
+
+      LearningContext.create_moment_card_attachment(
+        profile.id,
+        LearningContextFixtures.moment_card_fixture().id,
+        %{
+          "name" => "other attachment",
+          "link" => "https://somevaliduri.com",
+          "is_external" => true
+        }
+      )
+
+      [expected_attachment_1, expected_attachment_2, expected_family_attachment] =
+        Attachments.list_attachments(moment_card_id: moment_card.id)
+
+      assert expected_attachment_1.id == attachment_1.id
+      assert expected_attachment_2.id == attachment_2.id
+      assert expected_family_attachment.id == family_attachment.id
+
+      # use same setup to test update_moment_card_attachments_positions/1 and shared_with_students filtering
+
+      LearningContext.update_moment_card_attachments_positions([
+        attachment_2.id,
+        attachment_1.id
+      ])
+
+      [expected_attachment_2, expected_attachment_1] =
+        Attachments.list_attachments(
+          moment_card_id: moment_card.id,
+          shared_with_student: {:moment_card, false}
+        )
+
+      assert expected_attachment_1.id == attachment_1.id
+      assert expected_attachment_2.id == attachment_2.id
     end
 
     test "get_attachment!/1 returns the attachment with given id" do

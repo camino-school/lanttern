@@ -78,7 +78,7 @@ defmodule LantternWeb.StudentLiveTest do
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{student.id}")
 
       assert view |> has_element?("p", "No information about student in school area")
-      assert view |> has_element?("p", "No information about student in family area")
+      assert view |> has_element?("p", "No information in student area")
     end
 
     test "student cycle info displays correctly", %{conn: conn, user: user} do

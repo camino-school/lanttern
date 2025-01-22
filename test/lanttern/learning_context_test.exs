@@ -766,6 +766,8 @@ defmodule Lanttern.LearningContextTest do
     alias Lanttern.LearningContext.MomentCard
 
     import Lanttern.LearningContextFixtures
+    alias Lanttern.IdentityFixtures
+    alias Lanttern.Attachments
 
     @invalid_attrs %{name: nil, position: nil, description: nil}
 
@@ -789,9 +791,42 @@ defmodule Lanttern.LearningContextTest do
                LearningContext.list_moment_cards(moments_ids: [moment.id])
     end
 
+    test "list_moment_cards/1 with count_attachments opt returns moment cards with calculated attachments_count field" do
+      moment_card = moment_card_fixture()
+      profile = IdentityFixtures.teacher_profile_fixture()
+
+      {:ok, _attachment} =
+        LearningContext.create_moment_card_attachment(
+          profile.id,
+          moment_card.id,
+          %{"name" => "attachment", "link" => "https://somevaliduri.com"}
+        )
+
+      assert LearningContext.list_moment_cards(count_attachments: true) == [
+               %{moment_card | attachments_count: 1}
+             ]
+    end
+
     test "get_moment_card!/1 returns the moment_card with given id" do
       moment_card = moment_card_fixture()
       assert LearningContext.get_moment_card!(moment_card.id) == moment_card
+    end
+
+    test "get_moment_card/2 with count_attachments opt returns moment card with calculated attachments_count field" do
+      moment_card = moment_card_fixture()
+      profile = IdentityFixtures.teacher_profile_fixture()
+
+      {:ok, _attachment} =
+        LearningContext.create_moment_card_attachment(
+          profile.id,
+          moment_card.id,
+          %{"name" => "attachment", "link" => "https://somevaliduri.com"}
+        )
+
+      assert LearningContext.get_moment_card(moment_card.id, count_attachments: true) == %{
+               moment_card
+               | attachments_count: 1
+             }
     end
 
     test "create_moment_card/1 with valid data creates a moment_card" do
@@ -841,10 +876,24 @@ defmodule Lanttern.LearningContextTest do
       assert moment_card == LearningContext.get_moment_card!(moment_card.id)
     end
 
-    test "delete_moment_card/1 deletes the moment_card" do
+    test "delete_moment_card/1 deletes the moment_card and its linked attachments" do
       moment_card = moment_card_fixture()
+      profile = IdentityFixtures.teacher_profile_fixture()
+
+      {:ok, attachment} =
+        LearningContext.create_moment_card_attachment(
+          profile.id,
+          moment_card.id,
+          %{"name" => "attachment", "link" => "https://somevaliduri.com"}
+        )
+
       assert {:ok, %MomentCard{}} = LearningContext.delete_moment_card(moment_card)
       assert_raise Ecto.NoResultsError, fn -> LearningContext.get_moment_card!(moment_card.id) end
+      assert_raise Ecto.NoResultsError, fn -> Attachments.get_attachment!(attachment.id) end
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+      end)
     end
 
     test "change_moment_card/1 returns a moment_card changeset" do

@@ -17,6 +17,9 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
   alias Lanttern.LearningContext.MomentCard
   alias Lanttern.SchoolConfig
 
+  # shared
+  alias LantternWeb.Attachments.AttachmentAreaComponent
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -41,6 +44,17 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
           moment_card={@moment_card}
           myself={@myself}
         />
+        <div :if={@moment_card.id && !@is_deleted} class="pt-10 border-t border-ltrn-light mt-10">
+          <.live_component
+            module={AttachmentAreaComponent}
+            id="moment-card-attachments"
+            moment_card_id={@moment_card.id}
+            title={gettext("Attachments")}
+            allow_editing={@allow_edit}
+            current_user={@current_user}
+            notify_component={@myself}
+          />
+        </div>
       </.modal>
     </div>
     """
@@ -199,6 +213,25 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
   end
 
   @impl true
+  # handle attachment count changes
+  def update(%{action: {AttachmentAreaComponent, {action, _}}}, socket)
+      when action in [:deleted, :created] do
+    count =
+      case action do
+        :deleted -> socket.assigns.moment_card.attachments_count - 1
+        :created -> socket.assigns.moment_card.attachments_count + 1
+      end
+
+    moment_card = %{
+      socket.assigns.moment_card
+      | attachments_count: count
+    }
+
+    notify(__MODULE__, {:updated, moment_card}, socket.assigns)
+
+    {:ok, assign(socket, :moment_card, moment_card)}
+  end
+
   def update(assigns, socket) do
     socket =
       socket
@@ -208,11 +241,13 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
     {:ok, socket}
   end
 
-  defp initialize(socket) do
+  defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
     |> stream_templates()
     |> assign(:initialized, true)
   end
+
+  defp initialize(socket), do: socket
 
   defp stream_templates(%{assigns: %{moment_card: %{id: nil}}} = socket) do
     templates =

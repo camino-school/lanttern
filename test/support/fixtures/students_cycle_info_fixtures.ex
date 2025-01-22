@@ -16,7 +16,7 @@ defmodule Lanttern.StudentsCycleInfoFixtures do
       |> maybe_inject_student_id()
       |> maybe_inject_cycle_id()
       |> Enum.into(%{
-        family_info: "some family_info",
+        shared_info: "some shared_info",
         profile_picture: "some profile_picture",
         school_info: "some school_info"
       })

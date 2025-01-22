@@ -6,7 +6,8 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   - notes attachments (use `note_id` assign)
   - assessment point entry evidences (use `assessment_point_entry_id` assign)
-  - student cycle info attachments (use `student_cycle_info_id` assign and `is_family` assign)
+  - student cycle info attachments (use `student_cycle_info_id` assign and `shared_with_student` assign)
+  - moment card attachments (use `moment_card_id` assign and `shared_with_student` assign)
 
   ### Supported attrs/assigns
 
@@ -17,7 +18,8 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   - `note_id` (optional, integer) - view supported contexts above
   - `assessment_point_entry_id` (optional, integer) - view supported contexts above
   - `student_cycle_info_id` (optional, integer) - view supported contexts above
-  - `is_family` (optional, boolean) - used with `student_cycle_info_id`. View supported contexts above
+  - `moment_card_id` (optional, integer) - view supported contexts above
+  - `shared_with_student` (optional, boolean) - used with student cycle info and moment card. View supported contexts above
 
   """
 
@@ -29,6 +31,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   alias Lanttern.Attachments
   alias Lanttern.Attachments.Attachment
+  alias Lanttern.LearningContext
   alias Lanttern.Notes
   alias Lanttern.StudentsCycleInfo
 
@@ -44,7 +47,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         :if={@title}
         class={[
           "flex items-center gap-2",
-          if(@is_family, do: "text-ltrn-student-dark")
+          if(@shared_with_student, do: "text-ltrn-student-dark")
         ]}
       >
         <.icon name="hero-paper-clip" class="w-6 h-6" />
@@ -224,7 +227,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       |> assign(:is_adding_external, false)
       |> assign(:is_editing, false)
       |> assign(:upload_error, nil)
-      |> assign(:is_family, nil)
+      |> assign(:shared_with_student, nil)
       |> stream_configure(
         :attachments,
         dom_id: fn {attachment, _i} -> "attachment-#{attachment.id}" end
@@ -267,20 +270,46 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   defp assign_type(%{assigns: %{student_cycle_info_id: _}} = socket),
     do: assign(socket, :type, :student_cycle_info_attachments)
 
-  defp stream_attachments(socket) do
+  defp assign_type(%{assigns: %{moment_card_id: _}} = socket),
+    do: assign(socket, :type, :moment_card_attachments)
+
+  defp stream_attachments(%{assigns: %{type: :note_attachments, note_id: id}} = socket) do
+    attachments = Attachments.list_attachments(note_id: id)
+    handle_stream_attachments_socket_assigns(socket, attachments)
+  end
+
+  defp stream_attachments(
+         %{assigns: %{type: :entry_evidences, assessment_point_entry_id: id}} = socket
+       ) do
+    attachments = Attachments.list_attachments(assessment_point_entry_id: id)
+    handle_stream_attachments_socket_assigns(socket, attachments)
+  end
+
+  defp stream_attachments(
+         %{assigns: %{type: :student_cycle_info_attachments, student_cycle_info_id: id}} = socket
+       ) do
     attachments =
-      case socket.assigns do
-        %{type: :note_attachments, note_id: id} ->
-          Attachments.list_attachments(note_id: id)
+      Attachments.list_attachments(
+        student_cycle_info_id: id,
+        shared_with_student: {:student_cycle_info, socket.assigns.shared_with_student}
+      )
 
-        %{type: :entry_evidences, assessment_point_entry_id: id} ->
-          Attachments.list_attachments(assessment_point_entry_id: id)
+    handle_stream_attachments_socket_assigns(socket, attachments)
+  end
 
-        %{type: :student_cycle_info_attachments, student_cycle_info_id: id} ->
-          is_family = socket.assigns.is_family
-          Attachments.list_attachments(student_cycle_info_id: id, is_family: is_family)
-      end
+  defp stream_attachments(
+         %{assigns: %{type: :moment_card_attachments, moment_card_id: id}} = socket
+       ) do
+    attachments =
+      Attachments.list_attachments(
+        moment_card_id: id,
+        shared_with_student: {:moment_card, socket.assigns.shared_with_student}
+      )
 
+    handle_stream_attachments_socket_assigns(socket, attachments)
+  end
+
+  defp handle_stream_attachments_socket_assigns(socket, attachments) do
     attachments_ids = Enum.map(attachments, & &1.id)
 
     socket
@@ -388,6 +417,9 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
         :student_cycle_info_attachments ->
           StudentsCycleInfo.update_student_cycle_info_attachments_positions(attachments_ids)
+
+        :moment_card_attachments ->
+          LearningContext.update_moment_card_attachments_positions(attachments_ids)
       end
 
     case update_res do
@@ -539,7 +571,38 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
            current_user.current_profile_id,
            student_cycle_info_id,
            params,
-           socket.assigns.is_family
+           socket.assigns.shared_with_student
+         ) do
+      {:ok, attachment} ->
+        notify(__MODULE__, {:created, attachment}, socket.assigns)
+
+        socket =
+          socket
+          |> assign(:is_adding_external, false)
+          |> stream_attachments()
+
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign_form(socket, changeset)}
+    end
+  end
+
+  defp save_attachment(
+         %{assigns: %{type: :moment_card_attachments}} = socket,
+         :new,
+         params
+       ) do
+    %{
+      current_user: current_user,
+      moment_card_id: moment_card_id
+    } = socket.assigns
+
+    case LearningContext.create_moment_card_attachment(
+           current_user.current_profile_id,
+           moment_card_id,
+           params,
+           socket.assigns.shared_with_student || false
          ) do
       {:ok, attachment} ->
         notify(__MODULE__, {:created, attachment}, socket.assigns)

@@ -14,6 +14,8 @@ defmodule Lanttern.Attachments.Attachment do
   alias Lanttern.Notes.NoteAttachment
   alias Lanttern.StudentsCycleInfo.StudentCycleInfo
   alias Lanttern.StudentsCycleInfo.StudentCycleInfoAttachment
+  alias Lanttern.LearningContext.MomentCard
+  alias Lanttern.LearningContext.MomentCardAttachment
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -29,6 +31,8 @@ defmodule Lanttern.Attachments.Attachment do
           assessment_point_entry: AssessmentPointEntry.t(),
           student_cycle_info_attachment: StudentCycleInfoAttachment.t(),
           student_cycle_info: StudentCycleInfo.t(),
+          moment_card_attachment: MomentCardAttachment.t(),
+          moment_card: MomentCard.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -51,6 +55,9 @@ defmodule Lanttern.Attachments.Attachment do
 
     has_one :student_cycle_info_attachment, StudentCycleInfoAttachment
     has_one :student_cycle_info, through: [:student_cycle_info_attachment, :student_cycle_info]
+
+    has_one :moment_card_attachment, MomentCardAttachment
+    has_one :moment_card, through: [:moment_card_attachment, :moment_card]
 
     timestamps()
   end

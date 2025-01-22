@@ -178,6 +178,7 @@ defmodule LantternWeb.CoreComponents do
   attr :class, :any, default: nil
   attr :style, :string, default: nil
   attr :theme, :string, default: "default"
+  attr :icon_name, :string, default: nil
 
   attr :color_map, :map,
     default: nil,
@@ -199,6 +200,7 @@ defmodule LantternWeb.CoreComponents do
       style={create_color_map_style(@color_map)}
       {@rest}
     >
+      <.icon :if={@icon_name} class={["mr-2", badge_icon_theme(@theme)]} name={@icon_name} />
       <%= render_slot(@inner_block) %>
       <button
         :if={@on_remove}
@@ -1703,7 +1705,8 @@ defmodule LantternWeb.CoreComponents do
 
   @toggle_themes %{
     "default" => "focus:ring-ltrn-primary",
-    "diff" => "focus:ring-ltrn-diff-accent"
+    "diff" => "focus:ring-ltrn-diff-accent",
+    "student" => "focus:ring-ltrn-student-accent"
   }
 
   defp toggle_theme(theme),
@@ -1711,7 +1714,8 @@ defmodule LantternWeb.CoreComponents do
 
   @toggle_enabled_themes %{
     "default" => "bg-ltrn-primary",
-    "diff" => "bg-ltrn-diff-accent"
+    "diff" => "bg-ltrn-diff-accent",
+    "student" => "bg-ltrn-student-accent"
   }
 
   defp toggle_enabled_theme(theme),
