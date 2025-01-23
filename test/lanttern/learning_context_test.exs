@@ -900,5 +900,24 @@ defmodule Lanttern.LearningContextTest do
       moment_card = moment_card_fixture()
       assert %Ecto.Changeset{} = LearningContext.change_moment_card(moment_card)
     end
+
+    test "toggle_moment_card_attachment_share/1 returns the updated attachment" do
+      moment_card = moment_card_fixture()
+      profile = IdentityFixtures.teacher_profile_fixture()
+
+      {:ok, attachment} =
+        LearningContext.create_moment_card_attachment(
+          profile.id,
+          moment_card.id,
+          %{"name" => "attachment", "link" => "https://somevaliduri.com"}
+        )
+
+      assert attachment.is_shared == false
+
+      {:ok, attachment} =
+        LearningContext.toggle_moment_card_attachment_share(attachment)
+
+      assert attachment.is_shared
+    end
   end
 end

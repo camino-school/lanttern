@@ -1018,8 +1018,11 @@ defmodule Lanttern.LearningContext do
     )
     |> Repo.transaction()
     |> case do
-      {:error, _multi, changeset, _changes} -> {:error, changeset}
-      {:ok, %{insert_attachment: attachment}} -> {:ok, attachment}
+      {:error, _multi, changeset, _changes} ->
+        {:error, changeset}
+
+      {:ok, %{insert_attachment: attachment}} ->
+        {:ok, %{attachment | is_shared: shared_with_students}}
     end
   end
 
@@ -1036,4 +1039,40 @@ defmodule Lanttern.LearningContext do
           :ok | {:error, String.t()}
   def update_moment_card_attachments_positions(attachments_ids),
     do: update_positions(MomentCardAttachment, attachments_ids, id_field: :attachment_id)
+
+  @doc """
+  Toggle the moment card `shared_with_students` field and returns the attachment with `is_shared` field updated.
+
+  ## Examples
+
+      iex> toggle_moment_card_attachment_share(attachment_id)
+      {:ok, %Attachment{}}
+
+      iex> toggle_moment_card_attachment_share(attachment_id)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec toggle_moment_card_attachment_share(Attachment.t()) ::
+          {:ok, Attachment.t()} | {:error, Ecto.Changeset.t()}
+  def toggle_moment_card_attachment_share(attachment) do
+    moment_card_attachment =
+      from(
+        mca in MomentCardAttachment,
+        where: mca.attachment_id == ^attachment.id
+      )
+      |> Repo.one!()
+
+    moment_card_attachment
+    |> MomentCardAttachment.changeset(%{
+      shared_with_students: !moment_card_attachment.shared_with_students
+    })
+    |> Repo.update()
+    |> case do
+      {:ok, _} ->
+        {:ok, %{attachment | is_shared: !moment_card_attachment.shared_with_students}}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
+  end
 end

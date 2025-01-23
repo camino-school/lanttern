@@ -60,6 +60,15 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         attachments={@streams.attachments}
         allow_editing={@allow_editing}
         attachments_length={@attachments_length}
+        on_toggle_share={
+          if @allow_editing && @type == :moment_card_attachments,
+            do: fn attachment_id, i ->
+              JS.push("toggle_moment_card_attachment_share",
+                value: %{"attachment_id" => attachment_id, "index" => i},
+                target: @myself
+              )
+            end
+        }
         on_move_up={
           fn i ->
             JS.push("reorder_attachments",
@@ -136,11 +145,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         <.error_block :if={@invalid_upload_msg} class="mt-4">
           <%= @invalid_upload_msg %>
         </.error_block>
-        <%!-- <%= inspect(entry) %>
-        <%= for err <- upload_errors(@uploads.attachment_file, entry) do %>
-          <p class="alert alert-danger"><%= err %></p>
-        <% end %> --%>
-
         <div class="flex justify-end gap-4 mt-10">
           <.button
             type="button"
@@ -432,6 +436,23 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
       {:error, msg} ->
         {:noreply, put_flash(socket, :error, msg)}
+    end
+  end
+
+  def handle_event(
+        "toggle_moment_card_attachment_share",
+        %{"attachment_id" => attachment_id, "index" => i},
+        socket
+      ) do
+    # as attachment_id is handled in JS call, validate if it's part of the current attachments
+    with true <- attachment_id in socket.assigns.attachments_ids,
+         attachment <- Attachments.get_attachment!(attachment_id),
+         {:ok, attachment} <- LearningContext.toggle_moment_card_attachment_share(attachment) do
+      notify(__MODULE__, {:updated, attachment}, socket.assigns)
+      {:noreply, stream_insert(socket, :attachments, {attachment, i})}
+    else
+      _ ->
+        {:noreply, put_flash(socket, :error, gettext("Something went wrong"))}
     end
   end
 
