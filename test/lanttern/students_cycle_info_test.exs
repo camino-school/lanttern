@@ -11,7 +11,7 @@ defmodule Lanttern.StudentsCycleInfoTest do
     alias Lanttern.SchoolsFixtures
     alias Lanttern.IdentityFixtures
 
-    @invalid_attrs %{school_info: nil, family_info: nil, profile_picture_url: nil}
+    @invalid_attrs %{school_info: nil, shared_info: nil, profile_picture_url: nil}
 
     test "list_students_cycle_info/0 returns all students_cycle_info" do
       student_cycle_info = student_cycle_info_fixture()
@@ -96,7 +96,7 @@ defmodule Lanttern.StudentsCycleInfoTest do
 
       expected =
         StudentsCycleInfo.get_student_cycle_info_by_student_and_cycle(student.id, cycle.id,
-          check_attachments_for: :family
+          check_attachments_for: :student
         )
 
       assert expected.id == student_cycle_info.id
@@ -113,7 +113,7 @@ defmodule Lanttern.StudentsCycleInfoTest do
 
       valid_attrs = %{
         school_info: "some school_info",
-        family_info: "some family_info",
+        shared_info: "some shared_info",
         profile_picture_url: "some profile_picture",
         school_id: school.id,
         student_id: student.id,
@@ -126,7 +126,7 @@ defmodule Lanttern.StudentsCycleInfoTest do
                )
 
       assert student_cycle_info.school_info == "some school_info"
-      assert student_cycle_info.family_info == "some family_info"
+      assert student_cycle_info.shared_info == "some shared_info"
       assert student_cycle_info.profile_picture_url == "some profile_picture"
       assert student_cycle_info.school_id == school.id
       assert student_cycle_info.student_id == student.id
@@ -145,7 +145,7 @@ defmodule Lanttern.StudentsCycleInfoTest do
         assert student_cycle_info_log.operation == "CREATE"
 
         assert student_cycle_info_log.school_info == student_cycle_info.school_info
-        assert student_cycle_info_log.family_info == student_cycle_info.family_info
+        assert student_cycle_info_log.shared_info == student_cycle_info.shared_info
 
         assert student_cycle_info_log.profile_picture_url ==
                  student_cycle_info.profile_picture_url
@@ -169,7 +169,7 @@ defmodule Lanttern.StudentsCycleInfoTest do
 
       update_attrs = %{
         school_info: "some updated school_info",
-        family_info: "some updated family_info",
+        shared_info: "some updated shared_info",
         profile_picture_url: "some updated profile_picture"
       }
 
@@ -179,7 +179,7 @@ defmodule Lanttern.StudentsCycleInfoTest do
                )
 
       assert student_cycle_info.school_info == "some updated school_info"
-      assert student_cycle_info.family_info == "some updated family_info"
+      assert student_cycle_info.shared_info == "some updated shared_info"
       assert student_cycle_info.profile_picture_url == "some updated profile_picture"
 
       on_exit(fn ->
@@ -195,7 +195,7 @@ defmodule Lanttern.StudentsCycleInfoTest do
         assert student_cycle_info_log.operation == "UPDATE"
 
         assert student_cycle_info_log.school_info == student_cycle_info.school_info
-        assert student_cycle_info_log.family_info == student_cycle_info.family_info
+        assert student_cycle_info_log.shared_info == student_cycle_info.shared_info
 
         assert student_cycle_info_log.profile_picture_url ==
                  student_cycle_info.profile_picture_url

@@ -62,7 +62,7 @@ defmodule LantternWeb.GuardianHomeLiveTest do
           school_id: school_id,
           student_id: student.id,
           cycle_id: user.current_profile.current_school_cycle.id,
-          family_info: "some family_info"
+          shared_info: "some shared_info"
         })
 
       StudentsCycleInfo.create_student_cycle_info_attachment(
@@ -79,7 +79,7 @@ defmodule LantternWeb.GuardianHomeLiveTest do
       {:ok, view, _html} = live(conn, @live_view_path)
 
       assert view |> has_element?("h3", "Additional cycle information")
-      assert view |> has_element?("p", "some family_info")
+      assert view |> has_element?("p", "some shared_info")
 
       view
       |> element("a", "some attachment")

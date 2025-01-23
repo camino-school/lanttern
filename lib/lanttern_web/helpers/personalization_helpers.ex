@@ -8,7 +8,8 @@ defmodule LantternWeb.PersonalizationHelpers do
 
   @permission_to_option_map %{
     "wcd" => "WCD",
-    "school_management" => "School management"
+    "school_management" => "School management",
+    "content_management" => "Content management"
   }
 
   @doc """

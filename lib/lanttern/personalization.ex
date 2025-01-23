@@ -14,7 +14,7 @@ defmodule Lanttern.Personalization do
 
   alias Lanttern.Personalization.ProfileSettings
 
-  @valid_permissions ["wcd", "school_management"]
+  @valid_permissions ["wcd", "school_management", "content_management"]
 
   @doc """
   Get profile settings.

@@ -4,7 +4,6 @@ defmodule LantternWeb.SchoolLive do
   # view components
   alias __MODULE__.StudentsComponent
   alias __MODULE__.ClassesComponent
-  alias __MODULE__.CyclesComponent
 
   # lifecycle
 

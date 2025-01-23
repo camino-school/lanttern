@@ -37,15 +37,12 @@ defmodule LantternWeb.MomentLive.CardsComponentTest do
       attrs =
         %{
           "name" => "new moment card",
-          "description" => "card description abc",
-          "moment_id" => moment.id
+          "description" => "card description abc"
         }
 
       assert view
              |> form("#moment-card-form", moment_card: attrs)
              |> render_submit()
-
-      assert_redirect(view, "#{@live_view_base_path}/#{moment.id}/cards")
 
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}/cards")
       assert view |> has_element?("h5", "new moment card")
@@ -66,22 +63,24 @@ defmodule LantternWeb.MomentLive.CardsComponentTest do
       assert view |> has_element?("h5", "some card name abc")
       assert view |> has_element?("p", "some card description abc")
 
-      view |> element("#moment-card-#{moment_card.id} a", "Edit") |> render_click()
+      view |> element("#moment_cards-#{moment_card.id} a", moment_card.name) |> render_click()
 
-      assert_patch(view, "#{@live_view_base_path}/#{moment.id}/cards?edit=#{moment_card.id}")
+      assert_patch(
+        view,
+        "#{@live_view_base_path}/#{moment.id}/cards?moment_card_id=#{moment_card.id}"
+      )
+
+      view |> element("#moment-card-overlay button", "Edit card") |> render_click()
 
       attrs =
         %{
           "name" => "updated moment card",
-          "description" => "card description xyz",
-          "moment_id" => moment.id
+          "description" => "card description xyz"
         }
 
       assert view
              |> form("#moment-card-form", moment_card: attrs)
              |> render_submit()
-
-      assert_redirect(view, "#{@live_view_base_path}/#{moment.id}/cards")
 
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}/cards")
       assert view |> has_element?("h5", "updated moment card")
@@ -102,13 +101,14 @@ defmodule LantternWeb.MomentLive.CardsComponentTest do
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}/cards")
       assert view |> has_element?("h5", "some card name abc")
 
-      view |> element("#moment-card-#{moment_card.id} a", "Edit") |> render_click()
+      view |> element("#moment_cards-#{moment_card.id} a", moment_card.name) |> render_click()
 
-      assert_patch(view, "#{@live_view_base_path}/#{moment.id}/cards?edit=#{moment_card.id}")
+      assert_patch(
+        view,
+        "#{@live_view_base_path}/#{moment.id}/cards?moment_card_id=#{moment_card.id}"
+      )
 
-      view |> element("#moment-card-form-overlay button", "Delete") |> render_click()
-
-      assert_redirect(view, "#{@live_view_base_path}/#{moment.id}/cards")
+      view |> element("#moment-card-overlay button", "Delete") |> render_click()
 
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}/cards")
       assert view |> has_element?("p", "No cards for this moment yet")

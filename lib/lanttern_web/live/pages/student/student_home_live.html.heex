@@ -55,24 +55,24 @@
   </.responsive_grid>
 <% end %>
 <.responsive_container
-  :if={@student_cycle_info.family_info || @student_cycle_info.has_attachments}
+  :if={@student_cycle_info.shared_info || @student_cycle_info.has_attachments}
   class="py-10"
 >
   <h3 class="font-display font-black text-xl">
     <%= gettext("Additional cycle information") %>
   </h3>
   <.markdown
-    :if={@student_cycle_info.family_info}
-    text={@student_cycle_info.family_info}
+    :if={@student_cycle_info.shared_info}
+    text={@student_cycle_info.shared_info}
     class="mt-10"
   />
   <.live_component
     :if={@student_cycle_info.has_attachments}
     module={AttachmentAreaComponent}
-    id="student-cycle-info-family-attachments"
+    id="student-cycle-info-attachments"
     class="mt-10"
     student_cycle_info_id={@student_cycle_info.id}
-    is_family
+    shared_with_student
     title={gettext("Attachments for current cycle")}
   />
 </.responsive_container>

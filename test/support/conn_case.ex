@@ -201,12 +201,7 @@ defmodule LantternWeb.ConnCase do
         permissions: ["wcd"]
       })
 
-    # emulate Identity.get_user_by_session_token/1 to preload profile into user
-    user =
-      user
-      |> Map.update!(:current_profile, &%{&1 | permissions: settings.permissions})
-
-    %{conn: log_in_user(conn, user), user: user}
+    emulate_profile_preload(conn, user, settings)
   end
 
   @doc """
@@ -219,6 +214,23 @@ defmodule LantternWeb.ConnCase do
         permissions: ["school_management"]
       })
 
+    emulate_profile_preload(conn, user, settings)
+  end
+
+  @doc """
+  Setup helper that adds content_management permissions to current user profile.
+  """
+  def add_content_management_permissions(%{conn: conn, user: user}) do
+    # add content_management permissions to user
+    {:ok, settings} =
+      Lanttern.Personalization.set_profile_settings(user.current_profile_id, %{
+        permissions: ["content_management"]
+      })
+
+    emulate_profile_preload(conn, user, settings)
+  end
+
+  defp emulate_profile_preload(conn, user, settings) do
     # emulate Identity.get_user_by_session_token/1 to preload profile into user
     user =
       user

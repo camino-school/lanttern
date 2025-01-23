@@ -55,7 +55,7 @@ defmodule LantternWeb.GuardianHomeLive do
       StudentsCycleInfo.get_student_cycle_info_by_student_and_cycle(
         socket.assigns.student.id,
         socket.assigns.current_cycle.id,
-        check_attachments_for: :family
+        check_attachments_for: :student
       )
       |> case do
         nil ->

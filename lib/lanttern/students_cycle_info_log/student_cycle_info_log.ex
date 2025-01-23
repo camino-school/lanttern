@@ -16,7 +16,7 @@ defmodule Lanttern.StudentsCycleInfoLog.StudentCycleInfoLog do
     field :cycle_id, :id
     field :school_id, :id
     field :school_info, :string
-    field :family_info, :string
+    field :shared_info, :string
     field :profile_picture_url, :string
 
     timestamps(updated_at: false)
@@ -33,7 +33,7 @@ defmodule Lanttern.StudentsCycleInfoLog.StudentCycleInfoLog do
       :cycle_id,
       :school_id,
       :school_info,
-      :family_info,
+      :shared_info,
       :profile_picture_url
     ])
     |> validate_required([

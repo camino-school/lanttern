@@ -49,6 +49,11 @@ defmodule LantternWeb.AttachmentsComponents do
   attr :on_move_down, :any, default: nil, doc: "function. required when edit is allowed"
   attr :on_edit, :any, default: nil, doc: "function. required when edit is allowed"
   attr :on_remove, :any, default: nil, doc: "function. required when edit is allowed"
+
+  attr :on_toggle_share, :any,
+    default: nil,
+    doc: "function. If present, will render a toggle button based on attachment `is_shared`."
+
   attr :id, :string, default: nil
   attr :class, :any, default: nil
 
@@ -89,7 +94,7 @@ defmodule LantternWeb.AttachmentsComponents do
                 <.icon name="hero-check hidden group-[.copied-to-clipboard]:block" class="w-6 h-6" />
                 <.tooltip><%= gettext("Copy attachment link markdown") %></.tooltip>
               </button>
-              <div class="flex-1 min-w-o">
+              <div class="flex-1 min-w-0">
                 <%= if(attachment.is_external) do %>
                   <.badge><%= gettext("External link") %></.badge>
                 <% else %>
@@ -102,6 +107,19 @@ defmodule LantternWeb.AttachmentsComponents do
                 >
                   <%= attachment.name %>
                 </a>
+                <div :if={@on_toggle_share} class="flex items-center gap-2 mt-6">
+                  <.toggle
+                    enabled={attachment.is_shared}
+                    theme="student"
+                    phx-click={@on_toggle_share.(attachment.id, i)}
+                  />
+                  <span :if={attachment.is_shared} class="text-ltrn-student-dark">
+                    <%= gettext("Shared with students and guardians") %>
+                  </span>
+                  <span :if={!attachment.is_shared} class="text-ltrn-subtle">
+                    <%= gettext("Share with students and guardians") %>
+                  </span>
+                </div>
               </div>
             </div>
           </.sortable_card>

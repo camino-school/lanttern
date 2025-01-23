@@ -1,4 +1,4 @@
-defmodule LantternWeb.SchoolLive.CyclesComponent do
+defmodule LantternWeb.SchoolConfigLive.CyclesComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Schools
@@ -12,7 +12,11 @@ defmodule LantternWeb.SchoolLive.CyclesComponent do
     ~H"""
     <div>
       <div :if={@is_school_manager} class="flex justify-end gap-6 p-4">
-        <.action type="link" patch={~p"/school/cycles?new=true"} icon_name="hero-plus-circle-mini">
+        <.action
+          type="link"
+          patch={~p"/school_config/cycles?new=true"}
+          icon_name="hero-plus-circle-mini"
+        >
           <%= gettext("Add cycle") %>
         </.action>
       </div>
@@ -50,7 +54,7 @@ defmodule LantternWeb.SchoolLive.CyclesComponent do
                 size="sm"
                 theme="ghost"
                 rounded
-                patch={~p"/school/cycles?edit=#{cycle.id}"}
+                patch={~p"/school_config/cycles?edit=#{cycle.id}"}
               />
             </:action>
           </.data_grid>
@@ -68,7 +72,7 @@ defmodule LantternWeb.SchoolLive.CyclesComponent do
         id="cycle-form-overlay"
         cycle={@cycle}
         title={@cycle_form_overlay_title}
-        on_cancel={JS.patch(~p"/school/cycles")}
+        on_cancel={JS.patch(~p"/school_config/cycles")}
         notify_component={@myself}
       />
     </div>
@@ -86,7 +90,7 @@ defmodule LantternWeb.SchoolLive.CyclesComponent do
   def update(%{action: {CycleFormOverlayComponent, {:created, _cycle}}}, socket) do
     nav_opts = [
       put_flash: {:info, gettext("Cycle created successfully")},
-      push_navigate: [to: ~p"/school/cycles"]
+      push_navigate: [to: ~p"/school_config/cycles"]
     ]
 
     {:ok, delegate_navigation(socket, nav_opts)}
@@ -95,7 +99,7 @@ defmodule LantternWeb.SchoolLive.CyclesComponent do
   def update(%{action: {CycleFormOverlayComponent, {:updated, cycle}}}, socket) do
     nav_opts = [
       put_flash: {:info, gettext("Cycle updated successfully")},
-      push_navigate: [to: ~p"/school/cycles"]
+      push_navigate: [to: ~p"/school_config/cycles"]
     ]
 
     socket =
@@ -109,7 +113,7 @@ defmodule LantternWeb.SchoolLive.CyclesComponent do
   def update(%{action: {CycleFormOverlayComponent, {:deleted, cycle}}}, socket) do
     nav_opts = [
       put_flash: {:info, gettext("Cycle deleted successfully")},
-      push_patch: [to: ~p"/school/cycles"]
+      push_patch: [to: ~p"/school_config/cycles"]
     ]
 
     socket =

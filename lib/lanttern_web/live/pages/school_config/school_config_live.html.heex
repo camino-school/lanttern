@@ -1,0 +1,34 @@
+<.header_nav current_user={@current_user}>
+  <:title>
+    <%= gettext("%{school} config", school: @current_user.current_profile.school_name) %>
+  </:title>
+  <div class="px-4">
+    <.neo_tabs>
+      <:tab patch={~p"/school_config/cycles"} is_current={@live_action == :manage_cycles}>
+        <%= gettext("Cycles") %>
+      </:tab>
+      <:tab
+        patch={~p"/school_config/moment_cards_templates"}
+        is_current={@live_action == :manage_moment_cards_templates}
+      >
+        <%= gettext("Templates") %>
+      </:tab>
+    </.neo_tabs>
+  </div>
+</.header_nav>
+<.live_component
+  :if={@live_action == :manage_cycles}
+  module={CyclesComponent}
+  id={:school_cycles}
+  current_user={@current_user}
+  params={@params}
+  is_school_manager={@is_school_manager}
+/>
+<.live_component
+  :if={@live_action == :manage_moment_cards_templates}
+  module={MomentCardsTemplatesComponent}
+  id={:school_moment_cards_templates}
+  current_user={@current_user}
+  params={@params}
+  is_content_manager={@is_content_manager}
+/>

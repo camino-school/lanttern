@@ -361,7 +361,10 @@ defmodule Lanttern.ReportingTest do
       report_card_2024 = report_card_fixture(%{school_cycle_id: cycle_2024.id})
 
       student_report_card_2023 =
-        student_report_card_fixture(%{report_card_id: report_card_2023.id, student_id: student.id})
+        student_report_card_fixture(%{
+          report_card_id: report_card_2023.id,
+          student_id: student.id
+        })
 
       student_report_card_2024_q4 =
         student_report_card_fixture(%{
@@ -370,7 +373,10 @@ defmodule Lanttern.ReportingTest do
         })
 
       student_report_card_2024 =
-        student_report_card_fixture(%{report_card_id: report_card_2024.id, student_id: student.id})
+        student_report_card_fixture(%{
+          report_card_id: report_card_2024.id,
+          student_id: student.id
+        })
 
       # extra fixtures for filter testing
       student_report_card_fixture(%{report_card_id: report_card_2023.id})
@@ -759,10 +765,16 @@ defmodule Lanttern.ReportingTest do
       # link student to report cards
 
       student_report_card_2023 =
-        student_report_card_fixture(%{report_card_id: report_card_2023.id, student_id: student.id})
+        student_report_card_fixture(%{
+          report_card_id: report_card_2023.id,
+          student_id: student.id
+        })
 
       student_report_card_2024 =
-        student_report_card_fixture(%{report_card_id: report_card_2024.id, student_id: student.id})
+        student_report_card_fixture(%{
+          report_card_id: report_card_2024.id,
+          student_id: student.id
+        })
 
       # other fixtures for query testing
       other_report_card = report_card_fixture()
@@ -1840,6 +1852,7 @@ defmodule Lanttern.ReportingTest do
     alias Lanttern.AssessmentsFixtures
     alias Lanttern.CurriculaFixtures
     alias Lanttern.GradingFixtures
+    alias Lanttern.LearningContext
     alias Lanttern.LearningContextFixtures
     alias Lanttern.TaxonomyFixtures
 
@@ -1968,6 +1981,46 @@ defmodule Lanttern.ReportingTest do
 
       assert expected_class_1.id == class_1.id
       assert expected_class_2.id == class_2.id
+    end
+
+    test "list_moment_cards_and_attachments_shared_with_students/1 returns all cards and attachments for the given moment" do
+      moment = LearningContextFixtures.moment_fixture()
+
+      moment_card =
+        LearningContextFixtures.moment_card_fixture(%{
+          moment_id: moment.id,
+          shared_with_students: true
+        })
+
+      _not_shared_card =
+        LearningContextFixtures.moment_card_fixture(%{
+          moment_id: moment.id,
+          shared_with_students: false
+        })
+
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+
+      {:ok, attachment} =
+        LearningContext.create_moment_card_attachment(
+          profile.id,
+          moment_card.id,
+          %{"name" => "attachment", "link" => "https://somevaliduri.com"},
+          true
+        )
+
+      {:ok, _not_shared_attachment} =
+        LearningContext.create_moment_card_attachment(
+          profile.id,
+          moment_card.id,
+          %{"name" => "attachment", "link" => "https://somevaliduri.com"}
+        )
+
+      [expected_card] =
+        Reporting.list_moment_cards_and_attachments_shared_with_students(moment.id)
+
+      assert expected_card.id == moment_card.id
+      [expected_attachment] = expected_card.attachments
+      assert expected_attachment.id == attachment.id
     end
   end
 end
