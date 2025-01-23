@@ -764,6 +764,7 @@ defmodule Lanttern.LearningContextTest do
 
   describe "moment_cards" do
     alias Lanttern.LearningContext.MomentCard
+    alias Lanttern.LearningContextLog.MomentCardLog
 
     import Lanttern.LearningContextFixtures
     alias Lanttern.IdentityFixtures
@@ -832,6 +833,9 @@ defmodule Lanttern.LearningContextTest do
     test "create_moment_card/1 with valid data creates a moment_card" do
       moment = moment_fixture()
 
+      # profile to test log
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+
       valid_attrs = %{
         name: "some name",
         position: 42,
@@ -839,11 +843,31 @@ defmodule Lanttern.LearningContextTest do
         moment_id: moment.id
       }
 
-      assert {:ok, %MomentCard{} = moment_card} = LearningContext.create_moment_card(valid_attrs)
+      assert {:ok, %MomentCard{} = moment_card} =
+               LearningContext.create_moment_card(valid_attrs, log_profile_id: profile.id)
+
       assert moment_card.name == "some name"
       assert moment_card.position == 42
       assert moment_card.description == "some description"
       assert moment_card.moment_id == moment.id
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+
+        moment_card_log =
+          Repo.get_by!(MomentCardLog,
+            moment_card_id: moment_card.id
+          )
+
+        assert moment_card_log.moment_card_id == moment_card.id
+        assert moment_card_log.profile_id == profile.id
+        assert moment_card_log.operation == "CREATE"
+
+        assert moment_card_log.name == moment_card.name
+        assert moment_card_log.position == moment_card.position
+        assert moment_card_log.description == moment_card.description
+        assert moment_card_log.moment_id == moment_card.moment_id
+      end)
     end
 
     test "create_moment_card/1 with invalid data returns error changeset" do
@@ -853,6 +877,9 @@ defmodule Lanttern.LearningContextTest do
     test "update_moment_card/2 with valid data updates the moment_card" do
       moment_card = moment_card_fixture()
 
+      # profile to test log
+      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+
       update_attrs = %{
         name: "some updated name",
         position: 43,
@@ -860,11 +887,31 @@ defmodule Lanttern.LearningContextTest do
       }
 
       assert {:ok, %MomentCard{} = moment_card} =
-               LearningContext.update_moment_card(moment_card, update_attrs)
+               LearningContext.update_moment_card(moment_card, update_attrs,
+                 log_profile_id: profile.id
+               )
 
       assert moment_card.name == "some updated name"
       assert moment_card.position == 43
       assert moment_card.description == "some updated description"
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+
+        moment_card_log =
+          Repo.get_by!(MomentCardLog,
+            moment_card_id: moment_card.id
+          )
+
+        assert moment_card_log.moment_card_id == moment_card.id
+        assert moment_card_log.profile_id == profile.id
+        assert moment_card_log.operation == "UPDATE"
+
+        assert moment_card_log.name == moment_card.name
+        assert moment_card_log.position == moment_card.position
+        assert moment_card_log.description == moment_card.description
+        assert moment_card_log.moment_id == moment_card.moment_id
+      end)
     end
 
     test "update_moment_card/2 with invalid data returns error changeset" do
@@ -887,12 +934,23 @@ defmodule Lanttern.LearningContextTest do
           %{"name" => "attachment", "link" => "https://somevaliduri.com"}
         )
 
-      assert {:ok, %MomentCard{}} = LearningContext.delete_moment_card(moment_card)
+      assert {:ok, %MomentCard{}} =
+               LearningContext.delete_moment_card(moment_card, log_profile_id: profile.id)
+
       assert_raise Ecto.NoResultsError, fn -> LearningContext.get_moment_card!(moment_card.id) end
       assert_raise Ecto.NoResultsError, fn -> Attachments.get_attachment!(attachment.id) end
 
       on_exit(fn ->
         assert_supervised_tasks_are_down()
+
+        moment_card_log =
+          Repo.get_by!(MomentCardLog,
+            moment_card_id: moment_card.id
+          )
+
+        assert moment_card_log.moment_card_id == moment_card.id
+        assert moment_card_log.profile_id == profile.id
+        assert moment_card_log.operation == "DELETE"
       end)
     end
 

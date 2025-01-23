@@ -397,7 +397,9 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
   end
 
   def handle_event("delete", _, socket) do
-    LearningContext.delete_moment_card(socket.assigns.moment_card)
+    LearningContext.delete_moment_card(socket.assigns.moment_card,
+      log_profile_id: socket.assigns.current_user.current_profile_id
+    )
     |> case do
       {:ok, _moment_card} ->
         # we notify using the assigned moment card
@@ -432,7 +434,9 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
         socket.assigns.moment_card.moment_id
       )
 
-    LearningContext.create_moment_card(moment_card_params)
+    LearningContext.create_moment_card(moment_card_params,
+      log_profile_id: socket.assigns.current_user.current_profile_id
+    )
     |> case do
       {:ok, moment_card} ->
         notify(__MODULE__, {:created, moment_card}, socket.assigns)
@@ -452,7 +456,8 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
   defp save_moment_card(socket, _id, moment_card_params) do
     LearningContext.update_moment_card(
       socket.assigns.moment_card,
-      moment_card_params
+      moment_card_params,
+      log_profile_id: socket.assigns.current_user.current_profile_id
     )
     |> case do
       {:ok, moment_card} ->

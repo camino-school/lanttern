@@ -17,6 +17,7 @@ defmodule Lanttern.LearningContext do
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.MomentCard
   alias Lanttern.LearningContext.MomentCardAttachment
+  alias Lanttern.LearningContextLog
 
   @doc """
   Returns the list of strands ordered alphabetically.
@@ -810,6 +811,10 @@ defmodule Lanttern.LearningContext do
   @doc """
   Creates a moment_card.
 
+  ## Options:
+
+  - `:log_profile_id` - logs the operation, linked to given profile
+
   ## Examples
 
       iex> create_moment_card(%{field: value})
@@ -819,11 +824,12 @@ defmodule Lanttern.LearningContext do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_moment_card(attrs \\ %{}) do
+  def create_moment_card(attrs \\ %{}, opts \\ []) do
     %MomentCard{}
     |> MomentCard.changeset(attrs)
     |> set_moment_card_position()
     |> Repo.insert()
+    |> LearningContextLog.maybe_create_moment_card_log("CREATE", opts)
   end
 
   # skip if not valid
@@ -859,6 +865,10 @@ defmodule Lanttern.LearningContext do
   @doc """
   Updates a moment_card.
 
+  ## Options:
+
+  - `:log_profile_id` - logs the operation, linked to given profile
+
   ## Examples
 
       iex> update_moment_card(moment_card, %{field: new_value})
@@ -868,10 +878,11 @@ defmodule Lanttern.LearningContext do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_moment_card(%MomentCard{} = moment_card, attrs) do
+  def update_moment_card(%MomentCard{} = moment_card, attrs, opts \\ []) do
     moment_card
     |> MomentCard.changeset(attrs)
     |> Repo.update()
+    |> LearningContextLog.maybe_create_moment_card_log("UPDATE", opts)
   end
 
   @doc """
@@ -917,6 +928,10 @@ defmodule Lanttern.LearningContext do
   After the whole operation, in case of success, we trigger a request for deleting
   the attachments from the cloud (if they are internal).
 
+  ## Options:
+
+  - `:log_profile_id` - logs the operation, linked to given profile
+
   ## Examples
 
       iex> delete_moment_card(moment_card)
@@ -926,7 +941,7 @@ defmodule Lanttern.LearningContext do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_moment_card(%MomentCard{} = moment_card) do
+  def delete_moment_card(%MomentCard{} = moment_card, opts \\ []) do
     attachments_query =
       from(
         a in Attachment,
@@ -950,6 +965,7 @@ defmodule Lanttern.LearningContext do
       {:error, _name, value, _changes_so_far} ->
         {:error, value}
     end
+    |> LearningContextLog.maybe_create_moment_card_log("DELETE", opts)
   end
 
   @doc """
