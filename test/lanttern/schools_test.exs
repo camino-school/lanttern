@@ -380,7 +380,10 @@ defmodule Lanttern.SchoolsTest do
 
       # put students only in class a
       student_x =
-        student_fixture(%{name: "XXX", classes_ids: [class_a_23.id, class_a_24.id, class_a_25.id]})
+        student_fixture(%{
+          name: "XXX",
+          classes_ids: [class_a_23.id, class_a_24.id, class_a_25.id]
+        })
 
       student_y = student_fixture(%{name: "YYY", classes_ids: [class_a_25.id]})
       student_z = student_fixture(%{name: "ZZZ", classes_ids: [class_a_25.id]})
@@ -420,8 +423,12 @@ defmodule Lanttern.SchoolsTest do
       # extra class for filtering test
       _class_from_another_school = class_fixture()
 
-      teacher = teacher_fixture(%{school_id: school.id})
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture(%{teacher_id: teacher.id})
+      staff_member = staff_member_fixture(%{school_id: school.id})
+
+      profile =
+        Lanttern.IdentityFixtures.staff_member_profile_fixture(%{
+          staff_member_id: staff_member.id
+        })
 
       user = %Lanttern.Identity.User{current_profile: %{profile | school_id: school.id}}
 
@@ -436,7 +443,7 @@ defmodule Lanttern.SchoolsTest do
 
       user = %{
         current_profile:
-          Lanttern.Identity.get_profile!(profile.id, preloads: [:teacher, :student])
+          Lanttern.Identity.get_profile!(profile.id, preloads: [:staff_member, :student])
       }
 
       assert {:error, "User not allowed to list classes"} == Schools.list_user_classes(user)
@@ -480,14 +487,14 @@ defmodule Lanttern.SchoolsTest do
       class = class_fixture(%{school_id: school.id})
 
       user =
-        Lanttern.IdentityFixtures.current_teacher_user_fixture(%{school_id: school.id}, [
+        Lanttern.IdentityFixtures.current_staff_member_user_fixture(%{school_id: school.id}, [
           "school_management"
         ])
 
       assert Schools.get_class(class.id, check_permissions_for_user: user) == class
 
       school_user_without_management_permission =
-        Lanttern.IdentityFixtures.current_teacher_user_fixture(%{school_id: school.id})
+        Lanttern.IdentityFixtures.current_staff_member_user_fixture(%{school_id: school.id})
 
       assert Schools.get_class(class.id,
                check_permissions_for_user: school_user_without_management_permission
@@ -495,7 +502,7 @@ defmodule Lanttern.SchoolsTest do
              |> is_nil()
 
       manager_from_other_school =
-        Lanttern.IdentityFixtures.current_teacher_user_fixture(%{}, ["school_management"])
+        Lanttern.IdentityFixtures.current_staff_member_user_fixture(%{}, ["school_management"])
 
       assert Schools.get_class(class.id, check_permissions_for_user: manager_from_other_school)
              |> is_nil()
@@ -910,76 +917,81 @@ defmodule Lanttern.SchoolsTest do
     end
   end
 
-  describe "teachers" do
-    alias Lanttern.Schools.Teacher
+  describe "staff" do
+    alias Lanttern.Schools.StaffMember
 
     @invalid_attrs %{name: nil}
 
-    test "list_teachers/1 returns all teachers" do
-      teacher = teacher_fixture()
-      assert Schools.list_teachers() == [teacher]
+    test "list_staff_members/1 returns all staff members" do
+      staff_member = staff_member_fixture()
+      assert Schools.list_staff_members() == [staff_member]
     end
 
-    test "list_teachers/1 with opts returns all students as expected" do
+    test "list_staff_members/1 with opts returns all students as expected" do
       school = school_fixture()
-      teacher = teacher_fixture(%{school_id: school.id})
+      staff_member = staff_member_fixture(%{school_id: school.id})
 
-      [expected_teacher] = Schools.list_teachers(preloads: :school)
+      [expected_staff_member] = Schools.list_staff_members(preloads: :school)
 
       # assert school is preloaded
-      assert expected_teacher.id == teacher.id
-      assert expected_teacher.school == school
+      assert expected_staff_member.id == staff_member.id
+      assert expected_staff_member.school == school
     end
 
-    test "get_teacher!/1 returns the teacher with given id" do
-      teacher = teacher_fixture()
-      assert Schools.get_teacher!(teacher.id) == teacher
+    test "get_staff_member!/1 returns the staff member with given id" do
+      staff_member = staff_member_fixture()
+      assert Schools.get_staff_member!(staff_member.id) == staff_member
     end
 
-    test "get_teacher!/2 with preloads returns the teacher with given id and preloaded data" do
+    test "get_staff_member!/2 with preloads returns the staff member with given id and preloaded data" do
       school = school_fixture()
-      teacher = teacher_fixture(%{school_id: school.id})
+      staff_member = staff_member_fixture(%{school_id: school.id})
 
-      expected_teacher = Schools.get_teacher!(teacher.id, preloads: :school)
-      assert expected_teacher.id == teacher.id
-      assert expected_teacher.school == school
+      expected_staff_member = Schools.get_staff_member!(staff_member.id, preloads: :school)
+      assert expected_staff_member.id == staff_member.id
+      assert expected_staff_member.school == school
     end
 
-    test "create_teacher/1 with valid data creates a teacher" do
+    test "create_staff_member/1 with valid data creates a staff member" do
       school = school_fixture()
       valid_attrs = %{school_id: school.id, name: "some name"}
 
-      assert {:ok, %Teacher{} = teacher} = Schools.create_teacher(valid_attrs)
-      assert teacher.name == "some name"
+      assert {:ok, %StaffMember{} = staff_member} = Schools.create_staff_member(valid_attrs)
+      assert staff_member.name == "some name"
     end
 
-    test "create_teacher/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Schools.create_teacher(@invalid_attrs)
+    test "create_staff_member/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Schools.create_staff_member(@invalid_attrs)
     end
 
-    test "update_teacher/2 with valid data updates the teacher" do
-      teacher = teacher_fixture()
+    test "update_staff_member/2 with valid data updates the staff member" do
+      staff_member = staff_member_fixture()
       update_attrs = %{name: "some updated name"}
 
-      assert {:ok, %Teacher{} = teacher} = Schools.update_teacher(teacher, update_attrs)
-      assert teacher.name == "some updated name"
+      assert {:ok, %StaffMember{} = staff_member} =
+               Schools.update_staff_member(staff_member, update_attrs)
+
+      assert staff_member.name == "some updated name"
     end
 
-    test "update_teacher/2 with invalid data returns error changeset" do
-      teacher = teacher_fixture()
-      assert {:error, %Ecto.Changeset{}} = Schools.update_teacher(teacher, @invalid_attrs)
-      assert teacher == Schools.get_teacher!(teacher.id)
+    test "update_staff_member/2 with invalid data returns error changeset" do
+      staff_member = staff_member_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Schools.update_staff_member(staff_member, @invalid_attrs)
+
+      assert staff_member == Schools.get_staff_member!(staff_member.id)
     end
 
-    test "delete_teacher/1 deletes the teacher" do
-      teacher = teacher_fixture()
-      assert {:ok, %Teacher{}} = Schools.delete_teacher(teacher)
-      assert_raise Ecto.NoResultsError, fn -> Schools.get_teacher!(teacher.id) end
+    test "delete_staff_member/1 deletes the staff member" do
+      staff_member = staff_member_fixture()
+      assert {:ok, %StaffMember{}} = Schools.delete_staff_member(staff_member)
+      assert_raise Ecto.NoResultsError, fn -> Schools.get_staff_member!(staff_member.id) end
     end
 
-    test "change_teacher/1 returns a teacher changeset" do
-      teacher = teacher_fixture()
-      assert %Ecto.Changeset{} = Schools.change_teacher(teacher)
+    test "change_staff_member/1 returns a staff member changeset" do
+      staff_member = staff_member_fixture()
+      assert %Ecto.Changeset{} = Schools.change_staff_member(staff_member)
     end
   end
 
@@ -1078,69 +1090,75 @@ defmodule Lanttern.SchoolsTest do
       assert returned_csv_std_6.name == csv_std_6.name
     end
 
-    test "create_teachers_from_csv/2 creates teachers, and returns a list with the registration status for each row" do
+    test "create_staff_members_from_csv/2 creates staff members, and returns a list with the registration status for each row" do
       school = school_fixture()
       user = Lanttern.IdentityFixtures.user_fixture(email: "existing-user@school.com")
 
-      csv_teacher_1 = %{
+      csv_staff_member_1 = %{
         name: "Teacher A",
         email: "teacher-a@school.com"
       }
 
-      csv_teacher_2 = %{
+      csv_staff_member_2 = %{
         name: "Teacher A same user",
         email: "teacher-a@school.com"
       }
 
-      csv_teacher_3 = %{
+      csv_staff_member_3 = %{
         name: "With existing user email",
         email: "existing-user@school.com"
       }
 
-      csv_teacher_4 = %{
+      csv_staff_member_4 = %{
         name: "No email",
         email: ""
       }
 
-      csv_teacher_5 = %{
+      csv_staff_member_5 = %{
         name: "",
         email: "teacher-x@school.com"
       }
 
-      csv_teachers = [csv_teacher_1, csv_teacher_2, csv_teacher_3, csv_teacher_4, csv_teacher_5]
+      csv_staff_members = [
+        csv_staff_member_1,
+        csv_staff_member_2,
+        csv_staff_member_3,
+        csv_staff_member_4,
+        csv_staff_member_5
+      ]
 
       {:ok, expected} =
-        Schools.create_teachers_from_csv(csv_teachers, school.id)
+        Schools.create_staff_members_from_csv(csv_staff_members, school.id)
 
       [
-        {returned_csv_teacher_1, {:ok, teacher_1}},
-        {returned_csv_teacher_2, {:ok, teacher_2}},
-        {returned_csv_teacher_3, {:ok, teacher_3}},
-        {returned_csv_teacher_4, {:ok, teacher_4}},
-        {returned_csv_teacher_5, {:error, _error}}
+        {returned_csv_staff_member_1, {:ok, teacher_1}},
+        {returned_csv_staff_member_2, {:ok, teacher_2}},
+        {returned_csv_staff_member_3, {:ok, teacher_3}},
+        {returned_csv_staff_member_4, {:ok, teacher_4}},
+        {returned_csv_staff_member_5, {:error, _error}}
       ] = expected
 
       # assert students and classes
 
-      assert returned_csv_teacher_1.name == csv_teacher_1.name
-      assert teacher_1.name == csv_teacher_1.name
-      assert get_user(teacher_1.id, "teacher")
+      assert returned_csv_staff_member_1.name == csv_staff_member_1.name
+      assert teacher_1.name == csv_staff_member_1.name
+      assert get_user(teacher_1.id, "staff")
 
-      assert returned_csv_teacher_2.name == csv_teacher_2.name
-      assert teacher_2.name == csv_teacher_2.name
-      assert get_user(teacher_2.id, "teacher")
+      assert returned_csv_staff_member_2.name == csv_staff_member_2.name
+      assert teacher_2.name == csv_staff_member_2.name
+      assert get_user(teacher_2.id, "staff")
 
-      assert get_user(teacher_1.id, "teacher") == get_user(teacher_2.id, "teacher")
+      assert get_user(teacher_1.id, "staff") == get_user(teacher_2.id, "staff")
 
-      assert returned_csv_teacher_3.name == csv_teacher_3.name
-      assert teacher_3.name == csv_teacher_3.name
-      assert get_user(teacher_3.id, "teacher").id == user.id
+      assert returned_csv_staff_member_3.name == csv_staff_member_3.name
+      assert teacher_3.name == csv_staff_member_3.name
+      assert get_user(teacher_3.id, "staff").id == user.id
 
-      assert returned_csv_teacher_4.name == csv_teacher_4.name
-      assert teacher_4.name == csv_teacher_4.name
-      refute get_user(teacher_4.id, "teacher")
+      assert returned_csv_staff_member_4.name == csv_staff_member_4.name
+      assert teacher_4.name == csv_staff_member_4.name
+      refute get_user(teacher_4.id, "staff")
 
-      assert returned_csv_teacher_5.name == csv_teacher_5.name
+      assert returned_csv_staff_member_5.name == csv_staff_member_5.name
     end
 
     defp get_user(id, "student") do
@@ -1155,10 +1173,10 @@ defmodule Lanttern.SchoolsTest do
       |> Lanttern.Repo.one!()
     end
 
-    defp get_user(id, "teacher") do
-      from(t in Schools.Teacher,
+    defp get_user(id, "staff") do
+      from(t in Schools.StaffMember,
         left_join: p in Lanttern.Identity.Profile,
-        on: p.teacher_id == t.id,
+        on: p.staff_member_id == t.id,
         left_join: u in Lanttern.Identity.User,
         on: u.id == p.user_id,
         where: t.id == ^id,

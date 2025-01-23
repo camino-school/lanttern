@@ -6,7 +6,7 @@ defmodule LantternWeb.RubricsLiveTest do
 
   @live_view_path "/rubrics"
 
-  setup [:register_and_log_in_teacher, :create_scales]
+  setup [:register_and_log_in_staff_member, :create_scales]
 
   describe "Rubrics live view basic navigation" do
     test "disconnected and connected mount", %{conn: conn} do
@@ -212,7 +212,10 @@ defmodule LantternWeb.RubricsLiveTest do
         })
 
       ordinal_value =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: scale_ord.id, name: "ordinal value abc"})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: scale_ord.id,
+          name: "ordinal value abc"
+        })
 
       %{
         scale_ord: scale_ord,

@@ -5,7 +5,8 @@ defmodule Lanttern.Personalization do
   ### Permissions info
 
   - `wcd` - control access to student records
-  - `school_management` - control access to classes, students, and teachers management
+  - `school_management` - control access to classes, students, and staff management
+  - `content_management` - control content related configurations
   """
 
   import Ecto.Query, warn: false

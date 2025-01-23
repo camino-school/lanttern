@@ -17,8 +17,8 @@ defmodule LantternWeb.UserAuthTest do
 
     user = user_fixture()
     school = Lanttern.SchoolsFixtures.school_fixture()
-    teacher = Lanttern.SchoolsFixtures.teacher_fixture(%{school_id: school.id})
-    profile = teacher_profile_fixture(%{user_id: user.id, teacher_id: teacher.id})
+    staff_member = Lanttern.SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+    profile = staff_member_profile_fixture(%{user_id: user.id, staff_member_id: staff_member.id})
     {:ok, user} = Identity.update_user_current_profile_id(user, profile.id)
 
     %{conn: conn, user: user, profile: profile, school: school}

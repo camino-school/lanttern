@@ -69,7 +69,7 @@ defmodule LantternWeb.Admin.NoteLive.FormComponent do
 
   defp save_note(socket, :edit, note_params) do
     case Notes.update_note(socket.assigns.note, note_params,
-           preloads: [author: [:student, :teacher]]
+           preloads: [author: [:student, :staff_member]]
          ) do
       {:ok, note} ->
         notify_parent({:saved, note})
@@ -85,7 +85,7 @@ defmodule LantternWeb.Admin.NoteLive.FormComponent do
   end
 
   defp save_note(socket, :new, note_params) do
-    case Notes.create_note(note_params, preloads: [author: [:student, :teacher]]) do
+    case Notes.create_note(note_params, preloads: [author: [:student, :staff_member]]) do
       {:ok, note} ->
         notify_parent({:saved, note})
 

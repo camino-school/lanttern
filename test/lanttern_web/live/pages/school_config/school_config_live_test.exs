@@ -6,7 +6,7 @@ defmodule LantternWeb.SchoolConfigLiveTest do
 
   @live_view_base_path "/school_config"
 
-  setup [:register_and_log_in_teacher]
+  setup [:register_and_log_in_staff_member]
 
   describe "School config live view basic navigation" do
     test "disconnected and connected mount", %{conn: conn} do

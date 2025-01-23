@@ -40,12 +40,12 @@ defmodule LantternWeb.ConnCase do
   @doc """
   Setup helper that registers and logs in users.
 
-      setup :register_and_log_in_teacher
+      setup :register_and_log_in_staff_member
 
-  It stores an updated connection and a registered user and teacher in the test context.
+  It stores an updated connection and a registered user and staff member in the test context.
   """
-  def register_and_log_in_teacher(%{conn: conn} = context) do
-    # use existing context user. useful to register a teacher root admin
+  def register_and_log_in_staff_member(%{conn: conn} = context) do
+    # use existing context user. useful to register a staff member root admin
     user =
       case context do
         %{user: user} -> user
@@ -56,12 +56,12 @@ defmodule LantternWeb.ConnCase do
     {:ok, user} = Lanttern.Identity.update_user_privacy_policy_accepted(user, "some meta")
 
     # logged in users should always have a current_profile
-    teacher = Lanttern.SchoolsFixtures.teacher_fixture()
+    staff_member = Lanttern.SchoolsFixtures.staff_member_fixture()
 
     profile =
-      Lanttern.IdentityFixtures.teacher_profile_fixture(%{
+      Lanttern.IdentityFixtures.staff_member_profile_fixture(%{
         user_id: user.id,
-        teacher_id: teacher.id
+        staff_member_id: staff_member.id
       })
 
     Lanttern.Identity.update_user_current_profile_id(user, profile.id)
@@ -69,20 +69,20 @@ defmodule LantternWeb.ConnCase do
     # emulate Identity.get_user_by_session_token/1 to preload profile into user
     user =
       Lanttern.Identity.get_user!(user.id)
-      |> Lanttern.Repo.preload(current_profile: [teacher: :school])
+      |> Lanttern.Repo.preload(current_profile: [staff_member: :school])
       |> Map.update!(:current_profile, fn profile ->
         %Lanttern.Identity.Profile{
           id: profile.id,
-          name: profile.teacher.name,
-          type: "teacher",
-          school_id: profile.teacher.school.id,
-          school_name: profile.teacher.school.name
+          name: profile.staff_member.name,
+          type: "staff",
+          school_id: profile.staff_member.school.id,
+          school_name: profile.staff_member.school.name
         }
       end)
       # profile should always have a current school cycle
       |> inject_current_school_cycle()
 
-    %{conn: log_in_user(conn, user), user: user, teacher: teacher}
+    %{conn: log_in_user(conn, user), user: user, staff_member: staff_member}
   end
 
   @doc """

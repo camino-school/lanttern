@@ -6,7 +6,7 @@ defmodule LantternWeb.Admin.NoteLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :notes, Notes.list_notes(preloads: [author: [:teacher, :student]]))}
+    {:ok, stream(socket, :notes, Notes.list_notes(preloads: [author: [:staff_member, :student]]))}
   end
 
   @impl true

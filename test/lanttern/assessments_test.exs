@@ -515,7 +515,7 @@ defmodule Lanttern.AssessmentsTest do
       student = Lanttern.SchoolsFixtures.student_fixture()
 
       # profile to test log
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       valid_attrs = %{
         assessment_point_id: assessment_point.id,
@@ -634,7 +634,7 @@ defmodule Lanttern.AssessmentsTest do
       update_attrs = %{observation: "some updated observation"}
 
       # profile to test log
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
                Assessments.update_assessment_point_entry(assessment_point_entry, update_attrs,
@@ -685,7 +685,7 @@ defmodule Lanttern.AssessmentsTest do
       assessment_point_entry = assessment_point_entry_fixture()
 
       # profile to test log
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       assert {:ok, %AssessmentPointEntry{}} =
                Assessments.delete_assessment_point_entry(assessment_point_entry,
@@ -711,7 +711,7 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "delete_assessment_point_entry/2 deletes the note and its linked attachments" do
-      profile = IdentityFixtures.teacher_profile_fixture()
+      profile = IdentityFixtures.staff_member_profile_fixture()
       assessment_point_entry = assessment_point_entry_fixture()
 
       {:ok, attachment_1} =
@@ -799,7 +799,7 @@ defmodule Lanttern.AssessmentsTest do
     test "create_feedback/2 with valid data creates a feedback" do
       assessment_point = assessment_point_fixture()
       student = Lanttern.SchoolsFixtures.student_fixture()
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       valid_attrs = %{
         assessment_point_id: assessment_point.id,
@@ -815,7 +815,7 @@ defmodule Lanttern.AssessmentsTest do
     test "create_feedback/2 with preloads returns created feedback with preloaded data" do
       assessment_point = assessment_point_fixture()
       student = Lanttern.SchoolsFixtures.student_fixture()
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       valid_attrs = %{
         assessment_point_id: assessment_point.id,

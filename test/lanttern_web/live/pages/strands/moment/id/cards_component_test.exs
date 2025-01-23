@@ -5,7 +5,7 @@ defmodule LantternWeb.MomentLive.CardsComponentTest do
 
   @live_view_base_path "/strands/moment"
 
-  setup [:register_and_log_in_teacher]
+  setup [:register_and_log_in_staff_member]
 
   describe "Moment cards" do
     test "display existing moment cards", %{conn: conn} do

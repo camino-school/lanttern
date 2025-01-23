@@ -66,7 +66,7 @@ defmodule LantternWeb.GuardianHomeLiveTest do
         })
 
       StudentsCycleInfo.create_student_cycle_info_attachment(
-        IdentityFixtures.teacher_profile_fixture().id,
+        IdentityFixtures.staff_member_profile_fixture().id,
         student_cycle_info.id,
         %{
           "name" => "some attachment",

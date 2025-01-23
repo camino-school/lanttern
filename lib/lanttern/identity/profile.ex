@@ -9,8 +9,8 @@ defmodule Lanttern.Identity.Profile do
   alias Lanttern.Identity.User
   alias Lanttern.Notes.Note
   alias Lanttern.Schools.Cycle
+  alias Lanttern.Schools.StaffMember
   alias Lanttern.Schools.Student
-  alias Lanttern.Schools.Teacher
   alias Lanttern.Personalization.ProfileSettings
 
   @type t :: %__MODULE__{
@@ -26,8 +26,8 @@ defmodule Lanttern.Identity.Profile do
           user_id: pos_integer(),
           student: Student.t(),
           student_id: pos_integer(),
-          teacher: Teacher.t(),
-          teacher_id: pos_integer(),
+          staff_member: StaffMember.t(),
+          staff_member_id: pos_integer(),
           guardian_of_student: Student.t(),
           guardian_of_student_id: pos_integer(),
           notes: [Note.t()],
@@ -41,7 +41,7 @@ defmodule Lanttern.Identity.Profile do
     field :current_locale, :string, default: "en"
 
     # used to optimize session user, avoiding
-    # student, teacher, and school structs preloads
+    # student, staff member, guardian, and school structs preloads
     field :name, :string, virtual: true
     field :school_id, :id, virtual: true
     field :school_name, :string, virtual: true
@@ -50,7 +50,7 @@ defmodule Lanttern.Identity.Profile do
 
     belongs_to :user, User
     belongs_to :student, Student
-    belongs_to :teacher, Teacher
+    belongs_to :staff_member, StaffMember
     belongs_to :guardian_of_student, Student
 
     has_many :notes, Note, foreign_key: :author_id
@@ -66,7 +66,7 @@ defmodule Lanttern.Identity.Profile do
     |> cast(attrs, [
       :type,
       :user_id,
-      :teacher_id,
+      :staff_member_id,
       :student_id,
       :guardian_of_student_id,
       :current_locale
@@ -81,12 +81,12 @@ defmodule Lanttern.Identity.Profile do
       "student" ->
         changeset
         |> validate_required([:student_id])
-        |> put_change(:teacher_id, nil)
+        |> put_change(:staff_member_id, nil)
         |> put_change(:guardian_of_student_id, nil)
 
-      "teacher" ->
+      "staff" ->
         changeset
-        |> validate_required([:teacher_id])
+        |> validate_required([:staff_member_id])
         |> put_change(:student_id, nil)
         |> put_change(:guardian_of_student_id, nil)
 
@@ -94,11 +94,11 @@ defmodule Lanttern.Identity.Profile do
         changeset
         |> validate_required([:guardian_of_student_id])
         |> put_change(:student_id, nil)
-        |> put_change(:teacher_id, nil)
+        |> put_change(:staff_member_id, nil)
 
       _ ->
         changeset
-        |> add_error(:type, "Type should be student, teacher, or guardian")
+        |> add_error(:type, "Type should be student, staff, or guardian")
     end
   end
 end

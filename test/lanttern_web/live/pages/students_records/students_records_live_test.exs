@@ -7,7 +7,7 @@ defmodule LantternWeb.StudentsRecordsLiveTest do
   @live_view_base_path "/students_records"
 
   describe "Students records live view basic navigation" do
-    setup [:register_and_log_in_teacher, :add_wcd_permissions]
+    setup [:register_and_log_in_staff_member, :add_wcd_permissions]
 
     test "disconnected and connected mount", %{conn: conn} do
       conn = get(conn, @live_view_base_path)
@@ -53,7 +53,7 @@ defmodule LantternWeb.StudentsRecordsLiveTest do
   end
 
   describe "Students records live view access" do
-    setup [:register_and_log_in_teacher]
+    setup [:register_and_log_in_staff_member]
 
     test "user without wcd permission is not allowed to access students records", %{conn: conn} do
       assert_raise(LantternWeb.NotFoundError, fn -> live(conn, @live_view_base_path) end)
@@ -61,7 +61,7 @@ defmodule LantternWeb.StudentsRecordsLiveTest do
   end
 
   describe "Student record details" do
-    setup [:register_and_log_in_teacher, :add_wcd_permissions]
+    setup [:register_and_log_in_staff_member, :add_wcd_permissions]
 
     test "view student record details", %{conn: conn, user: user} do
       school_id = user.current_profile.school_id
@@ -101,7 +101,7 @@ defmodule LantternWeb.StudentsRecordsLiveTest do
   end
 
   describe "Student record live school-based access" do
-    setup [:register_and_log_in_teacher, :add_wcd_permissions]
+    setup [:register_and_log_in_staff_member, :add_wcd_permissions]
 
     test "view records from other schools is not allowed", %{conn: conn} do
       student_record = StudentsRecordsFixtures.student_record_fixture()

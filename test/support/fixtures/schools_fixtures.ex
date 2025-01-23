@@ -85,18 +85,18 @@ defmodule Lanttern.SchoolsFixtures do
   end
 
   @doc """
-  Generate a teacher.
+  Generate a staff member.
   """
-  def teacher_fixture(attrs \\ %{}) do
-    {:ok, teacher} =
+  def staff_member_fixture(attrs \\ %{}) do
+    {:ok, staff_member} =
       attrs
       |> Enum.into(%{
         school_id: maybe_gen_school_id(attrs),
         name: "some full name #{Ecto.UUID.generate()}"
       })
-      |> Lanttern.Schools.create_teacher()
+      |> Lanttern.Schools.create_staff_member()
 
-    teacher
+    staff_member
   end
 
   # generator helpers

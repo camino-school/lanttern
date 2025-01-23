@@ -532,41 +532,41 @@ defmodule Lanttern.IdentityTest do
     end
 
     test "list_profiles/1 with preloads and filter by type returns all profiles as expected" do
-      teacher = teacher_fixture()
-      teacher_profile = teacher_profile_fixture(%{teacher_id: teacher.id})
+      staff_member = staff_member_fixture()
+      staff_member_profile = staff_member_profile_fixture(%{staff_member_id: staff_member.id})
 
       # extra student profile for filtering validation
       student_profile_fixture()
 
-      # assert only one profile (teacher) is listed
+      # assert only one profile (staff member) is listed
       assert [expected_profile] =
                Identity.list_profiles(
-                 type: "teacher",
-                 preloads: :teacher
+                 type: "staff",
+                 preloads: :staff_member
                )
 
-      # assert teacher is preloaded
-      assert expected_profile.id == teacher_profile.id
-      assert expected_profile.teacher.id == teacher.id
+      # assert staff member is preloaded
+      assert expected_profile.id == staff_member_profile.id
+      assert expected_profile.staff_member.id == staff_member.id
     end
 
     test "list_profiles/1 with filter by user returns all profiles from user" do
       user = user_fixture()
-      teacher_profile = teacher_profile_fixture(%{user_id: user.id})
+      staff_member_profile = staff_member_profile_fixture(%{user_id: user.id})
       student_profile = student_profile_fixture(%{user_id: user.id})
 
       # extra profiles for filtering validation
-      teacher_profile_fixture()
+      staff_member_profile_fixture()
       student_profile_fixture()
 
-      # assert only one profile (teacher) is listed
+      # assert only one profile (staff member) is listed
       expected = Identity.list_profiles(user_id: user.id)
 
       # assert length and correct profiles are returned
       assert length(expected) == 2
 
       for expected_profile <- expected do
-        assert expected_profile.id in [teacher_profile.id, student_profile.id]
+        assert expected_profile.id in [staff_member_profile.id, student_profile.id]
         assert expected_profile.user_id == user.id
       end
     end
@@ -578,13 +578,13 @@ defmodule Lanttern.IdentityTest do
 
     test "create_profile/1 with valid data creates a profile" do
       user = user_fixture()
-      teacher = teacher_fixture()
-      valid_attrs = %{type: "teacher", user_id: user.id, teacher_id: teacher.id}
+      staff_member = staff_member_fixture()
+      valid_attrs = %{type: "staff", user_id: user.id, staff_member_id: staff_member.id}
 
       assert {:ok, %Profile{} = profile} = Identity.create_profile(valid_attrs)
-      assert profile.type == "teacher"
+      assert profile.type == "staff"
       assert profile.user_id == user.id
-      assert profile.teacher_id == teacher.id
+      assert profile.staff_member_id == staff_member.id
     end
 
     test "create_profile/1 with invalid data returns error changeset" do
@@ -592,12 +592,12 @@ defmodule Lanttern.IdentityTest do
     end
 
     test "update_profile/2 with valid data updates the profile" do
-      profile = teacher_profile_fixture()
-      teacher = teacher_fixture()
-      update_attrs = %{teacher_id: teacher.id}
+      profile = staff_member_profile_fixture()
+      staff_member = staff_member_fixture()
+      update_attrs = %{staff_member_id: staff_member.id}
 
       assert {:ok, %Profile{} = profile} = Identity.update_profile(profile, update_attrs)
-      assert profile.teacher_id == teacher.id
+      assert profile.staff_member_id == staff_member.id
     end
 
     test "update_profile/2 with invalid data returns error changeset" do

@@ -98,7 +98,7 @@ defmodule LantternWeb.UserSessionControllerTest do
   describe "DELETE /users/log_out" do
     test "logs the user out", %{conn: conn} do
       conn =
-        register_and_log_in_teacher(%{conn: conn})
+        register_and_log_in_staff_member(%{conn: conn})
         |> Map.get(:conn)
         |> delete(~p"/users/log_out")
 

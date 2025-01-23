@@ -245,7 +245,7 @@ defmodule LantternWeb.UserAuth do
 
   Or use the `live_session` of your router to invoke the on_mount callback:
 
-      live_session :authenticated, on_mount: [{LantternWeb.UserAuth, :ensure_authenticated_teacher}] do
+      live_session :authenticated, on_mount: [{LantternWeb.UserAuth, :ensure_authenticated_staff_member}] do
         live "/profile", ProfileLive, :index
       end
   """
@@ -259,10 +259,10 @@ defmodule LantternWeb.UserAuth do
     |> ensure_authenticated()
   end
 
-  def on_mount(:ensure_authenticated_teacher, _params, session, socket) do
+  def on_mount(:ensure_authenticated_staff_member, _params, session, socket) do
     socket
     |> mount_current_user(session)
-    |> ensure_authenticated("teacher")
+    |> ensure_authenticated("staff")
   end
 
   def on_mount(:ensure_authenticated_student, _params, session, socket) do
@@ -342,7 +342,7 @@ defmodule LantternWeb.UserAuth do
 
   defp ensure_authenticated_redirect(socket) do
     case socket.assigns.current_user do
-      %User{current_profile: %{type: "teacher"}} ->
+      %User{current_profile: %{type: "staff"}} ->
         socket =
           socket
           |> Phoenix.LiveView.redirect(to: ~p"/dashboard")

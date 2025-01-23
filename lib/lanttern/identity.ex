@@ -298,7 +298,11 @@ defmodule Lanttern.Identity do
     query
     |> Repo.one()
     |> Repo.preload(
-      current_profile: [teacher: [:school], student: [:school], guardian_of_student: [:school]]
+      current_profile: [
+        staff_member: [:school],
+        student: [:school],
+        guardian_of_student: [:school]
+      ]
     )
     |> case do
       nil ->
@@ -311,11 +315,11 @@ defmodule Lanttern.Identity do
     end
   end
 
-  defp build_flat_profile(%{type: "teacher", teacher: teacher} = profile) do
+  defp build_flat_profile(%{type: "staff", staff_member: staff_member} = profile) do
     profile
-    |> Map.put(:name, teacher.name)
-    |> Map.put(:school_id, teacher.school.id)
-    |> Map.put(:school_name, teacher.school.name)
+    |> Map.put(:name, staff_member.name)
+    |> Map.put(:school_id, staff_member.school.id)
+    |> Map.put(:school_name, staff_member.school.name)
   end
 
   defp build_flat_profile(%{type: "student", student: student} = profile) do

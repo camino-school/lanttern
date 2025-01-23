@@ -39,12 +39,12 @@ defmodule LantternWeb.StudentReportCardLive do
         height: 640
       )
 
-    is_teacher = socket.assigns.current_user.current_profile.type == "teacher"
+    is_staff_member = socket.assigns.current_user.current_profile.type == "staff"
 
     strand_reports_and_entries =
       Reporting.list_student_report_card_strand_reports_and_entries(
         student_report_card,
-        include_strands_without_entries: is_teacher
+        include_strands_without_entries: is_staff_member
       )
 
     socket =
@@ -107,7 +107,7 @@ defmodule LantternWeb.StudentReportCardLive do
   defp check_if_user_has_access(current_user, %StudentReportCard{} = student_report_card) do
     # check if user can view the student report
     # guardian and students can only view their own reports if allow_access is true
-    # teachers can view only reports from their school
+    # staff members can view only reports from their school
 
     report_card_student_id = student_report_card.student_id
     report_card_student_school_id = student_report_card.student.school_id
@@ -123,7 +123,7 @@ defmodule LantternWeb.StudentReportCardLive do
       when student_id == report_card_student_id and allow_student_access ->
         nil
 
-      %Profile{type: "teacher", school_id: school_id}
+      %Profile{type: "staff", school_id: school_id}
       when school_id == report_card_student_school_id ->
         nil
 

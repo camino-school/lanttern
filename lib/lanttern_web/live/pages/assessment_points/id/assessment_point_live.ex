@@ -280,7 +280,7 @@ defmodule LantternWeb.AssessmentPointLive do
 
         feedback ->
           Assessments.get_feedback!(feedback.id,
-            preloads: [:student, profile: :teacher]
+            preloads: [:student, profile: :staff_member]
           )
       end
 
@@ -292,7 +292,7 @@ defmodule LantternWeb.AssessmentPointLive do
     feedback_author_name =
       case feedback do
         nil -> socket.assigns.current_user.current_profile.name
-        feedback -> feedback.profile.teacher.name
+        feedback -> feedback.profile.staff_member.name
       end
 
     comments =
@@ -303,7 +303,7 @@ defmodule LantternWeb.AssessmentPointLive do
         feedback ->
           Conversation.list_comments(
             feedback_id: feedback.id,
-            preloads: [:completed_feedback, profile: [:teacher, :student]]
+            preloads: [:completed_feedback, profile: [:staff_member, :student]]
           )
       end
 
@@ -323,7 +323,7 @@ defmodule LantternWeb.AssessmentPointLive do
     comment =
       Conversation.get_comment!(
         id,
-        preloads: [:completed_feedback, profile: [:teacher, :student]]
+        preloads: [:completed_feedback, profile: [:staff_member, :student]]
       )
 
     socket =

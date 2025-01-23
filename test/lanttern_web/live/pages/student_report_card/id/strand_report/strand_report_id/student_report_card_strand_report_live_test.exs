@@ -13,10 +13,10 @@ defmodule LantternWeb.StudentReportCardStrandReportLiveTest do
 
   describe "Student strand report live view basic navigation" do
     test "disconnected and connected mount", context do
-      %{conn: conn, teacher: teacher} = register_and_log_in_teacher(context)
+      %{conn: conn, staff_member: staff_member} = register_and_log_in_staff_member(context)
 
       student =
-        SchoolsFixtures.student_fixture(%{name: "Student ABC", school_id: teacher.school_id})
+        SchoolsFixtures.student_fixture(%{name: "Student ABC", school_id: staff_member.school_id})
 
       report_card = report_card_fixture(%{name: "Some report card name abc"})
 
@@ -41,12 +41,12 @@ defmodule LantternWeb.StudentReportCardStrandReportLiveTest do
     end
 
     test "display student strand report correctly", context do
-      %{conn: conn, teacher: teacher} = register_and_log_in_teacher(context)
+      %{conn: conn, staff_member: staff_member} = register_and_log_in_staff_member(context)
 
       cycle = SchoolsFixtures.cycle_fixture(%{name: "Cycle 2024"})
 
       student =
-        SchoolsFixtures.student_fixture(%{name: "Student ABC", school_id: teacher.school_id})
+        SchoolsFixtures.student_fixture(%{name: "Student ABC", school_id: staff_member.school_id})
 
       report_card =
         report_card_fixture(%{school_cycle_id: cycle.id, name: "Some report card name abc"})

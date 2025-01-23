@@ -68,7 +68,7 @@ defmodule LantternWeb.StudentReportCardStrandReportLive do
     %{current_user: current_user, student_report_card: student_report_card} = socket.assigns
     # check if user can view the student strand report
     # guardian and students can only view their own reports
-    # teachers can view only reports from their school
+    # staff members can view only reports from their school
 
     report_card_student_id = student_report_card.student_id
     report_card_student_school_id = student_report_card.student.school_id
@@ -84,7 +84,7 @@ defmodule LantternWeb.StudentReportCardStrandReportLive do
       when student_id == report_card_student_id and allow_student_access ->
         nil
 
-      %Profile{type: "teacher", school_id: school_id}
+      %Profile{type: "staff", school_id: school_id}
       when school_id == report_card_student_school_id ->
         nil
 

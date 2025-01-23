@@ -11,7 +11,7 @@ defmodule Lanttern.PersonalizationTest do
     alias Lanttern.Filters
 
     test "set_profile_current_filters/2 sets current filters in profile settings" do
-      current_profile = teacher_profile_fixture()
+      current_profile = staff_member_profile_fixture()
 
       subjects_ids = [1, 2, 3]
       classes_ids = [4, 5, 6]
@@ -30,7 +30,7 @@ defmodule Lanttern.PersonalizationTest do
     end
 
     test "set_profile_current_filters/2 with only one type of filter keeps the other filters as is" do
-      current_profile = teacher_profile_fixture()
+      current_profile = staff_member_profile_fixture()
 
       # create profile settings with classes ids
       Filters.set_profile_current_filters(

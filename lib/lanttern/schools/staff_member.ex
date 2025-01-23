@@ -1,6 +1,6 @@
-defmodule Lanttern.Schools.Teacher do
+defmodule Lanttern.Schools.StaffMember do
   @moduledoc """
-  The `Teacher` schema
+  The `StaffMember` schema
   """
 
   use Ecto.Schema
@@ -17,7 +17,7 @@ defmodule Lanttern.Schools.Teacher do
           updated_at: DateTime.t()
         }
 
-  schema "teachers" do
+  schema "staff" do
     field :name, :string
 
     belongs_to :school, School
@@ -26,8 +26,8 @@ defmodule Lanttern.Schools.Teacher do
   end
 
   @doc false
-  def changeset(teacher, attrs) do
-    teacher
+  def changeset(staff_member, attrs) do
+    staff_member
     |> cast(attrs, [:name, :school_id])
     |> validate_required([:name, :school_id])
   end

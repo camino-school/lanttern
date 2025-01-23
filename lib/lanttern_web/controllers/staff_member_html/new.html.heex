@@ -1,0 +1,12 @@
+<.header>
+  New staff member
+  <:subtitle>Use this form to manage staff member records in your database.</:subtitle>
+</.header>
+
+<.staff_member_form
+  school_options={@school_options}
+  changeset={@changeset}
+  action={~p"/admin/staff_members"}
+/>
+
+<.back navigate={~p"/admin/staff_members"}>Back to staff members</.back>

@@ -7,7 +7,7 @@ defmodule LantternWeb.Assessments.AssessmentPointEntryEditorComponentTest do
 
   @live_view_path_base "/assessment_points"
 
-  setup [:register_and_log_in_root_admin, :register_and_log_in_teacher]
+  setup [:register_and_log_in_root_admin, :register_and_log_in_staff_member]
 
   describe "Edit assessment point entries in assessment point details live view" do
     test "update assessment point entries when scale is ordinal", %{conn: conn} do

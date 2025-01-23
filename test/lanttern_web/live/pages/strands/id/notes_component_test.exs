@@ -6,7 +6,7 @@ defmodule LantternWeb.StrandLive.NotesComponentTest do
 
   @live_view_base_path "/strands"
 
-  setup [:register_and_log_in_teacher]
+  setup [:register_and_log_in_staff_member]
 
   describe "Strands notes" do
     test "display existing strand and moments note", %{conn: conn, user: user} do

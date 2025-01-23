@@ -249,10 +249,10 @@ defmodule LantternWeb.MenuComponent do
             profile.student.school.name
           }
 
-        "teacher" ->
+        "staff" ->
           {
-            profile.teacher.name,
-            profile.teacher.school.name
+            profile.staff_member.name,
+            profile.staff_member.school.name
           }
 
         "guardian" ->
@@ -418,42 +418,47 @@ defmodule LantternWeb.MenuComponent do
   defp assign_nav_items(socket) do
     all_nav_items = [
       # staff
-      %{profile: "teacher", active: :dashboard, path: ~p"/dashboard", text: gettext("Dashboard")},
-      %{profile: "teacher", active: :strands, path: ~p"/strands", text: gettext("Strands")},
       %{
-        profile: "teacher",
+        profile: "staff",
+        active: :dashboard,
+        path: ~p"/dashboard",
+        text: gettext("Dashboard")
+      },
+      %{profile: "staff", active: :strands, path: ~p"/strands", text: gettext("Strands")},
+      %{
+        profile: "staff",
         active: :students_records,
         path: ~p"/students_records",
         text: gettext("Students records"),
         permission: "wcd"
       },
       %{
-        profile: "teacher",
+        profile: "staff",
         active: :school,
         path: ~p"/school",
         text: gettext("Students and classes")
       },
-      # %{profile: "teacher", active: :rubrics, path: ~p"/rubrics", text: gettext("Rubrics")},
+      # %{profile: "staff", active: :rubrics, path: ~p"/rubrics", text: gettext("Rubrics")},
       %{
-        profile: "teacher",
+        profile: "staff",
         active: :curriculum,
         path: ~p"/curriculum",
         text: gettext("Curriculum")
       },
       %{
-        profile: "teacher",
+        profile: "staff",
         active: :report_cards,
         path: ~p"/report_cards",
         text: gettext("Report cards")
       },
       %{
-        profile: "teacher",
+        profile: "staff",
         active: :grades_reports,
         path: ~p"/grades_reports",
         text: gettext("Grades reports")
       },
       %{
-        profile: "teacher",
+        profile: "staff",
         active: :school_config,
         path: ~p"/school_config/cycles",
         text: gettext("School config")
@@ -557,7 +562,7 @@ defmodule LantternWeb.MenuComponent do
     profiles =
       Identity.list_profiles(
         user_id: socket.assigns.current_user.id,
-        preloads: [teacher: :school, student: :school, guardian_of_student: :school]
+        preloads: [staff_member: :school, student: :school, guardian_of_student: :school]
       )
 
     socket =
@@ -583,7 +588,7 @@ defmodule LantternWeb.MenuComponent do
     # (avoid 404 when permissions are checked on view mount)
     to_path =
       case profile_type do
-        "teacher" -> ~p"/dashboard"
+        "staff" -> ~p"/dashboard"
         "student" -> ~p"/student"
         "guardian" -> ~p"/guardian"
       end

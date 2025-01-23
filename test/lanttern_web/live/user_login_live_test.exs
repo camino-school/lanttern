@@ -22,7 +22,7 @@ defmodule LantternWeb.UserLoginLiveTest do
 
     test "redirects if already logged in", %{conn: conn} do
       result =
-        register_and_log_in_teacher(%{conn: conn})
+        register_and_log_in_staff_member(%{conn: conn})
         |> Map.get(:conn)
         |> live(~p"/users/log_in")
         |> follow_redirect(conn, "/dashboard")

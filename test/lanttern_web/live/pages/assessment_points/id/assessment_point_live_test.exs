@@ -11,7 +11,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
   @live_view_path_base "/assessment_points"
   @overlay_selector "#feedback-overlay"
 
-  setup [:register_and_log_in_root_admin, :register_and_log_in_teacher]
+  setup [:register_and_log_in_root_admin, :register_and_log_in_staff_member]
 
   describe "Assessment point details live view basic navigation" do
     test "disconnected and connected mount", %{conn: conn} do
@@ -495,7 +495,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
     test "from/to is based on the existing feedback", %{
       conn: conn,
       assessment_point: assessment_point,
-      teacher: teacher,
+      staff_member: staff_member,
       student: student
     } do
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
@@ -507,7 +507,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
 
       # assert from/to is correct
       {:ok, regex} =
-        Regex.compile("From.+#{teacher.name}.+To.+#{student.name}", "s")
+        Regex.compile("From.+#{staff_member.name}.+To.+#{student.name}", "s")
 
       assert view
              |> element("#{@overlay_selector}", regex)
@@ -535,12 +535,12 @@ defmodule LantternWeb.AssessmentPointLiveTest do
           assessment_point_id: assessment_point.id,
           student_id: student.id
         })
-        |> Repo.preload(profile: :teacher)
+        |> Repo.preload(profile: :staff_member)
 
       %{
         assessment_point: assessment_point,
         student: student,
-        teacher: feedback.profile.teacher,
+        staff_member: feedback.profile.staff_member,
         feedback: feedback
       }
     end

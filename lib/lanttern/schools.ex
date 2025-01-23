@@ -10,8 +10,8 @@ defmodule Lanttern.Schools do
   alias Lanttern.Schools.School
   alias Lanttern.Schools.Cycle
   alias Lanttern.Schools.Class
+  alias Lanttern.Schools.StaffMember
   alias Lanttern.Schools.Student
-  alias Lanttern.Schools.Teacher
   alias Lanttern.Identity
   alias Lanttern.Identity.User
   alias Lanttern.Identity.Profile
@@ -499,7 +499,7 @@ defmodule Lanttern.Schools do
   """
   def list_user_classes(current_user, opts \\ [])
 
-  def list_user_classes(%User{current_profile: %{type: "teacher", school_id: school_id}}, opts) do
+  def list_user_classes(%User{current_profile: %{type: "staff", school_id: school_id}}, opts) do
     opts = Keyword.put(opts, :schools_ids, [school_id])
     list_classes(opts)
   end
@@ -945,7 +945,7 @@ defmodule Lanttern.Schools do
   end
 
   @doc """
-  Returns the list of teachers.
+  Returns the list of staff members.
 
   ### Options:
 
@@ -953,20 +953,20 @@ defmodule Lanttern.Schools do
 
   ## Examples
 
-      iex> list_teachers()
-      [%Teacher{}, ...]
+      iex> list_staff_members()
+      [%StaffMember{}, ...]
 
   """
-  def list_teachers(opts \\ []) do
-    Teacher
+  def list_staff_members(opts \\ []) do
+    StaffMember
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
   @doc """
-  Gets a single teacher.
+  Gets a single staff member.
 
-  Raises `Ecto.NoResultsError` if the Teacher does not exist.
+  Raises `Ecto.NoResultsError` if the StaffMember does not exist.
 
   ### Options:
 
@@ -974,81 +974,81 @@ defmodule Lanttern.Schools do
 
   ## Examples
 
-      iex> get_teacher!(123)
-      %Teacher{}
+      iex> get_staff_member!(123)
+      %StaffMember{}
 
-      iex> get_teacher!(456)
+      iex> get_staff_member!(456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_teacher!(id, opts \\ []) do
-    Repo.get!(Teacher, id)
+  def get_staff_member!(id, opts \\ []) do
+    Repo.get!(StaffMember, id)
     |> maybe_preload(opts)
   end
 
   @doc """
-  Creates a teacher.
+  Creates a staff member.
 
   ## Examples
 
-      iex> create_teacher(%{field: value})
-      {:ok, %Teacher{}}
+      iex> create_staff_member(%{field: value})
+      {:ok, %StaffMember{}}
 
-      iex> create_teacher(%{field: bad_value})
+      iex> create_staff_member(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_teacher(attrs \\ %{}) do
-    %Teacher{}
-    |> Teacher.changeset(attrs)
+  def create_staff_member(attrs \\ %{}) do
+    %StaffMember{}
+    |> StaffMember.changeset(attrs)
     |> Repo.insert()
   end
 
   @doc """
-  Updates a teacher.
+  Updates a staff member.
 
   ## Examples
 
-      iex> update_teacher(teacher, %{field: new_value})
-      {:ok, %Teacher{}}
+      iex> update_staff_member(staff_member, %{field: new_value})
+      {:ok, %StaffMember{}}
 
-      iex> update_teacher(teacher, %{field: bad_value})
+      iex> update_staff_member(staff_member, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_teacher(%Teacher{} = teacher, attrs) do
-    teacher
-    |> Teacher.changeset(attrs)
+  def update_staff_member(%StaffMember{} = staff_member, attrs) do
+    staff_member
+    |> StaffMember.changeset(attrs)
     |> Repo.update()
   end
 
   @doc """
-  Deletes a teacher.
+  Deletes a staff member.
 
   ## Examples
 
-      iex> delete_teacher(teacher)
-      {:ok, %Teacher{}}
+      iex> delete_staff_member(staff_member)
+      {:ok, %StaffMember{}}
 
-      iex> delete_teacher(teacher)
+      iex> delete_staff_member(staff_member)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_teacher(%Teacher{} = teacher) do
-    Repo.delete(teacher)
+  def delete_staff_member(%StaffMember{} = staff_member) do
+    Repo.delete(staff_member)
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for tracking teacher changes.
+  Returns an `%Ecto.Changeset{}` for tracking staff member changes.
 
   ## Examples
 
-      iex> change_teacher(teacher)
-      %Ecto.Changeset{data: %Teacher{}}
+      iex> change_staff_member(staff_member)
+      %Ecto.Changeset{data: %StaffMember{}}
 
   """
-  def change_teacher(%Teacher{} = teacher, attrs \\ %{}) do
-    Teacher.changeset(teacher, attrs)
+  def change_staff_member(%StaffMember{} = staff_member, attrs \\ %{}) do
+    StaffMember.changeset(staff_member, attrs)
   end
 
   @doc """
@@ -1152,38 +1152,38 @@ defmodule Lanttern.Schools do
   end
 
   @doc """
-  Create teachers, users, and profiles based on CSV data.
+  Create staff_members, users, and profiles based on CSV data.
 
-  It returns a tuple with the `csv_teacher` as the first item,
-  and a nested `:ok` or `:error` tuple, with the created teacher or an error message.
+  It returns a tuple with the `csv_staff_member` as the first item,
+  and a nested `:ok` or `:error` tuple, with the created staff member or an error message.
 
   ### User and profile creation
 
   If there's no email in the CSV row, user and profile creation is skipped.
 
-  If a user with the email already exists, we create a teacher profile linked to this user.
+  If a user with the email already exists, we create a staff member profile linked to this user.
 
-  Else, we create a user with the teacher email and a linked teacher profile.
+  Else, we create a user with the staff member email and a linked staff member profile.
 
   ## Examples
 
-      iex> create_teachers_from_csv(csv_rows, school_id)
-      [{csv_teacher, {:ok, %Teacher{}}}, ...]
+      iex> create_staff_members_from_csv(csv_rows, school_id)
+      [{csv_staff_member, {:ok, %StaffMember{}}}, ...]
 
   """
-  def create_teachers_from_csv(csv_rows, school_id) do
+  def create_staff_members_from_csv(csv_rows, school_id) do
     Ecto.Multi.new()
-    |> Ecto.Multi.run(:teachers, fn _repo, _changes ->
-      insert_csv_teachers(csv_rows, school_id)
+    |> Ecto.Multi.run(:staff_members, fn _repo, _changes ->
+      insert_csv_staff_members(csv_rows, school_id)
     end)
     |> Ecto.Multi.run(:users, fn _repo, _changes ->
       insert_csv_users(csv_rows)
     end)
     |> Ecto.Multi.run(:profiles, fn _repo, changes ->
-      insert_csv_profiles(changes, csv_rows, "teacher")
+      insert_csv_profiles(changes, csv_rows, "staff")
     end)
     |> Ecto.Multi.run(:response, fn _repo, changes ->
-      format_response(changes, csv_rows, "teacher")
+      format_response(changes, csv_rows, "staff")
     end)
     |> Repo.transaction()
     |> case do
@@ -1192,31 +1192,31 @@ defmodule Lanttern.Schools do
     end
   end
 
-  defp insert_csv_teachers(csv_rows, school_id) do
-    name_teacher_map =
+  defp insert_csv_staff_members(csv_rows, school_id) do
+    name_staff_member_map =
       csv_rows
-      |> Enum.map(&get_or_insert_csv_teacher(&1, school_id))
+      |> Enum.map(&get_or_insert_csv_staff_member(&1, school_id))
       |> Enum.filter(fn
-        {:ok, _teacher} -> true
+        {:ok, _staff_member} -> true
         {:error, _changeset} -> false
       end)
-      |> Enum.map(fn {:ok, teacher} -> {teacher.name, teacher} end)
+      |> Enum.map(fn {:ok, staff_member} -> {staff_member.name, staff_member} end)
       |> Enum.into(%{})
 
-    {:ok, name_teacher_map}
+    {:ok, name_staff_member_map}
   end
 
-  defp get_or_insert_csv_teacher(csv_row, school_id) do
-    case Repo.get_by(Teacher, name: csv_row.name, school_id: school_id) do
+  defp get_or_insert_csv_staff_member(csv_row, school_id) do
+    case Repo.get_by(StaffMember, name: csv_row.name, school_id: school_id) do
       nil ->
         %{
           name: csv_row.name,
           school_id: school_id
         }
-        |> create_teacher()
+        |> create_staff_member()
 
-      teacher ->
-        {:ok, teacher}
+      staff_member ->
+        {:ok, staff_member}
     end
   end
 
@@ -1252,7 +1252,7 @@ defmodule Lanttern.Schools do
     name_schema_map =
       case type do
         "student" -> changes.students
-        "teacher" -> changes.teachers
+        "staff" -> changes.staff_members
       end
 
     email_user_map = changes.users
@@ -1263,8 +1263,8 @@ defmodule Lanttern.Schools do
       |> Enum.map(
         &%{
           type: type,
-          teacher_id:
-            if(type == "teacher",
+          staff_member_id:
+            if(type == "staff",
               do: Map.get(name_schema_map, &1.name).id,
               else: nil
             ),
@@ -1288,7 +1288,7 @@ defmodule Lanttern.Schools do
     name_schema_map =
       case type do
         "student" -> changes.students
-        "teacher" -> changes.teachers
+        "staff" -> changes.staff_members
       end
 
     response =
