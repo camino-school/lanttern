@@ -252,7 +252,10 @@ defmodule LantternWeb.CoreComponents do
     "primary" => "text-ltrn-dark",
     "secondary" => "text-white",
     "cyan" => "text-ltrn-subtle",
-    "dark" => "text-ltrn-lighter"
+    "dark" => "text-ltrn-lighter",
+    "diff" => "text-ltrn-diff-dark",
+    "student" => "text-ltrn-student-dark",
+    "teacher" => "text-ltrn-teacher-dark"
   }
 
   defp badge_icon_theme(theme),

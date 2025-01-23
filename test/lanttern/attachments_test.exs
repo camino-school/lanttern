@@ -119,7 +119,7 @@ defmodule Lanttern.AttachmentsTest do
           %{"name" => "attachment 2", "link" => "https://somevaliduri.com", "is_external" => true}
         )
 
-      {:ok, family_attachment} =
+      {:ok, shared_attachment} =
         StudentsCycleInfo.create_student_cycle_info_attachment(
           profile.id,
           student_cycle_info.id,
@@ -144,7 +144,7 @@ defmodule Lanttern.AttachmentsTest do
         }
       )
 
-      assert [attachment_1, attachment_2, family_attachment] ==
+      assert [attachment_1, attachment_2, shared_attachment] ==
                Attachments.list_attachments(student_cycle_info_id: student_cycle_info.id)
 
       # use same setup to test update_student_cycle_info_attachments_positions/1 and shared_with_student filtering
@@ -179,7 +179,7 @@ defmodule Lanttern.AttachmentsTest do
           %{"name" => "attachment 2", "link" => "https://somevaliduri.com", "is_external" => true}
         )
 
-      {:ok, family_attachment} =
+      {:ok, shared_attachment} =
         LearningContext.create_moment_card_attachment(
           profile.id,
           moment_card.id,
@@ -204,12 +204,17 @@ defmodule Lanttern.AttachmentsTest do
         }
       )
 
-      [expected_attachment_1, expected_attachment_2, expected_family_attachment] =
+      [expected_attachment_1, expected_attachment_2, expected_shared_attachment] =
         Attachments.list_attachments(moment_card_id: moment_card.id)
 
       assert expected_attachment_1.id == attachment_1.id
       assert expected_attachment_2.id == attachment_2.id
-      assert expected_family_attachment.id == family_attachment.id
+      assert expected_shared_attachment.id == shared_attachment.id
+
+      # expect is_shared is defined in the context of moment card attachments
+      assert expected_attachment_1.is_shared == false
+      assert expected_attachment_2.is_shared == false
+      assert expected_shared_attachment.is_shared
 
       # use same setup to test update_moment_card_attachments_positions/1 and shared_with_students filtering
 

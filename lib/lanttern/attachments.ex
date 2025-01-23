@@ -86,7 +86,7 @@ defmodule Lanttern.Attachments do
       as: :moment_card_attachment,
       where: mca.moment_card_id == ^moment_card_id,
       order_by: mca.position,
-      preload: [moment_card_attachment: mca]
+      select: %{a | is_shared: mca.shared_with_students}
     )
     |> maybe_filter_by_shared_with_student(Keyword.get(opts, :shared_with_student))
     |> apply_list_attachments_opts(opts)

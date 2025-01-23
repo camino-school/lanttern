@@ -316,7 +316,7 @@ defmodule LantternWeb.ReportingComponents do
   def moment_assessment_point_entry(assigns) do
     ~H"""
     <div id={@id} class={@class}>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-4">
         <.badge :if={@assessment_point.is_differentiation} theme="diff">
           <%= gettext("Diff") %>
         </.badge>

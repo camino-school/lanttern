@@ -43,6 +43,9 @@ defmodule Lanttern.Attachments.Attachment do
     field :description, :string
     field :is_external, :boolean, default: false
 
+    # used in the context of moment card attachments
+    field :is_shared, :boolean, virtual: true
+
     belongs_to :owner, Profile
 
     has_one :note_attachment, NoteAttachment

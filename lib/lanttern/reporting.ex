@@ -15,6 +15,7 @@ defmodule Lanttern.Reporting do
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Attachments.Attachment
   alias Lanttern.LearningContext.Moment
+  alias Lanttern.LearningContext.MomentCard
   alias Lanttern.LearningContext.Strand
   alias Lanttern.Schools
   alias Lanttern.Schools.Class
@@ -1308,5 +1309,36 @@ defmodule Lanttern.Reporting do
         }
       end
     )
+  end
+
+  @doc """
+  Returns the list of moment cards shared with student and linked to given moment.
+
+  **Preloaded data:**
+
+  - attachments: list of linked attachments
+
+  ## Examples
+
+      iex> list_moment_cards_and_attachments_shared_with_students(moment_id)
+      [%MomentCard{}, ...]
+
+  """
+  @spec list_moment_cards_and_attachments_shared_with_students(moment_id :: pos_integer()) :: [
+          MomentCard.t()
+        ]
+
+  def list_moment_cards_and_attachments_shared_with_students(moment_id) do
+    from(
+      mc in MomentCard,
+      left_join: mca in assoc(mc, :moment_card_attachments),
+      on: mca.shared_with_students,
+      left_join: a in assoc(mca, :attachment),
+      where: mc.moment_id == ^moment_id,
+      where: mc.shared_with_students,
+      order_by: [asc: mc.position, asc: mca.position],
+      preload: [attachments: a]
+    )
+    |> Repo.all()
   end
 end

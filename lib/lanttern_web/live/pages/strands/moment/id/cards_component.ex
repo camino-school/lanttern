@@ -55,8 +55,18 @@ defmodule LantternWeb.MomentLive.CardsComponent do
             <div class="mt-4 line-clamp-4">
               <.markdown text={moment_card.description} />
             </div>
-            <div :if={moment_card.attachments_count > 0} class="mt-4">
-              <.badge icon_name="hero-paper-clip-mini">
+            <div
+              :if={moment_card.shared_with_students || moment_card.attachments_count > 0}
+              class="flex gap-2 mt-4"
+            >
+              <.badge
+                :if={moment_card.shared_with_students}
+                icon_name="hero-users-mini"
+                theme="student"
+              >
+                <%= gettext("Shared") %>
+              </.badge>
+              <.badge :if={moment_card.attachments_count > 0} icon_name="hero-paper-clip-mini">
                 <%= ngettext("1 attachment", "%{count} attachments", moment_card.attachments_count) %>
               </.badge>
             </div>

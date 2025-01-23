@@ -220,6 +220,7 @@ defmodule LantternWeb.FormComponents do
         :if={@label || @custom_label != []}
         for={@id}
         show_optional={@show_optional}
+        help_text={@help_text}
         custom={if @custom_label == [], do: false, else: true}
       >
         <%= @label || render_slot(@custom_label) %>
@@ -287,8 +288,8 @@ defmodule LantternWeb.FormComponents do
 
   def label(assigns) do
     ~H"""
-    <label for={@for} class="block mb-2 text-sm font-bold">
-      <.help_tooltip text={@help_text} class="inline-block font-normal" />
+    <label for={@for} class="flex items-center gap-2 mb-2 text-sm font-bold">
+      <.help_tooltip text={@help_text} class="font-normal" />
       <%= render_slot(@inner_block) %>
     </label>
     """

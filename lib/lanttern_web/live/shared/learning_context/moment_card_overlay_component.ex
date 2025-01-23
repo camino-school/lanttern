@@ -149,6 +149,41 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
         </h6>
         <.markdown text={@template_instructions} class="mt-4" />
       </div>
+      <div class="p-4 rounded-sm mb-6 bg-ltrn-teacher-lightest">
+        <.input
+          field={@form[:teacher_instructions]}
+          type="textarea"
+          label={gettext("Teacher instructions")}
+          show_optional
+          class="mb-1"
+          phx-debounce="1500"
+        />
+        <.markdown_supported />
+      </div>
+      <div class="p-4 rounded-sm mb-6 bg-ltrn-diff-lightest">
+        <.input
+          field={@form[:differentiation]}
+          type="textarea"
+          label={gettext("Differentiation notes")}
+          show_optional
+          class="mb-1"
+          phx-debounce="1500"
+        />
+        <.markdown_supported />
+      </div>
+      <div class="p-4 rounded-sm mb-6 bg-ltrn-student-lightest">
+        <.input
+          field={@form[:shared_with_students]}
+          type="toggle"
+          theme="student"
+          label={gettext("Share with students and guardians")}
+        />
+        <p class="mt-4">
+          <%= gettext(
+            "If active the card and selected attachments will be displayed for students and guardians in the strand moment details page"
+          ) %>
+        </p>
+      </div>
       <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
         <%= gettext("Oops, something went wrong! Please check the errors above.") %>
       </.error_block>
@@ -178,6 +213,27 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
     ~H"""
     <.scroll_to_top overlay_id={@id} id="details-scroll-top" />
     <.markdown text={@moment_card.description} class="mt-6" />
+    <div :if={@moment_card.teacher_instructions} class="p-4 rounded-sm mt-6 bg-ltrn-teacher-lightest">
+      <p class="mb-4 font-bold text-ltrn-teacher-dark">
+        <%= gettext("Teacher instructions") %>
+      </p>
+      <.markdown text={@moment_card.teacher_instructions} />
+    </div>
+    <div :if={@moment_card.differentiation} class="p-4 rounded-sm mt-6 bg-ltrn-diff-lightest">
+      <p class="mb-4 font-bold text-ltrn-diff-dark">
+        <%= gettext("Differentiation notes") %>
+      </p>
+      <.markdown text={@moment_card.differentiation} />
+    </div>
+    <div
+      :if={@moment_card.shared_with_students}
+      class="flex items-center gap-2 p-4 rounded-sm mt-6 text-ltrn-student-dark bg-ltrn-student-lightest"
+    >
+      <.icon name="hero-users-mini" />
+      <p class="font-bold">
+        <%= gettext("Visible to students and guardians") %>
+      </p>
+    </div>
     <.error_block :if={@is_deleted} class="mt-10">
       <%= gettext("This card was deleted") %>
     </.error_block>
@@ -341,7 +397,9 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
   end
 
   def handle_event("delete", _, socket) do
-    LearningContext.delete_moment_card(socket.assigns.moment_card)
+    LearningContext.delete_moment_card(socket.assigns.moment_card,
+      log_profile_id: socket.assigns.current_user.current_profile_id
+    )
     |> case do
       {:ok, _moment_card} ->
         # we notify using the assigned moment card
@@ -376,7 +434,9 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
         socket.assigns.moment_card.moment_id
       )
 
-    LearningContext.create_moment_card(moment_card_params)
+    LearningContext.create_moment_card(moment_card_params,
+      log_profile_id: socket.assigns.current_user.current_profile_id
+    )
     |> case do
       {:ok, moment_card} ->
         notify(__MODULE__, {:created, moment_card}, socket.assigns)
@@ -396,7 +456,8 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
   defp save_moment_card(socket, _id, moment_card_params) do
     LearningContext.update_moment_card(
       socket.assigns.moment_card,
-      moment_card_params
+      moment_card_params,
+      log_profile_id: socket.assigns.current_user.current_profile_id
     )
     |> case do
       {:ok, moment_card} ->
