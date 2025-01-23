@@ -91,7 +91,7 @@ defmodule LantternWeb.StudentLive do
     socket =
       socket
       |> put_flash(:info, gettext("Student deleted successfully"))
-      |> push_navigate(to: ~p"/school")
+      |> push_navigate(to: ~p"/school/classes")
 
     {:noreply, socket}
   end

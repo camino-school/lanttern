@@ -4,6 +4,8 @@ defmodule LantternWeb.SchoolLive do
   # view components
   alias __MODULE__.StudentsComponent
   alias __MODULE__.ClassesComponent
+  alias __MODULE__.CyclesComponent
+  alias __MODULE__.MomentCardsTemplatesComponent
 
   # lifecycle
 
@@ -12,6 +14,7 @@ defmodule LantternWeb.SchoolLive do
     socket =
       socket
       |> assign_is_school_manager()
+      |> assign_is_content_manager()
       |> assign(:page_title, socket.assigns.current_user.current_profile.school_name)
 
     {:ok, socket}
@@ -22,6 +25,13 @@ defmodule LantternWeb.SchoolLive do
       "school_management" in socket.assigns.current_user.current_profile.permissions
 
     assign(socket, :is_school_manager, is_school_manager)
+  end
+
+  defp assign_is_content_manager(socket) do
+    is_content_manager =
+      "content_management" in socket.assigns.current_user.current_profile.permissions
+
+    assign(socket, :is_content_manager, is_content_manager)
   end
 
   @impl true

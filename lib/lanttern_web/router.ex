@@ -69,9 +69,11 @@ defmodule LantternWeb.Router do
       ] do
       live "/dashboard", DashboardLive, :index
 
-      live "/school", SchoolLive, :show
       live "/school/students", SchoolLive, :manage_students
       live "/school/classes", SchoolLive, :manage_classes
+      live "/school/staff", SchoolLive, :manage_staff
+      live "/school/cycles", SchoolLive, :manage_cycles
+      live "/school/moment_cards_templates", SchoolLive, :manage_moment_cards_templates
 
       live "/school/students/:id", StudentLive, :show
       live "/school/students/:id/report_cards", StudentLive, :report_cards
@@ -128,14 +130,6 @@ defmodule LantternWeb.Router do
       # students records
 
       live "/students_records", StudentsRecordsLive, :index
-
-      # school config
-
-      live "/school_config/cycles", SchoolConfigLive, :manage_cycles
-
-      live "/school_config/moment_cards_templates",
-           SchoolConfigLive,
-           :manage_moment_cards_templates
     end
 
     live_session :authenticated_guardian,
