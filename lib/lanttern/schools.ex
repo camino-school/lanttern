@@ -949,7 +949,8 @@ defmodule Lanttern.Schools do
 
   ### Options:
 
-  `:preloads` – preloads associated data
+  - `:school_id` – filter staff members by school
+  - `:preloads` – preloads associated data
 
   ## Examples
 
@@ -958,10 +959,27 @@ defmodule Lanttern.Schools do
 
   """
   def list_staff_members(opts \\ []) do
-    StaffMember
+    from(
+      sm in StaffMember,
+      order_by: sm.name
+    )
+    |> apply_list_staff_members_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
+
+  defp apply_list_staff_members_opts(queryable, []), do: queryable
+
+  defp apply_list_staff_members_opts(queryable, [{:school_id, school_id} | opts]) do
+    from(
+      sm in queryable,
+      where: sm.school_id == ^school_id
+    )
+    |> apply_list_staff_members_opts(opts)
+  end
+
+  defp apply_list_staff_members_opts(queryable, [_ | opts]),
+    do: apply_list_staff_members_opts(queryable, opts)
 
   @doc """
   Gets a single staff member.

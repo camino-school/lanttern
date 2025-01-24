@@ -39,7 +39,14 @@
   id={:school_classes}
   current_user={@current_user}
   params={@params}
-  live_action={@live_action}
+  is_school_manager={@is_school_manager}
+/>
+<.live_component
+  :if={@live_action == :manage_staff}
+  module={StaffComponent}
+  id={:school_staff}
+  current_user={@current_user}
+  params={@params}
   is_school_manager={@is_school_manager}
 />
 <.live_component

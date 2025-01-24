@@ -984,6 +984,38 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Renders a fluid grid.
+
+  View `<.responsive_grid>` for a version with
+  horizontal scroll in smaller screens.
+  """
+  attr :class, :any, default: nil
+  attr :id, :string, default: nil
+  attr :is_full_width, :boolean, default: false
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def fluid_grid(assigns) do
+    ~H"""
+    <div
+      id={@id}
+      class={[
+        "grid gap-4 mx-auto",
+        "sm:grid-cols-2 lg:grid-cols-3",
+        if(assigns.is_full_width,
+          do: "xl:grid-cols-4 2xl:grid-cols-5",
+          else: "container lg:max-w-5xl"
+        ),
+        @class
+      ]}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </div>
+    """
+  end
+
+  @doc """
   Renders a header with title.
   """
   attr :class, :any, default: nil
@@ -1603,6 +1635,12 @@ defmodule LantternWeb.CoreComponents do
 
   @doc """
   Renders a responsive grid.
+
+  Will render a horizontal scroll on small screens,
+  and a grid starting on `sm` breakpoint.
+
+  View also `<.fluid_grid>` for an alternative without the
+  horizontal scroll.
   """
   attr :class, :any, default: nil
   attr :id, :string, default: nil
