@@ -16,6 +16,8 @@ defmodule LantternWeb.Schools.StaffMemberFormOverlayComponent do
 
   alias Lanttern.Schools
 
+  import LantternWeb.FormHelpers, only: [consume_uploaded_profile_picture: 2]
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -32,6 +34,19 @@ defmodule LantternWeb.Schools.StaffMemberFormOverlayComponent do
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
             <%= gettext("Oops, something went wrong! Please check the errors below.") %>
           </.error_block>
+          <.profile_picture_field
+            current_picture_url={@staff_member.profile_picture_url}
+            upload={@uploads.profile_picture}
+            is_removing={@is_removing_profile_picture}
+            on_cancel={
+              fn ref ->
+                JS.push("cancel_profile_picture_upload", value: %{ref: ref}, target: @myself)
+              end
+            }
+            on_remove={fn -> JS.push("remove_profile_picture", target: @myself) end}
+            on_cancel_remove={fn -> JS.push("cancel_remove_profile_picture", target: @myself) end}
+            class="mb-6"
+          />
           <.input
             field={@form[:name]}
             type="text"
@@ -42,23 +57,35 @@ defmodule LantternWeb.Schools.StaffMemberFormOverlayComponent do
           <.input field={@form[:role]} type="text" label={gettext("Role")} phx-debounce="1500" />
         </.form>
         <:actions_left :if={@staff_member.id}>
-          <.button
+          <.action
             type="button"
-            theme="ghost"
+            theme="subtle"
+            size="md"
             phx-click="delete"
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           >
             <%= gettext("Delete") %>
-          </.button>
+          </.action>
         </:actions_left>
         <:actions>
-          <.button type="button" theme="ghost" phx-click={JS.exec("data-cancel", to: "##{@id}")}>
+          <.action
+            type="button"
+            theme="subtle"
+            size="md"
+            phx-click={JS.exec("data-cancel", to: "##{@id}")}
+          >
             <%= gettext("Cancel") %>
-          </.button>
-          <.button type="submit" form="staff-member-form">
+          </.action>
+          <.action
+            type="submit"
+            theme="primary"
+            size="md"
+            icon_name="hero-check"
+            form="staff-member-form"
+          >
             <%= gettext("Save") %>
-          </.button>
+          </.action>
         </:actions>
       </.slide_over>
     </div>
@@ -67,7 +94,16 @@ defmodule LantternWeb.Schools.StaffMemberFormOverlayComponent do
 
   @impl true
   def mount(socket) do
-    socket = assign(socket, :initialized, false)
+    socket =
+      socket
+      |> assign(:is_removing_profile_picture, false)
+      |> assign(:initialized, false)
+      |> allow_upload(:profile_picture,
+        accept: ~w(.jpg .jpeg .png .webp),
+        max_file_size: 3_000_000,
+        max_entries: 1
+      )
+
     {:ok, socket}
   end
 
@@ -100,12 +136,33 @@ defmodule LantternWeb.Schools.StaffMemberFormOverlayComponent do
   # event handlers
 
   @impl true
+  def handle_event("cancel_profile_picture_upload", %{"ref" => ref}, socket),
+    do: {:noreply, cancel_upload(socket, :profile_picture, ref)}
+
+  def handle_event("remove_profile_picture", _, socket),
+    do: {:noreply, assign(socket, :is_removing_profile_picture, true)}
+
+  def handle_event("cancel_remove_profile_picture", _, socket),
+    do: {:noreply, assign(socket, :is_removing_profile_picture, false)}
+
   def handle_event("validate", %{"staff_member" => staff_member_params}, socket),
     do: {:noreply, assign_validated_form(socket, staff_member_params)}
 
   def handle_event("save", %{"staff_member" => staff_member_params}, socket) do
+    profile_picture_url =
+      consume_uploaded_profile_picture(socket, :profile_picture)
+
+    # besides "consumed" profile picture, we should also consider is_removing_profile_picture flag
+    profile_picture_url =
+      cond do
+        profile_picture_url -> profile_picture_url
+        socket.assigns.is_removing_profile_picture -> nil
+        true -> socket.assigns.staff_member.profile_picture_url
+      end
+
     staff_member_params =
       inject_extra_params(socket, staff_member_params)
+      |> Map.put("profile_picture_url", profile_picture_url)
 
     save_staff_member(socket, socket.assigns.staff_member.id, staff_member_params)
   end

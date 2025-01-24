@@ -34,11 +34,11 @@ defmodule LantternWeb.SchoolLive.StaffComponent do
             <.profile_picture
               picture_url={staff_member.profile_picture_url}
               profile_name={staff_member.name}
-              size="md"
+              size="lg"
             />
             <div class="flex-1">
               <%= staff_member.name %>
-              <div class="text-ltrn-subtle"><%= staff_member.role %></div>
+              <div class="text-xs text-ltrn-subtle"><%= staff_member.role %></div>
             </div>
             <.button
               :if={@is_school_manager}

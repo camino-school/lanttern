@@ -36,8 +36,7 @@ defmodule LantternWeb.CoreComponents do
   attr :icon_name, :string, default: nil
   attr :patch, :string, default: nil, doc: "use with type=\"link\""
   attr :navigate, :string, default: nil, doc: "use with type=\"link\""
-  attr :show_loading_spinner, :boolean, default: false
-  attr :rest, :global, include: ~w(disabled)
+  attr :rest, :global, include: ~w(disabled form)
 
   slot :inner_block, required: true
 
@@ -60,16 +59,11 @@ defmodule LantternWeb.CoreComponents do
         :if={@icon_name}
         name={@icon_name}
         class={[
-          if(@show_loading_spinner,
-            do: "group-phx-submit-loading:hidden group-phx-click-loading:hidden"
-          ),
+          "group-phx-submit-loading:hidden group-phx-click-loading:hidden",
           action_icon_styles(@size)
         ]}
       />
-      <.spinner
-        :if={@show_loading_spinner}
-        class="hidden group-phx-submit-loading:block group-phx-click-loading:block"
-      />
+      <.spinner class="hidden group-phx-submit-loading:block group-phx-click-loading:block" />
     </button>
     """
   end
@@ -1556,9 +1550,21 @@ defmodule LantternWeb.CoreComponents do
   Renders a profile picture.
   """
   attr :picture_url, :string, required: true
-  attr :profile_name, :string, required: true, doc: "render initials when there's no image"
+  attr :profile_name, :string, default: nil, doc: "render initials when there's no image"
   attr :size, :string, default: "md", doc: "xs | sm | md | lg | xl | 2xl"
   attr :class, :any, default: nil
+
+  def profile_picture(%{picture_url: nil, profile_name: nil} = assigns) do
+    ~H"""
+    <div class={[
+      "relative shrink-0 flex items-center justify-center rounded-full font-display text-center bg-white overflow-hidden ltrn-bg-profile",
+      profile_picture_size_style(@size),
+      @class
+    ]}>
+      <.icon name="hero-user" class={["text-ltrn-subtle", profile_picture_icon_size_style(@size)]} />
+    </div>
+    """
+  end
 
   def profile_picture(assigns) do
     picture_url = profile_picture_render_url(assigns.picture_url, assigns.size)
@@ -1610,6 +1616,13 @@ defmodule LantternWeb.CoreComponents do
   defp profile_picture_size_style("xl"), do: "w-32 h-32 font-black text-4xl"
   defp profile_picture_size_style("2xl"), do: "w-60 h-60 font-black text-6xl"
   defp profile_picture_size_style(_md), do: "w-10 h-10 font-bold text-sm"
+
+  defp profile_picture_icon_size_style("xs"), do: "w-5 h-5"
+  defp profile_picture_icon_size_style("sm"), do: "w-6 h-6"
+  defp profile_picture_icon_size_style("lg"), do: "w-12 h-12"
+  defp profile_picture_icon_size_style("xl"), do: "w-20 h-20"
+  defp profile_picture_icon_size_style("2xl"), do: "w-32 h-32"
+  defp profile_picture_icon_size_style(_md), do: "w-6 h-6"
 
   @doc """
   Renders a responsive container.

@@ -16,6 +16,8 @@ defmodule Lanttern.Schools do
   alias Lanttern.Identity.User
   alias Lanttern.Identity.Profile
 
+  alias Lanttern.SupabaseHelpers
+
   @doc """
   Returns the list of schools.
 
@@ -1038,7 +1040,25 @@ defmodule Lanttern.Schools do
     staff_member
     |> StaffMember.changeset(attrs)
     |> Repo.update()
+    |> update_staff_member_cleanup(staff_member)
   end
+
+  defp update_staff_member_cleanup(
+         {:ok, %StaffMember{profile_picture_url: updated_profile_picture_url}} = return_tuple,
+         %StaffMember{profile_picture_url: old_profile_picture_url}
+       )
+       when updated_profile_picture_url != old_profile_picture_url and
+              is_binary(old_profile_picture_url) do
+    # when updating a staff member, we also want to remove the old profile picture from the cloud if needed
+    Task.Supervisor.start_child(Lanttern.TaskSupervisor, fn ->
+      SupabaseHelpers.remove_object("profile_pictures", old_profile_picture_url)
+    end)
+
+    return_tuple
+  end
+
+  defp update_staff_member_cleanup(return_tuple, _old_staff_member),
+    do: return_tuple
 
   @doc """
   Deletes a staff member.
@@ -1054,7 +1074,22 @@ defmodule Lanttern.Schools do
   """
   def delete_staff_member(%StaffMember{} = staff_member) do
     Repo.delete(staff_member)
+    |> delete_staff_member_cleanup()
   end
+
+  defp delete_staff_member_cleanup(
+         {:ok, %StaffMember{profile_picture_url: profile_picture_url}} = return_tuple
+       )
+       when is_binary(profile_picture_url) do
+    # when deleting a staff member, we also want to remove their profile picture from the cloud if needed
+    Task.Supervisor.start_child(Lanttern.TaskSupervisor, fn ->
+      SupabaseHelpers.remove_object("profile_pictures", profile_picture_url)
+    end)
+
+    return_tuple
+  end
+
+  defp delete_staff_member_cleanup(return_tuple), do: return_tuple
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking staff member changes.
