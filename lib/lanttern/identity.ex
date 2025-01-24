@@ -318,6 +318,8 @@ defmodule Lanttern.Identity do
   defp build_flat_profile(%{type: "staff", staff_member: staff_member} = profile) do
     profile
     |> Map.put(:name, staff_member.name)
+    |> Map.put(:role, staff_member.role)
+    |> Map.put(:profile_picture_url, staff_member.profile_picture_url)
     |> Map.put(:school_id, staff_member.school.id)
     |> Map.put(:school_name, staff_member.school.name)
   end

@@ -18,6 +18,8 @@ defmodule Lanttern.Identity.Profile do
           type: String.t(),
           current_locale: String.t(),
           name: String.t(),
+          role: String.t(),
+          profile_picture_url: String.t(),
           school_id: pos_integer(),
           school_name: String.t(),
           permissions: [String.t()],
@@ -43,6 +45,8 @@ defmodule Lanttern.Identity.Profile do
     # used to optimize session user, avoiding
     # student, staff member, guardian, and school structs preloads
     field :name, :string, virtual: true
+    field :role, :string, virtual: true
+    field :profile_picture_url, :string, virtual: true
     field :school_id, :id, virtual: true
     field :school_name, :string, virtual: true
     field :permissions, {:array, :string}, virtual: true, default: []

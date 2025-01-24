@@ -8,7 +8,10 @@
           else: gettext("Classes") %>
       </:tab>
       <:tab patch={~p"/school/students"} is_current={@live_action == :manage_students}>
-        <%= gettext("All students") %>
+        <%= gettext("Students") %>
+      </:tab>
+      <:tab patch={~p"/school/staff"} is_current={@live_action == :manage_staff}>
+        <%= gettext("Staff") %>
       </:tab>
       <:tab patch={~p"/school/cycles"} is_current={@live_action == :manage_cycles}>
         <%= gettext("Cycles") %>

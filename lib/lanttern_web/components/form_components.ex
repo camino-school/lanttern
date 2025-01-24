@@ -703,7 +703,7 @@ defmodule LantternWeb.FormComponents do
         <.profile_picture
           picture_url={@current_picture_url}
           profile_name={@profile_name}
-          size="xl"
+          size="2xl"
           class="shadow-xl"
         />
         <div class="flex gap-4">

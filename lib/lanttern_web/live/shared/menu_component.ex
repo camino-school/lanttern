@@ -52,6 +52,12 @@ defmodule LantternWeb.MenuComponent do
           <p class="mb-4 font-black text-lg text-ltrn-primary">
             <%= gettext("You're logged in as") %>
           </p>
+          <.profile_picture
+            picture_url={@current_user.current_profile.profile_picture_url}
+            profile_name={@current_user.current_profile.name}
+            size="lg"
+            class="mb-4"
+          />
           <p class="font-black text-4xl text-ltrn-dark">
             <%= @current_user.current_profile.name %>
           </p>
@@ -64,7 +70,9 @@ defmodule LantternWeb.MenuComponent do
               <%= Gettext.dgettext(
                 Lanttern.Gettext,
                 "schools",
-                String.capitalize(@current_user.current_profile.type)
+                String.capitalize(
+                  @current_user.current_profile.role || @current_user.current_profile.type
+                )
               ) %> @ <%= @current_user.current_profile.school_name %>
 
               <.icon name="hero-chevron-down" id="profile-list-down-icon" />
@@ -272,7 +280,7 @@ defmodule LantternWeb.MenuComponent do
     <li id={@id}>
       <button
         type="button"
-        class="group flex items-center gap-2 w-full py-2 text-left text-ltrn-subtle leading-none"
+        class="group/item flex items-center gap-2 w-full py-2 text-left text-ltrn-subtle leading-none"
         {@rest}
       >
         <.icon
@@ -280,19 +288,23 @@ defmodule LantternWeb.MenuComponent do
           class={
             if(@active,
               do: "text-ltrn-primary",
-              else: "text-transparent group-hover:text-ltrn-subtle"
+              else: "text-ltrn-subtle group-hover/item:text-ltrn-dark"
             )
           }
         />
         <div>
           <span class={[
             "block font-bold text-sm",
-            if(@active, do: "text-ltrn-dark")
+            if(@active, do: "text-ltrn-dark", else: "group-hover/item:text-ltrn-dark")
           ]}>
             <%= @name %>
           </span>
           <span class="font-sans font-normal text-xs">
-            <%= Gettext.dgettext(Lanttern.Gettext, "schools", String.capitalize(@profile.type)) %> @ <%= @school %>
+            <%= Gettext.dgettext(
+              Lanttern.Gettext,
+              "schools",
+              String.capitalize(Map.get(@profile.staff_member || %{}, :role, @profile.type))
+            ) %> @ <%= @school %>
           </span>
         </div>
       </button>

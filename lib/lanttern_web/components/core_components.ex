@@ -1525,7 +1525,7 @@ defmodule LantternWeb.CoreComponents do
   """
   attr :picture_url, :string, required: true
   attr :profile_name, :string, required: true, doc: "render initials when there's no image"
-  attr :size, :string, default: "normal", doc: "xs | sm | md | lg | xl"
+  attr :size, :string, default: "md", doc: "xs | sm | md | lg | xl | 2xl"
   attr :class, :any, default: nil
 
   def profile_picture(assigns) do
@@ -1561,9 +1561,12 @@ defmodule LantternWeb.CoreComponents do
     do: object_url_to_render_url(picture_url, width: 64, height: 64)
 
   defp profile_picture_render_url(picture_url, "lg"),
-    do: object_url_to_render_url(picture_url, width: 256, height: 256)
+    do: object_url_to_render_url(picture_url, width: 160, height: 160)
 
   defp profile_picture_render_url(picture_url, "xl"),
+    do: object_url_to_render_url(picture_url, width: 256, height: 256)
+
+  defp profile_picture_render_url(picture_url, "2xl"),
     do: object_url_to_render_url(picture_url, width: 480, height: 480)
 
   defp profile_picture_render_url(picture_url, _md),
@@ -1571,8 +1574,9 @@ defmodule LantternWeb.CoreComponents do
 
   defp profile_picture_size_style("xs"), do: "w-6 h-6 font-bold text-xs"
   defp profile_picture_size_style("sm"), do: "w-8 h-8 font-bold text-xs"
-  defp profile_picture_size_style("lg"), do: "w-32 h-32 font-black text-4xl"
-  defp profile_picture_size_style("xl"), do: "w-60 h-60 font-black text-6xl"
+  defp profile_picture_size_style("lg"), do: "w-20 h-20 font-black text-2xl"
+  defp profile_picture_size_style("xl"), do: "w-32 h-32 font-black text-4xl"
+  defp profile_picture_size_style("2xl"), do: "w-60 h-60 font-black text-6xl"
   defp profile_picture_size_style(_md), do: "w-10 h-10 font-bold text-sm"
 
   @doc """
