@@ -949,9 +949,42 @@ defmodule Lanttern.SchoolsTest do
       assert expected_staff_member.school == school
     end
 
+    test "list_staff_members/1 with load_email opt returns the staff members with its email" do
+      staff_member_a = staff_member_fixture(%{name: "a"})
+      staff_member_b = staff_member_fixture(%{name: "b"})
+
+      # create user/profile only for staff_member_a
+      user = Lanttern.IdentityFixtures.user_fixture(%{email: "a@email.com"})
+
+      _profile =
+        Lanttern.IdentityFixtures.staff_member_profile_fixture(%{
+          user_id: user.id,
+          staff_member_id: staff_member_a.id
+        })
+
+      [expected_staff_member_a, expected_staff_member_b] =
+        Schools.list_staff_members(load_email: true)
+
+      assert expected_staff_member_a.id == staff_member_a.id
+      assert expected_staff_member_a.email == "a@email.com"
+      assert expected_staff_member_b.id == staff_member_b.id
+      assert is_nil(expected_staff_member_b.email)
+    end
+
     test "get_staff_member!/1 returns the staff member with given id" do
       staff_member = staff_member_fixture()
       assert Schools.get_staff_member!(staff_member.id) == staff_member
+    end
+
+    test "get_staff_member!/2 with load_email opt returns the staff member with its email" do
+      user = Lanttern.IdentityFixtures.user_fixture(%{email: "email.abc@email.com"})
+
+      profile =
+        Lanttern.IdentityFixtures.staff_member_profile_fixture(%{user_id: user.id})
+
+      expected_staff_member = Schools.get_staff_member!(profile.staff_member_id, load_email: true)
+      assert expected_staff_member.id == profile.staff_member_id
+      assert expected_staff_member.email == "email.abc@email.com"
     end
 
     test "get_staff_member!/2 with preloads returns the staff member with given id and preloaded data" do
@@ -971,6 +1004,45 @@ defmodule Lanttern.SchoolsTest do
       assert staff_member.name == "some name"
     end
 
+    test "create_staff_member/1 with email creates a staff member linked to new profile/user" do
+      school = school_fixture()
+
+      valid_attrs = %{
+        "school_id" => school.id,
+        "name" => "some name",
+        "email" => "some@email.com"
+      }
+
+      {:ok, %StaffMember{} = staff_member} = Schools.create_staff_member(valid_attrs)
+      assert staff_member.name == "some name"
+      assert staff_member.email == "some@email.com"
+
+      staff_member_with_preloads =
+        Schools.get_staff_member!(staff_member.id, preloads: [profile: :user])
+
+      assert staff_member_with_preloads.profile.user.email == "some@email.com"
+    end
+
+    test "create_staff_member/1 with email creates a staff member linked to new profile and existing user" do
+      school = school_fixture()
+      user = Lanttern.IdentityFixtures.user_fixture(email: "some@email.com")
+
+      valid_attrs = %{
+        "school_id" => school.id,
+        "name" => "some name",
+        "email" => "some@email.com"
+      }
+
+      {:ok, %StaffMember{} = staff_member} = Schools.create_staff_member(valid_attrs)
+      assert staff_member.name == "some name"
+      assert staff_member.email == "some@email.com"
+
+      staff_member_with_preloads =
+        Schools.get_staff_member!(staff_member.id, preloads: [profile: :user])
+
+      assert staff_member_with_preloads.profile.user.id == user.id
+    end
+
     test "create_staff_member/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} = Schools.create_staff_member(@invalid_attrs)
     end
@@ -979,10 +1051,108 @@ defmodule Lanttern.SchoolsTest do
       staff_member = staff_member_fixture()
       update_attrs = %{name: "some updated name"}
 
-      assert {:ok, %StaffMember{} = staff_member} =
-               Schools.update_staff_member(staff_member, update_attrs)
+      {:ok, %StaffMember{} = staff_member} =
+        Schools.update_staff_member(staff_member, update_attrs)
 
       assert staff_member.name == "some updated name"
+    end
+
+    test "update_staff_member/2 with email links to new profile/user" do
+      staff_member = staff_member_fixture()
+
+      update_attrs = %{
+        "name" => "some updated name",
+        "email" => "some@email.com"
+      }
+
+      {:ok, %StaffMember{} = staff_member} =
+        Schools.update_staff_member(staff_member, update_attrs)
+
+      assert staff_member.name == "some updated name"
+      assert staff_member.email == "some@email.com"
+
+      staff_member_with_preloads =
+        Schools.get_staff_member!(staff_member.id, preloads: [profile: :user])
+
+      assert staff_member_with_preloads.profile.user.email == "some@email.com"
+    end
+
+    test "update_staff_member/2 with email links to new profile and existing user" do
+      staff_member = staff_member_fixture()
+      user = Lanttern.IdentityFixtures.user_fixture(email: "some@email.com")
+
+      update_attrs = %{
+        "name" => "some updated name",
+        "email" => "some@email.com"
+      }
+
+      {:ok, %StaffMember{} = staff_member} =
+        Schools.update_staff_member(staff_member, update_attrs)
+
+      assert staff_member.name == "some updated name"
+      assert staff_member.email == "some@email.com"
+
+      staff_member_with_preloads =
+        Schools.get_staff_member!(staff_member.id, preloads: [profile: :user])
+
+      assert staff_member_with_preloads.profile.user.id == user.id
+    end
+
+    test "update_staff_member/2 with email and existing profile relinks the profile to new user" do
+      staff_member = staff_member_fixture(%{email: "some@email.com"})
+
+      %{profile: %{user: user} = profile} =
+        Schools.get_staff_member!(staff_member.id, preloads: [profile: :user])
+
+      update_attrs = %{
+        "name" => "some updated name",
+        "email" => "new@email.com"
+      }
+
+      {:ok, %StaffMember{} = staff_member} =
+        Schools.update_staff_member(staff_member, update_attrs)
+
+      assert staff_member.name == "some updated name"
+      assert staff_member.email == "new@email.com"
+
+      staff_member_with_preloads =
+        Schools.get_staff_member!(staff_member.id, preloads: [profile: :user])
+
+      # assert new user and same profile
+      assert staff_member_with_preloads.profile.user.id != user.id
+      assert staff_member_with_preloads.profile.user.email == "new@email.com"
+      assert staff_member_with_preloads.profile.id == profile.id
+
+      # assert old user already exists
+      assert %Lanttern.Identity.User{} = Repo.get(Lanttern.Identity.User, user.id)
+    end
+
+    test "update_staff_member/2 with empty email deletes the linked profile" do
+      staff_member = staff_member_fixture(%{email: "some@email.com"})
+
+      %{profile: %{user: user} = profile} =
+        Schools.get_staff_member!(staff_member.id, preloads: [profile: :user])
+
+      update_attrs = %{
+        "name" => "some updated name",
+        "email" => ""
+      }
+
+      {:ok, %StaffMember{} = staff_member} =
+        Schools.update_staff_member(staff_member, update_attrs)
+
+      assert staff_member.name == "some updated name"
+      assert is_nil(staff_member.email)
+
+      # assert staff member is not linked to any profile
+      assert %{profile: nil} =
+               Schools.get_staff_member!(staff_member.id, preloads: [profile: :user])
+
+      # assert profile is deleted
+      assert is_nil(Repo.get(Lanttern.Identity.Profile, profile.id))
+
+      # assert user already exists
+      assert %Lanttern.Identity.User{} = Repo.get(Lanttern.Identity.User, user.id)
     end
 
     test "update_staff_member/2 with invalid data returns error changeset" do

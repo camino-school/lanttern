@@ -6,6 +6,7 @@ defmodule Lanttern.Schools.StaffMember do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.Identity.Profile
   alias Lanttern.Schools.School
 
   @type t :: %__MODULE__{
@@ -15,6 +16,7 @@ defmodule Lanttern.Schools.StaffMember do
           role: String.t(),
           school: School.t(),
           school_id: pos_integer(),
+          profile: Profile.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -24,7 +26,13 @@ defmodule Lanttern.Schools.StaffMember do
     field :profile_picture_url, :string
     field :role, :string, default: "Teacher"
 
+    # this field is used in the context of staff member form,
+    # and handled by staff member create and update functions
+    field :email, :string, virtual: true
+
     belongs_to :school, School
+
+    has_one :profile, Profile
 
     timestamps()
   end

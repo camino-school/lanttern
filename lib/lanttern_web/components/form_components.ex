@@ -670,7 +670,7 @@ defmodule LantternWeb.FormComponents do
   attr :on_save, :any, default: nil, doc: "function to call on save"
   attr :on_remove, :any, required: true, doc: "function to call on remove"
   attr :on_cancel_remove, :any, default: nil, doc: "function to call when canceling a remove"
-  attr :class, :any
+  attr :class, :any, default: nil
 
   def profile_picture_field(assigns) do
     ~H"""

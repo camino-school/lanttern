@@ -4,7 +4,7 @@ defmodule LantternWeb.Schools.StaffMemberFormOverlayComponent do
 
   ### Attrs
 
-      attr :staff_member, Staff, required: true
+      attr :staff_member, Staff, required: true, doc: "requires email field loaded"
       attr :title, :string, required: true
       attr :on_cancel, :any, required: true, doc: "`<.slide_over>` `on_cancel` attr"
       attr :notify_parent, :boolean
@@ -54,7 +54,25 @@ defmodule LantternWeb.Schools.StaffMemberFormOverlayComponent do
             class="mb-6"
             phx-debounce="1500"
           />
-          <.input field={@form[:role]} type="text" label={gettext("Role")} phx-debounce="1500" />
+          <.input
+            field={@form[:role]}
+            type="text"
+            label={gettext("Role")}
+            class="mb-6"
+            phx-debounce="1500"
+          />
+          <.card_base class="p-4" bg_class="bg-ltrn-mesh-cyan">
+            <.input
+              field={@form[:email]}
+              type="email"
+              label={gettext("Lanttern user email")}
+              phx-debounce="1500"
+            />
+            <p class="flex items-center gap-2 mt-4">
+              <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+              <%= gettext("Enables the user to login at Lanttern via Google Sign In") %>
+            </p>
+          </.card_base>
         </.form>
         <:actions_left :if={@staff_member.id}>
           <.action

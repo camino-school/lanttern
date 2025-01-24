@@ -58,9 +58,18 @@ defmodule LantternWeb.MenuComponent do
             size="lg"
             class="mb-4"
           />
-          <p class="font-black text-4xl text-ltrn-dark">
-            <%= @current_user.current_profile.name %>
-          </p>
+          <div class="flex items-center gap-2">
+            <p class="font-black text-4xl text-ltrn-dark">
+              <%= @current_user.current_profile.name %>
+            </p>
+            <.link
+              :if={@current_user.current_profile.type == "staff"}
+              navigate={~p"/school/staff?edit=#{@current_user.current_profile.staff_member_id}"}
+              class="flex items-center justify-center rounded-full text-ltrn-subtle hover:text-ltrn-dark"
+            >
+              <.icon name="hero-pencil-mini" />
+            </.link>
+          </div>
           <div id="profile-select" class="group mt-2">
             <button
               type="button"

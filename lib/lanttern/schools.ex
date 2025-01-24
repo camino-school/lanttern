@@ -952,6 +952,7 @@ defmodule Lanttern.Schools do
   ### Options:
 
   - `:school_id` – filter staff members by school
+  - `:load_email` - boolean, will add the email field based on staff member profile/user
   - `:preloads` – preloads associated data
 
   ## Examples
@@ -980,6 +981,15 @@ defmodule Lanttern.Schools do
     |> apply_list_staff_members_opts(opts)
   end
 
+  defp apply_list_staff_members_opts(queryable, [{:load_email, true} | opts]) do
+    from(sm in queryable,
+      left_join: p in assoc(sm, :profile),
+      left_join: u in assoc(p, :user),
+      select: %{sm | email: u.email}
+    )
+    |> apply_list_staff_members_opts(opts)
+  end
+
   defp apply_list_staff_members_opts(queryable, [_ | opts]),
     do: apply_list_staff_members_opts(queryable, opts)
 
@@ -990,7 +1000,8 @@ defmodule Lanttern.Schools do
 
   ### Options:
 
-  `:preloads` – preloads associated data
+  - `:load_email` - boolean, will add the email field based on staff member profile/user
+  - `:preloads` – preloads associated data
 
   ## Examples
 
@@ -1002,12 +1013,30 @@ defmodule Lanttern.Schools do
 
   """
   def get_staff_member!(id, opts \\ []) do
-    Repo.get!(StaffMember, id)
+    StaffMember
+    |> apply_get_staff_member_opts(opts)
+    |> Repo.get!(id)
     |> maybe_preload(opts)
   end
 
+  defp apply_get_staff_member_opts(queryable, []), do: queryable
+
+  defp apply_get_staff_member_opts(queryable, [{:load_email, true} | opts]) do
+    from(sm in queryable,
+      left_join: p in assoc(sm, :profile),
+      left_join: u in assoc(p, :user),
+      select: %{sm | email: u.email}
+    )
+    |> apply_get_staff_member_opts(opts)
+  end
+
+  defp apply_get_staff_member_opts(queryable, [_ | opts]),
+    do: apply_get_staff_member_opts(queryable, opts)
+
   @doc """
   Creates a staff member.
+
+  If attr contains an email, it will create (or link) a user and profile for the staff member.
 
   ## Examples
 
@@ -1019,13 +1048,74 @@ defmodule Lanttern.Schools do
 
   """
   def create_staff_member(attrs \\ %{}) do
-    %StaffMember{}
-    |> StaffMember.changeset(attrs)
-    |> Repo.insert()
+    email = Map.get(attrs, "email") || Map.get(attrs, :email)
+
+    if is_binary(email) do
+      create_staff_member_with_profile(attrs, email)
+    else
+      %StaffMember{}
+      |> StaffMember.changeset(attrs)
+      |> Repo.insert()
+    end
+  end
+
+  defp create_staff_member_with_profile(attrs, email) do
+    Repo.transaction(fn ->
+      # create staff member first
+      staff_member =
+        %StaffMember{}
+        |> StaffMember.changeset(attrs)
+        |> Repo.insert()
+        |> case do
+          {:ok, staff_member} -> staff_member
+          {:error, changeset} -> Repo.rollback(changeset)
+        end
+
+      # then get or create user
+      user =
+        case get_or_create_user_with_email(email) do
+          {:ok, user} -> user
+          {:error, changeset} -> Repo.rollback(changeset)
+        end
+
+      # then create profile
+      # if successful, return staff member
+      Identity.create_profile(%{
+        type: "staff",
+        user_id: user.id,
+        staff_member_id: staff_member.id
+      })
+      |> case do
+        {:ok, _profile} -> %{staff_member | email: email}
+        {:error, changeset} -> Repo.rollback(changeset)
+      end
+    end)
+  end
+
+  defp get_or_create_user_with_email(nil), do: nil
+
+  defp get_or_create_user_with_email(""), do: nil
+
+  defp get_or_create_user_with_email(email) do
+    case Repo.get_by(User, email: email) do
+      nil ->
+        %{
+          email: email,
+          password: Ecto.UUID.generate()
+        }
+        |> Identity.register_user()
+
+      user ->
+        {:ok, user}
+    end
   end
 
   @doc """
   Updates a staff member.
+
+  If attr contains an email, it will handle the profile creation,
+  update, or deletion based on the email change. Requires the staff
+  member to have loaded the email field.
 
   ## Examples
 
@@ -1037,10 +1127,80 @@ defmodule Lanttern.Schools do
 
   """
   def update_staff_member(%StaffMember{} = staff_member, attrs) do
-    staff_member
-    |> StaffMember.changeset(attrs)
-    |> Repo.update()
+    has_email_in_attrs = Map.keys(attrs) |> Enum.any?(&(&1 in ["email", :email]))
+    email = Map.get(attrs, "email") || Map.get(attrs, :email)
+
+    if has_email_in_attrs and staff_member.email != email do
+      update_staff_member_and_profile(staff_member, attrs)
+    else
+      staff_member
+      |> StaffMember.changeset(attrs)
+      |> Repo.update()
+      |> update_staff_member_cleanup(staff_member)
+    end
+  end
+
+  defp update_staff_member_and_profile(staff_member, %{"email" => email} = attrs) do
+    Repo.transaction(fn ->
+      # update staff member first
+      staff_member =
+        staff_member
+        |> StaffMember.changeset(attrs)
+        |> Repo.update()
+        |> case do
+          {:ok, staff_member} -> staff_member
+          {:error, changeset} -> Repo.rollback(changeset)
+        end
+
+      # then get or create user (returns nil if email is nil)
+      user =
+        case get_or_create_user_with_email(email) do
+          nil -> nil
+          {:ok, user} -> user
+          {:error, changeset} -> Repo.rollback(changeset)
+        end
+
+      # then create, update, or delete profile
+      # if successful, return staff member
+      create_update_or_delete_profile(staff_member, user)
+      |> case do
+        {:deleted, {:ok, _}} -> %{staff_member | email: nil}
+        {_created_or_updated, {:ok, _}} -> %{staff_member | email: email}
+        {:error, changeset} -> Repo.rollback(changeset)
+      end
+    end)
     |> update_staff_member_cleanup(staff_member)
+  end
+
+  defp create_update_or_delete_profile(staff_member, nil) do
+    # todo: handle failed deletion of profile
+    Repo.get_by(Profile, staff_member_id: staff_member.id)
+    |> Repo.delete()
+    |> case do
+      {:ok, profile} -> {:deleted, {:ok, profile}}
+      error -> error
+    end
+  end
+
+  defp create_update_or_delete_profile(%{email: nil} = staff_member, %User{} = user) do
+    Identity.create_profile(%{
+      type: "staff",
+      user_id: user.id,
+      staff_member_id: staff_member.id
+    })
+    |> case do
+      {:ok, profile} -> {:created, {:ok, profile}}
+      error -> error
+    end
+  end
+
+  defp create_update_or_delete_profile(staff_member, %User{} = user) do
+    Repo.get_by(Profile, staff_member_id: staff_member.id)
+    |> Identity.update_profile(%{user_id: user.id})
+    |> case do
+      {:ok, profile} -> {:updated, {:ok, profile}}
+      error -> error
+    end
   end
 
   defp update_staff_member_cleanup(

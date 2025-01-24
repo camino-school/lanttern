@@ -36,9 +36,16 @@ defmodule LantternWeb.SchoolLive.StaffComponent do
               profile_name={staff_member.name}
               size="lg"
             />
-            <div class="flex-1">
+            <div class="min-w-0 flex-1">
               <%= staff_member.name %>
               <div class="text-xs text-ltrn-subtle"><%= staff_member.role %></div>
+              <div
+                :if={staff_member.email}
+                class="mt-2 text-xs text-ltrn-subtle truncate"
+                title={staff_member.email}
+              >
+                <%= staff_member.email %>
+              </div>
             </div>
             <.button
               :if={@is_school_manager}
@@ -113,7 +120,10 @@ defmodule LantternWeb.SchoolLive.StaffComponent do
 
   defp stream_staff(socket) do
     staff =
-      Schools.list_staff_members(school_id: socket.assigns.current_user.current_profile.school_id)
+      Schools.list_staff_members(
+        school_id: socket.assigns.current_user.current_profile.school_id,
+        load_email: true
+      )
 
     socket
     |> stream(:staff, staff)
@@ -121,10 +131,9 @@ defmodule LantternWeb.SchoolLive.StaffComponent do
     |> assign(:staff_members_ids, Enum.map(staff, & &1.id))
   end
 
-  defp assign_staff_member(%{assigns: %{is_school_manager: false}} = socket),
-    do: assign(socket, :staff_member, nil)
-
-  defp assign_staff_member(%{assigns: %{params: %{"new" => "true"}}} = socket) do
+  defp assign_staff_member(
+         %{assigns: %{is_school_manager: true, params: %{"new" => "true"}}} = socket
+       ) do
     staff_member = %StaffMember{
       school_id: socket.assigns.current_user.current_profile.school_id
     }
@@ -136,8 +145,11 @@ defmodule LantternWeb.SchoolLive.StaffComponent do
 
   defp assign_staff_member(%{assigns: %{params: %{"edit" => staff_member_id}}} = socket) do
     with {staff_member_id, _} <- Integer.parse(staff_member_id),
+         true <-
+           socket.assigns.is_school_manager ||
+             socket.assigns.current_user.current_profile.staff_member_id == staff_member_id,
          true <- staff_member_id in socket.assigns.staff_members_ids do
-      staff_member = Schools.get_staff_member!(staff_member_id)
+      staff_member = Schools.get_staff_member!(staff_member_id, load_email: true)
 
       socket
       |> assign(:staff_member, staff_member)
