@@ -12,7 +12,12 @@ defmodule LantternWeb.SchoolLive.StaffComponent do
     ~H"""
     <div>
       <div class="flex justify-between gap-6 p-4">
-        <%= ngettext("1 staff member", "%{count} staff members", @staff_length) %>
+        <div class="flex gap-4">
+          <%= ngettext("1 active staff member", "%{count} active staff members", @staff_length) %>
+          <.action type="link" theme="subtle" navigate={~p"/school/staff/disabled"}>
+            <%= gettext("View disabled staff members") %>
+          </.action>
+        </div>
         <.action
           :if={@is_school_manager}
           type="link"
@@ -82,12 +87,12 @@ defmodule LantternWeb.SchoolLive.StaffComponent do
 
   @impl true
   def update(%{action: {StaffMemberFormOverlayComponent, {action, _staff_member}}}, socket)
-      when action in [:created, :updated, :deleted] do
+      when action in [:created, :updated, :disabled] do
     message =
       case action do
         :created -> gettext("Staff member created successfully")
         :updated -> gettext("Staff member updated successfully")
-        :deleted -> gettext("Staff member deleted successfully")
+        :disabled -> gettext("Staff member disabled successfully")
       end
 
     socket =
@@ -122,7 +127,8 @@ defmodule LantternWeb.SchoolLive.StaffComponent do
     staff =
       Schools.list_staff_members(
         school_id: socket.assigns.current_user.current_profile.school_id,
-        load_email: true
+        load_email: true,
+        only_active: true
       )
 
     socket

@@ -73,7 +73,8 @@ defmodule LantternWeb.CoreComponents do
     "subtle" => "text-ltrn-subtle hover:text-ltrn-dark",
     "primary" => "text-ltrn-dark hover:text-ltrn-subtle",
     "student" => "text-ltrn-student-dark hover:text-ltrn-student-dark/80",
-    "teacher" => "text-ltrn-teacher-dark hover:text-ltrn-teacher-dark/80"
+    "teacher" => "text-ltrn-teacher-dark hover:text-ltrn-teacher-dark/80",
+    "alert" => "text-ltrn-subtle hover:text-ltrn-alert-accent"
   }
 
   @action_bg_themes %{
@@ -81,7 +82,8 @@ defmodule LantternWeb.CoreComponents do
     "subtle" => nil,
     "primary" => "bg-ltrn-mesh-primary",
     "student" => "bg-ltrn-student-lightest",
-    "teacher" => "bg-ltrn-teacher-lightest"
+    "teacher" => "bg-ltrn-teacher-lightest",
+    "alert" => "bg-ltrn-alert-lighter"
   }
 
   @action_sizes %{

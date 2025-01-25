@@ -953,6 +953,8 @@ defmodule Lanttern.Schools do
 
   - `:school_id` – filter staff members by school
   - `:load_email` - boolean, will add the email field based on staff member profile/user
+  - `:only_active` - boolean, will return only active staff members
+  - `:only_disabled` - boolean, will return only disabled staff members
   - `:preloads` – preloads associated data
 
   ## Examples
@@ -987,6 +989,16 @@ defmodule Lanttern.Schools do
       left_join: u in assoc(p, :user),
       select: %{sm | email: u.email}
     )
+    |> apply_list_staff_members_opts(opts)
+  end
+
+  defp apply_list_staff_members_opts(queryable, [{:only_active, true} | opts]) do
+    from(sm in queryable, where: is_nil(sm.disabled_at))
+    |> apply_list_staff_members_opts(opts)
+  end
+
+  defp apply_list_staff_members_opts(queryable, [{:only_disabled, true} | opts]) do
+    from(sm in queryable, where: not is_nil(sm.disabled_at))
     |> apply_list_staff_members_opts(opts)
   end
 
@@ -1050,7 +1062,7 @@ defmodule Lanttern.Schools do
   def create_staff_member(attrs \\ %{}) do
     email = Map.get(attrs, "email") || Map.get(attrs, :email)
 
-    if is_binary(email) do
+    if is_binary(email) && email != "" do
       create_staff_member_with_profile(attrs, email)
     else
       %StaffMember{}
@@ -1250,6 +1262,50 @@ defmodule Lanttern.Schools do
   end
 
   defp delete_staff_member_cleanup(return_tuple), do: return_tuple
+
+  @doc """
+  Disables a staff member.
+
+  Soft delete, using the `disabled_at` field.
+
+  ## Examples
+
+      iex> disable_staff_member(staff_member)
+      {:ok, %StaffMember{}}
+
+      iex> disable_staff_member(staff_member)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec disable_staff_member(StaffMember.t()) ::
+          {:ok, StaffMember.t()} | {:error, Ecto.Changeset.t()}
+  def disable_staff_member(%StaffMember{} = staff_member) do
+    staff_member
+    |> StaffMember.changeset(%{disabled_at: DateTime.utc_now()})
+    |> Repo.update()
+  end
+
+  @doc """
+  Reactivates a staff member.
+
+  Sets `disabled_at` field to nil.
+
+  ## Examples
+
+      iex> reactivate_staff_member(staff_member)
+      {:ok, %StaffMember{}}
+
+      iex> reactivate_staff_member(staff_member)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec reactivate_staff_member(StaffMember.t()) ::
+          {:ok, StaffMember.t()} | {:error, Ecto.Changeset.t()}
+  def reactivate_staff_member(%StaffMember{} = staff_member) do
+    staff_member
+    |> StaffMember.changeset(%{disabled_at: nil})
+    |> Repo.update()
+  end
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking staff member changes.

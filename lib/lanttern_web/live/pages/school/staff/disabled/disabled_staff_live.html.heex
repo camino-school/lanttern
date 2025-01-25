@@ -1,0 +1,51 @@
+<.header_nav current_user={@current_user}>
+  <:breadcrumb navigate={~p"/school/staff"}>
+    <%= @current_user.current_profile.school_name %>
+  </:breadcrumb>
+  <:title><%= gettext("Disabled staff members") %></:title>
+  <div class="flex gap-4 p-4">
+    <%= ngettext("1 disabled staff member", "%{count} disabled staff members", @staff_length) %>
+  </div>
+</.header_nav>
+<%= if @staff_length == 0 do %>
+  <.empty_state class="px-4 py-10">
+    <%= gettext("No disabled staff members found") %>
+  </.empty_state>
+<% else %>
+  <.fluid_grid id="staff-members" phx-update="stream" is_full_width class="p-4">
+    <.card_base
+      :for={{dom_id, staff_member} <- @streams.staff}
+      id={dom_id}
+      class="flex items-center gap-4 p-4"
+    >
+      <.profile_picture
+        picture_url={staff_member.profile_picture_url}
+        profile_name={staff_member.name}
+        size="lg"
+      />
+      <div class="min-w-0 flex-1">
+        <div class="text-ltrn-subtle">
+          <%= staff_member.name %>
+          <div class="text-xs"><%= staff_member.role %></div>
+          <div :if={staff_member.email} class="mt-2 text-xs truncate" title={staff_member.email}>
+            <%= staff_member.email %>
+          </div>
+        </div>
+        <div :if={@is_school_manager} class="flex gap-4 mt-4">
+          <.action type="button" phx-click="reactivate" phx-value-id={staff_member.id}>
+            <%= gettext("Reactivate") %>
+          </.action>
+          <.action
+            type="button"
+            theme="alert"
+            phx-click="delete"
+            phx-value-id={staff_member.id}
+            data-confirm={gettext("Are you sure?")}
+          >
+            <%= gettext("Delete") %>
+          </.action>
+        </div>
+      </div>
+    </.card_base>
+  </.fluid_grid>
+<% end %>
