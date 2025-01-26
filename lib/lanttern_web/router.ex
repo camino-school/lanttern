@@ -61,17 +61,21 @@ defmodule LantternWeb.Router do
   scope "/", LantternWeb do
     pipe_through [:browser, :require_authenticated_user, :require_privacy_policy_accepted]
 
-    live_session :authenticated_teacher,
+    live_session :authenticated_staff_member,
       layout: {LantternWeb.Layouts, :app_logged_in},
       on_mount: [
-        {LantternWeb.UserAuth, :ensure_authenticated_teacher},
+        {LantternWeb.UserAuth, :ensure_authenticated_staff_member},
         {LantternWeb.Path, :put_path_in_socket}
       ] do
       live "/dashboard", DashboardLive, :index
 
-      live "/school", SchoolLive, :show
       live "/school/students", SchoolLive, :manage_students
       live "/school/classes", SchoolLive, :manage_classes
+      live "/school/staff", SchoolLive, :manage_staff
+      live "/school/cycles", SchoolLive, :manage_cycles
+      live "/school/moment_cards_templates", SchoolLive, :manage_moment_cards_templates
+
+      live "/school/staff/deactivated", DeactivatedStaffLive, :index
 
       live "/school/students/:id", StudentLive, :show
       live "/school/students/:id/report_cards", StudentLive, :report_cards
@@ -128,14 +132,6 @@ defmodule LantternWeb.Router do
       # students records
 
       live "/students_records", StudentsRecordsLive, :index
-
-      # school config
-
-      live "/school_config/cycles", SchoolConfigLive, :manage_cycles
-
-      live "/school_config/moment_cards_templates",
-           SchoolConfigLive,
-           :manage_moment_cards_templates
     end
 
     live_session :authenticated_guardian,
@@ -217,10 +213,10 @@ defmodule LantternWeb.Router do
     resources "/schools", SchoolController
     resources "/classes", ClassController
     resources "/students", StudentController
-    resources "/teachers", TeacherController
+    resources "/staff_members", StaffMemberController
 
     live "/import_students", Admin.ImportStudentsLive
-    live "/import_teachers", Admin.ImportTeachersLive
+    live "/import_staff_members", Admin.ImportStaffMembersLive
 
     live "/school_cycles", Admin.CycleLive.Index, :index
     live "/school_cycles/new", Admin.CycleLive.Index, :new

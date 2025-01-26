@@ -3,7 +3,7 @@ defmodule LantternWeb.DashboardLiveTest do
 
   @live_view_path "/dashboard"
 
-  setup :register_and_log_in_teacher
+  setup :register_and_log_in_staff_member
 
   describe "Dashboard live view basic navigation" do
     alias Lanttern.LearningContext

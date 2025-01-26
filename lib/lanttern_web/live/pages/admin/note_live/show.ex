@@ -13,7 +13,7 @@ defmodule LantternWeb.Admin.NoteLive.Show do
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:note, Notes.get_note!(id, preloads: [author: [:student, :teacher]]))}
+     |> assign(:note, Notes.get_note!(id, preloads: [author: [:student, :staff_member]]))}
   end
 
   defp page_title(:show), do: "Show Note"

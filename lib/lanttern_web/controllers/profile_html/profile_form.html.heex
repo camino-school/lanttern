@@ -13,7 +13,7 @@
     field={f[:type]}
     type="select"
     label="Type"
-    options={[{"Student", "student"}, {"Teacher", "teacher"}, {"Guardian", "guardian"}]}
+    options={[{"Student", "student"}, {"Staff", "staff"}, {"Guardian", "guardian"}]}
     prompt="Select a profile type"
   />
   <.input
@@ -24,11 +24,11 @@
     prompt="Select student"
   />
   <.input
-    field={f[:teacher_id]}
+    field={f[:staff_member_id]}
     type="select"
-    label="Teacher"
-    options={@teacher_options}
-    prompt="Select teacher"
+    label="Staff"
+    options={@staff_member_options}
+    prompt="Select staff member"
   />
   <.input
     field={f[:guardian_of_student_id]}

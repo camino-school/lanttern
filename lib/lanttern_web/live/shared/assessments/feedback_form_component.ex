@@ -62,7 +62,7 @@ defmodule LantternWeb.Assessments.FeedbackFormComponent do
 
   def handle_event("save", %{"feedback" => params}, socket) do
     case Assessments.create_feedback(params,
-           preloads: [:student, profile: :teacher]
+           preloads: [:student, profile: :staff_member]
          ) do
       {:ok, feedback} ->
         notify_parent({:created, feedback})

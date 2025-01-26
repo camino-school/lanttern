@@ -48,7 +48,10 @@ defmodule Lanttern.StudentsRecordsTest do
       student_b = SchoolsFixtures.student_fixture(%{school_id: school.id})
 
       student_record =
-        student_record_fixture(%{school_id: school.id, students_ids: [student_a.id, student_b.id]})
+        student_record_fixture(%{
+          school_id: school.id,
+          students_ids: [student_a.id, student_b.id]
+        })
 
       # extra fixture to test filtering
       student_record_fixture()
@@ -174,7 +177,7 @@ defmodule Lanttern.StudentsRecordsTest do
       class = SchoolsFixtures.class_fixture(%{school_id: school.id})
 
       # profile to test log
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       valid_attrs = %{
         school_id: school.id,
@@ -256,7 +259,7 @@ defmodule Lanttern.StudentsRecordsTest do
       }
 
       # profile to test log
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       assert {:ok, %StudentRecord{} = student_record} =
                StudentsRecords.update_student_record(student_record, update_attrs,
@@ -310,7 +313,7 @@ defmodule Lanttern.StudentsRecordsTest do
       student_record = student_record_fixture()
 
       # profile to test log
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       assert {:ok, %StudentRecord{}} =
                StudentsRecords.delete_student_record(student_record, log_profile_id: profile.id)

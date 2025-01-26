@@ -8,9 +8,9 @@ defmodule LantternWeb.Admin.ProfileSettingsLiveTest do
   setup :register_and_log_in_root_admin
 
   defp create_profile(_) do
-    teacher = teacher_fixture()
-    profile = teacher_profile_fixture(%{teacher_id: teacher.id})
-    profile = %{profile | name: teacher.name}
+    staff_member = staff_member_fixture()
+    profile = staff_member_profile_fixture(%{staff_member_id: staff_member.id})
+    profile = %{profile | name: staff_member.name}
     %{profile: profile}
   end
 

@@ -19,7 +19,7 @@ defmodule Lanttern.NotesTest do
     end
 
     test "list_notes/1 with preloads returns all notes with preloaded data" do
-      author = teacher_profile_fixture()
+      author = staff_member_profile_fixture()
       note = note_fixture(%{author_id: author.id})
 
       [expected] = Notes.list_notes(preloads: :author)
@@ -33,7 +33,7 @@ defmodule Lanttern.NotesTest do
     end
 
     test "get_note!/2 with preloads returns the note with given id and preloaded data" do
-      author = teacher_profile_fixture()
+      author = staff_member_profile_fixture()
       note = note_fixture(%{author_id: author.id})
 
       expected = Notes.get_note!(note.id, preloads: :author)
@@ -42,7 +42,7 @@ defmodule Lanttern.NotesTest do
     end
 
     test "create_note/1 with valid data creates a note" do
-      author = teacher_profile_fixture()
+      author = staff_member_profile_fixture()
       valid_attrs = %{author_id: author.id, description: "some description"}
 
       assert {:ok, %Note{} = note} = Notes.create_note(valid_attrs, log_operation: true)
@@ -167,7 +167,7 @@ defmodule Lanttern.NotesTest do
     import Lanttern.LearningContextFixtures
 
     test "create_strand_note/4 with valid data creates a note linked to a strand" do
-      author = teacher_profile_fixture()
+      author = staff_member_profile_fixture()
       strand = strand_fixture()
       valid_attrs = %{"description" => "some strand note"}
 
@@ -217,7 +217,7 @@ defmodule Lanttern.NotesTest do
     end
 
     test "create_strand_note/2 prevents multiple notes in the same strand" do
-      author = teacher_profile_fixture()
+      author = staff_member_profile_fixture()
       strand = strand_fixture()
       attrs = %{"author_id" => author.id, "description" => "some strand note"}
 
@@ -229,7 +229,7 @@ defmodule Lanttern.NotesTest do
     end
 
     test "list_user_notes/2 returns all user moments notes in a strand" do
-      author = teacher_profile_fixture()
+      author = staff_member_profile_fixture()
       strand = strand_fixture()
       moment_1 = moment_fixture(%{strand_id: strand.id, position: 1})
       note_1 = moment_note_fixture(%{current_profile: author}, moment_1.id)
@@ -321,7 +321,7 @@ defmodule Lanttern.NotesTest do
     import Lanttern.LearningContextFixtures
 
     test "create_moment_note/4 with valid data creates a note linked to a moment" do
-      author = teacher_profile_fixture()
+      author = staff_member_profile_fixture()
       moment = moment_fixture()
       valid_attrs = %{"author_id" => author.id, "description" => "some moment note"}
 
@@ -371,7 +371,7 @@ defmodule Lanttern.NotesTest do
     end
 
     test "create_moment_note/2 prevents multiple notes in the same moment" do
-      author = teacher_profile_fixture()
+      author = staff_member_profile_fixture()
       moment = moment_fixture()
       attrs = %{"author_id" => author.id, "description" => "some moment note"}
 

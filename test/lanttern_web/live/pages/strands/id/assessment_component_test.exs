@@ -9,7 +9,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
 
   @live_view_base_path "/strands"
 
-  setup [:register_and_log_in_teacher, :prepare]
+  setup [:register_and_log_in_staff_member, :prepare]
 
   describe "Assessment views" do
     test "display teacher view", %{

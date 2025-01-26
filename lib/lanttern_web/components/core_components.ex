@@ -36,8 +36,7 @@ defmodule LantternWeb.CoreComponents do
   attr :icon_name, :string, default: nil
   attr :patch, :string, default: nil, doc: "use with type=\"link\""
   attr :navigate, :string, default: nil, doc: "use with type=\"link\""
-  attr :show_loading_spinner, :boolean, default: false
-  attr :rest, :global, include: ~w(disabled)
+  attr :rest, :global, include: ~w(disabled form)
 
   slot :inner_block, required: true
 
@@ -60,16 +59,11 @@ defmodule LantternWeb.CoreComponents do
         :if={@icon_name}
         name={@icon_name}
         class={[
-          if(@show_loading_spinner,
-            do: "group-phx-submit-loading:hidden group-phx-click-loading:hidden"
-          ),
+          "group-phx-submit-loading:hidden group-phx-click-loading:hidden",
           action_icon_styles(@size)
         ]}
       />
-      <.spinner
-        :if={@show_loading_spinner}
-        class="hidden group-phx-submit-loading:block group-phx-click-loading:block"
-      />
+      <.spinner class="hidden group-phx-submit-loading:block group-phx-click-loading:block" />
     </button>
     """
   end
@@ -79,7 +73,8 @@ defmodule LantternWeb.CoreComponents do
     "subtle" => "text-ltrn-subtle hover:text-ltrn-dark",
     "primary" => "text-ltrn-dark hover:text-ltrn-subtle",
     "student" => "text-ltrn-student-dark hover:text-ltrn-student-dark/80",
-    "teacher" => "text-ltrn-teacher-dark hover:text-ltrn-teacher-dark/80"
+    "teacher" => "text-ltrn-teacher-dark hover:text-ltrn-teacher-dark/80",
+    "alert" => "text-ltrn-subtle hover:text-ltrn-alert-accent"
   }
 
   @action_bg_themes %{
@@ -87,7 +82,8 @@ defmodule LantternWeb.CoreComponents do
     "subtle" => nil,
     "primary" => "bg-ltrn-mesh-primary",
     "student" => "bg-ltrn-student-lightest",
-    "teacher" => "bg-ltrn-teacher-lightest"
+    "teacher" => "bg-ltrn-teacher-lightest",
+    "alert" => "bg-ltrn-alert-lighter"
   }
 
   @action_sizes %{
@@ -984,6 +980,38 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Renders a fluid grid.
+
+  View `<.responsive_grid>` for a version with
+  horizontal scroll in smaller screens.
+  """
+  attr :class, :any, default: nil
+  attr :id, :string, default: nil
+  attr :is_full_width, :boolean, default: false
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def fluid_grid(assigns) do
+    ~H"""
+    <div
+      id={@id}
+      class={[
+        "grid gap-4 mx-auto",
+        "sm:grid-cols-2 lg:grid-cols-3",
+        if(assigns.is_full_width,
+          do: "xl:grid-cols-4 2xl:grid-cols-5",
+          else: "container lg:max-w-5xl"
+        ),
+        @class
+      ]}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </div>
+    """
+  end
+
+  @doc """
   Renders a header with title.
   """
   attr :class, :any, default: nil
@@ -1524,9 +1552,21 @@ defmodule LantternWeb.CoreComponents do
   Renders a profile picture.
   """
   attr :picture_url, :string, required: true
-  attr :profile_name, :string, required: true, doc: "render initials when there's no image"
-  attr :size, :string, default: "normal", doc: "xs | sm | md | lg | xl"
+  attr :profile_name, :string, default: nil, doc: "render initials when there's no image"
+  attr :size, :string, default: "md", doc: "xs | sm | md | lg | xl | 2xl"
   attr :class, :any, default: nil
+
+  def profile_picture(%{picture_url: nil, profile_name: nil} = assigns) do
+    ~H"""
+    <div class={[
+      "relative shrink-0 flex items-center justify-center rounded-full font-display text-center bg-white overflow-hidden ltrn-bg-profile",
+      profile_picture_size_style(@size),
+      @class
+    ]}>
+      <.icon name="hero-user" class={["text-ltrn-subtle", profile_picture_icon_size_style(@size)]} />
+    </div>
+    """
+  end
 
   def profile_picture(assigns) do
     picture_url = profile_picture_render_url(assigns.picture_url, assigns.size)
@@ -1561,9 +1601,12 @@ defmodule LantternWeb.CoreComponents do
     do: object_url_to_render_url(picture_url, width: 64, height: 64)
 
   defp profile_picture_render_url(picture_url, "lg"),
-    do: object_url_to_render_url(picture_url, width: 256, height: 256)
+    do: object_url_to_render_url(picture_url, width: 160, height: 160)
 
   defp profile_picture_render_url(picture_url, "xl"),
+    do: object_url_to_render_url(picture_url, width: 256, height: 256)
+
+  defp profile_picture_render_url(picture_url, "2xl"),
     do: object_url_to_render_url(picture_url, width: 480, height: 480)
 
   defp profile_picture_render_url(picture_url, _md),
@@ -1571,9 +1614,17 @@ defmodule LantternWeb.CoreComponents do
 
   defp profile_picture_size_style("xs"), do: "w-6 h-6 font-bold text-xs"
   defp profile_picture_size_style("sm"), do: "w-8 h-8 font-bold text-xs"
-  defp profile_picture_size_style("lg"), do: "w-32 h-32 font-black text-4xl"
-  defp profile_picture_size_style("xl"), do: "w-60 h-60 font-black text-6xl"
+  defp profile_picture_size_style("lg"), do: "w-20 h-20 font-black text-2xl"
+  defp profile_picture_size_style("xl"), do: "w-32 h-32 font-black text-4xl"
+  defp profile_picture_size_style("2xl"), do: "w-60 h-60 font-black text-6xl"
   defp profile_picture_size_style(_md), do: "w-10 h-10 font-bold text-sm"
+
+  defp profile_picture_icon_size_style("xs"), do: "w-5 h-5"
+  defp profile_picture_icon_size_style("sm"), do: "w-6 h-6"
+  defp profile_picture_icon_size_style("lg"), do: "w-12 h-12"
+  defp profile_picture_icon_size_style("xl"), do: "w-20 h-20"
+  defp profile_picture_icon_size_style("2xl"), do: "w-32 h-32"
+  defp profile_picture_icon_size_style(_md), do: "w-6 h-6"
 
   @doc """
   Renders a responsive container.
@@ -1599,6 +1650,12 @@ defmodule LantternWeb.CoreComponents do
 
   @doc """
   Renders a responsive grid.
+
+  Will render a horizontal scroll on small screens,
+  and a grid starting on `sm` breakpoint.
+
+  View also `<.fluid_grid>` for an alternative without the
+  horizontal scroll.
   """
   attr :class, :any, default: nil
   attr :id, :string, default: nil

@@ -1,4 +1,4 @@
-defmodule LantternWeb.Admin.ImportTeachersLive do
+defmodule LantternWeb.Admin.ImportStaffMembersLive do
   use LantternWeb, {:live_view, layout: :admin}
 
   alias NimbleCSV.RFC4180, as: CSV
@@ -124,7 +124,7 @@ defmodule LantternWeb.Admin.ImportTeachersLive do
       </table>
       <div class="flex gap-6">
         <.link href={~p"/admin"} class="underline hover:text-ltrn-subtle">Back to admin home</.link>
-        <.link href={~p"/admin/import_teachers"} class="underline hover:text-ltrn-subtle">
+        <.link href={~p"/admin/import_staff_members"} class="underline hover:text-ltrn-subtle">
           Import new file
         </.link>
       </div>
@@ -255,7 +255,7 @@ defmodule LantternWeb.Admin.ImportTeachersLive do
   end
 
   def handle_event("import", _params, socket) do
-    case Schools.create_teachers_from_csv(
+    case Schools.create_staff_members_from_csv(
            socket.assigns.csv_rows,
            socket.assigns.school_id
          ) do

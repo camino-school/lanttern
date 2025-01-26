@@ -1,4 +1,4 @@
-defmodule LantternWeb.SchoolConfigLive.MomentCardsTemplatesComponent do
+defmodule LantternWeb.SchoolLive.MomentCardsTemplatesComponent do
   @moduledoc """
   ### Supported attrs/assigns
 
@@ -26,7 +26,7 @@ defmodule LantternWeb.SchoolConfigLive.MomentCardsTemplatesComponent do
           <.action
             :if={@templates_count > 1}
             type="link"
-            patch={~p"/school_config/moment_cards_templates?reorder=true"}
+            patch={~p"/school/moment_cards_templates?reorder=true"}
             icon_name="hero-arrows-up-down-mini"
           >
             <%= gettext("Reorder") %>
@@ -34,7 +34,7 @@ defmodule LantternWeb.SchoolConfigLive.MomentCardsTemplatesComponent do
           <.action
             :if={@is_content_manager}
             type="link"
-            patch={~p"/school_config/moment_cards_templates?new=true"}
+            patch={~p"/school/moment_cards_templates?new=true"}
             icon_name="hero-plus-circle-mini"
           >
             <%= gettext("Add card template") %>
@@ -51,7 +51,7 @@ defmodule LantternWeb.SchoolConfigLive.MomentCardsTemplatesComponent do
         <.responsive_grid phx-update="stream" id="moment-cards-templates" class="p-4" is_full_width>
           <.card_base :for={{dom_id, template} <- @streams.templates} id={dom_id} class="p-6">
             <.link
-              patch={~p"/school_config/moment_cards_templates?id=#{template.id}"}
+              patch={~p"/school/moment_cards_templates?id=#{template.id}"}
               class="font-display font-black text-xl hover:text-ltrn-subtle"
             >
               <%= template.name %>
@@ -67,7 +67,7 @@ defmodule LantternWeb.SchoolConfigLive.MomentCardsTemplatesComponent do
         module={MomentCardTemplateOverlayComponent}
         moment_card_template={@template}
         id="moment-card-template-overlay"
-        on_cancel={JS.patch(~p"/school_config/moment_cards_templates")}
+        on_cancel={JS.patch(~p"/school/moment_cards_templates")}
         allow_edit={@is_content_manager}
         notify_component={@myself}
       />
@@ -75,7 +75,7 @@ defmodule LantternWeb.SchoolConfigLive.MomentCardsTemplatesComponent do
         :if={@is_reordering}
         show
         id="moment-cards-templates-order-overlay"
-        on_cancel={JS.patch(~p"/school_config/moment_cards_templates")}
+        on_cancel={JS.patch(~p"/school/moment_cards_templates")}
       >
         <:title><%= gettext("Moment cards templates order") %></:title>
         <ol>
@@ -234,7 +234,7 @@ defmodule LantternWeb.SchoolConfigLive.MomentCardsTemplatesComponent do
       :ok ->
         socket =
           socket
-          |> push_navigate(to: ~p"/school_config/moment_cards_templates")
+          |> push_navigate(to: ~p"/school/moment_cards_templates")
 
         {:noreply, socket}
 

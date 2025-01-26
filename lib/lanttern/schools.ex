@@ -10,11 +10,13 @@ defmodule Lanttern.Schools do
   alias Lanttern.Schools.School
   alias Lanttern.Schools.Cycle
   alias Lanttern.Schools.Class
+  alias Lanttern.Schools.StaffMember
   alias Lanttern.Schools.Student
-  alias Lanttern.Schools.Teacher
   alias Lanttern.Identity
   alias Lanttern.Identity.User
   alias Lanttern.Identity.Profile
+
+  alias Lanttern.SupabaseHelpers
 
   @doc """
   Returns the list of schools.
@@ -499,7 +501,7 @@ defmodule Lanttern.Schools do
   """
   def list_user_classes(current_user, opts \\ [])
 
-  def list_user_classes(%User{current_profile: %{type: "teacher", school_id: school_id}}, opts) do
+  def list_user_classes(%User{current_profile: %{type: "staff", school_id: school_id}}, opts) do
     opts = Keyword.put(opts, :schools_ids, [school_id])
     list_classes(opts)
   end
@@ -945,110 +947,377 @@ defmodule Lanttern.Schools do
   end
 
   @doc """
-  Returns the list of teachers.
+  Returns the list of staff members.
 
   ### Options:
 
-  `:preloads` – preloads associated data
+  - `:school_id` – filter staff members by school
+  - `:load_email` - boolean, will add the email field based on staff member profile/user
+  - `:only_active` - boolean, will return only active staff members
+  - `:only_deactivated` - boolean, will return only deactivated staff members
+  - `:preloads` – preloads associated data
 
   ## Examples
 
-      iex> list_teachers()
-      [%Teacher{}, ...]
+      iex> list_staff_members()
+      [%StaffMember{}, ...]
 
   """
-  def list_teachers(opts \\ []) do
-    Teacher
+  def list_staff_members(opts \\ []) do
+    from(
+      sm in StaffMember,
+      order_by: sm.name
+    )
+    |> apply_list_staff_members_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
-  @doc """
-  Gets a single teacher.
+  defp apply_list_staff_members_opts(queryable, []), do: queryable
 
-  Raises `Ecto.NoResultsError` if the Teacher does not exist.
+  defp apply_list_staff_members_opts(queryable, [{:school_id, school_id} | opts]) do
+    from(
+      sm in queryable,
+      where: sm.school_id == ^school_id
+    )
+    |> apply_list_staff_members_opts(opts)
+  end
+
+  defp apply_list_staff_members_opts(queryable, [{:load_email, true} | opts]) do
+    from(sm in queryable,
+      left_join: p in assoc(sm, :profile),
+      left_join: u in assoc(p, :user),
+      select: %{sm | email: u.email}
+    )
+    |> apply_list_staff_members_opts(opts)
+  end
+
+  defp apply_list_staff_members_opts(queryable, [{:only_active, true} | opts]) do
+    from(sm in queryable, where: is_nil(sm.deactivated_at))
+    |> apply_list_staff_members_opts(opts)
+  end
+
+  defp apply_list_staff_members_opts(queryable, [{:only_deactivated, true} | opts]) do
+    from(sm in queryable, where: not is_nil(sm.deactivated_at))
+    |> apply_list_staff_members_opts(opts)
+  end
+
+  defp apply_list_staff_members_opts(queryable, [_ | opts]),
+    do: apply_list_staff_members_opts(queryable, opts)
+
+  @doc """
+  Gets a single staff member.
+
+  Raises `Ecto.NoResultsError` if the StaffMember does not exist.
 
   ### Options:
 
-  `:preloads` – preloads associated data
+  - `:load_email` - boolean, will add the email field based on staff member profile/user
+  - `:preloads` – preloads associated data
 
   ## Examples
 
-      iex> get_teacher!(123)
-      %Teacher{}
+      iex> get_staff_member!(123)
+      %StaffMember{}
 
-      iex> get_teacher!(456)
+      iex> get_staff_member!(456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_teacher!(id, opts \\ []) do
-    Repo.get!(Teacher, id)
+  def get_staff_member!(id, opts \\ []) do
+    StaffMember
+    |> apply_get_staff_member_opts(opts)
+    |> Repo.get!(id)
     |> maybe_preload(opts)
   end
 
+  defp apply_get_staff_member_opts(queryable, []), do: queryable
+
+  defp apply_get_staff_member_opts(queryable, [{:load_email, true} | opts]) do
+    from(sm in queryable,
+      left_join: p in assoc(sm, :profile),
+      left_join: u in assoc(p, :user),
+      select: %{sm | email: u.email}
+    )
+    |> apply_get_staff_member_opts(opts)
+  end
+
+  defp apply_get_staff_member_opts(queryable, [_ | opts]),
+    do: apply_get_staff_member_opts(queryable, opts)
+
   @doc """
-  Creates a teacher.
+  Creates a staff member.
+
+  If attr contains an email, it will create (or link) a user and profile for the staff member.
 
   ## Examples
 
-      iex> create_teacher(%{field: value})
-      {:ok, %Teacher{}}
+      iex> create_staff_member(%{field: value})
+      {:ok, %StaffMember{}}
 
-      iex> create_teacher(%{field: bad_value})
+      iex> create_staff_member(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_teacher(attrs \\ %{}) do
-    %Teacher{}
-    |> Teacher.changeset(attrs)
-    |> Repo.insert()
+  def create_staff_member(attrs \\ %{}) do
+    email = Map.get(attrs, "email") || Map.get(attrs, :email)
+
+    if is_binary(email) && email != "" do
+      create_staff_member_with_profile(attrs, email)
+    else
+      %StaffMember{}
+      |> StaffMember.changeset(attrs)
+      |> Repo.insert()
+    end
+  end
+
+  defp create_staff_member_with_profile(attrs, email) do
+    Repo.transaction(fn ->
+      # create staff member first
+      staff_member =
+        %StaffMember{}
+        |> StaffMember.changeset(attrs)
+        |> Repo.insert()
+        |> case do
+          {:ok, staff_member} -> staff_member
+          {:error, changeset} -> Repo.rollback(changeset)
+        end
+
+      # then get or create user
+      user =
+        case get_or_create_user_with_email(email) do
+          {:ok, user} -> user
+          {:error, changeset} -> Repo.rollback(changeset)
+        end
+
+      # then create profile
+      # if successful, return staff member
+      Identity.create_profile(%{
+        type: "staff",
+        user_id: user.id,
+        staff_member_id: staff_member.id
+      })
+      |> case do
+        {:ok, _profile} -> %{staff_member | email: email}
+        {:error, changeset} -> Repo.rollback(changeset)
+      end
+    end)
+  end
+
+  defp get_or_create_user_with_email(nil), do: nil
+
+  defp get_or_create_user_with_email(""), do: nil
+
+  defp get_or_create_user_with_email(email) do
+    case Repo.get_by(User, email: email) do
+      nil ->
+        %{
+          email: email,
+          password: Ecto.UUID.generate()
+        }
+        |> Identity.register_user()
+
+      user ->
+        {:ok, user}
+    end
   end
 
   @doc """
-  Updates a teacher.
+  Updates a staff member.
+
+  If attr contains an email, it will handle the profile creation,
+  update, or deletion based on the email change. Requires the staff
+  member to have loaded the email field.
 
   ## Examples
 
-      iex> update_teacher(teacher, %{field: new_value})
-      {:ok, %Teacher{}}
+      iex> update_staff_member(staff_member, %{field: new_value})
+      {:ok, %StaffMember{}}
 
-      iex> update_teacher(teacher, %{field: bad_value})
+      iex> update_staff_member(staff_member, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_teacher(%Teacher{} = teacher, attrs) do
-    teacher
-    |> Teacher.changeset(attrs)
+  def update_staff_member(%StaffMember{} = staff_member, attrs) do
+    has_email_in_attrs = Map.keys(attrs) |> Enum.any?(&(&1 in ["email", :email]))
+    email = Map.get(attrs, "email") || Map.get(attrs, :email)
+
+    if has_email_in_attrs and staff_member.email != email do
+      update_staff_member_and_profile(staff_member, attrs)
+    else
+      staff_member
+      |> StaffMember.changeset(attrs)
+      |> Repo.update()
+      |> update_staff_member_cleanup(staff_member)
+    end
+  end
+
+  defp update_staff_member_and_profile(staff_member, %{"email" => email} = attrs) do
+    Repo.transaction(fn ->
+      # update staff member first
+      staff_member =
+        staff_member
+        |> StaffMember.changeset(attrs)
+        |> Repo.update()
+        |> case do
+          {:ok, staff_member} -> staff_member
+          {:error, changeset} -> Repo.rollback(changeset)
+        end
+
+      # then get or create user (returns nil if email is nil)
+      user =
+        case get_or_create_user_with_email(email) do
+          nil -> nil
+          {:ok, user} -> user
+          {:error, changeset} -> Repo.rollback(changeset)
+        end
+
+      # then create, update, or delete profile
+      # if successful, return staff member
+      create_update_or_delete_profile(staff_member, user)
+      |> case do
+        {:deleted, {:ok, _}} -> %{staff_member | email: nil}
+        {_created_or_updated, {:ok, _}} -> %{staff_member | email: email}
+        {:error, changeset} -> Repo.rollback(changeset)
+      end
+    end)
+    |> update_staff_member_cleanup(staff_member)
+  end
+
+  defp create_update_or_delete_profile(staff_member, nil) do
+    # todo: handle failed deletion of profile
+    Repo.get_by(Profile, staff_member_id: staff_member.id)
+    |> Repo.delete()
+    |> case do
+      {:ok, profile} -> {:deleted, {:ok, profile}}
+      error -> error
+    end
+  end
+
+  defp create_update_or_delete_profile(%{email: nil} = staff_member, %User{} = user) do
+    Identity.create_profile(%{
+      type: "staff",
+      user_id: user.id,
+      staff_member_id: staff_member.id
+    })
+    |> case do
+      {:ok, profile} -> {:created, {:ok, profile}}
+      error -> error
+    end
+  end
+
+  defp create_update_or_delete_profile(staff_member, %User{} = user) do
+    Repo.get_by(Profile, staff_member_id: staff_member.id)
+    |> Identity.update_profile(%{user_id: user.id})
+    |> case do
+      {:ok, profile} -> {:updated, {:ok, profile}}
+      error -> error
+    end
+  end
+
+  defp update_staff_member_cleanup(
+         {:ok, %StaffMember{profile_picture_url: updated_profile_picture_url}} = return_tuple,
+         %StaffMember{profile_picture_url: old_profile_picture_url}
+       )
+       when updated_profile_picture_url != old_profile_picture_url and
+              is_binary(old_profile_picture_url) do
+    # when updating a staff member, we also want to remove the old profile picture from the cloud if needed
+    Task.Supervisor.start_child(Lanttern.TaskSupervisor, fn ->
+      SupabaseHelpers.remove_object("profile_pictures", old_profile_picture_url)
+    end)
+
+    return_tuple
+  end
+
+  defp update_staff_member_cleanup(return_tuple, _old_staff_member),
+    do: return_tuple
+
+  @doc """
+  Deletes a staff member.
+
+  ## Examples
+
+      iex> delete_staff_member(staff_member)
+      {:ok, %StaffMember{}}
+
+      iex> delete_staff_member(staff_member)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_staff_member(%StaffMember{} = staff_member) do
+    Repo.delete(staff_member)
+    |> delete_staff_member_cleanup()
+  end
+
+  defp delete_staff_member_cleanup(
+         {:ok, %StaffMember{profile_picture_url: profile_picture_url}} = return_tuple
+       )
+       when is_binary(profile_picture_url) do
+    # when deleting a staff member, we also want to remove their profile picture from the cloud if needed
+    Task.Supervisor.start_child(Lanttern.TaskSupervisor, fn ->
+      SupabaseHelpers.remove_object("profile_pictures", profile_picture_url)
+    end)
+
+    return_tuple
+  end
+
+  defp delete_staff_member_cleanup(return_tuple), do: return_tuple
+
+  @doc """
+  Deactivates a staff member.
+
+  Soft delete, using the `deactivated_at` field.
+
+  ## Examples
+
+      iex> deactivate_staff_member(staff_member)
+      {:ok, %StaffMember{}}
+
+      iex> deactivate_staff_member(staff_member)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec deactivate_staff_member(StaffMember.t()) ::
+          {:ok, StaffMember.t()} | {:error, Ecto.Changeset.t()}
+  def deactivate_staff_member(%StaffMember{} = staff_member) do
+    staff_member
+    |> StaffMember.changeset(%{deactivated_at: DateTime.utc_now()})
     |> Repo.update()
   end
 
   @doc """
-  Deletes a teacher.
+  Reactivates a staff member.
+
+  Sets `deactivated_at` field to nil.
 
   ## Examples
 
-      iex> delete_teacher(teacher)
-      {:ok, %Teacher{}}
+      iex> reactivate_staff_member(staff_member)
+      {:ok, %StaffMember{}}
 
-      iex> delete_teacher(teacher)
+      iex> reactivate_staff_member(staff_member)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_teacher(%Teacher{} = teacher) do
-    Repo.delete(teacher)
+  @spec reactivate_staff_member(StaffMember.t()) ::
+          {:ok, StaffMember.t()} | {:error, Ecto.Changeset.t()}
+  def reactivate_staff_member(%StaffMember{} = staff_member) do
+    staff_member
+    |> StaffMember.changeset(%{deactivated_at: nil})
+    |> Repo.update()
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for tracking teacher changes.
+  Returns an `%Ecto.Changeset{}` for tracking staff member changes.
 
   ## Examples
 
-      iex> change_teacher(teacher)
-      %Ecto.Changeset{data: %Teacher{}}
+      iex> change_staff_member(staff_member)
+      %Ecto.Changeset{data: %StaffMember{}}
 
   """
-  def change_teacher(%Teacher{} = teacher, attrs \\ %{}) do
-    Teacher.changeset(teacher, attrs)
+  def change_staff_member(%StaffMember{} = staff_member, attrs \\ %{}) do
+    StaffMember.changeset(staff_member, attrs)
   end
 
   @doc """
@@ -1152,38 +1421,38 @@ defmodule Lanttern.Schools do
   end
 
   @doc """
-  Create teachers, users, and profiles based on CSV data.
+  Create staff_members, users, and profiles based on CSV data.
 
-  It returns a tuple with the `csv_teacher` as the first item,
-  and a nested `:ok` or `:error` tuple, with the created teacher or an error message.
+  It returns a tuple with the `csv_staff_member` as the first item,
+  and a nested `:ok` or `:error` tuple, with the created staff member or an error message.
 
   ### User and profile creation
 
   If there's no email in the CSV row, user and profile creation is skipped.
 
-  If a user with the email already exists, we create a teacher profile linked to this user.
+  If a user with the email already exists, we create a staff member profile linked to this user.
 
-  Else, we create a user with the teacher email and a linked teacher profile.
+  Else, we create a user with the staff member email and a linked staff member profile.
 
   ## Examples
 
-      iex> create_teachers_from_csv(csv_rows, school_id)
-      [{csv_teacher, {:ok, %Teacher{}}}, ...]
+      iex> create_staff_members_from_csv(csv_rows, school_id)
+      [{csv_staff_member, {:ok, %StaffMember{}}}, ...]
 
   """
-  def create_teachers_from_csv(csv_rows, school_id) do
+  def create_staff_members_from_csv(csv_rows, school_id) do
     Ecto.Multi.new()
-    |> Ecto.Multi.run(:teachers, fn _repo, _changes ->
-      insert_csv_teachers(csv_rows, school_id)
+    |> Ecto.Multi.run(:staff_members, fn _repo, _changes ->
+      insert_csv_staff_members(csv_rows, school_id)
     end)
     |> Ecto.Multi.run(:users, fn _repo, _changes ->
       insert_csv_users(csv_rows)
     end)
     |> Ecto.Multi.run(:profiles, fn _repo, changes ->
-      insert_csv_profiles(changes, csv_rows, "teacher")
+      insert_csv_profiles(changes, csv_rows, "staff")
     end)
     |> Ecto.Multi.run(:response, fn _repo, changes ->
-      format_response(changes, csv_rows, "teacher")
+      format_response(changes, csv_rows, "staff")
     end)
     |> Repo.transaction()
     |> case do
@@ -1192,31 +1461,31 @@ defmodule Lanttern.Schools do
     end
   end
 
-  defp insert_csv_teachers(csv_rows, school_id) do
-    name_teacher_map =
+  defp insert_csv_staff_members(csv_rows, school_id) do
+    name_staff_member_map =
       csv_rows
-      |> Enum.map(&get_or_insert_csv_teacher(&1, school_id))
+      |> Enum.map(&get_or_insert_csv_staff_member(&1, school_id))
       |> Enum.filter(fn
-        {:ok, _teacher} -> true
+        {:ok, _staff_member} -> true
         {:error, _changeset} -> false
       end)
-      |> Enum.map(fn {:ok, teacher} -> {teacher.name, teacher} end)
+      |> Enum.map(fn {:ok, staff_member} -> {staff_member.name, staff_member} end)
       |> Enum.into(%{})
 
-    {:ok, name_teacher_map}
+    {:ok, name_staff_member_map}
   end
 
-  defp get_or_insert_csv_teacher(csv_row, school_id) do
-    case Repo.get_by(Teacher, name: csv_row.name, school_id: school_id) do
+  defp get_or_insert_csv_staff_member(csv_row, school_id) do
+    case Repo.get_by(StaffMember, name: csv_row.name, school_id: school_id) do
       nil ->
         %{
           name: csv_row.name,
           school_id: school_id
         }
-        |> create_teacher()
+        |> create_staff_member()
 
-      teacher ->
-        {:ok, teacher}
+      staff_member ->
+        {:ok, staff_member}
     end
   end
 
@@ -1252,7 +1521,7 @@ defmodule Lanttern.Schools do
     name_schema_map =
       case type do
         "student" -> changes.students
-        "teacher" -> changes.teachers
+        "staff" -> changes.staff_members
       end
 
     email_user_map = changes.users
@@ -1263,8 +1532,8 @@ defmodule Lanttern.Schools do
       |> Enum.map(
         &%{
           type: type,
-          teacher_id:
-            if(type == "teacher",
+          staff_member_id:
+            if(type == "staff",
               do: Map.get(name_schema_map, &1.name).id,
               else: nil
             ),
@@ -1288,7 +1557,7 @@ defmodule Lanttern.Schools do
     name_schema_map =
       case type do
         "student" -> changes.students
-        "teacher" -> changes.teachers
+        "staff" -> changes.staff_members
       end
 
     response =

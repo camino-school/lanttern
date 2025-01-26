@@ -10,7 +10,7 @@ defmodule LantternWeb.FeedbackController do
 
   def index(conn, _params) do
     feedback_list =
-      Assessments.list_feedback(preloads: [:assessment_point, :student, profile: :teacher])
+      Assessments.list_feedback(preloads: [:assessment_point, :student, profile: :staff_member])
 
     render(conn, :index, feedback_list: feedback_list)
   end
@@ -18,7 +18,7 @@ defmodule LantternWeb.FeedbackController do
   def new(conn, _params) do
     assessment_point_options = generate_assessment_point_options()
     student_options = generate_student_options()
-    profile_options = generate_teacher_profile_options()
+    profile_options = generate_staff_member_profile_options()
     changeset = Assessments.change_feedback(%Feedback{})
 
     render(conn, :new,
@@ -39,7 +39,7 @@ defmodule LantternWeb.FeedbackController do
       {:error, %Ecto.Changeset{} = changeset} ->
         assessment_point_options = generate_assessment_point_options()
         student_options = generate_student_options()
-        profile_options = generate_teacher_profile_options()
+        profile_options = generate_staff_member_profile_options()
 
         render(conn, :new,
           assessment_point_options: assessment_point_options,
@@ -52,7 +52,9 @@ defmodule LantternWeb.FeedbackController do
 
   def show(conn, %{"id" => id}) do
     feedback =
-      Assessments.get_feedback!(id, preloads: [:assessment_point, :student, profile: :teacher])
+      Assessments.get_feedback!(id,
+        preloads: [:assessment_point, :student, profile: :staff_member]
+      )
 
     render(conn, :show, feedback: feedback)
   end
@@ -61,7 +63,7 @@ defmodule LantternWeb.FeedbackController do
     feedback = Assessments.get_feedback!(id)
     assessment_point_options = generate_assessment_point_options()
     student_options = generate_student_options()
-    profile_options = generate_teacher_profile_options()
+    profile_options = generate_staff_member_profile_options()
     changeset = Assessments.change_feedback(feedback)
 
     render(conn, :edit,
@@ -85,7 +87,7 @@ defmodule LantternWeb.FeedbackController do
       {:error, %Ecto.Changeset{} = changeset} ->
         assessment_point_options = generate_assessment_point_options()
         student_options = generate_student_options()
-        profile_options = generate_teacher_profile_options()
+        profile_options = generate_staff_member_profile_options()
 
         render(conn, :edit,
           feedback: feedback,

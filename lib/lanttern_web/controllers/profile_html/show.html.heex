@@ -13,8 +13,8 @@
   <:item :if={@profile.type == "student"} title="Student">
     <%= @profile.student.name %>
   </:item>
-  <:item :if={@profile.type == "teacher"} title="Teacher">
-    <%= @profile.teacher.name %>
+  <:item :if={@profile.type == "staff"} title="Stafr member">
+    <%= @profile.staff_member.name %>
   </:item>
   <:item :if={@profile.type == "guardian"} title="Guardian of">
     <%= @profile.guardian_of_student.name %>

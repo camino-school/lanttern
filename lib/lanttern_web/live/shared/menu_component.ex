@@ -52,9 +52,24 @@ defmodule LantternWeb.MenuComponent do
           <p class="mb-4 font-black text-lg text-ltrn-primary">
             <%= gettext("You're logged in as") %>
           </p>
-          <p class="font-black text-4xl text-ltrn-dark">
-            <%= @current_user.current_profile.name %>
-          </p>
+          <.profile_picture
+            picture_url={@current_user.current_profile.profile_picture_url}
+            profile_name={@current_user.current_profile.name}
+            size="lg"
+            class="mb-4"
+          />
+          <div class="flex items-center gap-2">
+            <p class="font-black text-4xl text-ltrn-dark">
+              <%= @current_user.current_profile.name %>
+            </p>
+            <.link
+              :if={@current_user.current_profile.type == "staff"}
+              navigate={~p"/school/staff?edit=#{@current_user.current_profile.staff_member_id}"}
+              class="flex items-center justify-center rounded-full text-ltrn-subtle hover:text-ltrn-dark"
+            >
+              <.icon name="hero-pencil-mini" />
+            </.link>
+          </div>
           <div id="profile-select" class="group mt-2">
             <button
               type="button"
@@ -64,7 +79,9 @@ defmodule LantternWeb.MenuComponent do
               <%= Gettext.dgettext(
                 Lanttern.Gettext,
                 "schools",
-                String.capitalize(@current_user.current_profile.type)
+                String.capitalize(
+                  @current_user.current_profile.role || @current_user.current_profile.type
+                )
               ) %> @ <%= @current_user.current_profile.school_name %>
 
               <.icon name="hero-chevron-down" id="profile-list-down-icon" />
@@ -241,38 +258,15 @@ defmodule LantternWeb.MenuComponent do
   attr :rest, :global, doc: "use to pass phx-* bindings to change profile button"
 
   def profile_item(%{profile: profile, current_profile_id: current_profile_id} = assigns) do
-    {name, school} =
-      case profile.type do
-        "student" ->
-          {
-            profile.student.name,
-            profile.student.school.name
-          }
-
-        "teacher" ->
-          {
-            profile.teacher.name,
-            profile.teacher.school.name
-          }
-
-        "guardian" ->
-          {
-            profile.guardian_of_student.name,
-            profile.guardian_of_student.school.name
-          }
-      end
-
     assigns =
       assigns
-      |> assign(:name, name)
-      |> assign(:school, school)
       |> assign(:active, profile.id == current_profile_id)
 
     ~H"""
     <li id={@id}>
       <button
         type="button"
-        class="group flex items-center gap-2 w-full py-2 text-left text-ltrn-subtle leading-none"
+        class="group/item flex items-center gap-2 w-full py-2 text-left text-ltrn-subtle leading-none"
         {@rest}
       >
         <.icon
@@ -280,19 +274,23 @@ defmodule LantternWeb.MenuComponent do
           class={
             if(@active,
               do: "text-ltrn-primary",
-              else: "text-transparent group-hover:text-ltrn-subtle"
+              else: "text-ltrn-subtle group-hover/item:text-ltrn-dark"
             )
           }
         />
         <div>
           <span class={[
             "block font-bold text-sm",
-            if(@active, do: "text-ltrn-dark")
+            if(@active, do: "text-ltrn-dark", else: "group-hover/item:text-ltrn-dark")
           ]}>
-            <%= @name %>
+            <%= @profile.name %>
           </span>
           <span class="font-sans font-normal text-xs">
-            <%= Gettext.dgettext(Lanttern.Gettext, "schools", String.capitalize(@profile.type)) %> @ <%= @school %>
+            <%= Gettext.dgettext(
+              Lanttern.Gettext,
+              "schools",
+              String.capitalize(Map.get(@profile.staff_member || %{}, :role, @profile.type))
+            ) %> @ <%= @profile.school_name %>
           </span>
         </div>
       </button>
@@ -347,9 +345,9 @@ defmodule LantternWeb.MenuComponent do
     LantternWeb.StudentsRecordsLive => :students_records,
 
     # school
-    LantternWeb.SchoolLive => :school,
-    LantternWeb.ClassLive => :school,
-    LantternWeb.StudentLive => :school,
+    LantternWeb.SchoolLive => :school_management,
+    LantternWeb.ClassLive => :school_management,
+    LantternWeb.StudentLive => :school_management,
 
     # assessment points
     LantternWeb.AssessmentPointsLive => :assessment_points,
@@ -371,9 +369,6 @@ defmodule LantternWeb.MenuComponent do
     # grades reports
     LantternWeb.GradesReportsLive => :grades_reports,
     LantternWeb.GradesReportLive => :grades_reports,
-
-    # school config
-    LantternWeb.SchoolConfigLive => :school_config,
 
     # guardian home
     LantternWeb.GuardianHomeLive => :student_report_card,
@@ -418,45 +413,44 @@ defmodule LantternWeb.MenuComponent do
   defp assign_nav_items(socket) do
     all_nav_items = [
       # staff
-      %{profile: "teacher", active: :dashboard, path: ~p"/dashboard", text: gettext("Dashboard")},
-      %{profile: "teacher", active: :strands, path: ~p"/strands", text: gettext("Strands")},
       %{
-        profile: "teacher",
+        profile: "staff",
+        active: :dashboard,
+        path: ~p"/dashboard",
+        text: gettext("Dashboard")
+      },
+      %{profile: "staff", active: :strands, path: ~p"/strands", text: gettext("Strands")},
+      %{
+        profile: "staff",
         active: :students_records,
         path: ~p"/students_records",
         text: gettext("Students records"),
         permission: "wcd"
       },
       %{
-        profile: "teacher",
-        active: :school,
-        path: ~p"/school",
-        text: gettext("Students and classes")
+        profile: "staff",
+        active: :school_management,
+        path: ~p"/school/classes",
+        text: gettext("School management")
       },
-      # %{profile: "teacher", active: :rubrics, path: ~p"/rubrics", text: gettext("Rubrics")},
+      # %{profile: "staff", active: :rubrics, path: ~p"/rubrics", text: gettext("Rubrics")},
       %{
-        profile: "teacher",
+        profile: "staff",
         active: :curriculum,
         path: ~p"/curriculum",
         text: gettext("Curriculum")
       },
       %{
-        profile: "teacher",
+        profile: "staff",
         active: :report_cards,
         path: ~p"/report_cards",
         text: gettext("Report cards")
       },
       %{
-        profile: "teacher",
+        profile: "staff",
         active: :grades_reports,
         path: ~p"/grades_reports",
         text: gettext("Grades reports")
-      },
-      %{
-        profile: "teacher",
-        active: :school_config,
-        path: ~p"/school_config/cycles",
-        text: gettext("School config")
       },
       # student
       %{
@@ -557,7 +551,8 @@ defmodule LantternWeb.MenuComponent do
     profiles =
       Identity.list_profiles(
         user_id: socket.assigns.current_user.id,
-        preloads: [teacher: :school, student: :school, guardian_of_student: :school]
+        only_active: true,
+        load_virtual_fields: true
       )
 
     socket =
@@ -583,7 +578,7 @@ defmodule LantternWeb.MenuComponent do
     # (avoid 404 when permissions are checked on view mount)
     to_path =
       case profile_type do
-        "teacher" -> ~p"/dashboard"
+        "staff" -> ~p"/dashboard"
         "student" -> ~p"/student"
         "guardian" -> ~p"/guardian"
       end

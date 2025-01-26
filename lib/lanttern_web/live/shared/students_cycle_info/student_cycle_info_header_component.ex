@@ -29,7 +29,7 @@ defmodule LantternWeb.StudentsCycleInfo.StudentCycleInfoHeaderComponent do
           class="shadow-lg"
           picture_url={@student_cycle_info.profile_picture_url}
           profile_name={@student.name}
-          size="lg"
+          size="xl"
         />
         <.button
           :if={@on_edit_profile_picture}

@@ -1301,7 +1301,7 @@ defmodule Lanttern.ReportingTest do
 
       # evidences
 
-      current_user = %{current_profile: IdentityFixtures.teacher_profile_fixture()}
+      current_user = %{current_profile: IdentityFixtures.staff_member_profile_fixture()}
 
       {:ok, goal_evidence} =
         Assessments.create_assessment_point_entry_evidence(
@@ -1515,7 +1515,7 @@ defmodule Lanttern.ReportingTest do
         })
 
       # add evidences to entry 1_1
-      current_user = %{current_profile: IdentityFixtures.teacher_profile_fixture()}
+      current_user = %{current_profile: IdentityFixtures.staff_member_profile_fixture()}
 
       {:ok, evidence} =
         Assessments.create_assessment_point_entry_evidence(
@@ -1998,7 +1998,7 @@ defmodule Lanttern.ReportingTest do
           shared_with_students: false
         })
 
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       {:ok, attachment} =
         LearningContext.create_moment_card_attachment(

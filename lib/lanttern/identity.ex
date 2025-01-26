@@ -12,6 +12,7 @@ defmodule Lanttern.Identity do
   alias Lanttern.Identity.UserNotifier
   alias Lanttern.Identity.Profile
   alias Lanttern.Personalization
+  alias Lanttern.Schools.School
 
   ## Database getters
 
@@ -298,7 +299,11 @@ defmodule Lanttern.Identity do
     query
     |> Repo.one()
     |> Repo.preload(
-      current_profile: [teacher: [:school], student: [:school], guardian_of_student: [:school]]
+      current_profile: [
+        staff_member: [:school],
+        student: [:school],
+        guardian_of_student: [:school]
+      ]
     )
     |> case do
       nil ->
@@ -311,11 +316,13 @@ defmodule Lanttern.Identity do
     end
   end
 
-  defp build_flat_profile(%{type: "teacher", teacher: teacher} = profile) do
+  defp build_flat_profile(%{type: "staff", staff_member: staff_member} = profile) do
     profile
-    |> Map.put(:name, teacher.name)
-    |> Map.put(:school_id, teacher.school.id)
-    |> Map.put(:school_name, teacher.school.name)
+    |> Map.put(:name, staff_member.name)
+    |> Map.put(:role, staff_member.role)
+    |> Map.put(:profile_picture_url, staff_member.profile_picture_url)
+    |> Map.put(:school_id, staff_member.school.id)
+    |> Map.put(:school_name, staff_member.school.name)
   end
 
   defp build_flat_profile(%{type: "student", student: student} = profile) do
@@ -516,6 +523,8 @@ defmodule Lanttern.Identity do
   `:preloads` – preloads associated data
   `:user_id` – filter profiles by user_id
   `:type` – filter profiles by type
+  `:only_active` - removes deactivated staff members from the list
+  `:load_virtual_fields` - load profile virtual fields name, role, profile_picture_url, school_id, school_name
 
   ## Examples
 
@@ -525,21 +534,55 @@ defmodule Lanttern.Identity do
   """
   def list_profiles(opts \\ []) do
     Profile
-    |> maybe_filter_profiles(opts)
+    |> apply_list_profiles_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
-  defp maybe_filter_profiles(query, opts),
-    do: Enum.reduce(opts, query, &filter_profiles/2)
+  defp apply_list_profiles_opts(queryable, []), do: queryable
 
-  defp filter_profiles({:user_id, user_id}, query),
-    do: from(p in query, where: p.user_id == ^user_id)
+  defp apply_list_profiles_opts(queryable, [{:user_id, user_id} | opts]) do
+    from(p in queryable, where: p.user_id == ^user_id)
+    |> apply_list_profiles_opts(opts)
+  end
 
-  defp filter_profiles({:type, type}, query),
-    do: from(p in query, where: p.type == ^type)
+  defp apply_list_profiles_opts(queryable, [{:type, type} | opts]) do
+    from(p in queryable, where: p.type == ^type)
+    |> apply_list_profiles_opts(opts)
+  end
 
-  defp filter_profiles(_kv, query), do: query
+  defp apply_list_profiles_opts(queryable, [{:only_active, true} | opts]) do
+    from(
+      p in queryable,
+      left_join: sm in assoc(p, :staff_member),
+      where: is_nil(sm) or is_nil(sm.deactivated_at)
+    )
+    |> apply_list_profiles_opts(opts)
+  end
+
+  defp apply_list_profiles_opts(queryable, [{:load_virtual_fields, true} | opts]) do
+    from(
+      p in queryable,
+      left_join: sm in assoc(p, :staff_member),
+      left_join: s in assoc(p, :student),
+      left_join: gos in assoc(p, :guardian_of_student),
+      left_join: sch in School,
+      on: sm.school_id == sch.id or s.school_id == sch.id or gos.school_id == sch.id,
+      order_by: [asc: sm.name |> coalesce(s.name) |> coalesce(gos.name), asc: p.type],
+      select: %{
+        p
+        | name: sm.name |> coalesce(s.name) |> coalesce(gos.name),
+          role: sm.role,
+          profile_picture_url: sm.profile_picture_url,
+          school_id: sch.id,
+          school_name: sch.name
+      }
+    )
+    |> apply_list_profiles_opts(opts)
+  end
+
+  defp apply_list_profiles_opts(queryable, [_ | opts]),
+    do: apply_list_profiles_opts(queryable, opts)
 
   @doc """
   Gets a single profile.

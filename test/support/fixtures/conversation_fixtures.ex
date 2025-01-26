@@ -11,7 +11,7 @@ defmodule Lanttern.ConversationFixtures do
   """
   def comment_fixture(attrs \\ %{}) do
     profile_id =
-      Map.get(attrs, :profile_id) || Lanttern.IdentityFixtures.teacher_profile_fixture().id
+      Map.get(attrs, :profile_id) || Lanttern.IdentityFixtures.staff_member_profile_fixture().id
 
     {:ok, comment} =
       attrs
@@ -32,7 +32,7 @@ defmodule Lanttern.ConversationFixtures do
   """
   def feedback_comment_fixture(attrs \\ %{}, feedback_id \\ nil) do
     profile_id =
-      Map.get(attrs, :profile_id) || Lanttern.IdentityFixtures.teacher_profile_fixture().id
+      Map.get(attrs, :profile_id) || Lanttern.IdentityFixtures.staff_member_profile_fixture().id
 
     feedback_id =
       feedback_id || Lanttern.AssessmentsFixtures.feedback_fixture().id

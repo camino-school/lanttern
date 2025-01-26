@@ -70,11 +70,11 @@ defmodule LantternWeb.SchoolsHelpers do
 
   ## Examples
 
-      iex> generate_teacher_options()
+      iex> generate_staff_member_options()
       [{"teacher name", 1}, ...]
   """
-  def generate_teacher_options() do
-    Schools.list_teachers()
+  def generate_staff_member_options() do
+    Schools.list_staff_members()
     |> Enum.map(fn t -> {t.name, t.id} end)
   end
 

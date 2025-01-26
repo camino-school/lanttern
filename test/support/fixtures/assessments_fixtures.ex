@@ -69,7 +69,7 @@ defmodule Lanttern.AssessmentsFixtures do
     student_id = Map.get(attrs, :student_id) || Lanttern.SchoolsFixtures.student_fixture().id
 
     profile_id =
-      Map.get(attrs, :profile_id) || Lanttern.IdentityFixtures.teacher_profile_fixture().id
+      Map.get(attrs, :profile_id) || Lanttern.IdentityFixtures.staff_member_profile_fixture().id
 
     {:ok, feedback} =
       attrs

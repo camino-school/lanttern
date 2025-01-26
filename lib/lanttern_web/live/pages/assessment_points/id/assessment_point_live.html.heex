@@ -134,7 +134,7 @@
   <.user_icon_block
     :if={@feedback}
     id={"feedback=#{@feedback.id}"}
-    profile_name={@feedback.profile.teacher.name}
+    profile_name={@feedback.profile.staff_member.name}
     phx-mounted={highlight_mounted()}
   >
     <span class="block mb-2 text-xs text-ltrn-subtle">
@@ -163,8 +163,8 @@
         :for={{dom_id, comment} <- @streams.comments}
         id={dom_id}
         profile_name={
-          if comment.profile.type == "teacher" do
-            comment.profile.teacher.name
+          if comment.profile.type == "staff" do
+            comment.profile.staff_member.name
           else
             comment.profile.student.name
           end
