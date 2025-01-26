@@ -131,10 +131,11 @@ defmodule LantternWeb.UserAuth do
     {user_token, conn} = ensure_user_token(conn)
 
     case user_token && Identity.get_user_by_session_token(user_token) do
-      # when user current profile is a disabled staff member,
+      # when user current profile is a deactivated staff member,
       # remove it from user before moving forward
-      %User{current_profile: %{type: "staff", staff_member: %{disabled_at: disabled_at}}} = user
-      when not is_nil(disabled_at) ->
+      %User{current_profile: %{type: "staff", staff_member: %{deactivated_at: deactivated_at}}} =
+          user
+      when not is_nil(deactivated_at) ->
         {:ok, user} = Identity.update_user_current_profile_id(user, nil)
         Map.put(user, :current_profile, nil)
 

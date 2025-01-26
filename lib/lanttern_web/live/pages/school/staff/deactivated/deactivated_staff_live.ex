@@ -1,4 +1,4 @@
-defmodule LantternWeb.DisabledStaffLive do
+defmodule LantternWeb.DeactivatedStaffLive do
   use LantternWeb, :live_view
 
   alias Lanttern.Schools
@@ -9,7 +9,7 @@ defmodule LantternWeb.DisabledStaffLive do
   def mount(_params, _session, socket) do
     page_title =
       gettext(
-        "%{school}'s disabled staff members",
+        "%{school}'s deactivated staff members",
         school: socket.assigns.current_user.current_profile.school_name
       )
 
@@ -34,7 +34,7 @@ defmodule LantternWeb.DisabledStaffLive do
       Schools.list_staff_members(
         school_id: socket.assigns.current_user.current_profile.school_id,
         load_email: true,
-        only_disabled: true
+        only_deactivated: true
       )
 
     socket

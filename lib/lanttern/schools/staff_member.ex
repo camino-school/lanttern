@@ -25,7 +25,7 @@ defmodule Lanttern.Schools.StaffMember do
     field :name, :string
     field :profile_picture_url, :string
     field :role, :string, default: "Teacher"
-    field :disabled_at, :utc_datetime
+    field :deactivated_at, :utc_datetime
 
     # this field is used in the context of staff member form,
     # and handled by staff member create and update functions
@@ -41,7 +41,7 @@ defmodule Lanttern.Schools.StaffMember do
   @doc false
   def changeset(staff_member, attrs) do
     staff_member
-    |> cast(attrs, [:name, :school_id, :profile_picture_url, :role, :disabled_at])
+    |> cast(attrs, [:name, :school_id, :profile_picture_url, :role, :deactivated_at])
     |> validate_required([:name, :school_id, :role])
   end
 end

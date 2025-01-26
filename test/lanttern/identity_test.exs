@@ -556,8 +556,13 @@ defmodule Lanttern.IdentityTest do
       student_profile = student_profile_fixture(%{user_id: user.id})
 
       # extra profiles for filtering validation
-      disabled_staff_member = staff_member_fixture(%{disabled_at: DateTime.utc_now()})
-      staff_member_profile_fixture(%{user_id: user.id, staff_member_id: disabled_staff_member.id})
+      deactivated_staff_member = staff_member_fixture(%{deactivated_at: DateTime.utc_now()})
+
+      staff_member_profile_fixture(%{
+        user_id: user.id,
+        staff_member_id: deactivated_staff_member.id
+      })
+
       staff_member_profile_fixture()
       student_profile_fixture()
 

@@ -79,11 +79,11 @@ defmodule LantternWeb.Schools.StaffMemberFormOverlayComponent do
             type="button"
             theme="subtle"
             size="md"
-            phx-click="disable"
+            phx-click="deactivate"
             phx-target={@myself}
             data-confirm={gettext("Are you sure? You can reactive the staff member later.")}
           >
-            <%= gettext("Disable") %>
+            <%= gettext("Deactivate") %>
           </.action>
         </:actions_left>
         <:actions>
@@ -185,11 +185,11 @@ defmodule LantternWeb.Schools.StaffMemberFormOverlayComponent do
     save_staff_member(socket, socket.assigns.staff_member.id, staff_member_params)
   end
 
-  def handle_event("disable", _, socket) do
-    Schools.disable_staff_member(socket.assigns.staff_member)
+  def handle_event("deactivate", _, socket) do
+    Schools.deactivate_staff_member(socket.assigns.staff_member)
     |> case do
       {:ok, staff_member} ->
-        notify(__MODULE__, {:disabled, staff_member}, socket.assigns)
+        notify(__MODULE__, {:deactivated, staff_member}, socket.assigns)
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->

@@ -971,18 +971,18 @@ defmodule Lanttern.SchoolsTest do
       assert is_nil(expected_staff_member_b.email)
     end
 
-    test "list_staff_members/1 with only_active opt returns the staff members filtered by their disabled status" do
+    test "list_staff_members/1 with only_active opt returns the staff members filtered by their deactivated status" do
       active_staff_member = staff_member_fixture()
-      _disabled_staff_member = staff_member_fixture(%{disabled_at: DateTime.utc_now()})
+      _deactivated_staff_member = staff_member_fixture(%{deactivated_at: DateTime.utc_now()})
 
       assert [active_staff_member] == Schools.list_staff_members(only_active: true)
     end
 
-    test "list_staff_members/1 with only_disabled opt returns the staff members filtered by their disabled status" do
-      disabled_staff_member = staff_member_fixture(%{disabled_at: DateTime.utc_now()})
+    test "list_staff_members/1 with only_deactivated opt returns the staff members filtered by their deactivated status" do
+      deactivated_staff_member = staff_member_fixture(%{deactivated_at: DateTime.utc_now()})
       _active_staff_member = staff_member_fixture()
 
-      assert [disabled_staff_member] == Schools.list_staff_members(only_disabled: true)
+      assert [deactivated_staff_member] == Schools.list_staff_members(only_deactivated: true)
     end
 
     test "get_staff_member!/1 returns the staff member with given id" do
@@ -1184,16 +1184,18 @@ defmodule Lanttern.SchoolsTest do
       assert_raise Ecto.NoResultsError, fn -> Schools.get_staff_member!(staff_member.id) end
     end
 
-    test "disable_staff_member/1 sets disabled_at for given staff member" do
+    test "deactivate_staff_member/1 sets deactivated_at for given staff member" do
       staff_member = staff_member_fixture()
 
-      assert {:ok, %StaffMember{disabled_at: %DateTime{}}} =
-               Schools.disable_staff_member(staff_member)
+      assert {:ok, %StaffMember{deactivated_at: %DateTime{}}} =
+               Schools.deactivate_staff_member(staff_member)
     end
 
-    test "reactivate_staff_member/1 sets disabled_at to nil for given staff member" do
-      staff_member = staff_member_fixture(%{disabled_at: DateTime.utc_now()})
-      assert {:ok, %StaffMember{disabled_at: nil}} = Schools.reactivate_staff_member(staff_member)
+    test "reactivate_staff_member/1 sets deactivated_at to nil for given staff member" do
+      staff_member = staff_member_fixture(%{deactivated_at: DateTime.utc_now()})
+
+      assert {:ok, %StaffMember{deactivated_at: nil}} =
+               Schools.reactivate_staff_member(staff_member)
     end
 
     test "change_staff_member/1 returns a staff member changeset" do

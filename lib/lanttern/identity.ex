@@ -523,7 +523,7 @@ defmodule Lanttern.Identity do
   `:preloads` – preloads associated data
   `:user_id` – filter profiles by user_id
   `:type` – filter profiles by type
-  `:only_active` - removes disabled staff members from the list
+  `:only_active` - removes deactivated staff members from the list
   `:load_virtual_fields` - load profile virtual fields name, role, profile_picture_url, school_id, school_name
 
   ## Examples
@@ -555,7 +555,7 @@ defmodule Lanttern.Identity do
     from(
       p in queryable,
       left_join: sm in assoc(p, :staff_member),
-      where: is_nil(sm) or is_nil(sm.disabled_at)
+      where: is_nil(sm) or is_nil(sm.deactivated_at)
     )
     |> apply_list_profiles_opts(opts)
   end

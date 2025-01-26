@@ -14,8 +14,8 @@ defmodule LantternWeb.SchoolLive.StaffComponent do
       <div class="flex justify-between gap-6 p-4">
         <div class="flex gap-4">
           <%= ngettext("1 active staff member", "%{count} active staff members", @staff_length) %>
-          <.action type="link" theme="subtle" navigate={~p"/school/staff/disabled"}>
-            <%= gettext("View disabled staff members") %>
+          <.action type="link" theme="subtle" navigate={~p"/school/staff/deactivated"}>
+            <%= gettext("View deactivated staff members") %>
           </.action>
         </div>
         <.action
@@ -87,12 +87,12 @@ defmodule LantternWeb.SchoolLive.StaffComponent do
 
   @impl true
   def update(%{action: {StaffMemberFormOverlayComponent, {action, _staff_member}}}, socket)
-      when action in [:created, :updated, :disabled] do
+      when action in [:created, :updated, :deactivated] do
     message =
       case action do
         :created -> gettext("Staff member created successfully")
         :updated -> gettext("Staff member updated successfully")
-        :disabled -> gettext("Staff member disabled successfully")
+        :deactivated -> gettext("Staff member deactivated successfully")
       end
 
     socket =

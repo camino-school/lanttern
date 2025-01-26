@@ -148,9 +148,9 @@ defmodule LantternWeb.UserAuthTest do
       assert conn.assigns.current_user.current_profile.current_school_cycle == cycle_2025
     end
 
-    test "prevent disabled staff members to log in",
+    test "prevent deactivated staff members to log in",
          %{conn: conn, user: user, staff_member: staff_member} do
-      Lanttern.Schools.disable_staff_member(staff_member)
+      Lanttern.Schools.deactivate_staff_member(staff_member)
 
       user_token = Identity.generate_user_session_token(user)
       conn = conn |> put_session(:user_token, user_token) |> UserAuth.fetch_current_user([])
