@@ -522,6 +522,7 @@ defmodule Lanttern.Identity do
   `:preloads` – preloads associated data
   `:user_id` – filter profiles by user_id
   `:type` – filter profiles by type
+  `:only_active` - removes disabled staff members from the list
 
   ## Examples
 
@@ -531,21 +532,35 @@ defmodule Lanttern.Identity do
   """
   def list_profiles(opts \\ []) do
     Profile
-    |> maybe_filter_profiles(opts)
+    |> apply_list_profiles_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
-  defp maybe_filter_profiles(query, opts),
-    do: Enum.reduce(opts, query, &filter_profiles/2)
+  defp apply_list_profiles_opts(queryable, []), do: queryable
 
-  defp filter_profiles({:user_id, user_id}, query),
-    do: from(p in query, where: p.user_id == ^user_id)
+  defp apply_list_profiles_opts(queryable, [{:user_id, user_id} | opts]) do
+    from(p in queryable, where: p.user_id == ^user_id)
+    |> apply_list_profiles_opts(opts)
+  end
 
-  defp filter_profiles({:type, type}, query),
-    do: from(p in query, where: p.type == ^type)
+  defp apply_list_profiles_opts(queryable, [{:type, type} | opts]) do
+    from(p in queryable, where: p.type == ^type)
+    |> apply_list_profiles_opts(opts)
+  end
 
-  defp filter_profiles(_kv, query), do: query
+  defp apply_list_profiles_opts(queryable, [{:only_active, true} | opts]) do
+    from(
+      p in queryable,
+      left_join: sm in assoc(p, :staff_member),
+      where: is_nil(sm) or is_nil(sm.disabled_at),
+      preload: [staff_member: sm]
+    )
+    |> apply_list_profiles_opts(opts)
+  end
+
+  defp apply_list_profiles_opts(queryable, [_ | opts]),
+    do: apply_list_profiles_opts(queryable, opts)
 
   @doc """
   Gets a single profile.

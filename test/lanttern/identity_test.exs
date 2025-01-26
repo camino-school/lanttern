@@ -550,17 +550,19 @@ defmodule Lanttern.IdentityTest do
       assert expected_profile.staff_member.id == staff_member.id
     end
 
-    test "list_profiles/1 with filter by user returns all profiles from user" do
+    test "list_profiles/1 with filter by user and only_active opt returns all active profiles from user" do
       user = user_fixture()
       staff_member_profile = staff_member_profile_fixture(%{user_id: user.id})
       student_profile = student_profile_fixture(%{user_id: user.id})
 
       # extra profiles for filtering validation
+      disabled_staff_member = staff_member_fixture(%{disabled_at: DateTime.utc_now()})
+      staff_member_profile_fixture(%{user_id: user.id, staff_member_id: disabled_staff_member.id})
       staff_member_profile_fixture()
       student_profile_fixture()
 
       # assert only one profile (staff member) is listed
-      expected = Identity.list_profiles(user_id: user.id)
+      expected = Identity.list_profiles(user_id: user.id, only_active: true)
 
       # assert length and correct profiles are returned
       assert length(expected) == 2

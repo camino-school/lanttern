@@ -574,7 +574,8 @@ defmodule LantternWeb.MenuComponent do
     profiles =
       Identity.list_profiles(
         user_id: socket.assigns.current_user.id,
-        preloads: [staff_member: :school, student: :school, guardian_of_student: :school]
+        preloads: [staff_member: :school, student: :school, guardian_of_student: :school],
+        only_active: true
       )
 
     socket =

@@ -59,7 +59,7 @@ defmodule LantternWeb.UserAuth do
 
   defp check_current_profile(%{current_profile_id: nil, is_root_admin: is_root_admin} = user) do
     # if there's no current_profile_id, list profiles and use first result
-    case {Identity.list_profiles(user_id: user.id), is_root_admin} do
+    case {Identity.list_profiles(user_id: user.id, only_active: true), is_root_admin} do
       {[profile | _rest], _} ->
         Identity.update_user_current_profile_id(user, profile.id)
 
@@ -131,14 +131,21 @@ defmodule LantternWeb.UserAuth do
     {user_token, conn} = ensure_user_token(conn)
 
     case user_token && Identity.get_user_by_session_token(user_token) do
+      # when user current profile is a disabled staff member,
+      # remove it from user before moving forward
+      %User{current_profile: %{type: "staff", staff_member: %{disabled_at: disabled_at}}} = user
+      when not is_nil(disabled_at) ->
+        {:ok, user} = Identity.update_user_current_profile_id(user, nil)
+        Map.put(user, :current_profile, nil)
+
+      user ->
+        user
+    end
+    |> case do
       # if for some reason we reach this point
       # without a user profile, log out
       %User{current_profile: nil, is_root_admin: false} ->
         conn
-        |> put_flash(
-          :error,
-          "There's no profile linked to your user. Check with your Lanttern admin."
-        )
         |> log_out_user()
 
       # when there's no current school cycle in profile at this point
