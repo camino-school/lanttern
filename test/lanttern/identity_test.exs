@@ -573,6 +573,44 @@ defmodule Lanttern.IdentityTest do
       end
     end
 
+    test "list_profiles/1 with load_virtual_fields opt returns all profiles with virtual fields loaded" do
+      school = school_fixture(%{name: "school abc"})
+      student = student_fixture(%{school_id: school.id, name: "student abc"})
+
+      staff_member =
+        staff_member_fixture(%{
+          school_id: school.id,
+          name: "staff member abc",
+          role: "role abc",
+          profile_picture_url: "https://example.com"
+        })
+
+      student_profile = student_profile_fixture(%{student_id: student.id})
+      guardian_profile = guardian_profile_fixture(%{guardian_of_student_id: student.id})
+      staff_member_profile = staff_member_profile_fixture(%{staff_member_id: staff_member.id})
+
+      # results should be ordered by name and type
+      [expected_staff_member_profile, expected_guardian_profile, expected_student_profile] =
+        Identity.list_profiles(load_virtual_fields: true)
+
+      assert expected_staff_member_profile.id == staff_member_profile.id
+      assert expected_staff_member_profile.name == "staff member abc"
+      assert expected_staff_member_profile.role == "role abc"
+      assert expected_staff_member_profile.profile_picture_url == "https://example.com"
+      assert expected_staff_member_profile.school_id == school.id
+      assert expected_staff_member_profile.school_name == "school abc"
+
+      assert expected_guardian_profile.id == guardian_profile.id
+      assert expected_guardian_profile.name == "student abc"
+      assert expected_guardian_profile.school_id == school.id
+      assert expected_guardian_profile.school_name == "school abc"
+
+      assert expected_student_profile.id == student_profile.id
+      assert expected_student_profile.name == "student abc"
+      assert expected_student_profile.school_id == school.id
+      assert expected_student_profile.school_name == "school abc"
+    end
+
     test "get_profile!/1 returns the profile with given id" do
       profile = student_profile_fixture()
       assert Identity.get_profile!(profile.id) == profile

@@ -12,6 +12,7 @@ defmodule Lanttern.Identity do
   alias Lanttern.Identity.UserNotifier
   alias Lanttern.Identity.Profile
   alias Lanttern.Personalization
+  alias Lanttern.Schools.School
 
   ## Database getters
 
@@ -523,6 +524,7 @@ defmodule Lanttern.Identity do
   `:user_id` – filter profiles by user_id
   `:type` – filter profiles by type
   `:only_active` - removes disabled staff members from the list
+  `:load_virtual_fields` - load profile virtual fields name, role, profile_picture_url, school_id, school_name
 
   ## Examples
 
@@ -553,8 +555,28 @@ defmodule Lanttern.Identity do
     from(
       p in queryable,
       left_join: sm in assoc(p, :staff_member),
-      where: is_nil(sm) or is_nil(sm.disabled_at),
-      preload: [staff_member: sm]
+      where: is_nil(sm) or is_nil(sm.disabled_at)
+    )
+    |> apply_list_profiles_opts(opts)
+  end
+
+  defp apply_list_profiles_opts(queryable, [{:load_virtual_fields, true} | opts]) do
+    from(
+      p in queryable,
+      left_join: sm in assoc(p, :staff_member),
+      left_join: s in assoc(p, :student),
+      left_join: gos in assoc(p, :guardian_of_student),
+      left_join: sch in School,
+      on: sm.school_id == sch.id or s.school_id == sch.id or gos.school_id == sch.id,
+      order_by: [asc: sm.name |> coalesce(s.name) |> coalesce(gos.name), asc: p.type],
+      select: %{
+        p
+        | name: sm.name |> coalesce(s.name) |> coalesce(gos.name),
+          role: sm.role,
+          profile_picture_url: sm.profile_picture_url,
+          school_id: sch.id,
+          school_name: sch.name
+      }
     )
     |> apply_list_profiles_opts(opts)
   end

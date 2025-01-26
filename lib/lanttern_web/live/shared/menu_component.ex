@@ -258,31 +258,8 @@ defmodule LantternWeb.MenuComponent do
   attr :rest, :global, doc: "use to pass phx-* bindings to change profile button"
 
   def profile_item(%{profile: profile, current_profile_id: current_profile_id} = assigns) do
-    {name, school} =
-      case profile.type do
-        "student" ->
-          {
-            profile.student.name,
-            profile.student.school.name
-          }
-
-        "staff" ->
-          {
-            profile.staff_member.name,
-            profile.staff_member.school.name
-          }
-
-        "guardian" ->
-          {
-            profile.guardian_of_student.name,
-            profile.guardian_of_student.school.name
-          }
-      end
-
     assigns =
       assigns
-      |> assign(:name, name)
-      |> assign(:school, school)
       |> assign(:active, profile.id == current_profile_id)
 
     ~H"""
@@ -306,14 +283,14 @@ defmodule LantternWeb.MenuComponent do
             "block font-bold text-sm",
             if(@active, do: "text-ltrn-dark", else: "group-hover/item:text-ltrn-dark")
           ]}>
-            <%= @name %>
+            <%= @profile.name %>
           </span>
           <span class="font-sans font-normal text-xs">
             <%= Gettext.dgettext(
               Lanttern.Gettext,
               "schools",
               String.capitalize(Map.get(@profile.staff_member || %{}, :role, @profile.type))
-            ) %> @ <%= @school %>
+            ) %> @ <%= @profile.school_name %>
           </span>
         </div>
       </button>
@@ -574,8 +551,8 @@ defmodule LantternWeb.MenuComponent do
     profiles =
       Identity.list_profiles(
         user_id: socket.assigns.current_user.id,
-        preloads: [staff_member: :school, student: :school, guardian_of_student: :school],
-        only_active: true
+        only_active: true,
+        load_virtual_fields: true
       )
 
     socket =
