@@ -47,7 +47,7 @@ defmodule LantternWeb.DisabledStaffLive do
 
   @impl true
   def handle_event("reactivate", %{"id" => id}, socket) do
-    with true <- id in socket.assigns.staff_members_ids do
+    if id in socket.assigns.staff_members_ids do
       staff_member = Schools.get_staff_member!(id)
 
       case Schools.reactivate_staff_member(staff_member) do
@@ -67,14 +67,13 @@ defmodule LantternWeb.DisabledStaffLive do
           {:noreply, put_flash(socket, :error, gettext("Failed to reactivate staff member"))}
       end
     else
-      _ ->
-        {:noreply, put_flash(socket, :error, gettext("Invalid staff member"))}
+      {:noreply, put_flash(socket, :error, gettext("Invalid staff member"))}
     end
   end
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    with true <- id in socket.assigns.staff_members_ids do
+    if id in socket.assigns.staff_members_ids do
       staff_member = Schools.get_staff_member!(id)
 
       case Schools.delete_staff_member(staff_member) do
@@ -94,8 +93,7 @@ defmodule LantternWeb.DisabledStaffLive do
           {:noreply, put_flash(socket, :error, gettext("Failed to delete staff member"))}
       end
     else
-      _ ->
-        {:noreply, put_flash(socket, :error, gettext("Invalid staff member"))}
+      {:noreply, put_flash(socket, :error, gettext("Invalid staff member"))}
     end
   end
 end

@@ -134,7 +134,7 @@ defmodule LantternWeb.SchoolLive.StaffComponent do
     socket
     |> stream(:staff, staff)
     |> assign(:staff_length, length(staff))
-    |> assign(:staff_members_ids, Enum.map(staff, & &1.id))
+    |> assign(:staff_members_ids, Enum.map(staff, &"#{&1.id}"))
   end
 
   defp assign_staff_member(
@@ -150,10 +150,9 @@ defmodule LantternWeb.SchoolLive.StaffComponent do
   end
 
   defp assign_staff_member(%{assigns: %{params: %{"edit" => staff_member_id}}} = socket) do
-    with {staff_member_id, _} <- Integer.parse(staff_member_id),
-         true <-
+    with true <-
            socket.assigns.is_school_manager ||
-             socket.assigns.current_user.current_profile.staff_member_id == staff_member_id,
+             "#{socket.assigns.current_user.current_profile.staff_member_id}" == staff_member_id,
          true <- staff_member_id in socket.assigns.staff_members_ids do
       staff_member = Schools.get_staff_member!(staff_member_id, load_email: true)
 
