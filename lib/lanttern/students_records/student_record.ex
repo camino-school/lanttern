@@ -8,6 +8,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
 
   use Gettext, backend: Lanttern.Gettext
 
+  alias Lanttern.StudentsRecords.Assignee
   alias Lanttern.StudentsRecords.StudentRecordClassRelationship
   alias Lanttern.StudentsRecords.StudentRecordRelationship
   alias Lanttern.StudentsRecords.StudentRecordStatus
@@ -46,6 +47,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
     field :time, :time
     field :students_ids, {:array, :id}, virtual: true
     field :classes_ids, {:array, :id}, virtual: true
+    field :assignees_ids, {:array, :id}, virtual: true
 
     belongs_to :school, School
     belongs_to :created_by_staff_member, StaffMember
@@ -54,12 +56,17 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
 
     has_many :students_relationships, StudentRecordRelationship, on_replace: :delete
     has_many :classes_relationships, StudentRecordClassRelationship, on_replace: :delete
+    has_many :assignees_relationships, Assignee, on_replace: :delete
 
     many_to_many :students, Student,
       join_through: "students_students_records",
       preload_order: [asc: :name]
 
     many_to_many :classes, Class, join_through: "students_records_classes"
+
+    many_to_many :assignees, StaffMember,
+      join_through: "students_records_assignees",
+      preload_order: [asc: :name]
 
     timestamps()
   end
@@ -74,6 +81,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
       :time,
       :students_ids,
       :classes_ids,
+      :assignees_ids,
       :school_id,
       :created_by_staff_member_id,
       :type_id,
@@ -89,6 +97,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
     ])
     |> cast_and_validate_students()
     |> cast_classes()
+    |> cast_assignees()
   end
 
   def cast_and_validate_students(changeset) do
@@ -131,6 +140,23 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
         changeset
         |> put_change(:classes_relationships, classes_relationships_params)
         |> cast_assoc(:classes_relationships)
+
+      _ ->
+        changeset
+    end
+  end
+
+  defp cast_assignees(changeset) do
+    case get_change(changeset, :assignees_ids) do
+      assignees_ids when is_list(assignees_ids) ->
+        school_id = get_field(changeset, :school_id)
+
+        assignees_relationships_params =
+          Enum.map(assignees_ids, &%{staff_member_id: &1, school_id: school_id})
+
+        changeset
+        |> put_change(:assignees_relationships, assignees_relationships_params)
+        |> cast_assoc(:assignees_relationships)
 
       _ ->
         changeset

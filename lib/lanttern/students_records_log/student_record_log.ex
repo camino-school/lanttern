@@ -11,13 +11,14 @@ defmodule Lanttern.StudentsRecordsLog.StudentRecordLog do
     field :student_record_id, :id
     field :profile_id, :id
     field :operation, :string
-
     field :name, :string
     field :description, :string
     field :date, :date
     field :time, :time
     field :students_ids, {:array, :id}
     field :classes_ids, {:array, :id}
+    field :created_by_staff_member_id, :id
+    field :assignees_ids, {:array, :id}
     field :school_id, :id
     field :type_id, :id
     field :status_id, :id
@@ -38,6 +39,8 @@ defmodule Lanttern.StudentsRecordsLog.StudentRecordLog do
       :time,
       :students_ids,
       :classes_ids,
+      :created_by_staff_member_id,
+      :assignees_ids,
       :school_id,
       :type_id,
       :status_id
@@ -49,6 +52,7 @@ defmodule Lanttern.StudentsRecordsLog.StudentRecordLog do
       :description,
       :date,
       :students_ids,
+      :created_by_staff_member_id,
       :school_id,
       :type_id,
       :status_id
