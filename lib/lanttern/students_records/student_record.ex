@@ -14,6 +14,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
   alias Lanttern.StudentsRecords.StudentRecordType
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.School
+  alias Lanttern.Schools.StaffMember
   alias Lanttern.Schools.Student
 
   @type t :: %__MODULE__{
@@ -24,6 +25,8 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
           time: Time.t(),
           students: [Student.t()],
           students_ids: [pos_integer()],
+          created_by_staff_member: StaffMember.t(),
+          created_by_staff_member_id: pos_integer(),
           classes: [Class.t()],
           classes_ids: [pos_integer()],
           school_id: pos_integer(),
@@ -45,6 +48,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
     field :classes_ids, {:array, :id}, virtual: true
 
     belongs_to :school, School
+    belongs_to :created_by_staff_member, StaffMember
     belongs_to :status, StudentRecordStatus
     belongs_to :type, StudentRecordType
 
@@ -71,10 +75,18 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
       :students_ids,
       :classes_ids,
       :school_id,
+      :created_by_staff_member_id,
       :type_id,
       :status_id
     ])
-    |> validate_required([:description, :date, :school_id, :type_id, :status_id])
+    |> validate_required([
+      :description,
+      :date,
+      :school_id,
+      :created_by_staff_member_id,
+      :type_id,
+      :status_id
+    ])
     |> cast_and_validate_students()
     |> cast_classes()
   end

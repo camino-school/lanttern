@@ -30,6 +30,14 @@ defmodule LantternWeb.Admin.StudentRecordLive.FormComponent do
           class="mb-4"
         />
         <.input
+          field={@form[:created_by_staff_member_id]}
+          type="select"
+          label="Select created by staff member"
+          options={@staff_member_options}
+          prompt="No staff member selected"
+          class="mb-4"
+        />
+        <.input
           field={@form[:students_ids]}
           type="select"
           multiple
@@ -71,6 +79,7 @@ defmodule LantternWeb.Admin.StudentRecordLive.FormComponent do
     socket =
       socket
       |> assign(:school_options, SchoolsHelpers.generate_school_options())
+      |> assign(:staff_member_options, SchoolsHelpers.generate_staff_member_options())
       |> assign(:student_options, SchoolsHelpers.generate_student_options())
       |> assign(:type_options, StudentsRecordsHelpers.generate_student_record_type_options())
       |> assign(:status_options, StudentsRecordsHelpers.generate_student_record_status_options())

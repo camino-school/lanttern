@@ -13,6 +13,7 @@ defmodule Lanttern.StudentsRecordsFixtures do
     {:ok, student_record} =
       attrs
       |> maybe_inject_school_id()
+      |> maybe_inject_created_by_staff_member_id()
       |> maybe_inject_students_ids()
       |> maybe_inject_type_id()
       |> maybe_inject_status_id()
@@ -77,6 +78,17 @@ defmodule Lanttern.StudentsRecordsFixtures do
   defp maybe_inject_school_id(attrs) do
     attrs
     |> Map.put(:school_id, SchoolsFixtures.school_fixture().id)
+  end
+
+  defp maybe_inject_created_by_staff_member_id(%{created_by_staff_member_id: _} = attrs),
+    do: attrs
+
+  defp maybe_inject_created_by_staff_member_id(%{school_id: school_id} = attrs) do
+    attrs
+    |> Map.put(
+      :created_by_staff_member_id,
+      SchoolsFixtures.staff_member_fixture(%{school_id: school_id}).id
+    )
   end
 
   defp maybe_inject_students_ids(%{students_ids: _} = attrs), do: attrs

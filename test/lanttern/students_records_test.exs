@@ -173,6 +173,7 @@ defmodule Lanttern.StudentsRecordsTest do
       school = SchoolsFixtures.school_fixture()
       type = student_record_type_fixture(%{school_id: school.id})
       status = student_record_status_fixture(%{school_id: school.id})
+      staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
       student = SchoolsFixtures.student_fixture(%{school_id: school.id})
       class = SchoolsFixtures.class_fixture(%{school_id: school.id})
 
@@ -187,6 +188,7 @@ defmodule Lanttern.StudentsRecordsTest do
         date: ~D[2024-09-15],
         time: ~T[14:00:00],
         description: "some description",
+        created_by_staff_member_id: staff_member.id,
         students_ids: [student.id],
         classes_ids: [class.id]
       }
@@ -202,7 +204,10 @@ defmodule Lanttern.StudentsRecordsTest do
       assert student_record.time == ~T[14:00:00]
       assert student_record.description == "some description"
 
-      student_record = student_record |> Repo.preload([:students, :classes])
+      student_record =
+        student_record |> Repo.preload([:created_by_staff_member, :students, :classes])
+
+      assert student_record.created_by_staff_member == staff_member
       assert student_record.students == [student]
       assert student_record.classes == [class]
 

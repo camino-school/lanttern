@@ -519,6 +519,14 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
   end
 
   defp save_student_record(socket, nil, student_record_params) do
+    # when creating student record, inject current user as creator
+    student_record_params =
+      student_record_params
+      |> Map.put(
+        "created_by_staff_member_id",
+        socket.assigns.current_user.current_profile.staff_member_id
+      )
+
     StudentsRecords.create_student_record(
       student_record_params,
       log_profile_id: socket.assigns.current_user.current_profile_id
