@@ -67,7 +67,14 @@ defmodule LantternWeb.StudentsRecordsLive do
         classes_ids: classes_ids,
         types_ids: types_ids,
         statuses_ids: statuses_ids,
-        preloads: [:type, :status, :students, [classes: :cycle]],
+        preloads: [
+          :type,
+          :status,
+          :created_by_staff_member,
+          :assignees,
+          :students,
+          [classes: :cycle]
+        ],
         first: 50,
         after: keyset
       )
@@ -78,7 +85,7 @@ defmodule LantternWeb.StudentsRecordsLive do
       has_next: has_next
     } = page
 
-    len = (len + length(students_records)) |> IO.inspect(label: "length")
+    len = len + length(students_records)
 
     socket
     |> stream(:students_records, students_records, reset: reset)

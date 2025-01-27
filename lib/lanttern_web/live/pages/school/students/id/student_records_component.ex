@@ -219,7 +219,14 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
         students_ids: [socket.assigns.student.id],
         types_ids: types_ids,
         statuses_ids: statuses_ids,
-        preloads: [:type, :status, :students, [classes: :cycle]],
+        preloads: [
+          :type,
+          :status,
+          :students,
+          :created_by_staff_member,
+          :assignees,
+          [classes: :cycle]
+        ],
         first: 50,
         after: keyset
       )
@@ -246,12 +253,8 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
 
   defp assign_student_record_id(%{assigns: %{params: %{"student_record" => "new"}}} = socket) do
     # build new record initial fields based on current filters
-    students_ids = Enum.map(socket.assigns.selected_students, & &1.id)
-
-    classes =
-      (socket.assigns.selected_classes ++
-         Schools.list_classes_for_students_in_date(students_ids, Date.utc_today()))
-      |> Enum.uniq_by(& &1.id)
+    students_ids = [socket.assigns.student.id]
+    classes = Schools.list_classes_for_students_in_date(students_ids, Date.utc_today())
 
     type_id =
       case socket.assigns.selected_student_record_types do
@@ -267,7 +270,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
 
     new_record_initial_fields =
       %{
-        students: socket.assigns.selected_students,
+        students: [socket.assigns.student],
         classes: classes,
         type_id: type_id,
         status_id: status_id

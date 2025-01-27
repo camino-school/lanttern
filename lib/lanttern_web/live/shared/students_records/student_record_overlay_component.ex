@@ -12,6 +12,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
 
   # shared
 
+  alias LantternWeb.Schools.StaffMemberSearchComponent
   alias LantternWeb.Schools.StudentSearchComponent
   alias LantternWeb.Schools.ClassesFieldComponent
   import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
@@ -81,22 +82,9 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               </div>
             </div>
             <div class="mb-6">
-              <.label><%= gettext("Status") %></.label>
-              <.badge_button_picker
-                id="student-record-status-select"
-                on_select={&JS.push("select_status", value: %{"id" => &1}, target: @myself)}
-                items={@statuses}
-                selected_ids={[@selected_status_id]}
-                use_color_map_as_active
-              />
-              <div :if={@form.source.action in [:insert, :update]}>
-                <.error :for={{msg, _} <- @form[:status_id].errors}><%= msg %></.error>
-              </div>
-            </div>
-            <div class="mb-6">
               <.live_component
                 module={StudentSearchComponent}
-                id="student-search"
+                id={"#{@id}-student-search"}
                 notify_component={@myself}
                 label={gettext("Students")}
                 refocus_on_select="true"
@@ -131,6 +119,45 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               phx-debounce="1500"
             />
             <.markdown_supported class="mb-6" />
+            <div class="p-4 rounded-sm mb-6 bg-ltrn-teacher-lightest">
+              <p class="mb-6 font-bold text-ltrn-teacher-dark">
+                <%= gettext("Internal student record tracking") %>
+              </p>
+              <div class="mb-6">
+                <.label><%= gettext("Status") %></.label>
+                <.badge_button_picker
+                  id="student-record-status-select"
+                  on_select={&JS.push("select_status", value: %{"id" => &1}, target: @myself)}
+                  items={@statuses}
+                  selected_ids={[@selected_status_id]}
+                  use_color_map_as_active
+                />
+                <div :if={@form.source.action in [:insert, :update]}>
+                  <.error :for={{msg, _} <- @form[:status_id].errors}><%= msg %></.error>
+                </div>
+              </div>
+              <div>
+                <.live_component
+                  module={StaffMemberSearchComponent}
+                  id="staff-member-search"
+                  notify_component={@myself}
+                  label={gettext("Assignees")}
+                  refocus_on_select="true"
+                />
+                <div :if={@selected_assignees != []} class="flex flex-wrap gap-2 mt-2">
+                  <.person_badge
+                    :for={assignee <- @selected_assignees}
+                    person={assignee}
+                    on_remove={
+                      JS.push("remove_assignee", value: %{"id" => assignee.id}, target: @myself)
+                    }
+                  />
+                </div>
+                <div :if={@form.source.action in [:insert, :update]}>
+                  <.error :for={{msg, _} <- @form[:assignees_ids].errors}><%= msg %></.error>
+                </div>
+              </div>
+            </div>
             <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
               <%= gettext("Oops, something went wrong! Please check the errors below.") %>
             </.error_block>
@@ -156,6 +183,10 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
           <%= if @student_record do %>
             <div class="pb-6 border-b border-ltrn-light mb-6">
               <div class="flex items-center gap-4 mb-4">
+                <div class="flex items-center gap-2 font-bold text-ltrn-subtle">
+                  <.icon name="hero-hashtag-mini" class="w-5 h-5 text-ltrn-subtle" />
+                  <%= @student_record.id %>
+                </div>
                 <div class="flex items-center gap-2">
                   <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
                   <%= Timex.format!(@student_record.date, "{Mfull} {0D}, {YYYY}") %>
@@ -210,6 +241,21 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               </div>
             </div>
             <.markdown text={@student_record.description} class="mt-6" />
+            <div class="p-4 rounded-sm mt-6 bg-ltrn-teacher-lightest">
+              <p class="mb-6 font-bold text-ltrn-teacher-dark">
+                <%= gettext("Internal student record tracking") %>
+              </p>
+              <div class="flex items-center gap-2">
+                <span class="text-ltrn-subtle"><%= gettext("Created by") %></span>
+                <.person_badge person={@student_record.created_by_staff_member} />
+              </div>
+              <div :if={@student_record.assignees != []} class="flex items-center gap-2 mt-4">
+                <span class="text-ltrn-subtle"><%= gettext("Assigned to") %></span>
+                <div class="flex items-center gap-2">
+                  <.person_badge :for={assignee <- @student_record.assignees} person={assignee} />
+                </div>
+              </div>
+            </div>
             <%= if @is_deleted do %>
               <.error_block class="mt-10">
                 <%= gettext("This record was deleted") %>
@@ -298,6 +344,33 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
       ),
       do: {:ok, assign(socket, :selected_classes_ids, selected_classes_ids)}
 
+  def update(%{action: {StaffMemberSearchComponent, {:selected, assignee}}}, socket) do
+    selected_assignees =
+      (socket.assigns.selected_assignees ++ [assignee])
+      |> Enum.uniq()
+
+    selected_assignees_ids = selected_assignees |> Enum.map(& &1.id)
+
+    # basically a manual "validate" event to update assignees ids
+    params =
+      socket.assigns.form.params
+      |> Map.put("assignees_ids", selected_assignees_ids)
+
+    form =
+      socket.assigns.student_record
+      |> StudentsRecords.change_student_record(params)
+      |> Map.put(:action, :validate)
+      |> to_form()
+
+    socket =
+      socket
+      |> assign(:selected_assignees, selected_assignees)
+      |> assign(:selected_assignees_ids, selected_assignees_ids)
+      |> assign(:form, form)
+
+    {:ok, socket}
+  end
+
   def update(%{student_record_id: nil} = assigns, socket) do
     socket =
       socket
@@ -324,6 +397,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
         school_id: socket.assigns.current_user.current_profile.school_id,
         students: [],
         classes: [],
+        assignees: [],
         date: Date.utc_today()
       }
       |> struct(Map.get(socket.assigns, :new_record_initial_fields, %{}))
@@ -342,6 +416,8 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
           :students,
           :type,
           :status,
+          :created_by_staff_member,
+          :assignees,
           [classes: :cycle]
         ]
       )
@@ -362,10 +438,10 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
     do: assign(socket, :student_record, nil)
 
   defp assign_form(socket) do
-    # we'll need students and classes relationships for changeset
+    # we'll need students/classes/assignees relationships for changeset
     student_record =
       socket.assigns.student_record
-      |> Repo.preload([:students_relationships, :classes_relationships])
+      |> Repo.preload([:students_relationships, :classes_relationships, :assignees_relationships])
 
     changeset = StudentsRecords.change_student_record(student_record)
 
@@ -376,6 +452,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
     |> assign(:selected_status_id, student_record.status_id)
     |> assign_selected_students()
     |> assign_selected_classes_ids()
+    |> assign_selected_assignees()
   end
 
   defp assign_selected_students(socket) do
@@ -393,6 +470,15 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
       |> Enum.map(& &1.id)
 
     assign(socket, :selected_classes_ids, selected_classes_ids)
+  end
+
+  defp assign_selected_assignees(socket) do
+    selected_assignees = socket.assigns.student_record.assignees
+    selected_assignees_ids = selected_assignees |> Enum.map(& &1.id)
+
+    socket
+    |> assign(:selected_assignees, selected_assignees)
+    |> assign(:selected_assignees_ids, selected_assignees_ids)
   end
 
   # event handlers
@@ -427,6 +513,22 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
     {:noreply, socket}
   end
 
+  def handle_event("remove_assignee", %{"id" => id}, socket) do
+    selected_assignees =
+      socket.assigns.selected_assignees
+      |> Enum.filter(&(&1.id != id))
+
+    selected_assignees_ids = selected_assignees |> Enum.map(& &1.id)
+
+    socket =
+      socket
+      |> assign(:selected_assignees, selected_assignees)
+      |> assign(:selected_assignees_ids, selected_assignees_ids)
+      |> assign_validated_form(socket.assigns.form.params)
+
+    {:noreply, socket}
+  end
+
   def handle_event("select_type", %{"id" => id}, socket) do
     socket =
       socket
@@ -450,7 +552,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
 
   def handle_event("save", %{"student_record" => student_record_params}, socket) do
     student_record_params =
-      inject_school_type_status_and_students_in_params(socket, student_record_params)
+      inject_extra_params(socket, student_record_params)
 
     save_student_record(socket, socket.assigns.student_record.id, student_record_params)
   end
@@ -499,7 +601,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
   end
 
   defp assign_validated_form(socket, params) do
-    params = inject_school_type_status_and_students_in_params(socket, params)
+    params = inject_extra_params(socket, params)
 
     changeset =
       socket.assigns.student_record
@@ -509,13 +611,14 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
     assign(socket, :form, to_form(changeset))
   end
 
-  defp inject_school_type_status_and_students_in_params(socket, params) do
+  defp inject_extra_params(socket, params) do
     params
     |> Map.put("school_id", socket.assigns.current_user.current_profile.school_id)
     |> Map.put("type_id", socket.assigns.selected_type_id)
     |> Map.put("status_id", socket.assigns.selected_status_id)
     |> Map.put("students_ids", socket.assigns.selected_students_ids)
     |> Map.put("classes_ids", socket.assigns.selected_classes_ids)
+    |> Map.put("assignees_ids", socket.assigns.selected_assignees_ids)
   end
 
   defp save_student_record(socket, nil, student_record_params) do
@@ -536,8 +639,22 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
         # preload students and classes
         student_record =
           student_record
-          |> Ecto.reset_fields([:students, :classes, :status, :type])
-          |> Repo.preload([:students, :status, :type, [classes: :cycle]])
+          |> Ecto.reset_fields([
+            :students,
+            :classes,
+            :status,
+            :type,
+            :created_by_staff_member,
+            :assignees
+          ])
+          |> Repo.preload([
+            :students,
+            :status,
+            :type,
+            :created_by_staff_member,
+            :assignees,
+            [classes: :cycle]
+          ])
 
         notify(__MODULE__, {:created, student_record}, socket.assigns)
 
@@ -564,8 +681,22 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
         # preload students and classes
         student_record =
           student_record
-          |> Ecto.reset_fields([:students, :classes, :status, :type])
-          |> Repo.preload([:students, :status, :type, [classes: :cycle]])
+          |> Ecto.reset_fields([
+            :students,
+            :classes,
+            :status,
+            :type,
+            :created_by_staff_member,
+            :assignees
+          ])
+          |> Repo.preload([
+            :students,
+            :status,
+            :type,
+            :created_by_staff_member,
+            :assignees,
+            [classes: :cycle]
+          ])
 
         notify(__MODULE__, {:updated, student_record}, socket.assigns)
 
