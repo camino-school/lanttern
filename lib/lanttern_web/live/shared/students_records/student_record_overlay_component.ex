@@ -167,15 +167,15 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               </div>
               <div class="flex items-center gap-4">
                 <div class="flex items-center gap-2">
-                  <span><%= gettext("Type") %>:</span>
-                  <.badge color_map={@student_record.type}>
-                    <%= @student_record.type.name %>
-                  </.badge>
-                </div>
-                <div class="flex items-center gap-2">
                   <span><%= gettext("Status") %>:</span>
                   <.badge color_map={@student_record.status}>
                     <%= @student_record.status.name %>
+                  </.badge>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span><%= gettext("Type") %>:</span>
+                  <.badge color_map={@student_record.type}>
+                    <%= @student_record.type.name %>
                   </.badge>
                 </div>
               </div>

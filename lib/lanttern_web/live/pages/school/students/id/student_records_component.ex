@@ -14,15 +14,11 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
 
   alias Lanttern.StudentsRecords
   alias Lanttern.Schools
-  alias Lanttern.Schools.Cycle
 
-  import LantternWeb.FiltersHelpers,
-    only: [assign_user_filters: 2, assign_classes_filter: 2, save_profile_filters: 2]
+  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
 
   # shared components
-  alias LantternWeb.Schools.StudentSearchComponent
   alias LantternWeb.StudentsRecords.StudentRecordOverlayComponent
-  import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
   import LantternWeb.StudentsRecordsComponents
 
   @impl true
@@ -30,42 +26,42 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
     ~H"""
     <div>
       <.action_bar class="flex items-center gap-4 p-4">
-        <p class="flex-1 flex flex-wrap gap-2">
-          <%= ngettext(
-            "Showing 1 result for",
-            "Showing %{count} results for",
-            @students_records_length
-          ) %>
-          <.badge theme="primary">
-            <%= @student.name %>
-          </.badge>
-          <%= for student <- @selected_students, student.id != @student.id do %>
-            <.badge on_remove={JS.push("remove_student_filter", target: @myself)} theme="primary">
-              <%= student.name %>
+        <div class="flex-1 flex flex-wrap items-center gap-6">
+          <%= if @selected_student_record_statuses == [] do %>
+            <.action
+              type="button"
+              icon_name="hero-chevron-down-mini"
+              phx-click={JS.exec("data-show", to: "#student-record-statuses-filter-modal")}
+            >
+              <%= gettext("All statuses") %>
+            </.action>
+          <% else %>
+            <.badge
+              :for={status <- @selected_student_record_statuses}
+              color_map={status}
+              on_remove={JS.push("remove_status_filter", target: @myself)}
+            >
+              <%= status.name %>
             </.badge>
           <% end %>
-          <.badge
-            :for={class <- @selected_classes}
-            on_remove={JS.push("remove_class_filter", value: %{"id" => class.id}, target: @myself)}
-            theme="primary"
-          >
-            <%= class_with_cycle(class, @current_user) %>
-          </.badge>
-          <.badge
-            :for={type <- @selected_student_record_types}
-            color_map={type}
-            on_remove={JS.push("remove_type_filter", target: @myself)}
-          >
-            <%= type.name %>
-          </.badge>
-          <.badge
-            :for={status <- @selected_student_record_statuses}
-            color_map={status}
-            on_remove={JS.push("remove_status_filter", target: @myself)}
-          >
-            <%= status.name %>
-          </.badge>
-        </p>
+          <%= if @selected_student_record_types == [] do %>
+            <.action
+              type="button"
+              icon_name="hero-chevron-down-mini"
+              phx-click={JS.exec("data-show", to: "#student-record-types-filter-modal")}
+            >
+              <%= gettext("All types") %>
+            </.action>
+          <% else %>
+            <.badge
+              :for={type <- @selected_student_record_types}
+              color_map={type}
+              on_remove={JS.push("remove_type_filter", target: @myself)}
+            >
+              <%= type.name %>
+            </.badge>
+          <% end %>
+        </div>
         <.action
           type="link"
           patch={"#{@base_path}?student_record=new"}
@@ -74,58 +70,49 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
           <%= gettext("New student record") %>
         </.action>
       </.action_bar>
-      <.students_records_data_grid
-        id="students-records"
-        stream={@streams.students_records}
-        show_empty_state_message={@students_records_length == 0}
-        student_navigate={
-          fn
-            student when student.id != @student.id -> ~p"/school/students/#{student}/student_records"
-            _ -> nil
-          end
-        }
-        details_patch={fn student_record -> "#{@base_path}?student_record=#{student_record.id}" end}
-        is_students_filter_active={@selected_students_ids != []}
-        on_students_filter={JS.push("open_student_search_modal", target: @myself)}
-        is_classes_filter_active={@selected_classes_ids != []}
-        on_classes_filter={JS.exec("data-show", to: "#student-records-classes-filters-overlay")}
-        is_type_filter_active={@selected_student_record_types_ids != []}
-        on_type_filter={JS.exec("data-show", to: "#student-record-types-filter-modal")}
-        is_status_filter_active={@selected_student_record_statuses_ids != []}
-        on_status_filter={JS.exec("data-show", to: "#student-record-statuses-filter-modal")}
-        current_user_or_cycle={@current_user}
-      />
+      <p :if={@students_records_length > 0} class="p-4 text-center">
+        <%= ngettext(
+          "Showing 1 result for selected filters",
+          "Showing %{count} results for selected filters",
+          @students_records_length
+        ) %>
+      </p>
+      <.responsive_container class="p-4">
+        <.students_records_list
+          id="students-records"
+          stream={@streams.students_records}
+          show_empty_state_message={@students_records_length == 0}
+          student_navigate={
+            fn
+              student when student.id != @student.id ->
+                ~p"/school/students/#{student}/student_records"
+
+              _ ->
+                nil
+            end
+          }
+          details_patch={fn student_record -> "#{@base_path}?student_record=#{student_record.id}" end}
+          current_user_or_cycle={@current_user}
+        />
+      </.responsive_container>
       <div :if={@has_next} class="flex justify-center pb-10">
         <.button theme="ghost" phx-click="load_more" phx-target={@myself} class="mt-6">
           <%= gettext("Load more records") %>
         </.button>
       </div>
-      <.modal
-        :if={@show_student_search_modal}
-        id="student-search-modal"
-        show
-        on_cancel={JS.push("close_student_search_modal", target: @myself)}
-      >
-        <h5 class="mb-10 font-display font-black text-xl">
-          <%= gettext("Filter records by student") %>
-        </h5>
-        <form>
-          <.live_component
-            module={StudentSearchComponent}
-            id="student-search-modal-search"
-            notify_component={@myself}
-            label={gettext("Type the name of the student")}
-          />
-        </form>
-      </.modal>
-      <.live_component
-        module={LantternWeb.Filters.ClassesFilterOverlayComponent}
-        id="student-records-classes-filters-overlay"
-        current_user={@current_user}
-        title={gettext("Filter students records by class")}
-        navigate={@base_path}
-        classes={@classes}
-        selected_classes_ids={@selected_classes_ids}
+      <.single_selection_filter_modal
+        id="student-record-statuses-filter-modal"
+        title={gettext("Filter students records by status")}
+        use_color_map_as_active
+        items={@student_record_statuses}
+        selected_item_id={Enum.at(@selected_student_record_statuses_ids, 0)}
+        on_cancel={%JS{}}
+        on_select={
+          fn id ->
+            JS.push("filter_by_status", value: %{"id" => id}, target: @myself)
+            |> JS.exec("data-cancel", to: "#student-record-statuses-filter-modal")
+          end
+        }
       />
       <.single_selection_filter_modal
         id="student-record-types-filter-modal"
@@ -136,22 +123,8 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
         on_cancel={%JS{}}
         on_select={
           fn id ->
-            JS.push("filter_by_type", value: %{"id" => id})
+            JS.push("filter_by_type", value: %{"id" => id}, target: @myself)
             |> JS.exec("data-cancel", to: "#student-record-types-filter-modal")
-          end
-        }
-      />
-      <.single_selection_filter_modal
-        id="student-record-statuses-filter-modal"
-        title={gettext("Filter students records by status")}
-        use_color_map_as_active
-        items={@student_record_statuses}
-        selected_item_id={Enum.at(@selected_student_record_statuses_ids, 0)}
-        on_cancel={%JS{}}
-        on_select={
-          fn id ->
-            JS.push("filter_by_status", value: %{"id" => id})
-            |> JS.exec("data-cancel", to: "#student-record-statuses-filter-modal")
           end
         }
       />
@@ -181,19 +154,6 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
   end
 
   @impl true
-  def update(%{action: {StudentSearchComponent, {:selected, student}}}, socket) do
-    socket =
-      socket
-      |> assign(:selected_students_ids, [student.id])
-      |> save_profile_filters([:students])
-      |> assign_user_filters([:students])
-      |> assign_adjusted_selected_students()
-      |> stream_students_records(true)
-      |> assign(:show_student_search_modal, false)
-
-    {:ok, socket}
-  end
-
   def update(%{action: {StudentRecordOverlayComponent, {:created, student_record}}}, socket) do
     socket =
       socket
@@ -232,9 +192,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
-    |> assign_user_filters([:students, :student_record_types, :student_record_statuses])
-    |> assign_adjusted_selected_students()
-    |> apply_assign_classes_filter()
+    |> assign_user_filters([:student_record_types, :student_record_statuses])
     |> stream_students_records()
     |> assign(:show_student_search_modal, false)
     |> assign_base_path()
@@ -243,35 +201,9 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
 
   defp initialize(socket), do: socket
 
-  defp apply_assign_classes_filter(socket) do
-    assign_classes_filter_opts =
-      case socket.assigns.current_user.current_profile do
-        %{current_school_cycle: %Cycle{} = cycle} -> [cycles_ids: [cycle.id]]
-        _ -> []
-      end
-
-    assign_classes_filter(socket, assign_classes_filter_opts)
-  end
-
-  # adjust the selected students assign to always
-  # include the current student in results
-  defp assign_adjusted_selected_students(socket) do
-    selected_students =
-      [socket.assigns.student | socket.assigns.selected_students]
-      |> Enum.uniq_by(& &1.id)
-
-    selected_students_ids = Enum.map(selected_students, & &1.id)
-
-    socket
-    |> assign(:selected_students, selected_students)
-    |> assign(:selected_students_ids, selected_students_ids)
-  end
-
   defp stream_students_records(socket, reset \\ false) do
     %{
       current_user: %{current_profile: %{school_id: school_id}},
-      selected_students_ids: students_ids,
-      selected_classes_ids: classes_ids,
       selected_student_record_types_ids: types_ids,
       selected_student_record_statuses_ids: statuses_ids
     } = socket.assigns
@@ -284,12 +216,11 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
     page =
       StudentsRecords.list_students_records_page(
         school_id: school_id,
-        students_ids: students_ids,
-        classes_ids: classes_ids,
+        students_ids: [socket.assigns.student.id],
         types_ids: types_ids,
         statuses_ids: statuses_ids,
         preloads: [:type, :status, :students, [classes: :cycle]],
-        first: 20,
+        first: 50,
         after: keyset
       )
 
@@ -354,33 +285,6 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
     do: assign(socket, :student_record_id, nil)
 
   @impl true
-  def handle_event("remove_student_filter", _, socket) do
-    socket =
-      socket
-      |> assign(:selected_students_ids, [])
-      |> save_profile_filters([:students])
-      |> assign_user_filters([:students])
-      |> assign_adjusted_selected_students()
-      |> stream_students_records(true)
-
-    {:noreply, socket}
-  end
-
-  def handle_event("remove_class_filter", %{"id" => class_id}, socket) do
-    selected_classes_ids =
-      socket.assigns.selected_classes_ids
-      |> Enum.filter(&(&1 != class_id))
-
-    socket =
-      socket
-      |> assign(:selected_classes_ids, selected_classes_ids)
-      |> save_profile_filters([:classes])
-      |> apply_assign_classes_filter()
-      |> stream_students_records(true)
-
-    {:noreply, socket}
-  end
-
   def handle_event("remove_type_filter", _, socket) do
     socket =
       socket
@@ -402,12 +306,6 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
 
     {:noreply, socket}
   end
-
-  def handle_event("open_student_search_modal", _, socket),
-    do: {:noreply, assign(socket, :show_student_search_modal, true)}
-
-  def handle_event("close_student_search_modal", _, socket),
-    do: {:noreply, assign(socket, :show_student_search_modal, false)}
 
   def handle_event("filter_by_type", %{"id" => id}, socket) do
     selected_ids =

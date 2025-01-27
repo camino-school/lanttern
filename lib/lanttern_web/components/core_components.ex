@@ -189,7 +189,7 @@ defmodule LantternWeb.CoreComponents do
     <span
       id={@id}
       class={[
-        "inline-flex items-center rounded-sm px-1 py-1 font-mono font-normal text-xs whitespace-nowrap",
+        "inline-flex items-center rounded-sm px-1 py-1 font-mono font-normal text-xs truncate",
         badge_theme(@theme),
         @class
       ]}

@@ -1587,7 +1587,7 @@ defmodule Lanttern.Schools do
       [%Class{}, ...]
 
   """
-  @spec list_classes_for_students_in_date(students_ids :: [pos_integer()], date: Date.t()) :: [
+  @spec list_classes_for_students_in_date(students_ids :: [pos_integer()], Date.t()) :: [
           Class.t()
         ]
   def list_classes_for_students_in_date(students_ids, date) do
