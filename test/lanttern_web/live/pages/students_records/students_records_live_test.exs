@@ -45,7 +45,7 @@ defmodule LantternWeb.StudentsRecordsLiveTest do
       {:ok, view, _html} = live(conn, @live_view_base_path)
 
       assert view |> has_element?("span", student.name)
-      assert view |> has_element?("p", student_record.name)
+      assert view |> has_element?("a", student_record.name)
       assert view |> has_element?("p", student_record.description)
       assert view |> has_element?("span", type.name)
       assert view |> has_element?("span", status.name)

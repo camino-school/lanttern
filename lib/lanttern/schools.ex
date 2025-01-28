@@ -952,10 +952,12 @@ defmodule Lanttern.Schools do
   ### Options:
 
   - `:school_id` – filter staff members by school
+  - `:staff_members_ids` – filter staff members by provided ids
   - `:load_email` - boolean, will add the email field based on staff member profile/user
   - `:only_active` - boolean, will return only active staff members
   - `:only_deactivated` - boolean, will return only deactivated staff members
   - `:preloads` – preloads associated data
+  - `:base_query` - used in conjunction with `search_staff_members/2`
 
   ## Examples
 
@@ -964,8 +966,10 @@ defmodule Lanttern.Schools do
 
   """
   def list_staff_members(opts \\ []) do
+    queryable = Keyword.get(opts, :base_query, StaffMember)
+
     from(
-      sm in StaffMember,
+      sm in queryable,
       order_by: sm.name
     )
     |> apply_list_staff_members_opts(opts)
@@ -979,6 +983,15 @@ defmodule Lanttern.Schools do
     from(
       sm in queryable,
       where: sm.school_id == ^school_id
+    )
+    |> apply_list_staff_members_opts(opts)
+  end
+
+  defp apply_list_staff_members_opts(queryable, [{:staff_members_ids, ids} | opts])
+       when is_list(ids) and ids != [] do
+    from(
+      sm in queryable,
+      where: sm.id in ^ids
     )
     |> apply_list_staff_members_opts(opts)
   end
@@ -1004,6 +1017,34 @@ defmodule Lanttern.Schools do
 
   defp apply_list_staff_members_opts(queryable, [_ | opts]),
     do: apply_list_staff_members_opts(queryable, opts)
+
+  @doc """
+  Search staff members by name.
+
+  ## Options:
+
+  View `list_staff_members/1` for `opts`
+
+  ## Examples
+
+      iex> search_staff_members("some name")
+      [%StaffMember{}, ...]
+
+  """
+  @spec search_staff_members(search_term :: binary(), opts :: Keyword.t()) :: [StaffMember.t()]
+  def search_staff_members(search_term, opts \\ []) do
+    ilike_search_term = "%#{search_term}%"
+
+    query =
+      from(
+        sm in StaffMember,
+        where: ilike(sm.name, ^ilike_search_term),
+        order_by: {:asc, fragment("? <<-> ?", ^search_term, sm.name)}
+      )
+
+    [{:base_query, query} | opts]
+    |> list_staff_members()
+  end
 
   @doc """
   Gets a single staff member.
@@ -1587,7 +1628,7 @@ defmodule Lanttern.Schools do
       [%Class{}, ...]
 
   """
-  @spec list_classes_for_students_in_date(students_ids :: [pos_integer()], date: Date.t()) :: [
+  @spec list_classes_for_students_in_date(students_ids :: [pos_integer()], Date.t()) :: [
           Class.t()
         ]
   def list_classes_for_students_in_date(students_ids, date) do

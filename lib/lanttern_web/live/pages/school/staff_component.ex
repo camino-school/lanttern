@@ -42,7 +42,12 @@ defmodule LantternWeb.SchoolLive.StaffComponent do
               size="lg"
             />
             <div class="min-w-0 flex-1">
-              <%= staff_member.name %>
+              <.link
+                navigate={~p"/school/staff/#{staff_member}"}
+                class="font-bold hover:text-ltrn-subtle"
+              >
+                <%= staff_member.name %>
+              </.link>
               <div class="text-xs text-ltrn-subtle"><%= staff_member.role %></div>
               <div
                 :if={staff_member.email}

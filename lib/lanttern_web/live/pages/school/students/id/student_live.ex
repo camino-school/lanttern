@@ -29,7 +29,7 @@ defmodule LantternWeb.StudentLive do
   end
 
   defp assign_student(socket, params) do
-    case Schools.get_student(params["id"], preloads: [classes: [:cycle, :years]]) do
+    case Schools.get_student(params["id"], preloads: [:school, classes: [:cycle, :years]]) do
       %Student{} = student ->
         check_if_user_has_access(socket.assigns.current_user, student)
 

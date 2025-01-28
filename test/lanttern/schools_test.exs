@@ -927,15 +927,20 @@ defmodule Lanttern.SchoolsTest do
       assert Schools.list_staff_members() == [staff_member]
     end
 
-    test "list_staff_members/1 with school opts returns staff members filtered by school" do
+    test "list_staff_members/1 with school and staff_members_ids opts returns staff members filtered correctly" do
       school = school_fixture()
       staff_member_1 = staff_member_fixture(%{school_id: school.id, name: "AAA"})
       staff_member_2 = staff_member_fixture(%{school_id: school.id, name: "BBB"})
 
       # extra staff_member for filtering validation
       staff_member_fixture()
+      staff_member_fixture(%{school_id: school.id})
 
-      assert [staff_member_1, staff_member_2] == Schools.list_staff_members(school_id: school.id)
+      assert [staff_member_1, staff_member_2] ==
+               Schools.list_staff_members(
+                 school_id: school.id,
+                 staff_members_ids: [staff_member_1.id, staff_member_2.id]
+               )
     end
 
     test "list_staff_members/1 with opts returns all students as expected" do
@@ -983,6 +988,29 @@ defmodule Lanttern.SchoolsTest do
       _active_staff_member = staff_member_fixture()
 
       assert [deactivated_staff_member] == Schools.list_staff_members(only_deactivated: true)
+    end
+
+    test "search_staff_members/2 returns all items matched by search" do
+      _staff_member_1 = staff_member_fixture(%{name: "lorem ipsum xolor sit amet"})
+      staff_member_2 = staff_member_fixture(%{name: "lorem ipsum dolor sit amet"})
+      staff_member_3 = staff_member_fixture(%{name: "lorem ipsum dolorxxx sit amet"})
+      _staff_member_4 = staff_member_fixture(%{name: "lorem ipsum xxxxx sit amet"})
+
+      assert [staff_member_2, staff_member_3] == Schools.search_staff_members("dolor")
+    end
+
+    test "search_staff_members/2 with school opt returns only staff_members from given school" do
+      school = school_fixture()
+
+      _staff_member_1 = staff_member_fixture(%{name: "lorem ipsum xolor sit amet"})
+
+      staff_member_2 =
+        staff_member_fixture(%{name: "lorem ipsum dolor sit amet", school_id: school.id})
+
+      _staff_member_3 = staff_member_fixture(%{name: "lorem ipsum dolorxxx sit amet"})
+      _staff_member_4 = staff_member_fixture(%{name: "lorem ipsum xxxxx sit amet"})
+
+      assert [staff_member_2] == Schools.search_staff_members("dolor", school_id: school.id)
     end
 
     test "get_staff_member!/1 returns the staff member with given id" do

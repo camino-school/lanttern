@@ -1,6 +1,6 @@
-defmodule LantternWeb.Schools.StudentSearchComponent do
+defmodule LantternWeb.Schools.StaffMemberSearchComponent do
   @moduledoc """
-  Renders a `Student` search component
+  Renders a `StaffMember` search component
   """
 
   use LantternWeb, :live_component
@@ -23,7 +23,7 @@ defmodule LantternWeb.Schools.StudentSearchComponent do
           class="peer pr-10"
           role="combobox"
           autocomplete="off"
-          aria-controls="student-search-controls"
+          aria-controls="staff-member-search-controls"
           aria-expanded="false"
           phx-hook="Autocomplete"
           phx-change="search"
@@ -45,7 +45,7 @@ defmodule LantternWeb.Schools.StudentSearchComponent do
             "absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm hidden",
             "peer-aria-expanded:block"
           ]}
-          id="student-search-controls"
+          id="staff-member-search-controls"
           role="listbox"
           phx-update="stream"
         >
@@ -87,6 +87,7 @@ defmodule LantternWeb.Schools.StudentSearchComponent do
       socket
       |> assign(:label, nil)
       |> assign(:class, nil)
+      |> assign(:school_id, nil)
       |> assign(:refocus_on_select, "false")
       |> stream(:results, [])
 
@@ -98,10 +99,11 @@ defmodule LantternWeb.Schools.StudentSearchComponent do
   @impl true
   def handle_event("search", params, socket) do
     query = Map.get(params, "#{socket.assigns.id}-query", "")
+    search_opts = if socket.assigns.school_id, do: [school_id: socket.assigns.school_id], else: []
     # search when more than 3 characters were typed
     results =
       if String.length(query) > 3,
-        do: Schools.search_students(query),
+        do: Schools.search_staff_members(query, search_opts),
         else: []
 
     results_simplified = Enum.map(results, fn s -> %{id: s.id} end)
@@ -117,7 +119,7 @@ defmodule LantternWeb.Schools.StudentSearchComponent do
   end
 
   def handle_event("autocomplete_result_select", %{"id" => id}, socket) do
-    selected = Schools.get_student!(id)
+    selected = Schools.get_staff_member!(id)
 
     notify(
       __MODULE__,
