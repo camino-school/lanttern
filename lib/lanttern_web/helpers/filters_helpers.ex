@@ -65,6 +65,10 @@ defmodule LantternWeb.FiltersHelpers do
   - `:selected_student_record_assignees`
   - `:selected_student_record_assignees_ids`
 
+  ### `:student_record_staff_member_view` assigns
+
+  - `:current_student_record_staff_member_view`
+
   ### `:starred_strands`
 
   - `:only_starred_strands`
@@ -242,6 +246,20 @@ defmodule LantternWeb.FiltersHelpers do
     socket
     |> assign(:selected_student_record_assignees_ids, selected_student_record_assignees_ids)
     |> assign(:selected_student_record_assignees, selected_student_record_assignees)
+    |> assign_filter_type(current_user, current_filters, filter_types)
+  end
+
+  defp assign_filter_type(
+         socket,
+         current_user,
+         current_filters,
+         [:student_record_staff_member_view | filter_types]
+       ) do
+    current_student_record_staff_member_view =
+      Map.get(current_filters, :student_record_staff_member_view) || "owned_by"
+
+    socket
+    |> assign(:current_student_record_staff_member_view, current_student_record_staff_member_view)
     |> assign_filter_type(current_user, current_filters, filter_types)
   end
 
@@ -684,7 +702,6 @@ defmodule LantternWeb.FiltersHelpers do
         {@type_to_filter_key_map[type], current_filter_value}
       end)
       |> Enum.into(%{})
-      |> IO.inspect()
 
     apply_save_profile_filters(current_user, attrs, opts)
 

@@ -57,7 +57,7 @@ defmodule LantternWeb.StudentLiveTest do
       assert view |> has_element?("#student-form-overlay h2", "Edit student")
     end
 
-    test "prevent user without school management permissions to edit class", %{
+    test "prevent user without school management permissions to edit staff member", %{
       conn: conn,
       user: user
     } do

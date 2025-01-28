@@ -83,8 +83,6 @@ defmodule LantternWeb.Schools.StaffMemberSearchComponent do
 
   @impl true
   def mount(socket) do
-    IO.inspect(socket, label: "socket in component ")
-
     socket =
       socket
       |> assign(:label, nil)

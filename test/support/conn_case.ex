@@ -72,11 +72,12 @@ defmodule LantternWeb.ConnCase do
       |> Lanttern.Repo.preload(current_profile: [staff_member: :school])
       |> Map.update!(:current_profile, fn profile ->
         %Lanttern.Identity.Profile{
-          id: profile.id,
-          name: profile.staff_member.name,
-          type: "staff",
-          school_id: profile.staff_member.school.id,
-          school_name: profile.staff_member.school.name
+          profile
+          | name: profile.staff_member.name,
+            school_id: profile.staff_member.school.id,
+            school_name: profile.staff_member.school.name,
+            role: profile.staff_member.role,
+            profile_picture_url: profile.staff_member.profile_picture_url
         }
       end)
       # profile should always have a current school cycle
@@ -112,11 +113,10 @@ defmodule LantternWeb.ConnCase do
       |> Lanttern.Repo.preload(current_profile: [student: :school])
       |> Map.update!(:current_profile, fn profile ->
         %Lanttern.Identity.Profile{
-          id: profile.id,
-          name: profile.student.name,
-          type: "student",
-          school_id: profile.student.school.id,
-          school_name: profile.student.school.name
+          profile
+          | name: profile.student.name,
+            school_id: profile.student.school.id,
+            school_name: profile.student.school.name
         }
       end)
       # profile should always have a current school cycle
@@ -152,11 +152,10 @@ defmodule LantternWeb.ConnCase do
       |> Lanttern.Repo.preload(current_profile: [guardian_of_student: :school])
       |> Map.update!(:current_profile, fn profile ->
         %Lanttern.Identity.Profile{
-          id: profile.id,
-          name: profile.guardian_of_student.name,
-          type: "guardian",
-          school_id: profile.guardian_of_student.school.id,
-          school_name: profile.guardian_of_student.school.name
+          profile
+          | name: profile.guardian_of_student.name,
+            school_id: profile.guardian_of_student.school.id,
+            school_name: profile.guardian_of_student.school.name
         }
       end)
       # profile should always have a current school cycle

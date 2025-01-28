@@ -1363,9 +1363,9 @@ defmodule LantternWeb.CoreComponents do
       <%= if @navigate do %>
         <.link
           navigate={@navigate}
-          target="_blank"
           class={[
-            "pr-1 font-bold hover:text-ltrn-subtle",
+            "pr-1 font-bold",
+            person_badge_link_theme_style(@theme),
             @text_size,
             @name_w,
             if(@truncate, do: "truncate")
@@ -1398,6 +1398,10 @@ defmodule LantternWeb.CoreComponents do
   defp person_badge_theme_style("cyan"), do: "text-ltrn-dark bg-ltrn-mesh-cyan"
   defp person_badge_theme_style("staff"), do: "text-ltrn-teacher-dark bg-ltrn-teacher-lighter"
   defp person_badge_theme_style(_subtle), do: "text-ltrn-subtle bg-ltrn-lighter"
+
+  defp person_badge_link_theme_style("cyan"), do: "hover:text-ltrn-subtle"
+  defp person_badge_link_theme_style("staff"), do: "hover:text-ltrn-teacher-accent"
+  defp person_badge_link_theme_style(_subtle), do: "hover:text-ltrn-subtle"
 
   @doc """
   Renders a ping.

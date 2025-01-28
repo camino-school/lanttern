@@ -27,6 +27,10 @@ defmodule LantternWeb.StudentsRecordsComponents do
     required: true,
     doc: "function, will receive student as arg. Should return route for navigate"
 
+  attr :staff_navigate, :any,
+    required: true,
+    doc: "function, will receive staff member id as arg. Should return route for navigate"
+
   attr :details_patch, :any,
     required: true,
     doc: "function, will receive student record as arg. Should return route for patch"
@@ -105,7 +109,12 @@ defmodule LantternWeb.StudentsRecordsComponents do
           <div class="flex items-center gap-4 p-2 rounded-sm bg-ltrn-teacher-lightest">
             <div class="flex items-center gap-2">
               <span class="text-xs text-ltrn-subtle"><%= gettext("Created by") %></span>
-              <.person_badge person={student_record.created_by_staff_member} theme="staff" truncate />
+              <.person_badge
+                person={student_record.created_by_staff_member}
+                theme="staff"
+                navigate={@staff_navigate.(student_record.created_by_staff_member.id)}
+                truncate
+              />
             </div>
             <div :if={student_record.assignees != []} class="flex items-center gap-2">
               <span class="text-xs text-ltrn-subtle"><%= gettext("Assigned to") %></span>
@@ -114,6 +123,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
                   :for={assignee <- student_record.assignees}
                   person={assignee}
                   theme="staff"
+                  navigate={@staff_navigate.(assignee.id)}
                   truncate
                 />
               </div>

@@ -1,6 +1,8 @@
 <div>
   <.header_nav current_user={@current_user}>
-    <:breadcrumb navigate={~p"/school/classes"}><%= gettext("School") %></:breadcrumb>
+    <:breadcrumb navigate={~p"/school/students"}>
+      <%= gettext("%{school} students", school: @student.school.name) %>
+    </:breadcrumb>
     <:title><%= @student.name %></:title>
     <div class="flex items-center justify-between gap-4 px-4">
       <.neo_tabs id="student-nav-tabs">
