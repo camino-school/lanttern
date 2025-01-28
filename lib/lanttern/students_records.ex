@@ -1,6 +1,19 @@
 defmodule Lanttern.StudentsRecords do
   @moduledoc """
   The StudentsRecords context.
+
+  # About profile permissions
+
+  The function `list_students_records/1` accepts a `:check_profile_permissions` option.
+
+  A profile has permission to view a student record if it has type `"staff"`
+  and the staff member belongs to the same school as the student record, and:
+
+  1. the profile has the `students_records_full_access` permission
+  2. or the student record is `shared_with_school`
+  3. or the staff member created the student record
+  4. or the staff member is an assignee of the student record
+
   """
 
   import Ecto.Query, warn: false
@@ -8,6 +21,9 @@ defmodule Lanttern.StudentsRecords do
   alias Lanttern.RepoHelpers.Page
   alias Lanttern.Repo
 
+  alias Lanttern.Identity.Profile
+  alias Lanttern.Schools.StaffMember
+  alias Lanttern.StudentsRecords.AssigneeRelationship
   alias Lanttern.StudentsRecords.StudentRecord
   alias Lanttern.StudentsRecordsLog
 
@@ -23,6 +39,7 @@ defmodule Lanttern.StudentsRecords do
   - `:statuses_ids` - filter results by status
   - `:owner_id` - filter results by owner
   - `:assignees_ids` - filter results by assignees
+  - `:check_profile_permissions` - filter results based on profile permission
   - `:preloads` - preloads associated data
   - page opts (view `Page.opts()`)
 
@@ -41,6 +58,7 @@ defmodule Lanttern.StudentsRecords do
             statuses_ids: [pos_integer()],
             owner_id: pos_integer(),
             assignees_ids: [pos_integer()],
+            check_profile_permissions: Profile.t(),
             preloads: list()
           ]
           | Page.opts()
@@ -117,9 +135,29 @@ defmodule Lanttern.StudentsRecords do
        when is_list(assignees_ids) and assignees_ids != [] do
     from(
       sr in queryable,
-      join: sra in assoc(sr, :assignees_relationships),
-      where: sra.staff_member_id in ^assignees_ids
+      join: ar in assoc(sr, :assignees_relationships),
+      where: ar.staff_member_id in ^assignees_ids
     )
+    |> apply_list_students_records_opts(opts)
+  end
+
+  defp apply_list_students_records_opts(queryable, [
+         {:check_profile_permissions,
+          %Profile{permissions: permissions, staff_member: %StaffMember{}} = profile}
+         | opts
+       ]) do
+    queryable
+    |> apply_list_students_records_check_profile_permissions(
+      profile,
+      "students_records_full_access" in permissions
+    )
+    |> apply_list_students_records_opts(opts)
+  end
+
+  defp apply_list_students_records_opts(queryable, [
+         {:check_profile_permissions, _not_staff_member_profile} | opts
+       ]) do
+    from(sr in queryable, where: false)
     |> apply_list_students_records_opts(opts)
   end
 
@@ -153,6 +191,48 @@ defmodule Lanttern.StudentsRecords do
 
   defp apply_list_students_records_opts(queryable, [_ | opts]),
     do: apply_list_students_records_opts(queryable, opts)
+
+  defp apply_list_students_records_check_profile_permissions(
+         queryable,
+         %Profile{staff_member: %StaffMember{school_id: school_id}},
+         true
+       ) do
+    from(
+      sr in queryable,
+      where: sr.school_id == ^school_id
+    )
+  end
+
+  defp apply_list_students_records_check_profile_permissions(
+         queryable,
+         %Profile{staff_member: %StaffMember{id: staff_member_id, school_id: school_id}},
+         _has_full_acceess = false
+       ) do
+    from(
+      sr in queryable,
+      as: :student_record,
+      where: sr.school_id == ^school_id,
+      where:
+        sr.shared_with_school or sr.created_by_staff_member_id == ^staff_member_id or
+          exists(
+            from(ar in AssigneeRelationship,
+              where: ar.staff_member_id == ^staff_member_id,
+              where: ar.student_record_id == parent_as(:student_record).id
+            )
+          )
+    )
+  end
+
+  defp apply_list_students_records_check_profile_permissions(
+         queryable,
+         _profile,
+         _has_full_access
+       ) do
+    from(
+      sr in queryable,
+      where: false
+    )
+  end
 
   @doc """
   Returns a page with the list of students_records.

@@ -8,7 +8,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
 
   use Gettext, backend: Lanttern.Gettext
 
-  alias Lanttern.StudentsRecords.Assignee
+  alias Lanttern.StudentsRecords.AssigneeRelationship
   alias Lanttern.StudentsRecords.StudentRecordClassRelationship
   alias Lanttern.StudentsRecords.StudentRecordRelationship
   alias Lanttern.StudentsRecords.StudentRecordStatus
@@ -58,7 +58,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
 
     has_many :students_relationships, StudentRecordRelationship, on_replace: :delete
     has_many :classes_relationships, StudentRecordClassRelationship, on_replace: :delete
-    has_many :assignees_relationships, Assignee, on_replace: :delete
+    has_many :assignees_relationships, AssigneeRelationship, on_replace: :delete
 
     many_to_many :students, Student,
       join_through: "students_students_records",

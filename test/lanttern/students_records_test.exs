@@ -10,6 +10,7 @@ defmodule Lanttern.StudentsRecordsTest do
     import Lanttern.StudentsRecordsFixtures
     alias Lanttern.SchoolsFixtures
     alias Lanttern.RepoHelpers.Page
+    alias Lanttern.Identity.Profile
 
     @invalid_attrs %{name: nil, date: nil, time: nil, description: nil}
 
@@ -138,6 +139,116 @@ defmodule Lanttern.StudentsRecordsTest do
         )
 
       assert expected_student_record.id == student_record.id
+    end
+
+    test "list_students_records/1 with check_profile_permissions filters results correctly" do
+      school = SchoolsFixtures.school_fixture()
+      owner = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+      assignee = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+
+      open_student_record =
+        student_record_fixture(%{
+          school_id: school.id,
+          shared_with_school: true,
+          date: ~D[2025-12-01]
+        })
+
+      closed_student_record =
+        student_record_fixture(%{
+          school_id: school.id,
+          date: ~D[2025-11-01]
+        })
+
+      owner_and_assignee_student_record =
+        student_record_fixture(%{
+          school_id: school.id,
+          created_by_staff_member_id: owner.id,
+          assignees_ids: [assignee.id],
+          date: ~D[2025-10-01]
+        })
+
+      # extra fixture to test filtering
+      student_record_fixture()
+
+      # test student profile
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+
+      profile = %Profile{
+        permissions: [],
+        student: student
+      }
+
+      assert StudentsRecords.list_students_records(check_profile_permissions: profile) == []
+
+      # test profile from other school
+      staff_member = SchoolsFixtures.staff_member_fixture()
+
+      profile = %Profile{
+        permissions: [],
+        staff_member: staff_member
+      }
+
+      assert StudentsRecords.list_students_records(check_profile_permissions: profile) == []
+
+      # test profile with full access from other school
+      staff_member = SchoolsFixtures.staff_member_fixture()
+
+      profile = %Profile{
+        permissions: ["students_records_full_access"],
+        staff_member: staff_member
+      }
+
+      assert StudentsRecords.list_students_records(check_profile_permissions: profile) == []
+
+      # test school profile without permissions
+      staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+
+      profile = %Profile{
+        permissions: [],
+        staff_member: staff_member
+      }
+
+      [expected] = StudentsRecords.list_students_records(check_profile_permissions: profile)
+      assert expected.id == open_student_record.id
+
+      # test school profile with full access
+      staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+
+      profile = %Profile{
+        permissions: ["students_records_full_access"],
+        staff_member: staff_member
+      }
+
+      [expected_1, expected_2, expected_3] =
+        StudentsRecords.list_students_records(check_profile_permissions: profile)
+
+      assert expected_1.id == open_student_record.id
+      assert expected_2.id == closed_student_record.id
+      assert expected_3.id == owner_and_assignee_student_record.id
+
+      # test owner without permissions
+      profile = %Profile{
+        permissions: [],
+        staff_member: owner
+      }
+
+      [expected_1, expected_2] =
+        StudentsRecords.list_students_records(check_profile_permissions: profile)
+
+      assert expected_1.id == open_student_record.id
+      assert expected_2.id == owner_and_assignee_student_record.id
+
+      # test assignee without permissions
+      profile = %Profile{
+        permissions: [],
+        staff_member: assignee
+      }
+
+      [expected_1, expected_2] =
+        StudentsRecords.list_students_records(check_profile_permissions: profile)
+
+      assert expected_1.id == open_student_record.id
+      assert expected_2.id == owner_and_assignee_student_record.id
     end
 
     test "list_students_records_page/1 returns all students_records in a Page struct" do

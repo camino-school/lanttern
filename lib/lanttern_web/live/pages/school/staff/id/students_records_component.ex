@@ -329,7 +329,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
 
   defp stream_students_records(socket, reset \\ false) do
     %{
-      current_user: %{current_profile: %{school_id: school_id}},
+      current_user: %{current_profile: profile},
       selected_students_ids: students_ids,
       selected_classes_ids: classes_ids,
       selected_student_record_types_ids: types_ids,
@@ -343,7 +343,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
 
     page =
       StudentsRecords.list_students_records_page(
-        school_id: school_id,
+        check_profile_permissions: profile,
         students_ids: students_ids,
         classes_ids: classes_ids,
         types_ids: types_ids,
