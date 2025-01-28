@@ -83,11 +83,13 @@ defmodule LantternWeb.Schools.StaffMemberSearchComponent do
 
   @impl true
   def mount(socket) do
+    IO.inspect(socket, label: "socket in component ")
+
     socket =
       socket
       |> assign(:label, nil)
       |> assign(:class, nil)
-      |> assign(:search_opts, [])
+      |> assign(:school_id, nil)
       |> assign(:refocus_on_select, "false")
       |> stream(:results, [])
 
@@ -99,10 +101,11 @@ defmodule LantternWeb.Schools.StaffMemberSearchComponent do
   @impl true
   def handle_event("search", params, socket) do
     query = Map.get(params, "#{socket.assigns.id}-query", "")
+    search_opts = if socket.assigns.school_id, do: [school_id: socket.assigns.school_id], else: []
     # search when more than 3 characters were typed
     results =
       if String.length(query) > 3,
-        do: Schools.search_staff_members(query, socket.assigns.search_opts),
+        do: Schools.search_staff_members(query, search_opts),
         else: []
 
     results_simplified = Enum.map(results, fn s -> %{id: s.id} end)

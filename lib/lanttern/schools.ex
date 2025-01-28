@@ -952,6 +952,7 @@ defmodule Lanttern.Schools do
   ### Options:
 
   - `:school_id` – filter staff members by school
+  - `:staff_members_ids` – filter staff members by provided ids
   - `:load_email` - boolean, will add the email field based on staff member profile/user
   - `:only_active` - boolean, will return only active staff members
   - `:only_deactivated` - boolean, will return only deactivated staff members
@@ -982,6 +983,15 @@ defmodule Lanttern.Schools do
     from(
       sm in queryable,
       where: sm.school_id == ^school_id
+    )
+    |> apply_list_staff_members_opts(opts)
+  end
+
+  defp apply_list_staff_members_opts(queryable, [{:staff_members_ids, ids} | opts])
+       when is_list(ids) and ids != [] do
+    from(
+      sm in queryable,
+      where: sm.id in ^ids
     )
     |> apply_list_staff_members_opts(opts)
   end

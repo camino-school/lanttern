@@ -66,6 +66,19 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               />
             </div>
             <div class="mb-6">
+              <.label><%= gettext("Status") %></.label>
+              <.badge_button_picker
+                id="student-record-status-select"
+                on_select={&JS.push("select_status", value: %{"id" => &1}, target: @myself)}
+                items={@statuses}
+                selected_ids={[@selected_status_id]}
+                use_color_map_as_active
+              />
+              <div :if={@form.source.action in [:insert, :update]}>
+                <.error :for={{msg, _} <- @form[:status_id].errors}><%= msg %></.error>
+              </div>
+            </div>
+            <div class="mb-6">
               <.label><%= gettext("Record type") %></.label>
               <.badge_button_picker
                 id="student-record-type-select"
@@ -123,19 +136,6 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               <p class="mb-6 font-bold text-ltrn-teacher-dark">
                 <%= gettext("Internal student record tracking") %>
               </p>
-              <div class="mb-6">
-                <.label><%= gettext("Status") %></.label>
-                <.badge_button_picker
-                  id="student-record-status-select"
-                  on_select={&JS.push("select_status", value: %{"id" => &1}, target: @myself)}
-                  items={@statuses}
-                  selected_ids={[@selected_status_id]}
-                  use_color_map_as_active
-                />
-                <div :if={@form.source.action in [:insert, :update]}>
-                  <.error :for={{msg, _} <- @form[:status_id].errors}><%= msg %></.error>
-                </div>
-              </div>
               <div>
                 <.live_component
                   module={StaffMemberSearchComponent}

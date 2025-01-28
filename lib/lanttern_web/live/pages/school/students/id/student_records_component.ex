@@ -18,6 +18,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
 
   # shared components
+  alias LantternWeb.Schools.StaffMemberSearchComponent
   alias LantternWeb.StudentsRecords.StudentRecordOverlayComponent
   import LantternWeb.StudentsRecordsComponents
 
@@ -27,13 +28,14 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
     <div>
       <.action_bar class="flex items-center gap-4 p-4">
         <div class="flex-1 flex flex-wrap items-center gap-6">
+          <.icon name="hero-funnel-mini" class="text-ltrn-subtle" />
           <%= if @selected_student_record_statuses == [] do %>
             <.action
               type="button"
               icon_name="hero-chevron-down-mini"
-              phx-click={JS.exec("data-show", to: "#student-record-statuses-filter-modal")}
+              phx-click={JS.exec("data-show", to: "#student-record-status-filter-modal")}
             >
-              <%= gettext("All statuses") %>
+              <%= gettext("Status") %>
             </.action>
           <% else %>
             <.badge
@@ -48,9 +50,9 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
             <.action
               type="button"
               icon_name="hero-chevron-down-mini"
-              phx-click={JS.exec("data-show", to: "#student-record-types-filter-modal")}
+              phx-click={JS.exec("data-show", to: "#student-record-type-filter-modal")}
             >
-              <%= gettext("All types") %>
+              <%= gettext("Type") %>
             </.action>
           <% else %>
             <.badge
@@ -59,6 +61,23 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
               on_remove={JS.push("remove_type_filter", target: @myself)}
             >
               <%= type.name %>
+            </.badge>
+          <% end %>
+          <%= if @selected_student_record_assignees == [] do %>
+            <.action
+              type="button"
+              icon_name="hero-chevron-down-mini"
+              phx-click={JS.push("open_assignee_search_modal", target: @myself)}
+            >
+              <%= gettext("Assignee") %>
+            </.action>
+          <% else %>
+            <.badge
+              :for={assignee <- @selected_student_record_assignees}
+              on_remove={JS.push("remove_assignee_filter", target: @myself)}
+              theme="teacher"
+            >
+              <%= assignee.name %>
             </.badge>
           <% end %>
         </div>
@@ -101,7 +120,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
         </.button>
       </div>
       <.single_selection_filter_modal
-        id="student-record-statuses-filter-modal"
+        id="student-record-status-filter-modal"
         title={gettext("Filter students records by status")}
         use_color_map_as_active
         items={@student_record_statuses}
@@ -110,12 +129,12 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
         on_select={
           fn id ->
             JS.push("filter_by_status", value: %{"id" => id}, target: @myself)
-            |> JS.exec("data-cancel", to: "#student-record-statuses-filter-modal")
+            |> JS.exec("data-cancel", to: "#student-record-status-filter-modal")
           end
         }
       />
       <.single_selection_filter_modal
-        id="student-record-types-filter-modal"
+        id="student-record-type-filter-modal"
         title={gettext("Filter students records by type")}
         use_color_map_as_active
         items={@student_record_types}
@@ -124,10 +143,29 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
         on_select={
           fn id ->
             JS.push("filter_by_type", value: %{"id" => id}, target: @myself)
-            |> JS.exec("data-cancel", to: "#student-record-types-filter-modal")
+            |> JS.exec("data-cancel", to: "#student-record-type-filter-modal")
           end
         }
       />
+      <.modal
+        :if={@show_assignee_search_modal}
+        id="assignee-search-modal"
+        show
+        on_cancel={JS.push("close_assignee_search_modal", target: @myself)}
+      >
+        <h5 class="mb-10 font-display font-black text-xl">
+          <%= gettext("Filter records by assignee") %>
+        </h5>
+        <form>
+          <.live_component
+            module={StaffMemberSearchComponent}
+            id="assignee-search-modal-search"
+            notify_component={@myself}
+            label={gettext("Type the name of the assignee")}
+            school_id={@current_user.current_profile.school_id}
+          />
+        </form>
+      </.modal>
       <.live_component
         module={StudentRecordOverlayComponent}
         student_record_id={@student_record_id}
@@ -147,13 +185,26 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
   def mount(socket) do
     socket =
       socket
-      |> assign(:initialized, false)
+      |> assign(:show_assignee_search_modal, false)
       |> assign(:new_record_initial_fields, nil)
+      |> assign(:initialized, false)
 
     {:ok, socket}
   end
 
   @impl true
+  def update(%{action: {StaffMemberSearchComponent, {:selected, staff_member}}}, socket) do
+    socket =
+      socket
+      |> assign(:selected_student_record_assignees_ids, [staff_member.id])
+      |> save_profile_filters([:student_record_assignees])
+      |> assign_user_filters([:student_record_assignees])
+      |> stream_students_records(true)
+      |> assign(:show_assignee_search_modal, false)
+
+    {:ok, socket}
+  end
+
   def update(%{action: {StudentRecordOverlayComponent, {:created, student_record}}}, socket) do
     socket =
       socket
@@ -192,7 +243,11 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
-    |> assign_user_filters([:student_record_types, :student_record_statuses])
+    |> assign_user_filters([
+      :student_record_types,
+      :student_record_statuses,
+      :student_record_assignees
+    ])
     |> stream_students_records()
     |> assign(:show_student_search_modal, false)
     |> assign_base_path()
@@ -205,7 +260,8 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
     %{
       current_user: %{current_profile: %{school_id: school_id}},
       selected_student_record_types_ids: types_ids,
-      selected_student_record_statuses_ids: statuses_ids
+      selected_student_record_statuses_ids: statuses_ids,
+      selected_student_record_assignees_ids: assignees_ids
     } = socket.assigns
 
     {keyset, len} =
@@ -219,6 +275,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
         students_ids: [socket.assigns.student.id],
         types_ids: types_ids,
         statuses_ids: statuses_ids,
+        assignees_ids: assignees_ids,
         preloads: [
           :type,
           :status,
@@ -310,6 +367,17 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
     {:noreply, socket}
   end
 
+  def handle_event("remove_assignee_filter", _, socket) do
+    socket =
+      socket
+      |> assign(:selected_student_record_assignees_ids, [])
+      |> save_profile_filters([:student_record_assignees])
+      |> assign_user_filters([:student_record_assignees])
+      |> stream_students_records(true)
+
+    {:noreply, socket}
+  end
+
   def handle_event("filter_by_type", %{"id" => id}, socket) do
     selected_ids =
       if id in socket.assigns.selected_student_record_types_ids, do: [], else: [id]
@@ -337,6 +405,12 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
 
     {:noreply, socket}
   end
+
+  def handle_event("open_assignee_search_modal", _, socket),
+    do: {:noreply, assign(socket, :show_assignee_search_modal, true)}
+
+  def handle_event("close_assignee_search_modal", _, socket),
+    do: {:noreply, assign(socket, :show_assignee_search_modal, false)}
 
   def handle_event("load_more", _, socket),
     do: {:noreply, stream_students_records(socket)}

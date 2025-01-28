@@ -12,6 +12,7 @@ defmodule LantternWeb.StudentsRecordsLive do
 
   # shared components
 
+  alias LantternWeb.Schools.StaffMemberSearchComponent
   alias LantternWeb.Schools.StudentSearchComponent
   alias LantternWeb.StudentsRecords.StudentRecordOverlayComponent
   import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
@@ -27,10 +28,16 @@ defmodule LantternWeb.StudentsRecordsLive do
     socket =
       socket
       |> assign(:page_title, gettext("Students records"))
-      |> assign_user_filters([:students, :student_record_types, :student_record_statuses])
+      |> assign_user_filters([
+        :students,
+        :student_record_types,
+        :student_record_statuses,
+        :student_record_assignees
+      ])
       |> apply_assign_classes_filter()
       |> stream_students_records()
       |> assign(:show_student_search_modal, false)
+      |> assign(:show_assignee_search_modal, false)
       |> assign(:new_record_initial_fields, nil)
 
     {:ok, socket}
@@ -52,7 +59,8 @@ defmodule LantternWeb.StudentsRecordsLive do
       selected_students_ids: students_ids,
       selected_classes_ids: classes_ids,
       selected_student_record_types_ids: types_ids,
-      selected_student_record_statuses_ids: statuses_ids
+      selected_student_record_statuses_ids: statuses_ids,
+      selected_student_record_assignees_ids: assignees_ids
     } = socket.assigns
 
     {keyset, len} =
@@ -67,6 +75,7 @@ defmodule LantternWeb.StudentsRecordsLive do
         classes_ids: classes_ids,
         types_ids: types_ids,
         statuses_ids: statuses_ids,
+        assignees_ids: assignees_ids,
         preloads: [
           :type,
           :status,
@@ -187,6 +196,17 @@ defmodule LantternWeb.StudentsRecordsLive do
     {:noreply, socket}
   end
 
+  def handle_event("remove_assignee_filter", _, socket) do
+    socket =
+      socket
+      |> assign(:selected_student_record_assignees_ids, [])
+      |> save_profile_filters([:student_record_assignees])
+      |> assign_user_filters([:student_record_assignees])
+      |> stream_students_records(true)
+
+    {:noreply, socket}
+  end
+
   def handle_event("open_student_search_modal", _, socket),
     do: {:noreply, assign(socket, :show_student_search_modal, true)}
 
@@ -221,6 +241,12 @@ defmodule LantternWeb.StudentsRecordsLive do
     {:noreply, socket}
   end
 
+  def handle_event("open_assignee_search_modal", _, socket),
+    do: {:noreply, assign(socket, :show_assignee_search_modal, true)}
+
+  def handle_event("close_assignee_search_modal", _, socket),
+    do: {:noreply, assign(socket, :show_assignee_search_modal, false)}
+
   def handle_event("load_more", _, socket),
     do: {:noreply, stream_students_records(socket)}
 
@@ -235,6 +261,18 @@ defmodule LantternWeb.StudentsRecordsLive do
       |> assign_user_filters([:students])
       |> stream_students_records(true)
       |> assign(:show_student_search_modal, false)
+
+    {:noreply, socket}
+  end
+
+  def handle_info({StaffMemberSearchComponent, {:selected, staff_member}}, socket) do
+    socket =
+      socket
+      |> assign(:selected_student_record_assignees_ids, [staff_member.id])
+      |> save_profile_filters([:student_record_assignees])
+      |> assign_user_filters([:student_record_assignees])
+      |> stream_students_records(true)
+      |> assign(:show_assignee_search_modal, false)
 
     {:noreply, socket}
   end

@@ -60,6 +60,11 @@ defmodule LantternWeb.FiltersHelpers do
   - `:selected_student_record_statuses`
   - `:selected_student_record_statuses_ids`
 
+  ### `:student_record_assignees` assigns
+
+  - `:selected_student_record_assignees`
+  - `:selected_student_record_assignees_ids`
+
   ### `:starred_strands`
 
   - `:only_starred_strands`
@@ -217,6 +222,33 @@ defmodule LantternWeb.FiltersHelpers do
          socket,
          current_user,
          current_filters,
+         [:student_record_assignees | filter_types]
+       ) do
+    school_id = current_user.current_profile.school_id
+
+    selected_student_record_assignees_ids =
+      Map.get(current_filters, :student_record_assignees_ids) || []
+
+    selected_student_record_assignees =
+      if selected_student_record_assignees_ids == [] do
+        []
+      else
+        Schools.list_staff_members(
+          school_id: school_id,
+          staff_members_ids: selected_student_record_assignees_ids
+        )
+      end
+
+    socket
+    |> assign(:selected_student_record_assignees_ids, selected_student_record_assignees_ids)
+    |> assign(:selected_student_record_assignees, selected_student_record_assignees)
+    |> assign_filter_type(current_user, current_filters, filter_types)
+  end
+
+  defp assign_filter_type(
+         socket,
+         current_user,
+         current_filters,
          [:starred_strands | filter_types]
        ) do
     socket
@@ -257,6 +289,7 @@ defmodule LantternWeb.FiltersHelpers do
     students: :students_ids,
     student_record_types: :student_record_types_ids,
     student_record_statuses: :student_record_statuses_ids,
+    student_record_assignees: :student_record_assignees_ids,
     starred_strands: :only_starred_strands,
     student_info: :student_info_cycle_id
   }
@@ -270,6 +303,7 @@ defmodule LantternWeb.FiltersHelpers do
     students: :selected_students_ids,
     student_record_types: :selected_student_record_types_ids,
     student_record_statuses: :selected_student_record_statuses_ids,
+    student_record_assignees: :selected_student_record_assignees_ids,
     starred_strands: :only_starred_strands,
     student_info: :student_info_selected_cycle_id
   }
@@ -626,6 +660,7 @@ defmodule LantternWeb.FiltersHelpers do
   - `:students`
   - `:student_record_types`
   - `:student_record_status`
+  - `:student_record_assignees`
   - `:student_info`
 
   ## Examples
@@ -649,6 +684,7 @@ defmodule LantternWeb.FiltersHelpers do
         {@type_to_filter_key_map[type], current_filter_value}
       end)
       |> Enum.into(%{})
+      |> IO.inspect()
 
     apply_save_profile_filters(current_user, attrs, opts)
 

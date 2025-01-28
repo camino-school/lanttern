@@ -2,13 +2,14 @@
   <:title><%= gettext("Students records") %></:title>
   <div class="flex items-center gap-4 p-4">
     <div class="flex-1 flex flex-wrap items-center gap-6">
+      <.icon name="hero-funnel-mini" class="text-ltrn-subtle" />
       <%= if @selected_students == [] do %>
         <.action
           type="button"
           icon_name="hero-chevron-down-mini"
           phx-click={JS.push("open_student_search_modal")}
         >
-          <%= gettext("All students") %>
+          <%= gettext("Student") %>
         </.action>
       <% else %>
         <.badge
@@ -25,7 +26,7 @@
           icon_name="hero-chevron-down-mini"
           phx-click={JS.exec("data-show", to: "#students-records-classes-filters-overlay")}
         >
-          <%= gettext("All classes") %>
+          <%= gettext("Classes") %>
         </.action>
       <% else %>
         <.badge
@@ -40,9 +41,9 @@
         <.action
           type="button"
           icon_name="hero-chevron-down-mini"
-          phx-click={JS.exec("data-show", to: "#student-record-statuses-filter-modal")}
+          phx-click={JS.exec("data-show", to: "#student-record-status-filter-modal")}
         >
-          <%= gettext("All statuses") %>
+          <%= gettext("Status") %>
         </.action>
       <% else %>
         <.badge
@@ -57,9 +58,9 @@
         <.action
           type="button"
           icon_name="hero-chevron-down-mini"
-          phx-click={JS.exec("data-show", to: "#student-record-types-filter-modal")}
+          phx-click={JS.exec("data-show", to: "#student-record-type-filter-modal")}
         >
-          <%= gettext("All types") %>
+          <%= gettext("Type") %>
         </.action>
       <% else %>
         <.badge
@@ -68,6 +69,23 @@
           on_remove={JS.push("remove_type_filter")}
         >
           <%= type.name %>
+        </.badge>
+      <% end %>
+      <%= if @selected_student_record_assignees == [] do %>
+        <.action
+          type="button"
+          icon_name="hero-chevron-down-mini"
+          phx-click={JS.push("open_assignee_search_modal")}
+        >
+          <%= gettext("Assignee") %>
+        </.action>
+      <% else %>
+        <.badge
+          :for={assignee <- @selected_student_record_assignees}
+          on_remove={JS.push("remove_assignee_filter")}
+          theme="teacher"
+        >
+          <%= assignee.name %>
         </.badge>
       <% end %>
     </div>
@@ -132,7 +150,7 @@
   selected_classes_ids={@selected_classes_ids}
 />
 <.single_selection_filter_modal
-  id="student-record-types-filter-modal"
+  id="student-record-type-filter-modal"
   title={gettext("Filter students records by type")}
   use_color_map_as_active
   items={@student_record_types}
@@ -141,12 +159,12 @@
   on_select={
     fn id ->
       JS.push("filter_by_type", value: %{"id" => id})
-      |> JS.exec("data-cancel", to: "#student-record-types-filter-modal")
+      |> JS.exec("data-cancel", to: "#student-record-type-filter-modal")
     end
   }
 />
 <.single_selection_filter_modal
-  id="student-record-statuses-filter-modal"
+  id="student-record-status-filter-modal"
   title={gettext("Filter students records by status")}
   use_color_map_as_active
   items={@student_record_statuses}
@@ -155,10 +173,29 @@
   on_select={
     fn id ->
       JS.push("filter_by_status", value: %{"id" => id})
-      |> JS.exec("data-cancel", to: "#student-record-statuses-filter-modal")
+      |> JS.exec("data-cancel", to: "#student-record-status-filter-modal")
     end
   }
 />
+<.modal
+  :if={@show_assignee_search_modal}
+  id="assignee-search-modal"
+  show
+  on_cancel={JS.push("close_assignee_search_modal")}
+>
+  <h5 class="mb-10 font-display font-black text-xl">
+    <%= gettext("Filter records by assignee") %>
+  </h5>
+  <form>
+    <.live_component
+      module={StaffMemberSearchComponent}
+      id="assignee-search-modal-search"
+      notify_parent
+      label={gettext("Type the name of the assignee")}
+      school_id={@current_user.current_profile.school_id}
+    />
+  </form>
+</.modal>
 <.live_component
   module={StudentRecordOverlayComponent}
   student_record_id={@student_record_id}

@@ -21,6 +21,8 @@ defmodule Lanttern.StudentsRecords do
   - `:classes_ids` - filter results by classes
   - `:types_ids` - filter results by type
   - `:statuses_ids` - filter results by status
+  - `:owner_id` - filter results by owner
+  - `:assignees_ids` - filter results by assignees
   - `:preloads` - preloads associated data
   - page opts (view `Page.opts()`)
 
@@ -37,6 +39,8 @@ defmodule Lanttern.StudentsRecords do
             classes_ids: [pos_integer()],
             types_ids: [pos_integer()],
             statuses_ids: [pos_integer()],
+            owner_id: pos_integer(),
+            assignees_ids: [pos_integer()],
             preloads: list()
           ]
           | Page.opts()
@@ -96,6 +100,25 @@ defmodule Lanttern.StudentsRecords do
     from(
       sr in queryable,
       where: sr.status_id in ^statuses_ids
+    )
+    |> apply_list_students_records_opts(opts)
+  end
+
+  defp apply_list_students_records_opts(queryable, [{:owner_id, owner_id} | opts])
+       when not is_nil(owner_id) do
+    from(
+      sr in queryable,
+      where: sr.created_by_staff_member_id == ^owner_id
+    )
+    |> apply_list_students_records_opts(opts)
+  end
+
+  defp apply_list_students_records_opts(queryable, [{:assignees_ids, assignees_ids} | opts])
+       when is_list(assignees_ids) and assignees_ids != [] do
+    from(
+      sr in queryable,
+      join: sra in assoc(sr, :assignees_relationships),
+      where: sra.staff_member_id in ^assignees_ids
     )
     |> apply_list_students_records_opts(opts)
   end

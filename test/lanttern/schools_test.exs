@@ -927,15 +927,20 @@ defmodule Lanttern.SchoolsTest do
       assert Schools.list_staff_members() == [staff_member]
     end
 
-    test "list_staff_members/1 with school opts returns staff members filtered by school" do
+    test "list_staff_members/1 with school and staff_members_ids opts returns staff members filtered correctly" do
       school = school_fixture()
       staff_member_1 = staff_member_fixture(%{school_id: school.id, name: "AAA"})
       staff_member_2 = staff_member_fixture(%{school_id: school.id, name: "BBB"})
 
       # extra staff_member for filtering validation
       staff_member_fixture()
+      staff_member_fixture(%{school_id: school.id})
 
-      assert [staff_member_1, staff_member_2] == Schools.list_staff_members(school_id: school.id)
+      assert [staff_member_1, staff_member_2] ==
+               Schools.list_staff_members(
+                 school_id: school.id,
+                 staff_members_ids: [staff_member_1.id, staff_member_2.id]
+               )
     end
 
     test "list_staff_members/1 with opts returns all students as expected" do

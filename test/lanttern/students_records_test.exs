@@ -112,6 +112,34 @@ defmodule Lanttern.StudentsRecordsTest do
       assert expected_student_record.id == student_record.id
     end
 
+    test "list_students_records/1 with owner and assignees opts students_records filtered by given owner and assignees" do
+      school = SchoolsFixtures.school_fixture()
+      owner = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+      assignee = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+
+      student_record =
+        student_record_fixture(%{
+          school_id: school.id,
+          created_by_staff_member_id: owner.id,
+          assignees_ids: [assignee.id]
+        })
+
+      # extra fixture to test filtering
+      student_record_fixture()
+      student_record_fixture(%{school_id: school.id, created_by_staff_member_id: assignee.id})
+      student_record_fixture(%{school_id: school.id, assignees_ids: [owner.id]})
+      student_record_fixture(%{school_id: school.id})
+
+      [expected_student_record] =
+        StudentsRecords.list_students_records(
+          school_id: school.id,
+          owner_id: owner.id,
+          assignees_ids: [assignee.id]
+        )
+
+      assert expected_student_record.id == student_record.id
+    end
+
     test "list_students_records_page/1 returns all students_records in a Page struct" do
       student_record_1 = student_record_fixture(%{date: ~D[2024-01-01], time: nil})
       student_record_2_1 = student_record_fixture(%{date: ~D[2024-02-01], time: ~T[09:00:00]})

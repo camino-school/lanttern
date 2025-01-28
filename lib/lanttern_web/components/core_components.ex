@@ -1354,7 +1354,12 @@ defmodule LantternWeb.CoreComponents do
       title={if @truncate, do: @person.name}
       {@rest}
     >
-      <.profile_icon profile_name={@person.name} size={@profile_icon_size} theme={@theme} />
+      <.profile_picture
+        profile_name={@person.name}
+        picture_url={Map.get(@person, :profile_picture_url)}
+        size={@profile_icon_size}
+        theme="clean"
+      />
       <%= if @navigate do %>
         <.link
           navigate={@navigate}
@@ -1391,6 +1396,7 @@ defmodule LantternWeb.CoreComponents do
   end
 
   defp person_badge_theme_style("cyan"), do: "text-ltrn-dark bg-ltrn-mesh-cyan"
+  defp person_badge_theme_style("staff"), do: "text-ltrn-teacher-dark bg-ltrn-teacher-lighter"
   defp person_badge_theme_style(_subtle), do: "text-ltrn-subtle bg-ltrn-lighter"
 
   @doc """
@@ -1553,13 +1559,15 @@ defmodule LantternWeb.CoreComponents do
   """
   attr :picture_url, :string, required: true
   attr :profile_name, :string, default: nil, doc: "render initials when there's no image"
+  attr :theme, :string, default: "default", doc: "default | clean"
   attr :size, :string, default: "md", doc: "xs | sm | md | lg | xl | 2xl"
   attr :class, :any, default: nil
 
   def profile_picture(%{picture_url: nil, profile_name: nil} = assigns) do
     ~H"""
     <div class={[
-      "relative shrink-0 flex items-center justify-center rounded-full font-display text-center bg-white overflow-hidden ltrn-bg-profile",
+      "relative shrink-0 flex items-center justify-center rounded-full font-display text-center bg-white overflow-hidden",
+      profile_picture_theme_style(@theme),
       profile_picture_size_style(@size),
       @class
     ]}>
@@ -1575,7 +1583,8 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div
       class={[
-        "relative shrink-0 flex items-center justify-center rounded-full font-display text-center bg-white overflow-hidden ltrn-bg-profile",
+        "relative shrink-0 flex items-center justify-center rounded-full font-display text-center bg-white overflow-hidden",
+        profile_picture_theme_style(@theme),
         profile_picture_size_style(@size),
         @class
       ]}
@@ -1611,6 +1620,9 @@ defmodule LantternWeb.CoreComponents do
 
   defp profile_picture_render_url(picture_url, _md),
     do: object_url_to_render_url(picture_url, width: 80, height: 80)
+
+  defp profile_picture_theme_style("clean"), do: ""
+  defp profile_picture_theme_style(_default), do: "ltrn-bg-profile"
 
   defp profile_picture_size_style("xs"), do: "w-6 h-6 font-bold text-xs"
   defp profile_picture_size_style("sm"), do: "w-8 h-8 font-bold text-xs"

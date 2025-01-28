@@ -105,12 +105,17 @@ defmodule LantternWeb.StudentsRecordsComponents do
           <div class="flex items-center gap-4 p-2 rounded-sm bg-ltrn-teacher-lightest">
             <div class="flex items-center gap-2">
               <span class="text-xs text-ltrn-subtle"><%= gettext("Created by") %></span>
-              <.person_badge person={student_record.created_by_staff_member} truncate />
+              <.person_badge person={student_record.created_by_staff_member} theme="staff" truncate />
             </div>
             <div :if={student_record.assignees != []} class="flex items-center gap-2">
               <span class="text-xs text-ltrn-subtle"><%= gettext("Assigned to") %></span>
               <div class="flex items-center gap-2">
-                <.person_badge :for={assignee <- student_record.assignees} person={assignee} truncate />
+                <.person_badge
+                  :for={assignee <- student_record.assignees}
+                  person={assignee}
+                  theme="staff"
+                  truncate
+                />
               </div>
             </div>
           </div>

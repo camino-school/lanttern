@@ -34,6 +34,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
           students_ids: [pos_integer()],
           student_record_types_ids: [pos_integer()],
           student_record_statuses_ids: [pos_integer()],
+          student_record_assignees_ids: [pos_integer()],
           only_starred_strands: boolean(),
           student_info_cycle_id: pos_integer()
         }
@@ -53,6 +54,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
       field :students_ids, {:array, :id}
       field :student_record_types_ids, {:array, :id}
       field :student_record_statuses_ids, {:array, :id}
+      field :student_record_assignees_ids, {:array, :id}
       field :only_starred_strands, :boolean, default: false
       field :student_info_cycle_id, :id
     end
@@ -87,6 +89,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
       :students_ids,
       :student_record_types_ids,
       :student_record_statuses_ids,
+      :student_record_assignees_ids,
       :only_starred_strands,
       :student_info_cycle_id
     ])
