@@ -36,8 +36,8 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
           <div class="relative">
             <.action type="button" id="select-view-dropdown-button" icon_name="hero-chevron-down-mini">
               <%= case @current_student_record_staff_member_view do
-                "owned_by" ->
-                  gettext("Owned by %{staff_member}", staff_member: @staff_member_first_name)
+                "created_by" ->
+                  gettext("Created by %{staff_member}", staff_member: @staff_member_first_name)
 
                 "assigned_to" ->
                   gettext("Assigned to %{staff_member}", staff_member: @staff_member_first_name)
@@ -49,9 +49,9 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
               z_index="30"
             >
               <:item
-                text={gettext("Owned by %{staff_member}", staff_member: @staff_member_first_name)}
+                text={gettext("Created by %{staff_member}", staff_member: @staff_member_first_name)}
                 on_click={
-                  JS.push("set_staff_member_view", value: %{"view" => "owned_by"}, target: @myself)
+                  JS.push("set_staff_member_view", value: %{"view" => "created_by"}, target: @myself)
                 }
               />
               <:item
@@ -349,7 +349,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
         types_ids: types_ids,
         statuses_ids: statuses_ids,
         owner_id:
-          if(socket.assigns.current_student_record_staff_member_view == "owned_by",
+          if(socket.assigns.current_student_record_staff_member_view == "created_by",
             do: socket.assigns.staff_member.id
           ),
         assignees_ids:

@@ -108,7 +108,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
     end)
     |> validate_change(:student_record_staff_member_view, fn :student_record_staff_member_view,
                                                              view ->
-      if view in ["owned_by", "assigned_to"],
+      if view in ["created_by", "assigned_to"],
         do: [],
         else: [student_record_staff_member_view: gettext("Invalid view option")]
     end)

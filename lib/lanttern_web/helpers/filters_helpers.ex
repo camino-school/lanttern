@@ -256,7 +256,7 @@ defmodule LantternWeb.FiltersHelpers do
          [:student_record_staff_member_view | filter_types]
        ) do
     current_student_record_staff_member_view =
-      Map.get(current_filters, :student_record_staff_member_view) || "owned_by"
+      Map.get(current_filters, :student_record_staff_member_view) || "created_by"
 
     socket
     |> assign(:current_student_record_staff_member_view, current_student_record_staff_member_view)
