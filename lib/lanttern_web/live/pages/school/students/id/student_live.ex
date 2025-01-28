@@ -23,7 +23,6 @@ defmodule LantternWeb.StudentLive do
       socket
       |> assign_student(params)
       |> assign_is_school_manager()
-      |> assign_is_wcd()
 
     {:ok, socket, temporary_assigns: [student_grades_maps: %{}]}
   end
@@ -54,11 +53,6 @@ defmodule LantternWeb.StudentLive do
       "school_management" in socket.assigns.current_user.current_profile.permissions
 
     assign(socket, :is_school_manager, is_school_manager)
-  end
-
-  defp assign_is_wcd(socket) do
-    is_wcd = "wcd" in socket.assigns.current_user.current_profile.permissions
-    assign(socket, :is_wcd, is_wcd)
   end
 
   @impl true

@@ -7,7 +7,7 @@ defmodule LantternWeb.PersonalizationHelpers do
   alias Lanttern.Personalization
 
   @permission_to_option_map %{
-    "wcd" => "WCD",
+    "students_records_full_access" => "Students records full access",
     "school_management" => "School management",
     "content_management" => "Content management"
   }

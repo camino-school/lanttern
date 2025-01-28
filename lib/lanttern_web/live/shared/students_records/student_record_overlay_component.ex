@@ -148,6 +148,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                   <.person_badge
                     :for={assignee <- @selected_assignees}
                     person={assignee}
+                    theme="staff"
                     on_remove={
                       JS.push("remove_assignee", value: %{"id" => assignee.id}, target: @myself)
                     }
@@ -247,12 +248,16 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               </p>
               <div class="flex items-center gap-2">
                 <span class="text-ltrn-subtle"><%= gettext("Created by") %></span>
-                <.person_badge person={@student_record.created_by_staff_member} />
+                <.person_badge person={@student_record.created_by_staff_member} theme="staff" />
               </div>
               <div :if={@student_record.assignees != []} class="flex items-center gap-2 mt-4">
                 <span class="text-ltrn-subtle"><%= gettext("Assigned to") %></span>
                 <div class="flex items-center gap-2">
-                  <.person_badge :for={assignee <- @student_record.assignees} person={assignee} />
+                  <.person_badge
+                    :for={assignee <- @student_record.assignees}
+                    person={assignee}
+                    theme="staff"
+                  />
                 </div>
               </div>
             </div>

@@ -20,7 +20,6 @@ defmodule LantternWeb.StaffMemberLive do
       socket
       |> assign_staff_member(params)
       |> assign_is_school_manager()
-      |> assign_is_wcd()
       |> assign_is_current_user()
 
     {:ok, socket}
@@ -53,11 +52,6 @@ defmodule LantternWeb.StaffMemberLive do
         socket.assigns.staff_member.id
 
     assign(socket, :is_current_user, is_current_user)
-  end
-
-  defp assign_is_wcd(socket) do
-    is_wcd = "wcd" in socket.assigns.current_user.current_profile.permissions
-    assign(socket, :is_wcd, is_wcd)
   end
 
   defp assign_is_school_manager(socket) do

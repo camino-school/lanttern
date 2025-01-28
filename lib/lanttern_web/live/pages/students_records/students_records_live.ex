@@ -8,8 +8,6 @@ defmodule LantternWeb.StudentsRecordsLive do
   import LantternWeb.FiltersHelpers,
     only: [assign_user_filters: 2, assign_classes_filter: 2, save_profile_filters: 2]
 
-  import LantternWeb.PersonalizationHelpers, only: [profile_has_permission?: 2]
-
   # shared components
 
   alias LantternWeb.Schools.StaffMemberSearchComponent
@@ -22,9 +20,6 @@ defmodule LantternWeb.StudentsRecordsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    if !profile_has_permission?(socket.assigns.current_user.current_profile, "wcd"),
-      do: raise(LantternWeb.NotFoundError)
-
     socket =
       socket
       |> assign(:page_title, gettext("Students records"))
