@@ -590,6 +590,20 @@ defmodule Lanttern.StudentsRecords do
 
   """
   def create_student_record_tag(attrs \\ %{}) do
+    queryable =
+      case attrs do
+        %{school_id: school_id} ->
+          from(t in Tag, where: t.school_id == ^school_id)
+
+        %{"school_id" => school_id} ->
+          from(t in Tag, where: t.school_id == ^school_id)
+
+        _ ->
+          Tag
+      end
+
+    attrs = set_position_in_attrs(queryable, attrs)
+
     %Tag{}
     |> Tag.changeset(attrs)
     |> Repo.insert()

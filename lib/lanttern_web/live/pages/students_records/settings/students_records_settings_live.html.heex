@@ -43,3 +43,12 @@
     </.sortable_card>
   </.responsive_container>
 <% end %>
+<.live_component
+  :if={@tag}
+  module={StudentRecordTagFormOverlayComponent}
+  id="student-record-tag-form-overlay"
+  tag={@tag}
+  title={@tag_overlay_title}
+  on_cancel={JS.patch(@current_path)}
+  notify_parent
+/>
