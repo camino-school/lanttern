@@ -114,6 +114,31 @@ defmodule Lanttern.StudentsRecordsTest do
       assert expected_student_record.id == student_record.id
     end
 
+    test "list_students_records/1 with multiple tags return only records linked to all of the given tags" do
+      school = SchoolsFixtures.school_fixture()
+      tag_1 = student_record_tag_fixture(%{school_id: school.id})
+      tag_2 = student_record_tag_fixture(%{school_id: school.id})
+
+      student_record =
+        student_record_fixture(%{
+          school_id: school.id,
+          tags_ids: [tag_1.id, tag_2.id]
+        })
+
+      # extra fixture to test filtering
+      student_record_fixture()
+      student_record_fixture(%{school_id: school.id, tags_ids: [tag_1.id]})
+      student_record_fixture(%{school_id: school.id, tags_ids: [tag_2.id]})
+
+      [expected_student_record] =
+        StudentsRecords.list_students_records(
+          school_id: school.id,
+          tags_ids: [tag_1.id, tag_2.id]
+        )
+
+      assert expected_student_record.id == student_record.id
+    end
+
     test "list_students_records/1 with owner and assignees opts students_records filtered by given owner and assignees" do
       school = SchoolsFixtures.school_fixture()
       owner = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})

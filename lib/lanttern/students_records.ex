@@ -144,10 +144,13 @@ defmodule Lanttern.StudentsRecords do
 
   defp apply_list_students_records_opts(queryable, [{:tags_ids, tags_ids} | opts])
        when is_list(tags_ids) and tags_ids != [] do
+    tags_len = length(tags_ids)
+
     from(
       sr in queryable,
       join: srt in assoc(sr, :tags_relationships),
-      where: srt.tag_id in ^tags_ids
+      where: srt.tag_id in ^tags_ids,
+      having: count(srt.tag_id) == ^tags_len
     )
     |> apply_list_students_records_opts(opts)
   end
