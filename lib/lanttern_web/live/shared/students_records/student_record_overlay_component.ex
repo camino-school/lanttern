@@ -101,6 +101,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 notify_component={@myself}
                 label={gettext("Students")}
                 refocus_on_select="true"
+                school_id={@current_user.current_profile.school_id}
               />
               <div :if={@selected_students != []} class="flex flex-wrap gap-2 mt-2">
                 <.person_badge
@@ -132,22 +133,24 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               phx-debounce="1500"
             />
             <.markdown_supported class="mb-6" />
-            <div class="p-4 rounded-sm mb-6 bg-ltrn-teacher-lightest">
-              <p class="mb-6 font-bold text-ltrn-teacher-dark">
+            <div class="p-4 rounded-sm mb-6 bg-ltrn-staff-lightest">
+              <p class="mb-6 font-bold text-ltrn-staff-dark">
                 <%= gettext("Internal student record tracking") %>
               </p>
-              <div>
+              <div class="mb-6">
                 <.live_component
                   module={StaffMemberSearchComponent}
                   id="staff-member-search"
                   notify_component={@myself}
                   label={gettext("Assignees")}
                   refocus_on_select="true"
+                  school_id={@current_user.current_profile.school_id}
                 />
                 <div :if={@selected_assignees != []} class="flex flex-wrap gap-2 mt-2">
                   <.person_badge
                     :for={assignee <- @selected_assignees}
                     person={assignee}
+                    theme="staff"
                     on_remove={
                       JS.push("remove_assignee", value: %{"id" => assignee.id}, target: @myself)
                     }
@@ -156,6 +159,14 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 <div :if={@form.source.action in [:insert, :update]}>
                   <.error :for={{msg, _} <- @form[:assignees_ids].errors}><%= msg %></.error>
                 </div>
+              </div>
+              <div class="p-2 rounded-sm mt-10 -mx-2 -mb-2 bg-ltrn-staff-lighter">
+                <.input
+                  field={@form[:shared_with_school]}
+                  type="toggle"
+                  theme="staff"
+                  label={gettext("Visible to all school staff")}
+                />
               </div>
             </div>
             <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
@@ -196,14 +207,14 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                   <%= @student_record.time %>
                 </div>
               </div>
-              <div class="flex items-center gap-4">
+              <div class="md:flex items-center gap-4">
                 <div class="flex items-center gap-2">
                   <span><%= gettext("Status") %>:</span>
                   <.badge color_map={@student_record.status}>
                     <%= @student_record.status.name %>
                   </.badge>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 mt-4 md:mt-0">
                   <span><%= gettext("Type") %>:</span>
                   <.badge color_map={@student_record.type}>
                     <%= @student_record.type.name %>
@@ -211,7 +222,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 </div>
               </div>
             </div>
-            <div class="flex items-start gap-4">
+            <div class="md:flex items-start gap-4">
               <div class="flex-1">
                 <div class="flex items-center gap-2">
                   <.icon name="hero-user-group-mini" class="text-ltrn-subtle" />
@@ -228,7 +239,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                   />
                 </div>
               </div>
-              <div :if={@student_record.classes != []} class="flex-1">
+              <div :if={@student_record.classes != []} class="flex-1 mt-4 md:mt-0">
                 <div class="flex items-center gap-2">
                   <.icon name="hero-rectangle-group-mini" class="text-ltrn-subtle" />
                   <p><%= gettext("Classes") %></p>
@@ -241,19 +252,37 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               </div>
             </div>
             <.markdown text={@student_record.description} class="mt-6" />
-            <div class="p-4 rounded-sm mt-6 bg-ltrn-teacher-lightest">
-              <p class="mb-6 font-bold text-ltrn-teacher-dark">
+            <div class="p-4 rounded-sm mt-6 bg-ltrn-staff-lightest">
+              <p class="mb-6 font-bold text-ltrn-staff-dark">
                 <%= gettext("Internal student record tracking") %>
               </p>
               <div class="flex items-center gap-2">
                 <span class="text-ltrn-subtle"><%= gettext("Created by") %></span>
-                <.person_badge person={@student_record.created_by_staff_member} />
+                <.person_badge
+                  person={@student_record.created_by_staff_member}
+                  theme="staff"
+                  navigate={
+                    ~p"/school/staff/#{@student_record.created_by_staff_member}/students_records"
+                  }
+                />
               </div>
               <div :if={@student_record.assignees != []} class="flex items-center gap-2 mt-4">
                 <span class="text-ltrn-subtle"><%= gettext("Assigned to") %></span>
-                <div class="flex items-center gap-2">
-                  <.person_badge :for={assignee <- @student_record.assignees} person={assignee} />
+                <div class="flex flex-wrap items-center gap-2">
+                  <.person_badge
+                    :for={assignee <- @student_record.assignees}
+                    person={assignee}
+                    theme="staff"
+                    navigate={~p"/school/staff/#{assignee}/students_records"}
+                  />
                 </div>
+              </div>
+              <div
+                :if={@student_record.shared_with_school}
+                class="flex items-center gap-2 p-2 rounded-sm mt-10 -mx-2 -mb-2 text-ltrn-staff-dark bg-ltrn-staff-lighter"
+              >
+                <.icon name="hero-globe-americas-mini" />
+                <%= gettext("This record is visible to all school staff") %>
               </div>
             </div>
             <%= if @is_deleted do %>
@@ -261,17 +290,24 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 <%= gettext("This record was deleted") %>
               </.error_block>
             <% else %>
-              <div class="flex justify-between gap-4 mt-10">
+              <div
+                :if={@has_delete_permissions || @has_update_permissions}
+                class="flex justify-between gap-4 mt-10"
+              >
+                <div>
+                  <.action
+                    :if={@has_delete_permissions}
+                    type="button"
+                    icon_name="hero-x-circle-mini"
+                    phx-click={JS.push("delete", target: @myself)}
+                    theme="subtle"
+                    data-confirm={gettext("Are you sure?")}
+                  >
+                    <%= gettext("Delete") %>
+                  </.action>
+                </div>
                 <.action
-                  type="button"
-                  icon_name="hero-x-circle-mini"
-                  phx-click={JS.push("delete", target: @myself)}
-                  theme="subtle"
-                  data-confirm={gettext("Are you sure?")}
-                >
-                  <%= gettext("Delete") %>
-                </.action>
-                <.action
+                  :if={@has_update_permissions}
                   type="button"
                   icon_name="hero-pencil-mini"
                   phx-click={JS.push("edit", target: @myself)}
@@ -387,6 +423,8 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
       socket
       |> assign(assigns)
       |> assign_student_record()
+      |> assign_has_update_permissions()
+      |> assign_has_delete_permissions()
 
     {:ok, socket}
   end
@@ -412,6 +450,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
   defp assign_student_record(%{assigns: %{student_record_id: id}} = socket) do
     student_record =
       StudentsRecords.get_student_record(id,
+        check_profile_permissions: socket.assigns.current_user.current_profile,
         preloads: [
           :students,
           :type,
@@ -479,6 +518,26 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
     socket
     |> assign(:selected_assignees, selected_assignees)
     |> assign(:selected_assignees_ids, selected_assignees_ids)
+  end
+
+  defp assign_has_update_permissions(socket) do
+    has_update_permissions =
+      StudentsRecords.profile_has_student_record_update_permissions?(
+        socket.assigns.student_record,
+        socket.assigns.current_user.current_profile
+      )
+
+    assign(socket, :has_update_permissions, has_update_permissions)
+  end
+
+  defp assign_has_delete_permissions(socket) do
+    has_delete_permissions =
+      StudentsRecords.profile_has_student_record_delete_permissions?(
+        socket.assigns.student_record,
+        socket.assigns.current_user.current_profile
+      )
+
+    assign(socket, :has_delete_permissions, has_delete_permissions)
   end
 
   # event handlers
@@ -560,6 +619,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
   def handle_event("delete", _, socket) do
     StudentsRecords.delete_student_record(
       socket.assigns.student_record,
+      check_profile_permissions: socket.assigns.current_user.current_profile,
       log_profile_id: socket.assigns.current_user.current_profile_id
     )
     |> case do
@@ -662,6 +722,9 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
           socket
           |> assign(:student_record, student_record)
           |> assign(:is_editing, false)
+          # don't need to check, as we're creating a new record
+          |> assign(:has_update_permissions, true)
+          |> assign(:has_delete_permissions, true)
 
         {:noreply, socket}
 
@@ -674,6 +737,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
     StudentsRecords.update_student_record(
       socket.assigns.student_record,
       student_record_params,
+      check_profile_permissions: socket.assigns.current_user.current_profile,
       log_profile_id: socket.assigns.current_user.current_profile_id
     )
     |> case do
@@ -704,6 +768,8 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
           socket
           |> assign(:student_record, student_record)
           |> assign(:is_editing, false)
+          |> assign_has_update_permissions()
+          |> assign_has_delete_permissions()
 
         {:noreply, socket}
 

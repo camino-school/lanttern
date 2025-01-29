@@ -391,7 +391,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   def compare_header(assigns) do
     ~H"""
     <div class="flex gap-1 w-full mt-2">
-      <div class="flex-1 pb-1 border-b-2 border-ltrn-teacher-accent text-xs text-center text-ltrn-teacher-dark">
+      <div class="flex-1 pb-1 border-b-2 border-ltrn-staff-accent text-xs text-center text-ltrn-staff-dark">
         <%= gettext("Teacher") %>
       </div>
       <div class="flex-1 pb-1 border-b-2 border-ltrn-student-accent text-xs text-center text-ltrn-student-dark">

@@ -33,14 +33,16 @@ defmodule LantternWeb.Admin.ProfileSettingsLiveTest do
       assert_patch(index_live, ~p"/admin/profile_settings/#{profile.id}/edit")
 
       assert index_live
-             |> form("#profile-settings-form", profile_settings: %{permissions: ["wcd"]})
+             |> form("#profile-settings-form",
+               profile_settings: %{permissions: ["students_records_full_access"]}
+             )
              |> render_submit()
 
       assert_patch(index_live, ~p"/admin/profile_settings")
 
       html = render(index_live)
       assert html =~ "Permissions updated successfully"
-      assert html =~ "wcd"
+      assert html =~ "students_records_full_access"
     end
   end
 end

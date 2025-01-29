@@ -133,7 +133,7 @@ defmodule LantternWeb.AssessmentsComponents do
     <div class={["grid gap-1 w-full", @grid_cols_class, @class]} id={@id}>
       <.assessment_point_entry_value_display entry={@entry} />
       <.assessment_point_entry_value_display :if={@show_student_assessment} entry={@entry} is_student />
-      <div :if={@show_student_assessment} class="text-xs text-center text-ltrn-teacher-dark">
+      <div :if={@show_student_assessment} class="text-xs text-center text-ltrn-staff-dark">
         <%= gettext("Teacher assessment") %>
       </div>
       <div :if={@show_student_assessment} class="text-xs text-center text-ltrn-student-dark">
@@ -252,7 +252,7 @@ defmodule LantternWeb.AssessmentsComponents do
   def assessment_view_dropdow(assigns) do
     {theme, text} =
       case assigns.current_assessment_view do
-        "teacher" -> {"teacher", gettext("Assessed by teacher")}
+        "teacher" -> {"staff", gettext("Assessed by teacher")}
         "student" -> {"student", gettext("Assessed by students")}
         "compare" -> {"primary", gettext("Compare teacher/students")}
       end

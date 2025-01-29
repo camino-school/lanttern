@@ -153,9 +153,6 @@ defmodule LantternWeb.Router do
         {LantternWeb.Path, :put_path_in_socket}
       ] do
       live "/student", StudentHomeLive
-
-      # todo: move back to authenticated_student_or_guardian in the future
-      live "/student_strands", StudentStrandsLive
     end
 
     live_session :authenticated_student_or_guardian,
@@ -167,6 +164,8 @@ defmodule LantternWeb.Router do
       live "/strand_report/:strand_report_id",
            StudentStrandReportLive,
            :show
+
+      live "/student_strands", StudentStrandsLive
     end
 
     live_session :authenticated_user,

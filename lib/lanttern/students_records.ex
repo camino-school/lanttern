@@ -1,6 +1,46 @@
 defmodule Lanttern.StudentsRecords do
   @moduledoc """
   The StudentsRecords context.
+
+  # About profile permissions
+
+  Using the `:check_profile_permissions` option, we can validate read,
+  update, and delete students records operations based on given `%Profile{}`
+  (usually from `socket.assigns.current_user.current_profile`).
+
+  ## Read permissions
+
+  Supported by `list_students_records/1` and `get_student_record/2`.
+
+  A profile has permission to read a student record if it has type `"staff"`
+  and the staff member belongs to the same school as the student record, and:
+
+  1. the profile has the `students_records_full_access` permission
+  2. or the student record is `shared_with_school`
+  3. or the staff member created the student record
+  4. or the staff member is an assignee of the student record
+
+  ## Update permissions
+
+  Supported by `update_student_record/3`.
+
+  A profile has permission to update a student record if it has type `"staff"`
+  and the staff member belongs to the same school as the student record, and:
+
+  1. the profile has the `students_records_full_access` permission
+  2. or the staff member created the student record
+  3. or the staff member is an assignee of the student record
+
+  ## Delete permissions
+
+  Supported by `delete_student_record/2`.
+
+  A profile has permission to delete a student record if it has type `"staff"`
+  and the staff member belongs to the same school as the student record, and:
+
+  1. the profile has the `students_records_full_access` permission
+  2. or the staff member created the student record
+
   """
 
   import Ecto.Query, warn: false
@@ -8,6 +48,9 @@ defmodule Lanttern.StudentsRecords do
   alias Lanttern.RepoHelpers.Page
   alias Lanttern.Repo
 
+  alias Lanttern.Identity.Profile
+  alias Lanttern.Schools.StaffMember
+  alias Lanttern.StudentsRecords.AssigneeRelationship
   alias Lanttern.StudentsRecords.StudentRecord
   alias Lanttern.StudentsRecordsLog
 
@@ -23,6 +66,7 @@ defmodule Lanttern.StudentsRecords do
   - `:statuses_ids` - filter results by status
   - `:owner_id` - filter results by owner
   - `:assignees_ids` - filter results by assignees
+  - `:check_profile_permissions` - filter results based on profile permission
   - `:preloads` - preloads associated data
   - page opts (view `Page.opts()`)
 
@@ -41,6 +85,7 @@ defmodule Lanttern.StudentsRecords do
             statuses_ids: [pos_integer()],
             owner_id: pos_integer(),
             assignees_ids: [pos_integer()],
+            check_profile_permissions: Profile.t(),
             preloads: list()
           ]
           | Page.opts()
@@ -117,9 +162,29 @@ defmodule Lanttern.StudentsRecords do
        when is_list(assignees_ids) and assignees_ids != [] do
     from(
       sr in queryable,
-      join: sra in assoc(sr, :assignees_relationships),
-      where: sra.staff_member_id in ^assignees_ids
+      join: ar in assoc(sr, :assignees_relationships),
+      where: ar.staff_member_id in ^assignees_ids
     )
+    |> apply_list_students_records_opts(opts)
+  end
+
+  defp apply_list_students_records_opts(queryable, [
+         {:check_profile_permissions,
+          %Profile{permissions: permissions, staff_member: %StaffMember{}} = profile}
+         | opts
+       ]) do
+    queryable
+    |> apply_check_profile_read_permissions(
+      profile,
+      "students_records_full_access" in permissions
+    )
+    |> apply_list_students_records_opts(opts)
+  end
+
+  defp apply_list_students_records_opts(queryable, [
+         {:check_profile_permissions, _not_staff_member_profile} | opts
+       ]) do
+    from(sr in queryable, where: false)
     |> apply_list_students_records_opts(opts)
   end
 
@@ -153,6 +218,48 @@ defmodule Lanttern.StudentsRecords do
 
   defp apply_list_students_records_opts(queryable, [_ | opts]),
     do: apply_list_students_records_opts(queryable, opts)
+
+  defp apply_check_profile_read_permissions(
+         queryable,
+         %Profile{staff_member: %StaffMember{school_id: school_id}},
+         true
+       ) do
+    from(
+      sr in queryable,
+      where: sr.school_id == ^school_id
+    )
+  end
+
+  defp apply_check_profile_read_permissions(
+         queryable,
+         %Profile{staff_member: %StaffMember{id: staff_member_id, school_id: school_id}},
+         false
+       ) do
+    from(
+      sr in queryable,
+      as: :student_record,
+      where: sr.school_id == ^school_id,
+      where:
+        sr.shared_with_school or sr.created_by_staff_member_id == ^staff_member_id or
+          exists(
+            from(ar in AssigneeRelationship,
+              where: ar.staff_member_id == ^staff_member_id,
+              where: ar.student_record_id == parent_as(:student_record).id
+            )
+          )
+    )
+  end
+
+  defp apply_check_profile_read_permissions(
+         queryable,
+         _profile,
+         _has_full_access
+       ) do
+    from(
+      sr in queryable,
+      where: false
+    )
+  end
 
   @doc """
   Returns a page with the list of students_records.
@@ -189,6 +296,7 @@ defmodule Lanttern.StudentsRecords do
   ## Options
 
   - `:preloads` - preloads associated data
+  - `:check_profile_permissions` - filter results based on profile permission
 
   ## Examples
 
@@ -200,9 +308,36 @@ defmodule Lanttern.StudentsRecords do
 
   """
   def get_student_record(id, opts \\ []) do
-    Repo.get(StudentRecord, id)
+    StudentRecord
+    |> apply_get_student_record_opts(opts)
+    |> Repo.get(id)
     |> maybe_preload(opts)
   end
+
+  defp apply_get_student_record_opts(queryable, []), do: queryable
+
+  defp apply_get_student_record_opts(queryable, [
+         {:check_profile_permissions,
+          %Profile{permissions: permissions, staff_member: %StaffMember{}} = profile}
+         | opts
+       ]) do
+    queryable
+    |> apply_check_profile_read_permissions(
+      profile,
+      "students_records_full_access" in permissions
+    )
+    |> apply_get_student_record_opts(opts)
+  end
+
+  defp apply_get_student_record_opts(queryable, [
+         {:check_profile_permissions, _not_staff_member_profile} | opts
+       ]) do
+    from(sr in queryable, where: false)
+    |> apply_get_student_record_opts(opts)
+  end
+
+  defp apply_get_student_record_opts(queryable, [_ | opts]),
+    do: apply_get_student_record_opts(queryable, opts)
 
   @doc """
   Gets a single student record.
@@ -211,7 +346,9 @@ defmodule Lanttern.StudentsRecords do
 
   """
   def get_student_record!(id, opts \\ []) do
-    Repo.get!(StudentRecord, id)
+    StudentRecord
+    |> apply_get_student_record_opts(opts)
+    |> Repo.get!(id)
     |> maybe_preload(opts)
   end
 
@@ -244,6 +381,7 @@ defmodule Lanttern.StudentsRecords do
   ## Options:
 
   - `:log_profile_id` - logs the operation, linked to given profile
+  - `:check_profile_permissions` - check if the user has permission to update the record
 
   ## Examples
 
@@ -255,11 +393,56 @@ defmodule Lanttern.StudentsRecords do
 
   """
   def update_student_record(%StudentRecord{} = student_record, attrs, opts \\ []) do
-    student_record
-    |> StudentRecord.changeset(attrs)
-    |> Repo.update()
-    |> StudentsRecordsLog.maybe_create_student_record_log("UPDATE", opts)
+    # for profile permissions check we get the student record from DB
+    # to prevent checking against a stale record
+    check_profile_update_permissions(
+      get_student_record(student_record.id, preloads: :assignees),
+      Keyword.get(opts, :check_profile_permissions)
+    )
+    |> case do
+      :ok ->
+        student_record
+        |> StudentRecord.changeset(attrs)
+        |> Repo.update()
+        |> StudentsRecordsLog.maybe_create_student_record_log("UPDATE", opts)
+
+      _ ->
+        {:error, %Ecto.Changeset{}}
+    end
   end
+
+  defp check_profile_update_permissions(_student_record, nil), do: :ok
+
+  defp check_profile_update_permissions(
+         %StudentRecord{} = student_record,
+         %Profile{} = profile
+       ) do
+    if profile_has_student_record_update_permissions?(student_record, profile),
+      do: :ok,
+      else: :error
+  end
+
+  defp check_profile_update_permissions(_student_record, _opt), do: :error
+
+  @doc """
+  Check if profile has permission to update student record.
+
+  Expects profile permissions, profile staff member, and student record assignees preloads.
+
+  """
+  @spec profile_has_student_record_update_permissions?(StudentRecord.t(), Profile.t()) ::
+          boolean()
+  def profile_has_student_record_update_permissions?(
+        %StudentRecord{school_id: student_record_school_id} = student_record,
+        %Profile{staff_member: %StaffMember{school_id: profile_school_id}} = profile
+      )
+      when student_record_school_id == profile_school_id do
+    "students_records_full_access" in profile.permissions or
+      student_record.created_by_staff_member_id == profile.staff_member.id or
+      Enum.any?(student_record.assignees, &(&1.id == profile.staff_member.id))
+  end
+
+  def profile_has_student_record_update_permissions?(_student_record, _profile), do: false
 
   @doc """
   Deletes a student_record.
@@ -267,6 +450,7 @@ defmodule Lanttern.StudentsRecords do
   ## Options:
 
   - `:log_profile_id` - logs the operation, linked to given profile
+  - `:check_profile_permissions` - check if the user has permission to delete the record
 
   ## Examples
 
@@ -278,9 +462,50 @@ defmodule Lanttern.StudentsRecords do
 
   """
   def delete_student_record(%StudentRecord{} = student_record, opts \\ []) do
-    Repo.delete(student_record)
-    |> StudentsRecordsLog.maybe_create_student_record_log("DELETE", opts)
+    # for profile permissions check we get the student record from DB
+    # to prevent checking against a stale record
+    check_profile_delete_permissions(
+      get_student_record(student_record.id),
+      Keyword.get(opts, :check_profile_permissions)
+    )
+    |> case do
+      :ok ->
+        Repo.delete(student_record)
+        |> StudentsRecordsLog.maybe_create_student_record_log("DELETE", opts)
+
+      _ ->
+        {:error, %Ecto.Changeset{}}
+    end
   end
+
+  defp check_profile_delete_permissions(_student_record, nil), do: :ok
+
+  defp check_profile_delete_permissions(%StudentRecord{} = student_record, %Profile{} = profile) do
+    if profile_has_student_record_delete_permissions?(student_record, profile),
+      do: :ok,
+      else: :error
+  end
+
+  defp check_profile_delete_permissions(_student_record, _opt), do: :error
+
+  @doc """
+  Check if profile has permission to delete student record.
+
+  Expects profile permissions and staff member preloads.
+
+  """
+  @spec profile_has_student_record_delete_permissions?(StudentRecord.t(), Profile.t()) ::
+          boolean()
+  def profile_has_student_record_delete_permissions?(
+        %StudentRecord{school_id: student_record_school_id} = student_record,
+        %Profile{staff_member: %StaffMember{school_id: profile_school_id}} = profile
+      )
+      when student_record_school_id == profile_school_id do
+    "students_records_full_access" in profile.permissions or
+      student_record.created_by_staff_member_id == profile.staff_member.id
+  end
+
+  def profile_has_student_record_delete_permissions?(_student_record, _profile), do: false
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking student_record changes.

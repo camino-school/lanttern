@@ -14,6 +14,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
 
   alias Lanttern.Filters
   alias Lanttern.StudentsRecords
+  alias Lanttern.Schools
   alias Lanttern.Schools.Cycle
 
   # shared components
@@ -90,7 +91,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
           <% else %>
             <.badge
               :for={class <- @selected_classes}
-              on_remove={JS.push("remove_class_filter", value: %{"id" => class.id})}
+              on_remove={JS.push("remove_class_filter", value: %{"id" => class.id}, target: @myself)}
               theme="primary"
             >
               <%= class_with_cycle(class, @current_user) %>
@@ -185,6 +186,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
             id="student-search-modal-search"
             notify_component={@myself}
             label={gettext("Type the name of the student")}
+            school_id={@current_user.current_profile.school_id}
           />
         </form>
       </.modal>
@@ -193,7 +195,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
         id="students-records-classes-filters-overlay"
         current_user={@current_user}
         title={gettext("Filter students records by class")}
-        navigate={~p"/students_records"}
+        navigate={~p"/school/staff/#{@staff_member.id}/students_records"}
         classes={@classes}
         selected_classes_ids={@selected_classes_ids}
       />
@@ -329,7 +331,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
 
   defp stream_students_records(socket, reset \\ false) do
     %{
-      current_user: %{current_profile: %{school_id: school_id}},
+      current_user: %{current_profile: profile},
       selected_students_ids: students_ids,
       selected_classes_ids: classes_ids,
       selected_student_record_types_ids: types_ids,
@@ -343,7 +345,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
 
     page =
       StudentsRecords.list_students_records_page(
-        school_id: school_id,
+        check_profile_permissions: profile,
         students_ids: students_ids,
         classes_ids: classes_ids,
         types_ids: types_ids,
@@ -398,9 +400,13 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
   end
 
   defp assign_student_record_id(%{assigns: %{params: %{"student_record" => "new"}}} = socket) do
-    # # build new record initial fields based on current filters
-    # students_ids = [socket.assigns.staff_member.id]
-    # classes = Schools.list_classes_for_students_in_date(students_ids, Date.utc_today())
+    # build new record initial fields based on current filters
+    students_ids = Enum.map(socket.assigns.selected_students, & &1.id)
+
+    classes =
+      (socket.assigns.selected_classes ++
+         Schools.list_classes_for_students_in_date(students_ids, Date.utc_today()))
+      |> Enum.uniq_by(& &1.id)
 
     type_id =
       case socket.assigns.selected_student_record_types do
@@ -416,10 +422,11 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
 
     new_record_initial_fields =
       %{
-        # students: [socket.assigns.staff_member],
-        # classes: classes,
+        students: socket.assigns.selected_students,
+        classes: classes,
         type_id: type_id,
-        status_id: status_id
+        status_id: status_id,
+        assignees: [socket.assigns.staff_member]
       }
 
     socket

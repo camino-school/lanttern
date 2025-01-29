@@ -70,9 +70,8 @@ defmodule LantternWeb.MenuComponent do
               <%= Gettext.dgettext(
                 Lanttern.Gettext,
                 "schools",
-                String.capitalize(
-                  @current_user.current_profile.role || @current_user.current_profile.type
-                )
+                @current_user.current_profile.role ||
+                  String.capitalize(@current_user.current_profile.type)
               ) %> @ <%= @current_user.current_profile.school_name %>
 
               <.icon name="hero-chevron-down" id="profile-list-down-icon" />
@@ -288,7 +287,7 @@ defmodule LantternWeb.MenuComponent do
             <%= Gettext.dgettext(
               Lanttern.Gettext,
               "schools",
-              String.capitalize(Map.get(@profile.staff_member || %{}, :role, @profile.type))
+              @profile.role || String.capitalize(@profile.type)
             ) %> @ <%= @profile.school_name %>
           </span>
         </div>
@@ -347,6 +346,7 @@ defmodule LantternWeb.MenuComponent do
     LantternWeb.SchoolLive => :school_management,
     LantternWeb.ClassLive => :school_management,
     LantternWeb.StudentLive => :school_management,
+    LantternWeb.StaffMemberLive => :school_management,
 
     # assessment points
     LantternWeb.AssessmentPointsLive => :assessment_points,
@@ -423,8 +423,7 @@ defmodule LantternWeb.MenuComponent do
         profile: "staff",
         active: :students_records,
         path: ~p"/students_records",
-        text: gettext("Students records"),
-        permission: "wcd"
+        text: gettext("Students records")
       },
       %{
         profile: "staff",
@@ -470,6 +469,12 @@ defmodule LantternWeb.MenuComponent do
         active: :student_report_card,
         path: ~p"/guardian",
         text: gettext("Report cards")
+      },
+      %{
+        profile: "guardian",
+        active: :student_strands,
+        path: ~p"/student_strands",
+        text: gettext("Strands")
       }
     ]
 

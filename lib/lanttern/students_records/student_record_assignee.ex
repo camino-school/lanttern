@@ -1,6 +1,6 @@
-defmodule Lanttern.StudentsRecords.Assignee do
+defmodule Lanttern.StudentsRecords.AssigneeRelationship do
   @moduledoc """
-  The `StudentsRecords.Assignee` schema (join table)
+  The `StudentsRecords.AssigneeRelationship` schema (join table)
   """
 
   use Ecto.Schema

@@ -72,6 +72,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
               notify_component={@myself}
               label={gettext("Students in this class")}
               refocus_on_select="true"
+              school_id={@class.school_id}
             />
             <%= if @students != [] do %>
               <ol class="mt-4 text-sm leading-relaxed list-decimal list-inside">

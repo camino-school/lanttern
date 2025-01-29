@@ -106,27 +106,33 @@ defmodule LantternWeb.StudentsRecordsComponents do
           </div>
         </div>
         <div class="px-2 pb-2">
-          <div class="flex items-center gap-4 p-2 rounded-sm bg-ltrn-teacher-lightest">
-            <div class="flex items-center gap-2">
-              <span class="text-xs text-ltrn-subtle"><%= gettext("Created by") %></span>
-              <.person_badge
-                person={student_record.created_by_staff_member}
-                theme="staff"
-                navigate={@staff_navigate.(student_record.created_by_staff_member.id)}
-                truncate
-              />
-            </div>
-            <div :if={student_record.assignees != []} class="flex items-center gap-2">
-              <span class="text-xs text-ltrn-subtle"><%= gettext("Assigned to") %></span>
+          <div class="flex items-center justify-between gap-4 p-2 rounded-sm bg-ltrn-staff-lightest">
+            <div class="md:flex items-center gap-4">
               <div class="flex items-center gap-2">
+                <span class="text-xs text-ltrn-subtle"><%= gettext("Created by") %></span>
                 <.person_badge
-                  :for={assignee <- student_record.assignees}
-                  person={assignee}
+                  person={student_record.created_by_staff_member}
                   theme="staff"
-                  navigate={@staff_navigate.(assignee.id)}
+                  navigate={@staff_navigate.(student_record.created_by_staff_member.id)}
                   truncate
                 />
               </div>
+              <div :if={student_record.assignees != []} class="flex items-center gap-2 mt-2 md:mt-0">
+                <span class="text-xs text-ltrn-subtle"><%= gettext("Assigned to") %></span>
+                <div class="flex flex-wrap items-center gap-2">
+                  <.person_badge
+                    :for={assignee <- student_record.assignees}
+                    person={assignee}
+                    theme="staff"
+                    navigate={@staff_navigate.(assignee.id)}
+                    truncate
+                  />
+                </div>
+              </div>
+            </div>
+            <div :if={student_record.shared_with_school} class="group relative">
+              <.icon name="hero-globe-americas" class="w-6 h-6 text-ltrn-staff-accent" />
+              <.tooltip h_pos="right"><%= gettext("Visible to all school staff") %></.tooltip>
             </div>
           </div>
         </div>

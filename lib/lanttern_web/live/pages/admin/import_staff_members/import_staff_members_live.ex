@@ -77,8 +77,8 @@ defmodule LantternWeb.Admin.ImportStaffMembersLive do
       <table class="w-full my-6">
         <thead class="text-left">
           <tr>
-            <th class="p-2">Teacher name</th>
-            <th class="p-2">Teacher email</th>
+            <th class="p-2">Staff member name</th>
+            <th class="p-2">Staff member email</th>
           </tr>
         </thead>
         <tbody>
@@ -109,8 +109,8 @@ defmodule LantternWeb.Admin.ImportStaffMembersLive do
       <table class="w-full my-6">
         <thead class="text-left">
           <tr>
-            <th class="p-2">Teacher name</th>
-            <th class="p-2">Teacher email</th>
+            <th class="p-2">Staff member name</th>
+            <th class="p-2">Staff member email</th>
             <th class="p-2">Status</th>
           </tr>
         </thead>
@@ -289,7 +289,7 @@ defmodule LantternWeb.Admin.ImportStaffMembersLive do
 
       csv |> hd() |> length() != 2 ->
         {:error,
-         "Expected 2 columns (teacher name and email), but got #{csv |> hd() |> length()}"}
+         "Expected 2 columns (staff member name and email), but got #{csv |> hd() |> length()}"}
 
       true ->
         {:ok, csv}

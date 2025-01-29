@@ -40,7 +40,7 @@ module.exports = {
             lighter: colors.yellow["200"],
             lightest: colors.yellow["50"],
           },
-          teacher: {
+          staff: {
             dark: colors.lime["800"],
             accent: colors.lime["500"],
             lighter: colors.lime["200"],

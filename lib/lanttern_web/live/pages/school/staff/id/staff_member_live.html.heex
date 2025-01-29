@@ -10,7 +10,6 @@
           <%= gettext("About") %>
         </:tab>
         <:tab
-          :if={@is_wcd}
           patch={~p"/school/staff/#{@staff_member}/students_records"}
           is_current={@live_action == :students_records}
         >
@@ -47,7 +46,7 @@
   </.responsive_container>
 </div>
 <.live_component
-  :if={@live_action == :students_records && @is_wcd}
+  :if={@live_action == :students_records}
   module={StudentsRecordsComponent}
   id="students-records"
   staff_member={@staff_member}

@@ -8,8 +8,6 @@ defmodule LantternWeb.StudentsRecordsLive do
   import LantternWeb.FiltersHelpers,
     only: [assign_user_filters: 2, assign_classes_filter: 2, save_profile_filters: 2]
 
-  import LantternWeb.PersonalizationHelpers, only: [profile_has_permission?: 2]
-
   # shared components
 
   alias LantternWeb.Schools.StaffMemberSearchComponent
@@ -22,9 +20,6 @@ defmodule LantternWeb.StudentsRecordsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    if !profile_has_permission?(socket.assigns.current_user.current_profile, "wcd"),
-      do: raise(LantternWeb.NotFoundError)
-
     socket =
       socket
       |> assign(:page_title, gettext("Students records"))
@@ -55,7 +50,7 @@ defmodule LantternWeb.StudentsRecordsLive do
 
   defp stream_students_records(socket, reset \\ false) do
     %{
-      current_user: %{current_profile: %{school_id: school_id}},
+      current_user: %{current_profile: profile},
       selected_students_ids: students_ids,
       selected_classes_ids: classes_ids,
       selected_student_record_types_ids: types_ids,
@@ -70,7 +65,7 @@ defmodule LantternWeb.StudentsRecordsLive do
 
     page =
       StudentsRecords.list_students_records_page(
-        school_id: school_id,
+        check_profile_permissions: profile,
         students_ids: students_ids,
         classes_ids: classes_ids,
         types_ids: types_ids,

@@ -75,7 +75,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
             <.badge
               :for={assignee <- @selected_student_record_assignees}
               on_remove={JS.push("remove_assignee_filter", target: @myself)}
-              theme="teacher"
+              theme="staff"
             >
               <%= assignee.name %>
             </.badge>
@@ -260,7 +260,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
 
   defp stream_students_records(socket, reset \\ false) do
     %{
-      current_user: %{current_profile: %{school_id: school_id}},
+      current_user: %{current_profile: profile},
       selected_student_record_types_ids: types_ids,
       selected_student_record_statuses_ids: statuses_ids,
       selected_student_record_assignees_ids: assignees_ids
@@ -273,7 +273,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
 
     page =
       StudentsRecords.list_students_records_page(
-        school_id: school_id,
+        check_profile_permissions: profile,
         students_ids: [socket.assigns.student.id],
         types_ids: types_ids,
         statuses_ids: statuses_ids,

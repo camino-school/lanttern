@@ -8,7 +8,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
 
   use Gettext, backend: Lanttern.Gettext
 
-  alias Lanttern.StudentsRecords.Assignee
+  alias Lanttern.StudentsRecords.AssigneeRelationship
   alias Lanttern.StudentsRecords.StudentRecordClassRelationship
   alias Lanttern.StudentsRecords.StudentRecordRelationship
   alias Lanttern.StudentsRecords.StudentRecordStatus
@@ -24,6 +24,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
           description: String.t(),
           date: Date.t(),
           time: Time.t(),
+          shared_with_school: boolean(),
           students: [Student.t()],
           students_ids: [pos_integer()],
           created_by_staff_member: StaffMember.t(),
@@ -45,6 +46,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
     field :description, :string
     field :date, :date
     field :time, :time
+    field :shared_with_school, :boolean, default: false
     field :students_ids, {:array, :id}, virtual: true
     field :classes_ids, {:array, :id}, virtual: true
     field :assignees_ids, {:array, :id}, virtual: true
@@ -56,7 +58,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
 
     has_many :students_relationships, StudentRecordRelationship, on_replace: :delete
     has_many :classes_relationships, StudentRecordClassRelationship, on_replace: :delete
-    has_many :assignees_relationships, Assignee, on_replace: :delete
+    has_many :assignees_relationships, AssigneeRelationship, on_replace: :delete
 
     many_to_many :students, Student,
       join_through: "students_students_records",
@@ -79,6 +81,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
       :description,
       :date,
       :time,
+      :shared_with_school,
       :students_ids,
       :classes_ids,
       :assignees_ids,

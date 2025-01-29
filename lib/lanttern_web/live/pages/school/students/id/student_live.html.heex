@@ -22,7 +22,6 @@
           <%= gettext("Grades reports") %>
         </:tab>
         <:tab
-          :if={@is_wcd}
           patch={~p"/school/students/#{@student}/student_records"}
           is_current={@live_action == :student_records}
         >
@@ -62,7 +61,7 @@
   />
 </div>
 <.live_component
-  :if={@live_action == :student_records && @is_wcd}
+  :if={@live_action == :student_records}
   module={StudentRecordsComponent}
   id="student-records"
   student={@student}
