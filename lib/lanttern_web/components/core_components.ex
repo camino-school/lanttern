@@ -1782,7 +1782,8 @@ defmodule LantternWeb.CoreComponents do
   @toggle_themes %{
     "default" => "focus:ring-ltrn-primary",
     "diff" => "focus:ring-ltrn-diff-accent",
-    "student" => "focus:ring-ltrn-student-accent"
+    "student" => "focus:ring-ltrn-student-accent",
+    "staff" => "focus:ring-ltrn-staff-accent"
   }
 
   defp toggle_theme(theme),
@@ -1791,7 +1792,8 @@ defmodule LantternWeb.CoreComponents do
   @toggle_enabled_themes %{
     "default" => "bg-ltrn-primary",
     "diff" => "bg-ltrn-diff-accent",
-    "student" => "bg-ltrn-student-accent"
+    "student" => "bg-ltrn-student-accent",
+    "staff" => "bg-ltrn-staff-accent"
   }
 
   defp toggle_enabled_theme(theme),

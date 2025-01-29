@@ -137,7 +137,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               <p class="mb-6 font-bold text-ltrn-staff-dark">
                 <%= gettext("Internal student record tracking") %>
               </p>
-              <div>
+              <div class="mb-6">
                 <.live_component
                   module={StaffMemberSearchComponent}
                   id="staff-member-search"
@@ -159,6 +159,14 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 <div :if={@form.source.action in [:insert, :update]}>
                   <.error :for={{msg, _} <- @form[:assignees_ids].errors}><%= msg %></.error>
                 </div>
+              </div>
+              <div class="p-2 rounded-sm mt-10 -mx-2 -mb-2 bg-ltrn-staff-lighter">
+                <.input
+                  field={@form[:shared_with_school]}
+                  type="toggle"
+                  theme="staff"
+                  label={gettext("Visible to all school staff")}
+                />
               </div>
             </div>
             <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
@@ -199,14 +207,14 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                   <%= @student_record.time %>
                 </div>
               </div>
-              <div class="flex items-center gap-4">
+              <div class="md:flex items-center gap-4">
                 <div class="flex items-center gap-2">
                   <span><%= gettext("Status") %>:</span>
                   <.badge color_map={@student_record.status}>
                     <%= @student_record.status.name %>
                   </.badge>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 mt-4 md:mt-0">
                   <span><%= gettext("Type") %>:</span>
                   <.badge color_map={@student_record.type}>
                     <%= @student_record.type.name %>
@@ -214,7 +222,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 </div>
               </div>
             </div>
-            <div class="flex items-start gap-4">
+            <div class="md:flex items-start gap-4">
               <div class="flex-1">
                 <div class="flex items-center gap-2">
                   <.icon name="hero-user-group-mini" class="text-ltrn-subtle" />
@@ -231,7 +239,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                   />
                 </div>
               </div>
-              <div :if={@student_record.classes != []} class="flex-1">
+              <div :if={@student_record.classes != []} class="flex-1 mt-4 md:mt-0">
                 <div class="flex items-center gap-2">
                   <.icon name="hero-rectangle-group-mini" class="text-ltrn-subtle" />
                   <p><%= gettext("Classes") %></p>
@@ -260,7 +268,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               </div>
               <div :if={@student_record.assignees != []} class="flex items-center gap-2 mt-4">
                 <span class="text-ltrn-subtle"><%= gettext("Assigned to") %></span>
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2">
                   <.person_badge
                     :for={assignee <- @student_record.assignees}
                     person={assignee}
@@ -268,6 +276,13 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                     navigate={~p"/school/staff/#{assignee}/students_records"}
                   />
                 </div>
+              </div>
+              <div
+                :if={@student_record.shared_with_school}
+                class="flex items-center gap-2 p-2 rounded-sm mt-10 -mx-2 -mb-2 text-ltrn-staff-dark bg-ltrn-staff-lighter"
+              >
+                <.icon name="hero-globe-americas-mini" />
+                <%= gettext("This record is visible to all school staff") %>
               </div>
             </div>
             <%= if @is_deleted do %>
