@@ -4,7 +4,7 @@ defmodule Lanttern.StudentsRecords do
 
   # About profile permissions
 
-  The function `list_students_records/1` accepts a `:check_profile_permissions` option.
+  The functions `list_students_records/1` and `get_student_record/2` accept the `:check_profile_permissions` option.
 
   A profile has permission to view a student record if it has type `"staff"`
   and the staff member belongs to the same school as the student record, and:
@@ -147,7 +147,7 @@ defmodule Lanttern.StudentsRecords do
          | opts
        ]) do
     queryable
-    |> apply_list_students_records_check_profile_permissions(
+    |> apply_check_profile_permissions(
       profile,
       "students_records_full_access" in permissions
     )
@@ -192,7 +192,7 @@ defmodule Lanttern.StudentsRecords do
   defp apply_list_students_records_opts(queryable, [_ | opts]),
     do: apply_list_students_records_opts(queryable, opts)
 
-  defp apply_list_students_records_check_profile_permissions(
+  defp apply_check_profile_permissions(
          queryable,
          %Profile{staff_member: %StaffMember{school_id: school_id}},
          true
@@ -203,7 +203,7 @@ defmodule Lanttern.StudentsRecords do
     )
   end
 
-  defp apply_list_students_records_check_profile_permissions(
+  defp apply_check_profile_permissions(
          queryable,
          %Profile{staff_member: %StaffMember{id: staff_member_id, school_id: school_id}},
          _has_full_acceess = false
@@ -223,7 +223,7 @@ defmodule Lanttern.StudentsRecords do
     )
   end
 
-  defp apply_list_students_records_check_profile_permissions(
+  defp apply_check_profile_permissions(
          queryable,
          _profile,
          _has_full_access
@@ -269,6 +269,7 @@ defmodule Lanttern.StudentsRecords do
   ## Options
 
   - `:preloads` - preloads associated data
+  - `:check_profile_permissions` - filter results based on profile permission
 
   ## Examples
 
@@ -280,9 +281,36 @@ defmodule Lanttern.StudentsRecords do
 
   """
   def get_student_record(id, opts \\ []) do
-    Repo.get(StudentRecord, id)
+    StudentRecord
+    |> apply_get_student_record_opts(opts)
+    |> Repo.get(id)
     |> maybe_preload(opts)
   end
+
+  defp apply_get_student_record_opts(queryable, []), do: queryable
+
+  defp apply_get_student_record_opts(queryable, [
+         {:check_profile_permissions,
+          %Profile{permissions: permissions, staff_member: %StaffMember{}} = profile}
+         | opts
+       ]) do
+    queryable
+    |> apply_check_profile_permissions(
+      profile,
+      "students_records_full_access" in permissions
+    )
+    |> apply_get_student_record_opts(opts)
+  end
+
+  defp apply_get_student_record_opts(queryable, [
+         {:check_profile_permissions, _not_staff_member_profile} | opts
+       ]) do
+    from(sr in queryable, where: false)
+    |> apply_get_student_record_opts(opts)
+  end
+
+  defp apply_get_student_record_opts(queryable, [_ | opts]),
+    do: apply_get_student_record_opts(queryable, opts)
 
   @doc """
   Gets a single student record.
@@ -291,7 +319,9 @@ defmodule Lanttern.StudentsRecords do
 
   """
   def get_student_record!(id, opts \\ []) do
-    Repo.get!(StudentRecord, id)
+    StudentRecord
+    |> apply_get_student_record_opts(opts)
+    |> Repo.get!(id)
     |> maybe_preload(opts)
   end
 

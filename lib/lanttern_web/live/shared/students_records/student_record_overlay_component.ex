@@ -417,6 +417,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
   defp assign_student_record(%{assigns: %{student_record_id: id}} = socket) do
     student_record =
       StudentsRecords.get_student_record(id,
+        check_profile_permissions: socket.assigns.current_user.current_profile,
         preloads: [
           :students,
           :type,

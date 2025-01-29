@@ -286,19 +286,19 @@ defmodule Lanttern.StudentsRecordsTest do
         StudentsRecords.list_students_records_page(types_ids: [type.id])
     end
 
-    test "get_student_record/1 returns the student_record with given id" do
+    test "get_student_record/2 returns the student_record with given id" do
       student_record = student_record_fixture()
       expected_student_record = StudentsRecords.get_student_record(student_record.id)
       assert expected_student_record.id == student_record.id
     end
 
-    test "get_student_record!/1 returns the student_record with given id" do
+    test "get_student_record!/2 returns the student_record with given id" do
       student_record = student_record_fixture()
       expected_student_record = StudentsRecords.get_student_record!(student_record.id)
       assert expected_student_record.id == student_record.id
     end
 
-    test "get_student_record/1 with preload opts returns the student_record with preloaded data" do
+    test "get_student_record/2 with preload opts returns the student_record with preloaded data" do
       school = SchoolsFixtures.school_fixture()
       type = student_record_type_fixture(%{school_id: school.id})
       student_record = student_record_fixture(%{type_id: type.id, school_id: school.id})
@@ -306,6 +306,174 @@ defmodule Lanttern.StudentsRecordsTest do
       expected = StudentsRecords.get_student_record(student_record.id, preloads: :type)
       assert expected.id == student_record.id
       assert expected.type.id == type.id
+    end
+
+    test "get_student_record/2 with check_profile_permissions filters results correctly" do
+      school = SchoolsFixtures.school_fixture()
+      owner = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+      assignee = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+
+      open_student_record =
+        student_record_fixture(%{
+          school_id: school.id,
+          shared_with_school: true
+        })
+
+      closed_student_record =
+        student_record_fixture(%{
+          school_id: school.id
+        })
+
+      owner_and_assignee_student_record =
+        student_record_fixture(%{
+          school_id: school.id,
+          created_by_staff_member_id: owner.id,
+          assignees_ids: [assignee.id]
+        })
+
+      # test student profile
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+
+      profile = %Profile{
+        permissions: [],
+        student: student
+      }
+
+      assert StudentsRecords.get_student_record(open_student_record.id,
+               check_profile_permissions: profile
+             ) == nil
+
+      assert StudentsRecords.get_student_record(closed_student_record.id,
+               check_profile_permissions: profile
+             ) == nil
+
+      assert StudentsRecords.get_student_record(owner_and_assignee_student_record.id,
+               check_profile_permissions: profile
+             ) == nil
+
+      # test profile from other school
+      staff_member = SchoolsFixtures.staff_member_fixture()
+
+      profile = %Profile{
+        permissions: [],
+        staff_member: staff_member
+      }
+
+      assert StudentsRecords.get_student_record(open_student_record.id,
+               check_profile_permissions: profile
+             ) == nil
+
+      assert StudentsRecords.get_student_record(closed_student_record.id,
+               check_profile_permissions: profile
+             ) == nil
+
+      assert StudentsRecords.get_student_record(owner_and_assignee_student_record.id,
+               check_profile_permissions: profile
+             ) == nil
+
+      # test profile with full access from other school
+      staff_member = SchoolsFixtures.staff_member_fixture()
+
+      profile = %Profile{
+        permissions: ["students_records_full_access"],
+        staff_member: staff_member
+      }
+
+      assert StudentsRecords.get_student_record(open_student_record.id,
+               check_profile_permissions: profile
+             ) == nil
+
+      assert StudentsRecords.get_student_record(closed_student_record.id,
+               check_profile_permissions: profile
+             ) == nil
+
+      assert StudentsRecords.get_student_record(owner_and_assignee_student_record.id,
+               check_profile_permissions: profile
+             ) == nil
+
+      # test school profile without permissions
+      staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+
+      profile = %Profile{
+        permissions: [],
+        staff_member: staff_member
+      }
+
+      assert %StudentRecord{} =
+               StudentsRecords.get_student_record(open_student_record.id,
+                 check_profile_permissions: profile
+               )
+
+      assert StudentsRecords.get_student_record(closed_student_record.id,
+               check_profile_permissions: profile
+             ) == nil
+
+      assert StudentsRecords.get_student_record(owner_and_assignee_student_record.id,
+               check_profile_permissions: profile
+             ) == nil
+
+      # test school profile with full access
+      staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+
+      profile = %Profile{
+        permissions: ["students_records_full_access"],
+        staff_member: staff_member
+      }
+
+      assert %StudentRecord{} =
+               StudentsRecords.get_student_record(open_student_record.id,
+                 check_profile_permissions: profile
+               )
+
+      assert %StudentRecord{} =
+               StudentsRecords.get_student_record(closed_student_record.id,
+                 check_profile_permissions: profile
+               )
+
+      assert %StudentRecord{} =
+               StudentsRecords.get_student_record(owner_and_assignee_student_record.id,
+                 check_profile_permissions: profile
+               )
+
+      # test owner without permissions
+      profile = %Profile{
+        permissions: [],
+        staff_member: owner
+      }
+
+      assert %StudentRecord{} =
+               StudentsRecords.get_student_record(open_student_record.id,
+                 check_profile_permissions: profile
+               )
+
+      assert StudentsRecords.get_student_record(closed_student_record.id,
+               check_profile_permissions: profile
+             ) == nil
+
+      assert %StudentRecord{} =
+               StudentsRecords.get_student_record(owner_and_assignee_student_record.id,
+                 check_profile_permissions: profile
+               )
+
+      # test assignee without permissions
+      profile = %Profile{
+        permissions: [],
+        staff_member: assignee
+      }
+
+      assert %StudentRecord{} =
+               StudentsRecords.get_student_record(open_student_record.id,
+                 check_profile_permissions: profile
+               )
+
+      assert StudentsRecords.get_student_record(closed_student_record.id,
+               check_profile_permissions: profile
+             ) == nil
+
+      assert %StudentRecord{} =
+               StudentsRecords.get_student_record(owner_and_assignee_student_record.id,
+                 check_profile_permissions: profile
+               )
     end
 
     test "create_student_record/1 with valid data creates a student_record" do
