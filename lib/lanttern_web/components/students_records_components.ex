@@ -69,8 +69,8 @@ defmodule LantternWeb.StudentsRecordsComponents do
               <.badge color_map={student_record.status} class="max-w-full">
                 <%= student_record.status.name %>
               </.badge>
-              <.badge color_map={student_record.type} class="max-w-full">
-                <%= student_record.type.name %>
+              <.badge :for={tag <- student_record.tags} color_map={tag} class="max-w-full">
+                <%= tag.name %>
               </.badge>
               <.badge :for={class <- student_record.classes}>
                 <%= class_with_cycle(class, @current_user_or_cycle) %>

@@ -79,19 +79,19 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               </div>
             </div>
             <div class="mb-6">
-              <.label><%= gettext("Record type") %></.label>
+              <.label><%= gettext("Tags") %></.label>
               <.badge_button_picker
-                id="student-record-type-select"
+                id="student-record-tag-select"
                 on_select={
-                  &(JS.push("select_type", value: %{"id" => &1}, target: @myself)
+                  &(JS.push("select_tag", value: %{"id" => &1}, target: @myself)
                     |> JS.dispatch("change", to: "#student-record-form"))
                 }
-                items={@types}
-                selected_ids={[@selected_type_id]}
+                items={@tags}
+                selected_ids={@selected_tags_ids}
                 use_color_map_as_active
               />
               <div :if={@form.source.action in [:insert, :update]}>
-                <.error :for={{msg, _} <- @form[:type_id].errors}><%= msg %></.error>
+                <.error :for={{msg, _} <- @form[:tags_ids].errors}><%= msg %></.error>
               </div>
             </div>
             <div class="mb-6">
@@ -215,10 +215,12 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                   </.badge>
                 </div>
                 <div class="flex items-center gap-2 mt-4 md:mt-0">
-                  <span><%= gettext("Type") %>:</span>
-                  <.badge color_map={@student_record.type}>
-                    <%= @student_record.type.name %>
-                  </.badge>
+                  <span><%= gettext("Tags") %>:</span>
+                  <div class="flex flex-wrap gap-2">
+                    <.badge :for={tag <- @student_record.tags} color_map={tag}>
+                      <%= tag.name %>
+                    </.badge>
+                  </div>
                 </div>
               </div>
             </div>
@@ -435,6 +437,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
         school_id: socket.assigns.current_user.current_profile.school_id,
         students: [],
         classes: [],
+        tags: [],
         assignees: [],
         date: Date.utc_today()
       }
@@ -453,8 +456,8 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
         check_profile_permissions: socket.assigns.current_user.current_profile,
         preloads: [
           :students,
-          :type,
           :status,
+          :tags,
           :created_by_staff_member,
           :assignees,
           [classes: :cycle]
@@ -480,14 +483,19 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
     # we'll need students/classes/assignees relationships for changeset
     student_record =
       socket.assigns.student_record
-      |> Repo.preload([:students_relationships, :classes_relationships, :assignees_relationships])
+      |> Repo.preload([
+        :students_relationships,
+        :classes_relationships,
+        :assignees_relationships,
+        :tags_relationships
+      ])
 
     changeset = StudentsRecords.change_student_record(student_record)
 
     socket
     |> assign(:student_record, student_record)
     |> assign(:form, to_form(changeset))
-    |> assign(:selected_type_id, student_record.type_id)
+    |> assign(:selected_tags_ids, Enum.map(student_record.tags, & &1.id))
     |> assign(:selected_status_id, student_record.status_id)
     |> assign_selected_students()
     |> assign_selected_classes_ids()
@@ -588,10 +596,17 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
     {:noreply, socket}
   end
 
-  def handle_event("select_type", %{"id" => id}, socket) do
+  def handle_event("select_tag", %{"id" => id}, socket) do
+    selected_tags_ids =
+      if id in socket.assigns.selected_tags_ids do
+        Enum.filter(socket.assigns.selected_tags_ids, &(&1 != id))
+      else
+        [id | socket.assigns.selected_tags_ids]
+      end
+
     socket =
       socket
-      |> assign(:selected_type_id, id)
+      |> assign(:selected_tags_ids, selected_tags_ids)
       |> assign_validated_form(socket.assigns.form.params)
 
     {:noreply, socket}
@@ -641,23 +656,23 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
 
   defp initialize_form(%{assigns: %{form_initialized: false}} = socket) do
     socket
-    |> assign_types()
     |> assign_statuses()
+    |> assign_tags()
     |> assign(:form_initialized, true)
   end
 
   defp initialize_form(socket), do: socket
 
-  defp assign_types(socket) do
-    school_id = socket.assigns.current_user.current_profile.school_id
-    types = StudentsRecords.list_student_record_types(school_id: school_id)
-    assign(socket, :types, types)
-  end
-
   defp assign_statuses(socket) do
     school_id = socket.assigns.current_user.current_profile.school_id
     statuses = StudentsRecords.list_student_record_statuses(school_id: school_id)
     assign(socket, :statuses, statuses)
+  end
+
+  defp assign_tags(socket) do
+    school_id = socket.assigns.current_user.current_profile.school_id
+    tags = StudentsRecords.list_student_record_tags(school_id: school_id)
+    assign(socket, :tags, tags)
   end
 
   defp assign_validated_form(socket, params) do
@@ -674,7 +689,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
   defp inject_extra_params(socket, params) do
     params
     |> Map.put("school_id", socket.assigns.current_user.current_profile.school_id)
-    |> Map.put("type_id", socket.assigns.selected_type_id)
+    |> Map.put("tags_ids", socket.assigns.selected_tags_ids)
     |> Map.put("status_id", socket.assigns.selected_status_id)
     |> Map.put("students_ids", socket.assigns.selected_students_ids)
     |> Map.put("classes_ids", socket.assigns.selected_classes_ids)
@@ -703,14 +718,14 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
             :students,
             :classes,
             :status,
-            :type,
+            :tags,
             :created_by_staff_member,
             :assignees
           ])
           |> Repo.preload([
             :students,
             :status,
-            :type,
+            :tags,
             :created_by_staff_member,
             :assignees,
             [classes: :cycle]
@@ -749,14 +764,14 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
             :students,
             :classes,
             :status,
-            :type,
+            :tags,
             :created_by_staff_member,
             :assignees
           ])
           |> Repo.preload([
             :students,
             :status,
-            :type,
+            :tags,
             :created_by_staff_member,
             :assignees,
             [classes: :cycle]

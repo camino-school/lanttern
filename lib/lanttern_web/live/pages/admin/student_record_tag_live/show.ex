@@ -1,4 +1,4 @@
-defmodule LantternWeb.Admin.StudentRecordTypeLive.Show do
+defmodule LantternWeb.Admin.StudentRecordTagLive.Show do
   use LantternWeb, {:live_view, layout: :admin}
 
   alias Lanttern.StudentsRecords
@@ -13,9 +13,9 @@ defmodule LantternWeb.Admin.StudentRecordTypeLive.Show do
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:student_record_type, StudentsRecords.get_student_record_type!(id))}
+     |> assign(:student_record_tag, StudentsRecords.get_student_record_tag!(id))}
   end
 
-  defp page_title(:show), do: "Show Student record type"
-  defp page_title(:edit), do: "Edit Student record type"
+  defp page_title(:show), do: "Show Student record tag"
+  defp page_title(:edit), do: "Edit Student record tag"
 end

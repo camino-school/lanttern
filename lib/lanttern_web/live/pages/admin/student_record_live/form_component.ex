@@ -47,19 +47,20 @@ defmodule LantternWeb.Admin.StudentRecordLive.FormComponent do
           class="mb-4"
         />
         <.input
-          field={@form[:type_id]}
-          type="select"
-          label="Select type"
-          options={@type_options}
-          prompt="No type selected"
-          class="mb-4"
-        />
-        <.input
           field={@form[:status_id]}
           type="select"
           label="Select status"
           options={@status_options}
           prompt="No status selected"
+          class="mb-4"
+        />
+        <.input
+          field={@form[:tags_ids]}
+          type="select"
+          multiple
+          label="Select tags"
+          options={@tag_options}
+          prompt="No tag selected"
           class="mb-4"
         />
         <.input field={@form[:name]} type="text" label="Name" />
@@ -81,7 +82,7 @@ defmodule LantternWeb.Admin.StudentRecordLive.FormComponent do
       |> assign(:school_options, SchoolsHelpers.generate_school_options())
       |> assign(:staff_member_options, SchoolsHelpers.generate_staff_member_options())
       |> assign(:student_options, SchoolsHelpers.generate_student_options())
-      |> assign(:type_options, StudentsRecordsHelpers.generate_student_record_type_options())
+      |> assign(:tag_options, StudentsRecordsHelpers.generate_student_record_tag_options())
       |> assign(:status_options, StudentsRecordsHelpers.generate_student_record_status_options())
 
     {:ok, socket}

@@ -20,10 +20,10 @@ defmodule LantternWeb.StudentsRecordsLiveTest do
       school_id = user.current_profile.school_id
       student = SchoolsFixtures.student_fixture(%{school_id: school_id, name: "std abc"})
 
-      type =
-        StudentsRecordsFixtures.student_record_type_fixture(%{
+      tag =
+        StudentsRecordsFixtures.student_record_tag_fixture(%{
           school_id: school_id,
-          name: "type abc"
+          name: "tag abc"
         })
 
       status =
@@ -39,7 +39,7 @@ defmodule LantternWeb.StudentsRecordsLiveTest do
           description: "student record desc",
           school_id: school_id,
           students_ids: [student.id],
-          type_id: type.id,
+          tags_ids: [tag.id],
           status_id: status.id
         })
 
@@ -48,7 +48,7 @@ defmodule LantternWeb.StudentsRecordsLiveTest do
       assert view |> has_element?("span", student.name)
       assert view |> has_element?("a", student_record.name)
       assert view |> has_element?("p", student_record.description)
-      assert view |> has_element?("span", type.name)
+      assert view |> has_element?("span", tag.name)
       assert view |> has_element?("span", status.name)
     end
   end
@@ -200,10 +200,10 @@ defmodule LantternWeb.StudentsRecordsLiveTest do
       school_id = user.current_profile.school_id
       student = SchoolsFixtures.student_fixture(%{school_id: school_id, name: "std abc"})
 
-      type =
-        StudentsRecordsFixtures.student_record_type_fixture(%{
+      tag =
+        StudentsRecordsFixtures.student_record_tag_fixture(%{
           school_id: school_id,
-          name: "type abc"
+          name: "tag abc"
         })
 
       status =
@@ -219,7 +219,7 @@ defmodule LantternWeb.StudentsRecordsLiveTest do
           description: "student record desc",
           school_id: school_id,
           students_ids: [student.id],
-          type_id: type.id,
+          tags_ids: [tag.id],
           status_id: status.id
         })
 
@@ -229,7 +229,7 @@ defmodule LantternWeb.StudentsRecordsLiveTest do
       assert view |> has_element?("#student-record-overlay h5", student_record.name)
       assert view |> has_element?("#student-record-overlay span", student.name)
       assert view |> has_element?("#student-record-overlay p", student_record.description)
-      assert view |> has_element?("#student-record-overlay span", type.name)
+      assert view |> has_element?("#student-record-overlay span", tag.name)
       assert view |> has_element?("#student-record-overlay span", status.name)
     end
 

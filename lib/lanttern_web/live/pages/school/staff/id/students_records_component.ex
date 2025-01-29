@@ -114,21 +114,21 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
               <%= status.name %>
             </.badge>
           <% end %>
-          <%= if @selected_student_record_types == [] do %>
+          <%= if @selected_student_record_tags == [] do %>
             <.action
               type="button"
               icon_name="hero-chevron-down-mini"
-              phx-click={JS.exec("data-show", to: "#student-record-type-filter-modal")}
+              phx-click={JS.exec("data-show", to: "#student-record-tag-filter-modal")}
             >
-              <%= gettext("Type") %>
+              <%= gettext("Tag") %>
             </.action>
           <% else %>
             <.badge
-              :for={type <- @selected_student_record_types}
-              color_map={type}
-              on_remove={JS.push("remove_type_filter", target: @myself)}
+              :for={tag <- @selected_student_record_tags}
+              color_map={tag}
+              on_remove={JS.push("remove_tag_filter", target: @myself)}
             >
-              <%= type.name %>
+              <%= tag.name %>
             </.badge>
           <% end %>
         </div>
@@ -214,16 +214,16 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
         }
       />
       <.single_selection_filter_modal
-        id="student-record-type-filter-modal"
-        title={gettext("Filter students records by type")}
+        id="student-record-tag-filter-modal"
+        title={gettext("Filter students records by tag")}
         use_color_map_as_active
-        items={@student_record_types}
-        selected_item_id={Enum.at(@selected_student_record_types_ids, 0)}
+        items={@student_record_tags}
+        selected_item_id={Enum.at(@selected_student_record_tags_ids, 0)}
         on_cancel={%JS{}}
         on_select={
           fn id ->
-            JS.push("filter_by_type", value: %{"id" => id}, target: @myself)
-            |> JS.exec("data-cancel", to: "#student-record-type-filter-modal")
+            JS.push("filter_by_tag", value: %{"id" => id}, target: @myself)
+            |> JS.exec("data-cancel", to: "#student-record-tag-filter-modal")
           end
         }
       />
@@ -305,7 +305,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
     socket
     |> assign_user_filters([
       :students,
-      :student_record_types,
+      :student_record_tags,
       :student_record_statuses,
       :student_record_staff_member_view
     ])
@@ -334,7 +334,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
       current_user: %{current_profile: profile},
       selected_students_ids: students_ids,
       selected_classes_ids: classes_ids,
-      selected_student_record_types_ids: types_ids,
+      selected_student_record_tags_ids: tags_ids,
       selected_student_record_statuses_ids: statuses_ids
     } = socket.assigns
 
@@ -348,7 +348,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
         check_profile_permissions: profile,
         students_ids: students_ids,
         classes_ids: classes_ids,
-        types_ids: types_ids,
+        tags_ids: tags_ids,
         statuses_ids: statuses_ids,
         owner_id:
           if(socket.assigns.current_student_record_staff_member_view == "created_by",
@@ -359,7 +359,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
             do: [socket.assigns.staff_member.id]
           ),
         preloads: [
-          :type,
+          :tags,
           :status,
           :students,
           :created_by_staff_member,
@@ -408,10 +408,10 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
          Schools.list_classes_for_students_in_date(students_ids, Date.utc_today()))
       |> Enum.uniq_by(& &1.id)
 
-    type_id =
-      case socket.assigns.selected_student_record_types do
-        [type] -> type.id
-        _ -> nil
+    tags_id =
+      case socket.assigns.selected_student_record_tags do
+        tags when is_list(tags) -> Enum.map(tags, & &1.id)
+        _ -> []
       end
 
     status_id =
@@ -424,7 +424,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
       %{
         students: socket.assigns.selected_students,
         classes: classes,
-        type_id: type_id,
+        tags_id: tags_id,
         status_id: status_id,
         assignees: [socket.assigns.staff_member]
       }
@@ -493,12 +493,12 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
     {:noreply, socket}
   end
 
-  def handle_event("remove_type_filter", _, socket) do
+  def handle_event("remove_tag_filter", _, socket) do
     socket =
       socket
-      |> assign(:selected_student_record_types_ids, [])
-      |> save_profile_filters([:student_record_types])
-      |> assign_user_filters([:student_record_types])
+      |> assign(:selected_student_record_tags_ids, [])
+      |> save_profile_filters([:student_record_tags])
+      |> assign_user_filters([:student_record_tags])
       |> stream_students_records(true)
 
     {:noreply, socket}
@@ -515,15 +515,15 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
     {:noreply, socket}
   end
 
-  def handle_event("filter_by_type", %{"id" => id}, socket) do
+  def handle_event("filter_by_tag", %{"id" => id}, socket) do
     selected_ids =
-      if id in socket.assigns.selected_student_record_types_ids, do: [], else: [id]
+      if id in socket.assigns.selected_student_record_tags_ids, do: [], else: [id]
 
     socket =
       socket
-      |> assign(:selected_student_record_types_ids, selected_ids)
-      |> save_profile_filters([:student_record_types])
-      |> assign_user_filters([:student_record_types])
+      |> assign(:selected_student_record_tags_ids, selected_ids)
+      |> save_profile_filters([:student_record_tags])
+      |> assign_user_filters([:student_record_tags])
       |> stream_students_records(true)
 
     {:noreply, socket}

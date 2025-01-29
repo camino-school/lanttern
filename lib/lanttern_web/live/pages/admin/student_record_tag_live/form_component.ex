@@ -1,4 +1,4 @@
-defmodule LantternWeb.Admin.StudentRecordTypeLive.FormComponent do
+defmodule LantternWeb.Admin.StudentRecordTagLive.FormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.StudentsRecords
@@ -10,12 +10,12 @@ defmodule LantternWeb.Admin.StudentRecordTypeLive.FormComponent do
     <div>
       <.header>
         <%= @title %>
-        <:subtitle>Use this form to manage student_record_type records in your database.</:subtitle>
+        <:subtitle>Use this form to manage student_record_tag records in your database.</:subtitle>
       </.header>
 
       <.simple_form
         for={@form}
-        id="student_record_type-form"
+        id="student_record_tag-form"
         phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
@@ -32,7 +32,7 @@ defmodule LantternWeb.Admin.StudentRecordTypeLive.FormComponent do
         <.input field={@form[:bg_color]} type="text" label="Bg color" />
         <.input field={@form[:text_color]} type="text" label="Text color" />
         <:actions>
-          <.button phx-disable-with="Saving...">Save Student record type</.button>
+          <.button phx-disable-with="Saving...">Save Student record tag</.button>
         </:actions>
       </.simple_form>
     </div>
@@ -49,8 +49,8 @@ defmodule LantternWeb.Admin.StudentRecordTypeLive.FormComponent do
   end
 
   @impl true
-  def update(%{student_record_type: student_record_type} = assigns, socket) do
-    changeset = StudentsRecords.change_student_record_type(student_record_type)
+  def update(%{student_record_tag: student_record_tag} = assigns, socket) do
+    changeset = StudentsRecords.change_student_record_tag(student_record_tag)
 
     {:ok,
      socket
@@ -59,30 +59,30 @@ defmodule LantternWeb.Admin.StudentRecordTypeLive.FormComponent do
   end
 
   @impl true
-  def handle_event("validate", %{"student_record_type" => student_record_type_params}, socket) do
+  def handle_event("validate", %{"tag" => student_record_tag_params}, socket) do
     changeset =
-      socket.assigns.student_record_type
-      |> StudentsRecords.change_student_record_type(student_record_type_params)
+      socket.assigns.student_record_tag
+      |> StudentsRecords.change_student_record_tag(student_record_tag_params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}
   end
 
-  def handle_event("save", %{"student_record_type" => student_record_type_params}, socket) do
-    save_student_record_type(socket, socket.assigns.action, student_record_type_params)
+  def handle_event("save", %{"tag" => student_record_tag_params}, socket) do
+    save_student_record_tag(socket, socket.assigns.action, student_record_tag_params)
   end
 
-  defp save_student_record_type(socket, :edit, student_record_type_params) do
-    case StudentsRecords.update_student_record_type(
-           socket.assigns.student_record_type,
-           student_record_type_params
+  defp save_student_record_tag(socket, :edit, student_record_tag_params) do
+    case StudentsRecords.update_student_record_tag(
+           socket.assigns.student_record_tag,
+           student_record_tag_params
          ) do
-      {:ok, student_record_type} ->
-        notify_parent({:saved, student_record_type})
+      {:ok, student_record_tag} ->
+        notify_parent({:saved, student_record_tag})
 
         {:noreply,
          socket
-         |> put_flash(:info, "Student record type updated successfully")
+         |> put_flash(:info, "Student record tag updated successfully")
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -90,14 +90,14 @@ defmodule LantternWeb.Admin.StudentRecordTypeLive.FormComponent do
     end
   end
 
-  defp save_student_record_type(socket, :new, student_record_type_params) do
-    case StudentsRecords.create_student_record_type(student_record_type_params) do
-      {:ok, student_record_type} ->
-        notify_parent({:saved, student_record_type})
+  defp save_student_record_tag(socket, :new, student_record_tag_params) do
+    case StudentsRecords.create_student_record_tag(student_record_tag_params) do
+      {:ok, student_record_tag} ->
+        notify_parent({:saved, student_record_tag})
 
         {:noreply,
          socket
-         |> put_flash(:info, "Student record type created successfully")
+         |> put_flash(:info, "Student record tag created successfully")
          |> push_patch(to: socket.assigns.patch)}
 
       {:error, %Ecto.Changeset{} = changeset} ->

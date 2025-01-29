@@ -33,12 +33,13 @@ defmodule Lanttern.StudentsRecordsTest do
 
     test "list_students_records/1 with preloads opt returns all students_records with preloaded data" do
       school = SchoolsFixtures.school_fixture()
-      type = student_record_type_fixture(%{school_id: school.id})
-      student_record = student_record_fixture(%{type_id: type.id, school_id: school.id})
+      tag = student_record_tag_fixture(%{school_id: school.id})
+      student_record = student_record_fixture(%{tags_ids: [tag.id], school_id: school.id})
 
-      [expected] = StudentsRecords.list_students_records(preloads: :type)
+      [expected] = StudentsRecords.list_students_records(preloads: :tags)
       assert expected.id == student_record.id
-      assert expected.type.id == type.id
+      [expected_tag] = expected.tags
+      assert expected_tag.id == tag.id
     end
 
     test "list_students_records/1 with students opt returns records filtered by students" do
@@ -90,23 +91,23 @@ defmodule Lanttern.StudentsRecordsTest do
       assert expected_student_record.id == student_record.id
     end
 
-    test "list_students_records/1 with types and statuses opts students_records filtered by given types and statuses" do
+    test "list_students_records/1 with tags and statuses opts students_records filtered by given tags and statuses" do
       school = SchoolsFixtures.school_fixture()
-      type = student_record_type_fixture(%{school_id: school.id})
+      tag = student_record_tag_fixture(%{school_id: school.id})
       status = student_record_status_fixture(%{school_id: school.id})
 
       student_record =
-        student_record_fixture(%{school_id: school.id, type_id: type.id, status_id: status.id})
+        student_record_fixture(%{school_id: school.id, tags_ids: [tag.id], status_id: status.id})
 
       # extra fixture to test filtering
       student_record_fixture()
-      student_record_fixture(%{school_id: school.id, type_id: type.id})
+      student_record_fixture(%{school_id: school.id, tags_ids: [tag.id]})
       student_record_fixture(%{school_id: school.id, status_id: status.id})
 
       [expected_student_record] =
         StudentsRecords.list_students_records(
           school_id: school.id,
-          types_ids: [type.id],
+          tags_ids: [tag.id],
           statuses_ids: [status.id]
         )
 
@@ -280,10 +281,10 @@ defmodule Lanttern.StudentsRecordsTest do
 
     test "list_students_records_page/1 handles empty students_records correctly" do
       _student_record = student_record_fixture()
-      type = student_record_type_fixture()
+      tag = student_record_tag_fixture()
 
       %Page{results: [], has_next: false} =
-        StudentsRecords.list_students_records_page(types_ids: [type.id])
+        StudentsRecords.list_students_records_page(tags_ids: [tag.id])
     end
 
     test "get_student_record/2 returns the student_record with given id" do
@@ -300,12 +301,13 @@ defmodule Lanttern.StudentsRecordsTest do
 
     test "get_student_record/2 with preload opts returns the student_record with preloaded data" do
       school = SchoolsFixtures.school_fixture()
-      type = student_record_type_fixture(%{school_id: school.id})
-      student_record = student_record_fixture(%{type_id: type.id, school_id: school.id})
+      tag = student_record_tag_fixture(%{school_id: school.id})
+      student_record = student_record_fixture(%{tags_ids: [tag.id], school_id: school.id})
 
-      expected = StudentsRecords.get_student_record(student_record.id, preloads: :type)
+      expected = StudentsRecords.get_student_record(student_record.id, preloads: :tags)
       assert expected.id == student_record.id
-      assert expected.type.id == type.id
+      [expected_tag] = expected.tags
+      assert expected_tag.id == tag.id
     end
 
     test "get_student_record/2 with check_profile_permissions filters results correctly" do
@@ -478,7 +480,7 @@ defmodule Lanttern.StudentsRecordsTest do
 
     test "create_student_record/1 with valid data creates a student_record" do
       school = SchoolsFixtures.school_fixture()
-      type = student_record_type_fixture(%{school_id: school.id})
+      tag = student_record_tag_fixture(%{school_id: school.id})
       status = student_record_status_fixture(%{school_id: school.id})
       staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
       student = SchoolsFixtures.student_fixture(%{school_id: school.id})
@@ -491,7 +493,7 @@ defmodule Lanttern.StudentsRecordsTest do
       valid_attrs = %{
         school_id: school.id,
         status_id: status.id,
-        type_id: type.id,
+        tags_ids: [tag.id],
         name: "some name",
         date: ~D[2024-09-15],
         time: ~T[14:00:00],
@@ -505,18 +507,17 @@ defmodule Lanttern.StudentsRecordsTest do
       assert {:ok, %StudentRecord{} = student_record} =
                StudentsRecords.create_student_record(valid_attrs, log_profile_id: profile.id)
 
+      student_record =
+        student_record
+        |> Repo.preload([:created_by_staff_member, :students, :classes, :assignees, :tags])
+
       assert student_record.school_id == school.id
       assert student_record.status_id == status.id
-      assert student_record.type_id == type.id
+      assert student_record.tags == [tag]
       assert student_record.name == "some name"
       assert student_record.date == ~D[2024-09-15]
       assert student_record.time == ~T[14:00:00]
       assert student_record.description == "some description"
-
-      student_record =
-        student_record
-        |> Repo.preload([:created_by_staff_member, :students, :classes, :assignees])
-
       assert student_record.created_by_staff_member == staff_member
       assert student_record.students == [student]
       assert student_record.classes == [class]
@@ -538,7 +539,7 @@ defmodule Lanttern.StudentsRecordsTest do
         assert student_record_log.classes_ids == [class.id]
         assert student_record_log.school_id == student_record.school_id
         assert student_record_log.status_id == student_record.status_id
-        assert student_record_log.type_id == student_record.type_id
+        assert student_record_log.tags_ids == [tag.id]
         assert student_record_log.name == student_record.name
         assert student_record_log.date == student_record.date
         assert student_record_log.time == student_record.time
@@ -617,7 +618,7 @@ defmodule Lanttern.StudentsRecordsTest do
         assert student_record_log.assignees_ids == [updated_assignee.id]
         assert student_record_log.school_id == student_record.school_id
         assert student_record_log.status_id == student_record.status_id
-        assert student_record_log.type_id == student_record.type_id
+        assert student_record_log.tags_ids == student_record.tags_ids
         assert student_record_log.name == student_record.name
         assert student_record_log.date == student_record.date
         assert student_record_log.time == student_record.time
@@ -881,39 +882,39 @@ defmodule Lanttern.StudentsRecordsTest do
     end
   end
 
-  describe "student_record_types" do
-    alias Lanttern.StudentsRecords.StudentRecordType
+  describe "student_record_tags" do
+    alias Lanttern.StudentsRecords.Tag
 
     import Lanttern.StudentsRecordsFixtures
     alias Lanttern.SchoolsFixtures
 
     @invalid_attrs %{name: nil, bg_color: nil, text_color: nil}
 
-    test "list_student_record_types/1 returns all student_record_types" do
-      student_record_type = student_record_type_fixture()
-      assert StudentsRecords.list_student_record_types() == [student_record_type]
+    test "list_student_record_tags/1 returns all student_record_tags" do
+      student_record_tag = student_record_tag_fixture()
+      assert StudentsRecords.list_student_record_tags() == [student_record_tag]
     end
 
-    test "list_student_record_types/1 with school_id opt returns all student_record_types filtered by given school" do
+    test "list_student_record_tags/1 with school_id opt returns all student_record_tags filtered by given school" do
       school = SchoolsFixtures.school_fixture()
-      student_record_type = student_record_type_fixture(%{school_id: school.id})
+      student_record_tag = student_record_tag_fixture(%{school_id: school.id})
 
       # other fixture for filter testing
-      student_record_type_fixture()
+      student_record_tag_fixture()
 
-      assert StudentsRecords.list_student_record_types(school_id: school.id) == [
-               student_record_type
+      assert StudentsRecords.list_student_record_tags(school_id: school.id) == [
+               student_record_tag
              ]
     end
 
-    test "get_student_record_type!/1 returns the student_record_type with given id" do
-      student_record_type = student_record_type_fixture()
+    test "get_student_record_tag!/1 returns the student_record_tag with given id" do
+      student_record_tag = student_record_tag_fixture()
 
-      assert StudentsRecords.get_student_record_type!(student_record_type.id) ==
-               student_record_type
+      assert StudentsRecords.get_student_record_tag!(student_record_tag.id) ==
+               student_record_tag
     end
 
-    test "create_student_record_type/1 with valid data creates a student_record_type" do
+    test "create_student_record_tag/1 with valid data creates a student_record_tag" do
       school = SchoolsFixtures.school_fixture()
 
       valid_attrs = %{
@@ -923,56 +924,56 @@ defmodule Lanttern.StudentsRecordsTest do
         text_color: "#ffffff"
       }
 
-      assert {:ok, %StudentRecordType{} = student_record_type} =
-               StudentsRecords.create_student_record_type(valid_attrs)
+      assert {:ok, %Tag{} = student_record_tag} =
+               StudentsRecords.create_student_record_tag(valid_attrs)
 
-      assert student_record_type.school_id == school.id
-      assert student_record_type.name == "some name"
-      assert student_record_type.bg_color == "#000000"
-      assert student_record_type.text_color == "#ffffff"
+      assert student_record_tag.school_id == school.id
+      assert student_record_tag.name == "some name"
+      assert student_record_tag.bg_color == "#000000"
+      assert student_record_tag.text_color == "#ffffff"
     end
 
-    test "create_student_record_type/1 with invalid data returns error changeset" do
+    test "create_student_record_tag/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} =
-               StudentsRecords.create_student_record_type(@invalid_attrs)
+               StudentsRecords.create_student_record_tag(@invalid_attrs)
     end
 
-    test "update_student_record_type/2 with valid data updates the student_record_type" do
-      student_record_type = student_record_type_fixture()
+    test "update_student_record_tag/2 with valid data updates the student_record_tag" do
+      student_record_tag = student_record_tag_fixture()
       update_attrs = %{name: "some updated name", bg_color: "#ffffff", text_color: "#000000"}
 
-      assert {:ok, %StudentRecordType{} = student_record_type} =
-               StudentsRecords.update_student_record_type(student_record_type, update_attrs)
+      assert {:ok, %Tag{} = student_record_tag} =
+               StudentsRecords.update_student_record_tag(student_record_tag, update_attrs)
 
-      assert student_record_type.name == "some updated name"
-      assert student_record_type.bg_color == "#ffffff"
-      assert student_record_type.text_color == "#000000"
+      assert student_record_tag.name == "some updated name"
+      assert student_record_tag.bg_color == "#ffffff"
+      assert student_record_tag.text_color == "#000000"
     end
 
-    test "update_student_record_type/2 with invalid data returns error changeset" do
-      student_record_type = student_record_type_fixture()
+    test "update_student_record_tag/2 with invalid data returns error changeset" do
+      student_record_tag = student_record_tag_fixture()
 
       assert {:error, %Ecto.Changeset{}} =
-               StudentsRecords.update_student_record_type(student_record_type, @invalid_attrs)
+               StudentsRecords.update_student_record_tag(student_record_tag, @invalid_attrs)
 
-      assert student_record_type ==
-               StudentsRecords.get_student_record_type!(student_record_type.id)
+      assert student_record_tag ==
+               StudentsRecords.get_student_record_tag!(student_record_tag.id)
     end
 
-    test "delete_student_record_type/1 deletes the student_record_type" do
-      student_record_type = student_record_type_fixture()
+    test "delete_student_record_tag/1 deletes the student_record_tag" do
+      student_record_tag = student_record_tag_fixture()
 
-      assert {:ok, %StudentRecordType{}} =
-               StudentsRecords.delete_student_record_type(student_record_type)
+      assert {:ok, %Tag{}} =
+               StudentsRecords.delete_student_record_tag(student_record_tag)
 
       assert_raise Ecto.NoResultsError, fn ->
-        StudentsRecords.get_student_record_type!(student_record_type.id)
+        StudentsRecords.get_student_record_tag!(student_record_tag.id)
       end
     end
 
-    test "change_student_record_type/1 returns a student_record_type changeset" do
-      student_record_type = student_record_type_fixture()
-      assert %Ecto.Changeset{} = StudentsRecords.change_student_record_type(student_record_type)
+    test "change_student_record_tag/1 returns a student_record_tag changeset" do
+      student_record_tag = student_record_tag_fixture()
+      assert %Ecto.Changeset{} = StudentsRecords.change_student_record_tag(student_record_tag)
     end
   end
 
@@ -989,7 +990,7 @@ defmodule Lanttern.StudentsRecordsTest do
       assert StudentsRecords.list_student_record_statuses() == [student_record_status]
     end
 
-    test "list_student_record_statuses/1 with school_id opt returns all student_record_types filtered by given school" do
+    test "list_student_record_statuses/1 with school_id opt returns all student_record_tags filtered by given school" do
       school = SchoolsFixtures.school_fixture()
       student_record_status = student_record_status_fixture(%{school_id: school.id})
 

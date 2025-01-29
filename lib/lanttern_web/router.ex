@@ -303,12 +303,12 @@ defmodule LantternWeb.Router do
     live "/students_records/:id", Admin.StudentRecordLive.Show, :show
     live "/students_records/:id/show/edit", Admin.StudentRecordLive.Show, :edit
 
-    live "/student_record_types", Admin.StudentRecordTypeLive.Index, :index
-    live "/student_record_types/new", Admin.StudentRecordTypeLive.Index, :new
-    live "/student_record_types/:id/edit", Admin.StudentRecordTypeLive.Index, :edit
+    live "/student_record_tags", Admin.StudentRecordTagLive.Index, :index
+    live "/student_record_tags/new", Admin.StudentRecordTagLive.Index, :new
+    live "/student_record_tags/:id/edit", Admin.StudentRecordTagLive.Index, :edit
 
-    live "/student_record_types/:id", Admin.StudentRecordTypeLive.Show, :show
-    live "/student_record_types/:id/show/edit", Admin.StudentRecordTypeLive.Show, :edit
+    live "/student_record_tags/:id", Admin.StudentRecordTagLive.Show, :show
+    live "/student_record_tags/:id/show/edit", Admin.StudentRecordTagLive.Show, :edit
 
     live "/student_record_statuses", Admin.StudentRecordStatusLive.Index, :index
     live "/student_record_statuses/new", Admin.StudentRecordStatusLive.Index, :new

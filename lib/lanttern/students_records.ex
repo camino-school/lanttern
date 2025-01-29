@@ -52,6 +52,8 @@ defmodule Lanttern.StudentsRecords do
   alias Lanttern.Schools.StaffMember
   alias Lanttern.StudentsRecords.AssigneeRelationship
   alias Lanttern.StudentsRecords.StudentRecord
+  alias Lanttern.StudentsRecords.StudentRecordStatus
+  alias Lanttern.StudentsRecords.Tag
   alias Lanttern.StudentsRecordsLog
 
   @doc """
@@ -62,8 +64,8 @@ defmodule Lanttern.StudentsRecords do
   - `:school_id` - filter results by school
   - `:students_ids` - filter results by students
   - `:classes_ids` - filter results by classes
-  - `:types_ids` - filter results by type
   - `:statuses_ids` - filter results by status
+  - `:tags_ids` - filter results by tag
   - `:owner_id` - filter results by owner
   - `:assignees_ids` - filter results by assignees
   - `:check_profile_permissions` - filter results based on profile permission
@@ -81,7 +83,7 @@ defmodule Lanttern.StudentsRecords do
             school_id: pos_integer(),
             students_ids: [pos_integer()],
             classes_ids: [pos_integer()],
-            types_ids: [pos_integer()],
+            tags_ids: [pos_integer()],
             statuses_ids: [pos_integer()],
             owner_id: pos_integer(),
             assignees_ids: [pos_integer()],
@@ -131,20 +133,21 @@ defmodule Lanttern.StudentsRecords do
     |> apply_list_students_records_opts(opts)
   end
 
-  defp apply_list_students_records_opts(queryable, [{:types_ids, types_ids} | opts])
-       when is_list(types_ids) and types_ids != [] do
-    from(
-      sr in queryable,
-      where: sr.type_id in ^types_ids
-    )
-    |> apply_list_students_records_opts(opts)
-  end
-
   defp apply_list_students_records_opts(queryable, [{:statuses_ids, statuses_ids} | opts])
        when is_list(statuses_ids) and statuses_ids != [] do
     from(
       sr in queryable,
       where: sr.status_id in ^statuses_ids
+    )
+    |> apply_list_students_records_opts(opts)
+  end
+
+  defp apply_list_students_records_opts(queryable, [{:tags_ids, tags_ids} | opts])
+       when is_list(tags_ids) and tags_ids != [] do
+    from(
+      sr in queryable,
+      join: srt in assoc(sr, :tags_relationships),
+      where: srt.tag_id in ^tags_ids
     )
     |> apply_list_students_records_opts(opts)
   end
@@ -520,10 +523,8 @@ defmodule Lanttern.StudentsRecords do
     StudentRecord.changeset(student_record, attrs)
   end
 
-  alias Lanttern.StudentsRecords.StudentRecordType
-
   @doc """
-  Returns the list of student_record_types.
+  Returns the list of student_record_tags.
 
   ## Options
 
@@ -531,114 +532,112 @@ defmodule Lanttern.StudentsRecords do
 
   ## Examples
 
-      iex> list_student_record_types()
-      [%StudentRecordType{}, ...]
+      iex> list_student_record_tags()
+      [%Tag{}, ...]
 
   """
-  def list_student_record_types(opts \\ []) do
+  def list_student_record_tags(opts \\ []) do
     from(
-      srt in StudentRecordType,
-      order_by: srt.name
+      t in Tag,
+      order_by: t.position
     )
-    |> apply_list_student_record_types_opts(opts)
+    |> apply_list_student_record_tags_opts(opts)
     |> Repo.all()
   end
 
-  defp apply_list_student_record_types_opts(queryable, []), do: queryable
+  defp apply_list_student_record_tags_opts(queryable, []), do: queryable
 
-  defp apply_list_student_record_types_opts(queryable, [{:school_id, school_id} | opts]) do
+  defp apply_list_student_record_tags_opts(queryable, [{:school_id, school_id} | opts]) do
     from(
-      srt in queryable,
-      where: srt.school_id == ^school_id
+      t in queryable,
+      where: t.school_id == ^school_id
     )
-    |> apply_list_student_record_types_opts(opts)
+    |> apply_list_student_record_tags_opts(opts)
   end
 
-  defp apply_list_student_record_types_opts(queryable, [_ | opts]),
-    do: apply_list_student_record_types_opts(queryable, opts)
+  defp apply_list_student_record_tags_opts(queryable, [_ | opts]),
+    do: apply_list_student_record_tags_opts(queryable, opts)
 
   @doc """
-  Gets a single student_record_type.
+  Gets a single student_record_tag.
 
-  Raises `Ecto.NoResultsError` if the Student record type does not exist.
+  Raises `Ecto.NoResultsError` if the Student record tag does not exist.
 
   ## Examples
 
-      iex> get_student_record_type!(123)
-      %StudentRecordType{}
+      iex> get_student_record_tag!(123)
+      %Tag{}
 
-      iex> get_student_record_type!(456)
+      iex> get_student_record_tag!(456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_student_record_type!(id), do: Repo.get!(StudentRecordType, id)
+  def get_student_record_tag!(id), do: Repo.get!(Tag, id)
 
   @doc """
-  Creates a student_record_type.
+  Creates a student_record_tag.
 
   ## Examples
 
-      iex> create_student_record_type(%{field: value})
-      {:ok, %StudentRecordType{}}
+      iex> create_student_record_tag(%{field: value})
+      {:ok, %Tag{}}
 
-      iex> create_student_record_type(%{field: bad_value})
+      iex> create_student_record_tag(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_student_record_type(attrs \\ %{}) do
-    %StudentRecordType{}
-    |> StudentRecordType.changeset(attrs)
+  def create_student_record_tag(attrs \\ %{}) do
+    %Tag{}
+    |> Tag.changeset(attrs)
     |> Repo.insert()
   end
 
   @doc """
-  Updates a student_record_type.
+  Updates a student_record_tag.
 
   ## Examples
 
-      iex> update_student_record_type(student_record_type, %{field: new_value})
-      {:ok, %StudentRecordType{}}
+      iex> update_student_record_tag(student_record_tag, %{field: new_value})
+      {:ok, %Tag{}}
 
-      iex> update_student_record_type(student_record_type, %{field: bad_value})
+      iex> update_student_record_tag(student_record_tag, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_student_record_type(%StudentRecordType{} = student_record_type, attrs) do
-    student_record_type
-    |> StudentRecordType.changeset(attrs)
+  def update_student_record_tag(%Tag{} = student_record_tag, attrs) do
+    student_record_tag
+    |> Tag.changeset(attrs)
     |> Repo.update()
   end
 
   @doc """
-  Deletes a student_record_type.
+  Deletes a student_record_tag.
 
   ## Examples
 
-      iex> delete_student_record_type(student_record_type)
-      {:ok, %StudentRecordType{}}
+      iex> delete_student_record_tag(student_record_tag)
+      {:ok, %Tag{}}
 
-      iex> delete_student_record_type(student_record_type)
+      iex> delete_student_record_tag(student_record_tag)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_student_record_type(%StudentRecordType{} = student_record_type) do
-    Repo.delete(student_record_type)
+  def delete_student_record_tag(%Tag{} = student_record_tag) do
+    Repo.delete(student_record_tag)
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for tracking student_record_type changes.
+  Returns an `%Ecto.Changeset{}` for tracking student_record_tag changes.
 
   ## Examples
 
-      iex> change_student_record_type(student_record_type)
-      %Ecto.Changeset{data: %StudentRecordType{}}
+      iex> change_student_record_tag(student_record_tag)
+      %Ecto.Changeset{data: %Tag{}}
 
   """
-  def change_student_record_type(%StudentRecordType{} = student_record_type, attrs \\ %{}) do
-    StudentRecordType.changeset(student_record_type, attrs)
+  def change_student_record_tag(%Tag{} = student_record_tag, attrs \\ %{}) do
+    Tag.changeset(student_record_tag, attrs)
   end
-
-  alias Lanttern.StudentsRecords.StudentRecordStatus
 
   @doc """
   Returns the list of student_record_statuses.

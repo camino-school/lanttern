@@ -15,7 +15,7 @@ defmodule Lanttern.StudentsRecordsFixtures do
       |> maybe_inject_school_id()
       |> maybe_inject_created_by_staff_member_id()
       |> maybe_inject_students_ids()
-      |> maybe_inject_type_id()
+      |> maybe_inject_tags_ids()
       |> maybe_inject_status_id()
       |> Enum.into(%{
         date: ~D[2024-09-15],
@@ -29,10 +29,10 @@ defmodule Lanttern.StudentsRecordsFixtures do
   end
 
   @doc """
-  Generate a student_record_type.
+  Generate a student_record_tag.
   """
-  def student_record_type_fixture(attrs \\ %{}) do
-    {:ok, student_record_type} =
+  def student_record_tag_fixture(attrs \\ %{}) do
+    {:ok, student_record_tag} =
       attrs
       |> Enum.into(%{
         school_id: SchoolsFixtures.maybe_gen_school_id(attrs),
@@ -40,9 +40,9 @@ defmodule Lanttern.StudentsRecordsFixtures do
         bg_color: "#000000",
         text_color: "#ffffff"
       })
-      |> Lanttern.StudentsRecords.create_student_record_type()
+      |> Lanttern.StudentsRecords.create_student_record_tag()
 
-    student_record_type
+    student_record_tag
   end
 
   @doc """
@@ -64,12 +64,12 @@ defmodule Lanttern.StudentsRecordsFixtures do
 
   # generator helpers
 
-  def maybe_gen_student_record_type_id(attrs, school_id \\ nil)
+  def maybe_gen_student_record_tags_ids(attrs, school_id \\ nil)
 
-  def maybe_gen_student_record_type_id(%{type_id: type_id}, _), do: type_id
+  def maybe_gen_student_record_tags_ids(%{tags_ids: tags_ids}, _), do: tags_ids
 
-  def maybe_gen_student_record_type_id(_attrs, school_id),
-    do: student_record_type_fixture(%{school_id: school_id}).id
+  def maybe_gen_student_record_tags_ids(_attrs, school_id),
+    do: [student_record_tag_fixture(%{school_id: school_id}).id]
 
   # helpers
 
@@ -98,11 +98,11 @@ defmodule Lanttern.StudentsRecordsFixtures do
     |> Map.put(:students_ids, [SchoolsFixtures.student_fixture(%{school_id: school_id}).id])
   end
 
-  defp maybe_inject_type_id(%{type_id: _} = attrs), do: attrs
+  defp maybe_inject_tags_ids(%{tags_ids: _} = attrs), do: attrs
 
-  defp maybe_inject_type_id(%{school_id: school_id} = attrs) do
+  defp maybe_inject_tags_ids(%{school_id: school_id} = attrs) do
     attrs
-    |> Map.put(:type_id, student_record_type_fixture(%{school_id: school_id}).id)
+    |> Map.put(:tags_ids, [student_record_tag_fixture(%{school_id: school_id}).id])
   end
 
   defp maybe_inject_status_id(%{status_id: _} = attrs), do: attrs

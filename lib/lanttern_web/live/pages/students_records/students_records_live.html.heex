@@ -54,21 +54,21 @@
           <%= status.name %>
         </.badge>
       <% end %>
-      <%= if @selected_student_record_types == [] do %>
+      <%= if @selected_student_record_tags == [] do %>
         <.action
           type="button"
           icon_name="hero-chevron-down-mini"
-          phx-click={JS.exec("data-show", to: "#student-record-type-filter-modal")}
+          phx-click={JS.exec("data-show", to: "#student-record-tag-filter-modal")}
         >
-          <%= gettext("Type") %>
+          <%= gettext("Tag") %>
         </.action>
       <% else %>
         <.badge
-          :for={type <- @selected_student_record_types}
-          color_map={type}
-          on_remove={JS.push("remove_type_filter")}
+          :for={tag <- @selected_student_record_tags}
+          color_map={tag}
+          on_remove={JS.push("remove_tag_filter")}
         >
-          <%= type.name %>
+          <%= tag.name %>
         </.badge>
       <% end %>
       <%= if @selected_student_record_assignees == [] do %>
@@ -154,16 +154,16 @@
   selected_classes_ids={@selected_classes_ids}
 />
 <.single_selection_filter_modal
-  id="student-record-type-filter-modal"
-  title={gettext("Filter students records by type")}
+  id="student-record-tag-filter-modal"
+  title={gettext("Filter students records by tag")}
   use_color_map_as_active
-  items={@student_record_types}
-  selected_item_id={Enum.at(@selected_student_record_types_ids, 0)}
+  items={@student_record_tags}
+  selected_item_id={Enum.at(@selected_student_record_tags_ids, 0)}
   on_cancel={%JS{}}
   on_select={
     fn id ->
-      JS.push("filter_by_type", value: %{"id" => id})
-      |> JS.exec("data-cancel", to: "#student-record-type-filter-modal")
+      JS.push("filter_by_tag", value: %{"id" => id})
+      |> JS.exec("data-cancel", to: "#student-record-tag-filter-modal")
     end
   }
 />

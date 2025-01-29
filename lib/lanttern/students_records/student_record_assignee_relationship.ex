@@ -8,10 +8,9 @@ defmodule Lanttern.StudentsRecords.AssigneeRelationship do
 
   @primary_key false
   schema "students_records_assignees" do
-    field :student_record_id, :id, primary_key: true
-    field :school_id, :id
-
-    belongs_to :staff_member, Lanttern.Schools.Student, primary_key: true
+    belongs_to :student_record, Lanttern.StudentsRecords.StudentRecord, primary_key: true
+    belongs_to :staff_member, Lanttern.Schools.StaffMember, primary_key: true
+    belongs_to :school, Lanttern.Schools.School
   end
 
   @doc false
