@@ -233,7 +233,7 @@ defmodule Lanttern.StudentsRecords do
   defp apply_check_profile_read_permissions(
          queryable,
          %Profile{staff_member: %StaffMember{id: staff_member_id, school_id: school_id}},
-         _has_full_acceess = false
+         false
        ) do
     from(
       sr in queryable,

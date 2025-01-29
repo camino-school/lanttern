@@ -346,6 +346,7 @@ defmodule LantternWeb.MenuComponent do
     LantternWeb.SchoolLive => :school_management,
     LantternWeb.ClassLive => :school_management,
     LantternWeb.StudentLive => :school_management,
+    LantternWeb.StaffMemberLive => :school_management,
 
     # assessment points
     LantternWeb.AssessmentPointsLive => :assessment_points,
@@ -468,6 +469,12 @@ defmodule LantternWeb.MenuComponent do
         active: :student_report_card,
         path: ~p"/guardian",
         text: gettext("Report cards")
+      },
+      %{
+        profile: "guardian",
+        active: :student_strands,
+        path: ~p"/student_strands",
+        text: gettext("Strands")
       }
     ]
 
