@@ -75,7 +75,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
             <.badge
               :for={assignee <- @selected_student_record_assignees}
               on_remove={JS.push("remove_assignee_filter", target: @myself)}
-              theme="teacher"
+              theme="staff"
             >
               <%= assignee.name %>
             </.badge>

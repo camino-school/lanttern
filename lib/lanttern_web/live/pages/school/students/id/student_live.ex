@@ -42,7 +42,7 @@ defmodule LantternWeb.StudentLive do
   end
 
   # check if user can view the student profile
-  # teachers can view only students from their school
+  # staff members can view only students from their school
   defp check_if_user_has_access(current_user, student) do
     if student.school_id != current_user.current_profile.school_id,
       do: raise(LantternWeb.NotFoundError)

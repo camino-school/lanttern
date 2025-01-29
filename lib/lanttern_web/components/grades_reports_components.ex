@@ -910,7 +910,7 @@ defmodule LantternWeb.GradesReportsComponents do
         <.icon
           :if={@entry.comment}
           name="hero-chat-bubble-oval-left-mini"
-          class="text-ltrn-teacher-accent"
+          class="text-ltrn-staff-accent"
         />
         <.icon_button
           :if={@on_calculate_cell}
@@ -955,7 +955,7 @@ defmodule LantternWeb.GradesReportsComponents do
          _
        )
        when score != composition_score,
-       do: "p-1 border border-ltrn-teacher-accent bg-ltrn-teacher-lightest"
+       do: "p-1 border border-ltrn-staff-accent bg-ltrn-staff-lightest"
 
   defp get_students_grades_grid_cell_wrapper_class(
          %{
@@ -965,7 +965,7 @@ defmodule LantternWeb.GradesReportsComponents do
          _
        )
        when ordinal_value_id != composition_ordinal_value_id,
-       do: "p-1 border border-ltrn-teacher-accent bg-ltrn-teacher-lightest"
+       do: "p-1 border border-ltrn-staff-accent bg-ltrn-staff-lightest"
 
   defp get_students_grades_grid_cell_wrapper_class(%{comment: comment}, _)
        when is_binary(comment),

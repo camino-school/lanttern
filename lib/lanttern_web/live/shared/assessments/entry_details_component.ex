@@ -38,7 +38,7 @@ defmodule LantternWeb.Assessments.EntryDetailsComponent do
         class="mt-10"
       >
         <div class="grid grid-cols-2 gap-2">
-          <div class="pb-1 border-b-2 border-ltrn-teacher-accent text-xs text-center text-ltrn-teacher-dark">
+          <div class="pb-1 border-b-2 border-ltrn-staff-accent text-xs text-center text-ltrn-staff-dark">
             <%= gettext("Teacher assessment") %>
           </div>
           <div class="pb-1 border-b-2 border-ltrn-student-accent text-xs text-center text-ltrn-student-dark">
@@ -110,7 +110,7 @@ defmodule LantternWeb.Assessments.EntryDetailsComponent do
         is_editing={@is_editing_note}
         form={@form}
         error={@save_note_error}
-        theme="teacher"
+        theme="staff"
         on_edit={JS.push("edit_note", target: @myself)}
         on_cancel={JS.push("cancel_edit_note", target: @myself)}
         on_save={JS.push("save_note", target: @myself)}
@@ -218,9 +218,9 @@ defmodule LantternWeb.Assessments.EntryDetailsComponent do
       case assigns.theme do
         "teacher" ->
           %{
-            bg_lightest: "bg-ltrn-teacher-lightest",
-            text_accent: "text-ltrn-teacher-accent",
-            text_dark: "text-ltrn-teacher-dark",
+            bg_lightest: "bg-ltrn-staff-lightest",
+            text_accent: "text-ltrn-staff-accent",
+            text_dark: "text-ltrn-staff-dark",
             comment_text: gettext("Teacher comment"),
             no_comment_text: gettext("No teacher comment"),
             field: assigns.form[:report_note]

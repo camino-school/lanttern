@@ -66,12 +66,12 @@ defmodule LantternWeb.SchoolsHelpers do
   end
 
   @doc """
-  Generate list of teachers to use as `Phoenix.HTML.Form.options_for_select/2` arg
+  Generate list of staff members to use as `Phoenix.HTML.Form.options_for_select/2` arg
 
   ## Examples
 
       iex> generate_staff_member_options()
-      [{"teacher name", 1}, ...]
+      [{"staff member name", 1}, ...]
   """
   def generate_staff_member_options() do
     Schools.list_staff_members()

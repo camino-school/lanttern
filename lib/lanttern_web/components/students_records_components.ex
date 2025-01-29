@@ -106,7 +106,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
           </div>
         </div>
         <div class="px-2 pb-2">
-          <div class="flex items-center gap-4 p-2 rounded-sm bg-ltrn-teacher-lightest">
+          <div class="flex items-center gap-4 p-2 rounded-sm bg-ltrn-staff-lightest">
             <div class="flex items-center gap-2">
               <span class="text-xs text-ltrn-subtle"><%= gettext("Created by") %></span>
               <.person_badge

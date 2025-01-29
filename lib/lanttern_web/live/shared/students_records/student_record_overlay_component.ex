@@ -133,8 +133,8 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               phx-debounce="1500"
             />
             <.markdown_supported class="mb-6" />
-            <div class="p-4 rounded-sm mb-6 bg-ltrn-teacher-lightest">
-              <p class="mb-6 font-bold text-ltrn-teacher-dark">
+            <div class="p-4 rounded-sm mb-6 bg-ltrn-staff-lightest">
+              <p class="mb-6 font-bold text-ltrn-staff-dark">
                 <%= gettext("Internal student record tracking") %>
               </p>
               <div>
@@ -244,8 +244,8 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               </div>
             </div>
             <.markdown text={@student_record.description} class="mt-6" />
-            <div class="p-4 rounded-sm mt-6 bg-ltrn-teacher-lightest">
-              <p class="mb-6 font-bold text-ltrn-teacher-dark">
+            <div class="p-4 rounded-sm mt-6 bg-ltrn-staff-lightest">
+              <p class="mb-6 font-bold text-ltrn-staff-dark">
                 <%= gettext("Internal student record tracking") %>
               </p>
               <div class="flex items-center gap-2">

@@ -252,8 +252,8 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
 
   defp assessment_metadata_icon_attrs(:teacher_comment),
     do:
-      {gettext("Teacher comment"), "hero-chat-bubble-oval-left-mini", "bg-ltrn-teacher-lighter",
-       "text-ltrn-teacher-accent"}
+      {gettext("Teacher comment"), "hero-chat-bubble-oval-left-mini", "bg-ltrn-staff-lighter",
+       "text-ltrn-staff-accent"}
 
   defp assessment_metadata_icon_attrs(:student_comment),
     do:
