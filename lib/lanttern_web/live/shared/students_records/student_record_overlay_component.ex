@@ -101,6 +101,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 notify_component={@myself}
                 label={gettext("Students")}
                 refocus_on_select="true"
+                school_id={@current_user.current_profile.school_id}
               />
               <div :if={@selected_students != []} class="flex flex-wrap gap-2 mt-2">
                 <.person_badge
@@ -143,6 +144,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                   notify_component={@myself}
                   label={gettext("Assignees")}
                   refocus_on_select="true"
+                  school_id={@current_user.current_profile.school_id}
                 />
                 <div :if={@selected_assignees != []} class="flex flex-wrap gap-2 mt-2">
                   <.person_badge

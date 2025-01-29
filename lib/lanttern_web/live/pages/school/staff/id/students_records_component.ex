@@ -186,6 +186,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
             id="student-search-modal-search"
             notify_component={@myself}
             label={gettext("Type the name of the student")}
+            school_id={@current_user.current_profile.school_id}
           />
         </form>
       </.modal>

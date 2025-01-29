@@ -100,9 +100,9 @@ defmodule LantternWeb.Schools.StaffMemberSearchComponent do
   def handle_event("search", params, socket) do
     query = Map.get(params, "#{socket.assigns.id}-query", "")
     search_opts = if socket.assigns.school_id, do: [school_id: socket.assigns.school_id], else: []
-    # search when more than 3 characters were typed
+    # search when 3 or more characters were typed
     results =
-      if String.length(query) > 3,
+      if String.length(query) >= 3,
         do: Schools.search_staff_members(query, search_opts),
         else: []
 
