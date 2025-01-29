@@ -70,9 +70,8 @@ defmodule LantternWeb.MenuComponent do
               <%= Gettext.dgettext(
                 Lanttern.Gettext,
                 "schools",
-                String.capitalize(
-                  @current_user.current_profile.role || @current_user.current_profile.type
-                )
+                @current_user.current_profile.role ||
+                  String.capitalize(@current_user.current_profile.type)
               ) %> @ <%= @current_user.current_profile.school_name %>
 
               <.icon name="hero-chevron-down" id="profile-list-down-icon" />
@@ -288,7 +287,7 @@ defmodule LantternWeb.MenuComponent do
             <%= Gettext.dgettext(
               Lanttern.Gettext,
               "schools",
-              String.capitalize(Map.get(@profile.staff_member || %{}, :role, @profile.type))
+              @profile.role || String.capitalize(@profile.type)
             ) %> @ <%= @profile.school_name %>
           </span>
         </div>

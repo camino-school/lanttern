@@ -248,7 +248,13 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               </p>
               <div class="flex items-center gap-2">
                 <span class="text-ltrn-subtle"><%= gettext("Created by") %></span>
-                <.person_badge person={@student_record.created_by_staff_member} theme="staff" />
+                <.person_badge
+                  person={@student_record.created_by_staff_member}
+                  theme="staff"
+                  navigate={
+                    ~p"/school/staff/#{@student_record.created_by_staff_member}/students_records"
+                  }
+                />
               </div>
               <div :if={@student_record.assignees != []} class="flex items-center gap-2 mt-4">
                 <span class="text-ltrn-subtle"><%= gettext("Assigned to") %></span>
@@ -257,6 +263,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                     :for={assignee <- @student_record.assignees}
                     person={assignee}
                     theme="staff"
+                    navigate={~p"/school/staff/#{assignee}/students_records"}
                   />
                 </div>
               </div>
@@ -266,17 +273,24 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 <%= gettext("This record was deleted") %>
               </.error_block>
             <% else %>
-              <div class="flex justify-between gap-4 mt-10">
+              <div
+                :if={@has_delete_permissions || @has_update_permissions}
+                class="flex justify-between gap-4 mt-10"
+              >
+                <div>
+                  <.action
+                    :if={@has_delete_permissions}
+                    type="button"
+                    icon_name="hero-x-circle-mini"
+                    phx-click={JS.push("delete", target: @myself)}
+                    theme="subtle"
+                    data-confirm={gettext("Are you sure?")}
+                  >
+                    <%= gettext("Delete") %>
+                  </.action>
+                </div>
                 <.action
-                  type="button"
-                  icon_name="hero-x-circle-mini"
-                  phx-click={JS.push("delete", target: @myself)}
-                  theme="subtle"
-                  data-confirm={gettext("Are you sure?")}
-                >
-                  <%= gettext("Delete") %>
-                </.action>
-                <.action
+                  :if={@has_update_permissions}
                   type="button"
                   icon_name="hero-pencil-mini"
                   phx-click={JS.push("edit", target: @myself)}
@@ -392,6 +406,8 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
       socket
       |> assign(assigns)
       |> assign_student_record()
+      |> assign_has_update_permissions()
+      |> assign_has_delete_permissions()
 
     {:ok, socket}
   end
@@ -487,6 +503,26 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
     |> assign(:selected_assignees_ids, selected_assignees_ids)
   end
 
+  defp assign_has_update_permissions(socket) do
+    has_update_permissions =
+      StudentsRecords.profile_has_student_record_update_permissions?(
+        socket.assigns.student_record,
+        socket.assigns.current_user.current_profile
+      )
+
+    assign(socket, :has_update_permissions, has_update_permissions)
+  end
+
+  defp assign_has_delete_permissions(socket) do
+    has_delete_permissions =
+      StudentsRecords.profile_has_student_record_delete_permissions?(
+        socket.assigns.student_record,
+        socket.assigns.current_user.current_profile
+      )
+
+    assign(socket, :has_delete_permissions, has_delete_permissions)
+  end
+
   # event handlers
 
   @impl true
@@ -566,6 +602,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
   def handle_event("delete", _, socket) do
     StudentsRecords.delete_student_record(
       socket.assigns.student_record,
+      check_profile_permissions: socket.assigns.current_user.current_profile,
       log_profile_id: socket.assigns.current_user.current_profile_id
     )
     |> case do
@@ -668,6 +705,9 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
           socket
           |> assign(:student_record, student_record)
           |> assign(:is_editing, false)
+          # don't need to check, as we're creating a new record
+          |> assign(:has_update_permissions, true)
+          |> assign(:has_delete_permissions, true)
 
         {:noreply, socket}
 
@@ -680,6 +720,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
     StudentsRecords.update_student_record(
       socket.assigns.student_record,
       student_record_params,
+      check_profile_permissions: socket.assigns.current_user.current_profile,
       log_profile_id: socket.assigns.current_user.current_profile_id
     )
     |> case do
@@ -710,6 +751,8 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
           socket
           |> assign(:student_record, student_record)
           |> assign(:is_editing, false)
+          |> assign_has_update_permissions()
+          |> assign_has_delete_permissions()
 
         {:noreply, socket}
 

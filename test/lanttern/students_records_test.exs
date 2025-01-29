@@ -628,6 +628,122 @@ defmodule Lanttern.StudentsRecordsTest do
       end)
     end
 
+    test "user without permissions can't update_student_record/3 with check_profile_permissions" do
+      school = SchoolsFixtures.school_fixture()
+      staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+
+      student_record =
+        student_record_fixture(%{school_id: school.id}) |> Repo.preload([:assignees])
+
+      update_attrs = %{name: "some updated name"}
+
+      profile = %Profile{
+        permissions: [],
+        staff_member: staff_member
+      }
+
+      assert {:error, %Ecto.Changeset{}} =
+               StudentsRecords.update_student_record(student_record, update_attrs,
+                 check_profile_permissions: profile
+               )
+    end
+
+    test "student record owner can update_student_record/3 with check_profile_permissions" do
+      school = SchoolsFixtures.school_fixture()
+      staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+
+      student_record =
+        student_record_fixture(%{
+          school_id: school.id,
+          created_by_staff_member_id: staff_member.id
+        })
+        |> Repo.preload([:assignees])
+
+      update_attrs = %{name: "some updated name"}
+
+      profile = %Profile{
+        permissions: [],
+        staff_member: staff_member
+      }
+
+      assert {:ok, %StudentRecord{} = student_record} =
+               StudentsRecords.update_student_record(student_record, update_attrs,
+                 check_profile_permissions: profile
+               )
+
+      assert student_record.name == "some updated name"
+    end
+
+    test "student record assignee can update_student_record/3 with check_profile_permissions" do
+      school = SchoolsFixtures.school_fixture()
+      staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+
+      student_record =
+        student_record_fixture(%{
+          school_id: school.id,
+          assignees_ids: [staff_member.id]
+        })
+        |> Repo.preload([:assignees])
+
+      update_attrs = %{name: "some updated name"}
+
+      profile = %Profile{
+        permissions: [],
+        staff_member: staff_member
+      }
+
+      assert {:ok, %StudentRecord{} = student_record} =
+               StudentsRecords.update_student_record(student_record, update_attrs,
+                 check_profile_permissions: profile
+               )
+
+      assert student_record.name == "some updated name"
+    end
+
+    test "user with full access can update_student_record/3 with check_profile_permissions" do
+      school = SchoolsFixtures.school_fixture()
+      staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+
+      student_record =
+        student_record_fixture(%{school_id: school.id})
+        |> Repo.preload([:assignees])
+
+      update_attrs = %{name: "some updated name"}
+
+      profile = %Profile{
+        permissions: ["students_records_full_access"],
+        staff_member: staff_member
+      }
+
+      assert {:ok, %StudentRecord{} = student_record} =
+               StudentsRecords.update_student_record(student_record, update_attrs,
+                 check_profile_permissions: profile
+               )
+
+      assert student_record.name == "some updated name"
+    end
+
+    test "user from other schools with full access can't update_student_record/3 with check_profile_permissions" do
+      school = SchoolsFixtures.school_fixture()
+      staff_member = SchoolsFixtures.staff_member_fixture()
+
+      student_record =
+        student_record_fixture(%{school_id: school.id})
+        |> Repo.preload([:assignees])
+
+      update_attrs = %{name: "some updated name"}
+
+      profile = %Profile{
+        permissions: ["students_records_full_access"],
+        staff_member: staff_member
+      }
+
+      assert {:error, %Ecto.Changeset{}} =
+               StudentsRecords.update_student_record(student_record, update_attrs,
+                 check_profile_permissions: profile
+               )
+    end
+
     test "update_student_record/2 with invalid data returns error changeset" do
       student_record = student_record_fixture()
 
@@ -638,7 +754,7 @@ defmodule Lanttern.StudentsRecordsTest do
       assert expected_student_record.id == student_record.id
     end
 
-    test "delete_student_record/1 deletes the student_record" do
+    test "delete_student_record/2 deletes the student_record" do
       student_record = student_record_fixture()
 
       # profile to test log
@@ -663,6 +779,100 @@ defmodule Lanttern.StudentsRecordsTest do
         assert student_record_log.profile_id == profile.id
         assert student_record_log.operation == "DELETE"
       end)
+    end
+
+    test "user without full access can't delete_student_record/2 with check_profile_permissions" do
+      school = SchoolsFixtures.school_fixture()
+      staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+      student_record = student_record_fixture(%{school_id: school.id})
+
+      profile = %Profile{
+        permissions: [],
+        staff_member: staff_member
+      }
+
+      assert {:error, %Ecto.Changeset{}} =
+               StudentsRecords.delete_student_record(student_record,
+                 check_profile_permissions: profile
+               )
+    end
+
+    test "student record owner can delete_student_record/2 with check_profile_permissions" do
+      school = SchoolsFixtures.school_fixture()
+      staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+
+      student_record =
+        student_record_fixture(%{
+          school_id: school.id,
+          created_by_staff_member_id: staff_member.id
+        })
+
+      profile = %Profile{
+        permissions: [],
+        staff_member: staff_member
+      }
+
+      assert {:ok, %StudentRecord{}} =
+               StudentsRecords.delete_student_record(student_record,
+                 check_profile_permissions: profile
+               )
+    end
+
+    test "student record assignee can't delete_student_record/2 with check_profile_permissions" do
+      school = SchoolsFixtures.school_fixture()
+      staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+
+      student_record =
+        student_record_fixture(%{
+          school_id: school.id,
+          assignees_ids: [staff_member.id]
+        })
+
+      profile = %Profile{
+        permissions: [],
+        staff_member: staff_member
+      }
+
+      assert {:error, %Ecto.Changeset{}} =
+               StudentsRecords.delete_student_record(student_record,
+                 check_profile_permissions: profile
+               )
+    end
+
+    test "user with full access can delete_student_record/2 with check_profile_permissions" do
+      school = SchoolsFixtures.school_fixture()
+      staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+
+      student_record =
+        student_record_fixture(%{school_id: school.id})
+
+      profile = %Profile{
+        permissions: ["students_records_full_access"],
+        staff_member: staff_member
+      }
+
+      assert {:ok, %StudentRecord{}} =
+               StudentsRecords.delete_student_record(student_record,
+                 check_profile_permissions: profile
+               )
+    end
+
+    test "user from other schools with full access can't delete_student_record/2 with check_profile_permissions" do
+      school = SchoolsFixtures.school_fixture()
+      staff_member = SchoolsFixtures.staff_member_fixture()
+
+      student_record =
+        student_record_fixture(%{school_id: school.id})
+
+      profile = %Profile{
+        permissions: ["students_records_full_access"],
+        staff_member: staff_member
+      }
+
+      assert {:error, %Ecto.Changeset{}} =
+               StudentsRecords.delete_student_record(student_record,
+                 check_profile_permissions: profile
+               )
     end
 
     test "change_student_record/1 returns a student_record changeset" do
