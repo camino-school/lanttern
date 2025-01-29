@@ -181,6 +181,7 @@ defmodule LantternWeb.CoreComponents do
     doc: "any map with `bg_color` and `text_color` attrs (e.g. ordinal value)"
 
   attr :on_remove, JS, default: nil
+  attr :on_click, JS, default: nil, doc: "will trigger on inner_block click"
   attr :rest, :global
   slot :inner_block, required: true
 
@@ -197,7 +198,11 @@ defmodule LantternWeb.CoreComponents do
       {@rest}
     >
       <.icon :if={@icon_name} class={["mr-2", badge_icon_theme(@theme)]} name={@icon_name} />
-      <%= render_slot(@inner_block) %>
+      <%= if @on_click do %>
+        <button type="button" phx-click={@on_click}><%= render_slot(@inner_block) %></button>
+      <% else %>
+        <%= render_slot(@inner_block) %>
+      <% end %>
       <button
         :if={@on_remove}
         type="button"

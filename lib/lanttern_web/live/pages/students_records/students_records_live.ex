@@ -163,10 +163,14 @@ defmodule LantternWeb.StudentsRecordsLive do
     {:noreply, socket}
   end
 
-  def handle_event("remove_tag_filter", _, socket) do
+  def handle_event("remove_tag_filter", %{"id" => tag_id}, socket) do
+    selected_tags_ids =
+      socket.assigns.selected_student_record_tags_ids
+      |> Enum.filter(&(&1 != tag_id))
+
     socket =
       socket
-      |> assign(:selected_student_record_tags_ids, [])
+      |> assign(:selected_student_record_tags_ids, selected_tags_ids)
       |> save_profile_filters([:student_record_tags])
       |> assign_user_filters([:student_record_tags])
       |> stream_students_records(true)
@@ -202,13 +206,22 @@ defmodule LantternWeb.StudentsRecordsLive do
   def handle_event("close_student_search_modal", _, socket),
     do: {:noreply, assign(socket, :show_student_search_modal, false)}
 
-  def handle_event("filter_by_tag", %{"id" => id}, socket) do
+  def handle_event("toggle_tag_filter", %{"id" => id}, socket) do
     selected_ids =
-      if id in socket.assigns.selected_student_record_tags_ids, do: [], else: [id]
+      if id in socket.assigns.selected_student_record_tags_ids,
+        do: Enum.filter(socket.assigns.selected_student_record_tags_ids, &(&1 != id)),
+        else: [id | socket.assigns.selected_student_record_tags_ids]
 
     socket =
       socket
       |> assign(:selected_student_record_tags_ids, selected_ids)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("filter_by_tag", _, socket) do
+    socket =
+      socket
       |> save_profile_filters([:student_record_tags])
       |> assign_user_filters([:student_record_tags])
       |> stream_students_records(true)
