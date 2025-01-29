@@ -34,6 +34,7 @@ defmodule LantternWeb.StudentsRecordsLive do
       |> assign(:show_student_search_modal, false)
       |> assign(:show_assignee_search_modal, false)
       |> assign(:new_record_initial_fields, nil)
+      |> assign_has_full_access()
 
     {:ok, socket}
   end
@@ -96,6 +97,13 @@ defmodule LantternWeb.StudentsRecordsLive do
     |> assign(:students_records_length, len)
     |> assign(:has_next, has_next)
     |> assign(:keyset, keyset)
+  end
+
+  defp assign_has_full_access(socket) do
+    has_full_access =
+      "students_records_full_access" in socket.assigns.current_user.current_profile.permissions
+
+    assign(socket, :has_full_access, has_full_access)
   end
 
   @impl true

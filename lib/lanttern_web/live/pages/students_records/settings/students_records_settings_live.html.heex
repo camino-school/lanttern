@@ -1,0 +1,45 @@
+<.header_nav current_user={@current_user}>
+  <:breadcrumb navigate={~p"/students_records"}>
+    <%= gettext("Students records") %>
+  </:breadcrumb>
+  <:title><%= gettext("Settings") %></:title>
+  <div class="flex items-center justify-between gap-4 p-4">
+    <p class="flex items-center gap-2">
+      <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+      <%= gettext("Manage students records tags below") %>
+    </p>
+    <.action
+      type="link"
+      patch={~p"/students_records/settings?tag=new"}
+      icon_name="hero-plus-circle-mini"
+    >
+      <%= gettext("New tag") %>
+    </.action>
+  </div>
+</.header_nav>
+<%= if @tags_length == 0 do %>
+  <div class="p-10">
+    <.empty_state><%= gettext("No student record tags created yet") %></.empty_state>
+  </div>
+<% else %>
+  <.responsive_container id="student-record-tags" class="p-4">
+    <.sortable_card
+      :for={{tag, i} <- @tags_with_index}
+      id={"student-record-tag-#{tag.id}"}
+      is_move_up_disabled={i == 0}
+      on_move_up={JS.push("swap_tags_position", value: %{"from" => i, "to" => i - 1})}
+      is_move_down_disabled={i + 1 == @tags_length}
+      on_move_down={JS.push("swap_tags_position", value: %{"from" => i, "to" => i + 1})}
+      class="mt-4 first:mt-0"
+    >
+      <div class="flex items-center gap-4 p-6">
+        <.badge color_map={tag}>
+          <%= tag.name %>
+        </.badge>
+        <.action type="link" patch={~p"/students_records/settings?tag=#{tag.id}"} theme="subtle">
+          <%= gettext("Edit") %>
+        </.action>
+      </div>
+    </.sortable_card>
+  </.responsive_container>
+<% end %>

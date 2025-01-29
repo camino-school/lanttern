@@ -643,6 +643,18 @@ defmodule Lanttern.StudentsRecords do
   end
 
   @doc """
+  Update student record tags positions based on ids list order.
+
+  ## Examples
+
+      iex> update_student_record_tags_positions([3, 2, 1])
+      :ok
+
+  """
+  @spec update_student_record_tags_positions([integer()]) :: :ok | {:error, String.t()}
+  def update_student_record_tags_positions(tags_ids), do: update_positions(Tag, tags_ids)
+
+  @doc """
   Returns the list of student_record_statuses.
 
   ## Options

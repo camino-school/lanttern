@@ -88,13 +88,21 @@
         </.badge>
       <% end %>
     </div>
-    <.action
-      type="link"
-      patch={~p"/students_records?student_record=new"}
-      icon_name="hero-plus-circle-mini"
-    >
-      <%= gettext("New student record") %>
-    </.action>
+    <div class="flex items-center gap-4">
+      <.action
+        type="link"
+        patch={~p"/students_records?student_record=new"}
+        icon_name="hero-plus-circle-mini"
+      >
+        <%= gettext("New student record") %>
+      </.action>
+      <.link class="hover:text-ltrn-subtle" navigate={~p"/students_records/settings"}>
+        <span class="sr-only">
+          <%= gettext("Students records settings") %>
+        </span>
+        <.icon name="hero-cog-6-tooth-mini" />
+      </.link>
+    </div>
   </div>
 </.header_nav>
 <p :if={@students_records_length > 0} class="p-4 text-center">
