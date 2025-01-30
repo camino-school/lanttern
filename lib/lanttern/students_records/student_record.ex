@@ -23,6 +23,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
           id: pos_integer(),
           name: String.t(),
           description: String.t(),
+          internal_notes: String.t(),
           date: Date.t(),
           time: Time.t(),
           shared_with_school: boolean(),
@@ -45,6 +46,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
   schema "students_records" do
     field :name, :string
     field :description, :string
+    field :internal_notes, :string
     field :date, :date
     field :time, :time
     field :shared_with_school, :boolean, default: false
@@ -85,6 +87,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
     |> cast(attrs, [
       :name,
       :description,
+      :internal_notes,
       :date,
       :time,
       :shared_with_school,

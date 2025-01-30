@@ -160,6 +160,14 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                   <.error :for={{msg, _} <- @form[:assignees_ids].errors}><%= msg %></.error>
                 </div>
               </div>
+              <.input
+                field={@form[:internal_notes]}
+                type="textarea"
+                label={gettext("Internal notes")}
+                class="mb-1"
+                phx-debounce="1500"
+              />
+              <.markdown_supported class="mb-6" />
               <div class="p-2 rounded-sm mt-10 -mx-2 -mb-2 bg-ltrn-staff-lighter">
                 <.input
                   field={@form[:shared_with_school]}
@@ -253,8 +261,11 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 </div>
               </div>
             </div>
+            <h3 class="mt-10 font-display font-black text-2xl">
+              <%= gettext("Record description") %>
+            </h3>
             <.markdown text={@student_record.description} class="mt-6" />
-            <div class="p-4 rounded-sm mt-6 bg-ltrn-staff-lightest">
+            <div class="p-4 rounded-sm mt-10 bg-ltrn-staff-lightest">
               <p class="mb-6 font-bold text-ltrn-staff-dark">
                 <%= gettext("Internal student record tracking") %>
               </p>
@@ -278,6 +289,12 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                     navigate={~p"/school/staff/#{assignee}/students_records"}
                   />
                 </div>
+              </div>
+              <div :if={@student_record.internal_notes} class="mt-10">
+                <h3 class="font-display font-black text-xl text-ltrn-staff-dark">
+                  <%= gettext("Internal notes") %>
+                </h3>
+                <.markdown text={@student_record.internal_notes} class="mt-6" />
               </div>
               <div
                 :if={@student_record.shared_with_school}
