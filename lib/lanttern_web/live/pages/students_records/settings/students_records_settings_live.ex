@@ -3,6 +3,7 @@ defmodule LantternWeb.StudentsRecordsSettingsLive do
 
   # page imports
 
+  alias __MODULE__.StatusComponent
   alias __MODULE__.TagsComponent
 
   # lifecycle

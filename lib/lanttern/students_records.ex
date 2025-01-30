@@ -684,7 +684,7 @@ defmodule Lanttern.StudentsRecords do
   def list_student_record_statuses(opts \\ []) do
     from(
       srs in StudentRecordStatus,
-      order_by: srs.name
+      order_by: srs.position
     )
     |> apply_list_student_record_statuses_opts(opts)
     |> Repo.all()
@@ -732,6 +732,20 @@ defmodule Lanttern.StudentsRecords do
 
   """
   def create_student_record_status(attrs \\ %{}) do
+    queryable =
+      case attrs do
+        %{school_id: school_id} ->
+          from(srs in StudentRecordStatus, where: srs.school_id == ^school_id)
+
+        %{"school_id" => school_id} ->
+          from(srs in StudentRecordStatus, where: srs.school_id == ^school_id)
+
+        _ ->
+          StudentRecordStatus
+      end
+
+    attrs = set_position_in_attrs(queryable, attrs)
+
     %StudentRecordStatus{}
     |> StudentRecordStatus.changeset(attrs)
     |> Repo.insert()
@@ -783,4 +797,17 @@ defmodule Lanttern.StudentsRecords do
   def change_student_record_status(%StudentRecordStatus{} = student_record_status, attrs \\ %{}) do
     StudentRecordStatus.changeset(student_record_status, attrs)
   end
+
+  @doc """
+  Update student record statuses positions based on ids list order.
+
+  ## Examples
+
+      iex> update_student_record_statuses_positions([3, 2, 1])
+      :ok
+
+  """
+  @spec update_student_record_statuses_positions([integer()]) :: :ok | {:error, String.t()}
+  def update_student_record_statuses_positions(statuses_ids),
+    do: update_positions(StudentRecordStatus, statuses_ids)
 end

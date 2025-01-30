@@ -18,6 +18,13 @@
   </div>
 </.header_nav>
 <.live_component
+  :if={@live_action == :manage_status}
+  module={StatusComponent}
+  id="student-record-status-manager"
+  current_user={@current_user}
+  params={@params}
+/>
+<.live_component
   :if={@live_action == :manage_tags}
   module={TagsComponent}
   id="student-record-tag-manager"
