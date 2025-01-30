@@ -216,7 +216,7 @@ defmodule LantternWeb.Assessments.EntryDetailsComponent do
   def comment_area(assigns) do
     new_assigns =
       case assigns.theme do
-        "teacher" ->
+        "staff" ->
           %{
             bg_lightest: "bg-ltrn-staff-lightest",
             text_accent: "text-ltrn-staff-accent",

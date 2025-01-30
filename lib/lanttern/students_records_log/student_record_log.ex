@@ -13,6 +13,7 @@ defmodule Lanttern.StudentsRecordsLog.StudentRecordLog do
     field :operation, :string
     field :name, :string
     field :description, :string
+    field :internal_notes, :string
     field :date, :date
     field :time, :time
     field :students_ids, {:array, :id}
@@ -35,6 +36,7 @@ defmodule Lanttern.StudentsRecordsLog.StudentRecordLog do
       :operation,
       :name,
       :description,
+      :internal_notes,
       :date,
       :time,
       :students_ids,

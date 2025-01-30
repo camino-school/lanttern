@@ -523,6 +523,7 @@ defmodule Lanttern.StudentsRecordsTest do
         date: ~D[2024-09-15],
         time: ~T[14:00:00],
         description: "some description",
+        internal_notes: "some internal notes",
         created_by_staff_member_id: staff_member.id,
         students_ids: [student.id],
         classes_ids: [class.id],
@@ -543,6 +544,7 @@ defmodule Lanttern.StudentsRecordsTest do
       assert student_record.date == ~D[2024-09-15]
       assert student_record.time == ~T[14:00:00]
       assert student_record.description == "some description"
+      assert student_record.internal_notes == "some internal notes"
       assert student_record.created_by_staff_member == staff_member
       assert student_record.students == [student]
       assert student_record.classes == [class]
@@ -569,6 +571,7 @@ defmodule Lanttern.StudentsRecordsTest do
         assert student_record_log.date == student_record.date
         assert student_record_log.time == student_record.time
         assert student_record_log.description == student_record.description
+        assert student_record_log.internal_notes == student_record.internal_notes
         assert student_record_log.assignees_ids == [assignee.id]
 
         assert student_record_log.created_by_staff_member_id ==
