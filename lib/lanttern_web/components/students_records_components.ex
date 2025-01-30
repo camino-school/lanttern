@@ -9,6 +9,8 @@ defmodule LantternWeb.StudentsRecordsComponents do
   import LantternWeb.CoreComponents
   import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
 
+  alias Lanttern.StudentsRecords.StudentRecordStatus
+
   @doc """
   Renders a students records list.
   """
@@ -66,9 +68,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
               </div>
             </div>
             <div class="flex flex-wrap gap-2 w-full mt-4">
-              <.badge color_map={student_record.status} class="max-w-full">
-                <%= student_record.status.name %>
-              </.badge>
+              <.status_badge status={student_record.status} class="max-w-full" />
               <.badge :for={tag <- student_record.tags} color_map={tag} class="max-w-full">
                 <%= tag.name %>
               </.badge>
@@ -137,14 +137,61 @@ defmodule LantternWeb.StudentsRecordsComponents do
                 </div>
               </div>
             </div>
-            <div :if={student_record.shared_with_school} class="group relative">
-              <.icon name="hero-globe-americas" class="w-6 h-6 text-ltrn-staff-accent" />
-              <.tooltip h_pos="right"><%= gettext("Visible to all school staff") %></.tooltip>
+            <div class="flex items-center gap-2">
+              <div
+                :if={student_record.status.is_closed && !student_record.closed_at}
+                class="group relative"
+              >
+                <.icon name="hero-check-circle" class="w-6 h-6 text-ltrn-subtle" />
+                <.tooltip h_pos="right"><%= gettext("Closed on creation") %></.tooltip>
+              </div>
+              <div
+                :if={!student_record.status.is_closed}
+                class="group relative flex items-center gap-1"
+              >
+                <p class="text-ltrn-subtle">
+                  <%= DateTime.diff(
+                    DateTime.utc_now(),
+                    DateTime.from_naive!(student_record.inserted_at, "Etc/UTC"),
+                    :day
+                  )
+                  |> case do
+                    days when days <= 1 -> "~1"
+                    days -> days
+                  end %>d
+                </p>
+                <.icon name="hero-clock" class="w-6 h-6 text-ltrn-subtle" />
+                <.tooltip h_pos="right"><%= gettext("Days since creation") %></.tooltip>
+              </div>
+              <div :if={student_record.shared_with_school} class="group relative">
+                <.icon name="hero-globe-americas" class="w-6 h-6 text-ltrn-staff-accent" />
+                <.tooltip h_pos="right"><%= gettext("Visible to all school staff") %></.tooltip>
+              </div>
             </div>
           </div>
         </div>
       </.card_base>
     </div>
+    """
+  end
+
+  @doc """
+  A specialized version of `<.badge>` component.
+
+  Handles `color_map` and `icon_name` attributes.
+  """
+  attr :status, StudentRecordStatus, required: true
+  attr :class, :any, default: nil
+
+  def status_badge(assigns) do
+    ~H"""
+    <.badge
+      color_map={@status}
+      icon_name={if(@status.is_closed, do: "hero-check-circle-mini")}
+      class={@class}
+    >
+      <%= @status.name %>
+    </.badge>
     """
   end
 end

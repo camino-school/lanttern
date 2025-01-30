@@ -44,9 +44,13 @@ defmodule LantternWeb.StudentsRecordsSettingsLive.StatusComponent do
               JS.push("swap_statuses_position", value: %{"from" => i, "to" => i + 1}, target: @myself)
             }
             class="mt-4 first:mt-0"
+            bg_class={if(status.is_closed, do: "bg-ltrn-mesh-cyan")}
           >
             <div class="flex items-center gap-4 p-6">
-              <.badge color_map={status}>
+              <.badge
+                color_map={status}
+                icon_name={if(status.is_closed, do: "hero-check-circle-mini")}
+              >
                 <%= status.name %>
               </.badge>
               <.action

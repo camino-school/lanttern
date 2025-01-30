@@ -16,6 +16,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
   alias LantternWeb.Schools.StudentSearchComponent
   alias LantternWeb.Schools.ClassesFieldComponent
   import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
+  import LantternWeb.StudentsRecordsComponents
 
   @impl true
   def render(assigns) do
@@ -218,9 +219,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               <div class="md:flex items-center gap-4">
                 <div class="flex items-center gap-2">
                   <span><%= gettext("Status") %>:</span>
-                  <.badge color_map={@student_record.status}>
-                    <%= @student_record.status.name %>
-                  </.badge>
+                  <.status_badge status={@student_record.status} />
                 </div>
                 <div class="flex items-center gap-2 mt-4 md:mt-0">
                   <span><%= gettext("Tags") %>:</span>

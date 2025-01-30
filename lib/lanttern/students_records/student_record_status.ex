@@ -16,6 +16,7 @@ defmodule Lanttern.StudentsRecords.StudentRecordStatus do
           position: non_neg_integer(),
           bg_color: String.t(),
           text_color: String.t(),
+          is_closed: boolean(),
           school: School.t(),
           school_id: pos_integer(),
           inserted_at: DateTime.t(),
@@ -27,6 +28,7 @@ defmodule Lanttern.StudentsRecords.StudentRecordStatus do
     field :position, :integer, default: 0
     field :bg_color, :string
     field :text_color, :string
+    field :is_closed, :boolean, default: false
 
     belongs_to :school, School
 
@@ -36,7 +38,7 @@ defmodule Lanttern.StudentsRecords.StudentRecordStatus do
   @doc false
   def changeset(student_record_status, attrs) do
     student_record_status
-    |> cast(attrs, [:name, :position, :bg_color, :text_color, :school_id])
+    |> cast(attrs, [:name, :position, :bg_color, :text_color, :is_closed, :school_id])
     |> validate_required([:name, :bg_color, :text_color, :school_id])
     |> check_constraint(:bg_color,
       name: :student_record_status_bg_color_should_be_hex,
