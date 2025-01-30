@@ -525,6 +525,8 @@ defmodule Lanttern.StudentsRecordsTest do
         description: "some description",
         internal_notes: "some internal notes",
         created_by_staff_member_id: staff_member.id,
+        closed_by_staff_member_id: staff_member.id,
+        closed_at: DateTime.utc_now() |> DateTime.add(1, :day),
         students_ids: [student.id],
         classes_ids: [class.id],
         assignees_ids: [assignee.id]
@@ -535,7 +537,14 @@ defmodule Lanttern.StudentsRecordsTest do
 
       student_record =
         student_record
-        |> Repo.preload([:created_by_staff_member, :students, :classes, :assignees, :tags])
+        |> Repo.preload([
+          :created_by_staff_member,
+          :closed_by_staff_member,
+          :students,
+          :classes,
+          :assignees,
+          :tags
+        ])
 
       assert student_record.school_id == school.id
       assert student_record.status_id == status.id
@@ -543,9 +552,12 @@ defmodule Lanttern.StudentsRecordsTest do
       assert student_record.name == "some name"
       assert student_record.date == ~D[2024-09-15]
       assert student_record.time == ~T[14:00:00]
+      assert student_record.closed_at == DateTime.utc_now(:second) |> DateTime.add(1, :day)
+      assert %Duration{day: 1} = student_record.duration_until_close
       assert student_record.description == "some description"
       assert student_record.internal_notes == "some internal notes"
       assert student_record.created_by_staff_member == staff_member
+      assert student_record.closed_by_staff_member == staff_member
       assert student_record.students == [student]
       assert student_record.classes == [class]
       assert student_record.assignees == [assignee]
@@ -569,6 +581,7 @@ defmodule Lanttern.StudentsRecordsTest do
         assert student_record_log.tags_ids == [tag.id]
         assert student_record_log.name == student_record.name
         assert student_record_log.date == student_record.date
+        assert student_record_log.closed_at == student_record.closed_at
         assert student_record_log.time == student_record.time
         assert student_record_log.description == student_record.description
         assert student_record_log.internal_notes == student_record.internal_notes
@@ -576,6 +589,9 @@ defmodule Lanttern.StudentsRecordsTest do
 
         assert student_record_log.created_by_staff_member_id ==
                  student_record.created_by_staff_member_id
+
+        assert student_record_log.closed_by_staff_member_id ==
+                 student_record.closed_by_staff_member_id
       end)
     end
 

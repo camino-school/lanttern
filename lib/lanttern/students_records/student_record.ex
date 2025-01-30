@@ -26,11 +26,15 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
           internal_notes: String.t(),
           date: Date.t(),
           time: Time.t(),
+          closed_at: DateTime.t(),
+          duration_until_close: Duration.t(),
           shared_with_school: boolean(),
           students: [Student.t()],
           students_ids: [pos_integer()],
           created_by_staff_member: StaffMember.t(),
           created_by_staff_member_id: pos_integer(),
+          closed_by_staff_member: StaffMember.t(),
+          closed_by_staff_member_id: pos_integer(),
           classes: [Class.t()],
           classes_ids: [pos_integer()],
           school: School.t(),
@@ -49,7 +53,11 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
     field :internal_notes, :string
     field :date, :date
     field :time, :time
+    field :closed_at, :utc_datetime
+    # duration_until_close is generated
+    field :duration_until_close, :duration, read_after_writes: true
     field :shared_with_school, :boolean, default: false
+
     field :students_ids, {:array, :id}, virtual: true
     field :classes_ids, {:array, :id}, virtual: true
     field :assignees_ids, {:array, :id}, virtual: true
@@ -57,12 +65,17 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
 
     belongs_to :school, School
     belongs_to :created_by_staff_member, StaffMember
+    belongs_to :closed_by_staff_member, StaffMember
     belongs_to :status, StudentRecordStatus
 
+    has_many :tags_relationships, TagRelationship, on_replace: :delete
     has_many :students_relationships, StudentRecordRelationship, on_replace: :delete
     has_many :classes_relationships, StudentRecordClassRelationship, on_replace: :delete
     has_many :assignees_relationships, AssigneeRelationship, on_replace: :delete
-    has_many :tags_relationships, TagRelationship, on_replace: :delete
+
+    many_to_many :tags, Tag,
+      join_through: "students_records_tags",
+      preload_order: [asc: :position]
 
     many_to_many :students, Student,
       join_through: "students_students_records",
@@ -73,10 +86,6 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
     many_to_many :assignees, StaffMember,
       join_through: "students_records_assignees",
       preload_order: [asc: :name]
-
-    many_to_many :tags, Tag,
-      join_through: "students_records_tags",
-      preload_order: [asc: :position]
 
     timestamps()
   end
@@ -90,14 +99,16 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
       :internal_notes,
       :date,
       :time,
+      :closed_at,
       :shared_with_school,
-      :students_ids,
-      :classes_ids,
-      :assignees_ids,
-      :tags_ids,
       :school_id,
       :created_by_staff_member_id,
-      :status_id
+      :closed_by_staff_member_id,
+      :status_id,
+      :tags_ids,
+      :students_ids,
+      :classes_ids,
+      :assignees_ids
     ])
     |> validate_required([
       :description,
@@ -110,6 +121,14 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
     |> cast_and_validate_tags()
     |> cast_classes()
     |> cast_assignees()
+    |> check_constraint(:closed_by_staff_member_id,
+      name: :closed_by_staff_member_id_required_when_closed,
+      message: gettext("Closed by staff member field in required when record is closed")
+    )
+    |> check_constraint(:closed_by_staff_member_id,
+      name: :closed_by_staff_member_id_only_allowed_when_closed,
+      message: gettext("Closed by staff member is allowed only when record is closed")
+    )
   end
 
   def cast_and_validate_students(changeset) do
