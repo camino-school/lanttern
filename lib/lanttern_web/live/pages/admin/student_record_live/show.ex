@@ -11,8 +11,11 @@ defmodule LantternWeb.Admin.StudentRecordLive.Show do
   @impl true
   def handle_params(%{"id" => id}, _, socket) do
     student_record =
-      StudentsRecords.get_student_record!(id, preloads: [:students, :students_relationships])
+      StudentsRecords.get_student_record!(id,
+        preloads: [:students, :students_relationships, :tags_relationships]
+      )
       |> put_students_ids()
+      |> put_tags_ids()
 
     socket =
       socket
@@ -31,5 +34,13 @@ defmodule LantternWeb.Admin.StudentRecordLive.Show do
       |> Enum.map(& &1.student_id)
 
     %{student_record | students_ids: students_ids}
+  end
+
+  defp put_tags_ids(student_record) do
+    tags_ids =
+      student_record.tags_relationships
+      |> Enum.map(& &1.tag_id)
+
+    %{student_record | tags_ids: tags_ids}
   end
 end

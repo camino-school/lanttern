@@ -69,8 +69,8 @@ defmodule LantternWeb.StudentsRecordsComponents do
               <.badge color_map={student_record.status} class="max-w-full">
                 <%= student_record.status.name %>
               </.badge>
-              <.badge color_map={student_record.type} class="max-w-full">
-                <%= student_record.type.name %>
+              <.badge :for={tag <- student_record.tags} color_map={tag} class="max-w-full">
+                <%= tag.name %>
               </.badge>
               <.badge :for={class <- student_record.classes}>
                 <%= class_with_cycle(class, @current_user_or_cycle) %>
@@ -95,6 +95,13 @@ defmodule LantternWeb.StudentsRecordsComponents do
               <%= student_record.name %>
             </.link>
             <.markdown text={student_record.description} class="mt-4 line-clamp-5" />
+            <div
+              :if={student_record.internal_notes}
+              class="p-4 rounded-sm mt-4 bg-ltrn-staff-lightest"
+            >
+              <h6 class="mb-2 font-bold text-ltrn-staff-dark"><%= gettext("Internal notes") %></h6>
+              <.markdown text={student_record.internal_notes} class="line-clamp-3" />
+            </div>
             <.action
               type="link"
               icon_name="hero-arrow-up-right-mini"

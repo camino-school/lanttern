@@ -20,7 +20,7 @@ defmodule Lanttern.StudentsRecordsLog.StudentRecordLog do
     field :created_by_staff_member_id, :id
     field :assignees_ids, {:array, :id}
     field :school_id, :id
-    field :type_id, :id
+    field :tags_ids, {:array, :id}
     field :status_id, :id
 
     timestamps(updated_at: false)
@@ -42,7 +42,7 @@ defmodule Lanttern.StudentsRecordsLog.StudentRecordLog do
       :created_by_staff_member_id,
       :assignees_ids,
       :school_id,
-      :type_id,
+      :tags_ids,
       :status_id
     ])
     |> validate_required([
@@ -54,7 +54,7 @@ defmodule Lanttern.StudentsRecordsLog.StudentRecordLog do
       :students_ids,
       :created_by_staff_member_id,
       :school_id,
-      :type_id,
+      :tags_ids,
       :status_id
     ])
   end

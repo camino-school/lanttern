@@ -12,7 +12,8 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
   alias Lanttern.StudentsRecords.StudentRecordClassRelationship
   alias Lanttern.StudentsRecords.StudentRecordRelationship
   alias Lanttern.StudentsRecords.StudentRecordStatus
-  alias Lanttern.StudentsRecords.StudentRecordType
+  alias Lanttern.StudentsRecords.Tag
+  alias Lanttern.StudentsRecords.TagRelationship
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.School
   alias Lanttern.Schools.StaffMember
@@ -22,6 +23,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
           id: pos_integer(),
           name: String.t(),
           description: String.t(),
+          internal_notes: String.t(),
           date: Date.t(),
           time: Time.t(),
           shared_with_school: boolean(),
@@ -31,12 +33,12 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
           created_by_staff_member_id: pos_integer(),
           classes: [Class.t()],
           classes_ids: [pos_integer()],
-          school_id: pos_integer(),
           school: School.t(),
-          status_id: pos_integer(),
+          school_id: pos_integer(),
           status: StudentRecordStatus.t(),
-          type_id: pos_integer(),
-          type: StudentRecordType.t(),
+          status_id: pos_integer(),
+          tags: [Tag.t()],
+          tags_ids: [pos_integer()],
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -44,21 +46,23 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
   schema "students_records" do
     field :name, :string
     field :description, :string
+    field :internal_notes, :string
     field :date, :date
     field :time, :time
     field :shared_with_school, :boolean, default: false
     field :students_ids, {:array, :id}, virtual: true
     field :classes_ids, {:array, :id}, virtual: true
     field :assignees_ids, {:array, :id}, virtual: true
+    field :tags_ids, {:array, :id}, virtual: true
 
     belongs_to :school, School
     belongs_to :created_by_staff_member, StaffMember
     belongs_to :status, StudentRecordStatus
-    belongs_to :type, StudentRecordType
 
     has_many :students_relationships, StudentRecordRelationship, on_replace: :delete
     has_many :classes_relationships, StudentRecordClassRelationship, on_replace: :delete
     has_many :assignees_relationships, AssigneeRelationship, on_replace: :delete
+    has_many :tags_relationships, TagRelationship, on_replace: :delete
 
     many_to_many :students, Student,
       join_through: "students_students_records",
@@ -70,6 +74,10 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
       join_through: "students_records_assignees",
       preload_order: [asc: :name]
 
+    many_to_many :tags, Tag,
+      join_through: "students_records_tags",
+      preload_order: [asc: :position]
+
     timestamps()
   end
 
@@ -79,15 +87,16 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
     |> cast(attrs, [
       :name,
       :description,
+      :internal_notes,
       :date,
       :time,
       :shared_with_school,
       :students_ids,
       :classes_ids,
       :assignees_ids,
+      :tags_ids,
       :school_id,
       :created_by_staff_member_id,
-      :type_id,
       :status_id
     ])
     |> validate_required([
@@ -95,10 +104,10 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
       :date,
       :school_id,
       :created_by_staff_member_id,
-      :type_id,
       :status_id
     ])
     |> cast_and_validate_students()
+    |> cast_and_validate_tags()
     |> cast_classes()
     |> cast_assignees()
   end
@@ -131,6 +140,35 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
   end
 
   defp cast_students(changeset, _), do: changeset
+
+  def cast_and_validate_tags(changeset) do
+    changeset =
+      cast_tags(
+        changeset,
+        get_change(changeset, :tags_ids)
+      )
+
+    case get_field(changeset, :tags_relationships) do
+      [] ->
+        add_error(changeset, :tags_ids, gettext("At least 1 tag is required"))
+
+      _ ->
+        changeset
+    end
+  end
+
+  defp cast_tags(changeset, tags_ids) when is_list(tags_ids) do
+    school_id = get_field(changeset, :school_id)
+
+    tags_relationships_params =
+      Enum.map(tags_ids, &%{tag_id: &1, school_id: school_id})
+
+    changeset
+    |> put_change(:tags_relationships, tags_relationships_params)
+    |> cast_assoc(:tags_relationships)
+  end
+
+  defp cast_tags(changeset, _), do: changeset
 
   defp cast_classes(changeset) do
     case get_change(changeset, :classes_ids) do

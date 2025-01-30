@@ -32,7 +32,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
           assessment_view: String.t(),
           assessment_group_by: String.t(),
           students_ids: [pos_integer()],
-          student_record_types_ids: [pos_integer()],
+          student_record_tags_ids: [pos_integer()],
           student_record_statuses_ids: [pos_integer()],
           student_record_assignees_ids: [pos_integer()],
           student_record_staff_member_view: String.t(),
@@ -53,7 +53,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
       field :assessment_view, :string
       field :assessment_group_by, :string
       field :students_ids, {:array, :id}
-      field :student_record_types_ids, {:array, :id}
+      field :student_record_tags_ids, {:array, :id}
       field :student_record_statuses_ids, {:array, :id}
       field :student_record_assignees_ids, {:array, :id}
       field :student_record_staff_member_view, :string
@@ -89,7 +89,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
       :assessment_view,
       :assessment_group_by,
       :students_ids,
-      :student_record_types_ids,
+      :student_record_tags_ids,
       :student_record_statuses_ids,
       :student_record_assignees_ids,
       :student_record_staff_member_view,

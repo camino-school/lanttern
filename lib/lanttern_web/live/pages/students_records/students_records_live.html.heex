@@ -1,7 +1,7 @@
 <.header_nav current_user={@current_user}>
   <:title><%= gettext("Students records") %></:title>
   <div class="flex items-center gap-4 p-4">
-    <div class="flex-1 flex flex-wrap items-center gap-6">
+    <div class="flex-1 flex flex-wrap items-center gap-4">
       <.icon name="hero-funnel-mini" class="text-ltrn-subtle" />
       <%= if @selected_students == [] do %>
         <.action
@@ -54,23 +54,22 @@
           <%= status.name %>
         </.badge>
       <% end %>
-      <%= if @selected_student_record_types == [] do %>
-        <.action
-          type="button"
-          icon_name="hero-chevron-down-mini"
-          phx-click={JS.exec("data-show", to: "#student-record-type-filter-modal")}
-        >
-          <%= gettext("Type") %>
-        </.action>
-      <% else %>
-        <.badge
-          :for={type <- @selected_student_record_types}
-          color_map={type}
-          on_remove={JS.push("remove_type_filter")}
-        >
-          <%= type.name %>
-        </.badge>
-      <% end %>
+      <.badge
+        :for={tag <- @selected_student_record_tags}
+        color_map={tag}
+        on_click={JS.exec("data-show", to: "#student-record-tag-filter-modal")}
+        on_remove={JS.push("remove_tag_filter", value: %{"id" => tag.id})}
+      >
+        <%= tag.name %>
+      </.badge>
+      <.action
+        :if={@selected_student_record_tags == []}
+        type="button"
+        icon_name="hero-chevron-down-mini"
+        phx-click={JS.exec("data-show", to: "#student-record-tag-filter-modal")}
+      >
+        <%= gettext("Tags") %>
+      </.action>
       <%= if @selected_student_record_assignees == [] do %>
         <.action
           type="button"
@@ -89,13 +88,21 @@
         </.badge>
       <% end %>
     </div>
-    <.action
-      type="link"
-      patch={~p"/students_records?student_record=new"}
-      icon_name="hero-plus-circle-mini"
-    >
-      <%= gettext("New student record") %>
-    </.action>
+    <div class="flex items-center gap-4">
+      <.action
+        type="link"
+        patch={~p"/students_records?student_record=new"}
+        icon_name="hero-plus-circle-mini"
+      >
+        <%= gettext("New student record") %>
+      </.action>
+      <.link class="hover:text-ltrn-subtle" navigate={~p"/students_records/settings/status"}>
+        <span class="sr-only">
+          <%= gettext("Students records settings") %>
+        </span>
+        <.icon name="hero-cog-6-tooth-mini" />
+      </.link>
+    </div>
   </div>
 </.header_nav>
 <p :if={@students_records_length > 0} class="p-4 text-center">
@@ -153,26 +160,29 @@
   classes={@classes}
   selected_classes_ids={@selected_classes_ids}
 />
-<.single_selection_filter_modal
-  id="student-record-type-filter-modal"
-  title={gettext("Filter students records by type")}
+<.selection_filter_modal
+  id="student-record-tag-filter-modal"
+  title={gettext("Filter students records by tag")}
   use_color_map_as_active
-  items={@student_record_types}
-  selected_item_id={Enum.at(@selected_student_record_types_ids, 0)}
+  items={@student_record_tags}
+  selected_items_ids={@selected_student_record_tags_ids}
   on_cancel={%JS{}}
   on_select={
     fn id ->
-      JS.push("filter_by_type", value: %{"id" => id})
-      |> JS.exec("data-cancel", to: "#student-record-type-filter-modal")
+      JS.push("toggle_tag_filter", value: %{"id" => id})
     end
   }
+  on_save={
+    JS.push("filter_by_tag")
+    |> JS.exec("data-cancel", to: "#student-record-tag-filter-modal")
+  }
 />
-<.single_selection_filter_modal
+<.selection_filter_modal
   id="student-record-status-filter-modal"
   title={gettext("Filter students records by status")}
   use_color_map_as_active
   items={@student_record_statuses}
-  selected_item_id={Enum.at(@selected_student_record_statuses_ids, 0)}
+  selected_items_ids={@selected_student_record_statuses_ids}
   on_cancel={%JS{}}
   on_select={
     fn id ->
