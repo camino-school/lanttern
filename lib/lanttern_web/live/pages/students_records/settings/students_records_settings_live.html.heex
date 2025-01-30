@@ -3,52 +3,24 @@
     <%= gettext("Students records") %>
   </:breadcrumb>
   <:title><%= gettext("Settings") %></:title>
-  <div class="flex items-center justify-between gap-4 p-4">
-    <p class="flex items-center gap-2">
-      <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-      <%= gettext("Manage students records tags below") %>
-    </p>
-    <.action
-      type="link"
-      patch={~p"/students_records/settings?tag=new"}
-      icon_name="hero-plus-circle-mini"
-    >
-      <%= gettext("New tag") %>
-    </.action>
+  <div class="px-4">
+    <.neo_tabs>
+      <:tab
+        patch={~p"/students_records/settings/status"}
+        is_current={@live_action == :manage_status}
+      >
+        <%= gettext("Status") %>
+      </:tab>
+      <:tab patch={~p"/students_records/settings/tags"} is_current={@live_action == :manage_tags}>
+        <%= gettext("Tags") %>
+      </:tab>
+    </.neo_tabs>
   </div>
 </.header_nav>
-<%= if @tags_length == 0 do %>
-  <div class="p-10">
-    <.empty_state><%= gettext("No student record tags created yet") %></.empty_state>
-  </div>
-<% else %>
-  <.responsive_container id="student-record-tags" class="p-4">
-    <.sortable_card
-      :for={{tag, i} <- @tags_with_index}
-      id={"student-record-tag-#{tag.id}"}
-      is_move_up_disabled={i == 0}
-      on_move_up={JS.push("swap_tags_position", value: %{"from" => i, "to" => i - 1})}
-      is_move_down_disabled={i + 1 == @tags_length}
-      on_move_down={JS.push("swap_tags_position", value: %{"from" => i, "to" => i + 1})}
-      class="mt-4 first:mt-0"
-    >
-      <div class="flex items-center gap-4 p-6">
-        <.badge color_map={tag}>
-          <%= tag.name %>
-        </.badge>
-        <.action type="link" patch={~p"/students_records/settings?tag=#{tag.id}"} theme="subtle">
-          <%= gettext("Edit") %>
-        </.action>
-      </div>
-    </.sortable_card>
-  </.responsive_container>
-<% end %>
 <.live_component
-  :if={@tag}
-  module={StudentRecordTagFormOverlayComponent}
-  id="student-record-tag-form-overlay"
-  tag={@tag}
-  title={@tag_overlay_title}
-  on_cancel={JS.patch(@current_path)}
-  notify_parent
+  :if={@live_action == :manage_tags}
+  module={TagsComponent}
+  id="student-record-tag-manager"
+  current_user={@current_user}
+  params={@params}
 />
