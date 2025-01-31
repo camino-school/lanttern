@@ -65,6 +65,10 @@ defmodule LantternWeb.FiltersHelpers do
   - `:selected_student_record_assignees`
   - `:selected_student_record_assignees_ids`
 
+  ### `:student_record_view` assigns
+
+  - `:current_student_record_view`
+
   ### `:student_record_staff_member_view` assigns
 
   - `:current_student_record_staff_member_view`
@@ -246,6 +250,20 @@ defmodule LantternWeb.FiltersHelpers do
     socket
     |> assign(:selected_student_record_assignees_ids, selected_student_record_assignees_ids)
     |> assign(:selected_student_record_assignees, selected_student_record_assignees)
+    |> assign_filter_type(current_user, current_filters, filter_types)
+  end
+
+  defp assign_filter_type(
+         socket,
+         current_user,
+         current_filters,
+         [:student_record_view | filter_types]
+       ) do
+    current_student_record_view =
+      Map.get(current_filters, :student_record_view) || "all"
+
+    socket
+    |> assign(:current_student_record_view, current_student_record_view)
     |> assign_filter_type(current_user, current_filters, filter_types)
   end
 

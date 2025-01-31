@@ -298,7 +298,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 <.markdown text={@student_record.internal_notes} class="mt-6" />
               </div>
               <div
-                class="inline-flex items-center gap-2 p-2 rounded-full mt-4 text-xs"
+                class="inline-flex items-center gap-2 p-2 rounded-full mt-4"
                 style={create_color_map_style(@student_record.status)}
               >
                 <.closed_status_info student_record={@student_record} />

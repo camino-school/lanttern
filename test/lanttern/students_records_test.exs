@@ -277,6 +277,23 @@ defmodule Lanttern.StudentsRecordsTest do
       assert expected_2.id == owner_and_assignee_student_record.id
     end
 
+    test "list_students_records/1 with open view opt returns only open records ordered by oldest" do
+      student_record_1 = student_record_fixture()
+      student_record_2 = student_record_fixture()
+      student_record_3 = student_record_fixture()
+
+      # extra fixtures to test filtering
+      school = SchoolsFixtures.school_fixture()
+      closed_status = student_record_status_fixture(%{school_id: school.id, is_closed: true})
+      student_record_fixture(%{school_id: school.id, status_id: closed_status.id})
+
+      [expected_1, expected_2, expected_3] = StudentsRecords.list_students_records(view: "open")
+
+      assert expected_1.id == student_record_1.id
+      assert expected_2.id == student_record_2.id
+      assert expected_3.id == student_record_3.id
+    end
+
     test "list_students_records_page/1 returns all students_records in a Page struct" do
       student_record_1 = student_record_fixture(%{date: ~D[2024-01-01], time: nil})
       student_record_2_1 = student_record_fixture(%{date: ~D[2024-02-01], time: ~T[09:00:00]})

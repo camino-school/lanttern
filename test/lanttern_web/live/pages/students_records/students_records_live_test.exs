@@ -11,7 +11,7 @@ defmodule LantternWeb.StudentsRecordsLiveTest do
   describe "Students records live view basic navigation" do
     test "disconnected and connected mount", %{conn: conn} do
       conn = get(conn, @live_view_base_path)
-      assert html_response(conn, 200) =~ ~r/<h1 .+>\s*Students records\s*<\/h1>/
+      assert html_response(conn, 200) =~ ~r/<h1 .+>\s*Student records\s*<\/h1>/
 
       {:ok, _view, _html} = live(conn)
     end

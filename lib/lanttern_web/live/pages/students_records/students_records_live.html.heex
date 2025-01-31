@@ -1,5 +1,5 @@
 <.header_nav current_user={@current_user}>
-  <:title><%= gettext("Students records") %></:title>
+  <:title><%= gettext("Student records") %></:title>
   <div class="flex items-center gap-4 p-4">
     <div class="flex-1 flex flex-wrap items-center gap-4">
       <.icon name="hero-funnel-mini" class="text-ltrn-subtle" />
@@ -105,14 +105,39 @@
     </div>
   </div>
 </.header_nav>
-<p :if={@students_records_length > 0} class="p-4 text-center">
-  <%= ngettext(
-    "Showing 1 result for selected filters",
-    "Showing %{count} results for selected filters",
-    @students_records_length
-  ) %>
-</p>
 <.responsive_container class="p-4">
+  <div class="flex items-center justify-between gap-4 mb-4">
+    <p>
+      <%= ngettext(
+        "Showing 1 result for selected filters",
+        "Showing %{count} results for selected filters",
+        @students_records_length
+      ) %>
+    </p>
+    <div class="relative">
+      <.action type="button" id="select-view-dropdown-button" icon_name="hero-eye-mini">
+        <%= case @current_student_record_view do
+          "all" -> gettext("All records")
+          "open" -> gettext("Only open")
+        end %>
+      </.action>
+      <.dropdown_menu
+        id="select-view-dropdown"
+        button_id="select-view-dropdown-button"
+        z_index="30"
+        position="right"
+      >
+        <:item
+          text={gettext("All students records")}
+          on_click={JS.push("set_view", value: %{"view" => "all"})}
+        />
+        <:item
+          text={gettext("Only open, sorted by oldest")}
+          on_click={JS.push("set_view", value: %{"view" => "open"})}
+        />
+      </.dropdown_menu>
+    </div>
+  </div>
   <.students_records_list
     id="students-records"
     stream={@streams.students_records}
