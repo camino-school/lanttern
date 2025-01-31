@@ -66,7 +66,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordStatusFormOverlayComponent do
             </p>
             <p class="mt-2">
               <%= gettext(
-                "When activating, previous records with this status will not change: records already closed will remain closed, and open records will be considered \"closed on creation\" (when the record is created with a closing status)."
+                "When activating, previous records with this status will not change: records already closed will remain closed, and open records will be considered \"closed on creation\"."
               ) %>
             </p>
           </div>

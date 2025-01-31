@@ -16,7 +16,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
   alias LantternWeb.Schools.StaffMemberSearchComponent
   alias LantternWeb.Schools.StudentSearchComponent
   alias LantternWeb.Schools.ClassesFieldComponent
-  import LantternWeb.DateTimeHelpers, only: [format_local!: 1]
+  import LantternWeb.DateTimeHelpers
   import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
   import LantternWeb.StudentsRecordsComponents
 
@@ -373,29 +373,38 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
            }
          } = assigns
        ) do
+    days_and_hours =
+      days_and_hours_between(
+        assigns.student_record.inserted_at,
+        assigns.student_record.closed_at,
+        "long"
+      )
+
+    assigns = assign(assigns, :days_and_hours, days_and_hours)
+
     ~H"""
     <.icon name="hero-check-circle-mini" />
-    <%= gettext("Closed by %{staff_member} on %{datetime} (%{days} days since creation)",
+    <%= gettext("Closed by %{staff_member} on %{datetime} (%{days_and_hours} since creation)",
       staff_member: @student_record.closed_by_staff_member.name,
       datetime: format_local!(@student_record.closed_at),
-      days: @student_record.duration_until_close.day
+      days_and_hours: @days_and_hours
     ) %>
     """
   end
 
   defp closed_status_info(assigns) do
-    days_since_creation =
-      DateTime.diff(
+    days_and_hours =
+      days_and_hours_between(
+        assigns.student_record.inserted_at,
         DateTime.utc_now(),
-        DateTime.from_naive!(assigns.student_record.inserted_at, "Etc/UTC"),
-        :day
+        "long"
       )
 
-    assigns = assign(assigns, :days_since_creation, days_since_creation)
+    assigns = assign(assigns, :days_and_hours, days_and_hours)
 
     ~H"""
     <%= gettext("Created on %{datetime}", datetime: format_local!(@student_record.inserted_at)) %>
-    <%= ngettext("(Open for 1 day)", "(Open for %{count} days)", @days_since_creation) %>
+    <%= gettext("(Open for %{days_and_hours})", days_and_hours: @days_and_hours) %>
     """
   end
 

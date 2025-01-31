@@ -8,7 +8,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
   use Gettext, backend: Lanttern.Gettext
   import LantternWeb.CoreComponents
   import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
-  import LantternWeb.DateTimeHelpers, only: [format_local!: 1]
+  import LantternWeb.DateTimeHelpers
 
   alias Lanttern.StudentsRecords.StudentRecordStatus
 
@@ -43,7 +43,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
   def students_records_list(%{show_empty_state_message: true} = assigns) do
     ~H"""
     <div class={@class}>
-      <.empty_state><%= gettext("No students records found for selected filters.") %></.empty_state>
+      <.empty_state><%= gettext("No student records found for selected filters.") %></.empty_state>
     </div>
     """
   end
@@ -159,7 +159,9 @@ defmodule LantternWeb.StudentsRecordsComponents do
                   class="flex items-center justify-center gap-1 p-0.5 rounded-full"
                   style={create_color_map_style(student_record.status)}
                 >
-                  <p class="pl-1"><%= student_record.duration_until_close.day %>d</p>
+                  <p class="pl-1">
+                    <%= days_and_hours_between(student_record.inserted_at, student_record.closed_at) %>
+                  </p>
                   <.icon name="hero-check-circle-mini" />
                 </div>
                 <.tooltip h_pos="right">
@@ -174,15 +176,11 @@ defmodule LantternWeb.StudentsRecordsComponents do
                   style={create_color_map_style(student_record.status)}
                 >
                   <p class="pl-1">
-                    <%= DateTime.diff(
-                      DateTime.utc_now(),
-                      DateTime.from_naive!(student_record.inserted_at, "Etc/UTC"),
-                      :day
-                    ) %>d
+                    <%= days_and_hours_between(student_record.inserted_at, DateTime.utc_now()) %>
                   </p>
                   <.icon name="hero-clock-mini" />
                 </div>
-                <.tooltip h_pos="right"><%= gettext("Days since creation") %></.tooltip>
+                <.tooltip h_pos="right"><%= gettext("Duration since creation") %></.tooltip>
               </div>
               <div :if={student_record.shared_with_school} class="group relative">
                 <.icon name="hero-globe-americas" class="w-6 h-6 text-ltrn-staff-accent" />

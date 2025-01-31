@@ -98,7 +98,7 @@
       </.action>
       <.link class="hover:text-ltrn-subtle" navigate={~p"/students_records/settings/status"}>
         <span class="sr-only">
-          <%= gettext("Students records settings") %>
+          <%= gettext("Student records settings") %>
         </span>
         <.icon name="hero-cog-6-tooth-mini" />
       </.link>
@@ -128,11 +128,11 @@
         position="right"
       >
         <:item
-          text={gettext("All students records")}
+          text={gettext("All records, newest first")}
           on_click={JS.push("set_view", value: %{"view" => "all"})}
         />
         <:item
-          text={gettext("Only open, sorted by oldest")}
+          text={gettext("Only open, oldest first")}
           on_click={JS.push("set_view", value: %{"view" => "open"})}
         />
       </.dropdown_menu>
@@ -180,14 +180,14 @@
   module={LantternWeb.Filters.ClassesFilterOverlayComponent}
   id="students-records-classes-filters-overlay"
   current_user={@current_user}
-  title={gettext("Filter students records by class")}
+  title={gettext("Filter student records by class")}
   navigate={~p"/students_records"}
   classes={@classes}
   selected_classes_ids={@selected_classes_ids}
 />
 <.selection_filter_modal
   id="student-record-tag-filter-modal"
-  title={gettext("Filter students records by tag")}
+  title={gettext("Filter student records by tag")}
   use_color_map_as_active
   items={@student_record_tags}
   selected_items_ids={@selected_student_record_tags_ids}
@@ -204,7 +204,7 @@
 />
 <.selection_filter_modal
   id="student-record-status-filter-modal"
-  title={gettext("Filter students records by status")}
+  title={gettext("Filter student records by status")}
   use_color_map_as_active
   items={@student_record_statuses}
   selected_items_ids={@selected_student_record_statuses_ids}

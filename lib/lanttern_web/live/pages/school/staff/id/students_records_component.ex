@@ -166,11 +166,11 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
               position="right"
             >
               <:item
-                text={gettext("All students records")}
+                text={gettext("All records, newest first")}
                 on_click={JS.push("set_view", value: %{"view" => "all"}, target: @myself)}
               />
               <:item
-                text={gettext("Only open, sorted by oldest")}
+                text={gettext("Only open, oldest first")}
                 on_click={JS.push("set_view", value: %{"view" => "open"}, target: @myself)}
               />
             </.dropdown_menu>
@@ -222,14 +222,14 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
         module={LantternWeb.Filters.ClassesFilterOverlayComponent}
         id="students-records-classes-filters-overlay"
         current_user={@current_user}
-        title={gettext("Filter students records by class")}
+        title={gettext("Filter student records by class")}
         navigate={~p"/school/staff/#{@staff_member.id}/students_records"}
         classes={@classes}
         selected_classes_ids={@selected_classes_ids}
       />
       <.selection_filter_modal
         id="student-record-status-filter-modal"
-        title={gettext("Filter students records by status")}
+        title={gettext("Filter student records by status")}
         use_color_map_as_active
         items={@student_record_statuses}
         selected_items_ids={@selected_student_record_statuses_ids}
@@ -243,7 +243,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
       />
       <.selection_filter_modal
         id="student-record-tag-filter-modal"
-        title={gettext("Filter students records by tag")}
+        title={gettext("Filter student records by tag")}
         use_color_map_as_active
         items={@student_record_tags}
         selected_items_ids={@selected_student_record_tags_ids}

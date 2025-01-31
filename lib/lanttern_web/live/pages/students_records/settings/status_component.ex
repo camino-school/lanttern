@@ -16,7 +16,7 @@ defmodule LantternWeb.StudentsRecordsSettingsLive.StatusComponent do
       <.action_bar class="flex items-center justify-between gap-4 p-4">
         <p class="flex items-center gap-2">
           <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-          <%= gettext("Manage students records statuses below") %>
+          <%= gettext("Manage student records statuses below") %>
         </p>
         <.action
           type="link"
