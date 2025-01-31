@@ -525,8 +525,6 @@ defmodule Lanttern.StudentsRecordsTest do
         description: "some description",
         internal_notes: "some internal notes",
         created_by_staff_member_id: staff_member.id,
-        closed_by_staff_member_id: staff_member.id,
-        closed_at: DateTime.utc_now() |> DateTime.add(1, :day),
         students_ids: [student.id],
         classes_ids: [class.id],
         assignees_ids: [assignee.id]
@@ -539,7 +537,6 @@ defmodule Lanttern.StudentsRecordsTest do
         student_record
         |> Repo.preload([
           :created_by_staff_member,
-          :closed_by_staff_member,
           :students,
           :classes,
           :assignees,
@@ -552,12 +549,9 @@ defmodule Lanttern.StudentsRecordsTest do
       assert student_record.name == "some name"
       assert student_record.date == ~D[2024-09-15]
       assert student_record.time == ~T[14:00:00]
-      assert student_record.closed_at == DateTime.utc_now(:second) |> DateTime.add(1, :day)
-      assert %Duration{day: 1} = student_record.duration_until_close
       assert student_record.description == "some description"
       assert student_record.internal_notes == "some internal notes"
       assert student_record.created_by_staff_member == staff_member
-      assert student_record.closed_by_staff_member == staff_member
       assert student_record.students == [student]
       assert student_record.classes == [class]
       assert student_record.assignees == [assignee]
@@ -581,7 +575,6 @@ defmodule Lanttern.StudentsRecordsTest do
         assert student_record_log.tags_ids == [tag.id]
         assert student_record_log.name == student_record.name
         assert student_record_log.date == student_record.date
-        assert student_record_log.closed_at == student_record.closed_at
         assert student_record_log.time == student_record.time
         assert student_record_log.description == student_record.description
         assert student_record_log.internal_notes == student_record.internal_notes
@@ -589,9 +582,6 @@ defmodule Lanttern.StudentsRecordsTest do
 
         assert student_record_log.created_by_staff_member_id ==
                  student_record.created_by_staff_member_id
-
-        assert student_record_log.closed_by_staff_member_id ==
-                 student_record.closed_by_staff_member_id
       end)
     end
 
@@ -671,6 +661,75 @@ defmodule Lanttern.StudentsRecordsTest do
         assert student_record_log.created_by_staff_member_id ==
                  student_record.created_by_staff_member_id
       end)
+    end
+
+    test "update_student_record/2 with is_closed status sets the closed_at record field" do
+      school = SchoolsFixtures.school_fixture()
+      student_record = student_record_fixture(%{school_id: school.id})
+
+      staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+      close_status = student_record_status_fixture(%{school_id: school.id, is_closed: true})
+
+      update_attrs = %{
+        "status_id" => close_status.id,
+        "closed_by_staff_member_id" => staff_member.id
+      }
+
+      # profile to test log
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture(%{id: staff_member.id})
+
+      # wait 1 second to test duration_until_close
+      Process.sleep(1000)
+
+      assert {:ok, %StudentRecord{} = student_record} =
+               StudentsRecords.update_student_record(student_record, update_attrs,
+                 log_profile_id: profile.id
+               )
+
+      assert %DateTime{} = student_record.closed_at
+      assert %Duration{second: second} = student_record.duration_until_close
+      assert second >= 1
+      assert student_record.closed_by_staff_member_id == staff_member.id
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+
+        student_record_log =
+          Repo.get_by!(StudentRecordLog,
+            student_record_id: student_record.id
+          )
+
+        assert student_record_log.student_record_id == student_record.id
+        assert student_record_log.profile_id == profile.id
+        assert student_record_log.operation == "UPDATE"
+
+        assert student_record_log.closed_at == student_record.closed_at
+
+        assert student_record_log.closed_by_staff_member_id ==
+                 student_record.closed_by_staff_member_id
+      end)
+    end
+
+    test "update_student_record/2 with open (not is_closed) status clears the closed_at" do
+      school = SchoolsFixtures.school_fixture()
+      staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+
+      student_record =
+        student_record_fixture(%{
+          school_id: school.id,
+          closed_at: DateTime.utc_now(),
+          closed_by_staff_member_id: staff_member.id
+        })
+
+      open_status = student_record_status_fixture(%{school_id: school.id, is_closed: false})
+      update_attrs = %{"status_id" => open_status.id}
+
+      assert {:ok, %StudentRecord{} = student_record} =
+               StudentsRecords.update_student_record(student_record, update_attrs)
+
+      assert is_nil(student_record.closed_at)
+      assert is_nil(student_record.duration_until_close)
+      assert is_nil(student_record.closed_by_staff_member_id)
     end
 
     test "user without permissions can't update_student_record/3 with check_profile_permissions" do

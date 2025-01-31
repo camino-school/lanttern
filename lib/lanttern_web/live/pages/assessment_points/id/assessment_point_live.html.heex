@@ -21,7 +21,7 @@
       />
     </div>
     <.icon_and_content icon_name="hero-calendar">
-      Date: <%= format_local!(@assessment_point.datetime, "{Mshort} {D}, {YYYY}, {h24}:{m}") %>
+      Date: <%= format_local!(@assessment_point.datetime) %>
     </.icon_and_content>
     <.icon_and_content icon_name="hero-bookmark">
       Curriculum: <%= @assessment_point.curriculum_item.name %>
@@ -138,7 +138,7 @@
     phx-mounted={highlight_mounted()}
   >
     <span class="block mb-2 text-xs text-ltrn-subtle">
-      <%= format_local!(@feedback.inserted_at, "{Mshort} {D}, {YYYY}, {h24}:{m}") %>
+      <%= format_local!(@feedback.inserted_at) %>
     </span>
     <p class="text-sm">
       <%= @feedback.comment %>
@@ -174,7 +174,7 @@
         phx-remove={highlight_remove()}
       >
         <span class="flex items-center gap-4 mb-2 text-xs text-ltrn-subtle">
-          <%= format_local!(comment.inserted_at, "{Mshort} {D}, {YYYY}, {h24}:{m}") %>
+          <%= format_local!(comment.inserted_at) %>
           <button
             :if={comment.profile_id == @current_user.current_profile_id}
             type="button"

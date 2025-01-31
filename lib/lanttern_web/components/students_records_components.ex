@@ -8,6 +8,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
   use Gettext, backend: Lanttern.Gettext
   import LantternWeb.CoreComponents
   import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
+  import LantternWeb.DateTimeHelpers, only: [format_local!: 1]
 
   alias Lanttern.StudentsRecords.StudentRecordStatus
 
@@ -142,25 +143,45 @@ defmodule LantternWeb.StudentsRecordsComponents do
                 :if={student_record.status.is_closed && !student_record.closed_at}
                 class="group relative"
               >
-                <.icon name="hero-check-circle" class="w-6 h-6 text-ltrn-subtle" />
+                <div
+                  class="flex items-center justify-center p-0.5 rounded-full"
+                  style={create_color_map_style(student_record.status)}
+                >
+                  <.icon name="hero-check-circle-mini" />
+                </div>
                 <.tooltip h_pos="right"><%= gettext("Closed on creation") %></.tooltip>
               </div>
               <div
-                :if={!student_record.status.is_closed}
-                class="group relative flex items-center gap-1"
+                :if={student_record.status.is_closed && student_record.closed_at}
+                class="group relative"
               >
-                <p class="text-ltrn-subtle">
-                  <%= DateTime.diff(
-                    DateTime.utc_now(),
-                    DateTime.from_naive!(student_record.inserted_at, "Etc/UTC"),
-                    :day
-                  )
-                  |> case do
-                    days when days <= 1 -> "~1"
-                    days -> days
-                  end %>d
-                </p>
-                <.icon name="hero-clock" class="w-6 h-6 text-ltrn-subtle" />
+                <div
+                  class="flex items-center justify-center gap-1 p-0.5 rounded-full"
+                  style={create_color_map_style(student_record.status)}
+                >
+                  <p class="pl-1"><%= student_record.duration_until_close.day %>d</p>
+                  <.icon name="hero-check-circle-mini" />
+                </div>
+                <.tooltip h_pos="right">
+                  <%= gettext("Closed at %{datetime}",
+                    datetime: format_local!(student_record.closed_at)
+                  ) %>
+                </.tooltip>
+              </div>
+              <div :if={!student_record.status.is_closed} class="group relative">
+                <div
+                  class="flex items-center justify-center gap-1 p-0.5 rounded-full"
+                  style={create_color_map_style(student_record.status)}
+                >
+                  <p class="pl-1">
+                    <%= DateTime.diff(
+                      DateTime.utc_now(),
+                      DateTime.from_naive!(student_record.inserted_at, "Etc/UTC"),
+                      :day
+                    ) %>d
+                  </p>
+                  <.icon name="hero-clock-mini" />
+                </div>
                 <.tooltip h_pos="right"><%= gettext("Days since creation") %></.tooltip>
               </div>
               <div :if={student_record.shared_with_school} class="group relative">

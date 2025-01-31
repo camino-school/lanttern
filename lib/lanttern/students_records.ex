@@ -409,6 +409,7 @@ defmodule Lanttern.StudentsRecords do
       :ok ->
         student_record
         |> StudentRecord.changeset(attrs)
+        |> StudentRecord.update_changeset_closed_fields(attrs)
         |> Repo.update()
         |> StudentsRecordsLog.maybe_create_student_record_log("UPDATE", opts)
 

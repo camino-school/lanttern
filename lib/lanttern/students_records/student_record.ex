@@ -8,6 +8,8 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
 
   use Gettext, backend: Lanttern.Gettext
 
+  alias Lanttern.Repo
+
   alias Lanttern.StudentsRecords.AssigneeRelationship
   alias Lanttern.StudentsRecords.StudentRecordClassRelationship
   alias Lanttern.StudentsRecords.StudentRecordRelationship
@@ -99,11 +101,11 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
       :internal_notes,
       :date,
       :time,
-      :closed_at,
+      # :closed_by_staff_member_id, # handled by update_changeset_closed_fields
+      # :closed_at, # handled by update_changeset_closed_fields
       :shared_with_school,
       :school_id,
       :created_by_staff_member_id,
-      :closed_by_staff_member_id,
       :status_id,
       :tags_ids,
       :students_ids,
@@ -220,6 +222,44 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
 
       _ ->
         changeset
+    end
+  end
+
+  @doc """
+  Handles the `closed_at` and `closed_by_staff_member_id` field based on status.
+
+  Relevant only for updates, as records created with `is_closed` statuses are
+  considered "closed on creation" (`closed_at` = `inserted_at` and
+  `closed_by_staff_member_id` = `created_by_staff_member_id`).
+  """
+
+  @spec update_changeset_closed_fields(Ecto.Changeset.t(), map()) :: Ecto.Changeset.t()
+
+  def update_changeset_closed_fields(changeset, params) do
+    get_changeset_status(changeset)
+    |> case do
+      nil ->
+        changeset
+
+      %{is_closed: true} ->
+        changeset
+        |> put_change(:closed_at, DateTime.utc_now(:second))
+        |> put_change(:closed_by_staff_member_id, params["closed_by_staff_member_id"])
+
+      %{is_closed: false} ->
+        changeset
+        |> put_change(:closed_at, nil)
+        |> put_change(:closed_by_staff_member_id, nil)
+    end
+  end
+
+  defp get_changeset_status(changeset) do
+    # we use get_field (instead of get_change) because even
+    # if status id is not changed, we want to validate the status
+    # on updates
+    case Ecto.Changeset.get_field(changeset, :status_id) do
+      nil -> nil
+      status_id -> Repo.get(StudentRecordStatus, status_id)
     end
   end
 end

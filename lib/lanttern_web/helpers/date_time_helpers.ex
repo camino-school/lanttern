@@ -7,7 +7,7 @@ defmodule LantternWeb.DateTimeHelpers do
   Wrapper around `Timex.format!/3` which renders the formated time
   using the local timezone
   """
-  def format_local!(datetime, format_string) do
+  def format_local!(datetime, format_string \\ "{Mshort} {D}, {YYYY}, {h24}:{m}") do
     datetime
     |> maybe_convert_naive()
     |> Timex.local()
