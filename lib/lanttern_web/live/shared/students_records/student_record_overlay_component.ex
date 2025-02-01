@@ -195,7 +195,13 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               >
                 <%= gettext("Cancel") %>
               </.action>
-              <.action type="submit" theme="primary" size="md" icon_name="hero-check">
+              <.action
+                type="submit"
+                theme="primary"
+                size="md"
+                icon_name="hero-check"
+                data-confirm={@confirm_submit_message}
+              >
                 <%= gettext("Save") %>
               </.action>
             </div>
@@ -414,6 +420,8 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
       socket
       |> assign(:is_editing, false)
       |> assign(:is_deleted, false)
+      |> assign(:confirm_submit_message, nil)
+      |> assign(:is_closing, false)
       |> assign(:form_initialized, false)
 
     {:ok, socket}
@@ -696,10 +704,20 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
   end
 
   def handle_event("select_status", %{"id" => id}, socket) do
+    status = Enum.find(socket.assigns.statuses, &(&1.id == id))
+
+    is_closing = status.is_closed
+
+    confirm_submit_message =
+      if socket.assigns.student_record.status.is_closed && !status.is_closed,
+        do: gettext("Are you sure you want to reopen this student record?")
+
     socket =
       socket
       |> assign(:selected_status_id, id)
       |> assign_validated_form(socket.assigns.form.params)
+      |> assign(:is_closing, is_closing)
+      |> assign(:confirm_submit_message, confirm_submit_message)
 
     {:noreply, socket}
   end
@@ -833,11 +851,8 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
 
   defp save_student_record(socket, _id, student_record_params) do
     # when updating student record with closed status, inject current user
-    selected_status =
-      Enum.find(socket.assigns.statuses, &(&1.id == socket.assigns.selected_status_id))
-
     student_record_params =
-      if selected_status.is_closed do
+      if socket.assigns.is_closing do
         student_record_params
         |> Map.put(
           "closed_by_staff_member_id",
