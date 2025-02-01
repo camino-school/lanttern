@@ -12,6 +12,7 @@
 defmodule LantternWeb.StudentLive.StudentRecordsComponent do
   use LantternWeb, :live_component
 
+  alias Lanttern.Filters
   alias Lanttern.StudentsRecords
   alias Lanttern.Schools
 
@@ -88,14 +89,39 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
           <%= gettext("New student record") %>
         </.action>
       </.action_bar>
-      <p :if={@students_records_length > 0} class="p-4 text-center">
-        <%= ngettext(
-          "Showing 1 result for selected filters",
-          "Showing %{count} results for selected filters",
-          @students_records_length
-        ) %>
-      </p>
       <.responsive_container class="p-4">
+        <div class="flex items-center justify-between gap-4 mb-4">
+          <p>
+            <%= ngettext(
+              "Showing 1 result for selected filters",
+              "Showing %{count} results for selected filters",
+              @students_records_length
+            ) %>
+          </p>
+          <div class="relative">
+            <.action type="button" id="select-view-dropdown-button" icon_name="hero-eye-mini">
+              <%= case @current_student_record_view do
+                "all" -> gettext("All records")
+                "open" -> gettext("Only open")
+              end %>
+            </.action>
+            <.dropdown_menu
+              id="select-view-dropdown"
+              button_id="select-view-dropdown-button"
+              z_index="30"
+              position="right"
+            >
+              <:item
+                text={gettext("All records, newest first")}
+                on_click={JS.push("set_view", value: %{"view" => "all"}, target: @myself)}
+              />
+              <:item
+                text={gettext("Only open, oldest first")}
+                on_click={JS.push("set_view", value: %{"view" => "open"}, target: @myself)}
+              />
+            </.dropdown_menu>
+          </div>
+        </div>
         <.students_records_list
           id="students-records"
           stream={@streams.students_records}
@@ -123,7 +149,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
       </div>
       <.selection_filter_modal
         id="student-record-status-filter-modal"
-        title={gettext("Filter students records by status")}
+        title={gettext("Filter student records by status")}
         use_color_map_as_active
         items={@student_record_statuses}
         selected_items_ids={@selected_student_record_statuses_ids}
@@ -137,7 +163,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
       />
       <.selection_filter_modal
         id="student-record-tag-filter-modal"
-        title={gettext("Filter students records by tag")}
+        title={gettext("Filter student records by tag")}
         use_color_map_as_active
         items={@student_record_tags}
         selected_items_ids={@selected_student_record_tags_ids}
@@ -251,7 +277,8 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
     |> assign_user_filters([
       :student_record_tags,
       :student_record_statuses,
-      :student_record_assignees
+      :student_record_assignees,
+      :student_record_view
     ])
     |> stream_students_records()
     |> assign_base_path()
@@ -265,7 +292,8 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
       current_user: %{current_profile: profile},
       selected_student_record_tags_ids: tags_ids,
       selected_student_record_statuses_ids: statuses_ids,
-      selected_student_record_assignees_ids: assignees_ids
+      selected_student_record_assignees_ids: assignees_ids,
+      current_student_record_view: view
     } = socket.assigns
 
     {keyset, len} =
@@ -280,6 +308,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
         tags_ids: tags_ids,
         statuses_ids: statuses_ids,
         assignees_ids: assignees_ids,
+        view: view,
         preloads: [
           :tags,
           :status,
@@ -428,6 +457,26 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
 
   def handle_event("close_assignee_search_modal", _, socket),
     do: {:noreply, assign(socket, :show_assignee_search_modal, false)}
+
+  def handle_event("set_view", %{"view" => view}, socket) do
+    Filters.set_profile_current_filters(
+      socket.assigns.current_user,
+      %{student_record_view: view}
+    )
+    |> case do
+      {:ok, _} ->
+        socket =
+          socket
+          |> assign(:current_student_record_view, view)
+          |> stream_students_records(true)
+
+        {:noreply, socket}
+
+      {:error, _} ->
+        # do something with error?
+        {:noreply, socket}
+    end
+  end
 
   def handle_event("load_more", _, socket),
     do: {:noreply, stream_students_records(socket)}

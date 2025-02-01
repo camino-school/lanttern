@@ -35,7 +35,11 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
         <div class="flex-1 flex flex-wrap items-center gap-4">
           <.icon name="hero-funnel-mini" class="text-ltrn-subtle" />
           <div class="relative">
-            <.action type="button" id="select-view-dropdown-button" icon_name="hero-chevron-down-mini">
+            <.action
+              type="button"
+              id="select-staff-view-dropdown-button"
+              icon_name="hero-chevron-down-mini"
+            >
               <%= case @current_student_record_staff_member_view do
                 "created_by" ->
                   gettext("Created by %{staff_member}", staff_member: @staff_member_first_name)
@@ -45,8 +49,8 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
               end %>
             </.action>
             <.dropdown_menu
-              id="select-view-dropdown"
-              button_id="select-view-dropdown-button"
+              id="select-staff-view-dropdown"
+              button_id="select-staff-view-dropdown-button"
               z_index="30"
             >
               <:item
@@ -139,14 +143,39 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
           <%= gettext("New student record") %>
         </.action>
       </.action_bar>
-      <p :if={@students_records_length > 0} class="p-4 text-center">
-        <%= ngettext(
-          "Showing 1 result for selected filters",
-          "Showing %{count} results for selected filters",
-          @students_records_length
-        ) %>
-      </p>
       <.responsive_container class="p-4">
+        <div class="flex items-center justify-between gap-4 mb-4">
+          <p>
+            <%= ngettext(
+              "Showing 1 result for selected filters",
+              "Showing %{count} results for selected filters",
+              @students_records_length
+            ) %>
+          </p>
+          <div class="relative">
+            <.action type="button" id="select-view-dropdown-button" icon_name="hero-eye-mini">
+              <%= case @current_student_record_view do
+                "all" -> gettext("All records")
+                "open" -> gettext("Only open")
+              end %>
+            </.action>
+            <.dropdown_menu
+              id="select-view-dropdown"
+              button_id="select-view-dropdown-button"
+              z_index="30"
+              position="right"
+            >
+              <:item
+                text={gettext("All records, newest first")}
+                on_click={JS.push("set_view", value: %{"view" => "all"}, target: @myself)}
+              />
+              <:item
+                text={gettext("Only open, oldest first")}
+                on_click={JS.push("set_view", value: %{"view" => "open"}, target: @myself)}
+              />
+            </.dropdown_menu>
+          </div>
+        </div>
         <.students_records_list
           id="students-records"
           stream={@streams.students_records}
@@ -193,14 +222,14 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
         module={LantternWeb.Filters.ClassesFilterOverlayComponent}
         id="students-records-classes-filters-overlay"
         current_user={@current_user}
-        title={gettext("Filter students records by class")}
+        title={gettext("Filter student records by class")}
         navigate={~p"/school/staff/#{@staff_member.id}/students_records"}
         classes={@classes}
         selected_classes_ids={@selected_classes_ids}
       />
       <.selection_filter_modal
         id="student-record-status-filter-modal"
-        title={gettext("Filter students records by status")}
+        title={gettext("Filter student records by status")}
         use_color_map_as_active
         items={@student_record_statuses}
         selected_items_ids={@selected_student_record_statuses_ids}
@@ -214,7 +243,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
       />
       <.selection_filter_modal
         id="student-record-tag-filter-modal"
-        title={gettext("Filter students records by tag")}
+        title={gettext("Filter student records by tag")}
         use_color_map_as_active
         items={@student_record_tags}
         selected_items_ids={@selected_student_record_tags_ids}
@@ -309,6 +338,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
       :students,
       :student_record_tags,
       :student_record_statuses,
+      :student_record_view,
       :student_record_staff_member_view
     ])
     |> apply_assign_classes_filter()
@@ -337,7 +367,8 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
       selected_students_ids: students_ids,
       selected_classes_ids: classes_ids,
       selected_student_record_tags_ids: tags_ids,
-      selected_student_record_statuses_ids: statuses_ids
+      selected_student_record_statuses_ids: statuses_ids,
+      current_student_record_view: view
     } = socket.assigns
 
     {keyset, len} =
@@ -352,6 +383,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
         classes_ids: classes_ids,
         tags_ids: tags_ids,
         statuses_ids: statuses_ids,
+        view: view,
         owner_id:
           if(socket.assigns.current_student_record_staff_member_view == "created_by",
             do: socket.assigns.staff_member.id
@@ -556,6 +588,26 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
       |> stream_students_records(true)
 
     {:noreply, socket}
+  end
+
+  def handle_event("set_view", %{"view" => view}, socket) do
+    Filters.set_profile_current_filters(
+      socket.assigns.current_user,
+      %{student_record_view: view}
+    )
+    |> case do
+      {:ok, _} ->
+        socket =
+          socket
+          |> assign(:current_student_record_view, view)
+          |> stream_students_records(true)
+
+        {:noreply, socket}
+
+      {:error, _} ->
+        # do something with error?
+        {:noreply, socket}
+    end
   end
 
   def handle_event("load_more", _, socket),

@@ -53,12 +53,30 @@ defmodule LantternWeb.StudentsRecords.StudentRecordStatusFormOverlayComponent do
             class="mb-6"
             phx-debounce="1500"
           />
+          <div class="p-4 rounded-sm bg-ltrn-mesh-cyan">
+            <.input
+              field={@form[:is_closed]}
+              type="toggle"
+              label={gettext("Use status to close student record")}
+            />
+            <p class="mt-4">
+              <%= gettext(
+                "If active, assigning this status to an existing record will close it and calculate the time since its creation."
+              ) %>
+            </p>
+            <p class="mt-2">
+              <%= gettext(
+                "When activating, previous records with this status will not change: records already closed will remain closed, and open records will be considered \"closed on creation\"."
+              ) %>
+            </p>
+          </div>
         </.form>
-        <.card_base class="p-6">
+        <.card_base class="p-6 mt-10">
           <p class="mb-4 text-ltrn-subtle"><%= gettext("Preview") %></p>
-          <.badge color_map={
-            %{bg_color: @form[:bg_color].value, text_color: @form[:text_color].value}
-          }>
+          <.badge
+            color_map={%{bg_color: @form[:bg_color].value, text_color: @form[:text_color].value}}
+            icon_name={if(@form[:is_closed].value == true, do: "hero-check-circle-mini")}
+          >
             <%= @form[:name].value %>
           </.badge>
         </.card_base>

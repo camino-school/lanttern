@@ -68,6 +68,7 @@ defmodule Lanttern.StudentsRecords do
   - `:tags_ids` - filter results by tag
   - `:owner_id` - filter results by owner
   - `:assignees_ids` - filter results by assignees
+  - `:view` - if "open", will return only open records ordered by oldest
   - `:check_profile_permissions` - filter results based on profile permission
   - `:preloads` - preloads associated data
   - page opts (view `Page.opts()`)
@@ -87,18 +88,16 @@ defmodule Lanttern.StudentsRecords do
             statuses_ids: [pos_integer()],
             owner_id: pos_integer(),
             assignees_ids: [pos_integer()],
+            view: String.t(),
             check_profile_permissions: Profile.t(),
             preloads: list()
           ]
           | Page.opts()
   @spec list_students_records(list_students_records_opts()) :: [StudentRecord.t()]
   def list_students_records(opts \\ []) do
-    from(
-      sr in StudentRecord,
-      order_by: [desc: sr.date, desc: sr.time, desc: sr.id],
-      group_by: sr.id
-    )
+    from(sr in StudentRecord, group_by: sr.id)
     |> apply_list_students_records_opts(opts)
+    |> apply_list_students_records_order_by(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
@@ -170,6 +169,19 @@ defmodule Lanttern.StudentsRecords do
       sr in queryable,
       join: ar in assoc(sr, :assignees_relationships),
       where: ar.staff_member_id in ^assignees_ids
+    )
+    |> apply_list_students_records_opts(opts)
+  end
+
+  defp apply_list_students_records_opts(queryable, [{:view, "open"} | opts]) do
+    queryable =
+      with_named_binding(queryable, :status, fn queryable, binding ->
+        join(queryable, :inner, [sr], s in assoc(sr, ^binding), as: ^binding)
+      end)
+
+    from(
+      [sr, status: s] in queryable,
+      where: not s.is_closed
     )
     |> apply_list_students_records_opts(opts)
   end
@@ -265,6 +277,22 @@ defmodule Lanttern.StudentsRecords do
       sr in queryable,
       where: false
     )
+  end
+
+  defp apply_list_students_records_order_by(queryable, opts) do
+    case Keyword.get(opts, :view) do
+      "open" ->
+        from(
+          sr in queryable,
+          order_by: [asc: sr.inserted_at, asc: sr.id]
+        )
+
+      _ ->
+        from(
+          sr in queryable,
+          order_by: [desc: sr.date, desc: sr.time, desc: sr.id]
+        )
+    end
   end
 
   @doc """
@@ -409,6 +437,7 @@ defmodule Lanttern.StudentsRecords do
       :ok ->
         student_record
         |> StudentRecord.changeset(attrs)
+        |> StudentRecord.update_changeset_closed_fields(student_record, attrs)
         |> Repo.update()
         |> StudentsRecordsLog.maybe_create_student_record_log("UPDATE", opts)
 

@@ -83,15 +83,9 @@ defmodule LantternWeb.Notes.NoteComponent do
             </.action>
           </div>
           <p class="text-xs">
-            <%= gettext("Created at") %> <%= format_local!(
-              @note.inserted_at,
-              "{Mshort} {D}, {YYYY}, {h24}:{m}"
-            ) %>
+            <%= gettext("Created at") %> <%= format_local!(@note.inserted_at) %>
             <span :if={@note.inserted_at != @note.updated_at} class="text-ltrn-subtle">
-              (<%= gettext("updated") %> <%= format_local!(
-                @note.updated_at,
-                "{Mshort} {D}, {YYYY}, {h24}:{m}"
-              ) %>)
+              (<%= gettext("updated") %> <%= format_local!(@note.updated_at) %>)
             </span>
           </p>
           <.markdown text={@note.description} class="mt-10" />

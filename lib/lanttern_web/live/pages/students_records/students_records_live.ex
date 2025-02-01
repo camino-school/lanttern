@@ -1,6 +1,7 @@
 defmodule LantternWeb.StudentsRecordsLive do
   use LantternWeb, :live_view
 
+  alias Lanttern.Filters
   alias Lanttern.StudentsRecords
   alias Lanttern.Schools
   alias Lanttern.Schools.Cycle
@@ -22,12 +23,13 @@ defmodule LantternWeb.StudentsRecordsLive do
   def mount(_params, _session, socket) do
     socket =
       socket
-      |> assign(:page_title, gettext("Students records"))
+      |> assign(:page_title, gettext("Student records"))
       |> assign_user_filters([
         :students,
         :student_record_tags,
         :student_record_statuses,
-        :student_record_assignees
+        :student_record_assignees,
+        :student_record_view
       ])
       |> apply_assign_classes_filter()
       |> stream_students_records()
@@ -72,6 +74,7 @@ defmodule LantternWeb.StudentsRecordsLive do
         tags_ids: tags_ids,
         statuses_ids: statuses_ids,
         assignees_ids: assignees_ids,
+        view: socket.assigns.current_student_record_view,
         preloads: [
           :tags,
           :status,
@@ -256,6 +259,26 @@ defmodule LantternWeb.StudentsRecordsLive do
 
   def handle_event("close_assignee_search_modal", _, socket),
     do: {:noreply, assign(socket, :show_assignee_search_modal, false)}
+
+  def handle_event("set_view", %{"view" => view}, socket) do
+    Filters.set_profile_current_filters(
+      socket.assigns.current_user,
+      %{student_record_view: view}
+    )
+    |> case do
+      {:ok, _} ->
+        socket =
+          socket
+          |> assign(:current_student_record_view, view)
+          |> stream_students_records(true)
+
+        {:noreply, socket}
+
+      {:error, _} ->
+        # do something with error?
+        {:noreply, socket}
+    end
+  end
 
   def handle_event("load_more", _, socket),
     do: {:noreply, stream_students_records(socket)}

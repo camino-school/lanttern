@@ -13,7 +13,7 @@ defmodule LantternWeb.StudentsRecordsSettingsLive do
     socket =
       socket
       |> check_if_user_has_access()
-      |> assign(:page_title, gettext("Students records settings"))
+      |> assign(:page_title, gettext("Student records settings"))
 
     {:ok, socket}
   end

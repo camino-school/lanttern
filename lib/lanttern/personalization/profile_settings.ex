@@ -35,6 +35,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
           student_record_tags_ids: [pos_integer()],
           student_record_statuses_ids: [pos_integer()],
           student_record_assignees_ids: [pos_integer()],
+          student_record_view: String.t(),
           student_record_staff_member_view: String.t(),
           only_starred_strands: boolean(),
           student_info_cycle_id: pos_integer()
@@ -56,6 +57,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
       field :student_record_tags_ids, {:array, :id}
       field :student_record_statuses_ids, {:array, :id}
       field :student_record_assignees_ids, {:array, :id}
+      field :student_record_view, :string
       field :student_record_staff_member_view, :string
       field :only_starred_strands, :boolean, default: false
       field :student_info_cycle_id, :id
@@ -92,6 +94,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
       :student_record_tags_ids,
       :student_record_statuses_ids,
       :student_record_assignees_ids,
+      :student_record_view,
       :student_record_staff_member_view,
       :only_starred_strands,
       :student_info_cycle_id
@@ -111,6 +114,11 @@ defmodule Lanttern.Personalization.ProfileSettings do
       if view in ["created_by", "assigned_to"],
         do: [],
         else: [student_record_staff_member_view: gettext("Invalid view option")]
+    end)
+    |> validate_change(:student_record_view, fn :student_record_view, view ->
+      if view in ["all", "open"],
+        do: [],
+        else: [student_record_view: gettext("Invalid view option")]
     end)
   end
 end

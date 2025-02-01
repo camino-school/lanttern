@@ -44,7 +44,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
       assert view
              |> has_element?(
                "div",
-               Timex.format!(Timex.local(datetime), "{Mshort} {D}, {YYYY}, {h24}:{m}")
+               LantternWeb.DateTimeHelpers.format_local!(Timex.local(datetime))
              )
 
       assert view |> has_element?("div", curriculum_item.name)

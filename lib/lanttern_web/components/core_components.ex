@@ -197,7 +197,12 @@ defmodule LantternWeb.CoreComponents do
       style={create_color_map_style(@color_map)}
       {@rest}
     >
-      <.icon :if={@icon_name} class={["mr-2", badge_icon_theme(@theme)]} name={@icon_name} />
+      <.icon
+        :if={@icon_name}
+        class={["w-4 h-4 mr-1", badge_icon_theme(@theme)]}
+        style={create_color_map_text_style(@color_map)}
+        name={@icon_name}
+      />
       <%= if @on_click do %>
         <button type="button" phx-click={@on_click}><%= render_slot(@inner_block) %></button>
       <% else %>
@@ -553,7 +558,7 @@ defmodule LantternWeb.CoreComponents do
   attr :class, :any, default: nil
 
   attr :bg_class, :any,
-    default: "bg-white",
+    default: nil,
     doc: "we use a separate attr for bg class to prevent clashing with default bg"
 
   attr :id, :string, default: nil
@@ -562,6 +567,9 @@ defmodule LantternWeb.CoreComponents do
   slot :inner_block, required: true
 
   def card_base(assigns) do
+    bg_class = assigns.bg_class || "bg-white"
+    assigns = assign(assigns, :bg_class, bg_class)
+
     ~H"""
     <div id={@id} class={["rounded shadow-xl", @bg_class, @class]} {@rest}>
       <%= render_slot(@inner_block) %>
@@ -1816,6 +1824,7 @@ defmodule LantternWeb.CoreComponents do
   """
   attr :id, :string, default: nil
   attr :class, :any, default: nil
+  attr :bg_class, :any, default: nil, doc: "view `<.card_base>` docs"
   attr :is_move_up_disabled, :boolean, default: false
   attr :on_move_up, JS, required: true
   attr :is_move_down_disabled, :boolean, default: false
@@ -1825,7 +1834,11 @@ defmodule LantternWeb.CoreComponents do
 
   def sortable_card(assigns) do
     ~H"""
-    <div id={@id} class={["flex items-center gap-4 p-4 rounded bg-white shadow-lg", @class]}>
+    <.card_base
+      id={@id}
+      class={["flex items-center gap-4 p-4 rounded shadow-lg", @class]}
+      bg_class={@bg_class}
+    >
       <div class="flex-1 min-w-0">
         <%= render_slot(@inner_block) %>
       </div>
@@ -1851,7 +1864,7 @@ defmodule LantternWeb.CoreComponents do
           phx-click={@on_move_down}
         />
       </div>
-    </div>
+    </.card_base>
     """
   end
 

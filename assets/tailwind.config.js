@@ -49,6 +49,14 @@ module.exports = {
           alert: {
             accent: colors.red["500"],
             lighter: colors.red["100"]
+          },
+          warning: {
+            accent: colors.amber["500"],
+            lighter: colors.amber["200"]
+          },
+          success: {
+            accent: colors.teal["500"],
+            lighter: colors.teal["100"]
           }
         },
       },

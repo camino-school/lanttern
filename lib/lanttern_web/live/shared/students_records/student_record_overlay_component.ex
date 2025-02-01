@@ -9,13 +9,16 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
   alias Lanttern.StudentsRecords
   alias Lanttern.StudentsRecords.StudentRecord
   alias Lanttern.Schools
+  alias Lanttern.Schools.StaffMember
 
   # shared
 
   alias LantternWeb.Schools.StaffMemberSearchComponent
   alias LantternWeb.Schools.StudentSearchComponent
   alias LantternWeb.Schools.ClassesFieldComponent
+  import LantternWeb.DateTimeHelpers
   import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
+  import LantternWeb.StudentsRecordsComponents
 
   @impl true
   def render(assigns) do
@@ -192,7 +195,13 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               >
                 <%= gettext("Cancel") %>
               </.action>
-              <.action type="submit" theme="primary" size="md" icon_name="hero-check">
+              <.action
+                type="submit"
+                theme="primary"
+                size="md"
+                icon_name="hero-check"
+                data-confirm={@confirm_submit_message}
+              >
                 <%= gettext("Save") %>
               </.action>
             </div>
@@ -200,8 +209,8 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
         <% else %>
           <.scroll_to_top overlay_id={@id} id="details-scroll-top" />
           <%= if @student_record do %>
-            <div class="pb-6 border-b border-ltrn-light mb-6">
-              <div class="flex items-center gap-4 mb-4">
+            <div class="pb-6 border-b border-ltrn-light">
+              <div class="flex items-center gap-4">
                 <div class="flex items-center gap-2 font-bold text-ltrn-subtle">
                   <.icon name="hero-hashtag-mini" class="w-5 h-5 text-ltrn-subtle" />
                   <%= @student_record.id %>
@@ -215,12 +224,10 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                   <%= @student_record.time %>
                 </div>
               </div>
-              <div class="md:flex items-center gap-4">
+              <div class="md:flex items-center gap-4 mt-4">
                 <div class="flex items-center gap-2">
                   <span><%= gettext("Status") %>:</span>
-                  <.badge color_map={@student_record.status}>
-                    <%= @student_record.status.name %>
-                  </.badge>
+                  <.status_badge status={@student_record.status} />
                 </div>
                 <div class="flex items-center gap-2 mt-4 md:mt-0">
                   <span><%= gettext("Tags") %>:</span>
@@ -232,7 +239,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 </div>
               </div>
             </div>
-            <div class="md:flex items-start gap-4">
+            <div class="md:flex items-start gap-4 mt-6">
               <div class="flex-1">
                 <div class="flex items-center gap-2">
                   <.icon name="hero-user-group-mini" class="text-ltrn-subtle" />
@@ -297,8 +304,14 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 <.markdown text={@student_record.internal_notes} class="mt-6" />
               </div>
               <div
+                class="inline-flex items-center gap-2 p-2 rounded-full mt-4"
+                style={create_color_map_style(@student_record.status)}
+              >
+                <.closed_status_info student_record={@student_record} />
+              </div>
+              <div
                 :if={@student_record.shared_with_school}
-                class="flex items-center gap-2 p-2 rounded-sm mt-10 -mx-2 -mb-2 text-ltrn-staff-dark bg-ltrn-staff-lighter"
+                class="flex items-center gap-2 p-2 rounded-sm mt-4 text-ltrn-staff-dark bg-ltrn-staff-lighter"
               >
                 <.icon name="hero-globe-americas-mini" />
                 <%= gettext("This record is visible to all school staff") %>
@@ -344,12 +357,71 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
     """
   end
 
+  attr :student_record, StudentRecord, required: true
+  attr :class, :any, default: nil
+
+  defp closed_status_info(
+         %{student_record: %{status: %{is_closed: true}, closed_at: nil}} = assigns
+       ) do
+    ~H"""
+    <.icon name="hero-check-circle-mini" />
+    <p><%= gettext("Closed on creation") %></p>
+    """
+  end
+
+  defp closed_status_info(
+         %{
+           student_record: %{
+             status: %{is_closed: true},
+             closed_at: %DateTime{},
+             closed_by_staff_member: %StaffMember{},
+             duration_until_close: %Duration{}
+           }
+         } = assigns
+       ) do
+    days_and_hours =
+      days_and_hours_between(
+        assigns.student_record.inserted_at,
+        assigns.student_record.closed_at,
+        "long"
+      )
+
+    assigns = assign(assigns, :days_and_hours, days_and_hours)
+
+    ~H"""
+    <.icon name="hero-check-circle-mini" />
+    <%= gettext("Closed by %{staff_member} on %{datetime} (%{days_and_hours} since creation)",
+      staff_member: @student_record.closed_by_staff_member.name,
+      datetime: format_local!(@student_record.closed_at),
+      days_and_hours: @days_and_hours
+    ) %>
+    """
+  end
+
+  defp closed_status_info(assigns) do
+    days_and_hours =
+      days_and_hours_between(
+        assigns.student_record.inserted_at,
+        DateTime.utc_now(),
+        "long"
+      )
+
+    assigns = assign(assigns, :days_and_hours, days_and_hours)
+
+    ~H"""
+    <%= gettext("Created on %{datetime}", datetime: format_local!(@student_record.inserted_at)) %>
+    <%= gettext("(Open for %{days_and_hours})", days_and_hours: @days_and_hours) %>
+    """
+  end
+
   @impl true
   def mount(socket) do
     socket =
       socket
       |> assign(:is_editing, false)
       |> assign(:is_deleted, false)
+      |> assign(:confirm_submit_message, nil)
+      |> assign(:is_closing, false)
       |> assign(:form_initialized, false)
 
     {:ok, socket}
@@ -454,6 +526,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
         school_id: socket.assigns.current_user.current_profile.school_id,
         students: [],
         classes: [],
+        status: nil,
         tags: [],
         assignees: [],
         date: Date.utc_today()
@@ -476,6 +549,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
           :status,
           :tags,
           :created_by_staff_member,
+          :closed_by_staff_member,
           :assignees,
           [classes: :cycle]
         ]
@@ -630,10 +704,20 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
   end
 
   def handle_event("select_status", %{"id" => id}, socket) do
+    status = Enum.find(socket.assigns.statuses, &(&1.id == id))
+
+    is_closing = status.is_closed
+
+    confirm_submit_message =
+      if socket.assigns.student_record.status.is_closed && !status.is_closed,
+        do: gettext("Are you sure you want to reopen this student record?")
+
     socket =
       socket
       |> assign(:selected_status_id, id)
       |> assign_validated_form(socket.assigns.form.params)
+      |> assign(:is_closing, is_closing)
+      |> assign(:confirm_submit_message, confirm_submit_message)
 
     {:noreply, socket}
   end
@@ -766,6 +850,18 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
   end
 
   defp save_student_record(socket, _id, student_record_params) do
+    # when updating student record with closed status, inject current user
+    student_record_params =
+      if socket.assigns.is_closing do
+        student_record_params
+        |> Map.put(
+          "closed_by_staff_member_id",
+          socket.assigns.current_user.current_profile.staff_member_id
+        )
+      else
+        student_record_params
+      end
+
     StudentsRecords.update_student_record(
       socket.assigns.student_record,
       student_record_params,
@@ -783,6 +879,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
             :status,
             :tags,
             :created_by_staff_member,
+            :closed_by_staff_member,
             :assignees
           ])
           |> Repo.preload([
@@ -790,6 +887,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
             :status,
             :tags,
             :created_by_staff_member,
+            :closed_by_staff_member,
             :assignees,
             [classes: :cycle]
           ])
