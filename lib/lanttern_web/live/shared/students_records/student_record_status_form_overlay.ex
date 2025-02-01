@@ -75,7 +75,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordStatusFormOverlayComponent do
           <p class="mb-4 text-ltrn-subtle"><%= gettext("Preview") %></p>
           <.badge
             color_map={%{bg_color: @form[:bg_color].value, text_color: @form[:text_color].value}}
-            icon_name={if(@form[:is_closed].value, do: "hero-check-circle-mini")}
+            icon_name={if(@form[:is_closed].value == true, do: "hero-check-circle-mini")}
           >
             <%= @form[:name].value %>
           </.badge>

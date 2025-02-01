@@ -233,20 +233,37 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
   `closed_by_staff_member_id` = `created_by_staff_member_id`).
   """
 
-  @spec update_changeset_closed_fields(Ecto.Changeset.t(), map()) :: Ecto.Changeset.t()
+  @spec update_changeset_closed_fields(Ecto.Changeset.t(), __MODULE__.t(), map()) ::
+          Ecto.Changeset.t()
 
-  def update_changeset_closed_fields(changeset, params) do
-    get_changeset_status(changeset)
-    |> case do
-      nil ->
+  def update_changeset_closed_fields(
+        changeset,
+        %__MODULE__{status_id: current_status_id},
+        params
+      ) do
+    change_status = get_changeset_status(changeset)
+
+    current_status =
+      case {change_status, current_status_id} do
+        {nil, _} -> nil
+        {%{id: change_id}, current_id} when change_id == current_id -> change_status
+        {_, id} -> Repo.get!(StudentRecordStatus, id)
+      end
+
+    case {change_status, current_status} do
+      {nil, _} ->
         changeset
 
-      %{is_closed: true} ->
+      {%{is_closed: change_is_closed}, %{is_closed: current_is_closed}}
+      when change_is_closed == current_is_closed ->
+        changeset
+
+      {%{is_closed: true}, _} ->
         changeset
         |> put_change(:closed_at, DateTime.utc_now(:second))
         |> put_change(:closed_by_staff_member_id, params["closed_by_staff_member_id"])
 
-      %{is_closed: false} ->
+      {%{is_closed: false}, _} ->
         changeset
         |> put_change(:closed_at, nil)
         |> put_change(:closed_by_staff_member_id, nil)
@@ -254,12 +271,10 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
   end
 
   defp get_changeset_status(changeset) do
-    # we use get_field (instead of get_change) because even
-    # if status id is not changed, we want to validate the status
-    # on updates
-    case Ecto.Changeset.get_field(changeset, :status_id) do
+    Ecto.Changeset.get_change(changeset, :status_id)
+    |> case do
       nil -> nil
-      status_id -> Repo.get(StudentRecordStatus, status_id)
+      id -> Repo.get(StudentRecordStatus, id)
     end
   end
 end

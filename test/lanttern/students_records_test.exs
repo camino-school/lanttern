@@ -730,12 +730,14 @@ defmodule Lanttern.StudentsRecordsTest do
     test "update_student_record/2 with open (not is_closed) status clears the closed_at" do
       school = SchoolsFixtures.school_fixture()
       staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+      closed_status = student_record_status_fixture(%{school_id: school.id, is_closed: true})
 
-      student_record =
-        student_record_fixture(%{
-          school_id: school.id,
-          closed_at: DateTime.utc_now(),
-          closed_by_staff_member_id: staff_member.id
+      {:ok, student_record} =
+        student_record_fixture(%{school_id: school.id})
+        |> StudentsRecords.update_student_record(%{
+          "status_id" => closed_status.id,
+          "closed_at" => DateTime.utc_now(),
+          "closed_by_staff_member_id" => staff_member.id
         })
 
       open_status = student_record_status_fixture(%{school_id: school.id, is_closed: false})
@@ -747,6 +749,39 @@ defmodule Lanttern.StudentsRecordsTest do
       assert is_nil(student_record.closed_at)
       assert is_nil(student_record.duration_until_close)
       assert is_nil(student_record.closed_by_staff_member_id)
+    end
+
+    test "updating a closed student record with another is_closed status does not change the closed fields" do
+      school = SchoolsFixtures.school_fixture()
+      staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+      closed_status = student_record_status_fixture(%{school_id: school.id, is_closed: true})
+
+      {:ok, student_record} =
+        student_record_fixture(%{school_id: school.id})
+        |> StudentsRecords.update_student_record(%{
+          "status_id" => closed_status.id,
+          "closed_at" => DateTime.utc_now(),
+          "closed_by_staff_member_id" => staff_member.id
+        })
+
+      another_closed_status =
+        student_record_status_fixture(%{school_id: school.id, is_closed: true})
+
+      update_attrs = %{
+        "status_id" => another_closed_status.id,
+        "closed_by_staff_member_id" => staff_member.id
+      }
+
+      Process.sleep(1000)
+
+      assert {:ok, %StudentRecord{} = updated_student_record} =
+               StudentsRecords.update_student_record(student_record, update_attrs)
+
+      assert student_record.closed_at == updated_student_record.closed_at
+      assert student_record.duration_until_close == updated_student_record.duration_until_close
+
+      assert student_record.closed_by_staff_member_id ==
+               updated_student_record.closed_by_staff_member_id
     end
 
     test "user without permissions can't update_student_record/3 with check_profile_permissions" do
