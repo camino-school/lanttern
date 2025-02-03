@@ -75,13 +75,13 @@ defmodule LantternWeb.Router do
       live "/school/cycles", SchoolLive, :manage_cycles
       live "/school/moment_cards_templates", SchoolLive, :manage_moment_cards_templates
 
-      live "/school/staff/deactivated", DeactivatedStaffLive, :index
-
+      live "/school/students/deactivated", DeactivatedStudentsLive, :index
       live "/school/students/:id", StudentLive, :show
       live "/school/students/:id/report_cards", StudentLive, :report_cards
       live "/school/students/:id/grades_reports", StudentLive, :grades_reports
       live "/school/students/:id/student_records", StudentLive, :student_records
 
+      live "/school/staff/deactivated", DeactivatedStaffLive, :index
       live "/school/staff/:id", StaffMemberLive, :show
       live "/school/staff/:id/students_records", StaffMemberLive, :students_records
 

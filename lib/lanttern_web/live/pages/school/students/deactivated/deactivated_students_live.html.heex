@@ -1,0 +1,57 @@
+<.header_nav current_user={@current_user}>
+  <:breadcrumb navigate={~p"/school/students"}>
+    <%= @current_user.current_profile.school_name %>
+  </:breadcrumb>
+  <:title><%= gettext("Deactivated students") %></:title>
+  <div class="flex gap-4 p-4">
+    <%= ngettext(
+      "1 deactivated student",
+      "%{count} deactivated students",
+      @students_length
+    ) %>
+  </div>
+</.header_nav>
+<%= if @students_length == 0 do %>
+  <.empty_state class="px-4 py-10">
+    <%= gettext("No deactivated students found") %>
+  </.empty_state>
+<% else %>
+  <.fluid_grid id="students" phx-update="stream" is_full_width class="p-4">
+    <.card_base
+      :for={{dom_id, student} <- @streams.students}
+      id={dom_id}
+      class="flex items-center gap-4 p-4"
+    >
+      <.profile_picture
+        picture_url={student.profile_picture_url}
+        profile_name={student.name}
+        size="lg"
+      />
+      <div class="min-w-0 flex-1">
+        <div class="text-ltrn-subtle">
+          <%= student.name %>
+          <div class="flex flex-wrap gap-1 mt-2">
+            <.badge :for={class <- student.classes}><%= class.name %></.badge>
+          </div>
+          <div :if={student.email} class="mt-2 text-xs truncate" title={student.email}>
+            <%= student.email %>
+          </div>
+        </div>
+        <div :if={@is_school_manager} class="flex gap-4 mt-4">
+          <.action type="button" phx-click="reactivate" phx-value-id={student.id}>
+            <%= gettext("Reactivate") %>
+          </.action>
+          <.action
+            type="button"
+            theme="alert"
+            phx-click="delete"
+            phx-value-id={student.id}
+            data-confirm={gettext("Are you sure?")}
+          >
+            <%= gettext("Delete") %>
+          </.action>
+        </div>
+      </div>
+    </.card_base>
+  </.fluid_grid>
+<% end %>

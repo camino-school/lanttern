@@ -684,6 +684,11 @@ defmodule Lanttern.Schools do
   - `:class_id` – filter students by given class
   - `:classes_ids` – filter students by provided list of ids. preloads the classes for each student, and order by class name
   - `:only_in_some_class` - boolean. When `true`, will remove students not linked to a class (and will do the opposite when `false`)
+  - `:load_email` - boolean, will add the email field based on staff member profile/user
+  - `:only_active` - boolean, will return only active students
+  - `:only_deactivated` - boolean, will return only deactivated students
+  - `:preload_classes_from_cycle_id` - preload classes, filtered by cycle id
+  - `:load_profile_picture_from_cycle_id` - will try to load the profile picture from linked `%StudentCycleInfo{}` with the given cycle id
   - `:check_diff_rubrics_for_strand_id` - used to check if student has any differentiation rubric for given strand id
   - `:base_query` - used in conjunction with `search_students/2`
 
@@ -696,16 +701,33 @@ defmodule Lanttern.Schools do
   def list_students(opts \\ []) do
     queryable = Keyword.get(opts, :base_query, Student)
 
-    from(s in queryable,
-      order_by: s.name
+    from(
+      s in queryable,
+      order_by: s.name,
+      select: s
     )
     |> apply_list_students_opts(opts)
-    |> maybe_preload_classes_in_list_students(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
   defp apply_list_students_opts(queryable, []), do: queryable
+
+  defp apply_list_students_opts(queryable, [{:school_id, school_id} | opts]) do
+    from(
+      s in queryable,
+      where: s.school_id == ^school_id
+    )
+    |> apply_list_students_opts(opts)
+  end
+
+  defp apply_list_students_opts(queryable, [{:students_ids, students_ids} | opts]) do
+    from(
+      s in queryable,
+      where: s.id in ^students_ids
+    )
+    |> apply_list_students_opts(opts)
+  end
 
   defp apply_list_students_opts(queryable, [{:class_id, id} | opts]) do
     from(
@@ -740,18 +762,43 @@ defmodule Lanttern.Schools do
     |> apply_list_students_opts(opts)
   end
 
-  defp apply_list_students_opts(queryable, [{:school_id, school_id} | opts]) do
-    from(
-      s in queryable,
-      where: s.school_id == ^school_id
+  defp apply_list_students_opts(queryable, [{:load_email, true} | opts]) do
+    from(s in queryable,
+      left_join: p in assoc(s, :profile),
+      left_join: u in assoc(p, :user),
+      select_merge: %{email: u.email}
     )
     |> apply_list_students_opts(opts)
   end
 
-  defp apply_list_students_opts(queryable, [{:students_ids, students_ids} | opts]) do
+  defp apply_list_students_opts(queryable, [{:only_active, true} | opts]) do
+    from(s in queryable, where: is_nil(s.deactivated_at))
+    |> apply_list_students_opts(opts)
+  end
+
+  defp apply_list_students_opts(queryable, [{:only_deactivated, true} | opts]) do
+    from(s in queryable, where: not is_nil(s.deactivated_at))
+    |> apply_list_students_opts(opts)
+  end
+
+  defp apply_list_students_opts(queryable, [{:preload_classes_from_cycle_id, cycle_id} | opts]) do
+    cycle_classes_query = from c in Class, where: c.cycle_id == ^cycle_id
+
     from(
       s in queryable,
-      where: s.id in ^students_ids
+      preload: [classes: ^cycle_classes_query]
+    )
+    |> apply_list_students_opts(opts)
+  end
+
+  defp apply_list_students_opts(queryable, [
+         {:load_profile_picture_from_cycle_id, cycle_id} | opts
+       ]) do
+    from(
+      s in queryable,
+      left_join: sci in assoc(s, :cycles_info),
+      on: sci.cycle_id == ^cycle_id,
+      select_merge: %{profile_picture_url: sci.profile_picture_url}
     )
     |> apply_list_students_opts(opts)
   end
@@ -773,7 +820,7 @@ defmodule Lanttern.Schools do
       s in queryable,
       join: d in subquery(has_diff_query),
       on: d.student_id == s.id,
-      select: %{s | has_diff_rubric: d.has_diff_rubric}
+      select_merge: %{has_diff_rubric: d.has_diff_rubric}
     )
     |> apply_list_students_opts(opts)
   end
@@ -782,28 +829,9 @@ defmodule Lanttern.Schools do
     do: apply_list_students_opts(queryable, opts)
 
   defp bind_classes_to_students(queryable) do
-    if has_named_binding?(queryable, :classes) do
-      queryable
-    else
-      from(
-        s in queryable,
-        left_join: c in assoc(s, :classes),
-        as: :classes
-      )
-    end
-  end
-
-  defp maybe_preload_classes_in_list_students(queryable, opts) do
-    case Keyword.keys(opts) |> Enum.any?(&(&1 in [:classes_ids, :report_card_id])) do
-      true ->
-        from(
-          [_s, classes: c] in bind_classes_to_students(queryable),
-          preload: [classes: c]
-        )
-
-      _ ->
-        queryable
-    end
+    with_named_binding(queryable, :classes, fn queryable, binding ->
+      join(queryable, :left, [s], c in assoc(s, ^binding), as: ^binding)
+    end)
   end
 
   @doc """
@@ -841,7 +869,8 @@ defmodule Lanttern.Schools do
 
   ### Options:
 
-  `:preloads` – preloads associated data
+  - `:load_email` - boolean, will add the email field based on staff member profile/user
+  - `:preloads` – preloads associated data
 
   ## Examples
 
@@ -853,9 +882,25 @@ defmodule Lanttern.Schools do
 
   """
   def get_student(id, opts \\ []) do
-    Repo.get(Student, id)
+    Student
+    |> apply_get_student_opts(opts)
+    |> Repo.get(id)
     |> maybe_preload(opts)
   end
+
+  defp apply_get_student_opts(queryable, []), do: queryable
+
+  defp apply_get_student_opts(queryable, [{:load_email, true} | opts]) do
+    from(s in queryable,
+      left_join: p in assoc(s, :profile),
+      left_join: u in assoc(p, :user),
+      select: %{s | email: u.email}
+    )
+    |> apply_get_student_opts(opts)
+  end
+
+  defp apply_get_student_opts(queryable, [_ | opts]),
+    do: apply_get_student_opts(queryable, opts)
 
   @doc """
   Gets a single student.
@@ -863,7 +908,9 @@ defmodule Lanttern.Schools do
   Same as `get_student/2`, but raises `Ecto.NoResultsError` if the Student does not exist.
   """
   def get_student!(id, opts \\ []) do
-    Repo.get!(Student, id)
+    Student
+    |> apply_get_student_opts(opts)
+    |> Repo.get!(id)
     |> maybe_preload(opts)
   end
 
@@ -880,9 +927,15 @@ defmodule Lanttern.Schools do
 
   """
   def create_student(attrs \\ %{}) do
-    %Student{}
-    |> Student.changeset(attrs)
-    |> Repo.insert()
+    email = Map.get(attrs, "email") || Map.get(attrs, :email)
+
+    if is_binary(email) && email != "" do
+      create_with_profile(%Student{}, attrs, email)
+    else
+      %Student{}
+      |> Student.changeset(attrs)
+      |> Repo.insert()
+    end
   end
 
   @doc """
@@ -898,10 +951,16 @@ defmodule Lanttern.Schools do
 
   """
   def update_student(%Student{} = student, attrs) do
-    student
-    |> Repo.preload(:classes)
-    |> Student.changeset(attrs)
-    |> Repo.update()
+    has_email_in_attrs = Map.keys(attrs) |> Enum.any?(&(&1 in ["email", :email]))
+    email = Map.get(attrs, "email") || Map.get(attrs, :email)
+
+    if has_email_in_attrs and student.email != email do
+      update_with_profile(student, attrs)
+    else
+      student
+      |> Student.changeset(attrs)
+      |> Repo.update()
+    end
   end
 
   @doc """
@@ -931,6 +990,50 @@ defmodule Lanttern.Schools do
       {:ok, %{delete_student: %Student{} = student}} -> {:ok, student}
       res -> res
     end
+  end
+
+  @doc """
+  Deactivates a studdent.
+
+  Soft delete, using the `deactivated_at` field.
+
+  ## Examples
+
+      iex> deactivate_student(student)
+      {:ok, %Student{}}
+
+      iex> deactivate_student(student)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec deactivate_student(Student.t()) ::
+          {:ok, Student.t()} | {:error, Ecto.Changeset.t()}
+  def deactivate_student(%Student{} = student) do
+    student
+    |> Student.changeset(%{deactivated_at: DateTime.utc_now()})
+    |> Repo.update()
+  end
+
+  @doc """
+  Reactivates a studdent.
+
+  Sets `deactivated_at` field to nil.
+
+  ## Examples
+
+  iex> reactivate_student(student)
+  {:ok, %Student{}}
+
+  iex> reactivate_student(student)
+  {:error, %Ecto.Changeset{}}
+
+  """
+  @spec reactivate_student(Student.t()) ::
+          {:ok, Student.t()} | {:error, Ecto.Changeset.t()}
+  def reactivate_student(%Student{} = student) do
+    student
+    |> Student.changeset(%{deactivated_at: nil})
+    |> Repo.update()
   end
 
   @doc """
@@ -1104,7 +1207,7 @@ defmodule Lanttern.Schools do
     email = Map.get(attrs, "email") || Map.get(attrs, :email)
 
     if is_binary(email) && email != "" do
-      create_staff_member_with_profile(attrs, email)
+      create_with_profile(%StaffMember{}, attrs, email)
     else
       %StaffMember{}
       |> StaffMember.changeset(attrs)
@@ -1112,15 +1215,17 @@ defmodule Lanttern.Schools do
     end
   end
 
-  defp create_staff_member_with_profile(attrs, email) do
+  defp create_with_profile(schema, attrs, email) do
     Repo.transaction(fn ->
-      # create staff member first
-      staff_member =
-        %StaffMember{}
-        |> StaffMember.changeset(attrs)
+      # create student or staff member first
+      school_person =
+        case schema do
+          %StaffMember{} -> StaffMember.changeset(%StaffMember{}, attrs)
+          %Student{} -> Student.changeset(%Student{}, attrs)
+        end
         |> Repo.insert()
         |> case do
-          {:ok, staff_member} -> staff_member
+          {:ok, school_person} -> school_person
           {:error, changeset} -> Repo.rollback(changeset)
         end
 
@@ -1132,14 +1237,27 @@ defmodule Lanttern.Schools do
         end
 
       # then create profile
-      # if successful, return staff member
-      Identity.create_profile(%{
-        type: "staff",
-        user_id: user.id,
-        staff_member_id: staff_member.id
-      })
+      # if successful, return student or staff member
+      profile_attrs =
+        case schema do
+          %StaffMember{} ->
+            %{
+              type: "staff",
+              user_id: user.id,
+              staff_member_id: school_person.id
+            }
+
+          %Student{} ->
+            %{
+              type: "student",
+              user_id: user.id,
+              student_id: school_person.id
+            }
+        end
+
+      Identity.create_profile(profile_attrs)
       |> case do
-        {:ok, _profile} -> %{staff_member | email: email}
+        {:ok, _profile} -> %{school_person | email: email}
         {:error, changeset} -> Repo.rollback(changeset)
       end
     end)
@@ -1184,7 +1302,7 @@ defmodule Lanttern.Schools do
     email = Map.get(attrs, "email") || Map.get(attrs, :email)
 
     if has_email_in_attrs and staff_member.email != email do
-      update_staff_member_and_profile(staff_member, attrs)
+      update_with_profile(staff_member, attrs)
     else
       staff_member
       |> StaffMember.changeset(attrs)
@@ -1193,15 +1311,17 @@ defmodule Lanttern.Schools do
     end
   end
 
-  defp update_staff_member_and_profile(staff_member, %{"email" => email} = attrs) do
+  defp update_with_profile(school_person, %{"email" => email} = attrs) do
     Repo.transaction(fn ->
-      # update staff member first
-      staff_member =
-        staff_member
-        |> StaffMember.changeset(attrs)
+      # update student or staff member first
+      school_person =
+        case school_person do
+          %StaffMember{} -> StaffMember.changeset(school_person, attrs)
+          %Student{} -> Student.changeset(school_person, attrs)
+        end
         |> Repo.update()
         |> case do
-          {:ok, staff_member} -> staff_member
+          {:ok, school_person} -> school_person
           {:error, changeset} -> Repo.rollback(changeset)
         end
 
@@ -1214,20 +1334,26 @@ defmodule Lanttern.Schools do
         end
 
       # then create, update, or delete profile
-      # if successful, return staff member
-      create_update_or_delete_profile(staff_member, user)
+      # if successful, return student or staff member
+      create_update_or_delete_profile(school_person, user)
       |> case do
-        {:deleted, {:ok, _}} -> %{staff_member | email: nil}
-        {_created_or_updated, {:ok, _}} -> %{staff_member | email: email}
+        {:deleted, {:ok, _}} -> %{school_person | email: nil}
+        {_created_or_updated, {:ok, _}} -> %{school_person | email: email}
         {:error, changeset} -> Repo.rollback(changeset)
       end
     end)
-    |> update_staff_member_cleanup(staff_member)
+    |> update_staff_member_cleanup(school_person)
   end
 
-  defp create_update_or_delete_profile(staff_member, nil) do
+  defp create_update_or_delete_profile(school_person, nil) do
+    get_by_opt =
+      case school_person do
+        %StaffMember{} -> [staff_member_id: school_person.id]
+        %Student{} -> [student_id: school_person.id]
+      end
+
     # todo: handle failed deletion of profile
-    Repo.get_by(Profile, staff_member_id: staff_member.id)
+    Repo.get_by(Profile, get_by_opt)
     |> Repo.delete()
     |> case do
       {:ok, profile} -> {:deleted, {:ok, profile}}
@@ -1235,20 +1361,39 @@ defmodule Lanttern.Schools do
     end
   end
 
-  defp create_update_or_delete_profile(%{email: nil} = staff_member, %User{} = user) do
-    Identity.create_profile(%{
-      type: "staff",
-      user_id: user.id,
-      staff_member_id: staff_member.id
-    })
+  defp create_update_or_delete_profile(%{email: nil} = school_person, %User{} = user) do
+    profile_attrs =
+      case school_person do
+        %StaffMember{} ->
+          %{
+            type: "staff",
+            user_id: user.id,
+            staff_member_id: school_person.id
+          }
+
+        %Student{} ->
+          %{
+            type: "student",
+            user_id: user.id,
+            student_id: school_person.id
+          }
+      end
+
+    Identity.create_profile(profile_attrs)
     |> case do
       {:ok, profile} -> {:created, {:ok, profile}}
       error -> error
     end
   end
 
-  defp create_update_or_delete_profile(staff_member, %User{} = user) do
-    Repo.get_by(Profile, staff_member_id: staff_member.id)
+  defp create_update_or_delete_profile(school_person, %User{} = user) do
+    get_by_opt =
+      case school_person do
+        %StaffMember{} -> [staff_member_id: school_person.id]
+        %Student{} -> [student_id: school_person.id]
+      end
+
+    Repo.get_by(Profile, get_by_opt)
     |> Identity.update_profile(%{user_id: user.id})
     |> case do
       {:ok, profile} -> {:updated, {:ok, profile}}
