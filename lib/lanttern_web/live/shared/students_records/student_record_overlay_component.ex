@@ -709,8 +709,9 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
     is_closing = status.is_closed
 
     confirm_submit_message =
-      if socket.assigns.student_record.status.is_closed && !status.is_closed,
-        do: gettext("Are you sure you want to reopen this student record?")
+      if socket.assigns.student_record.id && socket.assigns.student_record.status.is_closed &&
+           !status.is_closed,
+         do: gettext("Are you sure you want to reopen this student record?")
 
     socket =
       socket
