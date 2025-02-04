@@ -51,22 +51,35 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
                 patch={~p"/school/classes?edit=#{class}"}
               />
             </div>
+            <div class="font-bold text-ltrn-subtle">
+              <%= ngettext(
+                "1 active student",
+                "%{count} active students",
+                class.active_students_count
+              ) %>
+            </div>
             <div class="flex flex-wrap gap-2 mt-4">
               <.badge :for={year <- class.years}>
                 <%= year.name %>
               </.badge>
             </div>
             <%= if class.students != [] do %>
-              <ol class="mt-4 text-sm leading-relaxed list-decimal list-inside">
-                <li :for={std <- class.students} class="truncate">
+              <ul class="mt-4 text-sm leading-relaxed">
+                <li :for={std <- class.students} class="flex items-center gap-2 w-full">
                   <.link
                     navigate={~p"/school/students/#{std}"}
-                    class="hover:text-ltrn-subtle hover:underline"
+                    class={[
+                      "truncate hover:text-ltrn-subtle hover:underline",
+                      if(std.deactivated_at, do: "text-ltrn-subtle")
+                    ]}
                   >
                     <%= std.name %>
                   </.link>
+                  <.badge :if={std.deactivated_at} theme="subtle" class="shrink-0">
+                    <%= gettext("Deactivated") %>
+                  </.badge>
                 </li>
-              </ol>
+              </ul>
             <% else %>
               <.empty_state_simple class="mt-4">
                 <%= gettext("No students in this class") %>
@@ -178,6 +191,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
         socket.assigns.current_user,
         years_ids: socket.assigns.selected_years_ids,
         cycles_ids: cycles_ids,
+        count_active_students: true,
         preloads: :students
       )
 

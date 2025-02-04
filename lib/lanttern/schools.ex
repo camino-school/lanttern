@@ -429,6 +429,7 @@ defmodule Lanttern.Schools do
   - `:schools_ids` – filter classes by schools
   - `:years_ids` – filter results by years
   - `:cycles_ids` – filter results by cycles
+  - `:count_active_students` - boolean, will add the `active_students_count` field
   - `:preloads` – preloads associated data
   - `:base_query` - used in conjunction with `search_classes/2`
 
@@ -484,6 +485,16 @@ defmodule Lanttern.Schools do
   defp apply_list_classes_opts(queryable, [{:cycles_ids, cycles_ids} | opts])
        when is_list(cycles_ids) and cycles_ids != [] do
     from(cl in queryable, where: cl.cycle_id in ^cycles_ids)
+    |> apply_list_classes_opts(opts)
+  end
+
+  defp apply_list_classes_opts(queryable, [{:count_active_students, true} | opts]) do
+    from(
+      cl in queryable,
+      left_join: s in assoc(cl, :students),
+      on: is_nil(s.deactivated_at),
+      select_merge: %{active_students_count: count(s)}
+    )
     |> apply_list_classes_opts(opts)
   end
 
@@ -703,8 +714,7 @@ defmodule Lanttern.Schools do
 
     from(
       s in queryable,
-      order_by: s.name,
-      select: s
+      order_by: s.name
     )
     |> apply_list_students_opts(opts)
     |> Repo.all()

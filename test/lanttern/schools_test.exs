@@ -386,7 +386,13 @@ defmodule Lanttern.SchoolsTest do
         })
 
       student_y = student_fixture(%{name: "YYY", classes_ids: [class_a_25.id]})
-      student_z = student_fixture(%{name: "ZZZ", classes_ids: [class_a_25.id]})
+
+      student_z =
+        student_fixture(%{
+          name: "ZZZ",
+          classes_ids: [class_a_25.id],
+          deactivated_at: DateTime.utc_now()
+        })
 
       # extra classes for school filter validation
       class_fixture()
@@ -397,10 +403,12 @@ defmodule Lanttern.SchoolsTest do
           schools_ids: [school.id],
           years_ids: [year.id],
           cycles_ids: [cycle_24.id, cycle_25.id],
+          count_active_students: true,
           preloads: :students
         )
 
       assert expected_a_25.id == class_a_25.id
+      assert expected_a_25.active_students_count == 2
       assert expected_a_25.cycle.id == cycle_25.id
       assert [expected_std_x, expected_std_y, expected_std_z] = expected_a_25.students
       assert expected_std_x.id == student_x.id
