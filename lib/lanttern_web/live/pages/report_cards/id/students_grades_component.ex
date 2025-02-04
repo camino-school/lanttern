@@ -180,6 +180,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
       Reporting.list_students_linked_to_report_card(
         socket.assigns.report_card,
         classes_ids: socket.assigns.selected_linked_students_classes_ids,
+        active_students_only: true,
         students_only: true
       )
 

@@ -70,6 +70,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
         </.form>
         <:actions_left :if={@student.id}>
           <.action
+            :if={is_nil(@student.deactivated_at)}
             type="button"
             theme="subtle"
             size="md"
@@ -78,6 +79,27 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
             data-confirm={gettext("Are you sure? You can reactive the student later.")}
           >
             <%= gettext("Deactivate") %>
+          </.action>
+          <.action
+            :if={@student.deactivated_at}
+            type="button"
+            theme="subtle"
+            size="md"
+            phx-click="delete"
+            phx-target={@myself}
+            data-confirm={gettext("Are you sure?")}
+          >
+            <%= gettext("Delete") %>
+          </.action>
+          <.action
+            :if={@student.deactivated_at}
+            type="button"
+            theme="subtle"
+            size="md"
+            phx-click="reactivate"
+            phx-target={@myself}
+          >
+            <%= gettext("Reactivate") %>
           </.action>
         </:actions_left>
         <:actions>
@@ -157,6 +179,30 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
     |> case do
       {:ok, student} ->
         notify(__MODULE__, {:deactivated, student}, socket.assigns)
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
+  def handle_event("delete", _, socket) do
+    Schools.delete_student(socket.assigns.student)
+    |> case do
+      {:ok, student} ->
+        notify(__MODULE__, {:deleted, student}, socket.assigns)
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
+  def handle_event("reactivate", _, socket) do
+    Schools.reactivate_student(socket.assigns.student)
+    |> case do
+      {:ok, student} ->
+        notify(__MODULE__, {:reactivated, student}, socket.assigns)
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->

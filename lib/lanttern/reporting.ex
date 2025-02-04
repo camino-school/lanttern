@@ -487,6 +487,7 @@ defmodule Lanttern.Reporting do
   ## Options
 
   - `:classes_ids` - filter results by given classes
+  - `:active_students_only` – (boolean) remove deactivated students from results
   - `:students_only` - when `true`, will return only students
 
   ## Examples
@@ -502,6 +503,12 @@ defmodule Lanttern.Reporting do
     allowed_classes_ids =
       build_list_students_linked_to_report_card_allowed_classes_ids(report_card)
 
+    where =
+      case Keyword.get(opts, :active_students_only) do
+        true -> dynamic([s], is_nil(s.deactivated_at))
+        _ -> true
+      end
+
     from(
       s in Student,
       left_join: c in assoc(s, :classes),
@@ -510,6 +517,7 @@ defmodule Lanttern.Reporting do
       join: src in StudentReportCard,
       on: src.student_id == s.id and src.report_card_id == ^report_card.id,
       as: :student_report_card,
+      where: ^where,
       order_by: [asc: c.name, asc: s.name],
       preload: [classes: c]
     )

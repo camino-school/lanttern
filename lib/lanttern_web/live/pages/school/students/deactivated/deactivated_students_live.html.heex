@@ -29,7 +29,9 @@
       />
       <div class="min-w-0 flex-1">
         <div class="text-ltrn-subtle">
-          <%= student.name %>
+          <.link navigate={~p"/school/students/#{student}"} class="font-bold hover:text-ltrn-dark">
+            <%= student.name %>
+          </.link>
           <div class="flex flex-wrap gap-1 mt-2">
             <.badge :for={class <- student.classes}><%= class.name %></.badge>
           </div>

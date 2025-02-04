@@ -81,6 +81,15 @@ defmodule LantternWeb.StudentLive do
     {:noreply, socket}
   end
 
+  def handle_info({StudentFormOverlayComponent, {:deactivated, _student}}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, gettext("Student deactivated successfully"))
+      |> push_navigate(to: socket.assigns.current_path)
+
+    {:noreply, socket}
+  end
+
   def handle_info({StudentFormOverlayComponent, {:deleted, _student}}, socket) do
     socket =
       socket
@@ -90,5 +99,14 @@ defmodule LantternWeb.StudentLive do
     {:noreply, socket}
   end
 
-  def handle_info(_, socket), do: socket
+  def handle_info({StudentFormOverlayComponent, {:reactivated, _student}}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, gettext("Student reactivated successfully"))
+      |> push_navigate(to: socket.assigns.current_path)
+
+    {:noreply, socket}
+  end
+
+  def handle_info(_, socket), do: {:noreply, socket}
 end
