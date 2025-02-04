@@ -1410,7 +1410,8 @@ defmodule Lanttern.AssessmentsTest do
                 ]}
              ] =
                Assessments.list_strand_students_entries(strand.id, nil,
-                 classes_ids: [class_a.id, class_b.id]
+                 classes_ids: [class_a.id, class_b.id],
+                 active_students_only: true
                )
 
       assert expected_student_1.id == student_1.id
@@ -1571,7 +1572,8 @@ defmodule Lanttern.AssessmentsTest do
                 ]}
              ] =
                Assessments.list_strand_students_entries(strand.id, "curriculum",
-                 classes_ids: [class_a.id]
+                 classes_ids: [class_a.id],
+                 active_students_only: true
                )
 
       assert expected_student_1.id == student_1.id
@@ -1790,7 +1792,8 @@ defmodule Lanttern.AssessmentsTest do
                 ]}
              ] =
                Assessments.list_strand_students_entries(strand.id, "moment",
-                 classes_ids: [class_a.id]
+                 classes_ids: [class_a.id],
+                 active_students_only: true
                )
 
       assert expected_student_1.id == student_1.id
@@ -1980,7 +1983,8 @@ defmodule Lanttern.AssessmentsTest do
                 ]}
              ] =
                Assessments.list_moment_students_entries(moment.id,
-                 classes_ids: [class_a.id, class_b.id]
+                 classes_ids: [class_a.id, class_b.id],
+                 active_students_only: true
                )
 
       assert expected_student_1.id == student_1.id
@@ -2135,6 +2139,12 @@ defmodule Lanttern.AssessmentsTest do
     student_3 =
       Lanttern.SchoolsFixtures.student_fixture(%{name: "CCC", classes_ids: [class_a.id]})
 
+    deactivated_student =
+      Lanttern.SchoolsFixtures.student_fixture(%{
+        classes_ids: [class_a.id],
+        deactivated_at: ~U[2022-01-12 00:01:00.00Z]
+      })
+
     # student 1 entries
     # ci_1 m1 / s - ov_a
     # ci_2 m1 / m2 / s - ov_b
@@ -2211,6 +2221,18 @@ defmodule Lanttern.AssessmentsTest do
     std_3_s_ap_3_ci_3 =
       Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
         student_id: student_3.id,
+        scale_id: scale.id,
+        scale_type: scale.type,
+        assessment_point_id: s_ap_3_ci_3.id,
+        ordinal_value_id: ov_a.id
+      })
+
+    # deactivated student entries
+    # ci_3 s - ov_a
+
+    _std_d_s_ap_3_ci_3 =
+      Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+        student_id: deactivated_student.id,
         scale_id: scale.id,
         scale_type: scale.type,
         assessment_point_id: s_ap_3_ci_3.id,

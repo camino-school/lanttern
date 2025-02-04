@@ -795,6 +795,7 @@ defmodule Lanttern.Assessments do
 
   - `:group_by` – `"curriculum"`, `"moment"`, or `nil` (details below)
   - `:classes_ids` – filter entries by classes
+  - `:active_students_only` – (boolean) remove deactivated students from results
   - `:check_if_has_evidences` – (boolean) calculate virtual `has_evidences` field
 
   #### Order of entries when grouped by
@@ -877,6 +878,7 @@ defmodule Lanttern.Assessments do
   ### Options:
 
   - `:classes_ids` – filter entries by classes
+  - `:active_students_only` – (boolean) remove deactivated students from results
   - `:check_if_has_evidences` – (boolean) calculate virtual `has_evidences` field
 
   """
@@ -937,6 +939,16 @@ defmodule Lanttern.Assessments do
     from(
       [_s, classes: c] in queryable,
       where: c.id in ^classes_ids
+    )
+    |> apply_list_entries_students_query_opts(opts)
+  end
+
+  defp apply_list_entries_students_query_opts(queryable, [
+         {:active_students_only, true} | opts
+       ]) do
+    from(
+      s in queryable,
+      where: is_nil(s.deactivated_at)
     )
     |> apply_list_entries_students_query_opts(opts)
   end

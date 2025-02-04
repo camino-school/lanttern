@@ -612,6 +612,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           Assessments.list_moment_students_entries(
             moment_id,
             classes_ids: socket.assigns.classes_ids,
+            active_students_only: true,
             check_if_has_evidences: true
           )
 
@@ -620,6 +621,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
             socket.assigns.strand_id,
             socket.assigns.current_assessment_group_by,
             classes_ids: socket.assigns.classes_ids,
+            active_students_only: true,
             check_if_has_evidences: true
           )
       end
