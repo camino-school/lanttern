@@ -243,11 +243,13 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     ~H"""
     <div id={@id} class="flex items-center gap-4 p-4 rounded mt-4 bg-white shadow-lg">
       <div class="flex-1 flex items-center gap-4">
-        <.profile_icon_with_name
+        <.profile_picture_with_name
           theme="cyan"
           profile_name={@student.name}
+          picture_url={@student.profile_picture_url}
           extra_info={@student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
           on_click={@on_click}
+          is_deactivated={!is_nil(@student.deactivated_at)}
           navigate={~p"/school/students/#{@student}/report_cards"}
         />
       </div>
@@ -392,9 +394,10 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     ~H"""
     <div id={@id} class="flex items-center gap-4 p-4 rounded mt-4 bg-ltrn-lighter">
       <div class="flex-1 flex items-center gap-4">
-        <.profile_icon_with_name
-          theme="subtle"
+        <.profile_picture_with_name
+          theme="clean"
           profile_name={@student.name}
+          picture_url={@student.profile_picture_url}
           extra_info={@student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
           on_click={@on_click}
           navigate={~p"/school/students/#{@student}/report_cards"}

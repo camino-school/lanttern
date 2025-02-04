@@ -1578,6 +1578,7 @@ defmodule LantternWeb.CoreComponents do
   attr :profile_name, :string, default: nil, doc: "render initials when there's no image"
   attr :theme, :string, default: "default", doc: "default | clean"
   attr :size, :string, default: "md", doc: "xs | sm | md | lg | xl | 2xl"
+  attr :on_click, JS, default: nil
   attr :class, :any, default: nil
 
   def profile_picture(%{picture_url: nil, profile_name: nil} = assigns) do
@@ -1590,6 +1591,31 @@ defmodule LantternWeb.CoreComponents do
     ]}>
       <.icon name="hero-user" class={["text-ltrn-subtle", profile_picture_icon_size_style(@size)]} />
     </div>
+    """
+  end
+
+  def profile_picture(%{on_click: %JS{}} = assigns) do
+    picture_url = profile_picture_render_url(assigns.picture_url, assigns.size)
+    assigns = assign(assigns, :picture_url, picture_url)
+
+    ~H"""
+    <button
+      type="button"
+      phx-click={@on_click}
+      class={[
+        "relative shrink-0 flex items-center justify-center rounded-full font-display text-center bg-white overflow-hidden",
+        profile_picture_theme_style(@theme),
+        profile_picture_size_style(@size),
+        @class
+      ]}
+      title={@profile_name}
+    >
+      <%= if @picture_url do %>
+        <img src={@picture_url} class="object-cover w-full h-full" />
+      <% else %>
+        <%= profile_icon_initials(@profile_name) %>
+      <% end %>
+    </button>
     """
   end
 
@@ -1654,6 +1680,60 @@ defmodule LantternWeb.CoreComponents do
   defp profile_picture_icon_size_style("xl"), do: "w-20 h-20"
   defp profile_picture_icon_size_style("2xl"), do: "w-32 h-32"
   defp profile_picture_icon_size_style(_md), do: "w-6 h-6"
+
+  @doc """
+  Renders a profile picture with name.
+  """
+  attr :profile_name, :string, required: true
+  attr :picture_url, :string, default: nil
+  attr :picture_size, :string, default: "md"
+  attr :theme, :string, default: "default", doc: "default | clean"
+  attr :is_deactivated, :boolean, default: false
+  attr :extra_info, :string, default: nil
+  attr :on_click, JS, default: nil
+  attr :navigate, :string, default: nil
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def profile_picture_with_name(assigns) do
+    ~H"""
+    <div class={["flex gap-2 items-center text-sm", @class]}>
+      <.profile_picture
+        profile_name={@profile_name}
+        picture_url={@picture_url}
+        theme={@theme}
+        size={@picture_size}
+        on_click={@on_click}
+        {@rest}
+      />
+      <div class="flex-1">
+        <%= if @navigate do %>
+          <.link
+            navigate={@navigate}
+            target="_blank"
+            class={[
+              "font-bold hover:text-ltrn-subtle",
+              if(@extra_info, do: "line-clamp-1", else: "line-clamp-2"),
+              if(@is_deactivated, do: "text-ltrn-subtle")
+            ]}
+          >
+            <%= @profile_name %>
+            <%= if @is_deactivated, do: gettext("(Deactivated)") %>
+          </.link>
+        <% else %>
+          <div class={[
+            if(@extra_info, do: "line-clamp-1", else: "line-clamp-2"),
+            if(@is_deactivated, do: "text-ltrn-subtle")
+          ]}>
+            <%= @profile_name %>
+            <%= if @is_deactivated, do: gettext("(Deactivated)") %>
+          </div>
+        <% end %>
+        <div :if={@extra_info} class="line-clamp-1 text-xs text-ltrn-subtle"><%= @extra_info %></div>
+      </div>
+    </div>
+    """
+  end
 
   @doc """
   Renders a responsive container.

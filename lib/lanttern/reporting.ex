@@ -575,6 +575,8 @@ defmodule Lanttern.Reporting do
   Results are filtered by the report card year and parent cycle (if possible),
   and ordered by class name, and them by student name.
 
+  Deactivated students are not included.
+
   Expect `school_cycle` and `year` preloads.
 
   ## Examples
@@ -604,6 +606,7 @@ defmodule Lanttern.Reporting do
       where: is_nil(sr),
       where: y.id == ^year.id,
       where: ^where_cycle_filter,
+      where: is_nil(s.deactivated_at),
       order_by: [asc: c.name, asc: s.name],
       preload: [classes: c]
     )

@@ -537,6 +537,13 @@ defmodule Lanttern.ReportingTest do
           classes_ids: [other_cycle_class.id]
         })
 
+      _deactivated_student =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id,
+          classes_ids: [class_j.id],
+          deactivated_at: ~U[2022-01-12 00:01:00.00Z]
+        })
+
       report_card =
         report_card_fixture(%{school_cycle_id: cycle.id, year_id: year.id})
         |> Repo.preload([:school_cycle, :year])
