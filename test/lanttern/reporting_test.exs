@@ -524,6 +524,23 @@ defmodule Lanttern.ReportingTest do
           classes_ids: [class_z.id]
         })
 
+      # cycle info to test profile_picture_url load
+      student_a_a_cycle_info =
+        Lanttern.StudentsCycleInfoFixtures.student_cycle_info_fixture(%{
+          school_id: school.id,
+          cycle_id: parent_cycle.id,
+          student_id: student_a_a.id,
+          profile_picture_url: "http://example-a-a.com/profile_picture.jpg"
+        })
+
+      student_j_k_cycle_info =
+        Lanttern.StudentsCycleInfoFixtures.student_cycle_info_fixture(%{
+          school_id: school.id,
+          cycle_id: parent_cycle.id,
+          student_id: student_j_k.id,
+          profile_picture_url: "http://example-j-k.com/profile_picture.jpg"
+        })
+
       # extra fixtures
       other_year_class =
         SchoolsFixtures.class_fixture(%{school_id: school.id, cycle_id: parent_cycle.id})
@@ -594,6 +611,10 @@ defmodule Lanttern.ReportingTest do
                )
 
       assert expected_student_a_a.id == student_a_a.id
+
+      assert expected_student_a_a.profile_picture_url ==
+               student_a_a_cycle_info.profile_picture_url
+
       assert [expected_class_a_a] = expected_student_a_a.classes
       assert expected_class_a_a.id == class_a.id
       assert expected_student_a_a_report_card.id == student_a_a_report_card.id
@@ -614,6 +635,9 @@ defmodule Lanttern.ReportingTest do
                Reporting.list_students_not_linked_to_report_card(report_card)
 
       assert expected_student_j_k.id == student_j_k.id
+
+      assert expected_student_j_k.profile_picture_url ==
+               student_j_k_cycle_info.profile_picture_url
     end
 
     test "list_students_linked_to_report_card/2 with students_only = true opt omits report cards from the returned list" do

@@ -418,8 +418,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       style={"grid-column: span #{length(@entries) + 1} / span #{length(@entries) + 1}"}
     >
       <div class={"sticky left-0 z-10 pl-6 py-2 pr-2 #{@view_bg}"}>
-        <.profile_icon_with_name
+        <.profile_picture_with_name
           profile_name={@student.name}
+          picture_url={@student.profile_picture_url}
           extra_info={@student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
           navigate={~p"/school/students/#{@student}"}
         />
@@ -621,6 +622,8 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
             socket.assigns.strand_id,
             socket.assigns.current_assessment_group_by,
             classes_ids: socket.assigns.classes_ids,
+            load_profile_picture_from_cycle_id:
+              socket.assigns.current_user.current_profile.current_school_cycle.id,
             active_students_only: true,
             check_if_has_evidences: true
           )

@@ -484,6 +484,10 @@ defmodule Lanttern.Reporting do
   Preloaded classes will be restricted to classes from the same
   report card's year and parent school cycle (if possible).
 
+  Students' `profile_picture_url` will be loaded if report card parent cycle exists.
+
+  Expect `school_cycle` preloads.
+
   ## Options
 
   - `:classes_ids` - filter results by given classes
@@ -500,6 +504,8 @@ defmodule Lanttern.Reporting do
           {Student.t(), StudentReportCard.t()} | Student.t()
         ]
   def list_students_linked_to_report_card(%ReportCard{} = report_card, opts \\ []) do
+    %{school_cycle: %Cycle{} = cycle} = report_card
+
     allowed_classes_ids =
       build_list_students_linked_to_report_card_allowed_classes_ids(report_card)
 
@@ -521,6 +527,7 @@ defmodule Lanttern.Reporting do
       order_by: [asc: c.name, asc: s.name],
       preload: [classes: c]
     )
+    |> maybe_join_students_cycle_info(cycle)
     |> list_students_linked_to_report_card_select(opts)
     |> apply_list_students_linked_to_report_card_opts(opts)
     |> Repo.all()
@@ -550,14 +557,44 @@ defmodule Lanttern.Reporting do
     |> Repo.all()
   end
 
+  defp maybe_join_students_cycle_info(queryable, %{parent_cycle_id: cycle_id})
+       when not is_nil(cycle_id) do
+    from(
+      s in queryable,
+      left_join: sci in assoc(s, :cycles_info),
+      on: sci.cycle_id == ^cycle_id,
+      as: :students_cycle_info
+      # select_merge: %{profile_picture_url: sci.profile_picture_url}
+    )
+  end
+
+  defp maybe_join_students_cycle_info(queryable, _), do: queryable
+
   defp list_students_linked_to_report_card_select(queryable, opts) do
-    if Keyword.get(opts, :students_only) do
-      queryable
-    else
-      from(
-        [s, student_report_card: src] in queryable,
-        select: {s, src}
-      )
+    is_student_only = Keyword.get(opts, :students_only)
+    has_students_cycle_info = has_named_binding?(queryable, :students_cycle_info)
+
+    case {is_student_only, has_students_cycle_info} do
+      {true, true} ->
+        from(
+          [s, students_cycle_info: sci] in queryable,
+          select: %{s | profile_picture_url: sci.profile_picture_url}
+        )
+
+      {true, _} ->
+        queryable
+
+      {_, true} ->
+        from(
+          [s, student_report_card: src, students_cycle_info: sci] in queryable,
+          select: {%{s | profile_picture_url: sci.profile_picture_url}, src}
+        )
+
+      {_, _} ->
+        from(
+          [s, student_report_card: src] in queryable,
+          select: {s, src}
+        )
     end
   end
 
@@ -583,6 +620,8 @@ defmodule Lanttern.Reporting do
   Results are filtered by the report card year and parent cycle (if possible),
   and ordered by class name, and them by student name.
 
+  Students' `profile_picture_url` will be loaded if report card parent cycle exists.
+
   Deactivated students are not included.
 
   Expect `school_cycle` and `year` preloads.
@@ -593,12 +632,16 @@ defmodule Lanttern.Reporting do
       [%Student{}, ...]
 
   """
-  @spec list_students_not_linked_to_report_card(ReportCard.t()) :: [Student.t()]
-  def list_students_not_linked_to_report_card(%ReportCard{
-        id: report_card_id,
-        school_cycle: %Cycle{} = cycle,
-        year: %Year{} = year
-      }) do
+  @spec list_students_not_linked_to_report_card(ReportCard.t()) :: [
+          Student.t()
+        ]
+  def list_students_not_linked_to_report_card(%ReportCard{} = report_card) do
+    %{
+      id: report_card_id,
+      school_cycle: %Cycle{} = cycle,
+      year: %Year{} = year
+    } = report_card
+
     where_cycle_filter =
       if cycle.parent_cycle_id,
         do: dynamic([_s, _c, _y, cy], cy.id == ^cycle.parent_cycle_id),
@@ -618,8 +661,21 @@ defmodule Lanttern.Reporting do
       order_by: [asc: c.name, asc: s.name],
       preload: [classes: c]
     )
+    |> maybe_load_profile_picture_url(cycle)
     |> Repo.all()
   end
+
+  defp maybe_load_profile_picture_url(queryable, %{parent_cycle_id: cycle_id})
+       when not is_nil(cycle_id) do
+    from(
+      s in queryable,
+      left_join: sci in assoc(s, :cycles_info),
+      on: sci.cycle_id == ^cycle_id,
+      select_merge: %{profile_picture_url: sci.profile_picture_url}
+    )
+  end
+
+  defp maybe_load_profile_picture_url(queryable, _), do: queryable
 
   @doc """
   Returns the list of cycles related to student report cards.

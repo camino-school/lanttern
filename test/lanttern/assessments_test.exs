@@ -1357,6 +1357,7 @@ defmodule Lanttern.AssessmentsTest do
       class_a: class_a,
       class_b: class_b,
       student_1: student_1,
+      student_1_cycle_info: student_1_cycle_info,
       student_2: student_2,
       student_3: student_3,
       std_1_s_ap_1_ci_1: std_1_s_ap_1_ci_1,
@@ -1411,10 +1412,12 @@ defmodule Lanttern.AssessmentsTest do
              ] =
                Assessments.list_strand_students_entries(strand.id, nil,
                  classes_ids: [class_a.id, class_b.id],
+                 load_profile_picture_from_cycle_id: student_1_cycle_info.cycle_id,
                  active_students_only: true
                )
 
       assert expected_student_1.id == student_1.id
+      assert expected_student_1.profile_picture_url == student_1_cycle_info.profile_picture_url
       assert expected_std_1_s_ap_1_ci_1.id == std_1_s_ap_1_ci_1.id
       assert expected_std_1_s_ap_1_ci_1.ordinal_value_id == ov_a.id
       assert expected_std_1_s_ap_1_ci_1.is_strand_entry
@@ -1940,6 +1943,7 @@ defmodule Lanttern.AssessmentsTest do
       class_a: class_a,
       class_b: class_b,
       student_1: student_1,
+      student_1_cycle_info: student_1_cycle_info,
       student_2: student_2,
       student_3: student_3,
       std_1_m_1_ap_1_ci_1: std_1_m_1_ap_1_ci_1,
@@ -1984,10 +1988,12 @@ defmodule Lanttern.AssessmentsTest do
              ] =
                Assessments.list_moment_students_entries(moment.id,
                  classes_ids: [class_a.id, class_b.id],
+                 load_profile_picture_from_cycle_id: student_1_cycle_info.cycle_id,
                  active_students_only: true
                )
 
       assert expected_student_1.id == student_1.id
+      assert expected_student_1.profile_picture_url == student_1_cycle_info.profile_picture_url
       assert expected_std_1_m_1_ap_1_ci_1.id == std_1_m_1_ap_1_ci_1.id
       assert expected_std_1_m_1_ap_1_ci_1.ordinal_value_id == ov_a.id
       assert expected_std_1_m_1_ap_2_ci_2.id == std_1_m_1_ap_2_ci_2.id
@@ -2129,8 +2135,17 @@ defmodule Lanttern.AssessmentsTest do
 
     student_1 =
       Lanttern.SchoolsFixtures.student_fixture(%{
+        school_id: school.id,
         name: "AAA",
         classes_ids: [class_a.id, class_b.id]
+      })
+
+    # create cycle info to test profile picture loading
+    student_1_cycle_info =
+      Lanttern.StudentsCycleInfoFixtures.student_cycle_info_fixture(%{
+        school_id: school.id,
+        student_id: student_1.id,
+        profile_picture_url: "http://example.com/profile_picture.jpg"
       })
 
     student_2 =
@@ -2258,6 +2273,7 @@ defmodule Lanttern.AssessmentsTest do
       class_a: class_a,
       class_b: class_b,
       student_1: student_1,
+      student_1_cycle_info: student_1_cycle_info,
       student_2: student_2,
       student_3: student_3,
       std_1_m_1_ap_1_ci_1: std_1_m_1_ap_1_ci_1,

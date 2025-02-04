@@ -795,6 +795,7 @@ defmodule Lanttern.Assessments do
 
   - `:group_by` – `"curriculum"`, `"moment"`, or `nil` (details below)
   - `:classes_ids` – filter entries by classes
+  - `:load_profile_picture_from_cycle_id` - will try to load the profile picture from linked `%StudentCycleInfo{}` with the given cycle id
   - `:active_students_only` – (boolean) remove deactivated students from results
   - `:check_if_has_evidences` – (boolean) calculate virtual `has_evidences` field
 
@@ -878,6 +879,7 @@ defmodule Lanttern.Assessments do
   ### Options:
 
   - `:classes_ids` – filter entries by classes
+  - `:load_profile_picture_from_cycle_id` - will try to load the profile picture from linked `%StudentCycleInfo{}` with the given cycle id
   - `:active_students_only` – (boolean) remove deactivated students from results
   - `:check_if_has_evidences` – (boolean) calculate virtual `has_evidences` field
 
@@ -939,6 +941,18 @@ defmodule Lanttern.Assessments do
     from(
       [_s, classes: c] in queryable,
       where: c.id in ^classes_ids
+    )
+    |> apply_list_entries_students_query_opts(opts)
+  end
+
+  defp apply_list_entries_students_query_opts(queryable, [
+         {:load_profile_picture_from_cycle_id, cycle_id} | opts
+       ]) do
+    from(
+      s in queryable,
+      left_join: sci in assoc(s, :cycles_info),
+      on: sci.cycle_id == ^cycle_id,
+      select_merge: %{profile_picture_url: sci.profile_picture_url}
     )
     |> apply_list_entries_students_query_opts(opts)
   end
