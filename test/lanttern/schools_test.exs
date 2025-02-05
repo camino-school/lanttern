@@ -386,7 +386,13 @@ defmodule Lanttern.SchoolsTest do
         })
 
       student_y = student_fixture(%{name: "YYY", classes_ids: [class_a_25.id]})
-      student_z = student_fixture(%{name: "ZZZ", classes_ids: [class_a_25.id]})
+
+      student_z =
+        student_fixture(%{
+          name: "ZZZ",
+          classes_ids: [class_a_25.id],
+          deactivated_at: DateTime.utc_now()
+        })
 
       # extra classes for school filter validation
       class_fixture()
@@ -397,10 +403,12 @@ defmodule Lanttern.SchoolsTest do
           schools_ids: [school.id],
           years_ids: [year.id],
           cycles_ids: [cycle_24.id, cycle_25.id],
+          count_active_students: true,
           preloads: :students
         )
 
       assert expected_a_25.id == class_a_25.id
+      assert expected_a_25.active_students_count == 2
       assert expected_a_25.cycle.id == cycle_25.id
       assert [expected_std_x, expected_std_y, expected_std_z] = expected_a_25.students
       assert expected_std_x.id == student_x.id
@@ -615,6 +623,7 @@ defmodule Lanttern.SchoolsTest do
 
   describe "students" do
     alias Lanttern.Schools.Student
+    alias Lanttern.StudentsCycleInfoFixtures
 
     @invalid_attrs %{name: nil}
 
@@ -667,6 +676,33 @@ defmodule Lanttern.SchoolsTest do
       end
     end
 
+    test "list_students/1 with load_email opt returns the students with its email" do
+      student_a = student_fixture(%{name: "a"})
+      student_b = student_fixture(%{name: "b"})
+
+      # create user/profile only for student_a
+      user = Lanttern.IdentityFixtures.user_fixture(%{email: "a@email.com"})
+
+      _profile =
+        Lanttern.IdentityFixtures.student_profile_fixture(%{
+          user_id: user.id,
+          student_id: student_a.id
+        })
+
+      [expected_student_a, expected_student_b] =
+        Schools.list_students(
+          load_email: true,
+          # use load_profile_picture_from_cycle_id
+          # to validate select_merge
+          load_profile_picture_from_cycle_id: 1
+        )
+
+      assert expected_student_a.id == student_a.id
+      assert expected_student_a.email == "a@email.com"
+      assert expected_student_b.id == student_b.id
+      assert is_nil(expected_student_b.email)
+    end
+
     test "list_students/1 with only_in_some_class opts returns all students as expected" do
       school = school_fixture()
       class_1 = class_fixture(%{school_id: school.id})
@@ -706,6 +742,77 @@ defmodule Lanttern.SchoolsTest do
       student_fixture()
 
       assert [student_1, student_2] == Schools.list_students(school_id: school.id)
+    end
+
+    test "list_students/1 with only_active opt returns the students filtered by their deactivated status" do
+      active_student = student_fixture()
+      _deactivated_student = student_fixture(%{deactivated_at: DateTime.utc_now()})
+
+      assert [active_student] == Schools.list_students(only_active: true)
+    end
+
+    test "list_students/1 with only_deactivated opt returns the students filtered by their deactivated status" do
+      deactivated_student = student_fixture(%{deactivated_at: DateTime.utc_now()})
+      _active_student = student_fixture()
+
+      assert [deactivated_student] == Schools.list_students(only_deactivated: true)
+    end
+
+    test "list_students/1 with preload_classes_from_cycle_id opt return students with correct classes preload" do
+      school = school_fixture()
+      class_1 = class_fixture(%{school_id: school.id})
+      class_2 = class_fixture(%{school_id: school.id})
+      student_1 = student_fixture(%{school_id: school.id, name: "AAA", classes_ids: [class_1.id]})
+      student_2 = student_fixture(%{school_id: school.id, name: "BBB", classes_ids: [class_2.id]})
+
+      student_1_2 =
+        student_fixture(%{
+          school_id: school.id,
+          name: "CCC",
+          classes_ids: [class_1.id, class_1.id]
+        })
+
+      [expected_1, expected_2, expected_1_2] =
+        Schools.list_students(
+          # use classes_ids opt to validate joins
+          # (both need classes join to work, but each one handles it differently)
+          classes_ids: [class_1.id, class_2.id],
+          preload_classes_from_cycle_id: class_1.cycle_id
+        )
+
+      assert expected_1.id == student_1.id
+      assert [class_1] == expected_1.classes
+
+      assert expected_2.id == student_2.id
+      assert [] == expected_2.classes
+
+      assert expected_1_2.id == student_1_2.id
+      assert [class_1] == expected_1_2.classes
+    end
+
+    test "list_students/1 with load_profile_picture_from_cycle_id opt uses the student cycle info picture" do
+      school = school_fixture()
+      student = student_fixture(%{school_id: school.id})
+
+      student_cycle_info =
+        StudentsCycleInfoFixtures.student_cycle_info_fixture(%{
+          school_id: school.id,
+          student_id: student.id,
+          profile_picture_url: "http://example.com/profile_picture.jpg"
+        })
+
+      # extra student cycle info for filtering validation
+      StudentsCycleInfoFixtures.student_cycle_info_fixture(%{
+        school_id: school.id,
+        student_id: student.id,
+        profile_picture_url: "http://not-loaded.com/profile_picture.jpg"
+      })
+
+      [expected_student] =
+        Schools.list_students(load_profile_picture_from_cycle_id: student_cycle_info.cycle_id)
+
+      assert expected_student.id == student.id
+      assert expected_student.profile_picture_url == "http://example.com/profile_picture.jpg"
     end
 
     test "list_students/1 with students_ids opts returns students filtered by given ids" do
@@ -812,6 +919,17 @@ defmodule Lanttern.SchoolsTest do
       assert expected_student.classes == [class]
     end
 
+    test "get_student/2 with load_email opt returns the student with its email" do
+      user = Lanttern.IdentityFixtures.user_fixture(%{email: "email.abc@email.com"})
+
+      profile =
+        Lanttern.IdentityFixtures.student_profile_fixture(%{user_id: user.id})
+
+      expected_student = Schools.get_student(profile.student_id, load_email: true)
+      assert expected_student.id == profile.student_id
+      assert expected_student.email == "email.abc@email.com"
+    end
+
     test "create_student/1 with valid data creates a student" do
       school = school_fixture()
       valid_attrs = %{school_id: school.id, name: "some name"}
@@ -896,6 +1014,45 @@ defmodule Lanttern.SchoolsTest do
       assert Enum.find(student.classes, fn c -> c.id == class_3.id end)
     end
 
+    test "create_student/1 with email creates a student linked to new profile/user" do
+      school = school_fixture()
+
+      valid_attrs = %{
+        "school_id" => school.id,
+        "name" => "some name",
+        "email" => "some@email.com"
+      }
+
+      {:ok, %Student{} = student} = Schools.create_student(valid_attrs)
+      assert student.name == "some name"
+      assert student.email == "some@email.com"
+
+      student_with_preloads =
+        Schools.get_student!(student.id, preloads: [profile: :user])
+
+      assert student_with_preloads.profile.user.email == "some@email.com"
+    end
+
+    test "create_student/1 with email creates a student linked to new profile and existing user" do
+      school = school_fixture()
+      user = Lanttern.IdentityFixtures.user_fixture(email: "some@email.com")
+
+      valid_attrs = %{
+        "school_id" => school.id,
+        "name" => "some name",
+        "email" => "some@email.com"
+      }
+
+      {:ok, %Student{} = student} = Schools.create_student(valid_attrs)
+      assert student.name == "some name"
+      assert student.email == "some@email.com"
+
+      student_with_preloads =
+        Schools.get_student!(student.id, preloads: [profile: :user])
+
+      assert student_with_preloads.profile.user.id == user.id
+    end
+
     test "update_student/2 with invalid data returns error changeset" do
       student = student_fixture()
       assert {:error, %Ecto.Changeset{}} = Schools.update_student(student, @invalid_attrs)
@@ -909,6 +1066,20 @@ defmodule Lanttern.SchoolsTest do
 
       assert {:ok, %Student{}} = Schools.delete_student(student)
       assert_raise Ecto.NoResultsError, fn -> Schools.get_student!(student.id) end
+    end
+
+    test "deactivate_student/1 sets deactivated_at for given student" do
+      student = student_fixture()
+
+      assert {:ok, %Student{deactivated_at: %DateTime{}}} =
+               Schools.deactivate_student(student)
+    end
+
+    test "reactivate_student/1 sets deactivated_at to nil for given student" do
+      student = student_fixture(%{deactivated_at: DateTime.utc_now()})
+
+      assert {:ok, %Student{deactivated_at: nil}} =
+               Schools.reactivate_student(student)
     end
 
     test "change_student/1 returns a student changeset" do

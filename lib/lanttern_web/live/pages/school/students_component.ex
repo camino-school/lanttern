@@ -8,32 +8,24 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
   # shared components
   alias LantternWeb.Schools.StudentFormOverlayComponent
   import LantternWeb.FiltersHelpers, only: [assign_classes_filter: 2, save_profile_filters: 2]
-  import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
 
   @impl true
   def render(assigns) do
     ~H"""
     <div>
-      <div class="flex items-center gap-6 p-4">
-        <div class="flex-1 flex flex-wrap items-center gap-2">
-          <p>
-            <%= ngettext(
-              "Showing 1 student in",
-              "Showing %{count} students in",
-              @students_length
-            ) %>
-          </p>
-          <%= if @selected_classes != [] do %>
-            <.badge
-              :for={class <- @selected_classes}
-              on_remove={JS.push("remove_class_filter", value: %{"id" => class.id}, target: @myself)}
-              theme="primary"
-            >
-              <%= class_with_cycle(class, @current_user) %>
-            </.badge>
-          <% else %>
-            <.badge><%= gettext("all classes") %></.badge>
-          <% end %>
+      <div class="flex justify-between gap-6 p-4">
+        <div class="flex gap-4">
+          <.action
+            type="button"
+            phx-click={JS.exec("data-show", to: "#school-students-classes-filters-overlay")}
+            icon_name="hero-chevron-down-mini"
+          >
+            <%= format_action_items_text(@selected_classes, gettext("All classes")) %>
+          </.action>
+          <%= ngettext("1 active student", "%{count} active students", @students_length) %>
+          <.action type="link" theme="subtle" navigate={~p"/school/students/deactivated"}>
+            <%= gettext("View deactivated students") %>
+          </.action>
         </div>
         <.action
           :if={@is_school_manager}
@@ -44,78 +36,44 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
           <%= gettext("Add student") %>
         </.action>
       </div>
-      <div class="bg-white">
-        <.data_grid
-          id="students"
-          stream={@streams.students}
-          row_click={fn student -> JS.navigate(~p"/school/students/#{student}") end}
-          show_empty_state_message={
-            if @students_length == 0,
-              do: gettext("No students found for selected filters.")
-          }
-          sticky_header_offset="7rem"
+      <.fluid_grid id="students" phx-update="stream" is_full_width class="p-4">
+        <.card_base
+          :for={{dom_id, student} <- @streams.students}
+          id={dom_id}
+          class="flex items-center gap-4 p-4"
         >
-          <:col :let={student} label={gettext("Name")}>
-            <%= student.name %>
-          </:col>
-          <:col
-            :let={student}
-            label={gettext("Classes")}
-            template_col="max-content"
-            on_filter={JS.exec("data-show", to: "#school-students-classes-filters-overlay")}
-            filter_is_active={@selected_classes_ids != []}
-          >
-            <div class="flex flex-wrap gap-1">
-              <.badge :for={class <- student.classes}>
-                <%= class_with_cycle(class, @current_user) %>
-              </.badge>
+          <.profile_picture
+            picture_url={student.profile_picture_url}
+            profile_name={student.name}
+            size="lg"
+          />
+          <div class="min-w-0 flex-1">
+            <.link navigate={~p"/school/students/#{student}"} class="font-bold hover:text-ltrn-subtle">
+              <%= student.name %>
+            </.link>
+            <div :if={student.classes != []} class="flex flex-wrap gap-1 mt-2">
+              <.badge :for={class <- student.classes}><%= class.name %></.badge>
             </div>
-          </:col>
-          <:action :let={student} :if={@is_school_manager}>
-            <.button
-              type="button"
-              sr_text={gettext("Edit student")}
-              icon_name="hero-pencil-mini"
-              size="sm"
-              theme="ghost"
-              rounded
-              phx-click={JS.patch(~p"/school/students?edit=#{student.id}")}
-            />
-          </:action>
-        </.data_grid>
-        <.data_grid
-          :if={@no_class_students_length > 0}
-          id="no-class-students"
-          stream={@streams.no_class_students}
-          row_click={fn student -> JS.navigate(~p"/school/students/#{student}") end}
-          sticky_header_offset="7rem"
-          class={["mt-10", if(@selected_classes_ids != [], do: "hidden")]}
-        >
-          <:col
-            :let={student}
-            label={
-              ngettext(
-                "1 student not linked to any class",
-                "%{count} students not linked to any class",
-                @no_class_students_length
-              )
-            }
-          >
-            <%= student.name %>
-          </:col>
-          <:action :let={student} :if={@is_school_manager}>
-            <.button
-              type="button"
-              sr_text={gettext("Edit student")}
-              icon_name="hero-pencil-mini"
-              size="sm"
-              theme="ghost"
-              rounded
-              phx-click={JS.patch(~p"/school/students?edit=#{student.id}")}
-            />
-          </:action>
-        </.data_grid>
-      </div>
+            <div
+              :if={student.email}
+              class="mt-2 text-xs text-ltrn-subtle truncate"
+              title={student.email}
+            >
+              <%= student.email %>
+            </div>
+          </div>
+          <.button
+            :if={@is_school_manager}
+            type="link"
+            icon_name="hero-pencil-mini"
+            sr_text={gettext("Edit student")}
+            rounded
+            size="sm"
+            theme="ghost"
+            patch={~p"/school/students?edit=#{student.id}"}
+          />
+        </.card_base>
+      </.fluid_grid>
       <.live_component
         module={LantternWeb.Filters.ClassesFilterOverlayComponent}
         id="school-students-classes-filters-overlay"
@@ -157,53 +115,19 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
     {:ok, socket}
   end
 
-  def update(%{action: {StudentFormOverlayComponent, {:updated, student}}}, socket) do
-    current_student_has_classes = length(socket.assigns.student.classes) > 0
-    edited_student_has_classes = length(student.classes) > 0
+  def update(%{action: {StudentFormOverlayComponent, {action, _staff_member}}}, socket)
+      when action in [:updated, :deactivated] do
+    message =
+      case action do
+        :updated -> gettext("Student updated successfully")
+        :deactivated -> gettext("Student deactivated successfully")
+      end
 
     socket =
-      case {current_student_has_classes, edited_student_has_classes} do
-        {true, false} ->
-          socket
-          |> assign(:students_length, socket.assigns.students_length - 1)
-          |> assign(:no_class_students_length, socket.assigns.no_class_students_length + 1)
-          |> stream_delete(:students, student)
-          |> stream_insert(:no_class_students, student)
-
-        {false, true} ->
-          socket
-          |> assign(:no_class_students_length, socket.assigns.no_class_students_length - 1)
-          |> stream_delete(:no_class_students, student)
-          |> stream_updated_student_with_class(student, already_in_list: false)
-
-        {true, true} ->
-          stream_updated_student_with_class(socket, student, already_in_list: true)
-
-        {false, false} ->
-          stream_insert(socket, :no_class_students, student)
-      end
+      socket
       |> delegate_navigation(
-        put_flash: {:info, gettext("Student updated successfully")},
-        push_patch: [to: ~p"/school/students"]
-      )
-
-    {:ok, socket}
-  end
-
-  def update(%{action: {StudentFormOverlayComponent, {:deleted, student}}}, socket) do
-    socket =
-      if length(student.classes) > 0 do
-        socket
-        |> assign(:students_length, socket.assigns.students_length - 1)
-        |> stream_delete(:students, student)
-      else
-        socket
-        |> assign(:no_class_students_length, socket.assigns.no_class_students_length - 1)
-        |> stream_delete(:no_class_students, student)
-      end
-      |> delegate_navigation(
-        put_flash: {:info, gettext("Student deleted successfully")},
-        push_patch: [to: ~p"/school/students"]
+        put_flash: {:info, message},
+        push_navigate: [to: ~p"/school/students"]
       )
 
     {:ok, socket}
@@ -219,42 +143,10 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
     {:ok, socket}
   end
 
-  # this function handles the correct operation (insert or delete)
-  # based on student classes and selected classes filter.
-  # when calling this function, we already know that the student is linked to a class
-  defp stream_updated_student_with_class(socket, student, already_in_list: already_in_list) do
-    student_classes_ids = Enum.map(student.classes, & &1.id)
-
-    is_inserting =
-      case socket.assigns.selected_classes_ids do
-        [] -> true
-        ids -> Enum.any?(student_classes_ids, &(&1 in ids))
-      end
-
-    case {is_inserting, already_in_list} do
-      {true, true} ->
-        stream_insert(socket, :students, student)
-
-      {true, false} ->
-        socket
-        |> stream_insert(:students, student)
-        |> assign(:students_length, socket.assigns.students_length + 1)
-
-      {false, true} ->
-        socket
-        |> stream_delete(:students, student)
-        |> assign(:students_length, socket.assigns.students_length - 1)
-
-      {false, false} ->
-        socket
-    end
-  end
-
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
     |> apply_assign_classes_filter()
     |> stream_students()
-    |> stream_no_class_students()
     |> assign(:initialized, true)
   end
 
@@ -271,29 +163,22 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
   end
 
   defp stream_students(socket) do
+    cycle_id =
+      socket.assigns.current_user.current_profile.current_school_cycle.id
+
     students =
       Schools.list_students(
-        preloads: [classes: :cycle],
         school_id: socket.assigns.current_user.current_profile.school_id,
+        load_email: true,
         classes_ids: socket.assigns.selected_classes_ids,
-        only_in_some_class: true
+        preload_classes_from_cycle_id: cycle_id,
+        load_profile_picture_from_cycle_id: cycle_id,
+        only_active: true
       )
 
     socket
     |> stream(:students, students, reset: true)
     |> assign(:students_length, length(students))
-  end
-
-  defp stream_no_class_students(socket) do
-    no_class_students =
-      Schools.list_students(
-        school_id: socket.assigns.current_user.current_profile.school_id,
-        only_in_some_class: false
-      )
-
-    socket
-    |> stream(:no_class_students, no_class_students, reset: true)
-    |> assign(:no_class_students_length, length(no_class_students))
   end
 
   defp assign_student(%{assigns: %{is_school_manager: false}} = socket),
@@ -311,7 +196,7 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
   end
 
   defp assign_student(%{assigns: %{params: %{"edit" => student_id}}} = socket) do
-    student = Schools.get_student(student_id, preloads: :classes)
+    student = Schools.get_student(student_id, preloads: :classes, load_email: true)
 
     socket
     |> assign(:student, student)

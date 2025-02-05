@@ -3,9 +3,7 @@
   <div class="px-4">
     <.neo_tabs>
       <:tab patch={~p"/school/classes"} is_current={@live_action == :manage_classes}>
-        <%= if @current_user.current_profile.current_school_cycle,
-          do: "#{@current_user.current_profile.current_school_cycle.name} #{gettext("classes")}",
-          else: gettext("Classes") %>
+        <%= "#{@current_user.current_profile.current_school_cycle.name} #{gettext("classes")}" %>
       </:tab>
       <:tab patch={~p"/school/students"} is_current={@live_action == :manage_students}>
         <%= gettext("Students") %>

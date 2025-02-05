@@ -802,10 +802,11 @@ defmodule LantternWeb.GradesReportsComponents do
           style={@grid_column_style}
         >
           <div class="sticky left-0 z-10 flex items-center gap-2 px-2 py-4 bg-white">
-            <.profile_icon_with_name
-              icon_size="sm"
+            <.profile_picture_with_name
+              picture_size="sm"
               class="flex-1"
               profile_name={student.name}
+              picture_url={student.profile_picture_url}
               extra_info={student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
               navigate={@student_navigate && @student_navigate.(student)}
             />

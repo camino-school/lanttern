@@ -13,6 +13,7 @@ defmodule LantternWeb.StudentsCycleInfo.StudentCycleInfoHeaderComponent do
 
   - `:class` - any, additional classes for the component
   - `:on_edit_profile_picture` - any, passed to edit profile picture button's `phx-click`
+  - `:show_deactivated` - boolean, show deactivated info
 
   """
 
@@ -43,9 +44,17 @@ defmodule LantternWeb.StudentsCycleInfo.StudentCycleInfoHeaderComponent do
         />
       </div>
       <div class="mt-6 sm:mt-0">
-        <h2 class="font-display font-black text-2xl">
-          <%= @student.name %>
-        </h2>
+        <div class="flex items-center gap-2">
+          <h2 class={[
+            "font-display font-black text-2xl",
+            if(@show_deactivated && @student.deactivated_at, do: "text-ltrn-subtle")
+          ]}>
+            <%= @student.name %>
+          </h2>
+          <.badge :if={@show_deactivated && @student.deactivated_at} theme="dark">
+            <%= gettext("Deactivated") %>
+          </.badge>
+        </div>
         <div class="flex items-center gap-4 mt-2">
           <div class="relative">
             <.action
@@ -89,6 +98,7 @@ defmodule LantternWeb.StudentsCycleInfo.StudentCycleInfoHeaderComponent do
     socket =
       socket
       |> assign(:class, nil)
+      |> assign(:show_deactivated, false)
       |> assign(:on_edit_profile_picture, false)
       |> assign(:initialized, false)
 

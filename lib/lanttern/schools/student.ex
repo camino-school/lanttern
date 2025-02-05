@@ -15,16 +15,19 @@ defmodule Lanttern.Schools.Student do
   alias Lanttern.Rubrics.Rubric
   alias Lanttern.Schools.School
   alias Lanttern.Schools.Class
+  alias Lanttern.StudentsCycleInfo.StudentCycleInfo
 
   @type t :: %__MODULE__{
           id: pos_integer(),
           name: String.t(),
+          profile_picture_url: String.t(),
           classes_ids: [pos_integer()],
           has_diff_rubric: boolean(),
           school: School.t(),
           school_id: pos_integer(),
           classes: [Class.t()],
           diff_rubrics: [Rubric.t()],
+          cycles_info: [StudentCycleInfo.t()],
           student_report_cards: [StudentReportCard.t()],
           grades_report_entries: [StudentGradesReportEntry.t()],
           profile: Profile.t(),
@@ -34,8 +37,15 @@ defmodule Lanttern.Schools.Student do
 
   schema "students" do
     field :name, :string
+    field :deactivated_at, :utc_datetime
+
+    field :profile_picture_url, :string, virtual: true
     field :classes_ids, {:array, :id}, virtual: true
     field :has_diff_rubric, :boolean, virtual: true, default: false
+
+    # this field is used in the context of student form,
+    # and handled by student create and update functions
+    field :email, :string, virtual: true
 
     belongs_to :school, School
 
@@ -46,6 +56,7 @@ defmodule Lanttern.Schools.Student do
 
     many_to_many :diff_rubrics, Rubric, join_through: "differentiation_rubrics_students"
 
+    has_many :cycles_info, StudentCycleInfo
     has_many :student_report_cards, StudentReportCard
     has_many :grades_report_entries, Lanttern.GradesReports.StudentGradesReportEntry
 
@@ -57,7 +68,7 @@ defmodule Lanttern.Schools.Student do
   @doc false
   def changeset(student, attrs) do
     student
-    |> cast(attrs, [:name, :school_id, :classes_ids])
+    |> cast(attrs, [:name, :deactivated_at, :school_id, :classes_ids])
     |> validate_required([:name, :school_id])
     |> put_classes(attrs)
   end

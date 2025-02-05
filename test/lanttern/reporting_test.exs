@@ -448,7 +448,7 @@ defmodule Lanttern.ReportingTest do
              ]
     end
 
-    test "list_students_linked_to_report_card/2 returns all students with class and linked report cards" do
+    test "list_students_linked_to_report_card/2 with active_students_only returns all active students with class and linked report cards" do
       school = SchoolsFixtures.school_fixture()
       year = TaxonomyFixtures.year_fixture()
       parent_cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
@@ -476,6 +476,14 @@ defmodule Lanttern.ReportingTest do
           name: "BBB",
           school_id: school.id,
           classes_ids: [class_a.id]
+        })
+
+      deactivated_student_a_c =
+        SchoolsFixtures.student_fixture(%{
+          name: "CCC",
+          school_id: school.id,
+          classes_ids: [class_a.id],
+          deactivated_at: ~U[2022-01-12 00:01:00.00Z]
         })
 
       class_j =
@@ -516,6 +524,23 @@ defmodule Lanttern.ReportingTest do
           classes_ids: [class_z.id]
         })
 
+      # cycle info to test profile_picture_url load
+      student_a_a_cycle_info =
+        Lanttern.StudentsCycleInfoFixtures.student_cycle_info_fixture(%{
+          school_id: school.id,
+          cycle_id: parent_cycle.id,
+          student_id: student_a_a.id,
+          profile_picture_url: "http://example-a-a.com/profile_picture.jpg"
+        })
+
+      student_j_k_cycle_info =
+        Lanttern.StudentsCycleInfoFixtures.student_cycle_info_fixture(%{
+          school_id: school.id,
+          cycle_id: parent_cycle.id,
+          student_id: student_j_k.id,
+          profile_picture_url: "http://example-j-k.com/profile_picture.jpg"
+        })
+
       # extra fixtures
       other_year_class =
         SchoolsFixtures.class_fixture(%{school_id: school.id, cycle_id: parent_cycle.id})
@@ -537,6 +562,13 @@ defmodule Lanttern.ReportingTest do
           classes_ids: [other_cycle_class.id]
         })
 
+      _deactivated_student =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id,
+          classes_ids: [class_j.id],
+          deactivated_at: ~U[2022-01-12 00:01:00.00Z]
+        })
+
       report_card =
         report_card_fixture(%{school_cycle_id: cycle.id, year_id: year.id})
         |> Repo.preload([:school_cycle, :year])
@@ -546,6 +578,12 @@ defmodule Lanttern.ReportingTest do
 
       student_a_b_report_card =
         student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_a_b.id})
+
+      _deactivated_student_a_c_report_card =
+        student_report_card_fixture(%{
+          report_card_id: report_card.id,
+          student_id: deactivated_student_a_c.id
+        })
 
       student_j_j_report_card =
         student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_j_j.id})
@@ -568,10 +606,15 @@ defmodule Lanttern.ReportingTest do
                {expected_student_j_j, expected_student_j_j_report_card}
              ] =
                Reporting.list_students_linked_to_report_card(report_card,
-                 classes_ids: [class_a.id, class_j.id]
+                 classes_ids: [class_a.id, class_j.id],
+                 active_students_only: true
                )
 
       assert expected_student_a_a.id == student_a_a.id
+
+      assert expected_student_a_a.profile_picture_url ==
+               student_a_a_cycle_info.profile_picture_url
+
       assert [expected_class_a_a] = expected_student_a_a.classes
       assert expected_class_a_a.id == class_a.id
       assert expected_student_a_a_report_card.id == student_a_a_report_card.id
@@ -592,6 +635,9 @@ defmodule Lanttern.ReportingTest do
                Reporting.list_students_not_linked_to_report_card(report_card)
 
       assert expected_student_j_k.id == student_j_k.id
+
+      assert expected_student_j_k.profile_picture_url ==
+               student_j_k_cycle_info.profile_picture_url
     end
 
     test "list_students_linked_to_report_card/2 with students_only = true opt omits report cards from the returned list" do

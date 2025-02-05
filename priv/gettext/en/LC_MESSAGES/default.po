@@ -12,13 +12,13 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: lib/lanttern_web/components/core_components.ex:784
-#: lib/lanttern_web/components/core_components.ex:1908
-#: lib/lanttern_web/components/core_components.ex:1970
+#: lib/lanttern_web/components/core_components.ex:1988
+#: lib/lanttern_web/components/core_components.ex:2050
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr ""
 
-#: lib/lanttern_web/components/grades_reports_components.ex:1032
+#: lib/lanttern_web/components/grades_reports_components.ex:1033
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:3
 #: lib/lanttern_web/live/pages/curriculum/curricula_live.ex:11
 #: lib/lanttern_web/live/pages/curriculum/curricula_live.html.heex:2
@@ -132,7 +132,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:114
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:58
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:96
-#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:71
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:112
 #: lib/lanttern_web/live/shared/students_cycle_info/student_cycle_info_form_component.ex:40
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:196
 #: lib/lanttern_web/live/shared/students_records/student_record_status_form_overlay.ex:102
@@ -192,7 +192,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:117
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:61
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:105
-#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:74
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:115
 #: lib/lanttern_web/live/shared/students_cycle_info/student_cycle_info_form_component.ex:43
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:205
 #: lib/lanttern_web/live/shared/students_records/student_record_status_form_overlay.ex:111
@@ -238,7 +238,6 @@ msgstr ""
 msgid "File \"%{file}\" is invalid."
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/students_component.ex:58
 #: lib/lanttern_web/live/shared/curricula/curriculum_item_form_component.ex:33
 #: lib/lanttern_web/live/shared/grades_reports/grades_report_form_component.ex:31
 #: lib/lanttern_web/live/shared/learning_context/moment_card_form_component.ex:39
@@ -392,8 +391,8 @@ msgstr ""
 msgid "About"
 msgstr ""
 
-#: lib/lanttern_web/components/grades_reports_components.ex:1033
-#: lib/lanttern_web/components/grades_reports_components.ex:1106
+#: lib/lanttern_web/components/grades_reports_components.ex:1034
+#: lib/lanttern_web/components/grades_reports_components.ex:1107
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:17
 #: lib/lanttern_web/live/pages/student_report_card/id/strand_report/strand_report_id/student_report_card_strand_report_live.html.heex:61
 #: lib/lanttern_web/live/pages/student_strand_report/id/student_strand_report_live.html.heex:48
@@ -413,6 +412,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:123
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:111
 #: lib/lanttern_web/live/pages/school/staff/deactivated/deactivated_staff_live.html.heex:49
+#: lib/lanttern_web/live/pages/school/students/deactivated/deactivated_students_live.html.heex:53
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:167
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:43
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:196
@@ -423,7 +423,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:113
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:109
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:53
-#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:66
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:92
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:338
 #: lib/lanttern_web/live/shared/students_records/student_record_status_form_overlay.ex:92
 #: lib/lanttern_web/live/shared/students_records/student_record_tag_form_overlay_component.ex:74
@@ -477,6 +477,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:121
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:109
 #: lib/lanttern_web/live/pages/school/staff/deactivated/deactivated_staff_live.html.heex:47
+#: lib/lanttern_web/live/pages/school/students/deactivated/deactivated_students_live.html.heex:51
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:165
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:203
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:46
@@ -492,7 +493,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:111
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:107
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:51
-#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:64
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:90
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:336
 #: lib/lanttern_web/live/shared/students_records/student_record_status_form_overlay.ex:90
 #: lib/lanttern_web/live/shared/students_records/student_record_tag_form_overlay_component.ex:72
@@ -531,7 +532,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:44
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:39
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:41
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:305
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:307
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:69
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:233
 #: lib/lanttern_web/live/pages/students_records/settings/status_component.ex:61
@@ -659,7 +660,7 @@ msgstr ""
 msgid "Select strand"
 msgstr ""
 
-#: lib/lanttern_web/components/grades_reports_components.ex:1031
+#: lib/lanttern_web/components/grades_reports_components.ex:1032
 #: lib/lanttern_web/live/shared/learning_context/moment_form_component.ex:25
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Strand"
@@ -822,7 +823,7 @@ msgstr ""
 msgid "Moments"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1858
+#: lib/lanttern_web/components/core_components.ex:1938
 #, elixir-autogen, elixir-format
 msgid "Move moment down"
 msgstr ""
@@ -849,10 +850,10 @@ msgstr ""
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.ex:243
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.ex:272
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.ex:304
-#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:229
-#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:260
-#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:296
-#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:329
+#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:230
+#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:261
+#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:297
+#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:330
 #: lib/lanttern_web/live/shared/assessments/entry_details_component.ex:432
 #: lib/lanttern_web/live/shared/assessments/entry_details_component.ex:475
 #: lib/lanttern_web/live/shared/assessments/entry_details_component.ex:555
@@ -962,13 +963,13 @@ msgstr ""
 msgid "Calculate all"
 msgstr ""
 
-#: lib/lanttern_web/components/grades_reports_components.ex:946
+#: lib/lanttern_web/components/grades_reports_components.ex:947
 #, elixir-autogen, elixir-format
 msgid "Calculate grade"
 msgstr ""
 
 #: lib/lanttern_web/components/grades_reports_components.ex:574
-#: lib/lanttern_web/components/grades_reports_components.ex:818
+#: lib/lanttern_web/components/grades_reports_components.ex:819
 #, elixir-autogen, elixir-format
 msgid "Calculate student grades"
 msgstr ""
@@ -1013,7 +1014,7 @@ msgstr ""
 msgid "Create new report card"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:522
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:525
 #, elixir-autogen, elixir-format
 msgid "Create student report card"
 msgstr ""
@@ -1034,7 +1035,7 @@ msgstr ""
 msgid "Curriculum item deleted"
 msgstr ""
 
-#: lib/lanttern_web/components/grades_reports_components.ex:1105
+#: lib/lanttern_web/components/grades_reports_components.ex:1106
 #: lib/lanttern_web/components/reporting_components.ex:118
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:53
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:9
@@ -1106,7 +1107,7 @@ msgstr ""
 msgid "Edit strand report"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:543
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:546
 #, elixir-autogen, elixir-format
 msgid "Edit student report card"
 msgstr ""
@@ -1147,7 +1148,7 @@ msgstr ""
 msgid "Error deleting student grade report entry"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:639
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:642
 #, elixir-autogen, elixir-format
 msgid "Error deleting student report card"
 msgstr ""
@@ -1178,14 +1179,14 @@ msgstr ""
 msgid "Filter curriculum items by year"
 msgstr ""
 
-#: lib/lanttern_web/components/grades_reports_components.ex:1065
-#: lib/lanttern_web/components/grades_reports_components.ex:1132
+#: lib/lanttern_web/components/grades_reports_components.ex:1066
+#: lib/lanttern_web/components/grades_reports_components.ex:1133
 #, elixir-autogen, elixir-format
 msgid "Final grade"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.ex:300
-#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:325
+#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:326
 #, elixir-autogen, elixir-format
 msgid "Grade calculated succesfully"
 msgstr ""
@@ -1209,7 +1210,7 @@ msgstr ""
 msgid "Grades"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:221
+#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:222
 #, elixir-autogen, elixir-format
 msgid "Grades calculated succesfully"
 msgstr ""
@@ -1296,7 +1297,7 @@ msgstr ""
 msgid "Move down"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1848
+#: lib/lanttern_web/components/core_components.ex:1928
 #: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:154
 #, elixir-autogen, elixir-format
 msgid "Move up"
@@ -1312,7 +1313,7 @@ msgstr ""
 msgid "No assesment points in this grade composition"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:320
+#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:321
 #, elixir-autogen, elixir-format, fuzzy
 msgid "No assessment point entries for this grade composition"
 msgstr ""
@@ -1350,7 +1351,7 @@ msgid "No strands linked to this report yet"
 msgstr ""
 
 #: lib/lanttern_web/components/grades_reports_components.ex:617
-#: lib/lanttern_web/components/grades_reports_components.ex:844
+#: lib/lanttern_web/components/grades_reports_components.ex:845
 #: lib/lanttern_web/components/reporting_components.ex:444
 #, elixir-autogen, elixir-format
 msgid "No students linked to this grades report"
@@ -1368,8 +1369,8 @@ msgstr ""
 msgid "No subjects linked to this grades report"
 msgstr ""
 
-#: lib/lanttern_web/components/grades_reports_components.ex:1035
-#: lib/lanttern_web/components/grades_reports_components.ex:1108
+#: lib/lanttern_web/components/grades_reports_components.ex:1036
+#: lib/lanttern_web/components/grades_reports_components.ex:1109
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:50
 #, elixir-autogen, elixir-format
 msgid "Normalized value"
@@ -1386,21 +1387,21 @@ msgstr ""
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.ex:215
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.ex:243
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.ex:272
-#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:229
-#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:260
-#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:296
+#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:230
+#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:261
+#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:297
 #, elixir-autogen, elixir-format
 msgid "Partial results"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:294
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:296
 #: lib/lanttern_web/live/shared/students_records/student_record_status_form_overlay.ex:75
 #: lib/lanttern_web/live/shared/students_records/student_record_tag_form_overlay_component.ex:58
 #, elixir-autogen, elixir-format
 msgid "Preview"
 msgstr ""
 
-#: lib/lanttern_web/components/grades_reports_components.ex:921
+#: lib/lanttern_web/components/grades_reports_components.ex:922
 #, elixir-autogen, elixir-format
 msgid "Recalculate grade"
 msgstr ""
@@ -1556,7 +1557,7 @@ msgstr ""
 msgid "Student grade report entry updated successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:252
+#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:253
 #, elixir-autogen, elixir-format
 msgid "Student grades calculated succesfully"
 msgstr ""
@@ -1567,13 +1568,13 @@ msgstr ""
 msgid "Student report card"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:631
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:634
 #, elixir-autogen, elixir-format
 msgid "Student report card deleted"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:14
-#: lib/lanttern_web/live/pages/school/school_live.html.heex:11
+#: lib/lanttern_web/live/pages/school/school_live.html.heex:9
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:105
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:246
 #, elixir-autogen, elixir-format
@@ -1586,7 +1587,7 @@ msgstr ""
 msgid "Subject"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:288
+#: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:289
 #, elixir-autogen, elixir-format
 msgid "Subject grades calculated succesfully"
 msgstr ""
@@ -1613,8 +1614,8 @@ msgstr ""
 msgid "Use the differentiation flag above when creating assessment points related to a curriculum level differentiation."
 msgstr ""
 
-#: lib/lanttern_web/components/grades_reports_components.ex:1034
-#: lib/lanttern_web/components/grades_reports_components.ex:1107
+#: lib/lanttern_web/components/grades_reports_components.ex:1035
+#: lib/lanttern_web/components/grades_reports_components.ex:1108
 #: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:36
 #, elixir-autogen, elixir-format
 msgid "Weight"
@@ -1774,14 +1775,14 @@ msgstr ""
 msgid "The entry does not exist anymore"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:710
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:713
 #, elixir-autogen, elixir-format
 msgid "1 report creation failed"
 msgid_plural "%{count} reports creation failed"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:699
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:702
 #, elixir-autogen, elixir-format, fuzzy
 msgid "1 student report card created"
 msgid_plural "%{count} students report cards created"
@@ -1795,7 +1796,7 @@ msgid_plural "%{count} students selected"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:705
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:708
 #, elixir-autogen, elixir-format
 msgid "1 student skipped"
 msgid_plural "%{count} students skipped"
@@ -1989,17 +1990,17 @@ msgstr ""
 msgid "Guardian access"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:261
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:263
 #, elixir-autogen, elixir-format
 msgid "Has comments"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:270
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:272
 #, elixir-autogen, elixir-format
 msgid "Has footnote"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:408
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:411
 #: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:120
 #, elixir-autogen, elixir-format
 msgid "Link"
@@ -2010,12 +2011,12 @@ msgstr ""
 msgid "Link selected"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:283
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:285
 #, elixir-autogen, elixir-format
 msgid "Not shared with guardians"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:277
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:279
 #, elixir-autogen, elixir-format
 msgid "Not shared with student"
 msgstr ""
@@ -2042,17 +2043,17 @@ msgstr ""
 msgid "Report cards under development"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:282
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:284
 #, elixir-autogen, elixir-format
 msgid "Shared with guardians"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:276
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:278
 #, elixir-autogen, elixir-format
 msgid "Shared with student"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:588
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:591
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Something got wrong"
 msgstr ""
@@ -2062,7 +2063,7 @@ msgstr ""
 msgid "Student access"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:583
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:586
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Students report cards access updated"
 msgstr ""
@@ -2290,7 +2291,7 @@ msgstr ""
 msgid "Are you sure? All grades will be created, updated, and removed based on their grade composition."
 msgstr ""
 
-#: lib/lanttern_web/components/grades_reports_components.ex:821
+#: lib/lanttern_web/components/grades_reports_components.ex:822
 #, elixir-autogen, elixir-format
 msgid "Are you sure? Grades related to this student will be created, updated, and removed based on their grade composition."
 msgstr ""
@@ -2341,7 +2342,7 @@ msgid_plural "%{count} grades partially updated (only compositions, manual grade
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/lanttern_web/components/grades_reports_components.ex:926
+#: lib/lanttern_web/components/grades_reports_components.ex:927
 #, elixir-autogen, elixir-format
 msgid "There is a manual grade change that will be overwritten by this operation. Are you sure you want to proceed?"
 msgstr ""
@@ -2618,23 +2619,21 @@ msgstr ""
 msgid "No teacher assessment"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/school_live.html.heex:8
 #: lib/lanttern_web/live/pages/school/staff/id/students_records_component.ex:93
-#: lib/lanttern_web/live/pages/school/students_component.ex:63
 #: lib/lanttern_web/live/pages/students_records/students_records_live.html.heex:29
-#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:51
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:52
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:124
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:262
 #, elixir-autogen, elixir-format
 msgid "Classes"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes_component.ex:88
+#: lib/lanttern_web/live/pages/school/classes_component.ex:101
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Filter classes by year"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes_component.ex:72
+#: lib/lanttern_web/live/pages/school/classes_component.ex:85
 #, elixir-autogen, elixir-format, fuzzy
 msgid "No students in this class"
 msgstr ""
@@ -2919,81 +2918,66 @@ msgstr ""
 msgid "Subcycle"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/students_component.ex:97
-#, elixir-autogen, elixir-format
-msgid "1 student not linked to any class"
-msgid_plural "%{count} students not linked to any class"
-msgstr[0] ""
-msgstr[1] ""
-
-#: lib/lanttern_web/live/pages/school/students_component.ex:20
-#, elixir-autogen, elixir-format
-msgid "Showing 1 student in"
-msgid_plural "Showing %{count} students in"
-msgstr[0] ""
-msgstr[1] ""
-
 #: lib/lanttern_web/live/pages/school/classes_component.ex:31
 #, elixir-autogen, elixir-format
 msgid "Add class"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/students_component.ex:44
+#: lib/lanttern_web/live/pages/school/students_component.ex:36
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Add student"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes_component.ex:115
+#: lib/lanttern_web/live/pages/school/classes_component.ex:128
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Class created successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes_component.ex:138
+#: lib/lanttern_web/live/pages/school/classes_component.ex:151
 #, elixir-autogen, elixir-format
 msgid "Class deleted successfully"
 msgstr ""
 
-#: lib/lanttern/schools/class.ex:66
+#: lib/lanttern/schools/class.ex:67
 #, elixir-autogen, elixir-format
 msgid "Class name already in use in this cycle"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes_component.ex:124
+#: lib/lanttern_web/live/pages/school/classes_component.ex:137
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Class updated successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes_component.ex:201
+#: lib/lanttern_web/live/pages/school/classes_component.ex:215
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Create class"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/classes_component.ex:47
-#: lib/lanttern_web/live/pages/school/classes_component.ex:213
+#: lib/lanttern_web/live/pages/school/classes_component.ex:227
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Edit class"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/students/id/student_live.html.heex:37
 #: lib/lanttern_web/live/pages/school/students/id/student_live.html.heex:77
-#: lib/lanttern_web/live/pages/school/students_component.ex:77
-#: lib/lanttern_web/live/pages/school/students_component.ex:109
-#: lib/lanttern_web/live/pages/school/students_component.ex:318
+#: lib/lanttern_web/live/pages/school/students_component.ex:69
+#: lib/lanttern_web/live/pages/school/students_component.ex:203
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Edit student"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/students_component.ex:123
+#: lib/lanttern_web/live/pages/school/students_component.ex:81
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Filter students by class"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/students_component.ex:310
+#: lib/lanttern_web/live/pages/school/students_component.ex:195
 #, elixir-autogen, elixir-format, fuzzy
 msgid "New student"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes_component.ex:80
+#: lib/lanttern_web/live/pages/school/classes_component.ex:93
 #, elixir-autogen, elixir-format
 msgid "No classes matching current filters"
 msgstr ""
@@ -3003,24 +2987,18 @@ msgstr ""
 msgid "No students added to this class"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/students_component.ex:54
-#, elixir-autogen, elixir-format, fuzzy
-msgid "No students found for selected filters."
-msgstr ""
-
-#: lib/lanttern_web/live/pages/school/students_component.ex:153
+#: lib/lanttern_web/live/pages/school/students_component.ex:111
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Student created successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/students/id/student_live.ex:87
-#: lib/lanttern_web/live/pages/school/students_component.ex:205
+#: lib/lanttern_web/live/pages/school/students/id/student_live.ex:96
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Student deleted successfully"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/students/id/student_live.ex:78
-#: lib/lanttern_web/live/pages/school/students_component.ex:186
+#: lib/lanttern_web/live/pages/school/students_component.ex:122
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Student updated successfully"
 msgstr ""
@@ -3028,11 +3006,6 @@ msgstr ""
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:73
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Students in this class"
-msgstr ""
-
-#: lib/lanttern_web/live/pages/school/students_component.ex:35
-#, elixir-autogen, elixir-format, fuzzy
-msgid "all classes"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:21
@@ -3076,12 +3049,12 @@ msgstr ""
 msgid "All curriculum components"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:353
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:355
 #, elixir-autogen, elixir-format, fuzzy
 msgid "All students from %{year} (%{cycle}) classes are already linked to this report card"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:360
+#: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:362
 #, elixir-autogen, elixir-format, fuzzy
 msgid "All students from %{year} classes are already linked to this report card"
 msgstr ""
@@ -3159,7 +3132,7 @@ msgstr ""
 msgid "Cycle updated successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/school_live.html.heex:17
+#: lib/lanttern_web/live/pages/school/school_live.html.heex:15
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Cycles"
 msgstr ""
@@ -3508,7 +3481,7 @@ msgstr ""
 msgid "You can't use a subcycle as a parent cycle"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/school_live.html.heex:7
+#: lib/lanttern_web/live/pages/school/school_live.html.heex:6
 #, elixir-autogen, elixir-format, fuzzy
 msgid "classes"
 msgstr ""
@@ -3555,12 +3528,12 @@ msgstr ""
 msgid "%{cycle} report cards"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:36
+#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:37
 #, elixir-autogen, elixir-format
 msgid "Access to information in this area is restricted to school staff"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:46
+#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:47
 #, elixir-autogen, elixir-format
 msgid "Add school area student info..."
 msgstr ""
@@ -3588,38 +3561,38 @@ msgid "Check the student and school relationship"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/staff_component.ex:64
-#: lib/lanttern_web/live/shared/students_cycle_info/student_cycle_info_header_component.ex:37
+#: lib/lanttern_web/live/shared/students_cycle_info/student_cycle_info_header_component.ex:38
 #, elixir-autogen, elixir-format
 msgid "Edit cycle profile picture"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:63
-#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:112
+#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:64
+#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:113
 #, elixir-autogen, elixir-format
 msgid "Edit information"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/students_cycle_info/student_cycle_info_header_component.ex:145
+#: lib/lanttern_web/live/shared/students_cycle_info/student_cycle_info_header_component.ex:155
 #, elixir-autogen, elixir-format, fuzzy
 msgid "No classes"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/students_cycle_info/student_cycle_info_header_component.ex:72
+#: lib/lanttern_web/live/shared/students_cycle_info/student_cycle_info_header_component.ex:81
 #, elixir-autogen, elixir-format
 msgid "No classes linked to student in cycle"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:52
+#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:53
 #, elixir-autogen, elixir-format
 msgid "No information about student in school area"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:33
+#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:34
 #, elixir-autogen, elixir-format, fuzzy
 msgid "School area"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:73
+#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:74
 #, elixir-autogen, elixir-format
 msgid "School area attachments"
 msgstr ""
@@ -3721,7 +3694,7 @@ msgstr ""
 msgid "Template: %{template}"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/school_live.html.heex:23
+#: lib/lanttern_web/live/pages/school/school_live.html.heex:21
 #, elixir-autogen, elixir-format
 msgid "Templates"
 msgstr ""
@@ -3748,27 +3721,27 @@ msgid_plural "%{count} attachments"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:95
+#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:96
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Add student area info..."
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:85
+#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:86
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Information shared with student and guardians"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:101
+#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:102
 #, elixir-autogen, elixir-format, fuzzy
 msgid "No information in student area"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:81
+#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:82
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Student area"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:122
+#: lib/lanttern_web/live/pages/school/students/id/about_component.ex:123
 #, elixir-autogen, elixir-format
 msgid "Student area attachments"
 msgstr ""
@@ -3861,6 +3834,7 @@ msgid "Edit staff member"
 msgstr ""
 
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:73
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:67
 #, elixir-autogen, elixir-format
 msgid "Enables the user to login at Lanttern via Google Sign In"
 msgstr ""
@@ -3882,6 +3856,7 @@ msgid "Invalid staff member"
 msgstr ""
 
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:68
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:62
 #, elixir-autogen, elixir-format
 msgid "Lanttern user email"
 msgstr ""
@@ -3897,6 +3872,8 @@ msgid "No staff members found"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/staff/deactivated/deactivated_staff_live.html.heex:40
+#: lib/lanttern_web/live/pages/school/students/deactivated/deactivated_students_live.html.heex:44
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:102
 #, elixir-autogen, elixir-format
 msgid "Reactivate"
 msgstr ""
@@ -3911,7 +3888,7 @@ msgstr ""
 msgid "School management"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/school_live.html.heex:14
+#: lib/lanttern_web/live/pages/school/school_live.html.heex:12
 #, elixir-autogen, elixir-format
 msgid "Staff"
 msgstr ""
@@ -3940,6 +3917,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:86
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:81
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Deactivate"
 msgstr ""
@@ -4316,7 +4294,101 @@ msgstr ""
 msgid "some minutes"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:713
+#: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:714
 #, elixir-autogen, elixir-format
 msgid "Are you sure you want to reopen this student record?"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/students/deactivated/deactivated_students_live.ex:11
+#, elixir-autogen, elixir-format, fuzzy
+msgid "%{school}'s deactivated students"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/students/deactivated/deactivated_students_live.ex:90
+#, elixir-autogen, elixir-format, fuzzy
+msgid "%{student} deleted"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/students/deactivated/deactivated_students_live.ex:64
+#, elixir-autogen, elixir-format
+msgid "%{student} reactivated"
+msgstr ""
+
+#: lib/lanttern_web/components/core_components.ex:1721
+#: lib/lanttern_web/components/core_components.ex:1729
+#, elixir-autogen, elixir-format, fuzzy
+msgid "(Deactivated)"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/classes_component.ex:55
+#: lib/lanttern_web/live/pages/school/students_component.ex:25
+#, elixir-autogen, elixir-format
+msgid "1 active student"
+msgid_plural "%{count} active students"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/lanttern_web/live/pages/school/students/deactivated/deactivated_students_live.html.heex:7
+#, elixir-autogen, elixir-format, fuzzy
+msgid "1 deactivated student"
+msgid_plural "%{count} deactivated students"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/lanttern_web/live/pages/school/students_component.ex:23
+#, elixir-autogen, elixir-format, fuzzy
+msgid "All classes"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:79
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Are you sure? You can reactive the student later."
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/classes_component.ex:79
+#: lib/lanttern_web/live/shared/students_cycle_info/student_cycle_info_header_component.ex:55
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Deactivated"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/students/deactivated/deactivated_students_live.html.heex:5
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Deactivated students"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/students/deactivated/deactivated_students_live.ex:98
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Failed to delete student"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/students/deactivated/deactivated_students_live.ex:72
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Failed to reactivate student"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/students/deactivated/deactivated_students_live.ex:75
+#: lib/lanttern_web/live/pages/school/students/deactivated/deactivated_students_live.ex:101
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Invalid student"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/students/deactivated/deactivated_students_live.html.heex:16
+#, elixir-autogen, elixir-format, fuzzy
+msgid "No deactivated students found"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/students/id/student_live.ex:87
+#: lib/lanttern_web/live/pages/school/students_component.ex:123
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Student deactivated successfully"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/students/id/student_live.ex:105
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Student reactivated successfully"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/students_component.ex:27
+#, elixir-autogen, elixir-format, fuzzy
+msgid "View deactivated students"
 msgstr ""
