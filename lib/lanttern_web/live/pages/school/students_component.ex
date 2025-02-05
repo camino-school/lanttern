@@ -51,7 +51,7 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
             <.link navigate={~p"/school/students/#{student}"} class="font-bold hover:text-ltrn-subtle">
               <%= student.name %>
             </.link>
-            <div class="flex flex-wrap gap-1 mt-2">
+            <div :if={student.classes != []} class="flex flex-wrap gap-1 mt-2">
               <.badge :for={class <- student.classes}><%= class.name %></.badge>
             </div>
             <div
@@ -196,7 +196,7 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
   end
 
   defp assign_student(%{assigns: %{params: %{"edit" => student_id}}} = socket) do
-    student = Schools.get_student(student_id, preloads: :classes)
+    student = Schools.get_student(student_id, preloads: :classes, load_email: true)
 
     socket
     |> assign(:student, student)

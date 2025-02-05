@@ -962,10 +962,16 @@ defmodule Lanttern.Schools do
   """
   def update_student(%Student{} = student, attrs) do
     has_email_in_attrs = Map.keys(attrs) |> Enum.any?(&(&1 in ["email", :email]))
-    email = Map.get(attrs, "email") || Map.get(attrs, :email)
+
+    email =
+      case Map.get(attrs, "email") || Map.get(attrs, :email) do
+        nil -> nil
+        "" -> nil
+        email -> email
+      end
 
     if has_email_in_attrs and student.email != email do
-      update_with_profile(student, attrs)
+      update_with_profile(student, attrs, email)
     else
       student
       |> Student.changeset(attrs)
@@ -1226,56 +1232,37 @@ defmodule Lanttern.Schools do
   end
 
   defp create_with_profile(schema, attrs, email) do
-    Repo.transaction(fn ->
-      # create student or staff member first
-      school_person =
-        case schema do
-          %StaffMember{} -> StaffMember.changeset(%StaffMember{}, attrs)
-          %Student{} -> Student.changeset(%Student{}, attrs)
-        end
-        |> Repo.insert()
-        |> case do
-          {:ok, school_person} -> school_person
-          {:error, changeset} -> Repo.rollback(changeset)
-        end
-
-      # then get or create user
-      user =
-        case get_or_create_user_with_email(email) do
-          {:ok, user} -> user
-          {:error, changeset} -> Repo.rollback(changeset)
-        end
-
-      # then create profile
-      # if successful, return student or staff member
-      profile_attrs =
-        case schema do
-          %StaffMember{} ->
-            %{
-              type: "staff",
-              user_id: user.id,
-              staff_member_id: school_person.id
-            }
-
-          %Student{} ->
-            %{
-              type: "student",
-              user_id: user.id,
-              student_id: school_person.id
-            }
-        end
-
-      Identity.create_profile(profile_attrs)
-      |> case do
-        {:ok, _profile} -> %{school_person | email: email}
-        {:error, changeset} -> Repo.rollback(changeset)
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(
+      :school_person,
+      school_person_changeset(schema, attrs)
+    )
+    |> Ecto.Multi.run(
+      :user,
+      fn _repo, _changes ->
+        get_or_create_user_with_email(email)
       end
-    end)
+    )
+    |> Ecto.Multi.run(
+      :profile,
+      fn _repo, changes -> create_profile(changes) end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{school_person: school_person}} -> {:ok, %{school_person | email: email}}
+      {:error, _name, value, _changes_so_far} -> {:error, value}
+    end
   end
 
-  defp get_or_create_user_with_email(nil), do: nil
+  defp school_person_changeset(%StaffMember{} = staff_member, attrs),
+    do: StaffMember.changeset(staff_member, attrs)
 
-  defp get_or_create_user_with_email(""), do: nil
+  defp school_person_changeset(%Student{} = student, attrs),
+    do: Student.changeset(student, attrs)
+
+  defp get_or_create_user_with_email(nil), do: {:ok, nil}
+
+  defp get_or_create_user_with_email(""), do: {:ok, nil}
 
   defp get_or_create_user_with_email(email) do
     case Repo.get_by(User, email: email) do
@@ -1289,6 +1276,27 @@ defmodule Lanttern.Schools do
       user ->
         {:ok, user}
     end
+  end
+
+  defp create_profile(%{school_person: school_person, user: user}) do
+    profile_attrs =
+      case school_person do
+        %StaffMember{} ->
+          %{
+            type: "staff",
+            user_id: user.id,
+            staff_member_id: school_person.id
+          }
+
+        %Student{} ->
+          %{
+            type: "student",
+            user_id: user.id,
+            student_id: school_person.id
+          }
+      end
+
+    Identity.create_profile(profile_attrs)
   end
 
   @doc """
@@ -1309,10 +1317,16 @@ defmodule Lanttern.Schools do
   """
   def update_staff_member(%StaffMember{} = staff_member, attrs) do
     has_email_in_attrs = Map.keys(attrs) |> Enum.any?(&(&1 in ["email", :email]))
-    email = Map.get(attrs, "email") || Map.get(attrs, :email)
+
+    email =
+      case Map.get(attrs, "email") || Map.get(attrs, :email) do
+        nil -> nil
+        "" -> nil
+        email -> email
+      end
 
     if has_email_in_attrs and staff_member.email != email do
-      update_with_profile(staff_member, attrs)
+      update_with_profile(staff_member, attrs, email)
     else
       staff_member
       |> StaffMember.changeset(attrs)
@@ -1321,41 +1335,33 @@ defmodule Lanttern.Schools do
     end
   end
 
-  defp update_with_profile(school_person, %{"email" => email} = attrs) do
-    Repo.transaction(fn ->
-      # update student or staff member first
-      school_person =
-        case school_person do
-          %StaffMember{} -> StaffMember.changeset(school_person, attrs)
-          %Student{} -> Student.changeset(school_person, attrs)
-        end
-        |> Repo.update()
-        |> case do
-          {:ok, school_person} -> school_person
-          {:error, changeset} -> Repo.rollback(changeset)
-        end
-
-      # then get or create user (returns nil if email is nil)
-      user =
-        case get_or_create_user_with_email(email) do
-          nil -> nil
-          {:ok, user} -> user
-          {:error, changeset} -> Repo.rollback(changeset)
-        end
-
-      # then create, update, or delete profile
-      # if successful, return student or staff member
-      create_update_or_delete_profile(school_person, user)
-      |> case do
-        {:deleted, {:ok, _}} -> %{school_person | email: nil}
-        {_created_or_updated, {:ok, _}} -> %{school_person | email: email}
-        {:error, changeset} -> Repo.rollback(changeset)
+  defp update_with_profile(school_person, attrs, email) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.update(
+      :school_person,
+      school_person_changeset(school_person, attrs)
+    )
+    |> Ecto.Multi.run(
+      :user,
+      fn _repo, _changes ->
+        get_or_create_user_with_email(email)
       end
-    end)
+    )
+    |> Ecto.Multi.run(
+      :profile,
+      fn _repo, changes ->
+        create_update_or_delete_profile(changes)
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{school_person: school_person}} -> {:ok, %{school_person | email: email}}
+      {:error, _name, value, _changes_so_far} -> {:error, value}
+    end
     |> update_staff_member_cleanup(school_person)
   end
 
-  defp create_update_or_delete_profile(school_person, nil) do
+  defp create_update_or_delete_profile(%{school_person: school_person, user: nil}) do
     get_by_opt =
       case school_person do
         %StaffMember{} -> [staff_member_id: school_person.id]
@@ -1365,13 +1371,12 @@ defmodule Lanttern.Schools do
     # todo: handle failed deletion of profile
     Repo.get_by(Profile, get_by_opt)
     |> Repo.delete()
-    |> case do
-      {:ok, profile} -> {:deleted, {:ok, profile}}
-      error -> error
-    end
   end
 
-  defp create_update_or_delete_profile(%{email: nil} = school_person, %User{} = user) do
+  defp create_update_or_delete_profile(%{
+         school_person: %{email: nil} = school_person,
+         user: %User{} = user
+       }) do
     profile_attrs =
       case school_person do
         %StaffMember{} ->
@@ -1390,13 +1395,9 @@ defmodule Lanttern.Schools do
       end
 
     Identity.create_profile(profile_attrs)
-    |> case do
-      {:ok, profile} -> {:created, {:ok, profile}}
-      error -> error
-    end
   end
 
-  defp create_update_or_delete_profile(school_person, %User{} = user) do
+  defp create_update_or_delete_profile(%{school_person: school_person, user: %User{} = user}) do
     get_by_opt =
       case school_person do
         %StaffMember{} -> [staff_member_id: school_person.id]
@@ -1405,10 +1406,6 @@ defmodule Lanttern.Schools do
 
     Repo.get_by(Profile, get_by_opt)
     |> Identity.update_profile(%{user_id: user.id})
-    |> case do
-      {:ok, profile} -> {:updated, {:ok, profile}}
-      error -> error
-    end
   end
 
   defp update_staff_member_cleanup(
