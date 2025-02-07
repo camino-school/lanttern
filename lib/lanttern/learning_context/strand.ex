@@ -23,6 +23,7 @@ defmodule Lanttern.LearningContext.Strand do
           name: String.t(),
           type: String.t(),
           description: String.t(),
+          teacher_instructions: String.t() | nil,
           cover_image_url: String.t(),
           subject_id: pos_integer(),
           subjects_ids: [pos_integer()],
@@ -47,6 +48,7 @@ defmodule Lanttern.LearningContext.Strand do
     field :name, :string
     field :type, :string
     field :description, :string
+    field :teacher_instructions, :string
     field :cover_image_url, :string
     field :subject_id, :id, virtual: true
     field :subjects_ids, {:array, :id}, virtual: true
@@ -77,7 +79,15 @@ defmodule Lanttern.LearningContext.Strand do
   @doc false
   def changeset(strand, attrs) do
     strand
-    |> cast(attrs, [:name, :type, :description, :cover_image_url, :subjects_ids, :years_ids])
+    |> cast(attrs, [
+      :name,
+      :type,
+      :description,
+      :teacher_instructions,
+      :cover_image_url,
+      :subjects_ids,
+      :years_ids
+    ])
     |> validate_required([:name, :description])
     |> put_subjects()
     |> put_years()

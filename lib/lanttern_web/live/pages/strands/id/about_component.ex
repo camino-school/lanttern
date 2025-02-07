@@ -36,6 +36,12 @@ defmodule LantternWeb.StrandLive.AboutComponent do
           </.badge>
         </div>
         <.markdown text={@strand.description} class="mt-10" />
+        <div :if={@strand.teacher_instructions} class="p-4 rounded-sm mt-10 bg-ltrn-staff-lightest">
+          <p class="mb-4 font-bold text-ltrn-staff-dark">
+            <%= gettext("Teacher instructions") %>
+          </p>
+          <.markdown text={@strand.teacher_instructions} />
+        </div>
         <div class="flex items-end justify-between gap-6">
           <h3 class="mt-16 font-display font-black text-3xl"><%= gettext("Goals") %></h3>
           <.action
