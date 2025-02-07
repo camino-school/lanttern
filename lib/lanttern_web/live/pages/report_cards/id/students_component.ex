@@ -59,22 +59,35 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
             </div>
           <% end %>
         </div>
-        <p class="font-display font-bold text-2xl">
-          <%= case @report_card.school_cycle.parent_cycle do
-            %{name: parent_cycle_name} ->
-              gettext("Link students from %{year} (%{cycle}) to this report card",
-                year: @report_card.year.name,
-                cycle: parent_cycle_name
-              )
+        <div class="flex items-center justify-between gap-4">
+          <p class="flex-1 font-display font-bold text-2xl">
+            <%= case @report_card.school_cycle.parent_cycle do
+              %{name: parent_cycle_name} ->
+                gettext("Link students from %{year} (%{cycle}) to this report card",
+                  year: @report_card.year.name,
+                  cycle: parent_cycle_name
+                )
 
-            _ ->
-              gettext("Link students from %{year} to this report card",
-                year: @report_card.year.name
-              )
-          end %>
-        </p>
+              _ ->
+                gettext("Link students from %{year} to this report card",
+                  year: @report_card.year.name
+                )
+            end %>
+          </p>
+          <.action
+            :if={@other_students_length > 1}
+            type="button"
+            size="md"
+            icon_name="hero-link"
+            data-confirm={gettext("Create %{count} report cards?", count: @other_students_length)}
+            phx-click="create_all_students_report_cards"
+            phx-target={@myself}
+          >
+            <%= gettext("Link all") %>
+          </.action>
+        </div>
         <.other_students_list
-          has_other_students={@has_other_students}
+          has_other_students={@other_students_length > 0}
           students_stream={@streams.other_students}
           report_card={@report_card}
           myself={@myself}
@@ -404,12 +417,13 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         />
       </div>
       <div class="shrink-0 flex items-center gap-2">
-        <.link
-          class={get_button_styles("ghost")}
+        <.action
+          type="link"
+          icon_name="hero-link-mini"
           patch={~p"/report_cards/#{@report_card_id}/students?create_student_report=#{@student.id}"}
         >
           <%= gettext("Link") %>
-        </.link>
+        </.action>
       </div>
     </div>
     """
@@ -495,11 +509,10 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     other_students =
       Reporting.list_students_not_linked_to_report_card(socket.assigns.report_card)
 
-    has_other_students = length(other_students) > 0
-
     socket
     |> stream(:other_students, other_students, reset: true)
-    |> assign(:has_other_students, has_other_students)
+    |> assign(:other_students_length, length(other_students))
+    |> assign(:other_students_ids, Enum.map(other_students, & &1.id))
   end
 
   defp assign_student_report_card(
@@ -615,6 +628,20 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   def handle_event("batch_create_student_report_card", _params, socket) do
     report_card_id = socket.assigns.report_card.id
     students_ids = socket.assigns.selected_students_ids
+
+    {:ok, results} = batch_create_student_report_card(report_card_id, students_ids)
+
+    socket =
+      socket
+      |> put_flash(:info, build_batch_create_student_report_card_message(results))
+      |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}/students")
+
+    {:noreply, socket}
+  end
+
+  def handle_event("create_all_students_report_cards", _params, socket) do
+    report_card_id = socket.assigns.report_card.id
+    students_ids = socket.assigns.other_students_ids
 
     {:ok, results} = batch_create_student_report_card(report_card_id, students_ids)
 
