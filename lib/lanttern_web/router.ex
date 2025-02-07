@@ -10,12 +10,7 @@ defmodule LantternWeb.Router do
     plug :fetch_live_flash
     plug :put_root_layout, html: {LantternWeb.Layouts, :root}
     plug :protect_from_forgery
-
-    plug :put_secure_browser_headers, %{
-      "content-security-policy" =>
-        "default-src 'self' *.google.com *.googleapis.com plausible.io; style-src 'self' *.googleapis.com *.google.com 'unsafe-inline'; img-src * data: blob: 'self'; font-src *"
-    }
-
+    plug LantternWeb.PutSecureBrowserHeadersPlug
     plug :fetch_current_user
     plug :put_locale
   end

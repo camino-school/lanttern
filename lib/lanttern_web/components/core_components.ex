@@ -42,7 +42,7 @@ defmodule LantternWeb.CoreComponents do
 
   def action(%{type: "link"} = assigns) do
     ~H"""
-    <.link patch={@patch} navigate={@navigate} class={[action_styles(@theme, @size), @class]}>
+    <.link patch={@patch} navigate={@navigate} class={[action_styles(@theme, @size), @class]} {@rest}>
       <div class={action_bg_styles(@theme, @size)}></div>
       <span class="relative truncate"><%= render_slot(@inner_block) %></span>
       <.icon :if={@icon_name} name={@icon_name} class={action_icon_styles(@size)} />
