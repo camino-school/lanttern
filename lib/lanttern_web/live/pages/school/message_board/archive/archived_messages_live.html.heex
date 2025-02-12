@@ -1,0 +1,61 @@
+<.header_nav current_user={@current_user}>
+  <:breadcrumb navigate={~p"/school/message_board"}>
+    <%= @current_user.current_profile.school_name %>
+  </:breadcrumb>
+  <:title><%= gettext("Archived messages") %></:title>
+</.header_nav>
+<.responsive_container class="p-4">
+  <%= if @messages_count == 0 do %>
+    <div class="p-4">
+      <.card_base class="p-10">
+        <.empty_state><%= gettext("No archived messages found") %></.empty_state>
+      </.card_base>
+    </div>
+  <% else %>
+    <p>
+      <%= ngettext(
+        "Showing 1 archived message",
+        "Showing %{count} archived messages",
+        @messages_count
+      ) %>
+    </p>
+    <div id="archived-messages-board" phx-update="stream">
+      <.card_base :for={{dom_id, message} <- @streams.messages} id={dom_id} class="p-6 mt-4">
+        <div class="flex items-start justify-between gap-4">
+          <h3 class="flex-1 font-display font-black text-xl text-ltrn-subtle">
+            <%= raw(Earmark.as_html!(message.name, inner_html: true)) %>
+          </h3>
+          <div :if={@is_communication_manager} class="flex gap-4">
+            <.action
+              type="button"
+              phx-click={JS.push("unarchive", value: %{"id" => message.id})}
+              icon_name="hero-arrow-up-tray-mini"
+              data-confirm={gettext("Are you sure?")}
+            >
+              <%= gettext("Unarchive") %>
+            </.action>
+            <.action
+              type="button"
+              phx-click={JS.push("delete", value: %{"id" => message.id})}
+              icon_name="hero-x-mark-mini"
+              theme="alert"
+              data-confirm={gettext("Are you sure? This action cannot be undone.")}
+            >
+              <%= gettext("Delete") %>
+            </.action>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 mt-2 text-xs">
+          <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
+          <%= format_local!(message.inserted_at, "{Mshort} {0D}, {YYYY} {h24}:{m}") %>
+          <%= if message.inserted_at != message.updated_at do %>
+            <span class="text-ltrn-subtle">
+              <%= "(#{gettext("Updated")} #{format_local!(message.updated_at, "{Mshort} {0D}, {YYYY} {h24}:{m}")})" %>
+            </span>
+          <% end %>
+        </div>
+        <.markdown text={message.description} class="mt-10" />
+      </.card_base>
+    </div>
+  <% end %>
+</.responsive_container>

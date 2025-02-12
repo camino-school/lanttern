@@ -8,11 +8,31 @@ defmodule Lanttern.MessageBoardTest do
 
     import Lanttern.MessageBoardFixtures
 
+    alias Lanttern.SchoolsFixtures
+
     @invalid_attrs %{name: nil, description: nil, send_to: nil, archived_at: nil}
 
-    test "list_board_messages/0 returns all board_messages" do
+    test "list_messages/1 returns all board_messages (except archived)" do
       message = message_fixture()
-      assert MessageBoard.list_board_messages() == [message]
+      _archived = message_fixture(%{archived_at: DateTime.utc_now()})
+      assert MessageBoard.list_messages() == [message]
+    end
+
+    test "list_messages/1 with archived opt returns all archived board messages" do
+      _message = message_fixture()
+      archived = message_fixture(%{archived_at: DateTime.utc_now()})
+
+      assert MessageBoard.list_messages(archived: true) == [archived]
+    end
+
+    test "list_messages/1 with school opt returns all board_messages filtered by given school" do
+      school = SchoolsFixtures.school_fixture()
+      message = message_fixture(%{school_id: school.id})
+
+      # other fixtures for filtering assertion
+      message_fixture()
+
+      assert MessageBoard.list_messages(school_id: school.id) == [message]
     end
 
     test "get_message!/1 returns the message with given id" do
@@ -64,6 +84,20 @@ defmodule Lanttern.MessageBoardTest do
       message = message_fixture()
       assert {:error, %Ecto.Changeset{}} = MessageBoard.update_message(message, @invalid_attrs)
       assert message == MessageBoard.get_message!(message.id)
+    end
+
+    test "archive_message/1 sets archived_at for given message" do
+      message = message_fixture()
+
+      assert {:ok, %Message{archived_at: %DateTime{}}} =
+               MessageBoard.archive_message(message)
+    end
+
+    test "unarchive_message/1 sets archived_at to nil for given message" do
+      message = message_fixture(%{archived_at: DateTime.utc_now()})
+
+      assert {:ok, %Message{archived_at: nil}} =
+               MessageBoard.unarchive_message(message)
     end
 
     test "delete_message/1 deletes the message" do

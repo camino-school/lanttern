@@ -55,7 +55,7 @@ defmodule LantternWeb.StudentsRecordsLiveTest do
 
   describe "Students records live view access" do
     test "user (even with full access) can't access records from other schools", context do
-      %{conn: conn} = add_students_records_full_access_permissions(context)
+      %{conn: conn} = set_user_permissions(["students_records_full_access"], context)
 
       student = SchoolsFixtures.student_fixture(%{name: "std abc"})
 
@@ -132,7 +132,7 @@ defmodule LantternWeb.StudentsRecordsLiveTest do
     end
 
     test "user with full access can access any record from the school", context do
-      %{conn: conn, user: user} = add_students_records_full_access_permissions(context)
+      %{conn: conn, user: user} = set_user_permissions(["students_records_full_access"], context)
 
       %{school_id: school_id} = user.current_profile
       student = SchoolsFixtures.student_fixture(%{school_id: school_id, name: "std abc"})
@@ -155,7 +155,7 @@ defmodule LantternWeb.StudentsRecordsLiveTest do
 
   describe "Student record details" do
     test "user (even with full access) can't access records from other schools", context do
-      %{conn: conn} = add_students_records_full_access_permissions(context)
+      %{conn: conn} = set_user_permissions(["students_records_full_access"], context)
 
       student = SchoolsFixtures.student_fixture(%{name: "std abc"})
 
@@ -278,7 +278,7 @@ defmodule LantternWeb.StudentsRecordsLiveTest do
     end
 
     test "user with full access can access any record from the school", context do
-      %{conn: conn, user: user} = add_students_records_full_access_permissions(context)
+      %{conn: conn, user: user} = set_user_permissions(["students_records_full_access"], context)
 
       %{school_id: school_id} = user.current_profile
       student = SchoolsFixtures.student_fixture(%{school_id: school_id, name: "std abc"})

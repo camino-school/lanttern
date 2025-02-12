@@ -48,7 +48,7 @@ defmodule LantternWeb.StudentLiveTest do
 
   describe "Student management permissions" do
     test "allow user with school management permissions to edit student", context do
-      %{conn: conn, user: user} = add_school_management_permissions(context)
+      %{conn: conn, user: user} = set_user_permissions(["school_management"], context)
       school_id = user.current_profile.school_id
       student = SchoolsFixtures.student_fixture(%{school_id: school_id, name: "student abc"})
 
@@ -177,7 +177,7 @@ defmodule LantternWeb.StudentLiveTest do
     end
 
     test "user with full access can access any record from the school", context do
-      %{conn: conn, user: user} = add_students_records_full_access_permissions(context)
+      %{conn: conn, user: user} = set_user_permissions(["students_records_full_access"], context)
 
       %{school_id: school_id} = user.current_profile
       student = SchoolsFixtures.student_fixture(%{school_id: school_id, name: "std abc"})

@@ -9,30 +9,76 @@ defmodule Lanttern.MessageBoard do
   alias Lanttern.MessageBoard.Message
 
   @doc """
-  Returns the list of board_messages.
+  Returns the list of messages.
+
+  ## Options
+
+  - `:archived` - boolean, if true, returns only archived messages
+  - `:school_id` - filters messages by school id
 
   ## Examples
 
-      iex> list_board_messages()
+      iex> list_messages()
       [%Message{}, ...]
 
   """
-  def list_board_messages do
-    Repo.all(Message)
+  def list_messages(opts \\ []) do
+    from(
+      m in Message,
+      order_by: [desc: m.inserted_at]
+    )
+    |> apply_list_messages_opts(opts)
+    |> filter_archived(Keyword.get(opts, :archived))
+    |> Repo.all()
+  end
+
+  defp apply_list_messages_opts(queryable, []), do: queryable
+
+  defp apply_list_messages_opts(queryable, [{:school_id, school_id} | opts]) do
+    from(
+      m in queryable,
+      where: m.school_id == ^school_id
+    )
+    |> apply_list_messages_opts(opts)
+  end
+
+  defp apply_list_messages_opts(queryable, [_ | opts]),
+    do: apply_list_messages_opts(queryable, opts)
+
+  defp filter_archived(queryable, true) do
+    from(
+      m in queryable,
+      where: not is_nil(m.archived_at)
+    )
+  end
+
+  defp filter_archived(queryable, _) do
+    from(
+      m in queryable,
+      where: is_nil(m.archived_at)
+    )
   end
 
   @doc """
   Gets a single message.
 
-  Raises `Ecto.NoResultsError` if the Message does not exist.
+  Returns `nil` if the Message does not exist.
 
   ## Examples
 
-      iex> get_message!(123)
+      iex> get_message(123)
       %Message{}
 
-      iex> get_message!(456)
-      ** (Ecto.NoResultsError)
+      iex> get_message(456)
+      nil
+
+  """
+  def get_message(id), do: Repo.get(Message, id)
+
+  @doc """
+  Gets a single message.
+
+  Same as get_message/1, but raises `Ecto.NoResultsError` if the Message does not exist.
 
   """
   def get_message!(id), do: Repo.get!(Message, id)
@@ -70,6 +116,50 @@ defmodule Lanttern.MessageBoard do
   def update_message(%Message{} = message, attrs) do
     message
     |> Message.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Archive a message.
+
+  Kind of a soft delete, using the `archived_at` field.
+
+  ## Examples
+
+      iex> archive_message(message)
+      {:ok, %Message{}}
+
+      iex> archive_message(message)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec archive_message(Message.t()) ::
+          {:ok, Message.t()} | {:error, Ecto.Changeset.t()}
+  def archive_message(%Message{} = message) do
+    message
+    |> Message.changeset(%{archived_at: DateTime.utc_now()})
+    |> Repo.update()
+  end
+
+  @doc """
+  Unarchive a message.
+
+  Sets `archived_at` field to nil.
+
+  ## Examples
+
+  iex> unarchive_message(message)
+  {:ok, %StaffMember{}}
+
+  iex> unarchive_message(message)
+  {:error, %Ecto.Changeset{}}
+
+  """
+  @spec unarchive_message(Message.t()) ::
+          {:ok, Message.t()} | {:error, Ecto.Changeset.t()}
+  def unarchive_message(%Message{} = message) do
+    message
+    |> Message.changeset(%{archived_at: nil})
     |> Repo.update()
   end
 

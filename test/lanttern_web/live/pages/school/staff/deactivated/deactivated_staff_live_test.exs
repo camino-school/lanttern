@@ -44,7 +44,7 @@ defmodule LantternWeb.DeactivatedStaffLiveTest do
   describe "Staff management" do
     test "allow user with school management permissions to reactivate and delete staff member",
          context do
-      %{conn: conn, user: user} = add_school_management_permissions(context)
+      %{conn: conn, user: user} = set_user_permissions(["school_management"], context)
 
       school_id = user.current_profile.school_id
 
