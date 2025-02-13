@@ -43,7 +43,9 @@
         id={dom_id}
         strand={strand_report.strand}
         cover_image_url={strand_report.cover_image_url}
-        navigate={~p"/student_report_card/#{@student_report_card}/strand_report/#{strand_report}"}
+        navigate={
+          ~p"/student_report_cards/#{@student_report_card}/strand_report/#{strand_report}"
+        }
         hide_description
         class="shrink-0 w-64 sm:w-auto"
       >
@@ -77,14 +79,14 @@
       on_student_grade_click={
         fn id ->
           JS.patch(
-            ~p"/student_report_card/#{@student_report_card}?student_grades_report_entry_id=#{id}"
+            ~p"/student_report_cards/#{@student_report_card}?student_grades_report_entry_id=#{id}"
           )
         end
       }
       on_student_final_grade_click={
         fn id ->
           JS.patch(
-            ~p"/student_report_card/#{@student_report_card}?student_grades_report_final_entry_id=#{id}"
+            ~p"/student_report_cards/#{@student_report_card}?student_grades_report_final_entry_id=#{id}"
           )
         end
       }
@@ -98,12 +100,12 @@
   module={GradeDetailsOverlayComponent}
   id="grade-details-overlay-component-overlay"
   student_grades_report_entry_id={@student_grades_report_entry_id}
-  on_cancel={JS.patch(~p"/student_report_card/#{@student_report_card}")}
+  on_cancel={JS.patch(~p"/student_report_cards/#{@student_report_card}")}
 />
 <.live_component
   :if={@student_grades_report_final_entry_id}
   module={FinalGradeDetailsOverlayComponent}
   id="final-grade-details-overlay-component-overlay"
   student_grades_report_final_entry_id={@student_grades_report_final_entry_id}
-  on_cancel={JS.patch(~p"/student_report_card/#{@student_report_card}")}
+  on_cancel={JS.patch(~p"/student_report_cards/#{@student_report_card}")}
 />

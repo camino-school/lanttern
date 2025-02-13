@@ -43,7 +43,7 @@ defmodule LantternWeb.StaffMemberLiveTest do
       user: user
     } do
       {:ok, view, _html} =
-        live(conn, "#{@live_view_base_path}/#{user.current_profile.staff_member.id}?edit=true")
+        live(conn, "#{@live_view_base_path}/#{user.current_profile.staff_member_id}?edit=true")
 
       assert view |> has_element?("#staff-member-form-overlay h2", "Edit staff member")
     end

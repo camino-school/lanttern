@@ -161,10 +161,8 @@ defmodule LantternWeb.Router do
         {LantternWeb.UserAuth, :ensure_authenticated_student_or_guardian},
         {LantternWeb.Path, :put_path_in_socket}
       ] do
-      live "/strand_report/:strand_report_id",
-           StudentStrandReportLive,
-           :show
-
+      live "/student_report_cards", StudentReportCardsLive, :index
+      live "/strand_report/:strand_report_id", StudentStrandReportLive, :show
       live "/student_strands", StudentStrandsLive
     end
 
@@ -174,9 +172,9 @@ defmodule LantternWeb.Router do
         {LantternWeb.UserAuth, :ensure_authenticated},
         {LantternWeb.Path, :put_path_in_socket}
       ] do
-      live "/student_report_card/:id", StudentReportCardLive, :show
+      live "/student_report_cards/:id", StudentReportCardLive, :show
 
-      live "/student_report_card/:student_report_card_id/strand_report/:strand_report_id",
+      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id",
            StudentReportCardStrandReportLive,
            :show
     end

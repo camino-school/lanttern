@@ -12,7 +12,12 @@ defmodule Lanttern.Identity do
   alias Lanttern.Identity.UserNotifier
   alias Lanttern.Identity.Profile
   alias Lanttern.Personalization
+  alias Lanttern.Schools
+  alias Lanttern.Schools.Cycle
   alias Lanttern.Schools.School
+  alias Lanttern.Schools.StaffMember
+  alias Lanttern.Schools.Student
+  alias Lanttern.StudentsCycleInfo
 
   ## Database getters
 
@@ -298,62 +303,128 @@ defmodule Lanttern.Identity do
 
     query
     |> Repo.one()
-    |> Repo.preload(
-      current_profile: [
-        staff_member: [:school],
-        student: [:school],
-        guardian_of_student: [:school]
-      ]
-    )
+    |> Repo.preload(:current_profile)
     |> case do
+      %User{} = user ->
+        profile_settings =
+          case user do
+            %User{current_profile: %Profile{id: profile_id}} ->
+              Personalization.get_profile_settings(profile_id, preloads: :current_school_cycle) ||
+                %{}
+
+            _ ->
+              %{}
+          end
+
+        user
+        |> Map.update!(:current_profile, &put_permissions(&1, profile_settings))
+        |> Map.update!(:current_profile, &build_flat_profile/1)
+        |> Map.update!(:current_profile, &ensure_current_school_cycle(&1, profile_settings))
+        |> Map.update!(:current_profile, &put_student_cycle_info_picture(&1))
+
       nil ->
         nil
-
-      user ->
-        user
-        |> Map.update!(:current_profile, &build_flat_profile/1)
-        |> Map.update!(:current_profile, &add_profile_settings/1)
     end
   end
 
-  defp build_flat_profile(%{type: "staff", staff_member: staff_member} = profile) do
+  defp put_permissions(%Profile{} = profile, profile_settings) do
+    permissions = Map.get(profile_settings, :permissions, [])
+    Map.put(profile, :permissions, permissions)
+  end
+
+  # root admin may not have a current profile
+  defp put_permissions(profile, _), do: profile
+
+  defp build_flat_profile(%{type: "staff", staff_member_id: staff_member_id} = profile) do
+    {staff_member, school} =
+      from(
+        sm in StaffMember,
+        join: sc in assoc(sm, :school),
+        select: {sm, sc}
+      )
+      |> Repo.get!(staff_member_id)
+
     profile
     |> Map.put(:name, staff_member.name)
     |> Map.put(:role, staff_member.role)
+    |> Map.put(:deactivated_at, staff_member.deactivated_at)
     |> Map.put(:profile_picture_url, staff_member.profile_picture_url)
-    |> Map.put(:school_id, staff_member.school.id)
-    |> Map.put(:school_name, staff_member.school.name)
+    |> Map.put(:school_id, school.id)
+    |> Map.put(:school_name, school.name)
   end
 
-  defp build_flat_profile(%{type: "student", student: student} = profile) do
+  defp build_flat_profile(%{type: type} = profile) when type in ["student", "guardian"] do
+    student_id =
+      case type do
+        "student" -> profile.student_id
+        "guardian" -> profile.guardian_of_student_id
+      end
+
+    {student, school} =
+      from(
+        st in Student,
+        join: sc in assoc(st, :school),
+        select: {st, sc}
+      )
+      |> Repo.get!(student_id)
+
     profile
     |> Map.put(:name, student.name)
-    |> Map.put(:school_id, student.school.id)
-    |> Map.put(:school_name, student.school.name)
+    |> Map.put(:school_id, school.id)
+    |> Map.put(:school_name, school.name)
   end
 
-  defp build_flat_profile(%{type: "guardian", guardian_of_student: student} = profile) do
-    profile
-    |> Map.put(:name, student.name)
-    |> Map.put(:school_id, student.school.id)
-    |> Map.put(:school_name, student.school.name)
-  end
-
+  # root admin may not have a current profile
   defp build_flat_profile(profile), do: profile
 
-  defp add_profile_settings(%{id: profile_id} = profile) do
-    profile_settings =
-      Personalization.get_profile_settings(profile_id, preloads: :current_school_cycle) || %{}
+  defp ensure_current_school_cycle(
+         profile,
+         %{current_school_cycle: %Cycle{} = cycle}
+       ),
+       do: Map.put(profile, :current_school_cycle, cycle)
 
-    permissions = Map.get(profile_settings, :permissions, [])
-    current_school_cycle = Map.get(profile_settings, :current_school_cycle)
+  defp ensure_current_school_cycle(%{id: profile_id, school_id: school_id} = profile, _)
+       when not is_nil(school_id) do
+    # when there's no current school cycle in profile at this point
+    # try to set the newest school cycle as current
+    case Schools.get_newest_parent_cycle_from_school(school_id) do
+      nil ->
+        profile
 
-    profile
-    |> Map.put(:permissions, permissions)
-    |> Map.put(:current_school_cycle, current_school_cycle)
+      school_cycle ->
+        Personalization.set_profile_settings(profile_id, %{
+          current_school_cycle_id: school_cycle.id
+        })
+
+        Map.put(profile, :current_school_cycle, school_cycle)
+    end
   end
 
-  defp add_profile_settings(profile), do: profile
+  # root admin may not have a current profile
+  defp ensure_current_school_cycle(profile, _), do: profile
+
+  defp put_student_cycle_info_picture(%{type: type, current_school_cycle: %Cycle{}} = profile)
+       when type in ["student", "guardian"] do
+    student_id =
+      case type do
+        "student" -> profile.student_id
+        "guardian" -> profile.guardian_of_student_id
+      end
+
+    profile_picture_url =
+      StudentsCycleInfo.get_student_cycle_info_by_student_and_cycle(
+        student_id,
+        profile.current_school_cycle.id
+      )
+      |> case do
+        %{profile_picture_url: profile_picture_url} -> profile_picture_url
+        _ -> nil
+      end
+
+    Map.put(profile, :profile_picture_url, profile_picture_url)
+  end
+
+  defp put_student_cycle_info_picture(profile), do: profile
 
   @doc """
   Deletes the signed token with the given context.

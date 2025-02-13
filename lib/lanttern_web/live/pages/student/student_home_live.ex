@@ -6,14 +6,12 @@ defmodule LantternWeb.StudentHomeLive do
   use LantternWeb, :live_view
 
   alias Lanttern.Personalization
-  alias Lanttern.Reporting
   alias Lanttern.Schools
   alias Lanttern.StudentsCycleInfo
 
   # shared components
   alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.StudentsCycleInfo.StudentCycleInfoHeaderComponent
-  import LantternWeb.ReportingComponents
   import LantternWeb.SchoolsComponents
 
   @impl true
@@ -24,7 +22,6 @@ defmodule LantternWeb.StudentHomeLive do
       |> assign_school()
       |> assign_current_cycle()
       |> assign_student_cycle_info()
-      |> stream_student_report_cards()
 
     {:ok, socket}
   end
@@ -77,33 +74,6 @@ defmodule LantternWeb.StudentHomeLive do
       end
 
     assign(socket, :student_cycle_info, student_cycle_info)
-  end
-
-  defp stream_student_report_cards(socket) do
-    all_student_report_cards =
-      Reporting.list_student_report_cards(
-        student_id: socket.assigns.current_user.current_profile.student_id,
-        parent_cycle_id: Map.get(socket.assigns.current_cycle, :id),
-        preloads: [report_card: [:year, :school_cycle]]
-      )
-
-    student_report_cards =
-      all_student_report_cards
-      |> Enum.filter(& &1.allow_student_access)
-
-    has_student_report_cards = length(student_report_cards) > 0
-
-    student_report_cards_wip =
-      all_student_report_cards
-      |> Enum.filter(&(not &1.allow_student_access))
-
-    has_student_report_cards_wip = length(student_report_cards_wip) > 0
-
-    socket
-    |> stream(:student_report_cards, student_report_cards)
-    |> assign(:has_student_report_cards, has_student_report_cards)
-    |> stream(:student_report_cards_wip, student_report_cards_wip)
-    |> assign(:has_student_report_cards_wip, has_student_report_cards_wip)
   end
 
   @impl true

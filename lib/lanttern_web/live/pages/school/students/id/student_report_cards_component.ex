@@ -16,7 +16,7 @@ defmodule LantternWeb.StudentLive.StudentReportCardsComponent do
             :for={{dom_id, student_report_card} <- @streams.student_report_cards}
             id={dom_id}
             report_card={student_report_card.report_card}
-            open_in_new={~p"/student_report_card/#{student_report_card}"}
+            open_in_new={~p"/student_report_cards/#{student_report_card}"}
             year={student_report_card.report_card.year}
             cycle={student_report_card.report_card.school_cycle}
             class="shrink-0 w-64 sm:w-auto"
