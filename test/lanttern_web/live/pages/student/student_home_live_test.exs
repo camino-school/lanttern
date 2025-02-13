@@ -2,6 +2,7 @@ defmodule LantternWeb.StudentHomeLiveTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.IdentityFixtures
+  alias Lanttern.MessageBoardFixtures
   alias Lanttern.StudentsCycleInfo
   alias Lanttern.StudentsCycleInfoFixtures
 
@@ -16,6 +17,21 @@ defmodule LantternWeb.StudentHomeLiveTest do
       assert html_response(conn, 200) =~ ~r"<h1 .+>\s*Welcome!\s*<\/h1>"
 
       {:ok, _view, _html} = live(conn)
+    end
+
+    test "display message board", %{conn: conn, user: user} do
+      school_id = user.current_profile.school_id
+
+      MessageBoardFixtures.message_fixture(%{
+        school_id: school_id,
+        name: "some message name",
+        description: "some message description"
+      })
+
+      {:ok, view, _html} = live(conn, @live_view_path)
+
+      assert view |> has_element?("h5", "some message name")
+      assert view |> has_element?("p", "some message description")
     end
 
     test "display student cycle info", %{conn: conn, user: user, student: student} do

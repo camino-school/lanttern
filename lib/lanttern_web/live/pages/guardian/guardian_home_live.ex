@@ -11,6 +11,7 @@ defmodule LantternWeb.GuardianHomeLive do
 
   # shared components
   alias LantternWeb.Attachments.AttachmentAreaComponent
+  alias LantternWeb.MessageBoard.MessageBoardViewerComponent
   alias LantternWeb.StudentsCycleInfo.StudentCycleInfoHeaderComponent
   import LantternWeb.SchoolsComponents
 

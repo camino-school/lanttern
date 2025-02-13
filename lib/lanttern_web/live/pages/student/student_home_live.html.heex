@@ -32,6 +32,12 @@
     </.card_base>
   </div>
 </.responsive_container>
+<.live_component
+  module={MessageBoardViewerComponent}
+  id="message-board"
+  class="mt-20"
+  current_profile={@current_user.current_profile}
+/>
 <.responsive_container
   :if={@student_cycle_info.shared_info || @student_cycle_info.has_attachments}
   class="mt-20"

@@ -9,11 +9,10 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponent do
   alias Lanttern.MessageBoard
   alias Lanttern.MessageBoard.Message
 
-  import LantternWeb.DateTimeHelpers
-
   # shared
 
   alias LantternWeb.MessageBoard.MessageFormOverlayComponent
+  import LantternWeb.MessageBoardComponents
 
   @impl true
   def render(assigns) do
@@ -48,31 +47,15 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponent do
           </.card_base>
         <% else %>
           <div id="messages-board" phx-update="stream">
-            <.card_base :for={{dom_id, message} <- @streams.messages} id={dom_id} class="p-6 mt-4">
-              <div class="flex items-start justify-between gap-4">
-                <h3 class="flex-1 font-display font-black text-xl" inner-html={}>
-                  <%= raw(Earmark.as_html!(message.name, inner_html: true)) %>
-                </h3>
-                <.action
-                  :if={@is_communication_manager}
-                  type="link"
-                  patch={~p"/school/message_board?edit=#{message.id}"}
-                  icon_name="hero-pencil-mini"
-                >
-                  <%= gettext("Edit") %>
-                </.action>
-              </div>
-              <div class="flex items-center gap-2 mt-2 text-xs">
-                <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
-                <%= format_local!(message.inserted_at, "{Mshort} {0D}, {YYYY} {h24}:{m}") %>
-                <%= if message.inserted_at != message.updated_at do %>
-                  <span class="text-ltrn-subtle">
-                    <%= "(#{gettext("Updated")} #{format_local!(message.updated_at, "{Mshort} {0D}, {YYYY} {h24}:{m}")})" %>
-                  </span>
-                <% end %>
-              </div>
-              <.markdown text={message.description} class="mt-10" />
-            </.card_base>
+            <.message_board_card
+              :for={{dom_id, message} <- @streams.messages}
+              message={message}
+              id={dom_id}
+              class="mt-4"
+              edit_patch={
+                if @is_communication_manager, do: ~p"/school/message_board?edit=#{message.id}"
+              }
+            />
           </div>
         <% end %>
       </.responsive_container>

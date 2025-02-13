@@ -28,10 +28,10 @@ defmodule LantternWeb.ArchivedMessagesLiveTest do
 
       {:ok, view, _html} = live(conn, @live_view_path)
 
-      refute view |> has_element?("h3", message.name)
+      refute view |> has_element?("h5", message.name)
       refute view |> has_element?("p", message.description)
 
-      assert view |> has_element?("h3", archived.name)
+      assert view |> has_element?("h5", archived.name)
       assert view |> has_element?("p", archived.description)
     end
 

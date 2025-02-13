@@ -3,7 +3,7 @@ defmodule LantternWeb.ArchivedMessagesLive do
 
   alias Lanttern.MessageBoard
 
-  import LantternWeb.DateTimeHelpers
+  import LantternWeb.MessageBoardComponents
 
   # lifecycle
 

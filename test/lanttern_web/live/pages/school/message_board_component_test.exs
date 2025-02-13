@@ -28,10 +28,10 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponentTest do
 
       {:ok, view, _html} = live(conn, @live_view_path)
 
-      assert view |> has_element?("h3", message.name)
+      assert view |> has_element?("h5", message.name)
       assert view |> has_element?("p", message.description)
 
-      refute view |> has_element?("h3", archived.name)
+      refute view |> has_element?("h5", archived.name)
       refute view |> has_element?("p", archived.description)
     end
 
