@@ -4,6 +4,7 @@ defmodule Lanttern.MessageBoard do
   """
 
   import Ecto.Query, warn: false
+  import Lanttern.RepoHelpers
   alias Lanttern.Repo
 
   alias Lanttern.MessageBoard.Message
@@ -15,6 +16,7 @@ defmodule Lanttern.MessageBoard do
 
   - `:archived` - boolean, if true, returns only archived messages
   - `:school_id` - filters messages by school id
+  - `:preloads` - preloads associated data
 
   ## Examples
 
@@ -30,6 +32,7 @@ defmodule Lanttern.MessageBoard do
     |> apply_list_messages_opts(opts)
     |> filter_archived(Keyword.get(opts, :archived))
     |> Repo.all()
+    |> maybe_preload(opts)
   end
 
   defp apply_list_messages_opts(queryable, []), do: queryable
@@ -64,6 +67,10 @@ defmodule Lanttern.MessageBoard do
 
   Returns `nil` if the Message does not exist.
 
+  ## Options
+
+  - `:preloads` – preloads associated data
+
   ## Examples
 
       iex> get_message(123)
@@ -73,7 +80,10 @@ defmodule Lanttern.MessageBoard do
       nil
 
   """
-  def get_message(id), do: Repo.get(Message, id)
+  def get_message(id, opts \\ []) do
+    Repo.get(Message, id)
+    |> maybe_preload(opts)
+  end
 
   @doc """
   Gets a single message.
@@ -81,7 +91,10 @@ defmodule Lanttern.MessageBoard do
   Same as get_message/1, but raises `Ecto.NoResultsError` if the Message does not exist.
 
   """
-  def get_message!(id), do: Repo.get!(Message, id)
+  def get_message!(id, opts \\ []) do
+    Repo.get!(Message, id)
+    |> maybe_preload(opts)
+  end
 
   @doc """
   Creates a message.
@@ -137,7 +150,7 @@ defmodule Lanttern.MessageBoard do
           {:ok, Message.t()} | {:error, Ecto.Changeset.t()}
   def archive_message(%Message{} = message) do
     message
-    |> Message.changeset(%{archived_at: DateTime.utc_now()})
+    |> Message.archive_changeset()
     |> Repo.update()
   end
 
@@ -159,7 +172,7 @@ defmodule Lanttern.MessageBoard do
           {:ok, Message.t()} | {:error, Ecto.Changeset.t()}
   def unarchive_message(%Message{} = message) do
     message
-    |> Message.changeset(%{archived_at: nil})
+    |> Message.unarchive_changeset()
     |> Repo.update()
   end
 

@@ -3,6 +3,7 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponent do
   ### Supported attrs/assigns
 
   - `is_communication_manager` (required, bool)
+  - `current_user` (required, User)
   """
   use LantternWeb, :live_component
 
@@ -65,6 +66,7 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponent do
         id="message-form-overlay"
         message={@message}
         title={@message_overlay_title}
+        current_profile={@current_user.current_profile}
         on_cancel={JS.patch(~p"/school/message_board")}
         notify_component={@myself}
       />
@@ -119,7 +121,7 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponent do
     school_id = socket.assigns.current_user.current_profile.school_id
 
     messages =
-      MessageBoard.list_messages(school_id: school_id)
+      MessageBoard.list_messages(school_id: school_id, preloads: :classes)
 
     socket
     |> stream(:messages, messages)
@@ -132,7 +134,9 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponent do
 
   defp assign_message(%{assigns: %{params: %{"new" => "true"}}} = socket) do
     message = %Message{
-      school_id: socket.assigns.current_user.current_profile.school_id
+      school_id: socket.assigns.current_user.current_profile.school_id,
+      classes: [],
+      send_to: "school"
     }
 
     socket
@@ -143,7 +147,7 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponent do
   defp assign_message(%{assigns: %{params: %{"edit" => message_id}}} = socket) do
     with true <- socket.assigns.is_communication_manager,
          true <- message_id in socket.assigns.messages_ids do
-      message = MessageBoard.get_message(message_id)
+      message = MessageBoard.get_message(message_id, preloads: :classes)
 
       socket
       |> assign(:message, message)

@@ -1,6 +1,7 @@
 defmodule LantternWeb.SchoolLive.MessageBoardComponentTest do
   use LantternWeb.ConnCase
 
+  alias Lanttern.MessageBoard
   alias Lanttern.MessageBoardFixtures
 
   @live_view_path "/school/message_board"
@@ -18,13 +19,13 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponentTest do
           description: "message desc abc"
         })
 
-      archived =
+      {:ok, archived} =
         MessageBoardFixtures.message_fixture(%{
           school_id: school_id,
           name: "archived message abc",
-          description: "archived message desc abc",
-          archived_at: DateTime.utc_now()
+          description: "archived message desc abc"
         })
+        |> MessageBoard.archive_message()
 
       {:ok, view, _html} = live(conn, @live_view_path)
 

@@ -2,6 +2,7 @@ defmodule LantternWeb.ArchivedMessagesLiveTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.MessageBoardFixtures
+  alias Lanttern.MessageBoard
 
   @live_view_path "/school/message_board/archive"
 
@@ -18,13 +19,13 @@ defmodule LantternWeb.ArchivedMessagesLiveTest do
           description: "not archived message desc abc"
         })
 
-      archived =
+      {:ok, archived} =
         MessageBoardFixtures.message_fixture(%{
           school_id: school_id,
           name: "archived message abc",
-          description: "archived message desc abc",
-          archived_at: DateTime.utc_now()
+          description: "archived message desc abc"
         })
+        |> MessageBoard.archive_message()
 
       {:ok, view, _html} = live(conn, @live_view_path)
 
@@ -40,11 +41,9 @@ defmodule LantternWeb.ArchivedMessagesLiveTest do
 
       school_id = user.current_profile.school_id
 
-      _message =
-        MessageBoardFixtures.message_fixture(%{
-          school_id: school_id,
-          archived_at: DateTime.utc_now()
-        })
+      {:ok, _message} =
+        MessageBoardFixtures.message_fixture(%{school_id: school_id})
+        |> MessageBoard.archive_message()
 
       {:ok, view, _html} = live(conn, @live_view_path)
 
@@ -58,11 +57,9 @@ defmodule LantternWeb.ArchivedMessagesLiveTest do
     } do
       school_id = user.current_profile.school_id
 
-      _message =
-        MessageBoardFixtures.message_fixture(%{
-          school_id: school_id,
-          archived_at: DateTime.utc_now()
-        })
+      {:ok, _message} =
+        MessageBoardFixtures.message_fixture(%{school_id: school_id})
+        |> MessageBoard.archive_message()
 
       {:ok, view, _html} = live(conn, @live_view_path)
 

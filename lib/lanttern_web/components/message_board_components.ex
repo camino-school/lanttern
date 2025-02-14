@@ -14,10 +14,11 @@ defmodule LantternWeb.MessageBoardComponents do
   @doc """
   Renders message board cards.
   """
-  attr :message, Message, required: true
+  attr :message, Message, required: true, doc: "expects `classes` preload"
   attr :edit_patch, :string, default: nil
   attr :on_unarchive, JS, default: nil
   attr :on_delete, JS, default: nil
+  attr :show_sent_to, :boolean, default: true
   attr :class, :any, default: nil
   attr :id, :any, default: nil
 
@@ -63,6 +64,18 @@ defmodule LantternWeb.MessageBoardComponents do
             </div>
           <% end %>
         </div>
+      </div>
+      <div
+        :if={@show_sent_to}
+        class="flex flex-row-reverse sm:flex-row items-center gap-2 mt-2 text-xs"
+      >
+        <%= if @message.send_to == "classes" do %>
+          <.icon name="hero-users-mini" class="w-5 h-5 text-ltrn-subtle" />
+          <.badge :for={class <- @message.classes}><%= class.name %></.badge>
+        <% else %>
+          <.icon name="hero-user-group-mini" class="w-5 h-5 text-ltrn-subtle" />
+          <.badge><%= gettext("Sent to all school") %></.badge>
+        <% end %>
       </div>
       <.markdown text={@message.description} class="mt-10" />
     </.card_base>

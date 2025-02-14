@@ -1,6 +1,7 @@
 defmodule Lanttern.MessageBoardTest do
   use Lanttern.DataCase
 
+  alias Lanttern.Repo
   alias Lanttern.MessageBoard
 
   describe "board_messages" do
@@ -10,17 +11,17 @@ defmodule Lanttern.MessageBoardTest do
 
     alias Lanttern.SchoolsFixtures
 
-    @invalid_attrs %{name: nil, description: nil, send_to: nil, archived_at: nil}
+    @invalid_attrs %{name: nil, description: nil, send_to: nil}
 
     test "list_messages/1 returns all board_messages (except archived)" do
       message = message_fixture()
-      _archived = message_fixture(%{archived_at: DateTime.utc_now()})
+      {:ok, _archived} = message_fixture() |> MessageBoard.archive_message()
       assert MessageBoard.list_messages() == [message]
     end
 
     test "list_messages/1 with archived opt returns all archived board messages" do
       _message = message_fixture()
-      archived = message_fixture(%{archived_at: DateTime.utc_now()})
+      {:ok, archived} = message_fixture() |> MessageBoard.archive_message()
 
       assert MessageBoard.list_messages(archived: true) == [archived]
     end
@@ -40,15 +41,33 @@ defmodule Lanttern.MessageBoardTest do
       assert MessageBoard.get_message!(message.id) == message
     end
 
-    test "create_message/1 with valid data creates a message" do
+    test "create_message/1 with valid data creates a school message" do
       school = Lanttern.SchoolsFixtures.school_fixture()
+
+      valid_attrs = %{
+        name: "some name",
+        description: "some description",
+        send_to: "school",
+        school_id: school.id
+      }
+
+      assert {:ok, %Message{} = message} = MessageBoard.create_message(valid_attrs)
+      assert message.name == "some name"
+      assert message.description == "some description"
+      assert message.send_to == "school"
+      assert message.school_id == school.id
+    end
+
+    test "create_message/1 with valid data creates a class message" do
+      school = Lanttern.SchoolsFixtures.school_fixture()
+      class = Lanttern.SchoolsFixtures.class_fixture(%{school_id: school.id})
 
       valid_attrs = %{
         name: "some name",
         description: "some description",
         send_to: "classes",
         school_id: school.id,
-        archived_at: ~U[2025-02-10 11:27:00Z]
+        classes_ids: [class.id]
       }
 
       assert {:ok, %Message{} = message} = MessageBoard.create_message(valid_attrs)
@@ -56,7 +75,9 @@ defmodule Lanttern.MessageBoardTest do
       assert message.description == "some description"
       assert message.send_to == "classes"
       assert message.school_id == school.id
-      assert message.archived_at == ~U[2025-02-10 11:27:00Z]
+
+      message = message |> Repo.preload(:classes)
+      assert message.classes == [class]
     end
 
     test "create_message/1 with invalid data returns error changeset" do
@@ -64,26 +85,22 @@ defmodule Lanttern.MessageBoardTest do
     end
 
     test "update_message/2 with valid data updates the message" do
-      message = message_fixture()
+      message = message_fixture() |> Repo.preload(:message_classes)
 
       update_attrs = %{
         name: "some updated name",
-        description: "some updated description",
-        send_to: "classes",
-        archived_at: ~U[2025-02-11 11:27:00Z]
+        description: "some updated description"
       }
 
       assert {:ok, %Message{} = message} = MessageBoard.update_message(message, update_attrs)
       assert message.name == "some updated name"
       assert message.description == "some updated description"
-      assert message.send_to == "classes"
-      assert message.archived_at == ~U[2025-02-11 11:27:00Z]
     end
 
     test "update_message/2 with invalid data returns error changeset" do
-      message = message_fixture()
+      message = message_fixture() |> Repo.preload(:message_classes)
       assert {:error, %Ecto.Changeset{}} = MessageBoard.update_message(message, @invalid_attrs)
-      assert message == MessageBoard.get_message!(message.id)
+      assert message == MessageBoard.get_message!(message.id) |> Repo.preload(:message_classes)
     end
 
     test "archive_message/1 sets archived_at for given message" do
@@ -107,7 +124,7 @@ defmodule Lanttern.MessageBoardTest do
     end
 
     test "change_message/1 returns a message changeset" do
-      message = message_fixture()
+      message = message_fixture() |> Repo.preload(:message_classes)
       assert %Ecto.Changeset{} = MessageBoard.change_message(message)
     end
   end

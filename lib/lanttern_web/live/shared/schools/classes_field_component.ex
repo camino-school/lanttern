@@ -45,7 +45,7 @@ defmodule LantternWeb.Schools.ClassesFieldComponent do
           current_user_or_cycle={@current_cycle}
         />
       <% else %>
-        <.empty_state_simple><%= gettext("No linked classes") %></.empty_state_simple>
+        <.empty_state_simple><%= gettext("No selected classes") %></.empty_state_simple>
       <% end %>
       <div :if={@cycle_classes != []} class="mt-6">
         <p class="mb-2"><%= gettext("%{cycle} cycle classes", cycle: @current_cycle.name) %></p>

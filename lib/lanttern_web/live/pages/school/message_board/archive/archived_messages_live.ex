@@ -37,7 +37,8 @@ defmodule LantternWeb.ArchivedMessagesLive do
     messages =
       MessageBoard.list_messages(
         school_id: school_id,
-        archived: true
+        archived: true,
+        preloads: :classes
       )
 
     socket

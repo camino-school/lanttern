@@ -6,6 +6,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
 
       attr :message, Message, required: true
       attr :title, :string, required: true
+      attr :current_profile, Profile, required: true
       attr :on_cancel, :any, required: true, doc: "`<.slide_over>` `on_cancel` attr"
       attr :notify_parent, :boolean
       attr :notify_component, Phoenix.LiveComponent.CID
@@ -16,6 +17,10 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
 
   alias Lanttern.MessageBoard
   alias Lanttern.MessageBoard.Message
+
+  # shared
+
+  alias LantternWeb.Schools.ClassesFieldComponent
 
   @impl true
   def render(assigns) do
@@ -48,6 +53,58 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
             phx-debounce="1500"
           />
           <.markdown_supported class="mb-6" />
+          <%!-- allow send to selection only when creating message --%>
+          <%= if @message.id do %>
+            <div :if={@message.send_to == "school"} class="flex items-center gap-2 mb-6">
+              <.icon name="hero-user-group" class="w-6 h-6" />
+              <p class="font-bold"><%= gettext("Sending to all school") %></p>
+            </div>
+            <div :if={@message.send_to == "classes"} class="flex items-center gap-2 mb-6">
+              <.icon name="hero-users" class="w-6 h-6" />
+              <p class="font-bold"><%= gettext("Sending to selected classes") %></p>
+            </div>
+          <% else %>
+            <fieldset class="mb-6">
+              <legend class="font-bold"><%= gettext("Send to") %></legend>
+              <div class="mt-4 flex items-center gap-4">
+                <.radio_input field={@form[:send_to]} value="school" label={gettext("All school")} />
+                <.radio_input
+                  field={@form[:send_to]}
+                  value="classes"
+                  label={gettext("Selected classes")}
+                />
+              </div>
+              <.error :for={msg <- Enum.map(@form[:send_to].errors, &translate_error(&1))}>
+                <%= msg %>
+              </.error>
+            </fieldset>
+          <% end %>
+          <.live_component
+            module={ClassesFieldComponent}
+            id="message-form-classes-picker"
+            label={gettext("Classes")}
+            school_id={@message.school_id}
+            current_cycle={@current_profile.current_school_cycle}
+            selected_classes_ids={@selected_classes_ids}
+            notify_component={@myself}
+            class={[
+              if(@form[:classes_ids].errors == [] && @form.source.action not in [:insert, :update],
+                do: "mb-6"
+              ),
+              if(@form[:send_to].value != "classes", do: "hidden")
+            ]}
+          />
+          <div
+            :if={@form[:classes_ids].errors != [] && @form.source.action in [:insert, :update]}
+            class="mb-6"
+          >
+            <.error :for={msg <- Enum.map(@form[:classes_ids].errors, &translate_error(&1))}>
+              <%= msg %>
+            </.error>
+          </div>
+          <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
+            <%= gettext("Oops, something went wrong! Please check the errors above.") %>
+          </.error_block>
         </.form>
         <:actions_left :if={@message.id}>
           <.action
@@ -108,11 +165,17 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
   end
 
   @impl true
-  # def update(
-  #       %{action: {ClassesFieldComponent, {:changed, selected_classes_ids}}},
-  #       socket
-  #     ),
-  #     do: {:ok, assign(socket, :selected_classes_ids, selected_classes_ids)}
+  def update(
+        %{action: {ClassesFieldComponent, {:changed, selected_classes_ids}}},
+        socket
+      ) do
+    socket =
+      socket
+      |> assign(:selected_classes_ids, selected_classes_ids)
+      |> assign_validated_form(socket.assigns.form.params)
+
+    {:ok, socket}
+  end
 
   def update(%{message: %Message{}} = assigns, socket) do
     socket =
@@ -135,12 +198,17 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
     message = socket.assigns.message
     changeset = MessageBoard.change_message(message)
 
-    # selected_classes_ids = Enum.map(message.classes, & &1.id)
-
     socket
     |> assign(:form, to_form(changeset))
+    |> assign_selected_classes_ids()
+  end
 
-    # |> assign(:selected_classes_ids, selected_classes_ids)
+  defp assign_selected_classes_ids(socket) do
+    selected_classes_ids =
+      socket.assigns.message.classes
+      |> Enum.map(& &1.id)
+
+    assign(socket, :selected_classes_ids, selected_classes_ids)
   end
 
   # event handlers
@@ -207,7 +275,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
   defp inject_extra_params(socket, params) do
     params
     |> Map.put("school_id", socket.assigns.message.school_id)
-    |> Map.put("send_to", "school")
+    |> Map.put("classes_ids", socket.assigns.selected_classes_ids)
   end
 
   defp save_message(socket, nil, message_params) do

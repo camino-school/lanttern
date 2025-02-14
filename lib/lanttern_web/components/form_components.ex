@@ -312,6 +312,32 @@ defmodule LantternWeb.FormComponents do
   end
 
   @doc """
+  Simple radio input component
+  """
+  attr :field, Phoenix.HTML.FormField, required: true
+  attr :value, :string, required: true
+  attr :label, :string, required: true
+  attr :class, :any, default: nil
+
+  def radio_input(assigns) do
+    ~H"""
+    <div class={["flex items-center gap-2", @class]}>
+      <input
+        id={"#{@value}-#{@field.id}"}
+        name={@field.name}
+        type="radio"
+        value={@value}
+        checked={@field.value == @value}
+        class="relative size-4 appearance-none rounded-full border border-ltrn-light bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-ltrn-primary checked:bg-ltrn-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ltrn-primary disabled:border-ltrn-light disabled:bg-ltrn-lightest disabled:before:bg-ltrn-light forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden"
+      />
+      <label for={"#{@value}-#{@field.id}"} class="block">
+        <%= @label %>
+      </label>
+    </div>
+    """
+  end
+
+  @doc """
   Base select component
   """
   attr :id, :any, default: nil
