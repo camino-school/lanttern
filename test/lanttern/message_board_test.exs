@@ -26,7 +26,7 @@ defmodule Lanttern.MessageBoardTest do
       assert MessageBoard.list_messages(archived: true) == [archived]
     end
 
-    test "list_messages/1 with school opt returns all board_messages filtered by given school" do
+    test "list_messages/1 with school_id opt returns all board_messages filtered by given school" do
       school = SchoolsFixtures.school_fixture()
       message = message_fixture(%{school_id: school.id})
 
@@ -34,6 +34,31 @@ defmodule Lanttern.MessageBoardTest do
       message_fixture()
 
       assert MessageBoard.list_messages(school_id: school.id) == [message]
+    end
+
+    test "list_messages/1 with classes_ids opt returns all board_messages filtered by given classes" do
+      class = SchoolsFixtures.class_fixture()
+
+      message =
+        message_fixture(%{
+          send_to: "classes",
+          school_id: class.school_id,
+          classes_ids: [class.id]
+        })
+
+      # other fixtures for filtering assertion
+      another_class = SchoolsFixtures.class_fixture(%{school_id: class.school_id})
+
+      message_fixture(%{
+        send_to: "classes",
+        school_id: class.school_id,
+        classes_ids: [another_class.id]
+      })
+
+      message_fixture()
+
+      assert [expected] = MessageBoard.list_messages(classes_ids: [class.id])
+      assert expected.id == message.id
     end
 
     test "get_message!/1 returns the message with given id" do

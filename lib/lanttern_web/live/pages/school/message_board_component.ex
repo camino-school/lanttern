@@ -9,10 +9,13 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponent do
 
   alias Lanttern.MessageBoard
   alias Lanttern.MessageBoard.Message
+  alias Lanttern.Schools.Cycle
 
   # shared
 
   alias LantternWeb.MessageBoard.MessageFormOverlayComponent
+
+  import LantternWeb.FiltersHelpers, only: [assign_classes_filter: 2]
   import LantternWeb.MessageBoardComponents
 
   @impl true
@@ -20,12 +23,19 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponent do
     ~H"""
     <div>
       <.action_bar class="flex items-center justify-between gap-4 p-4">
-        <p class="flex items-center gap-2">
-          <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-          <%= gettext(
-            "Messages in the school message board are shared with all students and families."
-          ) %>
-        </p>
+        <div class="flex items-center gap-4">
+          <.action
+            type="button"
+            phx-click={JS.exec("data-show", to: "#message-board-classes-filters-overlay")}
+            icon_name="hero-chevron-down-mini"
+          >
+            <%= format_action_items_text(@selected_classes, gettext("All classes")) %>
+          </.action>
+          <p><%= ngettext("Showing 1 message", "Showing %{count} messages", @messages_count) %></p>
+          <.action type="link" theme="subtle" navigate={~p"/school/message_board/archive"}>
+            <%= gettext("View archived messages") %>
+          </.action>
+        </div>
         <.action
           :if={@is_communication_manager}
           type="link"
@@ -36,15 +46,18 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponent do
         </.action>
       </.action_bar>
       <.responsive_container class="p-4">
-        <div class="flex items-center gap-4">
-          <p><%= ngettext("Showing 1 message", "Showing %{count} messages", @messages_count) %></p>
-          <.action type="link" theme="subtle" navigate={~p"/school/message_board/archive"}>
-            <%= gettext("View archived messages") %>
-          </.action>
-        </div>
+        <p class="flex items-center gap-2">
+          <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+          <%= gettext(
+            "Messages in the school message board are shared with all students and families."
+          ) %>
+        </p>
+
         <%= if @messages_count == 0 do %>
           <.card_base class="p-10 mt-4">
-            <.empty_state><%= gettext("No messages created yet") %></.empty_state>
+            <.empty_state>
+              <%= gettext("No messages matching current filters created yet") %>
+            </.empty_state>
           </.card_base>
         <% else %>
           <div id="messages-board" phx-update="stream">
@@ -52,6 +65,7 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponent do
               :for={{dom_id, message} <- @streams.messages}
               message={message}
               id={dom_id}
+              show_sent_to
               class="mt-4"
               edit_patch={
                 if @is_communication_manager, do: ~p"/school/message_board?edit=#{message.id}"
@@ -60,6 +74,15 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponent do
           </div>
         <% end %>
       </.responsive_container>
+      <.live_component
+        module={LantternWeb.Filters.ClassesFilterOverlayComponent}
+        id="message-board-classes-filters-overlay"
+        current_user={@current_user}
+        title={gettext("Filter messages by class")}
+        navigate={~p"/school/message_board"}
+        classes={@classes}
+        selected_classes_ids={@selected_classes_ids}
+      />
       <.live_component
         :if={@message}
         module={MessageFormOverlayComponent}
@@ -111,17 +134,32 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
+    |> apply_assign_classes_filter()
     |> stream_messages()
     |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
 
+  defp apply_assign_classes_filter(socket) do
+    assign_classes_filter_opts =
+      case socket.assigns.current_user.current_profile do
+        %{current_school_cycle: %Cycle{} = cycle} -> [cycles_ids: [cycle.id]]
+        _ -> []
+      end
+
+    assign_classes_filter(socket, assign_classes_filter_opts)
+  end
+
   defp stream_messages(socket) do
     school_id = socket.assigns.current_user.current_profile.school_id
 
     messages =
-      MessageBoard.list_messages(school_id: school_id, preloads: :classes)
+      MessageBoard.list_messages(
+        school_id: school_id,
+        classes_ids: socket.assigns.selected_classes_ids,
+        preloads: :classes
+      )
 
     socket
     |> stream(:messages, messages)

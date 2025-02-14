@@ -5,6 +5,8 @@ defmodule LantternWeb.ArchivedMessagesLive do
 
   import LantternWeb.MessageBoardComponents
 
+  import LantternWeb.FiltersHelpers, only: [assign_classes_filter: 2]
+
   # lifecycle
 
   @impl true
@@ -18,6 +20,7 @@ defmodule LantternWeb.ArchivedMessagesLive do
     socket =
       socket
       |> assign_is_communication_manager()
+      |> apply_assign_classes_filter()
       |> stream_messages()
       |> assign(:page_title, page_title)
 
@@ -31,12 +34,19 @@ defmodule LantternWeb.ArchivedMessagesLive do
     assign(socket, :is_communication_manager, is_communication_manager)
   end
 
+  defp apply_assign_classes_filter(socket) do
+    current_cycle = socket.assigns.current_user.current_profile.current_school_cycle
+    assign_classes_filter_opts = [cycles_ids: [current_cycle.id]]
+    assign_classes_filter(socket, assign_classes_filter_opts)
+  end
+
   defp stream_messages(socket) do
     school_id = socket.assigns.current_user.current_profile.school_id
 
     messages =
       MessageBoard.list_messages(
         school_id: school_id,
+        classes_ids: socket.assigns.selected_classes_ids,
         archived: true,
         preloads: :classes
       )

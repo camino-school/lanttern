@@ -16,6 +16,7 @@ defmodule Lanttern.MessageBoard do
 
   - `:archived` - boolean, if true, returns only archived messages
   - `:school_id` - filters messages by school id
+  - `:classes_ids` - filters messages by given classes
   - `:preloads` - preloads associated data
 
   ## Examples
@@ -41,6 +42,16 @@ defmodule Lanttern.MessageBoard do
     from(
       m in queryable,
       where: m.school_id == ^school_id
+    )
+    |> apply_list_messages_opts(opts)
+  end
+
+  defp apply_list_messages_opts(queryable, [{:classes_ids, classes_ids} | opts])
+       when is_list(classes_ids) and classes_ids != [] do
+    from(
+      m in queryable,
+      join: mc in assoc(m, :message_classes),
+      where: mc.class_id in ^classes_ids
     )
     |> apply_list_messages_opts(opts)
   end

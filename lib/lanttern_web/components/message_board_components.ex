@@ -14,11 +14,14 @@ defmodule LantternWeb.MessageBoardComponents do
   @doc """
   Renders message board cards.
   """
-  attr :message, Message, required: true, doc: "expects `classes` preload"
+  attr :message, Message,
+    required: true,
+    doc: "expects `classes` preload when `show_sent_to` is true"
+
   attr :edit_patch, :string, default: nil
   attr :on_unarchive, JS, default: nil
   attr :on_delete, JS, default: nil
-  attr :show_sent_to, :boolean, default: true
+  attr :show_sent_to, :boolean, default: false
   attr :class, :any, default: nil
   attr :id, :any, default: nil
 

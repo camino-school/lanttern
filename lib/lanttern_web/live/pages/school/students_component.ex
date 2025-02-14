@@ -7,7 +7,7 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
 
   # shared components
   alias LantternWeb.Schools.StudentFormOverlayComponent
-  import LantternWeb.FiltersHelpers, only: [assign_classes_filter: 2, save_profile_filters: 2]
+  import LantternWeb.FiltersHelpers, only: [assign_classes_filter: 2]
 
   @impl true
   def render(assigns) do
@@ -205,19 +205,19 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
 
   defp assign_student(socket), do: assign(socket, :student, nil)
 
-  @impl true
-  def handle_event("remove_class_filter", %{"id" => class_id}, socket) do
-    selected_classes_ids =
-      socket.assigns.selected_classes_ids
-      |> Enum.filter(&(&1 != class_id))
+  # @impl true
+  # def handle_event("remove_class_filter", %{"id" => class_id}, socket) do
+  #   selected_classes_ids =
+  #     socket.assigns.selected_classes_ids
+  #     |> Enum.filter(&(&1 != class_id))
 
-    socket =
-      socket
-      |> assign(:selected_classes_ids, selected_classes_ids)
-      |> save_profile_filters([:classes])
-      |> apply_assign_classes_filter()
-      |> stream_students()
+  #   socket =
+  #     socket
+  #     |> assign(:selected_classes_ids, selected_classes_ids)
+  #     |> save_profile_filters([:classes])
+  #     |> apply_assign_classes_filter()
+  #     |> stream_students()
 
-    {:noreply, socket}
-  end
+  #   {:noreply, socket}
+  # end
 end
