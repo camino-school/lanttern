@@ -126,7 +126,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:64
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:66
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:202
-#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:150
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:161
 #: lib/lanttern_web/live/shared/notes/note_component.ex:60
 #: lib/lanttern_web/live/shared/rubrics/rubric_form_component.ex:51
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:81
@@ -187,7 +187,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:67
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:69
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:205
-#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:153
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:164
 #: lib/lanttern_web/live/shared/notes/note_component.ex:63
 #: lib/lanttern_web/live/shared/rubrics/rubric_form_component.ex:53
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:84
@@ -409,7 +409,7 @@ msgstr ""
 msgid "Couldn't find strand"
 msgstr ""
 
-#: lib/lanttern_web/components/message_board_components.ex:53
+#: lib/lanttern_web/components/message_board_components.ex:52
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:158
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:109
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:116
@@ -425,7 +425,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:55
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:57
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:248
-#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:119
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:130
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:113
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:109
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:53
@@ -476,7 +476,7 @@ msgid "Add your notes..."
 msgstr ""
 
 #: lib/lanttern_web/components/form_components.ex:742
-#: lib/lanttern_web/components/message_board_components.ex:41
+#: lib/lanttern_web/components/message_board_components.ex:40
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:156
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:107
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:114
@@ -496,7 +496,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:53
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:55
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:246
-#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:117
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:128
 #: lib/lanttern_web/live/shared/notes/note_component.ex:53
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:111
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:107
@@ -537,7 +537,7 @@ msgstr ""
 #: lib/lanttern_web/components/attachments_components.ex:130
 #: lib/lanttern_web/components/core_components.ex:1316
 #: lib/lanttern_web/components/learning_context_components.ex:55
-#: lib/lanttern_web/components/message_board_components.ex:56
+#: lib/lanttern_web/components/message_board_components.ex:55
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:44
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:39
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:41
@@ -2159,7 +2159,7 @@ msgid "(e.g. Google Docs)"
 msgstr ""
 
 #: lib/lanttern_web/components/attachments_components.ex:138
-#: lib/lanttern_web/components/message_board_components.ex:51
+#: lib/lanttern_web/components/message_board_components.ex:50
 #, elixir-autogen, elixir-format
 msgid "Are you sure? This action cannot be undone."
 msgstr ""
@@ -2630,7 +2630,7 @@ msgstr ""
 
 #: lib/lanttern_web/live/pages/school/staff/id/students_records_component.ex:93
 #: lib/lanttern_web/live/pages/students_records/students_records_live.html.heex:29
-#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:85
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:96
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:52
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:124
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:262
@@ -3648,7 +3648,7 @@ msgid "No templates created yet"
 msgstr ""
 
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:188
-#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:106
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:117
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:67
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Oops, something went wrong! Please check the errors above."
@@ -4425,12 +4425,12 @@ msgstr ""
 msgid "Additional %{cycle} information"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:70
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:81
 #, elixir-autogen, elixir-format
 msgid "All school"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:130
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:141
 #, elixir-autogen, elixir-format
 msgid "Archive"
 msgstr ""
@@ -4440,12 +4440,12 @@ msgstr ""
 msgid "Archived messages"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:128
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:139
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Are you sure? You can unarchive the message later."
 msgstr ""
 
-#: lib/lanttern/message_board/message.ex:73
+#: lib/lanttern/message_board/message.ex:75
 #, elixir-autogen, elixir-format, fuzzy
 msgid "At least 1 class is required"
 msgstr ""
@@ -4471,7 +4471,7 @@ msgstr ""
 msgid "Failed to unarchive message"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/message_board/archive/archived_messages_live.html.heex:62
+#: lib/lanttern_web/live/pages/school/message_board/archive/archived_messages_live.html.heex:60
 #: lib/lanttern_web/live/pages/school/message_board_component.ex:90
 #, elixir-autogen, elixir-format
 msgid "Filter messages by class"
@@ -4521,7 +4521,7 @@ msgstr ""
 msgid "New message"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/message_board/archive/archived_messages_live.html.heex:36
+#: lib/lanttern_web/live/pages/school/message_board/archive/archived_messages_live.html.heex:35
 #, elixir-autogen, elixir-format
 msgid "No archived messages matching current filter found"
 msgstr ""
@@ -4536,32 +4536,32 @@ msgstr ""
 msgid "No selected classes"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:74
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:85
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Selected classes"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:68
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:79
 #, elixir-autogen, elixir-format
 msgid "Send to"
 msgstr ""
 
-#: lib/lanttern/message_board/message.ex:50
+#: lib/lanttern/message_board/message.ex:52
 #, elixir-autogen, elixir-format
 msgid "Send to must be 'school' or 'classes'"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:60
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:71
 #, elixir-autogen, elixir-format
 msgid "Sending to all school"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:64
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:75
 #, elixir-autogen, elixir-format
 msgid "Sending to selected classes"
 msgstr ""
 
-#: lib/lanttern_web/components/message_board_components.ex:80
+#: lib/lanttern_web/components/message_board_components.ex:86
 #, elixir-autogen, elixir-format
 msgid "Sent to all school"
 msgstr ""
@@ -4580,13 +4580,13 @@ msgid_plural "Showing %{count} messages"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/lanttern_web/components/message_board_components.ex:43
-#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:140
+#: lib/lanttern_web/components/message_board_components.ex:42
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:151
 #, elixir-autogen, elixir-format
 msgid "Unarchive"
 msgstr ""
 
-#: lib/lanttern_web/components/message_board_components.ex:66
+#: lib/lanttern_web/components/message_board_components.ex:72
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Updated"
 msgstr ""
@@ -4630,4 +4630,19 @@ msgstr ""
 #: lib/lanttern_web/live/pages/school/message_board_component.ex:61
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Messages in the school message board are displayed in students and guardians home page."
+msgstr ""
+
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:61
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Pin message"
+msgstr ""
+
+#: lib/lanttern_web/components/message_board_components.ex:60
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Pinned message"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:64
+#, elixir-autogen, elixir-format
+msgid "Pinned messages are displayed at the top of the message board."
 msgstr ""

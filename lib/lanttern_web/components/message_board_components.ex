@@ -32,29 +32,35 @@ defmodule LantternWeb.MessageBoardComponents do
         <h5 class="flex-1 font-display font-black text-xl" inner-html={}>
           <%= Phoenix.HTML.raw(Earmark.as_html!(@message.name, inner_html: true)) %>
         </h5>
-        <div class="flex gap-4">
-          <.action
-            :if={@on_unarchive}
-            type="button"
-            phx-click={@on_unarchive}
-            icon_name="hero-arrow-up-tray-mini"
-            data-confirm={gettext("Are you sure?")}
-          >
-            <%= gettext("Unarchive") %>
-          </.action>
-          <.action
-            :if={@on_delete}
-            type="button"
-            phx-click={@on_delete}
-            icon_name="hero-x-mark-mini"
-            theme="alert"
-            data-confirm={gettext("Are you sure? This action cannot be undone.")}
-          >
-            <%= gettext("Delete") %>
-          </.action>
-          <.action :if={@edit_patch} type="link" patch={@edit_patch} icon_name="hero-pencil-mini">
-            <%= gettext("Edit") %>
-          </.action>
+        <.action
+          :if={@on_unarchive}
+          type="button"
+          phx-click={@on_unarchive}
+          icon_name="hero-arrow-up-tray-mini"
+          data-confirm={gettext("Are you sure?")}
+        >
+          <%= gettext("Unarchive") %>
+        </.action>
+        <.action
+          :if={@on_delete}
+          type="button"
+          phx-click={@on_delete}
+          icon_name="hero-x-mark-mini"
+          theme="alert"
+          data-confirm={gettext("Are you sure? This action cannot be undone.")}
+        >
+          <%= gettext("Delete") %>
+        </.action>
+        <.action :if={@edit_patch} type="link" patch={@edit_patch} icon_name="hero-pencil-mini">
+          <%= gettext("Edit") %>
+        </.action>
+        <div
+          :if={@message.is_pinned && is_nil(@message.archived_at)}
+          class="flex items-center justify-center w-6 h-6 rounded-full bg-ltrn-mesh-cyan"
+          title={gettext("Pinned message")}
+        >
+          <%!-- there's no pin in Hero Icons. I imported one from https://tabler.io/icons --%>
+          <.icon name="hero-pin-mini" class="text-ltrn-primary" />
         </div>
       </div>
       <div class="flex flex-row-reverse sm:flex-row items-center gap-2 mt-2 text-xs">

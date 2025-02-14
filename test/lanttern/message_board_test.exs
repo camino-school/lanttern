@@ -13,10 +13,15 @@ defmodule Lanttern.MessageBoardTest do
 
     @invalid_attrs %{name: nil, description: nil, send_to: nil}
 
-    test "list_messages/1 returns all board_messages (except archived)" do
+    test "list_messages/1 returns all board_messages (pinned first. archived not included)" do
       message = message_fixture()
       {:ok, _archived} = message_fixture() |> MessageBoard.archive_message()
-      assert MessageBoard.list_messages() == [message]
+
+      # wait 1 second to test ordering by inserted_at
+      Process.sleep(1000)
+      pinned = message_fixture(%{is_pinned: true})
+
+      assert MessageBoard.list_messages() == [pinned, message]
     end
 
     test "list_messages/1 with archived opt returns all archived board messages" do
@@ -67,7 +72,7 @@ defmodule Lanttern.MessageBoardTest do
 
       message_fixture()
 
-      assert [expected_message, expected_school_message] =
+      assert [expected_school_message, expected_message] =
                MessageBoard.list_messages(school_id: class.school_id, classes_ids: [class.id])
 
       assert expected_message.id == message.id

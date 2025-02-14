@@ -16,6 +16,7 @@ defmodule Lanttern.MessageBoard.Message do
           description: String.t(),
           send_to: String.t(),
           archived_at: DateTime.t() | nil,
+          is_pinned: boolean(),
           school_id: pos_integer() | nil,
           school: School.t() | nil,
           inserted_at: DateTime.t() | nil,
@@ -27,6 +28,7 @@ defmodule Lanttern.MessageBoard.Message do
     field :description, :string
     field :send_to, :string
     field :archived_at, :utc_datetime
+    field :is_pinned, :boolean, default: false
 
     field :classes_ids, {:array, :id}, virtual: true
 
@@ -42,7 +44,7 @@ defmodule Lanttern.MessageBoard.Message do
   def changeset(message, attrs) do
     changeset =
       message
-      |> cast(attrs, [:name, :description, :school_id, :send_to])
+      |> cast(attrs, [:name, :description, :school_id, :send_to, :is_pinned])
       |> validate_required([:name, :description, :school_id, :send_to])
       |> check_constraint(
         :send_to,

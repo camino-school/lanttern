@@ -53,6 +53,17 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
             phx-debounce="1500"
           />
           <.markdown_supported class="mb-6" />
+          <div class="p-4 rounded-sm mb-6 bg-ltrn-mesh-cyan">
+            <.input
+              field={@form[:is_pinned]}
+              type="toggle"
+              theme="primary"
+              label={gettext("Pin message")}
+            />
+            <p class="mt-4">
+              <%= gettext("Pinned messages are displayed at the top of the message board.") %>
+            </p>
+          </div>
           <%!-- allow send to selection only when creating message --%>
           <%= if @message.id do %>
             <div :if={@message.send_to == "school"} class="flex items-center gap-2 mb-6">

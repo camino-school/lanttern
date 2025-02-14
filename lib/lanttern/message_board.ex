@@ -30,7 +30,11 @@ defmodule Lanttern.MessageBoard do
   def list_messages(opts \\ []) do
     from(
       m in Message,
-      distinct: [desc: m.inserted_at, desc: m.id]
+      order_by: [
+        desc: fragment("CASE WHEN ? THEN 1 ELSE 0 END", m.is_pinned),
+        desc: m.inserted_at
+      ],
+      group_by: m.id
     )
     |> apply_list_messages_opts(opts)
     |> filter_archived(Keyword.get(opts, :archived))
