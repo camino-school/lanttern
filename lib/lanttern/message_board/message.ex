@@ -1,4 +1,8 @@
 defmodule Lanttern.MessageBoard.Message do
+  @moduledoc """
+  The `Message` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
   use Gettext, backend: Lanttern.Gettext

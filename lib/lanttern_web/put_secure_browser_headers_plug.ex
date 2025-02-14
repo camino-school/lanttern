@@ -2,6 +2,11 @@
 # in https://akoutmos.com/post/plug-runtime-config/
 
 defmodule LantternWeb.PutSecureBrowserHeadersPlug do
+  @moduledoc """
+  `Phoenix.Controller.put_secure_browser_headers/2` wrapper.
+  Enables the use of `Application.get_env/2` to set the CSP header.
+  """
+
   @behaviour Plug
 
   @default_csp "default-src 'self'"

@@ -31,7 +31,17 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponent do
           >
             <%= format_action_items_text(@selected_classes, gettext("All classes")) %>
           </.action>
-          <p><%= ngettext("Showing 1 message", "Showing %{count} messages", @messages_count) %></p>
+          <p>
+            <%= if @messages_count == 0 do
+              gettext("No messages")
+            else
+              ngettext(
+                "Showing 1 message",
+                "Showing %{count} messages",
+                @messages_count
+              )
+            end %>
+          </p>
           <.action type="link" theme="subtle" navigate={~p"/school/message_board/archive"}>
             <%= gettext("View archived messages") %>
           </.action>

@@ -13,11 +13,15 @@
     <%= format_action_items_text(@selected_classes, gettext("All classes")) %>
   </.action>
   <p>
-    <%= ngettext(
-      "Showing 1 archived message",
-      "Showing %{count} archived messages",
-      @messages_count
-    ) %>
+    <%= if @messages_count == 0 do
+      gettext("No archived messages")
+    else
+      ngettext(
+        "Showing 1 archived message",
+        "Showing %{count} archived messages",
+        @messages_count
+      )
+    end %>
   </p>
 </.action_bar>
 <.responsive_container class="p-4">
