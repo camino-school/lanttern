@@ -100,6 +100,15 @@ defmodule Lanttern.MessageBoardTest do
           classes_ids: [class.id]
         })
 
+      # expect pinned messages first
+      pinned_message =
+        message_fixture(%{
+          send_to: "classes",
+          school_id: class.school_id,
+          classes_ids: [class.id],
+          is_pinned: true
+        })
+
       # other fixtures for filtering assertion
       another_class = SchoolsFixtures.class_fixture(%{school_id: class.school_id})
 
@@ -118,9 +127,10 @@ defmodule Lanttern.MessageBoardTest do
 
       message_fixture()
 
-      assert [expected_class_message, expected_school_message] =
+      assert [expected_pinned_message, expected_class_message, expected_school_message] =
                MessageBoard.list_student_messages(student)
 
+      assert expected_pinned_message.id == pinned_message.id
       assert expected_class_message.id == class_message.id
       assert expected_school_message.id == school_message.id
     end

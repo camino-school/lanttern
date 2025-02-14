@@ -30,11 +30,11 @@ defmodule Lanttern.MessageBoard do
   def list_messages(opts \\ []) do
     from(
       m in Message,
+      group_by: m.id,
       order_by: [
         desc: fragment("CASE WHEN ? THEN 1 ELSE 0 END", m.is_pinned),
         desc: m.inserted_at
-      ],
-      group_by: m.id
+      ]
     )
     |> apply_list_messages_opts(opts)
     |> filter_archived(Keyword.get(opts, :archived))
@@ -114,7 +114,10 @@ defmodule Lanttern.MessageBoard do
         (m.send_to == "classes" and mc.class_id in ^student_classes_ids) or
           (m.send_to == "school" and m.school_id == ^school_id),
       group_by: m.id,
-      order_by: [desc: m.inserted_at]
+      order_by: [
+        desc: fragment("CASE WHEN ? THEN 1 ELSE 0 END", m.is_pinned),
+        desc: m.inserted_at
+      ]
     )
     |> Repo.all()
   end
