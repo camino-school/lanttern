@@ -15,6 +15,7 @@ defmodule LantternWeb.MessageBoard.MessageBoardViewerComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.MessageBoard
+  alias Lanttern.Schools.Student
 
   import LantternWeb.MessageBoardComponents
 
@@ -68,8 +69,19 @@ defmodule LantternWeb.MessageBoard.MessageBoardViewerComponent do
   defp initialize(socket), do: socket
 
   defp stream_messages(socket) do
+    school_id = socket.assigns.current_profile.school_id
+
+    student_id =
+      case socket.assigns.current_profile do
+        %{type: "student", student_id: id} -> id
+        %{type: "guardian", guardian_of_student_id: id} -> id
+      end
+
     messages =
-      MessageBoard.list_messages(school_id: socket.assigns.current_profile.school_id)
+      MessageBoard.list_student_messages(%Student{
+        id: student_id,
+        school_id: school_id
+      })
 
     socket
     |> stream(:messages, messages)

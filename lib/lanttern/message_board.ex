@@ -5,9 +5,11 @@ defmodule Lanttern.MessageBoard do
 
   import Ecto.Query, warn: false
   import Lanttern.RepoHelpers
+  alias Lanttern.Schools.Student
   alias Lanttern.Repo
 
   alias Lanttern.MessageBoard.Message
+  alias Lanttern.Schools.Class
 
   @doc """
   Returns the list of messages.
@@ -71,6 +73,45 @@ defmodule Lanttern.MessageBoard do
       m in queryable,
       where: is_nil(m.archived_at)
     )
+  end
+
+  @doc """
+  Returns the list of messages related to given student.
+
+  A message is related to the student if it's sent to the student's classes or school.
+
+  ## Examples
+
+      iex> list_student_messages(student)
+      [%Message{}, ...]
+
+  """
+  @spec list_student_messages(Student.t()) :: [Message.t()]
+  def list_student_messages(%Student{} = student) do
+    %{id: student_id, school_id: school_id} = student
+
+    student_classes_ids =
+      from(
+        cl in Class,
+        join: cs in "classes_students",
+        on: cl.id == cs.class_id,
+        where: cs.student_id == ^student_id,
+        group_by: cl.id,
+        select: cl.id
+      )
+      |> Repo.all()
+
+    from(
+      m in Message,
+      left_join: mc in assoc(m, :message_classes),
+      where: is_nil(m.archived_at),
+      where:
+        (m.send_to == "classes" and mc.class_id in ^student_classes_ids) or
+          (m.send_to == "school" and m.school_id == ^school_id),
+      group_by: m.id,
+      order_by: [desc: m.inserted_at]
+    )
+    |> Repo.all()
   end
 
   @doc """
