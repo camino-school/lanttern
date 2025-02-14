@@ -1987,7 +1987,7 @@ msgstr "Permitir acesso"
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:208
 #, elixir-autogen, elixir-format
 msgid "Give access to guardians"
-msgstr "Dar acesso a guardiões"
+msgstr "Dar acesso a responsáveis"
 
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:172
 #, elixir-autogen, elixir-format
@@ -1997,7 +1997,7 @@ msgstr "Dar acesso a estudantes"
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:185
 #, elixir-autogen, elixir-format
 msgid "Guardian access"
-msgstr "Acesso do guardião"
+msgstr "Acesso do responsável"
 
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:276
 #, elixir-autogen, elixir-format
@@ -2023,7 +2023,7 @@ msgstr "Vincular selecionado"
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:298
 #, elixir-autogen, elixir-format
 msgid "Not shared with guardians"
-msgstr "Não compartilhado com guardiões"
+msgstr "Não compartilhado com responsáveis"
 
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:292
 #, elixir-autogen, elixir-format
@@ -2039,7 +2039,7 @@ msgstr "Remover acesso"
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:192
 #, elixir-autogen, elixir-format
 msgid "Remove access from guardians"
-msgstr "Remover acesso dos guardiães"
+msgstr "Remover acesso dos responsáveis"
 
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:156
 #, elixir-autogen, elixir-format
@@ -2054,7 +2054,7 @@ msgstr "Report cards em desenvolvimento"
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:297
 #, elixir-autogen, elixir-format
 msgid "Shared with guardians"
-msgstr "Compartilhado com guardiões"
+msgstr "Compartilhado com responsáveis"
 
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:291
 #, elixir-autogen, elixir-format
@@ -3715,7 +3715,7 @@ msgstr "Adicionar informações da área de estudante..."
 #: lib/lanttern_web/live/pages/school/students/id/about_component.ex:86
 #, elixir-autogen, elixir-format
 msgid "Information shared with student and guardians"
-msgstr "Informação compartilhada com estudante e guardiões"
+msgstr "Informação compartilhada com estudante e responsáveis"
 
 #: lib/lanttern_web/live/pages/school/students/id/about_component.ex:102
 #, elixir-autogen, elixir-format
@@ -3746,7 +3746,7 @@ msgstr "Notas sobre diferenciação"
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:182
 #, elixir-autogen, elixir-format
 msgid "If active the card and selected attachments will be displayed for students and guardians in the strand moment details page"
-msgstr "Se ativo, o card e os anexos selecionados serão exibidos para estudantes e guardiões na página de detalhes do momento da trilha"
+msgstr "Se ativo, o card e os anexos selecionados serão exibidos para estudantes e responsáveis na página de detalhes do momento da trilha"
 
 #: lib/lanttern_web/live/shared/reporting/strand_report_moments_component.ex:98
 #, elixir-autogen, elixir-format
@@ -3757,7 +3757,7 @@ msgstr "Mais sobre este momento"
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:179
 #, elixir-autogen, elixir-format
 msgid "Share with students and guardians"
-msgstr "Compartilhar com estudantes e guardiões"
+msgstr "Compartilhar com estudantes e responsáveis"
 
 #: lib/lanttern_web/live/pages/strands/moment/id/cards_component.ex:67
 #, elixir-autogen, elixir-format
@@ -3767,7 +3767,7 @@ msgstr "Compartilhado"
 #: lib/lanttern_web/components/attachments_components.ex:117
 #, elixir-autogen, elixir-format
 msgid "Shared with students and guardians"
-msgstr "Compartilhado com estudantes e guardiões"
+msgstr "Compartilhado com estudantes e responsáveis"
 
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:41
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:156
@@ -3780,7 +3780,7 @@ msgstr "Instruções para professores"
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:234
 #, elixir-autogen, elixir-format
 msgid "Visible to students and guardians"
-msgstr "Visível para estudantes e guardiões"
+msgstr "Visível para estudantes e responsáveis"
 
 #: lib/lanttern_web/live/pages/school/staff/deactivated/deactivated_staff_live.ex:85
 #, elixir-autogen, elixir-format
@@ -4450,7 +4450,7 @@ msgstr "Você tem certeza? Você pode desarquivar a mensagem mais tarde."
 msgid "At least 1 class is required"
 msgstr "Obrigatório vincular ao menos 1 turma"
 
-#: lib/lanttern_web/live/pages/school/message_board_component.ex:202
+#: lib/lanttern_web/live/pages/school/message_board_component.ex:201
 #, elixir-autogen, elixir-format
 msgid "Edit message"
 msgstr "Editar mensagem"
@@ -4471,8 +4471,8 @@ msgstr "Falha ao deletar mensagem"
 msgid "Failed to unarchive message"
 msgstr "Falha ao desarquivar mensagem"
 
-#: lib/lanttern_web/live/pages/school/message_board/archive/archived_messages_live.html.heex:58
-#: lib/lanttern_web/live/pages/school/message_board_component.ex:91
+#: lib/lanttern_web/live/pages/school/message_board/archive/archived_messages_live.html.heex:62
+#: lib/lanttern_web/live/pages/school/message_board_component.ex:90
 #, elixir-autogen, elixir-format
 msgid "Filter messages by class"
 msgstr "Filtrar mensagens por turma"
@@ -4489,7 +4489,7 @@ msgstr "Home"
 msgid "Invalid message"
 msgstr "Mensagem inválida"
 
-#: lib/lanttern_web/live/pages/school/message_board_component.ex:124
+#: lib/lanttern_web/live/pages/school/message_board_component.ex:123
 #, elixir-autogen, elixir-format
 msgid "Message archived successfully"
 msgstr "Mensagem arquivada com sucesso"
@@ -4500,7 +4500,7 @@ msgstr "Mensagem arquivada com sucesso"
 msgid "Message board"
 msgstr "Quadro de mensagens"
 
-#: lib/lanttern_web/live/pages/school/message_board_component.ex:122
+#: lib/lanttern_web/live/pages/school/message_board_component.ex:121
 #, elixir-autogen, elixir-format
 msgid "Message created successfully"
 msgstr "Mensagem criada com sucesso"
@@ -4510,28 +4510,23 @@ msgstr "Mensagem criada com sucesso"
 msgid "Message title"
 msgstr "Título da mensagem"
 
-#: lib/lanttern_web/live/pages/school/message_board_component.ex:123
+#: lib/lanttern_web/live/pages/school/message_board_component.ex:122
 #, elixir-autogen, elixir-format
 msgid "Message updated successfully"
 msgstr "Mensagem atualizada com sucesso"
 
-#: lib/lanttern_web/live/pages/school/message_board_component.ex:61
-#, elixir-autogen, elixir-format
-msgid "Messages in the school message board are shared with all students and families."
-msgstr "Mensagens no quadro de mensagens da escola são compartilhadas com todos os estudantes e famílias."
-
 #: lib/lanttern_web/live/pages/school/message_board_component.ex:55
-#: lib/lanttern_web/live/pages/school/message_board_component.ex:192
+#: lib/lanttern_web/live/pages/school/message_board_component.ex:191
 #, elixir-autogen, elixir-format
 msgid "New message"
 msgstr "Nova mensagem"
 
-#: lib/lanttern_web/live/pages/school/message_board/archive/archived_messages_live.html.heex:32
+#: lib/lanttern_web/live/pages/school/message_board/archive/archived_messages_live.html.heex:36
 #, elixir-autogen, elixir-format
 msgid "No archived messages matching current filter found"
 msgstr "Nenhuma mensagem arquivada correspondente aos filtros selecionados"
 
-#: lib/lanttern_web/live/pages/school/message_board_component.ex:69
+#: lib/lanttern_web/live/pages/school/message_board_component.ex:68
 #, elixir-autogen, elixir-format
 msgid "No messages matching current filters created yet"
 msgstr "Nenhuma mensagem correspondente aos filtros selecionados"
@@ -4626,3 +4621,13 @@ msgstr "Nenhuma mensagem arquivada"
 #, elixir-autogen, elixir-format
 msgid "No messages"
 msgstr "Nenhuma mensagem"
+
+#: lib/lanttern_web/live/pages/school/message_board/archive/archived_messages_live.html.heex:30
+#, elixir-autogen, elixir-format
+msgid "Archived messages are not visible to students and guardians."
+msgstr "Mensagens arquivadas não são visíveis para estudantes e responsáveis."
+
+#: lib/lanttern_web/live/pages/school/message_board_component.ex:61
+#, elixir-autogen, elixir-format
+msgid "Messages in the school message board are displayed in students and guardians home page."
+msgstr "Mensagens no quadro de mensagens da escola são exibidas na home de estudantes e responsáveis."

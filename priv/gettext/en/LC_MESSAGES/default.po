@@ -4450,7 +4450,7 @@ msgstr ""
 msgid "At least 1 class is required"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/message_board_component.ex:202
+#: lib/lanttern_web/live/pages/school/message_board_component.ex:201
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Edit message"
 msgstr ""
@@ -4471,8 +4471,8 @@ msgstr ""
 msgid "Failed to unarchive message"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/message_board/archive/archived_messages_live.html.heex:58
-#: lib/lanttern_web/live/pages/school/message_board_component.ex:91
+#: lib/lanttern_web/live/pages/school/message_board/archive/archived_messages_live.html.heex:62
+#: lib/lanttern_web/live/pages/school/message_board_component.ex:90
 #, elixir-autogen, elixir-format
 msgid "Filter messages by class"
 msgstr ""
@@ -4489,7 +4489,7 @@ msgstr ""
 msgid "Invalid message"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/message_board_component.ex:124
+#: lib/lanttern_web/live/pages/school/message_board_component.ex:123
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Message archived successfully"
 msgstr ""
@@ -4500,7 +4500,7 @@ msgstr ""
 msgid "Message board"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/message_board_component.ex:122
+#: lib/lanttern_web/live/pages/school/message_board_component.ex:121
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Message created successfully"
 msgstr ""
@@ -4510,28 +4510,23 @@ msgstr ""
 msgid "Message title"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/message_board_component.ex:123
+#: lib/lanttern_web/live/pages/school/message_board_component.ex:122
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Message updated successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/message_board_component.ex:61
-#, elixir-autogen, elixir-format
-msgid "Messages in the school message board are shared with all students and families."
-msgstr ""
-
 #: lib/lanttern_web/live/pages/school/message_board_component.ex:55
-#: lib/lanttern_web/live/pages/school/message_board_component.ex:192
+#: lib/lanttern_web/live/pages/school/message_board_component.ex:191
 #, elixir-autogen, elixir-format, fuzzy
 msgid "New message"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/message_board/archive/archived_messages_live.html.heex:32
+#: lib/lanttern_web/live/pages/school/message_board/archive/archived_messages_live.html.heex:36
 #, elixir-autogen, elixir-format
 msgid "No archived messages matching current filter found"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/message_board_component.ex:69
+#: lib/lanttern_web/live/pages/school/message_board_component.ex:68
 #, elixir-autogen, elixir-format, fuzzy
 msgid "No messages matching current filters created yet"
 msgstr ""
@@ -4625,4 +4620,14 @@ msgstr ""
 #: lib/lanttern_web/live/pages/school/message_board_component.ex:36
 #, elixir-autogen, elixir-format, fuzzy
 msgid "No messages"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/message_board/archive/archived_messages_live.html.heex:30
+#, elixir-autogen, elixir-format
+msgid "Archived messages are not visible to students and guardians."
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/message_board_component.ex:61
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Messages in the school message board are displayed in students and guardians home page."
 msgstr ""

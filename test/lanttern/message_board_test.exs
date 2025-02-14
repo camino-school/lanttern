@@ -46,6 +46,16 @@ defmodule Lanttern.MessageBoardTest do
           classes_ids: [class.id]
         })
 
+      # wait 1 second to test ordering by inserted_at
+      Process.sleep(1000)
+
+      # school messages should be included in the list
+      school_message =
+        message_fixture(%{
+          send_to: "school",
+          school_id: class.school_id
+        })
+
       # other fixtures for filtering assertion
       another_class = SchoolsFixtures.class_fixture(%{school_id: class.school_id})
 
@@ -57,8 +67,11 @@ defmodule Lanttern.MessageBoardTest do
 
       message_fixture()
 
-      assert [expected] = MessageBoard.list_messages(classes_ids: [class.id])
-      assert expected.id == message.id
+      assert [expected_message, expected_school_message] =
+               MessageBoard.list_messages(school_id: class.school_id, classes_ids: [class.id])
+
+      assert expected_message.id == message.id
+      assert expected_school_message.id == school_message.id
     end
 
     test "list_student_messages/1 returns all messages relevant to the student" do

@@ -59,10 +59,9 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponent do
         <p class="flex items-center gap-2">
           <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
           <%= gettext(
-            "Messages in the school message board are shared with all students and families."
+            "Messages in the school message board are displayed in students and guardians home page."
           ) %>
         </p>
-
         <%= if @messages_count == 0 do %>
           <.card_base class="p-10 mt-4">
             <.empty_state>

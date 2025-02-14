@@ -25,14 +25,16 @@
   </p>
 </.action_bar>
 <.responsive_container class="p-4">
+  <p class="flex items-center gap-2">
+    <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+    <%= gettext("Archived messages are not visible to students and guardians.") %>
+  </p>
   <%= if @messages_count == 0 do %>
-    <div class="p-4">
-      <.card_base class="p-10">
-        <.empty_state>
-          <%= gettext("No archived messages matching current filter found") %>
-        </.empty_state>
-      </.card_base>
-    </div>
+    <.card_base class="p-10 mt-4">
+      <.empty_state>
+        <%= gettext("No archived messages matching current filter found") %>
+      </.empty_state>
+    </.card_base>
   <% else %>
     <div id="archived-messages-board" phx-update="stream">
       <.message_board_card

@@ -18,7 +18,7 @@ defmodule Lanttern.MessageBoard do
 
   - `:archived` - boolean, if true, returns only archived messages
   - `:school_id` - filters messages by school id
-  - `:classes_ids` - filters messages by given classes
+  - `:classes_ids` - filters messages sent to given classes OR to the school. Requires `school_id`.
   - `:preloads` - preloads associated data
 
   ## Examples
@@ -30,7 +30,7 @@ defmodule Lanttern.MessageBoard do
   def list_messages(opts \\ []) do
     from(
       m in Message,
-      order_by: [desc: m.inserted_at]
+      distinct: [desc: m.inserted_at, desc: m.id]
     )
     |> apply_list_messages_opts(opts)
     |> filter_archived(Keyword.get(opts, :archived))
@@ -41,20 +41,21 @@ defmodule Lanttern.MessageBoard do
   defp apply_list_messages_opts(queryable, []), do: queryable
 
   defp apply_list_messages_opts(queryable, [{:school_id, school_id} | opts]) do
-    from(
-      m in queryable,
-      where: m.school_id == ^school_id
-    )
-    |> apply_list_messages_opts(opts)
-  end
+    case Keyword.get(opts, :classes_ids) do
+      classes_ids when is_list(classes_ids) and classes_ids != [] ->
+        from(
+          m in queryable,
+          left_join: mc in assoc(m, :message_classes),
+          where:
+            (m.send_to == "school" and m.school_id == ^school_id) or mc.class_id in ^classes_ids
+        )
 
-  defp apply_list_messages_opts(queryable, [{:classes_ids, classes_ids} | opts])
-       when is_list(classes_ids) and classes_ids != [] do
-    from(
-      m in queryable,
-      join: mc in assoc(m, :message_classes),
-      where: mc.class_id in ^classes_ids
-    )
+      _ ->
+        from(
+          m in queryable,
+          where: m.school_id == ^school_id
+        )
+    end
     |> apply_list_messages_opts(opts)
   end
 
