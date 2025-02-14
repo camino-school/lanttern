@@ -156,7 +156,7 @@ defmodule LantternWeb.MenuComponent do
             <ul class="font-bold text-lg text-ltrn-subtle leading-loose">
               <li :if={@current_user.current_profile.type == "staff"}>
                 <.link
-                  href={~p"/school/staff/#{@current_user.current_profile.staff_member}"}
+                  href={~p"/school/staff/#{@current_user.current_profile.staff_member_id}"}
                   class="flex items-center gap-2 hover:text-ltrn-dark"
                 >
                   <%= gettext("My area") %>
@@ -371,10 +371,13 @@ defmodule LantternWeb.MenuComponent do
     LantternWeb.GradesReportLive => :grades_reports,
 
     # guardian home
-    LantternWeb.GuardianHomeLive => :student_report_card,
+    LantternWeb.GuardianHomeLive => :home,
 
     # student home
-    LantternWeb.StudentHomeLive => :student_report_card,
+    LantternWeb.StudentHomeLive => :home,
+
+    # student report cards
+    LantternWeb.StudentReportCardsLive => :student_report_card,
 
     # student report card
     LantternWeb.StudentReportCardLive => :student_report_card,
@@ -454,8 +457,14 @@ defmodule LantternWeb.MenuComponent do
       # student
       %{
         profile: "student",
-        active: :student_report_card,
+        active: :home,
         path: ~p"/student",
+        text: gettext("Home")
+      },
+      %{
+        profile: "student",
+        active: :student_report_card,
+        path: ~p"/student_report_cards",
         text: gettext("Report cards")
       },
       %{
@@ -467,8 +476,14 @@ defmodule LantternWeb.MenuComponent do
       # guardian
       %{
         profile: "guardian",
-        active: :student_report_card,
+        active: :home,
         path: ~p"/guardian",
+        text: gettext("Home")
+      },
+      %{
+        profile: "guardian",
+        active: :student_report_card,
+        path: ~p"/student_report_cards",
         text: gettext("Report cards")
       },
       %{

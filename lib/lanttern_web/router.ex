@@ -68,6 +68,7 @@ defmodule LantternWeb.Router do
       live "/school/classes", SchoolLive, :manage_classes
       live "/school/staff", SchoolLive, :manage_staff
       live "/school/cycles", SchoolLive, :manage_cycles
+      live "/school/message_board", SchoolLive, :message_board
       live "/school/moment_cards_templates", SchoolLive, :manage_moment_cards_templates
 
       live "/school/students/deactivated", DeactivatedStudentsLive, :index
@@ -79,6 +80,8 @@ defmodule LantternWeb.Router do
       live "/school/staff/deactivated", DeactivatedStaffLive, :index
       live "/school/staff/:id", StaffMemberLive, :show
       live "/school/staff/:id/students_records", StaffMemberLive, :students_records
+
+      live "/school/message_board/archive", ArchivedMessagesLive, :index
 
       live "/assessment_points/:id", AssessmentPointLive, :show
       live "/assessment_points/:id/edit", AssessmentPointLive, :edit
@@ -158,10 +161,8 @@ defmodule LantternWeb.Router do
         {LantternWeb.UserAuth, :ensure_authenticated_student_or_guardian},
         {LantternWeb.Path, :put_path_in_socket}
       ] do
-      live "/strand_report/:strand_report_id",
-           StudentStrandReportLive,
-           :show
-
+      live "/student_report_cards", StudentReportCardsLive, :index
+      live "/strand_report/:strand_report_id", StudentStrandReportLive, :show
       live "/student_strands", StudentStrandsLive
     end
 
@@ -171,9 +172,9 @@ defmodule LantternWeb.Router do
         {LantternWeb.UserAuth, :ensure_authenticated},
         {LantternWeb.Path, :put_path_in_socket}
       ] do
-      live "/student_report_card/:id", StudentReportCardLive, :show
+      live "/student_report_cards/:id", StudentReportCardLive, :show
 
-      live "/student_report_card/:student_report_card_id/strand_report/:strand_report_id",
+      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id",
            StudentReportCardStrandReportLive,
            :show
     end

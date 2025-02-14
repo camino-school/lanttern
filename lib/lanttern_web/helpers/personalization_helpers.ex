@@ -9,7 +9,8 @@ defmodule LantternWeb.PersonalizationHelpers do
   @permission_to_option_map %{
     "students_records_full_access" => "Students records full access",
     "school_management" => "School management",
-    "content_management" => "Content management"
+    "content_management" => "Content management",
+    "communication_management" => "Communication management"
   }
 
   @doc """

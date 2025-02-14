@@ -201,7 +201,9 @@ defmodule Lanttern.StudentsRecordsTest do
 
       profile = %Profile{
         permissions: [],
-        student: student
+        type: "student",
+        school_id: school.id,
+        student_id: student.id
       }
 
       assert StudentsRecords.list_students_records(check_profile_permissions: profile) == []
@@ -211,7 +213,9 @@ defmodule Lanttern.StudentsRecordsTest do
 
       profile = %Profile{
         permissions: [],
-        staff_member: staff_member
+        type: "staff",
+        school_id: staff_member.school_id,
+        staff_member_id: staff_member.id
       }
 
       assert StudentsRecords.list_students_records(check_profile_permissions: profile) == []
@@ -221,7 +225,9 @@ defmodule Lanttern.StudentsRecordsTest do
 
       profile = %Profile{
         permissions: ["students_records_full_access"],
-        staff_member: staff_member
+        type: "staff",
+        school_id: staff_member.school_id,
+        staff_member_id: staff_member.id
       }
 
       assert StudentsRecords.list_students_records(check_profile_permissions: profile) == []
@@ -231,7 +237,9 @@ defmodule Lanttern.StudentsRecordsTest do
 
       profile = %Profile{
         permissions: [],
-        staff_member: staff_member
+        type: "staff",
+        school_id: staff_member.school_id,
+        staff_member_id: staff_member.id
       }
 
       [expected] = StudentsRecords.list_students_records(check_profile_permissions: profile)
@@ -242,7 +250,9 @@ defmodule Lanttern.StudentsRecordsTest do
 
       profile = %Profile{
         permissions: ["students_records_full_access"],
-        staff_member: staff_member
+        type: "staff",
+        school_id: staff_member.school_id,
+        staff_member_id: staff_member.id
       }
 
       [expected_1, expected_2, expected_3] =
@@ -255,7 +265,9 @@ defmodule Lanttern.StudentsRecordsTest do
       # test owner without permissions
       profile = %Profile{
         permissions: [],
-        staff_member: owner
+        type: "staff",
+        school_id: owner.school_id,
+        staff_member_id: owner.id
       }
 
       [expected_1, expected_2] =
@@ -267,7 +279,9 @@ defmodule Lanttern.StudentsRecordsTest do
       # test assignee without permissions
       profile = %Profile{
         permissions: [],
-        staff_member: assignee
+        type: "staff",
+        school_id: assignee.school_id,
+        staff_member_id: assignee.id
       }
 
       [expected_1, expected_2] =
@@ -380,7 +394,9 @@ defmodule Lanttern.StudentsRecordsTest do
 
       profile = %Profile{
         permissions: [],
-        student: student
+        type: "student",
+        school_id: student.school_id,
+        student_id: student.id
       }
 
       assert StudentsRecords.get_student_record(open_student_record.id,
@@ -400,7 +416,9 @@ defmodule Lanttern.StudentsRecordsTest do
 
       profile = %Profile{
         permissions: [],
-        staff_member: staff_member
+        type: "staff",
+        school_id: staff_member.school_id,
+        staff_member_id: staff_member.id
       }
 
       assert StudentsRecords.get_student_record(open_student_record.id,
@@ -420,7 +438,9 @@ defmodule Lanttern.StudentsRecordsTest do
 
       profile = %Profile{
         permissions: ["students_records_full_access"],
-        staff_member: staff_member
+        type: "staff",
+        school_id: staff_member.school_id,
+        staff_member_id: staff_member.id
       }
 
       assert StudentsRecords.get_student_record(open_student_record.id,
@@ -440,7 +460,9 @@ defmodule Lanttern.StudentsRecordsTest do
 
       profile = %Profile{
         permissions: [],
-        staff_member: staff_member
+        type: "staff",
+        school_id: staff_member.school_id,
+        staff_member_id: staff_member.id
       }
 
       assert %StudentRecord{} =
@@ -461,7 +483,9 @@ defmodule Lanttern.StudentsRecordsTest do
 
       profile = %Profile{
         permissions: ["students_records_full_access"],
-        staff_member: staff_member
+        type: "staff",
+        school_id: staff_member.school_id,
+        staff_member_id: staff_member.id
       }
 
       assert %StudentRecord{} =
@@ -482,7 +506,9 @@ defmodule Lanttern.StudentsRecordsTest do
       # test owner without permissions
       profile = %Profile{
         permissions: [],
-        staff_member: owner
+        type: "staff",
+        school_id: owner.school_id,
+        staff_member_id: owner.id
       }
 
       assert %StudentRecord{} =
@@ -502,7 +528,9 @@ defmodule Lanttern.StudentsRecordsTest do
       # test assignee without permissions
       profile = %Profile{
         permissions: [],
-        staff_member: assignee
+        type: "staff",
+        school_id: assignee.school_id,
+        staff_member_id: assignee.id
       }
 
       assert %StudentRecord{} =
@@ -819,7 +847,9 @@ defmodule Lanttern.StudentsRecordsTest do
 
       profile = %Profile{
         permissions: [],
-        staff_member: staff_member
+        type: "staff",
+        school_id: staff_member.school_id,
+        staff_member_id: staff_member.id
       }
 
       assert {:ok, %StudentRecord{} = student_record} =
@@ -845,7 +875,9 @@ defmodule Lanttern.StudentsRecordsTest do
 
       profile = %Profile{
         permissions: [],
-        staff_member: staff_member
+        type: "staff",
+        school_id: staff_member.school_id,
+        staff_member_id: staff_member.id
       }
 
       assert {:ok, %StudentRecord{} = student_record} =
@@ -868,7 +900,9 @@ defmodule Lanttern.StudentsRecordsTest do
 
       profile = %Profile{
         permissions: ["students_records_full_access"],
-        staff_member: staff_member
+        type: "staff",
+        school_id: staff_member.school_id,
+        staff_member_id: staff_member.id
       }
 
       assert {:ok, %StudentRecord{} = student_record} =
@@ -965,7 +999,9 @@ defmodule Lanttern.StudentsRecordsTest do
 
       profile = %Profile{
         permissions: [],
-        staff_member: staff_member
+        type: "staff",
+        school_id: school.id,
+        staff_member_id: staff_member.id
       }
 
       assert {:ok, %StudentRecord{}} =
@@ -986,7 +1022,9 @@ defmodule Lanttern.StudentsRecordsTest do
 
       profile = %Profile{
         permissions: [],
-        staff_member: staff_member
+        type: "staff",
+        school_id: school.id,
+        staff_member_id: staff_member.id
       }
 
       assert {:error, %Ecto.Changeset{}} =
@@ -1004,7 +1042,9 @@ defmodule Lanttern.StudentsRecordsTest do
 
       profile = %Profile{
         permissions: ["students_records_full_access"],
-        staff_member: staff_member
+        type: "staff",
+        school_id: school.id,
+        staff_member_id: staff_member.id
       }
 
       assert {:ok, %StudentRecord{}} =
@@ -1022,7 +1062,9 @@ defmodule Lanttern.StudentsRecordsTest do
 
       profile = %Profile{
         permissions: ["students_records_full_access"],
-        staff_member: staff_member
+        type: "staff",
+        school_id: staff_member.school_id,
+        staff_member_id: staff_member.id
       }
 
       assert {:error, %Ecto.Changeset{}} =

@@ -20,7 +20,7 @@ defmodule LantternWeb.SchoolLive.StaffComponentTest do
     end
 
     test "allow user with school management permissions to create staff member", context do
-      %{conn: conn} = add_school_management_permissions(context)
+      %{conn: conn} = set_user_permissions(["school_management"], context)
       {:ok, view, _html} = live(conn, "#{@live_view_path}?new=true")
 
       assert view |> has_element?("#staff-member-form-overlay h2", "New staff member")
@@ -35,7 +35,7 @@ defmodule LantternWeb.SchoolLive.StaffComponentTest do
     end
 
     test "allow user with school management permissions to edit staff member", context do
-      %{conn: conn, user: user} = add_school_management_permissions(context)
+      %{conn: conn, user: user} = set_user_permissions(["school_management"], context)
       school_id = user.current_profile.school_id
 
       staff_member =
@@ -61,7 +61,7 @@ defmodule LantternWeb.SchoolLive.StaffComponentTest do
     end
 
     test "prevent user to edit staff member from other schools", context do
-      %{conn: conn} = add_school_management_permissions(context)
+      %{conn: conn} = set_user_permissions(["school_management"], context)
 
       staff_member =
         SchoolsFixtures.staff_member_fixture(%{name: "staff member from other school"})

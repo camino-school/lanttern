@@ -300,7 +300,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         <div class="group relative">
           <a
             class={get_button_styles("ghost")}
-            href={~p"/student_report_card/#{@student_report_card.id}"}
+            href={~p"/student_report_cards/#{@student_report_card.id}"}
             target="_blank"
             data-test-id="preview-button"
           >

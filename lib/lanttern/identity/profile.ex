@@ -20,6 +20,7 @@ defmodule Lanttern.Identity.Profile do
           name: String.t(),
           role: String.t(),
           profile_picture_url: String.t(),
+          deactivated_at: DateTime.t(),
           school_id: pos_integer(),
           school_name: String.t(),
           permissions: [String.t()],
@@ -47,6 +48,7 @@ defmodule Lanttern.Identity.Profile do
     field :name, :string, virtual: true
     field :role, :string, virtual: true
     field :profile_picture_url, :string, virtual: true
+    field :deactivated_at, :utc_datetime, virtual: true
     field :school_id, :id, virtual: true
     field :school_name, :string, virtual: true
     field :permissions, {:array, :string}, virtual: true, default: []

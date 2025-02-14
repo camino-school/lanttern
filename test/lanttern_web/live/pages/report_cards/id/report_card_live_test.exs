@@ -78,7 +78,7 @@ defmodule LantternWeb.ReportCardLiveTest do
       |> element("a[data-test-id='preview-button']")
       |> render_click()
 
-      assert_redirect(view, "/student_report_card/#{student_a_report_card.id}")
+      assert_redirect(view, "/student_report_cards/#{student_a_report_card.id}")
     end
 
     test "list strand reports", %{conn: conn} do

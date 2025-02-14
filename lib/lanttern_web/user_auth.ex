@@ -8,10 +8,8 @@ defmodule LantternWeb.UserAuth do
   import Phoenix.Controller
 
   use Gettext, backend: Lanttern.Gettext
-  alias Lanttern.Personalization
   alias Lanttern.Identity
   alias Lanttern.Identity.User
-  alias Lanttern.Schools
 
   # Make the remember me cookie valid for 60 days.
   # If you want bump or reduce this value, also change
@@ -133,9 +131,8 @@ defmodule LantternWeb.UserAuth do
     case user_token && Identity.get_user_by_session_token(user_token) do
       # when user current profile is a deactivated staff member,
       # remove it from user before moving forward
-      %User{current_profile: %{type: "staff", staff_member: %{deactivated_at: deactivated_at}}} =
-          user
-      when not is_nil(deactivated_at) ->
+      %User{current_profile: %{type: "staff", deactivated_at: %DateTime{}}} =
+          user ->
         {:ok, user} = Identity.update_user_current_profile_id(user, nil)
         Map.put(user, :current_profile, nil)
 
@@ -149,24 +146,11 @@ defmodule LantternWeb.UserAuth do
         conn
         |> log_out_user()
 
-      # when there's no current school cycle in profile at this point
-      # try to set the newest school cycle as current
-      %User{current_profile: %{id: profile_id, school_id: school_id, current_school_cycle: nil}} =
-          user
-      when not is_nil(school_id) ->
-        case Schools.get_newest_parent_cycle_from_school(school_id) do
-          nil ->
-            assign(conn, :current_user, user)
-
-          school_cycle ->
-            Personalization.set_profile_settings(profile_id, %{
-              current_school_cycle_id: school_cycle.id
-            })
-
-            profile = Map.put(user.current_profile, :current_school_cycle, school_cycle)
-            user = Map.put(user, :current_profile, profile)
-            assign(conn, :current_user, user)
-        end
+      # if for some reason we reach this point
+      # without a current school cycle, log out
+      %User{current_profile: %{current_school_cycle: nil}, is_root_admin: false} ->
+        conn
+        |> log_out_user()
 
       user ->
         assign(conn, :current_user, user)

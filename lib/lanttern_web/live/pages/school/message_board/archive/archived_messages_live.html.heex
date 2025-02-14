@@ -1,0 +1,64 @@
+<.header_nav current_user={@current_user}>
+  <:breadcrumb navigate={~p"/school/message_board"}>
+    <%= @current_user.current_profile.school_name %>
+  </:breadcrumb>
+  <:title><%= gettext("Archived messages") %></:title>
+</.header_nav>
+<.action_bar class="flex items-center gap-4">
+  <.action
+    type="button"
+    phx-click={JS.exec("data-show", to: "#message-board-classes-filters-overlay")}
+    icon_name="hero-chevron-down-mini"
+  >
+    <%= format_action_items_text(@selected_classes, gettext("All classes")) %>
+  </.action>
+  <p>
+    <%= if @messages_count == 0 do
+      gettext("No archived messages")
+    else
+      ngettext(
+        "Showing 1 archived message",
+        "Showing %{count} archived messages",
+        @messages_count
+      )
+    end %>
+  </p>
+</.action_bar>
+<.responsive_container class="p-4">
+  <p class="flex items-center gap-2">
+    <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+    <%= gettext("Archived messages are not visible to students and guardians.") %>
+  </p>
+  <%= if @messages_count == 0 do %>
+    <.card_base class="p-10 mt-4">
+      <.empty_state>
+        <%= gettext("No archived messages matching current filter found") %>
+      </.empty_state>
+    </.card_base>
+  <% else %>
+    <div id="archived-messages-board" phx-update="stream">
+      <.message_board_card
+        :for={{dom_id, message} <- @streams.messages}
+        message={message}
+        id={dom_id}
+        show_sent_to
+        class="mt-4"
+        on_unarchive={
+          if @is_communication_manager, do: JS.push("unarchive", value: %{"id" => message.id})
+        }
+        on_delete={
+          if @is_communication_manager, do: JS.push("delete", value: %{"id" => message.id})
+        }
+      />
+    </div>
+  <% end %>
+</.responsive_container>
+<.live_component
+  module={LantternWeb.Filters.ClassesFilterOverlayComponent}
+  id="message-board-classes-filters-overlay"
+  current_user={@current_user}
+  title={gettext("Filter messages by class")}
+  navigate={~p"/school/message_board/archive"}
+  classes={@classes}
+  selected_classes_ids={@selected_classes_ids}
+/>

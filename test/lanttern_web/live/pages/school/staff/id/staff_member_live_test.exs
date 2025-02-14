@@ -27,7 +27,7 @@ defmodule LantternWeb.StaffMemberLiveTest do
 
   describe "Staff member management permissions" do
     test "allow user with school management permissions to edit staff member", context do
-      %{conn: conn, user: user} = add_school_management_permissions(context)
+      %{conn: conn, user: user} = set_user_permissions(["school_management"], context)
       school_id = user.current_profile.school_id
 
       staff_member =
@@ -43,7 +43,7 @@ defmodule LantternWeb.StaffMemberLiveTest do
       user: user
     } do
       {:ok, view, _html} =
-        live(conn, "#{@live_view_base_path}/#{user.current_profile.staff_member.id}?edit=true")
+        live(conn, "#{@live_view_base_path}/#{user.current_profile.staff_member_id}?edit=true")
 
       assert view |> has_element?("#staff-member-form-overlay h2", "Edit staff member")
     end
@@ -120,7 +120,7 @@ defmodule LantternWeb.StaffMemberLiveTest do
     end
 
     test "user with full access can access any record from the school", context do
-      %{conn: conn, user: user} = add_students_records_full_access_permissions(context)
+      %{conn: conn, user: user} = set_user_permissions(["students_records_full_access"], context)
 
       %{school_id: school_id} = user.current_profile
       student = SchoolsFixtures.student_fixture(%{school_id: school_id, name: "std abc"})

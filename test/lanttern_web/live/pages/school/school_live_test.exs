@@ -53,7 +53,7 @@ defmodule LantternWeb.SchoolLiveTest do
 
   describe "Students management permissions" do
     test "allow user with school management permissions to create student", context do
-      %{conn: conn} = add_school_management_permissions(context)
+      %{conn: conn} = set_user_permissions(["school_management"], context)
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/students?new=true")
 
       assert view |> has_element?("#student-form-overlay h2", "New student")
@@ -68,7 +68,7 @@ defmodule LantternWeb.SchoolLiveTest do
 
   describe "Classes management permissions" do
     test "allow user with school management permissions to create class", context do
-      %{conn: conn} = add_school_management_permissions(context)
+      %{conn: conn} = set_user_permissions(["school_management"], context)
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/classes?new=true")
 
       assert view |> has_element?("#class-form-overlay h2", "Create class")
@@ -81,7 +81,7 @@ defmodule LantternWeb.SchoolLiveTest do
     end
 
     test "allow user with school management permissions to edit class", context do
-      %{conn: conn, user: user} = add_school_management_permissions(context)
+      %{conn: conn, user: user} = set_user_permissions(["school_management"], context)
       school_id = user.current_profile.school_id
       class = SchoolsFixtures.class_fixture(%{school_id: school_id, name: "school abc"})
 
@@ -124,7 +124,7 @@ defmodule LantternWeb.SchoolLiveTest do
     end
 
     test "allow user with school management permissions to create cycle", context do
-      %{conn: conn} = add_school_management_permissions(context)
+      %{conn: conn} = set_user_permissions(["school_management"], context)
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/cycles?new=true")
 
       assert view |> has_element?("#cycle-form-overlay h2", "Create cycle")
@@ -137,7 +137,7 @@ defmodule LantternWeb.SchoolLiveTest do
     end
 
     test "allow user with school management permissions to edit cycle", context do
-      %{conn: conn, user: user} = add_school_management_permissions(context)
+      %{conn: conn, user: user} = set_user_permissions(["school_management"], context)
       school_id = user.current_profile.school_id
       cycle = SchoolsFixtures.cycle_fixture(%{school_id: school_id, name: "cycle abc"})
 
@@ -181,7 +181,7 @@ defmodule LantternWeb.SchoolLiveTest do
     end
 
     test "allow user with content management permissions to create template", context do
-      %{conn: conn} = add_content_management_permissions(context)
+      %{conn: conn} = set_user_permissions(["content_management"], context)
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/moment_cards_templates?new=true")
 
       assert view |> has_element?("#moment-card-template-overlay h5", "New moment card template")
@@ -194,7 +194,7 @@ defmodule LantternWeb.SchoolLiveTest do
     end
 
     test "allow user with content management permissions to edit template", context do
-      %{conn: conn, user: user} = add_content_management_permissions(context)
+      %{conn: conn, user: user} = set_user_permissions(["content_management"], context)
       school_id = user.current_profile.school_id
 
       template =

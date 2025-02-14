@@ -14,6 +14,9 @@
       <:tab patch={~p"/school/cycles"} is_current={@live_action == :manage_cycles}>
         <%= gettext("Cycles") %>
       </:tab>
+      <:tab patch={~p"/school/message_board"} is_current={@live_action == :message_board}>
+        <%= gettext("Message board") %>
+      </:tab>
       <:tab
         patch={~p"/school/moment_cards_templates"}
         is_current={@live_action == :manage_moment_cards_templates}
@@ -54,6 +57,14 @@
   current_user={@current_user}
   params={@params}
   is_school_manager={@is_school_manager}
+/>
+<.live_component
+  :if={@live_action == :message_board}
+  module={MessageBoardComponent}
+  id={:message_board}
+  current_user={@current_user}
+  params={@params}
+  is_communication_manager={@is_communication_manager}
 />
 <.live_component
   :if={@live_action == :manage_moment_cards_templates}

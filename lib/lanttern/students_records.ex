@@ -49,7 +49,6 @@ defmodule Lanttern.StudentsRecords do
   alias Lanttern.Repo
 
   alias Lanttern.Identity.Profile
-  alias Lanttern.Schools.StaffMember
   alias Lanttern.StudentsRecords.AssigneeRelationship
   alias Lanttern.StudentsRecords.StudentRecord
   alias Lanttern.StudentsRecords.StudentRecordStatus
@@ -187,8 +186,7 @@ defmodule Lanttern.StudentsRecords do
   end
 
   defp apply_list_students_records_opts(queryable, [
-         {:check_profile_permissions,
-          %Profile{permissions: permissions, staff_member: %StaffMember{}} = profile}
+         {:check_profile_permissions, %Profile{permissions: permissions, type: "staff"} = profile}
          | opts
        ]) do
     queryable
@@ -239,7 +237,7 @@ defmodule Lanttern.StudentsRecords do
 
   defp apply_check_profile_read_permissions(
          queryable,
-         %Profile{staff_member: %StaffMember{school_id: school_id}},
+         %Profile{type: "staff", school_id: school_id},
          true
        ) do
     from(
@@ -250,7 +248,7 @@ defmodule Lanttern.StudentsRecords do
 
   defp apply_check_profile_read_permissions(
          queryable,
-         %Profile{staff_member: %StaffMember{id: staff_member_id, school_id: school_id}},
+         %Profile{type: "staff", staff_member_id: staff_member_id, school_id: school_id},
          false
        ) do
     from(
@@ -351,8 +349,7 @@ defmodule Lanttern.StudentsRecords do
   defp apply_get_student_record_opts(queryable, []), do: queryable
 
   defp apply_get_student_record_opts(queryable, [
-         {:check_profile_permissions,
-          %Profile{permissions: permissions, staff_member: %StaffMember{}} = profile}
+         {:check_profile_permissions, %Profile{permissions: permissions, type: "staff"} = profile}
          | opts
        ]) do
     queryable
@@ -469,12 +466,12 @@ defmodule Lanttern.StudentsRecords do
           boolean()
   def profile_has_student_record_update_permissions?(
         %StudentRecord{school_id: student_record_school_id} = student_record,
-        %Profile{staff_member: %StaffMember{school_id: profile_school_id}} = profile
+        %Profile{type: "staff", school_id: profile_school_id} = profile
       )
       when student_record_school_id == profile_school_id do
     "students_records_full_access" in profile.permissions or
-      student_record.created_by_staff_member_id == profile.staff_member.id or
-      Enum.any?(student_record.assignees, &(&1.id == profile.staff_member.id))
+      student_record.created_by_staff_member_id == profile.staff_member_id or
+      Enum.any?(student_record.assignees, &(&1.id == profile.staff_member_id))
   end
 
   def profile_has_student_record_update_permissions?(_student_record, _profile), do: false
@@ -533,11 +530,11 @@ defmodule Lanttern.StudentsRecords do
           boolean()
   def profile_has_student_record_delete_permissions?(
         %StudentRecord{school_id: student_record_school_id} = student_record,
-        %Profile{staff_member: %StaffMember{school_id: profile_school_id}} = profile
+        %Profile{type: "staff", school_id: profile_school_id} = profile
       )
       when student_record_school_id == profile_school_id do
     "students_records_full_access" in profile.permissions or
-      student_record.created_by_staff_member_id == profile.staff_member.id
+      student_record.created_by_staff_member_id == profile.staff_member_id
   end
 
   def profile_has_student_record_delete_permissions?(_student_record, _profile), do: false

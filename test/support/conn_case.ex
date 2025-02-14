@@ -191,39 +191,12 @@ defmodule LantternWeb.ConnCase do
   end
 
   @doc """
-  Setup helper that adds full students records access permissions to current user profile.
+  Setup helper that adds permissions to current user profile.
   """
-  def add_students_records_full_access_permissions(%{conn: conn, user: user}) do
-    # add students_records_full_access permissions to user
+  def set_user_permissions(permissions, %{conn: conn, user: user}) do
     {:ok, settings} =
       Lanttern.Personalization.set_profile_settings(user.current_profile_id, %{
-        permissions: ["students_records_full_access"]
-      })
-
-    emulate_profile_preload(conn, user, settings)
-  end
-
-  @doc """
-  Setup helper that adds school_management permissions to current user profile.
-  """
-  def add_school_management_permissions(%{conn: conn, user: user}) do
-    # add school_management permissions to user
-    {:ok, settings} =
-      Lanttern.Personalization.set_profile_settings(user.current_profile_id, %{
-        permissions: ["school_management"]
-      })
-
-    emulate_profile_preload(conn, user, settings)
-  end
-
-  @doc """
-  Setup helper that adds content_management permissions to current user profile.
-  """
-  def add_content_management_permissions(%{conn: conn, user: user}) do
-    # add content_management permissions to user
-    {:ok, settings} =
-      Lanttern.Personalization.set_profile_settings(user.current_profile_id, %{
-        permissions: ["content_management"]
+        permissions: permissions
       })
 
     emulate_profile_preload(conn, user, settings)

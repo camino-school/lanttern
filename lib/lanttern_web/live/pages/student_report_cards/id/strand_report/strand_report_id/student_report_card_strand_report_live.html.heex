@@ -6,7 +6,7 @@
   <:top>
     <div class="flex items-center justify-between">
       <.breadcrumbs with_bg>
-        <:item link={~p"/student_report_card/#{@student_report_card}"}>
+        <:item link={~p"/student_report_cards/#{@student_report_card}"}>
           <%= gettext("Student report card") %>
         </:item>
         <:item><%= gettext("Strand report") %></:item>
@@ -17,7 +17,7 @@
   <div class="flex items-center gap-2 mb-6">
     <.icon name="hero-arrow-left" class="shrink-0 w-6 h-6" />
     <.link
-      navigate={~p"/student_report_card/#{@student_report_card}"}
+      navigate={~p"/student_report_cards/#{@student_report_card}"}
       class="font-display font-black text-lg underline"
     >
       <%= @student_report_card.student.name %> (<%= @student_report_card.report_card.name %>)
@@ -46,7 +46,7 @@
     <.nav_tabs id="strand-nav-tabs" class="flex-1 overflow-x-auto">
       <:tab
         patch={
-          ~p"/student_report_card/#{@student_report_card}/strand_report/#{@strand_report}?tab=overview"
+          ~p"/student_report_cards/#{@student_report_card}/strand_report/#{@strand_report}?tab=overview"
         }
         is_current={@current_tab == :overview && "true"}
       >
@@ -54,7 +54,7 @@
       </:tab>
       <:tab
         patch={
-          ~p"/student_report_card/#{@student_report_card}/strand_report/#{@strand_report}?tab=assessment"
+          ~p"/student_report_cards/#{@student_report_card}/strand_report/#{@strand_report}?tab=assessment"
         }
         is_current={@current_tab == :assessment && "true"}
       >
@@ -63,7 +63,7 @@
       <:tab
         :if={@strand_report.has_moments}
         patch={
-          ~p"/student_report_card/#{@student_report_card}/strand_report/#{@strand_report}?tab=moments"
+          ~p"/student_report_cards/#{@student_report_card}/strand_report/#{@strand_report}?tab=moments"
         }
         is_current={@current_tab == :moments && "true"}
       >
@@ -72,7 +72,7 @@
       <:tab
         :if={@note || @is_student}
         patch={
-          ~p"/student_report_card/#{@student_report_card}/strand_report/#{@strand_report}?tab=student_notes"
+          ~p"/student_report_cards/#{@student_report_card}/strand_report/#{@strand_report}?tab=student_notes"
         }
         is_current={@current_tab == :student_notes && "true"}
       >
@@ -99,7 +99,7 @@
     params={@params}
     class="py-10"
     base_path={
-      ~p"/student_report_card/#{@student_report_card.id}/strand_report/#{@strand_report.id}?tab=assessment"
+      ~p"/student_report_cards/#{@student_report_card.id}/strand_report/#{@strand_report.id}?tab=assessment"
     }
     current_profile={@current_user.current_profile}
   />
@@ -113,7 +113,7 @@
     params={@params}
     class="py-10"
     base_path={
-      ~p"/student_report_card/#{@student_report_card.id}/strand_report/#{@strand_report.id}?tab=moments"
+      ~p"/student_report_cards/#{@student_report_card.id}/strand_report/#{@strand_report.id}?tab=moments"
     }
   />
   <div :if={@current_tab == :student_notes} class="py-10">

@@ -9,7 +9,7 @@ defmodule LantternWeb.StudentReportCardLiveTest do
   alias Lanttern.SchoolsFixtures
   alias Lanttern.TaxonomyFixtures
 
-  @live_view_path_base "/student_report_card"
+  @live_view_path_base "/student_report_cards"
 
   setup [:register_and_log_in_staff_member]
 

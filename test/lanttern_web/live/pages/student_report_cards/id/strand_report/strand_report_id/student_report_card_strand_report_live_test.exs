@@ -9,7 +9,7 @@ defmodule LantternWeb.StudentReportCardStrandReportLiveTest do
   alias Lanttern.SchoolsFixtures
   alias Lanttern.TaxonomyFixtures
 
-  @live_view_path_base "/student_report_card"
+  @live_view_path_base "/student_report_cards"
 
   describe "Student strand report live view basic navigation" do
     test "disconnected and connected mount", context do
