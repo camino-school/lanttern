@@ -17,7 +17,7 @@ defmodule LantternWeb.Schools.StudentSearchComponent do
       <div class="relative">
         <.base_input
           id={@id}
-          name="query"
+          name={"#{@id}-query"}
           type="text"
           value=""
           class="peer pr-10"
@@ -87,6 +87,7 @@ defmodule LantternWeb.Schools.StudentSearchComponent do
       socket
       |> assign(:label, nil)
       |> assign(:class, nil)
+      |> assign(:school_id, nil)
       |> assign(:refocus_on_select, "false")
       |> stream(:results, [])
 
@@ -96,11 +97,13 @@ defmodule LantternWeb.Schools.StudentSearchComponent do
   # event handlers
 
   @impl true
-  def handle_event("search", %{"query" => query}, socket) do
-    # search when more than 3 characters were typed
+  def handle_event("search", params, socket) do
+    query = Map.get(params, "#{socket.assigns.id}-query", "")
+    search_opts = if socket.assigns.school_id, do: [school_id: socket.assigns.school_id], else: []
+    # search when 3 or more characters were typed
     results =
-      if String.length(query) > 3,
-        do: Schools.search_students(query),
+      if String.length(query) >= 3,
+        do: Schools.search_students(query, search_opts),
         else: []
 
     results_simplified = Enum.map(results, fn s -> %{id: s.id} end)

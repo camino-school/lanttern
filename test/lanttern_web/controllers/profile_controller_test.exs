@@ -25,12 +25,12 @@ defmodule LantternWeb.ProfileControllerTest do
   describe "create profile" do
     test "redirects to show when data is valid", %{conn: conn} do
       user = user_fixture()
-      teacher = SchoolsFixtures.teacher_fixture()
+      staff_member = SchoolsFixtures.staff_member_fixture()
 
       create_attrs = %{
-        type: "teacher",
+        type: "staff",
         user_id: user.id,
-        teacher_id: teacher.id
+        staff_member_id: staff_member.id
       }
 
       conn = post(conn, ~p"/admin/profiles", profile: create_attrs)

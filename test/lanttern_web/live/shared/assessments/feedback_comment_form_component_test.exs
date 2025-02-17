@@ -11,7 +11,7 @@ defmodule LantternWeb.Assessments.FeedbackCommentFormComponentTest do
   @base_form_selector "#feedback-comment-form"
   @new_comment_form_selector "#{@base_form_selector}-new"
 
-  setup [:register_and_log_in_root_admin, :register_and_log_in_teacher]
+  setup [:register_and_log_in_root_admin, :register_and_log_in_staff_member]
 
   describe "Create feedback comment in assessment points live view" do
     setup :create_assessment_point_with_feedback
@@ -86,12 +86,12 @@ defmodule LantternWeb.Assessments.FeedbackCommentFormComponentTest do
         assessment_point_id: assessment_point.id,
         student_id: student.id
       })
-      |> Repo.preload(profile: :teacher)
+      |> Repo.preload(profile: :staff_member)
 
     %{
       assessment_point: assessment_point,
       student: student,
-      teacher: feedback.profile.teacher,
+      staff_member: feedback.profile.staff_member,
       feedback: feedback
     }
   end

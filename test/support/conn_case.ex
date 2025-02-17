@@ -40,12 +40,12 @@ defmodule LantternWeb.ConnCase do
   @doc """
   Setup helper that registers and logs in users.
 
-      setup :register_and_log_in_teacher
+      setup :register_and_log_in_staff_member
 
-  It stores an updated connection and a registered user and teacher in the test context.
+  It stores an updated connection and a registered user and staff member in the test context.
   """
-  def register_and_log_in_teacher(%{conn: conn} = context) do
-    # use existing context user. useful to register a teacher root admin
+  def register_and_log_in_staff_member(%{conn: conn} = context) do
+    # use existing context user. useful to register a staff member root admin
     user =
       case context do
         %{user: user} -> user
@@ -56,12 +56,12 @@ defmodule LantternWeb.ConnCase do
     {:ok, user} = Lanttern.Identity.update_user_privacy_policy_accepted(user, "some meta")
 
     # logged in users should always have a current_profile
-    teacher = Lanttern.SchoolsFixtures.teacher_fixture()
+    staff_member = Lanttern.SchoolsFixtures.staff_member_fixture()
 
     profile =
-      Lanttern.IdentityFixtures.teacher_profile_fixture(%{
+      Lanttern.IdentityFixtures.staff_member_profile_fixture(%{
         user_id: user.id,
-        teacher_id: teacher.id
+        staff_member_id: staff_member.id
       })
 
     Lanttern.Identity.update_user_current_profile_id(user, profile.id)
@@ -69,20 +69,21 @@ defmodule LantternWeb.ConnCase do
     # emulate Identity.get_user_by_session_token/1 to preload profile into user
     user =
       Lanttern.Identity.get_user!(user.id)
-      |> Lanttern.Repo.preload(current_profile: [teacher: :school])
+      |> Lanttern.Repo.preload(current_profile: [staff_member: :school])
       |> Map.update!(:current_profile, fn profile ->
         %Lanttern.Identity.Profile{
-          id: profile.id,
-          name: profile.teacher.name,
-          type: "teacher",
-          school_id: profile.teacher.school.id,
-          school_name: profile.teacher.school.name
+          profile
+          | name: profile.staff_member.name,
+            school_id: profile.staff_member.school.id,
+            school_name: profile.staff_member.school.name,
+            role: profile.staff_member.role,
+            profile_picture_url: profile.staff_member.profile_picture_url
         }
       end)
       # profile should always have a current school cycle
       |> inject_current_school_cycle()
 
-    %{conn: log_in_user(conn, user), user: user, teacher: teacher}
+    %{conn: log_in_user(conn, user), user: user, staff_member: staff_member}
   end
 
   @doc """
@@ -112,11 +113,10 @@ defmodule LantternWeb.ConnCase do
       |> Lanttern.Repo.preload(current_profile: [student: :school])
       |> Map.update!(:current_profile, fn profile ->
         %Lanttern.Identity.Profile{
-          id: profile.id,
-          name: profile.student.name,
-          type: "student",
-          school_id: profile.student.school.id,
-          school_name: profile.student.school.name
+          profile
+          | name: profile.student.name,
+            school_id: profile.student.school.id,
+            school_name: profile.student.school.name
         }
       end)
       # profile should always have a current school cycle
@@ -152,11 +152,10 @@ defmodule LantternWeb.ConnCase do
       |> Lanttern.Repo.preload(current_profile: [guardian_of_student: :school])
       |> Map.update!(:current_profile, fn profile ->
         %Lanttern.Identity.Profile{
-          id: profile.id,
-          name: profile.guardian_of_student.name,
-          type: "guardian",
-          school_id: profile.guardian_of_student.school.id,
-          school_name: profile.guardian_of_student.school.name
+          profile
+          | name: profile.guardian_of_student.name,
+            school_id: profile.guardian_of_student.school.id,
+            school_name: profile.guardian_of_student.school.name
         }
       end)
       # profile should always have a current school cycle
@@ -192,39 +191,12 @@ defmodule LantternWeb.ConnCase do
   end
 
   @doc """
-  Setup helper that adds wcd permissions to current user profile.
+  Setup helper that adds permissions to current user profile.
   """
-  def add_wcd_permissions(%{conn: conn, user: user}) do
-    # add wcd permissions to user
+  def set_user_permissions(permissions, %{conn: conn, user: user}) do
     {:ok, settings} =
       Lanttern.Personalization.set_profile_settings(user.current_profile_id, %{
-        permissions: ["wcd"]
-      })
-
-    emulate_profile_preload(conn, user, settings)
-  end
-
-  @doc """
-  Setup helper that adds school_management permissions to current user profile.
-  """
-  def add_school_management_permissions(%{conn: conn, user: user}) do
-    # add school_management permissions to user
-    {:ok, settings} =
-      Lanttern.Personalization.set_profile_settings(user.current_profile_id, %{
-        permissions: ["school_management"]
-      })
-
-    emulate_profile_preload(conn, user, settings)
-  end
-
-  @doc """
-  Setup helper that adds content_management permissions to current user profile.
-  """
-  def add_content_management_permissions(%{conn: conn, user: user}) do
-    # add content_management permissions to user
-    {:ok, settings} =
-      Lanttern.Personalization.set_profile_settings(user.current_profile_id, %{
-        permissions: ["content_management"]
+        permissions: permissions
       })
 
     emulate_profile_preload(conn, user, settings)

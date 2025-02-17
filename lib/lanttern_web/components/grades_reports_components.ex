@@ -802,10 +802,11 @@ defmodule LantternWeb.GradesReportsComponents do
           style={@grid_column_style}
         >
           <div class="sticky left-0 z-10 flex items-center gap-2 px-2 py-4 bg-white">
-            <.profile_icon_with_name
-              icon_size="sm"
+            <.profile_picture_with_name
+              picture_size="sm"
               class="flex-1"
               profile_name={student.name}
+              picture_url={student.profile_picture_url}
               extra_info={student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
               navigate={@student_navigate && @student_navigate.(student)}
             />
@@ -910,7 +911,7 @@ defmodule LantternWeb.GradesReportsComponents do
         <.icon
           :if={@entry.comment}
           name="hero-chat-bubble-oval-left-mini"
-          class="text-ltrn-teacher-accent"
+          class="text-ltrn-staff-accent"
         />
         <.icon_button
           :if={@on_calculate_cell}
@@ -955,7 +956,7 @@ defmodule LantternWeb.GradesReportsComponents do
          _
        )
        when score != composition_score,
-       do: "p-1 border border-ltrn-teacher-accent bg-ltrn-teacher-lightest"
+       do: "p-1 border border-ltrn-staff-accent bg-ltrn-staff-lightest"
 
   defp get_students_grades_grid_cell_wrapper_class(
          %{
@@ -965,7 +966,7 @@ defmodule LantternWeb.GradesReportsComponents do
          _
        )
        when ordinal_value_id != composition_ordinal_value_id,
-       do: "p-1 border border-ltrn-teacher-accent bg-ltrn-teacher-lightest"
+       do: "p-1 border border-ltrn-staff-accent bg-ltrn-staff-lightest"
 
   defp get_students_grades_grid_cell_wrapper_class(%{comment: comment}, _)
        when is_binary(comment),

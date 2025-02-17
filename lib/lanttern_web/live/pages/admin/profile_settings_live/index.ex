@@ -8,8 +8,8 @@ defmodule LantternWeb.Admin.ProfileSettingsLive.Index do
   @impl true
   def mount(_params, _session, socket) do
     profiles =
-      Identity.list_profiles(type: "teacher", preloads: [:teacher, :settings])
-      |> Enum.map(&%{&1 | name: &1.teacher.name})
+      Identity.list_profiles(type: "staff", preloads: [:staff_member, :settings])
+      |> Enum.map(&%{&1 | name: &1.staff_member.name})
 
     {:ok, stream(socket, :profiles, profiles)}
   end
@@ -42,9 +42,9 @@ defmodule LantternWeb.Admin.ProfileSettingsLive.Index do
       ) do
     profile =
       profile_setting.profile_id
-      |> Identity.get_profile!(preloads: [:teacher, :settings])
+      |> Identity.get_profile!(preloads: [:staff_member, :settings])
 
-    profile = %{profile | name: profile.teacher.name}
+    profile = %{profile | name: profile.staff_member.name}
 
     {:noreply, stream_insert(socket, :profiles, profile)}
   end

@@ -48,17 +48,30 @@ defmodule LantternWeb.FiltersHelpers do
   - `:selected_students`
   - `:selected_students_ids`
 
-  ### `:student_record_types` assigns
+  ### `:student_record_tags` assigns
 
-  - `:student_record_types` (filtered by user school)
-  - `:selected_student_record_types`
-  - `:selected_student_record_types_ids`
+  - `:student_record_tags` (filtered by user school)
+  - `:selected_student_record_tags`
+  - `:selected_student_record_tags_ids`
 
   ### `:student_record_statuses` assigns
 
   - `:student_record_statuses` (filtered by user school)
   - `:selected_student_record_statuses`
   - `:selected_student_record_statuses_ids`
+
+  ### `:student_record_assignees` assigns
+
+  - `:selected_student_record_assignees`
+  - `:selected_student_record_assignees_ids`
+
+  ### `:student_record_view` assigns
+
+  - `:current_student_record_view`
+
+  ### `:student_record_staff_member_view` assigns
+
+  - `:current_student_record_staff_member_view`
 
   ### `:starred_strands`
 
@@ -170,22 +183,22 @@ defmodule LantternWeb.FiltersHelpers do
          socket,
          current_user,
          current_filters,
-         [:student_record_types | filter_types]
+         [:student_record_tags | filter_types]
        ) do
     school_id = current_user.current_profile.school_id
 
-    student_record_types =
-      StudentsRecords.list_student_record_types(school_id: school_id)
+    student_record_tags =
+      StudentsRecords.list_student_record_tags(school_id: school_id)
 
-    selected_student_record_types_ids = Map.get(current_filters, :student_record_types_ids) || []
+    selected_student_record_tags_ids = Map.get(current_filters, :student_record_tags_ids) || []
 
-    selected_student_record_types =
-      Enum.filter(student_record_types, &(&1.id in selected_student_record_types_ids))
+    selected_student_record_tags =
+      Enum.filter(student_record_tags, &(&1.id in selected_student_record_tags_ids))
 
     socket
-    |> assign(:student_record_types, student_record_types)
-    |> assign(:selected_student_record_types_ids, selected_student_record_types_ids)
-    |> assign(:selected_student_record_types, selected_student_record_types)
+    |> assign(:student_record_tags, student_record_tags)
+    |> assign(:selected_student_record_tags_ids, selected_student_record_tags_ids)
+    |> assign(:selected_student_record_tags, selected_student_record_tags)
     |> assign_filter_type(current_user, current_filters, filter_types)
   end
 
@@ -210,6 +223,61 @@ defmodule LantternWeb.FiltersHelpers do
     |> assign(:student_record_statuses, student_record_statuses)
     |> assign(:selected_student_record_statuses_ids, selected_student_record_statuses_ids)
     |> assign(:selected_student_record_statuses, selected_student_record_statuses)
+    |> assign_filter_type(current_user, current_filters, filter_types)
+  end
+
+  defp assign_filter_type(
+         socket,
+         current_user,
+         current_filters,
+         [:student_record_assignees | filter_types]
+       ) do
+    school_id = current_user.current_profile.school_id
+
+    selected_student_record_assignees_ids =
+      Map.get(current_filters, :student_record_assignees_ids) || []
+
+    selected_student_record_assignees =
+      if selected_student_record_assignees_ids == [] do
+        []
+      else
+        Schools.list_staff_members(
+          school_id: school_id,
+          staff_members_ids: selected_student_record_assignees_ids
+        )
+      end
+
+    socket
+    |> assign(:selected_student_record_assignees_ids, selected_student_record_assignees_ids)
+    |> assign(:selected_student_record_assignees, selected_student_record_assignees)
+    |> assign_filter_type(current_user, current_filters, filter_types)
+  end
+
+  defp assign_filter_type(
+         socket,
+         current_user,
+         current_filters,
+         [:student_record_view | filter_types]
+       ) do
+    current_student_record_view =
+      Map.get(current_filters, :student_record_view) || "all"
+
+    socket
+    |> assign(:current_student_record_view, current_student_record_view)
+    |> assign_filter_type(current_user, current_filters, filter_types)
+  end
+
+  defp assign_filter_type(
+         socket,
+         current_user,
+         current_filters,
+         [:student_record_staff_member_view | filter_types]
+       ) do
+    current_student_record_staff_member_view =
+      Map.get(current_filters, :student_record_staff_member_view) || "created_by"
+
+    socket
+    |> assign(:current_student_record_staff_member_view, current_student_record_staff_member_view)
     |> assign_filter_type(current_user, current_filters, filter_types)
   end
 
@@ -255,8 +323,9 @@ defmodule LantternWeb.FiltersHelpers do
     classes: :classes_ids,
     linked_students_classes: :linked_students_classes_ids,
     students: :students_ids,
-    student_record_types: :student_record_types_ids,
+    student_record_tags: :student_record_tags_ids,
     student_record_statuses: :student_record_statuses_ids,
+    student_record_assignees: :student_record_assignees_ids,
     starred_strands: :only_starred_strands,
     student_info: :student_info_cycle_id
   }
@@ -268,8 +337,9 @@ defmodule LantternWeb.FiltersHelpers do
     classes: :selected_classes_ids,
     linked_students_classes: :selected_linked_students_classes_ids,
     students: :selected_students_ids,
-    student_record_types: :selected_student_record_types_ids,
+    student_record_tags: :selected_student_record_tags_ids,
     student_record_statuses: :selected_student_record_statuses_ids,
+    student_record_assignees: :selected_student_record_assignees_ids,
     starred_strands: :only_starred_strands,
     student_info: :student_info_selected_cycle_id
   }
@@ -624,8 +694,9 @@ defmodule LantternWeb.FiltersHelpers do
   - `:years`
   - `:cycles`
   - `:students`
-  - `:student_record_types`
+  - `:student_record_tags`
   - `:student_record_status`
+  - `:student_record_assignees`
   - `:student_info`
 
   ## Examples

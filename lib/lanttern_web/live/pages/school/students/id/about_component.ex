@@ -20,6 +20,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
         selected_cycle_id={@student_info_selected_cycle_id}
         student={@student}
         student_cycle_info={@student_cycle_info}
+        show_deactivated
         on_edit_profile_picture={JS.patch(~p"/school/students/#{@student}?edit_profile_picture=true")}
         on_change_cycle={
           fn cycle_id ->

@@ -54,13 +54,13 @@ defmodule Lanttern.Assessments.Feedback do
       :completion_comment_id
     ])
     |> validate_required([:comment, :profile_id, :student_id, :assessment_point_id])
-    |> validate_profile_is_of_type_teacher()
+    |> validate_profile_is_of_type_staff()
     |> unique_constraint([:assessment_point_id, :student_id],
       message: "Student already has feedback for this assessment point"
     )
   end
 
-  defp validate_profile_is_of_type_teacher(changeset) do
+  defp validate_profile_is_of_type_staff(changeset) do
     case get_change(changeset, :profile_id) do
       nil ->
         changeset
@@ -69,8 +69,8 @@ defmodule Lanttern.Assessments.Feedback do
         profile_id
         |> Lanttern.Identity.get_profile!()
         |> case do
-          %{type: "teacher"} -> changeset
-          _ -> add_error(changeset, :profile_id, "Only teacher profiles allowed")
+          %{type: "staff"} -> changeset
+          _ -> add_error(changeset, :profile_id, "Only staff profiles allowed")
         end
     end
   end

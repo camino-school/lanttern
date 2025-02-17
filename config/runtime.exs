@@ -20,6 +20,9 @@ if System.get_env("PHX_SERVER") do
   config :lanttern, LantternWeb.Endpoint, server: true
 end
 
+config :lanttern,
+  content_security_policy: System.get_env("CONTENT_SECURITY_POLICY")
+
 if config_env() == :prod do
   # https://pspdfkit.com/blog/2022/using-ssl-postgresql-connections-elixir/
 

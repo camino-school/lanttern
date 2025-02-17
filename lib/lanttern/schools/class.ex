@@ -34,6 +34,7 @@ defmodule Lanttern.Schools.Class do
     field :name, :string
     field :students_ids, {:array, :id}, virtual: true
     field :years_ids, {:array, :id}, virtual: true
+    field :active_students_count, :integer, virtual: true
 
     belongs_to :school, School
     belongs_to :cycle, Cycle

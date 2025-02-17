@@ -110,7 +110,7 @@ defmodule Lanttern.LearningContextTest do
     end
 
     test "list_strands/1 with show_starred_for_profile_id returns all strands with is_starred field" do
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
       strand_a = strand_fixture(%{name: "AAA"})
       strand_b = strand_fixture(%{name: "BBB"})
 
@@ -428,7 +428,7 @@ defmodule Lanttern.LearningContextTest do
     end
 
     test "get_strand/2 with show_starred_for_profile_id returns the strand with is_starred field" do
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
       strand = strand_fixture()
 
       # assert without starring
@@ -523,7 +523,7 @@ defmodule Lanttern.LearningContextTest do
     @invalid_attrs %{name: nil, description: nil}
 
     test "list_strands/1 with only_starred opt returns all starred strands ordered alphabetically" do
-      profile = teacher_profile_fixture()
+      profile = staff_member_profile_fixture()
       strand_b = strand_fixture(%{name: "BBB"}) |> Map.put(:is_starred, true)
       strand_a = strand_fixture(%{name: "AAA"}) |> Map.put(:is_starred, true)
 
@@ -542,7 +542,7 @@ defmodule Lanttern.LearningContextTest do
     end
 
     test "list_strands/1 with only_starred, preloads, and filters returns all filtered starred strands with preloaded data" do
-      profile = teacher_profile_fixture()
+      profile = staff_member_profile_fixture()
       subject_1 = subject_fixture()
       subject_2 = subject_fixture()
       year = year_fixture()
@@ -572,7 +572,7 @@ defmodule Lanttern.LearningContextTest do
     end
 
     test "star_strand/2 and unstar_strand/2 functions as expected" do
-      profile = teacher_profile_fixture()
+      profile = staff_member_profile_fixture()
       strand_a = strand_fixture(%{name: "AAA"}) |> Map.put(:is_starred, true)
       strand_b = strand_fixture(%{name: "BBB"}) |> Map.put(:is_starred, true)
 
@@ -794,7 +794,7 @@ defmodule Lanttern.LearningContextTest do
 
     test "list_moment_cards/1 with count_attachments opt returns moment cards with calculated attachments_count field" do
       moment_card = moment_card_fixture()
-      profile = IdentityFixtures.teacher_profile_fixture()
+      profile = IdentityFixtures.staff_member_profile_fixture()
 
       {:ok, _attachment} =
         LearningContext.create_moment_card_attachment(
@@ -815,7 +815,7 @@ defmodule Lanttern.LearningContextTest do
 
     test "get_moment_card/2 with count_attachments opt returns moment card with calculated attachments_count field" do
       moment_card = moment_card_fixture()
-      profile = IdentityFixtures.teacher_profile_fixture()
+      profile = IdentityFixtures.staff_member_profile_fixture()
 
       {:ok, _attachment} =
         LearningContext.create_moment_card_attachment(
@@ -834,7 +834,7 @@ defmodule Lanttern.LearningContextTest do
       moment = moment_fixture()
 
       # profile to test log
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       valid_attrs = %{
         name: "some name",
@@ -878,7 +878,7 @@ defmodule Lanttern.LearningContextTest do
       moment_card = moment_card_fixture()
 
       # profile to test log
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       update_attrs = %{
         name: "some updated name",
@@ -925,7 +925,7 @@ defmodule Lanttern.LearningContextTest do
 
     test "delete_moment_card/1 deletes the moment_card and its linked attachments" do
       moment_card = moment_card_fixture()
-      profile = IdentityFixtures.teacher_profile_fixture()
+      profile = IdentityFixtures.staff_member_profile_fixture()
 
       {:ok, attachment} =
         LearningContext.create_moment_card_attachment(
@@ -961,7 +961,7 @@ defmodule Lanttern.LearningContextTest do
 
     test "toggle_moment_card_attachment_share/1 returns the updated attachment" do
       moment_card = moment_card_fixture()
-      profile = IdentityFixtures.teacher_profile_fixture()
+      profile = IdentityFixtures.staff_member_profile_fixture()
 
       {:ok, attachment} =
         LearningContext.create_moment_card_attachment(

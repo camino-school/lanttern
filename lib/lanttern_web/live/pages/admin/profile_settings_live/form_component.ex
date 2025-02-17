@@ -21,7 +21,7 @@ defmodule LantternWeb.Admin.ProfileSettingsLive.FormComponent do
         phx-submit="save"
       >
         <.input
-          id="wcd-toggle"
+          id="permissions-toggle"
           field={@form[:permissions]}
           type="select"
           multiple

@@ -141,7 +141,7 @@ defmodule LantternWeb.NavigationComponents do
   end
 
   @doc """
-  Renders a student or teacher tab.
+  Renders a student or staff member tab.
 
   ## Examples
 

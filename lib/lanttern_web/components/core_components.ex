@@ -36,14 +36,13 @@ defmodule LantternWeb.CoreComponents do
   attr :icon_name, :string, default: nil
   attr :patch, :string, default: nil, doc: "use with type=\"link\""
   attr :navigate, :string, default: nil, doc: "use with type=\"link\""
-  attr :show_loading_spinner, :boolean, default: false
-  attr :rest, :global, include: ~w(disabled)
+  attr :rest, :global, include: ~w(disabled form)
 
   slot :inner_block, required: true
 
   def action(%{type: "link"} = assigns) do
     ~H"""
-    <.link patch={@patch} navigate={@navigate} class={[action_styles(@theme, @size), @class]}>
+    <.link patch={@patch} navigate={@navigate} class={[action_styles(@theme, @size), @class]} {@rest}>
       <div class={action_bg_styles(@theme, @size)}></div>
       <span class="relative truncate"><%= render_slot(@inner_block) %></span>
       <.icon :if={@icon_name} name={@icon_name} class={action_icon_styles(@size)} />
@@ -60,16 +59,11 @@ defmodule LantternWeb.CoreComponents do
         :if={@icon_name}
         name={@icon_name}
         class={[
-          if(@show_loading_spinner,
-            do: "group-phx-submit-loading:hidden group-phx-click-loading:hidden"
-          ),
+          "group-phx-submit-loading:hidden group-phx-click-loading:hidden",
           action_icon_styles(@size)
         ]}
       />
-      <.spinner
-        :if={@show_loading_spinner}
-        class="hidden group-phx-submit-loading:block group-phx-click-loading:block"
-      />
+      <.spinner class="hidden group-phx-submit-loading:block group-phx-click-loading:block" />
     </button>
     """
   end
@@ -79,7 +73,8 @@ defmodule LantternWeb.CoreComponents do
     "subtle" => "text-ltrn-subtle hover:text-ltrn-dark",
     "primary" => "text-ltrn-dark hover:text-ltrn-subtle",
     "student" => "text-ltrn-student-dark hover:text-ltrn-student-dark/80",
-    "teacher" => "text-ltrn-teacher-dark hover:text-ltrn-teacher-dark/80"
+    "staff" => "text-ltrn-staff-dark hover:text-ltrn-staff-dark/80",
+    "alert" => "text-ltrn-subtle hover:text-ltrn-alert-accent"
   }
 
   @action_bg_themes %{
@@ -87,7 +82,8 @@ defmodule LantternWeb.CoreComponents do
     "subtle" => nil,
     "primary" => "bg-ltrn-mesh-primary",
     "student" => "bg-ltrn-student-lightest",
-    "teacher" => "bg-ltrn-teacher-lightest"
+    "staff" => "bg-ltrn-staff-lightest",
+    "alert" => "bg-ltrn-alert-lighter"
   }
 
   @action_sizes %{
@@ -185,6 +181,7 @@ defmodule LantternWeb.CoreComponents do
     doc: "any map with `bg_color` and `text_color` attrs (e.g. ordinal value)"
 
   attr :on_remove, JS, default: nil
+  attr :on_click, JS, default: nil, doc: "will trigger on inner_block click"
   attr :rest, :global
   slot :inner_block, required: true
 
@@ -193,15 +190,24 @@ defmodule LantternWeb.CoreComponents do
     <span
       id={@id}
       class={[
-        "inline-flex items-center rounded-sm px-1 py-1 font-mono font-normal text-xs whitespace-nowrap",
+        "inline-flex items-center rounded-sm px-1 py-1 font-mono font-normal text-xs truncate",
         badge_theme(@theme),
         @class
       ]}
       style={create_color_map_style(@color_map)}
       {@rest}
     >
-      <.icon :if={@icon_name} class={["mr-2", badge_icon_theme(@theme)]} name={@icon_name} />
-      <%= render_slot(@inner_block) %>
+      <.icon
+        :if={@icon_name}
+        class={["w-4 h-4 mr-1", badge_icon_theme(@theme)]}
+        style={create_color_map_text_style(@color_map)}
+        name={@icon_name}
+      />
+      <%= if @on_click do %>
+        <button type="button" phx-click={@on_click}><%= render_slot(@inner_block) %></button>
+      <% else %>
+        <%= render_slot(@inner_block) %>
+      <% end %>
       <button
         :if={@on_remove}
         type="button"
@@ -228,7 +234,7 @@ defmodule LantternWeb.CoreComponents do
     "dark" => "bg-ltrn-dark text-ltrn-lighter",
     "diff" => "bg-ltrn-diff-lighter text-ltrn-diff-dark",
     "student" => "bg-ltrn-student-lighter text-ltrn-student-dark",
-    "teacher" => "bg-ltrn-teacher-lighter text-ltrn-teacher-dark",
+    "staff" => "bg-ltrn-staff-lighter text-ltrn-staff-dark",
     "empty" => "bg-transparent border border-dashed border-ltrn-light text-ltrn-subtle"
   }
 
@@ -240,7 +246,7 @@ defmodule LantternWeb.CoreComponents do
     "dark" => "hover:bg-ltrn-dark/50",
     "diff" => "hover:bg-ltrn-diff-lightest",
     "student" => "hover:bg-ltrn-student-lightest",
-    "teacher" => "hover:bg-ltrn-teacher-lightest"
+    "staff" => "hover:bg-ltrn-staff-lightest"
   }
 
   defp badge_theme(theme, with_hover \\ false) do
@@ -255,7 +261,7 @@ defmodule LantternWeb.CoreComponents do
     "dark" => "text-ltrn-lighter",
     "diff" => "text-ltrn-diff-dark",
     "student" => "text-ltrn-student-dark",
-    "teacher" => "text-ltrn-teacher-dark"
+    "staff" => "text-ltrn-staff-dark"
   }
 
   defp badge_icon_theme(theme),
@@ -525,8 +531,8 @@ defmodule LantternWeb.CoreComponents do
       "bg-ltrn-diff-lightest hover:bg-ltrn-diff-lighter text-ltrn-diff-dark",
       "disabled:opacity-40"
     ],
-    "teacher" => [
-      "bg-ltrn-teacher-lighter text-ltrn-teacher-dark hover:opacity-80",
+    "staff" => [
+      "bg-ltrn-staff-lighter text-ltrn-staff-dark hover:opacity-80",
       "disabled:opacity-40"
     ],
     "student" => [
@@ -552,7 +558,7 @@ defmodule LantternWeb.CoreComponents do
   attr :class, :any, default: nil
 
   attr :bg_class, :any,
-    default: "bg-white",
+    default: nil,
     doc: "we use a separate attr for bg class to prevent clashing with default bg"
 
   attr :id, :string, default: nil
@@ -561,6 +567,9 @@ defmodule LantternWeb.CoreComponents do
   slot :inner_block, required: true
 
   def card_base(assigns) do
+    bg_class = assigns.bg_class || "bg-white"
+    assigns = assign(assigns, :bg_class, bg_class)
+
     ~H"""
     <div id={@id} class={["rounded shadow-xl", @bg_class, @class]} {@rest}>
       <%= render_slot(@inner_block) %>
@@ -984,6 +993,38 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Renders a fluid grid.
+
+  View `<.responsive_grid>` for a version with
+  horizontal scroll in smaller screens.
+  """
+  attr :class, :any, default: nil
+  attr :id, :string, default: nil
+  attr :is_full_width, :boolean, default: false
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def fluid_grid(assigns) do
+    ~H"""
+    <div
+      id={@id}
+      class={[
+        "grid gap-4 mx-auto",
+        "sm:grid-cols-2 lg:grid-cols-3",
+        if(assigns.is_full_width,
+          do: "xl:grid-cols-4 2xl:grid-cols-5",
+          else: "container lg:max-w-5xl"
+        ),
+        @class
+      ]}
+      {@rest}
+    >
+      <%= render_slot(@inner_block) %>
+    </div>
+    """
+  end
+
+  @doc """
   Renders a header with title.
   """
   attr :class, :any, default: nil
@@ -1285,7 +1326,7 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
-  Renders a student or teacher badge.
+  Renders a student or staff member badge.
 
   ## Examples
 
@@ -1326,13 +1367,18 @@ defmodule LantternWeb.CoreComponents do
       title={if @truncate, do: @person.name}
       {@rest}
     >
-      <.profile_icon profile_name={@person.name} size={@profile_icon_size} theme={@theme} />
+      <.profile_picture
+        profile_name={@person.name}
+        picture_url={Map.get(@person, :profile_picture_url)}
+        size={@profile_icon_size}
+        theme="clean"
+      />
       <%= if @navigate do %>
         <.link
           navigate={@navigate}
-          target="_blank"
           class={[
-            "pr-1 font-bold hover:text-ltrn-subtle",
+            "pr-1 font-bold",
+            person_badge_link_theme_style(@theme),
             @text_size,
             @name_w,
             if(@truncate, do: "truncate")
@@ -1363,7 +1409,12 @@ defmodule LantternWeb.CoreComponents do
   end
 
   defp person_badge_theme_style("cyan"), do: "text-ltrn-dark bg-ltrn-mesh-cyan"
+  defp person_badge_theme_style("staff"), do: "text-ltrn-staff-dark bg-ltrn-staff-lighter"
   defp person_badge_theme_style(_subtle), do: "text-ltrn-subtle bg-ltrn-lighter"
+
+  defp person_badge_link_theme_style("cyan"), do: "hover:text-ltrn-subtle"
+  defp person_badge_link_theme_style("staff"), do: "hover:text-ltrn-staff-accent"
+  defp person_badge_link_theme_style(_subtle), do: "hover:text-ltrn-subtle"
 
   @doc """
   Renders a ping.
@@ -1524,9 +1575,49 @@ defmodule LantternWeb.CoreComponents do
   Renders a profile picture.
   """
   attr :picture_url, :string, required: true
-  attr :profile_name, :string, required: true, doc: "render initials when there's no image"
-  attr :size, :string, default: "normal", doc: "xs | sm | md | lg | xl"
+  attr :profile_name, :string, default: nil, doc: "render initials when there's no image"
+  attr :theme, :string, default: "default", doc: "default | clean"
+  attr :size, :string, default: "md", doc: "xs | sm | md | lg | xl | 2xl"
+  attr :on_click, JS, default: nil
   attr :class, :any, default: nil
+
+  def profile_picture(%{picture_url: nil, profile_name: nil} = assigns) do
+    ~H"""
+    <div class={[
+      "relative shrink-0 flex items-center justify-center rounded-full font-display text-center bg-white overflow-hidden",
+      profile_picture_theme_style(@theme),
+      profile_picture_size_style(@size),
+      @class
+    ]}>
+      <.icon name="hero-user" class={["text-ltrn-subtle", profile_picture_icon_size_style(@size)]} />
+    </div>
+    """
+  end
+
+  def profile_picture(%{on_click: %JS{}} = assigns) do
+    picture_url = profile_picture_render_url(assigns.picture_url, assigns.size)
+    assigns = assign(assigns, :picture_url, picture_url)
+
+    ~H"""
+    <button
+      type="button"
+      phx-click={@on_click}
+      class={[
+        "relative shrink-0 flex items-center justify-center rounded-full font-display text-center bg-white overflow-hidden",
+        profile_picture_theme_style(@theme),
+        profile_picture_size_style(@size),
+        @class
+      ]}
+      title={@profile_name}
+    >
+      <%= if @picture_url do %>
+        <img src={@picture_url} class="object-cover w-full h-full" />
+      <% else %>
+        <%= profile_icon_initials(@profile_name) %>
+      <% end %>
+    </button>
+    """
+  end
 
   def profile_picture(assigns) do
     picture_url = profile_picture_render_url(assigns.picture_url, assigns.size)
@@ -1535,7 +1626,8 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div
       class={[
-        "relative shrink-0 flex items-center justify-center rounded-full font-display text-center bg-white overflow-hidden ltrn-bg-profile",
+        "relative shrink-0 flex items-center justify-center rounded-full font-display text-center bg-white overflow-hidden",
+        profile_picture_theme_style(@theme),
         profile_picture_size_style(@size),
         @class
       ]}
@@ -1561,19 +1653,87 @@ defmodule LantternWeb.CoreComponents do
     do: object_url_to_render_url(picture_url, width: 64, height: 64)
 
   defp profile_picture_render_url(picture_url, "lg"),
-    do: object_url_to_render_url(picture_url, width: 256, height: 256)
+    do: object_url_to_render_url(picture_url, width: 160, height: 160)
 
   defp profile_picture_render_url(picture_url, "xl"),
+    do: object_url_to_render_url(picture_url, width: 256, height: 256)
+
+  defp profile_picture_render_url(picture_url, "2xl"),
     do: object_url_to_render_url(picture_url, width: 480, height: 480)
 
   defp profile_picture_render_url(picture_url, _md),
     do: object_url_to_render_url(picture_url, width: 80, height: 80)
 
+  defp profile_picture_theme_style("clean"), do: ""
+  defp profile_picture_theme_style(_default), do: "ltrn-bg-profile"
+
   defp profile_picture_size_style("xs"), do: "w-6 h-6 font-bold text-xs"
   defp profile_picture_size_style("sm"), do: "w-8 h-8 font-bold text-xs"
-  defp profile_picture_size_style("lg"), do: "w-32 h-32 font-black text-4xl"
-  defp profile_picture_size_style("xl"), do: "w-60 h-60 font-black text-6xl"
+  defp profile_picture_size_style("lg"), do: "w-20 h-20 font-black text-2xl"
+  defp profile_picture_size_style("xl"), do: "w-32 h-32 font-black text-4xl"
+  defp profile_picture_size_style("2xl"), do: "w-60 h-60 font-black text-6xl"
   defp profile_picture_size_style(_md), do: "w-10 h-10 font-bold text-sm"
+
+  defp profile_picture_icon_size_style("xs"), do: "w-5 h-5"
+  defp profile_picture_icon_size_style("sm"), do: "w-6 h-6"
+  defp profile_picture_icon_size_style("lg"), do: "w-12 h-12"
+  defp profile_picture_icon_size_style("xl"), do: "w-20 h-20"
+  defp profile_picture_icon_size_style("2xl"), do: "w-32 h-32"
+  defp profile_picture_icon_size_style(_md), do: "w-6 h-6"
+
+  @doc """
+  Renders a profile picture with name.
+  """
+  attr :profile_name, :string, required: true
+  attr :picture_url, :string, default: nil
+  attr :picture_size, :string, default: "md"
+  attr :theme, :string, default: "default", doc: "default | clean"
+  attr :is_deactivated, :boolean, default: false
+  attr :extra_info, :string, default: nil
+  attr :on_click, JS, default: nil
+  attr :navigate, :string, default: nil
+  attr :class, :any, default: nil
+  attr :rest, :global
+
+  def profile_picture_with_name(assigns) do
+    ~H"""
+    <div class={["flex gap-2 items-center text-sm", @class]}>
+      <.profile_picture
+        profile_name={@profile_name}
+        picture_url={@picture_url}
+        theme={@theme}
+        size={@picture_size}
+        on_click={@on_click}
+        {@rest}
+      />
+      <div class="flex-1">
+        <%= if @navigate do %>
+          <.link
+            navigate={@navigate}
+            target="_blank"
+            class={[
+              "font-bold hover:text-ltrn-subtle",
+              if(@extra_info, do: "line-clamp-1", else: "line-clamp-2"),
+              if(@is_deactivated, do: "text-ltrn-subtle")
+            ]}
+          >
+            <%= @profile_name %>
+            <%= if @is_deactivated, do: gettext("(Deactivated)") %>
+          </.link>
+        <% else %>
+          <div class={[
+            if(@extra_info, do: "line-clamp-1", else: "line-clamp-2"),
+            if(@is_deactivated, do: "text-ltrn-subtle")
+          ]}>
+            <%= @profile_name %>
+            <%= if @is_deactivated, do: gettext("(Deactivated)") %>
+          </div>
+        <% end %>
+        <div :if={@extra_info} class="line-clamp-1 text-xs text-ltrn-subtle"><%= @extra_info %></div>
+      </div>
+    </div>
+    """
+  end
 
   @doc """
   Renders a responsive container.
@@ -1599,6 +1759,12 @@ defmodule LantternWeb.CoreComponents do
 
   @doc """
   Renders a responsive grid.
+
+  Will render a horizontal scroll on small screens,
+  and a grid starting on `sm` breakpoint.
+
+  View also `<.fluid_grid>` for an alternative without the
+  horizontal scroll.
   """
   attr :class, :any, default: nil
   attr :id, :string, default: nil
@@ -1709,7 +1875,8 @@ defmodule LantternWeb.CoreComponents do
   @toggle_themes %{
     "default" => "focus:ring-ltrn-primary",
     "diff" => "focus:ring-ltrn-diff-accent",
-    "student" => "focus:ring-ltrn-student-accent"
+    "student" => "focus:ring-ltrn-student-accent",
+    "staff" => "focus:ring-ltrn-staff-accent"
   }
 
   defp toggle_theme(theme),
@@ -1718,7 +1885,8 @@ defmodule LantternWeb.CoreComponents do
   @toggle_enabled_themes %{
     "default" => "bg-ltrn-primary",
     "diff" => "bg-ltrn-diff-accent",
-    "student" => "bg-ltrn-student-accent"
+    "student" => "bg-ltrn-student-accent",
+    "staff" => "bg-ltrn-staff-accent"
   }
 
   defp toggle_enabled_theme(theme),
@@ -1736,6 +1904,7 @@ defmodule LantternWeb.CoreComponents do
   """
   attr :id, :string, default: nil
   attr :class, :any, default: nil
+  attr :bg_class, :any, default: nil, doc: "view `<.card_base>` docs"
   attr :is_move_up_disabled, :boolean, default: false
   attr :on_move_up, JS, required: true
   attr :is_move_down_disabled, :boolean, default: false
@@ -1745,7 +1914,11 @@ defmodule LantternWeb.CoreComponents do
 
   def sortable_card(assigns) do
     ~H"""
-    <div id={@id} class={["flex items-center gap-4 p-4 rounded bg-white shadow-lg", @class]}>
+    <.card_base
+      id={@id}
+      class={["flex items-center gap-4 p-4 rounded shadow-lg", @class]}
+      bg_class={@bg_class}
+    >
       <div class="flex-1 min-w-0">
         <%= render_slot(@inner_block) %>
       </div>
@@ -1771,7 +1944,7 @@ defmodule LantternWeb.CoreComponents do
           phx-click={@on_move_down}
         />
       </div>
-    </div>
+    </.card_base>
     """
   end
 

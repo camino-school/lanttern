@@ -1,5 +1,5 @@
 <.responsive_container class="pt-6 sm:pt-10">
-  <.page_title_with_menu><%= gettext("Welcome!") %></.page_title_with_menu>
+  <.page_title_with_menu><%= gettext("Hello!") %></.page_title_with_menu>
   <.live_component
     module={StudentCycleInfoHeaderComponent}
     id="student-cycle-info-header"
@@ -13,53 +13,37 @@
     }
     class="mt-20"
   />
-  <h3 class="mt-20 font-display font-black text-xl">
-    <%= gettext("%{cycle} report cards", cycle: @current_cycle.name) %>
-  </h3>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-10">
+    <.card_base>
+      <.link navigate={~p"/student_strands"} class="block p-6 hover:text-ltrn-subtle">
+        <.icon name="hero-map" class="w-8 h-8 text-ltrn-subtle" />
+        <div class="mt-4 font-display font-black text-xl">
+          <%= gettext("Explore strands") %>
+        </div>
+      </.link>
+    </.card_base>
+    <.card_base>
+      <.link navigate={~p"/student_report_cards"} class="block p-6 hover:text-ltrn-subtle">
+        <.icon name="hero-map-pin" class="w-8 h-8 text-ltrn-subtle" />
+        <div class="mt-4 font-display font-black text-xl">
+          <%= gettext("View report cards") %>
+        </div>
+      </.link>
+    </.card_base>
+  </div>
 </.responsive_container>
-<%= if @has_student_report_cards do %>
-  <.responsive_grid class="px-6 py-10 sm:px-10">
-    <.report_card_card
-      :for={{dom_id, student_report_card} <- @streams.student_report_cards}
-      id={dom_id}
-      report_card={student_report_card.report_card}
-      navigate={~p"/student_report_card/#{student_report_card}"}
-      year={student_report_card.report_card.year}
-      cycle={student_report_card.report_card.school_cycle}
-      class="shrink-0 w-64 sm:w-auto"
-    />
-  </.responsive_grid>
-<% else %>
-  <.responsive_container class="my-10">
-    <.empty_state class="p-10 rounded bg-white shadow-lg">
-      <%= gettext("No student report cards for selected cycle created yet.") %>
-    </.empty_state>
-  </.responsive_container>
-<% end %>
-<%= if @has_student_report_cards_wip do %>
-  <.responsive_container>
-    <p class="font-display font-black text-xl text-ltrn-subtle">
-      <%= gettext("Report cards under development") %>
-    </p>
-  </.responsive_container>
-  <.responsive_grid class="px-6 py-10 sm:px-10">
-    <.report_card_card
-      :for={{dom_id, student_report_card} <- @streams.student_report_cards_wip}
-      id={dom_id}
-      report_card={student_report_card.report_card}
-      is_wip
-      year={student_report_card.report_card.year}
-      cycle={student_report_card.report_card.school_cycle}
-      class="shrink-0 w-64 sm:w-auto"
-    />
-  </.responsive_grid>
-<% end %>
+<.live_component
+  module={MessageBoardViewerComponent}
+  id="message-board"
+  class="mt-20"
+  current_profile={@current_user.current_profile}
+/>
 <.responsive_container
   :if={@student_cycle_info.shared_info || @student_cycle_info.has_attachments}
-  class="py-10"
+  class="mt-20"
 >
   <h3 class="font-display font-black text-xl">
-    <%= gettext("Additional cycle information") %>
+    <%= gettext("Additional %{cycle} information", cycle: @current_cycle.name) %>
   </h3>
   <.markdown
     :if={@student_cycle_info.shared_info}
@@ -73,7 +57,7 @@
     class="mt-10"
     student_cycle_info_id={@student_cycle_info.id}
     shared_with_student
-    title={gettext("Attachments for current cycle")}
+    title={gettext("%{cycle} attachments", cycle: @current_cycle.name)}
   />
 </.responsive_container>
-<.school_branding_footer school={@school} />
+<.school_branding_footer school={@school} class="mt-20" />

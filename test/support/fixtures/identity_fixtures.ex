@@ -64,18 +64,18 @@ defmodule Lanttern.IdentityFixtures do
   end
 
   @doc """
-  Generate a teacher profile.
+  Generate a staff member profile.
   """
-  def teacher_profile_fixture(attrs \\ %{}) do
+  def staff_member_profile_fixture(attrs \\ %{}) do
     user_id = Map.get(attrs, :user_id) || user_fixture().id
-    teacher_id = Map.get(attrs, :teacher_id) || teacher_fixture().id
+    staff_member_id = Map.get(attrs, :staff_member_id) || staff_member_fixture().id
 
     {:ok, profile} =
       attrs
       |> Enum.into(%{
-        type: "teacher",
+        type: "staff",
         user_id: user_id,
-        teacher_id: teacher_id
+        staff_member_id: staff_member_id
       })
       |> Lanttern.Identity.create_profile()
 
@@ -102,26 +102,29 @@ defmodule Lanttern.IdentityFixtures do
   end
 
   @doc """
-  Generate a teacher user that emulates the `current_user` in socket.
+  Generate a staff member user that emulates the `current_user` in socket.
 
-  Creates the user, profile, and teacher needed to structure the current user.
+  Creates the user, profile, and staff member needed to structure the current user.
   """
-  def current_teacher_user_fixture(attrs \\ %{}, permissions \\ []) do
+  def current_staff_member_user_fixture(attrs \\ %{}, permissions \\ []) do
     user = user_fixture()
-    teacher = teacher_fixture(attrs) |> Lanttern.Repo.preload(:school)
-    teacher_profile = teacher_profile_fixture(%{user_id: user.id, teacher_id: teacher.id})
-    Personalization.set_profile_settings(teacher_profile.id, %{permissions: permissions})
+    staff_member = staff_member_fixture(attrs) |> Lanttern.Repo.preload(:school)
+
+    staff_member_profile =
+      staff_member_profile_fixture(%{user_id: user.id, staff_member_id: staff_member.id})
+
+    Personalization.set_profile_settings(staff_member_profile.id, %{permissions: permissions})
 
     # emulate Identity.get_user_by_session_token/1 to preload profile into user
     user
     |> Map.put(
       :current_profile,
       %Lanttern.Identity.Profile{
-        id: teacher_profile.id,
-        name: teacher.name,
-        type: "teacher",
-        school_id: teacher.school.id,
-        school_name: teacher.school.name,
+        id: staff_member_profile.id,
+        name: staff_member.name,
+        type: "staff",
+        school_id: staff_member.school.id,
+        school_name: staff_member.school.name,
         permissions: permissions
       }
     )
@@ -136,11 +139,11 @@ defmodule Lanttern.IdentityFixtures do
 
   def maybe_gen_profile_id(attrs, foreign_key: foreign_key) do
     case Map.get(attrs, foreign_key) do
-      nil -> teacher_profile_fixture().id
+      nil -> staff_member_profile_fixture().id
       id -> id
     end
   end
 
   def maybe_gen_profile_id(_attrs, _opts),
-    do: teacher_profile_fixture().id
+    do: staff_member_profile_fixture().id
 end

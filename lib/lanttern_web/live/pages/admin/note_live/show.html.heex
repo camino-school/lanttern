@@ -11,8 +11,8 @@
 <.list>
   <:item title="Author">
     <%= case @note.author.type do
-      "teacher" ->
-        "Teacher: #{@note.author.teacher.name}"
+      "staff" ->
+        "Teacher: #{@note.author.staff_member.name}"
 
       "student" ->
         "Student: #{@note.author.student.name}"

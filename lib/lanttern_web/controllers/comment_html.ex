@@ -12,8 +12,8 @@ defmodule LantternWeb.CommentHTML do
 
   def comment_form(assigns)
 
-  def comment_author(%{profile: %{type: "teacher", teacher: teacher}}),
-    do: "Teacher #{teacher.name}"
+  def comment_author(%{profile: %{type: "staff", staff_member: staff_member}}),
+    do: "Staff member #{staff_member.name}"
 
   def comment_author(%{profile: %{type: "student", student: student}}),
     do: "Student #{student.name}"

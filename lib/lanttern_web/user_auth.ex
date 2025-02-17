@@ -8,10 +8,8 @@ defmodule LantternWeb.UserAuth do
   import Phoenix.Controller
 
   use Gettext, backend: Lanttern.Gettext
-  alias Lanttern.Personalization
   alias Lanttern.Identity
   alias Lanttern.Identity.User
-  alias Lanttern.Schools
 
   # Make the remember me cookie valid for 60 days.
   # If you want bump or reduce this value, also change
@@ -59,7 +57,7 @@ defmodule LantternWeb.UserAuth do
 
   defp check_current_profile(%{current_profile_id: nil, is_root_admin: is_root_admin} = user) do
     # if there's no current_profile_id, list profiles and use first result
-    case {Identity.list_profiles(user_id: user.id), is_root_admin} do
+    case {Identity.list_profiles(user_id: user.id, only_active: true), is_root_admin} do
       {[profile | _rest], _} ->
         Identity.update_user_current_profile_id(user, profile.id)
 
@@ -131,34 +129,28 @@ defmodule LantternWeb.UserAuth do
     {user_token, conn} = ensure_user_token(conn)
 
     case user_token && Identity.get_user_by_session_token(user_token) do
+      # when user current profile is a deactivated staff member,
+      # remove it from user before moving forward
+      %User{current_profile: %{type: "staff", deactivated_at: %DateTime{}}} =
+          user ->
+        {:ok, user} = Identity.update_user_current_profile_id(user, nil)
+        Map.put(user, :current_profile, nil)
+
+      user ->
+        user
+    end
+    |> case do
       # if for some reason we reach this point
       # without a user profile, log out
       %User{current_profile: nil, is_root_admin: false} ->
         conn
-        |> put_flash(
-          :error,
-          "There's no profile linked to your user. Check with your Lanttern admin."
-        )
         |> log_out_user()
 
-      # when there's no current school cycle in profile at this point
-      # try to set the newest school cycle as current
-      %User{current_profile: %{id: profile_id, school_id: school_id, current_school_cycle: nil}} =
-          user
-      when not is_nil(school_id) ->
-        case Schools.get_newest_parent_cycle_from_school(school_id) do
-          nil ->
-            assign(conn, :current_user, user)
-
-          school_cycle ->
-            Personalization.set_profile_settings(profile_id, %{
-              current_school_cycle_id: school_cycle.id
-            })
-
-            profile = Map.put(user.current_profile, :current_school_cycle, school_cycle)
-            user = Map.put(user, :current_profile, profile)
-            assign(conn, :current_user, user)
-        end
+      # if for some reason we reach this point
+      # without a current school cycle, log out
+      %User{current_profile: %{current_school_cycle: nil}, is_root_admin: false} ->
+        conn
+        |> log_out_user()
 
       user ->
         assign(conn, :current_user, user)
@@ -245,7 +237,7 @@ defmodule LantternWeb.UserAuth do
 
   Or use the `live_session` of your router to invoke the on_mount callback:
 
-      live_session :authenticated, on_mount: [{LantternWeb.UserAuth, :ensure_authenticated_teacher}] do
+      live_session :authenticated, on_mount: [{LantternWeb.UserAuth, :ensure_authenticated_staff_member}] do
         live "/profile", ProfileLive, :index
       end
   """
@@ -259,10 +251,10 @@ defmodule LantternWeb.UserAuth do
     |> ensure_authenticated()
   end
 
-  def on_mount(:ensure_authenticated_teacher, _params, session, socket) do
+  def on_mount(:ensure_authenticated_staff_member, _params, session, socket) do
     socket
     |> mount_current_user(session)
-    |> ensure_authenticated("teacher")
+    |> ensure_authenticated("staff")
   end
 
   def on_mount(:ensure_authenticated_student, _params, session, socket) do
@@ -342,7 +334,7 @@ defmodule LantternWeb.UserAuth do
 
   defp ensure_authenticated_redirect(socket) do
     case socket.assigns.current_user do
-      %User{current_profile: %{type: "teacher"}} ->
+      %User{current_profile: %{type: "staff"}} ->
         socket =
           socket
           |> Phoenix.LiveView.redirect(to: ~p"/dashboard")

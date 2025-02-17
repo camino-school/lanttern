@@ -6,7 +6,7 @@ defmodule LantternWeb.CommentController do
   alias Lanttern.Conversation.Comment
 
   def index(conn, _params) do
-    comments = Conversation.list_comments(preloads: [profile: [:teacher, :student]])
+    comments = Conversation.list_comments(preloads: [profile: [:staff_member, :student]])
     render(conn, :index, comments: comments)
   end
 
@@ -30,7 +30,7 @@ defmodule LantternWeb.CommentController do
   end
 
   def show(conn, %{"id" => id}) do
-    comment = Conversation.get_comment!(id, preloads: [profile: [:teacher, :student]])
+    comment = Conversation.get_comment!(id, preloads: [profile: [:staff_member, :student]])
     render(conn, :show, comment: comment)
   end
 

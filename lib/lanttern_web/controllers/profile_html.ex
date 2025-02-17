@@ -8,7 +8,7 @@ defmodule LantternWeb.ProfileHTML do
   """
   attr :user_options, :list, required: true
   attr :student_options, :list, required: true
-  attr :teacher_options, :list, required: true
+  attr :staff_member_options, :list, required: true
   attr :changeset, Ecto.Changeset, required: true
   attr :action, :string, required: true
 

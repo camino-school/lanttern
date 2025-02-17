@@ -10,11 +10,11 @@ defmodule LantternWeb.StudentsRecordsHelpers do
 
   ## Examples
 
-      iex> generate_student_record_type_options()
+      iex> generate_student_record_tag_options()
       [{"type name", 1}, ...]
   """
-  def generate_student_record_type_options(opts \\ []) do
-    StudentsRecords.list_student_record_types(opts)
+  def generate_student_record_tag_options(opts \\ []) do
+    StudentsRecords.list_student_record_tags(opts)
     |> Enum.map(fn srt -> {srt.name, srt.id} end)
   end
 

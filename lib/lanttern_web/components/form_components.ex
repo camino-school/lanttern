@@ -312,6 +312,32 @@ defmodule LantternWeb.FormComponents do
   end
 
   @doc """
+  Simple radio input component
+  """
+  attr :field, Phoenix.HTML.FormField, required: true
+  attr :value, :string, required: true
+  attr :label, :string, required: true
+  attr :class, :any, default: nil
+
+  def radio_input(assigns) do
+    ~H"""
+    <div class={["flex items-center gap-2", @class]}>
+      <input
+        id={"#{@value}-#{@field.id}"}
+        name={@field.name}
+        type="radio"
+        value={@value}
+        checked={@field.value == @value}
+        class="relative size-4 appearance-none rounded-full border border-ltrn-light bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-ltrn-primary checked:bg-ltrn-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ltrn-primary disabled:border-ltrn-light disabled:bg-ltrn-lightest disabled:before:bg-ltrn-light forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden"
+      />
+      <label for={"#{@value}-#{@field.id}"} class="block">
+        <%= @label %>
+      </label>
+    </div>
+    """
+  end
+
+  @doc """
   Base select component
   """
   attr :id, :any, default: nil
@@ -658,7 +684,8 @@ defmodule LantternWeb.FormComponents do
   Creates a image upload area for profile picture UI
   """
   attr :current_picture_url, :string, required: true
-  attr :profile_name, :string, required: true
+  attr :profile_name, :string, default: nil
+  attr :is_removing, :boolean, default: false
   attr :upload, :any, required: true, doc: "use it to pass `@uploads.something`"
 
   attr :on_cancel, :any,
@@ -666,8 +693,9 @@ defmodule LantternWeb.FormComponents do
     doc:
       "expects a function that will be called with entry ref as arg. Expects parent to call `cancel_upload/3`"
 
-  attr :on_save, :any, required: true, doc: "function to call on save"
+  attr :on_save, :any, default: nil, doc: "function to call on save"
   attr :on_remove, :any, required: true, doc: "function to call on remove"
+  attr :on_cancel_remove, :any, default: nil, doc: "function to call when canceling a remove"
   attr :class, :any, default: nil
 
   def profile_picture_field(assigns) do
@@ -688,12 +716,11 @@ defmodule LantternWeb.FormComponents do
             <%= gettext("Cancel") %>
           </.action>
           <.action
-            :if={entry.valid?}
+            :if={entry.valid? && @on_save}
             type="button"
             icon_name="hero-check-mini"
             theme="primary"
             phx-click={@on_save.()}
-            show_loading_spinner
           >
             <%= gettext("Save") %>
           </.action>
@@ -701,24 +728,35 @@ defmodule LantternWeb.FormComponents do
       </div>
       <div class={["flex flex-col items-center gap-4", if(@upload.entries != [], do: "hidden")]}>
         <.profile_picture
-          picture_url={@current_picture_url}
+          picture_url={if !@is_removing, do: @current_picture_url}
           profile_name={@profile_name}
-          size="xl"
+          size="2xl"
           class="shadow-xl"
         />
         <div class="flex gap-4">
           <.action
-            :if={@current_picture_url}
+            :if={@current_picture_url && !@is_removing}
             type="button"
             theme="subtle"
             phx-click={@on_remove.()}
-            data-confirm={gettext("Are you sure?")}
+            data-confirm={if @on_save, do: gettext("Are you sure?")}
           >
             <%= gettext("Remove") %>
           </.action>
+          <.action
+            :if={@is_removing && @on_cancel_remove}
+            type="button"
+            theme="subtle"
+            phx-click={@on_cancel_remove.()}
+          >
+            <%= gettext("Cancel remove") %>
+          </.action>
           <label
             for={@upload.ref}
-            class="cursor-pointer hover:text-ltrn-subtle focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
+            class={[
+              "cursor-pointer hover:text-ltrn-subtle focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark",
+              if(@is_removing, do: "hidden")
+            ]}
           >
             <%= gettext("Upload profile picture") %>
             <.live_file_input upload={@upload} class="sr-only" />

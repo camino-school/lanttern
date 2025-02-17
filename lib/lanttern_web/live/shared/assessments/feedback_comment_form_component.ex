@@ -124,7 +124,7 @@ defmodule LantternWeb.Assessments.FeedbackCommentFormComponent do
     feedback_id = socket.assigns.feedback.id
 
     case Conversation.create_feedback_comment(params, feedback_id,
-           preloads: [:completed_feedback, profile: [:teacher, :student]]
+           preloads: [:completed_feedback, profile: [:staff_member, :student]]
          ) do
       {:ok, comment} ->
         notify_parent({:created, comment})

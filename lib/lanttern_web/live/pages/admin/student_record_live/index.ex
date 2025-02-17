@@ -19,7 +19,9 @@ defmodule LantternWeb.Admin.StudentRecordLive.Index do
 
   defp apply_action(socket, :edit, %{"id" => id}) do
     student_record =
-      StudentsRecords.get_student_record!(id, preloads: :students_relationships)
+      StudentsRecords.get_student_record!(id,
+        preloads: [:students_relationships, :tags_relationships]
+      )
       |> put_students_ids()
 
     socket

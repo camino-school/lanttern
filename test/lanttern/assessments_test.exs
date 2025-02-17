@@ -515,7 +515,7 @@ defmodule Lanttern.AssessmentsTest do
       student = Lanttern.SchoolsFixtures.student_fixture()
 
       # profile to test log
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       valid_attrs = %{
         assessment_point_id: assessment_point.id,
@@ -634,7 +634,7 @@ defmodule Lanttern.AssessmentsTest do
       update_attrs = %{observation: "some updated observation"}
 
       # profile to test log
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
                Assessments.update_assessment_point_entry(assessment_point_entry, update_attrs,
@@ -685,7 +685,7 @@ defmodule Lanttern.AssessmentsTest do
       assessment_point_entry = assessment_point_entry_fixture()
 
       # profile to test log
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       assert {:ok, %AssessmentPointEntry{}} =
                Assessments.delete_assessment_point_entry(assessment_point_entry,
@@ -711,7 +711,7 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "delete_assessment_point_entry/2 deletes the note and its linked attachments" do
-      profile = IdentityFixtures.teacher_profile_fixture()
+      profile = IdentityFixtures.staff_member_profile_fixture()
       assessment_point_entry = assessment_point_entry_fixture()
 
       {:ok, attachment_1} =
@@ -799,7 +799,7 @@ defmodule Lanttern.AssessmentsTest do
     test "create_feedback/2 with valid data creates a feedback" do
       assessment_point = assessment_point_fixture()
       student = Lanttern.SchoolsFixtures.student_fixture()
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       valid_attrs = %{
         assessment_point_id: assessment_point.id,
@@ -815,7 +815,7 @@ defmodule Lanttern.AssessmentsTest do
     test "create_feedback/2 with preloads returns created feedback with preloaded data" do
       assessment_point = assessment_point_fixture()
       student = Lanttern.SchoolsFixtures.student_fixture()
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       valid_attrs = %{
         assessment_point_id: assessment_point.id,
@@ -1357,6 +1357,7 @@ defmodule Lanttern.AssessmentsTest do
       class_a: class_a,
       class_b: class_b,
       student_1: student_1,
+      student_1_cycle_info: student_1_cycle_info,
       student_2: student_2,
       student_3: student_3,
       std_1_s_ap_1_ci_1: std_1_s_ap_1_ci_1,
@@ -1410,10 +1411,13 @@ defmodule Lanttern.AssessmentsTest do
                 ]}
              ] =
                Assessments.list_strand_students_entries(strand.id, nil,
-                 classes_ids: [class_a.id, class_b.id]
+                 classes_ids: [class_a.id, class_b.id],
+                 load_profile_picture_from_cycle_id: student_1_cycle_info.cycle_id,
+                 active_students_only: true
                )
 
       assert expected_student_1.id == student_1.id
+      assert expected_student_1.profile_picture_url == student_1_cycle_info.profile_picture_url
       assert expected_std_1_s_ap_1_ci_1.id == std_1_s_ap_1_ci_1.id
       assert expected_std_1_s_ap_1_ci_1.ordinal_value_id == ov_a.id
       assert expected_std_1_s_ap_1_ci_1.is_strand_entry
@@ -1571,7 +1575,8 @@ defmodule Lanttern.AssessmentsTest do
                 ]}
              ] =
                Assessments.list_strand_students_entries(strand.id, "curriculum",
-                 classes_ids: [class_a.id]
+                 classes_ids: [class_a.id],
+                 active_students_only: true
                )
 
       assert expected_student_1.id == student_1.id
@@ -1790,7 +1795,8 @@ defmodule Lanttern.AssessmentsTest do
                 ]}
              ] =
                Assessments.list_strand_students_entries(strand.id, "moment",
-                 classes_ids: [class_a.id]
+                 classes_ids: [class_a.id],
+                 active_students_only: true
                )
 
       assert expected_student_1.id == student_1.id
@@ -1937,6 +1943,7 @@ defmodule Lanttern.AssessmentsTest do
       class_a: class_a,
       class_b: class_b,
       student_1: student_1,
+      student_1_cycle_info: student_1_cycle_info,
       student_2: student_2,
       student_3: student_3,
       std_1_m_1_ap_1_ci_1: std_1_m_1_ap_1_ci_1,
@@ -1980,10 +1987,13 @@ defmodule Lanttern.AssessmentsTest do
                 ]}
              ] =
                Assessments.list_moment_students_entries(moment.id,
-                 classes_ids: [class_a.id, class_b.id]
+                 classes_ids: [class_a.id, class_b.id],
+                 load_profile_picture_from_cycle_id: student_1_cycle_info.cycle_id,
+                 active_students_only: true
                )
 
       assert expected_student_1.id == student_1.id
+      assert expected_student_1.profile_picture_url == student_1_cycle_info.profile_picture_url
       assert expected_std_1_m_1_ap_1_ci_1.id == std_1_m_1_ap_1_ci_1.id
       assert expected_std_1_m_1_ap_1_ci_1.ordinal_value_id == ov_a.id
       assert expected_std_1_m_1_ap_2_ci_2.id == std_1_m_1_ap_2_ci_2.id
@@ -2125,8 +2135,17 @@ defmodule Lanttern.AssessmentsTest do
 
     student_1 =
       Lanttern.SchoolsFixtures.student_fixture(%{
+        school_id: school.id,
         name: "AAA",
         classes_ids: [class_a.id, class_b.id]
+      })
+
+    # create cycle info to test profile picture loading
+    student_1_cycle_info =
+      Lanttern.StudentsCycleInfoFixtures.student_cycle_info_fixture(%{
+        school_id: school.id,
+        student_id: student_1.id,
+        profile_picture_url: "http://example.com/profile_picture.jpg"
       })
 
     student_2 =
@@ -2134,6 +2153,12 @@ defmodule Lanttern.AssessmentsTest do
 
     student_3 =
       Lanttern.SchoolsFixtures.student_fixture(%{name: "CCC", classes_ids: [class_a.id]})
+
+    deactivated_student =
+      Lanttern.SchoolsFixtures.student_fixture(%{
+        classes_ids: [class_a.id],
+        deactivated_at: ~U[2022-01-12 00:01:00.00Z]
+      })
 
     # student 1 entries
     # ci_1 m1 / s - ov_a
@@ -2217,6 +2242,18 @@ defmodule Lanttern.AssessmentsTest do
         ordinal_value_id: ov_a.id
       })
 
+    # deactivated student entries
+    # ci_3 s - ov_a
+
+    _std_d_s_ap_3_ci_3 =
+      Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+        student_id: deactivated_student.id,
+        scale_id: scale.id,
+        scale_type: scale.type,
+        assessment_point_id: s_ap_3_ci_3.id,
+        ordinal_value_id: ov_a.id
+      })
+
     # extra assessment point entries for filtering validation
     Lanttern.AssessmentsFixtures.assessment_point_entry_fixture()
 
@@ -2236,6 +2273,7 @@ defmodule Lanttern.AssessmentsTest do
       class_a: class_a,
       class_b: class_b,
       student_1: student_1,
+      student_1_cycle_info: student_1_cycle_info,
       student_2: student_2,
       student_3: student_3,
       std_1_m_1_ap_1_ci_1: std_1_m_1_ap_1_ci_1,

@@ -27,7 +27,7 @@ defmodule LantternWeb.Admin.NoteLiveTest do
 
     test "saves new note", %{conn: conn} do
       create_attrs = %{
-        author_id: teacher_profile_fixture().id,
+        author_id: staff_member_profile_fixture().id,
         description: "some description"
       }
 

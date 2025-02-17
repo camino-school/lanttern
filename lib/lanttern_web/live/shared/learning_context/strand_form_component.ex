@@ -79,6 +79,17 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
           class="mb-6"
           notify_component={@myself}
         />
+        <div class="p-4 rounded-sm mb-6 bg-ltrn-staff-lightest">
+          <.input
+            field={@form[:teacher_instructions]}
+            type="textarea"
+            label={gettext("Teacher instructions")}
+            show_optional
+            class="mb-1"
+            phx-debounce="1500"
+          />
+          <.markdown_supported />
+        </div>
         <div :if={@show_actions} class="flex justify-end mt-6">
           <.button type="submit" phx-disable-with={gettext("Saving...")}>
             <%= gettext("Save Strand") %>

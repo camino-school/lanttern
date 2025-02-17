@@ -10,12 +10,7 @@ defmodule LantternWeb.Router do
     plug :fetch_live_flash
     plug :put_root_layout, html: {LantternWeb.Layouts, :root}
     plug :protect_from_forgery
-
-    plug :put_secure_browser_headers, %{
-      "content-security-policy" =>
-        "default-src 'self' *.google.com *.googleapis.com plausible.io; style-src 'self' *.googleapis.com *.google.com 'unsafe-inline'; img-src * data: blob: 'self'; font-src *"
-    }
-
+    plug LantternWeb.PutSecureBrowserHeadersPlug
     plug :fetch_current_user
     plug :put_locale
   end
@@ -61,22 +56,32 @@ defmodule LantternWeb.Router do
   scope "/", LantternWeb do
     pipe_through [:browser, :require_authenticated_user, :require_privacy_policy_accepted]
 
-    live_session :authenticated_teacher,
+    live_session :authenticated_staff_member,
       layout: {LantternWeb.Layouts, :app_logged_in},
       on_mount: [
-        {LantternWeb.UserAuth, :ensure_authenticated_teacher},
+        {LantternWeb.UserAuth, :ensure_authenticated_staff_member},
         {LantternWeb.Path, :put_path_in_socket}
       ] do
       live "/dashboard", DashboardLive, :index
 
-      live "/school", SchoolLive, :show
       live "/school/students", SchoolLive, :manage_students
       live "/school/classes", SchoolLive, :manage_classes
+      live "/school/staff", SchoolLive, :manage_staff
+      live "/school/cycles", SchoolLive, :manage_cycles
+      live "/school/message_board", SchoolLive, :message_board
+      live "/school/moment_cards_templates", SchoolLive, :manage_moment_cards_templates
 
+      live "/school/students/deactivated", DeactivatedStudentsLive, :index
       live "/school/students/:id", StudentLive, :show
       live "/school/students/:id/report_cards", StudentLive, :report_cards
       live "/school/students/:id/grades_reports", StudentLive, :grades_reports
       live "/school/students/:id/student_records", StudentLive, :student_records
+
+      live "/school/staff/deactivated", DeactivatedStaffLive, :index
+      live "/school/staff/:id", StaffMemberLive, :show
+      live "/school/staff/:id/students_records", StaffMemberLive, :students_records
+
+      live "/school/message_board/archive", ArchivedMessagesLive, :index
 
       live "/assessment_points/:id", AssessmentPointLive, :show
       live "/assessment_points/:id/edit", AssessmentPointLive, :edit
@@ -128,14 +133,8 @@ defmodule LantternWeb.Router do
       # students records
 
       live "/students_records", StudentsRecordsLive, :index
-
-      # school config
-
-      live "/school_config/cycles", SchoolConfigLive, :manage_cycles
-
-      live "/school_config/moment_cards_templates",
-           SchoolConfigLive,
-           :manage_moment_cards_templates
+      live "/students_records/settings/status", StudentsRecordsSettingsLive, :manage_status
+      live "/students_records/settings/tags", StudentsRecordsSettingsLive, :manage_tags
     end
 
     live_session :authenticated_guardian,
@@ -154,9 +153,6 @@ defmodule LantternWeb.Router do
         {LantternWeb.Path, :put_path_in_socket}
       ] do
       live "/student", StudentHomeLive
-
-      # todo: move back to authenticated_student_or_guardian in the future
-      live "/student_strands", StudentStrandsLive
     end
 
     live_session :authenticated_student_or_guardian,
@@ -165,9 +161,9 @@ defmodule LantternWeb.Router do
         {LantternWeb.UserAuth, :ensure_authenticated_student_or_guardian},
         {LantternWeb.Path, :put_path_in_socket}
       ] do
-      live "/strand_report/:strand_report_id",
-           StudentStrandReportLive,
-           :show
+      live "/student_report_cards", StudentReportCardsLive, :index
+      live "/strand_report/:strand_report_id", StudentStrandReportLive, :show
+      live "/student_strands", StudentStrandsLive
     end
 
     live_session :authenticated_user,
@@ -176,9 +172,9 @@ defmodule LantternWeb.Router do
         {LantternWeb.UserAuth, :ensure_authenticated},
         {LantternWeb.Path, :put_path_in_socket}
       ] do
-      live "/student_report_card/:id", StudentReportCardLive, :show
+      live "/student_report_cards/:id", StudentReportCardLive, :show
 
-      live "/student_report_card/:student_report_card_id/strand_report/:strand_report_id",
+      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id",
            StudentReportCardStrandReportLive,
            :show
     end
@@ -217,10 +213,10 @@ defmodule LantternWeb.Router do
     resources "/schools", SchoolController
     resources "/classes", ClassController
     resources "/students", StudentController
-    resources "/teachers", TeacherController
+    resources "/staff_members", StaffMemberController
 
     live "/import_students", Admin.ImportStudentsLive
-    live "/import_teachers", Admin.ImportTeachersLive
+    live "/import_staff_members", Admin.ImportStaffMembersLive
 
     live "/school_cycles", Admin.CycleLive.Index, :index
     live "/school_cycles/new", Admin.CycleLive.Index, :new
@@ -305,12 +301,12 @@ defmodule LantternWeb.Router do
     live "/students_records/:id", Admin.StudentRecordLive.Show, :show
     live "/students_records/:id/show/edit", Admin.StudentRecordLive.Show, :edit
 
-    live "/student_record_types", Admin.StudentRecordTypeLive.Index, :index
-    live "/student_record_types/new", Admin.StudentRecordTypeLive.Index, :new
-    live "/student_record_types/:id/edit", Admin.StudentRecordTypeLive.Index, :edit
+    live "/student_record_tags", Admin.StudentRecordTagLive.Index, :index
+    live "/student_record_tags/new", Admin.StudentRecordTagLive.Index, :new
+    live "/student_record_tags/:id/edit", Admin.StudentRecordTagLive.Index, :edit
 
-    live "/student_record_types/:id", Admin.StudentRecordTypeLive.Show, :show
-    live "/student_record_types/:id/show/edit", Admin.StudentRecordTypeLive.Show, :edit
+    live "/student_record_tags/:id", Admin.StudentRecordTagLive.Show, :show
+    live "/student_record_tags/:id/show/edit", Admin.StudentRecordTagLive.Show, :edit
 
     live "/student_record_statuses", Admin.StudentRecordStatusLive.Index, :index
     live "/student_record_statuses/new", Admin.StudentRecordStatusLive.Index, :new

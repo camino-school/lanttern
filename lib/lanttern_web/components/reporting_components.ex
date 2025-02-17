@@ -35,7 +35,7 @@ defmodule LantternWeb.ReportingComponents do
     {bg_class, icon_class, text_class, text} =
       case assigns.type do
         "teacher" ->
-          {"bg-ltrn-teacher-lightest", "text-ltrn-teacher-accent", "text-ltrn-teacher-dark",
+          {"bg-ltrn-staff-lightest", "text-ltrn-staff-accent", "text-ltrn-staff-dark",
            gettext("Teacher comment")}
 
         "student" ->

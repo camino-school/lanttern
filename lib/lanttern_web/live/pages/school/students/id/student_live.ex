@@ -23,13 +23,12 @@ defmodule LantternWeb.StudentLive do
       socket
       |> assign_student(params)
       |> assign_is_school_manager()
-      |> assign_is_wcd()
 
     {:ok, socket, temporary_assigns: [student_grades_maps: %{}]}
   end
 
   defp assign_student(socket, params) do
-    case Schools.get_student(params["id"], preloads: [classes: [:cycle, :years]]) do
+    case Schools.get_student(params["id"], preloads: [:school, classes: [:cycle, :years]]) do
       %Student{} = student ->
         check_if_user_has_access(socket.assigns.current_user, student)
 
@@ -43,7 +42,7 @@ defmodule LantternWeb.StudentLive do
   end
 
   # check if user can view the student profile
-  # teachers can view only students from their school
+  # staff members can view only students from their school
   defp check_if_user_has_access(current_user, student) do
     if student.school_id != current_user.current_profile.school_id,
       do: raise(LantternWeb.NotFoundError)
@@ -54,11 +53,6 @@ defmodule LantternWeb.StudentLive do
       "school_management" in socket.assigns.current_user.current_profile.permissions
 
     assign(socket, :is_school_manager, is_school_manager)
-  end
-
-  defp assign_is_wcd(socket) do
-    is_wcd = "wcd" in socket.assigns.current_user.current_profile.permissions
-    assign(socket, :is_wcd, is_wcd)
   end
 
   @impl true
@@ -87,14 +81,32 @@ defmodule LantternWeb.StudentLive do
     {:noreply, socket}
   end
 
-  def handle_info({StudentFormOverlayComponent, {:deleted, _student}}, socket) do
+  def handle_info({StudentFormOverlayComponent, {:deactivated, _student}}, socket) do
     socket =
       socket
-      |> put_flash(:info, gettext("Student deleted successfully"))
-      |> push_navigate(to: ~p"/school")
+      |> put_flash(:info, gettext("Student deactivated successfully"))
+      |> push_navigate(to: socket.assigns.current_path)
 
     {:noreply, socket}
   end
 
-  def handle_info(_, socket), do: socket
+  def handle_info({StudentFormOverlayComponent, {:deleted, _student}}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, gettext("Student deleted successfully"))
+      |> push_navigate(to: ~p"/school/classes")
+
+    {:noreply, socket}
+  end
+
+  def handle_info({StudentFormOverlayComponent, {:reactivated, _student}}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, gettext("Student reactivated successfully"))
+      |> push_navigate(to: socket.assigns.current_path)
+
+    {:noreply, socket}
+  end
+
+  def handle_info(_, socket), do: {:noreply, socket}
 end

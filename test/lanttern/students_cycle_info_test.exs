@@ -53,7 +53,7 @@ defmodule Lanttern.StudentsCycleInfoTest do
           cycle_id: cycle.id
         })
 
-      profile = IdentityFixtures.teacher_profile_fixture()
+      profile = IdentityFixtures.staff_member_profile_fixture()
 
       {:ok, _attachment} =
         StudentsCycleInfo.create_student_cycle_info_attachment(
@@ -84,7 +84,7 @@ defmodule Lanttern.StudentsCycleInfoTest do
           cycle_id: cycle.id
         })
 
-      profile = IdentityFixtures.teacher_profile_fixture()
+      profile = IdentityFixtures.staff_member_profile_fixture()
 
       {:ok, _attachment} =
         StudentsCycleInfo.create_student_cycle_info_attachment(
@@ -109,7 +109,7 @@ defmodule Lanttern.StudentsCycleInfoTest do
       cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
 
       # profile to test log
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       valid_attrs = %{
         school_info: "some school_info",
@@ -165,7 +165,7 @@ defmodule Lanttern.StudentsCycleInfoTest do
       student_cycle_info = student_cycle_info_fixture()
 
       # profile to test log
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       update_attrs = %{
         school_info: "some updated school_info",
@@ -225,7 +225,7 @@ defmodule Lanttern.StudentsCycleInfoTest do
       student_cycle_info = student_cycle_info_fixture()
 
       # profile to test log
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       assert {:ok, %StudentCycleInfo{}} =
                StudentsCycleInfo.delete_student_cycle_info(student_cycle_info,

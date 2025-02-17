@@ -66,15 +66,15 @@ defmodule LantternWeb.SchoolsHelpers do
   end
 
   @doc """
-  Generate list of teachers to use as `Phoenix.HTML.Form.options_for_select/2` arg
+  Generate list of staff members to use as `Phoenix.HTML.Form.options_for_select/2` arg
 
   ## Examples
 
-      iex> generate_teacher_options()
-      [{"teacher name", 1}, ...]
+      iex> generate_staff_member_options()
+      [{"staff member name", 1}, ...]
   """
-  def generate_teacher_options() do
-    Schools.list_teachers()
+  def generate_staff_member_options() do
+    Schools.list_staff_members()
     |> Enum.map(fn t -> {t.name, t.id} end)
   end
 

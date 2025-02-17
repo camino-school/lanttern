@@ -12,8 +12,8 @@
   <:col :let={profile} label="Student">
     <%= if profile.type == "student", do: profile.student.name, else: "—" %>
   </:col>
-  <:col :let={profile} label="Teacher">
-    <%= if profile.type == "teacher", do: profile.teacher.name, else: "—" %>
+  <:col :let={profile} label="Staff member">
+    <%= if profile.type == "staff", do: profile.staff_member.name, else: "—" %>
   </:col>
   <:col :let={profile} label="Guardian of">
     <%= if profile.type == "guardian", do: profile.guardian_of_student.name, else: "—" %>

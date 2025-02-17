@@ -12,6 +12,12 @@ defmodule Lanttern.Identity do
   alias Lanttern.Identity.UserNotifier
   alias Lanttern.Identity.Profile
   alias Lanttern.Personalization
+  alias Lanttern.Schools
+  alias Lanttern.Schools.Cycle
+  alias Lanttern.Schools.School
+  alias Lanttern.Schools.StaffMember
+  alias Lanttern.Schools.Student
+  alias Lanttern.StudentsCycleInfo
 
   ## Database getters
 
@@ -297,56 +303,128 @@ defmodule Lanttern.Identity do
 
     query
     |> Repo.one()
-    |> Repo.preload(
-      current_profile: [teacher: [:school], student: [:school], guardian_of_student: [:school]]
-    )
+    |> Repo.preload(:current_profile)
     |> case do
+      %User{} = user ->
+        profile_settings =
+          case user do
+            %User{current_profile: %Profile{id: profile_id}} ->
+              Personalization.get_profile_settings(profile_id, preloads: :current_school_cycle) ||
+                %{}
+
+            _ ->
+              %{}
+          end
+
+        user
+        |> Map.update!(:current_profile, &put_permissions(&1, profile_settings))
+        |> Map.update!(:current_profile, &build_flat_profile/1)
+        |> Map.update!(:current_profile, &ensure_current_school_cycle(&1, profile_settings))
+        |> Map.update!(:current_profile, &put_student_cycle_info_picture(&1))
+
       nil ->
         nil
-
-      user ->
-        user
-        |> Map.update!(:current_profile, &build_flat_profile/1)
-        |> Map.update!(:current_profile, &add_profile_settings/1)
     end
   end
 
-  defp build_flat_profile(%{type: "teacher", teacher: teacher} = profile) do
-    profile
-    |> Map.put(:name, teacher.name)
-    |> Map.put(:school_id, teacher.school.id)
-    |> Map.put(:school_name, teacher.school.name)
+  defp put_permissions(%Profile{} = profile, profile_settings) do
+    permissions = Map.get(profile_settings, :permissions, [])
+    Map.put(profile, :permissions, permissions)
   end
 
-  defp build_flat_profile(%{type: "student", student: student} = profile) do
+  # root admin may not have a current profile
+  defp put_permissions(profile, _), do: profile
+
+  defp build_flat_profile(%{type: "staff", staff_member_id: staff_member_id} = profile) do
+    {staff_member, school} =
+      from(
+        sm in StaffMember,
+        join: sc in assoc(sm, :school),
+        select: {sm, sc}
+      )
+      |> Repo.get!(staff_member_id)
+
+    profile
+    |> Map.put(:name, staff_member.name)
+    |> Map.put(:role, staff_member.role)
+    |> Map.put(:deactivated_at, staff_member.deactivated_at)
+    |> Map.put(:profile_picture_url, staff_member.profile_picture_url)
+    |> Map.put(:school_id, school.id)
+    |> Map.put(:school_name, school.name)
+  end
+
+  defp build_flat_profile(%{type: type} = profile) when type in ["student", "guardian"] do
+    student_id =
+      case type do
+        "student" -> profile.student_id
+        "guardian" -> profile.guardian_of_student_id
+      end
+
+    {student, school} =
+      from(
+        st in Student,
+        join: sc in assoc(st, :school),
+        select: {st, sc}
+      )
+      |> Repo.get!(student_id)
+
     profile
     |> Map.put(:name, student.name)
-    |> Map.put(:school_id, student.school.id)
-    |> Map.put(:school_name, student.school.name)
+    |> Map.put(:school_id, school.id)
+    |> Map.put(:school_name, school.name)
   end
 
-  defp build_flat_profile(%{type: "guardian", guardian_of_student: student} = profile) do
-    profile
-    |> Map.put(:name, student.name)
-    |> Map.put(:school_id, student.school.id)
-    |> Map.put(:school_name, student.school.name)
-  end
-
+  # root admin may not have a current profile
   defp build_flat_profile(profile), do: profile
 
-  defp add_profile_settings(%{id: profile_id} = profile) do
-    profile_settings =
-      Personalization.get_profile_settings(profile_id, preloads: :current_school_cycle) || %{}
+  defp ensure_current_school_cycle(
+         profile,
+         %{current_school_cycle: %Cycle{} = cycle}
+       ),
+       do: Map.put(profile, :current_school_cycle, cycle)
 
-    permissions = Map.get(profile_settings, :permissions, [])
-    current_school_cycle = Map.get(profile_settings, :current_school_cycle)
+  defp ensure_current_school_cycle(%{id: profile_id, school_id: school_id} = profile, _)
+       when not is_nil(school_id) do
+    # when there's no current school cycle in profile at this point
+    # try to set the newest school cycle as current
+    case Schools.get_newest_parent_cycle_from_school(school_id) do
+      nil ->
+        profile
 
-    profile
-    |> Map.put(:permissions, permissions)
-    |> Map.put(:current_school_cycle, current_school_cycle)
+      school_cycle ->
+        Personalization.set_profile_settings(profile_id, %{
+          current_school_cycle_id: school_cycle.id
+        })
+
+        Map.put(profile, :current_school_cycle, school_cycle)
+    end
   end
 
-  defp add_profile_settings(profile), do: profile
+  # root admin may not have a current profile
+  defp ensure_current_school_cycle(profile, _), do: profile
+
+  defp put_student_cycle_info_picture(%{type: type, current_school_cycle: %Cycle{}} = profile)
+       when type in ["student", "guardian"] do
+    student_id =
+      case type do
+        "student" -> profile.student_id
+        "guardian" -> profile.guardian_of_student_id
+      end
+
+    profile_picture_url =
+      StudentsCycleInfo.get_student_cycle_info_by_student_and_cycle(
+        student_id,
+        profile.current_school_cycle.id
+      )
+      |> case do
+        %{profile_picture_url: profile_picture_url} -> profile_picture_url
+        _ -> nil
+      end
+
+    Map.put(profile, :profile_picture_url, profile_picture_url)
+  end
+
+  defp put_student_cycle_info_picture(profile), do: profile
 
   @doc """
   Deletes the signed token with the given context.
@@ -516,6 +594,8 @@ defmodule Lanttern.Identity do
   `:preloads` – preloads associated data
   `:user_id` – filter profiles by user_id
   `:type` – filter profiles by type
+  `:only_active` - removes deactivated staff members from the list
+  `:load_virtual_fields` - load profile virtual fields name, role, profile_picture_url, school_id, school_name
 
   ## Examples
 
@@ -525,21 +605,55 @@ defmodule Lanttern.Identity do
   """
   def list_profiles(opts \\ []) do
     Profile
-    |> maybe_filter_profiles(opts)
+    |> apply_list_profiles_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
 
-  defp maybe_filter_profiles(query, opts),
-    do: Enum.reduce(opts, query, &filter_profiles/2)
+  defp apply_list_profiles_opts(queryable, []), do: queryable
 
-  defp filter_profiles({:user_id, user_id}, query),
-    do: from(p in query, where: p.user_id == ^user_id)
+  defp apply_list_profiles_opts(queryable, [{:user_id, user_id} | opts]) do
+    from(p in queryable, where: p.user_id == ^user_id)
+    |> apply_list_profiles_opts(opts)
+  end
 
-  defp filter_profiles({:type, type}, query),
-    do: from(p in query, where: p.type == ^type)
+  defp apply_list_profiles_opts(queryable, [{:type, type} | opts]) do
+    from(p in queryable, where: p.type == ^type)
+    |> apply_list_profiles_opts(opts)
+  end
 
-  defp filter_profiles(_kv, query), do: query
+  defp apply_list_profiles_opts(queryable, [{:only_active, true} | opts]) do
+    from(
+      p in queryable,
+      left_join: sm in assoc(p, :staff_member),
+      where: is_nil(sm) or is_nil(sm.deactivated_at)
+    )
+    |> apply_list_profiles_opts(opts)
+  end
+
+  defp apply_list_profiles_opts(queryable, [{:load_virtual_fields, true} | opts]) do
+    from(
+      p in queryable,
+      left_join: sm in assoc(p, :staff_member),
+      left_join: s in assoc(p, :student),
+      left_join: gos in assoc(p, :guardian_of_student),
+      left_join: sch in School,
+      on: sm.school_id == sch.id or s.school_id == sch.id or gos.school_id == sch.id,
+      order_by: [asc: sm.name |> coalesce(s.name) |> coalesce(gos.name), asc: p.type],
+      select: %{
+        p
+        | name: sm.name |> coalesce(s.name) |> coalesce(gos.name),
+          role: sm.role,
+          profile_picture_url: sm.profile_picture_url,
+          school_id: sch.id,
+          school_name: sch.name
+      }
+    )
+    |> apply_list_profiles_opts(opts)
+  end
+
+  defp apply_list_profiles_opts(queryable, [_ | opts]),
+    do: apply_list_profiles_opts(queryable, opts)
 
   @doc """
   Gets a single profile.

@@ -11,7 +11,7 @@ defmodule Lanttern.PersonalizationTest do
     alias Lanttern.Filters
 
     test "set_profile_current_filters/2 sets current filters in profile settings" do
-      current_profile = teacher_profile_fixture()
+      current_profile = staff_member_profile_fixture()
 
       subjects_ids = [1, 2, 3]
       classes_ids = [4, 5, 6]
@@ -30,7 +30,7 @@ defmodule Lanttern.PersonalizationTest do
     end
 
     test "set_profile_current_filters/2 with only one type of filter keeps the other filters as is" do
-      current_profile = teacher_profile_fixture()
+      current_profile = staff_member_profile_fixture()
 
       # create profile settings with classes ids
       Filters.set_profile_current_filters(
@@ -55,10 +55,11 @@ defmodule Lanttern.PersonalizationTest do
     test "list_valid_permissions/0 returns all valid permissions" do
       valid_permissions = Personalization.list_valid_permissions()
 
-      assert length(valid_permissions) == 3
-      assert "wcd" in valid_permissions
+      assert length(valid_permissions) == 4
+      assert "students_records_full_access" in valid_permissions
       assert "school_management" in valid_permissions
       assert "content_management" in valid_permissions
+      assert "communication_management" in valid_permissions
     end
   end
 end

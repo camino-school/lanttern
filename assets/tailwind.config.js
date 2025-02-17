@@ -40,7 +40,7 @@ module.exports = {
             lighter: colors.yellow["200"],
             lightest: colors.yellow["50"],
           },
-          teacher: {
+          staff: {
             dark: colors.lime["800"],
             accent: colors.lime["500"],
             lighter: colors.lime["200"],
@@ -49,6 +49,14 @@ module.exports = {
           alert: {
             accent: colors.red["500"],
             lighter: colors.red["100"]
+          },
+          warning: {
+            accent: colors.amber["500"],
+            lighter: colors.amber["200"]
+          },
+          success: {
+            accent: colors.teal["500"],
+            lighter: colors.teal["100"]
           }
         },
       },

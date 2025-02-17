@@ -7,20 +7,22 @@ defmodule LantternWeb.ProfileController do
   alias Lanttern.Identity.Profile
 
   def index(conn, _params) do
-    profiles = Identity.list_profiles(preloads: [:user, :student, :teacher, :guardian_of_student])
+    profiles =
+      Identity.list_profiles(preloads: [:user, :student, :staff_member, :guardian_of_student])
+
     render(conn, :index, profiles: profiles)
   end
 
   def new(conn, _params) do
     user_options = generate_user_options()
     student_options = generate_student_options()
-    teacher_options = generate_teacher_options()
+    staff_member_options = generate_staff_member_options()
     changeset = Identity.change_profile(%Profile{})
 
     render(conn, :new,
       user_options: user_options,
       student_options: student_options,
-      teacher_options: teacher_options,
+      staff_member_options: staff_member_options,
       changeset: changeset
     )
   end
@@ -35,12 +37,12 @@ defmodule LantternWeb.ProfileController do
       {:error, %Ecto.Changeset{} = changeset} ->
         user_options = generate_user_options()
         student_options = generate_student_options()
-        teacher_options = generate_teacher_options()
+        staff_member_options = generate_staff_member_options()
 
         render(conn, :new,
           user_options: user_options,
           student_options: student_options,
-          teacher_options: teacher_options,
+          staff_member_options: staff_member_options,
           changeset: changeset
         )
     end
@@ -48,7 +50,7 @@ defmodule LantternWeb.ProfileController do
 
   def show(conn, %{"id" => id}) do
     profile =
-      Identity.get_profile!(id, preloads: [:user, :student, :teacher, :guardian_of_student])
+      Identity.get_profile!(id, preloads: [:user, :student, :staff_member, :guardian_of_student])
 
     render(conn, :show, profile: profile)
   end
@@ -57,13 +59,13 @@ defmodule LantternWeb.ProfileController do
     profile = Identity.get_profile!(id)
     user_options = generate_user_options()
     student_options = generate_student_options()
-    teacher_options = generate_teacher_options()
+    staff_member_options = generate_staff_member_options()
     changeset = Identity.change_profile(profile)
 
     render(conn, :edit,
       user_options: user_options,
       student_options: student_options,
-      teacher_options: teacher_options,
+      staff_member_options: staff_member_options,
       profile: profile,
       changeset: changeset
     )
@@ -81,12 +83,12 @@ defmodule LantternWeb.ProfileController do
       {:error, %Ecto.Changeset{} = changeset} ->
         user_options = generate_user_options()
         student_options = generate_student_options()
-        teacher_options = generate_teacher_options()
+        staff_member_options = generate_staff_member_options()
 
         render(conn, :edit,
           user_options: user_options,
           student_options: student_options,
-          teacher_options: teacher_options,
+          staff_member_options: staff_member_options,
           profile: profile,
           changeset: changeset
         )

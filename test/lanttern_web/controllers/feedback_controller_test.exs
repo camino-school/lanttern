@@ -26,7 +26,7 @@ defmodule LantternWeb.FeedbackControllerTest do
     test "redirects to show when data is valid", %{conn: conn} do
       assessment_point = assessment_point_fixture()
       student = Lanttern.SchoolsFixtures.student_fixture()
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       create_attrs = %{
         assessment_point_id: assessment_point.id,

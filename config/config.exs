@@ -12,7 +12,9 @@ config :lanttern,
 
 query_args = ["SET pg_trgm.word_similarity_threshold = 0.4", []]
 
-config :lanttern, Lanttern.Repo, after_connect: {Postgrex, :query!, query_args}
+config :lanttern, Lanttern.Repo,
+  after_connect: {Postgrex, :query!, query_args},
+  types: Lanttern.PostgrexTypes
 
 # Configures the endpoint
 config :lanttern, LantternWeb.Endpoint,

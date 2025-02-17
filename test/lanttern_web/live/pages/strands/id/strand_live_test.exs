@@ -8,7 +8,7 @@ defmodule LantternWeb.StrandLiveTest do
 
   @live_view_base_path "/strands"
 
-  setup [:register_and_log_in_teacher]
+  setup [:register_and_log_in_staff_member]
 
   describe "Strand details live view basic navigation" do
     test "disconnected and connected mount", %{conn: conn} do

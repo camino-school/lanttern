@@ -142,14 +142,14 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
       <.markdown_supported class="mb-6" />
       <div
         :if={@template_instructions}
-        class="p-4 border border-ltrn-teacher-accent rounded-sm mb-6 bg-ltrn-teacher-lightest"
+        class="p-4 border border-ltrn-staff-accent rounded-sm mb-6 bg-ltrn-staff-lightest"
       >
-        <h6 class="font-display font-black font-lg text-ltrn-teacher-dark">
+        <h6 class="font-display font-black font-lg text-ltrn-staff-dark">
           <%= gettext("Template instructions") %>
         </h6>
         <.markdown text={@template_instructions} class="mt-4" />
       </div>
-      <div class="p-4 rounded-sm mb-6 bg-ltrn-teacher-lightest">
+      <div class="p-4 rounded-sm mb-6 bg-ltrn-staff-lightest">
         <.input
           field={@form[:teacher_instructions]}
           type="textarea"
@@ -213,8 +213,8 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
     ~H"""
     <.scroll_to_top overlay_id={@id} id="details-scroll-top" />
     <.markdown text={@moment_card.description} class="mt-6" />
-    <div :if={@moment_card.teacher_instructions} class="p-4 rounded-sm mt-6 bg-ltrn-teacher-lightest">
-      <p class="mb-4 font-bold text-ltrn-teacher-dark">
+    <div :if={@moment_card.teacher_instructions} class="p-4 rounded-sm mt-6 bg-ltrn-staff-lightest">
+      <p class="mb-4 font-bold text-ltrn-staff-dark">
         <%= gettext("Teacher instructions") %>
       </p>
       <.markdown text={@moment_card.teacher_instructions} />

@@ -48,31 +48,72 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
           <.live_component
             module={ClassesFieldComponent}
             id="student-form-classes-picker"
+            class="mb-6"
             label={gettext("Classes")}
             school_id={@student.school_id}
             current_cycle={@current_cycle}
             selected_classes_ids={@selected_classes_ids}
             notify_component={@myself}
           />
+          <.card_base class="p-4" bg_class="bg-ltrn-mesh-cyan">
+            <.input
+              field={@form[:email]}
+              type="email"
+              label={gettext("Lanttern user email")}
+              phx-debounce="1500"
+            />
+            <p class="flex items-center gap-2 mt-4">
+              <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+              <%= gettext("Enables the user to login at Lanttern via Google Sign In") %>
+            </p>
+          </.card_base>
         </.form>
         <:actions_left :if={@student.id}>
-          <.button
+          <.action
+            :if={is_nil(@student.deactivated_at)}
             type="button"
-            theme="ghost"
+            theme="subtle"
+            size="md"
+            phx-click="deactivate"
+            phx-target={@myself}
+            data-confirm={gettext("Are you sure? You can reactive the student later.")}
+          >
+            <%= gettext("Deactivate") %>
+          </.action>
+          <.action
+            :if={@student.deactivated_at}
+            type="button"
+            theme="subtle"
+            size="md"
             phx-click="delete"
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           >
             <%= gettext("Delete") %>
-          </.button>
+          </.action>
+          <.action
+            :if={@student.deactivated_at}
+            type="button"
+            theme="subtle"
+            size="md"
+            phx-click="reactivate"
+            phx-target={@myself}
+          >
+            <%= gettext("Reactivate") %>
+          </.action>
         </:actions_left>
         <:actions>
-          <.button type="button" theme="ghost" phx-click={JS.exec("data-cancel", to: "##{@id}")}>
+          <.action
+            type="button"
+            theme="subtle"
+            size="md"
+            phx-click={JS.exec("data-cancel", to: "##{@id}")}
+          >
             <%= gettext("Cancel") %>
-          </.button>
-          <.button type="submit" form="student-form">
+          </.action>
+          <.action type="submit" theme="primary" size="md" icon_name="hero-check" form="student-form">
             <%= gettext("Save") %>
-          </.button>
+          </.action>
         </:actions>
       </.slide_over>
     </div>
@@ -133,11 +174,35 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
     save_student(socket, socket.assigns.student.id, student_params)
   end
 
+  def handle_event("deactivate", _, socket) do
+    Schools.deactivate_student(socket.assigns.student)
+    |> case do
+      {:ok, student} ->
+        notify(__MODULE__, {:deactivated, student}, socket.assigns)
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
   def handle_event("delete", _, socket) do
     Schools.delete_student(socket.assigns.student)
     |> case do
       {:ok, student} ->
         notify(__MODULE__, {:deleted, student}, socket.assigns)
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
+  def handle_event("reactivate", _, socket) do
+    Schools.reactivate_student(socket.assigns.student)
+    |> case do
+      {:ok, student} ->
+        notify(__MODULE__, {:reactivated, student}, socket.assigns)
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->

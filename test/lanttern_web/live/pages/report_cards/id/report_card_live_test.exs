@@ -9,7 +9,7 @@ defmodule LantternWeb.ReportCardLiveTest do
 
   @live_view_path_base "/report_cards"
 
-  setup [:register_and_log_in_teacher]
+  setup [:register_and_log_in_staff_member]
 
   describe "Report card live view basic navigation" do
     test "disconnected and connected mount", %{conn: conn} do
@@ -78,7 +78,7 @@ defmodule LantternWeb.ReportCardLiveTest do
       |> element("a[data-test-id='preview-button']")
       |> render_click()
 
-      assert_redirect(view, "/student_report_card/#{student_a_report_card.id}")
+      assert_redirect(view, "/student_report_cards/#{student_a_report_card.id}")
     end
 
     test "list strand reports", %{conn: conn} do

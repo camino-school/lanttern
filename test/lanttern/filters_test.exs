@@ -22,7 +22,7 @@ defmodule Lanttern.FiltersTest do
       strand = LearningContextFixtures.strand_fixture()
       class_1 = SchoolsFixtures.class_fixture()
       class_2 = SchoolsFixtures.class_fixture()
-      profile = IdentityFixtures.teacher_profile_fixture()
+      profile = IdentityFixtures.staff_member_profile_fixture()
 
       profile_strand_filter_fixture(%{
         profile_id: profile.id,
@@ -55,7 +55,7 @@ defmodule Lanttern.FiltersTest do
     end
 
     test "set_profile_strand_filters/3 sets current filters in profile strand filters" do
-      current_profile = IdentityFixtures.teacher_profile_fixture()
+      current_profile = IdentityFixtures.staff_member_profile_fixture()
       strand = LearningContextFixtures.strand_fixture()
       class_1 = SchoolsFixtures.class_fixture()
       class_2 = SchoolsFixtures.class_fixture()
@@ -92,7 +92,7 @@ defmodule Lanttern.FiltersTest do
     end
 
     test "create_profile_strand_filter/1 with valid data creates a profile_strand_filter" do
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
       strand = Lanttern.LearningContextFixtures.strand_fixture()
       class = Lanttern.SchoolsFixtures.class_fixture()
 
@@ -170,7 +170,7 @@ defmodule Lanttern.FiltersTest do
       report_card = ReportingFixtures.report_card_fixture()
       class_1 = SchoolsFixtures.class_fixture()
       class_2 = SchoolsFixtures.class_fixture()
-      profile = IdentityFixtures.teacher_profile_fixture()
+      profile = IdentityFixtures.staff_member_profile_fixture()
 
       profile_report_card_filter_fixture(%{
         profile_id: profile.id,
@@ -217,7 +217,7 @@ defmodule Lanttern.FiltersTest do
     end
 
     test "set_profile_report_card_filters/3 sets current filters in profile report card filters" do
-      current_profile = IdentityFixtures.teacher_profile_fixture()
+      current_profile = IdentityFixtures.staff_member_profile_fixture()
       report_card = ReportingFixtures.report_card_fixture()
       class_1 = SchoolsFixtures.class_fixture()
       class_2 = SchoolsFixtures.class_fixture()
@@ -261,7 +261,7 @@ defmodule Lanttern.FiltersTest do
     end
 
     test "create_profile_report_card_filter/1 with valid data creates a profile_report_card_filter" do
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
       report_card = Lanttern.ReportingFixtures.report_card_fixture()
       class = Lanttern.SchoolsFixtures.class_fixture()
 

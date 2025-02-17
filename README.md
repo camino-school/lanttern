@@ -61,6 +61,7 @@ The main secrets/env vars that we need for this are the following:
 
 - `PHX_HOST` - e.g. `lanttern.org`
 - `SECRET_KEY_BASE` - Phoenix generated
+- `CONTENT_SECURITY_POLICY` - CSP headers
 
 ## Learn more
 

@@ -120,6 +120,9 @@ defmodule Lanttern.SupabaseHelpers do
 
   def object_url_to_render_url(nil, _opts), do: nil
 
+  # # uncomment to skip image transformation in dev env
+  # def object_url_to_render_url(url, opts) when is_binary(url), do: url
+
   def object_url_to_render_url(url, opts) when is_binary(url) do
     case Regex.match?(~r/\/object\/public/, url) do
       true ->

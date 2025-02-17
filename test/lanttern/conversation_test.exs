@@ -15,7 +15,7 @@ defmodule Lanttern.ConversationTest do
     end
 
     test "list_comments/1 with preloads returns all comments with preloaded data" do
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       comment = comment_fixture(%{profile_id: profile.id})
 
@@ -27,7 +27,7 @@ defmodule Lanttern.ConversationTest do
 
     test "list_comments/1 with feedback_id and preloads returns all feedback comments with preloaded data" do
       feedback = Lanttern.AssessmentsFixtures.feedback_fixture()
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
       feedback_comment = feedback_comment_fixture(%{profile_id: profile.id}, feedback.id)
 
       # other comments for filter testing
@@ -46,7 +46,7 @@ defmodule Lanttern.ConversationTest do
     end
 
     test "get_comment!/2 with preloads returns the comment with preloaded data" do
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       comment = comment_fixture(%{profile_id: profile.id})
 
@@ -196,7 +196,7 @@ defmodule Lanttern.ConversationTest do
 
     # wrapper around create_feedback_comment/2 to reduce code repetition
     defp create_feedback_comment_helper(feedback, attrs \\ %{}) do
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       attrs =
         attrs

@@ -535,22 +535,26 @@ defmodule LantternWeb.OverlayComponents do
   end
 
   @doc """
-  Renders a single selection filter modal.
+  Renders a selection filter modal.
   """
 
   attr :id, :string, required: true
   attr :title, :string, required: true
   attr :items, :list, required: true
-  attr :selected_item_id, :any, required: true
+  attr :selected_items_ids, :list, required: true
   attr :use_color_map_as_active, :boolean, default: false
 
   attr :on_cancel, JS,
     default: %JS{},
-    doc: "the function to execute on cancel (click outside of modal or button click)"
+    doc: "the function to execute on cancel (click outside of modal or cancel click)"
 
   attr :on_select, :any, required: true, doc: "the function to execute on item select"
 
-  def single_selection_filter_modal(assigns) do
+  attr :on_save, JS,
+    default: nil,
+    doc: "function. if present, will render a save and cancel button"
+
+  def selection_filter_modal(assigns) do
     ~H"""
     <.modal id={@id} on_cancel={@on_cancel}>
       <h5 class="mb-10 font-display font-black text-xl">
@@ -559,10 +563,22 @@ defmodule LantternWeb.OverlayComponents do
       <.badge_button_picker
         on_select={&@on_select.(&1)}
         items={@items}
-        selected_ids={[@selected_item_id]}
+        selected_ids={@selected_items_ids}
         use_color_map_as_active={@use_color_map_as_active}
-        class="mt-4"
       />
+      <div :if={@on_save} class="flex justify-between gap-6 mt-10">
+        <.action
+          type="button"
+          theme="subtle"
+          size="md"
+          phx-click={JS.exec("data-cancel", to: "##{@id}")}
+        >
+          <%= gettext("Cancel") %>
+        </.action>
+        <.action type="button" theme="primary" size="md" phx-click={@on_save}>
+          <%= gettext("Save") %>
+        </.action>
+      </div>
     </.modal>
     """
   end

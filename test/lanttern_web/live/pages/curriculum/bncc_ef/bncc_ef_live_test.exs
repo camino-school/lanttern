@@ -3,7 +3,7 @@ defmodule LantternWeb.BnccEfLiveTest do
 
   @live_view_path "/curriculum/bncc_ef"
 
-  setup :register_and_log_in_teacher
+  setup :register_and_log_in_staff_member
 
   describe "Curriculum BNCC live view" do
     import Lanttern.BNCCFixtures

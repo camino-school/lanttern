@@ -1,6 +1,8 @@
 <div>
   <.header_nav current_user={@current_user}>
-    <:breadcrumb navigate={~p"/school"}><%= gettext("School") %></:breadcrumb>
+    <:breadcrumb navigate={~p"/school/students"}>
+      <%= gettext("%{school} students", school: @student.school.name) %>
+    </:breadcrumb>
     <:title><%= @student.name %></:title>
     <div class="flex items-center justify-between gap-4 px-4">
       <.neo_tabs id="student-nav-tabs">
@@ -20,7 +22,6 @@
           <%= gettext("Grades reports") %>
         </:tab>
         <:tab
-          :if={@is_wcd}
           patch={~p"/school/students/#{@student}/student_records"}
           is_current={@live_action == :student_records}
         >
@@ -60,7 +61,7 @@
   />
 </div>
 <.live_component
-  :if={@live_action == :student_records && @is_wcd}
+  :if={@live_action == :student_records}
   module={StudentRecordsComponent}
   id="student-records"
   student={@student}

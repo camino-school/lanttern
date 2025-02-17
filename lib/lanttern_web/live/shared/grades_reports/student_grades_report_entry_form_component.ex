@@ -36,7 +36,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryFormComponent do
           />
           <p
             :if={@has_manual_edit}
-            class="p-2 rounded-sm border border-ltrn-teacher-accent mt-2 text-sm bg-ltrn-teacher-lightest"
+            class="p-2 rounded-sm border border-ltrn-staff-accent mt-2 text-sm bg-ltrn-staff-lightest"
           >
             <%= gettext(
               "Different from grade composition. Use comments field to justify it if needed."

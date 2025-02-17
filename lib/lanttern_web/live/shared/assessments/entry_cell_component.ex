@@ -336,7 +336,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     note_icon_class =
       cond do
         entry_note && view == "student" -> "text-ltrn-student-accent"
-        entry_note -> "text-ltrn-teacher-accent"
+        entry_note -> "text-ltrn-staff-accent"
         true -> ""
       end
 

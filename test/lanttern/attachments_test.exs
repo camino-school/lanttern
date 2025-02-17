@@ -102,7 +102,7 @@ defmodule Lanttern.AttachmentsTest do
     end
 
     test "list_attachments/1 with student_cycle_info_id opts returns all attachments linked to given student cycle info" do
-      profile = IdentityFixtures.teacher_profile_fixture()
+      profile = IdentityFixtures.staff_member_profile_fixture()
       student_cycle_info = StudentsCycleInfoFixtures.student_cycle_info_fixture()
 
       {:ok, attachment_1} =
@@ -162,7 +162,7 @@ defmodule Lanttern.AttachmentsTest do
     end
 
     test "list_attachments/1 with moment_card_id opts returns all attachments linked to given moment card" do
-      profile = IdentityFixtures.teacher_profile_fixture()
+      profile = IdentityFixtures.staff_member_profile_fixture()
       moment_card = LearningContextFixtures.moment_card_fixture()
 
       {:ok, attachment_1} =
@@ -239,7 +239,7 @@ defmodule Lanttern.AttachmentsTest do
     end
 
     test "create_attachment/1 with valid data creates a attachment" do
-      profile = Lanttern.IdentityFixtures.teacher_profile_fixture()
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       valid_attrs = %{
         name: "some name",

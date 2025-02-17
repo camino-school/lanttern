@@ -6,7 +6,7 @@ defmodule LantternWeb.Assessments.AssessmentPointUpdateFormComponentTest do
   @live_view_path_base "/assessment_points"
   @form_selector "#update-assessment-point-form"
 
-  setup [:register_and_log_in_root_admin, :register_and_log_in_teacher]
+  setup [:register_and_log_in_root_admin, :register_and_log_in_staff_member]
 
   describe "Update assessment point in assessment point details live view" do
     test "submit valid form saves and update view", %{conn: conn} do

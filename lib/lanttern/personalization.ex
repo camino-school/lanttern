@@ -4,8 +4,10 @@ defmodule Lanttern.Personalization do
 
   ### Permissions info
 
-  - `wcd` - control access to student records
-  - `school_management` - control access to classes, students, and teachers management
+  - `students_records_full_access` - full students records management access
+  - `school_management` - control access to classes, students, and staff management
+  - `content_management` - control content related configurations
+  - `communication_management` - allows school message board management
   """
 
   import Ecto.Query, warn: false
@@ -14,7 +16,12 @@ defmodule Lanttern.Personalization do
 
   alias Lanttern.Personalization.ProfileSettings
 
-  @valid_permissions ["wcd", "school_management", "content_management"]
+  @valid_permissions [
+    "students_records_full_access",
+    "school_management",
+    "content_management",
+    "communication_management"
+  ]
 
   @doc """
   Get profile settings.
