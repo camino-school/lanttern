@@ -4,6 +4,7 @@ defmodule Lanttern.RubricsFixtures do
   entities via the `Lanttern.Rubrics` context.
   """
 
+  alias Lanttern.AssessmentsFixtures
   alias Lanttern.GradingFixtures
 
   @doc """
@@ -68,10 +69,10 @@ defmodule Lanttern.RubricsFixtures do
   def assessment_point_rubric_fixture(attrs \\ %{}) do
     {:ok, rubric} =
       attrs
-      |> Enum.into(%{
-        assessment_point_id: Lanttern.AssessmentsFixtures.maybe_gen_assessment_point_id(attrs),
-        rubric_id: maybe_gen_rubric_id(attrs)
-      })
+      |> maybe_inject_scale_id()
+      |> maybe_inject_assessment_point_id()
+      |> maybe_inject_rubric_id()
+      |> Enum.into(%{})
       |> Lanttern.Rubrics.create_assessment_point_rubric()
 
     rubric
@@ -92,4 +93,35 @@ defmodule Lanttern.RubricsFixtures do
 
   def maybe_gen_assessment_point_rubric_id(_attrs),
     do: assessment_point_rubric_fixture().id
+
+  # helpers
+
+  defp maybe_inject_scale_id(%{scale_id: _} = attrs), do: attrs
+
+  defp maybe_inject_scale_id(attrs) do
+    attrs
+    |> Map.put(:scale_id, GradingFixtures.scale_fixture().id)
+  end
+
+  defp maybe_inject_assessment_point_id(%{assessment_point_id: _} = attrs),
+    do: attrs
+
+  defp maybe_inject_assessment_point_id(%{scale_id: scale_id} = attrs) do
+    attrs
+    |> Map.put(
+      :assessment_point_id,
+      AssessmentsFixtures.assessment_point_fixture(%{scale_id: scale_id}).id
+    )
+  end
+
+  defp maybe_inject_rubric_id(%{rubric_id: _} = attrs),
+    do: attrs
+
+  defp maybe_inject_rubric_id(%{scale_id: scale_id} = attrs) do
+    attrs
+    |> Map.put(
+      :rubric_id,
+      rubric_fixture(%{scale_id: scale_id}).id
+    )
+  end
 end

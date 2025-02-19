@@ -5,6 +5,7 @@ defmodule Lanttern.Rubrics.AssessmentPointRubric do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.RubricAssessmentEntry
   alias Lanttern.Rubrics.Rubric
+  alias Lanttern.Grading.Scale
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -14,6 +15,8 @@ defmodule Lanttern.Rubrics.AssessmentPointRubric do
           assessment_point_id: pos_integer(),
           rubric: Rubric.t() | Ecto.Association.NotLoaded.t(),
           rubric_id: pos_integer(),
+          scale: Scale.t() | Ecto.Association.NotLoaded.t(),
+          scale_id: pos_integer(),
           rubric_assessment_entries: [RubricAssessmentEntry.t()] | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
@@ -25,6 +28,7 @@ defmodule Lanttern.Rubrics.AssessmentPointRubric do
 
     belongs_to :assessment_point, AssessmentPoint
     belongs_to :rubric, Rubric
+    belongs_to :scale, Scale
 
     has_many :rubric_assessment_entries, RubricAssessmentEntry
 
@@ -34,7 +38,7 @@ defmodule Lanttern.Rubrics.AssessmentPointRubric do
   @doc false
   def changeset(assessment_point_rubric, attrs) do
     assessment_point_rubric
-    |> cast(attrs, [:position, :is_diff, :assessment_point_id, :rubric_id])
-    |> validate_required([:position, :is_diff, :assessment_point_id, :rubric_id])
+    |> cast(attrs, [:position, :is_diff, :assessment_point_id, :rubric_id, :scale_id])
+    |> validate_required([:position, :is_diff, :assessment_point_id, :rubric_id, :scale_id])
   end
 end

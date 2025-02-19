@@ -95,16 +95,17 @@ defmodule Lanttern.RubricsTest do
           ordinal_value_id: ov_1.id
         })
 
-      assessment_point = assessment_point_fixture()
+      assessment_point = assessment_point_fixture(%{scale_id: scale.id})
 
       assessment_point_rubric_fixture(%{
         assessment_point_id: assessment_point.id,
-        rubric_id: rubric.id
+        rubric_id: rubric.id,
+        scale_id: scale.id
       })
 
       # extra fixtures for filter test
       rubric_fixture(%{scale_id: scale.id})
-      assessment_point_rubric_fixture(%{rubric_id: rubric.id})
+      assessment_point_rubric_fixture(%{rubric_id: rubric.id, scale_id: scale.id})
 
       [expected] = Rubrics.list_full_rubrics(assessment_points_ids: [assessment_point.id])
       assert expected.id == rubric.id
@@ -227,31 +228,36 @@ defmodule Lanttern.RubricsTest do
       assessment_point_1 =
         assessment_point_fixture(%{
           strand_id: strand.id,
-          curriculum_item_id: curriculum_item_1.id
+          curriculum_item_id: curriculum_item_1.id,
+          scale_id: scale.id
         })
 
       assessment_point_2 =
         assessment_point_fixture(%{
           strand_id: strand.id,
-          curriculum_item_id: curriculum_item_2.id
+          curriculum_item_id: curriculum_item_2.id,
+          scale_id: scale.id
         })
 
       assessment_point_3 =
         assessment_point_fixture(%{
           strand_id: strand.id,
-          curriculum_item_id: curriculum_item_3.id
+          curriculum_item_id: curriculum_item_3.id,
+          scale_id: scale.id
         })
 
       _assessment_point_1_rubric_1 =
         assessment_point_rubric_fixture(%{
           rubric_id: rubric_1.id,
-          assessment_point_id: assessment_point_1.id
+          assessment_point_id: assessment_point_1.id,
+          scale_id: scale.id
         })
 
       _assessment_point_2_rubric_2 =
         assessment_point_rubric_fixture(%{
           rubric_id: rubric_2.id,
-          assessment_point_id: assessment_point_2.id
+          assessment_point_id: assessment_point_2.id,
+          scale_id: scale.id
         })
 
       # extra fixtures for filter test
@@ -259,16 +265,22 @@ defmodule Lanttern.RubricsTest do
       other_rubric = rubric_fixture(%{scale_id: scale.id})
 
       other_assessment_point =
-        assessment_point_fixture(%{rubric_id: other_rubric.id, strand_id: other_strand.id})
+        assessment_point_fixture(%{
+          rubric_id: other_rubric.id,
+          strand_id: other_strand.id,
+          scale_id: scale.id
+        })
 
       assessment_point_rubric_fixture(%{
         rubric_id: other_rubric.id,
-        assessment_point_id: other_assessment_point.id
+        assessment_point_id: other_assessment_point.id,
+        scale_id: scale.id
       })
 
       assessment_point_rubric_fixture(%{
         rubric_id: rubric_1.id,
-        assessment_point_id: other_assessment_point.id
+        assessment_point_id: other_assessment_point.id,
+        scale_id: scale.id
       })
 
       rubric_fixture(%{scale_id: scale.id})
@@ -279,6 +291,7 @@ defmodule Lanttern.RubricsTest do
         assessment_point_rubric_fixture(%{
           rubric_id: diff_rubric.id,
           assessment_point_id: assessment_point_2.id,
+          scale_id: scale.id,
           is_diff: true
         })
 
@@ -378,26 +391,30 @@ defmodule Lanttern.RubricsTest do
       assessment_point_1 =
         assessment_point_fixture(%{
           strand_id: strand.id,
-          curriculum_item_id: curriculum_item_1.id
+          curriculum_item_id: curriculum_item_1.id,
+          scale_id: scale.id
         })
 
       assessment_point_2 =
         assessment_point_fixture(%{
           strand_id: strand.id,
           curriculum_item_id: curriculum_item_2.id,
+          scale_id: scale.id,
           is_differentiation: true
         })
 
       assessment_point_3 =
         assessment_point_fixture(%{
           strand_id: strand.id,
-          curriculum_item_id: curriculum_item_3.id
+          curriculum_item_id: curriculum_item_3.id,
+          scale_id: scale.id
         })
 
       assessment_point_1_diff_rubric_1 =
         assessment_point_rubric_fixture(%{
           rubric_id: rubric_1.id,
           assessment_point_id: assessment_point_1.id,
+          scale_id: scale.id,
           is_diff: true
         })
 
@@ -405,6 +422,7 @@ defmodule Lanttern.RubricsTest do
         assessment_point_rubric_fixture(%{
           rubric_id: rubric_2.id,
           assessment_point_id: assessment_point_2.id,
+          scale_id: scale.id,
           is_diff: true
         })
 
@@ -424,20 +442,27 @@ defmodule Lanttern.RubricsTest do
       _not_diff_rubric =
         assessment_point_rubric_fixture(%{
           rubric_id: rubric_1.id,
-          assessment_point_id: assessment_point_1.id
+          assessment_point_id: assessment_point_1.id,
+          scale_id: scale.id
         })
 
       other_assessment_point =
-        assessment_point_fixture(%{rubric_id: other_rubric.id, strand_id: other_strand.id})
+        assessment_point_fixture(%{
+          rubric_id: other_rubric.id,
+          strand_id: other_strand.id,
+          scale_id: scale.id
+        })
 
       assessment_point_rubric_fixture(%{
         rubric_id: other_rubric.id,
-        assessment_point_id: other_assessment_point.id
+        assessment_point_id: other_assessment_point.id,
+        scale_id: scale.id
       })
 
       assessment_point_rubric_fixture(%{
         rubric_id: rubric_1.id,
-        assessment_point_id: other_assessment_point.id
+        assessment_point_id: other_assessment_point.id,
+        scale_id: scale.id
       })
 
       rubric_fixture(%{scale_id: scale.id})
@@ -1059,11 +1084,12 @@ defmodule Lanttern.RubricsTest do
 
     test "create_assessment_point_rubric/1 with valid data creates a assessment_point_rubric" do
       assessment_point = AssessmentsFixtures.assessment_point_fixture()
-      rubric = rubric_fixture()
+      rubric = rubric_fixture(%{scale_id: assessment_point.scale_id})
 
       valid_attrs = %{
         assessment_point_id: assessment_point.id,
         rubric_id: rubric.id,
+        scale_id: assessment_point.scale_id,
         is_diff: true
       }
 
