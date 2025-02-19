@@ -8,8 +8,11 @@ defmodule Lanttern.Rubrics do
   import Lanttern.RepoHelpers
   alias Lanttern.Repo
 
+  alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Rubrics.Rubric
   alias Lanttern.Rubrics.RubricDescriptor
+  alias Lanttern.Rubrics.AssessmentPointRubric
+  alias Lanttern.Schools.Student
 
   @doc """
   Returns the list of rubrics.
@@ -90,38 +93,128 @@ defmodule Lanttern.Rubrics do
     do: apply_list_full_rubrics_opts(queryable, opts)
 
   @doc """
-  Returns the list of strand rubrics (diff not included).
+  Returns the list of strand rubrics linked to given strand goals, grouped by goal.
 
-  Preloads scale, descriptors, and descriptors ordinal values.
+  Differentiation assessment points and rubrics are not included in the result.
 
-  Preloads curriculum item and curriculum component, and marks
-  the rubric with `is_differentiation` based on strand goal/assessment point.
+  Goals (assessment points)  preload `curriculum_item` with `component`.
+
+  Rubrics preload `scale`, `descriptors`, `descriptors ordinal values`,
+  and `is_diff` based on assessment point rubric.
 
   View `get_full_rubric!/1` for more details on descriptors sorting.
 
   ## Examples
 
-      iex> list_strand_rubrics()
-      [%Rubric{}, ...]
+      iex> list_strand_rubrics(1)
+      [{%AssessmentPoint{}, [%Rubric{}, ...]}, ...]
 
   """
-  @spec list_strand_rubrics(strand_id :: pos_integer()) :: [Rubric.t()]
+  @spec list_strand_rubrics(strand_id :: pos_integer()) :: [
+          {AssessmentPoint.t(), Rubric.t()}
+        ]
   def list_strand_rubrics(strand_id) do
+    assessment_points = list_strand_assessment_points(strand_id, include_diff: false)
+    assessment_points_ids = Enum.map(assessment_points, & &1.id)
+
+    rubrics =
+      from(
+        r in full_rubric_query(),
+        join: apr in assoc(r, :assessment_points_rubrics),
+        where: apr.assessment_point_id in ^assessment_points_ids,
+        where: not apr.is_diff,
+        order_by: apr.position,
+        select: %{r | assessment_point_id: apr.assessment_point_id, is_diff: apr.is_diff}
+      )
+      |> Repo.all()
+
+    assessment_points
+    |> Enum.map(fn ap ->
+      {ap, Enum.filter(rubrics, &(&1.assessment_point_id == ap.id))}
+    end)
+  end
+
+  defp list_strand_assessment_points(strand_id, include_diff: include_diff) do
+    conditions = dynamic([ap], ap.strand_id == ^strand_id)
+
+    conditions =
+      if include_diff,
+        do: conditions,
+        else: dynamic([ap], ^conditions and not ap.is_differentiation)
+
     from(
-      r in full_rubric_query(),
-      join: ap in assoc(r, :assessment_points),
+      ap in AssessmentPoint,
       join: ci in assoc(ap, :curriculum_item),
       join: cc in assoc(ci, :curriculum_component),
-      where: ap.strand_id == ^strand_id,
+      where: ^conditions,
       order_by: ap.position,
-      select: %{
-        r
-        | curriculum_item: %{ci | curriculum_component: cc},
-          is_differentiation: ap.is_differentiation
-      }
+      preload: [curriculum_item: {ci, curriculum_component: cc}]
     )
     |> Repo.all()
   end
+
+  @doc """
+  Returns the list of strand diff rubrics linked to given strand goals, grouped by goal.
+
+  Goals (assessment points)  preload `curriculum_item` with `component`.
+
+  Rubrics preload `scale`, `descriptors`, `descriptors ordinal values`,
+  `students` for diff rubrics, and `is_diff` based on assessment point rubric.
+
+  View `get_full_rubric!/1` for more details on descriptors sorting.
+
+  ## Options
+
+  - `:classes_ids` - filter preloaded diff students by given classes
+
+  ## Examples
+
+      iex> list_strand_diff_rubrics(1)
+      [{%AssessmentPoint{}, [%Rubric{}, ...]}, ...]
+
+  """
+  @spec list_strand_diff_rubrics(strand_id :: pos_integer(), opts :: Keyword.t()) :: [
+          {AssessmentPoint.t(), Rubric.t()}
+        ]
+  def list_strand_diff_rubrics(strand_id, opts \\ []) do
+    assessment_points = list_strand_assessment_points(strand_id, include_diff: true)
+    assessment_points_ids = Enum.map(assessment_points, & &1.id)
+
+    students_query =
+      Student
+      |> maybe_filter_students_by_class(Keyword.get(opts, :classes_ids))
+
+    rubrics =
+      from(
+        r in full_rubric_query(),
+        join: apr in assoc(r, :assessment_points_rubrics),
+        left_join: rae in assoc(apr, :rubric_assessment_entries),
+        left_join: s in subquery(students_query),
+        on: s.id == rae.student_id,
+        where: apr.assessment_point_id in ^assessment_points_ids,
+        where: apr.is_diff,
+        order_by: [asc: apr.position, asc: s.name],
+        preload: [students: s],
+        select: %{r | assessment_point_id: apr.assessment_point_id, is_diff: apr.is_diff}
+      )
+      |> Repo.all()
+
+    assessment_points
+    |> Enum.map(fn ap ->
+      {ap, Enum.filter(rubrics, &(&1.assessment_point_id == ap.id))}
+    end)
+  end
+
+  defp maybe_filter_students_by_class(queryable, classes_ids)
+       when is_list(classes_ids) and classes_ids != [] do
+    from(
+      s in queryable,
+      join: c in assoc(s, :classes),
+      where: c.id in ^classes_ids
+    )
+  end
+
+  defp maybe_filter_students_by_class(queryable, _), do: queryable
 
   @doc """
   Returns the list of strand diff rubrics for given student.
@@ -527,6 +620,94 @@ defmodule Lanttern.Rubrics do
   """
   def change_rubric_descriptor(%RubricDescriptor{} = rubric_descriptor, attrs \\ %{}) do
     RubricDescriptor.changeset(rubric_descriptor, attrs)
+  end
+
+  @doc """
+  Creates an assessment_point_rubric.
+
+  ## Examples
+
+      iex> create_assessment_point_rubric(%{field: value})
+      {:ok, %AssessmentPointRubric{}}
+
+      iex> create_assessment_point_rubric(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_assessment_point_rubric(attrs \\ %{}) do
+    attrs =
+      AssessmentPointRubric
+      |> filter_assessment_points_rubrics_by_context(attrs)
+      |> set_position_in_attrs(attrs)
+
+    %AssessmentPointRubric{}
+    |> AssessmentPointRubric.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  defp filter_assessment_points_rubrics_by_context(queryable, %{
+         assessment_point_id: assessment_point_id
+       })
+       when not is_nil(assessment_point_id) and assessment_point_id != "",
+       do: from(q in queryable, where: q.assessment_point_id == ^assessment_point_id)
+
+  defp filter_assessment_points_rubrics_by_context(queryable, %{
+         "assessment_point_id" => assessment_point_id
+       })
+       when not is_nil(assessment_point_id) and assessment_point_id != "",
+       do: from(q in queryable, where: q.assessment_point_id == ^assessment_point_id)
+
+  defp filter_assessment_points_rubrics_by_context(queryable, _),
+    do: from(q in queryable, where: false)
+
+  @doc """
+  Updates a assessment_point_rubric.
+
+  ## Examples
+
+      iex> update_assessment_point_rubric(assessment_point_rubric, %{field: new_value})
+      {:ok, %AssessmentPointRubric{}}
+
+      iex> update_assessment_point_rubric(assessment_point_rubric, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_assessment_point_rubric(%AssessmentPointRubric{} = assessment_point_rubric, attrs) do
+    assessment_point_rubric
+    |> AssessmentPointRubric.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a assessment_point_rubric.
+
+  ## Examples
+
+      iex> delete_assessment_point_rubric(assessment_point_rubric)
+      {:ok, %AssessmentPointRubric{}}
+
+      iex> delete_assessment_point_rubric(assessment_point_rubric)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_assessment_point_rubric(%AssessmentPointRubric{} = assessment_point_rubric) do
+    Repo.delete(assessment_point_rubric)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking assessment_point_rubric changes.
+
+  ## Examples
+
+      iex> change_assessment_point_rubric(assessment_point_rubric)
+      %Ecto.Changeset{data: %AssessmentPointRubric{}}
+
+  """
+  def change_assessment_point_rubric(
+        %AssessmentPointRubric{} = assessment_point_rubric,
+        attrs \\ %{}
+      ) do
+    AssessmentPointRubric.changeset(assessment_point_rubric, attrs)
   end
 
   @doc """

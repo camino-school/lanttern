@@ -60,4 +60,36 @@ defmodule Lanttern.RubricsFixtures do
 
     rubric_descriptor
   end
+
+  @doc """
+  Generate an assessment point rubric.
+  """
+
+  def assessment_point_rubric_fixture(attrs \\ %{}) do
+    {:ok, rubric} =
+      attrs
+      |> Enum.into(%{
+        assessment_point_id: Lanttern.AssessmentsFixtures.maybe_gen_assessment_point_id(attrs),
+        rubric_id: maybe_gen_rubric_id(attrs)
+      })
+      |> Lanttern.Rubrics.create_assessment_point_rubric()
+
+    rubric
+  end
+
+  # generator helpers
+
+  def maybe_gen_rubric_id(%{rubric_id: rubric_id} = _attrs),
+    do: rubric_id
+
+  def maybe_gen_rubric_id(_attrs),
+    do: rubric_fixture().id
+
+  def maybe_gen_assessment_point_rubric_id(
+        %{assessment_point_rubric_id: assessment_point_rubric_id} = _attrs
+      ),
+      do: assessment_point_rubric_id
+
+  def maybe_gen_assessment_point_rubric_id(_attrs),
+    do: assessment_point_rubric_fixture().id
 end

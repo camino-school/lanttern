@@ -3,11 +3,10 @@ defmodule Lanttern.AssessmentsTest do
 
   alias Lanttern.Repo
   alias Lanttern.Assessments
+  import Lanttern.AssessmentsFixtures
 
   describe "assessment_points" do
     alias Lanttern.Assessments.AssessmentPoint
-
-    import Lanttern.AssessmentsFixtures
 
     alias Lanttern.GradingFixtures
     alias Lanttern.RubricsFixtures
@@ -304,7 +303,6 @@ defmodule Lanttern.AssessmentsTest do
   describe "moment assessment points" do
     alias Lanttern.Assessments.AssessmentPoint
 
-    import Lanttern.AssessmentsFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.CurriculaFixtures
     alias Lanttern.GradingFixtures
@@ -399,8 +397,6 @@ defmodule Lanttern.AssessmentsTest do
   describe "assessment_point_entries" do
     alias Lanttern.Assessments.AssessmentPointEntry
     alias Lanttern.AssessmentsLog.AssessmentPointEntryLog
-
-    import Lanttern.AssessmentsFixtures
 
     alias Lanttern.Attachments
     alias Lanttern.IdentityFixtures
@@ -757,10 +753,75 @@ defmodule Lanttern.AssessmentsTest do
     end
   end
 
+  describe "rubric_assessment_entry" do
+    alias Lanttern.Assessments.RubricAssessmentEntry
+    alias Lanttern.RubricsFixtures
+    alias Lanttern.SchoolsFixtures
+
+    @invalid_attrs %{assessment_point_rubric_id: nil, student_id: nil}
+
+    test "create_assessment_point_rubric/1 with valid data creates a assessment_point_rubric" do
+      assessment_point_rubric = RubricsFixtures.assessment_point_rubric_fixture()
+      student = SchoolsFixtures.student_fixture()
+
+      valid_attrs = %{
+        assessment_point_rubric_id: assessment_point_rubric.id,
+        student_id: student.id
+      }
+
+      assert {:ok, %RubricAssessmentEntry{} = rubric_assessment_entry} =
+               Assessments.create_rubric_assessment_entry(valid_attrs)
+
+      assert rubric_assessment_entry.assessment_point_rubric_id == assessment_point_rubric.id
+      assert rubric_assessment_entry.student_id == student.id
+    end
+
+    test "create_rubric_assessment_entry/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} =
+               Assessments.create_rubric_assessment_entry(@invalid_attrs)
+    end
+
+    test "update_rubric_assessment_entry/2 with valid data updates the rubric_assessment_entry" do
+      rubric_assessment_entry = rubric_assessment_entry_fixture()
+      update_attrs = %{score: 999}
+
+      assert {:ok, %RubricAssessmentEntry{} = rubric_assessment_entry} =
+               Assessments.update_rubric_assessment_entry(rubric_assessment_entry, update_attrs)
+
+      assert rubric_assessment_entry.score == 999
+    end
+
+    test "update_rubric_assessment_entry/2 with invalid data returns error changeset" do
+      rubric_assessment_entry = rubric_assessment_entry_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Assessments.update_rubric_assessment_entry(rubric_assessment_entry, @invalid_attrs)
+
+      assert rubric_assessment_entry ==
+               Repo.get!(RubricAssessmentEntry, rubric_assessment_entry.id)
+    end
+
+    test "delete_rubric_assessment_entry/1 deletes the rubric_assessment_entry" do
+      rubric_assessment_entry = rubric_assessment_entry_fixture()
+
+      assert {:ok, %RubricAssessmentEntry{}} =
+               Assessments.delete_rubric_assessment_entry(rubric_assessment_entry)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Repo.get!(RubricAssessmentEntry, rubric_assessment_entry.id)
+      end
+    end
+
+    test "change_rubric_assessment_entry/1 returns a rubric_assessment_entry changeset" do
+      rubric_assessment_entry = rubric_assessment_entry_fixture()
+
+      assert %Ecto.Changeset{} =
+               Assessments.change_rubric_assessment_entry(rubric_assessment_entry)
+    end
+  end
+
   describe "feedback" do
     alias Lanttern.Assessments.Feedback
-
-    import Lanttern.AssessmentsFixtures
 
     @invalid_attrs %{comment: nil}
 
@@ -875,7 +936,6 @@ defmodule Lanttern.AssessmentsTest do
 
   describe "assessment point rubrics" do
     alias Lanttern.Rubrics.Rubric
-    import Lanttern.AssessmentsFixtures
 
     test "create_assessment_point_rubric/3 with valid data creates a rubric linked to the given assessment point" do
       assessment_point = assessment_point_fixture()
@@ -900,7 +960,6 @@ defmodule Lanttern.AssessmentsTest do
   end
 
   describe "student strand report assessments" do
-    import Lanttern.AssessmentsFixtures
     alias Lanttern.CurriculaFixtures
     alias Lanttern.GradingFixtures
     alias Lanttern.IdentityFixtures
@@ -1171,7 +1230,6 @@ defmodule Lanttern.AssessmentsTest do
   describe "strand assessment points" do
     alias Lanttern.Assessments.AssessmentPoint
 
-    # import Lanttern.AssessmentsFixtures
     # alias Lanttern.IdentityFixtures
     alias Lanttern.CurriculaFixtures
     alias Lanttern.GradingFixtures

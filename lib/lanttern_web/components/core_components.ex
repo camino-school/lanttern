@@ -72,6 +72,7 @@ defmodule LantternWeb.CoreComponents do
     "default" => "text-ltrn-dark hover:text-ltrn-subtle",
     "subtle" => "text-ltrn-subtle hover:text-ltrn-dark",
     "primary" => "text-ltrn-dark hover:text-ltrn-subtle",
+    "diff" => "text-ltrn-diff-dark hover:text-ltrn-diff-dark/60",
     "student" => "text-ltrn-student-dark hover:text-ltrn-student-dark/80",
     "staff" => "text-ltrn-staff-dark hover:text-ltrn-staff-dark/80",
     "alert" => "text-ltrn-subtle hover:text-ltrn-alert-accent"
@@ -81,6 +82,7 @@ defmodule LantternWeb.CoreComponents do
     "default" => nil,
     "subtle" => nil,
     "primary" => "bg-ltrn-mesh-primary",
+    "diff" => "bg-ltrn-diff-lightest",
     "student" => "bg-ltrn-student-lightest",
     "staff" => "bg-ltrn-staff-lightest",
     "alert" => "bg-ltrn-alert-lighter"
@@ -103,7 +105,7 @@ defmodule LantternWeb.CoreComponents do
 
   defp action_styles(theme, size),
     do:
-      "group relative flex items-center gap-2 min-w-0 #{Map.get(@action_themes, theme)} #{Map.get(@action_sizes, size)}"
+      "shrink-0 group relative flex items-center gap-2 min-w-0 #{Map.get(@action_themes, theme)} #{Map.get(@action_sizes, size)}"
 
   defp action_bg_styles(theme, size),
     do:
@@ -1410,10 +1412,12 @@ defmodule LantternWeb.CoreComponents do
 
   defp person_badge_theme_style("cyan"), do: "text-ltrn-dark bg-ltrn-mesh-cyan"
   defp person_badge_theme_style("staff"), do: "text-ltrn-staff-dark bg-ltrn-staff-lighter"
+  defp person_badge_theme_style("diff"), do: "text-ltrn-dark bg-ltrn-diff-lightest"
   defp person_badge_theme_style(_subtle), do: "text-ltrn-subtle bg-ltrn-lighter"
 
   defp person_badge_link_theme_style("cyan"), do: "hover:text-ltrn-subtle"
   defp person_badge_link_theme_style("staff"), do: "hover:text-ltrn-staff-accent"
+  defp person_badge_link_theme_style("diff"), do: "hover:text-ltrn-diff-accent"
   defp person_badge_link_theme_style(_subtle), do: "hover:text-ltrn-subtle"
 
   @doc """

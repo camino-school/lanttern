@@ -1,6 +1,20 @@
 defmodule Lanttern.Assessments do
   @moduledoc """
   The Assessments context.
+
+  # About rubrics asessment entries
+
+  There are two main use cases for rubric assessment entries:
+
+  1. assessment points with multiple rubrics
+  2. to link students to differentiation rubrics
+
+  When the assessment point uses a single rubric, we don't need rubric entries
+  because the assessment point entry the rubric entry are the same - which is not
+  true for multiple rubrics assessment points. This rule also applies to differentiation:
+  we can (should!) create the rubric entry to link the student to the differentiation rubric,
+  but we don't need to assign ordinal values and/or scores, which are infered from the
+  assessment point entry.
   """
 
   import Ecto.Query, warn: false
@@ -10,6 +24,7 @@ defmodule Lanttern.Assessments do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.AssessmentPointEntryEvidence
+  alias Lanttern.Assessments.RubricAssessmentEntry
   alias Lanttern.Assessments.Feedback
   alias Lanttern.AssessmentsLog
   alias Lanttern.Attachments
@@ -491,6 +506,74 @@ defmodule Lanttern.Assessments do
         attrs \\ %{}
       ) do
     AssessmentPointEntry.simple_changeset(assessment_point_entry, attrs)
+  end
+
+  @doc """
+  Creates an rubric_assessment_entry.
+
+  ## Examples
+
+      iex> create_rubric_assessment_entry(%{field: value})
+      {:ok, %RubricAssessmentEntry{}}
+
+      iex> create_rubric_assessment_entry(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_rubric_assessment_entry(attrs \\ %{}) do
+    %RubricAssessmentEntry{}
+    |> RubricAssessmentEntry.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a rubric_assessment_entry.
+
+  ## Examples
+
+      iex> update_rubric_assessment_entry(rubric_assessment_entry, %{field: new_value})
+      {:ok, %RubricAssessmentEntry{}}
+
+      iex> update_rubric_assessment_entry(rubric_assessment_entry, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_rubric_assessment_entry(%RubricAssessmentEntry{} = rubric_assessment_entry, attrs) do
+    rubric_assessment_entry
+    |> RubricAssessmentEntry.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a rubric_assessment_entry.
+
+  ## Examples
+
+      iex> delete_rubric_assessment_entry(rubric_assessment_entry)
+      {:ok, %RubricAssessmentEntry{}}
+
+      iex> delete_rubric_assessment_entry(rubric_assessment_entry)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_rubric_assessment_entry(%RubricAssessmentEntry{} = rubric_assessment_entry) do
+    Repo.delete(rubric_assessment_entry)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking rubric_assessment_entry changes.
+
+  ## Examples
+
+      iex> change_rubric_assessment_entry(rubric_assessment_entry)
+      %Ecto.Changeset{data: %RubricAssessmentEntry{}}
+
+  """
+  def change_rubric_assessment_entry(
+        %RubricAssessmentEntry{} = rubric_assessment_entry,
+        attrs \\ %{}
+      ) do
+    RubricAssessmentEntry.changeset(rubric_assessment_entry, attrs)
   end
 
   @doc """

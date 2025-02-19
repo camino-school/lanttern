@@ -3,6 +3,7 @@ defmodule Lanttern.Rubrics.AssessmentPointRubric do
   import Ecto.Changeset
 
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Assessments.RubricAssessmentEntry
   alias Lanttern.Rubrics.Rubric
 
   @type t :: %__MODULE__{
@@ -13,6 +14,7 @@ defmodule Lanttern.Rubrics.AssessmentPointRubric do
           assessment_point_id: pos_integer(),
           rubric: Rubric.t() | Ecto.Association.NotLoaded.t(),
           rubric_id: pos_integer(),
+          rubric_assessment_entries: [RubricAssessmentEntry.t()] | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -23,6 +25,8 @@ defmodule Lanttern.Rubrics.AssessmentPointRubric do
 
     belongs_to :assessment_point, AssessmentPoint
     belongs_to :rubric, Rubric
+
+    has_many :rubric_assessment_entries, RubricAssessmentEntry
 
     timestamps()
   end

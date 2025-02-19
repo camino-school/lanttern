@@ -62,6 +62,23 @@ defmodule Lanttern.AssessmentsFixtures do
   end
 
   @doc """
+  Generate a rubric assessment entry.
+  """
+
+  def rubric_assessment_entry_fixture(attrs \\ %{}) do
+    {:ok, rubric} =
+      attrs
+      |> Enum.into(%{
+        assessment_point_rubric_id:
+          Lanttern.RubricsFixtures.maybe_gen_assessment_point_rubric_id(attrs),
+        student_id: Lanttern.SchoolsFixtures.maybe_gen_student_id(attrs)
+      })
+      |> Lanttern.Assessments.create_rubric_assessment_entry()
+
+    rubric
+  end
+
+  @doc """
   Generate a feedback.
   """
   def feedback_fixture(attrs \\ %{}) do
