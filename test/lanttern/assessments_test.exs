@@ -760,7 +760,7 @@ defmodule Lanttern.AssessmentsTest do
 
     @invalid_attrs %{assessment_point_rubric_id: nil, student_id: nil}
 
-    test "create_assessment_point_rubric/1 with valid data creates a assessment_point_rubric" do
+    test "create_rubric_assessment_entry/1 with valid data creates a assessment_point_rubric" do
       assessment_point_rubric = RubricsFixtures.assessment_point_rubric_fixture()
       student = SchoolsFixtures.student_fixture()
 
@@ -931,31 +931,6 @@ defmodule Lanttern.AssessmentsTest do
     test "change_feedback/1 returns a feedback changeset" do
       feedback = feedback_fixture()
       assert %Ecto.Changeset{} = Assessments.change_feedback(feedback)
-    end
-  end
-
-  describe "assessment point rubrics" do
-    alias Lanttern.Rubrics.Rubric
-
-    test "create_assessment_point_rubric/3 with valid data creates a rubric linked to the given assessment point" do
-      assessment_point = assessment_point_fixture()
-
-      valid_attrs = %{
-        criteria: "some criteria",
-        scale_id: assessment_point.scale_id
-      }
-
-      assert {:ok, %Rubric{} = rubric} =
-               Assessments.create_assessment_point_rubric(assessment_point.id, valid_attrs,
-                 preloads: :scale
-               )
-
-      assert rubric.criteria == "some criteria"
-      assert rubric.scale.id == assessment_point.scale_id
-
-      # get updated assessment point
-      assessment_point = Assessments.get_assessment_point(assessment_point.id)
-      assert assessment_point.rubric_id == rubric.id
     end
   end
 

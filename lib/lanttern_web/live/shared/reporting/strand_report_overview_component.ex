@@ -11,8 +11,9 @@ defmodule LantternWeb.Reporting.StrandReportOverviewComponent do
 
   use LantternWeb, :live_component
 
+  alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Rubrics
-  alias Lanttern.Rubrics.Rubric
+  # alias Lanttern.Rubrics.Rubric
 
   # shared components
   import LantternWeb.RubricsComponents
@@ -23,12 +24,20 @@ defmodule LantternWeb.Reporting.StrandReportOverviewComponent do
     <div class={@class}>
       <.responsive_container>
         <.markdown :if={@description} text={@description} />
-        <div :if={@has_rubric} class={if @description, do: "mt-10"}>
+        <div :if={@has_assessment_point_rubric} class={if @description, do: "mt-10"}>
           <h3 class="font-display font-black text-xl"><%= gettext("Strand rubrics") %></h3>
-          <.rubric_card :for={{dom_id, rubric} <- @streams.rubrics} id={dom_id} rubric={rubric} />
-          <.rubric_card :for={{dom_id, rubric} <- @streams.diff_rubrics} id={dom_id} rubric={rubric} />
+          <.assessment_point_rubrics_card
+            :for={
+              {dom_id, {assessment_point, assessment_point_rubrics}} <-
+                @streams.assessment_points_rubrics
+            }
+            id={dom_id}
+            assessment_point={assessment_point}
+            assessment_point_rubrics={assessment_point_rubrics}
+          />
+          <%!-- <.rubric_card :for={{dom_id, rubric} <- @streams.diff_rubrics} id={dom_id} rubric={rubric} /> --%>
         </div>
-        <.empty_state :if={!@description && !@has_rubric}>
+        <.empty_state :if={!@description && !@has_assessment_point_rubric}>
           <%= gettext("No strand report info yet.") %>
         </.empty_state>
       </.responsive_container>
@@ -37,43 +46,51 @@ defmodule LantternWeb.Reporting.StrandReportOverviewComponent do
   end
 
   attr :id, :string, required: true
-  attr :rubric, Rubric, required: true
+  attr :assessment_point, AssessmentPoint, required: true
+  attr :assessment_point_rubrics, :list, required: true
 
-  def rubric_card(assigns) do
-    {is_diff, diff_type} =
-      case assigns.rubric do
-        %{is_differentiation: true} -> {true, :curriculum}
-        %{diff_for_rubric_id: parent_rubric} when not is_nil(parent_rubric) -> {true, :rubric}
-        _ -> {false, nil}
-      end
+  def assessment_point_rubrics_card(assigns) do
+    # {is_diff, diff_type} =
+    #   case assigns.rubric do
+    #     %{is_differentiation: true} -> {true, :curriculum}
+    #     %{diff_for_rubric_id: parent_rubric} when not is_nil(parent_rubric) -> {true, :rubric}
+    #     _ -> {false, nil}
+    #   end
 
-    assigns =
-      assigns
-      |> assign(:is_diff, is_diff)
-      |> assign(:diff_type, diff_type)
+    # assigns =
+    #   assigns
+    #   |> assign(:is_diff, is_diff)
+    #   |> assign(:diff_type, diff_type)
 
     ~H"""
-    <.card_base id={@id} class={["mt-6", if(@is_diff, do: "border border-ltrn-diff-accent")]}>
+    <.card_base
+      id={@id}
+      class={["mt-6", if(@assessment_point.is_differentiation, do: "border border-ltrn-diff-accent")]}
+    >
       <div class="pt-4 px-4 text-sm">
-        <p :if={@is_diff} class="mb-2 text-ltrn-diff-dark font-bold">
+        <%!-- <p :if={@is_diff} class="mb-2 text-ltrn-diff-dark font-bold">
           <%= if @diff_type == :curriculum,
             do: gettext("Curriculum differentiation"),
             else: gettext("Rubric differentiation") %>
-        </p>
+        </p> --%>
         <p>
-          <span class="font-bold"><%= @rubric.curriculum_item.curriculum_component.name %></span>
-          <%= @rubric.curriculum_item.name %>
-        </p>
-        <p class="mt-2">
-          <span class="font-bold"><%= gettext("Criteria:") %></span>
-          <%= @rubric.criteria %>
+          <span class="font-bold">
+            <%= @assessment_point.curriculum_item.curriculum_component.name %>
+          </span>
+          <%= @assessment_point.curriculum_item.name %>
         </p>
       </div>
-      <div class="overflow-x-auto">
-        <%!-- extra div with min-w-min prevent clamped right padding issue --%>
-        <%!-- https://stackoverflow.com/a/26892899 --%>
-        <div class="p-4 min-w-min">
-          <.rubric_descriptors rubric={@rubric} />
+      <div :for={apr <- @assessment_point_rubrics} class="pt-4 border-t border-ltrn-lighter mt-4">
+        <p class="px-4">
+          <span class="font-bold"><%= gettext("Criteria:") %></span>
+          <%= apr.rubric.criteria %>
+        </p>
+        <div class="overflow-x-auto">
+          <%!-- extra div with min-w-min prevent clamped right padding issue --%>
+          <%!-- https://stackoverflow.com/a/26892899 --%>
+          <div class="p-4 min-w-min">
+            <.rubric_descriptors rubric={apr.rubric} />
+          </div>
         </div>
       </div>
     </.card_base>
@@ -87,6 +104,10 @@ defmodule LantternWeb.Reporting.StrandReportOverviewComponent do
     socket =
       socket
       |> assign(:class, nil)
+      |> stream_configure(
+        :assessment_points_rubrics,
+        dom_id: fn {ap, _rubrics} -> "assessment-point-#{ap.id}" end
+      )
 
     {:ok, socket}
   end
@@ -97,8 +118,9 @@ defmodule LantternWeb.Reporting.StrandReportOverviewComponent do
       socket
       |> assign(assigns)
       |> assign_description()
-      |> stream_strand_rubrics()
-      |> stream_diff_rubrics()
+      |> stream_assessment_points_rubrics()
+
+    # |> stream_diff_rubrics()
 
     {:ok, socket}
   end
@@ -122,24 +144,30 @@ defmodule LantternWeb.Reporting.StrandReportOverviewComponent do
     assign(socket, :description, description)
   end
 
-  defp stream_strand_rubrics(socket) do
-    rubrics =
-      Rubrics.list_strand_rubrics(socket.assigns.strand_report.strand_id)
+  defp stream_assessment_points_rubrics(socket) do
+    assessment_points_rubrics =
+      Rubrics.list_strand_assessment_points_rubrics(socket.assigns.strand_report.strand_id)
+      # filter out assessment points without rubrics
+      |> Enum.filter(fn
+        {_, []} -> false
+        {_, _} -> true
+      end)
 
     socket
-    |> stream(:rubrics, rubrics)
-    |> assign(:has_rubric, rubrics != [])
+    |> stream(:assessment_points_rubrics, assessment_points_rubrics)
+    |> assign(:has_assessment_point_rubric, assessment_points_rubrics != [])
   end
 
-  defp stream_diff_rubrics(socket) do
-    diff_rubrics =
-      Rubrics.list_strand_diff_rubrics_for_student_id(
-        socket.assigns.student_id,
-        socket.assigns.strand_report.strand_id
-      )
+  # to do: reimplement diff rubrics for student
+  # defp stream_diff_rubrics(socket) do
+  #   diff_rubrics =
+  #     Rubrics.list_strand_diff_rubrics_for_student_id(
+  #       socket.assigns.student_id,
+  #       socket.assigns.strand_report.strand_id
+  #     )
 
-    socket
-    |> stream(:diff_rubrics, diff_rubrics)
-    |> assign(:has_diff_rubric, diff_rubrics != [])
-  end
+  #   socket
+  #   |> stream(:diff_rubrics, diff_rubrics)
+  #   |> assign(:has_diff_rubric, diff_rubrics != [])
+  # end
 end

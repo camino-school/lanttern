@@ -1223,57 +1223,6 @@ defmodule Lanttern.Assessments do
   end
 
   @doc """
-  Creates a rubric and link it to the given assessment point.
-
-  It's a wrapper around `Rubrics.create_rubric/2` with an assessment point update
-  in the same transaction (avoiding "orphans" rubrics).
-
-  If some error happens during rubric creation, it returns a tuple with `:error` and rubric
-  error changeset. If the error happens elsewhere, it returns a tuple with `:error` and a message.
-
-  ## Options
-
-      - View `Rubrics.create_rubric/2`
-
-  ## Examples
-
-      iex> create_assessment_point_rubric(1, %{field: value})
-      {:ok, %AssessmentPointEntry{}}
-
-      iex> create_assessment_point_rubric(2, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-      iex> create_assessment_point_rubric(999, %{field: value})
-      {:ok, "Assessment point not found"}
-
-  """
-  def create_assessment_point_rubric(assessment_point_id, attrs \\ %{}, opts \\ []) do
-    Repo.transaction(fn ->
-      rubric =
-        case Rubrics.create_rubric(attrs, opts) do
-          {:ok, rubric} -> rubric
-          {:error, error_changeset} -> Repo.rollback(error_changeset)
-        end
-
-      assessment_point =
-        case get_assessment_point(assessment_point_id) do
-          nil -> Repo.rollback("Assessment point not found")
-          assessment_point -> assessment_point
-        end
-
-      case update_assessment_point(assessment_point, %{rubric_id: rubric.id}) do
-        {:ok, _assessment_point} ->
-          :ok
-
-        {:error, _error_changeset} ->
-          Repo.rollback("Error linking rubric to the assessment point")
-      end
-
-      rubric
-    end)
-  end
-
-  @doc """
   Creates an evidence (attachment) and links it to an existing assessment point entry in a single transaction.
 
   ## Examples

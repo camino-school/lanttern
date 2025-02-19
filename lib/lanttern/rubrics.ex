@@ -4,6 +4,7 @@ defmodule Lanttern.Rubrics do
   """
 
   import Ecto.Query, warn: false
+  use Gettext, backend: Lanttern.Gettext
 
   import Lanttern.RepoHelpers
   alias Lanttern.Repo
@@ -93,27 +94,26 @@ defmodule Lanttern.Rubrics do
     do: apply_list_full_rubrics_opts(queryable, opts)
 
   @doc """
-  Returns the list of strand rubrics linked to given strand goals, grouped by goal.
+  Returns the list of strand assessment points rubrics linked to given strand goals, grouped by goal.
 
   Differentiation assessment points and rubrics are not included in the result.
 
   Goals (assessment points)  preload `curriculum_item` with `component`.
 
-  Rubrics preload `scale`, `descriptors`, `descriptors ordinal values`,
-  and `is_diff` based on assessment point rubric.
+  Assessment point rubrics preload `rubric` with `scale`, `descriptors`, and `descriptors ordinal values`.
 
   View `get_full_rubric!/1` for more details on descriptors sorting.
 
   ## Examples
 
-      iex> list_strand_rubrics(1)
-      [{%AssessmentPoint{}, [%Rubric{}, ...]}, ...]
+      iex> list_strand_assessment_points_rubrics(1)
+      [{%AssessmentPoint{}, [%AssessmentPointRubric{}, ...]}, ...]
 
   """
-  @spec list_strand_rubrics(strand_id :: pos_integer()) :: [
-          {AssessmentPoint.t(), Rubric.t()}
+  @spec list_strand_assessment_points_rubrics(strand_id :: pos_integer()) :: [
+          {AssessmentPoint.t(), AssessmentPointRubric.t()}
         ]
-  def list_strand_rubrics(strand_id) do
+  def list_strand_assessment_points_rubrics(strand_id) do
     assessment_points = list_strand_assessment_points(strand_id, include_diff: false)
     assessment_points_ids = Enum.map(assessment_points, & &1.id)
 
@@ -124,7 +124,7 @@ defmodule Lanttern.Rubrics do
         where: apr.assessment_point_id in ^assessment_points_ids,
         where: not apr.is_diff,
         order_by: apr.position,
-        select: %{r | assessment_point_id: apr.assessment_point_id, is_diff: apr.is_diff}
+        select: %{apr | rubric: r}
       )
       |> Repo.all()
 
@@ -154,12 +154,12 @@ defmodule Lanttern.Rubrics do
   end
 
   @doc """
-  Returns the list of strand diff rubrics linked to given strand goals, grouped by goal.
+  Returns the list of strand assessment point diff rubrics linked to given strand goals, grouped by goal.
 
   Goals (assessment points)  preload `curriculum_item` with `component`.
 
-  Rubrics preload `scale`, `descriptors`, `descriptors ordinal values`,
-  `students` for diff rubrics, and `is_diff` based on assessment point rubric.
+  Assessment point rubrics preload `students` and `rubric` with `scale`,
+  `descriptors`, and `descriptors ordinal values`.
 
   View `get_full_rubric!/1` for more details on descriptors sorting.
 
@@ -169,14 +169,18 @@ defmodule Lanttern.Rubrics do
 
   ## Examples
 
-      iex> list_strand_diff_rubrics(1)
-      [{%AssessmentPoint{}, [%Rubric{}, ...]}, ...]
+      iex> list_strand_diff_assessment_points_rubrics(1)
+      [{%AssessmentPoint{}, [%AssessmentPointRubric{}, ...]}, ...]
 
   """
-  @spec list_strand_diff_rubrics(strand_id :: pos_integer(), opts :: Keyword.t()) :: [
-          {AssessmentPoint.t(), Rubric.t()}
-        ]
-  def list_strand_diff_rubrics(strand_id, opts \\ []) do
+  @spec list_strand_diff_assessment_points_rubrics(
+          strand_id :: pos_integer(),
+          opts :: Keyword.t()
+        ) ::
+          [
+            {AssessmentPoint.t(), AssessmentPointRubric.t()}
+          ]
+  def list_strand_diff_assessment_points_rubrics(strand_id, opts \\ []) do
     assessment_points = list_strand_assessment_points(strand_id, include_diff: true)
     assessment_points_ids = Enum.map(assessment_points, & &1.id)
 
@@ -186,16 +190,14 @@ defmodule Lanttern.Rubrics do
 
     rubrics =
       from(
-        r in full_rubric_query(),
-        join: apr in assoc(r, :assessment_points_rubrics),
+        apr in AssessmentPointRubric,
         left_join: rae in assoc(apr, :rubric_assessment_entries),
         left_join: s in subquery(students_query),
         on: s.id == rae.student_id,
         where: apr.assessment_point_id in ^assessment_points_ids,
         where: apr.is_diff,
         order_by: [asc: apr.position, asc: s.name],
-        preload: [students: s],
-        select: %{r | assessment_point_id: apr.assessment_point_id, is_diff: apr.is_diff}
+        preload: [students: s, rubric: ^full_rubric_query()]
       )
       |> Repo.all()
 
@@ -228,7 +230,7 @@ defmodule Lanttern.Rubrics do
 
   ## Examples
 
-      iex> list_strand_rubrics()
+      iex> list_strand_diff_rubrics_for_student_id()
       [%Rubric{}, ...]
 
   """
@@ -498,6 +500,10 @@ defmodule Lanttern.Rubrics do
   @doc """
   Deletes a rubric.
 
+  ## Options
+
+  - `:unlink_assessment_points` - boolean. If true, will delete rubric and linked `AssessmentPointRubric`s in a single transaction
+
   ## Examples
 
       iex> delete_rubric(rubric)
@@ -507,7 +513,26 @@ defmodule Lanttern.Rubrics do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_rubric(%Rubric{} = rubric) do
+  def delete_rubric(rubric, opts \\ [])
+
+  def delete_rubric(%Rubric{id: rubric_id} = rubric, unlink_assessment_points: true) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.delete_all(
+      :delete_assessment_point_rubrics,
+      from(
+        apr in AssessmentPointRubric,
+        where: apr.rubric_id == ^rubric_id
+      )
+    )
+    |> Ecto.Multi.delete(:delete_rubric, rubric)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{delete_rubric: rubric}} -> {:ok, rubric}
+      {:error, _operation, value, _changes_so_far} -> {:error, value}
+    end
+  end
+
+  def delete_rubric(%Rubric{} = rubric, _) do
     rubric
     |> Rubric.changeset(%{})
     |> Repo.delete()
@@ -623,6 +648,30 @@ defmodule Lanttern.Rubrics do
   end
 
   @doc """
+  Gets a single assessment point rubric.
+
+  Raises `Ecto.NoResultsError` if the Rubric does not exist.
+
+  ### Options:
+
+  `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> get_assessment_point_rubric!(123)
+      %AssessmentPointRubric{}
+
+      iex> get_assessment_point_rubric!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_assessment_point_rubric!(id, opts \\ []) do
+    AssessmentPointRubric
+    |> Repo.get!(id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
   Creates an assessment_point_rubric.
 
   ## Examples
@@ -659,6 +708,66 @@ defmodule Lanttern.Rubrics do
 
   defp filter_assessment_points_rubrics_by_context(queryable, _),
     do: from(q in queryable, where: false)
+
+  @doc """
+  Creates a rubric and link it to the given assessment point.
+
+  It's a wrapper around `create_rubric/2` with an assessment point update
+  through `create_assessment_point_rubric/1` in the same transaction,
+  avoiding "orphans" rubrics.
+
+  If some error happens during rubric creation, it returns a tuple with `:error` and rubric
+  error changeset. If the error happens elsewhere, it returns a tuple with `:error` and a message.
+
+  ## Options
+
+  - `:is_diff` - boolean, mark the assessment point rubric as diff
+  - view `create_rubric/2` for other opts
+
+  ## Examples
+
+      iex> create_assessment_point_rubric(1, %{field: value})
+      {:ok, %Rubric{}}
+
+      iex> create_assessment_point_rubric(2, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+      iex> create_assessment_point_rubric(999, %{field: value})
+      {:error, "Assessment point not found"}
+
+  """
+  def create_rubric_and_link_to_assessment_point(assessment_point_id, attrs \\ %{}, opts \\ []) do
+    Repo.transaction(fn ->
+      rubric =
+        case create_rubric(attrs, opts) do
+          {:ok, rubric} -> rubric
+          {:error, error_changeset} -> Repo.rollback(error_changeset)
+        end
+
+      assessment_point =
+        case Repo.get(AssessmentPoint, assessment_point_id) do
+          nil -> Repo.rollback(gettext("Assessment point not found"))
+          assessment_point -> assessment_point
+        end
+
+      assessment_point_rubric_attrs = %{
+        assessment_point_id: assessment_point.id,
+        rubric_id: rubric.id,
+        scale_id: rubric.scale_id,
+        is_diff: Keyword.get(opts, :is_diff, false)
+      }
+
+      case create_assessment_point_rubric(assessment_point_rubric_attrs) do
+        {:ok, _assessment_poin_rubric} ->
+          :ok
+
+        {:error, _error_changeset} ->
+          Repo.rollback(gettext("Error creating assessment point rubric"))
+      end
+
+      rubric
+    end)
+  end
 
   @doc """
   Updates a assessment_point_rubric.

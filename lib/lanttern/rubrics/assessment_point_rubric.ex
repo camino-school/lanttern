@@ -4,8 +4,9 @@ defmodule Lanttern.Rubrics.AssessmentPointRubric do
 
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.RubricAssessmentEntry
-  alias Lanttern.Rubrics.Rubric
   alias Lanttern.Grading.Scale
+  alias Lanttern.Rubrics.Rubric
+  alias Lanttern.Schools.Student
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -18,6 +19,7 @@ defmodule Lanttern.Rubrics.AssessmentPointRubric do
           scale: Scale.t() | Ecto.Association.NotLoaded.t(),
           scale_id: pos_integer(),
           rubric_assessment_entries: [RubricAssessmentEntry.t()] | Ecto.Association.NotLoaded.t(),
+          students: [Student.t()] | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -31,6 +33,7 @@ defmodule Lanttern.Rubrics.AssessmentPointRubric do
     belongs_to :scale, Scale
 
     has_many :rubric_assessment_entries, RubricAssessmentEntry
+    has_many :students, through: [:rubric_assessment_entries, :student]
 
     timestamps()
   end

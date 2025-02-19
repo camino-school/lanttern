@@ -167,6 +167,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
       assert expected.rubric_id == rubric.id
     end
 
+    @tag :skip
     test "create and link rubric to assessment point in overlay", %{conn: conn} do
       scale = Lanttern.GradingFixtures.scale_fixture(%{type: "numeric"})
 

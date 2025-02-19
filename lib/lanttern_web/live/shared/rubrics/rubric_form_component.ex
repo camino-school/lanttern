@@ -8,7 +8,6 @@ defmodule LantternWeb.Rubrics.RubricFormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Rubrics
-  alias Lanttern.Assessments
   alias Lanttern.Grading
   import LantternWeb.GradingHelpers
 
@@ -354,7 +353,7 @@ defmodule LantternWeb.Rubrics.RubricFormComponent do
         Rubrics.create_diff_rubric_for_student(student_id, rubric_params)
 
       %{link_to_assessment_point_id: assessment_point_id} when not is_nil(assessment_point_id) ->
-        Assessments.create_assessment_point_rubric(assessment_point_id, rubric_params)
+        Rubrics.create_rubric_and_link_to_assessment_point(assessment_point_id, rubric_params)
 
       _ ->
         Rubrics.create_rubric(rubric_params, preloads: :scale)

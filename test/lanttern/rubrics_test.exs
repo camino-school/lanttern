@@ -1,4 +1,5 @@
 defmodule Lanttern.RubricsTest do
+  alias Lanttern.Rubrics.AssessmentPointRubric
   use Lanttern.DataCase
 
   alias Lanttern.Repo
@@ -166,7 +167,7 @@ defmodule Lanttern.RubricsTest do
       assert expected_descriptor_2.id == descriptor_2.id
     end
 
-    test "list_strand_rubrics/1 returns all strand rubrics with descriptors preloaded and ordered correctly" do
+    test "list_strand_assessment_points_rubrics/1 returns all strand rubrics with descriptors preloaded and ordered correctly" do
       scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
       ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})
       ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.2})
@@ -246,14 +247,14 @@ defmodule Lanttern.RubricsTest do
           scale_id: scale.id
         })
 
-      _assessment_point_1_rubric_1 =
+      assessment_point_1_rubric_1 =
         assessment_point_rubric_fixture(%{
           rubric_id: rubric_1.id,
           assessment_point_id: assessment_point_1.id,
           scale_id: scale.id
         })
 
-      _assessment_point_2_rubric_2 =
+      assessment_point_2_rubric_2 =
         assessment_point_rubric_fixture(%{
           rubric_id: rubric_2.id,
           assessment_point_id: assessment_point_2.id,
@@ -302,25 +303,27 @@ defmodule Lanttern.RubricsTest do
         })
 
       [
-        {expected_ap_1, [expected_r_1]},
-        {expected_ap_2, [expected_r_2]},
+        {expected_ap_1, [expected_apr_1]},
+        {expected_ap_2, [expected_apr_2]},
         {expected_ap_3, []}
       ] =
-        Rubrics.list_strand_rubrics(strand.id)
+        Rubrics.list_strand_assessment_points_rubrics(strand.id)
 
       assert expected_ap_1.id == assessment_point_1.id
-      assert expected_r_1.id == rubric_1.id
+      assert expected_apr_1.id == assessment_point_1_rubric_1.id
+      assert expected_apr_1.rubric.id == rubric_1.id
 
-      [expected_descriptor_1_1, expected_descriptor_1_2] = expected_r_1.descriptors
+      [expected_descriptor_1_1, expected_descriptor_1_2] = expected_apr_1.rubric.descriptors
       assert expected_descriptor_1_1.id == descriptor_1_1.id
       assert expected_descriptor_1_2.id == descriptor_1_2.id
       assert expected_ap_1.curriculum_item.id == curriculum_item_1.id
       assert expected_ap_1.curriculum_item.curriculum_component.id == curriculum_component.id
 
       assert expected_ap_2.id == assessment_point_2.id
-      assert expected_r_2.id == rubric_2.id
+      assert expected_apr_2.id == assessment_point_2_rubric_2.id
+      assert expected_apr_2.rubric.id == rubric_2.id
 
-      [expected_descriptor_2_1, expected_descriptor_2_2] = expected_r_2.descriptors
+      [expected_descriptor_2_1, expected_descriptor_2_2] = expected_apr_2.rubric.descriptors
       assert expected_descriptor_2_1.id == descriptor_2_1.id
       assert expected_descriptor_2_2.id == descriptor_2_2.id
       assert expected_ap_2.curriculum_item.id == curriculum_item_2.id
@@ -329,7 +332,7 @@ defmodule Lanttern.RubricsTest do
       assert expected_ap_3.id == assessment_point_3.id
     end
 
-    test "list_strand_diff_rubrics/2 returns all strand differentiation rubrics with descriptors preloaded and ordered correctly" do
+    test "list_strand_diff_assessment_points_rubrics/2 returns all strand differentiation rubrics with descriptors preloaded and ordered correctly" do
       scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
       ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})
       ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.2})
@@ -418,7 +421,7 @@ defmodule Lanttern.RubricsTest do
           is_diff: true
         })
 
-      _assessment_point_2_diff_rubric_2 =
+      assessment_point_2_diff_rubric_2 =
         assessment_point_rubric_fixture(%{
           rubric_id: rubric_2.id,
           assessment_point_id: assessment_point_2.id,
@@ -473,26 +476,28 @@ defmodule Lanttern.RubricsTest do
         assessment_point_rubric_id: assessment_point_1_diff_rubric_1.id
       })
 
-      [{expected_ap_1, [expected_r_1]}, {expected_ap_2, [expected_r_2]}, {expected_ap_3, []}] =
-        Rubrics.list_strand_diff_rubrics(strand.id, classes_ids: [class.id])
+      [{expected_ap_1, [expected_apr_1]}, {expected_ap_2, [expected_apr_2]}, {expected_ap_3, []}] =
+        Rubrics.list_strand_diff_assessment_points_rubrics(strand.id, classes_ids: [class.id])
 
       assert expected_ap_1.id == assessment_point_1.id
-      assert expected_r_1.id == rubric_1.id
+      assert expected_apr_1.id == assessment_point_1_diff_rubric_1.id
+      assert expected_apr_1.rubric.id == rubric_1.id
 
-      [expected_descriptor_1_1, expected_descriptor_1_2] = expected_r_1.descriptors
+      [expected_descriptor_1_1, expected_descriptor_1_2] = expected_apr_1.rubric.descriptors
       assert expected_descriptor_1_1.id == descriptor_1_1.id
       assert expected_descriptor_1_2.id == descriptor_1_2.id
       assert expected_ap_1.curriculum_item.id == curriculum_item_1.id
       assert expected_ap_1.curriculum_item.curriculum_component.id == curriculum_component.id
       refute expected_ap_1.is_differentiation
 
-      [expected_student] = expected_r_1.students
+      [expected_student] = expected_apr_1.students
       assert expected_student.id == student.id
 
       assert expected_ap_2.id == assessment_point_2.id
-      assert expected_r_2.id == rubric_2.id
+      assert expected_apr_2.id == assessment_point_2_diff_rubric_2.id
+      assert expected_apr_2.rubric.id == rubric_2.id
 
-      [expected_descriptor_2_1, expected_descriptor_2_2] = expected_r_2.descriptors
+      [expected_descriptor_2_1, expected_descriptor_2_2] = expected_apr_2.rubric.descriptors
       assert expected_descriptor_2_1.id == descriptor_2_1.id
       assert expected_descriptor_2_2.id == descriptor_2_2.id
       assert expected_ap_2.curriculum_item.id == curriculum_item_2.id
@@ -924,10 +929,24 @@ defmodule Lanttern.RubricsTest do
       assert rubric == Rubrics.get_rubric!(rubric.id)
     end
 
-    test "delete_rubric/1 deletes the rubric" do
+    test "delete_rubric/2 deletes the rubric" do
       rubric = rubric_fixture()
       assert {:ok, %Rubric{}} = Rubrics.delete_rubric(rubric)
       assert_raise Ecto.NoResultsError, fn -> Rubrics.get_rubric!(rubric.id) end
+    end
+
+    test "delete_rubric/2 with linked assessment points and unlink_assessment_points=true deletes the rubric" do
+      rubric = rubric_fixture()
+
+      assessment_point_rubric =
+        assessment_point_rubric_fixture(%{scale_id: rubric.scale_id, rubric_id: rubric.id})
+
+      assert {:ok, %Rubric{}} = Rubrics.delete_rubric(rubric, unlink_assessment_points: true)
+      assert_raise Ecto.NoResultsError, fn -> Rubrics.get_rubric!(rubric.id) end
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Repo.get!(AssessmentPointRubric, assessment_point_rubric.id)
+      end
     end
 
     test "change_rubric/1 returns a rubric changeset" do
@@ -1078,9 +1097,22 @@ defmodule Lanttern.RubricsTest do
 
   describe "assessment_point_rubrics" do
     alias Lanttern.Rubrics.AssessmentPointRubric
+    alias Lanttern.Rubrics.Rubric
     alias Lanttern.AssessmentsFixtures
 
     @invalid_attrs %{assessment_point_id: nil, rubric_id: nil}
+
+    test "get_assessment_point_rubric!/2 with preloads returns the assessment point rubric with given id and preloaded data" do
+      assessment_point_rubric = assessment_point_rubric_fixture()
+
+      expected =
+        Rubrics.get_assessment_point_rubric!(assessment_point_rubric.id,
+          preloads: :assessment_point
+        )
+
+      assert expected.id == assessment_point_rubric.id
+      assert expected.assessment_point.id == assessment_point_rubric.assessment_point_id
+    end
 
     test "create_assessment_point_rubric/1 with valid data creates a assessment_point_rubric" do
       assessment_point = AssessmentsFixtures.assessment_point_fixture()
@@ -1103,6 +1135,33 @@ defmodule Lanttern.RubricsTest do
 
     test "create_assessment_point_rubric/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} = Rubrics.create_assessment_point_rubric(@invalid_attrs)
+    end
+
+    test "create_rubric_and_link_to_assessment_point/3 with valid data creates a rubric linked to the given assessment point" do
+      assessment_point = AssessmentsFixtures.assessment_point_fixture()
+
+      valid_attrs = %{
+        criteria: "some criteria",
+        scale_id: assessment_point.scale_id
+      }
+
+      assert {:ok, %Rubric{} = rubric} =
+               Rubrics.create_rubric_and_link_to_assessment_point(
+                 assessment_point.id,
+                 valid_attrs,
+                 preloads: :scale,
+                 is_diff: true
+               )
+
+      assert rubric.criteria == "some criteria"
+      assert rubric.scale.id == assessment_point.scale_id
+
+      # get updated assessment point rubric
+      assessment_point_rubric =
+        Repo.get_by(AssessmentPointRubric, assessment_point_id: assessment_point.id)
+
+      assert assessment_point_rubric.rubric_id == rubric.id
+      assert assessment_point_rubric.is_diff
     end
 
     test "update_assessment_point_rubric/2 with valid data updates the assessment_point_rubric" do
