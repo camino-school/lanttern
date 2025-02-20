@@ -33,7 +33,7 @@ defmodule Lanttern.Rubrics.AssessmentPointRubric do
     belongs_to :scale, Scale
 
     has_many :rubric_assessment_entries, RubricAssessmentEntry
-    has_many :students, through: [:rubric_assessment_entries, :student]
+    has_many :students, through: [:rubric_assessment_entries, :student], preload_order: :name
 
     timestamps()
   end

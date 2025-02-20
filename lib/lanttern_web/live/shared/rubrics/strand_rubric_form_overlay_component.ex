@@ -1,12 +1,15 @@
-defmodule LantternWeb.Rubrics.AssessmentPointRubricFormOverlayComponent do
+defmodule LantternWeb.Rubrics.StrandRubricFormOverlayComponent do
   @moduledoc """
-  Renders an overlay with a `AssessmentPointRubric` form
+  Renders an overlay with a `Rubric` form.
+
+  This component is used to manage rubrics in a strand context,
+  where they're always linked to an assessment point.
 
   ### Attrs
 
-      attr :assessment_point_rubric_id, :integer, required: true, doc: "use `:new` when creating new rubric"
-      attr :assessment_point_id, :integer, doc: "required when creating new rubric"
-      attr :is_diff, :boolean, doc: "used when creating new rubric"
+      attr :rubric_id, :integer, required: true, doc: "use `:new` when creating new rubric"
+      attr :assessment_point_id, :required: true
+      attr :is_diff, :boolean, required: true
       attr :title, :string, required: true
       attr :current_profile, Profile, required: true
       attr :on_cancel, :any, required: true, doc: "`<.slide_over>` `on_cancel` attr"
@@ -18,14 +21,13 @@ defmodule LantternWeb.Rubrics.AssessmentPointRubricFormOverlayComponent do
   alias Lanttern.Assessments
   alias Lanttern.Rubrics
   alias Lanttern.Rubrics.Rubric
-  alias Lanttern.Rubrics.AssessmentPointRubric
   alias Lanttern.Grading
 
   @impl true
   def render(assigns) do
     ~H"""
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
-      <.slide_over :if={@assessment_point_rubric_id} id={@id} show={true} on_cancel={@on_cancel}>
+      <.slide_over :if={@rubric} id={@id} show={true} on_cancel={@on_cancel}>
         <:title><%= @title %></:title>
         <p class="mb-6">
           <strong class="inline-block mr-2 font-display font-bold">
@@ -33,10 +35,7 @@ defmodule LantternWeb.Rubrics.AssessmentPointRubricFormOverlayComponent do
           </strong>
           <%= @assessment_point.curriculum_item.name %>
         </p>
-        <p
-          :if={@assessment_point_rubric.is_diff}
-          class="p-4 rounded mb-6 text-ltrn-diff-dark bg-ltrn-diff-lightest"
-        >
+        <p :if={@is_diff} class="p-4 rounded mb-6 text-ltrn-diff-dark bg-ltrn-diff-lightest">
           <%= gettext("Differentiation rubric") %>
         </p>
         <.form
@@ -190,77 +189,60 @@ defmodule LantternWeb.Rubrics.AssessmentPointRubricFormOverlayComponent do
   end
 
   @impl true
-  def update(%{assessment_point_rubric_id: id} = assigns, socket) when not is_nil(id) do
+  def update(assigns, socket) do
     socket =
       socket
       |> assign(assigns)
-      |> assign_assessment_point_rubric()
+      |> assign_assessment_point
+      |> assign_rubric()
+      |> assign_is_diff()
       |> assign_scale()
       |> assign_rubric_form()
 
     {:ok, socket}
   end
 
-  def update(assigns, socket) do
-    socket =
-      socket
-      |> assign(assigns)
-
-    {:ok, socket}
-  end
-
-  defp assign_assessment_point_rubric(%{assigns: %{assessment_point_rubric_id: :new}} = socket) do
+  defp assign_assessment_point(%{assigns: %{assessment_point_id: id}} = socket)
+       when not is_nil(id) do
     assessment_point =
       Assessments.get_assessment_point(
-        socket.assigns.assessment_point_id,
+        id,
         preloads: [curriculum_item: :curriculum_component]
       )
 
-    assessment_point_rubric =
-      %AssessmentPointRubric{
-        is_diff: Map.get(socket.assigns, :is_diff) == true
-      }
-
-    socket
-    |> assign(:assessment_point_rubric, assessment_point_rubric)
-    |> assign(:assessment_point, assessment_point)
-    |> assign(:rubric, %Rubric{scale_id: assessment_point.scale_id})
+    assign(socket, :assessment_point, assessment_point)
   end
 
-  defp assign_assessment_point_rubric(%{assigns: %{assessment_point_rubric_id: id}} = socket)
+  defp assign_assessment_point(socket),
+    do: assign(socket, :assessment_point, nil)
+
+  defp assign_rubric(%{assigns: %{rubric_id: :new}} = socket),
+    do: assign(socket, :rubric, %Rubric{})
+
+  defp assign_rubric(%{assigns: %{rubric_id: id}} = socket)
        when not is_nil(id) do
-    %{assessment_point: assessment_point} =
-      assessment_point_rubric =
-      Rubrics.get_assessment_point_rubric!(
-        id,
-        preloads: [assessment_point: [curriculum_item: :curriculum_component]]
-      )
-
-    # after "extracting" the assessment point, unload it to save memory
-    assessment_point_rubric =
-      Map.put(assessment_point_rubric, :assessment_point, %Ecto.Association.NotLoaded{})
-
-    rubric = Rubrics.get_full_rubric!(assessment_point_rubric.rubric_id)
-
-    socket
-    |> assign(:assessment_point_rubric, assessment_point_rubric)
-    |> assign(:assessment_point, assessment_point)
-    |> assign(:rubric, rubric)
+    rubric = Rubrics.get_full_rubric!(id)
+    assign(socket, :rubric, rubric)
   end
 
-  defp assign_assessment_point_rubric(socket), do: socket
+  defp assign_rubric(socket), do: assign(socket, :rubric, nil)
+
+  defp assign_is_diff(socket) do
+    is_diff = Map.get(socket.assigns, :is_diff) == true
+    assign(socket, :is_diff, is_diff)
+  end
 
   defp assign_scale(socket) do
     scale =
-      case socket.assigns.assessment_point.scale_id do
+      case socket.assigns.assessment_point do
+        %{scale_id: id} when not is_nil(id) -> Grading.get_scale!(id, preloads: :ordinal_values)
         nil -> nil
-        scale_id -> Grading.get_scale!(scale_id, preloads: :ordinal_values)
       end
 
     assign(socket, :scale, scale)
   end
 
-  defp assign_rubric_form(socket) do
+  defp assign_rubric_form(%{assigns: %{rubric: %Rubric{}}} = socket) do
     %{rubric: rubric, scale: scale} = socket.assigns
 
     changeset =
@@ -278,6 +260,8 @@ defmodule LantternWeb.Rubrics.AssessmentPointRubricFormOverlayComponent do
 
     assign(socket, :form, to_form(changeset))
   end
+
+  defp assign_rubric_form(socket), do: socket
 
   # event handlers
 
@@ -405,7 +389,7 @@ defmodule LantternWeb.Rubrics.AssessmentPointRubricFormOverlayComponent do
     Rubrics.create_rubric_and_link_to_assessment_point(
       socket.assigns.assessment_point.id,
       rubric_params,
-      is_diff: socket.assigns.assessment_point_rubric.is_diff
+      is_diff: socket.assigns.is_diff
     )
     |> case do
       {:ok, rubric} ->

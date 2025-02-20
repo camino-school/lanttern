@@ -6,7 +6,8 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
 
   # shared components
   import LantternWeb.RubricsComponents
-  alias LantternWeb.Rubrics.AssessmentPointRubricFormOverlayComponent
+  alias LantternWeb.Rubrics.StrandRubricFormOverlayComponent
+  alias LantternWeb.Rubrics.AssessmentPointRubricStudentsManagementOverlayComponent
 
   @impl true
   def render(assigns) do
@@ -52,7 +53,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
               <%= if assessment_points_rubrics != [] do %>
                 <.toggle_expand_button
                   id={"strand-assessment-point-#{goal.id}-toggle-button"}
-                  target_selector={"#goal-#{goal.id}-rubrics"}
+                  target_selector={"#goal-#{goal.id}-assessment-points-rubrics"}
                 />
               <% else %>
                 <.action
@@ -76,7 +77,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                 rubric={apr.rubric}
                 is_diff={apr.is_diff}
                 criteria_text={gettext("Rubric criteria")}
-                patch={~p"/strands/#{@strand}/rubrics?edit_assessment_point_rubric=#{apr.id}"}
+                edit_patch={~p"/strands/#{@strand}/rubrics?edit_assessment_point_rubric=#{apr.id}"}
               />
               <div class="flex justify-center pt-6 border-t border-ltrn-lighter mt-6">
                 <.action
@@ -161,7 +162,10 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                   is_diff={apr.is_diff}
                   students={apr.students}
                   criteria_text={gettext("Rubric criteria")}
-                  patch={~p"/strands/#{@strand}/rubrics?edit_assessment_point_rubric=#{apr.id}"}
+                  edit_patch={~p"/strands/#{@strand}/rubrics?edit_assessment_point_rubric=#{apr.id}"}
+                  manage_students_patch={
+                    ~p"/strands/#{@strand}/rubrics?manage_students_of_assessment_point_rubric=#{apr.id}"
+                  }
                 />
                 <div class="flex justify-center pt-6 border-t border-ltrn-lighter mt-6">
                   <.action
@@ -192,14 +196,22 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
         navigate={~p"/strands/#{@strand}/rubrics"}
       />
       <.live_component
-        module={AssessmentPointRubricFormOverlayComponent}
-        id="assessment-point-rubric-form-overlay"
-        assessment_point_rubric_id={@assessment_point_rubric_id}
+        module={StrandRubricFormOverlayComponent}
+        id="strand-rubric-form-overlay"
+        rubric_id={@rubric_id}
         assessment_point_id={@goal_id}
         is_diff={@is_diff}
         notify_component={@myself}
         on_cancel={JS.patch(~p"/strands/#{@strand}/rubrics")}
         title={@overlay_title}
+      />
+      <.live_component
+        module={AssessmentPointRubricStudentsManagementOverlayComponent}
+        id="manage-assessment-point-rubric-students-overlay"
+        assessment_point_rubric_id={@assessment_point_rubric_id}
+        current_profile={@current_user.current_profile}
+        notify_component={@myself}
+        on_cancel={JS.patch(~p"/strands/#{@strand}/rubrics")}
       />
     </div>
     """
@@ -212,7 +224,8 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
   attr :rubric, :any, required: true
   attr :is_diff, :boolean, required: true
   attr :students, :list, default: []
-  attr :patch, :string, required: true
+  attr :edit_patch, :string, required: true
+  attr :manage_students_patch, :string, default: nil
 
   def rubric(assigns) do
     ~H"""
@@ -226,12 +239,15 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
             <%= @criteria_text %>: <%= @rubric.criteria %>
           </p>
         </div>
-        <.action type="link" patch={@patch} icon_name="hero-pencil-mini">
+        <.action type="link" patch={@edit_patch} icon_name="hero-pencil-mini">
           <%= gettext("Edit") %>
         </.action>
       </div>
-      <div :if={is_list(@students) && @students != []} class="mb-6 flex flex-wrap gap-2">
+      <div :if={@manage_students_patch} class="mb-6 flex flex-wrap gap-2">
         <.person_badge :for={student <- @students} person={student} theme="diff" />
+        <.action type="link" patch={@manage_students_patch} icon_name="hero-user-group-mini">
+          <%= gettext("Manage diff students") %>
+        </.action>
       </div>
       <div class="overflow-x-auto">
         <.rubric_descriptors rubric={@rubric} />
@@ -246,8 +262,9 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
   def mount(socket) do
     socket =
       socket
-      |> assign(:assessment_point_rubric_id, nil)
+      |> assign(:rubric_id, nil)
       |> assign(:goal_id, nil)
+      |> assign(:assessment_point_rubric_id, nil)
       |> assign(:is_diff, nil)
       |> assign(:overlay_title, nil)
       |> stream_configure(
@@ -264,7 +281,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
   end
 
   @impl true
-  def update(%{action: {AssessmentPointRubricFormOverlayComponent, {action, _rubric}}}, socket)
+  def update(%{action: {StrandRubricFormOverlayComponent, {action, _rubric}}}, socket)
       when action in [:created, :updated, :deleted] do
     flash_message =
       case action do
@@ -286,7 +303,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
       socket
       |> assign(assigns)
       |> initialize()
-      # |> assign_goal_rubric_and_student()
+      |> assign_goal_and_rubric_id()
       |> assign_assessment_point_rubric_id()
 
     {:ok, socket}
@@ -341,47 +358,61 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
     |> assign(:goals_ids, goals_ids)
   end
 
-  defp assign_assessment_point_rubric_id(
-         %{assigns: %{params: %{"new_rubric_for_goal" => id}}} = socket
-       ) do
+  defp assign_goal_and_rubric_id(%{assigns: %{params: %{"new_rubric_for_goal" => id}}} = socket) do
     if id in socket.assigns.goals_ids do
       goal_id = id
-      assessment_point_rubric_id = :new
+      rubric_id = :new
       overlay_title = gettext("New rubric")
 
       socket
       |> assign(:goal_id, goal_id)
       |> assign(:is_diff, Map.get(socket.assigns.params, "is_diff") == "true")
-      |> assign(:assessment_point_rubric_id, assessment_point_rubric_id)
+      |> assign(:rubric_id, rubric_id)
       |> assign(:overlay_title, overlay_title)
     else
-      assign_empty_assessment_point_rubric_id(socket)
+      assign_empty_goal_and_rubric_id(socket)
     end
   end
 
-  defp assign_assessment_point_rubric_id(
+  defp assign_goal_and_rubric_id(
          %{assigns: %{params: %{"edit_assessment_point_rubric" => id}}} = socket
        ) do
     if id in socket.assigns.assessment_points_rubrics_ids do
-      goal_id = nil
-      assessment_point_rubric_id = id
-      overlay_title = gettext("Edit rubric")
+      %{
+        rubric_id: rubric_id,
+        assessment_point_id: goal_id,
+        is_diff: is_diff
+      } = Rubrics.get_assessment_point_rubric!(id)
 
       socket
       |> assign(:goal_id, goal_id)
-      |> assign(:assessment_point_rubric_id, assessment_point_rubric_id)
-      |> assign(:overlay_title, overlay_title)
+      |> assign(:rubric_id, rubric_id)
+      |> assign(:is_diff, is_diff)
+      |> assign(:overlay_title, gettext("Edit rubric"))
     else
-      assign_empty_assessment_point_rubric_id(socket)
+      assign_empty_goal_and_rubric_id(socket)
+    end
+  end
+
+  defp assign_goal_and_rubric_id(socket),
+    do: assign_empty_goal_and_rubric_id(socket)
+
+  defp assign_empty_goal_and_rubric_id(socket) do
+    socket
+    |> assign(:goal_id, nil)
+    |> assign(:rubric_id, nil)
+  end
+
+  defp assign_assessment_point_rubric_id(
+         %{assigns: %{params: %{"manage_students_of_assessment_point_rubric" => id}}} = socket
+       ) do
+    if id in socket.assigns.assessment_points_rubrics_ids do
+      assign(socket, :assessment_point_rubric_id, id)
+    else
+      assign(socket, :assessment_point_rubric_id, nil)
     end
   end
 
   defp assign_assessment_point_rubric_id(socket),
-    do: assign_empty_assessment_point_rubric_id(socket)
-
-  defp assign_empty_assessment_point_rubric_id(socket) do
-    socket
-    |> assign(:goal_id, nil)
-    |> assign(:assessment_point_rubric_id, nil)
-  end
+    do: assign(socket, :assessment_point_rubric_id, nil)
 end
