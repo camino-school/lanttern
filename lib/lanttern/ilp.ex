@@ -197,4 +197,100 @@ defmodule Lanttern.ILP do
   def change_ilp_section(%ILPSection{} = ilp_section, attrs \\ %{}) do
     ILPSection.changeset(ilp_section, attrs)
   end
+
+  alias Lanttern.ILP.ILPComponent
+
+  @doc """
+  Returns the list of ilp_components.
+
+  ## Examples
+
+      iex> list_ilp_components()
+      [%ILPComponent{}, ...]
+
+  """
+  def list_ilp_components do
+    Repo.all(ILPComponent)
+  end
+
+  @doc """
+  Gets a single ilp_component.
+
+  Raises `Ecto.NoResultsError` if the Ilp component does not exist.
+
+  ## Examples
+
+      iex> get_ilp_component!(123)
+      %ILPComponent{}
+
+      iex> get_ilp_component!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_ilp_component!(id), do: Repo.get!(ILPComponent, id)
+
+  @doc """
+  Creates a ilp_component.
+
+  ## Examples
+
+      iex> create_ilp_component(%{field: value})
+      {:ok, %ILPComponent{}}
+
+      iex> create_ilp_component(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_ilp_component(attrs \\ %{}) do
+    %ILPComponent{}
+    |> ILPComponent.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a ilp_component.
+
+  ## Examples
+
+      iex> update_ilp_component(ilp_component, %{field: new_value})
+      {:ok, %ILPComponent{}}
+
+      iex> update_ilp_component(ilp_component, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_ilp_component(%ILPComponent{} = ilp_component, attrs) do
+    ilp_component
+    |> ILPComponent.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a ilp_component.
+
+  ## Examples
+
+      iex> delete_ilp_component(ilp_component)
+      {:ok, %ILPComponent{}}
+
+      iex> delete_ilp_component(ilp_component)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_ilp_component(%ILPComponent{} = ilp_component) do
+    Repo.delete(ilp_component)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking ilp_component changes.
+
+  ## Examples
+
+      iex> change_ilp_component(ilp_component)
+      %Ecto.Changeset{data: %ILPComponent{}}
+
+  """
+  def change_ilp_component(%ILPComponent{} = ilp_component, attrs \\ %{}) do
+    ILPComponent.changeset(ilp_component, attrs)
+  end
 end

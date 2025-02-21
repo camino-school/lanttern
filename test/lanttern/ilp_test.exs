@@ -131,4 +131,72 @@ defmodule Lanttern.ILPTest do
       assert %Ecto.Changeset{} = ILP.change_ilp_section(ilp_section)
     end
   end
+
+  describe "ilp_components" do
+    alias Lanttern.ILP.ILPComponent
+
+    import Lanttern.ILPFixtures
+
+    @invalid_attrs %{name: nil, position: nil}
+
+    test "list_ilp_components/0 returns all ilp_components" do
+      ilp_component = ilp_component_fixture()
+      assert ILP.list_ilp_components() == [ilp_component]
+    end
+
+    test "get_ilp_component!/1 returns the ilp_component with given id" do
+      ilp_component = ilp_component_fixture()
+      assert ILP.get_ilp_component!(ilp_component.id) == ilp_component
+    end
+
+    test "create_ilp_component/1 with valid data creates a ilp_component" do
+      template = ilp_template_fixture()
+      section = ilp_section_fixture(%{template_id: template.id})
+
+      valid_attrs = %{
+        name: "some name",
+        position: 42,
+        template_id: template.id,
+        section_id: section.id
+      }
+
+      assert {:ok, %ILPComponent{} = ilp_component} = ILP.create_ilp_component(valid_attrs)
+      assert ilp_component.name == "some name"
+      assert ilp_component.position == 42
+      assert ilp_component.template_id == template.id
+      assert ilp_component.section_id == section.id
+    end
+
+    test "create_ilp_component/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = ILP.create_ilp_component(@invalid_attrs)
+    end
+
+    test "update_ilp_component/2 with valid data updates the ilp_component" do
+      ilp_component = ilp_component_fixture()
+      update_attrs = %{name: "some updated name", position: 43}
+
+      assert {:ok, %ILPComponent{} = ilp_component} =
+               ILP.update_ilp_component(ilp_component, update_attrs)
+
+      assert ilp_component.name == "some updated name"
+      assert ilp_component.position == 43
+    end
+
+    test "update_ilp_component/2 with invalid data returns error changeset" do
+      ilp_component = ilp_component_fixture()
+      assert {:error, %Ecto.Changeset{}} = ILP.update_ilp_component(ilp_component, @invalid_attrs)
+      assert ilp_component == ILP.get_ilp_component!(ilp_component.id)
+    end
+
+    test "delete_ilp_component/1 deletes the ilp_component" do
+      ilp_component = ilp_component_fixture()
+      assert {:ok, %ILPComponent{}} = ILP.delete_ilp_component(ilp_component)
+      assert_raise Ecto.NoResultsError, fn -> ILP.get_ilp_component!(ilp_component.id) end
+    end
+
+    test "change_ilp_component/1 returns a ilp_component changeset" do
+      ilp_component = ilp_component_fixture()
+      assert %Ecto.Changeset{} = ILP.change_ilp_component(ilp_component)
+    end
+  end
 end

@@ -38,8 +38,41 @@ defmodule Lanttern.ILPFixtures do
     ilp_section
   end
 
+  @doc """
+  Generate a ilp_component.
+  """
+  def ilp_component_fixture(attrs \\ %{}) do
+    {:ok, ilp_component} =
+      attrs
+      |> maybe_inject_template_id()
+      |> maybe_inject_section_id()
+      |> Enum.into(%{
+        name: "some name",
+        position: 42
+      })
+      |> Lanttern.ILP.create_ilp_component()
+
+    ilp_component
+  end
+
   # generator helpers
 
   def maybe_gen_template_id(%{template_id: template_id} = _attrs), do: template_id
   def maybe_gen_template_id(_attrs), do: ilp_template_fixture().id
+
+  # helpers
+
+  defp maybe_inject_template_id(%{template_id: _} = attrs), do: attrs
+
+  defp maybe_inject_template_id(attrs) do
+    attrs
+    |> Map.put(:template_id, ilp_template_fixture().id)
+  end
+
+  defp maybe_inject_section_id(%{section_id: _} = attrs), do: attrs
+
+  defp maybe_inject_section_id(attrs) do
+    attrs
+    |> Map.put(:section_id, ilp_section_fixture(template_id: attrs.template_id).id)
+  end
 end
