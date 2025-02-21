@@ -4,7 +4,6 @@ defmodule Lanttern.Repo.Migrations.CreateIlpTemplates do
   def change do
     create table(:ilp_templates) do
       add :name, :text, null: false
-      add :position, :integer, default: 0, null: false
       add :description, :text
       add :school_id, references(:schools, on_delete: :nothing), null: false
 
