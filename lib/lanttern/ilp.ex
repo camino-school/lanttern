@@ -11,15 +11,38 @@ defmodule Lanttern.ILP do
   @doc """
   Returns the list of ilp_templates.
 
+  ## Options
+
+  - `:school_id` - filter results by school id
+  - `:preloads` - preloads associations
+
   ## Examples
 
       iex> list_ilp_templates()
       [%ILPTemplate{}, ...]
 
   """
-  def list_ilp_templates do
-    Repo.all(ILPTemplate)
+  def list_ilp_templates(opts \\ []) do
+    from(
+      t in ILPTemplate,
+      order_by: t.name
+    )
+    |> apply_list_ilp_templates_opts(opts)
+    |> Repo.all()
   end
+
+  defp apply_list_ilp_templates_opts(queryable, []), do: queryable
+
+  defp apply_list_ilp_templates_opts(queryable, [{:school_id, school_id} | opts]) do
+    from(
+      t in queryable,
+      where: t.school_id == ^school_id
+    )
+    |> apply_list_ilp_templates_opts(opts)
+  end
+
+  defp apply_list_ilp_templates_opts(queryable, [_ | opts]),
+    do: apply_list_ilp_templates_opts(queryable, opts)
 
   @doc """
   Gets a single ilp_template.

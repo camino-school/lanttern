@@ -1,0 +1,61 @@
+<.header_nav current_user={@current_user}>
+  <:breadcrumb navigate={~p"/ilp"}>
+    <%= gettext("ILP") %>
+  </:breadcrumb>
+  <:title><%= gettext("Settings") %></:title>
+</.header_nav>
+<.responsive_container class="py-10 px-4">
+  <.empty_state :if={@templates_count == 0 && !@template}>
+    <%= gettext("No templates yet") %>
+  </.empty_state>
+
+  <div id="templates-list" phx-update="stream" class={["group", if(@template, do: "is-editing")]}>
+    <.card_base :for={{dom_id, template} <- @streams.templates} id={dom_id} class="p-6 mt-10">
+      <div :if={!template.is_editing}>
+        <div class="flex items-start gap-4">
+          <h3 class="flex-1 font-display font-black text-xl"><%= template.name %></h3>
+          <.action
+            :if={!@template}
+            type="button"
+            icon_name="hero-pencil-mini"
+            phx-click={JS.push("edit", value: %{"id" => template.id})}
+            class="group-[.is-editing]:hidden"
+          >
+            <%= gettext("Edit") %>
+          </.action>
+        </div>
+        <div :if={template.description} class="mt-6">
+          <p class="font-bold"><%= gettext("About this template") %></p>
+          <.markdown text={template.description} class="mt-4" />
+        </div>
+      </div>
+      <.live_component
+        :if={@template && @template.id == template.id}
+        module={ILPTemplateFormComponent}
+        id={"#{template.id}-ilp-template-form"}
+        template={@template}
+        notify_parent
+      />
+    </.card_base>
+  </div>
+  <.card_base class="p-6 mt-10">
+    <div :if={!@template} class="flex justify-center">
+      <.action
+        type="button"
+        icon_name="hero-plus-circle-mini"
+        theme="primary"
+        size="md"
+        phx-click="new"
+      >
+        <%= gettext("Create new ILP template") %>
+      </.action>
+    </div>
+    <.live_component
+      :if={@template && is_nil(@template.id)}
+      module={ILPTemplateFormComponent}
+      id="new-ilp-template-form"
+      template={@template}
+      notify_parent
+    />
+  </.card_base>
+</.responsive_container>

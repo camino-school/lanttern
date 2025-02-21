@@ -10,9 +10,19 @@ defmodule Lanttern.ILPTest do
 
     @invalid_attrs %{name: nil, description: nil}
 
-    test "list_ilp_templates/0 returns all ilp_templates" do
+    test "list_ilp_templates/1 returns all ilp_templates" do
       ilp_template = ilp_template_fixture()
       assert ILP.list_ilp_templates() == [ilp_template]
+    end
+
+    test "list_ilp_templates/1 with school_id opt returns all school ilp_templates" do
+      school = Lanttern.SchoolsFixtures.school_fixture()
+      ilp_template = ilp_template_fixture(%{school_id: school.id})
+
+      # extra fixture to test filter
+      ilp_template_fixture()
+
+      assert ILP.list_ilp_templates(school_id: school.id) == [ilp_template]
     end
 
     test "get_ilp_template!/1 returns the ilp_template with given id" do

@@ -8,6 +8,7 @@ defmodule Lanttern.ILP.ILPTemplate do
           id: pos_integer(),
           name: String.t(),
           description: String.t() | nil,
+          is_editing: boolean() | nil,
           school_id: pos_integer(),
           school: School.t(),
           inserted_at: DateTime.t(),
@@ -17,6 +18,7 @@ defmodule Lanttern.ILP.ILPTemplate do
   schema "ilp_templates" do
     field :name, :string
     field :description, :string
+    field :is_editing, :boolean, virtual: true
 
     belongs_to :school, School
 

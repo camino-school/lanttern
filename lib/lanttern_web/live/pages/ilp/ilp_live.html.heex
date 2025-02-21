@@ -1,0 +1,10 @@
+<.header_nav current_user={@current_user}>
+  <:title><%= @page_title %></:title>
+  <div class="flex items-center justify-between gap-4 p-4">
+    some info
+    <.action type="link" navigate={~p"/ilp/settings"} icon_name="hero-cog-6-tooth-mini">
+      <%= gettext("Settings") %>
+    </.action>
+  </div>
+</.header_nav>
+TBD
