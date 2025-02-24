@@ -136,8 +136,24 @@ defmodule Lanttern.ILPTest do
     @invalid_attrs %{name: nil, position: nil}
 
     test "list_ilp_sections/0 returns all ilp_sections" do
-      ilp_section = ilp_section_fixture()
-      assert ILP.list_ilp_sections() == [ilp_section]
+      ilp_section_1 = ilp_section_fixture(%{position: 1})
+      ilp_section_2 = ilp_section_fixture(%{position: 2})
+      ilp_section_3 = ilp_section_fixture(%{position: 3})
+
+      assert ILP.list_ilp_sections() == [ilp_section_1, ilp_section_2, ilp_section_3]
+
+      # use same setup to test update_ilp_sections_positions/1
+
+      ILP.update_ilp_sections_positions([
+        ilp_section_2.id,
+        ilp_section_3.id,
+        ilp_section_1.id
+      ])
+
+      [expected_section_2, expected_section_3, expected_section_1] = ILP.list_ilp_sections()
+      assert expected_section_1.id == ilp_section_1.id
+      assert expected_section_2.id == ilp_section_2.id
+      assert expected_section_3.id == ilp_section_3.id
     end
 
     test "get_ilp_section!/1 returns the ilp_section with given id" do
@@ -196,8 +212,26 @@ defmodule Lanttern.ILPTest do
     @invalid_attrs %{name: nil, position: nil}
 
     test "list_ilp_components/0 returns all ilp_components" do
-      ilp_component = ilp_component_fixture()
-      assert ILP.list_ilp_components() == [ilp_component]
+      ilp_component_1 = ilp_component_fixture(%{position: 1})
+      ilp_component_2 = ilp_component_fixture(%{position: 2})
+      ilp_component_3 = ilp_component_fixture(%{position: 3})
+
+      assert ILP.list_ilp_components() == [ilp_component_1, ilp_component_2, ilp_component_3]
+
+      # use same setup to test update_ilp_components_positions/1
+
+      ILP.update_ilp_components_positions([
+        ilp_component_2.id,
+        ilp_component_3.id,
+        ilp_component_1.id
+      ])
+
+      [expected_component_2, expected_component_3, expected_component_1] =
+        ILP.list_ilp_components()
+
+      assert expected_component_1.id == ilp_component_1.id
+      assert expected_component_2.id == ilp_component_2.id
+      assert expected_component_3.id == ilp_component_3.id
     end
 
     test "get_ilp_component!/1 returns the ilp_component with given id" do

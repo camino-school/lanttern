@@ -821,6 +821,20 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Renders a drag handle
+  """
+  attr :class, :any, default: nil
+
+  def drag_handle(assigns) do
+    ~H"""
+    <div class={["shrink-0 flex text-ltrn-subtle hover:text-ltrn-dark hover:cursor-move", @class]}>
+      <.icon name="hero-ellipsis-vertical-mini" />
+      <.icon name="hero-ellipsis-vertical-mini" class="-ml-3" />
+    </div>
+    """
+  end
+
+  @doc """
   Renders an empty state block with a pulsating visual element
   """
   attr :class, :any, default: nil

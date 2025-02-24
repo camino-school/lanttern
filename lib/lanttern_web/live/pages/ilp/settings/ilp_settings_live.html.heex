@@ -27,12 +27,40 @@
             <%= gettext("Edit") %>
           </.action>
         </div>
-        <.card_base :for={section <- template.sections} class="p-4 mt-4">
-          <div class="font-display font-black text-base"><%= section.name %></div>
-          <div :for={component <- section.components} class="p-4 rounded mt-2 bg-ltrn-lightest">
-            <div class="font-bold"><%= component.name %></div>
-          </div>
-        </.card_base>
+        <div
+          phx-hook="Sortable"
+          id={"template-#{template.id}-sections"}
+          data-sortable-handle=".sortable-handle"
+          data-group-name="template"
+          data-group-id={template.id}
+        >
+          <.card_base
+            :for={section <- template.sections}
+            class="p-4 border border-ltrn-lightest mt-4"
+          >
+            <div class="flex items-start gap-4">
+              <.drag_handle class="sortable-handle" />
+              <div class="font-display font-black text-base">
+                <%= section.name %>
+              </div>
+            </div>
+            <div
+              phx-hook="Sortable"
+              id={"template-#{template.id}-section-#{section.id}-components"}
+              data-sortable-handle=".sortable-handle"
+              data-group-name="section"
+              data-group-id={section.id}
+            >
+              <div
+                :for={component <- section.components}
+                class="flex items-center gap-4 p-4 rounded mt-2 bg-ltrn-lightest"
+              >
+                <.drag_handle class="sortable-handle" />
+                <div class="font-bold"><%= component.name %></div>
+              </div>
+            </div>
+          </.card_base>
+        </div>
         <.markdown :if={template.description} text={template.description} class="mt-6" />
       </div>
       <.live_component

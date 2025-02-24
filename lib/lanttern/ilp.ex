@@ -147,7 +147,11 @@ defmodule Lanttern.ILP do
 
   """
   def list_ilp_sections do
-    Repo.all(ILPSection)
+    from(
+      s in ILPSection,
+      order_by: s.position
+    )
+    |> Repo.all()
   end
 
   @doc """
@@ -203,6 +207,19 @@ defmodule Lanttern.ILP do
   end
 
   @doc """
+  Update ILP template sections positions based on ids list order.
+
+  ## Examples
+
+  iex> update_ilp_sections_positions([3, 2, 1])
+  :ok
+
+  """
+  @spec update_ilp_sections_positions(sections_ids :: [pos_integer()]) ::
+          :ok | {:error, String.t()}
+  def update_ilp_sections_positions(sections_ids), do: update_positions(ILPSection, sections_ids)
+
+  @doc """
   Deletes a ilp_section.
 
   ## Examples
@@ -243,7 +260,11 @@ defmodule Lanttern.ILP do
 
   """
   def list_ilp_components do
-    Repo.all(ILPComponent)
+    from(
+      c in ILPComponent,
+      order_by: c.position
+    )
+    |> Repo.all()
   end
 
   @doc """
@@ -297,6 +318,20 @@ defmodule Lanttern.ILP do
     |> ILPComponent.changeset(attrs)
     |> Repo.update()
   end
+
+  @doc """
+  Update ILP section components positions based on ids list order.
+
+  ## Examples
+
+  iex> update_ilp_components_positions([3, 2, 1])
+  :ok
+
+  """
+  @spec update_ilp_components_positions(sections_ids :: [pos_integer()]) ::
+          :ok | {:error, String.t()}
+  def update_ilp_components_positions(sections_ids),
+    do: update_positions(ILPComponent, sections_ids)
 
   @doc """
   Deletes a ilp_component.

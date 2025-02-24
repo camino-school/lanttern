@@ -74,10 +74,33 @@ defmodule LantternWeb.ILPSettingsLive do
         preloads: [sections: :components]
       )
 
+    # keep track of sections and components ids order and index for sorting
+
+    # "spec" %{"template_id" => [section_id, ...], ...}
+    templates_sections_order_map =
+      templates
+      |> Enum.map(fn template ->
+        sections_ids = Enum.map(template.sections, & &1.id)
+        {"#{template.id}", sections_ids}
+      end)
+      |> Enum.into(%{})
+
+    # "spec" %{"section_id" => [{component_id, index}, ...], ...}
+    sections_components_order_map =
+      templates
+      |> Enum.flat_map(& &1.sections)
+      |> Enum.map(fn section ->
+        components_ids = Enum.map(section.components, & &1.id)
+        {"#{section.id}", components_ids}
+      end)
+      |> Enum.into(%{})
+
     socket
     |> stream(:templates, templates)
     |> assign(:templates_ids, Enum.map(templates, & &1.id))
     |> assign(:has_templates, length(templates) > 0)
+    |> assign(:templates_sections_order_map, Map.new(templates_sections_order_map))
+    |> assign(:sections_components_order_map, Map.new(sections_components_order_map))
   end
 
   # event handlers
@@ -106,6 +129,60 @@ defmodule LantternWeb.ILPSettingsLive do
 
     {:noreply, socket}
   end
+
+  # view Sortable hook for payload info
+  def handle_event("sortable_update", %{"groupName" => "template"} = payload, socket) do
+    %{
+      "groupId" => template_id,
+      "oldIndex" => old_index,
+      "newIndex" => new_index
+    } = payload
+
+    sections_ids =
+      socket.assigns.templates_sections_order_map
+      |> Map.get(template_id)
+
+    {changed_id, rest} = List.pop_at(sections_ids, old_index)
+    sections_ids = List.insert_at(rest, new_index, changed_id)
+
+    # the inteface was already updated (optimistic update)
+    # just persist the new order
+    ILP.update_ilp_sections_positions(sections_ids)
+
+    templates_sections_order_map =
+      socket.assigns.templates_sections_order_map
+      |> Map.put(template_id, sections_ids)
+
+    {:noreply, assign(socket, :templates_sections_order_map, templates_sections_order_map)}
+  end
+
+  # view Sortable hook for payload info
+  def handle_event("sortable_update", %{"groupName" => "section"} = payload, socket) do
+    %{
+      "groupId" => section_id,
+      "oldIndex" => old_index,
+      "newIndex" => new_index
+    } = payload
+
+    components_ids =
+      socket.assigns.sections_components_order_map
+      |> Map.get(section_id)
+
+    {changed_id, rest} = List.pop_at(components_ids, old_index)
+    components_ids = List.insert_at(rest, new_index, changed_id)
+
+    # the inteface was already updated (optimistic update)
+    # just persist the new order
+    ILP.update_ilp_components_positions(components_ids)
+
+    sections_components_order_map =
+      socket.assigns.sections_components_order_map
+      |> Map.put(section_id, components_ids)
+
+    {:noreply, assign(socket, :sections_components_order_map, sections_components_order_map)}
+  end
+
+  def handle_event("sortable_update", _, socket), do: {:noreply, socket}
 
   # info handlers
 
