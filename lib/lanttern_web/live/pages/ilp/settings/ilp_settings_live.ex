@@ -52,7 +52,7 @@ defmodule LantternWeb.ILPSettingsLive do
     socket
     |> stream(:templates, templates)
     |> assign(:templates_ids, Enum.map(templates, & &1.id))
-    |> assign(:templates_count, length(templates))
+    |> assign(:has_templates, length(templates) > 0)
   end
 
   # event handlers

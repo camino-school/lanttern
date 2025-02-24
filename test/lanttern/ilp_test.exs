@@ -64,6 +64,52 @@ defmodule Lanttern.ILPTest do
       assert ilp_template.description == "some updated description"
     end
 
+    test "update_ilp_template/2 with valid nested data inserts sections and components to the template" do
+      ilp_template = ilp_template_fixture() |> Repo.preload(sections: :components)
+
+      valid_attrs = %{
+        sections: [
+          %{
+            name: "section 1",
+            position: 0,
+            components: [
+              %{name: "component 1 1", position: 0, template_id: ilp_template.id},
+              %{name: "component 1 2", position: 1, template_id: ilp_template.id}
+            ]
+          },
+          %{
+            name: "section 2",
+            position: 1,
+            components: [
+              %{name: "component 2 1", position: 0, template_id: ilp_template.id},
+              %{name: "component 2 2", position: 1, template_id: ilp_template.id}
+            ]
+          }
+        ]
+      }
+
+      assert {:ok, %ILPTemplate{} = expected} =
+               ILP.update_ilp_template(ilp_template, valid_attrs)
+
+      expected = Repo.preload(expected, sections: :components)
+
+      assert expected.name == ilp_template.name
+      assert expected.description == ilp_template.description
+      assert expected.school_id == ilp_template.school_id
+
+      [section_1, section_2] = expected.sections
+      assert section_1.name == "section 1"
+      assert section_2.name == "section 2"
+
+      [component_1_1, component_1_2] = section_1.components
+      assert component_1_1.name == "component 1 1"
+      assert component_1_2.name == "component 1 2"
+
+      [component_2_1, component_2_2] = section_2.components
+      assert component_2_1.name == "component 2 1"
+      assert component_2_2.name == "component 2 2"
+    end
+
     test "update_ilp_template/2 with invalid data returns error changeset" do
       ilp_template = ilp_template_fixture()
       assert {:error, %Ecto.Changeset{}} = ILP.update_ilp_template(ilp_template, @invalid_attrs)

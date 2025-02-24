@@ -31,6 +31,6 @@ defmodule Lanttern.ILP.ILPComponent do
   def changeset(ilp_component, attrs) do
     ilp_component
     |> cast(attrs, [:name, :position, :template_id, :section_id])
-    |> validate_required([:name, :position, :template_id, :section_id])
+    |> validate_required([:name, :position])
   end
 end

@@ -5,14 +5,17 @@
   <:title><%= gettext("Settings") %></:title>
 </.header_nav>
 <.responsive_container class="py-10 px-4">
-  <.empty_state :if={@templates_count == 0 && !@template}>
-    <%= gettext("No templates yet") %>
+  <p class="flex items-center gap-2">
+    <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+    <%= gettext("List of created ILP templates") %>
+  </p>
+  <.empty_state :if={!@has_templates && !@template} class="mt-10">
+    <%= gettext("No templates created yet") %>
   </.empty_state>
-
   <div id="templates-list" phx-update="stream" class={["group", if(@template, do: "is-editing")]}>
     <.card_base :for={{dom_id, template} <- @streams.templates} id={dom_id} class="p-6 mt-10">
       <div :if={!template.is_editing}>
-        <div class="flex items-start gap-4">
+        <div class="flex items-center gap-4">
           <h3 class="flex-1 font-display font-black text-xl"><%= template.name %></h3>
           <.action
             :if={!@template}

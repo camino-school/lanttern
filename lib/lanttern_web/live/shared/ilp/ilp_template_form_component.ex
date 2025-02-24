@@ -47,6 +47,7 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
               :if={@template.id}
               type="button"
               size="md"
+              theme="subtle"
               phx-click={JS.push("delete", target: @myself)}
               data-confirm={gettext("Are you sure?")}
             >

@@ -3,6 +3,7 @@ defmodule Lanttern.ILP.ILPSection do
   import Ecto.Changeset
 
   alias Lanttern.ILP.ILPTemplate
+  alias Lanttern.ILP.ILPComponent
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -10,6 +11,7 @@ defmodule Lanttern.ILP.ILPSection do
           position: non_neg_integer(),
           template_id: pos_integer(),
           template: ILPTemplate.t() | Ecto.Association.NotLoaded.t(),
+          components: [ILPComponent.t()] | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -20,6 +22,10 @@ defmodule Lanttern.ILP.ILPSection do
 
     belongs_to :template, ILPTemplate
 
+    has_many :components, ILPComponent,
+      foreign_key: :section_id,
+      preload_order: [asc: :position]
+
     timestamps()
   end
 
@@ -27,6 +33,7 @@ defmodule Lanttern.ILP.ILPSection do
   def changeset(ilp_section, attrs) do
     ilp_section
     |> cast(attrs, [:name, :position, :template_id])
-    |> validate_required([:name, :position, :template_id])
+    |> cast_assoc(:components)
+    |> validate_required([:name, :position])
   end
 end
