@@ -24,16 +24,29 @@ defmodule Lanttern.ILP.ILPSection do
 
     has_many :components, ILPComponent,
       foreign_key: :section_id,
+      on_replace: :delete,
       preload_order: [asc: :position]
 
     timestamps()
   end
 
   @doc false
-  def changeset(ilp_section, attrs) do
+  def changeset(ilp_section, attrs, position \\ 0) do
     ilp_section
     |> cast(attrs, [:name, :position, :template_id])
-    |> cast_assoc(:components)
+    |> maybe_change_position(position)
+    |> cast_assoc(:components,
+      sort_param: :components_sort,
+      drop_param: :components_drop,
+      with: &ILPComponent.changeset/3
+    )
     |> validate_required([:name, :position])
+  end
+
+  defp maybe_change_position(changeset, position) do
+    case get_change(changeset, :position) do
+      nil -> change(changeset, position: position)
+      _ -> changeset
+    end
   end
 end

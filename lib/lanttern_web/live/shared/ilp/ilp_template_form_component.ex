@@ -6,7 +6,7 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
 
   ### Attrs
 
-      attr :template, ILPTemplate, required: true
+      attr :template, ILPTemplate, required: true, doc: "requires sections and components preload"
       attr :class, :any, default: nil
       attr :notify_parent, :boolean
       attr :notify_component, Phoenix.LiveComponent.CID
@@ -41,6 +41,81 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
           show_optional
         />
         <.markdown_supported class="mb-6" />
+        <%!--
+          limit sections and components management to existing templates
+          because we need the template id to cast assoc components (composite fk)
+        --%>
+        <div :if={@template.id} class="mb-6">
+          <.inputs_for :let={section_f} field={@form[:sections]}>
+            <input type="hidden" name="ilp_template[sections_sort][]" value={section_f.index} />
+            <div class="mb-6">
+              <div class="flex gap-2">
+                <.input
+                  type="text"
+                  field={section_f[:name]}
+                  label={gettext("Section")}
+                  class="flex-1"
+                  phx-debounce="1500"
+                />
+                <button
+                  type="button"
+                  name="ilp_template[sections_drop][]"
+                  value={section_f.index}
+                  phx-click={JS.dispatch("change")}
+                >
+                  drop
+                </button>
+              </div>
+              <.inputs_for :let={component_f} field={section_f[:components]}>
+                <input
+                  type="hidden"
+                  name={"#{section_f.name}[components_sort][]"}
+                  value={component_f.index}
+                />
+                <div class="flex gap-2">
+                  <.input
+                    type="text"
+                    field={component_f[:name]}
+                    label={gettext("Component")}
+                    class="flex-1"
+                    phx-debounce="1500"
+                  />
+                  <button
+                    type="button"
+                    name={"#{section_f.name}[components_drop][]"}
+                    value={component_f.index}
+                    phx-click={JS.dispatch("change")}
+                  >
+                    drop
+                  </button>
+                </div>
+              </.inputs_for>
+              <input type="hidden" name={"#{section_f.name}[components_drop][]"} />
+
+              <.action
+                type="button"
+                name={"#{section_f.name}[components_sort][]"}
+                value="new_component"
+                phx-click={JS.dispatch("change")}
+              >
+                <%= gettext("Add component") %>
+              </.action>
+            </div>
+          </.inputs_for>
+          <input type="hidden" name="ilp_template[sections_drop][]" />
+
+          <.action
+            type="button"
+            name="ilp_template[sections_sort][]"
+            value="new_section"
+            phx-click={JS.dispatch("change")}
+          >
+            <%= gettext("Add section") %>
+          </.action>
+          <%!-- <.action type="button" phx-click={JS.push("new_section", target: @myself)}>
+            <%= gettext("Add section") %>
+          </.action> --%>
+        </div>
         <div class="flex items-center justify-between gap-4">
           <div>
             <.action
@@ -133,8 +208,6 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
   end
 
   defp assign_validated_form(socket, params) do
-    # params = inject_extra_params(socket, params)
-
     changeset =
       socket.assigns.template
       |> ILP.change_ilp_template(params)
@@ -165,6 +238,27 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
   end
 
   defp save_template(socket, _id, template_params) do
+    template_id = socket.assigns.template.id
+
+    # inject template_id in components
+    template_params =
+      Map.update(template_params, "sections", %{}, fn sections ->
+        Enum.map(sections, fn {s_index, section} ->
+          updated_section =
+            Map.update(section, "components", %{}, fn components ->
+              components
+              |> Enum.map(fn {c_index, component} ->
+                {c_index, Map.put(component, "template_id", template_id)}
+              end)
+              |> Enum.into(%{})
+            end)
+
+          {s_index, updated_section}
+        end)
+        |> Enum.into(%{})
+      end)
+      |> IO.inspect(label: "updated")
+
     ILP.update_ilp_template(
       socket.assigns.template,
       template_params

@@ -28,9 +28,17 @@ defmodule Lanttern.ILP.ILPComponent do
   end
 
   @doc false
-  def changeset(ilp_component, attrs) do
+  def changeset(ilp_component, attrs, position \\ 0) do
     ilp_component
     |> cast(attrs, [:name, :position, :template_id, :section_id])
+    |> maybe_change_position(position)
     |> validate_required([:name, :position])
+  end
+
+  defp maybe_change_position(changeset, position) do
+    case get_change(changeset, :position) do
+      nil -> change(changeset, position: position)
+      _ -> changeset
+    end
   end
 end

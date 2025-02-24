@@ -36,7 +36,7 @@ defmodule LantternWeb.CoreComponents do
   attr :icon_name, :string, default: nil
   attr :patch, :string, default: nil, doc: "use with type=\"link\""
   attr :navigate, :string, default: nil, doc: "use with type=\"link\""
-  attr :rest, :global, include: ~w(disabled form)
+  attr :rest, :global, include: ~w(disabled form name value)
 
   slot :inner_block, required: true
 

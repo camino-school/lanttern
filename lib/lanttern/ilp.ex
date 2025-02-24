@@ -5,6 +5,7 @@ defmodule Lanttern.ILP do
 
   import Ecto.Query, warn: false
   alias Lanttern.Repo
+  import Lanttern.RepoHelpers
 
   alias Lanttern.ILP.ILPTemplate
 
@@ -49,6 +50,10 @@ defmodule Lanttern.ILP do
 
   Raises `Ecto.NoResultsError` if the Ilp template does not exist.
 
+  ## Options
+
+  - `:preloads` - preloads associations
+
   ## Examples
 
       iex> get_ilp_template!(123)
@@ -58,7 +63,11 @@ defmodule Lanttern.ILP do
       ** (Ecto.NoResultsError)
 
   """
-  def get_ilp_template!(id), do: Repo.get!(ILPTemplate, id)
+  def get_ilp_template!(id, opts \\ []) do
+    ILPTemplate
+    |> Repo.get!(id)
+    |> maybe_preload(opts)
+  end
 
   @doc """
   Creates a ilp_template.

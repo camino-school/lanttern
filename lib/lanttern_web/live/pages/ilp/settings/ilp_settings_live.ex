@@ -70,7 +70,7 @@ defmodule LantternWeb.ILPSettingsLive do
   def handle_event("edit", %{"id" => id}, socket) do
     template =
       if id in socket.assigns.templates_ids,
-        do: ILP.get_ilp_template!(id)
+        do: ILP.get_ilp_template!(id, preloads: [sections: :components])
 
     template = Map.put(template, :is_editing, true)
 

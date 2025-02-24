@@ -26,6 +26,7 @@ defmodule Lanttern.ILP.ILPTemplate do
 
     has_many :sections, ILPSection,
       foreign_key: :template_id,
+      on_replace: :delete,
       preload_order: [asc: :position]
 
     timestamps()
@@ -35,7 +36,11 @@ defmodule Lanttern.ILP.ILPTemplate do
   def changeset(ilp_template, attrs) do
     ilp_template
     |> cast(attrs, [:name, :description, :school_id])
-    |> cast_assoc(:sections)
+    |> cast_assoc(:sections,
+      sort_param: :sections_sort,
+      drop_param: :sections_drop,
+      with: &ILPSection.changeset/3
+    )
     |> validate_required([:name, :school_id])
   end
 end
