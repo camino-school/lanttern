@@ -208,12 +208,6 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
     assign(socket, :form, to_form(changeset))
   end
 
-  # # inject params handled in backend
-  # defp inject_extra_params(socket, params) do
-  #   params
-  #   |> Map.put("school_id", socket.assigns.status.school_id)
-  # end
-
   defp save_template(socket, nil, template_params) do
     # inject school_id from template assign when creating new
     template_params = Map.put(template_params, "school_id", socket.assigns.template.school_id)
@@ -249,7 +243,6 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
         end)
         |> Enum.into(%{})
       end)
-      |> IO.inspect(label: "updated")
 
     ILP.update_ilp_template(
       socket.assigns.template,
