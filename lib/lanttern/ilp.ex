@@ -30,6 +30,7 @@ defmodule Lanttern.ILP do
     )
     |> apply_list_ilp_templates_opts(opts)
     |> Repo.all()
+    |> maybe_preload(opts)
   end
 
   defp apply_list_ilp_templates_opts(queryable, []), do: queryable

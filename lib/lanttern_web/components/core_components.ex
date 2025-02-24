@@ -36,13 +36,20 @@ defmodule LantternWeb.CoreComponents do
   attr :icon_name, :string, default: nil
   attr :patch, :string, default: nil, doc: "use with type=\"link\""
   attr :navigate, :string, default: nil, doc: "use with type=\"link\""
+  attr :replace, :boolean, default: false, doc: "use with type=\"link\""
   attr :rest, :global, include: ~w(disabled form name value)
 
   slot :inner_block, required: true
 
   def action(%{type: "link"} = assigns) do
     ~H"""
-    <.link patch={@patch} navigate={@navigate} class={[action_styles(@theme, @size), @class]} {@rest}>
+    <.link
+      patch={@patch}
+      navigate={@navigate}
+      replace={@replace}
+      class={[action_styles(@theme, @size), @class]}
+      {@rest}
+    >
       <div class={action_bg_styles(@theme, @size)}></div>
       <span class="relative truncate"><%= render_slot(@inner_block) %></span>
       <.icon :if={@icon_name} name={@icon_name} class={action_icon_styles(@size)} />

@@ -37,17 +37,42 @@ defmodule LantternWeb.ILPSettingsLive do
   @impl true
   def mount(_params, _session, socket) do
     socket =
-      socket
-      |> assign(:page_title, gettext("ILP settings"))
-      |> assign(:template, nil)
-      |> stream_templates()
+      case check_if_user_has_access(socket) do
+        {false, socket} ->
+          socket
+
+        {true, socket} ->
+          socket
+          |> assign(:page_title, gettext("ILP settings"))
+          |> assign(:template, nil)
+          |> stream_templates()
+      end
 
     {:ok, socket}
   end
 
+  defp check_if_user_has_access(socket) do
+    has_access =
+      "school_management" in socket.assigns.current_user.current_profile.permissions
+
+    if has_access do
+      {true, socket}
+    else
+      socket =
+        socket
+        |> push_navigate(to: ~p"/ilp", replace: true)
+        |> put_flash(:error, gettext("You don't have access to ILP settings page"))
+
+      {false, socket}
+    end
+  end
+
   defp stream_templates(socket) do
     templates =
-      ILP.list_ilp_templates(school_id: socket.assigns.current_user.current_profile.school_id)
+      ILP.list_ilp_templates(
+        school_id: socket.assigns.current_user.current_profile.school_id,
+        preloads: [sections: :components]
+      )
 
     socket
     |> stream(:templates, templates)

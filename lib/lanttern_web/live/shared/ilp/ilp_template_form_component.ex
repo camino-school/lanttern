@@ -32,6 +32,73 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
           class="mb-6"
           phx-debounce="1500"
         />
+        <%!--
+          limit sections and components management to existing templates
+          because we need the template id to cast assoc components (composite fk)
+        --%>
+        <div :if={@template.id} class="py-6 border-y border-ltrn-light mb-6">
+          <p class="font-bold"><%= gettext("Sections and components") %></p>
+          <.inputs_for :let={section_f} field={@form[:sections]}>
+            <.card_base class="p-4 border border-ltrn-lightest mt-4">
+              <input type="hidden" name="ilp_template[sections_sort][]" value={section_f.index} />
+
+              <div class="flex items-center gap-4">
+                <.input type="text" field={section_f[:name]} class="flex-1" phx-debounce="1500" />
+                <.action
+                  type="button"
+                  name="ilp_template[sections_drop][]"
+                  value={section_f.index}
+                  phx-click={JS.dispatch("change")}
+                >
+                  <.icon name="hero-trash-mini" />
+                </.action>
+              </div>
+              <.inputs_for :let={component_f} field={section_f[:components]}>
+                <input
+                  type="hidden"
+                  name={"#{section_f.name}[components_sort][]"}
+                  value={component_f.index}
+                />
+                <div class="flex items-center gap-4 p-4 rounded mt-4 bg-ltrn-lightest">
+                  <.input type="text" field={component_f[:name]} class="flex-1" phx-debounce="1500" />
+                  <.action
+                    type="button"
+                    theme="subtle"
+                    name={"#{section_f.name}[components_drop][]"}
+                    value={component_f.index}
+                    phx-click={JS.dispatch("change")}
+                  >
+                    <.icon name="hero-x-circle-mini" />
+                  </.action>
+                </div>
+              </.inputs_for>
+              <input type="hidden" name={"#{section_f.name}[components_drop][]"} />
+              <div class="flex justify-center p-4 rounded mt-4 bg-ltrn-lightest">
+                <.action
+                  type="button"
+                  icon_name="hero-plus-circle-mini"
+                  name={"#{section_f.name}[components_sort][]"}
+                  value="new_component"
+                  phx-click={JS.dispatch("change")}
+                >
+                  <%= gettext("Add component") %>
+                </.action>
+              </div>
+            </.card_base>
+          </.inputs_for>
+          <input type="hidden" name="ilp_template[sections_drop][]" />
+          <.card_base class="flex justify-center gap-4 p-4 mt-4">
+            <.action
+              type="button"
+              icon_name="hero-plus-circle-mini"
+              name="ilp_template[sections_sort][]"
+              value="new_section"
+              phx-click={JS.dispatch("change")}
+            >
+              <%= gettext("Add section") %>
+            </.action>
+          </.card_base>
+        </div>
         <.input
           field={@form[:description]}
           type="textarea"
@@ -41,81 +108,6 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
           show_optional
         />
         <.markdown_supported class="mb-6" />
-        <%!--
-          limit sections and components management to existing templates
-          because we need the template id to cast assoc components (composite fk)
-        --%>
-        <div :if={@template.id} class="mb-6">
-          <.inputs_for :let={section_f} field={@form[:sections]}>
-            <input type="hidden" name="ilp_template[sections_sort][]" value={section_f.index} />
-            <div class="mb-6">
-              <div class="flex gap-2">
-                <.input
-                  type="text"
-                  field={section_f[:name]}
-                  label={gettext("Section")}
-                  class="flex-1"
-                  phx-debounce="1500"
-                />
-                <button
-                  type="button"
-                  name="ilp_template[sections_drop][]"
-                  value={section_f.index}
-                  phx-click={JS.dispatch("change")}
-                >
-                  drop
-                </button>
-              </div>
-              <.inputs_for :let={component_f} field={section_f[:components]}>
-                <input
-                  type="hidden"
-                  name={"#{section_f.name}[components_sort][]"}
-                  value={component_f.index}
-                />
-                <div class="flex gap-2">
-                  <.input
-                    type="text"
-                    field={component_f[:name]}
-                    label={gettext("Component")}
-                    class="flex-1"
-                    phx-debounce="1500"
-                  />
-                  <button
-                    type="button"
-                    name={"#{section_f.name}[components_drop][]"}
-                    value={component_f.index}
-                    phx-click={JS.dispatch("change")}
-                  >
-                    drop
-                  </button>
-                </div>
-              </.inputs_for>
-              <input type="hidden" name={"#{section_f.name}[components_drop][]"} />
-
-              <.action
-                type="button"
-                name={"#{section_f.name}[components_sort][]"}
-                value="new_component"
-                phx-click={JS.dispatch("change")}
-              >
-                <%= gettext("Add component") %>
-              </.action>
-            </div>
-          </.inputs_for>
-          <input type="hidden" name="ilp_template[sections_drop][]" />
-
-          <.action
-            type="button"
-            name="ilp_template[sections_sort][]"
-            value="new_section"
-            phx-click={JS.dispatch("change")}
-          >
-            <%= gettext("Add section") %>
-          </.action>
-          <%!-- <.action type="button" phx-click={JS.push("new_section", target: @myself)}>
-            <%= gettext("Add section") %>
-          </.action> --%>
-        </div>
         <div class="flex items-center justify-between gap-4">
           <div>
             <.action

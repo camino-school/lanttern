@@ -27,10 +27,13 @@
             <%= gettext("Edit") %>
           </.action>
         </div>
-        <div :if={template.description} class="mt-6">
-          <p class="font-bold"><%= gettext("About this template") %></p>
-          <.markdown text={template.description} class="mt-4" />
-        </div>
+        <.card_base :for={section <- template.sections} class="p-4 mt-4">
+          <div class="font-display font-black text-base"><%= section.name %></div>
+          <div :for={component <- section.components} class="p-4 rounded mt-2 bg-ltrn-lightest">
+            <div class="font-bold"><%= component.name %></div>
+          </div>
+        </.card_base>
+        <.markdown :if={template.description} text={template.description} class="mt-6" />
       </div>
       <.live_component
         :if={@template && @template.id == template.id}
@@ -41,20 +44,19 @@
       />
     </.card_base>
   </div>
-  <.card_base class="p-6 mt-10">
-    <div :if={!@template} class="flex justify-center">
-      <.action
-        type="button"
-        icon_name="hero-plus-circle-mini"
-        theme="primary"
-        size="md"
-        phx-click="new"
-      >
-        <%= gettext("Create new ILP template") %>
-      </.action>
-    </div>
+  <div :if={!@template} class="flex justify-center mt-10">
+    <.action
+      type="button"
+      icon_name="hero-plus-circle-mini"
+      theme="primary"
+      size="md"
+      phx-click="new"
+    >
+      <%= gettext("Create new ILP template") %>
+    </.action>
+  </div>
+  <.card_base :if={@template && is_nil(@template.id)} class="p-6 mt-10">
     <.live_component
-      :if={@template && is_nil(@template.id)}
       module={ILPTemplateFormComponent}
       id="new-ilp-template-form"
       template={@template}
