@@ -5,6 +5,10 @@ defmodule LantternWeb.ILPLive do
 
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
 
+  # shared components
+  alias LantternWeb.Schools.StudentHeaderComponent
+  alias LantternWeb.Schools.StudentSearchComponent
+
   @impl true
   def mount(_params, _session, socket) do
     socket =
@@ -12,7 +16,7 @@ defmodule LantternWeb.ILPLive do
       |> assign(:page_title, gettext("ILP"))
       |> assign_is_school_manager()
       |> stream_templates()
-      |> assign_user_filters([:ilp_template])
+      |> assign_user_filters([:ilp_template, :student])
       |> assign_current_template()
 
     {:ok, socket}
@@ -31,6 +35,7 @@ defmodule LantternWeb.ILPLive do
 
     socket
     |> stream(:templates, templates)
+    |> assign(:has_templates, length(templates) > 0)
     |> assign(:templates_ids, Enum.map(templates, & &1.id))
     |> assign(:template_options, Enum.map(templates, &{&1.id, &1.name}))
   end
@@ -82,6 +87,19 @@ defmodule LantternWeb.ILPLive do
       |> assign(:current_template, template)
       |> assign(:selected_ilp_template_id, template && template.id)
       |> save_profile_filters([:ilp_template])
+      |> push_navigate(to: ~p"/ilp")
+
+    {:noreply, socket}
+  end
+
+  # info handlers
+
+  @impl true
+  def handle_info({StudentSearchComponent, {:selected, student}}, socket) do
+    socket =
+      socket
+      |> assign(:selected_student_id, student.id)
+      |> save_profile_filters([:student])
       |> push_navigate(to: ~p"/ilp")
 
     {:noreply, socket}

@@ -43,6 +43,11 @@ defmodule LantternWeb.FiltersHelpers do
 
   - `:current_assessment_group_by`
 
+  ### `:student` assigns
+
+  - `:selected_student`
+  - `:selected_student_id`
+
   ### `:students` assigns
 
   - `:selected_students`
@@ -164,6 +169,21 @@ defmodule LantternWeb.FiltersHelpers do
 
     socket
     |> assign(:current_assessment_group_by, current_assessment_group_by)
+    |> assign_filter_type(current_user, current_filters, filter_types)
+  end
+
+  defp assign_filter_type(
+         socket,
+         current_user,
+         current_filters,
+         [:student | filter_types]
+       ) do
+    selected_student_id = Map.get(current_filters, :student_id)
+    selected_student = if selected_student_id, do: Schools.get_student(selected_student_id)
+
+    socket
+    |> assign(:selected_student_id, selected_student_id)
+    |> assign(:selected_student, selected_student)
     |> assign_filter_type(current_user, current_filters, filter_types)
   end
 
@@ -339,6 +359,7 @@ defmodule LantternWeb.FiltersHelpers do
     cycles: :cycles_ids,
     classes: :classes_ids,
     linked_students_classes: :linked_students_classes_ids,
+    student: :student_id,
     students: :students_ids,
     student_record_tags: :student_record_tags_ids,
     student_record_statuses: :student_record_statuses_ids,
@@ -354,6 +375,7 @@ defmodule LantternWeb.FiltersHelpers do
     cycles: :selected_cycles_ids,
     classes: :selected_classes_ids,
     linked_students_classes: :selected_linked_students_classes_ids,
+    student: :selected_student_id,
     students: :selected_students_ids,
     student_record_tags: :selected_student_record_tags_ids,
     student_record_statuses: :selected_student_record_statuses_ids,

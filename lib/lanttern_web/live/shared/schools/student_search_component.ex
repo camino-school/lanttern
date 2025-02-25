@@ -99,7 +99,14 @@ defmodule LantternWeb.Schools.StudentSearchComponent do
   @impl true
   def handle_event("search", params, socket) do
     query = Map.get(params, "#{socket.assigns.id}-query", "")
-    search_opts = if socket.assigns.school_id, do: [school_id: socket.assigns.school_id], else: []
+
+    base_search_opts = [only_active: true]
+
+    search_opts =
+      if socket.assigns.school_id,
+        do: [{:school_id, socket.assigns.school_id} | base_search_opts],
+        else: base_search_opts
+
     # search when 3 or more characters were typed
     results =
       if String.length(query) >= 3,

@@ -424,6 +424,37 @@ defmodule Lanttern.SchoolsTest do
       assert expected_std_x.id == student_x.id
     end
 
+    test "list_classes_for_students_in_date/2 returns the correct list" do
+      school = school_fixture()
+
+      cycle_2024 =
+        cycle_fixture(%{school_id: school.id, start_at: ~D[2024-01-01], end_at: ~D[2024-12-31]})
+
+      cycle_2025 =
+        cycle_fixture(%{school_id: school.id, start_at: ~D[2025-01-01], end_at: ~D[2025-12-31]})
+
+      class_2024 = class_fixture(%{school_id: school.id, cycle_id: cycle_2024.id})
+      class_2025 = class_fixture(%{school_id: school.id, cycle_id: cycle_2025.id})
+
+      student_a =
+        student_fixture(%{school_id: school.id, classes_ids: [class_2024.id, class_2025.id]})
+
+      student_b =
+        student_fixture(%{school_id: school.id, classes_ids: [class_2024.id]})
+
+      student_c =
+        student_fixture(%{school_id: school.id, classes_ids: [class_2025.id]})
+
+      [expected_class_2024] =
+        Schools.list_classes_for_students_in_date(
+          [student_a.id, student_b.id, student_c.id],
+          ~D[2024-06-10]
+        )
+
+      assert expected_class_2024.id == class_2024.id
+      assert expected_class_2024.cycle.id == cycle_2024.id
+    end
+
     test "list_user_classes/1 returns all classes from user's school correctly" do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
@@ -928,6 +959,52 @@ defmodule Lanttern.SchoolsTest do
       expected_student = Schools.get_student(profile.student_id, load_email: true)
       assert expected_student.id == profile.student_id
       assert expected_student.email == "email.abc@email.com"
+    end
+
+    test "get_student/2 with load_profile_picture_from_cycle_id and preload_classes_from_cycle_id opts load the correct profile picture and preloads the correct classes" do
+      school = school_fixture()
+
+      cycle_2024 =
+        cycle_fixture(%{school_id: school.id, start_at: ~D[2024-01-01], end_at: ~D[2024-12-31]})
+
+      cycle_2025 =
+        cycle_fixture(%{school_id: school.id, start_at: ~D[2025-01-01], end_at: ~D[2025-12-31]})
+
+      class_2024 = class_fixture(%{school_id: school.id, cycle_id: cycle_2024.id})
+      class_2025_a = class_fixture(%{school_id: school.id, cycle_id: cycle_2025.id, name: "AAA"})
+      class_2025_b = class_fixture(%{school_id: school.id, cycle_id: cycle_2025.id, name: "BBB"})
+
+      student =
+        student_fixture(%{
+          school_id: school.id,
+          classes_ids: [class_2024.id, class_2025_a.id, class_2025_b.id]
+        })
+
+      _student_cycle_info_2024 =
+        StudentsCycleInfoFixtures.student_cycle_info_fixture(%{
+          school_id: school.id,
+          student_id: student.id,
+          cycle_id: cycle_2024.id,
+          profile_picture_url: "http://example.com/profile_picture_2024.jpg"
+        })
+
+      _student_cycle_info_2025 =
+        StudentsCycleInfoFixtures.student_cycle_info_fixture(%{
+          school_id: school.id,
+          student_id: student.id,
+          cycle_id: cycle_2025.id,
+          profile_picture_url: "http://example.com/profile_picture_2025.jpg"
+        })
+
+      expected_student =
+        Schools.get_student(student.id,
+          load_profile_picture_from_cycle_id: cycle_2025.id,
+          preload_classes_from_cycle_id: cycle_2025.id
+        )
+
+      assert expected_student.id == student.id
+      assert expected_student.profile_picture_url == "http://example.com/profile_picture_2025.jpg"
+      assert expected_student.classes == [class_2025_a, class_2025_b]
     end
 
     test "create_student/1 with valid data creates a student" do
@@ -1591,39 +1668,6 @@ defmodule Lanttern.SchoolsTest do
         select: u
       )
       |> Lanttern.Repo.one!()
-    end
-  end
-
-  describe "list classes ids for student in date" do
-    test "list_classes_for_students_in_date/2 returns the correct list" do
-      school = school_fixture()
-
-      cycle_2024 =
-        cycle_fixture(%{school_id: school.id, start_at: ~D[2024-01-01], end_at: ~D[2024-12-31]})
-
-      cycle_2025 =
-        cycle_fixture(%{school_id: school.id, start_at: ~D[2025-01-01], end_at: ~D[2025-12-31]})
-
-      class_2024 = class_fixture(%{school_id: school.id, cycle_id: cycle_2024.id})
-      class_2025 = class_fixture(%{school_id: school.id, cycle_id: cycle_2025.id})
-
-      student_a =
-        student_fixture(%{school_id: school.id, classes_ids: [class_2024.id, class_2025.id]})
-
-      student_b =
-        student_fixture(%{school_id: school.id, classes_ids: [class_2024.id]})
-
-      student_c =
-        student_fixture(%{school_id: school.id, classes_ids: [class_2025.id]})
-
-      [expected_class_2024] =
-        Schools.list_classes_for_students_in_date(
-          [student_a.id, student_b.id, student_c.id],
-          ~D[2024-06-10]
-        )
-
-      assert expected_class_2024.id == class_2024.id
-      assert expected_class_2024.cycle.id == cycle_2024.id
     end
   end
 end
