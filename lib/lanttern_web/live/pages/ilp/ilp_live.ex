@@ -85,9 +85,12 @@ defmodule LantternWeb.ILPLive do
          template_id when not is_nil(template_id) <- socket.assigns.selected_ilp_template_id do
       student_ilp =
         ILP.get_student_ilp_by(
-          student_id: student_id,
-          template_id: template_id,
-          cycle_id: socket.assigns.current_user.current_profile.current_school_cycle.id
+          [
+            student_id: student_id,
+            template_id: template_id,
+            cycle_id: socket.assigns.current_user.current_profile.current_school_cycle.id
+          ],
+          preloads: [template: [sections: :components]]
         )
 
       socket
@@ -106,11 +109,12 @@ defmodule LantternWeb.ILPLive do
     {:noreply, socket}
   end
 
-  defp assign_edit_student_ilp(socket, %{"new" => "true"}) do
+  defp assign_edit_student_ilp(%{assigns: %{student_ilp: nil}} = socket, %{"edit" => "true"}) do
     with student_id when not is_nil(student_id) <- socket.assigns.selected_student_id,
          template_id when not is_nil(template_id) <- socket.assigns.selected_ilp_template_id do
       student_ilp =
         %StudentILP{
+          school_id: socket.assigns.current_user.current_profile.school_id,
           student_id: student_id,
           template_id: template_id,
           cycle_id: socket.assigns.current_user.current_profile.current_school_cycle.id
@@ -122,6 +126,14 @@ defmodule LantternWeb.ILPLive do
     else
       _ -> assign(socket, :edit_student_ilp, nil)
     end
+  end
+
+  defp assign_edit_student_ilp(%{assigns: %{student_ilp: %StudentILP{}}} = socket, %{
+         "edit" => "true"
+       }) do
+    socket
+    |> assign(:edit_student_ilp, socket.assigns.student_ilp)
+    |> assign(:ilp_form_overlay_title, gettext("Edit ILP"))
   end
 
   defp assign_edit_student_ilp(socket, _params),
@@ -158,4 +170,23 @@ defmodule LantternWeb.ILPLive do
 
     {:noreply, socket}
   end
+
+  def handle_info({StudentILPFormOverlayComponent, {action, _ilp}}, socket)
+      when action in [:created, :updated, :deleted] do
+    message =
+      case action do
+        :created -> gettext("ILP created successfully")
+        :updated -> gettext("ILP updated successfully")
+        :deleted -> gettext("ILP deleted successfully")
+      end
+
+    socket =
+      socket
+      |> push_navigate(to: ~p"/ilp")
+      |> put_flash(:info, message)
+
+    {:noreply, socket}
+  end
+
+  def handle_info(_, socket), do: {:noreply, socket}
 end

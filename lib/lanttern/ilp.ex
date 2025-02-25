@@ -15,7 +15,7 @@ defmodule Lanttern.ILP do
   ## Options
 
   - `:school_id` - filter results by school id
-  - `:preloads` - preloads associations
+  - `:preloads` – preloads associated data
 
   ## Examples
 
@@ -53,7 +53,7 @@ defmodule Lanttern.ILP do
 
   ## Options
 
-  - `:preloads` - preloads associations
+  - `:preloads` – preloads associated data
 
   ## Examples
 
@@ -400,6 +400,10 @@ defmodule Lanttern.ILP do
 
   If there's no `update_of_ilp_id` in clauses, will filter only base ILPs.
 
+  ## Options
+
+  - `:preloads` – preloads associated data
+
   ## Examples
 
       iex> get_student_ilp_by(student_id: 1, cycle_id: 1, template_id: 1)
@@ -409,9 +413,9 @@ defmodule Lanttern.ILP do
       nil
 
   """
-  @spec get_student_ilp_by(clauses :: Keyword.t()) ::
+  @spec get_student_ilp_by(clauses :: Keyword.t(), opts :: Keyword.t()) ::
           %StudentILP{} | nil
-  def get_student_ilp_by(clauses) do
+  def get_student_ilp_by(clauses, opts \\ []) do
     where =
       if Keyword.get(clauses, :update_of_ilp_id) do
         true
@@ -424,6 +428,7 @@ defmodule Lanttern.ILP do
       where: ^where
     )
     |> Repo.get_by(clauses)
+    |> maybe_preload(opts)
   end
 
   @doc """

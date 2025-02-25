@@ -98,11 +98,15 @@
   <% end %> --%>
   <%= if @student_ilp && !@is_creating do %>
     <.card_base class="p-6 mt-10">
-      TBD
-      <%!-- <h3 class="font-display font-black text-xl"><%= @current_template.name %></h3>
+      <div class="flex items-center gap-4">
+        <h4 class="flex-1 font-display font-black text-xl"><%= @student_ilp.template.name %></h4>
+        <.action type="link" icon_name="hero-pencil-mini" patch={~p"/ilp?edit=true"}>
+          <%= gettext("Edit") %>
+        </.action>
+      </div>
       <div>
         <.card_base
-          :for={section <- @current_template.sections}
+          :for={section <- @student_ilp.template.sections}
           class="p-4 border border-ltrn-lightest mt-4"
         >
           <div class="font-display font-black text-base">
@@ -116,11 +120,16 @@
           </div>
         </.card_base>
       </div>
-      <.markdown
-        :if={@current_template.description}
-        text={@current_template.description}
-        class="mt-6"
-      /> --%>
+      <div :if={@student_ilp.teacher_notes} class="p-4 rounded mt-6 bg-ltrn-staff-lightest">
+        <p class="flex items-center gap-2 font-bold mb-4">
+          <.icon name="hero-pencil-square-mini" class="text-ltrn-staff-accent" />
+          <span class="text-ltrn-staff-dark"><%= gettext("Teacher notes") %></span>
+        </p>
+        <.markdown text={@student_ilp.teacher_notes} />
+      </div>
+      <%!-- <div :if={@student_ilp.template.description} class="mt-6">
+        <.markdown text={@student_ilp.template.description} />
+      </div> --%>
     </.card_base>
   <% else %>
     <.card_base class="p-10 mt-10">
@@ -131,7 +140,7 @@
           icon_name="hero-plus-circle-mini"
           theme="primary"
           size="md"
-          patch={~p"/ilp?new=true"}
+          patch={~p"/ilp?edit=true"}
         >
           <%= gettext("Create %{student}'s %{cycle} ILP",
             student: @selected_student.name,

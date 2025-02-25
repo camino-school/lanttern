@@ -47,6 +47,6 @@ defmodule Lanttern.ILP.StudentILP do
       :school_id,
       :update_of_ilp_id
     ])
-    |> validate_required([:teacher_notes, :template_id, :student_id, :cycle_id, :school_id])
+    |> validate_required([:template_id, :student_id, :cycle_id, :school_id])
   end
 end
