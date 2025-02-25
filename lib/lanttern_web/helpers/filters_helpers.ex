@@ -81,6 +81,10 @@ defmodule LantternWeb.FiltersHelpers do
 
   - `:student_info_selected_cycle_id`
 
+  ### `:ilp_template`
+
+  - `:selected_ilp_template_id`
+
   ## Examples
 
       iex> assign_user_filters(socket, [:subjects], user)
@@ -313,6 +317,19 @@ defmodule LantternWeb.FiltersHelpers do
     |> assign_filter_type(current_user, current_filters, filter_types)
   end
 
+  defp assign_filter_type(
+         socket,
+         current_user,
+         current_filters,
+         [:ilp_template | filter_types]
+       ) do
+    selected_ilp_template_id = Map.get(current_filters, :ilp_template_id)
+
+    socket
+    |> assign(:selected_ilp_template_id, selected_ilp_template_id)
+    |> assign_filter_type(current_user, current_filters, filter_types)
+  end
+
   defp assign_filter_type(socket, current_user, current_filters, [_ | filter_types]),
     do: assign_filter_type(socket, current_user, current_filters, filter_types)
 
@@ -327,7 +344,8 @@ defmodule LantternWeb.FiltersHelpers do
     student_record_statuses: :student_record_statuses_ids,
     student_record_assignees: :student_record_assignees_ids,
     starred_strands: :only_starred_strands,
-    student_info: :student_info_cycle_id
+    student_info: :student_info_cycle_id,
+    ilp_template: :ilp_template_id
   }
 
   @type_to_current_value_key_map %{
@@ -341,7 +359,8 @@ defmodule LantternWeb.FiltersHelpers do
     student_record_statuses: :selected_student_record_statuses_ids,
     student_record_assignees: :selected_student_record_assignees_ids,
     starred_strands: :only_starred_strands,
-    student_info: :student_info_selected_cycle_id
+    student_info: :student_info_selected_cycle_id,
+    ilp_template: :selected_ilp_template_id
   }
 
   @doc """
@@ -698,6 +717,7 @@ defmodule LantternWeb.FiltersHelpers do
   - `:student_record_status`
   - `:student_record_assignees`
   - `:student_info`
+  - `:ilp_template`
 
   ## Examples
 

@@ -1,10 +1,73 @@
 <.header_nav current_user={@current_user}>
   <:title><%= @page_title %></:title>
   <div class="flex items-center justify-between gap-4 p-4">
-    some info
-    <.action type="link" navigate={~p"/ilp/settings"} icon_name="hero-cog-6-tooth-mini">
+    <p class="flex items-center gap-2">
+      <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+      <%= gettext("Manage students %{cycle} ILPs",
+        cycle: @current_user.current_profile.current_school_cycle.name
+      ) %>
+    </p>
+    <.action
+      :if={@is_school_manager}
+      type="link"
+      navigate={~p"/ilp/settings"}
+      icon_name="hero-cog-6-tooth-mini"
+    >
       <%= gettext("Settings") %>
     </.action>
   </div>
 </.header_nav>
-TBD
+<.responsive_container class="py-10 px-4">
+  <div class="flex gap-4">
+    <div class="relative">
+      <.action
+        type="button"
+        id="select-template-dropdown-button"
+        icon_name="hero-chevron-down-mini"
+      >
+        <%= if @current_template do %>
+          <%= gettext("ILP model:") %>
+          <span class="font-bold"><%= @current_template.name %></span>
+        <% else %>
+          <%= gettext("No ILP model selected") %>
+        <% end %>
+      </.action>
+      <.dropdown_menu
+        id="select-template-dropdown"
+        button_id="select-template-dropdown-button"
+        z_index="10"
+      >
+        <:item
+          :for={{template_id, template_name} <- @template_options}
+          text={template_name}
+          on_click={JS.push("select_template_id", value: %{"id" => template_id})}
+        />
+      </.dropdown_menu>
+    </div>
+  </div>
+
+  <.card_base :if={@current_template} id={"template-#{@current_template.id}"} class="p-6 mt-10">
+    <h3 class="font-display font-black text-xl"><%= @current_template.name %></h3>
+    <div>
+      <.card_base
+        :for={section <- @current_template.sections}
+        class="p-4 border border-ltrn-lightest mt-4"
+      >
+        <div class="font-display font-black text-base">
+          <%= section.name %>
+        </div>
+        <div
+          :for={component <- section.components}
+          class="flex items-center gap-4 p-4 rounded mt-2 bg-ltrn-lightest"
+        >
+          <div class="font-bold"><%= component.name %></div>
+        </div>
+      </.card_base>
+    </div>
+    <.markdown
+      :if={@current_template.description}
+      text={@current_template.description}
+      class="mt-6"
+    />
+  </.card_base>
+</.responsive_container>
