@@ -55,6 +55,24 @@ defmodule Lanttern.ILPFixtures do
     ilp_component
   end
 
+  @doc """
+  Generate a student_ilp.
+  """
+  def student_ilp_fixture(attrs \\ %{}) do
+    {:ok, student_ilp} =
+      attrs
+      |> maybe_inject_school_id()
+      |> maybe_inject_cycle_id()
+      |> maybe_inject_template_id()
+      |> maybe_inject_student_id()
+      |> Enum.into(%{
+        teacher_notes: "some note"
+      })
+      |> Lanttern.ILP.create_student_ilp()
+
+    student_ilp
+  end
+
   # generator helpers
 
   def maybe_gen_template_id(%{template_id: template_id} = _attrs), do: template_id
@@ -62,7 +80,33 @@ defmodule Lanttern.ILPFixtures do
 
   # helpers
 
+  defp maybe_inject_school_id(%{school_id: _} = attrs), do: attrs
+
+  defp maybe_inject_school_id(attrs) do
+    attrs
+    |> Map.put(:school_id, SchoolsFixtures.school_fixture().id)
+  end
+
+  defp maybe_inject_cycle_id(%{cycle_id: _} = attrs), do: attrs
+
+  defp maybe_inject_cycle_id(attrs) do
+    attrs
+    |> Map.put(:cycle_id, SchoolsFixtures.cycle_fixture(%{school_id: attrs.school_id}).id)
+  end
+
+  defp maybe_inject_student_id(%{student_id: _} = attrs), do: attrs
+
+  defp maybe_inject_student_id(attrs) do
+    attrs
+    |> Map.put(:student_id, SchoolsFixtures.student_fixture(%{school_id: attrs.school_id}).id)
+  end
+
   defp maybe_inject_template_id(%{template_id: _} = attrs), do: attrs
+
+  defp maybe_inject_template_id(%{school_id: school_id} = attrs) do
+    attrs
+    |> Map.put(:template_id, ilp_template_fixture(%{school_id: school_id}).id)
+  end
 
   defp maybe_inject_template_id(attrs) do
     attrs

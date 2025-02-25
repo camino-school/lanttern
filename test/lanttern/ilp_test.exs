@@ -289,4 +289,76 @@ defmodule Lanttern.ILPTest do
       assert %Ecto.Changeset{} = ILP.change_ilp_component(ilp_component)
     end
   end
+
+  describe "students_ilps" do
+    alias Lanttern.ILP.StudentILP
+
+    import Lanttern.ILPFixtures
+
+    @invalid_attrs %{school_id: nil}
+
+    test "list_students_ilps/0 returns all students_ilps" do
+      student_ilp = student_ilp_fixture()
+      assert ILP.list_students_ilps() == [student_ilp]
+    end
+
+    test "get_student_ilp!/1 returns the student_ilp with given id" do
+      student_ilp = student_ilp_fixture()
+      assert ILP.get_student_ilp!(student_ilp.id) == student_ilp
+    end
+
+    test "create_student_ilp/1 with valid data creates a student_ilp" do
+      school = Lanttern.SchoolsFixtures.school_fixture()
+      cycle = Lanttern.SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+      student = Lanttern.SchoolsFixtures.student_fixture(%{school_id: school.id})
+      template = ilp_template_fixture(%{school_id: school.id})
+
+      valid_attrs =
+        %{
+          school_id: school.id,
+          cycle_id: cycle.id,
+          student_id: student.id,
+          template_id: template.id,
+          teacher_notes: "some teacher notes"
+        }
+
+      assert {:ok, %StudentILP{} = student_ilp} = ILP.create_student_ilp(valid_attrs)
+      assert student_ilp.school_id == school.id
+      assert student_ilp.cycle_id == cycle.id
+      assert student_ilp.student_id == student.id
+      assert student_ilp.template_id == template.id
+      assert student_ilp.teacher_notes == "some teacher notes"
+    end
+
+    test "create_student_ilp/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = ILP.create_student_ilp(@invalid_attrs)
+    end
+
+    test "update_student_ilp/2 with valid data updates the student_ilp" do
+      student_ilp = student_ilp_fixture()
+      update_attrs = %{teacher_notes: "some updated teacher notes"}
+
+      assert {:ok, %StudentILP{} = student_ilp} =
+               ILP.update_student_ilp(student_ilp, update_attrs)
+
+      assert student_ilp.teacher_notes == "some updated teacher notes"
+    end
+
+    test "update_student_ilp/2 with invalid data returns error changeset" do
+      student_ilp = student_ilp_fixture()
+      assert {:error, %Ecto.Changeset{}} = ILP.update_student_ilp(student_ilp, @invalid_attrs)
+      assert student_ilp == ILP.get_student_ilp!(student_ilp.id)
+    end
+
+    test "delete_student_ilp/1 deletes the student_ilp" do
+      student_ilp = student_ilp_fixture()
+      assert {:ok, %StudentILP{}} = ILP.delete_student_ilp(student_ilp)
+      assert_raise Ecto.NoResultsError, fn -> ILP.get_student_ilp!(student_ilp.id) end
+    end
+
+    test "change_student_ilp/1 returns a student_ilp changeset" do
+      student_ilp = student_ilp_fixture()
+      assert %Ecto.Changeset{} = ILP.change_student_ilp(student_ilp)
+    end
+  end
 end

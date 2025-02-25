@@ -361,4 +361,100 @@ defmodule Lanttern.ILP do
   def change_ilp_component(%ILPComponent{} = ilp_component, attrs \\ %{}) do
     ILPComponent.changeset(ilp_component, attrs)
   end
+
+  alias Lanttern.ILP.StudentILP
+
+  @doc """
+  Returns the list of students_ilps.
+
+  ## Examples
+
+      iex> list_students_ilps()
+      [%StudentILP{}, ...]
+
+  """
+  def list_students_ilps do
+    Repo.all(StudentILP)
+  end
+
+  @doc """
+  Gets a single student_ilp.
+
+  Raises `Ecto.NoResultsError` if the Student ilp does not exist.
+
+  ## Examples
+
+      iex> get_student_ilp!(123)
+      %StudentILP{}
+
+      iex> get_student_ilp!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_student_ilp!(id), do: Repo.get!(StudentILP, id)
+
+  @doc """
+  Creates a student_ilp.
+
+  ## Examples
+
+      iex> create_student_ilp(%{field: value})
+      {:ok, %StudentILP{}}
+
+      iex> create_student_ilp(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_student_ilp(attrs \\ %{}) do
+    %StudentILP{}
+    |> StudentILP.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a student_ilp.
+
+  ## Examples
+
+      iex> update_student_ilp(student_ilp, %{field: new_value})
+      {:ok, %StudentILP{}}
+
+      iex> update_student_ilp(student_ilp, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_student_ilp(%StudentILP{} = student_ilp, attrs) do
+    student_ilp
+    |> StudentILP.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a student_ilp.
+
+  ## Examples
+
+      iex> delete_student_ilp(student_ilp)
+      {:ok, %StudentILP{}}
+
+      iex> delete_student_ilp(student_ilp)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_student_ilp(%StudentILP{} = student_ilp) do
+    Repo.delete(student_ilp)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking student_ilp changes.
+
+  ## Examples
+
+      iex> change_student_ilp(student_ilp)
+      %Ecto.Changeset{data: %StudentILP{}}
+
+  """
+  def change_student_ilp(%StudentILP{} = student_ilp, attrs \\ %{}) do
+    StudentILP.changeset(student_ilp, attrs)
+  end
 end
