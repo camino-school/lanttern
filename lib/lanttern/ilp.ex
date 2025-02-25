@@ -394,6 +394,39 @@ defmodule Lanttern.ILP do
   def get_student_ilp!(id), do: Repo.get!(StudentILP, id)
 
   @doc """
+  Gets a single student_ilp by given clauses.
+
+  `Repo.get_by/2` wrapper. Returns `nil` if no result was found.
+
+  If there's no `update_of_ilp_id` in clauses, will filter only base ILPs.
+
+  ## Examples
+
+      iex> get_student_ilp_by(student_id: 1, cycle_id: 1, template_id: 1)
+      %StudentILP{}
+
+      iex> get_student_ilp_by(student_id: 1, cycle_id: 1, template_id: 999)
+      nil
+
+  """
+  @spec get_student_ilp_by(clauses :: Keyword.t()) ::
+          %StudentILP{} | nil
+  def get_student_ilp_by(clauses) do
+    where =
+      if Keyword.get(clauses, :update_of_ilp_id) do
+        true
+      else
+        dynamic([ilp], is_nil(ilp.update_of_ilp_id))
+      end
+
+    from(
+      ilp in StudentILP,
+      where: ^where
+    )
+    |> Repo.get_by(clauses)
+  end
+
+  @doc """
   Creates a student_ilp.
 
   ## Examples

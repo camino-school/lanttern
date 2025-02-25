@@ -2,10 +2,12 @@ defmodule LantternWeb.ILPLive do
   use LantternWeb, :live_view
 
   alias Lanttern.ILP
+  alias Lanttern.ILP.StudentILP
 
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
 
   # shared components
+  alias LantternWeb.ILP.StudentILPFormOverlayComponent
   alias LantternWeb.Schools.StudentHeaderComponent
   alias LantternWeb.Schools.StudentSearchComponent
 
@@ -15,9 +17,13 @@ defmodule LantternWeb.ILPLive do
       socket
       |> assign(:page_title, gettext("ILP"))
       |> assign_is_school_manager()
-      |> stream_templates()
+      |> assign_templates()
       |> assign_user_filters([:ilp_template, :student])
       |> assign_current_template()
+      |> assign_student_ilp()
+      |> assign(:is_creating, false)
+      |> assign(:is_editing, false)
+      |> assign(:ilp_form_overlay_title, nil)
 
     {:ok, socket}
   end
@@ -29,12 +35,11 @@ defmodule LantternWeb.ILPLive do
     assign(socket, :is_school_manager, is_school_manager)
   end
 
-  defp stream_templates(socket) do
+  defp assign_templates(socket) do
     templates =
       ILP.list_ilp_templates(school_id: socket.assigns.current_user.current_profile.school_id)
 
     socket
-    |> stream(:templates, templates)
     |> assign(:has_templates, length(templates) > 0)
     |> assign(:templates_ids, Enum.map(templates, & &1.id))
     |> assign(:template_options, Enum.map(templates, &{&1.id, &1.name}))
@@ -43,18 +48,21 @@ defmodule LantternWeb.ILPLive do
   # when user has no selected ilp_template,
   # select first item in templates list as default if possible
   defp assign_current_template(%{assigns: %{selected_ilp_template_id: nil}} = socket) do
-    template =
+    {template_id, template_name} =
       case socket.assigns.templates_ids do
-        [] -> nil
-        [id | _] -> ILP.get_ilp_template!(id, preloads: [sections: :components])
+        [] ->
+          {nil, nil}
+
+        [id | _] ->
+          socket.assigns.template_options
+          |> Enum.find({nil, nil}, fn {opt_id, _} -> opt_id == id end)
       end
 
-    if template do
+    if template_id do
       socket
-      |> assign(:current_template, template)
-      |> assign(:selected_ilp_template_id, template.id)
+      |> assign(:current_template, template_name)
+      |> assign(:selected_ilp_template_id, template_id)
       |> save_profile_filters([:ilp_template])
-      |> push_navigate(to: ~p"/ilp")
     else
       assign(socket, :current_template, nil)
     end
@@ -64,14 +72,60 @@ defmodule LantternWeb.ILPLive do
   defp assign_current_template(socket) do
     template_id = socket.assigns.selected_ilp_template_id
 
-    template =
-      if template_id in socket.assigns.templates_ids do
-        ILP.get_ilp_template!(template_id, preloads: [sections: :components])
-      end
+    {_id, template_name} =
+      socket.assigns.template_options
+      |> Enum.find({nil, nil}, fn {opt_id, _} -> opt_id == template_id end)
 
     socket
-    |> assign(:current_template, template)
+    |> assign(:current_template, template_name)
   end
+
+  defp assign_student_ilp(socket) do
+    with student_id when not is_nil(student_id) <- socket.assigns.selected_student_id,
+         template_id when not is_nil(template_id) <- socket.assigns.selected_ilp_template_id do
+      student_ilp =
+        ILP.get_student_ilp_by(
+          student_id: student_id,
+          template_id: template_id,
+          cycle_id: socket.assigns.current_user.current_profile.current_school_cycle.id
+        )
+
+      socket
+      |> assign(:student_ilp, student_ilp)
+    else
+      _ -> assign(socket, :student_ilp, nil)
+    end
+  end
+
+  @impl true
+  def handle_params(params, _uri, socket) do
+    socket =
+      socket
+      |> assign_edit_student_ilp(params)
+
+    {:noreply, socket}
+  end
+
+  defp assign_edit_student_ilp(socket, %{"new" => "true"}) do
+    with student_id when not is_nil(student_id) <- socket.assigns.selected_student_id,
+         template_id when not is_nil(template_id) <- socket.assigns.selected_ilp_template_id do
+      student_ilp =
+        %StudentILP{
+          student_id: student_id,
+          template_id: template_id,
+          cycle_id: socket.assigns.current_user.current_profile.current_school_cycle.id
+        }
+
+      socket
+      |> assign(:edit_student_ilp, student_ilp)
+      |> assign(:ilp_form_overlay_title, gettext("Create ILP"))
+    else
+      _ -> assign(socket, :edit_student_ilp, nil)
+    end
+  end
+
+  defp assign_edit_student_ilp(socket, _params),
+    do: assign(socket, :edit_student_ilp, nil)
 
   # event handlers
 

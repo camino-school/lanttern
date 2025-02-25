@@ -307,6 +307,25 @@ defmodule Lanttern.ILPTest do
       assert ILP.get_student_ilp!(student_ilp.id) == student_ilp
     end
 
+    test "get_student_ilp_by/1 returns the student_ilp matching given clauses" do
+      student_ilp = student_ilp_fixture()
+
+      # create updated student ilp to test include_updates opt
+      student_ilp_fixture(%{
+        school_id: student_ilp.school_id,
+        student_id: student_ilp.student_id,
+        template_id: student_ilp.template_id,
+        cycle_id: student_ilp.cycle_id,
+        update_of_ilp_id: student_ilp.id
+      })
+
+      assert ILP.get_student_ilp_by(
+               student_id: student_ilp.student_id,
+               template_id: student_ilp.template_id,
+               cycle_id: student_ilp.cycle_id
+             ) == student_ilp
+    end
+
     test "create_student_ilp/1 with valid data creates a student_ilp" do
       school = Lanttern.SchoolsFixtures.school_fixture()
       cycle = Lanttern.SchoolsFixtures.cycle_fixture(%{school_id: school.id})

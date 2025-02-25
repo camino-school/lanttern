@@ -18,6 +18,8 @@ defmodule Lanttern.ILP.StudentILP do
           cycle: Cycle.t() | Ecto.Association.NotLoaded.t(),
           school_id: pos_integer(),
           school: School.t() | Ecto.Association.NotLoaded.t(),
+          update_of_ilp_id: pos_integer(),
+          update_of_ilp: __MODULE__.t() | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -29,6 +31,7 @@ defmodule Lanttern.ILP.StudentILP do
     belongs_to :student, Student
     belongs_to :cycle, Cycle
     belongs_to :school, School
+    belongs_to :update_of_ilp, __MODULE__
 
     timestamps()
   end
@@ -36,7 +39,14 @@ defmodule Lanttern.ILP.StudentILP do
   @doc false
   def changeset(student_ilp, attrs) do
     student_ilp
-    |> cast(attrs, [:teacher_notes, :template_id, :student_id, :cycle_id, :school_id])
+    |> cast(attrs, [
+      :teacher_notes,
+      :template_id,
+      :student_id,
+      :cycle_id,
+      :school_id,
+      :update_of_ilp_id
+    ])
     |> validate_required([:teacher_notes, :template_id, :student_id, :cycle_id, :school_id])
   end
 end
