@@ -4,7 +4,8 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
 
   ### Attrs
 
-      attr :ilp, StudentILP, required: true
+      attr :ilp, StudentILP, required: true, doc: "expects entries preloads"
+      attr :template, ILPTemplate, required: true, doc: "expects sections/components preloads"
       attr :title, :string, required: true
       attr :current_profile, Profile, required: true
       attr :on_cancel, :any, required: true, doc: "`<.slide_over>` `on_cancel` attr"
@@ -16,6 +17,7 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.ILP
+  alias Lanttern.ILP.ILPEntry
   alias Lanttern.ILP.StudentILP
 
   @impl true
@@ -43,6 +45,31 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
             show_optional
           />
           <.markdown_supported class="mb-6" />
+          <div class="mb-6">
+            <.inputs_for :let={template_f} field={@form[:template]}>
+              <.inputs_for :let={section_f} field={template_f[:sections]}>
+                <.card_base
+                  class="p-4 border border-ltrn-lightest mt-4"
+                  id={"#{@id}-section-#{section_f.data.id}"}
+                >
+                  <div class="font-display font-black text-base">
+                    <%= section_f.data.name %>
+                  </div>
+                  <.inputs_for :let={component_f} field={section_f[:components]}>
+                    <div
+                      class="p-4 rounded mt-2 bg-ltrn-lightest"
+                      id={"#{@id}-component-#{component_f.data.id}"}
+                    >
+                      <div class="mb-2 font-bold"><%= component_f.data.name %></div>
+                      <.inputs_for :let={entry_f} field={component_f[:entry]}>
+                        <.input type="textarea" field={entry_f[:description]} phx-debounce="1500" />
+                      </.inputs_for>
+                    </div>
+                  </.inputs_for>
+                </.card_base>
+              </.inputs_for>
+            </.inputs_for>
+          </div>
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
             <%= gettext("Oops, something went wrong! Please check the errors above.") %>
           </.error_block>
@@ -101,17 +128,56 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
-    |> assign_form()
+    |> adjust_ilp_and_assign_form()
     |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
 
-  defp assign_form(socket) do
-    ilp = socket.assigns.ilp
+  defp adjust_ilp_and_assign_form(socket) do
+    # format ilp entries, including empty entries for missing components
+    components =
+      Enum.flat_map(socket.assigns.template.sections, & &1.components)
+
+    component_entries_map =
+      Enum.map(components, fn component ->
+        case Enum.find(socket.assigns.ilp.entries, &(&1.component_id == component.id)) do
+          nil ->
+            %ILPEntry{
+              component_id: component.id,
+              template_id: socket.assigns.ilp.template_id,
+              student_ilp_id: socket.assigns.ilp.id
+            }
+
+          entry ->
+            entry
+        end
+      end)
+      |> Enum.map(&{&1.component_id, &1})
+      |> Enum.into(%{})
+
+    # inject entries into template
+    template =
+      %{
+        socket.assigns.template
+        | sections:
+            Enum.map(socket.assigns.template.sections, fn section ->
+              %{
+                section
+                | components:
+                    Enum.map(section.components, fn component ->
+                      Map.put(component, :entry, component_entries_map[component.id])
+                    end)
+              }
+            end)
+      }
+
+    ilp = %{socket.assigns.ilp | template: template}
+
     changeset = ILP.change_student_ilp(ilp)
 
     socket
+    |> assign(:ilp, ilp)
     |> assign(:form, to_form(changeset))
   end
 
@@ -151,8 +217,8 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
     assign(socket, :form, to_form(changeset))
   end
 
-  # inject params handled in backend
-  defp inject_extra_params(socket, params) do
+  # inject params handled in backend when creating new ILP
+  defp inject_extra_params(%{assigns: %{ilp: %{id: nil}}} = socket, params) do
     params
     |> Map.put("school_id", socket.assigns.ilp.school_id)
     |> Map.put("template_id", socket.assigns.ilp.template_id)
@@ -160,7 +226,11 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
     |> Map.put("student_id", socket.assigns.ilp.student_id)
   end
 
+  defp inject_extra_params(_socket, params), do: params
+
   defp save_ilp(socket, nil, ilp_params) do
+    ilp_params = prepare_save_params(socket, ilp_params)
+
     ILP.create_student_ilp(ilp_params)
     |> case do
       {:ok, ilp} ->
@@ -168,12 +238,13 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        IO.inspect(changeset)
         {:noreply, assign(socket, :form, to_form(changeset))}
     end
   end
 
   defp save_ilp(socket, _id, ilp_params) do
+    ilp_params = prepare_save_params(socket, ilp_params)
+
     ILP.update_student_ilp(
       socket.assigns.ilp,
       ilp_params
@@ -186,5 +257,27 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
     end
+  end
+
+  # when saving, we need to format the params to match the schema
+  #
+  # while validating we use a chain of cast assocs from student ILP
+  # to entries (ilp > template > section > component > entry), but
+  # to save we can format and just cast_assoc entries on student ILP
+  defp prepare_save_params(socket, params) do
+    entries =
+      params["template"]["sections"]
+      |> Enum.flat_map(fn {_index, %{"components" => components} = _section} ->
+        components
+        |> Enum.map(fn {_index, %{"id" => component_id, "entry" => entry} = _component} ->
+          entry
+          |> Map.put("component_id", component_id)
+          |> Map.put("template_id", socket.assigns.template.id)
+        end)
+      end)
+
+    params
+    |> Map.drop(["template"])
+    |> Map.put("entries", entries)
   end
 end

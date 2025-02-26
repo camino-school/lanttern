@@ -2,6 +2,7 @@ defmodule Lanttern.ILP.ILPComponent do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.ILP.ILPEntry
   alias Lanttern.ILP.ILPTemplate
   alias Lanttern.ILP.ILPSection
 
@@ -13,6 +14,7 @@ defmodule Lanttern.ILP.ILPComponent do
           section_id: pos_integer(),
           template: ILPTemplate.t() | Ecto.Association.NotLoaded.t(),
           section: ILPSection.t() | Ecto.Association.NotLoaded.t(),
+          entry: ILPEntry.t() | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -24,6 +26,10 @@ defmodule Lanttern.ILP.ILPComponent do
     belongs_to :template, ILPTemplate
     belongs_to :section, ILPSection
 
+    # actually, it's a has_many relationship in the db,
+    # but we'll deal with a single entry per component
+    has_one :entry, ILPEntry, foreign_key: :component_id
+
     timestamps()
   end
 
@@ -32,6 +38,7 @@ defmodule Lanttern.ILP.ILPComponent do
     ilp_component
     |> cast(attrs, [:name, :position, :template_id, :section_id])
     |> maybe_change_position(position)
+    |> cast_assoc(:entry)
     |> validate_required([:name, :position])
   end
 

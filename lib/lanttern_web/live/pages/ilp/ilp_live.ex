@@ -2,6 +2,7 @@ defmodule LantternWeb.ILPLive do
   use LantternWeb, :live_view
 
   alias Lanttern.ILP
+  alias Lanttern.ILP.ILPEntry
   alias Lanttern.ILP.StudentILP
 
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
@@ -10,6 +11,33 @@ defmodule LantternWeb.ILPLive do
   alias LantternWeb.ILP.StudentILPFormOverlayComponent
   alias LantternWeb.Schools.StudentHeaderComponent
   alias LantternWeb.Schools.StudentSearchComponent
+
+  # live components
+
+  attr :entry, ILPEntry
+  attr :class, :any, default: nil
+
+  defp ilp_entry(%{entry: nil} = assigns) do
+    ~H"""
+    <.empty_state_simple class={@class}>
+      <%= gettext("Nothing yet") %>
+    </.empty_state_simple>
+    """
+  end
+
+  defp ilp_entry(%{entry: %{description: nil}} = assigns) do
+    ~H"""
+    <.empty_state_simple class={@class}>
+      <%= gettext("Nothing yet") %>
+    </.empty_state_simple>
+    """
+  end
+
+  defp ilp_entry(assigns) do
+    ~H"""
+    <.markdown text={@entry.description} class={@class} />
+    """
+  end
 
   @impl true
   def mount(_params, _session, socket) do
@@ -48,20 +76,16 @@ defmodule LantternWeb.ILPLive do
   # when user has no selected ilp_template,
   # select first item in templates list as default if possible
   defp assign_current_template(%{assigns: %{selected_ilp_template_id: nil}} = socket) do
-    {template_id, template_name} =
+    template =
       case socket.assigns.templates_ids do
-        [] ->
-          {nil, nil}
-
-        [id | _] ->
-          socket.assigns.template_options
-          |> Enum.find({nil, nil}, fn {opt_id, _} -> opt_id == id end)
+        [] -> nil
+        [id | _] -> ILP.get_ilp_template!(id, preloads: [sections: :components])
       end
 
-    if template_id do
+    if template do
       socket
-      |> assign(:current_template, template_name)
-      |> assign(:selected_ilp_template_id, template_id)
+      |> assign(:current_template, template)
+      |> assign(:selected_ilp_template_id, template.id)
       |> save_profile_filters([:ilp_template])
     else
       assign(socket, :current_template, nil)
@@ -72,17 +96,18 @@ defmodule LantternWeb.ILPLive do
   defp assign_current_template(socket) do
     template_id = socket.assigns.selected_ilp_template_id
 
-    {_id, template_name} =
-      socket.assigns.template_options
-      |> Enum.find({nil, nil}, fn {opt_id, _} -> opt_id == template_id end)
+    template =
+      if template_id in socket.assigns.templates_ids do
+        ILP.get_ilp_template!(template_id, preloads: [sections: :components])
+      end
 
     socket
-    |> assign(:current_template, template_name)
+    |> assign(:current_template, template)
   end
 
   defp assign_student_ilp(socket) do
     with student_id when not is_nil(student_id) <- socket.assigns.selected_student_id,
-         template_id when not is_nil(template_id) <- socket.assigns.selected_ilp_template_id do
+         %{id: template_id} <- socket.assigns.current_template do
       student_ilp =
         ILP.get_student_ilp_by(
           [
@@ -90,11 +115,26 @@ defmodule LantternWeb.ILPLive do
             template_id: template_id,
             cycle_id: socket.assigns.current_user.current_profile.current_school_cycle.id
           ],
-          preloads: [template: [sections: :components]]
+          preloads: :entries
         )
+
+      component_entry_map =
+        if student_ilp do
+          socket.assigns.current_template.sections
+          |> Enum.flat_map(& &1.components)
+          |> Enum.map(fn component ->
+            {
+              component.id,
+              Enum.find(student_ilp.entries, &(&1.component_id == component.id))
+            }
+          end)
+          |> Enum.filter(fn {_component_id, entry} -> entry end)
+          |> Enum.into(%{})
+        end
 
       socket
       |> assign(:student_ilp, student_ilp)
+      |> assign(:component_entry_map, component_entry_map)
     else
       _ -> assign(socket, :student_ilp, nil)
     end
@@ -117,7 +157,8 @@ defmodule LantternWeb.ILPLive do
           school_id: socket.assigns.current_user.current_profile.school_id,
           student_id: student_id,
           template_id: template_id,
-          cycle_id: socket.assigns.current_user.current_profile.current_school_cycle.id
+          cycle_id: socket.assigns.current_user.current_profile.current_school_cycle.id,
+          entries: []
         }
 
       socket

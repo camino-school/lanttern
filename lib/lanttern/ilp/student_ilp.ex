@@ -2,6 +2,7 @@ defmodule Lanttern.ILP.StudentILP do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.ILP.ILPEntry
   alias Lanttern.ILP.ILPTemplate
   alias Lanttern.Schools.Cycle
   alias Lanttern.Schools.School
@@ -20,6 +21,7 @@ defmodule Lanttern.ILP.StudentILP do
           school: School.t() | Ecto.Association.NotLoaded.t(),
           update_of_ilp_id: pos_integer(),
           update_of_ilp: __MODULE__.t() | Ecto.Association.NotLoaded.t(),
+          entries: [ILPEntry.t()] | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -32,6 +34,8 @@ defmodule Lanttern.ILP.StudentILP do
     belongs_to :cycle, Cycle
     belongs_to :school, School
     belongs_to :update_of_ilp, __MODULE__
+
+    has_many :entries, ILPEntry, on_replace: :delete
 
     timestamps()
   end
@@ -48,5 +52,9 @@ defmodule Lanttern.ILP.StudentILP do
       :update_of_ilp_id
     ])
     |> validate_required([:template_id, :student_id, :cycle_id, :school_id])
+    |> cast_assoc(:entries)
+    # we don't use it to actually update the template, just to chain
+    # cast_assocs to entries (template > section > component > entry)
+    |> cast_assoc(:template)
   end
 end
