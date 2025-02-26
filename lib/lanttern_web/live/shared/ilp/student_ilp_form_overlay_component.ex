@@ -36,15 +36,6 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
             <%= gettext("Oops, something went wrong! Please check the errors below.") %>
           </.error_block>
-          <.input
-            field={@form[:teacher_notes]}
-            type="textarea"
-            label={gettext("Teacher notes")}
-            class="mb-1"
-            phx-debounce="1500"
-            show_optional
-          />
-          <.markdown_supported class="mb-6" />
           <div class="mb-6">
             <.inputs_for :let={template_f} field={@form[:template]}>
               <.inputs_for :let={section_f} field={template_f[:sections]}>
@@ -70,6 +61,15 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
               </.inputs_for>
             </.inputs_for>
           </div>
+          <.input
+            field={@form[:teacher_notes]}
+            type="textarea"
+            label={gettext("Teacher notes")}
+            class="mb-1"
+            phx-debounce="1500"
+            show_optional
+          />
+          <.markdown_supported class="mb-6" />
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
             <%= gettext("Oops, something went wrong! Please check the errors above.") %>
           </.error_block>
@@ -195,7 +195,9 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
   end
 
   def handle_event("delete", _, socket) do
-    ILP.delete_student_ilp(socket.assigns.ilp)
+    ILP.delete_student_ilp(socket.assigns.ilp,
+      log_profile_id: socket.assigns.current_profile.id
+    )
     |> case do
       {:ok, ilp} ->
         notify(__MODULE__, {:deleted, ilp}, socket.assigns)
@@ -231,7 +233,9 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
   defp save_ilp(socket, nil, ilp_params) do
     ilp_params = prepare_save_params(socket, ilp_params)
 
-    ILP.create_student_ilp(ilp_params)
+    ILP.create_student_ilp(ilp_params,
+      log_profile_id: socket.assigns.current_profile.id
+    )
     |> case do
       {:ok, ilp} ->
         notify(__MODULE__, {:created, ilp}, socket.assigns)
@@ -247,7 +251,8 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
 
     ILP.update_student_ilp(
       socket.assigns.ilp,
-      ilp_params
+      ilp_params,
+      log_profile_id: socket.assigns.current_profile.id
     )
     |> case do
       {:ok, message} ->
