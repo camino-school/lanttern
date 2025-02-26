@@ -292,6 +292,7 @@ defmodule Lanttern.ILPTest do
 
   describe "students_ilps" do
     alias Lanttern.ILP.StudentILP
+    alias Lanttern.ILPLog.StudentILPLog
 
     import Lanttern.ILPFixtures
 
@@ -330,7 +331,29 @@ defmodule Lanttern.ILPTest do
       school = Lanttern.SchoolsFixtures.school_fixture()
       cycle = Lanttern.SchoolsFixtures.cycle_fixture(%{school_id: school.id})
       student = Lanttern.SchoolsFixtures.student_fixture(%{school_id: school.id})
-      template = ilp_template_fixture(%{school_id: school.id})
+
+      template =
+        ilp_template_fixture(%{school_id: school.id}) |> Repo.preload(sections: :components)
+
+      # add sections and components to the template
+
+      {:ok, %{sections: [%{components: [component]}]} = template} =
+        ILP.update_ilp_template(template, %{
+          sections: [
+            %{
+              name: "section 1",
+              position: 0,
+              components: [
+                %{name: "component 1", template_id: template.id}
+              ]
+            }
+          ]
+        })
+
+      component_id = component.id
+
+      # profile to test log
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       valid_attrs =
         %{
@@ -338,15 +361,52 @@ defmodule Lanttern.ILPTest do
           cycle_id: cycle.id,
           student_id: student.id,
           template_id: template.id,
-          teacher_notes: "some teacher notes"
+          teacher_notes: "some teacher notes",
+          entries: [
+            %{
+              template_id: template.id,
+              component_id: component_id,
+              description: "some entry description"
+            }
+          ]
         }
 
-      assert {:ok, %StudentILP{} = student_ilp} = ILP.create_student_ilp(valid_attrs)
+      assert {:ok, %StudentILP{} = student_ilp} =
+               ILP.create_student_ilp(valid_attrs, log_profile_id: profile.id)
+
       assert student_ilp.school_id == school.id
       assert student_ilp.cycle_id == cycle.id
       assert student_ilp.student_id == student.id
       assert student_ilp.template_id == template.id
       assert student_ilp.teacher_notes == "some teacher notes"
+
+      [entry] = student_ilp.entries
+      assert entry.component_id == component_id
+      assert entry.description == "some entry description"
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+
+        student_ilp_log =
+          Repo.get_by!(StudentILPLog,
+            student_ilp_id: student_ilp.id
+          )
+
+        assert student_ilp_log.student_ilp_id == student_ilp.id
+        assert student_ilp_log.profile_id == profile.id
+        assert student_ilp_log.operation == "CREATE"
+
+        assert student_ilp_log.school_id == student_ilp.school_id
+        assert student_ilp_log.cycle_id == student_ilp.cycle_id
+        assert student_ilp_log.student_id == student_ilp.student_id
+        assert student_ilp_log.template_id == student_ilp.template_id
+        assert student_ilp_log.teacher_notes == student_ilp.teacher_notes
+
+        [entry_log] = student_ilp_log.entries
+        assert entry_log.id == entry.id
+        assert entry_log.component_id == entry.component_id
+        assert entry_log.description == entry.description
+      end)
     end
 
     test "create_student_ilp/1 with invalid data returns error changeset" do
@@ -354,13 +414,76 @@ defmodule Lanttern.ILPTest do
     end
 
     test "update_student_ilp/2 with valid data updates the student_ilp" do
-      student_ilp = student_ilp_fixture()
-      update_attrs = %{teacher_notes: "some updated teacher notes"}
+      template =
+        ilp_template_fixture()
+        |> Repo.preload(sections: :components)
+
+      # add sections and components to the template
+
+      {:ok, %{sections: [%{components: [component]}]} = template} =
+        ILP.update_ilp_template(template, %{
+          sections: [
+            %{
+              name: "section 1",
+              position: 0,
+              components: [
+                %{name: "component 1", template_id: template.id}
+              ]
+            }
+          ]
+        })
+
+      component_id = component.id
+
+      student_ilp =
+        student_ilp_fixture(%{school_id: template.school_id, template_id: template.id})
+        |> Repo.preload(:entries)
+
+      update_attrs = %{
+        teacher_notes: "some updated teacher notes",
+        entries: [
+          %{
+            template_id: template.id,
+            component_id: component_id,
+            description: "some updated entry description"
+          }
+        ]
+      }
+
+      # profile to test log
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       assert {:ok, %StudentILP{} = student_ilp} =
-               ILP.update_student_ilp(student_ilp, update_attrs)
+               ILP.update_student_ilp(student_ilp, update_attrs, log_profile_id: profile.id)
 
       assert student_ilp.teacher_notes == "some updated teacher notes"
+
+      [entry] = student_ilp.entries
+      assert entry.description == "some updated entry description"
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+
+        student_ilp_log =
+          Repo.get_by!(StudentILPLog,
+            student_ilp_id: student_ilp.id
+          )
+
+        assert student_ilp_log.student_ilp_id == student_ilp.id
+        assert student_ilp_log.profile_id == profile.id
+        assert student_ilp_log.operation == "UPDATE"
+
+        assert student_ilp_log.school_id == student_ilp.school_id
+        assert student_ilp_log.cycle_id == student_ilp.cycle_id
+        assert student_ilp_log.student_id == student_ilp.student_id
+        assert student_ilp_log.template_id == student_ilp.template_id
+        assert student_ilp_log.teacher_notes == student_ilp.teacher_notes
+
+        [entry_log] = student_ilp_log.entries
+        assert entry_log.id == entry.id
+        assert entry_log.component_id == entry.component_id
+        assert entry_log.description == entry.description
+      end)
     end
 
     test "update_student_ilp/2 with invalid data returns error changeset" do
@@ -371,8 +494,27 @@ defmodule Lanttern.ILPTest do
 
     test "delete_student_ilp/1 deletes the student_ilp" do
       student_ilp = student_ilp_fixture()
-      assert {:ok, %StudentILP{}} = ILP.delete_student_ilp(student_ilp)
+
+      # profile to test log
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
+
+      assert {:ok, %StudentILP{}} =
+               ILP.delete_student_ilp(student_ilp, log_profile_id: profile.id)
+
       assert_raise Ecto.NoResultsError, fn -> ILP.get_student_ilp!(student_ilp.id) end
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+
+        student_ilp_log =
+          Repo.get_by!(StudentILPLog,
+            student_ilp_id: student_ilp.id
+          )
+
+        assert student_ilp_log.student_ilp_id == student_ilp.id
+        assert student_ilp_log.profile_id == profile.id
+        assert student_ilp_log.operation == "DELETE"
+      end)
     end
 
     test "change_student_ilp/1 returns a student_ilp changeset" do

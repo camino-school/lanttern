@@ -8,6 +8,7 @@ defmodule Lanttern.ILP do
   import Lanttern.RepoHelpers
 
   alias Lanttern.ILP.ILPTemplate
+  alias Lanttern.ILPLog
 
   @doc """
   Returns the list of ilp_templates.
@@ -434,6 +435,10 @@ defmodule Lanttern.ILP do
   @doc """
   Creates a student_ilp.
 
+  ## Options:
+
+  - `:log_profile_id` - logs the operation, linked to given profile
+
   ## Examples
 
       iex> create_student_ilp(%{field: value})
@@ -443,14 +448,19 @@ defmodule Lanttern.ILP do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_student_ilp(attrs \\ %{}) do
+  def create_student_ilp(attrs \\ %{}, opts \\ []) do
     %StudentILP{}
     |> StudentILP.changeset(attrs)
     |> Repo.insert()
+    |> ILPLog.maybe_create_student_ilp_log("CREATE", opts)
   end
 
   @doc """
   Updates a student_ilp.
+
+  ## Options:
+
+  - `:log_profile_id` - logs the operation, linked to given profile
 
   ## Examples
 
@@ -461,14 +471,19 @@ defmodule Lanttern.ILP do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_student_ilp(%StudentILP{} = student_ilp, attrs) do
+  def update_student_ilp(%StudentILP{} = student_ilp, attrs, opts \\ []) do
     student_ilp
     |> StudentILP.changeset(attrs)
     |> Repo.update()
+    |> ILPLog.maybe_create_student_ilp_log("UPDATE", opts)
   end
 
   @doc """
   Deletes a student_ilp.
+
+  ## Options:
+
+  - `:log_profile_id` - logs the operation, linked to given profile
 
   ## Examples
 
@@ -479,8 +494,9 @@ defmodule Lanttern.ILP do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_student_ilp(%StudentILP{} = student_ilp) do
+  def delete_student_ilp(%StudentILP{} = student_ilp, opts \\ []) do
     Repo.delete(student_ilp)
+    |> ILPLog.maybe_create_student_ilp_log("DELETE", opts)
   end
 
   @doc """
