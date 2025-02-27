@@ -69,14 +69,14 @@ defmodule Lanttern.DataCase do
   """
   def assert_supervised_tasks_are_down() do
     for pid <- Task.Supervisor.children(Lanttern.TaskSupervisor) do
-      # check for message queue len to avoid
-      # awaiting on empty message boxes
-      {:message_queue_len, len} = Process.info(pid, :message_queue_len)
+      # # check for message queue len to avoid
+      # # awaiting on empty message boxes
+      # {:message_queue_len, len} = Process.info(pid, :message_queue_len)
 
-      if len > 0 do
-        ref = Process.monitor(pid)
-        assert_receive {:DOWN, ^ref, _, _, _}, 1_000
-      end
+      # if len > 0 do
+      ref = Process.monitor(pid)
+      assert_receive {:DOWN, ^ref, _, _, _}, 1_000
+      # end
     end
   end
 end

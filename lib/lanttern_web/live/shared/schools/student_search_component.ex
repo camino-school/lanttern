@@ -20,6 +20,7 @@ defmodule LantternWeb.Schools.StudentSearchComponent do
           name={"#{@id}-query"}
           type="text"
           value=""
+          placeholder={@placeholder}
           class="peer pr-10"
           role="combobox"
           autocomplete="off"
@@ -87,6 +88,7 @@ defmodule LantternWeb.Schools.StudentSearchComponent do
       socket
       |> assign(:label, nil)
       |> assign(:class, nil)
+      |> assign(:placeholder, nil)
       |> assign(:school_id, nil)
       |> assign(:refocus_on_select, "false")
       |> stream(:results, [])
@@ -99,7 +101,14 @@ defmodule LantternWeb.Schools.StudentSearchComponent do
   @impl true
   def handle_event("search", params, socket) do
     query = Map.get(params, "#{socket.assigns.id}-query", "")
-    search_opts = if socket.assigns.school_id, do: [school_id: socket.assigns.school_id], else: []
+
+    base_search_opts = [only_active: true]
+
+    search_opts =
+      if socket.assigns.school_id,
+        do: [{:school_id, socket.assigns.school_id} | base_search_opts],
+        else: base_search_opts
+
     # search when 3 or more characters were typed
     results =
       if String.length(query) >= 3,

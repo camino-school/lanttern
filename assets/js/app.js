@@ -30,6 +30,7 @@ import menuButtonrHook from "./menu-button-hook";
 import navScrollspyHook from "./nav-scrollspy-hook";
 import scrollToTopHook from "./scroll-to-top-hook";
 import sliderHook from "./slider-hook";
+import sortableHook from "./sortable-hook";
 
 let Hooks = {};
 Hooks.Autocomplete = autocompleteHook;
@@ -41,6 +42,7 @@ Hooks.MenuButton = menuButtonrHook;
 Hooks.NavScrollspy = navScrollspyHook;
 Hooks.ScrollToTop = scrollToTopHook;
 Hooks.Slider = sliderHook;
+Hooks.Sortable = sortableHook;
 
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")

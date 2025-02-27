@@ -502,6 +502,34 @@ defmodule Lanttern.Schools do
     do: apply_list_classes_opts(queryable, opts)
 
   @doc """
+  Returns a list of classes linked to students in the giving date,
+  using the relationship between class and cycle.
+
+  `cycle` is preloaded in the results.
+
+  ## Examples
+
+      iex> list_classes_for_students_in_date(students_ids, ~D[2024-08-01])
+      [%Class{}, ...]
+
+  """
+  @spec list_classes_for_students_in_date(students_ids :: [pos_integer()], Date.t()) :: [
+          Class.t()
+        ]
+  def list_classes_for_students_in_date(students_ids, date) do
+    from(
+      c in Class,
+      join: s in assoc(c, :students),
+      on: s.id in ^students_ids,
+      join: cy in assoc(c, :cycle),
+      where: cy.start_at <= ^date and cy.end_at >= ^date,
+      preload: [cycle: cy],
+      distinct: true
+    )
+    |> Repo.all()
+  end
+
+  @doc """
   Returns the list of user's school classes.
 
   It uses `list_classes/1` internally, extracting the `school_id` from
@@ -880,6 +908,8 @@ defmodule Lanttern.Schools do
   ### Options:
 
   - `:load_email` - boolean, will add the email field based on staff member profile/user
+  - `:load_profile_picture_from_cycle_id` - will try to load the profile picture from linked `%StudentCycleInfo{}` with the given cycle id
+  - `:preload_classes_from_cycle_id` - preload classes linked to student on given cycle id
   - `:preloads` – preloads associated data
 
   ## Examples
@@ -904,7 +934,32 @@ defmodule Lanttern.Schools do
     from(s in queryable,
       left_join: p in assoc(s, :profile),
       left_join: u in assoc(p, :user),
-      select: %{s | email: u.email}
+      select_merge: %{email: u.email}
+    )
+    |> apply_get_student_opts(opts)
+  end
+
+  defp apply_get_student_opts(queryable, [
+         {:load_profile_picture_from_cycle_id, cycle_id} | opts
+       ]) do
+    from(
+      s in queryable,
+      left_join: sci in assoc(s, :cycles_info),
+      on: sci.cycle_id == ^cycle_id,
+      select_merge: %{profile_picture_url: sci.profile_picture_url}
+    )
+    |> apply_get_student_opts(opts)
+  end
+
+  defp apply_get_student_opts(queryable, [
+         {:preload_classes_from_cycle_id, cycle_id} | opts
+       ]) do
+    from(
+      s in queryable,
+      left_join: c in assoc(s, :classes),
+      on: c.cycle_id == ^cycle_id,
+      order_by: c.name,
+      preload: [classes: c]
     )
     |> apply_get_student_opts(opts)
   end
@@ -1766,33 +1821,5 @@ defmodule Lanttern.Schools do
       )
 
     {:ok, response}
-  end
-
-  @doc """
-  Returns a list of classes linked to students in the giving date,
-  using the relationship between class and cycle.
-
-  `cycle` is preloaded in the results.
-
-  ## Examples
-
-      iex> list_classes_for_students_in_date(students_ids, ~D[2024-08-01])
-      [%Class{}, ...]
-
-  """
-  @spec list_classes_for_students_in_date(students_ids :: [pos_integer()], Date.t()) :: [
-          Class.t()
-        ]
-  def list_classes_for_students_in_date(students_ids, date) do
-    from(
-      c in Class,
-      join: s in assoc(c, :students),
-      on: s.id in ^students_ids,
-      join: cy in assoc(c, :cycle),
-      where: cy.start_at <= ^date and cy.end_at >= ^date,
-      preload: [cycle: cy],
-      distinct: true
-    )
-    |> Repo.all()
   end
 end

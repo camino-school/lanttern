@@ -1,0 +1,134 @@
+defmodule LantternWeb.Schools.StudentHeaderComponent do
+  @moduledoc """
+  Renders a student profile header with picture, name, and cycle classes.
+
+  ### Required attrs
+
+  - `:cycle_id`
+  - `:student_id`
+
+  ### Optional attrs
+
+  - `:class` - any, additional classes for the component
+  - `:on_edit_profile_picture` - any, passed to edit profile picture button's `phx-click`
+  - `:show_deactivated` - boolean, show deactivated info
+  - `:navigate` - function, student id as argument. Expect a valid `<.link>` `navigate` attr.
+
+  """
+
+  use LantternWeb, :live_component
+
+  alias Lanttern.Schools
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <div class={["sm:flex sm:items-center sm:gap-6", @class]}>
+      <div class="relative">
+        <.profile_picture
+          class="shadow-lg"
+          picture_url={@student.profile_picture_url}
+          profile_name={@student.name}
+          size="xl"
+        />
+        <.button
+          :if={@on_edit_profile_picture}
+          icon_name="hero-pencil-mini"
+          sr_text={gettext("Edit cycle profile picture")}
+          rounded
+          size="sm"
+          theme="white"
+          class="absolute bottom-0 right-0"
+          phx-click={@on_edit_profile_picture}
+        />
+      </div>
+      <div class="mt-6 sm:mt-0">
+        <div class="flex items-center gap-2">
+          <h2 class={[
+            "flex items-center gap-2 font-display font-black text-2xl",
+            if(@show_deactivated && @student.deactivated_at, do: "text-ltrn-subtle")
+          ]}>
+            <%= if @navigate do %>
+              <.link navigate={@navigate.(@student.id)} class="hover:text-ltrn-subtle">
+                <%= @student.name %>
+              </.link>
+              <a href={@navigate.(@student.id)} target="_blank" class="hover:text-ltrn-subtle">
+                <.icon name="hero-arrow-top-right-on-square-mini" />
+              </a>
+            <% else %>
+              <%= @student.name %>
+            <% end %>
+          </h2>
+          <.badge :if={@show_deactivated && @student.deactivated_at} theme="dark">
+            <%= gettext("Deactivated") %>
+          </.badge>
+        </div>
+        <div class="flex items-center gap-4 mt-2">
+          <.badge theme="dark">
+            <%= @cycle.name %>
+          </.badge>
+          <%= if @student.classes == [] do %>
+            <.badge>
+              <%= gettext("No classes linked to student in cycle") %>
+            </.badge>
+          <% else %>
+            <.badge :for={class <- @student.classes} id={"#{@id}-student-class-#{class.id}"}>
+              <%= class.name %>
+            </.badge>
+          <% end %>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  # lifecycle
+
+  @impl true
+  def mount(socket) do
+    socket =
+      socket
+      |> assign(:class, nil)
+      |> assign(:on_edit_profile_picture, nil)
+      |> assign(:show_deactivated, false)
+      |> assign(:navigate, nil)
+      |> assign(:initialized, false)
+
+    {:ok, socket}
+  end
+
+  @impl true
+  def update(assigns, socket) do
+    socket =
+      socket
+      |> assign(assigns)
+      |> initialize()
+
+    {:ok, socket}
+  end
+
+  defp initialize(%{assigns: %{initialized: false}} = socket) do
+    socket
+    |> assign_cycle()
+    |> assign_student()
+    |> assign(:initialized, true)
+  end
+
+  defp initialize(socket), do: socket
+
+  defp assign_cycle(socket) do
+    cycle = Schools.get_cycle(socket.assigns.cycle_id)
+    assign(socket, :cycle, cycle)
+  end
+
+  defp assign_student(socket) do
+    student =
+      Schools.get_student(
+        socket.assigns.student_id,
+        load_profile_picture_from_cycle_id: socket.assigns.cycle_id,
+        preload_classes_from_cycle_id: socket.assigns.cycle_id
+      )
+
+    assign(socket, :student, student)
+  end
+end

@@ -36,13 +36,20 @@ defmodule LantternWeb.CoreComponents do
   attr :icon_name, :string, default: nil
   attr :patch, :string, default: nil, doc: "use with type=\"link\""
   attr :navigate, :string, default: nil, doc: "use with type=\"link\""
-  attr :rest, :global, include: ~w(disabled form)
+  attr :replace, :boolean, default: false, doc: "use with type=\"link\""
+  attr :rest, :global, include: ~w(disabled form name value)
 
   slot :inner_block, required: true
 
   def action(%{type: "link"} = assigns) do
     ~H"""
-    <.link patch={@patch} navigate={@navigate} class={[action_styles(@theme, @size), @class]} {@rest}>
+    <.link
+      patch={@patch}
+      navigate={@navigate}
+      replace={@replace}
+      class={[action_styles(@theme, @size), @class]}
+      {@rest}
+    >
       <div class={action_bg_styles(@theme, @size)}></div>
       <span class="relative truncate"><%= render_slot(@inner_block) %></span>
       <.icon :if={@icon_name} name={@icon_name} class={action_icon_styles(@size)} />
@@ -809,6 +816,20 @@ defmodule LantternWeb.CoreComponents do
       <div :if={@show_empty_state_message} class="p-6">
         <.empty_state><%= @show_empty_state_message %></.empty_state>
       </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a drag handle
+  """
+  attr :class, :any, default: nil
+
+  def drag_handle(assigns) do
+    ~H"""
+    <div class={["shrink-0 flex text-ltrn-subtle hover:text-ltrn-dark hover:cursor-move", @class]}>
+      <.icon name="hero-ellipsis-vertical-mini" />
+      <.icon name="hero-ellipsis-vertical-mini" class="-ml-3" />
     </div>
     """
   end

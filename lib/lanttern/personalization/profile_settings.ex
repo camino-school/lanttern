@@ -31,6 +31,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
           cycles_ids: [pos_integer()],
           assessment_view: String.t(),
           assessment_group_by: String.t(),
+          student_id: pos_integer(),
           students_ids: [pos_integer()],
           student_record_tags_ids: [pos_integer()],
           student_record_statuses_ids: [pos_integer()],
@@ -38,7 +39,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
           student_record_view: String.t(),
           student_record_staff_member_view: String.t(),
           only_starred_strands: boolean(),
-          student_info_cycle_id: pos_integer()
+          ilp_template_id: pos_integer()
         }
 
   schema "profile_settings" do
@@ -53,6 +54,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
       field :cycles_ids, {:array, :id}
       field :assessment_view, :string
       field :assessment_group_by, :string
+      field :student_id, :id
       field :students_ids, {:array, :id}
       field :student_record_tags_ids, {:array, :id}
       field :student_record_statuses_ids, {:array, :id}
@@ -60,7 +62,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
       field :student_record_view, :string
       field :student_record_staff_member_view, :string
       field :only_starred_strands, :boolean, default: false
-      field :student_info_cycle_id, :id
+      field :ilp_template_id, :id
     end
 
     timestamps()
@@ -90,6 +92,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
       :cycles_ids,
       :assessment_view,
       :assessment_group_by,
+      :student_id,
       :students_ids,
       :student_record_tags_ids,
       :student_record_statuses_ids,
@@ -97,7 +100,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
       :student_record_view,
       :student_record_staff_member_view,
       :only_starred_strands,
-      :student_info_cycle_id
+      :ilp_template_id
     ])
     |> validate_change(:assessment_view, fn :assessment_view, view ->
       if view in ["teacher", "student", "compare"],

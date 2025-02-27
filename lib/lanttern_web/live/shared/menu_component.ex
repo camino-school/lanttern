@@ -343,6 +343,10 @@ defmodule LantternWeb.MenuComponent do
     LantternWeb.StudentsRecordsLive => :students_records,
     LantternWeb.StudentsRecordsSettingsLive => :students_records,
 
+    # ILP
+    LantternWeb.ILPLive => :ilp,
+    LantternWeb.ILPSettingsLive => :ilp,
+
     # school
     LantternWeb.SchoolLive => :school_management,
     LantternWeb.ClassLive => :school_management,
@@ -428,6 +432,12 @@ defmodule LantternWeb.MenuComponent do
         active: :students_records,
         path: ~p"/students_records",
         text: gettext("Student records")
+      },
+      %{
+        profile: "staff",
+        active: :ilp,
+        path: ~p"/ilp",
+        text: gettext("ILP")
       },
       %{
         profile: "staff",

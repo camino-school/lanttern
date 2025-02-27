@@ -1,0 +1,73 @@
+<.header_nav current_user={@current_user}>
+  <:title><%= @page_title %></:title>
+  <div class="flex items-center justify-between gap-4 p-4">
+    <%= if @has_templates do %>
+      <div class="flex items-center gap-4">
+        <div class="relative">
+          <.action
+            type="button"
+            id="select-template-dropdown-button"
+            icon_name="hero-chevron-down-mini"
+          >
+            <%= if @current_template do %>
+              <%= gettext("ILP model:") %>
+              <span class="font-bold"><%= @current_template.name %></span>
+            <% else %>
+              <%= gettext("No ILP model selected") %>
+            <% end %>
+          </.action>
+          <.dropdown_menu
+            id="select-template-dropdown"
+            button_id="select-template-dropdown-button"
+            z_index="10"
+          >
+            <:item
+              :for={{template_id, template_name} <- @template_options}
+              text={template_name}
+              on_click={JS.push("select_template_id", value: %{"id" => template_id})}
+            />
+          </.dropdown_menu>
+        </div>
+        <form class="md:min-w-80">
+          <.live_component
+            module={StudentSearchComponent}
+            id="student-search-modal-search"
+            placeholder={gettext("Search for student ILP")}
+            notify_parent
+            school_id={@current_user.current_profile.school_id}
+          />
+        </form>
+      </div>
+    <% else %>
+      <p>
+        <%= gettext(
+          "No ILP templates registered in your school. Talk to your Lanttern school manager."
+        ) %>
+      </p>
+    <% end %>
+    <.action
+      :if={@is_school_manager}
+      type="link"
+      navigate={~p"/ilp/settings"}
+      icon_name="hero-cog-6-tooth-mini"
+    >
+      <%= gettext("Settings") %>
+    </.action>
+  </div>
+</.header_nav>
+<.responsive_container class="py-10 px-4">
+  <.live_component
+    module={StudentILPComponent}
+    id="student-ilp"
+    template={@current_template}
+    student={@selected_student}
+    cycle={@current_user.current_profile.current_school_cycle}
+    current_profile={@current_user.current_profile}
+    params={@params}
+    on_edit_patch={fn id -> ~p"/ilp?edit_student_ilp=#{id}" end}
+    create_patch={~p"/ilp?edit_student_ilp=new"}
+    on_edit_cancel={JS.patch(~p"/ilp")}
+    edit_navigate={~p"/ilp"}
+    student_navigate={fn student_id -> ~p"/school/students/#{student_id}" end}
+  />
+</.responsive_container>

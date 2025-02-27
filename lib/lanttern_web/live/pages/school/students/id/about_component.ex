@@ -5,28 +5,21 @@ defmodule LantternWeb.StudentLive.AboutComponent do
 
   # shared components
   alias LantternWeb.Attachments.AttachmentAreaComponent
+  alias LantternWeb.Schools.StudentHeaderComponent
   alias LantternWeb.StudentsCycleInfo.StudentCycleInfoFormComponent
-  alias LantternWeb.StudentsCycleInfo.StudentCycleInfoHeaderComponent
   alias LantternWeb.StudentsCycleInfo.StudentCycleProfilePictureOverlayComponent
-  import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
 
   @impl true
   def render(assigns) do
     ~H"""
     <div class="p-10">
       <.live_component
-        module={StudentCycleInfoHeaderComponent}
-        id="student-cycle-info-header"
-        selected_cycle_id={@student_info_selected_cycle_id}
-        student={@student}
-        student_cycle_info={@student_cycle_info}
-        show_deactivated
+        module={StudentHeaderComponent}
+        id="student-header"
+        cycle_id={@current_user.current_profile.current_school_cycle.id}
+        student_id={@student.id}
         on_edit_profile_picture={JS.patch(~p"/school/students/#{@student}?edit_profile_picture=true")}
-        on_change_cycle={
-          fn cycle_id ->
-            JS.push("change_cycle", value: %{"cycle_id" => cycle_id}, target: @myself)
-          end
-        }
+        show_deactivated
       />
       <div class="flex items-start gap-20 mt-12">
         <div class="flex-1">
@@ -194,7 +187,6 @@ defmodule LantternWeb.StudentLive.AboutComponent do
     socket
     |> assign(:is_editing_student_school_info, false)
     |> assign(:is_editing_shared_info, false)
-    |> assign_user_filters([:student_info])
     |> assign_student_cycle_info()
     |> assign(:initialized, true)
   end
@@ -205,7 +197,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
     student_cycle_info =
       StudentsCycleInfo.get_student_cycle_info_by_student_and_cycle(
         socket.assigns.student.id,
-        socket.assigns.student_info_selected_cycle_id
+        socket.assigns.current_user.current_profile.current_school_cycle.id
       )
       |> case do
         nil ->
@@ -215,7 +207,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
               %{
                 school_id: socket.assigns.student.school_id,
                 student_id: socket.assigns.student.id,
-                cycle_id: socket.assigns.student_info_selected_cycle_id
+                cycle_id: socket.assigns.current_user.current_profile.current_school_cycle.id
               },
               log_profile_id: socket.assigns.current_user.current_profile_id
             )
@@ -240,16 +232,6 @@ defmodule LantternWeb.StudentLive.AboutComponent do
   # event handlers
 
   @impl true
-  def handle_event("change_cycle", %{"cycle_id" => id}, socket) do
-    socket =
-      socket
-      |> assign(:student_info_selected_cycle_id, id)
-      |> save_profile_filters([:student_info])
-      |> push_navigate(to: ~p"/school/students/#{socket.assigns.student}")
-
-    {:noreply, socket}
-  end
-
   def handle_event("edit_profile_picture", _params, socket),
     do: {:noreply, assign(socket, :is_editing_profile_picture, true)}
 
