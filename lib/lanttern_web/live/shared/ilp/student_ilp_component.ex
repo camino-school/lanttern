@@ -51,7 +51,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
         <.live_component
           :if={@student}
           module={StudentHeaderComponent}
-          id="student-header"
+          id={"#{@id}-student-header"}
           cycle_id={@cycle.id}
           student_id={@student.id}
           class="mb-10"
@@ -110,7 +110,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
       <.live_component
         :if={@edit_student_ilp}
         module={StudentILPFormOverlayComponent}
-        id="student-ilp-form-overlay"
+        id={"#{@id}-student-ilp-form-overlay"}
         ilp={@edit_student_ilp}
         template={@template}
         title={@ilp_form_overlay_title}

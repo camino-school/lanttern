@@ -18,9 +18,6 @@ defmodule LantternWeb.ILPLive do
       |> assign_templates()
       |> assign_user_filters([:ilp_template, :student])
       |> assign_current_template()
-      |> assign(:is_creating, false)
-      |> assign(:is_editing, false)
-      |> assign(:ilp_form_overlay_title, nil)
 
     {:ok, socket}
   end

@@ -45,13 +45,16 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
       <div class="mt-6 sm:mt-0">
         <div class="flex items-center gap-2">
           <h2 class={[
-            "font-display font-black text-2xl",
+            "flex items-center gap-2 font-display font-black text-2xl",
             if(@show_deactivated && @student.deactivated_at, do: "text-ltrn-subtle")
           ]}>
             <%= if @navigate do %>
               <.link navigate={@navigate.(@student.id)} class="hover:text-ltrn-subtle">
                 <%= @student.name %>
               </.link>
+              <a href={@navigate.(@student.id)} target="_blank" class="hover:text-ltrn-subtle">
+                <.icon name="hero-arrow-top-right-on-square-mini" />
+              </a>
             <% else %>
               <%= @student.name %>
             <% end %>
@@ -69,7 +72,7 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
               <%= gettext("No classes linked to student in cycle") %>
             </.badge>
           <% else %>
-            <.badge :for={class <- @student.classes} id={"student-class-#{class.id}"}>
+            <.badge :for={class <- @student.classes} id={"#{@id}-student-class-#{class.id}"}>
               <%= class.name %>
             </.badge>
           <% end %>
