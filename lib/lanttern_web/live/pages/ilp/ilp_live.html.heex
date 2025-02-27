@@ -57,105 +57,17 @@
 </.header_nav>
 <.responsive_container class="py-10 px-4">
   <.live_component
-    :if={@has_templates && @selected_student}
-    module={StudentHeaderComponent}
-    id="student-header"
-    cycle_id={@current_user.current_profile.current_school_cycle.id}
-    student_id={@selected_student_id}
-    class="mb-10"
-    navigate={fn student_id -> ~p"/school/students/#{student_id}" end}
+    module={StudentILPComponent}
+    id="student-ilp"
+    template={@current_template}
+    student={@selected_student}
+    cycle={@current_user.current_profile.current_school_cycle}
+    current_profile={@current_user.current_profile}
+    params={@params}
+    on_edit_patch={fn id -> ~p"/ilp?edit_student_ilp=#{id}" end}
+    create_patch={~p"/ilp?edit_student_ilp=new"}
+    on_edit_cancel={JS.patch(~p"/ilp")}
+    edit_navigate={~p"/ilp"}
+    student_navigate={fn student_id -> ~p"/school/students/#{student_id}" end}
   />
-  <%!-- <%= if @current_template do %>
-    <.card_base class="p-6 mt-10">
-      <h3 class="font-display font-black text-xl"><%= @current_template.name %></h3>
-      <div>
-        <.card_base
-          :for={section <- @current_template.sections}
-          class="p-4 border border-ltrn-lightest mt-4"
-        >
-          <div class="font-display font-black text-base">
-            <%= section.name %>
-          </div>
-          <div
-            :for={component <- section.components}
-            class="flex items-center gap-4 p-4 rounded mt-2 bg-ltrn-lightest"
-          >
-            <div class="font-bold"><%= component.name %></div>
-          </div>
-        </.card_base>
-      </div>
-      <.markdown
-        :if={@current_template.description}
-        text={@current_template.description}
-        class="mt-6"
-      />
-    </.card_base>
-  <% else %>
-    <.card_base class="p-6 mt-10">
-      <.empty_state><%= gettext("No ILP model selected") %></.empty_state>
-    </.card_base>
-  <% end %> --%>
-  <%= if @student_ilp && !@is_creating do %>
-    <.card_base class="p-6 mt-10">
-      <div class="flex items-center gap-4">
-        <h4 class="flex-1 font-display font-black text-xl"><%= @current_template.name %></h4>
-        <.action type="link" icon_name="hero-pencil-mini" patch={~p"/ilp?edit=true"}>
-          <%= gettext("Edit") %>
-        </.action>
-      </div>
-      <div>
-        <.card_base
-          :for={section <- @current_template.sections}
-          class="p-4 border border-ltrn-lightest mt-4"
-        >
-          <div class="font-display font-black text-base">
-            <%= section.name %>
-          </div>
-          <div :for={component <- section.components} class="p-4 rounded mt-2 bg-ltrn-lightest">
-            <div class="font-bold"><%= component.name %></div>
-            <.ilp_entry entry={@component_entry_map[component.id]} class="mt-4" />
-          </div>
-        </.card_base>
-      </div>
-      <div :if={@student_ilp.teacher_notes} class="p-4 rounded mt-6 bg-ltrn-staff-lightest">
-        <p class="flex items-center gap-2 font-bold mb-4">
-          <.icon name="hero-pencil-square-mini" class="text-ltrn-staff-accent" />
-          <span class="text-ltrn-staff-dark"><%= gettext("Teacher notes") %></span>
-        </p>
-        <.markdown text={@student_ilp.teacher_notes} />
-      </div>
-      <%!-- <div :if={@current_template.description} class="mt-6">
-        <.markdown text={@current_template.description} />
-      </div> --%>
-    </.card_base>
-  <% else %>
-    <.card_base class="p-10 mt-10">
-      <.empty_state><%= gettext("No student ILP created yet") %></.empty_state>
-      <div class="flex justify-center mt-10">
-        <.action
-          type="link"
-          icon_name="hero-plus-circle-mini"
-          theme="primary"
-          size="md"
-          patch={~p"/ilp?edit=true"}
-        >
-          <%= gettext("Create %{student}'s %{cycle} ILP",
-            student: @selected_student.name,
-            cycle: @current_user.current_profile.current_school_cycle.name
-          ) %>
-        </.action>
-      </div>
-    </.card_base>
-  <% end %>
 </.responsive_container>
-<.live_component
-  :if={@edit_student_ilp}
-  module={StudentILPFormOverlayComponent}
-  id="student-ilp-form-overlay"
-  ilp={@edit_student_ilp}
-  template={@current_template}
-  title={@ilp_form_overlay_title}
-  current_profile={@current_user.current_profile}
-  on_cancel={JS.patch(~p"/ilp")}
-  notify_parent
-/>
