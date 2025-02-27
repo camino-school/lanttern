@@ -10,6 +10,9 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
   ### Optional attrs
 
   - `:class` - any, additional classes for the component
+  - `:on_edit_profile_picture` - any, passed to edit profile picture button's `phx-click`
+  - `:show_deactivated` - boolean, show deactivated info
+  - `:navigate` - function, student id as argument. Expect a valid `<.link>` `navigate` attr.
 
   """
 
@@ -21,16 +24,42 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
   def render(assigns) do
     ~H"""
     <div class={["sm:flex sm:items-center sm:gap-6", @class]}>
-      <.profile_picture
-        class="shadow-lg"
-        picture_url={@student.profile_picture_url}
-        profile_name={@student.name}
-        size="xl"
-      />
+      <div class="relative">
+        <.profile_picture
+          class="shadow-lg"
+          picture_url={@student.profile_picture_url}
+          profile_name={@student.name}
+          size="xl"
+        />
+        <.button
+          :if={@on_edit_profile_picture}
+          icon_name="hero-pencil-mini"
+          sr_text={gettext("Edit cycle profile picture")}
+          rounded
+          size="sm"
+          theme="white"
+          class="absolute bottom-0 right-0"
+          phx-click={@on_edit_profile_picture}
+        />
+      </div>
       <div class="mt-6 sm:mt-0">
-        <h2 class="font-display font-black text-2xl">
-          <%= @student.name %>
-        </h2>
+        <div class="flex items-center gap-2">
+          <h2 class={[
+            "font-display font-black text-2xl",
+            if(@show_deactivated && @student.deactivated_at, do: "text-ltrn-subtle")
+          ]}>
+            <%= if @navigate do %>
+              <.link navigate={@navigate.(@student.id)} class="hover:text-ltrn-subtle">
+                <%= @student.name %>
+              </.link>
+            <% else %>
+              <%= @student.name %>
+            <% end %>
+          </h2>
+          <.badge :if={@show_deactivated && @student.deactivated_at} theme="dark">
+            <%= gettext("Deactivated") %>
+          </.badge>
+        </div>
         <div class="flex items-center gap-4 mt-2">
           <.badge theme="dark">
             <%= @cycle.name %>
@@ -57,6 +86,9 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
     socket =
       socket
       |> assign(:class, nil)
+      |> assign(:on_edit_profile_picture, nil)
+      |> assign(:show_deactivated, false)
+      |> assign(:navigate, nil)
       |> assign(:initialized, false)
 
     {:ok, socket}

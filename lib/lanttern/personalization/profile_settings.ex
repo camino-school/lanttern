@@ -39,7 +39,6 @@ defmodule Lanttern.Personalization.ProfileSettings do
           student_record_view: String.t(),
           student_record_staff_member_view: String.t(),
           only_starred_strands: boolean(),
-          student_info_cycle_id: pos_integer(),
           ilp_template_id: pos_integer()
         }
 
@@ -63,7 +62,6 @@ defmodule Lanttern.Personalization.ProfileSettings do
       field :student_record_view, :string
       field :student_record_staff_member_view, :string
       field :only_starred_strands, :boolean, default: false
-      field :student_info_cycle_id, :id
       field :ilp_template_id, :id
     end
 
@@ -102,7 +100,6 @@ defmodule Lanttern.Personalization.ProfileSettings do
       :student_record_view,
       :student_record_staff_member_view,
       :only_starred_strands,
-      :student_info_cycle_id,
       :ilp_template_id
     ])
     |> validate_change(:assessment_view, fn :assessment_view, view ->

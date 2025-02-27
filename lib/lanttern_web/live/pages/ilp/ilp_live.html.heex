@@ -2,7 +2,7 @@
   <:title><%= @page_title %></:title>
   <div class="flex items-center justify-between gap-4 p-4">
     <%= if @has_templates do %>
-      <div class="flex gap-4">
+      <div class="flex items-center gap-4">
         <div class="relative">
           <.action
             type="button"
@@ -28,17 +28,15 @@
             />
           </.dropdown_menu>
         </div>
-        <.action
-          type="button"
-          icon_name="hero-chevron-down-mini"
-          phx-click={JS.exec("data-show", to: "#student-search-modal")}
-        >
-          <%= if @selected_student do
-            @selected_student.name
-          else
-            gettext("Select student")
-          end %>
-        </.action>
+        <form class="md:min-w-80">
+          <.live_component
+            module={StudentSearchComponent}
+            id="student-search-modal-search"
+            placeholder={gettext("Search for student ILP")}
+            notify_parent
+            school_id={@current_user.current_profile.school_id}
+          />
+        </form>
       </div>
     <% else %>
       <p>
@@ -65,6 +63,7 @@
     cycle_id={@current_user.current_profile.current_school_cycle.id}
     student_id={@selected_student_id}
     class="mb-10"
+    navigate={fn student_id -> ~p"/school/students/#{student_id}" end}
   />
   <%!-- <%= if @current_template do %>
     <.card_base class="p-6 mt-10">
@@ -149,20 +148,6 @@
     </.card_base>
   <% end %>
 </.responsive_container>
-<.modal id="student-search-modal">
-  <h5 class="mb-10 font-display font-black text-xl">
-    <%= gettext("Search student to view ILP") %>
-  </h5>
-  <form>
-    <.live_component
-      module={StudentSearchComponent}
-      id="student-search-modal-search"
-      notify_parent
-      label={gettext("Type the name of the student")}
-      school_id={@current_user.current_profile.school_id}
-    />
-  </form>
-</.modal>
 <.live_component
   :if={@edit_student_ilp}
   module={StudentILPFormOverlayComponent}

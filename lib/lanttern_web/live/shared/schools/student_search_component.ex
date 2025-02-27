@@ -20,6 +20,7 @@ defmodule LantternWeb.Schools.StudentSearchComponent do
           name={"#{@id}-query"}
           type="text"
           value=""
+          placeholder={@placeholder}
           class="peer pr-10"
           role="combobox"
           autocomplete="off"
@@ -87,6 +88,7 @@ defmodule LantternWeb.Schools.StudentSearchComponent do
       socket
       |> assign(:label, nil)
       |> assign(:class, nil)
+      |> assign(:placeholder, nil)
       |> assign(:school_id, nil)
       |> assign(:refocus_on_select, "false")
       |> stream(:results, [])
