@@ -11,6 +11,7 @@ defmodule Lanttern.ILPLog.StudentILPLog do
     field :student_ilp_id, :id
     field :profile_id, :id
     field :operation, :string
+    field :notes, :string
     field :teacher_notes, :string
     field :template_id, :id
     field :student_id, :id
@@ -34,6 +35,7 @@ defmodule Lanttern.ILPLog.StudentILPLog do
       :student_ilp_id,
       :profile_id,
       :operation,
+      :notes,
       :teacher_notes,
       :template_id,
       :student_id,

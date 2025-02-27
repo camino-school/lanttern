@@ -78,10 +78,17 @@ defmodule LantternWeb.ILP.StudentILPComponent do
               </div>
             </.card_base>
           </div>
+          <div :if={@student_ilp.notes} class="p-4 rounded mt-6 bg-ltrn-mesh-cyan">
+            <p class="flex items-center gap-2 font-bold mb-4">
+              <.icon name="hero-pencil-square-mini" class="text-ltrn-primary" />
+              <%= gettext("Notes") %>
+            </p>
+            <.markdown text={@student_ilp.notes} />
+          </div>
           <div :if={@student_ilp.teacher_notes} class="p-4 rounded mt-6 bg-ltrn-staff-lightest">
             <p class="flex items-center gap-2 font-bold mb-4">
               <.icon name="hero-pencil-square-mini" class="text-ltrn-staff-accent" />
-              <span class="text-ltrn-staff-dark"><%= gettext("Teacher notes") %></span>
+              <span class="text-ltrn-staff-dark"><%= gettext("Teacher notes (internal)") %></span>
             </p>
             <.markdown text={@student_ilp.teacher_notes} />
           </div>
@@ -145,7 +152,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
 
   defp ilp_entry(assigns) do
     ~H"""
-    <.markdown text={@entry.description} class={@class} />
+    <.markdown text={@entry.description} class={["max-w-none", @class]} />
     """
   end
 

@@ -62,14 +62,25 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
             </.inputs_for>
           </div>
           <.input
-            field={@form[:teacher_notes]}
+            field={@form[:notes]}
             type="textarea"
-            label={gettext("Teacher notes")}
+            label={gettext("Notes (shared with students/guardians)")}
             class="mb-1"
             phx-debounce="1500"
             show_optional
           />
           <.markdown_supported class="mb-6" />
+          <div class="mb-6 p-4 rounded bg-ltrn-staff-lightest">
+            <.input
+              field={@form[:teacher_notes]}
+              type="textarea"
+              label={gettext("Teacher notes (internal, not shared)")}
+              class="mb-1"
+              phx-debounce="1500"
+              show_optional
+            />
+            <.markdown_supported />
+          </div>
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
             <%= gettext("Oops, something went wrong! Please check the errors above.") %>
           </.error_block>

@@ -14,6 +14,7 @@ defmodule Lanttern.ILP.StudentILP do
 
   @type t :: %__MODULE__{
           id: pos_integer(),
+          notes: String.t() | nil,
           teacher_notes: String.t() | nil,
           template_id: pos_integer(),
           template: ILPTemplate.t() | Ecto.Association.NotLoaded.t(),
@@ -31,6 +32,7 @@ defmodule Lanttern.ILP.StudentILP do
         }
 
   schema "students_ilps" do
+    field :notes, :string
     field :teacher_notes, :string
 
     belongs_to :template, ILPTemplate
@@ -48,6 +50,7 @@ defmodule Lanttern.ILP.StudentILP do
   def changeset(student_ilp, attrs) do
     student_ilp
     |> cast(attrs, [
+      :notes,
       :teacher_notes,
       :template_id,
       :student_id,
