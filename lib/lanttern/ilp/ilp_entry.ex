@@ -1,4 +1,8 @@
 defmodule Lanttern.ILP.ILPEntry do
+  @moduledoc """
+  The `ILPEntry` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

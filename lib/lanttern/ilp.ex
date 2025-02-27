@@ -414,8 +414,7 @@ defmodule Lanttern.ILP do
       nil
 
   """
-  @spec get_student_ilp_by(clauses :: Keyword.t(), opts :: Keyword.t()) ::
-          %StudentILP{} | nil
+  @spec get_student_ilp_by(clauses :: Keyword.t(), opts :: Keyword.t()) :: StudentILP.t() | nil
   def get_student_ilp_by(clauses, opts \\ []) do
     where =
       if Keyword.get(clauses, :update_of_ilp_id) do

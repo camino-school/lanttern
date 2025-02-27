@@ -1,4 +1,8 @@
 defmodule Lanttern.ILP.StudentILP do
+  @moduledoc """
+  The `StudentILP` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

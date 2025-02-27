@@ -1,4 +1,8 @@
 defmodule Lanttern.ILP.ILPTemplate do
+  @moduledoc """
+  The `ILPTemplate` schema
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
 

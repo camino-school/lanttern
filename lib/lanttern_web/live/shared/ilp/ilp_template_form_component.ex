@@ -228,21 +228,12 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
 
     # inject template_id in components
     template_params =
-      Map.update(template_params, "sections", %{}, fn sections ->
-        Enum.map(sections, fn {s_index, section} ->
-          updated_section =
-            Map.update(section, "components", %{}, fn components ->
-              components
-              |> Enum.map(fn {c_index, component} ->
-                {c_index, Map.put(component, "template_id", template_id)}
-              end)
-              |> Enum.into(%{})
-            end)
-
-          {s_index, updated_section}
-        end)
-        |> Enum.into(%{})
-      end)
+      Map.update(
+        template_params,
+        "sections",
+        %{},
+        &put_template_id_in_sections_components(&1, template_id)
+      )
 
     ILP.update_ilp_template(
       socket.assigns.template,
@@ -256,5 +247,23 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
     end
+  end
+
+  defp put_template_id_in_sections_components(sections, template_id) do
+    Enum.map(sections, fn {s_index, section} ->
+      updated_section =
+        Map.update(section, "components", %{}, &put_template_id_in_components(&1, template_id))
+
+      {s_index, updated_section}
+    end)
+    |> Enum.into(%{})
+  end
+
+  defp put_template_id_in_components(components, template_id) do
+    components
+    |> Enum.map(fn {c_index, component} ->
+      {c_index, Map.put(component, "template_id", template_id)}
+    end)
+    |> Enum.into(%{})
   end
 end

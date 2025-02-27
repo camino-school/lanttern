@@ -36,7 +36,9 @@ defmodule LantternWeb.StudentLive.ILPComponent do
                 <:item
                   :for={{template_id, template_name} <- @template_options}
                   text={template_name}
-                  on_click={JS.push("select_template_id", value: %{"id" => template_id})}
+                  on_click={
+                    JS.push("select_template_id", value: %{"id" => template_id}, target: @myself)
+                  }
                 />
               </.dropdown_menu>
             </div>
@@ -94,13 +96,18 @@ defmodule LantternWeb.StudentLive.ILPComponent do
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
     |> assign_user_filters([:ilp_template])
+    |> assign_base_path()
     |> assign_templates()
     |> assign_current_template()
-    |> assign_base_path()
     |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
+
+  defp assign_base_path(socket) do
+    base_path = ~p"/school/students/#{socket.assigns.student}/ilp"
+    assign(socket, :base_path, base_path)
+  end
 
   defp assign_templates(socket) do
     templates =
@@ -147,13 +154,8 @@ defmodule LantternWeb.StudentLive.ILPComponent do
       socket
       |> assign(:selected_ilp_template_id, nil)
       |> save_profile_filters([:ilp_template])
-      |> push_navigate(to: ~p"/ilp")
+      |> push_navigate(to: socket.assigns.base_path)
     end
-  end
-
-  defp assign_base_path(socket) do
-    base_path = ~p"/school/students/#{socket.assigns.student}/ilp"
-    assign(socket, :base_path, base_path)
   end
 
   # event handlers
@@ -170,7 +172,7 @@ defmodule LantternWeb.StudentLive.ILPComponent do
       |> assign(:current_template, template)
       |> assign(:selected_ilp_template_id, template && template.id)
       |> save_profile_filters([:ilp_template])
-      |> push_navigate(to: ~p"/ilp")
+      |> push_navigate(to: socket.assigns.base_path)
 
     {:noreply, socket}
   end
