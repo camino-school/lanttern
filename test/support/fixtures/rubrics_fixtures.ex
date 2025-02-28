@@ -18,6 +18,8 @@ defmodule Lanttern.RubricsFixtures do
       |> Enum.into(%{
         criteria: "some criteria",
         scale_id: GradingFixtures.maybe_gen_scale_id(attrs),
+        strand_id: LearningContextFixtures.maybe_gen_strand_id(attrs),
+        curriculum_item_id: CurriculaFixtures.maybe_gen_curriculum_item_id(attrs),
         is_differentiation: false
       })
       |> Lanttern.Rubrics.create_rubric()
@@ -61,42 +63,5 @@ defmodule Lanttern.RubricsFixtures do
       |> Lanttern.Rubrics.create_rubric_descriptor()
 
     rubric_descriptor
-  end
-
-  @doc """
-  Generate a strand rubric.
-  """
-
-  def strand_rubric_fixture(attrs \\ %{}) do
-    {:ok, strand_rubric} =
-      attrs
-      |> maybe_inject_scale_id()
-      |> maybe_inject_rubric_id()
-      |> Enum.into(%{
-        strand_id: LearningContextFixtures.maybe_gen_strand_id(attrs),
-        curriculum_item_id: CurriculaFixtures.maybe_gen_curriculum_item_id(attrs)
-      })
-      |> Lanttern.Rubrics.create_strand_rubric()
-
-    strand_rubric
-  end
-
-  # helpers
-
-  defp maybe_inject_scale_id(%{scale_id: _} = attrs), do: attrs
-
-  defp maybe_inject_scale_id(attrs) do
-    attrs
-    |> Map.put(:scale_id, GradingFixtures.scale_fixture().id)
-  end
-
-  defp maybe_inject_rubric_id(%{rubric_id: _} = attrs), do: attrs
-
-  defp maybe_inject_rubric_id(attrs) do
-    attrs
-    |> Map.put(
-      :rubric_id,
-      rubric_fixture(%{scale_id: attrs.scale_id}).id
-    )
   end
 end

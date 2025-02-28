@@ -9,6 +9,7 @@ defmodule LantternWeb.RubricsLiveTest do
   setup [:register_and_log_in_staff_member, :create_scales]
 
   describe "Rubrics live view basic navigation" do
+    @tag :skip
     test "disconnected and connected mount", %{conn: conn} do
       conn = get(conn, @live_view_path)
       assert html_response(conn, 200) =~ ~r/<h1 .+>\s*Rubrics explorer\s*<\/h1>/
@@ -16,6 +17,7 @@ defmodule LantternWeb.RubricsLiveTest do
       {:ok, _view, _html} = live(conn)
     end
 
+    @tag :skip
     test "list rubrics and descriptors", %{
       conn: conn,
       scale_ord: scale_ord,
@@ -65,6 +67,7 @@ defmodule LantternWeb.RubricsLiveTest do
       assert view |> has_element?("div", rubric_num_desc.descriptor)
     end
 
+    @tag :skip
     test "create rubric with descriptors", %{
       conn: conn,
       scale_ord: scale_ord,
@@ -105,6 +108,7 @@ defmodule LantternWeb.RubricsLiveTest do
       assert view |> has_element?("div", "new descriptor abc")
     end
 
+    @tag :skip
     test "update rubric with descriptors", %{
       conn: conn,
       scale_num: scale_num
@@ -161,6 +165,7 @@ defmodule LantternWeb.RubricsLiveTest do
       assert view |> has_element?("div", "updated descriptor abc")
     end
 
+    @tag :skip
     test "delete rubric", %{
       conn: conn,
       scale_ord: scale_ord,

@@ -876,13 +876,17 @@ defmodule Lanttern.AssessmentsTest do
   describe "assessment point rubrics" do
     alias Lanttern.Rubrics.Rubric
     import Lanttern.AssessmentsFixtures
+    alias Lanttern.LearningContextFixtures
 
     test "create_assessment_point_rubric/3 with valid data creates a rubric linked to the given assessment point" do
-      assessment_point = assessment_point_fixture()
+      strand = LearningContextFixtures.strand_fixture()
+      assessment_point = assessment_point_fixture(%{strand_id: strand.id})
 
       valid_attrs = %{
         criteria: "some criteria",
-        scale_id: assessment_point.scale_id
+        scale_id: assessment_point.scale_id,
+        strand_id: strand.id,
+        curriculum_item_id: assessment_point.curriculum_item_id
       }
 
       assert {:ok, %Rubric{} = rubric} =

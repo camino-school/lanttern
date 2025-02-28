@@ -31,7 +31,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
         </div>
         <div id="curriculum-items-strand-rubrics" phx-update="stream">
           <.card_base
-            :for={{dom_id, {goal, strand_rubrics}} <- @streams.goals_strand_rubrics}
+            :for={{dom_id, {goal, rubrics}} <- @streams.goals_rubrics}
             id={dom_id}
             class={[
               "p-6 mt-6",
@@ -50,7 +50,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                   <%= goal.curriculum_item.name %>
                 </p>
               </div>
-              <%= if strand_rubrics != [] do %>
+              <%= if rubrics != [] do %>
                 <.toggle_expand_button
                   id={"#{dom_id}-strand-rubrics-toggle-button"}
                   target_selector={"##{dom_id}-strand-rubrics"}
@@ -66,7 +66,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
               <% end %>
             </div>
             <div
-              :if={strand_rubrics != []}
+              :if={rubrics != []}
               phx-hook="Sortable"
               id={"#{dom_id}-strand-rubrics"}
               data-sortable-handle=".sortable-handle"
@@ -74,12 +74,12 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
               data-group-id={goal.id}
             >
               <.rubric
-                :for={sr <- strand_rubrics}
+                :for={rubric <- rubrics}
                 class="pt-6 border-t border-ltrn-lighter mt-6"
-                id={"strand-rubric-#{sr.id}"}
+                id={"rubric-#{rubric.id}"}
                 goal_id={goal.id}
-                rubric={sr.rubric}
-                edit_patch={~p"/strands/#{@strand}/rubrics?edit_rubric=#{sr.rubric_id}"}
+                rubric={rubric}
+                edit_patch={~p"/strands/#{@strand}/rubrics?edit_rubric=#{rubric.id}"}
               />
               <div class="flex justify-center pt-6 border-t border-ltrn-lighter mt-6">
                 <.action
@@ -112,8 +112,8 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
           <div id="strand-diff-rubrics-list" phx-update="stream">
             <.card_base
               :for={
-                {dom_id, {goal, strand_rubrics}} <-
-                  @streams.diff_goals_strand_rubrics
+                {dom_id, {goal, rubrics}} <-
+                  @streams.diff_goals_rubrics
               }
               id={dom_id}
               class={[
@@ -133,7 +133,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                     <%= goal.curriculum_item.name %>
                   </p>
                 </div>
-                <%= if strand_rubrics != [] do %>
+                <%= if rubrics != [] do %>
                   <.toggle_expand_button
                     id={"#{dom_id}-strand-rubrics-toggle-button"}
                     target_selector={"##{dom_id}-strand-rubrics"}
@@ -152,7 +152,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                 <% end %>
               </div>
               <div
-                :if={strand_rubrics != []}
+                :if={rubrics != []}
                 phx-hook="Sortable"
                 id={"#{dom_id}-strand-rubrics"}
                 data-sortable-handle=".sortable-handle"
@@ -160,13 +160,12 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                 data-group-id={goal.id}
               >
                 <.rubric
-                  :for={sr <- strand_rubrics}
+                  :for={rubric <- rubrics}
                   class="pt-6 border-t border-ltrn-lighter mt-6"
-                  id={"assessment-point-rubric-#{sr.id}"}
+                  id={"assessment-point-rubric-#{rubric.id}"}
                   goal_id={goal.id}
-                  rubric={sr.rubric}
-                  is_diff={sr.is_differentiation}
-                  edit_patch={~p"/strands/#{@strand}/rubrics?edit_rubric=#{sr.rubric_id}"}
+                  rubric={rubric}
+                  edit_patch={~p"/strands/#{@strand}/rubrics?edit_rubric=#{rubric.id}"}
                 />
                 <div class="flex justify-center pt-6 border-t border-ltrn-lighter mt-6">
                   <.action
@@ -255,7 +254,6 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
   end
 
   attr :goal_id, :integer, required: true
-  attr :is_diff, :boolean, default: false
   attr :class, :any, default: nil
   attr :id, :string, required: true
   attr :rubric, Rubric, required: true
@@ -267,7 +265,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
       <div class="flex items-center gap-2 mb-6">
         <.drag_handle class="sortable-handle" />
         <div class="flex-1 pr-2">
-          <.badge :if={@is_diff} theme="diff" class="mb-2">
+          <.badge :if={@rubric.is_differentiation} theme="diff" class="mb-2">
             <%= gettext("Rubric differentiation") %>
           </.badge>
           <p class="font-display font-black">
@@ -298,16 +296,16 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
       |> assign(:curriculum_item, nil)
       |> assign(:current_student_diff_rubrics_map, %{})
       |> stream_configure(
-        :goals_strand_rubrics,
+        :goals_rubrics,
         dom_id: fn
-          {goal, _strand_rubrics} -> "goal-#{goal.id}"
+          {goal, _rubrics} -> "goal-#{goal.id}"
           _ -> ""
         end
       )
       |> stream_configure(
-        :diff_goals_strand_rubrics,
+        :diff_goals_rubrics,
         dom_id: fn
-          {goal, _strand_rubrics} -> "goal-#{goal.id}-diff"
+          {goal, _rubrics} -> "goal-#{goal.id}-diff"
           _ -> ""
         end
       )
@@ -329,8 +327,8 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
-    |> stream_goals_strand_rubrics()
-    |> stream_diff_goals_strand_rubrics()
+    |> stream_goals_rubrics()
+    |> stream_diff_goals_rubrics()
     |> assign_strand_classes_filter()
     |> assign_goals()
     |> assign_students()
@@ -339,44 +337,44 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
 
   defp initialize(socket), do: socket
 
-  defp stream_goals_strand_rubrics(socket) do
-    goals_strand_rubrics =
+  defp stream_goals_rubrics(socket) do
+    goals_rubrics =
       Rubrics.list_strand_rubrics_grouped_by_goal(socket.assigns.strand.id, exclude_diff: true)
 
-    # keep track of strand rubrics ids order and index for sorting
+    # keep track of rubrics ids order and index for sorting
 
-    # "spec" %{"goal_id" => [strand_rubric_id, ...], ...}
-    goals_strand_rubrics_order_map =
-      goals_strand_rubrics
+    # "spec" %{"goal_id" => [rubric_id, ...], ...}
+    goals_rubrics_order_map =
+      goals_rubrics
       |> Enum.map(fn {goal, strands_rubrics} ->
-        strands_rubrics_ids = Enum.map(strands_rubrics, & &1.id)
-        {"#{goal.id}", strands_rubrics_ids}
+        rubrics_ids = Enum.map(strands_rubrics, & &1.id)
+        {"#{goal.id}", rubrics_ids}
       end)
       |> Enum.into(%{})
 
     socket
-    |> stream(:goals_strand_rubrics, goals_strand_rubrics)
-    |> assign(:goals_strand_rubrics_order_map, goals_strand_rubrics_order_map)
+    |> stream(:goals_rubrics, goals_rubrics)
+    |> assign(:goals_rubrics_order_map, goals_rubrics_order_map)
   end
 
-  defp stream_diff_goals_strand_rubrics(socket) do
-    diff_goals_strand_rubrics =
+  defp stream_diff_goals_rubrics(socket) do
+    diff_goals_rubrics =
       Rubrics.list_strand_rubrics_grouped_by_goal(socket.assigns.strand.id, only_diff: true)
 
-    # keep track of strand rubrics ids order and index for sorting
+    # keep track of rubrics ids order and index for sorting
 
-    # "spec" %{"goal_id" => [strand_rubric_id, ...], ...}
-    diff_goals_strand_rubrics_order_map =
-      diff_goals_strand_rubrics
+    # "spec" %{"goal_id" => [rubric_id, ...], ...}
+    diff_goals_rubrics_order_map =
+      diff_goals_rubrics
       |> Enum.map(fn {goal, strands_rubrics} ->
-        strands_rubrics_ids = Enum.map(strands_rubrics, & &1.id)
-        {"#{goal.id}", strands_rubrics_ids}
+        rubrics_ids = Enum.map(strands_rubrics, & &1.id)
+        {"#{goal.id}", rubrics_ids}
       end)
       |> Enum.into(%{})
 
     socket
-    |> stream(:diff_goals_strand_rubrics, diff_goals_strand_rubrics)
-    |> assign(:diff_goals_strand_rubrics_order_map, diff_goals_strand_rubrics_order_map)
+    |> stream(:diff_goals_rubrics, diff_goals_rubrics)
+    |> assign(:diff_goals_rubrics_order_map, diff_goals_rubrics_order_map)
   end
 
   defp assign_goals(socket) do
@@ -547,14 +545,14 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
       "newIndex" => new_index
     } = payload
 
-    goals_strand_rubrics_order_map =
+    goals_rubrics_order_map =
       case group do
-        "goal" -> socket.assigns.goals_strand_rubrics_order_map
-        "goal-diff" -> socket.assigns.diff_goals_strand_rubrics_order_map
+        "goal" -> socket.assigns.goals_rubrics_order_map
+        "goal-diff" -> socket.assigns.diff_goals_rubrics_order_map
       end
 
     strand_rubrics_ids =
-      goals_strand_rubrics_order_map
+      goals_rubrics_order_map
       |> Map.get(goal_id)
 
     {changed_id, rest} = List.pop_at(strand_rubrics_ids, old_index)
@@ -562,20 +560,19 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
 
     # the inteface was already updated (optimistic update)
     # just persist the new order
-    Rubrics.update_strand_rubrics_positions(strand_rubrics_ids)
+    Rubrics.update_rubrics_positions(strand_rubrics_ids)
 
-    goals_strand_rubrics_order_map =
-      goals_strand_rubrics_order_map
+    goals_rubrics_order_map =
+      goals_rubrics_order_map
       |> Map.put(goal_id, strand_rubrics_ids)
 
-    goals_strand_rubrics_order_map_assign =
+    goals_rubrics_order_map_assign =
       case group do
-        "goal" -> :goals_strand_rubrics_order_map
-        "goal-diff" -> :diff_goals_strand_rubrics_order_map
+        "goal" -> :goals_rubrics_order_map
+        "goal-diff" -> :diff_goals_rubrics_order_map
       end
 
-    {:noreply,
-     assign(socket, goals_strand_rubrics_order_map_assign, goals_strand_rubrics_order_map)}
+    {:noreply, assign(socket, goals_rubrics_order_map_assign, goals_rubrics_order_map)}
   end
 
   def handle_event("delete_rubric", _, socket) do

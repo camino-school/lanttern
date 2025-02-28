@@ -11,7 +11,6 @@ defmodule Lanttern.Rubrics do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Rubrics.Rubric
   alias Lanttern.Rubrics.RubricDescriptor
-  alias Lanttern.Rubrics.StrandRubric
 
   @doc """
   Returns the list of rubrics.
@@ -160,6 +159,87 @@ defmodule Lanttern.Rubrics do
     )
     |> Repo.all()
   end
+
+  @doc """
+  List all strand rubrics grouped by strand goals (assessment points).
+
+  Assessment points preload `curriculum_item` with
+  `curriculum_component` and are ordered by position.
+
+  Rubrics are ordered by position.
+
+  ### Differentiation filters
+
+  When using `:exclude_diff` options, we remove goals with `is_differentiation == true`
+  from the results, as well as rubrics with `is_differentiation` flag.
+
+  When using `:only_diff` options, we include all goals, but list only differentiation
+  rubrics or rubrics linked to differentiation goals (even if they're not flagged as differentiation).
+
+  ## Options
+
+  - `:only_diff` - boolean, refer to "Differentiation filters" section
+  - `:exclude_diff` - boolean, refer to "Differentiation filters" section
+
+  ## Examples
+
+      iex> list_strand_rubrics_grouped_by_goal(1)
+      [{%AssessmentPoint{}, [%Rubric{}, ...]}, ...]
+
+  """
+  @spec list_strand_rubrics_grouped_by_goal(strand_id :: pos_integer(), opts :: Keyword.t()) :: [
+          {AssessmentPoint.t(), [Rubric.t()]}
+        ]
+  def list_strand_rubrics_grouped_by_goal(strand_id, opts \\ []) do
+    curriculum_items_rubrics_map =
+      from(
+        r in Rubric,
+        where: r.strand_id == ^strand_id,
+        order_by: r.position
+      )
+      |> Repo.all()
+      |> Enum.group_by(& &1.curriculum_item_id)
+
+    filter_type =
+      cond do
+        Keyword.get(opts, :only_diff) == true -> :only_diff
+        Keyword.get(opts, :exclude_diff) == true -> :exclude_diff
+        true -> nil
+      end
+
+    from(
+      ap in AssessmentPoint,
+      join: ci in assoc(ap, :curriculum_item),
+      join: cc in assoc(ci, :curriculum_component),
+      where: ap.strand_id == ^strand_id,
+      preload: [curriculum_item: {ci, curriculum_component: cc}],
+      order_by: ap.position
+    )
+    |> Repo.all()
+    |> Enum.map(fn ap ->
+      {ap, Map.get(curriculum_items_rubrics_map, ap.curriculum_item_id, [])}
+    end)
+    |> filter_strand_rubrics_grouped_by_goal(filter_type)
+  end
+
+  defp filter_strand_rubrics_grouped_by_goal(rubrics_grouped_by_goal, :only_diff) do
+    rubrics_grouped_by_goal
+    |> Enum.map(fn
+      {%{is_differentiation: true} = ap, rubrics} -> {ap, rubrics}
+      {ap, rubrics} -> {ap, Enum.filter(rubrics, & &1.is_differentiation)}
+    end)
+  end
+
+  defp filter_strand_rubrics_grouped_by_goal(rubrics_grouped_by_goal, :exclude_diff) do
+    rubrics_grouped_by_goal
+    |> Enum.filter(fn {ap, _rubrics} -> !ap.is_differentiation end)
+    |> Enum.map(fn {ap, rubrics} ->
+      {ap, Enum.filter(rubrics, &(!&1.is_differentiation))}
+    end)
+  end
+
+  defp filter_strand_rubrics_grouped_by_goal(rubrics_grouped_by_goal, _),
+    do: rubrics_grouped_by_goal
 
   @doc """
   Search rubrics by criteria.
@@ -403,6 +483,18 @@ defmodule Lanttern.Rubrics do
 
   defp format_update_rubric_transaction_response({:error, _multi_name, error}),
     do: {:error, error}
+
+  @doc """
+  Update rubrics positions based on ids list order.
+
+  ## Examples
+
+  iex> update_rubrics_positions([3, 2, 1])
+  :ok
+
+  """
+  @spec update_rubrics_positions(rubrics_ids :: [pos_integer()]) :: :ok | {:error, String.t()}
+  def update_rubrics_positions(rubrics_ids), do: update_positions(Rubric, rubrics_ids)
 
   @doc """
   Deletes a rubric.
@@ -658,122 +750,6 @@ defmodule Lanttern.Rubrics do
       rubric
     end)
   end
-
-  @doc """
-  List all strand rubrics grouped by strand goals (assessment points).
-
-  Assessment points preload `curriculum_item` with
-  `curriculum_component` and are ordered by position.
-
-  Strand rubrics preload `rubric` and are ordered position.
-
-  ### Differentiation filters
-
-  When using `:exclude_diff` options, we remove goals with `is_differentiation == true`
-  from the results, as well as strand rubrics with the same `is_differentiation` flag.
-
-  When using `:only_diff` options, we include all goals, but list only differentiation
-  strand rubrics or strand rubrics linked to differentiation goals (even if they're not
-  flagged as differentiation).
-
-  ## Options
-
-  - `:only_diff` - boolean, refer to "Differentiation filters" section
-  - `:exclude_diff` - boolean, refer to "Differentiation filters" section
-
-  ## Examples
-
-      iex> list_strand_rubrics_grouped_by_goal(1)
-      [{%AssessmentPoint{}, [%StrandRubric{}, ...]}, ...]
-
-  """
-  @spec list_strand_rubrics_grouped_by_goal(strand_id :: pos_integer(), opts :: Keyword.t()) :: [
-          {AssessmentPoint.t(), [StrandRubric.t()]}
-        ]
-  def list_strand_rubrics_grouped_by_goal(strand_id, opts \\ []) do
-    curriculum_items_strand_rubrics_map =
-      from(
-        sr in StrandRubric,
-        join: r in assoc(sr, :rubric),
-        where: sr.strand_id == ^strand_id,
-        preload: [rubric: r],
-        order_by: sr.position
-      )
-      |> Repo.all()
-      |> Enum.group_by(& &1.curriculum_item_id)
-
-    filter_type =
-      cond do
-        Keyword.get(opts, :only_diff) == true -> :only_diff
-        Keyword.get(opts, :exclude_diff) == true -> :exclude_diff
-        true -> nil
-      end
-
-    from(
-      ap in AssessmentPoint,
-      join: ci in assoc(ap, :curriculum_item),
-      join: cc in assoc(ci, :curriculum_component),
-      where: ap.strand_id == ^strand_id,
-      preload: [curriculum_item: {ci, curriculum_component: cc}],
-      order_by: ap.position
-    )
-    |> Repo.all()
-    |> Enum.map(fn ap ->
-      {ap, Map.get(curriculum_items_strand_rubrics_map, ap.curriculum_item_id, [])}
-    end)
-    |> filter_strand_rubrics_grouped_by_goal(filter_type)
-  end
-
-  defp filter_strand_rubrics_grouped_by_goal(rubrics_grouped_by_goal, :only_diff) do
-    rubrics_grouped_by_goal
-    |> Enum.map(fn
-      {%{is_differentiation: true} = ap, strand_rubrics} -> {ap, strand_rubrics}
-      {ap, strand_rubrics} -> {ap, Enum.filter(strand_rubrics, & &1.is_differentiation)}
-    end)
-  end
-
-  defp filter_strand_rubrics_grouped_by_goal(rubrics_grouped_by_goal, :exclude_diff) do
-    rubrics_grouped_by_goal
-    |> Enum.filter(fn {ap, _strand_rubrics} -> !ap.is_differentiation end)
-    |> Enum.map(fn {ap, strand_rubrics} ->
-      {ap, Enum.filter(strand_rubrics, &(!&1.is_differentiation))}
-    end)
-  end
-
-  defp filter_strand_rubrics_grouped_by_goal(rubrics_grouped_by_goal, _),
-    do: rubrics_grouped_by_goal
-
-  @doc """
-  Creates a strand rubric.
-
-  ## Examples
-
-      iex> create_strand_rubric(%{field: value})
-      {:ok, %Rubric{}}
-
-      iex> create_strand_rubric(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_strand_rubric(attrs \\ %{}) do
-    %StrandRubric{}
-    |> StrandRubric.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  @doc """
-  Update ILP template sections positions based on ids list order.
-
-  ## Examples
-
-  iex> update_strand_rubrics_positions([3, 2, 1])
-  :ok
-
-  """
-  @spec update_strand_rubrics_positions(strand_rubrics_ids :: [pos_integer()]) ::
-          :ok | {:error, String.t()}
-  def update_strand_rubrics_positions(strand_rubrics_ids),
-    do: update_positions(StrandRubric, strand_rubrics_ids)
 
   # helpers
 

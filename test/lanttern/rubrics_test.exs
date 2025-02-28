@@ -9,6 +9,8 @@ defmodule Lanttern.RubricsTest do
     alias Lanttern.Rubrics.Rubric
     import Lanttern.AssessmentsFixtures
     import Lanttern.SchoolsFixtures
+    alias Lanttern.CurriculaFixtures
+    alias Lanttern.LearningContextFixtures
 
     @invalid_attrs %{criteria: nil, is_differentiation: nil}
 
@@ -321,6 +323,104 @@ defmodule Lanttern.RubricsTest do
                curriculum_component.id
     end
 
+    test "list_strand_rubrics_grouped_by_goal/1 returns all strand rubrics" do
+      strand = LearningContextFixtures.strand_fixture()
+
+      curriculum_component = CurriculaFixtures.curriculum_component_fixture()
+
+      curriculum_item =
+        CurriculaFixtures.curriculum_item_fixture(%{
+          curriculum_component_id: curriculum_component.id
+        })
+
+      diff_curriculum_item =
+        CurriculaFixtures.curriculum_item_fixture(%{
+          curriculum_component_id: curriculum_component.id
+        })
+
+      scale = GradingFixtures.scale_fixture()
+
+      goal =
+        assessment_point_fixture(%{
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          scale_id: scale.id
+        })
+
+      diff_goal =
+        assessment_point_fixture(%{
+          strand_id: strand.id,
+          curriculum_item_id: diff_curriculum_item.id,
+          scale_id: scale.id,
+          is_differentiation: true
+        })
+
+      rubric_1 =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      rubric_1_diff =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          is_differentiation: true
+        })
+
+      rubric_2 =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: diff_curriculum_item.id
+        })
+
+      [
+        {expected_goal, [expected_rubric_1, expected_rubric_1_diff]},
+        {expected_diff_goal, [expected_rubric_2]}
+      ] = Rubrics.list_strand_rubrics_grouped_by_goal(strand.id)
+
+      assert expected_goal.id == goal.id
+      assert expected_goal.curriculum_item.id == curriculum_item.id
+
+      assert expected_goal.curriculum_item.curriculum_component.id ==
+               curriculum_component.id
+
+      refute expected_goal.is_differentiation
+      assert expected_rubric_1.id == rubric_1.id
+      assert expected_rubric_1_diff.id == rubric_1_diff.id
+
+      assert expected_diff_goal.id == diff_goal.id
+      assert expected_diff_goal.curriculum_item.id == diff_curriculum_item.id
+
+      assert expected_diff_goal.curriculum_item.curriculum_component.id ==
+               curriculum_component.id
+
+      assert expected_diff_goal.is_differentiation
+      assert expected_rubric_2.id == rubric_2.id
+
+      # use same setup to validate exclude_diff opt
+      [
+        {expected_goal, [expected_rubric_1]}
+      ] = Rubrics.list_strand_rubrics_grouped_by_goal(strand.id, exclude_diff: true)
+
+      assert expected_goal.id == goal.id
+      assert expected_rubric_1.id == rubric_1.id
+
+      # use same setup to validate only_diff opt
+      [
+        {expected_goal, [expected_rubric_1_diff]},
+        {expected_diff_goal, [expected_rubric_2]}
+      ] = Rubrics.list_strand_rubrics_grouped_by_goal(strand.id, only_diff: true)
+
+      assert expected_goal.id == goal.id
+      assert expected_rubric_1_diff.id == rubric_1_diff.id
+      assert expected_diff_goal.id == diff_goal.id
+      assert expected_rubric_2.id == rubric_2.id
+    end
+
     test "search_rubrics/2 returns all rubrics matched by search" do
       _rubric_1 = rubric_fixture(%{criteria: "lorem ipsum xolor sit amet"})
       rubric_2 = rubric_fixture(%{criteria: "lorem ipsum dolor sit amet"})
@@ -480,6 +580,8 @@ defmodule Lanttern.RubricsTest do
       valid_attrs = %{
         criteria: "some criteria",
         scale_id: GradingFixtures.scale_fixture().id,
+        strand_id: LearningContextFixtures.strand_fixture().id,
+        curriculum_item_id: CurriculaFixtures.curriculum_item_fixture().id,
         is_differentiation: true
       }
 
@@ -491,10 +593,14 @@ defmodule Lanttern.RubricsTest do
     test "create_rubric/1 with valid data including descriptors creates a rubric and related descriptors" do
       scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
       ordinal_value = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      strand = LearningContextFixtures.strand_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
 
       valid_attrs = %{
         criteria: "some criteria with descriptors",
         scale_id: scale.id,
+        strand_id: strand.id,
+        curriculum_item_id: curriculum_item.id,
         is_differentiation: true,
         descriptors: %{
           "0" => %{
@@ -517,16 +623,24 @@ defmodule Lanttern.RubricsTest do
 
     test "create_rubric/1 with valid data and preloads opt creates a rubric and return it with preloaded data" do
       scale = GradingFixtures.scale_fixture()
+      strand = LearningContextFixtures.strand_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
 
       valid_attrs = %{
         criteria: "some criteria",
         scale_id: scale.id,
+        strand_id: strand.id,
+        curriculum_item_id: curriculum_item.id,
         is_differentiation: true
       }
 
-      assert {:ok, %Rubric{} = rubric} = Rubrics.create_rubric(valid_attrs, preloads: :scale)
+      assert {:ok, %Rubric{} = rubric} =
+               Rubrics.create_rubric(valid_attrs, preloads: [:scale, :strand, :curriculum_item])
+
       assert rubric.criteria == "some criteria"
       assert rubric.scale.id == scale.id
+      assert rubric.strand.id == strand.id
+      assert rubric.curriculum_item.id == curriculum_item.id
       assert rubric.is_differentiation == true
     end
 
@@ -688,6 +802,9 @@ defmodule Lanttern.RubricsTest do
 
   describe "differentiation rubrics" do
     alias Lanttern.Rubrics.Rubric
+
+    alias Lanttern.LearningContextFixtures
+    alias Lanttern.CurriculaFixtures
     import Lanttern.SchoolsFixtures
 
     test "link_rubric_to_student/2 links the differentiation rubric to the student" do
@@ -731,14 +848,18 @@ defmodule Lanttern.RubricsTest do
       assert Rubrics.unlink_rubric_from_student(rubric, student.id) == :ok
     end
 
-    test "create_diff_rubric_for_student/3 creates a differentiation rubric and links it the student" do
+    test "create_diff_rubric_for_student/3 creates a differentiation rubric and links it to the student" do
       student = student_fixture()
       parent_rubric = rubric_fixture()
       scale = GradingFixtures.scale_fixture()
+      strand = LearningContextFixtures.strand_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
 
       valid_attrs = %{
         criteria: "diff rubric criteria",
         scale_id: scale.id,
+        strand_id: strand.id,
+        curriculum_item_id: curriculum_item.id,
         diff_for_rubric_id: parent_rubric.id
       }
 
@@ -747,6 +868,8 @@ defmodule Lanttern.RubricsTest do
 
       assert rubric.criteria == "diff rubric criteria"
       assert rubric.scale_id == scale.id
+      assert rubric.strand_id == strand.id
+      assert rubric.curriculum_item_id == curriculum_item.id
       assert rubric.diff_for_rubric_id == parent_rubric.id
 
       expected = Rubrics.get_rubric!(rubric.id, preloads: :students)
@@ -878,122 +1001,6 @@ defmodule Lanttern.RubricsTest do
     test "change_rubric_descriptor/1 returns a rubric_descriptor changeset" do
       rubric_descriptor = rubric_descriptor_fixture()
       assert %Ecto.Changeset{} = Rubrics.change_rubric_descriptor(rubric_descriptor)
-    end
-  end
-
-  describe "strands_rubrics" do
-    alias Lanttern.Rubrics.Rubric
-    alias Lanttern.AssessmentsFixtures
-    alias Lanttern.CurriculaFixtures
-    alias Lanttern.LearningContextFixtures
-
-    test "list_strand_rubrics_grouped_by_goal/1 returns all strand rubrics" do
-      strand = LearningContextFixtures.strand_fixture()
-
-      curriculum_component = CurriculaFixtures.curriculum_component_fixture()
-
-      curriculum_item =
-        CurriculaFixtures.curriculum_item_fixture(%{
-          curriculum_component_id: curriculum_component.id
-        })
-
-      diff_curriculum_item =
-        CurriculaFixtures.curriculum_item_fixture(%{
-          curriculum_component_id: curriculum_component.id
-        })
-
-      scale = GradingFixtures.scale_fixture()
-
-      assessment_point =
-        AssessmentsFixtures.assessment_point_fixture(%{
-          strand_id: strand.id,
-          curriculum_item_id: curriculum_item.id,
-          scale_id: scale.id
-        })
-
-      diff_assessment_point =
-        AssessmentsFixtures.assessment_point_fixture(%{
-          strand_id: strand.id,
-          curriculum_item_id: diff_curriculum_item.id,
-          scale_id: scale.id,
-          is_differentiation: true
-        })
-
-      rubric_1 = rubric_fixture(%{scale_id: scale.id})
-      rubric_1_diff = rubric_fixture(%{scale_id: scale.id})
-      rubric_2 = rubric_fixture(%{scale_id: scale.id})
-
-      strand_rubric_1 =
-        strand_rubric_fixture(%{
-          scale_id: scale.id,
-          rubric_id: rubric_1.id,
-          strand_id: strand.id,
-          curriculum_item_id: curriculum_item.id
-        })
-
-      strand_rubric_1_diff =
-        strand_rubric_fixture(%{
-          scale_id: scale.id,
-          rubric_id: rubric_1_diff.id,
-          strand_id: strand.id,
-          curriculum_item_id: curriculum_item.id,
-          is_differentiation: true
-        })
-
-      strand_rubric_2 =
-        strand_rubric_fixture(%{
-          scale_id: scale.id,
-          rubric_id: rubric_2.id,
-          strand_id: strand.id,
-          curriculum_item_id: diff_curriculum_item.id
-        })
-
-      [
-        {expected_assessment_point, [expected_strand_rubric_1, expected_strand_rubric_1_diff]},
-        {expected_diff_assessment_point, [expected_strand_rubric_2]}
-      ] = Rubrics.list_strand_rubrics_grouped_by_goal(strand.id)
-
-      assert expected_assessment_point.id == assessment_point.id
-      assert expected_assessment_point.curriculum_item.id == curriculum_item.id
-
-      assert expected_assessment_point.curriculum_item.curriculum_component.id ==
-               curriculum_component.id
-
-      refute expected_assessment_point.is_differentiation
-      assert expected_strand_rubric_1.id == strand_rubric_1.id
-      assert expected_strand_rubric_1.rubric.id == rubric_1.id
-      assert expected_strand_rubric_1_diff.id == strand_rubric_1_diff.id
-      assert expected_strand_rubric_1_diff.rubric.id == rubric_1_diff.id
-
-      assert expected_diff_assessment_point.id == diff_assessment_point.id
-      assert expected_diff_assessment_point.curriculum_item.id == diff_curriculum_item.id
-
-      assert expected_diff_assessment_point.curriculum_item.curriculum_component.id ==
-               curriculum_component.id
-
-      assert expected_diff_assessment_point.is_differentiation
-      assert expected_strand_rubric_2.id == strand_rubric_2.id
-      assert expected_strand_rubric_2.rubric.id == rubric_2.id
-
-      # use same setup to validate exclude_diff opt
-      [
-        {expected_assessment_point, [expected_strand_rubric_1]}
-      ] = Rubrics.list_strand_rubrics_grouped_by_goal(strand.id, exclude_diff: true)
-
-      assert expected_assessment_point.id == assessment_point.id
-      assert expected_strand_rubric_1.id == strand_rubric_1.id
-
-      # use same setup to validate only_diff opt
-      [
-        {expected_assessment_point, [expected_strand_rubric_1_diff]},
-        {expected_diff_assessment_point, [expected_strand_rubric_2]}
-      ] = Rubrics.list_strand_rubrics_grouped_by_goal(strand.id, only_diff: true)
-
-      assert expected_assessment_point.id == assessment_point.id
-      assert expected_strand_rubric_1_diff.id == strand_rubric_1_diff.id
-
-      assert expected_diff_assessment_point.id == diff_assessment_point.id
-      assert expected_strand_rubric_2.id == strand_rubric_2.id
     end
   end
 end
