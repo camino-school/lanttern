@@ -764,6 +764,61 @@ defmodule Lanttern.RubricsTest do
       assert Rubrics.list_rubric_descriptors() == [rubric_descriptor]
     end
 
+    test "build_rubrics_descriptors_map/1 returns the map of rubrics descriptors ordered correctly" do
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})
+      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.2})
+
+      rubric_1 = rubric_fixture(%{scale_id: scale.id})
+      rubric_2 = rubric_fixture(%{scale_id: scale.id})
+
+      descriptor_1_1 =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_1.id
+        })
+
+      descriptor_1_2 =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric_1.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_2.id
+        })
+
+      descriptor_2_1 =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric_2.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_1.id
+        })
+
+      descriptor_2_2 =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric_2.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_2.id
+        })
+
+      expected = Rubrics.build_rubrics_descriptors_map([rubric_1.id, rubric_2.id])
+
+      [expected_descriptor_1_1, expected_descriptor_1_2] = expected[rubric_1.id]
+      assert expected_descriptor_1_1.id == descriptor_1_1.id
+      assert expected_descriptor_1_1.ordinal_value.id == ov_1.id
+      assert expected_descriptor_1_2.id == descriptor_1_2.id
+      assert expected_descriptor_1_2.ordinal_value.id == ov_2.id
+
+      [expected_descriptor_2_1, expected_descriptor_2_2] = expected[rubric_2.id]
+      assert expected_descriptor_2_1.id == descriptor_2_1.id
+      assert expected_descriptor_2_1.ordinal_value.id == ov_1.id
+      assert expected_descriptor_2_2.id == descriptor_2_2.id
+      assert expected_descriptor_2_2.ordinal_value.id == ov_2.id
+    end
+
     test "get_rubric_descriptor!/1 returns the rubric_descriptor with given id" do
       rubric_descriptor = rubric_descriptor_fixture()
       assert Rubrics.get_rubric_descriptor!(rubric_descriptor.id) == rubric_descriptor
@@ -823,6 +878,102 @@ defmodule Lanttern.RubricsTest do
     test "change_rubric_descriptor/1 returns a rubric_descriptor changeset" do
       rubric_descriptor = rubric_descriptor_fixture()
       assert %Ecto.Changeset{} = Rubrics.change_rubric_descriptor(rubric_descriptor)
+    end
+  end
+
+  describe "strands_rubrics" do
+    alias Lanttern.Rubrics.Rubric
+    alias Lanttern.AssessmentsFixtures
+    alias Lanttern.CurriculaFixtures
+    alias Lanttern.LearningContextFixtures
+
+    test "list_strand_rubrics_grouped_by_goal/1 returns all strand rubrics" do
+      strand = LearningContextFixtures.strand_fixture()
+
+      curriculum_component = CurriculaFixtures.curriculum_component_fixture()
+
+      curriculum_item =
+        CurriculaFixtures.curriculum_item_fixture(%{
+          curriculum_component_id: curriculum_component.id
+        })
+
+      diff_curriculum_item =
+        CurriculaFixtures.curriculum_item_fixture(%{
+          curriculum_component_id: curriculum_component.id
+        })
+
+      scale = GradingFixtures.scale_fixture()
+
+      assessment_point =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          scale_id: scale.id
+        })
+
+      diff_assessment_point =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand.id,
+          curriculum_item_id: diff_curriculum_item.id,
+          scale_id: scale.id,
+          is_differentiation: true
+        })
+
+      rubric_1 = rubric_fixture(%{scale_id: scale.id})
+      rubric_1_diff = rubric_fixture(%{scale_id: scale.id})
+      rubric_2 = rubric_fixture(%{scale_id: scale.id})
+
+      strand_rubric_1 =
+        strand_rubric_fixture(%{
+          scale_id: scale.id,
+          rubric_id: rubric_1.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      strand_rubric_1_diff =
+        strand_rubric_fixture(%{
+          scale_id: scale.id,
+          rubric_id: rubric_1_diff.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          is_differentiation: true
+        })
+
+      strand_rubric_2 =
+        strand_rubric_fixture(%{
+          scale_id: scale.id,
+          rubric_id: rubric_2.id,
+          strand_id: strand.id,
+          curriculum_item_id: diff_curriculum_item.id
+        })
+
+      [
+        {expected_assessment_point, [expected_strand_rubric_1, expected_strand_rubric_1_diff]},
+        {expected_diff_assessment_point, [expected_strand_rubric_2]}
+      ] = Rubrics.list_strand_rubrics_grouped_by_goal(strand.id)
+
+      assert expected_assessment_point.id == assessment_point.id
+      assert expected_assessment_point.curriculum_item.id == curriculum_item.id
+
+      assert expected_assessment_point.curriculum_item.curriculum_component.id ==
+               curriculum_component.id
+
+      refute expected_assessment_point.is_differentiation
+      assert expected_strand_rubric_1.id == strand_rubric_1.id
+      assert expected_strand_rubric_1.rubric.id == rubric_1.id
+      assert expected_strand_rubric_1_diff.id == strand_rubric_1_diff.id
+      assert expected_strand_rubric_1_diff.rubric.id == rubric_1_diff.id
+
+      assert expected_diff_assessment_point.id == diff_assessment_point.id
+      assert expected_diff_assessment_point.curriculum_item.id == diff_curriculum_item.id
+
+      assert expected_diff_assessment_point.curriculum_item.curriculum_component.id ==
+               curriculum_component.id
+
+      assert expected_diff_assessment_point.is_differentiation
+      assert expected_strand_rubric_2.id == strand_rubric_2.id
+      assert expected_strand_rubric_2.rubric.id == rubric_2.id
     end
   end
 end

@@ -8,8 +8,10 @@ defmodule Lanttern.Rubrics do
   import Lanttern.RepoHelpers
   alias Lanttern.Repo
 
+  alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Rubrics.Rubric
   alias Lanttern.Rubrics.RubricDescriptor
+  alias Lanttern.Rubrics.StrandRubric
 
   @doc """
   Returns the list of rubrics.
@@ -449,6 +451,33 @@ defmodule Lanttern.Rubrics do
   end
 
   @doc """
+  Returns a map with rubrics ids as keys and the list of
+  ordered descriptors as value.
+
+  Ordinal values are preloaded in descriptors.
+
+  ## Examples
+
+      iex> build_rubrics_descriptors_map(rubrics_ids)
+      %{1 => [%RubricDescriptor{}, ...], ...}
+
+  """
+  @spec build_rubrics_descriptors_map([pos_integer()]) :: %{
+          pos_integer() => [RubricDescriptor.t()]
+        }
+  def build_rubrics_descriptors_map(rubrics_ids) do
+    from(
+      d in RubricDescriptor,
+      left_join: ov in assoc(d, :ordinal_value),
+      where: d.rubric_id in ^rubrics_ids,
+      order_by: [d.score, ov.normalized_value],
+      preload: [ordinal_value: ov]
+    )
+    |> Repo.all()
+    |> Enum.group_by(& &1.rubric_id)
+  end
+
+  @doc """
   Gets a single rubric_descriptor.
 
   Raises `Ecto.NoResultsError` if the Rubric descriptor does not exist.
@@ -628,6 +657,67 @@ defmodule Lanttern.Rubrics do
 
       rubric
     end)
+  end
+
+  @doc """
+  List all strand rubrics grouped by strand goals (assessment points).
+
+  Assessment points preload `curriculum_item` with
+  `curriculum_component` and are ordered by position.
+
+  Strand rubrics preload `rubric` and are ordered position.
+
+  ## Examples
+
+      iex> list_strand_rubrics_grouped_by_goal(1)
+      [{%AssessmentPoint{}, [%StrandRubric{}, ...]}, ...]
+
+  """
+  @spec list_strand_rubrics_grouped_by_goal(strand_id :: pos_integer()) :: [
+          {AssessmentPoint.t(), [StrandRubric.t()]}
+        ]
+  def list_strand_rubrics_grouped_by_goal(strand_id) do
+    curriculum_items_rubrics_map =
+      from(
+        sr in StrandRubric,
+        join: r in assoc(sr, :rubric),
+        where: sr.strand_id == ^strand_id,
+        preload: [rubric: r],
+        order_by: sr.position
+      )
+      |> Repo.all()
+      |> Enum.group_by(& &1.curriculum_item_id)
+
+    from(
+      ap in AssessmentPoint,
+      join: ci in assoc(ap, :curriculum_item),
+      join: cc in assoc(ci, :curriculum_component),
+      where: ap.strand_id == ^strand_id,
+      preload: [curriculum_item: {ci, curriculum_component: cc}],
+      order_by: ap.position
+    )
+    |> Repo.all()
+    |> Enum.map(fn ap ->
+      {ap, Map.get(curriculum_items_rubrics_map, ap.curriculum_item_id, [])}
+    end)
+  end
+
+  @doc """
+  Creates a strand rubric.
+
+  ## Examples
+
+      iex> create_strand_rubric(%{field: value})
+      {:ok, %Rubric{}}
+
+      iex> create_strand_rubric(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_strand_rubric(attrs \\ %{}) do
+    %StrandRubric{}
+    |> StrandRubric.changeset(attrs)
+    |> Repo.insert()
   end
 
   # helpers

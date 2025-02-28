@@ -8,7 +8,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
   import LantternWeb.FiltersHelpers, only: [assign_strand_classes_filter: 1]
 
   # shared components
-  import LantternWeb.RubricsComponents
+  alias LantternWeb.Rubrics.RubricDescriptorsComponent
   alias LantternWeb.Rubrics.RubricFormComponent
 
   @impl true
@@ -29,7 +29,76 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
             </cite>
           </p>
         </div>
-        <.card_base :for={goal <- @goals} id={"strand-assessment-point-#{goal.id}"} class="p-6 mt-6">
+        <div id="curriculum-items-strand-rubrics" phx-update="stream">
+          <.card_base
+            :for={{dom_id, {goal, strand_rubrics}} <- @streams.goals_strand_rubrics}
+            id={dom_id}
+            class={[
+              "p-6 mt-6",
+              if(goal.is_differentiation, do: "border border-ltrn-diff-accent")
+            ]}
+          >
+            <div class="flex items-center gap-4">
+              <div class="flex-1">
+                <.badge :if={goal.is_differentiation} theme="diff" class="mb-2">
+                  <%= gettext("Curriculum differentiation") %>
+                </.badge>
+                <p>
+                  <strong class="inline-block mr-2 font-display font-bold">
+                    <%= goal.curriculum_item.curriculum_component.name %>
+                  </strong>
+                  <%= goal.curriculum_item.name %>
+                </p>
+              </div>
+              <%= if strand_rubrics != [] do %>
+                <.toggle_expand_button
+                  id={"#{dom_id}-strand-rubrics-toggle-button"}
+                  target_selector={"##{dom_id}-strand-rubrics"}
+                />
+              <% else %>
+                <.action
+                  type="link"
+                  icon_name="hero-plus-circle-mini"
+                  patch={~p"/strands/#{@strand}/rubrics?new_rubric_for_goal=#{goal.id}"}
+                >
+                  <%= gettext("Add rubric") %>
+                </.action>
+              <% end %>
+            </div>
+            <div id={"#{dom_id}-strand-rubrics"}>
+              <div
+                :for={strand_rubric <- strand_rubrics}
+                class="pt-6 border-t border-ltrn-lighter mt-6"
+                id={"strand-rubric-#{strand_rubric.id}"}
+              >
+                <div class="flex items-start gap-4 mb-6">
+                  <div class="flex-1">
+                    <.badge :if={strand_rubric.is_differentiation} theme="diff" class="mb-2">
+                      <%= gettext("Rubric differentiation") %>
+                    </.badge>
+                    <p class="font-display font-black">
+                      <%= gettext("Rubric criteria") %>: <%= strand_rubric.rubric.criteria %>
+                    </p>
+                  </div>
+                  <.action
+                    type="link"
+                    patch={~p"/strands/#{@strand}/rubrics?edit_rubric=#{strand_rubric.rubric.id}"}
+                    icon_name="hero-pencil-mini"
+                  >
+                    <%= gettext("Edit") %>
+                  </.action>
+                </div>
+                <.live_component
+                  module={RubricDescriptorsComponent}
+                  id={"#{dom_id}-rubric-#{strand_rubric.rubric.id}-descriptors"}
+                  rubric={strand_rubric.rubric}
+                  class="overflow-x-auto"
+                />
+              </div>
+            </div>
+          </.card_base>
+        </div>
+        <%!-- <.card_base :for={goal <- @goals} id={"strand-assessment-point-#{goal.id}"} class="p-6 mt-6">
           <div class="flex items-center gap-4">
             <p class="flex-1 text-sm">
               <.badge :if={goal.is_differentiation} theme="diff" class="mr-2">
@@ -147,7 +216,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
               />
             </div>
           </div>
-        </section>
+        </section> --%>
       </.responsive_container>
       <.live_component
         module={LantternWeb.Filters.ClassesFilterOverlayComponent}
@@ -217,28 +286,28 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
     """
   end
 
-  attr :goal_id, :integer, required: true
-  attr :criteria_text, :string, required: true
-  attr :class, :any, default: nil
-  attr :id, :string, required: true
-  attr :rubric, :any, required: true
-  attr :patch, :string, required: true
+  # attr :goal_id, :integer, required: true
+  # attr :criteria_text, :string, required: true
+  # attr :class, :any, default: nil
+  # attr :id, :string, required: true
+  # attr :rubric, :any, required: true
+  # attr :patch, :string, required: true
 
-  def rubric(assigns) do
-    ~H"""
-    <div class={@class} id={@id}>
-      <p class="mb-6 font-display font-black">
-        <%= @criteria_text %>: <%= @rubric.criteria %>
-        <.link patch={@patch} class="ml-2 underline text-ltrn-subtle hover:text-ltrn-dark">
-          <%= gettext("Edit") %>
-        </.link>
-      </p>
-      <div class="overflow-x-auto">
-        <.rubric_descriptors rubric={@rubric} />
-      </div>
-    </div>
-    """
-  end
+  # def rubric(assigns) do
+  #   ~H"""
+  #   <div class={@class} id={@id}>
+  #     <p class="mb-6 font-display font-black">
+  #       <%= @criteria_text %>: <%= @rubric.criteria %>
+  #       <.link patch={@patch} class="ml-2 underline text-ltrn-subtle hover:text-ltrn-dark">
+  #         <%= gettext("Edit") %>
+  #       </.link>
+  #     </p>
+  #     <div class="overflow-x-auto">
+  #       <.rubric_descriptors rubric={@rubric} />
+  #     </div>
+  #   </div>
+  #   """
+  # end
 
   # lifecycle
 
@@ -249,6 +318,13 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
       |> assign(:rubric, nil)
       |> assign(:curriculum_item, nil)
       |> assign(:current_student_diff_rubrics_map, %{})
+      |> stream_configure(
+        :goals_strand_rubrics,
+        dom_id: fn
+          {goal, _strand_rubrics} -> "assessment-point-#{goal.id}"
+          _ -> ""
+        end
+      )
       |> assign(:initialized, false)
 
     {:ok, socket}
@@ -267,6 +343,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
+    |> stream_goals_strand_rubrics()
     |> assign_strand_classes_filter()
     |> assign_goals()
     |> assign_students()
@@ -274,6 +351,14 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
   end
 
   defp initialize(socket), do: socket
+
+  defp stream_goals_strand_rubrics(socket) do
+    goals_strand_rubrics =
+      Rubrics.list_strand_rubrics_grouped_by_goal(socket.assigns.strand.id)
+
+    socket
+    |> stream(:goals_strand_rubrics, goals_strand_rubrics)
+  end
 
   defp assign_goals(socket) do
     goals =
