@@ -974,6 +974,26 @@ defmodule Lanttern.RubricsTest do
       assert expected_diff_assessment_point.is_differentiation
       assert expected_strand_rubric_2.id == strand_rubric_2.id
       assert expected_strand_rubric_2.rubric.id == rubric_2.id
+
+      # use same setup to validate exclude_diff opt
+      [
+        {expected_assessment_point, [expected_strand_rubric_1]}
+      ] = Rubrics.list_strand_rubrics_grouped_by_goal(strand.id, exclude_diff: true)
+
+      assert expected_assessment_point.id == assessment_point.id
+      assert expected_strand_rubric_1.id == strand_rubric_1.id
+
+      # use same setup to validate only_diff opt
+      [
+        {expected_assessment_point, [expected_strand_rubric_1_diff]},
+        {expected_diff_assessment_point, [expected_strand_rubric_2]}
+      ] = Rubrics.list_strand_rubrics_grouped_by_goal(strand.id, only_diff: true)
+
+      assert expected_assessment_point.id == assessment_point.id
+      assert expected_strand_rubric_1_diff.id == strand_rubric_1_diff.id
+
+      assert expected_diff_assessment_point.id == diff_assessment_point.id
+      assert expected_strand_rubric_2.id == strand_rubric_2.id
     end
   end
 end

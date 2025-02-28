@@ -79,6 +79,7 @@ defmodule LantternWeb.CoreComponents do
     "default" => "text-ltrn-dark hover:text-ltrn-subtle",
     "subtle" => "text-ltrn-subtle hover:text-ltrn-dark",
     "primary" => "text-ltrn-dark hover:text-ltrn-subtle",
+    "diff" => "text-ltrn-diff-dark hover:text-ltrn-diff-dark/60",
     "student" => "text-ltrn-student-dark hover:text-ltrn-student-dark/80",
     "staff" => "text-ltrn-staff-dark hover:text-ltrn-staff-dark/80",
     "alert" => "text-ltrn-subtle hover:text-ltrn-alert-accent"
@@ -88,6 +89,7 @@ defmodule LantternWeb.CoreComponents do
     "default" => nil,
     "subtle" => nil,
     "primary" => "bg-ltrn-mesh-primary",
+    "diff" => "bg-ltrn-diff-lightest",
     "student" => "bg-ltrn-student-lightest",
     "staff" => "bg-ltrn-staff-lightest",
     "alert" => "bg-ltrn-alert-lighter"

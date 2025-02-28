@@ -65,77 +65,37 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                 </.action>
               <% end %>
             </div>
-            <div id={"#{dom_id}-strand-rubrics"}>
-              <div
-                :for={strand_rubric <- strand_rubrics}
+            <div
+              :if={strand_rubrics != []}
+              phx-hook="Sortable"
+              id={"#{dom_id}-strand-rubrics"}
+              data-sortable-handle=".sortable-handle"
+              data-group-name="goal"
+              data-group-id={goal.id}
+            >
+              <.rubric
+                :for={sr <- strand_rubrics}
                 class="pt-6 border-t border-ltrn-lighter mt-6"
-                id={"strand-rubric-#{strand_rubric.id}"}
-              >
-                <div class="flex items-start gap-4 mb-6">
-                  <div class="flex-1">
-                    <.badge :if={strand_rubric.is_differentiation} theme="diff" class="mb-2">
-                      <%= gettext("Rubric differentiation") %>
-                    </.badge>
-                    <p class="font-display font-black">
-                      <%= gettext("Rubric criteria") %>: <%= strand_rubric.rubric.criteria %>
-                    </p>
-                  </div>
-                  <.action
-                    type="link"
-                    patch={~p"/strands/#{@strand}/rubrics?edit_rubric=#{strand_rubric.rubric.id}"}
-                    icon_name="hero-pencil-mini"
-                  >
-                    <%= gettext("Edit") %>
-                  </.action>
-                </div>
-                <.live_component
-                  module={RubricDescriptorsComponent}
-                  id={"#{dom_id}-rubric-#{strand_rubric.rubric.id}-descriptors"}
-                  rubric={strand_rubric.rubric}
-                  class="overflow-x-auto"
-                />
+                id={"strand-rubric-#{sr.id}"}
+                goal_id={goal.id}
+                rubric={sr.rubric}
+                edit_patch={~p"/strands/#{@strand}/rubrics?edit_rubric=#{sr.rubric_id}"}
+              />
+              <div class="flex justify-center pt-6 border-t border-ltrn-lighter mt-6">
+                <.action
+                  type="link"
+                  icon_name="hero-plus-circle-mini"
+                  patch={~p"/strands/#{@strand}/rubrics?new_rubric_for_goal=#{goal.id}"}
+                  class="mx-auto"
+                >
+                  <%= gettext("Add another rubric to assess this goal") %>
+                </.action>
               </div>
             </div>
           </.card_base>
         </div>
-        <%!-- <.card_base :for={goal <- @goals} id={"strand-assessment-point-#{goal.id}"} class="p-6 mt-6">
-          <div class="flex items-center gap-4">
-            <p class="flex-1 text-sm">
-              <.badge :if={goal.is_differentiation} theme="diff" class="mr-2">
-                <%= gettext("Diff") %>
-              </.badge>
-              <strong class="inline-block mr-2 font-display font-bold">
-                <%= goal.curriculum_item.curriculum_component.name %>
-              </strong>
-              <%= goal.curriculum_item.name %>
-            </p>
-            <%= if goal.rubric do %>
-              <.toggle_expand_button
-                id={"strand-assessment-point-#{goal.id}-toggle-button"}
-                target_selector={"#goal-rubric-#{goal.rubric_id}"}
-              />
-            <% else %>
-              <.button
-                type="link"
-                theme="ghost"
-                patch={~p"/strands/#{@strand}/rubrics?new_rubric_for_goal=#{goal.id}"}
-              >
-                <%= gettext("Add rubric") %>
-              </.button>
-            <% end %>
-          </div>
-          <.rubric
-            :if={goal.rubric}
-            class="pt-6 border-t border-ltrn-lighter mt-6"
-            id={"goal-rubric-#{goal.rubric_id}"}
-            goal_id={goal.id}
-            rubric={goal.rubric}
-            criteria_text={gettext("Rubric criteria")}
-            patch={~p"/strands/#{@strand}/rubrics?edit_rubric_for_goal=#{goal.id}"}
-          />
-        </.card_base>
         <section id="differentiation-rubrics-section" class="pb-10 mt-10">
-          <h4 class="font-display font-black text-xl text-ltrn-subtle">
+          <h4 class="font-display font-black text-xl text-ltrn-diff-dark">
             <%= gettext("Differentiation") %>
           </h4>
           <.action
@@ -149,74 +109,82 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
               gettext("Select a class to view differentiation rubrics")
             ) %>
           </.action>
-          <div role="tablist" class="flex flex-wrap items-center gap-2 mt-6">
-            <.person_tab
-              :for={student <- @students}
-              aria-controls={"student-#{student.id}-diff-panel"}
-              person={student}
-              container_selector="#differentiation-rubrics-section"
-              on_click={JS.push("load_diff_rubrics", value: %{student_id: student.id})}
-              phx-target={@myself}
-              theme={if student.has_diff_rubric, do: "diff", else: "default"}
-            />
-          </div>
-          <div
-            :for={student <- @students}
-            id={"student-#{student.id}-diff-panel"}
-            role="tabpanel"
-            class="hidden"
-          >
-            <div
-              :for={goal <- @goals_with_rubrics}
-              id={"strand-assessment-point-#{student.id}-#{goal.id}"}
+          <div id="strand-diff-rubrics-list" phx-update="stream">
+            <.card_base
+              :for={
+                {dom_id, {goal, strand_rubrics}} <-
+                  @streams.diff_goals_strand_rubrics
+              }
+              id={dom_id}
               class={[
-                "p-6 rounded mt-6 bg-white shadow-lg",
-                if(@current_student_diff_rubrics_map[goal.rubric_id],
-                  do: "border border-ltrn-diff-accent"
-                )
+                "p-6 mt-6",
+                if(goal.is_differentiation, do: "border border-ltrn-diff-accent")
               ]}
             >
               <div class="flex items-center gap-4">
-                <p class="flex-1 text-sm">
-                  <.badge :if={goal.is_differentiation} theme="diff" class="mr-2">
-                    <%= gettext("Diff") %>
+                <div class="flex-1">
+                  <.badge :if={goal.is_differentiation} theme="diff" class="mb-2">
+                    <%= gettext("Curriculum differentiation") %>
                   </.badge>
-                  <strong class="inline-block mr-2 font-display font-bold">
-                    <%= goal.curriculum_item.curriculum_component.name %>
-                  </strong>
-                  <%= goal.curriculum_item.name %>
-                </p>
-                <%= if @current_student_diff_rubrics_map[goal.rubric_id] do %>
+                  <p>
+                    <strong class="inline-block mr-2 font-display font-bold">
+                      <%= goal.curriculum_item.curriculum_component.name %>
+                    </strong>
+                    <%= goal.curriculum_item.name %>
+                  </p>
+                </div>
+                <%= if strand_rubrics != [] do %>
                   <.toggle_expand_button
-                    id={"strand-assessment-point-#{student.id}-#{goal.id}-toggle-button"}
-                    target_selector={"#goal-student-#{student.id}-rubric-#{@current_student_diff_rubrics_map[goal.rubric_id].id}"}
+                    id={"#{dom_id}-strand-rubrics-toggle-button"}
+                    target_selector={"##{dom_id}-strand-rubrics"}
                   />
                 <% else %>
-                  <.button
+                  <.action
                     type="link"
-                    theme="ghost"
+                    icon_name="hero-plus-circle-mini"
                     patch={
-                      ~p"/strands/#{@strand}/rubrics?new_diff_rubric_for_goal=#{goal.id}&student=#{student.id}"
+                      ~p"/strands/#{@strand}/rubrics?new_rubric_for_goal=#{goal.id}&is_diff=true"
                     }
+                    theme="diff"
                   >
-                    <%= gettext("Add diff") %>
-                  </.button>
+                    <%= gettext("Add diff rubric") %>
+                  </.action>
                 <% end %>
               </div>
-              <.rubric
-                :if={@current_student_diff_rubrics_map[goal.rubric_id]}
-                class="pt-6 border-t border-ltrn-lighter mt-6"
-                id={"goal-student-#{student.id}-rubric-#{@current_student_diff_rubrics_map[goal.rubric_id].id}"}
-                goal_id={goal.id}
-                rubric={@current_student_diff_rubrics_map[goal.rubric_id]}
-                criteria_text={gettext("Differentiation rubric criteria")}
-                patch={
-                  ~p"/strands/#{@strand}/rubrics?edit_diff_rubric_for_goal=#{goal.id}&student=#{student.id}"
-                }
-              />
-            </div>
+              <div
+                :if={strand_rubrics != []}
+                phx-hook="Sortable"
+                id={"#{dom_id}-strand-rubrics"}
+                data-sortable-handle=".sortable-handle"
+                data-group-name="goal-diff"
+                data-group-id={goal.id}
+              >
+                <.rubric
+                  :for={sr <- strand_rubrics}
+                  class="pt-6 border-t border-ltrn-lighter mt-6"
+                  id={"assessment-point-rubric-#{sr.id}"}
+                  goal_id={goal.id}
+                  rubric={sr.rubric}
+                  is_diff={sr.is_differentiation}
+                  edit_patch={~p"/strands/#{@strand}/rubrics?edit_rubric=#{sr.rubric_id}"}
+                />
+                <div class="flex justify-center pt-6 border-t border-ltrn-lighter mt-6">
+                  <.action
+                    type="link"
+                    icon_name="hero-plus-circle-mini"
+                    patch={
+                      ~p"/strands/#{@strand}/rubrics?new_rubric_for_goal=#{goal.id}&is_diff=true"
+                    }
+                    class="mx-auto"
+                    theme="diff"
+                  >
+                    <%= gettext("Add another differentiation rubric to assess this goal") %>
+                  </.action>
+                </div>
+              </div>
+            </.card_base>
           </div>
-        </section> --%>
+        </section>
       </.responsive_container>
       <.live_component
         module={LantternWeb.Filters.ClassesFilterOverlayComponent}
@@ -286,28 +254,39 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
     """
   end
 
-  # attr :goal_id, :integer, required: true
-  # attr :criteria_text, :string, required: true
-  # attr :class, :any, default: nil
-  # attr :id, :string, required: true
-  # attr :rubric, :any, required: true
-  # attr :patch, :string, required: true
+  attr :goal_id, :integer, required: true
+  attr :is_diff, :boolean, default: false
+  attr :class, :any, default: nil
+  attr :id, :string, required: true
+  attr :rubric, Rubric, required: true
+  attr :edit_patch, :string, required: true
 
-  # def rubric(assigns) do
-  #   ~H"""
-  #   <div class={@class} id={@id}>
-  #     <p class="mb-6 font-display font-black">
-  #       <%= @criteria_text %>: <%= @rubric.criteria %>
-  #       <.link patch={@patch} class="ml-2 underline text-ltrn-subtle hover:text-ltrn-dark">
-  #         <%= gettext("Edit") %>
-  #       </.link>
-  #     </p>
-  #     <div class="overflow-x-auto">
-  #       <.rubric_descriptors rubric={@rubric} />
-  #     </div>
-  #   </div>
-  #   """
-  # end
+  def rubric(assigns) do
+    ~H"""
+    <div class={@class} id={@id}>
+      <div class="flex items-center gap-2 mb-6">
+        <.drag_handle class="sortable-handle" />
+        <div class="flex-1 pr-2">
+          <.badge :if={@is_diff} theme="diff" class="mb-2">
+            <%= gettext("Rubric differentiation") %>
+          </.badge>
+          <p class="font-display font-black">
+            <%= gettext("Rubric criteria") %>: <%= @rubric.criteria %>
+          </p>
+        </div>
+        <.action type="link" patch={@edit_patch} icon_name="hero-pencil-mini">
+          <%= gettext("Edit") %>
+        </.action>
+      </div>
+      <.live_component
+        module={RubricDescriptorsComponent}
+        id={"#{@id}-rubric-descriptors"}
+        rubric={@rubric}
+        class="overflow-x-auto"
+      />
+    </div>
+    """
+  end
 
   # lifecycle
 
@@ -321,7 +300,14 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
       |> stream_configure(
         :goals_strand_rubrics,
         dom_id: fn
-          {goal, _strand_rubrics} -> "assessment-point-#{goal.id}"
+          {goal, _strand_rubrics} -> "goal-#{goal.id}"
+          _ -> ""
+        end
+      )
+      |> stream_configure(
+        :diff_goals_strand_rubrics,
+        dom_id: fn
+          {goal, _strand_rubrics} -> "goal-#{goal.id}-diff"
           _ -> ""
         end
       )
@@ -344,6 +330,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
     |> stream_goals_strand_rubrics()
+    |> stream_diff_goals_strand_rubrics()
     |> assign_strand_classes_filter()
     |> assign_goals()
     |> assign_students()
@@ -354,10 +341,42 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
 
   defp stream_goals_strand_rubrics(socket) do
     goals_strand_rubrics =
-      Rubrics.list_strand_rubrics_grouped_by_goal(socket.assigns.strand.id)
+      Rubrics.list_strand_rubrics_grouped_by_goal(socket.assigns.strand.id, exclude_diff: true)
+
+    # keep track of strand rubrics ids order and index for sorting
+
+    # "spec" %{"goal_id" => [strand_rubric_id, ...], ...}
+    goals_strand_rubrics_order_map =
+      goals_strand_rubrics
+      |> Enum.map(fn {goal, strands_rubrics} ->
+        strands_rubrics_ids = Enum.map(strands_rubrics, & &1.id)
+        {"#{goal.id}", strands_rubrics_ids}
+      end)
+      |> Enum.into(%{})
 
     socket
     |> stream(:goals_strand_rubrics, goals_strand_rubrics)
+    |> assign(:goals_strand_rubrics_order_map, goals_strand_rubrics_order_map)
+  end
+
+  defp stream_diff_goals_strand_rubrics(socket) do
+    diff_goals_strand_rubrics =
+      Rubrics.list_strand_rubrics_grouped_by_goal(socket.assigns.strand.id, only_diff: true)
+
+    # keep track of strand rubrics ids order and index for sorting
+
+    # "spec" %{"goal_id" => [strand_rubric_id, ...], ...}
+    diff_goals_strand_rubrics_order_map =
+      diff_goals_strand_rubrics
+      |> Enum.map(fn {goal, strands_rubrics} ->
+        strands_rubrics_ids = Enum.map(strands_rubrics, & &1.id)
+        {"#{goal.id}", strands_rubrics_ids}
+      end)
+      |> Enum.into(%{})
+
+    socket
+    |> stream(:diff_goals_strand_rubrics, diff_goals_strand_rubrics)
+    |> assign(:diff_goals_strand_rubrics_order_map, diff_goals_strand_rubrics_order_map)
   end
 
   defp assign_goals(socket) do
@@ -519,6 +538,46 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
   # event handlers
 
   @impl true
+  # view Sortable hook for payload info
+  def handle_event("sortable_update", payload, socket) do
+    %{
+      "groupName" => group,
+      "groupId" => goal_id,
+      "oldIndex" => old_index,
+      "newIndex" => new_index
+    } = payload
+
+    goals_strand_rubrics_order_map =
+      case group do
+        "goal" -> socket.assigns.goals_strand_rubrics_order_map
+        "goal-diff" -> socket.assigns.diff_goals_strand_rubrics_order_map
+      end
+
+    strand_rubrics_ids =
+      goals_strand_rubrics_order_map
+      |> Map.get(goal_id)
+
+    {changed_id, rest} = List.pop_at(strand_rubrics_ids, old_index)
+    strand_rubrics_ids = List.insert_at(rest, new_index, changed_id)
+
+    # the inteface was already updated (optimistic update)
+    # just persist the new order
+    Rubrics.update_strand_rubrics_positions(strand_rubrics_ids)
+
+    goals_strand_rubrics_order_map =
+      goals_strand_rubrics_order_map
+      |> Map.put(goal_id, strand_rubrics_ids)
+
+    goals_strand_rubrics_order_map_assign =
+      case group do
+        "goal" -> :goals_strand_rubrics_order_map
+        "goal-diff" -> :diff_goals_strand_rubrics_order_map
+      end
+
+    {:noreply,
+     assign(socket, goals_strand_rubrics_order_map_assign, goals_strand_rubrics_order_map)}
+  end
+
   def handle_event("delete_rubric", _, socket) do
     case Rubrics.delete_rubric(socket.assigns.rubric) do
       {:ok, _rubric} ->
