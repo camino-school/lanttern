@@ -473,6 +473,41 @@ defmodule Lanttern.RubricsTest do
       assert expected.scale.id == scale.id
     end
 
+    test "load_rubric_descriptors/1 returns rubric with descriptors preloaded and ordered correctly" do
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})
+      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.2})
+
+      rubric = rubric_fixture(%{scale_id: scale.id})
+
+      descriptor_2 =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_2.id
+        })
+
+      descriptor_1 =
+        rubric_descriptor_fixture(%{
+          rubric_id: rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_1.id
+        })
+
+      # other descriptors and rubrics for filter test
+      rubric_descriptor_fixture()
+      rubric_descriptor_fixture()
+
+      expected = Rubrics.load_rubric_descriptors(rubric)
+      assert expected.id == rubric.id
+
+      [expected_descriptor_1, expected_descriptor_2] = expected.descriptors
+      assert expected_descriptor_1.id == descriptor_1.id
+      assert expected_descriptor_2.id == descriptor_2.id
+    end
+
     test "get_full_rubric!/1 returns rubric with descriptors preloaded and ordered correctly" do
       scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
       ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})
@@ -1001,6 +1036,211 @@ defmodule Lanttern.RubricsTest do
     test "change_rubric_descriptor/1 returns a rubric_descriptor changeset" do
       rubric_descriptor = rubric_descriptor_fixture()
       assert %Ecto.Changeset{} = Rubrics.change_rubric_descriptor(rubric_descriptor)
+    end
+  end
+
+  describe "rubric assessment points" do
+    alias Lanttern.AssessmentsFixtures
+    alias Lanttern.CurriculaFixtures
+    alias Lanttern.GradingFixtures
+    alias Lanttern.LearningContextFixtures
+
+    alias Lanttern.Assessments
+
+    test "list_rubric_assessment_points_options/1 returns all assessment points eligible to rubric connection" do
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+
+      strand = LearningContextFixtures.strand_fixture()
+      moment_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+      moment_2 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+
+      rubric =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      other_rubric =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      goal =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          rubric_id: rubric.id
+        })
+
+      moment_1_ap =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          scale_id: scale.id,
+          moment_id: moment_1.id,
+          curriculum_item_id: curriculum_item.id,
+          rubric_id: other_rubric.id
+        })
+
+      moment_2_ap =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          scale_id: scale.id,
+          moment_id: moment_2.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      # other assessment points for filter test
+
+      _goal_with_other_curriculum_item =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id
+        })
+
+      _same_curriculum_different_scale =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_1.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      _same_scale_different_curriculum =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_2.id,
+          scale_id: scale.id
+        })
+
+      _differentiation_ap =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          scale_id: scale.id,
+          moment_id: moment_2.id,
+          curriculum_item_id: curriculum_item.id,
+          is_differentiation: true
+        })
+
+      [{expected_goal, true}, {expected_moment_1_ap, false}, {expected_moment_2_ap, false}] =
+        Rubrics.list_rubric_assessment_points_options(rubric)
+
+      assert expected_goal.id == goal.id
+
+      assert expected_moment_1_ap.id == moment_1_ap.id
+      assert expected_moment_1_ap.moment.id == moment_1.id
+
+      assert expected_moment_2_ap.id == moment_2_ap.id
+      assert expected_moment_2_ap.moment.id == moment_2.id
+    end
+
+    test "create_rubric/1 with link_to_assessment_points_ids params updates the assessment points" do
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+
+      strand = LearningContextFixtures.strand_fixture()
+      moment_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+      moment_2 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+
+      other_rubric =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      goal =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          rubric_id: other_rubric.id
+        })
+
+      moment_1_ap =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          scale_id: scale.id,
+          moment_id: moment_1.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      moment_2_ap =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          scale_id: scale.id,
+          moment_id: moment_2.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      valid_attrs = %{
+        "criteria" => "some criteria",
+        "scale_id" => scale.id,
+        "strand_id" => strand.id,
+        "curriculum_item_id" => curriculum_item.id,
+        "link_to_assessment_points_ids" => [goal.id, moment_1_ap.id]
+      }
+
+      assert {:ok, rubric} = Rubrics.create_rubric(valid_attrs)
+
+      goal = Assessments.get_assessment_point!(goal.id)
+      assert goal.rubric_id == rubric.id
+
+      moment_1_ap = Assessments.get_assessment_point!(moment_1_ap.id)
+      assert moment_1_ap.rubric_id == rubric.id
+
+      moment_2_ap = Assessments.get_assessment_point!(moment_2_ap.id)
+      assert is_nil(moment_2_ap.rubric_id)
+    end
+
+    test "update_rubric/1 with link_to and unlink_from_assessment_points_ids params updates the assessment points" do
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+
+      strand = LearningContextFixtures.strand_fixture()
+      moment_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+      moment_2 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+
+      rubric =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      goal =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          rubric_id: rubric.id
+        })
+
+      moment_1_ap =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          scale_id: scale.id,
+          moment_id: moment_1.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      moment_2_ap =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          scale_id: scale.id,
+          moment_id: moment_2.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      valid_attrs = %{
+        "link_to_assessment_points_ids" => [moment_1_ap.id],
+        "unlink_from_assessment_points_ids" => [goal.id]
+      }
+
+      assert {:ok, rubric} = Rubrics.update_rubric(rubric, valid_attrs)
+
+      goal = Assessments.get_assessment_point!(goal.id)
+      assert is_nil(goal.rubric_id)
+
+      moment_1_ap = Assessments.get_assessment_point!(moment_1_ap.id)
+      assert moment_1_ap.rubric_id == rubric.id
+
+      moment_2_ap = Assessments.get_assessment_point!(moment_2_ap.id)
+      assert is_nil(moment_2_ap.rubric_id)
     end
   end
 end

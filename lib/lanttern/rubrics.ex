@@ -309,6 +309,29 @@ defmodule Lanttern.Rubrics do
   end
 
   @doc """
+  Load the rubric descriptors, ordered by score or ordinal value normalized value.
+
+  ## Examples
+
+      iex> load_rubric_descriptors(rubric)
+      %Rubric{}
+
+  """
+  @spec load_rubric_descriptors(Rubric.t()) :: Rubric.t()
+  def load_rubric_descriptors(%Rubric{} = rubric) do
+    descriptors =
+      from(
+        d in RubricDescriptor,
+        left_join: ov in assoc(d, :ordinal_value),
+        where: d.rubric_id == ^rubric.id,
+        order_by: [d.score, ov.normalized_value]
+      )
+      |> Repo.all()
+
+    %{rubric | descriptors: descriptors}
+  end
+
+  @doc """
   Returns the rubric with scale, descriptors, and descriptors ordinal values preloaded.
 
   Descriptors are ordered using the following rules:
@@ -385,9 +408,19 @@ defmodule Lanttern.Rubrics do
 
   """
   def create_rubric(attrs \\ %{}, opts \\ []) do
-    %Rubric{}
-    |> Rubric.changeset(attrs)
-    |> Repo.insert()
+    Ecto.Multi.new()
+    # :insert would be a better multi name, but we use the generic
+    # :rubric name to allow maybe_link/unlink_assessment_points reuse
+    |> Ecto.Multi.insert(
+      :rubric,
+      Rubric.changeset(%Rubric{}, attrs)
+    )
+    |> maybe_link_assessment_points(attrs)
+    |> Repo.transaction()
+    |> case do
+      {:error, _multi, changeset, _changes} -> {:error, changeset}
+      {:ok, %{rubric: rubric}} -> {:ok, rubric}
+    end
     |> maybe_preload(opts)
   end
 
@@ -418,15 +451,26 @@ defmodule Lanttern.Rubrics do
 
   """
   def update_rubric(%Rubric{} = rubric, attrs, opts \\ []) do
-    rubric
-    |> Rubric.changeset(attrs)
-    |> internal_update_rubric(opts)
+    Ecto.Multi.new()
+    |> Ecto.Multi.run(:rubric, fn _repo, _changes ->
+      rubric
+      |> Rubric.changeset(attrs)
+      |> internal_update_rubric()
+    end)
+    |> maybe_link_assessment_points(attrs)
+    |> maybe_unlink_assessment_points(attrs)
+    |> Repo.transaction()
+    |> case do
+      {:error, _multi, changeset, _changes} -> {:error, changeset}
+      {:ok, %{rubric: rubric}} -> {:ok, rubric}
+    end
+    |> maybe_preload(opts)
   end
 
-  defp internal_update_rubric(%Ecto.Changeset{valid?: false} = changeset, _opts),
+  defp internal_update_rubric(%Ecto.Changeset{valid?: false} = changeset),
     do: {:error, changeset}
 
-  defp internal_update_rubric(%Ecto.Changeset{} = changeset, opts) do
+  defp internal_update_rubric(%Ecto.Changeset{} = changeset) do
     case {
       Ecto.Changeset.get_change(changeset, :scale_id),
       Ecto.Changeset.get_change(changeset, :descriptors)
@@ -434,12 +478,10 @@ defmodule Lanttern.Rubrics do
       {nil, _} ->
         changeset
         |> Repo.update()
-        |> maybe_preload(opts)
 
       {_, descriptors} when is_nil(descriptors) or descriptors == [] ->
         changeset
         |> Repo.update()
-        |> maybe_preload(opts)
 
       {_, _} ->
         remove_descriptors_ids =
@@ -474,7 +516,6 @@ defmodule Lanttern.Rubrics do
         )
         |> Repo.transaction()
         |> format_update_rubric_transaction_response()
-        |> maybe_preload(opts)
     end
   end
 
@@ -483,6 +524,43 @@ defmodule Lanttern.Rubrics do
 
   defp format_update_rubric_transaction_response({:error, _multi_name, error}),
     do: {:error, error}
+
+  defp maybe_link_assessment_points(multi, %{"link_to_assessment_points_ids" => ids})
+       when is_list(ids) do
+    multi
+    |> Ecto.Multi.update_all(
+      :link_to_assessment_points,
+      fn %{rubric: rubric} ->
+        from(
+          ap in AssessmentPoint,
+          where: ap.id in ^ids,
+          update: [set: [rubric_id: ^rubric.id]]
+        )
+      end,
+      []
+    )
+  end
+
+  defp maybe_link_assessment_points(multi, _attrs), do: multi
+
+  defp maybe_unlink_assessment_points(multi, %{"unlink_from_assessment_points_ids" => ids})
+       when is_list(ids) do
+    multi
+    |> Ecto.Multi.update_all(
+      :unlink_from_assessment_points,
+      fn %{rubric: rubric} ->
+        from(
+          ap in AssessmentPoint,
+          where: ap.id in ^ids,
+          where: ap.rubric_id == ^rubric.id,
+          update: [set: [rubric_id: nil]]
+        )
+      end,
+      []
+    )
+  end
+
+  defp maybe_unlink_assessment_points(multi, _attrs), do: multi
 
   @doc """
   Update rubrics positions based on ids list order.
@@ -749,6 +827,37 @@ defmodule Lanttern.Rubrics do
 
       rubric
     end)
+  end
+
+  @doc """
+  List all assessment points that are eligible to link to given rubric.
+
+  An assessment point is considered eligible if
+
+  - it's linked to the same strand as the rubric
+  - it uses the same scale as the rubric
+  - it uses the same curriculum item as the rubric
+  - it `is_differentiation` flag matches the rubric's
+
+  Preloads moment in case of moments assessment points.
+
+  """
+  @spec list_rubric_assessment_points_options(Rubric.t()) :: [
+          {AssessmentPoint.t(), currently_linked :: boolean()}
+        ]
+  def list_rubric_assessment_points_options(%Rubric{} = rubric) do
+    from(
+      ap in AssessmentPoint,
+      left_join: m in assoc(ap, :moment),
+      preload: [moment: m],
+      where: ap.strand_id == ^rubric.strand_id or m.strand_id == ^rubric.strand_id,
+      where: ap.scale_id == ^rubric.scale_id,
+      where: ap.curriculum_item_id == ^rubric.curriculum_item_id,
+      where: ap.is_differentiation == ^rubric.is_differentiation,
+      order_by: [asc_nulls_last: ap.strand_id, asc: m.position, asc: ap.position]
+    )
+    |> Repo.all()
+    |> Enum.map(&{&1, &1.rubric_id == rubric.id})
   end
 
   # helpers
