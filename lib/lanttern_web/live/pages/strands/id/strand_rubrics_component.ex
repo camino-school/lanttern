@@ -189,6 +189,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
         module={RubricDiffInfoOverlayComponent}
         id="diff-rubric-students-info"
         rubric={@diff_info_for_rubric}
+        current_profile={@current_user.current_profile}
         on_cancel={JS.patch(~p"/strands/#{@strand}/rubrics")}
       />
     </div>

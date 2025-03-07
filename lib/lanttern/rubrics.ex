@@ -794,6 +794,64 @@ defmodule Lanttern.Rubrics do
   end
 
   @doc """
+  List all diff students linked to given rubric.
+
+  There are two ways of connecting students to differentiation rubrics:
+
+  1. through assessment point entries' `differentiation_rubric_id` field
+  2. through differentition assessment point entries
+
+  Use `school_id` from current profile to avoid listing students out of user scope.
+
+  ## Options
+
+  - `:load_profile_picture_from_cycle_id` - will try to load the profile picture from linked `%StudentCycleInfo{}` with the given cycle id
+
+  ## Examples
+
+      iex> list_diff_students_for_rubric(1, 1)
+      [%Student{}, ...]
+
+  """
+  @spec list_diff_students_for_rubric(
+          rubric_id :: pos_integer(),
+          school_id :: pos_integer(),
+          opts :: Keyword.t()
+        ) :: [Student.t()]
+  def list_diff_students_for_rubric(rubric_id, school_id, opts \\ []) do
+    from(
+      s in Student,
+      join: ape in assoc(s, :assessment_point_entries),
+      join: ap in assoc(ape, :assessment_point),
+      where: s.school_id == ^school_id,
+      where:
+        ape.differentiation_rubric_id == ^rubric_id or
+          (ap.is_differentiation and ap.rubric_id == ^rubric_id),
+      distinct: [asc: s.name, asc: s.id],
+      order_by: s.name
+    )
+    |> apply_list_diff_students_for_rubric_opts(opts)
+    |> Repo.all()
+  end
+
+  defp apply_list_diff_students_for_rubric_opts(queryable, []), do: queryable
+
+  defp apply_list_diff_students_for_rubric_opts(queryable, [
+         {:load_profile_picture_from_cycle_id, cycle_id} | opts
+       ]) do
+    from(
+      s in queryable,
+      left_join: sci in assoc(s, :cycles_info),
+      on: sci.cycle_id == ^cycle_id,
+      select_merge: %{profile_picture_url: sci.profile_picture_url}
+    )
+    |> apply_list_diff_students_for_rubric_opts(opts)
+  end
+
+  defp apply_list_diff_students_for_rubric_opts(queryable, [_ | opts]),
+    do: apply_list_diff_students_for_rubric_opts(queryable, opts)
+
+  @doc """
   Links a differentiation rubric to a student.
 
   ## Examples

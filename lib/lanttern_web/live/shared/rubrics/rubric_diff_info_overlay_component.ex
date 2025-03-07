@@ -5,11 +5,14 @@ defmodule LantternWeb.Rubrics.RubricDiffInfoOverlayComponent do
   ### Required attrs
 
   - `:rubric`
+  - `:current_profile`
   - `:on_cancel` - `<.modal>` `on_cancel` attr
 
   """
 
   use LantternWeb, :live_component
+
+  alias Lanttern.Rubrics
 
   @impl true
   def render(assigns) do
@@ -34,10 +37,25 @@ defmodule LantternWeb.Rubrics.RubricDiffInfoOverlayComponent do
             </li>
           </ol>
         </div>
-        <p>
-          <%= gettext("The students currently linked to the selected rubric are listed below.") %>
-        </p>
-        TBD
+        <%= if @has_students do %>
+          <p class="mt-10 font-bold">
+            <%= gettext("Students currently linked to the selected rubric") %>
+          </p>
+          <div id={"#{@id}-students"} phx-updpate="stream">
+            <.profile_picture_with_name
+              :for={{dom_id, student} <- @streams.students}
+              id={"#{@id}-#{dom_id}"}
+              profile_name={student.name}
+              picture_url={student.profile_picture_url}
+              navigate={~p"/school/students/#{student}"}
+              class="mt-6"
+            />
+          </div>
+        <% else %>
+          <.empty_state_simple class="mt-10">
+            <%= gettext("No differentiation students linked to this rubric") %>
+          </.empty_state_simple>
+        <% end %>
       </.modal>
     </div>
     """
@@ -73,11 +91,15 @@ defmodule LantternWeb.Rubrics.RubricDiffInfoOverlayComponent do
   defp initialize(socket), do: socket
 
   defp stream_students(socket) do
-    # rubric =
-    #   socket.assigns.rubric
-    #   |> Rubrics.load_rubric_descriptors()
+    students =
+      Rubrics.list_diff_students_for_rubric(
+        socket.assigns.rubric.id,
+        socket.assigns.current_profile.school_id,
+        load_profile_picture_from_cycle_id: socket.assigns.current_profile.current_school_cycle.id
+      )
 
-    # assign(socket, :rubric, rubric)
     socket
+    |> stream(:students, students)
+    |> assign(:has_students, length(students) > 0)
   end
 end

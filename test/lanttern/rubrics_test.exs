@@ -920,10 +920,121 @@ defmodule Lanttern.RubricsTest do
   describe "differentiation rubrics" do
     alias Lanttern.Rubrics.Rubric
 
+    alias Lanttern.AssessmentsFixtures
     alias Lanttern.CurriculaFixtures
     alias Lanttern.GradingFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
+    alias Lanttern.StudentsCycleInfoFixtures
+
+    test "list_diff_students_for_rubric/1 returns all diff students linked to given rubric" do
+      strand = LearningContextFixtures.strand_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      diff_curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      scale = GradingFixtures.scale_fixture()
+
+      diff_rubric =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          is_differentiation: true
+        })
+
+      goal =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          scale_id: scale.id
+        })
+
+      diff_goal =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand.id,
+          curriculum_item_id: diff_curriculum_item.id,
+          scale_id: scale.id,
+          rubric_id: diff_rubric.id,
+          is_differentiation: true
+        })
+
+      school = SchoolsFixtures.school_fixture()
+
+      diff_rubric_student =
+        SchoolsFixtures.student_fixture(%{
+          name: "AAA",
+          school_id: school.id
+        })
+
+      diff_goal_rubric_student =
+        SchoolsFixtures.student_fixture(%{
+          name: "BBB",
+          school_id: school.id
+        })
+
+      cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+
+      _diff_rubric_student_cycle_info =
+        StudentsCycleInfoFixtures.student_cycle_info_fixture(%{
+          school_id: school.id,
+          student_id: diff_rubric_student.id,
+          cycle_id: cycle.id,
+          profile_picture_url: "http://example.com/diff_student_profile_picture.jpg"
+        })
+
+      _diff_rubric_ape =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: diff_rubric_student.id,
+          assessment_point_id: goal.id,
+          differentiation_rubric_id: diff_rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      _diff_goal_ape =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: diff_goal_rubric_student.id,
+          assessment_point_id: diff_goal.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      # other fixtures for filter test
+
+      not_diff_student = SchoolsFixtures.student_fixture()
+
+      _not_diff_student_diff_rubric_ape =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: not_diff_student.id,
+          assessment_point_id: goal.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      other_school_student = SchoolsFixtures.student_fixture()
+
+      _other_school_student_diff_rubric_ape =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: other_school_student.id,
+          assessment_point_id: goal.id,
+          differentiation_rubric_id: diff_rubric.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      # assert
+
+      [expected_diff_rubric_student, expected_diff_goal_rubric_student] =
+        Rubrics.list_diff_students_for_rubric(diff_rubric.id, school.id,
+          load_profile_picture_from_cycle_id: cycle.id
+        )
+
+      assert expected_diff_rubric_student.id == diff_rubric_student.id
+
+      assert expected_diff_rubric_student.profile_picture_url ==
+               "http://example.com/diff_student_profile_picture.jpg"
+
+      assert expected_diff_goal_rubric_student.id == diff_goal_rubric_student.id
+    end
 
     test "link_rubric_to_student/2 links the differentiation rubric to the student" do
       student = SchoolsFixtures.student_fixture()
