@@ -1433,10 +1433,12 @@ defmodule LantternWeb.CoreComponents do
 
   defp person_badge_theme_style("cyan"), do: "text-ltrn-dark bg-ltrn-mesh-cyan"
   defp person_badge_theme_style("staff"), do: "text-ltrn-staff-dark bg-ltrn-staff-lighter"
+  defp person_badge_theme_style("diff"), do: "text-ltrn-diff-dark bg-ltrn-diff-lighter"
   defp person_badge_theme_style(_subtle), do: "text-ltrn-subtle bg-ltrn-lighter"
 
   defp person_badge_link_theme_style("cyan"), do: "hover:text-ltrn-subtle"
   defp person_badge_link_theme_style("staff"), do: "hover:text-ltrn-staff-accent"
+  defp person_badge_link_theme_style("diff"), do: "hover:text-ltrn-diff-accent"
   defp person_badge_link_theme_style(_subtle), do: "hover:text-ltrn-subtle"
 
   @doc """

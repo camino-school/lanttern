@@ -6,6 +6,7 @@ defmodule Lanttern.Rubrics do
   import Ecto.Query, warn: false
 
   import Lanttern.RepoHelpers
+  alias Lanttern.Schools.Student
   alias Lanttern.Repo
 
   alias Lanttern.Assessments.AssessmentPoint
@@ -176,10 +177,18 @@ defmodule Lanttern.Rubrics do
   When using `:only_diff` options, we include all goals, but list only differentiation
   rubrics or rubrics linked to differentiation goals (even if they're not flagged as differentiation).
 
+  ### Differentiation students
+
+  There are two ways of connecting students to differentiation rubrics:
+
+  1. through assessment point entries' `differentiation_rubric_id` field
+  2. through differentition assessment point entries
+
   ## Options
 
   - `:only_diff` - boolean, refer to "Differentiation filters" section
   - `:exclude_diff` - boolean, refer to "Differentiation filters" section
+  - `:preload_diff_students_from_classes_ids` - list of class ids to preload differentiation students
 
   ## Examples
 
@@ -198,6 +207,9 @@ defmodule Lanttern.Rubrics do
         order_by: r.position
       )
       |> Repo.all()
+      |> preload_diff_students_in_rubrics(
+        Keyword.get(opts, :preload_diff_students_from_classes_ids)
+      )
       |> Enum.group_by(& &1.curriculum_item_id)
 
     filter_type =
@@ -221,6 +233,40 @@ defmodule Lanttern.Rubrics do
     end)
     |> filter_strand_rubrics_grouped_by_goal(filter_type)
   end
+
+  defp preload_diff_students_in_rubrics(rubrics, classes_ids)
+       when is_list(classes_ids) and classes_ids != [] do
+    rubrics_ids = Enum.map(rubrics, & &1.id)
+
+    rubric_diff_students_map =
+      from(
+        s in Student,
+        join: ape in assoc(s, :assessment_point_entries),
+        join: ap in assoc(ape, :assessment_point),
+        join: c in assoc(s, :classes),
+        select: {ape.differentiation_rubric_id, ap.rubric_id, s},
+        where: c.id in ^classes_ids,
+        where:
+          ape.differentiation_rubric_id in ^rubrics_ids or
+            (ap.is_differentiation and ap.rubric_id in ^rubrics_ids),
+        order_by: s.name
+      )
+      |> Repo.all()
+      # we need to "unify" rubric ids, prioritizing diff_rubric_id but
+      # falling back to diff assessment point rubric id
+      |> Enum.map(fn {diff_rubric_id, diff_ap_rubric_id, student} ->
+        {diff_rubric_id || diff_ap_rubric_id, student}
+      end)
+      |> Enum.uniq()
+      |> Enum.group_by(
+        fn {rubric_id, _student} -> rubric_id end,
+        fn {_rubric_id, student} -> student end
+      )
+
+    Enum.map(rubrics, &%{&1 | diff_students: Map.get(rubric_diff_students_map, &1.id, [])})
+  end
+
+  defp preload_diff_students_in_rubrics(rubrics, _classes_ids), do: rubrics
 
   defp filter_strand_rubrics_grouped_by_goal(rubrics_grouped_by_goal, :only_diff) do
     rubrics_grouped_by_goal

@@ -9,6 +9,7 @@ defmodule Lanttern.Schools.Student do
 
   alias Lanttern.Repo
 
+  alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.GradesReports.StudentGradesReportEntry
   alias Lanttern.Identity.Profile
   alias Lanttern.Reporting.StudentReportCard
@@ -27,6 +28,7 @@ defmodule Lanttern.Schools.Student do
           school_id: pos_integer(),
           classes: [Class.t()],
           diff_rubrics: [Rubric.t()],
+          assessment_point_entries: [AssessmentPointEntry.t()],
           cycles_info: [StudentCycleInfo.t()],
           student_report_cards: [StudentReportCard.t()],
           grades_report_entries: [StudentGradesReportEntry.t()],
@@ -56,6 +58,7 @@ defmodule Lanttern.Schools.Student do
 
     many_to_many :diff_rubrics, Rubric, join_through: "differentiation_rubrics_students"
 
+    has_many :assessment_point_entries, AssessmentPointEntry
     has_many :cycles_info, StudentCycleInfo
     has_many :student_report_cards, StudentReportCard
     has_many :grades_report_entries, Lanttern.GradesReports.StudentGradesReportEntry

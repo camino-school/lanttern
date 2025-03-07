@@ -7,6 +7,7 @@ defmodule Lanttern.Rubrics.Rubric do
   import Ecto.Changeset
 
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Curricula.CurriculumItem
   alias Lanttern.Grading.Scale
   alias Lanttern.LearningContext.Strand
@@ -29,7 +30,9 @@ defmodule Lanttern.Rubrics.Rubric do
           descriptors: [RubricDescriptor.t()],
           differentiation_rubrics: [__MODULE__.t()],
           assessment_points: [AssessmentPoint.t()],
+          diff_entries: [AssessmentPointEntry.t()],
           students: [Student.t()],
+          diff_students: [Student.t()],
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -47,8 +50,13 @@ defmodule Lanttern.Rubrics.Rubric do
     has_many :descriptors, RubricDescriptor, on_replace: :delete
     has_many :differentiation_rubrics, __MODULE__, foreign_key: :diff_for_rubric_id
     has_many :assessment_points, AssessmentPoint
+    has_many :diff_entries, AssessmentPointEntry, foreign_key: :differentiation_rubric_id
 
     many_to_many :students, Student, join_through: "differentiation_rubrics_students"
+
+    many_to_many :diff_students, Student,
+      join_through: AssessmentPointEntry,
+      join_keys: [differentiation_rubric_id: :id, student_id: :id]
 
     timestamps()
   end

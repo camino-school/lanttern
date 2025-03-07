@@ -1,16 +1,18 @@
 defmodule Lanttern.RubricsTest do
+  alias Lanttern.SchoolsFixtures
   use Lanttern.DataCase
 
   alias Lanttern.Rubrics
-  alias Lanttern.GradingFixtures
   import Lanttern.RubricsFixtures
 
   describe "rubrics" do
     alias Lanttern.Rubrics.Rubric
-    import Lanttern.AssessmentsFixtures
-    import Lanttern.SchoolsFixtures
+
+    alias Lanttern.AssessmentsFixtures
     alias Lanttern.CurriculaFixtures
+    alias Lanttern.GradingFixtures
     alias Lanttern.LearningContextFixtures
+    alias Lanttern.SchoolsFixtures
 
     @invalid_attrs %{criteria: nil, is_differentiation: nil}
 
@@ -95,11 +97,11 @@ defmodule Lanttern.RubricsTest do
           ordinal_value_id: ov_1.id
         })
 
-      assessment_point = assessment_point_fixture(%{rubric_id: rubric.id})
+      assessment_point = AssessmentsFixtures.assessment_point_fixture(%{rubric_id: rubric.id})
 
       # extra fixtures for filter test
       rubric_fixture(%{scale_id: scale.id})
-      assessment_point_fixture(%{rubric_id: rubric.id})
+      AssessmentsFixtures.assessment_point_fixture(%{rubric_id: rubric.id})
 
       [expected] = Rubrics.list_full_rubrics(assessment_points_ids: [assessment_point.id])
       assert expected.id == rubric.id
@@ -133,12 +135,12 @@ defmodule Lanttern.RubricsTest do
           ordinal_value_id: ov_1.id
         })
 
-      student = student_fixture()
+      student = SchoolsFixtures.student_fixture()
       Rubrics.link_rubric_to_student(rubric, student.id)
 
       # extra fixtures for filter test
       rubric_fixture(%{scale_id: scale.id})
-      other_student = student_fixture()
+      other_student = SchoolsFixtures.student_fixture()
       Rubrics.link_rubric_to_student(rubric, other_student.id)
       other_parent_rubric = rubric_fixture(%{scale_id: scale.id})
 
@@ -215,14 +217,14 @@ defmodule Lanttern.RubricsTest do
         })
 
       _assessment_point_1 =
-        assessment_point_fixture(%{
+        AssessmentsFixtures.assessment_point_fixture(%{
           rubric_id: rubric_1.id,
           strand_id: strand.id,
           curriculum_item_id: curriculum_item_1.id
         })
 
       _assessment_point_2 =
-        assessment_point_fixture(%{
+        AssessmentsFixtures.assessment_point_fixture(%{
           rubric_id: rubric_2.id,
           strand_id: strand.id,
           curriculum_item_id: curriculum_item_2.id,
@@ -232,7 +234,12 @@ defmodule Lanttern.RubricsTest do
       # extra fixtures for filter test
       other_strand = Lanttern.LearningContextFixtures.strand_fixture()
       other_rubric = rubric_fixture(%{scale_id: scale.id})
-      assessment_point_fixture(%{rubric_id: other_rubric.id, strand_id: other_strand.id})
+
+      AssessmentsFixtures.assessment_point_fixture(%{
+        rubric_id: other_rubric.id,
+        strand_id: other_strand.id
+      })
+
       rubric_fixture(%{scale_id: scale.id})
 
       [expected_rubric_1, expected_rubric_2] =
@@ -295,7 +302,7 @@ defmodule Lanttern.RubricsTest do
         })
 
       _assessment_point =
-        assessment_point_fixture(%{
+        AssessmentsFixtures.assessment_point_fixture(%{
           rubric_id: rubric.id,
           strand_id: strand.id,
           curriculum_item_id: curriculum_item.id
@@ -304,7 +311,12 @@ defmodule Lanttern.RubricsTest do
       # extra fixtures for filter test
       other_strand = Lanttern.LearningContextFixtures.strand_fixture()
       other_rubric = rubric_fixture(%{scale_id: scale.id})
-      assessment_point_fixture(%{rubric_id: other_rubric.id, strand_id: other_strand.id})
+
+      AssessmentsFixtures.assessment_point_fixture(%{
+        rubric_id: other_rubric.id,
+        strand_id: other_strand.id
+      })
+
       rubric_fixture(%{scale_id: scale.id})
 
       [expected_diff_rubric] =
@@ -340,21 +352,6 @@ defmodule Lanttern.RubricsTest do
 
       scale = GradingFixtures.scale_fixture()
 
-      goal =
-        assessment_point_fixture(%{
-          strand_id: strand.id,
-          curriculum_item_id: curriculum_item.id,
-          scale_id: scale.id
-        })
-
-      diff_goal =
-        assessment_point_fixture(%{
-          strand_id: strand.id,
-          curriculum_item_id: diff_curriculum_item.id,
-          scale_id: scale.id,
-          is_differentiation: true
-        })
-
       rubric_1 =
         rubric_fixture(%{
           scale_id: scale.id,
@@ -370,16 +367,90 @@ defmodule Lanttern.RubricsTest do
           is_differentiation: true
         })
 
-      rubric_2 =
+      diff_goal_rubric =
         rubric_fixture(%{
           scale_id: scale.id,
           strand_id: strand.id,
           curriculum_item_id: diff_curriculum_item.id
         })
 
+      goal =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          scale_id: scale.id
+        })
+
+      diff_goal =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand.id,
+          curriculum_item_id: diff_curriculum_item.id,
+          scale_id: scale.id,
+          rubric_id: diff_goal_rubric.id,
+          is_differentiation: true
+        })
+
+      school = SchoolsFixtures.school_fixture()
+      class = SchoolsFixtures.class_fixture(%{school_id: school.id})
+
+      student_a =
+        SchoolsFixtures.student_fixture(%{
+          name: "AAA",
+          school_id: school.id,
+          classes_ids: [class.id]
+        })
+
+      student_b =
+        SchoolsFixtures.student_fixture(%{
+          name: "BBB",
+          school_id: school.id,
+          classes_ids: [class.id]
+        })
+
+      _student_a_diff_ape =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student_a.id,
+          assessment_point_id: goal.id,
+          differentiation_rubric_id: rubric_1_diff.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      _student_b_diff_ape =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student_b.id,
+          assessment_point_id: goal.id,
+          differentiation_rubric_id: rubric_1_diff.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      _student_b_diff_goal_ape =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student_b.id,
+          assessment_point_id: diff_goal.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      # other fixtures for filter test
+
+      other_class_student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+
+      _other_class_student_diff_ape =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: other_class_student.id,
+          assessment_point_id: goal.id,
+          differentiation_rubric_id: rubric_1_diff.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      # assert
+
       [
         {expected_goal, [expected_rubric_1, expected_rubric_1_diff]},
-        {expected_diff_goal, [expected_rubric_2]}
+        {expected_diff_goal, [expected_diff_goal_rubric]}
       ] = Rubrics.list_strand_rubrics_grouped_by_goal(strand.id)
 
       assert expected_goal.id == goal.id
@@ -399,7 +470,7 @@ defmodule Lanttern.RubricsTest do
                curriculum_component.id
 
       assert expected_diff_goal.is_differentiation
-      assert expected_rubric_2.id == rubric_2.id
+      assert expected_diff_goal_rubric.id == diff_goal_rubric.id
 
       # use same setup to validate exclude_diff opt
       [
@@ -412,13 +483,24 @@ defmodule Lanttern.RubricsTest do
       # use same setup to validate only_diff opt
       [
         {expected_goal, [expected_rubric_1_diff]},
-        {expected_diff_goal, [expected_rubric_2]}
-      ] = Rubrics.list_strand_rubrics_grouped_by_goal(strand.id, only_diff: true)
+        {expected_diff_goal, [expected_diff_goal_rubric]}
+      ] =
+        Rubrics.list_strand_rubrics_grouped_by_goal(strand.id,
+          only_diff: true,
+          preload_diff_students_from_classes_ids: [class.id]
+        )
 
       assert expected_goal.id == goal.id
       assert expected_rubric_1_diff.id == rubric_1_diff.id
       assert expected_diff_goal.id == diff_goal.id
-      assert expected_rubric_2.id == rubric_2.id
+      assert expected_diff_goal_rubric.id == diff_goal_rubric.id
+
+      [expected_student_a, expected_student_b] = expected_rubric_1_diff.diff_students
+      assert expected_student_a.id == student_a.id
+      assert expected_student_b.id == student_b.id
+
+      [expected_student_b] = expected_diff_goal_rubric.diff_students
+      assert expected_student_b.id == student_b.id
     end
 
     test "search_rubrics/2 returns all rubrics matched by search" do
@@ -547,7 +629,7 @@ defmodule Lanttern.RubricsTest do
       rubric = rubric_fixture(%{scale_id: scale.id})
       diff_rubric = rubric_fixture(%{scale_id: scale.id, diff_for_rubric_id: rubric.id})
 
-      student = student_fixture()
+      student = SchoolsFixtures.student_fixture()
 
       Lanttern.Repo.insert_all(
         "differentiation_rubrics_students",
@@ -585,7 +667,7 @@ defmodule Lanttern.RubricsTest do
 
       rubric = rubric_fixture(%{scale_id: scale.id})
 
-      student = student_fixture()
+      student = SchoolsFixtures.student_fixture()
 
       descriptor_2 =
         rubric_descriptor_fixture(%{
@@ -838,12 +920,13 @@ defmodule Lanttern.RubricsTest do
   describe "differentiation rubrics" do
     alias Lanttern.Rubrics.Rubric
 
-    alias Lanttern.LearningContextFixtures
     alias Lanttern.CurriculaFixtures
-    import Lanttern.SchoolsFixtures
+    alias Lanttern.GradingFixtures
+    alias Lanttern.LearningContextFixtures
+    alias Lanttern.SchoolsFixtures
 
     test "link_rubric_to_student/2 links the differentiation rubric to the student" do
-      student = student_fixture()
+      student = SchoolsFixtures.student_fixture()
       parent_rubric = rubric_fixture()
       diff_rubric = rubric_fixture(%{diff_for_rubric_id: parent_rubric.id})
 
@@ -866,7 +949,7 @@ defmodule Lanttern.RubricsTest do
     end
 
     test "unlink_rubric_from_student/2 unlinks the rubric from the student" do
-      student = student_fixture()
+      student = SchoolsFixtures.student_fixture()
       rubric = rubric_fixture()
       diff_rubric = rubric_fixture(%{diff_for_rubric_id: rubric.id})
 
@@ -884,7 +967,7 @@ defmodule Lanttern.RubricsTest do
     end
 
     test "create_diff_rubric_for_student/3 creates a differentiation rubric and links it to the student" do
-      student = student_fixture()
+      student = SchoolsFixtures.student_fixture()
       parent_rubric = rubric_fixture()
       scale = GradingFixtures.scale_fixture()
       strand = LearningContextFixtures.strand_fixture()
@@ -914,6 +997,8 @@ defmodule Lanttern.RubricsTest do
 
   describe "rubric_descriptors" do
     alias Lanttern.Rubrics.RubricDescriptor
+
+    alias Lanttern.GradingFixtures
 
     @invalid_attrs %{descriptor: nil, score: nil}
 

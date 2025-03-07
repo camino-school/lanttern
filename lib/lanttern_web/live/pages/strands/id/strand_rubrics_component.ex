@@ -2,6 +2,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments
+  alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Rubrics
   alias Lanttern.Rubrics.Rubric
   # alias Lanttern.Schools
@@ -78,7 +79,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                 :for={rubric <- rubrics}
                 class="pt-6 border-t border-ltrn-lighter mt-6"
                 id={"rubric-#{rubric.id}"}
-                goal_id={goal.id}
+                goal={goal}
                 rubric={rubric}
                 edit_patch={~p"/strands/#{@strand}/rubrics?edit_rubric=#{rubric.id}"}
               />
@@ -162,7 +163,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                   :for={rubric <- rubrics}
                   class="pt-6 border-t border-ltrn-lighter mt-6"
                   id={"assessment-point-rubric-#{rubric.id}"}
-                  goal_id={goal.id}
+                  goal={goal}
                   rubric={rubric}
                   edit_patch={~p"/strands/#{@strand}/rubrics?edit_rubric=#{rubric.id}"}
                 />
@@ -259,13 +260,19 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
     """
   end
 
-  attr :goal_id, :integer, required: true
+  attr :goal, AssessmentPoint, required: true
   attr :class, :any, default: nil
   attr :id, :string, required: true
   attr :rubric, Rubric, required: true
   attr :edit_patch, :string, required: true
 
   def rubric(assigns) do
+    has_diff_students =
+      is_list(assigns.rubric.diff_students) &&
+        assigns.rubric.diff_students != []
+
+    assigns = assign(assigns, :has_diff_students, has_diff_students)
+
     ~H"""
     <div class={@class} id={@id}>
       <div class="flex items-center gap-2 mb-6">
@@ -281,6 +288,28 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
         <.action type="link" patch={@edit_patch} icon_name="hero-pencil-mini">
           <%= gettext("Edit") %>
         </.action>
+      </div>
+      <div
+        :if={@rubric.is_differentiation || @goal.is_differentiation}
+        class={[
+          "flex items-center gap-2 p-4 rounded mb-6",
+          if(@has_diff_students, do: "bg-ltrn-diff-lightest", else: "bg-ltrn-lightest")
+        ]}
+      >
+        <%= if @has_diff_students do %>
+          <p class="text-ltrn-diff-dark"><%= gettext("Linked students") %></p>
+          <.person_badge
+            :for={student <- @rubric.diff_students}
+            person={student}
+            theme="diff"
+            truncate
+            navigate={~p"/school/students/#{student}"}
+          />
+        <% else %>
+          <p class="text-ltrn-subtle">
+            <%= gettext("No linked students for selected classes") %>
+          </p>
+        <% end %>
       </div>
       <.live_component
         module={RubricDescriptorsComponent}
@@ -351,9 +380,9 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
+    |> assign_strand_classes_filter()
     |> stream_goals_rubrics()
     |> stream_diff_goals_rubrics()
-    |> assign_strand_classes_filter()
     # |> assign_goals()
     # |> assign_students()
     |> assign(:initialized, true)
@@ -395,7 +424,11 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
 
   defp stream_diff_goals_rubrics(socket) do
     diff_goals_rubrics =
-      Rubrics.list_strand_rubrics_grouped_by_goal(socket.assigns.strand.id, only_diff: true)
+      Rubrics.list_strand_rubrics_grouped_by_goal(
+        socket.assigns.strand.id,
+        only_diff: true,
+        preload_diff_students_from_classes_ids: socket.assigns.selected_classes_ids
+      )
 
     # keep track of goals ids for edit permission check
     goals_ids =
