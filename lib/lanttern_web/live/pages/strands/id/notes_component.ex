@@ -3,8 +3,6 @@ defmodule LantternWeb.StrandLive.NotesComponent do
 
   alias Lanttern.Notes
 
-  import LantternWeb.FiltersHelpers, only: [assign_strand_classes_filter: 1]
-
   # shared components
   alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.Notes.NoteComponent
@@ -45,17 +43,9 @@ defmodule LantternWeb.StrandLive.NotesComponent do
         <h4 class="font-display font-black text-xl text-ltrn-subtle">
           <%= gettext("Student notes") %>
         </h4>
-        <.action
-          type="button"
-          phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
-          icon_name="hero-chevron-down-mini"
-          class="mt-4"
-        >
-          <%= format_action_items_text(
-            @selected_classes,
-            gettext("Select a class to view students notes")
-          ) %>
-        </.action>
+        <.empty_state_simple :if={@selected_classes_ids == []} class="mt-6">
+          <%= gettext("Select a class above to view students notes") %>
+        </.empty_state_simple>
         <div id="students-strand-notes" phx-update="stream" class="mt-10">
           <div
             :for={{dom_id, {student, note}} <- @streams.students_strand_notes}
@@ -96,16 +86,6 @@ defmodule LantternWeb.StrandLive.NotesComponent do
           </div>
         </div>
       </.responsive_container>
-      <.live_component
-        module={LantternWeb.Filters.ClassesFilterOverlayComponent}
-        id="classes-filter-modal"
-        current_user={@current_user}
-        title={gettext("Select classes to view student notes")}
-        profile_filter_opts={[strand_id: @strand.id]}
-        classes={@classes}
-        selected_classes_ids={@selected_classes_ids}
-        navigate={~p"/strands/#{@strand}/notes"}
-      />
     </div>
     """
   end
@@ -143,7 +123,6 @@ defmodule LantternWeb.StrandLive.NotesComponent do
       |> assign(:note, note)
       |> stream(:moments_notes, moments_notes)
       |> assign(:has_moments_notes, has_moments_notes)
-      |> assign_strand_classes_filter()
       |> stream_students_strand_notes()
 
     {:ok, socket}

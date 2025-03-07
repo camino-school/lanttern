@@ -6,12 +6,12 @@ defmodule Lanttern.Rubrics do
   import Ecto.Query, warn: false
 
   import Lanttern.RepoHelpers
-  alias Lanttern.Schools.Student
   alias Lanttern.Repo
 
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Rubrics.Rubric
   alias Lanttern.Rubrics.RubricDescriptor
+  alias Lanttern.Schools.Student
 
   @doc """
   Returns the list of rubrics.

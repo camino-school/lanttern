@@ -13,7 +13,20 @@ defmodule LantternWeb.StrandLive do
   # shared components
   alias LantternWeb.LearningContext.StrandFormComponent
   alias LantternWeb.LearningContext.ToggleStrandStarActionComponent
+  import LantternWeb.FiltersHelpers, only: [assign_strand_classes_filter: 1]
   import LantternWeb.LearningContextComponents, only: [mini_strand_card: 1]
+
+  @live_action_select_classes_overlay_title %{
+    rubrics: gettext("Select classes to view students differentiation rubrics"),
+    assessment: gettext("Select classes to view assessments info"),
+    notes: gettext("Select classes to view students notes")
+  }
+
+  @live_action_select_classes_overlay_navigate_path %{
+    rubrics: "rubrics",
+    assessment: "assessment",
+    notes: "notes"
+  }
 
   # lifecycle
 
@@ -22,6 +35,7 @@ defmodule LantternWeb.StrandLive do
     socket =
       socket
       |> assign_strand(params)
+      |> assign_strand_classes_filter()
 
     {:ok, socket}
   end
@@ -50,6 +64,8 @@ defmodule LantternWeb.StrandLive do
       socket
       |> assign(:params, params)
       |> assign_is_editing(params)
+      |> assign_select_classes_overlay_title()
+      |> assign_select_classes_overlay_navigate()
 
     {:noreply, socket}
   end
@@ -59,6 +75,28 @@ defmodule LantternWeb.StrandLive do
 
   defp assign_is_editing(socket, _params),
     do: assign(socket, :is_editing, false)
+
+  defp assign_select_classes_overlay_title(socket) do
+    title =
+      Map.get(
+        @live_action_select_classes_overlay_title,
+        socket.assigns.live_action
+      )
+
+    assign(socket, :select_classes_overlay_title, title)
+  end
+
+  defp assign_select_classes_overlay_navigate(socket) do
+    path_final =
+      Map.get(
+        @live_action_select_classes_overlay_navigate_path,
+        socket.assigns.live_action
+      )
+
+    navigate = "/strands/#{socket.assigns.strand.id}/#{path_final}"
+
+    assign(socket, :select_classes_overlay_navigate, navigate)
+  end
 
   # event handlers
 

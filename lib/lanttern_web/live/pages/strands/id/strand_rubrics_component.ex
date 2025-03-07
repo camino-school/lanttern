@@ -6,11 +6,11 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
   alias Lanttern.Rubrics
   alias Lanttern.Rubrics.Rubric
   # alias Lanttern.Schools
-  import LantternWeb.FiltersHelpers, only: [assign_strand_classes_filter: 1]
 
   # shared components
   alias LantternWeb.Rubrics.RubricDescriptorsComponent
   # alias LantternWeb.Rubrics.RubricFormComponent
+  alias LantternWeb.Rubrics.RubricDiffInfoOverlayComponent
   alias LantternWeb.Rubrics.RubricFormOverlayComponent
 
   @impl true
@@ -100,17 +100,6 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
           <h4 class="font-display font-black text-xl text-ltrn-diff-dark">
             <%= gettext("Differentiation") %>
           </h4>
-          <.action
-            type="button"
-            phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
-            icon_name="hero-chevron-down-mini"
-            class="mt-4"
-          >
-            <%= format_action_items_text(
-              @selected_classes,
-              gettext("Select a class to view differentiation rubrics")
-            ) %>
-          </.action>
           <div id="strand-diff-rubrics-list" phx-update="stream">
             <.card_base
               :for={
@@ -166,6 +155,9 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                   goal={goal}
                   rubric={rubric}
                   edit_patch={~p"/strands/#{@strand}/rubrics?edit_rubric=#{rubric.id}"}
+                  diff_students_info_patch={
+                    ~p"/strands/#{@strand}/rubrics?diff_info_for_rubric=#{rubric.id}"
+                  }
                 />
                 <div class="flex justify-center pt-6 border-t border-ltrn-lighter mt-6">
                   <.action
@@ -184,16 +176,6 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
         </section>
       </.responsive_container>
       <.live_component
-        module={LantternWeb.Filters.ClassesFilterOverlayComponent}
-        id="classes-filter-modal"
-        current_user={@current_user}
-        title={gettext("Select classes to view students differentiation rubrics")}
-        profile_filter_opts={[strand_id: @strand.id]}
-        classes={@classes}
-        selected_classes_ids={@selected_classes_ids}
-        navigate={~p"/strands/#{@strand}/rubrics"}
-      />
-      <.live_component
         :if={@rubric}
         module={RubricFormOverlayComponent}
         id="strand-rubric-overlay"
@@ -202,60 +184,13 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
         on_cancel={JS.patch(~p"/strands/#{@strand}/rubrics")}
         notify_component={@myself}
       />
-      <%!-- <.slide_over
-        :if={@goal}
-        id="rubric-form-overlay"
-        show={true}
+      <.live_component
+        :if={@diff_info_for_rubric}
+        module={RubricDiffInfoOverlayComponent}
+        id="diff-rubric-students-info"
+        rubric={@diff_info_for_rubric}
         on_cancel={JS.patch(~p"/strands/#{@strand}/rubrics")}
-      >
-        <:title><%= gettext("Rubric") %></:title>
-        <p>
-          <strong class="inline-block mr-2 font-display font-bold">
-            <%= @goal.curriculum_item.curriculum_component.name %>
-          </strong>
-          <%= @goal.curriculum_item.name %>
-        </p>
-        <p :if={@student} class="mt-6 font-display font-bold">
-          <%= gettext("Differentiation for %{name}", name: @student.name) %>
-        </p>
-        <.live_component
-          module={RubricFormComponent}
-          id={@rubric.id || :new}
-          rubric={@rubric}
-          link_to_assessment_point_id={@goal && @goal.id}
-          diff_for_student_id={@student && @student.id}
-          hide_diff_and_scale
-          navigate={~p"/strands/#{@strand}/rubrics"}
-          class="mt-6"
-        />
-        <:actions_left :if={@rubric.id}>
-          <.button
-            type="button"
-            theme="ghost"
-            phx-click="delete_rubric"
-            phx-target={@myself}
-            data-confirm={gettext("Are you sure?")}
-          >
-            <%= gettext("Delete") %>
-          </.button>
-        </:actions_left>
-        <:actions>
-          <.button
-            type="button"
-            theme="ghost"
-            phx-click={JS.exec("data-cancel", to: "#rubric-form-overlay")}
-          >
-            <%= gettext("Cancel") %>
-          </.button>
-          <.button
-            type="submit"
-            form={"rubric-form-#{@rubric.id || :new}"}
-            phx-disable-with="Saving..."
-          >
-            <%= gettext("Save") %>
-          </.button>
-        </:actions>
-      </.slide_over> --%>
+      />
     </div>
     """
   end
@@ -265,6 +200,10 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
   attr :id, :string, required: true
   attr :rubric, Rubric, required: true
   attr :edit_patch, :string, required: true
+
+  attr :diff_students_info_patch, :string,
+    default: nil,
+    doc: "Required only if `has_diff_students` is true"
 
   def rubric(assigns) do
     has_diff_students =
@@ -298,17 +237,35 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
       >
         <%= if @has_diff_students do %>
           <p class="text-ltrn-diff-dark"><%= gettext("Linked students") %></p>
-          <.person_badge
-            :for={student <- @rubric.diff_students}
-            person={student}
+          <div class="flex-1 flex flex-wrap gap-2">
+            <.person_badge
+              :for={student <- @rubric.diff_students}
+              person={student}
+              theme="diff"
+              truncate
+              navigate={~p"/school/students/#{student}"}
+            />
+          </div>
+          <.action
+            type="link"
+            patch={@diff_students_info_patch}
+            icon_name="hero-information-circle-mini"
             theme="diff"
-            truncate
-            navigate={~p"/school/students/#{student}"}
-          />
+          >
+            <%= gettext("Info") %>
+          </.action>
         <% else %>
-          <p class="text-ltrn-subtle">
+          <p class="flex-1 text-ltrn-subtle">
             <%= gettext("No linked students for selected classes") %>
           </p>
+          <.action
+            type="link"
+            patch={@diff_students_info_patch}
+            icon_name="hero-information-circle-mini"
+            theme="diff"
+          >
+            <%= gettext("Info") %>
+          </.action>
         <% end %>
       </div>
       <.live_component
@@ -374,13 +331,13 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
       |> initialize()
       # |> assign_goal_rubric_and_student()
       |> assign_rubric()
+      |> assign_diff_info_for_rubric()
 
     {:ok, socket}
   end
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
-    |> assign_strand_classes_filter()
     |> stream_goals_rubrics()
     |> stream_diff_goals_rubrics()
     # |> assign_goals()
@@ -674,6 +631,19 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
   end
 
   defp assign_rubric(socket), do: assign(socket, :rubric, nil)
+
+  defp assign_diff_info_for_rubric(
+         %{assigns: %{params: %{"diff_info_for_rubric" => rubric_id}}} = socket
+       ) do
+    if rubric_id in socket.assigns.rubrics_ids do
+      rubric = Rubrics.get_rubric!(rubric_id)
+      assign(socket, :diff_info_for_rubric, rubric)
+    else
+      assign(socket, :diff_info_for_rubric, nil)
+    end
+  end
+
+  defp assign_diff_info_for_rubric(socket), do: assign(socket, :diff_info_for_rubric, nil)
 
   # event handlers
 

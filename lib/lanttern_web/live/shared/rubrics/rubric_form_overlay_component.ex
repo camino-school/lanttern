@@ -17,8 +17,6 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
 
   tbd
   """
-  alias Lanttern.Grading.Scale
-  alias Lanttern.LearningContext.Moment
   use LantternWeb, :live_component
 
   alias Lanttern.Rubrics
@@ -28,7 +26,8 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
   alias Lanttern.Curricula
   alias Lanttern.Curricula.CurriculumItem
   alias Lanttern.Grading
-  # import LantternWeb.GradingHelpers
+  alias Lanttern.Grading.Scale
+  alias Lanttern.LearningContext.Moment
 
   # shared
   alias LantternWeb.Grading.OrdinalValueBadgeComponent

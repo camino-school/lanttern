@@ -6,7 +6,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
   alias Lanttern.Filters
 
   import LantternWeb.FiltersHelpers,
-    only: [assign_user_filters: 2, assign_strand_classes_filter: 1]
+    only: [assign_user_filters: 2]
 
   import Lanttern.Utils, only: [swap: 3]
 
@@ -20,21 +20,10 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
     ~H"""
     <div>
       <.action_bar class="flex items-center justify-between gap-4">
-        <div class="flex items-center gap-4">
-          <.action
-            type="button"
-            phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
-            icon_name="hero-chevron-down-mini"
-          >
-            <%= format_action_items_text(@selected_classes, gettext("No class selected")) %>
-          </.action>
-          <.assessment_view_dropdow
-            current_assessment_view={@current_assessment_view}
-            on_change={
-              fn view -> JS.push("change_view", value: %{"view" => view}, target: @myself) end
-            }
-          />
-        </div>
+        <.assessment_view_dropdow
+          current_assessment_view={@current_assessment_view}
+          on_change={fn view -> JS.push("change_view", value: %{"view" => view}, target: @myself) end}
+        />
         <div class="flex gap-4">
           <.action
             :if={@assessment_points_length > 1}
@@ -53,7 +42,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
           </.action>
         </div>
       </.action_bar>
-      <.responsive_container :if={@selected_classes == []} class="py-10">
+      <.responsive_container :if={@selected_classes_ids == []} class="py-10">
         <p class="flex items-center gap-2">
           <.icon name="hero-light-bulb-mini" class="text-ltrn-subtle" />
           <%= gettext("Select a class above to view full assessments grid") %>
@@ -121,16 +110,6 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
           </.button>
         </:actions>
       </.slide_over>
-      <.live_component
-        module={LantternWeb.Filters.ClassesFilterOverlayComponent}
-        id="classes-filter-modal"
-        current_user={@current_user}
-        title={gettext("Select classes for assessment")}
-        profile_filter_opts={[strand_id: @moment.strand_id]}
-        classes={@classes}
-        selected_classes_ids={@selected_classes_ids}
-        navigate={~p"/strands/moment/#{@moment}/assessment"}
-      />
       <.slide_over
         :if={Map.get(@params, "is_reordering") == "true"}
         show
@@ -226,7 +205,6 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
-    |> assign_strand_classes_filter()
     |> assign_user_filters([:assessment_view, :assessment_group_by])
     |> assign_sortable_assessment_points()
     |> assign(:initialized, true)

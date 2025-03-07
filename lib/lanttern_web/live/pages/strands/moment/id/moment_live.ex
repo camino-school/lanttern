@@ -12,6 +12,15 @@ defmodule LantternWeb.MomentLive do
   # shared components
   alias LantternWeb.LearningContext.MomentFormComponent
   import LantternWeb.LearningContextComponents, only: [mini_strand_card: 1]
+  import LantternWeb.FiltersHelpers, only: [assign_strand_classes_filter: 1]
+
+  @live_action_select_classes_overlay_title %{
+    assessment: gettext("Select classes to view assessments info")
+  }
+
+  @live_action_select_classes_overlay_navigate_path %{
+    assessment: "assessment"
+  }
 
   # lifecycle
 
@@ -22,6 +31,7 @@ defmodule LantternWeb.MomentLive do
       |> assign(:assessment_point_id, nil)
       |> assign_moment(params)
       |> assign_strand()
+      |> assign_strand_classes_filter()
 
     {:ok, socket}
   end
@@ -51,8 +61,37 @@ defmodule LantternWeb.MomentLive do
   end
 
   @impl true
-  def handle_params(params, _url, socket),
-    do: {:noreply, assign(socket, :params, params)}
+  def handle_params(params, _url, socket) do
+    socket =
+      socket
+      |> assign(:params, params)
+      |> assign_select_classes_overlay_title()
+      |> assign_select_classes_overlay_navigate()
+
+    {:noreply, socket}
+  end
+
+  defp assign_select_classes_overlay_title(socket) do
+    title =
+      Map.get(
+        @live_action_select_classes_overlay_title,
+        socket.assigns.live_action
+      )
+
+    assign(socket, :select_classes_overlay_title, title)
+  end
+
+  defp assign_select_classes_overlay_navigate(socket) do
+    path_final =
+      Map.get(
+        @live_action_select_classes_overlay_navigate_path,
+        socket.assigns.live_action
+      )
+
+    navigate = "/strands/moment/#{socket.assigns.moment.id}/#{path_final}"
+
+    assign(socket, :select_classes_overlay_navigate, navigate)
+  end
 
   # event handlers
 
