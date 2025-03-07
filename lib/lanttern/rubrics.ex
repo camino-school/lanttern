@@ -394,9 +394,12 @@ defmodule Lanttern.Rubrics do
   @doc """
   Creates a rubric.
 
-  ### Options:
+  This function also handles the linking of assessment points to the rubric
+  via `link_to_assessment_points_ids` attribute.
 
-  `:preloads` – preloads associated data
+  ## Options:
+
+  - `:preloads` – preloads associated data
 
   ## Examples
 
@@ -408,6 +411,19 @@ defmodule Lanttern.Rubrics do
 
   """
   def create_rubric(attrs \\ %{}, opts \\ []) do
+    attrs =
+      case attrs do
+        %{strand_id: strand_id} when not is_nil(strand_id) ->
+          from(r in Rubric, where: r.strand_id == ^strand_id)
+
+        %{"strand_id" => strand_id} when not is_nil(strand_id) ->
+          from(r in Rubric, where: r.strand_id == ^strand_id)
+
+        _ ->
+          Rubric
+      end
+      |> set_position_in_attrs(attrs)
+
     Ecto.Multi.new()
     # :insert would be a better multi name, but we use the generic
     # :rubric name to allow maybe_link/unlink_assessment_points reuse
@@ -436,6 +452,9 @@ defmodule Lanttern.Rubrics do
   1. delete the descriptors that should be deleted
   2. update only the rubric, changing it's scale id
   3. finally, update the rubric again casting the descriptors linked to the new scale id
+
+  This function also handles the linking/unlinking of assessment points to the rubric
+  via `link_to_assessment_points_ids` and `unlink_from_assessment_points_ids` attributes.
 
   ### Options:
 
@@ -857,7 +876,9 @@ defmodule Lanttern.Rubrics do
       order_by: [asc_nulls_last: ap.strand_id, asc: m.position, asc: ap.position]
     )
     |> Repo.all()
-    |> Enum.map(&{&1, &1.rubric_id == rubric.id})
+    |> Enum.map(fn ap ->
+      {ap, not is_nil(rubric.id) && ap.rubric_id == rubric.id}
+    end)
   end
 
   # helpers

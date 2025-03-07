@@ -143,9 +143,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                   <.action
                     type="link"
                     icon_name="hero-plus-circle-mini"
-                    patch={
-                      ~p"/strands/#{@strand}/rubrics?new_rubric_for_goal=#{goal.id}&is_diff=true"
-                    }
+                    patch={~p"/strands/#{@strand}/rubrics?new_diff_rubric_for_goal=#{goal.id}"}
                     theme="diff"
                   >
                     <%= gettext("Add diff rubric") %>
@@ -172,9 +170,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                   <.action
                     type="link"
                     icon_name="hero-plus-circle-mini"
-                    patch={
-                      ~p"/strands/#{@strand}/rubrics?new_rubric_for_goal=#{goal.id}&is_diff=true"
-                    }
+                    patch={~p"/strands/#{@strand}/rubrics?new_diff_rubric_for_goal=#{goal.id}"}
                     class="mx-auto"
                     theme="diff"
                   >
@@ -592,9 +588,14 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
     if rubric_id in socket.assigns.rubrics_ids do
       rubric = Rubrics.get_rubric!(rubric_id)
 
+      title =
+        if rubric.is_differentiation,
+          do: gettext("Edit differentiation rubric"),
+          else: gettext("Edit rubric")
+
       socket
       |> assign(:rubric, rubric)
-      |> assign(:rubric_overlay_title, gettext("Edit rubric"))
+      |> assign(:rubric_overlay_title, title)
     else
       assign(socket, :rubric, nil)
     end
@@ -606,6 +607,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
 
       rubric =
         %Rubric{
+          strand_id: socket.assigns.strand.id,
           scale_id: goal.scale_id,
           curriculum_item_id: goal.curriculum_item_id
         }
@@ -613,6 +615,26 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
       socket
       |> assign(:rubric, rubric)
       |> assign(:rubric_overlay_title, gettext("New rubric"))
+    else
+      assign(socket, :rubric, nil)
+    end
+  end
+
+  defp assign_rubric(%{assigns: %{params: %{"new_diff_rubric_for_goal" => goal_id}}} = socket) do
+    if goal_id in socket.assigns.goals_ids do
+      goal = Assessments.get_assessment_point(goal_id)
+
+      rubric =
+        %Rubric{
+          strand_id: socket.assigns.strand.id,
+          scale_id: goal.scale_id,
+          curriculum_item_id: goal.curriculum_item_id,
+          is_differentiation: true
+        }
+
+      socket
+      |> assign(:rubric, rubric)
+      |> assign(:rubric_overlay_title, gettext("New differentiation rubric"))
     else
       assign(socket, :rubric, nil)
     end
