@@ -56,14 +56,15 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
           <button
             type="button"
             class={[
-              "flex items-center gap-1 shrink-0 p-1 rounded-full text-ltrn-light bg-white shadow hover:bg-ltrn-lightest",
+              "flex items-center justify-center shrink-0 p-1 rounded-full text-ltrn-light bg-white shadow hover:bg-ltrn-lightest",
               "disabled:bg-ltrn-lighter disabled:shadow-none"
             ]}
             phx-click="view_details"
             phx-target={@myself}
           >
-            <.icon name="hero-chat-bubble-oval-left-mini" class={@note_icon_class} />
-            <.icon name="hero-paper-clip-mini" class={@evidences_icon_class} />
+            <.icon name="hero-chat-bubble-oval-left-micro" class={["w-4 h-4", @note_icon_class]} />
+            <.icon name="hero-paper-clip-micro" class={["w-4 h-4", @evidences_icon_class]} />
+            <.icon name="hero-view-columns-micro" class={["w-4 h-4", @diff_rubric_icon_class]} />
           </button>
         </div>
       <% else %>
@@ -341,6 +342,9 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
 
     evidences_icon_class = if entry.has_evidences, do: "text-ltrn-primary", else: ""
 
+    diff_rubric_icon_class =
+      if entry.differentiation_rubric_id, do: "text-ltrn-diff-accent", else: ""
+
     socket
     |> assign(:form, form)
     |> assign(:field, field)
@@ -351,6 +355,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     |> assign(:entry_note, entry_note)
     |> assign(:note_icon_class, note_icon_class)
     |> assign(:evidences_icon_class, evidences_icon_class)
+    |> assign(:diff_rubric_icon_class, diff_rubric_icon_class)
   end
 
   defp assign_form_and_related_assigns(socket, _ov_options), do: assign(socket, :form, nil)

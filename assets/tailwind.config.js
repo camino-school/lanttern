@@ -140,6 +140,7 @@ module.exports = {
         ["", "/24/outline"],
         ["-solid", "/24/solid"],
         ["-mini", "/20/solid"],
+        ["-micro", "/16/solid"],
       ];
       icons.forEach(([suffix, dir]) => {
         fs.readdirSync(path.join(iconsDir, dir)).map((file) => {
