@@ -29,8 +29,6 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   alias Lanttern.LearningContext.Strand
   alias Lanttern.Schools.Student
 
-  import LantternWeb.AssessmentsHelpers, only: [save_entry_editor_component_changes: 2]
-
   # shared components
   alias LantternWeb.Assessments.EntryCellComponent
   alias LantternWeb.Assessments.EntryDetailsOverlayComponent
@@ -481,14 +479,14 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   end
 
   def update(
-        %{action: {EntryCellComponent, {:change, type, composite_id, entry_id, params}}},
+        %{action: {EntryCellComponent, {:change, _type, composite_id, _entry_id, params}}},
         socket
       ) do
     socket =
       socket
       |> update(:entries_changes_map, fn entries_changes_map ->
         entries_changes_map
-        |> Map.put(composite_id, {type, entry_id, params})
+        |> Map.put(composite_id, params)
       end)
 
     {:ok, socket}
@@ -636,13 +634,19 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       current_user: current_user
     } = socket.assigns
 
+    changes = Map.values(entries_changes_map)
+
     socket =
-      case save_entry_editor_component_changes(
-             entries_changes_map,
-             current_user.current_profile_id
+      case Assessments.save_assessment_point_entries(changes,
+             log_profile_id: current_user.current_profile_id
            ) do
-        {:ok, msg} -> put_flash(socket, :info, msg)
-        {:error, msg} -> put_flash(socket, :error, msg)
+        {:ok, count} ->
+          msg = ngettext("1 entry updated", "%{count} entries updated", count)
+          put_flash(socket, :info, msg)
+
+        {:error, _changeset} ->
+          msg = gettext("Error updating assessment point entries")
+          put_flash(socket, :error, msg)
       end
       |> push_navigate(to: socket.assigns.navigate)
 

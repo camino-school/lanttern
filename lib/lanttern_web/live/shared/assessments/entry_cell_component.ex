@@ -400,10 +400,8 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
 
     # get the right ordinal value or score based on view
     param_value = get_param_value(params, view)
-
-    {has_changes, change_type} =
-      check_for_changes(entry.id, "#{entry_value}", socket.assigns.other_value, param_value)
-
+    has_changes = "#{entry_value}" != param_value
+    change_type = if has_changes, do: :edit, else: :cancel
     composite_id = "#{entry_params["student_id"]}_#{entry_params["assessment_point_id"]}"
 
     notify(
@@ -445,22 +443,4 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
 
   defp get_param_value(%{"scale_type" => "numeric"} = params, _teacher),
     do: params["score"]
-
-  @spec check_for_changes(
-          entry_id :: pos_integer(),
-          entry_value :: String.t(),
-          other_entry_value :: any(),
-          param_value :: String.t()
-        ) :: {boolean(), :cancel | :new | :delete | :edit}
-
-  defp check_for_changes(_, entry_value, _, param_value) when entry_value == param_value,
-    do: {false, :cancel}
-
-  defp check_for_changes(nil, _, _, param_value) when param_value != "",
-    do: {true, :new}
-
-  defp check_for_changes(entry_id, _, nil, "") when not is_nil(entry_id),
-    do: {true, :delete}
-
-  defp check_for_changes(_, _, _, _), do: {true, :edit}
 end
