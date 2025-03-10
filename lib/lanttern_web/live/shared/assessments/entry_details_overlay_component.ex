@@ -1,6 +1,8 @@
-defmodule LantternWeb.Assessments.EntryDetailsComponent do
+defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   @moduledoc """
-  TBD
+  Render an assessment point entry detail overlay.
+
+  When initializing the component, it will create the entry in the DB if it doesn't exist yet.
   ```
 
   """
@@ -17,128 +19,106 @@ defmodule LantternWeb.Assessments.EntryDetailsComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class={@class}>
-      <.metadata class="mb-6" icon_name="hero-user">
-        <%= @student.name %>
-      </.metadata>
-      <.metadata icon_name="hero-document-text">
-        <div class="flex flex-wrap gap-1 mb-1">
-          <.badge><%= @assessment_point.curriculum_item.curriculum_component.name %></.badge>
-          <.badge :if={@assessment_point.is_differentiation} theme="diff">
-            <%= gettext("Differentiation") %>
-          </.badge>
-        </div>
-        <p><%= @assessment_point.curriculum_item.name %></p>
-      </.metadata>
-      <.form
-        for={@form}
-        phx-change="change_marking"
-        phx-submit="save_marking"
-        phx-target={@myself}
-        class="mt-10"
-      >
-        <div class="grid grid-cols-2 gap-2">
-          <div class="pb-1 border-b-2 border-ltrn-staff-accent text-xs text-center text-ltrn-staff-dark">
-            <%= gettext("Teacher assessment") %>
+    <div>
+      <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
+        <:title><%= gettext("Assessment point entry details") %></:title>
+        <.metadata class="mb-6" icon_name="hero-user">
+          <%= @student.name %>
+        </.metadata>
+        <.metadata icon_name="hero-document-text">
+          <div class="flex flex-wrap gap-1 mb-1">
+            <.badge><%= @assessment_point.curriculum_item.curriculum_component.name %></.badge>
+            <.badge :if={@assessment_point.is_differentiation} theme="diff">
+              <%= gettext("Differentiation") %>
+            </.badge>
           </div>
-          <div class="pb-1 border-b-2 border-ltrn-student-accent text-xs text-center text-ltrn-student-dark">
-            <%= gettext("Student self-assessment") %>
+          <p><%= @assessment_point.curriculum_item.name %></p>
+        </.metadata>
+        <.form
+          for={@form}
+          phx-change="change_marking"
+          phx-submit="save_marking"
+          phx-target={@myself}
+          class="mt-10"
+        >
+          <div class="grid grid-cols-2 gap-2">
+            <div class="pb-1 border-b-2 border-ltrn-staff-accent text-xs text-center text-ltrn-staff-dark">
+              <%= gettext("Teacher assessment") %>
+            </div>
+            <div class="pb-1 border-b-2 border-ltrn-student-accent text-xs text-center text-ltrn-student-dark">
+              <%= gettext("Student self-assessment") %>
+            </div>
+            <.marking_input
+              scale={@assessment_point.scale}
+              ordinal_value_options={@ordinal_value_options}
+              form={@form}
+              assessment_view="teacher"
+              ov_style_map={@ov_style_map}
+              has_change={@has_teacher_change}
+            />
+            <.marking_input
+              scale={@assessment_point.scale}
+              ordinal_value_options={@ordinal_value_options}
+              form={@form}
+              assessment_view="student"
+              ov_style_map={@ov_style_map}
+              has_change={@has_student_change}
+            />
           </div>
-          <.marking_input
-            scale={@assessment_point.scale}
-            ordinal_value_options={@ordinal_value_options}
-            form={@form}
-            assessment_view="teacher"
-            ov_style_map={@ov_style_map}
-            has_change={@has_teacher_change}
-          />
-          <.marking_input
-            scale={@assessment_point.scale}
-            ordinal_value_options={@ordinal_value_options}
-            form={@form}
-            assessment_view="student"
-            ov_style_map={@ov_style_map}
-            has_change={@has_student_change}
-          />
-        </div>
-        <div
-          :if={(@has_teacher_change || @has_student_change) && !@is_confirming_deletion}
-          class="p-2 rounded mt-2 text-sm text-white text-center bg-ltrn-dark"
-        >
-          <button class="underline hover:text-ltrn-primary">
-            <%= gettext("Save") %>
-          </button>
-          <%= gettext("or") %>
-          <button
-            type="button"
-            theme="ghost"
-            class="underline hover:text-ltrn-light"
-            phx-click="cancel_change_marking"
-            phx-target={@myself}
+          <div
+            :if={@has_teacher_change || @has_student_change}
+            class="p-2 rounded mt-2 text-sm text-white text-center bg-ltrn-dark"
           >
-            <%= gettext("discard changes") %>
-          </button>
-        </div>
-        <div
-          :if={@is_confirming_deletion}
-          class="p-2 rounded mt-2 text-sm text-ltrn-alert-lighter text-center bg-ltrn-alert-accent"
-        >
-          <%= gettext("This will delete the assessment point entry.") %>
-          <button
-            type="button"
-            theme="ghost"
-            phx-click="cancel_delete_entry"
-            phx-target={@myself}
-            class="underline hover:opacity-80"
-          >
-            <%= gettext("Cancel") %>
-          </button>
-          <%= gettext("or") %>
-          <button
-            type="button"
-            theme="alert"
-            phx-click="delete_entry"
-            phx-target={@myself}
-            class="underline hover:opacity-80"
-          >
-            <%= gettext("confirm deletion") %>
-          </button>
-        </div>
-      </.form>
-      <.comment_area
-        note={@entry.report_note}
-        is_editing={@is_editing_note}
-        form={@form}
-        error={@save_note_error}
-        theme="staff"
-        on_edit={JS.push("edit_note", target: @myself)}
-        on_cancel={JS.push("cancel_edit_note", target: @myself)}
-        on_save={JS.push("save_note", target: @myself)}
-        class="mt-10"
-      />
-      <.comment_area
-        note={@entry.student_report_note}
-        is_editing={@is_editing_student_note}
-        form={@form}
-        error={@save_student_note_error}
-        theme="student"
-        student_name={@student.name}
-        on_edit={JS.push("edit_student_note", target: @myself)}
-        on_cancel={JS.push("cancel_edit_student_note", target: @myself)}
-        on_save={JS.push("save_note", target: @myself)}
-        class="mt-6"
-      />
-      <.live_component
-        :if={@entry && @entry.id}
-        module={AttachmentAreaComponent}
-        id="assessment-point-entry-evidences"
-        class="mt-10"
-        current_user={@current_user}
-        assessment_point_entry_id={@entry.id}
-        title={gettext("Assessment point entry's evidences")}
-        allow_editing
-        notify_component={@myself}
-      />
+            <button class="underline hover:text-ltrn-primary">
+              <%= gettext("Save") %>
+            </button>
+            <%= gettext("or") %>
+            <button
+              type="button"
+              theme="ghost"
+              class="underline hover:text-ltrn-light"
+              phx-click="cancel_change_marking"
+              phx-target={@myself}
+            >
+              <%= gettext("discard changes") %>
+            </button>
+          </div>
+        </.form>
+        <.comment_area
+          note={@entry.report_note}
+          is_editing={@is_editing_note}
+          form={@form}
+          error={@save_note_error}
+          theme="staff"
+          on_edit={JS.push("edit_note", target: @myself)}
+          on_cancel={JS.push("cancel_edit_note", target: @myself)}
+          on_save={JS.push("save_note", target: @myself)}
+          class="mt-10"
+        />
+        <.comment_area
+          note={@entry.student_report_note}
+          is_editing={@is_editing_student_note}
+          form={@form}
+          error={@save_student_note_error}
+          theme="student"
+          student_name={@student.name}
+          on_edit={JS.push("edit_student_note", target: @myself)}
+          on_cancel={JS.push("cancel_edit_student_note", target: @myself)}
+          on_save={JS.push("save_note", target: @myself)}
+          class="mt-6"
+        />
+        <.live_component
+          :if={@entry && @entry.id}
+          module={AttachmentAreaComponent}
+          id="assessment-point-entry-evidences"
+          class="mt-10"
+          current_user={@current_user}
+          assessment_point_entry_id={@entry.id}
+          title={gettext("Assessment point entry's evidences")}
+          allow_editing
+          notify_component={@myself}
+        />
+      </.slide_over>
     </div>
     """
   end
@@ -288,11 +268,9 @@ defmodule LantternWeb.Assessments.EntryDetailsComponent do
   def mount(socket) do
     socket =
       socket
-      |> assign(:class, nil)
       |> assign(:has_teacher_change, false)
       |> assign(:has_student_change, false)
       |> assign(:save_marking_error, nil)
-      |> assign(:is_confirming_deletion, false)
       |> assign(:ov_style_map, nil)
       |> assign(:is_editing_note, false)
       |> assign(:is_editing_student_note, false)
@@ -334,34 +312,101 @@ defmodule LantternWeb.Assessments.EntryDetailsComponent do
   end
 
   def update(%{entry: %AssessmentPointEntry{}} = assigns, socket) do
-    %{
-      student: student,
-      assessment_point: assessment_point
-    } =
-      assigns.entry
-      |> Lanttern.Repo.preload([
-        :student,
-        assessment_point: [scale: :ordinal_values, curriculum_item: :curriculum_component]
-      ])
-
-    form =
-      assigns.entry
-      |> Assessments.change_assessment_point_entry()
-      |> to_form()
-
     socket =
       socket
       |> assign(assigns)
-      |> assign(:student, student)
-      |> assign(:assessment_point, assessment_point)
-      |> assign(:form, form)
+      |> assign_student()
+      |> assign_assessment_point()
+      |> maybe_create_and_assign_entry()
+      |> assign_form()
       |> assign_ordinal_value_options()
       |> assign_ov_style_map()
 
     {:ok, socket}
   end
 
-  def update(_assigns, socket), do: {:ok, socket}
+  defp assign_student(socket) do
+    %{student: student} =
+      socket.assigns.entry
+      |> Lanttern.Repo.preload([:student])
+
+    assign(socket, :student, student)
+  end
+
+  defp assign_assessment_point(socket) do
+    %{assessment_point: assessment_point} =
+      socket.assigns.entry
+      |> Lanttern.Repo.preload(
+        assessment_point: [scale: :ordinal_values, curriculum_item: :curriculum_component]
+      )
+
+    assign(socket, :assessment_point, assessment_point)
+  end
+
+  defp maybe_create_and_assign_entry(%{assigns: %{entry: %{id: nil}}} = socket) do
+    params =
+      %{
+        assessment_point_id: socket.assigns.assessment_point.id,
+        scale_id: socket.assigns.assessment_point.scale.id,
+        scale_type: socket.assigns.assessment_point.scale.type,
+        student_id: socket.assigns.student.id
+      }
+
+    {:ok, entry} =
+      Assessments.create_assessment_point_entry(params,
+        log_profile_id: socket.assigns.current_user.current_profile_id
+      )
+
+    notify(
+      __MODULE__,
+      {:created_entry, entry},
+      socket.assigns
+    )
+
+    assign(socket, :entry, entry)
+  end
+
+  defp maybe_create_and_assign_entry(socket), do: socket
+
+  defp assign_form(socket) do
+    form =
+      socket.assigns.entry
+      |> Assessments.change_assessment_point_entry()
+      |> to_form()
+
+    assign(socket, :form, form)
+  end
+
+  defp assign_ordinal_value_options(
+         %{assigns: %{assessment_point: %{scale: %{type: "ordinal"}}}} = socket
+       ) do
+    ordinal_value_options =
+      socket.assigns.assessment_point.scale.ordinal_values
+      |> Enum.map(fn ov -> {ov.name, ov.id} end)
+
+    assign(socket, :ordinal_value_options, ordinal_value_options)
+  end
+
+  defp assign_ordinal_value_options(socket),
+    do: assign(socket, :ordinal_value_options, [])
+
+  defp assign_ov_style_map(%{assigns: %{entry: %{scale_type: "ordinal"}}} = socket) do
+    %{
+      assessment_point: %{scale: %{ordinal_values: ordinal_values}}
+    } = socket.assigns
+
+    ov_style_map =
+      ordinal_values
+      |> Enum.map(fn ov ->
+        {"#{ov.id}", get_colors_style(ov)}
+      end)
+      |> Enum.into(%{})
+
+    socket
+    |> assign(:ov_style_map, ov_style_map)
+  end
+
+  defp assign_ov_style_map(socket), do: socket
 
   # event handlers
 
@@ -397,18 +442,6 @@ defmodule LantternWeb.Assessments.EntryDetailsComponent do
 
     {:noreply, socket}
   end
-
-  def handle_event(
-        "save_marking",
-        %{
-          "assessment_point_entry" => %{
-            "ordinal_value_id" => "",
-            "student_ordinal_value_id" => ""
-          }
-        },
-        socket
-      ),
-      do: {:noreply, assign(socket, :is_confirming_deletion, true)}
 
   def handle_event("save_marking", %{"assessment_point_entry" => params}, socket) do
     opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
@@ -446,34 +479,6 @@ defmodule LantternWeb.Assessments.EntryDetailsComponent do
       |> assign(:has_teacher_change, false)
       |> assign(:has_student_change, false)
       |> assign(:form, form)
-
-    {:noreply, socket}
-  end
-
-  def handle_event("cancel_delete_entry", _, socket),
-    do: {:noreply, assign(socket, :is_confirming_deletion, false)}
-
-  def handle_event("delete_entry", _, socket) do
-    opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
-
-    socket =
-      case Assessments.delete_assessment_point_entry(socket.assigns.entry, opts) do
-        {:ok, entry} ->
-          notify(
-            __MODULE__,
-            {:delete, entry},
-            socket.assigns
-          )
-
-          socket
-          |> assign(:entry, entry)
-          |> assign(:has_teacher_change, false)
-          |> assign(:has_student_change, false)
-          |> assign(:save_marking_error, nil)
-
-        {:error, _} ->
-          assign(socket, :save_marking_error, gettext("Something went wrong"))
-      end
 
     {:noreply, socket}
   end
@@ -557,37 +562,6 @@ defmodule LantternWeb.Assessments.EntryDetailsComponent do
         end
     end
   end
-
-  defp assign_ordinal_value_options(
-         %{assigns: %{assessment_point: %{scale: %{type: "ordinal"}}}} = socket
-       ) do
-    ordinal_value_options =
-      socket.assigns.assessment_point.scale.ordinal_values
-      |> Enum.map(fn ov -> {ov.name, ov.id} end)
-
-    assign(socket, :ordinal_value_options, ordinal_value_options)
-  end
-
-  defp assign_ordinal_value_options(socket),
-    do: assign(socket, :ordinal_value_options, [])
-
-  defp assign_ov_style_map(%{assigns: %{entry: %{scale_type: "ordinal"}}} = socket) do
-    %{
-      assessment_point: %{scale: %{ordinal_values: ordinal_values}}
-    } = socket.assigns
-
-    ov_style_map =
-      ordinal_values
-      |> Enum.map(fn ov ->
-        {"#{ov.id}", get_colors_style(ov)}
-      end)
-      |> Enum.into(%{})
-
-    socket
-    |> assign(:ov_style_map, ov_style_map)
-  end
-
-  defp assign_ov_style_map(socket), do: socket
 
   defp get_colors_style(%OrdinalValue{} = ov) do
     "background-color: #{ov.bg_color}; color: #{ov.text_color}"

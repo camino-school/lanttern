@@ -33,7 +33,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
   # shared components
   alias LantternWeb.Assessments.EntryCellComponent
-  alias LantternWeb.Assessments.EntryDetailsComponent
+  alias LantternWeb.Assessments.EntryDetailsOverlayComponent
 
   @impl true
   def render(assigns) do
@@ -161,21 +161,15 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
             else: gettext("Save") %>
         </.button>
       </.fixed_bar>
-      <.slide_over
+      <.live_component
         :if={@assessment_point_entry}
-        id="entry-details-overlay"
-        show={true}
+        module={EntryDetailsOverlayComponent}
+        id={"#{@id}-entry-details-overlay"}
+        entry={@assessment_point_entry}
+        current_user={@current_user}
         on_cancel={JS.push("close_entry_details_overlay", target: @myself)}
-      >
-        <:title><%= gettext("Assessment point entry details") %></:title>
-        <.live_component
-          module={EntryDetailsComponent}
-          id={@assessment_point_entry.id}
-          entry={@assessment_point_entry}
-          current_user={@current_user}
-          notify_component={@myself}
-        />
-      </.slide_over>
+        notify_component={@myself}
+      />
     </div>
     """
   end
@@ -512,15 +506,15 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   end
 
   def update(
-        %{action: {EntryDetailsComponent, {msg_type, _}}},
+        %{action: {EntryDetailsOverlayComponent, {msg_type, _}}},
         socket
       )
-      when msg_type in [:change, :created_attachment, :deleted_attachment] do
+      when msg_type in [:created_entry, :change, :created_attachment, :deleted_attachment] do
     {:ok, assign(socket, :has_entry_details_change, true)}
   end
 
   def update(
-        %{action: {EntryDetailsComponent, {:delete, _entry}}},
+        %{action: {EntryDetailsOverlayComponent, {:delete, _entry}}},
         socket
       ) do
     socket =
@@ -534,7 +528,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   end
 
   def update(
-        %{action: {EntryDetailsComponent, _}},
+        %{action: {EntryDetailsOverlayComponent, _}},
         socket
       ),
       do: {:ok, socket}

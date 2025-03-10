@@ -59,7 +59,6 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
               "flex items-center gap-1 shrink-0 p-1 rounded-full text-ltrn-light bg-white shadow hover:bg-ltrn-lightest",
               "disabled:bg-ltrn-lighter disabled:shadow-none"
             ]}
-            disabled={!@entry.id}
             phx-click="view_details"
             phx-target={@myself}
           >
