@@ -12,9 +12,11 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Grading.Scale
+  alias Lanttern.Rubrics
 
   # shared components
   alias LantternWeb.Attachments.AttachmentAreaComponent
+  alias LantternWeb.Rubrics.RubricDescriptorsComponent
 
   @impl true
   def render(assigns) do
@@ -106,6 +108,16 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
           on_cancel={JS.push("cancel_edit_student_note", target: @myself)}
           on_save={JS.push("save_note", target: @myself)}
           class="mt-6"
+        />
+        <.diff_rubric_area
+          id={@id}
+          form={@diff_rubric_form}
+          differentiation_rubric={@differentiation_rubric}
+          diff_rubric_options={@diff_rubric_options}
+          has_change={@has_diff_rubric_change}
+          on_change={JS.push("change_diff_rubric", target: @myself)}
+          on_cancel={JS.push("cancel_edit_diff_rubric", target: @myself)}
+          on_save={JS.push("save_diff_rubric", target: @myself)}
         />
         <.live_component
           :if={@entry && @entry.id}
@@ -221,7 +233,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
 
     ~H"""
     <div class={[
-      "p-4 rounded mt-10",
+      "p-4 rounded",
       @class,
       if(@note, do: @bg_lightest, else: "bg-ltrn-lightest")
     ]}>
@@ -262,6 +274,60 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
     """
   end
 
+  attr :id, :string, required: true
+  attr :differentiation_rubric, :any, required: true
+  attr :form, Phoenix.HTML.Form, required: true
+  attr :diff_rubric_options, :list, required: true
+  attr :has_change, :boolean, required: true
+  attr :on_change, JS, required: true
+  attr :on_cancel, JS, required: true
+  attr :on_save, JS, required: true
+
+  def diff_rubric_area(assigns) do
+    ~H"""
+    <div class="p-4 rounded mt-10 bg-ltrn-diff-lightest">
+      <div class="flex items-center gap-2 font-bold text-sm">
+        <.icon name="hero-view-columns" class="w-6 h-6 text-ltrn-diff-accent" />
+        <span class="text-ltrn-diff-dark"><%= gettext("Differentiation rubric") %></span>
+      </div>
+      <.form for={@form} phx-submit={@on_save} id={"#{@id}-diff-rubric-form"} class="mt-4">
+        <.input
+          type="select"
+          field={@form[:differentiation_rubric_id]}
+          prompt={gettext("No differentiation rubric")}
+          options={@diff_rubric_options}
+          phx-change={@on_change}
+        />
+        <div :if={@differentiation_rubric} class="mt-2">
+          <.live_component
+            module={RubricDescriptorsComponent}
+            id={"#{@id}-diff-rubric-descriptors"}
+            rubric={@differentiation_rubric}
+            class="overflow-x-auto"
+          />
+        </div>
+        <div
+          :if={@has_change}
+          class="p-2 rounded mt-2 text-sm text-white text-center bg-ltrn-diff-dark"
+        >
+          <button type="submit" class="underline hover:text-ltrn-primary">
+            <%= gettext("Save") %>
+          </button>
+          <%= gettext("or") %>
+          <button
+            type="button"
+            theme="ghost"
+            class="underline hover:text-ltrn-light"
+            phx-click={@on_cancel}
+          >
+            <%= gettext("discard changes") %>
+          </button>
+        </div>
+      </.form>
+    </div>
+    """
+  end
+
   # lifecycle
 
   @impl true
@@ -270,6 +336,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       socket
       |> assign(:has_teacher_change, false)
       |> assign(:has_student_change, false)
+      |> assign(:has_diff_rubric_change, false)
       |> assign(:save_marking_error, nil)
       |> assign(:ov_style_map, nil)
       |> assign(:is_editing_note, false)
@@ -317,10 +384,13 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       |> assign(assigns)
       |> assign_student()
       |> assign_assessment_point()
+      |> assign_differentiation_rubric()
       |> maybe_create_and_assign_entry()
       |> assign_form()
       |> assign_ordinal_value_options()
       |> assign_ov_style_map()
+      |> assign_diff_rubric_form()
+      |> assign_diff_rubric_options()
 
     {:ok, socket}
   end
@@ -341,6 +411,14 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       )
 
     assign(socket, :assessment_point, assessment_point)
+  end
+
+  defp assign_differentiation_rubric(socket) do
+    %{differentiation_rubric: differentiation_rubric} =
+      socket.assigns.entry
+      |> Lanttern.Repo.preload([:differentiation_rubric])
+
+    assign(socket, :differentiation_rubric, differentiation_rubric)
   end
 
   defp maybe_create_and_assign_entry(%{assigns: %{entry: %{id: nil}}} = socket) do
@@ -407,6 +485,24 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   end
 
   defp assign_ov_style_map(socket), do: socket
+
+  defp assign_diff_rubric_form(socket) do
+    form =
+      socket.assigns.entry
+      |> Assessments.change_assessment_point_entry()
+      |> to_form()
+
+    assign(socket, :diff_rubric_form, form)
+  end
+
+  defp assign_diff_rubric_options(socket) do
+    diff_rubric_options =
+      Rubrics.list_diff_rubrics_for_assessment_point(socket.assigns.assessment_point)
+      |> Enum.map(fn rubric -> {"#{gettext("Criteria")}: #{rubric.criteria}", rubric.id} end)
+
+    socket
+    |> assign(:diff_rubric_options, diff_rubric_options)
+  end
 
   # event handlers
 
@@ -515,6 +611,86 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
     socket =
       socket
       |> handle_save_note(params, "student")
+
+    {:noreply, socket}
+  end
+
+  def handle_event(
+        "change_diff_rubric",
+        %{"assessment_point_entry" => %{"differentiation_rubric_id" => ""} = params},
+        socket
+      ) do
+    form =
+      socket.assigns.entry
+      |> Assessments.change_assessment_point_entry(params)
+      |> to_form()
+
+    socket =
+      socket
+      |> assign(:differentiation_rubric, nil)
+      |> assign(
+        :has_diff_rubric_change,
+        not is_nil(socket.assigns.entry.differentiation_rubric_id)
+      )
+      |> assign(:diff_rubric_form, form)
+
+    {:noreply, socket}
+  end
+
+  def handle_event(
+        "change_diff_rubric",
+        %{"assessment_point_entry" => %{"differentiation_rubric_id" => id} = params},
+        socket
+      ) do
+    form =
+      socket.assigns.entry
+      |> Assessments.change_assessment_point_entry(params)
+      |> to_form()
+
+    differentiation_rubric = Rubrics.get_rubric!(id)
+
+    socket =
+      socket
+      |> assign(:differentiation_rubric, differentiation_rubric)
+      |> assign(
+        :has_diff_rubric_change,
+        differentiation_rubric.id != socket.assigns.entry.differentiation_rubric_id
+      )
+      |> assign(:diff_rubric_form, form)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("cancel_edit_diff_rubric", _params, socket) do
+    socket =
+      socket
+      |> assign_differentiation_rubric()
+      |> assign(:has_diff_rubric_change, false)
+      |> assign_diff_rubric_form()
+
+    {:noreply, socket}
+  end
+
+  def handle_event("save_diff_rubric", %{"assessment_point_entry" => params}, socket) do
+    opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
+
+    socket =
+      case Assessments.update_assessment_point_entry(socket.assigns.entry, params, opts) do
+        {:ok, entry} ->
+          notify(
+            __MODULE__,
+            {:change, entry},
+            socket.assigns
+          )
+
+          socket
+          |> assign(:entry, entry)
+          |> assign(:has_diff_rubric_change, false)
+
+        {:error, _} ->
+          # to do: handle error
+          socket
+      end
 
     {:noreply, socket}
   end

@@ -852,6 +852,39 @@ defmodule Lanttern.Rubrics do
     do: apply_list_diff_students_for_rubric_opts(queryable, opts)
 
   @doc """
+  List all diff rubrics matching given assessment point.
+
+  A rubric "matches" the assessment point if its from the same strand and uses the
+  same scale/curriculum item.
+
+  Results are ordered by position.
+
+  ## Examples
+
+      iex> list_diff_rubrics_for_assessment_point(1)
+      [%Rubric{}, ...]
+
+  """
+  @spec list_diff_rubrics_for_assessment_point(AssessmentPoint.t()) :: [Rubric.t()]
+  def list_diff_rubrics_for_assessment_point(%AssessmentPoint{} = assessment_point) do
+    %{
+      strand_id: strand_id,
+      scale_id: scale_id,
+      curriculum_item_id: curriculum_item_id
+    } = assessment_point
+
+    from(
+      r in Rubric,
+      where: r.strand_id == ^strand_id,
+      where: r.scale_id == ^scale_id,
+      where: r.curriculum_item_id == ^curriculum_item_id,
+      where: r.is_differentiation == true,
+      order_by: r.position
+    )
+    |> Repo.all()
+  end
+
+  @doc """
   Links a differentiation rubric to a student.
 
   ## Examples
