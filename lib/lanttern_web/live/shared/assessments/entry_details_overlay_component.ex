@@ -290,40 +290,46 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
         <.icon name="hero-view-columns" class="w-6 h-6 text-ltrn-diff-accent" />
         <span class="text-ltrn-diff-dark"><%= gettext("Differentiation rubric") %></span>
       </div>
-      <.form for={@form} phx-submit={@on_save} id={"#{@id}-diff-rubric-form"} class="mt-4">
-        <.input
-          type="select"
-          field={@form[:differentiation_rubric_id]}
-          prompt={gettext("No differentiation rubric")}
-          options={@diff_rubric_options}
-          phx-change={@on_change}
-        />
-        <div :if={@differentiation_rubric} class="mt-2">
-          <.live_component
-            module={RubricDescriptorsComponent}
-            id={"#{@id}-diff-rubric-descriptors"}
-            rubric={@differentiation_rubric}
-            class="overflow-x-auto"
+      <%= if @diff_rubric_options != [] do %>
+        <.form for={@form} phx-submit={@on_save} id={"#{@id}-diff-rubric-form"} class="mt-4">
+          <.input
+            type="select"
+            field={@form[:differentiation_rubric_id]}
+            prompt={gettext("No differentiation rubric")}
+            options={@diff_rubric_options}
+            phx-change={@on_change}
           />
-        </div>
-        <div
-          :if={@has_change}
-          class="p-2 rounded mt-2 text-sm text-white text-center bg-ltrn-diff-dark"
-        >
-          <button type="submit" class="underline hover:text-ltrn-primary">
-            <%= gettext("Save") %>
-          </button>
-          <%= gettext("or") %>
-          <button
-            type="button"
-            theme="ghost"
-            class="underline hover:text-ltrn-light"
-            phx-click={@on_cancel}
+          <div :if={@differentiation_rubric} class="mt-2">
+            <.live_component
+              module={RubricDescriptorsComponent}
+              id={"#{@id}-diff-rubric-descriptors"}
+              rubric={@differentiation_rubric}
+              class="overflow-x-auto"
+            />
+          </div>
+          <div
+            :if={@has_change}
+            class="p-2 rounded mt-2 text-sm text-white text-center bg-ltrn-diff-dark"
           >
-            <%= gettext("discard changes") %>
-          </button>
-        </div>
-      </.form>
+            <button type="submit" class="underline hover:text-ltrn-primary">
+              <%= gettext("Save") %>
+            </button>
+            <%= gettext("or") %>
+            <button
+              type="button"
+              theme="ghost"
+              class="underline hover:text-ltrn-light"
+              phx-click={@on_cancel}
+            >
+              <%= gettext("discard changes") %>
+            </button>
+          </div>
+        </.form>
+      <% else %>
+        <.empty_state_simple class="mt-4">
+          <%= gettext("No differentiation rubric matching assessment point curriculum item and scale") %>
+        </.empty_state_simple>
+      <% end %>
     </div>
     """
   end

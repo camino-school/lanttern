@@ -1094,6 +1094,65 @@ defmodule Lanttern.RubricsTest do
              ]
     end
 
+    test "list_diff_rubrics_for_assessment_point/1 returns all diff rubrics matching the moment assessment point" do
+      strand = LearningContextFixtures.strand_fixture()
+      moment = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      scale = GradingFixtures.scale_fixture()
+
+      diff_rubric_1 =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          is_differentiation: true
+        })
+
+      diff_rubric_2 =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          is_differentiation: true
+        })
+
+      assessment_point =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment.id,
+          curriculum_item_id: curriculum_item.id,
+          scale_id: scale.id
+        })
+
+      # extra fixtures for filter testing
+
+      _not_diff_rubric =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      _other_scale_rubric =
+        rubric_fixture(%{
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      _other_curriculum_diff_rubric =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          is_differentiation: true
+        })
+
+      # assert
+
+      assert Rubrics.list_diff_rubrics_for_assessment_point(assessment_point) == [
+               diff_rubric_1,
+               diff_rubric_2
+             ]
+    end
+
     test "link_rubric_to_student/2 links the differentiation rubric to the student" do
       student = SchoolsFixtures.student_fixture()
       parent_rubric = rubric_fixture()

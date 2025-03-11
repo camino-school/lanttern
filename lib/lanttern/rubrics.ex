@@ -9,6 +9,7 @@ defmodule Lanttern.Rubrics do
   alias Lanttern.Repo
 
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.LearningContext.Moment
   alias Lanttern.Rubrics.Rubric
   alias Lanttern.Rubrics.RubricDescriptor
   alias Lanttern.Schools.Student
@@ -866,12 +867,26 @@ defmodule Lanttern.Rubrics do
 
   """
   @spec list_diff_rubrics_for_assessment_point(AssessmentPoint.t()) :: [Rubric.t()]
+
   def list_diff_rubrics_for_assessment_point(%AssessmentPoint{} = assessment_point) do
     %{
-      strand_id: strand_id,
       scale_id: scale_id,
       curriculum_item_id: curriculum_item_id
     } = assessment_point
+
+    strand_id =
+      case assessment_point do
+        %{strand_id: nil, moment_id: moment_id} ->
+          from(
+            m in Moment,
+            where: m.id == ^moment_id,
+            select: m.strand_id
+          )
+          |> Repo.one()
+
+        %{strand_id: strand_id} ->
+          strand_id
+      end
 
     from(
       r in Rubric,
