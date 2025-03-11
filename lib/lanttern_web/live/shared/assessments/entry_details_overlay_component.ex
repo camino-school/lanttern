@@ -286,12 +286,12 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   def diff_rubric_area(assigns) do
     ~H"""
     <div class="p-4 rounded mt-10 bg-ltrn-diff-lightest">
-      <div class="flex items-center gap-2 font-bold text-sm">
+      <div class="flex items-center gap-2 mb-4 font-bold text-sm">
         <.icon name="hero-view-columns" class="w-6 h-6 text-ltrn-diff-accent" />
         <span class="text-ltrn-diff-dark"><%= gettext("Differentiation rubric") %></span>
       </div>
       <%= if @diff_rubric_options != [] do %>
-        <.form for={@form} phx-submit={@on_save} id={"#{@id}-diff-rubric-form"} class="mt-4">
+        <.form for={@form} phx-submit={@on_save} id={"#{@id}-diff-rubric-form"}>
           <.input
             type="select"
             field={@form[:differentiation_rubric_id]}
@@ -326,7 +326,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
           </div>
         </.form>
       <% else %>
-        <.empty_state_simple class="mt-4">
+        <.empty_state_simple>
           <%= gettext("No differentiation rubric matching assessment point curriculum item and scale") %>
         </.empty_state_simple>
       <% end %>
@@ -503,7 +503,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
 
   defp assign_diff_rubric_options(socket) do
     diff_rubric_options =
-      Rubrics.list_diff_rubrics_for_assessment_point(socket.assigns.assessment_point)
+      Rubrics.list_assessment_point_rubrics(socket.assigns.assessment_point, only_diff: true)
       |> Enum.map(fn rubric -> {"#{gettext("Criteria")}: #{rubric.criteria}", rubric.id} end)
 
     socket

@@ -215,10 +215,11 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         patch={
           ~p"/strands/moment/#{@ap_header.moment_id}/assessment?edit_assessment_point=#{@ap_header.id}"
         }
-        class="flex-1 p-1 rounded text-sm font-bold line-clamp-2 hover:bg-ltrn-mesh-cyan"
+        class="flex-1 flex items-center gap-4 p-1 rounded text-sm font-bold hover:bg-ltrn-mesh-cyan"
         title={@ap_header.name}
       >
-        <%= @ap_header.name %>
+        <div class="flex-1 line-clamp-3"><%= @ap_header.name %></div>
+        <.icon :if={@ap_header.rubric_id} name="hero-view-columns" class="w-6 h-6" />
       </.link>
       <hr class="h-px mt-2 bg-ltrn-light" />
     </div>
@@ -605,6 +606,8 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           Assessments.list_moment_students_entries(
             moment_id,
             classes_ids: socket.assigns.classes_ids,
+            load_profile_picture_from_cycle_id:
+              socket.assigns.current_user.current_profile.current_school_cycle.id,
             active_students_only: true,
             check_if_has_evidences: true
           )

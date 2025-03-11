@@ -333,7 +333,12 @@ defmodule Lanttern.Curricula do
       where: ap.strand_id == ^strand_id,
       order_by: ap.position,
       preload: [assessment_points: ap],
-      select: %{ci | assessment_point_id: ap.id, is_differentiation: ap.is_differentiation}
+      select: %{
+        ci
+        | assessment_point_id: ap.id,
+          is_differentiation: ap.is_differentiation,
+          has_rubric: not is_nil(ap.rubric_id)
+      }
     )
     |> Repo.all()
     |> maybe_preload(opts)

@@ -225,11 +225,8 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
     |> assign(:assessment_point, assessment_point)
   end
 
-  defp assign_assessment_point(
-         %{assigns: %{params: %{"edit_assessment_point" => binary_id}}} = socket
-       ) do
-    with {id, _} <- Integer.parse(binary_id),
-         true <- id in socket.assigns.assessment_points_ids,
+  defp assign_assessment_point(%{assigns: %{params: %{"edit_assessment_point" => id}}} = socket) do
+    with true <- id in socket.assigns.assessment_points_ids,
          %AssessmentPoint{} = assessment_point <- Assessments.get_assessment_point(id) do
       assign(socket, :assessment_point, assessment_point)
     else
@@ -249,7 +246,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
     socket
     |> assign(:sortable_assessment_points, Enum.with_index(assessment_points))
     |> assign(:assessment_points_length, length(assessment_points))
-    |> assign(:assessment_points_ids, Enum.map(assessment_points, & &1.id))
+    |> assign(:assessment_points_ids, Enum.map(assessment_points, &"#{&1.id}"))
   end
 
   # event handlers

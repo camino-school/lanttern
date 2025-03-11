@@ -61,19 +61,24 @@ defmodule LantternWeb.StrandLive.AboutComponent do
           <div class="flex items-stretch gap-6 p-6 rounded bg-white shadow-lg">
             <div class="flex-1">
               <div class="flex items-center gap-4">
+                <div :if={curriculum_item.has_rubric} class="group relative">
+                  <.icon name="hero-view-columns" class="w-6 h-6" />
+                  <.tooltip><%= gettext("Uses rubric in final assessment") %></.tooltip>
+                </div>
                 <.badge :if={curriculum_item.is_differentiation} theme="diff">
                   <%= gettext("Differentiation") %>
                 </.badge>
-                <p class="font-display font-bold text-sm">
+                <p class="flex-1 font-display font-bold text-sm">
                   <%= curriculum_item.curriculum_component.name %>
                 </p>
-                <.button
+                <.action
                   type="link"
-                  theme="ghost"
+                  theme="subtle"
+                  icon_name="hero-pencil-mini"
                   patch={~p"/strands/#{@strand}?goal=#{curriculum_item.assessment_point_id}"}
                 >
                   <%= gettext("Edit") %>
-                </.button>
+                </.action>
               </div>
               <p class="mt-4"><%= curriculum_item.name %></p>
               <div
@@ -163,27 +168,36 @@ defmodule LantternWeb.StrandLive.AboutComponent do
           on_dismiss={JS.push("dismiss_delete_goal_error", target: @myself)}
         />
         <:actions_left :if={@goal.id}>
-          <.button
+          <.action
             type="button"
-            theme="ghost"
+            theme="subtle"
+            size="md"
             phx-click="delete_goal"
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           >
             <%= gettext("Delete") %>
-          </.button>
+          </.action>
         </:actions_left>
         <:actions>
-          <.button
+          <.action
             type="button"
-            theme="ghost"
+            theme="subtle"
+            size="md"
             phx-click={JS.exec("data-cancel", to: "#assessment-point-form-overlay")}
           >
             <%= gettext("Cancel") %>
-          </.button>
-          <.button type="submit" form="assessment-point-form" phx-disable-with={gettext("Saving...")}>
+          </.action>
+          <.action
+            type="submit"
+            theme="primary"
+            size="md"
+            icon_name="hero-check"
+            form="assessment-point-form"
+            phx-disable-with={gettext("Saving...")}
+          >
             <%= gettext("Save") %>
-          </.button>
+          </.action>
         </:actions>
       </.slide_over>
     </div>

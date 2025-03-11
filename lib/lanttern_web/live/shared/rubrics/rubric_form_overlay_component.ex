@@ -252,7 +252,7 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
     >
       <button
         type="button"
-        class="flex items-center justify-center w-6 h-6 rounded border border-ltrn-light bg-ltrn-lightest"
+        class="shrink-0 flex items-center justify-center w-6 h-6 rounded border border-ltrn-light bg-ltrn-lightest"
         phx-click={@on_click}
       >
         <.icon :if={@checked} name="hero-check-mini" />

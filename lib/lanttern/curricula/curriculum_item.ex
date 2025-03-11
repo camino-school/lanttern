@@ -19,6 +19,7 @@ defmodule Lanttern.Curricula.CurriculumItem do
           years_ids: [pos_integer()],
           assessment_point_id: pos_integer(),
           is_differentiation: boolean(),
+          has_rubric: boolean(),
           assessment_points: [map()],
           curriculum_component: map(),
           curriculum_component_id: pos_integer(),
@@ -40,6 +41,10 @@ defmodule Lanttern.Curricula.CurriculumItem do
     # we use this when listing curriculum items as goals
     # reflecting the parent assessment_point is_differentiation flag
     field :is_differentiation, :boolean, virtual: true, default: false
+
+    # we use this when listing curriculum items as goals
+    # reflecting the parent assessment_point rubric_id
+    field :has_rubric, :boolean, virtual: true, default: false
 
     has_many :assessment_points, Lanttern.Assessments.AssessmentPoint
     belongs_to :curriculum_component, Lanttern.Curricula.CurriculumComponent

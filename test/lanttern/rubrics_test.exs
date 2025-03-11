@@ -335,6 +335,220 @@ defmodule Lanttern.RubricsTest do
                curriculum_component.id
     end
 
+    test "list_assessment_point_rubrics/1 returns all rubrics matching the assessment point" do
+      strand = LearningContextFixtures.strand_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      scale = GradingFixtures.scale_fixture()
+
+      rubric =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      diff_rubric =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          is_differentiation: true
+        })
+
+      assessment_point =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          scale_id: scale.id
+        })
+
+      # extra fixtures for filter testing
+
+      _other_scale_rubric =
+        rubric_fixture(%{
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      _other_curriculum_diff_rubric =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id
+        })
+
+      # assert
+
+      assert Rubrics.list_assessment_point_rubrics(assessment_point) == [
+               rubric,
+               diff_rubric
+             ]
+    end
+
+    test "list_assessment_point_rubrics/1 with `exclude_diff` returns all not diff rubrics matching the assessment point" do
+      strand = LearningContextFixtures.strand_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      scale = GradingFixtures.scale_fixture()
+
+      rubric =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      assessment_point =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          scale_id: scale.id
+        })
+
+      # extra fixtures for filter testing
+
+      _diff_rubric =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          is_differentiation: true
+        })
+
+      _other_scale_rubric =
+        rubric_fixture(%{
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      _other_curriculum_diff_rubric =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id
+        })
+
+      # assert
+
+      assert Rubrics.list_assessment_point_rubrics(assessment_point, exclude_diff: true) == [
+               rubric
+             ]
+    end
+
+    test "list_assessment_point_rubrics/1 with `only_diff` returns all diff rubrics matching the assessment point" do
+      strand = LearningContextFixtures.strand_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      scale = GradingFixtures.scale_fixture()
+
+      diff_rubric_1 =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          is_differentiation: true
+        })
+
+      diff_rubric_2 =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          is_differentiation: true
+        })
+
+      assessment_point =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          scale_id: scale.id
+        })
+
+      # extra fixtures for filter testing
+
+      _not_diff_rubric =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      _other_scale_rubric =
+        rubric_fixture(%{
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      _other_curriculum_diff_rubric =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          is_differentiation: true
+        })
+
+      # assert
+
+      assert Rubrics.list_assessment_point_rubrics(assessment_point, only_diff: true) == [
+               diff_rubric_1,
+               diff_rubric_2
+             ]
+    end
+
+    test "list_assessment_point_rubrics/1 with `only_diff` returns all diff rubrics matching the moment assessment point" do
+      strand = LearningContextFixtures.strand_fixture()
+      moment = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      scale = GradingFixtures.scale_fixture()
+
+      diff_rubric_1 =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          is_differentiation: true
+        })
+
+      diff_rubric_2 =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id,
+          is_differentiation: true
+        })
+
+      assessment_point =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment.id,
+          curriculum_item_id: curriculum_item.id,
+          scale_id: scale.id
+        })
+
+      # extra fixtures for filter testing
+
+      _not_diff_rubric =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      _other_scale_rubric =
+        rubric_fixture(%{
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      _other_curriculum_diff_rubric =
+        rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          is_differentiation: true
+        })
+
+      # assert
+
+      assert Rubrics.list_assessment_point_rubrics(assessment_point, only_diff: true) == [
+               diff_rubric_1,
+               diff_rubric_2
+             ]
+    end
+
     test "list_strand_rubrics_grouped_by_goal/1 returns all strand rubrics" do
       strand = LearningContextFixtures.strand_fixture()
 
@@ -1034,123 +1248,6 @@ defmodule Lanttern.RubricsTest do
                "http://example.com/diff_student_profile_picture.jpg"
 
       assert expected_diff_goal_rubric_student.id == diff_goal_rubric_student.id
-    end
-
-    test "list_diff_rubrics_for_assessment_point/1 returns all diff rubrics matching the assessment point" do
-      strand = LearningContextFixtures.strand_fixture()
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
-      scale = GradingFixtures.scale_fixture()
-
-      diff_rubric_1 =
-        rubric_fixture(%{
-          scale_id: scale.id,
-          strand_id: strand.id,
-          curriculum_item_id: curriculum_item.id,
-          is_differentiation: true
-        })
-
-      diff_rubric_2 =
-        rubric_fixture(%{
-          scale_id: scale.id,
-          strand_id: strand.id,
-          curriculum_item_id: curriculum_item.id,
-          is_differentiation: true
-        })
-
-      assessment_point =
-        AssessmentsFixtures.assessment_point_fixture(%{
-          strand_id: strand.id,
-          curriculum_item_id: curriculum_item.id,
-          scale_id: scale.id
-        })
-
-      # extra fixtures for filter testing
-
-      _not_diff_rubric =
-        rubric_fixture(%{
-          scale_id: scale.id,
-          strand_id: strand.id,
-          curriculum_item_id: curriculum_item.id
-        })
-
-      _other_scale_rubric =
-        rubric_fixture(%{
-          strand_id: strand.id,
-          curriculum_item_id: curriculum_item.id
-        })
-
-      _other_curriculum_diff_rubric =
-        rubric_fixture(%{
-          scale_id: scale.id,
-          strand_id: strand.id,
-          is_differentiation: true
-        })
-
-      # assert
-
-      assert Rubrics.list_diff_rubrics_for_assessment_point(assessment_point) == [
-               diff_rubric_1,
-               diff_rubric_2
-             ]
-    end
-
-    test "list_diff_rubrics_for_assessment_point/1 returns all diff rubrics matching the moment assessment point" do
-      strand = LearningContextFixtures.strand_fixture()
-      moment = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
-      scale = GradingFixtures.scale_fixture()
-
-      diff_rubric_1 =
-        rubric_fixture(%{
-          scale_id: scale.id,
-          strand_id: strand.id,
-          curriculum_item_id: curriculum_item.id,
-          is_differentiation: true
-        })
-
-      diff_rubric_2 =
-        rubric_fixture(%{
-          scale_id: scale.id,
-          strand_id: strand.id,
-          curriculum_item_id: curriculum_item.id,
-          is_differentiation: true
-        })
-
-      assessment_point =
-        AssessmentsFixtures.assessment_point_fixture(%{
-          moment_id: moment.id,
-          curriculum_item_id: curriculum_item.id,
-          scale_id: scale.id
-        })
-
-      # extra fixtures for filter testing
-
-      _not_diff_rubric =
-        rubric_fixture(%{
-          scale_id: scale.id,
-          strand_id: strand.id,
-          curriculum_item_id: curriculum_item.id
-        })
-
-      _other_scale_rubric =
-        rubric_fixture(%{
-          strand_id: strand.id,
-          curriculum_item_id: curriculum_item.id
-        })
-
-      _other_curriculum_diff_rubric =
-        rubric_fixture(%{
-          scale_id: scale.id,
-          strand_id: strand.id,
-          is_differentiation: true
-        })
-
-      # assert
-
-      assert Rubrics.list_diff_rubrics_for_assessment_point(assessment_point) == [
-               diff_rubric_1,
-               diff_rubric_2
-             ]
     end
 
     test "link_rubric_to_student/2 links the differentiation rubric to the student" do
