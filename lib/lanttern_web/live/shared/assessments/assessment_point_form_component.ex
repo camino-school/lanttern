@@ -3,13 +3,13 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
   Renders a `AssessmentPoint` form
   """
 
-  alias Lanttern.Curricula
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments
-  alias LantternWeb.GradingHelpers
+  alias Lanttern.Curricula
   alias Lanttern.Rubrics
   alias Lanttern.Rubrics.Rubric
+  alias LantternWeb.GradingHelpers
 
   # components
   alias LantternWeb.Curricula.CurriculumItemSearchComponent

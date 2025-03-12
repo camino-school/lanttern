@@ -215,11 +215,10 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         patch={
           ~p"/strands/moment/#{@ap_header.moment_id}/assessment?edit_assessment_point=#{@ap_header.id}"
         }
-        class="flex-1 flex items-center gap-4 p-1 rounded text-sm font-bold hover:bg-ltrn-mesh-cyan"
+        class="flex-1 p-1 rounded text-sm font-bold line-clamp-2 hover:bg-ltrn-mesh-cyan"
         title={@ap_header.name}
       >
-        <div class="flex-1 line-clamp-3"><%= @ap_header.name %></div>
-        <.icon :if={@ap_header.rubric_id} name="hero-view-columns" class="w-6 h-6" />
+        <%= @ap_header.name %>
       </.link>
       <hr class="h-px mt-2 bg-ltrn-light" />
     </div>
@@ -337,6 +336,32 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   end
 
   def assessment_point_struct(
+        %{assessment_point: %{curriculum_item: %CurriculumItem{}}, is_moment: false} = assigns
+      ) do
+    ~H"""
+    <.link
+      patch={
+        ~p"/strands/#{@assessment_point.strand_id}/assessment?edit_assessment_point=#{@assessment_point.id}"
+      }
+      class="flex flex-col p-1 rounded hover:bg-ltrn-mesh-cyan"
+    >
+      <div class="flex items-center gap-2">
+        <.badge class="truncate">
+          <%= @assessment_point.curriculum_item.curriculum_component.name %>
+        </.badge>
+        <.badge :if={@assessment_point.is_differentiation} theme="diff">
+          <%= gettext("Diff") %>
+        </.badge>
+        <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
+      </div>
+      <p class="flex-1 mt-1 text-sm line-clamp-2" title={@assessment_point.curriculum_item.name}>
+        <%= @assessment_point.curriculum_item.name %>
+      </p>
+    </.link>
+    """
+  end
+
+  def assessment_point_struct(
         %{assessment_point: %{curriculum_item: %CurriculumItem{}}} = assigns
       ) do
     ~H"""
@@ -348,6 +373,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         <.badge :if={@assessment_point.is_differentiation} theme="diff">
           <%= gettext("Diff") %>
         </.badge>
+        <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
       </div>
       <p class="flex-1 mt-1 text-sm line-clamp-2" title={@assessment_point.curriculum_item.name}>
         <%= @assessment_point.curriculum_item.name %>
@@ -374,10 +400,20 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   def assessment_point_struct(%{assessment_point: %{strand_id: strand_id}} = assigns)
       when not is_nil(strand_id) do
     ~H"""
-    <div class="p-1 text-sm whitespace-nowrap overflow-hidden">
-      <span class="font-bold"><%= gettext("Goal assessment") %></span> <br />
-      <span class="text-xs"><%= gettext("(Strand final assessment)") %></span>
-    </div>
+    <.link
+      patch={
+        ~p"/strands/#{@assessment_point.strand_id}/assessment?edit_assessment_point=#{@assessment_point.id}"
+      }
+      class="flex flex-col p-1 rounded hover:bg-ltrn-mesh-cyan"
+    >
+      <div class="whitespace-nowrap overflow-hidden">
+        <div class="flex items-center gap-2">
+          <span class="font-bold"><%= gettext("Goal assessment") %></span>
+          <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
+        </div>
+        <span class="text-xs"><%= gettext("(Strand final assessment)") %></span>
+      </div>
+    </.link>
     """
   end
 
