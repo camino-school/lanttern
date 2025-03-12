@@ -243,6 +243,7 @@ defmodule Lanttern.LearningContext do
         join: m in assoc(ap, :moment),
         where: m.strand_id in ^student_strands_ids,
         where: e.student_id == ^student_id,
+        where: not is_nil(e.ordinal_value_id) or not is_nil(e.score),
         order_by: [asc: m.position, asc: ap.position],
         select: {e, m.strand_id}
       )
