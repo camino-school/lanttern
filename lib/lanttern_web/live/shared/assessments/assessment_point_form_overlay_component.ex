@@ -372,24 +372,23 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
             do: [only_diff: true],
             else: [exclude_diff: true]
 
-        rubric_options =
-          Rubrics.list_assessment_point_rubrics(socket.assigns.assessment_point, opts)
-          |> Enum.map(fn rubric -> {"#{gettext("Criteria")}: #{rubric.criteria}", rubric.id} end)
-
-        # sometimes the assessment point `is_differentiation` flag is changed after the rubric is linked
-        # resulting in the current rubric not being part of the options. In this case, we add it to the options
-        if socket.assigns.rubric &&
-             !Enum.any?(rubric_options, fn {_, id} -> id == socket.assigns.rubric.id end) do
-          [
-            {"#{gettext("Criteria")}: #{socket.assigns.rubric.criteria}",
-             socket.assigns.rubric.id}
-            | rubric_options
-          ]
-        else
-          rubric_options
-        end
+        Rubrics.list_assessment_point_rubrics(socket.assigns.assessment_point, opts)
+        |> Enum.map(fn rubric -> {"#{gettext("Criteria")}: #{rubric.criteria}", rubric.id} end)
       else
         []
+      end
+
+    # sometimes the assessment point `is_differentiation` flag is changed after the rubric is linked
+    # resulting in the current rubric not being part of the options. In this case, we add it to the options
+    rubric_options =
+      if socket.assigns.rubric &&
+           !Enum.any?(rubric_options, fn {_, id} -> id == socket.assigns.rubric.id end) do
+        [
+          {"#{gettext("Criteria")}: #{socket.assigns.rubric.criteria}", socket.assigns.rubric.id}
+          | rubric_options
+        ]
+      else
+        rubric_options
       end
 
     socket

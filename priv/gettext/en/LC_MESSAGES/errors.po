@@ -111,7 +111,7 @@ msgstr ""
 msgid "must be equal to %{number}"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:458
+#: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:712
 #, elixir-autogen, elixir-format
 msgid "Something went wrong"
 msgstr ""
