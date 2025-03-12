@@ -56,15 +56,15 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
           <button
             type="button"
             class={[
-              "flex items-center gap-1 shrink-0 p-1 rounded-full text-ltrn-light bg-white shadow hover:bg-ltrn-lightest",
+              "flex items-center justify-center shrink-0 p-1 rounded-full text-ltrn-light bg-white shadow hover:bg-ltrn-lightest",
               "disabled:bg-ltrn-lighter disabled:shadow-none"
             ]}
-            disabled={!@entry.id}
             phx-click="view_details"
             phx-target={@myself}
           >
-            <.icon name="hero-chat-bubble-oval-left-mini" class={@note_icon_class} />
-            <.icon name="hero-paper-clip-mini" class={@evidences_icon_class} />
+            <.icon name="hero-chat-bubble-oval-left-micro" class={["w-4 h-4", @note_icon_class]} />
+            <.icon name="hero-paper-clip-micro" class={["w-4 h-4", @evidences_icon_class]} />
+            <.icon name="hero-view-columns-micro" class={["w-4 h-4", @diff_rubric_icon_class]} />
           </button>
         </div>
       <% else %>
@@ -342,6 +342,9 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
 
     evidences_icon_class = if entry.has_evidences, do: "text-ltrn-primary", else: ""
 
+    diff_rubric_icon_class =
+      if entry.differentiation_rubric_id, do: "text-ltrn-diff-accent", else: ""
+
     socket
     |> assign(:form, form)
     |> assign(:field, field)
@@ -352,6 +355,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     |> assign(:entry_note, entry_note)
     |> assign(:note_icon_class, note_icon_class)
     |> assign(:evidences_icon_class, evidences_icon_class)
+    |> assign(:diff_rubric_icon_class, diff_rubric_icon_class)
   end
 
   defp assign_form_and_related_assigns(socket, _ov_options), do: assign(socket, :form, nil)
@@ -401,10 +405,8 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
 
     # get the right ordinal value or score based on view
     param_value = get_param_value(params, view)
-
-    {has_changes, change_type} =
-      check_for_changes(entry.id, "#{entry_value}", socket.assigns.other_value, param_value)
-
+    has_changes = "#{entry_value}" != param_value
+    change_type = if has_changes, do: :edit, else: :cancel
     composite_id = "#{entry_params["student_id"]}_#{entry_params["assessment_point_id"]}"
 
     notify(
@@ -446,22 +448,4 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
 
   defp get_param_value(%{"scale_type" => "numeric"} = params, _teacher),
     do: params["score"]
-
-  @spec check_for_changes(
-          entry_id :: pos_integer(),
-          entry_value :: String.t(),
-          other_entry_value :: any(),
-          param_value :: String.t()
-        ) :: {boolean(), :cancel | :new | :delete | :edit}
-
-  defp check_for_changes(_, entry_value, _, param_value) when entry_value == param_value,
-    do: {false, :cancel}
-
-  defp check_for_changes(nil, _, _, param_value) when param_value != "",
-    do: {true, :new}
-
-  defp check_for_changes(entry_id, _, nil, "") when not is_nil(entry_id),
-    do: {true, :delete}
-
-  defp check_for_changes(_, _, _, _), do: {true, :edit}
 end

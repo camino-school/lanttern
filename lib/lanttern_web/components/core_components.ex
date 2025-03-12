@@ -79,6 +79,7 @@ defmodule LantternWeb.CoreComponents do
     "default" => "text-ltrn-dark hover:text-ltrn-subtle",
     "subtle" => "text-ltrn-subtle hover:text-ltrn-dark",
     "primary" => "text-ltrn-dark hover:text-ltrn-subtle",
+    "diff" => "text-ltrn-diff-dark hover:text-ltrn-diff-dark/60",
     "student" => "text-ltrn-student-dark hover:text-ltrn-student-dark/80",
     "staff" => "text-ltrn-staff-dark hover:text-ltrn-staff-dark/80",
     "alert" => "text-ltrn-subtle hover:text-ltrn-alert-accent"
@@ -88,6 +89,7 @@ defmodule LantternWeb.CoreComponents do
     "default" => nil,
     "subtle" => nil,
     "primary" => "bg-ltrn-mesh-primary",
+    "diff" => "bg-ltrn-diff-lightest",
     "student" => "bg-ltrn-student-lightest",
     "staff" => "bg-ltrn-staff-lightest",
     "alert" => "bg-ltrn-alert-lighter"
@@ -1148,9 +1150,9 @@ defmodule LantternWeb.CoreComponents do
   @doc """
   Renders a [Heroicon](https://heroicons.com).
 
-  Heroicons come in three styles – outline, solid, and mini.
-  By default, the outline style is used, but solid and mini may
-  be applied by using the `-solid` and `-mini` suffix.
+  Heroicons come in four styles – outline, solid, mini, and micro.
+  By default, the outline style is used, but solid, mini, and micro may
+  be applied by using the `-solid`, `-mini` and `-micro` suffix.
 
   You can customize the size and colors of the icons by setting
   width, height, and background color classes.
@@ -1431,10 +1433,12 @@ defmodule LantternWeb.CoreComponents do
 
   defp person_badge_theme_style("cyan"), do: "text-ltrn-dark bg-ltrn-mesh-cyan"
   defp person_badge_theme_style("staff"), do: "text-ltrn-staff-dark bg-ltrn-staff-lighter"
+  defp person_badge_theme_style("diff"), do: "text-ltrn-diff-dark bg-ltrn-diff-lighter"
   defp person_badge_theme_style(_subtle), do: "text-ltrn-subtle bg-ltrn-lighter"
 
   defp person_badge_link_theme_style("cyan"), do: "hover:text-ltrn-subtle"
   defp person_badge_link_theme_style("staff"), do: "hover:text-ltrn-staff-accent"
+  defp person_badge_link_theme_style("diff"), do: "hover:text-ltrn-diff-accent"
   defp person_badge_link_theme_style(_subtle), do: "hover:text-ltrn-subtle"
 
   @doc """

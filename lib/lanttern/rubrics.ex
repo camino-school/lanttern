@@ -8,8 +8,11 @@ defmodule Lanttern.Rubrics do
   import Lanttern.RepoHelpers
   alias Lanttern.Repo
 
+  alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.LearningContext.Moment
   alias Lanttern.Rubrics.Rubric
   alias Lanttern.Rubrics.RubricDescriptor
+  alias Lanttern.Schools.Student
 
   @doc """
   Returns the list of rubrics.
@@ -160,6 +163,198 @@ defmodule Lanttern.Rubrics do
   end
 
   @doc """
+  List all rubrics matching given assessment point.
+
+  A rubric "matches" the assessment point if its from the same strand and uses the
+  same scale/curriculum item.
+
+  Results are ordered by position.
+
+  ## Options
+
+  - `:only_diff` - boolean
+  - `:exclude_diff` - boolean
+
+  ## Examples
+
+      iex> list_assessment_point_rubrics(1)
+      [%Rubric{}, ...]
+
+  """
+  @spec list_assessment_point_rubrics(AssessmentPoint.t(), opts :: Keyword.t()) :: [Rubric.t()]
+  def list_assessment_point_rubrics(%AssessmentPoint{} = assessment_point, opts \\ []) do
+    %{
+      scale_id: scale_id,
+      curriculum_item_id: curriculum_item_id
+    } = assessment_point
+
+    strand_id =
+      case assessment_point do
+        %{strand_id: nil, moment_id: moment_id} ->
+          from(
+            m in Moment,
+            where: m.id == ^moment_id,
+            select: m.strand_id
+          )
+          |> Repo.one()
+
+        %{strand_id: strand_id} ->
+          strand_id
+      end
+
+    from(
+      r in Rubric,
+      where: r.strand_id == ^strand_id,
+      where: r.scale_id == ^scale_id,
+      where: r.curriculum_item_id == ^curriculum_item_id,
+      order_by: r.position
+    )
+    |> apply_list_assessment_point_rubrics_opts(opts)
+    |> Repo.all()
+  end
+
+  defp apply_list_assessment_point_rubrics_opts(queryable, []), do: queryable
+
+  defp apply_list_assessment_point_rubrics_opts(queryable, [{:only_diff, true} | opts]) do
+    from(r in queryable, where: r.is_differentiation == true)
+    |> apply_list_assessment_point_rubrics_opts(opts)
+  end
+
+  defp apply_list_assessment_point_rubrics_opts(queryable, [{:exclude_diff, true} | opts]) do
+    from(r in queryable, where: r.is_differentiation == false)
+    |> apply_list_assessment_point_rubrics_opts(opts)
+  end
+
+  defp apply_list_assessment_point_rubrics_opts(queryable, [_ | opts]),
+    do: apply_list_assessment_point_rubrics_opts(queryable, opts)
+
+  @doc """
+  List all strand rubrics grouped by strand goals (assessment points).
+
+  Assessment points preload `curriculum_item` with
+  `curriculum_component` and are ordered by position.
+
+  Rubrics are ordered by position.
+
+  ### Differentiation filters
+
+  When using `:exclude_diff` options, we remove goals with `is_differentiation == true`
+  from the results, as well as rubrics with `is_differentiation` flag.
+
+  When using `:only_diff` options, we include all goals, but list only differentiation
+  rubrics or rubrics linked to differentiation goals (even if they're not flagged as differentiation).
+
+  ### Differentiation students
+
+  There are two ways of connecting students to differentiation rubrics:
+
+  1. through assessment point entries' `differentiation_rubric_id` field
+  2. through differentition assessment point entries
+
+  ## Options
+
+  - `:only_diff` - boolean, refer to "Differentiation filters" section
+  - `:exclude_diff` - boolean, refer to "Differentiation filters" section
+  - `:preload_diff_students_from_classes_ids` - list of class ids to preload differentiation students
+
+  ## Examples
+
+      iex> list_strand_rubrics_grouped_by_goal(1)
+      [{%AssessmentPoint{}, [%Rubric{}, ...]}, ...]
+
+  """
+  @spec list_strand_rubrics_grouped_by_goal(strand_id :: pos_integer(), opts :: Keyword.t()) :: [
+          {AssessmentPoint.t(), [Rubric.t()]}
+        ]
+  def list_strand_rubrics_grouped_by_goal(strand_id, opts \\ []) do
+    curriculum_items_rubrics_map =
+      from(
+        r in Rubric,
+        where: r.strand_id == ^strand_id,
+        order_by: r.position
+      )
+      |> Repo.all()
+      |> preload_diff_students_in_rubrics(
+        Keyword.get(opts, :preload_diff_students_from_classes_ids)
+      )
+      |> Enum.group_by(& &1.curriculum_item_id)
+
+    filter_type =
+      cond do
+        Keyword.get(opts, :only_diff) == true -> :only_diff
+        Keyword.get(opts, :exclude_diff) == true -> :exclude_diff
+        true -> nil
+      end
+
+    from(
+      ap in AssessmentPoint,
+      join: ci in assoc(ap, :curriculum_item),
+      join: cc in assoc(ci, :curriculum_component),
+      where: ap.strand_id == ^strand_id,
+      preload: [curriculum_item: {ci, curriculum_component: cc}],
+      order_by: ap.position
+    )
+    |> Repo.all()
+    |> Enum.map(fn ap ->
+      {ap, Map.get(curriculum_items_rubrics_map, ap.curriculum_item_id, [])}
+    end)
+    |> filter_strand_rubrics_grouped_by_goal(filter_type)
+  end
+
+  defp preload_diff_students_in_rubrics(rubrics, classes_ids)
+       when is_list(classes_ids) and classes_ids != [] do
+    rubrics_ids = Enum.map(rubrics, & &1.id)
+
+    rubric_diff_students_map =
+      from(
+        s in Student,
+        join: ape in assoc(s, :assessment_point_entries),
+        join: ap in assoc(ape, :assessment_point),
+        join: c in assoc(s, :classes),
+        select: {ape.differentiation_rubric_id, ap.rubric_id, s},
+        where: c.id in ^classes_ids,
+        where:
+          ape.differentiation_rubric_id in ^rubrics_ids or
+            (ap.is_differentiation and ap.rubric_id in ^rubrics_ids),
+        order_by: s.name
+      )
+      |> Repo.all()
+      # we need to "unify" rubric ids, prioritizing diff_rubric_id but
+      # falling back to diff assessment point rubric id
+      |> Enum.map(fn {diff_rubric_id, diff_ap_rubric_id, student} ->
+        {diff_rubric_id || diff_ap_rubric_id, student}
+      end)
+      |> Enum.uniq()
+      |> Enum.group_by(
+        fn {rubric_id, _student} -> rubric_id end,
+        fn {_rubric_id, student} -> student end
+      )
+
+    Enum.map(rubrics, &%{&1 | diff_students: Map.get(rubric_diff_students_map, &1.id, [])})
+  end
+
+  defp preload_diff_students_in_rubrics(rubrics, _classes_ids), do: rubrics
+
+  defp filter_strand_rubrics_grouped_by_goal(rubrics_grouped_by_goal, :only_diff) do
+    rubrics_grouped_by_goal
+    |> Enum.map(fn
+      {%{is_differentiation: true} = ap, rubrics} -> {ap, rubrics}
+      {ap, rubrics} -> {ap, Enum.filter(rubrics, & &1.is_differentiation)}
+    end)
+  end
+
+  defp filter_strand_rubrics_grouped_by_goal(rubrics_grouped_by_goal, :exclude_diff) do
+    rubrics_grouped_by_goal
+    |> Enum.filter(fn {ap, _rubrics} -> !ap.is_differentiation end)
+    |> Enum.map(fn {ap, rubrics} ->
+      {ap, Enum.filter(rubrics, &(!&1.is_differentiation))}
+    end)
+  end
+
+  defp filter_strand_rubrics_grouped_by_goal(rubrics_grouped_by_goal, _),
+    do: rubrics_grouped_by_goal
+
+  @doc """
   Search rubrics by criteria.
 
   User can search by id by adding `#` before the id `#123`.
@@ -227,6 +422,29 @@ defmodule Lanttern.Rubrics do
   end
 
   @doc """
+  Load the rubric descriptors, ordered by score or ordinal value normalized value.
+
+  ## Examples
+
+      iex> load_rubric_descriptors(rubric)
+      %Rubric{}
+
+  """
+  @spec load_rubric_descriptors(Rubric.t()) :: Rubric.t()
+  def load_rubric_descriptors(%Rubric{} = rubric) do
+    descriptors =
+      from(
+        d in RubricDescriptor,
+        left_join: ov in assoc(d, :ordinal_value),
+        where: d.rubric_id == ^rubric.id,
+        order_by: [d.score, ov.normalized_value]
+      )
+      |> Repo.all()
+
+    %{rubric | descriptors: descriptors}
+  end
+
+  @doc """
   Returns the rubric with scale, descriptors, and descriptors ordinal values preloaded.
 
   Descriptors are ordered using the following rules:
@@ -289,9 +507,12 @@ defmodule Lanttern.Rubrics do
   @doc """
   Creates a rubric.
 
-  ### Options:
+  This function also handles the linking of assessment points to the rubric
+  via `link_to_assessment_points_ids` attribute.
 
-  `:preloads` – preloads associated data
+  ## Options:
+
+  - `:preloads` – preloads associated data
 
   ## Examples
 
@@ -303,9 +524,32 @@ defmodule Lanttern.Rubrics do
 
   """
   def create_rubric(attrs \\ %{}, opts \\ []) do
-    %Rubric{}
-    |> Rubric.changeset(attrs)
-    |> Repo.insert()
+    attrs =
+      case attrs do
+        %{strand_id: strand_id} when not is_nil(strand_id) ->
+          from(r in Rubric, where: r.strand_id == ^strand_id)
+
+        %{"strand_id" => strand_id} when not is_nil(strand_id) ->
+          from(r in Rubric, where: r.strand_id == ^strand_id)
+
+        _ ->
+          Rubric
+      end
+      |> set_position_in_attrs(attrs)
+
+    Ecto.Multi.new()
+    # :insert would be a better multi name, but we use the generic
+    # :rubric name to allow maybe_link/unlink_assessment_points reuse
+    |> Ecto.Multi.insert(
+      :rubric,
+      Rubric.changeset(%Rubric{}, attrs)
+    )
+    |> maybe_link_assessment_points(attrs)
+    |> Repo.transaction()
+    |> case do
+      {:error, _multi, changeset, _changes} -> {:error, changeset}
+      {:ok, %{rubric: rubric}} -> {:ok, rubric}
+    end
     |> maybe_preload(opts)
   end
 
@@ -322,6 +566,9 @@ defmodule Lanttern.Rubrics do
   2. update only the rubric, changing it's scale id
   3. finally, update the rubric again casting the descriptors linked to the new scale id
 
+  This function also handles the linking/unlinking of assessment points to the rubric
+  via `link_to_assessment_points_ids` and `unlink_from_assessment_points_ids` attributes.
+
   ### Options:
 
   `:preloads` – preloads associated data
@@ -336,15 +583,26 @@ defmodule Lanttern.Rubrics do
 
   """
   def update_rubric(%Rubric{} = rubric, attrs, opts \\ []) do
-    rubric
-    |> Rubric.changeset(attrs)
-    |> internal_update_rubric(opts)
+    Ecto.Multi.new()
+    |> Ecto.Multi.run(:rubric, fn _repo, _changes ->
+      rubric
+      |> Rubric.changeset(attrs)
+      |> internal_update_rubric()
+    end)
+    |> maybe_link_assessment_points(attrs)
+    |> maybe_unlink_assessment_points(attrs)
+    |> Repo.transaction()
+    |> case do
+      {:error, _multi, changeset, _changes} -> {:error, changeset}
+      {:ok, %{rubric: rubric}} -> {:ok, rubric}
+    end
+    |> maybe_preload(opts)
   end
 
-  defp internal_update_rubric(%Ecto.Changeset{valid?: false} = changeset, _opts),
+  defp internal_update_rubric(%Ecto.Changeset{valid?: false} = changeset),
     do: {:error, changeset}
 
-  defp internal_update_rubric(%Ecto.Changeset{} = changeset, opts) do
+  defp internal_update_rubric(%Ecto.Changeset{} = changeset) do
     case {
       Ecto.Changeset.get_change(changeset, :scale_id),
       Ecto.Changeset.get_change(changeset, :descriptors)
@@ -352,12 +610,10 @@ defmodule Lanttern.Rubrics do
       {nil, _} ->
         changeset
         |> Repo.update()
-        |> maybe_preload(opts)
 
       {_, descriptors} when is_nil(descriptors) or descriptors == [] ->
         changeset
         |> Repo.update()
-        |> maybe_preload(opts)
 
       {_, _} ->
         remove_descriptors_ids =
@@ -392,7 +648,6 @@ defmodule Lanttern.Rubrics do
         )
         |> Repo.transaction()
         |> format_update_rubric_transaction_response()
-        |> maybe_preload(opts)
     end
   end
 
@@ -401,6 +656,55 @@ defmodule Lanttern.Rubrics do
 
   defp format_update_rubric_transaction_response({:error, _multi_name, error}),
     do: {:error, error}
+
+  defp maybe_link_assessment_points(multi, %{"link_to_assessment_points_ids" => ids})
+       when is_list(ids) do
+    multi
+    |> Ecto.Multi.update_all(
+      :link_to_assessment_points,
+      fn %{rubric: rubric} ->
+        from(
+          ap in AssessmentPoint,
+          where: ap.id in ^ids,
+          update: [set: [rubric_id: ^rubric.id]]
+        )
+      end,
+      []
+    )
+  end
+
+  defp maybe_link_assessment_points(multi, _attrs), do: multi
+
+  defp maybe_unlink_assessment_points(multi, %{"unlink_from_assessment_points_ids" => ids})
+       when is_list(ids) do
+    multi
+    |> Ecto.Multi.update_all(
+      :unlink_from_assessment_points,
+      fn %{rubric: rubric} ->
+        from(
+          ap in AssessmentPoint,
+          where: ap.id in ^ids,
+          where: ap.rubric_id == ^rubric.id,
+          update: [set: [rubric_id: nil]]
+        )
+      end,
+      []
+    )
+  end
+
+  defp maybe_unlink_assessment_points(multi, _attrs), do: multi
+
+  @doc """
+  Update rubrics positions based on ids list order.
+
+  ## Examples
+
+  iex> update_rubrics_positions([3, 2, 1])
+  :ok
+
+  """
+  @spec update_rubrics_positions(rubrics_ids :: [pos_integer()]) :: :ok | {:error, String.t()}
+  def update_rubrics_positions(rubrics_ids), do: update_positions(Rubric, rubrics_ids)
 
   @doc """
   Deletes a rubric.
@@ -446,6 +750,33 @@ defmodule Lanttern.Rubrics do
   """
   def list_rubric_descriptors do
     Repo.all(RubricDescriptor)
+  end
+
+  @doc """
+  Returns a map with rubrics ids as keys and the list of
+  ordered descriptors as value.
+
+  Ordinal values are preloaded in descriptors.
+
+  ## Examples
+
+      iex> build_rubrics_descriptors_map(rubrics_ids)
+      %{1 => [%RubricDescriptor{}, ...], ...}
+
+  """
+  @spec build_rubrics_descriptors_map([pos_integer()]) :: %{
+          pos_integer() => [RubricDescriptor.t()]
+        }
+  def build_rubrics_descriptors_map(rubrics_ids) do
+    from(
+      d in RubricDescriptor,
+      left_join: ov in assoc(d, :ordinal_value),
+      where: d.rubric_id in ^rubrics_ids,
+      order_by: [d.score, ov.normalized_value],
+      preload: [ordinal_value: ov]
+    )
+    |> Repo.all()
+    |> Enum.group_by(& &1.rubric_id)
   end
 
   @doc """
@@ -528,6 +859,64 @@ defmodule Lanttern.Rubrics do
   def change_rubric_descriptor(%RubricDescriptor{} = rubric_descriptor, attrs \\ %{}) do
     RubricDescriptor.changeset(rubric_descriptor, attrs)
   end
+
+  @doc """
+  List all diff students linked to given rubric.
+
+  There are two ways of connecting students to differentiation rubrics:
+
+  1. through assessment point entries' `differentiation_rubric_id` field
+  2. through differentition assessment point entries
+
+  Use `school_id` from current profile to avoid listing students out of user scope.
+
+  ## Options
+
+  - `:load_profile_picture_from_cycle_id` - will try to load the profile picture from linked `%StudentCycleInfo{}` with the given cycle id
+
+  ## Examples
+
+      iex> list_diff_students_for_rubric(1, 1)
+      [%Student{}, ...]
+
+  """
+  @spec list_diff_students_for_rubric(
+          rubric_id :: pos_integer(),
+          school_id :: pos_integer(),
+          opts :: Keyword.t()
+        ) :: [Student.t()]
+  def list_diff_students_for_rubric(rubric_id, school_id, opts \\ []) do
+    from(
+      s in Student,
+      join: ape in assoc(s, :assessment_point_entries),
+      join: ap in assoc(ape, :assessment_point),
+      where: s.school_id == ^school_id,
+      where:
+        ape.differentiation_rubric_id == ^rubric_id or
+          (ap.is_differentiation and ap.rubric_id == ^rubric_id),
+      distinct: [asc: s.name, asc: s.id],
+      order_by: s.name
+    )
+    |> apply_list_diff_students_for_rubric_opts(opts)
+    |> Repo.all()
+  end
+
+  defp apply_list_diff_students_for_rubric_opts(queryable, []), do: queryable
+
+  defp apply_list_diff_students_for_rubric_opts(queryable, [
+         {:load_profile_picture_from_cycle_id, cycle_id} | opts
+       ]) do
+    from(
+      s in queryable,
+      left_join: sci in assoc(s, :cycles_info),
+      on: sci.cycle_id == ^cycle_id,
+      select_merge: %{profile_picture_url: sci.profile_picture_url}
+    )
+    |> apply_list_diff_students_for_rubric_opts(opts)
+  end
+
+  defp apply_list_diff_students_for_rubric_opts(queryable, [_ | opts]),
+    do: apply_list_diff_students_for_rubric_opts(queryable, opts)
 
   @doc """
   Links a differentiation rubric to a student.
@@ -627,6 +1016,39 @@ defmodule Lanttern.Rubrics do
       end
 
       rubric
+    end)
+  end
+
+  @doc """
+  List all assessment points that are eligible to link to given rubric.
+
+  An assessment point is considered eligible if
+
+  - it's linked to the same strand as the rubric
+  - it uses the same scale as the rubric
+  - it uses the same curriculum item as the rubric
+  - it `is_differentiation` flag matches the rubric's
+
+  Preloads moment in case of moments assessment points.
+
+  """
+  @spec list_rubric_assessment_points_options(Rubric.t()) :: [
+          {AssessmentPoint.t(), currently_linked :: boolean()}
+        ]
+  def list_rubric_assessment_points_options(%Rubric{} = rubric) do
+    from(
+      ap in AssessmentPoint,
+      left_join: m in assoc(ap, :moment),
+      preload: [moment: m],
+      where: ap.strand_id == ^rubric.strand_id or m.strand_id == ^rubric.strand_id,
+      where: ap.scale_id == ^rubric.scale_id,
+      where: ap.curriculum_item_id == ^rubric.curriculum_item_id,
+      where: ap.is_differentiation == ^rubric.is_differentiation,
+      order_by: [asc_nulls_last: ap.strand_id, asc: m.position, asc: ap.position]
+    )
+    |> Repo.all()
+    |> Enum.map(fn ap ->
+      {ap, not is_nil(rubric.id) && ap.rubric_id == rubric.id}
     end)
   end
 

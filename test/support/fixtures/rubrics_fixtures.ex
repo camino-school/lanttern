@@ -4,6 +4,8 @@ defmodule Lanttern.RubricsFixtures do
   entities via the `Lanttern.Rubrics` context.
   """
 
+  alias Lanttern.LearningContextFixtures
+  alias Lanttern.CurriculaFixtures
   alias Lanttern.GradingFixtures
 
   @doc """
@@ -16,6 +18,8 @@ defmodule Lanttern.RubricsFixtures do
       |> Enum.into(%{
         criteria: "some criteria",
         scale_id: GradingFixtures.maybe_gen_scale_id(attrs),
+        strand_id: LearningContextFixtures.maybe_gen_strand_id(attrs),
+        curriculum_item_id: CurriculaFixtures.maybe_gen_curriculum_item_id(attrs),
         is_differentiation: false
       })
       |> Lanttern.Rubrics.create_rubric()

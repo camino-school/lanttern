@@ -28,6 +28,16 @@
       </.neo_tabs>
       <div class="flex items-center gap-4">
         <.action
+          type="button"
+          phx-click={JS.exec("data-show", to: "#strand-classes-filter-modal")}
+          icon_name="hero-users-mini"
+        >
+          <%= format_action_items_text(
+            @selected_classes,
+            gettext("No class selected")
+          ) %>
+        </.action>
+        <.action
           type="link"
           patch={"#{@current_path}?is_editing=true"}
           icon_name="hero-pencil-mini"
@@ -75,10 +85,10 @@
   id="moment-details-assessment"
   moment={@moment}
   strand={@strand}
-  live_action={@live_action}
   assessment_point_id={@assessment_point_id}
   current_user={@current_user}
   params={@params}
+  selected_classes_ids={@selected_classes_ids}
 />
 <.slide_over
   :if={@params["is_editing"] == "true"}
@@ -107,3 +117,13 @@
     </.button>
   </:actions>
 </.slide_over>
+<.live_component
+  module={LantternWeb.Filters.ClassesFilterOverlayComponent}
+  id="strand-classes-filter-modal"
+  current_user={@current_user}
+  title={@select_classes_overlay_title}
+  profile_filter_opts={[strand_id: @strand.id]}
+  classes={@classes}
+  selected_classes_ids={@selected_classes_ids}
+  navigate={@select_classes_overlay_navigate}
+/>

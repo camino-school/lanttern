@@ -29,11 +29,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   alias Lanttern.LearningContext.Strand
   alias Lanttern.Schools.Student
 
-  import LantternWeb.AssessmentsHelpers, only: [save_entry_editor_component_changes: 2]
-
   # shared components
   alias LantternWeb.Assessments.EntryCellComponent
-  alias LantternWeb.Assessments.EntryDetailsComponent
+  alias LantternWeb.Assessments.EntryDetailsOverlayComponent
 
   @impl true
   def render(assigns) do
@@ -161,21 +159,15 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
             else: gettext("Save") %>
         </.button>
       </.fixed_bar>
-      <.slide_over
+      <.live_component
         :if={@assessment_point_entry}
-        id="entry-details-overlay"
-        show={true}
+        module={EntryDetailsOverlayComponent}
+        id={"#{@id}-entry-details-overlay"}
+        entry={@assessment_point_entry}
+        current_user={@current_user}
         on_cancel={JS.push("close_entry_details_overlay", target: @myself)}
-      >
-        <:title><%= gettext("Assessment point entry details") %></:title>
-        <.live_component
-          module={EntryDetailsComponent}
-          id={@assessment_point_entry.id}
-          entry={@assessment_point_entry}
-          current_user={@current_user}
-          notify_component={@myself}
-        />
-      </.slide_over>
+        notify_component={@myself}
+      />
     </div>
     """
   end
@@ -344,6 +336,32 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   end
 
   def assessment_point_struct(
+        %{assessment_point: %{curriculum_item: %CurriculumItem{}}, is_moment: false} = assigns
+      ) do
+    ~H"""
+    <.link
+      patch={
+        ~p"/strands/#{@assessment_point.strand_id}/assessment?edit_assessment_point=#{@assessment_point.id}"
+      }
+      class="flex flex-col p-1 rounded hover:bg-ltrn-mesh-cyan"
+    >
+      <div class="flex items-center gap-2">
+        <.badge class="truncate">
+          <%= @assessment_point.curriculum_item.curriculum_component.name %>
+        </.badge>
+        <.badge :if={@assessment_point.is_differentiation} theme="diff">
+          <%= gettext("Diff") %>
+        </.badge>
+        <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
+      </div>
+      <p class="flex-1 mt-1 text-sm line-clamp-2" title={@assessment_point.curriculum_item.name}>
+        <%= @assessment_point.curriculum_item.name %>
+      </p>
+    </.link>
+    """
+  end
+
+  def assessment_point_struct(
         %{assessment_point: %{curriculum_item: %CurriculumItem{}}} = assigns
       ) do
     ~H"""
@@ -355,6 +373,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         <.badge :if={@assessment_point.is_differentiation} theme="diff">
           <%= gettext("Diff") %>
         </.badge>
+        <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
       </div>
       <p class="flex-1 mt-1 text-sm line-clamp-2" title={@assessment_point.curriculum_item.name}>
         <%= @assessment_point.curriculum_item.name %>
@@ -381,10 +400,20 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   def assessment_point_struct(%{assessment_point: %{strand_id: strand_id}} = assigns)
       when not is_nil(strand_id) do
     ~H"""
-    <div class="p-1 text-sm whitespace-nowrap overflow-hidden">
-      <span class="font-bold"><%= gettext("Goal assessment") %></span> <br />
-      <span class="text-xs"><%= gettext("(Strand final assessment)") %></span>
-    </div>
+    <.link
+      patch={
+        ~p"/strands/#{@assessment_point.strand_id}/assessment?edit_assessment_point=#{@assessment_point.id}"
+      }
+      class="flex flex-col p-1 rounded hover:bg-ltrn-mesh-cyan"
+    >
+      <div class="whitespace-nowrap overflow-hidden">
+        <div class="flex items-center gap-2">
+          <span class="font-bold"><%= gettext("Goal assessment") %></span>
+          <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
+        </div>
+        <span class="text-xs"><%= gettext("(Strand final assessment)") %></span>
+      </div>
+    </.link>
     """
   end
 
@@ -487,14 +516,14 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   end
 
   def update(
-        %{action: {EntryCellComponent, {:change, type, composite_id, entry_id, params}}},
+        %{action: {EntryCellComponent, {:change, _type, composite_id, _entry_id, params}}},
         socket
       ) do
     socket =
       socket
       |> update(:entries_changes_map, fn entries_changes_map ->
         entries_changes_map
-        |> Map.put(composite_id, {type, entry_id, params})
+        |> Map.put(composite_id, params)
       end)
 
     {:ok, socket}
@@ -512,15 +541,15 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   end
 
   def update(
-        %{action: {EntryDetailsComponent, {msg_type, _}}},
+        %{action: {EntryDetailsOverlayComponent, {msg_type, _}}},
         socket
       )
-      when msg_type in [:change, :created_attachment, :deleted_attachment] do
+      when msg_type in [:created_entry, :change, :created_attachment, :deleted_attachment] do
     {:ok, assign(socket, :has_entry_details_change, true)}
   end
 
   def update(
-        %{action: {EntryDetailsComponent, {:delete, _entry}}},
+        %{action: {EntryDetailsOverlayComponent, {:delete, _entry}}},
         socket
       ) do
     socket =
@@ -534,7 +563,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   end
 
   def update(
-        %{action: {EntryDetailsComponent, _}},
+        %{action: {EntryDetailsOverlayComponent, _}},
         socket
       ),
       do: {:ok, socket}
@@ -613,6 +642,8 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           Assessments.list_moment_students_entries(
             moment_id,
             classes_ids: socket.assigns.classes_ids,
+            load_profile_picture_from_cycle_id:
+              socket.assigns.current_user.current_profile.current_school_cycle.id,
             active_students_only: true,
             check_if_has_evidences: true
           )
@@ -642,13 +673,19 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       current_user: current_user
     } = socket.assigns
 
+    changes = Map.values(entries_changes_map)
+
     socket =
-      case save_entry_editor_component_changes(
-             entries_changes_map,
-             current_user.current_profile_id
+      case Assessments.save_assessment_point_entries(changes,
+             log_profile_id: current_user.current_profile_id
            ) do
-        {:ok, msg} -> put_flash(socket, :info, msg)
-        {:error, msg} -> put_flash(socket, :error, msg)
+        {:ok, count} ->
+          msg = ngettext("1 entry updated", "%{count} entries updated", count)
+          put_flash(socket, :info, msg)
+
+        {:error, _changeset} ->
+          msg = gettext("Error updating assessment point entries")
+          put_flash(socket, :error, msg)
       end
       |> push_navigate(to: socket.assigns.navigate)
 

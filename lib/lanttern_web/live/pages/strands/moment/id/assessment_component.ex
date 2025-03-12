@@ -6,13 +6,13 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
   alias Lanttern.Filters
 
   import LantternWeb.FiltersHelpers,
-    only: [assign_user_filters: 2, assign_strand_classes_filter: 1]
+    only: [assign_user_filters: 2]
 
   import Lanttern.Utils, only: [swap: 3]
 
   # shared components
   alias LantternWeb.Assessments.AssessmentsGridComponent
-  alias LantternWeb.Assessments.AssessmentPointFormComponent
+  alias LantternWeb.Assessments.AssessmentPointFormOverlayComponent
   import LantternWeb.AssessmentsComponents
 
   @impl true
@@ -20,21 +20,10 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
     ~H"""
     <div>
       <.action_bar class="flex items-center justify-between gap-4">
-        <div class="flex items-center gap-4">
-          <.action
-            type="button"
-            phx-click={JS.exec("data-show", to: "#classes-filter-modal")}
-            icon_name="hero-chevron-down-mini"
-          >
-            <%= format_action_items_text(@selected_classes, gettext("No class selected")) %>
-          </.action>
-          <.assessment_view_dropdow
-            current_assessment_view={@current_assessment_view}
-            on_change={
-              fn view -> JS.push("change_view", value: %{"view" => view}, target: @myself) end
-            }
-          />
-        </div>
+        <.assessment_view_dropdow
+          current_assessment_view={@current_assessment_view}
+          on_change={fn view -> JS.push("change_view", value: %{"view" => view}, target: @myself) end}
+        />
         <div class="flex gap-4">
           <.action
             :if={@assessment_points_length > 1}
@@ -53,7 +42,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
           </.action>
         </div>
       </.action_bar>
-      <.responsive_container :if={@selected_classes == []} class="py-10">
+      <.responsive_container :if={@selected_classes_ids == []} class="py-10">
         <p class="flex items-center gap-2">
           <.icon name="hero-light-bulb-mini" class="text-ltrn-subtle" />
           <%= gettext("Select a class above to view full assessments grid") %>
@@ -69,67 +58,15 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
         navigate={~p"/strands/moment/#{@moment}/assessment"}
         notify_component={@myself}
       />
-      <.slide_over
-        :if={@assessment_point}
-        id="assessment-point-form-overlay"
-        show={true}
-        on_cancel={JS.patch(~p"/strands/moment/#{@moment}/assessment")}
-      >
-        <:title><%= gettext("Assessment Point") %></:title>
-        <.delete_assessment_point_error
-          :if={@delete_assessment_point_error}
-          error={@delete_assessment_point_error}
-          on_confirm_delete={JS.push("delete_assessment_point_and_entries", target: @myself)}
-          on_dismiss={JS.push("dismiss_assessment_point_error", target: @myself)}
-          class="mb-6"
-        />
-        <.live_component
-          module={AssessmentPointFormComponent}
-          id={Map.get(@assessment_point, :id) || :new}
-          curriculum_from_strand_id={@moment.strand_id}
-          notify_component={@myself}
-          assessment_point={@assessment_point}
-          navigate={~p"/strands/moment/#{@moment}/assessment"}
-        />
-        <.delete_assessment_point_error
-          :if={@delete_assessment_point_error}
-          error={@delete_assessment_point_error}
-          on_confirm_delete={JS.push("delete_assessment_point_and_entries", target: @myself)}
-          on_dismiss={JS.push("dismiss_assessment_point_error", target: @myself)}
-        />
-        <:actions_left :if={not is_nil(@assessment_point.id)}>
-          <.button
-            type="button"
-            theme="ghost"
-            phx-click="delete_assessment_point"
-            phx-target={@myself}
-            data-confirm={gettext("Are you sure?")}
-          >
-            <%= gettext("Delete") %>
-          </.button>
-        </:actions_left>
-        <:actions>
-          <.button
-            type="button"
-            theme="ghost"
-            phx-click={JS.exec("data-cancel", to: "#assessment-point-form-overlay")}
-          >
-            <%= gettext("Cancel") %>
-          </.button>
-          <.button type="submit" form="assessment-point-form" phx-disable-with="Saving...">
-            <%= gettext("Save") %>
-          </.button>
-        </:actions>
-      </.slide_over>
       <.live_component
-        module={LantternWeb.Filters.ClassesFilterOverlayComponent}
-        id="classes-filter-modal"
-        current_user={@current_user}
-        title={gettext("Select classes for assessment")}
-        profile_filter_opts={[strand_id: @moment.strand_id]}
-        classes={@classes}
-        selected_classes_ids={@selected_classes_ids}
-        navigate={~p"/strands/moment/#{@moment}/assessment"}
+        :if={@assessment_point}
+        module={AssessmentPointFormOverlayComponent}
+        id={"moment-#{@moment.id}-assessment-point-form-overlay"}
+        notify_component={@myself}
+        assessment_point={@assessment_point}
+        title={gettext("Assessment Point")}
+        on_cancel={JS.patch(~p"/strands/moment/#{@moment}/assessment")}
+        curriculum_from_strand_id={@moment.strand_id}
       />
       <.slide_over
         :if={Map.get(@params, "is_reordering") == "true"}
@@ -170,33 +107,6 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
     """
   end
 
-  attr :class, :any, default: nil
-  attr :error, :any, required: true
-  attr :on_confirm_delete, JS, required: true
-  attr :on_dismiss, JS, required: true
-
-  defp delete_assessment_point_error(assigns) do
-    ~H"""
-    <div class={["flex items-start gap-4 p-4 rounded-sm text-sm text-rose-600 bg-rose-100", @class]}>
-      <div>
-        <p><%= @error %></p>
-        <button
-          type="button"
-          phx-click={@on_confirm_delete}
-          data-confirm={gettext("Are you sure?")}
-          class="mt-4 font-display font-bold underline"
-        >
-          <%= gettext("Understood. Delete anyway") %>
-        </button>
-      </div>
-      <button type="button" phx-click={@on_dismiss} class="shrink-0">
-        <span class="sr-only"><%= gettext("dismiss") %></span>
-        <.icon name="hero-x-mark" />
-      </button>
-    </div>
-    """
-  end
-
   # lifecycle
 
   @impl true
@@ -214,6 +124,34 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
   end
 
   @impl true
+  def update(
+        %{action: {AssessmentPointFormOverlayComponent, {action, _assessment_point}}},
+        socket
+      )
+      when action in [:created, :updated, :deleted, :deleted_with_entries] do
+    flash_message =
+      case action do
+        :created ->
+          {:info, gettext("Assessment point created successfully")}
+
+        :updated ->
+          {:info, gettext("Assessment point updated successfully")}
+
+        :deleted ->
+          {:info, gettext("Assessment point deleted successfully")}
+
+        :deleted_with_entries ->
+          {:info, gettext("Assessment point and entries deleted successfully")}
+      end
+
+    nav_opts = [
+      put_flash: flash_message,
+      push_navigate: [to: ~p"/strands/moment/#{socket.assigns.moment}/assessment"]
+    ]
+
+    {:ok, delegate_navigation(socket, nav_opts)}
+  end
+
   def update(assigns, socket) do
     socket =
       socket
@@ -226,7 +164,6 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
-    |> assign_strand_classes_filter()
     |> assign_user_filters([:assessment_view, :assessment_group_by])
     |> assign_sortable_assessment_points()
     |> assign(:initialized, true)
@@ -247,11 +184,8 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
     |> assign(:assessment_point, assessment_point)
   end
 
-  defp assign_assessment_point(
-         %{assigns: %{params: %{"edit_assessment_point" => binary_id}}} = socket
-       ) do
-    with {id, _} <- Integer.parse(binary_id),
-         true <- id in socket.assigns.assessment_points_ids,
+  defp assign_assessment_point(%{assigns: %{params: %{"edit_assessment_point" => id}}} = socket) do
+    with true <- id in socket.assigns.assessment_points_ids,
          %AssessmentPoint{} = assessment_point <- Assessments.get_assessment_point(id) do
       assign(socket, :assessment_point, assessment_point)
     else
@@ -271,7 +205,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
     socket
     |> assign(:sortable_assessment_points, Enum.with_index(assessment_points))
     |> assign(:assessment_points_length, length(assessment_points))
-    |> assign(:assessment_points_ids, Enum.map(assessment_points, & &1.id))
+    |> assign(:assessment_points_ids, Enum.map(assessment_points, &"#{&1.id}"))
   end
 
   # event handlers
@@ -306,42 +240,6 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
         # do something with error?
         {:noreply, socket}
     end
-  end
-
-  def handle_event("delete_assessment_point", _params, socket) do
-    case Assessments.delete_assessment_point(socket.assigns.assessment_point) do
-      {:ok, _assessment_point} ->
-        {:noreply,
-         socket
-         |> push_navigate(to: ~p"/strands/moment/#{socket.assigns.moment}/assessment")}
-
-      {:error, _changeset} ->
-        # we may have more error types, but for now we are handling only this one
-        message =
-          gettext(
-            "This assessment point already have some entries. Deleting it will cause data loss."
-          )
-
-        {:noreply, socket |> assign(:delete_assessment_point_error, message)}
-    end
-  end
-
-  def handle_event("delete_assessment_point_and_entries", _, socket) do
-    case Assessments.delete_assessment_point_and_entries(socket.assigns.assessment_point) do
-      {:ok, _} ->
-        {:noreply,
-         socket
-         |> push_navigate(to: ~p"/strands/moment/#{socket.assigns.moment}/assessment")}
-
-      {:error, _} ->
-        {:noreply, socket}
-    end
-  end
-
-  def handle_event("dismiss_assessment_point_error", _, socket) do
-    {:noreply,
-     socket
-     |> assign(:delete_assessment_point_error, nil)}
   end
 
   def handle_event("swap_assessment_point_position", %{"from" => i, "to" => j}, socket) do

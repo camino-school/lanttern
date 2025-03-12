@@ -31,6 +31,16 @@
           current_user={@current_user}
         />
         <.action
+          type="button"
+          phx-click={JS.exec("data-show", to: "#strand-classes-filter-modal")}
+          icon_name="hero-users-mini"
+        >
+          <%= format_action_items_text(
+            @selected_classes,
+            gettext("No class selected")
+          ) %>
+        </.action>
+        <.action
           type="link"
           patch={"#{@current_path}?is_editing=true"}
           icon_name="hero-pencil-mini"
@@ -62,6 +72,7 @@
     id="strand-rubrics"
     strand={@strand}
     current_user={@current_user}
+    selected_classes_ids={@selected_classes_ids}
     params={@params}
   />
   <.live_component
@@ -77,6 +88,7 @@
     id="strand-notes"
     strand={@strand}
     current_user={@current_user}
+    selected_classes_ids={@selected_classes_ids}
   />
 </div>
 <.live_component
@@ -85,7 +97,8 @@
   id="strand-assessment"
   strand={@strand}
   current_user={@current_user}
-  live_action={@live_action}
+  selected_classes_ids={@selected_classes_ids}
+  params={@params}
 />
 <.slide_over
   :if={@is_editing}
@@ -114,3 +127,13 @@
     </.button>
   </:actions>
 </.slide_over>
+<.live_component
+  module={LantternWeb.Filters.ClassesFilterOverlayComponent}
+  id="strand-classes-filter-modal"
+  current_user={@current_user}
+  title={@select_classes_overlay_title}
+  profile_filter_opts={[strand_id: @strand.id]}
+  classes={@classes}
+  selected_classes_ids={@selected_classes_ids}
+  navigate={@select_classes_overlay_navigate}
+/>

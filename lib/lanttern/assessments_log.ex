@@ -77,7 +77,7 @@ defmodule Lanttern.AssessmentsLog do
       end
 
     if entry do
-      do_create_assessment_point_entry_log(
+      prepare_and_create_assessment_point_entry_log(
         entry,
         operation,
         Keyword.get(opts, :log_profile_id)
@@ -87,13 +87,25 @@ defmodule Lanttern.AssessmentsLog do
     operation_tuple
   end
 
-  defp do_create_assessment_point_entry_log(_, _, nil), do: nil
+  @doc """
+  Creates a assessment_point_entry log.
 
-  defp do_create_assessment_point_entry_log(
-         %AssessmentPointEntry{} = entry,
-         operation,
-         profile_id
-       ) do
+  ## Examples
+
+      iex> prepare_and_create_assessment_point_entry_log(%{field: value})
+      {:ok, %AssessmentPointEntryLog{}}
+
+      iex> prepare_and_create_assessment_point_entry_log(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def prepare_and_create_assessment_point_entry_log(_, _, nil), do: nil
+
+  def prepare_and_create_assessment_point_entry_log(
+        %AssessmentPointEntry{} = entry,
+        operation,
+        profile_id
+      ) do
     attrs =
       entry
       |> Map.from_struct()

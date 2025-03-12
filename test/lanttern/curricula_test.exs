@@ -604,7 +604,8 @@ defmodule Lanttern.CurriculaTest do
 
       AssessmentsFixtures.assessment_point_fixture(%{
         strand_id: strand.id,
-        curriculum_item_id: curriculum_item_1.id
+        curriculum_item_id: curriculum_item_1.id,
+        rubric_id: Lanttern.RubricsFixtures.rubric_fixture().id
       })
 
       AssessmentsFixtures.assessment_point_fixture(%{
@@ -631,6 +632,7 @@ defmodule Lanttern.CurriculaTest do
                Curricula.list_strand_curriculum_items(strand.id)
 
       assert curriculum_item_1.id == expected_1.id
+      assert expected_1.has_rubric
       assert curriculum_item_2.id == expected_2.id
       assert curriculum_item_diff.id == expected_diff.id
       assert expected_diff.is_differentiation

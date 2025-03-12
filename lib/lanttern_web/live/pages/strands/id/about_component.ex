@@ -10,7 +10,7 @@ defmodule LantternWeb.StrandLive.AboutComponent do
   import Lanttern.Utils, only: [swap: 3]
 
   # shared components
-  alias LantternWeb.Assessments.AssessmentPointFormComponent
+  alias LantternWeb.Assessments.AssessmentPointFormOverlayComponent
   import LantternWeb.ReportingComponents, only: [report_card_card: 1]
 
   @impl true
@@ -61,19 +61,24 @@ defmodule LantternWeb.StrandLive.AboutComponent do
           <div class="flex items-stretch gap-6 p-6 rounded bg-white shadow-lg">
             <div class="flex-1">
               <div class="flex items-center gap-4">
+                <div :if={curriculum_item.has_rubric} class="group relative">
+                  <.icon name="hero-view-columns" class="w-6 h-6" />
+                  <.tooltip><%= gettext("Uses rubric in final assessment") %></.tooltip>
+                </div>
                 <.badge :if={curriculum_item.is_differentiation} theme="diff">
                   <%= gettext("Differentiation") %>
                 </.badge>
-                <p class="font-display font-bold text-sm">
+                <p class="flex-1 font-display font-bold text-sm">
                   <%= curriculum_item.curriculum_component.name %>
                 </p>
-                <.button
+                <.action
                   type="link"
-                  theme="ghost"
+                  theme="subtle"
+                  icon_name="hero-pencil-mini"
                   patch={~p"/strands/#{@strand}?goal=#{curriculum_item.assessment_point_id}"}
                 >
                   <%= gettext("Edit") %>
-                </.button>
+                </.action>
               </div>
               <p class="mt-4"><%= curriculum_item.name %></p>
               <div
@@ -137,85 +142,15 @@ defmodule LantternWeb.StrandLive.AboutComponent do
           <%= gettext("No report cards linked to this strand") %>
         </.empty_state>
       <% end %>
-      <.slide_over
+      <.live_component
         :if={@goal}
-        id="assessment-point-form-overlay"
-        show={true}
+        module={AssessmentPointFormOverlayComponent}
+        id={"strand-#{@strand.id}-goal-form-overlay"}
+        notify_component={@myself}
+        assessment_point={@goal}
+        title={gettext("Strand goal")}
         on_cancel={JS.patch(~p"/strands/#{@strand}")}
-      >
-        <:title><%= gettext("Strand goal") %></:title>
-        <.delete_goal_error
-          error_message={@delete_goal_error}
-          on_delete={JS.push("delete_goal_and_entries", target: @myself)}
-          on_dismiss={JS.push("dismiss_delete_goal_error", target: @myself)}
-          class="mb-6"
-        />
-        <.live_component
-          module={AssessmentPointFormComponent}
-          id={Map.get(@goal, :id) || :new}
-          notify_component={@myself}
-          assessment_point={@goal}
-          navigate={~p"/strands/#{@strand}"}
-        />
-        <.delete_goal_error
-          error_message={@delete_goal_error}
-          on_delete={JS.push("delete_goal_and_entries", target: @myself)}
-          on_dismiss={JS.push("dismiss_delete_goal_error", target: @myself)}
-        />
-        <:actions_left :if={@goal.id}>
-          <.button
-            type="button"
-            theme="ghost"
-            phx-click="delete_goal"
-            phx-target={@myself}
-            data-confirm={gettext("Are you sure?")}
-          >
-            <%= gettext("Delete") %>
-          </.button>
-        </:actions_left>
-        <:actions>
-          <.button
-            type="button"
-            theme="ghost"
-            phx-click={JS.exec("data-cancel", to: "#assessment-point-form-overlay")}
-          >
-            <%= gettext("Cancel") %>
-          </.button>
-          <.button type="submit" form="assessment-point-form" phx-disable-with={gettext("Saving...")}>
-            <%= gettext("Save") %>
-          </.button>
-        </:actions>
-      </.slide_over>
-    </div>
-    """
-  end
-
-  attr :class, :any, default: nil
-  attr :error_message, :string, required: true
-  attr :on_delete, JS, required: true
-  attr :on_dismiss, JS, required: true
-
-  defp delete_goal_error(assigns) do
-    ~H"""
-    <div
-      :if={@error_message}
-      class={["flex items-start gap-4 p-4 rounded-sm text-sm text-rose-600 bg-rose-100", @class]}
-    >
-      <div>
-        <p><%= @error_message %></p>
-        <button
-          type="button"
-          phx-click={@on_delete}
-          data-confirm={gettext("Are you sure?")}
-          class="mt-4 font-display font-bold underline"
-        >
-          <%= gettext("Understood. Delete anyway") %>
-        </button>
-      </div>
-      <button type="button" phx-click={@on_dismiss} class="shrink-0">
-        <span class="sr-only"><%= gettext("dismiss") %></span>
-        <.icon name="hero-x-mark" />
-      </button>
+      />
     </div>
     """
   end
@@ -226,7 +161,6 @@ defmodule LantternWeb.StrandLive.AboutComponent do
     socket =
       socket
       |> assign(:goal, nil)
-      |> assign(:delete_goal_error, nil)
       |> assign(:has_goal_position_change, false)
       |> assign(:initialized, false)
 
@@ -234,6 +168,34 @@ defmodule LantternWeb.StrandLive.AboutComponent do
   end
 
   @impl true
+  def update(
+        %{action: {AssessmentPointFormOverlayComponent, {action, _assessment_point}}},
+        socket
+      )
+      when action in [:created, :updated, :deleted, :deleted_with_entries] do
+    flash_message =
+      case action do
+        :created ->
+          {:info, gettext("Assessment point created successfully")}
+
+        :updated ->
+          {:info, gettext("Assessment point updated successfully")}
+
+        :deleted ->
+          {:info, gettext("Assessment point deleted successfully")}
+
+        :deleted_with_entries ->
+          {:info, gettext("Assessment point and entries deleted successfully")}
+      end
+
+    nav_opts = [
+      put_flash: flash_message,
+      push_navigate: [to: ~p"/strands/#{socket.assigns.strand}"]
+    ]
+
+    {:ok, delegate_navigation(socket, nav_opts)}
+  end
+
   def update(assigns, socket) do
     socket =
       socket
@@ -307,43 +269,6 @@ defmodule LantternWeb.StrandLive.AboutComponent do
   # event handlers
 
   @impl true
-  def handle_event("delete_goal", _params, socket) do
-    case Assessments.delete_assessment_point(socket.assigns.goal) do
-      {:ok, _} ->
-        socket =
-          socket
-          |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}")
-          |> put_flash(:info, gettext("Goal deleted"))
-
-        {:noreply, socket}
-
-      {:error, _changeset} ->
-        # we may have more error types, but for now we are handling only this one
-        message =
-          gettext("This goal already have some entries. Deleting it will cause data loss.")
-
-        {:noreply, socket |> assign(:delete_goal_error, message)}
-    end
-  end
-
-  def handle_event("delete_goal_and_entries", _, socket) do
-    case Assessments.delete_assessment_point_and_entries(socket.assigns.goal) do
-      {:ok, _} ->
-        socket =
-          socket
-          |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}")
-          |> put_flash(:info, gettext("Goal and entries deleted"))
-
-        {:noreply, socket}
-
-      {:error, _} ->
-        {:noreply, socket}
-    end
-  end
-
-  def handle_event("dismiss_delete_goal_error", _, socket),
-    do: {:noreply, assign(socket, :delete_goal_error, nil)}
-
   def handle_event("swap_goal_position", %{"from" => i, "to" => j}, socket) do
     swapped_curriculum_items =
       socket.assigns.indexed_curriculum_items

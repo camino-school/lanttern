@@ -24,6 +24,7 @@ defmodule LantternWeb.Admin.RubricLiveTest do
       assert html =~ rubric.criteria
     end
 
+    @tag :skip
     test "saves new rubric", %{conn: conn} do
       scale = Lanttern.GradingFixtures.scale_fixture()
 

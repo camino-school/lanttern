@@ -403,7 +403,9 @@ defmodule Lanttern.AssessmentsTest do
     import Lanttern.AssessmentsFixtures
 
     alias Lanttern.Attachments
+    alias Lanttern.GradingFixtures
     alias Lanttern.IdentityFixtures
+    alias Lanttern.SchoolsFixtures
 
     @invalid_attrs %{student_id: nil, score: nil}
 
@@ -413,9 +415,9 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "list_assessment_point_entries/1 with opts returns entries as expected" do
-      scale = Lanttern.GradingFixtures.scale_fixture()
+      scale = GradingFixtures.scale_fixture()
       assessment_point = assessment_point_fixture(%{scale_id: scale.id})
-      student_1 = Lanttern.SchoolsFixtures.student_fixture()
+      student_1 = SchoolsFixtures.student_fixture()
 
       entry_1 =
         assessment_point_entry_fixture(%{
@@ -425,7 +427,7 @@ defmodule Lanttern.AssessmentsTest do
           scale_type: scale.type
         })
 
-      student_2 = Lanttern.SchoolsFixtures.student_fixture()
+      student_2 = SchoolsFixtures.student_fixture()
 
       entry_2 =
         assessment_point_entry_fixture(%{
@@ -456,9 +458,9 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "list_assessment_point_entries/1 with load_feedback returns entries with related feedback (+completion comment)" do
-      scale = Lanttern.GradingFixtures.scale_fixture()
+      scale = GradingFixtures.scale_fixture()
       assessment_point = assessment_point_fixture(%{scale_id: scale.id})
-      student = Lanttern.SchoolsFixtures.student_fixture()
+      student = SchoolsFixtures.student_fixture()
 
       comment =
         Lanttern.ConversationFixtures.comment_fixture(%{assessment_point_id: assessment_point.id})
@@ -493,7 +495,7 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "get_assessment_point_student_entry/3 returns the assessment_point_entry for the given assessment point and student" do
-      student = Lanttern.SchoolsFixtures.student_fixture()
+      student = SchoolsFixtures.student_fixture()
 
       entry =
         assessment_point_entry_fixture(%{student_id: student.id})
@@ -510,9 +512,9 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "create_assessment_point_entry/1 with valid data creates a assessment_point_entry" do
-      scale = Lanttern.GradingFixtures.scale_fixture()
+      scale = GradingFixtures.scale_fixture()
       assessment_point = assessment_point_fixture(%{scale_id: scale.id})
-      student = Lanttern.SchoolsFixtures.student_fixture()
+      student = SchoolsFixtures.student_fixture()
 
       # profile to test log
       profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
@@ -550,9 +552,9 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "create_assessment_point_entry/1 of type numeric with valid data creates a assessment_point_entry" do
-      scale = Lanttern.GradingFixtures.scale_fixture(%{type: "numeric", start: 0, stop: 1})
+      scale = GradingFixtures.scale_fixture(%{type: "numeric", start: 0, stop: 1})
       assessment_point = assessment_point_fixture(%{scale_id: scale.id})
-      student = Lanttern.SchoolsFixtures.student_fixture()
+      student = SchoolsFixtures.student_fixture()
 
       valid_attrs = %{
         assessment_point_id: assessment_point.id,
@@ -571,10 +573,10 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "create_assessment_point_entry/1 of type ordinal with valid data and preloads creates a assessment_point_entry and return it with preloaded data" do
-      scale = Lanttern.GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ordinal_value = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ordinal_value = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
       assessment_point = assessment_point_fixture(%{scale_id: scale.id})
-      student = Lanttern.SchoolsFixtures.student_fixture()
+      student = SchoolsFixtures.student_fixture()
 
       valid_attrs = %{
         assessment_point_id: assessment_point.id,
@@ -598,9 +600,9 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "create_assessment_point_entry/1 with score out of scale returns error changeset" do
-      scale = Lanttern.GradingFixtures.scale_fixture(%{type: "numeric", start: 0, stop: 10})
+      scale = GradingFixtures.scale_fixture(%{type: "numeric", start: 0, stop: 10})
       assessment_point = assessment_point_fixture(%{scale_id: scale.id})
-      student = Lanttern.SchoolsFixtures.student_fixture()
+      student = SchoolsFixtures.student_fixture()
 
       attrs = %{
         assessment_point_id: assessment_point.id,
@@ -612,12 +614,12 @@ defmodule Lanttern.AssessmentsTest do
                Assessments.create_assessment_point_entry(attrs)
     end
 
-    test "create_assestudent = Lanttern.SchoolsFixtures.student_fixture()ssment_point_entry/1 with ordinal_value out of scale returns error changeset" do
-      scale = Lanttern.GradingFixtures.scale_fixture(%{type: "ordinal"})
-      _ordinal_value = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
-      other_ordinal_value = Lanttern.GradingFixtures.ordinal_value_fixture()
+    test "create_assestudent = SchoolsFixtures.student_fixture()ssment_point_entry/1 with ordinal_value out of scale returns error changeset" do
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      _ordinal_value = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      other_ordinal_value = GradingFixtures.ordinal_value_fixture()
       assessment_point = assessment_point_fixture(%{scale_id: scale.id})
-      student = Lanttern.SchoolsFixtures.student_fixture()
+      student = SchoolsFixtures.student_fixture()
 
       attrs = %{
         assessment_point_id: assessment_point.id,
@@ -659,7 +661,7 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "update_assessment_point_entry/3 with valid data and preloads updates the assessment_point_entry and return it with preloaded data" do
-      student = Lanttern.SchoolsFixtures.student_fixture()
+      student = SchoolsFixtures.student_fixture()
       assessment_point_entry = assessment_point_entry_fixture(%{student_id: student.id})
       update_attrs = %{observation: "some updated observation"}
 
@@ -679,6 +681,115 @@ defmodule Lanttern.AssessmentsTest do
 
       assert assessment_point_entry ==
                Assessments.get_assessment_point_entry!(assessment_point_entry.id)
+    end
+
+    test "save_assessment_point_entries/2 handles all mapped changes correctly" do
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0})
+      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 1})
+
+      student = SchoolsFixtures.student_fixture()
+
+      assessment_point_1 = assessment_point_fixture(%{scale_id: scale.id})
+      assessment_point_2 = assessment_point_fixture(%{scale_id: scale.id})
+      assessment_point_3 = assessment_point_fixture(%{scale_id: scale.id})
+
+      entry_2 =
+        assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point_2.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_1.id
+        })
+
+      entry_3 =
+        assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point_3.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov_1.id
+        })
+
+      base_params = %{
+        "student_id" => student.id,
+        "scale_id" => scale.id,
+        "scale_type" => scale.type
+      }
+
+      params_1 =
+        base_params
+        |> Map.put("assessment_point_id", assessment_point_1.id)
+        |> Map.put("ordinal_value_id", ov_1.id)
+
+      params_2 =
+        base_params
+        |> Map.put("assessment_point_id", assessment_point_2.id)
+        |> Map.put("ordinal_value_id", ov_2.id)
+
+      params_3 =
+        base_params
+        |> Map.put("assessment_point_id", assessment_point_3.id)
+        |> Map.put("ordinal_value_id", "")
+
+      # profile to test log
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
+
+      # wait 1 second before saving to allow inserted and updated at are
+      # different in updated entries
+      Process.sleep(1000)
+
+      assert {:ok, 3} =
+               Assessments.save_assessment_point_entries([params_1, params_2, params_3],
+                 log_profile_id: profile.id
+               )
+
+      expected_entry_1 =
+        Repo.get_by(AssessmentPointEntry,
+          assessment_point_id: assessment_point_1.id,
+          student_id: student.id
+        )
+
+      assert expected_entry_1.ordinal_value_id == ov_1.id
+
+      expected_entry_2 = Repo.get(AssessmentPointEntry, entry_2.id)
+      assert expected_entry_2.ordinal_value_id == ov_2.id
+
+      expected_entry_3 = Repo.get(AssessmentPointEntry, entry_3.id)
+      assert is_nil(expected_entry_3.ordinal_value_id)
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+
+        entry_1_log =
+          Repo.get_by!(AssessmentPointEntryLog,
+            assessment_point_id: assessment_point_1.id,
+            student_id: student.id
+          )
+
+        assert entry_1_log.ordinal_value_id == ov_1.id
+        assert entry_1_log.profile_id == profile.id
+        assert entry_1_log.operation == "CREATE"
+
+        entry_2_log =
+          Repo.get_by!(AssessmentPointEntryLog,
+            assessment_point_entry_id: entry_2.id
+          )
+
+        assert entry_2_log.ordinal_value_id == ov_2.id
+        assert entry_2_log.profile_id == profile.id
+        assert entry_2_log.operation == "UPDATE"
+
+        entry_3_log =
+          Repo.get_by!(AssessmentPointEntryLog,
+            assessment_point_entry_id: entry_3.id
+          )
+
+        assert entry_3_log.ordinal_value_id == nil
+        assert entry_3_log.profile_id == profile.id
+        assert entry_3_log.operation == "UPDATE"
+      end)
     end
 
     test "delete_assessment_point_entry/2 deletes the assessment_point_entry" do
@@ -876,13 +987,17 @@ defmodule Lanttern.AssessmentsTest do
   describe "assessment point rubrics" do
     alias Lanttern.Rubrics.Rubric
     import Lanttern.AssessmentsFixtures
+    alias Lanttern.LearningContextFixtures
 
     test "create_assessment_point_rubric/3 with valid data creates a rubric linked to the given assessment point" do
-      assessment_point = assessment_point_fixture()
+      strand = LearningContextFixtures.strand_fixture()
+      assessment_point = assessment_point_fixture(%{strand_id: strand.id})
 
       valid_attrs = %{
         criteria: "some criteria",
-        scale_id: assessment_point.scale_id
+        scale_id: assessment_point.scale_id,
+        strand_id: strand.id,
+        curriculum_item_id: assessment_point.curriculum_item_id
       }
 
       assert {:ok, %Rubric{} = rubric} =

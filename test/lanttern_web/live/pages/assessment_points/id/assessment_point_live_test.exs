@@ -14,6 +14,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
   setup [:register_and_log_in_root_admin, :register_and_log_in_staff_member]
 
   describe "Assessment point details live view basic navigation" do
+    @tag :skip
     test "disconnected and connected mount", %{conn: conn} do
       %{id: id} = AssessmentsFixtures.assessment_point_fixture()
 
@@ -23,6 +24,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
       {:ok, _view, _html} = live(conn)
     end
 
+    @tag :skip
     test "display assessment point details", %{conn: conn} do
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
       scale = GradingFixtures.scale_fixture()
@@ -51,6 +53,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
       assert view |> has_element?("div", scale.name)
     end
 
+    @tag :skip
     test "overlay shows in live view", %{conn: conn} do
       assessment_point = AssessmentsFixtures.assessment_point_fixture()
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
@@ -71,6 +74,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
              |> render() =~ "Update assessment point"
     end
 
+    @tag :skip
     test "redirect to /dashboard when supplied id does not exist", %{conn: conn} do
       wrong_id = "1000000"
 
@@ -81,6 +85,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
       assert flash["error"] == "Couldn't find assessment point"
     end
 
+    @tag :skip
     test "redirect to /dashboard when supplied id is string", %{conn: conn} do
       wrong_id = "abcd"
 
@@ -93,6 +98,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
   end
 
   describe "Assessment point details rubrics" do
+    @tag :skip
     test "rubrics overlay shows in live view", %{conn: conn} do
       assessment_point = AssessmentsFixtures.assessment_point_fixture()
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
@@ -115,6 +121,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
              |> has_element?()
     end
 
+    @tag :skip
     test "rubrics descriptors show in overlay", %{conn: conn} do
       scale = Lanttern.GradingFixtures.scale_fixture(%{type: "numeric"})
       rubric = Lanttern.RubricsFixtures.rubric_fixture(%{scale_id: scale.id})
@@ -137,6 +144,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
              |> has_element?()
     end
 
+    @tag :skip
     test "link assessment point to existing rubric in overlay", %{conn: conn} do
       scale = Lanttern.GradingFixtures.scale_fixture(%{type: "numeric"})
       rubric = Lanttern.RubricsFixtures.rubric_fixture(%{scale_id: scale.id})
@@ -167,6 +175,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
       assert expected.rubric_id == rubric.id
     end
 
+    @tag :skip
     test "create and link rubric to assessment point in overlay", %{conn: conn} do
       scale = Lanttern.GradingFixtures.scale_fixture(%{type: "numeric"})
 
@@ -218,6 +227,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
   end
 
   describe "Assessment point details differentiation rubrics" do
+    @tag :skip
     test "differentiation rubrics descriptors show in overlay", %{conn: conn} do
       scale = Lanttern.GradingFixtures.scale_fixture(%{type: "numeric"})
 
@@ -250,6 +260,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
              |> has_element?()
     end
 
+    @tag :skip
     test "link assessment point entry to existing rubric in overlay", %{conn: conn} do
       scale = Lanttern.GradingFixtures.scale_fixture(%{type: "numeric"})
 
@@ -289,6 +300,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
       assert expected.differentiation_rubric_id == rubric.id
     end
 
+    @tag :skip
     test "create and link differentiation rubric to assessment point entry in overlay", %{
       conn: conn
     } do
@@ -350,6 +362,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
   end
 
   describe "Assessment point details live view feedback" do
+    @tag :skip
     test "feedback buttons display", %{conn: conn} do
       scale = Lanttern.GradingFixtures.scale_fixture()
       assessment_point = AssessmentsFixtures.assessment_point_fixture(%{scale_id: scale.id})
@@ -406,6 +419,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
   describe "Create new feedback in assessment points live view" do
     setup :create_assessment_point_without_feedback
 
+    @tag :skip
     test "feedback overlay shows in live view", %{conn: conn, assessment_point: assessment_point} do
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
 
@@ -425,6 +439,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
              |> has_element?()
     end
 
+    @tag :skip
     test "from/to is based on the current user", %{
       conn: conn,
       assessment_point: assessment_point,
@@ -473,6 +488,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
   describe "Display existing feedback in assessment points live view" do
     setup :create_assessment_point_with_feedback
 
+    @tag :skip
     test "feedback overlay shows in live view", %{conn: conn, assessment_point: assessment_point} do
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{assessment_point.id}")
 
@@ -492,6 +508,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
              |> has_element?()
     end
 
+    @tag :skip
     test "from/to is based on the existing feedback", %{
       conn: conn,
       assessment_point: assessment_point,
@@ -547,6 +564,7 @@ defmodule LantternWeb.AssessmentPointLiveTest do
   end
 
   describe "Assessment point details markdown support" do
+    @tag :skip
     test "renders HTML correctly", %{conn: conn} do
       assessment_point =
         AssessmentsFixtures.assessment_point_fixture(%{

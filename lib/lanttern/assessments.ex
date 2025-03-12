@@ -431,6 +431,118 @@ defmodule Lanttern.Assessments do
   end
 
   @doc """
+  Creates or updates assessment point entries based on assessment point and student.
+
+  This function will try to create the entry using `assessment_point_id` and `student_id` fields
+  for conflict check. When conflicting, will update only the ordinal value and score fields (teacher and student),
+  as this functions is expected to be used only in the `AssessmentsGridComponent` context.
+
+  ## Options:
+
+  - `:log_profile_id` - logs the operation, linked to given profile
+
+  ## Examples
+
+      iex> save_assessment_point_entries(maps)
+      {:ok, 10}
+
+      iex> save_assessment_point_entries(bad_maps)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec save_assessment_point_entries(maps :: list(map()), opts :: Keyword.t()) ::
+          {:ok, non_neg_integer()} | {:error, Ecto.Changeset.t()}
+  def save_assessment_point_entries(maps, opts \\ []) do
+    timestamp =
+      NaiveDateTime.utc_now()
+      |> NaiveDateTime.truncate(:second)
+
+    maps
+    |> Enum.reduce(Ecto.Multi.new(), fn map, multi ->
+      name = "upsert_#{map["assessment_point_id"]}_#{map["student_id"]}"
+
+      set =
+        build_save_assessment_point_entries_on_conflict_set(
+          [updated_at: timestamp],
+          Map.to_list(map)
+        )
+
+      Ecto.Multi.insert(
+        multi,
+        name,
+        AssessmentPointEntry.changeset(%AssessmentPointEntry{}, map),
+        on_conflict: [set: set],
+        conflict_target: [:assessment_point_id, :student_id],
+        returning: true
+      )
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, results} ->
+        save_assessment_point_entries_log(results, Keyword.get(opts, :log_profile_id))
+        {:ok, length(Map.keys(results))}
+
+      {:error, _name, value, _changes_so_far} ->
+        {:error, value}
+    end
+  end
+
+  defp build_save_assessment_point_entries_on_conflict_set(set, []) do
+    Enum.map(set, fn
+      {key, ""} -> {key, nil}
+      {key, value} -> {key, value}
+    end)
+  end
+
+  defp build_save_assessment_point_entries_on_conflict_set(set, [
+         {"ordinal_value_id", ordinal_value_id} | kvs
+       ]) do
+    set
+    |> Keyword.put(:ordinal_value_id, ordinal_value_id)
+    |> build_save_assessment_point_entries_on_conflict_set(kvs)
+  end
+
+  defp build_save_assessment_point_entries_on_conflict_set(set, [
+         {"student_ordinal_value", student_ordinal_value} | kvs
+       ]) do
+    set
+    |> Keyword.put(:student_ordinal_value, student_ordinal_value)
+    |> build_save_assessment_point_entries_on_conflict_set(kvs)
+  end
+
+  defp build_save_assessment_point_entries_on_conflict_set(set, [{"score", score} | kvs]) do
+    set
+    |> Keyword.put(:score, score)
+    |> build_save_assessment_point_entries_on_conflict_set(kvs)
+  end
+
+  defp build_save_assessment_point_entries_on_conflict_set(set, [
+         {"student_score", student_score} | kvs
+       ]) do
+    set
+    |> Keyword.put(:student_score, student_score)
+    |> build_save_assessment_point_entries_on_conflict_set(kvs)
+  end
+
+  defp build_save_assessment_point_entries_on_conflict_set(set, [_ | kvs]),
+    do: build_save_assessment_point_entries_on_conflict_set(set, kvs)
+
+  defp save_assessment_point_entries_log(_results, nil), do: nil
+
+  defp save_assessment_point_entries_log(results, log_profile_id) do
+    Map.values(results)
+    |> Enum.each(fn entry ->
+      operation = if entry.inserted_at == entry.updated_at, do: "CREATE", else: "UPDATE"
+
+      AssessmentsLog.prepare_and_create_assessment_point_entry_log(
+        entry,
+        operation,
+        log_profile_id
+      )
+    end)
+  end
+
+  @doc """
   Deletes an assessment point entry.
 
   Before deleting the entry, this function tries to delete all linked attachments.

@@ -865,12 +865,22 @@ defmodule Lanttern.SchoolsTest do
 
       strand = Lanttern.LearningContextFixtures.strand_fixture()
       scale = Lanttern.GradingFixtures.scale_fixture()
-      parent_rubric = Lanttern.RubricsFixtures.rubric_fixture(%{scale_id: scale.id})
+      curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
+
+      parent_rubric =
+        Lanttern.RubricsFixtures.rubric_fixture(%{
+          scale_id: scale.id,
+          strand_id: strand.id,
+          curriculum_item_id: curriculum_item.id
+        })
 
       Lanttern.Rubrics.create_diff_rubric_for_student(student_1.id, %{
         criteria: "diff rubric for std 1",
         scale_id: scale.id,
-        diff_for_rubric_id: parent_rubric.id
+        strand_id: strand.id,
+        curriculum_item_id: curriculum_item.id,
+        diff_for_rubric_id: parent_rubric.id,
+        is_differentiation: true
       })
 
       Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
