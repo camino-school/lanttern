@@ -349,7 +349,7 @@ defmodule Lanttern.Assessments do
   @doc """
   Gets a single assessment_point_entry for the given assessment point and student.
 
-  Returns `nil` if the Assessment point entry does not exist.
+  Returns `nil` if the Assessment point entry does not exist or if it has no marking.
 
   ### Options:
 
@@ -370,7 +370,7 @@ defmodule Lanttern.Assessments do
           opts :: Keyword.t()
         ) :: AssessmentPointEntry.t() | nil
   def get_assessment_point_student_entry(assessment_point_id, student_id, opts \\ []) do
-    AssessmentPointEntry
+    from(e in AssessmentPointEntry, where: e.has_marking)
     |> Repo.get_by(assessment_point_id: assessment_point_id, student_id: student_id)
     |> maybe_preload(opts)
   end
@@ -1183,6 +1183,7 @@ defmodule Lanttern.Assessments do
         left_join: ov in assoc(e, :ordinal_value),
         left_join: s_ov in assoc(e, :student_ordinal_value),
         where: e.assessment_point_id in ^goals_ids and e.student_id == ^student_id,
+        where: e.has_marking,
         preload: [ordinal_value: ov, student_ordinal_value: s_ov]
       )
       |> Repo.all()
@@ -1196,6 +1197,7 @@ defmodule Lanttern.Assessments do
         join: e in AssessmentPointEntry,
         on: e.assessment_point_id == ap.id and e.student_id == ^student_id,
         where: m.strand_id == ^strand_id,
+        where: e.has_marking,
         order_by: [asc: m.position, asc: ap.position],
         select: {ap.curriculum_item_id, e}
       )

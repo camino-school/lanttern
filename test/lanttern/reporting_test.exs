@@ -1483,12 +1483,13 @@ defmodule Lanttern.ReportingTest do
           strand_id: strand.id
         })
 
+      # should not display, no entries linked to strand goal
       moment_2 =
         LearningContextFixtures.moment_fixture(%{
           strand_id: strand.id
         })
 
-      # won't have assessment points linked to strand goal
+      # should no display, no assessment points linked to strand goal
       moment_3 =
         LearningContextFixtures.moment_fixture(%{
           strand_id: strand.id
@@ -1516,7 +1517,7 @@ defmodule Lanttern.ReportingTest do
         })
 
       # no student assessment point entry for assessment point 2_1
-      assessment_point_2_1 =
+      _assessment_point_2_1 =
         AssessmentsFixtures.assessment_point_fixture(%{
           moment_id: moment_2.id,
           scale_id: n_scale.id,
@@ -1597,8 +1598,7 @@ defmodule Lanttern.ReportingTest do
                 [
                   {expected_assessment_point_1_1, expected_entry_1_1},
                   {expected_assessment_point_1_2, expected_entry_1_2}
-                ]},
-               {expected_moment_2, [{expected_assessment_point_2_1, nil}]}
+                ]}
              ] =
                Reporting.list_strand_goal_moments_and_student_entries(strand_goal, student.id)
 
@@ -1615,11 +1615,6 @@ defmodule Lanttern.ReportingTest do
       assert expected_assessment_point_1_2.id == assessment_point_1_2.id
       assert expected_entry_1_2.scale == n_scale
       assert expected_entry_1_2.score == 5.0
-
-      # moment 2 assertions
-
-      assert expected_moment_2.id == moment_2.id
-      assert expected_assessment_point_2_1.id == assessment_point_2_1.id
     end
   end
 
