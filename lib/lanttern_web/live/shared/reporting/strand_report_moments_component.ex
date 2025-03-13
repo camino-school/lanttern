@@ -56,6 +56,11 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
                       <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name) %>
                     </.badge>
                   </div>
+                  <.markdown
+                    :if={moment.description}
+                    text={moment.description}
+                    class="mt-2 line-clamp-4"
+                  />
                 </div>
                 <div
                   :if={entries != []}
@@ -77,22 +82,29 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
       </.responsive_container>
       <.slide_over :if={@moment} id="moment-overlay" show={true} on_cancel={JS.patch(@base_path)}>
         <:title><%= @moment.name %></:title>
-        <div :if={@moment_has_assessment_points} class="mb-10">
-          <h4 class="mb-4 font-display font-black text-lg text-ltrn-subtle">
-            <%= gettext("Assessment points") %>
-          </h4>
-          <div id="moment-assessment-points-and-entries" phx-update="stream">
-            <.moment_assessment_point_entry
-              :for={
-                {dom_id, {assessment_point, entry}} <- @streams.moment_assessment_points_and_entries
-              }
-              id={dom_id}
-              class="py-4 border-t border-ltrn-lighter"
-              assessment_point={assessment_point}
-              entry={entry}
-            />
+        <.markdown :if={@moment.description} text={@moment.description} class="mb-10" />
+        <h4 class="mb-4 font-display font-black text-lg text-ltrn-subtle">
+          <%= gettext("Moment assessment") %>
+        </h4>
+        <%= if @moment_has_assessment_points do %>
+          <div class="mb-10">
+            <div id="moment-assessment-points-and-entries" phx-update="stream">
+              <.moment_assessment_point_entry
+                :for={
+                  {dom_id, {assessment_point, entry}} <- @streams.moment_assessment_points_and_entries
+                }
+                id={dom_id}
+                class="py-4 border-t border-ltrn-lighter"
+                assessment_point={assessment_point}
+                entry={entry}
+              />
+            </div>
           </div>
-        </div>
+        <% else %>
+          <.empty_state_simple class="mb-10">
+            <%= gettext("This moment does not have assessment entries yet") %>
+          </.empty_state_simple>
+        <% end %>
         <div :if={@moment_has_cards}>
           <h4 class="mb-4 font-display font-black text-lg text-ltrn-subtle">
             <%= gettext("More about this moment") %>

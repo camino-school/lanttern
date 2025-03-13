@@ -502,7 +502,7 @@ defmodule Lanttern.AssessmentsTest do
       no_marking_entry =
         assessment_point_entry_fixture(%{student_id: student.id})
 
-      no_marking_entry_id = no_marking_entry.id
+      _no_marking_entry_id = no_marking_entry.id
 
       assert Assessments.get_assessment_point_student_entry(
                no_marking_entry.assessment_point_id,
@@ -514,7 +514,6 @@ defmodule Lanttern.AssessmentsTest do
         assessment_point_entry_fixture(%{student_id: student.id, score: 10})
 
       entry_id = entry.id
-      student_id = student.id
 
       assert %{id: ^entry_id, student: %{id: ^student_id}} =
                Assessments.get_assessment_point_student_entry(
