@@ -1183,6 +1183,11 @@ defmodule Lanttern.ReportingTest do
           subjects_ids: [subject_1.id, subject_2.id]
         })
 
+      moment_4 =
+        LearningContextFixtures.moment_fixture(%{
+          strand_id: strand.id
+        })
+
       strand_report = strand_report_fixture(%{strand_id: strand.id})
 
       student = SchoolsFixtures.student_fixture()
@@ -1210,10 +1215,17 @@ defmodule Lanttern.ReportingTest do
           scale_id: n_scale.id
         })
 
-      # no student assessment point entry for moment 3
-      _assessment_point_3_1 =
+      # entry without marking for moment 3
+      assessment_point_3_1 =
         AssessmentsFixtures.assessment_point_fixture(%{
           moment_id: moment_3.id,
+          scale_id: o_scale.id
+        })
+
+      # no student assessment point entry for moment 4
+      _assessment_point_4_1 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment_4.id,
           scale_id: o_scale.id
         })
 
@@ -1244,10 +1256,20 @@ defmodule Lanttern.ReportingTest do
           score: 5
         })
 
+      # no marking
+      _assessment_point_3_1_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point_3_1.id,
+          scale_id: o_scale.id,
+          scale_type: o_scale.type
+        })
+
       assert [
                {expected_moment_1, [expected_entry_1_1, expected_entry_1_2]},
                {expected_moment_2, [expected_entry_2_1]},
-               {expected_moment_3, []}
+               {expected_moment_3, []},
+               {expected_moment_4, []}
              ] =
                Reporting.list_student_strand_report_moments_and_entries(strand_report, student.id)
 
@@ -1277,6 +1299,11 @@ defmodule Lanttern.ReportingTest do
 
       assert expected_moment_3.id == moment_3.id
       assert expected_moment_3.subjects == [subject_1, subject_2]
+
+      # moment 4 assertions
+
+      assert expected_moment_4.id == moment_4.id
+      assert expected_moment_4.subjects == []
     end
 
     test "list_student_strand_evidences/2 returns all student evidences linked to the given strand" do
@@ -1397,8 +1424,15 @@ defmodule Lanttern.ReportingTest do
           scale_id: n_scale.id
         })
 
-      # no student assessment point entry for moment 4
+      # only empty entries for moment 4
       assessment_point_4 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          moment_id: moment.id,
+          scale_id: o_scale.id
+        })
+
+      # no student assessment point entry for moment 5
+      _assessment_point_5 =
         AssessmentsFixtures.assessment_point_fixture(%{
           moment_id: moment.id,
           scale_id: o_scale.id
@@ -1431,11 +1465,18 @@ defmodule Lanttern.ReportingTest do
           score: 5
         })
 
+      _no_marking_assessment_point_4_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point_4.id,
+          scale_id: o_scale.id,
+          scale_type: o_scale.type
+        })
+
       assert [
                {expected_assessment_point_1, expected_entry_1},
                {expected_assessment_point_2, expected_entry_2},
-               {expected_assessment_point_3, expected_entry_3},
-               {expected_assessment_point_4, nil}
+               {expected_assessment_point_3, expected_entry_3}
              ] =
                Reporting.list_moment_assessment_points_and_student_entries(moment.id, student.id)
 
@@ -1462,10 +1503,6 @@ defmodule Lanttern.ReportingTest do
       assert expected_entry_3.id == assessment_point_3_entry.id
       assert expected_entry_3.scale == n_scale
       assert expected_entry_3.score == 5
-
-      # assessment point 4 assertion
-
-      assert expected_assessment_point_4.id == assessment_point_4.id
     end
 
     test "list_strand_goal_moments_and_student_entries/2 returns all moments with assessment points and entries for the given strand goal and student" do
