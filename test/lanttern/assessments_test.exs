@@ -496,12 +496,24 @@ defmodule Lanttern.AssessmentsTest do
 
     test "get_assessment_point_student_entry/3 returns the assessment_point_entry for the given assessment point and student" do
       student = SchoolsFixtures.student_fixture()
+      student_id = student.id
 
-      entry =
+      # entries without marking should return nil
+      no_marking_entry =
         assessment_point_entry_fixture(%{student_id: student.id})
 
+      _no_marking_entry_id = no_marking_entry.id
+
+      assert Assessments.get_assessment_point_student_entry(
+               no_marking_entry.assessment_point_id,
+               no_marking_entry.student_id
+             )
+             |> is_nil()
+
+      entry =
+        assessment_point_entry_fixture(%{student_id: student.id, score: 10})
+
       entry_id = entry.id
-      student_id = student.id
 
       assert %{id: ^entry_id, student: %{id: ^student_id}} =
                Assessments.get_assessment_point_student_entry(
@@ -1147,6 +1159,14 @@ defmodule Lanttern.AssessmentsTest do
           score: 5.0
         })
 
+      _empty_entry_3 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: assessment_point_3.id,
+          student_id: student.id,
+          scale_id: ordinal_scale.id,
+          scale_type: ordinal_scale.type
+        })
+
       ci_1_m_1_1 =
         assessment_point_fixture(%{
           curriculum_item_id: curriculum_item_1.id,
@@ -1154,7 +1174,7 @@ defmodule Lanttern.AssessmentsTest do
           moment_id: moment_1.id
         })
 
-      _ci_1_m_1_2 =
+      ci_1_m_1_2 =
         assessment_point_fixture(%{
           curriculum_item_id: curriculum_item_1.id,
           scale_id: ordinal_scale.id,
@@ -1168,7 +1188,7 @@ defmodule Lanttern.AssessmentsTest do
           moment_id: moment_2.id
         })
 
-      _ci_1_m_3 =
+      _empty_ci_1_m_3 =
         assessment_point_fixture(%{
           curriculum_item_id: curriculum_item_1.id,
           scale_id: ordinal_scale.id,
@@ -1189,6 +1209,14 @@ defmodule Lanttern.AssessmentsTest do
           scale_id: ordinal_scale.id,
           scale_type: ordinal_scale.type,
           ordinal_value_id: ordinal_value.id
+        })
+
+      _empty_entry_ci_1_m_1_2 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ci_1_m_1_2.id,
+          student_id: student.id,
+          scale_id: ordinal_scale.id,
+          scale_type: ordinal_scale.type
         })
 
       entry_ci_1_m_2 =

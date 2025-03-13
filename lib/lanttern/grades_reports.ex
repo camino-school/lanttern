@@ -760,8 +760,8 @@ defmodule Lanttern.GradesReports do
       join: gr in assoc(gc, :grades_report),
       join: grc in assoc(gc, :grades_report_cycle),
       join: grs in assoc(gc, :grades_report_subject),
-      # exclude entries where there are only student self-assessments
-      where: not is_nil(e.ordinal_value_id) or not is_nil(e.score),
+      # exclude empty entries and entries where there are only student self-assessments
+      where: e.has_marking,
       where: e.student_id == ^student_id,
       where: gr.id == ^grades_report_id,
       where: grc.id == ^grades_report_cycle_id,
@@ -1019,8 +1019,8 @@ defmodule Lanttern.GradesReports do
         join: gr in assoc(gc, :grades_report),
         join: grc in assoc(gc, :grades_report_cycle),
         join: grs in assoc(gc, :grades_report_subject),
-        # exclude entries where there are only student self-assessments
-        where: not is_nil(e.ordinal_value_id) or not is_nil(e.score),
+        # exclude empty entries and entries where there are only student self-assessments
+        where: e.has_marking,
         where: e.student_id == ^student_id,
         where: grc.id == ^grades_report_cycle_id,
         order_by: gc.position,
@@ -1085,8 +1085,8 @@ defmodule Lanttern.GradesReports do
         join: gr in assoc(gc, :grades_report),
         join: grc in assoc(gc, :grades_report_cycle),
         join: grs in assoc(gc, :grades_report_subject),
-        # exclude entries where there are only student self-assessments
-        where: not is_nil(e.ordinal_value_id) or not is_nil(e.score),
+        # exclude empty entries and entries where there are only student self-assessments
+        where: e.has_marking,
         where: e.student_id in ^students_ids,
         where: gr.id == ^grades_report_id,
         where: grc.id == ^grades_report_cycle_id,
@@ -1158,8 +1158,8 @@ defmodule Lanttern.GradesReports do
         join: gr in assoc(gc, :grades_report),
         join: grc in assoc(gc, :grades_report_cycle),
         join: grs in assoc(gc, :grades_report_subject),
-        # exclude entries where there are only student self-assessments
-        where: not is_nil(e.ordinal_value_id) or not is_nil(e.score),
+        # exclude empty entries and entries where there are only student self-assessments
+        where: e.has_marking,
         where: e.student_id in ^students_ids,
         where: gr.id == ^grades_report_id,
         where: grc.id == ^grades_report_cycle_id,

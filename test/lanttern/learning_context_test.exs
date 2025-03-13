@@ -186,7 +186,7 @@ defmodule Lanttern.LearningContextTest do
           scale_id: scale.id
         })
 
-      _ap_m1_2 =
+      ap_m1_2 =
         Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
           moment_id: moment_1.id,
           scale_id: scale.id
@@ -214,6 +214,15 @@ defmodule Lanttern.LearningContextTest do
           scale_id: scale.id,
           scale_type: scale.type,
           ordinal_value_id: ov.id
+        })
+
+      # entry without marking
+      _no_marking_entry_m1_2 =
+        Lanttern.AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: ap_m1_2.id,
+          scale_id: scale.id,
+          scale_type: scale.type
         })
 
       # entry for other student

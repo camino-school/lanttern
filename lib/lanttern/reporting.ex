@@ -1018,6 +1018,8 @@ defmodule Lanttern.Reporting do
   @doc """
   Returns the list of moments linked to the strand report, with assessment entries.
 
+  Entries without marking are ignored.
+
   **Preloaded data:**
 
   - moments: subjects
@@ -1055,6 +1057,7 @@ defmodule Lanttern.Reporting do
         join: ap in assoc(e, :assessment_point),
         join: m in assoc(ap, :moment),
         where: m.strand_id == ^strand_id and e.student_id == ^student_id,
+        where: e.has_marking,
         order_by: ap.position,
         select: {m.id, e}
       )
@@ -1125,6 +1128,8 @@ defmodule Lanttern.Reporting do
   @doc """
   Returns the list of assessment points and entries linked to given moment and student.
 
+  Assessment point without entries are not included (entries without marking are ignored).
+
   **Preloaded data:**
 
   - assessment_points: entries
@@ -1146,13 +1151,14 @@ defmodule Lanttern.Reporting do
   def list_moment_assessment_points_and_student_entries(moment_id, student_id) do
     from(
       ap in AssessmentPoint,
-      left_join: e in AssessmentPointEntry,
+      join: e in AssessmentPointEntry,
       on: e.assessment_point_id == ap.id and e.student_id == ^student_id,
-      where: ap.moment_id == ^moment_id,
       left_join: sc in assoc(e, :scale),
       left_join: ov in assoc(e, :ordinal_value),
-      order_by: ap.position,
-      select: {ap, e, sc, ov}
+      select: {ap, e, sc, ov},
+      where: ap.moment_id == ^moment_id,
+      where: e.has_marking,
+      order_by: ap.position
     )
     |> Repo.all()
     |> Enum.map(fn {ap, e, sc, ov} ->
@@ -1163,6 +1169,10 @@ defmodule Lanttern.Reporting do
   @doc """
   Returns the list of moments with assessment points and entries
   linked to given strand goal (strand linked assessment point) and student.
+
+  Moments without assessment points are not included,
+  and assessment points without entries are not included
+  (which means moments with linked assessment points but no entries are not included).
 
   **Preloaded data:**
 
@@ -1208,6 +1218,7 @@ defmodule Lanttern.Reporting do
         left_join: apee in assoc(e, :assessment_point_entry_evidences),
         left_join: ev in assoc(apee, :attachment),
         where: m.strand_id == ^strand_id and e.student_id == ^student_id,
+        where: e.has_marking,
         order_by: [asc: ap.position, asc: apee.position],
         preload: [scale: sc, ordinal_value: ov, evidences: ev]
       )
@@ -1218,12 +1229,14 @@ defmodule Lanttern.Reporting do
     m_id_assessment_points_and_entries_map =
       moments_and_assessment_points
       |> Enum.map(fn {_m, ap} -> {ap, ap_id_entries_map[ap.id]} end)
+      |> Enum.filter(fn {_ap, entry} -> not is_nil(entry) end)
       |> Enum.group_by(fn {ap, _entries} -> ap.moment_id end)
 
     moments_and_assessment_points
     |> Enum.map(fn {m, _ap} -> m end)
     |> Enum.uniq()
     |> Enum.map(&{&1, m_id_assessment_points_and_entries_map[&1.id]})
+    |> Enum.filter(fn {_moment, assessment_points} -> not is_nil(assessment_points) end)
   end
 
   @doc """

@@ -243,6 +243,8 @@ defmodule Lanttern.LearningContext do
         join: m in assoc(ap, :moment),
         where: m.strand_id in ^student_strands_ids,
         where: e.student_id == ^student_id,
+        # exclude empty entries and entries where there are only student self-assessments
+        where: e.has_marking,
         order_by: [asc: m.position, asc: ap.position],
         select: {e, m.strand_id}
       )

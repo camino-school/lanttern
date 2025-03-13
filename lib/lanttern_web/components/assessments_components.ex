@@ -58,7 +58,7 @@ defmodule LantternWeb.AssessmentsComponents do
     """
   end
 
-  def assessment_point_entry_badge(%{entry: nil} = assigns) do
+  def assessment_point_entry_badge(assigns) do
     text =
       if assigns.is_short do
         "---"
@@ -74,8 +74,6 @@ defmodule LantternWeb.AssessmentsComponents do
     </.badge>
     """
   end
-
-  def assessment_point_entry_badge(_assigns), do: nil
 
   @doc """
   Renders an assessment point entry display.
