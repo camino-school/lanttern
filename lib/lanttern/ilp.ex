@@ -9,6 +9,8 @@ defmodule Lanttern.ILP do
 
   alias Lanttern.ILP.ILPTemplate
   alias Lanttern.ILPLog
+  alias Lanttern.Schools.Class
+  alias Lanttern.Schools.Student
 
   @doc """
   Returns the list of ilp_templates.
@@ -509,5 +511,88 @@ defmodule Lanttern.ILP do
   """
   def change_student_ilp(%StudentILP{} = student_ilp, attrs \\ %{}) do
     StudentILP.changeset(student_ilp, attrs)
+  end
+
+  @doc """
+  List students with ILP info, grouped by classes.
+
+  Results are ordered by class id and name, then by student name.
+
+  ## Options
+
+  - `:classes_ids` - filter results by classes
+
+  ## Examples
+
+      iex> list_students_and_ilps_grouped_by_class(1, 2, 3)
+      [%Class{}, [{%Student{}, %StudentILP{}}, ...], ...]
+
+  """
+  @spec list_students_and_ilps_grouped_by_class(
+          school_id :: pos_integer(),
+          cycle_id :: pos_integer(),
+          ilp_template_id :: pos_integer(),
+          opts :: Keyword.t()
+        ) :: [{Class.t(), [{Student.t(), StudentILP.t() | nil}]}]
+  def list_students_and_ilps_grouped_by_class(school_id, cycle_id, ilp_template_id, opts \\ []) do
+    students_ilps_map =
+      from(
+        ilp in StudentILP,
+        where: ilp.cycle_id == ^cycle_id,
+        where: ilp.template_id == ^ilp_template_id
+      )
+      |> Repo.all()
+      |> Enum.map(&{&1.student_id, &1})
+      |> Enum.into(%{})
+
+    students_class_filter =
+      case Keyword.get(opts, :classes_ids) do
+        classes_ids when is_list(classes_ids) and classes_ids != [] ->
+          dynamic([_s, classes: c], c.id in ^classes_ids)
+
+        _ ->
+          true
+      end
+
+    class_students_and_ilps_map =
+      from(
+        s in Student,
+        join: c in assoc(s, :classes),
+        as: :classes,
+        select: {c.id, s},
+        where: s.school_id == ^school_id,
+        where: is_nil(s.deactivated_at),
+        where: ^students_class_filter,
+        order_by: s.name
+      )
+      |> Repo.all()
+      |> Enum.map(fn {class_id, student} ->
+        {class_id, {student, Map.get(students_ilps_map, student.id)}}
+      end)
+      |> Enum.group_by(
+        fn {class_id, _} -> class_id end,
+        fn {_, student_and_ilp} -> student_and_ilp end
+      )
+
+    class_filter =
+      case Keyword.get(opts, :classes_ids) do
+        classes_ids when is_list(classes_ids) and classes_ids != [] ->
+          dynamic([c], c.id in ^classes_ids)
+
+        _ ->
+          true
+      end
+
+    from(
+      c in Class,
+      where: c.school_id == ^school_id,
+      where: c.cycle_id == ^cycle_id,
+      where: ^class_filter,
+      order_by: [asc: c.id, asc: c.name]
+    )
+    |> Repo.all()
+    |> Enum.map(fn class ->
+      {class, Map.get(class_students_and_ilps_map, class.id, [])}
+    end)
   end
 end

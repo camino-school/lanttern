@@ -522,4 +522,114 @@ defmodule Lanttern.ILPTest do
       assert %Ecto.Changeset{} = ILP.change_student_ilp(student_ilp)
     end
   end
+
+  describe "extra" do
+    import Lanttern.ILPFixtures
+
+    alias Lanttern.SchoolsFixtures
+
+    test "list_students_and_ilps_grouped_by_class/4 returns students and ILPs grouped by class" do
+      # Set up school, cycle, and template
+      school = SchoolsFixtures.school_fixture()
+      cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+      template = ilp_template_fixture(%{school_id: school.id})
+
+      # Create classes
+      class_1 = SchoolsFixtures.class_fixture(%{school_id: school.id, cycle_id: cycle.id})
+      class_2 = SchoolsFixtures.class_fixture(%{school_id: school.id, cycle_id: cycle.id})
+
+      # Create students and assign to classes
+      student_a =
+        SchoolsFixtures.student_fixture(%{
+          name: "AAA",
+          school_id: school.id,
+          classes_ids: [class_1.id]
+        })
+
+      student_b =
+        SchoolsFixtures.student_fixture(%{
+          name: "BBB",
+          school_id: school.id,
+          classes_ids: [class_1.id]
+        })
+
+      student_c =
+        SchoolsFixtures.student_fixture(%{
+          name: "CCC",
+          school_id: school.id,
+          classes_ids: [class_2.id]
+        })
+
+      # Create student ILPs for some students
+      ilp_a =
+        student_ilp_fixture(%{
+          student_id: student_a.id,
+          school_id: school.id,
+          cycle_id: cycle.id,
+          template_id: template.id
+        })
+
+      # extra fixtures to test filter
+
+      _deactivated_student =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id,
+          deactivated_at: DateTime.utc_now(),
+          classes_ids: [class_1.id]
+        })
+
+      _no_class_student =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id
+        })
+
+      _other_school = SchoolsFixtures.student_fixture()
+
+      _other_cycle_ilp_b =
+        student_ilp_fixture(%{
+          student_id: student_b.id,
+          school_id: school.id,
+          template_id: template.id
+        })
+
+      _other_template_ilp_c =
+        student_ilp_fixture(%{
+          student_id: student_c.id,
+          school_id: school.id,
+          cycle_id: cycle.id
+        })
+
+      # Get the result
+      [
+        {expected_class_1, expected_class_1_students_and_ilps},
+        {expected_class_2, expected_class_2_students_and_ilps}
+      ] = ILP.list_students_and_ilps_grouped_by_class(school.id, cycle.id, template.id)
+
+      # Assertions
+      assert expected_class_1.id == class_1.id
+
+      [{expected_student_a, expected_ilp_a}, {expected_student_b, nil}] =
+        expected_class_1_students_and_ilps
+
+      assert expected_student_a.id == student_a.id
+      assert expected_ilp_a.id == ilp_a.id
+      assert expected_student_b.id == student_b.id
+
+      assert expected_class_2.id == class_2.id
+      [{expected_student_c, nil}] = expected_class_2_students_and_ilps
+      assert expected_student_c.id == student_c.id
+
+      # use same setup to test class filter
+      [
+        {expected_class_2, expected_class_2_students_and_ilps}
+      ] =
+        ILP.list_students_and_ilps_grouped_by_class(school.id, cycle.id, template.id,
+          classes_ids: [class_2.id]
+        )
+
+      assert expected_class_2.id == class_2.id
+      [{expected_student_c, nil}] = expected_class_2_students_and_ilps
+      assert expected_student_c.id == student_c.id
+    end
+  end
 end
