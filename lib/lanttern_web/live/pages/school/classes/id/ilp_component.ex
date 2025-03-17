@@ -1,4 +1,4 @@
-defmodule LantternWeb.StudentLive.ILPComponent do
+defmodule LantternWeb.ClassLive.ILPComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.ILP
@@ -6,7 +6,7 @@ defmodule LantternWeb.StudentLive.ILPComponent do
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
 
   # shared components
-  alias LantternWeb.ILP.StudentILPComponent
+  # alias LantternWeb.ILP.StudentILPComponent
 
   @impl true
   def render(assigns) do
@@ -52,19 +52,45 @@ defmodule LantternWeb.StudentLive.ILPComponent do
         <% end %>
       </.action_bar>
       <.responsive_container class="py-10 px-4">
-        <.live_component
-          module={StudentILPComponent}
-          id="student-ilp"
-          template={@current_template}
-          student={@student}
-          cycle={@current_user.current_profile.current_school_cycle}
-          current_profile={@current_user.current_profile}
-          params={@params}
-          on_edit_patch={fn id -> "#{@base_path}?edit_student_ilp=#{id}" end}
-          create_patch={"#{@base_path}?edit_student_ilp=new"}
-          on_edit_cancel={JS.patch("#{@base_path}")}
-          edit_navigate={"#{@base_path}"}
-        />
+        <div id={"#{@id}-classes-students-and-ilps"} phx-update="stream">
+          <div
+            :for={{dom_id, {class, students_and_ilps}} <- @streams.classes_students_and_ilps}
+            class="mt-10"
+            id={dom_id}
+          >
+            <div class="font-bold"><%= class.name %></div>
+            <.card_base
+              :for={{student, ilp} <- students_and_ilps}
+              class="flex items-center gap-4 p-4 mt-4"
+              id={"student-#{student.id}"}
+            >
+              <.profile_picture_with_name
+                profile_name={student.name}
+                picture_url={student.profile_picture_url}
+                picture_size="sm"
+                navigate={~p"/school/students/#{student}/ilp"}
+                class="flex-1"
+              />
+              <%= if ilp do %>
+                <div><%= gettext("View ILP") %></div>
+              <% else %>
+                <.empty_state_simple>
+                  <%= gettext("No ILP created") %>
+                </.empty_state_simple>
+              <% end %>
+              <div class="group relative shrink-0 flex items-center gap-1">
+                <.icon name="hero-user-mini" />
+                <.toggle enabled theme="student" phx-click={%JS{}} />
+                <.tooltip><%= gettext("Shared with student") %></.tooltip>
+              </div>
+              <div class="group relative shrink-0 flex items-center gap-1">
+                <.icon name="hero-users-mini" />
+                <.toggle enabled={false} theme="student" phx-click={%JS{}} />
+                <.tooltip><%= gettext("Shared with guardians") %></.tooltip>
+              </div>
+            </.card_base>
+          </div>
+        </div>
       </.responsive_container>
     </div>
     """
@@ -76,6 +102,10 @@ defmodule LantternWeb.StudentLive.ILPComponent do
   def mount(socket) do
     socket =
       socket
+      |> stream_configure(
+        :classes_students_and_ilps,
+        dom_id: fn {class, _students_and_ilps} -> "class-#{class.id}" end
+      )
       |> assign(:initialized, false)
 
     {:ok, socket}
@@ -97,13 +127,14 @@ defmodule LantternWeb.StudentLive.ILPComponent do
     |> assign_base_path()
     |> assign_templates()
     |> assign_current_template()
+    |> stream_classes_students_and_ilps()
     |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
 
   defp assign_base_path(socket) do
-    base_path = ~p"/school/students/#{socket.assigns.student}/ilp"
+    base_path = ~p"/school/classes/#{socket.assigns.class}/ilp"
     assign(socket, :base_path, base_path)
   end
 
@@ -154,6 +185,31 @@ defmodule LantternWeb.StudentLive.ILPComponent do
       |> save_profile_filters([:ilp_template])
       |> push_navigate(to: socket.assigns.base_path)
     end
+  end
+
+  defp stream_classes_students_and_ilps(
+         %{assigns: %{selected_ilp_template_id: ilp_template_id}} = socket
+       )
+       when is_integer(ilp_template_id) do
+    cycle_id = socket.assigns.current_user.current_profile.current_school_cycle.id
+    school_id = socket.assigns.current_user.current_profile.school_id
+
+    classes_students_and_ilps =
+      ILP.list_students_and_ilps_grouped_by_class(
+        school_id,
+        cycle_id,
+        ilp_template_id
+      )
+
+    socket
+    |> stream(:classes_students_and_ilps, classes_students_and_ilps)
+    |> assign(:has_classes_students_and_ilps, classes_students_and_ilps != [])
+  end
+
+  defp stream_classes_students_and_ilps(socket) do
+    socket
+    |> stream(:classes_students_and_ilps, [])
+    |> assign(:has_classes_students_and_ilps, false)
   end
 
   # event handlers

@@ -527,6 +527,7 @@ defmodule Lanttern.ILPTest do
     import Lanttern.ILPFixtures
 
     alias Lanttern.SchoolsFixtures
+    alias Lanttern.TaxonomyFixtures
 
     test "list_students_and_ilps_grouped_by_class/4 returns students and ILPs grouped by class" do
       # Set up school, cycle, and template
@@ -535,8 +536,23 @@ defmodule Lanttern.ILPTest do
       template = ilp_template_fixture(%{school_id: school.id})
 
       # Create classes
-      class_1 = SchoolsFixtures.class_fixture(%{school_id: school.id, cycle_id: cycle.id})
-      class_2 = SchoolsFixtures.class_fixture(%{school_id: school.id, cycle_id: cycle.id})
+      year_1 = TaxonomyFixtures.year_fixture()
+      year_2_1 = TaxonomyFixtures.year_fixture()
+      year_2_2 = TaxonomyFixtures.year_fixture()
+      # reversed to test order by year
+      class_2 =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school.id,
+          cycle_id: cycle.id,
+          years_ids: [year_2_1.id, year_2_2.id]
+        })
+
+      class_1 =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school.id,
+          cycle_id: cycle.id,
+          years_ids: [year_1.id]
+        })
 
       # Create students and assign to classes
       student_a =

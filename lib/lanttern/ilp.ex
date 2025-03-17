@@ -516,7 +516,7 @@ defmodule Lanttern.ILP do
   @doc """
   List students with ILP info, grouped by classes.
 
-  Results are ordered by class id and name, then by student name.
+  Results are ordered by year id, class name, and student name.
 
   ## Options
 
@@ -585,10 +585,12 @@ defmodule Lanttern.ILP do
 
     from(
       c in Class,
+      left_join: y in assoc(c, :years),
       where: c.school_id == ^school_id,
       where: c.cycle_id == ^cycle_id,
       where: ^class_filter,
-      order_by: [asc: c.id, asc: c.name]
+      group_by: c.id,
+      order_by: [asc_nulls_last: min(y.id), asc: c.name]
     )
     |> Repo.all()
     |> Enum.map(fn class ->

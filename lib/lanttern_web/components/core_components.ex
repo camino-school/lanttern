@@ -1737,8 +1737,7 @@ defmodule LantternWeb.CoreComponents do
             navigate={@navigate}
             target="_blank"
             class={[
-              "font-bold hover:text-ltrn-subtle",
-              if(@extra_info, do: "line-clamp-1", else: "line-clamp-2"),
+              "font-bold line-clamp-1 hover:text-ltrn-subtle",
               if(@is_deactivated, do: "text-ltrn-subtle")
             ]}
           >
@@ -1747,7 +1746,7 @@ defmodule LantternWeb.CoreComponents do
           </.link>
         <% else %>
           <div class={[
-            if(@extra_info, do: "line-clamp-1", else: "line-clamp-2"),
+            "line-clamp-1",
             if(@is_deactivated, do: "text-ltrn-subtle")
           ]}>
             <%= @profile_name %>

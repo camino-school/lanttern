@@ -3,6 +3,8 @@ defmodule LantternWeb.DeactivatedStudentsLive do
 
   alias Lanttern.Schools
 
+  import LantternWeb.SchoolsComponents
+
   # lifecycle
 
   @impl true
@@ -45,7 +47,7 @@ defmodule LantternWeb.DeactivatedStudentsLive do
     socket
     |> stream(:students, students)
     |> assign(:students_length, length(students))
-    |> assign(:students_ids, Enum.map(students, &"#{&1.id}"))
+    |> assign(:students_ids, Enum.map(students, & &1.id))
   end
 
   # event handlers
@@ -76,7 +78,6 @@ defmodule LantternWeb.DeactivatedStudentsLive do
     end
   end
 
-  @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     if id in socket.assigns.students_ids do
       student = Schools.get_student!(id)

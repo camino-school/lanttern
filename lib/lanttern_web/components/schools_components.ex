@@ -10,6 +10,8 @@ defmodule LantternWeb.SchoolsComponents do
   import LantternWeb.CoreComponents
 
   alias Lanttern.Schools.School
+  alias Lanttern.Schools.Student
+
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   @doc """
@@ -71,6 +73,122 @@ defmodule LantternWeb.SchoolsComponents do
         </div>
       </.responsive_container>
     </div>
+    """
+  end
+
+  @doc """
+  Renders a student card.
+  """
+
+  attr :student, Student, required: true
+  attr :navigate, :string, default: nil, doc: "On name click"
+  attr :show_edit, :boolean, default: false
+  attr :edit_patch, :string, default: nil
+  attr :class, :any, default: nil
+  attr :id, :string, default: nil
+
+  def student_card(assigns) do
+    ~H"""
+    <.card_base id={@id} class={["flex items-center gap-4 p-4", @class]}>
+      <.profile_picture
+        picture_url={@student.profile_picture_url}
+        profile_name={@student.name}
+        size="lg"
+      />
+      <div class="min-w-0 flex-1">
+        <%= if @navigate do %>
+          <.link navigate={@navigate} class="font-bold hover:text-ltrn-subtle">
+            <%= @student.name %>
+          </.link>
+        <% else %>
+          <div class="font-bold">
+            <%= @student.name %>
+          </div>
+        <% end %>
+        <div
+          :if={is_list(@student.classes) && @student.classes != []}
+          class="flex flex-wrap gap-1 mt-2"
+        >
+          <.badge :for={class <- @student.classes}><%= class.name %></.badge>
+        </div>
+        <div
+          :if={@student.email}
+          class="mt-2 text-xs text-ltrn-subtle truncate"
+          title={@student.email}
+        >
+          <%= @student.email %>
+        </div>
+      </div>
+      <.button
+        :if={@show_edit}
+        type="link"
+        icon_name="hero-pencil-mini"
+        sr_text={gettext("Edit student")}
+        rounded
+        size="sm"
+        theme="ghost"
+        patch={@edit_patch}
+      />
+    </.card_base>
+    """
+  end
+
+  @doc """
+  Renders a deactivated student card.
+  """
+
+  attr :student, Student, required: true
+  attr :navigate, :string, default: nil, doc: "On name click"
+  attr :show_actions, :boolean, default: false
+  attr :on_reactivate, JS, default: nil
+  attr :on_delete, JS, default: nil
+  attr :class, :any, default: nil
+  attr :id, :string, default: nil
+
+  def deactivated_student_card(assigns) do
+    ~H"""
+    <.card_base id={@id} class="flex items-center gap-4 p-4">
+      <.profile_picture
+        picture_url={@student.profile_picture_url}
+        profile_name={@student.name}
+        size="lg"
+      />
+      <div class="min-w-0 flex-1">
+        <div class="text-ltrn-subtle">
+          <%= if @navigate do %>
+            <.link navigate={@navigate} class="font-bold hover:text-ltrn-dark">
+              <%= @student.name %>
+            </.link>
+          <% else %>
+            <div class="font-bold">
+              <%= @student.name %>
+            </div>
+          <% end %>
+          <div
+            :if={is_list(@student.classes) && @student.classes != []}
+            class="flex flex-wrap gap-1 mt-2"
+          >
+            <.badge :for={class <- @student.classes}><%= class.name %></.badge>
+          </div>
+          <div :if={@student.email} class="mt-2 text-xs truncate" title={@student.email}>
+            <%= @student.email %>
+          </div>
+        </div>
+        <div :if={@show_actions} class="flex gap-4 mt-4">
+          <.action type="button" phx-click={@on_reactivate}>
+            <%= gettext("Reactivate") %>
+          </.action>
+          <.action
+            type="button"
+            theme="alert"
+            phx-click={@on_delete}
+            data-confirm={gettext("Are you sure?")}
+          >
+            <%= gettext("Delete") %>
+          </.action>
+        </div>
+      </div>
+    </.card_base>
     """
   end
 end
