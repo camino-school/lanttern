@@ -9,6 +9,7 @@ defmodule Lanttern.ILP do
 
   alias Lanttern.ILP.ILPTemplate
   alias Lanttern.ILPLog
+  alias Lanttern.Schools.Class
   alias Lanttern.Schools.Student
 
   @doc """
@@ -594,4 +595,38 @@ defmodule Lanttern.ILP do
 
   defp apply_list_students_and_ilps_opts(queryable, [_ | opts]),
     do: apply_list_students_and_ilps_opts(queryable, opts)
+
+  @doc """
+  List classes with ILP metrics.
+
+  Classes are ordered by year id.
+
+  Deactivated students are excluded from count.
+
+  ## Examples
+
+      iex> list_ilp_classes_metrics(1, 2, 3)
+      [{%Class{}, 3, 2}, ...]
+
+  """
+  @spec list_ilp_classes_metrics(
+          school_id :: pos_integer(),
+          cycle_id :: pos_integer(),
+          ilp_template_id :: pos_integer()
+        ) :: [{Class.t(), students_count :: integer(), ilp_count :: integer()}]
+  def list_ilp_classes_metrics(school_id, cycle_id, ilp_template_id) do
+    from(
+      c in Class,
+      left_join: y in assoc(c, :years),
+      left_join: s in assoc(c, :students),
+      on: is_nil(s.deactivated_at),
+      left_join: ilp in assoc(s, :ilps),
+      on: ilp.template_id == ^ilp_template_id and ilp.cycle_id == ^cycle_id,
+      select: {c, count(s.id, :distinct), count(ilp.id, :distinct)},
+      group_by: c.id,
+      where: c.school_id == ^school_id and c.cycle_id == ^cycle_id,
+      order_by: [asc_nulls_last: min(y.id)]
+    )
+    |> Repo.all()
+  end
 end

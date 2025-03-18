@@ -106,9 +106,25 @@ defmodule LantternWeb.ILPLive do
     socket =
       socket
       |> assign(:params, params)
+      |> assign_metrics(params)
 
     {:noreply, socket}
   end
+
+  defp assign_metrics(socket, %{"show_metrics" => "true"}) do
+    school_id = socket.assigns.current_user.current_profile.school_id
+    cycle_id = socket.assigns.current_user.current_profile.current_school_cycle.id
+    template_id = socket.assigns.selected_ilp_template_id
+
+    metrics =
+      if template_id do
+        ILP.list_ilp_classes_metrics(school_id, cycle_id, template_id)
+      end
+
+    assign(socket, :metrics, metrics)
+  end
+
+  defp assign_metrics(socket, _params), do: assign(socket, :metrics, nil)
 
   # event handlers
 

@@ -4,6 +4,8 @@ defmodule LantternWeb.ClassLive.ILPComponent do
 
   alias Lanttern.ILP
 
+  # shared
+  alias LantternWeb.Schools.StudentProfilePictureWithNameComponent
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
   import LantternWeb.ILPComponents
 
@@ -69,11 +71,12 @@ defmodule LantternWeb.ClassLive.ILPComponent do
               class="flex items-center gap-4 p-4 mt-4"
               id={dom_id}
             >
-              <.profile_picture_with_name
-                profile_name={student.name}
-                picture_url={student.profile_picture_url}
-                navigate={~p"/school/students/#{student}"}
-                picture_size="sm"
+              <.live_component
+                module={StudentProfilePictureWithNameComponent}
+                id={"#{@id}-student-#{student.id}-profile-picture"}
+                student={student}
+                cycle_id={@current_user.current_profile.current_school_cycle.id}
+                params={@params}
                 class="flex-1"
               />
               <%= if ilp do %>
