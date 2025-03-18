@@ -11,7 +11,11 @@ const scrollToTopHook = {
 
     // use setTimeout to wait for content loading before scrolling
     setTimeout(() => {
-      document.querySelector(selector).scrollTo({ top: 0 });
+      if (selector) {
+        document.querySelector(selector).scrollTo({ top: 0 });
+      } else {
+        window.scrollTo({ top: 0 });
+      }
     }, 10);
   },
 };

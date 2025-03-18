@@ -529,29 +529,17 @@ defmodule Lanttern.ILPTest do
     alias Lanttern.SchoolsFixtures
     alias Lanttern.TaxonomyFixtures
 
-    test "list_students_and_ilps_grouped_by_class/4 returns students and ILPs grouped by class" do
+    test "list_students_and_ilps/4 returns students and ILPs" do
       # Set up school, cycle, and template
       school = SchoolsFixtures.school_fixture()
       cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
       template = ilp_template_fixture(%{school_id: school.id})
 
-      # Create classes
-      year_1 = TaxonomyFixtures.year_fixture()
-      year_2_1 = TaxonomyFixtures.year_fixture()
-      year_2_2 = TaxonomyFixtures.year_fixture()
-      # reversed to test order by year
-      class_2 =
+      # Create class
+      class =
         SchoolsFixtures.class_fixture(%{
           school_id: school.id,
-          cycle_id: cycle.id,
-          years_ids: [year_2_1.id, year_2_2.id]
-        })
-
-      class_1 =
-        SchoolsFixtures.class_fixture(%{
-          school_id: school.id,
-          cycle_id: cycle.id,
-          years_ids: [year_1.id]
+          cycle_id: cycle.id
         })
 
       # Create students and assign to classes
@@ -559,21 +547,20 @@ defmodule Lanttern.ILPTest do
         SchoolsFixtures.student_fixture(%{
           name: "AAA",
           school_id: school.id,
-          classes_ids: [class_1.id]
+          classes_ids: [class.id]
         })
 
       student_b =
         SchoolsFixtures.student_fixture(%{
           name: "BBB",
           school_id: school.id,
-          classes_ids: [class_1.id]
+          classes_ids: [class.id]
         })
 
       student_c =
         SchoolsFixtures.student_fixture(%{
           name: "CCC",
-          school_id: school.id,
-          classes_ids: [class_2.id]
+          school_id: school.id
         })
 
       # Create student ILPs for some students
@@ -591,12 +578,7 @@ defmodule Lanttern.ILPTest do
         SchoolsFixtures.student_fixture(%{
           school_id: school.id,
           deactivated_at: DateTime.utc_now(),
-          classes_ids: [class_1.id]
-        })
-
-      _no_class_student =
-        SchoolsFixtures.student_fixture(%{
-          school_id: school.id
+          classes_ids: [class.id]
         })
 
       _other_school = SchoolsFixtures.student_fixture()
@@ -617,35 +599,27 @@ defmodule Lanttern.ILPTest do
 
       # Get the result
       [
-        {expected_class_1, expected_class_1_students_and_ilps},
-        {expected_class_2, expected_class_2_students_and_ilps}
-      ] = ILP.list_students_and_ilps_grouped_by_class(school.id, cycle.id, template.id)
+        {expected_student_a, expected_ilp_a},
+        {expected_student_b, nil},
+        {expected_student_c, nil}
+      ] = ILP.list_students_and_ilps(school.id, cycle.id, template.id)
 
       # Assertions
-      assert expected_class_1.id == class_1.id
-
-      [{expected_student_a, expected_ilp_a}, {expected_student_b, nil}] =
-        expected_class_1_students_and_ilps
-
       assert expected_student_a.id == student_a.id
       assert expected_ilp_a.id == ilp_a.id
       assert expected_student_b.id == student_b.id
-
-      assert expected_class_2.id == class_2.id
-      [{expected_student_c, nil}] = expected_class_2_students_and_ilps
       assert expected_student_c.id == student_c.id
 
       # use same setup to test class filter
       [
-        {expected_class_2, expected_class_2_students_and_ilps}
+        {expected_student_a, expected_ilp_a},
+        {expected_student_b, nil}
       ] =
-        ILP.list_students_and_ilps_grouped_by_class(school.id, cycle.id, template.id,
-          classes_ids: [class_2.id]
-        )
+        ILP.list_students_and_ilps(school.id, cycle.id, template.id, classes_ids: [class.id])
 
-      assert expected_class_2.id == class_2.id
-      [{expected_student_c, nil}] = expected_class_2_students_and_ilps
-      assert expected_student_c.id == student_c.id
+      assert expected_student_a.id == student_a.id
+      assert expected_ilp_a.id == ilp_a.id
+      assert expected_student_b.id == student_b.id
     end
   end
 end

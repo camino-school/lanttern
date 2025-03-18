@@ -1820,15 +1820,21 @@ defmodule LantternWeb.CoreComponents do
   Util for ScrollToTop hook implementation.
   """
   attr :id, :string, required: true
-  attr :overlay_id, :string, required: true
+  attr :overlay_id, :string
 
-  def scroll_to_top(assigns) do
+  def scroll_to_top(%{overlay_id: _} = assigns) do
     ~H"""
     <div
       id={@id}
       phx-hook="ScrollToTop"
       data-scroll-to-selector={"##{@overlay_id} *[aria-modal=true]"}
     />
+    """
+  end
+
+  def scroll_to_top(assigns) do
+    ~H"""
+    <div id={@id} phx-hook="ScrollToTop" />
     """
   end
 

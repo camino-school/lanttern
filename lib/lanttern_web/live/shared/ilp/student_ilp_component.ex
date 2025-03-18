@@ -13,7 +13,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
   - `:on_edit_cancel` - passed to edit ILP form overlay `on_cancel` attr
   - `:edit_navigate` - navigate when ILP is edited, created, or deleted
   - `:current_profile` - `Profile`, from `current_user.current_profile`
-  - `:params` - parent view params. Use `"edit_student_ilp=new"` to creat, or `"edit_student_ilp=id"` to edit
+  - `:params` - parent view params. Use `"edit_student_ilp=new"` to create, or `"edit_student_ilp=id"` to edit
 
   ### Optional attrs
 
