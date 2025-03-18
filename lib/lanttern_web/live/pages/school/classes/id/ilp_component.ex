@@ -42,6 +42,18 @@ defmodule LantternWeb.ClassLive.ILPComponent do
               />
             </.dropdown_menu>
           </div>
+          <div class="flex items-center gap-2">
+            <%= gettext("%{count} of %{total} ILPs created",
+              count: @ilps_count,
+              total: @students_count
+            ) %>
+            <div class="w-32 h-4 p-1 rounded-full bg-white overflow-hidden shadow-inner">
+              <div
+                class="h-full rounded-full bg-ltrn-primary"
+                style={"width: #{(@ilps_count/@students_count) * 100}%"}
+              />
+            </div>
+          </div>
         <% else %>
           <p>
             <%= gettext(
@@ -49,15 +61,6 @@ defmodule LantternWeb.ClassLive.ILPComponent do
             ) %>
           </p>
         <% end %>
-        <div class="flex items-center gap-2">
-          <%= gettext("%{count} of %{total} ILPs created", count: @ilps_count, total: @students_count) %>
-          <div class="w-32 h-4 p-1 rounded-full bg-white overflow-hidden shadow-inner">
-            <div
-              class="h-full rounded-full bg-ltrn-primary"
-              style={"width: #{(@ilps_count/@students_count) * 100}%"}
-            />
-          </div>
-        </div>
       </.action_bar>
       <.responsive_container class="py-10 px-4">
         <%= if !@current_template do %>
