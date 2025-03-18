@@ -67,6 +67,8 @@ defmodule Lanttern.ILPLog do
   defp do_create_student_ilp_log(student_ilp, operation, profile_id) do
     attrs =
       student_ilp
+      # ensure entries are loaded
+      |> Repo.preload(:entries)
       |> Map.from_struct()
       |> Map.put(:student_ilp_id, student_ilp.id)
       |> Map.put(:profile_id, profile_id)

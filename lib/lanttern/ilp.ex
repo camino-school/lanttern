@@ -479,6 +479,29 @@ defmodule Lanttern.ILP do
   end
 
   @doc """
+  Updates a student_ilp sharing fields.
+
+  ## Options:
+
+  - `:log_profile_id` - logs the operation, linked to given profile
+
+  ## Examples
+
+      iex> update_student_ilp_sharing(student_ilp, %{field: new_value})
+      {:ok, %StudentILP{}}
+
+      iex> update_student_ilp_sharing(student_ilp, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_student_ilp_sharing(%StudentILP{} = student_ilp, attrs, opts \\ []) do
+    student_ilp
+    |> StudentILP.share_changeset(attrs)
+    |> Repo.update()
+    |> ILPLog.maybe_create_student_ilp_log("UPDATE", opts)
+  end
+
+  @doc """
   Deletes a student_ilp.
 
   ## Options:

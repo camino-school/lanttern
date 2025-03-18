@@ -35,6 +35,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
   # shared components
   alias LantternWeb.ILP.StudentILPFormOverlayComponent
   alias LantternWeb.Schools.StudentHeaderComponent
+  import LantternWeb.ILPComponents
 
   @impl true
   def render(assigns) do
@@ -63,6 +64,22 @@ defmodule LantternWeb.ILP.StudentILPComponent do
             <.action type="link" icon_name="hero-pencil-mini" patch={@on_edit_patch.(@student_ilp.id)}>
               <%= gettext("Edit") %>
             </.action>
+            <.student_ilp_share_controls
+              student_ilp={@student_ilp}
+              show_controls={@is_ilp_manager}
+              on_student_share_toggle={
+                JS.push("toggle_shared",
+                  value: %{"is_shared_with_student" => !@student_ilp.is_shared_with_student},
+                  target: @myself
+                )
+              }
+              on_guardians_share_toggle={
+                JS.push("toggle_shared",
+                  value: %{"is_shared_with_guardians" => !@student_ilp.is_shared_with_guardians},
+                  target: @myself
+                )
+              }
+            />
           </div>
           <div>
             <.card_base
@@ -199,11 +216,19 @@ defmodule LantternWeb.ILP.StudentILPComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
+    |> assign_is_ilp_manager()
     |> assign_student_ilp()
     |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
+
+  defp assign_is_ilp_manager(socket) do
+    is_ilp_manager =
+      "ilp_management" in socket.assigns.current_profile.permissions
+
+    assign(socket, :is_ilp_manager, is_ilp_manager)
+  end
 
   defp assign_student_ilp(socket) do
     with %Student{} = student <- socket.assigns.student,
@@ -272,4 +297,33 @@ defmodule LantternWeb.ILP.StudentILPComponent do
 
   defp assign_edit_student_ilp(socket),
     do: assign(socket, :edit_student_ilp, nil)
+
+  # event handlers
+
+  @impl true
+  def handle_event("toggle_shared", params, socket) do
+    ILP.update_student_ilp_sharing(
+      socket.assigns.student_ilp,
+      params,
+      log_profile_id: socket.assigns.current_profile.id
+    )
+    |> case do
+      {:ok, student_ilp} ->
+        student_ilp = %{
+          socket.assigns.student_ilp
+          | is_shared_with_student: student_ilp.is_shared_with_student,
+            is_shared_with_guardians: student_ilp.is_shared_with_guardians
+        }
+
+        socket =
+          socket
+          |> assign(:student_ilp, student_ilp)
+
+        {:noreply, socket}
+
+      {:error, _changeset} ->
+        # handle error
+        {:noreply, socket}
+    end
+  end
 end

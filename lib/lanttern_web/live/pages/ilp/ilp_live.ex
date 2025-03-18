@@ -16,7 +16,7 @@ defmodule LantternWeb.ILPLive do
     socket =
       socket
       |> assign(:page_title, gettext("ILP"))
-      |> assign_is_school_manager()
+      |> assign_is_ilp_manager()
       |> assign_templates()
       |> handle_assign_user_filters(params)
       |> assign_current_template()
@@ -24,11 +24,11 @@ defmodule LantternWeb.ILPLive do
     {:ok, socket}
   end
 
-  defp assign_is_school_manager(socket) do
-    is_school_manager =
-      "school_management" in socket.assigns.current_user.current_profile.permissions
+  defp assign_is_ilp_manager(socket) do
+    is_ilp_manager =
+      "ilp_management" in socket.assigns.current_user.current_profile.permissions
 
-    assign(socket, :is_school_manager, is_school_manager)
+    assign(socket, :is_ilp_manager, is_ilp_manager)
   end
 
   # if there's a valid student_id in params, it should take precedence

@@ -12,7 +12,7 @@ defmodule LantternWeb.ILPSettingsLiveTest do
 
   describe "ILP settings live view basic navigation" do
     test "school manager disconnected and connected mount", context do
-      %{conn: conn} = set_user_permissions(["school_management"], context)
+      %{conn: conn} = set_user_permissions(["ilp_management"], context)
       conn = get(conn, @live_view_path)
       assert html_response(conn, 200) =~ ~r/<h1 .+>\s*Settings\s*<\/h1>/
 
@@ -20,7 +20,7 @@ defmodule LantternWeb.ILPSettingsLiveTest do
     end
 
     test "list templates", context do
-      %{conn: conn, user: user} = set_user_permissions(["school_management"], context)
+      %{conn: conn, user: user} = set_user_permissions(["ilp_management"], context)
 
       school_id = user.current_profile.school_id
 
@@ -60,7 +60,7 @@ defmodule LantternWeb.ILPSettingsLiveTest do
 
     test "user without full access can access only its own records, records shared with school, or records assigned to them",
          context do
-      %{conn: conn, user: user} = set_user_permissions(["school_management"], context)
+      %{conn: conn, user: user} = set_user_permissions(["ilp_management"], context)
 
       school_id = user.current_profile.school_id
 

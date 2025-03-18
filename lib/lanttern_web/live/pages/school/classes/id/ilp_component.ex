@@ -1,13 +1,11 @@
 defmodule LantternWeb.ClassLive.ILPComponent do
+  alias Lanttern.Schools
   use LantternWeb, :live_component
 
   alias Lanttern.ILP
-  alias Lanttern.Schools
 
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
-
-  # shared components
-  alias LantternWeb.ILP.StudentILPComponent
+  import LantternWeb.ILPComponents
 
   @impl true
   def render(assigns) do
@@ -65,78 +63,65 @@ defmodule LantternWeb.ClassLive.ILPComponent do
             <.empty_state><%= gettext("No ILP template selected") %></.empty_state>
           </.card_base>
         <% else %>
-          <%= if @student do %>
-            <.scroll_to_top id="ilp-details-scroll-to-top" />
-            <.live_component
-              module={StudentILPComponent}
-              id={"#{@id}-student-ilp"}
-              template={@current_template}
-              student={@student}
-              cycle={@current_user.current_profile.current_school_cycle}
-              current_profile={@current_user.current_profile}
-              params={@params}
-              on_edit_patch={fn id -> "#{@base_path}?edit_student_ilp=#{id}" end}
-              create_patch={"#{@base_path}?edit_student_ilp=new"}
-              on_edit_cancel={JS.patch("#{@base_path}")}
-              edit_navigate={"#{@base_path}"}
-            />
-          <% else %>
-            <.scroll_to_top id="students-and-ilps-scroll-to-top" />
-            <div id={"#{@id}-students-and-ilps"} phx-update="stream">
-              <.card_base
-                :for={{dom_id, {student, ilp}} <- @streams.students_and_ilps}
-                class="flex items-center gap-4 p-4 mt-4"
-                id={dom_id}
-              >
-                <.profile_picture_with_name
-                  profile_name={student.name}
-                  picture_url={student.profile_picture_url}
-                  navigate={~p"/school/students/#{student}"}
-                  picture_size="sm"
-                  class="flex-1"
+          <div id={"#{@id}-students-and-ilps"} phx-update="stream">
+            <.card_base
+              :for={{dom_id, {student, ilp}} <- @streams.students_and_ilps}
+              class="flex items-center gap-4 p-4 mt-4"
+              id={dom_id}
+            >
+              <.profile_picture_with_name
+                profile_name={student.name}
+                picture_url={student.profile_picture_url}
+                navigate={~p"/school/students/#{student}"}
+                picture_size="sm"
+                class="flex-1"
+              />
+              <%= if ilp do %>
+                <.action
+                  type="link"
+                  navigate={~p"/ilp?student=#{student.id}"}
+                  theme="primary"
+                  icon_name="hero-eye-mini"
+                  target="_blank"
+                >
+                  <%= gettext("View ILP") %>
+                </.action>
+                <.student_ilp_share_controls
+                  student_ilp={ilp}
+                  show_controls={@is_ilp_manager}
+                  on_student_share_toggle={
+                    JS.push("toggle_shared",
+                      value: %{
+                        "ilp_id" => ilp.id,
+                        "is_shared_with_student" => !ilp.is_shared_with_student
+                      },
+                      target: @myself
+                    )
+                  }
+                  on_guardians_share_toggle={
+                    JS.push("toggle_shared",
+                      value: %{
+                        "ilp_id" => ilp.id,
+                        "is_shared_with_guardians" => !ilp.is_shared_with_guardians
+                      },
+                      target: @myself
+                    )
+                  }
+                  class="pl-4"
                 />
-                <%= if ilp do %>
-                  <.action
-                    type="link"
-                    navigate={~p"/ilp?student=#{student.id}"}
-                    theme="primary"
-                    icon_name="hero-eye-mini"
-                    target="_blank"
-                  >
-                    <%= gettext("View ILP") %>
-                  </.action>
-                  <div class="group relative shrink-0 flex items-center gap-1 pl-4">
-                    <.toggle
-                      enabled={not is_nil(ilp) and ilp.is_shared_with_student}
-                      theme="student"
-                      phx-click={%JS{}}
-                    />
-                    <.icon name="hero-user-mini" />
-                    <.tooltip><%= gettext("Shared with student") %></.tooltip>
-                  </div>
-                  <div class="group relative shrink-0 flex items-center gap-1">
-                    <.toggle
-                      enabled={not is_nil(ilp) and ilp.is_shared_with_guardians}
-                      theme="student"
-                      phx-click={%JS{}}
-                    />
-                    <.icon name="hero-users-mini" />
-                    <.tooltip><%= gettext("Shared with guardians") %></.tooltip>
-                  </div>
-                <% else %>
-                  <.action
-                    type="link"
-                    patch={~p"/ilp?student=#{student.id}&edit_student_ilp=new"}
-                    theme="subtle"
-                    icon_name="hero-plus-circle-mini"
-                    target="_blank"
-                  >
-                    <%= gettext("Create ILP") %>
-                  </.action>
-                <% end %>
-              </.card_base>
-            </div>
-          <% end %>
+              <% else %>
+                <.action
+                  type="link"
+                  patch={~p"/ilp?student=#{student.id}&edit_student_ilp=new"}
+                  theme="subtle"
+                  icon_name="hero-plus-circle-mini"
+                  target="_blank"
+                >
+                  <%= gettext("Create ILP") %>
+                </.action>
+              <% end %>
+            </.card_base>
+          </div>
         <% end %>
       </.responsive_container>
     </div>
@@ -164,7 +149,6 @@ defmodule LantternWeb.ClassLive.ILPComponent do
       socket
       |> assign(assigns)
       |> initialize()
-      |> assign_student()
 
     {:ok, socket}
   end
@@ -173,6 +157,7 @@ defmodule LantternWeb.ClassLive.ILPComponent do
     socket
     |> assign_user_filters([:ilp_template])
     |> assign_base_path()
+    |> assign_is_ilp_manager()
     |> assign_templates()
     |> assign_current_template()
     |> stream_students_and_ilps()
@@ -184,6 +169,13 @@ defmodule LantternWeb.ClassLive.ILPComponent do
   defp assign_base_path(socket) do
     base_path = ~p"/school/classes/#{socket.assigns.class}/ilp"
     assign(socket, :base_path, base_path)
+  end
+
+  defp assign_is_ilp_manager(socket) do
+    is_ilp_manager =
+      "ilp_management" in socket.assigns.current_user.current_profile.permissions
+
+    assign(socket, :is_ilp_manager, is_ilp_manager)
   end
 
   defp assign_templates(socket) do
@@ -273,17 +265,6 @@ defmodule LantternWeb.ClassLive.ILPComponent do
     |> assign(:students_ids, [])
   end
 
-  defp assign_student(%{assigns: %{params: %{"view_ilp_of_student" => id}}} = socket) do
-    if id in socket.assigns.students_ids do
-      student = Schools.get_student!(id)
-      assign(socket, :student, student)
-    else
-      assign(socket, :student, nil)
-    end
-  end
-
-  defp assign_student(socket), do: assign(socket, :student, nil)
-
   # event handlers
 
   @impl true
@@ -301,5 +282,32 @@ defmodule LantternWeb.ClassLive.ILPComponent do
       |> push_navigate(to: socket.assigns.base_path)
 
     {:noreply, socket}
+  end
+
+  def handle_event("toggle_shared", %{"ilp_id" => id} = params, socket) do
+    student_ilp = ILP.get_student_ilp!(id)
+
+    ILP.update_student_ilp_sharing(
+      student_ilp,
+      params,
+      log_profile_id: socket.assigns.current_user.current_profile_id
+    )
+    |> case do
+      {:ok, student_ilp} ->
+        # build the stream item to insert
+        student = Schools.get_student!(student_ilp.student_id)
+
+        student_and_ilp = {student, student_ilp}
+
+        socket =
+          socket
+          |> stream_insert(:students_and_ilps, student_and_ilp)
+
+        {:noreply, socket}
+
+      {:error, _changeset} ->
+        # handle error
+        {:noreply, socket}
+    end
   end
 end

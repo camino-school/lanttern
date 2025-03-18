@@ -56,8 +56,6 @@ defmodule Lanttern.ILP.StudentILP do
     |> cast(attrs, [
       :notes,
       :teacher_notes,
-      :is_shared_with_student,
-      :is_shared_with_guardians,
       :template_id,
       :student_id,
       :cycle_id,
@@ -69,5 +67,17 @@ defmodule Lanttern.ILP.StudentILP do
     # we don't use it to actually update the template, just to chain
     # cast_assocs to entries (template > section > component > entry)
     |> cast_assoc(:template)
+  end
+
+  @doc """
+  We use a separate changeset because sharing is handled only by users with
+  the `:ilp_management` permission.
+  """
+  def share_changeset(student_ilp, attrs) do
+    student_ilp
+    |> cast(attrs, [
+      :is_shared_with_student,
+      :is_shared_with_guardians
+    ])
   end
 end

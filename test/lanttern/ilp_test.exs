@@ -486,6 +486,42 @@ defmodule Lanttern.ILPTest do
       end)
     end
 
+    test "update_student_ilp_sharing/2 with valid data updates the student_ilp" do
+      student_ilp = student_ilp_fixture()
+
+      update_attrs = %{
+        is_shared_with_student: true,
+        is_shared_with_guardians: true
+      }
+
+      # profile to test log
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
+
+      assert {:ok, %StudentILP{} = student_ilp} =
+               ILP.update_student_ilp_sharing(student_ilp, update_attrs,
+                 log_profile_id: profile.id
+               )
+
+      assert student_ilp.is_shared_with_student
+      assert student_ilp.is_shared_with_guardians
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+
+        student_ilp_log =
+          Repo.get_by!(StudentILPLog,
+            student_ilp_id: student_ilp.id
+          )
+
+        assert student_ilp_log.student_ilp_id == student_ilp.id
+        assert student_ilp_log.profile_id == profile.id
+        assert student_ilp_log.operation == "UPDATE"
+
+        assert student_ilp_log.is_shared_with_student
+        assert student_ilp_log.is_shared_with_guardians
+      end)
+    end
+
     test "update_student_ilp/2 with invalid data returns error changeset" do
       student_ilp = student_ilp_fixture()
       assert {:error, %Ecto.Changeset{}} = ILP.update_student_ilp(student_ilp, @invalid_attrs)
@@ -527,7 +563,6 @@ defmodule Lanttern.ILPTest do
     import Lanttern.ILPFixtures
 
     alias Lanttern.SchoolsFixtures
-    alias Lanttern.TaxonomyFixtures
 
     test "list_students_and_ilps/4 returns students and ILPs" do
       # Set up school, cycle, and template
