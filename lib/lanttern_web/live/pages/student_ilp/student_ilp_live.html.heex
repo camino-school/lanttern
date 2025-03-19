@@ -1,24 +1,12 @@
 <.responsive_container class="py-10 px-4">
   <.page_title_with_menu><%= gettext("ILP") %></.page_title_with_menu>
-  <%!-- <.live_component
-    module={StudentCycleInfoHeaderComponent}
-    id="student-cycle-info-header"
-    selected_cycle_id={@current_cycle.id}
-    student={@student}
-    student_cycle_info={@student_cycle_info}
-    on_change_cycle={
-      fn cycle_id ->
-        JS.push("change_cycle", value: %{"cycle_id" => cycle_id})
-      end
-    }
-    class="mt-20"
-  /> --%>
   <.live_component
     module={StudentHeaderComponent}
     id="ilp-student-header"
     cycle_id={@current_user.current_profile.current_school_cycle.id}
     student_id={@student.id}
     class="mt-20"
+    cycle_tooltip={gettext("Looking for a different cycle? You can change it in the menu.")}
   />
   <%= if @has_student_ilps do %>
     <div id="student-ilps" phx-update="stream">
@@ -42,3 +30,4 @@
     </.card_base>
   <% end %>
 </.responsive_container>
+<.school_branding_footer school={@school} class="mt-10" />

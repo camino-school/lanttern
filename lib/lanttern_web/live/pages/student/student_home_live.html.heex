@@ -1,19 +1,17 @@
 <.responsive_container class="pt-6 sm:pt-10">
   <.page_title_with_menu><%= gettext("Welcome!") %></.page_title_with_menu>
   <.live_component
-    module={StudentCycleInfoHeaderComponent}
+    module={StudentHeaderComponent}
     id="student-cycle-info-header"
-    selected_cycle_id={@current_cycle.id}
-    student={@student}
-    student_cycle_info={@student_cycle_info}
-    on_change_cycle={
-      fn cycle_id ->
-        JS.push("change_cycle", value: %{"cycle_id" => cycle_id})
-      end
-    }
+    cycle_id={@current_user.current_profile.current_school_cycle.id}
+    student_id={@student.id}
     class="mt-20"
+    cycle_tooltip={gettext("Looking for a different cycle? You can change it in the menu.")}
   />
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-10">
+  <div class={[
+    "grid grid-cols-1 sm:grid-cols-2 gap-6 mt-10",
+    if(@has_ilp, do: "md:grid-cols-3")
+  ]}>
     <.card_base>
       <.link navigate={~p"/student_strands"} class="block p-6 hover:text-ltrn-subtle">
         <.icon name="hero-map" class="w-8 h-8 text-ltrn-subtle" />
@@ -30,7 +28,7 @@
         </div>
       </.link>
     </.card_base>
-    <.card_base>
+    <.card_base :if={@has_ilp}>
       <.link navigate={~p"/student_ilp"} class="block p-6 hover:text-ltrn-subtle">
         <.icon name="hero-check-badge" class="w-8 h-8 text-ltrn-subtle" />
         <div class="mt-4 font-display font-black text-xl">

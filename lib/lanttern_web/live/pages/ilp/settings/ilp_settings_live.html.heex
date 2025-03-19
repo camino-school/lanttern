@@ -61,7 +61,16 @@
             </div>
           </.card_base>
         </div>
-        <.markdown :if={template.description} text={template.description} class="mt-6" />
+        <div :if={template.description} class="mt-6">
+          <p class="mb-2 font-bold"><%= gettext("About this template") %></p>
+          <.markdown text={template.description} />
+        </div>
+        <div :if={template.teacher_description} class="p-4 rounded mt-6 bg-ltrn-staff-lightest">
+          <p class="mb-2 font-bold text-ltrn-staff-dark">
+            <%= gettext("Template instructions (visible to staff only)") %>
+          </p>
+          <.markdown text={template.teacher_description} />
+        </div>
       </div>
       <.live_component
         :if={@template && @template.id == template.id}

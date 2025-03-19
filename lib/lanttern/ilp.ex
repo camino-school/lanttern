@@ -677,4 +677,28 @@ defmodule Lanttern.ILP do
     )
     |> Repo.all()
   end
+
+  @doc """
+  Check if student has shared ILP for given cycle.
+  """
+  @spec student_has_ilp_for_cycle?(
+          student_id :: pos_integer(),
+          cycle_id :: pos_integer(),
+          :shared_with_student | :shared_with_guardians
+        ) :: boolean()
+  def student_has_ilp_for_cycle?(student_id, cycle_id, shared_with) do
+    shared_cond =
+      case shared_with do
+        :shared_with_student -> dynamic([ilp], ilp.is_shared_with_student)
+        :shared_with_guardians -> dynamic([ilp], ilp.is_shared_with_guardians)
+      end
+
+    from(
+      ilp in StudentILP,
+      where: ilp.student_id == ^student_id,
+      where: ilp.cycle_id == ^cycle_id,
+      where: ^shared_cond
+    )
+    |> Repo.exists?()
+  end
 end

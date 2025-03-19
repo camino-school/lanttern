@@ -5,6 +5,7 @@ defmodule LantternWeb.StudentHomeLive do
 
   use LantternWeb, :live_view
 
+  alias Lanttern.ILP
   alias Lanttern.Personalization
   alias Lanttern.Schools
   alias Lanttern.StudentsCycleInfo
@@ -12,7 +13,7 @@ defmodule LantternWeb.StudentHomeLive do
   # shared components
   alias LantternWeb.MessageBoard.MessageBoardViewerComponent
   alias LantternWeb.Attachments.AttachmentAreaComponent
-  alias LantternWeb.StudentsCycleInfo.StudentCycleInfoHeaderComponent
+  alias LantternWeb.Schools.StudentHeaderComponent
   import LantternWeb.SchoolsComponents
 
   @impl true
@@ -23,6 +24,7 @@ defmodule LantternWeb.StudentHomeLive do
       |> assign_school()
       |> assign_current_cycle()
       |> assign_student_cycle_info()
+      |> assign_has_ilp()
 
     {:ok, socket}
   end
@@ -75,6 +77,17 @@ defmodule LantternWeb.StudentHomeLive do
       end
 
     assign(socket, :student_cycle_info, student_cycle_info)
+  end
+
+  defp assign_has_ilp(socket) do
+    has_ilp =
+      ILP.student_has_ilp_for_cycle?(
+        socket.assigns.student.id,
+        socket.assigns.current_cycle.id,
+        :shared_with_student
+      )
+
+    assign(socket, :has_ilp, has_ilp)
   end
 
   @impl true

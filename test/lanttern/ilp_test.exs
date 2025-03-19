@@ -852,5 +852,33 @@ defmodule Lanttern.ILPTest do
       assert expected_class_1.id == class_1.id
       assert expected_class_2.id == class_2.id
     end
+
+    test "student_has_ilp_for_cycle?/3 returns true if student has ILP for cycle" do
+      school = SchoolsFixtures.school_fixture()
+      cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+      template = ilp_template_fixture(%{school_id: school.id})
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+
+      student_ilp =
+        student_ilp_fixture(%{
+          student_id: student.id,
+          school_id: school.id,
+          cycle_id: cycle.id,
+          template_id: template.id
+        })
+
+      # not shared yet
+      refute ILP.student_has_ilp_for_cycle?(student.id, cycle.id, :shared_with_student)
+      refute ILP.student_has_ilp_for_cycle?(student.id, cycle.id, :shared_with_guardians)
+
+      # share and assert
+
+      ILP.update_student_ilp_sharing(student_ilp, %{
+        is_shared_with_student: true
+      })
+
+      assert ILP.student_has_ilp_for_cycle?(student.id, cycle.id, :shared_with_student)
+      refute ILP.student_has_ilp_for_cycle?(student.id, cycle.id, :shared_with_guardians)
+    end
   end
 end

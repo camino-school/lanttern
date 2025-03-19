@@ -80,6 +80,12 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
               show_optional
             />
             <.markdown_supported />
+            <div :if={@template.teacher_description} class="mt-6">
+              <p class="mb-2 font-bold text-ltrn-staff-dark">
+                <%= gettext("Template instructions") %>
+              </p>
+              <.markdown text={@template.teacher_description} />
+            </div>
           </div>
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
             <%= gettext("Oops, something went wrong! Please check the errors above.") %>

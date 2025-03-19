@@ -32,9 +32,19 @@ defmodule LantternWeb.ILP.StudentILPComponent do
     ~H"""
     <div class={[card_base_classes(), "p-4 sm:p-6", @class]}>
       <div class="flex items-center gap-4">
-        <h4 class="flex-1 font-display font-black text-xl">
-          <%= @template.name %> (<%= @student_ilp.cycle.name %>)
-        </h4>
+        <div class="flex-1 flex items-center gap-2">
+          <h4 class="font-display font-black text-xl">
+            <%= @template.name %> (<%= @student_ilp.cycle.name %>)
+          </h4>
+          <.action_icon
+            :if={@template.description}
+            type="button"
+            name="hero-information-circle-mini"
+            size="mini"
+            sr_text={gettext("About this ILP model")}
+            phx-click={JS.exec("data-show", to: "##{@id}-template-info-modal")}
+          />
+        </div>
         <.action
           :if={@show_actions && @edit_patch}
           type="link"
@@ -89,6 +99,12 @@ defmodule LantternWeb.ILP.StudentILPComponent do
         </p>
         <.markdown text={@student_ilp.teacher_notes} />
       </div>
+      <.modal :if={@template.description} id={"#{@id}-template-info-modal"}>
+        <h6 class="mb-6 font-display font-black text-xl">
+          <%= gettext("About %{template}", template: @template.name) %>
+        </h6>
+        <.markdown text={@template.description} />
+      </.modal>
     </div>
     """
   end

@@ -11,12 +11,14 @@ defmodule LantternWeb.StudentILPLive do
   # shared components
   alias LantternWeb.ILP.StudentILPComponent
   alias LantternWeb.Schools.StudentHeaderComponent
+  import LantternWeb.SchoolsComponents
 
   @impl true
   def mount(_params, _session, socket) do
     socket =
       socket
       |> assign_student()
+      |> assign_school()
       |> stream_student_ilps()
 
     {:ok, socket}
@@ -31,6 +33,14 @@ defmodule LantternWeb.StudentILPLive do
       |> Schools.get_student!()
 
     assign(socket, :student, student)
+  end
+
+  defp assign_school(socket) do
+    school =
+      socket.assigns.current_user.current_profile.school_id
+      |> Schools.get_school!()
+
+    assign(socket, :school, school)
   end
 
   defp stream_student_ilps(socket) do

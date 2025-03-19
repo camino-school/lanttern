@@ -41,7 +41,7 @@ defmodule LantternWeb.SchoolsComponents do
 
     ~H"""
     <div
-      class={["py-6 sm:py-10 bg-ltrn-dark", @class]}
+      class={["py-10 sm:py-20 bg-ltrn-dark", @class]}
       style={if @school.bg_color, do: "background-color: #{@school.bg_color}"}
     >
       <.responsive_container class="flex items-center gap-6 sm:gap-10">
