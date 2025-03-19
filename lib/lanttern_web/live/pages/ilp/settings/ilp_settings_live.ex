@@ -71,7 +71,7 @@ defmodule LantternWeb.ILPSettingsLive do
     templates =
       ILP.list_ilp_templates(
         school_id: socket.assigns.current_user.current_profile.school_id,
-        preloads: [sections: :components]
+        preloads: [:ai_layer, sections: :components]
       )
 
     # keep track of sections and components ids order and index for sorting
@@ -118,7 +118,7 @@ defmodule LantternWeb.ILPSettingsLive do
   def handle_event("edit", %{"id" => id}, socket) do
     template =
       if id in socket.assigns.templates_ids,
-        do: ILP.get_ilp_template!(id, preloads: [sections: :components])
+        do: ILP.get_ilp_template!(id, preloads: [:ai_layer, sections: :components])
 
     template = Map.put(template, :is_editing, true)
 

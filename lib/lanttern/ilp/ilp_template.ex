@@ -7,6 +7,7 @@ defmodule Lanttern.ILP.ILPTemplate do
   import Ecto.Changeset
 
   alias Lanttern.ILP.ILPSection
+  alias Lanttern.ILP.ILPTemplateAILayer
   alias Lanttern.Schools.School
 
   @type t :: %__MODULE__{
@@ -18,6 +19,7 @@ defmodule Lanttern.ILP.ILPTemplate do
           school_id: pos_integer(),
           school: School.t(),
           sections: [ILPSection.t()] | Ecto.Association.NotLoaded.t(),
+          ai_layer: ILPTemplateAILayer.t() | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -35,6 +37,10 @@ defmodule Lanttern.ILP.ILPTemplate do
       on_replace: :delete,
       preload_order: [asc: :position]
 
+    has_one :ai_layer, ILPTemplateAILayer,
+      foreign_key: :template_id,
+      on_replace: :delete
+
     timestamps()
   end
 
@@ -47,6 +53,7 @@ defmodule Lanttern.ILP.ILPTemplate do
       drop_param: :sections_drop,
       with: &ILPSection.changeset/3
     )
+    |> cast_assoc(:ai_layer)
     |> validate_required([:name, :school_id])
   end
 end

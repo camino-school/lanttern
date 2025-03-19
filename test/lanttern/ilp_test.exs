@@ -36,13 +36,17 @@ defmodule Lanttern.ILPTest do
       valid_attrs = %{
         name: "some name",
         description: "some description",
-        school_id: school.id
+        school_id: school.id,
+        ai_layer: %{
+          revision_instructions: "some revision instructions"
+        }
       }
 
       assert {:ok, %ILPTemplate{} = ilp_template} = ILP.create_ilp_template(valid_attrs)
       assert ilp_template.name == "some name"
       assert ilp_template.description == "some description"
       assert ilp_template.school_id == school.id
+      assert ilp_template.ai_layer.revision_instructions == "some revision instructions"
     end
 
     test "create_ilp_template/1 with invalid data returns error changeset" do
@@ -50,11 +54,20 @@ defmodule Lanttern.ILPTest do
     end
 
     test "update_ilp_template/2 with valid data updates the ilp_template" do
-      ilp_template = ilp_template_fixture()
+      ilp_template =
+        ilp_template_fixture(%{
+          ai_layer: %{
+            revision_instructions: "some revision instructions"
+          }
+        })
 
       update_attrs = %{
         name: "some updated name",
-        description: "some updated description"
+        description: "some updated description",
+        ai_layer: %{
+          template_id: ilp_template.id,
+          revision_instructions: "some updated revision instructions"
+        }
       }
 
       assert {:ok, %ILPTemplate{} = ilp_template} =
@@ -62,6 +75,7 @@ defmodule Lanttern.ILPTest do
 
       assert ilp_template.name == "some updated name"
       assert ilp_template.description == "some updated description"
+      assert ilp_template.ai_layer.revision_instructions == "some updated revision instructions"
     end
 
     test "update_ilp_template/2 with valid nested data inserts sections and components to the template" do
@@ -117,7 +131,13 @@ defmodule Lanttern.ILPTest do
     end
 
     test "delete_ilp_template/1 deletes the ilp_template" do
-      ilp_template = ilp_template_fixture()
+      ilp_template =
+        ilp_template_fixture(%{
+          ai_layer: %{
+            revision_instructions: "some revision instructions"
+          }
+        })
+
       assert {:ok, %ILPTemplate{}} = ILP.delete_ilp_template(ilp_template)
       assert_raise Ecto.NoResultsError, fn -> ILP.get_ilp_template!(ilp_template.id) end
     end
