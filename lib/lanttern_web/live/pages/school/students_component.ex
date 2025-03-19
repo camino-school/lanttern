@@ -8,6 +8,7 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
   # shared components
   alias LantternWeb.Schools.StudentFormOverlayComponent
   import LantternWeb.FiltersHelpers, only: [assign_classes_filter: 2]
+  import LantternWeb.SchoolsComponents
 
   @impl true
   def render(assigns) do
@@ -37,42 +38,14 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
         </.action>
       </div>
       <.fluid_grid id="students" phx-update="stream" is_full_width class="p-4">
-        <.card_base
+        <.student_card
           :for={{dom_id, student} <- @streams.students}
           id={dom_id}
-          class="flex items-center gap-4 p-4"
-        >
-          <.profile_picture
-            picture_url={student.profile_picture_url}
-            profile_name={student.name}
-            size="lg"
-          />
-          <div class="min-w-0 flex-1">
-            <.link navigate={~p"/school/students/#{student}"} class="font-bold hover:text-ltrn-subtle">
-              <%= student.name %>
-            </.link>
-            <div :if={student.classes != []} class="flex flex-wrap gap-1 mt-2">
-              <.badge :for={class <- student.classes}><%= class.name %></.badge>
-            </div>
-            <div
-              :if={student.email}
-              class="mt-2 text-xs text-ltrn-subtle truncate"
-              title={student.email}
-            >
-              <%= student.email %>
-            </div>
-          </div>
-          <.button
-            :if={@is_school_manager}
-            type="link"
-            icon_name="hero-pencil-mini"
-            sr_text={gettext("Edit student")}
-            rounded
-            size="sm"
-            theme="ghost"
-            patch={~p"/school/students?edit=#{student.id}"}
-          />
-        </.card_base>
+          student={student}
+          navigate={~p"/school/students/#{student}"}
+          show_edit={@is_school_manager}
+          edit_patch={~p"/school/students?edit=#{student.id}"}
+        />
       </.fluid_grid>
       <.live_component
         module={LantternWeb.Filters.ClassesFilterOverlayComponent}

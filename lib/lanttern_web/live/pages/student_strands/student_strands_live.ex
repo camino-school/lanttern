@@ -27,7 +27,7 @@ defmodule LantternWeb.StudentStrandsLive do
     socket =
       socket
       |> assign_school()
-      |> assign_parent_cycles()
+      |> assign_current_cycle()
       |> assign_student_report_cards_cycles()
       |> assign_cycle_filter()
       # adjust dom id to prevent duplication
@@ -57,18 +57,9 @@ defmodule LantternWeb.StudentStrandsLive do
     assign(socket, :school, school)
   end
 
-  defp assign_parent_cycles(socket) do
+  defp assign_current_cycle(socket) do
     current_cycle = socket.assigns.current_user.current_profile.current_school_cycle || %{}
-
-    parent_cycles =
-      Schools.list_cycles(
-        schools_ids: [socket.assigns.current_user.current_profile.school_id],
-        parent_cycles_only: true
-      )
-
-    socket
-    |> assign(:parent_cycles, parent_cycles)
-    |> assign(:current_cycle, current_cycle)
+    assign(socket, :current_cycle, current_cycle)
   end
 
   defp assign_student_report_cards_cycles(socket) do

@@ -8,6 +8,7 @@ defmodule Lanttern.Personalization do
   - `school_management` - control access to classes, students, and staff management
   - `content_management` - control content related configurations
   - `communication_management` - allows school message board management
+  - `ilp_management` - allows ILP template management and students ILP sharing
   """
 
   import Ecto.Query, warn: false
@@ -20,7 +21,8 @@ defmodule Lanttern.Personalization do
     "students_records_full_access",
     "school_management",
     "content_management",
-    "communication_management"
+    "communication_management",
+    "ilp_management"
   ]
 
   @doc """

@@ -53,7 +53,7 @@ defmodule LantternWeb.ILPSettingsLive do
 
   defp check_if_user_has_access(socket) do
     has_access =
-      "school_management" in socket.assigns.current_user.current_profile.permissions
+      "ilp_management" in socket.assigns.current_user.current_profile.permissions
 
     if has_access do
       {true, socket}

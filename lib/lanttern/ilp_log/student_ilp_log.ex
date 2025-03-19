@@ -13,6 +13,8 @@ defmodule Lanttern.ILPLog.StudentILPLog do
     field :operation, :string
     field :notes, :string
     field :teacher_notes, :string
+    field :is_shared_with_student, :boolean, default: false
+    field :is_shared_with_guardians, :boolean, default: false
     field :template_id, :id
     field :student_id, :id
     field :cycle_id, :id
@@ -37,6 +39,8 @@ defmodule Lanttern.ILPLog.StudentILPLog do
       :operation,
       :notes,
       :teacher_notes,
+      :is_shared_with_student,
+      :is_shared_with_guardians,
       :template_id,
       :student_id,
       :cycle_id,
@@ -52,8 +56,17 @@ defmodule Lanttern.ILPLog.StudentILPLog do
       :cycle_id,
       :school_id
     ])
+    # |> maybe_cast_embed()
     |> cast_embed(:entries, with: &entry_changeset/2)
   end
+
+  # defp maybe_cast_embed(changeset) do
+  #   if is_list(get_field(changeset, :entries)) do
+  #     cast_embed(changeset, :entries, with: &entry_changeset/2)
+  #   else
+  #     changeset
+  #   end
+  # end
 
   defp entry_changeset(entry, attrs) do
     entry

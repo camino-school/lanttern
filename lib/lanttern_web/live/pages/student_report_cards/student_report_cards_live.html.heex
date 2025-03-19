@@ -11,13 +11,6 @@
         )
       end %>
     </h3>
-    <.action
-      type="button"
-      icon_name="hero-arrows-up-down-mini"
-      phx-click={JS.exec("data-show", to: "#student-cycle-filters-overlay")}
-    >
-      <%= gettext("Change cycle") %>
-    </.action>
   </div>
 </.responsive_container>
 <%= if @has_student_report_cards do %>
@@ -58,13 +51,3 @@
   </.responsive_grid>
 <% end %>
 <.school_branding_footer school={@school} />
-<.modal id="student-cycle-filters-overlay">
-  <h5 class="mb-10 font-display font-black text-xl">
-    <%= gettext("Select a cycle") %>
-  </h5>
-  <.badge_button_picker
-    on_select={&JS.push("change_cycle", value: %{"id" => &1})}
-    items={@parent_cycles}
-    selected_ids={[Map.get(@current_cycle, :id)]}
-  />
-</.modal>

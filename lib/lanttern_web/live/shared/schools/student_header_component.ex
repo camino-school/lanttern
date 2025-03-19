@@ -13,6 +13,7 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
   - `:on_edit_profile_picture` - any, passed to edit profile picture button's `phx-click`
   - `:show_deactivated` - boolean, show deactivated info
   - `:navigate` - function, student id as argument. Expect a valid `<.link>` `navigate` attr.
+  - `:cycle_tooltip` - string, tooltip for cycle badge. Useful to indicate to users that they can change the current cycle in the main menu.
 
   """
 
@@ -64,9 +65,14 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
           </.badge>
         </div>
         <div class="flex items-center gap-4 mt-2">
-          <.badge theme="dark">
-            <%= @cycle.name %>
-          </.badge>
+          <div class="group relative" {if(@cycle_tooltip, do: %{"tabindex" => "0"}, else: %{})}>
+            <.badge theme="dark">
+              <%= @cycle.name %>
+            </.badge>
+            <.tooltip :if={@cycle_tooltip} v_pos="bottom">
+              <%= @cycle_tooltip %>
+            </.tooltip>
+          </div>
           <%= if @student.classes == [] do %>
             <.badge>
               <%= gettext("No classes linked to student in cycle") %>
@@ -92,6 +98,7 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
       |> assign(:on_edit_profile_picture, nil)
       |> assign(:show_deactivated, false)
       |> assign(:navigate, nil)
+      |> assign(:cycle_tooltip, nil)
       |> assign(:initialized, false)
 
     {:ok, socket}

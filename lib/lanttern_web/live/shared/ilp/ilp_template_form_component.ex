@@ -102,12 +102,23 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
         <.input
           field={@form[:description]}
           type="textarea"
-          label={gettext("About this template (visible to staff only)")}
+          label={gettext("About this template")}
           phx-debounce="1500"
           class="mb-1"
           show_optional
         />
         <.markdown_supported class="mb-6" />
+        <div class="mb-6 p-4 rounded bg-ltrn-staff-lightest">
+          <.input
+            field={@form[:teacher_description]}
+            type="textarea"
+            label={gettext("Template instructions (visible to staff only)")}
+            phx-debounce="1500"
+            class="mb-1"
+            show_optional
+          />
+          <.markdown_supported />
+        </div>
         <div class="flex items-center justify-between gap-4">
           <div>
             <.action

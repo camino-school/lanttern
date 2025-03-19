@@ -13,6 +13,7 @@ defmodule Lanttern.ILP.ILPTemplate do
           id: pos_integer(),
           name: String.t(),
           description: String.t() | nil,
+          teacher_description: String.t() | nil,
           is_editing: boolean() | nil,
           school_id: pos_integer(),
           school: School.t(),
@@ -24,6 +25,7 @@ defmodule Lanttern.ILP.ILPTemplate do
   schema "ilp_templates" do
     field :name, :string
     field :description, :string
+    field :teacher_description, :string
     field :is_editing, :boolean, virtual: true
 
     belongs_to :school, School
@@ -39,7 +41,7 @@ defmodule Lanttern.ILP.ILPTemplate do
   @doc false
   def changeset(ilp_template, attrs) do
     ilp_template
-    |> cast(attrs, [:name, :description, :school_id])
+    |> cast(attrs, [:name, :description, :teacher_description, :school_id])
     |> cast_assoc(:sections,
       sort_param: :sections_sort,
       drop_param: :sections_drop,

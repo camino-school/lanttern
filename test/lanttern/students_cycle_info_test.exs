@@ -324,4 +324,55 @@ defmodule Lanttern.StudentsCycleInfoTest do
              ]
     end
   end
+
+  describe "extra" do
+    import Lanttern.StudentsCycleInfoFixtures
+    alias Lanttern.SchoolsFixtures
+
+    test "build_students_cycle_info_profile_picture_url_map/1 returns the expected map" do
+      school = SchoolsFixtures.school_fixture()
+      cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+      student_a = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      student_b = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      student_c = SchoolsFixtures.student_fixture(%{school_id: school.id})
+
+      _student_a_info =
+        student_cycle_info_fixture(%{
+          school_id: school.id,
+          cycle_id: cycle.id,
+          student_id: student_a.id,
+          profile_picture_url: "https://example.com/picture_a.jpg"
+        })
+
+      _student_b_info =
+        student_cycle_info_fixture(%{
+          school_id: school.id,
+          cycle_id: cycle.id,
+          student_id: student_b.id,
+          profile_picture_url: "https://example.com/picture_b.jpg"
+        })
+
+      # add student id from other school to test filter
+      other_student = SchoolsFixtures.student_fixture()
+
+      student_cycle_info_fixture(%{
+        school_id: other_student.school_id,
+        student_id: other_student.id,
+        profile_picture_url: "https://example.com/other_picture.jpg"
+      })
+
+      students_ids = [student_a.id, student_b.id, student_c.id, other_student.id]
+
+      expected =
+        StudentsCycleInfo.build_students_cycle_info_profile_picture_url_map(
+          cycle.id,
+          students_ids
+        )
+
+      assert expected[student_a.id] == "https://example.com/picture_a.jpg"
+      assert expected[student_b.id] == "https://example.com/picture_b.jpg"
+      assert expected[student_c.id] == nil
+      assert expected[other_student.id] == nil
+    end
+  end
 end

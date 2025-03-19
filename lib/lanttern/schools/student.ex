@@ -12,6 +12,7 @@ defmodule Lanttern.Schools.Student do
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.GradesReports.StudentGradesReportEntry
   alias Lanttern.Identity.Profile
+  alias Lanttern.ILP.StudentILP
   alias Lanttern.Reporting.StudentReportCard
   alias Lanttern.Rubrics.Rubric
   alias Lanttern.Schools.School
@@ -32,6 +33,7 @@ defmodule Lanttern.Schools.Student do
           cycles_info: [StudentCycleInfo.t()],
           student_report_cards: [StudentReportCard.t()],
           grades_report_entries: [StudentGradesReportEntry.t()],
+          ilps: [StudentILP.t()],
           profile: Profile.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
@@ -62,6 +64,7 @@ defmodule Lanttern.Schools.Student do
     has_many :cycles_info, StudentCycleInfo
     has_many :student_report_cards, StudentReportCard
     has_many :grades_report_entries, Lanttern.GradesReports.StudentGradesReportEntry
+    has_many :ilps, StudentILP
 
     has_one :profile, Profile
 

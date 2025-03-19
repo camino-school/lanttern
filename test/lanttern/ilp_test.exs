@@ -295,12 +295,85 @@ defmodule Lanttern.ILPTest do
     alias Lanttern.ILPLog.StudentILPLog
 
     import Lanttern.ILPFixtures
+    alias Lanttern.SchoolsFixtures
 
     @invalid_attrs %{school_id: nil}
 
     test "list_students_ilps/0 returns all students_ilps" do
       student_ilp = student_ilp_fixture()
       assert ILP.list_students_ilps() == [student_ilp]
+    end
+
+    test "list_students_ilps/1 returns all students_ilps filtered by given options" do
+      cycle = SchoolsFixtures.cycle_fixture()
+      school_id = cycle.school_id
+      student = SchoolsFixtures.student_fixture(%{school_id: school_id})
+      template_1 = ilp_template_fixture(%{school_id: school_id})
+      template_2 = ilp_template_fixture(%{school_id: school_id})
+      template_3 = ilp_template_fixture(%{school_id: school_id})
+
+      student_ilp_1 =
+        student_ilp_fixture(%{
+          school_id: school_id,
+          student_id: student.id,
+          cycle_id: cycle.id,
+          template_id: template_1.id
+        })
+
+      ILP.update_student_ilp_sharing(student_ilp_1, %{
+        is_shared_with_student: true
+      })
+
+      student_ilp_2 =
+        student_ilp_fixture(%{
+          school_id: school_id,
+          student_id: student.id,
+          cycle_id: cycle.id,
+          template_id: template_2.id
+        })
+
+      ILP.update_student_ilp_sharing(student_ilp_2, %{
+        is_shared_with_student: true
+      })
+
+      # extra fixture to test filter
+
+      _another_cycle_ilp =
+        student_ilp_fixture(%{
+          school_id: school_id,
+          student_id: student.id,
+          template_id: template_1.id
+        })
+
+      _another_student_ilp =
+        student_ilp_fixture(%{
+          school_id: school_id,
+          cycle_id: cycle.id,
+          template_id: template_2.id
+        })
+
+      not_shared_with_student =
+        student_ilp_fixture(%{
+          school_id: school_id,
+          student_id: student.id,
+          cycle_id: cycle.id,
+          template_id: template_3.id
+        })
+
+      ILP.update_student_ilp_sharing(not_shared_with_student, %{
+        is_shared_with_guardians: true
+      })
+
+      expected =
+        ILP.list_students_ilps(
+          student_id: student.id,
+          cycle_id: cycle.id,
+          only_shared_with_student: true
+        )
+
+      assert length(expected) == 2
+      assert Enum.any?(expected, fn ilp -> ilp.id == student_ilp_1.id end)
+      assert Enum.any?(expected, fn ilp -> ilp.id == student_ilp_2.id end)
     end
 
     test "get_student_ilp!/1 returns the student_ilp with given id" do
@@ -486,6 +559,42 @@ defmodule Lanttern.ILPTest do
       end)
     end
 
+    test "update_student_ilp_sharing/2 with valid data updates the student_ilp" do
+      student_ilp = student_ilp_fixture()
+
+      update_attrs = %{
+        is_shared_with_student: true,
+        is_shared_with_guardians: true
+      }
+
+      # profile to test log
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
+
+      assert {:ok, %StudentILP{} = student_ilp} =
+               ILP.update_student_ilp_sharing(student_ilp, update_attrs,
+                 log_profile_id: profile.id
+               )
+
+      assert student_ilp.is_shared_with_student
+      assert student_ilp.is_shared_with_guardians
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+
+        student_ilp_log =
+          Repo.get_by!(StudentILPLog,
+            student_ilp_id: student_ilp.id
+          )
+
+        assert student_ilp_log.student_ilp_id == student_ilp.id
+        assert student_ilp_log.profile_id == profile.id
+        assert student_ilp_log.operation == "UPDATE"
+
+        assert student_ilp_log.is_shared_with_student
+        assert student_ilp_log.is_shared_with_guardians
+      end)
+    end
+
     test "update_student_ilp/2 with invalid data returns error changeset" do
       student_ilp = student_ilp_fixture()
       assert {:error, %Ecto.Changeset{}} = ILP.update_student_ilp(student_ilp, @invalid_attrs)
@@ -520,6 +629,256 @@ defmodule Lanttern.ILPTest do
     test "change_student_ilp/1 returns a student_ilp changeset" do
       student_ilp = student_ilp_fixture()
       assert %Ecto.Changeset{} = ILP.change_student_ilp(student_ilp)
+    end
+  end
+
+  describe "extra" do
+    import Lanttern.ILPFixtures
+
+    alias Lanttern.SchoolsFixtures
+    alias Lanttern.TaxonomyFixtures
+
+    test "list_students_and_ilps/4 returns students and ILPs" do
+      # Set up school, cycle, and template
+      school = SchoolsFixtures.school_fixture()
+      cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+      template = ilp_template_fixture(%{school_id: school.id})
+
+      # Create class
+      class =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school.id,
+          cycle_id: cycle.id
+        })
+
+      # Create students and assign to classes
+      student_a =
+        SchoolsFixtures.student_fixture(%{
+          name: "AAA",
+          school_id: school.id,
+          classes_ids: [class.id]
+        })
+
+      student_b =
+        SchoolsFixtures.student_fixture(%{
+          name: "BBB",
+          school_id: school.id,
+          classes_ids: [class.id]
+        })
+
+      student_c =
+        SchoolsFixtures.student_fixture(%{
+          name: "CCC",
+          school_id: school.id
+        })
+
+      # Create student ILPs for some students
+      ilp_a =
+        student_ilp_fixture(%{
+          student_id: student_a.id,
+          school_id: school.id,
+          cycle_id: cycle.id,
+          template_id: template.id
+        })
+
+      # extra fixtures to test filter
+
+      _deactivated_student =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id,
+          deactivated_at: DateTime.utc_now(),
+          classes_ids: [class.id]
+        })
+
+      _other_school = SchoolsFixtures.student_fixture()
+
+      _other_cycle_ilp_b =
+        student_ilp_fixture(%{
+          student_id: student_b.id,
+          school_id: school.id,
+          template_id: template.id
+        })
+
+      _other_template_ilp_c =
+        student_ilp_fixture(%{
+          student_id: student_c.id,
+          school_id: school.id,
+          cycle_id: cycle.id
+        })
+
+      # Get the result
+      [
+        {expected_student_a, expected_ilp_a},
+        {expected_student_b, nil},
+        {expected_student_c, nil}
+      ] = ILP.list_students_and_ilps(school.id, cycle.id, template.id)
+
+      # Assertions
+      assert expected_student_a.id == student_a.id
+      assert expected_ilp_a.id == ilp_a.id
+      assert expected_student_b.id == student_b.id
+      assert expected_student_c.id == student_c.id
+
+      # use same setup to test class filter
+      [
+        {expected_student_a, expected_ilp_a},
+        {expected_student_b, nil}
+      ] =
+        ILP.list_students_and_ilps(school.id, cycle.id, template.id, classes_ids: [class.id])
+
+      assert expected_student_a.id == student_a.id
+      assert expected_ilp_a.id == ilp_a.id
+      assert expected_student_b.id == student_b.id
+    end
+
+    test "list_ilp_classes_metrics/3 returns correct numbers" do
+      # Set up school, cycle, and template
+      school = SchoolsFixtures.school_fixture()
+      cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+      template = ilp_template_fixture(%{school_id: school.id})
+
+      # Create class
+      year_1 = TaxonomyFixtures.year_fixture()
+      year_2 = TaxonomyFixtures.year_fixture()
+
+      class_1 =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school.id,
+          cycle_id: cycle.id,
+          years_ids: [year_1.id]
+        })
+
+      class_2 =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school.id,
+          cycle_id: cycle.id,
+          years_ids: [year_2.id]
+        })
+
+      # Create students and assign to classes
+      student_1_1 =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id,
+          classes_ids: [class_1.id]
+        })
+
+      student_1_2 =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id,
+          classes_ids: [class_1.id]
+        })
+
+      student_1_3 =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id,
+          classes_ids: [class_1.id]
+        })
+
+      student_2_1 =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id,
+          classes_ids: [class_2.id]
+        })
+
+      student_2_2 =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id,
+          classes_ids: [class_2.id]
+        })
+
+      deactivated_student_2_3 =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id,
+          classes_ids: [class_2.id],
+          deactivated_at: DateTime.utc_now()
+        })
+
+      # Create student ILPs for some students
+      _student_1_1_ilp =
+        student_ilp_fixture(%{
+          student_id: student_1_1.id,
+          school_id: school.id,
+          cycle_id: cycle.id,
+          template_id: template.id
+        })
+
+      _student_1_2_ilp =
+        student_ilp_fixture(%{
+          student_id: student_1_2.id,
+          school_id: school.id,
+          cycle_id: cycle.id,
+          template_id: template.id
+        })
+
+      _student_1_3_ilp =
+        student_ilp_fixture(%{
+          student_id: student_1_3.id,
+          school_id: school.id,
+          cycle_id: cycle.id,
+          template_id: template.id
+        })
+
+      # extra fixtures to test filter
+
+      _student_2_1_another_template =
+        student_ilp_fixture(%{
+          student_id: student_2_1.id,
+          school_id: school.id,
+          cycle_id: cycle.id
+        })
+
+      _student_2_2_another_cycle =
+        student_ilp_fixture(%{
+          student_id: student_2_2.id,
+          school_id: school.id,
+          template_id: template.id
+        })
+
+      _student_2_3_deactivated =
+        student_ilp_fixture(%{
+          student_id: deactivated_student_2_3.id,
+          school_id: school.id,
+          cycle_id: cycle.id,
+          template_id: template.id
+        })
+
+      # Get the result
+      [
+        {expected_class_1, 3, 3},
+        {expected_class_2, 2, 0}
+      ] = ILP.list_ilp_classes_metrics(school.id, cycle.id, template.id)
+
+      # Assertions
+      assert expected_class_1.id == class_1.id
+      assert expected_class_2.id == class_2.id
+    end
+
+    test "student_has_ilp_for_cycle?/3 returns true if student has ILP for cycle" do
+      school = SchoolsFixtures.school_fixture()
+      cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+      template = ilp_template_fixture(%{school_id: school.id})
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+
+      student_ilp =
+        student_ilp_fixture(%{
+          student_id: student.id,
+          school_id: school.id,
+          cycle_id: cycle.id,
+          template_id: template.id
+        })
+
+      # not shared yet
+      refute ILP.student_has_ilp_for_cycle?(student.id, cycle.id, :shared_with_student)
+      refute ILP.student_has_ilp_for_cycle?(student.id, cycle.id, :shared_with_guardians)
+
+      # share and assert
+
+      ILP.update_student_ilp_sharing(student_ilp, %{
+        is_shared_with_student: true
+      })
+
+      assert ILP.student_has_ilp_for_cycle?(student.id, cycle.id, :shared_with_student)
+      refute ILP.student_has_ilp_for_cycle?(student.id, cycle.id, :shared_with_guardians)
     end
   end
 end

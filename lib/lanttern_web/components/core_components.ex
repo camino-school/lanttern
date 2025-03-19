@@ -52,7 +52,7 @@ defmodule LantternWeb.CoreComponents do
     >
       <div class={action_bg_styles(@theme, @size)}></div>
       <span class="relative truncate"><%= render_slot(@inner_block) %></span>
-      <.icon :if={@icon_name} name={@icon_name} class={action_icon_styles(@size)} />
+      <.icon :if={@icon_name} name={@icon_name} class={action_child_icon_styles(@size)} />
     </.link>
     """
   end
@@ -67,7 +67,7 @@ defmodule LantternWeb.CoreComponents do
         name={@icon_name}
         class={[
           "group-phx-submit-loading:hidden group-phx-click-loading:hidden",
-          action_icon_styles(@size)
+          action_child_icon_styles(@size)
         ]}
       />
       <.spinner class="hidden group-phx-submit-loading:block group-phx-click-loading:block" />
@@ -105,7 +105,7 @@ defmodule LantternWeb.CoreComponents do
     "md" => "h-3"
   }
 
-  @action_icon_sizes %{
+  @action_child_icon_sizes %{
     "sm" => "w-5 h-5",
     "md" => "w-6 h-6"
   }
@@ -118,7 +118,76 @@ defmodule LantternWeb.CoreComponents do
     do:
       "absolute inset-x-0 bottom-0 #{Map.get(@action_bg_themes, theme)} #{Map.get(@action_bg_sizes, size)}"
 
-  defp action_icon_styles(size), do: "relative shrink-0 #{Map.get(@action_icon_sizes, size)}"
+  defp action_child_icon_styles(size),
+    do: "relative shrink-0 #{Map.get(@action_child_icon_sizes, size)}"
+
+  @doc """
+  Renders an action icon.
+
+  Same functionality as `action/1`, but with style adjustments.
+
+  ## Examples
+
+      <.action_icon name="hero-x-mark" sr_text="Close" />
+  """
+  attr :class, :any, default: nil
+  attr :theme, :string, default: "ghost"
+  attr :size, :string, default: "base", doc: "micro | mini | base"
+  attr :type, :string, required: true, doc: "link | button | submit"
+  attr :name, :string, required: true
+  attr :sr_text, :string, default: nil
+  attr :patch, :string, default: nil, doc: "use with type=\"link\""
+  attr :navigate, :string, default: nil, doc: "use with type=\"link\""
+  attr :replace, :boolean, default: false, doc: "use with type=\"link\""
+  attr :rest, :global, include: ~w(disabled form name value)
+
+  def action_icon(%{type: "link"} = assigns) do
+    ~H"""
+    <.link
+      patch={@patch}
+      navigate={@navigate}
+      replace={@replace}
+      class={[action_icon_styles(@theme), @class]}
+      title={@sr_text}
+      {@rest}
+    >
+      <span :if={@sr_text} class="sr-only"><%= @sr_text %></span>
+      <.icon name={@name} class={action_icon_icon_styles(@size)} />
+    </.link>
+    """
+  end
+
+  def action_icon(%{type: type} = assigns) when type in ["button", "submit"] do
+    ~H"""
+    <button type={@type} class={[action_icon_styles(@theme), @class]} title={@sr_text} {@rest}>
+      <span :if={@sr_text} class="sr-only"><%= @sr_text %></span>
+      <.icon
+        name={@name}
+        class={[
+          "group-phx-submit-loading:hidden group-phx-click-loading:hidden",
+          action_icon_icon_styles(@size)
+        ]}
+      />
+      <.spinner class="hidden group-phx-submit-loading:block group-phx-click-loading:block" />
+    </button>
+    """
+  end
+
+  @action_icon_themes %{
+    "ghost" => "text-ltrn-dark hover:text-ltrn-subtle"
+  }
+
+  @action_icon_sizes %{
+    "micro" => "w-4 h-4",
+    "mini" => "w-5 h-5",
+    "base" => "w-6 h-6"
+  }
+
+  defp action_icon_styles(theme),
+    do: "shrink-0 group relative min-w-0 #{Map.get(@action_icon_themes, theme)}"
+
+  defp action_icon_icon_styles(size),
+    do: Map.get(@action_icon_sizes, size)
 
   @doc """
   Util function to help with action item text formating
@@ -576,15 +645,22 @@ defmodule LantternWeb.CoreComponents do
   slot :inner_block, required: true
 
   def card_base(assigns) do
-    bg_class = assigns.bg_class || "bg-white"
-    assigns = assign(assigns, :bg_class, bg_class)
-
     ~H"""
-    <div id={@id} class={["rounded shadow-xl", @bg_class, @class]} {@rest}>
+    <div id={@id} class={[card_base_classes(@bg_class), @class]} {@rest}>
       <%= render_slot(@inner_block) %>
     </div>
     """
   end
+
+  @doc """
+  Util to allow applying the `<.card_base>` style to divs.
+
+  Useful for rendering a card as the top level live component element
+  (not possible with `<.card_base>`).
+  """
+
+  def card_base_classes(bg_class \\ nil),
+    do: "rounded shadow-xl #{bg_class || "bg-white"}"
 
   @doc """
   Renders a page cover.
@@ -1737,8 +1813,7 @@ defmodule LantternWeb.CoreComponents do
             navigate={@navigate}
             target="_blank"
             class={[
-              "font-bold hover:text-ltrn-subtle",
-              if(@extra_info, do: "line-clamp-1", else: "line-clamp-2"),
+              "font-bold line-clamp-1 hover:text-ltrn-subtle",
               if(@is_deactivated, do: "text-ltrn-subtle")
             ]}
           >
@@ -1747,7 +1822,7 @@ defmodule LantternWeb.CoreComponents do
           </.link>
         <% else %>
           <div class={[
-            if(@extra_info, do: "line-clamp-1", else: "line-clamp-2"),
+            "line-clamp-1",
             if(@is_deactivated, do: "text-ltrn-subtle")
           ]}>
             <%= @profile_name %>
@@ -1821,15 +1896,21 @@ defmodule LantternWeb.CoreComponents do
   Util for ScrollToTop hook implementation.
   """
   attr :id, :string, required: true
-  attr :overlay_id, :string, required: true
+  attr :overlay_id, :string
 
-  def scroll_to_top(assigns) do
+  def scroll_to_top(%{overlay_id: _} = assigns) do
     ~H"""
     <div
       id={@id}
       phx-hook="ScrollToTop"
       data-scroll-to-selector={"##{@overlay_id} *[aria-modal=true]"}
     />
+    """
+  end
+
+  def scroll_to_top(assigns) do
+    ~H"""
+    <div id={@id} phx-hook="ScrollToTop" />
     """
   end
 
@@ -2143,7 +2224,7 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div class={[
       "pointer-events-none absolute w-80 max-w-max",
-      "opacity-0 transition-opacity group-hover:opacity-100",
+      "opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100",
       @tooltip_pos_class,
       @class
     ]}>

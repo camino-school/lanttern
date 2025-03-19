@@ -389,7 +389,10 @@ defmodule LantternWeb.MenuComponent do
 
     # student strands
     LantternWeb.StudentStrandsLive => :student_strands,
-    LantternWeb.StudentStrandReportLive => :student_strands
+    LantternWeb.StudentStrandReportLive => :student_strands,
+
+    # student ILP
+    LantternWeb.StudentILPLive => :student_ilp
   }
 
   def mount(socket) do
@@ -483,6 +486,12 @@ defmodule LantternWeb.MenuComponent do
         path: ~p"/student_strands",
         text: gettext("Strands")
       },
+      %{
+        profile: "student",
+        active: :student_ilp,
+        path: ~p"/student_ilp",
+        text: gettext("My ILP")
+      },
       # guardian
       %{
         profile: "guardian",
@@ -501,6 +510,12 @@ defmodule LantternWeb.MenuComponent do
         active: :student_strands,
         path: ~p"/student_strands",
         text: gettext("Strands")
+      },
+      %{
+        profile: "guardian",
+        active: :student_ilp,
+        path: ~p"/student_ilp",
+        text: gettext("ILP")
       }
     ]
 

@@ -10,7 +10,8 @@ defmodule LantternWeb.PersonalizationHelpers do
     "students_records_full_access" => "Students records full access",
     "school_management" => "School management",
     "content_management" => "Content management",
-    "communication_management" => "Communication management"
+    "communication_management" => "Communication management",
+    "ilp_management" => "ILP management"
   }
 
   @doc """

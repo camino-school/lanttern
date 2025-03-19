@@ -19,7 +19,6 @@ defmodule LantternWeb.StudentReportCardsLive do
       socket
       |> assign_student()
       |> assign_school()
-      |> assign_parent_cycles()
       |> assign_current_cycle()
       |> stream_student_report_cards()
 
@@ -44,20 +43,6 @@ defmodule LantternWeb.StudentReportCardsLive do
       |> Schools.get_school!()
 
     assign(socket, :school, school)
-  end
-
-  defp assign_parent_cycles(socket) do
-    current_cycle = socket.assigns.current_user.current_profile.current_school_cycle || %{}
-
-    parent_cycles =
-      Schools.list_cycles(
-        schools_ids: [socket.assigns.current_user.current_profile.school_id],
-        parent_cycles_only: true
-      )
-
-    socket
-    |> assign(:parent_cycles, parent_cycles)
-    |> assign(:current_cycle, current_cycle)
   end
 
   defp assign_current_cycle(socket) do

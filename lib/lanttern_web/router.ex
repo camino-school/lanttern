@@ -78,6 +78,10 @@ defmodule LantternWeb.Router do
       live "/school/students/:id/report_cards", StudentLive, :report_cards
       live "/school/students/:id/grades_reports", StudentLive, :grades_reports
 
+      live "/school/classes/:id/students", ClassLive, :students
+      live "/school/classes/:id/ilp", ClassLive, :ilp
+      # live "/school/classes/:id/student_records", ClassLive, :student_records
+
       live "/school/staff/deactivated", DeactivatedStaffLive, :index
       live "/school/staff/:id", StaffMemberLive, :show
       live "/school/staff/:id/students_records", StaffMemberLive, :students_records
@@ -170,6 +174,7 @@ defmodule LantternWeb.Router do
       live "/student_report_cards", StudentReportCardsLive, :index
       live "/strand_report/:strand_report_id", StudentStrandReportLive, :show
       live "/student_strands", StudentStrandsLive
+      live "/student_ilp", StudentILPLive
     end
 
     live_session :authenticated_user,

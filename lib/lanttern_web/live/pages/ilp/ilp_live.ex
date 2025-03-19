@@ -2,32 +2,55 @@ defmodule LantternWeb.ILPLive do
   use LantternWeb, :live_view
 
   alias Lanttern.ILP
+  alias Lanttern.Schools
+  alias Lanttern.Schools.Student
 
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
 
   # shared components
-  alias LantternWeb.ILP.StudentILPComponent
+  alias LantternWeb.ILP.StudentILPManagerComponent
   alias LantternWeb.Schools.StudentSearchComponent
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(params, _session, socket) do
     socket =
       socket
       |> assign(:page_title, gettext("ILP"))
-      |> assign_is_school_manager()
+      |> assign_is_ilp_manager()
       |> assign_templates()
-      |> assign_user_filters([:ilp_template, :student])
+      |> handle_assign_user_filters(params)
       |> assign_current_template()
 
     {:ok, socket}
   end
 
-  defp assign_is_school_manager(socket) do
-    is_school_manager =
-      "school_management" in socket.assigns.current_user.current_profile.permissions
+  defp assign_is_ilp_manager(socket) do
+    is_ilp_manager =
+      "ilp_management" in socket.assigns.current_user.current_profile.permissions
 
-    assign(socket, :is_school_manager, is_school_manager)
+    assign(socket, :is_ilp_manager, is_ilp_manager)
   end
+
+  # if there's a valid student_id in params, it should take precedence
+  # and overwrite the saved student filter
+  defp handle_assign_user_filters(socket, %{"student" => student_id}) do
+    user_school_id = socket.assigns.current_user.current_profile.school_id
+
+    case Schools.get_student(student_id) do
+      %Student{school_id: school_id} = student when school_id == user_school_id ->
+        socket
+        |> assign(:selected_student, student)
+        |> assign(:selected_student_id, student.id)
+        |> save_profile_filters([:student])
+        |> assign_user_filters([:ilp_template])
+
+      _ ->
+        assign_user_filters(socket, [:ilp_template, :student])
+    end
+  end
+
+  defp handle_assign_user_filters(socket, _params),
+    do: assign_user_filters(socket, [:ilp_template, :student])
 
   defp assign_templates(socket) do
     templates =
@@ -83,9 +106,25 @@ defmodule LantternWeb.ILPLive do
     socket =
       socket
       |> assign(:params, params)
+      |> assign_metrics(params)
 
     {:noreply, socket}
   end
+
+  defp assign_metrics(socket, %{"show_metrics" => "true"}) do
+    school_id = socket.assigns.current_user.current_profile.school_id
+    cycle_id = socket.assigns.current_user.current_profile.current_school_cycle.id
+    template_id = socket.assigns.selected_ilp_template_id
+
+    metrics =
+      if template_id do
+        ILP.list_ilp_classes_metrics(school_id, cycle_id, template_id)
+      end
+
+    assign(socket, :metrics, metrics)
+  end
+
+  defp assign_metrics(socket, _params), do: assign(socket, :metrics, nil)
 
   # event handlers
 

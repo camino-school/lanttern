@@ -46,8 +46,14 @@ defmodule LantternWeb.SchoolLiveTest do
 
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/classes")
 
-      assert view |> has_element?("p", class.name)
-      refute view |> has_element?("p", other_class.name)
+      assert view |> has_element?("a", class.name)
+      refute view |> has_element?("a", other_class.name)
+
+      view
+      |> element("a", class.name)
+      |> render_click()
+
+      assert_redirect(view, "#{@live_view_base_path}/classes/#{class.id}/students")
     end
   end
 

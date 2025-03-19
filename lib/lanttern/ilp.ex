@@ -9,6 +9,8 @@ defmodule Lanttern.ILP do
 
   alias Lanttern.ILP.ILPTemplate
   alias Lanttern.ILPLog
+  alias Lanttern.Schools.Class
+  alias Lanttern.Schools.Student
 
   @doc """
   Returns the list of ilp_templates.
@@ -368,15 +370,63 @@ defmodule Lanttern.ILP do
   @doc """
   Returns the list of students_ilps.
 
+  ## Options
+
+  - `:student_id` - filter results by student
+  - `:cycle_id` - filter results by cycle
+  - `:only_shared_with_student` - boolean. Filter results by ILPs shared with student
+  - `:only_shared_with_guardians` - boolean. Filter results by ILPs shared with guardians
+  - `:preloads` – preloads associated data
+
   ## Examples
 
       iex> list_students_ilps()
       [%StudentILP{}, ...]
 
   """
-  def list_students_ilps do
-    Repo.all(StudentILP)
+  def list_students_ilps(opts \\ []) do
+    StudentILP
+    |> apply_list_students_ilps_opts(opts)
+    |> Repo.all()
+    |> maybe_preload(opts)
   end
+
+  defp apply_list_students_ilps_opts(queryable, []), do: queryable
+
+  defp apply_list_students_ilps_opts(queryable, [{:student_id, student_id} | opts]) do
+    from(
+      ilp in queryable,
+      where: ilp.student_id == ^student_id
+    )
+    |> apply_list_students_ilps_opts(opts)
+  end
+
+  defp apply_list_students_ilps_opts(queryable, [{:cycle_id, cycle_id} | opts]) do
+    from(
+      ilp in queryable,
+      where: ilp.cycle_id == ^cycle_id
+    )
+    |> apply_list_students_ilps_opts(opts)
+  end
+
+  defp apply_list_students_ilps_opts(queryable, [{:only_shared_with_student, true} | opts]) do
+    from(
+      ilp in queryable,
+      where: ilp.is_shared_with_student
+    )
+    |> apply_list_students_ilps_opts(opts)
+  end
+
+  defp apply_list_students_ilps_opts(queryable, [{:only_shared_with_guardians, true} | opts]) do
+    from(
+      ilp in queryable,
+      where: ilp.is_shared_with_guardians
+    )
+    |> apply_list_students_ilps_opts(opts)
+  end
+
+  defp apply_list_students_ilps_opts(queryable, [_ | opts]),
+    do: apply_list_students_ilps_opts(queryable, opts)
 
   @doc """
   Gets a single student_ilp.
@@ -478,6 +528,29 @@ defmodule Lanttern.ILP do
   end
 
   @doc """
+  Updates a student_ilp sharing fields.
+
+  ## Options:
+
+  - `:log_profile_id` - logs the operation, linked to given profile
+
+  ## Examples
+
+      iex> update_student_ilp_sharing(student_ilp, %{field: new_value})
+      {:ok, %StudentILP{}}
+
+      iex> update_student_ilp_sharing(student_ilp, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_student_ilp_sharing(%StudentILP{} = student_ilp, attrs, opts \\ []) do
+    student_ilp
+    |> StudentILP.share_changeset(attrs)
+    |> Repo.update()
+    |> ILPLog.maybe_create_student_ilp_log("UPDATE", opts)
+  end
+
+  @doc """
   Deletes a student_ilp.
 
   ## Options:
@@ -509,5 +582,123 @@ defmodule Lanttern.ILP do
   """
   def change_student_ilp(%StudentILP{} = student_ilp, attrs \\ %{}) do
     StudentILP.changeset(student_ilp, attrs)
+  end
+
+  @doc """
+  List students with ILP info.
+
+  Results are ordered by student name.
+
+  ## Options
+
+  - `:classes_ids` - filter results by classes
+
+  ## Examples
+
+      iex> list_students_and_ilps(1, 2, 3)
+      [{%Student{}, %StudentILP{}}, ...]
+
+  """
+  @spec list_students_and_ilps(
+          school_id :: pos_integer(),
+          cycle_id :: pos_integer(),
+          ilp_template_id :: pos_integer(),
+          opts :: Keyword.t()
+        ) :: [{Student.t(), StudentILP.t() | nil}]
+  def list_students_and_ilps(school_id, cycle_id, ilp_template_id, opts \\ []) do
+    students_ilps_map =
+      from(
+        ilp in StudentILP,
+        where: ilp.cycle_id == ^cycle_id,
+        where: ilp.template_id == ^ilp_template_id
+      )
+      |> Repo.all()
+      |> Enum.map(&{&1.student_id, &1})
+      |> Enum.into(%{})
+
+    from(
+      s in Student,
+      where: s.school_id == ^school_id,
+      where: is_nil(s.deactivated_at),
+      order_by: s.name
+    )
+    |> apply_list_students_and_ilps_opts(opts)
+    |> Repo.all()
+    |> Enum.map(fn student ->
+      {student, Map.get(students_ilps_map, student.id)}
+    end)
+  end
+
+  defp apply_list_students_and_ilps_opts(queryable, []), do: queryable
+
+  defp apply_list_students_and_ilps_opts(queryable, [{:classes_ids, classes_ids} | opts]) do
+    from(
+      s in queryable,
+      join: c in assoc(s, :classes),
+      where: c.id in ^classes_ids,
+      group_by: s.id
+    )
+    |> apply_list_students_and_ilps_opts(opts)
+  end
+
+  defp apply_list_students_and_ilps_opts(queryable, [_ | opts]),
+    do: apply_list_students_and_ilps_opts(queryable, opts)
+
+  @doc """
+  List classes with ILP metrics.
+
+  Classes are ordered by year id.
+
+  Deactivated students are excluded from count.
+
+  ## Examples
+
+      iex> list_ilp_classes_metrics(1, 2, 3)
+      [{%Class{}, 3, 2}, ...]
+
+  """
+  @spec list_ilp_classes_metrics(
+          school_id :: pos_integer(),
+          cycle_id :: pos_integer(),
+          ilp_template_id :: pos_integer()
+        ) :: [{Class.t(), students_count :: integer(), ilp_count :: integer()}]
+  def list_ilp_classes_metrics(school_id, cycle_id, ilp_template_id) do
+    from(
+      c in Class,
+      left_join: y in assoc(c, :years),
+      left_join: s in assoc(c, :students),
+      on: is_nil(s.deactivated_at),
+      left_join: ilp in assoc(s, :ilps),
+      on: ilp.template_id == ^ilp_template_id and ilp.cycle_id == ^cycle_id,
+      select: {c, count(s.id, :distinct), count(ilp.id, :distinct)},
+      group_by: c.id,
+      where: c.school_id == ^school_id and c.cycle_id == ^cycle_id,
+      order_by: [asc_nulls_last: min(y.id)]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Check if student has shared ILP for given cycle.
+  """
+  @spec student_has_ilp_for_cycle?(
+          student_id :: pos_integer(),
+          cycle_id :: pos_integer(),
+          :shared_with_student | :shared_with_guardians
+        ) :: boolean()
+  def student_has_ilp_for_cycle?(student_id, cycle_id, shared_with) do
+    shared_cond =
+      case shared_with do
+        :shared_with_student -> dynamic([ilp], ilp.is_shared_with_student)
+        :shared_with_guardians -> dynamic([ilp], ilp.is_shared_with_guardians)
+      end
+
+    from(
+      ilp in StudentILP,
+      where: ilp.student_id == ^student_id,
+      where: ilp.cycle_id == ^cycle_id,
+      where: ^shared_cond
+    )
+    |> Repo.exists?()
   end
 end

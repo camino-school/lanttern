@@ -4,7 +4,7 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
 
   ### Attrs
 
-      attr :ilp, StudentILP, required: true, doc: "expects entries preloads"
+      attr :student_ilp, StudentILP, required: true, doc: "expects entries preloads"
       attr :template, ILPTemplate, required: true, doc: "expects sections/components preloads"
       attr :title, :string, required: true
       attr :current_profile, Profile, required: true
@@ -80,12 +80,18 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
               show_optional
             />
             <.markdown_supported />
+            <div :if={@template.teacher_description} class="mt-6">
+              <p class="mb-2 font-bold text-ltrn-staff-dark">
+                <%= gettext("Template instructions") %>
+              </p>
+              <.markdown text={@template.teacher_description} />
+            </div>
           </div>
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
             <%= gettext("Oops, something went wrong! Please check the errors above.") %>
           </.error_block>
         </.form>
-        <:actions_left :if={@ilp.id}>
+        <:actions_left :if={@student_ilp.id}>
           <.action
             type="button"
             theme="subtle"
@@ -128,7 +134,7 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
   end
 
   @impl true
-  def update(%{ilp: %StudentILP{}} = assigns, socket) do
+  def update(%{student_ilp: %StudentILP{}} = assigns, socket) do
     socket =
       socket
       |> assign(assigns)
@@ -139,25 +145,25 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
-    |> adjust_ilp_and_assign_form()
+    |> adjust_student_ilp_and_assign_form()
     |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
 
-  defp adjust_ilp_and_assign_form(socket) do
+  defp adjust_student_ilp_and_assign_form(socket) do
     # format ilp entries, including empty entries for missing components
     components =
       Enum.flat_map(socket.assigns.template.sections, & &1.components)
 
     component_entries_map =
       Enum.map(components, fn component ->
-        case Enum.find(socket.assigns.ilp.entries, &(&1.component_id == component.id)) do
+        case Enum.find(socket.assigns.student_ilp.entries, &(&1.component_id == component.id)) do
           nil ->
             %ILPEntry{
               component_id: component.id,
-              template_id: socket.assigns.ilp.template_id,
-              student_ilp_id: socket.assigns.ilp.id
+              template_id: socket.assigns.student_ilp.template_id,
+              student_ilp_id: socket.assigns.student_ilp.id
             }
 
           entry ->
@@ -183,12 +189,12 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
             end)
       }
 
-    ilp = %{socket.assigns.ilp | template: template}
+    student_ilp = %{socket.assigns.student_ilp | template: template}
 
-    changeset = ILP.change_student_ilp(ilp)
+    changeset = ILP.change_student_ilp(student_ilp)
 
     socket
-    |> assign(:ilp, ilp)
+    |> assign(:student_ilp, student_ilp)
     |> assign(:form, to_form(changeset))
   end
 
@@ -202,11 +208,11 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
     ilp_params =
       inject_extra_params(socket, ilp_params)
 
-    save_ilp(socket, socket.assigns.ilp.id, ilp_params)
+    save_ilp(socket, socket.assigns.student_ilp.id, ilp_params)
   end
 
   def handle_event("delete", _, socket) do
-    ILP.delete_student_ilp(socket.assigns.ilp,
+    ILP.delete_student_ilp(socket.assigns.student_ilp,
       log_profile_id: socket.assigns.current_profile.id
     )
     |> case do
@@ -223,7 +229,7 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
     params = inject_extra_params(socket, params)
 
     changeset =
-      socket.assigns.ilp
+      socket.assigns.student_ilp
       |> ILP.change_student_ilp(params)
       |> Map.put(:action, :validate)
 
@@ -231,12 +237,12 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
   end
 
   # inject params handled in backend when creating new ILP
-  defp inject_extra_params(%{assigns: %{ilp: %{id: nil}}} = socket, params) do
+  defp inject_extra_params(%{assigns: %{student_ilp: %{id: nil}}} = socket, params) do
     params
-    |> Map.put("school_id", socket.assigns.ilp.school_id)
-    |> Map.put("template_id", socket.assigns.ilp.template_id)
-    |> Map.put("cycle_id", socket.assigns.ilp.cycle_id)
-    |> Map.put("student_id", socket.assigns.ilp.student_id)
+    |> Map.put("school_id", socket.assigns.student_ilp.school_id)
+    |> Map.put("template_id", socket.assigns.student_ilp.template_id)
+    |> Map.put("cycle_id", socket.assigns.student_ilp.cycle_id)
+    |> Map.put("student_id", socket.assigns.student_ilp.student_id)
   end
 
   defp inject_extra_params(_socket, params), do: params
@@ -261,7 +267,7 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
     ilp_params = prepare_save_params(socket, ilp_params)
 
     ILP.update_student_ilp(
-      socket.assigns.ilp,
+      socket.assigns.student_ilp,
       ilp_params,
       log_profile_id: socket.assigns.current_profile.id
     )

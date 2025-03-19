@@ -16,6 +16,8 @@ defmodule Lanttern.ILP.StudentILP do
           id: pos_integer(),
           notes: String.t() | nil,
           teacher_notes: String.t() | nil,
+          is_shared_with_student: boolean(),
+          is_shared_with_guardians: boolean(),
           template_id: pos_integer(),
           template: ILPTemplate.t() | Ecto.Association.NotLoaded.t(),
           student_id: pos_integer(),
@@ -34,6 +36,8 @@ defmodule Lanttern.ILP.StudentILP do
   schema "students_ilps" do
     field :notes, :string
     field :teacher_notes, :string
+    field :is_shared_with_student, :boolean, default: false
+    field :is_shared_with_guardians, :boolean, default: false
 
     belongs_to :template, ILPTemplate
     belongs_to :student, Student
@@ -63,5 +67,17 @@ defmodule Lanttern.ILP.StudentILP do
     # we don't use it to actually update the template, just to chain
     # cast_assocs to entries (template > section > component > entry)
     |> cast_assoc(:template)
+  end
+
+  @doc """
+  We use a separate changeset because sharing is handled only by users with
+  the `:ilp_management` permission.
+  """
+  def share_changeset(student_ilp, attrs) do
+    student_ilp
+    |> cast(attrs, [
+      :is_shared_with_student,
+      :is_shared_with_guardians
+    ])
   end
 end

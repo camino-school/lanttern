@@ -1,0 +1,69 @@
+<div>
+  <.header_nav current_user={@current_user}>
+    <:breadcrumb navigate={~p"/school/classes"}>
+      <%= gettext("%{school} classes", school: @class.school.name) %>
+    </:breadcrumb>
+    <:title><%= @class.name %> (<%= @class.cycle.name %>)</:title>
+    <div class="flex items-center justify-between gap-4 px-4">
+      <.neo_tabs id="student-nav-tabs">
+        <:tab
+          patch={~p"/school/classes/#{@class}/students"}
+          is_current={@live_action == :students}
+        >
+          <%= gettext("Students") %>
+        </:tab>
+        <:tab patch={~p"/school/classes/#{@class}/ilp"} is_current={@live_action == :ilp}>
+          <%= gettext("ILPs") %>
+        </:tab>
+        <%!-- <:tab
+          patch={~p"/school/classes/#{@class}/student_records"}
+          is_current={@live_action == :student_records}
+        >
+          <%= gettext("Student records") %>
+        </:tab> --%>
+      </.neo_tabs>
+      <.action
+        :if={@is_school_manager}
+        type="link"
+        patch={"#{@current_path}?edit=true"}
+        icon_name="hero-pencil-mini"
+      >
+        <%= gettext("Edit class") %>
+      </.action>
+    </div>
+  </.header_nav>
+  <.live_component
+    :if={@live_action == :ilp}
+    module={ILPComponent}
+    id="class-ilps-tab"
+    class={@class}
+    current_user={@current_user}
+    params={@params}
+  />
+</div>
+<.live_component
+  :if={@live_action == :students}
+  module={StudentsComponent}
+  id="class-students-tab"
+  class={@class}
+  current_user={@current_user}
+  is_school_manager={@is_school_manager}
+  params={@params}
+/>
+<%!-- <.live_component
+  :if={@live_action == :student_records}
+  module={StudentRecordsComponent}
+  id="student-records"
+  student={@class}
+  current_user={@current_user}
+  params={@params}
+/> --%>
+<.live_component
+  :if={@is_editing}
+  module={ClassFormOverlayComponent}
+  id="class-form-overlay"
+  class={@class}
+  title={gettext("Edit class")}
+  on_cancel={JS.patch(@current_path)}
+  notify_parent
+/>

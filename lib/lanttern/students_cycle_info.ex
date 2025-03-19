@@ -289,4 +289,22 @@ defmodule Lanttern.StudentsCycleInfo do
           :ok | {:error, String.t()}
   def update_student_cycle_info_attachments_positions(attachments_ids),
     do: update_positions(StudentCycleInfoAttachment, attachments_ids, id_field: :attachment_id)
+
+  @doc """
+  """
+
+  @spec build_students_cycle_info_profile_picture_url_map(
+          cycle_id :: pos_integer(),
+          students_ids :: [pos_integer()]
+        ) :: %{pos_integer() => String.t() | nil}
+  def build_students_cycle_info_profile_picture_url_map(cycle_id, students_ids) do
+    from(
+      sci in StudentCycleInfo,
+      where: sci.cycle_id == ^cycle_id,
+      where: sci.student_id in ^students_ids,
+      select: {sci.student_id, sci.profile_picture_url}
+    )
+    |> Repo.all()
+    |> Enum.into(%{})
+  end
 end
