@@ -186,12 +186,12 @@ defmodule LantternWeb.ILP.StudentILPComponent do
 
   defp assign_component_entry_map(socket) do
     student_ilp =
-      if !is_list(socket.assigns.student_ilp.entries) do
+      if is_list(socket.assigns.student_ilp.entries) do
+        socket.assigns.student_ilp
+      else
         # ensure entries are preloaded
         socket.assigns.student_ilp
         |> Lanttern.Repo.preload(:entries)
-      else
-        socket.assigns.student_ilp
       end
 
     component_entry_map =
