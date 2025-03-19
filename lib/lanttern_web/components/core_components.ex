@@ -576,15 +576,22 @@ defmodule LantternWeb.CoreComponents do
   slot :inner_block, required: true
 
   def card_base(assigns) do
-    bg_class = assigns.bg_class || "bg-white"
-    assigns = assign(assigns, :bg_class, bg_class)
-
     ~H"""
-    <div id={@id} class={["rounded shadow-xl", @bg_class, @class]} {@rest}>
+    <div id={@id} class={[card_base_classes(@bg_class), @class]} {@rest}>
       <%= render_slot(@inner_block) %>
     </div>
     """
   end
+
+  @doc """
+  Util to allow applying the `<.card_base>` style to divs.
+
+  Useful for rendering a card as the top level live component element
+  (not possible with `<.card_base>`).
+  """
+
+  def card_base_classes(bg_class \\ nil),
+    do: "rounded shadow-xl #{bg_class || "bg-white"}"
 
   @doc """
   Renders a page cover.

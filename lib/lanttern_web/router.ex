@@ -174,6 +174,7 @@ defmodule LantternWeb.Router do
       live "/student_report_cards", StudentReportCardsLive, :index
       live "/strand_report/:strand_report_id", StudentStrandReportLive, :show
       live "/student_strands", StudentStrandsLive
+      live "/student_ilp", StudentILPLive
     end
 
     live_session :authenticated_user,

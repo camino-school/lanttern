@@ -370,15 +370,63 @@ defmodule Lanttern.ILP do
   @doc """
   Returns the list of students_ilps.
 
+  ## Options
+
+  - `:student_id` - filter results by student
+  - `:cycle_id` - filter results by cycle
+  - `:only_shared_with_student` - boolean. Filter results by ILPs shared with student
+  - `:only_shared_with_guardians` - boolean. Filter results by ILPs shared with guardians
+  - `:preloads` – preloads associated data
+
   ## Examples
 
       iex> list_students_ilps()
       [%StudentILP{}, ...]
 
   """
-  def list_students_ilps do
-    Repo.all(StudentILP)
+  def list_students_ilps(opts \\ []) do
+    StudentILP
+    |> apply_list_students_ilps_opts(opts)
+    |> Repo.all()
+    |> maybe_preload(opts)
   end
+
+  defp apply_list_students_ilps_opts(queryable, []), do: queryable
+
+  defp apply_list_students_ilps_opts(queryable, [{:student_id, student_id} | opts]) do
+    from(
+      ilp in queryable,
+      where: ilp.student_id == ^student_id
+    )
+    |> apply_list_students_ilps_opts(opts)
+  end
+
+  defp apply_list_students_ilps_opts(queryable, [{:cycle_id, cycle_id} | opts]) do
+    from(
+      ilp in queryable,
+      where: ilp.cycle_id == ^cycle_id
+    )
+    |> apply_list_students_ilps_opts(opts)
+  end
+
+  defp apply_list_students_ilps_opts(queryable, [{:only_shared_with_student, true} | opts]) do
+    from(
+      ilp in queryable,
+      where: ilp.is_shared_with_student
+    )
+    |> apply_list_students_ilps_opts(opts)
+  end
+
+  defp apply_list_students_ilps_opts(queryable, [{:only_shared_with_guardians, true} | opts]) do
+    from(
+      ilp in queryable,
+      where: ilp.is_shared_with_guardians
+    )
+    |> apply_list_students_ilps_opts(opts)
+  end
+
+  defp apply_list_students_ilps_opts(queryable, [_ | opts]),
+    do: apply_list_students_ilps_opts(queryable, opts)
 
   @doc """
   Gets a single student_ilp.

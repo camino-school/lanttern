@@ -1,0 +1,44 @@
+<.responsive_container class="py-10 px-4">
+  <.page_title_with_menu><%= gettext("ILP") %></.page_title_with_menu>
+  <%!-- <.live_component
+    module={StudentCycleInfoHeaderComponent}
+    id="student-cycle-info-header"
+    selected_cycle_id={@current_cycle.id}
+    student={@student}
+    student_cycle_info={@student_cycle_info}
+    on_change_cycle={
+      fn cycle_id ->
+        JS.push("change_cycle", value: %{"cycle_id" => cycle_id})
+      end
+    }
+    class="mt-20"
+  /> --%>
+  <.live_component
+    module={StudentHeaderComponent}
+    id="ilp-student-header"
+    cycle_id={@current_user.current_profile.current_school_cycle.id}
+    student_id={@student.id}
+    class="mt-20"
+  />
+  <%= if @has_student_ilps do %>
+    <div id="student-ilps" phx-update="stream">
+      <.live_component
+        :for={{dom_id, student_ilp} <- @streams.student_ilps}
+        module={StudentILPComponent}
+        id={dom_id}
+        student_ilp={student_ilp}
+        student={@student}
+        cycle={@current_user.current_profile.current_school_cycle}
+        class="mt-10"
+      />
+    </div>
+  <% else %>
+    <.card_base class="p-4 sm:p-10 mt-10">
+      <.empty_state>
+        <%= gettext("No ILP in %{cycle} yet",
+          cycle: @current_user.current_profile.current_school_cycle.name
+        ) %>
+      </.empty_state>
+    </.card_base>
+  <% end %>
+</.responsive_container>

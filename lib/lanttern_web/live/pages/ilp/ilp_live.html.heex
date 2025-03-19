@@ -62,15 +62,16 @@
 </.header_nav>
 <.responsive_container class="py-10 px-4">
   <.live_component
-    module={StudentILPComponent}
+    module={StudentILPManagerComponent}
     id="student-ilp"
     template={@current_template}
     student={@selected_student}
     cycle={@current_user.current_profile.current_school_cycle}
     current_profile={@current_user.current_profile}
+    is_ilp_manager={@is_ilp_manager}
     params={@params}
-    on_edit_patch={fn id -> ~p"/ilp?edit_student_ilp=#{id}" end}
-    create_patch={~p"/ilp?edit_student_ilp=new"}
+    on_edit_patch={fn _id -> ~p"/ilp?student_ilp=edit" end}
+    create_patch={~p"/ilp?student_ilp=new"}
     on_edit_cancel={JS.patch(~p"/ilp")}
     edit_navigate={~p"/ilp"}
     student_navigate={fn student_id -> ~p"/school/students/#{student_id}" end}

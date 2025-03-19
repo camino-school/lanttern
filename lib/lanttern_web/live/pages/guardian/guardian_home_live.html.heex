@@ -13,7 +13,7 @@
     }
     class="mt-20"
   />
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-10">
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-10">
     <.card_base>
       <.link navigate={~p"/student_strands"} class="block p-6 hover:text-ltrn-subtle">
         <.icon name="hero-map" class="w-8 h-8 text-ltrn-subtle" />
@@ -27,6 +27,14 @@
         <.icon name="hero-map-pin" class="w-8 h-8 text-ltrn-subtle" />
         <div class="mt-4 font-display font-black text-xl">
           <%= gettext("View report cards") %>
+        </div>
+      </.link>
+    </.card_base>
+    <.card_base>
+      <.link navigate={~p"/student_ilp"} class="block p-6 hover:text-ltrn-subtle">
+        <.icon name="hero-check-badge" class="w-8 h-8 text-ltrn-subtle" />
+        <div class="mt-4 font-display font-black text-xl">
+          <%= gettext("Read the ILP") %>
         </div>
       </.link>
     </.card_base>

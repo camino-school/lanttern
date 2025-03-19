@@ -295,12 +295,85 @@ defmodule Lanttern.ILPTest do
     alias Lanttern.ILPLog.StudentILPLog
 
     import Lanttern.ILPFixtures
+    alias Lanttern.SchoolsFixtures
 
     @invalid_attrs %{school_id: nil}
 
     test "list_students_ilps/0 returns all students_ilps" do
       student_ilp = student_ilp_fixture()
       assert ILP.list_students_ilps() == [student_ilp]
+    end
+
+    test "list_students_ilps/1 returns all students_ilps filtered by given options" do
+      cycle = SchoolsFixtures.cycle_fixture()
+      school_id = cycle.school_id
+      student = SchoolsFixtures.student_fixture(%{school_id: school_id})
+      template_1 = ilp_template_fixture(%{school_id: school_id})
+      template_2 = ilp_template_fixture(%{school_id: school_id})
+      template_3 = ilp_template_fixture(%{school_id: school_id})
+
+      student_ilp_1 =
+        student_ilp_fixture(%{
+          school_id: school_id,
+          student_id: student.id,
+          cycle_id: cycle.id,
+          template_id: template_1.id
+        })
+
+      ILP.update_student_ilp_sharing(student_ilp_1, %{
+        is_shared_with_student: true
+      })
+
+      student_ilp_2 =
+        student_ilp_fixture(%{
+          school_id: school_id,
+          student_id: student.id,
+          cycle_id: cycle.id,
+          template_id: template_2.id
+        })
+
+      ILP.update_student_ilp_sharing(student_ilp_2, %{
+        is_shared_with_student: true
+      })
+
+      # extra fixture to test filter
+
+      _another_cycle_ilp =
+        student_ilp_fixture(%{
+          school_id: school_id,
+          student_id: student.id,
+          template_id: template_1.id
+        })
+
+      _another_student_ilp =
+        student_ilp_fixture(%{
+          school_id: school_id,
+          cycle_id: cycle.id,
+          template_id: template_2.id
+        })
+
+      not_shared_with_student =
+        student_ilp_fixture(%{
+          school_id: school_id,
+          student_id: student.id,
+          cycle_id: cycle.id,
+          template_id: template_3.id
+        })
+
+      ILP.update_student_ilp_sharing(not_shared_with_student, %{
+        is_shared_with_guardians: true
+      })
+
+      expected =
+        ILP.list_students_ilps(
+          student_id: student.id,
+          cycle_id: cycle.id,
+          only_shared_with_student: true
+        )
+
+      assert length(expected) == 2
+      assert Enum.any?(expected, fn ilp -> ilp.id == student_ilp_1.id end)
+      assert Enum.any?(expected, fn ilp -> ilp.id == student_ilp_2.id end)
     end
 
     test "get_student_ilp!/1 returns the student_ilp with given id" do

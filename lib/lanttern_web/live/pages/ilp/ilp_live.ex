@@ -8,7 +8,7 @@ defmodule LantternWeb.ILPLive do
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
 
   # shared components
-  alias LantternWeb.ILP.StudentILPComponent
+  alias LantternWeb.ILP.StudentILPManagerComponent
   alias LantternWeb.Schools.StudentSearchComponent
 
   @impl true

@@ -6,7 +6,7 @@ defmodule LantternWeb.StudentLive.ILPComponent do
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
 
   # shared components
-  alias LantternWeb.ILP.StudentILPComponent
+  alias LantternWeb.ILP.StudentILPManagerComponent
 
   @impl true
   def render(assigns) do
@@ -53,15 +53,16 @@ defmodule LantternWeb.StudentLive.ILPComponent do
       </.action_bar>
       <.responsive_container class="py-10 px-4">
         <.live_component
-          module={StudentILPComponent}
+          module={StudentILPManagerComponent}
           id="student-ilp"
           template={@current_template}
           student={@student}
           cycle={@current_user.current_profile.current_school_cycle}
           current_profile={@current_user.current_profile}
+          is_ilp_manager={"ilp_management" in @current_user.current_profile.permissions}
           params={@params}
-          on_edit_patch={fn id -> "#{@base_path}?edit_student_ilp=#{id}" end}
-          create_patch={"#{@base_path}?edit_student_ilp=new"}
+          on_edit_patch={fn _id -> "#{@base_path}?student_ilp=edit" end}
+          create_patch={"#{@base_path}?student_ilp=new"}
           on_edit_cancel={JS.patch("#{@base_path}")}
           edit_navigate={"#{@base_path}"}
         />
