@@ -18,6 +18,9 @@ defmodule Lanttern.ILP.StudentILP do
           teacher_notes: String.t() | nil,
           is_shared_with_student: boolean(),
           is_shared_with_guardians: boolean(),
+          ai_revision: String.t() | nil,
+          last_ai_revision_input: String.t() | nil,
+          ai_revision_datetime: DateTime.t() | nil,
           template_id: pos_integer(),
           template: ILPTemplate.t() | Ecto.Association.NotLoaded.t(),
           student_id: pos_integer(),
@@ -38,6 +41,10 @@ defmodule Lanttern.ILP.StudentILP do
     field :teacher_notes, :string
     field :is_shared_with_student, :boolean, default: false
     field :is_shared_with_guardians, :boolean, default: false
+
+    field :ai_revision, :string
+    field :last_ai_revision_input, :string
+    field :ai_revision_datetime, :utc_datetime
 
     belongs_to :template, ILPTemplate
     belongs_to :student, Student
@@ -78,6 +85,19 @@ defmodule Lanttern.ILP.StudentILP do
     |> cast(attrs, [
       :is_shared_with_student,
       :is_shared_with_guardians
+    ])
+  end
+
+  @doc """
+  Separate changeset to avoid AI generated content
+  to be mixed with the rest of the "human" changeset.
+  """
+  def ai_changeset(student_ilp, attrs) do
+    student_ilp
+    |> cast(attrs, [
+      :ai_revision,
+      :last_ai_revision_input,
+      :ai_revision_datetime
     ])
   end
 end
