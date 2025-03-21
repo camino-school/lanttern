@@ -706,6 +706,12 @@ defmodule Lanttern.ILP do
   @doc """
   Revise a student ILP using AI.
 
+  ### Testing
+
+  We use `open_ai_responses_module` as argument to allow mocking in tests.
+
+  View https://blog.appsignal.com/2023/04/11/an-introduction-to-mocking-tools-for-elixir.html for reference.
+
   ## Options:
 
   - `:log_profile_id` - logs the operation, linked to given profile
@@ -716,13 +722,20 @@ defmodule Lanttern.ILP do
       {:ok, %StudentILP{}}
 
   """
-  @spec revise_student_ilp(StudentILP.t(), ILPTemplate.t(), age :: integer(), opts :: Keyword.t()) ::
+  @spec revise_student_ilp(
+          StudentILP.t(),
+          ILPTemplate.t(),
+          age :: integer(),
+          opts :: Keyword.t(),
+          open_ai_responses_module :: any()
+        ) ::
           {:ok, StudentILP.t()} | {:error, any()}
   def revise_student_ilp(
         %StudentILP{} = student_ilp,
         %ILPTemplate{ai_layer: %ILPTemplateAILayer{}} = template,
         age,
-        opts \\ []
+        opts \\ [],
+        open_ai_responses_module \\ ExOpenAI.Responses
       ) do
     component_entry_map =
       template.sections
@@ -767,7 +780,7 @@ defmodule Lanttern.ILP do
 
     model = Application.get_env(:lanttern, LantternWeb.OpenAI)[:model]
 
-    case ExOpenAI.Responses.create_response(input, model) do
+    case open_ai_responses_module.create_response(input, model) do
       {:ok, %ExOpenAI.Components.Response{} = response} ->
         [
           %{
