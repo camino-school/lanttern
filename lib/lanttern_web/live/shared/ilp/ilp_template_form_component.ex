@@ -119,12 +119,8 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
           />
           <.markdown_supported />
         </div>
-        <div class="mb-6 p-4 rounded border border-ltrn-mesh-primary bg-ltrn-mesh-cyan">
-          <h6 class="flex items-center gap-2 font-display font-black text-lg">
-            <.icon name="hero-sparkles-mini" class="text-ltrn-primary" />
-            <%= gettext("Lanttern AI") %>
-          </h6>
-          <p class="mt-2 mb-6">
+        <.ai_box class="mb-6">
+          <p class="mb-6">
             <%= gettext("Add instructions on how Lanttern should revise this ILP.") %>
           </p>
           <.inputs_for :let={ai_layer_f} field={@form[:ai_layer]}>
@@ -138,7 +134,7 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
             />
             <.markdown_supported />
           </.inputs_for>
-        </div>
+        </.ai_box>
         <div class="flex items-center justify-between gap-4">
           <div>
             <.action

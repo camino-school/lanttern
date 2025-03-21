@@ -64,7 +64,8 @@ defmodule Lanttern.MixProject do
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
       {:slugify, "~> 1.3"},
-      {:image, "~> 0.37"}
+      {:image, "~> 0.37"},
+      {:ex_openai, "~> 1.8.0-beta"}
     ]
   end
 

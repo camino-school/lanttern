@@ -86,6 +86,26 @@ end
 # Authentication config
 config :lanttern, LantternWeb.UserAuth, google_client_id: System.get_env("GOOGLE_CLIENT_ID")
 
+# AI config
+open_ai_cooldown_minutes =
+  case Integer.parse(System.get_env("OPENAI_COOLDOWN_MINUTES", "")) do
+    {minutes, _} when is_integer(minutes) -> minutes
+    _ -> 60
+  end
+
+config :lanttern, LantternWeb.OpenAI,
+  model: System.get_env("OPENAI_MODEL", "gpt-4o-mini"),
+  cooldown_minutes: open_ai_cooldown_minutes
+
+# ex_openai config
+config :ex_openai,
+  api_key: System.get_env("OPENAI_API_KEY"),
+  organization_key: System.get_env("OPENAI_ORGANIZATION_KEY"),
+  http_options: [
+    # 60 seconds timeout
+    recv_timeout: 60_000
+  ]
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

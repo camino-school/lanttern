@@ -35,6 +35,9 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
   alias LantternWeb.ILP.StudentILPComponent
   alias LantternWeb.ILP.StudentILPFormOverlayComponent
   alias LantternWeb.Schools.StudentHeaderComponent
+  import LantternWeb.DateTimeHelpers
+
+  @age_range 0..100
 
   @impl true
   def render(assigns) do
@@ -85,6 +88,81 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
         show_teacher_notes
         current_profile={@current_profile}
       />
+      <.ai_box :if={@ai_form || @has_ai_revision} class="mt-6 mb-6">
+        <div :if={@has_ai_revision} class="py-6 border-y border-ltrn-ai-lighter">
+          <h5 class="font-display font-black text-lg">
+            <%= gettext("Lanttern AI revision") %>
+          </h5>
+          <p class="mt-1 mb-6 text-xs">
+            <%= gettext("Generated in %{datetime}",
+              datetime:
+                format_local!(@student_ilp.ai_revision_datetime, "{Mshort} {0D}, {YYYY} {h24}:{m}")
+            ) %>
+          </p>
+          <.markdown text={@student_ilp.ai_revision} />
+          <p class="flex items-center gap-2 p-2 rounded mt-4 text-ltrn-ai-dark bg-ltrn-ai-lighter">
+            <.icon name="hero-information-circle-micro" class="w-4 h-4" />
+            <%= gettext("Remember that AI make mistakes. Always double-check generated responses.") %>
+          </p>
+        </div>
+        <%= if @is_on_ai_cooldown do %>
+          <.card_base class="p-2 mt-4">
+            <p class="flex items-center gap-2 text-ltrn-ai-dark">
+              <.icon name="hero-clock-micro" class="w-4 h-4" />
+              <%= gettext("AI revision can be requested every %{minute} minutes",
+                minute: @ai_cooldown_minutes
+              ) %>
+              <%= ngettext(
+                "(1 minute left until next revision request)",
+                "(%{count} minutes left until next revision request)",
+                @ai_cooldown_minutes_left
+              ) %>
+            </p>
+          </.card_base>
+        <% else %>
+          <form
+            :if={@ai_form}
+            phx-submit="request_ai_review"
+            phx-target={@myself}
+            class={if @has_ai_revision, do: "mt-6"}
+          >
+            <p class="mb-4">
+              <%= if @has_ai_revision,
+                do:
+                  gettext(
+                    "Inform the approximated age of the student (in years), and ask for an updated Lanttern AI revision."
+                  ),
+                else:
+                  gettext(
+                    "Inform the approximated age of the student (in years), and ask for Lanttern AI revision."
+                  ) %>
+            </p>
+            <div class="flex items-center gap-4">
+              <div class="w-40">
+                <.base_input
+                  name={@ai_form[:age].name}
+                  type="number"
+                  placeholder={gettext("Student age")}
+                  value={@ai_form[:age].value}
+                />
+              </div>
+              <.action type="submit" icon_name="hero-sparkles-mini" theme="ai">
+                <%= if @has_ai_revision,
+                  do: gettext("Request AI review update"),
+                  else: gettext("Request AI review") %>
+              </.action>
+            </div>
+            <p :if={@ai_form_error} class="flex items-center gap-2 mt-2 text-xs">
+              <.icon name="hero-exclamation-circle-micro" class="w-4 h-4" />
+              <%= @ai_form_error %>
+            </p>
+            <p :if={@ai_response_error} class="flex items-center gap-2 mt-2 text-xs">
+              <.icon name="hero-exclamation-circle-micro" class="w-4 h-4" />
+              <%= @ai_response_error %>
+            </p>
+          </form>
+        <% end %>
+      </.ai_box>
       <.live_component
         :if={@edit_student_ilp}
         module={StudentILPFormOverlayComponent}
@@ -108,6 +186,11 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
       |> assign(:student, nil)
       |> assign(:student_navigate, nil)
       |> assign(:template, nil)
+      |> assign(:ai_form_error, nil)
+      |> assign(:ai_response_error, nil)
+      |> assign(:ai_response, nil)
+      |> assign(:ai_cooldown_minutes, nil)
+      |> assign(:ai_cooldown_minutes_left, nil)
       |> assign(:initialized, false)
 
     {:ok, socket}
@@ -143,11 +226,27 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
+    |> ensure_template_ai_layer_is_loaded()
     |> assign_student_ilp()
+    |> assign_ai_form()
+    |> assign_has_ai_revision()
+    |> assign_is_on_ai_cooldown()
     |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
+
+  defp ensure_template_ai_layer_is_loaded(
+         %{assigns: %{template: %ILPTemplate{ai_layer: %Ecto.Association.NotLoaded{}}}} = socket
+       ) do
+    template =
+      socket.assigns.template
+      |> Lanttern.Repo.preload(:ai_layer)
+
+    assign(socket, :template, template)
+  end
+
+  defp ensure_template_ai_layer_is_loaded(socket), do: socket
 
   defp assign_student_ilp(socket) do
     with %Student{} = student <- socket.assigns.student,
@@ -184,6 +283,67 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
     end
   end
 
+  defp assign_ai_form(
+         %{assigns: %{template: %ILPTemplate{}, student_ilp: %StudentILP{}}} = socket
+       ) do
+    # we enable the AI form only if the ILP has all entries
+    # and the template has AI revision instructions
+
+    has_all_entries =
+      socket.assigns.student_ilp.entries
+      |> Enum.all?(&(not is_nil(&1.description)))
+
+    template_has_ai_instructions =
+      socket.assigns.template.ai_layer &&
+        not is_nil(socket.assigns.template.ai_layer.revision_instructions)
+
+    if has_all_entries && template_has_ai_instructions do
+      form = to_form(%{"age" => nil}, as: :ai_form)
+      assign(socket, :ai_form, form)
+    else
+      assign(socket, :ai_form, nil)
+    end
+  end
+
+  defp assign_ai_form(socket) do
+    assign(socket, :ai_form, nil)
+  end
+
+  defp assign_has_ai_revision(socket) do
+    has_ai_revision =
+      case socket.assigns.student_ilp do
+        %StudentILP{ai_revision: revision} when not is_nil(revision) -> true
+        _ -> false
+      end
+
+    assign(socket, :has_ai_revision, has_ai_revision)
+  end
+
+  defp assign_is_on_ai_cooldown(%{assigns: %{has_ai_revision: true}} = socket) do
+    ai_cooldown_minutes = Application.get_env(:lanttern, LantternWeb.OpenAI)[:cooldown_minutes]
+
+    cooldown_end_datetime =
+      DateTime.shift(socket.assigns.student_ilp.ai_revision_datetime, minute: ai_cooldown_minutes)
+
+    is_on_ai_cooldown =
+      DateTime.before?(DateTime.utc_now(), cooldown_end_datetime)
+
+    ai_cooldown_minutes_left =
+      Timex.diff(
+        cooldown_end_datetime,
+        DateTime.utc_now(),
+        :minutes
+      )
+
+    socket
+    |> assign(:is_on_ai_cooldown, is_on_ai_cooldown)
+    |> assign(:ai_cooldown_minutes, ai_cooldown_minutes)
+    |> assign(:ai_cooldown_minutes_left, ai_cooldown_minutes_left)
+  end
+
+  defp assign_is_on_ai_cooldown(socket),
+    do: assign(socket, :is_on_ai_cooldown, false)
+
   defp assign_edit_student_ilp(%{assigns: %{params: %{"student_ilp" => "new"}}} = socket) do
     with nil <- socket.assigns.student_ilp,
          %Student{} = student <- socket.assigns.student,
@@ -215,4 +375,40 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
 
   defp assign_edit_student_ilp(socket),
     do: assign(socket, :edit_student_ilp, nil)
+
+  # event handlers
+
+  @impl true
+  def handle_event("request_ai_review", %{"ai_form" => %{"age" => age}}, socket) do
+    socket =
+      case Integer.parse(age) do
+        {age, ""} when age in @age_range ->
+          ILP.revise_student_ilp(
+            socket.assigns.student_ilp,
+            socket.assigns.template,
+            age,
+            log_profile_id: socket.assigns.current_profile.id
+          )
+          |> case do
+            {:ok, student_ilp} ->
+              socket
+              |> assign(:student_ilp, student_ilp)
+              |> assign_has_ai_revision()
+              |> assign_is_on_ai_cooldown()
+              |> assign(:ai_response_error, nil)
+              |> assign(:ai_form_error, nil)
+
+            _ ->
+              socket
+              |> assign(:ai_response_error, gettext("AI revision failed"))
+              |> assign(:ai_form_error, nil)
+          end
+
+        _ ->
+          error = gettext("Age should be a number between 0 and 100")
+          assign(socket, :ai_form_error, error)
+      end
+
+    {:noreply, socket}
+  end
 end

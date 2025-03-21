@@ -71,19 +71,12 @@
           </p>
           <.markdown text={template.teacher_description} />
         </div>
-        <div
-          :if={template.ai_layer && template.ai_layer.revision_instructions}
-          class="mt-6 p-4 rounded border border-ltrn-mesh-primary bg-ltrn-mesh-cyan"
-        >
-          <h6 class="flex items-center gap-2 font-display font-black text-lg">
-            <.icon name="hero-sparkles-mini" class="text-ltrn-primary" />
-            <%= gettext("Lanttern AI") %>
-          </h6>
-          <p class="pb-6 border-b border-ltrn-mesh-primary mt-2 mb-6">
+        <.ai_box :if={template.ai_layer && template.ai_layer.revision_instructions} class="mt-6">
+          <p class="pb-6 border-b border-ltrn-mesh-primary mb-6">
             <%= gettext("Lanttern AI ILP revision instructions") %>
           </p>
           <.markdown text={template.ai_layer.revision_instructions} />
-        </div>
+        </.ai_box>
       </div>
       <.live_component
         :if={@template && @template.id == template.id}
