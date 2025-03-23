@@ -238,8 +238,7 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div class={["p-4 rounded border border-ltrn-ai-accent bg-ltrn-ai-lightest", @class]} id={@id}>
       <h6 class="flex items-center gap-2 mb-4 font-display font-black text-lg">
-        <.icon name="hero-sparkles-mini" class="text-ltrn-ai-accent" />
-        <%= gettext("Lanttern AI") %>
+        <.icon name="hero-sparkles-mini" class="text-ltrn-ai-accent" /> Lanttern AI
       </h6>
       <%= render_slot(@inner_block) %>
     </div>

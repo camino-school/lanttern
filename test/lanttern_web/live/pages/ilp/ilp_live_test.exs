@@ -60,7 +60,12 @@ defmodule LantternWeb.ILPLiveTest do
       student = SchoolsFixtures.student_fixture(%{school_id: school_id})
 
       template =
-        ILPFixtures.ilp_template_fixture(%{name: "ILP abc", school_id: school_id})
+        ILPFixtures.ilp_template_fixture(%{
+          name: "ILP abc",
+          school_id: school_id,
+          # needed to show AI box
+          ai_layer: %{revision_instructions: "some ai revision instruction"}
+        })
         |> Repo.preload(sections: :components)
 
       {:ok, %{sections: [%{components: [component]}]} = template} =
@@ -104,6 +109,13 @@ defmodule LantternWeb.ILPLiveTest do
       assert view |> has_element?("div", "section 1")
       assert view |> has_element?("div", "component 1")
       assert view |> has_element?("p", "some entry description")
+
+      # ai review should be enabled for templates with revision instructions + complete ILP
+      assert view
+             |> has_element?(
+               "p",
+               "Inform the approximated age of the student (in years), and ask for Lanttern AI revision"
+             )
     end
   end
 end

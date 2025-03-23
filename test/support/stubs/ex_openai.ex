@@ -4,6 +4,9 @@ defmodule Lanttern.ExOpenAIStub do
   """
 
   defmodule Responses do
+    @moduledoc """
+    `ExOpenAI.Responses` stub
+    """
     def create_response(_input, _model) do
       {:ok,
        %ExOpenAI.Components.Response{
