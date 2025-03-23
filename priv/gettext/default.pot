@@ -11,9 +11,9 @@
 msgid ""
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:869
-#: lib/lanttern_web/components/core_components.ex:2094
-#: lib/lanttern_web/components/core_components.ex:2156
+#: lib/lanttern_web/components/core_components.ex:893
+#: lib/lanttern_web/components/core_components.ex:2118
+#: lib/lanttern_web/components/core_components.ex:2180
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr ""
@@ -58,7 +58,7 @@ msgstr ""
 msgid "Strands"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1016
+#: lib/lanttern_web/components/core_components.ex:1040
 #: lib/lanttern_web/components/overlay_components.ex:78
 #: lib/lanttern_web/components/overlay_components.ex:334
 #, elixir-autogen, elixir-format
@@ -123,7 +123,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/filters/filters_overlay_component.ex:25
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:64
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:66
-#: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:137
+#: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:153
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:113
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:202
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:161
@@ -186,7 +186,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:129
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:67
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:69
-#: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:140
+#: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:156
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:122
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:205
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:164
@@ -360,17 +360,17 @@ msgstr ""
 msgid "or drag and drop here"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1055
+#: lib/lanttern_web/components/core_components.ex:1079
 #, elixir-autogen, elixir-format
 msgid "Attempting to reconnect"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1046
+#: lib/lanttern_web/components/core_components.ex:1070
 #, elixir-autogen, elixir-format
 msgid "Error!"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1067
+#: lib/lanttern_web/components/core_components.ex:1091
 #, elixir-autogen, elixir-format
 msgid "Hang in there while we get back on track"
 msgstr ""
@@ -380,17 +380,17 @@ msgstr ""
 msgid "Markdown supported"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1045
+#: lib/lanttern_web/components/core_components.ex:1069
 #, elixir-autogen, elixir-format
 msgid "Success!"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1050
+#: lib/lanttern_web/components/core_components.ex:1074
 #, elixir-autogen, elixir-format
 msgid "We can't find the internet"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1062
+#: lib/lanttern_web/components/core_components.ex:1086
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
 msgstr ""
@@ -494,7 +494,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:147
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:53
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:55
-#: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:130
+#: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:146
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:101
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:246
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:128
@@ -534,7 +534,7 @@ msgid "Differentiation"
 msgstr ""
 
 #: lib/lanttern_web/components/attachments_components.ex:130
-#: lib/lanttern_web/components/core_components.ex:1415
+#: lib/lanttern_web/components/core_components.ex:1439
 #: lib/lanttern_web/components/learning_context_components.ex:55
 #: lib/lanttern_web/components/message_board_components.ex:55
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:44
@@ -839,7 +839,7 @@ msgstr ""
 msgid "Moments"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:2044
+#: lib/lanttern_web/components/core_components.ex:2068
 #, elixir-autogen, elixir-format
 msgid "Move moment down"
 msgstr ""
@@ -1310,7 +1310,7 @@ msgstr ""
 msgid "Move down"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:2034
+#: lib/lanttern_web/components/core_components.ex:2058
 #: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:154
 #, elixir-autogen, elixir-format
 msgid "Move up"
@@ -1420,8 +1420,8 @@ msgid "Recalculate grade"
 msgstr ""
 
 #: lib/lanttern_web/components/attachments_components.ex:135
-#: lib/lanttern_web/components/core_components.ex:295
-#: lib/lanttern_web/components/core_components.ex:1499
+#: lib/lanttern_web/components/core_components.ex:319
+#: lib/lanttern_web/components/core_components.ex:1523
 #: lib/lanttern_web/components/form_components.ex:744
 #: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:183
 #, elixir-autogen, elixir-format
@@ -1791,8 +1791,8 @@ msgstr ""
 msgid "Hey!"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1564
-#: lib/lanttern_web/components/core_components.ex:1586
+#: lib/lanttern_web/components/core_components.ex:1588
+#: lib/lanttern_web/components/core_components.ex:1610
 #, elixir-autogen, elixir-format
 msgid "Selected"
 msgstr ""
@@ -4257,8 +4257,8 @@ msgstr ""
 msgid "%{student} reactivated"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1821
-#: lib/lanttern_web/components/core_components.ex:1829
+#: lib/lanttern_web/components/core_components.ex:1845
+#: lib/lanttern_web/components/core_components.ex:1853
 #, elixir-autogen, elixir-format
 msgid "(Deactivated)"
 msgstr ""
@@ -4620,28 +4620,28 @@ msgstr ""
 msgid "Add section"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:68
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:71
 #, elixir-autogen, elixir-format
 msgid "Create %{student}'s %{cycle} ILP"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/classes/id/ilp_component.ex:126
-#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:202
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:362
 #, elixir-autogen, elixir-format
 msgid "Create ILP"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/ilp/settings/ilp_settings_live.html.heex:92
+#: lib/lanttern_web/live/pages/ilp/settings/ilp_settings_live.html.heex:98
 #, elixir-autogen, elixir-format
 msgid "Create new ILP template"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:132
+#: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:148
 #, elixir-autogen, elixir-format
 msgid "Delete template"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:213
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:373
 #, elixir-autogen, elixir-format
 msgid "Edit ILP"
 msgstr ""
@@ -4656,12 +4656,12 @@ msgstr ""
 msgid "ILP"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:121
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:204
 #, elixir-autogen, elixir-format
 msgid "ILP created successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:123
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:206
 #, elixir-autogen, elixir-format
 msgid "ILP deleted successfully"
 msgstr ""
@@ -4693,7 +4693,7 @@ msgstr ""
 msgid "ILP template updated successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:122
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:205
 #, elixir-autogen, elixir-format
 msgid "ILP updated successfully"
 msgstr ""
@@ -4711,7 +4711,7 @@ msgid "No ILP model selected"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/classes/id/ilp_component.ex:68
-#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:56
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:59
 #, elixir-autogen, elixir-format
 msgid "No ILP template selected"
 msgstr ""
@@ -4723,12 +4723,12 @@ msgstr ""
 msgid "No ILP templates registered in your school. Talk to your Lanttern school manager."
 msgstr ""
 
-#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:59
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:62
 #, elixir-autogen, elixir-format
 msgid "No student ILP created yet"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:44
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:47
 #, elixir-autogen, elixir-format
 msgid "No student selected"
 msgstr ""
@@ -5061,4 +5061,81 @@ msgstr ""
 #: lib/lanttern_web/live/pages/school/classes/id/ilp_component.ex:93
 #, elixir-autogen, elixir-format
 msgid "View ILP"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:115
+#, elixir-autogen, elixir-format
+msgid "(1 minute left until next revision request)"
+msgid_plural "(%{count} minutes left until next revision request)"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:112
+#, elixir-autogen, elixir-format
+msgid "AI revision can be requested every %{minute} minutes"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:403
+#, elixir-autogen, elixir-format
+msgid "AI revision failed"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:130
+#, elixir-autogen, elixir-format
+msgid "AI revision instructions"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:124
+#, elixir-autogen, elixir-format
+msgid "Add instructions on how Lanttern should revise this ILP."
+msgstr ""
+
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:408
+#, elixir-autogen, elixir-format
+msgid "Age should be a number between 0 and 100"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:97
+#, elixir-autogen, elixir-format
+msgid "Generated in %{datetime}"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:136
+#, elixir-autogen, elixir-format
+msgid "Inform the approximated age of the student (in years), and ask for Lanttern AI revision."
+msgstr ""
+
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:132
+#, elixir-autogen, elixir-format
+msgid "Inform the approximated age of the student (in years), and ask for an updated Lanttern AI revision."
+msgstr ""
+
+#: lib/lanttern_web/live/pages/ilp/settings/ilp_settings_live.html.heex:76
+#, elixir-autogen, elixir-format
+msgid "Lanttern AI ILP revision instructions"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:94
+#, elixir-autogen, elixir-format
+msgid "Lanttern AI revision"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:105
+#, elixir-autogen, elixir-format
+msgid "Remember that AI make mistakes. Always double-check generated responses."
+msgstr ""
+
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:152
+#, elixir-autogen, elixir-format
+msgid "Request AI review"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:151
+#, elixir-autogen, elixir-format
+msgid "Request AI review update"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:145
+#, elixir-autogen, elixir-format
+msgid "Student age"
 msgstr ""

@@ -79,6 +79,7 @@ defmodule LantternWeb.CoreComponents do
     "default" => "text-ltrn-dark hover:text-ltrn-subtle",
     "subtle" => "text-ltrn-subtle hover:text-ltrn-dark",
     "primary" => "text-ltrn-dark hover:text-ltrn-subtle",
+    "ai" => "text-ltrn-ai-dark hover:text-ltrn-ai-dark/60",
     "diff" => "text-ltrn-diff-dark hover:text-ltrn-diff-dark/60",
     "student" => "text-ltrn-student-dark hover:text-ltrn-student-dark/80",
     "staff" => "text-ltrn-staff-dark hover:text-ltrn-staff-dark/80",
@@ -89,6 +90,7 @@ defmodule LantternWeb.CoreComponents do
     "default" => nil,
     "subtle" => nil,
     "primary" => "bg-ltrn-mesh-primary",
+    "ai" => "bg-ltrn-ai-lighter",
     "diff" => "bg-ltrn-diff-lightest",
     "student" => "bg-ltrn-student-lightest",
     "staff" => "bg-ltrn-staff-lightest",
@@ -216,6 +218,28 @@ defmodule LantternWeb.CoreComponents do
   def action_bar(assigns) do
     ~H"""
     <div class={["p-4 bg-white/20 shadow-xl", @class]}>
+      <%= render_slot(@inner_block) %>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders an AI box.
+
+  ## Examples
+
+      <.ai_box>Content</.ai_box>
+  """
+  attr :class, :any, default: nil
+  attr :id, :string, default: nil
+  slot :inner_block, required: true
+
+  def ai_box(assigns) do
+    ~H"""
+    <div class={["p-4 rounded border border-ltrn-ai-accent bg-ltrn-ai-lightest", @class]} id={@id}>
+      <h6 class="flex items-center gap-2 mb-4 font-display font-black text-lg">
+        <.icon name="hero-sparkles-mini" class="text-ltrn-ai-accent" /> Lanttern AI
+      </h6>
       <%= render_slot(@inner_block) %>
     </div>
     """

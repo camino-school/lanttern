@@ -71,6 +71,12 @@
           </p>
           <.markdown text={template.teacher_description} />
         </div>
+        <.ai_box :if={template.ai_layer && template.ai_layer.revision_instructions} class="mt-6">
+          <p class="pb-6 border-b border-ltrn-mesh-primary mb-6">
+            <%= gettext("Lanttern AI ILP revision instructions") %>
+          </p>
+          <.markdown text={template.ai_layer.revision_instructions} />
+        </.ai_box>
       </div>
       <.live_component
         :if={@template && @template.id == template.id}

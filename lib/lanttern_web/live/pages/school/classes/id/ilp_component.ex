@@ -118,7 +118,7 @@ defmodule LantternWeb.ClassLive.ILPComponent do
               <% else %>
                 <.action
                   type="link"
-                  patch={~p"/ilp?student=#{student.id}&edit_student_ilp=new"}
+                  patch={~p"/ilp?student=#{student.id}&student_ilp=new"}
                   theme="subtle"
                   icon_name="hero-plus-circle-mini"
                   target="_blank"

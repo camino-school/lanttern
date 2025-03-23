@@ -45,7 +45,7 @@ The main secrets/env vars that we need for this are the following:
 
 ### On fly.io
 
-#### From Supabase
+#### Supabase
 
 - `DATABASE_HOST` - used in repo's `ssl_opts` `server_name_indication`
 - `DATABASE_SSL_CERT` - using `\n` string for line breaks
@@ -53,9 +53,16 @@ The main secrets/env vars that we need for this are the following:
 - `SUPABASE_PROJECT_API_KEY` - used for Supabase client (interface with Storage)
 - `SUPABASE_PROJECT_URL` - also used for Supabase client (interface with Storage)
 
-#### From Google
+#### Google
 
 - `GOOGLE_CLIENT_ID`
+
+#### OpenAI
+
+- `OPENAI_API_KEY`
+- `OPENAI_ORGANIZATION_KEY`
+- `OPENAI_MODEL`
+- `OPENAI_COOLDOWN_MINUTES`
 
 #### Others
 

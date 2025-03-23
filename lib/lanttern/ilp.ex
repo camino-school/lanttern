@@ -4,6 +4,7 @@ defmodule Lanttern.ILP do
   """
 
   import Ecto.Query, warn: false
+  alias Lanttern.ILP.ILPTemplateAILayer
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
 
@@ -700,5 +701,108 @@ defmodule Lanttern.ILP do
       where: ^shared_cond
     )
     |> Repo.exists?()
+  end
+
+  @doc """
+  Revise a student ILP using AI.
+
+  ### Testing
+
+  We use `open_ai_responses_module` as argument to allow mocking in tests.
+
+  View https://blog.appsignal.com/2023/04/11/an-introduction-to-mocking-tools-for-elixir.html for reference.
+
+  ## Options:
+
+  - `:log_profile_id` - logs the operation, linked to given profile
+
+  ## Examples
+
+      iex> revise_student_ilp(1, 2, 3)
+      {:ok, %StudentILP{}}
+
+  """
+  @spec revise_student_ilp(
+          StudentILP.t(),
+          ILPTemplate.t(),
+          age :: integer(),
+          opts :: Keyword.t(),
+          open_ai_responses_module :: any()
+        ) ::
+          {:ok, StudentILP.t()} | {:error, any()}
+  def revise_student_ilp(
+        %StudentILP{} = student_ilp,
+        %ILPTemplate{ai_layer: %ILPTemplateAILayer{}} = template,
+        age,
+        opts \\ [],
+        open_ai_responses_module \\ ExOpenAI.Responses
+      ) do
+    component_entry_map =
+      template.sections
+      |> Enum.flat_map(& &1.components)
+      |> Enum.map(fn component ->
+        {
+          component.id,
+          Enum.find(student_ilp.entries, &(&1.component_id == component.id))
+        }
+      end)
+      |> Enum.filter(fn {_component_id, entry} -> entry end)
+      |> Enum.into(%{})
+
+    user_input_content =
+      Enum.reduce(
+        template.sections,
+        "review the ILP for a student with age #{age}.\n",
+        fn section, acc ->
+          section_components =
+            Enum.map(section.components, fn component ->
+              entry = component_entry_map[component.id]
+              "###{component.name}\n#{entry.description}"
+            end)
+
+          acc <> "##{section.name}\n" <> Enum.join(section_components, "\n") <> "\n"
+        end
+      )
+
+    input =
+      [
+        %ExOpenAI.Components.EasyInputMessage{
+          content: template.ai_layer.revision_instructions,
+          role: :developer,
+          type: :message
+        },
+        %ExOpenAI.Components.EasyInputMessage{
+          content: user_input_content,
+          role: :user,
+          type: :message
+        }
+      ]
+
+    model = Application.get_env(:lanttern, LantternWeb.OpenAI)[:model]
+
+    case open_ai_responses_module.create_response(input, model) do
+      {:ok, %ExOpenAI.Components.Response{} = response} ->
+        [
+          %{
+            content: [
+              %{
+                text: revision
+              }
+            ]
+          }
+        ] = response.output
+
+        student_ilp
+        |> StudentILP.ai_changeset(%{
+          ai_revision: revision,
+          last_ai_revision_input: user_input_content,
+          ai_revision_datetime: DateTime.utc_now()
+        })
+        |> Repo.update()
+        |> ILPLog.maybe_create_student_ilp_log("UPDATE", opts)
+
+      error ->
+        error
+    end
   end
 end

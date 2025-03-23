@@ -28,6 +28,12 @@ module.exports = {
             yellow: colors.yellow["100"],
             lime: colors.lime["100"],
           },
+          ai: {
+            dark: colors.pink["800"],
+            accent: colors.pink["500"],
+            lighter: colors.pink["200"],
+            lightest: colors.pink["50"],
+          },
           diff: {
             dark: colors.violet["800"],
             accent: colors.violet["600"],

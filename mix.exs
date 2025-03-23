@@ -4,7 +4,7 @@ defmodule Lanttern.MixProject do
   def project do
     [
       app: :lanttern,
-      version: "2025.3.19-alpha.56",
+      version: "2025.3.23-alpha.57",
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -64,7 +64,8 @@ defmodule Lanttern.MixProject do
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
       {:slugify, "~> 1.3"},
-      {:image, "~> 0.37"}
+      {:image, "~> 0.37"},
+      {:ex_openai, "~> 1.8.0-beta"}
     ]
   end
 

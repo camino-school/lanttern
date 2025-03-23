@@ -6,7 +6,7 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
 
   ### Attrs
 
-      attr :template, ILPTemplate, required: true, doc: "requires sections and components preload"
+      attr :template, ILPTemplate, required: true, doc: "requires sections, components, and AI layer preload"
       attr :class, :any, default: nil
       attr :notify_parent, :boolean
       attr :notify_component, Phoenix.LiveComponent.CID
@@ -119,6 +119,22 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
           />
           <.markdown_supported />
         </div>
+        <.ai_box class="mb-6">
+          <p class="mb-6">
+            <%= gettext("Add instructions on how Lanttern should revise this ILP.") %>
+          </p>
+          <.inputs_for :let={ai_layer_f} field={@form[:ai_layer]}>
+            <.input
+              field={ai_layer_f[:revision_instructions]}
+              type="textarea"
+              label={gettext("AI revision instructions")}
+              phx-debounce="1500"
+              class="mb-1"
+              show_optional
+            />
+            <.markdown_supported />
+          </.inputs_for>
+        </.ai_box>
         <div class="flex items-center justify-between gap-4">
           <div>
             <.action
