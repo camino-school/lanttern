@@ -33,18 +33,9 @@ defmodule LantternWeb.StudentReportCardStrandReportLive do
       |> assign_strand_report(params)
       |> assign_student_note()
       |> assign_is_student()
+      |> assign_allow_access()
 
     {:ok, socket, layout: {LantternWeb.Layouts, :app_logged_in_blank}}
-  end
-
-  @impl true
-  def handle_params(params, _url, socket) do
-    socket =
-      socket
-      |> assign(:params, params)
-      |> assign_current_tab(params)
-
-    {:noreply, socket}
   end
 
   defp assign_student_report_card(socket, params) do
@@ -136,6 +127,27 @@ defmodule LantternWeb.StudentReportCardStrandReportLive do
     is_student = socket.assigns.current_user.current_profile.type == "student"
 
     assign(socket, :is_student, is_student)
+  end
+
+  defp assign_allow_access(socket) do
+    allow_access =
+      case {socket.assigns.current_user.current_profile.type, socket.assigns.student_report_card} do
+        {"student", %{allow_student_access: true}} -> true
+        {"guardian", %{allow_guardian_access: true}} -> true
+        _ -> false
+      end
+
+    assign(socket, :allow_access, allow_access)
+  end
+
+  @impl true
+  def handle_params(params, _url, socket) do
+    socket =
+      socket
+      |> assign(:params, params)
+      |> assign_current_tab(params)
+
+    {:noreply, socket}
   end
 
   defp assign_current_tab(socket, %{"tab" => "moments"}) do

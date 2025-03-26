@@ -93,74 +93,102 @@ defmodule Lanttern.Rubrics do
     do: apply_list_full_rubrics_opts(queryable, opts)
 
   @doc """
-  Returns the list of strand rubrics (diff not included).
+  List all student strand rubrics grouped by strand goals (assessment points).
 
-  Preloads scale, descriptors, and descriptors ordinal values.
+  Assessment points preload `curriculum_item` with
+  `curriculum_component` and are ordered by position.
 
-  Preloads curriculum item and curriculum component, and marks
-  the rubric with `is_differentiation` based on strand goal/assessment point.
+  Rubrics are ordered by position.
 
-  View `get_full_rubric!/1` for more details on descriptors sorting.
+  ### Rules for determining if a rubric is a "student rubric"
 
-  ## Examples
+  The results include:
 
-      iex> list_strand_rubrics()
-      [%Rubric{}, ...]
+  - rubrics linked to any non-diff strand assessment point (moment or goal)
+  - differentiation rubrics linked to student. Diff rubrics in entries overrides the original rubrics
+  - rubrics linked to differentiation assessment point only when the student has an entry for the assessment point
 
-  """
-  @spec list_strand_rubrics(strand_id :: pos_integer()) :: [Rubric.t()]
-  def list_strand_rubrics(strand_id) do
-    from(
-      r in full_rubric_query(),
-      join: ap in assoc(r, :assessment_points),
-      join: ci in assoc(ap, :curriculum_item),
-      join: cc in assoc(ci, :curriculum_component),
-      where: ap.strand_id == ^strand_id,
-      order_by: ap.position,
-      select: %{
-        r
-        | curriculum_item: %{ci | curriculum_component: cc},
-          is_differentiation: ap.is_differentiation
-      }
-    )
-    |> Repo.all()
-  end
+  ## Options
 
-  @doc """
-  Returns the list of strand diff rubrics for given student.
-
-  Preloads scale, descriptors, and descriptors ordinal values.
-
-  Preloads curriculum item and curriculum component
-  (linked through strand goal/assessment point).
-
-  View `get_full_rubric!/1` for more details on descriptors sorting.
+  - `:only_with_entries` - boolean, will include only results with linked student entries
 
   ## Examples
 
-      iex> list_strand_rubrics()
-      [%Rubric{}, ...]
+      iex> list_student_strand_rubrics_grouped_by_goal(1, 2)
+      [{%AssessmentPoint{}, [%Rubric{}, ...]}, ...]
 
   """
-  @spec list_strand_diff_rubrics_for_student_id(
+  @spec list_student_strand_rubrics_grouped_by_goal(
           student_id :: pos_integer(),
-          strand_id :: pos_integer()
+          strand_id :: pos_integer(),
+          opts :: Keyword.t()
         ) :: [Rubric.t()]
-  def list_strand_diff_rubrics_for_student_id(student_id, strand_id) do
+  def list_student_strand_rubrics_grouped_by_goal(student_id, strand_id, opts \\ []) do
+    assessment_points_rubrics_and_ap_ids =
+      from(
+        r in Rubric,
+        join: ap in assoc(r, :assessment_points),
+        left_join: e in assoc(ap, :entries),
+        on: e.student_id == ^student_id,
+        as: :entries,
+        # we need to know the assessment point id to remove
+        # or keep rubrics based on student entry diff rubrics
+        select: {r, ap.id},
+        where: r.strand_id == ^strand_id,
+        where: not ap.is_differentiation or not is_nil(e)
+      )
+      |> apply_only_with_entries_filter(Keyword.get(opts, :only_with_entries))
+      |> Repo.all()
+
+    {student_diff_rubrics, ap_with_diff_entry_rubrics} =
+      from(
+        r in Rubric,
+        join: e in assoc(r, :diff_entries),
+        on: e.student_id == ^student_id,
+        select: {r, e.assessment_point_id},
+        where: r.strand_id == ^strand_id
+      )
+      |> Repo.all()
+      |> Enum.reduce({[], []}, fn {rubric, assessment_point_id}, {rubrics, ap_ids} ->
+        {[rubric | rubrics], [assessment_point_id | ap_ids]}
+      end)
+
+    assessment_points_rubrics =
+      assessment_points_rubrics_and_ap_ids
+      |> Enum.filter(fn {_rubric, ap_id} ->
+        ap_id not in ap_with_diff_entry_rubrics
+      end)
+      |> Enum.map(fn {rubric, _ap_id} -> rubric end)
+
+    curriculum_items_rubrics_map =
+      (assessment_points_rubrics ++ student_diff_rubrics)
+      |> Enum.uniq()
+      |> Enum.sort_by(& &1.position)
+      |> Enum.group_by(& &1.curriculum_item_id)
+
     from(
-      r in full_rubric_query(),
-      join: drs in "differentiation_rubrics_students",
-      on: drs.rubric_id == r.id and drs.student_id == ^student_id,
-      join: pr in assoc(r, :parent_rubric),
-      join: ap in assoc(pr, :assessment_points),
+      ap in AssessmentPoint,
       join: ci in assoc(ap, :curriculum_item),
       join: cc in assoc(ci, :curriculum_component),
       where: ap.strand_id == ^strand_id,
-      order_by: ap.position,
-      select: %{r | curriculum_item: %{ci | curriculum_component: cc}}
+      preload: [curriculum_item: {ci, curriculum_component: cc}],
+      order_by: ap.position
     )
     |> Repo.all()
+    |> Enum.map(fn ap ->
+      {ap, Map.get(curriculum_items_rubrics_map, ap.curriculum_item_id, [])}
+    end)
+    |> Enum.filter(fn {_ap, rubrics} -> rubrics != [] end)
   end
+
+  defp apply_only_with_entries_filter(queryable, true) do
+    from(
+      [_r, entries: e] in queryable,
+      where: not is_nil(e)
+    )
+  end
+
+  defp apply_only_with_entries_filter(queryable, _), do: queryable
 
   @doc """
   List all rubrics matching given assessment point.

@@ -390,7 +390,10 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         title={"#{@assessment_point.moment.name}\n\n#{@assessment_point.name}"}
         navigate={~p"/strands/moment/#{@assessment_point.moment.id}/assessment"}
       >
-        <span class="font-bold"><%= @assessment_point.moment.name %></span> <br />
+        <div class="flex items-center gap-2">
+          <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
+          <span class="font-bold"><%= @assessment_point.moment.name %></span> <br />
+        </div>
         <span class="text-xs"><%= @assessment_point.name %></span>
       </.link>
     </div>
@@ -408,8 +411,8 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     >
       <div class="whitespace-nowrap overflow-hidden">
         <div class="flex items-center gap-2">
-          <span class="font-bold"><%= gettext("Goal assessment") %></span>
           <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
+          <span class="font-bold"><%= gettext("Goal assessment") %></span>
         </div>
         <span class="text-xs"><%= gettext("(Strand final assessment)") %></span>
       </div>
