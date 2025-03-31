@@ -12,6 +12,7 @@ defmodule LantternWeb.Rubrics.RubricDescriptorsComponent do
   ### Optional assigns
 
   - `class`
+  - `highlight_level_for_entry` - `AssessmentPointEntry`
 
   """
   use LantternWeb, :live_component
@@ -25,7 +26,7 @@ defmodule LantternWeb.Rubrics.RubricDescriptorsComponent do
   def render(assigns) do
     ~H"""
     <div class={@class} id={@id}>
-      <.rubric_descriptors rubric={@rubric} />
+      <.rubric_descriptors rubric={@rubric} highlight_level_for_entry={@highlight_level_for_entry} />
     </div>
     """
   end
@@ -37,6 +38,7 @@ defmodule LantternWeb.Rubrics.RubricDescriptorsComponent do
     socket =
       socket
       |> assign(:class, nil)
+      |> assign(:highlight_level_for_entry, nil)
 
     {:ok, socket}
   end

@@ -62,7 +62,7 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
             <.icon :if={@rubric} name="hero-view-columns" class="w-6 h-6" />
             <%= if @rubric, do: gettext("Assessment rubric"), else: gettext("Assessment scale") %>
           </h5>
-          <.badge :if={@rubric && @rubric.diff_for_rubric_id} theme="diff">
+          <.badge :if={@rubric && @rubric.is_differentiation} theme="diff">
             <%= gettext("Differentiation") %>
           </.badge>
         </div>
@@ -102,6 +102,7 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
                 class="pt-4 mt-4 border-t border-ltrn-lighter"
                 assessment_point={assessment_point}
                 entry={entry}
+                id={"#{assessment_point.id}-#{entry.id}"}
               />
             </div>
           </div>
@@ -173,6 +174,13 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
       )
 
     assign(socket, :entry, entry)
+  end
+
+  defp assign_rubric(%{assigns: %{entry: %{differentiation_rubric_id: rubric_id}}} = socket)
+       when not is_nil(rubric_id) do
+    rubric = Rubrics.get_full_rubric!(rubric_id)
+
+    assign(socket, :rubric, rubric)
   end
 
   defp assign_rubric(%{assigns: %{strand_goal: %{rubric_id: rubric_id}}} = socket)
