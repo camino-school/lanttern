@@ -66,7 +66,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           )
         ]}>
           <div
-            class="relative grid pb-4"
+            class={["relative grid", if(@entries_changes_map != %{}, do: "pb-20", else: "pb-4")]}
             style={"grid-template-columns: 15rem #{@assessment_points_columns_grid}"}
           >
             <div
