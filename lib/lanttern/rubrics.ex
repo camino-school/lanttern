@@ -37,62 +37,6 @@ defmodule Lanttern.Rubrics do
   end
 
   @doc """
-  Returns the list of rubrics with scale, descriptors, and descriptors ordinal values preloaded.
-
-  View `get_full_rubric!/1` for more details on descriptors sorting.
-
-  ## Options
-
-  - `assessment_points_ids` - filter rubrics by linked assessment points
-  - `parent_rubrics_ids` - filter differentiation rubrics by parent rubrics
-  - `students_ids` - filter rubrics by linked students
-
-  ## Examples
-
-      iex> list_full_rubrics()
-      [%Rubric{}, ...]
-
-  """
-  def list_full_rubrics(opts \\ []) do
-    full_rubric_query()
-    |> apply_list_full_rubrics_opts(opts)
-    |> Repo.all()
-  end
-
-  defp apply_list_full_rubrics_opts(queryable, []), do: queryable
-
-  defp apply_list_full_rubrics_opts(queryable, [{:rubrics_ids, ids}, opts]) do
-    from(ap in queryable, where: ap.id in ^ids)
-    |> apply_list_full_rubrics_opts(opts)
-  end
-
-  defp apply_list_full_rubrics_opts(queryable, [{:parent_rubrics_ids, ids} | opts]) do
-    from(ap in queryable, where: ap.diff_for_rubric_id in ^ids)
-    |> apply_list_full_rubrics_opts(opts)
-  end
-
-  defp apply_list_full_rubrics_opts(queryable, [{:assessment_points_ids, ids} | opts]) do
-    from(
-      r in queryable,
-      join: ap in assoc(r, :assessment_points),
-      where: ap.id in ^ids
-    )
-    |> apply_list_full_rubrics_opts(opts)
-  end
-
-  defp apply_list_full_rubrics_opts(queryable, [{:students_ids, ids} | opts]) do
-    from(
-      r in queryable,
-      join: s in assoc(r, :students),
-      where: s.id in ^ids
-    )
-    |> apply_list_full_rubrics_opts(opts)
-  end
-
-  defp apply_list_full_rubrics_opts(queryable, [_ | opts]),
-    do: apply_list_full_rubrics_opts(queryable, opts)
-
-  @doc """
   List all student strand rubrics grouped by strand goals (assessment points).
 
   Assessment points preload `curriculum_item` with
@@ -480,34 +424,15 @@ defmodule Lanttern.Rubrics do
   - when scale type is "ordinal", we use ordinal value's normalized value
   - when scale type is "numeric", we use descriptor's score
 
-  ### Options:
-
-  - `:check_diff_for_student_id` – returns the differentiation rubric for the given student, if it exists
-
   ## Examples
 
       iex> get_full_rubric!(id)
       %Rubric{}
 
   """
-  def get_full_rubric!(id, opts \\ []) do
-    id = get_diff_rubric_id(id, Keyword.get(opts, :check_diff_for_student_id))
-
+  def get_full_rubric!(id) do
     full_rubric_query()
     |> Repo.get!(id)
-  end
-
-  defp get_diff_rubric_id(parent_rubric_id, nil), do: parent_rubric_id
-
-  defp get_diff_rubric_id(parent_rubric_id, student_id) do
-    from(
-      diff_r in Rubric,
-      join: r in assoc(diff_r, :parent_rubric),
-      join: s in assoc(diff_r, :students),
-      where: r.id == ^parent_rubric_id and s.id == ^student_id,
-      select: diff_r.id
-    )
-    |> Repo.one() || parent_rubric_id
   end
 
   @doc """
@@ -945,107 +870,6 @@ defmodule Lanttern.Rubrics do
 
   defp apply_list_diff_students_for_rubric_opts(queryable, [_ | opts]),
     do: apply_list_diff_students_for_rubric_opts(queryable, opts)
-
-  @doc """
-  Links a differentiation rubric to a student.
-
-  ## Examples
-
-      iex> link_rubric_to_student(%Rubric{}, 1)
-      :ok
-
-      iex> link_rubric_to_student(%Rubric{}, 1)
-      {:error, "Error message"}
-
-  """
-  def link_rubric_to_student(%Rubric{diff_for_rubric_id: nil}, _student_id),
-    do: {:error, "Only differentiation rubrics can be linked to students"}
-
-  def link_rubric_to_student(%Rubric{id: rubric_id}, student_id) do
-    from("differentiation_rubrics_students",
-      where: [rubric_id: ^rubric_id, student_id: ^student_id],
-      select: true
-    )
-    |> Repo.one()
-    |> case do
-      nil ->
-        {1, _} =
-          Repo.insert_all(
-            "differentiation_rubrics_students",
-            [[rubric_id: rubric_id, student_id: student_id]]
-          )
-
-        :ok
-
-      _ ->
-        # rubric already linked to student
-        :ok
-    end
-  end
-
-  @doc """
-  Unlinks a rubric from a student.
-
-  ## Examples
-
-      iex> unlink_rubric_from_student(%Rubric{}, 1)
-      :ok
-
-      iex> unlink_rubric_from_student(%Rubric{}, 1)
-      {:error, "Error message"}
-
-  """
-  def unlink_rubric_from_student(%Rubric{id: rubric_id}, student_id) do
-    from("differentiation_rubrics_students",
-      where: [rubric_id: ^rubric_id, student_id: ^student_id]
-    )
-    |> Repo.delete_all()
-
-    :ok
-  end
-
-  @doc """
-  Creates a differentiation rubric and link it to the student.
-
-  This function executes `create_rubric/2` and `link_rubric_to_student/2`
-  inside a single transaction.
-
-  ## Options
-
-      - view `create_rubric/2` for opts
-
-  ## Examples
-
-      iex> create_diff_rubric_for_student(1, %{})
-      {:ok, %Rubric{}}
-
-      iex> create_diff_rubric_for_student(1, %{})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_diff_rubric_for_student(student_id, attrs \\ %{}, opts \\ []) do
-    Repo.transaction(fn ->
-      rubric =
-        case create_rubric(attrs, opts) do
-          {:ok, rubric} -> rubric
-          {:error, error_changeset} -> Repo.rollback(error_changeset)
-        end
-
-      case link_rubric_to_student(rubric, student_id) do
-        :ok ->
-          :ok
-
-        {:error, msg} ->
-          rubric
-          |> change_rubric(%{})
-          |> Ecto.Changeset.add_error(:diff_for_rubric_id, msg)
-          |> Map.put(:action, :insert)
-          |> Repo.rollback()
-      end
-
-      rubric
-    end)
-  end
 
   @doc """
   List all assessment points that are eligible to link to given rubric.

@@ -1162,21 +1162,6 @@ defmodule Lanttern.Assessments do
 
     goals_ids = Enum.map(goals, & &1.id)
 
-    # map goals ids with diff rubrics for the student
-    # to set `has_diff_rubric_for_student` later
-
-    goals_ids_with_diff_rubrics_for_student =
-      from(
-        ap in AssessmentPoint,
-        join: r in assoc(ap, :rubric),
-        join: diff_r in assoc(r, :differentiation_rubrics),
-        join: diff_r_s in "differentiation_rubrics_students",
-        on: diff_r_s.student_id == ^student_id and diff_r_s.rubric_id == diff_r.id,
-        where: ap.strand_id == ^strand_id,
-        select: ap.id
-      )
-      |> Repo.all()
-
     goals_and_entries_map =
       from(
         e in AssessmentPointEntry,
@@ -1209,9 +1194,21 @@ defmodule Lanttern.Assessments do
 
     goals
     |> Enum.map(fn ap ->
-      ap = %{ap | has_diff_rubric_for_student: ap.id in goals_ids_with_diff_rubrics_for_student}
       goal_entry = Map.get(goals_and_entries_map, ap.id)
       moments_entries = Map.get(goals_and_moments_entries_map, ap.curriculum_item_id, [])
+
+      has_diff_rubric_for_student =
+        case {goal_entry, moments_entries} do
+          {%{differentiation_rubric_id: id}, _} when not is_nil(id) ->
+            true
+
+          {_, moments_entries} ->
+            Enum.any?(moments_entries, fn entry ->
+              entry.differentiation_rubric_id != nil
+            end)
+        end
+
+      ap = %{ap | has_diff_rubric_for_student: has_diff_rubric_for_student}
 
       {ap, goal_entry, moments_entries}
     end)

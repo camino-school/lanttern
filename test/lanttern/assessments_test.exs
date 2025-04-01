@@ -1085,27 +1085,16 @@ defmodule Lanttern.AssessmentsTest do
       diff_rubric_3 =
         RubricsFixtures.rubric_fixture(%{
           scale_id: ordinal_scale.id,
-          diff_for_rubric_id: rubric_3.id
+          is_differentiation: true
         })
 
       other_diff_rubric_3 =
         RubricsFixtures.rubric_fixture(%{
           scale_id: ordinal_scale.id,
-          diff_for_rubric_id: rubric_3.id
+          is_differentiation: true
         })
 
       student = SchoolsFixtures.student_fixture()
-      other_student = SchoolsFixtures.student_fixture()
-
-      Lanttern.Repo.insert_all(
-        "differentiation_rubrics_students",
-        [[rubric_id: diff_rubric_3.id, student_id: student.id]]
-      )
-
-      Lanttern.Repo.insert_all(
-        "differentiation_rubrics_students",
-        [[rubric_id: other_diff_rubric_3.id, student_id: other_student.id]]
-      )
 
       assessment_point_1 =
         assessment_point_fixture(%{
@@ -1159,12 +1148,14 @@ defmodule Lanttern.AssessmentsTest do
           score: 5.0
         })
 
-      _empty_entry_3 =
+      entry_3 =
         assessment_point_entry_fixture(%{
           assessment_point_id: assessment_point_3.id,
           student_id: student.id,
           scale_id: ordinal_scale.id,
-          scale_type: ordinal_scale.type
+          scale_type: ordinal_scale.type,
+          ordinal_value_id: ordinal_value.id,
+          differentiation_rubric_id: diff_rubric_3.id
         })
 
       ci_1_m_1_1 =
@@ -1258,13 +1249,15 @@ defmodule Lanttern.AssessmentsTest do
         assessment_point_entry_fixture(%{
           assessment_point_id: assessment_point_3.id,
           scale_id: ordinal_scale.id,
-          scale_type: ordinal_scale.type
+          scale_type: ordinal_scale.type,
+          ordinal_value_id: ordinal_value.id,
+          differentiation_rubric_id: other_diff_rubric_3.id
         })
 
       assert [
                {expected_ap_1, expected_entry_1, [expected_ci_1_m_1_1, expected_ci_1_m_2]},
                {expected_ap_2, expected_entry_2, [expected_ci_2_m_2]},
-               {expected_ap_3, nil, []},
+               {expected_ap_3, expected_entry_3, []},
                {expected_ap_4, nil, [expected_ci_4_m_1]}
              ] = Assessments.list_strand_goals_for_student(student.id, strand.id)
 
@@ -1299,7 +1292,8 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_ap_3.has_diff_rubric_for_student
       assert expected_ap_3.curriculum_item.id == curriculum_item_3.id
       assert expected_ap_3.curriculum_item.curriculum_component.id == curriculum_component_3_4.id
-      assert expected_ap_3.curriculum_item.id == curriculum_item_3.id
+      assert expected_entry_3.id == entry_3.id
+      assert expected_entry_3.ordinal_value_id == ordinal_value.id
 
       assert expected_ap_4.id == assessment_point_4.id
       assert expected_ap_4.scale_id == ordinal_scale.id

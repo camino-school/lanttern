@@ -500,9 +500,6 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
     rubric_params = inject_create_params(rubric_params, socket)
 
     case socket.assigns do
-      %{diff_for_student_id: student_id} when not is_nil(student_id) ->
-        Rubrics.create_diff_rubric_for_student(student_id, rubric_params)
-
       %{link_to_assessment_point_id: assessment_point_id} when not is_nil(assessment_point_id) ->
         Assessments.create_assessment_point_rubric(assessment_point_id, rubric_params)
 

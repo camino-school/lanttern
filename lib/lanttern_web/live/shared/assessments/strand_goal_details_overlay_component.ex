@@ -179,15 +179,12 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
   defp assign_rubric(%{assigns: %{entry: %{differentiation_rubric_id: rubric_id}}} = socket)
        when not is_nil(rubric_id) do
     rubric = Rubrics.get_full_rubric!(rubric_id)
-
     assign(socket, :rubric, rubric)
   end
 
   defp assign_rubric(%{assigns: %{strand_goal: %{rubric_id: rubric_id}}} = socket)
        when not is_nil(rubric_id) do
-    student_id = socket.assigns.student_id
-    rubric = Rubrics.get_full_rubric!(rubric_id, check_diff_for_student_id: student_id)
-
+    rubric = Rubrics.get_full_rubric!(rubric_id)
     assign(socket, :rubric, rubric)
   end
 

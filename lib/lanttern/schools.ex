@@ -728,7 +728,6 @@ defmodule Lanttern.Schools do
   - `:only_deactivated` - boolean, will return only deactivated students
   - `:preload_classes_from_cycle_id` - preload classes, filtered by cycle id
   - `:load_profile_picture_from_cycle_id` - will try to load the profile picture from linked `%StudentCycleInfo{}` with the given cycle id
-  - `:check_diff_rubrics_for_strand_id` - used to check if student has any differentiation rubric for given strand id
   - `:base_query` - used in conjunction with `search_students/2`
 
   ## Examples
@@ -837,28 +836,6 @@ defmodule Lanttern.Schools do
       left_join: sci in assoc(s, :cycles_info),
       on: sci.cycle_id == ^cycle_id,
       select_merge: %{profile_picture_url: sci.profile_picture_url}
-    )
-    |> apply_list_students_opts(opts)
-  end
-
-  defp apply_list_students_opts(queryable, [{:check_diff_rubrics_for_strand_id, strand_id} | opts])
-       when not is_nil(strand_id) do
-    has_diff_query =
-      from(
-        s in Student,
-        left_join: dr in assoc(s, :diff_rubrics),
-        left_join: r in assoc(dr, :parent_rubric),
-        left_join: ap in Lanttern.Assessments.AssessmentPoint,
-        on: ap.rubric_id == r.id and ap.strand_id == ^strand_id,
-        group_by: s.id,
-        select: %{student_id: s.id, has_diff_rubric: count(ap) > 0}
-      )
-
-    from(
-      s in queryable,
-      join: d in subquery(has_diff_query),
-      on: d.student_id == s.id,
-      select_merge: %{has_diff_rubric: d.has_diff_rubric}
     )
     |> apply_list_students_opts(opts)
   end

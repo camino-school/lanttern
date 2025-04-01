@@ -25,13 +25,9 @@ defmodule Lanttern.Rubrics.Rubric do
           strand: Strand.t() | Ecto.Association.NotLoaded.t(),
           curriculum_item_id: pos_integer(),
           curriculum_item: CurriculumItem.t() | Ecto.Association.NotLoaded.t(),
-          parent_rubric: __MODULE__.t(),
-          diff_for_rubric_id: pos_integer(),
           descriptors: [RubricDescriptor.t()],
-          differentiation_rubrics: [__MODULE__.t()],
           assessment_points: [AssessmentPoint.t()],
           diff_entries: [AssessmentPointEntry.t()],
-          students: [Student.t()],
           diff_students: [Student.t()],
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
@@ -45,14 +41,10 @@ defmodule Lanttern.Rubrics.Rubric do
     belongs_to :scale, Scale
     belongs_to :strand, Strand
     belongs_to :curriculum_item, CurriculumItem
-    belongs_to :parent_rubric, __MODULE__, foreign_key: :diff_for_rubric_id
 
     has_many :descriptors, RubricDescriptor, on_replace: :delete
-    has_many :differentiation_rubrics, __MODULE__, foreign_key: :diff_for_rubric_id
     has_many :assessment_points, AssessmentPoint
     has_many :diff_entries, AssessmentPointEntry, foreign_key: :differentiation_rubric_id
-
-    many_to_many :students, Student, join_through: "differentiation_rubrics_students"
 
     many_to_many :diff_students, Student,
       join_through: AssessmentPointEntry,
@@ -68,7 +60,6 @@ defmodule Lanttern.Rubrics.Rubric do
       :criteria,
       :is_differentiation,
       :position,
-      :diff_for_rubric_id,
       :scale_id,
       :strand_id,
       :curriculum_item_id
@@ -81,11 +72,5 @@ defmodule Lanttern.Rubrics.Rubric do
       :curriculum_item_id
     ])
     |> cast_assoc(:descriptors)
-    |> foreign_key_constraint(
-      :diff_for_rubric_id,
-      name: :rubrics_diff_for_rubric_id_fkey,
-      message:
-        "This rubric has linked differentiation rubrics. Deleting it is not allowed, as it would cause data loss."
-    )
   end
 end
