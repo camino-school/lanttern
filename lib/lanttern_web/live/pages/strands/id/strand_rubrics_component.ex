@@ -9,7 +9,6 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
 
   # shared components
   alias LantternWeb.Rubrics.RubricDescriptorsComponent
-  # alias LantternWeb.Rubrics.RubricFormComponent
   alias LantternWeb.Rubrics.RubricDiffInfoOverlayComponent
   alias LantternWeb.Rubrics.RubricFormOverlayComponent
 
@@ -419,162 +418,6 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
     |> assign(:rubrics_ids, rubrics_ids)
   end
 
-  # defp assign_goals(socket) do
-  #   goals =
-  #     Assessments.list_assessment_points(
-  #       strand_id: socket.assigns.strand.id,
-  #       preload_full_rubrics: true,
-  #       preloads: [curriculum_item: :curriculum_component]
-  #     )
-
-  #   goals_with_rubrics =
-  #     goals
-  #     |> Enum.filter(& &1.rubric)
-
-  #   socket
-  #   |> assign(:goals, goals)
-  #   |> assign(:goals_with_rubrics, goals_with_rubrics)
-  #   |> assign(:goals_ids, Enum.map(goals, & &1.id))
-  #   |> assign(:goals_rubrics_ids, Enum.map(goals_with_rubrics, & &1.rubric_id))
-  # end
-
-  # defp assign_students(socket) do
-  #   students =
-  #     case socket.assigns.selected_classes_ids do
-  #       classes_ids when is_list(classes_ids) and classes_ids != [] ->
-  #         Schools.list_students(
-  #           classes_ids: classes_ids,
-  #           check_diff_rubrics_for_strand_id: socket.assigns.strand.id
-  #         )
-
-  #       _ ->
-  #         []
-  #     end
-
-  #   socket
-  #   |> assign(:students, students)
-  #   |> assign(:students_ids, Enum.map(students, & &1.id))
-  # end
-
-  # defp assign_goal_rubric_and_student(
-  #        %{assigns: %{params: %{"new_rubric_for_goal" => binary_id}}} = socket
-  #      ) do
-  #   with {id, _} <- Integer.parse(binary_id), true <- id in socket.assigns.goals_ids do
-  #     goal =
-  #       Assessments.get_assessment_point(id, preloads: [curriculum_item: :curriculum_component])
-
-  #     rubric = %Rubric{scale_id: goal.scale_id}
-
-  #     socket
-  #     |> assign(:goal, goal)
-  #     |> assign(:rubric, rubric)
-  #     |> assign(:student, nil)
-  #   else
-  #     _ -> assign_empty_goal_rubric_and_student(socket)
-  #   end
-  # end
-
-  # defp assign_goal_rubric_and_student(
-  #        %{assigns: %{params: %{"edit_rubric_for_goal" => binary_id}}} = socket
-  #      ) do
-  #   with {id, _} <- Integer.parse(binary_id), true <- id in socket.assigns.goals_ids do
-  #     goal =
-  #       Assessments.get_assessment_point(id,
-  #         preload_full_rubrics: true,
-  #         preloads: [curriculum_item: :curriculum_component]
-  #       )
-
-  #     rubric = goal.rubric
-
-  #     socket
-  #     |> assign(:goal, goal)
-  #     |> assign(:rubric, rubric)
-  #     |> assign(:student, nil)
-  #   else
-  #     _ -> assign_empty_goal_rubric_and_student(socket)
-  #   end
-  # end
-
-  # defp assign_goal_rubric_and_student(
-  #        %{
-  #          assigns: %{
-  #            params: %{
-  #              "new_diff_rubric_for_goal" => goal_binary_id,
-  #              "student" => student_binary_id
-  #            }
-  #          }
-  #        } = socket
-  #      ) do
-  #   with {goal_id, _} <- Integer.parse(goal_binary_id),
-  #        true <- goal_id in socket.assigns.goals_ids,
-  #        {student_id, _} <- Integer.parse(student_binary_id),
-  #        true <- student_id in socket.assigns.students_ids do
-  #     goal =
-  #       Assessments.get_assessment_point(goal_id,
-  #         preloads: [curriculum_item: :curriculum_component]
-  #       )
-
-  #     rubric =
-  #       %Rubric{
-  #         scale_id: goal.scale_id,
-  #         diff_for_rubric_id: goal.rubric_id
-  #       }
-
-  #     student =
-  #       Schools.get_student(student_id)
-
-  #     socket
-  #     |> assign(:goal, goal)
-  #     |> assign(:rubric, rubric)
-  #     |> assign(:student, student)
-  #   else
-  #     _ -> assign_empty_goal_rubric_and_student(socket)
-  #   end
-  # end
-
-  # defp assign_goal_rubric_and_student(
-  #        %{
-  #          assigns: %{
-  #            params: %{
-  #              "edit_diff_rubric_for_goal" => goal_binary_id,
-  #              "student" => student_binary_id
-  #            }
-  #          }
-  #        } = socket
-  #      ) do
-  #   with {goal_id, _} <- Integer.parse(goal_binary_id),
-  #        true <- goal_id in socket.assigns.goals_ids,
-  #        {student_id, _} <- Integer.parse(student_binary_id),
-  #        true <- student_id in socket.assigns.students_ids do
-  #     goal =
-  #       Assessments.get_assessment_point(goal_id,
-  #         preloads: [curriculum_item: :curriculum_component]
-  #       )
-
-  #     rubric = socket.assigns.current_student_diff_rubrics_map[goal.rubric_id]
-
-  #     student =
-  #       Schools.get_student(student_id)
-
-  #     socket
-  #     |> assign(:goal, goal)
-  #     |> assign(:rubric, rubric)
-  #     |> assign(:student, student)
-  #   else
-  #     _ -> assign_empty_goal_rubric_and_student(socket)
-  #   end
-  # end
-
-  # defp assign_goal_rubric_and_student(socket),
-  #   do: assign_empty_goal_rubric_and_student(socket)
-
-  # defp assign_empty_goal_rubric_and_student(socket) do
-  #   socket
-  #   |> assign(:goal, nil)
-  #   |> assign(:rubric, nil)
-  #   |> assign(:student, nil)
-  # end
-
   defp assign_rubric(%{assigns: %{params: %{"edit_rubric" => rubric_id}}} = socket) do
     if rubric_id in socket.assigns.rubrics_ids do
       rubric = Rubrics.get_rubric!(rubric_id)
@@ -714,19 +557,5 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
 
         {:noreply, socket}
     end
-  end
-
-  def handle_event("load_diff_rubrics", %{"student_id" => student_id}, socket) do
-    # key = parent rubric id
-    current_student_diff_rubrics_map =
-      Rubrics.list_full_rubrics(
-        parent_rubrics_ids: socket.assigns.goals_rubrics_ids,
-        students_ids: [student_id]
-      )
-      |> Enum.map(&{&1.diff_for_rubric_id, &1})
-      |> Enum.into(%{})
-
-    {:noreply,
-     assign(socket, :current_student_diff_rubrics_map, current_student_diff_rubrics_map)}
   end
 end

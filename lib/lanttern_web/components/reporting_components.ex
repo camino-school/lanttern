@@ -20,6 +20,7 @@ defmodule LantternWeb.ReportingComponents do
 
   # shared components
   alias LantternWeb.Assessments.EntryParticleComponent
+  alias LantternWeb.Rubrics.RubricDescriptorsComponent
   import LantternWeb.AssessmentsComponents
   import LantternWeb.AttachmentsComponents
 
@@ -58,6 +59,39 @@ defmodule LantternWeb.ReportingComponents do
       </div>
       <.markdown text={@comment} class="max-w-none mt-4" />
     </div>
+    """
+  end
+
+  @doc """
+  Renders a rubric area
+  """
+
+  attr :rubric, Rubric, required: true
+  attr :entry, AssessmentPointEntry, default: nil
+  attr :id, :string, required: true
+  attr :class, :any, default: nil
+
+  def rubric_area(assigns) do
+    ~H"""
+    <.card_base class={["p-2", @class]} id={@id}>
+      <div class="flex items-center gap-2 mb-6">
+        <div class="flex-1 pr-2">
+          <.badge :if={@rubric.is_differentiation} theme="diff" class="mb-2">
+            <%= gettext("Rubric differentiation") %>
+          </.badge>
+          <p class="font-display font-black">
+            <%= gettext("Rubric criteria") %>: <%= @rubric.criteria %>
+          </p>
+        </div>
+      </div>
+      <.live_component
+        module={RubricDescriptorsComponent}
+        id={"#{@id}-rubric-descriptors"}
+        rubric={@rubric}
+        highlight_level_for_entry={@entry}
+        class="overflow-x-auto"
+      />
+    </.card_base>
     """
   end
 
@@ -308,10 +342,10 @@ defmodule LantternWeb.ReportingComponents do
     """
   end
 
-  attr :class, :any, default: nil
-  attr :id, :string, default: nil
   attr :assessment_point, AssessmentPoint, required: true
   attr :entry, :any, required: true
+  attr :id, :string, required: true
+  attr :class, :any, default: nil
 
   def moment_assessment_point_entry(assigns) do
     ~H"""
@@ -323,11 +357,18 @@ defmodule LantternWeb.ReportingComponents do
         <p class="flex-1 text-sm"><%= @assessment_point.name %></p>
         <.assessment_point_entry_badge entry={@entry} class="shrink-0" />
       </div>
+      <.rubric_area
+        :if={@entry.differentiation_rubric || @assessment_point.rubric}
+        rubric={@entry.differentiation_rubric || @assessment_point.rubric}
+        entry={@entry}
+        id={"#{@id}-rubric"}
+        class="mt-4"
+      />
       <.comment_area :if={@entry && @entry.report_note} comment={@entry.report_note} class="mt-2" />
       <.attachments_list
         :if={@entry && is_list(@entry.evidences) && @entry.evidences != []}
         attachments={@entry.evidences}
-        class="mt-2"
+        class="mt-4"
       />
     </div>
     """

@@ -980,6 +980,7 @@ defmodule Lanttern.ReportingTest do
     alias Lanttern.GradingFixtures
     alias Lanttern.IdentityFixtures
     alias Lanttern.LearningContextFixtures
+    alias Lanttern.RubricsFixtures
     alias Lanttern.SchoolsFixtures
     alias Lanttern.TaxonomyFixtures
 
@@ -1197,6 +1198,8 @@ defmodule Lanttern.ReportingTest do
       ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: o_scale.id})
       ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: o_scale.id})
 
+      # assessment points
+
       assessment_point_1_1 =
         AssessmentsFixtures.assessment_point_fixture(%{
           moment_id: moment_1.id,
@@ -1398,6 +1401,7 @@ defmodule Lanttern.ReportingTest do
 
     test "list_moment_assessment_points_and_student_entries/2 returns all assessment points and entries for the given moment and student" do
       moment = LearningContextFixtures.moment_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
 
       student = SchoolsFixtures.student_fixture()
 
@@ -1406,10 +1410,38 @@ defmodule Lanttern.ReportingTest do
       ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: o_scale.id})
       ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: o_scale.id})
 
+      # rubrics
+
+      rubric_1 =
+        RubricsFixtures.rubric_fixture(%{
+          strand_id: moment.strand_id,
+          scale_id: o_scale.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      diff_rubric_1 =
+        RubricsFixtures.rubric_fixture(%{
+          strand_id: moment.strand_id,
+          scale_id: o_scale.id,
+          curriculum_item_id: curriculum_item.id,
+          is_differentiation: true
+        })
+
+      rubric_3 =
+        RubricsFixtures.rubric_fixture(%{
+          strand_id: moment.strand_id,
+          scale_id: n_scale.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      # assesment points
+
       assessment_point_1 =
         AssessmentsFixtures.assessment_point_fixture(%{
           moment_id: moment.id,
-          scale_id: o_scale.id
+          scale_id: o_scale.id,
+          curriculum_item_id: curriculum_item.id,
+          rubric_id: rubric_1.id
         })
 
       assessment_point_2 =
@@ -1421,7 +1453,9 @@ defmodule Lanttern.ReportingTest do
       assessment_point_3 =
         AssessmentsFixtures.assessment_point_fixture(%{
           moment_id: moment.id,
-          scale_id: n_scale.id
+          scale_id: n_scale.id,
+          curriculum_item_id: curriculum_item.id,
+          rubric_id: rubric_3.id
         })
 
       # only empty entries for moment 4
@@ -1444,7 +1478,8 @@ defmodule Lanttern.ReportingTest do
           assessment_point_id: assessment_point_1.id,
           scale_id: o_scale.id,
           scale_type: o_scale.type,
-          ordinal_value_id: ov_1.id
+          ordinal_value_id: ov_1.id,
+          differentiation_rubric_id: diff_rubric_1.id
         })
 
       assessment_point_2_entry =
@@ -1483,10 +1518,12 @@ defmodule Lanttern.ReportingTest do
       # assessment point 1 assertions
 
       assert expected_assessment_point_1.id == assessment_point_1.id
+      assert expected_assessment_point_1.rubric.id == rubric_1.id
 
       assert expected_entry_1.id == assessment_point_1_entry.id
       assert expected_entry_1.scale == o_scale
       assert expected_entry_1.ordinal_value == ov_1
+      assert expected_entry_1.differentiation_rubric.id == diff_rubric_1.id
 
       # assessment point 2 assertions
 
@@ -1499,6 +1536,7 @@ defmodule Lanttern.ReportingTest do
       # assessment point 3 assertions
 
       assert expected_assessment_point_3.id == assessment_point_3.id
+      assert expected_assessment_point_3.rubric.id == rubric_3.id
 
       assert expected_entry_3.id == assessment_point_3_entry.id
       assert expected_entry_3.scale == n_scale
@@ -1539,18 +1577,46 @@ defmodule Lanttern.ReportingTest do
       ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: o_scale.id})
       ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: o_scale.id})
 
+      # rubrics
+
+      rubric_1 =
+        RubricsFixtures.rubric_fixture(%{
+          strand_id: strand.id,
+          scale_id: o_scale.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      diff_rubric_1 =
+        RubricsFixtures.rubric_fixture(%{
+          strand_id: strand.id,
+          scale_id: o_scale.id,
+          curriculum_item_id: curriculum_item.id,
+          is_differentiation: true
+        })
+
+      rubric_2 =
+        RubricsFixtures.rubric_fixture(%{
+          strand_id: strand.id,
+          scale_id: n_scale.id,
+          curriculum_item_id: curriculum_item.id
+        })
+
+      # assessment points
+
       assessment_point_1_1 =
         AssessmentsFixtures.assessment_point_fixture(%{
           moment_id: moment_1.id,
           scale_id: o_scale.id,
-          curriculum_item_id: curriculum_item.id
+          curriculum_item_id: curriculum_item.id,
+          rubric_id: rubric_1.id
         })
 
       assessment_point_1_2 =
         AssessmentsFixtures.assessment_point_fixture(%{
           moment_id: moment_1.id,
           scale_id: n_scale.id,
-          curriculum_item_id: curriculum_item.id
+          curriculum_item_id: curriculum_item.id,
+          rubric_id: rubric_2.id
         })
 
       # no student assessment point entry for assessment point 2_1
@@ -1576,7 +1642,8 @@ defmodule Lanttern.ReportingTest do
           assessment_point_id: assessment_point_1_1.id,
           scale_id: o_scale.id,
           scale_type: o_scale.type,
-          ordinal_value_id: ov_1.id
+          ordinal_value_id: ov_1.id,
+          differentiation_rubric_id: diff_rubric_1.id
         })
 
       assessment_point_1_2_entry =
@@ -1643,13 +1710,16 @@ defmodule Lanttern.ReportingTest do
 
       assert expected_moment_1.id == moment_1.id
       assert expected_assessment_point_1_1.id == assessment_point_1_1.id
+      assert expected_assessment_point_1_1.rubric.id == rubric_1.id
       assert expected_entry_1_1.id == assessment_point_1_1_entry.id
       assert expected_entry_1_1.scale == o_scale
       assert expected_entry_1_1.ordinal_value == ov_1
       assert expected_entry_1_1.evidences == [evidence]
+      assert expected_entry_1_1.differentiation_rubric.id == diff_rubric_1.id
 
       assert expected_entry_1_2.id == assessment_point_1_2_entry.id
       assert expected_assessment_point_1_2.id == assessment_point_1_2.id
+      assert expected_assessment_point_1_2.rubric.id == rubric_2.id
       assert expected_entry_1_2.scale == n_scale
       assert expected_entry_1_2.score == 5.0
     end

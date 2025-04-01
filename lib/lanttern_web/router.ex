@@ -88,14 +88,6 @@ defmodule LantternWeb.Router do
 
       live "/school/message_board/archive", ArchivedMessagesLive, :index
 
-      live "/assessment_points/:id", AssessmentPointLive, :show
-      live "/assessment_points/:id/edit", AssessmentPointLive, :edit
-      live "/assessment_points/:id/rubrics", AssessmentPointLive, :rubrics
-
-      live "/assessment_points/:id/student/:student_id/feedback",
-           AssessmentPointLive,
-           :feedback
-
       live "/strands", StrandsLive, :index
       live "/strands/library", StrandsLibraryLive, :index
       live "/strands/library/new", StrandsLibraryLive, :new
@@ -110,10 +102,6 @@ defmodule LantternWeb.Router do
       live "/strands/moment/:id/assessment", MomentLive, :assessment
       live "/strands/moment/:id/cards", MomentLive, :cards
       live "/strands/moment/:id/notes", MomentLive, :notes
-
-      live "/rubrics", RubricsLive, :index
-      live "/rubrics/new", RubricsLive, :new
-      live "/rubrics/:id/edit", RubricsLive, :edit
 
       live "/curriculum", CurriculaLive, :index
       live "/curriculum/bncc_ef", BnccEfLive, :index

@@ -1132,8 +1132,8 @@ defmodule Lanttern.Reporting do
 
   **Preloaded data:**
 
-  - assessment_points: entries
-  - assessment entries: scale and ordinal value
+  - assessment_points: rubric
+  - assessment entries: scale, ordinal value, differentiation rubric
 
   ## Examples
 
@@ -1151,18 +1151,20 @@ defmodule Lanttern.Reporting do
   def list_moment_assessment_points_and_student_entries(moment_id, student_id) do
     from(
       ap in AssessmentPoint,
+      left_join: r in assoc(ap, :rubric),
       join: e in AssessmentPointEntry,
       on: e.assessment_point_id == ap.id and e.student_id == ^student_id,
       left_join: sc in assoc(e, :scale),
       left_join: ov in assoc(e, :ordinal_value),
-      select: {ap, e, sc, ov},
+      left_join: dr in assoc(e, :differentiation_rubric),
+      select: {%{ap | rubric: r}, e, sc, ov, dr},
       where: ap.moment_id == ^moment_id,
       where: e.has_marking,
       order_by: ap.position
     )
     |> Repo.all()
-    |> Enum.map(fn {ap, e, sc, ov} ->
-      {ap, e && %{e | scale: sc, ordinal_value: ov}}
+    |> Enum.map(fn {ap, e, sc, ov, dr} ->
+      {ap, e && %{e | scale: sc, ordinal_value: ov, differentiation_rubric: dr}}
     end)
   end
 
@@ -1176,7 +1178,8 @@ defmodule Lanttern.Reporting do
 
   **Preloaded data:**
 
-  - assessment entries: scale, ordinal value, and evidences
+  - assessment points: rubric
+  - assessment entries: scale, ordinal value, evidences, diff rubric
 
   ## Examples
 
@@ -1202,9 +1205,10 @@ defmodule Lanttern.Reporting do
         m in Moment,
         join: ap in assoc(m, :assessment_points),
         on: ap.curriculum_item_id == ^curriculum_item_id,
+        left_join: r in assoc(ap, :rubric),
+        select: {m, %{ap | rubric: r}},
         where: m.strand_id == ^strand_id,
-        order_by: [asc: m.position, asc: ap.position],
-        select: {m, ap}
+        order_by: [asc: m.position, asc: ap.position]
       )
       |> Repo.all()
 
@@ -1217,10 +1221,11 @@ defmodule Lanttern.Reporting do
         left_join: ov in assoc(e, :ordinal_value),
         left_join: apee in assoc(e, :assessment_point_entry_evidences),
         left_join: ev in assoc(apee, :attachment),
+        left_join: dr in assoc(e, :differentiation_rubric),
+        preload: [scale: sc, ordinal_value: ov, evidences: ev, differentiation_rubric: dr],
         where: m.strand_id == ^strand_id and e.student_id == ^student_id,
         where: e.has_marking,
-        order_by: [asc: ap.position, asc: apee.position],
-        preload: [scale: sc, ordinal_value: ov, evidences: ev]
+        order_by: [asc: ap.position, asc: apee.position]
       )
       |> Repo.all()
       |> Enum.map(&{&1.assessment_point_id, &1})

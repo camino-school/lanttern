@@ -14,7 +14,6 @@ defmodule Lanttern.Schools.Student do
   alias Lanttern.Identity.Profile
   alias Lanttern.ILP.StudentILP
   alias Lanttern.Reporting.StudentReportCard
-  alias Lanttern.Rubrics.Rubric
   alias Lanttern.Schools.School
   alias Lanttern.Schools.Class
   alias Lanttern.StudentsCycleInfo.StudentCycleInfo
@@ -28,7 +27,6 @@ defmodule Lanttern.Schools.Student do
           school: School.t(),
           school_id: pos_integer(),
           classes: [Class.t()],
-          diff_rubrics: [Rubric.t()],
           assessment_point_entries: [AssessmentPointEntry.t()],
           cycles_info: [StudentCycleInfo.t()],
           student_report_cards: [StudentReportCard.t()],
@@ -57,8 +55,6 @@ defmodule Lanttern.Schools.Student do
       join_through: "classes_students",
       on_replace: :delete,
       preload_order: [asc: :name]
-
-    many_to_many :diff_rubrics, Rubric, join_through: "differentiation_rubrics_students"
 
     has_many :assessment_point_entries, AssessmentPointEntry
     has_many :cycles_info, StudentCycleInfo
