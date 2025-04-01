@@ -357,9 +357,6 @@ defmodule LantternWeb.MenuComponent do
     LantternWeb.AssessmentPointsLive => :assessment_points,
     LantternWeb.AssessmentPointLive => :assessment_points,
 
-    # rubrics
-    LantternWeb.RubricsLive => :rubrics,
-
     # curriculum
     LantternWeb.CurriculaLive => :curriculum,
     LantternWeb.CurriculumLive => :curriculum,
@@ -448,7 +445,6 @@ defmodule LantternWeb.MenuComponent do
         path: ~p"/school/classes",
         text: gettext("School management")
       },
-      # %{profile: "staff", active: :rubrics, path: ~p"/rubrics", text: gettext("Rubrics")},
       %{
         profile: "staff",
         active: :curriculum,

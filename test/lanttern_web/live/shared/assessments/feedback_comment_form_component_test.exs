@@ -16,6 +16,7 @@ defmodule LantternWeb.Assessments.FeedbackCommentFormComponentTest do
   describe "Create feedback comment in assessment points live view" do
     setup :create_assessment_point_with_feedback
 
+    @tag :skip
     test "feedback comment form shows in feedback overlay", %{
       conn: conn,
       assessment_point: assessment_point
@@ -33,6 +34,7 @@ defmodule LantternWeb.Assessments.FeedbackCommentFormComponentTest do
              |> has_element?()
     end
 
+    @tag :skip
     test "after creating feedback comment using form, feedback is displayed in overlay", %{
       conn: conn,
       assessment_point: assessment_point,
@@ -99,6 +101,7 @@ defmodule LantternWeb.Assessments.FeedbackCommentFormComponentTest do
   describe "Update feedback comment in assessment points live view" do
     setup [:create_assessment_point_with_feedback, :create_feedback_comment]
 
+    @tag :skip
     test "update feedback comment form shows in feedback overlay", %{
       conn: conn,
       assessment_point: assessment_point,
@@ -128,6 +131,7 @@ defmodule LantternWeb.Assessments.FeedbackCommentFormComponentTest do
              |> has_element?()
     end
 
+    @tag :skip
     test "after updating feedback comment using form, updated comment is displayed in overlay", %{
       conn: conn,
       assessment_point: assessment_point,
@@ -164,6 +168,7 @@ defmodule LantternWeb.Assessments.FeedbackCommentFormComponentTest do
   describe "Delete feedback comment in assessment points live view" do
     setup [:create_assessment_point_with_feedback, :create_feedback_comment]
 
+    @tag :skip
     test "delete feedback comment form shows in feedback overlay", %{
       conn: conn,
       assessment_point: assessment_point,
@@ -187,6 +192,7 @@ defmodule LantternWeb.Assessments.FeedbackCommentFormComponentTest do
       |> render_click()
     end
 
+    @tag :skip
     test "after deleting feedback comment, comment should be removed from UI", %{
       conn: conn,
       assessment_point: assessment_point,

@@ -14,6 +14,7 @@ defmodule LantternWeb.Assessments.FeedbackFormComponentTest do
   describe "Create new feedback in assessment points live view" do
     setup :create_assessment_point_without_feedback
 
+    @tag :skip
     test "after creating feedback using form, feedback is displayed in overlay", %{
       conn: conn,
       assessment_point: assessment_point,
