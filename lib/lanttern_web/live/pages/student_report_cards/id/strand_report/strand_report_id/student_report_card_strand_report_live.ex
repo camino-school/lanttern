@@ -9,10 +9,12 @@ defmodule LantternWeb.StudentReportCardStrandReportLive do
 
   # shared components
   alias LantternWeb.Notes.NoteComponent
-  import LantternWeb.ReportingComponents
   alias LantternWeb.Reporting.StrandReportOverviewComponent
   alias LantternWeb.Reporting.StrandReportAssessmentComponent
   alias LantternWeb.Reporting.StrandReportMomentsComponent
+
+  import LantternWeb.LearningContextComponents, only: [mini_strand_card: 1]
+  import LantternWeb.ReportingComponents
 
   @tabs %{
     "overview" => :overview,

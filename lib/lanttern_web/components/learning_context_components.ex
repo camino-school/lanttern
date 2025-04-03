@@ -32,7 +32,18 @@ defmodule LantternWeb.LearningContextComponents do
       assigns.strand.cover_image_url
       |> object_url_to_render_url(width: 400, height: 200)
 
-    assigns = assign(assigns, :cover_image_url, cover_image_url)
+    strand_report_cover_image_url =
+      assigns.strand_report_cover_image_url
+      |> object_url_to_render_url(width: 400, height: 200)
+
+    has_multiple_images =
+      !!cover_image_url && !!strand_report_cover_image_url
+
+    assigns =
+      assigns
+      |> assign(:cover_image_url, cover_image_url)
+      |> assign(:strand_report_cover_image_url, strand_report_cover_image_url)
+      |> assign(:has_multiple_images, has_multiple_images)
 
     ~H"""
     <.card_base
@@ -45,7 +56,7 @@ defmodule LantternWeb.LearningContextComponents do
       <div
         class="relative shrink-0 w-full h-40"
         id={"#{@id}-report-card-slider"}
-        {if @strand_report_cover_image_url, do: %{
+        {if @has_multiple_images, do: %{
           "phx-hook" => "Slider",
           "phx-update" => "ignore"
         }, else: %{}}
@@ -57,14 +68,12 @@ defmodule LantternWeb.LearningContextComponents do
             style={"background-image: url('#{@strand_report_cover_image_url}')"}
           />
           <div
+            :if={@cover_image_url || !@strand_report_cover_image_url}
             class="w-full h-full bg-center bg-cover"
             style={"background-image: url('#{@cover_image_url || "/images/cover-placeholder-sm.jpg"}')"}
           />
         </div>
-        <div
-          :if={@cover_image_url && @strand_report_cover_image_url}
-          class="absolute bottom-2 flex justify-center w-full"
-        >
+        <div :if={@has_multiple_images} class="absolute bottom-2 flex justify-center w-full">
           <div class="slider-dots px-1 rounded-full bg-white" />
         </div>
         <div :if={@on_star_click || @on_edit} class="absolute top-2 right-2 flex items-center gap-2">

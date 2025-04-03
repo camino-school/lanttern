@@ -12,6 +12,7 @@ defmodule LantternWeb.NavigationComponents do
   Renders the page header with navigation items.
   """
   attr :current_user, Lanttern.Identity.User, required: true
+  attr :menu_style, :string, default: "basic", doc: "basic | legacy"
 
   slot :title, required: true
   slot :inner_block
@@ -27,12 +28,19 @@ defmodule LantternWeb.NavigationComponents do
   def header_nav(assigns) do
     has_breadcrumb = assigns.breadcrumb != []
 
+    first_breadcrumb =
+      case assigns.breadcrumb do
+        [first | _] -> first
+        _ -> nil
+      end
+
     %{school_name: school_name, current_school_cycle: current_cycle} =
       assigns.current_user.current_profile
 
     assigns =
       assigns
       |> assign(:has_breadcrumb, has_breadcrumb)
+      |> assign(:first_breadcrumb, first_breadcrumb)
       |> assign(:school_name, school_name)
       |> assign(:current_cycle, current_cycle)
 
@@ -41,6 +49,15 @@ defmodule LantternWeb.NavigationComponents do
       <div class="flex items-center gap-4 p-4">
         <%!-- min-w-0 to "fix" truncate (https://css-tricks.com/flexbox-truncated-text/) --%>
         <div class="flex-1 flex items-center gap-2 min-w-0">
+          <%!-- back button for responsive only --%>
+          <.link
+            :if={@first_breadcrumb}
+            navigate={@first_breadcrumb.navigate}
+            class="sm:hidden text-ltrn-dark hover:text-ltrn-subtle"
+            title={Map.get(@first_breadcrumb, :title)}
+          >
+            <.icon name="hero-chevron-left" />
+          </.link>
           <%= for breadcrumb <- @breadcrumb do %>
             <%= if Map.get(breadcrumb, :is_info) do %>
               <.breadcrumb_floating_info>
@@ -49,17 +66,19 @@ defmodule LantternWeb.NavigationComponents do
             <% else %>
               <.link
                 navigate={breadcrumb.navigate}
-                class="max-w-60 font-display font-black text-lg text-ltrn-subtle truncate hover:text-ltrn-dark"
+                class="hidden sm:block max-w-60 font-display font-black text-lg text-ltrn-subtle truncate hover:text-ltrn-dark"
                 title={Map.get(breadcrumb, :title)}
               >
                 <%= render_slot(breadcrumb) %>
               </.link>
-              <span class="font-display font-black text-lg text-ltrn-subtle">/</span>
+              <span class="hidden sm:block font-display font-black text-lg text-ltrn-subtle">/</span>
             <% end %>
           <% end %>
           <h1 class="font-display font-black text-lg truncate"><%= render_slot(@title) %></h1>
         </div>
+        <.nav_menu_button :if={@menu_style == "legacy"} />
         <button
+          :if={@menu_style != "legacy"}
           type="button"
           class="flex gap-2 items-center hover:text-ltrn-subtle"
           phx-click={JS.exec("data-show", to: "#menu")}

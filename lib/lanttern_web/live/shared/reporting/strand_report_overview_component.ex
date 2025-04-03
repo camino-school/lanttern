@@ -22,8 +22,27 @@ defmodule LantternWeb.Reporting.StrandReportOverviewComponent do
   def render(assigns) do
     ~H"""
     <div class={@class}>
-      <.responsive_container>
-        <.markdown :if={@description} text={@description} />
+      <.cover_image
+        context_image_url={@strand_report.cover_image_url}
+        image_url={@strand_report.strand.cover_image_url}
+        alt_text={gettext("Strand cover image")}
+      />
+      <.responsive_container class="px-2 mt-10" no_default_padding>
+        <hgroup class="font-display font-black">
+          <h1 class="text-4xl sm:text-5xl"><%= @strand_report.strand.name %></h1>
+          <p :if={@strand_report.strand.type} class="mt-2 text-xl sm:text-2xl">
+            <%= @strand_report.strand.type %>
+          </p>
+        </hgroup>
+        <div class="flex flex-wrap gap-2 mt-6">
+          <.badge :for={subject <- @strand_report.strand.subjects} theme="dark">
+            <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name) %>
+          </.badge>
+          <.badge :for={year <- @strand_report.strand.years} theme="dark">
+            <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", year.name) %>
+          </.badge>
+        </div>
+        <.markdown :if={@description} text={@description} class="mt-10" />
         <div :if={@has_rubric} id="curriculum-items-student-rubrics" phx-update="stream">
           <.card_base
             :for={{dom_id, {goal, rubrics}} <- @streams.goals_rubrics}
