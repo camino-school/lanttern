@@ -115,3 +115,17 @@
     transform: rotate(360deg);
   }
 }
+
+/* glider overrides */
+.glider-dot {
+  color: #cbd5e1;
+  background: #cbd5e1;
+  margin: 4px;
+  width: 8px;
+  height: 8px;
+}
+.glider-dot:hover,
+.glider-dot:focus,
+.glider-dot.active {
+  background: #22d3ee;
+}

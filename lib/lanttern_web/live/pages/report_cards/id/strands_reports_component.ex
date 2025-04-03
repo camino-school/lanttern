@@ -41,7 +41,7 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
             :for={{dom_id, strand_report} <- @streams.strands_reports}
             id={dom_id}
             strand={strand_report.strand}
-            cover_image_url={strand_report.cover_image_url}
+            strand_report_cover_image_url={strand_report.cover_image_url}
             navigate={~p"/strands/#{strand_report.strand}"}
             open_in_new
             hide_description
