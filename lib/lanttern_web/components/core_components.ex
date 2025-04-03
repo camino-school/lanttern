@@ -335,6 +335,7 @@ defmodule LantternWeb.CoreComponents do
     "cyan" => "bg-ltrn-mesh-cyan text-ltrn-dark",
     "dark" => "bg-ltrn-dark text-ltrn-lighter",
     "diff" => "bg-ltrn-diff-lighter text-ltrn-diff-dark",
+    "ai" => "bg-ltrn-ai-lighter text-ltrn-ai-dark",
     "student" => "bg-ltrn-student-lighter text-ltrn-student-dark",
     "staff" => "bg-ltrn-staff-lighter text-ltrn-staff-dark",
     "empty" => "bg-transparent border border-dashed border-ltrn-light text-ltrn-subtle"

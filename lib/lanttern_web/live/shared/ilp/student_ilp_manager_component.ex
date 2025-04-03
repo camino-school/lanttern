@@ -286,18 +286,21 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
   defp assign_ai_form(
          %{assigns: %{template: %ILPTemplate{}, student_ilp: %StudentILP{}}} = socket
        ) do
-    # we enable the AI form only if the ILP has all entries
-    # and the template has AI revision instructions
+    # we enable the AI form only if
+    # - ILP has all entries
+    # - template has AI revision instructions
+    # - template has a selected AI model
 
     has_all_entries =
       socket.assigns.student_ilp.entries
       |> Enum.all?(&(not is_nil(&1.description)))
 
-    template_has_ai_instructions =
+    template_ai_layer_is_ok =
       socket.assigns.template.ai_layer &&
-        not is_nil(socket.assigns.template.ai_layer.revision_instructions)
+        not is_nil(socket.assigns.template.ai_layer.revision_instructions) &&
+        not is_nil(socket.assigns.template.ai_layer.model)
 
-    if has_all_entries && template_has_ai_instructions do
+    if has_all_entries && template_ai_layer_is_ok do
       form = to_form(%{"age" => nil}, as: :ai_form)
       assign(socket, :ai_form, form)
     else
@@ -320,7 +323,8 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
   end
 
   defp assign_is_on_ai_cooldown(%{assigns: %{has_ai_revision: true}} = socket) do
-    ai_cooldown_minutes = Application.get_env(:lanttern, LantternWeb.OpenAI)[:cooldown_minutes]
+    ai_cooldown_minutes =
+      (socket.assigns.template.ai_layer && socket.assigns.template.ai_layer.cooldown_minutes) || 0
 
     cooldown_end_datetime =
       DateTime.shift(socket.assigns.student_ilp.ai_revision_datetime, minute: ai_cooldown_minutes)

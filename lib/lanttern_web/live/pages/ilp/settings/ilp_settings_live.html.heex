@@ -72,9 +72,23 @@
           <.markdown text={template.teacher_description} />
         </div>
         <.ai_box :if={template.ai_layer && template.ai_layer.revision_instructions} class="mt-6">
-          <p class="pb-6 border-b border-ltrn-mesh-primary mb-6">
-            <%= gettext("Lanttern AI ILP revision instructions") %>
-          </p>
+          <div class="pb-6 border-b border-ltrn-ai-accent mb-6">
+            <p><%= gettext("Lanttern AI ILP revision instructions.") %></p>
+            <div class="flex items-center gap-4 mt-4">
+              <div class="flex items-center gap-2">
+                <%= gettext("Current model:") %>
+                <%= if template.ai_layer.model do %>
+                  <.badge theme="ai"><%= template.ai_layer.model %></.badge>
+                <% else %>
+                  <.badge><%= gettext("No model selected") %></.badge>
+                <% end %>
+              </div>
+              <div class="flex items-center gap-2">
+                <%= gettext("AI request cooldown (in minutes):") %>
+                <.badge theme="ai"><%= template.ai_layer.cooldown_minutes %></.badge>
+              </div>
+            </div>
+          </div>
           <.markdown text={template.ai_layer.revision_instructions} />
         </.ai_box>
       </div>

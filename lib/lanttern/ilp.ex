@@ -778,9 +778,7 @@ defmodule Lanttern.ILP do
         }
       ]
 
-    model = Application.get_env(:lanttern, LantternWeb.OpenAI)[:model]
-
-    case open_ai_responses_module.create_response(input, model) do
+    case open_ai_responses_module.create_response(input, template.ai_layer.model) do
       {:ok, %ExOpenAI.Components.Response{} = response} ->
         [
           %{
