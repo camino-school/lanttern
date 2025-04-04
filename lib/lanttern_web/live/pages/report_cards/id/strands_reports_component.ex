@@ -10,6 +10,7 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
   # shared components
   alias LantternWeb.LearningContext.StrandSearchComponent
   alias LantternWeb.Reporting.StrandReportFormComponent
+  alias LantternWeb.GradesReports.StrandGradesReportSubjectsComponent
   import LantternWeb.LearningContextComponents
 
   @impl true
@@ -62,6 +63,15 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
                   <%= gettext("No strand report description") %>
                 </p>
               <% end %>
+              <.live_component
+                :if={@report_card.grades_report_id}
+                module={StrandGradesReportSubjectsComponent}
+                id={"grade-composition-info-#{strand_report.id}"}
+                strand_id={strand_report.strand.id}
+                cycle_id={@report_card.school_cycle_id}
+                grades_report_id={@report_card.grades_report_id}
+                class="p-6 border-t border-ltrn-light bg-ltrn-lightest"
+              />
             </:bottom_content>
           </.strand_card>
         </.responsive_grid>

@@ -211,8 +211,8 @@ defmodule Lanttern.Reporting do
 
   ## Options
 
-      - `:preloads` – preloads associated data
-      - `:report_card_id` - filter strand reports by report card
+  - `:preloads` – preloads associated data
+  - `:report_card_id` - filter strand reports by report card
 
   ## Examples
 
