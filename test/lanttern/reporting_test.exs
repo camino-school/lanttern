@@ -1068,6 +1068,13 @@ defmodule Lanttern.ReportingTest do
           scale_id: n_scale.id
         })
 
+      # 2_2 will have an empty entry
+      assessment_point_2_2 =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand_2.id,
+          scale_id: n_scale.id
+        })
+
       # no student assessment point entry for strand 3 (test list filtering)
       _assessment_point_3_1 =
         AssessmentsFixtures.assessment_point_fixture(%{
@@ -1100,6 +1107,15 @@ defmodule Lanttern.ReportingTest do
           scale_id: n_scale.id,
           scale_type: n_scale.type,
           score: 5
+        })
+
+      # no marking
+      _assessment_point_2_2_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point_2_2.id,
+          scale_id: n_scale.id,
+          scale_type: n_scale.type
         })
 
       assert [

@@ -21,6 +21,11 @@ import "phoenix_html";
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
+
+// external imports
+import 'glider-js';
+
+// hooks
 import autocompleteHook from "./autocomplete-hook";
 import copyToClipboardHook from "./copy-to-clipboard-hook";
 import cookiesHook from "./cookies-hook";

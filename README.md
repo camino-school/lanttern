@@ -61,8 +61,6 @@ The main secrets/env vars that we need for this are the following:
 
 - `OPENAI_API_KEY`
 - `OPENAI_ORGANIZATION_KEY`
-- `OPENAI_MODEL`
-- `OPENAI_COOLDOWN_MINUTES`
 
 #### Others
 

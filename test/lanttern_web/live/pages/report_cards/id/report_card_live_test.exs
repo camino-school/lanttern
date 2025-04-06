@@ -109,12 +109,37 @@ defmodule LantternWeb.ReportCardLiveTest do
     end
 
     test "view grades reports", %{conn: conn} do
-      grades_report = Lanttern.GradesReportsFixtures.grades_report_fixture(%{name: "GR name AAA"})
+      grades_report =
+        Lanttern.GradesReportsFixtures.grades_report_fixture(%{
+          name: "GR name AAA",
+          info: "some GR info"
+        })
+
       report_card = report_card_fixture(%{grades_report_id: grades_report.id})
 
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{report_card.id}/grades")
 
       assert view |> has_element?("a", "GR name AAA")
+      assert view |> has_element?("p", "some GR info")
+    end
+
+    test "report card grading info takes precedence over grades report info", %{conn: conn} do
+      grades_report =
+        Lanttern.GradesReportsFixtures.grades_report_fixture(%{
+          name: "GR name AAA",
+          info: "some GR info"
+        })
+
+      report_card =
+        report_card_fixture(%{
+          grades_report_id: grades_report.id,
+          grading_info: "more important GR info"
+        })
+
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{report_card.id}/grades")
+
+      assert view |> has_element?("a", "GR name AAA")
+      assert view |> has_element?("p", "more important GR info")
     end
 
     test "view tracking", %{conn: conn} do

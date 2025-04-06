@@ -211,8 +211,8 @@ defmodule Lanttern.Reporting do
 
   ## Options
 
-      - `:preloads` – preloads associated data
-      - `:report_card_id` - filter strand reports by report card
+  - `:preloads` – preloads associated data
+  - `:report_card_id` - filter strand reports by report card
 
   ## Examples
 
@@ -998,6 +998,7 @@ defmodule Lanttern.Reporting do
         join: s in assoc(ap, :strand),
         join: sr in assoc(s, :strand_reports),
         where: sr.report_card_id == ^report_card_id and e.student_id == ^student_id,
+        where: e.has_marking,
         order_by: ap.position,
         preload: [scale: sc, ordinal_value: ov],
         select: {sr.id, e}

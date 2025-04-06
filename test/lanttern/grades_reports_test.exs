@@ -882,10 +882,16 @@ defmodule Lanttern.GradesReportsTest do
       marking_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
 
       ov_eme =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: marking_scale.id, normalized_value: 0.4})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: marking_scale.id,
+          normalized_value: 0.4
+        })
 
       ov_pro =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: marking_scale.id, normalized_value: 0.6})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: marking_scale.id,
+          normalized_value: 0.6
+        })
 
       ov_ach =
         GradingFixtures.ordinal_value_fixture(%{
@@ -894,13 +900,19 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       ov_exc =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: marking_scale.id, normalized_value: 1.0})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: marking_scale.id,
+          normalized_value: 1.0
+        })
 
       grading_scale =
         GradingFixtures.scale_fixture(%{type: "ordinal", breakpoints: [0.5, 0.6, 0.8, 0.9]})
 
       ov_a =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 1.0})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: grading_scale.id,
+          normalized_value: 1.0
+        })
 
       _ov_b =
         GradingFixtures.ordinal_value_fixture(%{
@@ -909,13 +921,22 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       ov_c =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.7})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: grading_scale.id,
+          normalized_value: 0.7
+        })
 
       ov_d =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.5})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: grading_scale.id,
+          normalized_value: 0.5
+        })
 
       _ov_e =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.0})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: grading_scale.id,
+          normalized_value: 0.0
+        })
 
       strand = LearningContextFixtures.strand_fixture()
 
@@ -1300,10 +1321,16 @@ defmodule Lanttern.GradesReportsTest do
       marking_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
 
       ov_eme =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: marking_scale.id, normalized_value: 0.4})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: marking_scale.id,
+          normalized_value: 0.4
+        })
 
       ov_pro =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: marking_scale.id, normalized_value: 0.6})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: marking_scale.id,
+          normalized_value: 0.6
+        })
 
       ov_ach =
         GradingFixtures.ordinal_value_fixture(%{
@@ -1312,13 +1339,19 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       ov_exc =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: marking_scale.id, normalized_value: 1.0})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: marking_scale.id,
+          normalized_value: 1.0
+        })
 
       grading_scale =
         GradingFixtures.scale_fixture(%{type: "ordinal", breakpoints: [0.5, 0.6, 0.8, 0.9]})
 
       _ov_a =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 1.0})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: grading_scale.id,
+          normalized_value: 1.0
+        })
 
       ov_b =
         GradingFixtures.ordinal_value_fixture(%{
@@ -1327,13 +1360,22 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       ov_c =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.7})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: grading_scale.id,
+          normalized_value: 0.7
+        })
 
       _ov_d =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.5})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: grading_scale.id,
+          normalized_value: 0.5
+        })
 
       ov_e =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.0})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: grading_scale.id,
+          normalized_value: 0.0
+        })
 
       strand_1 = LearningContextFixtures.strand_fixture()
       strand_2 = LearningContextFixtures.strand_fixture()
@@ -1823,10 +1865,16 @@ defmodule Lanttern.GradesReportsTest do
       marking_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
 
       ov_eme =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: marking_scale.id, normalized_value: 0.4})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: marking_scale.id,
+          normalized_value: 0.4
+        })
 
       ov_pro =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: marking_scale.id, normalized_value: 0.6})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: marking_scale.id,
+          normalized_value: 0.6
+        })
 
       ov_ach =
         GradingFixtures.ordinal_value_fixture(%{
@@ -1835,13 +1883,19 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       ov_exc =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: marking_scale.id, normalized_value: 1.0})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: marking_scale.id,
+          normalized_value: 1.0
+        })
 
       grading_scale =
         GradingFixtures.scale_fixture(%{type: "ordinal", breakpoints: [0.5, 0.6, 0.8, 0.9]})
 
       _ov_a =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 1.0})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: grading_scale.id,
+          normalized_value: 1.0
+        })
 
       ov_b =
         GradingFixtures.ordinal_value_fixture(%{
@@ -1850,13 +1904,22 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       ov_c =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.7})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: grading_scale.id,
+          normalized_value: 0.7
+        })
 
       _ov_d =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.5})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: grading_scale.id,
+          normalized_value: 0.5
+        })
 
       ov_e =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.0})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: grading_scale.id,
+          normalized_value: 0.0
+        })
 
       strand_1 = LearningContextFixtures.strand_fixture()
 
@@ -2197,10 +2260,16 @@ defmodule Lanttern.GradesReportsTest do
       marking_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
 
       ov_eme =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: marking_scale.id, normalized_value: 0.4})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: marking_scale.id,
+          normalized_value: 0.4
+        })
 
       ov_pro =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: marking_scale.id, normalized_value: 0.6})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: marking_scale.id,
+          normalized_value: 0.6
+        })
 
       ov_ach =
         GradingFixtures.ordinal_value_fixture(%{
@@ -2209,13 +2278,19 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       ov_exc =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: marking_scale.id, normalized_value: 1.0})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: marking_scale.id,
+          normalized_value: 1.0
+        })
 
       grading_scale =
         GradingFixtures.scale_fixture(%{type: "ordinal", breakpoints: [0.5, 0.6, 0.8, 0.9]})
 
       _ov_a =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 1.0})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: grading_scale.id,
+          normalized_value: 1.0
+        })
 
       ov_b =
         GradingFixtures.ordinal_value_fixture(%{
@@ -2224,13 +2299,22 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       ov_c =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.7})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: grading_scale.id,
+          normalized_value: 0.7
+        })
 
       _ov_d =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.5})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: grading_scale.id,
+          normalized_value: 0.5
+        })
 
       ov_e =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.0})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: grading_scale.id,
+          normalized_value: 0.0
+        })
 
       strand_1 = LearningContextFixtures.strand_fixture()
       strand_2 = LearningContextFixtures.strand_fixture()
@@ -3543,7 +3627,10 @@ defmodule Lanttern.GradesReportsTest do
         GradingFixtures.scale_fixture(%{type: "ordinal", breakpoints: [0.5, 0.6, 0.8, 0.9]})
 
       ov_a =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 1.0})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: grading_scale.id,
+          normalized_value: 1.0
+        })
 
       ov_b =
         GradingFixtures.ordinal_value_fixture(%{
@@ -3552,13 +3639,22 @@ defmodule Lanttern.GradesReportsTest do
         })
 
       ov_c =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.7})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: grading_scale.id,
+          normalized_value: 0.7
+        })
 
       ov_d =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.5})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: grading_scale.id,
+          normalized_value: 0.5
+        })
 
       ov_e =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: grading_scale.id, normalized_value: 0.0})
+        GradingFixtures.ordinal_value_fixture(%{
+          scale_id: grading_scale.id,
+          normalized_value: 0.0
+        })
 
       grades_report = grades_report_fixture(%{scale_id: grading_scale.id})
 
@@ -4459,6 +4555,255 @@ defmodule Lanttern.GradesReportsTest do
 
       assert expected_std_d.id == std_d.id
       assert expected_std_d.classes == []
+    end
+  end
+
+  describe "grades report and linked strands" do
+    import Lanttern.GradesReportsFixtures
+
+    alias Lanttern.AssessmentsFixtures
+    alias Lanttern.GradingFixtures
+    alias Lanttern.LearningContextFixtures
+    alias Lanttern.SchoolsFixtures
+
+    test "list_strands_linked_grades_report_subjects/3 returns the list of strands ids and grades report subjects as expected" do
+      grades_report = grades_report_fixture()
+
+      grades_report_subject_1 =
+        grades_report_subject_fixture(%{grades_report_id: grades_report.id})
+
+      grades_report_subject_2 =
+        grades_report_subject_fixture(%{grades_report_id: grades_report.id})
+
+      grades_report_cycle = grades_report_cycle_fixture(%{grades_report_id: grades_report.id})
+
+      strand_1 = LearningContextFixtures.strand_fixture()
+      strand_1_ap_1 = AssessmentsFixtures.assessment_point_fixture(%{strand_id: strand_1.id})
+      strand_1_ap_2 = AssessmentsFixtures.assessment_point_fixture(%{strand_id: strand_1.id})
+
+      strand_2 = LearningContextFixtures.strand_fixture()
+      strand_2_ap_1 = AssessmentsFixtures.assessment_point_fixture(%{strand_id: strand_2.id})
+      strand_2_ap_2 = AssessmentsFixtures.assessment_point_fixture(%{strand_id: strand_2.id})
+
+      _grade_component_1_1 =
+        GradingFixtures.grade_component_fixture(%{
+          grades_report_id: grades_report.id,
+          grades_report_subject_id: grades_report_subject_1.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          assessment_point_id: strand_1_ap_1.id
+        })
+
+      _grade_component_1_2 =
+        GradingFixtures.grade_component_fixture(%{
+          grades_report_id: grades_report.id,
+          grades_report_subject_id: grades_report_subject_2.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          assessment_point_id: strand_1_ap_2.id
+        })
+
+      _grade_component_2_1 =
+        GradingFixtures.grade_component_fixture(%{
+          grades_report_id: grades_report.id,
+          grades_report_subject_id: grades_report_subject_1.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          assessment_point_id: strand_2_ap_1.id
+        })
+
+      # same subject to test deduplicate
+      _grade_component_2_2 =
+        GradingFixtures.grade_component_fixture(%{
+          grades_report_id: grades_report.id,
+          grades_report_subject_id: grades_report_subject_1.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          assessment_point_id: strand_2_ap_2.id
+        })
+
+      # extra fixtures for query test
+
+      other_grades_report_cycle =
+        grades_report_cycle_fixture(%{grades_report_id: grades_report.id})
+
+      _grade_component_1_1_other_cycle =
+        GradingFixtures.grade_component_fixture(%{
+          grades_report_id: grades_report.id,
+          grades_report_subject_id: grades_report_subject_1.id,
+          grades_report_cycle_id: other_grades_report_cycle.id,
+          assessment_point_id: strand_1_ap_1.id
+        })
+
+      other_strand = LearningContextFixtures.strand_fixture()
+
+      other_strand_ap =
+        AssessmentsFixtures.assessment_point_fixture(%{strand_id: other_strand.id})
+
+      _other_grade_component =
+        GradingFixtures.grade_component_fixture(%{
+          grades_report_id: grades_report.id,
+          grades_report_subject_id: grades_report_subject_1.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          assessment_point_id: other_strand_ap.id
+        })
+
+      [
+        {expected_strand_1_id, [expected_grs_1_1, expected_grs_1_2]},
+        {expected_strand_2_id, [expected_grs_2_1]}
+      ] =
+        GradesReports.list_strands_linked_grades_report_subjects(
+          [strand_1.id, strand_2.id],
+          grades_report_cycle.school_cycle_id,
+          grades_report.id
+        )
+
+      assert expected_strand_1_id == strand_1.id
+      assert expected_grs_1_1.id == grades_report_subject_1.id
+      assert expected_grs_1_1.subject.id == grades_report_subject_1.subject_id
+      assert expected_grs_1_2.id == grades_report_subject_2.id
+      assert expected_grs_1_2.subject.id == grades_report_subject_2.subject_id
+
+      assert expected_strand_2_id == strand_2.id
+      assert expected_grs_2_1.id == grades_report_subject_1.id
+      assert expected_grs_2_1.subject.id == grades_report_subject_1.subject_id
+    end
+
+    test "list_student_grades_report_entries_for_strand/4 returns the list of grades report entries as expected" do
+      grades_report = grades_report_fixture()
+
+      grades_report_subject_1 =
+        grades_report_subject_fixture(%{grades_report_id: grades_report.id})
+
+      grades_report_subject_2 =
+        grades_report_subject_fixture(%{grades_report_id: grades_report.id})
+
+      grades_report_cycle =
+        grades_report_cycle_fixture(%{grades_report_id: grades_report.id, is_visible: true})
+
+      strand = LearningContextFixtures.strand_fixture()
+
+      strand_ap_1 =
+        AssessmentsFixtures.assessment_point_fixture(%{strand_id: strand.id, type: "numeric"})
+
+      strand_ap_2 =
+        AssessmentsFixtures.assessment_point_fixture(%{strand_id: strand.id, type: "numeric"})
+
+      _grade_component_1 =
+        GradingFixtures.grade_component_fixture(%{
+          grades_report_id: grades_report.id,
+          grades_report_subject_id: grades_report_subject_1.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          assessment_point_id: strand_ap_1.id
+        })
+
+      _grade_component_2 =
+        GradingFixtures.grade_component_fixture(%{
+          grades_report_id: grades_report.id,
+          grades_report_subject_id: grades_report_subject_2.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          assessment_point_id: strand_ap_2.id
+        })
+
+      # student and entries
+
+      student = SchoolsFixtures.student_fixture()
+
+      _entry_1 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: strand_ap_1.id,
+          student_id: student.id,
+          scale_id: strand_ap_1.scale_id,
+          scale_type: "numeric",
+          score: 1
+        })
+
+      _entry_2 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: strand_ap_2.id,
+          student_id: student.id,
+          scale_id: strand_ap_2.scale_id,
+          scale_type: "numeric",
+          score: 1
+        })
+
+      # extra fixtures for query test
+
+      other_grades_report_cycle =
+        grades_report_cycle_fixture(%{grades_report_id: grades_report.id})
+
+      grades_report_subject_3 =
+        grades_report_subject_fixture(%{grades_report_id: grades_report.id})
+
+      strand_ap_3 =
+        AssessmentsFixtures.assessment_point_fixture(%{strand_id: strand.id, type: "numeric"})
+
+      _grade_component_1_3_other_cycle =
+        GradingFixtures.grade_component_fixture(%{
+          grades_report_id: grades_report.id,
+          grades_report_subject_id: grades_report_subject_3.id,
+          grades_report_cycle_id: other_grades_report_cycle.id,
+          assessment_point_id: strand_ap_3.id
+        })
+
+      _other_cycle_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: strand_ap_3.id,
+          student_id: student.id,
+          scale_id: strand_ap_3.scale_id,
+          scale_type: "numeric",
+          score: 1
+        })
+
+      other_strand = LearningContextFixtures.strand_fixture()
+
+      other_strand_ap =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: other_strand.id,
+          type: "numeric"
+        })
+
+      _other_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: other_strand_ap.id,
+          student_id: student.id,
+          scale_id: other_strand_ap.scale_id,
+          scale_type: "numeric",
+          score: 1
+        })
+
+      _other_grade_component =
+        GradingFixtures.grade_component_fixture(%{
+          grades_report_id: grades_report.id,
+          grades_report_subject_id: grades_report_subject_3.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          assessment_point_id: other_strand_ap.id
+        })
+
+      # calculate student grades
+      GradesReports.calculate_student_grades(student.id, grades_report.id, grades_report_cycle.id)
+
+      [expected_sgre_1, expected_sgre_2] =
+        GradesReports.list_student_grades_report_entries_for_strand(
+          student.id,
+          strand.id,
+          grades_report_cycle.school_cycle_id,
+          grades_report.id,
+          only_visible: true
+        )
+
+      assert expected_sgre_1.grades_report_cycle_id == grades_report_cycle.id
+      assert expected_sgre_1.grades_report_subject_id == grades_report_subject_1.id
+
+      assert expected_sgre_2.grades_report_cycle_id == grades_report_cycle.id
+      assert expected_sgre_2.grades_report_subject_id == grades_report_subject_2.id
+
+      # set is_visible to false and assert again
+      GradesReports.update_grades_report_cycle(grades_report_cycle, %{is_visible: false})
+
+      assert GradesReports.list_student_grades_report_entries_for_strand(
+               student.id,
+               strand.id,
+               grades_report_cycle.school_cycle_id,
+               grades_report.id,
+               only_visible: true
+             ) == []
     end
   end
 end

@@ -14,7 +14,11 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
     ~H"""
     <div class="py-10">
       <.responsive_container>
-        <.markdown :if={@report_card.grading_info} text={@report_card.grading_info} class="mb-10" />
+        <.markdown
+          :if={@report_card.grading_info || @grades_report.info}
+          text={@report_card.grading_info || @grades_report.info}
+          class="mb-10"
+        />
         <%= if @grades_report do %>
           <.grades_report_grid
             grades_report={@grades_report}

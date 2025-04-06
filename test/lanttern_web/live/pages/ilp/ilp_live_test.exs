@@ -64,7 +64,10 @@ defmodule LantternWeb.ILPLiveTest do
           name: "ILP abc",
           school_id: school_id,
           # needed to show AI box
-          ai_layer: %{revision_instructions: "some ai revision instruction"}
+          ai_layer: %{
+            revision_instructions: "some ai revision instruction",
+            model: "some model"
+          }
         })
         |> Repo.preload(sections: :components)
 

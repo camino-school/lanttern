@@ -104,7 +104,7 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
       |> assign(:hide_submit, false)
       |> assign(:is_removing_cover, false)
       |> allow_upload(:cover,
-        accept: ~w(.jpg .jpeg .png),
+        accept: ~w(.jpg .jpeg .png .webp),
         max_file_size: 5_000_000,
         max_entries: 1
       )

@@ -21,11 +21,7 @@ defmodule LantternWeb.LearningContextComponents do
   attr :navigate, :string, default: nil
   attr :open_in_new, :boolean, default: false
   attr :hide_description, :boolean, default: false
-
-  attr :cover_image_url, :string,
-    default: nil,
-    doc: "Use this to overwrite the strand cover (e.g. strand report cover)"
-
+  attr :strand_report_cover_image_url, :string, default: nil
   attr :id, :string, default: nil
   attr :class, :any, default: nil
 
@@ -33,23 +29,53 @@ defmodule LantternWeb.LearningContextComponents do
 
   def strand_card(assigns) do
     cover_image_url =
-      (assigns.cover_image_url || assigns.strand.cover_image_url)
+      assigns.strand.cover_image_url
       |> object_url_to_render_url(width: 400, height: 200)
 
-    assigns = assign(assigns, :cover_image_url, cover_image_url)
+    strand_report_cover_image_url =
+      assigns.strand_report_cover_image_url
+      |> object_url_to_render_url(width: 400, height: 200)
+
+    has_multiple_images =
+      !!cover_image_url && !!strand_report_cover_image_url
+
+    assigns =
+      assigns
+      |> assign(:cover_image_url, cover_image_url)
+      |> assign(:strand_report_cover_image_url, strand_report_cover_image_url)
+      |> assign(:has_multiple_images, has_multiple_images)
 
     ~H"""
     <.card_base
       class={[
-        "flex flex-col overflow-hidden",
+        "relative flex flex-col overflow-hidden",
         @class
       ]}
       id={@id}
     >
       <div
-        class="shrink-0 relative w-full h-40 bg-center bg-cover"
-        style={"background-image: url('#{@cover_image_url || "/images/cover-placeholder-sm.jpg"}')"}
+        class="relative shrink-0 w-full h-40"
+        id={"#{@id}-report-card-slider"}
+        {if @has_multiple_images, do: %{
+          "phx-hook" => "Slider",
+          "phx-update" => "ignore"
+        }, else: %{}}
       >
+        <div class="slider flex w-full h-full">
+          <div
+            :if={@strand_report_cover_image_url}
+            class="w-full h-full bg-center bg-cover"
+            style={"background-image: url('#{@strand_report_cover_image_url}')"}
+          />
+          <div
+            :if={@cover_image_url || !@strand_report_cover_image_url}
+            class="w-full h-full bg-center bg-cover"
+            style={"background-image: url('#{@cover_image_url || "/images/cover-placeholder-sm.jpg"}')"}
+          />
+        </div>
+        <div :if={@has_multiple_images} class="absolute bottom-2 flex justify-center w-full">
+          <div class="slider-dots px-1 rounded-full bg-white" />
+        </div>
         <div :if={@on_star_click || @on_edit} class="absolute top-2 right-2 flex items-center gap-2">
           <.button :if={@on_edit} type="button" theme="ghost" size="sm" phx-click={@on_edit}>
             <%= gettext("Edit") %>

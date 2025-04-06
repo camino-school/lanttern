@@ -335,6 +335,7 @@ defmodule LantternWeb.CoreComponents do
     "cyan" => "bg-ltrn-mesh-cyan text-ltrn-dark",
     "dark" => "bg-ltrn-dark text-ltrn-lighter",
     "diff" => "bg-ltrn-diff-lighter text-ltrn-diff-dark",
+    "ai" => "bg-ltrn-ai-lighter text-ltrn-ai-dark",
     "student" => "bg-ltrn-student-lighter text-ltrn-student-dark",
     "staff" => "bg-ltrn-staff-lighter text-ltrn-staff-dark",
     "empty" => "bg-transparent border border-dashed border-ltrn-light text-ltrn-subtle"
@@ -725,17 +726,32 @@ defmodule LantternWeb.CoreComponents do
   defp cover_overlay(_),
     do: "from-ltrn-mesh-primary/0 to-ltrn-mesh-primary"
 
+  @doc """
+  Renders a cover image.
+
+  If `context_image_url` exists (e.g. strand cover image vs strand report cover image),
+  the component creates an image slider to display both images.
+  """
+
   attr :image_url, :string, default: nil
+  attr :context_image_url, :string, default: nil, doc: "the first image of the image slider"
   attr :alt_text, :string, required: true
   attr :empty_state_text, :string, default: nil
   attr :theme, :string, default: "primary"
   attr :size, :string, default: "lg", doc: "lg | sm"
   attr :class, :any, default: nil
+  attr :id, :string, default: nil
 
-  def cover_image(%{image_url: image_url} = assigns)
-      when is_binary(image_url) and image_url != "" do
+  def cover_image(%{image_url: image_url, context_image_url: context_image_url} = assigns)
+      when (is_binary(image_url) and image_url != "") or
+             (is_binary(context_image_url) and context_image_url != "") do
+    has_multiple_images =
+      !!assigns.image_url && assigns.image_url != "" && !!assigns.context_image_url
+
+    assigns = assign(assigns, :has_multiple_images, has_multiple_images)
+
     ~H"""
-    <div
+    <%!-- <div
       class={[cover_image_base_classes(@size), @class]}
       style={"background-image: url('#{@image_url || "/images/cover-placeholder.jpg"}')"}
     >
@@ -744,6 +760,35 @@ defmodule LantternWeb.CoreComponents do
         "absolute inset-0 bg-gradient-to-b",
         cover_overlay(@theme)
       ]} />
+    </div> --%>
+    <div
+      class={[cover_image_base_classes(@size), @class]}
+      id={"#{@id}-cover-image-slider"}
+      {if @has_multiple_images, do: %{
+        "phx-hook" => "Slider",
+        "phx-update" => "ignore"
+      }, else: %{}}
+    >
+      <div class="slider flex w-full h-full">
+        <div
+          :if={@context_image_url}
+          class="w-full h-full bg-center bg-cover"
+          style={"background-image: url('#{@context_image_url}')"}
+        />
+        <div
+          :if={@image_url}
+          class="w-full h-full bg-center bg-cover"
+          style={"background-image: url('#{@image_url}')"}
+        />
+      </div>
+      <p class="sr-only"><%= @alt_text %></p>
+      <div class={[
+        "absolute inset-0 bg-gradient-to-b pointer-events-none",
+        cover_overlay(@theme)
+      ]} />
+      <div :if={@has_multiple_images} class="absolute bottom-2 flex justify-center w-full">
+        <div class="slider-dots px-1 rounded-full bg-white" />
+      </div>
     </div>
     """
   end
@@ -1862,6 +1907,7 @@ defmodule LantternWeb.CoreComponents do
   @doc """
   Renders a responsive container.
   """
+  attr :no_default_padding, :boolean, default: false
   attr :class, :any, default: nil
   attr :rest, :global
   slot :inner_block, required: true
@@ -1870,8 +1916,9 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div
       class={[
-        "container px-6 mx-auto",
-        "sm:px-10 lg:max-w-5xl",
+        "container mx-auto",
+        "lg:max-w-5xl",
+        if(!@no_default_padding, do: "px-6 sm:px-10"),
         @class
       ]}
       {@rest}

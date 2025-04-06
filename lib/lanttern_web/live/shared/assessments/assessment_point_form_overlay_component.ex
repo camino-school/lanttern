@@ -34,7 +34,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
         <:title><%= @title %></:title>
         <.delete_error
           error_message={@delete_error}
-          on_delete={JS.push("delete_goal_and_entries", target: @myself)}
+          on_delete={JS.push("delete_assessment_point_and_entries", target: @myself)}
           on_dismiss={JS.push("dismiss_delete_error", target: @myself)}
           class="mb-6"
         />

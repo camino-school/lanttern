@@ -1,40 +1,13 @@
-<.cover
-  size="sm"
-  theme="lime"
-  style={"background-image: url('#{@cover_image_url || "/images/cover-placeholder.jpg"}')"}
->
-  <:top>
-    <div class="flex items-center justify-between">
-      <.breadcrumbs with_bg>
-        <:item link={~p"/student_strands"}>
-          <%= gettext("Strands") %>
-        </:item>
-        <:item><%= gettext("Strand report") %></:item>
-      </.breadcrumbs>
-      <.nav_menu_button />
-    </div>
-  </:top>
-  <hgroup class="font-display font-black">
-    <h1 class="text-4xl sm:text-5xl"><%= @strand_report.strand.name %></h1>
-    <p :if={@strand_report.strand.type} class="mt-2 text-xl sm:text-2xl">
-      <%= @strand_report.strand.type %>
-    </p>
-  </hgroup>
-  <div class="flex flex-wrap gap-2 mt-6">
-    <.badge theme="dark">
-      <%= gettext("Cycle") %>: <%= @student_report_card.report_card.school_cycle.name %>
-    </.badge>
-    <.badge :for={subject <- @strand_report.strand.subjects}>
-      <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name) %>
-    </.badge>
-    <.badge :for={year <- @strand_report.strand.years}>
-      <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", year.name) %>
-    </.badge>
-  </div>
-</.cover>
-<div class="sticky z-30 top-0 border-b border-ltrn-lighter bg-white">
-  <.responsive_container class="flex items-center justify-between gap-10">
-    <.nav_tabs id="strand-nav-tabs" class="flex-1 overflow-x-auto">
+<.header_nav current_user={@current_user} menu_style="legacy">
+  <:breadcrumb navigate={~p"/student_strands"}>
+    <%= gettext("Strands") %>
+  </:breadcrumb>
+  <:breadcrumb is_info>
+    <.mini_strand_card strand={@strand_report.strand} class="w-60" />
+  </:breadcrumb>
+  <:title><%= @strand_report.strand.name %></:title>
+  <div class="flex items-center justify-between gap-4 px-4">
+    <.neo_tabs id="strand-nav-tabs">
       <:tab
         patch={~p"/strand_report/#{@strand_report}?tab=overview"}
         is_current={@current_tab == :overview && "true"}
@@ -61,9 +34,9 @@
       >
         <%= gettext("Student notes") %>
       </:tab>
-    </.nav_tabs>
-  </.responsive_container>
-</div>
+    </.neo_tabs>
+  </div>
+</.header_nav>
 <div class="ltrn-bg-main-local">
   <.live_component
     :if={@current_tab == :overview}
@@ -72,7 +45,7 @@
     strand_report={@strand_report}
     student_id={@student_report_card.student_id}
     allow_access={@allow_access}
-    class="py-10"
+    class="p-4"
   />
   <.live_component
     :if={@current_tab == :assessment}

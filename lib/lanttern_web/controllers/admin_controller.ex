@@ -39,10 +39,7 @@ defmodule LantternWeb.AdminController do
   defp generate_assigns() do
     [
       has_base_taxonomy: Taxonomy.has_base_taxonomy?(),
-      is_bncc_registered: BNCC.bncc_registered?(),
-      openai_model: Application.get_env(:lanttern, LantternWeb.OpenAI)[:model],
-      openai_cooldown_minutes:
-        Application.get_env(:lanttern, LantternWeb.OpenAI)[:cooldown_minutes]
+      is_bncc_registered: BNCC.bncc_registered?()
     ]
   end
 end

@@ -132,7 +132,20 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
               class="mb-1"
               show_optional
             />
-            <.markdown_supported />
+            <.markdown_supported class="mb-6" />
+            <.input
+              field={ai_layer_f[:model]}
+              type="select"
+              label="AI model"
+              options={@ai_model_options}
+              prompt="Select an AI model"
+              class="mb-6"
+            />
+            <.input
+              field={ai_layer_f[:cooldown_minutes]}
+              type="number"
+              label="AI request cooldown (minutes)"
+            />
           </.inputs_for>
         </.ai_box>
         <div class="flex items-center justify-between gap-4">
@@ -185,6 +198,7 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
     |> assign_form()
+    |> assign_ai_model_options()
     |> assign(:initialized, true)
   end
 
@@ -196,6 +210,15 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
 
     socket
     |> assign(:form, to_form(changeset))
+  end
+
+  defp assign_ai_model_options(socket) do
+    ai_model_options =
+      Map.get(socket.assigns.template.ai_layer || %{}, :model)
+      |> LantternWeb.AIHelpers.generate_ai_model_options()
+
+    socket
+    |> assign(:ai_model_options, ai_model_options)
   end
 
   # event handlers

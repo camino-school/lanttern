@@ -4,6 +4,7 @@ defmodule LantternWeb.StudentReportCardLiveTest do
   import Lanttern.ReportingFixtures
 
   alias Lanttern.AssessmentsFixtures
+  alias Lanttern.GradesReportsFixtures
   alias Lanttern.GradingFixtures
   alias Lanttern.LearningContextFixtures
   alias Lanttern.SchoolsFixtures
@@ -42,8 +43,18 @@ defmodule LantternWeb.StudentReportCardLiveTest do
       student =
         SchoolsFixtures.student_fixture(%{name: "Student ABC", school_id: staff_member.school_id})
 
+      grades_report =
+        GradesReportsFixtures.grades_report_fixture(%{
+          name: "Some grades report",
+          info: "Some grading info"
+        })
+
       report_card =
-        report_card_fixture(%{school_cycle_id: cycle.id, name: "Some report card name abc"})
+        report_card_fixture(%{
+          school_cycle_id: cycle.id,
+          name: "Some report card name abc",
+          grades_report_id: grades_report.id
+        })
 
       student_report_card =
         student_report_card_fixture(%{
@@ -84,6 +95,7 @@ defmodule LantternWeb.StudentReportCardLiveTest do
 
       assert view |> has_element?("h1", "Student ABC")
       assert view |> has_element?("h2", "Some report card name abc")
+      assert view |> has_element?("p", "Some grading info")
       assert view |> has_element?("p", "student abc comment")
       assert view |> has_element?("p", "student abc footnote")
 
