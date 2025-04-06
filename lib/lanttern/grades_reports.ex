@@ -2089,4 +2089,61 @@ defmodule Lanttern.GradesReports do
     strands_ids
     |> Enum.map(&{&1, Map.get(strand_id_grs_map, &1, [])})
   end
+
+  @doc """
+  Returns a list of all `StudentGradesReportEntry`s linked to the given student,
+  strand, cycle, and grades report.
+
+  This function looks for all `StudentGradesReportEntry`s to identify those that are
+  linked to the given student and grades report, also filtering by strand and cycle.
+
+  We use `GradesReportCycle` to identify the entry cycle, and check for embeded
+  `CompositionComponent` to determine if the entry is linked to the strand.
+
+  Returned list is ordered by `GradesReportSubject`s' position.
+
+  `GradesReportSubject` with `Subject` preloaded.
+
+  ### Options
+
+  - `:only_visible` - if true, will check for grades report cycle visibility
+
+  """
+
+  @spec list_student_grades_report_entries_for_strand(
+          student_id :: pos_integer(),
+          strand_id :: pos_integer(),
+          cycle_id :: pos_integer(),
+          grades_report_id :: pos_integer(),
+          opts :: Keyword.t()
+        ) :: [StudentGradesReportEntry.t()]
+  def list_student_grades_report_entries_for_strand(
+        student_id,
+        strand_id,
+        cycle_id,
+        grades_report_id,
+        opts \\ []
+      ) do
+    cycle_visibility_condition =
+      case Keyword.get(opts, :only_visible) do
+        true -> dynamic([_sgre, grades_report_cycle: grc], grc.is_visible)
+        _ -> true
+      end
+
+    from(
+      sgre in StudentGradesReportEntry,
+      join: grc in assoc(sgre, :grades_report_cycle),
+      as: :grades_report_cycle,
+      join: grs in assoc(sgre, :grades_report_subject),
+      join: sub in assoc(grs, :subject),
+      where: sgre.student_id == ^student_id,
+      where: sgre.grades_report_id == ^grades_report_id,
+      where: grc.school_cycle_id == ^cycle_id,
+      where: ^cycle_visibility_condition,
+      where: fragment("? @> ?", sgre.composition, ^[%{strand_id: strand_id}]),
+      order_by: [asc: grs.position],
+      preload: [grades_report_subject: {grs, subject: sub}]
+    )
+    |> Repo.all()
+  end
 end

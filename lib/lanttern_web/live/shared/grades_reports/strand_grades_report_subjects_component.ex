@@ -33,7 +33,7 @@ defmodule LantternWeb.GradesReports.StrandGradesReportSubjectsComponent do
             id={"#{@id}-#{dom_id}"}
             theme="dark"
           >
-            <%= grs.subject.name %>
+            <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", grs.subject.name) %>
           </.badge>
         </div>
       <% else %>

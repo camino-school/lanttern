@@ -4558,12 +4558,13 @@ defmodule Lanttern.GradesReportsTest do
     end
   end
 
-  describe "grades report subject linked to strands" do
+  describe "grades report and linked strands" do
     import Lanttern.GradesReportsFixtures
 
     alias Lanttern.AssessmentsFixtures
     alias Lanttern.GradingFixtures
     alias Lanttern.LearningContextFixtures
+    alias Lanttern.SchoolsFixtures
 
     test "list_strands_linked_grades_report_subjects/3 returns the list of strands ids and grades report subjects as expected" do
       grades_report = grades_report_fixture()
@@ -4662,6 +4663,147 @@ defmodule Lanttern.GradesReportsTest do
       assert expected_strand_2_id == strand_2.id
       assert expected_grs_2_1.id == grades_report_subject_1.id
       assert expected_grs_2_1.subject.id == grades_report_subject_1.subject_id
+    end
+
+    test "list_student_grades_report_entries_for_strand/4 returns the list of grades report entries as expected" do
+      grades_report = grades_report_fixture()
+
+      grades_report_subject_1 =
+        grades_report_subject_fixture(%{grades_report_id: grades_report.id})
+
+      grades_report_subject_2 =
+        grades_report_subject_fixture(%{grades_report_id: grades_report.id})
+
+      grades_report_cycle =
+        grades_report_cycle_fixture(%{grades_report_id: grades_report.id, is_visible: true})
+
+      strand = LearningContextFixtures.strand_fixture()
+
+      strand_ap_1 =
+        AssessmentsFixtures.assessment_point_fixture(%{strand_id: strand.id, type: "numeric"})
+
+      strand_ap_2 =
+        AssessmentsFixtures.assessment_point_fixture(%{strand_id: strand.id, type: "numeric"})
+
+      _grade_component_1 =
+        GradingFixtures.grade_component_fixture(%{
+          grades_report_id: grades_report.id,
+          grades_report_subject_id: grades_report_subject_1.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          assessment_point_id: strand_ap_1.id
+        })
+
+      _grade_component_2 =
+        GradingFixtures.grade_component_fixture(%{
+          grades_report_id: grades_report.id,
+          grades_report_subject_id: grades_report_subject_2.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          assessment_point_id: strand_ap_2.id
+        })
+
+      # student and entries
+
+      student = SchoolsFixtures.student_fixture()
+
+      _entry_1 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: strand_ap_1.id,
+          student_id: student.id,
+          scale_id: strand_ap_1.scale_id,
+          scale_type: "numeric",
+          score: 1
+        })
+
+      _entry_2 =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: strand_ap_2.id,
+          student_id: student.id,
+          scale_id: strand_ap_2.scale_id,
+          scale_type: "numeric",
+          score: 1
+        })
+
+      # extra fixtures for query test
+
+      other_grades_report_cycle =
+        grades_report_cycle_fixture(%{grades_report_id: grades_report.id})
+
+      grades_report_subject_3 =
+        grades_report_subject_fixture(%{grades_report_id: grades_report.id})
+
+      strand_ap_3 =
+        AssessmentsFixtures.assessment_point_fixture(%{strand_id: strand.id, type: "numeric"})
+
+      _grade_component_1_3_other_cycle =
+        GradingFixtures.grade_component_fixture(%{
+          grades_report_id: grades_report.id,
+          grades_report_subject_id: grades_report_subject_3.id,
+          grades_report_cycle_id: other_grades_report_cycle.id,
+          assessment_point_id: strand_ap_3.id
+        })
+
+      _other_cycle_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: strand_ap_3.id,
+          student_id: student.id,
+          scale_id: strand_ap_3.scale_id,
+          scale_type: "numeric",
+          score: 1
+        })
+
+      other_strand = LearningContextFixtures.strand_fixture()
+
+      other_strand_ap =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: other_strand.id,
+          type: "numeric"
+        })
+
+      _other_entry =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: other_strand_ap.id,
+          student_id: student.id,
+          scale_id: other_strand_ap.scale_id,
+          scale_type: "numeric",
+          score: 1
+        })
+
+      _other_grade_component =
+        GradingFixtures.grade_component_fixture(%{
+          grades_report_id: grades_report.id,
+          grades_report_subject_id: grades_report_subject_3.id,
+          grades_report_cycle_id: grades_report_cycle.id,
+          assessment_point_id: other_strand_ap.id
+        })
+
+      # calculate student grades
+      GradesReports.calculate_student_grades(student.id, grades_report.id, grades_report_cycle.id)
+
+      [expected_sgre_1, expected_sgre_2] =
+        GradesReports.list_student_grades_report_entries_for_strand(
+          student.id,
+          strand.id,
+          grades_report_cycle.school_cycle_id,
+          grades_report.id,
+          only_visible: true
+        )
+
+      assert expected_sgre_1.grades_report_cycle_id == grades_report_cycle.id
+      assert expected_sgre_1.grades_report_subject_id == grades_report_subject_1.id
+
+      assert expected_sgre_2.grades_report_cycle_id == grades_report_cycle.id
+      assert expected_sgre_2.grades_report_subject_id == grades_report_subject_2.id
+
+      # set is_visible to false and assert again
+      GradesReports.update_grades_report_cycle(grades_report_cycle, %{is_visible: false})
+
+      assert GradesReports.list_student_grades_report_entries_for_strand(
+               student.id,
+               strand.id,
+               grades_report_cycle.school_cycle_id,
+               grades_report.id,
+               only_visible: true
+             ) == []
     end
   end
 end

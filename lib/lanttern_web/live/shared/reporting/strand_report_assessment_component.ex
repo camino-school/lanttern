@@ -15,6 +15,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.GradesReports
   alias Lanttern.Reporting
 
   # page components
@@ -22,6 +23,8 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
 
   # shared components
   alias LantternWeb.Assessments.EntryParticleComponent
+  alias LantternWeb.GradesReports.GradeDetailsOverlayComponent
+  alias LantternWeb.GradesReports.StudentGradesReportEntryButtonComponent
   import LantternWeb.AssessmentsComponents
   import LantternWeb.AttachmentsComponents
 
@@ -85,6 +88,35 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
             </.attachment_card>
           </div>
         </div>
+        <div :if={@has_student_grades_report_entries} class="mt-10">
+          <h3 class="font-display font-black text-xl"><%= gettext("Grading") %></h3>
+          <div id="grades-report-entries" phx-update="stream">
+            <.card_base
+              :for={{dom_id, sgre} <- @streams.student_grades_report_entries}
+              id={dom_id}
+              class={[
+                "p-4 mt-4",
+                "sm:grid sm:grid-cols-[minmax(10px,_5fr)_minmax(10px,_2fr)] sm:items-center sm:gap-4"
+              ]}
+            >
+              <p class="font-bold text-ltrn-subtle">
+                <%= Gettext.dgettext(
+                  Lanttern.Gettext,
+                  "taxonomy",
+                  sgre.grades_report_subject.subject.name
+                ) %>
+              </p>
+              <.live_component
+                module={StudentGradesReportEntryButtonComponent}
+                id={"#{dom_id}-entry-button"}
+                student_grades_report_entry={sgre}
+                on_click={JS.patch("#{@base_path}&sgre=#{sgre.id}")}
+                class="w-full p-2 mt-4 sm:mt-0"
+              />
+            </.card_base>
+          </div>
+        </div>
+
         <div :if={@has_strand_goals_without_student_entries} class="mt-10">
           <div class="flex items-center gap-2">
             <h4 class="flex-1 font-display font-black text-ltrn-subtle">
@@ -120,6 +152,13 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
         strand_goal_id={@strand_goal_id}
         student_id={@student_report_card.student_id}
         prevent_preview={@prevent_final_assessment_preview}
+        on_cancel={JS.patch(@base_path)}
+      />
+      <.live_component
+        :if={@student_grades_report_entry_id}
+        module={GradeDetailsOverlayComponent}
+        id="grade-details-overlay-component-overlay"
+        student_grades_report_entry_id={@student_grades_report_entry_id}
         on_cancel={JS.patch(@base_path)}
       />
     </div>
@@ -281,6 +320,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
       socket
       |> assign(:class, nil)
       |> assign(:strand_goal_id, nil)
+      |> assign(:student_grades_report_entry_id, nil)
       |> assign(:initialized, false)
       |> stream_configure(
         :strand_goals_student_entries,
@@ -303,20 +343,29 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
     socket =
       socket
       |> assign(assigns)
-      |> stream_strand_goals_student_entries(assigns)
-      |> assign_strand_goal_id(assigns)
-      |> assign_prevent_final_assessment_preview()
-      |> stream_strand_evidences()
-      |> assign(:initialized, true)
+      |> initialize()
+      |> assign_strand_goal_id()
+      |> assign_student_grades_report_entry_id()
 
     {:ok, socket}
   end
 
-  defp stream_strand_goals_student_entries(%{assigns: %{initialized: false}} = socket, assigns) do
+  defp initialize(%{assigns: %{initialized: false}} = socket) do
+    socket
+    |> stream_strand_goals_student_entries()
+    |> assign_prevent_final_assessment_preview()
+    |> stream_strand_evidences()
+    |> stream_student_grades_report_entries()
+    |> assign(:initialized, true)
+  end
+
+  defp initialize(socket), do: socket
+
+  defp stream_strand_goals_student_entries(socket) do
     all_strand_goals_student_entries =
       Assessments.list_strand_goals_for_student(
-        assigns.student_report_card.student_id,
-        assigns.strand_report.strand_id
+        socket.assigns.student_report_card.student_id,
+        socket.assigns.strand_report.strand_id
       )
 
     strand_goals_ids =
@@ -349,23 +398,21 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
     )
   end
 
-  defp stream_strand_goals_student_entries(socket, _assigns), do: socket
+  defp assign_prevent_final_assessment_preview(socket) do
+    profile = socket.assigns.current_profile
 
-  defp assign_strand_goal_id(socket, %{
-         params: %{"strand_goal_id" => strand_goal_id}
-       }) do
-    # simple guard to prevent viewing details from unrelated assessment points
-    strand_goal_id =
-      if strand_goal_id in socket.assigns.strand_goals_ids do
-        strand_goal_id
+    prevent_final_assessment_preview =
+      case {profile.type, socket.assigns.student_report_card} do
+        {"staff", _} -> false
+        {"student", %{allow_student_access: true}} -> false
+        {"guardian", %{allow_guardian_access: true}} -> false
+        _ -> true
       end
 
-    assign(socket, :strand_goal_id, strand_goal_id)
+    assign(socket, :prevent_final_assessment_preview, prevent_final_assessment_preview)
   end
 
-  defp assign_strand_goal_id(socket, _assigns), do: assign(socket, :strand_goal_id, nil)
-
-  defp stream_strand_evidences(%{assigns: %{initialized: false}} = socket) do
+  defp stream_strand_evidences(socket) do
     %{
       strand_report: %{strand_id: strand_id},
       student_report_card: %{student_id: student_id}
@@ -388,19 +435,64 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
     |> assign(:goal_has_evidences_map, goal_has_evidences_map)
   end
 
-  defp stream_strand_evidences(socket), do: socket
+  defp stream_student_grades_report_entries(
+         %{assigns: %{prevent_final_assessment_preview: false}} = socket
+       ) do
+    grades_report_id = socket.assigns.student_report_card.report_card.grades_report_id
 
-  defp assign_prevent_final_assessment_preview(socket) do
-    profile = socket.assigns.current_profile
-
-    prevent_final_assessment_preview =
-      case {profile.type, socket.assigns.student_report_card} do
-        {"staff", _} -> false
-        {"student", %{allow_student_access: true}} -> false
-        {"guardian", %{allow_guardian_access: true}} -> false
-        _ -> true
+    student_grades_report_entries =
+      if grades_report_id do
+        GradesReports.list_student_grades_report_entries_for_strand(
+          socket.assigns.student_report_card.student_id,
+          socket.assigns.strand_report.strand_id,
+          socket.assigns.student_report_card.report_card.school_cycle_id,
+          grades_report_id,
+          only_visible: true
+        )
+      else
+        []
       end
 
-    assign(socket, :prevent_final_assessment_preview, prevent_final_assessment_preview)
+    socket
+    |> stream(:student_grades_report_entries, student_grades_report_entries)
+    |> assign(:has_student_grades_report_entries, student_grades_report_entries != [])
+    |> assign(
+      :student_grades_report_entries_ids,
+      Enum.map(student_grades_report_entries, &"#{&1.id}")
+    )
   end
+
+  defp stream_student_grades_report_entries(socket) do
+    socket
+    |> stream(:student_grades_report_entries, [])
+    |> assign(:has_student_grades_report_entries, false)
+    |> assign(:student_grades_report_entries_ids, [])
+  end
+
+  defp assign_strand_goal_id(
+         %{assigns: %{params: %{"strand_goal_id" => strand_goal_id}}} = socket
+       ) do
+    # simple guard to prevent viewing details from unrelated assessment points
+    strand_goal_id =
+      if strand_goal_id in socket.assigns.strand_goals_ids do
+        strand_goal_id
+      end
+
+    assign(socket, :strand_goal_id, strand_goal_id)
+  end
+
+  defp assign_strand_goal_id(socket), do: assign(socket, :strand_goal_id, nil)
+
+  defp assign_student_grades_report_entry_id(%{assigns: %{params: %{"sgre" => sgre_id}}} = socket) do
+    # simple guard to prevent viewing details from unrelated entries
+    student_grades_report_entry_id =
+      if sgre_id in socket.assigns.student_grades_report_entries_ids do
+        sgre_id
+      end
+
+    assign(socket, :student_grades_report_entry_id, student_grades_report_entry_id)
+  end
+
+  defp assign_student_grades_report_entry_id(socket),
+    do: assign(socket, :student_grades_report_entry_id, nil)
 end
