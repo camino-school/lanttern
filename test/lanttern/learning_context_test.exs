@@ -776,8 +776,9 @@ defmodule Lanttern.LearningContextTest do
     alias Lanttern.LearningContextLog.MomentCardLog
 
     import Lanttern.LearningContextFixtures
-    alias Lanttern.IdentityFixtures
     alias Lanttern.Attachments
+    alias Lanttern.IdentityFixtures
+    alias Lanttern.SchoolsFixtures
 
     @invalid_attrs %{name: nil, position: nil, description: nil}
 
@@ -841,6 +842,7 @@ defmodule Lanttern.LearningContextTest do
 
     test "create_moment_card/1 with valid data creates a moment_card" do
       moment = moment_fixture()
+      school = SchoolsFixtures.school_fixture()
 
       # profile to test log
       profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
@@ -849,7 +851,8 @@ defmodule Lanttern.LearningContextTest do
         name: "some name",
         position: 42,
         description: "some description",
-        moment_id: moment.id
+        moment_id: moment.id,
+        school_id: school.id
       }
 
       assert {:ok, %MomentCard{} = moment_card} =
@@ -859,6 +862,7 @@ defmodule Lanttern.LearningContextTest do
       assert moment_card.position == 42
       assert moment_card.description == "some description"
       assert moment_card.moment_id == moment.id
+      assert moment_card.school_id == school.id
 
       on_exit(fn ->
         assert_supervised_tasks_are_down()
@@ -876,6 +880,7 @@ defmodule Lanttern.LearningContextTest do
         assert moment_card_log.position == moment_card.position
         assert moment_card_log.description == moment_card.description
         assert moment_card_log.moment_id == moment_card.moment_id
+        assert moment_card_log.school_id == moment_card.school_id
       end)
     end
 
