@@ -717,6 +717,7 @@ defmodule Lanttern.LearningContext do
 
   - `:ids` – filter cards by ids
   - `:moments_ids` – filter cards by moment
+  - `:school_id` – filter cards by school
   - `:count_attachments` – (boolean) calculate virtual `attachments_count` field
 
   ## Examples
@@ -743,6 +744,11 @@ defmodule Lanttern.LearningContext do
 
   defp apply_list_moment_cards_opts(queryable, [{:moments_ids, ids} | opts]) do
     from(mc in queryable, where: mc.moment_id in ^ids)
+    |> apply_list_moment_cards_opts(opts)
+  end
+
+  defp apply_list_moment_cards_opts(queryable, [{:school_id, id} | opts]) do
+    from(mc in queryable, where: mc.school_id == ^id)
     |> apply_list_moment_cards_opts(opts)
   end
 

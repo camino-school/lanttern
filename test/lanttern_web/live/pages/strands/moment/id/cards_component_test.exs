@@ -8,12 +8,13 @@ defmodule LantternWeb.MomentLive.CardsComponentTest do
   setup [:register_and_log_in_staff_member]
 
   describe "Moment cards" do
-    test "display existing moment cards", %{conn: conn} do
+    test "display existing moment cards", %{conn: conn, user: user} do
       moment = LearningContextFixtures.moment_fixture()
 
       _moment_card =
         LearningContextFixtures.moment_card_fixture(%{
           moment_id: moment.id,
+          school_id: user.current_profile.school_id,
           name: "some card name abc",
           description: "some card description abc"
         })
@@ -49,12 +50,13 @@ defmodule LantternWeb.MomentLive.CardsComponentTest do
       assert view |> has_element?("p", "card description abc")
     end
 
-    test "update card", %{conn: conn} do
+    test "update card", %{conn: conn, user: user} do
       moment = LearningContextFixtures.moment_fixture()
 
       moment_card =
         LearningContextFixtures.moment_card_fixture(%{
           moment_id: moment.id,
+          school_id: user.current_profile.school_id,
           name: "some card name abc",
           description: "some card description abc"
         })
@@ -89,12 +91,13 @@ defmodule LantternWeb.MomentLive.CardsComponentTest do
       refute view |> has_element?("p", "some card description abc")
     end
 
-    test "delete card", %{conn: conn} do
+    test "delete card", %{conn: conn, user: user} do
       moment = LearningContextFixtures.moment_fixture()
 
       moment_card =
         LearningContextFixtures.moment_card_fixture(%{
           moment_id: moment.id,
+          school_id: user.current_profile.school_id,
           name: "some card name abc"
         })
 

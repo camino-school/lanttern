@@ -193,6 +193,7 @@ defmodule LantternWeb.MomentLive.CardsComponent do
     moment_cards =
       LearningContext.list_moment_cards(
         moments_ids: [socket.assigns.moment.id],
+        school_id: socket.assigns.current_user.current_profile.school_id,
         count_attachments: true
       )
 

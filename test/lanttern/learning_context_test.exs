@@ -789,17 +789,19 @@ defmodule Lanttern.LearningContextTest do
 
     test "list_moment_cards/1 with moments filter returns moment cards filtered and ordered by position" do
       moment = moment_fixture()
+      school = SchoolsFixtures.school_fixture()
 
       # create moment card should handle positioning
-      moment_card_1 = moment_card_fixture(%{moment_id: moment.id})
-      moment_card_2 = moment_card_fixture(%{moment_id: moment.id})
+      moment_card_1 = moment_card_fixture(%{moment_id: moment.id, school_id: school.id})
+      moment_card_2 = moment_card_fixture(%{moment_id: moment.id, school_id: school.id})
 
       # extra moment cards for filter testing
       moment_card_fixture()
-      moment_card_fixture()
+      _from_another_moment = moment_card_fixture(%{school_id: school.id})
+      _from_another_school = moment_card_fixture(%{moment_id: moment.id})
 
       assert [moment_card_1, moment_card_2] ==
-               LearningContext.list_moment_cards(moments_ids: [moment.id])
+               LearningContext.list_moment_cards(moments_ids: [moment.id], school_id: school.id)
     end
 
     test "list_moment_cards/1 with count_attachments opt returns moment cards with calculated attachments_count field" do
