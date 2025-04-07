@@ -4,8 +4,6 @@ defmodule LantternWeb.MomentLive.CardsComponent do
   alias Lanttern.LearningContext
   alias Lanttern.LearningContext.MomentCard
 
-  import Lanttern.Utils, only: [swap: 3]
-
   # shared components
   alias LantternWeb.LearningContext.MomentCardOverlayComponent
 
@@ -87,41 +85,23 @@ defmodule LantternWeb.MomentLive.CardsComponent do
         :if={@is_reordering}
         show
         id="moment-cards-order-overlay"
-        on_cancel={JS.patch(~p"/strands/moment/#{@moment}/cards")}
+        on_cancel={JS.push("dismiss_sort_overlay", target: @myself)}
       >
         <:title><%= gettext("Moment cards order") %></:title>
-        <ol>
-          <li
-            :for={{moment_card, i} <- @sortable_moment_cards}
-            id={"sortable-moment-card-#{moment_card.id}"}
+        <div
+          phx-hook="Sortable"
+          id="sortable-moment-cards"
+          data-sortable-handle=".sortable-handle"
+          phx-update="ignore"
+        >
+          <.dragable_card
+            :for={{dom_id, moment_card} <- @streams.sortable_moment_cards}
+            id={"sortable-#{dom_id}"}
             class="mb-4"
           >
-            <.sortable_card
-              is_move_up_disabled={i == 0}
-              on_move_up={
-                JS.push("set_moment_card_position", value: %{from: i, to: i - 1}, target: @myself)
-              }
-              is_move_down_disabled={i + 1 == @moment_cards_count}
-              on_move_down={
-                JS.push("set_moment_card_position", value: %{from: i, to: i + 1}, target: @myself)
-              }
-            >
-              <%= "#{i + 1}. #{moment_card.name}" %>
-            </.sortable_card>
-          </li>
-        </ol>
-        <:actions>
-          <.button
-            type="button"
-            theme="ghost"
-            phx-click={JS.exec("data-cancel", to: "#moment-cards-order-overlay")}
-          >
-            <%= gettext("Cancel") %>
-          </.button>
-          <.button type="button" phx-click="save_order" phx-target={@myself}>
-            <%= gettext("Save") %>
-          </.button>
-        </:actions>
+            <%= moment_card.name %>
+          </.dragable_card>
+        </div>
       </.slide_over>
     </div>
     """
@@ -176,7 +156,7 @@ defmodule LantternWeb.MomentLive.CardsComponent do
       |> assign(assigns)
       |> initialize()
       |> assign_moment_card()
-      |> assign_sortable_moment_cards()
+      |> stream_sortable_moment_cards()
 
     {:ok, socket}
   end
@@ -220,47 +200,50 @@ defmodule LantternWeb.MomentLive.CardsComponent do
   defp assign_moment_card(socket),
     do: assign(socket, :moment_card, nil)
 
-  defp assign_sortable_moment_cards(%{assigns: %{params: %{"reorder" => "true"}}} = socket) do
+  defp stream_sortable_moment_cards(%{assigns: %{params: %{"reorder" => "true"}}} = socket) do
     moment_cards =
-      LearningContext.list_moment_cards(moments_ids: [socket.assigns.moment.id])
-      # remove unnecessary fields to save memory
-      |> Enum.map(&%MomentCard{id: &1.id, name: &1.name})
+      LearningContext.list_moment_cards(
+        moments_ids: [socket.assigns.moment.id],
+        school_id: socket.assigns.current_user.current_profile.school_id
+      )
 
     socket
-    |> assign(:sortable_moment_cards, Enum.with_index(moment_cards))
+    |> stream(:sortable_moment_cards, moment_cards)
+    # already assigned, but update here just in case
+    |> assign(:moment_cards_ids, Enum.map(moment_cards, & &1.id))
     |> assign(:is_reordering, true)
   end
 
-  defp assign_sortable_moment_cards(socket), do: assign(socket, :is_reordering, false)
+  defp stream_sortable_moment_cards(socket), do: assign(socket, :is_reordering, false)
 
   # event handlers
 
   @impl true
-  def handle_event("set_moment_card_position", %{"from" => i, "to" => j}, socket) do
-    sortable_moment_cards =
-      socket.assigns.sortable_moment_cards
-      |> Enum.map(fn {mc, _i} -> mc end)
-      |> swap(i, j)
-      |> Enum.with_index()
+  # view Sortable hook for payload info
+  def handle_event("sortable_update", payload, socket) do
+    %{
+      "oldIndex" => old_index,
+      "newIndex" => new_index
+    } = payload
 
-    {:noreply, assign(socket, :sortable_moment_cards, sortable_moment_cards)}
+    {changed_id, rest} = List.pop_at(socket.assigns.moment_cards_ids, old_index)
+    moment_cards_ids = List.insert_at(rest, new_index, changed_id)
+
+    # the inteface was already updated (optimistic update)
+    # just persist the new order
+    LearningContext.update_moment_cards_positions(moment_cards_ids)
+
+    socket =
+      socket
+      |> assign(:moment_cards_ids, moment_cards_ids)
+      |> assign(:has_position_change, true)
+
+    {:noreply, socket}
   end
 
-  def handle_event("save_order", _, socket) do
-    moment_cards_ids =
-      socket.assigns.sortable_moment_cards
-      |> Enum.map(fn {mc, _i} -> mc.id end)
+  def handle_event("dismiss_sort_overlay", _, %{assigns: %{has_position_change: true}} = socket),
+    do: {:noreply, push_navigate(socket, to: ~p"/strands/moment/#{socket.assigns.moment}/cards")}
 
-    case LearningContext.update_moment_cards_positions(moment_cards_ids) do
-      {:ok, _moment_cards} ->
-        socket =
-          socket
-          |> push_navigate(to: ~p"/strands/moment/#{socket.assigns.moment}/cards")
-
-        {:noreply, socket}
-
-      {:error, _} ->
-        {:noreply, socket}
-    end
-  end
+  def handle_event("dismiss_sort_overlay", _, socket),
+    do: {:noreply, push_patch(socket, to: ~p"/strands/moment/#{socket.assigns.moment}/cards")}
 end
