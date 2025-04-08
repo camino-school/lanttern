@@ -4,11 +4,12 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
 
   ### Required attrs:
 
-  -`strand_report` - `%StrandReport{}`
-  -`student_id`
-  -`student_report_card_id`
-  -`params` - the URL params from parent view `handle_params/3`
-  -`base_path` - the base URL path for overlay navigation control
+  - `strand_report` - `%StrandReport{}`
+  - `student_id`
+  - `student_report_card_id`
+  - `current_profile`
+  - `params` - the URL params from parent view `handle_params/3`
+  - `base_path` - the base URL path for overlay navigation control
   """
 
   alias Lanttern.LearningContext
@@ -204,7 +205,10 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
 
     moment_cards =
       if moment do
-        Reporting.list_moment_cards_and_attachments_shared_with_students(moment.id)
+        Reporting.list_moment_cards_and_attachments_shared_with_students(
+          moment.id,
+          school_id: socket.assigns.current_profile.school_id
+        )
       end
 
     socket
