@@ -1404,17 +1404,24 @@ defmodule Lanttern.Reporting do
 
   - attachments: list of linked attachments
 
+  ## Options
+
+  - `:school_id` - filter moment cards by school
+
   ## Examples
 
       iex> list_moment_cards_and_attachments_shared_with_students(moment_id)
       [%MomentCard{}, ...]
 
   """
-  @spec list_moment_cards_and_attachments_shared_with_students(moment_id :: pos_integer()) :: [
+  @spec list_moment_cards_and_attachments_shared_with_students(
+          moment_id :: pos_integer(),
+          opts :: Keyword.t()
+        ) :: [
           MomentCard.t()
         ]
 
-  def list_moment_cards_and_attachments_shared_with_students(moment_id) do
+  def list_moment_cards_and_attachments_shared_with_students(moment_id, opts \\ []) do
     from(
       mc in MomentCard,
       left_join: mca in assoc(mc, :moment_card_attachments),
@@ -1425,6 +1432,23 @@ defmodule Lanttern.Reporting do
       order_by: [asc: mc.position, asc: mca.position],
       preload: [attachments: a]
     )
+    |> apply_list_moment_cards_and_attachments_shared_with_students_opts(opts)
     |> Repo.all()
   end
+
+  defp apply_list_moment_cards_and_attachments_shared_with_students_opts(queryable, []),
+    do: queryable
+
+  defp apply_list_moment_cards_and_attachments_shared_with_students_opts(queryable, [
+         {:school_id, id} | opts
+       ]) do
+    from(
+      mc in queryable,
+      where: mc.school_id == ^id
+    )
+    |> apply_list_moment_cards_and_attachments_shared_with_students_opts(opts)
+  end
+
+  defp apply_list_moment_cards_and_attachments_shared_with_students_opts(queryable, [_ | opts]),
+    do: apply_list_moment_cards_and_attachments_shared_with_students_opts(queryable, opts)
 end

@@ -13,6 +13,7 @@ defmodule Lanttern.LearningContextLog.MomentCardLog do
     field :operation, :string
 
     field :moment_id, :id
+    field :school_id, :id
 
     field :name, :string
     field :position, :integer
@@ -32,6 +33,7 @@ defmodule Lanttern.LearningContextLog.MomentCardLog do
       :profile_id,
       :operation,
       :moment_id,
+      :school_id,
       :name,
       :position,
       :description,
@@ -44,6 +46,7 @@ defmodule Lanttern.LearningContextLog.MomentCardLog do
       :profile_id,
       :operation,
       :moment_id,
+      :school_id,
       :name,
       :position,
       :description,

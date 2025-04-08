@@ -4,7 +4,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
 
   ### Attrs
 
-      attr :student, Student, required: true, doc: "requires `classes` preload"
+      attr :student, Student, required: true, doc: "requires `classes` preload and virtual `email` loaded"
       attr :current_cycle, Cycle, doc: "used to separate current cycle from other classes"
       attr :title, :string, required: true
       attr :on_cancel, :any, required: true, doc: "`<.slide_over>` `on_cancel` attr"

@@ -982,6 +982,32 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Renders a dragable (sortable) card.
+
+  Useful to use with `Sortable` hook.
+  """
+  attr :id, :string, default: nil
+  attr :class, :any, default: nil
+  attr :bg_class, :any, default: nil, doc: "view `<.card_base>` docs"
+
+  slot :inner_block, required: true
+
+  def dragable_card(assigns) do
+    ~H"""
+    <.card_base
+      id={@id}
+      class={["flex items-center gap-4 py-4 pl-2 pr-4", @class]}
+      bg_class={@bg_class}
+    >
+      <.drag_handle class="sortable-handle" />
+      <div class="flex-1 min-w-0">
+        <%= render_slot(@inner_block) %>
+      </div>
+    </.card_base>
+    """
+  end
+
+  @doc """
   Renders an empty state block with a pulsating visual element
   """
   attr :class, :any, default: nil
@@ -2091,11 +2117,7 @@ defmodule LantternWeb.CoreComponents do
 
   def sortable_card(assigns) do
     ~H"""
-    <.card_base
-      id={@id}
-      class={["flex items-center gap-4 p-4 rounded shadow-lg", @class]}
-      bg_class={@bg_class}
-    >
+    <.card_base id={@id} class={["flex items-center gap-4 p-4", @class]} bg_class={@bg_class}>
       <div class="flex-1 min-w-0">
         <%= render_slot(@inner_block) %>
       </div>

@@ -8,6 +8,7 @@ defmodule Lanttern.LearningContext.MomentCard do
 
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.MomentCardAttachment
+  alias Lanttern.Schools.School
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -20,6 +21,8 @@ defmodule Lanttern.LearningContext.MomentCard do
           attachments_count: non_neg_integer(),
           moment: Moment.t() | Ecto.Association.NotLoaded.t(),
           moment_id: pos_integer(),
+          school: School.t() | Ecto.Association.NotLoaded.t(),
+          school_id: pos_integer(),
           moment_card_attachments: [MomentCardAttachment.t()] | Ecto.Association.NotLoaded.t(),
           inserted_at: NaiveDateTime.t(),
           updated_at: NaiveDateTime.t()
@@ -36,6 +39,7 @@ defmodule Lanttern.LearningContext.MomentCard do
     field :attachments_count, :integer, virtual: true, default: 0
 
     belongs_to :moment, Moment
+    belongs_to :school, School
 
     has_many :moment_card_attachments, MomentCardAttachment
     has_many :attachments, through: [:moment_card_attachments, :attachment]
@@ -53,8 +57,9 @@ defmodule Lanttern.LearningContext.MomentCard do
       :teacher_instructions,
       :differentiation,
       :shared_with_students,
-      :moment_id
+      :moment_id,
+      :school_id
     ])
-    |> validate_required([:name, :description, :moment_id])
+    |> validate_required([:name, :description, :moment_id, :school_id])
   end
 end

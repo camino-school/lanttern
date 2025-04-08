@@ -428,10 +428,14 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
   defp save_moment_card(socket, nil, moment_card_params) do
     # inject moment id to params
     moment_card_params =
-      Map.put_new(
-        moment_card_params,
+      moment_card_params
+      |> Map.put_new(
         "moment_id",
         socket.assigns.moment_card.moment_id
+      )
+      |> Map.put_new(
+        "school_id",
+        socket.assigns.current_user.current_profile.school_id
       )
 
     LearningContext.create_moment_card(moment_card_params,

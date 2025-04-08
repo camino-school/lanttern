@@ -254,13 +254,6 @@ defmodule LantternWeb.Router do
     live "/moments/:id", Admin.MomentLive.Show, :show
     live "/moments/:id/show/edit", Admin.MomentLive.Show, :edit
 
-    live "/moment_cards", Admin.MomentCardLive.Index, :index
-    live "/moment_cards/new", Admin.MomentCardLive.Index, :new
-    live "/moment_cards/:id/edit", Admin.MomentCardLive.Index, :edit
-
-    live "/moment_cards/:id", Admin.MomentCardLive.Show, :show
-    live "/moment_cards/:id/show/edit", Admin.MomentCardLive.Show, :edit
-
     # Personalization context
     live "/notes", Admin.NoteLive.Index, :index
     live "/notes/new", Admin.NoteLive.Index, :new

@@ -2018,6 +2018,7 @@ defmodule Lanttern.ReportingTest do
     alias Lanttern.GradingFixtures
     alias Lanttern.LearningContext
     alias Lanttern.LearningContextFixtures
+    alias Lanttern.SchoolsFixtures
     alias Lanttern.TaxonomyFixtures
 
     test "list_report_card_assessment_points/1 returns all report card's assessment points" do
@@ -2148,18 +2149,27 @@ defmodule Lanttern.ReportingTest do
     end
 
     test "list_moment_cards_and_attachments_shared_with_students/1 returns all cards and attachments for the given moment" do
+      school = SchoolsFixtures.school_fixture()
       moment = LearningContextFixtures.moment_fixture()
 
       moment_card =
         LearningContextFixtures.moment_card_fixture(%{
           moment_id: moment.id,
+          school_id: school.id,
           shared_with_students: true
         })
 
       _not_shared_card =
         LearningContextFixtures.moment_card_fixture(%{
           moment_id: moment.id,
+          school_id: school.id,
           shared_with_students: false
+        })
+
+      _other_school_card =
+        LearningContextFixtures.moment_card_fixture(%{
+          moment_id: moment.id,
+          shared_with_students: true
         })
 
       profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
@@ -2180,7 +2190,9 @@ defmodule Lanttern.ReportingTest do
         )
 
       [expected_card] =
-        Reporting.list_moment_cards_and_attachments_shared_with_students(moment.id)
+        Reporting.list_moment_cards_and_attachments_shared_with_students(moment.id,
+          school_id: school.id
+        )
 
       assert expected_card.id == moment_card.id
       [expected_attachment] = expected_card.attachments
