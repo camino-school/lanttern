@@ -32,6 +32,7 @@ defmodule Lanttern.Reporting do
 
   - `:preloads` – preloads associated data
   - `:strands_ids` – filter report cards by strands
+  - `:school_id` – filter report cards by school (based on school cycle)
   - `:cycles_ids` - filter report cards by cycles
   - `:parent_cycle_id` - filter report cards by subcycles of the given parent cycle
   - `:years_ids` - filter report cards by year
@@ -68,6 +69,15 @@ defmodule Lanttern.Reporting do
   defp apply_list_report_cards_opts(queryable, [{:cycles_ids, ids} | opts])
        when is_list(ids) and ids != [] do
     from(rc in queryable, where: rc.school_cycle_id in ^ids)
+    |> apply_list_report_cards_opts(opts)
+  end
+
+  defp apply_list_report_cards_opts(queryable, [{:school_id, id} | opts]) do
+    from(
+      rc in queryable,
+      join: sc in assoc(rc, :school_cycle),
+      where: sc.school_id == ^id
+    )
     |> apply_list_report_cards_opts(opts)
   end
 

@@ -41,6 +41,18 @@ defmodule Lanttern.ReportingTest do
       assert expected.id == report_card.id
     end
 
+    test "list_report_cards/1 with school filter returns all school report_cards" do
+      cycle = SchoolsFixtures.cycle_fixture()
+      report_card = report_card_fixture(%{school_cycle_id: cycle.id})
+
+      # extra report cards for filtering test
+      report_card_fixture()
+
+      [expected] = Reporting.list_report_cards(school_id: cycle.school_id)
+
+      assert expected.id == report_card.id
+    end
+
     test "list_report_cards/1 with year/cycle filters returns all filtered report_cards" do
       year = TaxonomyFixtures.year_fixture()
       cycle = SchoolsFixtures.cycle_fixture()

@@ -1,6 +1,14 @@
 defmodule LantternWeb.Schools.ClassSearchComponent do
   @moduledoc """
-  Renders a `Class` search component
+  Renders a `Class` search component.
+
+  ### Supported attrs
+
+  - `label` - string
+  - `notify_component`/`notify_parent`
+  - `school_id` - filter search results by school
+  - `class` - any
+  - `refocus_on_select` - string. `"false"` (default) or `"true"`
   """
 
   use LantternWeb, :live_component
@@ -87,6 +95,7 @@ defmodule LantternWeb.Schools.ClassSearchComponent do
       socket
       |> assign(:label, nil)
       |> assign(:class, nil)
+      |> assign(:school_id, nil)
       |> assign(:refocus_on_select, "false")
       |> stream(:classes, [])
 
@@ -97,10 +106,17 @@ defmodule LantternWeb.Schools.ClassSearchComponent do
 
   @impl true
   def handle_event("search", %{"query" => query}, socket) do
+    opts =
+      if socket.assigns.school_id do
+        [schools_ids: [socket.assigns.school_id]]
+      else
+        []
+      end
+
     # search when more than 3 characters were typed
     classes =
       if String.length(query) > 3,
-        do: Schools.search_classes(query),
+        do: Schools.search_classes(query, opts),
         else: []
 
     results_simplified = Enum.map(classes, &%{id: &1.id})
