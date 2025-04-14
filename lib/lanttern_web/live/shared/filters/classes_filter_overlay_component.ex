@@ -47,6 +47,7 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
             module={ClassSearchComponent}
             id={"#{@id}-class-search"}
             notify_component={@myself}
+            school_id={@current_user.current_profile.school_id}
             label={gettext("Search all school classes")}
           />
         </form>

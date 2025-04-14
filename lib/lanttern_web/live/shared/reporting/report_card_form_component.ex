@@ -94,13 +94,12 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
   @impl true
   def mount(socket) do
     year_options = TaxonomyHelpers.generate_year_options()
-    grades_report_options = GradesReportsHelpers.generate_grades_report_options()
 
     socket =
       socket
       |> assign(:class, nil)
       |> assign(:year_options, year_options)
-      |> assign(:grades_report_options, grades_report_options)
+      |> assign(:parent_cycle_id, nil)
       |> assign(:hide_submit, false)
       |> assign(:is_removing_cover, false)
       |> allow_upload(:cover,
@@ -128,6 +127,7 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
 
     socket
     |> assign_cycle_options()
+    |> assign_grades_report_options()
     |> assign_form(changeset)
     |> assign(:initialized, true)
   end
@@ -135,8 +135,30 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
   defp initialize(socket), do: socket
 
   defp assign_cycle_options(socket) do
-    cycle_options = SchoolsHelpers.generate_cycle_options(subcycles_only: true)
+    opts = [subcycles_only: true]
+
+    opts =
+      case socket.assigns.parent_cycle_id do
+        parent_cycle_id when is_integer(parent_cycle_id) ->
+          [{:subcycles_of_parent_id, parent_cycle_id} | opts]
+
+        _ ->
+          opts
+      end
+
+    cycle_options = SchoolsHelpers.generate_cycle_options(opts)
     assign(socket, :cycle_options, cycle_options)
+  end
+
+  defp assign_grades_report_options(socket) do
+    opts =
+      case socket.assigns.parent_cycle_id do
+        parent_cycle_id when is_integer(parent_cycle_id) -> [school_cycle_id: parent_cycle_id]
+        _ -> []
+      end
+
+    grades_report_options = GradesReportsHelpers.generate_grades_report_options(opts)
+    assign(socket, :grades_report_options, grades_report_options)
   end
 
   @impl true

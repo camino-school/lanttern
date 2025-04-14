@@ -2,6 +2,7 @@ defmodule LantternWeb.ReportCardLive do
   use LantternWeb, :live_view
 
   alias Lanttern.Reporting
+  alias Lanttern.Reporting.ReportCard
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # page components
@@ -24,19 +25,40 @@ defmodule LantternWeb.ReportCardLive do
   # lifecycle
 
   @impl true
-  def handle_params(%{"id" => id} = params, _url, socket) do
+  def mount(params, _session, socket) do
+    socket =
+      socket
+      |> assign_report_card(params)
+
+    {:ok, socket}
+  end
+
+  defp assign_report_card(socket, %{"id" => id}) do
+    report_card =
+      case Reporting.get_report_card(id, preloads: [:year, school_cycle: :parent_cycle]) do
+        %ReportCard{school_cycle: %{school_id: school_id}} = report_card
+        when school_id == socket.assigns.current_user.current_profile.school_id ->
+          report_card
+
+        _ ->
+          # nil or access to other schools report cards
+          raise LantternWeb.NotFoundError
+      end
+
+    socket
+    |> assign(:report_card, report_card)
+    |> assign(
+      :cover_image_url,
+      object_url_to_render_url(report_card.cover_image_url, width: 1280, height: 640)
+    )
+    |> assign(:page_title, report_card.name)
+  end
+
+  @impl true
+  def handle_params(params, _url, socket) do
     socket =
       socket
       |> assign(:params, params)
-      |> assign_new(:report_card, fn ->
-        Reporting.get_report_card!(id, preloads: [:year, school_cycle: :parent_cycle])
-      end)
-      |> assign_new(
-        :cover_image_url,
-        fn %{report_card: report_card} ->
-          object_url_to_render_url(report_card.cover_image_url, width: 1280, height: 640)
-        end
-      )
       |> assign_current_tab(params)
       |> assign_is_editing(params)
 

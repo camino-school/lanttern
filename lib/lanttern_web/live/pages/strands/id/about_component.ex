@@ -237,7 +237,8 @@ defmodule LantternWeb.StrandLive.AboutComponent do
     report_cards =
       Reporting.list_report_cards(
         preloads: :school_cycle,
-        strands_ids: [socket.assigns.strand.id]
+        strands_ids: [socket.assigns.strand.id],
+        school_id: socket.assigns.current_profile.school_id
       )
 
     socket

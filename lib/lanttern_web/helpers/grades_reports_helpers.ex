@@ -9,13 +9,15 @@ defmodule LantternWeb.GradesReportsHelpers do
   @doc """
   Generate list of grades reports to use as `Phoenix.HTML.Form.options_for_select/2` arg
 
+  View `GradesReports.list_grades_reports/1` for opts details.
+
   ## Examples
 
       iex> generate_grades_report_options()
       ["grades report name": 1, ...]
   """
-  def generate_grades_report_options() do
-    GradesReports.list_grades_reports()
+  def generate_grades_report_options(opts \\ []) do
+    GradesReports.list_grades_reports(opts)
     |> Enum.map(fn gr -> {gr.name, gr.id} end)
   end
 

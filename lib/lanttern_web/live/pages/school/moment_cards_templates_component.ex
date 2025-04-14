@@ -167,11 +167,12 @@ defmodule LantternWeb.SchoolLive.MomentCardsTemplatesComponent do
     school_id = socket.assigns.current_user.current_profile.school_id
 
     templates =
-      SchoolConfig.list_moment_cards_templates(schools_ids: [school_id])
+      SchoolConfig.list_moment_cards_templates(school_id: school_id)
 
     socket
     |> stream(:templates, templates)
     |> assign(:templates_count, length(templates))
+    |> assign(:templates_ids, Enum.map(templates, &"#{&1.id}"))
   end
 
   defp assign_template(
@@ -187,7 +188,9 @@ defmodule LantternWeb.SchoolLive.MomentCardsTemplatesComponent do
 
   defp assign_template(%{assigns: %{params: %{"id" => id}}} = socket) do
     template =
-      SchoolConfig.get_moment_card_template(id)
+      if id in socket.assigns.templates_ids do
+        SchoolConfig.get_moment_card_template(id)
+      end
 
     socket
     |> assign(:template, template)
