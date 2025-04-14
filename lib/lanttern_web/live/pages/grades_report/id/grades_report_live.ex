@@ -2,7 +2,7 @@ defmodule LantternWeb.GradesReportLive do
   use LantternWeb, :live_view
 
   alias Lanttern.GradesReports
-  # alias Lanttern.GradesReports.GradesReport
+  alias Lanttern.GradesReports.GradesReport
 
   # # local view components
   # alias LantternWeb.ReportCardLive.GradesReportGridSetupOverlayComponent
@@ -45,16 +45,13 @@ defmodule LantternWeb.GradesReportLive do
                grades_report_subjects: :subject
              ]
            ) do
-        nil ->
-          raise LantternWeb.NotFoundError
-
-        %{school_cycle: %{school_id: school_id}}
-        when school_id != socket.assigns.current_user.current_profile.school_id ->
-          # prevent access to other schools grades reports
-          raise LantternWeb.NotFoundError
-
-        grades_report ->
+        %GradesReport{school_cycle: %{school_id: school_id}} = grades_report
+        when school_id == socket.assigns.current_user.current_profile.school_id ->
           grades_report
+
+        _ ->
+          # nil or other schools grades reports
+          raise LantternWeb.NotFoundError
       end
 
     grades_report_cycles =

@@ -2,6 +2,7 @@ defmodule LantternWeb.ReportCardLive do
   use LantternWeb, :live_view
 
   alias Lanttern.Reporting
+  alias Lanttern.Reporting.ReportCard
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # page components
@@ -35,16 +36,13 @@ defmodule LantternWeb.ReportCardLive do
   defp assign_report_card(socket, %{"id" => id}) do
     report_card =
       case Reporting.get_report_card(id, preloads: [:year, school_cycle: :parent_cycle]) do
-        nil ->
-          raise LantternWeb.NotFoundError
-
-        %{school_cycle: %{school_id: school_id}}
-        when school_id != socket.assigns.current_user.current_profile.school_id ->
-          # prevent access to other schools report cards
-          raise LantternWeb.NotFoundError
-
-        report_card ->
+        %ReportCard{school_cycle: %{school_id: school_id}} = report_card
+        when school_id == socket.assigns.current_user.current_profile.school_id ->
           report_card
+
+        _ ->
+          # nil or access to other schools report cards
+          raise LantternWeb.NotFoundError
       end
 
     socket
