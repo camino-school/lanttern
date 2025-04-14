@@ -92,7 +92,7 @@
     report_card={%ReportCard{}}
     navigate={fn report_card -> ~p"/report_cards/#{report_card}" end}
     hide_submit
-    parent_cycle_id={Map.get(@current_user.current_profile.current_school_cycle || %{}, :id)}
+    parent_cycle_id={@current_user.current_profile.current_school_cycle.id}
   />
   <:actions>
     <.button
