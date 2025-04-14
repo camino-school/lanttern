@@ -45,8 +45,16 @@ defmodule LantternWeb.GradesReportLive do
                grades_report_subjects: :subject
              ]
            ) do
-        nil -> raise LantternWeb.NotFoundError
-        grades_report -> grades_report
+        nil ->
+          raise LantternWeb.NotFoundError
+
+        %{school_cycle: %{school_id: school_id}}
+        when school_id != socket.assigns.current_user.current_profile.school_id ->
+          # prevent access to other schools grades reports
+          raise LantternWeb.NotFoundError
+
+        grades_report ->
+          grades_report
       end
 
     grades_report_cycles =

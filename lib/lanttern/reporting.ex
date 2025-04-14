@@ -128,11 +128,31 @@ defmodule Lanttern.Reporting do
   @doc """
   Gets a single report_card.
 
-  Raises `Ecto.NoResultsError` if the Report card does not exist.
+  Returns `nil` if the Report card does not exist.
 
   ## Options:
 
       - `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> get_report_card(123)
+      %ReportCard{}
+
+      iex> get_report_card(456)
+      nil
+
+  """
+  def get_report_card(id, opts \\ []) do
+    ReportCard
+    |> Repo.get(id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single report_card.
+
+  Same as `get_report_card/2`, but raises `Ecto.NoResultsError` if the Report card does not exist.
 
   ## Examples
 

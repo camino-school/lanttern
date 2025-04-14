@@ -12,8 +12,11 @@ defmodule LantternWeb.ReportCardLiveTest do
   setup [:register_and_log_in_staff_member]
 
   describe "Report card live view basic navigation" do
-    test "disconnected and connected mount", %{conn: conn} do
-      report_card = report_card_fixture(%{name: "Some report card name abc"})
+    test "disconnected and connected mount", %{conn: conn, user: user} do
+      cycle = SchoolsFixtures.cycle_fixture(%{school_id: user.current_profile.school_id})
+
+      report_card =
+        report_card_fixture(%{name: "Some report card name abc", school_cycle_id: cycle.id})
 
       conn = get(conn, "#{@live_view_path_base}/#{report_card.id}")
 
@@ -22,9 +25,10 @@ defmodule LantternWeb.ReportCardLiveTest do
       {:ok, _view, _html} = live(conn)
     end
 
-    test "report card overview", %{conn: conn} do
+    test "report card overview", %{conn: conn, user: user} do
       cycle_2024 =
         SchoolsFixtures.cycle_fixture(%{
+          school_id: user.current_profile.school_id,
           start_at: ~D[2024-01-01],
           end_at: ~D[2024-12-31],
           name: "Cycle 2024"
@@ -39,12 +43,22 @@ defmodule LantternWeb.ReportCardLiveTest do
       assert view |> has_element?("span", "Cycle: Cycle 2024")
     end
 
-    test "list students and students report cards", %{conn: conn} do
-      school = SchoolsFixtures.school_fixture()
-      parent_cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+    test "prevent user access to other schools report cards", %{conn: conn} do
+      report_card = report_card_fixture()
+
+      assert_raise(LantternWeb.NotFoundError, fn ->
+        live(conn, "#{@live_view_path_base}/#{report_card.id}")
+      end)
+    end
+
+    test "list students and students report cards", %{conn: conn, user: user} do
+      parent_cycle = SchoolsFixtures.cycle_fixture(%{school_id: user.current_profile.school_id})
 
       subcycle =
-        SchoolsFixtures.cycle_fixture(%{school_id: school.id, parent_cycle_id: parent_cycle.id})
+        SchoolsFixtures.cycle_fixture(%{
+          school_id: user.current_profile.school_id,
+          parent_cycle_id: parent_cycle.id
+        })
 
       year = TaxonomyFixtures.year_fixture()
 
@@ -52,7 +66,7 @@ defmodule LantternWeb.ReportCardLiveTest do
 
       class =
         SchoolsFixtures.class_fixture(%{
-          school_id: school.id,
+          school_id: user.current_profile.school_id,
           cycle_id: parent_cycle.id,
           years_ids: [year.id]
         })
@@ -81,8 +95,9 @@ defmodule LantternWeb.ReportCardLiveTest do
       assert_redirect(view, "/student_report_cards/#{student_a_report_card.id}")
     end
 
-    test "list strand reports", %{conn: conn} do
-      report_card = report_card_fixture()
+    test "list strand reports", %{conn: conn, user: user} do
+      cycle = SchoolsFixtures.cycle_fixture(%{school_id: user.current_profile.school_id})
+      report_card = report_card_fixture(%{school_cycle_id: cycle.id})
 
       subject = TaxonomyFixtures.subject_fixture(%{name: "Some subject SSS"})
       year = TaxonomyFixtures.year_fixture(%{name: "Some year YYY"})
@@ -108,14 +123,18 @@ defmodule LantternWeb.ReportCardLiveTest do
       assert view |> has_element?("#strands_reports-#{strand_report.id} span", year.name)
     end
 
-    test "view grades reports", %{conn: conn} do
+    test "view grades reports", %{conn: conn, user: user} do
+      cycle = SchoolsFixtures.cycle_fixture(%{school_id: user.current_profile.school_id})
+
       grades_report =
         Lanttern.GradesReportsFixtures.grades_report_fixture(%{
+          school_cycle_id: cycle.id,
           name: "GR name AAA",
           info: "some GR info"
         })
 
-      report_card = report_card_fixture(%{grades_report_id: grades_report.id})
+      report_card =
+        report_card_fixture(%{grades_report_id: grades_report.id, school_cycle_id: cycle.id})
 
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{report_card.id}/grades")
 
@@ -123,15 +142,22 @@ defmodule LantternWeb.ReportCardLiveTest do
       assert view |> has_element?("p", "some GR info")
     end
 
-    test "report card grading info takes precedence over grades report info", %{conn: conn} do
+    test "report card grading info takes precedence over grades report info", %{
+      conn: conn,
+      user: user
+    } do
+      cycle = SchoolsFixtures.cycle_fixture(%{school_id: user.current_profile.school_id})
+
       grades_report =
         Lanttern.GradesReportsFixtures.grades_report_fixture(%{
+          school_cycle_id: cycle.id,
           name: "GR name AAA",
           info: "some GR info"
         })
 
       report_card =
         report_card_fixture(%{
+          school_cycle_id: cycle.id,
           grades_report_id: grades_report.id,
           grading_info: "more important GR info"
         })
@@ -142,8 +168,9 @@ defmodule LantternWeb.ReportCardLiveTest do
       assert view |> has_element?("p", "more important GR info")
     end
 
-    test "view tracking", %{conn: conn} do
-      report_card = report_card_fixture()
+    test "view tracking", %{conn: conn, user: user} do
+      cycle = SchoolsFixtures.cycle_fixture(%{school_id: user.current_profile.school_id})
+      report_card = report_card_fixture(school_cycle_id: cycle.id)
 
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{report_card.id}/tracking")
 
