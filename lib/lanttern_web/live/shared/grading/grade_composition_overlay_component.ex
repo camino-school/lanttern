@@ -50,17 +50,20 @@ defmodule LantternWeb.Grading.GradeCompositionOverlayComponent do
             <%= gettext("All report card strands' goals") %>
           </h5>
           <div id="report-card-assessment-points" phx-update="stream">
-            <div
+            <.card_base
               :for={{dom_id, assessment_point} <- @streams.assessment_points}
               id={dom_id}
               class={[
-                "group flex items-center gap-4 p-4 rounded mt-2 shadow-lg",
+                "group flex items-center gap-4 p-4 mt-2",
                 if(
                   assessment_point.id in @grade_composition_assessment_point_ids,
-                  do: "active bg-ltrn-mesh-cyan",
-                  else: "bg-white"
+                  do: "active"
                 )
               ]}
+              {if(
+                assessment_point.id in @grade_composition_assessment_point_ids,
+                do: %{bg_class: "bg-ltrn-mesh-cyan"}, else: %{}
+              )}
             >
               <div class="flex-1">
                 <p class="text-xs">
@@ -71,6 +74,9 @@ defmodule LantternWeb.Grading.GradeCompositionOverlayComponent do
                 </p>
                 <p class="mt-2 text-sm">
                   <.badge><%= assessment_point.curriculum_item.curriculum_component.name %></.badge>
+                  <.badge :if={assessment_point.is_differentiation} theme="diff">
+                    <%= gettext("Diff") %>
+                  </.badge>
                   <%= assessment_point.curriculum_item.name %>
                 </p>
               </div>
@@ -93,7 +99,7 @@ defmodule LantternWeb.Grading.GradeCompositionOverlayComponent do
                 rounded
                 class="group-[.active]:hidden"
               />
-            </div>
+            </.card_base>
           </div>
         </div>
       </.slide_over>
@@ -121,84 +127,92 @@ defmodule LantternWeb.Grading.GradeCompositionOverlayComponent do
     <.form
       id={@id}
       for={@form}
-      class="grid grid-cols-subgrid col-span-3 items-center p-4 rounded bg-white shadow-lg"
+      class="grid grid-cols-subgrid col-span-3"
       phx-change={JS.push("update_grade_component", target: @myself)}
       phx-value-id={@grade_component.id}
     >
-      <div>
-        <p class="text-xs">
-          <%= @grade_component.assessment_point.strand.name %>
-          <span :if={@grade_component.assessment_point.strand.type}>
-            (<%= @grade_component.assessment_point.strand.type %>)
-          </span>
-        </p>
-        <p class="mt-2 text-sm">
-          <.badge>
-            <%= @grade_component.assessment_point.curriculum_item.curriculum_component.name %>
-          </.badge>
-          <%= @grade_component.assessment_point.curriculum_item.name %>
-        </p>
-      </div>
-      <input
-        type="number"
-        name={@form[:weight].name}
-        value={@form[:weight].value}
-        step="0.01"
-        min="0"
-        phx-debounce="1500"
-        class="w-20 rounded-sm border-none text-right text-sm bg-ltrn-lightest"
-      />
-      <div class="flex flex-col items-center gap-1">
-        <.icon_button
-          type="button"
-          sr_text={gettext("Move up")}
-          name="hero-chevron-up-mini"
-          theme="ghost"
-          rounded
-          size="sm"
-          phx-click={
-            JS.push("swap_grade_components_position",
-              value: %{from: @index, to: @index - 1},
-              target: @myself
-            )
-          }
-          disabled={@index == 0}
+      <.card_base
+        class="grid grid-cols-subgrid col-span-3 items-center p-4"
+        bg_class="bg-ltrn-mesh-cyan"
+      >
+        <div>
+          <p class="text-xs">
+            <%= @grade_component.assessment_point.strand.name %>
+            <span :if={@grade_component.assessment_point.strand.type}>
+              (<%= @grade_component.assessment_point.strand.type %>)
+            </span>
+          </p>
+          <p class="mt-2 text-sm">
+            <.badge>
+              <%= @grade_component.assessment_point.curriculum_item.curriculum_component.name %>
+            </.badge>
+            <.badge :if={@grade_component.assessment_point.is_differentiation} theme="diff">
+              <%= gettext("Diff") %>
+            </.badge>
+            <%= @grade_component.assessment_point.curriculum_item.name %>
+          </p>
+        </div>
+        <input
+          type="number"
+          name={@form[:weight].name}
+          value={@form[:weight].value}
+          step="0.01"
+          min="0"
+          phx-debounce="1500"
+          class="w-20 rounded-sm border-none text-right text-sm bg-ltrn-lightest"
         />
-        <.icon_button
-          type="button"
-          theme="ghost"
-          name="hero-x-mark"
-          phx-click={
-            JS.push("delete_grade_component_from_composition",
-              value: %{id: @grade_component.id},
-              target: @myself
-            )
-            |> JS.remove_class("bg-ltrn-mesh-cyan active",
-              to: "#assessment_points-#{@grade_component.assessment_point_id}"
-            )
-            |> JS.add_class("bg-white",
-              to: "#assessment_points-#{@grade_component.assessment_point_id}"
-            )
-          }
-          sr_text={gettext("Remove")}
-          rounded
-        />
-        <.icon_button
-          type="button"
-          sr_text={gettext("Move down")}
-          name="hero-chevron-down-mini"
-          theme="ghost"
-          rounded
-          size="sm"
-          phx-click={
-            JS.push("swap_grade_components_position",
-              value: %{from: @index, to: @index + 1},
-              target: @myself
-            )
-          }
-          disabled={@is_last}
-        />
-      </div>
+        <div class="flex flex-col items-center gap-1">
+          <.icon_button
+            type="button"
+            sr_text={gettext("Move up")}
+            name="hero-chevron-up-mini"
+            theme="ghost"
+            rounded
+            size="sm"
+            phx-click={
+              JS.push("swap_grade_components_position",
+                value: %{from: @index, to: @index - 1},
+                target: @myself
+              )
+            }
+            disabled={@index == 0}
+          />
+          <.icon_button
+            type="button"
+            theme="ghost"
+            name="hero-x-mark"
+            phx-click={
+              JS.push("delete_grade_component_from_composition",
+                value: %{id: @grade_component.id},
+                target: @myself
+              )
+              |> JS.remove_class("bg-ltrn-mesh-cyan active",
+                to: "#assessment_points-#{@grade_component.assessment_point_id}"
+              )
+              |> JS.add_class("bg-white",
+                to: "#assessment_points-#{@grade_component.assessment_point_id}"
+              )
+            }
+            sr_text={gettext("Remove")}
+            rounded
+          />
+          <.icon_button
+            type="button"
+            sr_text={gettext("Move down")}
+            name="hero-chevron-down-mini"
+            theme="ghost"
+            rounded
+            size="sm"
+            phx-click={
+              JS.push("swap_grade_components_position",
+                value: %{from: @index, to: @index + 1},
+                target: @myself
+              )
+            }
+            disabled={@is_last}
+          />
+        </div>
+      </.card_base>
     </.form>
     """
   end
