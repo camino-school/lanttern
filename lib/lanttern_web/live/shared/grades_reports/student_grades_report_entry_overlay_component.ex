@@ -9,6 +9,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryOverlayComponent do
 
   # shared
   alias LantternWeb.GradesReports.StudentGradesReportEntryFormComponent
+  alias LantternWeb.Grading.ScaleInfoTableComponent
   import LantternWeb.GradesReportsComponents
 
   @impl true
@@ -43,6 +44,12 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryOverlayComponent do
             |> Timex.format!("{0D}/{0M}/{YYYY} {h24}:{m}") %>).
           </p>
           <.grade_composition_table student_grades_report_entry={@student_grades_report_entry} />
+          <.live_component
+            module={ScaleInfoTableComponent}
+            id={"#{@id}-scale-info-table"}
+            class="mt-10"
+            scale_id={@scale_id}
+          />
         </div>
         <:actions_left>
           <.button

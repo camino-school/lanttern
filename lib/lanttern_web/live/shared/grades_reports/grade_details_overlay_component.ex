@@ -14,6 +14,7 @@ defmodule LantternWeb.GradesReports.GradeDetailsOverlayComponent do
   alias Lanttern.GradesReports
 
   # shared components
+  alias LantternWeb.Grading.ScaleInfoTableComponent
   import LantternWeb.GradesReportsComponents
 
   @impl true
@@ -80,6 +81,12 @@ defmodule LantternWeb.GradesReports.GradeDetailsOverlayComponent do
         <% end %>
         <h6 class="mb-4 font-display font-bold"><%= gettext("Grade composition") %></h6>
         <.grade_composition_table student_grades_report_entry={@student_grades_report_entry} />
+        <.live_component
+          module={ScaleInfoTableComponent}
+          id={"#{@id}-scale-info-table"}
+          class="mt-10"
+          scale_id={Map.get(@student_grades_report_entry.ordinal_value || %{}, :scale_id)}
+        />
       </.slide_over>
     </div>
     """
