@@ -119,8 +119,8 @@ msgstr "Aplicando filtros..."
 #: lib/lanttern_web/live/shared/filters/classes_filter_overlay_component.ex:60
 #: lib/lanttern_web/live/shared/filters/cycles_filter_overlay_component.ex:50
 #: lib/lanttern_web/live/shared/filters/filters_overlay_component.ex:25
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:64
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:66
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:71
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:73
 #: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:166
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:113
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:202
@@ -180,8 +180,8 @@ msgstr "Nova trilha"
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:75
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:315
 #: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:129
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:67
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:69
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:74
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:76
 #: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:169
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:122
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:205
@@ -417,8 +417,8 @@ msgstr "Não foi possível encontrar a trilha"
 #: lib/lanttern_web/live/pages/school/staff/deactivated/deactivated_staff_live.html.heex:49
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:53
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:141
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:55
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:57
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:62
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:64
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:103
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:248
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:130
@@ -482,8 +482,8 @@ msgstr "Adicione suas anotações..."
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:139
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:185
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:147
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:53
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:55
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:60
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:62
 #: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:159
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:101
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:246
@@ -910,7 +910,7 @@ msgstr "Sobre o component curricular"
 msgid "Add curriculum item"
 msgstr "Adicionar item curricular"
 
-#: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:92
+#: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:98
 #, elixir-autogen, elixir-format
 msgid "Add to grade composition"
 msgstr "Adicionar à composição da nota"
@@ -970,8 +970,8 @@ msgstr "Cards"
 msgid "Code"
 msgstr "Código"
 
-#: lib/lanttern_web/live/shared/grades_reports/final_grade_details_overlay_component.ex:80
-#: lib/lanttern_web/live/shared/grades_reports/grade_details_overlay_component.ex:78
+#: lib/lanttern_web/live/shared/grades_reports/final_grade_details_overlay_component.ex:81
+#: lib/lanttern_web/live/shared/grades_reports/grade_details_overlay_component.ex:79
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:76
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:49
 #, elixir-autogen, elixir-format
@@ -1018,8 +1018,8 @@ msgstr "Item curricular removido"
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:65
 #: lib/lanttern_web/live/pages/school/cycles_component.ex:27
 #: lib/lanttern_web/live/pages/student_report_cards/id/student_report_card_live.html.heex:23
-#: lib/lanttern_web/live/shared/grades_reports/final_grade_details_overlay_component.ex:49
-#: lib/lanttern_web/live/shared/grades_reports/grade_details_overlay_component.ex:49
+#: lib/lanttern_web/live/shared/grades_reports/final_grade_details_overlay_component.ex:50
+#: lib/lanttern_web/live/shared/grades_reports/grade_details_overlay_component.ex:50
 #: lib/lanttern_web/live/shared/menu_component.ex:120
 #: lib/lanttern_web/live/shared/reporting/report_card_form_component.ex:37
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:39
@@ -1038,6 +1038,8 @@ msgstr "Ciclo já adicionado à este relatório de nota"
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:323
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:353
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:374
+#: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:78
+#: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:150
 #, elixir-autogen, elixir-format
 msgid "Diff"
 msgstr "Dif"
@@ -1111,7 +1113,7 @@ msgstr "Erro ao deletar report card"
 msgid "Error deleting strand report"
 msgstr "Erro ao deletar relatório da trilha"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:93
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:100
 #, elixir-autogen, elixir-format
 msgid "Error deleting student grade report entry"
 msgstr "Erro ao deletar registro de relatório de nota de estudante"
@@ -1132,7 +1134,7 @@ msgid "Error removing subject from grades report"
 msgstr "Erro ao remover disciplina do relatório de notas"
 
 #: lib/lanttern_web/live/shared/grades_reports/grades_report_grid_configuration_overlay_component.ex:332
-#: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:299
+#: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:313
 #, elixir-autogen, elixir-format
 msgid "Error updating grades report cycle weight"
 msgstr "Erro ao atualizar o peso do relatório de notas do ciclo"
@@ -1159,15 +1161,15 @@ msgstr "Nota final"
 msgid "Grade calculated succesfully"
 msgstr "Nota calculada com sucesso"
 
-#: lib/lanttern_web/live/shared/grades_reports/final_grade_details_overlay_component.ex:83
-#: lib/lanttern_web/live/shared/grades_reports/grade_details_overlay_component.ex:81
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:38
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:38
+#: lib/lanttern_web/live/shared/grades_reports/final_grade_details_overlay_component.ex:84
+#: lib/lanttern_web/live/shared/grades_reports/grade_details_overlay_component.ex:82
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:39
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:39
 #, elixir-autogen, elixir-format
 msgid "Grade composition"
 msgstr "Composição de nota"
 
-#: lib/lanttern_web/live/shared/grades_reports/grade_details_overlay_component.ex:24
+#: lib/lanttern_web/live/shared/grades_reports/grade_details_overlay_component.ex:25
 #, elixir-autogen, elixir-format
 msgid "Grade details"
 msgstr "Detalhes da nota"
@@ -1230,8 +1232,8 @@ msgstr "Info"
 msgid "Item"
 msgstr "Item"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:40
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:40
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:41
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:41
 #, elixir-autogen, elixir-format
 msgid "Lanttern automatic grade calculation info based on configured grade composition"
 msgstr "Informações do cálculo automático da nota do Lanttern baseado na configuração de composição da nota"
@@ -1252,13 +1254,13 @@ msgstr "Vincular trilha"
 msgid "List of report cards linked to this strand."
 msgstr "Lista de report cards vinculados a esta trilha"
 
-#: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:188
+#: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:201
 #, elixir-autogen, elixir-format
 msgid "Move down"
 msgstr "Mover para baixo"
 
 #: lib/lanttern_web/components/core_components.ex:2127
-#: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:154
+#: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:167
 #, elixir-autogen, elixir-format
 msgid "Move up"
 msgstr "Mover para cima"
@@ -1370,7 +1372,7 @@ msgstr "Recalcular nota"
 #: lib/lanttern_web/components/core_components.ex:319
 #: lib/lanttern_web/components/core_components.ex:1594
 #: lib/lanttern_web/components/form_components.ex:744
-#: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:183
+#: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:196
 #, elixir-autogen, elixir-format
 msgid "Remove"
 msgstr "Remover"
@@ -1496,7 +1498,7 @@ msgstr "Estudante já vinculado ao report card"
 msgid "Student grade report entry created successfully"
 msgstr "Registro de relatório de nota de estudante criado com sucesso"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:85
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:92
 #, elixir-autogen, elixir-format
 msgid "Student grade report entry deleted"
 msgstr "Registro de relatório de nota de estudante deletado"
@@ -1530,8 +1532,8 @@ msgstr "Report card de estudante deletado"
 msgid "Students"
 msgstr "Estudantes"
 
-#: lib/lanttern_web/live/shared/grades_reports/final_grade_details_overlay_component.ex:41
-#: lib/lanttern_web/live/shared/grades_reports/grade_details_overlay_component.ex:41
+#: lib/lanttern_web/live/shared/grades_reports/final_grade_details_overlay_component.ex:42
+#: lib/lanttern_web/live/shared/grades_reports/grade_details_overlay_component.ex:42
 #, elixir-autogen, elixir-format
 msgid "Subject"
 msgstr "Disciplina"
@@ -2201,8 +2203,8 @@ msgstr "Você tem certeza? Notas relacionadas ao estudante serão criadas, atual
 msgid "Are you sure? Grades related to this subject will be created, updated, and removed based on their grade composition."
 msgstr "Você tem certeza? Notas relacionadas à disciplina serão criadas, atualizadas e removidas com base em suas composições."
 
-#: lib/lanttern_web/live/shared/grades_reports/final_grade_details_overlay_component.ex:77
-#: lib/lanttern_web/live/shared/grades_reports/grade_details_overlay_component.ex:75
+#: lib/lanttern_web/live/shared/grades_reports/final_grade_details_overlay_component.ex:78
+#: lib/lanttern_web/live/shared/grades_reports/grade_details_overlay_component.ex:76
 #, elixir-autogen, elixir-format
 msgid "Grade before retake process"
 msgstr "Nota anterior ao processo de recuperação"
@@ -2707,17 +2709,17 @@ msgstr "Criar relatório de notas"
 msgid "Edit grades report"
 msgstr "Editar relatório de notas"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:19
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:20
 #, elixir-autogen, elixir-format
 msgid "Edit student grades report entry"
 msgstr "Editar registro do relatório de notas de estudante"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:19
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:20
 #, elixir-autogen, elixir-format
 msgid "Edit student grades report final entry"
 msgstr "Editar registro final do relatório de notas de estudante"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:95
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:102
 #, elixir-autogen, elixir-format
 msgid "Error deleting student grade report final entry"
 msgstr "Erro ao deletar registro final do relatório de nota de estudante"
@@ -2728,7 +2730,7 @@ msgstr "Erro ao deletar registro final do relatório de nota de estudante"
 msgid "Error updating final grades visibility"
 msgstr "Erro ao atualizar visibilidade das notas finais"
 
-#: lib/lanttern_web/live/shared/grades_reports/final_grade_details_overlay_component.ex:24
+#: lib/lanttern_web/live/shared/grades_reports/final_grade_details_overlay_component.ex:25
 #, elixir-autogen, elixir-format
 msgid "Final grade details"
 msgstr "Detalhes da nota final"
@@ -2774,7 +2776,7 @@ msgstr "Salvar registro de relatório de notas de estudante"
 msgid "Student final grades calculated succesfully"
 msgstr "Notas finais do estudante calculadas com sucesso"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:87
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:94
 #, elixir-autogen, elixir-format
 msgid "Student grade report final entry deleted"
 msgstr "Registro final do relatório de notas de estudante deletado"
@@ -5097,3 +5099,18 @@ msgstr "Report card"
 #, elixir-autogen, elixir-format
 msgid "Used in grading for"
 msgstr "Utilizado no conceito para"
+
+#: lib/lanttern_web/live/shared/grading/scale_info_table_component.ex:28
+#, elixir-autogen, elixir-format
+msgid "Grade"
+msgstr "Nota"
+
+#: lib/lanttern_web/live/shared/grading/scale_info_table_component.ex:29
+#, elixir-autogen, elixir-format
+msgid "Greater than or equal to"
+msgstr "Maior que ou igual a"
+
+#: lib/lanttern_web/live/shared/grading/scale_info_table_component.ex:23
+#, elixir-autogen, elixir-format
+msgid "Scale ranges"
+msgstr "Intervalos da escala"
