@@ -9,6 +9,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportFinalEntryOverlayComponen
 
   # shared
   alias LantternWeb.GradesReports.StudentGradesReportFinalEntryFormComponent
+  alias LantternWeb.Grading.ScaleInfoTableComponent
   import LantternWeb.GradesReportsComponents
 
   @impl true
@@ -45,6 +46,12 @@ defmodule LantternWeb.GradesReports.StudentGradesReportFinalEntryOverlayComponen
           <.final_grade_composition_table student_grades_report_final_entry={
             @student_grades_report_final_entry
           } />
+          <.live_component
+            module={ScaleInfoTableComponent}
+            id={"#{@id}-scale-info-table"}
+            class="mt-10"
+            scale_id={@scale_id}
+          />
         </div>
         <:actions_left>
           <.button

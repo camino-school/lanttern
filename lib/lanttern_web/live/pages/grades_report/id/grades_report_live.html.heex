@@ -139,7 +139,7 @@
 <.live_component
   :if={@is_editing_student_grades_report_entry}
   module={StudentGradesReportEntryOverlayComponent}
-  id={@student_grades_report_entry.id}
+  id={"student-grade-report-entry-#{@student_grades_report_entry.id}"}
   student_grades_report_entry={@student_grades_report_entry}
   scale_id={@grades_report.scale_id}
   navigate={~p"/grades_reports/#{@grades_report}"}
