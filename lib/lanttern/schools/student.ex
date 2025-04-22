@@ -17,6 +17,7 @@ defmodule Lanttern.Schools.Student do
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.School
   alias Lanttern.StudentsCycleInfo.StudentCycleInfo
+  alias Lanttern.StudentTags.Tag
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -32,6 +33,7 @@ defmodule Lanttern.Schools.Student do
           student_report_cards: [StudentReportCard.t()],
           grades_report_entries: [StudentGradesReportEntry.t()],
           ilps: [StudentILP.t()],
+          tags: [Tag.t()],
           profile: Profile.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
@@ -44,6 +46,7 @@ defmodule Lanttern.Schools.Student do
     field :profile_picture_url, :string, virtual: true
     field :classes_ids, {:array, :id}, virtual: true
     field :has_diff_rubric, :boolean, virtual: true, default: false
+    field :tags_ids, {:array, :id}, virtual: true
 
     # this field is used in the context of student form,
     # and handled by student create and update functions
@@ -55,6 +58,11 @@ defmodule Lanttern.Schools.Student do
       join_through: "classes_students",
       on_replace: :delete,
       preload_order: [asc: :name]
+
+    many_to_many :tags, Tag,
+      join_through: "students_tags",
+      join_keys: [student_id: :id, tag_id: :id],
+      on_replace: :delete
 
     has_many :assessment_point_entries, AssessmentPointEntry
     has_many :cycles_info, StudentCycleInfo
@@ -70,9 +78,10 @@ defmodule Lanttern.Schools.Student do
   @doc false
   def changeset(student, attrs) do
     student
-    |> cast(attrs, [:name, :deactivated_at, :school_id, :classes_ids])
+    |> cast(attrs, [:name, :deactivated_at, :school_id, :classes_ids, :tags_ids])
     |> validate_required([:name, :school_id])
     |> put_classes(attrs)
+    |> put_tags(attrs)
   end
 
   defp put_classes(changeset, %{classes: classes}) when is_list(classes),
@@ -94,5 +103,26 @@ defmodule Lanttern.Schools.Student do
 
     changeset
     |> put_assoc(:classes, classes)
+  end
+
+  defp put_tags(changeset, %{tags: tags}) when is_list(tags),
+    do: put_assoc(changeset, :tags, tags)
+
+  defp put_tags(changeset, _attrs) do
+    put_tags_ids(
+      changeset,
+      get_change(changeset, :tags_ids)
+    )
+  end
+
+  defp put_tags_ids(changeset, nil), do: changeset
+
+  defp put_tags_ids(changeset, tags_ids) do
+    tags =
+      from(t in Tag, where: t.id in ^tags_ids)
+      |> Repo.all()
+
+    changeset
+    |> put_assoc(:tags, tags)
   end
 end
