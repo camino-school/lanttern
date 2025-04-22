@@ -37,3 +37,6 @@ npm-debug.log
 
 # env variables
 .env
+
+# windsurf rules
+.windsurfrules
