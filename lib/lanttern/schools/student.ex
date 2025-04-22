@@ -14,8 +14,8 @@ defmodule Lanttern.Schools.Student do
   alias Lanttern.Identity.Profile
   alias Lanttern.ILP.StudentILP
   alias Lanttern.Reporting.StudentReportCard
-  alias Lanttern.Schools.School
   alias Lanttern.Schools.Class
+  alias Lanttern.Schools.School
   alias Lanttern.StudentsCycleInfo.StudentCycleInfo
 
   @type t :: %__MODULE__{

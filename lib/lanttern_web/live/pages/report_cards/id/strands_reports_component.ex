@@ -8,9 +8,9 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
   import Lanttern.Utils, only: [swap: 3]
 
   # shared components
+  alias LantternWeb.GradesReports.StrandGradesReportSubjectsComponent
   alias LantternWeb.LearningContext.StrandSearchComponent
   alias LantternWeb.Reporting.StrandReportFormComponent
-  alias LantternWeb.GradesReports.StrandGradesReportSubjectsComponent
   import LantternWeb.LearningContextComponents
 
   @impl true

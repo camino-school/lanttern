@@ -4,19 +4,20 @@ defmodule Lanttern.LearningContext do
   """
 
   import Ecto.Query, warn: false
-  import Lanttern.RepoHelpers
-  alias Lanttern.RepoHelpers.Page
-  alias Lanttern.Repo
   use Gettext, backend: Lanttern.Gettext
 
+  alias Lanttern.Repo
+  alias Lanttern.RepoHelpers.Page
+  import Lanttern.RepoHelpers
+
+  alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Attachments
   alias Lanttern.Attachments.Attachment
-  alias Lanttern.Assessments.AssessmentPointEntry
-  alias Lanttern.LearningContext.Strand
-  alias Lanttern.LearningContext.StarredStrand
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.MomentCard
   alias Lanttern.LearningContext.MomentCardAttachment
+  alias Lanttern.LearningContext.StarredStrand
+  alias Lanttern.LearningContext.Strand
   alias Lanttern.LearningContextLog
 
   @doc """

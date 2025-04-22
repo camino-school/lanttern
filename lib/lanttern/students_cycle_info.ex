@@ -4,17 +4,17 @@ defmodule Lanttern.StudentsCycleInfo do
   """
 
   import Ecto.Query, warn: false
-  alias Lanttern.Schools.Student
-  alias Lanttern.Repo
 
+  alias Lanttern.Repo
   import Lanttern.RepoHelpers
 
   alias Lanttern.Attachments.Attachment
-  alias Lanttern.StudentsCycleInfoLog
-  alias Lanttern.StudentsCycleInfo.StudentCycleInfo
-  alias Lanttern.StudentsCycleInfo.StudentCycleInfoAttachment
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.Cycle
+  alias Lanttern.Schools.Student
+  alias Lanttern.StudentsCycleInfo.StudentCycleInfo
+  alias Lanttern.StudentsCycleInfo.StudentCycleInfoAttachment
+  alias Lanttern.StudentsCycleInfoLog
 
   @doc """
   Returns the list of students_cycle_info.

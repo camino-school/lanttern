@@ -1686,7 +1686,7 @@ defmodule Lanttern.GradesReportsTest do
           ordinal_value_id: ov_eme.id
         })
 
-      _entry_3_diff =
+      _entry_3_3 =
         AssessmentsFixtures.assessment_point_entry_fixture(%{
           student_id: std.id,
           assessment_point_id: goal_3_3.id,
@@ -4675,15 +4675,24 @@ defmodule Lanttern.GradesReportsTest do
         grades_report_subject_fixture(%{grades_report_id: grades_report.id})
 
       grades_report_cycle =
-        grades_report_cycle_fixture(%{grades_report_id: grades_report.id, is_visible: true})
+        grades_report_cycle_fixture(%{
+          grades_report_id: grades_report.id,
+          is_visible: true
+        })
 
       strand = LearningContextFixtures.strand_fixture()
 
       strand_ap_1 =
-        AssessmentsFixtures.assessment_point_fixture(%{strand_id: strand.id, type: "numeric"})
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand.id,
+          type: "numeric"
+        })
 
       strand_ap_2 =
-        AssessmentsFixtures.assessment_point_fixture(%{strand_id: strand.id, type: "numeric"})
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand.id,
+          type: "numeric"
+        })
 
       _grade_component_1 =
         GradingFixtures.grade_component_fixture(%{
@@ -4732,7 +4741,10 @@ defmodule Lanttern.GradesReportsTest do
         grades_report_subject_fixture(%{grades_report_id: grades_report.id})
 
       strand_ap_3 =
-        AssessmentsFixtures.assessment_point_fixture(%{strand_id: strand.id, type: "numeric"})
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand.id,
+          type: "numeric"
+        })
 
       _grade_component_1_3_other_cycle =
         GradingFixtures.grade_component_fixture(%{

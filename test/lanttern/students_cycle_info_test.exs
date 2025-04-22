@@ -4,12 +4,13 @@ defmodule Lanttern.StudentsCycleInfoTest do
   alias Lanttern.StudentsCycleInfo
 
   describe "students_cycle_info" do
+    import Lanttern.StudentsCycleInfoFixtures
+
     alias Lanttern.StudentsCycleInfo.StudentCycleInfo
     alias Lanttern.StudentsCycleInfoLog.StudentCycleInfoLog
 
-    import Lanttern.StudentsCycleInfoFixtures
-    alias Lanttern.SchoolsFixtures
     alias Lanttern.IdentityFixtures
+    alias Lanttern.SchoolsFixtures
 
     @invalid_attrs %{school_info: nil, shared_info: nil, profile_picture_url: nil}
 

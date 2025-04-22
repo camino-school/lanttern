@@ -98,7 +98,7 @@ defmodule LantternWeb.LocalizationHelpers do
       iex> get_html_lang()
       "pt-br"
   """
-  def get_html_lang() do
+  def get_html_lang do
     Gettext.get_locale(Lanttern.Gettext)
     |> String.downcase()
     |> String.replace("_", "-")

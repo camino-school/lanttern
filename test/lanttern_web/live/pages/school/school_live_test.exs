@@ -1,8 +1,8 @@
 defmodule LantternWeb.SchoolLiveTest do
   use LantternWeb.ConnCase
 
-  alias Lanttern.SchoolsFixtures
   alias Lanttern.SchoolConfigFixtures
+  alias Lanttern.SchoolsFixtures
 
   @live_view_base_path "/school"
 

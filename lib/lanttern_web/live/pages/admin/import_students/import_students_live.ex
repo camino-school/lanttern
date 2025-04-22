@@ -3,8 +3,8 @@ defmodule LantternWeb.Admin.ImportStudentsLive do
 
   alias NimbleCSV.RFC4180, as: CSV
 
-  alias LantternWeb.SchoolsHelpers
   alias Lanttern.Schools
+  alias LantternWeb.SchoolsHelpers
 
   # function components
 

@@ -6,8 +6,8 @@ defmodule Lanttern.StudentsCycleInfo.StudentCycleInfoAttachment do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Lanttern.StudentsCycleInfo.StudentCycleInfo
   alias Lanttern.Attachments.Attachment
+  alias Lanttern.StudentsCycleInfo.StudentCycleInfo
 
   @type t :: %__MODULE__{
           id: pos_integer(),

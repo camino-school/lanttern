@@ -1,10 +1,11 @@
 defmodule Lanttern.ConversationTest do
   use Lanttern.DataCase
 
+  alias Lanttern.Assessments
   alias Lanttern.Conversation
+  alias Lanttern.Conversation.Comment
 
   describe "comments" do
-    alias Lanttern.Conversation.Comment
     import Lanttern.ConversationFixtures
 
     @invalid_attrs %{comment: nil}
@@ -115,8 +116,8 @@ defmodule Lanttern.ConversationTest do
   end
 
   describe "feedback_comments" do
-    alias Lanttern.Conversation.Comment
     alias Lanttern.Assessments
+    alias Lanttern.Conversation.Comment
 
     test "create_feedback_comment/2 with valid data creates a comment linked to feedback" do
       feedback = Lanttern.AssessmentsFixtures.feedback_fixture()

@@ -6,8 +6,8 @@ defmodule Lanttern.LearningContext.MomentCardAttachment do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Lanttern.LearningContext.MomentCard
   alias Lanttern.Attachments.Attachment
+  alias Lanttern.LearningContext.MomentCard
 
   @type t :: %__MODULE__{
           id: pos_integer(),

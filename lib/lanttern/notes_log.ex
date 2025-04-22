@@ -6,8 +6,8 @@ defmodule Lanttern.NotesLog do
   import Ecto.Query, warn: false
   alias Lanttern.Repo
 
-  alias Lanttern.NotesLog.NoteLog
   alias Lanttern.Notes.Note
+  alias Lanttern.NotesLog.NoteLog
 
   @doc """
   Returns the list of notes.

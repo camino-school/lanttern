@@ -2,9 +2,10 @@ defmodule LantternWeb.Assessments.FeedbackCommentFormComponentTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.Repo
-  alias Lanttern.SchoolsFixtures
+
   alias Lanttern.AssessmentsFixtures
   alias Lanttern.ConversationFixtures
+  alias Lanttern.SchoolsFixtures
 
   @live_view_path_base "/assessment_points"
   @overlay_selector "#feedback-overlay"

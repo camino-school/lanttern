@@ -9,8 +9,8 @@ defmodule LantternWeb.LearningContextComponents do
   import LantternWeb.CoreComponents
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
-  alias Phoenix.LiveView.JS
   alias Lanttern.LearningContext.Strand
+  alias Phoenix.LiveView.JS
 
   @doc """
   Renders strand cards.

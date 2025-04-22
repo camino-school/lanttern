@@ -2,20 +2,21 @@ defmodule LantternWeb.StudentsRecordsLive do
   use LantternWeb, :live_view
 
   alias Lanttern.Filters
-  alias Lanttern.StudentsRecords
   alias Lanttern.Schools
   alias Lanttern.Schools.Cycle
+  alias Lanttern.StudentsRecords
 
   import LantternWeb.FiltersHelpers,
     only: [assign_user_filters: 2, assign_classes_filter: 2, save_profile_filters: 2]
+
+  import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
+  import LantternWeb.StudentsRecordsComponents
 
   # shared components
 
   alias LantternWeb.Schools.StaffMemberSearchComponent
   alias LantternWeb.Schools.StudentSearchComponent
   alias LantternWeb.StudentsRecords.StudentRecordOverlayComponent
-  import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
-  import LantternWeb.StudentsRecordsComponents
 
   # lifecycle
 

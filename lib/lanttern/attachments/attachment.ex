@@ -10,12 +10,12 @@ defmodule Lanttern.Attachments.Attachment do
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.AssessmentPointEntryEvidence
   alias Lanttern.Identity.Profile
+  alias Lanttern.LearningContext.MomentCard
+  alias Lanttern.LearningContext.MomentCardAttachment
   alias Lanttern.Notes.Note
   alias Lanttern.Notes.NoteAttachment
   alias Lanttern.StudentsCycleInfo.StudentCycleInfo
   alias Lanttern.StudentsCycleInfo.StudentCycleInfoAttachment
-  alias Lanttern.LearningContext.MomentCard
-  alias Lanttern.LearningContext.MomentCardAttachment
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -76,7 +76,7 @@ defmodule Lanttern.Attachments.Attachment do
           [link: gettext("Invalid link format")]
 
         {:ok, %URI{scheme: scheme}} when scheme not in ["https", "http"] ->
-          [link: gettext("Links should start with \"https://\" or \"http://\"")]
+          [link: gettext(~s(Links should start with "https://" or "http://"))]
 
         {:ok, _} ->
           []

@@ -4,13 +4,14 @@ defmodule Lanttern.StudentsRecordsTest do
   alias Lanttern.StudentsRecords
 
   describe "students_records" do
+    import Lanttern.StudentsRecordsFixtures
+
     alias Lanttern.StudentsRecords.StudentRecord
     alias Lanttern.StudentsRecordsLog.StudentRecordLog
 
-    import Lanttern.StudentsRecordsFixtures
-    alias Lanttern.SchoolsFixtures
-    alias Lanttern.RepoHelpers.Page
     alias Lanttern.Identity.Profile
+    alias Lanttern.RepoHelpers.Page
+    alias Lanttern.SchoolsFixtures
 
     @invalid_attrs %{name: nil, date: nil, time: nil, description: nil}
 

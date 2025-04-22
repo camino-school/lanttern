@@ -13,10 +13,10 @@ defmodule Lanttern.Assessments.AssessmentPoint do
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.Feedback
   alias Lanttern.Curricula.CurriculumItem
+  alias Lanttern.Grading.GradeComponent
   alias Lanttern.Grading.Scale
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
-  alias Lanttern.Grading.GradeComponent
   alias Lanttern.Rubrics.Rubric
   alias Lanttern.Schools.Class
 

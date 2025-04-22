@@ -9,9 +9,9 @@ defmodule Lanttern.LearningContext.Moment do
   use Gettext, backend: Lanttern.Gettext
   import Lanttern.SchemaHelpers
 
+  alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Curricula.CurriculumItem
   alias Lanttern.LearningContext.Strand
-  alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Taxonomy.Subject
 
   @type t :: %__MODULE__{

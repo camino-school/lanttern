@@ -70,7 +70,7 @@ defmodule Lanttern.SupabaseHelpers do
     )
   end
 
-  defp client() do
+  defp client do
     Supabase.init_client(%{
       name: @client_name,
       conn: %{
@@ -92,7 +92,7 @@ defmodule Lanttern.SupabaseHelpers do
 
       > "\#{config().base_url}/storage/v1/object/public/bucket/object_path"
   """
-  def config() do
+  def config do
     %{
       base_url: System.fetch_env!("SUPABASE_PROJECT_URL"),
       api_key: System.fetch_env!("SUPABASE_PROJECT_API_KEY")

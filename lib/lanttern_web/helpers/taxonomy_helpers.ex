@@ -13,7 +13,7 @@ defmodule LantternWeb.TaxonomyHelpers do
       iex> generate_subject_options()
       ["subject name": 1, ...]
   """
-  def generate_subject_options() do
+  def generate_subject_options do
     Taxonomy.list_subjects()
     |> Enum.map(fn s -> {s.name, s.id} end)
   end
@@ -26,7 +26,7 @@ defmodule LantternWeb.TaxonomyHelpers do
       iex> generate_year_options()
       ["year name": 1, ...]
   """
-  def generate_year_options() do
+  def generate_year_options do
     Taxonomy.list_years()
     |> Enum.map(fn y -> {y.name, y.id} end)
   end

@@ -21,7 +21,7 @@ defmodule Lanttern.GoogleToken do
     |> add_claim("exp", fn -> generate_exp() end, &(&1 > Timex.now() |> Timex.to_unix()))
   end
 
-  defp generate_exp() do
+  defp generate_exp do
     Timex.now()
     |> Timex.add(Timex.Duration.from_days(30))
   end

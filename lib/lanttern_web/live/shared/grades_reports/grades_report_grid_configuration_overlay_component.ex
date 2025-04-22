@@ -6,9 +6,9 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
   use LantternWeb, :live_component
 
   alias Lanttern.GradesReports
+  alias Lanttern.GradesReports.GradesReportCycle
   alias Lanttern.Schools
   alias Lanttern.Taxonomy
-  alias Lanttern.GradesReports.GradesReportCycle
 
   import Lanttern.Utils, only: [swap: 3]
 

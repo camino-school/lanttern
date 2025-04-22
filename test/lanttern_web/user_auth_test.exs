@@ -1,9 +1,10 @@
 defmodule LantternWeb.UserAuthTest do
   use LantternWeb.ConnCase, async: true
 
-  alias Lanttern.SchoolsFixtures
   alias Phoenix.LiveView
+
   alias Lanttern.Identity
+  alias Lanttern.SchoolsFixtures
   alias LantternWeb.UserAuth
   import Lanttern.IdentityFixtures
 

@@ -110,5 +110,5 @@ defmodule Lanttern.Personalization do
 
   """
   @spec list_valid_permissions() :: [binary()]
-  def list_valid_permissions(), do: @valid_permissions
+  def list_valid_permissions, do: @valid_permissions
 end

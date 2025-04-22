@@ -241,7 +241,7 @@ defmodule Lanttern.Assessments do
       %Ecto.Changeset{data: %AssessmentPoint{}}
 
   """
-  def new_assessment_point_changeset() do
+  def new_assessment_point_changeset do
     %AssessmentPoint{datetime: DateTime.utc_now()}
     |> change_assessment_point()
   end

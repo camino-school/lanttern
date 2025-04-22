@@ -3,19 +3,19 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
   Renders an overlay with `StudentRecord` details and editing support
   """
 
-  alias Lanttern.Repo
   use LantternWeb, :live_component
 
-  alias Lanttern.StudentsRecords
-  alias Lanttern.StudentsRecords.StudentRecord
+  alias Lanttern.Repo
   alias Lanttern.Schools
   alias Lanttern.Schools.StaffMember
+  alias Lanttern.StudentsRecords
+  alias Lanttern.StudentsRecords.StudentRecord
 
   # shared
 
+  alias LantternWeb.Schools.ClassesFieldComponent
   alias LantternWeb.Schools.StaffMemberSearchComponent
   alias LantternWeb.Schools.StudentSearchComponent
-  alias LantternWeb.Schools.ClassesFieldComponent
   import LantternWeb.DateTimeHelpers
   import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
   import LantternWeb.StudentsRecordsComponents

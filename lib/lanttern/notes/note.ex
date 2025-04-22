@@ -7,8 +7,8 @@ defmodule Lanttern.Notes.Note do
   import Ecto.Changeset
 
   alias Lanttern.Identity.Profile
-  alias Lanttern.LearningContext.Strand
   alias Lanttern.LearningContext.Moment
+  alias Lanttern.LearningContext.Strand
   alias Lanttern.Notes.MomentNoteRelationship
   alias Lanttern.Notes.StrandNoteRelationship
 

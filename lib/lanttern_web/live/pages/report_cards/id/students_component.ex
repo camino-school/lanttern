@@ -13,8 +13,8 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     only: [save_profile_filters: 3, assign_report_card_linked_student_classes_filter: 2]
 
   # shared components
-  alias LantternWeb.Reporting.StudentReportCardFormComponent
   alias LantternWeb.Filters.InlineFiltersComponent
+  alias LantternWeb.Reporting.StudentReportCardFormComponent
 
   @impl true
   def render(assigns) do

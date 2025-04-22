@@ -13,11 +13,9 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Filters
-  alias Lanttern.StudentsRecords
   alias Lanttern.Schools
   alias Lanttern.Schools.Cycle
-
-  # shared components
+  alias Lanttern.StudentsRecords
   alias LantternWeb.Schools.StudentSearchComponent
   alias LantternWeb.StudentsRecords.StudentRecordOverlayComponent
 

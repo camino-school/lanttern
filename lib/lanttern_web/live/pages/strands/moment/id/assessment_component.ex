@@ -11,8 +11,8 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
   import Lanttern.Utils, only: [swap: 3]
 
   # shared components
-  alias LantternWeb.Assessments.AssessmentsGridComponent
   alias LantternWeb.Assessments.AssessmentPointFormOverlayComponent
+  alias LantternWeb.Assessments.AssessmentsGridComponent
   import LantternWeb.AssessmentsComponents
 
   @impl true

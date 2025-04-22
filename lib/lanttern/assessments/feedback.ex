@@ -6,10 +6,10 @@ defmodule Lanttern.Assessments.Feedback do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Lanttern.Identity.Profile
-  alias Lanttern.Schools.Student
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Conversation.Comment
+  alias Lanttern.Identity.Profile
+  alias Lanttern.Schools.Student
 
   @type t :: %__MODULE__{
           id: pos_integer(),

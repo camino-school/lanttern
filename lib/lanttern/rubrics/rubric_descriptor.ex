@@ -6,9 +6,9 @@ defmodule Lanttern.Rubrics.RubricDescriptor do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Lanttern.Rubrics.Rubric
-  alias Lanttern.Grading.Scale
   alias Lanttern.Grading.OrdinalValue
+  alias Lanttern.Grading.Scale
+  alias Lanttern.Rubrics.Rubric
 
   @type t :: %__MODULE__{
           id: pos_integer(),

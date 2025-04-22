@@ -205,7 +205,7 @@ defmodule LantternWeb.AssessmentsComponents do
     """
   end
 
-  defp assessment_point_entry_display_base_classes(),
+  defp assessment_point_entry_display_base_classes,
     do: "flex items-center justify-center p-4 rounded font-mono text-sm text-center"
 
   @doc """

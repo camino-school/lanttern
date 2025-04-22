@@ -6,9 +6,9 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Reporting
+  alias Lanttern.SupabaseHelpers
   alias LantternWeb.GradesReportsHelpers
   alias LantternWeb.SchoolsHelpers
-  alias Lanttern.SupabaseHelpers
   alias LantternWeb.TaxonomyHelpers
 
   @impl true

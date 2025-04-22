@@ -4,10 +4,10 @@ defmodule LantternWeb.MomentLive do
   alias Lanttern.LearningContext
 
   # page components
-  alias LantternWeb.MomentLive.OverviewComponent
   alias LantternWeb.MomentLive.AssessmentComponent
   alias LantternWeb.MomentLive.CardsComponent
   alias LantternWeb.MomentLive.NotesComponent
+  alias LantternWeb.MomentLive.OverviewComponent
 
   # shared components
   alias LantternWeb.LearningContext.MomentFormComponent

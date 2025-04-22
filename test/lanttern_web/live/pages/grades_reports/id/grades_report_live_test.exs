@@ -1,9 +1,9 @@
 defmodule LantternWeb.GradesReportLiveTest do
   use LantternWeb.ConnCase
 
-  import Lanttern.GradesReportsFixtures
-  alias Lanttern.SchoolsFixtures
   alias Lanttern.GradingFixtures
+  alias Lanttern.SchoolsFixtures
+  import Lanttern.GradesReportsFixtures
 
   @live_view_base_path "/grades_reports"
 

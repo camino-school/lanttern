@@ -7,8 +7,8 @@ defmodule Lanttern.LearningContextTest do
   describe "strands" do
     alias Lanttern.LearningContext.Strand
 
-    alias Lanttern.SchoolsFixtures
     alias Lanttern.ReportingFixtures
+    alias Lanttern.SchoolsFixtures
     import Lanttern.TaxonomyFixtures
     import Lanttern.AssessmentsFixtures
 

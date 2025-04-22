@@ -4,9 +4,9 @@ defmodule Lanttern.RubricsFixtures do
   entities via the `Lanttern.Rubrics` context.
   """
 
-  alias Lanttern.LearningContextFixtures
   alias Lanttern.CurriculaFixtures
   alias Lanttern.GradingFixtures
+  alias Lanttern.LearningContextFixtures
 
   @doc """
   Generate a rubric.

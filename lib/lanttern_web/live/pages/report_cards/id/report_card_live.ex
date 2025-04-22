@@ -6,9 +6,9 @@ defmodule LantternWeb.ReportCardLive do
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # page components
-  alias __MODULE__.StudentsComponent
-  alias __MODULE__.StrandsReportsComponent
   alias __MODULE__.GradesComponent
+  alias __MODULE__.StrandsReportsComponent
+  alias __MODULE__.StudentsComponent
   alias __MODULE__.StudentsGradesComponent
   alias __MODULE__.StudentsTrackingComponent
 

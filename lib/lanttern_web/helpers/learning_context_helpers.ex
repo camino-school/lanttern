@@ -13,7 +13,7 @@ defmodule LantternWeb.LearningContextHelpers do
       iex> generate_strand_options()
       [{"strand name", 1}, ...]
   """
-  def generate_strand_options() do
+  def generate_strand_options do
     LearningContext.list_strands()
     |> Enum.map(fn s -> {s.name, s.id} end)
   end

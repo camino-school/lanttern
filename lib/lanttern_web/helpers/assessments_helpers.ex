@@ -15,7 +15,7 @@ defmodule LantternWeb.AssessmentsHelpers do
       iex> generate_assessment_point_options()
       ["assessment point name": 1, ...]
   """
-  def generate_assessment_point_options() do
+  def generate_assessment_point_options do
     Assessments.list_assessment_points()
     |> Enum.map(fn ap -> {ap.name, ap.id} end)
   end

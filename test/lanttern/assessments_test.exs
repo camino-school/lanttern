@@ -2,6 +2,7 @@ defmodule Lanttern.AssessmentsTest do
   use Lanttern.DataCase
 
   alias Lanttern.Repo
+
   alias Lanttern.Assessments
 
   describe "assessment_points" do
@@ -305,10 +306,11 @@ defmodule Lanttern.AssessmentsTest do
     alias Lanttern.Assessments.AssessmentPoint
 
     import Lanttern.AssessmentsFixtures
-    alias Lanttern.LearningContextFixtures
+
     alias Lanttern.CurriculaFixtures
     alias Lanttern.GradingFixtures
     alias Lanttern.IdentityFixtures
+    alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
 
     test "create_assessment_point/2 with valid data creates an assessment point linked to a moment" do

@@ -6,16 +6,17 @@ defmodule Lanttern.Schools do
   import Ecto.Query, warn: false
   import Lanttern.RepoHelpers
   use Gettext, backend: Lanttern.Gettext
+
   alias Lanttern.Repo
-  alias Lanttern.Schools.School
-  alias Lanttern.Schools.Cycle
+
+  alias Lanttern.Identity
+  alias Lanttern.Identity.Profile
+  alias Lanttern.Identity.User
   alias Lanttern.Schools.Class
+  alias Lanttern.Schools.Cycle
+  alias Lanttern.Schools.School
   alias Lanttern.Schools.StaffMember
   alias Lanttern.Schools.Student
-  alias Lanttern.Identity
-  alias Lanttern.Identity.User
-  alias Lanttern.Identity.Profile
-
   alias Lanttern.SupabaseHelpers
 
   @doc """
@@ -1400,7 +1401,6 @@ defmodule Lanttern.Schools do
         %Student{} -> [student_id: school_person.id]
       end
 
-    # todo: handle failed deletion of profile
     Repo.get_by(Profile, get_by_opt)
     |> Repo.delete()
   end

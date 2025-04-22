@@ -8,10 +8,10 @@ defmodule Lanttern.Identity.Profile do
 
   alias Lanttern.Identity.User
   alias Lanttern.Notes.Note
+  alias Lanttern.Personalization.ProfileSettings
   alias Lanttern.Schools.Cycle
   alias Lanttern.Schools.StaffMember
   alias Lanttern.Schools.Student
-  alias Lanttern.Personalization.ProfileSettings
 
   @type t :: %__MODULE__{
           id: pos_integer(),

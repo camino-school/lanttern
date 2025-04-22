@@ -27,10 +27,10 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
   alias Lanttern.Assessments.AssessmentPointEntryEvidence
   alias Lanttern.Assessments.Feedback
   alias Lanttern.Attachments.Attachment
-  alias Lanttern.Schools.Student
-  alias Lanttern.Grading.Scale
   alias Lanttern.Grading.OrdinalValue
+  alias Lanttern.Grading.Scale
   alias Lanttern.Rubrics.Rubric
+  alias Lanttern.Schools.Student
 
   @type t :: %__MODULE__{
           id: pos_integer() | nil,

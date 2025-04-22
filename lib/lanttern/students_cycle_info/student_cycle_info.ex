@@ -8,10 +8,10 @@ defmodule Lanttern.StudentsCycleInfo.StudentCycleInfo do
 
   use Gettext, backend: Lanttern.Gettext
 
-  alias Lanttern.StudentsCycleInfo.StudentCycleInfoAttachment
   alias Lanttern.Schools.Cycle
   alias Lanttern.Schools.School
   alias Lanttern.Schools.Student
+  alias Lanttern.StudentsCycleInfo.StudentCycleInfoAttachment
 
   @type t :: %__MODULE__{
           id: pos_integer(),
