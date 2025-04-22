@@ -352,6 +352,7 @@ defmodule LantternWeb.MenuComponent do
     LantternWeb.ClassLive => :school_management,
     LantternWeb.StudentLive => :school_management,
     LantternWeb.StaffMemberLive => :school_management,
+    LantternWeb.StudentsSettingsLive => :school_management,
 
     # assessment points
     LantternWeb.AssessmentPointsLive => :assessment_points,

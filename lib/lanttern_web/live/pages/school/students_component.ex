@@ -28,14 +28,17 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
             <%= gettext("View deactivated students") %>
           </.action>
         </div>
-        <.action
-          :if={@is_school_manager}
-          type="link"
-          patch={~p"/school/students?new=true"}
-          icon_name="hero-plus-circle-mini"
-        >
-          <%= gettext("Add student") %>
-        </.action>
+        <div :if={@is_school_manager} class="flex items-center gap-4">
+          <.action type="link" patch={~p"/school/students?new=true"} icon_name="hero-plus-circle-mini">
+            <%= gettext("Add student") %>
+          </.action>
+          <.link class="hover:text-ltrn-subtle" navigate={~p"/school/students/settings"}>
+            <span class="sr-only">
+              <%= gettext("Students settings") %>
+            </span>
+            <.icon name="hero-cog-6-tooth-mini" />
+          </.link>
+        </div>
       </div>
       <.fluid_grid id="students" phx-update="stream" is_full_width class="p-4">
         <.student_card
