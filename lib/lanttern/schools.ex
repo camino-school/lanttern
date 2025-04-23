@@ -721,6 +721,7 @@ defmodule Lanttern.Schools do
   - `:preloads` – preloads associated data
   - `:school_id` - filter students by school
   - `:students_ids` - filter students by given ids
+  - `:student_tags_ids` - filter students by their associated tags
   - `:class_id` – filter students by given class
   - `:classes_ids` – filter students by provided list of ids. preloads the classes for each student, and order by class name
   - `:only_in_some_class` - boolean. When `true`, will remove students not linked to a class (and will do the opposite when `false`)
@@ -763,6 +764,19 @@ defmodule Lanttern.Schools do
     from(
       s in queryable,
       where: s.id in ^students_ids
+    )
+    |> apply_list_students_opts(opts)
+  end
+
+  defp apply_list_students_opts(queryable, [{:student_tags_ids, student_tags_ids} | opts])
+       when is_list(student_tags_ids) and student_tags_ids != [] do
+    from(
+      s in queryable,
+      join: str in Lanttern.StudentTags.StudentTagRelationship,
+      on: str.student_id == s.id,
+      where: str.tag_id in ^student_tags_ids,
+      # use preload to prevent duplicated students
+      preload: [student_tag_relationships: str]
     )
     |> apply_list_students_opts(opts)
   end

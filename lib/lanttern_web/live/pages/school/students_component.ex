@@ -7,7 +7,10 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
 
   # shared components
   alias LantternWeb.Schools.StudentFormOverlayComponent
-  import LantternWeb.FiltersHelpers, only: [assign_classes_filter: 2]
+
+  import LantternWeb.FiltersHelpers,
+    only: [assign_classes_filter: 2, assign_user_filters: 2, save_profile_filters: 2]
+
   import LantternWeb.SchoolsComponents
 
   @impl true
@@ -22,6 +25,22 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
             icon_name="hero-chevron-down-mini"
           >
             <%= format_action_items_text(@selected_classes, gettext("All classes")) %>
+          </.action>
+          <.badge
+            :for={tag <- @selected_student_tags}
+            color_map={tag}
+            on_click={JS.exec("data-show", to: "#student-tag-filter-modal")}
+            on_remove={JS.push("remove_tag_filter", value: %{"id" => tag.id}, target: @myself)}
+          >
+            <%= tag.name %>
+          </.badge>
+          <.action
+            :if={@selected_student_tags == []}
+            type="button"
+            icon_name="hero-chevron-down-mini"
+            phx-click={JS.exec("data-show", to: "#student-tag-filter-modal")}
+          >
+            <%= gettext("Tags") %>
           </.action>
           <%= ngettext("1 active student", "%{count} active students", @students_length) %>
           <.action type="link" theme="subtle" navigate={~p"/school/students/deactivated"}>
@@ -58,6 +77,23 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
         navigate={~p"/school/students"}
         classes={@classes}
         selected_classes_ids={@selected_classes_ids}
+      />
+      <.selection_filter_modal
+        id="student-tag-filter-modal"
+        title={gettext("Filter students by tag")}
+        use_color_map_as_active
+        items={@student_tags}
+        selected_items_ids={@selected_student_tags_ids}
+        on_cancel={%JS{}}
+        on_select={
+          fn id ->
+            JS.push("toggle_tag_filter", value: %{"id" => id}, target: @myself)
+          end
+        }
+        on_save={
+          JS.push("filter_by_tag", target: @myself)
+          |> JS.exec("data-cancel", to: "#student-tag-filter-modal")
+        }
       />
       <.live_component
         :if={@student}
@@ -121,6 +157,7 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
+    |> assign_user_filters([:student_tags])
     |> apply_assign_classes_filter()
     |> stream_students()
     |> assign(:initialized, true)
@@ -147,6 +184,7 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
         school_id: socket.assigns.current_user.current_profile.school_id,
         load_email: true,
         classes_ids: socket.assigns.selected_classes_ids,
+        student_tags_ids: socket.assigns.selected_student_tags_ids,
         preload_classes_from_cycle_id: cycle_id,
         load_profile_picture_from_cycle_id: cycle_id,
         only_active: true,
@@ -187,19 +225,42 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
 
   defp assign_student(socket), do: assign(socket, :student, nil)
 
-  # @impl true
-  # def handle_event("remove_class_filter", %{"id" => class_id}, socket) do
-  #   selected_classes_ids =
-  #     socket.assigns.selected_classes_ids
-  #     |> Enum.filter(&(&1 != class_id))
+  @impl true
+  def handle_event("toggle_tag_filter", %{"id" => id}, socket) do
+    selected_ids =
+      if id in socket.assigns.selected_student_tags_ids,
+        do: Enum.filter(socket.assigns.selected_student_tags_ids, &(&1 != id)),
+        else: [id | socket.assigns.selected_student_tags_ids]
 
-  #   socket =
-  #     socket
-  #     |> assign(:selected_classes_ids, selected_classes_ids)
-  #     |> save_profile_filters([:classes])
-  #     |> apply_assign_classes_filter()
-  #     |> stream_students()
+    socket =
+      socket
+      |> assign(:selected_student_tags_ids, selected_ids)
 
-  #   {:noreply, socket}
-  # end
+    {:noreply, socket}
+  end
+
+  def handle_event("filter_by_tag", _, socket) do
+    socket =
+      socket
+      |> save_profile_filters([:student_tags])
+      |> assign_user_filters([:student_tags])
+      |> stream_students()
+
+    {:noreply, socket}
+  end
+
+  def handle_event("remove_tag_filter", %{"id" => id}, socket) do
+    selected_tags_ids =
+      socket.assigns.selected_student_tags_ids
+      |> Enum.filter(&(&1 != id))
+
+    socket =
+      socket
+      |> assign(:selected_student_tags_ids, selected_tags_ids)
+      |> save_profile_filters([:student_tags])
+      |> assign_user_filters([:student_tags])
+      |> stream_students()
+
+    {:noreply, socket}
+  end
 end
