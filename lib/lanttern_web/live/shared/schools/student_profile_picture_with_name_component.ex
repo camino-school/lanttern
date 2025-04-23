@@ -15,6 +15,7 @@ defmodule LantternWeb.Schools.StudentProfilePictureWithNameComponent do
   - `class`
   - `navigate`
   - `picture_size` (default: "md")
+  - `show_tags` (default: `false`) will pass `@student.tags` as `tags` attr to `<.profile_picture_with_name>`
 
   """
   use LantternWeb, :live_component
@@ -30,6 +31,7 @@ defmodule LantternWeb.Schools.StudentProfilePictureWithNameComponent do
         picture_url={@student.profile_picture_url}
         navigate={@navigate}
         picture_size={@picture_size}
+        {if @show_tags, do: %{tags: @student.tags}, else: %{}}
       />
     </div>
     """
@@ -44,6 +46,7 @@ defmodule LantternWeb.Schools.StudentProfilePictureWithNameComponent do
       |> assign(:class, nil)
       |> assign(:picture_size, "md")
       |> assign(:navigate, nil)
+      |> assign(:show_tags, false)
       |> assign(:initialized, false)
 
     {:ok, socket}

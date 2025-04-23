@@ -593,6 +593,7 @@ defmodule Lanttern.ILP do
   ## Options
 
   - `:classes_ids` - filter results by classes
+  - `:preload_student_tags`
 
   ## Examples
 
@@ -638,6 +639,14 @@ defmodule Lanttern.ILP do
       join: c in assoc(s, :classes),
       where: c.id in ^classes_ids,
       group_by: s.id
+    )
+    |> apply_list_students_and_ilps_opts(opts)
+  end
+
+  defp apply_list_students_and_ilps_opts(queryable, [{:preload_student_tags, true} | opts]) do
+    from(
+      s in queryable,
+      preload: [:tags]
     )
     |> apply_list_students_and_ilps_opts(opts)
   end
