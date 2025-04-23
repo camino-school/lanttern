@@ -17,6 +17,7 @@ defmodule Lanttern.Schools.Student do
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.School
   alias Lanttern.StudentsCycleInfo.StudentCycleInfo
+  alias Lanttern.StudentTags.StudentTagRelationship
   alias Lanttern.StudentTags.Tag
 
   @type t :: %__MODULE__{
@@ -62,13 +63,14 @@ defmodule Lanttern.Schools.Student do
     many_to_many :tags, Tag,
       join_through: "students_tags",
       join_keys: [student_id: :id, tag_id: :id],
-      on_replace: :delete
+      preload_order: [asc: :position]
 
     has_many :assessment_point_entries, AssessmentPointEntry
     has_many :cycles_info, StudentCycleInfo
     has_many :student_report_cards, StudentReportCard
     has_many :grades_report_entries, Lanttern.GradesReports.StudentGradesReportEntry
     has_many :ilps, StudentILP
+    has_many :student_tag_relationships, StudentTagRelationship, on_replace: :delete
 
     has_one :profile, Profile
 
@@ -81,7 +83,7 @@ defmodule Lanttern.Schools.Student do
     |> cast(attrs, [:name, :deactivated_at, :school_id, :classes_ids, :tags_ids])
     |> validate_required([:name, :school_id])
     |> put_classes(attrs)
-    |> put_tags(attrs)
+    |> cast_tags()
   end
 
   defp put_classes(changeset, %{classes: classes}) when is_list(classes),
@@ -105,24 +107,20 @@ defmodule Lanttern.Schools.Student do
     |> put_assoc(:classes, classes)
   end
 
-  defp put_tags(changeset, %{tags: tags}) when is_list(tags),
-    do: put_assoc(changeset, :tags, tags)
+  def cast_tags(changeset) do
+    case get_change(changeset, :tags_ids) do
+      tags_ids when is_list(tags_ids) ->
+        school_id = get_field(changeset, :school_id)
 
-  defp put_tags(changeset, _attrs) do
-    put_tags_ids(
-      changeset,
-      get_change(changeset, :tags_ids)
-    )
-  end
+        tags_relationships_params =
+          Enum.map(tags_ids, &%{tag_id: &1, school_id: school_id})
 
-  defp put_tags_ids(changeset, nil), do: changeset
+        changeset
+        |> put_change(:student_tag_relationships, tags_relationships_params)
+        |> cast_assoc(:student_tag_relationships)
 
-  defp put_tags_ids(changeset, tags_ids) do
-    tags =
-      from(t in Tag, where: t.id in ^tags_ids)
-      |> Repo.all()
-
-    changeset
-    |> put_assoc(:tags, tags)
+      _ ->
+        changeset
+    end
   end
 end

@@ -12,6 +12,7 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
   - `:class` - any, additional classes for the component
   - `:on_edit_profile_picture` - any, passed to edit profile picture button's `phx-click`
   - `:show_deactivated` - boolean, show deactivated info
+  - `:show_tags` - boolean, show tags info
   - `:navigate` - function, student id as argument. Expect a valid `<.link>` `navigate` attr.
   - `:cycle_tooltip` - string, tooltip for cycle badge. Useful to indicate to users that they can change the current cycle in the main menu.
 
@@ -65,6 +66,11 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
           </.badge>
         </div>
         <div class="flex items-center gap-4 mt-2">
+          <%= if @show_tags do %>
+            <.badge :for={tag <- @student.tags} color_map={tag}>
+              <%= tag.name %>
+            </.badge>
+          <% end %>
           <div class="group relative" {if(@cycle_tooltip, do: %{"tabindex" => "0"}, else: %{})}>
             <.badge theme="dark">
               <%= @cycle.name %>
@@ -97,6 +103,7 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
       |> assign(:class, nil)
       |> assign(:on_edit_profile_picture, nil)
       |> assign(:show_deactivated, false)
+      |> assign(:show_tags, false)
       |> assign(:navigate, nil)
       |> assign(:cycle_tooltip, nil)
       |> assign(:initialized, false)
@@ -129,11 +136,23 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
   end
 
   defp assign_student(socket) do
+    opts = [
+      load_profile_picture_from_cycle_id: socket.assigns.cycle_id,
+      preload_classes_from_cycle_id: socket.assigns.cycle_id,
+      preloads: :tags
+    ]
+
+    opts =
+      if socket.assigns.show_tags do
+        [{:preloads, :tags} | opts]
+      else
+        opts
+      end
+
     student =
       Schools.get_student(
         socket.assigns.student_id,
-        load_profile_picture_from_cycle_id: socket.assigns.cycle_id,
-        preload_classes_from_cycle_id: socket.assigns.cycle_id
+        opts
       )
 
     assign(socket, :student, student)

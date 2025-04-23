@@ -149,7 +149,8 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
         classes_ids: socket.assigns.selected_classes_ids,
         preload_classes_from_cycle_id: cycle_id,
         load_profile_picture_from_cycle_id: cycle_id,
-        only_active: true
+        only_active: true,
+        preloads: :tags
       )
 
     socket
@@ -163,7 +164,8 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
   defp assign_student(%{assigns: %{params: %{"new" => "true"}}} = socket) do
     student = %Student{
       school_id: socket.assigns.current_user.current_profile.school_id,
-      classes: []
+      classes: [],
+      tags: []
     }
 
     socket
@@ -172,7 +174,11 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
   end
 
   defp assign_student(%{assigns: %{params: %{"edit" => student_id}}} = socket) do
-    student = Schools.get_student(student_id, preloads: :classes, load_email: true)
+    student =
+      Schools.get_student(student_id,
+        preloads: [:classes, :tags, :student_tag_relationships],
+        load_email: true
+      )
 
     socket
     |> assign(:student, student)
