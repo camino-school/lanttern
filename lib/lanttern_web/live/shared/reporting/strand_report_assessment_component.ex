@@ -106,13 +106,20 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
                   sgre.grades_report_subject.subject.name
                 ) %>
               </p>
-              <.live_component
-                module={StudentGradesReportEntryButtonComponent}
-                id={"#{dom_id}-entry-button"}
-                student_grades_report_entry={sgre}
-                on_click={JS.patch("#{@base_path}&sgre=#{sgre.id}")}
-                class="w-full p-2 mt-4 sm:mt-0"
-              />
+              <div class="flex items-center gap-2 mt-4 sm:mt-0">
+                <.live_component
+                  module={StudentGradesReportEntryButtonComponent}
+                  id={"#{dom_id}-entry-button"}
+                  student_grades_report_entry={sgre}
+                  on_click={JS.patch("#{@base_path}&sgre=#{sgre.id}")}
+                  class="flex-1 p-2"
+                />
+                <.icon
+                  :if={sgre.comment}
+                  name="hero-chat-bubble-oval-left-mini"
+                  class="text-ltrn-staff-accent"
+                />
+              </div>
             </.card_base>
           </div>
         </div>
