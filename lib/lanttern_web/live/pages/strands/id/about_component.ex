@@ -53,9 +53,7 @@ defmodule LantternWeb.StrandLive.AboutComponent do
           </.action>
         </div>
         <p class="mt-4">
-          <%= gettext(
-            "Under the hood, goals in Lanttern are defined by assessment points linked directly to the strand — when adding goals, we are adding assessment points which, in turn, hold the curriculum items we'll want to assess along the strand course."
-          ) %>
+          <%= gettext("Use this area to manage the relationship between curriculum and strand.") %>
         </p>
         <div :for={{curriculum_item, i} <- @indexed_curriculum_items} class="mt-6">
           <div class="flex items-stretch gap-6 p-6 rounded bg-white shadow-lg">
