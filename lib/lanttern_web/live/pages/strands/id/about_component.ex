@@ -53,7 +53,7 @@ defmodule LantternWeb.StrandLive.AboutComponent do
           </.action>
         </div>
         <p class="mt-4">
-          <%= gettext("Use this area to manage the relationship between curriculum and strand.") %>
+          <%= gettext("Use this area to manage the strand curriculum.") %>
         </p>
         <div :for={{curriculum_item, i} <- @indexed_curriculum_items} class="mt-6">
           <div class="flex items-stretch gap-6 p-6 rounded bg-white shadow-lg">
