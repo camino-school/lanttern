@@ -141,7 +141,7 @@ defmodule Lanttern.StudentsRecordsTest do
       assert expected_student_record.id == student_record.id
     end
 
-    test "list_students_records/1 with student tags opt returns records with preloaded student tags" do
+    test "list_students_records/1 with student tags opt returns filtered records with preloaded student tags" do
       school = SchoolsFixtures.school_fixture()
 
       tag_1 =
@@ -243,6 +243,29 @@ defmodule Lanttern.StudentsRecordsTest do
 
       assert expected_student_record_4.id == student_record_4.id
       assert expected_student_record_4.students_tags == []
+
+      # test filtering
+      [
+        expected_student_record_2,
+        expected_student_record_1
+      ] =
+        StudentsRecords.list_students_records(
+          school_id: school.id,
+          student_tags_ids: [tag_1.id],
+          load_students_tags: true,
+          preload: :students
+        )
+
+      assert expected_student_record_1.id == student_record_1.id
+      assert expected_student_record_1.students_tags == [tag_1, tag_2]
+      [expected_student_a, expected_student_b] = expected_student_record_1.students
+      assert expected_student_a.id == student_a.id
+      assert expected_student_b.id == student_b.id
+
+      assert expected_student_record_2.id == student_record_2.id
+      assert expected_student_record_2.students_tags == [tag_1, tag_2]
+      [expected_student_c] = expected_student_record_2.students
+      assert expected_student_c.id == student_c.id
     end
 
     test "list_students_records/1 with owner and assignees opts students_records filtered by given owner and assignees" do

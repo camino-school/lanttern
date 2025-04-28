@@ -65,6 +65,7 @@ defmodule Lanttern.StudentsRecords do
   - `:classes_ids` - filter results by classes
   - `:statuses_ids` - filter results by status
   - `:tags_ids` - filter results by tag
+  - `:student_tags_ids` - filter results by student tag
   - `:owner_id` - filter results by owner
   - `:assignees_ids` - filter results by assignees
   - `:view` - if "open", will return only open records ordered by oldest
@@ -85,6 +86,7 @@ defmodule Lanttern.StudentsRecords do
             students_ids: [pos_integer()],
             classes_ids: [pos_integer()],
             tags_ids: [pos_integer()],
+            student_tags_ids: [pos_integer()],
             statuses_ids: [pos_integer()],
             owner_id: pos_integer(),
             assignees_ids: [pos_integer()],
@@ -152,6 +154,20 @@ defmodule Lanttern.StudentsRecords do
       join: srt in assoc(sr, :tags_relationships),
       where: srt.tag_id in ^tags_ids,
       having: count(srt.tag_id) == ^tags_len
+    )
+    |> apply_list_students_records_opts(opts)
+  end
+
+  defp apply_list_students_records_opts(queryable, [{:student_tags_ids, student_tags_ids} | opts])
+       when is_list(student_tags_ids) and student_tags_ids != [] do
+    student_tags_len = length(student_tags_ids)
+
+    from(
+      sr in queryable,
+      join: std in assoc(sr, :students),
+      join: t in assoc(std, :tags),
+      where: t.id in ^student_tags_ids,
+      having: count(t.id, :distinct) == ^student_tags_len
     )
     |> apply_list_students_records_opts(opts)
   end
