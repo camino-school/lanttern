@@ -9,8 +9,8 @@ defmodule Lanttern.LearningContext.Strand do
   use Gettext, backend: Lanttern.Gettext
   import Lanttern.SchemaHelpers
 
-  alias Lanttern.LearningContext.Moment
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.LearningContext.Moment
   alias Lanttern.Notes.Note
   alias Lanttern.Notes.StrandNoteRelationship
   alias Lanttern.Reporting.StrandReport

@@ -206,7 +206,7 @@ defmodule LantternWeb.GradesReportsComponents do
        )
        when not is_nil(ov_id) do
     ~H"""
-    <div class="flex items-stretch justify-stretch gap-1">
+    <div class="relative flex items-stretch justify-stretch gap-1">
       <.live_component
         :if={@student_grades_report_entry.pre_retake_ordinal_value_id}
         module={StudentGradesReportEntryButtonComponent}
@@ -227,6 +227,12 @@ defmodule LantternWeb.GradesReportsComponents do
           if(@on_student_grade_click, do: @on_student_grade_click.(@student_grades_report_entry.id))
         }
       />
+      <div
+        :if={@student_grades_report_entry.comment}
+        class="absolute right-1 top-1 p-1 flex items-center rounded-full bg-ltrn-staff-lightest shadow"
+      >
+        <.icon name="hero-chat-bubble-oval-left-micro" class="w-4 h-4 text-ltrn-staff-accent" />
+      </div>
     </div>
     """
   end
@@ -235,7 +241,7 @@ defmodule LantternWeb.GradesReportsComponents do
          %{student_grades_report_entry: %StudentGradesReportEntry{}} = assigns
        ) do
     ~H"""
-    <div class="flex items-stretch justify-stretch gap-1 font-mono font-bold">
+    <div class="relative flex items-stretch justify-stretch gap-1 font-mono font-bold">
       <button
         :if={@student_grades_report_entry.pre_retake_score}
         type="button"
@@ -257,6 +263,12 @@ defmodule LantternWeb.GradesReportsComponents do
       >
         <%= @student_grades_report_entry.score %>
       </button>
+      <div
+        :if={@student_grades_report_entry.comment}
+        class="absolute right-1 top-1 p-1 flex items-center rounded-full bg-ltrn-staff-lightest shadow"
+      >
+        <.icon name="hero-chat-bubble-oval-left-micro" class="w-4 h-4 text-ltrn-staff-accent" />
+      </div>
     </div>
     """
   end

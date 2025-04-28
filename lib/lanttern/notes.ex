@@ -4,20 +4,21 @@ defmodule Lanttern.Notes do
   """
 
   import Ecto.Query, warn: false
-  alias Lanttern.Schools.Student
+
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
 
   alias Lanttern.Attachments
   alias Lanttern.Attachments.Attachment
+  alias Lanttern.Identity.User
+  alias Lanttern.LearningContext.Moment
+  alias Lanttern.LearningContext.Strand
   alias Lanttern.Notes.MomentNoteRelationship
   alias Lanttern.Notes.Note
   alias Lanttern.Notes.NoteAttachment
   alias Lanttern.Notes.StrandNoteRelationship
   alias Lanttern.NotesLog
-  alias Lanttern.Identity.User
-  alias Lanttern.LearningContext.Moment
-  alias Lanttern.LearningContext.Strand
+  alias Lanttern.Schools.Student
 
   @doc """
   Returns the list of notes.

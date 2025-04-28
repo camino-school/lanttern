@@ -10,16 +10,16 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
 
   alias Lanttern.Repo
 
+  alias Lanttern.Schools.Class
+  alias Lanttern.Schools.School
+  alias Lanttern.Schools.StaffMember
+  alias Lanttern.Schools.Student
   alias Lanttern.StudentsRecords.AssigneeRelationship
   alias Lanttern.StudentsRecords.StudentRecordClassRelationship
   alias Lanttern.StudentsRecords.StudentRecordRelationship
   alias Lanttern.StudentsRecords.StudentRecordStatus
   alias Lanttern.StudentsRecords.Tag
   alias Lanttern.StudentsRecords.TagRelationship
-  alias Lanttern.Schools.Class
-  alias Lanttern.Schools.School
-  alias Lanttern.Schools.StaffMember
-  alias Lanttern.Schools.Student
 
   @type t :: %__MODULE__{
           id: pos_integer(),

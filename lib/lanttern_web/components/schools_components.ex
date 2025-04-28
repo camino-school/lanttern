@@ -88,6 +88,12 @@ defmodule LantternWeb.SchoolsComponents do
   attr :id, :string, default: nil
 
   def student_card(assigns) do
+    has_badge =
+      (is_list(assigns.student.classes) && assigns.student.classes != []) ||
+        (is_list(assigns.student.tags) && assigns.student.tags != [])
+
+    assigns = assign(assigns, :has_badge, has_badge)
+
     ~H"""
     <.card_base id={@id} class={["flex items-center gap-4 p-4", @class]}>
       <.profile_picture
@@ -105,11 +111,17 @@ defmodule LantternWeb.SchoolsComponents do
             <%= @student.name %>
           </div>
         <% end %>
-        <div
-          :if={is_list(@student.classes) && @student.classes != []}
-          class="flex flex-wrap gap-1 mt-2"
-        >
-          <.badge :for={class <- @student.classes}><%= class.name %></.badge>
+        <div :if={@has_badge} class="flex flex-wrap gap-1 mt-2">
+          <%= if is_list(@student.tags) do %>
+            <.badge :for={tag <- @student.tags} color_map={tag}>
+              <%= tag.name %>
+            </.badge>
+          <% end %>
+          <%= if is_list(@student.classes) do %>
+            <.badge :for={class <- @student.classes}>
+              <%= class.name %>
+            </.badge>
+          <% end %>
         </div>
         <div
           :if={@student.email}

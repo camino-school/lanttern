@@ -3,8 +3,8 @@ defmodule LantternWeb.Admin.ImportStaffMembersLive do
 
   alias NimbleCSV.RFC4180, as: CSV
 
-  alias LantternWeb.SchoolsHelpers
   alias Lanttern.Schools
+  alias LantternWeb.SchoolsHelpers
 
   defp render_state(%{state: "uploading"} = assigns) do
     ~H"""

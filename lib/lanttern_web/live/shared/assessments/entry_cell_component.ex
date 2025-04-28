@@ -109,8 +109,6 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
   end
 
   def marking_input(%{scale_type: "numeric"} = assigns) do
-    # TODO: add min max based on scale
-
     ~H"""
     <.base_input
       name={@field.name}

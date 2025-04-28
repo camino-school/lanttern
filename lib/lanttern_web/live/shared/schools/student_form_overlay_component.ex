@@ -4,7 +4,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
 
   ### Attrs
 
-      attr :student, Student, required: true, doc: "requires `classes` preload and virtual `email` loaded"
+      attr :student, Student, required: true, doc: "requires virtual `email` loaded"
       attr :current_cycle, Cycle, doc: "used to separate current cycle from other classes"
       attr :title, :string, required: true
       attr :on_cancel, :any, required: true, doc: "`<.slide_over>` `on_cancel` attr"
@@ -15,8 +15,11 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
 
   use LantternWeb, :live_component
 
+  alias Lanttern.Repo
+
   alias Lanttern.Schools
   alias Lanttern.Schools.Student
+  alias Lanttern.StudentTags
 
   # shared
 
@@ -29,7 +32,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
       <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
         <:title><%= @title %></:title>
         <.form
-          id="student-form"
+          id={"student-form-#{@id}"}
           for={@form}
           phx-change="validate"
           phx-submit="save"
@@ -47,7 +50,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
           />
           <.live_component
             module={ClassesFieldComponent}
-            id="student-form-classes-picker"
+            id={"student-form-classes-picker-#{@id}"}
             class="mb-6"
             label={gettext("Classes")}
             school_id={@student.school_id}
@@ -55,6 +58,23 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
             selected_classes_ids={@selected_classes_ids}
             notify_component={@myself}
           />
+          <div class="mb-6">
+            <.label><%= gettext("Student tags") %></.label>
+            <%= if @student_tags != [] do %>
+              <.badge_button_picker
+                id={"student-tags-picker-#{@id}"}
+                on_select={
+                  &(JS.push("toggle_student_tag", value: %{"id" => &1}, target: @myself)
+                    |> JS.dispatch("change", to: "#student-form-#{@id}"))
+                }
+                items={@student_tags}
+                selected_ids={@selected_student_tags_ids}
+                use_color_map_as_active
+              />
+            <% else %>
+              <.empty_state_simple><%= gettext("No selected classes") %></.empty_state_simple>
+            <% end %>
+          </div>
           <.card_base class="p-4" bg_class="bg-ltrn-mesh-cyan">
             <.input
               field={@form[:email]}
@@ -111,7 +131,13 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
           >
             <%= gettext("Cancel") %>
           </.action>
-          <.action type="submit" theme="primary" size="md" icon_name="hero-check" form="student-form">
+          <.action
+            type="submit"
+            theme="primary"
+            size="md"
+            icon_name="hero-check"
+            form={"student-form-#{@id}"}
+          >
             <%= gettext("Save") %>
           </.action>
         </:actions>
@@ -145,20 +171,57 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
     |> assign_form()
+    |> assign_student_tags()
     |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
 
   defp assign_form(socket) do
-    student = socket.assigns.student
+    student =
+      socket.assigns.student
+      |> ensure_classes_preload()
+      |> ensure_tags_preload()
+      |> ensure_student_tag_relationships_preload()
+
     changeset = Schools.change_student(student)
 
     selected_classes_ids = Enum.map(student.classes, & &1.id)
+    selected_student_tags_ids = Enum.map(student.tags, & &1.id)
 
     socket
+    |> assign(:student, student)
     |> assign(:form, to_form(changeset))
     |> assign(:selected_classes_ids, selected_classes_ids)
+    |> assign(:selected_student_tags_ids, selected_student_tags_ids)
+  end
+
+  defp ensure_classes_preload(%Student{classes: classes} = student) when not is_list(classes) do
+    Repo.preload(student, [:classes])
+  end
+
+  defp ensure_classes_preload(student), do: student
+
+  defp ensure_tags_preload(%Student{tags: tags} = student) when not is_list(tags) do
+    Repo.preload(student, [:tags])
+  end
+
+  defp ensure_tags_preload(student), do: student
+
+  defp ensure_student_tag_relationships_preload(
+         %Student{student_tag_relationships: student_tag_relationships} = student
+       )
+       when not is_list(student_tag_relationships) do
+    Repo.preload(student, [:student_tag_relationships])
+  end
+
+  defp ensure_student_tag_relationships_preload(student), do: student
+
+  defp assign_student_tags(socket) do
+    student_tags = StudentTags.list_student_tags(school_id: socket.assigns.student.school_id)
+
+    socket
+    |> assign(:student_tags, student_tags)
   end
 
   # event handlers
@@ -166,6 +229,15 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
   @impl true
   def handle_event("validate", %{"student" => student_params}, socket),
     do: {:noreply, assign_validated_form(socket, student_params)}
+
+  def handle_event("toggle_student_tag", %{"id" => tag_id}, socket) do
+    selected_student_tags_ids =
+      if tag_id in socket.assigns.selected_student_tags_ids,
+        do: Enum.filter(socket.assigns.selected_student_tags_ids, fn id -> id != tag_id end),
+        else: [tag_id | socket.assigns.selected_student_tags_ids]
+
+    {:noreply, assign(socket, :selected_student_tags_ids, selected_student_tags_ids)}
+  end
 
   def handle_event("save", %{"student" => student_params}, socket) do
     student_params =
@@ -226,6 +298,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
     params
     |> Map.put("school_id", socket.assigns.student.school_id)
     |> Map.put("classes_ids", socket.assigns.selected_classes_ids)
+    |> Map.put("tags_ids", socket.assigns.selected_student_tags_ids)
   end
 
   defp save_student(socket, nil, student_params) do

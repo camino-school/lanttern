@@ -2,8 +2,8 @@ defmodule LantternWeb.Admin.StudentRecordLive.FormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.StudentsRecords
-  alias LantternWeb.StudentsRecordsHelpers
   alias LantternWeb.SchoolsHelpers
+  alias LantternWeb.StudentsRecordsHelpers
 
   @impl true
   def render(assigns) do

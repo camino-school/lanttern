@@ -80,6 +80,11 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
                   >
                     <%= std.name %>
                   </.link>
+                  <%= if is_list(std.tags) do %>
+                    <.badge :for={tag <- std.tags} :if={is_list(std.tags)} color_map={tag}>
+                      <%= tag.name %>
+                    </.badge>
+                  <% end %>
                   <.badge :if={std.deactivated_at} theme="subtle" class="shrink-0">
                     <%= gettext("Deactivated") %>
                   </.badge>
@@ -197,7 +202,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
         years_ids: socket.assigns.selected_years_ids,
         cycles_ids: cycles_ids,
         count_active_students: true,
-        preloads: :students
+        preloads: [students: :tags]
       )
 
     socket

@@ -2,6 +2,7 @@ defmodule Lanttern.MessageBoardTest do
   use Lanttern.DataCase
 
   alias Lanttern.Repo
+
   alias Lanttern.MessageBoard
 
   describe "board_messages" do

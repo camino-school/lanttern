@@ -1,8 +1,8 @@
 defmodule LantternWeb.AdminController do
   use LantternWeb, :controller
 
-  alias Lanttern.Taxonomy
   alias Lanttern.BNCC
+  alias Lanttern.Taxonomy
 
   def home(conn, _params) do
     render(conn, :home, generate_assigns())
@@ -36,7 +36,7 @@ defmodule LantternWeb.AdminController do
     end
   end
 
-  defp generate_assigns() do
+  defp generate_assigns do
     [
       has_base_taxonomy: Taxonomy.has_base_taxonomy?(),
       is_bncc_registered: BNCC.bncc_registered?()

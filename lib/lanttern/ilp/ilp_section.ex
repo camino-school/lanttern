@@ -6,8 +6,8 @@ defmodule Lanttern.ILP.ILPSection do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Lanttern.ILP.ILPTemplate
   alias Lanttern.ILP.ILPComponent
+  alias Lanttern.ILP.ILPTemplate
 
   @type t :: %__MODULE__{
           id: pos_integer(),

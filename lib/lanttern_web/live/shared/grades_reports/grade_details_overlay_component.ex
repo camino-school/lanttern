@@ -75,10 +75,16 @@ defmodule LantternWeb.GradesReports.GradeDetailsOverlayComponent do
           </div>
           <p class="text-sm text-ltrn-subtle"><%= gettext("Grade before retake process") %></p>
         </div>
-        <%= if @student_grades_report_entry.comment do %>
-          <h6 class="mb-4 font-display font-bold"><%= gettext("Comment") %></h6>
-          <.markdown text={@student_grades_report_entry.comment} class="mb-10" />
-        <% end %>
+        <div
+          :if={@student_grades_report_entry.comment}
+          class="p-4 rounded-sm mb-10 bg-ltrn-staff-lightest"
+        >
+          <h6 class="flex items-center gap-2 mb-4 font-display font-bold text-ltrn-staff-dark">
+            <.icon name="hero-chat-bubble-oval-left-mini" class="text-ltrn-staff-accent" />
+            <%= gettext("Comment") %>
+          </h6>
+          <.markdown text={@student_grades_report_entry.comment} />
+        </div>
         <h6 class="mb-4 font-display font-bold"><%= gettext("Grade composition") %></h6>
         <.grade_composition_table student_grades_report_entry={@student_grades_report_entry} />
         <.live_component

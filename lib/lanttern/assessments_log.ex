@@ -6,8 +6,8 @@ defmodule Lanttern.AssessmentsLog do
   import Ecto.Query, warn: false
   alias Lanttern.Repo
 
-  alias Lanttern.AssessmentsLog.AssessmentPointEntryLog
   alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.AssessmentsLog.AssessmentPointEntryLog
 
   @doc """
   Returns the list of assessment_point_entries logs.

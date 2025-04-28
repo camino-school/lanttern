@@ -8,8 +8,8 @@ defmodule Lanttern.Reporting.StrandReport do
 
   use Gettext, backend: Lanttern.Gettext
 
-  alias Lanttern.Reporting.ReportCard
   alias Lanttern.LearningContext.Strand
+  alias Lanttern.Reporting.ReportCard
 
   @type t :: %__MODULE__{
           id: pos_integer(),

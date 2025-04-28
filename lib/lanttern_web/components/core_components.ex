@@ -1885,6 +1885,7 @@ defmodule LantternWeb.CoreComponents do
   attr :picture_size, :string, default: "md"
   attr :theme, :string, default: "default", doc: "default | clean"
   attr :is_deactivated, :boolean, default: false
+  attr :tags, :list, default: nil, doc: "display badges based on tags below the profile name"
   attr :extra_info, :string, default: nil
   attr :on_click, JS, default: nil
   attr :navigate, :string, default: nil
@@ -1924,7 +1925,16 @@ defmodule LantternWeb.CoreComponents do
             <%= if @is_deactivated, do: gettext("(Deactivated)") %>
           </div>
         <% end %>
-        <div :if={@extra_info} class="line-clamp-1 text-xs text-ltrn-subtle"><%= @extra_info %></div>
+        <%= if is_list(@tags) && @tags != [] do %>
+          <div class="flex flew-wrap gap-2 mt-1">
+            <.badge :for={tag <- @tags} color_map={tag}>
+              <%= tag.name %>
+            </.badge>
+          </div>
+        <% end %>
+        <div :if={@extra_info} class="line-clamp-1 text-xs text-ltrn-subtle mt-1">
+          <%= @extra_info %>
+        </div>
       </div>
     </div>
     """

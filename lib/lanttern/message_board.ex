@@ -4,12 +4,13 @@ defmodule Lanttern.MessageBoard do
   """
 
   import Ecto.Query, warn: false
-  import Lanttern.RepoHelpers
-  alias Lanttern.Schools.Student
+
   alias Lanttern.Repo
+  import Lanttern.RepoHelpers
 
   alias Lanttern.MessageBoard.Message
   alias Lanttern.Schools.Class
+  alias Lanttern.Schools.Student
 
   @doc """
   Returns the list of messages.

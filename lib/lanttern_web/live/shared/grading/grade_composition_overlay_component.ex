@@ -14,8 +14,8 @@ defmodule LantternWeb.Grading.GradeCompositionOverlayComponent do
 
   alias Lanttern.GradesReports
   alias Lanttern.Grading
-  alias Lanttern.Reporting
   alias Lanttern.Grading.GradeComponent
+  alias Lanttern.Reporting
 
   import Lanttern.Utils, only: [swap: 3]
 

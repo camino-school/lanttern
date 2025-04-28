@@ -22,7 +22,7 @@ defmodule LantternWeb.PersonalizationHelpers do
       iex> generate_permission_options()
       [{"permission", "value"}, ...]
   """
-  def generate_permission_options() do
+  def generate_permission_options do
     Personalization.list_valid_permissions()
     |> Enum.map(fn p -> {@permission_to_option_map[p], p} end)
   end

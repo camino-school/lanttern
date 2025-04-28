@@ -107,7 +107,7 @@ defmodule Lanttern.RepoHelpers do
   Create naive timestamps.
   To be used in `inserted_at` and `updated_at`.
   """
-  def naive_timestamp() do
+  def naive_timestamp do
     NaiveDateTime.utc_now()
     |> NaiveDateTime.truncate(:second)
   end

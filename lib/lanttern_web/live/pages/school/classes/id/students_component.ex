@@ -119,7 +119,8 @@ defmodule LantternWeb.ClassLive.StudentsComponent do
         school_id: socket.assigns.current_user.current_profile.school_id,
         load_email: true,
         classes_ids: [socket.assigns.class.id],
-        load_profile_picture_from_cycle_id: cycle_id
+        load_profile_picture_from_cycle_id: cycle_id,
+        preloads: :tags
       )
 
     students =

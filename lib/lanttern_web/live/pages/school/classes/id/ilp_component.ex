@@ -81,6 +81,7 @@ defmodule LantternWeb.ClassLive.ILPComponent do
                 cycle_id={@current_user.current_profile.current_school_cycle.id}
                 params={@params}
                 class="flex-1"
+                show_tags
               />
               <%= if ilp do %>
                 <.action
@@ -243,7 +244,8 @@ defmodule LantternWeb.ClassLive.ILPComponent do
         school_id,
         cycle_id,
         ilp_template_id,
-        classes_ids: [socket.assigns.class.id]
+        classes_ids: [socket.assigns.class.id],
+        preload_student_tags: true
       )
 
     students_count = length(students_and_ilps)

@@ -6,9 +6,9 @@ defmodule Lanttern.Notes.StrandNoteRelationship do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Lanttern.Notes.Note
   alias Lanttern.Identity.Profile
   alias Lanttern.LearningContext.Strand
+  alias Lanttern.Notes.Note
 
   @type t :: %__MODULE__{
           note: Note.t(),

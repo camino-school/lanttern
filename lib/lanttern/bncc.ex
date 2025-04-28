@@ -21,9 +21,10 @@ defmodule Lanttern.BNCC do
   """
 
   import Ecto.Query, warn: false
+  alias Lanttern.Repo
+
   alias NimbleCSV.RFC4180, as: CSV
 
-  alias Lanttern.Repo
   alias Lanttern.BNCC.HabilidadeBNCCEF
   alias Lanttern.Curricula.Curriculum
   alias Lanttern.Curricula.CurriculumComponent
@@ -64,7 +65,7 @@ defmodule Lanttern.BNCC do
   @doc """
   Check if BNCC curriculum already exists.
   """
-  def bncc_registered?() do
+  def bncc_registered? do
     case Repo.get_by(Curriculum, code: @bncc) do
       nil -> false
       _bncc -> true
@@ -123,7 +124,7 @@ defmodule Lanttern.BNCC do
       iex> seed_bncc()
       {:error, error}
   """
-  def seed_bncc() do
+  def seed_bncc do
     case Repo.get_by(Curriculum, code: @bncc) do
       nil ->
         %{id: bncc_id} = Repo.insert!(%Curriculum{code: @bncc, name: "BNCC"})
@@ -141,7 +142,7 @@ defmodule Lanttern.BNCC do
     end
   end
 
-  defp generate_subjects_and_years_maps() do
+  defp generate_subjects_and_years_maps do
     with subjects_code_id_map <- Taxonomy.generate_subjects_code_id_map(),
          years_code_id_map <- Taxonomy.generate_years_code_id_map() do
       %{
@@ -463,7 +464,7 @@ defmodule Lanttern.BNCC do
       [%Subject{}, ...]
 
   """
-  def list_bncc_ef_subjects() do
+  def list_bncc_ef_subjects do
     from(
       s in Subject,
       where: s.code in @ef_subjects_codes
@@ -480,7 +481,7 @@ defmodule Lanttern.BNCC do
       [%Year{}, ...]
 
   """
-  def list_bncc_ef_years() do
+  def list_bncc_ef_years do
     from(
       y in Year,
       where: y.code in @ef_years_codes

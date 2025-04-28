@@ -6,11 +6,11 @@ defmodule Lanttern.Filters do
   import Ecto.Query, warn: false
   alias Lanttern.Repo
 
+  alias Lanttern.Filters.ProfileReportCardFilter
+  alias Lanttern.Filters.ProfileStrandFilter
+  alias Lanttern.Identity.User
   alias Lanttern.Personalization
   alias Lanttern.Personalization.ProfileSettings
-  alias Lanttern.Filters.ProfileStrandFilter
-  alias Lanttern.Filters.ProfileReportCardFilter
-  alias Lanttern.Identity.User
 
   @doc """
   Set current profile filters.
@@ -66,7 +66,7 @@ defmodule Lanttern.Filters do
       [%ProfileStrandFilter{}, ...]
 
   """
-  def list_profile_strand_filters() do
+  def list_profile_strand_filters do
     Repo.all(ProfileStrandFilter)
   end
 

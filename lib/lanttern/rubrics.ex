@@ -442,7 +442,7 @@ defmodule Lanttern.Rubrics do
   - when scale type is "ordinal", we use ordinal value's normalized value
   - when scale type is "numeric", we use descriptor's score
   """
-  def full_rubric_query() do
+  def full_rubric_query do
     descriptors_query =
       from(
         d in RubricDescriptor,

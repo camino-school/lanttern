@@ -13,9 +13,8 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Filters
-  alias Lanttern.StudentsRecords
   alias Lanttern.Schools
-
+  alias Lanttern.StudentsRecords
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
 
   # shared components

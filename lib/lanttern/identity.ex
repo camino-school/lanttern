@@ -5,12 +5,13 @@ defmodule Lanttern.Identity do
 
   import Ecto.Query, warn: false
 
-  import Lanttern.RepoHelpers
   alias Lanttern.Repo
-  alias Lanttern.Identity.User
-  alias Lanttern.Identity.UserToken
-  alias Lanttern.Identity.UserNotifier
+  import Lanttern.RepoHelpers
+
   alias Lanttern.Identity.Profile
+  alias Lanttern.Identity.User
+  alias Lanttern.Identity.UserNotifier
+  alias Lanttern.Identity.UserToken
   alias Lanttern.Personalization
   alias Lanttern.Schools
   alias Lanttern.Schools.Cycle

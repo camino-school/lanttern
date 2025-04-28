@@ -1,8 +1,8 @@
 defmodule LantternWeb.ArchivedMessagesLiveTest do
   use LantternWeb.ConnCase
 
-  alias Lanttern.MessageBoardFixtures
   alias Lanttern.MessageBoard
+  alias Lanttern.MessageBoardFixtures
 
   @live_view_path "/school/message_board/archive"
 

@@ -4,8 +4,8 @@ defmodule LantternWeb.StudentLive.GradesReportsComponent do
   alias Lanttern.GradesReports
 
   # shared components
-  alias LantternWeb.GradesReports.GradeDetailsOverlayComponent
   alias LantternWeb.GradesReports.FinalGradeDetailsOverlayComponent
+  alias LantternWeb.GradesReports.GradeDetailsOverlayComponent
   import LantternWeb.GradesReportsComponents
 
   @impl true

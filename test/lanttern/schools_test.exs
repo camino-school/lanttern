@@ -1118,6 +1118,75 @@ defmodule Lanttern.SchoolsTest do
       student = student_fixture()
       assert %Ecto.Changeset{} = Schools.change_student(student)
     end
+
+    test "list_students/1 with student_tags_ids opt returns students filtered by their tags" do
+      # Create a school
+      school = school_fixture()
+
+      # Create tags
+      tag_1 =
+        Lanttern.StudentTagsFixtures.student_tag_fixture(%{school_id: school.id, name: "Tag 1"})
+
+      tag_2 =
+        Lanttern.StudentTagsFixtures.student_tag_fixture(%{school_id: school.id, name: "Tag 2"})
+
+      # Create students with predictable alphabetical order
+      student_a = student_fixture(%{school_id: school.id, name: "AAA Student with tag 1"})
+      student_b = student_fixture(%{school_id: school.id, name: "BBB Student with tag 2"})
+      student_c = student_fixture(%{school_id: school.id, name: "CCC Student with both tags"})
+      _student_d = student_fixture(%{school_id: school.id, name: "DDD Student with no tags"})
+
+      # Associate students with tags
+      # Student A has tag 1
+      Repo.insert!(%Lanttern.StudentTags.StudentTagRelationship{
+        student_id: student_a.id,
+        tag_id: tag_1.id,
+        school_id: school.id
+      })
+
+      # Student B has tag 2
+      Repo.insert!(%Lanttern.StudentTags.StudentTagRelationship{
+        student_id: student_b.id,
+        tag_id: tag_2.id,
+        school_id: school.id
+      })
+
+      # Student C has both tags
+      Repo.insert!(%Lanttern.StudentTags.StudentTagRelationship{
+        student_id: student_c.id,
+        tag_id: tag_1.id,
+        school_id: school.id
+      })
+
+      Repo.insert!(%Lanttern.StudentTags.StudentTagRelationship{
+        student_id: student_c.id,
+        tag_id: tag_2.id,
+        school_id: school.id
+      })
+
+      # Filter by tag 1 - should return student_a and student_c in alphabetical order
+      [expected_student_a, expected_student_c] =
+        Schools.list_students(student_tags_ids: [tag_1.id])
+
+      assert expected_student_a.id == student_a.id
+      assert expected_student_c.id == student_c.id
+
+      # Filter by tag 2 - should return student_b and student_c in alphabetical order
+      [expected_student_b, expected_student_c] =
+        Schools.list_students(student_tags_ids: [tag_2.id])
+
+      assert expected_student_b.id == student_b.id
+      assert expected_student_c.id == student_c.id
+
+      # Filter by both tags (should return students that have ANY of the tags)
+      # Result should be in alphabetical order: student_a, student_b, student_c
+      [expected_student_a, expected_student_b, expected_student_c] =
+        Schools.list_students(student_tags_ids: [tag_1.id, tag_2.id])
+
+      assert expected_student_a.id == student_a.id
+      assert expected_student_b.id == student_b.id
+      assert expected_student_c.id == student_c.id
+    end
   end
 
   describe "staff" do

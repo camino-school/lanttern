@@ -20,6 +20,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
         student_id={@student.id}
         on_edit_profile_picture={JS.patch(~p"/school/students/#{@student}?edit_profile_picture=true")}
         show_deactivated
+        show_tags
       />
       <div class="flex items-start gap-20 mt-12">
         <div class="flex-1">

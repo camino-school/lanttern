@@ -1,8 +1,8 @@
 defmodule LantternWeb.Admin.RubricLive.FormComponent do
   use LantternWeb, :live_component
 
-  alias Lanttern.Rubrics
   alias Lanttern.Grading
+  alias Lanttern.Rubrics
   import LantternWeb.GradingHelpers
 
   @impl true

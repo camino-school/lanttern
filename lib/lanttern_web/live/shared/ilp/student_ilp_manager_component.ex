@@ -54,6 +54,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
         student_id={@student.id}
         class="mb-10"
         navigate={@student_navigate}
+        show_tags
       />
       <.card_base :if={!@template} class="p-10">
         <.empty_state><%= gettext("No ILP template selected") %></.empty_state>

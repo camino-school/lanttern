@@ -56,7 +56,7 @@ defmodule Lanttern.Taxonomy do
   @doc """
   Check if base years and subjects taxonomy already exists.
   """
-  def has_base_taxonomy?() do
+  def has_base_taxonomy? do
     db_year_codes =
       from(y in Year, select: [:code])
       |> Repo.all()
@@ -81,7 +81,7 @@ defmodule Lanttern.Taxonomy do
   @doc """
   Creates base years and subjects taxonomy.
   """
-  def seed_base_taxonomy() do
+  def seed_base_taxonomy do
     @years
     |> Enum.each(fn {code, name} ->
       case Repo.get_by(Year, code: code) do

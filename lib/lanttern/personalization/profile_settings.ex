@@ -33,6 +33,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
           assessment_group_by: String.t(),
           student_id: pos_integer(),
           students_ids: [pos_integer()],
+          student_tags_ids: [pos_integer()],
           student_record_tags_ids: [pos_integer()],
           student_record_statuses_ids: [pos_integer()],
           student_record_assignees_ids: [pos_integer()],
@@ -56,6 +57,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
       field :assessment_group_by, :string
       field :student_id, :id
       field :students_ids, {:array, :id}
+      field :student_tags_ids, {:array, :id}
       field :student_record_tags_ids, {:array, :id}
       field :student_record_statuses_ids, {:array, :id}
       field :student_record_assignees_ids, {:array, :id}
@@ -94,6 +96,7 @@ defmodule Lanttern.Personalization.ProfileSettings do
       :assessment_group_by,
       :student_id,
       :students_ids,
+      :student_tags_ids,
       :student_record_tags_ids,
       :student_record_statuses_ids,
       :student_record_assignees_ids,

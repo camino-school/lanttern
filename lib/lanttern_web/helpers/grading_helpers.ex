@@ -28,7 +28,7 @@ defmodule LantternWeb.GradingHelpers do
       iex> generate_ordinal_value_options()
       ["ordinal value name": 1, ...]
   """
-  def generate_ordinal_value_options() do
+  def generate_ordinal_value_options do
     Grading.list_ordinal_values()
     |> Enum.map(fn ov -> {ov.name, ov.id} end)
   end

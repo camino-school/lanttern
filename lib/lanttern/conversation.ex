@@ -5,8 +5,9 @@ defmodule Lanttern.Conversation do
 
   import Ecto.Query, warn: false
 
-  import Lanttern.RepoHelpers
   alias Lanttern.Repo
+  import Lanttern.RepoHelpers
+
   alias Lanttern.Conversation.Comment
 
   @doc """

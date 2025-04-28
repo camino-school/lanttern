@@ -208,7 +208,6 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   def assessment_point_header(%{ap_header: %AssessmentPoint{}} = assigns) do
     # when in a moment grid, the header is the assessment point
 
-    # TODO: make the patch dynamic (allow parent control via attrs)
     ~H"""
     <div class="flex flex-col p-2" id={@id}>
       <.link

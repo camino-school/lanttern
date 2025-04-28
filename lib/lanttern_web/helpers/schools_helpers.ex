@@ -3,11 +3,11 @@ defmodule LantternWeb.SchoolsHelpers do
   Helper functions related to `Schools` context
   """
 
-  alias Lanttern.Schools
-  alias Lanttern.Schools.Cycle
-  alias Lanttern.Schools.Class
   alias Lanttern.Identity.Profile
   alias Lanttern.Identity.User
+  alias Lanttern.Schools
+  alias Lanttern.Schools.Class
+  alias Lanttern.Schools.Cycle
 
   @doc """
   Generate list of schools to use as `Phoenix.HTML.Form.options_for_select/2` arg
@@ -17,7 +17,7 @@ defmodule LantternWeb.SchoolsHelpers do
       iex> generate_school_options()
       [{"school name", 1}, ...]
   """
-  def generate_school_options() do
+  def generate_school_options do
     Schools.list_schools()
     |> Enum.map(fn s -> {s.name, s.id} end)
   end
@@ -60,7 +60,7 @@ defmodule LantternWeb.SchoolsHelpers do
       iex> generate_student_options()
       [{"student name", 1}, ...]
   """
-  def generate_student_options() do
+  def generate_student_options do
     Schools.list_students()
     |> Enum.map(fn s -> {s.name, s.id} end)
   end
@@ -73,7 +73,7 @@ defmodule LantternWeb.SchoolsHelpers do
       iex> generate_staff_member_options()
       [{"staff member name", 1}, ...]
   """
-  def generate_staff_member_options() do
+  def generate_staff_member_options do
     Schools.list_staff_members()
     |> Enum.map(fn t -> {t.name, t.id} end)
   end

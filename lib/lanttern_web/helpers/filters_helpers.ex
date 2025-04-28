@@ -14,6 +14,7 @@ defmodule LantternWeb.FiltersHelpers do
   alias Lanttern.Schools
   alias Lanttern.Schools.Cycle
   alias Lanttern.StudentsRecords
+  alias Lanttern.StudentTags
   alias Lanttern.Taxonomy
 
   import LantternWeb.LocalizationHelpers
@@ -52,6 +53,12 @@ defmodule LantternWeb.FiltersHelpers do
 
   - `:selected_students`
   - `:selected_students_ids`
+
+  ### `:student_tags` assigns
+
+  - `:student_tags` (filtered by user school)
+  - `:selected_student_tags`
+  - `:selected_student_tags_ids`
 
   ### `:student_record_tags` assigns
 
@@ -203,6 +210,29 @@ defmodule LantternWeb.FiltersHelpers do
          socket,
          current_user,
          current_filters,
+         [:student_tags | filter_types]
+       ) do
+    school_id = current_user.current_profile.school_id
+
+    student_tags =
+      StudentTags.list_student_tags(school_id: school_id)
+
+    selected_student_tags_ids = Map.get(current_filters, :student_tags_ids) || []
+
+    selected_student_tags =
+      Enum.filter(student_tags, &(&1.id in selected_student_tags_ids))
+
+    socket
+    |> assign(:student_tags, student_tags)
+    |> assign(:selected_student_tags_ids, selected_student_tags_ids)
+    |> assign(:selected_student_tags, selected_student_tags)
+    |> assign_filter_type(current_user, current_filters, filter_types)
+  end
+
+  defp assign_filter_type(
+         socket,
+         current_user,
+         current_filters,
          [:student_record_tags | filter_types]
        ) do
     school_id = current_user.current_profile.school_id
@@ -336,6 +366,7 @@ defmodule LantternWeb.FiltersHelpers do
     linked_students_classes: :linked_students_classes_ids,
     student: :student_id,
     students: :students_ids,
+    student_tags: :student_tags_ids,
     student_record_tags: :student_record_tags_ids,
     student_record_statuses: :student_record_statuses_ids,
     student_record_assignees: :student_record_assignees_ids,
@@ -351,6 +382,7 @@ defmodule LantternWeb.FiltersHelpers do
     linked_students_classes: :selected_linked_students_classes_ids,
     student: :selected_student_id,
     students: :selected_students_ids,
+    student_tags: :selected_student_tags_ids,
     student_record_tags: :selected_student_record_tags_ids,
     student_record_statuses: :selected_student_record_statuses_ids,
     student_record_assignees: :selected_student_record_assignees_ids,
@@ -708,6 +740,7 @@ defmodule LantternWeb.FiltersHelpers do
   - `:years`
   - `:cycles`
   - `:students`
+  - `:student_tags`
   - `:student_record_tags`
   - `:student_record_status`
   - `:student_record_assignees`

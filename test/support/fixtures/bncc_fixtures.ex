@@ -7,9 +7,9 @@ defmodule Lanttern.BNCCFixtures do
   import Lanttern.CurriculaFixtures
   import Lanttern.TaxonomyFixtures
 
-  alias Lanttern.Repo
   alias Lanttern.Curricula.Curriculum
   alias Lanttern.Curricula.CurriculumComponent
+  alias Lanttern.Repo
 
   @doc """
   Generate a "Habilidade BNCC EF".

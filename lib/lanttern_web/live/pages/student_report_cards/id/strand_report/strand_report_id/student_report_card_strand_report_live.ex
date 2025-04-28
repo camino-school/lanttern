@@ -5,21 +5,20 @@ defmodule LantternWeb.StudentReportCardStrandReportLive do
   alias Lanttern.Notes
   alias Lanttern.Notes.Note
   alias Lanttern.Reporting
-  import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
-  # shared components
   alias LantternWeb.Notes.NoteComponent
-  alias LantternWeb.Reporting.StrandReportOverviewComponent
   alias LantternWeb.Reporting.StrandReportAssessmentComponent
   alias LantternWeb.Reporting.StrandReportMomentsComponent
+  alias LantternWeb.Reporting.StrandReportOverviewComponent
 
+  import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
   import LantternWeb.LearningContextComponents, only: [mini_strand_card: 1]
   import LantternWeb.ReportingComponents
 
   @tabs %{
-    "overview" => :overview,
     "assessment" => :assessment,
     "moments" => :moments,
+    "overview" => :overview,
     "student_notes" => :student_notes
   }
 

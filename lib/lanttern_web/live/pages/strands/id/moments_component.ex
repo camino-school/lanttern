@@ -7,8 +7,8 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
   import Lanttern.Utils, only: [swap: 3]
 
   # shared components
-  alias LantternWeb.LearningContext.MomentFormComponent
   alias LantternWeb.Dataviz.LantternVizComponent
+  alias LantternWeb.LearningContext.MomentFormComponent
 
   @impl true
   def render(assigns) do

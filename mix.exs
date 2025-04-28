@@ -4,7 +4,7 @@ defmodule Lanttern.MixProject do
   def project do
     [
       app: :lanttern,
-      version: "2025.4.15-alpha.61",
+      version: "2025.4.27-alpha.62",
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -88,6 +88,12 @@ defmodule Lanttern.MixProject do
         "tailwind default --minify",
         "esbuild default --minify",
         "phx.digest"
+      ],
+      check: [
+        "format --check-formatted",
+        "deps.unlock --check-unused",
+        "compile --warnings-as-errors",
+        "credo --strict"
       ]
     ]
   end

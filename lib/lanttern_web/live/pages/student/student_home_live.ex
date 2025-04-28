@@ -11,8 +11,8 @@ defmodule LantternWeb.StudentHomeLive do
   alias Lanttern.StudentsCycleInfo
 
   # shared components
-  alias LantternWeb.MessageBoard.MessageBoardViewerComponent
   alias LantternWeb.Attachments.AttachmentAreaComponent
+  alias LantternWeb.MessageBoard.MessageBoardViewerComponent
   alias LantternWeb.Schools.StudentHeaderComponent
   import LantternWeb.SchoolsComponents
 

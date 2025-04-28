@@ -45,8 +45,8 @@ defmodule Lanttern.StudentsRecords do
 
   import Ecto.Query, warn: false
   import Lanttern.RepoHelpers
-  alias Lanttern.RepoHelpers.Page
   alias Lanttern.Repo
+  alias Lanttern.RepoHelpers.Page
 
   alias Lanttern.Identity.Profile
   alias Lanttern.StudentsRecords.AssigneeRelationship

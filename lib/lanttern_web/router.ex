@@ -72,6 +72,7 @@ defmodule LantternWeb.Router do
       live "/school/moment_cards_templates", SchoolLive, :manage_moment_cards_templates
 
       live "/school/students/deactivated", DeactivatedStudentsLive, :index
+      live "/school/students/settings", StudentsSettingsLive, :manage_tags
       live "/school/students/:id", StudentLive, :show
       live "/school/students/:id/ilp", StudentLive, :ilp
       live "/school/students/:id/student_records", StudentLive, :student_records
@@ -128,7 +129,6 @@ defmodule LantternWeb.Router do
       live "/students_records", StudentsRecordsLive, :index
       live "/students_records/settings/status", StudentsRecordsSettingsLive, :manage_status
       live "/students_records/settings/tags", StudentsRecordsSettingsLive, :manage_tags
-
       # ILP
 
       live "/ilp", ILPLive, :index
