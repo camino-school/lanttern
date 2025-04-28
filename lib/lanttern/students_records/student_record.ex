@@ -20,6 +20,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
   alias Lanttern.StudentsRecords.StudentRecordStatus
   alias Lanttern.StudentsRecords.Tag
   alias Lanttern.StudentsRecords.TagRelationship
+  alias Lanttern.StudentTags
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -45,6 +46,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
           status_id: pos_integer(),
           tags: [Tag.t()],
           tags_ids: [pos_integer()],
+          students_tags: [StudentTags.Tag.t()],
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -64,6 +66,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
     field :classes_ids, {:array, :id}, virtual: true
     field :assignees_ids, {:array, :id}, virtual: true
     field :tags_ids, {:array, :id}, virtual: true
+    field :students_tags, {:array, :map}, virtual: true
 
     belongs_to :school, School
     belongs_to :created_by_staff_member, StaffMember

@@ -68,6 +68,7 @@ defmodule Lanttern.StudentsRecords do
   - `:owner_id` - filter results by owner
   - `:assignees_ids` - filter results by assignees
   - `:view` - if "open", will return only open records ordered by oldest
+  - `:load_students_tags` - load linked students' tags in `student_tags` field
   - `:check_profile_permissions` - filter results based on profile permission
   - `:preloads` - preloads associated data
   - page opts (view `Page.opts()`)
@@ -88,6 +89,7 @@ defmodule Lanttern.StudentsRecords do
             owner_id: pos_integer(),
             assignees_ids: [pos_integer()],
             view: String.t(),
+            load_students_tags: boolean(),
             check_profile_permissions: Profile.t(),
             preloads: list()
           ]
@@ -98,6 +100,7 @@ defmodule Lanttern.StudentsRecords do
     |> apply_list_students_records_opts(opts)
     |> apply_list_students_records_order_by(opts)
     |> Repo.all()
+    |> post_apply_list_students_records_opts(opts)
     |> maybe_preload(opts)
   end
 
@@ -221,7 +224,7 @@ defmodule Lanttern.StudentsRecords do
     |> apply_list_students_records_opts(opts)
   end
 
-  # time is optiona, so there's a keyset case to consider only date
+  # time is optional, so there's a keyset case to consider only date
   defp apply_list_students_records_opts(queryable, [
          {:after, [date: date, time: _, id: id]} | opts
        ]) do
@@ -292,6 +295,31 @@ defmodule Lanttern.StudentsRecords do
         )
     end
   end
+
+  defp post_apply_list_students_records_opts(students_records, []),
+    do: students_records
+
+  defp post_apply_list_students_records_opts(students_records, [
+         {:load_students_tags, true} | opts
+       ]) do
+    students_records =
+      students_records
+      |> Repo.preload(students: :tags)
+      |> Enum.map(fn sr ->
+        students_tags =
+          sr.students
+          |> Enum.flat_map(& &1.tags)
+          |> Enum.uniq()
+          |> Enum.sort_by(& &1.position)
+
+        %{sr | students_tags: students_tags}
+      end)
+
+    post_apply_list_students_records_opts(students_records, opts)
+  end
+
+  defp post_apply_list_students_records_opts(students_records, [_ | opts]),
+    do: post_apply_list_students_records_opts(students_records, opts)
 
   @doc """
   Returns a page with the list of students_records.

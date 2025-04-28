@@ -76,6 +76,7 @@ defmodule LantternWeb.StudentsRecordsLive do
         statuses_ids: statuses_ids,
         assignees_ids: assignees_ids,
         view: socket.assigns.current_student_record_view,
+        load_students_tags: true,
         preloads: [
           :tags,
           :status,

@@ -276,6 +276,7 @@ defmodule LantternWeb.CoreComponents do
   attr :class, :any, default: nil
   attr :style, :string, default: nil
   attr :theme, :string, default: "default"
+  attr :rounded, :boolean, default: false
   attr :icon_name, :string, default: nil
 
   attr :color_map, :map,
@@ -292,7 +293,8 @@ defmodule LantternWeb.CoreComponents do
     <span
       id={@id}
       class={[
-        "inline-flex items-center rounded-sm px-1 py-1 font-mono font-normal text-xs truncate",
+        "inline-flex items-center px-1 py-1 font-mono font-normal text-xs truncate",
+        if(@rounded, do: "rounded-full", else: "rounded-sm"),
         badge_theme(@theme),
         @class
       ]}
@@ -1532,6 +1534,7 @@ defmodule LantternWeb.CoreComponents do
   attr :theme, :string, default: "subtle", doc: "subtle | cyan"
   attr :on_remove, JS, default: nil
   attr :size, :string, default: "xs", doc: "xs | sm"
+  attr :show_tags, :boolean, default: false
   attr :truncate, :boolean, default: false
   attr :navigate, :string, default: nil
   attr :rest, :global
@@ -1585,6 +1588,9 @@ defmodule LantternWeb.CoreComponents do
           <%= @person.name %>
         </span>
       <% end %>
+      <div :if={@show_tags && is_list(@person.tags)} class="flex items-center gap-1">
+        <.badge :for={tag <- @person.tags} color_map={tag} rounded><%= tag.name %></.badge>
+      </div>
       <div :if={@on_remove} class="pr-1 -ml-1">
         <button
           type="button"

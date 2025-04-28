@@ -308,6 +308,7 @@ defmodule LantternWeb.ClassLive.StudentRecordsComponent do
         statuses_ids: statuses_ids,
         assignees_ids: assignees_ids,
         view: view,
+        load_students_tags: true,
         preloads: [
           :tags,
           :status,

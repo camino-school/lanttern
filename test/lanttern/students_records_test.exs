@@ -12,6 +12,7 @@ defmodule Lanttern.StudentsRecordsTest do
     alias Lanttern.Identity.Profile
     alias Lanttern.RepoHelpers.Page
     alias Lanttern.SchoolsFixtures
+    alias Lanttern.StudentTagsFixtures
 
     @invalid_attrs %{name: nil, date: nil, time: nil, description: nil}
 
@@ -138,6 +139,110 @@ defmodule Lanttern.StudentsRecordsTest do
         )
 
       assert expected_student_record.id == student_record.id
+    end
+
+    test "list_students_records/1 with student tags opt returns records with preloaded student tags" do
+      school = SchoolsFixtures.school_fixture()
+
+      tag_1 =
+        StudentTagsFixtures.student_tag_fixture(%{school_id: school.id, name: "Tag 1"})
+
+      tag_2 =
+        StudentTagsFixtures.student_tag_fixture(%{school_id: school.id, name: "Tag 2"})
+
+      student_a =
+        SchoolsFixtures.student_fixture(%{school_id: school.id, name: "AAA Student with tag 1"})
+
+      student_b =
+        SchoolsFixtures.student_fixture(%{school_id: school.id, name: "BBB Student with tag 2"})
+
+      student_c =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id,
+          name: "CCC Student with both tags"
+        })
+
+      student_d =
+        SchoolsFixtures.student_fixture(%{school_id: school.id, name: "DDD Student with no tags"})
+
+      # Associate students with tags
+      Repo.insert!(%Lanttern.StudentTags.StudentTagRelationship{
+        student_id: student_a.id,
+        tag_id: tag_1.id,
+        school_id: school.id
+      })
+
+      Repo.insert!(%Lanttern.StudentTags.StudentTagRelationship{
+        student_id: student_b.id,
+        tag_id: tag_2.id,
+        school_id: school.id
+      })
+
+      Repo.insert!(%Lanttern.StudentTags.StudentTagRelationship{
+        student_id: student_c.id,
+        tag_id: tag_1.id,
+        school_id: school.id
+      })
+
+      Repo.insert!(%Lanttern.StudentTags.StudentTagRelationship{
+        student_id: student_c.id,
+        tag_id: tag_2.id,
+        school_id: school.id
+      })
+
+      # setup student records
+
+      # expect tag 1 and 2
+      student_record_1 =
+        student_record_fixture(%{
+          school_id: school.id,
+          students_ids: [student_a.id, student_b.id]
+        })
+
+      # expect tag 1 and 2
+      student_record_2 =
+        student_record_fixture(%{school_id: school.id, students_ids: [student_c.id]})
+
+      # expect tag 2
+      student_record_3 =
+        student_record_fixture(%{
+          school_id: school.id,
+          students_ids: [student_b.id, student_d.id]
+        })
+
+      # expect no tag
+      student_record_4 =
+        student_record_fixture(%{
+          school_id: school.id,
+          students_ids: [student_d.id]
+        })
+
+      # # extra fixture to test filtering
+      # student_record_fixture()
+      # student_record_fixture(%{school_id: school.id})
+
+      [
+        expected_student_record_4,
+        expected_student_record_3,
+        expected_student_record_2,
+        expected_student_record_1
+      ] =
+        StudentsRecords.list_students_records(
+          school_id: school.id,
+          load_students_tags: true
+        )
+
+      assert expected_student_record_1.id == student_record_1.id
+      assert expected_student_record_1.students_tags == [tag_1, tag_2]
+
+      assert expected_student_record_2.id == student_record_2.id
+      assert expected_student_record_2.students_tags == [tag_1, tag_2]
+
+      assert expected_student_record_3.id == student_record_3.id
+      assert expected_student_record_3.students_tags == [tag_2]
+
+      assert expected_student_record_4.id == student_record_4.id
+      assert expected_student_record_4.students_tags == []
     end
 
     test "list_students_records/1 with owner and assignees opts students_records filtered by given owner and assignees" do
