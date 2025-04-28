@@ -583,6 +583,69 @@ defmodule LantternWeb.OverlayComponents do
     """
   end
 
+  @doc """
+  Renders a selection filter modal for multiple categories.
+
+  It works the same way `<.selection_filter_modal>` does, but instead of working
+  with only one list of items, it handles multiple lists at the same time.
+
+  We expect a list in `groups` attr, with the following format:
+
+      %{
+        title: "The group title",
+        items: [], # list, required
+        selected_items_ids: [], # list, required
+        on_select: fn id -> _id end, # function, required
+        use_color_map_as_active: false # boolean
+      }
+  """
+
+  attr :id, :string, required: true
+  attr :title, :string, required: true
+  attr :groups, :list, required: true, doc: "view component doc for details"
+
+  attr :on_cancel, JS,
+    default: %JS{},
+    doc: "the function to execute on cancel (click outside of modal or cancel click)"
+
+  attr :on_save, JS,
+    default: nil,
+    doc: "function. if present, will render a save and cancel button"
+
+  def multi_selection_filter_modal(assigns) do
+    ~H"""
+    <.modal id={@id} on_cancel={@on_cancel}>
+      <h5 class="font-display font-black text-xl">
+        <%= @title %>
+      </h5>
+      <div :for={group <- @groups} class="mt-10">
+        <h6 :if={group[:title]} class="mb-4 font-display font-black text-base text-ltrn-subtle">
+          <%= group.title %>
+        </h6>
+        <.badge_button_picker
+          on_select={&group.on_select.(&1)}
+          items={group.items}
+          selected_ids={group.selected_items_ids}
+          use_color_map_as_active={Map.get(group, :use_color_map_as_active, false)}
+        />
+      </div>
+      <div :if={@on_save} class="flex justify-between gap-6 mt-10">
+        <.action
+          type="button"
+          theme="subtle"
+          size="md"
+          phx-click={JS.exec("data-cancel", to: "##{@id}")}
+        >
+          <%= gettext("Cancel") %>
+        </.action>
+        <.action type="button" theme="primary" size="md" phx-click={@on_save}>
+          <%= gettext("Save") %>
+        </.action>
+      </div>
+    </.modal>
+    """
+  end
+
   # this solution looks odd, but it's the best idea
   # I could came with to inform Tailwind to compile
   # all the z- classes

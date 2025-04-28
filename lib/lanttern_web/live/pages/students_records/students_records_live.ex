@@ -28,6 +28,7 @@ defmodule LantternWeb.StudentsRecordsLive do
       |> assign_user_filters([
         :students,
         :student_record_tags,
+        :student_tags,
         :student_record_statuses,
         :student_record_assignees,
         :student_record_view
@@ -58,6 +59,7 @@ defmodule LantternWeb.StudentsRecordsLive do
       selected_students_ids: students_ids,
       selected_classes_ids: classes_ids,
       selected_student_record_tags_ids: tags_ids,
+      selected_student_tags_ids: student_tags_ids,
       selected_student_record_statuses_ids: statuses_ids,
       selected_student_record_assignees_ids: assignees_ids
     } = socket.assigns
@@ -73,9 +75,11 @@ defmodule LantternWeb.StudentsRecordsLive do
         students_ids: students_ids,
         classes_ids: classes_ids,
         tags_ids: tags_ids,
+        student_tags_ids: student_tags_ids,
         statuses_ids: statuses_ids,
         assignees_ids: assignees_ids,
         view: socket.assigns.current_student_record_view,
+        load_students_tags: true,
         preloads: [
           :tags,
           :status,
@@ -190,6 +194,21 @@ defmodule LantternWeb.StudentsRecordsLive do
     {:noreply, socket}
   end
 
+  def handle_event("remove_student_tag_filter", %{"id" => tag_id}, socket) do
+    selected_tags_ids =
+      socket.assigns.selected_student_tags_ids
+      |> Enum.filter(&(&1 != tag_id))
+
+    socket =
+      socket
+      |> assign(:selected_student_tags_ids, selected_tags_ids)
+      |> save_profile_filters([:student_tags])
+      |> assign_user_filters([:student_tags])
+      |> stream_students_records(true)
+
+    {:noreply, socket}
+  end
+
   def handle_event("remove_status_filter", _, socket) do
     socket =
       socket
@@ -231,11 +250,24 @@ defmodule LantternWeb.StudentsRecordsLive do
     {:noreply, socket}
   end
 
+  def handle_event("toggle_student_tag_filter", %{"id" => id}, socket) do
+    selected_ids =
+      if id in socket.assigns.selected_student_tags_ids,
+        do: Enum.filter(socket.assigns.selected_student_tags_ids, &(&1 != id)),
+        else: [id | socket.assigns.selected_student_tags_ids]
+
+    socket =
+      socket
+      |> assign(:selected_student_tags_ids, selected_ids)
+
+    {:noreply, socket}
+  end
+
   def handle_event("filter_by_tag", _, socket) do
     socket =
       socket
-      |> save_profile_filters([:student_record_tags])
-      |> assign_user_filters([:student_record_tags])
+      |> save_profile_filters([:student_record_tags, :student_tags])
+      |> assign_user_filters([:student_record_tags, :student_tags])
       |> stream_students_records(true)
 
     {:noreply, socket}

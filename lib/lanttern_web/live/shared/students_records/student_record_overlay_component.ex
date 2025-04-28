@@ -223,48 +223,47 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                   <.icon name="hero-clock-mini" class="w-5 h-5 text-ltrn-subtle" />
                   <%= @student_record.time %>
                 </div>
-              </div>
-              <div class="md:flex items-center gap-4 mt-4">
                 <div class="flex items-center gap-2">
-                  <span><%= gettext("Status") %>:</span>
+                  <span class="text-ltrn-subtle"><%= gettext("Status") %>:</span>
                   <.status_badge status={@student_record.status} />
                 </div>
-                <div class="flex items-center gap-2 mt-4 md:mt-0">
-                  <span><%= gettext("Tags") %>:</span>
-                  <div class="flex flex-wrap gap-2">
-                    <.badge :for={tag <- @student_record.tags} color_map={tag}>
-                      <%= tag.name %>
-                    </.badge>
-                  </div>
+              </div>
+              <div class="flex items-center gap-2 mt-4">
+                <div class="group relative">
+                  <.icon name="hero-tag-mini" class="w-5 h-5 text-ltrn-subtle" />
+                  <.tooltip><%= gettext("Tags") %></.tooltip>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <.badge :for={tag <- @student_record.tags} color_map={tag}>
+                    <%= tag.name %>
+                  </.badge>
                 </div>
               </div>
-            </div>
-            <div class="md:flex items-start gap-4 mt-6">
-              <div class="flex-1">
-                <div class="flex items-center gap-2">
-                  <.icon name="hero-user-group-mini" class="text-ltrn-subtle" />
-                  <p><%= gettext("Students") %></p>
+              <div :if={@student_record.classes != []} class="flex items-center gap-2 mt-4">
+                <div class="group relative">
+                  <.icon name="hero-rectangle-group-mini" class="w-5 h-5 text-ltrn-subtle" />
+                  <.tooltip><%= gettext("Classes") %></.tooltip>
                 </div>
-                <div class="flex flex-wrap gap-2 mt-4">
+                <div class="flex flex-wrap gap-2">
+                  <.badge :for={class <- @student_record.classes} id={"class-#{class.id}"}>
+                    <%= class_with_cycle(class, @current_user) %>
+                  </.badge>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 mt-4">
+                <div class="group relative">
+                  <.icon name="hero-user-group-mini" class="w-5 h-5 text-ltrn-subtle" />
+                  <.tooltip><%= gettext("Students") %></.tooltip>
+                </div>
+                <div class="flex flex-wrap gap-2">
                   <.person_badge
                     :for={student <- @student_record.students}
                     person={student}
                     theme="cyan"
-                    size="sm"
                     id={"student-#{student.id}"}
                     navigate={~p"/school/students/#{student.id}/student_records"}
+                    show_tags
                   />
-                </div>
-              </div>
-              <div :if={@student_record.classes != []} class="flex-1 mt-4 md:mt-0">
-                <div class="flex items-center gap-2">
-                  <.icon name="hero-rectangle-group-mini" class="text-ltrn-subtle" />
-                  <p><%= gettext("Classes") %></p>
-                </div>
-                <div class="flex flex-wrap gap-2 mt-4">
-                  <.badge :for={class <- @student_record.classes} id={"class-#{class.id}"}>
-                    <%= class_with_cycle(class, @current_user) %>
-                  </.badge>
                 </div>
               </div>
             </div>
@@ -545,12 +544,12 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
       StudentsRecords.get_student_record(id,
         check_profile_permissions: socket.assigns.current_user.current_profile,
         preloads: [
-          :students,
           :status,
           :tags,
           :created_by_staff_member,
           :closed_by_staff_member,
           :assignees,
+          [students: :tags],
           [classes: :cycle]
         ]
       )

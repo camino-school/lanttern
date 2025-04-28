@@ -62,8 +62,16 @@
       >
         <%= tag.name %>
       </.badge>
+      <.badge
+        :for={student_tag <- @selected_student_tags}
+        color_map={student_tag}
+        on_click={JS.exec("data-show", to: "#student-record-tag-filter-modal")}
+        on_remove={JS.push("remove_student_tag_filter", value: %{"id" => student_tag.id})}
+      >
+        <%= student_tag.name %>
+      </.badge>
       <.action
-        :if={@selected_student_record_tags == []}
+        :if={@selected_student_record_tags == [] and @selected_student_tags == []}
         type="button"
         icon_name="hero-chevron-down-mini"
         phx-click={JS.exec("data-show", to: "#student-record-tag-filter-modal")}
@@ -185,18 +193,29 @@
   classes={@classes}
   selected_classes_ids={@selected_classes_ids}
 />
-<.selection_filter_modal
+<.multi_selection_filter_modal
   id="student-record-tag-filter-modal"
   title={gettext("Filter student records by tag")}
-  use_color_map_as_active
-  items={@student_record_tags}
-  selected_items_ids={@selected_student_record_tags_ids}
+  groups={[
+    %{
+      use_color_map_as_active: true,
+      items: @student_record_tags,
+      selected_items_ids: @selected_student_record_tags_ids,
+      on_select: fn id ->
+        JS.push("toggle_tag_filter", value: %{"id" => id})
+      end
+    },
+    %{
+      title: gettext("Student tags"),
+      use_color_map_as_active: true,
+      items: @student_tags,
+      selected_items_ids: @selected_student_tags_ids,
+      on_select: fn id ->
+        JS.push("toggle_student_tag_filter", value: %{"id" => id})
+      end
+    }
+  ]}
   on_cancel={%JS{}}
-  on_select={
-    fn id ->
-      JS.push("toggle_tag_filter", value: %{"id" => id})
-    end
-  }
   on_save={
     JS.push("filter_by_tag")
     |> JS.exec("data-cancel", to: "#student-record-tag-filter-modal")

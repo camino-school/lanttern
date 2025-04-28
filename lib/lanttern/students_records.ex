@@ -65,9 +65,11 @@ defmodule Lanttern.StudentsRecords do
   - `:classes_ids` - filter results by classes
   - `:statuses_ids` - filter results by status
   - `:tags_ids` - filter results by tag
+  - `:student_tags_ids` - filter results by student tag
   - `:owner_id` - filter results by owner
   - `:assignees_ids` - filter results by assignees
   - `:view` - if "open", will return only open records ordered by oldest
+  - `:load_students_tags` - load linked students' tags in `student_tags` field
   - `:check_profile_permissions` - filter results based on profile permission
   - `:preloads` - preloads associated data
   - page opts (view `Page.opts()`)
@@ -84,10 +86,12 @@ defmodule Lanttern.StudentsRecords do
             students_ids: [pos_integer()],
             classes_ids: [pos_integer()],
             tags_ids: [pos_integer()],
+            student_tags_ids: [pos_integer()],
             statuses_ids: [pos_integer()],
             owner_id: pos_integer(),
             assignees_ids: [pos_integer()],
             view: String.t(),
+            load_students_tags: boolean(),
             check_profile_permissions: Profile.t(),
             preloads: list()
           ]
@@ -98,6 +102,7 @@ defmodule Lanttern.StudentsRecords do
     |> apply_list_students_records_opts(opts)
     |> apply_list_students_records_order_by(opts)
     |> Repo.all()
+    |> post_apply_list_students_records_opts(opts)
     |> maybe_preload(opts)
   end
 
@@ -149,6 +154,20 @@ defmodule Lanttern.StudentsRecords do
       join: srt in assoc(sr, :tags_relationships),
       where: srt.tag_id in ^tags_ids,
       having: count(srt.tag_id) == ^tags_len
+    )
+    |> apply_list_students_records_opts(opts)
+  end
+
+  defp apply_list_students_records_opts(queryable, [{:student_tags_ids, student_tags_ids} | opts])
+       when is_list(student_tags_ids) and student_tags_ids != [] do
+    student_tags_len = length(student_tags_ids)
+
+    from(
+      sr in queryable,
+      join: std in assoc(sr, :students),
+      join: t in assoc(std, :tags),
+      where: t.id in ^student_tags_ids,
+      having: count(t.id, :distinct) == ^student_tags_len
     )
     |> apply_list_students_records_opts(opts)
   end
@@ -221,7 +240,7 @@ defmodule Lanttern.StudentsRecords do
     |> apply_list_students_records_opts(opts)
   end
 
-  # time is optiona, so there's a keyset case to consider only date
+  # time is optional, so there's a keyset case to consider only date
   defp apply_list_students_records_opts(queryable, [
          {:after, [date: date, time: _, id: id]} | opts
        ]) do
@@ -292,6 +311,31 @@ defmodule Lanttern.StudentsRecords do
         )
     end
   end
+
+  defp post_apply_list_students_records_opts(students_records, []),
+    do: students_records
+
+  defp post_apply_list_students_records_opts(students_records, [
+         {:load_students_tags, true} | opts
+       ]) do
+    students_records =
+      students_records
+      |> Repo.preload(students: :tags)
+      |> Enum.map(fn sr ->
+        students_tags =
+          sr.students
+          |> Enum.flat_map(& &1.tags)
+          |> Enum.uniq()
+          |> Enum.sort_by(& &1.position)
+
+        %{sr | students_tags: students_tags}
+      end)
+
+    post_apply_list_students_records_opts(students_records, opts)
+  end
+
+  defp post_apply_list_students_records_opts(students_records, [_ | opts]),
+    do: post_apply_list_students_records_opts(students_records, opts)
 
   @doc """
   Returns a page with the list of students_records.
