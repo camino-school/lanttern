@@ -51,7 +51,7 @@ defmodule Lanttern.MixProject do
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
-      {:git_hooks, "~> 0.7.3", only: [:dev], runtime: false},
+      {:git_hooks, "~> 0.8.0", only: [:dev], runtime: false},
       {:timex, "~> 3.0"},
       {:joken, "~> 2.5"},
       {:joken_jwks, "~> 1.6.0"},
