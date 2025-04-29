@@ -53,7 +53,7 @@
             >
               <div
                 :for={component <- section.components}
-                class="flex items-center gap-4 p-4 rounded mt-2 bg-ltrn-lightest"
+                class="flex items-center gap-4 p-4 rounded-sm mt-2 bg-ltrn-lightest"
               >
                 <.drag_handle class="sortable-handle" />
                 <div class="font-bold"><%= component.name %></div>
@@ -65,7 +65,7 @@
           <p class="mb-2 font-bold"><%= gettext("About this template") %></p>
           <.markdown text={template.description} />
         </div>
-        <div :if={template.teacher_description} class="p-4 rounded mt-6 bg-ltrn-staff-lightest">
+        <div :if={template.teacher_description} class="p-4 rounded-sm mt-6 bg-ltrn-staff-lightest">
           <p class="mb-2 font-bold text-ltrn-staff-dark">
             <%= gettext("Template instructions (visible to staff only)") %>
           </p>

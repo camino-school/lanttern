@@ -35,7 +35,7 @@ defmodule LantternWeb.Admin.ImportStaffMembersLive do
               <div>
                 <label
                   for={@uploads.csv.ref}
-                  class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
+                  class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-hidden focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
                 >
                   <span>Upload a file</span>
                   <.live_file_input upload={@uploads.csv} class="sr-only" />

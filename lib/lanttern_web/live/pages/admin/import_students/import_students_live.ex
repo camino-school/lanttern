@@ -45,7 +45,7 @@ defmodule LantternWeb.Admin.ImportStudentsLive do
               <div>
                 <label
                   for={@uploads.csv.ref}
-                  class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
+                  class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-hidden focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
                 >
                   <span>Upload a file</span>
                   <.live_file_input upload={@uploads.csv} class="sr-only" />
@@ -93,7 +93,7 @@ defmodule LantternWeb.Admin.ImportStudentsLive do
         <div class="grid grid-cols-3 gap-10 mb-6">
           <div
             :for={{class_in_csv, class_id} <- @csv_class_name_id_map}
-            class="p-6 rounded bg-white shadow-lg"
+            class="p-6 rounded-sm bg-white shadow-lg"
           >
             <p class="flex items-center gap-4 mb-6">
               <%= class_in_csv %>

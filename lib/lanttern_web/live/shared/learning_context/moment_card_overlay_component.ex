@@ -142,14 +142,14 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
       <.markdown_supported class="mb-6" />
       <div
         :if={@template_instructions}
-        class="p-4 border border-ltrn-staff-accent rounded-sm mb-6 bg-ltrn-staff-lightest"
+        class="p-4 border border-ltrn-staff-accent rounded-xs mb-6 bg-ltrn-staff-lightest"
       >
         <h6 class="font-display font-black font-lg text-ltrn-staff-dark">
           <%= gettext("Template instructions") %>
         </h6>
         <.markdown text={@template_instructions} class="mt-4" />
       </div>
-      <div class="p-4 rounded-sm mb-6 bg-ltrn-staff-lightest">
+      <div class="p-4 rounded-xs mb-6 bg-ltrn-staff-lightest">
         <.input
           field={@form[:teacher_instructions]}
           type="textarea"
@@ -160,7 +160,7 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
         />
         <.markdown_supported />
       </div>
-      <div class="p-4 rounded-sm mb-6 bg-ltrn-diff-lightest">
+      <div class="p-4 rounded-xs mb-6 bg-ltrn-diff-lightest">
         <.input
           field={@form[:differentiation]}
           type="textarea"
@@ -171,7 +171,7 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
         />
         <.markdown_supported />
       </div>
-      <div class="p-4 rounded-sm mb-6 bg-ltrn-student-lightest">
+      <div class="p-4 rounded-xs mb-6 bg-ltrn-student-lightest">
         <.input
           field={@form[:shared_with_students]}
           type="toggle"
@@ -213,13 +213,13 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
     ~H"""
     <.scroll_to_top overlay_id={@id} id="details-scroll-top" />
     <.markdown text={@moment_card.description} class="mt-6" />
-    <div :if={@moment_card.teacher_instructions} class="p-4 rounded-sm mt-6 bg-ltrn-staff-lightest">
+    <div :if={@moment_card.teacher_instructions} class="p-4 rounded-xs mt-6 bg-ltrn-staff-lightest">
       <p class="mb-4 font-bold text-ltrn-staff-dark">
         <%= gettext("Teacher instructions") %>
       </p>
       <.markdown text={@moment_card.teacher_instructions} />
     </div>
-    <div :if={@moment_card.differentiation} class="p-4 rounded-sm mt-6 bg-ltrn-diff-lightest">
+    <div :if={@moment_card.differentiation} class="p-4 rounded-xs mt-6 bg-ltrn-diff-lightest">
       <p class="mb-4 font-bold text-ltrn-diff-dark">
         <%= gettext("Differentiation notes") %>
       </p>
@@ -227,7 +227,7 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
     </div>
     <div
       :if={@moment_card.shared_with_students}
-      class="flex items-center gap-2 p-4 rounded-sm mt-6 text-ltrn-student-dark bg-ltrn-student-lightest"
+      class="flex items-center gap-2 p-4 rounded-xs mt-6 text-ltrn-student-dark bg-ltrn-student-lightest"
     >
       <.icon name="hero-users-mini" />
       <p class="font-bold">

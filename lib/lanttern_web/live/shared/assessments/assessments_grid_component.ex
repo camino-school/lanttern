@@ -39,13 +39,13 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     <div class={@class}>
       <.responsive_container>
         <%!-- if no assessment points, render empty state --%>
-        <div :if={!@has_assessment_points} class="p-10 mt-4 rounded shadow-xl bg-white">
+        <div :if={!@has_assessment_points} class="p-10 mt-4 rounded-sm shadow-xl bg-white">
           <.empty_state><%= gettext("No assessment points for this strand yet") %></.empty_state>
         </div>
         <%!-- if no class filter is select, just render assessment points --%>
         <div
           :if={@classes_ids == [] && @has_assessment_points}
-          class="p-10 rounded shadow-xl bg-white"
+          class="p-10 rounded-sm shadow-xl bg-white"
         >
           <p class="mb-6 font-bold text-ltrn-subtle"><%= gettext("Current assessment points") %></p>
           <ol phx-update="stream" id="assessment-points-no-class" class="flex flex-col gap-4">
@@ -59,7 +59,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       <%!-- show entries only with class filter selected --%>
       <div :if={@classes_ids != [] && @has_assessment_points}>
         <div class={[
-          "relative w-full max-h-screen border rounded shadow-xl #{@view_bg} overflow-x-auto",
+          "relative w-full max-h-screen border rounded-sm shadow-xl #{@view_bg} overflow-x-auto",
           if(@current_assessment_view == "student",
             do: "border-ltrn-student-accent",
             else: "border-transparent"
@@ -214,7 +214,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         patch={
           ~p"/strands/moment/#{@ap_header.moment_id}/assessment?edit_assessment_point=#{@ap_header.id}"
         }
-        class="flex-1 p-1 rounded text-sm font-bold line-clamp-2 hover:bg-ltrn-mesh-cyan"
+        class="flex-1 p-1 rounded-sm text-sm font-bold line-clamp-2 hover:bg-ltrn-mesh-cyan"
         title={@ap_header.name}
       >
         <%= @ap_header.name %>
@@ -249,7 +249,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   def assessment_point_header_struct(%{header_struct: %Moment{}} = assigns) do
     ~H"""
     <.link
-      class="flex items-center w-full h-full p-1 rounded text-sm font-display font-bold truncate hover:bg-ltrn-mesh-cyan"
+      class="flex items-center w-full h-full p-1 rounded-sm text-sm font-display font-bold truncate hover:bg-ltrn-mesh-cyan"
       navigate={~p"/strands/moment/#{@header_struct.id}/assessment"}
     >
       <%= @header_struct.name %>
@@ -342,7 +342,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       patch={
         ~p"/strands/#{@assessment_point.strand_id}/assessment?edit_assessment_point=#{@assessment_point.id}"
       }
-      class="flex flex-col p-1 rounded hover:bg-ltrn-mesh-cyan"
+      class="flex flex-col p-1 rounded-sm hover:bg-ltrn-mesh-cyan"
     >
       <div class="flex items-center gap-2">
         <.badge class="truncate">
@@ -385,7 +385,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     ~H"""
     <div class="text-sm whitespace-nowrap">
       <.link
-        class="block w-full p-1 rounded overflow-hidden hover:bg-ltrn-mesh-cyan"
+        class="block w-full p-1 rounded-sm overflow-hidden hover:bg-ltrn-mesh-cyan"
         title={"#{@assessment_point.moment.name}\n\n#{@assessment_point.name}"}
         navigate={~p"/strands/moment/#{@assessment_point.moment.id}/assessment"}
       >
@@ -406,7 +406,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       patch={
         ~p"/strands/#{@assessment_point.strand_id}/assessment?edit_assessment_point=#{@assessment_point.id}"
       }
-      class="flex flex-col p-1 rounded hover:bg-ltrn-mesh-cyan"
+      class="flex flex-col p-1 rounded-sm hover:bg-ltrn-mesh-cyan"
     >
       <div class="whitespace-nowrap overflow-hidden">
         <div class="flex items-center gap-2">

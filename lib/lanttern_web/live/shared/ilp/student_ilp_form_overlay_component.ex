@@ -48,7 +48,7 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
                   </div>
                   <.inputs_for :let={component_f} field={section_f[:components]}>
                     <div
-                      class="p-4 rounded mt-2 bg-ltrn-lightest"
+                      class="p-4 rounded-sm mt-2 bg-ltrn-lightest"
                       id={"#{@id}-component-#{component_f.data.id}"}
                     >
                       <div class="mb-2 font-bold"><%= component_f.data.name %></div>
@@ -70,7 +70,7 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
             show_optional
           />
           <.markdown_supported class="mb-6" />
-          <div class="mb-6 p-4 rounded bg-ltrn-staff-lightest">
+          <div class="mb-6 p-4 rounded-sm bg-ltrn-staff-lightest">
             <.input
               field={@form[:teacher_notes]}
               type="textarea"

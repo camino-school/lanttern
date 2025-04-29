@@ -242,7 +242,7 @@ defmodule LantternWeb.NavigationComponents do
           :for={{item, i} <- Enum.with_index(@item)}
           class={[
             @item_class,
-            if(@with_bg, do: "text-white drop-shadow-sm"),
+            if(@with_bg, do: "text-white drop-shadow-xs"),
             if(Map.get(item, :link), do: "hidden sm:list-item")
           ]}
         >

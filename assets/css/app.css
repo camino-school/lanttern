@@ -1,6 +1,95 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+/* default is to use prefers-color-scheme */
+/* if you want dark mode via class: */
+/* @custom-variant dark (&:where(.dark, .dark *)); */
+
+@custom-variant phx-no-feedback (.phx-no-feedback&, .phx-no-feedback &);
+@custom-variant phx-click-loading (.phx-click-loading&, .phx-click-loading &);
+@custom-variant group-phx-click-loading (:merge(.group).phx-click-loading &);
+@custom-variant phx-submit-loading (.phx-submit-loading&, .phx-submit-loading &);
+@custom-variant group-phx-submit-loading (:merge(.group).phx-submit-loading &);
+@custom-variant phx-change-loading (.phx-change-loading&, .phx-change-loading &);
+@custom-variant peer-phx-change-loading (:merge(.peer).phx-change-loading ~ &);
+
+@plugin "./heroicons.tailwind.plugin.js";
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap');
+@import "tailwindcss" source("../..");
+@plugin "@tailwindcss/typography";
+@config "./tailwind.config.js";
+
+
+@theme inline {
+  --color-ltrn-primary: var(--color-cyan-400);
+  --color-ltrn-secondary: var(--color-rose-500);
+  --color-ltrn-dark: var(--color-slate-700);
+  --color-ltrn-subtle: var(--color-slate-400);
+  --color-ltrn-light: var(--color-slate-300);
+  --color-ltrn-lighter: var(--color-slate-200);
+  --color-ltrn-lightest: var(--color-slate-100);
+
+  --color-ltrn-mesh-primary: var(--color-cyan-200);
+  --color-ltrn-mesh-cyan: var(--color-cyan-50);
+  --color-ltrn-mesh-rose: var(--color-rose-100);
+  --color-ltrn-mesh-violet: var(--color-violet-200);
+  --color-ltrn-mesh-yellow: var(--color-yellow-100);
+  --color-ltrn-mesh-lime: var(--color-lime-100);
+
+  --color-ltrn-ai-dark: var(--color-pink-800);
+  --color-ltrn-ai-accent: var(--color-pink-500);
+  --color-ltrn-ai-lighter: var(--color-pink-200);
+  --color-ltrn-ai-lightest: var(--color-pink-50);
+
+  --color-ltrn-diff-dark: var(--color-violet-800);
+  --color-ltrn-diff-accent: var(--color-violet-600);
+  --color-ltrn-diff-lighter: var(--color-violet-200);
+  --color-ltrn-diff-lightest: var(--color-violet-50);
+
+  --color-ltrn-student-dark: var(--color-yellow-700);
+  --color-ltrn-student-accent: var(--color-yellow-400);
+  --color-ltrn-student-lighter: var(--color-yellow-200);
+  --color-ltrn-student-lightest: var(--color-yellow-50);
+
+  --color-ltrn-staff-dark: var(--color-lime-800);
+  --color-ltrn-staff-accent: var(--color-lime-500);
+  --color-ltrn-staff-lighter: var(--color-lime-200);
+  --color-ltrn-staff-lightest: var(--color-lime-50);
+
+  --color-ltrn-alert-accent: var(--color-red-500);
+  --color-ltrn-alert-lighter: var(--color-red-100);
+
+  --color-ltrn-warning-accent: var(--color-amber-500);
+  --color-ltrn-warning-lighter: var(--color-amber-200);
+
+  --color-ltrn-success-accent: var(--color-teal-500);
+  --color-ltrn-success-lighter: var(--color-teal-100);
+
+  --font-display: 'Montserrat', sans-serif;
+  --font-mono: "Source Code Pro", monospace;
+  --font-sans: 'Open Sans', sans-serif;
+}
+
+@custom-variant aria-current (&[aria-current="true"]);
+
+/* fontFamily: {
+  //         display: ["Montserrat", "sans-serif"],
+  //         mono: ['"Source Code Pro"', ...defaultTheme.fontFamily.mono],
+  //         sans: ['"Open Sans"', ...defaultTheme.fontFamily.sans],
+  //       },
+  //       aria: {
+  //         current: 'current="true"'
+  //       },
+  //       typography: (theme) => ({
+  //         DEFAULT: {
+  //           css: {
+  //             h1: { fontFamily: 'Montserrat, sans-serif', fontWeight: '900' },
+  //             h2: { fontFamily: 'Montserrat, sans-serif', fontWeight: '900' },
+  //             h3: { fontFamily: 'Montserrat, sans-serif', fontWeight: '700' },
+  //             h4: { fontFamily: 'Montserrat, sans-serif', fontWeight: '700' },
+  //             h5: { fontFamily: 'Montserrat, sans-serif' },
+  //             h6: { fontFamily: 'Montserrat, sans-serif' },
+  //           }
+  //         }
+  //       }) */
 
 /* This file is for your main application CSS */
 

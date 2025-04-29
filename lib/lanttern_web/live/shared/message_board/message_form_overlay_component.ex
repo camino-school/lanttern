@@ -53,7 +53,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
             phx-debounce="1500"
           />
           <.markdown_supported class="mb-6" />
-          <div class="p-4 rounded-sm mb-6 bg-ltrn-mesh-cyan">
+          <div class="p-4 rounded-xs mb-6 bg-ltrn-mesh-cyan">
             <.input
               field={@form[:is_pinned]}
               type="toggle"

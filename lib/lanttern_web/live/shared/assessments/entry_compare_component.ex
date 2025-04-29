@@ -29,7 +29,7 @@ defmodule LantternWeb.Assessments.EntryCompareComponent do
 
   def entry_view(%{entry_value: nil} = assigns) do
     ~H"""
-    <div class="flex items-center justify-center p-2 rounded-sm font-mono text-sm text-ltrn-subtle bg-ltrn-lighter">
+    <div class="flex items-center justify-center p-2 rounded-xs font-mono text-sm text-ltrn-subtle bg-ltrn-lighter">
       —
     </div>
     """
@@ -38,7 +38,7 @@ defmodule LantternWeb.Assessments.EntryCompareComponent do
   def entry_view(%{scale_type: "ordinal"} = assigns) do
     ~H"""
     <div
-      class="flex items-center justify-center p-2 rounded-sm font-mono text-sm bg-white"
+      class="flex items-center justify-center p-2 rounded-xs font-mono text-sm bg-white"
       style={@entry_style}
     >
       <span class="truncate">
@@ -51,7 +51,7 @@ defmodule LantternWeb.Assessments.EntryCompareComponent do
   def entry_view(%{scale_type: "numeric"} = assigns) do
     ~H"""
     <div
-      class="flex items-center justify-center p-2 border border-ltrn-light rounded-sm font-mono text-sm bg-white"
+      class="flex items-center justify-center p-2 border border-ltrn-light rounded-xs font-mono text-sm bg-white"
       style={@entry_style}
     >
       <%= @entry_value %>

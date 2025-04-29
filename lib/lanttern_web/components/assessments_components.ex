@@ -206,7 +206,7 @@ defmodule LantternWeb.AssessmentsComponents do
   end
 
   defp assessment_point_entry_display_base_classes,
-    do: "flex items-center justify-center p-4 rounded font-mono text-sm text-center"
+    do: "flex items-center justify-center p-4 rounded-sm font-mono text-sm text-center"
 
   @doc """
   Renders a dropdown to control the assessment group by option.

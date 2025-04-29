@@ -80,7 +80,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
           phx-debounce="1500"
         />
         <.markdown_supported class="mb-6" />
-        <div class="p-4 rounded mb-6 bg-ltrn-diff-lightest">
+        <div class="p-4 rounded-sm mb-6 bg-ltrn-diff-lightest">
           <.input
             field={@form[:is_differentiation]}
             type="toggle"
@@ -106,7 +106,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
 
   def rubric_area(assigns) do
     ~H"""
-    <div class="p-4 rounded mt-10 mb-6 bg-ltrn-lightest">
+    <div class="p-4 rounded-sm mt-10 mb-6 bg-ltrn-lightest">
       <div class="flex items-center gap-2 mb-4 font-bold text-sm">
         <.icon name="hero-view-columns" class="w-6 h-6 text-ltrn-subtle" />
         <span><%= gettext("Assessment rubric") %></span>

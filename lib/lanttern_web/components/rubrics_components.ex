@@ -67,7 +67,7 @@ defmodule LantternWeb.RubricsComponents do
 
     ~H"""
     <div
-      class="flex-[1_0] flex flex-col items-start gap-2 min-w-[12rem] p-2 border border-ltrn-lighter rounded-sm bg-ltrn-lightest"
+      class="flex-[1_0] flex flex-col items-start gap-2 min-w-[12rem] p-2 border border-ltrn-lighter rounded-xs bg-ltrn-lightest"
       style={@active_style}
     >
       <%= if @descriptor.scale_type == "numeric" do %>

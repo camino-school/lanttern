@@ -136,7 +136,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               phx-debounce="1500"
             />
             <.markdown_supported class="mb-6" />
-            <div class="p-4 rounded-sm mb-6 bg-ltrn-staff-lightest">
+            <div class="p-4 rounded-xs mb-6 bg-ltrn-staff-lightest">
               <p class="mb-6 font-bold text-ltrn-staff-dark">
                 <%= gettext("Internal student record tracking") %>
               </p>
@@ -171,7 +171,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 phx-debounce="1500"
               />
               <.markdown_supported class="mb-6" />
-              <div class="p-2 rounded-sm mt-10 -mx-2 -mb-2 bg-ltrn-staff-lighter">
+              <div class="p-2 rounded-xs mt-10 -mx-2 -mb-2 bg-ltrn-staff-lighter">
                 <.input
                   field={@form[:shared_with_school]}
                   type="toggle"
@@ -271,7 +271,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               <%= gettext("Record description") %>
             </h3>
             <.markdown text={@student_record.description} class="mt-6" />
-            <div class="p-4 rounded-sm mt-10 bg-ltrn-staff-lightest">
+            <div class="p-4 rounded-xs mt-10 bg-ltrn-staff-lightest">
               <p class="mb-6 font-bold text-ltrn-staff-dark">
                 <%= gettext("Internal student record tracking") %>
               </p>
@@ -310,7 +310,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               </div>
               <div
                 :if={@student_record.shared_with_school}
-                class="flex items-center gap-2 p-2 rounded-sm mt-4 text-ltrn-staff-dark bg-ltrn-staff-lighter"
+                class="flex items-center gap-2 p-2 rounded-xs mt-4 text-ltrn-staff-dark bg-ltrn-staff-lighter"
               >
                 <.icon name="hero-globe-americas-mini" />
                 <%= gettext("This record is visible to all school staff") %>

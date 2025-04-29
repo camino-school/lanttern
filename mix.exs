@@ -4,7 +4,7 @@ defmodule Lanttern.MixProject do
   def project do
     [
       app: :lanttern,
-      version: "2025.4.28-alpha.63",
+      version: "2025.4.29-alpha.64",
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -43,7 +43,7 @@ defmodule Lanttern.MixProject do
       {:floki, ">= 0.30.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.2"},
       {:esbuild, "~> 0.7", runtime: Mix.env() == :dev},
-      {:tailwind, "~> 0.2.0", runtime: Mix.env() == :dev},
+      {:tailwind, "~> 0.3.0", runtime: Mix.env() == :dev},
       {:swoosh, "~> 1.3"},
       {:finch, "~> 0.13"},
       {:telemetry_metrics, "~> 0.6"},
@@ -51,7 +51,7 @@ defmodule Lanttern.MixProject do
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
-      {:git_hooks, "~> 0.7.3", only: [:dev], runtime: false},
+      {:git_hooks, "~> 0.8.0", only: [:dev], runtime: false},
       {:timex, "~> 3.0"},
       {:joken, "~> 2.5"},
       {:joken_jwks, "~> 1.6.0"},
@@ -78,11 +78,12 @@ defmodule Lanttern.MixProject do
   defp aliases do
     [
       setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
+      "setup.no-ecto": ["deps.get", "assets.setup", "assets.build"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["tailwind default", "esbuild default"],
+      "assets.build": ["cmd --cd assets npm i", "tailwind default", "esbuild default"],
       "assets.deploy": [
         "cmd --cd assets npm ci --only=prod",
         "tailwind default --minify",

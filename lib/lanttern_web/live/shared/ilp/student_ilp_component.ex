@@ -76,13 +76,13 @@ defmodule LantternWeb.ILP.StudentILPComponent do
           <div class="font-display font-black text-base">
             <%= section.name %>
           </div>
-          <div :for={component <- section.components} class="p-4 rounded mt-2 bg-ltrn-lightest">
+          <div :for={component <- section.components} class="p-4 rounded-sm mt-2 bg-ltrn-lightest">
             <div class="font-bold"><%= component.name %></div>
             <.ilp_entry entry={@component_entry_map[component.id]} class="mt-4" />
           </div>
         </.card_base>
       </div>
-      <div :if={@student_ilp.notes} class="p-4 rounded mt-6 bg-ltrn-mesh-cyan">
+      <div :if={@student_ilp.notes} class="p-4 rounded-sm mt-6 bg-ltrn-mesh-cyan">
         <p class="flex items-center gap-2 font-bold mb-4">
           <.icon name="hero-pencil-square-mini" class="text-ltrn-primary" />
           <%= gettext("Notes") %>
@@ -91,7 +91,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
       </div>
       <div
         :if={@show_teacher_notes && @student_ilp.teacher_notes}
-        class="p-4 rounded mt-6 bg-ltrn-staff-lightest"
+        class="p-4 rounded-sm mt-6 bg-ltrn-staff-lightest"
       >
         <p class="flex items-center gap-2 font-bold mb-4">
           <.icon name="hero-pencil-square-mini" class="text-ltrn-staff-accent" />

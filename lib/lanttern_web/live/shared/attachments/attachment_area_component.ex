@@ -98,7 +98,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       />
       <div
         :if={@is_adding_external || @is_editing}
-        class="p-4 border border-dashed border-ltrn-subtle rounded mt-4 bg-white shadow-lg"
+        class="p-4 border border-dashed border-ltrn-subtle rounded-sm mt-4 bg-white shadow-lg"
       >
         <.form
           for={@form}
@@ -133,7 +133,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       </div>
       <div
         :for={entry <- @uploads.attachment_file.entries}
-        class="p-4 border border-dashed border-ltrn-subtle rounded mt-4 shadow-lg bg-white"
+        class="p-4 border border-dashed border-ltrn-subtle rounded-sm mt-4 shadow-lg bg-white"
       >
         <p class="flex items-center gap-2 text-sm text-ltrn-subtle">
           <.icon name="hero-paper-clip-mini" />
@@ -170,7 +170,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         }
       >
         <div
-          class="p-4 border border-dashed border-ltrn-subtle rounded text-center text-ltrn-subtle bg-white shadow-lg"
+          class="p-4 border border-dashed border-ltrn-subtle rounded-sm text-center text-ltrn-subtle bg-white shadow-lg"
           phx-drop-target={@uploads.attachment_file.ref}
         >
           <form
@@ -183,7 +183,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
             <div>
               <label
                 for={@uploads.attachment_file.ref}
-                class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
+                class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-hidden focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
               >
                 <span><%= gettext("Upload a file") %></span>
                 <.live_file_input upload={@uploads.attachment_file} class="sr-only" />
@@ -192,12 +192,12 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
             </div>
           </form>
         </div>
-        <div class="p-4 border border-dashed border-ltrn-subtle rounded text-center bg-white shadow-lg">
+        <div class="p-4 border border-dashed border-ltrn-subtle rounded-sm text-center bg-white shadow-lg">
           <.icon name="hero-link" class="h-8 w-8 mx-auto mb-6 text-ltrn-subtle" />
           <div>
             <button
               type="button"
-              class="inline text-ltrn-primary hover:text-ltrn-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
+              class="inline text-ltrn-primary hover:text-ltrn-dark focus-within:outline-hidden focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
               phx-click="add_external"
               phx-target={@myself}
             >

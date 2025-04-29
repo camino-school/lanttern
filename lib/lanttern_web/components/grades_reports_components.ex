@@ -75,7 +75,7 @@ defmodule LantternWeb.GradesReportsComponents do
             <%= gettext("Configure") %>
           </.button>
         <% else %>
-          <div class="flex items-center justify-center p-2 rounded font-display font-black bg-white shadow-lg">
+          <div class="flex items-center justify-center p-2 rounded-sm font-display font-black bg-white shadow-lg">
             <.link :if={@title_navigate} navigate={@title_navigate} class="hover:text-ltrn-subtle">
               <%= @grades_report.name %>
             </.link>
@@ -89,7 +89,7 @@ defmodule LantternWeb.GradesReportsComponents do
             :for={grades_report_cycle <- @grades_report.grades_report_cycles}
             id={"grid-header-cycle-#{grades_report_cycle.id}"}
             class={[
-              "flex items-center justify-center gap-1 p-4 rounded shadow-lg",
+              "flex items-center justify-center gap-1 p-4 rounded-sm shadow-lg",
               if(@report_card_cycle_id == grades_report_cycle.school_cycle_id,
                 do: "font-bold bg-ltrn-mesh-cyan",
                 else: "bg-white"
@@ -110,7 +110,7 @@ defmodule LantternWeb.GradesReportsComponents do
               <.icon name={if grades_report_cycle.is_visible, do: "hero-eye", else: "hero-eye-slash"} />
             </div>
           </div>
-          <div class="flex items-center justify-center gap-1 p-4 rounded text-center bg-white shadow-lg">
+          <div class="flex items-center justify-center gap-1 p-4 rounded-sm text-center bg-white shadow-lg">
             <span class={if !@report_card_cycle_id, do: "font-bold"}>
               <%= @grades_report.school_cycle.name %>
             </span>
@@ -128,7 +128,7 @@ defmodule LantternWeb.GradesReportsComponents do
             </div>
           </div>
         <% else %>
-          <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lightest">
+          <div class="p-4 rounded-sm text-ltrn-subtle bg-ltrn-lightest">
             <%= gettext("No cycles linked to this grades report") %>
           </div>
         <% end %>
@@ -139,7 +139,7 @@ defmodule LantternWeb.GradesReportsComponents do
             class="grid grid-cols-subgrid"
             style={@grid_column_style}
           >
-            <div class="sticky left-0 p-4 rounded bg-white shadow-lg">
+            <div class="sticky left-0 p-4 rounded-sm bg-white shadow-lg">
               <%= Gettext.dgettext(
                 Lanttern.Gettext,
                 "taxonomy",
@@ -170,21 +170,21 @@ defmodule LantternWeb.GradesReportsComponents do
                 }
               />
             <% else %>
-              <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+              <div class="rounded-sm border border-ltrn-lighter bg-ltrn-lightest"></div>
             <% end %>
           </div>
         <% else %>
           <div class="grid grid-cols-subgrid" style={@grid_column_style}>
-            <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lightest">
+            <div class="p-4 rounded-sm text-ltrn-subtle bg-ltrn-lightest">
               <%= gettext("No subjects linked to this grades report") %>
             </div>
             <%= if @has_cycles do %>
               <.grades_report_grid_cell :for={
                 _grades_report_cycle <- @grades_report.grades_report_cycles
               } />
-              <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+              <div class="rounded-sm border border-ltrn-lighter bg-ltrn-lightest"></div>
             <% else %>
-              <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+              <div class="rounded-sm border border-ltrn-lighter bg-ltrn-lightest"></div>
             <% end %>
           </div>
         <% end %>
@@ -229,7 +229,7 @@ defmodule LantternWeb.GradesReportsComponents do
       />
       <div
         :if={@student_grades_report_entry.comment}
-        class="absolute right-1 top-1 p-1 flex items-center rounded-full bg-ltrn-staff-lightest shadow"
+        class="absolute right-1 top-1 p-1 flex items-center rounded-full bg-ltrn-staff-lightest shadow-sm"
       >
         <.icon name="hero-chat-bubble-oval-left-micro" class="w-4 h-4 text-ltrn-staff-accent" />
       </div>
@@ -249,7 +249,7 @@ defmodule LantternWeb.GradesReportsComponents do
         phx-value-studentgradereportid={@student_grades_report_entry.id}
         phx-value-gradesreportsubjectid={@student_grades_report_entry.grades_report_subject_id}
         phx-value-gradesreportcycleid={@student_grades_report_entry.grades_report_cycle_id}
-        class="flex-1 rounded border border-ltrn-lighter my-2 text-sm bg-ltrn-lightest opacity-70"
+        class="flex-1 rounded-sm border border-ltrn-lighter my-2 text-sm bg-ltrn-lightest opacity-70"
       >
         <%= @student_grades_report_entry.pre_retake_score %>
       </button>
@@ -259,13 +259,13 @@ defmodule LantternWeb.GradesReportsComponents do
         phx-value-studentgradereportid={@student_grades_report_entry.id}
         phx-value-gradesreportsubjectid={@student_grades_report_entry.grades_report_subject_id}
         phx-value-gradesreportcycleid={@student_grades_report_entry.grades_report_cycle_id}
-        class="flex-[2] rounded border border-ltrn-lighter text-base bg-ltrn-lightest"
+        class="flex-[2] rounded-sm border border-ltrn-lighter text-base bg-ltrn-lightest"
       >
         <%= @student_grades_report_entry.score %>
       </button>
       <div
         :if={@student_grades_report_entry.comment}
-        class="absolute right-1 top-1 p-1 flex items-center rounded-full bg-ltrn-staff-lightest shadow"
+        class="absolute right-1 top-1 p-1 flex items-center rounded-full bg-ltrn-staff-lightest shadow-sm"
       >
         <.icon name="hero-chat-bubble-oval-left-micro" class="w-4 h-4 text-ltrn-staff-accent" />
       </div>
@@ -292,7 +292,7 @@ defmodule LantternWeb.GradesReportsComponents do
 
   defp grades_report_grid_cell(assigns) do
     ~H"""
-    <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+    <div class="rounded-sm border border-ltrn-lighter bg-ltrn-lightest"></div>
     """
   end
 
@@ -335,7 +335,7 @@ defmodule LantternWeb.GradesReportsComponents do
 
   defp grades_report_grid_final_grade_cell(assigns) do
     ~H"""
-    <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+    <div class="rounded-sm border border-ltrn-lighter bg-ltrn-lightest"></div>
     """
   end
 
@@ -801,7 +801,7 @@ defmodule LantternWeb.GradesReportsComponents do
             />
           </div>
         <% else %>
-          <div class="p-2 rounded text-ltrn-subtle bg-ltrn-lightest">
+          <div class="p-2 rounded-sm text-ltrn-subtle bg-ltrn-lightest">
             <%= gettext("No cycles linked to this grades report") %>
           </div>
         <% end %>
@@ -848,18 +848,18 @@ defmodule LantternWeb.GradesReportsComponents do
               student_id={student.id}
             />
           <% else %>
-            <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+            <div class="rounded-sm border border-ltrn-lighter bg-ltrn-lightest"></div>
           <% end %>
         </div>
       <% else %>
         <div class="grid grid-cols-subgrid" style={@grid_column_style}>
-          <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lightest">
+          <div class="p-4 rounded-sm text-ltrn-subtle bg-ltrn-lightest">
             <%= gettext("No students linked to this grades report") %>
           </div>
           <%= if @has_subjects do %>
             <.grades_report_grid_cell :for={_grades_report_subject <- @grades_report_subjects} />
           <% else %>
-            <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+            <div class="rounded-sm border border-ltrn-lighter bg-ltrn-lightest"></div>
           <% end %>
         </div>
       <% end %>
@@ -948,7 +948,7 @@ defmodule LantternWeb.GradesReportsComponents do
 
   defp students_grades_grid_cell(assigns) do
     ~H"""
-    <div class="flex items-center justify-center gap-2 p-1 border border-ltrn-light rounded-sm text-ltrn-subtle">
+    <div class="flex items-center justify-center gap-2 p-1 border border-ltrn-light rounded-xs text-ltrn-subtle">
       <div class="flex-1 text-center">N/A</div>
       <.icon_button
         :if={@on_calculate_cell}
@@ -1038,7 +1038,7 @@ defmodule LantternWeb.GradesReportsComponents do
   def grade_composition_table(assigns) do
     ~H"""
     <div id={@id} class="w-full overflow-x-auto">
-      <table class={["w-full rounded font-mono text-xs bg-ltrn-lightest", @class]}>
+      <table class={["w-full rounded-sm font-mono text-xs bg-ltrn-lightest", @class]}>
         <thead>
           <tr>
             <th class="p-2 text-left"><%= gettext("Strand") %></th>
@@ -1112,7 +1112,7 @@ defmodule LantternWeb.GradesReportsComponents do
   def final_grade_composition_table(assigns) do
     ~H"""
     <div id={@id} class="w-full overflow-x-auto">
-      <table class={["w-full rounded font-mono text-xs bg-ltrn-lightest", @class]}>
+      <table class={["w-full rounded-sm font-mono text-xs bg-ltrn-lightest", @class]}>
         <thead>
           <tr>
             <th class="p-2 text-left"><%= gettext("Cycle") %></th>

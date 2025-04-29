@@ -26,14 +26,14 @@ defmodule LantternWeb.GradesReports.FinalGradeDetailsOverlayComponent do
         <div class="flex items-center gap-6 mb-10">
           <div
             :if={@student_grades_report_final_entry.ordinal_value}
-            class="self-stretch flex items-center p-6 rounded"
+            class="self-stretch flex items-center p-6 rounded-sm"
             style={create_color_map_style(@student_grades_report_final_entry.ordinal_value)}
           >
             <%= @student_grades_report_final_entry.ordinal_value.name %>
           </div>
           <div
             :if={@student_grades_report_final_entry.score}
-            class="self-stretch flex items-center p-6 border border-ltrn-lighter rounded font-mono font-bold bg-ltrn-lightes"
+            class="self-stretch flex items-center p-6 border border-ltrn-lighter rounded-sm font-mono font-bold bg-ltrn-lightes"
           >
             <%= @student_grades_report_final_entry.score %>
           </div>
@@ -58,11 +58,11 @@ defmodule LantternWeb.GradesReports.FinalGradeDetailsOverlayComponent do
             @student_grades_report_final_entry.pre_retake_ordinal_value ||
               @student_grades_report_final_entry.pre_retake_score
           }
-          class="flex items-center gap-4 p-4 rounded mb-10 bg-ltrn-lightest"
+          class="flex items-center gap-4 p-4 rounded-sm mb-10 bg-ltrn-lightest"
         >
           <div
             :if={@student_grades_report_final_entry.pre_retake_ordinal_value}
-            class="self-stretch flex items-center px-4 py-2 rounded text-sm opacity-70"
+            class="self-stretch flex items-center px-4 py-2 rounded-sm text-sm opacity-70"
             style={
               create_color_map_style(@student_grades_report_final_entry.pre_retake_ordinal_value)
             }
@@ -71,7 +71,7 @@ defmodule LantternWeb.GradesReports.FinalGradeDetailsOverlayComponent do
           </div>
           <div
             :if={@student_grades_report_final_entry.pre_retake_score}
-            class="self-stretch flex items-center px-4 py-2 rounded font-mono font-bold text-sm opacity-70"
+            class="self-stretch flex items-center px-4 py-2 rounded-sm font-mono font-bold text-sm opacity-70"
           >
             <%= @student_grades_report_final_entry.pre_retake_score %>
           </div>
