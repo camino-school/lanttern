@@ -51,7 +51,7 @@ defmodule LantternWeb.StrandLive.NotesComponent do
             :for={{dom_id, {student, note}} <- @streams.students_strand_notes}
             id={dom_id}
             class={[
-              "rounded p-6 mt-6",
+              "rounded-sm p-6 mt-6",
               if(note, do: "bg-white shadow-lg", else: "bg-ltrn-lighter")
             ]}
           >

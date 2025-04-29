@@ -36,7 +36,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportFinalEntryFormComponent d
           />
           <p
             :if={@has_manual_edit}
-            class="p-2 rounded-sm border border-ltrn-staff-accent mt-2 text-sm bg-ltrn-staff-lightest"
+            class="p-2 rounded-xs border border-ltrn-staff-accent mt-2 text-sm bg-ltrn-staff-lightest"
           >
             <%= gettext(
               "Different from grade composition. Use comments field to justify it if needed."
@@ -53,7 +53,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportFinalEntryFormComponent d
         />
         <.markdown_supported class="mb-6" />
         <div class={[
-          "p-4 rounded",
+          "p-4 rounded-sm",
           if(!@hide_submit, do: "mb-6"),
           if(@has_retake_history,
             do: "bg-ltrn-alert-lighter",

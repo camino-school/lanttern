@@ -46,7 +46,7 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
           </p>
           <div
             :if={@rubric.is_differentiation}
-            class="p-4 rounded mt-4 font-bold text-ltrn-diff-dark bg-ltrn-diff-lightest"
+            class="p-4 rounded-sm mt-4 font-bold text-ltrn-diff-dark bg-ltrn-diff-lightest"
           >
             <%= gettext("Differentiation rubric") %>
           </div>
@@ -96,7 +96,7 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
                     )
               }
             />
-            <div class="p-6 rounded border border-ltrn-light my-6 bg-ltrn-lightest">
+            <div class="p-6 rounded-sm border border-ltrn-light my-6 bg-ltrn-lightest">
               <p class="flex items-center gap-2 font-bold">
                 <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
                 <%= gettext("About rubrics and assessment points relationships") %>
@@ -250,7 +250,7 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
     >
       <button
         type="button"
-        class="shrink-0 flex items-center justify-center w-6 h-6 rounded border border-ltrn-light bg-ltrn-lightest"
+        class="shrink-0 flex items-center justify-center w-6 h-6 rounded-sm border border-ltrn-light bg-ltrn-lightest"
         phx-click={@on_click}
       >
         <.icon :if={@checked} name="hero-check-mini" />

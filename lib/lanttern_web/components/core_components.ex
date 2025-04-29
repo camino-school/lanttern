@@ -236,7 +236,7 @@ defmodule LantternWeb.CoreComponents do
 
   def ai_box(assigns) do
     ~H"""
-    <div class={["p-4 rounded border border-ltrn-ai-accent bg-ltrn-ai-lightest", @class]} id={@id}>
+    <div class={["p-4 rounded-sm border border-ltrn-ai-accent bg-ltrn-ai-lightest", @class]} id={@id}>
       <h6 class="flex items-center gap-2 mb-4 font-display font-black text-lg">
         <.icon name="hero-sparkles-mini" class="text-ltrn-ai-accent" /> Lanttern AI
       </h6>
@@ -294,7 +294,7 @@ defmodule LantternWeb.CoreComponents do
       id={@id}
       class={[
         "inline-flex items-center px-1 py-1 font-mono font-normal text-xs truncate",
-        if(@rounded, do: "rounded-full", else: "rounded-sm"),
+        if(@rounded, do: "rounded-full", else: "rounded-xs"),
         badge_theme(@theme),
         @class
       ]}
@@ -386,7 +386,7 @@ defmodule LantternWeb.CoreComponents do
   """
   def get_badge_button_styles(theme \\ "default") do
     [
-      "inline-flex items-center gap-1 rounded-full px-2 py-1 font-mono text-xs shadow",
+      "inline-flex items-center gap-1 rounded-full px-2 py-1 font-mono text-xs shadow-sm",
       badge_theme(theme, true)
     ]
   end
@@ -617,10 +617,10 @@ defmodule LantternWeb.CoreComponents do
   """
   def get_button_styles(theme \\ "default", size \\ "normal", rounded \\ false) do
     [
-      "inline-flex items-center justify-center font-display text-sm font-bold disabled:cursor-not-allowed shadow",
+      "inline-flex items-center justify-center font-display text-sm font-bold disabled:cursor-not-allowed shadow-sm",
       "disabled:shadow-none",
       if(size == "sm", do: "gap-1 p-1", else: "gap-2 p-2"),
-      if(rounded, do: "rounded-full", else: "rounded-sm"),
+      if(rounded, do: "rounded-full", else: "rounded-xs"),
       "phx-submit-loading:opacity-50 phx-click-loading:opacity-50 phx-click-loading:pointer-events-none",
       button_theme(theme)
     ]
@@ -687,7 +687,7 @@ defmodule LantternWeb.CoreComponents do
   """
 
   def card_base_classes(bg_class \\ nil),
-    do: "rounded shadow-xl #{bg_class || "bg-white"}"
+    do: "rounded-sm shadow-xl #{bg_class || "bg-white"}"
 
   @doc """
   Renders a page cover.
@@ -823,7 +823,7 @@ defmodule LantternWeb.CoreComponents do
         _ -> "h-[30rem] min-h-[60vh] max-h-[80vh]"
       end
 
-    "relative w-full #{height_classes} rounded bg-cover bg-center shadow-xl overflow-hidden"
+    "relative w-full #{height_classes} rounded-sm bg-cover bg-center shadow-xl overflow-hidden"
   end
 
   @doc """
@@ -918,7 +918,7 @@ defmodule LantternWeb.CoreComponents do
     <div class={["bg-white shadow-xl", @class]}>
       <div class="grid" style={@grid_template_cols_style}>
         <div
-          class="sticky z-10 grid grid-cols-subgrid font-display font-bold text-sm bg-white shadow"
+          class="sticky z-10 grid grid-cols-subgrid font-display font-bold text-sm bg-white shadow-sm"
           style={["top: #{@sticky_header_offset};", @grid_col_span_style]}
         >
           <div :for={col <- @col} class="flex gap-2 p-4">
@@ -1026,7 +1026,7 @@ defmodule LantternWeb.CoreComponents do
       <%!-- <div class="relative flex h-16 w-16 mx-auto">
         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-ltrn-primary opacity-75 blur-[2px]">
         </span>
-        <span class="relative inline-flex rounded-full h-16 w-16 bg-ltrn-primary blur-sm"></span>
+        <span class="relative inline-flex rounded-full h-16 w-16 bg-ltrn-primary blur-xs"></span>
       </div> --%>
       <p class="font-display text-ltrn-subtle"><%= render_slot(@inner_block) %></p>
     </div>
@@ -1042,7 +1042,7 @@ defmodule LantternWeb.CoreComponents do
 
   def empty_state_simple(assigns) do
     ~H"""
-    <div class={["p-4 border border-dashed border-ltrn-light rounded", @class]} id={@id}>
+    <div class={["p-4 border border-dashed border-ltrn-light rounded-sm", @class]} id={@id}>
       <p class="text-sm text-ltrn-subtle text-center"><%= render_slot(@inner_block) %></p>
     </div>
     """
@@ -1109,7 +1109,7 @@ defmodule LantternWeb.CoreComponents do
           <div class="ml-4 flex flex-shrink-0">
             <button
               type="button"
-              class="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              class="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
               aria-label={gettext("close")}
             >
               <span class="sr-only">Close</span>
@@ -1393,7 +1393,7 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <span
       class={[
-        "inline-flex items-center rounded-sm p-1 font-mono text-xs text-ltrn-secondary bg-slate-100",
+        "inline-flex items-center rounded-xs p-1 font-mono text-xs text-ltrn-secondary bg-slate-100",
         @class
       ]}
       {@rest}
@@ -1480,14 +1480,14 @@ defmodule LantternWeb.CoreComponents do
     <button
       type="button"
       class={[
-        "group flex gap-1 items-center p-2 rounded bg-white shadow-xl hover:bg-slate-100",
+        "group flex gap-1 items-center p-2 rounded-sm bg-white shadow-xl hover:bg-slate-100",
         @class
       ]}
       phx-click={JS.exec("data-show", to: "#menu")}
       aria-label="open menu"
     >
       <.icon name="hero-bars-3 text-ltrn-subtle" />
-      <div class="w-6 h-6 rounded-full bg-ltrn-mesh-primary blur-sm group-hover:blur-none transition-[filter]" />
+      <div class="w-6 h-6 rounded-full bg-ltrn-mesh-primary blur-xs group-hover:blur-none transition-[filter]" />
     </button>
     """
   end
@@ -1630,7 +1630,7 @@ defmodule LantternWeb.CoreComponents do
     <span class={["relative flex h-4 w-4", @class]} id={@id} @rest>
       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-ltrn-primary opacity-75 blur-[2px]">
       </span>
-      <span class="relative inline-flex rounded-full h-4 w-4 bg-ltrn-primary blur-sm"></span>
+      <span class="relative inline-flex rounded-full h-4 w-4 bg-ltrn-primary blur-xs"></span>
     </span>
     """
   end
@@ -2069,7 +2069,7 @@ defmodule LantternWeb.CoreComponents do
     <button
       type="button"
       class={[
-        "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2",
+        "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-offset-2",
         toggle_theme(@theme),
         if(@enabled, do: toggle_enabled_theme(@theme), else: toggle_disabled_theme(@theme)),
         @class
@@ -2082,7 +2082,7 @@ defmodule LantternWeb.CoreComponents do
       <span
         aria-hidden="true"
         class={[
-          "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+          "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out",
           if(@enabled, do: "translate-x-5", else: "translate-x-0")
         ]}
       >
@@ -2338,7 +2338,7 @@ defmodule LantternWeb.CoreComponents do
       @class
     ]}>
       <div class={[
-        "relative p-2 rounded text-sm bg-ltrn-dark text-white",
+        "relative p-2 rounded-sm text-sm bg-ltrn-dark text-white",
         @inner_pos_class
       ]}>
         <%= render_slot(@inner_block) %>

@@ -36,14 +36,14 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryFormComponent do
           />
           <p
             :if={@has_manual_edit}
-            class="p-2 rounded-sm border border-ltrn-staff-accent mt-2 text-sm bg-ltrn-staff-lightest"
+            class="p-2 rounded-xs border border-ltrn-staff-accent mt-2 text-sm bg-ltrn-staff-lightest"
           >
             <%= gettext(
               "Different from grade composition. Use comments field to justify it if needed."
             ) %>
           </p>
           <%= if @has_manual_edit || @has_normalized_value_edit do %>
-            <div class="p-4 rounded mt-2 bg-ltrn-alert-lighter">
+            <div class="p-4 rounded-sm mt-2 bg-ltrn-alert-lighter">
               <.input
                 field={@form[:normalized_value]}
                 type="number"
@@ -80,7 +80,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryFormComponent do
         />
         <.markdown_supported class="mb-6" />
         <div class={[
-          "p-4 rounded",
+          "p-4 rounded-sm",
           if(!@hide_submit, do: "mb-6"),
           if(@has_retake_history,
             do: "bg-ltrn-alert-lighter",

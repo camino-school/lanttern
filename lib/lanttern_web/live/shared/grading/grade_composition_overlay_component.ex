@@ -31,7 +31,7 @@ defmodule LantternWeb.Grading.GradeCompositionOverlayComponent do
           </.empty_state>
         <% else %>
           <div class="grid grid-cols-[minmax(0,_1fr)_repeat(2,_max-content)] gap-x-4 gap-y-2">
-            <div class="grid grid-cols-subgrid col-span-3 px-4 py-2 rounded mt-4 text-sm text-ltrn-subtle bg-ltrn-lighter">
+            <div class="grid grid-cols-subgrid col-span-3 px-4 py-2 rounded-sm mt-4 text-sm text-ltrn-subtle bg-ltrn-lighter">
               <div><%= gettext("Strand goal") %></div>
               <div class="text-right"><%= gettext("Weight") %></div>
             </div>
@@ -159,7 +159,7 @@ defmodule LantternWeb.Grading.GradeCompositionOverlayComponent do
           step="0.01"
           min="0"
           phx-debounce="1500"
-          class="w-20 rounded-sm border-none text-right text-sm bg-ltrn-lightest"
+          class="w-20 rounded-xs border-none text-right text-sm bg-ltrn-lightest"
         />
         <div class="flex flex-col items-center gap-1">
           <.icon_button

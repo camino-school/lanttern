@@ -52,7 +52,7 @@ defmodule LantternWeb.Dataviz.LantternVizComponent do
             :for={{dom_id, ci} <- @streams.curriculum_items}
             id={"control-btn-#{dom_id}"}
             type="button"
-            class="group w-full pl-2 border-l-4 rounded mb-4 text-sm text-left truncate"
+            class="group w-full pl-2 border-l-4 rounded-sm mb-4 text-sm text-left truncate"
             style={"border-color: #{@curriculum_items_ids_color_map[ci.id]}"}
             title={ci.name}
             phx-click={

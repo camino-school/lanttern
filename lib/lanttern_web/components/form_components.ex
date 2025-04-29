@@ -127,7 +127,7 @@ defmodule LantternWeb.FormComponents do
           name={@name}
           value="true"
           checked={@checked}
-          class="rounded border-zinc-300 text-zinc-900 focus:ring-0"
+          class="rounded-sm border-zinc-300 text-zinc-900 focus:ring-0"
           {@rest}
         />
         <%= @label %>
@@ -356,7 +356,7 @@ defmodule LantternWeb.FormComponents do
       id={@id}
       name={@name}
       class={[
-        "appearance-none block w-full rounded-sm border-0 shadown-sm ring-1 ring-ltrn-lighter sm:text-sm",
+        "appearance-none block w-full rounded-xs border-0 shadown-sm ring-1 ring-ltrn-lighter sm:text-sm",
         "focus:ring-2 focus:ring-ltrn-primary focus:ring-inset",
         @class
       ]}
@@ -388,7 +388,7 @@ defmodule LantternWeb.FormComponents do
       id={@id}
       name={@name}
       class={[
-        "block w-full min-h-[10rem] rounded-sm border-0 shadow-sm ring-1 sm:text-sm sm:leading-6",
+        "block w-full min-h-[10rem] rounded-xs border-0 shadow-xs ring-1 sm:text-sm sm:leading-6",
         "focus:ring-2 focus:ring-inset",
         "phx-no-feedback:ring-ltrn-lighter phx-no-feedback:focus:ring-ltrn-primary",
         @errors == [] && "ring-ltrn-lighter focus:ring-ltrn-primary",
@@ -420,7 +420,7 @@ defmodule LantternWeb.FormComponents do
   def textarea_with_actions(assigns) do
     ~H"""
     <div class={[
-      "overflow-hidden rounded-sm shadow-sm ring-1 ring-inset bg-white",
+      "overflow-hidden rounded-xs shadow-xs ring-1 ring-inset bg-white",
       "focus-within:ring-2",
       "phx-no-feedback:ring-ltrn-lighter phx-no-feedback:focus-within:ring-ltrn-primary",
       @errors == [] && "ring-ltrn-lighter focus-within:ring-ltrn-primary",
@@ -479,7 +479,7 @@ defmodule LantternWeb.FormComponents do
       id={@id}
       value={Phoenix.HTML.Form.normalize_value(@type, @value)}
       class={[
-        "block w-full rounded-sm border-0 shadow-sm ring-1 sm:text-sm sm:leading-6",
+        "block w-full rounded-xs border-0 shadow-xs ring-1 sm:text-sm sm:leading-6",
         "focus:ring-2 focus:ring-inset",
         "phx-no-feedback:ring-ltrn-lighter phx-no-feedback:focus:ring-ltrn-primary",
         @errors == [] && "ring-ltrn-lighter focus:ring-ltrn-primary",
@@ -522,7 +522,7 @@ defmodule LantternWeb.FormComponents do
           name={@field.name <> "[]"}
           type="checkbox"
           value={@opt.id}
-          class="h-4 w-4 rounded border-ltrn-subtle text-ltrn-primary focus:ring-ltrn-primary"
+          class="h-4 w-4 rounded-sm border-ltrn-subtle text-ltrn-primary focus:ring-ltrn-primary"
           checked={"#{@opt.id}" in (@field.value || [])}
           phx-update="ignore"
         />
@@ -577,7 +577,7 @@ defmodule LantternWeb.FormComponents do
     ~H"""
     <div
       class={[
-        "flex items-center gap-4 p-4 rounded-sm text-sm text-ltrn-alert-accent bg-ltrn-alert-lighter",
+        "flex items-center gap-4 p-4 rounded-xs text-sm text-ltrn-alert-accent bg-ltrn-alert-lighter",
         @class
       ]}
       {@rest}
@@ -627,7 +627,7 @@ defmodule LantternWeb.FormComponents do
         <div>
           <label
             for={@upload.ref}
-            class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
+            class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-hidden focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
           >
             <span><%= gettext("Upload a cover image file") %></span>
             <.live_file_input upload={@upload} class="sr-only" />
@@ -660,7 +660,7 @@ defmodule LantternWeb.FormComponents do
       >
         <.live_img_preview entry={entry} class="w-full" />
       </div>
-      <.error_block :if={!entry.valid?} class="p-6 border border-red-500 rounded">
+      <.error_block :if={!entry.valid?} class="p-6 border border-red-500 rounded-sm">
         <p><%= gettext("File \"%{file}\" is invalid.", file: entry.client_name) %></p>
         <%= for err <- upload_errors(@upload, entry) do %>
           <%= upload_error_to_string(@upload, err) %>
@@ -705,7 +705,7 @@ defmodule LantternWeb.FormComponents do
         <div :if={entry.valid?} class="w-60 h-60 rounded-full bg-ltrn-light overflow-hidden shadow-xl">
           <.live_img_preview entry={entry} class="object-cover w-full h-full" />
         </div>
-        <.error_block :if={!entry.valid?} class="p-6 border border-red-500 rounded">
+        <.error_block :if={!entry.valid?} class="p-6 border border-red-500 rounded-sm">
           <p><%= gettext("File \"%{file}\" is invalid.", file: entry.client_name) %></p>
           <%= for err <- upload_errors(@upload, entry) do %>
             <%= upload_error_to_string(@upload, err) %>
@@ -754,7 +754,7 @@ defmodule LantternWeb.FormComponents do
           <label
             for={@upload.ref}
             class={[
-              "cursor-pointer hover:text-ltrn-subtle focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark",
+              "cursor-pointer hover:text-ltrn-subtle focus-within:outline-hidden focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark",
               if(@is_removing, do: "hidden")
             ]}
           >

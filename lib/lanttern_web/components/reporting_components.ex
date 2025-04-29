@@ -52,7 +52,7 @@ defmodule LantternWeb.ReportingComponents do
       |> assign(:text, text)
 
     ~H"""
-    <div class={["p-4 rounded", @bg_class, @class]}>
+    <div class={["p-4 rounded-sm", @bg_class, @class]}>
       <div class="flex items-center gap-2 font-bold text-sm">
         <.icon name="hero-chat-bubble-oval-left" class={["w-6 h-6", @icon_class]} />
         <span class={@text_class}><%= @text %></span>
@@ -123,7 +123,7 @@ defmodule LantternWeb.ReportingComponents do
     ~H"""
     <div
       class={[
-        "flex flex-col rounded shadow-xl bg-white overflow-hidden",
+        "flex flex-col rounded-sm shadow-xl bg-white overflow-hidden",
         @class
       ]}
       id={@id}
@@ -202,11 +202,11 @@ defmodule LantternWeb.ReportingComponents do
       <%= for {ordinal_value, descriptor} <- @ordinal_values_and_descriptors do %>
         <% is_active = @entry && @entry.ordinal_value_id == ordinal_value.id %>
         <div
-          class="p-2 border border-ltrn-lighter rounded font-mono bg-ltrn-lightest"
+          class="p-2 border border-ltrn-lighter rounded-sm font-mono bg-ltrn-lightest"
           style={if is_active, do: create_color_map_style(ordinal_value)}
         >
           <div
-            class="p-1 rounded-sm text-xs text-center text-ltrn-subtle bg-ltrn-lighter shadow-lg"
+            class="p-1 rounded-xs text-xs text-center text-ltrn-subtle bg-ltrn-lighter shadow-lg"
             style={if is_active, do: create_color_map_style(ordinal_value)}
           >
             <%= ordinal_value.name %>
@@ -248,7 +248,7 @@ defmodule LantternWeb.ReportingComponents do
       <div class="grid grid-cols-subgrid" style={@grid_column_span_style}>
         <div
           :for={ordinal_value <- @scale.ordinal_values}
-          class="p-2 rounded font-mono text-xs text-center text-ltrn-subtle whitespace-nowrap bg-ltrn-lighter"
+          class="p-2 rounded-sm font-mono text-xs text-center text-ltrn-subtle whitespace-nowrap bg-ltrn-lighter"
           style={
             if @entry && @entry.ordinal_value_id == ordinal_value.id,
               do: create_color_map_style(ordinal_value)
@@ -260,7 +260,7 @@ defmodule LantternWeb.ReportingComponents do
       <div :if={@rubric} class="grid grid-cols-subgrid" style={@grid_column_span_style}>
         <.markdown
           :for={descriptor <- @rubric.descriptors}
-          class="p-4 rounded bg-ltrn-lighter"
+          class="p-4 rounded-sm bg-ltrn-lighter"
           style={
             if @active_ordinal_value && @active_ordinal_value.id == descriptor.ordinal_value_id,
               do: create_color_map_style(@active_ordinal_value),
@@ -288,7 +288,7 @@ defmodule LantternWeb.ReportingComponents do
   defp report_scale_numeric_bar(assigns) do
     ~H"""
     <div
-      class="relative flex items-center justify-between rounded w-full h-6 px-2 font-mono text-xs text-ltrn-subtle bg-ltrn-lighter"
+      class="relative flex items-center justify-between rounded-sm w-full h-6 px-2 font-mono text-xs text-ltrn-subtle bg-ltrn-lighter"
       style={create_color_map_gradient_bg_style(@scale)}
     >
       <div style={if @scale.start_text_color, do: "color: #{@scale.start_text_color}"}>
@@ -300,7 +300,7 @@ defmodule LantternWeb.ReportingComponents do
         style={"left: calc(#{(@score - @scale.start) * 100 / (@scale.stop - @scale.start)}% - #{((@score - @scale.start) / (@scale.stop - @scale.start)) * 48}px)"}
       >
         <div class={[
-          "absolute flex items-center justify-center w-12 h-8 rounded text-sm shadow-lg",
+          "absolute flex items-center justify-center w-12 h-8 rounded-sm text-sm shadow-lg",
           if(@is_student,
             do: "text-ltrn-student-dark bg-ltrn-student-lighter",
             else: "text-ltrn-dark bg-white"
@@ -430,7 +430,7 @@ defmodule LantternWeb.ReportingComponents do
               id={"moments-entries-grid-strand-#{strand.id}"}
               href={"/strands/#{strand.id}/assessment"}
               target="_blank"
-              class="w-full p-1 rounded-sm border border-ltrn-lighter text-center truncate bg-white hover:bg-ltrn-lighter"
+              class="w-full p-1 rounded-xs border border-ltrn-lighter text-center truncate bg-white hover:bg-ltrn-lighter"
               style={"grid-column: span #{strand.assessment_points_count} / span #{strand.assessment_points_count}"}
               title={"#{if strand.type, do: "#{strand.type} | "}#{strand.name}"}
             >
@@ -440,7 +440,7 @@ defmodule LantternWeb.ReportingComponents do
               </span>
             </a>
           <% else %>
-            <div class="w-full p-2 rounded text-ltrn-subtle text-center bg-ltrn-lightest">
+            <div class="w-full p-2 rounded-sm text-ltrn-subtle text-center bg-ltrn-lightest">
               <%= gettext("No strands with moments assessment linked to this report card") %>
             </div>
           <% end %>
@@ -464,7 +464,7 @@ defmodule LantternWeb.ReportingComponents do
                   <a
                     href={"/strands/moment/#{moment_id}/assessment"}
                     target="_blank"
-                    class="block w-min rounded-sm outline-ltrn-primary text-center hover:outline"
+                    class="block w-min rounded-xs outline-ltrn-primary text-center hover:outline"
                   >
                     <.live_component
                       module={EntryParticleComponent}
@@ -476,18 +476,18 @@ defmodule LantternWeb.ReportingComponents do
                 <% end %>
               <% end %>
             <% else %>
-              <div class="h-full rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+              <div class="h-full rounded-sm border border-ltrn-lighter bg-ltrn-lightest"></div>
             <% end %>
           </div>
         <% else %>
           <div class="grid grid-cols-subgrid" style={@grid_column_style}>
-            <div class="p-4 rounded text-ltrn-subtle bg-ltrn-lightest">
+            <div class="p-4 rounded-sm text-ltrn-subtle bg-ltrn-lightest">
               <%= gettext("No students linked to this grades report") %>
             </div>
             <%= if @strands != [] do %>
               TBD
             <% else %>
-              <div class="rounded border border-ltrn-lighter bg-ltrn-lightest"></div>
+              <div class="rounded-sm border border-ltrn-lighter bg-ltrn-lightest"></div>
             <% end %>
           </div>
         <% end %>

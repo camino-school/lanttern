@@ -79,7 +79,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
           class="mb-6"
           notify_component={@myself}
         />
-        <div class="p-4 rounded-sm mb-6 bg-ltrn-staff-lightest">
+        <div class="p-4 rounded-xs mb-6 bg-ltrn-staff-lightest">
           <.input
             field={@form[:teacher_instructions]}
             type="textarea"

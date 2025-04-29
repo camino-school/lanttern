@@ -52,7 +52,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
               />
             </div>
           <% else %>
-            <div class="p-10 mt-4 rounded shadow-xl bg-white">
+            <div class="p-10 mt-4 rounded-sm shadow-xl bg-white">
               <.empty_state>
                 <%= gettext("No students linked to this report card yet") %>
               </.empty_state>
@@ -254,7 +254,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
 
   def student_and_report_card_row(assigns) do
     ~H"""
-    <div id={@id} class="flex items-center gap-4 p-4 rounded mt-4 bg-white shadow-lg">
+    <div id={@id} class="flex items-center gap-4 p-4 rounded-sm mt-4 bg-white shadow-lg">
       <div class="flex-1 flex items-center gap-4">
         <.profile_picture_with_name
           theme="cyan"
@@ -361,7 +361,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
 
   def other_students_list(%{has_other_students: false} = assigns) do
     ~H"""
-    <div class="p-10 mt-4 rounded shadow-xl bg-white">
+    <div class="p-10 mt-4 rounded-sm shadow-xl bg-white">
       <.empty_state>
         <%= case @report_card.school_cycle.parent_cycle do
           %{name: parent_cycle_name} ->
@@ -405,7 +405,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
 
   def student_row(assigns) do
     ~H"""
-    <div id={@id} class="flex items-center gap-4 p-4 rounded mt-4 bg-ltrn-lighter">
+    <div id={@id} class="flex items-center gap-4 p-4 rounded-sm mt-4 bg-ltrn-lighter">
       <div class="flex-1 flex items-center gap-4">
         <.profile_picture_with_name
           theme="clean"

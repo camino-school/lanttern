@@ -40,7 +40,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
         </div>
         <%= if @students == [] do %>
           <div class="container mx-auto mt-4 lg:max-w-5xl">
-            <div class="p-10 rounded shadow-xl bg-white">
+            <div class="p-10 rounded-sm shadow-xl bg-white">
               <.empty_state>
                 <%= gettext("Add students to report card to view grades") %>
               </.empty_state>

@@ -22,7 +22,7 @@ defmodule LantternWeb.MenuComponent do
         <div class="md:flex-1 md:flex md:flex-col-reverse md:justify-between">
           <div class="p-6">
             <h5 class="relative flex items-center font-display font-black text-3xl text-ltrn-dark">
-              <span class="w-20 h-20 rounded-full bg-ltrn-mesh-primary blur-sm" />
+              <span class="w-20 h-20 rounded-full bg-ltrn-mesh-primary blur-xs" />
               <span class="relative -ml-10">Lanttern</span>
             </h5>
           </div>

@@ -36,7 +36,7 @@ defmodule LantternWeb.LearningContext.StrandSearchComponent do
           <li
             :for={{dom_id, strand} <- @streams.results}
             class={[
-              "flex items-center gap-4 p-4 mt-4 rounded font-display",
+              "flex items-center gap-4 p-4 mt-4 rounded-sm font-display",
               if(@selected_strands_ids && strand.id in @selected_strands_ids,
                 do: "bg-ltrn-lighter",
                 else: "bg-white shadow-lg"

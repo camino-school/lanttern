@@ -139,7 +139,7 @@ defmodule LantternWeb.AttachmentsComponents do
             />
           </.menu_button>
         <% else %>
-          <div class="flex-1 min-w-0 p-4 rounded bg-white shadow-lg">
+          <div class="flex-1 min-w-0 p-4 rounded-sm bg-white shadow-lg">
             <%= if(attachment.is_external) do %>
               <.badge><%= gettext("External link") %></.badge>
             <% else %>

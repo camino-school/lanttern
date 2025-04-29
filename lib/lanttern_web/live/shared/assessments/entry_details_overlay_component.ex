@@ -69,7 +69,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
           </div>
           <div
             :if={@has_teacher_change || @has_student_change}
-            class="p-2 rounded mt-2 text-sm text-white text-center bg-ltrn-dark"
+            class="p-2 rounded-sm mt-2 text-sm text-white text-center bg-ltrn-dark"
           >
             <button class="underline hover:text-ltrn-primary">
               <%= gettext("Save") %>
@@ -174,7 +174,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       value={@field.value}
       options={@ordinal_value_options}
       prompt="—"
-      class={["py-3 rounded-sm font-mono text-sm text-center truncate", @class]}
+      class={["py-3 rounded-xs font-mono text-sm text-center truncate", @class]}
       style={@style}
     />
     """
@@ -233,7 +233,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
 
     ~H"""
     <div class={[
-      "p-4 rounded",
+      "p-4 rounded-sm",
       @class,
       if(@note, do: @bg_lightest, else: "bg-ltrn-lightest")
     ]}>
@@ -253,7 +253,10 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       <.form :if={@is_editing} for={@form} phx-submit={@on_save} class="mt-4">
         <.input field={@field} type="textarea" phx-debounce="1500" class="mb-1" />
         <.markdown_supported />
-        <p :if={@error} class="p-4 rounded mt-4 text-sm text-ltrn-alert-accent bg-ltrn-alert-lighter">
+        <p
+          :if={@error}
+          class="p-4 rounded-sm mt-4 text-sm text-ltrn-alert-accent bg-ltrn-alert-lighter"
+        >
           <%= @error %>
         </p>
         <div class="flex justify-end gap-2 mt-6">
@@ -266,7 +269,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       <.markdown :if={!@is_editing && @note} text={@note} class="max-w-none mt-4" />
       <div
         :if={!@is_editing && !@note}
-        class="p-4 rounded border border-dashed border-ltrn-light mt-4 text-sm text-center text-ltrn-subtle"
+        class="p-4 rounded-sm border border-dashed border-ltrn-light mt-4 text-sm text-center text-ltrn-subtle"
       >
         <%= @no_comment_text %>
       </div>
@@ -285,7 +288,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
 
   def diff_rubric_area(assigns) do
     ~H"""
-    <div class="p-4 rounded mt-10 bg-ltrn-diff-lightest">
+    <div class="p-4 rounded-sm mt-10 bg-ltrn-diff-lightest">
       <div class="flex items-center gap-2 mb-4 font-bold text-sm">
         <.icon name="hero-view-columns" class="w-6 h-6 text-ltrn-diff-accent" />
         <span class="text-ltrn-diff-dark"><%= gettext("Differentiation rubric") %></span>
@@ -309,7 +312,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
           </div>
           <div
             :if={@has_change}
-            class="p-2 rounded mt-2 text-sm text-white text-center bg-ltrn-diff-dark"
+            class="p-2 rounded-sm mt-2 text-sm text-white text-center bg-ltrn-diff-dark"
           >
             <button type="submit" class="underline hover:text-ltrn-primary">
               <%= gettext("Save") %>

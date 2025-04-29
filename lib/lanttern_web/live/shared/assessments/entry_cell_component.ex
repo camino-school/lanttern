@@ -56,7 +56,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
           <button
             type="button"
             class={[
-              "flex items-center justify-center shrink-0 p-1 rounded-full text-ltrn-light bg-white shadow hover:bg-ltrn-lightest",
+              "flex items-center justify-center shrink-0 p-1 rounded-full text-ltrn-light bg-white shadow-sm hover:bg-ltrn-lightest",
               "disabled:bg-ltrn-lighter disabled:shadow-none"
             ]}
             phx-click="view_details"
@@ -100,7 +100,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       options={@ov_options}
       value={@field.value}
       class={[
-        "w-full h-full rounded-sm font-mono text-sm text-center truncate text-clip",
+        "w-full h-full rounded-xs font-mono text-sm text-center truncate text-clip",
         @field.value in [nil, ""] && "bg-ltrn-lighter"
       ]}
       style={@style}
@@ -146,7 +146,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     ~H"""
     <%= if @value do %>
       <div
-        class="flex items-center justify-center h-full px-1 py-2 rounded-sm font-mono text-sm bg-white"
+        class="flex items-center justify-center h-full px-1 py-2 rounded-xs font-mono text-sm bg-white"
         style={@style}
       >
         <span class="truncate text-clip">
@@ -172,7 +172,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
 
     ~H"""
     <%= if @value do %>
-      <div class="flex items-center justify-center h-full p-2 rounded-sm font-mono text-sm bg-white shadow-lg">
+      <div class="flex items-center justify-center h-full p-2 rounded-xs font-mono text-sm bg-white shadow-lg">
         <%= @value %>
       </div>
     <% else %>
@@ -183,7 +183,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
 
   def empty(assigns) do
     ~H"""
-    <div class="flex items-center justify-center h-full p-2 rounded-sm font-mono text-sm text-ltrn-subtle bg-ltrn-lighter">
+    <div class="flex items-center justify-center h-full p-2 rounded-xs font-mono text-sm text-ltrn-subtle bg-ltrn-lighter">
       —
     </div>
     """

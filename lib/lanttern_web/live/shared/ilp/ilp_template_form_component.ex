@@ -59,7 +59,7 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
                   name={"#{section_f.name}[components_sort][]"}
                   value={component_f.index}
                 />
-                <div class="flex items-center gap-4 p-4 rounded mt-4 bg-ltrn-lightest">
+                <div class="flex items-center gap-4 p-4 rounded-sm mt-4 bg-ltrn-lightest">
                   <.input type="text" field={component_f[:name]} class="flex-1" phx-debounce="1500" />
                   <.action
                     type="button"
@@ -73,7 +73,7 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
                 </div>
               </.inputs_for>
               <input type="hidden" name={"#{section_f.name}[components_drop][]"} />
-              <div class="flex justify-center p-4 rounded mt-4 bg-ltrn-lightest">
+              <div class="flex justify-center p-4 rounded-sm mt-4 bg-ltrn-lightest">
                 <.action
                   type="button"
                   icon_name="hero-plus-circle-mini"
@@ -108,7 +108,7 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
           show_optional
         />
         <.markdown_supported class="mb-6" />
-        <div class="mb-6 p-4 rounded bg-ltrn-staff-lightest">
+        <div class="mb-6 p-4 rounded-sm bg-ltrn-staff-lightest">
           <.input
             field={@form[:teacher_description]}
             type="textarea"

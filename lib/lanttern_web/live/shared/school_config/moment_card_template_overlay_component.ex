@@ -90,7 +90,7 @@ defmodule LantternWeb.SchoolConfig.MomentCardTemplateOverlayComponent do
           <.markdown text={@moment_card_template.template} class="mt-6" />
           <div
             :if={@moment_card_template.instructions}
-            class="p-4 border border-ltrn-staff-accent rounded-sm mt-10 bg-ltrn-staff-lightest"
+            class="p-4 border border-ltrn-staff-accent rounded-xs mt-10 bg-ltrn-staff-lightest"
           >
             <h6 class="font-display font-black font-lg text-ltrn-staff-dark">
               <%= gettext("Additional teacher instructions") %>

@@ -27,7 +27,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryButtonComponent do
     ~H"""
     <button
       class={[
-        "flex items-center justify-center rounded-sm font-display font-bold",
+        "flex items-center justify-center rounded-xs font-display font-bold",
         @additional_classes,
         @class
       ]}

@@ -53,7 +53,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordStatusFormOverlayComponent do
             class="mb-6"
             phx-debounce="1500"
           />
-          <div class="p-4 rounded-sm bg-ltrn-mesh-cyan">
+          <div class="p-4 rounded-xs bg-ltrn-mesh-cyan">
             <.input
               field={@form[:is_closed]}
               type="toggle"

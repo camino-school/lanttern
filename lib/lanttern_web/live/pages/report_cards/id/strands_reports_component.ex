@@ -86,7 +86,7 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
       >
         <:title><%= @form_overlay_title %></:title>
         <%= if @strand do %>
-          <div class="flex items-center gap-4 p-4 mb-6 rounded font-display bg-white shadow-lg">
+          <div class="flex items-center gap-4 p-4 mb-6 rounded-sm font-display bg-white shadow-lg">
             <div class="flex-1">
               <p class="font-black"><%= @strand.name %></p>
               <p :if={@strand.type} class="text-sm text-ltrn-subtle"><%= @strand.type %></p>

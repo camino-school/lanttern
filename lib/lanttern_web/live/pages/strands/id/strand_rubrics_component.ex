@@ -231,7 +231,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
       <div
         :if={@rubric.is_differentiation || @goal.is_differentiation}
         class={[
-          "flex items-center gap-2 p-4 rounded mb-6",
+          "flex items-center gap-2 p-4 rounded-sm mb-6",
           if(@has_diff_students, do: "bg-ltrn-diff-lightest", else: "bg-ltrn-lightest")
         ]}
       >

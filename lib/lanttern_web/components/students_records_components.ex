@@ -107,7 +107,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
             <.markdown text={student_record.description} class="mt-4 line-clamp-5" />
             <div
               :if={student_record.internal_notes}
-              class="p-4 rounded-sm mt-4 bg-ltrn-staff-lightest"
+              class="p-4 rounded-xs mt-4 bg-ltrn-staff-lightest"
             >
               <h6 class="mb-2 font-bold text-ltrn-staff-dark"><%= gettext("Internal notes") %></h6>
               <.markdown text={student_record.internal_notes} class="line-clamp-3" />
@@ -123,7 +123,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
           </div>
         </div>
         <div class="px-2 pb-2">
-          <div class="flex items-center justify-between gap-4 p-2 rounded-sm bg-ltrn-staff-lightest">
+          <div class="flex items-center justify-between gap-4 p-2 rounded-xs bg-ltrn-staff-lightest">
             <div class="md:flex items-center gap-4">
               <div class="flex items-center gap-2">
                 <span class="text-xs text-ltrn-subtle"><%= gettext("Created by") %></span>

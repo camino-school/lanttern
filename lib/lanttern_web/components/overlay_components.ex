@@ -322,7 +322,7 @@ defmodule LantternWeb.OverlayComponents do
             phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
             phx-key="escape"
             phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-            class="relative transform min-w-full h-full rounded bg-white shadow-xl transition-all"
+            class="relative transform min-w-full h-full rounded-sm bg-white shadow-xl transition-all"
           >
             <div id={"#{@id}-content"} class={@class}>
               <%= render_slot(@inner_block) %>
@@ -419,7 +419,7 @@ defmodule LantternWeb.OverlayComponents do
       </button>
       <div
         id={"menu-button-#{@id}"}
-        class="hidden absolute right-0 z-10 mt-1 w-32 origin-top-right rounded-sm bg-white py-2 shadow-lg ring-1 ring-ltrn-lighter focus:outline-none"
+        class="hidden absolute right-0 z-10 mt-1 w-32 origin-top-right rounded-xs bg-white py-2 shadow-lg ring-1 ring-ltrn-lighter focus:outline-hidden"
         role="menu"
         aria-orientation="vertical"
         aria-labelledby={"menu-button-#{@id}-button"}
@@ -497,7 +497,7 @@ defmodule LantternWeb.OverlayComponents do
     <div
       id={@id}
       class={[
-        "hidden absolute mt-1 min-w-full w-max max-w-sm rounded-sm bg-white py-2 shadow-lg ring-1 ring-ltrn-lighter focus:outline-none",
+        "hidden absolute mt-1 min-w-full w-max max-w-sm rounded-xs bg-white py-2 shadow-lg ring-1 ring-ltrn-lighter focus:outline-hidden",
         @z_index_class,
         @position_classes,
         @class

@@ -28,12 +28,12 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
           selected_ids={@selected_cycles_ids}
         />
         <%= if @grades_report_cycles == [] do %>
-          <div class="p-4 rounded mt-4 text-ltrn-subtle bg-ltrn-lighter">
+          <div class="p-4 rounded-sm mt-4 text-ltrn-subtle bg-ltrn-lighter">
             <%= gettext("No subcycles linked") %>
           </div>
         <% else %>
           <div class="grid grid-cols-[1fr_min-content_min-content] gap-2">
-            <div class="grid grid-cols-subgrid col-span-3 items-center px-4 py-2 rounded mt-4 text-sm text-ltrn-subtle bg-ltrn-lighter">
+            <div class="grid grid-cols-subgrid col-span-3 items-center px-4 py-2 rounded-sm mt-4 text-sm text-ltrn-subtle bg-ltrn-lighter">
               <div><%= gettext("Subcycle") %></div>
               <div class="text-center"><%= gettext("Grading weight") %></div>
               <div class="group relative text-center">
@@ -80,7 +80,7 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
           </.badge_button>
         </div>
         <%= if @sortable_grades_report_subjects == [] do %>
-          <div class="p-4 rounded mt-4 text-ltrn-subtle bg-ltrn-lighter">
+          <div class="p-4 rounded-sm mt-4 text-ltrn-subtle bg-ltrn-lighter">
             <%= gettext("No subjects linked") %>
           </div>
         <% else %>
@@ -142,7 +142,7 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
     <.form
       id={@id}
       for={@form}
-      class="grid grid-cols-subgrid col-span-3 items-center p-4 rounded mt-1 bg-white shadow-lg"
+      class="grid grid-cols-subgrid col-span-3 items-center p-4 rounded-sm mt-1 bg-white shadow-lg"
       phx-change={JS.push("update_grades_report_cycle_weight", target: @myself)}
     >
       <%= @grades_report_cycle.school_cycle.name %>
@@ -153,7 +153,7 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
         step="0.01"
         min="0"
         phx-debounce="1500"
-        class="w-20 rounded-sm border-none text-right text-sm bg-ltrn-lightest"
+        class="w-20 rounded-xs border-none text-right text-sm bg-ltrn-lightest"
       />
       <.icon_button
         name={@visibility_icon}

@@ -36,7 +36,7 @@ defmodule LantternWeb.StrandLive.AboutComponent do
           </.badge>
         </div>
         <.markdown text={@strand.description} class="mt-10" />
-        <div :if={@strand.teacher_instructions} class="p-4 rounded-sm mt-10 bg-ltrn-staff-lightest">
+        <div :if={@strand.teacher_instructions} class="p-4 rounded-xs mt-10 bg-ltrn-staff-lightest">
           <p class="mb-4 font-bold text-ltrn-staff-dark">
             <%= gettext("Teacher instructions") %>
           </p>
@@ -56,7 +56,7 @@ defmodule LantternWeb.StrandLive.AboutComponent do
           <%= gettext("Use this area to manage the strand curriculum.") %>
         </p>
         <div :for={{curriculum_item, i} <- @indexed_curriculum_items} class="mt-6">
-          <div class="flex items-stretch gap-6 p-6 rounded bg-white shadow-lg">
+          <div class="flex items-stretch gap-6 p-6 rounded-sm bg-white shadow-lg">
             <div class="flex-1">
               <div class="flex items-center gap-4">
                 <div :if={curriculum_item.has_rubric} class="group relative">
@@ -81,7 +81,7 @@ defmodule LantternWeb.StrandLive.AboutComponent do
               <p class="mt-4"><%= curriculum_item.name %></p>
               <div
                 :if={hd(curriculum_item.assessment_points).report_info}
-                class="p-4 rounded mt-6 bg-ltrn-mesh-cyan"
+                class="p-4 rounded-sm mt-6 bg-ltrn-mesh-cyan"
               >
                 <div class="flex items-center gap-2 font-bold text-sm text-ltrn-subtle">
                   <.icon name="hero-information-circle" class="w-6 h-6" />
