@@ -1,0 +1,12 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+- Prefer keyword-based queries over pipe-based queries
+  - For example, use `from(u in User, where: u.age > 18, select: u)` over `User |> where(age: 18) |> select([u], u)`
+- Use tidewave MCP to debug code.
+- When debugging data from the database, if the postgres_lanttern MCP is not avaiable, use `psql lanttern_dev -c "<your query>"` to connect to the database and then run the query. There is also the lanttern_test database for testing.
+- Use the `mix check` command after generating lots of files to check the Elixir code for errors and code quality. If you encounter format errors, use `mix format` to fix them.
+- If any of my requests are not clear, ask me to clarify.
+- If you have better suggestions, feel free to suggest them.

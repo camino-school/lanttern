@@ -14,6 +14,13 @@
       <:tab patch={~p"/students_records/settings/tags"} is_current={@live_action == :manage_tags}>
         <%= gettext("Tags") %>
       </:tab>
+      <:tab
+        patch={~p"/students_records/settings/ai"}
+        is_current={@live_action == :manage_ai}
+        theme="ai"
+      >
+        <%= gettext("SpecttrumAI") %>
+      </:tab>
     </.neo_tabs>
   </div>
 </.header_nav>
@@ -28,6 +35,13 @@
   :if={@live_action == :manage_tags}
   module={TagsComponent}
   id="student-record-tag-manager"
+  current_user={@current_user}
+  params={@params}
+/>
+<.live_component
+  :if={@live_action == :manage_ai}
+  module={AIComponent}
+  id="student-record-ai-manager"
   current_user={@current_user}
   params={@params}
 />

@@ -38,6 +38,23 @@ defmodule Lanttern.StudentRecordReports do
   def get_student_record_report_ai_config!(id), do: Repo.get!(StudentRecordReportAIConfig, id)
 
   @doc """
+  Gets a single student_record_report_ai_config by school_id.
+
+  Returns `nil` if the Student record report ai config does not exist.
+
+  ## Examples
+
+      iex> get_student_record_report_ai_config_by_school_id(123)
+      %StudentRecordReportAIConfig{}
+
+      iex> get_student_record_report_ai_config_by_school_id(456)
+      nil
+
+  """
+  def get_student_record_report_ai_config_by_school_id(school_id),
+    do: Repo.get_by(StudentRecordReportAIConfig, school_id: school_id)
+
+  @doc """
   Creates a student_record_report_ai_config.
 
   ## Examples

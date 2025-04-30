@@ -232,14 +232,15 @@ defmodule LantternWeb.CoreComponents do
   """
   attr :class, :any, default: nil
   attr :id, :string, default: nil
+  attr :title, :string, default: nil
   slot :inner_block, required: true
 
   def ai_box(assigns) do
     ~H"""
     <div class={["p-4 rounded-sm border border-ltrn-ai-accent bg-ltrn-ai-lightest", @class]} id={@id}>
-      <h6 class="flex items-center gap-2 mb-4 font-display font-black text-lg">
-        <.icon name="hero-sparkles-mini" class="text-ltrn-ai-accent" /> Lanttern AI
-      </h6>
+      <h5 :if={@title} class="flex items-center gap-2 mb-4 font-display font-black text-lg">
+        <.icon name="hero-sparkles-mini" class="text-ltrn-ai-accent" /> <%= @title %>
+      </h5>
       <%= render_slot(@inner_block) %>
     </div>
     """

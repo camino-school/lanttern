@@ -71,9 +71,12 @@
           </p>
           <.markdown text={template.teacher_description} />
         </div>
-        <.ai_box :if={template.ai_layer && template.ai_layer.revision_instructions} class="mt-6">
+        <.ai_box
+          :if={template.ai_layer && template.ai_layer.revision_instructions}
+          title={gettext("SpecttrumAI ILP revision instructions")}
+          class="mt-6"
+        >
           <div class="pb-6 border-b border-ltrn-ai-accent mb-6">
-            <p><%= gettext("Lanttern AI ILP revision instructions.") %></p>
             <div class="flex items-center gap-4 mt-4">
               <div class="flex items-center gap-2">
                 <%= gettext("Current model:") %>

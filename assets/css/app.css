@@ -70,28 +70,9 @@
 
 @custom-variant aria-current (&[aria-current="true"]);
 
-/* fontFamily: {
-  //         display: ["Montserrat", "sans-serif"],
-  //         mono: ['"Source Code Pro"', ...defaultTheme.fontFamily.mono],
-  //         sans: ['"Open Sans"', ...defaultTheme.fontFamily.sans],
-  //       },
-  //       aria: {
-  //         current: 'current="true"'
-  //       },
-  //       typography: (theme) => ({
-  //         DEFAULT: {
-  //           css: {
-  //             h1: { fontFamily: 'Montserrat, sans-serif', fontWeight: '900' },
-  //             h2: { fontFamily: 'Montserrat, sans-serif', fontWeight: '900' },
-  //             h3: { fontFamily: 'Montserrat, sans-serif', fontWeight: '700' },
-  //             h4: { fontFamily: 'Montserrat, sans-serif', fontWeight: '700' },
-  //             h5: { fontFamily: 'Montserrat, sans-serif' },
-  //             h6: { fontFamily: 'Montserrat, sans-serif' },
-  //           }
-  //         }
-  //       }) */
-
-/* This file is for your main application CSS */
+button {
+  cursor: pointer;
+}
 
 .ltrn-bg-main {
   background-attachment: fixed;
@@ -213,6 +194,7 @@
   width: 8px;
   height: 8px;
 }
+
 .glider-dot:hover,
 .glider-dot:focus,
 .glider-dot.active {

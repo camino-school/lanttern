@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "tidewave": {
+      "url": "http://localhost:4000/tidewave/mcp"
+    },
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://localhost/lanttern_dev"
+      ]
+    }
+  }
+}

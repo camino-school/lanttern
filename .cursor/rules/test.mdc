@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+- when writing tests for existing code, always check if the tests are passing with `mix test` before finishing
+  - exception: sometimes, I'll ask you to create a failing test that will help me designing the feature (following a red, green, refactor workflow)

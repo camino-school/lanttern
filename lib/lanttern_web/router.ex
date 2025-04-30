@@ -129,6 +129,8 @@ defmodule LantternWeb.Router do
       live "/students_records", StudentsRecordsLive, :index
       live "/students_records/settings/status", StudentsRecordsSettingsLive, :manage_status
       live "/students_records/settings/tags", StudentsRecordsSettingsLive, :manage_tags
+      live "/students_records/settings/ai", StudentsRecordsSettingsLive, :manage_ai
+
       # ILP
 
       live "/ilp", ILPLive, :index
