@@ -24,4 +24,20 @@ defmodule Lanttern.StudentRecordReportsFixtures do
 
     student_record_report_ai_config
   end
+
+  @doc """
+  Generate a student_record_report.
+  """
+  def student_record_report_fixture(attrs \\ %{}) do
+    {:ok, student_record_report} =
+      attrs
+      |> Enum.into(%{
+        description: "some description",
+        private_description: "some private_description",
+        student_id: SchoolsFixtures.maybe_gen_student_id(attrs)
+      })
+      |> Lanttern.StudentRecordReports.create_student_record_report()
+
+    student_record_report
+  end
 end

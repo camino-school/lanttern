@@ -126,4 +126,100 @@ defmodule Lanttern.StudentRecordReports do
       ) do
     StudentRecordReportAIConfig.changeset(student_record_report_ai_config, attrs)
   end
+
+  alias Lanttern.StudentRecordReports.StudentRecordReport
+
+  @doc """
+  Returns the list of student_record_reports.
+
+  ## Examples
+
+      iex> list_student_record_reports()
+      [%StudentRecordReport{}, ...]
+
+  """
+  def list_student_record_reports do
+    Repo.all(StudentRecordReport)
+  end
+
+  @doc """
+  Gets a single student_record_report.
+
+  Raises `Ecto.NoResultsError` if the Student record report does not exist.
+
+  ## Examples
+
+      iex> get_student_record_report!(123)
+      %StudentRecordReport{}
+
+      iex> get_student_record_report!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_student_record_report!(id), do: Repo.get!(StudentRecordReport, id)
+
+  @doc """
+  Creates a student_record_report.
+
+  ## Examples
+
+      iex> create_student_record_report(%{description: value, student_id: value})
+      {:ok, %StudentRecordReport{}}
+
+      iex> create_student_record_report(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_student_record_report(attrs \\ %{}) do
+    %StudentRecordReport{}
+    |> StudentRecordReport.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a student_record_report.
+
+  ## Examples
+
+      iex> update_student_record_report(student_record_report, %{description: new_value, student_id: value})
+      {:ok, %StudentRecordReport{}}
+
+      iex> update_student_record_report(student_record_report, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_student_record_report(%StudentRecordReport{} = student_record_report, attrs) do
+    student_record_report
+    |> StudentRecordReport.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a student_record_report.
+
+  ## Examples
+
+      iex> delete_student_record_report(student_record_report)
+      {:ok, %StudentRecordReport{}}
+
+      iex> delete_student_record_report(student_record_report)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_student_record_report(%StudentRecordReport{} = student_record_report) do
+    Repo.delete(student_record_report)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking student_record_report changes.
+
+  ## Examples
+
+      iex> change_student_record_report(student_record_report)
+      %Ecto.Changeset{data: %StudentRecordReport{}}
+
+  """
+  def change_student_record_report(%StudentRecordReport{} = student_record_report, attrs \\ %{}) do
+    StudentRecordReport.changeset(student_record_report, attrs)
+  end
 end
