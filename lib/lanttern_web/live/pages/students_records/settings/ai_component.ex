@@ -136,8 +136,8 @@ defmodule LantternWeb.StudentsRecordsSettingsLive.AIComponent do
       case StudentRecordReports.get_student_record_report_ai_config_by_school_id(
              socket.assigns.current_user.current_profile.school_id
            ) do
-        %StudentRecordReportAIConfig{} = settings ->
-          settings
+        %StudentRecordReportAIConfig{} = config ->
+          config
 
         _ ->
           %StudentRecordReportAIConfig{

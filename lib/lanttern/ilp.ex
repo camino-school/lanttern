@@ -746,31 +746,11 @@ defmodule Lanttern.ILP do
         opts \\ [],
         open_ai_responses_module \\ ExOpenAI.Responses
       ) do
-    component_entry_map =
-      template.sections
-      |> Enum.flat_map(& &1.components)
-      |> Enum.map(fn component ->
-        {
-          component.id,
-          Enum.find(student_ilp.entries, &(&1.component_id == component.id))
-        }
-      end)
-      |> Enum.filter(fn {_component_id, entry} -> entry end)
-      |> Enum.into(%{})
-
     user_input_content =
-      Enum.reduce(
-        template.sections,
-        "review the ILP for a student with age #{age}.\n",
-        fn section, acc ->
-          section_components =
-            Enum.map(section.components, fn component ->
-              entry = component_entry_map[component.id]
-              "###{component.name}\n#{entry.description}"
-            end)
-
-          acc <> "##{section.name}\n" <> Enum.join(section_components, "\n") <> "\n"
-        end
+      student_ilp_to_text(
+        student_ilp,
+        template,
+        "review the ILP for a student with age #{age}.\n"
       )
 
     input =
@@ -811,5 +791,58 @@ defmodule Lanttern.ILP do
       error ->
         error
     end
+  end
+
+  @doc """
+  Convert the given student ILP to text.
+
+  Useful for using ILPs in LLMs prompts.
+
+  ### Required preloads
+
+  - `student_ilp` - entries
+  - `template` - sections and components
+
+  ## Examples
+
+      iex> student_ilp_to_text(student_ilp)
+      "ILP as text"
+
+  """
+  @spec student_ilp_to_text(
+          StudentILP.t(),
+          ILPTemplate.t(),
+          initial_text :: binary()
+        ) :: binary()
+  def student_ilp_to_text(
+        %StudentILP{} = student_ilp,
+        %ILPTemplate{} = template,
+        initial_text \\ ""
+      ) do
+    component_entry_map =
+      template.sections
+      |> Enum.flat_map(& &1.components)
+      |> Enum.map(fn component ->
+        {
+          component.id,
+          Enum.find(student_ilp.entries, &(&1.component_id == component.id))
+        }
+      end)
+      |> Enum.filter(fn {_component_id, entry} -> entry end)
+      |> Enum.into(%{})
+
+    Enum.reduce(
+      template.sections,
+      initial_text,
+      fn section, acc ->
+        section_components =
+          Enum.map(section.components, fn component ->
+            entry = component_entry_map[component.id]
+            "###{component.name}\n#{entry.description}"
+          end)
+
+        acc <> "##{section.name}\n" <> Enum.join(section_components, "\n") <> "\n"
+      end
+    )
   end
 end

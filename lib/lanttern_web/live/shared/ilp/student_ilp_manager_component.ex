@@ -101,10 +101,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
             ) %>
           </p>
           <.markdown text={@student_ilp.ai_revision} />
-          <p class="flex items-center gap-2 p-2 rounded-sm mt-4 text-ltrn-ai-dark bg-ltrn-ai-lighter">
-            <.icon name="hero-information-circle-micro" class="w-4 h-4" />
-            <%= gettext("Remember that AI make mistakes. Always double-check generated responses.") %>
-          </p>
+          <.ai_generated_content_disclaimer class="mt-4" />
         </div>
         <%= if @is_on_ai_cooldown do %>
           <.card_base class="p-2 mt-4">

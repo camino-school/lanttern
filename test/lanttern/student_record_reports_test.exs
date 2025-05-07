@@ -132,9 +132,21 @@ defmodule Lanttern.StudentRecordReportsTest do
 
     @invalid_attrs %{description: nil, private_description: nil, student_id: nil}
 
-    test "list_student_record_reports/0 returns all student_record_reports" do
+    test "list_student_record_reports/1 returns all student_record_reports" do
       student_record_report = student_record_report_fixture()
       assert StudentRecordReports.list_student_record_reports() == [student_record_report]
+    end
+
+    test "list_student_record_reports/1 with student_id opt returns all student_record_reports filtered by student" do
+      student_record_report = student_record_report_fixture()
+
+      # other reports for filter test
+      student_record_report_fixture()
+      student_record_report_fixture()
+
+      assert StudentRecordReports.list_student_record_reports(
+               student_id: student_record_report.student_id
+             ) == [student_record_report]
     end
 
     test "get_student_record_report!/1 returns the student_record_report with given id" do
@@ -213,6 +225,60 @@ defmodule Lanttern.StudentRecordReportsTest do
 
       assert %Ecto.Changeset{} =
                StudentRecordReports.change_student_record_report(student_record_report)
+    end
+  end
+
+  describe "AI generate functions" do
+    alias Lanttern.StudentRecordReports.StudentRecordReport
+
+    import Lanttern.StudentRecordReportsFixtures
+
+    alias Lanttern.SchoolsFixtures
+    alias Lanttern.StudentsRecordsFixtures
+
+    test "generate_student_record_report/2 returns the student record report as expected" do
+      student = SchoolsFixtures.student_fixture()
+      tag = StudentsRecordsFixtures.student_record_tag_fixture(%{school_id: student.school_id})
+
+      _student_record =
+        StudentsRecordsFixtures.student_record_fixture(%{
+          tags_ids: [tag.id],
+          students_ids: [student.id],
+          school_id: student.school_id
+        })
+
+      _ai_config = student_record_report_ai_config_fixture(%{school_id: student.school_id})
+
+      {:ok, %StudentRecordReport{} = expected} =
+        StudentRecordReports.generate_student_record_report(
+          student.id,
+          [],
+          Lanttern.ExOpenAIStub.Responses
+        )
+
+      assert expected.description == "This is a stub response."
+    end
+
+    test "generate_student_record_report/2 without complete AI config returns an error" do
+      student = SchoolsFixtures.student_fixture()
+
+      _student_record =
+        StudentsRecordsFixtures.student_record_fixture(%{
+          students_ids: [student.id],
+          school_id: student.school_id
+        })
+
+      assert {:error, :no_config} =
+               StudentRecordReports.generate_student_record_report(student.id)
+    end
+
+    test "generate_student_record_report/2 without records returns an error" do
+      student = SchoolsFixtures.student_fixture()
+
+      _ai_config = student_record_report_ai_config_fixture(%{school_id: student.school_id})
+
+      assert {:error, :no_records} =
+               StudentRecordReports.generate_student_record_report(student.id)
     end
   end
 end

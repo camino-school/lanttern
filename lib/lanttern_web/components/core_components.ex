@@ -247,6 +247,24 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Renders a disclaimer about AI generated content.
+
+  ## Examples
+
+      <.ai_generated_content_disclaimer />
+  """
+  attr :class, :any, default: nil
+
+  def ai_generated_content_disclaimer(assigns) do
+    ~H"""
+    <p class={["flex items-center gap-2 p-2 rounded-sm text-ltrn-ai-dark bg-ltrn-ai-lighter", @class]}>
+      <.icon name="hero-information-circle-micro" class="w-4 h-4" />
+      <%= gettext("Remember that AI make mistakes. Always double-check generated responses.") %>
+    </p>
+    """
+  end
+
+  @doc """
   Renders a back navigation link.
 
   ## Examples
