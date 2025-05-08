@@ -17,6 +17,9 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
   alias Lanttern.StudentsRecords
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2, save_profile_filters: 2]
 
+  # local components
+  alias LantternWeb.StudentLive.StudentRecordsAIOverlayComponent
+
   # shared components
   alias LantternWeb.Schools.StaffMemberSearchComponent
   alias LantternWeb.StudentsRecords.StudentRecordOverlayComponent
@@ -205,6 +208,14 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
         notify_component={@myself}
         new_record_initial_fields={@new_record_initial_fields}
       />
+      <.live_component
+        :if={@ai_panel_open}
+        module={StudentRecordsAIOverlayComponent}
+        id="student-record-ai-overlay"
+        student={@student}
+        on_cancel={JS.patch(@base_path)}
+      />
+      <.floating_ai_button type="link" patch={"#{@base_path}?ai=true"} />
     </div>
     """
   end
@@ -267,6 +278,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
       |> assign(assigns)
       |> initialize()
       |> assign_student_record_id()
+      |> assign_ai_panel_open()
 
     {:ok, socket}
   end
@@ -376,6 +388,11 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
 
   defp assign_student_record_id(socket),
     do: assign(socket, :student_record_id, nil)
+
+  defp assign_ai_panel_open(%{assigns: %{params: %{"ai" => "true"}}} = socket),
+    do: assign(socket, :ai_panel_open, true)
+
+  defp assign_ai_panel_open(socket), do: assign(socket, :ai_panel_open, false)
 
   @impl true
   def handle_event("remove_tag_filter", %{"id" => tag_id}, socket) do

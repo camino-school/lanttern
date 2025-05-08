@@ -87,14 +87,6 @@
   params={@params}
 />
 <.live_component
-  :if={@live_action == :ai}
-  module={AIComponent}
-  id="student-ai"
-  student={@student}
-  current_profile={@current_user.current_profile}
-  params={@params}
-/>
-<.live_component
   :if={@is_editing}
   module={StudentFormOverlayComponent}
   id="student-form-overlay"

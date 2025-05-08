@@ -1,4 +1,4 @@
-defmodule LantternWeb.StudentLive.AIComponent do
+defmodule LantternWeb.StudentLive.StudentRecordsAIOverlayComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.StudentRecordReports
@@ -6,27 +6,23 @@ defmodule LantternWeb.StudentLive.AIComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div>
-      <.responsive_container class="py-10 px-4">
+    <div id={@id}>
+      <.ai_panel_overlay id={"#{@id}-ai-panel"} show on_cancel={@on_cancel} class="p-4">
         <.action type="button" phx-click={JS.push("generate", target: @myself)} theme="ai">
           Request AI report
         </.action>
 
         <%= if @has_student_record_reports do %>
           <div id="student-record-reports" phx-update="stream">
-            <.ai_box
-              :for={{dom_id, srr} <- @streams.student_record_reports}
-              id={dom_id}
-              class="p-6 mt-10"
-            >
+            <div :for={{dom_id, srr} <- @streams.student_record_reports} id={dom_id} class="mt-10">
               <.markdown text={srr.description} />
               <.ai_generated_content_disclaimer class="mt-4" />
-            </.ai_box>
+            </div>
           </div>
         <% else %>
           <div class="mt-10">no reports yet</div>
         <% end %>
-      </.responsive_container>
+      </.ai_panel_overlay>
     </div>
     """
   end

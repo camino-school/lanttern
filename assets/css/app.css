@@ -34,10 +34,15 @@
   --color-ltrn-mesh-yellow: var(--color-yellow-100);
   --color-ltrn-mesh-lime: var(--color-lime-100);
 
-  --color-ltrn-ai-dark: var(--color-pink-800);
-  --color-ltrn-ai-accent: var(--color-pink-500);
-  --color-ltrn-ai-lighter: var(--color-pink-200);
-  --color-ltrn-ai-lightest: var(--color-pink-50);
+  --color-ltrn-ai-dark: var(--color-amber-900);
+  --color-ltrn-ai-accent: var(--color-amber-500);
+  --color-ltrn-ai-lighter: var(--color-amber-200);
+  --color-ltrn-ai-lightest: var(--color-amber-50);
+  --color-ltrn-ai-spectrum-main: var(--color-cyan-300);
+  --color-ltrn-ai-spectrum-1: var(--color-purple-500);
+  --color-ltrn-ai-spectrum-2: var(--color-green-300);
+  --color-ltrn-ai-spectrum-3: var(--color-yellow-300);
+  --color-ltrn-ai-spectrum-4: var(--color-rose-300);
 
   --color-ltrn-diff-dark: var(--color-violet-800);
   --color-ltrn-diff-accent: var(--color-violet-600);
@@ -114,6 +119,73 @@ button {
     radial-gradient(circle at 20% 60%, #ECFEFF 20%, transparent 60%),
     radial-gradient(circle at 0 0, #FFE4E6 20%, transparent 50%),
     radial-gradient(circle at 120% 120%, #DDD6FE 40%, transparent 60%);
+}
+
+.ltrn-ai-overlay-border {
+  border-image: linear-gradient(
+    to top right,
+    var(--color-ltrn-ai-spectrum-1),
+    var(--color-ltrn-ai-spectrum-main),
+    var(--color-ltrn-ai-spectrum-2),
+    var(--color-ltrn-ai-spectrum-3),
+    var(--color-ltrn-ai-spectrum-4)
+  ) 1;
+}
+
+.ltrn-ai-spot-1-anim {
+  animation: 2s ease-in-out infinite alternate ltrn-ai-spot-1;
+}
+
+.ltrn-ai-spot-2-anim {
+  animation: 1s ease-in-out infinite alternate ltrn-ai-spot-2;
+}
+
+.ltrn-ai-spot-3-anim {
+  animation: 0.5s ease-in-out infinite alternate ltrn-ai-spot-3;
+}
+
+.ltrn-ai-spot-4-anim {
+  animation: 1s ease-in-out infinite alternate ltrn-ai-spot-4;
+}
+
+@keyframes ltrn-ai-spot-1 {
+  from {
+    transform: translate(0, 0);
+  }
+
+  to {
+    transform: translate(50%, 50%);
+  }
+}
+
+@keyframes ltrn-ai-spot-2 {
+  from {
+    transform: translate(0, 0);
+  }
+
+  to {
+    transform: translate(-50%, 75%);
+  }
+}
+
+@keyframes ltrn-ai-spot-3 {
+  from {
+    transform: translate(0, 0);
+  }
+
+  to {
+    transform: translate(-25%, -50%);
+  }
+}
+
+@keyframes ltrn-ai-spot-4 {
+  from {
+    transform: translate(0, 0);
+  }
+
+  to {
+    transform: translate(-50%, -50%);
+  }
 }
 
 /* landing page */
