@@ -756,6 +756,11 @@ defmodule Lanttern.ILP do
     input =
       [
         %ExOpenAI.Components.EasyInputMessage{
+          content: "Formatting re-enabled",
+          role: :developer,
+          type: :message
+        },
+        %ExOpenAI.Components.EasyInputMessage{
           content: template.ai_layer.revision_instructions,
           role: :developer,
           type: :message
@@ -769,15 +774,15 @@ defmodule Lanttern.ILP do
 
     case open_ai_responses_module.create_response(input, template.ai_layer.model) do
       {:ok, %ExOpenAI.Components.Response{} = response} ->
-        [
-          %{
-            content: [
-              %{
-                text: revision
-              }
-            ]
-          }
-        ] = response.output
+        %{
+          content: [
+            %{
+              text: revision
+            }
+          ]
+        } =
+          response.output
+          |> Enum.find(&(&1[:type] == "message" && &1[:role] == "assistant"))
 
         student_ilp
         |> StudentILP.ai_changeset(%{

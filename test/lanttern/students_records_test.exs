@@ -1,7 +1,9 @@
 defmodule Lanttern.StudentsRecordsTest do
   use Lanttern.DataCase
 
+  alias Lanttern.Repo
   alias Lanttern.StudentsRecords
+  import Ecto.Query, warn: false
 
   describe "students_records" do
     import Lanttern.StudentsRecordsFixtures
@@ -435,6 +437,36 @@ defmodule Lanttern.StudentsRecordsTest do
       assert expected_1.id == student_record_1.id
       assert expected_2.id == student_record_2.id
       assert expected_3.id == student_record_3.id
+    end
+
+    test "list_students_records/1 with updated_after/before filter results by update date" do
+      student_record_1 = student_record_fixture()
+
+      from(
+        sr in StudentRecord,
+        where: sr.id == ^student_record_1.id,
+        update: [set: [updated_at: ^~N[2025-01-01 00:00:00]]]
+      )
+      |> Repo.update_all([])
+
+      student_record_2 = student_record_fixture()
+
+      from(
+        sr in StudentRecord,
+        where: sr.id == ^student_record_2.id,
+        update: [set: [updated_at: ^~N[2025-02-01 00:00:00]]]
+      )
+      |> Repo.update_all([])
+
+      [expected_1] =
+        StudentsRecords.list_students_records(updated_before: ~N[2025-01-15 00:00:00])
+
+      assert expected_1.id == student_record_1.id
+
+      [expected_2] =
+        StudentsRecords.list_students_records(updated_after: ~N[2025-01-15 00:00:00])
+
+      assert expected_2.id == student_record_2.id
     end
 
     test "list_students_records_page/1 returns all students_records in a Page struct" do

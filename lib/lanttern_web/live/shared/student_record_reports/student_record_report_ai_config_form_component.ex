@@ -42,6 +42,19 @@ defmodule LantternWeb.StudentRecordReports.StudentRecordReportAIConfigFormCompon
         />
         <.markdown_supported class="mb-6" />
         <.input
+          field={@form[:about]}
+          type="textarea"
+          label={gettext("About")}
+          phx-debounce="1500"
+          class="mb-1"
+          show_optional
+        >
+          <:description>
+            <p><%= gettext("This will be displayed in LantternAI overlay.") %></p>
+          </:description>
+        </.input>
+        <.markdown_supported class="mb-6" />
+        <.input
           field={@form[:model]}
           type="select"
           label="AI model"

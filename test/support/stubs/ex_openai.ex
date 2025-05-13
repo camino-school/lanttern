@@ -12,6 +12,11 @@ defmodule Lanttern.ExOpenAIStub do
        %ExOpenAI.Components.Response{
          output: [
            %{
+             # any output
+           },
+           %{
+             type: "message",
+             role: "assistant",
              content: [
                %{
                  text: "This is a stub response."

@@ -12,6 +12,7 @@ defmodule Lanttern.StudentRecordReports.StudentRecordReportAIConfig do
           id: pos_integer(),
           summary_instructions: String.t() | nil,
           update_instructions: String.t() | nil,
+          about: String.t() | nil,
           model: String.t() | nil,
           cooldown_minutes: non_neg_integer(),
           school: School.t() | Ecto.Association.NotLoaded.t(),
@@ -23,6 +24,7 @@ defmodule Lanttern.StudentRecordReports.StudentRecordReportAIConfig do
   schema "student_record_reports_ai_config" do
     field :summary_instructions, :string
     field :update_instructions, :string
+    field :about, :string
     field :model, :string
     field :cooldown_minutes, :integer, default: 0
 
@@ -37,6 +39,7 @@ defmodule Lanttern.StudentRecordReports.StudentRecordReportAIConfig do
     |> cast(attrs, [
       :summary_instructions,
       :update_instructions,
+      :about,
       :model,
       :cooldown_minutes,
       :school_id

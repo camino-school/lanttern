@@ -69,6 +69,8 @@ defmodule Lanttern.StudentsRecords do
   - `:owner_id` - filter results by owner
   - `:assignees_ids` - filter results by assignees
   - `:view` - if "open", will return only open records ordered by oldest
+  - `:updated_before`
+  - `:updated_after`
   - `:load_students_tags` - load linked students' tags in `student_tags` field
   - `:check_profile_permissions` - filter results based on profile permission
   - `:preloads` - preloads associated data
@@ -91,6 +93,8 @@ defmodule Lanttern.StudentsRecords do
             owner_id: pos_integer(),
             assignees_ids: [pos_integer()],
             view: String.t(),
+            updated_before: NaiveDateTime.t(),
+            updated_after: NaiveDateTime.t(),
             load_students_tags: boolean(),
             check_profile_permissions: Profile.t(),
             preloads: list()
@@ -200,6 +204,22 @@ defmodule Lanttern.StudentsRecords do
     from(
       [sr, status: s] in queryable,
       where: not s.is_closed
+    )
+    |> apply_list_students_records_opts(opts)
+  end
+
+  defp apply_list_students_records_opts(queryable, [{:updated_before, datetime} | opts]) do
+    from(
+      sr in queryable,
+      where: sr.updated_at <= ^datetime
+    )
+    |> apply_list_students_records_opts(opts)
+  end
+
+  defp apply_list_students_records_opts(queryable, [{:updated_after, datetime} | opts]) do
+    from(
+      sr in queryable,
+      where: sr.updated_at >= ^datetime
     )
     |> apply_list_students_records_opts(opts)
   end

@@ -213,6 +213,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
         module={StudentRecordsAIOverlayComponent}
         id="student-record-ai-overlay"
         student={@student}
+        current_profile={@current_user.current_profile}
         on_cancel={JS.patch(@base_path)}
       />
       <.floating_ai_button type="link" patch={"#{@base_path}?ai=true"} />

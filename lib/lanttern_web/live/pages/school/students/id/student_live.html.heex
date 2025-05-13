@@ -30,13 +30,6 @@
         >
           <%= gettext("Grades reports") %>
         </:tab>
-        <:tab
-          patch={~p"/school/students/#{@student}/ai"}
-          is_current={@live_action == :ai}
-          theme="ai"
-        >
-          <%= gettext("LantternAI") %>
-        </:tab>
       </.neo_tabs>
       <.action
         :if={@is_school_manager}

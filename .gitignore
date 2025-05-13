@@ -40,3 +40,6 @@ npm-debug.log
 
 # windsurf rules
 .windsurfrules
+
+# MacOS
+**/.DS_store 

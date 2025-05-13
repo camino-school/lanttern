@@ -66,7 +66,7 @@ defmodule Lanttern.MixProject do
       {:slugify, "~> 1.3"},
       {:image, "~> 0.37"},
       {:ex_openai, "~> 1.8.0-beta"},
-      {:tidewave, "~> 0.1"}
+      {:tidewave, "~> 0.1.6"}
     ]
   end
 

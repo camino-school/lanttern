@@ -297,37 +297,81 @@ defmodule Lanttern.StudentRecordReports do
          %StudentRecordReportAIConfig{} = config <-
            validate_ai_config(config, Keyword.get(opts, :last_report)),
          student_records when is_list(student_records) <-
-           list_and_validate_student_records(student.id) do
+           list_and_validate_student_records(student.id, opts) do
       input =
         [
           %ExOpenAI.Components.EasyInputMessage{
-            content: config.summary_instructions,
+            content: "Formatting re-enabled",
             role: :developer,
             type: :message
           },
           %ExOpenAI.Components.EasyInputMessage{
-            content: Enum.map_join(student_records, "\n\n---\n\n", &student_record_to_text/1),
-            role: :user,
+            content: config.summary_instructions,
+            role: :developer,
             type: :message
           }
         ]
 
-      case open_ai_responses_module.create_response(input, config.model) do
-        {:ok, %ExOpenAI.Components.Response{} = response} ->
-          [
-            %{
-              content: [
-                %{
-                  text: report
+      input =
+        case Keyword.get(opts, :last_report) do
+          %StudentRecordReport{} = srr ->
+            input ++
+              [
+                %ExOpenAI.Components.EasyInputMessage{
+                  content: config.update_instructions,
+                  role: :developer,
+                  type: :message
+                },
+                %ExOpenAI.Components.EasyInputMessage{
+                  content:
+                    "# Last report\n\nBased on records up to: #{srr.to_datetime}\n\n#{srr.description}",
+                  role: :user,
+                  type: :message
                 }
               ]
-            }
-          ] = response.output
 
-          create_student_record_report(%{
-            student_id: student_id,
-            description: report
-          })
+          _ ->
+            input
+        end
+
+      input =
+        input ++
+          [
+            %ExOpenAI.Components.EasyInputMessage{
+              content: Enum.map_join(student_records, "\n\n---\n\n", &student_record_to_text/1),
+              role: :user,
+              type: :message
+            }
+          ]
+
+      case open_ai_responses_module.create_response(input, config.model) do
+        {:ok, %ExOpenAI.Components.Response{} = response} ->
+          %{
+            content: [
+              %{
+                text: report
+              }
+            ]
+          } =
+            response.output
+            |> Enum.find(&(&1[:type] == "message" && &1[:role] == "assistant"))
+
+          attrs =
+            %{
+              student_id: student_id,
+              description: report
+            }
+
+          attrs =
+            case Keyword.get(opts, :last_report) do
+              %StudentRecordReport{} = srr ->
+                Map.put(attrs, :from_datetime, srr.to_datetime)
+
+              _ ->
+                attrs
+            end
+
+          create_student_record_report(attrs)
 
         error ->
           error
@@ -346,11 +390,23 @@ defmodule Lanttern.StudentRecordReports do
 
   defp validate_ai_config(_, _), do: {:error, :no_config}
 
-  defp list_and_validate_student_records(student_id) do
-    StudentsRecords.list_students_records(
-      students_ids: [student_id],
-      preloads: [:students, :tags, :classes]
-    )
+  defp list_and_validate_student_records(student_id, opts) do
+    list_opts =
+      [
+        students_ids: [student_id],
+        preloads: [:students, :tags, :classes]
+      ]
+
+    list_opts =
+      case Keyword.get(opts, :last_report) do
+        %StudentRecordReport{} = srr ->
+          [{:updated_after, srr.to_datetime} | list_opts]
+
+        _ ->
+          list_opts
+      end
+
+    StudentsRecords.list_students_records(list_opts)
     |> case do
       records when records == [] -> {:error, :no_records}
       records -> records
@@ -378,6 +434,7 @@ defmodule Lanttern.StudentRecordReports do
     - Classes: #{classes}
     - Tags: #{tags}
     - Created at: #{record.inserted_at}
+    - Record datetime: #{record.date} #{record.time || "(no time specified)"}
 
     #{if record.name, do: "## #{record.name}"}
 

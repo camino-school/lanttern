@@ -9,6 +9,7 @@
 @custom-variant group-phx-submit-loading (&:where(.group.phx-submit-loading *));
 @custom-variant phx-change-loading (.phx-change-loading&, .phx-change-loading &);
 @custom-variant peer-phx-change-loading (&:where(.peer.phx-change-loading ~ *));
+@custom-variant peer-phx-click-loading (&:where(.peer.phx-click-loading ~ *));
 
 @plugin "./heroicons.tailwind.plugin.js";
 
@@ -36,6 +37,7 @@
 
   --color-ltrn-ai-dark: var(--color-amber-900);
   --color-ltrn-ai-accent: var(--color-amber-500);
+  --color-ltrn-ai-light: var(--color-amber-300);
   --color-ltrn-ai-lighter: var(--color-amber-200);
   --color-ltrn-ai-lightest: var(--color-amber-50);
   --color-ltrn-ai-spectrum-main: var(--color-cyan-300);
@@ -130,6 +132,26 @@ button {
     var(--color-ltrn-ai-spectrum-3),
     var(--color-ltrn-ai-spectrum-4)
   ) 1;
+}
+
+.ltrn-ai-bg {
+  background-image: linear-gradient(
+    to right,
+    white 25%,
+    var(--color-ltrn-ai-spectrum-1),
+    var(--color-ltrn-ai-spectrum-main),
+    var(--color-ltrn-ai-spectrum-2),
+    var(--color-ltrn-ai-spectrum-3),
+    var(--color-ltrn-ai-spectrum-4),
+    white 75%
+  );
+  background-size: 400%;
+  animation: 4s ease-in-out 2s reverse infinite ltrn-ai-bg;
+}
+
+@keyframes ltrn-ai-bg {
+  from {background-position: 0%}
+  to {background-position: 100%}
 }
 
 .ltrn-ai-spot-1-anim {

@@ -461,8 +461,8 @@ defmodule LantternWeb.OverlayComponents do
       to: "##{id}-container",
       transition:
         {"transition-all transform ease-out duration-300",
-         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
-         "opacity-100 translate-y-0 sm:scale-100"},
+         "opacity-0 translate-y-10 sm:-translate-x-2 sm:scale-95",
+         "opacity-100 translate-y-0 sm:translate-x-0 sm:scale-100"},
       time: 300,
       display: "flex"
     )
@@ -481,8 +481,8 @@ defmodule LantternWeb.OverlayComponents do
       time: 200,
       transition:
         {"transition-all transform ease-in duration-200",
-         "opacity-100 translate-y-0 sm:scale-100",
-         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
+         "opacity-100 translate-y-0 sm:translate-x-0 sm:scale-100",
+         "opacity-0 translate-y-10 sm:-translate-x-2 sm:scale-95"}
     )
     |> JS.hide(to: "##{id}", transition: {"block", "block", "hidden"})
     |> JS.remove_class("overflow-hidden", to: "body")

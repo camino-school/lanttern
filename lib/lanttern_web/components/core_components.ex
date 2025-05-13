@@ -80,6 +80,7 @@ defmodule LantternWeb.CoreComponents do
     "subtle" => "text-ltrn-subtle hover:text-ltrn-dark",
     "primary" => "text-ltrn-dark hover:text-ltrn-subtle",
     "ai" => "text-ltrn-ai-dark hover:text-ltrn-ai-dark/60",
+    "ai-generate" => "text-ltrn-ai-dark hover:text-ltrn-ai-dark/60",
     "diff" => "text-ltrn-diff-dark hover:text-ltrn-diff-dark/60",
     "student" => "text-ltrn-student-dark hover:text-ltrn-student-dark/80",
     "staff" => "text-ltrn-staff-dark hover:text-ltrn-staff-dark/80",
@@ -91,6 +92,7 @@ defmodule LantternWeb.CoreComponents do
     "subtle" => nil,
     "primary" => "bg-ltrn-mesh-primary",
     "ai" => "bg-ltrn-ai-lighter",
+    "ai-generate" => "bg-white ltrn-ai-bg",
     "diff" => "bg-ltrn-diff-lightest",
     "student" => "bg-ltrn-student-lightest",
     "staff" => "bg-ltrn-staff-lightest",
@@ -176,7 +178,8 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @action_icon_themes %{
-    "ghost" => "text-ltrn-dark hover:text-ltrn-subtle"
+    "ghost" => "text-ltrn-dark hover:text-ltrn-subtle",
+    "subtle" => "text-ltrn-subtle hover:text-ltrn-dark"
   }
 
   @action_icon_sizes %{
@@ -259,7 +262,7 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <p class={["flex items-center gap-2 p-2 rounded-sm text-ltrn-ai-dark bg-ltrn-ai-lighter", @class]}>
       <.icon name="hero-information-circle-micro" class="w-4 h-4" />
-      <%= gettext("Remember that AI make mistakes. Always double-check generated responses.") %>
+      <%= gettext("Remember that AI makes mistakes. Always double-check generated responses.") %>
     </p>
     """
   end

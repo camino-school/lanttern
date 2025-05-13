@@ -33,7 +33,6 @@ defmodule Lanttern.StudentRecordReportsFixtures do
       attrs
       |> Enum.into(%{
         description: "some description",
-        private_description: "some private_description",
         student_id: SchoolsFixtures.maybe_gen_student_id(attrs)
       })
       |> Lanttern.StudentRecordReports.create_student_record_report()

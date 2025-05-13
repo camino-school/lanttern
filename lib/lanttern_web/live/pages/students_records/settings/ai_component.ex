@@ -56,6 +56,16 @@ defmodule LantternWeb.StudentsRecordsSettingsLive.AIComponent do
                   </.badge>
                 </div>
               </div>
+              <%= if @student_record_report_ai_config.about do %>
+                <h6 class="mt-6 mb-2 font-display font-black text-base text-ltrn-ai-dark">
+                  <%= gettext("About") %>
+                </h6>
+                <.markdown text={
+                  gettext("In your school, LantternAI will %{about}",
+                    about: @student_record_report_ai_config.about
+                  )
+                } />
+              <% end %>
             </div>
             <h6 class="mb-4 font-display font-black text-base text-ltrn-subtle">
               <%= gettext("Generate summary instructions") %>

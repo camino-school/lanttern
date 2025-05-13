@@ -130,7 +130,7 @@ defmodule Lanttern.StudentRecordReportsTest do
 
     import Lanttern.StudentRecordReportsFixtures
 
-    @invalid_attrs %{description: nil, private_description: nil, student_id: nil}
+    @invalid_attrs %{description: nil, student_id: nil}
 
     test "list_student_record_reports/1 returns all student_record_reports" do
       student_record_report = student_record_report_fixture()
@@ -161,7 +161,6 @@ defmodule Lanttern.StudentRecordReportsTest do
 
       valid_attrs = %{
         description: "some description",
-        private_description: "some private_description",
         student_id: student.id
       }
 
@@ -169,7 +168,6 @@ defmodule Lanttern.StudentRecordReportsTest do
                StudentRecordReports.create_student_record_report(valid_attrs)
 
       assert student_record_report.description == "some description"
-      assert student_record_report.private_description == "some private_description"
       assert student_record_report.student_id == student.id
     end
 
@@ -182,8 +180,7 @@ defmodule Lanttern.StudentRecordReportsTest do
       student_record_report = student_record_report_fixture()
 
       update_attrs = %{
-        description: "some updated description",
-        private_description: "some updated private_description"
+        description: "some updated description"
       }
 
       assert {:ok, %StudentRecordReport{} = student_record_report} =
@@ -193,7 +190,6 @@ defmodule Lanttern.StudentRecordReportsTest do
                )
 
       assert student_record_report.description == "some updated description"
-      assert student_record_report.private_description == "some updated private_description"
     end
 
     test "update_student_record_report/2 with invalid data returns error changeset" do
