@@ -284,7 +284,10 @@ defmodule Lanttern.StudentRecordReports do
           opts :: Keyword.t(),
           open_ai_responses_module :: any()
         ) ::
-          {:ok, StudentRecordReport.t()} | {:error, :config_error}
+          {:ok, StudentRecordReport.t()}
+          | {:error, :no_config}
+          | {:error, :no_records}
+          | {:error, Ecto.Changeset.t()}
   def generate_student_record_report(
         student_id,
         opts \\ [],
