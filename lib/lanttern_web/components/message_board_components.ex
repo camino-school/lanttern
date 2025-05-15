@@ -7,7 +7,7 @@ defmodule LantternWeb.MessageBoardComponents do
 
   use Gettext, backend: Lanttern.Gettext
   import LantternWeb.CoreComponents
-  import LantternWeb.DateTimeHelpers
+  import LantternWeb.LocalizationHelpers
 
   alias Lanttern.MessageBoard.Message
 
@@ -66,10 +66,26 @@ defmodule LantternWeb.MessageBoardComponents do
       <div class="flex flex-row-reverse sm:flex-row items-center gap-2 mt-2 text-xs">
         <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
         <div class="flex-1 sm:flex sm:items-center sm:gap-2">
-          <%= format_local!(@message.inserted_at, "{Mshort} {0D}, {YYYY} {h24}:{m}") %>
+          <span
+            phx-hook="ClientTime"
+            id={"t-create-#{@message.id}"}
+            time={@message.inserted_at}
+            lang={get_html_lang()}
+          >
+            ------ --- ------ ------
+          </span>
           <%= if @message.inserted_at != @message.updated_at do %>
             <div class="mt-1 sm:mt-0 text-ltrn-subtle">
-              <%= "(#{gettext("Updated")} #{format_local!(@message.updated_at, "{Mshort} {0D}, {YYYY} {h24}:{m}")})" %>
+              <%= "(#{gettext("Updated")}" %>
+              <span
+                phx-hook="ClientTime"
+                id={"t-up-#{@message.id}"}
+                time={@message.updated_at}
+                lang={get_html_lang()}
+              >
+                ------ --- ------ ------
+              </span>
+              <%= ")" %>
             </div>
           <% end %>
         </div>

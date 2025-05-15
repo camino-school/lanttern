@@ -68,6 +68,16 @@ The main secrets/env vars that we need for this are the following:
 - `SECRET_KEY_BASE` - Phoenix generated
 - `CONTENT_SECURITY_POLICY` - CSP headers
 
+#### (Dump) Restoring PostgreSQL Backup
+
+##### requirements
+
+ - backup file FILENAME.backup,
+ - postgres client, ex. postgresql-client-14.
+
+Given Postgres is running in same machine run in terminal:
+`PGPASSWORD=<postgres_password> psql -h localhost -U postgres <db_name> < FILENAME.backup`
+
 ## Learn more
 
 - Official website: <https://www.phoenixframework.org/>

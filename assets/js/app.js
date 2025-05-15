@@ -27,6 +27,7 @@ import 'glider-js';
 
 // hooks
 import autocompleteHook from "./autocomplete-hook";
+import clientTimeHook from "./client-time-hook";
 import copyToClipboardHook from "./copy-to-clipboard-hook";
 import cookiesHook from "./cookies-hook";
 import dropdownMenuHook from "./dropdown-menu-hook";
@@ -39,6 +40,7 @@ import sortableHook from "./sortable-hook";
 
 let Hooks = {};
 Hooks.Autocomplete = autocompleteHook;
+Hooks.ClientTime = clientTimeHook;
 Hooks.Cookies = cookiesHook;
 Hooks.CopyToClipboard = copyToClipboardHook;
 Hooks.DropdownMenu = dropdownMenuHook;
