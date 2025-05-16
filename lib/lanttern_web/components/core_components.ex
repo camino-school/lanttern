@@ -91,7 +91,6 @@ defmodule LantternWeb.CoreComponents do
     "default" => nil,
     "subtle" => nil,
     "primary" => "bg-ltrn-mesh-primary",
-    "ai" => "bg-ltrn-ai-lighter",
     "ai-generate" => "bg-white ltrn-ai-bg",
     "diff" => "bg-ltrn-diff-lightest",
     "student" => "bg-ltrn-student-lightest",

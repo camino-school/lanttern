@@ -1,4 +1,10 @@
 defmodule LantternWeb.StudentLive.StudentRecordsAIOverlayComponent do
+  @moduledoc """
+  Renders an overlay with student record reports.
+
+  If there's no student record report, nothing is rendered.
+  """
+
   use LantternWeb, :live_component
 
   alias Lanttern.StudentRecordReports
@@ -11,78 +17,75 @@ defmodule LantternWeb.StudentLive.StudentRecordsAIOverlayComponent do
   def render(assigns) do
     ~H"""
     <div id={@id}>
-      <.ai_panel_overlay id={"#{@id}-ai-panel"} show on_cancel={@on_cancel} class="p-4">
-        <h4 class="mb-6 font-display font-black text-lg text-ltrn-ai-dark">
-          <%= gettext("Student record report") %>
-        </h4>
+      <.ai_panel_overlay
+        :if={@last_report}
+        id={"#{@id}-ai-panel"}
+        show
+        on_cancel={@on_cancel}
+        panel_title={gettext("Student records report")}
+        class="p-4"
+      >
         <%= if @student_record_report_ai_config && @student_record_report_ai_config.about do %>
-          <h6 class="mt-6 mb-2 font-display font-black text-base text-ltrn-ai-dark">
-            <%= gettext("About") %>
-          </h6>
-          <.markdown text={@student_record_report_ai_config.about} />
+          <.markdown text={@student_record_report_ai_config.about} class="mt-6" />
         <% end %>
-        <.action
-          :if={!@generate_error && !@is_on_ai_cooldown}
-          type="button"
-          phx-click={JS.push("generate", target: @myself)}
-          theme="ai-generate"
-          icon_name="hero-sparkles-mini"
-          class="peer mt-10"
-        >
-          <%= if @has_student_record_reports do
-            gettext("Generate updated student record report")
-          else
-            gettext("Generate student record report")
-          end %>
-        </.action>
-        <.card_base :if={@is_on_ai_cooldown} class="p-2 mt-4">
-          <p class="flex items-center gap-2 text-ltrn-ai-dark">
-            <.icon name="hero-clock-micro" class="w-4 h-4" />
-            <%= gettext("AI summaries can be requested every %{minute} minutes",
-              minute: @ai_cooldown_minutes
-            ) %>
-            <%= ngettext(
-              "(1 minute left until next summary request)",
-              "(%{count} minutes left until next summary request)",
-              @ai_cooldown_minutes_left
-            ) %>
-          </p>
-        </.card_base>
-        <p class="mt-4 hidden peer-phx-click-loading:block">
-          <%= gettext("Generating report...") %>
-        </p>
-        <p :if={@generate_error} class="mt-10 text-ltrn-subtle">
-          <%= @generate_error %>
-        </p>
-        <%= if @has_student_record_reports do %>
-          <div id="student-record-reports" phx-update="stream">
-            <div
-              :for={{dom_id, srr} <- @streams.student_record_reports}
-              id={dom_id}
-              class="py-6 border-t border-ltrn-ai-light mt-10"
-            >
-              <div class="flex items-center gap-4 mb-6">
-                <p class="flex-1 text-ltrn-ai-dark"><%= report_info(srr) %></p>
-                <div class="group relative shrink-0">
-                  <.action_icon
-                    type="button"
-                    name="hero-trash-mini"
-                    size="mini"
-                    theme="subtle"
-                    sr_text={gettext("Delete student record report")}
-                    phx-click={JS.push("delete", value: %{"id" => srr.id}, target: @myself)}
-                    data-confirm={gettext("Are you sure?")}
-                  />
-                  <.tooltip h_pos="right" v_pos="bottom">
-                    <%= gettext("Delete report") %>
-                  </.tooltip>
-                </div>
+        <div id="student-record-reports" phx-update="stream">
+          <div
+            :for={{dom_id, srr} <- @streams.student_record_reports}
+            id={dom_id}
+            class="pt-6 border-t border-ltrn-ai-light mt-10"
+          >
+            <div class="flex items-center gap-4 mb-6">
+              <p class="flex-1 text-ltrn-ai-dark"><%= report_info(srr) %></p>
+              <div class="group relative shrink-0">
+                <.action_icon
+                  type="button"
+                  name="hero-trash-mini"
+                  size="mini"
+                  theme="subtle"
+                  sr_text={gettext("Delete student record report")}
+                  phx-click={JS.push("delete", value: %{"id" => srr.id}, target: @myself)}
+                  data-confirm={gettext("Are you sure?")}
+                />
+                <.tooltip h_pos="right" v_pos="bottom">
+                  <%= gettext("Delete report") %>
+                </.tooltip>
               </div>
-              <.markdown text={srr.description} />
             </div>
+            <.markdown text={srr.description} />
           </div>
-          <.ai_generated_content_disclaimer class="mt-4" />
-        <% end %>
+        </div>
+        <.ai_generated_content_disclaimer class="mt-6" />
+        <div class="pt-10 pb-6 border-t border-ltrn-ai-light mt-6">
+          <.action
+            :if={!@generate_error && !@is_on_ai_cooldown}
+            type="button"
+            phx-click={JS.push("generate", target: @myself)}
+            theme="ai-generate"
+            icon_name="hero-sparkles-mini"
+            class="peer"
+          >
+            <%= gettext("Generate updated report") %>
+          </.action>
+          <p class="mt-4 hidden peer-phx-click-loading:block">
+            <%= gettext("Generating report...") %>
+          </p>
+          <p :if={@generate_error} class="text-ltrn-subtle">
+            <%= @generate_error %>
+          </p>
+          <div :if={@is_on_ai_cooldown}>
+            <p class="flex items-center gap-2 text-ltrn-ai-dark">
+              <.icon name="hero-clock-micro" class="w-4 h-4" />
+              <%= gettext("Reports can be generated every %{minute} minutes",
+                minute: @ai_cooldown_minutes
+              ) %>
+              <%= ngettext(
+                "(1 minute left until next report request)",
+                "(%{count} minutes left until next report request)",
+                @ai_cooldown_minutes_left
+              ) %>
+            </p>
+          </div>
+        </div>
       </.ai_panel_overlay>
     </div>
     """
@@ -144,13 +147,12 @@ defmodule LantternWeb.StudentLive.StudentRecordsAIOverlayComponent do
 
     last_report =
       if student_record_reports != [] do
-        [last | _] = student_record_reports
-        last
+        student_record_reports
+        |> Enum.at(-1)
       end
 
     socket
     |> stream(:student_record_reports, student_record_reports, reset: true)
-    |> assign(:has_student_record_reports, length(student_record_reports) > 0)
     |> assign(:last_report, last_report)
   end
 

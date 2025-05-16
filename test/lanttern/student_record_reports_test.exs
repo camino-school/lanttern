@@ -138,15 +138,30 @@ defmodule Lanttern.StudentRecordReportsTest do
     end
 
     test "list_student_record_reports/1 with student_id opt returns all student_record_reports filtered by student" do
-      student_record_report = student_record_report_fixture()
+      student_record_report_1 = student_record_report_fixture()
+      student_id = student_record_report_1.student_id
+
+      # create second report to validate ordering
+      student_record_report_2 = student_record_report_fixture(%{student_id: student_id})
 
       # other reports for filter test
       student_record_report_fixture()
       student_record_report_fixture()
 
-      assert StudentRecordReports.list_student_record_reports(
-               student_id: student_record_report.student_id
-             ) == [student_record_report]
+      assert StudentRecordReports.list_student_record_reports(student_id: student_id) == [
+               student_record_report_1,
+               student_record_report_2
+             ]
+    end
+
+    test "student_has_record_reports?/1 returns results as expected" do
+      student_record_report = student_record_report_fixture()
+
+      assert StudentRecordReports.student_has_record_reports?(student_record_report.student_id)
+
+      refute StudentRecordReports.student_has_record_reports?(
+               student_record_report.student_id + 1
+             )
     end
 
     test "get_student_record_report!/1 returns the student_record_report with given id" do

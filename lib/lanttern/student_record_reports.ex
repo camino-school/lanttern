@@ -155,7 +155,7 @@ defmodule Lanttern.StudentRecordReports do
   def list_student_record_reports(opts \\ []) do
     from(
       srr in StudentRecordReport,
-      order_by: [desc: srr.inserted_at]
+      order_by: srr.id
     )
     |> apply_list_student_record_reports(opts)
     |> Repo.all()
@@ -173,6 +173,25 @@ defmodule Lanttern.StudentRecordReports do
 
   defp apply_list_student_record_reports(queryable, [_ | opts]),
     do: apply_list_student_record_reports(queryable, opts)
+
+  @doc """
+  Check if student has any student_record_reports.
+
+  ## Examples
+
+      iex> student_has_record_reports?(1)
+      true
+
+  """
+  def student_has_record_reports?(student_id) do
+    from(
+      srr in StudentRecordReport,
+      where: srr.student_id == ^student_id,
+      select: count(srr)
+    )
+    |> Repo.one()
+    |> Kernel.>(0)
+  end
 
   @doc """
   Gets a single student_record_report.

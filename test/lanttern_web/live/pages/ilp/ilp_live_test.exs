@@ -115,10 +115,7 @@ defmodule LantternWeb.ILPLiveTest do
 
       # ai review should be enabled for templates with revision instructions + complete ILP
       assert view
-             |> has_element?(
-               "p",
-               "Inform the approximated age of the student (in years), and ask for Lanttern AI revision"
-             )
+             |> has_element?(~s(input[placeholder="Student age"]))
     end
   end
 end

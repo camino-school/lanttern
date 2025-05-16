@@ -22,6 +22,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
 
   # shared components
   alias LantternWeb.Schools.StaffMemberSearchComponent
+  alias LantternWeb.StudentRecordReports.StudentRecordReportAIActionBarComponent
   alias LantternWeb.StudentsRecords.StudentRecordOverlayComponent
   import LantternWeb.StudentsRecordsComponents
 
@@ -124,6 +125,14 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
             </.dropdown_menu>
           </div>
         </div>
+        <.live_component
+          module={StudentRecordReportAIActionBarComponent}
+          id="student-record-report-ai-action-bar"
+          class="mb-4"
+          student_id={@student.id}
+          view_patch="?ai=show"
+          notify_component={@myself}
+        />
         <.students_records_list
           id="students-records"
           stream={@streams.students_records}
@@ -216,7 +225,6 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
         current_profile={@current_user.current_profile}
         on_cancel={JS.patch(@base_path)}
       />
-      <.floating_ai_button type="link" patch={"#{@base_path}?ai=true"} />
     </div>
     """
   end
@@ -271,6 +279,14 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
       |> assign(:students_records_length, socket.assigns.students_records_length - 1)
 
     {:ok, socket}
+  end
+
+  def update(%{action: {StudentRecordReportAIActionBarComponent, {:generate_success, _}}}, socket) do
+    nav_opts = [
+      push_navigate: [to: "#{socket.assigns.base_path}?ai=show"]
+    ]
+
+    {:ok, delegate_navigation(socket, nav_opts)}
   end
 
   def update(assigns, socket) do
@@ -390,7 +406,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
   defp assign_student_record_id(socket),
     do: assign(socket, :student_record_id, nil)
 
-  defp assign_ai_panel_open(%{assigns: %{params: %{"ai" => "true"}}} = socket),
+  defp assign_ai_panel_open(%{assigns: %{params: %{"ai" => "show"}}} = socket),
     do: assign(socket, :ai_panel_open, true)
 
   defp assign_ai_panel_open(socket), do: assign(socket, :ai_panel_open, false)

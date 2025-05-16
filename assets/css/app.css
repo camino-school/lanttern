@@ -154,6 +154,26 @@ button {
   to {background-position: 100%}
 }
 
+.ltrn-ai-indicator-bg {
+  background: white;
+  background-image: linear-gradient(
+    to right,
+    var(--color-ltrn-ai-spectrum-1),
+    var(--color-ltrn-ai-spectrum-main),
+    var(--color-ltrn-ai-spectrum-2),
+    var(--color-ltrn-ai-spectrum-3),
+    var(--color-ltrn-ai-spectrum-4),
+    var(--color-ltrn-ai-spectrum-1)
+  );
+  background-size: 200%;
+  animation: 6s ease-in-out infinite ltrn-ai-indicator;
+}
+
+@keyframes ltrn-ai-indicator {
+  from {background-position: 0%}
+  to {background-position: 400%}
+}
+
 .ltrn-ai-spot-1-anim {
   animation: 2s ease-in-out infinite alternate ltrn-ai-spot-1;
 }
