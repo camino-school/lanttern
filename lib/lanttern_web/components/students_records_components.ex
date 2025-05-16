@@ -6,7 +6,9 @@ defmodule LantternWeb.StudentsRecordsComponents do
   use Phoenix.Component
 
   use Gettext, backend: Lanttern.Gettext
+
   import LantternWeb.CoreComponents
+  import LantternWeb.LocalizationHelpers, only: [get_locale: 1]
   import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
   import LantternWeb.DateTimeHelpers
 
@@ -61,7 +63,16 @@ defmodule LantternWeb.StudentsRecordsComponents do
               </div>
               <div class="flex items-center gap-2 text-xs md:mt-2">
                 <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
-                <%= Timex.format!(student_record.date, "{Mshort} {0D}, {YYYY}") %>
+                <%!-- <%= Timex.format!(student_record.date, "{Mshort} {0D}, {YYYY}") %> --%>
+                <span
+                  phx-hook="ClientTime"
+                  id={"t-up-#{student_record.id}"}
+                  time={student_record.date}
+                  lang={get_locale(@current_user_or_cycle)}
+                  format="MMM D, YYYY"
+                >
+                  ------ --- ------ ------
+                </span>
               </div>
               <div :if={student_record.time} class="flex items-center gap-2 text-xs md:mt-2">
                 <.icon name="hero-clock-mini" class="w-5 h-5 text-ltrn-subtle" />

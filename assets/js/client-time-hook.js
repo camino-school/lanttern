@@ -2,25 +2,41 @@ const dayjs = require('dayjs')
 require('dayjs/locale/en')
 require('dayjs/locale/pt-br')
 /**
- * Requires `datetime` from database,
- * translate to client's browser datetime.
+ * Formats the datetime provided in the element's 'time' attribute, 
+   * according to the element's 'lang' and 'format' attributes.
+   * 
+   * If 'format' is not provided, it falls back to:
+   *  - 'D MMM YYYY HH:mm' for pt-br locale
+   *  - 'MMM D, YYYY HH:mm' for other locales.
+   * 
+   * The formatted datetime is then set as the element's innerHTML.
+   *
  */
 const clientTimeHook = {
   mounted() {
     const hook = this;
     const el = hook.el;
-    newTime = new Date(el.getAttribute('time') + 'Z');
-    format = el.getAttribute('format');
-    lang = el.getAttribute('lang');
+
+    let newTime = new Date(el.getAttribute('time') + 'Z');
+    let format = el.getAttribute('format');
+    let lang = el.getAttribute('lang');
+
+    if(lang == null){
+      lang = 'en'
+    }
+
+    if(format == null){
+      format = 'D, YYYY HH:mm'
+    }
     
-    if(format == null)
-      if(lang == 'pt-br')
-        el.innerHTML = dayjs(newTime).locale(lang).format('D MMM YYYY HH:mm');  
-      else
-        el.innerHTML = dayjs(newTime).locale(lang).format('MMM D, YYYY HH:mm');  
-    else
-      el.innerHTML = dayjs(newTime).locale(lang).format(format);
-  },
+    if (lang === 'pt-br' && format === 'MMM D, YYYY HH:mm') {
+      format = 'D MMM YYYY HH:mm';
+    } else if (lang === 'pt-br' && format === 'MMM D, YYYY') {
+      format = 'D MMM YYYY';
+    }
+
+    el.innerHTML = dayjs(newTime).locale(lang).format(format);
+  }
 };
 
 export default clientTimeHook;
