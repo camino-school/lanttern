@@ -74,6 +74,7 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponent do
               :for={{dom_id, message} <- @streams.messages}
               message={message}
               id={dom_id}
+              tz={@tz}
               show_sent_to
               class="mt-4"
               edit_patch={

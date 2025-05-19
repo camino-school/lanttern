@@ -65,7 +65,8 @@ defmodule Lanttern.MixProject do
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
       {:slugify, "~> 1.3"},
       {:image, "~> 0.37"},
-      {:ex_openai, "~> 1.8.0-beta"}
+      {:ex_openai, "~> 1.8.0-beta"},
+      {:ex_machina, "~> 2.8.0", only: :test}
     ]
   end
 
