@@ -68,6 +68,41 @@ The main secrets/env vars that we need for this are the following:
 - `SECRET_KEY_BASE` - Phoenix generated
 - `CONTENT_SECURITY_POLICY` - CSP headers
 
+### Restoring a PostgreSQL Backup
+
+#### Requirements
+
+- A backup file: either `FILENAME.backup` or `FILENAME.sql`  
+- PostgreSQL client installed  
+- For `.backup` files, the PostgreSQL client **must match** the version used to generate the backup (e.g., `psql --version 16`)
+
+#### Install Required Extensions
+
+Before restoring the database, make sure the required PostgreSQL extensions are installed:
+
+```bash
+PGPASSWORD=postgres psql -h localhost -U postgres -d lanttern_dev -c "CREATE EXTENSION IF NOT EXISTS citext;"
+PGPASSWORD=postgres psql -h localhost -U postgres -d lanttern_dev -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+```
+
+#### Recreate the Database
+Drop and recreate the target database:
+
+```bash
+PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c "DROP DATABASE IF EXISTS lanttern_dev;"
+PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c "CREATE DATABASE lanttern_dev;"
+```
+
+##### Restore the Backup
+ - If you have a .backup file:
+
+`PGPASSWORD=postgres pg_restore --clean --if-exists --no-owner -h localhost -U postgres -d lanttern_dev <FILENAME>.backup`
+
+ - If you have a .sql file:
+
+`PGPASSWORD=postgres psql --set ON_ERROR_STOP=on -h localhost -U postgres lanttern_dev < <FILENAME>.sql`
+
+
 ## Learn more
 
 - Official website: <https://www.phoenixframework.org/>
