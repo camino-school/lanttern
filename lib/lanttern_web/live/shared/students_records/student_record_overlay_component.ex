@@ -19,6 +19,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
   import LantternWeb.DateTimeHelpers
   import LantternWeb.SchoolsHelpers, only: [class_with_cycle: 2]
   import LantternWeb.StudentsRecordsComponents
+  import LantternWeb.LocalizationHelpers, only: [get_locale: 1]
 
   @impl true
   def render(assigns) do
@@ -217,7 +218,15 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 </div>
                 <div class="flex items-center gap-2">
                   <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
-                  <%= Timex.format!(@student_record.date, "{Mfull} {0D}, {YYYY}") %>
+                  <span
+                    phx-hook="ClientTime"
+                    id={"t-up-#{@student_record.id}"}
+                    time={@student_record.date}
+                    lang={get_locale(@current_user)}
+                    format="MMMM D, YYYY"
+                  >
+                    ------ --- ------ ------
+                  </span>
                 </div>
                 <div :if={@student_record.time} class="flex items-center gap-2">
                   <.icon name="hero-clock-mini" class="w-5 h-5 text-ltrn-subtle" />

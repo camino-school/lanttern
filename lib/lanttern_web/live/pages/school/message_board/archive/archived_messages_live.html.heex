@@ -43,6 +43,7 @@
         id={dom_id}
         show_sent_to
         class="mt-4"
+        current_user={@current_user}
         on_unarchive={
           if @is_communication_manager, do: JS.push("unarchive", value: %{"id" => message.id})
         }

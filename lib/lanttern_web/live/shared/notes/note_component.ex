@@ -24,7 +24,7 @@ defmodule LantternWeb.Notes.NoteComponent do
   alias Lanttern.Notes
   alias Lanttern.Notes.Note
 
-  import LantternWeb.DateTimeHelpers
+  import LantternWeb.LocalizationHelpers, only: [get_locale: 1]
 
   # shared
   alias LantternWeb.Attachments.AttachmentAreaComponent
@@ -83,9 +83,27 @@ defmodule LantternWeb.Notes.NoteComponent do
             </.action>
           </div>
           <p class="text-xs">
-            <%= gettext("Created at") %> <%= format_local!(@note.inserted_at) %>
+            <%= gettext("Created at") %>
+            <span
+              phx-hook="ClientTime"
+              id={"create-time-#{@note.id}"}
+              time={@note.inserted_at}
+              format="MMM D, YYYY, HH:mm"
+              lang={get_locale(@current_user)}
+            >
+              ------ --- ------ ------
+            </span>
             <span :if={@note.inserted_at != @note.updated_at} class="text-ltrn-subtle">
-              (<%= gettext("updated") %> <%= format_local!(@note.updated_at) %>)
+              (<%= gettext("updated") %>
+              <span
+                phx-hook="ClientTime"
+                id={"update-time-#{@note.id}"}
+                time={@note.updated_at}
+                format="MMM D, YYYY, HH:mm"
+                lang={get_locale(@current_user)}
+              >
+              ------ --- ------ ------
+            </span>)
             </span>
           </p>
           <.markdown text={@note.description} class="mt-10" />

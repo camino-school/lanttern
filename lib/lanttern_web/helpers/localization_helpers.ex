@@ -4,6 +4,7 @@ defmodule LantternWeb.LocalizationHelpers do
   """
 
   alias Lanttern.Identity.User
+  alias Lanttern.Identity.Profile
 
   @doc """
   Plug for restoring user location for controller views.
@@ -101,15 +102,23 @@ defmodule LantternWeb.LocalizationHelpers do
       "pt-br"
   """
   def get_html_lang do
-    Lanttern.Gettext |> Gettext.get_locale() |> normalize()
+    Lanttern.Gettext
+    |> Gettext.get_locale()
+    |> normalize()
   end
 
   defp normalize(locale) do
-    locale |> String.downcase() |> String.replace("_", "-")
+    locale
+    |> String.downcase()
+    |> String.replace("_", "-")
   end
 
   def get_locale(%User{} = current_user_or_cycle) do
     normalize(current_user_or_cycle.current_profile.current_locale)
+  end
+
+  def get_locale(%Profile{} = profile) do
+    normalize(profile.current_locale)
   end
 
   def get_locale(_current_user_or_cycle), do: "en"

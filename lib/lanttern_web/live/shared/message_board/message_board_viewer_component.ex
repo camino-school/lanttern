@@ -31,6 +31,7 @@ defmodule LantternWeb.MessageBoard.MessageBoardViewerComponent do
               :for={{dom_id, message} <- @streams.messages}
               message={message}
               id={dom_id}
+              current_user={@current_profile}
               class="mt-4"
             />
           </div>

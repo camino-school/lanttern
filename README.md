@@ -73,10 +73,10 @@ The main secrets/env vars that we need for this are the following:
 ##### requirements
 
  - backup file FILENAME.backup,
- - postgres client, ex. postgresql-client-14.
+ - postgres client, ex. postgresql-client-14. (`sudo apt-get install -y postgresql-client`)
 
 Given Postgres is running in same machine run in terminal:
-`PGPASSWORD=<postgres_password> psql -h localhost -U postgres <db_name> < FILENAME.backup`
+`PGPASSWORD=postgres psql -h localhost -U postgres -d lanttern_dev < db.backup`
 
 ## Learn more
 

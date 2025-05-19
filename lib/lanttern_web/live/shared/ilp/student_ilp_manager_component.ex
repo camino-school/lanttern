@@ -34,8 +34,8 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
   # shared components
   alias LantternWeb.ILP.StudentILPComponent
   alias LantternWeb.ILP.StudentILPFormOverlayComponent
+  import LantternWeb.LocalizationHelpers, only: [get_locale: 1]
   alias LantternWeb.Schools.StudentHeaderComponent
-  import LantternWeb.DateTimeHelpers
 
   @age_range 0..100
 
@@ -95,10 +95,16 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
             <%= gettext("Lanttern AI revision") %>
           </h5>
           <p class="mt-1 mb-6 text-xs">
-            <%= gettext("Generated in %{datetime}",
-              datetime:
-                format_local!(@student_ilp.ai_revision_datetime, "{Mshort} {0D}, {YYYY} {h24}:{m}")
-            ) %>
+            <%= gettext("Generated in %{datetime}", datetime: "") %>
+            <span
+              phx-hook="ClientTime"
+              id={"time-up-#{@student_ilp.id}"}
+              time={@student_ilp.ai_revision_datetime}
+              lang={get_locale(@current_profile)}
+              format="MMM D, YYYY HH:mm"
+            >
+              ------ --- ------ ------
+            </span>
           </p>
           <.markdown text={@student_ilp.ai_revision} />
           <p class="flex items-center gap-2 p-2 rounded-sm mt-4 text-ltrn-ai-dark bg-ltrn-ai-lighter">

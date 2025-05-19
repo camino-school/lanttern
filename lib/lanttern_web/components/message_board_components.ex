@@ -7,7 +7,7 @@ defmodule LantternWeb.MessageBoardComponents do
 
   use Gettext, backend: Lanttern.Gettext
   import LantternWeb.CoreComponents
-  import LantternWeb.LocalizationHelpers
+  import LantternWeb.LocalizationHelpers, only: [get_locale: 1]
 
   alias Lanttern.MessageBoard.Message
 
@@ -24,6 +24,7 @@ defmodule LantternWeb.MessageBoardComponents do
   attr :show_sent_to, :boolean, default: false
   attr :class, :any, default: nil
   attr :id, :any, default: nil
+  attr :current_user, :any, required: true
 
   def message_board_card(assigns) do
     ~H"""
@@ -70,10 +71,12 @@ defmodule LantternWeb.MessageBoardComponents do
             phx-hook="ClientTime"
             id={"t-create-#{@message.id}"}
             time={@message.inserted_at}
-            lang={get_html_lang()}
+            lang={get_locale(@current_user)}
+            format="MMM D, YYYY HH:mm"
           >
             ------ --- ------ ------
           </span>
+          <%!-- <%= IO.inspect(assigns)%> --%>
           <%= if @message.inserted_at != @message.updated_at do %>
             <div class="mt-1 sm:mt-0 text-ltrn-subtle">
               <%= "(#{gettext("Updated")}" %>
@@ -81,7 +84,8 @@ defmodule LantternWeb.MessageBoardComponents do
                 phx-hook="ClientTime"
                 id={"t-up-#{@message.id}"}
                 time={@message.updated_at}
-                lang={get_html_lang()}
+                lang={get_locale(@current_user)}
+                format="MMM D, YYYY HH:mm"
               >
                 ------ --- ------ ------
               </span>

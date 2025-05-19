@@ -76,6 +76,7 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponent do
               id={dom_id}
               show_sent_to
               class="mt-4"
+              current_user={@current_user}
               edit_patch={
                 if @is_communication_manager, do: ~p"/school/message_board?edit=#{message.id}"
               }

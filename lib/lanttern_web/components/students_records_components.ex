@@ -63,7 +63,6 @@ defmodule LantternWeb.StudentsRecordsComponents do
               </div>
               <div class="flex items-center gap-2 text-xs md:mt-2">
                 <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
-                <%!-- <%= Timex.format!(student_record.date, "{Mshort} {0D}, {YYYY}") %> --%>
                 <span
                   phx-hook="ClientTime"
                   id={"t-up-#{student_record.id}"}
@@ -185,9 +184,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
                   <.icon name="hero-check-circle-mini" />
                 </div>
                 <.tooltip h_pos="right">
-                  <%= gettext("Closed at %{datetime}",
-                    datetime: format_local!(student_record.closed_at)
-                  ) %>
+                  <%= gettext("Closed at %{datetime}", datetime: "") %>
                 </.tooltip>
               </div>
               <div :if={!student_record.status.is_closed} class="group relative">
