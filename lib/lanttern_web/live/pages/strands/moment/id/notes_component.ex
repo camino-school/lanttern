@@ -22,6 +22,7 @@ defmodule LantternWeb.MomentLive.NotesComponent do
           empty_msg={gettext("You don't have any notes for this moment yet")}
           empty_add_note_msg={gettext("Add a moment note")}
           allow_editing={true}
+          tz={nil}
         />
       </.responsive_container>
     </div>

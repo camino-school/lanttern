@@ -22,6 +22,7 @@ defmodule LantternWeb.StrandLive.NotesComponent do
           empty_msg={gettext("You don't have any notes for this strand yet")}
           empty_add_note_msg={gettext("Add a strand note")}
           allow_editing={true}
+          tz={@tz}
         />
         <%= if @has_moments_notes do %>
           <h4 class="mt-10 font-display font-bold text-lg">

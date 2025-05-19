@@ -1,6 +1,8 @@
 defmodule LantternWeb.StrandLive.NotesComponentTest do
   use LantternWeb.ConnCase
 
+  import Lanttern.Factory
+
   alias Lanttern.LearningContextFixtures
   alias Lanttern.NotesFixtures
 
@@ -12,10 +14,24 @@ defmodule LantternWeb.StrandLive.NotesComponentTest do
     test "display existing strand and moments note", %{conn: conn, user: user} do
       strand = LearningContextFixtures.strand_fixture()
 
+      # note =
+      #   NotesFixtures.strand_note_fixture(user, strand.id, %{
+      #     "description" => "Outra nota"
+      #   })
+
       note =
-        NotesFixtures.strand_note_fixture(user, strand.id, %{
-          "description" => "strand note desc abc"
+        insert(:note, %{
+          strand: strand,
+          description: "Minha nota",
+          author: user.current_profile,
+          inserted_at: ~N[2025-05-19 13:00:00]
         })
+
+      insert(:strand_note_relationship, %{
+        strand: strand,
+        note: note,
+        author: user.current_profile
+      })
 
       moment_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id, position: 1})
 
@@ -37,6 +53,7 @@ defmodule LantternWeb.StrandLive.NotesComponentTest do
       assert view |> has_element?("p", moment_note_1.description)
       assert view |> has_element?("a", moment_2.name)
       assert view |> has_element?("p", moment_note_2.description)
+      assert render(view) =~ "Created at May 19, 2025 10:00"
     end
 
     test "create note", %{conn: conn} do

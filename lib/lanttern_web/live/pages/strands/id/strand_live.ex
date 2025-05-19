@@ -36,6 +36,7 @@ defmodule LantternWeb.StrandLive do
       socket
       |> assign_strand(params)
       |> assign_strand_classes_filter()
+      |> assign(:tz, get_connect_params(socket)["timezone"])
 
     {:ok, socket}
   end
