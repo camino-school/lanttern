@@ -19,7 +19,6 @@ defmodule LantternWeb.SchoolLive do
       |> assign_is_content_manager()
       |> assign_is_communication_manager()
       |> assign(:page_title, socket.assigns.current_user.current_profile.school_name)
-      |> assign(:tz, get_connect_params(socket)["timezone"])
 
     {:ok, socket}
   end
