@@ -33,8 +33,8 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponentTest do
 
       assert view |> has_element?("h5", message.name)
       assert view |> has_element?("p", message.description)
-      assert render(view) =~ "May 19, 2025 10:27"
-      assert render(view) =~ "Updated May 19, 2025 11:00"
+      assert render(view) =~ "May 19, 2025, 10:27"
+      assert render(view) =~ "Updated May 19, 2025, 11:00"
 
       refute view |> has_element?("h5", archived.name)
       refute view |> has_element?("p", archived.description)

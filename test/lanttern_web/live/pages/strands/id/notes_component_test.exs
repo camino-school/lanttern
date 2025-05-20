@@ -53,7 +53,7 @@ defmodule LantternWeb.StrandLive.NotesComponentTest do
       assert view |> has_element?("p", moment_note_1.description)
       assert view |> has_element?("a", moment_2.name)
       assert view |> has_element?("p", moment_note_2.description)
-      assert render(view) =~ "Created at May 19, 2025 10:00"
+      assert render(view) =~ "Created at May 19, 2025, 10:00"
     end
 
     test "create note", %{conn: conn} do

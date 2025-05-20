@@ -68,6 +68,7 @@
     student={@selected_student}
     cycle={@current_user.current_profile.current_school_cycle}
     current_profile={@current_user.current_profile}
+    tz={@current_user.tz}
     is_ilp_manager={@is_ilp_manager}
     params={@params}
     on_edit_patch={fn _id -> ~p"/ilp?student_ilp=edit" end}

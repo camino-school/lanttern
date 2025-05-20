@@ -236,7 +236,7 @@ defmodule LantternWeb.StudentLiveTest do
       {:ok, view, _html} = live(conn, url)
 
       assert view |> has_element?("span", student.name)
-      assert render(view) =~ "Closed by #{user.current_profile.name} on May 19, 2025 18:23 ("
+      assert render(view) =~ "Closed by #{user.current_profile.name} on May 19, 2025, 18:23 ("
     end
 
     test "renders ok when locale pt_BR", ctx do
@@ -285,7 +285,7 @@ defmodule LantternWeb.StudentLiveTest do
       {:ok, view, _html} = live(conn, url)
 
       assert view |> has_element?("span", student.name)
-      assert render(view) =~ "Closed by #{user.current_profile.name} on May 19, 2025 18:23 ("
+      assert render(view) =~ "Closed by #{user.current_profile.name} on May 19, 2025, 18:23 ("
     end
   end
 end

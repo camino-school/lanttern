@@ -61,7 +61,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
               </div>
               <div class="flex items-center gap-2 text-xs md:mt-2">
                 <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
-                <%= Timex.format!(student_record.date, "{Mshort} {0D}, {YYYY}") %>
+                <%= format_by_locale(student_record.date, @current_user_or_cycle.tz, formats()) %>
               </div>
               <div :if={student_record.time} class="flex items-center gap-2 text-xs md:mt-2">
                 <.icon name="hero-clock-mini" class="w-5 h-5 text-ltrn-subtle" />
@@ -175,7 +175,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
                 </div>
                 <.tooltip h_pos="right">
                   <%= gettext("Closed at %{datetime}",
-                    datetime: format_local!(student_record.closed_at)
+                    datetime: format_by_locale(student_record.closed_at, @current_user_or_cycle.tz)
                   ) %>
                 </.tooltip>
               </div>
@@ -222,4 +222,6 @@ defmodule LantternWeb.StudentsRecordsComponents do
     </.badge>
     """
   end
+
+  defp formats, do: %{"en" => "MMM d, y", "pt_BR" => "d MMM y"}
 end

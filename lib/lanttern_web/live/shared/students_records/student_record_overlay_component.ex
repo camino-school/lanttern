@@ -409,7 +409,9 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
     assigns = assign(assigns, :days_and_hours, days_and_hours)
 
     ~H"""
-    <%= gettext("Created on %{datetime}", datetime: format_local!(@student_record.inserted_at)) %>
+    <%= gettext("Created on %{datetime}",
+      datetime: format_by_locale(@student_record.inserted_at, @tz)
+    ) %>
     <%= gettext("(Open for %{days_and_hours})", days_and_hours: @days_and_hours) %>
     """
   end
@@ -909,5 +911,5 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
     end
   end
 
-  defp formats, do: %{"en" => "{Mfull} {0D}, {YYYY}", "pt_BR" => "{0D} {Mfull} {YYYY}"}
+  defp formats, do: %{"en" => "MMM d, y", "pt_BR" => "d MMM y"}
 end

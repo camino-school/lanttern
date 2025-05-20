@@ -58,20 +58,23 @@ defmodule LantternWeb.DateTimeHelpers do
     locale = Gettext.get_locale(Lanttern.Gettext)
     format = get_format(locale, format_map)
 
-    datetime
-    |> maybe_convert_naive()
-    |> Timex.to_datetime(tz || Application.get_env(:lanttern, :default_timezone))
-    |> Timex.format!(format)
+    {:ok, format} =
+      datetime
+      |> maybe_convert_naive()
+      |> Timex.to_datetime(tz || Application.get_env(:lanttern, :default_timezone))
+      |> Lanttern.Cldr.DateTime.to_string(format: format, locale: locale)
+
+    format
   end
 
   defp get_format(locale, format_map) when format_map == %{} do
     case locale do
-      "en" -> "{Mshort} {0D}, {YYYY} {h24}:{m}"
-      "pt_BR" -> "{0D} {Mshort} {YYYY}, {h24}:{m}"
+      "en" -> "MMM d, y, HH:mm"
+      "pt_BR" -> "d MMM y, HH:mm"
     end
   end
 
   defp get_format(locale, format_map) do
-    Map.get(format_map, locale, "{Mshort} {0D}, {YYYY} {h24}:{m}")
+    Map.get(format_map, locale, "MMM d, y, HH:mm")
   end
 end
