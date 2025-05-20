@@ -64,8 +64,18 @@ defmodule LantternWeb.LocalizationHelpers do
   end
 
   # catch-all case
-  def on_mount(:default, _params, _session, socket),
-    do: {:cont, socket}
+  def on_mount(:default, _params, _session, socket), do: {:cont, socket}
+
+  def on_mount(:put_timezone, _, _, %{assigns: %{current_user: _}} = socket) do
+    socket =
+      Phoenix.Component.update(socket, :current_user, fn current_user ->
+        Map.merge(current_user, %{tz: Phoenix.LiveView.get_connect_params(socket)["timezone"]})
+      end)
+
+    {:cont, socket}
+  end
+
+  def on_mount(:put_timezone, _params, _session, socket), do: {:cont, socket}
 
   @doc """
   Translate dynamic, domain generate lists (e.g. list of subjects, list of years).

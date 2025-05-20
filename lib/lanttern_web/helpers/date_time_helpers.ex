@@ -54,18 +54,24 @@ defmodule LantternWeb.DateTimeHelpers do
   defp render_days_and_hours(d, h, "long"), do: gettext("%{d} days and %{h} hours", d: d, h: h)
   defp render_days_and_hours(d, h, _), do: "#{d}d #{h}h"
 
-  def format_by_locale(datetime, tz) do
+  def format_by_locale(datetime, tz, format_map \\ %{}) do
     locale = Gettext.get_locale(Lanttern.Gettext)
-
-    format =
-      case locale do
-        "en" -> "{Mshort} {0D}, {YYYY} {h24}:{m}"
-        "pt_BR" -> "{0D} {Mshort} {YYYY}, {h24}:{m}"
-      end
+    format = get_format(locale, format_map)
 
     datetime
     |> maybe_convert_naive()
     |> Timex.to_datetime(tz || Application.get_env(:lanttern, :default_timezone))
     |> Timex.format!(format)
+  end
+
+  defp get_format(locale, format_map) when format_map == %{} do
+    case locale do
+      "en" -> "{Mshort} {0D}, {YYYY} {h24}:{m}"
+      "pt_BR" -> "{0D} {Mshort} {YYYY}, {h24}:{m}"
+    end
+  end
+
+  defp get_format(locale, format_map) do
+    Map.get(format_map, locale, "{Mshort} {0D}, {YYYY} {h24}:{m}")
   end
 end

@@ -7,4 +7,7 @@ defmodule Lanttern.Factory do
   use Lanttern.NoteFactory
   use Lanttern.SchoolFactory
   use Lanttern.StrandNoteRelationshipFactory
+  use Lanttern.StudentRecordFactory
+  use Lanttern.StudentRecordRelationshipFactory
+  use Lanttern.StudentRecordStatusFactory
 end
