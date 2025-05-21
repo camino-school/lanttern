@@ -74,7 +74,8 @@ defmodule Lanttern.MixProject do
       {:slugify, "~> 1.3"},
       {:image, "~> 0.37"},
       {:ex_openai, "~> 1.8.0-beta"},
-      {:excoveralls, "~> 0.18", only: :test}
+      {:excoveralls, "~> 0.18", only: :test},
+      {:phoenix_test, "~> 0.6.0", only: :test, runtime: false}
     ]
   end
 
