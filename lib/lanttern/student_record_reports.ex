@@ -345,8 +345,13 @@ defmodule Lanttern.StudentRecordReports do
                   type: :message
                 },
                 %ExOpenAI.Components.EasyInputMessage{
+                  content: "# Student: #{student.name}",
+                  role: :user,
+                  type: :message
+                },
+                %ExOpenAI.Components.EasyInputMessage{
                   content:
-                    "# Last report\n\nBased on records up to: #{srr.to_datetime}\n\n#{srr.description}",
+                    "## Last report\n\nBased on records up to: #{srr.to_datetime}\n\n#{srr.description}",
                   role: :user,
                   type: :message
                 }
@@ -450,7 +455,7 @@ defmodule Lanttern.StudentRecordReports do
         else: "-"
 
     """
-    # Student record id #{record.id}
+    ## Student record id #{record.id}
 
     - Students: #{students}
     - Classes: #{classes}
@@ -458,7 +463,7 @@ defmodule Lanttern.StudentRecordReports do
     - Created at: #{record.inserted_at}
     - Record datetime: #{record.date} #{record.time || "(no time specified)"}
 
-    #{if record.name, do: "## #{record.name}"}
+    #{if record.name, do: "### #{record.name}"}
 
     #{record.description}
     """
