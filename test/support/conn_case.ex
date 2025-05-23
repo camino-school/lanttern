@@ -29,6 +29,7 @@ defmodule LantternWeb.ConnCase do
       import Phoenix.ConnTest
       import Phoenix.LiveViewTest
       import LantternWeb.ConnCase
+      import Lanttern.Support.TestUtils
     end
   end
 

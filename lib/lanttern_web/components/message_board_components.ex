@@ -24,6 +24,7 @@ defmodule LantternWeb.MessageBoardComponents do
   attr :show_sent_to, :boolean, default: false
   attr :class, :any, default: nil
   attr :id, :any, default: nil
+  attr :tz, :string, default: nil
 
   def message_board_card(assigns) do
     ~H"""
@@ -66,10 +67,10 @@ defmodule LantternWeb.MessageBoardComponents do
       <div class="flex flex-row-reverse sm:flex-row items-center gap-2 mt-2 text-xs">
         <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
         <div class="flex-1 sm:flex sm:items-center sm:gap-2">
-          <%= format_local!(@message.inserted_at, "{Mshort} {0D}, {YYYY} {h24}:{m}") %>
+          <%= format_by_locale(@message.inserted_at, @tz) %>
           <%= if @message.inserted_at != @message.updated_at do %>
             <div class="mt-1 sm:mt-0 text-ltrn-subtle">
-              <%= "(#{gettext("Updated")} #{format_local!(@message.updated_at, "{Mshort} {0D}, {YYYY} {h24}:{m}")})" %>
+              <%= "(#{gettext("Updated")} #{format_by_locale(@message.updated_at, @tz)})" %>
             </div>
           <% end %>
         </div>

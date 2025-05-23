@@ -488,7 +488,7 @@ defmodule LantternWeb.CoreComponents do
     default: nil,
     doc: "supports \"class_with_cycle\" opt, which will render the class + cycle name"
 
-  attr :current_user_or_cycle, :any,
+  attr :current_user, :any,
     default: nil,
     doc: "used when `label_setter` is \"class_with_cycle\""
 
@@ -515,7 +515,7 @@ defmodule LantternWeb.CoreComponents do
         phx-click={@on_select.(item.id)}
       >
         <%= case @label_setter do
-          "class_with_cycle" -> class_with_cycle(item, @current_user_or_cycle)
+          "class_with_cycle" -> class_with_cycle(item, @current_user)
           _ -> item.name
         end %>
       </.badge_button>

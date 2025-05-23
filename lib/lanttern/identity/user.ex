@@ -8,6 +8,8 @@ defmodule Lanttern.Identity.User do
 
   alias Lanttern.Identity.Profile
 
+  @default_timezone Application.compile_env(:lanttern, :default_timezone)
+
   @type t :: %__MODULE__{
           id: pos_integer(),
           email: String.t(),
@@ -31,6 +33,7 @@ defmodule Lanttern.Identity.User do
     field :confirmed_at, :naive_datetime
     field :privacy_policy_accepted_at, :utc_datetime
     field :privacy_policy_accepted_meta, :string
+    field :tz, :string, virtual: true, default: @default_timezone
 
     belongs_to :current_profile, Profile
 

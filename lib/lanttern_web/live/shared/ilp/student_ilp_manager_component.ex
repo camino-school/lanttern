@@ -88,6 +88,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
         is_ilp_manager={@is_ilp_manager}
         show_teacher_notes
         current_profile={@current_profile}
+        tz={@tz}
       />
       <.ai_box :if={@ai_form || @has_ai_revision} class="mt-6 mb-6">
         <div :if={@has_ai_revision} class="py-6 border-y border-ltrn-ai-lighter">
@@ -96,8 +97,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
           </h5>
           <p class="mt-1 mb-6 text-xs">
             <%= gettext("Generated in %{datetime}",
-              datetime:
-                format_local!(@student_ilp.ai_revision_datetime, "{Mshort} {0D}, {YYYY} {h24}:{m}")
+              datetime: format_by_locale(@student_ilp.ai_revision_datetime, @tz)
             ) %>
           </p>
           <.markdown text={@student_ilp.ai_revision} />

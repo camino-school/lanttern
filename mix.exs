@@ -75,7 +75,10 @@ defmodule Lanttern.MixProject do
       {:image, "~> 0.37"},
       {:ex_openai, "~> 1.8.0-beta"},
       {:excoveralls, "~> 0.18", only: :test},
-      {:phoenix_test, "~> 0.6.0", only: :test, runtime: false}
+      {:phoenix_test, "~> 0.6.0", only: :test, runtime: false},
+      {:ex_machina, "~> 2.8.0", only: :test},
+      {:ex_cldr, "~> 2.37"},
+      {:ex_cldr_dates_times, "~> 2.0"}
     ]
   end
 

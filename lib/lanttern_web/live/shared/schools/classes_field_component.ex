@@ -42,7 +42,7 @@ defmodule LantternWeb.Schools.ClassesFieldComponent do
           items={@selected_classes}
           selected_ids={@selected_classes_ids}
           label_setter="class_with_cycle"
-          current_user_or_cycle={@current_cycle}
+          current_user={@current_cycle}
         />
       <% else %>
         <.empty_state_simple><%= gettext("No selected classes") %></.empty_state_simple>

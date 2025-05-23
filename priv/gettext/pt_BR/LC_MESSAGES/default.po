@@ -4492,7 +4492,7 @@ msgstr "Desarquivar"
 #: lib/lanttern_web/components/message_board_components.ex:72
 #, elixir-autogen, elixir-format
 msgid "Updated"
-msgstr "atualizado"
+msgstr "Atualizado"
 
 #: lib/lanttern_web/live/pages/school/message_board_component.ex:46
 #, elixir-autogen, elixir-format
