@@ -65,7 +65,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
               </div>
               <div :if={student_record.time} class="flex items-center gap-2 text-xs md:mt-2">
                 <.icon name="hero-clock-mini" class="w-5 h-5 text-ltrn-subtle" />
-                <%= format_simple_time(student_record.time) %> AQUI
+                <%= format_simple_time(student_record.time) %>
               </div>
             </div>
             <div class="flex flex-wrap gap-2 w-full mt-4">
