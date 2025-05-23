@@ -1,9 +1,12 @@
 defmodule LantternWeb.PageControllerTest do
-  use LantternWeb.ConnCase
+  use LantternWeb.ConnCase, async: true
+
+  import PhoenixTest
 
   test "GET /", %{conn: conn} do
-    conn = get(conn, ~p"/")
-    assert html_response(conn, 200) =~ ~r/lanttern/i
-    assert html_response(conn, 200) =~ ~r/visualizing.*learning.*patterns/i
+    conn
+    |> visit(~p"/")
+    |> assert_has("h1", text: "Lanttern")
+    |> assert_has("strong", text: "visualize learning patterns")
   end
 end

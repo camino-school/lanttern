@@ -1,0 +1,16 @@
+{
+    "coverage_options": {
+        "treat_no_relevant_lines_as_covered": true,
+        "minimum_coverage": 51.0
+    },
+    "terminal_options": {
+        "print_files": false
+    },
+    "skip_files": [
+        "deps",
+        "priv/",
+        "test",
+        "lib/lanttern/release.ex",
+        "lib/lanttern/application.ex"
+    ]
+}

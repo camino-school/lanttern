@@ -68,14 +68,28 @@ The main secrets/env vars that we need for this are the following:
 - `SECRET_KEY_BASE` - Phoenix generated
 - `CONTENT_SECURITY_POLICY` - CSP headers
 
-### Restoring a PostgreSQL Backup
+## Tests
 
-#### Requirements
+### Coverage
+
+The default behavior when test with `mix test` is to run with coverage.
+To configure the minimum coverage percentage, ignored files, and terminal output,
+use the `coveralls.json` file. To generate a coverage report, run `mix coveralls.html`
+and view it in the `cover/` folder. Source: [excoveralls](https://github.com/parroty/excoveralls)
+
+### Tips
+
+To investigate the perfomance process run `mix test --slowest 10`
+
+
+## Restoring a PostgreSQL Backup
+
+### Requirements
 
 - A backup file: `FILENAME.sql`
 - PostgreSQL client installed  
 
-#### Create/Recreate the Database
+### Create/Recreate the Database
 
 Drop and recreate the target database:
 
@@ -84,7 +98,7 @@ PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c "DROP DATABASE 
 PGPASSWORD=postgres psql -h localhost -U postgres -d postgres -c "CREATE DATABASE lanttern_dev;"
 ```
 
-#### Install Required Extensions
+### Install Required Extensions
 
 Before restoring the database, make sure the required PostgreSQL extensions are installed:
 
@@ -93,7 +107,7 @@ PGPASSWORD=postgres psql -h localhost -U postgres -d lanttern_dev -c "CREATE EXT
 PGPASSWORD=postgres psql -h localhost -U postgres -d lanttern_dev -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
 ```
 
-##### Restore the Backup
+### Restore the Backup
  
 `PGPASSWORD=postgres psql --set ON_ERROR_STOP=on -h localhost -U postgres lanttern_dev < <FILENAME>.sql`
 
