@@ -69,7 +69,7 @@ defmodule LantternWeb.LocalizationHelpers do
   def on_mount(:put_timezone, _, _, %{assigns: %{current_user: _}} = socket) do
     socket =
       Phoenix.Component.update(socket, :current_user, fn current_user ->
-        Map.merge(current_user, %{tz: Phoenix.LiveView.get_connect_params(socket)["timezone"]})
+        %{current_user | tz: Phoenix.LiveView.get_connect_params(socket)["timezone"]}
       end)
 
     {:cont, socket}

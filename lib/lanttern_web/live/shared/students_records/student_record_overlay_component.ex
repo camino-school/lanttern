@@ -221,7 +221,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 </div>
                 <div :if={@student_record.time} class="flex items-center gap-2">
                   <.icon name="hero-clock-mini" class="w-5 h-5 text-ltrn-subtle" />
-                  <%= @student_record.time %>
+                  <%= format_simple_time(@student_record.time) %>
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="text-ltrn-subtle"><%= gettext("Status") %>:</span>

@@ -38,7 +38,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
     required: true,
     doc: "function, will receive student record as arg. Should return route for patch"
 
-  attr :current_user_or_cycle, :any, required: true
+  attr :current_user, :any, required: true
 
   def students_records_list(%{show_empty_state_message: true} = assigns) do
     ~H"""
@@ -61,11 +61,11 @@ defmodule LantternWeb.StudentsRecordsComponents do
               </div>
               <div class="flex items-center gap-2 text-xs md:mt-2">
                 <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
-                <%= format_by_locale(student_record.date, @current_user_or_cycle.tz, formats()) %>
+                <%= format_by_locale(student_record.date, @current_user.tz, formats()) %>
               </div>
               <div :if={student_record.time} class="flex items-center gap-2 text-xs md:mt-2">
                 <.icon name="hero-clock-mini" class="w-5 h-5 text-ltrn-subtle" />
-                <%= student_record.time %>
+                <%= format_simple_time(student_record.time) %> AQUI
               </div>
             </div>
             <div class="flex flex-wrap gap-2 w-full mt-4">
@@ -83,7 +83,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
                 </.badge>
               <% end %>
               <.badge :for={class <- student_record.classes}>
-                <%= class_with_cycle(class, @current_user_or_cycle) %>
+                <%= class_with_cycle(class, @current_user) %>
               </.badge>
             </div>
           </div>
@@ -175,7 +175,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
                 </div>
                 <.tooltip h_pos="right">
                   <%= gettext("Closed at %{datetime}",
-                    datetime: format_by_locale(student_record.closed_at, @current_user_or_cycle.tz)
+                    datetime: format_by_locale(student_record.closed_at, @current_user.tz)
                   ) %>
                 </.tooltip>
               </div>

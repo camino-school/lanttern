@@ -5,16 +5,7 @@ defmodule LantternWeb.DateTimeHelpers do
 
   use Gettext, backend: Lanttern.Gettext
 
-  @doc """
-  Wrapper around `Timex.format!/3` which renders the formated time
-  using the local timezone
-  """
-  def format_local!(datetime, format_string \\ "{Mshort} {D}, {YYYY}, {h24}:{m}") do
-    datetime
-    |> maybe_convert_naive()
-    |> Timex.local()
-    |> Timex.format!(format_string)
-  end
+  @format_default "MMM d, y, HH:mm"
 
   defp maybe_convert_naive(%NaiveDateTime{} = datetime),
     do: datetime |> Timex.to_datetime()
@@ -54,6 +45,30 @@ defmodule LantternWeb.DateTimeHelpers do
   defp render_days_and_hours(d, h, "long"), do: gettext("%{d} days and %{h} hours", d: d, h: h)
   defp render_days_and_hours(d, h, _), do: "#{d}d #{h}h"
 
+  def format_simple_time(time) do
+    {:ok, time} =
+      time
+      |> Lanttern.Cldr.DateTime.to_string(format: "hh:mm")
+
+    time
+  end
+
+  @doc """
+  Wrapper around `Timex.to_datetime/2` and Cldr formatter which renders the formated time
+  using a datetime, browser timezone, and a optional format map.
+  The format map is a map of locale to format string e.g:
+
+   ## format of acceptable map format language and format string
+
+    %{
+      "en" => "MMM d, y",
+      "pt_BR" => "d MMM y"
+    }
+
+
+  If the locale is not found in the map,
+  the default format is used. The default format is "MMM d, y, HH:mm".
+  """
   def format_by_locale(datetime, tz, format_map \\ %{}) do
     locale = Gettext.get_locale(Lanttern.Gettext)
     format = get_format(locale, format_map)
@@ -69,12 +84,12 @@ defmodule LantternWeb.DateTimeHelpers do
 
   defp get_format(locale, format_map) when format_map == %{} do
     case locale do
-      "en" -> "MMM d, y, HH:mm"
+      "en" -> @format_default
       "pt_BR" -> "d MMM y, HH:mm"
     end
   end
 
   defp get_format(locale, format_map) do
-    Map.get(format_map, locale, "MMM d, y, HH:mm")
+    Map.get(format_map, locale, @format_default)
   end
 end
