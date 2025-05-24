@@ -200,16 +200,7 @@ defmodule LantternWeb.StudentLiveTest do
       %{conn: conn, user: user} = set_user_permissions(["students_records_full_access"], ctx)
       school = user.current_profile.staff_member.school
       student = SchoolsFixtures.student_fixture(%{school_id: school.id, name: "std abc"})
-
-      status =
-        Lanttern.Repo.insert!(%Lanttern.StudentsRecords.StudentRecordStatus{
-          name: "Closed",
-          position: 2,
-          bg_color: "#5CD9BB",
-          text_color: "#ffffff",
-          is_closed: true,
-          school_id: school.id
-        })
+      status = insert(:student_records_status, %{school: school})
 
       student_record =
         insert(:student_record, %{
@@ -249,16 +240,7 @@ defmodule LantternWeb.StudentLiveTest do
       %{conn: conn} = set_user_permissions(["students_records_full_access"], user_info)
       school = user.current_profile.staff_member.school
       student = SchoolsFixtures.student_fixture(%{school_id: school.id, name: "std abc"})
-
-      status =
-        Lanttern.Repo.insert!(%Lanttern.StudentsRecords.StudentRecordStatus{
-          name: "Closed",
-          position: 2,
-          bg_color: "#5CD9BB",
-          text_color: "#ffffff",
-          is_closed: true,
-          school_id: school.id
-        })
+      status = insert(:student_records_status, %{school: school})
 
       student_record =
         insert(:student_record, %{

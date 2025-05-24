@@ -11,8 +11,8 @@ defmodule Lanttern.SchoolFactory do
         %Lanttern.Schools.School{
           name: "",
           logo_image_url: "",
-          bg_color: "",
-          text_color: ""
+          bg_color: "#111111",
+          text_color: "#ffffff",
         }
       end
     end
