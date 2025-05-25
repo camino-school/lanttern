@@ -812,4 +812,100 @@ defmodule Lanttern.ILP do
         error
     end
   end
+
+  alias Lanttern.ILP.ILPComment
+
+  @doc """
+  Returns the list of ilp_comments.
+
+  ## Examples
+
+      iex> list_ilp_comments()
+      [%ILPComment{}, ...]
+
+  """
+  def list_ilp_comments do
+    Repo.all(ILPComment)
+  end
+
+  @doc """
+  Gets a single ilp_comment.
+
+  Raises `Ecto.NoResultsError` if the Ilp comment does not exist.
+
+  ## Examples
+
+      iex> get_ilp_comment!(123)
+      %ILPComment{}
+
+      iex> get_ilp_comment!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_ilp_comment!(id), do: Repo.get!(ILPComment, id)
+
+  @doc """
+  Creates a ilp_comment.
+
+  ## Examples
+
+      iex> create_ilp_comment(%{field: value})
+      {:ok, %ILPComment{}}
+
+      iex> create_ilp_comment(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_ilp_comment(attrs \\ %{}) do
+    %ILPComment{}
+    |> ILPComment.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a ilp_comment.
+
+  ## Examples
+
+      iex> update_ilp_comment(ilp_comment, %{field: new_value})
+      {:ok, %ILPComment{}}
+
+      iex> update_ilp_comment(ilp_comment, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_ilp_comment(%ILPComment{} = ilp_comment, attrs) do
+    ilp_comment
+    |> ILPComment.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a ilp_comment.
+
+  ## Examples
+
+      iex> delete_ilp_comment(ilp_comment)
+      {:ok, %ILPComment{}}
+
+      iex> delete_ilp_comment(ilp_comment)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_ilp_comment(%ILPComment{} = ilp_comment) do
+    Repo.delete(ilp_comment)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking ilp_comment changes.
+
+  ## Examples
+
+      iex> change_ilp_comment(ilp_comment)
+      %Ecto.Changeset{data: %ILPComment{}}
+
+  """
+  def change_ilp_comment(%ILPComment{} = ilp_comment, attrs \\ %{}) do
+    ILPComment.changeset(ilp_comment, attrs)
+  end
 end
