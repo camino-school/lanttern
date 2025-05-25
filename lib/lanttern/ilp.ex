@@ -908,4 +908,100 @@ defmodule Lanttern.ILP do
   def change_ilp_comment(%ILPComment{} = ilp_comment, attrs \\ %{}) do
     ILPComment.changeset(ilp_comment, attrs)
   end
+
+  alias Lanttern.ILP.ILPCommentAttachment
+
+  @doc """
+  Returns the list of ilp_comment_attachments.
+
+  ## Examples
+
+      iex> list_ilp_comment_attachments()
+      [%ILPCommentAttachment{}, ...]
+
+  """
+  def list_ilp_comment_attachments do
+    Repo.all(ILPCommentAttachment)
+  end
+
+  @doc """
+  Gets a single ilp_comment_attachment.
+
+  Raises `Ecto.NoResultsError` if the Ilp comment attachment does not exist.
+
+  ## Examples
+
+      iex> get_ilp_comment_attachment!(123)
+      %ILPCommentAttachment{}
+
+      iex> get_ilp_comment_attachment!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_ilp_comment_attachment!(id), do: Repo.get!(ILPCommentAttachment, id)
+
+  @doc """
+  Creates a ilp_comment_attachment.
+
+  ## Examples
+
+      iex> create_ilp_comment_attachment(%{field: value})
+      {:ok, %ILPCommentAttachment{}}
+
+      iex> create_ilp_comment_attachment(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_ilp_comment_attachment(attrs \\ %{}) do
+    %ILPCommentAttachment{}
+    |> ILPCommentAttachment.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a ilp_comment_attachment.
+
+  ## Examples
+
+      iex> update_ilp_comment_attachment(ilp_comment_attachment, %{field: new_value})
+      {:ok, %ILPCommentAttachment{}}
+
+      iex> update_ilp_comment_attachment(ilp_comment_attachment, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_ilp_comment_attachment(%ILPCommentAttachment{} = ilp_comment_attachment, attrs) do
+    ilp_comment_attachment
+    |> ILPCommentAttachment.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a ilp_comment_attachment.
+
+  ## Examples
+
+      iex> delete_ilp_comment_attachment(ilp_comment_attachment)
+      {:ok, %ILPCommentAttachment{}}
+
+      iex> delete_ilp_comment_attachment(ilp_comment_attachment)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_ilp_comment_attachment(%ILPCommentAttachment{} = ilp_comment_attachment) do
+    Repo.delete(ilp_comment_attachment)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking ilp_comment_attachment changes.
+
+  ## Examples
+
+      iex> change_ilp_comment_attachment(ilp_comment_attachment)
+      %Ecto.Changeset{data: %ILPCommentAttachment{}}
+
+  """
+  def change_ilp_comment_attachment(%ILPCommentAttachment{} = ilp_comment_attachment, attrs \\ %{}) do
+    ILPCommentAttachment.changeset(ilp_comment_attachment, attrs)
+  end
 end

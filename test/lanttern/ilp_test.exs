@@ -1022,4 +1022,79 @@ defmodule Lanttern.ILPTest do
       assert %Ecto.Changeset{} = ILP.change_ilp_comment(ilp_comment)
     end
   end
+
+  describe "ilp_comment_attachments" do
+    alias Lanttern.ILP.ILPCommentAttachment
+
+    import Lanttern.Factory
+
+    @invalid_attrs %{position: nil, link: nil, shared_with_students: nil, is_external: nil}
+
+    test "list_ilp_comment_attachments/0 returns all ilp_comment_attachments" do
+      ilp_comment_attachment = insert(:ilp_comment_attachment)
+
+      assert [subject] = ILP.list_ilp_comment_attachments()
+
+      assert subject.id == ilp_comment_attachment.id
+      assert subject.position == ilp_comment_attachment.position
+      assert subject.link == ilp_comment_attachment.link
+      assert subject.shared_with_students == ilp_comment_attachment.shared_with_students
+      assert subject.is_external == ilp_comment_attachment.is_external
+      assert subject.ilp_comment_id == ilp_comment_attachment.ilp_comment_id
+    end
+
+    test "get_ilp_comment_attachment!/1 returns the ilp_comment_attachment with given id" do
+      ilp_comment_attachment = insert(:ilp_comment_attachment)
+
+      assert subject =ILP.get_ilp_comment_attachment!(ilp_comment_attachment.id)
+
+      assert subject.id == ilp_comment_attachment.id
+      assert subject.position == ilp_comment_attachment.position
+      assert subject.link == ilp_comment_attachment.link
+      assert subject.shared_with_students == ilp_comment_attachment.shared_with_students
+      assert subject.is_external == ilp_comment_attachment.is_external
+      assert subject.ilp_comment_id == ilp_comment_attachment.ilp_comment_id
+    end
+
+    test "create_ilp_comment_attachment/1 with valid data creates a ilp_comment_attachment" do
+      valid_attrs = %{position: 42, link: "some link", shared_with_students: true, is_external: true}
+
+      assert {:ok, %ILPCommentAttachment{} = ilp_comment_attachment} = ILP.create_ilp_comment_attachment(valid_attrs)
+      assert ilp_comment_attachment.position == 42
+      assert ilp_comment_attachment.link == "some link"
+      assert ilp_comment_attachment.shared_with_students == true
+      assert ilp_comment_attachment.is_external == true
+    end
+
+    test "create_ilp_comment_attachment/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = ILP.create_ilp_comment_attachment(@invalid_attrs)
+    end
+
+    test "update_ilp_comment_attachment/2 with valid data updates the ilp_comment_attachment" do
+      ilp_comment_attachment = insert(:ilp_comment_attachment)
+      update_attrs = %{position: 43, link: "some updated link", shared_with_students: false, is_external: false}
+
+      assert {:ok, %ILPCommentAttachment{} = ilp_comment_attachment} = ILP.update_ilp_comment_attachment(ilp_comment_attachment, update_attrs)
+      assert ilp_comment_attachment.position == 43
+      assert ilp_comment_attachment.link == "some updated link"
+      assert ilp_comment_attachment.shared_with_students == false
+      assert ilp_comment_attachment.is_external == false
+    end
+
+    test "update_ilp_comment_attachment/2 with invalid data returns error changeset" do
+      ilp_comment_attachment = insert(:ilp_comment_attachment)
+      assert {:error, %Ecto.Changeset{}} = ILP.update_ilp_comment_attachment(ilp_comment_attachment, @invalid_attrs)
+    end
+
+    test "delete_ilp_comment_attachment/1 deletes the ilp_comment_attachment" do
+      ilp_comment_attachment = insert(:ilp_comment_attachment)
+      assert {:ok, %ILPCommentAttachment{}} = ILP.delete_ilp_comment_attachment(ilp_comment_attachment)
+      assert_raise Ecto.NoResultsError, fn -> ILP.get_ilp_comment_attachment!(ilp_comment_attachment.id) end
+    end
+
+    test "change_ilp_comment_attachment/1 returns a ilp_comment_attachment changeset" do
+      ilp_comment_attachment = insert(:ilp_comment_attachment)
+      assert %Ecto.Changeset{} = ILP.change_ilp_comment_attachment(ilp_comment_attachment)
+    end
+  end
 end
