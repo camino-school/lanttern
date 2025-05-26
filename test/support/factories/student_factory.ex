@@ -5,7 +5,7 @@ defmodule Lanttern.StudentFactory do
       def student_factory do
         %Lanttern.Schools.Student{
           name: "John Doe",
-          school: build(:school),
+          school: build(:school)
         }
       end
     end

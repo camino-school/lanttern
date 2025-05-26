@@ -1,4 +1,7 @@
 defmodule Lanttern.ILP.ILPCommentAttachment do
+  @moduledoc """
+  Schema for ILP Comment Attachments
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

@@ -828,6 +828,13 @@ defmodule Lanttern.ILP do
     Repo.all(ILPComment)
   end
 
+  def list_ilp_comments_by_student_ilp(student_ilp_id) do
+    ILPComment
+    |> where([c], c.student_ilp_id == ^student_ilp_id)
+    |> order_by([c], desc: :inserted_at)
+    |> Repo.all()
+  end
+
   @doc """
   Gets a single ilp_comment.
 
@@ -1001,7 +1008,10 @@ defmodule Lanttern.ILP do
       %Ecto.Changeset{data: %ILPCommentAttachment{}}
 
   """
-  def change_ilp_comment_attachment(%ILPCommentAttachment{} = ilp_comment_attachment, attrs \\ %{}) do
+  def change_ilp_comment_attachment(
+        %ILPCommentAttachment{} = ilp_comment_attachment,
+        attrs \\ %{}
+      ) do
     ILPCommentAttachment.changeset(ilp_comment_attachment, attrs)
   end
 end

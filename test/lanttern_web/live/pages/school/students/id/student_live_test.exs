@@ -2,6 +2,7 @@ defmodule LantternWeb.StudentLiveTest do
   use LantternWeb.ConnCase
 
   import Lanttern.Factory
+  import PhoenixTest
 
   alias Lanttern.SchoolsFixtures
   alias Lanttern.StudentsCycleInfo
@@ -279,15 +280,18 @@ defmodule LantternWeb.StudentLiveTest do
       cycle = insert(:cycle, %{school: school})
       insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
 
-      valid_attrs = %{"name" => "Fofoca", "content" => "This is a new comment"}
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp")
+      |> click_link("Add comment")
+      |> assert_has("h2", text: "New Comment")
+      |> fill_in("Title", with: "Fofoca")
+      |> fill_in("Content", with: "Conteudo")
+      |> click_button("Save")
 
-      {:ok, view, _html} = live(ctx.conn, "#{@live_view_base_path}/#{student.id}/ilp")
-      assert view |> has_element?("span", "Add comment")
-
-      assert render_patch(view, "?comment=new")
-      assert view |> has_element?("h2", "New Comment")
-
-      assert form(view, "#student-ilp-comment-form", ilp_comment: valid_attrs) |> render_submit()
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp")
+      |> assert_has("a", text: "Fofoca")
+      |> assert_has("p", text: "Conteudo")
 
       assert [%{name: "Fofoca"}] = Lanttern.ILP.list_ilp_comments()
     end

@@ -4,9 +4,10 @@ defmodule Lanttern.ProfileFactory do
     quote do
       def profile_factory do
         %Lanttern.Identity.Profile{
+          name: "Jane Doe",
           type: "staff",
           user: build(:user),
-          staff_member: build(:staff_member),
+          staff_member: build(:staff_member)
         }
       end
     end

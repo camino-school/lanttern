@@ -12,7 +12,7 @@ defmodule Lanttern.SchoolFactory do
           name: "",
           logo_image_url: "",
           bg_color: "#111111",
-          text_color: "#ffffff",
+          text_color: "#ffffff"
         }
       end
     end

@@ -1,4 +1,7 @@
 defmodule Lanttern.ILP.ILPComment do
+  @moduledoc """
+  Schema for ILP Comments
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

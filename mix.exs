@@ -17,7 +17,7 @@ defmodule Lanttern.MixProject do
         "coveralls.post": :test,
         "coveralls.html": :test,
         "coveralls.cobertura": :test,
-        "test.drop": :test,
+        "test.drop": :test
       ]
     ]
   end

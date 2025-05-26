@@ -92,13 +92,92 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
         tz={@tz}
       />
 
+      <div id="all_comments">
+        <.card_base class="p-4 sm:p-6 mb-6">
+          <h5 class="font-display font-black text-lg">
+            <%= gettext("ILP comments") %>
+          </h5>
+          <p class="mt-1 mb-6 text-xs">
+            <%= gettext("Comments on this ILP, from students, teachers, and ILP managers.") %>
+          </p>
+          <div
+            :for={ilp_comment <- @ilp_comments}
+            class="relative ml-4 font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
+          >
+            <.card_base class="p-10">
+              <div class="p-6 md:flex md:items-start md:gap-6">
+                <div class="md:w-48 md:shrink-0">
+                  <div class="flex items-center gap-4 md:block">
+                    <div class="flex items-center gap-2 text-xs font-bold text-ltrn-subtle">
+                      <.icon name="hero-hashtag-mini" class="w-5 h-5" />
+                      <%= ilp_comment.id %>
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-6 md:mt-0 md:flex-1">
+                  <.link
+                    :if={ilp_comment.name}
+                    class="block mt-4 font-display font-black hover:text-ltrn-subtle"
+                  >
+                    <%= ilp_comment.name %>
+                  </.link>
+                  <.markdown
+                    text={ilp_comment.content}
+                    id={"comment-#{ilp_comment.id}"}
+                    class="mt-4 line-clamp-5"
+                  />
+                  <%!--
+                <.action
+                  type="link"
+                  icon_name="hero-arrow-up-right-mini"
+                  patch={"?comment=#{ilp_comment.id}"}
+                  class="mt-4"
+                >
+                  <%= gettext("View more") %>
+                </.action>
+                --%>
+                </div>
+              </div>
+              <div class="px-2 pb-2">
+                <div class="flex items-center justify-between gap-4 p-2 rounded-xs bg-ltrn-staff-lightest">
+                  <div class="md:flex items-center gap-4">
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs text-ltrn-subtle"><%= gettext("Commented by") %>
+                        <%= ilp_comment.owner_id %></span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div class="group relative">
+                      <%= gettext("Commented at %{datetime}",
+                        datetime: format_by_locale(ilp_comment.inserted_at, @tz)
+                      ) %>
+                      <.icon name="hero-check-circle-mini" />
+                    </div>
+                    <.tooltip h_pos="right">
+                      <%= gettext("Updated at %{datetime}",
+                        datetime: format_by_locale(ilp_comment.updated_at, @tz)
+                      ) %>
+                    </.tooltip>
+                  </div>
+                  <div
+                    :if={ilp_comment.shared_with_students && ilp_comment.owner.type == "staff"}
+                    class="group relative"
+                  >
+                    <.icon name="hero-globe-americas" class="w-6 h-6 text-ltrn-staff-accent" />
+                    <.tooltip h_pos="right">
+                      <%= gettext("Visible to guardians and student.") %>
+                    </.tooltip>
+                  </div>
+                </div>
+              </div>
+            </.card_base>
+          </div>
+        </.card_base>
+      </div>
+
       <div class={[card_base_classes(), "p-4 sm:p-6", @class]}>
         <div class="flex items-center gap-4">
-          <.action
-            type="link"
-            patch="?comment=new"
-            icon_name="hero-plus-circle-mini"
-          >
+          <.action type="link" patch="?comment=new" icon_name="hero-plus-circle-mini">
             <%= gettext("Add comment") %>
           </.action>
         </div>
@@ -216,6 +295,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
       |> assign(:ai_response, nil)
       |> assign(:ai_cooldown_minutes, nil)
       |> assign(:ai_cooldown_minutes_left, nil)
+      |> assign(:ilp_comments, [])
       |> assign(:initialized, false)
 
     {:ok, socket}
@@ -272,6 +352,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
     |> assign_ai_form()
     |> assign_has_ai_revision()
     |> assign_is_on_ai_cooldown()
+    |> assign_ilp_comments()
     |> assign(:initialized, true)
   end
 
@@ -330,6 +411,13 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
   end
 
   defp assign_ilp_comment(socket), do: assign(socket, :ilp_comment, nil)
+
+  defp assign_ilp_comments(%{assigns: %{student_ilp: %StudentILP{id: id}}} = socket) do
+    socket
+    |> assign(:ilp_comments, ILP.list_ilp_comments_by_student_ilp(id))
+  end
+
+  defp assign_ilp_comments(socket), do: socket
 
   defp assign_ai_form(
          %{assigns: %{template: %ILPTemplate{}, student_ilp: %StudentILP{}}} = socket

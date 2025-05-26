@@ -5,7 +5,7 @@ defmodule Lanttern.ILPSectionFactory do
       def ilp_section_factory do
         %Lanttern.ILP.ILPSection{
           name: sequence("ilp_section"),
-          position: 1,
+          position: 1
         }
       end
     end
