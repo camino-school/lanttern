@@ -270,4 +270,26 @@ defmodule LantternWeb.StudentLiveTest do
       assert render(view) =~ "Closed by #{user.current_profile.name} on May 19, 2025, 18:23 ("
     end
   end
+
+  describe "Student ILP live view access" do
+    test "renders ok when create a new ILP comment", ctx do
+      school = ctx.user.current_profile.staff_member.school
+      student = insert(:student, %{school: school})
+      template = insert(:ilp_template, %{school: school})
+      cycle = insert(:cycle, %{school: school})
+      insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
+
+      valid_attrs = %{"name" => "Fofoca", "content" => "This is a new comment"}
+
+      {:ok, view, _html} = live(ctx.conn, "#{@live_view_base_path}/#{student.id}/ilp")
+      assert view |> has_element?("span", "Add comment")
+
+      assert render_patch(view, "?comment=new")
+      assert view |> has_element?("h2", "New Comment")
+
+      assert form(view, "#student-ilp-comment-form", ilp_comment: valid_attrs) |> render_submit()
+
+      assert [%{name: "Fofoca"}] = Lanttern.ILP.list_ilp_comments()
+    end
+  end
 end

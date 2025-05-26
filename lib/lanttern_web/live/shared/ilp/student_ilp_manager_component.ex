@@ -33,6 +33,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
 
   # shared components
   alias LantternWeb.ILP.StudentILPComponent
+  alias LantternWeb.ILP.ILPCommentFormOverlayComponent
   alias LantternWeb.ILP.StudentILPFormOverlayComponent
   alias LantternWeb.Schools.StudentHeaderComponent
   import LantternWeb.DateTimeHelpers
@@ -90,6 +91,29 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
         current_profile={@current_profile}
         tz={@tz}
       />
+
+      <div class={[card_base_classes(), "p-4 sm:p-6", @class]}>
+        <div class="flex items-center gap-4">
+          <.action
+            type="link"
+            patch="?comment=new"
+            icon_name="hero-plus-circle-mini"
+          >
+            <%= gettext("Add comment") %>
+          </.action>
+        </div>
+      </div>
+
+      <.live_component
+        :if={@ilp_comment}
+        module={ILPCommentFormOverlayComponent}
+        id={"#{@id}ilp-comment-slide-over"}
+        student_ilp={@student_ilp}
+        current_profile={@current_profile}
+        on_cancel={@on_edit_cancel}
+        notify_component={@myself}
+      />
+
       <.ai_box :if={@ai_form || @has_ai_revision} class="mt-6 mb-6">
         <div :if={@has_ai_revision} class="py-6 border-y border-ltrn-ai-lighter">
           <h5 class="font-display font-black text-lg">
@@ -215,12 +239,28 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
     {:ok, delegate_navigation(socket, nav_opts)}
   end
 
+  def update(%{action: {ILPCommentFormOverlayComponent, {action, _message}}}, socket)
+      when action in [:created] do
+    flash_message =
+      case action do
+        :created -> {:info, gettext("Comment created successfully")}
+      end
+
+    nav_opts = [
+      put_flash: flash_message,
+      push_navigate: [to: socket.assigns.edit_navigate]
+    ]
+
+    {:ok, delegate_navigation(socket, nav_opts)}
+  end
+
   def update(assigns, socket) do
     socket =
       socket
       |> assign(assigns)
       |> initialize()
       |> assign_edit_student_ilp()
+      |> assign_ilp_comment()
 
     {:ok, socket}
   end
@@ -283,6 +323,13 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
       _ -> assign(socket, :student_ilp, nil)
     end
   end
+
+  defp assign_ilp_comment(%{assigns: %{params: %{"comment" => "new"}}} = socket) do
+    socket
+    |> assign(:ilp_comment, %ILP.ILPComment{})
+  end
+
+  defp assign_ilp_comment(socket), do: assign(socket, :ilp_comment, nil)
 
   defp assign_ai_form(
          %{assigns: %{template: %ILPTemplate{}, student_ilp: %StudentILP{}}} = socket
