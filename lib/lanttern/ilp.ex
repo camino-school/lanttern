@@ -832,6 +832,7 @@ defmodule Lanttern.ILP do
     ILPComment
     |> where([c], c.student_ilp_id == ^student_ilp_id)
     |> order_by([c], desc: :inserted_at)
+    |> preload([c], [:owner])
     |> Repo.all()
   end
 

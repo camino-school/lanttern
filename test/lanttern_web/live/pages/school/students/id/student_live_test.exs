@@ -331,7 +331,14 @@ defmodule LantternWeb.StudentLiveTest do
         insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
 
       comment1 = insert(:ilp_comment, %{student_ilp: ilp, owner: ctx.user.current_profile})
-      comment2 = insert(:ilp_comment, %{student_ilp: ilp, name: "Review", content: "Content."})
+
+      comment2 =
+        insert(:ilp_comment, %{
+          student_ilp: ilp,
+          name: "Review",
+          content: "Content.",
+          owner: ctx.user.current_profile
+        })
 
       ctx.conn
       |> visit("#{@live_view_base_path}/#{student.id}/ilp")
