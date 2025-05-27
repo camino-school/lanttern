@@ -25,7 +25,7 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
     ~H"""
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
       <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
-        <:title><%= @title %></:title>
+        <:title><%= @ilp_comment_title %></:title>
         <.form
           id="student-ilp-form"
           for={@form}

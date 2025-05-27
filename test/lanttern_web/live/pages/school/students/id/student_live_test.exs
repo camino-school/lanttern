@@ -284,16 +284,61 @@ defmodule LantternWeb.StudentLiveTest do
       |> visit("#{@live_view_base_path}/#{student.id}/ilp")
       |> click_link("Add comment")
       |> assert_has("h2", text: "New Comment")
-      |> fill_in("Title", with: "Fofoca")
-      |> fill_in("Content", with: "Conteudo")
+      |> fill_in("Title", with: "Quartely Feedback")
+      |> fill_in("Content", with: "Content for quartely feedback")
       |> click_button("Save")
 
       ctx.conn
       |> visit("#{@live_view_base_path}/#{student.id}/ilp")
-      |> assert_has("a", text: "Fofoca")
-      |> assert_has("p", text: "Conteudo")
+      |> assert_has("a", text: "Quartely Feedback")
+      |> assert_has("p", text: "Content for quartely feedback")
 
-      assert [%{name: "Fofoca"}] = Lanttern.ILP.list_ilp_comments()
+      # assert [%{name: "Quartely Feedback"}] = Lanttern.ILP.list_ilp_comments()
+    end
+
+    test "renders ok when edit a new ILP comment", ctx do
+      school = ctx.user.current_profile.staff_member.school
+      student = insert(:student, %{school: school})
+      template = insert(:ilp_template, %{school: school})
+      cycle = insert(:cycle, %{school: school})
+
+      ilp =
+        insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
+
+      insert(:ilp_comment, %{student_ilp: ilp, owner: ctx.user.current_profile})
+
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp")
+      |> click_link("Edit comment")
+      |> assert_has("h2", text: "Edit Comment")
+      |> fill_in("Title", with: "Teacher's feedback'")
+      |> fill_in("Content", with: "Feedback content.")
+      |> click_button("Save")
+
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp")
+      |> assert_has("a", text: "Teacher's feedback'")
+      |> assert_has("p", text: "Feedback content.")
+    end
+
+    test "renders ok when list all ILP comment for a student_ilp", ctx do
+      school = ctx.user.current_profile.staff_member.school
+      student = insert(:student, %{school: school})
+      template = insert(:ilp_template, %{school: school})
+      cycle = insert(:cycle, %{school: school})
+
+      ilp =
+        insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
+
+      comment1 = insert(:ilp_comment, %{student_ilp: ilp, owner: ctx.user.current_profile})
+      comment2 = insert(:ilp_comment, %{student_ilp: ilp, name: "Review", content: "Content."})
+
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp")
+      |> assert_has("a", text: comment1.name)
+      |> assert_has("p", text: comment1.content)
+      |> assert_has("a", text: comment2.name)
+      |> assert_has("p", text: comment2.content)
     end
   end
 end

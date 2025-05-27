@@ -126,16 +126,14 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
                     id={"comment-#{ilp_comment.id}"}
                     class="mt-4 line-clamp-5"
                   />
-                  <%!--
-                <.action
-                  type="link"
-                  icon_name="hero-arrow-up-right-mini"
-                  patch={"?comment=#{ilp_comment.id}"}
-                  class="mt-4"
-                >
-                  <%= gettext("View more") %>
-                </.action>
-                --%>
+                  <.action
+                    type="link"
+                    icon_name="hero-arrow-up-right-mini"
+                    patch={"?comment_id=#{ilp_comment.id}"}
+                    class="mt-4"
+                  >
+                    <%= gettext("Edit comment") %>
+                  </.action>
                 </div>
               </div>
               <div class="px-2 pb-2">
@@ -159,15 +157,6 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
                       ) %>
                     </.tooltip>
                   </div>
-                  <div
-                    :if={ilp_comment.shared_with_students && ilp_comment.owner.type == "staff"}
-                    class="group relative"
-                  >
-                    <.icon name="hero-globe-americas" class="w-6 h-6 text-ltrn-staff-accent" />
-                    <.tooltip h_pos="right">
-                      <%= gettext("Visible to guardians and student.") %>
-                    </.tooltip>
-                  </div>
                 </div>
               </div>
             </.card_base>
@@ -186,7 +175,10 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
       <.live_component
         :if={@ilp_comment}
         module={ILPCommentFormOverlayComponent}
-        id={"#{@id}ilp-comment-slide-over"}
+        id={"#{@id}-comment-slide-over"}
+        title={@ilp_comment_title}
+        ilp_comment={@ilp_comment}
+        action={@ilp_comment_action}
         student_ilp={@student_ilp}
         current_profile={@current_profile}
         on_cancel={@on_edit_cancel}
@@ -296,6 +288,9 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
       |> assign(:ai_cooldown_minutes, nil)
       |> assign(:ai_cooldown_minutes_left, nil)
       |> assign(:ilp_comments, [])
+      |> assign(:ilp_comment, nil)
+      |> assign(:ilp_comment_title, nil)
+      |> assign(:ilp_comment_action, nil)
       |> assign(:initialized, false)
 
     {:ok, socket}
@@ -320,10 +315,11 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
   end
 
   def update(%{action: {ILPCommentFormOverlayComponent, {action, _message}}}, socket)
-      when action in [:created] do
+      when action in [:created, :updated] do
     flash_message =
       case action do
         :created -> {:info, gettext("Comment created successfully")}
+        :updated -> {:info, gettext("Comment updated successfully")}
       end
 
     nav_opts = [
@@ -408,6 +404,15 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
   defp assign_ilp_comment(%{assigns: %{params: %{"comment" => "new"}}} = socket) do
     socket
     |> assign(:ilp_comment, %ILP.ILPComment{})
+    |> assign(:ilp_comment_title, gettext("New Comment"))
+    |> assign(:ilp_comment_action, :new)
+  end
+
+  defp assign_ilp_comment(%{assigns: %{params: %{"comment_id" => id}}} = socket) do
+    socket
+    |> assign(:ilp_comment, ILP.get_ilp_comment(id))
+    |> assign(:ilp_comment_title, gettext("Edit Comment"))
+    |> assign(:ilp_comment_action, :edit)
   end
 
   defp assign_ilp_comment(socket), do: assign(socket, :ilp_comment, nil)

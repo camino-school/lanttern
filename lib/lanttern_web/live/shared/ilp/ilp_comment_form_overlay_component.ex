@@ -18,7 +18,7 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
     ~H"""
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
       <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
-        <:title><%= gettext("New Comment") %></:title>
+        <:title><%= @title %></:title>
         <.form
           id="student-ilp-comment-form"
           for={@form}
@@ -49,7 +49,7 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
           </.error_block>
         </.form>
 
-        <:actions_left :if={@comment.id}>
+        <:actions_left>
           <.action
             type="button"
             theme="subtle"
@@ -85,25 +85,6 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
     """
   end
 
-  # function components
-
-  # attr :entry, ILPEntry
-  # attr :class, :any, default: nil
-
-  # defp ilp_entry(%{entry: %{description: nil}} = assigns) do
-  #   ~H"""
-  #   <.empty_state_simple class={@class}>
-  #     <%= gettext("Nothing yet") %>
-  #   </.empty_state_simple>
-  #   """
-  # end
-
-  # defp ilp_entry(assigns) do
-  #   ~H"""
-  #   <.markdown text={@entry.description} class={["max-w-none", @class]} />
-  #   """
-  # end
-
   @impl true
   def mount(socket) do
     socket =
@@ -115,7 +96,6 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
       |> assign(:show_teacher_notes, false)
       |> assign(:is_ilp_manager, false)
       |> assign(:initialized, false)
-      |> assign(:comment, %ILPComment{})
 
     {:ok, socket}
   end
@@ -139,7 +119,7 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
   defp initialize(socket), do: socket
 
   defp assign_form(socket) do
-    changeset = ILP.change_ilp_comment(%ILPComment{})
+    changeset = ILP.change_ilp_comment(socket.assigns.ilp_comment)
 
     socket
     |> assign(:form, to_form(changeset))
@@ -150,14 +130,14 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
   @impl true
   def handle_event("validate", %{"ilp_comment" => comment_params}, socket) do
     changeset =
-      ILPComment.changeset(socket.assigns.comment, comment_params)
+      ILPComment.changeset(socket.assigns.ilp_comment, comment_params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign(socket, :form, to_form(changeset))}
   end
 
   def handle_event("save", %{"ilp_comment" => comment_params}, socket) do
-    save_ilp_comment(socket, :save, comment_params)
+    save_ilp_comment(socket, socket.assigns.action, comment_params)
   end
 
   def handle_event("toggle_shared", params, socket) do
@@ -186,7 +166,7 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
     end
   end
 
-  defp save_ilp_comment(socket, :save, params) do
+  defp save_ilp_comment(socket, :new, params) do
     params =
       params
       |> Map.put("position", 0)
@@ -197,6 +177,17 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
     case ILP.create_ilp_comment(params) do
       {:ok, comment} ->
         notify(__MODULE__, {:created, comment}, socket.assigns)
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
+  defp save_ilp_comment(socket, :edit, params) do
+    case ILP.update_ilp_comment(socket.assigns.ilp_comment, params) do
+      {:ok, comment} ->
+        notify(__MODULE__, {:updated, comment}, socket.assigns)
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->

@@ -851,6 +851,8 @@ defmodule Lanttern.ILP do
   """
   def get_ilp_comment!(id), do: Repo.get!(ILPComment, id)
 
+  def get_ilp_comment(id), do: Repo.get(ILPComment, id)
+
   @doc """
   Creates a ilp_comment.
 
