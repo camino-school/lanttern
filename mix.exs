@@ -9,7 +9,15 @@ defmodule Lanttern.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        "coveralls.cobertura": :test
+      ]
     ]
   end
 
@@ -66,7 +74,9 @@ defmodule Lanttern.MixProject do
       {:slugify, "~> 1.3"},
       {:image, "~> 0.37"},
       {:ex_openai, "~> 1.8.0-beta"},
-      {:tidewave, "~> 0.1.6"}
+      {:tidewave, "~> 0.1.6"},
+      {:excoveralls, "~> 0.18", only: :test},
+      {:phoenix_test, "~> 0.6.0", only: :test, runtime: false}
     ]
   end
 
@@ -82,7 +92,7 @@ defmodule Lanttern.MixProject do
       "setup.no-ecto": ["deps.get", "assets.setup", "assets.build"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test --cover"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["cmd --cd assets npm i", "tailwind default", "esbuild default"],
       "assets.deploy": [

@@ -68,6 +68,20 @@ The main secrets/env vars that we need for this are the following:
 - `SECRET_KEY_BASE` - Phoenix generated
 - `CONTENT_SECURITY_POLICY` - CSP headers
 
+#### Tests
+
+##### Coverage
+
+The default behavior when test with `mix test` is to run with coverage.
+To configure the minimum coverage percentage, ignored files, and terminal output,
+use the `coveralls.json` file. To generate a coverage report, run `mix coveralls.html`
+and view it in the `cover/` folder. Source: [excoveralls](https://github.com/parroty/excoveralls)
+
+##### Tips
+
+To investigate the perfomance process run `mix test --slowest 10`
+
+
 ## Learn more
 
 - Official website: <https://www.phoenixframework.org/>
