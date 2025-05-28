@@ -95,7 +95,7 @@ _class_2 =
 # use changeset to hash password
 staff_member_admin_user =
   Identity.User.registration_changeset(%Identity.User{}, %{
-    email: System.get_env("ROOT_ADMIN_EMAIL"),
+    email: System.get_env("ROOT_ADMIN_EMAIL") || "root@email.com",
     password: "asdfasdfasdf"
   })
   |> Ecto.Changeset.put_change(:is_root_admin, true)

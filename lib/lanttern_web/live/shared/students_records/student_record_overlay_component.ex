@@ -217,11 +217,11 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 </div>
                 <div class="flex items-center gap-2">
                   <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
-                  <%= Timex.format!(@student_record.date, "{Mfull} {0D}, {YYYY}") %>
+                  <%= format_by_locale(@student_record.date, @current_user.tz, formats()) %>
                 </div>
                 <div :if={@student_record.time} class="flex items-center gap-2">
                   <.icon name="hero-clock-mini" class="w-5 h-5 text-ltrn-subtle" />
-                  <%= @student_record.time %>
+                  <%= format_simple_time(@student_record.time) %>
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="text-ltrn-subtle"><%= gettext("Status") %>:</span>
@@ -306,7 +306,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 class="inline-flex items-center gap-2 p-2 rounded-full mt-4"
                 style={create_color_map_style(@student_record.status)}
               >
-                <.closed_status_info student_record={@student_record} />
+                <.closed_status_info student_record={@student_record} tz={@current_user.tz} />
               </div>
               <div
                 :if={@student_record.shared_with_school}
@@ -358,6 +358,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
 
   attr :student_record, StudentRecord, required: true
   attr :class, :any, default: nil
+  attr :tz, :string, default: nil
 
   defp closed_status_info(
          %{student_record: %{status: %{is_closed: true}, closed_at: nil}} = assigns
@@ -391,7 +392,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
     <.icon name="hero-check-circle-mini" />
     <%= gettext("Closed by %{staff_member} on %{datetime} (%{days_and_hours} since creation)",
       staff_member: @student_record.closed_by_staff_member.name,
-      datetime: format_local!(@student_record.closed_at),
+      datetime: format_by_locale(@student_record.closed_at, @tz),
       days_and_hours: @days_and_hours
     ) %>
     """
@@ -408,7 +409,9 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
     assigns = assign(assigns, :days_and_hours, days_and_hours)
 
     ~H"""
-    <%= gettext("Created on %{datetime}", datetime: format_local!(@student_record.inserted_at)) %>
+    <%= gettext("Created on %{datetime}",
+      datetime: format_by_locale(@student_record.inserted_at, @tz)
+    ) %>
     <%= gettext("(Open for %{days_and_hours})", days_and_hours: @days_and_hours) %>
     """
   end
@@ -907,4 +910,6 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
         {:noreply, assign(socket, :form, to_form(changeset))}
     end
   end
+
+  defp formats, do: %{"en" => "MMM d, y", "pt_BR" => "d MMM y"}
 end

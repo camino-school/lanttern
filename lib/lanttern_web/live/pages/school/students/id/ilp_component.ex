@@ -59,6 +59,7 @@ defmodule LantternWeb.StudentLive.ILPComponent do
           student={@student}
           cycle={@current_user.current_profile.current_school_cycle}
           current_profile={@current_user.current_profile}
+          tz={@current_user.tz}
           is_ilp_manager={"ilp_management" in @current_user.current_profile.permissions}
           params={@params}
           on_edit_patch={fn _id -> "#{@base_path}?student_ilp=edit" end}

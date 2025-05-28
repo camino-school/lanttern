@@ -40,7 +40,7 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
           items={@classes}
           selected_ids={@selected_classes_ids}
           label_setter="class_with_cycle"
-          current_user_or_cycle={@current_user}
+          current_user={@current_user}
         />
         <form class="mt-6">
           <.live_component

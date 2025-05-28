@@ -189,7 +189,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
             end
           }
           details_patch={fn student_record -> "#{@base_path}?student_record=#{student_record.id}" end}
-          current_user_or_cycle={@current_user}
+          current_user={@current_user}
         />
       </.responsive_container>
       <div :if={@has_next} class="flex justify-center pb-10">
