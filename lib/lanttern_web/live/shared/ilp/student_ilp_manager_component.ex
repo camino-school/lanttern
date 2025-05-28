@@ -13,6 +13,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
   - `:student` - `Student`
   - `:template` - `ILPTemplate`
   - `:params` - parent view params. Use `"student_ilp=new"` to create, or `"student_ilp=edit"` to edit
+  - `:tz` - from `current_user.tz`
 
   ### Optional attrs
 
@@ -94,6 +95,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
         is_ilp_manager={@is_ilp_manager}
         show_teacher_notes
         current_profile={@current_profile}
+        tz={@tz}
       />
       <.live_component
         :if={@edit_student_ilp}
@@ -113,6 +115,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
         student_ilp={@student_ilp}
         ilp_template={@template}
         current_profile={@current_profile}
+        tz={@tz}
         on_cancel={JS.patch(@base_path)}
       />
     </div>

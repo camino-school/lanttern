@@ -60,7 +60,8 @@ defmodule LantternWeb.Router do
       layout: {LantternWeb.Layouts, :app_logged_in},
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated_staff_member},
-        {LantternWeb.Path, :put_path_in_socket}
+        {LantternWeb.Path, :put_path_in_socket},
+        {LantternWeb.LocalizationHelpers, :put_timezone}
       ] do
       live "/dashboard", DashboardLive, :index
 
@@ -139,7 +140,8 @@ defmodule LantternWeb.Router do
       layout: {LantternWeb.Layouts, :app_logged_in},
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated_guardian},
-        {LantternWeb.Path, :put_path_in_socket}
+        {LantternWeb.Path, :put_path_in_socket},
+        {LantternWeb.LocalizationHelpers, :put_timezone}
       ] do
       live "/guardian", GuardianHomeLive
     end
@@ -148,7 +150,8 @@ defmodule LantternWeb.Router do
       layout: {LantternWeb.Layouts, :app_logged_in},
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated_student},
-        {LantternWeb.Path, :put_path_in_socket}
+        {LantternWeb.Path, :put_path_in_socket},
+        {LantternWeb.LocalizationHelpers, :put_timezone}
       ] do
       live "/student", StudentHomeLive
     end
@@ -157,7 +160,8 @@ defmodule LantternWeb.Router do
       layout: {LantternWeb.Layouts, :app_logged_in},
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated_student_or_guardian},
-        {LantternWeb.Path, :put_path_in_socket}
+        {LantternWeb.Path, :put_path_in_socket},
+        {LantternWeb.LocalizationHelpers, :put_timezone}
       ] do
       live "/student_report_cards", StudentReportCardsLive, :index
       live "/strand_report/:strand_report_id", StudentStrandReportLive, :show
@@ -169,7 +173,8 @@ defmodule LantternWeb.Router do
       layout: {LantternWeb.Layouts, :app_logged_in},
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated},
-        {LantternWeb.Path, :put_path_in_socket}
+        {LantternWeb.Path, :put_path_in_socket},
+        {LantternWeb.LocalizationHelpers, :put_timezone}
       ] do
       live "/student_report_cards/:id", StudentReportCardLive, :show
 

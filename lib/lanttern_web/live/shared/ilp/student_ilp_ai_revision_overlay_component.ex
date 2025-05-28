@@ -4,6 +4,7 @@ defmodule LantternWeb.ILP.StudentILPAIRevisionOverlayComponent do
   If there's no student ILP revision, nothing is rendered.
   ### Required attrs
   - `:current_profile`
+  - `:tz`
   - `:on_cancel`
   - `:ilp_template` - `%ILPTemplate{}`
   - `:student_ilp` - `%StudentILP{}`
@@ -15,7 +16,7 @@ defmodule LantternWeb.ILP.StudentILPAIRevisionOverlayComponent do
   alias Lanttern.ILP.ILPTemplate
   alias Lanttern.ILP.StudentILP
 
-  import LantternWeb.DateTimeHelpers, only: [format_local!: 2]
+  import LantternWeb.DateTimeHelpers, only: [format_by_locale: 2]
 
   @impl true
   def render(assigns) do
@@ -31,8 +32,7 @@ defmodule LantternWeb.ILP.StudentILPAIRevisionOverlayComponent do
       >
         <p class="mb-6 text-xs">
           <%= gettext("Generated in %{datetime}",
-            datetime:
-              format_local!(@student_ilp.ai_revision_datetime, "{Mshort} {0D}, {YYYY} {h24}:{m}")
+            datetime: format_by_locale(@student_ilp.ai_revision_datetime, @tz)
           ) %>
         </p>
         <.markdown text={@student_ilp.ai_revision} />
@@ -211,7 +211,7 @@ defmodule LantternWeb.ILP.StudentILPAIRevisionOverlayComponent do
             socket.assigns.student_ilp,
             socket.assigns.ilp_template,
             age,
-            log_profile_id: socket.assigns.current_profile.id
+            log_profile_id: socket.assigns.current_user.current_profile_id
           )
           |> case do
             {:ok, student_ilp} ->
