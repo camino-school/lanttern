@@ -58,7 +58,7 @@ defmodule Lanttern.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.20"},
       {:jason, "~> 1.2"},
-      {:plug_cowboy, "~> 2.5"},
+      {:plug_cowboy, "~> 2.7"},
       {:git_hooks, "~> 0.8.0", only: [:dev], runtime: false},
       {:timex, "~> 3.0"},
       {:joken, "~> 2.5"},
@@ -74,6 +74,7 @@ defmodule Lanttern.MixProject do
       {:slugify, "~> 1.3"},
       {:image, "~> 0.37"},
       {:ex_openai, "~> 1.8.0-beta"},
+      {:tidewave, "~> 0.1.6"},
       {:excoveralls, "~> 0.18", only: :test},
       {:phoenix_test, "~> 0.6.0", only: :test, runtime: false}
     ]

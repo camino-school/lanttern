@@ -4,11 +4,12 @@
 
 @custom-variant phx-no-feedback (.phx-no-feedback&, .phx-no-feedback &);
 @custom-variant phx-click-loading (.phx-click-loading&, .phx-click-loading &);
-@custom-variant group-phx-click-loading (:merge(.group).phx-click-loading &);
+@custom-variant group-phx-click-loading (&:where(.group.phx-click-loading *));
 @custom-variant phx-submit-loading (.phx-submit-loading&, .phx-submit-loading &);
-@custom-variant group-phx-submit-loading (:merge(.group).phx-submit-loading &);
+@custom-variant group-phx-submit-loading (&:where(.group.phx-submit-loading *));
 @custom-variant phx-change-loading (.phx-change-loading&, .phx-change-loading &);
-@custom-variant peer-phx-change-loading (:merge(.peer).phx-change-loading ~ &);
+@custom-variant peer-phx-change-loading (&:where(.peer.phx-change-loading ~ *));
+@custom-variant peer-phx-click-loading (&:where(.peer.phx-click-loading ~ *));
 
 @plugin "./heroicons.tailwind.plugin.js";
 
@@ -34,10 +35,16 @@
   --color-ltrn-mesh-yellow: var(--color-yellow-100);
   --color-ltrn-mesh-lime: var(--color-lime-100);
 
-  --color-ltrn-ai-dark: var(--color-pink-800);
-  --color-ltrn-ai-accent: var(--color-pink-500);
-  --color-ltrn-ai-lighter: var(--color-pink-200);
-  --color-ltrn-ai-lightest: var(--color-pink-50);
+  --color-ltrn-ai-dark: var(--color-amber-900);
+  --color-ltrn-ai-accent: var(--color-amber-500);
+  --color-ltrn-ai-light: var(--color-amber-300);
+  --color-ltrn-ai-lighter: var(--color-amber-200);
+  --color-ltrn-ai-lightest: var(--color-amber-50);
+  --color-ltrn-ai-spectrum-main: var(--color-cyan-300);
+  --color-ltrn-ai-spectrum-1: var(--color-purple-500);
+  --color-ltrn-ai-spectrum-2: var(--color-green-300);
+  --color-ltrn-ai-spectrum-3: var(--color-yellow-300);
+  --color-ltrn-ai-spectrum-4: var(--color-rose-300);
 
   --color-ltrn-diff-dark: var(--color-violet-800);
   --color-ltrn-diff-accent: var(--color-violet-600);
@@ -70,28 +77,9 @@
 
 @custom-variant aria-current (&[aria-current="true"]);
 
-/* fontFamily: {
-  //         display: ["Montserrat", "sans-serif"],
-  //         mono: ['"Source Code Pro"', ...defaultTheme.fontFamily.mono],
-  //         sans: ['"Open Sans"', ...defaultTheme.fontFamily.sans],
-  //       },
-  //       aria: {
-  //         current: 'current="true"'
-  //       },
-  //       typography: (theme) => ({
-  //         DEFAULT: {
-  //           css: {
-  //             h1: { fontFamily: 'Montserrat, sans-serif', fontWeight: '900' },
-  //             h2: { fontFamily: 'Montserrat, sans-serif', fontWeight: '900' },
-  //             h3: { fontFamily: 'Montserrat, sans-serif', fontWeight: '700' },
-  //             h4: { fontFamily: 'Montserrat, sans-serif', fontWeight: '700' },
-  //             h5: { fontFamily: 'Montserrat, sans-serif' },
-  //             h6: { fontFamily: 'Montserrat, sans-serif' },
-  //           }
-  //         }
-  //       }) */
-
-/* This file is for your main application CSS */
+button {
+  cursor: pointer;
+}
 
 .ltrn-bg-main {
   background-attachment: fixed;
@@ -133,6 +121,113 @@
     radial-gradient(circle at 20% 60%, #ECFEFF 20%, transparent 60%),
     radial-gradient(circle at 0 0, #FFE4E6 20%, transparent 50%),
     radial-gradient(circle at 120% 120%, #DDD6FE 40%, transparent 60%);
+}
+
+.ltrn-ai-overlay-border {
+  border-image: linear-gradient(
+    to top right,
+    var(--color-ltrn-ai-spectrum-1),
+    var(--color-ltrn-ai-spectrum-main),
+    var(--color-ltrn-ai-spectrum-2),
+    var(--color-ltrn-ai-spectrum-3),
+    var(--color-ltrn-ai-spectrum-4)
+  ) 1;
+}
+
+.ltrn-ai-bg {
+  background-image: linear-gradient(
+    to right,
+    white 25%,
+    var(--color-ltrn-ai-spectrum-1),
+    var(--color-ltrn-ai-spectrum-main),
+    var(--color-ltrn-ai-spectrum-2),
+    var(--color-ltrn-ai-spectrum-3),
+    var(--color-ltrn-ai-spectrum-4),
+    white 75%
+  );
+  background-size: 400%;
+  animation: 4s ease-in-out 2s reverse infinite ltrn-ai-bg;
+}
+
+@keyframes ltrn-ai-bg {
+  from {background-position: 0%}
+  to {background-position: 100%}
+}
+
+.ltrn-ai-indicator-bg {
+  background: white;
+  background-image: linear-gradient(
+    to right,
+    var(--color-ltrn-ai-spectrum-1),
+    var(--color-ltrn-ai-spectrum-main),
+    var(--color-ltrn-ai-spectrum-2),
+    var(--color-ltrn-ai-spectrum-3),
+    var(--color-ltrn-ai-spectrum-4),
+    var(--color-ltrn-ai-spectrum-1)
+  );
+  background-size: 200%;
+  animation: 6s ease-in-out infinite ltrn-ai-indicator;
+}
+
+@keyframes ltrn-ai-indicator {
+  from {background-position: 0%}
+  to {background-position: 400%}
+}
+
+.ltrn-ai-spot-1-anim {
+  animation: 2s ease-in-out infinite alternate ltrn-ai-spot-1;
+}
+
+.ltrn-ai-spot-2-anim {
+  animation: 1s ease-in-out infinite alternate ltrn-ai-spot-2;
+}
+
+.ltrn-ai-spot-3-anim {
+  animation: 0.5s ease-in-out infinite alternate ltrn-ai-spot-3;
+}
+
+.ltrn-ai-spot-4-anim {
+  animation: 1s ease-in-out infinite alternate ltrn-ai-spot-4;
+}
+
+@keyframes ltrn-ai-spot-1 {
+  from {
+    transform: translate(0, 0);
+  }
+
+  to {
+    transform: translate(50%, 50%);
+  }
+}
+
+@keyframes ltrn-ai-spot-2 {
+  from {
+    transform: translate(0, 0);
+  }
+
+  to {
+    transform: translate(-50%, 75%);
+  }
+}
+
+@keyframes ltrn-ai-spot-3 {
+  from {
+    transform: translate(0, 0);
+  }
+
+  to {
+    transform: translate(-25%, -50%);
+  }
+}
+
+@keyframes ltrn-ai-spot-4 {
+  from {
+    transform: translate(0, 0);
+  }
+
+  to {
+    transform: translate(-50%, -50%);
+  }
 }
 
 /* landing page */

@@ -80,6 +80,7 @@ defmodule LantternWeb.CoreComponents do
     "subtle" => "text-ltrn-subtle hover:text-ltrn-dark",
     "primary" => "text-ltrn-dark hover:text-ltrn-subtle",
     "ai" => "text-ltrn-ai-dark hover:text-ltrn-ai-dark/60",
+    "ai-generate" => "text-ltrn-ai-dark hover:text-ltrn-ai-dark/60",
     "diff" => "text-ltrn-diff-dark hover:text-ltrn-diff-dark/60",
     "student" => "text-ltrn-student-dark hover:text-ltrn-student-dark/80",
     "staff" => "text-ltrn-staff-dark hover:text-ltrn-staff-dark/80",
@@ -90,7 +91,7 @@ defmodule LantternWeb.CoreComponents do
     "default" => nil,
     "subtle" => nil,
     "primary" => "bg-ltrn-mesh-primary",
-    "ai" => "bg-ltrn-ai-lighter",
+    "ai-generate" => "bg-white ltrn-ai-bg",
     "diff" => "bg-ltrn-diff-lightest",
     "student" => "bg-ltrn-student-lightest",
     "staff" => "bg-ltrn-staff-lightest",
@@ -176,7 +177,8 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @action_icon_themes %{
-    "ghost" => "text-ltrn-dark hover:text-ltrn-subtle"
+    "ghost" => "text-ltrn-dark hover:text-ltrn-subtle",
+    "subtle" => "text-ltrn-subtle hover:text-ltrn-dark"
   }
 
   @action_icon_sizes %{
@@ -232,16 +234,35 @@ defmodule LantternWeb.CoreComponents do
   """
   attr :class, :any, default: nil
   attr :id, :string, default: nil
+  attr :title, :string, default: nil
   slot :inner_block, required: true
 
   def ai_box(assigns) do
     ~H"""
     <div class={["p-4 rounded-sm border border-ltrn-ai-accent bg-ltrn-ai-lightest", @class]} id={@id}>
-      <h6 class="flex items-center gap-2 mb-4 font-display font-black text-lg">
-        <.icon name="hero-sparkles-mini" class="text-ltrn-ai-accent" /> Lanttern AI
-      </h6>
+      <h5 :if={@title} class="flex items-center gap-2 mb-4 font-display font-black text-lg">
+        <.icon name="hero-sparkles-mini" class="text-ltrn-ai-accent" /> <%= @title %>
+      </h5>
       <%= render_slot(@inner_block) %>
     </div>
+    """
+  end
+
+  @doc """
+  Renders a disclaimer about AI generated content.
+
+  ## Examples
+
+      <.ai_generated_content_disclaimer />
+  """
+  attr :class, :any, default: nil
+
+  def ai_generated_content_disclaimer(assigns) do
+    ~H"""
+    <p class={["flex items-center gap-2 p-2 rounded-sm text-ltrn-ai-dark bg-ltrn-ai-lighter", @class]}>
+      <.icon name="hero-information-circle-micro" class="w-4 h-4" />
+      <%= gettext("Remember that AI makes mistakes. Always double-check generated responses.") %>
+    </p>
     """
   end
 
