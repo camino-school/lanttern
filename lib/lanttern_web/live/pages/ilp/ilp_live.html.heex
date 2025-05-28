@@ -71,10 +71,7 @@
     tz={@current_user.tz}
     is_ilp_manager={@is_ilp_manager}
     params={@params}
-    on_edit_patch={fn _id -> ~p"/ilp?student_ilp=edit" end}
-    create_patch={~p"/ilp?student_ilp=new"}
-    on_edit_cancel={JS.patch(~p"/ilp")}
-    edit_navigate={~p"/ilp"}
+    base_path={~p"/ilp"}
     student_navigate={fn student_id -> ~p"/school/students/#{student_id}" end}
   />
 </.responsive_container>

@@ -98,6 +98,7 @@ defmodule LantternWeb do
       import LantternWeb.NavigationComponents
       import LantternWeb.FormComponents
       import LantternWeb.OverlayComponents
+      import LantternWeb.AIComponents
       use Gettext, backend: Lanttern.Gettext
 
       # Shortcut for generating JS commands

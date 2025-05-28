@@ -1,0 +1,17 @@
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "mcp-proxy-path",
+      "description": "MCP proxy path"
+    }
+  ],
+  "servers": {
+    "tidewave": {
+      "command": "${input:mcp-proxy-path}",
+      "args": [
+        "http://localhost:4000/tidewave/mcp"
+      ]
+    }
+  }
+}

@@ -6,12 +6,11 @@ defmodule LantternWeb.DateTimeHelpers do
   use Gettext, backend: Lanttern.Gettext
 
   @default_formats_map %{
-  "en" => "MMM d, y, HH:mm",
-  "pt_BR" => "d MMM y, HH:mm"
+    "en" => "MMM d, y, HH:mm",
+    "pt_BR" => "d MMM y, HH:mm"
   }
 
   @default_format @default_formats_map["en"]
-
 
   defp maybe_convert_naive(%NaiveDateTime{} = datetime),
     do: datetime |> Timex.to_datetime()
@@ -89,5 +88,5 @@ defmodule LantternWeb.DateTimeHelpers do
   end
 
   def get_default_format(locale),
-   do: Map.get(@default_formats_map, locale, @default_format)
+    do: Map.get(@default_formats_map, locale, @default_format)
 end

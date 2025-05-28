@@ -8,14 +8,12 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
   ### Required attrs
 
   - `:cycle` - `Cycle`
-  - `:on_edit_patch` - function, receive `student_ilp_id` as arg. Passed to edit action `patch` attr
-  - `:create_patch` - passed to create action `patch` attr
-  - `:on_edit_cancel` - passed to edit ILP form overlay `on_cancel` attr
-  - `:edit_navigate` - navigate when ILP is edited, created, or deleted
+  - `:base_path` - used on create, overlays cancel (edit/AI), and edit navigate
   - `:current_profile` - `Profile`, from `current_user.current_profile`
   - `:student` - `Student`
   - `:template` - `ILPTemplate`
   - `:params` - parent view params. Use `"student_ilp=new"` to create, or `"student_ilp=edit"` to edit
+  - `:tz` - from `current_user.tz`
 
   ### Optional attrs
 
@@ -32,12 +30,11 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
   alias Lanttern.Schools.Student
 
   # shared components
+  alias LantternWeb.ILP.StudentILPAIRevisionActionBarComponent
+  alias LantternWeb.ILP.StudentILPAIRevisionOverlayComponent
   alias LantternWeb.ILP.StudentILPComponent
   alias LantternWeb.ILP.StudentILPFormOverlayComponent
   alias LantternWeb.Schools.StudentHeaderComponent
-  import LantternWeb.DateTimeHelpers
-
-  @age_range 0..100
 
   @impl true
   def render(assigns) do
@@ -67,7 +64,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
             icon_name="hero-plus-circle-mini"
             theme="primary"
             size="md"
-            patch={@create_patch}
+            patch="?student_ilp=new"
           >
             <%= gettext("Create %{student}'s %{cycle} ILP",
               student: @student.name,
@@ -77,103 +74,49 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
         </div>
       </.card_base>
       <.live_component
+        module={StudentILPAIRevisionActionBarComponent}
+        id={"student-ilp-ai-revision-action-bar-#{@id}"}
+        class="mb-4"
+        student_ilp={@student_ilp}
+        ilp_template={@template}
+        view_patch="?ai_revision=show"
+        current_profile={@current_profile}
+        notify_component={@myself}
+      />
+      <.live_component
         :if={@student_ilp}
         module={StudentILPComponent}
-        id="student-ilp"
+        id={"student-ilp-#{@id}"}
         template={@template}
         student={@student}
         student_ilp={@student_ilp}
         show_actions
-        edit_patch={@on_edit_patch.(@student_ilp.id)}
+        edit_patch="?student_ilp=edit"
         is_ilp_manager={@is_ilp_manager}
         show_teacher_notes
         current_profile={@current_profile}
         tz={@tz}
       />
-      <.ai_box :if={@ai_form || @has_ai_revision} class="mt-6 mb-6">
-        <div :if={@has_ai_revision} class="py-6 border-y border-ltrn-ai-lighter">
-          <h5 class="font-display font-black text-lg">
-            <%= gettext("Lanttern AI revision") %>
-          </h5>
-          <p class="mt-1 mb-6 text-xs">
-            <%= gettext("Generated in %{datetime}",
-              datetime: format_by_locale(@student_ilp.ai_revision_datetime, @tz)
-            ) %>
-          </p>
-          <.markdown text={@student_ilp.ai_revision} />
-          <p class="flex items-center gap-2 p-2 rounded-sm mt-4 text-ltrn-ai-dark bg-ltrn-ai-lighter">
-            <.icon name="hero-information-circle-micro" class="w-4 h-4" />
-            <%= gettext("Remember that AI make mistakes. Always double-check generated responses.") %>
-          </p>
-        </div>
-        <%= if @is_on_ai_cooldown do %>
-          <.card_base class="p-2 mt-4">
-            <p class="flex items-center gap-2 text-ltrn-ai-dark">
-              <.icon name="hero-clock-micro" class="w-4 h-4" />
-              <%= gettext("AI revision can be requested every %{minute} minutes",
-                minute: @ai_cooldown_minutes
-              ) %>
-              <%= ngettext(
-                "(1 minute left until next revision request)",
-                "(%{count} minutes left until next revision request)",
-                @ai_cooldown_minutes_left
-              ) %>
-            </p>
-          </.card_base>
-        <% else %>
-          <form
-            :if={@ai_form}
-            phx-submit="request_ai_review"
-            phx-target={@myself}
-            class={if @has_ai_revision, do: "mt-6"}
-          >
-            <p class="mb-4">
-              <%= if @has_ai_revision,
-                do:
-                  gettext(
-                    "Inform the approximated age of the student (in years), and ask for an updated Lanttern AI revision."
-                  ),
-                else:
-                  gettext(
-                    "Inform the approximated age of the student (in years), and ask for Lanttern AI revision."
-                  ) %>
-            </p>
-            <div class="flex items-center gap-4">
-              <div class="w-40">
-                <.base_input
-                  name={@ai_form[:age].name}
-                  type="number"
-                  placeholder={gettext("Student age")}
-                  value={@ai_form[:age].value}
-                />
-              </div>
-              <.action type="submit" icon_name="hero-sparkles-mini" theme="ai">
-                <%= if @has_ai_revision,
-                  do: gettext("Request AI review update"),
-                  else: gettext("Request AI review") %>
-              </.action>
-            </div>
-            <p :if={@ai_form_error} class="flex items-center gap-2 mt-2 text-xs">
-              <.icon name="hero-exclamation-circle-micro" class="w-4 h-4" />
-              <%= @ai_form_error %>
-            </p>
-            <p :if={@ai_response_error} class="flex items-center gap-2 mt-2 text-xs">
-              <.icon name="hero-exclamation-circle-micro" class="w-4 h-4" />
-              <%= @ai_response_error %>
-            </p>
-          </form>
-        <% end %>
-      </.ai_box>
       <.live_component
         :if={@edit_student_ilp}
         module={StudentILPFormOverlayComponent}
-        id={"#{@id}-student-ilp-form-overlay"}
+        id={"student-ilp-form-overlay-#{@id}"}
         student_ilp={@edit_student_ilp}
         template={@template}
         title={@ilp_form_overlay_title}
         current_profile={@current_profile}
-        on_cancel={@on_edit_cancel}
+        on_cancel={JS.patch(@base_path)}
         notify_component={@myself}
+      />
+      <.live_component
+        :if={@ai_panel_open}
+        module={StudentILPAIRevisionOverlayComponent}
+        id={"student-ilp-ai-revision-overlay-#{@id}"}
+        student_ilp={@student_ilp}
+        ilp_template={@template}
+        current_profile={@current_profile}
+        tz={@tz}
+        on_cancel={JS.patch(@base_path)}
       />
     </div>
     """
@@ -187,11 +130,6 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
       |> assign(:student, nil)
       |> assign(:student_navigate, nil)
       |> assign(:template, nil)
-      |> assign(:ai_form_error, nil)
-      |> assign(:ai_response_error, nil)
-      |> assign(:ai_response, nil)
-      |> assign(:ai_cooldown_minutes, nil)
-      |> assign(:ai_cooldown_minutes_left, nil)
       |> assign(:initialized, false)
 
     {:ok, socket}
@@ -209,9 +147,17 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
 
     nav_opts = [
       put_flash: flash_message,
-      push_navigate: [to: socket.assigns.edit_navigate]
+      push_navigate: [to: socket.assigns.base_path]
     ]
 
+    {:ok, delegate_navigation(socket, nav_opts)}
+  end
+
+  def update(
+        %{action: {StudentILPAIRevisionActionBarComponent, {:generate_success, _student_ilp}}},
+        socket
+      ) do
+    nav_opts = [push_navigate: [to: "#{socket.assigns.base_path}?ai_revision=show"]]
     {:ok, delegate_navigation(socket, nav_opts)}
   end
 
@@ -221,6 +167,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
       |> assign(assigns)
       |> initialize()
       |> assign_edit_student_ilp()
+      |> assign_ai_panel_open()
 
     {:ok, socket}
   end
@@ -229,9 +176,6 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
     socket
     |> ensure_template_ai_layer_is_loaded()
     |> assign_student_ilp()
-    |> assign_ai_form()
-    |> assign_has_ai_revision()
-    |> assign_is_on_ai_cooldown()
     |> assign(:initialized, true)
   end
 
@@ -284,71 +228,6 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
     end
   end
 
-  defp assign_ai_form(
-         %{assigns: %{template: %ILPTemplate{}, student_ilp: %StudentILP{}}} = socket
-       ) do
-    # we enable the AI form only if
-    # - ILP has all entries
-    # - template has AI revision instructions
-    # - template has a selected AI model
-
-    has_all_entries =
-      socket.assigns.student_ilp.entries
-      |> Enum.all?(&(not is_nil(&1.description)))
-
-    template_ai_layer_is_ok =
-      socket.assigns.template.ai_layer &&
-        not is_nil(socket.assigns.template.ai_layer.revision_instructions) &&
-        not is_nil(socket.assigns.template.ai_layer.model)
-
-    if has_all_entries && template_ai_layer_is_ok do
-      form = to_form(%{"age" => nil}, as: :ai_form)
-      assign(socket, :ai_form, form)
-    else
-      assign(socket, :ai_form, nil)
-    end
-  end
-
-  defp assign_ai_form(socket) do
-    assign(socket, :ai_form, nil)
-  end
-
-  defp assign_has_ai_revision(socket) do
-    has_ai_revision =
-      case socket.assigns.student_ilp do
-        %StudentILP{ai_revision: revision} when not is_nil(revision) -> true
-        _ -> false
-      end
-
-    assign(socket, :has_ai_revision, has_ai_revision)
-  end
-
-  defp assign_is_on_ai_cooldown(%{assigns: %{has_ai_revision: true}} = socket) do
-    ai_cooldown_minutes =
-      (socket.assigns.template.ai_layer && socket.assigns.template.ai_layer.cooldown_minutes) || 0
-
-    cooldown_end_datetime =
-      DateTime.shift(socket.assigns.student_ilp.ai_revision_datetime, minute: ai_cooldown_minutes)
-
-    is_on_ai_cooldown =
-      DateTime.before?(DateTime.utc_now(), cooldown_end_datetime)
-
-    ai_cooldown_minutes_left =
-      Timex.diff(
-        cooldown_end_datetime,
-        DateTime.utc_now(),
-        :minutes
-      )
-
-    socket
-    |> assign(:is_on_ai_cooldown, is_on_ai_cooldown)
-    |> assign(:ai_cooldown_minutes, ai_cooldown_minutes)
-    |> assign(:ai_cooldown_minutes_left, ai_cooldown_minutes_left)
-  end
-
-  defp assign_is_on_ai_cooldown(socket),
-    do: assign(socket, :is_on_ai_cooldown, false)
-
   defp assign_edit_student_ilp(%{assigns: %{params: %{"student_ilp" => "new"}}} = socket) do
     with nil <- socket.assigns.student_ilp,
          %Student{} = student <- socket.assigns.student,
@@ -381,39 +260,8 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
   defp assign_edit_student_ilp(socket),
     do: assign(socket, :edit_student_ilp, nil)
 
-  # event handlers
+  defp assign_ai_panel_open(%{assigns: %{params: %{"ai_revision" => "show"}}} = socket),
+    do: assign(socket, :ai_panel_open, true)
 
-  @impl true
-  def handle_event("request_ai_review", %{"ai_form" => %{"age" => age}}, socket) do
-    socket =
-      case Integer.parse(age) do
-        {age, ""} when age in @age_range ->
-          ILP.revise_student_ilp(
-            socket.assigns.student_ilp,
-            socket.assigns.template,
-            age,
-            log_profile_id: socket.assigns.current_profile.id
-          )
-          |> case do
-            {:ok, student_ilp} ->
-              socket
-              |> assign(:student_ilp, student_ilp)
-              |> assign_has_ai_revision()
-              |> assign_is_on_ai_cooldown()
-              |> assign(:ai_response_error, nil)
-              |> assign(:ai_form_error, nil)
-
-            _ ->
-              socket
-              |> assign(:ai_response_error, gettext("AI revision failed"))
-              |> assign(:ai_form_error, nil)
-          end
-
-        _ ->
-          error = gettext("Age should be a number between 0 and 100")
-          assign(socket, :ai_form_error, error)
-      end
-
-    {:noreply, socket}
-  end
+  defp assign_ai_panel_open(socket), do: assign(socket, :ai_panel_open, false)
 end
