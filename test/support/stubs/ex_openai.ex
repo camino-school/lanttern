@@ -11,9 +11,9 @@ defmodule Lanttern.ExOpenAIStub do
       {:ok,
        %ExOpenAI.Components.Response{
          output: [
-           %{
-             # any output
-           },
+           # we are adding this empty map to ensure we are handling
+           # cases where the assistant message is not the first response
+           %{},
            %{
              type: "message",
              role: "assistant",
