@@ -7,6 +7,7 @@ defmodule LantternWeb.ILP.StudentILPAIRevisionOverlayComponent do
   ### Required attrs
 
   - `:current_profile`
+  - `:tz`
   - `:on_cancel`
   - `:ilp_template` - `%ILPTemplate{}`
   - `:student_ilp` - `%StudentILP{}`
@@ -19,7 +20,7 @@ defmodule LantternWeb.ILP.StudentILPAIRevisionOverlayComponent do
   alias Lanttern.ILP.ILPTemplate
   alias Lanttern.ILP.StudentILP
 
-  import LantternWeb.DateTimeHelpers, only: [format_local!: 2]
+  import LantternWeb.DateTimeHelpers, only: [format_by_locale: 2]
 
   @impl true
   def render(assigns) do
@@ -35,8 +36,7 @@ defmodule LantternWeb.ILP.StudentILPAIRevisionOverlayComponent do
       >
         <p class="mb-6 text-xs">
           <%= gettext("Generated in %{datetime}",
-            datetime:
-              format_local!(@student_ilp.ai_revision_datetime, "{Mshort} {0D}, {YYYY} {h24}:{m}")
+            datetime: format_by_locale(@student_ilp.ai_revision_datetime, @tz)
           ) %>
         </p>
         <.markdown text={@student_ilp.ai_revision} />

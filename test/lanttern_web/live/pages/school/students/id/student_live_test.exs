@@ -1,6 +1,8 @@
 defmodule LantternWeb.StudentLiveTest do
   use LantternWeb.ConnCase
 
+  import Lanttern.Factory
+
   alias Lanttern.SchoolsFixtures
   alias Lanttern.StudentsCycleInfo
   alias Lanttern.StudentsCycleInfoFixtures
@@ -57,14 +59,11 @@ defmodule LantternWeb.StudentLiveTest do
       assert view |> has_element?("#student-form-overlay h2", "Edit student")
     end
 
-    test "prevent user without school management permissions to edit staff member", %{
-      conn: conn,
-      user: user
-    } do
-      school_id = user.current_profile.school_id
+    test "prevent user without school management permissions to edit staff member", ctx do
+      school_id = ctx.user.current_profile.school_id
       student = SchoolsFixtures.student_fixture(%{school_id: school_id, name: "student abc"})
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{student.id}?edit=true")
+      {:ok, view, _html} = live(ctx.conn, "#{@live_view_base_path}/#{student.id}?edit=true")
 
       refute view |> has_element?("#student-form-overlay h2", "Edit student")
     end
@@ -195,6 +194,98 @@ defmodule LantternWeb.StudentLiveTest do
       assert view |> has_element?("span", student.name)
       assert view |> has_element?("a", closed_student_record.name)
       assert view |> has_element?("p", closed_student_record.description)
+    end
+
+    test "renders ok when student record is closed", ctx do
+      %{conn: conn, user: user} = set_user_permissions(["students_records_full_access"], ctx)
+      school = user.current_profile.staff_member.school
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id, name: "std abc"})
+
+      status =
+        Lanttern.Repo.insert!(%Lanttern.StudentsRecords.StudentRecordStatus{
+          name: "Closed",
+          position: 2,
+          bg_color: "#5CD9BB",
+          text_color: "#ffffff",
+          is_closed: true,
+          school_id: school.id
+        })
+
+      student_record =
+        insert(:student_record, %{
+          name: "closed student record",
+          school: school,
+          students_ids: [student.id],
+          date: ~D[2024-09-15],
+          time: ~T[14:00:00],
+          closed_at: ~U[2025-05-19 21:23:13Z],
+          closed_by_staff_member: user.current_profile.staff_member,
+          created_by_staff_member: user.current_profile.staff_member,
+          status_id: status.id
+        })
+
+      insert(:student_record_relationship, %{
+        student_record_id: student_record.id,
+        school_id: school.id,
+        student_id: student.id
+      })
+
+      url =
+        "#{@live_view_base_path}/#{student.id}/student_records?student_record=#{student_record.id}"
+
+      {:ok, view, _html} = live(conn, url)
+
+      assert view |> has_element?("span", student.name)
+      assert render(view) =~ "Closed by #{user.current_profile.name} on May 19, 2025, 18:23 ("
+    end
+
+    test "renders ok when locale pt_BR", ctx do
+      user =
+        Map.update!(ctx.user, :current_profile, fn profile ->
+          %Lanttern.Identity.Profile{profile | current_locale: "pt_BR"}
+        end)
+
+      user_info = %{conn: ctx.conn, user: user}
+      %{conn: conn} = set_user_permissions(["students_records_full_access"], user_info)
+      school = user.current_profile.staff_member.school
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id, name: "std abc"})
+
+      status =
+        Lanttern.Repo.insert!(%Lanttern.StudentsRecords.StudentRecordStatus{
+          name: "Closed",
+          position: 2,
+          bg_color: "#5CD9BB",
+          text_color: "#ffffff",
+          is_closed: true,
+          school_id: school.id
+        })
+
+      student_record =
+        insert(:student_record, %{
+          name: "closed student record",
+          school: school,
+          students_ids: [student.id],
+          date: ~D[2024-09-15],
+          time: ~T[14:00:00],
+          closed_at: ~U[2025-05-19 21:23:13Z],
+          closed_by_staff_member: user.current_profile.staff_member,
+          created_by_staff_member: user.current_profile.staff_member,
+          status_id: status.id
+        })
+
+      insert(:student_record_relationship, %{
+        student_record_id: student_record.id,
+        school_id: school.id,
+        student_id: student.id
+      })
+
+      url =
+        "#{@live_view_base_path}/#{student.id}/student_records?student_record=#{student_record.id}"
+
+      {:ok, view, _html} = live(conn, url)
+
+      assert view |> has_element?("span", student.name)
+      assert render(view) =~ "Closed by #{user.current_profile.name} on May 19, 2025, 18:23 ("
     end
   end
 end

@@ -150,7 +150,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
             fn staff_member_id -> ~p"/school/staff/#{staff_member_id}/students_records" end
           }
           details_patch={fn student_record -> "#{@base_path}?student_record=#{student_record.id}" end}
-          current_user_or_cycle={@current_user}
+          current_user={@current_user}
         />
       </.responsive_container>
       <div :if={@has_next} class="flex justify-center pb-10">
@@ -223,6 +223,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
         id="student-record-ai-overlay"
         student={@student}
         current_profile={@current_user.current_profile}
+        tz={@current_user.tz}
         on_cancel={JS.patch(@base_path)}
       />
     </div>

@@ -123,11 +123,8 @@ defmodule LantternWeb.AIComponents do
 
   @doc """
   Renders a floating AI button.
-
   Used to open a `<.ai_panel_overlay />`.
-
   ## Examples
-
       <.floating_ai_button id="aibuttonid" />
   """
   attr :id, :string, default: nil
@@ -186,9 +183,7 @@ defmodule LantternWeb.AIComponents do
 
   @doc """
   Renders an AI action bar.
-
   ## Examples
-
       <.ai_action_bar>
         <.action />
       </.ai_action_bar>

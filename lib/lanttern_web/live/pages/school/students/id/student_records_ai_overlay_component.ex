@@ -11,7 +11,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsAIOverlayComponent do
   alias Lanttern.StudentRecordReports.StudentRecordReport
   alias Lanttern.StudentRecordReports.StudentRecordReportAIConfig
 
-  import LantternWeb.DateTimeHelpers, only: [format_local!: 2]
+  import LantternWeb.DateTimeHelpers, only: [format_by_locale: 2]
 
   @impl true
   def render(assigns) do
@@ -35,7 +35,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsAIOverlayComponent do
             class="pt-6 border-t border-ltrn-ai-light mt-10"
           >
             <div class="flex items-center gap-4 mb-6">
-              <p class="flex-1 text-ltrn-ai-dark"><%= report_info(srr) %></p>
+              <p class="flex-1 text-ltrn-ai-dark"><%= report_info(srr, @tz) %></p>
               <div class="group relative shrink-0">
                 <.action_icon
                   type="button"
@@ -254,12 +254,12 @@ defmodule LantternWeb.StudentLive.StudentRecordsAIOverlayComponent do
 
   # helpers
 
-  defp report_info(%StudentRecordReport{} = report) do
-    generated_at = format_local!(report.inserted_at, "{Mshort} {0D}, {YYYY} {h24}:{m}")
+  defp report_info(%StudentRecordReport{} = report, tz) do
+    generated_at = format_by_locale(report.inserted_at, tz)
 
     from =
       report.from_datetime &&
-        format_local!(report.from_datetime, "{Mshort} {0D}, {YYYY} {h24}:{m}")
+        format_by_locale(report.from_datetime, tz)
 
     if from do
       gettext("Report generated with records data from %{from} to %{generated_at}",
