@@ -62,10 +62,7 @@ defmodule LantternWeb.StudentLive.ILPComponent do
           tz={@current_user.tz}
           is_ilp_manager={"ilp_management" in @current_user.current_profile.permissions}
           params={@params}
-          on_edit_patch={fn _id -> "#{@base_path}?student_ilp=edit" end}
-          create_patch={"#{@base_path}?student_ilp=new"}
-          on_edit_cancel={JS.patch("#{@base_path}")}
-          edit_navigate={"#{@base_path}"}
+          base_path={@base_path}
         />
       </.responsive_container>
     </div>

@@ -292,8 +292,6 @@ defmodule LantternWeb.StudentLiveTest do
       |> visit("#{@live_view_base_path}/#{student.id}/ilp")
       |> assert_has("a", text: "Quartely Feedback")
       |> assert_has("p", text: "Content for quartely feedback")
-
-      # assert [%{name: "Quartely Feedback"}] = Lanttern.ILP.list_ilp_comments()
     end
 
     test "renders ok when edit a new ILP comment", ctx do

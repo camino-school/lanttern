@@ -5,8 +5,8 @@ defmodule Lanttern.ILP.ILPComment do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Lanttern.ILP.StudentILP
   alias Lanttern.Identity.Profile
+  alias Lanttern.ILP.StudentILP
 
   schema "ilp_comments" do
     field :name, :string

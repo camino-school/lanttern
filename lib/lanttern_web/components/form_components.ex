@@ -177,7 +177,7 @@ defmodule LantternWeb.FormComponents do
       >
         <%= @label || render_slot(@custom_label) %>
       </.label>
-      <div :if={@description != []} class="mb-2 text-sm">
+      <div :if={@description != []} class="mb-2">
         <%= render_slot(@description) %>
       </div>
       <.select
@@ -225,7 +225,7 @@ defmodule LantternWeb.FormComponents do
       >
         <%= @label || render_slot(@custom_label) %>
       </.label>
-      <div :if={@description != []} class="mb-2 text-sm">
+      <div :if={@description != []} class="mb-2">
         <%= render_slot(@description) %>
       </div>
       <.textarea id={@id} name={@name} errors={@errors} value={@value} {@rest} />
@@ -247,7 +247,7 @@ defmodule LantternWeb.FormComponents do
       >
         <%= @label || render_slot(@custom_label) %>
       </.label>
-      <div :if={@description != []} class="mb-2 text-sm">
+      <div :if={@description != []} class="mb-2">
         <%= render_slot(@description) %>
       </div>
       <.base_input type={@type} name={@name} id={@id} value={@value} errors={@errors} {@rest} />
