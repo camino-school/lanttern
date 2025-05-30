@@ -24,12 +24,16 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
 
   use LantternWeb, :live_component
 
+  import LantternWeb.DateTimeHelpers
+
+  alias Lanttern.Identity
   alias Lanttern.ILP
   alias Lanttern.ILP.ILPTemplate
   alias Lanttern.ILP.StudentILP
   alias Lanttern.Schools.Student
 
   # shared components
+  alias LantternWeb.ILP.ILPCommentFormOverlayComponent
   alias LantternWeb.ILP.StudentILPAIRevisionActionBarComponent
   alias LantternWeb.ILP.StudentILPAIRevisionOverlayComponent
   alias LantternWeb.ILP.StudentILPComponent
@@ -97,6 +101,118 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
         current_profile={@current_profile}
         tz={@tz}
       />
+      <br /><br />
+      <div :if={@student_ilp} id="all_comments">
+        <h5 class="flex items-center gap-2 text-ltrn-subtle">
+          <div class="w-10 text-center">
+            <.icon name="hero-chat-bubble-left-right" class="w-6 h-6" />
+          </div>
+          <span class="font-display font-black text-xl"><%= gettext("ILP comments") %></span>
+        </h5>
+
+        <.empty_state_simple :if={Enum.empty?(@ilp_comments)} class="mt-6">
+          <%= gettext("No comments in this ILP yet") %>
+        </.empty_state_simple>
+
+        <%!-- I hard coded profile name and picture_url --%>
+        <div
+          :for={ilp_comment <- @ilp_comments}
+          class={[
+            "flex items-start gap-2 w-full mt-6",
+            if(ilp_comment.owner_id == @current_profile.id, do: "flex-row-reverse")
+          ]}
+          id={"ilp-comment-#{ilp_comment.id}"}
+        >
+          <.profile_picture
+            picture_url={ilp_comment.owner.profile_picture_url}
+            profile_name={ilp_comment.owner.name}
+          />
+          <.card_base class="flex-1 max-w-3/4 p-2">
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex items-center gap-4">
+                <div class="flex-1 font-bold text-xs text-ltrn-staff-dark">
+                  <%= Identity.get_profile_name(ilp_comment.owner_id) %>
+                </div>
+                <.badge theme="staff"><%= gettext("Staff") %></.badge>
+              </div>
+              <.action
+                :if={ilp_comment.owner_id == @current_profile.id}
+                type="link"
+                icon_name="hero-pencil-mini"
+                patch={"?comment_id=#{ilp_comment.id}"}
+                theme="subtle"
+                id={"edit-comment-#{ilp_comment.id}"}
+              >
+                <%= gettext("Edit") %>
+              </.action>
+            </div>
+            <div class="flex items-end justify-between gap-2 mt-4 font-bold text-ltrn-staff-dark">
+              <%= ilp_comment.name %>
+            </div>
+            <div class="flex items-end justify-between gap-2 mt-4">
+              <.markdown text={ilp_comment.content} class="flex-1" />
+              <div class="text-ltrn-subtle text-xs">
+                <%= format_by_locale(ilp_comment.inserted_at, @tz) %>
+              </div>
+            </div>
+            <div
+              :if={!Enum.empty?(ilp_comment.attachments)}
+              class="p-2 rounded-sm mt-4 bg-ltrn-lightest"
+            >
+              <h6 class="flex items-center gap-2 font-bold text-ltrn-subtle">
+                <.icon name="hero-paper-clip-mini" />
+                <%= gettext("Attachments") %>
+              </h6>
+              <%!-- Maybe render with AttachmentsComponents later--%>
+              <div :for={ilp_attachment <- ilp_comment.attachments}>
+                <.card_base class="p-4 mt-2">
+                  <%= if(ilp_attachment.is_external) do %>
+                    <.badge><%= gettext("External link") %></.badge>
+                  <% else %>
+                    <.badge theme="cyan"><%= gettext("Upload") %></.badge>
+                  <% end %>
+                  <a
+                    href={ilp_attachment.link}
+                    target="_blank"
+                    class="block mt-2 text-sm underline hover:text-ltrn-subtle"
+                  >
+                    <%= ilp_attachment.name %>
+                  </a>
+                </.card_base>
+              </div>
+            </div>
+          </.card_base>
+        </div>
+        <div class="flex flex-row-reverse items-center gap-2 w-full mt-6">
+          <.profile_picture
+            picture_url={@current_profile.profile_picture_url}
+            profile_name={@current_profile.name}
+          />
+          <.card_base class="flex-1 flex max-w-3/4 p-4">
+            <.action
+              type="link"
+              patch="?comment=new"
+              icon_name="hero-plus-circle-mini"
+              theme="primary"
+            >
+              <%= gettext("Add ILP comment") %>
+            </.action>
+          </.card_base>
+        </div>
+      </div>
+
+      <.live_component
+        :if={@ilp_comment}
+        module={ILPCommentFormOverlayComponent}
+        id={"#{@id}-comment-slide-over"}
+        title={@ilp_comment_title}
+        ilp_comment={@ilp_comment}
+        form_action={@ilp_comment_action}
+        student_ilp={@student_ilp}
+        current_profile={@current_profile}
+        on_cancel={JS.patch(@base_path)}
+        notify_component={@myself}
+      />
       <.live_component
         :if={@edit_student_ilp}
         module={StudentILPFormOverlayComponent}
@@ -130,6 +246,10 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
       |> assign(:student, nil)
       |> assign(:student_navigate, nil)
       |> assign(:template, nil)
+      |> assign(:ilp_comments, [])
+      |> assign(:ilp_comment, nil)
+      |> assign(:ilp_comment_title, nil)
+      |> assign(:ilp_comment_action, nil)
       |> assign(:initialized, false)
 
     {:ok, socket}
@@ -153,11 +273,25 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
     {:ok, delegate_navigation(socket, nav_opts)}
   end
 
-  def update(
-        %{action: {StudentILPAIRevisionActionBarComponent, {:generate_success, _student_ilp}}},
-        socket
-      ) do
+  def update(%{action: {ILPCommentFormOverlayComponent, {action, _message}}}, socket)
+      when action in [:created, :updated] do
+    flash_message =
+      case action do
+        :created -> {:info, gettext("Comment created successfully")}
+        :updated -> {:info, gettext("Comment updated successfully")}
+      end
+
+    nav_opts = [
+      put_flash: flash_message,
+      push_navigate: [to: socket.assigns.base_path]
+    ]
+
+    {:ok, delegate_navigation(socket, nav_opts)}
+  end
+
+  def update(%{action: {StudentILPAIRevisionActionBarComponent, {_action, _msg}}}, socket) do
     nav_opts = [push_navigate: [to: "#{socket.assigns.base_path}?ai_revision=show"]]
+
     {:ok, delegate_navigation(socket, nav_opts)}
   end
 
@@ -167,6 +301,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
       |> assign(assigns)
       |> initialize()
       |> assign_edit_student_ilp()
+      |> assign_ilp_comment()
       |> assign_ai_panel_open()
 
     {:ok, socket}
@@ -176,6 +311,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
     socket
     |> ensure_template_ai_layer_is_loaded()
     |> assign_student_ilp()
+    |> assign_ilp_comments()
     |> assign(:initialized, true)
   end
 
@@ -227,6 +363,29 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
       _ -> assign(socket, :student_ilp, nil)
     end
   end
+
+  defp assign_ilp_comment(%{assigns: %{params: %{"comment" => "new"}}} = socket) do
+    socket
+    |> assign(:ilp_comment, %ILP.ILPComment{})
+    |> assign(:ilp_comment_title, gettext("New Comment"))
+    |> assign(:ilp_comment_action, :new)
+  end
+
+  defp assign_ilp_comment(%{assigns: %{params: %{"comment_id" => id}}} = socket) do
+    socket
+    |> assign(:ilp_comment, ILP.get_ilp_comment(id))
+    |> assign(:ilp_comment_title, gettext("Edit Comment"))
+    |> assign(:ilp_comment_action, :edit)
+  end
+
+  defp assign_ilp_comment(socket), do: assign(socket, :ilp_comment, nil)
+
+  defp assign_ilp_comments(%{assigns: %{student_ilp: %StudentILP{id: id}}} = socket) do
+    socket
+    |> assign(:ilp_comments, ILP.list_ilp_comments_by_student_ilp(id))
+  end
+
+  defp assign_ilp_comments(socket), do: socket
 
   defp assign_edit_student_ilp(%{assigns: %{params: %{"student_ilp" => "new"}}} = socket) do
     with nil <- socket.assigns.student_ilp,

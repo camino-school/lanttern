@@ -744,4 +744,14 @@ defmodule Lanttern.Identity do
   def change_profile(%Profile{} = profile, attrs \\ %{}) do
     Profile.changeset(profile, attrs)
   end
+
+  def get_profile_name(id) do
+    Profile
+    |> join(:left, [p], s in assoc(p, :student))
+    |> join(:left, [p, s], sm in assoc(p, :staff_member))
+    |> join(:left, [p, s, sm], gos in assoc(p, :guardian_of_student))
+    |> where([p], p.id == ^id)
+    |> select([p, s, sm, gos], fragment("COALESCE(?, ?, ?)", sm.name, s.name, gos.name))
+    |> Repo.one()
+  end
 end

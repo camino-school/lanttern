@@ -6,7 +6,7 @@ defmodule Lanttern.StudentRecordStatusFactory do
         %Lanttern.StudentsRecords.StudentRecordStatus{
           name: "Solved",
           position: 2,
-          bg_color: "#5CD9BB",
+          bg_color: "#111111",
           text_color: "#ffffff",
           is_closed: true,
           school: build(:school)
