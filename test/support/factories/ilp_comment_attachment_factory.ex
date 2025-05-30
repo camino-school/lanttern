@@ -4,6 +4,7 @@ defmodule Lanttern.ILPCommentAttachmentFactory do
     quote do
       def ilp_comment_attachment_factory do
         %Lanttern.ILP.ILPCommentAttachment{
+          name: "ILP Comment Attachment",
           ilp_comment: build(:ilp_comment),
           position: 1,
           link: "https://example.com",

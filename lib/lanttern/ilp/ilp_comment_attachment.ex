@@ -8,7 +8,8 @@ defmodule Lanttern.ILP.ILPCommentAttachment do
   alias Lanttern.ILP.ILPComment
 
   schema "ilp_comment_attachments" do
-    field :position, :integer
+    field :name, :string
+    field :position, :integer, default: 0
     field :link, :string
     field :shared_with_students, :boolean, default: false
     field :is_external, :boolean, default: false
@@ -21,7 +22,14 @@ defmodule Lanttern.ILP.ILPCommentAttachment do
   @doc false
   def changeset(ilp_comment_attachment, attrs) do
     ilp_comment_attachment
-    |> cast(attrs, [:link, :position, :shared_with_students, :is_external])
-    |> validate_required([:link, :position, :shared_with_students, :is_external])
+    |> cast(attrs, [:ilp_comment_id, :name, :link, :position, :shared_with_students, :is_external])
+    |> validate_required([
+      :ilp_comment_id,
+      :name,
+      :link,
+      :position,
+      :shared_with_students,
+      :is_external
+    ])
   end
 end

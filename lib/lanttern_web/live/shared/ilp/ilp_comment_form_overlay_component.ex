@@ -6,12 +6,9 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.ILP
-  # alias Lanttern.ILP.ILPEntry
 
   alias Lanttern.ILP.ILPComment
-
-  # shared components
-  # import LantternWeb.ILPComponents
+  alias LantternWeb.Attachments.AttachmentAreaComponent
 
   @impl true
   def render(assigns) do
@@ -20,7 +17,7 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
       <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
         <:title><%= @title %></:title>
         <.form
-          id="student-ilp-comment-form"
+          id="ilp-comment-form"
           for={@form}
           phx-change="validate"
           phx-submit="save"
@@ -48,7 +45,15 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
             <%= gettext("Oops, something went wrong! Please check the errors above.") %>
           </.error_block>
         </.form>
-
+        <.live_component
+          :if={@form_action == :edit}
+          ilp_comment_id={@ilp_comment.id}
+          module={AttachmentAreaComponent}
+          id="ilp-comment"
+          title={gettext("Attachments")}
+          allow_editing={true}
+          notify_component={@myself}
+        />
         <:actions_left>
           <.action
             type="button"
@@ -75,7 +80,8 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
             theme="primary"
             size="md"
             icon_name="hero-check"
-            form="student-ilp-comment-form"
+            form="ilp-comment-form"
+            id="save-action-ilp-comment"
           >
             <%= gettext("Save") %>
           </.action>
@@ -137,7 +143,11 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
   end
 
   def handle_event("save", %{"ilp_comment" => comment_params}, socket) do
-    save_ilp_comment(socket, socket.assigns.action, comment_params)
+    save_ilp_comment(socket, socket.assigns.form_action, comment_params)
+  end
+
+  def handle_event("delete", _, socket) do
+    ILP.delete_ilp_comment(socket.assigns.ilp_comment)
   end
 
   def handle_event("toggle_shared", params, socket) do

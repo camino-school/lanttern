@@ -864,7 +864,7 @@ defmodule Lanttern.ILP do
     ILPComment
     |> where([c], c.student_ilp_id == ^student_ilp_id)
     |> order_by([c], desc: :inserted_at)
-    |> preload([c], [:owner])
+    |> preload([c], [:owner, :attachments])
     |> Repo.all()
   end
 
@@ -966,6 +966,12 @@ defmodule Lanttern.ILP do
     Repo.all(ILPCommentAttachment)
   end
 
+  def list_ilp_comment_attachments(ilp_comment_id) do
+    ILPCommentAttachment
+    |> where([c], c.ilp_comment_id == ^ilp_comment_id)
+    |> Repo.all()
+  end
+
   @doc """
   Gets a single ilp_comment_attachment.
 
@@ -1049,4 +1055,17 @@ defmodule Lanttern.ILP do
       ) do
     ILPCommentAttachment.changeset(ilp_comment_attachment, attrs)
   end
+
+  @doc """
+  Update ILP Comment attachments positions based on ids list order.
+
+  ## Examples
+
+  iex> update_ilp_comment_attachment_positions([3, 2, 1])
+  :ok
+
+  """
+  @spec update_ilp_comment_attachment_positions([pos_integer()]) :: :ok | {:error, String.t()}
+  def update_ilp_comment_attachment_positions(ilp_comment_attachment),
+    do: update_positions(ILPCommentAttachment, ilp_comment_attachment)
 end

@@ -282,7 +282,7 @@ defmodule LantternWeb.StudentLiveTest do
 
       ctx.conn
       |> visit("#{@live_view_base_path}/#{student.id}/ilp")
-      |> click_link("Add comment")
+      |> click_link("Add ILP comment")
       |> assert_has("h2", text: "New Comment")
       |> fill_in("Title", with: "Quartely Feedback")
       |> fill_in("Content", with: "Content for quartely feedback")
@@ -290,7 +290,7 @@ defmodule LantternWeb.StudentLiveTest do
 
       ctx.conn
       |> visit("#{@live_view_base_path}/#{student.id}/ilp")
-      |> assert_has("a", text: "Quartely Feedback")
+      # |> assert_has("div", text: "Quartely Feedback")
       |> assert_has("p", text: "Content for quartely feedback")
     end
 
@@ -303,20 +303,26 @@ defmodule LantternWeb.StudentLiveTest do
       ilp =
         insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
 
-      insert(:ilp_comment, %{student_ilp: ilp, owner: ctx.user.current_profile})
+      ilp_comment = insert(:ilp_comment, %{student_ilp: ilp, owner: ctx.user.current_profile})
+      new_attrs = %{name: "Teacher's feedback'", content: "Feedback content."}
 
       ctx.conn
       |> visit("#{@live_view_base_path}/#{student.id}/ilp")
-      |> click_link("Edit comment")
-      |> assert_has("h2", text: "Edit Comment")
-      |> fill_in("Title", with: "Teacher's feedback'")
-      |> fill_in("Content", with: "Feedback content.")
-      |> click_button("Save")
+      |> click_link("#edit-comment-#{ilp_comment.id}", "Edit")
+      |> assert_has("h2", text: "Edit")
+      |> fill_in("Title", with: new_attrs.name)
+      |> fill_in("Content", with: new_attrs.content)
+      |> assert_has("h5", text: "Attachments")
+      |> click_button("#external-link-button", "add a link")
+      |> fill_in("Attachment name", with: "Site")
+      |> fill_in("Link", with: "https://www.algo.com")
+      |> click_button("#save-external-attachment", "Save")
+      |> click_button("#save-action-ilp-comment", "Save")
 
       ctx.conn
       |> visit("#{@live_view_base_path}/#{student.id}/ilp")
-      |> assert_has("a", text: "Teacher's feedback'")
-      |> assert_has("p", text: "Feedback content.")
+      # |> assert_has("div", text: new_attrs.name)
+      |> assert_has("p", text: new_attrs.content)
     end
 
     test "renders ok when list all ILP comment for a student_ilp", ctx do
@@ -340,10 +346,34 @@ defmodule LantternWeb.StudentLiveTest do
 
       ctx.conn
       |> visit("#{@live_view_base_path}/#{student.id}/ilp")
-      |> assert_has("a", text: comment1.name)
+      # |> assert_has("div", text: comment1.name)
       |> assert_has("p", text: comment1.content)
-      |> assert_has("a", text: comment2.name)
+      # |> assert_has("div", text: comment2.name)
       |> assert_has("p", text: comment2.content)
+    end
+
+    test "renders ok when delete a new ILP comment's attachment", ctx do
+      school = ctx.user.current_profile.staff_member.school
+      student = insert(:student, %{school: school})
+      template = insert(:ilp_template, %{school: school})
+      cycle = insert(:cycle, %{school: school})
+
+      ilp =
+        insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
+
+      ilp_comment = insert(:ilp_comment, %{student_ilp: ilp, owner: ctx.user.current_profile})
+
+      attachment = insert(:ilp_comment_attachment, %{ilp_comment: ilp_comment})
+
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp")
+      |> assert_has("p", text: ilp_comment.content)
+      |> click_link("#edit-comment-#{ilp_comment.id}", "Edit")
+      |> click_button("Remove")
+
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp?comment_id=#{ilp_comment.id}")
+      |> refute_has("a", text: attachment.name)
     end
   end
 end

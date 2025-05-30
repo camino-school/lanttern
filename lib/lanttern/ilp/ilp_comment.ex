@@ -7,6 +7,7 @@ defmodule Lanttern.ILP.ILPComment do
 
   alias Lanttern.Identity.Profile
   alias Lanttern.ILP.StudentILP
+  alias Lanttern.ILP.ILPCommentAttachment
 
   schema "ilp_comments" do
     field :name, :string
@@ -16,6 +17,8 @@ defmodule Lanttern.ILP.ILPComment do
 
     belongs_to :student_ilp, StudentILP
     belongs_to :owner, Profile
+
+    has_many :attachments, ILPCommentAttachment
 
     timestamps()
   end

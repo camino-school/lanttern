@@ -26,6 +26,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
 
   import LantternWeb.DateTimeHelpers
 
+  alias Lanttern.Identity
   alias Lanttern.ILP
   alias Lanttern.ILP.ILPTemplate
   alias Lanttern.ILP.StudentILP
@@ -100,89 +101,8 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
         current_profile={@current_profile}
         tz={@tz}
       />
-
-      <div id="all_comments">
-        <.card_base class="p-4 sm:p-6 mb-6">
-          <h5 class="font-display font-black text-lg">
-            <%= gettext("ILP comments") %>
-          </h5>
-          <p class="mt-1 mb-6 text-xs">
-            <%= gettext("Comments on this ILP, from students, teachers, and ILP managers.") %>
-          </p>
-          <div
-            :for={ilp_comment <- @ilp_comments}
-            class="relative ml-4 font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
-          >
-            <.card_base class="p-10">
-              <div class="p-6 md:flex md:items-start md:gap-6">
-                <div class="md:w-48 md:shrink-0">
-                  <div class="flex items-center gap-4 md:block">
-                    <div class="flex items-center gap-2 text-xs font-bold text-ltrn-subtle">
-                      <.icon name="hero-hashtag-mini" class="w-5 h-5" />
-                      <%= ilp_comment.id %>
-                    </div>
-                  </div>
-                </div>
-                <div class="mt-6 md:mt-0 md:flex-1">
-                  <.link
-                    :if={ilp_comment.name}
-                    class="block mt-4 font-display font-black hover:text-ltrn-subtle"
-                  >
-                    <%= ilp_comment.name %>
-                  </.link>
-                  <.markdown
-                    text={ilp_comment.content}
-                    id={"comment-#{ilp_comment.id}"}
-                    class="mt-4 line-clamp-5"
-                  />
-                  <.action
-                    type="link"
-                    icon_name="hero-arrow-up-right-mini"
-                    patch={"?comment_id=#{ilp_comment.id}"}
-                    class="mt-4"
-                  >
-                    <%= gettext("Edit comment") %>
-                  </.action>
-                </div>
-              </div>
-              <div class="px-2 pb-2">
-                <div class="flex items-center justify-between gap-4 p-2 rounded-xs bg-ltrn-staff-lightest">
-                  <div class="md:flex items-center gap-4">
-                    <div class="flex items-center gap-2">
-                      <span class="text-xs text-ltrn-subtle"><%= gettext("Commented by") %>
-                        <%= ilp_comment.owner_id %></span>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <div class="group relative">
-                      <%= gettext("Commented at %{datetime}",
-                        datetime: format_by_locale(ilp_comment.inserted_at, @tz)
-                      ) %>
-                      <.icon name="hero-check-circle-mini" />
-                    </div>
-                    <.tooltip h_pos="right">
-                      <%= gettext("Updated at %{datetime}",
-                        datetime: format_by_locale(ilp_comment.updated_at, @tz)
-                      ) %>
-                    </.tooltip>
-                  </div>
-                </div>
-              </div>
-            </.card_base>
-          </div>
-        </.card_base>
-      </div>
-
-      <div class={[card_base_classes(), "p-4 sm:p-6", @class]}>
-        <div class="flex items-center gap-4">
-          <.action type="link" patch="?comment=new" icon_name="hero-plus-circle-mini">
-            <%= gettext("Add comment") %>
-          </.action>
-        </div>
-      </div>
-
-      <br /><br /><br /><br /> UI reference <br /><br /><br /><br />
-      <div id="all_comments-2">
+      <br /><br />
+      <div :if={@student_ilp} id="all_comments">
         <h5 class="flex items-center gap-2 text-ltrn-subtle">
           <div class="w-10 text-center">
             <.icon name="hero-chat-bubble-left-right" class="w-6 h-6" />
@@ -190,8 +110,9 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
           <span class="font-display font-black text-xl"><%= gettext("ILP comments") %></span>
         </h5>
 
-        <%!-- empty state --%>
-        <%!-- <.empty_state_simple class="mt-6"><%= gettext("No comments in this ILP yet") %></.empty_state_simple> --%>
+        <.empty_state_simple :if={Enum.empty?(@ilp_comments)} class="mt-6">
+          <%= gettext("No comments in this ILP yet") %>
+        </.empty_state_simple>
 
         <%!-- I hard coded profile name and picture_url --%>
         <div
@@ -209,17 +130,24 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
           <.card_base class="flex-1 max-w-3/4 p-2">
             <div class="flex items-center justify-between gap-4">
               <div class="flex items-center gap-4">
-                <div class="flex-1 font-bold text-xs text-ltrn-staff-dark">Some Name</div>
+                <div class="flex-1 font-bold text-xs text-ltrn-staff-dark">
+                  <%= Identity.get_profile_name(ilp_comment.owner_id) %>
+                </div>
                 <.badge theme="staff"><%= gettext("Staff") %></.badge>
               </div>
               <.action
+                :if={ilp_comment.owner_id == @current_profile.id}
                 type="link"
                 icon_name="hero-pencil-mini"
                 patch={"?comment_id=#{ilp_comment.id}"}
                 theme="subtle"
+                id={"edit-comment-#{ilp_comment.id}"}
               >
                 <%= gettext("Edit") %>
               </.action>
+            </div>
+            <div class="flex items-end justify-between gap-2 mt-4 font-bold text-ltrn-staff-dark">
+              <%= ilp_comment.name %>
             </div>
             <div class="flex items-end justify-between gap-2 mt-4">
               <.markdown text={ilp_comment.content} class="flex-1" />
@@ -227,22 +155,32 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
                 <%= format_by_locale(ilp_comment.inserted_at, @tz) %>
               </div>
             </div>
-            <%!-- if has attachments, render attachment area --%>
-            <%!-- <div class="p-2 rounded-sm mt-4 bg-ltrn-lightest">
-                <h6 class="flex items-center gap-2 font-bold text-ltrn-subtle">
-                  <.icon name="hero-paper-clip-mini" />
-                  <%= gettext("Attachments") %>
-                </h6>
+            <div
+              :if={!Enum.empty?(ilp_comment.attachments)}
+              class="p-2 rounded-sm mt-4 bg-ltrn-lightest"
+            >
+              <h6 class="flex items-center gap-2 font-bold text-ltrn-subtle">
+                <.icon name="hero-paper-clip-mini" />
+                <%= gettext("Attachments") %>
+              </h6>
+              <%!-- Maybe render with AttachmentsComponents later--%>
+              <div :for={ilp_attachment <- ilp_comment.attachments}>
                 <.card_base class="p-4 mt-2">
-                attachment card (there's a live component for it somewhere hehe)
+                  <%= if(ilp_attachment.is_external) do %>
+                    <.badge><%= gettext("External link") %></.badge>
+                  <% else %>
+                    <.badge theme="cyan"><%= gettext("Upload") %></.badge>
+                  <% end %>
+                  <a
+                    href={ilp_attachment.link}
+                    target="_blank"
+                    class="block mt-2 text-sm underline hover:text-ltrn-subtle"
+                  >
+                    <%= ilp_attachment.name %>
+                  </a>
                 </.card_base>
-                <.card_base class="p-4 mt-2">
-                attachment card (there's a live component for it somewhere hehe)
-                </.card_base>
-                <.card_base class="p-4 mt-2">
-                attachment card (there's a live component for it somewhere hehe)
-                </.card_base>
-              </div> --%>
+              </div>
+            </div>
           </.card_base>
         </div>
         <div class="flex flex-row-reverse items-center gap-2 w-full mt-6">
@@ -269,7 +207,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
         id={"#{@id}-comment-slide-over"}
         title={@ilp_comment_title}
         ilp_comment={@ilp_comment}
-        action={@ilp_comment_action}
+        form_action={@ilp_comment_action}
         student_ilp={@student_ilp}
         current_profile={@current_profile}
         on_cancel={JS.patch(@base_path)}

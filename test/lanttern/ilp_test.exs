@@ -1061,7 +1061,11 @@ defmodule Lanttern.ILPTest do
     end
 
     test "create_ilp_comment_attachment/1 with valid data creates a ilp_comment_attachment" do
+      ilp_comment = insert(:ilp_comment)
+
       valid_attrs = %{
+        name: "some name",
+        ilp_comment_id: ilp_comment.id,
         position: 42,
         link: "some link",
         shared_with_students: true,
@@ -1085,19 +1089,21 @@ defmodule Lanttern.ILPTest do
       ilp_comment_attachment = insert(:ilp_comment_attachment)
 
       update_attrs = %{
+        name: "some updated name",
         position: 43,
-        link: "some updated link",
+        link: "https://updated.link",
         shared_with_students: false,
-        is_external: false
+        is_external: true
       }
 
       assert {:ok, %ILPCommentAttachment{} = ilp_comment_attachment} =
                ILP.update_ilp_comment_attachment(ilp_comment_attachment, update_attrs)
 
-      assert ilp_comment_attachment.position == 43
-      assert ilp_comment_attachment.link == "some updated link"
+      assert ilp_comment_attachment.name == update_attrs.name
+      assert ilp_comment_attachment.position == update_attrs.position
+      assert ilp_comment_attachment.link == update_attrs.link
       assert ilp_comment_attachment.shared_with_students == false
-      assert ilp_comment_attachment.is_external == false
+      assert ilp_comment_attachment.is_external == true
     end
 
     test "update_ilp_comment_attachment/2 with invalid data returns error changeset" do
