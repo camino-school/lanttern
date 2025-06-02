@@ -5,13 +5,14 @@ defmodule LantternWeb.StudentILPLive do
 
   use LantternWeb, :live_view
 
+  import LantternWeb.SchoolsComponents
+
   alias Lanttern.ILP
   alias Lanttern.Schools
 
   # shared components
   alias LantternWeb.ILP.StudentILPComponent
   alias LantternWeb.Schools.StudentHeaderComponent
-  import LantternWeb.SchoolsComponents
 
   @impl true
   def mount(_params, _session, socket) do
@@ -58,11 +59,19 @@ defmodule LantternWeb.StudentILPLive do
         [{:only_shared_with_student, true} | opts]
       end
 
-    student_ilps =
-      ILP.list_students_ilps(opts)
+    student_ilps = ILP.list_students_ilps(opts)
 
     socket
     |> stream(:student_ilps, student_ilps)
     |> assign(:has_student_ilps, length(student_ilps) > 0)
+  end
+
+  @impl true
+  def handle_params(params, _url, socket) do
+    socket =
+      socket
+      |> assign(:params, params)
+
+    {:noreply, socket}
   end
 end

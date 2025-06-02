@@ -6,7 +6,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
 
   - `:student_ilp` - `StudentILP`
   - `:student` - `Student`. The student for the ILP
-  - `:current_profile` - `Profile`, from `current_user.current_profile`
+  - `:current_user` - `%User{}` in `socket.assigns.current_user`
 
   ### Optional attrs
 
@@ -23,6 +23,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
 
   alias Lanttern.ILP
   alias Lanttern.ILP.ILPEntry
+  alias Lanttern.ILP.StudentILP
 
   # shared components
   import LantternWeb.ILPComponents
@@ -99,6 +100,13 @@ defmodule LantternWeb.ILP.StudentILPComponent do
         </p>
         <.markdown text={@student_ilp.teacher_notes} />
       </div>
+
+      <.ilp_comments_list
+        ilp_comments={@ilp_comments}
+        current_profile={@current_user.current_profile}
+        tz={@current_user.tz}
+      />
+
       <.modal :if={@template.description} id={"#{@id}-template-info-modal"}>
         <h6 class="mb-6 font-display font-black text-xl">
           <%= gettext("About %{template}", template: @template.name) %>
@@ -147,17 +155,39 @@ defmodule LantternWeb.ILP.StudentILPComponent do
       |> assign(:show_teacher_notes, false)
       |> assign(:is_ilp_manager, false)
       |> assign(:template, nil)
+      |> assign(:ilp_comments, [])
+      # |> assign(:ilp_comment, nil)
+      # |> assign(:ilp_comment_title, nil)
+      # |> assign(:ilp_comment_action, nil)
       |> assign(:initialized, false)
 
     {:ok, socket}
   end
 
   @impl true
+  # def update(%{action: {ILPCommentFormOverlayComponent, {action, _message}}}, socket)
+  #     when action in [:created, :updated] do
+  #   flash_message =
+  #     case action do
+  #       :created -> {:info, gettext("Comment created successfully")}
+  #       :updated -> {:info, gettext("Comment updated successfully")}
+  #     end
+
+  #   nav_opts = [
+  #     put_flash: flash_message,
+  #     push_navigate: [to: socket.assigns.base_path]
+  #   ]
+
+  #   {:ok, delegate_navigation(socket, nav_opts)}
+  # end
+
   def update(assigns, socket) do
     socket =
       socket
       |> assign(assigns)
       |> initialize()
+      |> assign_base_path()
+      # |> assign_ilp_comment()
 
     {:ok, socket}
   end
@@ -166,12 +196,18 @@ defmodule LantternWeb.ILP.StudentILPComponent do
     socket
     |> assign_template()
     |> assign_component_entry_map()
+    |> assign_ilp_comments()
     |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
 
-  # if template is not provided, try to fetch it based on the student ILP template info
+  defp assign_base_path(socket) do
+    base_path = ~p"/student_ilp"
+
+    assign(socket, :base_path, base_path)
+  end
+
   defp assign_template(%{assigns: %{template: nil}} = socket) do
     template =
       ILP.get_ilp_template!(
@@ -189,7 +225,6 @@ defmodule LantternWeb.ILP.StudentILPComponent do
       if is_list(socket.assigns.student_ilp.entries) do
         socket.assigns.student_ilp
       else
-        # ensure entries are preloaded
         socket.assigns.student_ilp
         |> Lanttern.Repo.preload(:entries)
       end
@@ -210,6 +245,28 @@ defmodule LantternWeb.ILP.StudentILPComponent do
     |> assign(:student_ilp, student_ilp)
     |> assign(:component_entry_map, component_entry_map)
   end
+
+  # defp assign_ilp_comment(%{assigns: %{params: %{"comment" => "new"}}} = socket) do
+  #   socket
+  #   |> assign(:ilp_comment, %ILP.ILPComment{})
+  #   |> assign(:ilp_comment_title, gettext("New Comment"))
+  #   |> assign(:ilp_comment_action, :new)
+  # end
+
+  # defp assign_ilp_comment(%{assigns: %{params: %{"comment_id" => id}}} = socket) do
+  #   socket
+  #   |> assign(:ilp_comment, ILP.get_ilp_comment(id))
+  #   |> assign(:ilp_comment_title, gettext("Edit Comment"))
+  #   |> assign(:ilp_comment_action, :edit)
+  # end
+
+  # defp assign_ilp_comment(socket), do: assign(socket, :ilp_comment, nil)
+
+  defp assign_ilp_comments(%{assigns: %{student_ilp: %StudentILP{id: id}}} = socket) do
+   assign(socket, :ilp_comments, ILP.list_ilp_comments_by_student_ilp(id))
+  end
+
+  defp assign_ilp_comments(socket), do: socket
 
   # event handlers
 

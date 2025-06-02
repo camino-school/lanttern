@@ -73,6 +73,7 @@
     params={@params}
     base_path={~p"/ilp"}
     student_navigate={fn student_id -> ~p"/school/students/#{student_id}" end}
+    current_user={@current_user}
   />
 </.responsive_container>
 <.modal :if={@metrics} id="ilp-metrics-overlay" show on_cancel={JS.patch(~p"/ilp")}>
