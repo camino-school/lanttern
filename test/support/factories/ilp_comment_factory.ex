@@ -12,7 +12,6 @@ defmodule Lanttern.ILPCommentFactory do
     quote do
       def ilp_comment_factory do
         %Lanttern.ILP.ILPComment{
-          name: "Comment",
           content: "some content",
           position: 1,
           shared_with_students: true

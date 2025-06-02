@@ -982,7 +982,6 @@ defmodule Lanttern.ILPTest do
 
       assert {:ok, %ILPComment{} = ilp_comment} = ILP.create_ilp_comment(valid_attrs)
 
-      assert ilp_comment.name == valid_attrs.name
       assert ilp_comment.position == valid_attrs.position
       assert ilp_comment.content == valid_attrs.content
       assert ilp_comment.shared_with_students == valid_attrs.shared_with_students
@@ -996,12 +995,11 @@ defmodule Lanttern.ILPTest do
 
     test "update_ilp_comment/2 with valid data updates the ilp_comment", ctx do
       ilp_comment = insert(:ilp_comment, %{owner: ctx.profile, student_ilp: ctx.student_ilp})
-      update_attrs = %{name: "some", position: 43, content: "some", shared_with_students: false}
+      update_attrs = %{position: 43, content: "some", shared_with_students: false}
 
       assert {:ok, %ILPComment{} = ilp_comment} =
                ILP.update_ilp_comment(ilp_comment, update_attrs)
 
-      assert ilp_comment.name == update_attrs.name
       assert ilp_comment.position == update_attrs.position
       assert ilp_comment.content == update_attrs.content
       assert ilp_comment.shared_with_students == update_attrs.shared_with_students

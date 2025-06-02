@@ -27,13 +27,6 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
             <%= gettext("Oops, something went wrong! Please check the errors below.") %>
           </.error_block>
           <.input
-            field={@form[:name]}
-            type="text"
-            label={gettext("Title")}
-            class="mb-1"
-            phx-debounce="1500"
-          />
-          <.input
             field={@form[:content]}
             type="textarea"
             label={gettext("Content")}

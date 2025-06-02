@@ -10,7 +10,6 @@ defmodule Lanttern.ILP.ILPComment do
   alias Lanttern.ILP.ILPCommentAttachment
 
   schema "ilp_comments" do
-    field :name, :string
     field :position, :integer
     field :content, :string
     field :shared_with_students, :boolean, default: false
@@ -23,7 +22,7 @@ defmodule Lanttern.ILP.ILPComment do
     timestamps()
   end
 
-  @required ~w(name content position shared_with_students student_ilp_id owner_id)a
+  @required ~w(content position shared_with_students student_ilp_id owner_id)a
 
   @doc false
   def changeset(ilp_comment, attrs) do

@@ -284,13 +284,11 @@ defmodule LantternWeb.StudentLiveTest do
       |> visit("#{@live_view_base_path}/#{student.id}/ilp")
       |> click_link("Add ILP comment")
       |> assert_has("h2", text: "New Comment")
-      |> fill_in("Title", with: "Quartely Feedback")
       |> fill_in("Content", with: "Content for quartely feedback")
       |> click_button("Save")
 
       ctx.conn
       |> visit("#{@live_view_base_path}/#{student.id}/ilp")
-      # |> assert_has("div", text: "Quartely Feedback")
       |> assert_has("p", text: "Content for quartely feedback")
     end
 
@@ -310,7 +308,6 @@ defmodule LantternWeb.StudentLiveTest do
       |> visit("#{@live_view_base_path}/#{student.id}/ilp")
       |> click_link("#edit-comment-#{ilp_comment.id}", "Edit")
       |> assert_has("h2", text: "Edit")
-      |> fill_in("Title", with: new_attrs.name)
       |> fill_in("Content", with: new_attrs.content)
       |> assert_has("h5", text: "Attachments")
       |> click_button("#external-link-button", "add a link")
@@ -321,7 +318,6 @@ defmodule LantternWeb.StudentLiveTest do
 
       ctx.conn
       |> visit("#{@live_view_base_path}/#{student.id}/ilp")
-      # |> assert_has("div", text: new_attrs.name)
       |> assert_has("p", text: new_attrs.content)
     end
 
@@ -339,16 +335,13 @@ defmodule LantternWeb.StudentLiveTest do
       comment2 =
         insert(:ilp_comment, %{
           student_ilp: ilp,
-          name: "Review",
           content: "Content.",
           owner: ctx.user.current_profile
         })
 
       ctx.conn
       |> visit("#{@live_view_base_path}/#{student.id}/ilp")
-      # |> assert_has("div", text: comment1.name)
       |> assert_has("p", text: comment1.content)
-      # |> assert_has("div", text: comment2.name)
       |> assert_has("p", text: comment2.content)
     end
 

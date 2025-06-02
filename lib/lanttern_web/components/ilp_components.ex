@@ -124,9 +124,6 @@ defmodule LantternWeb.ILPComponents do
                 <%= gettext("Edit") %>
               </.action>
             </div>
-            <div class="flex items-end justify-between gap-2 mt-4 font-bold text-ltrn-staff-dark">
-              <%= ilp_comment.name %>
-            </div>
             <div class="flex items-end justify-between gap-2 mt-4">
               <.markdown text={ilp_comment.content} class="flex-1" />
               <div class="text-ltrn-subtle text-xs">
