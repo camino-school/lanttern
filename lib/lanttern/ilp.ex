@@ -861,10 +861,26 @@ defmodule Lanttern.ILP do
   end
 
   def list_ilp_comments_by_student_ilp(student_ilp_id) do
-    ILPComment
-    |> where([c], c.student_ilp_id == ^student_ilp_id)
-    |> order_by([c], desc: :inserted_at)
-    |> preload([c], [:owner, :attachments])
+    from(
+      c in ILPComment,
+      join: p in assoc(c, :owner),
+      left_join: s in assoc(p, :student),
+      left_join: sm in assoc(p, :staff_member),
+      left_join: gos in assoc(p, :guardian_of_student),
+      left_join: a in assoc(c, :attachments),
+      where: c.student_ilp_id == ^student_ilp_id,
+      order_by: [desc: c.inserted_at],
+      preload: [
+        {:attachments, a},
+        {:owner,
+         {p,
+          [
+            student: s,
+            staff_member: sm,
+            guardian_of_student: gos
+          ]}}
+      ]
+    )
     |> Repo.all()
   end
 

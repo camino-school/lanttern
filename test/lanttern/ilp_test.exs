@@ -963,7 +963,7 @@ defmodule Lanttern.ILPTest do
       {:ok, student_ilp: student_ilp, profile: profile}
     end
 
-    @invalid_attrs %{name: nil, position: nil, content: nil, shared_with_students: nil}
+    @invalid_attrs %{position: nil, content: nil, shared_with_students: nil, student_ilp_id: nil}
 
     test "list_ilp_comments/0 returns all ilp_comments" do
       ilp_comment = insert(:ilp_comment)

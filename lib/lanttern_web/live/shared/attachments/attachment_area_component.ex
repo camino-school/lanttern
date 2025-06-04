@@ -8,6 +8,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   - assessment point entry evidences (use `assessment_point_entry_id` assign)
   - student cycle info attachments (use `student_cycle_info_id` assign and `shared_with_student` assign)
   - moment card attachments (use `moment_card_id` assign and `shared_with_student` assign)
+  - ILP comments attachments (use `ilp_comment_id` assign)
 
   ### Supported attrs/assigns
 

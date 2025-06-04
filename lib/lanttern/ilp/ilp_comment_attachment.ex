@@ -7,6 +7,19 @@ defmodule Lanttern.ILP.ILPCommentAttachment do
 
   alias Lanttern.ILP.ILPComment
 
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          name: String.t(),
+          link: String.t(),
+          position: pos_integer(),
+          shared_with_students: boolean(),
+          is_external: boolean(),
+          ilp_comment_id: pos_integer(),
+          ilp_comment: ILPComment.t(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   schema "ilp_comment_attachments" do
     field :name, :string
     field :position, :integer, default: 0

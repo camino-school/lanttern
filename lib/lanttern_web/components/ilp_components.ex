@@ -107,7 +107,7 @@ defmodule LantternWeb.ILPComponents do
           <div class="flex items-center justify-between gap-4">
             <div class="flex items-center gap-4">
               <div class="flex-1 font-bold text-xs text-ltrn-staff-dark">
-                <%= Identity.get_profile_name(ilp_comment.owner_id) %>
+                <%= Identity.get_profile_name(ilp_comment.owner) %>
               </div>
               <.badge :if={ilp_comment.owner.type == "staff"} theme="staff">
                 <%= gettext("Staff") %>

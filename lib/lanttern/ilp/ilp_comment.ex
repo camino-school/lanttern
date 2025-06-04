@@ -9,9 +9,22 @@ defmodule Lanttern.ILP.ILPComment do
   alias Lanttern.ILP.StudentILP
   alias Lanttern.ILP.ILPCommentAttachment
 
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          content: String.t(),
+          position: pos_integer(),
+          student_ilp_id: pos_integer(),
+          student_ilp: StudentILP.t(),
+          owner_id: pos_integer(),
+          owner: Profile.t(),
+          attachments: [ILPCommentAttachment.t()],
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   schema "ilp_comments" do
-    field :position, :integer
     field :content, :string
+    field :position, :integer
     field :shared_with_students, :boolean, default: false
 
     belongs_to :student_ilp, StudentILP
@@ -22,12 +35,10 @@ defmodule Lanttern.ILP.ILPComment do
     timestamps()
   end
 
-  @required ~w(content position shared_with_students student_ilp_id owner_id)a
-
   @doc false
   def changeset(ilp_comment, attrs) do
     ilp_comment
-    |> cast(attrs, @required)
-    |> validate_required(@required)
+    |> cast(attrs, [:content, :position, :shared_with_students, :student_ilp_id, :owner_id])
+    |> validate_required([:content, :position, :shared_with_students, :student_ilp_id, :owner_id])
   end
 end
