@@ -22,6 +22,18 @@
         current_user={@current_user}
       />
     </div>
+    <.live_component
+      :if={@ilp_comment}
+      notify_parent
+      module={ILPCommentFormOverlayComponent}
+      id="student_ilp_comment-slide-over"
+      title={@ilp_comment_title}
+      ilp_comment={@ilp_comment}
+      form_action={@ilp_comment_action}
+      student_ilp={@student_ilp}
+      current_profile={@current_user.current_profile}
+      on_cancel={JS.patch(@base_path)}
+    />
   <% else %>
     <.card_base class="p-4 sm:p-10 mt-10">
       <.empty_state>

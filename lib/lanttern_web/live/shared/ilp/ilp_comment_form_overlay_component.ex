@@ -92,7 +92,6 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
       |> assign(:on_edit_patch, nil)
       |> assign(:create_patch, nil)
       |> assign(:class, nil)
-      |> assign(:show_teacher_notes, false)
       |> assign(:is_ilp_manager, false)
       |> assign(:initialized, false)
 
@@ -140,7 +139,14 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
   end
 
   def handle_event("delete", _, socket) do
-    ILP.delete_ilp_comment(socket.assigns.ilp_comment)
+    case ILP.delete_ilp_comment(socket.assigns.ilp_comment) do
+      {:ok, _ilp_comment} ->
+        notify(__MODULE__, {:deleted, socket.assigns.ilp_comment}, socket.assigns)
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+    end
   end
 
   def handle_event("toggle_shared", params, socket) do
@@ -173,7 +179,6 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
     params =
       params
       |> Map.put("position", 0)
-      |> Map.put("shared_with_students", false)
       |> Map.put("student_ilp_id", socket.assigns.student_ilp.id)
       |> Map.put("owner_id", socket.assigns.current_profile.id)
 

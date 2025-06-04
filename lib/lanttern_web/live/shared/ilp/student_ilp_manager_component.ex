@@ -99,7 +99,6 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
         params={@params}
         current_user={@current_user}
       />
-
       <.live_component
         :if={@ilp_comment}
         module={ILPCommentFormOverlayComponent}
