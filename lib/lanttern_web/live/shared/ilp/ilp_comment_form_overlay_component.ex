@@ -46,8 +46,9 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
           title={gettext("Attachments")}
           allow_editing={true}
           notify_component={@myself}
+          class="mt-10"
         />
-        <:actions_left>
+        <:actions_left :if={@ilp_comment.id}>
           <.action
             type="button"
             theme="subtle"
@@ -140,8 +141,8 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
 
   def handle_event("delete", _, socket) do
     case ILP.delete_ilp_comment(socket.assigns.ilp_comment) do
-      {:ok, _ilp_comment} ->
-        notify(__MODULE__, {:deleted, socket.assigns.ilp_comment}, socket.assigns)
+      {:ok, ilp_comment} ->
+        notify(__MODULE__, {:deleted, ilp_comment}, socket.assigns)
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->

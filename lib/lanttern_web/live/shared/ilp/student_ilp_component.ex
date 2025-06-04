@@ -100,13 +100,12 @@ defmodule LantternWeb.ILP.StudentILPComponent do
         </p>
         <.markdown text={@student_ilp.teacher_notes} />
       </div>
-      <div class="mt-4">
-        <.ilp_comments_list
-          ilp_comments={@ilp_comments}
-          current_profile={@current_user.current_profile}
-          tz={@current_user.tz}
-        />
-      </div>
+      <.ilp_comments_list
+        ilp_comments={@ilp_comments}
+        current_profile={@current_user.current_profile}
+        tz={@current_user.tz}
+        class="mt-10"
+      />
       <.modal :if={@template.description} id={"#{@id}-template-info-modal"}>
         <h6 class="mb-6 font-display font-black text-xl">
           <%= gettext("About %{template}", template: @template.name) %>

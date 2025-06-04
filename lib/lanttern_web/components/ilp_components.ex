@@ -76,10 +76,12 @@ defmodule LantternWeb.ILPComponents do
   attr :ilp_comments, :list, default: []
   attr :current_profile, :map
   attr :tz, :string, default: nil
+  attr :class, :any, default: nil
+  attr :id, :string, default: nil
 
   def ilp_comments_list(assigns) do
     ~H"""
-    <div id="all_comments">
+    <div id={@id} class={@class}>
       <h5 class="flex items-center gap-2 text-ltrn-subtle">
         <div class="w-10 text-center">
           <.icon name="hero-chat-bubble-left-right" class="w-6 h-6" />
@@ -103,21 +105,10 @@ defmodule LantternWeb.ILPComponents do
           picture_url={ilp_comment.owner.profile_picture_url}
           profile_name={ilp_comment.owner.name}
         />
-        <.card_base class="flex-1 max-w-3/4 p-2">
+        <.card_base class="flex-1 sm:max-w-3/4 p-2">
           <div class="flex items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-              <div class="flex-1 font-bold text-xs text-ltrn-staff-dark">
-                <%= Identity.get_profile_name(ilp_comment.owner) %>
-              </div>
-              <.badge :if={ilp_comment.owner.type == "staff"} theme="staff">
-                <%= gettext("Staff") %>
-              </.badge>
-              <.badge :if={ilp_comment.owner.type == "student"} theme="student">
-                <%= gettext("Student") %>
-              </.badge>
-              <.badge :if={ilp_comment.owner.type == "guardian"} theme="student">
-                <%= gettext("Guardian") %>
-              </.badge>
+              <.comment_header profile={ilp_comment.owner} />
             </div>
             <.action
               :if={ilp_comment.owner_id == @current_profile.id}
@@ -175,6 +166,35 @@ defmodule LantternWeb.ILPComponents do
         </.card_base>
       </div>
     </div>
+    """
+  end
+
+  attr :profile, :map, required: true
+
+  defp comment_header(%{profile: %{type: "student"}} = assigns) do
+    ~H"""
+    <div class="flex-1 font-bold text-xs text-ltrn-student-dark">
+      <%= Identity.get_profile_name(@profile) %>
+    </div>
+    <.badge theme="student"><%= gettext("Student") %></.badge>
+    """
+  end
+
+  defp comment_header(%{profile: %{type: "guardian"}} = assigns) do
+    ~H"""
+    <div class="flex-1 font-bold text-xs text-ltrn-student-dark">
+      <%= Identity.get_profile_name(@profile) %>
+    </div>
+    <.badge theme="student"><%= gettext("Guardian") %></.badge>
+    """
+  end
+
+  defp comment_header(assigns) do
+    ~H"""
+    <div class="flex-1 font-bold text-xs text-ltrn-staff-dark">
+      <%= Identity.get_profile_name(@profile) %>
+    </div>
+    <.badge theme="staff"><%= gettext("Teacher") %></.badge>
     """
   end
 end

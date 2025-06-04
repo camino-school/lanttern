@@ -172,11 +172,12 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
   end
 
   def update(%{action: {ILPCommentFormOverlayComponent, {action, _message}}}, socket)
-      when action in [:created, :updated] do
+      when action in [:created, :updated, :deleted] do
     flash_message =
       case action do
         :created -> {:info, gettext("Comment created successfully")}
         :updated -> {:info, gettext("Comment updated successfully")}
+        :deleted -> {:info, gettext("Comment deleted successfully")}
       end
 
     nav_opts = [

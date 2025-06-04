@@ -6,8 +6,8 @@ defmodule Lanttern.ILP.ILPComment do
   import Ecto.Changeset
 
   alias Lanttern.Identity.Profile
-  alias Lanttern.ILP.StudentILP
   alias Lanttern.ILP.ILPCommentAttachment
+  alias Lanttern.ILP.StudentILP
 
   @type t :: %__MODULE__{
           id: pos_integer(),

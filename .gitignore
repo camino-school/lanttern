@@ -42,3 +42,6 @@ npm-debug.log
 
 # windsurf rules
 .windsurfrules
+
+# Elixir LS
+.elixir_ls

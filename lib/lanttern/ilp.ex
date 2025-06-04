@@ -869,7 +869,7 @@ defmodule Lanttern.ILP do
       left_join: gos in assoc(p, :guardian_of_student),
       left_join: a in assoc(c, :attachments),
       where: c.student_ilp_id == ^student_ilp_id,
-      order_by: [desc: c.inserted_at],
+      order_by: [asc: c.inserted_at],
       preload: [
         {:attachments, a},
         {:owner,

@@ -11,9 +11,9 @@ defmodule LantternWeb.StudentILPLive do
   alias Lanttern.Schools
 
   # shared components
+  alias LantternWeb.ILP.ILPCommentFormOverlayComponent
   alias LantternWeb.ILP.StudentILPComponent
   alias LantternWeb.Schools.StudentHeaderComponent
-  alias LantternWeb.ILP.ILPCommentFormOverlayComponent
 
   @impl true
   def mount(_params, _session, socket) do

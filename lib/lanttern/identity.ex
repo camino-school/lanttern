@@ -752,7 +752,7 @@ defmodule Lanttern.Identity do
     case profile.type do
       "student" -> profile.student.name
       "staff" -> profile.staff_member.name
-      "guardian" -> profile.guardian.name
+      "guardian" -> profile.guardian_of_student.name
     end
   end
 end
