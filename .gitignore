@@ -27,6 +27,7 @@ lanttern-*.tar
 
 # Ignore assets that are produced by build tools.
 /priv/static/assets/
+/priv/cldr/
 
 # Ignore digested assets cache.
 /priv/static/cache_manifest.json
@@ -37,6 +38,10 @@ npm-debug.log
 
 # env variables
 .env
+.envrc
 
 # windsurf rules
 .windsurfrules
+
+# Elixir LS
+.elixir_ls

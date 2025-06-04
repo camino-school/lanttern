@@ -744,4 +744,15 @@ defmodule Lanttern.Identity do
   def change_profile(%Profile{} = profile, attrs \\ %{}) do
     Profile.changeset(profile, attrs)
   end
+
+  @doc """
+  Returns the name of the profile
+  """
+  def get_profile_name(profile) do
+    case profile.type do
+      "student" -> profile.student.name
+      "staff" -> profile.staff_member.name
+      "guardian" -> profile.guardian_of_student.name
+    end
+  end
 end

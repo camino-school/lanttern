@@ -6,6 +6,15 @@ defmodule Lanttern.Support.TestUtils do
   alias Phoenix.LiveViewTest
 
   @doc "Open stardard browser in Windows for WSL users"
+  def open_browser_wsl(%PhoenixTest.Live{} = session) do
+    PhoenixTest.unwrap(session, fn
+      %Plug.Conn{} = _conn -> :ok
+      view -> open_browser_wsl(view)
+    end)
+
+    session
+  end
+
   def open_browser_wsl(view) do
     LiveViewTest.open_browser(view, fn html_unix_path ->
       {wsl_path, 0} = System.cmd("wslpath", ["-aw", html_unix_path])

@@ -63,6 +63,7 @@ defmodule LantternWeb.StudentLive.ILPComponent do
           is_ilp_manager={"ilp_management" in @current_user.current_profile.permissions}
           params={@params}
           base_path={@base_path}
+          current_user={@current_user}
         />
       </.responsive_container>
     </div>

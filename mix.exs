@@ -4,7 +4,7 @@ defmodule Lanttern.MixProject do
   def project do
     [
       app: :lanttern,
-      version: "2025.4.29-alpha.64",
+      version: "2025.6.4-alpha.64",
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -16,7 +16,8 @@ defmodule Lanttern.MixProject do
         "coveralls.detail": :test,
         "coveralls.post": :test,
         "coveralls.html": :test,
-        "coveralls.cobertura": :test
+        "coveralls.cobertura": :test,
+        "test.drop": :test
       ]
     ]
   end
@@ -96,6 +97,7 @@ defmodule Lanttern.MixProject do
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test --cover"],
+      "test.drop": ["ecto.drop", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["cmd --cd assets npm i", "tailwind default", "esbuild default"],
       "assets.deploy": [

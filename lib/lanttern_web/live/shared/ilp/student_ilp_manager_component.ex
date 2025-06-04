@@ -14,6 +14,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
   - `:template` - `ILPTemplate`
   - `:params` - parent view params. Use `"student_ilp=new"` to create, or `"student_ilp=edit"` to edit
   - `:tz` - from `current_user.tz`
+  - `:current_user` - `%User{}` in `socket.assigns.current_user`
 
   ### Optional attrs
 
@@ -30,6 +31,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
   alias Lanttern.Schools.Student
 
   # shared components
+  alias LantternWeb.ILP.ILPCommentFormOverlayComponent
   alias LantternWeb.ILP.StudentILPAIRevisionActionBarComponent
   alias LantternWeb.ILP.StudentILPAIRevisionOverlayComponent
   alias LantternWeb.ILP.StudentILPComponent
@@ -94,8 +96,20 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
         edit_patch="?student_ilp=edit"
         is_ilp_manager={@is_ilp_manager}
         show_teacher_notes
+        params={@params}
+        current_user={@current_user}
+      />
+      <.live_component
+        :if={@ilp_comment}
+        module={ILPCommentFormOverlayComponent}
+        id={"#{@id}-comment-slide-over"}
+        title={@ilp_comment_title}
+        ilp_comment={@ilp_comment}
+        form_action={@ilp_comment_action}
+        student_ilp={@student_ilp}
         current_profile={@current_profile}
-        tz={@tz}
+        on_cancel={JS.patch(@base_path)}
+        notify_component={@myself}
       />
       <.live_component
         :if={@edit_student_ilp}
@@ -130,6 +144,10 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
       |> assign(:student, nil)
       |> assign(:student_navigate, nil)
       |> assign(:template, nil)
+      |> assign(:ilp_comments, [])
+      |> assign(:ilp_comment, nil)
+      |> assign(:ilp_comment_title, nil)
+      |> assign(:ilp_comment_action, nil)
       |> assign(:initialized, false)
 
     {:ok, socket}
@@ -153,11 +171,26 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
     {:ok, delegate_navigation(socket, nav_opts)}
   end
 
-  def update(
-        %{action: {StudentILPAIRevisionActionBarComponent, {:generate_success, _student_ilp}}},
-        socket
-      ) do
+  def update(%{action: {ILPCommentFormOverlayComponent, {action, _message}}}, socket)
+      when action in [:created, :updated, :deleted] do
+    flash_message =
+      case action do
+        :created -> {:info, gettext("Comment created successfully")}
+        :updated -> {:info, gettext("Comment updated successfully")}
+        :deleted -> {:info, gettext("Comment deleted successfully")}
+      end
+
+    nav_opts = [
+      put_flash: flash_message,
+      push_navigate: [to: socket.assigns.base_path]
+    ]
+
+    {:ok, delegate_navigation(socket, nav_opts)}
+  end
+
+  def update(%{action: {StudentILPAIRevisionActionBarComponent, {_action, _msg}}}, socket) do
     nav_opts = [push_navigate: [to: "#{socket.assigns.base_path}?ai_revision=show"]]
+
     {:ok, delegate_navigation(socket, nav_opts)}
   end
 
@@ -167,6 +200,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
       |> assign(assigns)
       |> initialize()
       |> assign_edit_student_ilp()
+      |> assign_ilp_comment()
       |> assign_ai_panel_open()
 
     {:ok, socket}
@@ -176,6 +210,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
     socket
     |> ensure_template_ai_layer_is_loaded()
     |> assign_student_ilp()
+    |> assign_ilp_comments()
     |> assign(:initialized, true)
   end
 
@@ -227,6 +262,29 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
       _ -> assign(socket, :student_ilp, nil)
     end
   end
+
+  defp assign_ilp_comment(%{assigns: %{params: %{"comment" => "new"}}} = socket) do
+    socket
+    |> assign(:ilp_comment, %ILP.ILPComment{})
+    |> assign(:ilp_comment_title, gettext("New Comment"))
+    |> assign(:ilp_comment_action, :new)
+  end
+
+  defp assign_ilp_comment(%{assigns: %{params: %{"comment_id" => id}}} = socket) do
+    socket
+    |> assign(:ilp_comment, ILP.get_ilp_comment(id))
+    |> assign(:ilp_comment_title, gettext("Edit Comment"))
+    |> assign(:ilp_comment_action, :edit)
+  end
+
+  defp assign_ilp_comment(socket), do: assign(socket, :ilp_comment, nil)
+
+  defp assign_ilp_comments(%{assigns: %{student_ilp: %StudentILP{id: id}}} = socket) do
+    socket
+    |> assign(:ilp_comments, ILP.list_ilp_comments_by_student_ilp(id))
+  end
+
+  defp assign_ilp_comments(socket), do: socket
 
   defp assign_edit_student_ilp(%{assigns: %{params: %{"student_ilp" => "new"}}} = socket) do
     with nil <- socket.assigns.student_ilp,
