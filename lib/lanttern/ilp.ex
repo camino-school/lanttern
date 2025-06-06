@@ -1091,11 +1091,12 @@ defmodule Lanttern.ILP do
 
   ## Examples
 
-      iex> has_permition?(current_profile, ilp_comment)
+      iex> has_permission?(current_profile, ilp_comment)
       true
 
   """
-  def has_permition?(%Profile{} = current_profile, %ILPComment{} = ilp_comment) do
+  @spec has_permission?(Profile.t(), ILPComment.t()) :: boolean
+  def has_permission?(%Profile{} = current_profile, %ILPComment{} = ilp_comment) do
     current_profile.id == ilp_comment.owner_id
   end
 end

@@ -359,7 +359,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   end
 
   def handle_event("edit", params, %{assigns: %{type: :ilp_comments_attachments}} = socket) do
-    case ILP.has_permition?(socket.assigns.current_profile, socket.assigns.ilp_comment) do
+    case ILP.has_permission?(socket.assigns.current_profile, socket.assigns.ilp_comment) do
       true ->
         attachment = ILP.get_ilp_comment_attachment!(params["id"])
         changeset = ILP.change_ilp_comment_attachment(attachment, %{})
@@ -427,7 +427,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   def handle_event("delete", params, %{assigns: %{type: :ilp_comments_attachments}} = socket) do
     attachment = ILP.get_ilp_comment_attachment!(params["id"])
 
-    with true <- ILP.has_permition?(socket.assigns.current_profile, socket.assigns.ilp_comment),
+    with true <- ILP.has_permission?(socket.assigns.current_profile, socket.assigns.ilp_comment),
          {:ok, _attachment} <- ILP.delete_ilp_comment_attachment(attachment) do
       socket =
         socket
@@ -700,7 +700,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     params = Map.put(params, "shared_with_students", true)
     params = Map.put(params, "ilp_comment_id", socket.assigns.ilp_comment_id)
 
-    with true <- ILP.has_permition?(socket.assigns.current_profile, socket.assigns.ilp_comment),
+    with true <- ILP.has_permission?(socket.assigns.current_profile, socket.assigns.ilp_comment),
          {:ok, attachment} <- ILP.create_ilp_comment_attachment(params) do
       socket =
         socket

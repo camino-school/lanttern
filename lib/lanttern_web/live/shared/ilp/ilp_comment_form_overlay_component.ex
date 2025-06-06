@@ -137,21 +137,11 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
     {:noreply, assign(socket, :form, to_form(changeset))}
   end
 
-  def handle_event("save", %{"ilp_comment" => comment_params}, socket) do
-    save_ilp_comment(socket, socket.assigns.form_action, comment_params)
-    # case ILP.has_permition?(socket.assigns.current_profile, socket.assigns.ilp_comment) do
-    #   true ->
-    #     save_ilp_comment(socket, socket.assigns.form_action, comment_params)
-
-    #   false ->
-    #     notify(__MODULE__, :not_authorized, socket.assigns)
-
-    #     {:noreply, socket}
-    # end
-  end
+  def handle_event("save", %{"ilp_comment" => comment_params}, socket),
+    do: save_ilp_comment(socket, socket.assigns.form_action, comment_params)
 
   def handle_event("delete", _, socket) do
-    with true <- ILP.has_permition?(socket.assigns.current_profile, socket.assigns.ilp_comment),
+    with true <- ILP.has_permission?(socket.assigns.current_profile, socket.assigns.ilp_comment),
          {:ok, ilp_comment} <- ILP.delete_ilp_comment(socket.assigns.ilp_comment) do
       notify(__MODULE__, {:deleted, ilp_comment}, socket.assigns)
 
@@ -211,7 +201,7 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
   end
 
   defp save_ilp_comment(socket, :edit, params) do
-    with true <- ILP.has_permition?(socket.assigns.current_profile, socket.assigns.ilp_comment),
+    with true <- ILP.has_permission?(socket.assigns.current_profile, socket.assigns.ilp_comment),
          {:ok, comment} <- ILP.update_ilp_comment(socket.assigns.ilp_comment, params) do
       notify(__MODULE__, {:updated, comment}, socket.assigns)
 
