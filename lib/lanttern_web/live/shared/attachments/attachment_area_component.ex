@@ -359,16 +359,24 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   end
 
   def handle_event("edit", params, %{assigns: %{type: :ilp_comments_attachments}} = socket) do
-    attachment = ILP.get_ilp_comment_attachment!(params["id"])
-    changeset = ILP.change_ilp_comment_attachment(attachment, %{})
+    case ILP.has_permition?(socket.assigns.current_profile, socket.assigns.ilp_comment) do
+      true ->
+        attachment = ILP.get_ilp_comment_attachment!(params["id"])
+        changeset = ILP.change_ilp_comment_attachment(attachment, %{})
 
-    socket =
-      socket
-      |> assign(:is_editing, true)
-      |> assign(:attachment, attachment)
-      |> assign_form(changeset)
+        socket =
+          socket
+          |> assign(:is_editing, true)
+          |> assign(:attachment, attachment)
+          |> assign_form(changeset)
 
-    {:noreply, socket}
+        {:noreply, socket}
+
+      false ->
+        notify(__MODULE__, :not_authorized, socket.assigns)
+
+        {:noreply, socket}
+    end
   end
 
   def handle_event("edit", %{"id" => id}, socket) do
@@ -405,7 +413,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   def handle_event("save", %{"attachment" => params}, socket) do
     case socket.assigns do
       %{is_adding_external: true} ->
-        # add is_external to params
         params =
           params
           |> Map.put("is_external", true)
@@ -420,14 +427,18 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   def handle_event("delete", params, %{assigns: %{type: :ilp_comments_attachments}} = socket) do
     attachment = ILP.get_ilp_comment_attachment!(params["id"])
 
-    case ILP.delete_ilp_comment_attachment(attachment) do
-      {:ok, _attachment} ->
-        notify(__MODULE__, {:deleted, attachment}, socket.assigns)
+    with true <- ILP.has_permition?(socket.assigns.current_profile, socket.assigns.ilp_comment),
+         {:ok, _attachment} <- ILP.delete_ilp_comment_attachment(attachment) do
+      socket =
+        socket
+        |> stream_attachments()
 
-        socket =
-          socket
-          |> stream_attachments()
+      notify(__MODULE__, {:deleted, attachment}, socket.assigns)
 
+      {:noreply, socket}
+    else
+      false ->
+        notify(__MODULE__, :not_authorized, socket.assigns)
         {:noreply, socket}
 
       {:error, _changeset} ->
@@ -689,15 +700,19 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     params = Map.put(params, "shared_with_students", true)
     params = Map.put(params, "ilp_comment_id", socket.assigns.ilp_comment_id)
 
-    case ILP.create_ilp_comment_attachment(params) do
-      {:ok, attachment} ->
-        notify(__MODULE__, {:created, attachment}, socket.assigns)
+    with true <- ILP.has_permition?(socket.assigns.current_profile, socket.assigns.ilp_comment),
+         {:ok, attachment} <- ILP.create_ilp_comment_attachment(params) do
+      socket =
+        socket
+        |> assign(:is_adding_external, false)
+        |> stream_attachments()
 
-        socket =
-          socket
-          |> assign(:is_adding_external, false)
-          |> stream_attachments()
+      notify(__MODULE__, {:created, attachment}, socket.assigns)
 
+      {:noreply, socket}
+    else
+      false ->
+        notify(__MODULE__, :not_authorized, socket.assigns)
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->

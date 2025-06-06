@@ -4,12 +4,13 @@ defmodule Lanttern.ILP do
   """
 
   import Ecto.Query, warn: false
-  alias Lanttern.ILP.ILPTemplateAILayer
-  alias Lanttern.Repo
   import Lanttern.RepoHelpers
 
+  alias Lanttern.Identity.Profile
   alias Lanttern.ILP.ILPTemplate
+  alias Lanttern.ILP.ILPTemplateAILayer
   alias Lanttern.ILPLog
+  alias Lanttern.Repo
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.Student
 
@@ -1084,4 +1085,17 @@ defmodule Lanttern.ILP do
   @spec update_ilp_comment_attachment_positions([pos_integer()]) :: :ok | {:error, String.t()}
   def update_ilp_comment_attachment_positions(ilp_comment_attachment),
     do: update_positions(ILPCommentAttachment, ilp_comment_attachment)
+
+  @doc """
+  Returns boolean for permitting ilp_comment changes.
+
+  ## Examples
+
+      iex> has_permition?(current_profile, ilp_comment)
+      true
+
+  """
+  def has_permition?(%Profile{} = current_profile, %ILPComment{} = ilp_comment) do
+    current_profile.id == ilp_comment.owner_id
+  end
 end

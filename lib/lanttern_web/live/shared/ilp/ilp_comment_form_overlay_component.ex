@@ -45,8 +45,10 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
           id="ilp-comment"
           title={gettext("Attachments")}
           allow_editing={true}
-          notify_component={@myself}
+          notify_parent
           class="mt-10"
+          current_profile={@current_profile}
+          ilp_comment={@ilp_comment}
         />
         <:actions_left :if={@ilp_comment.id}>
           <.action
@@ -137,12 +139,27 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
 
   def handle_event("save", %{"ilp_comment" => comment_params}, socket) do
     save_ilp_comment(socket, socket.assigns.form_action, comment_params)
+    # case ILP.has_permition?(socket.assigns.current_profile, socket.assigns.ilp_comment) do
+    #   true ->
+    #     save_ilp_comment(socket, socket.assigns.form_action, comment_params)
+
+    #   false ->
+    #     notify(__MODULE__, :not_authorized, socket.assigns)
+
+    #     {:noreply, socket}
+    # end
   end
 
   def handle_event("delete", _, socket) do
-    case ILP.delete_ilp_comment(socket.assigns.ilp_comment) do
-      {:ok, ilp_comment} ->
-        notify(__MODULE__, {:deleted, ilp_comment}, socket.assigns)
+    with true <- ILP.has_permition?(socket.assigns.current_profile, socket.assigns.ilp_comment),
+         {:ok, ilp_comment} <- ILP.delete_ilp_comment(socket.assigns.ilp_comment) do
+      notify(__MODULE__, {:deleted, ilp_comment}, socket.assigns)
+
+      {:noreply, socket}
+    else
+      false ->
+        notify(__MODULE__, :not_authorized, socket.assigns)
+
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -194,13 +211,18 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
   end
 
   defp save_ilp_comment(socket, :edit, params) do
-    case ILP.update_ilp_comment(socket.assigns.ilp_comment, params) do
-      {:ok, comment} ->
-        notify(__MODULE__, {:updated, comment}, socket.assigns)
-        {:noreply, socket}
+    with true <- ILP.has_permition?(socket.assigns.current_profile, socket.assigns.ilp_comment),
+         {:ok, comment} <- ILP.update_ilp_comment(socket.assigns.ilp_comment, params) do
+      notify(__MODULE__, {:updated, comment}, socket.assigns)
 
+      {:noreply, socket}
+    else
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
+
+      false ->
+        notify(__MODULE__, :not_authorized, socket.assigns)
+        {:noreply, socket}
     end
   end
 end

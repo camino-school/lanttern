@@ -368,5 +368,39 @@ defmodule LantternWeb.StudentLiveTest do
       |> visit("#{@live_view_base_path}/#{student.id}/ilp?comment_id=#{ilp_comment.id}")
       |> refute_has("a", text: attachment.name)
     end
+
+    test "renders error when modify not owned comment", ctx do
+      school = ctx.user.current_profile.staff_member.school
+      student = insert(:student, %{school: school})
+      template = insert(:ilp_template, %{school: school})
+      cycle = insert(:cycle, %{school: school})
+      new_profile = insert(:profile)
+
+      ilp =
+        insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
+
+      ilp_comment = insert(:ilp_comment, %{student_ilp: ilp, owner: new_profile})
+
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp")
+      |> assert_has("p", text: ilp_comment.content)
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp?comment_id=#{ilp_comment.id}")
+      |> assert_has("h2", text: "Edit")
+      |> fill_in("Content", with: "Novo")
+      |> click_button("#save-action-ilp-comment", "Save")
+
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp")
+      |> refute_has("p", text: "Novo")
+      |> assert_has("p", text: ilp_comment.content)
+
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp?comment_id=#{ilp_comment.id}")
+      |> click_button("Delete")
+
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp")
+      |> assert_has("p", text: ilp_comment.content)
+    end
   end
 end
