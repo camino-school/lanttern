@@ -6,7 +6,6 @@ defmodule Lanttern.ILP do
   import Ecto.Query, warn: false
   import Lanttern.RepoHelpers
 
-  alias Lanttern.Identity.Profile
   alias Lanttern.ILP.ILPTemplate
   alias Lanttern.ILP.ILPTemplateAILayer
   alias Lanttern.ILPLog
@@ -886,22 +885,33 @@ defmodule Lanttern.ILP do
   end
 
   @doc """
-  Gets a single ilp_comment.
+  Gets a single ilp_comment or nil.
 
-  Raises `Ecto.NoResultsError` if the Ilp comment does not exist.
+  ## Options
 
-  ## Examples
-
-      iex> get_ilp_comment!(123)
-      %ILPComment{}
-
-      iex> get_ilp_comment!(456)
-      ** (Ecto.NoResultsError)
-
+  - `:owner_id` - filter results by owner(Profile)
+  - `:only_shared_with_student` - boolean. Filter results by ILPs shared with student
   """
-  def get_ilp_comment!(id), do: Repo.get!(ILPComment, id)
+  def get_ilp_comment(id, opts \\ []) do
+    dynamic_filter =
+      Enum.reduce(opts, dynamic(true), fn
+        {:owner_id, owner_id}, acc ->
+          dynamic([c], ^acc and c.owner_id == ^owner_id)
 
-  def get_ilp_comment(id), do: Repo.get(ILPComment, id)
+        {:shared_with_students, shared_with_students}, acc ->
+          dynamic([c], ^acc and c.shared_with_students == ^shared_with_students)
+
+        {_, _}, dynamic ->
+          dynamic
+      end)
+
+    from(
+      c in ILPComment,
+      where: c.id == ^id,
+      where: ^dynamic_filter
+    )
+    |> Repo.one()
+  end
 
   @doc """
   Creates a ilp_comment.
@@ -1085,18 +1095,4 @@ defmodule Lanttern.ILP do
   @spec update_ilp_comment_attachment_positions([pos_integer()]) :: :ok | {:error, String.t()}
   def update_ilp_comment_attachment_positions(ilp_comment_attachment),
     do: update_positions(ILPCommentAttachment, ilp_comment_attachment)
-
-  @doc """
-  Returns boolean for permitting ilp_comment changes.
-
-  ## Examples
-
-      iex> has_permission?(current_profile, ilp_comment)
-      true
-
-  """
-  @spec has_permission?(Profile.t(), ILPComment.t()) :: boolean
-  def has_permission?(%Profile{} = current_profile, %ILPComment{} = ilp_comment) do
-    current_profile.id == ilp_comment.owner_id
-  end
 end

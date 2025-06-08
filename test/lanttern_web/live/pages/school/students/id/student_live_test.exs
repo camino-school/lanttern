@@ -385,18 +385,8 @@ defmodule LantternWeb.StudentLiveTest do
       |> visit("#{@live_view_base_path}/#{student.id}/ilp")
       |> assert_has("p", text: ilp_comment.content)
       |> visit("#{@live_view_base_path}/#{student.id}/ilp?comment_id=#{ilp_comment.id}")
-      |> assert_has("h2", text: "Edit")
-      |> fill_in("Content", with: "Novo")
-      |> click_button("#save-action-ilp-comment", "Save")
-
-      ctx.conn
-      |> visit("#{@live_view_base_path}/#{student.id}/ilp")
-      |> refute_has("p", text: "Novo")
-      |> assert_has("p", text: ilp_comment.content)
-
-      ctx.conn
-      |> visit("#{@live_view_base_path}/#{student.id}/ilp?comment_id=#{ilp_comment.id}")
-      |> click_button("Delete")
+      |> refute_has("h2", text: "Edit")
+      |> refute_has("span", text: "Delete")
 
       ctx.conn
       |> visit("#{@live_view_base_path}/#{student.id}/ilp")

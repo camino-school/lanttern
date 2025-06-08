@@ -271,8 +271,10 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
   end
 
   defp assign_ilp_comment(%{assigns: %{params: %{"comment_id" => id}}} = socket) do
+    opts = [owner_id: socket.assigns.current_user.current_profile.id]
+
     socket
-    |> assign(:ilp_comment, ILP.get_ilp_comment(id))
+    |> assign(:ilp_comment, ILP.get_ilp_comment(id, opts))
     |> assign(:ilp_comment_title, gettext("Edit Comment"))
     |> assign(:ilp_comment_action, :edit)
   end

@@ -971,11 +971,6 @@ defmodule Lanttern.ILPTest do
       assert ILP.list_ilp_comments() == [ilp_comment]
     end
 
-    test "get_ilp_comment!/1 returns the ilp_comment with given id" do
-      ilp_comment = insert(:ilp_comment)
-      assert ILP.get_ilp_comment!(ilp_comment.id) == ilp_comment
-    end
-
     test "create_ilp_comment/1 with valid data creates a ilp_comment", ctx do
       attrs = %{owner_id: ctx.profile.id, student_ilp_id: ctx.student_ilp.id}
       valid_attrs = params_for(:ilp_comment, attrs)
@@ -1010,13 +1005,13 @@ defmodule Lanttern.ILPTest do
     test "update_ilp_comment/2 with invalid data returns error changeset" do
       ilp_comment = insert(:ilp_comment)
       assert {:error, %Ecto.Changeset{}} = ILP.update_ilp_comment(ilp_comment, @invalid_attrs)
-      assert ilp_comment == ILP.get_ilp_comment!(ilp_comment.id)
+      assert ilp_comment == ILP.get_ilp_comment(ilp_comment.id)
     end
 
     test "delete_ilp_comment/1 deletes the ilp_comment" do
       ilp_comment = insert(:ilp_comment)
       assert {:ok, %ILPComment{}} = ILP.delete_ilp_comment(ilp_comment)
-      assert_raise Ecto.NoResultsError, fn -> ILP.get_ilp_comment!(ilp_comment.id) end
+      assert ILP.get_ilp_comment(ilp_comment.id) == nil
     end
 
     test "change_ilp_comment/1 returns a ilp_comment changeset" do

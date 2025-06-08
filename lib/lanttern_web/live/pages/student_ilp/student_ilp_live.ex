@@ -15,8 +15,6 @@ defmodule LantternWeb.StudentILPLive do
   alias LantternWeb.ILP.StudentILPComponent
   alias LantternWeb.Schools.StudentHeaderComponent
 
-  alias LantternWeb.Attachments.AttachmentAreaComponent
-
   @impl true
   def mount(_params, _session, socket) do
     socket =
@@ -93,8 +91,13 @@ defmodule LantternWeb.StudentILPLive do
   end
 
   defp assign_ilp_comment(%{assigns: %{params: %{"comment_id" => id}}} = socket) do
+    opts = [
+      owner_id: socket.assigns.current_user.current_profile.id,
+      only_shared_with_student: true
+    ]
+
     socket
-    |> assign(:ilp_comment, ILP.get_ilp_comment(id))
+    |> assign(:ilp_comment, ILP.get_ilp_comment(id, opts))
     |> assign(:ilp_comment_title, gettext("Edit Comment"))
     |> assign(:ilp_comment_action, :edit)
   end
@@ -133,19 +136,5 @@ defmodule LantternWeb.StudentILPLive do
       |> push_navigate(to: socket.assigns.base_path)
 
     {:noreply, socket}
-  end
-
-  def handle_info({ILPCommentFormOverlayComponent, :not_authorized}, socket) do
-    socket
-    |> put_flash(:error, gettext("You are not authorized to perform this action"))
-    |> push_navigate(to: socket.assigns.base_path)
-    |> then(&{:noreply, &1})
-  end
-
-  def handle_info({AttachmentAreaComponent, :not_authorized}, socket) do
-    socket
-    |> put_flash(:error, gettext("You are not authorized to perform this action"))
-    |> push_navigate(to: socket.assigns.base_path)
-    |> then(&{:noreply, &1})
   end
 end
