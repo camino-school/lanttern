@@ -7,6 +7,7 @@ defmodule Lanttern.Quizzes do
   alias Lanttern.Repo
 
   alias Lanttern.Quizzes.Quiz
+  alias Lanttern.Quizzes.QuizItem
 
   @doc """
   Returns the list of quizzes.
@@ -100,5 +101,99 @@ defmodule Lanttern.Quizzes do
   """
   def change_quiz(%Quiz{} = quiz, attrs \\ %{}) do
     Quiz.changeset(quiz, attrs)
+  end
+
+  @doc """
+  Returns the list of quiz_items.
+
+  ## Examples
+
+      iex> list_quiz_items()
+      [%QuizItem{}, ...]
+
+  """
+  def list_quiz_items do
+    Repo.all(QuizItem)
+  end
+
+  @doc """
+  Gets a single quiz_item.
+
+  Raises `Ecto.NoResultsError` if the Quiz item does not exist.
+
+  ## Examples
+
+      iex> get_quiz_item!(123)
+      %QuizItem{}
+
+      iex> get_quiz_item!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_quiz_item!(id), do: Repo.get!(QuizItem, id)
+
+  @doc """
+  Creates a quiz_item.
+
+  ## Examples
+
+      iex> create_quiz_item(%{field: value})
+      {:ok, %QuizItem{}}
+
+      iex> create_quiz_item(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_quiz_item(attrs \\ %{}) do
+    %QuizItem{}
+    |> QuizItem.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a quiz_item.
+
+  ## Examples
+
+      iex> update_quiz_item(quiz_item, %{field: new_value})
+      {:ok, %QuizItem{}}
+
+      iex> update_quiz_item(quiz_item, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_quiz_item(%QuizItem{} = quiz_item, attrs) do
+    quiz_item
+    |> QuizItem.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a quiz_item.
+
+  ## Examples
+
+      iex> delete_quiz_item(quiz_item)
+      {:ok, %QuizItem{}}
+
+      iex> delete_quiz_item(quiz_item)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_quiz_item(%QuizItem{} = quiz_item) do
+    Repo.delete(quiz_item)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking quiz_item changes.
+
+  ## Examples
+
+      iex> change_quiz_item(quiz_item)
+      %Ecto.Changeset{data: %QuizItem{}}
+
+  """
+  def change_quiz_item(%QuizItem{} = quiz_item, attrs \\ %{}) do
+    QuizItem.changeset(quiz_item, attrs)
   end
 end

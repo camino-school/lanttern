@@ -71,4 +71,73 @@ defmodule Lanttern.QuizzesTest do
       assert %Ecto.Changeset{} = Quizzes.change_quiz(quiz)
     end
   end
+
+  describe "quiz_items" do
+    alias Lanttern.Quizzes.QuizItem
+
+    @invalid_attrs %{position: nil, type: nil, description: nil}
+
+    test "list_quiz_items/0 returns all quiz_items" do
+      quiz_item = insert(:quiz_item) |> Ecto.reset_fields([:quiz])
+      assert Quizzes.list_quiz_items() == [quiz_item]
+    end
+
+    test "get_quiz_item!/1 returns the quiz_item with given id" do
+      quiz_item = insert(:quiz_item) |> Ecto.reset_fields([:quiz])
+      assert Quizzes.get_quiz_item!(quiz_item.id) == quiz_item
+    end
+
+    test "create_quiz_item/1 with valid data creates a quiz_item" do
+      quiz = insert(:quiz)
+
+      valid_attrs = %{
+        position: 42,
+        type: "multiple_choice",
+        description: "some description abc",
+        quiz_id: quiz.id
+      }
+
+      assert {:ok, %QuizItem{} = quiz_item} = Quizzes.create_quiz_item(valid_attrs)
+      assert quiz_item.position == 42
+      assert quiz_item.type == "multiple_choice"
+      assert quiz_item.description == "some description abc"
+      assert quiz_item.quiz_id == quiz.id
+    end
+
+    test "create_quiz_item/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Quizzes.create_quiz_item(@invalid_attrs)
+    end
+
+    test "update_quiz_item/2 with valid data updates the quiz_item" do
+      quiz_item = insert(:quiz_item)
+
+      update_attrs = %{
+        position: 43,
+        type: "multiple_choice",
+        description: "some updated description"
+      }
+
+      assert {:ok, %QuizItem{} = quiz_item} = Quizzes.update_quiz_item(quiz_item, update_attrs)
+      assert quiz_item.position == 43
+      assert quiz_item.type == "multiple_choice"
+      assert quiz_item.description == "some updated description"
+    end
+
+    test "update_quiz_item/2 with invalid data returns error changeset" do
+      quiz_item = insert(:quiz_item) |> Ecto.reset_fields([:quiz])
+      assert {:error, %Ecto.Changeset{}} = Quizzes.update_quiz_item(quiz_item, @invalid_attrs)
+      assert quiz_item == Quizzes.get_quiz_item!(quiz_item.id)
+    end
+
+    test "delete_quiz_item/1 deletes the quiz_item" do
+      quiz_item = insert(:quiz_item)
+      assert {:ok, %QuizItem{}} = Quizzes.delete_quiz_item(quiz_item)
+      assert_raise Ecto.NoResultsError, fn -> Quizzes.get_quiz_item!(quiz_item.id) end
+    end
+
+    test "change_quiz_item/1 returns a quiz_item changeset" do
+      quiz_item = insert(:quiz_item)
+      assert %Ecto.Changeset{} = Quizzes.change_quiz_item(quiz_item)
+    end
+  end
 end
