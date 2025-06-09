@@ -27,6 +27,14 @@ defmodule Lanttern.QuizzesFactories do
           quiz_item: build(:quiz_item)
         }
       end
+
+      def quiz_item_student_entry_factory do
+        %Lanttern.Quizzes.QuizItemStudentEntry{
+          answer: "some quiz item student entry answer",
+          quiz_item: build(:quiz_item),
+          student: build(:student)
+        }
+      end
     end
   end
 end

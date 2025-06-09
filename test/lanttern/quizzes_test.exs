@@ -242,4 +242,95 @@ defmodule Lanttern.QuizzesTest do
       assert %Ecto.Changeset{} = Quizzes.change_quiz_item_alternative(quiz_item_alternative)
     end
   end
+
+  describe "quiz_item_student_entries" do
+    alias Lanttern.Quizzes.QuizItemStudentEntry
+
+    @invalid_attrs %{answer: nil, score: nil, feedback: nil}
+
+    test "list_quiz_item_student_entries/0 returns all quiz_item_student_entries" do
+      quiz_item_student_entry =
+        insert(:quiz_item_student_entry) |> Ecto.reset_fields([:quiz_item, :student])
+
+      assert Quizzes.list_quiz_item_student_entries() == [quiz_item_student_entry]
+    end
+
+    test "get_quiz_item_student_entry!/1 returns the quiz_item_student_entry with given id" do
+      quiz_item_student_entry =
+        insert(:quiz_item_student_entry) |> Ecto.reset_fields([:quiz_item, :student])
+
+      assert Quizzes.get_quiz_item_student_entry!(quiz_item_student_entry.id) ==
+               quiz_item_student_entry
+    end
+
+    test "create_quiz_item_student_entry/1 with valid data creates a quiz_item_student_entry" do
+      quiz_item = insert(:quiz_item)
+      student = insert(:student)
+
+      valid_attrs = %{
+        answer: "some answer",
+        score: 120.5,
+        feedback: "some feedback",
+        quiz_item_id: quiz_item.id,
+        student_id: student.id
+      }
+
+      assert {:ok, %QuizItemStudentEntry{} = quiz_item_student_entry} =
+               Quizzes.create_quiz_item_student_entry(valid_attrs)
+
+      assert quiz_item_student_entry.answer == "some answer"
+      assert quiz_item_student_entry.score == 120.5
+      assert quiz_item_student_entry.feedback == "some feedback"
+      assert quiz_item_student_entry.quiz_item_id == quiz_item.id
+      assert quiz_item_student_entry.student_id == student.id
+    end
+
+    test "create_quiz_item_student_entry/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Quizzes.create_quiz_item_student_entry(@invalid_attrs)
+    end
+
+    test "update_quiz_item_student_entry/2 with valid data updates the quiz_item_student_entry" do
+      quiz_item_student_entry = insert(:quiz_item_student_entry)
+
+      update_attrs = %{
+        answer: "some updated answer",
+        score: 456.7,
+        feedback: "some updated feedback"
+      }
+
+      assert {:ok, %QuizItemStudentEntry{} = quiz_item_student_entry} =
+               Quizzes.update_quiz_item_student_entry(quiz_item_student_entry, update_attrs)
+
+      assert quiz_item_student_entry.answer == "some updated answer"
+      assert quiz_item_student_entry.score == 456.7
+      assert quiz_item_student_entry.feedback == "some updated feedback"
+    end
+
+    test "update_quiz_item_student_entry/2 with invalid data returns error changeset" do
+      quiz_item_student_entry =
+        insert(:quiz_item_student_entry) |> Ecto.reset_fields([:quiz_item, :student])
+
+      assert {:error, %Ecto.Changeset{}} =
+               Quizzes.update_quiz_item_student_entry(quiz_item_student_entry, @invalid_attrs)
+
+      assert quiz_item_student_entry ==
+               Quizzes.get_quiz_item_student_entry!(quiz_item_student_entry.id)
+    end
+
+    test "delete_quiz_item_student_entry/1 deletes the quiz_item_student_entry" do
+      quiz_item_student_entry = insert(:quiz_item_student_entry)
+
+      assert {:ok, %QuizItemStudentEntry{}} =
+               Quizzes.delete_quiz_item_student_entry(quiz_item_student_entry)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Quizzes.get_quiz_item_student_entry!(quiz_item_student_entry.id)
+      end
+    end
+
+    test "change_quiz_item_student_entry/1 returns a quiz_item_student_entry changeset" do
+      quiz_item_student_entry = insert(:quiz_item_student_entry)
+      assert %Ecto.Changeset{} = Quizzes.change_quiz_item_student_entry(quiz_item_student_entry)
+    end
+  end
 end

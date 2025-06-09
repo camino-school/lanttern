@@ -9,6 +9,7 @@ defmodule Lanttern.Quizzes do
   alias Lanttern.Quizzes.Quiz
   alias Lanttern.Quizzes.QuizItem
   alias Lanttern.Quizzes.QuizItemAlternative
+  alias Lanttern.Quizzes.QuizItemStudentEntry
 
   @doc """
   Returns the list of quizzes.
@@ -290,5 +291,102 @@ defmodule Lanttern.Quizzes do
   """
   def change_quiz_item_alternative(%QuizItemAlternative{} = quiz_item_alternative, attrs \\ %{}) do
     QuizItemAlternative.changeset(quiz_item_alternative, attrs)
+  end
+
+  @doc """
+  Returns the list of quiz_item_student_entries.
+
+  ## Examples
+
+      iex> list_quiz_item_student_entries()
+      [%QuizItemStudentEntry{}, ...]
+
+  """
+  def list_quiz_item_student_entries do
+    Repo.all(QuizItemStudentEntry)
+  end
+
+  @doc """
+  Gets a single quiz_item_student_entry.
+
+  Raises `Ecto.NoResultsError` if the Quiz item student entry does not exist.
+
+  ## Examples
+
+      iex> get_quiz_item_student_entry!(123)
+      %QuizItemStudentEntry{}
+
+      iex> get_quiz_item_student_entry!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_quiz_item_student_entry!(id), do: Repo.get!(QuizItemStudentEntry, id)
+
+  @doc """
+  Creates a quiz_item_student_entry.
+
+  ## Examples
+
+      iex> create_quiz_item_student_entry(%{field: value})
+      {:ok, %QuizItemStudentEntry{}}
+
+      iex> create_quiz_item_student_entry(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_quiz_item_student_entry(attrs \\ %{}) do
+    %QuizItemStudentEntry{}
+    |> QuizItemStudentEntry.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a quiz_item_student_entry.
+
+  ## Examples
+
+      iex> update_quiz_item_student_entry(quiz_item_student_entry, %{field: new_value})
+      {:ok, %QuizItemStudentEntry{}}
+
+      iex> update_quiz_item_student_entry(quiz_item_student_entry, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_quiz_item_student_entry(%QuizItemStudentEntry{} = quiz_item_student_entry, attrs) do
+    quiz_item_student_entry
+    |> QuizItemStudentEntry.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a quiz_item_student_entry.
+
+  ## Examples
+
+      iex> delete_quiz_item_student_entry(quiz_item_student_entry)
+      {:ok, %QuizItemStudentEntry{}}
+
+      iex> delete_quiz_item_student_entry(quiz_item_student_entry)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_quiz_item_student_entry(%QuizItemStudentEntry{} = quiz_item_student_entry) do
+    Repo.delete(quiz_item_student_entry)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking quiz_item_student_entry changes.
+
+  ## Examples
+
+      iex> change_quiz_item_student_entry(quiz_item_student_entry)
+      %Ecto.Changeset{data: %QuizItemStudentEntry{}}
+
+  """
+  def change_quiz_item_student_entry(
+        %QuizItemStudentEntry{} = quiz_item_student_entry,
+        attrs \\ %{}
+      ) do
+    QuizItemStudentEntry.changeset(quiz_item_student_entry, attrs)
   end
 end
