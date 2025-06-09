@@ -19,7 +19,6 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
       |> assign(:create_patch, nil)
       |> assign(:class, nil)
       |> assign(:is_ilp_manager, false)
-      |> assign(:allow_share, false)
       |> assign(:initialized, false)
 
     {:ok, socket}
@@ -49,15 +48,6 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
             phx-debounce="1500"
           />
           <.markdown_supported />
-          <div :if={@allow_share} class="flex items-center gap-2 mt-6">
-            <.input type="toggle" field={@form[:shared_with_students]} id="toggle-share-comment" />
-            <span :if={@form.source.changes[:shared_with_students]} class="text-ltrn-student-dark">
-              <%= gettext("Shared with students and guardians") %>
-            </span>
-            <span :if={!@form.source.changes[:shared_with_students]} class="text-ltrn-subtle">
-              <%= gettext("Share with students and guardians") %>
-            </span>
-          </div>
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
             <%= gettext("Oops, something went wrong! Please check the errors above.") %>
           </.error_block>
@@ -122,12 +112,8 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
   end
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
-    allow_share =
-      if socket.assigns.current_profile.type == "staff", do: true, else: false
-
     socket
     |> assign_form()
-    |> assign(:allow_share, allow_share)
     |> assign(:initialized, true)
   end
 

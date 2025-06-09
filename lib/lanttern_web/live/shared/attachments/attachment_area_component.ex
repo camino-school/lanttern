@@ -685,7 +685,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   end
 
   defp save_attachment(%{assigns: %{type: :ilp_comments_attachments}} = socket, :new, params) do
-    params = Map.put(params, "shared_with_students", true)
     params = Map.put(params, "ilp_comment_id", socket.assigns.ilp_comment_id)
 
     case ILP.create_ilp_comment_attachment(params) do

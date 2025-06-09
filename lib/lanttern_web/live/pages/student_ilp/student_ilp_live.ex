@@ -91,10 +91,7 @@ defmodule LantternWeb.StudentILPLive do
   end
 
   defp assign_ilp_comment(%{assigns: %{params: %{"comment_id" => id}}} = socket) do
-    opts = [
-      owner_id: socket.assigns.current_user.current_profile.id,
-      only_shared_with_student: true
-    ]
+    opts = [owner_id: socket.assigns.current_user.current_profile.id]
 
     socket
     |> assign(:ilp_comment, ILP.get_ilp_comment(id, opts))

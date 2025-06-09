@@ -25,7 +25,6 @@ defmodule Lanttern.ILP.ILPComment do
   schema "ilp_comments" do
     field :content, :string
     field :position, :integer
-    field :shared_with_students, :boolean, default: true
 
     belongs_to :student_ilp, StudentILP
     belongs_to :owner, Profile
@@ -38,7 +37,7 @@ defmodule Lanttern.ILP.ILPComment do
   @doc false
   def changeset(ilp_comment, attrs) do
     ilp_comment
-    |> cast(attrs, [:content, :position, :shared_with_students, :student_ilp_id, :owner_id])
-    |> validate_required([:content, :position, :shared_with_students, :student_ilp_id, :owner_id])
+    |> cast(attrs, [:content, :position, :student_ilp_id, :owner_id])
+    |> validate_required([:content, :position, :student_ilp_id, :owner_id])
   end
 end

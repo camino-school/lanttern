@@ -963,7 +963,7 @@ defmodule Lanttern.ILPTest do
       {:ok, student_ilp: student_ilp, profile: profile}
     end
 
-    @invalid_attrs %{position: nil, content: nil, shared_with_students: nil, student_ilp_id: nil}
+    @invalid_attrs %{position: nil, content: nil, student_ilp_id: nil}
 
     test "list_ilp_comments/0 returns all ilp_comments" do
       ilp_comment = insert(:ilp_comment)
@@ -979,7 +979,6 @@ defmodule Lanttern.ILPTest do
 
       assert ilp_comment.position == valid_attrs.position
       assert ilp_comment.content == valid_attrs.content
-      assert ilp_comment.shared_with_students == valid_attrs.shared_with_students
       assert ilp_comment.owner_id == ctx.profile.id
       assert ilp_comment.student_ilp_id == ctx.student_ilp.id
     end
@@ -990,14 +989,13 @@ defmodule Lanttern.ILPTest do
 
     test "update_ilp_comment/2 with valid data updates the ilp_comment", ctx do
       ilp_comment = insert(:ilp_comment, %{owner: ctx.profile, student_ilp: ctx.student_ilp})
-      update_attrs = %{position: 43, content: "some", shared_with_students: false}
+      update_attrs = %{position: 43, content: "some"}
 
       assert {:ok, %ILPComment{} = ilp_comment} =
                ILP.update_ilp_comment(ilp_comment, update_attrs)
 
       assert ilp_comment.position == update_attrs.position
       assert ilp_comment.content == update_attrs.content
-      assert ilp_comment.shared_with_students == update_attrs.shared_with_students
       assert ilp_comment.owner_id == ctx.profile.id
       assert ilp_comment.student_ilp_id == ctx.student_ilp.id
     end
@@ -1025,32 +1023,30 @@ defmodule Lanttern.ILPTest do
 
     import Lanttern.Factory
 
-    @invalid_attrs %{position: nil, link: nil, shared_with_students: nil, is_external: nil}
+    @invalid_attrs %{position: nil, link: nil, is_external: nil}
 
     test "list_ilp_comment_attachments/0 returns all ilp_comment_attachments" do
       ilp_comment_attachment = insert(:ilp_comment_attachment)
 
-      assert [subject] = ILP.list_ilp_comment_attachments()
+      assert [attachment] = ILP.list_ilp_comment_attachments()
 
-      assert subject.id == ilp_comment_attachment.id
-      assert subject.position == ilp_comment_attachment.position
-      assert subject.link == ilp_comment_attachment.link
-      assert subject.shared_with_students == ilp_comment_attachment.shared_with_students
-      assert subject.is_external == ilp_comment_attachment.is_external
-      assert subject.ilp_comment_id == ilp_comment_attachment.ilp_comment_id
+      assert attachment.id == ilp_comment_attachment.id
+      assert attachment.position == ilp_comment_attachment.position
+      assert attachment.link == ilp_comment_attachment.link
+      assert attachment.is_external == ilp_comment_attachment.is_external
+      assert attachment.ilp_comment_id == ilp_comment_attachment.ilp_comment_id
     end
 
     test "get_ilp_comment_attachment!/1 returns the ilp_comment_attachment with given id" do
       ilp_comment_attachment = insert(:ilp_comment_attachment)
 
-      assert subject = ILP.get_ilp_comment_attachment!(ilp_comment_attachment.id)
+      assert attachment = ILP.get_ilp_comment_attachment!(ilp_comment_attachment.id)
 
-      assert subject.id == ilp_comment_attachment.id
-      assert subject.position == ilp_comment_attachment.position
-      assert subject.link == ilp_comment_attachment.link
-      assert subject.shared_with_students == ilp_comment_attachment.shared_with_students
-      assert subject.is_external == ilp_comment_attachment.is_external
-      assert subject.ilp_comment_id == ilp_comment_attachment.ilp_comment_id
+      assert attachment.id == ilp_comment_attachment.id
+      assert attachment.position == ilp_comment_attachment.position
+      assert attachment.link == ilp_comment_attachment.link
+      assert attachment.is_external == ilp_comment_attachment.is_external
+      assert attachment.ilp_comment_id == ilp_comment_attachment.ilp_comment_id
     end
 
     test "create_ilp_comment_attachment/1 with valid data creates a ilp_comment_attachment" do
@@ -1061,7 +1057,6 @@ defmodule Lanttern.ILPTest do
         ilp_comment_id: ilp_comment.id,
         position: 42,
         link: "some link",
-        shared_with_students: true,
         is_external: true
       }
 
@@ -1070,7 +1065,6 @@ defmodule Lanttern.ILPTest do
 
       assert ilp_comment_attachment.position == 42
       assert ilp_comment_attachment.link == "some link"
-      assert ilp_comment_attachment.shared_with_students == true
       assert ilp_comment_attachment.is_external == true
     end
 
@@ -1085,7 +1079,6 @@ defmodule Lanttern.ILPTest do
         name: "some updated name",
         position: 43,
         link: "https://updated.link",
-        shared_with_students: false,
         is_external: true
       }
 
@@ -1095,7 +1088,6 @@ defmodule Lanttern.ILPTest do
       assert ilp_comment_attachment.name == update_attrs.name
       assert ilp_comment_attachment.position == update_attrs.position
       assert ilp_comment_attachment.link == update_attrs.link
-      assert ilp_comment_attachment.shared_with_students == false
       assert ilp_comment_attachment.is_external == true
     end
 

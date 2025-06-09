@@ -285,7 +285,6 @@ defmodule LantternWeb.StudentLiveTest do
       |> click_link("Add ILP comment")
       |> assert_has("h2", text: "New Comment")
       |> fill_in("Content", with: "Content for quartely feedback")
-      |> choose("#toggle-share-comment", "")
       |> click_button("Save")
 
       ctx.conn

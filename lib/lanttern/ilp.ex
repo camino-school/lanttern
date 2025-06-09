@@ -860,16 +860,7 @@ defmodule Lanttern.ILP do
     Repo.all(ILPComment)
   end
 
-  def list_ilp_comments_by_student_ilp(student_ilp_id, opts \\ []) do
-    dynamic_filter =
-      Enum.reduce(opts, dynamic(true), fn
-        {:shared_with_students, shared_with_students}, acc ->
-          dynamic([c], ^acc and c.shared_with_students == ^shared_with_students)
-
-        {_, _}, dynamic ->
-          dynamic
-      end)
-
+  def list_ilp_comments_by_student_ilp(student_ilp_id) do
     from(
       c in ILPComment,
       join: p in assoc(c, :owner),
@@ -878,7 +869,6 @@ defmodule Lanttern.ILP do
       left_join: gos in assoc(p, :guardian_of_student),
       left_join: a in assoc(c, :attachments),
       where: c.student_ilp_id == ^student_ilp_id,
-      where: ^dynamic_filter,
       order_by: [asc: c.inserted_at],
       preload: [
         {:attachments, a},
@@ -900,16 +890,13 @@ defmodule Lanttern.ILP do
   ## Options
 
   - `:owner_id` - filter results by owner(Profile)
-  - `:only_shared_with_student` - boolean. Filter results by ILPs shared with student
+
   """
   def get_ilp_comment(id, opts \\ []) do
     dynamic_filter =
       Enum.reduce(opts, dynamic(true), fn
         {:owner_id, owner_id}, acc ->
           dynamic([c], ^acc and c.owner_id == ^owner_id)
-
-        {:shared_with_students, shared_with_students}, acc ->
-          dynamic([c], ^acc and c.shared_with_students == ^shared_with_students)
 
         {_, _}, dynamic ->
           dynamic
