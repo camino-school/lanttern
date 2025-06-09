@@ -24,6 +24,7 @@ defmodule Lanttern.DataCase do
       import Ecto.Changeset
       import Ecto.Query
       import Lanttern.DataCase
+      import Lanttern.Factory
     end
   end
 
