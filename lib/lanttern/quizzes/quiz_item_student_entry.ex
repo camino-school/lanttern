@@ -53,9 +53,13 @@ defmodule Lanttern.Quizzes.QuizItemStudentEntry do
       :quiz_item_alternative_id
     ])
     |> validate_required([:quiz_item_id, :student_id])
-    |> check_constraint(:id,
+    |> check_constraint(:answer,
       name: :required_input,
-      message: gettext("Either answer or alternative must be provided (but not both)")
+      message: gettext("Answer must be provided")
+    )
+    |> check_constraint(:quiz_item_alternative_id,
+      name: :required_input,
+      message: gettext("Alternative must be provided")
     )
     |> unique_constraint([:student_id, :quiz_item_id])
   end
