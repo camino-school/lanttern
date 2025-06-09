@@ -8,6 +8,7 @@ defmodule Lanttern.Quizzes do
 
   alias Lanttern.Quizzes.Quiz
   alias Lanttern.Quizzes.QuizItem
+  alias Lanttern.Quizzes.QuizItemAlternative
 
   @doc """
   Returns the list of quizzes.
@@ -195,5 +196,99 @@ defmodule Lanttern.Quizzes do
   """
   def change_quiz_item(%QuizItem{} = quiz_item, attrs \\ %{}) do
     QuizItem.changeset(quiz_item, attrs)
+  end
+
+  @doc """
+  Returns the list of quiz_item_alternatives.
+
+  ## Examples
+
+      iex> list_quiz_item_alternatives()
+      [%QuizItemAlternative{}, ...]
+
+  """
+  def list_quiz_item_alternatives do
+    Repo.all(QuizItemAlternative)
+  end
+
+  @doc """
+  Gets a single quiz_item_alternative.
+
+  Raises `Ecto.NoResultsError` if the Quiz item alternative does not exist.
+
+  ## Examples
+
+      iex> get_quiz_item_alternative!(123)
+      %QuizItemAlternative{}
+
+      iex> get_quiz_item_alternative!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_quiz_item_alternative!(id), do: Repo.get!(QuizItemAlternative, id)
+
+  @doc """
+  Creates a quiz_item_alternative.
+
+  ## Examples
+
+      iex> create_quiz_item_alternative(%{field: value})
+      {:ok, %QuizItemAlternative{}}
+
+      iex> create_quiz_item_alternative(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_quiz_item_alternative(attrs \\ %{}) do
+    %QuizItemAlternative{}
+    |> QuizItemAlternative.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a quiz_item_alternative.
+
+  ## Examples
+
+      iex> update_quiz_item_alternative(quiz_item_alternative, %{field: new_value})
+      {:ok, %QuizItemAlternative{}}
+
+      iex> update_quiz_item_alternative(quiz_item_alternative, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_quiz_item_alternative(%QuizItemAlternative{} = quiz_item_alternative, attrs) do
+    quiz_item_alternative
+    |> QuizItemAlternative.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a quiz_item_alternative.
+
+  ## Examples
+
+      iex> delete_quiz_item_alternative(quiz_item_alternative)
+      {:ok, %QuizItemAlternative{}}
+
+      iex> delete_quiz_item_alternative(quiz_item_alternative)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_quiz_item_alternative(%QuizItemAlternative{} = quiz_item_alternative) do
+    Repo.delete(quiz_item_alternative)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking quiz_item_alternative changes.
+
+  ## Examples
+
+      iex> change_quiz_item_alternative(quiz_item_alternative)
+      %Ecto.Changeset{data: %QuizItemAlternative{}}
+
+  """
+  def change_quiz_item_alternative(%QuizItemAlternative{} = quiz_item_alternative, attrs \\ %{}) do
+    QuizItemAlternative.changeset(quiz_item_alternative, attrs)
   end
 end

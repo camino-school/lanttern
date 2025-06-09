@@ -20,6 +20,13 @@ defmodule Lanttern.QuizzesFactories do
           quiz: build(:quiz)
         }
       end
+
+      def quiz_item_alternative_factory do
+        %Lanttern.Quizzes.QuizItemAlternative{
+          description: "some quiz item alternative description",
+          quiz_item: build(:quiz_item)
+        }
+      end
     end
   end
 end

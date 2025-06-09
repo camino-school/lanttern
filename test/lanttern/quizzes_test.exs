@@ -140,4 +140,106 @@ defmodule Lanttern.QuizzesTest do
       assert %Ecto.Changeset{} = Quizzes.change_quiz_item(quiz_item)
     end
   end
+
+  describe "quiz_item_alternatives" do
+    alias Lanttern.Quizzes.QuizItemAlternative
+
+    @invalid_attrs %{position: nil, description: nil}
+
+    test "list_quiz_item_alternatives/0 returns all quiz_item_alternatives" do
+      quiz_item_alternative = insert(:quiz_item_alternative) |> Ecto.reset_fields([:quiz_item])
+      assert Quizzes.list_quiz_item_alternatives() == [quiz_item_alternative]
+    end
+
+    test "get_quiz_item_alternative!/1 returns the quiz_item_alternative with given id" do
+      quiz_item_alternative = insert(:quiz_item_alternative) |> Ecto.reset_fields([:quiz_item])
+      assert Quizzes.get_quiz_item_alternative!(quiz_item_alternative.id) == quiz_item_alternative
+    end
+
+    test "create_quiz_item_alternative/1 with valid data creates a quiz_item_alternative" do
+      quiz_item = insert(:quiz_item)
+
+      valid_attrs = %{
+        position: 42,
+        description: "some description",
+        is_correct: true,
+        quiz_item_id: quiz_item.id
+      }
+
+      assert {:ok, %QuizItemAlternative{} = quiz_item_alternative} =
+               Quizzes.create_quiz_item_alternative(valid_attrs)
+
+      assert quiz_item_alternative.position == 42
+      assert quiz_item_alternative.description == "some description"
+      assert quiz_item_alternative.is_correct
+      assert quiz_item_alternative.quiz_item_id == quiz_item.id
+    end
+
+    test "prevent more than one correct alternative per question" do
+      quiz_item = insert(:quiz_item)
+
+      valid_attrs_1 = %{description: "wrong", quiz_item_id: quiz_item.id}
+      valid_attrs_2 = %{description: "wrong", quiz_item_id: quiz_item.id}
+      valid_attrs_3 = %{description: "right", quiz_item_id: quiz_item.id, is_correct: true}
+      valid_attrs_4 = %{description: "right", quiz_item_id: quiz_item.id, is_correct: true}
+
+      assert {:ok, %QuizItemAlternative{}} =
+               Quizzes.create_quiz_item_alternative(valid_attrs_1)
+
+      assert {:ok, %QuizItemAlternative{}} =
+               Quizzes.create_quiz_item_alternative(valid_attrs_2)
+
+      assert {:ok, %QuizItemAlternative{}} =
+               Quizzes.create_quiz_item_alternative(valid_attrs_3)
+
+      assert {:error,
+              %Ecto.Changeset{
+                errors: [
+                  is_correct: {"There's already a correct alternative for this question", _}
+                ]
+              }} =
+               Quizzes.create_quiz_item_alternative(valid_attrs_4)
+    end
+
+    test "create_quiz_item_alternative/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Quizzes.create_quiz_item_alternative(@invalid_attrs)
+    end
+
+    test "update_quiz_item_alternative/2 with valid data updates the quiz_item_alternative" do
+      quiz_item_alternative = insert(:quiz_item_alternative)
+      update_attrs = %{position: 43, description: "some updated description", is_correct: false}
+
+      assert {:ok, %QuizItemAlternative{} = quiz_item_alternative} =
+               Quizzes.update_quiz_item_alternative(quiz_item_alternative, update_attrs)
+
+      assert quiz_item_alternative.position == 43
+      assert quiz_item_alternative.description == "some updated description"
+      assert quiz_item_alternative.is_correct == false
+    end
+
+    test "update_quiz_item_alternative/2 with invalid data returns error changeset" do
+      quiz_item_alternative = insert(:quiz_item_alternative) |> Ecto.reset_fields([:quiz_item])
+
+      assert {:error, %Ecto.Changeset{}} =
+               Quizzes.update_quiz_item_alternative(quiz_item_alternative, @invalid_attrs)
+
+      assert quiz_item_alternative == Quizzes.get_quiz_item_alternative!(quiz_item_alternative.id)
+    end
+
+    test "delete_quiz_item_alternative/1 deletes the quiz_item_alternative" do
+      quiz_item_alternative = insert(:quiz_item_alternative)
+
+      assert {:ok, %QuizItemAlternative{}} =
+               Quizzes.delete_quiz_item_alternative(quiz_item_alternative)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Quizzes.get_quiz_item_alternative!(quiz_item_alternative.id)
+      end
+    end
+
+    test "change_quiz_item_alternative/1 returns a quiz_item_alternative changeset" do
+      quiz_item_alternative = insert(:quiz_item_alternative)
+      assert %Ecto.Changeset{} = Quizzes.change_quiz_item_alternative(quiz_item_alternative)
+    end
+  end
 end
