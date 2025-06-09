@@ -277,7 +277,7 @@ defmodule LantternWeb.StudentLiveTest do
       school = ctx.user.current_profile.staff_member.school
       student = insert(:student, %{school: school})
       template = insert(:ilp_template, %{school: school})
-      cycle = insert(:cycle, %{school: school})
+      cycle = ctx.user.current_profile.current_school_cycle
       insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
 
       ctx.conn
@@ -285,6 +285,7 @@ defmodule LantternWeb.StudentLiveTest do
       |> click_link("Add ILP comment")
       |> assert_has("h2", text: "New Comment")
       |> fill_in("Content", with: "Content for quartely feedback")
+      |> choose("#toggle-share-comment", "")
       |> click_button("Save")
 
       ctx.conn
@@ -296,7 +297,7 @@ defmodule LantternWeb.StudentLiveTest do
       school = ctx.user.current_profile.staff_member.school
       student = insert(:student, %{school: school})
       template = insert(:ilp_template, %{school: school})
-      cycle = insert(:cycle, %{school: school})
+      cycle = ctx.user.current_profile.current_school_cycle
 
       ilp =
         insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
@@ -325,7 +326,7 @@ defmodule LantternWeb.StudentLiveTest do
       school = ctx.user.current_profile.staff_member.school
       student = insert(:student, %{school: school})
       template = insert(:ilp_template, %{school: school})
-      cycle = insert(:cycle, %{school: school})
+      cycle = ctx.user.current_profile.current_school_cycle
 
       ilp =
         insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
@@ -349,7 +350,7 @@ defmodule LantternWeb.StudentLiveTest do
       school = ctx.user.current_profile.staff_member.school
       student = insert(:student, %{school: school})
       template = insert(:ilp_template, %{school: school})
-      cycle = insert(:cycle, %{school: school})
+      cycle = ctx.user.current_profile.current_school_cycle
 
       ilp =
         insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
@@ -373,7 +374,7 @@ defmodule LantternWeb.StudentLiveTest do
       school = ctx.user.current_profile.staff_member.school
       student = insert(:student, %{school: school})
       template = insert(:ilp_template, %{school: school})
-      cycle = insert(:cycle, %{school: school})
+      cycle = ctx.user.current_profile.current_school_cycle
       new_profile = insert(:profile)
 
       ilp =

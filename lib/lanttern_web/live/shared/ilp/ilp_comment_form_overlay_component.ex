@@ -11,6 +11,21 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
   alias LantternWeb.Attachments.AttachmentAreaComponent
 
   @impl true
+  def mount(socket) do
+    socket =
+      socket
+      |> assign(:show_actions, false)
+      |> assign(:on_edit_patch, nil)
+      |> assign(:create_patch, nil)
+      |> assign(:class, nil)
+      |> assign(:is_ilp_manager, false)
+      |> assign(:allow_share, false)
+      |> assign(:initialized, false)
+
+    {:ok, socket}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
@@ -34,6 +49,15 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
             phx-debounce="1500"
           />
           <.markdown_supported />
+          <div :if={@allow_share} class="flex items-center gap-2 mt-6">
+            <.input type="toggle" field={@form[:shared_with_students]} id="toggle-share-comment" />
+            <span :if={@form.source.changes[:shared_with_students]} class="text-ltrn-student-dark">
+              <%= gettext("Shared with students and guardians") %>
+            </span>
+            <span :if={!@form.source.changes[:shared_with_students]} class="text-ltrn-subtle">
+              <%= gettext("Share with students and guardians") %>
+            </span>
+          </div>
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
             <%= gettext("Oops, something went wrong! Please check the errors above.") %>
           </.error_block>
@@ -88,20 +112,6 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
   end
 
   @impl true
-  def mount(socket) do
-    socket =
-      socket
-      |> assign(:show_actions, false)
-      |> assign(:on_edit_patch, nil)
-      |> assign(:create_patch, nil)
-      |> assign(:class, nil)
-      |> assign(:is_ilp_manager, false)
-      |> assign(:initialized, false)
-
-    {:ok, socket}
-  end
-
-  @impl true
   def update(assigns, socket) do
     socket =
       socket
@@ -112,8 +122,12 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
   end
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
+    allow_share =
+      if socket.assigns.current_profile.type == "staff", do: true, else: false
+
     socket
     |> assign_form()
+    |> assign(:allow_share, allow_share)
     |> assign(:initialized, true)
   end
 
@@ -149,32 +163,6 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
-    end
-  end
-
-  def handle_event("toggle_shared", params, socket) do
-    ILP.update_student_ilp_sharing(
-      socket.assigns.student_ilp,
-      params,
-      log_profile_id: socket.assigns.current_profile.id
-    )
-    |> case do
-      {:ok, student_ilp} ->
-        student_ilp = %{
-          socket.assigns.student_ilp
-          | is_shared_with_student: student_ilp.is_shared_with_student,
-            is_shared_with_guardians: student_ilp.is_shared_with_guardians
-        }
-
-        socket =
-          socket
-          |> assign(:student_ilp, student_ilp)
-
-        {:noreply, socket}
-
-      {:error, _changeset} ->
-        # handle error
-        {:noreply, socket}
     end
   end
 

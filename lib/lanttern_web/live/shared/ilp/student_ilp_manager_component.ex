@@ -144,7 +144,6 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
       |> assign(:student, nil)
       |> assign(:student_navigate, nil)
       |> assign(:template, nil)
-      |> assign(:ilp_comments, [])
       |> assign(:ilp_comment, nil)
       |> assign(:ilp_comment_title, nil)
       |> assign(:ilp_comment_action, nil)
@@ -210,7 +209,6 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
     socket
     |> ensure_template_ai_layer_is_loaded()
     |> assign_student_ilp()
-    |> assign_ilp_comments()
     |> assign(:initialized, true)
   end
 
@@ -280,13 +278,6 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
   end
 
   defp assign_ilp_comment(socket), do: assign(socket, :ilp_comment, nil)
-
-  defp assign_ilp_comments(%{assigns: %{student_ilp: %StudentILP{id: id}}} = socket) do
-    socket
-    |> assign(:ilp_comments, ILP.list_ilp_comments_by_student_ilp(id))
-  end
-
-  defp assign_ilp_comments(socket), do: socket
 
   defp assign_edit_student_ilp(%{assigns: %{params: %{"student_ilp" => "new"}}} = socket) do
     with nil <- socket.assigns.student_ilp,

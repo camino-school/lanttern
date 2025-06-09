@@ -219,7 +219,12 @@ defmodule LantternWeb.ILP.StudentILPComponent do
   end
 
   defp assign_ilp_comments(%{assigns: %{student_ilp: %StudentILP{id: id}}} = socket) do
-    assign(socket, :ilp_comments, ILP.list_ilp_comments_by_student_ilp(id))
+    opts =
+      if socket.assigns.current_user.current_profile.type == "student",
+        do: [shared_with_students: true],
+        else: []
+
+    assign(socket, :ilp_comments, ILP.list_ilp_comments_by_student_ilp(id, opts))
   end
 
   defp assign_ilp_comments(socket), do: socket

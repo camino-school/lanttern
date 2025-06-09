@@ -25,7 +25,7 @@ defmodule Lanttern.ILP.ILPComment do
   schema "ilp_comments" do
     field :content, :string
     field :position, :integer
-    field :shared_with_students, :boolean, default: false
+    field :shared_with_students, :boolean, default: true
 
     belongs_to :student_ilp, StudentILP
     belongs_to :owner, Profile
