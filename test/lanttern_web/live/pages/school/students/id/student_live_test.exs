@@ -277,7 +277,7 @@ defmodule LantternWeb.StudentLiveTest do
       school = ctx.user.current_profile.staff_member.school
       student = insert(:student, %{school: school})
       template = insert(:ilp_template, %{school: school})
-      cycle = insert(:cycle, %{school: school})
+      cycle = ctx.user.current_profile.current_school_cycle
       insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
 
       ctx.conn
@@ -296,7 +296,7 @@ defmodule LantternWeb.StudentLiveTest do
       school = ctx.user.current_profile.staff_member.school
       student = insert(:student, %{school: school})
       template = insert(:ilp_template, %{school: school})
-      cycle = insert(:cycle, %{school: school})
+      cycle = ctx.user.current_profile.current_school_cycle
 
       ilp =
         insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
@@ -325,7 +325,7 @@ defmodule LantternWeb.StudentLiveTest do
       school = ctx.user.current_profile.staff_member.school
       student = insert(:student, %{school: school})
       template = insert(:ilp_template, %{school: school})
-      cycle = insert(:cycle, %{school: school})
+      cycle = ctx.user.current_profile.current_school_cycle
 
       ilp =
         insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
@@ -349,7 +349,7 @@ defmodule LantternWeb.StudentLiveTest do
       school = ctx.user.current_profile.staff_member.school
       student = insert(:student, %{school: school})
       template = insert(:ilp_template, %{school: school})
-      cycle = insert(:cycle, %{school: school})
+      cycle = ctx.user.current_profile.current_school_cycle
 
       ilp =
         insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
@@ -367,6 +367,30 @@ defmodule LantternWeb.StudentLiveTest do
       ctx.conn
       |> visit("#{@live_view_base_path}/#{student.id}/ilp?comment_id=#{ilp_comment.id}")
       |> refute_has("a", text: attachment.name)
+    end
+
+    test "renders error when modify not owned comment", ctx do
+      school = ctx.user.current_profile.staff_member.school
+      student = insert(:student, %{school: school})
+      template = insert(:ilp_template, %{school: school})
+      cycle = ctx.user.current_profile.current_school_cycle
+      new_profile = insert(:profile)
+
+      ilp =
+        insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
+
+      ilp_comment = insert(:ilp_comment, %{student_ilp: ilp, owner: new_profile})
+
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp")
+      |> assert_has("p", text: ilp_comment.content)
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp?comment_id=#{ilp_comment.id}")
+      |> refute_has("h2", text: "Edit")
+      |> refute_has("span", text: "Delete")
+
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp")
+      |> assert_has("p", text: ilp_comment.content)
     end
   end
 end

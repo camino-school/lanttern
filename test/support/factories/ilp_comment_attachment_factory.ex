@@ -8,7 +8,6 @@ defmodule Lanttern.ILPCommentAttachmentFactory do
           ilp_comment: build(:ilp_comment),
           position: 1,
           link: "https://example.com",
-          shared_with_students: true,
           is_external: true
         }
       end

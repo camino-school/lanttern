@@ -17,6 +17,21 @@ export GOOGLE_CLIENT_ID="********"
 export ROOT_ADMIN_EMAIL="some.email@example.com"
 ```
 
+### To enable automatic environment reloading, you can:
+
+1. Install `direnv`
+
+2. Add the following configuration to your shell configuration file (`~/.bashrc` or `~/.bash_profile`):
+```bash
+eval "$(direnv hook bash)"
+```
+3. Create a `.envrc` file in the root of your project. Copy the same information from your `.env` file into `.envrc`. This allows the environment variables to be loaded automatically, without needing to run `source .env`.
+
+4. Allow direnv to load the .envrc file by running:
+```bash
+direnv allow
+```
+
 ## Localization
 
 We use [Gettext](https://hexdocs.pm/gettext/Gettext.html) for localization.

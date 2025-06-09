@@ -31,7 +31,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class={[card_base_classes(), "p-4 sm:p-6", @class]}>
+    <div class={[card_base_classes(), "p-4 sm:p-6", @class]} id={@id}>
       <div class="flex items-center gap-4">
         <div class="flex-1 flex items-center gap-2">
           <h4 class="font-display font-black text-xl">
