@@ -405,7 +405,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   def handle_event("save", %{"attachment" => params}, socket) do
     case socket.assigns do
       %{is_adding_external: true} ->
-        # add is_external to params
         params =
           params
           |> Map.put("is_external", true)
@@ -422,11 +421,11 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
     case ILP.delete_ilp_comment_attachment(attachment) do
       {:ok, _attachment} ->
-        notify(__MODULE__, {:deleted, attachment}, socket.assigns)
-
         socket =
           socket
           |> stream_attachments()
+
+        notify(__MODULE__, {:deleted, attachment}, socket.assigns)
 
         {:noreply, socket}
 
@@ -686,17 +685,16 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   end
 
   defp save_attachment(%{assigns: %{type: :ilp_comments_attachments}} = socket, :new, params) do
-    params = Map.put(params, "shared_with_students", true)
     params = Map.put(params, "ilp_comment_id", socket.assigns.ilp_comment_id)
 
     case ILP.create_ilp_comment_attachment(params) do
       {:ok, attachment} ->
-        notify(__MODULE__, {:created, attachment}, socket.assigns)
-
         socket =
           socket
           |> assign(:is_adding_external, false)
           |> stream_attachments()
+
+        notify(__MODULE__, {:created, attachment}, socket.assigns)
 
         {:noreply, socket}
 

@@ -122,7 +122,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/filters/filters_overlay_component.ex:25
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:71
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:73
-#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:70
+#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:86
 #: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:166
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:113
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:202
@@ -186,7 +186,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:135
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:74
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:76
-#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:80
+#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:96
 #: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:169
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:122
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:205
@@ -276,7 +276,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:29
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:49
 #: lib/lanttern_web/live/shared/grades_reports/grades_report_form_component.ex:26
-#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:27
+#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:41
 #: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:26
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:37
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:126
@@ -428,7 +428,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:141
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:62
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:64
-#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:60
+#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:76
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:103
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:248
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:130
@@ -495,7 +495,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:147
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:60
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:62
-#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:58
+#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:74
 #: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:159
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:101
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:246
@@ -842,7 +842,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:570
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:745
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:746
-#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:504
+#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:503
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Something went wrong"
 msgstr ""
@@ -2080,8 +2080,8 @@ msgstr ""
 msgid "Copy attachment link markdown"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:436
-#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:458
+#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:435
+#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:457
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Error deleting attachment"
 msgstr ""
@@ -2145,7 +2145,7 @@ msgstr ""
 
 #: lib/lanttern_web/components/ilp_components.ex:136
 #: lib/lanttern_web/live/pages/strands/id/notes_component.ex:83
-#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:46
+#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:60
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:52
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Attachments"
@@ -3536,7 +3536,7 @@ msgstr ""
 msgid "No templates created yet"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:38
+#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:52
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:91
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:188
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:117
@@ -4580,7 +4580,7 @@ msgid "Create %{student}'s %{cycle} ILP"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/classes/id/ilp_component.ex:127
-#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:304
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:297
 #, elixir-autogen, elixir-format
 msgid "Create ILP"
 msgstr ""
@@ -4595,7 +4595,7 @@ msgstr ""
 msgid "Delete template"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:315
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:308
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Edit ILP"
 msgstr ""
@@ -4610,12 +4610,12 @@ msgstr ""
 msgid "ILP"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:161
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:160
 #, elixir-autogen, elixir-format, fuzzy
 msgid "ILP created successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:163
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:162
 #, elixir-autogen, elixir-format, fuzzy
 msgid "ILP deleted successfully"
 msgstr ""
@@ -4647,7 +4647,7 @@ msgstr ""
 msgid "ILP template updated successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:162
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:161
 #, elixir-autogen, elixir-format, fuzzy
 msgid "ILP updated successfully"
 msgstr ""
@@ -5169,30 +5169,30 @@ msgstr ""
 msgid "Age is required"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/student_ilp/student_ilp_live.ex:121
-#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:178
+#: lib/lanttern_web/live/pages/student_ilp/student_ilp_live.ex:123
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:177
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Comment created successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/student_ilp/student_ilp_live.ex:112
-#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:180
+#: lib/lanttern_web/live/pages/student_ilp/student_ilp_live.ex:114
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:179
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Comment deleted successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/student_ilp/student_ilp_live.ex:130
-#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:179
+#: lib/lanttern_web/live/pages/student_ilp/student_ilp_live.ex:132
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:178
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Comment updated successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:32
+#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:46
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Content"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/student_ilp/student_ilp_live.ex:96
+#: lib/lanttern_web/live/pages/student_ilp/student_ilp_live.ex:98
 #: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:276
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Edit Comment"
@@ -5225,7 +5225,7 @@ msgid "LantternAI ILP revision instructions"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/student_ilp/student_ilp_live.ex:89
-#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:269
+#: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:267
 #, elixir-autogen, elixir-format, fuzzy
 msgid "New Comment"
 msgstr ""

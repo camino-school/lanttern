@@ -12,7 +12,6 @@ defmodule Lanttern.ILP.ILPCommentAttachment do
           name: String.t(),
           link: String.t(),
           position: pos_integer(),
-          shared_with_students: boolean(),
           is_external: boolean(),
           ilp_comment_id: pos_integer(),
           ilp_comment: ILPComment.t(),
@@ -24,7 +23,6 @@ defmodule Lanttern.ILP.ILPCommentAttachment do
     field :name, :string
     field :position, :integer, default: 0
     field :link, :string
-    field :shared_with_students, :boolean, default: false
     field :is_external, :boolean, default: false
 
     belongs_to :ilp_comment, ILPComment
@@ -35,14 +33,7 @@ defmodule Lanttern.ILP.ILPCommentAttachment do
   @doc false
   def changeset(ilp_comment_attachment, attrs) do
     ilp_comment_attachment
-    |> cast(attrs, [:ilp_comment_id, :name, :link, :position, :shared_with_students, :is_external])
-    |> validate_required([
-      :ilp_comment_id,
-      :name,
-      :link,
-      :position,
-      :shared_with_students,
-      :is_external
-    ])
+    |> cast(attrs, [:ilp_comment_id, :name, :link, :position, :is_external])
+    |> validate_required([:ilp_comment_id, :name, :link, :position, :is_external])
   end
 end

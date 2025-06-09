@@ -4,12 +4,12 @@ defmodule Lanttern.ILP do
   """
 
   import Ecto.Query, warn: false
-  alias Lanttern.ILP.ILPTemplateAILayer
-  alias Lanttern.Repo
   import Lanttern.RepoHelpers
 
   alias Lanttern.ILP.ILPTemplate
+  alias Lanttern.ILP.ILPTemplateAILayer
   alias Lanttern.ILPLog
+  alias Lanttern.Repo
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.Student
 
@@ -885,22 +885,30 @@ defmodule Lanttern.ILP do
   end
 
   @doc """
-  Gets a single ilp_comment.
+  Gets a single ilp_comment or nil.
 
-  Raises `Ecto.NoResultsError` if the Ilp comment does not exist.
+  ## Options
 
-  ## Examples
-
-      iex> get_ilp_comment!(123)
-      %ILPComment{}
-
-      iex> get_ilp_comment!(456)
-      ** (Ecto.NoResultsError)
+  - `:owner_id` - filter results by owner(Profile)
 
   """
-  def get_ilp_comment!(id), do: Repo.get!(ILPComment, id)
+  def get_ilp_comment(id, opts \\ []) do
+    dynamic_filter =
+      Enum.reduce(opts, dynamic(true), fn
+        {:owner_id, owner_id}, acc ->
+          dynamic([c], ^acc and c.owner_id == ^owner_id)
 
-  def get_ilp_comment(id), do: Repo.get(ILPComment, id)
+        {_, _}, dynamic ->
+          dynamic
+      end)
+
+    from(
+      c in ILPComment,
+      where: c.id == ^id,
+      where: ^dynamic_filter
+    )
+    |> Repo.one()
+  end
 
   @doc """
   Creates a ilp_comment.

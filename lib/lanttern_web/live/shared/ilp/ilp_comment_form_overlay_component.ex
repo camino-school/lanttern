@@ -11,6 +11,20 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
   alias LantternWeb.Attachments.AttachmentAreaComponent
 
   @impl true
+  def mount(socket) do
+    socket =
+      socket
+      |> assign(:show_actions, false)
+      |> assign(:on_edit_patch, nil)
+      |> assign(:create_patch, nil)
+      |> assign(:class, nil)
+      |> assign(:is_ilp_manager, false)
+      |> assign(:initialized, false)
+
+    {:ok, socket}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
@@ -45,8 +59,10 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
           id="ilp-comment"
           title={gettext("Attachments")}
           allow_editing={true}
-          notify_component={@myself}
+          notify_parent
           class="mt-10"
+          current_profile={@current_profile}
+          ilp_comment={@ilp_comment}
         />
         <:actions_left :if={@ilp_comment.id}>
           <.action
@@ -86,20 +102,6 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
   end
 
   @impl true
-  def mount(socket) do
-    socket =
-      socket
-      |> assign(:show_actions, false)
-      |> assign(:on_edit_patch, nil)
-      |> assign(:create_patch, nil)
-      |> assign(:class, nil)
-      |> assign(:is_ilp_manager, false)
-      |> assign(:initialized, false)
-
-    {:ok, socket}
-  end
-
-  @impl true
   def update(assigns, socket) do
     socket =
       socket
@@ -135,44 +137,18 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
     {:noreply, assign(socket, :form, to_form(changeset))}
   end
 
-  def handle_event("save", %{"ilp_comment" => comment_params}, socket) do
-    save_ilp_comment(socket, socket.assigns.form_action, comment_params)
-  end
+  def handle_event("save", %{"ilp_comment" => comment_params}, socket),
+    do: save_ilp_comment(socket, socket.assigns.form_action, comment_params)
 
   def handle_event("delete", _, socket) do
     case ILP.delete_ilp_comment(socket.assigns.ilp_comment) do
       {:ok, ilp_comment} ->
         notify(__MODULE__, {:deleted, ilp_comment}, socket.assigns)
+
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
-    end
-  end
-
-  def handle_event("toggle_shared", params, socket) do
-    ILP.update_student_ilp_sharing(
-      socket.assigns.student_ilp,
-      params,
-      log_profile_id: socket.assigns.current_profile.id
-    )
-    |> case do
-      {:ok, student_ilp} ->
-        student_ilp = %{
-          socket.assigns.student_ilp
-          | is_shared_with_student: student_ilp.is_shared_with_student,
-            is_shared_with_guardians: student_ilp.is_shared_with_guardians
-        }
-
-        socket =
-          socket
-          |> assign(:student_ilp, student_ilp)
-
-        {:noreply, socket}
-
-      {:error, _changeset} ->
-        # handle error
-        {:noreply, socket}
     end
   end
 
@@ -197,6 +173,7 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
     case ILP.update_ilp_comment(socket.assigns.ilp_comment, params) do
       {:ok, comment} ->
         notify(__MODULE__, {:updated, comment}, socket.assigns)
+
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
