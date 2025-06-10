@@ -99,7 +99,7 @@ defmodule Lanttern.QuizzesTest do
 
       assert {:ok, %QuizItem{} = quiz_item} = Quizzes.create_quiz_item(valid_attrs)
       assert quiz_item.position == 42
-      assert quiz_item.type == "multiple_choice"
+      assert quiz_item.type == :multiple_choice
       assert quiz_item.description == "some description abc"
       assert quiz_item.quiz_id == quiz.id
     end
@@ -119,7 +119,7 @@ defmodule Lanttern.QuizzesTest do
 
       assert {:ok, %QuizItem{} = quiz_item} = Quizzes.update_quiz_item(quiz_item, update_attrs)
       assert quiz_item.position == 43
-      assert quiz_item.type == "multiple_choice"
+      assert quiz_item.type == :multiple_choice
       assert quiz_item.description == "some updated description"
     end
 

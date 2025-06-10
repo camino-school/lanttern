@@ -12,11 +12,5 @@ defmodule Lanttern.Repo.Migrations.CreateQuizItems do
     end
 
     create index(:quiz_items, [:quiz_id])
-
-    create constraint(
-             :quiz_items,
-             :valid_types,
-             check: "type IN ('multiple_choice', 'text')"
-           )
   end
 end

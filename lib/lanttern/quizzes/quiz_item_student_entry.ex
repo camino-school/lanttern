@@ -40,19 +40,15 @@ defmodule Lanttern.Quizzes.QuizItemStudentEntry do
     timestamps()
   end
 
+  @required_fields [:quiz_item_id, :student_id]
+  @optional_fields [:answer, :reasoning, :score, :feedback, :quiz_item_alternative_id]
+  @all_fields @required_fields ++ @optional_fields
+
   @doc false
   def changeset(quiz_item_student_entry, attrs) do
     quiz_item_student_entry
-    |> cast(attrs, [
-      :answer,
-      :reasoning,
-      :score,
-      :feedback,
-      :quiz_item_id,
-      :student_id,
-      :quiz_item_alternative_id
-    ])
-    |> validate_required([:quiz_item_id, :student_id])
+    |> cast(attrs, @all_fields)
+    |> validate_required(@required_fields)
     |> check_constraint(:answer,
       name: :required_input,
       message: gettext("Answer must be provided")

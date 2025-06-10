@@ -31,10 +31,16 @@ defmodule Lanttern.Quizzes.Quiz do
     timestamps()
   end
 
+  @required_fields [:title, :description, :moment_id]
+  # position is required in the DB, but it has default values,
+  # so it's ok to skip changeset validation
+  @optional_fields [:position]
+  @all_fields @required_fields ++ @optional_fields
+
   @doc false
   def changeset(quiz, attrs) do
     quiz
-    |> cast(attrs, [:position, :title, :description, :moment_id])
-    |> validate_required([:title, :description, :moment_id])
+    |> cast(attrs, @all_fields)
+    |> validate_required(@required_fields)
   end
 end

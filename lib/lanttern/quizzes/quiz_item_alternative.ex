@@ -30,11 +30,17 @@ defmodule Lanttern.Quizzes.QuizItemAlternative do
     timestamps()
   end
 
+  @required_fields [:description, :quiz_item_id]
+  # position and is_correct are required in the DB, but they
+  # have default values, so it's ok to skip changeset validation
+  @optional_fields [:position, :is_correct]
+  @all_fields @required_fields ++ @optional_fields
+
   @doc false
   def changeset(quiz_item_alternative, attrs) do
     quiz_item_alternative
-    |> cast(attrs, [:position, :description, :is_correct, :quiz_item_id])
-    |> validate_required([:description, :quiz_item_id])
+    |> cast(attrs, @all_fields)
+    |> validate_required(@required_fields)
     |> unique_constraint([:is_correct, :quiz_item_id],
       name: :quiz_item_alternatives_is_correct_quiz_item_id_index,
       message: gettext("There's already a correct alternative for this question")

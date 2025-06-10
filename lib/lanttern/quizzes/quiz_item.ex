@@ -22,7 +22,7 @@ defmodule Lanttern.Quizzes.QuizItem do
 
   schema "quiz_items" do
     field :position, :integer, default: 0
-    field :type, :string
+    field :type, Ecto.Enum, values: [:multiple_choice, :text]
     field :description, :string
 
     belongs_to :quiz, Quiz
@@ -30,14 +30,16 @@ defmodule Lanttern.Quizzes.QuizItem do
     timestamps()
   end
 
+  @required_fields [:description, :type, :quiz_id]
+  # position is required in the DB, but it has default values,
+  # so it's ok to skip changeset validation
+  @optional_fields [:position, :description]
+  @all_fields @required_fields ++ @optional_fields
+
   @doc false
   def changeset(quiz_item, attrs) do
     quiz_item
-    |> cast(attrs, [:position, :description, :type, :quiz_id])
-    |> validate_required([:description, :type, :quiz_id])
-    |> check_constraint(:type,
-      name: :valid_types,
-      message: gettext(~s(Invalid question type \(should be "multiple choice" or "text"\)))
-    )
+    |> cast(attrs, @all_fields)
+    |> validate_required(@required_fields)
   end
 end
