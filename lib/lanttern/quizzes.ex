@@ -14,20 +14,56 @@ defmodule Lanttern.Quizzes do
   @doc """
   Returns the list of quizzes.
 
+  ## Options
+
+  - `:moment_id` - filter results by moment
+
   ## Examples
 
       iex> list_quizzes()
       [%Quiz{}, ...]
 
   """
-  def list_quizzes do
-    Repo.all(Quiz)
+  @spec list_quizzes(opts :: Keyword.t()) :: [Quiz.t()]
+  def list_quizzes(opts \\ []) do
+    Quiz
+    |> apply_list_quizzes_opts(opts)
+    |> Repo.all()
   end
+
+  defp apply_list_quizzes_opts(queryable, []), do: queryable
+
+  defp apply_list_quizzes_opts(queryable, [{:moment_id, id} | opts]) do
+    from(
+      q in queryable,
+      where: q.moment_id == ^id
+    )
+    |> apply_list_quizzes_opts(opts)
+  end
+
+  defp apply_list_quizzes_opts(queryable, [_ | opts]),
+    do: apply_list_quizzes_opts(queryable, opts)
 
   @doc """
   Gets a single quiz.
 
-  Raises `Ecto.NoResultsError` if the Quiz does not exist.
+  Returns `nil` if the Quiz does not exist.
+
+  ## Examples
+
+      iex> get_quiz(123)
+      %Quiz{}
+
+      iex> get_quiz(456)
+      nil
+
+  """
+  def get_quiz(id), do: Repo.get(Quiz, id)
+
+  @doc """
+  Gets a single quiz.
+
+  Same as `get_quiz/1`, but raises `Ecto.NoResultsError` if the Quiz does not exist.
 
   ## Examples
 

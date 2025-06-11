@@ -19,6 +19,9 @@
         >
           <%= gettext("Moment assessment") %>
         </:tab>
+        <:tab patch={~p"/strands/moment/#{@moment}/quizzes"}>
+          <%= gettext("Quizzes") %>
+        </:tab>
         <:tab patch={~p"/strands/moment/#{@moment}/cards"} is_current={@live_action == :cards}>
           <%= gettext("Cards") %>
         </:tab>

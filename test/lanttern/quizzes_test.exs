@@ -13,6 +13,15 @@ defmodule Lanttern.QuizzesTest do
       assert Quizzes.list_quizzes() == [quiz]
     end
 
+    test "list_quizzes/1 with moment opt returns all quizzes belonging to moment" do
+      quiz = insert(:quiz) |> Ecto.reset_fields([:moment])
+
+      # extra quiz for filter test
+      insert(:quiz)
+
+      assert Quizzes.list_quizzes(moment_id: quiz.moment_id) == [quiz]
+    end
+
     test "get_quiz!/1 returns the quiz with given id" do
       quiz = insert(:quiz) |> Ecto.reset_fields([:moment])
       assert Quizzes.get_quiz!(quiz.id) == quiz

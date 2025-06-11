@@ -1,0 +1,29 @@
+<MomentPageComponent.render
+  current_user={@current_user}
+  strand={@strand}
+  moment={@moment}
+  live_action={@live_action}
+  selected_classes={@selected_classes}
+  params={@params}
+  current_path={@current_path}
+  select_classes_overlay_title={@select_classes_overlay_title}
+  classes={@classes}
+  selected_classes_ids={@selected_classes_ids}
+  select_classes_overlay_navigate={@select_classes_overlay_navigate}
+>
+  <.responsive_container class="pt-10">
+    <h2 class="font-display font-black text-xl">
+      <%= gettext("Moment quizzes") %>
+    </h2>
+    <.quizzes_list
+      id="quizzes-list"
+      quizzes={@streams.quizzes}
+      edit_patch_fn={fn quiz_id -> "#{@base_path}/#{quiz_id}/edit" end}
+      on_delete_fn={fn quiz_id -> JS.push("delete_quiz", value: %{id: quiz_id}) end}
+    />
+    <.action type="link" patch={"#{@base_path}/new"} phx-click="add_quiz">
+      <%= gettext("New quiz") %>
+    </.action>
+    <.quiz_form_overlay quiz={@quiz} on_cancel={JS.patch(@base_path)} id="quiz-form-overlay" />
+  </.responsive_container>
+</MomentPageComponent.render>

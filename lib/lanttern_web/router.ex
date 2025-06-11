@@ -105,6 +105,15 @@ defmodule LantternWeb.Router do
       live "/strands/moment/:id/cards", MomentLive, :cards
       live "/strands/moment/:id/notes", MomentLive, :notes
 
+      scope "/strands/moment/:id/quizzes" do
+        live "/", MomentQuizzesLive.Index, :index
+        live "/new", MomentQuizzesLive.Index, :new
+        live "/:quiz_id/edit", MomentQuizzesLive.Index, :edit
+
+        live "/:quiz_id", MomentQuizzesLive.Show, :show
+        live "/:quiz_id/show/edit", MomentQuizzesLive.Show, :edit
+      end
+
       live "/curriculum", CurriculaLive, :index
       live "/curriculum/bncc_ef", BnccEfLive, :index
       live "/curriculum/:id", CurriculumLive, :show
