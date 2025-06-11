@@ -1,0 +1,52 @@
+<MomentPageComponent.render
+  current_user={@current_user}
+  strand={@strand}
+  moment={@moment}
+  current_tab={:quizzes}
+  selected_classes={@selected_classes}
+  params={@params}
+  current_path={@current_path}
+  select_classes_overlay_title={@select_classes_overlay_title}
+  classes={@classes}
+  selected_classes_ids={@selected_classes_ids}
+  select_classes_overlay_navigate={@select_classes_overlay_navigate}
+>
+  <.responsive_container class="pt-10">
+    <p class="mb-10 font-display font-black text-lg">
+      <%= gettext("Back to all moment quizzes") %>
+    </p>
+    <p class="font-display font-black text-xl">
+      <%= @quiz.title %>
+    </p>
+    <.markdown text={@quiz.description} />
+    <.action type="link" patch={"#{@base_path}/show/edit"}>
+      <%= gettext("Edit") %>
+    </.action>
+    <.action type="button" phx-click="delete_quiz" data-confirm={gettext("Are you sure?")}>
+      <%= gettext("Delete") %>
+    </.action>
+    <.quiz_items_list
+      id="quiz-items-list"
+      quiz_items={@streams.quiz_items}
+      edit_patch_fn={fn quiz_item_id -> "#{@base_path}/item/#{quiz_item_id}/edit" end}
+      on_delete_fn={
+        fn quiz_item_id -> JS.push("delete_quiz_item", value: %{id: quiz_item_id}) end
+      }
+      class="mt-10"
+    />
+    <.action type="link" patch={"#{@base_path}/item/new"}>
+      <%= gettext("Add quiz item") %>
+    </.action>
+    <.quiz_form_overlay
+      :if={@live_action == :edit}
+      quiz={@quiz}
+      on_cancel={JS.patch(@base_path)}
+      id="quiz-form-overlay"
+    />
+    <.quiz_item_form_overlay
+      quiz_item={@quiz_item}
+      on_cancel={JS.patch(@base_path)}
+      id="quiz-item-form-overlay"
+    />
+  </.responsive_container>
+</MomentPageComponent.render>

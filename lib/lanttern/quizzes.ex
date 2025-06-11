@@ -144,20 +144,58 @@ defmodule Lanttern.Quizzes do
   @doc """
   Returns the list of quiz_items.
 
+  ## Options
+
+  - `:quiz_id` - filter results by quiz
+
   ## Examples
 
       iex> list_quiz_items()
       [%QuizItem{}, ...]
 
   """
-  def list_quiz_items do
-    Repo.all(QuizItem)
+  def list_quiz_items(opts \\ []) do
+    from(
+      qi in QuizItem,
+      order_by: qi.position
+    )
+    |> apply_list_quiz_items_opts(opts)
+    |> Repo.all()
   end
+
+  defp apply_list_quiz_items_opts(queryable, []), do: queryable
+
+  defp apply_list_quiz_items_opts(queryable, [{:quiz_id, id} | opts]) do
+    from(
+      qi in queryable,
+      where: qi.quiz_id == ^id
+    )
+    |> apply_list_quiz_items_opts(opts)
+  end
+
+  defp apply_list_quiz_items_opts(queryable, [_ | opts]),
+    do: apply_list_quiz_items_opts(queryable, opts)
 
   @doc """
   Gets a single quiz_item.
 
-  Raises `Ecto.NoResultsError` if the Quiz item does not exist.
+  Returns `nil` if the Quiz item does not exist.
+
+  ## Examples
+
+      iex> get_quiz_item(123)
+      %QuizItem{}
+
+      iex> get_quiz_item(456)
+      nil
+
+  """
+  def get_quiz_item(id), do: Repo.get!(QuizItem, id)
+
+  @doc """
+  Gets a single quiz_item.
+
+  Same as `get_quiz_item/1`, but raises `Ecto.NoResultsError` if the Quiz item does not exist.
 
   ## Examples
 

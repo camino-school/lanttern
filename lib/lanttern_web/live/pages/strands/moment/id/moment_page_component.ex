@@ -40,10 +40,10 @@ defmodule LantternWeb.MomentPageComponent do
   attr :current_user, :any, required: true
   attr :strand, :any, required: true
   attr :moment, :any, required: true
-  attr :live_action, :any, required: true
   attr :selected_classes, :any, required: true
   attr :params, :any, required: true
   attr :current_path, :any, required: true
+  attr :current_tab, :atom, required: true
   attr :classes, :any, required: true
   attr :selected_classes_ids, :any, required: true
   attr :select_classes_overlay_title, :any, required: true
@@ -65,22 +65,22 @@ defmodule LantternWeb.MomentPageComponent do
         <:title><%= gettext("Moment: %{moment}", moment: @moment.name) %></:title>
         <div class="flex items-center justify-between gap-4 px-4">
           <.neo_tabs id="moment-nav-tabs">
-            <:tab patch={~p"/strands/moment/#{@moment}"} is_current={@live_action == :show}>
+            <:tab patch={~p"/strands/moment/#{@moment}"} is_current={@current_tab == :show}>
               <%= gettext("Overview") %>
             </:tab>
             <:tab
               patch={~p"/strands/moment/#{@moment}/assessment"}
-              is_current={@live_action == :assessment}
+              is_current={@current_tab == :assessment}
             >
               <%= gettext("Moment assessment") %>
             </:tab>
-            <:tab patch={~p"/strands/moment/#{@moment}/quizzes"} is_current={@live_action == :quizzes}>
+            <:tab patch={~p"/strands/moment/#{@moment}/quizzes"} is_current={@current_tab == :quizzes}>
               <%= gettext("Quizzes") %>
             </:tab>
-            <:tab patch={~p"/strands/moment/#{@moment}/cards"} is_current={@live_action == :cards}>
+            <:tab patch={~p"/strands/moment/#{@moment}/cards"} is_current={@current_tab == :cards}>
               <%= gettext("Cards") %>
             </:tab>
-            <:tab patch={~p"/strands/moment/#{@moment}/notes"} is_current={@live_action == :notes}>
+            <:tab patch={~p"/strands/moment/#{@moment}/notes"} is_current={@current_tab == :notes}>
               <%= gettext("Notes") %>
             </:tab>
           </.neo_tabs>

@@ -2,7 +2,7 @@
   current_user={@current_user}
   strand={@strand}
   moment={@moment}
-  live_action={@live_action}
+  current_tab={:quizzes}
   selected_classes={@selected_classes}
   params={@params}
   current_path={@current_path}
@@ -18,10 +18,11 @@
     <.quizzes_list
       id="quizzes-list"
       quizzes={@streams.quizzes}
+      show_patch_fn={fn quiz_id -> "#{@base_path}/#{quiz_id}" end}
       edit_patch_fn={fn quiz_id -> "#{@base_path}/#{quiz_id}/edit" end}
       on_delete_fn={fn quiz_id -> JS.push("delete_quiz", value: %{id: quiz_id}) end}
     />
-    <.action type="link" patch={"#{@base_path}/new"} phx-click="add_quiz">
+    <.action type="link" patch={"#{@base_path}/new"}>
       <%= gettext("New quiz") %>
     </.action>
     <.quiz_form_overlay quiz={@quiz} on_cancel={JS.patch(@base_path)} id="quiz-form-overlay" />

@@ -94,18 +94,20 @@ defmodule LantternWeb.MomentQuizzesLive.Index do
   # info handlers
 
   @impl true
-  def handle_info({QuizFormComponent, {action, _quiz}}, socket)
-      when action in [:created, :updated] do
-    msg =
-      case action do
-        :created -> gettext("Quiz created successfully")
-        :updated -> gettext("Quiz updated successfully")
-      end
+  def handle_info({QuizFormComponent, {:created, quiz}}, socket) do
+    socket =
+      socket
+      |> push_navigate(to: "#{socket.assigns.base_path}/#{quiz.id}")
+      |> put_flash(:info, gettext("Quiz created successfully"))
 
+    {:noreply, socket}
+  end
+
+  def handle_info({QuizFormComponent, {:updated, _quiz}}, socket) do
     socket =
       socket
       |> push_navigate(to: socket.assigns.base_path)
-      |> put_flash(:info, msg)
+      |> put_flash(:info, gettext("Quiz updated successfully"))
 
     {:noreply, socket}
   end

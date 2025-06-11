@@ -112,6 +112,8 @@ defmodule LantternWeb.Router do
 
         live "/:quiz_id", MomentQuizzesLive.Show, :show
         live "/:quiz_id/show/edit", MomentQuizzesLive.Show, :edit
+        live "/:quiz_id/item/new", MomentQuizzesLive.Show, :new_quiz_item
+        live "/:quiz_id/item/:quiz_item_id/edit", MomentQuizzesLive.Show, :edit_quiz_item
       end
 
       live "/curriculum", CurriculaLive, :index

@@ -315,7 +315,7 @@ defmodule LantternWeb.FormComponents do
   Simple radio input component
   """
   attr :field, Phoenix.HTML.FormField, required: true
-  attr :value, :string, required: true
+  attr :value, :any, required: true
   attr :label, :string, required: true
   attr :class, :any, default: nil
 
