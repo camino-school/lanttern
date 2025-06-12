@@ -19,4 +19,7 @@ defmodule Lanttern.Factory do
   use Lanttern.StudentRecordRelationshipFactory
   use Lanttern.StudentRecordStatusFactory
   use Lanttern.UserFactory
+
+  use Lanttern.LearningContextFactories
+  use Lanttern.QuizzesFactories
 end
