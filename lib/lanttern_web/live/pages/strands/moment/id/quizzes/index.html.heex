@@ -11,10 +11,25 @@
   selected_classes_ids={@selected_classes_ids}
   select_classes_overlay_navigate={@select_classes_overlay_navigate}
 >
-  <.responsive_container class="pt-10">
-    <h2 class="font-display font-black text-xl">
-      <%= gettext("Moment quizzes") %>
-    </h2>
+  <.action_bar class="flex items-center justify-between gap-4">
+    <p>
+      <%= ngettext("1 moment quiz created", "%{count} moment quizzes created", @quizzes_count) %>
+    </p>
+    <div class="flex gap-4">
+      <.action
+        :if={@quizzes_count > 1}
+        type="link"
+        patch={"#{@base_path}/sort"}
+        icon_name="hero-arrows-up-down-mini"
+      >
+        <%= gettext("Reorder") %>
+      </.action>
+      <.action type="link" patch={"#{@base_path}/new"} icon_name="hero-plus-circle-mini">
+        <%= gettext("New quiz") %>
+      </.action>
+    </div>
+  </.action_bar>
+  <.responsive_container class="py-10">
     <.quizzes_list
       id="quizzes-list"
       quizzes={@streams.quizzes}
@@ -22,9 +37,45 @@
       edit_patch_fn={fn quiz_id -> "#{@base_path}/#{quiz_id}/edit" end}
       on_delete_fn={fn quiz_id -> JS.push("delete_quiz", value: %{id: quiz_id}) end}
     />
-    <.action type="link" patch={"#{@base_path}/new"}>
-      <%= gettext("New quiz") %>
-    </.action>
-    <.quiz_form_overlay quiz={@quiz} on_cancel={JS.patch(@base_path)} id="quiz-form-overlay" />
   </.responsive_container>
 </MomentPageComponent.render>
+<.modal :if={@quiz} show on_cancel={JS.patch(@base_path)} id="quiz-form-overlay">
+  <h4 class="mb-10 font-display font-black text-xl">
+    <%= case @quiz.id do
+      nil -> gettext("New quiz")
+      _ -> gettext("Edit quiz")
+    end %>
+  </h4>
+  <.live_component
+    id="quiz-form-overlay-form"
+    module={QuizFormComponent}
+    quiz={@quiz}
+    on_cancel={JS.patch(@base_path)}
+    notify_parent
+  />
+</.modal>
+<.slide_over
+  :if={@sortable_quizzes != []}
+  show
+  on_cancel={JS.push("close_sortable")}
+  id="sort-quizzes-overlay"
+>
+  <:title><%= gettext("Reorder moment quizzes") %></:title>
+  <div
+    id="sortable-quizzes"
+    phx-hook="Sortable"
+    data-sortable-handle=".sortable-handle"
+    data-group-name="quizzes"
+    data-group-id="quizzes"
+  >
+    <.dragable_card
+      :for={quiz <- @sortable_quizzes}
+      id={"sortable-#{quiz.id}"}
+      class="p-6 mt-6 first:mt-0"
+    >
+      <p class="flex-1 font-display font-bold text-base">
+        <%= quiz.title %>
+      </p>
+    </.dragable_card>
+  </div>
+</.slide_over>

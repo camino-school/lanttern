@@ -45,6 +45,7 @@ defmodule LantternWeb.MomentQuizzesLive.Show do
     socket
     |> stream(:quiz_items, quiz_items)
     |> assign(:quiz_items_ids, Enum.map(quiz_items, &"#{&1.id}"))
+    |> assign(:quiz_items_count, length(quiz_items))
   end
 
   defp stream_quiz_items(socket), do: socket
@@ -53,19 +54,24 @@ defmodule LantternWeb.MomentQuizzesLive.Show do
 
   @impl true
   def handle_params(params, _url, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+    socket =
+      socket
+      |> assign(:quiz_item, nil)
+      |> assign(:sortable_quiz_items, [])
+      |> assign(:is_sorted, false)
+      |> apply_action(socket.assigns.live_action, params)
+
+    {:noreply, socket}
   end
 
   defp apply_action(socket, :show, _params) do
     socket
     |> assign(:page_title, "Quiz detail")
-    |> assign(:quiz_item, nil)
   end
 
   defp apply_action(socket, :edit, _params) do
     socket
     |> assign(:page_title, "Edit quiz")
-    |> assign(:quiz_item, nil)
   end
 
   defp apply_action(socket, :new_quiz_item, params) do
@@ -87,6 +93,14 @@ defmodule LantternWeb.MomentQuizzesLive.Show do
     socket
     |> assign(:page_title, "Edit quiz item")
     |> assign(:quiz_item, quiz_item)
+  end
+
+  defp apply_action(socket, :sort_quiz_items, %{"quiz_id" => quiz_id}) do
+    quiz_items = Quizzes.list_quiz_items(quiz_id: quiz_id)
+
+    socket
+    |> assign(:sortable_quiz_items, quiz_items)
+    |> assign(:sortable_quiz_items_ids, Enum.map(quiz_items, & &1.id))
   end
 
   # event handlers
@@ -121,6 +135,37 @@ defmodule LantternWeb.MomentQuizzesLive.Show do
       _ ->
         {:noreply, socket}
     end
+  end
+
+  def handle_event("sortable_update", %{"groupId" => "quiz-items"} = payload, socket) do
+    %{"oldIndex" => old_index, "newIndex" => new_index} = payload
+    quiz_items_ids = socket.assigns.sortable_quiz_items_ids
+    {changed_id, rest} = List.pop_at(quiz_items_ids, old_index)
+    quiz_items_ids = List.insert_at(rest, new_index, changed_id)
+
+    # the inteface was already updated (optimistic update)
+    # just persist the new order
+    Quizzes.update_quiz_items_positions(quiz_items_ids)
+
+    socket =
+      socket
+      |> assign(:sortable_quiz_items_ids, quiz_items_ids)
+      |> assign(:is_sorted, true)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("close_sortable", _params, socket) do
+    socket =
+      case socket.assigns do
+        %{is_sorted: true} ->
+          push_navigate(socket, to: socket.assigns.base_path)
+
+        _ ->
+          push_patch(socket, to: socket.assigns.base_path)
+      end
+
+    {:noreply, socket}
   end
 
   # info handlers

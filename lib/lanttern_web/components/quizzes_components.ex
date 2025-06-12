@@ -14,7 +14,7 @@ defmodule LantternWeb.QuizzesComponents do
   alias LantternWeb.Quizzes.QuizItemFormComponent
 
   @doc """
-  Renders a list of quizzes
+  Renders a list of quizzes.
   """
 
   attr :quizzes, :any, required: true
@@ -27,23 +27,34 @@ defmodule LantternWeb.QuizzesComponents do
   def quizzes_list(assigns) do
     ~H"""
     <div id={@id} class={@class} phx-update="stream">
+      <.card_base :for={{dom_id, quiz} <- @quizzes} id={dom_id} class="p-6 mt-6 first:mt-0">
+        <div class="flex items-start gap-4 mb-6">
+          <.link
+            patch={@show_patch_fn.(quiz.id)}
+            class="flex-1 font-display font-black text-xl hover:text-ltrn-subtle"
+          >
+            <%= quiz.title %>
+          </.link>
+          <div class="shrink-0 flex gap-2">
+            <.action type="link" patch={@edit_patch_fn.(quiz.id)} icon_name="hero-pencil-mini">
+              <%= gettext("Edit") %>
+            </.action>
+            <.menu_button id={"menu-#{@id}-quiz-#{quiz.id}"}>
+              <:item
+                id={"delete-#{@id}-quiz-#{quiz.id}"}
+                text={gettext("Delete quiz")}
+                on_click={@on_delete_fn.(quiz.id)}
+                theme="alert"
+                confirm_msg={gettext("Are you sure?")}
+              />
+            </.menu_button>
+          </div>
+        </div>
+        <.markdown text={quiz.description} />
+      </.card_base>
       <.empty_state id={"empty-#{@id}"} class="only:block hidden">
         <%= gettext("No quizzes") %>
       </.empty_state>
-      <.card_base :for={{dom_id, quiz} <- @quizzes} id={dom_id} class="p-6 mt-6">
-        <.link patch={@show_patch_fn.(quiz.id)} class="mb-6 font-display font-black text-xl">
-          <%= quiz.title %>
-        </.link>
-        <.markdown text={quiz.description} />
-        <.action type="link" patch={@edit_patch_fn.(quiz.id)}><%= gettext("Edit") %></.action>
-        <.action
-          type="button"
-          phx-click={@on_delete_fn.(quiz.id)}
-          data-confirm={gettext("Are you sure?")}
-        >
-          <%= gettext("Delete") %>
-        </.action>
-      </.card_base>
     </div>
     """
   end
@@ -61,26 +72,36 @@ defmodule LantternWeb.QuizzesComponents do
   def quiz_items_list(assigns) do
     ~H"""
     <div id={@id} class={@class} phx-update="stream">
+      <.card_base :for={{dom_id, quiz_item} <- @quiz_items} id={dom_id} class="p-6 mt-6 first:mt-0">
+        <div class="flex items-center gap-4">
+          <div class="flex-1">
+            <.badge>
+              <%= case quiz_item.type do
+                :multiple_choice -> gettext("Multiple choice")
+                :text -> gettext("Text")
+              end %>
+            </.badge>
+            <.markdown text={quiz_item.description} />
+          </div>
+          <div class="shrink-0 flex gap-2">
+            <.action type="link" patch={@edit_patch_fn.(quiz_item.id)} icon_name="hero-pencil-mini">
+              <%= gettext("Edit") %>
+            </.action>
+            <.menu_button id={"menu-#{@id}-quiz-item-#{quiz_item.id}"}>
+              <:item
+                id={"delete-#{@id}-quiz-item-#{quiz_item.id}"}
+                text={gettext("Delete quiz")}
+                on_click={@on_delete_fn.(quiz_item.id)}
+                theme="alert"
+                confirm_msg={gettext("Are you sure?")}
+              />
+            </.menu_button>
+          </div>
+        </div>
+      </.card_base>
       <.empty_state_simple id={"empty-#{@id}"} class="only:block hidden">
         <%= gettext("No quiz items") %>
       </.empty_state_simple>
-      <.card_base :for={{dom_id, quiz_item} <- @quiz_items} id={dom_id} class="p-6 mt-6">
-        <.badge>
-          <%= case quiz_item.type do
-            :multiple_choice -> gettext("Multiple choice")
-            :text -> gettext("Text")
-          end %>
-        </.badge>
-        <.markdown text={quiz_item.description} />
-        <.action type="link" patch={@edit_patch_fn.(quiz_item.id)}><%= gettext("Edit") %></.action>
-        <.action
-          type="button"
-          phx-click={@on_delete_fn.(quiz_item.id)}
-          data-confirm={gettext("Are you sure?")}
-        >
-          <%= gettext("Delete") %>
-        </.action>
-      </.card_base>
     </div>
     """
   end

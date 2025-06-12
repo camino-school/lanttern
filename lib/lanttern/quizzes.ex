@@ -4,6 +4,8 @@ defmodule Lanttern.Quizzes do
   """
 
   import Ecto.Query, warn: false
+  import Lanttern.RepoHelpers
+
   alias Lanttern.Repo
 
   alias Lanttern.Quizzes.Quiz
@@ -26,7 +28,10 @@ defmodule Lanttern.Quizzes do
   """
   @spec list_quizzes(opts :: Keyword.t()) :: [Quiz.t()]
   def list_quizzes(opts \\ []) do
-    Quiz
+    from(
+      q in Quiz,
+      order_by: q.position
+    )
     |> apply_list_quizzes_opts(opts)
     |> Repo.all()
   end
@@ -91,6 +96,7 @@ defmodule Lanttern.Quizzes do
   def create_quiz(attrs \\ %{}) do
     %Quiz{}
     |> Quiz.changeset(attrs)
+    |> Quiz.set_position_in_new()
     |> Repo.insert()
   end
 
@@ -111,6 +117,18 @@ defmodule Lanttern.Quizzes do
     |> Quiz.changeset(attrs)
     |> Repo.update()
   end
+
+  @doc """
+  Update quizzes positions based on ids list order.
+
+  ## Examples
+
+  iex> update_quizzes_positions([3, 2, 1])
+  :ok
+
+  """
+  @spec update_quizzes_positions(quizzes_ids :: [pos_integer()]) :: :ok | {:error, String.t()}
+  def update_quizzes_positions(quizzes_ids), do: update_positions(Quiz, quizzes_ids)
 
   @doc """
   Deletes a quiz.
@@ -223,6 +241,7 @@ defmodule Lanttern.Quizzes do
   def create_quiz_item(attrs \\ %{}) do
     %QuizItem{}
     |> QuizItem.changeset(attrs)
+    |> QuizItem.set_position_in_new()
     |> Repo.insert()
   end
 
@@ -243,6 +262,19 @@ defmodule Lanttern.Quizzes do
     |> QuizItem.changeset(attrs)
     |> Repo.update()
   end
+
+  @doc """
+  Update quiz items positions based on ids list order.
+
+  ## Examples
+
+  iex> update_quiz_items_positions([3, 2, 1])
+  :ok
+
+  """
+  @spec update_quiz_items_positions(quiz_items_ids :: [pos_integer()]) ::
+          :ok | {:error, String.t()}
+  def update_quiz_items_positions(quiz_items_ids), do: update_positions(QuizItem, quiz_items_ids)
 
   @doc """
   Deletes a quiz_item.

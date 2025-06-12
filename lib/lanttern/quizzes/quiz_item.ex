@@ -5,7 +5,11 @@ defmodule Lanttern.Quizzes.QuizItem do
 
   use Ecto.Schema
   import Ecto.Changeset
+  import Ecto.Query, only: [from: 2]
+
   use Gettext, backend: Lanttern.Gettext
+
+  import Lanttern.RepoHelpers, only: [get_next_position: 1]
 
   alias Lanttern.Quizzes.Quiz
 
@@ -42,4 +46,30 @@ defmodule Lanttern.Quizzes.QuizItem do
     |> cast(attrs, @all_fields)
     |> validate_required(@required_fields)
   end
+
+  @doc """
+  Set the position in changeset for new quiz items based on existing quiz items.
+
+  Skip if position already present in changeset.
+  """
+  def set_position_in_new(%Ecto.Changeset{valid?: true} = changeset) do
+    case get_change(changeset, :position) do
+      nil ->
+        quiz_id = get_field(changeset, :quiz_id)
+
+        position =
+          from(
+            qi in __MODULE__,
+            where: qi.quiz_id == ^quiz_id
+          )
+          |> get_next_position()
+
+        put_change(changeset, :position, position)
+
+      _ ->
+        changeset
+    end
+  end
+
+  def set_position_in_new(%Ecto.Changeset{} = changeset), do: changeset
 end

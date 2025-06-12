@@ -126,18 +126,7 @@ defmodule Lanttern.RepoHelpers do
       do: attrs
 
   def set_position_in_attrs(queryable, attrs) do
-    position =
-      from(
-        q in queryable,
-        select: q.position,
-        order_by: [desc: q.position],
-        limit: 1
-      )
-      |> Repo.one()
-      |> case do
-        nil -> 0
-        pos -> pos + 1
-      end
+    position = get_next_position(queryable)
 
     cond do
       Enum.all?(attrs, fn {key, _value} -> is_atom(key) end) ->
@@ -148,6 +137,24 @@ defmodule Lanttern.RepoHelpers do
 
       true ->
         raise("Mixed atom and string keys in attr")
+    end
+  end
+
+  @doc """
+  Get the next position when creating a new entry in the query context.
+  """
+  @spec get_next_position(Ecto.Queryable.t()) :: non_neg_integer()
+  def get_next_position(queryable) do
+    from(
+      q in queryable,
+      select: q.position,
+      order_by: [desc: q.position],
+      limit: 1
+    )
+    |> Repo.one()
+    |> case do
+      nil -> 0
+      pos -> pos + 1
     end
   end
 

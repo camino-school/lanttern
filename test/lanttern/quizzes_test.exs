@@ -8,9 +8,10 @@ defmodule Lanttern.QuizzesTest do
 
     @invalid_attrs %{position: nil, description: nil, title: nil}
 
-    test "list_quizzes/0 returns all quizzes" do
-      quiz = insert(:quiz) |> Ecto.reset_fields([:moment])
-      assert Quizzes.list_quizzes() == [quiz]
+    test "list_quizzes/0 returns all quizzes ordered by position" do
+      quiz_1 = insert(:quiz, position: 1) |> Ecto.reset_fields([:moment])
+      quiz_2 = insert(:quiz, position: 2) |> Ecto.reset_fields([:moment])
+      assert Quizzes.list_quizzes() == [quiz_1, quiz_2]
     end
 
     test "list_quizzes/1 with moment opt returns all quizzes belonging to moment" do
@@ -48,6 +49,22 @@ defmodule Lanttern.QuizzesTest do
       assert {:error, %Ecto.Changeset{}} = Quizzes.create_quiz(@invalid_attrs)
     end
 
+    test "create_quiz/1 handles quiz position" do
+      moment = insert(:moment)
+
+      valid_attrs = %{
+        description: "some description",
+        title: "some title",
+        moment_id: moment.id
+      }
+
+      # first quiz in moment should be pos 0
+      assert {:ok, %Quiz{position: 0}} = Quizzes.create_quiz(valid_attrs)
+
+      # next quiz in moment should be last pos + 1
+      assert {:ok, %Quiz{position: 1}} = Quizzes.create_quiz(valid_attrs)
+    end
+
     test "update_quiz/2 with valid data updates the quiz" do
       quiz = insert(:quiz)
 
@@ -69,6 +86,18 @@ defmodule Lanttern.QuizzesTest do
       assert quiz == Quizzes.get_quiz!(quiz.id)
     end
 
+    test "update_quizzes_positions/1 sets quizzes positions as expected" do
+      # insert randomly
+      quiz_2 = insert(:quiz)
+      quiz_0 = insert(:quiz)
+      quiz_1 = insert(:quiz)
+
+      assert Quizzes.update_quizzes_positions([quiz_0.id, quiz_1.id, quiz_2.id]) == :ok
+      assert Quizzes.get_quiz(quiz_0.id).position == 0
+      assert Quizzes.get_quiz(quiz_1.id).position == 1
+      assert Quizzes.get_quiz(quiz_2.id).position == 2
+    end
+
     test "delete_quiz/1 deletes the quiz" do
       quiz = insert(:quiz)
       assert {:ok, %Quiz{}} = Quizzes.delete_quiz(quiz)
@@ -86,9 +115,10 @@ defmodule Lanttern.QuizzesTest do
 
     @invalid_attrs %{position: nil, type: nil, description: nil}
 
-    test "list_quiz_items/0 returns all quiz_items" do
-      quiz_item = insert(:quiz_item) |> Ecto.reset_fields([:quiz])
-      assert Quizzes.list_quiz_items() == [quiz_item]
+    test "list_quiz_items/0 returns all quiz_items ordered by position" do
+      quiz_item_1 = insert(:quiz_item, position: 1) |> Ecto.reset_fields([:quiz])
+      quiz_item_2 = insert(:quiz_item, position: 2) |> Ecto.reset_fields([:quiz])
+      assert Quizzes.list_quiz_items() == [quiz_item_1, quiz_item_2]
     end
 
     test "list_quiz_items/1 with quiz opt returns all quiz items belonging to quiz" do
@@ -126,6 +156,22 @@ defmodule Lanttern.QuizzesTest do
       assert {:error, %Ecto.Changeset{}} = Quizzes.create_quiz_item(@invalid_attrs)
     end
 
+    test "create_quiz_item/1 handles item position" do
+      quiz = insert(:quiz)
+
+      valid_attrs = %{
+        type: "multiple_choice",
+        description: "some description abc",
+        quiz_id: quiz.id
+      }
+
+      # first item in quiz should be pos 0
+      assert {:ok, %QuizItem{position: 0}} = Quizzes.create_quiz_item(valid_attrs)
+
+      # next item in quiz should be last pos + 1
+      assert {:ok, %QuizItem{position: 1}} = Quizzes.create_quiz_item(valid_attrs)
+    end
+
     test "update_quiz_item/2 with valid data updates the quiz_item" do
       quiz_item = insert(:quiz_item)
 
@@ -145,6 +191,20 @@ defmodule Lanttern.QuizzesTest do
       quiz_item = insert(:quiz_item) |> Ecto.reset_fields([:quiz])
       assert {:error, %Ecto.Changeset{}} = Quizzes.update_quiz_item(quiz_item, @invalid_attrs)
       assert quiz_item == Quizzes.get_quiz_item!(quiz_item.id)
+    end
+
+    test "update_quiz_items_positions/1 sets quiz items positions as expected" do
+      # insert randomly
+      quiz_item_2 = insert(:quiz_item)
+      quiz_item_0 = insert(:quiz_item)
+      quiz_item_1 = insert(:quiz_item)
+
+      assert Quizzes.update_quiz_items_positions([quiz_item_0.id, quiz_item_1.id, quiz_item_2.id]) ==
+               :ok
+
+      assert Quizzes.get_quiz_item(quiz_item_0.id).position == 0
+      assert Quizzes.get_quiz_item(quiz_item_1.id).position == 1
+      assert Quizzes.get_quiz_item(quiz_item_2.id).position == 2
     end
 
     test "delete_quiz_item/1 deletes the quiz_item" do

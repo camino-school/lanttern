@@ -36,19 +36,26 @@ defmodule LantternWeb.MomentQuizzesLive.Index do
     socket
     |> stream(:quizzes, quizzes)
     |> assign(:quizzes_ids, Enum.map(quizzes, &"#{&1.id}"))
+    |> assign(:quizzes_count, length(quizzes))
   end
 
   # handle params
 
   @impl true
   def handle_params(params, _url, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+    socket =
+      socket
+      |> assign(:quiz, nil)
+      |> assign(:sortable_quizzes, [])
+      |> assign(:is_sorted, false)
+      |> apply_action(socket.assigns.live_action, params)
+
+    {:noreply, socket}
   end
 
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "Quizzes")
-    |> assign(:quiz, nil)
   end
 
   defp apply_action(socket, :new, params) do
@@ -72,6 +79,15 @@ defmodule LantternWeb.MomentQuizzesLive.Index do
     |> assign(:quiz, quiz)
   end
 
+  defp apply_action(socket, :sort, %{"id" => moment_id}) do
+    quizzes = Quizzes.list_quizzes(moment_id: moment_id)
+
+    socket
+    |> assign(:page_title, "Sort quizzes")
+    |> assign(:sortable_quizzes, quizzes)
+    |> assign(:sortable_quizzes_ids, Enum.map(quizzes, & &1.id))
+  end
+
   # event handlers
 
   @impl true
@@ -89,6 +105,37 @@ defmodule LantternWeb.MomentQuizzesLive.Index do
       _ ->
         {:noreply, socket}
     end
+  end
+
+  def handle_event("sortable_update", %{"groupId" => "quizzes"} = payload, socket) do
+    %{"oldIndex" => old_index, "newIndex" => new_index} = payload
+    quizzes_ids = socket.assigns.sortable_quizzes_ids
+    {changed_id, rest} = List.pop_at(quizzes_ids, old_index)
+    quizzes_ids = List.insert_at(rest, new_index, changed_id)
+
+    # the inteface was already updated (optimistic update)
+    # just persist the new order
+    Quizzes.update_quizzes_positions(quizzes_ids)
+
+    socket =
+      socket
+      |> assign(:sortable_quizzes_ids, quizzes_ids)
+      |> assign(:is_sorted, true)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("close_sortable", _params, socket) do
+    socket =
+      case socket.assigns do
+        %{is_sorted: true} ->
+          push_navigate(socket, to: socket.assigns.base_path)
+
+        _ ->
+          push_patch(socket, to: socket.assigns.base_path)
+      end
+
+    {:noreply, socket}
   end
 
   # info handlers

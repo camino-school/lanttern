@@ -108,11 +108,13 @@ defmodule LantternWeb.Router do
       scope "/strands/moment/:id/quizzes" do
         live "/", MomentQuizzesLive.Index, :index
         live "/new", MomentQuizzesLive.Index, :new
+        live "/sort", MomentQuizzesLive.Index, :sort
         live "/:quiz_id/edit", MomentQuizzesLive.Index, :edit
 
         live "/:quiz_id", MomentQuizzesLive.Show, :show
         live "/:quiz_id/show/edit", MomentQuizzesLive.Show, :edit
         live "/:quiz_id/item/new", MomentQuizzesLive.Show, :new_quiz_item
+        live "/:quiz_id/item/sort", MomentQuizzesLive.Show, :sort_quiz_items
         live "/:quiz_id/item/:quiz_item_id/edit", MomentQuizzesLive.Show, :edit_quiz_item
       end
 

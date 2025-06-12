@@ -11,20 +11,65 @@
   selected_classes_ids={@selected_classes_ids}
   select_classes_overlay_navigate={@select_classes_overlay_navigate}
 >
-  <.responsive_container class="pt-10">
-    <p class="mb-10 font-display font-black text-lg">
+  <.responsive_container class="py-10">
+    <.link
+      patch={~p"/strands/moment/#{@moment}/quizzes"}
+      class="flex items-center gap-2 mb-10 hover:text-ltrn-subtle"
+    >
+      <.icon name="hero-arrow-left-mini" class="w-5 h-5 text-ltrn-subtle" />
       <%= gettext("Back to all moment quizzes") %>
-    </p>
-    <p class="font-display font-black text-xl">
-      <%= @quiz.title %>
-    </p>
+    </.link>
+    <div class="flex items-center gap-4 mb-6">
+      <h2 class="flex-1 font-display font-black text-2xl">
+        <%= @quiz.title %>
+      </h2>
+      <div class="flex gap-4">
+        <%!-- <.action
+        :if={@quizzes_count > 1}
+        type="link"
+        patch={"#{@base_path}/sort"}
+        icon_name="hero-arrows-up-down-mini"
+      >
+        <%= gettext("Reorder") %>
+      </.action> --%>
+        <.action type="link" patch={"#{@base_path}/show/edit"} icon_name="hero-pencil-mini">
+          <%= gettext("Edit quiz") %>
+        </.action>
+        <.menu_button id={"menu-#{@quiz.id}"}>
+          <:item
+            id={"delete-#{@quiz.id}"}
+            text={gettext("Delete quiz")}
+            on_click={JS.push("delete_quiz")}
+            theme="alert"
+            confirm_msg={gettext("Are you sure?")}
+          />
+        </.menu_button>
+      </div>
+    </div>
     <.markdown text={@quiz.description} />
-    <.action type="link" patch={"#{@base_path}/show/edit"}>
-      <%= gettext("Edit") %>
-    </.action>
-    <.action type="button" phx-click="delete_quiz" data-confirm={gettext("Are you sure?")}>
-      <%= gettext("Delete") %>
-    </.action>
+    <div class="flex items-center justify-between gap-4 py-6 border-t border-ltrn-light mt-10">
+      <div class="flex items-center gap-4">
+        <h4 class="font-display font-black text-lg">
+          <%= gettext("Quiz items") %>
+        </h4>
+        <p>
+          <%= ngettext("1 item created", "%{count} items created", @quiz_items_count) %>
+        </p>
+      </div>
+      <div class="flex gap-4">
+        <.action
+          :if={@quiz_items_count > 1}
+          type="link"
+          patch={"#{@base_path}/item/sort"}
+          icon_name="hero-arrows-up-down-mini"
+        >
+          <%= gettext("Reorder") %>
+        </.action>
+        <.action type="link" patch={"#{@base_path}/item/new"} icon_name="hero-plus-circle-mini">
+          <%= gettext("New item") %>
+        </.action>
+      </div>
+    </div>
     <.quiz_items_list
       id="quiz-items-list"
       quiz_items={@streams.quiz_items}
@@ -32,21 +77,40 @@
       on_delete_fn={
         fn quiz_item_id -> JS.push("delete_quiz_item", value: %{id: quiz_item_id}) end
       }
-      class="mt-10"
-    />
-    <.action type="link" patch={"#{@base_path}/item/new"}>
-      <%= gettext("Add quiz item") %>
-    </.action>
-    <.quiz_form_overlay
-      :if={@live_action == :edit}
-      quiz={@quiz}
-      on_cancel={JS.patch(@base_path)}
-      id="quiz-form-overlay"
-    />
-    <.quiz_item_form_overlay
-      quiz_item={@quiz_item}
-      on_cancel={JS.patch(@base_path)}
-      id="quiz-item-form-overlay"
     />
   </.responsive_container>
 </MomentPageComponent.render>
+<.quiz_form_overlay
+  :if={@live_action == :edit}
+  quiz={@quiz}
+  on_cancel={JS.patch(@base_path)}
+  id="quiz-form-overlay"
+/>
+<.quiz_item_form_overlay
+  quiz_item={@quiz_item}
+  on_cancel={JS.patch(@base_path)}
+  id="quiz-item-form-overlay"
+/>
+<.slide_over
+  :if={@sortable_quiz_items != []}
+  show
+  on_cancel={JS.push("close_sortable")}
+  id="sort-quiz-items-overlay"
+>
+  <:title><%= gettext("Reorder quiz items") %></:title>
+  <div
+    id="sortable-quiz-items"
+    phx-hook="Sortable"
+    data-sortable-handle=".sortable-handle"
+    data-group-name="quiz-items"
+    data-group-id="quiz-items"
+  >
+    <.dragable_card
+      :for={quiz_item <- @sortable_quiz_items}
+      id={"sortable-#{quiz_item.id}"}
+      class="p-6 mt-6 first:mt-0"
+    >
+      <.markdown text={quiz_item.description} class="flex-1 line-clamp-1" />
+    </.dragable_card>
+  </div>
+</.slide_over>
