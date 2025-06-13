@@ -33,6 +33,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   alias Lanttern.Attachments
   alias Lanttern.Attachments.Attachment
   alias Lanttern.ILP
+  alias Lanttern.ILP.ILPCommentAttachment
   alias Lanttern.LearningContext
   alias Lanttern.Notes
   alias Lanttern.StudentsCycleInfo
@@ -393,6 +394,15 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     {:noreply, socket}
   end
 
+  def handle_event("validate", %{"ilp_comment_attachment" => params}, socket) do
+    changeset =
+      %ILPCommentAttachment{}
+      |> ILPCommentAttachment.changeset(params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign_form(socket, changeset)}
+  end
+
   def handle_event("validate", %{"attachment" => attachment_params}, socket) do
     changeset =
       %Attachment{}
@@ -403,6 +413,20 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   end
 
   def handle_event("save", %{"attachment" => params}, socket) do
+    case socket.assigns do
+      %{is_adding_external: true} ->
+        params =
+          params
+          |> Map.put("is_external", true)
+
+        save_attachment(socket, :new, params)
+
+      %{is_editing: true} ->
+        save_attachment(socket, :edit, params)
+    end
+  end
+
+  def handle_event("save", %{"ilp_comment_attachment" => params}, socket) do
     case socket.assigns do
       %{is_adding_external: true} ->
         params =
@@ -695,6 +719,25 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
           |> stream_attachments()
 
         notify(__MODULE__, {:created, attachment}, socket.assigns)
+
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign_form(socket, changeset)}
+    end
+  end
+
+  defp save_attachment(%{assigns: %{type: :ilp_comments_attachments}} = socket, :edit, params) do
+    params = Map.put(params, "ilp_comment_id", socket.assigns.ilp_comment_id)
+
+    case ILP.update_ilp_comment_attachment(socket.assigns.attachment, params) do
+      {:ok, attachment} ->
+        socket =
+          socket
+          |> assign(:is_adding_external, false)
+          |> stream_attachments()
+
+        notify(__MODULE__, {:edited, attachment}, socket.assigns)
 
         {:noreply, socket}
 
