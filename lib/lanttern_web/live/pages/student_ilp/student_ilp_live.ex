@@ -11,6 +11,7 @@ defmodule LantternWeb.StudentILPLive do
   alias Lanttern.Schools
 
   # shared components
+  alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.ILP.ILPCommentFormOverlayComponent
   alias LantternWeb.ILP.StudentILPComponent
   alias LantternWeb.Schools.StudentHeaderComponent
@@ -117,19 +118,55 @@ defmodule LantternWeb.StudentILPLive do
     {:noreply, socket}
   end
 
-  def handle_info({ILPCommentFormOverlayComponent, {:created, _data}}, socket) do
+  def handle_info({ILPCommentFormOverlayComponent, {:updated, _data}}, socket) do
     socket =
       socket
-      |> put_flash(:info, gettext("Comment created successfully"))
+      |> put_flash(:info, gettext("Comment updated successfully"))
       |> push_navigate(to: socket.assigns.base_path)
 
     {:noreply, socket}
   end
 
-  def handle_info({ILPCommentFormOverlayComponent, {:updated, _data}}, socket) do
+  def handle_info({ILPCommentFormOverlayComponent, {:created, _data}}, socket) do
     socket =
       socket
-      |> put_flash(:info, gettext("Comment updated successfully"))
+      |> put_flash(:info, gettext("Attachment created successfully"))
+      |> push_navigate(to: socket.assigns.base_path)
+
+    {:noreply, socket}
+  end
+
+  def handle_info({AttachmentAreaComponent, {:created, _data}}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, gettext("Attachment created successfully"))
+      |> push_navigate(to: socket.assigns.base_path)
+
+    {:noreply, socket}
+  end
+
+  def handle_info({AttachmentAreaComponent, {:validate, _data}}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, gettext("Attachment updated successfully"))
+      |> push_navigate(to: socket.assigns.base_path)
+
+    {:noreply, socket}
+  end
+
+  def handle_info({AttachmentAreaComponent, {:edited, _data}}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, gettext("Attachment update saved successfully"))
+      |> push_navigate(to: socket.assigns.base_path)
+
+    {:noreply, socket}
+  end
+
+  def handle_info({AttachmentAreaComponent, {:deleted, _data}}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, gettext("Attachment removed successfully"))
       |> push_navigate(to: socket.assigns.base_path)
 
     {:noreply, socket}
