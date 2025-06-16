@@ -270,10 +270,18 @@ defmodule LantternWeb.NavigationComponents do
 
   def toggle_expand_button(assigns) do
     ~H"""
-    <div id={@id} class={@class}>
+    <div
+      id={@id}
+      class={@class}
+      phx-mounted={
+        if @initial_is_expanded,
+          do: JS.hide(to: "##{@id} .toggle-expand"),
+          else: JS.hide(to: "##{@id} .toggle-collapse")
+      }
+    >
       <.icon_button
         name="hero-arrows-pointing-in"
-        class={if !@initial_is_expanded, do: "hidden"}
+        class="toggle-collapse"
         theme={@theme}
         rounded
         sr_text={gettext("collapse")}
@@ -285,7 +293,7 @@ defmodule LantternWeb.NavigationComponents do
       />
       <.icon_button
         name="hero-arrows-pointing-out"
-        class={if @initial_is_expanded, do: "hidden"}
+        class="toggle-expand"
         theme={@theme}
         rounded
         sr_text={gettext("expand")}
