@@ -1,6 +1,17 @@
 defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
   @moduledoc """
-   to-do
+  Renders an overlay with a `StudentILPComment` form
+
+  ### Attrs
+      attr :ilp_comment, ILPComment, required: true
+      attr :id, :string, required: true
+      attr :form_action, :string, required: true
+      attr :student_ilp, StudentILP, required: true
+      attr :title, :string, required: true
+      attr :current_profile, Profile, required: true
+      attr :on_cancel, :any, required: true, doc: "`<.slide_over>` `on_cancel` attr"
+      attr :notify_parent, :boolean
+      attr :notify_component, Phoenix.LiveComponent.CID
   """
 
   use LantternWeb, :live_component
@@ -141,7 +152,7 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
     do: save_ilp_comment(socket, socket.assigns.form_action, comment_params)
 
   def handle_event("delete", _, socket) do
-    case ILP.delete_ilp_comment(socket.assigns.ilp_comment) do
+    case ILP.delete_ilp_comment(socket.assigns.ilp_comment, socket.assigns.current_profile.id) do
       {:ok, ilp_comment} ->
         notify(__MODULE__, {:deleted, ilp_comment}, socket.assigns)
 
@@ -159,7 +170,7 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
       |> Map.put("student_ilp_id", socket.assigns.student_ilp.id)
       |> Map.put("owner_id", socket.assigns.current_profile.id)
 
-    case ILP.create_ilp_comment(params) do
+    case ILP.create_ilp_comment(params, log_profile_id: socket.assigns.current_profile.id) do
       {:ok, comment} ->
         notify(__MODULE__, {:created, comment}, socket.assigns)
         {:noreply, socket}
@@ -170,7 +181,9 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
   end
 
   defp save_ilp_comment(socket, :edit, params) do
-    case ILP.update_ilp_comment(socket.assigns.ilp_comment, params) do
+    profile_id = socket.assigns.current_profile.id
+
+    case ILP.update_ilp_comment(socket.assigns.ilp_comment, params, profile_id) do
       {:ok, comment} ->
         notify(__MODULE__, {:updated, comment}, socket.assigns)
 

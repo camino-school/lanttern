@@ -922,10 +922,17 @@ defmodule Lanttern.ILP do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_ilp_comment(attrs \\ %{}) do
+  def create_ilp_comment(attrs, log_profile_id) do
     %ILPComment{}
     |> ILPComment.changeset(attrs)
     |> Repo.insert()
+    |> tap(fn
+      {:ok, %ILPComment{} = ilp_comment} ->
+        ILPLog.async_create_ilp_comment_log(ilp_comment, :CREATE, log_profile_id)
+
+      _ ->
+        :nothing
+    end)
   end
 
   @doc """
@@ -933,33 +940,39 @@ defmodule Lanttern.ILP do
 
   ## Examples
 
-      iex> update_ilp_comment(ilp_comment, %{field: new_value})
+      iex> update_ilp_comment(ilp_comment, %{field: new_value}, log_profile_id)
       {:ok, %ILPComment{}}
 
-      iex> update_ilp_comment(ilp_comment, %{field: bad_value})
+      iex> update_ilp_comment(ilp_comment, %{field: bad_value}, log_profile_id)
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_ilp_comment(%ILPComment{} = ilp_comment, attrs) do
+  def update_ilp_comment(%ILPComment{} = ilp_comment, attrs, log_profile_id) do
     ilp_comment
     |> ILPComment.changeset(attrs)
     |> Repo.update()
+    |> tap(fn
+      {:ok, %ILPComment{} = ilp_comment} ->
+        ILPLog.async_create_ilp_comment_log(ilp_comment, :UPDATE, log_profile_id)
+
+      _ ->
+        :nothing
+    end)
   end
 
   @doc """
   Deletes a ilp_comment.
-
-  ## Examples
-
-      iex> delete_ilp_comment(ilp_comment)
-      {:ok, %ILPComment{}}
-
-      iex> delete_ilp_comment(ilp_comment)
-      {:error, %Ecto.Changeset{}}
-
   """
-  def delete_ilp_comment(%ILPComment{} = ilp_comment) do
-    Repo.delete(ilp_comment)
+  def delete_ilp_comment(%ILPComment{} = ilp_comment, log_profile_id) do
+    ilp_comment
+    |> Repo.delete()
+    |> tap(fn
+      {:ok, %ILPComment{} = ilp_comment} ->
+        ILPLog.async_create_ilp_comment_log(ilp_comment, :DELETE, log_profile_id)
+
+      _ ->
+        :nothing
+    end)
   end
 
   @doc """
