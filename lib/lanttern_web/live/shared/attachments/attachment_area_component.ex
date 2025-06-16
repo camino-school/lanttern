@@ -735,6 +735,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         socket =
           socket
           |> assign(:is_adding_external, false)
+          |> assign(:is_editing, false)
           |> stream_attachments()
 
         notify(__MODULE__, {:edited, attachment}, socket.assigns)
