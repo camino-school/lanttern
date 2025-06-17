@@ -117,6 +117,15 @@ defmodule LantternWeb.StudentILPLive do
     {:noreply, socket}
   end
 
+  def handle_info({ILPCommentFormOverlayComponent, {:updated, _data}}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, gettext("Comment updated successfully"))
+      |> push_navigate(to: socket.assigns.base_path)
+
+    {:noreply, socket}
+  end
+
   def handle_info({ILPCommentFormOverlayComponent, {:created, _data}}, socket) do
     socket =
       socket
@@ -126,12 +135,5 @@ defmodule LantternWeb.StudentILPLive do
     {:noreply, socket}
   end
 
-  def handle_info({ILPCommentFormOverlayComponent, {:updated, _data}}, socket) do
-    socket =
-      socket
-      |> put_flash(:info, gettext("Comment updated successfully"))
-      |> push_navigate(to: socket.assigns.base_path)
-
-    {:noreply, socket}
-  end
+  def handle_info(_, socket), do: {:noreply, socket}
 end
