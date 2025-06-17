@@ -56,6 +56,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
         </.action>
         <.student_ilp_share_controls
           :if={@show_actions}
+          id={"share-controls-#{@id}"}
           student_ilp={@student_ilp}
           show_controls={@is_ilp_manager}
           on_student_share_toggle={
@@ -231,7 +232,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
     ILP.update_student_ilp_sharing(
       socket.assigns.student_ilp,
       params,
-      log_profile_id: socket.assigns.current_profile.id
+      log_profile_id: socket.assigns.current_user.current_profile.id
     )
     |> case do
       {:ok, student_ilp} ->
