@@ -76,7 +76,7 @@ if Mix.env() == :dev do
       pre_commit: [
         tasks: [
           {:cmd, "mix clean"},
-          {:cmd, "mix compile --warnings-as-errors"},
+          {:cmd, "mix check"},
           {:cmd, "mix test"}
         ]
       ]

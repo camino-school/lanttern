@@ -1,6 +1,9 @@
 defmodule LantternWeb.ILPLiveTest do
   use LantternWeb.ConnCase
 
+  import Lanttern.Factory
+
+  alias Lanttern.ILP.StudentILP
   alias Lanttern.Repo
 
   alias Lanttern.Filters
@@ -116,6 +119,41 @@ defmodule LantternWeb.ILPLiveTest do
       # ai review should be enabled for templates with revision instructions + complete ILP
       assert view
              |> has_element?(~s(input[placeholder="Student age"]))
+    end
+
+    test "share student ILP", context do
+      %{conn: conn, user: user} = set_user_permissions(["ilp_management"], context)
+      school_id = user.current_profile.school_id
+      student = insert(:student, school_id: school_id)
+      template = insert(:ilp_template, school_id: school_id)
+
+      student_ilp =
+        insert(:student_ilp,
+          school_id: school_id,
+          cycle_id: user.current_profile.current_school_cycle.id,
+          student_id: student.id,
+          template_id: template.id
+        )
+
+      # setup current user template and student
+      Filters.set_profile_current_filters(user, %{ilp_template_id: template.id})
+      Filters.set_profile_current_filters(user, %{student_id: student.id})
+
+      {:ok, view, _html} = live(conn, @live_view_path)
+
+      view
+      |> element("button#student-ilp-student-toggle-share-controls-student-ilp-student-ilp")
+      |> render_click()
+
+      assert Repo.get(StudentILP, student_ilp.id).is_shared_with_student
+      refute Repo.get(StudentILP, student_ilp.id).is_shared_with_guardians
+
+      view
+      |> element("button#student-ilp-guardian-toggle-share-controls-student-ilp-student-ilp")
+      |> render_click()
+
+      assert Repo.get(StudentILP, student_ilp.id).is_shared_with_student
+      assert Repo.get(StudentILP, student_ilp.id).is_shared_with_guardians
     end
   end
 end

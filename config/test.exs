@@ -3,6 +3,20 @@ import Config
 # Only in tests, remove the complexity from the password hashing algorithm
 config :bcrypt_elixir, :log_rounds, 1
 
+static_url_path =
+  try do
+    {windows_static_path, 0} = System.cmd("wslpath", ["-aw", "priv/static"])
+
+    windows_static_path
+    |> String.trim()
+    |> String.trim_leading("\\")
+    |> String.replace("\\", "/")
+    |> then(&Kernel.<>("file://", &1))
+  rescue
+    # revert to default path if command not found, else re-raise the error
+    e in ErlangError -> if e.original == :enoent, do: "/", else: reraise(e, __STACKTRACE__)
+  end
+
 # Configure your database
 #
 # The MIX_TEST_PARTITION environment variable can be used
@@ -21,7 +35,8 @@ config :lanttern, Lanttern.Repo,
 config :lanttern, LantternWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
   secret_key_base: "3ROrxoxhmKjx77ulZ7KoLqR9z59v1nN0fizIVaIhqMf9O6NRZAdUYuYhOM9Bmln/",
-  server: false
+  server: false,
+  static_url: [host: "localhost", path: static_url_path]
 
 # In test we don't send emails.
 config :lanttern, Lanttern.Mailer, adapter: Swoosh.Adapters.Test

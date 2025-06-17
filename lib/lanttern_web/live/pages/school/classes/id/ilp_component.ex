@@ -94,6 +94,7 @@ defmodule LantternWeb.ClassLive.ILPComponent do
                   <%= gettext("View ILP") %>
                 </.action>
                 <.student_ilp_share_controls
+                  id={"share-controls-#{@id}"}
                   student_ilp={ilp}
                   show_controls={@is_ilp_manager}
                   on_student_share_toggle={

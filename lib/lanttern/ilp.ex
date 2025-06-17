@@ -4,12 +4,12 @@ defmodule Lanttern.ILP do
   """
 
   import Ecto.Query, warn: false
-  alias Lanttern.ILP.ILPTemplateAILayer
-  alias Lanttern.Repo
   import Lanttern.RepoHelpers
 
   alias Lanttern.ILP.ILPTemplate
+  alias Lanttern.ILP.ILPTemplateAILayer
   alias Lanttern.ILPLog
+  alias Lanttern.Repo
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.Student
 
@@ -850,4 +850,252 @@ defmodule Lanttern.ILP do
       end
     )
   end
+
+  alias Lanttern.ILP.ILPComment
+
+  @doc """
+  Returns the list of ilp_comments.
+
+  ## Examples
+
+      iex> list_ilp_comments()
+      [%ILPComment{}, ...]
+
+  """
+  def list_ilp_comments do
+    Repo.all(ILPComment)
+  end
+
+  def list_ilp_comments_by_student_ilp(student_ilp_id) do
+    from(
+      c in ILPComment,
+      join: p in assoc(c, :owner),
+      left_join: s in assoc(p, :student),
+      left_join: sm in assoc(p, :staff_member),
+      left_join: gos in assoc(p, :guardian_of_student),
+      left_join: a in assoc(c, :attachments),
+      where: c.student_ilp_id == ^student_ilp_id,
+      order_by: [asc: c.inserted_at],
+      preload: [
+        {:attachments, a},
+        {:owner,
+         {p,
+          [
+            student: s,
+            staff_member: sm,
+            guardian_of_student: gos
+          ]}}
+      ]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a single ilp_comment or nil.
+
+  ## Options
+
+  - `:owner_id` - filter results by owner(Profile)
+
+  """
+  def get_ilp_comment(id, opts \\ []) do
+    dynamic_filter =
+      Enum.reduce(opts, dynamic(true), fn
+        {:owner_id, owner_id}, acc ->
+          dynamic([c], ^acc and c.owner_id == ^owner_id)
+
+        {_, _}, dynamic ->
+          dynamic
+      end)
+
+    from(
+      c in ILPComment,
+      where: c.id == ^id,
+      where: ^dynamic_filter
+    )
+    |> Repo.one()
+  end
+
+  @doc """
+  Creates a ilp_comment.
+
+  ## Examples
+
+      iex> create_ilp_comment(%{field: value})
+      {:ok, %ILPComment{}}
+
+      iex> create_ilp_comment(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_ilp_comment(attrs \\ %{}) do
+    %ILPComment{}
+    |> ILPComment.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a ilp_comment.
+
+  ## Examples
+
+      iex> update_ilp_comment(ilp_comment, %{field: new_value})
+      {:ok, %ILPComment{}}
+
+      iex> update_ilp_comment(ilp_comment, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_ilp_comment(%ILPComment{} = ilp_comment, attrs) do
+    ilp_comment
+    |> ILPComment.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a ilp_comment.
+
+  ## Examples
+
+      iex> delete_ilp_comment(ilp_comment)
+      {:ok, %ILPComment{}}
+
+      iex> delete_ilp_comment(ilp_comment)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_ilp_comment(%ILPComment{} = ilp_comment) do
+    Repo.delete(ilp_comment)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking ilp_comment changes.
+
+  ## Examples
+
+      iex> change_ilp_comment(ilp_comment)
+      %Ecto.Changeset{data: %ILPComment{}}
+
+  """
+  def change_ilp_comment(%ILPComment{} = ilp_comment, attrs \\ %{}) do
+    ILPComment.changeset(ilp_comment, attrs)
+  end
+
+  alias Lanttern.ILP.ILPCommentAttachment
+
+  @doc """
+  Returns the list of ilp_comment_attachments.
+
+  ## Examples
+
+      iex> list_ilp_comment_attachments()
+      [%ILPCommentAttachment{}, ...]
+
+  """
+  def list_ilp_comment_attachments do
+    Repo.all(ILPCommentAttachment)
+  end
+
+  def list_ilp_comment_attachments(ilp_comment_id) do
+    ILPCommentAttachment
+    |> where([c], c.ilp_comment_id == ^ilp_comment_id)
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a single ilp_comment_attachment.
+
+  Raises `Ecto.NoResultsError` if the Ilp comment attachment does not exist.
+
+  ## Examples
+
+      iex> get_ilp_comment_attachment!(123)
+      %ILPCommentAttachment{}
+
+      iex> get_ilp_comment_attachment!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_ilp_comment_attachment!(id), do: Repo.get!(ILPCommentAttachment, id)
+
+  @doc """
+  Creates a ilp_comment_attachment.
+
+  ## Examples
+
+      iex> create_ilp_comment_attachment(%{field: value})
+      {:ok, %ILPCommentAttachment{}}
+
+      iex> create_ilp_comment_attachment(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_ilp_comment_attachment(attrs \\ %{}) do
+    %ILPCommentAttachment{}
+    |> ILPCommentAttachment.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a ilp_comment_attachment.
+
+  ## Examples
+
+      iex> update_ilp_comment_attachment(ilp_comment_attachment, %{field: new_value})
+      {:ok, %ILPCommentAttachment{}}
+
+      iex> update_ilp_comment_attachment(ilp_comment_attachment, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_ilp_comment_attachment(%ILPCommentAttachment{} = ilp_comment_attachment, attrs) do
+    ilp_comment_attachment
+    |> ILPCommentAttachment.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a ilp_comment_attachment.
+
+  ## Examples
+
+      iex> delete_ilp_comment_attachment(ilp_comment_attachment)
+      {:ok, %ILPCommentAttachment{}}
+
+      iex> delete_ilp_comment_attachment(ilp_comment_attachment)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_ilp_comment_attachment(%ILPCommentAttachment{} = ilp_comment_attachment) do
+    Repo.delete(ilp_comment_attachment)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking ilp_comment_attachment changes.
+
+  ## Examples
+
+      iex> change_ilp_comment_attachment(ilp_comment_attachment)
+      %Ecto.Changeset{data: %ILPCommentAttachment{}}
+
+  """
+  def change_ilp_comment_attachment(
+        %ILPCommentAttachment{} = ilp_comment_attachment,
+        attrs \\ %{}
+      ) do
+    ILPCommentAttachment.changeset(ilp_comment_attachment, attrs)
+  end
+
+  @doc """
+  Update ILP Comment attachments positions based on ids list order.
+
+  ## Examples
+
+  iex> update_ilp_comment_attachment_positions([3, 2, 1])
+  :ok
+
+  """
+  @spec update_ilp_comment_attachment_positions([pos_integer()]) :: :ok | {:error, String.t()}
+  def update_ilp_comment_attachment_positions(ilp_comment_attachment),
+    do: update_positions(ILPCommentAttachment, ilp_comment_attachment)
 end

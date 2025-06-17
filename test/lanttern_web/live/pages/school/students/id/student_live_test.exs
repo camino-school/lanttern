@@ -2,6 +2,7 @@ defmodule LantternWeb.StudentLiveTest do
   use LantternWeb.ConnCase
 
   import Lanttern.Factory
+  import PhoenixTest
 
   alias Lanttern.SchoolsFixtures
   alias Lanttern.StudentsCycleInfo
@@ -200,16 +201,7 @@ defmodule LantternWeb.StudentLiveTest do
       %{conn: conn, user: user} = set_user_permissions(["students_records_full_access"], ctx)
       school = user.current_profile.staff_member.school
       student = SchoolsFixtures.student_fixture(%{school_id: school.id, name: "std abc"})
-
-      status =
-        Lanttern.Repo.insert!(%Lanttern.StudentsRecords.StudentRecordStatus{
-          name: "Closed",
-          position: 2,
-          bg_color: "#5CD9BB",
-          text_color: "#ffffff",
-          is_closed: true,
-          school_id: school.id
-        })
+      status = insert(:student_records_status, %{school: school})
 
       student_record =
         insert(:student_record, %{
@@ -249,16 +241,7 @@ defmodule LantternWeb.StudentLiveTest do
       %{conn: conn} = set_user_permissions(["students_records_full_access"], user_info)
       school = user.current_profile.staff_member.school
       student = SchoolsFixtures.student_fixture(%{school_id: school.id, name: "std abc"})
-
-      status =
-        Lanttern.Repo.insert!(%Lanttern.StudentsRecords.StudentRecordStatus{
-          name: "Closed",
-          position: 2,
-          bg_color: "#5CD9BB",
-          text_color: "#ffffff",
-          is_closed: true,
-          school_id: school.id
-        })
+      status = insert(:student_records_status, %{school: school})
 
       student_record =
         insert(:student_record, %{
@@ -286,6 +269,128 @@ defmodule LantternWeb.StudentLiveTest do
 
       assert view |> has_element?("span", student.name)
       assert render(view) =~ "Closed by #{user.current_profile.name} on May 19, 2025, 18:23 ("
+    end
+  end
+
+  describe "Student ILP live view access" do
+    test "renders ok when create a new ILP comment", ctx do
+      school = ctx.user.current_profile.staff_member.school
+      student = insert(:student, %{school: school})
+      template = insert(:ilp_template, %{school: school})
+      cycle = ctx.user.current_profile.current_school_cycle
+      insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
+
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp")
+      |> click_link("Add ILP comment")
+      |> assert_has("h2", text: "New Comment")
+      |> fill_in("Content", with: "Content for quartely feedback")
+      |> click_button("Save")
+
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp")
+      |> assert_has("p", text: "Content for quartely feedback")
+    end
+
+    test "renders ok when edit a new ILP comment", ctx do
+      school = ctx.user.current_profile.staff_member.school
+      student = insert(:student, %{school: school})
+      template = insert(:ilp_template, %{school: school})
+      cycle = ctx.user.current_profile.current_school_cycle
+
+      ilp =
+        insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
+
+      ilp_comment = insert(:ilp_comment, %{student_ilp: ilp, owner: ctx.user.current_profile})
+      new_attrs = %{name: "Teacher's feedback'", content: "Feedback content."}
+
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp")
+      |> click_link("#edit-comment-#{ilp_comment.id}", "Edit")
+      |> assert_has("h2", text: "Edit")
+      |> fill_in("Content", with: new_attrs.content)
+      |> assert_has("h5", text: "Attachments")
+      |> click_button("#external-link-button", "add a link")
+      |> fill_in("Attachment name", with: "Site")
+      |> fill_in("Link", with: "https://www.algo.com")
+      |> click_button("#save-external-attachment", "Save")
+      |> click_button("#save-action-ilp-comment", "Save")
+
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp")
+      |> assert_has("p", text: new_attrs.content)
+    end
+
+    test "renders ok when list all ILP comment for a student_ilp", ctx do
+      school = ctx.user.current_profile.staff_member.school
+      student = insert(:student, %{school: school})
+      template = insert(:ilp_template, %{school: school})
+      cycle = ctx.user.current_profile.current_school_cycle
+
+      ilp =
+        insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
+
+      comment1 = insert(:ilp_comment, %{student_ilp: ilp, owner: ctx.user.current_profile})
+
+      comment2 =
+        insert(:ilp_comment, %{
+          student_ilp: ilp,
+          content: "Content.",
+          owner: ctx.user.current_profile
+        })
+
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp")
+      |> assert_has("p", text: comment1.content)
+      |> assert_has("p", text: comment2.content)
+    end
+
+    test "renders ok when delete a new ILP comment's attachment", ctx do
+      school = ctx.user.current_profile.staff_member.school
+      student = insert(:student, %{school: school})
+      template = insert(:ilp_template, %{school: school})
+      cycle = ctx.user.current_profile.current_school_cycle
+
+      ilp =
+        insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
+
+      ilp_comment = insert(:ilp_comment, %{student_ilp: ilp, owner: ctx.user.current_profile})
+
+      attachment = insert(:ilp_comment_attachment, %{ilp_comment: ilp_comment})
+
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp")
+      |> assert_has("p", text: ilp_comment.content)
+      |> click_link("#edit-comment-#{ilp_comment.id}", "Edit")
+      |> click_button("Remove")
+
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp?comment_id=#{ilp_comment.id}")
+      |> refute_has("a", text: attachment.name)
+    end
+
+    test "renders error when modify not owned comment", ctx do
+      school = ctx.user.current_profile.staff_member.school
+      student = insert(:student, %{school: school})
+      template = insert(:ilp_template, %{school: school})
+      cycle = ctx.user.current_profile.current_school_cycle
+      new_profile = insert(:profile)
+
+      ilp =
+        insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
+
+      ilp_comment = insert(:ilp_comment, %{student_ilp: ilp, owner: new_profile})
+
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp")
+      |> assert_has("p", text: ilp_comment.content)
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp?comment_id=#{ilp_comment.id}")
+      |> refute_has("h2", text: "Edit")
+      |> refute_has("span", text: "Delete")
+
+      ctx.conn
+      |> visit("#{@live_view_base_path}/#{student.id}/ilp")
+      |> assert_has("p", text: ilp_comment.content)
     end
   end
 end

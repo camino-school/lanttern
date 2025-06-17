@@ -8,6 +8,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   - assessment point entry evidences (use `assessment_point_entry_id` assign)
   - student cycle info attachments (use `student_cycle_info_id` assign and `shared_with_student` assign)
   - moment card attachments (use `moment_card_id` assign and `shared_with_student` assign)
+  - ILP comments attachments (use `ilp_comment_id` assign)
 
   ### Supported attrs/assigns
 
@@ -31,6 +32,8 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   alias Lanttern.Attachments
   alias Lanttern.Attachments.Attachment
+  alias Lanttern.ILP
+  alias Lanttern.ILP.ILPCommentAttachment
   alias Lanttern.LearningContext
   alias Lanttern.Notes
   alias Lanttern.StudentsCycleInfo
@@ -125,7 +128,11 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
             <.button type="button" theme="ghost" phx-click="cancel" phx-target={@myself}>
               <%= gettext("Cancel") %>
             </.button>
-            <.button type="submit" phx-disable-with={gettext("Saving...")}>
+            <.button
+              type="submit"
+              phx-disable-with={gettext("Saving...")}
+              id="save-external-attachment"
+            >
               <%= gettext("Save") %>
             </.button>
           </div>
@@ -200,6 +207,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
               class="inline text-ltrn-primary hover:text-ltrn-dark focus-within:outline-hidden focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
               phx-click="add_external"
               phx-target={@myself}
+              id="external-link-button"
             >
               <%= gettext("Or add a link to an external file") %>
               <span class="text-ltrn-subtle"><%= gettext("(e.g. Google Docs)") %></span>
@@ -277,6 +285,9 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   defp assign_type(%{assigns: %{moment_card_id: _}} = socket),
     do: assign(socket, :type, :moment_card_attachments)
 
+  defp assign_type(%{assigns: %{ilp_comment_id: _}} = socket),
+    do: assign(socket, :type, :ilp_comments_attachments)
+
   defp stream_attachments(%{assigns: %{type: :note_attachments, note_id: id}} = socket) do
     attachments = Attachments.list_attachments(note_id: id)
     handle_stream_attachments_socket_assigns(socket, attachments)
@@ -313,6 +324,16 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     handle_stream_attachments_socket_assigns(socket, attachments)
   end
 
+  defp stream_attachments(%{assigns: %{type: :ilp_comments_attachments}} = socket) do
+    attachments = ILP.list_ilp_comment_attachments(socket.assigns.ilp_comment_id)
+    attachments_ids = Enum.map(attachments, & &1.id)
+
+    socket
+    |> stream(:attachments, Enum.with_index(attachments), reset: true)
+    |> assign(:attachments_length, length(attachments))
+    |> assign(:attachments_ids, attachments_ids)
+  end
+
   defp handle_stream_attachments_socket_assigns(socket, attachments) do
     attachments_ids = Enum.map(attachments, & &1.id)
 
@@ -333,6 +354,19 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     socket =
       socket
       |> assign(:is_adding_external, true)
+      |> assign_form(changeset)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("edit", params, %{assigns: %{type: :ilp_comments_attachments}} = socket) do
+    attachment = ILP.get_ilp_comment_attachment!(params["id"])
+    changeset = ILP.change_ilp_comment_attachment(attachment, %{})
+
+    socket =
+      socket
+      |> assign(:is_editing, true)
+      |> assign(:attachment, attachment)
       |> assign_form(changeset)
 
     {:noreply, socket}
@@ -360,6 +394,15 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     {:noreply, socket}
   end
 
+  def handle_event("validate", %{"ilp_comment_attachment" => params}, socket) do
+    changeset =
+      %ILPCommentAttachment{}
+      |> ILPCommentAttachment.changeset(params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign_form(socket, changeset)}
+  end
+
   def handle_event("validate", %{"attachment" => attachment_params}, socket) do
     changeset =
       %Attachment{}
@@ -372,7 +415,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   def handle_event("save", %{"attachment" => params}, socket) do
     case socket.assigns do
       %{is_adding_external: true} ->
-        # add is_external to params
         params =
           params
           |> Map.put("is_external", true)
@@ -381,6 +423,42 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
       %{is_editing: true} ->
         save_attachment(socket, :edit, params)
+    end
+  end
+
+  def handle_event("save", %{"ilp_comment_attachment" => params}, socket) do
+    case socket.assigns do
+      %{is_adding_external: true} ->
+        params =
+          params
+          |> Map.put("is_external", true)
+
+        save_attachment(socket, :new, params)
+
+      %{is_editing: true} ->
+        save_attachment(socket, :edit, params)
+    end
+  end
+
+  def handle_event("delete", params, %{assigns: %{type: :ilp_comments_attachments}} = socket) do
+    attachment = ILP.get_ilp_comment_attachment!(params["id"])
+
+    case ILP.delete_ilp_comment_attachment(attachment) do
+      {:ok, _attachment} ->
+        socket =
+          socket
+          |> stream_attachments()
+
+        notify(__MODULE__, {:deleted, attachment}, socket.assigns)
+
+        {:noreply, socket}
+
+      {:error, _changeset} ->
+        socket =
+          socket
+          |> assign(:error_msg, gettext("Error deleting attachment"))
+
+        {:noreply, socket}
     end
   end
 
@@ -411,31 +489,25 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       socket.assigns.attachments_ids
       |> swap(i, j)
 
-    update_res =
-      case socket.assigns.type do
-        :note_attachments ->
-          Notes.update_note_attachments_positions(attachments_ids)
+    case socket.assigns.type do
+      :note_attachments ->
+        Notes.update_note_attachments_positions(attachments_ids)
 
-        :entry_evidences ->
-          Assessments.update_assessment_point_entry_evidences_positions(attachments_ids)
+      :entry_evidences ->
+        Assessments.update_assessment_point_entry_evidences_positions(attachments_ids)
 
-        :student_cycle_info_attachments ->
-          StudentsCycleInfo.update_student_cycle_info_attachments_positions(attachments_ids)
+      :student_cycle_info_attachments ->
+        StudentsCycleInfo.update_student_cycle_info_attachments_positions(attachments_ids)
 
-        :moment_card_attachments ->
-          LearningContext.update_moment_card_attachments_positions(attachments_ids)
-      end
+      :moment_card_attachments ->
+        LearningContext.update_moment_card_attachments_positions(attachments_ids)
 
-    case update_res do
-      :ok ->
-        socket =
-          socket
-          |> stream_attachments()
-
-        {:noreply, socket}
-
-      {:error, msg} ->
-        {:noreply, put_flash(socket, :error, msg)}
+      :ilp_comments_attachments ->
+        ILP.update_ilp_comment_attachment_positions(attachments_ids)
+    end
+    |> case do
+      :ok -> {:noreply, stream_attachments(socket)}
+      {:error, msg} -> {:noreply, put_flash(socket, :error, msg)}
     end
   end
 
@@ -609,11 +681,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     end
   end
 
-  defp save_attachment(
-         %{assigns: %{type: :moment_card_attachments}} = socket,
-         :new,
-         params
-       ) do
+  defp save_attachment(%{assigns: %{type: :moment_card_attachments}} = socket, :new, params) do
     %{
       current_user: current_user,
       moment_card_id: moment_card_id
@@ -632,6 +700,45 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
           socket
           |> assign(:is_adding_external, false)
           |> stream_attachments()
+
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign_form(socket, changeset)}
+    end
+  end
+
+  defp save_attachment(%{assigns: %{type: :ilp_comments_attachments}} = socket, :new, params) do
+    params = Map.put(params, "ilp_comment_id", socket.assigns.ilp_comment_id)
+
+    case ILP.create_ilp_comment_attachment(params) do
+      {:ok, attachment} ->
+        socket =
+          socket
+          |> assign(:is_adding_external, false)
+          |> stream_attachments()
+
+        notify(__MODULE__, {:created, attachment}, socket.assigns)
+
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign_form(socket, changeset)}
+    end
+  end
+
+  defp save_attachment(%{assigns: %{type: :ilp_comments_attachments}} = socket, :edit, params) do
+    params = Map.put(params, "ilp_comment_id", socket.assigns.ilp_comment_id)
+
+    case ILP.update_ilp_comment_attachment(socket.assigns.attachment, params) do
+      {:ok, attachment} ->
+        socket =
+          socket
+          |> assign(:is_adding_external, false)
+          |> assign(:is_editing, false)
+          |> stream_attachments()
+
+        notify(__MODULE__, {:edited, attachment}, socket.assigns)
 
         {:noreply, socket}
 
