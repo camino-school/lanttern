@@ -93,7 +93,7 @@ defmodule LantternWeb.StudentILPLiveTest do
       |> assert_has("p", text: "Novo")
     end
 
-    test "renders error when modify not owned comment", ctx do
+    test "not renders edition when not owns comment", ctx do
       school = ctx.user.current_profile.student.school
       student = ctx.user.current_profile.student
       cycle = ctx.user.current_profile.current_school_cycle
@@ -121,6 +121,51 @@ defmodule LantternWeb.StudentILPLiveTest do
       ctx.conn
       |> visit("/student_ilp/")
       |> assert_has("p", text: ilp_comment.content)
+    end
+
+    test "create and edit ilp comment attachments", ctx do
+      school = ctx.user.current_profile.student.school
+      student = ctx.user.current_profile.student
+      cycle = ctx.user.current_profile.current_school_cycle
+      template = insert(:ilp_template, %{school: school})
+
+      ilp =
+        insert(:student_ilp, %{
+          student: student,
+          cycle: cycle,
+          template: template,
+          school: school,
+          is_shared_with_student: true
+        })
+
+      ilp_comment = insert(:ilp_comment, %{student_ilp: ilp, owner: ctx.user.current_profile})
+
+      ctx.conn
+      |> visit("/student_ilp?comment_id=#{ilp_comment.id}")
+      |> assert_has("p", text: ilp_comment.content)
+      |> click_button("#external-link-button", "Or add a link to an external file")
+      |> fill_in("Attachment name", with: "News")
+      |> fill_in("Link", with: "http://www.science.org/article-1")
+      |> submit()
+
+      ctx.conn
+      |> visit("/student_ilp/")
+      |> assert_has("p", text: ilp_comment.content)
+      |> assert_has("a", text: "News")
+
+      ctx.conn
+      |> visit("/student_ilp?comment_id=#{ilp_comment.id}")
+      |> assert_has("p", text: ilp_comment.content)
+      |> click_button("Edit")
+      |> fill_in("Attachment name", with: "Article2")
+      |> fill_in("Link", with: "http://www.science.org/article-2")
+      |> submit()
+
+      ctx.conn
+      |> visit("/student_ilp/")
+      |> assert_has("p", text: ilp_comment.content)
+      |> assert_has("a", text: "Article2")
+      |> refute_has("a", text: "News")
     end
   end
 end
