@@ -975,7 +975,8 @@ defmodule Lanttern.ILPTest do
       attrs = %{owner_id: ctx.profile.id, student_ilp_id: ctx.student_ilp.id}
       valid_attrs = params_for(:ilp_comment, attrs)
 
-      assert {:ok, %ILPComment{} = ilp_comment} = ILP.create_ilp_comment(valid_attrs)
+      assert {:ok, %ILPComment{} = ilp_comment} =
+               ILP.create_ilp_comment(valid_attrs, ctx.profile.id)
 
       assert ilp_comment.position == valid_attrs.position
       assert ilp_comment.content == valid_attrs.content
@@ -983,16 +984,16 @@ defmodule Lanttern.ILPTest do
       assert ilp_comment.student_ilp_id == ctx.student_ilp.id
     end
 
-    test "create_ilp_comment/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = ILP.create_ilp_comment(@invalid_attrs)
+    test "create_ilp_comment/2 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = ILP.create_ilp_comment(@invalid_attrs, nil)
     end
 
-    test "update_ilp_comment/2 with valid data updates the ilp_comment", ctx do
+    test "update_ilp_comment/3 with valid data updates the ilp_comment", ctx do
       ilp_comment = insert(:ilp_comment, %{owner: ctx.profile, student_ilp: ctx.student_ilp})
       update_attrs = %{position: 43, content: "some"}
 
       assert {:ok, %ILPComment{} = ilp_comment} =
-               ILP.update_ilp_comment(ilp_comment, update_attrs)
+               ILP.update_ilp_comment(ilp_comment, update_attrs, nil)
 
       assert ilp_comment.position == update_attrs.position
       assert ilp_comment.content == update_attrs.content
@@ -1002,13 +1003,16 @@ defmodule Lanttern.ILPTest do
 
     test "update_ilp_comment/2 with invalid data returns error changeset" do
       ilp_comment = insert(:ilp_comment)
-      assert {:error, %Ecto.Changeset{}} = ILP.update_ilp_comment(ilp_comment, @invalid_attrs)
+
+      assert {:error, %Ecto.Changeset{}} =
+               ILP.update_ilp_comment(ilp_comment, @invalid_attrs, nil)
+
       assert ilp_comment == ILP.get_ilp_comment(ilp_comment.id)
     end
 
     test "delete_ilp_comment/1 deletes the ilp_comment" do
       ilp_comment = insert(:ilp_comment)
-      assert {:ok, %ILPComment{}} = ILP.delete_ilp_comment(ilp_comment)
+      assert {:ok, %ILPComment{}} = ILP.delete_ilp_comment(ilp_comment, nil)
       assert ILP.get_ilp_comment(ilp_comment.id) == nil
     end
 

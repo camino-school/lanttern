@@ -3,11 +3,12 @@ defmodule Lanttern.ILPLog do
   The ILPLog context.
   """
 
-  import Ecto.Query, warn: false
+  alias Lanttern.ILP.StudentILP
+  alias Lanttern.ILPLog.ILPCommentLog
+  alias Lanttern.ILPLog.StudentILPLog
   alias Lanttern.Repo
 
-  alias Lanttern.ILP.StudentILP
-  alias Lanttern.ILPLog.StudentILPLog
+  import Ecto.Query, warn: false
 
   @doc """
   Creates a student_ilp_log.
@@ -88,5 +89,40 @@ defmodule Lanttern.ILPLog do
     Task.Supervisor.start_child(Lanttern.TaskSupervisor, fn ->
       create_student_ilp_log(attrs)
     end)
+  end
+
+  @doc """
+  Creates a ilp_comment_log for Lanttern.ILP.ILPComment
+  ## Examples
+
+      iex> create_ilp_comment_log(%{field: value})
+      {:ok, %ILPCommentLog{}}
+
+      iex> create_ilp_comment_log(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_ilp_comment_log(attrs \\ %{}) do
+    %ILPCommentLog{}
+    |> ILPCommentLog.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Creates an async task to log an ILPComment.
+  """
+  def async_create_ilp_comment_log(ilp_comment, operation, log_profile_id) do
+    if log_profile_id do
+      ilp_comment
+      |> Map.from_struct()
+      |> Map.put(:ilp_comment_id, ilp_comment.id)
+      |> Map.put(:profile_id, log_profile_id)
+      |> Map.put(:operation, operation)
+      |> then(
+        &Task.Supervisor.start_child(Lanttern.TaskSupervisor, fn ->
+          Lanttern.ILPLog.create_ilp_comment_log(&1)
+        end)
+      )
+    end
   end
 end
