@@ -555,13 +555,13 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         SupabaseHelpers.upload_object(
           "attachments",
           entry.client_name,
-          file_path,
-          %{content_type: entry.client_type}
+          file_path
+          # %{content_type: entry.client_type}
         )
         |> case do
           {:ok, object} ->
             attachment_url =
-              "#{SupabaseHelpers.config().base_url}/storage/v1/object/public/#{URI.encode(object["Key"])}"
+              "#{SupabaseHelpers.config().base_url}/storage/v1/object/public/#{URI.encode(object.key)}"
 
             {:ok, {:ok, {attachment_url, entry.client_name}}}
 

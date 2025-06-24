@@ -115,7 +115,7 @@ defmodule LantternWeb.Reporting.StudentReportCardFormComponent do
           )
 
         image_url =
-          "#{SupabaseHelpers.config().base_url}/storage/v1/object/public/#{URI.encode(object["Key"])}"
+          "#{SupabaseHelpers.config().base_url}/storage/v1/object/public/#{URI.encode(object.key)}"
 
         {:ok, image_url}
       end)

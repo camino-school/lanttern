@@ -3,94 +3,61 @@ defmodule Lanttern.SupabaseHelpers do
   Wrapper around `Supabase` for ease of use
   """
 
-  @client_name :lanttern
-
   @doc """
   `Supabase.Storage.create_bucket/2` wrapper.
-
+  -
   This wrapper:
 
   - handles the client
   - puts the bucket name into valid attrs
   """
   def create_bucket(bucket_name) do
-    client = client()
-    Supabase.Storage.create_bucket(client, %{id: bucket_name, public: true})
+    Supabase.Storage.create_bucket(client(), bucket_name, %{public: true})
   end
 
   @doc """
-  `Supabase.Storage.upload_object/5` wrapper.
-
-  This wrapper:
-
-  - handles the client
-  - puts the bucket name into a `Supabase.Storage.Bucket` struct
-  - adds UUID + Slugify + URI encodes the path
-  - parses opts to a `Supabase.Storage.ObjectOptions` struct
+  `Supabase.Storage.File.upload/3` wrapper.
   """
-  def upload_object(bucket_name, path, file, opts \\ %{}) do
-    client = client()
-
-    path =
+  def upload_object(bucket_id, path, file_path, opts \\ %{}) do
+    object_path =
       "#{Ecto.UUID.generate()}-#{path}"
       |> Slug.slugify(lowercase: false, ignore: "._")
       |> URI.encode()
 
-    Supabase.Storage.upload_object(
-      client,
-      Supabase.Storage.Bucket.parse!(%{name: bucket_name}),
-      path,
-      file,
-      Supabase.Storage.ObjectOptions.parse!(opts)
-    )
+    client()
+    |> Supabase.Storage.from(bucket_id)
+    |> Supabase.Storage.File.upload(file_path, object_path, opts)
   end
 
   @doc """
-  `Supabase.Storage.remove_object/3` wrapper.
+  `Supabase.Storage.File.remove/1` wrapper.
 
   This wrapper:
 
   - handles the client
-  - puts the bucket name into a `Supabase.Storage.Bucket` struct
+  - created storage into a `Supabase.Storage` struct
   - extract the wildcard from URL and builds a Supabase.Storage.Object
   """
-  def remove_object(bucket_name, url) do
-    client = client()
-
+  def remove_object(bucket_id, url) do
     path =
       case Regex.run(~r/.*\/([^?]+)/, url) do
         [_, match] -> match
         nil -> nil
       end
 
-    Supabase.Storage.remove_object(
-      client,
-      Supabase.Storage.Bucket.parse!(%{name: bucket_name}),
-      Supabase.Storage.Object.parse!(%{path: path})
-    )
+    client()
+    |> Supabase.Storage.from(bucket_id)
+    |> Supabase.Storage.File.remove(path)
   end
 
-  defp client do
-    Supabase.init_client(%{
-      name: @client_name,
-      conn: %{
-        base_url: config().base_url,
-        api_key: config().api_key
-      }
-    })
-    |> case do
-      {:error, {:already_started, pid}} -> pid
-      {:ok, pid} -> pid
-      res -> res
-    end
-  end
+  defp client, do: Supabase.init_client(config()[:base_url], config()[:api_key]) |> elem(1)
 
   @doc """
   Returns a map with `base_url` and `api_key`.
 
   Useful for building object urls.
 
-      > "\#{config().base_url}/storage/v1/object/public/bucket/object_path"
+      > "\#{config()[:base_url]}/storage/v1/object/public/bucket/object_path"
   """
   def config do
     %{
