@@ -152,7 +152,9 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
     do: save_ilp_comment(socket, socket.assigns.form_action, comment_params)
 
   def handle_event("delete", _, socket) do
-    case ILP.delete_ilp_comment(socket.assigns.ilp_comment, socket.assigns.current_profile.id) do
+    case ILP.delete_ilp_comment(socket.assigns.ilp_comment,
+           log_profile_id: socket.assigns.current_profile.id
+         ) do
       {:ok, ilp_comment} ->
         notify(__MODULE__, {:deleted, ilp_comment}, socket.assigns)
 
@@ -183,7 +185,7 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
   defp save_ilp_comment(socket, :edit, params) do
     profile_id = socket.assigns.current_profile.id
 
-    case ILP.update_ilp_comment(socket.assigns.ilp_comment, params, profile_id) do
+    case ILP.update_ilp_comment(socket.assigns.ilp_comment, params, log_profile_id: profile_id) do
       {:ok, comment} ->
         notify(__MODULE__, {:updated, comment}, socket.assigns)
 

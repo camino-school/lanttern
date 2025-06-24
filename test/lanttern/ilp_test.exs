@@ -947,6 +947,7 @@ defmodule Lanttern.ILPTest do
 
   describe "ilp_comments" do
     alias Lanttern.ILP.ILPComment
+    alias Lanttern.ILPLog.ILPCommentLog
 
     setup do
       school = insert(:school)
@@ -976,16 +977,35 @@ defmodule Lanttern.ILPTest do
       valid_attrs = params_for(:ilp_comment, attrs)
 
       assert {:ok, %ILPComment{} = ilp_comment} =
-               ILP.create_ilp_comment(valid_attrs, ctx.profile.id)
+               ILP.create_ilp_comment(valid_attrs, log_profile_id: ctx.profile.id)
 
       assert ilp_comment.position == valid_attrs.position
       assert ilp_comment.content == valid_attrs.content
       assert ilp_comment.owner_id == ctx.profile.id
       assert ilp_comment.student_ilp_id == ctx.student_ilp.id
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+
+        ilp_comment_log =
+          Repo.get_by!(ILPCommentLog,
+            ilp_comment_id: ilp_comment.id
+          )
+
+        assert ilp_comment_log.ilp_comment_id == ilp_comment.id
+        assert ilp_comment_log.profile_id == ctx.profile.id
+        assert ilp_comment_log.operation == :CREATE
+
+        assert ilp_comment_log.position == ilp_comment.position
+        assert ilp_comment_log.content == ilp_comment.content
+        assert ilp_comment_log.owner_id == ilp_comment.owner_id
+        assert ilp_comment_log.student_ilp_id == ilp_comment.student_ilp_id
+        assert ilp_comment_log.owner_id == ctx.profile.id
+      end)
     end
 
     test "create_ilp_comment/2 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = ILP.create_ilp_comment(@invalid_attrs, nil)
+      assert {:error, %Ecto.Changeset{}} = ILP.create_ilp_comment(@invalid_attrs)
     end
 
     test "update_ilp_comment/3 with valid data updates the ilp_comment", ctx do
@@ -993,27 +1013,61 @@ defmodule Lanttern.ILPTest do
       update_attrs = %{position: 43, content: "some"}
 
       assert {:ok, %ILPComment{} = ilp_comment} =
-               ILP.update_ilp_comment(ilp_comment, update_attrs, nil)
+               ILP.update_ilp_comment(ilp_comment, update_attrs, log_profile_id: ctx.profile.id)
 
       assert ilp_comment.position == update_attrs.position
       assert ilp_comment.content == update_attrs.content
       assert ilp_comment.owner_id == ctx.profile.id
       assert ilp_comment.student_ilp_id == ctx.student_ilp.id
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+
+        ilp_comment_log =
+          Repo.get_by!(ILPCommentLog,
+            ilp_comment_id: ilp_comment.id
+          )
+
+        assert ilp_comment_log.ilp_comment_id == ilp_comment.id
+        assert ilp_comment_log.profile_id == ctx.profile.id
+        assert ilp_comment_log.operation == :UPDATE
+
+        assert ilp_comment_log.position == ilp_comment.position
+        assert ilp_comment_log.content == ilp_comment.content
+        assert ilp_comment_log.student_ilp_id == ilp_comment.student_ilp_id
+        assert ilp_comment_log.owner_id == ilp_comment.owner_id
+      end)
     end
 
     test "update_ilp_comment/2 with invalid data returns error changeset" do
       ilp_comment = insert(:ilp_comment)
 
       assert {:error, %Ecto.Changeset{}} =
-               ILP.update_ilp_comment(ilp_comment, @invalid_attrs, nil)
+               ILP.update_ilp_comment(ilp_comment, @invalid_attrs)
 
       assert ilp_comment == ILP.get_ilp_comment(ilp_comment.id)
     end
 
-    test "delete_ilp_comment/1 deletes the ilp_comment" do
-      ilp_comment = insert(:ilp_comment)
-      assert {:ok, %ILPComment{}} = ILP.delete_ilp_comment(ilp_comment, nil)
+    test "delete_ilp_comment/1 deletes the ilp_comment", ctx do
+      ilp_comment = insert(:ilp_comment, %{owner: ctx.profile, student_ilp: ctx.student_ilp})
+
+      assert {:ok, %ILPComment{}} =
+               ILP.delete_ilp_comment(ilp_comment, log_profile_id: ctx.profile.id)
+
       assert ILP.get_ilp_comment(ilp_comment.id) == nil
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+
+        ilp_comment_log =
+          Repo.get_by!(ILPCommentLog,
+            ilp_comment_id: ilp_comment.id
+          )
+
+        assert ilp_comment_log.ilp_comment_id == ilp_comment.id
+        assert ilp_comment_log.profile_id == ctx.profile.id
+        assert ilp_comment_log.operation == :DELETE
+      end)
     end
 
     test "change_ilp_comment/1 returns a ilp_comment changeset" do

@@ -9,12 +9,14 @@ defmodule Lanttern.ILPLog.ILPCommentLog do
   @schema_prefix "log"
   schema "ilp_comments" do
     field :ilp_comment_id, :id
-    field :owner_id, :id
-    field :student_ilp_id, :id
+    field :profile_id, :id
     field :operation, Ecto.Enum, values: [:CREATE, :UPDATE, :DELETE]
 
     field :position, :integer
     field :content, :string
+
+    field :student_ilp_id, :id
+    field :owner_id, :id
 
     timestamps(updated_at: false)
   end
@@ -24,19 +26,21 @@ defmodule Lanttern.ILPLog.ILPCommentLog do
     ilp_comment_log
     |> cast(attrs, [
       :ilp_comment_id,
-      :owner_id,
-      :student_ilp_id,
+      :profile_id,
       :operation,
       :position,
-      :content
+      :content,
+      :student_ilp_id,
+      :owner_id
     ])
     |> validate_required([
       :ilp_comment_id,
-      :owner_id,
-      :student_ilp_id,
+      :profile_id,
       :operation,
       :position,
-      :content
+      :content,
+      :student_ilp_id,
+      :owner_id
     ])
   end
 end

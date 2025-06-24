@@ -3,6 +3,7 @@ defmodule Lanttern.ILPLog do
   The ILPLog context.
   """
 
+  alias Lanttern.ILP.ILPComment
   alias Lanttern.ILP.StudentILP
   alias Lanttern.ILPLog.ILPCommentLog
   alias Lanttern.ILPLog.StudentILPLog
@@ -109,20 +110,43 @@ defmodule Lanttern.ILPLog do
   end
 
   @doc """
-  Creates an async task to log an ILPComment.
+  Util for creating an ILP comment log.
+
+  Accepts create, update, and delete function responses (tuples) as first arg.
+
+  Always returns the first arg as is. The logging process is handled in an async task.
+
+  ### Options:
+
+  - `:log_profile_id` – the profile id used to log the operation. if not present, logging will be skipped
+
   """
-  def async_create_ilp_comment_log(ilp_comment, operation, log_profile_id) do
-    if log_profile_id do
-      ilp_comment
-      |> Map.from_struct()
-      |> Map.put(:ilp_comment_id, ilp_comment.id)
-      |> Map.put(:profile_id, log_profile_id)
-      |> Map.put(:operation, operation)
-      |> then(
-        &Task.Supervisor.start_child(Lanttern.TaskSupervisor, fn ->
-          Lanttern.ILPLog.create_ilp_comment_log(&1)
-        end)
-      )
+  @spec maybe_create_ilp_comment_log(
+          operation_tuple :: {:ok, ILPComment.t()} | any(),
+          operation :: :CREATE | :UPDATE | :DELETE,
+          opts :: Keyword.t()
+        ) :: {:ok, ILPComment.t()} | any()
+  def maybe_create_ilp_comment_log(operation_tuple, operation, opts \\ []) do
+    with {:ok, %ILPComment{} = ilp_comment} <- operation_tuple,
+         operation when operation in [:CREATE, :UPDATE, :DELETE] <- operation,
+         profile_id when is_integer(profile_id) <- Keyword.get(opts, :log_profile_id) do
+      async_create_ilp_comment_log(ilp_comment, operation, profile_id)
+      operation_tuple
+    else
+      _ -> operation_tuple
     end
+  end
+
+  defp async_create_ilp_comment_log(ilp_comment, operation, profile_id) do
+    ilp_comment
+    |> Map.from_struct()
+    |> Map.put(:ilp_comment_id, ilp_comment.id)
+    |> Map.put(:profile_id, profile_id)
+    |> Map.put(:operation, operation)
+    |> then(
+      &Task.Supervisor.start_child(Lanttern.TaskSupervisor, fn ->
+        create_ilp_comment_log(&1)
+      end)
+    )
   end
 end
