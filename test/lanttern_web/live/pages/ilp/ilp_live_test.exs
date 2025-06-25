@@ -123,16 +123,16 @@ defmodule LantternWeb.ILPLiveTest do
 
     test "share student ILP", context do
       %{conn: conn, user: user} = set_user_permissions(["ilp_management"], context)
-      school_id = user.current_profile.school_id
-      student = insert(:student, school_id: school_id)
-      template = insert(:ilp_template, school_id: school_id)
+      school = user.current_profile.staff_member.school
+      student = insert(:student, school: school)
+      template = insert(:ilp_template, school: school)
 
       student_ilp =
         insert(:student_ilp,
-          school_id: school_id,
-          cycle_id: user.current_profile.current_school_cycle.id,
-          student_id: student.id,
-          template_id: template.id
+          school: school,
+          cycle: user.current_profile.current_school_cycle,
+          student: student,
+          template: template
         )
 
       # setup current user template and student

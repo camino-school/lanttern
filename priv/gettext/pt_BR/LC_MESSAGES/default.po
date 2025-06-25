@@ -122,7 +122,7 @@ msgstr "Aplicando filtros..."
 #: lib/lanttern_web/live/shared/filters/filters_overlay_component.ex:25
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:71
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:73
-#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:86
+#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:97
 #: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:166
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:113
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:202
@@ -186,7 +186,7 @@ msgstr "Nova trilha"
 #: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:136
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:74
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:76
-#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:96
+#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:107
 #: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:169
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:122
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:205
@@ -276,7 +276,7 @@ msgstr "Nenhum ano selecionado"
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:29
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:49
 #: lib/lanttern_web/live/shared/grades_reports/grades_report_form_component.ex:26
-#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:41
+#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:52
 #: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:26
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:37
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:126
@@ -428,7 +428,7 @@ msgstr "Não foi possível encontrar a trilha"
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:141
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:62
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:64
-#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:76
+#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:87
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:103
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:248
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:130
@@ -495,7 +495,7 @@ msgstr "Adicione suas anotações..."
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:147
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:60
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:62
-#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:74
+#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:85
 #: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:159
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:101
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:246
@@ -2145,7 +2145,7 @@ msgstr "Upload de arquivo"
 
 #: lib/lanttern_web/components/ilp_components.ex:138
 #: lib/lanttern_web/live/pages/strands/id/notes_component.ex:83
-#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:60
+#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:71
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:52
 #, elixir-autogen, elixir-format
 msgid "Attachments"
@@ -3536,7 +3536,7 @@ msgstr "Novo template de card de momento"
 msgid "No templates created yet"
 msgstr "Nenhum template criado ainda"
 
-#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:52
+#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:63
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:91
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:188
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:117
@@ -5187,7 +5187,7 @@ msgstr "Comentário deletado com sucesso"
 msgid "Comment updated successfully"
 msgstr "Comentário atualizado com sucesso"
 
-#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:46
+#: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:57
 #, elixir-autogen, elixir-format
 msgid "Content"
 msgstr "Conteúdo"
