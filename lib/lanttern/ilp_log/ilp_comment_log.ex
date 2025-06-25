@@ -12,7 +12,6 @@ defmodule Lanttern.ILPLog.ILPCommentLog do
     field :profile_id, :id
     field :operation, Ecto.Enum, values: [:CREATE, :UPDATE, :DELETE]
 
-    field :position, :integer
     field :content, :string
 
     field :student_ilp_id, :id
@@ -28,7 +27,6 @@ defmodule Lanttern.ILPLog.ILPCommentLog do
       :ilp_comment_id,
       :profile_id,
       :operation,
-      :position,
       :content,
       :student_ilp_id,
       :owner_id
@@ -37,7 +35,6 @@ defmodule Lanttern.ILPLog.ILPCommentLog do
       :ilp_comment_id,
       :profile_id,
       :operation,
-      :position,
       :content,
       :student_ilp_id,
       :owner_id

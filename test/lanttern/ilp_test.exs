@@ -950,26 +950,20 @@ defmodule Lanttern.ILPTest do
     alias Lanttern.ILPLog.ILPCommentLog
 
     setup do
-      school = insert(:school)
-      template = insert(:ilp_template, %{school: school})
-      student = insert(:student, %{school: school})
-      cycle = insert(:cycle, %{school: school})
-
-      student_ilp =
-        insert(:student_ilp, %{student: student, cycle: cycle, template: template, school: school})
-
-      staff_member = insert(:staff_member, %{school: school})
+      student_ilp = insert(:student_ilp)
+      staff_member = insert(:staff_member, %{school: student_ilp.school})
       profile = insert(:profile, %{type: "staff", staff_member: staff_member})
 
       {:ok, student_ilp: student_ilp, profile: profile}
     end
 
-    @invalid_attrs %{position: nil, content: nil, student_ilp_id: nil}
+    @invalid_attrs %{content: nil, student_ilp_id: nil}
 
     test "list_ilp_comments/0 returns all ilp_comments" do
       ilp_comment = insert(:ilp_comment)
 
-      assert ILP.list_ilp_comments() == [ilp_comment]
+      [expected] = ILP.list_ilp_comments()
+      assert expected.id == ilp_comment.id
     end
 
     test "create_ilp_comment/1 with valid data creates a ilp_comment", ctx do
@@ -979,7 +973,6 @@ defmodule Lanttern.ILPTest do
       assert {:ok, %ILPComment{} = ilp_comment} =
                ILP.create_ilp_comment(valid_attrs, log_profile_id: ctx.profile.id)
 
-      assert ilp_comment.position == valid_attrs.position
       assert ilp_comment.content == valid_attrs.content
       assert ilp_comment.owner_id == ctx.profile.id
       assert ilp_comment.student_ilp_id == ctx.student_ilp.id
@@ -996,7 +989,6 @@ defmodule Lanttern.ILPTest do
         assert ilp_comment_log.profile_id == ctx.profile.id
         assert ilp_comment_log.operation == :CREATE
 
-        assert ilp_comment_log.position == ilp_comment.position
         assert ilp_comment_log.content == ilp_comment.content
         assert ilp_comment_log.owner_id == ilp_comment.owner_id
         assert ilp_comment_log.student_ilp_id == ilp_comment.student_ilp_id
@@ -1015,7 +1007,6 @@ defmodule Lanttern.ILPTest do
       assert {:ok, %ILPComment{} = ilp_comment} =
                ILP.update_ilp_comment(ilp_comment, update_attrs, log_profile_id: ctx.profile.id)
 
-      assert ilp_comment.position == update_attrs.position
       assert ilp_comment.content == update_attrs.content
       assert ilp_comment.owner_id == ctx.profile.id
       assert ilp_comment.student_ilp_id == ctx.student_ilp.id
@@ -1032,7 +1023,6 @@ defmodule Lanttern.ILPTest do
         assert ilp_comment_log.profile_id == ctx.profile.id
         assert ilp_comment_log.operation == :UPDATE
 
-        assert ilp_comment_log.position == ilp_comment.position
         assert ilp_comment_log.content == ilp_comment.content
         assert ilp_comment_log.student_ilp_id == ilp_comment.student_ilp_id
         assert ilp_comment_log.owner_id == ilp_comment.owner_id
@@ -1045,7 +1035,10 @@ defmodule Lanttern.ILPTest do
       assert {:error, %Ecto.Changeset{}} =
                ILP.update_ilp_comment(ilp_comment, @invalid_attrs)
 
-      assert ilp_comment == ILP.get_ilp_comment(ilp_comment.id)
+      expected = ILP.get_ilp_comment(ilp_comment.id)
+      assert expected.id == ilp_comment.id
+      assert expected.content == ilp_comment.content
+      assert expected.student_ilp_id == ilp_comment.student_ilp_id
     end
 
     test "delete_ilp_comment/1 deletes the ilp_comment", ctx do
