@@ -22,7 +22,7 @@ defmodule LantternWeb.ILPComponents do
   attr :on_student_share_toggle, :any, default: nil
   attr :on_guardians_share_toggle, :any, default: nil
   attr :class, :any, default: nil
-  attr :id, :string, default: nil
+  attr :id, :string, required: true
 
   def student_ilp_share_controls(assigns) do
     ~H"""
@@ -30,6 +30,7 @@ defmodule LantternWeb.ILPComponents do
       <div class="group relative shrink-0 flex items-center gap-1">
         <.toggle
           :if={@show_controls}
+          id={"student-ilp-student-toggle-#{@id}"}
           enabled={@student_ilp.is_shared_with_student}
           theme="student"
           phx-click={@on_student_share_toggle}
@@ -51,6 +52,7 @@ defmodule LantternWeb.ILPComponents do
       <div class="group relative shrink-0 flex items-center gap-1">
         <.toggle
           :if={@show_controls}
+          id={"student-ilp-guardian-toggle-#{@id}"}
           enabled={@student_ilp.is_shared_with_guardians}
           theme="student"
           phx-click={@on_guardians_share_toggle}
