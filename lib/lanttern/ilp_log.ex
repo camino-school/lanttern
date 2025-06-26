@@ -126,18 +126,13 @@ defmodule Lanttern.ILPLog do
           operation :: :CREATE | :UPDATE | :DELETE,
           opts :: Keyword.t()
         ) :: {:ok, ILPComment.t()} | any()
-  def maybe_create_ilp_comment_log(operation_tuple, operation, opts \\ []) do
-    with {:ok, %ILPComment{} = ilp_comment} <- operation_tuple,
-         operation when operation in [:CREATE, :UPDATE, :DELETE] <- operation,
-         profile_id when is_integer(profile_id) <- Keyword.get(opts, :log_profile_id) do
-      async_create_ilp_comment_log(ilp_comment, operation, profile_id)
-      operation_tuple
-    else
-      _ -> operation_tuple
-    end
+  def maybe_create_ilp_comment_log(operation_tuple, operation, opts) do
+    operation_tuple
+    |> tap(&async_create_ilp_comment_log(&1, operation, Keyword.get(opts, :log_profile_id)))
   end
 
-  defp async_create_ilp_comment_log(ilp_comment, operation, profile_id) do
+  defp async_create_ilp_comment_log({:ok, %ILPComment{} = ilp_comment}, operation, profile_id)
+       when operation in [:CREATE, :UPDATE, :DELETE] and is_integer(profile_id) do
     ilp_comment
     |> Map.from_struct()
     |> Map.put(:ilp_comment_id, ilp_comment.id)
@@ -149,4 +144,6 @@ defmodule Lanttern.ILPLog do
       end)
     )
   end
+
+  defp async_create_ilp_comment_log(_ilp_comment, _operation, _profile_id), do: :nothing
 end
