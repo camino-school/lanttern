@@ -755,4 +755,15 @@ defmodule Lanttern.Identity do
       "guardian" -> profile.guardian_of_student.name
     end
   end
+
+  @doc """
+  Returns the picture URL of the profile
+  """
+  def get_profile_picture_url(profile) do
+    case profile.type do
+      "student" -> profile.student.profile_picture_url
+      "staff" -> profile.staff_member.profile_picture_url
+      "guardian" -> profile.guardian_of_student.profile_picture_url
+    end
+  end
 end

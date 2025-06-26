@@ -42,9 +42,9 @@ defmodule Lanttern.Schools.Student do
 
   schema "students" do
     field :name, :string
+    field :profile_picture_url, :string
     field :deactivated_at, :utc_datetime
 
-    field :profile_picture_url, :string, virtual: true
     field :classes_ids, {:array, :id}, virtual: true
     field :has_diff_rubric, :boolean, virtual: true, default: false
     field :tags_ids, {:array, :id}, virtual: true
@@ -80,7 +80,14 @@ defmodule Lanttern.Schools.Student do
   @doc false
   def changeset(student, attrs) do
     student
-    |> cast(attrs, [:name, :deactivated_at, :school_id, :classes_ids, :tags_ids])
+    |> cast(attrs, [
+      :name,
+      :profile_picture_url,
+      :deactivated_at,
+      :school_id,
+      :classes_ids,
+      :tags_ids
+    ])
     |> validate_required([:name, :school_id])
     |> put_classes(attrs)
     |> cast_tags()

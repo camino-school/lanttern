@@ -104,8 +104,8 @@ defmodule LantternWeb.ILPComponents do
         id={"ilp-comment-#{ilp_comment.id}"}
       >
         <.profile_picture
-          picture_url={ilp_comment.owner.profile_picture_url}
-          profile_name={ilp_comment.owner.name}
+          picture_url={Identity.get_profile_picture_url(ilp_comment.owner)}
+          profile_name={Identity.get_profile_name(ilp_comment.owner)}
         />
         <.card_base class="flex-1 sm:max-w-3/4 p-2">
           <div class="flex items-center justify-between gap-4">
