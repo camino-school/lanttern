@@ -12,7 +12,6 @@ defmodule Lanttern.ILP.ILPComment do
   @type t :: %__MODULE__{
           id: pos_integer(),
           content: String.t(),
-          position: pos_integer(),
           student_ilp_id: pos_integer(),
           student_ilp: StudentILP.t(),
           owner_id: pos_integer(),
@@ -24,7 +23,6 @@ defmodule Lanttern.ILP.ILPComment do
 
   schema "ilp_comments" do
     field :content, :string
-    field :position, :integer
 
     belongs_to :student_ilp, StudentILP
     belongs_to :owner, Profile
@@ -37,7 +35,7 @@ defmodule Lanttern.ILP.ILPComment do
   @doc false
   def changeset(ilp_comment, attrs) do
     ilp_comment
-    |> cast(attrs, [:content, :position, :student_ilp_id, :owner_id])
-    |> validate_required([:content, :position, :student_ilp_id, :owner_id])
+    |> cast(attrs, [:content, :student_ilp_id, :owner_id])
+    |> validate_required([:content, :student_ilp_id, :owner_id])
   end
 end
