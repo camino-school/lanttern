@@ -23,6 +23,10 @@ defmodule LantternWeb.Endpoint do
     gzip: true,
     only: LantternWeb.static_paths()
 
+  if Code.ensure_loaded?(Tidewave) do
+    plug Tidewave
+  end
+
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
   if code_reloading? do
@@ -48,8 +52,4 @@ defmodule LantternWeb.Endpoint do
   plug Plug.Head
   plug Plug.Session, @session_options
   plug LantternWeb.Router
-
-  if Code.ensure_loaded?(Tidewave) do
-    plug Tidewave
-  end
 end

@@ -17,6 +17,16 @@ defmodule Lanttern.SupabaseHelpers do
 
   @doc """
   `Supabase.Storage.File.upload/3` wrapper.
+
+  - `bucket_id`: bucket name
+  - `path`: The file path, including the file name. Should be of the format `folder/subfolder/filename.png`. The bucket must already exist before attempting to upload.
+  - `file_path`: The **local** filesystem path, to upload from.
+  - `opts`:An FileOptions consists of the following attributes:
+    - `cache_control`: The number of seconds the asset is cached in the browser and in the Supabase CDN. This is set in the Cache-Control: max-age=<seconds> header. Defaults to 3600 seconds.
+    - `content_type`: Specifies the media type of the resource or data. Default is "text/plain;charset=UTF-8".
+    - `upsert`: When upsert is set to true, the file is overwritten if it exists. When set to false, an error is thrown if the object already exists. Defaults to false.
+    - `metadata`: The metadata option is an object that allows you to store additional information about the file. This information can be used to filter and search for files. The metadata object can contain any key-value pairs you want to store.
+    - `headers`: Optionally add extra headers to the request.
   """
   def upload_object(bucket_id, path, file_path, opts \\ %{}) do
     object_path =
@@ -50,7 +60,7 @@ defmodule Lanttern.SupabaseHelpers do
     |> Supabase.Storage.File.remove(path)
   end
 
-  defp client, do: Supabase.init_client(config()[:base_url], config()[:api_key]) |> elem(1)
+  def client, do: Supabase.init_client(config()[:base_url], config()[:api_key]) |> elem(1)
 
   @doc """
   Returns a map with `base_url` and `api_key`.

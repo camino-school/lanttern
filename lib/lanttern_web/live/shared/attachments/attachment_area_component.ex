@@ -550,41 +550,25 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   end
 
   def handle_event("upload", _, socket) do
-    [consumed_upload_res] =
-      consume_uploaded_entries(socket, :attachment_file, fn %{path: file_path}, entry ->
-        SupabaseHelpers.upload_object(
-          "attachments",
-          entry.client_name,
-          file_path
-          # %{content_type: entry.client_type}
-        )
-        |> case do
-          {:ok, object} ->
-            attachment_url =
-              "#{SupabaseHelpers.config().base_url}/storage/v1/object/public/#{URI.encode(object.key)}"
+    socket
+    |> consume_uploaded_entries(:attachment_file, fn %{path: file_path}, entry ->
+      opts = %{content_type: entry.client_type}
 
-            {:ok, {:ok, {attachment_url, entry.client_name}}}
+      case SupabaseHelpers.upload_object("attachments", entry.client_name, file_path, opts) do
+        {:ok, object} ->
+          base_url = SupabaseHelpers.config()[:base_url]
+          attachment_url = "#{base_url}/storage/v1/object/public/#{URI.encode(object.key)}"
 
-          {:error, message} ->
-            {:ok, {:error, message}}
-        end
-      end)
+          {:ok, {:ok, {attachment_url, entry.client_name}}}
 
-    case consumed_upload_res do
-      {:ok, {link, name}} ->
-        params = %{
-          "name" => name,
-          "link" => link
-        }
-
-        save_attachment(socket, :new, params)
-
-      {:error, message} ->
-        socket =
-          socket
-          |> assign(:upload_error, message)
-
-        {:noreply, socket}
+        {:error, %{message: message}} ->
+          {:ok, {:error, message}}
+      end
+    end)
+    |> hd()
+    |> case do
+      {:ok, {link, name}} -> save_attachment(socket, :new, %{"name" => name, "link" => link})
+      {:error, message} -> {:noreply, assign(socket, :upload_error, message)}
     end
   end
 
