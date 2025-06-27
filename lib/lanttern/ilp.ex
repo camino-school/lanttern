@@ -913,6 +913,10 @@ defmodule Lanttern.ILP do
   @doc """
   Creates a ilp_comment.
 
+  ## Options
+
+  - `:log_profile_id` - logs the operation, linked to given profile
+
   ## Examples
 
       iex> create_ilp_comment(%{field: value})
@@ -922,44 +926,48 @@ defmodule Lanttern.ILP do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_ilp_comment(attrs \\ %{}) do
+  def create_ilp_comment(attrs, opts \\ []) do
     %ILPComment{}
     |> ILPComment.changeset(attrs)
     |> Repo.insert()
+    |> ILPLog.maybe_create_ilp_comment_log(:CREATE, opts)
   end
 
   @doc """
   Updates a ilp_comment.
 
+  ## Options
+
+  - `:log_profile_id` - logs the operation, linked to given profile
+
   ## Examples
 
-      iex> update_ilp_comment(ilp_comment, %{field: new_value})
+      iex> update_ilp_comment(ilp_comment, %{field: new_value}, log_profile_id)
       {:ok, %ILPComment{}}
 
-      iex> update_ilp_comment(ilp_comment, %{field: bad_value})
+      iex> update_ilp_comment(ilp_comment, %{field: bad_value}, log_profile_id)
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_ilp_comment(%ILPComment{} = ilp_comment, attrs) do
+  def update_ilp_comment(%ILPComment{} = ilp_comment, attrs, opts \\ []) do
     ilp_comment
     |> ILPComment.changeset(attrs)
     |> Repo.update()
+    |> ILPLog.maybe_create_ilp_comment_log(:UPDATE, opts)
   end
 
   @doc """
   Deletes a ilp_comment.
 
-  ## Examples
+  ## Options
 
-      iex> delete_ilp_comment(ilp_comment)
-      {:ok, %ILPComment{}}
-
-      iex> delete_ilp_comment(ilp_comment)
-      {:error, %Ecto.Changeset{}}
+  - `:log_profile_id` - logs the operation, linked to given profile
 
   """
-  def delete_ilp_comment(%ILPComment{} = ilp_comment) do
-    Repo.delete(ilp_comment)
+  def delete_ilp_comment(%ILPComment{} = ilp_comment, opts \\ []) do
+    ilp_comment
+    |> Repo.delete()
+    |> ILPLog.maybe_create_ilp_comment_log(:DELETE, opts)
   end
 
   @doc """

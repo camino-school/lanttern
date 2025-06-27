@@ -4,8 +4,8 @@ defmodule Lanttern.ILPTemplateFactory do
     quote do
       def ilp_template_factory do
         %Lanttern.ILP.ILPTemplate{
-          name: sequence(:name, &"ILP Template #-#{&1}")
-          # school: build(:school)
+          name: sequence(:name, &"ILP Template #-#{&1}"),
+          school: build(:school)
         }
       end
     end
