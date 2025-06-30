@@ -24,6 +24,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
   alias Lanttern.ILP
   alias Lanttern.ILP.ILPEntry
   alias Lanttern.ILP.StudentILP
+  alias Lanttern.SupabaseHelpers
 
   # shared components
   import LantternWeb.ILPComponents
@@ -106,6 +107,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
         current_profile={@current_user.current_profile}
         tz={@current_user.tz}
         class="mt-10"
+        on_signed_url={&JS.push("signed_url", value: %{"url" => &1}, target: @myself)}
       />
       <.modal :if={@template.description} id={"#{@id}-template-info-modal"}>
         <h6 class="mb-6 font-display font-black text-xl">
@@ -249,8 +251,14 @@ defmodule LantternWeb.ILP.StudentILPComponent do
         {:noreply, socket}
 
       {:error, _changeset} ->
-        # handle error
         {:noreply, socket}
+    end
+  end
+
+  def handle_event("signed_url", %{"url" => url}, socket) do
+    case SupabaseHelpers.create_signed_url(url) do
+      {:ok, external} -> {:noreply, redirect(socket, external: external)}
+      {:error, :invalid_url} -> {:noreply, put_flash(socket, :error, gettext("Invalid URL"))}
     end
   end
 end

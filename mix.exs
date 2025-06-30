@@ -80,7 +80,8 @@ defmodule Lanttern.MixProject do
       {:phoenix_test, "~> 0.6.0", only: :test, runtime: false},
       {:ex_machina, "~> 2.8.0", only: :test},
       {:ex_cldr, "~> 2.37"},
-      {:ex_cldr_dates_times, "~> 2.0"}
+      {:ex_cldr_dates_times, "~> 2.0"},
+      {:mimic, "~> 1.12", only: :test}
     ]
   end
 
