@@ -27,33 +27,30 @@ defmodule LantternWeb.FormHelpers do
 
       try do
         {:ok, _} = Image.write(thumbnail, thumbnail_path)
+        opts = %{content_type: entry.client_type}
 
         {:ok, object} =
           SupabaseHelpers.upload_object(
             "profile_pictures",
             entry.client_name,
             thumbnail_path,
-            %{content_type: entry.client_type}
+            opts
           )
           |> case do
-            {:error, "Bucket not found"} ->
-              # create bucket and retry
-              {:ok, bucket} =
-                SupabaseHelpers.create_bucket("profile_pictures")
+            {:error, %{message: "Bucket not found"}} ->
+              {:ok, bucket} = SupabaseHelpers.create_bucket("profile_pictures")
 
-              SupabaseHelpers.upload_object(
-                bucket.name,
-                entry.client_name,
-                file_path,
-                %{content_type: entry.client_type}
-              )
+              SupabaseHelpers.upload_object(bucket.name, entry.client_name, thumbnail_path, opts)
 
-            success_tuple ->
+            {:ok, _success} = success_tuple ->
               success_tuple
+
+            _default ->
+              raise("Failed to upload profile picture")
           end
 
         image_url =
-          "#{SupabaseHelpers.config().base_url}/storage/v1/object/public/#{URI.encode(object["Key"])}"
+          "#{SupabaseHelpers.config().base_url}/storage/v1/object/public/#{URI.encode(object.key)}"
 
         {:ok, image_url}
       after
