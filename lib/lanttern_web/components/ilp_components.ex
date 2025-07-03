@@ -7,6 +7,7 @@ defmodule LantternWeb.ILPComponents do
 
   use Gettext, backend: Lanttern.Gettext
 
+  import LantternWeb.AttachmentsComponents
   import LantternWeb.CoreComponents
   import LantternWeb.DateTimeHelpers
 
@@ -130,29 +131,17 @@ defmodule LantternWeb.ILPComponents do
             </div>
           </div>
           <div
-            :if={!Enum.empty?(ilp_comment.attachments)}
+            :if={!Enum.empty?(ilp_comment.ilp_comment_attachments)}
             class="p-2 rounded-sm mt-4 bg-ltrn-lightest"
           >
             <h6 class="flex items-center gap-2 font-bold text-ltrn-subtle">
               <.icon name="hero-paper-clip-mini" />
               <%= gettext("Attachments") %>
             </h6>
-            <div :for={ilp_attachment <- ilp_comment.attachments}>
-              <.card_base class="p-4 mt-2">
-                <%= if(ilp_attachment.is_external) do %>
-                  <.badge><%= gettext("External link") %></.badge>
-                <% else %>
-                  <.badge theme="cyan"><%= gettext("Upload") %></.badge>
-                <% end %>
-                <a
-                  href={ilp_attachment.link}
-                  target="_blank"
-                  class="block mt-2 text-sm underline hover:text-ltrn-subtle"
-                >
-                  <%= ilp_attachment.name %>
-                </a>
-              </.card_base>
-            </div>
+            <.attachments_list
+              id={"ilp-comment-#{ilp_comment.id}-attachments"}
+              attachments={Enum.map(ilp_comment.ilp_comment_attachments, & &1.attachment)}
+            />
           </div>
         </.card_base>
       </div>
