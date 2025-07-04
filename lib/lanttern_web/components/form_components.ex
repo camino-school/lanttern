@@ -77,7 +77,7 @@ defmodule LantternWeb.FormComponents do
   attr :type, :string,
     default: "text",
     values: ~w(checkbox color date datetime-local email file hidden month number password
-               range radio search select tel text textarea time url week toggle)
+               range radio search select tel text textarea time url week toggle markdown)
 
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
@@ -229,6 +229,73 @@ defmodule LantternWeb.FormComponents do
         <%= render_slot(@description) %>
       </div>
       <.textarea id={@id} name={@name} errors={@errors} value={@value} {@rest} />
+      <.error :for={msg <- @errors}><%= msg %></.error>
+    </div>
+    """
+  end
+
+  def input(%{type: "markdown"} = assigns) do
+    ~H"""
+    <div phx-feedback-for={@name} class={@class}>
+      <.label
+        :if={@label || @custom_label != []}
+        for={@id}
+        show_optional={@show_optional}
+        help_text={@help_text}
+        custom={if @custom_label == [], do: false, else: true}
+      >
+        <%= @label || render_slot(@custom_label) %>
+      </.label>
+      <div :if={@description != []} class="mb-2">
+        <%= render_slot(@description) %>
+      </div>
+      <div class="flex items-center justify-between gap-2 px-2 rounded-xs mb-1 bg-ltrn-lightest">
+        <div class="flex">
+          <button
+            type="button"
+            id={"edit-btn-#{@id}"}
+            class="p-2 border-b-2 border-ltrn-dark font-bold"
+            phx-click={
+              JS.show(to: "##{@id}")
+              |> JS.hide(to: "#preview-#{@id}")
+              |> JS.add_class("border-ltrn-dark text-ltrn-dark font-bold")
+              |> JS.remove_class("border-ltrn-lighter text-ltrn-subtle hover:text-ltrn-dark")
+              |> JS.add_class("border-ltrn-lighter text-ltrn-subtle hover:text-ltrn-dark",
+                to: "#preview-btn-#{@id}"
+              )
+              |> JS.remove_class("border-ltrn-dark text-ltrn-dark font-bold",
+                to: "#preview-btn-#{@id}"
+              )
+            }
+          >
+            <%= gettext("Edit") %>
+          </button>
+          <button
+            type="button"
+            id={"preview-btn-#{@id}"}
+            class="p-2 border-b-2 border-ltrn-lighter text-ltrn-subtle hover:text-ltrn-dark"
+            phx-click={
+              JS.hide(to: "##{@id}")
+              |> JS.show(to: "#preview-#{@id}")
+              |> JS.add_class("border-ltrn-dark text-ltrn-dark font-bold")
+              |> JS.remove_class("border-ltrn-lighter text-ltrn-subtle hover:text-ltrn-dark")
+              |> JS.add_class("border-ltrn-lighter text-ltrn-subtle hover:text-ltrn-dark",
+                to: "#edit-btn-#{@id}"
+              )
+              |> JS.remove_class("border-ltrn-dark text-ltrn-dark font-bold", to: "#edit-btn-#{@id}")
+            }
+          >
+            <%= gettext("Preview") %>
+          </button>
+        </div>
+        <.markdown_supported />
+      </div>
+      <.textarea id={@id} name={@name} errors={@errors} value={@value} {@rest} />
+      <.markdown
+        id={"preview-#{@id}"}
+        text={@value || ""}
+        class="w-full max-w-none min-h-[10rem] p-4 rounded-xs shadow-xs ring-1 ring-ltrn-lighter hidden"
+      />
       <.error :for={msg <- @errors}><%= msg %></.error>
     </div>
     """
@@ -821,7 +888,7 @@ defmodule LantternWeb.FormComponents do
       <a
         href="https://www.markdownguide.org/basic-syntax/"
         target="_blank"
-        class="hover:text-ltrn-primary"
+        class="hover:text-ltrn-dark"
       >
         <%= @message %> <.icon name="hero-information-circle" />
       </a>
