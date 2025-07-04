@@ -34,13 +34,12 @@ defmodule LantternWeb.GradesReports.GradesReportFormComponent do
         />
         <.input
           field={@form[:info]}
-          type="textarea"
+          type="markdown"
           label={gettext("Info")}
           phx-debounce="1500"
-          class="mb-1"
+          class="mb-6"
           show_optional
         />
-        <.markdown_supported class="mb-6" />
         <div class="mb-6">
           <.label><%= gettext("Parent cycle") %></.label>
           <p class="my-2">

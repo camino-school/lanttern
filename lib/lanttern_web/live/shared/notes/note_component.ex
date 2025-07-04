@@ -35,7 +35,6 @@ defmodule LantternWeb.Notes.NoteComponent do
     <div class={@class}>
       <%= if @is_editing && @allow_editing do %>
         <.form for={@form} phx-submit="save" phx-target={@myself} id="note-form">
-          <.markdown_supported class="mb-6" />
           <.textarea_with_actions
             id={@form[:description].id}
             name={@form[:description].name}
@@ -44,8 +43,9 @@ defmodule LantternWeb.Notes.NoteComponent do
             label={gettext("Add your notes...")}
             rows="10"
           >
-            <:actions_left :if={@note}>
+            <:actions_left>
               <.button
+                :if={@note}
                 type="button"
                 theme="ghost"
                 phx-click="delete"
@@ -54,6 +54,7 @@ defmodule LantternWeb.Notes.NoteComponent do
               >
                 <%= gettext("Delete note") %>
               </.button>
+              <.markdown_supported />
             </:actions_left>
             <:actions>
               <.button type="button" theme="ghost" phx-click="cancel_edit" phx-target={@myself}>

@@ -72,13 +72,12 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryFormComponent do
         </div>
         <.input
           field={@form[:comment]}
-          type="textarea"
+          type="markdown"
           label={gettext("Comment")}
           phx-debounce="1500"
-          class="mb-1"
+          class="mb-6"
           show_optional
         />
-        <.markdown_supported class="mb-6" />
         <div class={[
           "p-4 rounded-sm",
           if(!@hide_submit, do: "mb-6"),

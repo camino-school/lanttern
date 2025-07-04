@@ -157,12 +157,11 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
   defp descriptors_fields(%{scale: %{type: "ordinal"}} = assigns) do
     ~H"""
     <h5 class="font-display font-black text-ltrn-subtle"><%= gettext("Descriptors") %></h5>
-    <.markdown_supported class="mt-2" message={gettext("Markdown supported in descriptors")} />
     <.inputs_for :let={ef} field={@field}>
       <.input type="hidden" field={ef[:scale_id]} />
       <.input type="hidden" field={ef[:scale_type]} />
       <.input type="hidden" field={ef[:ordinal_value_id]} />
-      <.input type="textarea" field={ef[:descriptor]} class="mt-6" phx-debounce="1500">
+      <.input type="markdown" field={ef[:descriptor]} class="mt-6" phx-debounce="1500">
         <:custom_label>
           <.live_component
             module={OrdinalValueBadgeComponent}
@@ -178,7 +177,6 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
   defp descriptors_fields(%{scale: %{type: "numeric"}} = assigns) do
     ~H"""
     <h5 class="mt-10 font-display font-black text-ltrn-subtle"><%= gettext("Descriptors") %></h5>
-    <.markdown_supported class="mt-2" message={gettext("Markdown supported in descriptors")} />
     <.inputs_for :let={ef} field={@field}>
       <div class="flex gap-6">
         <div class="flex-1">
@@ -193,7 +191,7 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
             class="mt-6"
             phx-debounce="1500"
           />
-          <.input type="textarea" field={ef[:descriptor]} />
+          <.input type="markdown" field={ef[:descriptor]} />
         </div>
         <label class="shrink-0 mt-14">
           <input type="checkbox" name="rubric[remove_descriptor]" value={ef.index} class="hidden" />

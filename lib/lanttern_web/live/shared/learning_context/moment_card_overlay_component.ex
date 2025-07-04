@@ -134,12 +134,11 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
       />
       <.input
         field={@form[:description]}
-        type="textarea"
+        type="markdown"
         label={gettext("Description")}
-        class="mb-1"
+        class="mb-6"
         phx-debounce="1500"
       />
-      <.markdown_supported class="mb-6" />
       <div
         :if={@template_instructions}
         class="p-4 border border-ltrn-staff-accent rounded-xs mb-6 bg-ltrn-staff-lightest"
@@ -152,24 +151,20 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
       <div class="p-4 rounded-xs mb-6 bg-ltrn-staff-lightest">
         <.input
           field={@form[:teacher_instructions]}
-          type="textarea"
+          type="markdown"
           label={gettext("Teacher instructions")}
           show_optional
-          class="mb-1"
           phx-debounce="1500"
         />
-        <.markdown_supported />
       </div>
       <div class="p-4 rounded-xs mb-6 bg-ltrn-diff-lightest">
         <.input
           field={@form[:differentiation]}
-          type="textarea"
+          type="markdown"
           label={gettext("Differentiation notes")}
           show_optional
-          class="mb-1"
           phx-debounce="1500"
         />
-        <.markdown_supported />
       </div>
       <div class="p-4 rounded-xs mb-6 bg-ltrn-student-lightest">
         <.input

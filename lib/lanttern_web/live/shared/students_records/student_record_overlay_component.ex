@@ -130,12 +130,11 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
             />
             <.input
               field={@form[:description]}
-              type="textarea"
+              type="markdown"
               label={gettext("Description")}
-              class="mb-1"
+              class="mb-6"
               phx-debounce="1500"
             />
-            <.markdown_supported class="mb-6" />
             <div class="p-4 rounded-xs mb-6 bg-ltrn-staff-lightest">
               <p class="mb-6 font-bold text-ltrn-staff-dark">
                 <%= gettext("Internal student record tracking") %>
@@ -165,12 +164,11 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               </div>
               <.input
                 field={@form[:internal_notes]}
-                type="textarea"
+                type="markdown"
                 label={gettext("Internal notes")}
-                class="mb-1"
+                class="mb-6"
                 phx-debounce="1500"
               />
-              <.markdown_supported class="mb-6" />
               <div class="p-2 rounded-xs mt-10 -mx-2 -mb-2 bg-ltrn-staff-lighter">
                 <.input
                   field={@form[:shared_with_school]}
