@@ -290,11 +290,11 @@ defmodule LantternWeb.FormComponents do
         </div>
         <.markdown_supported />
       </div>
-      <.textarea id={@id} name={@name} errors={@errors} value={@value} {@rest} />
+      <.textarea id={@id} name={@name} errors={@errors} value={@value} class="font-mono" {@rest} />
       <.markdown
         id={"preview-#{@id}"}
         text={@value || ""}
-        class="w-full max-w-none min-h-[10rem] p-4 rounded-xs shadow-xs ring-1 ring-ltrn-lighter hidden"
+        class="w-full max-w-none min-h-[10rem] p-4 rounded-xs shadow-xs ring-1 ring-ltrn-lighter bg-white hidden"
       />
       <.error :for={msg <- @errors}><%= msg %></.error>
     </div>

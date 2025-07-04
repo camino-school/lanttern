@@ -47,12 +47,11 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
         />
         <.input
           field={@form[:description]}
-          type="textarea"
+          type="markdown"
           label={gettext("Description")}
-          class="mb-1"
+          class="mb-6"
           phx-debounce="1500"
         />
-        <.markdown_supported class="mb-6" />
         <.live_component
           module={MultiSelectComponent}
           id="strand-subjects-select"
@@ -82,13 +81,11 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
         <div class="p-4 rounded-xs mb-6 bg-ltrn-staff-lightest">
           <.input
             field={@form[:teacher_instructions]}
-            type="textarea"
+            type="markdown"
             label={gettext("Teacher instructions")}
             show_optional
-            class="mb-1"
             phx-debounce="1500"
           />
-          <.markdown_supported />
         </div>
         <div :if={@show_actions} class="flex justify-end mt-6">
           <.button type="submit" phx-disable-with={gettext("Saving...")}>
