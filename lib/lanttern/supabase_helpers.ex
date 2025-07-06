@@ -136,10 +136,10 @@ defmodule Lanttern.SupabaseHelpers do
   @spec create_signed_url(String.t(), String.t()) :: {:ok, String.t()} | {:error, :invalid_url}
   def create_signed_url(file, bucket_name \\ "attachments_private") do
     base_url = config()[:base_url]
-    opts = [expires_in: 60]
+    opts = [expires_in: :timer.seconds(60)]
 
     case Supabase.Storage.FileHandler.create_signed_url(client(), bucket_name, file, opts) do
-      {:ok, %{body: body}} -> {:ok, "#{base_url}#{body["signedURL"]}"}
+      {:ok, %{body: body}} -> {:ok, "#{base_url}/storage/v1#{body["signedURL"]}"}
       _ -> {:error, :invalid_url}
     end
   end

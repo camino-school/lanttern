@@ -569,7 +569,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   def handle_event("signed_url", %{"url" => url}, socket) do
     case SupabaseHelpers.create_signed_url(url) do
-      {:ok, external} -> {:noreply, redirect(socket, external: external)}
+      {:ok, external} -> {:noreply, push_event(socket, "open_external", %{url: external})}
       {:error, :invalid_url} -> {:noreply, put_flash(socket, :error, gettext("Invalid URL"))}
     end
   end

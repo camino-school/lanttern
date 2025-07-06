@@ -318,21 +318,21 @@ defmodule LantternWeb.StudentLiveTest do
       |> click_button("#save-external-attachment", "Save")
       |> click_button("#save-action-ilp-comment", "Save")
 
-      {:ok, view, _html} = live(ctx.conn, "#{@live_view_base_path}/#{student_ilp.student_id}/ilp")
-
       Mimic.copy(Supabase.Storage.FileHandler)
 
       Mimic.expect(Supabase.Storage.FileHandler, :create_signed_url, fn _, _, _, _ ->
         {:ok, %{body: %{"signedURL" => "/file.jpg"}}}
       end)
 
+      {:ok, view, _html} = live(ctx.conn, "#{@live_view_base_path}/#{student_ilp.student_id}/ilp")
       assert view |> has_element?("p", new_attrs.content)
 
       view
       |> element("a", attachment.name)
       |> render_click()
 
-      assert_redirect(view)
+      assert_push_event(view, "open_external", %{url: url})
+      assert url =~ "/storage/v1/file.jpg"
     end
 
     test "renders ok when list all ILP comment for a student_ilp", ctx do
