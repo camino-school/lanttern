@@ -89,24 +89,26 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
         <.comment_area
           note={@entry.report_note}
           is_editing={@is_editing_note}
-          form={@form}
+          form={@note_form}
           error={@save_note_error}
           theme="staff"
           on_edit={JS.push("edit_note", target: @myself)}
           on_cancel={JS.push("cancel_edit_note", target: @myself)}
           on_save={JS.push("save_note", target: @myself)}
+          on_change={JS.push("validate_note", target: @myself)}
           class="mt-10"
         />
         <.comment_area
           note={@entry.student_report_note}
           is_editing={@is_editing_student_note}
-          form={@form}
+          form={@student_note_form}
           error={@save_student_note_error}
           theme="student"
           student_name={@student.name}
           on_edit={JS.push("edit_student_note", target: @myself)}
           on_cancel={JS.push("cancel_edit_student_note", target: @myself)}
-          on_save={JS.push("save_note", target: @myself)}
+          on_save={JS.push("save_student_note", target: @myself)}
+          on_change={JS.push("validate_student_note", target: @myself)}
           class="mt-6"
         />
         <.diff_rubric_area
@@ -203,6 +205,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   attr :on_edit, JS, required: true
   attr :on_cancel, JS, required: true
   attr :on_save, JS, required: true
+  attr :on_change, JS, required: true
   attr :class, :any, default: nil
 
   def comment_area(assigns) do
@@ -250,9 +253,8 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
           <%= if @note, do: gettext("Edit"), else: gettext("Add") %>
         </button>
       </div>
-      <.form :if={@is_editing} for={@form} phx-submit={@on_save} class="mt-4">
-        <.input field={@field} type="textarea" phx-debounce="1500" class="mb-1" />
-        <.markdown_supported />
+      <.form :if={@is_editing} for={@form} phx-submit={@on_save} phx-change={@on_change} class="mt-4">
+        <.input field={@field} type="markdown" phx-debounce="1500" />
         <p
           :if={@error}
           class="p-4 rounded-sm mt-4 text-sm text-ltrn-alert-accent bg-ltrn-alert-lighter"
@@ -395,7 +397,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       |> assign_assessment_point()
       |> assign_differentiation_rubric()
       |> maybe_create_and_assign_entry()
-      |> assign_form()
+      |> assign_forms()
       |> assign_ordinal_value_options()
       |> assign_ov_style_map()
       |> assign_diff_rubric_form()
@@ -455,13 +457,16 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
 
   defp maybe_create_and_assign_entry(socket), do: socket
 
-  defp assign_form(socket) do
+  defp assign_forms(socket) do
     form =
       socket.assigns.entry
       |> Assessments.change_assessment_point_entry()
       |> to_form()
 
-    assign(socket, :form, form)
+    socket
+    |> assign(:form, form)
+    |> assign(:note_form, form)
+    |> assign(:student_note_form, form)
   end
 
   defp assign_ordinal_value_options(
@@ -601,8 +606,21 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
     do: {:noreply, assign(socket, :is_editing_student_note, false)}
 
   def handle_event(
+        "validate_note",
+        %{"assessment_point_entry" => params},
+        socket
+      ) do
+    form =
+      socket.assigns.entry
+      |> Assessments.change_assessment_point_entry(params)
+      |> to_form()
+
+    {:noreply, assign(socket, :note_form, form)}
+  end
+
+  def handle_event(
         "save_note",
-        %{"assessment_point_entry" => %{"report_note" => _} = params},
+        %{"assessment_point_entry" => params},
         socket
       ) do
     socket =
@@ -613,8 +631,21 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   end
 
   def handle_event(
-        "save_note",
-        %{"assessment_point_entry" => %{"student_report_note" => _} = params},
+        "validate_student_note",
+        %{"assessment_point_entry" => params},
+        socket
+      ) do
+    form =
+      socket.assigns.entry
+      |> Assessments.change_assessment_point_entry(params)
+      |> to_form()
+
+    {:noreply, assign(socket, :student_note_form, form)}
+  end
+
+  def handle_event(
+        "save_student_note",
+        %{"assessment_point_entry" => params},
         socket
       ) do
     socket =
@@ -728,13 +759,13 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
               socket
               |> assign(:is_editing_note, false)
               |> assign(:save_note_error, nil)
-              |> assign(:form, form)
+              |> assign(:note_form, form)
 
             "student" ->
               socket
               |> assign(:is_editing_student_note, false)
               |> assign(:save_student_note_error, nil)
-              |> assign(:form, form)
+              |> assign(:student_note_form, form)
           end
 
         socket

@@ -12,10 +12,25 @@ jobs:
     environment: development
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
         with:
           ref: ${{ github.event.workflow_run.head_branch }}
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --remote-only
+
+      - name: Get contributor info
+        id: contributor
+        run: |
+          # Get GitHub username (who triggered the workflow)
+          GITHUB_USER=$(echo "${{ github.event.workflow_run.triggering_actor.login }}" | tr '[:upper:]' '[:lower:]' | tr -cd '[:alnum:]-')
+
+          echo "github_user=${GITHUB_USER}" >> $GITHUB_OUTPUT
+          echo "GitHub User: ${GITHUB_USER}"
+          
+      - name: Setup flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+        
+      - name: Deploy to contributor's Fly.io app
+        run: flyctl deploy --remote-only
         env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          # Try contributor-specific GitHub username first, then fallback to shared
+          FLY_API_TOKEN: ${{ secrets[format('FLY_API_TOKEN_{0}', steps.contributor.outputs.github_user)] || secrets.FLY_API_TOKEN }}

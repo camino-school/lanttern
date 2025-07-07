@@ -47,12 +47,11 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
           />
           <.input
             field={@form[:description]}
-            type="textarea"
+            type="markdown"
             label={gettext("Description")}
-            class="mb-1"
+            class="mb-6"
             phx-debounce="1500"
           />
-          <.markdown_supported class="mb-6" />
           <div class="p-4 rounded-xs mb-6 bg-ltrn-mesh-cyan">
             <.input
               field={@form[:is_pinned]}

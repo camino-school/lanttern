@@ -42,10 +42,14 @@ defmodule LantternWeb.Reporting.StudentReportCardFormComponent do
           label="Student id"
           class="mb-6"
         />
-        <.input field={@form[:comment]} type="textarea" label="Comment" class="mb-1" show_optional />
-        <.markdown_supported class="mb-6" />
-        <.input field={@form[:footnote]} type="textarea" label="Footnote" class="mb-1" show_optional />
-        <.markdown_supported class={if !@hide_submit, do: "mb-6"} />
+        <.input field={@form[:comment]} type="markdown" label="Comment" class="mb-6" show_optional />
+        <.input
+          field={@form[:footnote]}
+          type="markdown"
+          label="Footnote"
+          class={if !@hide_submit, do: "mb-6"}
+          show_optional
+        />
         <.button :if={!@hide_submit} phx-disable-with="Saving...">Save Student report card</.button>
       </.form>
     </div>

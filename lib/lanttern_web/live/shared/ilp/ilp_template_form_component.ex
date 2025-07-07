@@ -101,23 +101,20 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
         </div>
         <.input
           field={@form[:description]}
-          type="textarea"
+          type="markdown"
           label={gettext("About this template")}
           phx-debounce="1500"
-          class="mb-1"
+          class="mb-6"
           show_optional
         />
-        <.markdown_supported class="mb-6" />
         <div class="mb-6 p-4 rounded-sm bg-ltrn-staff-lightest">
           <.input
             field={@form[:teacher_description]}
-            type="textarea"
+            type="markdown"
             label={gettext("Template instructions (visible to staff only)")}
             phx-debounce="1500"
-            class="mb-1"
             show_optional
           />
-          <.markdown_supported />
         </div>
         <.ai_box class="mb-6">
           <p class="mb-6">
@@ -126,13 +123,12 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
           <.inputs_for :let={ai_layer_f} field={@form[:ai_layer]}>
             <.input
               field={ai_layer_f[:revision_instructions]}
-              type="textarea"
+              type="markdown"
               label={gettext("AI revision instructions")}
               phx-debounce="1500"
-              class="mb-1"
+              class="mb-6"
               show_optional
             />
-            <.markdown_supported class="mb-6" />
             <.input
               field={ai_layer_f[:model]}
               type="select"

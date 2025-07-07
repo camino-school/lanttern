@@ -118,7 +118,7 @@ defmodule LantternWeb.StudentILPLiveTest do
       ctx.conn
       |> visit("/student_ilp?comment_id=#{ilp_comment.id}")
       |> assert_has("p", text: ilp_comment.content)
-      |> click_button("Edit")
+      |> click_button(".block.w-full", "Edit")
       |> fill_in("Attachment name", with: "Article2")
       |> fill_in("Link", with: "http://www.science.org/article-2")
       |> submit()

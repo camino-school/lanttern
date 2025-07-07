@@ -53,12 +53,10 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
           </.error_block>
           <.input
             field={@form[:content]}
-            type="textarea"
+            type="markdown"
             label={gettext("Content")}
-            class="mb-1"
             phx-debounce="1500"
           />
-          <.markdown_supported />
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
             <%= gettext("Oops, something went wrong! Please check the errors above.") %>
           </.error_block>
