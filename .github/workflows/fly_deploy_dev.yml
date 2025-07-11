@@ -30,7 +30,9 @@ jobs:
         uses: superfly/flyctl-actions/setup-flyctl@master
         
       - name: Deploy to contributor's Fly.io app
-        run: flyctl deploy --remote-only
+        run: |
+          # Try contributor-specific GitHub username first, then fallback to shared
+          flyctl deploy --remote-only -a ${{ secrets[format('FLY_APP_NAME_{0}', steps.contributor.outputs.github_user)] || secrets.FLY_APP_NAME }}
         env:
           # Try contributor-specific GitHub username first, then fallback to shared
           FLY_API_TOKEN: ${{ secrets[format('FLY_API_TOKEN_{0}', steps.contributor.outputs.github_user)] || secrets.FLY_API_TOKEN }}
