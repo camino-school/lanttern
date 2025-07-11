@@ -1,0 +1,37 @@
+# fly.toml app configuration file generated for lanttern-dev on 2023-10-16T16:35:58-03:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+# use `-a` flag on `fly deploy` to override app name when needed
+app = "lanttern-dev"
+primary_region = "iad"
+kill_signal = "SIGTERM"
+swap_size_mb = 512
+
+[build]
+
+[deploy]
+release_command = "/app/bin/migrate"
+
+[env]
+# use fly secrets to override PHX_HOST
+PHX_HOST = "lanttern-dev.fly.dev"
+PORT = "8080"
+
+[http_service]
+internal_port = 8080
+force_https = true
+auto_stop_machines = "stop"
+auto_start_machines = true
+min_machines_running = 0
+processes = ["app"]
+
+[http_service.concurrency]
+type = "connections"
+hard_limit = 1000
+soft_limit = 1000
+
+[[vm]]
+size = "shared-cpu-1x"
+memory = "256mb"

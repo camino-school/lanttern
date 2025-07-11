@@ -3,8 +3,8 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-# use `-a` flag to override the app name
-app = "lanttern-dev"
+# use `-a` flag on `fly deploy` to override app name when needed
+app = "lanttern"
 primary_region = "gru"
 kill_signal = "SIGTERM"
 swap_size_mb = 512
@@ -16,13 +16,13 @@ release_command = "/app/bin/migrate"
 
 [env]
 # use fly secrets to override PHX_HOST
-PHX_HOST = "lanttern-dev.fly.dev"
+PHX_HOST = "lanttern.org"
 PORT = "8080"
 
 [http_service]
 internal_port = 8080
 force_https = true
-auto_stop_machines = true
+auto_stop_machines = "stop"
 auto_start_machines = true
 min_machines_running = 1
 processes = ["app"]
