@@ -65,6 +65,10 @@ topbar.config({
 window.addEventListener("phx:page-loading-start", (_info) => topbar.show(300));
 window.addEventListener("phx:page-loading-stop", (_info) => topbar.hide());
 
+window.addEventListener("phx:open_external", (e) => {
+  window.open(e.detail.url, "_blank");
+});
+
 // connect if there are any LiveViews on the page
 liveSocket.connect();
 

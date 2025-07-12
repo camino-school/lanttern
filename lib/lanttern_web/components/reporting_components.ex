@@ -346,6 +346,7 @@ defmodule LantternWeb.ReportingComponents do
   attr :entry, :any, required: true
   attr :id, :string, required: true
   attr :class, :any, default: nil
+  attr :on_signed_url, :any, required: true
 
   def moment_assessment_point_entry(assigns) do
     ~H"""
@@ -369,6 +370,7 @@ defmodule LantternWeb.ReportingComponents do
         :if={@entry && is_list(@entry.evidences) && @entry.evidences != []}
         attachments={@entry.evidences}
         class="mt-4"
+        on_signed_url={@on_signed_url}
       />
     </div>
     """

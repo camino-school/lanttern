@@ -80,6 +80,7 @@ defmodule LantternWeb.ILPComponents do
   attr :tz, :string, default: nil
   attr :class, :any, default: nil
   attr :id, :string, default: nil
+  attr :on_signed_url, :any, required: true, doc: "function. required when open signed link"
 
   def ilp_comments_list(assigns) do
     ~H"""
@@ -141,16 +142,23 @@ defmodule LantternWeb.ILPComponents do
               <.card_base class="p-4 mt-2">
                 <%= if(ilp_attachment.is_external) do %>
                   <.badge><%= gettext("External link") %></.badge>
+                  <a
+                    href={ilp_attachment.link}
+                    target="_blank"
+                    class="block mt-2 text-sm underline hover:text-ltrn-subtle"
+                  >
+                    <%= ilp_attachment.name %>
+                  </a>
                 <% else %>
                   <.badge theme="cyan"><%= gettext("Upload") %></.badge>
+                  <.link
+                    phx-click={@on_signed_url.(ilp_attachment.link)}
+                    class="block mt-2 text-sm underline hover:text-ltrn-subtle"
+                    target="_blank"
+                  >
+                    <%= ilp_attachment.name %>
+                  </.link>
                 <% end %>
-                <a
-                  href={ilp_attachment.link}
-                  target="_blank"
-                  class="block mt-2 text-sm underline hover:text-ltrn-subtle"
-                >
-                  <%= ilp_attachment.name %>
-                </a>
               </.card_base>
             </div>
           </div>
