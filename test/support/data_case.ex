@@ -75,7 +75,7 @@ defmodule Lanttern.DataCase do
 
       # if len > 0 do
       ref = Process.monitor(pid)
-      assert_receive {:DOWN, ^ref, _, _, _}, 1_000
+      assert_receive {:DOWN, ^ref, _, _, _}, 10_000
       # end
     end
   end

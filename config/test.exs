@@ -51,3 +51,7 @@ config :logger, level: :warning
 config :phoenix, :plug_init_mode, :runtime
 
 config :phoenix_test, :endpoint, LantternWeb.Endpoint
+
+config :lanttern,
+  supabase_api_key: "eyKbGciOiJua25XVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsnZpY2VfQ.ORhZAo0J1nNc",
+  supabase_project_url: "https://example.supabase.co"

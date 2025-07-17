@@ -71,8 +71,8 @@ defmodule Lanttern.SupabaseHelpers do
   """
   def config do
     %{
-      base_url: System.fetch_env!("SUPABASE_PROJECT_URL"),
-      api_key: System.fetch_env!("SUPABASE_PROJECT_API_KEY")
+      base_url: Application.get_env(:lanttern, :supabase_project_url),
+      api_key: Application.get_env(:lanttern, :supabase_api_key)
     }
   end
 
@@ -120,4 +120,28 @@ defmodule Lanttern.SupabaseHelpers do
 
   defp transform_params([{:height, height} | opts], params),
     do: transform_params(opts, ["height=#{height}" | params])
+
+  @spec create_signed_url(url :: String.t()) :: {:ok, String.t()} | {:error, :invalid_url}
+  def create_signed_url("https:" <> file_url) do
+    bucket_name = "attachments"
+
+    with [_, file] <- Regex.run(~r/attachments\/(.+)/, file_url),
+         {:ok, signed_url} <- create_signed_url(file, bucket_name) do
+      {:ok, signed_url}
+    else
+      _ -> {:error, :invalid_url}
+    end
+  end
+
+  @spec create_signed_url(String.t(), String.t()) :: {:ok, String.t()} | {:error, :invalid_url}
+  def create_signed_url(file, bucket_name \\ "attachments") do
+    base_url = config()[:base_url]
+    seconds = 60
+    opts = [expires_in: seconds]
+
+    case Supabase.Storage.FileHandler.create_signed_url(client(), bucket_name, file, opts) do
+      {:ok, %{body: body}} -> {:ok, "#{base_url}/storage/v1#{body["signedURL"]}"}
+      _ -> {:error, :invalid_url}
+    end
+  end
 end

@@ -12,15 +12,15 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
   - `base_path` - the base URL path for overlay navigation control
   """
 
-  alias Lanttern.LearningContext
   use LantternWeb, :live_component
 
-  alias Lanttern.Reporting
-
-  # shared components
-  alias LantternWeb.Assessments.EntryParticleComponent
   import LantternWeb.AttachmentsComponents
   import LantternWeb.ReportingComponents
+
+  alias Lanttern.LearningContext
+  alias Lanttern.Reporting
+  alias Lanttern.SupabaseHelpers
+  alias LantternWeb.Assessments.EntryParticleComponent
 
   @impl true
   def render(assigns) do
@@ -98,6 +98,7 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
                 class="py-4 border-t border-ltrn-lighter"
                 assessment_point={assessment_point}
                 entry={entry}
+                on_signed_url={&JS.push("signed_url", value: %{"url" => &1}, target: @myself)}
               />
             </div>
           </div>
@@ -116,7 +117,10 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
                 <%= card.name %>
               </h5>
               <.markdown text={card.description} />
-              <.attachments_list attachments={card.attachments} />
+              <.attachments_list
+                attachments={card.attachments}
+                on_signed_url={&JS.push("signed_url", value: %{"url" => &1}, target: @myself)}
+              />
             </div>
           </div>
         </div>
@@ -161,6 +165,14 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
       |> assign_moment(assigns)
 
     {:ok, socket}
+  end
+
+  @impl true
+  def handle_event("signed_url", %{"url" => url}, socket) do
+    case SupabaseHelpers.create_signed_url(url) do
+      {:ok, external} -> {:noreply, push_event(socket, "open_external", %{url: external})}
+      {:error, :invalid_url} -> {:noreply, put_flash(socket, :error, gettext("Invalid URL"))}
+    end
   end
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
