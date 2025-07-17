@@ -75,8 +75,8 @@ defmodule Lanttern.Attachments.Attachment do
         {:error, _} ->
           [link: gettext("Invalid link format")]
 
-        # {:ok, %URI{scheme: scheme}} when scheme not in ["https", "http"] ->
-        #   [link: gettext(~s(Links should start with "https://" or "http://"))]
+        {:ok, %URI{scheme: scheme}} when scheme not in ["https", "http"] ->
+          [link: gettext(~s(Links should start with "https://" or "http://"))]
 
         {:ok, _} ->
           []
