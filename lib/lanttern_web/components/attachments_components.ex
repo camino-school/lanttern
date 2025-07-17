@@ -18,7 +18,6 @@ defmodule LantternWeb.AttachmentsComponents do
   attr :id, :string, default: nil
   attr :class, :any, default: nil
   attr :on_signed_url, :any, required: true
-  attr :link, :string, default: "/"
   slot :inner_block
 
   def attachment_card(assigns) do
@@ -38,7 +37,7 @@ defmodule LantternWeb.AttachmentsComponents do
         <.link
           phx-click={@on_signed_url.(@attachment.link)}
           class="block mt-2 text-sm underline hover:text-ltrn-subtle"
-          phx-target="_blank"
+          target="_blank"
         >
           <%= @attachment.name %>
         </.link>
