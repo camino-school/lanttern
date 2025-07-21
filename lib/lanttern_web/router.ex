@@ -70,6 +70,7 @@ defmodule LantternWeb.Router do
       live "/school/staff", SchoolLive, :manage_staff
       live "/school/cycles", SchoolLive, :manage_cycles
       live "/school/message_board", SchoolLive, :message_board
+      live "/school/message_board_v2", MessageBoard.IndexLive, :index
       live "/school/moment_cards_templates", SchoolLive, :manage_moment_cards_templates
 
       live "/school/students/deactivated", DeactivatedStudentsLive, :index
@@ -89,6 +90,7 @@ defmodule LantternWeb.Router do
       live "/school/staff/:id/students_records", StaffMemberLive, :students_records
 
       live "/school/message_board/archive", ArchivedMessagesLive, :index
+      live "/school/message_board/manage", BoardMessagesLive, :index
 
       live "/strands", StrandsLive, :index
       live "/strands/library", StrandsLibraryLive, :index

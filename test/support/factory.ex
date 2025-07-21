@@ -3,6 +3,7 @@ defmodule Lanttern.Factory do
 
   use ExMachina.Ecto, repo: Lanttern.Repo
 
+  use Lanttern.ClassFactory
   use Lanttern.CycleFactory
   use Lanttern.ILPCommentAttachmentFactory
   use Lanttern.ILPCommentFactory
