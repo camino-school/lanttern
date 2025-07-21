@@ -5,7 +5,7 @@
 
 # use `-a` flag on `fly deploy` to override app name when needed
 app = "lanttern-dev"
-primary_region = "iad"
+primary_region = "ewr"
 kill_signal = "SIGTERM"
 swap_size_mb = 512
 
