@@ -1,13 +1,13 @@
 import Config
 
-# Only in tests, remove the complexity from the password hashing algorithm
-config :bcrypt_elixir, :log_rounds, 1
-
 config :lanttern,
-  content_security_policy: "self",
+  content_security_policy: "default-src 'self'",
   default_timezone: "America/Sao_Paulo",
   supabase_api_key: "eyKbGciOiJua25XVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsnZpY2VfQ.ORhZAo0J1nNc",
   supabase_project_url: "https://example.supabase.co"
+
+# Only in tests, remove the complexity from the password hashing algorithm
+config :bcrypt_elixir, :log_rounds, 1
 
 static_url_path =
   try do
