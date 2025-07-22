@@ -4,10 +4,10 @@ import Config
 config :bcrypt_elixir, :log_rounds, 1
 
 config :lanttern,
-  content_security_policy: System.get_env("CONTENT_SECURITY_POLICY"),
-  default_timezone: System.get_env("TIMEZONE", "America/Sao_Paulo"),
-  supabase_api_key: System.get_env("SUPABASE_PROJECT_API_KEY"),
-  supabase_project_url: System.get_env("SUPABASE_PROJECT_URL")
+  content_security_policy: "self",
+  default_timezone: "America/Sao_Paulo",
+  supabase_api_key: "eyKbGciOiJua25XVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsnZpY2VfQ.ORhZAo0J1nNc",
+  supabase_project_url: "https://example.supabase.co"
 
 static_url_path =
   try do
@@ -57,7 +57,3 @@ config :logger, level: :warning
 config :phoenix, :plug_init_mode, :runtime
 
 config :phoenix_test, :endpoint, LantternWeb.Endpoint
-
-config :lanttern,
-  supabase_api_key: "eyKbGciOiJua25XVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsnZpY2VfQ.ORhZAo0J1nNc",
-  supabase_project_url: "https://example.supabase.co"
