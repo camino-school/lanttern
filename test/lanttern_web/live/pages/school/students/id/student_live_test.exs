@@ -300,7 +300,7 @@ defmodule LantternWeb.StudentLiveTest do
         insert(:ilp_comment_attachment, %{
           ilp_comment: ilp_comment,
           is_external: false,
-          link: "file.jpg",
+          link: "bucket/file.jpg",
           name: "file.jpg"
         })
 

@@ -543,10 +543,8 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
       case SupabaseHelpers.upload_object("attachments", entry.client_name, file_path, opts) do
         {:ok, object} ->
-          base_url = SupabaseHelpers.config()[:base_url]
-          attachment_url = "#{base_url}/storage/v1/object/public/#{URI.encode(object.key)}"
-
-          {:ok, {:ok, {attachment_url, entry.client_name}}}
+          attachment_path = URI.encode(object.key)
+          {:ok, {:ok, {attachment_path, entry.client_name}}}
 
         {:error, %{message: message}} ->
           {:ok, {:error, message}}
@@ -554,8 +552,11 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     end)
     |> hd()
     |> case do
-      {:ok, {link, name}} -> save_attachment(socket, :new, %{"name" => name, "link" => link})
-      {:error, message} -> {:noreply, assign(socket, :upload_error, message)}
+      {:ok, {attachment_path, name}} ->
+        save_attachment(socket, :new, %{"name" => name, "link" => attachment_path})
+
+      {:error, message} ->
+        {:noreply, assign(socket, :upload_error, message)}
     end
   end
 
