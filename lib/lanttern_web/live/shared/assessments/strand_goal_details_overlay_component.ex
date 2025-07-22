@@ -15,6 +15,7 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
   alias Lanttern.Assessments
   alias Lanttern.Reporting
   alias Lanttern.Rubrics
+  alias Lanttern.SupabaseHelpers
 
   # shared components
   import LantternWeb.AssessmentsComponents
@@ -82,7 +83,11 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
             <.icon name="hero-paper-clip" class="w-6 h-6" />
             <%= gettext("Learning evidences") %>
           </h5>
-          <.attachments_list id="goals-attachments-list" attachments={@entry.evidences} />
+          <.attachments_list
+            id="goals-attachments-list"
+            attachments={@entry.evidences}
+            on_signed_url={&JS.push("signed_url", value: %{"url" => &1}, target: @myself)}
+          />
         </div>
         <div :if={@has_formative_assessment} class="mt-10">
           <h5 class="font-display font-black text-base"><%= gettext("Formative assessment") %></h5>
@@ -103,6 +108,7 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
                 assessment_point={assessment_point}
                 entry={entry}
                 id={"#{assessment_point.id}-#{entry.id}"}
+                on_signed_url={&JS.push("signed_url", value: %{"url" => &1}, target: @myself)}
               />
             </div>
           </div>
@@ -148,6 +154,14 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
       |> stream_moments_assessment_points_and_entries()
 
     {:ok, socket}
+  end
+
+  @impl true
+  def handle_event("signed_url", %{"url" => url}, socket) do
+    case SupabaseHelpers.create_signed_url(url) do
+      {:ok, external} -> {:noreply, push_event(socket, "open_external", %{url: external})}
+      {:error, :invalid_url} -> {:noreply, put_flash(socket, :error, gettext("Invalid URL"))}
+    end
   end
 
   defp assign_strand_goal(socket, assigns) do

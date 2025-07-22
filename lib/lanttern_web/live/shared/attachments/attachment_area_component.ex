@@ -24,12 +24,11 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   """
 
-  alias Lanttern.Assessments
   use LantternWeb, :live_component
 
   import Lanttern.Utils, only: [swap: 3]
-  alias Lanttern.SupabaseHelpers
 
+  alias Lanttern.Assessments
   alias Lanttern.Attachments
   alias Lanttern.Attachments.Attachment
   alias Lanttern.ILP
@@ -37,6 +36,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   alias Lanttern.LearningContext
   alias Lanttern.Notes
   alias Lanttern.StudentsCycleInfo
+  alias Lanttern.SupabaseHelpers
 
   # shared
 
@@ -74,30 +74,17 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         }
         on_move_up={
           fn i ->
-            JS.push("reorder_attachments",
-              value: %{from: i, to: i - 1},
-              target: @myself
-            )
+            JS.push("reorder_attachments", value: %{from: i, to: i - 1}, target: @myself)
           end
         }
         on_move_down={
           fn i ->
-            JS.push("reorder_attachments",
-              value: %{from: i, to: i + 1},
-              target: @myself
-            )
+            JS.push("reorder_attachments", value: %{from: i, to: i + 1}, target: @myself)
           end
         }
-        on_edit={
-          fn id ->
-            JS.push("edit", value: %{"id" => id}, target: @myself)
-          end
-        }
-        on_remove={
-          fn id ->
-            JS.push("delete", value: %{"id" => id}, target: @myself)
-          end
-        }
+        on_edit={&JS.push("edit", value: %{"id" => &1}, target: @myself)}
+        on_remove={&JS.push("delete", value: %{"id" => &1}, target: @myself)}
+        on_signed_url={&JS.push("signed_url", value: %{"url" => &1}, target: @myself)}
       />
       <div
         :if={@is_adding_external || @is_editing}
@@ -556,10 +543,8 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
       case SupabaseHelpers.upload_object("attachments", entry.client_name, file_path, opts) do
         {:ok, object} ->
-          base_url = SupabaseHelpers.config()[:base_url]
-          attachment_url = "#{base_url}/storage/v1/object/public/#{URI.encode(object.key)}"
-
-          {:ok, {:ok, {attachment_url, entry.client_name}}}
+          attachment_path = URI.encode(object.key)
+          {:ok, {:ok, {attachment_path, entry.client_name}}}
 
         {:error, %{message: message}} ->
           {:ok, {:error, message}}
@@ -567,8 +552,11 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     end)
     |> hd()
     |> case do
-      {:ok, {link, name}} -> save_attachment(socket, :new, %{"name" => name, "link" => link})
-      {:error, message} -> {:noreply, assign(socket, :upload_error, message)}
+      {:ok, {attachment_path, name}} ->
+        save_attachment(socket, :new, %{"name" => name, "link" => attachment_path})
+
+      {:error, message} ->
+        {:noreply, assign(socket, :upload_error, message)}
     end
   end
 
@@ -578,6 +566,13 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   def handle_event("clear_upload_error", _, socket) do
     {:noreply, assign(socket, :upload_error, nil)}
+  end
+
+  def handle_event("signed_url", %{"url" => url}, socket) do
+    case SupabaseHelpers.create_signed_url(url) do
+      {:ok, external} -> {:noreply, push_event(socket, "open_external", %{url: external})}
+      {:error, :invalid_url} -> {:noreply, put_flash(socket, :error, gettext("Invalid URL"))}
+    end
   end
 
   # helpers
