@@ -8,10 +8,7 @@
 import Config
 
 config :lanttern,
-  ecto_repos: [Lanttern.Repo],
-  default_timezone: System.get_env("TIMEZONE", "America/Sao_Paulo"),
-  supabase_api_key: System.get_env("SUPABASE_PROJECT_API_KEY"),
-  supabase_project_url: System.get_env("SUPABASE_PROJECT_URL")
+  ecto_repos: [Lanttern.Repo]
 
 query_args = ["SET pg_trgm.word_similarity_threshold = 0.4", []]
 

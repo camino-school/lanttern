@@ -3,6 +3,12 @@ import Config
 # Only in tests, remove the complexity from the password hashing algorithm
 config :bcrypt_elixir, :log_rounds, 1
 
+config :lanttern,
+  content_security_policy: System.get_env("CONTENT_SECURITY_POLICY"),
+  default_timezone: System.get_env("TIMEZONE", "America/Sao_Paulo"),
+  supabase_api_key: System.get_env("SUPABASE_PROJECT_API_KEY"),
+  supabase_project_url: System.get_env("SUPABASE_PROJECT_URL")
+
 static_url_path =
   try do
     {windows_static_path, 0} = System.cmd("wslpath", ["-aw", "priv/static"])
