@@ -9,6 +9,7 @@ import Config
 
 config :lanttern,
   ecto_repos: [Lanttern.Repo],
+  content_security_policy: System.get_env("CONTENT_SECURITY_POLICY"),
   default_timezone: System.get_env("TIMEZONE", "America/Sao_Paulo"),
   supabase_api_key: System.get_env("SUPABASE_PROJECT_API_KEY"),
   supabase_project_url: System.get_env("SUPABASE_PROJECT_URL")
