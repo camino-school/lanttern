@@ -297,11 +297,16 @@ defmodule LantternWeb.StudentLiveTest do
         insert(:ilp_comment, %{student_ilp: student_ilp, owner: ctx.user.current_profile})
 
       attachment =
-        insert(:ilp_comment_attachment, %{
-          ilp_comment: ilp_comment,
+        insert(:attachment, %{
           is_external: false,
           link: "bucket/file.jpg",
           name: "file.jpg"
+        })
+
+      _ilp_comment_attachment =
+        insert(:ilp_comment_attachment, %{
+          ilp_comment: ilp_comment,
+          attachment: attachment
         })
 
       new_attrs = %{name: "Teacher's feedback'", content: "Feedback content."}
@@ -359,14 +364,18 @@ defmodule LantternWeb.StudentLiveTest do
       school = ctx.user.current_profile.staff_member.school
       student_ilp = insert(:student_ilp, %{school: school})
 
+      attachment =
+        insert(:attachment, %{owner: ctx.user.current_profile})
+
       ilp_comment =
         insert(:ilp_comment, %{student_ilp: student_ilp, owner: ctx.user.current_profile})
 
-      attachment = insert(:ilp_comment_attachment, %{ilp_comment: ilp_comment})
+      insert(:ilp_comment_attachment, %{attachment: attachment, ilp_comment: ilp_comment})
 
       ctx.conn
       |> visit("#{@live_view_base_path}/#{student_ilp.student_id}/ilp")
       |> assert_has("p", text: ilp_comment.content)
+      |> assert_has("a", text: attachment.name)
       |> click_link("#edit-comment-#{ilp_comment.id}", "Edit")
       |> click_button("Remove")
 

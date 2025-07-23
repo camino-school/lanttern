@@ -16,7 +16,7 @@ defmodule Lanttern.ILP.ILPComment do
           student_ilp: StudentILP.t(),
           owner_id: pos_integer(),
           owner: Profile.t(),
-          attachments: [ILPCommentAttachment.t()],
+          ilp_comment_attachments: [ILPCommentAttachment.t()] | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -27,7 +27,7 @@ defmodule Lanttern.ILP.ILPComment do
     belongs_to :student_ilp, StudentILP
     belongs_to :owner, Profile
 
-    has_many :attachments, ILPCommentAttachment
+    has_many :ilp_comment_attachments, ILPCommentAttachment, preload_order: [asc: :position]
 
     timestamps()
   end

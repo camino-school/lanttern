@@ -5,14 +5,14 @@ defmodule Lanttern.ILP.ILPCommentAttachment do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.Attachments.Attachment
   alias Lanttern.ILP.ILPComment
 
   @type t :: %__MODULE__{
           id: pos_integer(),
-          name: String.t(),
-          link: String.t(),
           position: pos_integer(),
-          is_external: boolean(),
+          attachment_id: pos_integer(),
+          attachment: Attachment.t(),
           ilp_comment_id: pos_integer(),
           ilp_comment: ILPComment.t(),
           inserted_at: DateTime.t(),
@@ -20,11 +20,9 @@ defmodule Lanttern.ILP.ILPCommentAttachment do
         }
 
   schema "ilp_comment_attachments" do
-    field :name, :string
     field :position, :integer, default: 0
-    field :link, :string
-    field :is_external, :boolean, default: false
 
+    belongs_to :attachment, Attachment
     belongs_to :ilp_comment, ILPComment
 
     timestamps()
@@ -33,7 +31,7 @@ defmodule Lanttern.ILP.ILPCommentAttachment do
   @doc false
   def changeset(ilp_comment_attachment, attrs) do
     ilp_comment_attachment
-    |> cast(attrs, [:ilp_comment_id, :name, :link, :position, :is_external])
-    |> validate_required([:ilp_comment_id, :name, :link, :position, :is_external])
+    |> cast(attrs, [:attachment_id, :ilp_comment_id, :position])
+    |> validate_required([:attachment_id, :ilp_comment_id])
   end
 end

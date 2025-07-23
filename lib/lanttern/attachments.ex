@@ -18,6 +18,7 @@ defmodule Lanttern.Attachments do
   - `:assessment_point_entry_id` - filter results by assessment point entry evidences
   - `:student_cycle_info_id` - filter attachments linked to given student cycle info. May be used with `:shared_with_student` option.
   - `:moment_card_id` - filter results by moment card
+  - `:ilp_comment_id` - filter results by ILP comment
   - `:shared_with_student` - expect a tuple with type and boolean (view the section below for accepted types). If not given, will not filter results.
 
   #### `:shared_with_student` supported types
@@ -89,6 +90,18 @@ defmodule Lanttern.Attachments do
       select: %{a | is_shared: mca.shared_with_students}
     )
     |> maybe_filter_by_shared_with_student(Keyword.get(opts, :shared_with_student))
+    |> apply_list_attachments_opts(opts)
+  end
+
+  defp apply_list_attachments_opts(queryable, [{:ilp_comment_id, ilp_comment_id} | opts])
+       when is_integer(ilp_comment_id) do
+    from(
+      a in queryable,
+      join: ica in assoc(a, :ilp_comment_attachment),
+      as: :ilp_comment_attachment,
+      where: ica.ilp_comment_id == ^ilp_comment_id,
+      order_by: ica.position
+    )
     |> apply_list_attachments_opts(opts)
   end
 

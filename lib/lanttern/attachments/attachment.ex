@@ -10,6 +10,8 @@ defmodule Lanttern.Attachments.Attachment do
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.AssessmentPointEntryEvidence
   alias Lanttern.Identity.Profile
+  alias Lanttern.ILP.ILPComment
+  alias Lanttern.ILP.ILPCommentAttachment
   alias Lanttern.LearningContext.MomentCard
   alias Lanttern.LearningContext.MomentCardAttachment
   alias Lanttern.Notes.Note
@@ -33,6 +35,8 @@ defmodule Lanttern.Attachments.Attachment do
           student_cycle_info: StudentCycleInfo.t(),
           moment_card_attachment: MomentCardAttachment.t(),
           moment_card: MomentCard.t(),
+          ilp_comment_attachment: ILPCommentAttachment.t(),
+          ilp_comment: ILPComment.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -61,6 +65,9 @@ defmodule Lanttern.Attachments.Attachment do
 
     has_one :moment_card_attachment, MomentCardAttachment
     has_one :moment_card, through: [:moment_card_attachment, :moment_card]
+
+    has_one :ilp_comment_attachment, ILPCommentAttachment
+    has_one :ilp_comment, through: [:ilp_comment_attachment, :ilp_comment]
 
     timestamps()
   end

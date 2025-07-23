@@ -1,6 +1,8 @@
 defmodule Lanttern.AttachmentsTest do
   use Lanttern.DataCase
 
+  import Lanttern.Factory
+
   alias Lanttern.Attachments
 
   describe "attachments" do
@@ -11,6 +13,7 @@ defmodule Lanttern.AttachmentsTest do
     alias Lanttern.Assessments
     alias Lanttern.AssessmentsFixtures
     alias Lanttern.IdentityFixtures
+    alias Lanttern.ILP
     alias Lanttern.LearningContext
     alias Lanttern.LearningContextFixtures
     alias Lanttern.Notes
@@ -228,6 +231,56 @@ defmodule Lanttern.AttachmentsTest do
           moment_card_id: moment_card.id,
           shared_with_student: {:moment_card, false}
         )
+
+      assert expected_attachment_1.id == attachment_1.id
+      assert expected_attachment_2.id == attachment_2.id
+    end
+
+    test "list_attachments/1 with ilp_comment_id opts returns all attachments linked to given ILP comment" do
+      ilp_comment = insert(:ilp_comment)
+
+      {:ok, attachment_1} =
+        ILP.create_ilp_comment_attachment(
+          ilp_comment.owner_id,
+          ilp_comment.id,
+          %{"name" => "attachment 1", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      {:ok, attachment_2} =
+        ILP.create_ilp_comment_attachment(
+          ilp_comment.owner_id,
+          ilp_comment.id,
+          %{"name" => "attachment 2", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      # extra attachments to test filtering
+      attachment_fixture()
+
+      ILP.create_ilp_comment_attachment(
+        ilp_comment.owner_id,
+        insert(:ilp_comment).id,
+        %{
+          "name" => "other attachment",
+          "link" => "https://somevaliduri.com",
+          "is_external" => true
+        }
+      )
+
+      [expected_attachment_1, expected_attachment_2] =
+        Attachments.list_attachments(ilp_comment_id: ilp_comment.id)
+
+      assert expected_attachment_1.id == attachment_1.id
+      assert expected_attachment_2.id == attachment_2.id
+
+      # use same setup to test update_ilp_comment_attachments_positions/1 and shared_with_students filtering
+
+      ILP.update_ilp_comment_attachments_positions([
+        attachment_2.id,
+        attachment_1.id
+      ])
+
+      [expected_attachment_2, expected_attachment_1] =
+        Attachments.list_attachments(ilp_comment_id: ilp_comment.id)
 
       assert expected_attachment_1.id == attachment_1.id
       assert expected_attachment_2.id == attachment_2.id
