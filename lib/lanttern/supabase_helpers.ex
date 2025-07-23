@@ -11,8 +11,8 @@ defmodule Lanttern.SupabaseHelpers do
   - handles the client
   - puts the bucket name into valid attrs
   """
-  def create_bucket(bucket_name) do
-    Supabase.Storage.create_bucket(client(), bucket_name, %{public: true})
+  def create_bucket(bucket_id) do
+    Supabase.Storage.create_bucket(client(), bucket_id, %{public: true})
   end
 
   @doc """
@@ -71,8 +71,8 @@ defmodule Lanttern.SupabaseHelpers do
   """
   def config do
     %{
-      base_url: System.fetch_env!("SUPABASE_PROJECT_URL"),
-      api_key: System.fetch_env!("SUPABASE_PROJECT_API_KEY")
+      base_url: Application.get_env(:lanttern, :supabase_project_url),
+      api_key: Application.get_env(:lanttern, :supabase_api_key)
     }
   end
 
@@ -120,4 +120,28 @@ defmodule Lanttern.SupabaseHelpers do
 
   defp transform_params([{:height, height} | opts], params),
     do: transform_params(opts, ["height=#{height}" | params])
+
+  @spec create_signed_url(object_key :: String.t()) ::
+          {:ok, String.t()} | {:error, :invalid_object_key}
+  def create_signed_url(object_key) do
+    with [_, bucket_id, path] <- Regex.run(~r/(.+?)\/(.+)/, object_key),
+         {:ok, signed_url} <- create_signed_url(path, bucket_id) do
+      {:ok, signed_url}
+    else
+      _ -> {:error, :invalid_object_key}
+    end
+  end
+
+  @spec create_signed_url(String.t(), String.t()) ::
+          {:ok, String.t()} | {:error, :invalid_object_key}
+  def create_signed_url(path, bucket_id) do
+    base_url = config()[:base_url]
+    seconds = 60
+    opts = [expires_in: seconds]
+
+    case Supabase.Storage.FileHandler.create_signed_url(client(), bucket_id, path, opts) do
+      {:ok, %{body: body}} -> {:ok, "#{base_url}/storage/v1#{body["signedURL"]}"}
+      _ -> {:error, :invalid_object_key}
+    end
+  end
 end

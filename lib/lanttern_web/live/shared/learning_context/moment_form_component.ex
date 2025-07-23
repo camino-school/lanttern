@@ -39,12 +39,11 @@ defmodule LantternWeb.LearningContext.MomentFormComponent do
         />
         <.input
           field={@form[:description]}
-          type="textarea"
+          type="markdown"
           label={gettext("Description")}
-          class="mb-1"
+          class="mb-6"
           phx-debounce="1500"
         />
-        <.markdown_supported class="mb-6" />
         <.live_component
           module={MultiSelectComponent}
           id="moment-subjects-select"

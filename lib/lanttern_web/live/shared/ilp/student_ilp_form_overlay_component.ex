@@ -53,7 +53,7 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
                     >
                       <div class="mb-2 font-bold"><%= component_f.data.name %></div>
                       <.inputs_for :let={entry_f} field={component_f[:entry]}>
-                        <.input type="textarea" field={entry_f[:description]} phx-debounce="1500" />
+                        <.input type="markdown" field={entry_f[:description]} phx-debounce="1500" />
                       </.inputs_for>
                     </div>
                   </.inputs_for>
@@ -63,23 +63,20 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
           </div>
           <.input
             field={@form[:notes]}
-            type="textarea"
+            type="markdown"
             label={gettext("Notes (shared with students/guardians)")}
-            class="mb-1"
+            class="mb-6"
             phx-debounce="1500"
             show_optional
           />
-          <.markdown_supported class="mb-6" />
           <div class="mb-6 p-4 rounded-sm bg-ltrn-staff-lightest">
             <.input
               field={@form[:teacher_notes]}
-              type="textarea"
+              type="markdown"
               label={gettext("Teacher notes (internal, not shared)")}
-              class="mb-1"
               phx-debounce="1500"
               show_optional
             />
-            <.markdown_supported />
             <div :if={@template.teacher_description} class="mt-6">
               <p class="mb-2 font-bold text-ltrn-staff-dark">
                 <%= gettext("Template instructions") %>

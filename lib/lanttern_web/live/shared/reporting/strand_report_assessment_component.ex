@@ -17,14 +17,12 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.GradesReports
   alias Lanttern.Reporting
-
-  # page components
-  alias LantternWeb.Assessments.StrandGoalDetailsOverlayComponent
-
-  # shared components
+  alias Lanttern.SupabaseHelpers
   alias LantternWeb.Assessments.EntryParticleComponent
+  alias LantternWeb.Assessments.StrandGoalDetailsOverlayComponent
   alias LantternWeb.GradesReports.GradeDetailsOverlayComponent
   alias LantternWeb.GradesReports.StudentGradesReportEntryButtonComponent
+
   import LantternWeb.AssessmentsComponents
   import LantternWeb.AttachmentsComponents
 
@@ -73,6 +71,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
               id={dom_id}
               class="mt-6"
               attachment={evidence}
+              on_signed_url={&JS.push("signed_url", value: %{"url" => &1}, target: @myself)}
             >
               <p class="mt-4 text-xs">
                 <%= if moment_name do
@@ -502,4 +501,12 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
 
   defp assign_student_grades_report_entry_id(socket),
     do: assign(socket, :student_grades_report_entry_id, nil)
+
+  @impl true
+  def handle_event("signed_url", %{"url" => url}, socket) do
+    case SupabaseHelpers.create_signed_url(url) do
+      {:ok, external} -> {:noreply, push_event(socket, "open_external", %{url: external})}
+      {:error, :invalid_url} -> {:noreply, put_flash(socket, :error, gettext("Invalid URL"))}
+    end
+  end
 end

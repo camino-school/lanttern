@@ -58,22 +58,20 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
         />
         <.input
           field={@form[:description]}
-          type="textarea"
+          type="markdown"
           label={gettext("Description")}
           show_optional
           phx-debounce="1500"
-          class="mb-1"
+          class="mb-6"
         />
-        <.markdown_supported class="mb-6" />
         <.input
           field={@form[:grading_info]}
-          type="textarea"
+          type="markdown"
           label={gettext("About grades")}
           show_optional
           phx-debounce="1500"
-          class="mb-1"
+          class="mb-6"
         />
-        <.markdown_supported class="mb-6" />
         <.input
           field={@form[:grades_report_id]}
           type="select"

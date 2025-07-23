@@ -81,6 +81,7 @@ defmodule LantternWeb.ILPComponents do
   attr :tz, :string, default: nil
   attr :class, :any, default: nil
   attr :id, :string, default: nil
+  attr :on_signed_url, :any, required: true, doc: "function. required when open signed link"
 
   def ilp_comments_list(assigns) do
     ~H"""
@@ -141,6 +142,7 @@ defmodule LantternWeb.ILPComponents do
             <.attachments_list
               id={"ilp-comment-#{ilp_comment.id}-attachments"}
               attachments={Enum.map(ilp_comment.ilp_comment_attachments, & &1.attachment)}
+              on_signed_url={@on_signed_url}
             />
           </div>
         </.card_base>

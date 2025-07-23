@@ -48,21 +48,19 @@ defmodule LantternWeb.SchoolConfig.MomentCardTemplateOverlayComponent do
             />
             <.input
               field={@form[:template]}
-              type="textarea"
+              type="markdown"
               label={gettext("Template")}
-              class="mb-1"
+              class="mb-6"
               phx-debounce="1500"
             />
-            <.markdown_supported class="mb-6" />
             <.input
               field={@form[:instructions]}
-              type="textarea"
+              type="markdown"
               label={gettext("Additional instructions")}
-              class="mb-1"
+              class="mb-6"
               phx-debounce="1500"
               show_optional
             />
-            <.markdown_supported class="mb-6" />
             <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
               <%= gettext("Oops, something went wrong! Please check the errors above.") %>
             </.error_block>
