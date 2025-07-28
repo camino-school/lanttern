@@ -265,4 +265,102 @@ defmodule Lanttern.MessageBoard do
   def change_message(%Message{} = message, attrs \\ %{}) do
     Message.changeset(message, attrs)
   end
+
+  alias Lanttern.MessageBoard.CardSection
+
+  @doc """
+  Returns the list of card_sections.
+  """
+  def list_card_sections do
+    CardSection
+    |> preload(:messages)
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a single card_section.
+
+  Raises `Ecto.NoResultsError` if the Card section does not exist.
+  """
+  def get_card_section!(id), do: Repo.get!(CardSection, id)
+
+  @doc """
+  Creates a card_section.
+  """
+  def create_card_section(attrs \\ %{}) do
+    %CardSection{}
+    |> CardSection.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a card_section.
+  """
+  def update_card_section(%CardSection{} = card_section, attrs) do
+    card_section
+    |> CardSection.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a card_section.
+  """
+  def delete_card_section(%CardSection{} = card_section) do
+    Repo.delete(card_section)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking card_section changes.
+  """
+  def change_card_section(%CardSection{} = card_section, attrs \\ %{}) do
+    CardSection.changeset(card_section, attrs)
+  end
+
+  alias Lanttern.MessageBoard.CardMessage
+
+  @doc """
+  Returns the list of card_messages.
+  """
+  def list_card_messages do
+    Repo.all(CardMessage)
+  end
+
+  @doc """
+  Gets a single card_message.
+
+  Raises `Ecto.NoResultsError` if the Card message does not exist.
+  """
+  def get_card_message!(id), do: Repo.get!(CardMessage, id)
+
+  @doc """
+  Creates a card_message.
+  """
+  def create_card_message(attrs \\ %{}) do
+    %CardMessage{}
+    |> CardMessage.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a card_message.
+  """
+  def update_card_message(%CardMessage{} = card_message, attrs) do
+    card_message
+    |> CardMessage.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a card_message.
+  """
+  def delete_card_message(%CardMessage{} = card_message) do
+    Repo.delete(card_message)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking card_message changes.
+  """
+  def change_card_message(%CardMessage{} = card_message, attrs \\ %{}) do
+    CardMessage.changeset(card_message, attrs)
+  end
 end

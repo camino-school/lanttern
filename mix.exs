@@ -106,6 +106,11 @@ defmodule Lanttern.MixProject do
         "esbuild default --minify",
         "phx.digest"
       ],
+      restore: [
+        "ecto.drop",
+        "ecto.create",
+        "cmd PGPASSWORD=postgres pg_restore --verbose --clean --no-acl --no-owner -h localhost -U postgres -d lanttern_dev lanttern.backup"
+      ],
       check: [
         "format --check-formatted",
         "deps.unlock --check-unused",

@@ -102,7 +102,13 @@ To investigate the perfomance process run `mix test --slowest 10`
 ### Requirements
 
 - A backup file: `FILENAME.sql`
-- PostgreSQL client installed  
+- PostgreSQL client installed
+
+### Create Postgres container
+
+```bash
+docker run --name postgres15-container -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=postgres -p 5432:5432 -d postgres:15
+```
 
 ### Create/Recreate the Database
 

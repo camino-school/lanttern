@@ -156,6 +156,7 @@ defmodule LantternWeb.Router do
         {LantternWeb.LocalizationHelpers, :put_timezone}
       ] do
       live "/student", StudentHomeLive
+      live "/student_v2", StudentHomeLiveV2
     end
 
     live_session :authenticated_student_or_guardian,
@@ -334,6 +335,8 @@ defmodule LantternWeb.Router do
 
       live_dashboard "/dashboard", metrics: LantternWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
+
+      live "/login", LantternWeb.DevLoginLive
     end
   end
 
