@@ -19,7 +19,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
             phx-click={JS.exec("data-show", to: "#school-year-filters-overlay")}
             icon_name="hero-chevron-down-mini"
           >
-            <%= format_action_items_text(@selected_years, gettext("All years")) %>
+            {format_action_items_text(@selected_years, gettext("All years"))}
           </.action>
         </div>
         <.action
@@ -28,7 +28,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
           patch={~p"/school/classes?new=true"}
           icon_name="hero-plus-circle-mini"
         >
-          <%= gettext("Add class") %>
+          {gettext("Add class")}
         </.action>
       </div>
       <%= if @has_classes do %>
@@ -43,7 +43,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
                 navigate={~p"/school/classes/#{class}/students"}
                 class="font-display font-black hover:text-ltrn-subtle"
               >
-                <%= class.name %>
+                {class.name}
               </.link>
               <.button
                 :if={@is_school_manager}
@@ -57,15 +57,15 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
               />
             </div>
             <div class="font-bold text-ltrn-subtle">
-              <%= ngettext(
+              {ngettext(
                 "1 active student",
                 "%{count} active students",
                 class.active_students_count
-              ) %>
+              )}
             </div>
             <div class="flex flex-wrap gap-2 mt-4">
               <.badge :for={year <- class.years}>
-                <%= year.name %>
+                {year.name}
               </.badge>
             </div>
             <%= if class.students != [] do %>
@@ -78,21 +78,21 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
                       if(std.deactivated_at, do: "text-ltrn-subtle")
                     ]}
                   >
-                    <%= std.name %>
+                    {std.name}
                   </.link>
                   <%= if is_list(std.tags) do %>
                     <.badge :for={tag <- std.tags} :if={is_list(std.tags)} color_map={tag}>
-                      <%= tag.name %>
+                      {tag.name}
                     </.badge>
                   <% end %>
                   <.badge :if={std.deactivated_at} theme="subtle" class="shrink-0">
-                    <%= gettext("Deactivated") %>
+                    {gettext("Deactivated")}
                   </.badge>
                 </li>
               </ul>
             <% else %>
               <.empty_state_simple class="mt-4">
-                <%= gettext("No students in this class") %>
+                {gettext("No students in this class")}
               </.empty_state_simple>
             <% end %>
           </.card_base>
@@ -100,7 +100,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
       <% else %>
         <.responsive_container class="pt-6 pb-10">
           <.empty_state>
-            <%= gettext("No classes matching current filters") %>
+            {gettext("No classes matching current filters")}
           </.empty_state>
         </.responsive_container>
       <% end %>

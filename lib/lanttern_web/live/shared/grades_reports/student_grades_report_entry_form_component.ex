@@ -38,9 +38,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryFormComponent do
             :if={@has_manual_edit}
             class="p-2 rounded-xs border border-ltrn-staff-accent mt-2 text-sm bg-ltrn-staff-lightest"
           >
-            <%= gettext(
-              "Different from grade composition. Use comments field to justify it if needed."
-            ) %>
+            {gettext("Different from grade composition. Use comments field to justify it if needed.")}
           </p>
           <%= if @has_manual_edit || @has_normalized_value_edit do %>
             <div class="p-4 rounded-sm mt-2 bg-ltrn-alert-lighter">
@@ -54,12 +52,12 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryFormComponent do
                 step="0.00001"
               />
               <p class="mt-4 text-sm">
-                <%= gettext(
+                {gettext(
                   "Normalized values are used to calculate final grades — when levels are changed manually without normalized values adjustments, final grades calculation can be misaligned with related subcycle grades."
-                ) %>
+                )}
               </p>
               <p :if={@has_normalized_value_edit} class="mt-2 text-sm">
-                <%= gettext("Composition normalized value (reference)") %>: <%= @student_grades_report_entry.composition_normalized_value %>
+                {gettext("Composition normalized value (reference)")}: {@student_grades_report_entry.composition_normalized_value}
               </p>
             </div>
           <% else %>
@@ -101,11 +99,11 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryFormComponent do
             label={gettext("Score before retake")}
           />
           <p class="mt-4 text-sm">
-            <%= gettext("If needed, use this area to keep the student grade history before retake.") %>
+            {gettext("If needed, use this area to keep the student grade history before retake.")}
           </p>
         </div>
         <.button :if={!@hide_submit} phx-disable-with={gettext("Saving...")}>
-          <%= gettext("Save student grade report entry") %>
+          {gettext("Save student grade report entry")}
         </.button>
       </.form>
     </div>

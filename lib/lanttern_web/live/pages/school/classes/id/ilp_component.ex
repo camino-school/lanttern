@@ -22,10 +22,9 @@ defmodule LantternWeb.ClassLive.ILPComponent do
               icon_name="hero-chevron-down-mini"
             >
               <%= if @current_template do %>
-                <%= gettext("ILP model:") %>
-                <span class="font-bold"><%= @current_template.name %></span>
+                {gettext("ILP model:")} <span class="font-bold">{@current_template.name}</span>
               <% else %>
-                <%= gettext("No ILP model selected") %>
+                {gettext("No ILP model selected")}
               <% end %>
             </.action>
             <.dropdown_menu
@@ -43,10 +42,10 @@ defmodule LantternWeb.ClassLive.ILPComponent do
             </.dropdown_menu>
           </div>
           <div class="flex items-center gap-2">
-            <%= gettext("%{count} of %{total} ILPs created",
+            {gettext("%{count} of %{total} ILPs created",
               count: @ilps_count,
               total: @students_count
-            ) %>
+            )}
             <div class="w-32 h-4 p-1 rounded-full bg-white overflow-hidden shadow-inner">
               <div
                 class="h-full rounded-full bg-ltrn-primary"
@@ -56,16 +55,16 @@ defmodule LantternWeb.ClassLive.ILPComponent do
           </div>
         <% else %>
           <p>
-            <%= gettext(
+            {gettext(
               "No ILP templates registered in your school. Talk to your Lanttern school manager."
-            ) %>
+            )}
           </p>
         <% end %>
       </.action_bar>
       <.responsive_container class="py-10 px-4">
         <%= if !@current_template do %>
           <.card_base class="p-10">
-            <.empty_state><%= gettext("No ILP template selected") %></.empty_state>
+            <.empty_state>{gettext("No ILP template selected")}</.empty_state>
           </.card_base>
         <% else %>
           <div id={"#{@id}-students-and-ilps"} phx-update="stream">
@@ -91,7 +90,7 @@ defmodule LantternWeb.ClassLive.ILPComponent do
                   icon_name="hero-eye-mini"
                   target="_blank"
                 >
-                  <%= gettext("View ILP") %>
+                  {gettext("View ILP")}
                 </.action>
                 <.student_ilp_share_controls
                   id={"share-controls-#{@id}"}
@@ -125,7 +124,7 @@ defmodule LantternWeb.ClassLive.ILPComponent do
                   icon_name="hero-plus-circle-mini"
                   target="_blank"
                 >
-                  <%= gettext("Create ILP") %>
+                  {gettext("Create ILP")}
                 </.action>
               <% end %>
             </.card_base>

@@ -23,7 +23,7 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
     <div class={@class}>
       <.form id={@id} for={@form} phx-change="validate" phx-submit="save" phx-target={@myself}>
         <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
-          <%= gettext("Oops, something went wrong! Please check the errors below.") %>
+          {gettext("Oops, something went wrong! Please check the errors below.")}
         </.error_block>
         <.input
           field={@form[:name]}
@@ -35,9 +35,9 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
         <%!--
           limit sections and components management to existing templates
           because we need the template id to cast assoc components (composite fk)
-        --%>
+    --%>
         <div :if={@template.id} class="py-6 border-y border-ltrn-light mb-6">
-          <p class="font-bold"><%= gettext("Sections and components") %></p>
+          <p class="font-bold">{gettext("Sections and components")}</p>
           <.inputs_for :let={section_f} field={@form[:sections]}>
             <.card_base class="p-4 border border-ltrn-lightest mt-4">
               <input type="hidden" name="ilp_template[sections_sort][]" value={section_f.index} />
@@ -81,7 +81,7 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
                   value="new_component"
                   phx-click={JS.dispatch("change")}
                 >
-                  <%= gettext("Add component") %>
+                  {gettext("Add component")}
                 </.action>
               </div>
             </.card_base>
@@ -95,7 +95,7 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
               value="new_section"
               phx-click={JS.dispatch("change")}
             >
-              <%= gettext("Add section") %>
+              {gettext("Add section")}
             </.action>
           </.card_base>
         </div>
@@ -118,7 +118,7 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
         </div>
         <.ai_box class="mb-6">
           <p class="mb-6">
-            <%= gettext("Add instructions on how Lanttern should revise this ILP.") %>
+            {gettext("Add instructions on how Lanttern should revise this ILP.")}
           </p>
           <.inputs_for :let={ai_layer_f} field={@form[:ai_layer]}>
             <.input
@@ -154,15 +154,15 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
               phx-click={JS.push("delete", target: @myself)}
               data-confirm={gettext("Are you sure?")}
             >
-              <%= gettext("Delete template") %>
+              {gettext("Delete template")}
             </.action>
           </div>
           <div class="flex items-center gap-4">
             <.action type="button" size="md" phx-click={JS.push("cancel", target: @myself)}>
-              <%= gettext("Cancel") %>
+              {gettext("Cancel")}
             </.action>
             <.action type="submit" theme="primary" size="md" icon_name="hero-check">
-              <%= gettext("Save") %>
+              {gettext("Save")}
             </.action>
           </div>
         </div>

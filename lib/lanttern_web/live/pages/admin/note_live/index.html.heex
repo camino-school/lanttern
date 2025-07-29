@@ -13,15 +13,15 @@
   row_click={fn {_id, note} -> JS.navigate(~p"/admin/notes/#{note}") end}
 >
   <:col :let={{_id, note}} label="Author">
-    <%= case note.author.type do
+    {case note.author.type do
       "staff" ->
         "Teacher: #{note.author.staff_member.name}"
 
       "student" ->
         "Student: #{note.author.student.name}"
-    end %>
+    end}
   </:col>
-  <:col :let={{_id, note}} label="Description"><%= note.description %></:col>
+  <:col :let={{_id, note}} label="Description">{note.description}</:col>
   <:action :let={{_id, note}}>
     <div class="sr-only">
       <.link navigate={~p"/admin/notes/#{note}"}>Show</.link>

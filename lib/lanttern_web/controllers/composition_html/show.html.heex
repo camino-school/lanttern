@@ -1,5 +1,5 @@
 <.header>
-  Composition <%= @composition.id %>
+  Composition {@composition.id}
   <:subtitle>This is a composition record from your database.</:subtitle>
   <:actions>
     <.link href={~p"/admin/grading_compositions/#{@composition}/edit"}>
@@ -9,8 +9,8 @@
 </.header>
 
 <.list>
-  <:item title="Name"><%= @composition.name %></:item>
-  <:item title="Final grade scale"><%= @composition.final_grade_scale.name %></:item>
+  <:item title="Name">{@composition.name}</:item>
+  <:item title="Final grade scale">{@composition.final_grade_scale.name}</:item>
 </.list>
 
 <.back navigate={~p"/admin/grading_compositions"}>Back to compositions</.back>

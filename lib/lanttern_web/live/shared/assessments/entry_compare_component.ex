@@ -42,7 +42,7 @@ defmodule LantternWeb.Assessments.EntryCompareComponent do
       style={@entry_style}
     >
       <span class="truncate">
-        <%= @entry_value %>
+        {@entry_value}
       </span>
     </div>
     """
@@ -54,7 +54,7 @@ defmodule LantternWeb.Assessments.EntryCompareComponent do
       class="flex items-center justify-center p-2 border border-ltrn-light rounded-xs font-mono text-sm bg-white"
       style={@entry_style}
     >
-      <%= @entry_value %>
+      {@entry_value}
     </div>
     """
   end

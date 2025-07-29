@@ -1,5 +1,5 @@
 <.responsive_container class="pt-6 sm:pt-10">
-  <.page_title_with_menu><%= gettext("Strands") %></.page_title_with_menu>
+  <.page_title_with_menu>{gettext("Strands")}</.page_title_with_menu>
   <div class="sm:flex sm:items-center sm:gap-4 mt-10">
     <%= if @has_student_report_cards_cycles do %>
       <.live_component
@@ -15,13 +15,13 @@
       />
     <% else %>
       <p class="flex-1">
-        <%= gettext("No strands in %{cycle} yet", cycle: Map.get(@current_cycle, :name)) %>
+        {gettext("No strands in %{cycle} yet", cycle: Map.get(@current_cycle, :name))}
       </p>
     <% end %>
   </div>
   <div :if={!@has_student_strands} class="p-6 rounde mt-6 mb-10 bg-white shadow-sm lg">
     <.empty_state>
-      <%= gettext("No strands related to selected cycles") %>
+      {gettext("No strands related to selected cycles")}
     </.empty_state>
   </div>
 </.responsive_container>
@@ -48,7 +48,7 @@
           entry={entry}
           size="sm"
         />
-        <.tooltip h_pos="center"><%= gettext("Formative assessment pattern") %></.tooltip>
+        <.tooltip h_pos="center">{gettext("Formative assessment pattern")}</.tooltip>
       </div>
     </:bottom_content>
   </.strand_card>

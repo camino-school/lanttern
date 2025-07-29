@@ -29,10 +29,10 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponent do
             phx-click={JS.exec("data-show", to: "#message-board-classes-filters-overlay")}
             icon_name="hero-chevron-down-mini"
           >
-            <%= format_action_items_text(@selected_classes, gettext("All classes")) %>
+            {format_action_items_text(@selected_classes, gettext("All classes"))}
           </.action>
           <p>
-            <%= if @messages_count == 0 do
+            {if @messages_count == 0 do
               gettext("No messages")
             else
               ngettext(
@@ -40,10 +40,10 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponent do
                 "Showing %{count} messages",
                 @messages_count
               )
-            end %>
+            end}
           </p>
           <.action type="link" theme="subtle" navigate={~p"/school/message_board/archive"}>
-            <%= gettext("View archived messages") %>
+            {gettext("View archived messages")}
           </.action>
         </div>
         <.action
@@ -52,20 +52,19 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponent do
           patch={~p"/school/message_board?new=true"}
           icon_name="hero-plus-circle-mini"
         >
-          <%= gettext("New message") %>
+          {gettext("New message")}
         </.action>
       </.action_bar>
       <.responsive_container class="p-4">
         <p class="flex items-center gap-2">
-          <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-          <%= gettext(
+          <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" /> {gettext(
             "Messages in the school message board are displayed in students and guardians home page."
-          ) %>
+          )}
         </p>
         <%= if @messages_count == 0 do %>
           <.card_base class="p-10 mt-4">
             <.empty_state>
-              <%= gettext("No messages matching current filters created yet") %>
+              {gettext("No messages matching current filters created yet")}
             </.empty_state>
           </.card_base>
         <% else %>

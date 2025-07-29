@@ -1,5 +1,5 @@
 <.header>
-  Class <%= @class.id %>
+  Class {@class.id}
   <:subtitle>This is a class record from your database.</:subtitle>
   <:actions>
     <.link href={~p"/admin/classes/#{@class}/edit"}>
@@ -9,18 +9,18 @@
 </.header>
 
 <.list>
-  <:item title="Name"><%= @class.name %></:item>
-  <:item title="School"><%= @class.school.name %></:item>
-  <:item title="Cycle"><%= @class.cycle.name %></:item>
+  <:item title="Name">{@class.name}</:item>
+  <:item title="School">{@class.school.name}</:item>
+  <:item title="Cycle">{@class.cycle.name}</:item>
   <:item title="Years">
-    <%= @class.years
+    {@class.years
     |> Enum.map(& &1.name)
-    |> Enum.join(", ") %>
+    |> Enum.join(", ")}
   </:item>
   <:item title="Students">
-    <%= @class.students
+    {@class.students
     |> Enum.map(& &1.name)
-    |> Enum.join(", ") %>
+    |> Enum.join(", ")}
   </:item>
 </.list>
 

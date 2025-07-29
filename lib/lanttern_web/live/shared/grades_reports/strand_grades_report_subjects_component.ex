@@ -26,18 +26,18 @@ defmodule LantternWeb.GradesReports.StrandGradesReportSubjectsComponent do
     ~H"""
     <div id={@id} class={@class}>
       <%= if @has_grades_reports_subjects do %>
-        <p><%= gettext("Used in grading for") %></p>
+        <p>{gettext("Used in grading for")}</p>
         <div id={"subjects-list-#{@id}"} class="flex flex-wrap gap-2 mt-2" phx-update="stream">
           <.badge
             :for={{dom_id, grs} <- @streams.grades_reports_subjects}
             id={"#{@id}-#{dom_id}"}
             theme="dark"
           >
-            <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", grs.subject.name) %>
+            {Gettext.dgettext(Lanttern.Gettext, "taxonomy", grs.subject.name)}
           </.badge>
         </div>
       <% else %>
-        <p class="text-ltrn-subtle"><%= gettext("Not used for grading") %></p>
+        <p class="text-ltrn-subtle">{gettext("Not used for grading")}</p>
       <% end %>
     </div>
     """

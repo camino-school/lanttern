@@ -28,7 +28,7 @@ defmodule LantternWeb.ReportCardLive.StudentsTrackingComponent do
         <div class="container mx-auto mt-4 lg:max-w-5xl">
           <div class="p-10 rounded-sm shadow-xl bg-white">
             <.empty_state>
-              <%= gettext("Add students to report card to track entries") %>
+              {gettext("Add students to report card to track entries")}
             </.empty_state>
           </div>
         </div>

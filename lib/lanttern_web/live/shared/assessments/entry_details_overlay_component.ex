@@ -23,18 +23,18 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
     ~H"""
     <div>
       <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
-        <:title><%= gettext("Assessment point entry details") %></:title>
+        <:title>{gettext("Assessment point entry details")}</:title>
         <.metadata class="mb-6" icon_name="hero-user">
-          <%= @student.name %>
+          {@student.name}
         </.metadata>
         <.metadata icon_name="hero-document-text">
           <div class="flex flex-wrap gap-1 mb-1">
-            <.badge><%= @assessment_point.curriculum_item.curriculum_component.name %></.badge>
+            <.badge>{@assessment_point.curriculum_item.curriculum_component.name}</.badge>
             <.badge :if={@assessment_point.is_differentiation} theme="diff">
-              <%= gettext("Differentiation") %>
+              {gettext("Differentiation")}
             </.badge>
           </div>
-          <p><%= @assessment_point.curriculum_item.name %></p>
+          <p>{@assessment_point.curriculum_item.name}</p>
         </.metadata>
         <.form
           for={@form}
@@ -45,10 +45,10 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
         >
           <div class="grid grid-cols-2 gap-2">
             <div class="pb-1 border-b-2 border-ltrn-staff-accent text-xs text-center text-ltrn-staff-dark">
-              <%= gettext("Teacher assessment") %>
+              {gettext("Teacher assessment")}
             </div>
             <div class="pb-1 border-b-2 border-ltrn-student-accent text-xs text-center text-ltrn-student-dark">
-              <%= gettext("Student self-assessment") %>
+              {gettext("Student self-assessment")}
             </div>
             <.marking_input
               scale={@assessment_point.scale}
@@ -72,9 +72,9 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
             class="p-2 rounded-sm mt-2 text-sm text-white text-center bg-ltrn-dark"
           >
             <button class="underline hover:text-ltrn-primary">
-              <%= gettext("Save") %>
+              {gettext("Save")}
             </button>
-            <%= gettext("or") %>
+            {gettext("or")}
             <button
               type="button"
               theme="ghost"
@@ -82,7 +82,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
               phx-click="cancel_change_marking"
               phx-target={@myself}
             >
-              <%= gettext("discard changes") %>
+              {gettext("discard changes")}
             </button>
           </div>
         </.form>
@@ -243,14 +243,14 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2 font-bold text-sm">
           <.icon name="hero-chat-bubble-oval-left" class={["w-6 h-6", @text_accent]} />
-          <span class={@text_dark}><%= @comment_text %></span>
+          <span class={@text_dark}>{@comment_text}</span>
         </div>
         <button
           :if={!@is_editing}
           phx-click={@on_edit}
           class={["font-display font-bold text-sm underline hover:opacity-50", @text_dark]}
         >
-          <%= if @note, do: gettext("Edit"), else: gettext("Add") %>
+          {if @note, do: gettext("Edit"), else: gettext("Add")}
         </button>
       </div>
       <.form :if={@is_editing} for={@form} phx-submit={@on_save} phx-change={@on_change} class="mt-4">
@@ -259,13 +259,13 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
           :if={@error}
           class="p-4 rounded-sm mt-4 text-sm text-ltrn-alert-accent bg-ltrn-alert-lighter"
         >
-          <%= @error %>
+          {@error}
         </p>
         <div class="flex justify-end gap-2 mt-6">
           <.button type="button" theme="ghost" phx-click={@on_cancel}>
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.button>
-          <.button type="submit" theme={@theme}><%= gettext("Save comment") %></.button>
+          <.button type="submit" theme={@theme}>{gettext("Save comment")}</.button>
         </div>
       </.form>
       <.markdown :if={!@is_editing && @note} text={@note} class="max-w-none mt-4" />
@@ -273,7 +273,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
         :if={!@is_editing && !@note}
         class="p-4 rounded-sm border border-dashed border-ltrn-light mt-4 text-sm text-center text-ltrn-subtle"
       >
-        <%= @no_comment_text %>
+        {@no_comment_text}
       </div>
     </div>
     """
@@ -293,7 +293,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
     <div class="p-4 rounded-sm mt-10 bg-ltrn-diff-lightest">
       <div class="flex items-center gap-2 mb-4 font-bold text-sm">
         <.icon name="hero-view-columns" class="w-6 h-6 text-ltrn-diff-accent" />
-        <span class="text-ltrn-diff-dark"><%= gettext("Differentiation rubric") %></span>
+        <span class="text-ltrn-diff-dark">{gettext("Differentiation rubric")}</span>
       </div>
       <%= if @diff_rubric_options != [] do %>
         <.form for={@form} phx-submit={@on_save} id={"#{@id}-diff-rubric-form"}>
@@ -317,22 +317,22 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
             class="p-2 rounded-sm mt-2 text-sm text-white text-center bg-ltrn-diff-dark"
           >
             <button type="submit" class="underline hover:text-ltrn-primary">
-              <%= gettext("Save") %>
+              {gettext("Save")}
             </button>
-            <%= gettext("or") %>
+            {gettext("or")}
             <button
               type="button"
               theme="ghost"
               class="underline hover:text-ltrn-light"
               phx-click={@on_cancel}
             >
-              <%= gettext("discard changes") %>
+              {gettext("discard changes")}
             </button>
           </div>
         </.form>
       <% else %>
         <.empty_state_simple>
-          <%= gettext("No differentiation rubric matching assessment point curriculum item and scale") %>
+          {gettext("No differentiation rubric matching assessment point curriculum item and scale")}
         </.empty_state_simple>
       <% end %>
     </div>

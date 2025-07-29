@@ -1,5 +1,5 @@
 <.header>
-  Curriculum component <%= @curriculum_component.id %>
+  Curriculum component {@curriculum_component.id}
   <:subtitle>This is a curriculum_component record from your database.</:subtitle>
   <:actions>
     <.link href={~p"/admin/curriculum_components/#{@curriculum_component}/edit"}>
@@ -9,11 +9,11 @@
 </.header>
 
 <.list>
-  <:item title="Curriculum"><%= @curriculum_component.curriculum.name %></:item>
-  <:item title="Code"><%= @curriculum_component.code %></:item>
-  <:item title="Name"><%= @curriculum_component.name %></:item>
-  <:item title="Description"><%= @curriculum_component.description %></:item>
-  <:item title="Position"><%= @curriculum_component.position %></:item>
+  <:item title="Curriculum">{@curriculum_component.curriculum.name}</:item>
+  <:item title="Code">{@curriculum_component.code}</:item>
+  <:item title="Name">{@curriculum_component.name}</:item>
+  <:item title="Description">{@curriculum_component.description}</:item>
+  <:item title="Position">{@curriculum_component.position}</:item>
   <:item title="Colors">
     <.badge style={
       [
@@ -28,8 +28,8 @@
       ]
       |> Enum.join(" ")
     }>
-      bg: <%= @curriculum_component.bg_color || "—" %> / text: <%= @curriculum_component.text_color ||
-        "—" %>
+      bg: {@curriculum_component.bg_color || "—"} / text: {@curriculum_component.text_color ||
+        "—"}
     </.badge>
   </:item>
 </.list>

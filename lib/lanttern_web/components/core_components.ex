@@ -51,7 +51,7 @@ defmodule LantternWeb.CoreComponents do
       {@rest}
     >
       <div class={action_bg_styles(@theme, @size)}></div>
-      <span class="relative truncate"><%= render_slot(@inner_block) %></span>
+      <span class="relative truncate">{render_slot(@inner_block)}</span>
       <.icon :if={@icon_name} name={@icon_name} class={action_child_icon_styles(@size)} />
     </.link>
     """
@@ -61,7 +61,7 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <button type={@type} class={[action_styles(@theme, @size), @class]} {@rest}>
       <div class={action_bg_styles(@theme, @size)}></div>
-      <span class="relative truncate"><%= render_slot(@inner_block) %></span>
+      <span class="relative truncate">{render_slot(@inner_block)}</span>
       <.icon
         :if={@icon_name}
         name={@icon_name}
@@ -154,7 +154,7 @@ defmodule LantternWeb.CoreComponents do
       title={@sr_text}
       {@rest}
     >
-      <span :if={@sr_text} class="sr-only"><%= @sr_text %></span>
+      <span :if={@sr_text} class="sr-only">{@sr_text}</span>
       <.icon name={@name} class={action_icon_icon_styles(@size)} />
     </.link>
     """
@@ -163,7 +163,7 @@ defmodule LantternWeb.CoreComponents do
   def action_icon(%{type: type} = assigns) when type in ["button", "submit"] do
     ~H"""
     <button type={@type} class={[action_icon_styles(@theme), @class]} title={@sr_text} {@rest}>
-      <span :if={@sr_text} class="sr-only"><%= @sr_text %></span>
+      <span :if={@sr_text} class="sr-only">{@sr_text}</span>
       <.icon
         name={@name}
         class={[
@@ -220,7 +220,7 @@ defmodule LantternWeb.CoreComponents do
   def action_bar(assigns) do
     ~H"""
     <div class={["p-4 bg-white/20 shadow-xl", @class]}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </div>
     """
   end
@@ -241,9 +241,9 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div class={["p-4 rounded-sm border border-ltrn-ai-accent bg-ltrn-ai-lightest", @class]} id={@id}>
       <h5 :if={@title} class="flex items-center gap-2 mb-4 font-display font-black text-lg">
-        <.icon name="hero-sparkles-mini" class="text-ltrn-ai-accent" /> <%= @title %>
+        <.icon name="hero-sparkles-mini" class="text-ltrn-ai-accent" /> {@title}
       </h5>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </div>
     """
   end
@@ -261,7 +261,7 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <p class={["flex items-center gap-2 p-2 rounded-sm text-ltrn-ai-dark bg-ltrn-ai-lighter", @class]}>
       <.icon name="hero-information-circle-micro" class="w-4 h-4" />
-      <%= gettext("Remember that AI makes mistakes. Always double-check generated responses.") %>
+      {gettext("Remember that AI makes mistakes. Always double-check generated responses.")}
     </p>
     """
   end
@@ -284,7 +284,7 @@ defmodule LantternWeb.CoreComponents do
         class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
       >
         <.icon name="hero-arrow-left-solid" class="h-3 w-3" />
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       </.link>
     </div>
     """
@@ -329,9 +329,9 @@ defmodule LantternWeb.CoreComponents do
         name={@icon_name}
       />
       <%= if @on_click do %>
-        <button type="button" phx-click={@on_click}><%= render_slot(@inner_block) %></button>
+        <button type="button" phx-click={@on_click}>{render_slot(@inner_block)}</button>
       <% else %>
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       <% end %>
       <button
         :if={@on_remove}
@@ -339,7 +339,7 @@ defmodule LantternWeb.CoreComponents do
         class="group relative ml-1 h-3.5 w-3.5 rounded-[1px] hover:bg-ltrn-dark/10"
         phx-click={@on_remove}
       >
-        <span class="sr-only"><%= gettext("Remove") %></span>
+        <span class="sr-only">{gettext("Remove")}</span>
         <.icon
           name="hero-x-mark-mini"
           class="w-3.5 text-ltrn-dark"
@@ -478,7 +478,7 @@ defmodule LantternWeb.CoreComponents do
         class={["w-3.5 h-3.5", badge_check_icon_theme(@is_checked)]}
         style={create_color_map_text_style(@color_map)}
       />
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
       <%= if @icon_name do %>
         <.icon
           name={@icon_name}
@@ -535,10 +535,10 @@ defmodule LantternWeb.CoreComponents do
         icon_name={if item.id in @selected_ids, do: "hero-check-mini", else: "hero-plus-mini"}
         phx-click={@on_select.(item.id)}
       >
-        <%= case @label_setter do
+        {case @label_setter do
           "class_with_cycle" -> class_with_cycle(item, @current_user)
           _ -> item.name
-        end %>
+        end}
       </.badge_button>
     </div>
     """
@@ -591,9 +591,9 @@ defmodule LantternWeb.CoreComponents do
       csrf_token={@csrf_token}
       {@rest}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
       <%= if @icon_name do %>
-        <span :if={@inner_block == []} class="sr-only"><%= @sr_text %></span>
+        <span :if={@inner_block == []} class="sr-only">{@sr_text}</span>
         <.icon
           name={@icon_name}
           class="w-5 h-5 group-phx-submit-loading:hidden group-phx-click-loading:hidden"
@@ -615,7 +615,7 @@ defmodule LantternWeb.CoreComponents do
       ]}
       {@rest}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
       <%= if @icon_name do %>
         <.icon
           name={@icon_name}
@@ -695,7 +695,7 @@ defmodule LantternWeb.CoreComponents do
   def card_base(assigns) do
     ~H"""
     <div id={@id} class={[card_base_classes(@bg_class), @class]} {@rest}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </div>
     """
   end
@@ -734,10 +734,10 @@ defmodule LantternWeb.CoreComponents do
         if(@size == "sm", do: "top-0", else: "top-1/4")
       ]} />
       <.responsive_container class="relative py-6 sm:pt-10">
-        <%= render_slot(@top) %>
+        {render_slot(@top)}
       </.responsive_container>
       <.responsive_container class="relative py-6 sm:pb-10 mt-14">
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       </.responsive_container>
     </div>
     """
@@ -778,7 +778,7 @@ defmodule LantternWeb.CoreComponents do
       class={[cover_image_base_classes(@size), @class]}
       style={"background-image: url('#{@image_url || "/images/cover-placeholder.jpg"}')"}
     >
-      <p class="sr-only"><%= @alt_text %></p>
+      <p class="sr-only">{@alt_text}</p>
       <div class={[
         "absolute inset-0 bg-gradient-to-b",
         cover_overlay(@theme)
@@ -804,7 +804,7 @@ defmodule LantternWeb.CoreComponents do
           style={"background-image: url('#{@image_url}')"}
         />
       </div>
-      <p class="sr-only"><%= @alt_text %></p>
+      <p class="sr-only">{@alt_text}</p>
       <div class={[
         "absolute inset-0 bg-gradient-to-b pointer-events-none",
         cover_overlay(@theme)
@@ -827,7 +827,7 @@ defmodule LantternWeb.CoreComponents do
       style="background-image: url('/images/cover-placeholder.jpg')"
     >
       <p :if={@empty_state_text} class="font-display font-black text-2xl text-ltrn-subtle">
-        <%= @empty_state_text %>
+        {@empty_state_text}
       </p>
       <div class={[
         "absolute inset-0 bg-gradient-to-b",
@@ -886,8 +886,8 @@ defmodule LantternWeb.CoreComponents do
   ## Examples
 
       <.data_grid id="users" rows={@users}>
-        <:col :let={user} label="id"><%= user.id %></:col>
-        <:col :let={user} label="username"><%= user.username %></:col>
+        <:col :let={user} label="id">{user.id}</:col>
+        <:col :let={user} label="username">{user.username}</:col>
       </.data_grid>
   """
   attr :id, :string, required: true
@@ -943,7 +943,7 @@ defmodule LantternWeb.CoreComponents do
           style={["top: #{@sticky_header_offset};", @grid_col_span_style]}
         >
           <div :for={col <- @col} class="flex gap-2 p-4">
-            <%= col[:label] %>
+            {col[:label]}
             <button
               :if={col[:on_filter]}
               type="button"
@@ -958,7 +958,7 @@ defmodule LantternWeb.CoreComponents do
             </button>
           </div>
           <div :if={@action != []} class="relative p-2 pb-4">
-            <span class="sr-only"><%= gettext("Actions") %></span>
+            <span class="sr-only">{gettext("Actions")}</span>
           </div>
         </div>
         <ul id={@id} phx-update="stream" class="grid grid-cols-subgrid" style={@grid_col_span_style}>
@@ -973,18 +973,18 @@ defmodule LantternWeb.CoreComponents do
             phx-click={@row_click && @row_click.(row)}
           >
             <div :for={col <- @col} class={["p-4", col[:class]]}>
-              <%= render_slot(col, row) %>
+              {render_slot(col, row)}
             </div>
             <div :if={@action != []} class="flex items-center gap-2 p-4">
               <%= for action <- @action do %>
-                <%= render_slot(action, row) %>
+                {render_slot(action, row)}
               <% end %>
             </div>
           </li>
         </ul>
       </div>
       <div :if={@show_empty_state_message} class="p-6">
-        <.empty_state><%= @show_empty_state_message %></.empty_state>
+        <.empty_state>{@show_empty_state_message}</.empty_state>
       </div>
     </div>
     """
@@ -1024,7 +1024,7 @@ defmodule LantternWeb.CoreComponents do
     >
       <.drag_handle class="sortable-handle" />
       <div class="flex-1 min-w-0">
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       </div>
     </.card_base>
     """
@@ -1049,7 +1049,7 @@ defmodule LantternWeb.CoreComponents do
         </span>
         <span class="relative inline-flex rounded-full h-16 w-16 bg-ltrn-primary blur-xs"></span>
       </div> --%>
-      <p class="font-display text-ltrn-subtle"><%= render_slot(@inner_block) %></p>
+      <p class="font-display text-ltrn-subtle">{render_slot(@inner_block)}</p>
     </div>
     """
   end
@@ -1064,7 +1064,7 @@ defmodule LantternWeb.CoreComponents do
   def empty_state_simple(assigns) do
     ~H"""
     <div class={["p-4 border border-dashed border-ltrn-light rounded-sm", @class]} id={@id}>
-      <p class="text-sm text-ltrn-subtle text-center"><%= render_slot(@inner_block) %></p>
+      <p class="text-sm text-ltrn-subtle text-center">{render_slot(@inner_block)}</p>
     </div>
     """
   end
@@ -1078,7 +1078,7 @@ defmodule LantternWeb.CoreComponents do
   def fixed_bar(assigns) do
     ~H"""
     <div class={["z-20 fixed bottom-0 inset-x-0 p-4 sm:p-6 bg-ltrn-dark", @class]}>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </div>
     """
   end
@@ -1124,8 +1124,8 @@ defmodule LantternWeb.CoreComponents do
             />
           </div>
           <div class="ml-3 w-0 flex-1 pt-0.5">
-            <p :if={@title} class="mb-1 text-sm font-bold"><%= @title %></p>
-            <p class="text-sm text-ltrn-subtle"><%= msg %></p>
+            <p :if={@title} class="mb-1 text-sm font-bold">{@title}</p>
+            <p class="text-sm text-ltrn-subtle">{msg}</p>
           </div>
           <div class="ml-4 flex flex-shrink-0">
             <button
@@ -1170,7 +1170,7 @@ defmodule LantternWeb.CoreComponents do
           phx-connected={hide_alert("#client-error")}
           hidden
         >
-          <%= gettext("Attempting to reconnect") %>
+          {gettext("Attempting to reconnect")}
           <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
         </.flash>
 
@@ -1182,7 +1182,7 @@ defmodule LantternWeb.CoreComponents do
           phx-connected={hide_alert("#server-error")}
           hidden
         >
-          <%= gettext("Hang in there while we get back on track") %>
+          {gettext("Hang in there while we get back on track")}
           <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
         </.flash>
       </div>
@@ -1236,7 +1236,7 @@ defmodule LantternWeb.CoreComponents do
       ]}
       {@rest}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </div>
     """
   end
@@ -1255,13 +1255,13 @@ defmodule LantternWeb.CoreComponents do
     <header class={[@actions != [] && "flex items-center justify-between gap-6", @class]}>
       <div>
         <h1 class="text-lg font-semibold leading-8 text-zinc-800">
-          <%= render_slot(@inner_block) %>
+          {render_slot(@inner_block)}
         </h1>
         <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-zinc-600">
-          <%= render_slot(@subtitle) %>
+          {render_slot(@subtitle)}
         </p>
       </div>
-      <div class="flex-none"><%= render_slot(@actions) %></div>
+      <div class="flex-none">{render_slot(@actions)}</div>
     </header>
     """
   end
@@ -1396,7 +1396,7 @@ defmodule LantternWeb.CoreComponents do
       ]}
       {@rest}
     >
-      <span class="sr-only"><%= @sr_text %></span>
+      <span class="sr-only">{@sr_text}</span>
       <.icon name={@name} class="w-5 h-5" />
     </button>
     """
@@ -1419,7 +1419,7 @@ defmodule LantternWeb.CoreComponents do
       ]}
       {@rest}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </span>
     """
   end
@@ -1430,8 +1430,8 @@ defmodule LantternWeb.CoreComponents do
   ## Examples
 
       <.list>
-        <:item title="Title"><%= @post.title %></:item>
-        <:item title="Views"><%= @post.views %></:item>
+        <:item title="Title">{@post.title}</:item>
+        <:item title="Views">{@post.views}</:item>
       </.list>
   """
   slot :item, required: true do
@@ -1443,8 +1443,8 @@ defmodule LantternWeb.CoreComponents do
     <div class="mt-14">
       <dl class="-my-4 divide-y divide-zinc-100">
         <div :for={item <- @item} class="flex gap-4 py-4 text-sm leading-6 sm:gap-8">
-          <dt class="w-1/4 flex-none text-zinc-500"><%= item.title %></dt>
-          <dd class="text-zinc-700"><%= render_slot(item) %></dd>
+          <dt class="w-1/4 flex-none text-zinc-500">{item.title}</dt>
+          <dd class="text-zinc-700">{render_slot(item)}</dd>
         </div>
       </dl>
     </div>
@@ -1470,7 +1470,7 @@ defmodule LantternWeb.CoreComponents do
       ]}
       {@rest}
     >
-      <%= raw(Earmark.as_html!(@text)) %>
+      {raw(Earmark.as_html!(@text))}
     </div>
     """
   end
@@ -1486,7 +1486,7 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div class={["flex items-center gap-2", @class]}>
       <.icon :if={@icon_name} name={@icon_name} class="shrink-0 w-6 h-6 text-ltrn-subtle" />
-      <div class="text-sm"><%= render_slot(@inner_block) %></div>
+      <div class="text-sm">{render_slot(@inner_block)}</div>
     </div>
     """
   end
@@ -1525,7 +1525,7 @@ defmodule LantternWeb.CoreComponents do
     <div class={["flex items-center gap-4 justify-between", @class]}>
       <div class="flex items-center gap-2">
         <h1 class="font-display font-black text-3xl">
-          <%= render_slot(@inner_block) %>
+          {render_slot(@inner_block)}
         </h1>
         <.button
           :if={@on_edit_patch}
@@ -1602,15 +1602,15 @@ defmodule LantternWeb.CoreComponents do
             if(@truncate, do: "truncate")
           ]}
         >
-          <%= @person.name %>
+          {@person.name}
         </.link>
       <% else %>
         <span class={["pr-1", @text_size, @name_w, if(@truncate, do: "truncate")]}>
-          <%= @person.name %>
+          {@person.name}
         </span>
       <% end %>
       <div :if={@show_tags && is_list(@person.tags)} class="flex items-center gap-1">
-        <.badge :for={tag <- @person.tags} color_map={tag} rounded><%= tag.name %></.badge>
+        <.badge :for={tag <- @person.tags} color_map={tag} rounded>{tag.name}</.badge>
       </div>
       <div :if={@on_remove} class="pr-1 -ml-1">
         <button
@@ -1618,7 +1618,7 @@ defmodule LantternWeb.CoreComponents do
           class="group flex items-center justify-center rounded-full hover:bg-ltrn-dark/10"
           phx-click={@on_remove}
         >
-          <span class="sr-only"><%= gettext("Remove") %></span>
+          <span class="sr-only">{gettext("Remove")}</span>
           <.icon
             name="hero-x-mark-mini"
             class="w-3.5 h-3.5 text-ltrn-subtle group-hover:text-ltrn-dark"
@@ -1683,9 +1683,9 @@ defmodule LantternWeb.CoreComponents do
     >
       <%= if @is_checked do %>
         <.icon name="hero-check" />
-        <span class="sr-only"><%= gettext("Selected") %></span>
+        <span class="sr-only">{gettext("Selected")}</span>
       <% else %>
-        <%= profile_icon_initials(@profile_name) %>
+        {profile_icon_initials(@profile_name)}
       <% end %>
     </button>
     """
@@ -1705,9 +1705,9 @@ defmodule LantternWeb.CoreComponents do
     >
       <%= if @is_checked do %>
         <.icon name="hero-check" />
-        <span class="sr-only"><%= gettext("Selected") %></span>
+        <span class="sr-only">{gettext("Selected")}</span>
       <% else %>
-        <%= profile_icon_initials(@profile_name) %>
+        {profile_icon_initials(@profile_name)}
       <% end %>
     </div>
     """
@@ -1781,14 +1781,14 @@ defmodule LantternWeb.CoreComponents do
               if(@extra_info, do: "line-clamp-1", else: "line-clamp-2")
             ]}
           >
-            <%= @profile_name %>
+            {@profile_name}
           </.link>
         <% else %>
           <div class={if(@extra_info, do: "line-clamp-1", else: "line-clamp-2")}>
-            <%= @profile_name %>
+            {@profile_name}
           </div>
         <% end %>
-        <div :if={@extra_info} class="line-clamp-1 text-xs text-ltrn-subtle"><%= @extra_info %></div>
+        <div :if={@extra_info} class="line-clamp-1 text-xs text-ltrn-subtle">{@extra_info}</div>
       </div>
     </div>
     """
@@ -1836,7 +1836,7 @@ defmodule LantternWeb.CoreComponents do
       <%= if @picture_url do %>
         <img src={@picture_url} class="object-cover w-full h-full" />
       <% else %>
-        <%= profile_icon_initials(@profile_name) %>
+        {profile_icon_initials(@profile_name)}
       <% end %>
     </button>
     """
@@ -1859,7 +1859,7 @@ defmodule LantternWeb.CoreComponents do
       <%= if @picture_url do %>
         <img src={@picture_url} class="object-cover w-full h-full" />
       <% else %>
-        <%= profile_icon_initials(@profile_name) %>
+        {profile_icon_initials(@profile_name)}
       <% end %>
     </div>
     """
@@ -1940,27 +1940,27 @@ defmodule LantternWeb.CoreComponents do
               if(@is_deactivated, do: "text-ltrn-subtle")
             ]}
           >
-            <%= @profile_name %>
-            <%= if @is_deactivated, do: gettext("(Deactivated)") %>
+            {@profile_name}
+            {if @is_deactivated, do: gettext("(Deactivated)")}
           </.link>
         <% else %>
           <div class={[
             "line-clamp-1",
             if(@is_deactivated, do: "text-ltrn-subtle")
           ]}>
-            <%= @profile_name %>
-            <%= if @is_deactivated, do: gettext("(Deactivated)") %>
+            {@profile_name}
+            {if @is_deactivated, do: gettext("(Deactivated)")}
           </div>
         <% end %>
         <%= if is_list(@tags) && @tags != [] do %>
           <div class="flex flew-wrap gap-2 mt-1">
             <.badge :for={tag <- @tags} color_map={tag}>
-              <%= tag.name %>
+              {tag.name}
             </.badge>
           </div>
         <% end %>
         <div :if={@extra_info} class="line-clamp-1 text-xs text-ltrn-subtle mt-1">
-          <%= @extra_info %>
+          {@extra_info}
         </div>
       </div>
     </div>
@@ -1986,7 +1986,7 @@ defmodule LantternWeb.CoreComponents do
       ]}
       {@rest}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </div>
     """
   end
@@ -2021,7 +2021,7 @@ defmodule LantternWeb.CoreComponents do
       ]}
       {@rest}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </div>
     """
   end
@@ -2099,7 +2099,7 @@ defmodule LantternWeb.CoreComponents do
       aria-checked="false"
       {@rest}
     >
-      <span :if={@sr_text} class="sr-only"><%= @sr_text %></span>
+      <span :if={@sr_text} class="sr-only">{@sr_text}</span>
       <span
         aria-hidden="true"
         class={[
@@ -2156,7 +2156,7 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <.card_base id={@id} class={["flex items-center gap-4 p-4", @class]} bg_class={@bg_class}>
       <div class="flex-1 min-w-0">
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       </div>
       <div class="shrink-0 flex flex-col gap-2">
         <.icon_button
@@ -2190,8 +2190,8 @@ defmodule LantternWeb.CoreComponents do
   ## Examples
 
       <.table id="users" rows={@users}>
-        <:col :let={user} label="id"><%= user.id %></:col>
-        <:col :let={user} label="username"><%= user.username %></:col>
+        <:col :let={user} label="id">{user.id}</:col>
+        <:col :let={user} label="username">{user.username}</:col>
       </.table>
   """
   attr :id, :string, required: true
@@ -2219,9 +2219,9 @@ defmodule LantternWeb.CoreComponents do
     <table class="w-[40rem] sm:w-full">
       <thead class="text-sm text-left leading-6 text-zinc-500">
         <tr>
-          <th :for={col <- @col} class="p-2 pr-6 pb-4 font-normal"><%= col[:label] %></th>
+          <th :for={col <- @col} class="p-2 pr-6 pb-4 font-normal">{col[:label]}</th>
           <th :if={@action != []} class="relative p-2 pb-4">
-            <span class="sr-only"><%= gettext("Actions") %></span>
+            <span class="sr-only">{gettext("Actions")}</span>
           </th>
         </tr>
       </thead>
@@ -2237,7 +2237,7 @@ defmodule LantternWeb.CoreComponents do
             class={["relative p-2", @row_click && "hover:cursor-pointer"]}
           >
             <span class={["relative", i == 0 && "font-semibold text-zinc-900"]}>
-              <%= render_slot(col, @row_item.(row)) %>
+              {render_slot(col, @row_item.(row))}
             </span>
           </td>
           <td :if={@action != []} class="relative w-14 p-2">
@@ -2246,7 +2246,7 @@ defmodule LantternWeb.CoreComponents do
                 :for={action <- @action}
                 class="relative font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
               >
-                <%= render_slot(action, @row_item.(row)) %>
+                {render_slot(action, @row_item.(row))}
               </span>
             </div>
           </td>
@@ -2262,8 +2262,8 @@ defmodule LantternWeb.CoreComponents do
   ## Examples
 
       <.stream_table id="users" rows={@users}>
-        <:col :let={user} label="id"><%= user.id %></:col>
-        <:col :let={user} label="username"><%= user.username %></:col>
+        <:col :let={user} label="id">{user.id}</:col>
+        <:col :let={user} label="username">{user.username}</:col>
       </.stream_table>
   """
   attr :id, :string, required: true
@@ -2281,9 +2281,9 @@ defmodule LantternWeb.CoreComponents do
     <table class="w-[40rem] sm:w-full">
       <thead class="text-sm text-left text-ltrn-dark">
         <tr>
-          <th :for={col <- @col} class="py-4 px-2 font-bold"><%= col[:label] %></th>
+          <th :for={col <- @col} class="py-4 px-2 font-bold">{col[:label]}</th>
           <th :if={@action != []} class="relative p-2 pb-4">
-            <span class="sr-only"><%= gettext("Actions") %></span>
+            <span class="sr-only">{gettext("Actions")}</span>
           </th>
         </tr>
       </thead>
@@ -2294,7 +2294,7 @@ defmodule LantternWeb.CoreComponents do
             phx-click={@row_click && @row_click.(row)}
             class={["p-2", @row_click && "hover:cursor-pointer"]}
           >
-            <%= render_slot(col, row) %>
+            {render_slot(col, row)}
           </td>
           <td :if={@action != []} class="relative w-14 p-2">
             <div class="relative whitespace-nowrap py-4 text-right text-sm font-medium">
@@ -2302,7 +2302,7 @@ defmodule LantternWeb.CoreComponents do
                 :for={action <- @action}
                 class="relative font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
               >
-                <%= render_slot(action, row) %>
+                {render_slot(action, row)}
               </span>
             </div>
           </td>
@@ -2362,7 +2362,7 @@ defmodule LantternWeb.CoreComponents do
         "relative p-2 rounded-sm text-sm bg-ltrn-dark text-white",
         @inner_pos_class
       ]}>
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       </div>
     </div>
     """
@@ -2403,7 +2403,7 @@ defmodule LantternWeb.CoreComponents do
     <div id={@id} class={["flex gap-4", @class]} {@rest}>
       <.profile_icon profile_name={@profile_name} class="shrink-0" theme={@theme} />
       <div class="flex-1">
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       </div>
     </div>
     """

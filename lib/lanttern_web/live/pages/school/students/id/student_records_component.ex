@@ -35,7 +35,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
               icon_name="hero-chevron-down-mini"
               phx-click={JS.exec("data-show", to: "#student-record-status-filter-modal")}
             >
-              <%= gettext("Status") %>
+              {gettext("Status")}
             </.action>
           <% else %>
             <.badge
@@ -43,7 +43,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
               color_map={status}
               on_remove={JS.push("remove_status_filter", target: @myself)}
             >
-              <%= status.name %>
+              {status.name}
             </.badge>
           <% end %>
           <.badge
@@ -52,7 +52,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
             on_click={JS.exec("data-show", to: "#student-record-tag-filter-modal")}
             on_remove={JS.push("remove_tag_filter", value: %{"id" => tag.id}, target: @myself)}
           >
-            <%= tag.name %>
+            {tag.name}
           </.badge>
           <.action
             :if={@selected_student_record_tags == []}
@@ -60,7 +60,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
             icon_name="hero-chevron-down-mini"
             phx-click={JS.exec("data-show", to: "#student-record-tag-filter-modal")}
           >
-            <%= gettext("Tags") %>
+            {gettext("Tags")}
           </.action>
           <%= if @selected_student_record_assignees == [] do %>
             <.action
@@ -68,7 +68,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
               icon_name="hero-chevron-down-mini"
               phx-click={JS.push("open_assignee_search_modal", target: @myself)}
             >
-              <%= gettext("Assignee") %>
+              {gettext("Assignee")}
             </.action>
           <% else %>
             <.badge
@@ -76,7 +76,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
               on_remove={JS.push("remove_assignee_filter", target: @myself)}
               theme="staff"
             >
-              <%= assignee.name %>
+              {assignee.name}
             </.badge>
           <% end %>
         </div>
@@ -85,24 +85,24 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
           patch={"#{@base_path}?student_record=new"}
           icon_name="hero-plus-circle-mini"
         >
-          <%= gettext("New student record") %>
+          {gettext("New student record")}
         </.action>
       </.action_bar>
       <.responsive_container class="p-4">
         <div class="flex items-center justify-between gap-4 mb-4">
           <p>
-            <%= ngettext(
+            {ngettext(
               "Showing 1 result for selected filters",
               "Showing %{count} results for selected filters",
               @students_records_length
-            ) %>
+            )}
           </p>
           <div class="relative">
             <.action type="button" id="select-view-dropdown-button" icon_name="hero-eye-mini">
-              <%= case @current_student_record_view do
+              {case @current_student_record_view do
                 "all" -> gettext("All records")
                 "open" -> gettext("Only open")
-              end %>
+              end}
             </.action>
             <.dropdown_menu
               id="select-view-dropdown"
@@ -143,7 +143,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
       </.responsive_container>
       <div :if={@has_next} class="flex justify-center pb-10">
         <.button theme="ghost" phx-click="load_more" phx-target={@myself} class="mt-6">
-          <%= gettext("Load more records") %>
+          {gettext("Load more records")}
         </.button>
       </div>
       <.selection_filter_modal
@@ -184,7 +184,7 @@ defmodule LantternWeb.StudentLive.StudentRecordsComponent do
         on_cancel={JS.push("close_assignee_search_modal", target: @myself)}
       >
         <h5 class="mb-10 font-display font-black text-xl">
-          <%= gettext("Filter records by assignee") %>
+          {gettext("Filter records by assignee")}
         </h5>
         <form>
           <.live_component

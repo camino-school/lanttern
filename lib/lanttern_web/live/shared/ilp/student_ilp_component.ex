@@ -36,7 +36,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
       <div class="flex items-center gap-4">
         <div class="flex-1 flex items-center gap-2">
           <h4 class="font-display font-black text-xl">
-            <%= @template.name %> (<%= @student_ilp.cycle.name %>)
+            {@template.name} ({@student_ilp.cycle.name})
           </h4>
           <.action_icon
             :if={@template.description}
@@ -53,7 +53,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
           icon_name="hero-pencil-mini"
           patch={@edit_patch}
         >
-          <%= gettext("Edit") %>
+          {gettext("Edit")}
         </.action>
         <.student_ilp_share_controls
           :if={@show_actions}
@@ -77,18 +77,17 @@ defmodule LantternWeb.ILP.StudentILPComponent do
       <div>
         <.card_base :for={section <- @template.sections} class="p-4 border border-ltrn-lightest mt-4">
           <div class="font-display font-black text-base">
-            <%= section.name %>
+            {section.name}
           </div>
           <div :for={component <- section.components} class="p-4 rounded-sm mt-2 bg-ltrn-lightest">
-            <div class="font-bold"><%= component.name %></div>
+            <div class="font-bold">{component.name}</div>
             <.ilp_entry entry={@component_entry_map[component.id]} class="mt-4" />
           </div>
         </.card_base>
       </div>
       <div :if={@student_ilp.notes} class="p-4 rounded-sm mt-6 bg-ltrn-mesh-cyan">
         <p class="flex items-center gap-2 font-bold mb-4">
-          <.icon name="hero-pencil-square-mini" class="text-ltrn-primary" />
-          <%= gettext("Notes") %>
+          <.icon name="hero-pencil-square-mini" class="text-ltrn-primary" /> {gettext("Notes")}
         </p>
         <.markdown text={@student_ilp.notes} />
       </div>
@@ -98,7 +97,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
       >
         <p class="flex items-center gap-2 font-bold mb-4">
           <.icon name="hero-pencil-square-mini" class="text-ltrn-staff-accent" />
-          <span class="text-ltrn-staff-dark"><%= gettext("Teacher notes (internal)") %></span>
+          <span class="text-ltrn-staff-dark">{gettext("Teacher notes (internal)")}</span>
         </p>
         <.markdown text={@student_ilp.teacher_notes} />
       </div>
@@ -111,7 +110,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
       />
       <.modal :if={@template.description} id={"#{@id}-template-info-modal"}>
         <h6 class="mb-6 font-display font-black text-xl">
-          <%= gettext("About %{template}", template: @template.name) %>
+          {gettext("About %{template}", template: @template.name)}
         </h6>
         <.markdown text={@template.description} />
       </.modal>
@@ -127,7 +126,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
   defp ilp_entry(%{entry: nil} = assigns) do
     ~H"""
     <.empty_state_simple class={@class}>
-      <%= gettext("Nothing yet") %>
+      {gettext("Nothing yet")}
     </.empty_state_simple>
     """
   end
@@ -135,7 +134,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
   defp ilp_entry(%{entry: %{description: nil}} = assigns) do
     ~H"""
     <.empty_state_simple class={@class}>
-      <%= gettext("Nothing yet") %>
+      {gettext("Nothing yet")}
     </.empty_state_simple>
     """
   end

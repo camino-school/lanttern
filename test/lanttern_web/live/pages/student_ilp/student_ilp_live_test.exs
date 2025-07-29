@@ -105,7 +105,7 @@ defmodule LantternWeb.StudentILPLiveTest do
       ctx.conn
       |> visit("/student_ilp?comment_id=#{ilp_comment.id}")
       |> assert_has("p", text: ilp_comment.content)
-      |> click_button("#external-link-button", "Or add a link to an external file")
+      |> click_button("#ilp-comment-external-link-button", "Or add a link to an external file")
       |> fill_in("Attachment name", with: "News")
       |> fill_in("Link", with: "http://www.science.org/article-1")
       |> submit()

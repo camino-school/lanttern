@@ -29,7 +29,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
         <% else %>
           <.card_base class="p-4">
             <.empty_state>
-              <%= gettext("No grades report linked to this report card.") %>
+              {gettext("No grades report linked to this report card.")}
             </.empty_state>
           </.card_base>
         <% end %>

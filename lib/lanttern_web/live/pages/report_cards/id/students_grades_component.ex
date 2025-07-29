@@ -24,10 +24,10 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
       <div :if={@grades_report}>
         <div class="container mx-auto lg:max-w-5xl">
           <h5 class="font-display font-bold text-2xl">
-            <%= gettext("Students grades") %>
+            {gettext("Students grades")}
           </h5>
           <p class="mt-2">
-            <%= gettext("View grades reports for all students linked in the students tab.") %>
+            {gettext("View grades reports for all students linked in the students tab.")}
           </p>
           <.live_component
             module={InlineFiltersComponent}
@@ -42,7 +42,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           <div class="container mx-auto mt-4 lg:max-w-5xl">
             <div class="p-10 rounded-sm shadow-xl bg-white">
               <.empty_state>
-                <%= gettext("Add students to report card to view grades") %>
+                {gettext("Add students to report card to view grades")}
               </.empty_state>
             </div>
           </div>

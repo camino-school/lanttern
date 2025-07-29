@@ -24,7 +24,7 @@ defmodule LantternWeb.Filters.CyclesFilterOverlayComponent do
     <div>
       <.modal id={@id}>
         <h5 class="mb-10 font-display font-black text-xl">
-          <%= @title %>
+          {@title}
         </h5>
         <.badge_button_picker
           on_select={
@@ -39,15 +39,15 @@ defmodule LantternWeb.Filters.CyclesFilterOverlayComponent do
         />
         <div :if={@filter_info} class="mt-6 flex items-center gap-2 text-ltrn-subtle">
           <.icon name="hero-information-circle-mini" />
-          <p class="text-xs"><%= @filter_info %></p>
+          <p class="text-xs">{@filter_info}</p>
         </div>
         <div class="flex justify-between gap-2 mt-10">
           <.button type="button" theme="ghost" phx-click={JS.push("clear_filters", target: @myself)}>
-            <%= gettext("Clear filters") %>
+            {gettext("Clear filters")}
           </.button>
           <div class="flex gap-2">
             <.button type="button" theme="ghost" phx-click={JS.exec("data-cancel", to: "##{@id}")}>
-              <%= gettext("Cancel") %>
+              {gettext("Cancel")}
             </.button>
             <.button
               type="button"
@@ -55,7 +55,7 @@ defmodule LantternWeb.Filters.CyclesFilterOverlayComponent do
               phx-click={JS.push("apply_filters", target: @myself)}
               phx-disable-with={gettext("Applying filters...")}
             >
-              <%= gettext("Apply filters") %>
+              {gettext("Apply filters")}
             </.button>
           </div>
         </div>

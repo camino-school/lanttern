@@ -26,7 +26,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
         phx-target={@myself}
       >
         <.error_block :if={@form.source.action == :insert} class="mb-6">
-          <%= gettext("Oops, something went wrong! Please check the errors below.") %>
+          {gettext("Oops, something went wrong! Please check the errors below.")}
         </.error_block>
         <.input
           :if={!@assessment_point.strand_id}
@@ -54,11 +54,11 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
           <div class="flex flex-wrap gap-1 mt-2 mb-6">
             <%= if @selected_curriculum_item do %>
               <.badge theme="cyan" on_remove={JS.push("remove_curriculum_item", target: @myself)}>
-                <%= @selected_curriculum_item.name %>
+                {@selected_curriculum_item.name}
               </.badge>
             <% else %>
               <.badge>
-                <%= gettext("No curriculum item selected") %>
+                {gettext("No curriculum item selected")}
               </.badge>
             <% end %>
           </div>
@@ -87,9 +87,9 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
             label={gettext("Differentiation")}
           />
           <p class="mt-4 text-sm">
-            <%= gettext(
+            {gettext(
               "Use the differentiation flag above when creating assessment points related to a curriculum level differentiation."
-            ) %>
+            )}
           </p>
         </div>
         <.rubric_area id={@id} field={@form[:rubric_id]} rubric={@rubric} options={@rubric_options} />
@@ -108,7 +108,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
     <div class="p-4 rounded-sm mt-10 mb-6 bg-ltrn-lightest">
       <div class="flex items-center gap-2 mb-4 font-bold text-sm">
         <.icon name="hero-view-columns" class="w-6 h-6 text-ltrn-subtle" />
-        <span><%= gettext("Assessment rubric") %></span>
+        <span>{gettext("Assessment rubric")}</span>
       </div>
       <%= if @options != [] do %>
         <.input type="select" field={@field} prompt={gettext("No rubric")} options={@options} />
@@ -122,7 +122,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormComponent do
         </div>
       <% else %>
         <.empty_state_simple class="mt-4">
-          <%= gettext("No rubric matching curriculum item and scale") %>
+          {gettext("No rubric matching curriculum item and scale")}
         </.empty_state_simple>
       <% end %>
     </div>

@@ -44,9 +44,9 @@ defmodule LantternWeb.ILPComponents do
           }
         />
         <.tooltip h_pos="right">
-          <%= if @student_ilp.is_shared_with_student,
+          {if @student_ilp.is_shared_with_student,
             do: gettext("Shared with student"),
-            else: gettext("Not shared with student") %>
+            else: gettext("Not shared with student")}
         </.tooltip>
       </div>
       <div class="group relative shrink-0 flex items-center gap-1">
@@ -66,9 +66,9 @@ defmodule LantternWeb.ILPComponents do
           }
         />
         <.tooltip h_pos="right">
-          <%= if @student_ilp.is_shared_with_guardians,
+          {if @student_ilp.is_shared_with_guardians,
             do: gettext("Shared with guardians"),
-            else: gettext("Not shared with guardians") %>
+            else: gettext("Not shared with guardians")}
         </.tooltip>
       </div>
     </div>
@@ -89,11 +89,11 @@ defmodule LantternWeb.ILPComponents do
         <div class="w-10 text-center">
           <.icon name="hero-chat-bubble-left-right" class="w-6 h-6" />
         </div>
-        <span class="font-display font-black text-xl"><%= gettext("ILP comments") %></span>
+        <span class="font-display font-black text-xl">{gettext("ILP comments")}</span>
       </h5>
 
       <.empty_state_simple :if={Enum.empty?(@ilp_comments)} class="mt-6">
-        <%= gettext("No comments in this ILP yet") %>
+        {gettext("No comments in this ILP yet")}
       </.empty_state_simple>
 
       <div
@@ -121,13 +121,13 @@ defmodule LantternWeb.ILPComponents do
               theme="subtle"
               id={"edit-comment-#{ilp_comment.id}"}
             >
-              <%= gettext("Edit") %>
+              {gettext("Edit")}
             </.action>
           </div>
           <div class="flex items-end justify-between gap-2 mt-4">
             <.markdown text={ilp_comment.content} class="flex-1" />
             <div class="text-ltrn-subtle text-xs">
-              <%= format_by_locale(ilp_comment.inserted_at, @tz) %>
+              {format_by_locale(ilp_comment.inserted_at, @tz)}
             </div>
           </div>
           <div
@@ -135,28 +135,27 @@ defmodule LantternWeb.ILPComponents do
             class="p-2 rounded-sm mt-4 bg-ltrn-lightest"
           >
             <h6 class="flex items-center gap-2 font-bold text-ltrn-subtle">
-              <.icon name="hero-paper-clip-mini" />
-              <%= gettext("Attachments") %>
+              <.icon name="hero-paper-clip-mini" /> {gettext("Attachments")}
             </h6>
             <div :for={ilp_attachment <- ilp_comment.attachments}>
               <.card_base class="p-4 mt-2">
                 <%= if(ilp_attachment.is_external) do %>
-                  <.badge><%= gettext("External link") %></.badge>
+                  <.badge>{gettext("External link")}</.badge>
                   <a
                     href={ilp_attachment.link}
                     target="_blank"
                     class="block mt-2 text-sm underline hover:text-ltrn-subtle"
                   >
-                    <%= ilp_attachment.name %>
+                    {ilp_attachment.name}
                   </a>
                 <% else %>
-                  <.badge theme="cyan"><%= gettext("Upload") %></.badge>
+                  <.badge theme="cyan">{gettext("Upload")}</.badge>
                   <.link
                     phx-click={@on_signed_url.(ilp_attachment.link)}
                     class="block mt-2 text-sm underline hover:text-ltrn-subtle"
                     target="_blank"
                   >
-                    <%= ilp_attachment.name %>
+                    {ilp_attachment.name}
                   </.link>
                 <% end %>
               </.card_base>
@@ -171,7 +170,7 @@ defmodule LantternWeb.ILPComponents do
         />
         <.card_base class="flex-1 flex max-w-3/4 p-4">
           <.action type="link" patch="?comment=new" icon_name="hero-plus-circle-mini" theme="primary">
-            <%= gettext("Add ILP comment") %>
+            {gettext("Add ILP comment")}
           </.action>
         </.card_base>
       </div>
@@ -184,27 +183,27 @@ defmodule LantternWeb.ILPComponents do
   defp comment_header(%{profile: %{type: "student"}} = assigns) do
     ~H"""
     <div class="flex-1 font-bold text-xs text-ltrn-student-dark">
-      <%= Identity.get_profile_name(@profile) %>
+      {Identity.get_profile_name(@profile)}
     </div>
-    <.badge theme="student"><%= gettext("Student") %></.badge>
+    <.badge theme="student">{gettext("Student")}</.badge>
     """
   end
 
   defp comment_header(%{profile: %{type: "guardian"}} = assigns) do
     ~H"""
     <div class="flex-1 font-bold text-xs text-ltrn-student-dark">
-      <%= Identity.get_profile_name(@profile) %>
+      {Identity.get_profile_name(@profile)}
     </div>
-    <.badge theme="student"><%= gettext("Guardian") %></.badge>
+    <.badge theme="student">{gettext("Guardian")}</.badge>
     """
   end
 
   defp comment_header(assigns) do
     ~H"""
     <div class="flex-1 font-bold text-xs text-ltrn-staff-dark">
-      <%= Identity.get_profile_name(@profile) %>
+      {Identity.get_profile_name(@profile)}
     </div>
-    <.badge theme="staff"><%= gettext("Teacher") %></.badge>
+    <.badge theme="staff">{gettext("Teacher")}</.badge>
     """
   end
 end

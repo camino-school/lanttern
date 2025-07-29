@@ -1,5 +1,5 @@
 <.header_nav current_user={@current_user}>
-  <:title><%= gettext("Grades reports") %></:title>
+  <:title>{gettext("Grades reports")}</:title>
   <div class="flex items-center gap-6 p-4">
     <div class="flex-1 flex items-center gap-6 min-w-0">
       <.action
@@ -7,18 +7,18 @@
         phx-click={JS.exec("data-show", to: "#grades-reports-year-filters-overlay")}
         icon_name="hero-chevron-down-mini"
       >
-        <%= format_action_items_text(@selected_years, gettext("All years")) %>
+        {format_action_items_text(@selected_years, gettext("All years"))}
       </.action>
       <div class="group relative flex items-center gap-2">
         <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-        <%= gettext("Showing %{cycle} grades reports", cycle: Map.get(@current_cycle, :name)) %>
+        {gettext("Showing %{cycle} grades reports", cycle: Map.get(@current_cycle, :name))}
         <.tooltip v_pos="bottom">
-          <%= gettext("Change current cycle in main menu to view other cyles' grades reports") %>
+          {gettext("Change current cycle in main menu to view other cyles' grades reports")}
         </.tooltip>
       </div>
     </div>
     <.action type="link" patch={~p"/grades_reports?new=true"} icon_name="hero-plus-circle-mini">
-      <%= gettext("New grades report") %>
+      {gettext("New grades report")}
     </.action>
   </div>
 </.header_nav>
@@ -33,7 +33,7 @@
         <div class="flex items-center justify-between gap-6 mb-6">
           <h3 class="font-display font-black text-2xl">
             <.link navigate={~p"/grades_reports/#{grades_report}"} class="hover:text-ltrn-subtle">
-              <%= grades_report.name %>
+              {grades_report.name}
             </.link>
           </h3>
           <.action
@@ -41,27 +41,28 @@
             icon_name="hero-pencil-mini"
             patch={~p"/grades_reports?is_editing=#{grades_report.id}"}
           >
-            <%= gettext("Edit") %>
+            {gettext("Edit")}
           </.action>
         </div>
         <div class="flex items-center gap-6 mb-6 text-sm">
           <div class="flex items-center gap-2">
             <.icon name="hero-calendar" class="w-6 h-6 shrink-0 text-ltrn-subtle" />
             <div :if={grades_report.year}>
-              <%= grades_report.year.name %>,
+              {grades_report.year.name},
             </div>
-            <%= gettext("Cycle") %> <%= grades_report.school_cycle.name %>
+            {gettext("Cycle")} {grades_report.school_cycle.name}
           </div>
           <div class="flex items-center gap-2">
             <.icon name="hero-view-columns" class="w-6 h-6 shrink-0 text-ltrn-subtle" />
-            <%= gettext("Scale") %> <%= grades_report.scale.name %>
+            {gettext("Scale")} {grades_report.scale.name}
             <div
               :if={grades_report.scale.ordinal_values != []}
               class="flex items-center gap-2 ml-2"
             >
-              <%= for ov <- grades_report.scale.ordinal_values do %>
+              <%= for ov
+            <- grades_report.scale.ordinal_values do %>
                 <.badge color_map={ov}>
-                  <%= ov.name %>
+                  {ov.name}
                 </.badge>
               <% end %>
             </div>
@@ -78,9 +79,9 @@
     </div>
   <% else %>
     <.empty_state class="mt-12">
-      <%= gettext("No %{cycle} grade reports matching current filters created yet",
+      {gettext("No %{cycle} grade reports matching current filters created yet",
         cycle: Map.get(@current_cycle, :name)
-      ) %>
+      )}
     </.empty_state>
   <% end %>
 </.responsive_container>
@@ -90,7 +91,7 @@
   show={true}
   on_cancel={JS.patch(~p"/grades_reports")}
 >
-  <:title><%= @form_overlay_title %></:title>
+  <:title>{@form_overlay_title}</:title>
   <.live_component
     module={GradesReportFormComponent}
     id={@grades_report.id || :new}
@@ -106,7 +107,7 @@
       phx-click="delete_grades_report"
       data-confirm={gettext("Are you sure?")}
     >
-      <%= gettext("Delete") %>
+      {gettext("Delete")}
     </.button>
   </:actions_left>
   <:actions>
@@ -115,10 +116,10 @@
       theme="ghost"
       phx-click={JS.exec("data-cancel", to: "#grades-report-form-overlay")}
     >
-      <%= gettext("Cancel") %>
+      {gettext("Cancel")}
     </.button>
     <.button type="submit" form="grades-report-form">
-      <%= gettext("Save") %>
+      {gettext("Save")}
     </.button>
   </:actions>
 </.slide_over>

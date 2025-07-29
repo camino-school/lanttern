@@ -1,5 +1,5 @@
 <.header>
-  Scale <%= @scale.id %>
+  Scale {@scale.id}
   <:subtitle>This is a scale record from your database.</:subtitle>
   <:actions>
     <.link href={~p"/admin/scales/#{@scale}/edit"}>
@@ -9,11 +9,11 @@
 </.header>
 
 <.list>
-  <:item title="Name"><%= @scale.name %></:item>
-  <:item title="Type"><%= @scale.type %></:item>
-  <:item title="Start"><%= @scale.start %></:item>
-  <:item title="Stop"><%= @scale.stop %></:item>
-  <:item title="Breakpoints"><%= inspect(@scale.breakpoints) %></:item>
+  <:item title="Name">{@scale.name}</:item>
+  <:item title="Type">{@scale.type}</:item>
+  <:item title="Start">{@scale.start}</:item>
+  <:item title="Stop">{@scale.stop}</:item>
+  <:item title="Breakpoints">{inspect(@scale.breakpoints)}</:item>
 </.list>
 
 <.back navigate={~p"/admin/scales"}>Back to scales</.back>

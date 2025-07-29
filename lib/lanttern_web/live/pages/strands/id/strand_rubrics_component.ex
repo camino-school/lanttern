@@ -19,9 +19,9 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
       <.responsive_container class="py-10">
         <div>
           <blockquote class="text-base italic">
-            <%= gettext(
+            {gettext(
               "\"A rubric is a coherent set of criteria for students' work that includes descriptions of levels of performance quality on the criteria.\""
-            ) %>
+            )}
           </blockquote>
           <p class="mt-2">
             — Susan M. Brookhart,
@@ -42,13 +42,13 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
             <div class="flex items-center gap-4">
               <div class="flex-1">
                 <.badge :if={goal.is_differentiation} theme="diff" class="mb-2">
-                  <%= gettext("Curriculum differentiation") %>
+                  {gettext("Curriculum differentiation")}
                 </.badge>
                 <p>
                   <strong class="inline-block mr-2 font-display font-bold">
-                    <%= goal.curriculum_item.curriculum_component.name %>
+                    {goal.curriculum_item.curriculum_component.name}
                   </strong>
-                  <%= goal.curriculum_item.name %>
+                  {goal.curriculum_item.name}
                 </p>
               </div>
               <%= if rubrics != [] do %>
@@ -62,7 +62,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                   icon_name="hero-plus-circle-mini"
                   patch={~p"/strands/#{@strand}/rubrics?new_rubric_for_goal=#{goal.id}"}
                 >
-                  <%= gettext("Add rubric") %>
+                  {gettext("Add rubric")}
                 </.action>
               <% end %>
             </div>
@@ -89,7 +89,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                   patch={~p"/strands/#{@strand}/rubrics?new_rubric_for_goal=#{goal.id}"}
                   class="mx-auto"
                 >
-                  <%= gettext("Add another rubric to assess this goal") %>
+                  {gettext("Add another rubric to assess this goal")}
                 </.action>
               </div>
             </div>
@@ -97,7 +97,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
         </div>
         <section id="differentiation-rubrics-section" class="pb-10 mt-10">
           <h4 class="font-display font-black text-xl text-ltrn-diff-dark">
-            <%= gettext("Differentiation") %>
+            {gettext("Differentiation")}
           </h4>
           <div id="strand-diff-rubrics-list" phx-update="stream">
             <.card_base
@@ -114,13 +114,13 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
               <div class="flex items-center gap-4">
                 <div class="flex-1">
                   <.badge :if={goal.is_differentiation} theme="diff" class="mb-2">
-                    <%= gettext("Curriculum differentiation") %>
+                    {gettext("Curriculum differentiation")}
                   </.badge>
                   <p>
                     <strong class="inline-block mr-2 font-display font-bold">
-                      <%= goal.curriculum_item.curriculum_component.name %>
+                      {goal.curriculum_item.curriculum_component.name}
                     </strong>
-                    <%= goal.curriculum_item.name %>
+                    {goal.curriculum_item.name}
                   </p>
                 </div>
                 <%= if rubrics != [] do %>
@@ -135,7 +135,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                     patch={~p"/strands/#{@strand}/rubrics?new_diff_rubric_for_goal=#{goal.id}"}
                     theme="diff"
                   >
-                    <%= gettext("Add diff rubric") %>
+                    {gettext("Add diff rubric")}
                   </.action>
                 <% end %>
               </div>
@@ -166,7 +166,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                     class="mx-auto"
                     theme="diff"
                   >
-                    <%= gettext("Add another differentiation rubric to assess this goal") %>
+                    {gettext("Add another differentiation rubric to assess this goal")}
                   </.action>
                 </div>
               </div>
@@ -218,14 +218,14 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
         <.drag_handle class="sortable-handle" />
         <div class="flex-1 pr-2">
           <.badge :if={@rubric.is_differentiation} theme="diff" class="mb-2">
-            <%= gettext("Rubric differentiation") %>
+            {gettext("Rubric differentiation")}
           </.badge>
           <p class="font-display font-black">
-            <%= gettext("Rubric criteria") %>: <%= @rubric.criteria %>
+            {gettext("Rubric criteria")}: {@rubric.criteria}
           </p>
         </div>
         <.action type="link" patch={@edit_patch} icon_name="hero-pencil-mini">
-          <%= gettext("Edit") %>
+          {gettext("Edit")}
         </.action>
       </div>
       <div
@@ -236,7 +236,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
         ]}
       >
         <%= if @has_diff_students do %>
-          <p class="text-ltrn-diff-dark"><%= gettext("Linked students") %></p>
+          <p class="text-ltrn-diff-dark">{gettext("Linked students")}</p>
           <div class="flex-1 flex flex-wrap gap-2">
             <.person_badge
               :for={student <- @rubric.diff_students}
@@ -252,11 +252,11 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
             icon_name="hero-information-circle-mini"
             theme="diff"
           >
-            <%= gettext("Info") %>
+            {gettext("Info")}
           </.action>
         <% else %>
           <p class="flex-1 text-ltrn-subtle">
-            <%= gettext("No linked students for selected classes") %>
+            {gettext("No linked students for selected classes")}
           </p>
           <.action
             type="link"
@@ -264,7 +264,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
             icon_name="hero-information-circle-mini"
             theme="diff"
           >
-            <%= gettext("Info") %>
+            {gettext("Info")}
           </.action>
         <% end %>
       </div>

@@ -1,8 +1,8 @@
 <.header_nav current_user={@current_user}>
-  <:breadcrumb navigate={~p"/curriculum"}><%= gettext("Curriculum") %></:breadcrumb>
-  <:title><%= @curriculum.name %></:title>
+  <:breadcrumb navigate={~p"/curriculum"}>{gettext("Curriculum")}</:breadcrumb>
+  <:title>{@curriculum.name}</:title>
   <div class="p-4">
-    <p><%= gettext("All curriculum components") %></p>
+    <p>{gettext("All curriculum components")}</p>
   </div>
 </.header_nav>
 <section class="p-4">
@@ -13,21 +13,21 @@
       class="p-4"
     >
       <.badge :if={curriculum_component.code} class="mb-2">
-        <%= curriculum_component.code %>
+        {curriculum_component.code}
       </.badge>
       <br />
       <.link
         navigate={~p"/curriculum/component/#{curriculum_component}"}
         class="font-display font-bold text-base hover:text-ltrn-subtle"
       >
-        <%= curriculum_component.name %>
+        {curriculum_component.name}
       </.link>
     </.card_base>
   </.responsive_grid>
 </section>
 <section :if={@curriculum.description} class="pb-10">
   <.responsive_container>
-    <h2 class="mb-6 font-display font-bold text-2xl"><%= gettext("About the curriculum") %></h2>
+    <h2 class="mb-6 font-display font-bold text-2xl">{gettext("About the curriculum")}</h2>
     <.markdown text={@curriculum.description} />
   </.responsive_container>
 </section>

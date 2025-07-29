@@ -20,21 +20,21 @@ defmodule LantternWeb.Grading.ScaleInfoTableComponent do
     ~H"""
     <div id={@id}>
       <div :if={@rows != []} class={@class}>
-        <h6 class="mb-4 font-display font-bold"><%= gettext("Scale ranges") %></h6>
+        <h6 class="mb-4 font-display font-bold">{gettext("Scale ranges")}</h6>
         <div class="w-full overflow-x-auto">
           <table class="w-full rounded-sm font-mono text-xs bg-ltrn-lightest">
             <thead>
               <tr>
-                <th class="p-2 text-left"><%= gettext("Grade") %></th>
-                <th class="p-2 text-left"><%= gettext("Greater than or equal to") %></th>
+                <th class="p-2 text-left">{gettext("Grade")}</th>
+                <th class="p-2 text-left">{gettext("Greater than or equal to")}</th>
               </tr>
             </thead>
             <tbody>
               <tr :for={{ordinal_value, gte} <- @rows}>
                 <td class="p-2">
-                  <.badge color_map={ordinal_value}><%= ordinal_value.name %></.badge>
+                  <.badge color_map={ordinal_value}>{ordinal_value.name}</.badge>
                 </td>
-                <td class="p-2"><%= gte %></td>
+                <td class="p-2">{gte}</td>
               </tr>
             </tbody>
           </table>

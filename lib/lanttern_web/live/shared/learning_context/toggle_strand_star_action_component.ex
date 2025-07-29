@@ -21,7 +21,7 @@ defmodule LantternWeb.LearningContext.ToggleStrandStarActionComponent do
         <.icon name="hero-star-mini" />
       </button>
       <.tooltip h_pos="center" v_pos="bottom">
-        <%= @tooltip_text %>
+        {@tooltip_text}
       </.tooltip>
     </div>
     """

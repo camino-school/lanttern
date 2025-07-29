@@ -24,16 +24,16 @@ defmodule LantternWeb.Grading.GradeCompositionOverlayComponent do
     ~H"""
     <div>
       <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
-        <:title><%= @title %></:title>
+        <:title>{@title}</:title>
         <%= if length(@indexed_grade_components) == 0 do %>
           <.empty_state>
-            <%= gettext("No assesment points in this grade composition") %>
+            {gettext("No assesment points in this grade composition")}
           </.empty_state>
         <% else %>
           <div class="grid grid-cols-[minmax(0,_1fr)_repeat(2,_max-content)] gap-x-4 gap-y-2">
             <div class="grid grid-cols-subgrid col-span-3 px-4 py-2 rounded-sm mt-4 text-sm text-ltrn-subtle bg-ltrn-lighter">
-              <div><%= gettext("Strand goal") %></div>
-              <div class="text-right"><%= gettext("Weight") %></div>
+              <div>{gettext("Strand goal")}</div>
+              <div class="text-right">{gettext("Weight")}</div>
             </div>
             <.grade_component_form
               :for={{grade_component, i} <- @indexed_grade_components}
@@ -47,7 +47,7 @@ defmodule LantternWeb.Grading.GradeCompositionOverlayComponent do
         <% end %>
         <div :if={@use_assessment_points_from_report_card_id} class="mt-10">
           <h5 class="font-display font-bold">
-            <%= gettext("All report card strands' goals") %>
+            {gettext("All report card strands' goals")}
           </h5>
           <div id="report-card-assessment-points" phx-update="stream">
             <.card_base
@@ -67,17 +67,17 @@ defmodule LantternWeb.Grading.GradeCompositionOverlayComponent do
             >
               <div class="flex-1">
                 <p class="text-xs">
-                  <%= assessment_point.strand.name %>
+                  {assessment_point.strand.name}
                   <span :if={assessment_point.strand.type}>
-                    (<%= assessment_point.strand.type %>)
+                    ({assessment_point.strand.type})
                   </span>
                 </p>
                 <p class="mt-2 text-sm">
-                  <.badge><%= assessment_point.curriculum_item.curriculum_component.name %></.badge>
+                  <.badge>{assessment_point.curriculum_item.curriculum_component.name}</.badge>
                   <.badge :if={assessment_point.is_differentiation} theme="diff">
-                    <%= gettext("Diff") %>
+                    {gettext("Diff")}
                   </.badge>
-                  <%= assessment_point.curriculum_item.name %>
+                  {assessment_point.curriculum_item.name}
                 </p>
               </div>
               <div class="hidden group-[.active]:block p-2">
@@ -137,19 +137,19 @@ defmodule LantternWeb.Grading.GradeCompositionOverlayComponent do
       >
         <div>
           <p class="text-xs">
-            <%= @grade_component.assessment_point.strand.name %>
+            {@grade_component.assessment_point.strand.name}
             <span :if={@grade_component.assessment_point.strand.type}>
-              (<%= @grade_component.assessment_point.strand.type %>)
+              ({@grade_component.assessment_point.strand.type})
             </span>
           </p>
           <p class="mt-2 text-sm">
             <.badge>
-              <%= @grade_component.assessment_point.curriculum_item.curriculum_component.name %>
+              {@grade_component.assessment_point.curriculum_item.curriculum_component.name}
             </.badge>
             <.badge :if={@grade_component.assessment_point.is_differentiation} theme="diff">
-              <%= gettext("Diff") %>
+              {gettext("Diff")}
             </.badge>
-            <%= @grade_component.assessment_point.curriculum_item.name %>
+            {@grade_component.assessment_point.curriculum_item.name}
           </p>
         </div>
         <input

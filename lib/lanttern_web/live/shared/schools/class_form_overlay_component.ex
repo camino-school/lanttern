@@ -17,7 +17,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
     ~H"""
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
       <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
-        <:title><%= @title %></:title>
+        <:title>{@title}</:title>
         <.form
           id="class-form"
           for={@form}
@@ -26,7 +26,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
           phx-target={@myself}
         >
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
-            <%= gettext("Oops, something went wrong! Please check the errors below.") %>
+            {gettext("Oops, something went wrong! Please check the errors below.")}
           </.error_block>
           <.input
             field={@form[:name]}
@@ -36,7 +36,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
             phx-debounce="1500"
           />
           <div class="mb-6">
-            <.label><%= gettext("Cycle") %></.label>
+            <.label>{gettext("Cycle")}</.label>
             <.badge_button_picker
               id="class-cycle-select"
               on_select={
@@ -47,11 +47,11 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
               selected_ids={[@selected_cycle_id]}
             />
             <div :if={@form.source.action in [:insert, :update]}>
-              <.error :for={{msg, _} <- @form[:cycle_id].errors}><%= msg %></.error>
+              <.error :for={{msg, _} <- @form[:cycle_id].errors}>{msg}</.error>
             </div>
           </div>
           <div class="mb-6">
-            <.label><%= gettext("Year") %></.label>
+            <.label>{gettext("Year")}</.label>
             <.badge_button_picker
               id="class-year-select"
               on_select={
@@ -62,7 +62,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
               selected_ids={@selected_years_ids}
             />
             <div :if={@form.source.action in [:insert, :update]}>
-              <.error :for={{msg, _} <- @form[:years_ids].errors}><%= msg %></.error>
+              <.error :for={{msg, _} <- @form[:years_ids].errors}>{msg}</.error>
             </div>
           </div>
           <div>
@@ -77,7 +77,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
             <%= if @students != [] do %>
               <ol class="mt-4 text-sm leading-relaxed list-decimal list-inside">
                 <li :for={student <- @students} id={"selected-student-#{student.id}"}>
-                  <%= student.name %>
+                  {student.name}
                   <.button
                     type="button"
                     icon_name="hero-x-mark-mini"
@@ -93,7 +93,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
               </ol>
             <% else %>
               <.empty_state_simple class="mt-4">
-                <%= gettext("No students added to this class") %>
+                {gettext("No students added to this class")}
               </.empty_state_simple>
             <% end %>
           </div>
@@ -106,15 +106,15 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           >
-            <%= gettext("Delete") %>
+            {gettext("Delete")}
           </.button>
         </:actions_left>
         <:actions>
           <.button type="button" theme="ghost" phx-click={JS.exec("data-cancel", to: "##{@id}")}>
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.button>
           <.button type="submit" form="class-form">
-            <%= gettext("Save") %>
+            {gettext("Save")}
           </.button>
         </:actions>
       </.slide_over>

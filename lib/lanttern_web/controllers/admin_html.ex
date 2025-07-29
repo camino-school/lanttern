@@ -12,11 +12,11 @@ defmodule LantternWeb.AdminHTML do
   def link_list(assigns) do
     ~H"""
     <div>
-      <h2 class="font-display font-black text-xl"><%= @title %></h2>
+      <h2 class="font-display font-black text-xl">{@title}</h2>
       <ul>
         <li :for={item <- @item}>
           <.link href={item.link}>
-            <%= render_slot(item) %>
+            {render_slot(item)}
           </.link>
         </li>
       </ul>

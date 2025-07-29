@@ -27,7 +27,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
     ~H"""
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
       <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
-        <:title><%= @title %></:title>
+        <:title>{@title}</:title>
         <.form
           id="message-form"
           for={@form}
@@ -36,7 +36,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
           phx-target={@myself}
         >
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
-            <%= gettext("Oops, something went wrong! Please check the errors below.") %>
+            {gettext("Oops, something went wrong! Please check the errors below.")}
           </.error_block>
           <.input
             field={@form[:name]}
@@ -60,22 +60,22 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
               label={gettext("Pin message")}
             />
             <p class="mt-4">
-              <%= gettext("Pinned messages are displayed at the top of the message board.") %>
+              {gettext("Pinned messages are displayed at the top of the message board.")}
             </p>
           </div>
           <%!-- allow send to selection only when creating message --%>
           <%= if @message.id do %>
             <div :if={@message.send_to == "school"} class="flex items-center gap-2 mb-6">
               <.icon name="hero-user-group" class="w-6 h-6" />
-              <p class="font-bold"><%= gettext("Sending to all school") %></p>
+              <p class="font-bold">{gettext("Sending to all school")}</p>
             </div>
             <div :if={@message.send_to == "classes"} class="flex items-center gap-2 mb-6">
               <.icon name="hero-users" class="w-6 h-6" />
-              <p class="font-bold"><%= gettext("Sending to selected classes") %></p>
+              <p class="font-bold">{gettext("Sending to selected classes")}</p>
             </div>
           <% else %>
             <fieldset class="mb-6">
-              <legend class="font-bold"><%= gettext("Send to") %></legend>
+              <legend class="font-bold">{gettext("Send to")}</legend>
               <div class="mt-4 flex items-center gap-4">
                 <.radio_input field={@form[:send_to]} value="school" label={gettext("All school")} />
                 <.radio_input
@@ -85,7 +85,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
                 />
               </div>
               <.error :for={msg <- Enum.map(@form[:send_to].errors, &translate_error(&1))}>
-                <%= msg %>
+                {msg}
               </.error>
             </fieldset>
           <% end %>
@@ -109,11 +109,11 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
             class="mb-6"
           >
             <.error :for={msg <- Enum.map(@form[:classes_ids].errors, &translate_error(&1))}>
-              <%= msg %>
+              {msg}
             </.error>
           </div>
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
-            <%= gettext("Oops, something went wrong! Please check the errors above.") %>
+            {gettext("Oops, something went wrong! Please check the errors above.")}
           </.error_block>
         </.form>
         <:actions_left :if={@message.id}>
@@ -126,7 +126,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           >
-            <%= gettext("Delete") %>
+            {gettext("Delete")}
           </.action>
           <.action
             :if={is_nil(@message.archived_at)}
@@ -137,7 +137,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
             phx-target={@myself}
             data-confirm={gettext("Are you sure? You can unarchive the message later.")}
           >
-            <%= gettext("Archive") %>
+            {gettext("Archive")}
           </.action>
           <.action
             :if={@message.archived_at}
@@ -147,7 +147,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
             phx-click="unarchive"
             phx-target={@myself}
           >
-            <%= gettext("Unarchive") %>
+            {gettext("Unarchive")}
           </.action>
         </:actions_left>
         <:actions>
@@ -157,10 +157,10 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
             size="md"
             phx-click={JS.exec("data-cancel", to: "##{@id}")}
           >
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.action>
           <.action type="submit" theme="primary" size="md" icon_name="hero-check" form="message-form">
-            <%= gettext("Save") %>
+            {gettext("Save")}
           </.action>
         </:actions>
       </.slide_over>

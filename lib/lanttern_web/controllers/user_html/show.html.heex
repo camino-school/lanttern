@@ -1,5 +1,5 @@
 <.header>
-  User <%= @user.id %>
+  User {@user.id}
   <:subtitle>This is a user record from your database.</:subtitle>
   <:actions>
     <.link href={~p"/admin/users/#{@user}/edit"}>
@@ -9,7 +9,7 @@
 </.header>
 
 <.list>
-  <:item title="User"><%= @user.email %></:item>
+  <:item title="User">{@user.email}</:item>
 </.list>
 
 <.back navigate={~p"/admin/users"}>Back to users</.back>

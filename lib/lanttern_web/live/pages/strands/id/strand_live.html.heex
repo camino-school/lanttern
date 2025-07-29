@@ -1,26 +1,26 @@
 <div>
   <.header_nav current_user={@current_user}>
-    <:breadcrumb navigate={~p"/strands"}><%= gettext("Strands") %></:breadcrumb>
+    <:breadcrumb navigate={~p"/strands"}>{gettext("Strands")}</:breadcrumb>
     <:breadcrumb is_info>
       <.mini_strand_card strand={@strand} class="w-60" />
     </:breadcrumb>
-    <:title><%= @strand.name %></:title>
+    <:title>{@strand.name}</:title>
     <div class="flex items-center justify-between gap-4 px-4">
       <.neo_tabs id="strand-nav-tabs">
         <:tab patch={~p"/strands/#{@strand}"} is_current={@live_action == :show}>
-          <%= gettext("About") %>
+          {gettext("About")}
         </:tab>
         <:tab patch={~p"/strands/#{@strand}/rubrics"} is_current={@live_action == :rubrics}>
-          <%= gettext("Rubrics") %>
+          {gettext("Rubrics")}
         </:tab>
         <:tab patch={~p"/strands/#{@strand}/assessment"} is_current={@live_action == :assessment}>
-          <%= gettext("Assessment") %>
+          {gettext("Assessment")}
         </:tab>
         <:tab patch={~p"/strands/#{@strand}/moments"} is_current={@live_action == :moments}>
-          <%= gettext("Moments") %>
+          {gettext("Moments")}
         </:tab>
         <:tab patch={~p"/strands/#{@strand}/notes"} is_current={@live_action == :notes}>
-          <%= gettext("Notes") %>
+          {gettext("Notes")}
         </:tab>
       </.neo_tabs>
       <div class="flex items-center gap-4">
@@ -35,17 +35,17 @@
           phx-click={JS.exec("data-show", to: "#strand-classes-filter-modal")}
           icon_name="hero-users-mini"
         >
-          <%= format_action_items_text(
+          {format_action_items_text(
             @selected_classes,
             gettext("No class selected")
-          ) %>
+          )}
         </.action>
         <.action
           type="link"
           patch={"#{@current_path}?is_editing=true"}
           icon_name="hero-pencil-mini"
         >
-          <%= gettext("Edit strand") %>
+          {gettext("Edit strand")}
         </.action>
         <.menu_button id="strand-menu-more">
           <:item
@@ -107,7 +107,7 @@
   show={true}
   on_cancel={JS.patch(@current_path)}
 >
-  <:title><%= gettext("Edit strand") %></:title>
+  <:title>{gettext("Edit strand")}</:title>
   <.live_component
     module={StrandFormComponent}
     id={@strand.id}
@@ -121,10 +121,10 @@
       theme="ghost"
       phx-click={JS.exec("data-cancel", to: "#strand-form-overlay")}
     >
-      <%= gettext("Cancel") %>
+      {gettext("Cancel")}
     </.button>
     <.button type="submit" form="strand-form">
-      <%= gettext("Save") %>
+      {gettext("Save")}
     </.button>
   </:actions>
 </.slide_over>

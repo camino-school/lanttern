@@ -1,29 +1,29 @@
 <div>
   <.header_nav current_user={@current_user}>
-    <:breadcrumb navigate={~p"/strands"}><%= gettext("Strands") %></:breadcrumb>
+    <:breadcrumb navigate={~p"/strands"}>{gettext("Strands")}</:breadcrumb>
     <:breadcrumb is_info>
       <.mini_strand_card strand={@strand} class="w-60" />
     </:breadcrumb>
     <:breadcrumb navigate={~p"/strands/#{@strand}/moments"} title={@strand.name}>
-      <%= @strand.name %>
+      {@strand.name}
     </:breadcrumb>
-    <:title><%= gettext("Moment: %{moment}", moment: @moment.name) %></:title>
+    <:title>{gettext("Moment: %{moment}", moment: @moment.name)}</:title>
     <div class="flex items-center justify-between gap-4 px-4">
       <.neo_tabs id="moment-nav-tabs">
         <:tab patch={~p"/strands/moment/#{@moment}"} is_current={@live_action == :show}>
-          <%= gettext("Overview") %>
+          {gettext("Overview")}
         </:tab>
         <:tab
           patch={~p"/strands/moment/#{@moment}/assessment"}
           is_current={@live_action == :assessment}
         >
-          <%= gettext("Moment assessment") %>
+          {gettext("Moment assessment")}
         </:tab>
         <:tab patch={~p"/strands/moment/#{@moment}/cards"} is_current={@live_action == :cards}>
-          <%= gettext("Cards") %>
+          {gettext("Cards")}
         </:tab>
         <:tab patch={~p"/strands/moment/#{@moment}/notes"} is_current={@live_action == :notes}>
-          <%= gettext("Notes") %>
+          {gettext("Notes")}
         </:tab>
       </.neo_tabs>
       <div class="flex items-center gap-4">
@@ -32,17 +32,17 @@
           phx-click={JS.exec("data-show", to: "#strand-classes-filter-modal")}
           icon_name="hero-users-mini"
         >
-          <%= format_action_items_text(
+          {format_action_items_text(
             @selected_classes,
             gettext("No class selected")
-          ) %>
+          )}
         </.action>
         <.action
           type="link"
           patch={"#{@current_path}?is_editing=true"}
           icon_name="hero-pencil-mini"
         >
-          <%= gettext("Edit moment") %>
+          {gettext("Edit moment")}
         </.action>
         <.menu_button id="strand-menu-more">
           <:item
@@ -96,7 +96,7 @@
   show={true}
   on_cancel={JS.patch(@current_path)}
 >
-  <:title><%= gettext("Edit moment") %></:title>
+  <:title>{gettext("Edit moment")}</:title>
   <.live_component
     module={MomentFormComponent}
     id={@moment.id}
@@ -110,10 +110,10 @@
       theme="ghost"
       phx-click={JS.exec("data-cancel", to: "#moment-form-overlay")}
     >
-      <%= gettext("Cancel") %>
+      {gettext("Cancel")}
     </.button>
     <.button type="submit" form="moment-form">
-      <%= gettext("Save") %>
+      {gettext("Save")}
     </.button>
   </:actions>
 </.slide_over>

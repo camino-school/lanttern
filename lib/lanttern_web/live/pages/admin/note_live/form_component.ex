@@ -9,7 +9,7 @@ defmodule LantternWeb.Admin.NoteLive.FormComponent do
     ~H"""
     <div>
       <.header>
-        <%= @title %>
+        {@title}
         <:subtitle>Use this form to manage note records in your database.</:subtitle>
       </.header>
 

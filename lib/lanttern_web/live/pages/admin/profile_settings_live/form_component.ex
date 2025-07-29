@@ -9,7 +9,7 @@ defmodule LantternWeb.Admin.ProfileSettingsLive.FormComponent do
     ~H"""
     <div>
       <.header>
-        <%= @title %>
+        {@title}
         <:subtitle>Use this form to manage profile settings in your database.</:subtitle>
       </.header>
 

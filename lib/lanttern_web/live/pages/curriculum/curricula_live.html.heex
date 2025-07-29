@@ -1,16 +1,16 @@
 <.header_nav current_user={@current_user}>
-  <:title><%= gettext("Curriculum") %></:title>
+  <:title>{gettext("Curriculum")}</:title>
 </.header_nav>
 <.responsive_grid class="p-4" is_full_width phx-update="stream" id="curricula-list">
   <.card_base :for={{dom_id, curriculum} <- @streams.curricula} id={dom_id} class="p-6">
     <div class="flex items-center gap-4">
       <h5 class="font-display font-black text-base">
         <.link navigate={~p"/curriculum/#{curriculum}"} class="hover:text-ltrn-subtle">
-          <%= curriculum.name %>
+          {curriculum.name}
         </.link>
       </h5>
       <.badge :if={curriculum.code} theme="dark">
-        <%= curriculum.code %>
+        {curriculum.code}
       </.badge>
     </div>
     <.markdown :if={curriculum.description} text={curriculum.description} class="max-w-none mt-6" />

@@ -1,23 +1,24 @@
 <div>
   <.header_nav current_user={@current_user}>
-    <:breadcrumb navigate={~p"/grades_reports"}><%= gettext("Grades reports") %></:breadcrumb>
-    <:title><%= @grades_report.name %></:title>
+    <:breadcrumb navigate={~p"/grades_reports"}>{gettext("Grades reports")}</:breadcrumb>
+    <:title>{@grades_report.name}</:title>
     <div class="flex items-center gap-6 p-4">
       <div class="flex-1 flex items-center gap-4">
         <div class="flex items-center gap-2">
           <.icon name="hero-calendar-mini" class="text-ltrn-subtle" />
-          <%= @grades_report.year.name %>, <%= gettext("Cycle") %> <%= @grades_report.school_cycle.name %>
+          {@grades_report.year.name}, {gettext("Cycle")} {@grades_report.school_cycle.name}
         </div>
         <div class="flex items-center gap-2">
           <.icon name="hero-view-columns-mini" class="text-ltrn-subtle" />
-          <%= gettext("Scale") %> <%= @grades_report.scale.name %>
+          {gettext("Scale")} {@grades_report.scale.name}
           <div
             :if={@grades_report.scale.ordinal_values != []}
             class="flex items-center gap-2 ml-2"
           >
-            <%= for ov <- @grades_report.scale.ordinal_values do %>
+            <%= for ov
+            <- @grades_report.scale.ordinal_values do %>
               <.badge color_map={ov}>
-                <%= ov.name %>
+                {ov.name}
               </.badge>
             <% end %>
           </div>
@@ -29,14 +30,14 @@
           icon_name="hero-cog-6-tooth-mini"
           patch={~p"/grades_reports/#{@grades_report}?is_configuring=true"}
         >
-          <%= gettext("Configure") %>
+          {gettext("Configure")}
         </.action>
         <.action
           type="link"
           icon_name="hero-pencil-mini"
           patch={~p"/grades_reports/#{@grades_report}?is_editing=true"}
         >
-          <%= gettext("Edit") %>
+          {gettext("Edit")}
         </.action>
       </div>
     </div>
@@ -97,7 +98,7 @@
   show={true}
   on_cancel={JS.patch(~p"/grades_reports/#{@grades_report}")}
 >
-  <:title><%= gettext("Edit grades report") %></:title>
+  <:title>{gettext("Edit grades report")}</:title>
   <.live_component
     module={GradesReportFormComponent}
     id={@grades_report.id}
@@ -113,7 +114,7 @@
       phx-click="delete_grades_report"
       data-confirm={gettext("Are you sure?")}
     >
-      <%= gettext("Delete") %>
+      {gettext("Delete")}
     </.button>
   </:actions_left>
   <:actions>
@@ -122,10 +123,10 @@
       theme="ghost"
       phx-click={JS.exec("data-cancel", to: "#grades-report-form-overlay")}
     >
-      <%= gettext("Cancel") %>
+      {gettext("Cancel")}
     </.button>
     <.button type="submit" form="grades-report-form">
-      <%= gettext("Save") %>
+      {gettext("Save")}
     </.button>
   </:actions>
 </.slide_over>

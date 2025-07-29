@@ -34,7 +34,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       <.responsive_container :if={@selected_classes_ids == []} class="py-10">
         <p class="flex items-center gap-2">
           <.icon name="hero-light-bulb-mini" class="text-ltrn-subtle" />
-          <%= gettext("Select a class above to view full assessments grid") %>
+          {gettext("Select a class above to view full assessments grid")}
         </p>
       </.responsive_container>
       <.live_component

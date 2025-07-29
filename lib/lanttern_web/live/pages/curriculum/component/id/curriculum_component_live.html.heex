@@ -1,30 +1,30 @@
 <div>
   <.header_nav current_user={@current_user}>
-    <:breadcrumb navigate={~p"/curriculum"}><%= gettext("Curriculum") %></:breadcrumb>
+    <:breadcrumb navigate={~p"/curriculum"}>{gettext("Curriculum")}</:breadcrumb>
     <:breadcrumb
       navigate={~p"/curriculum/#{@curriculum_component.curriculum}"}
       title={@curriculum_component.curriculum.name}
     >
-      <%= @curriculum_component.curriculum.name %>
+      {@curriculum_component.curriculum.name}
     </:breadcrumb>
-    <:title><%= @curriculum_component.name %></:title>
+    <:title>{@curriculum_component.name}</:title>
     <div class="flex items-center justify-between gap-4 p-4">
       <p class="flex flex-wrap gap-2">
-        <%= ngettext(
+        {ngettext(
           "Showing 1 result for",
           "Showing %{count} results for",
           @curriculum_items_count
-        ) %>
+        )}
         <%= if length(@selected_subjects) == 0 do %>
-          <.badge><%= gettext("all subjects") %></.badge>
+          <.badge>{gettext("all subjects")}</.badge>
         <% else %>
-          <.badge :for={subject <- @selected_subjects}><%= subject.name %></.badge>
+          <.badge :for={subject <- @selected_subjects}>{subject.name}</.badge>
         <% end %>
-        <%= gettext("and") %>
+        {gettext("and")}
         <%= if length(@selected_years) == 0 do %>
-          <.badge><%= gettext("all years") %></.badge>
+          <.badge>{gettext("all years")}</.badge>
         <% else %>
-          <.badge :for={year <- @selected_years}><%= year.name %></.badge>
+          <.badge :for={year <- @selected_years}>{year.name}</.badge>
         <% end %>
       </p>
       <.action
@@ -34,7 +34,7 @@
         }
         icon_name="hero-plus-circle-mini"
       >
-        <%= gettext("New curriculum item") %>
+        {gettext("New curriculum item")}
       </.action>
     </div>
   </.header_nav>
@@ -49,20 +49,20 @@
 >
   <:col :let={curriculum_item} label="Id" template_col="max-content">
     <.badge theme="dark">
-      #<%= curriculum_item.id %>
+      #{curriculum_item.id}
     </.badge>
   </:col>
   <:col :let={curriculum_item} label={gettext("Code")} template_col="max-content">
     <%= if curriculum_item.code do %>
       <.badge theme="dark">
-        (<%= curriculum_item.code %>)
+        ({curriculum_item.code})
       </.badge>
     <% else %>
       <span class="text-ltrn-subtle">—</span>
     <% end %>
   </:col>
   <:col :let={curriculum_item} label={gettext("Item")} template_col="minmax(0, 2fr)">
-    <%= curriculum_item.name %>
+    {curriculum_item.name}
   </:col>
   <:col
     :let={curriculum_item}
@@ -72,7 +72,7 @@
     class="flex flex-wrap gap-2"
   >
     <.badge :for={subject <- curriculum_item.subjects}>
-      <%= subject.name %>
+      {subject.name}
     </.badge>
   </:col>
   <:col
@@ -83,7 +83,7 @@
     class="flex flex-wrap gap-2"
   >
     <.badge :for={year <- curriculum_item.years}>
-      <%= year.name %>
+      {year.name}
     </.badge>
   </:col>
   <:action :let={curriculum_item}>
@@ -104,7 +104,7 @@
 <section :if={@curriculum_component.description}>
   <.responsive_container class="py-10">
     <h2 class="mb-6 font-display font-black text-2xl">
-      <%= gettext("About the curriculum component") %>
+      {gettext("About the curriculum component")}
     </h2>
     <.markdown text={@curriculum_component.description} />
   </.responsive_container>
@@ -131,14 +131,14 @@
   show={true}
   on_cancel={JS.patch(~p"/curriculum/component/#{@curriculum_component}")}
 >
-  <:title><%= @form_overlay_title %></:title>
-  <.label><%= gettext("Curriculum component") %></.label>
+  <:title>{@form_overlay_title}</:title>
+  <.label>{gettext("Curriculum component")}</.label>
   <div class="p-4 rounded-sm mb-6 bg-white shadow-lg">
     <.badge :if={@curriculum_component.code} class="mb-2">
-      <%= @curriculum_component.code %>
+      {@curriculum_component.code}
     </.badge>
     <div class="font-display font-bold">
-      <%= @curriculum_component.name %>
+      {@curriculum_component.name}
     </div>
   </div>
   <.live_component
@@ -155,7 +155,7 @@
       phx-click="delete_curriculum_item"
       data-confirm={gettext("Are you sure?")}
     >
-      <%= gettext("Delete") %>
+      {gettext("Delete")}
     </.button>
   </:actions_left>
   <:actions>
@@ -164,10 +164,10 @@
       theme="ghost"
       phx-click={JS.exec("data-cancel", to: "#curriculum-item-form-overlay")}
     >
-      <%= gettext("Cancel") %>
+      {gettext("Cancel")}
     </.button>
     <.button type="submit" form="curriculum-item-form">
-      <%= gettext("Save") %>
+      {gettext("Save")}
     </.button>
   </:actions>
 </.slide_over>

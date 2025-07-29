@@ -17,21 +17,21 @@ defmodule LantternWeb.MomentLive.OverviewComponent do
         size="sm"
       />
       <.responsive_container class="mt-10">
-        <h1 class="font-display font-black text-4xl"><%= @moment.name %></h1>
+        <h1 class="font-display font-black text-4xl">{@moment.name}</h1>
         <p class="mt-2 font-display font-black text-2xl text-ltrn-subtle">
-          <%= gettext("Moment of %{strand}", strand: @strand.name) %>
+          {gettext("Moment of %{strand}", strand: @strand.name)}
         </p>
         <div class="flex flex-wrap gap-2 mt-4">
           <.badge :for={subject <- @moment.subjects} theme="dark">
-            <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name) %>
+            {Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name)}
           </.badge>
         </div>
         <.markdown text={@moment.description} class="mt-10" />
-        <h3 class="mt-16 font-display font-black text-3xl"><%= gettext("Curriculum") %></h3>
+        <h3 class="mt-16 font-display font-black text-3xl">{gettext("Curriculum")}</h3>
         <div id="moment-curriculum-items" phx-update="stream">
           <div :for={{dom_id, curriculum_item} <- @streams.curriculum_items} id={dom_id} class="mt-6">
-            <.badge theme="dark"><%= curriculum_item.curriculum_component.name %></.badge>
-            <p class="mt-4"><%= curriculum_item.name %></p>
+            <.badge theme="dark">{curriculum_item.curriculum_component.name}</.badge>
+            <p class="mt-4">{curriculum_item.name}</p>
           </div>
         </div>
       </.responsive_container>

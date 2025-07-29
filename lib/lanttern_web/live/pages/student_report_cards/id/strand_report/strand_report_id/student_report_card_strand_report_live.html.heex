@@ -1,11 +1,11 @@
 <.header_nav current_user={@current_user} menu_style="legacy">
   <:breadcrumb navigate={~p"/student_report_cards/#{@student_report_card}"}>
-    <%= gettext("Report card") %>
+    {gettext("Report card")}
   </:breadcrumb>
   <:breadcrumb is_info>
     <.mini_strand_card strand={@strand_report.strand} class="w-60" />
   </:breadcrumb>
-  <:title><%= @strand_report.strand.name %></:title>
+  <:title>{@strand_report.strand.name}</:title>
   <div class="flex items-center justify-between gap-4 px-4">
     <.neo_tabs id="strand-nav-tabs">
       <:tab
@@ -14,7 +14,7 @@
         }
         is_current={@current_tab == :overview && "true"}
       >
-        <%= gettext("Overview") %>
+        {gettext("Overview")}
       </:tab>
       <:tab
         patch={
@@ -22,7 +22,7 @@
         }
         is_current={@current_tab == :assessment && "true"}
       >
-        <%= gettext("Assessment") %>
+        {gettext("Assessment")}
       </:tab>
       <:tab
         :if={@strand_report.has_moments}
@@ -31,7 +31,7 @@
         }
         is_current={@current_tab == :moments && "true"}
       >
-        <%= gettext("Moments") %>
+        {gettext("Moments")}
       </:tab>
       <:tab
         :if={@note || @is_student}
@@ -40,7 +40,7 @@
         }
         is_current={@current_tab == :student_notes && "true"}
       >
-        <%= gettext("Student notes") %>
+        {gettext("Student notes")}
       </:tab>
     </.neo_tabs>
   </div>

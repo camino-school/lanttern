@@ -21,7 +21,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordStatusFormOverlayComponent do
     ~H"""
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
       <.slide_over id={@id} show on_cancel={@on_cancel}>
-        <:title><%= @title %></:title>
+        <:title>{@title}</:title>
         <.form
           id="student-record-status-form"
           for={@form}
@@ -30,7 +30,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordStatusFormOverlayComponent do
           phx-target={@myself}
         >
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
-            <%= gettext("Oops, something went wrong! Please check the errors below.") %>
+            {gettext("Oops, something went wrong! Please check the errors below.")}
           </.error_block>
           <.input
             field={@form[:name]}
@@ -60,24 +60,24 @@ defmodule LantternWeb.StudentsRecords.StudentRecordStatusFormOverlayComponent do
               label={gettext("Use status to close student record")}
             />
             <p class="mt-4">
-              <%= gettext(
+              {gettext(
                 "If active, assigning this status to an existing record will close it and calculate the time since its creation."
-              ) %>
+              )}
             </p>
             <p class="mt-2">
-              <%= gettext(
+              {gettext(
                 "When activating, previous records with this status will not change: records already closed will remain closed, and open records will be considered \"closed on creation\"."
-              ) %>
+              )}
             </p>
           </div>
         </.form>
         <.card_base class="p-6 mt-10">
-          <p class="mb-4 text-ltrn-subtle"><%= gettext("Preview") %></p>
+          <p class="mb-4 text-ltrn-subtle">{gettext("Preview")}</p>
           <.badge
             color_map={%{bg_color: @form[:bg_color].value, text_color: @form[:text_color].value}}
             icon_name={if(@form[:is_closed].value == true, do: "hero-check-circle-mini")}
           >
-            <%= @form[:name].value %>
+            {@form[:name].value}
           </.badge>
         </.card_base>
         <:actions_left :if={@status.id}>
@@ -89,7 +89,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordStatusFormOverlayComponent do
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           >
-            <%= gettext("Delete") %>
+            {gettext("Delete")}
           </.action>
         </:actions_left>
         <:actions>
@@ -99,7 +99,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordStatusFormOverlayComponent do
             size="md"
             phx-click={JS.exec("data-cancel", to: "##{@id}")}
           >
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.action>
           <.action
             type="submit"
@@ -108,7 +108,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordStatusFormOverlayComponent do
             icon_name="hero-check"
             form="student-record-status-form"
           >
-            <%= gettext("Save") %>
+            {gettext("Save")}
           </.action>
         </:actions>
       </.slide_over>

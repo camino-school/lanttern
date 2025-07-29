@@ -28,7 +28,7 @@ defmodule LantternWeb.ILP.StudentILPAIRevisionActionBarComponent do
         <%= if @has_ai_revision do %>
           <div class="flex items-center gap-2">
             <.action type="link" patch={@view_patch} theme="ai">
-              <%= gettext("View") %>
+              {gettext("View")}
             </.action>
             <.ai_content_indicator />
           </div>
@@ -44,16 +44,14 @@ defmodule LantternWeb.ILP.StudentILPAIRevisionActionBarComponent do
                 />
               </div>
               <.action type="submit" icon_name="hero-sparkles-mini" theme="ai-generate">
-                <%= gettext("Generate revision") %>
+                {gettext("Generate revision")}
               </.action>
             </div>
             <p :if={@ai_form_error} class="flex items-center gap-2 mt-2 text-xs">
-              <.icon name="hero-exclamation-circle-micro" class="w-4 h-4" />
-              <%= @ai_form_error %>
+              <.icon name="hero-exclamation-circle-micro" class="w-4 h-4" /> {@ai_form_error}
             </p>
             <p :if={@ai_response_error} class="flex items-center gap-2 mt-2 text-xs">
-              <.icon name="hero-exclamation-circle-micro" class="w-4 h-4" />
-              <%= @ai_response_error %>
+              <.icon name="hero-exclamation-circle-micro" class="w-4 h-4" /> {@ai_response_error}
             </p>
           </form>
         <% end %>

@@ -24,36 +24,36 @@ defmodule LantternWeb.StrandLive.AboutComponent do
       />
       <.responsive_container class="mt-10">
         <hgroup class="font-display font-black">
-          <h1 class="text-4xl sm:text-5xl"><%= @strand.name %></h1>
-          <p :if={@strand.type} class="mt-2 text-xl sm:text-2xl"><%= @strand.type %></p>
+          <h1 class="text-4xl sm:text-5xl">{@strand.name}</h1>
+          <p :if={@strand.type} class="mt-2 text-xl sm:text-2xl">{@strand.type}</p>
         </hgroup>
         <div class="flex flex-wrap gap-2 mt-6">
           <.badge :for={subject <- @strand.subjects} theme="dark">
-            <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name) %>
+            {Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name)}
           </.badge>
           <.badge :for={year <- @strand.years} theme="dark">
-            <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", year.name) %>
+            {Gettext.dgettext(Lanttern.Gettext, "taxonomy", year.name)}
           </.badge>
         </div>
         <.markdown text={@strand.description} class="mt-10" />
         <div :if={@strand.teacher_instructions} class="p-4 rounded-xs mt-10 bg-ltrn-staff-lightest">
           <p class="mb-4 font-bold text-ltrn-staff-dark">
-            <%= gettext("Teacher instructions") %>
+            {gettext("Teacher instructions")}
           </p>
           <.markdown text={@strand.teacher_instructions} />
         </div>
         <div class="flex items-end justify-between gap-6">
-          <h3 class="mt-16 font-display font-black text-3xl"><%= gettext("Goals") %></h3>
+          <h3 class="mt-16 font-display font-black text-3xl">{gettext("Goals")}</h3>
           <.action
             type="link"
             icon_name="hero-plus-circle-mini"
             patch={~p"/strands/#{@strand}?goal=new"}
           >
-            <%= gettext("Add strand goal") %>
+            {gettext("Add strand goal")}
           </.action>
         </div>
         <p class="mt-4">
-          <%= gettext("Use this area to manage the strand curriculum.") %>
+          {gettext("Use this area to manage the strand curriculum.")}
         </p>
         <div :for={{curriculum_item, i} <- @indexed_curriculum_items} class="mt-6">
           <div class="flex items-stretch gap-6 p-6 rounded-sm bg-white shadow-lg">
@@ -61,13 +61,13 @@ defmodule LantternWeb.StrandLive.AboutComponent do
               <div class="flex items-center gap-4">
                 <div :if={curriculum_item.has_rubric} class="group relative">
                   <.icon name="hero-view-columns" class="w-6 h-6" />
-                  <.tooltip><%= gettext("Uses rubric in final assessment") %></.tooltip>
+                  <.tooltip>{gettext("Uses rubric in final assessment")}</.tooltip>
                 </div>
                 <.badge :if={curriculum_item.is_differentiation} theme="diff">
-                  <%= gettext("Differentiation") %>
+                  {gettext("Differentiation")}
                 </.badge>
                 <p class="flex-1 font-display font-bold text-sm">
-                  <%= curriculum_item.curriculum_component.name %>
+                  {curriculum_item.curriculum_component.name}
                 </p>
                 <.action
                   type="link"
@@ -75,17 +75,16 @@ defmodule LantternWeb.StrandLive.AboutComponent do
                   icon_name="hero-pencil-mini"
                   patch={~p"/strands/#{@strand}?goal=#{curriculum_item.assessment_point_id}"}
                 >
-                  <%= gettext("Edit") %>
+                  {gettext("Edit")}
                 </.action>
               </div>
-              <p class="mt-4"><%= curriculum_item.name %></p>
+              <p class="mt-4">{curriculum_item.name}</p>
               <div
                 :if={hd(curriculum_item.assessment_points).report_info}
                 class="p-4 rounded-sm mt-6 bg-ltrn-mesh-cyan"
               >
                 <div class="flex items-center gap-2 font-bold text-sm text-ltrn-subtle">
-                  <.icon name="hero-information-circle" class="w-6 h-6" />
-                  <%= gettext("Report info") %>
+                  <.icon name="hero-information-circle" class="w-6 h-6" /> {gettext("Report info")}
                 </div>
                 <.markdown
                   text={hd(curriculum_item.assessment_points).report_info}
@@ -121,9 +120,9 @@ defmodule LantternWeb.StrandLive.AboutComponent do
         </div>
       </.responsive_container>
       <.responsive_container class="mt-16">
-        <h3 class="font-display font-black text-3xl"><%= gettext("Report cards") %></h3>
+        <h3 class="font-display font-black text-3xl">{gettext("Report cards")}</h3>
         <p class="flex gap-1 mt-4">
-          <%= gettext("List of report cards linked to this strand.") %>
+          {gettext("List of report cards linked to this strand.")}
         </p>
       </.responsive_container>
       <%= if @has_report_cards do %>
@@ -137,7 +136,7 @@ defmodule LantternWeb.StrandLive.AboutComponent do
         </.responsive_grid>
       <% else %>
         <.empty_state class="mt-10">
-          <%= gettext("No report cards linked to this strand") %>
+          {gettext("No report cards linked to this strand")}
         </.empty_state>
       <% end %>
       <.live_component

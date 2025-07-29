@@ -23,7 +23,7 @@ defmodule LantternWeb.GradesReports.GradesReportFormComponent do
         phx-submit="save"
       >
         <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
-          <%= gettext("Oops, something went wrong! Please check the errors below.") %>
+          {gettext("Oops, something went wrong! Please check the errors below.")}
         </.error_block>
         <.input
           field={@form[:name]}
@@ -41,11 +41,11 @@ defmodule LantternWeb.GradesReports.GradesReportFormComponent do
           show_optional
         />
         <div class="mb-6">
-          <.label><%= gettext("Parent cycle") %></.label>
+          <.label>{gettext("Parent cycle")}</.label>
           <p class="my-2">
-            <%= gettext(
+            {gettext(
               "The parent cycle grade is calculated based on it's children cycles. E.g. 2024 grade is based on 2024 Q1, Q2, Q3, and Q4 grades."
-            ) %>
+            )}
           </p>
           <.badge_button_picker
             id="grades-report-cycle-select"
@@ -57,11 +57,11 @@ defmodule LantternWeb.GradesReports.GradesReportFormComponent do
             selected_ids={[@selected_cycle_id]}
           />
           <div :if={@form.source.action in [:insert, :update]}>
-            <.error :for={{msg, _} <- @form[:school_cycle_id].errors}><%= msg %></.error>
+            <.error :for={{msg, _} <- @form[:school_cycle_id].errors}>{msg}</.error>
           </div>
         </div>
         <div class="mb-6">
-          <.label><%= gettext("Year") %></.label>
+          <.label>{gettext("Year")}</.label>
           <.badge_button_picker
             id="grades-report-year-select"
             on_select={
@@ -72,7 +72,7 @@ defmodule LantternWeb.GradesReports.GradesReportFormComponent do
             selected_ids={[@selected_year_id]}
           />
           <div :if={@form.source.action in [:insert, :update]}>
-            <.error :for={{msg, _} <- @form[:year_id].errors}><%= msg %></.error>
+            <.error :for={{msg, _} <- @form[:year_id].errors}>{msg}</.error>
           </div>
         </div>
         <.input
@@ -84,7 +84,7 @@ defmodule LantternWeb.GradesReports.GradesReportFormComponent do
           class={if !@hide_submit, do: "mb-6"}
         />
         <.button :if={!@hide_submit} phx-disable-with={gettext("Saving...")}>
-          <%= gettext("Save grade report") %>
+          {gettext("Save grade report")}
         </.button>
       </.form>
     </div>

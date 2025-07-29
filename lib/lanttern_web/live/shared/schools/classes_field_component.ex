@@ -31,7 +31,7 @@ defmodule LantternWeb.Schools.ClassesFieldComponent do
   def render(assigns) do
     ~H"""
     <div class={@class}>
-      <.label><%= @label %></.label>
+      <.label>{@label}</.label>
       <%= if @selected_classes != [] do %>
         <.badge_button_picker
           id="current-class-picker"
@@ -45,10 +45,10 @@ defmodule LantternWeb.Schools.ClassesFieldComponent do
           current_user={@current_cycle}
         />
       <% else %>
-        <.empty_state_simple><%= gettext("No selected classes") %></.empty_state_simple>
+        <.empty_state_simple>{gettext("No selected classes")}</.empty_state_simple>
       <% end %>
       <div :if={@cycle_classes != []} class="mt-6">
-        <p class="mb-2"><%= gettext("%{cycle} cycle classes", cycle: @current_cycle.name) %></p>
+        <p class="mb-2">{gettext("%{cycle} cycle classes", cycle: @current_cycle.name)}</p>
         <.badge_button_picker
           id="class-cycle-select"
           on_select={
@@ -73,8 +73,9 @@ defmodule LantternWeb.Schools.ClassesFieldComponent do
         class="mt-6"
       />
       <%!-- <div :if={@form.source.action in [:insert, :update]}>
-        <.error :for={{msg, _} <- @form[:classes_ids].errors}><%= msg %></.error>
-      </div> --%>
+        <.error :for={{msg, _} <- @form[:classes_ids].errors}>{msg}</.error>
+      </div>
+       --%>
     </div>
     """
   end

@@ -23,7 +23,7 @@ defmodule LantternWeb.Schools.StaffMemberFormOverlayComponent do
     ~H"""
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
       <.slide_over id={@id} show on_cancel={@on_cancel}>
-        <:title><%= @title %></:title>
+        <:title>{@title}</:title>
         <.form
           id="staff-member-form"
           for={@form}
@@ -32,7 +32,7 @@ defmodule LantternWeb.Schools.StaffMemberFormOverlayComponent do
           phx-target={@myself}
         >
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
-            <%= gettext("Oops, something went wrong! Please check the errors below.") %>
+            {gettext("Oops, something went wrong! Please check the errors below.")}
           </.error_block>
           <.profile_picture_field
             current_picture_url={@staff_member.profile_picture_url}
@@ -70,7 +70,7 @@ defmodule LantternWeb.Schools.StaffMemberFormOverlayComponent do
             />
             <p class="flex items-center gap-2 mt-4">
               <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-              <%= gettext("Enables the user to login at Lanttern via Google Sign In") %>
+              {gettext("Enables the user to login at Lanttern via Google Sign In")}
             </p>
           </.card_base>
         </.form>
@@ -83,7 +83,7 @@ defmodule LantternWeb.Schools.StaffMemberFormOverlayComponent do
             phx-target={@myself}
             data-confirm={gettext("Are you sure? You can reactive the staff member later.")}
           >
-            <%= gettext("Deactivate") %>
+            {gettext("Deactivate")}
           </.action>
         </:actions_left>
         <:actions>
@@ -93,7 +93,7 @@ defmodule LantternWeb.Schools.StaffMemberFormOverlayComponent do
             size="md"
             phx-click={JS.exec("data-cancel", to: "##{@id}")}
           >
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.action>
           <.action
             type="submit"
@@ -102,7 +102,7 @@ defmodule LantternWeb.Schools.StaffMemberFormOverlayComponent do
             icon_name="hero-check"
             form="staff-member-form"
           >
-            <%= gettext("Save") %>
+            {gettext("Save")}
           </.action>
         </:actions>
       </.slide_over>

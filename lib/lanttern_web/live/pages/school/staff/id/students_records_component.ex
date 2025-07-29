@@ -38,13 +38,13 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
               id="select-staff-view-dropdown-button"
               icon_name="hero-chevron-down-mini"
             >
-              <%= case @current_student_record_staff_member_view do
+              {case @current_student_record_staff_member_view do
                 "created_by" ->
                   gettext("Created by %{staff_member}", staff_member: @staff_member_first_name)
 
                 "assigned_to" ->
                   gettext("Assigned to %{staff_member}", staff_member: @staff_member_first_name)
-              end %>
+              end}
             </.action>
             <.dropdown_menu
               id="select-staff-view-dropdown"
@@ -71,7 +71,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
               icon_name="hero-chevron-down-mini"
               phx-click={JS.push("open_student_search_modal", target: @myself)}
             >
-              <%= gettext("Student") %>
+              {gettext("Student")}
             </.action>
           <% else %>
             <.badge
@@ -79,7 +79,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
               on_remove={JS.push("remove_student_filter", target: @myself)}
               theme="primary"
             >
-              <%= student.name %>
+              {student.name}
             </.badge>
           <% end %>
           <%= if @selected_classes == [] do %>
@@ -88,7 +88,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
               icon_name="hero-chevron-down-mini"
               phx-click={JS.exec("data-show", to: "#students-records-classes-filters-overlay")}
             >
-              <%= gettext("Classes") %>
+              {gettext("Classes")}
             </.action>
           <% else %>
             <.badge
@@ -96,7 +96,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
               on_remove={JS.push("remove_class_filter", value: %{"id" => class.id}, target: @myself)}
               theme="primary"
             >
-              <%= class_with_cycle(class, @current_user) %>
+              {class_with_cycle(class, @current_user)}
             </.badge>
           <% end %>
           <%= if @selected_student_record_statuses == [] do %>
@@ -105,7 +105,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
               icon_name="hero-chevron-down-mini"
               phx-click={JS.exec("data-show", to: "#student-record-status-filter-modal")}
             >
-              <%= gettext("Status") %>
+              {gettext("Status")}
             </.action>
           <% else %>
             <.badge
@@ -113,7 +113,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
               color_map={status}
               on_remove={JS.push("remove_status_filter", target: @myself)}
             >
-              <%= status.name %>
+              {status.name}
             </.badge>
           <% end %>
           <.badge
@@ -122,7 +122,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
             on_click={JS.exec("data-show", to: "#student-record-tag-filter-modal")}
             on_remove={JS.push("remove_tag_filter", value: %{"id" => tag.id}, target: @myself)}
           >
-            <%= tag.name %>
+            {tag.name}
           </.badge>
           <.action
             :if={@selected_student_record_tags == []}
@@ -130,7 +130,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
             icon_name="hero-chevron-down-mini"
             phx-click={JS.exec("data-show", to: "#student-record-tag-filter-modal")}
           >
-            <%= gettext("Tags") %>
+            {gettext("Tags")}
           </.action>
         </div>
         <.action
@@ -138,24 +138,24 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
           patch={"#{@base_path}?student_record=new"}
           icon_name="hero-plus-circle-mini"
         >
-          <%= gettext("New student record") %>
+          {gettext("New student record")}
         </.action>
       </.action_bar>
       <.responsive_container class="p-4">
         <div class="flex items-center justify-between gap-4 mb-4">
           <p>
-            <%= ngettext(
+            {ngettext(
               "Showing 1 result for selected filters",
               "Showing %{count} results for selected filters",
               @students_records_length
-            ) %>
+            )}
           </p>
           <div class="relative">
             <.action type="button" id="select-view-dropdown-button" icon_name="hero-eye-mini">
-              <%= case @current_student_record_view do
+              {case @current_student_record_view do
                 "all" -> gettext("All records")
                 "open" -> gettext("Only open")
-              end %>
+              end}
             </.action>
             <.dropdown_menu
               id="select-view-dropdown"
@@ -194,7 +194,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
       </.responsive_container>
       <div :if={@has_next} class="flex justify-center pb-10">
         <.button theme="ghost" phx-click="load_more" phx-target={@myself} class="mt-6">
-          <%= gettext("Load more records") %>
+          {gettext("Load more records")}
         </.button>
       </div>
       <.modal
@@ -204,7 +204,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
         on_cancel={JS.push("close_student_search_modal", target: @myself)}
       >
         <h5 class="mb-10 font-display font-black text-xl">
-          <%= gettext("Filter records by student") %>
+          {gettext("Filter records by student")}
         </h5>
         <form>
           <.live_component

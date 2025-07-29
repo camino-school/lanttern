@@ -18,7 +18,9 @@ defmodule Lanttern.MixProject do
         "coveralls.html": :test,
         "coveralls.cobertura": :test,
         "test.drop": :test
-      ]
+      ],
+      compilers: [:phoenix_live_view] ++ Mix.compilers(),
+      listeners: [Phoenix.CodeReloader]
     ]
   end
 
@@ -42,13 +44,13 @@ defmodule Lanttern.MixProject do
   defp deps do
     [
       {:bcrypt_elixir, "~> 3.0"},
-      {:phoenix, "~> 1.7.7"},
+      {:phoenix, "~> 1.8.0-rc.4"},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.12"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 3.3"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 0.20.9"},
+      {:phoenix_live_view, "~> 1.1.0-rc.4"},
       {:floki, ">= 0.30.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.2"},
       {:esbuild, "~> 0.7", runtime: Mix.env() == :dev},
@@ -57,7 +59,7 @@ defmodule Lanttern.MixProject do
       {:finch, "~> 0.13"},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
-      {:gettext, "~> 0.20"},
+      {:gettext, "~> 0.26"},
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.7"},
       {:git_hooks, "~> 0.8.0", only: [:dev], runtime: false},
@@ -77,11 +79,17 @@ defmodule Lanttern.MixProject do
       {:ex_openai, "~> 1.8.0-beta"},
       {:tidewave, "~> 0.1.10", only: :dev},
       {:excoveralls, "~> 0.18", only: :test},
-      {:phoenix_test, "~> 0.6.0", only: :test, runtime: false},
+      # {:phoenix_test, "~> 0.7.0", only: :test, runtime: false},
+      {:phoenix_test,
+       git: "https://github.com/germsvel/phoenix_test",
+       ref: "03fb6611f28ee5272bff340a05e34587bd10a114",
+       only: :test,
+       runtime: false},
       {:ex_machina, "~> 2.8.0", only: :test},
       {:ex_cldr, "~> 2.37"},
       {:ex_cldr_dates_times, "~> 2.0"},
-      {:mimic, "~> 1.12", only: :test}
+      {:mimic, "~> 1.12", only: :test},
+      {:lazy_html, ">= 0.1.0", only: :test}
     ]
   end
 

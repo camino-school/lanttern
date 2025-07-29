@@ -26,9 +26,9 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
     <div>
       <.modal :if={@student_record_id} id={@id} show on_cancel={@on_cancel}>
         <h5 class="mb-10 font-display font-black text-xl">
-          <%= if @is_editing,
+          {if @is_editing,
             do: gettext("Edit student record"),
-            else: Map.get(@student_record || %{}, :name, gettext("Student record detail")) %>
+            else: Map.get(@student_record || %{}, :name, gettext("Student record detail"))}
         </h5>
         <%= if @is_editing do %>
           <.scroll_to_top overlay_id={@id} id="form-scroll-top" />
@@ -41,7 +41,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
             phx-target={@myself}
           >
             <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
-              <%= gettext("Oops, something went wrong! Please check the errors below.") %>
+              {gettext("Oops, something went wrong! Please check the errors below.")}
             </.error_block>
             <.input
               field={@form[:name]}
@@ -69,7 +69,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               />
             </div>
             <div class="mb-6">
-              <.label><%= gettext("Status") %></.label>
+              <.label>{gettext("Status")}</.label>
               <.badge_button_picker
                 id="student-record-status-select"
                 on_select={&JS.push("select_status", value: %{"id" => &1}, target: @myself)}
@@ -78,11 +78,11 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 use_color_map_as_active
               />
               <div :if={@form.source.action in [:insert, :update]}>
-                <.error :for={{msg, _} <- @form[:status_id].errors}><%= msg %></.error>
+                <.error :for={{msg, _} <- @form[:status_id].errors}>{msg}</.error>
               </div>
             </div>
             <div class="mb-6">
-              <.label><%= gettext("Tags") %></.label>
+              <.label>{gettext("Tags")}</.label>
               <.badge_button_picker
                 id="student-record-tag-select"
                 on_select={
@@ -94,7 +94,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 use_color_map_as_active
               />
               <div :if={@form.source.action in [:insert, :update]}>
-                <.error :for={{msg, _} <- @form[:tags_ids].errors}><%= msg %></.error>
+                <.error :for={{msg, _} <- @form[:tags_ids].errors}>{msg}</.error>
               </div>
             </div>
             <div class="mb-6">
@@ -115,7 +115,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 />
               </div>
               <div :if={@form.source.action in [:insert, :update]}>
-                <.error :for={{msg, _} <- @form[:students_ids].errors}><%= msg %></.error>
+                <.error :for={{msg, _} <- @form[:students_ids].errors}>{msg}</.error>
               </div>
             </div>
             <.live_component
@@ -137,7 +137,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
             />
             <div class="p-4 rounded-xs mb-6 bg-ltrn-staff-lightest">
               <p class="mb-6 font-bold text-ltrn-staff-dark">
-                <%= gettext("Internal student record tracking") %>
+                {gettext("Internal student record tracking")}
               </p>
               <div class="mb-6">
                 <.live_component
@@ -159,7 +159,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                   />
                 </div>
                 <div :if={@form.source.action in [:insert, :update]}>
-                  <.error :for={{msg, _} <- @form[:assignees_ids].errors}><%= msg %></.error>
+                  <.error :for={{msg, _} <- @form[:assignees_ids].errors}>{msg}</.error>
                 </div>
               </div>
               <.input
@@ -179,7 +179,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               </div>
             </div>
             <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
-              <%= gettext("Oops, something went wrong! Please check the errors below.") %>
+              {gettext("Oops, something went wrong! Please check the errors below.")}
             </.error_block>
             <div class="flex items-center justify-end gap-6">
               <.action
@@ -191,7 +191,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                   |> JS.push("cancel_edit", target: @myself)
                 }
               >
-                <%= gettext("Cancel") %>
+                {gettext("Cancel")}
               </.action>
               <.action
                 type="submit"
@@ -200,7 +200,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 icon_name="hero-check"
                 data-confirm={@confirm_submit_message}
               >
-                <%= gettext("Save") %>
+                {gettext("Save")}
               </.action>
             </div>
           </.form>
@@ -210,48 +210,47 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
             <div class="pb-6 border-b border-ltrn-light">
               <div class="flex items-center gap-4">
                 <div class="flex items-center gap-2 font-bold text-ltrn-subtle">
-                  <.icon name="hero-hashtag-mini" class="w-5 h-5 text-ltrn-subtle" />
-                  <%= @student_record.id %>
+                  <.icon name="hero-hashtag-mini" class="w-5 h-5 text-ltrn-subtle" /> {@student_record.id}
                 </div>
                 <div class="flex items-center gap-2">
                   <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
-                  <%= format_by_locale(@student_record.date, @current_user.tz, formats()) %>
+                  {format_by_locale(@student_record.date, @current_user.tz, formats())}
                 </div>
                 <div :if={@student_record.time} class="flex items-center gap-2">
                   <.icon name="hero-clock-mini" class="w-5 h-5 text-ltrn-subtle" />
-                  <%= format_simple_time(@student_record.time) %>
+                  {format_simple_time(@student_record.time)}
                 </div>
                 <div class="flex items-center gap-2">
-                  <span class="text-ltrn-subtle"><%= gettext("Status") %>:</span>
+                  <span class="text-ltrn-subtle">{gettext("Status")}:</span>
                   <.status_badge status={@student_record.status} />
                 </div>
               </div>
               <div class="flex items-center gap-2 mt-4">
                 <div class="group relative">
                   <.icon name="hero-tag-mini" class="w-5 h-5 text-ltrn-subtle" />
-                  <.tooltip><%= gettext("Tags") %></.tooltip>
+                  <.tooltip>{gettext("Tags")}</.tooltip>
                 </div>
                 <div class="flex flex-wrap gap-2">
                   <.badge :for={tag <- @student_record.tags} color_map={tag}>
-                    <%= tag.name %>
+                    {tag.name}
                   </.badge>
                 </div>
               </div>
               <div :if={@student_record.classes != []} class="flex items-center gap-2 mt-4">
                 <div class="group relative">
                   <.icon name="hero-rectangle-group-mini" class="w-5 h-5 text-ltrn-subtle" />
-                  <.tooltip><%= gettext("Classes") %></.tooltip>
+                  <.tooltip>{gettext("Classes")}</.tooltip>
                 </div>
                 <div class="flex flex-wrap gap-2">
                   <.badge :for={class <- @student_record.classes} id={"class-#{class.id}"}>
-                    <%= class_with_cycle(class, @current_user) %>
+                    {class_with_cycle(class, @current_user)}
                   </.badge>
                 </div>
               </div>
               <div class="flex items-center gap-2 mt-4">
                 <div class="group relative">
                   <.icon name="hero-user-group-mini" class="w-5 h-5 text-ltrn-subtle" />
-                  <.tooltip><%= gettext("Students") %></.tooltip>
+                  <.tooltip>{gettext("Students")}</.tooltip>
                 </div>
                 <div class="flex flex-wrap gap-2">
                   <.person_badge
@@ -266,15 +265,15 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               </div>
             </div>
             <h3 class="mt-10 font-display font-black text-2xl">
-              <%= gettext("Record description") %>
+              {gettext("Record description")}
             </h3>
             <.markdown text={@student_record.description} class="mt-6" />
             <div class="p-4 rounded-xs mt-10 bg-ltrn-staff-lightest">
               <p class="mb-6 font-bold text-ltrn-staff-dark">
-                <%= gettext("Internal student record tracking") %>
+                {gettext("Internal student record tracking")}
               </p>
               <div class="flex items-center gap-2">
-                <span class="text-ltrn-subtle"><%= gettext("Created by") %></span>
+                <span class="text-ltrn-subtle">{gettext("Created by")}</span>
                 <.person_badge
                   person={@student_record.created_by_staff_member}
                   theme="staff"
@@ -284,7 +283,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 />
               </div>
               <div :if={@student_record.assignees != []} class="flex items-center gap-2 mt-4">
-                <span class="text-ltrn-subtle"><%= gettext("Assigned to") %></span>
+                <span class="text-ltrn-subtle">{gettext("Assigned to")}</span>
                 <div class="flex flex-wrap items-center gap-2">
                   <.person_badge
                     :for={assignee <- @student_record.assignees}
@@ -296,7 +295,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
               </div>
               <div :if={@student_record.internal_notes} class="mt-10">
                 <h3 class="font-display font-black text-xl text-ltrn-staff-dark">
-                  <%= gettext("Internal notes") %>
+                  {gettext("Internal notes")}
                 </h3>
                 <.markdown text={@student_record.internal_notes} class="mt-6" />
               </div>
@@ -311,12 +310,12 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 class="flex items-center gap-2 p-2 rounded-xs mt-4 text-ltrn-staff-dark bg-ltrn-staff-lighter"
               >
                 <.icon name="hero-globe-americas-mini" />
-                <%= gettext("This record is visible to all school staff") %>
+                {gettext("This record is visible to all school staff")}
               </div>
             </div>
             <%= if @is_deleted do %>
               <.error_block class="mt-10">
-                <%= gettext("This record was deleted") %>
+                {gettext("This record was deleted")}
               </.error_block>
             <% else %>
               <div
@@ -332,7 +331,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                     theme="subtle"
                     data-confirm={gettext("Are you sure?")}
                   >
-                    <%= gettext("Delete") %>
+                    {gettext("Delete")}
                   </.action>
                 </div>
                 <.action
@@ -341,12 +340,12 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                   icon_name="hero-pencil-mini"
                   phx-click={JS.push("edit", target: @myself)}
                 >
-                  <%= gettext("Edit record") %>
+                  {gettext("Edit record")}
                 </.action>
               </div>
             <% end %>
           <% else %>
-            <.empty_state><%= gettext("Student record not found") %></.empty_state>
+            <.empty_state>{gettext("Student record not found")}</.empty_state>
           <% end %>
         <% end %>
       </.modal>
@@ -363,7 +362,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
        ) do
     ~H"""
     <.icon name="hero-check-circle-mini" />
-    <p><%= gettext("Closed on creation") %></p>
+    <p>{gettext("Closed on creation")}</p>
     """
   end
 
@@ -388,11 +387,11 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
 
     ~H"""
     <.icon name="hero-check-circle-mini" />
-    <%= gettext("Closed by %{staff_member} on %{datetime} (%{days_and_hours} since creation)",
+    {gettext("Closed by %{staff_member} on %{datetime} (%{days_and_hours} since creation)",
       staff_member: @student_record.closed_by_staff_member.name,
       datetime: format_by_locale(@student_record.closed_at, @tz),
       days_and_hours: @days_and_hours
-    ) %>
+    )}
     """
   end
 
@@ -407,10 +406,10 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
     assigns = assign(assigns, :days_and_hours, days_and_hours)
 
     ~H"""
-    <%= gettext("Created on %{datetime}",
+    {gettext("Created on %{datetime}",
       datetime: format_by_locale(@student_record.inserted_at, @tz)
-    ) %>
-    <%= gettext("(Open for %{days_and_hours})", days_and_hours: @days_and_hours) %>
+    )}
+    {gettext("(Open for %{days_and_hours})", days_and_hours: @days_and_hours)}
     """
   end
 

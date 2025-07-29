@@ -1,5 +1,5 @@
 <.header>
-  Staff member <%= @staff_member.id %>
+  Staff member {@staff_member.id}
   <:subtitle>This is a staff member record from your database.</:subtitle>
   <:actions>
     <.link href={~p"/admin/staff_members/#{@staff_member}/edit"}>
@@ -9,8 +9,8 @@
 </.header>
 
 <.list>
-  <:item title="School"><%= @staff_member.school.name %></:item>
-  <:item title="Name"><%= @staff_member.name %></:item>
+  <:item title="School">{@staff_member.school.name}</:item>
+  <:item title="Name">{@staff_member.name}</:item>
 </.list>
 
 <.back navigate={~p"/admin/staff_members"}>Back to staff members</.back>

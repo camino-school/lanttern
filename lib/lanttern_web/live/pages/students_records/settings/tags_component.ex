@@ -16,19 +16,19 @@ defmodule LantternWeb.StudentsRecordsSettingsLive.TagsComponent do
       <.action_bar class="flex items-center justify-between gap-4 p-4">
         <p class="flex items-center gap-2">
           <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-          <%= gettext("Manage student records tags below") %>
+          {gettext("Manage student records tags below")}
         </p>
         <.action
           type="link"
           patch={~p"/students_records/settings/tags?new=true"}
           icon_name="hero-plus-circle-mini"
         >
-          <%= gettext("New tag") %>
+          {gettext("New tag")}
         </.action>
       </.action_bar>
       <%= if @tags_length == 0 do %>
         <div class="p-10">
-          <.empty_state><%= gettext("No student record tags created yet") %></.empty_state>
+          <.empty_state>{gettext("No student record tags created yet")}</.empty_state>
         </div>
       <% else %>
         <.responsive_container id="student-record-tags" class="p-4">
@@ -47,14 +47,14 @@ defmodule LantternWeb.StudentsRecordsSettingsLive.TagsComponent do
           >
             <div class="flex items-center gap-4 p-6">
               <.badge color_map={tag}>
-                <%= tag.name %>
+                {tag.name}
               </.badge>
               <.action
                 type="link"
                 patch={~p"/students_records/settings/tags?edit=#{tag.id}"}
                 theme="subtle"
               >
-                <%= gettext("Edit") %>
+                {gettext("Edit")}
               </.action>
             </div>
           </.sortable_card>

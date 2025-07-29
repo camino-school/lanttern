@@ -72,15 +72,15 @@ defmodule LantternWeb.GradesReportsComponents do
             icon_name="hero-cog-6-tooth-mini"
             phx-click={@on_configure}
           >
-            <%= gettext("Configure") %>
+            {gettext("Configure")}
           </.button>
         <% else %>
           <div class="flex items-center justify-center p-2 rounded-sm font-display font-black bg-white shadow-lg">
             <.link :if={@title_navigate} navigate={@title_navigate} class="hover:text-ltrn-subtle">
-              <%= @grades_report.name %>
+              {@grades_report.name}
             </.link>
             <span :if={!@title_navigate}>
-              <%= @grades_report.name %>
+              {@grades_report.name}
             </span>
           </div>
         <% end %>
@@ -96,7 +96,7 @@ defmodule LantternWeb.GradesReportsComponents do
               )
             ]}
           >
-            <%= grades_report_cycle.school_cycle.name %>
+            {grades_report_cycle.school_cycle.name}
             <div
               :if={@show_cycle_visibility}
               class={[
@@ -112,7 +112,7 @@ defmodule LantternWeb.GradesReportsComponents do
           </div>
           <div class="flex items-center justify-center gap-1 p-4 rounded-sm text-center bg-white shadow-lg">
             <span class={if !@report_card_cycle_id, do: "font-bold"}>
-              <%= @grades_report.school_cycle.name %>
+              {@grades_report.school_cycle.name}
             </span>
             <div
               :if={@show_cycle_visibility}
@@ -129,7 +129,7 @@ defmodule LantternWeb.GradesReportsComponents do
           </div>
         <% else %>
           <div class="p-4 rounded-sm text-ltrn-subtle bg-ltrn-lightest">
-            <%= gettext("No cycles linked to this grades report") %>
+            {gettext("No cycles linked to this grades report")}
           </div>
         <% end %>
         <%= if @has_subjects do %>
@@ -140,11 +140,11 @@ defmodule LantternWeb.GradesReportsComponents do
             style={@grid_column_style}
           >
             <div class="sticky left-0 p-4 rounded-sm bg-white shadow-lg">
-              <%= Gettext.dgettext(
+              {Gettext.dgettext(
                 Lanttern.Gettext,
                 "taxonomy",
                 grades_report_subject.subject.name
-              ) %>
+              )}
             </div>
             <%= if @has_cycles do %>
               <.grades_report_grid_cell
@@ -176,7 +176,7 @@ defmodule LantternWeb.GradesReportsComponents do
         <% else %>
           <div class="grid grid-cols-subgrid" style={@grid_column_style}>
             <div class="p-4 rounded-sm text-ltrn-subtle bg-ltrn-lightest">
-              <%= gettext("No subjects linked to this grades report") %>
+              {gettext("No subjects linked to this grades report")}
             </div>
             <%= if @has_cycles do %>
               <.grades_report_grid_cell :for={
@@ -251,7 +251,7 @@ defmodule LantternWeb.GradesReportsComponents do
         phx-value-gradesreportcycleid={@student_grades_report_entry.grades_report_cycle_id}
         class="flex-1 rounded-sm border border-ltrn-lighter my-2 text-sm bg-ltrn-lightest opacity-70"
       >
-        <%= @student_grades_report_entry.pre_retake_score %>
+        {@student_grades_report_entry.pre_retake_score}
       </button>
       <button
         type="button"
@@ -261,7 +261,7 @@ defmodule LantternWeb.GradesReportsComponents do
         phx-value-gradesreportcycleid={@student_grades_report_entry.grades_report_cycle_id}
         class="flex-[2] rounded-sm border border-ltrn-lighter text-base bg-ltrn-lightest"
       >
-        <%= @student_grades_report_entry.score %>
+        {@student_grades_report_entry.score}
       </button>
       <div
         :if={@student_grades_report_entry.comment}
@@ -285,7 +285,7 @@ defmodule LantternWeb.GradesReportsComponents do
       phx-value-gradesreportcycleid={@grades_report_cycle_id}
       class="border border-ltrn-lighter"
     >
-      <%= gettext("Comp") %>
+      {gettext("Comp")}
     </.button>
     """
   end
@@ -440,14 +440,14 @@ defmodule LantternWeb.GradesReportsComponents do
             class="flex items-center justify-center p-2 border-r-2 border-ltrn-subtle text-center truncate bg-white"
             style={@cycle_grid_column_span_style}
           >
-            <%= grades_report_cycle.school_cycle.name %>
+            {grades_report_cycle.school_cycle.name}
           </div>
           <div
             id="students-grades-grid-header-parent-cycle"
             class="flex items-center justify-center gap-2 p-2 text-center text-white truncate bg-ltrn-dark"
             style={@cycle_grid_column_span_style}
           >
-            <%= @cycle_name %> (<%= gettext("Final grades") %>)
+            {@cycle_name} ({gettext("Final grades")})
             <%= if @display_actions && @on_calculate_final do %>
               <.icon_button
                 name="hero-arrow-path-mini"
@@ -480,7 +480,7 @@ defmodule LantternWeb.GradesReportsComponents do
           </div>
         <% else %>
           <div class="p-2 text-center text-ltrn-subtle" style={@cycle_grid_column_span_style}>
-            <%= gettext("No cycles linked to this grades report") %>
+            {gettext("No cycles linked to this grades report")}
           </div>
         <% end %>
         <%= if @has_subjects do %>
@@ -502,11 +502,11 @@ defmodule LantternWeb.GradesReportsComponents do
               }
             >
               <div class="truncate">
-                <%= Gettext.dgettext(
+                {Gettext.dgettext(
                   Lanttern.Gettext,
                   "taxonomy",
                   grades_report_subject.subject.short_name || grades_report_subject.subject.name
-                ) %>
+                )}
               </div>
             </div>
           </div>
@@ -523,11 +523,11 @@ defmodule LantternWeb.GradesReportsComponents do
             }
           >
             <div class="flex-1 text-center truncate">
-              <%= Gettext.dgettext(
+              {Gettext.dgettext(
                 Lanttern.Gettext,
                 "taxonomy",
                 grades_report_subject.subject.short_name || grades_report_subject.subject.name
-              ) %>
+              )}
             </div>
             <.icon_button
               :if={@display_actions && @on_calculate_subject}
@@ -549,10 +549,10 @@ defmodule LantternWeb.GradesReportsComponents do
             :for={_grades_report_cycles <- @grades_report_cycles}
             class="p-2 border-b-2 border-r-2 border-ltrn-subtle text-center text-ltrn-subtle"
           >
-            <%= gettext("No subjects linked to this grades report") %>
+            {gettext("No subjects linked to this grades report")}
           </div>
           <div class="p-2 border-b-2 border-ltrn-subtle text-center text-ltrn-subtle">
-            <%= gettext("No subjects linked to this grades report") %>
+            {gettext("No subjects linked to this grades report")}
           </div>
         <% end %>
       </div>
@@ -626,7 +626,7 @@ defmodule LantternWeb.GradesReportsComponents do
         </div>
       <% else %>
         <div class="sticky left-0 flex items-center justify-center p-4 border-r-2 border-ltrn-subtle text-ltrn-subtle">
-          <%= gettext("No students linked to this grades report") %>
+          {gettext("No students linked to this grades report")}
         </div>
       <% end %>
     </div>
@@ -767,7 +767,7 @@ defmodule LantternWeb.GradesReportsComponents do
             }
             class="sticky left-0 z-10"
           >
-            <%= gettext("Calculate all") %>
+            {gettext("Calculate all")}
           </.button>
         <% else %>
           <div class="sticky left-0"></div>
@@ -779,11 +779,11 @@ defmodule LantternWeb.GradesReportsComponents do
             class="flex items-center justify-center gap-2 px-1 py-2 text-center bg-white"
           >
             <span class="flex-1 truncate">
-              <%= Gettext.dgettext(
+              {Gettext.dgettext(
                 Lanttern.Gettext,
                 "taxonomy",
                 grades_report_subject.subject.name
-              ) %>
+              )}
             </span>
             <.icon_button
               :if={@on_calculate_subject}
@@ -802,7 +802,7 @@ defmodule LantternWeb.GradesReportsComponents do
           </div>
         <% else %>
           <div class="p-2 rounded-sm text-ltrn-subtle bg-ltrn-lightest">
-            <%= gettext("No cycles linked to this grades report") %>
+            {gettext("No cycles linked to this grades report")}
           </div>
         <% end %>
       </div>
@@ -854,7 +854,7 @@ defmodule LantternWeb.GradesReportsComponents do
       <% else %>
         <div class="grid grid-cols-subgrid" style={@grid_column_style}>
           <div class="p-4 rounded-sm text-ltrn-subtle bg-ltrn-lightest">
-            <%= gettext("No students linked to this grades report") %>
+            {gettext("No students linked to this grades report")}
           </div>
           <%= if @has_subjects do %>
             <.grades_report_grid_cell :for={_grades_report_subject <- @grades_report_subjects} />
@@ -1041,44 +1041,44 @@ defmodule LantternWeb.GradesReportsComponents do
       <table class={["w-full rounded-sm font-mono text-xs bg-ltrn-lightest", @class]}>
         <thead>
           <tr>
-            <th class="p-2 text-left"><%= gettext("Strand") %></th>
-            <th class="p-2 text-left"><%= gettext("Curriculum") %></th>
-            <th class="p-2 text-left"><%= gettext("Assessment") %></th>
-            <th class="p-2 text-right"><%= gettext("Weight") %></th>
-            <th class="p-2 text-right"><%= gettext("Normalized value") %></th>
+            <th class="p-2 text-left">{gettext("Strand")}</th>
+            <th class="p-2 text-left">{gettext("Curriculum")}</th>
+            <th class="p-2 text-left">{gettext("Assessment")}</th>
+            <th class="p-2 text-right">{gettext("Weight")}</th>
+            <th class="p-2 text-right">{gettext("Normalized value")}</th>
           </tr>
         </thead>
         <tbody>
           <tr :for={component <- @student_grades_report_entry.composition}>
             <td class="p-2">
               <span :if={component.strand_type}>
-                (<%= component.strand_type %>)
+                ({component.strand_type})
               </span>
-              <%= component.strand_name %>
+              {component.strand_name}
             </td>
             <td class="p-2">
-              (<%= component.curriculum_component_name %>) <%= component.curriculum_item_name %>
+              ({component.curriculum_component_name}) {component.curriculum_item_name}
             </td>
             <td class="p-2">
-              <%= component.ordinal_value_name ||
-                :erlang.float_to_binary(component.score, decimals: 2) %>
+              {component.ordinal_value_name ||
+                :erlang.float_to_binary(component.score, decimals: 2)}
             </td>
             <td class="p-2 text-right">
-              <%= :erlang.float_to_binary(component.weight, decimals: 1) %>
+              {:erlang.float_to_binary(component.weight, decimals: 1)}
             </td>
             <td class="p-2 text-right">
-              <%= :erlang.float_to_binary(
+              {:erlang.float_to_binary(
                 component.normalized_value,
                 decimals: 2
-              ) %>
+              )}
             </td>
           </tr>
           <tr class="font-bold bg-ltrn-lighter">
             <td colspan="2" class="p-2">
-              <%= gettext("Final grade") %>
+              {gettext("Final grade")}
             </td>
             <td class="p-2">
-              <%= case @student_grades_report_entry.composition_ordinal_value do
+              {case @student_grades_report_entry.composition_ordinal_value do
                 nil ->
                   :erlang.float_to_binary(
                     @student_grades_report_entry.composition_score,
@@ -1087,13 +1087,13 @@ defmodule LantternWeb.GradesReportsComponents do
 
                 ov ->
                   ov.name
-              end %>
+              end}
             </td>
             <td colspan="2" class="p-2 text-right">
-              <%= :erlang.float_to_binary(
+              {:erlang.float_to_binary(
                 @student_grades_report_entry.composition_normalized_value,
                 decimals: 2
-              ) %>
+              )}
             </td>
           </tr>
         </tbody>
@@ -1115,37 +1115,37 @@ defmodule LantternWeb.GradesReportsComponents do
       <table class={["w-full rounded-sm font-mono text-xs bg-ltrn-lightest", @class]}>
         <thead>
           <tr>
-            <th class="p-2 text-left"><%= gettext("Cycle") %></th>
-            <th class="p-2 text-left"><%= gettext("Assessment") %></th>
-            <th class="p-2 text-right"><%= gettext("Weight") %></th>
-            <th class="p-2 text-right"><%= gettext("Normalized value") %></th>
+            <th class="p-2 text-left">{gettext("Cycle")}</th>
+            <th class="p-2 text-left">{gettext("Assessment")}</th>
+            <th class="p-2 text-right">{gettext("Weight")}</th>
+            <th class="p-2 text-right">{gettext("Normalized value")}</th>
           </tr>
         </thead>
         <tbody>
           <tr :for={component <- @student_grades_report_final_entry.composition}>
             <td class="p-2">
-              <%= component.school_cycle_name %>
+              {component.school_cycle_name}
             </td>
             <td class="p-2">
-              <%= component.ordinal_value_name ||
-                :erlang.float_to_binary(component.score, decimals: 2) %>
+              {component.ordinal_value_name ||
+                :erlang.float_to_binary(component.score, decimals: 2)}
             </td>
             <td class="p-2 text-right">
-              <%= :erlang.float_to_binary(component.weight, decimals: 1) %>
+              {:erlang.float_to_binary(component.weight, decimals: 1)}
             </td>
             <td class="p-2 text-right">
-              <%= :erlang.float_to_binary(
+              {:erlang.float_to_binary(
                 component.normalized_value,
                 decimals: 2
-              ) %>
+              )}
             </td>
           </tr>
           <tr class="font-bold bg-ltrn-lighter">
             <td class="p-2">
-              <%= gettext("Final grade") %>
+              {gettext("Final grade")}
             </td>
             <td colspan="2" class="p-2">
-              <%= case @student_grades_report_final_entry.composition_ordinal_value do
+              {case @student_grades_report_final_entry.composition_ordinal_value do
                 nil ->
                   :erlang.float_to_binary(
                     @student_grades_report_final_entry.composition_score,
@@ -1154,13 +1154,13 @@ defmodule LantternWeb.GradesReportsComponents do
 
                 ov ->
                   ov.name
-              end %>
+              end}
             </td>
             <td class="p-2 text-right">
-              <%= :erlang.float_to_binary(
+              {:erlang.float_to_binary(
                 @student_grades_report_final_entry.composition_normalized_value,
                 decimals: 2
-              ) %>
+              )}
             </td>
           </tr>
         </tbody>

@@ -13,12 +13,12 @@
   row_click={&JS.navigate(~p"/admin/curriculum_relationships/#{&1}")}
 >
   <:col :let={curriculum_relationship} label="Item A">
-    <%= curriculum_relationship.curriculum_item_a.name %>
+    {curriculum_relationship.curriculum_item_a.name}
   </:col>
   <:col :let={curriculum_relationship} label="Item B">
-    <%= curriculum_relationship.curriculum_item_b.name %>
+    {curriculum_relationship.curriculum_item_b.name}
   </:col>
-  <:col :let={curriculum_relationship} label="Type"><%= curriculum_relationship.type %></:col>
+  <:col :let={curriculum_relationship} label="Type">{curriculum_relationship.type}</:col>
   <:action :let={curriculum_relationship}>
     <div class="sr-only">
       <.link navigate={~p"/admin/curriculum_relationships/#{curriculum_relationship}"}>

@@ -9,7 +9,7 @@ defmodule LantternWeb.Admin.StudentRecordStatusLive.FormComponent do
     ~H"""
     <div>
       <.header>
-        <%= @title %>
+        {@title}
         <:subtitle>Use this form to manage student_record_status records in your database.</:subtitle>
       </.header>
 

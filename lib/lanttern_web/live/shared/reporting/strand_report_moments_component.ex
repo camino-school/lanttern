@@ -27,14 +27,14 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
     ~H"""
     <div class={@class}>
       <.responsive_container>
-        <h2 class="font-display font-black text-2xl"><%= gettext("Strand moments") %></h2>
+        <h2 class="font-display font-black text-2xl">{gettext("Strand moments")}</h2>
         <p class="mt-4">
-          <%= gettext("Here you'll find information about the strand learning journey.") %>
+          {gettext("Here you'll find information about the strand learning journey.")}
         </p>
         <p class="mt-4 mb-10">
-          <%= gettext(
+          {gettext(
             "You can click the moment card to view more details about it, including information about formative assessment."
-          ) %>
+          )}
         </p>
         <%= if @has_moments do %>
           <div id="strand-moments-and-entries" phx-update="stream">
@@ -50,11 +50,11 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
               ]}>
                 <div class="p-4 md:p-6">
                   <h5 class="font-display font-black text-lg" title={moment.name}>
-                    <%= moment.name %>
+                    {moment.name}
                   </h5>
                   <div :if={moment.subjects != []} class="flex gap-2 mt-2">
                     <.badge :for={subject <- moment.subjects}>
-                      <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name) %>
+                      {Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name)}
                     </.badge>
                   </div>
                   <.markdown
@@ -67,7 +67,13 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
                   :if={entries != []}
                   class="flex flex-wrap gap-2 p-4 border-t border-ltrn-lighter md:border-t-0 md:p-6"
                 >
-                  <%= for entry <- entries, entry.ordinal_value_id || entry.score do %>
+                  <%= for entry
+                <-
+                  entries,
+                  entry.ordinal_value_id
+                  ||
+                  entry.score
+                  do %>
                     <%!-- <.assessment_point_entry_badge entry={entry} is_short /> --%>
                     <.live_component module={EntryParticleComponent} id={entry.id} entry={entry} />
                   <% end %>
@@ -77,15 +83,15 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
           </div>
         <% else %>
           <.empty_state>
-            <%= gettext("No moments registered for this strand") %>
+            {gettext("No moments registered for this strand")}
           </.empty_state>
         <% end %>
       </.responsive_container>
       <.slide_over :if={@moment} id="moment-overlay" show={true} on_cancel={JS.patch(@base_path)}>
-        <:title><%= @moment.name %></:title>
+        <:title>{@moment.name}</:title>
         <.markdown :if={@moment.description} text={@moment.description} class="mb-10" />
         <h4 class="mb-4 font-display font-black text-lg text-ltrn-subtle">
-          <%= gettext("Moment assessment") %>
+          {gettext("Moment assessment")}
         </h4>
         <%= if @moment_has_assessment_points do %>
           <div class="mb-10">
@@ -104,17 +110,17 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
           </div>
         <% else %>
           <.empty_state_simple class="mb-10">
-            <%= gettext("This moment does not have assessment entries yet") %>
+            {gettext("This moment does not have assessment entries yet")}
           </.empty_state_simple>
         <% end %>
         <div :if={@moment_has_cards}>
           <h4 class="mb-4 font-display font-black text-lg text-ltrn-subtle">
-            <%= gettext("More about this moment") %>
+            {gettext("More about this moment")}
           </h4>
           <div id="moment-cards" phx-update="stream">
             <div :for={{dom_id, card} <- @streams.moment_cards} id={dom_id} class="py-6 border-t">
               <h5 class="font-display font-black text-base mb-4">
-                <%= card.name %>
+                {card.name}
               </h5>
               <.markdown text={card.description} />
               <.attachments_list

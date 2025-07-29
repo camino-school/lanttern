@@ -16,7 +16,7 @@ defmodule LantternWeb.Dataviz.LantternVizComponent do
           <canvas id={@id} phx-hook="LantternViz" class="w-full h-full rounded-lg bg-ltrn-primary/20">
           </canvas>
           <div class="absolute left-2 top-2 max-w-40 font-mono text-xs">
-            <p class="mb-2 font-bold"><%= gettext("Layers (moments)") %></p>
+            <p class="mb-2 font-bold">{gettext("Layers (moments)")}</p>
             <ul id="viz-layers-nav" phx-update="stream">
               <li class="flex items-center gap-1" id="main-layer">
                 <span class="shrink-0 w-4 border-t-2 border-ltrn-dark" />
@@ -24,7 +24,7 @@ defmodule LantternWeb.Dataviz.LantternVizComponent do
                   navigate={~p"/strands/#{@strand_id}/assessment"}
                   class="underline hover:opacity-50 truncate"
                 >
-                  <%= gettext("Final assessment") %>
+                  {gettext("Final assessment")}
                 </.link>
               </li>
               <li
@@ -37,7 +37,7 @@ defmodule LantternWeb.Dataviz.LantternVizComponent do
                   navigate={~p"/strands/moment/#{moment.id}/assessment"}
                   class="underline truncate hover:opacity-50"
                 >
-                  <%= moment.name %>
+                  {moment.name}
                 </.link>
               </li>
             </ul>
@@ -60,12 +60,11 @@ defmodule LantternWeb.Dataviz.LantternVizComponent do
               |> JS.push("select_item", value: %{"id" => ci.id}, target: @myself)
             }
           >
-            <.badge class="group-[.active]:hidden"><%= ci.curriculum_component.name %></.badge>
+            <.badge class="group-[.active]:hidden">{ci.curriculum_component.name}</.badge>
             <.badge theme="dark" class="hidden group-[.active]:inline-flex">
-              <%= ci.curriculum_component.name %>
+              {ci.curriculum_component.name}
             </.badge>
-            <br />
-            <%= ci.name %>
+            <br /> {ci.name}
           </button>
         </div>
       </div>

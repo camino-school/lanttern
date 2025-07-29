@@ -37,14 +37,14 @@ defmodule LantternWeb.StudentsCycleInfo.StudentCycleInfoFormComponent do
           </:actions_left>
           <:actions>
             <.action type="button" theme="subtle" size="md" phx-click="cancel" phx-target={@myself}>
-              <%= gettext("Cancel") %>
+              {gettext("Cancel")}
             </.action>
             <.action type="submit" theme="primary" size="md" icon_name="hero-check">
-              <%= gettext("Save") %>
+              {gettext("Save")}
             </.action>
           </:actions>
         </.textarea_with_actions>
-        <.error :for={{msg, _opts} <- @field.errors}><%= msg %></.error>
+        <.error :for={{msg, _opts} <- @field.errors}>{msg}</.error>
       </.form>
     </div>
     """
