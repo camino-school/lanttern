@@ -18,6 +18,8 @@ defmodule LantternWeb.StudentHomeLiveV2 do
   alias LantternWeb.MessageBoard.CardMessageOverlayComponent
   alias LantternWeb.Schools.StudentHeaderComponent
 
+  import LantternWeb.MessageBoard.Components
+
   @impl true
   def mount(_params, _session, socket) do
     socket =
@@ -151,93 +153,6 @@ defmodule LantternWeb.StudentHomeLiveV2 do
     {:noreply, socket}
   end
 
-  defp get_message_icon(title) do
-    title_lower = String.downcase(title)
-
-    cond do
-      String.contains?(title_lower, ["news", "newsletter", "caminews"]) ->
-        "hero-newspaper"
-
-      String.contains?(title_lower, ["evento", "events"]) ->
-        "hero-calendar-days"
-
-      String.contains?(title_lower, ["cardápio", "menu"]) ->
-        "hero-clipboard-document-list"
-
-      String.contains?(title_lower, ["calendário", "calendar"]) ->
-        "hero-calendar"
-
-      String.contains?(title_lower, ["horário", "schedule", "time"]) ->
-        "hero-clock"
-
-      String.contains?(title_lower, ["agendar", "appointment", "atendimento"]) ->
-        "hero-user-group"
-
-      true ->
-        "hero-document-text"
-    end
-  end
-
-  defp render_message_card(assigns) do
-    ~H"""
-    <%!-- <div class={"bg-white/90 backdrop-blur-sm rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 border-l-4 #{@message.color} group cursor-pointer"}> --%>
-    <div
-      class="bg-white/90 backdrop-blur-sm rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 border-l-4 group cursor-pointer"
-      style={"border-color: ##{@message.color}"}
-    >
-      <div class="p-6">
-        <%= if @message.cover do %>
-          <div class="w-full h-32 mb-4 rounded-lg overflow-hidden">
-            <img
-              src={@message.cover || "/placeholder.svg"}
-              alt={@message.title}
-              class="w-full h-full object-cover"
-            />
-          </div>
-        <% end %>
-
-        <div class="flex items-start gap-4">
-          <div class="flex-shrink-0">
-            <.icon name={get_message_icon(@message.title)} class="w-6 h-6 text-gray-600" />
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 mb-2">
-              <h3 class="font-bold text-lg text-gray-800 truncate">
-                <%= @message.title %>
-              </h3>
-              <%= if @message.subtitle do %>
-                <span class="text-sm text-gray-500 font-medium">
-                  <%= @message.subtitle %>
-                </span>
-              <% end %>
-            </div>
-            <p class="text-gray-600 text-sm mb-4 line-clamp-2">
-              <%= @message.content %>
-            </p>
-          </div>
-        </div>
-        <button class="w-full flex justify-between items-center text-gray-700 hover:text-gray-900 transition-colors group-hover:text-blue-600">
-          <span class="font-medium" phx-click="card_lookout" phx-value-id={@message.id}>
-            Confira aqui
-          </span>
-          <.icon
-            name="hero-arrow-right"
-            class="w-4 h-4 transition-transform group-hover:translate-x-1"
-          />
-        </button>
-      </div>
-    </div>
-
-    <%!-- <button
-            id={"control-btn-#{@message.id}"}
-            type="button"
-            class="group w-full pl-2 border-l-4 rounded-sm mb-4 text-sm text-left truncate"
-            style={"border-color: #{[@message.color]}"}
-            title={@message.name}
-          > --%>
-    """
-  end
-
   @impl true
   def render(assigns) do
     ~H"""
@@ -300,7 +215,7 @@ defmodule LantternWeb.StudentHomeLiveV2 do
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <%= for message <- section.messages do %>
-                <.render_message_card message={message} />
+                <.render_card_message message={message} />
               <% end %>
             </div>
           </div>

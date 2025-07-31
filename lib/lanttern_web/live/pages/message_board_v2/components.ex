@@ -9,6 +9,7 @@ defmodule LantternWeb.MessageBoard.Components do
   import LantternWeb.CoreComponents
   # import LantternWeb.DateTimeHelpers
 
+  alias Lanttern.MessageBoard.CardMessage
   alias Lanttern.MessageBoard.Message
 
   @doc """
@@ -90,5 +91,155 @@ defmodule LantternWeb.MessageBoard.Components do
       <%!-- <.markdown text={@message.description} class="mt-10" /> --%>
     </.card_base>
     """
+  end
+
+  @doc """
+  Renders message board cards.
+  """
+  attr :message, CardMessage, required: true
+  attr :on_delete, JS, default: nil
+  attr :edit_patch, :string, default: nil
+
+  attr :mode, :string,
+    required: true,
+    doc: "expects `mode` defined when show in admin and student/guardian view."
+
+  def card_message(assigns) do
+    ~H"""
+    <div
+      class="bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-200 rounded-sm border-l-12 group cursor-pointer"
+      style={"border-color: ##{@message.color}"}
+    >
+      <%= if @message.cover && @message.cover != "" do %>
+        <div class="w-full h-45 mb-2 overflow-hidden rounded-tr-lg">
+          <img
+            src={@message.cover || "/placeholder.svg"}
+            alt={@message.title}
+            class="w-full h-full object-cover"
+          />
+        </div>
+      <% end %>
+      <div class="p-6">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0">
+            <.icon name={get_message_icon(@message.title)} class="w-8 h-8 text-gray-600" />
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-2">
+              <h3 class="font-bold text-lg text-gray-800 truncate">
+                <%= @message.title %>
+              </h3>
+            </div>
+            <p class="text-gray-600 text-sm mb-4 line-clamp-2">
+              <%= @message.subtitle %>
+            </p>
+          </div>
+        </div>
+        <%= if @mode == "admin" do %>
+          <.action
+            :if={@on_delete}
+            type="button"
+            phx-click={@on_delete}
+            icon_name="hero-x-mark-mini"
+            theme="alert"
+            data-confirm={gettext("Are you sure? This action cannot be undone.")}
+          >
+            <%= gettext("Delete") %>
+          </.action>
+          <.action :if={@edit_patch} type="link" patch={@edit_patch} icon_name="hero-pencil-mini">
+            <%= gettext("Edit") %>
+          </.action>
+        <% else %>
+          <div class="absolute bottom-3 right-6">
+            <button class="w-full flex justify-between items-center text-gray-900 hover:text-gray-900 transition-colors group-hover:text-blue-600">
+              <span class="font-medium" phx-click="card_lookout" phx-value-id={@message.id}>
+                <%= gettext("Find out more") %>&nbsp
+              </span>
+              <.icon
+                name="hero-arrow-right"
+                class="w-5 h-4 mapping-3 transition-transform group-hover:translate-x-1
+              "
+              />
+            </button>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    """
+  end
+
+  def render_card_message(assigns) do
+    ~H"""
+    <div
+      class="bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-200 rounded-sm border-l-12 group cursor-pointer"
+      style={"border-color: ##{@message.color}"}
+    >
+      <%= if @message.cover && @message.cover != "" do %>
+        <div class="w-full h-45 mb-2 overflow-hidden rounded-tr-lg">
+          <img
+            src={@message.cover || "/placeholder.svg"}
+            alt={@message.title}
+            class="w-full h-full object-cover"
+          />
+        </div>
+      <% end %>
+      <div class="p-6">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0">
+            <.icon name={get_message_icon(@message.title)} class="w-8 h-8 text-gray-600" />
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-2">
+              <h3 class="font-bold text-lg text-gray-800 truncate">
+                <%= @message.title %>
+              </h3>
+            </div>
+            <p class="text-gray-600 text-sm mb-4 line-clamp-2">
+              <%= @message.subtitle %>
+            </p>
+          </div>
+        </div>
+        <div class="absolute bottom-3 right-6">
+          <button class="w-full flex justify-between items-center text-gray-900 hover:text-gray-900 transition-colors group-hover:text-blue-600">
+            <span class="font-medium" phx-click="card_lookout" phx-value-id={@message.id}>
+              <%= gettext("Find out more") %>&nbsp
+            </span>
+            <.icon
+              name="hero-arrow-right"
+              class="w-5 h-4 mapping-3 transition-transform group-hover:translate-x-1
+              "
+            />
+          </button>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  defp get_message_icon(title) do
+    title_lower = String.downcase(title)
+
+    cond do
+      String.contains?(title_lower, ["news", "newsletter", "caminews"]) ->
+        "hero-newspaper"
+
+      String.contains?(title_lower, ["evento", "events"]) ->
+        "hero-calendar-days"
+
+      String.contains?(title_lower, ["cardápio", "menu"]) ->
+        "hero-clipboard-document-list"
+
+      String.contains?(title_lower, ["calendário", "calendar"]) ->
+        "hero-calendar"
+
+      String.contains?(title_lower, ["horário", "schedule", "time"]) ->
+        "hero-clock"
+
+      String.contains?(title_lower, ["agendar", "appointment", "atendimento"]) ->
+        "hero-user-group"
+
+      true ->
+        "hero-document-text"
+    end
   end
 end

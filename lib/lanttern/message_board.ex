@@ -359,6 +359,12 @@ defmodule Lanttern.MessageBoard do
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking card_message changes.
+
+  ## Examples
+
+      iex> change_card_message(message)
+      %Ecto.Changeset{data: %CardMessage{}}
+
   """
   def change_card_message(%CardMessage{} = card_message, attrs \\ %{}) do
     CardMessage.changeset(card_message, attrs)

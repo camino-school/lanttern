@@ -6,11 +6,11 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   import LantternWeb.FiltersHelpers, only: [assign_classes_filter: 2]
 
   alias Lanttern.MessageBoard
-  alias Lanttern.MessageBoard.Message
+  alias Lanttern.MessageBoard.CardMessage
   alias Lanttern.Schools.Cycle
 
   # shared
-  alias LantternWeb.MessageBoard.MessageFormOverlayComponent
+  alias LantternWeb.MessageBoard.CardMessageFormOverlayComponent
 
   def mount(_params, _session, socket) do
     if connected?(socket), do: send(self(), :initialized)
@@ -25,6 +25,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       |> assign(:message, nil)
       |> assign(:messages, [])
       |> assign(:total_messages_count, 0)
+      |> assign(:section, nil)
 
     {:ok, socket}
   end
@@ -33,6 +34,8 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     socket =
       socket
       |> assign(:params, params)
+      |> assign_message()
+      |> assign_section()
 
     {:noreply, socket}
   end
@@ -42,15 +45,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   def handle_event("create_section", _params, socket) do
-    # Implementar lógica de criação de seção
     {:noreply, socket}
-  end
-
-  def handle_event("change_year_filter", %{"year" => year}, socket) do
-    {:noreply,
-     socket
-     |> assign(year_filter: year)
-     |> assign_sections()}
   end
 
   def handle_event("unarchive_message", %{"message_id" => message_id}, socket) do
@@ -79,8 +74,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     end
   end
 
-  # Handle message form overlay updates
-  def handle_info({MessageFormOverlayComponent, {action, _message}}, socket)
+  def handle_info({CardMessageFormOverlayComponent, {action, _message}}, socket)
       when action in [:created, :updated, :archived] do
     flash_message =
       case action do
@@ -116,6 +110,12 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     assign_classes_filter(socket, assign_classes_filter_opts)
   end
 
+  defp assign_section(%{assigns: %{params: %{"section" => id}}} = socket) do
+    assign(socket, :section, MessageBoard.get_card_section!(id))
+  end
+
+  defp assign_section(socket), do: assign(socket, :section, nil)
+
   defp assign_sections(socket) do
     school_id = socket.assigns.current_user.current_profile.school_id
 
@@ -126,35 +126,20 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     |> assign(:total_messages_count, count_total_messages(sections))
   end
 
-  defp load_sections_data(school_id, selected_classes_ids) do
-    messages =
-      MessageBoard.list_messages(
-        school_id: school_id,
-        classes_ids: selected_classes_ids,
-        preloads: :classes
-      )
-
-    [
-      %{
-        id: 1,
-        name: "Section name",
-        messages: messages,
-        messages_count: length(messages)
-      }
-    ]
+  defp load_sections_data(_school_id, _selected_classes_ids) do
+    MessageBoard.list_card_sections()
+    |> Enum.map(fn section -> Map.merge(section, %{messages_count: length(section.messages)}) end)
   end
 
   defp count_total_messages(sections) do
-    Enum.reduce(sections, 0, fn section, acc ->
-      acc + section.messages_count
-    end)
+    Enum.reduce(sections, 0, fn section, acc -> acc + section.messages_count end)
   end
 
   defp assign_message(%{assigns: %{params: %{"new" => "true"}}} = socket) do
-    message = %Message{
-      school_id: socket.assigns.current_user.current_profile.school_id,
-      classes: [],
-      send_to: "school"
+    message = %CardMessage{
+      # school_id: socket.assigns.current_user.current_profile.school_id,
+      # classes: [],
+      # send_to: "school"
     }
 
     socket
@@ -163,7 +148,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   defp assign_message(%{assigns: %{params: %{"edit" => message_id}}} = socket) do
-    # Verificar se o usuário tem permissão e se a mensagem existe
     message = MessageBoard.get_message(message_id, preloads: :classes)
 
     if message do
@@ -180,7 +164,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   def render(assigns) do
     ~H"""
     <div>
-      <!-- School Zone Header -->
       <.header_nav current_user={@current_user}>
         <:title><%= @current_user.current_profile.school_name %></:title>
         <div class="px-4">
@@ -213,7 +196,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       <.action_bar class="flex items-center justify-between gap-4 p-4">
         <div class="flex items-center gap-4">
           <h1 class="text-2xl font-bold text-gray-800">Message board admin</h1>
-          <!-- Year Filter -->
           <.action
             type="button"
             phx-click={JS.exec("data-show", to: "#message-board-classes-filters-overlay")}
@@ -221,7 +203,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
           >
             <%= format_action_items_text(@selected_classes, gettext("All years")) %>
           </.action>
-          <!-- View as Guardian Toggle -->
           <div class="flex items-center space-x-2">
             <span class="text-sm text-gray-600">View as guardian</span>
             <button
@@ -273,11 +254,9 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             </.empty_state>
           </.card_base>
         <% else %>
-          <!-- Sections -->
           <div class="space-y-8">
             <%= for section <- @sections do %>
               <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-                <!-- Section Header -->
                 <div class="flex items-center justify-between p-4 border-b border-gray-200">
                   <div class="flex items-center space-x-3">
                     <.icon name="hero-bars-2" class="w-5 h-5 text-gray-400 cursor-move" />
@@ -290,7 +269,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                     </.action>
                     <.action
                       type="link"
-                      patch={~p"/school/message_board?new=true"}
+                      patch={~p"/school/message_board_v2"}
                       theme="ghost"
                       icon_name="hero-plus-mini"
                     >
@@ -298,27 +277,20 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                     </.action>
                   </div>
                 </div>
-                <!-- Messages Grid -->
+
                 <div class="p-4">
-                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
                     <%= for message <- section.messages do %>
-                      <.message_board_card
+                      <.card_message
                         message={message}
-                        id={"message-#{message.id}"}
-                        tz={@current_user.tz}
-                        show_sent_to={true}
-                        class="h-48 hover:shadow-md transition-shadow"
-                        edit_patch={~p"/school/message_board?edit=#{message.id}"}
-                        on_unarchive={
-                          if message.archived_at,
-                            do: JS.push("unarchive_message", value: %{message_id: message.id})
-                        }
+                        mode="admin"
+                        edit_patch={~p"/school/message_board_v2?edit=#{message.id}"}
                         on_delete={JS.push("delete_message", value: %{message_id: message.id})}
                       />
                     <% end %>
-                    <!-- Add New Message Card -->
+
                     <.link
-                      patch={~p"/school/message_board?new=true&section=#{section.id}"}
+                      patch={~p"/school/message_board_v2?new=true&section=#{section.id}"}
                       class="bg-white border-2 border-dashed border-gray-300 rounded-lg p-6 h-48 flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-400 transition-colors group"
                     >
                       <.icon
@@ -334,17 +306,19 @@ defmodule LantternWeb.MessageBoard.IndexLive do
           </div>
         <% end %>
       </.responsive_container>
-      <!-- Message Form Overlay -->
+
       <.live_component
         :if={@message}
-        module={MessageFormOverlayComponent}
+        module={CardMessageFormOverlayComponent}
         id="message-form-overlay"
+        section={@section}
         message={@message}
         title={@message_overlay_title}
         current_profile={@current_user.current_profile}
         on_cancel={JS.patch(~p"/school/message_board_v2")}
         notify_parent={self()}
       />
+
       <.live_component
         module={LantternWeb.Filters.ClassesFilterOverlayComponent}
         id="message-board-classes-filters-overlay"

@@ -14,6 +14,7 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
   # alias LantternWeb.Form.MultiSelectComponent
 
   attr :tz, :string, default: nil
+  attr :admin, :string, default: nil
 
   @impl true
   def render(assigns) do
@@ -34,16 +35,17 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
               <% end %>
             </div>
           </div>
-
-          <.cover_image
-            image_url={@card_message.cover}
-            alt_text={gettext("Message cover image")}
-            empty_state_text={gettext("Message without cover image")}
-            theme="lime"
-            size="sm"
-          />
+          <%= if @card_message.cover &&  @card_message.cover != "" do %>
+            <img class="w-500 h-64" src={@card_message.cover} alt="message cover image" />
+            <%!-- <.cover_image
+              image_url={@card_message.cover}
+              alt_text={gettext("Message cover image")}
+              empty_state_text={gettext("Message without cover image")}
+              size="sm"
+            /> --%>
+          <% end %>
           <.responsive_container class="mt-10">
-            <h4 class="font-display font-black text-4xl"><%= @card_message.subtitle %></h4>
+            <h4 class="font-display font-black text-2xl"><%= @card_message.subtitle %></h4>
             <p class="mt-2 font-display font-black text-2xl text-ltrn-subtle">
               <%!-- <%= gettext("card_message of %{strand}", strand: @strand.subtitle) %> --%>
             </p>
@@ -63,8 +65,7 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
           </.responsive_container>
           <.markdown text={@card_message.content} class="mt-10" />
         </div>
-
-        <:actions_left :if={@card_message.id}>
+        <:actions_left :if={@card_message.id && @admin != nil}>
           <.action
             type="button"
             theme="subtle"
@@ -76,7 +77,7 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
             <%= gettext("Delete") %>
           </.action>
         </:actions_left>
-        <:actions>
+        <:actions :if={@admin != nil}>
           <.action
             type="button"
             theme="subtle"

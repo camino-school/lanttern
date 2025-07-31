@@ -8,9 +8,9 @@ defmodule Lanttern.MessageBoard.CardMessage do
 
   schema "card_messages" do
     field :title, :string
+    field :subtitle, :string
     field :cover, :string
     field :color, :string
-    field :subtitle, :string
     field :content, :string
 
     belongs_to :card_section, Lanttern.MessageBoard.CardSection

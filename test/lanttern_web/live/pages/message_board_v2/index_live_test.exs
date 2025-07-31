@@ -8,12 +8,13 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
 
   describe "Message board view basic navigation" do
     test "list all messages", ctx do
-      message = insert(:message_board, %{school: ctx.user.current_profile.staff_member.school})
+      # message = insert(:message_board, %{school: ctx.user.current_profile.staff_member.school})
+      message = insert(:card_message)
 
       ctx.conn
       |> visit("/school/message_board_v2")
       |> assert_has("h1", text: "Message board admin")
-      |> assert_has("h5", text: message.name)
+      |> assert_has("h3", text: message.title)
     end
 
     @tag :skip
