@@ -6,7 +6,7 @@ defmodule LantternWeb.UserSessionController do
   alias LantternWeb.UserAuth
 
   def create(conn, %{"_action" => "confirmed"} = params) do
-    create(conn, params, gettext("User confirmed successfully."))
+    create(conn, params, gettext("Welcome!"))
   end
 
   # def create(conn, %{"_action" => "password_updated"} = params) do

@@ -344,6 +344,7 @@ defmodule LantternWeb.Router do
       on_mount: [{LantternWeb.UserAuth, :redirect_if_user_is_authenticated}] do
       # live "/users/register", UserRegistrationLive, :new
       live "/users/log-in", UserLoginLive, :new
+      live "/users/log-in/code", UserCodeLoginLive, :show
       live "/users/log-in/:token", UserLoginLive.Confirmation, :new
       # live "/users/reset_password", UserForgotPasswordLive, :new
       # live "/users/reset_password/:token", UserResetPasswordLive, :edit

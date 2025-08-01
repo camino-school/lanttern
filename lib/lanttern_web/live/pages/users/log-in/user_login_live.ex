@@ -14,8 +14,22 @@ defmodule LantternWeb.UserLoginLive do
         <a href={~p"/"} class="font-display font-bold underline hover:text-ltrn-subtle">Lanttern</a>
         and your email is registered before signing in.
       </p>
-      <.form for={@form} id="login_form" phx-update="ignore" phx-submit="submit_magic" class="mt-10">
-        <.input field={@form[:email]} type="email" label={gettext("Email")} required />
+      <.form
+        for={@form}
+        id="login_form_magic"
+        phx-update="ignore"
+        phx-submit="submit_magic"
+        class="flex gap-2 mt-10"
+      >
+        <.input field={@form[:email]} type="email" label={gettext("Email")} required class="flex-1" />
+        <.icon_button
+          type="submit"
+          name="hero-arrow-right-mini"
+          sr_text="Sign in"
+          rounded
+          theme="ghost"
+          class="mt-7"
+        />
         <%!-- <div class="flex justify-end mt-6">
           <.action type="submit" theme="primary" size="md" icon_name="hero-arrow-right">
             {gettext("Send login code")}
@@ -107,15 +121,9 @@ defmodule LantternWeb.UserLoginLive do
       )
     end
 
-    info =
-      gettext(
-        "If your email is in our system, you will receive instructions for logging in shortly."
-      )
-
     socket =
       socket
-      |> put_flash(:info, info)
-      |> push_navigate(to: ~p"/users/log-in")
+      |> push_navigate(to: ~p"/users/log-in/code?email=#{URI.encode(email)}")
 
     {:noreply, socket}
   end
