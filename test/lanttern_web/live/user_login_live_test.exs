@@ -6,7 +6,7 @@ defmodule LantternWeb.UserLoginLiveTest do
 
   describe "Log in page" do
     # test "renders log in page", %{conn: conn} do
-    #   {:ok, _lv, html} = live(conn, ~p"/users/log_in")
+    #   {:ok, _lv, html} = live(conn, ~p"/users/log-in")
 
     #   assert html =~ "Sign in"
     #   assert html =~ "Sign up"
@@ -14,7 +14,7 @@ defmodule LantternWeb.UserLoginLiveTest do
     # end
 
     test "renders log in page", %{conn: conn} do
-      {:ok, _lv, html} = live(conn, ~p"/users/log_in")
+      {:ok, _lv, html} = live(conn, ~p"/users/log-in")
 
       assert html =~ "Lanttern"
       assert html =~ "sign in"
@@ -24,7 +24,7 @@ defmodule LantternWeb.UserLoginLiveTest do
       result =
         register_and_log_in_staff_member(%{conn: conn})
         |> Map.get(:conn)
-        |> live(~p"/users/log_in")
+        |> live(~p"/users/log-in")
         |> follow_redirect(conn, "/dashboard")
 
       assert {:ok, _conn} = result
@@ -36,7 +36,7 @@ defmodule LantternWeb.UserLoginLiveTest do
   #     password = "123456789abcd"
   #     user = user_fixture(%{password: password})
 
-  #     {:ok, lv, _html} = live(conn, ~p"/users/log_in")
+  #     {:ok, lv, _html} = live(conn, ~p"/users/log-in")
 
   #     form =
   #       form(lv, "#login_form", user: %{email: user.email, password: password, remember_me: true})
@@ -49,7 +49,7 @@ defmodule LantternWeb.UserLoginLiveTest do
   #   test "redirects to login page with a flash error if there are no valid credentials", %{
   #     conn: conn
   #   } do
-  #     {:ok, lv, _html} = live(conn, ~p"/users/log_in")
+  #     {:ok, lv, _html} = live(conn, ~p"/users/log-in")
 
   #     form =
   #       form(lv, "#login_form",
@@ -60,13 +60,13 @@ defmodule LantternWeb.UserLoginLiveTest do
 
   #     assert Phoenix.Flash.get(conn.assigns.flash, :error) == "Invalid email or password"
 
-  #     assert redirected_to(conn) == "/users/log_in"
+  #     assert redirected_to(conn) == "/users/log-in"
   #   end
   # end
 
   # describe "login navigation" do
   #   test "redirects to registration page when the Register button is clicked", %{conn: conn} do
-  #     {:ok, lv, _html} = live(conn, ~p"/users/log_in")
+  #     {:ok, lv, _html} = live(conn, ~p"/users/log-in")
 
   #     {:ok, _login_live, login_html} =
   #       lv
@@ -80,7 +80,7 @@ defmodule LantternWeb.UserLoginLiveTest do
   #   test "redirects to forgot password page when the Forgot Password button is clicked", %{
   #     conn: conn
   #   } do
-  #     {:ok, lv, _html} = live(conn, ~p"/users/log_in")
+  #     {:ok, lv, _html} = live(conn, ~p"/users/log-in")
 
   #     {:ok, conn} =
   #       lv
