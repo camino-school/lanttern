@@ -10,7 +10,7 @@ defmodule Lanttern.MessageBoard do
 
   alias Lanttern.MessageBoard.Message
   alias Lanttern.Schools.Class
-  alias Lanttern.Schools.Student
+  # alias Lanttern.Schools.Student
 
   @doc """
   Returns the list of messages.
@@ -92,8 +92,8 @@ defmodule Lanttern.MessageBoard do
       [%Message{}, ...]
 
   """
-  @spec list_student_messages(Student.t()) :: [Message.t()]
-  def list_student_messages(%Student{} = student) do
+  @spec list_student_messages(map()) :: [Message.t()]
+  def list_student_messages(student) do
     %{id: student_id, school_id: school_id} = student
 
     student_classes_ids =
@@ -121,6 +121,58 @@ defmodule Lanttern.MessageBoard do
       ]
     )
     |> Repo.all()
+  end
+
+  @doc """
+  Returns the list of messages grouped by sections for a given student.
+
+  A message is related to the student if it's sent to the student's classes or school.
+
+  ## Options
+
+  - `:preloads` - preloads associated data for messages
+  """
+  @spec list_student_messages_with_sections(pos_integer(), pos_integer(), keyword()) :: [map()]
+  def list_student_messages_with_sections(student_id, school_id, opts \\ []) do
+    student_classes_ids =
+      from(
+        cl in Class,
+        join: cs in "classes_students",
+        on: cl.id == cs.class_id,
+        where: cs.student_id == ^student_id,
+        group_by: cl.id,
+        select: cl.id
+      )
+      |> Repo.all()
+
+    messages =
+      from(
+        m in Message,
+        left_join: mc in assoc(m, :message_classes),
+        where: is_nil(m.archived_at),
+        where:
+          (m.send_to == "classes" and mc.class_id in ^student_classes_ids) or
+            (m.send_to == "school" and m.school_id == ^school_id),
+        group_by: m.id,
+        order_by: [
+          m.section,
+          desc: fragment("CASE WHEN ? THEN 1 ELSE 0 END", m.is_pinned),
+          desc: m.inserted_at
+        ]
+      )
+      |> Repo.all()
+      |> maybe_preload(opts)
+
+    messages
+    |> Enum.group_by(& &1.section)
+    |> Enum.map(fn {section_name, section_messages} ->
+      %{
+        name: section_name || "News",
+        messages: section_messages,
+        messages_count: length(section_messages)
+      }
+    end)
+    |> Enum.sort_by(& &1.name)
   end
 
   @doc """
@@ -266,107 +318,65 @@ defmodule Lanttern.MessageBoard do
     Message.changeset(message, attrs)
   end
 
-  alias Lanttern.MessageBoard.CardSection
-
   @doc """
-  Returns the list of card_sections.
+  Returns the list of messages grouped by sections with message counts.
+
+  Uses a single optimized query to fetch all messages and groups them in Elixir.
+
+  ## Options
+
+  - `:school_id` - filters messages by school id
+  - `:classes_ids` - filters messages sent to given classes OR to the school. Requires `school_id`.
+  - `:preloads` - preloads associated data for messages
   """
-  def list_card_sections do
-    CardSection
-    |> preload(:messages)
-    |> Repo.all()
+  def list_messages_with_sections(opts \\ []) do
+    messages =
+      from(
+        m in Message,
+        where: is_nil(m.archived_at),
+        group_by: m.id,
+        order_by: [
+          m.section,
+          desc: fragment("CASE WHEN ? THEN 1 ELSE 0 END", m.is_pinned),
+          desc: m.inserted_at
+        ]
+      )
+      |> apply_sections_filter_opts(opts)
+      |> Repo.all()
+      |> maybe_preload(opts)
+
+    messages
+    |> Enum.group_by(& &1.section)
+    |> Enum.map(fn {section_name, section_messages} ->
+      %{
+        name: section_name || "News",
+        section: section_name,
+        messages: section_messages,
+        messages_count: length(section_messages)
+      }
+    end)
+    |> Enum.sort_by(& &1.name)
   end
 
-  @doc """
-  Gets a single card_section.
+  defp apply_sections_filter_opts(queryable, opts) do
+    case Keyword.get(opts, :school_id) do
+      nil ->
+        queryable
 
-  Raises `Ecto.NoResultsError` if the Card section does not exist.
-  """
-  def get_card_section!(id), do: Repo.get!(CardSection, id)
+      school_id ->
+        case Keyword.get(opts, :classes_ids) do
+          classes_ids when is_list(classes_ids) and classes_ids != [] ->
+            from(
+              m in queryable,
+              left_join: mc in assoc(m, :message_classes),
+              where:
+                (m.send_to == "school" and m.school_id == ^school_id) or
+                  mc.class_id in ^classes_ids
+            )
 
-  @doc """
-  Creates a card_section.
-  """
-  def create_card_section(attrs \\ %{}) do
-    %CardSection{}
-    |> CardSection.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  @doc """
-  Updates a card_section.
-  """
-  def update_card_section(%CardSection{} = card_section, attrs) do
-    card_section
-    |> CardSection.changeset(attrs)
-    |> Repo.update()
-  end
-
-  @doc """
-  Deletes a card_section.
-  """
-  def delete_card_section(%CardSection{} = card_section) do
-    Repo.delete(card_section)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking card_section changes.
-  """
-  def change_card_section(%CardSection{} = card_section, attrs \\ %{}) do
-    CardSection.changeset(card_section, attrs)
-  end
-
-  alias Lanttern.MessageBoard.CardMessage
-
-  @doc """
-  Returns the list of card_messages.
-  """
-  def list_card_messages do
-    Repo.all(CardMessage)
-  end
-
-  @doc """
-  Gets a single card_message.
-
-  Raises `Ecto.NoResultsError` if the Card message does not exist.
-  """
-  def get_card_message!(id), do: Repo.get!(CardMessage, id)
-
-  @doc """
-  Creates a card_message.
-  """
-  def create_card_message(attrs \\ %{}) do
-    %CardMessage{}
-    |> CardMessage.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  @doc """
-  Updates a card_message.
-  """
-  def update_card_message(%CardMessage{} = card_message, attrs) do
-    card_message
-    |> CardMessage.changeset(attrs)
-    |> Repo.update()
-  end
-
-  @doc """
-  Deletes a card_message.
-  """
-  def delete_card_message(%CardMessage{} = card_message) do
-    Repo.delete(card_message)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking card_message changes.
-
-  ## Examples
-
-      iex> change_card_message(message)
-      %Ecto.Changeset{data: %CardMessage{}}
-
-  """
-  def change_card_message(%CardMessage{} = card_message, attrs \\ %{}) do
-    CardMessage.changeset(card_message, attrs)
+          _ ->
+            from(m in queryable, where: m.school_id == ^school_id)
+        end
+    end
   end
 end

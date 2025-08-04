@@ -9,7 +9,6 @@ defmodule LantternWeb.MessageBoard.Components do
   import LantternWeb.CoreComponents
   # import LantternWeb.DateTimeHelpers
 
-  alias Lanttern.MessageBoard.CardMessage
   alias Lanttern.MessageBoard.Message
 
   @doc """
@@ -88,7 +87,7 @@ defmodule LantternWeb.MessageBoard.Components do
           <.badge><%= gettext("Sent to all school") %></.badge>
         <% end %>
       </div>
-      <%!-- <.markdown text={@message.description} class="mt-10" /> --%>
+      <.markdown text={@message.content} class="mt-10" />
     </.card_base>
     """
   end
@@ -96,7 +95,7 @@ defmodule LantternWeb.MessageBoard.Components do
   @doc """
   Renders message board cards.
   """
-  attr :message, CardMessage, required: true
+  attr :message, Message, required: true
   attr :on_delete, JS, default: nil
   attr :edit_patch, :string, default: nil
 
@@ -114,7 +113,7 @@ defmodule LantternWeb.MessageBoard.Components do
         <div class="w-full h-45 mb-2 overflow-hidden rounded-tr-lg">
           <img
             src={@message.cover || "/placeholder.svg"}
-            alt={@message.title}
+            alt={@message.name}
             class="w-full h-full object-cover"
           />
         </div>
@@ -122,12 +121,12 @@ defmodule LantternWeb.MessageBoard.Components do
       <div class="p-6">
         <div class="flex items-start gap-4">
           <div class="flex-shrink-0">
-            <.icon name={get_message_icon(@message.title)} class="w-8 h-8 text-gray-600" />
+            <.icon name={get_message_icon(@message.name)} class="w-8 h-8 text-gray-600" />
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-2">
               <h3 class="font-bold text-lg text-gray-800 truncate">
-                <%= @message.title %>
+                <%= @message.name %>
               </h3>
             </div>
             <p class="text-gray-600 text-sm mb-4 line-clamp-2">
@@ -168,7 +167,7 @@ defmodule LantternWeb.MessageBoard.Components do
     """
   end
 
-  def render_card_message(assigns) do
+  def message_card(assigns) do
     ~H"""
     <div
       class="bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-200 rounded-sm border-l-12 group cursor-pointer"
@@ -178,7 +177,7 @@ defmodule LantternWeb.MessageBoard.Components do
         <div class="w-full h-45 mb-2 overflow-hidden rounded-tr-lg">
           <img
             src={@message.cover || "/placeholder.svg"}
-            alt={@message.title}
+            alt={@message.name}
             class="w-full h-full object-cover"
           />
         </div>
@@ -186,12 +185,12 @@ defmodule LantternWeb.MessageBoard.Components do
       <div class="p-6">
         <div class="flex items-start gap-4">
           <div class="flex-shrink-0">
-            <.icon name={get_message_icon(@message.title)} class="w-8 h-8 text-gray-600" />
+            <.icon name={get_message_icon(@message.name)} class="w-8 h-8 text-gray-600" />
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-2">
               <h3 class="font-bold text-lg text-gray-800 truncate">
-                <%= @message.title %>
+                <%= @message.name %>
               </h3>
             </div>
             <p class="text-gray-600 text-sm mb-4 line-clamp-2">

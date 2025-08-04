@@ -29,7 +29,7 @@ defmodule LantternWeb.StudentHomeLiveV2 do
       |> assign_current_cycle()
       |> assign_student_cycle_info()
       |> assign_has_ilp()
-      |> assign_card_sections_with_messages()
+      |> assign_messages_with_section()
       |> assign(:card_message, nil)
       |> assign(:card_message_action, nil)
 
@@ -96,10 +96,18 @@ defmodule LantternWeb.StudentHomeLiveV2 do
     assign(socket, :has_ilp, has_ilp)
   end
 
-  defp assign_card_sections_with_messages(socket) do
-    card_sections = MessageBoard.list_card_sections()
+  defp assign_messages_with_section(socket) do
+    school_id = socket.assigns.school.id
 
-    assign(socket, :card_sections, card_sections)
+    student_id =
+      case socket.assigns.current_user.current_profile do
+        %{type: "student", student_id: id} -> id
+        %{type: "guardian", guardian_of_student_id: id} -> id
+      end
+
+    sections = MessageBoard.list_student_messages_with_sections(student_id, school_id)
+
+    assign(socket, :sections, sections)
   end
 
   @impl true
@@ -113,7 +121,7 @@ defmodule LantternWeb.StudentHomeLiveV2 do
 
   @impl true
   def handle_params(%{"message" => message_id}, _uri, socket) do
-    card_message = MessageBoard.get_card_message!(message_id)
+    card_message = MessageBoard.get_message!(message_id)
     socket = assign(socket, :card_message, card_message)
 
     {:noreply, socket}
@@ -205,7 +213,7 @@ defmodule LantternWeb.StudentHomeLiveV2 do
           </h2>
         </div>
 
-        <%= for section <- @card_sections do %>
+        <%= for section <- @sections do %>
           <div class="space-y-4">
             <div>
               <h3 class="text-xl font-semibold text-gray-700 mb-1">
@@ -215,7 +223,7 @@ defmodule LantternWeb.StudentHomeLiveV2 do
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <%= for message <- section.messages do %>
-                <.render_card_message message={message} />
+                <.message_card message={message} />
               <% end %>
             </div>
           </div>

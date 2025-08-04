@@ -10,17 +10,17 @@ defmodule LantternWeb.StudentHomeLiveV2Test do
 
   describe "Student home live view basic navigation" do
     test "displays message board and opens message overlay", ctx do
-      message = insert(:card_message)
+      message = insert(:message, %{school: ctx.user.current_profile.student.school})
 
       ctx.conn
       |> visit(@live_view_path)
-      |> assert_has("h3", text: message.card_section.name)
-      |> assert_has("h3", text: message.title)
+      |> assert_has("h3", text: message.section)
+      |> assert_has("h3", text: message.name)
       |> click_button("span[phx-click='card_lookout']", "Find out more")
       # |> assert_path("/student_v2?message=#{message.id}")
       |> assert_has("#card-message-overlay-#{message.id}")
-      |> assert_has("h1", text: message.title)
-      |> assert_has("p", text: message.content)
+      |> assert_has("h1", text: message.name)
+      |> assert_has("p", text: message.description)
     end
   end
 end

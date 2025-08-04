@@ -6,11 +6,11 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   import LantternWeb.FiltersHelpers, only: [assign_classes_filter: 2]
 
   alias Lanttern.MessageBoard
-  alias Lanttern.MessageBoard.CardMessage
+  alias Lanttern.MessageBoard.Message
   alias Lanttern.Schools.Cycle
 
   # shared
-  alias LantternWeb.MessageBoard.CardMessageFormOverlayComponent
+  alias LantternWeb.MessageBoard.MessageFormOverlayComponentV2
 
   def mount(_params, _session, socket) do
     if connected?(socket), do: send(self(), :initialized)
@@ -51,42 +51,42 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   def handle_event("unarchive_message", %{"message_id" => message_id}, socket) do
     case MessageBoard.unarchive_message(message_id) do
       {:ok, _message} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, gettext("Message unarchived successfully"))
-         |> assign_sections()}
+        socket
+        |> put_flash(:info, gettext("Message unarchived successfully"))
+        |> assign_sections()
+        |> then(&{:noreply, &1})
 
       {:error, _changeset} ->
         {:noreply, put_flash(socket, :error, gettext("Failed to unarchive message"))}
     end
   end
 
-  def handle_event("delete_message", %{"message_id" => message_id}, socket) do
-    case MessageBoard.delete_message(message_id) do
+  def handle_event("delete_message", %{"message_id" => id}, socket) do
+    message = MessageBoard.get_message!(id)
+
+    case MessageBoard.delete_message(message) do
       {:ok, _message} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, gettext("Message deleted successfully"))
-         |> assign_sections()}
+        socket
+        |> put_flash(:info, gettext("Message deleted successfully"))
+        |> then(&{:noreply, &1})
 
       {:error, _changeset} ->
         {:noreply, put_flash(socket, :error, gettext("Failed to delete message"))}
     end
   end
 
-  def handle_info({CardMessageFormOverlayComponent, {action, _message}}, socket)
-      when action in [:created, :updated, :archived] do
+  def handle_info({MessageFormOverlayComponentV2, {action, _message}}, socket)
+      when action in [:created, :updated] do
     flash_message =
       case action do
         :created -> {:info, gettext("Message created successfully")}
         :updated -> {:info, gettext("Message updated successfully")}
-        :archived -> {:info, gettext("Message archived successfully")}
       end
 
-    {:noreply,
-     socket
-     |> put_flash(elem(flash_message, 0), elem(flash_message, 1))
-     |> assign_sections()}
+    socket
+    |> put_flash(elem(flash_message, 0), elem(flash_message, 1))
+    |> push_patch(to: ~p"/school/message_board_v2")
+    |> then(&{:noreply, &1})
   end
 
   def handle_info(:initialized, socket) do
@@ -110,8 +110,8 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     assign_classes_filter(socket, assign_classes_filter_opts)
   end
 
-  defp assign_section(%{assigns: %{params: %{"section" => id}}} = socket) do
-    assign(socket, :section, MessageBoard.get_card_section!(id))
+  defp assign_section(%{assigns: %{params: %{"section" => section}}} = socket) do
+    assign(socket, :section, section)
   end
 
   defp assign_section(socket), do: assign(socket, :section, nil)
@@ -119,16 +119,16 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   defp assign_sections(socket) do
     school_id = socket.assigns.current_user.current_profile.school_id
 
-    sections = load_sections_data(school_id, socket.assigns.selected_classes_ids)
+    sections =
+      MessageBoard.list_messages_with_sections(
+        school_id: school_id,
+        classes_ids: socket.assigns.selected_classes_ids,
+        preloads: :classes
+      )
 
     socket
     |> assign(:sections, sections)
     |> assign(:total_messages_count, count_total_messages(sections))
-  end
-
-  defp load_sections_data(_school_id, _selected_classes_ids) do
-    MessageBoard.list_card_sections()
-    |> Enum.map(fn section -> Map.merge(section, %{messages_count: length(section.messages)}) end)
   end
 
   defp count_total_messages(sections) do
@@ -136,10 +136,13 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   defp assign_message(%{assigns: %{params: %{"new" => "true"}}} = socket) do
-    message = %CardMessage{
-      # school_id: socket.assigns.current_user.current_profile.school_id,
-      # classes: [],
-      # send_to: "school"
+    section = Map.get(socket.assigns.params, "section", "news")
+
+    message = %Message{
+      school_id: socket.assigns.current_user.current_profile.school_id,
+      classes: [],
+      send_to: "school",
+      section: section
     }
 
     socket
@@ -290,7 +293,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                     <% end %>
 
                     <.link
-                      patch={~p"/school/message_board_v2?new=true&section=#{section.id}"}
+                      patch={~p"/school/message_board_v2?new=true&section=#{section.name}"}
                       class="bg-white border-2 border-dashed border-gray-300 rounded-lg p-6 h-48 flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-400 transition-colors group"
                     >
                       <.icon
@@ -309,14 +312,14 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
       <.live_component
         :if={@message}
-        module={CardMessageFormOverlayComponent}
+        module={MessageFormOverlayComponentV2}
         id="message-form-overlay"
         section={@section}
         message={@message}
         title={@message_overlay_title}
         current_profile={@current_user.current_profile}
         on_cancel={JS.patch(~p"/school/message_board_v2")}
-        notify_parent={self()}
+        notify_parent
       />
 
       <.live_component

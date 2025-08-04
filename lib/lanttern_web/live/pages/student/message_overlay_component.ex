@@ -1,6 +1,6 @@
 defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
   @moduledoc """
-  Renders a `card_message` form
+  Renders a `message` form
   """
 
   use LantternWeb, :live_component
@@ -22,7 +22,7 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
       <.slide_over :if={@card_message} id={@id} show={true} on_cancel={@on_cancel}>
         <div class="p-4">
-          <h1 class="font-display font-black text-4xl"><%= @card_message.title %></h1>
+          <h1 class="font-display font-black text-4xl"><%= @card_message.name %></h1>
 
           <div class="flex flex-row-reverse sm:flex-row items-center gap-2 mt-2 text-xs">
             <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
@@ -63,7 +63,7 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
                 </div>
               </div> --%>
           </.responsive_container>
-          <.markdown text={@card_message.content} class="mt-10" />
+          <.markdown text={@card_message.description} class="mt-10" />
         </div>
         <:actions_left :if={@card_message.id && @admin != nil}>
           <.action
@@ -128,7 +128,7 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
   def handle_event("validate", %{"card_message" => card_message_params}, socket) do
     changeset =
       socket.assigns.card_message
-      |> MessageBoard.change_card_message(card_message_params)
+      |> MessageBoard.change_message(card_message_params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}

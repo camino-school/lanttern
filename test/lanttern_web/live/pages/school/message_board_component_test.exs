@@ -15,7 +15,7 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponentTest do
       school_id = user.current_profile.school_id
 
       message =
-        insert(:message_board, %{
+        insert(:message, %{
           school: user.current_profile.staff_member.school,
           inserted_at: ~N[2025-05-19 13:27:42],
           updated_at: ~N[2025-05-19 14:00:00]

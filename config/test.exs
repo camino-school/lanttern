@@ -17,6 +17,15 @@ static_url_path =
     e in ErlangError -> if e.original == :enoent, do: "/", else: reraise(e, __STACKTRACE__)
   end
 
+is_wsl =
+  case System.get_env("IS_WSL") do
+    "true" -> true
+    "false" -> false
+    nil -> false
+  end
+
+static_url = if is_wsl, do: [host: "localhost", url: static_url_path], else: [host: "localhost"]
+
 # Configure your database
 #
 # The MIX_TEST_PARTITION environment variable can be used
@@ -36,7 +45,7 @@ config :lanttern, LantternWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
   secret_key_base: "3ROrxoxhmKjx77ulZ7KoLqR9z59v1nN0fizIVaIhqMf9O6NRZAdUYuYhOM9Bmln/",
   server: false,
-  static_url: [host: "localhost", path: static_url_path]
+  static_url: static_url
 
 # In test we don't send emails.
 config :lanttern, Lanttern.Mailer, adapter: Swoosh.Adapters.Test
