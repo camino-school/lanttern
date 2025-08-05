@@ -6,6 +6,7 @@ defmodule Lanttern.ILP do
   import Ecto.Query, warn: false
   import Lanttern.RepoHelpers
 
+  alias Lanttern.Attachments.Attachment
   alias Lanttern.ILP.ILPTemplate
   alias Lanttern.ILP.ILPTemplateAILayer
   alias Lanttern.ILPLog
@@ -867,11 +868,12 @@ defmodule Lanttern.ILP do
       left_join: s in assoc(p, :student),
       left_join: sm in assoc(p, :staff_member),
       left_join: gos in assoc(p, :guardian_of_student),
-      left_join: a in assoc(c, :attachments),
+      left_join: ca in assoc(c, :ilp_comment_attachments),
+      left_join: a in assoc(ca, :attachment),
       where: c.student_ilp_id == ^student_ilp_id,
-      order_by: [asc: c.inserted_at],
+      order_by: [asc: c.inserted_at, asc: ca.position],
       preload: [
-        {:attachments, a},
+        {:ilp_comment_attachments, {ca, attachment: a}},
         {:owner,
          {p,
           [
@@ -1021,39 +1023,60 @@ defmodule Lanttern.ILP do
   def get_ilp_comment_attachment!(id), do: Repo.get!(ILPCommentAttachment, id)
 
   @doc """
-  Creates a ilp_comment_attachment.
+  Creates an attachment and links it to an existing ILP comment in a single transaction.
 
   ## Examples
 
-      iex> create_ilp_comment_attachment(%{field: value})
-      {:ok, %ILPCommentAttachment{}}
+      iex> create_ilp_comment_attachment(profile_id, ilp_comment_id, %{field: value})
+      {:ok, %Attachment{}}
 
-      iex> create_ilp_comment_attachment(%{field: bad_value})
+      iex> create_ilp_comment_attachment(profile_id, ilp_comment_id, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_ilp_comment_attachment(attrs \\ %{}) do
-    %ILPCommentAttachment{}
-    |> ILPCommentAttachment.changeset(attrs)
-    |> Repo.insert()
-  end
+  @spec create_ilp_comment_attachment(
+          profile_id :: pos_integer(),
+          ilp_comment_id :: pos_integer(),
+          attachment_attrs :: map()
+        ) ::
+          {:ok, Attachment.t()} | {:error, Ecto.Changeset.t()}
+  def create_ilp_comment_attachment(
+        profile_id,
+        ilp_comment_id,
+        attachment_attrs
+      ) do
+    insert_query =
+      %Attachment{}
+      |> Attachment.changeset(Map.put(attachment_attrs, "owner_id", profile_id))
 
-  @doc """
-  Updates a ilp_comment_attachment.
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:insert_attachment, insert_query)
+    |> Ecto.Multi.run(
+      :link_ilp_comment,
+      fn _repo, %{insert_attachment: attachment} ->
+        attrs =
+          from(
+            ca in ILPCommentAttachment,
+            where: ca.ilp_comment_id == ^ilp_comment_id
+          )
+          |> set_position_in_attrs(%{
+            ilp_comment_id: ilp_comment_id,
+            attachment_id: attachment.id
+          })
 
-  ## Examples
+        %ILPCommentAttachment{}
+        |> ILPCommentAttachment.changeset(attrs)
+        |> Repo.insert()
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:error, _multi, changeset, _changes} ->
+        {:error, changeset}
 
-      iex> update_ilp_comment_attachment(ilp_comment_attachment, %{field: new_value})
-      {:ok, %ILPCommentAttachment{}}
-
-      iex> update_ilp_comment_attachment(ilp_comment_attachment, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_ilp_comment_attachment(%ILPCommentAttachment{} = ilp_comment_attachment, attrs) do
-    ilp_comment_attachment
-    |> ILPCommentAttachment.changeset(attrs)
-    |> Repo.update()
+      {:ok, %{insert_attachment: attachment}} ->
+        {:ok, attachment}
+    end
   end
 
   @doc """
@@ -1093,11 +1116,12 @@ defmodule Lanttern.ILP do
 
   ## Examples
 
-  iex> update_ilp_comment_attachment_positions([3, 2, 1])
+  iex> update_ilp_comment_attachments_positions([3, 2, 1])
   :ok
 
   """
-  @spec update_ilp_comment_attachment_positions([pos_integer()]) :: :ok | {:error, String.t()}
-  def update_ilp_comment_attachment_positions(ilp_comment_attachment),
-    do: update_positions(ILPCommentAttachment, ilp_comment_attachment)
+  @spec update_ilp_comment_attachments_positions(attachments_ids :: [pos_integer()]) ::
+          :ok | {:error, String.t()}
+  def update_ilp_comment_attachments_positions(attachments_ids),
+    do: update_positions(ILPCommentAttachment, attachments_ids, id_field: :attachment_id)
 end
