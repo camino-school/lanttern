@@ -1061,8 +1061,7 @@ defmodule Lanttern.ILP do
           )
           |> set_position_in_attrs(%{
             ilp_comment_id: ilp_comment_id,
-            attachment_id: attachment.id,
-            owner_id: profile_id
+            attachment_id: attachment.id
           })
 
         %ILPCommentAttachment{}
