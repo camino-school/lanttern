@@ -19,10 +19,12 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
 
   alias Lanttern.MessageBoard
   alias Lanttern.MessageBoard.Message
+  alias Lanttern.SupabaseHelpers
 
   # shared
 
   alias LantternWeb.Schools.ClassesFieldComponent
+  import LantternWeb.FormComponents
 
   @impl true
   def render(assigns) do
@@ -63,14 +65,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
             class="mb-6"
             phx-debounce="1500"
           />
-          <.input
-            field={@form[:cover]}
-            type="text"
-            label={gettext("Message cover")}
-            class="mb-6"
-            phx-debounce="1500"
-          />
-          <%!-- <.image_field
+          <.image_field
             current_image_url={@message.cover}
             is_removing={@is_removing_cover}
             upload={@uploads.cover}
@@ -78,7 +73,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
             on_cancel_upload={JS.push("cancel-upload", target: @myself)}
             on_replace={JS.push("replace-cover", target: @myself)}
             class="mb-6"
-          /> --%>
+          />
           <.input
             field={@form[:description]}
             type="markdown"
@@ -169,7 +164,16 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
 
   @impl true
   def mount(socket) do
-    socket = assign(socket, :initialized, false)
+    socket =
+      socket
+      |> assign(:initialized, false)
+      |> assign(:is_removing_cover, false)
+      |> allow_upload(:cover,
+        accept: ~w(.jpg .jpeg .png .webp),
+        max_file_size: 5_000_000,
+        max_entries: 1
+      )
+
     {:ok, socket}
   end
 
@@ -230,6 +234,42 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
   def handle_event("save", %{"message" => message_params}, socket) do
     params = inject_extra_params(socket.assigns, message_params)
 
+    if socket.assigns.is_removing_cover == true do
+      SupabaseHelpers.remove_object("covers", socket.assigns.message.cover)
+    end
+
+    cover_image_url =
+      consume_uploaded_entries(socket, :cover, fn %{path: file_path}, entry ->
+        {:ok, object} =
+          SupabaseHelpers.upload_object(
+            "covers",
+            entry.client_name,
+            file_path,
+            %{content_type: entry.client_type}
+          )
+
+        image_url =
+          "#{SupabaseHelpers.config().base_url}/storage/v1/object/public/#{URI.encode(object.key)}"
+
+        {:ok, image_url}
+      end)
+      |> case do
+        [] -> nil
+        [image_url] -> image_url
+      end
+
+    # besides "consumed" cover image, we should also consider is_removing_cover flag
+    cover_image_url =
+      cond do
+        cover_image_url -> cover_image_url
+        socket.assigns.is_removing_cover -> nil
+        true -> socket.assigns.message.cover
+      end
+
+    params =
+      params
+      |> Map.put("cover", cover_image_url)
+
     save_message(socket, socket.assigns.message.id, params)
   end
 
@@ -243,6 +283,18 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
     end
+  end
+
+  def handle_event("cancel-upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :cover, ref)}
+  end
+
+  def handle_event("replace-cover", _, socket) do
+    {:noreply, assign(socket, :is_removing_cover, true)}
+  end
+
+  def handle_event("cancel-replace-cover", _, socket) do
+    {:noreply, assign(socket, :is_removing_cover, false)}
   end
 
   defp save_message(socket, nil, message_params) do
