@@ -77,3 +77,13 @@ config :phoenix, :plug_init_mode, :runtime
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+# # Config for testing with Mailgun in development
+# config :swoosh,
+#   api_client: Swoosh.ApiClient.Finch,
+#   finch_name: Lanttern.Finch
+
+# config :lanttern, Lanttern.Mailer,
+#   adapter: Swoosh.Adapters.Mailgun,
+#   api_key: System.get_env("MAILGUN_API_KEY"),
+#   domain: System.get_env("MAILGUN_DOMAIN")

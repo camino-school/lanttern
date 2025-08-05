@@ -10,24 +10,35 @@ Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
 Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
 
-## `.env` expected variables
+## Development `.env` expected variables
+
+The local `.env` file follows what is described in the "Deployment" section.
+
+The only dev only env var is
 
 ```bash
-export GOOGLE_CLIENT_ID="********"
 export ROOT_ADMIN_EMAIL="some.email@example.com"
 ```
 
-### To enable automatic environment reloading, you can:
+which is used once, when running seeds.
+
+In remote dev environments where seeds are not executed, the root admin user
+should be inserted directly in the database.
+
+### To enable automatic environment reloading, you can
 
 1. Install `direnv`
 
 2. Add the following configuration to your shell configuration file (`~/.bashrc` or `~/.bash_profile`):
+
 ```bash
 eval "$(direnv hook bash)"
 ```
+
 3. Create a `.envrc` file in the root of your project. Copy the same information from your `.env` file into `.envrc`. This allows the environment variables to be loaded automatically, without needing to run `source .env`.
 
 4. Allow direnv to load the .envrc file by running:
+
 ```bash
 direnv allow
 ```
@@ -77,6 +88,11 @@ The main secrets/env vars that we need for this are the following:
 - `OPENAI_API_KEY`
 - `OPENAI_ORGANIZATION_KEY`
 
+#### Mailgun
+
+- `MAILGUN_API_KEY`
+- `MAILGUN_DOMAIN`
+
 #### Others
 
 - `PHX_HOST` - e.g. `lanttern.org`
@@ -95,7 +111,6 @@ and view it in the `cover/` folder. Source: [excoveralls](https://github.com/par
 ### Tips
 
 To investigate the perfomance process run `mix test --slowest 10`
-
 
 ## Restoring a PostgreSQL Backup
 
@@ -123,7 +138,7 @@ PGPASSWORD=postgres psql -h localhost -U postgres -d lanttern_dev -c "CREATE EXT
 ```
 
 ### Restore the Backup
- 
+
 `PGPASSWORD=postgres psql --set ON_ERROR_STOP=on -h localhost -U postgres lanttern_dev < <FILENAME>.sql`
 
 ## Learn more

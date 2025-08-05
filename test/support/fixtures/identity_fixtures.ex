@@ -6,6 +6,7 @@ defmodule Lanttern.IdentityFixtures do
 
   import Ecto.Query, only: [from: 2]
   import Lanttern.SchoolsFixtures
+  alias Lanttern.Identity
   alias Lanttern.Personalization
 
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
@@ -18,11 +19,25 @@ defmodule Lanttern.IdentityFixtures do
     })
   end
 
-  def user_fixture(attrs \\ %{}) do
+  def unconfirmed_user_fixture(attrs \\ %{}) do
     {:ok, user} =
       attrs
       |> valid_user_attributes()
-      |> Lanttern.Identity.register_user()
+      |> Identity.register_user()
+
+    user
+  end
+
+  def user_fixture(attrs \\ %{}) do
+    user = unconfirmed_user_fixture(attrs)
+
+    token =
+      extract_user_token(fn url ->
+        Identity.deliver_login_instructions(user, url)
+      end)
+
+    {:ok, {user, _expired_tokens}} =
+      Identity.login_user_by_magic_link(token)
 
     user
   end
@@ -32,7 +47,7 @@ defmodule Lanttern.IdentityFixtures do
 
     # update is_root_admin in DB using query
     # (we won't add changesets and public API to create a root admin)
-    from(u in Lanttern.Identity.User, where: u.id == ^user.id)
+    from(u in Identity.User, where: u.id == ^user.id)
     |> Lanttern.Repo.update_all(set: [is_root_admin: true])
 
     user |> Map.put(:is_root_admin, true)
@@ -58,7 +73,7 @@ defmodule Lanttern.IdentityFixtures do
         user_id: user_id,
         student_id: student_id
       })
-      |> Lanttern.Identity.create_profile()
+      |> Identity.create_profile()
 
     profile
   end
@@ -77,7 +92,7 @@ defmodule Lanttern.IdentityFixtures do
         user_id: user_id,
         staff_member_id: staff_member_id
       })
-      |> Lanttern.Identity.create_profile()
+      |> Identity.create_profile()
 
     profile
   end
@@ -96,7 +111,7 @@ defmodule Lanttern.IdentityFixtures do
         user_id: user_id,
         guardian_of_student_id: guardian_of_student_id
       })
-      |> Lanttern.Identity.create_profile()
+      |> Identity.create_profile()
 
     profile
   end
@@ -119,7 +134,7 @@ defmodule Lanttern.IdentityFixtures do
     user
     |> Map.put(
       :current_profile,
-      %Lanttern.Identity.Profile{
+      %Identity.Profile{
         id: staff_member_profile.id,
         name: staff_member.name,
         type: "staff",
@@ -128,6 +143,12 @@ defmodule Lanttern.IdentityFixtures do
         permissions: permissions
       }
     )
+  end
+
+  def generate_user_magic_link_token(user) do
+    {encoded_token, user_token} = Identity.UserToken.build_email_token(user, "login")
+    Lanttern.Repo.insert!(user_token)
+    {encoded_token, user_token.token}
   end
 
   # helpers

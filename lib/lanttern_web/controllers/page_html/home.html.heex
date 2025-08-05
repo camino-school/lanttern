@@ -33,34 +33,15 @@
         <div class="w-6 h-6 rounded-full bg-ltrn-mesh-primary blur-xs group-hover:blur-none transition-[filter]" />
       </a>
     <% else %>
-      <div
-        id="g_id_signin_container"
-        class="absolute z-10 top-4 right-4 md:top-10 md:right-10"
-        phx-update="ignore"
+      <a
+        href="/users/log-in"
+        class="absolute z-10 top-4 right-4 md:top-10 md:right-10 group flex gap-2 items-center p-2 rounded-sm bg-white shadow-xl hover:bg-slate-100"
       >
-        <script src="https://accounts.google.com/gsi/client" async>
-        </script>
-        <div
-          id="g_id_onload"
-          data-client_id={@google_client_id}
-          data-context="signin"
-          data-ux_mode="popup"
-          data-login_uri={"#{LantternWeb.Endpoint.static_url()}/users/google_sign_in"}
-          data-nonce=""
-          data-auto_prompt="false"
-        >
-        </div>
-        <div
-          class="g_id_signin"
-          data-type="standard"
-          data-shape="pill"
-          data-theme="outline"
-          data-text="signin_with"
-          data-size="large"
-          data-logo_alignment="left"
-        >
-        </div>
-      </div>
+        <span class="font-display font-bold text-sm text-ltrn-subtle group-hover:text-ltrn-dark">
+          Sign in
+        </span>
+        <div class="w-6 h-6 rounded-full bg-ltrn-mesh-primary blur-xs group-hover:blur-none transition-[filter]" />
+      </a>
     <% end %>
   </header>
   <div

@@ -55,8 +55,8 @@ defmodule Lanttern.MixProject do
       {:phoenix_live_dashboard, "~> 0.8.2"},
       {:esbuild, "~> 0.7", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.3.0", runtime: Mix.env() == :dev},
-      {:swoosh, "~> 1.3"},
-      {:finch, "~> 0.13"},
+      {:swoosh, "~> 1.19"},
+      {:finch, "~> 0.20"},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.26"},
@@ -89,7 +89,8 @@ defmodule Lanttern.MixProject do
       {:ex_cldr, "~> 2.37"},
       {:ex_cldr_dates_times, "~> 2.0"},
       {:mimic, "~> 1.12", only: :test},
-      {:lazy_html, ">= 0.1.0", only: :test}
+      {:lazy_html, ">= 0.1.0", only: :test},
+      {:multipart, "~> 0.4.0"}
     ]
   end
 

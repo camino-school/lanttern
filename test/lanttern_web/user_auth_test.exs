@@ -40,6 +40,33 @@ defmodule LantternWeb.UserAuthTest do
       refute get_session(conn, :to_be_removed)
     end
 
+    # todo: implement after migrate to scopes
+
+    # test "keeps session when re-authenticating", %{conn: conn, user: user} do
+    #   conn =
+    #     conn
+    #     |> assign(:current_scope, Scope.for_user(user))
+    #     |> put_session(:to_be_removed, "value")
+    #     |> UserAuth.log_in_user(user)
+
+    #   assert get_session(conn, :to_be_removed)
+    # end
+
+    # test "clears session when user does not match when re-authenticating", %{
+    #   conn: conn,
+    #   user: user
+    # } do
+    #   other_user = user_fixture()
+
+    #   conn =
+    #     conn
+    #     |> assign(:current_scope, Scope.for_user(other_user))
+    #     |> put_session(:to_be_removed, "value")
+    #     |> UserAuth.log_in_user(user)
+
+    #   refute get_session(conn, :to_be_removed)
+    # end
+
     test "redirects to the configured path", %{conn: conn, user: user} do
       conn = conn |> put_session(:user_return_to, "/hello") |> UserAuth.log_in_user(user)
       assert redirected_to(conn) == "/hello"
@@ -91,6 +118,8 @@ defmodule LantternWeb.UserAuthTest do
       assert redirected_to(conn) == ~p"/"
     end
   end
+
+  # todo: adjust to fetch_current_scope_for_user after migrate to scopes
 
   describe "fetch_current_user/2" do
     test "authenticates user from session", %{conn: conn, user: user, profile: profile} do
@@ -160,6 +189,8 @@ defmodule LantternWeb.UserAuthTest do
       assert redirected_to(conn) == "/"
     end
   end
+
+  # todo: adjust to mount_current_user_scope after migrate to scopes
 
   describe "on_mount: mount_current_user" do
     test "assigns current_user based on a valid user_token", %{
@@ -285,7 +316,7 @@ defmodule LantternWeb.UserAuthTest do
       conn = conn |> fetch_flash() |> UserAuth.require_authenticated_user([])
       assert conn.halted
 
-      assert redirected_to(conn) == ~p"/users/log_in"
+      assert redirected_to(conn) == ~p"/users/log-in"
 
       assert Phoenix.Flash.get(conn.assigns.flash, :error) ==
                "You must log in to access this page."

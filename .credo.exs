@@ -25,7 +25,8 @@
       checks: %{
         disabled: [
           {Credo.Check.Design.AliasUsage, []},
-          {Credo.Check.Readability.MaxLineLength, []}
+          {Credo.Check.Readability.MaxLineLength, []},
+          {Credo.Check.Design.TagTODO, []}
         ]
       }
     }

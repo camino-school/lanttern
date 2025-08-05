@@ -27,6 +27,7 @@ defmodule Lanttern.Identity.User do
 
   schema "users" do
     field :email, :string
+    field :authenticated_at, :utc_datetime, virtual: true
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :is_root_admin, :boolean

@@ -207,6 +207,17 @@ defmodule LantternWeb.UserAuth do
   end
 
   @doc """
+  Disconnects existing sockets for the given tokens.
+  """
+  def disconnect_sessions(tokens) do
+    Enum.each(tokens, fn %{token: token} ->
+      LantternWeb.Endpoint.broadcast(user_session_topic(token), "disconnect", %{})
+    end)
+  end
+
+  defp user_session_topic(token), do: "users_sessions:#{Base.url_encode64(token)}"
+
+  @doc """
   Handles mounting and authenticating the current_user in LiveViews.
 
   ## `on_mount` arguments
@@ -302,7 +313,7 @@ defmodule LantternWeb.UserAuth do
         socket =
           socket
           |> Phoenix.LiveView.put_flash(:error, gettext("You must log in to access this page."))
-          |> Phoenix.LiveView.redirect(to: ~p"/users/log_in")
+          |> Phoenix.LiveView.redirect(to: ~p"/users/log-in")
 
         {:halt, socket}
     end
@@ -359,7 +370,7 @@ defmodule LantternWeb.UserAuth do
         socket =
           socket
           |> Phoenix.LiveView.put_flash(:error, gettext("You must log in to access this page."))
-          |> Phoenix.LiveView.redirect(to: ~p"/users/log_in")
+          |> Phoenix.LiveView.redirect(to: ~p"/users/log-in")
 
         {:halt, socket}
     end
@@ -391,7 +402,7 @@ defmodule LantternWeb.UserAuth do
       conn
       |> put_flash(:error, "You must log in to access this page.")
       |> maybe_store_return_to()
-      |> redirect(to: ~p"/users/log_in")
+      |> redirect(to: ~p"/users/log-in")
       |> halt()
     end
   end
