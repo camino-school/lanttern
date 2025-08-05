@@ -1,26 +1,27 @@
 <div>
   <.header_nav current_user={@current_user}>
     <:breadcrumb navigate={~p"/school/classes"}>
-      <%= gettext("%{school} classes", school: @class.school.name) %>
+      {gettext("%{school} classes", school: @class.school.name)}
     </:breadcrumb>
-    <:title><%= @class.name %> (<%= @class.cycle.name %>)</:title>
+    <:title>{@class.name} ({@class.cycle.name})</:title>
     <div class="flex items-center justify-between gap-4 px-4">
       <.neo_tabs id="student-nav-tabs">
         <:tab
           patch={~p"/school/classes/#{@class}/students"}
           is_current={@live_action == :students}
         >
-          <%= gettext("Students") %>
+          {gettext("Students")}
         </:tab>
         <:tab patch={~p"/school/classes/#{@class}/ilp"} is_current={@live_action == :ilp}>
-          <%= gettext("ILPs") %>
+          {gettext("ILPs")}
         </:tab>
         <%!-- <:tab
           patch={~p"/school/classes/#{@class}/student_records"}
           is_current={@live_action == :student_records}
         >
-          <%= gettext("Student records") %>
-        </:tab> --%>
+          {gettext("Student records")}
+        </:tab>
+         --%>
       </.neo_tabs>
       <.action
         :if={@is_school_manager}
@@ -28,7 +29,7 @@
         patch={"#{@current_path}?edit=true"}
         icon_name="hero-pencil-mini"
       >
-        <%= gettext("Edit class") %>
+        {gettext("Edit class")}
       </.action>
     </div>
   </.header_nav>

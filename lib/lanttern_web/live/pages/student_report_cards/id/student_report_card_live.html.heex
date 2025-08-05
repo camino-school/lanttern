@@ -2,7 +2,7 @@
   <:top>
     <div class="flex items-center justify-between">
       <.breadcrumbs with_bg>
-        <:item><%= gettext("Student report card") %></:item>
+        <:item>{gettext("Student report card")}</:item>
       </.breadcrumbs>
       <.nav_menu_button />
     </div>
@@ -11,16 +11,16 @@
     "font-display font-black text-4xl",
     "sm:text-5xl"
   ]}>
-    <%= @student_report_card.student.name %>
+    {@student_report_card.student.name}
   </h1>
   <h2 class={[
     "mt-2 font-display font-black text-xl",
     "sm:text-2xl"
   ]}>
-    <%= @student_report_card.report_card.name %>
+    {@student_report_card.report_card.name}
   </h2>
   <.badge theme="dark" class="mt-6">
-    <%= gettext("Cycle") %>: <%= @student_report_card.report_card.school_cycle.name %>
+    {gettext("Cycle")}: {@student_report_card.report_card.school_cycle.name}
   </.badge>
 </.cover>
 <div class="ltrn-bg-main-local pb-10">
@@ -33,7 +33,7 @@
   <section class="py-10">
     <.responsive_container>
       <h3 class="font-display font-black text-2xl">
-        <%= gettext("Strands reports") %>
+        {gettext("Strands reports")}
       </h3>
     </.responsive_container>
     <.responsive_grid class="px-6 py-10 sm:px-10">
@@ -51,15 +51,21 @@
       >
         <:bottom_content>
           <div :if={entries != []} class="flex flex-wrap gap-2 p-6 border-t border-ltrn-lighter">
-            <%= for entry <- entries, entry.ordinal_value || entry.score do %>
+            <%= for entry
+            <-
+              entries,
+              entry.ordinal_value
+              ||
+              entry.score
+              do %>
               <.assessment_point_entry_badge entry={entry} is_short />
             <% end %>
           </div>
           <div :if={entries == []} class="p-6 bg-ltrn-lighter">
             <p class="text-xs">
-              <%= gettext(
+              {gettext(
                 "Not visible in student report card (no final assessment registered for this strand)"
-              ) %>
+              )}
             </p>
           </div>
         </:bottom_content>
@@ -69,7 +75,7 @@
   <section :if={@grades_report}>
     <.responsive_container class="mb-4">
       <h3 class="font-display font-black text-2xl">
-        <%= gettext("Grades") %>
+        {gettext("Grades")}
       </h3>
       <.markdown
         :if={@student_report_card.report_card.grading_info || @grades_report.info}

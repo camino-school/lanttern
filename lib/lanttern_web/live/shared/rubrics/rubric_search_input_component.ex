@@ -65,9 +65,9 @@ defmodule LantternWeb.Rubrics.RubricSearchInputComponent do
           >
             <div class="flex-1 truncate group-aria-selected:font-bold" }>
               <span class="font-bold text-xs">
-                #<%= rubric.id %>
+                #{rubric.id}
               </span>
-              <br /> Criteria: <%= rubric.criteria %>
+              <br /> Criteria: {rubric.criteria}
               <.badge :if={rubric.is_differentiation} theme="cyan">Differentiation</.badge>
             </div>
             <.icon

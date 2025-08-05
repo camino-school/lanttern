@@ -12,18 +12,18 @@
   rows={@streams.strands}
   row_click={fn {_id, strand} -> JS.navigate(~p"/admin/strands/#{strand}") end}
 >
-  <:col :let={{_id, strand}} label="Id">#<%= strand.id %></:col>
-  <:col :let={{_id, strand}} label="Name"><%= strand.name %></:col>
-  <:col :let={{_id, strand}} label="Description"><%= strand.description %></:col>
+  <:col :let={{_id, strand}} label="Id">#{strand.id}</:col>
+  <:col :let={{_id, strand}} label="Name">{strand.name}</:col>
+  <:col :let={{_id, strand}} label="Description">{strand.description}</:col>
   <:col :let={{_id, strand}} label="Subjects">
-    <%= strand.subjects
+    {strand.subjects
     |> Enum.map(& &1.name)
-    |> Enum.join(", ") %>
+    |> Enum.join(", ")}
   </:col>
   <:col :let={{_id, strand}} label="Years">
-    <%= strand.years
+    {strand.years
     |> Enum.map(& &1.name)
-    |> Enum.join(", ") %>
+    |> Enum.join(", ")}
   </:col>
   <:action :let={{_id, strand}}>
     <div class="sr-only">
@@ -48,7 +48,7 @@
   on_cancel={JS.patch(~p"/admin/strands")}
 >
   <.header>
-    <%= @page_title %>
+    {@page_title}
     <:subtitle>Use this form to manage strand records in your database.</:subtitle>
   </.header>
   <.live_component

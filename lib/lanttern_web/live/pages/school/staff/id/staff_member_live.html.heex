@@ -1,19 +1,19 @@
 <div>
   <.header_nav current_user={@current_user}>
     <:breadcrumb navigate={~p"/school/staff"}>
-      <%= gettext("%{school} staff", school: @staff_member.school.name) %>
+      {gettext("%{school} staff", school: @staff_member.school.name)}
     </:breadcrumb>
-    <:title><%= @staff_member.name %></:title>
+    <:title>{@staff_member.name}</:title>
     <div class="flex items-center justify-between gap-4 px-4">
       <.neo_tabs id="student-nav-tabs">
         <:tab patch={~p"/school/staff/#{@staff_member}"} is_current={@live_action == :show}>
-          <%= gettext("About") %>
+          {gettext("About")}
         </:tab>
         <:tab
           patch={~p"/school/staff/#{@staff_member}/students_records"}
           is_current={@live_action == :students_records}
         >
-          <%= gettext("Student records") %>
+          {gettext("Student records")}
         </:tab>
       </.neo_tabs>
       <.action
@@ -22,7 +22,7 @@
         patch={"#{@current_path}?edit=true"}
         icon_name="hero-pencil-mini"
       >
-        <%= gettext("Edit staff member") %>
+        {gettext("Edit staff member")}
       </.action>
     </div>
   </.header_nav>
@@ -36,10 +36,10 @@
       />
       <div class="mt-6 sm:mt-0">
         <h2 class="font-display font-black text-2xl">
-          <%= @staff_member.name %>
+          {@staff_member.name}
         </h2>
         <p class="mt-2 font-display font-black text-lg text-ltrn-subtle">
-          <%= "#{@staff_member.role} @ #{@staff_member.school.name}" %>
+          {"#{@staff_member.role} @ #{@staff_member.school.name}"}
         </p>
       </div>
     </div>

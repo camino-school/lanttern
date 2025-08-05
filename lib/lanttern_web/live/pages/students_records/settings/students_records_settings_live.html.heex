@@ -1,18 +1,18 @@
 <.header_nav current_user={@current_user}>
   <:breadcrumb navigate={~p"/students_records"}>
-    <%= gettext("Student records") %>
+    {gettext("Student records")}
   </:breadcrumb>
-  <:title><%= gettext("Settings") %></:title>
+  <:title>{gettext("Settings")}</:title>
   <div class="px-4">
     <.neo_tabs>
       <:tab
         patch={~p"/students_records/settings/status"}
         is_current={@live_action == :manage_status}
       >
-        <%= gettext("Status") %>
+        {gettext("Status")}
       </:tab>
       <:tab patch={~p"/students_records/settings/tags"} is_current={@live_action == :manage_tags}>
-        <%= gettext("Tags") %>
+        {gettext("Tags")}
       </:tab>
     </.neo_tabs>
   </div>

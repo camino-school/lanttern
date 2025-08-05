@@ -48,19 +48,18 @@ defmodule LantternWeb.Admin.ImportStaffMembersLive do
               :for={entry <- @uploads.csv.entries}
               class="flex items-center justify-center gap-2 mt-6 text-ltrn-dark"
             >
-              <.icon name="hero-document" />
-              <%= entry.client_name %>
+              <.icon name="hero-document" /> {entry.client_name}
             </div>
           </div>
           <%!-- <.live_file_input upload={@uploads.csv} /> --%>
           <.error :for={err <- @form[:csv].errors}>
-            <%= err %>
+            {err}
           </.error>
           <.error :for={err <- upload_errors(@uploads.csv)}>
-            <%= Phoenix.Naming.humanize(err) %>
+            {Phoenix.Naming.humanize(err)}
           </.error>
           <.error :if={@csv_error}>
-            <%= @csv_error %>
+            {@csv_error}
           </.error>
         </div>
 
@@ -83,8 +82,8 @@ defmodule LantternWeb.Admin.ImportStaffMembersLive do
         </thead>
         <tbody>
           <tr :for={row <- @csv_rows} class="border-t border-ltrn-lighter">
-            <td class="p-2"><%= row.name %></td>
-            <td class="p-2"><%= row.email %></td>
+            <td class="p-2">{row.name}</td>
+            <td class="p-2">{row.email}</td>
           </tr>
         </tbody>
       </table>
@@ -116,8 +115,8 @@ defmodule LantternWeb.Admin.ImportStaffMembersLive do
         </thead>
         <tbody>
           <tr :for={{csv_row, status} <- @import_result} class="border-t border-ltrn-lighter">
-            <td class="p-2"><%= csv_row.name %></td>
-            <td class="p-2"><%= csv_row.email %></td>
+            <td class="p-2">{csv_row.name}</td>
+            <td class="p-2">{csv_row.email}</td>
             <td class="p-2"><.import_status status={status} /></td>
           </tr>
         </tbody>
@@ -141,17 +140,17 @@ defmodule LantternWeb.Admin.ImportStaffMembersLive do
       <:num>1</:num>
       Upload students CSV file
     </.step>
-    <%= if @state == "uploading", do: render_slot(@inner_block) %>
+    {if @state == "uploading", do: render_slot(@inner_block)}
     <.step active={@state == "reviewing"} class="mt-10">
       <:num>2</:num>
       Review
     </.step>
-    <%= if @state == "reviewing", do: render_slot(@inner_block) %>
+    {if @state == "reviewing", do: render_slot(@inner_block)}
     <.step active={@state == "done"} class="mt-10">
       <:num>3</:num>
       Done
     </.step>
-    <%= if @state == "done", do: render_slot(@inner_block) %>
+    {if @state == "done", do: render_slot(@inner_block)}
     """
   end
 
@@ -171,9 +170,9 @@ defmodule LantternWeb.Admin.ImportStaffMembersLive do
         "flex items-center justify-center w-8 h-8 rounded-full font-black text-center",
         if(@active, do: "text-ltrn-white bg-ltrn-primary", else: "text-ltrn-subtle bg-ltrn-lighter")
       ]}>
-        <%= render_slot(@num) %>
+        {render_slot(@num)}
       </span>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </div>
     """
   end
@@ -189,7 +188,7 @@ defmodule LantternWeb.Admin.ImportStaffMembersLive do
   defp import_status(%{status: {:error, _message}} = assigns) do
     ~H"""
     <.badge>Fail</.badge>
-    <%= elem(@status, 1) %>
+    {elem(@status, 1)}
     """
   end
 

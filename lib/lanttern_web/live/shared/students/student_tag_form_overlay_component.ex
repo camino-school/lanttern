@@ -21,7 +21,7 @@ defmodule LantternWeb.Students.StudentTagFormOverlayComponent do
     ~H"""
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
       <.slide_over id={@id} show on_cancel={@on_cancel}>
-        <:title><%= @title %></:title>
+        <:title>{@title}</:title>
         <.form
           id="student-tag-form"
           for={@form}
@@ -30,7 +30,7 @@ defmodule LantternWeb.Students.StudentTagFormOverlayComponent do
           phx-target={@myself}
         >
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
-            <%= gettext("Oops, something went wrong! Please check the errors below.") %>
+            {gettext("Oops, something went wrong! Please check the errors below.")}
           </.error_block>
           <.input
             field={@form[:name]}
@@ -55,11 +55,11 @@ defmodule LantternWeb.Students.StudentTagFormOverlayComponent do
           />
         </.form>
         <.card_base class="p-6">
-          <p class="mb-4 text-ltrn-subtle"><%= gettext("Preview") %></p>
+          <p class="mb-4 text-ltrn-subtle">{gettext("Preview")}</p>
           <.badge color_map={
             %{bg_color: @form[:bg_color].value, text_color: @form[:text_color].value}
           }>
-            <%= @form[:name].value %>
+            {@form[:name].value}
           </.badge>
         </.card_base>
         <:actions_left :if={@tag.id}>
@@ -71,7 +71,7 @@ defmodule LantternWeb.Students.StudentTagFormOverlayComponent do
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           >
-            <%= gettext("Delete") %>
+            {gettext("Delete")}
           </.action>
         </:actions_left>
         <:actions>
@@ -81,7 +81,7 @@ defmodule LantternWeb.Students.StudentTagFormOverlayComponent do
             size="md"
             phx-click={JS.exec("data-cancel", to: "##{@id}")}
           >
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.action>
           <.action
             type="submit"
@@ -90,7 +90,7 @@ defmodule LantternWeb.Students.StudentTagFormOverlayComponent do
             icon_name="hero-check"
             form="student-tag-form"
           >
-            <%= gettext("Save") %>
+            {gettext("Save")}
           </.action>
         </:actions>
       </.slide_over>

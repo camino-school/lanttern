@@ -58,19 +58,18 @@ defmodule LantternWeb.Admin.ImportStudentsLive do
               :for={entry <- @uploads.csv.entries}
               class="flex items-center justify-center gap-2 mt-6 text-ltrn-dark"
             >
-              <.icon name="hero-document" />
-              <%= entry.client_name %>
+              <.icon name="hero-document" /> {entry.client_name}
             </div>
           </div>
           <%!-- <.live_file_input upload={@uploads.csv} /> --%>
           <.error :for={err <- @form[:csv].errors}>
-            <%= err %>
+            {err}
           </.error>
           <.error :for={err <- upload_errors(@uploads.csv)}>
-            <%= Phoenix.Naming.humanize(err) %>
+            {Phoenix.Naming.humanize(err)}
           </.error>
           <.error :if={@csv_error}>
-            <%= @csv_error %>
+            {@csv_error}
           </.error>
         </div>
 
@@ -84,7 +83,7 @@ defmodule LantternWeb.Admin.ImportStudentsLive do
     ~H"""
     <.steps state={@state}>
       <p class="mb-4">
-        We found <%= length(Map.keys(@csv_class_name_id_map)) %> classes in the CSV file.
+        We found {length(Map.keys(@csv_class_name_id_map))} classes in the CSV file.
       </p>
       <p class="mb-4">
         Select the class you want to link in the dropdown, or select "Create new" to create a new class.
@@ -96,7 +95,7 @@ defmodule LantternWeb.Admin.ImportStudentsLive do
             class="p-6 rounded-sm bg-white shadow-lg"
           >
             <p class="flex items-center gap-4 mb-6">
-              <%= class_in_csv %>
+              {class_in_csv}
               <%= if class_id != nil do %>
                 <.badge>Existing class</.badge>
               <% end %>
@@ -140,8 +139,8 @@ defmodule LantternWeb.Admin.ImportStudentsLive do
                 school_classes={@school_classes}
               />
             </td>
-            <td class="p-2"><%= row.name %></td>
-            <td class="p-2"><%= row.email %></td>
+            <td class="p-2">{row.name}</td>
+            <td class="p-2">{row.email}</td>
           </tr>
         </tbody>
       </table>
@@ -181,8 +180,8 @@ defmodule LantternWeb.Admin.ImportStudentsLive do
                 school_classes={@school_classes}
               />
             </td>
-            <td class="p-2"><%= csv_row.name %></td>
-            <td class="p-2"><%= csv_row.email %></td>
+            <td class="p-2">{csv_row.name}</td>
+            <td class="p-2">{csv_row.email}</td>
             <td class="p-2"><.import_status status={status} /></td>
           </tr>
         </tbody>
@@ -206,22 +205,22 @@ defmodule LantternWeb.Admin.ImportStudentsLive do
       <:num>1</:num>
       Upload students CSV file
     </.step>
-    <%= if @state == "uploading", do: render_slot(@inner_block) %>
+    {if @state == "uploading", do: render_slot(@inner_block)}
     <.step active={@state == "setting_up_classes"} class="mt-10">
       <:num>2</:num>
       Setup classes
     </.step>
-    <%= if @state == "setting_up_classes", do: render_slot(@inner_block) %>
+    {if @state == "setting_up_classes", do: render_slot(@inner_block)}
     <.step active={@state == "reviewing"} class="mt-10">
       <:num>3</:num>
       Review
     </.step>
-    <%= if @state == "reviewing", do: render_slot(@inner_block) %>
+    {if @state == "reviewing", do: render_slot(@inner_block)}
     <.step active={@state == "done"} class="mt-10">
       <:num>4</:num>
       Done
     </.step>
-    <%= if @state == "done", do: render_slot(@inner_block) %>
+    {if @state == "done", do: render_slot(@inner_block)}
     """
   end
 
@@ -241,9 +240,9 @@ defmodule LantternWeb.Admin.ImportStudentsLive do
         "flex items-center justify-center w-8 h-8 rounded-full font-black text-center",
         if(@active, do: "text-ltrn-white bg-ltrn-primary", else: "text-ltrn-subtle bg-ltrn-lighter")
       ]}>
-        <%= render_slot(@num) %>
+        {render_slot(@num)}
       </span>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </div>
     """
   end
@@ -254,7 +253,7 @@ defmodule LantternWeb.Admin.ImportStudentsLive do
 
   defp class_in_table(%{csv_class_id: ""} = assigns) do
     ~H"""
-    <%= @csv_class_name %>
+    {@csv_class_name}
     <.badge>New class</.badge>
     """
   end
@@ -270,7 +269,7 @@ defmodule LantternWeb.Admin.ImportStudentsLive do
       )
 
     ~H"""
-    <%= @class_name %>
+    {@class_name}
     """
   end
 
@@ -285,7 +284,7 @@ defmodule LantternWeb.Admin.ImportStudentsLive do
   defp import_status(%{status: {:error, _message}} = assigns) do
     ~H"""
     <.badge>Fail</.badge>
-    <%= elem(@status, 1) %>
+    {elem(@status, 1)}
     """
   end
 

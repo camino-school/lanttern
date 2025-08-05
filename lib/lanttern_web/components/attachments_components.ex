@@ -24,25 +24,25 @@ defmodule LantternWeb.AttachmentsComponents do
     ~H"""
     <.card_base id={@id} class={["p-6", @class]}>
       <%= if(@attachment.is_external) do %>
-        <.badge><%= gettext("External link") %></.badge>
+        <.badge>{gettext("External link")}</.badge>
         <a
           href={@attachment.link}
           target="_blank"
           class="block mt-2 text-sm underline hover:text-ltrn-subtle"
         >
-          <%= @attachment.name %>
+          {@attachment.name}
         </a>
       <% else %>
-        <.badge theme="cyan"><%= gettext("Upload") %></.badge>
+        <.badge theme="cyan">{gettext("Upload")}</.badge>
         <.link
           phx-click={@on_signed_url.(@attachment.link)}
           class="block mt-2 text-sm underline hover:text-ltrn-subtle"
           target="_blank"
         >
-          <%= @attachment.name %>
+          {@attachment.name}
         </.link>
       <% end %>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </.card_base>
     """
   end
@@ -101,26 +101,26 @@ defmodule LantternWeb.AttachmentsComponents do
                   class="block group-[.copied-to-clipboard]:hidden w-6 h-6"
                 />
                 <.icon name="hero-check hidden group-[.copied-to-clipboard]:block" class="w-6 h-6" />
-                <.tooltip><%= gettext("Copy attachment link markdown") %></.tooltip>
+                <.tooltip>{gettext("Copy attachment link markdown")}</.tooltip>
               </button>
               <div class="flex-1 min-w-0">
                 <%= if(attachment.is_external) do %>
-                  <.badge><%= gettext("External link") %></.badge>
+                  <.badge>{gettext("External link")}</.badge>
                   <a
                     href={attachment.link}
                     target="_blank"
                     class="block mt-2 text-sm underline hover:text-ltrn-subtle"
                   >
-                    <%= attachment.name %>
+                    {attachment.name}
                   </a>
                 <% else %>
-                  <.badge theme="cyan"><%= gettext("Upload") %></.badge>
+                  <.badge theme="cyan">{gettext("Upload")}</.badge>
                   <.link
                     phx-click={@on_signed_url.(attachment.link)}
                     class="block mt-2 text-sm underline hover:text-ltrn-subtle"
                     target="_blank"
                   >
-                    <%= attachment.name %>
+                    {attachment.name}
                   </.link>
                 <% end %>
                 <div :if={@on_toggle_share} class="flex items-center gap-2 mt-6">
@@ -130,10 +130,10 @@ defmodule LantternWeb.AttachmentsComponents do
                     phx-click={@on_toggle_share.(attachment.id, i)}
                   />
                   <span :if={attachment.is_shared} class="text-ltrn-student-dark">
-                    <%= gettext("Shared with students and guardians") %>
+                    {gettext("Shared with students and guardians")}
                   </span>
                   <span :if={!attachment.is_shared} class="text-ltrn-subtle">
-                    <%= gettext("Share with students and guardians") %>
+                    {gettext("Share with students and guardians")}
                   </span>
                 </div>
               </div>
@@ -157,22 +157,22 @@ defmodule LantternWeb.AttachmentsComponents do
         <% else %>
           <div class="flex-1 min-w-0 p-4 rounded-sm bg-white shadow-lg">
             <%= if(attachment.is_external) do %>
-              <.badge><%= gettext("External link") %></.badge>
+              <.badge>{gettext("External link")}</.badge>
               <a
                 href={attachment.link}
                 target="_blank"
                 class="block mt-2 text-sm underline hover:text-ltrn-subtle"
               >
-                <%= attachment.name %>
+                {attachment.name}
               </a>
             <% else %>
-              <.badge theme="cyan"><%= gettext("Upload") %></.badge>
+              <.badge theme="cyan">{gettext("Upload")}</.badge>
               <.link
                 phx-click={@on_signed_url.(attachment.link)}
                 class="block mt-2 text-sm underline hover:text-ltrn-subtle"
                 target="_blank"
               >
-                <%= attachment.name %>
+                {attachment.name}
               </.link>
             <% end %>
           </div>

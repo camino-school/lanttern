@@ -13,9 +13,9 @@ defmodule LantternWeb.SchoolLive.StaffComponent do
     <div>
       <div class="flex justify-between gap-6 p-4">
         <div class="flex gap-4">
-          <%= ngettext("1 active staff member", "%{count} active staff members", @staff_length) %>
+          {ngettext("1 active staff member", "%{count} active staff members", @staff_length)}
           <.action type="link" theme="subtle" navigate={~p"/school/staff/deactivated"}>
-            <%= gettext("View deactivated staff members") %>
+            {gettext("View deactivated staff members")}
           </.action>
         </div>
         <.action
@@ -24,11 +24,11 @@ defmodule LantternWeb.SchoolLive.StaffComponent do
           patch={~p"/school/staff?new=true"}
           icon_name="hero-plus-circle-mini"
         >
-          <%= gettext("Add staff member") %>
+          {gettext("Add staff member")}
         </.action>
       </div>
       <%= if @staff_length == 0 do %>
-        <.empty_state class="px-4 py-10"><%= gettext("No staff members found") %></.empty_state>
+        <.empty_state class="px-4 py-10">{gettext("No staff members found")}</.empty_state>
       <% else %>
         <.fluid_grid id="staff-members" phx-update="stream" is_full_width class="p-4">
           <.card_base
@@ -46,15 +46,15 @@ defmodule LantternWeb.SchoolLive.StaffComponent do
                 navigate={~p"/school/staff/#{staff_member}"}
                 class="font-bold hover:text-ltrn-subtle"
               >
-                <%= staff_member.name %>
+                {staff_member.name}
               </.link>
-              <div class="text-xs text-ltrn-subtle"><%= staff_member.role %></div>
+              <div class="text-xs text-ltrn-subtle">{staff_member.role}</div>
               <div
                 :if={staff_member.email}
                 class="mt-2 text-xs text-ltrn-subtle truncate"
                 title={staff_member.email}
               >
-                <%= staff_member.email %>
+                {staff_member.email}
               </div>
             </div>
             <.button

@@ -10,7 +10,7 @@ defmodule LantternWeb.Admin.RubricLive.FormComponent do
     ~H"""
     <div>
       <.header>
-        <%= @title %>
+        {@title}
         <:subtitle>Use this form to manage rubric records in your database.</:subtitle>
       </.header>
 

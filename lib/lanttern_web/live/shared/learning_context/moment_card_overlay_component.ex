@@ -26,11 +26,11 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
     <div>
       <.modal id={@id} show on_cancel={@on_cancel}>
         <h4 class="mb-10 font-display font-black text-xl">
-          <%= case {@is_editing, @moment_card} do
+          {case {@is_editing, @moment_card} do
             {_, %{id: nil}} -> gettext("New moment card")
             {true, _} -> gettext("Edit moment card")
             {false, %{name: name}} -> name
-          end %>
+          end}
         </h4>
         <.main
           id={@id}
@@ -73,18 +73,18 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
 
   def main(%{is_selecting_template: true} = assigns) do
     ~H"""
-    <p><%= gettext("Select a template from the list below to create the card") %></p>
+    <p>{gettext("Select a template from the list below to create the card")}</p>
     <.card_base class="p-4 mt-6">
       <div class="flex items-center gap-4">
         <p class="flex-1 font-bold text-base">
-          <%= gettext("Create a new moment card from scratch") %>
+          {gettext("Create a new moment card from scratch")}
         </p>
         <.action
           type="button"
           icon_name="hero-arrow-right-mini"
           phx-click={JS.push("select_blank_template", target: @myself)}
         >
-          <%= gettext("Select") %>
+          {gettext("Select")}
         </.action>
       </div>
     </.card_base>
@@ -92,7 +92,7 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
       <.card_base :for={{dom_id, template} <- @templates} id={dom_id} class="p-4 mt-6">
         <div class="flex items-center gap-4">
           <p class="flex-1 font-bold text-base">
-            <%= template.name %>
+            {template.name}
           </p>
           <.action
             type="button"
@@ -104,7 +104,7 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
               )
             }
           >
-            <%= gettext("Select") %>
+            {gettext("Select")}
           </.action>
         </div>
       </.card_base>
@@ -123,7 +123,7 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
       phx-target={@myself}
     >
       <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
-        <%= gettext("Oops, something went wrong! Please check the errors below.") %>
+        {gettext("Oops, something went wrong! Please check the errors below.")}
       </.error_block>
       <.input
         field={@form[:name]}
@@ -144,7 +144,7 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
         class="p-4 border border-ltrn-staff-accent rounded-xs mb-6 bg-ltrn-staff-lightest"
       >
         <h6 class="font-display font-black font-lg text-ltrn-staff-dark">
-          <%= gettext("Template instructions") %>
+          {gettext("Template instructions")}
         </h6>
         <.markdown text={@template_instructions} class="mt-4" />
       </div>
@@ -174,13 +174,13 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
           label={gettext("Share with students and guardians")}
         />
         <p class="mt-4">
-          <%= gettext(
+          {gettext(
             "If active the card and selected attachments will be displayed for students and guardians in the strand moment details page"
-          ) %>
+          )}
         </p>
       </div>
       <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
-        <%= gettext("Oops, something went wrong! Please check the errors above.") %>
+        {gettext("Oops, something went wrong! Please check the errors above.")}
       </.error_block>
       <div class="flex items-center justify-end gap-6">
         <.action
@@ -194,10 +194,10 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
             )
           }
         >
-          <%= gettext("Cancel") %>
+          {gettext("Cancel")}
         </.action>
         <.action type="submit" theme="primary" size="md" icon_name="hero-check">
-          <%= gettext("Save") %>
+          {gettext("Save")}
         </.action>
       </div>
     </.form>
@@ -210,13 +210,13 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
     <.markdown text={@moment_card.description} class="mt-6" />
     <div :if={@moment_card.teacher_instructions} class="p-4 rounded-xs mt-6 bg-ltrn-staff-lightest">
       <p class="mb-4 font-bold text-ltrn-staff-dark">
-        <%= gettext("Teacher instructions") %>
+        {gettext("Teacher instructions")}
       </p>
       <.markdown text={@moment_card.teacher_instructions} />
     </div>
     <div :if={@moment_card.differentiation} class="p-4 rounded-xs mt-6 bg-ltrn-diff-lightest">
       <p class="mb-4 font-bold text-ltrn-diff-dark">
-        <%= gettext("Differentiation notes") %>
+        {gettext("Differentiation notes")}
       </p>
       <.markdown text={@moment_card.differentiation} />
     </div>
@@ -226,11 +226,11 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
     >
       <.icon name="hero-users-mini" />
       <p class="font-bold">
-        <%= gettext("Visible to students and guardians") %>
+        {gettext("Visible to students and guardians")}
       </p>
     </div>
     <.error_block :if={@is_deleted} class="mt-10">
-      <%= gettext("This card was deleted") %>
+      {gettext("This card was deleted")}
     </.error_block>
     <div :if={!@is_deleted && @allow_edit} class="flex justify-between gap-4 mt-10">
       <.action
@@ -240,10 +240,10 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
         theme="subtle"
         data-confirm={gettext("Are you sure?")}
       >
-        <%= gettext("Delete") %>
+        {gettext("Delete")}
       </.action>
       <.action type="button" icon_name="hero-pencil-mini" phx-click={JS.push("edit", target: @myself)}>
-        <%= gettext("Edit card") %>
+        {gettext("Edit card")}
       </.action>
     </div>
     """

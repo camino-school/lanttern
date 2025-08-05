@@ -15,7 +15,7 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
     ~H"""
     <div>
       <.action_bar class="flex items-center justify-between">
-        <p><%= gettext("Moments linked to this strand") %></p>
+        <p>{gettext("Moments linked to this strand")}</p>
         <div class="shrink-0 flex items-center gap-4">
           <.action
             :if={@moments_count > 1}
@@ -23,21 +23,21 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
             phx-click={JS.exec("data-show", to: "#strand-moments-order-overlay")}
             icon_name="hero-arrows-up-down-mini"
           >
-            <%= gettext("Reorder") %>
+            {gettext("Reorder")}
           </.action>
           <.action
             type="link"
             patch={~p"/strands/#{@strand}/moments?new_moment=true"}
             icon_name="hero-plus-circle-mini"
           >
-            <%= gettext("Create new moment") %>
+            {gettext("Create new moment")}
           </.action>
         </div>
       </.action_bar>
       <%= if @moments_count == 0 do %>
         <div class="p-4">
           <.card_base class="p-10">
-            <.empty_state><%= gettext("No moments for this strand yet") %></.empty_state>
+            <.empty_state>{gettext("No moments for this strand yet")}</.empty_state>
           </.card_base>
         </div>
       <% else %>
@@ -47,11 +47,11 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
               navigate={~p"/strands/moment/#{moment.id}"}
               class="font-display font-black text-xl hover:text-ltrn-subtle"
             >
-              <%= moment.name %>
+              {moment.name}
             </.link>
             <div class="flex flex-wrap gap-2 mt-2">
               <.badge :for={subject <- moment.subjects}>
-                <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name) %>
+                {Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name)}
               </.badge>
             </div>
             <div class="mt-6 line-clamp-6">
@@ -72,7 +72,7 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
         show={true}
         on_cancel={JS.patch(~p"/strands/#{@strand}/moments")}
       >
-        <:title><%= gettext("New moment") %></:title>
+        <:title>{gettext("New moment")}</:title>
         <.live_component
           module={MomentFormComponent}
           id={:new}
@@ -88,10 +88,10 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
             theme="ghost"
             phx-click={JS.exec("data-cancel", to: "#moment-form-overlay")}
           >
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.button>
           <.button type="submit" form="moment-form">
-            <%= gettext("Save") %>
+            {gettext("Save")}
           </.button>
         </:actions>
       </.slide_over>
@@ -112,7 +112,7 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
   def reorder_overlay(assigns) do
     ~H"""
     <.slide_over id="strand-moments-order-overlay">
-      <:title><%= gettext("Strand Moments Order") %></:title>
+      <:title>{gettext("Strand Moments Order")}</:title>
       <ol>
         <li :for={{moment, i} <- @sortable_moments} id={"sortable-moment-#{moment.id}"} class="mb-4">
           <.sortable_card
@@ -123,7 +123,7 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
               JS.push("set_moment_position", value: %{from: i, to: i + 1}, target: @myself)
             }
           >
-            <%= "#{i + 1}. #{moment.name}" %>
+            {"#{i + 1}. #{moment.name}"}
           </.sortable_card>
         </li>
       </ol>
@@ -133,10 +133,10 @@ defmodule LantternWeb.StrandLive.MomentsComponent do
           theme="ghost"
           phx-click={JS.exec("data-cancel", to: "#strand-moments-order-overlay")}
         >
-          <%= gettext("Cancel") %>
+          {gettext("Cancel")}
         </.button>
         <.button type="button" phx-click="save_order" phx-target={@myself}>
-          <%= gettext("Save") %>
+          {gettext("Save")}
         </.button>
       </:actions>
     </.slide_over>

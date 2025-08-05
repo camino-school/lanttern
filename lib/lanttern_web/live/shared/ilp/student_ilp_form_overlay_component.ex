@@ -25,7 +25,7 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
     ~H"""
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
       <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
-        <:title><%= @title %></:title>
+        <:title>{@title}</:title>
         <.form
           id="student-ilp-form"
           for={@form}
@@ -34,7 +34,7 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
           phx-target={@myself}
         >
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
-            <%= gettext("Oops, something went wrong! Please check the errors below.") %>
+            {gettext("Oops, something went wrong! Please check the errors below.")}
           </.error_block>
           <div class="mb-6">
             <.inputs_for :let={template_f} field={@form[:template]}>
@@ -44,14 +44,14 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
                   id={"#{@id}-section-#{section_f.data.id}"}
                 >
                   <div class="font-display font-black text-base">
-                    <%= section_f.data.name %>
+                    {section_f.data.name}
                   </div>
                   <.inputs_for :let={component_f} field={section_f[:components]}>
                     <div
                       class="p-4 rounded-sm mt-2 bg-ltrn-lightest"
                       id={"#{@id}-component-#{component_f.data.id}"}
                     >
-                      <div class="mb-2 font-bold"><%= component_f.data.name %></div>
+                      <div class="mb-2 font-bold">{component_f.data.name}</div>
                       <.inputs_for :let={entry_f} field={component_f[:entry]}>
                         <.input type="markdown" field={entry_f[:description]} phx-debounce="1500" />
                       </.inputs_for>
@@ -79,13 +79,13 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
             />
             <div :if={@template.teacher_description} class="mt-6">
               <p class="mb-2 font-bold text-ltrn-staff-dark">
-                <%= gettext("Template instructions") %>
+                {gettext("Template instructions")}
               </p>
               <.markdown text={@template.teacher_description} />
             </div>
           </div>
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
-            <%= gettext("Oops, something went wrong! Please check the errors above.") %>
+            {gettext("Oops, something went wrong! Please check the errors above.")}
           </.error_block>
         </.form>
         <:actions_left :if={@student_ilp.id}>
@@ -97,7 +97,7 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           >
-            <%= gettext("Delete") %>
+            {gettext("Delete")}
           </.action>
         </:actions_left>
         <:actions>
@@ -107,7 +107,7 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
             size="md"
             phx-click={JS.exec("data-cancel", to: "##{@id}")}
           >
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.action>
           <.action
             type="submit"
@@ -116,7 +116,7 @@ defmodule LantternWeb.ILP.StudentILPFormOverlayComponent do
             icon_name="hero-check"
             form="student-ilp-form"
           >
-            <%= gettext("Save") %>
+            {gettext("Save")}
           </.action>
         </:actions>
       </.slide_over>

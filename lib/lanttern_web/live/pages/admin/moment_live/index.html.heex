@@ -12,19 +12,19 @@
   rows={@streams.moments}
   row_click={fn {_id, moment} -> JS.navigate(~p"/admin/moments/#{moment}") end}
 >
-  <:col :let={{_id, moment}} label="Strand"><%= moment.strand.name %></:col>
-  <:col :let={{_id, moment}} label="Name"><%= moment.name %></:col>
-  <:col :let={{_id, moment}} label="Description"><%= moment.description %></:col>
-  <:col :let={{_id, moment}} label="Position"><%= moment.position %></:col>
+  <:col :let={{_id, moment}} label="Strand">{moment.strand.name}</:col>
+  <:col :let={{_id, moment}} label="Name">{moment.name}</:col>
+  <:col :let={{_id, moment}} label="Description">{moment.description}</:col>
+  <:col :let={{_id, moment}} label="Position">{moment.position}</:col>
   <:col :let={{_id, strand}} label="Subjects">
-    <%= strand.subjects
+    {strand.subjects
     |> Enum.map(& &1.name)
-    |> Enum.join(", ") %>
+    |> Enum.join(", ")}
   </:col>
   <:col :let={{_id, strand}} label="Curriculum items">
-    <%= strand.curriculum_items
+    {strand.curriculum_items
     |> Enum.map(& &1.name)
-    |> Enum.join(", ") %>
+    |> Enum.join(", ")}
   </:col>
   <:action :let={{_id, moment}}>
     <div class="sr-only">
@@ -49,7 +49,7 @@
   on_cancel={JS.patch(~p"/admin/moments")}
 >
   <.header>
-    <%= @page_title %>
+    {@page_title}
     <:subtitle>Use this form to manage moment records in your database.</:subtitle>
   </.header>
   <.live_component

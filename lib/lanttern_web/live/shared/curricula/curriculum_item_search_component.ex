@@ -11,14 +11,14 @@ defmodule LantternWeb.Curricula.CurriculumItemSearchComponent do
     ~H"""
     <div class={@class}>
       <.label :if={@label} for={@id}>
-        <%= @label %>
+        {@label}
       </.label>
       <p class="mb-2 text-sm">
-        <%= gettext("You can search by id adding # before the id") %>
+        {gettext("You can search by id adding # before the id")}
         <.inline_code>
           #123
         </.inline_code>
-        <%= gettext("and search by code wrapping it in parenthesis") %>
+        {gettext("and search by code wrapping it in parenthesis")}
         <.inline_code>
           (ABC123)
         </.inline_code>
@@ -73,11 +73,9 @@ defmodule LantternWeb.Curricula.CurriculumItemSearchComponent do
           >
             <div class="flex-1 truncate group-aria-selected:font-bold" }>
               <span class="font-bold text-xs">
-                #<%= result.id %>
-                <span :if={result.code}>(<%= result.code %>)</span>
+                #{result.id} <span :if={result.code}>({result.code})</span>
               </span>
-              <br />
-              <%= result.name %>
+              <br /> {result.name}
             </div>
             <.icon
               name="hero-check"

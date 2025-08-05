@@ -38,7 +38,7 @@ defmodule LantternWeb.StudentLive.GradesReportsComponent do
           />
         </div>
       <% else %>
-        <.empty_state><%= gettext("No grades report linked to student") %></.empty_state>
+        <.empty_state>{gettext("No grades report linked to student")}</.empty_state>
       <% end %>
       <.live_component
         :if={@student_grades_report_entry_id}

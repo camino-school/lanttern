@@ -1,5 +1,5 @@
 <.header_nav current_user={@current_user}>
-  <:title><%= gettext("Report cards") %></:title>
+  <:title>{gettext("Report cards")}</:title>
   <div class="flex items-center gap-6 p-4">
     <div class="flex-1 flex items-center gap-6 min-w-0">
       <.action
@@ -7,32 +7,32 @@
         phx-click={JS.exec("data-show", to: "#report-cards-cycle-filters-overlay")}
         icon_name="hero-chevron-down-mini"
       >
-        <%= format_action_items_text(
+        {format_action_items_text(
           @selected_cycles,
           gettext(
             "All %{parent_cycle} cycles",
             parent_cycle:
               Map.get(@current_user.current_profile.current_school_cycle || %{}, :name)
           )
-        ) %>
+        )}
       </.action>
       <.action
         type="button"
         phx-click={JS.exec("data-show", to: "#report-cards-year-filters-overlay")}
         icon_name="hero-chevron-down-mini"
       >
-        <%= format_action_items_text(@selected_years, gettext("All years")) %>
+        {format_action_items_text(@selected_years, gettext("All years"))}
       </.action>
     </div>
     <.action type="link" patch={~p"/report_cards/new"} icon_name="hero-plus-circle-mini">
-      <%= gettext("Create new report card") %>
+      {gettext("Create new report card")}
     </.action>
   </div>
 </.header_nav>
 <%= if @has_report_cards do %>
   <div phx-update="stream" id="cycle-report-cards-grid">
     <div :for={{dom_id, {cycle, report_cards}} <- @streams.cycles_and_report_cards} id={dom_id}>
-      <h6 class="sticky top-[5rem] p-4 font-display font-bold"><%= cycle.name %></h6>
+      <h6 class="sticky top-[5rem] p-4 font-display font-bold">{cycle.name}</h6>
       <.responsive_grid class="px-4 pb-4" is_full_width>
         <.report_card_card
           :for={report_card <- report_cards}
@@ -47,7 +47,7 @@
   </div>
 <% else %>
   <.empty_state>
-    <%= gettext("No report cards created yet") %>
+    {gettext("No report cards created yet")}
   </.empty_state>
 <% end %>
 <.live_component
@@ -85,7 +85,7 @@
   show={true}
   on_cancel={JS.patch(~p"/report_cards")}
 >
-  <:title><%= gettext("New report card") %></:title>
+  <:title>{gettext("New report card")}</:title>
   <.live_component
     module={ReportCardFormComponent}
     id={:new}
@@ -100,10 +100,10 @@
       theme="ghost"
       phx-click={JS.exec("data-cancel", to: "#report-card-form-overlay")}
     >
-      <%= gettext("Cancel") %>
+      {gettext("Cancel")}
     </.button>
     <.button type="submit" form="report-card-form">
-      <%= gettext("Save") %>
+      {gettext("Save")}
     </.button>
   </:actions>
 </.slide_over>

@@ -317,7 +317,7 @@ defmodule LantternWeb.StudentLiveTest do
       |> assert_has("h2", text: "Edit")
       |> fill_in("Content", with: new_attrs.content)
       |> assert_has("h5", text: "Attachments")
-      |> click_button("#external-link-button", "add a link")
+      |> click_button("#ilp-comment-external-link-button", "add a link")
       |> fill_in("Attachment name", with: "Site")
       |> fill_in("Link", with: "https://www.algo.com")
       |> click_button("#save-external-attachment", "Save")

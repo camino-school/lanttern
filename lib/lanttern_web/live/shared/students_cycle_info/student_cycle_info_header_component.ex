@@ -49,10 +49,10 @@ defmodule LantternWeb.StudentsCycleInfo.StudentCycleInfoHeaderComponent do
             "font-display font-black text-2xl",
             if(@show_deactivated && @student.deactivated_at, do: "text-ltrn-subtle")
           ]}>
-            <%= @student.name %>
+            {@student.name}
           </h2>
           <.badge :if={@show_deactivated && @student.deactivated_at} theme="dark">
-            <%= gettext("Deactivated") %>
+            {gettext("Deactivated")}
           </.badge>
         </div>
         <div class="flex items-center gap-4 mt-2">
@@ -62,7 +62,7 @@ defmodule LantternWeb.StudentsCycleInfo.StudentCycleInfoHeaderComponent do
               id="current-cycle-dropdown-button"
               icon_name="hero-chevron-down-mini"
             >
-              <%= @current_cycle.name %>
+              {@current_cycle.name}
             </.action>
             <.dropdown_menu
               id="current-cycle-dropdown"
@@ -78,11 +78,11 @@ defmodule LantternWeb.StudentsCycleInfo.StudentCycleInfoHeaderComponent do
           </div>
           <%= if @current_classes == [] do %>
             <.badge>
-              <%= gettext("No classes linked to student in cycle") %>
+              {gettext("No classes linked to student in cycle")}
             </.badge>
           <% else %>
             <.badge :for={class <- @current_classes} id={"current-student-class-#{class.id}"}>
-              <%= class.name %>
+              {class.name}
             </.badge>
           <% end %>
         </div>

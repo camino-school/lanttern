@@ -1,8 +1,8 @@
 <.header_nav current_user={@current_user}>
   <:breadcrumb navigate={~p"/school/students"}>
-    <%= @current_user.current_profile.school_name %>
+    {@current_user.current_profile.school_name}
   </:breadcrumb>
-  <:title><%= gettext("Students settings") %></:title>
+  <:title>{gettext("Students settings")}</:title>
 </.header_nav>
 <.live_component
   module={TagsComponent}

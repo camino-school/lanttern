@@ -20,26 +20,26 @@ defmodule LantternWeb.Rubrics.RubricDiffInfoOverlayComponent do
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
       <.modal id={@id} show={true} on_cancel={@on_cancel}>
         <h5 class="mb-10 font-display font-black text-xl text-ltrn-diff-dark">
-          <%= gettext("Differentiation rubrics and students") %>
+          {gettext("Differentiation rubrics and students")}
         </h5>
         <div class="prose prose-sm">
           <p>
-            <%= gettext("There are two ways to \"connect\" students and differentiation rubrics:") %>
+            {gettext("There are two ways to \"connect\" students and differentiation rubrics:")}
           </p>
           <ol>
             <li>
-              <%= gettext("Assigning a differentiation rubric in a student assessment point entry;") %>
+              {gettext("Assigning a differentiation rubric in a student assessment point entry;")}
             </li>
             <li>
-              <%= gettext(
+              {gettext(
                 "Using the rubric with a differentiation assessment point (curriculum differentiation)."
-              ) %>
+              )}
             </li>
           </ol>
         </div>
         <%= if @has_students do %>
           <p class="mt-10 font-bold">
-            <%= gettext("Students currently linked to the selected rubric") %>
+            {gettext("Students currently linked to the selected rubric")}
           </p>
           <div id={"#{@id}-students"} phx-updpate="stream">
             <.profile_picture_with_name
@@ -53,7 +53,7 @@ defmodule LantternWeb.Rubrics.RubricDiffInfoOverlayComponent do
           </div>
         <% else %>
           <.empty_state_simple class="mt-10">
-            <%= gettext("No differentiation students linked to this rubric") %>
+            {gettext("No differentiation students linked to this rubric")}
           </.empty_state_simple>
         <% end %>
       </.modal>

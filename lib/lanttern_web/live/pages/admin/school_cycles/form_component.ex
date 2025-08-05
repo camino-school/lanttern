@@ -9,7 +9,7 @@ defmodule LantternWeb.Admin.CycleLive.FormComponent do
     ~H"""
     <div>
       <.header>
-        <%= @title %>
+        {@title}
         <:subtitle>Use this form to manage cycle records in your database.</:subtitle>
       </.header>
 

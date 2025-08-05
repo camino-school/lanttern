@@ -20,7 +20,7 @@ defmodule LantternWeb.SchoolLive.MomentCardsTemplatesComponent do
     <div>
       <.action_bar class="flex items-center justify-between gap-4">
         <p>
-          <%= gettext("Templates for new moment cards") %>
+          {gettext("Templates for new moment cards")}
         </p>
         <div class="flex gap-4">
           <.action
@@ -29,7 +29,7 @@ defmodule LantternWeb.SchoolLive.MomentCardsTemplatesComponent do
             patch={~p"/school/moment_cards_templates?reorder=true"}
             icon_name="hero-arrows-up-down-mini"
           >
-            <%= gettext("Reorder") %>
+            {gettext("Reorder")}
           </.action>
           <.action
             :if={@is_content_manager}
@@ -37,14 +37,14 @@ defmodule LantternWeb.SchoolLive.MomentCardsTemplatesComponent do
             patch={~p"/school/moment_cards_templates?new=true"}
             icon_name="hero-plus-circle-mini"
           >
-            <%= gettext("Add card template") %>
+            {gettext("Add card template")}
           </.action>
         </div>
       </.action_bar>
       <%= if @templates_count == 0 do %>
         <div class="p-4">
           <.card_base class="p-10">
-            <.empty_state><%= gettext("No templates created yet") %></.empty_state>
+            <.empty_state>{gettext("No templates created yet")}</.empty_state>
           </.card_base>
         </div>
       <% else %>
@@ -54,7 +54,7 @@ defmodule LantternWeb.SchoolLive.MomentCardsTemplatesComponent do
               patch={~p"/school/moment_cards_templates?id=#{template.id}"}
               class="font-display font-black text-xl hover:text-ltrn-subtle"
             >
-              <%= template.name %>
+              {template.name}
             </.link>
             <div class="mt-6 line-clamp-4">
               <.markdown text={template.template} />
@@ -77,7 +77,7 @@ defmodule LantternWeb.SchoolLive.MomentCardsTemplatesComponent do
         id="moment-cards-templates-order-overlay"
         on_cancel={JS.patch(~p"/school/moment_cards_templates")}
       >
-        <:title><%= gettext("Moment cards templates order") %></:title>
+        <:title>{gettext("Moment cards templates order")}</:title>
         <ol>
           <li
             :for={{template, i} <- @sortable_templates}
@@ -94,7 +94,7 @@ defmodule LantternWeb.SchoolLive.MomentCardsTemplatesComponent do
                 JS.push("set_template_position", value: %{from: i, to: i + 1}, target: @myself)
               }
             >
-              <%= "#{i + 1}. #{template.name}" %>
+              {"#{i + 1}. #{template.name}"}
             </.sortable_card>
           </li>
         </ol>
@@ -104,10 +104,10 @@ defmodule LantternWeb.SchoolLive.MomentCardsTemplatesComponent do
             theme="ghost"
             phx-click={JS.exec("data-cancel", to: "#moment-cards-templates-order-overlay")}
           >
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.button>
           <.button type="button" phx-click="save_order" phx-target={@myself}>
-            <%= gettext("Save") %>
+            {gettext("Save")}
           </.button>
         </:actions>
       </.slide_over>

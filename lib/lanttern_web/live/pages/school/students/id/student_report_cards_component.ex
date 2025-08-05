@@ -24,7 +24,7 @@ defmodule LantternWeb.StudentLive.StudentReportCardsComponent do
           />
         </.responsive_grid>
       <% else %>
-        <.empty_state><%= gettext("No report cards linked to student") %></.empty_state>
+        <.empty_state>{gettext("No report cards linked to student")}</.empty_state>
       <% end %>
     </div>
     """

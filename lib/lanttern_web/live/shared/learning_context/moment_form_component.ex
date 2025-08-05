@@ -60,7 +60,7 @@ defmodule LantternWeb.LearningContext.MomentFormComponent do
           <.input field={@form[:position]} type="number" label={gettext("Position")} class="mb-6" />
           <div class="flex justify-end">
             <.button type="submit" phx-disable-with={gettext("Saving...")}>
-              <%= gettext("Save moment") %>
+              {gettext("Save moment")}
             </.button>
           </div>
         </div>

@@ -38,9 +38,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportFinalEntryFormComponent d
             :if={@has_manual_edit}
             class="p-2 rounded-xs border border-ltrn-staff-accent mt-2 text-sm bg-ltrn-staff-lightest"
           >
-            <%= gettext(
-              "Different from grade composition. Use comments field to justify it if needed."
-            ) %>
+            {gettext("Different from grade composition. Use comments field to justify it if needed.")}
           </p>
         </div>
         <.input
@@ -74,11 +72,11 @@ defmodule LantternWeb.GradesReports.StudentGradesReportFinalEntryFormComponent d
             label={gettext("Score before retake")}
           />
           <p class="mt-4 text-sm">
-            <%= gettext("If needed, use this area to keep the student grade history before retake.") %>
+            {gettext("If needed, use this area to keep the student grade history before retake.")}
           </p>
         </div>
         <.button :if={!@hide_submit} phx-disable-with={gettext("Saving...")}>
-          <%= gettext("Save student grades report final entry") %>
+          {gettext("Save student grades report final entry")}
         </.button>
       </.form>
     </div>

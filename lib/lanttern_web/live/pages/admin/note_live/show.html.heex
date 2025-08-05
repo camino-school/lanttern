@@ -1,5 +1,5 @@
 <.header>
-  Note <%= @note.id %>
+  Note {@note.id}
   <:subtitle>This is a note record from your database.</:subtitle>
   <:actions>
     <.link patch={~p"/admin/notes/#{@note}/show/edit"} phx-click={JS.push_focus()}>
@@ -10,15 +10,15 @@
 
 <.list>
   <:item title="Author">
-    <%= case @note.author.type do
+    {case @note.author.type do
       "staff" ->
         "Teacher: #{@note.author.staff_member.name}"
 
       "student" ->
         "Student: #{@note.author.student.name}"
-    end %>
+    end}
   </:item>
-  <:item title="Description"><%= @note.description %></:item>
+  <:item title="Description">{@note.description}</:item>
 </.list>
 
 <.back navigate={~p"/admin/notes"}>Back to notes</.back>

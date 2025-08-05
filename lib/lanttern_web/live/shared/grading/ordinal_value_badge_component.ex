@@ -23,7 +23,7 @@ defmodule LantternWeb.Grading.OrdinalValueBadgeComponent do
     ~H"""
     <div class={@class} id={@id}>
       <.badge color_map={@ordinal_value}>
-        <%= @ordinal_value.name %>
+        {@ordinal_value.name}
       </.badge>
     </div>
     """

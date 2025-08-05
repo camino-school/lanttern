@@ -44,7 +44,7 @@ defmodule LantternWeb.AssessmentsComponents do
       id={@id}
       title={if @is_short, do: @entry.ordinal_value.name}
     >
-      <%= @ov_name %>
+      {@ov_name}
     </.badge>
     """
   end
@@ -53,7 +53,7 @@ defmodule LantternWeb.AssessmentsComponents do
       when not is_nil(score) do
     ~H"""
     <.badge class={@class} id={@id}>
-      <%= @entry.score %>
+      {@entry.score}
     </.badge>
     """
   end
@@ -70,7 +70,7 @@ defmodule LantternWeb.AssessmentsComponents do
 
     ~H"""
     <.badge class={@class} id={@id} theme="empty">
-      <%= @text %>
+      {@text}
     </.badge>
     """
   end
@@ -98,7 +98,7 @@ defmodule LantternWeb.AssessmentsComponents do
         assessment_point_entry_display_base_classes(),
         "border border-ltrn-light border-dashed text-ltrn-subtle"
       ]}>
-        <%= gettext("Final assessment not available yet") %>
+        {gettext("Final assessment not available yet")}
       </div>
     </div>
     """
@@ -132,10 +132,10 @@ defmodule LantternWeb.AssessmentsComponents do
       <.assessment_point_entry_value_display entry={@entry} />
       <.assessment_point_entry_value_display :if={@show_student_assessment} entry={@entry} is_student />
       <div :if={@show_student_assessment} class="text-xs text-center text-ltrn-staff-dark">
-        <%= gettext("Teacher assessment") %>
+        {gettext("Teacher assessment")}
       </div>
       <div :if={@show_student_assessment} class="text-xs text-center text-ltrn-student-dark">
-        <%= gettext("Student self-assessment") %>
+        {gettext("Student self-assessment")}
       </div>
     </div>
     """
@@ -158,7 +158,7 @@ defmodule LantternWeb.AssessmentsComponents do
         class={[assessment_point_entry_display_base_classes(), "shadow-lg"]}
         style={create_color_map_style(@ov)}
       >
-        <%= @ov.name %>
+        {@ov.name}
       </div>
     <% else %>
       <.assessment_point_entry_value_empty_display />
@@ -180,7 +180,7 @@ defmodule LantternWeb.AssessmentsComponents do
         assessment_point_entry_display_base_classes(),
         "border border-ltrn-lighter bg-white shadow-lg"
       ]}>
-        <%= @score %>
+        {@score}
       </div>
     <% else %>
       <.assessment_point_entry_value_empty_display />
@@ -200,7 +200,7 @@ defmodule LantternWeb.AssessmentsComponents do
       assessment_point_entry_display_base_classes(),
       "border border-dashed border-ltrn-light bg-ltrn-lighter"
     ]}>
-      <%= gettext("No entry") %>
+      {gettext("No entry")}
     </div>
     """
   end
@@ -230,7 +230,7 @@ defmodule LantternWeb.AssessmentsComponents do
     ~H"""
     <div class="relative">
       <.action type="button" id="group-by-dropdown-button" icon_name="hero-chevron-down-mini">
-        <%= @text %>
+        {@text}
       </.action>
       <.dropdown_menu id="group-by-dropdown" button_id="group-by-dropdown-button" z_index="30">
         <:item text={gettext("Show only goals assessments")} on_click={@on_change.(nil)} />
@@ -268,7 +268,7 @@ defmodule LantternWeb.AssessmentsComponents do
         icon_name="hero-chevron-down-mini"
         theme={@theme}
       >
-        <%= @text %>
+        {@text}
       </.action>
       <.dropdown_menu id="view-dropdown" button_id="view-dropdown-button" z_index="30">
         <:item text={gettext("Assessed by teacher")} on_click={@on_change.("teacher")} />

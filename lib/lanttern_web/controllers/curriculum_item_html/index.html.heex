@@ -28,28 +28,28 @@
   </:actions>
 </.simple_form>
 
-<p class="mt-6">Listing <%= length(@curriculum_items) %> results</p>
+<p class="mt-6">Listing {length(@curriculum_items)} results</p>
 
 <.table
   id="curriculum_items"
   rows={@curriculum_items}
   row_click={&JS.navigate(~p"/admin/curriculum_items/#{&1}")}
 >
-  <:col :let={curriculum_item} label="Code"><%= curriculum_item.code %></:col>
+  <:col :let={curriculum_item} label="Code">{curriculum_item.code}</:col>
   <:col :let={curriculum_item} label="Component">
-    <%= curriculum_item.curriculum_component.name %>
+    {curriculum_item.curriculum_component.name}
   </:col>
   <:col :let={curriculum_item} label="Subject">
     <%= for subject <- curriculum_item.subjects do %>
-      <%= subject.name %>
+      {subject.name}
     <% end %>
   </:col>
   <:col :let={curriculum_item} label="Year">
     <%= for year <- curriculum_item.years do %>
-      <%= year.name %>
+      {year.name}
     <% end %>
   </:col>
-  <:col :let={curriculum_item} label="Name"><%= curriculum_item.name %></:col>
+  <:col :let={curriculum_item} label="Name">{curriculum_item.name}</:col>
   <:action :let={curriculum_item}>
     <div class="sr-only">
       <.link navigate={~p"/admin/curriculum_items/#{curriculum_item}"}>Show</.link>

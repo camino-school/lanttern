@@ -31,14 +31,12 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
     ~H"""
     <div class={@class}>
       <.responsive_container>
-        <h2 class="font-display font-black text-2xl"><%= gettext("Goals assessment entries") %></h2>
+        <h2 class="font-display font-black text-2xl">{gettext("Goals assessment entries")}</h2>
         <p class="mt-4">
-          <%= gettext(
-            "Here you'll find information about the strand final and formative assessments."
-          ) %>
+          {gettext("Here you'll find information about the strand final and formative assessments.")}
         </p>
         <p class="mt-4 mb-10">
-          <%= gettext("You can click the assessment card to view more details about it.") %>
+          {gettext("You can click the assessment card to view more details about it.")}
         </p>
         <div id="strand-goals-student-entries" phx-update="stream">
           <.goal_card
@@ -56,13 +54,13 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
           />
         </div>
         <.empty_state :if={!@has_strand_goals_with_student_entries}>
-          <%= gettext("No assessment entries for this strand yet") %>
+          {gettext("No assessment entries for this strand yet")}
         </.empty_state>
         <div :if={@has_strand_evidences} class="mt-10">
           <div class="flex items-center gap-2">
             <.icon name="hero-paper-clip" class="w-6 h-6" />
             <h4 class="font-display font-black">
-              <%= gettext("All strand evidences") %>
+              {gettext("All strand evidences")}
             </h4>
           </div>
           <div id="strand-evidences" phx-update="stream">
@@ -74,21 +72,21 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
               on_signed_url={&JS.push("signed_url", value: %{"url" => &1}, target: @myself)}
             >
               <p class="mt-4 text-xs">
-                <%= if moment_name do
+                {if moment_name do
                   "#{gettext("In the context of")} \"#{moment_name}\"."
-                end %>
+                end}
                 <.link
                   patch={"#{@base_path}&strand_goal_id=#{goal_id}"}
                   class="underline hover:text-ltrn-subtle"
                 >
-                  <%= gettext("View assessment details") %>
+                  {gettext("View assessment details")}
                 </.link>
               </p>
             </.attachment_card>
           </div>
         </div>
         <div :if={@has_student_grades_report_entries} class="mt-10">
-          <h3 class="font-display font-black text-xl"><%= gettext("Grading") %></h3>
+          <h3 class="font-display font-black text-xl">{gettext("Grading")}</h3>
           <div id="grades-report-entries" phx-update="stream">
             <.card_base
               :for={{dom_id, sgre} <- @streams.student_grades_report_entries}
@@ -99,11 +97,11 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
               ]}
             >
               <p class="font-bold text-ltrn-subtle">
-                <%= Gettext.dgettext(
+                {Gettext.dgettext(
                   Lanttern.Gettext,
                   "taxonomy",
                   sgre.grades_report_subject.subject.name
-                ) %>
+                )}
               </p>
               <div class="flex items-center gap-2 mt-4 sm:mt-0">
                 <.live_component
@@ -126,7 +124,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
         <div :if={@has_strand_goals_without_student_entries} class="mt-10">
           <div class="flex items-center gap-2">
             <h4 class="flex-1 font-display font-black text-ltrn-subtle">
-              <%= gettext("Goals without assessment entries") %>
+              {gettext("Goals without assessment entries")}
             </h4>
             <.toggle_expand_button
               id="toggle-strand-goals-without-student-entries"
@@ -220,9 +218,9 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
         <div>
           <p class="text-sm">
             <span class="inline-block mr-1 font-display font-bold text-ltrn-subtle">
-              <%= @goal.curriculum_item.curriculum_component.name %>
+              {@goal.curriculum_item.curriculum_component.name}
             </span>
-            <%= @goal.curriculum_item.name %>
+            {@goal.curriculum_item.name}
           </p>
           <div
             :if={@render_extra_fields_area}
@@ -250,7 +248,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
                 entry={moment_entry}
                 class="flex-1"
               />
-              <.tooltip><%= gettext("Formative assessment pattern") %></.tooltip>
+              <.tooltip>{gettext("Formative assessment pattern")}</.tooltip>
             </div>
           </div>
         </div>
@@ -271,7 +269,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
     ~H"""
     <div class="group relative flex items-center justify-center w-6 h-6 rounded-full bg-ltrn-diff-lighter">
       <span class="font-display font-black text-sm text-ltrn-diff-accent">D</span>
-      <.tooltip><%= gettext("Differentiation") %></.tooltip>
+      <.tooltip>{gettext("Differentiation")}</.tooltip>
     </div>
     """
   end
@@ -290,7 +288,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
     ~H"""
     <div class={["group relative flex items-center justify-center w-6 h-6 rounded-full", @bg]}>
       <.icon name={@icon_name} class={@color} />
-      <.tooltip><%= @text %></.tooltip>
+      <.tooltip>{@text}</.tooltip>
     </div>
     """
   end

@@ -36,7 +36,7 @@ defmodule LantternWeb.Assessments.EntryParticleComponent do
       style={@style}
       title={@full_text}
     >
-      <%= @particle_text %>
+      {@particle_text}
     </div>
     """
   end

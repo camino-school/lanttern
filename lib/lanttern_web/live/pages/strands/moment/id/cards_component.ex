@@ -13,7 +13,7 @@ defmodule LantternWeb.MomentLive.CardsComponent do
     <div>
       <.action_bar class="flex items-center justify-between gap-4">
         <p>
-          <%= gettext("Use cards to add an extra layer of organization to moments") %>
+          {gettext("Use cards to add an extra layer of organization to moments")}
         </p>
         <div class="flex gap-4">
           <.action
@@ -22,21 +22,21 @@ defmodule LantternWeb.MomentLive.CardsComponent do
             patch={~p"/strands/moment/#{@moment}/cards?reorder=true"}
             icon_name="hero-arrows-up-down-mini"
           >
-            <%= gettext("Reorder") %>
+            {gettext("Reorder")}
           </.action>
           <.action
             type="link"
             patch={~p"/strands/moment/#{@moment}/cards?new=true"}
             icon_name="hero-plus-circle-mini"
           >
-            <%= gettext("New moment card") %>
+            {gettext("New moment card")}
           </.action>
         </div>
       </.action_bar>
       <%= if @moment_cards_count == 0 do %>
         <div class="p-4">
           <.card_base class="p-10">
-            <.empty_state><%= gettext("No cards for this moment yet") %></.empty_state>
+            <.empty_state>{gettext("No cards for this moment yet")}</.empty_state>
           </.card_base>
         </div>
       <% else %>
@@ -47,7 +47,7 @@ defmodule LantternWeb.MomentLive.CardsComponent do
                 patch={~p"/strands/moment/#{@moment}/cards?moment_card_id=#{moment_card.id}"}
                 class="font-display font-black text-xl hover:text-ltrn-subtle"
               >
-                <%= moment_card.name %>
+                {moment_card.name}
               </.link>
             </h5>
             <div class="mt-4 line-clamp-4">
@@ -62,10 +62,10 @@ defmodule LantternWeb.MomentLive.CardsComponent do
                 icon_name="hero-users-mini"
                 theme="student"
               >
-                <%= gettext("Shared") %>
+                {gettext("Shared")}
               </.badge>
               <.badge :if={moment_card.attachments_count > 0} icon_name="hero-paper-clip-mini">
-                <%= ngettext("1 attachment", "%{count} attachments", moment_card.attachments_count) %>
+                {ngettext("1 attachment", "%{count} attachments", moment_card.attachments_count)}
               </.badge>
             </div>
           </.card_base>
@@ -87,7 +87,7 @@ defmodule LantternWeb.MomentLive.CardsComponent do
         id="moment-cards-order-overlay"
         on_cancel={JS.push("dismiss_sort_overlay", target: @myself)}
       >
-        <:title><%= gettext("Moment cards order") %></:title>
+        <:title>{gettext("Moment cards order")}</:title>
         <div
           phx-hook="Sortable"
           id="sortable-moment-cards"
@@ -99,7 +99,7 @@ defmodule LantternWeb.MomentLive.CardsComponent do
             id={"sortable-#{dom_id}"}
             class="mb-4"
           >
-            <%= moment_card.name %>
+            {moment_card.name}
           </.dragable_card>
         </div>
       </.slide_over>

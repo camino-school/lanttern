@@ -53,7 +53,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         ]}
       >
         <.icon name="hero-paper-clip" class="w-6 h-6" />
-        <h5 class="font-display font-bold text-sm"><%= @title %></h5>
+        <h5 class="font-display font-bold text-sm">{@title}</h5>
       </div>
       <.attachments_list
         :if={@attachments_length > 0}
@@ -112,14 +112,14 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
           />
           <div class="flex justify-end gap-2">
             <.button type="button" theme="ghost" phx-click="cancel" phx-target={@myself}>
-              <%= gettext("Cancel") %>
+              {gettext("Cancel")}
             </.button>
             <.button
               type="submit"
               phx-disable-with={gettext("Saving...")}
               id="save-external-attachment"
             >
-              <%= gettext("Save") %>
+              {gettext("Save")}
             </.button>
           </div>
         </.form>
@@ -129,14 +129,13 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         class="p-4 border border-dashed border-ltrn-subtle rounded-sm mt-4 shadow-lg bg-white"
       >
         <p class="flex items-center gap-2 text-sm text-ltrn-subtle">
-          <.icon name="hero-paper-clip-mini" />
-          <%= gettext("File upload") %>
+          <.icon name="hero-paper-clip-mini" /> {gettext("File upload")}
         </p>
         <p class="mt-2 font-bold">
-          <%= entry.client_name %>
+          {entry.client_name}
         </p>
         <.error_block :if={@invalid_upload_msg} class="mt-4">
-          <%= @invalid_upload_msg %>
+          {@invalid_upload_msg}
         </.error_block>
         <div class="flex justify-end gap-4 mt-10">
           <.button
@@ -144,10 +143,10 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
             theme="ghost"
             phx-click={JS.push("cancel_upload", value: %{"ref" => entry.ref}, target: @myself)}
           >
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.button>
           <.button type="submit" form={"#{@id}-attachments-upload-form"} disabled={!entry.valid?}>
-            <%= gettext("Upload") %>
+            {gettext("Upload")}
           </.button>
         </div>
       </div>
@@ -178,10 +177,10 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
                 for={@uploads.attachment_file.ref}
                 class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-hidden focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
               >
-                <span><%= gettext("Upload a file") %></span>
+                <span>{gettext("Upload a file")}</span>
                 <.live_file_input upload={@uploads.attachment_file} class="sr-only" />
               </label>
-              <span><%= gettext("or drag and drop here") %></span>
+              <span>{gettext("or drag and drop here")}</span>
             </div>
           </form>
         </div>
@@ -193,10 +192,10 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
               class="inline text-ltrn-primary hover:text-ltrn-dark focus-within:outline-hidden focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
               phx-click="add_external"
               phx-target={@myself}
-              id="external-link-button"
+              id={"#{@id}-external-link-button"}
             >
-              <%= gettext("Or add a link to an external file") %>
-              <span class="text-ltrn-subtle"><%= gettext("(e.g. Google Docs)") %></span>
+              {gettext("Or add a link to an external file")}
+              <span class="text-ltrn-subtle">{gettext("(e.g. Google Docs)")}</span>
             </button>
           </div>
         </div>
@@ -206,7 +205,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         class="mt-4"
         on_dismiss={JS.push("clear_upload_error", target: @myself)}
       >
-        <%= @upload_error %>
+        {@upload_error}
       </.error_block>
     </div>
     """

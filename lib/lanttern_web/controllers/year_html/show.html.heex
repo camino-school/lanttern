@@ -1,5 +1,5 @@
 <.header>
-  Year <%= @year.id %>
+  Year {@year.id}
   <:subtitle>This is a year record from your database.</:subtitle>
   <:actions>
     <.link href={~p"/admin/years/#{@year}/edit"}>
@@ -9,8 +9,8 @@
 </.header>
 
 <.list>
-  <:item title="Code"><%= @year.code %></:item>
-  <:item title="Name"><%= @year.name %></:item>
+  <:item title="Code">{@year.code}</:item>
+  <:item title="Name">{@year.name}</:item>
 </.list>
 
 <.back navigate={~p"/admin/years"}>Back to years</.back>

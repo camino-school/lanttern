@@ -21,7 +21,7 @@ defmodule LantternWeb.Form.MultiSelectComponent do
       />
       <div class="flex flex-wrap gap-1 mt-2">
         <.badge :if={length(@selected_options) == 0}>
-          <%= @empty_message %>
+          {@empty_message}
         </.badge>
         <.badge
           :for={{name, id} <- @selected_options}
@@ -30,7 +30,7 @@ defmodule LantternWeb.Form.MultiSelectComponent do
           on_remove={JS.push("remove", value: %{id: id}, target: @myself)}
           phx-target={@myself}
         >
-          <%= name %>
+          {name}
         </.badge>
       </div>
     </div>

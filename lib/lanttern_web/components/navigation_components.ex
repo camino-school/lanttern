@@ -61,7 +61,7 @@ defmodule LantternWeb.NavigationComponents do
           <%= for breadcrumb <- @breadcrumb do %>
             <%= if Map.get(breadcrumb, :is_info) do %>
               <.breadcrumb_floating_info>
-                <%= render_slot(breadcrumb) %>
+                {render_slot(breadcrumb)}
               </.breadcrumb_floating_info>
             <% else %>
               <.link
@@ -69,12 +69,12 @@ defmodule LantternWeb.NavigationComponents do
                 class="hidden sm:block max-w-60 font-display font-black text-lg text-ltrn-subtle truncate hover:text-ltrn-dark"
                 title={Map.get(breadcrumb, :title)}
               >
-                <%= render_slot(breadcrumb) %>
+                {render_slot(breadcrumb)}
               </.link>
               <span class="hidden sm:block font-display font-black text-lg text-ltrn-subtle">/</span>
             <% end %>
           <% end %>
-          <h1 class="font-display font-black text-lg truncate"><%= render_slot(@title) %></h1>
+          <h1 class="font-display font-black text-lg truncate">{render_slot(@title)}</h1>
         </div>
         <.nav_menu_button :if={@menu_style == "legacy"} />
         <button
@@ -85,13 +85,12 @@ defmodule LantternWeb.NavigationComponents do
           aria-label="open menu"
         >
           <p class="font-display font-bold">
-            <%= "#{@school_name}" %>
-            <span :if={@current_cycle}><%= @current_cycle.name %></span>
+            {"#{@school_name}"} <span :if={@current_cycle}>{@current_cycle.name}</span>
           </p>
           <.icon name="hero-bars-3-mini" class="w-5 h-5" />
         </button>
       </div>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </header>
     """
   end
@@ -104,7 +103,7 @@ defmodule LantternWeb.NavigationComponents do
         class="text-ltrn-dark group-hover:text-ltrn-subtle group-focus:text-ltrn-subtle"
       />
       <div class="hidden absolute top-[calc(100%+0.5rem)] left-0 z-10 group-hover:block group-focus:block">
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       </div>
     </div>
     """
@@ -135,7 +134,10 @@ defmodule LantternWeb.NavigationComponents do
   def nav_tabs(assigns) do
     ~H"""
     <nav class={["flex gap-10", @class]} id={@id}>
-      <%= for tab <- @tab do %>
+      <%= for tab
+      <-
+        @tab
+        do %>
         <.link
           patch={Map.get(tab, :patch)}
           navigate={Map.get(tab, :navigate)}
@@ -147,7 +149,7 @@ defmodule LantternWeb.NavigationComponents do
             )
           ]}
         >
-          <%= render_slot(tab) %>
+          {render_slot(tab)}
           <.icon :if={Map.get(tab, :icon_name)} name={Map.get(tab, :icon_name)} class="w-6 h-6" />
           <span
             :if={Map.get(tab, :is_current)}
@@ -200,7 +202,7 @@ defmodule LantternWeb.NavigationComponents do
     >
       <.profile_icon profile_name={@person.name} size="xs" theme={@theme} />
       <span class="max-w-[7rem] pr-1 text-xs truncate">
-        <%= @person.name %>
+        {@person.name}
       </span>
     </button>
     """
@@ -248,9 +250,9 @@ defmodule LantternWeb.NavigationComponents do
         >
           <span :if={i > 0} class="hidden sm:inline">/</span>
           <%= if Map.get(item, :link) do %>
-            <.link navigate={item.link} class="underline"><%= render_slot(item) %></.link>
+            <.link navigate={item.link} class="underline">{render_slot(item)}</.link>
           <% else %>
-            <span><%= render_slot(item) %></span>
+            <span>{render_slot(item)}</span>
           <% end %>
         </li>
       </ol>

@@ -25,14 +25,14 @@ defmodule LantternWeb.StrandLive.NotesComponent do
         />
         <%= if @has_moments_notes do %>
           <h4 class="mt-10 font-display font-bold text-lg">
-            <%= gettext("Moments notes in this strand") %>
+            {gettext("Moments notes in this strand")}
           </h4>
           <div :for={{dom_id, note} <- @streams.moments_notes} class="mt-6" id={dom_id}>
             <.link
               navigate={~p"/strands/moment/#{note.moment.id}?tab=notes"}
               class="font-display text-base hover:text-ltrn-subtle"
             >
-              <%= note.moment.name %>
+              {note.moment.name}
             </.link>
             <div class="mt-4 line-clamp-4">
               <.markdown text={note.description} />
@@ -41,10 +41,10 @@ defmodule LantternWeb.StrandLive.NotesComponent do
         <% end %>
         <.hr class="my-10" />
         <h4 class="font-display font-black text-xl text-ltrn-subtle">
-          <%= gettext("Student notes") %>
+          {gettext("Student notes")}
         </h4>
         <.empty_state_simple :if={@selected_classes_ids == []} class="mt-6">
-          <%= gettext("Select a class above to view students notes") %>
+          {gettext("Select a class above to view students notes")}
         </.empty_state_simple>
         <div id="students-strand-notes" phx-update="stream" class="mt-10">
           <div

@@ -78,7 +78,7 @@ defmodule LantternWeb.LearningContextComponents do
         </div>
         <div :if={@on_star_click || @on_edit} class="absolute top-2 right-2 flex items-center gap-2">
           <.button :if={@on_edit} type="button" theme="ghost" size="sm" phx-click={@on_edit}>
-            <%= gettext("Edit") %>
+            {gettext("Edit")}
           </.button>
           <button
             :if={@on_star_click}
@@ -109,29 +109,29 @@ defmodule LantternWeb.LearningContextComponents do
                 class="hover:text-ltrn-subtle"
                 target={if @open_in_new, do: "_blank"}
               >
-                <%= @strand.name %>
+                {@strand.name}
               </.link>
             <% else %>
-              <%= @strand.name %>
+              {@strand.name}
             <% end %>
           </h5>
           <p :if={@strand.type} class="mt-2 font-display font-black text-base text-ltrn-primary">
-            <%= @strand.type %>
+            {@strand.type}
           </p>
         </div>
         <div class="flex flex-wrap gap-2">
           <.badge :for={subject <- @strand.subjects}>
-            <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name) %>
+            {Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name)}
           </.badge>
           <.badge :for={year <- @strand.years}>
-            <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", year.name) %>
+            {Gettext.dgettext(Lanttern.Gettext, "taxonomy", year.name)}
           </.badge>
         </div>
         <div :if={!@hide_description} class="line-clamp-3">
           <.markdown text={@strand.description} />
         </div>
       </div>
-      <%= render_slot(@bottom_content) %>
+      {render_slot(@bottom_content)}
     </.card_base>
     """
   end
@@ -156,21 +156,21 @@ defmodule LantternWeb.LearningContextComponents do
         class="w-full h-32 bg-center bg-cover"
         style={"background-image: url('#{@cover_image_url || "/images/cover-placeholder-sm.jpg"}')"}
       >
-        <span class="sr-only"><%= gettext("Cover image") %></span>
+        <span class="sr-only">{gettext("Cover image")}</span>
       </div>
       <div class="p-4">
         <h6 class="font-display font-black text-base leading-tight">
-          <%= @strand.name %>
+          {@strand.name}
         </h6>
         <p :if={@strand.type} class="mt-2 font-display font-black text-sm text-ltrn-subtle">
-          <%= @strand.type %>
+          {@strand.type}
         </p>
         <div class="flex flex-wrap gap-2 mt-4">
           <.badge :for={subject <- @strand.subjects}>
-            <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name) %>
+            {Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name)}
           </.badge>
           <.badge :for={year <- @strand.years}>
-            <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", year.name) %>
+            {Gettext.dgettext(Lanttern.Gettext, "taxonomy", year.name)}
           </.badge>
         </div>
       </div>

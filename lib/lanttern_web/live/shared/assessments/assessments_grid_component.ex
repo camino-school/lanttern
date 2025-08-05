@@ -40,14 +40,14 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       <.responsive_container>
         <%!-- if no assessment points, render empty state --%>
         <div :if={!@has_assessment_points} class="p-10 mt-4 rounded-sm shadow-xl bg-white">
-          <.empty_state><%= gettext("No assessment points for this strand yet") %></.empty_state>
+          <.empty_state>{gettext("No assessment points for this strand yet")}</.empty_state>
         </div>
         <%!-- if no class filter is select, just render assessment points --%>
         <div
           :if={@classes_ids == [] && @has_assessment_points}
           class="p-10 rounded-sm shadow-xl bg-white"
         >
-          <p class="mb-6 font-bold text-ltrn-subtle"><%= gettext("Current assessment points") %></p>
+          <p class="mb-6 font-bold text-ltrn-subtle">{gettext("Current assessment points")}</p>
           <ol phx-update="stream" id="assessment-points-no-class" class="flex flex-col gap-4">
             <.no_class_assessment_point
               :for={{_dom_id, assessment_point} <- @streams.assessment_points}
@@ -131,14 +131,14 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       <.fixed_bar :if={@entries_changes_map != %{}} class="flex items-center gap-6">
         <div class="flex-1 flex items-center gap-4 text-sm">
           <p class="text-white text-nowrap">
-            <%= ngettext("1 change", "%{count} changes", map_size(@entries_changes_map)) %>
+            {ngettext("1 change", "%{count} changes", map_size(@entries_changes_map))}
           </p>
           <p
             :if={@current_assessment_view == "student"}
             class="flex items-center gap-2 font-bold text-ltrn-student-accent"
           >
             <.icon name="hero-information-circle" class="w-6 h-6" />
-            <%= gettext("You are registering students self-assessments") %>
+            {gettext("You are registering students self-assessments")}
           </p>
         </div>
         <.button
@@ -146,7 +146,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           theme="ghost"
           data-confirm={gettext("Are you sure?")}
         >
-          <%= gettext("Discard") %>
+          {gettext("Discard")}
         </.button>
         <.button
           type="button"
@@ -154,9 +154,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           phx-target={@myself}
           theme={if @current_assessment_view == "student", do: "student"}
         >
-          <%= if @current_assessment_view == "student",
+          {if @current_assessment_view == "student",
             do: gettext("Save self-assessments"),
-            else: gettext("Save") %>
+            else: gettext("Save")}
         </.button>
       </.fixed_bar>
       <.live_component
@@ -187,7 +187,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
     ~H"""
     <li :for={assessment_point <- @assessment_points} id={"no-class-#{assessment_point.id}"}>
-      <%= case assessment_point do
+      {case assessment_point do
         %{name: name} when not is_nil(name) ->
           name
 
@@ -196,7 +196,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
         _final_assessment_without_curriculum_preload ->
           gettext("Strand final assessment for curriculum item")
-      end %>
+      end}
     </li>
     """
   end
@@ -217,7 +217,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         class="flex-1 p-1 rounded-sm text-sm font-bold line-clamp-2 hover:bg-ltrn-mesh-cyan"
         title={@ap_header.name}
       >
-        <%= @ap_header.name %>
+        {@ap_header.name}
       </.link>
       <hr class="h-px mt-2 bg-ltrn-light" />
     </div>
@@ -252,7 +252,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       class="flex items-center w-full h-full p-1 rounded-sm text-sm font-display font-bold truncate hover:bg-ltrn-mesh-cyan"
       navigate={~p"/strands/moment/#{@header_struct.id}/assessment"}
     >
-      <%= @header_struct.name %>
+      {@header_struct.name}
     </.link>
     """
   end
@@ -261,14 +261,14 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     ~H"""
     <div class="flex items-center gap-2">
       <.badge class="truncate">
-        <%= @header_struct.curriculum_component.name %>
+        {@header_struct.curriculum_component.name}
       </.badge>
       <.badge :if={@header_struct.is_differentiation} theme="diff">
-        <%= gettext("Diff") %>
+        {gettext("Diff")}
       </.badge>
     </div>
     <p class="mt-1 text-sm line-clamp-2" title={@header_struct.name}>
-      <%= @header_struct.name %>
+      {@header_struct.name}
     </p>
     """
   end
@@ -276,7 +276,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   def assessment_point_header_struct(%{header_struct: %Strand{}} = assigns) do
     ~H"""
     <p class="flex items-center h-full text-sm font-display font-bold">
-      <%= gettext("Goals assessment") %>
+      {gettext("Goals assessment")}
     </p>
     """
   end
@@ -319,7 +319,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     ~H"""
     <div class="flex flex-col">
       <div :if={@assessment_point.is_differentiation} class="mb-1">
-        <.badge theme="diff"><%= gettext("Diff") %></.badge>
+        <.badge theme="diff">{gettext("Diff")}</.badge>
       </div>
       <p
         class={[
@@ -328,7 +328,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         ]}
         title={@tooltip}
       >
-        <%= @assessment_point.name %>
+        {@assessment_point.name}
       </p>
     </div>
     """
@@ -346,15 +346,15 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     >
       <div class="flex items-center gap-2">
         <.badge class="truncate">
-          <%= @assessment_point.curriculum_item.curriculum_component.name %>
+          {@assessment_point.curriculum_item.curriculum_component.name}
         </.badge>
         <.badge :if={@assessment_point.is_differentiation} theme="diff">
-          <%= gettext("Diff") %>
+          {gettext("Diff")}
         </.badge>
         <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
       </div>
       <p class="flex-1 mt-1 text-sm line-clamp-2" title={@assessment_point.curriculum_item.name}>
-        <%= @assessment_point.curriculum_item.name %>
+        {@assessment_point.curriculum_item.name}
       </p>
     </.link>
     """
@@ -367,15 +367,15 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     <div class="flex flex-col">
       <div class="flex items-center gap-2">
         <.badge class="truncate">
-          <%= @assessment_point.curriculum_item.curriculum_component.name %>
+          {@assessment_point.curriculum_item.curriculum_component.name}
         </.badge>
         <.badge :if={@assessment_point.is_differentiation} theme="diff">
-          <%= gettext("Diff") %>
+          {gettext("Diff")}
         </.badge>
         <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
       </div>
       <p class="flex-1 mt-1 text-sm line-clamp-2" title={@assessment_point.curriculum_item.name}>
-        <%= @assessment_point.curriculum_item.name %>
+        {@assessment_point.curriculum_item.name}
       </p>
     </div>
     """
@@ -391,9 +391,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       >
         <div class="flex items-center gap-2">
           <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
-          <span class="font-bold"><%= @assessment_point.moment.name %></span> <br />
+          <span class="font-bold">{@assessment_point.moment.name}</span> <br />
         </div>
-        <span class="text-xs"><%= @assessment_point.name %></span>
+        <span class="text-xs">{@assessment_point.name}</span>
       </.link>
     </div>
     """
@@ -411,9 +411,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       <div class="whitespace-nowrap overflow-hidden">
         <div class="flex items-center gap-2">
           <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
-          <span class="font-bold"><%= gettext("Goal assessment") %></span>
+          <span class="font-bold">{gettext("Goal assessment")}</span>
         </div>
-        <span class="text-xs"><%= gettext("(Strand final assessment)") %></span>
+        <span class="text-xs">{gettext("(Strand final assessment)")}</span>
       </div>
     </.link>
     """
@@ -423,10 +423,10 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     ~H"""
     <div class="flex gap-1 w-full mt-2">
       <div class="flex-1 pb-1 border-b-2 border-ltrn-staff-accent text-xs text-center text-ltrn-staff-dark">
-        <%= gettext("Teacher") %>
+        {gettext("Teacher")}
       </div>
       <div class="flex-1 pb-1 border-b-2 border-ltrn-student-accent text-xs text-center text-ltrn-student-dark">
-        <%= gettext("Student") %>
+        {gettext("Student")}
       </div>
     </div>
     """

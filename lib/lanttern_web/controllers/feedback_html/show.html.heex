@@ -1,5 +1,5 @@
 <.header>
-  Feedback <%= @feedback.id %>
+  Feedback {@feedback.id}
   <:subtitle>This is a feedback record from your database.</:subtitle>
   <:actions>
     <.link href={~p"/admin/feedback/#{@feedback}/edit"}>
@@ -9,10 +9,10 @@
 </.header>
 
 <.list>
-  <:item title="Assessment point"><%= @feedback.assessment_point.name %></:item>
-  <:item title="Student"><%= @feedback.student.name %></:item>
-  <:item title="Teacher"><%= @feedback.profile.staff_member.name %></:item>
-  <:item title="Comment"><%= @feedback.comment %></:item>
+  <:item title="Assessment point">{@feedback.assessment_point.name}</:item>
+  <:item title="Student">{@feedback.student.name}</:item>
+  <:item title="Teacher">{@feedback.profile.staff_member.name}</:item>
+  <:item title="Comment">{@feedback.comment}</:item>
 </.list>
 
 <.back navigate={~p"/admin/feedback"}>Back to feedback</.back>

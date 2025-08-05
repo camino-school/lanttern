@@ -12,9 +12,9 @@
   rows={@streams.report_cards}
   row_click={fn {_id, report_card} -> JS.navigate(~p"/admin/report_cards/#{report_card}") end}
 >
-  <:col :let={{_id, report_card}} label="Id">#<%= report_card.id %></:col>
-  <:col :let={{_id, report_card}} label="Name"><%= report_card.name %></:col>
-  <:col :let={{_id, report_card}} label="Description"><%= report_card.description %></:col>
+  <:col :let={{_id, report_card}} label="Id">#{report_card.id}</:col>
+  <:col :let={{_id, report_card}} label="Name">{report_card.name}</:col>
+  <:col :let={{_id, report_card}} label="Description">{report_card.description}</:col>
   <:action :let={{_id, report_card}}>
     <div class="sr-only">
       <.link navigate={~p"/admin/report_cards/#{report_card}"}>Show</.link>
@@ -38,7 +38,7 @@
   on_cancel={JS.patch(~p"/admin/report_cards")}
 >
   <.header>
-    <%= @page_title %>
+    {@page_title}
     <:subtitle>Use this form to manage report_card records in your database.</:subtitle>
   </.header>
   <.live_component

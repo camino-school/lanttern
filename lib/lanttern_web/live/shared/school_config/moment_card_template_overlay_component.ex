@@ -20,11 +20,11 @@ defmodule LantternWeb.SchoolConfig.MomentCardTemplateOverlayComponent do
     <div>
       <.modal id={@id} show on_cancel={@on_cancel}>
         <h5 class="mb-10 font-display font-black text-xl">
-          <%= case {@is_editing, @moment_card_template} do
+          {case {@is_editing, @moment_card_template} do
             {true, %{id: nil}} -> gettext("New moment card template")
             {true, _} -> gettext("Edit moment card template")
             {false, %{name: name}} -> gettext("Template: %{template}", template: name)
-          end %>
+          end}
         </h5>
         <%= if @is_editing && @allow_edit do %>
           <.scroll_to_top overlay_id={@id} id="form-scroll-top" />
@@ -37,7 +37,7 @@ defmodule LantternWeb.SchoolConfig.MomentCardTemplateOverlayComponent do
             phx-target={@myself}
           >
             <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
-              <%= gettext("Oops, something went wrong! Please check the errors below.") %>
+              {gettext("Oops, something went wrong! Please check the errors below.")}
             </.error_block>
             <.input
               field={@form[:name]}
@@ -62,7 +62,7 @@ defmodule LantternWeb.SchoolConfig.MomentCardTemplateOverlayComponent do
               show_optional
             />
             <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
-              <%= gettext("Oops, something went wrong! Please check the errors above.") %>
+              {gettext("Oops, something went wrong! Please check the errors above.")}
             </.error_block>
             <div class="flex items-center justify-end gap-6">
               <.action
@@ -76,10 +76,10 @@ defmodule LantternWeb.SchoolConfig.MomentCardTemplateOverlayComponent do
                   )
                 }
               >
-                <%= gettext("Cancel") %>
+                {gettext("Cancel")}
               </.action>
               <.action type="submit" theme="primary" size="md" icon_name="hero-check">
-                <%= gettext("Save") %>
+                {gettext("Save")}
               </.action>
             </div>
           </.form>
@@ -91,13 +91,13 @@ defmodule LantternWeb.SchoolConfig.MomentCardTemplateOverlayComponent do
             class="p-4 border border-ltrn-staff-accent rounded-xs mt-10 bg-ltrn-staff-lightest"
           >
             <h6 class="font-display font-black font-lg text-ltrn-staff-dark">
-              <%= gettext("Additional teacher instructions") %>
+              {gettext("Additional teacher instructions")}
             </h6>
             <.markdown text={@moment_card_template.instructions} class="mt-6" />
           </div>
           <%= if @is_deleted do %>
             <.error_block class="mt-10">
-              <%= gettext("This template was deleted") %>
+              {gettext("This template was deleted")}
             </.error_block>
           <% else %>
             <div :if={@allow_edit} class="flex justify-between gap-4 mt-10">
@@ -108,14 +108,14 @@ defmodule LantternWeb.SchoolConfig.MomentCardTemplateOverlayComponent do
                 theme="subtle"
                 data-confirm={gettext("Are you sure?")}
               >
-                <%= gettext("Delete") %>
+                {gettext("Delete")}
               </.action>
               <.action
                 type="button"
                 icon_name="hero-pencil-mini"
                 phx-click={JS.push("edit", target: @myself)}
               >
-                <%= gettext("Edit template") %>
+                {gettext("Edit template")}
               </.action>
             </div>
           <% end %>

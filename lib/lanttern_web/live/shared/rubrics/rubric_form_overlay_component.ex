@@ -35,25 +35,26 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
     ~H"""
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
       <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
-        <:title><%= @title %></:title>
-        <p class="mb-2 text-xs"><%= gettext("Rubric for curriculum item") %></p>
+        <:title>{@title}</:title>
+        <p class="mb-2 text-xs">{gettext("Rubric for curriculum item")}</p>
         <div class="mb-10">
           <p>
             <strong class="inline-block mr-2 font-display font-bold">
-              <%= @curriculum_item.curriculum_component.name %>
+              {@curriculum_item.curriculum_component.name}
             </strong>
-            <%= @curriculum_item.name %>
+            {@curriculum_item.name}
           </p>
           <div
             :if={@rubric.is_differentiation}
             class="p-4 rounded-sm mt-4 font-bold text-ltrn-diff-dark bg-ltrn-diff-lightest"
           >
-            <%= gettext("Differentiation rubric") %>
+            {gettext("Differentiation rubric")}
           </div>
         </div>
         <%!-- <p :if={@student} class="mt-6 font-display font-bold">
-            <%= gettext("Differentiation for %{name}", name: @student.name) %>
-          </p> --%>
+          {gettext("Differentiation for %{name}", name: @student.name)}
+        </p>
+         --%>
         <.form
           for={@form}
           id={"rubric-form-#{@id}"}
@@ -62,7 +63,7 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
           phx-submit="save"
         >
           <.error_block :if={@form.source.action == :insert} class="mb-6">
-            <%= gettext("Oops, something went wrong! Please check the errors below.") %>
+            {gettext("Oops, something went wrong! Please check the errors below.")}
           </.error_block>
           <.input
             field={@form[:criteria]}
@@ -73,9 +74,9 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
           />
           <.descriptors_fields scale={@scale} field={@form[:descriptors]} myself={@myself} />
           <div class="mt-10 mb-6">
-            <p class="font-bold"><%= gettext("Link rubric to assessment points") %></p>
+            <p class="font-bold">{gettext("Link rubric to assessment points")}</p>
             <.empty_state_simple :if={@assessment_points == []} class="mt-6">
-              <%= gettext("No assessment point matching curriculum, scale, and differentiation flag") %>
+              {gettext("No assessment point matching curriculum, scale, and differentiation flag")}
             </.empty_state_simple>
             <.assessment_point_option
               :for={assessment_point <- @assessment_points}
@@ -99,17 +100,17 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
             <div class="p-6 rounded-sm border border-ltrn-light my-6 bg-ltrn-lightest">
               <p class="flex items-center gap-2 font-bold">
                 <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-                <%= gettext("About rubrics and assessment points relationships") %>
+                {gettext("About rubrics and assessment points relationships")}
               </p>
               <p class="mt-4">
-                <%= gettext(
+                {gettext(
                   "Rubrics can be linked to assessment points with matching curriculum item, scale, and differentiation type."
-                ) %>
+                )}
               </p>
               <p class="mt-4 text-ltrn-diff-dark">
-                <%= gettext(
+                {gettext(
                   "In case of differentiation rubrics, we can also link them directly to a student via assessment point entry."
-                ) %>
+                )}
               </p>
             </div>
           </div>
@@ -123,7 +124,7 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           >
-            <%= gettext("Delete") %>
+            {gettext("Delete")}
           </.action>
         </:actions_left>
         <:actions>
@@ -133,7 +134,7 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
             size="md"
             phx-click={JS.exec("data-cancel", to: "##{@id}")}
           >
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.action>
           <.action
             type="submit"
@@ -142,7 +143,7 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
             icon_name="hero-check"
             form={"rubric-form-#{@id}"}
           >
-            <%= gettext("Save") %>
+            {gettext("Save")}
           </.action>
         </:actions>
       </.slide_over>
@@ -156,7 +157,7 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
 
   defp descriptors_fields(%{scale: %{type: "ordinal"}} = assigns) do
     ~H"""
-    <h5 class="font-display font-black text-ltrn-subtle"><%= gettext("Descriptors") %></h5>
+    <h5 class="font-display font-black text-ltrn-subtle">{gettext("Descriptors")}</h5>
     <.inputs_for :let={ef} field={@field}>
       <.input type="hidden" field={ef[:scale_id]} />
       <.input type="hidden" field={ef[:scale_type]} />
@@ -176,7 +177,7 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
 
   defp descriptors_fields(%{scale: %{type: "numeric"}} = assigns) do
     ~H"""
-    <h5 class="mt-10 font-display font-black text-ltrn-subtle"><%= gettext("Descriptors") %></h5>
+    <h5 class="mt-10 font-display font-black text-ltrn-subtle">{gettext("Descriptors")}</h5>
     <.inputs_for :let={ef} field={@field}>
       <div class="flex gap-6">
         <div class="flex-1">
@@ -201,9 +202,9 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
     </.inputs_for>
 
     <label class={[get_button_styles("ghost"), "mt-6"]}>
-      <input type="checkbox" name="rubric[add_descriptor]" class="hidden" /> <%= gettext(
+      <input type="checkbox" name="rubric[add_descriptor]" class="hidden" /> {gettext(
         "Add descriptor"
-      ) %>
+      )}
     </label>
     """
   end
@@ -255,12 +256,12 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
       </button>
       <div>
         <div class="flex gap-2">
-          <.badge theme={@badge_theme}><%= @badge_text %></.badge>
+          <.badge theme={@badge_theme}>{@badge_text}</.badge>
           <.badge :if={@assessment_point.is_differentiation} theme="diff">
-            <%= gettext("Differentiation") %>
+            {gettext("Differentiation")}
           </.badge>
         </div>
-        <p class="mt-2"><%= @assessment_point_name %></p>
+        <p class="mt-2">{@assessment_point_name}</p>
       </div>
     </.card_base>
     """

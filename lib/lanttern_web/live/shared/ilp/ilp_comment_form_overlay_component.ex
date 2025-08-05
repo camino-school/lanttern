@@ -40,7 +40,7 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
     ~H"""
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
       <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
-        <:title><%= @title %></:title>
+        <:title>{@title}</:title>
         <.form
           id="ilp-comment-form"
           for={@form}
@@ -49,7 +49,7 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
           phx-target={@myself}
         >
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
-            <%= gettext("Oops, something went wrong! Please check the errors below.") %>
+            {gettext("Oops, something went wrong! Please check the errors below.")}
           </.error_block>
           <.input
             field={@form[:content]}
@@ -58,7 +58,7 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
             phx-debounce="1500"
           />
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
-            <%= gettext("Oops, something went wrong! Please check the errors above.") %>
+            {gettext("Oops, something went wrong! Please check the errors above.")}
           </.error_block>
         </.form>
         <.live_component
@@ -82,7 +82,7 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           >
-            <%= gettext("Delete") %>
+            {gettext("Delete")}
           </.action>
         </:actions_left>
         <:actions>
@@ -92,7 +92,7 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
             size="md"
             phx-click={JS.exec("data-cancel", to: "##{@id}")}
           >
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.action>
           <.action
             type="submit"
@@ -102,7 +102,7 @@ defmodule LantternWeb.ILP.ILPCommentFormOverlayComponent do
             form="ilp-comment-form"
             id="save-action-ilp-comment"
           >
-            <%= gettext("Save") %>
+            {gettext("Save")}
           </.action>
         </:actions>
       </.slide_over>

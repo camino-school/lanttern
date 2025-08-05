@@ -8,10 +8,10 @@
 </.header>
 
 <.table id="scales" rows={@scales} row_click={&JS.navigate(~p"/admin/scales/#{&1}")}>
-  <:col :let={scale} label="Name"><%= scale.name %></:col>
-  <:col :let={scale} label="Type"><%= scale.type %></:col>
-  <:col :let={scale} label="Start"><%= scale.start %></:col>
-  <:col :let={scale} label="Stop"><%= scale.stop %></:col>
+  <:col :let={scale} label="Name">{scale.name}</:col>
+  <:col :let={scale} label="Type">{scale.type}</:col>
+  <:col :let={scale} label="Start">{scale.start}</:col>
+  <:col :let={scale} label="Stop">{scale.stop}</:col>
   <:action :let={scale}>
     <div class="sr-only">
       <.link navigate={~p"/admin/scales/#{scale}"}>Show</.link>

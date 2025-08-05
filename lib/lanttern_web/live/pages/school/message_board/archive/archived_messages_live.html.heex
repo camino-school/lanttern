@@ -1,8 +1,8 @@
 <.header_nav current_user={@current_user}>
   <:breadcrumb navigate={~p"/school/message_board"}>
-    <%= @current_user.current_profile.school_name %>
+    {@current_user.current_profile.school_name}
   </:breadcrumb>
-  <:title><%= gettext("Archived messages") %></:title>
+  <:title>{gettext("Archived messages")}</:title>
 </.header_nav>
 <.action_bar class="flex items-center gap-4">
   <.action
@@ -10,10 +10,10 @@
     phx-click={JS.exec("data-show", to: "#message-board-classes-filters-overlay")}
     icon_name="hero-chevron-down-mini"
   >
-    <%= format_action_items_text(@selected_classes, gettext("All classes")) %>
+    {format_action_items_text(@selected_classes, gettext("All classes"))}
   </.action>
   <p>
-    <%= if @messages_count == 0 do
+    {if @messages_count == 0 do
       gettext("No archived messages")
     else
       ngettext(
@@ -21,18 +21,18 @@
         "Showing %{count} archived messages",
         @messages_count
       )
-    end %>
+    end}
   </p>
 </.action_bar>
 <.responsive_container class="p-4">
   <p class="flex items-center gap-2">
     <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-    <%= gettext("Archived messages are not visible to students and guardians.") %>
+    {gettext("Archived messages are not visible to students and guardians.")}
   </p>
   <%= if @messages_count == 0 do %>
     <.card_base class="p-10 mt-4">
       <.empty_state>
-        <%= gettext("No archived messages matching current filter found") %>
+        {gettext("No archived messages matching current filter found")}
       </.empty_state>
     </.card_base>
   <% else %>

@@ -46,7 +46,7 @@ defmodule LantternWeb.NeoComponents do
         ]}
       >
         <.icon :if={Map.get(tab, :theme) == "ai"} name="hero-sparkles-micro" class="h-4 w-4" />
-        <%= render_slot(tab) %>
+        {render_slot(tab)}
         <span
           :if={Map.get(tab, :is_current)}
           class={["absolute h-1 inset-x-0 bottom-0", get_active_bar_class(Map.get(tab, :theme))]}

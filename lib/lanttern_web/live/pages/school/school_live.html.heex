@@ -1,27 +1,27 @@
 <.header_nav current_user={@current_user}>
-  <:title><%= @current_user.current_profile.school_name %></:title>
+  <:title>{@current_user.current_profile.school_name}</:title>
   <div class="px-4">
     <.neo_tabs>
       <:tab patch={~p"/school/classes"} is_current={@live_action == :manage_classes}>
-        <%= "#{@current_user.current_profile.current_school_cycle.name} #{gettext("classes")}" %>
+        {"#{@current_user.current_profile.current_school_cycle.name} #{gettext("classes")}"}
       </:tab>
       <:tab patch={~p"/school/students"} is_current={@live_action == :manage_students}>
-        <%= gettext("Students") %>
+        {gettext("Students")}
       </:tab>
       <:tab patch={~p"/school/staff"} is_current={@live_action == :manage_staff}>
-        <%= gettext("Staff") %>
+        {gettext("Staff")}
       </:tab>
       <:tab patch={~p"/school/cycles"} is_current={@live_action == :manage_cycles}>
-        <%= gettext("Cycles") %>
+        {gettext("Cycles")}
       </:tab>
       <:tab patch={~p"/school/message_board"} is_current={@live_action == :message_board}>
-        <%= gettext("Message board") %>
+        {gettext("Message board")}
       </:tab>
       <:tab
         patch={~p"/school/moment_cards_templates"}
         is_current={@live_action == :manage_moment_cards_templates}
       >
-        <%= gettext("Templates") %>
+        {gettext("Templates")}
       </:tab>
     </.neo_tabs>
   </div>

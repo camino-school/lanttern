@@ -1,5 +1,5 @@
 <.header>
-  Cycle <%= @cycle.id %>
+  Cycle {@cycle.id}
   <:subtitle>This is a cycle record from your database.</:subtitle>
   <:actions>
     <.link patch={~p"/admin/school_cycles/#{@cycle}/show/edit"} phx-click={JS.push_focus()}>
@@ -10,12 +10,12 @@
 
 <.list>
   <:item title="Name">
-    <%= @cycle.name %><%= if !@cycle.parent_cycle_id, do: " (parent cycle)" %>
+    {@cycle.name}{if !@cycle.parent_cycle_id, do: " (parent cycle)"}
   </:item>
-  <:item title="Start at"><%= @cycle.start_at %></:item>
-  <:item title="End at"><%= @cycle.end_at %></:item>
+  <:item title="Start at">{@cycle.start_at}</:item>
+  <:item title="End at">{@cycle.end_at}</:item>
   <:item title="Parent cycle">
-    <%= if @cycle.parent_cycle, do: @cycle.parent_cycle.name, else: "-" %>
+    {if @cycle.parent_cycle, do: @cycle.parent_cycle.name, else: "-"}
   </:item>
 </.list>
 

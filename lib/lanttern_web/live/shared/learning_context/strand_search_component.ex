@@ -45,17 +45,17 @@ defmodule LantternWeb.LearningContext.StrandSearchComponent do
             id={dom_id}
           >
             <div class="flex-1">
-              <p class="font-black"><%= strand.name %></p>
-              <p :if={strand.type} class="text-sm text-ltrn-subtle"><%= strand.type %></p>
+              <p class="font-black">{strand.name}</p>
+              <p :if={strand.type} class="text-sm text-ltrn-subtle">{strand.type}</p>
               <div class="flex flex-wrap gap-1 mt-4">
-                <.badge :for={subject <- strand.subjects}><%= subject.name %></.badge>
-                <.badge :for={year <- strand.years}><%= year.name %></.badge>
+                <.badge :for={subject <- strand.subjects}>{subject.name}</.badge>
+                <.badge :for={year <- strand.years}>{year.name}</.badge>
               </div>
             </div>
             <%= if @selected_strands_ids && strand.id in @selected_strands_ids do %>
               <div class="shrink-0 group relative block text-ltrn-subtle">
                 <.icon name="hero-check-circle" class="w-10 h-10" />
-                <.tooltip h_pos="right"><%= gettext("Already selected") %></.tooltip>
+                <.tooltip h_pos="right">{gettext("Already selected")}</.tooltip>
               </div>
             <% else %>
               <button
@@ -81,7 +81,7 @@ defmodule LantternWeb.LearningContext.StrandSearchComponent do
   def wrapper(%{render_form: false} = assigns) do
     ~H"""
     <div>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </div>
     """
   end
@@ -89,7 +89,7 @@ defmodule LantternWeb.LearningContext.StrandSearchComponent do
   def wrapper(%{render_form: true} = assigns) do
     ~H"""
     <form>
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </form>
     """
   end

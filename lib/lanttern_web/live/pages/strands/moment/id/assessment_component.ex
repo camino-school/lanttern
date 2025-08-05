@@ -31,21 +31,21 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
             patch={~p"/strands/moment/#{@moment}/assessment?is_reordering=true"}
             icon_name="hero-arrows-up-down-mini"
           >
-            <%= gettext("Reorder") %>
+            {gettext("Reorder")}
           </.action>
           <.action
             type="link"
             patch={~p"/strands/moment/#{@moment}/assessment?new_assessment_point=true"}
             icon_name="hero-plus-circle-mini"
           >
-            <%= gettext("New assessment point") %>
+            {gettext("New assessment point")}
           </.action>
         </div>
       </.action_bar>
       <.responsive_container :if={@selected_classes_ids == []} class="py-10">
         <p class="flex items-center gap-2">
           <.icon name="hero-light-bulb-mini" class="text-ltrn-subtle" />
-          <%= gettext("Select a class above to view full assessments grid") %>
+          {gettext("Select a class above to view full assessments grid")}
         </p>
       </.responsive_container>
       <.live_component
@@ -74,7 +74,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
         id="moment-assessment-points-order-overlay"
         on_cancel={JS.patch(~p"/strands/moment/#{@moment}/assessment")}
       >
-        <:title><%= gettext("Assessment Points Order") %></:title>
+        <:title>{gettext("Assessment Points Order")}</:title>
         <.sortable_card
           :for={{assessment_point, i} <- @sortable_assessment_points}
           class="mb-4"
@@ -88,7 +88,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
             JS.push("swap_assessment_point_position", value: %{from: i, to: i - 1}, target: @myself)
           }
         >
-          <p><%= assessment_point.name %></p>
+          <p>{assessment_point.name}</p>
         </.sortable_card>
         <:actions>
           <.button
@@ -96,10 +96,10 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
             theme="ghost"
             phx-click={JS.exec("data-cancel", to: "#moment-assessment-points-order-overlay")}
           >
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.button>
           <.button type="button" phx-click="save_order" phx-target={@myself}>
-            <%= gettext("Save") %>
+            {gettext("Save")}
           </.button>
         </:actions>
       </.slide_over>

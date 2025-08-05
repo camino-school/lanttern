@@ -8,9 +8,9 @@
 </.header>
 
 <.table id="subjects" rows={@subjects} row_click={&JS.navigate(~p"/admin/subjects/#{&1}")}>
-  <:col :let={subject} label="Code"><%= subject.code %></:col>
-  <:col :let={subject} label="Name"><%= subject.name %></:col>
-  <:col :let={subject} label="Short name"><%= subject.short_name %></:col>
+  <:col :let={subject} label="Code">{subject.code}</:col>
+  <:col :let={subject} label="Name">{subject.name}</:col>
+  <:col :let={subject} label="Short name">{subject.short_name}</:col>
   <:action :let={subject}>
     <div class="sr-only">
       <.link navigate={~p"/admin/subjects/#{subject}"}>Show</.link>

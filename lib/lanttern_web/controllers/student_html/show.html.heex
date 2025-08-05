@@ -1,5 +1,5 @@
 <.header>
-  Student <%= @student.id %>
+  Student {@student.id}
   <:subtitle>This is a student record from your database.</:subtitle>
   <:actions>
     <.link href={~p"/admin/students/#{@student}/edit"}>
@@ -9,12 +9,12 @@
 </.header>
 
 <.list>
-  <:item title="Name"><%= @student.name %></:item>
-  <:item title="School"><%= @student.school.name %></:item>
+  <:item title="Name">{@student.name}</:item>
+  <:item title="School">{@student.school.name}</:item>
   <:item title="Classes">
-    <%= @student.classes
+    {@student.classes
     |> Enum.map(& &1.name)
-    |> Enum.join(", ") %>
+    |> Enum.join(", ")}
   </:item>
 </.list>
 

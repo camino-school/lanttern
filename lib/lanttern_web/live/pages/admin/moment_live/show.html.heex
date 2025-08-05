@@ -1,5 +1,5 @@
 <.header>
-  Moment <%= @moment.id %>
+  Moment {@moment.id}
   <:subtitle>This is a moment record from your database.</:subtitle>
   <:actions>
     <.link patch={~p"/admin/moments/#{@moment}/show/edit"} phx-click={JS.push_focus()}>
@@ -9,19 +9,19 @@
 </.header>
 
 <.list>
-  <:item title="Strand"><%= @moment.strand.name %></:item>
-  <:item title="Name"><%= @moment.name %></:item>
-  <:item title="Description"><%= @moment.description %></:item>
-  <:item title="Position"><%= @moment.position %></:item>
+  <:item title="Strand">{@moment.strand.name}</:item>
+  <:item title="Name">{@moment.name}</:item>
+  <:item title="Description">{@moment.description}</:item>
+  <:item title="Position">{@moment.position}</:item>
   <:item title="Subjects">
-    <%= @moment.subjects
+    {@moment.subjects
     |> Enum.map(& &1.name)
-    |> Enum.join(", ") %>
+    |> Enum.join(", ")}
   </:item>
   <:item title="Curriculum items">
-    <%= @moment.curriculum_items
+    {@moment.curriculum_items
     |> Enum.map(& &1.name)
-    |> Enum.join(", ") %>
+    |> Enum.join(", ")}
   </:item>
 </.list>
 
@@ -34,7 +34,7 @@
   on_cancel={JS.patch(~p"/admin/moments/#{@moment}")}
 >
   <.header>
-    <%= @page_title %>
+    {@page_title}
     <:subtitle>Use this form to manage moment records in your database.</:subtitle>
   </.header>
   <.live_component

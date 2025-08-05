@@ -55,7 +55,7 @@ defmodule LantternWeb.ReportingComponents do
     <div class={["p-4 rounded-sm", @bg_class, @class]}>
       <div class="flex items-center gap-2 font-bold text-sm">
         <.icon name="hero-chat-bubble-oval-left" class={["w-6 h-6", @icon_class]} />
-        <span class={@text_class}><%= @text %></span>
+        <span class={@text_class}>{@text}</span>
       </div>
       <.markdown text={@comment} class="max-w-none mt-4" />
     </div>
@@ -77,10 +77,10 @@ defmodule LantternWeb.ReportingComponents do
       <div class="flex items-center gap-2 mb-6">
         <div class="flex-1 pr-2">
           <.badge :if={@rubric.is_differentiation} theme="diff" class="mb-2">
-            <%= gettext("Rubric differentiation") %>
+            {gettext("Rubric differentiation")}
           </.badge>
           <p class="font-display font-black">
-            <%= gettext("Rubric criteria") %>: <%= @rubric.criteria %>
+            {gettext("Rubric criteria")}: {@rubric.criteria}
           </p>
         </div>
       </div>
@@ -138,21 +138,21 @@ defmodule LantternWeb.ReportingComponents do
           "md:text-2xl md:leading-tight"
         ]}>
           <.link :if={@navigate} navigate={@navigate} class="hover:text-ltrn-subtle">
-            <%= @report_card.name %>
+            {@report_card.name}
           </.link>
           <a :if={@open_in_new} href={@open_in_new} target="_blank" class="hover:text-ltrn-subtle">
-            <%= @report_card.name %>
+            {@report_card.name}
           </a>
           <span :if={!@navigate && !@open_in_new} class={if @is_wip, do: "text-ltrn-subtle"}>
-            <%= @report_card.name %>
+            {@report_card.name}
           </span>
         </h5>
         <div :if={@cycle || @year} class="flex flex-wrap gap-2">
           <.badge :if={@cycle}>
-            <%= gettext("Cycle") %>: <%= @cycle.name %>
+            {gettext("Cycle")}: {@cycle.name}
           </.badge>
           <.badge :if={@year}>
-            <%= @year.name %>
+            {@year.name}
           </.badge>
         </div>
         <div :if={!@hide_description && @report_card.description} class="line-clamp-3">
@@ -160,8 +160,7 @@ defmodule LantternWeb.ReportingComponents do
         </div>
       </div>
       <div :if={@is_wip} class="flex items-center gap-2 p-4 text-sm text-ltrn-subtle bg-ltrn-lightest">
-        <.icon name="hero-lock-closed-mini" />
-        <%= gettext("Under development") %>
+        <.icon name="hero-lock-closed-mini" /> {gettext("Under development")}
       </div>
     </div>
     """
@@ -199,8 +198,11 @@ defmodule LantternWeb.ReportingComponents do
 
     ~H"""
     <div class={["grid gap-1 min-w-full", @class]} id={@id} style={@grid_template_columns_style}>
-      <%= for {ordinal_value, descriptor} <- @ordinal_values_and_descriptors do %>
-        <% is_active = @entry && @entry.ordinal_value_id == ordinal_value.id %>
+      <%= for {ordinal_value, descriptor}
+      <-
+        @ordinal_values_and_descriptors
+        do %>
+        {is_active = @entry && @entry.ordinal_value_id == ordinal_value.id}
         <div
           class="p-2 border border-ltrn-lighter rounded-sm font-mono bg-ltrn-lightest"
           style={if is_active, do: create_color_map_style(ordinal_value)}
@@ -209,7 +211,7 @@ defmodule LantternWeb.ReportingComponents do
             class="p-1 rounded-xs text-xs text-center text-ltrn-subtle bg-ltrn-lighter shadow-lg"
             style={if is_active, do: create_color_map_style(ordinal_value)}
           >
-            <%= ordinal_value.name %>
+            {ordinal_value.name}
           </div>
           <.markdown
             text={descriptor.descriptor}
@@ -254,7 +256,7 @@ defmodule LantternWeb.ReportingComponents do
               do: create_color_map_style(ordinal_value)
           }
         >
-          <%= ordinal_value.name %>
+          {ordinal_value.name}
         </div>
       </div>
       <div :if={@rubric} class="grid grid-cols-subgrid" style={@grid_column_span_style}>
@@ -292,7 +294,7 @@ defmodule LantternWeb.ReportingComponents do
       style={create_color_map_gradient_bg_style(@scale)}
     >
       <div style={if @scale.start_text_color, do: "color: #{@scale.start_text_color}"}>
-        <%= @scale.start %>
+        {@scale.start}
       </div>
       <div
         :if={@score}
@@ -306,14 +308,14 @@ defmodule LantternWeb.ReportingComponents do
             else: "text-ltrn-dark bg-white"
           )
         ]}>
-          <%= @score %>
+          {@score}
         </div>
       </div>
       <div
         class="text-right"
         style={if @scale.stop_text_color, do: "color: #{@scale.stop_text_color}"}
       >
-        <%= @scale.stop %>
+        {@scale.stop}
       </div>
     </div>
     """
@@ -353,9 +355,9 @@ defmodule LantternWeb.ReportingComponents do
     <div id={@id} class={@class}>
       <div class="flex items-center gap-4">
         <.badge :if={@assessment_point.is_differentiation} theme="diff">
-          <%= gettext("Diff") %>
+          {gettext("Diff")}
         </.badge>
-        <p class="flex-1 text-sm"><%= @assessment_point.name %></p>
+        <p class="flex-1 text-sm">{@assessment_point.name}</p>
         <.assessment_point_entry_badge entry={@entry} class="shrink-0" />
       </div>
       <.rubric_area
@@ -437,13 +439,13 @@ defmodule LantternWeb.ReportingComponents do
               title={"#{if strand.type, do: "#{strand.type} | "}#{strand.name}"}
             >
               <span class="font-display font-black text-sm">
-                <%= if strand.type, do: "#{strand.type} | " %>
-                <%= strand.name %>
+                {if strand.type, do: "#{strand.type} | "}
+                {strand.name}
               </span>
             </a>
           <% else %>
             <div class="w-full p-2 rounded-sm text-ltrn-subtle text-center bg-ltrn-lightest">
-              <%= gettext("No strands with moments assessment linked to this report card") %>
+              {gettext("No strands with moments assessment linked to this report card")}
             </div>
           <% end %>
         </div>
@@ -458,10 +460,13 @@ defmodule LantternWeb.ReportingComponents do
               class="sticky left-0 z-10 p-2 text-xs truncate bg-white group-hover:bg-ltrn-mesh-cyan"
               title={student.name}
             >
-              <%= student.name %>
+              {student.name}
             </div>
             <%= if @strands != [] do %>
-              <%= for strand <- @strands do %>
+              <%= for strand
+          <-
+            @strands
+            do %>
                 <%= for {moment_id, assessment_point_id, entry} <- @students_entries_map[student.id][strand.id] do %>
                   <a
                     href={"/strands/moment/#{moment_id}/assessment"}
@@ -484,7 +489,7 @@ defmodule LantternWeb.ReportingComponents do
         <% else %>
           <div class="grid grid-cols-subgrid" style={@grid_column_style}>
             <div class="p-4 rounded-sm text-ltrn-subtle bg-ltrn-lightest">
-              <%= gettext("No students linked to this grades report") %>
+              {gettext("No students linked to this grades report")}
             </div>
             <%= if @strands != [] do %>
               TBD

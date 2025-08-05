@@ -15,11 +15,11 @@
   }
 >
   <:col :let={{_id, strand_report}} label="Report card id">
-    #<%= strand_report.report_card_id %>
+    #{strand_report.report_card_id}
   </:col>
-  <:col :let={{_id, strand_report}} label="Strand id">#<%= strand_report.strand_id %></:col>
-  <:col :let={{_id, strand_report}} label="Position"><%= strand_report.position %></:col>
-  <:col :let={{_id, strand_report}} label="Description"><%= strand_report.description %></:col>
+  <:col :let={{_id, strand_report}} label="Strand id">#{strand_report.strand_id}</:col>
+  <:col :let={{_id, strand_report}} label="Position">{strand_report.position}</:col>
+  <:col :let={{_id, strand_report}} label="Description">{strand_report.description}</:col>
   <:action :let={{_id, strand_report}}>
     <div class="sr-only">
       <.link navigate={~p"/admin/strand_reports/#{strand_report}"}>Show</.link>
@@ -43,7 +43,7 @@
   on_cancel={JS.patch(~p"/admin/strand_reports")}
 >
   <.header>
-    <%= @page_title %>
+    {@page_title}
     <:subtitle>Use this form to manage strand_report records in your database.</:subtitle>
   </.header>
   <.live_component

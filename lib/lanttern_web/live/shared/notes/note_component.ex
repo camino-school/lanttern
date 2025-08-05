@@ -52,26 +52,26 @@ defmodule LantternWeb.Notes.NoteComponent do
                 phx-target={@myself}
                 data-confirm={gettext("Are you sure?")}
               >
-                <%= gettext("Delete note") %>
+                {gettext("Delete note")}
               </.button>
               <.markdown_supported />
             </:actions_left>
             <:actions>
               <.button type="button" theme="ghost" phx-click="cancel_edit" phx-target={@myself}>
-                <%= gettext("Cancel") %>
+                {gettext("Cancel")}
               </.button>
               <.button type="submit">
-                <%= gettext("Save") %>
+                {gettext("Save")}
               </.button>
             </:actions>
           </.textarea_with_actions>
-          <.error :for={{msg, _opts} <- @form[:description].errors}><%= msg %></.error>
+          <.error :for={{msg, _opts} <- @form[:description].errors}>{msg}</.error>
         </.form>
       <% else %>
         <%= if @note do %>
           <div class="flex items-center justify-between">
             <h3 class="font-display font-bold text-xl">
-              <%= @title %>
+              {@title}
             </h3>
             <.action
               :if={@allow_editing}
@@ -80,19 +80,19 @@ defmodule LantternWeb.Notes.NoteComponent do
               phx-target={@myself}
               icon_name="hero-pencil-square-mini"
             >
-              <%= gettext("Edit note") %>
+              {gettext("Edit note")}
             </.action>
           </div>
           <p class="text-xs">
-            <%= gettext("Created at") %> <%= format_by_locale(@note.inserted_at, @current_user.tz) %>
+            {gettext("Created at")} {format_by_locale(@note.inserted_at, @current_user.tz)}
             <span :if={@note.inserted_at != @note.updated_at} class="text-ltrn-subtle">
-              (<%= gettext("updated") %> <%= format_by_locale(@note.updated_at, @current_user.tz) %>)
+              ({gettext("updated")} {format_by_locale(@note.updated_at, @current_user.tz)})
             </span>
           </p>
           <.markdown text={@note.description} class="mt-10" />
         <% else %>
           <.empty_state>
-            <%= @empty_msg %>
+            {@empty_msg}
           </.empty_state>
           <div :if={@allow_editing} class="mt-6 text-center">
             <button
@@ -101,7 +101,7 @@ defmodule LantternWeb.Notes.NoteComponent do
               phx-click="edit"
               phx-target={@myself}
             >
-              <%= @empty_add_note_msg %>
+              {@empty_add_note_msg}
             </button>
           </div>
         <% end %>

@@ -1,15 +1,15 @@
 <.responsive_container class="pt-6 sm:pt-10">
-  <.page_title_with_menu><%= gettext("Report cards") %></.page_title_with_menu>
+  <.page_title_with_menu>{gettext("Report cards")}</.page_title_with_menu>
   <div class="flex items-center gap-4 mt-10">
     <h3 class="flex-1 font-display font-black text-xl">
-      <%= if @current_user.current_profile.type == "student" do
+      {if @current_user.current_profile.type == "student" do
         gettext("Your %{cycle} report cards", cycle: @current_cycle.name)
       else
         gettext("%{student}'s %{cycle} report cards",
           student: @student.name,
           cycle: @current_cycle.name
         )
-      end %>
+      end}
     </h3>
   </div>
 </.responsive_container>
@@ -28,14 +28,14 @@
 <% else %>
   <.responsive_container class="my-10">
     <.empty_state class="p-10 rounded-sm bg-white shadow-lg">
-      <%= gettext("No student report cards for selected cycle created yet.") %>
+      {gettext("No student report cards for selected cycle created yet.")}
     </.empty_state>
   </.responsive_container>
 <% end %>
 <%= if @has_student_report_cards_wip do %>
   <.responsive_container>
     <p class="font-display font-black text-xl text-ltrn-subtle">
-      <%= gettext("Report cards under development") %>
+      {gettext("Report cards under development")}
     </p>
   </.responsive_container>
   <.responsive_grid class="px-6 py-10 sm:px-10">

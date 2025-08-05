@@ -13,9 +13,9 @@
   row_click={&JS.navigate(~p"/admin/assessment_point_entries/#{&1}")}
 >
   <:col :let={assessment_point_entry} label="Observation">
-    <%= assessment_point_entry.observation %>
+    {assessment_point_entry.observation}
   </:col>
-  <:col :let={assessment_point_entry} label="Score"><%= assessment_point_entry.score %></:col>
+  <:col :let={assessment_point_entry} label="Score">{assessment_point_entry.score}</:col>
   <:action :let={assessment_point_entry}>
     <div class="sr-only">
       <.link navigate={~p"/admin/assessment_point_entries/#{assessment_point_entry}"}>

@@ -25,10 +25,10 @@ defmodule LantternWeb.StudentLive.AboutComponent do
       <div class="flex items-start gap-20 mt-12">
         <div class="flex-1">
           <div class="pb-6 border-b-2 border-ltrn-light">
-            <h4 class="font-display font-black text-lg"><%= gettext("School area") %></h4>
+            <h4 class="font-display font-black text-lg">{gettext("School area")}</h4>
             <p class="flex items-center gap-2 mt-2">
               <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-              <%= gettext("Access to information in this area is restricted to school staff") %>
+              {gettext("Access to information in this area is restricted to school staff")}
             </p>
           </div>
           <div class="py-10 border-b border-ltrn-light">
@@ -44,7 +44,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
               />
             <% else %>
               <.empty_state_simple :if={!@student_cycle_info.school_info}>
-                <%= gettext("No information about student in school area") %>
+                {gettext("No information about student in school area")}
               </.empty_state_simple>
               <.markdown text={@student_cycle_info.school_info} />
               <.action
@@ -55,7 +55,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
                 phx-target={@myself}
                 disabled={@is_editing_shared_info}
               >
-                <%= gettext("Edit information") %>
+                {gettext("Edit information")}
               </.action>
             <% end %>
           </div>
@@ -73,11 +73,11 @@ defmodule LantternWeb.StudentLive.AboutComponent do
         <div class="flex-1">
           <div class="pb-6 border-b-2 border-ltrn-student-lighter">
             <h4 class="font-display font-black text-lg text-ltrn-student-dark">
-              <%= gettext("Student area") %>
+              {gettext("Student area")}
             </h4>
             <p class="flex items-center gap-2 mt-2">
               <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-              <%= gettext("Information shared with student and guardians") %>
+              {gettext("Information shared with student and guardians")}
             </p>
           </div>
           <div class="py-10 border-b border-ltrn-student-lighter">
@@ -93,7 +93,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
               />
             <% else %>
               <.empty_state_simple :if={!@student_cycle_info.shared_info}>
-                <%= gettext("No information in student area") %>
+                {gettext("No information in student area")}
               </.empty_state_simple>
               <.markdown text={@student_cycle_info.shared_info} />
               <.action
@@ -104,7 +104,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
                 phx-target={@myself}
                 disabled={@is_editing_student_school_info}
               >
-                <%= gettext("Edit information") %>
+                {gettext("Edit information")}
               </.action>
             <% end %>
           </div>
