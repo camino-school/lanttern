@@ -94,6 +94,10 @@ and view it in the `cover/` folder. Source: [excoveralls](https://github.com/par
 
 To investigate the perfomance process run `mix test --slowest 10`
 
+## LLM Agents
+
+Use the versioned `AGENTS.md` as reference for setting your own LLM agent instruction (e.g. copy and paste the content into a `CLAUDE.md` file for working with Claude Code).
+
 ## Restoring a PostgreSQL Backup
 
 ### Requirements

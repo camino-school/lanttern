@@ -57,7 +57,6 @@ defmodule LantternWeb.Router do
     pipe_through [:browser, :require_authenticated_user, :require_privacy_policy_accepted]
 
     live_session :authenticated_staff_member,
-      layout: {LantternWeb.Layouts, :app_logged_in},
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated_staff_member},
         {LantternWeb.Path, :put_path_in_socket},
@@ -137,7 +136,6 @@ defmodule LantternWeb.Router do
     end
 
     live_session :authenticated_guardian,
-      layout: {LantternWeb.Layouts, :app_logged_in},
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated_guardian},
         {LantternWeb.Path, :put_path_in_socket},
@@ -147,7 +145,6 @@ defmodule LantternWeb.Router do
     end
 
     live_session :authenticated_student,
-      layout: {LantternWeb.Layouts, :app_logged_in},
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated_student},
         {LantternWeb.Path, :put_path_in_socket},
@@ -157,7 +154,6 @@ defmodule LantternWeb.Router do
     end
 
     live_session :authenticated_student_or_guardian,
-      layout: {LantternWeb.Layouts, :app_logged_in},
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated_student_or_guardian},
         {LantternWeb.Path, :put_path_in_socket},
@@ -170,7 +166,6 @@ defmodule LantternWeb.Router do
     end
 
     live_session :authenticated_user,
-      layout: {LantternWeb.Layouts, :app_logged_in},
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated},
         {LantternWeb.Path, :put_path_in_socket},

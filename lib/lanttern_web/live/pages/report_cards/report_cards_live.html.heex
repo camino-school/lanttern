@@ -1,109 +1,111 @@
-<.header_nav current_user={@current_user}>
-  <:title>{gettext("Report cards")}</:title>
-  <div class="flex items-center gap-6 p-4">
-    <div class="flex-1 flex items-center gap-6 min-w-0">
-      <.action
-        type="button"
-        phx-click={JS.exec("data-show", to: "#report-cards-cycle-filters-overlay")}
-        icon_name="hero-chevron-down-mini"
-      >
-        {format_action_items_text(
-          @selected_cycles,
-          gettext(
-            "All %{parent_cycle} cycles",
-            parent_cycle:
-              Map.get(@current_user.current_profile.current_school_cycle || %{}, :name)
-          )
-        )}
-      </.action>
-      <.action
-        type="button"
-        phx-click={JS.exec("data-show", to: "#report-cards-year-filters-overlay")}
-        icon_name="hero-chevron-down-mini"
-      >
-        {format_action_items_text(@selected_years, gettext("All years"))}
+<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <.header_nav current_user={@current_user}>
+    <:title>{gettext("Report cards")}</:title>
+    <div class="flex items-center gap-6 p-4">
+      <div class="flex-1 flex items-center gap-6 min-w-0">
+        <.action
+          type="button"
+          phx-click={JS.exec("data-show", to: "#report-cards-cycle-filters-overlay")}
+          icon_name="hero-chevron-down-mini"
+        >
+          {format_action_items_text(
+            @selected_cycles,
+            gettext(
+              "All %{parent_cycle} cycles",
+              parent_cycle:
+                Map.get(@current_user.current_profile.current_school_cycle || %{}, :name)
+            )
+          )}
+        </.action>
+        <.action
+          type="button"
+          phx-click={JS.exec("data-show", to: "#report-cards-year-filters-overlay")}
+          icon_name="hero-chevron-down-mini"
+        >
+          {format_action_items_text(@selected_years, gettext("All years"))}
+        </.action>
+      </div>
+      <.action type="link" patch={~p"/report_cards/new"} icon_name="hero-plus-circle-mini">
+        {gettext("Create new report card")}
       </.action>
     </div>
-    <.action type="link" patch={~p"/report_cards/new"} icon_name="hero-plus-circle-mini">
-      {gettext("Create new report card")}
-    </.action>
-  </div>
-</.header_nav>
-<%= if @has_report_cards do %>
-  <div phx-update="stream" id="cycle-report-cards-grid">
-    <div :for={{dom_id, {cycle, report_cards}} <- @streams.cycles_and_report_cards} id={dom_id}>
-      <h6 class="sticky top-[5rem] p-4 font-display font-bold">{cycle.name}</h6>
-      <.responsive_grid class="px-4 pb-4" is_full_width>
-        <.report_card_card
-          :for={report_card <- report_cards}
-          id={"report-card-#{report_card.id}"}
-          report_card={report_card}
-          navigate={~p"/report_cards/#{report_card}"}
-          year={report_card.year}
-          class="shrink-0 w-64 sm:w-auto"
-        />
-      </.responsive_grid>
+  </.header_nav>
+  <%= if @has_report_cards do %>
+    <div phx-update="stream" id="cycle-report-cards-grid">
+      <div :for={{dom_id, {cycle, report_cards}} <- @streams.cycles_and_report_cards} id={dom_id}>
+        <h6 class="sticky top-[5rem] p-4 font-display font-bold">{cycle.name}</h6>
+        <.responsive_grid class="px-4 pb-4" is_full_width>
+          <.report_card_card
+            :for={report_card <- report_cards}
+            id={"report-card-#{report_card.id}"}
+            report_card={report_card}
+            navigate={~p"/report_cards/#{report_card}"}
+            year={report_card.year}
+            class="shrink-0 w-64 sm:w-auto"
+          />
+        </.responsive_grid>
+      </div>
     </div>
-  </div>
-<% else %>
-  <.empty_state>
-    {gettext("No report cards created yet")}
-  </.empty_state>
-<% end %>
-<.live_component
-  module={LantternWeb.Filters.CyclesFilterOverlayComponent}
-  id="report-cards-cycle-filters-overlay"
-  current_user={@current_user}
-  title={gettext("Filter report cards by cycle")}
-  navigate={~p"/report_cards"}
-  filter_info={
-    case Map.get(@current_user.current_profile.current_school_cycle || %{}, :name) do
-      nil ->
-        nil
-
-      cycle_name ->
-        gettext(
-          "Showing only %{cycle} subcycles. Change the current cycle in the main menu to view other subcycles.",
-          cycle: cycle_name
-        )
-    end
-  }
-  cycles={@cycles}
-  selected_cycles_ids={@selected_cycles_ids}
-/>
-<.live_component
-  module={LantternWeb.Filters.FiltersOverlayComponent}
-  id="report-cards-year-filters-overlay"
-  current_user={@current_user}
-  title={gettext("Filter report cards by year")}
-  filter_type={:years}
-  navigate={~p"/report_cards"}
-/>
-<.slide_over
-  :if={@live_action == :new}
-  id="report-card-form-overlay"
-  show={true}
-  on_cancel={JS.patch(~p"/report_cards")}
->
-  <:title>{gettext("New report card")}</:title>
+  <% else %>
+    <.empty_state>
+      {gettext("No report cards created yet")}
+    </.empty_state>
+  <% end %>
   <.live_component
-    module={ReportCardFormComponent}
-    id={:new}
-    report_card={%ReportCard{}}
-    navigate={fn report_card -> ~p"/report_cards/#{report_card}" end}
-    hide_submit
-    parent_cycle_id={@current_user.current_profile.current_school_cycle.id}
+    module={LantternWeb.Filters.CyclesFilterOverlayComponent}
+    id="report-cards-cycle-filters-overlay"
+    current_user={@current_user}
+    title={gettext("Filter report cards by cycle")}
+    navigate={~p"/report_cards"}
+    filter_info={
+      case Map.get(@current_user.current_profile.current_school_cycle || %{}, :name) do
+        nil ->
+          nil
+
+        cycle_name ->
+          gettext(
+            "Showing only %{cycle} subcycles. Change the current cycle in the main menu to view other subcycles.",
+            cycle: cycle_name
+          )
+      end
+    }
+    cycles={@cycles}
+    selected_cycles_ids={@selected_cycles_ids}
   />
-  <:actions>
-    <.button
-      type="button"
-      theme="ghost"
-      phx-click={JS.exec("data-cancel", to: "#report-card-form-overlay")}
-    >
-      {gettext("Cancel")}
-    </.button>
-    <.button type="submit" form="report-card-form">
-      {gettext("Save")}
-    </.button>
-  </:actions>
-</.slide_over>
+  <.live_component
+    module={LantternWeb.Filters.FiltersOverlayComponent}
+    id="report-cards-year-filters-overlay"
+    current_user={@current_user}
+    title={gettext("Filter report cards by year")}
+    filter_type={:years}
+    navigate={~p"/report_cards"}
+  />
+  <.slide_over
+    :if={@live_action == :new}
+    id="report-card-form-overlay"
+    show={true}
+    on_cancel={JS.patch(~p"/report_cards")}
+  >
+    <:title>{gettext("New report card")}</:title>
+    <.live_component
+      module={ReportCardFormComponent}
+      id={:new}
+      report_card={%ReportCard{}}
+      navigate={fn report_card -> ~p"/report_cards/#{report_card}" end}
+      hide_submit
+      parent_cycle_id={@current_user.current_profile.current_school_cycle.id}
+    />
+    <:actions>
+      <.button
+        type="button"
+        theme="ghost"
+        phx-click={JS.exec("data-cancel", to: "#report-card-form-overlay")}
+      >
+        {gettext("Cancel")}
+      </.button>
+      <.button type="submit" form="report-card-form">
+        {gettext("Save")}
+      </.button>
+    </:actions>
+  </.slide_over>
+</Layouts.app_logged_in>

@@ -1,129 +1,131 @@
-<div>
-  <.header_nav current_user={@current_user}>
-    <:breadcrumb navigate={~p"/strands"}>{gettext("Strands")}</:breadcrumb>
-    <:breadcrumb is_info>
-      <.mini_strand_card strand={@strand} class="w-60" />
-    </:breadcrumb>
-    <:breadcrumb navigate={~p"/strands/#{@strand}/moments"} title={@strand.name}>
-      {@strand.name}
-    </:breadcrumb>
-    <:title>{gettext("Moment: %{moment}", moment: @moment.name)}</:title>
-    <div class="flex items-center justify-between gap-4 px-4">
-      <.neo_tabs id="moment-nav-tabs">
-        <:tab patch={~p"/strands/moment/#{@moment}"} is_current={@live_action == :show}>
-          {gettext("Overview")}
-        </:tab>
-        <:tab
-          patch={~p"/strands/moment/#{@moment}/assessment"}
-          is_current={@live_action == :assessment}
-        >
-          {gettext("Moment assessment")}
-        </:tab>
-        <:tab patch={~p"/strands/moment/#{@moment}/cards"} is_current={@live_action == :cards}>
-          {gettext("Cards")}
-        </:tab>
-        <:tab patch={~p"/strands/moment/#{@moment}/notes"} is_current={@live_action == :notes}>
-          {gettext("Notes")}
-        </:tab>
-      </.neo_tabs>
-      <div class="flex items-center gap-4">
-        <.action
-          type="button"
-          phx-click={JS.exec("data-show", to: "#strand-classes-filter-modal")}
-          icon_name="hero-users-mini"
-        >
-          {format_action_items_text(
-            @selected_classes,
-            gettext("No class selected")
-          )}
-        </.action>
-        <.action
-          type="link"
-          patch={"#{@current_path}?is_editing=true"}
-          icon_name="hero-pencil-mini"
-        >
-          {gettext("Edit moment")}
-        </.action>
-        <.menu_button id="strand-menu-more">
-          <:item
-            id={"remove-moment-#{@moment.id}"}
-            text={gettext("Delete moment")}
-            theme="alert"
-            on_click={JS.push("delete_moment")}
-            confirm_msg={gettext("Are you sure?")}
-          />
-        </.menu_button>
+<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <div>
+    <.header_nav current_user={@current_user}>
+      <:breadcrumb navigate={~p"/strands"}>{gettext("Strands")}</:breadcrumb>
+      <:breadcrumb is_info>
+        <.mini_strand_card strand={@strand} class="w-60" />
+      </:breadcrumb>
+      <:breadcrumb navigate={~p"/strands/#{@strand}/moments"} title={@strand.name}>
+        {@strand.name}
+      </:breadcrumb>
+      <:title>{gettext("Moment: %{moment}", moment: @moment.name)}</:title>
+      <div class="flex items-center justify-between gap-4 px-4">
+        <.neo_tabs id="moment-nav-tabs">
+          <:tab patch={~p"/strands/moment/#{@moment}"} is_current={@live_action == :show}>
+            {gettext("Overview")}
+          </:tab>
+          <:tab
+            patch={~p"/strands/moment/#{@moment}/assessment"}
+            is_current={@live_action == :assessment}
+          >
+            {gettext("Moment assessment")}
+          </:tab>
+          <:tab patch={~p"/strands/moment/#{@moment}/cards"} is_current={@live_action == :cards}>
+            {gettext("Cards")}
+          </:tab>
+          <:tab patch={~p"/strands/moment/#{@moment}/notes"} is_current={@live_action == :notes}>
+            {gettext("Notes")}
+          </:tab>
+        </.neo_tabs>
+        <div class="flex items-center gap-4">
+          <.action
+            type="button"
+            phx-click={JS.exec("data-show", to: "#strand-classes-filter-modal")}
+            icon_name="hero-users-mini"
+          >
+            {format_action_items_text(
+              @selected_classes,
+              gettext("No class selected")
+            )}
+          </.action>
+          <.action
+            type="link"
+            patch={"#{@current_path}?is_editing=true"}
+            icon_name="hero-pencil-mini"
+          >
+            {gettext("Edit moment")}
+          </.action>
+          <.menu_button id="strand-menu-more">
+            <:item
+              id={"remove-moment-#{@moment.id}"}
+              text={gettext("Delete moment")}
+              theme="alert"
+              on_click={JS.push("delete_moment")}
+              confirm_msg={gettext("Are you sure?")}
+            />
+          </.menu_button>
+        </div>
       </div>
-    </div>
-  </.header_nav>
+    </.header_nav>
+    <.live_component
+      :if={@live_action == :show}
+      module={OverviewComponent}
+      id="moment-details-overview"
+      moment={@moment}
+      strand={@strand}
+    />
+    <.live_component
+      :if={@live_action == :cards}
+      module={CardsComponent}
+      id="moment-details-cards"
+      moment={@moment}
+      params={@params}
+      current_user={@current_user}
+    />
+    <.live_component
+      :if={@live_action == :notes}
+      module={NotesComponent}
+      id="moment-details-notes"
+      moment={@moment}
+      current_user={@current_user}
+    />
+  </div>
   <.live_component
-    :if={@live_action == :show}
-    module={OverviewComponent}
-    id="moment-details-overview"
+    :if={@live_action == :assessment}
+    module={AssessmentComponent}
+    id="moment-details-assessment"
     moment={@moment}
     strand={@strand}
-  />
-  <.live_component
-    :if={@live_action == :cards}
-    module={CardsComponent}
-    id="moment-details-cards"
-    moment={@moment}
+    assessment_point_id={@assessment_point_id}
+    current_user={@current_user}
     params={@params}
-    current_user={@current_user}
+    selected_classes_ids={@selected_classes_ids}
   />
+  <.slide_over
+    :if={@params["is_editing"] == "true"}
+    id="moment-form-overlay"
+    show={true}
+    on_cancel={JS.patch(@current_path)}
+  >
+    <:title>{gettext("Edit moment")}</:title>
+    <.live_component
+      module={MomentFormComponent}
+      id={@moment.id}
+      moment={@moment}
+      patch={@current_path}
+      notify_parent
+    />
+    <:actions>
+      <.button
+        type="button"
+        theme="ghost"
+        phx-click={JS.exec("data-cancel", to: "#moment-form-overlay")}
+      >
+        {gettext("Cancel")}
+      </.button>
+      <.button type="submit" form="moment-form">
+        {gettext("Save")}
+      </.button>
+    </:actions>
+  </.slide_over>
   <.live_component
-    :if={@live_action == :notes}
-    module={NotesComponent}
-    id="moment-details-notes"
-    moment={@moment}
+    module={LantternWeb.Filters.ClassesFilterOverlayComponent}
+    id="strand-classes-filter-modal"
     current_user={@current_user}
+    title={@select_classes_overlay_title}
+    profile_filter_opts={[strand_id: @strand.id]}
+    classes={@classes}
+    selected_classes_ids={@selected_classes_ids}
+    navigate={@select_classes_overlay_navigate}
   />
-</div>
-<.live_component
-  :if={@live_action == :assessment}
-  module={AssessmentComponent}
-  id="moment-details-assessment"
-  moment={@moment}
-  strand={@strand}
-  assessment_point_id={@assessment_point_id}
-  current_user={@current_user}
-  params={@params}
-  selected_classes_ids={@selected_classes_ids}
-/>
-<.slide_over
-  :if={@params["is_editing"] == "true"}
-  id="moment-form-overlay"
-  show={true}
-  on_cancel={JS.patch(@current_path)}
->
-  <:title>{gettext("Edit moment")}</:title>
-  <.live_component
-    module={MomentFormComponent}
-    id={@moment.id}
-    moment={@moment}
-    patch={@current_path}
-    notify_parent
-  />
-  <:actions>
-    <.button
-      type="button"
-      theme="ghost"
-      phx-click={JS.exec("data-cancel", to: "#moment-form-overlay")}
-    >
-      {gettext("Cancel")}
-    </.button>
-    <.button type="submit" form="moment-form">
-      {gettext("Save")}
-    </.button>
-  </:actions>
-</.slide_over>
-<.live_component
-  module={LantternWeb.Filters.ClassesFilterOverlayComponent}
-  id="strand-classes-filter-modal"
-  current_user={@current_user}
-  title={@select_classes_overlay_title}
-  profile_filter_opts={[strand_id: @strand.id]}
-  classes={@classes}
-  selected_classes_ids={@selected_classes_ids}
-  navigate={@select_classes_overlay_navigate}
-/>
+</Layouts.app_logged_in>

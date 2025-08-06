@@ -57,7 +57,7 @@ defmodule Lanttern.MixProject do
       {:phoenix_html, "~> 3.3"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.1.3"},
-      {:floki, ">= 0.30.0", only: :test},
+      {:lazy_html, ">= 0.1.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.2"},
       {:esbuild, "~> 0.7", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.3.0", runtime: Mix.env() == :dev},
@@ -95,7 +95,8 @@ defmodule Lanttern.MixProject do
       {:ex_cldr, "~> 2.37"},
       {:ex_cldr_dates_times, "~> 2.0"},
       {:mimic, "~> 1.12", only: :test},
-      {:lazy_html, ">= 0.1.0", only: :test}
+      {:usage_rules, "~> 0.1", only: [:dev]},
+      {:igniter, "~> 0.6", only: [:dev]}
     ]
   end
 
