@@ -19,6 +19,7 @@
       src="https://plausible.io/js/script.js"
     >
     </script>
+    {Application.get_env(:live_debugger, :live_debugger_tags)}
   </head>
   <body class="bg-white antialiased min-h-screen text-sm text-ltrn-dark">
     {@inner_content}

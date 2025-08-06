@@ -89,7 +89,8 @@ defmodule Lanttern.MixProject do
       {:ex_cldr, "~> 2.37"},
       {:ex_cldr_dates_times, "~> 2.0"},
       {:mimic, "~> 1.12", only: :test},
-      {:lazy_html, ">= 0.1.0", only: :test}
+      {:lazy_html, ">= 0.1.0", only: :test},
+      {:live_debugger, "~> 0.3.0", only: :dev}
     ]
   end
 
