@@ -23,6 +23,7 @@ config :lanttern, Lanttern.Repo,
 # Configures the endpoint
 config :lanttern, LantternWeb.Endpoint,
   url: [host: "localhost"],
+  adapter: Bandit.PhoenixAdapter,
   render_errors: [
     formats: [html: LantternWeb.ErrorHTML, json: LantternWeb.ErrorJSON],
     layout: false
@@ -69,22 +70,6 @@ config :logger, :console,
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
-
-# Git hooks
-if Mix.env() == :dev do
-  config :git_hooks,
-    auto_install: true,
-    verbose: true,
-    hooks: [
-      pre_commit: [
-        tasks: [
-          {:cmd, "mix clean"},
-          {:cmd, "mix check"},
-          {:cmd, "mix test"}
-        ]
-      ]
-    ]
-end
 
 # Authentication config
 config :lanttern, LantternWeb.UserAuth, google_client_id: System.get_env("GOOGLE_CLIENT_ID")
