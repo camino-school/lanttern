@@ -272,7 +272,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                     </.action>
                     <.action
                       type="link"
-                      patch={~p"/school/message_board_v2"}
+                      patch={~p"/school/message_board_v2?new=true&section=#{section.name}"}
                       theme="ghost"
                       icon_name="hero-plus-mini"
                     >

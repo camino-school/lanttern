@@ -120,9 +120,11 @@ defmodule LantternWeb.MessageBoard.Components do
       <% end %>
       <div class="p-6">
         <div class="flex items-start gap-4">
-          <div class="flex-shrink-0">
-            <.icon name={get_message_icon(@message.name)} class="w-8 h-8 text-gray-600" />
-          </div>
+          <%= if !@message.cover do %>
+            <div class="flex-shrink-0">
+              <.icon name={get_message_icon(@message.name)} class="w-8 h-8 text-gray-600" />
+            </div>
+          <% end %>
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-2">
               <h3 class="font-bold text-lg text-gray-800 truncate">
@@ -142,10 +144,17 @@ defmodule LantternWeb.MessageBoard.Components do
             icon_name="hero-x-mark-mini"
             theme="alert"
             data-confirm={gettext("Are you sure? This action cannot be undone.")}
+            class="inline-flex"
           >
             <%= gettext("Delete") %>
           </.action>
-          <.action :if={@edit_patch} type="link" patch={@edit_patch} icon_name="hero-pencil-mini">
+          <.action
+            :if={@edit_patch}
+            class="inline-flex"
+            type="link"
+            patch={@edit_patch}
+            icon_name="hero-pencil-mini"
+          >
             <%= gettext("Edit") %>
           </.action>
         <% else %>
