@@ -168,29 +168,29 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     ~H"""
     <div>
       <.header_nav current_user={@current_user}>
-        <:title><%= @current_user.current_profile.school_name %></:title>
+        <:title>{@current_user.current_profile.school_name}</:title>
         <div class="px-4">
           <.neo_tabs>
             <:tab patch={~p"/school/classes"} is_current={@live_action == :manage_classes}>
-              <%= "#{@current_user.current_profile.current_school_cycle.name} #{gettext("classes")}" %>
+              {"#{@current_user.current_profile.current_school_cycle.name} #{gettext("classes")}"}
             </:tab>
             <:tab patch={~p"/school/students"} is_current={@live_action == :manage_students}>
-              <%= gettext("Students") %>
+              {gettext("Students")}
             </:tab>
             <:tab patch={~p"/school/staff"} is_current={@live_action == :manage_staff}>
-              <%= gettext("Staff") %>
+              {gettext("Staff")}
             </:tab>
             <:tab patch={~p"/school/cycles"} is_current={@live_action == :manage_cycles}>
-              <%= gettext("Cycles") %>
+              {gettext("Cycles")}
             </:tab>
             <:tab patch={~p"/school/message_board"} is_current={@live_action == :message_board}>
-              <%= gettext("Message board") %>
+              {gettext("Message board")}
             </:tab>
             <:tab
               patch={~p"/school/moment_cards_templates"}
               is_current={@live_action == :manage_moment_cards_templates}
             >
-              <%= gettext("Templates") %>
+              {gettext("Templates")}
             </:tab>
           </.neo_tabs>
         </div>
@@ -204,7 +204,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             phx-click={JS.exec("data-show", to: "#message-board-classes-filters-overlay")}
             icon_name="hero-chevron-down-mini"
           >
-            <%= format_action_items_text(@selected_classes, gettext("All years")) %>
+            {format_action_items_text(@selected_classes, gettext("All years"))}
           </.action>
           <div class="flex items-center space-x-2">
             <span class="text-sm text-gray-600">View as guardian</span>
@@ -225,7 +225,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
           </div>
 
           <p class="text-sm text-gray-600">
-            <%= if @total_messages_count == 0 do
+            {if @total_messages_count == 0 do
               gettext("No messages")
             else
               ngettext(
@@ -233,27 +233,27 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                 "Showing %{count} messages",
                 @total_messages_count
               )
-            end %>
+            end}
           </p>
         </div>
 
         <.action type="link" patch={~p"/school/message_board_v2"} icon_name="hero-plus-circle-mini">
-          <%= gettext("Create section") %>
+          {gettext("Create section")}
         </.action>
       </.action_bar>
 
       <.responsive_container class="p-4">
         <p class="flex items-center gap-2 mb-6">
           <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-          <%= gettext(
+          {gettext(
             "Manage message board sections and messages. Messages are displayed in students and guardians home page."
-          ) %>
+          )}
         </p>
 
         <%= if @total_messages_count == 0 do %>
           <.card_base class="p-10 mt-4">
             <.empty_state>
-              <%= gettext("No messages created yet") %>
+              {gettext("No messages created yet")}
             </.empty_state>
           </.card_base>
         <% else %>
@@ -263,12 +263,12 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                 <div class="flex items-center justify-between p-4 border-b border-gray-200">
                   <div class="flex items-center space-x-3">
                     <.icon name="hero-bars-2" class="w-5 h-5 text-gray-400 cursor-move" />
-                    <h2 class="text-lg font-semibold text-gray-800"><%= section.name %></h2>
-                    <.badge><%= section.messages_count %></.badge>
+                    <h2 class="text-lg font-semibold text-gray-800">{section.name}</h2>
+                    <.badge>{section.messages_count}</.badge>
                   </div>
                   <div class="flex items-center space-x-2">
                     <.action type="button" theme="subtle" icon_name="hero-cog-6-tooth-mini">
-                      <%= gettext("Settings") %>
+                      {gettext("Settings")}
                     </.action>
                     <.action
                       type="link"
@@ -276,7 +276,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                       theme="ghost"
                       icon_name="hero-plus-mini"
                     >
-                      <%= gettext("New message") %>
+                      {gettext("New message")}
                     </.action>
                   </div>
                 </div>

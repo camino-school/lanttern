@@ -22,15 +22,15 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
       <.slide_over :if={@card_message} id={@id} show={true} on_cancel={@on_cancel}>
         <div class="p-4">
-          <h1 class="font-display font-black text-4xl"><%= @card_message.name %></h1>
+          <h1 class="font-display font-black text-4xl">{@card_message.name}</h1>
 
           <div class="flex flex-row-reverse sm:flex-row items-center gap-2 mt-2 text-xs">
             <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
             <div class="flex-1 sm:flex sm:items-center sm:gap-2">
-              <%= format_by_locale(@card_message.inserted_at, @tz) %>
+              {format_by_locale(@card_message.inserted_at, @tz)}
               <%= if @card_message.inserted_at != @card_message.updated_at do %>
                 <div class="mt-1 sm:mt-0 text-ltrn-subtle">
-                  <%= "(#{gettext("Updated")} #{format_by_locale(@card_message.updated_at, @tz)})" %>
+                  {"(#{gettext("Updated")} #{format_by_locale(@card_message.updated_at, @tz)})"}
                 </div>
               <% end %>
             </div>
@@ -45,7 +45,7 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
             /> --%>
           <% end %>
           <.responsive_container class="mt-10">
-            <h4 class="font-display font-black text-2xl"><%= @card_message.subtitle %></h4>
+            <h4 class="font-display font-black text-2xl">{@card_message.subtitle}</h4>
             <p class="mt-2 font-display font-black text-2xl text-ltrn-subtle">
               <%!-- <%= gettext("card_message of %{strand}", strand: @strand.subtitle) %> --%>
             </p>
@@ -74,7 +74,7 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           >
-            <%= gettext("Delete") %>
+            {gettext("Delete")}
           </.action>
         </:actions_left>
         <:actions :if={@admin != nil}>
@@ -84,7 +84,7 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
             size="md"
             phx-click={JS.exec("data-cancel", to: "##{@id}")}
           >
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.action>
           <.action
             type="submit"
@@ -94,7 +94,7 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
             form="ilp-comment-form"
             id="save-action-ilp-comment"
           >
-            <%= gettext("Save") %>
+            {gettext("Save")}
           </.action>
         </:actions>
       </.slide_over>

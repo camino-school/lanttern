@@ -165,7 +165,7 @@ defmodule LantternWeb.StudentHomeLiveV2 do
   def render(assigns) do
     ~H"""
     <.responsive_container class="pt-6 sm:pt-10">
-      <.page_title_with_menu><%= gettext("Welcome!") %></.page_title_with_menu>
+      <.page_title_with_menu>{gettext("Welcome!")}</.page_title_with_menu>
       <.live_component
         module={StudentHeaderComponent}
         id="student-cycle-info-header"
@@ -182,7 +182,7 @@ defmodule LantternWeb.StudentHomeLiveV2 do
           <.link navigate={~p"/student_strands"} class="block p-6 hover:text-ltrn-subtle">
             <.icon name="hero-map" class="w-8 h-8 text-ltrn-subtle" />
             <div class="mt-4 font-display font-black text-xl">
-              <%= gettext("Explore strands") %>
+              {gettext("Explore strands")}
             </div>
           </.link>
         </.card_base>
@@ -190,7 +190,7 @@ defmodule LantternWeb.StudentHomeLiveV2 do
           <.link navigate={~p"/student_report_cards"} class="block p-6 hover:text-ltrn-subtle">
             <.icon name="hero-map-pin" class="w-8 h-8 text-ltrn-subtle" />
             <div class="mt-4 font-display font-black text-xl">
-              <%= gettext("View report cards") %>
+              {gettext("View report cards")}
             </div>
           </.link>
         </.card_base>
@@ -198,7 +198,7 @@ defmodule LantternWeb.StudentHomeLiveV2 do
           <.link navigate={~p"/student_ilp"} class="block p-6 hover:text-ltrn-subtle">
             <.icon name="hero-check-badge" class="w-8 h-8 text-ltrn-subtle" />
             <div class="mt-4 font-display font-black text-xl">
-              <%= gettext("Read the ILP") %>
+              {gettext("Read the ILP")}
             </div>
           </.link>
         </.card_base>
@@ -209,7 +209,7 @@ defmodule LantternWeb.StudentHomeLiveV2 do
       <div class="space-y-8">
         <div>
           <h2 class="text-2xl font-bold text-gray-800 mb-2">
-            <%= gettext("Message board") %>
+            {gettext("Message board")}
           </h2>
         </div>
 
@@ -217,7 +217,7 @@ defmodule LantternWeb.StudentHomeLiveV2 do
           <div class="space-y-4">
             <div>
               <h3 class="text-xl font-semibold text-gray-700 mb-1">
-                <%= section.name %>
+                {section.name}
               </h3>
             </div>
 
@@ -236,7 +236,7 @@ defmodule LantternWeb.StudentHomeLiveV2 do
       class="mt-20"
     >
       <h3 class="font-display font-black text-xl">
-        <%= gettext("Additional %{cycle} information", cycle: @current_cycle.name) %>
+        {gettext("Additional %{cycle} information", cycle: @current_cycle.name)}
       </h3>
       <.markdown
         :if={@student_cycle_info.shared_info}

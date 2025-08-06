@@ -31,7 +31,7 @@ defmodule LantternWeb.MessageBoard.Components do
     <.card_base id={@id} class={["p-6", @class]}>
       <div class="flex items-start justify-between gap-4">
         <h5 class="flex-1 font-display font-black text-xl" inner-html={}>
-          <%= Phoenix.HTML.raw(Earmark.as_html!(@message.name, inner_html: true)) %>
+          {Phoenix.HTML.raw(Earmark.as_html!(@message.name, inner_html: true))}
         </h5>
         <.action
           :if={@on_unarchive}
@@ -40,7 +40,7 @@ defmodule LantternWeb.MessageBoard.Components do
           icon_name="hero-arrow-up-tray-mini"
           data-confirm={gettext("Are you sure?")}
         >
-          <%= gettext("Unarchive") %>
+          {gettext("Unarchive")}
         </.action>
         <.action
           :if={@on_delete}
@@ -50,10 +50,10 @@ defmodule LantternWeb.MessageBoard.Components do
           theme="alert"
           data-confirm={gettext("Are you sure? This action cannot be undone.")}
         >
-          <%= gettext("Delete") %>
+          {gettext("Delete")}
         </.action>
         <.action :if={@edit_patch} type="link" patch={@edit_patch} icon_name="hero-pencil-mini">
-          <%= gettext("Edit") %>
+          {gettext("Edit")}
         </.action>
         <div
           :if={@message.is_pinned && is_nil(@message.archived_at)}
@@ -81,10 +81,10 @@ defmodule LantternWeb.MessageBoard.Components do
       >
         <%= if @message.send_to == "classes" do %>
           <.icon name="hero-users-mini" class="w-5 h-5 text-ltrn-subtle" />
-          <.badge :for={class <- @message.classes}><%= class.name %></.badge>
+          <.badge :for={class <- @message.classes}>{class.name}</.badge>
         <% else %>
           <.icon name="hero-user-group-mini" class="w-5 h-5 text-ltrn-subtle" />
-          <.badge><%= gettext("Sent to all school") %></.badge>
+          <.badge>{gettext("Sent to all school")}</.badge>
         <% end %>
       </div>
       <.markdown text={@message.content} class="mt-10" />
@@ -128,11 +128,11 @@ defmodule LantternWeb.MessageBoard.Components do
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-2">
               <h3 class="font-bold text-lg text-gray-800 truncate">
-                <%= @message.name %>
+                {@message.name}
               </h3>
             </div>
             <p class="text-gray-600 text-sm mb-4 line-clamp-2">
-              <%= @message.subtitle %>
+              {@message.subtitle}
             </p>
           </div>
         </div>
@@ -146,7 +146,7 @@ defmodule LantternWeb.MessageBoard.Components do
             data-confirm={gettext("Are you sure? This action cannot be undone.")}
             class="inline-flex"
           >
-            <%= gettext("Delete") %>
+            {gettext("Delete")}
           </.action>
           <.action
             :if={@edit_patch}
@@ -155,13 +155,13 @@ defmodule LantternWeb.MessageBoard.Components do
             patch={@edit_patch}
             icon_name="hero-pencil-mini"
           >
-            <%= gettext("Edit") %>
+            {gettext("Edit")}
           </.action>
         <% else %>
           <div class="absolute bottom-3 right-6">
             <button class="w-full flex justify-between items-center text-gray-900 hover:text-gray-900 transition-colors group-hover:text-blue-600">
               <span class="font-medium" phx-click="card_lookout" phx-value-id={@message.id}>
-                <%= gettext("Find out more") %>&nbsp
+                {gettext("Find out more")}&nbsp
               </span>
               <.icon
                 name="hero-arrow-right"
@@ -199,18 +199,18 @@ defmodule LantternWeb.MessageBoard.Components do
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-2">
               <h3 class="font-bold text-lg text-gray-800 truncate">
-                <%= @message.name %>
+                {@message.name}
               </h3>
             </div>
             <p class="text-gray-600 text-sm mb-4 line-clamp-2">
-              <%= @message.subtitle %>
+              {@message.subtitle}
             </p>
           </div>
         </div>
         <div class="absolute bottom-3 right-6">
           <button class="w-full flex justify-between items-center text-gray-900 hover:text-gray-900 transition-colors group-hover:text-blue-600">
             <span class="font-medium" phx-click="card_lookout" phx-value-id={@message.id}>
-              <%= gettext("Find out more") %>&nbsp
+              {gettext("Find out more")}&nbsp
             </span>
             <.icon
               name="hero-arrow-right"
